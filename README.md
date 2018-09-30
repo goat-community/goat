@@ -26,23 +26,46 @@ Docker
 
 For the developed Vagrant and Docker are used. In order to start and customize GOAT for your study area you have to follow these steps:
 
-1. Get a copy from GOAT
+#### 1. Get a copy from GOAT
 
 git clone https://github.com/EPajares/goat.git or copy as zip-folder
 
-2. Install Virtualbox
+#### 2. Install Virtualbox
 
 https://www.virtualbox.org/
 
-3. Install Vagrant
+#### 3. Install Vagrant
 
 https://www.vagrantup.com/
 
-4. Prepare shapefile and provide administrative boundaries
+#### 4. Prepare shapefile and provide administrative boundaries
 
 You need a shapefile with administrative boundaries and column with the number of inhabitants in this administrative 
 unit, it works for any spatial resolution. The column has to be named “sum_pop” and has to be saved as string. 
 As the population data is used for population disaggregation, data on higher resolution will give you a more 
 accurate disaggregation.
 
+**You have to put the file into the app/data folder.**
+
+#### 5. Define your bounding box and the OSM-Downloadlink
+
+Open the file customize the DOWNLOAD_LINK and BOUNDING_BOX.
+
+#### 6. Setup GOAT
+
+##### 6.1. Start Vagrant
+
+Open a command window and go into the project folder. Run the command:
+
+`vagrant up`
+
+For more Vagrant commands checkout:
+
+https://gist.github.com/wpscholar/a49594e2e2b918f4d0c4
+
+##### 6.2. Fill your database
+
+`vagrant ssh
+ sudo bash app/installation/setup_goat.sh
+`
 
