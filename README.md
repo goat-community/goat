@@ -69,3 +69,23 @@ https://gist.github.com/wpscholar/a49594e2e2b918f4d0c4
 
 `sudo bash app/installation/setup_goat.sh`
 
+##### Update data
+
+In case you want to update all your data you can simply run the following from your project directory.
+
+`sudo /etc/init.d/postgresql restart`
+`sudo bash app/installation/setup_goat.sh`
+
+Note this will drop your database and create a new database. 
+
+##### 7. Start Geoserver
+
+`cd ~/app/geoserver`
+`sudo bash install_geoserver.sh`
+
+##### 8. View GOAT in the browser
+
+If all steps were successful you will be able to use GOAT when opening;
+
+
+
