@@ -22,6 +22,6 @@ Vagrant.configure("2") do |config|
 
   # Folder Settings
   config.vm.synced_folder "./app", "/home/vagrant/app"
+  config.vm.provision :shell, path: "./app/installation/install_db.sh"
   config.vm.provision :shell, path: "./app/installation/reboot.sh", run: 'always'
-  config.vm.provision :shell, path: "./app/installation/install_db.sh" 
 end
