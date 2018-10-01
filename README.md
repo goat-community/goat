@@ -28,7 +28,8 @@ For the developed Vagrant and Docker are used. In order to start and customize G
 
 #### 1. Get a copy from GOAT
 
-git clone https://github.com/EPajares/goat.git or copy as zip-folder
+`git clone https://github.com/EPajares/goat.git` 
+or copy as zip-folder
 
 #### 2. Install Virtualbox
 
