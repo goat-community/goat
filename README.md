@@ -86,7 +86,31 @@ Note this will drop your database and create a new database.
 
 ##### 8. View GOAT in the browser
 
-If all steps were successful you will be able to use GOAT when opening;
+If all steps were successful you will be able to use GOAT when opening the index.html file in the front-end directory.
+
+##### 9. Optional: Pre-calculate accessibility heat-map
+
+GOAT allows you to use pre-calculated matrices that are used to visualize the dynamic heatmap. 
+In order to start the pre-calculation you currently have to start the script manually with the following command:
+
+`python3 ~/app/data_preparation/Python/precalculate_grid_thematic.py`
+
+Depending on the size of your study area the calculation can take a bit.
+You can also set different grid_sizes in the script.
+
+
+###### 10. Connect to your database
+
+You can connect to the PostgreSQL database with the following default credentials: 
+
+**Change your credentials especially if you want to run GOAT in production**
+
+Host: localhost
+User: goat
+Database: goat
+Password: earlmanigault
+Port: 65432
+
 
 
 
