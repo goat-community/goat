@@ -1,4 +1,4 @@
-# GOAT
+# Geo Open Accessibility Tool (GOAT)
 
 ## About
 
