@@ -89,16 +89,34 @@ update buildings_residential
 set building_levels = 2, roof_levels = 1 
 where building_levels is null;
 
+--Substract one level when POI on building (more classification has to be done in the future)
+
+alter table buildings_residential 
+add column building_levels_residential integer; 
+
+with x as (
+    select distinct b.gid
+    from buildings_residential b, pois p 
+    where st_intersects(b.geom,p.geom)
+)
+update buildings_residential 
+set building_levels_residential = building_levels - 1
+from x
+where buildings_residential.gid = x.gid;
+update buildings_residential 
+set building_levels_residential = building_levels
+where building_levels_residential is null;
+
 --Population of each adminstrative boundary is assigned to the residential buildings
 with x as (
-select m.gid,sum(b.area*building_levels) as sum_buildings_area 
+select m.gid,sum(b.area*building_levels_residential) as sum_buildings_area 
 from buildings_residential b, study_area m
 where st_intersects(b.geom,m.geom) 
 group by m.gid
 )
 select b.*,m.sum_pop as sum_population,m.area as area_administrative_boundary,
 x.sum_buildings_area,
-round(m.sum_pop*(b.area*building_levels/sum_buildings_area)) as population_building
+round(m.sum_pop*(b.area*building_levels_residential/sum_buildings_area)) as population_building
 into buildings_pop
 from buildings_residential b, x,
 study_area m
