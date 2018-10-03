@@ -1,0 +1,1 @@
+{"virtualbox":{"/home/vagrant/app":{"guestpath":"/home/vagrant/app","hostpath":"/home/ga73buy/Schreibtisch/goat_git/goat/app","disabled":false,"__vagrantfile":true},"/vagrant":{"guestpath":"/vagrant","hostpath":"/home/ga73buy/Schreibtisch/goat_git/goat","disabled":false,"__vagrantfile":true}}}
