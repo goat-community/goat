@@ -19,42 +19,21 @@ app.use(function(request,response,next){
 });
 
 
-
-
 app.get('/load_ways', (request,response) => {
-  pool.query('select id, class_id, st_AsGeoJSON(geom) geom from ways', (err,res) => {
+  pool.query('select id, class_id, st_AsGeoJSON(geom) geom from ways limit 100', (err,res) => {
     if (err) return console.log(err);
     let rows = res.rows
-  var obj, i;
-	obj = {
-		type: "FeatureCollection",
-		features: []
-	};
-
-		for (i = 0; i < rows.length; i++) {
-			var item, feature, geometry;
-			item = rows[i];
-	
-			geometry = JSON.parse(item.geom);
-			delete item.geom;
-	
-			feature = {
-				type: "Feature",
-				properties: item,
-				geometry: geometry
-			}
-	
-			obj.features.push(feature);
-		} 
-
-     response.send(obj);
+    let features = [];
+    for (row of rows){
+    	let geojson = JSON.parse(row.geom)
+	    geojson.properties = { id: row.id, class_id: row.class_id}
+	    features.push(geojson)
+    }
+    
+    response.send(features);
   
   });
 });
-
-
-
-
 
 module.exports = app;
 
