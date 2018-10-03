@@ -36,7 +36,7 @@ Docker
 
 For the developed Vagrant and Docker are used. In order to start and customize GOAT for your study area you have to follow these steps:
 
-#### 1. Get a copy from GOAT
+#### 1. Get a copy of GOAT
 
 `git clone https://github.com/EPajares/goat.git` 
 
@@ -113,7 +113,7 @@ Depending on the size of your study area the calculation can take a bit.
 You can also set different grid_sizes in the script.
 
 
-###### 10. Connect to your database
+##### 10. Connect to your database
 
 You can connect to the PostgreSQL database with the following default credentials: 
 
