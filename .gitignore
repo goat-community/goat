@@ -1,3 +1,4 @@
 GOAT_Documentation.docx
 /app/data_preparation/less_important
 /app/data/*
+!/app/data/.gitkeep
