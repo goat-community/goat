@@ -14,7 +14,7 @@ begin
   --insert into edges_precalculate_100
   --select id as grid_id,* from edges_temp; 
   
-  return query select id,minutes,ST_concavehull(ST_COLLECT(geom),concavity,false)
+  return query select id,minutes,ST_CollectionExtract(ST_concavehull(ST_COLLECT(geom),concavity,false),3)
   from edges_temp 
 
   Return ;
