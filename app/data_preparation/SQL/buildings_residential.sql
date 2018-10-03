@@ -16,8 +16,8 @@ alter table study_area add column area float;
 
 update study_area set area = st_area(geom::geography);
 
+create table buildings_residential_table as 
 select osm_id,building, "addr:housenumber",tags,way as geom
-into buildings_residential_table
 from planet_osm_polygon 
 where building is not null
 and leisure is null
@@ -28,12 +28,9 @@ and shop is null
 and sport is null
 and building in('residential','yes','house','detached','terrace','apartments','home');
 
-
-
 select way into leisure_table from planet_osm_polygon where leisure is not null;
 
 select way into school_table from planet_osm_polygon where amenity ='school';
-
 
 select way into landuse_table 
 from planet_osm_polygon 
