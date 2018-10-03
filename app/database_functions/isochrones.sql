@@ -31,7 +31,7 @@ begin
   upper_limit :=(minutes * speed/n)*counter; 
   under_limit :=(minutes * speed/n)*counter - (minutes * speed/n);
   --A concave hull is created (isochrones) the concavity can be set 	
-  FOR r IN select userid_input,counter,(upper_limit/speed)::numeric, ST_concavehull(ST_COLLECT(geom),concavity,false)
+  FOR r IN select userid_input,counter,(upper_limit/speed)::numeric, ST_CollectionExtract(ST_ConcaveHull(ST_Collect(geom),concavity,false),3)
   from edges where cost between 0 and upper_limit and objectid = objectid_input
   
   LOOP
