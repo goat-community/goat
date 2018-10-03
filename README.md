@@ -11,15 +11,25 @@ be used as well. The backbone of the application is a PostgreSQL/PostGIS databas
 The following software, languages and libraries are currently used:
 
 PostgresSQL 10 
+
 PostGIS 2.4
+
 Pl/PgSQL
+
 Geoserver 2.13.2
+
 Python3
+
 Shell
+
 Openlayers 3
+
 NodeJS 8.12.0
+
 Nginx
+
 Vagrant 2.1.2
+
 Docker
 
 ## Setup GOAT
@@ -29,6 +39,7 @@ For the developed Vagrant and Docker are used. In order to start and customize G
 #### 1. Get a copy from GOAT
 
 `git clone https://github.com/EPajares/goat.git` 
+
 or copy as zip-folder
 
 #### 2. Install Virtualbox
@@ -75,6 +86,7 @@ https://gist.github.com/wpscholar/a49594e2e2b918f4d0c4
 In case you want to update all your data you can simply run the following from your project directory.
 
 `sudo /etc/init.d/postgresql restart`
+
 `sudo bash app/installation/setup_goat.sh`
 
 Note this will drop your database and create a new database. 
@@ -82,6 +94,7 @@ Note this will drop your database and create a new database.
 ##### 7. Start Geoserver
 
 `cd ~/app/geoserver`
+
 `sudo bash install_geoserver.sh`
 
 ##### 8. View GOAT in the browser
@@ -96,6 +109,7 @@ In order to start the pre-calculation you currently have to start the script man
 `python3 ~/app/data_preparation/Python/precalculate_grid_thematic.py`
 
 Depending on the size of your study area the calculation can take a bit.
+
 You can also set different grid_sizes in the script.
 
 
@@ -106,9 +120,13 @@ You can connect to the PostgreSQL database with the following default credential
 **Change your credentials especially if you want to run GOAT in production**
 
 Host: localhost
+
 User: goat
+
 Database: goat
+
 Password: earlmanigault
+
 Port: 65432
 
 
