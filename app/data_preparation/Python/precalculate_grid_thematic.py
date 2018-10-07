@@ -98,8 +98,8 @@ def calculate_index(grid_size):
 #calculate_index(1000)
 #calculate_isochrones(300)   
 #calculate_index(300)
-calculate_isochrones(300)   
-calculate_index(300)
+calculate_isochrones(500)   
+calculate_index(500)
 
 #calculate_isochrones(500)
 #calculate_isochrones(800)
