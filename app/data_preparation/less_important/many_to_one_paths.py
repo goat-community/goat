@@ -41,6 +41,7 @@ employees.append((10.673072,47.572910,150)) #Zetka
 origins = employees +  population
 
 for i in origins:
+    print("insert into onetomany_weighted(persons,geom) SELECT %i, geom from pgr_fromAtoB_split_long('ways_split_long',%f,%f,%f,%f);" % (i[0],i[1],i[2],destination_x,destination_y))
     cursor.execute("insert into onetomany_weighted(persons,geom) SELECT %i, geom from pgr_fromAtoB_split_long('ways_split_long',%f,%f,%f,%f);" % (i[0],i[1],i[2],destination_x,destination_y))
 con.commit()
 con.close()                  
