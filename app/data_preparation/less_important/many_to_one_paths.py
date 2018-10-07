@@ -32,13 +32,13 @@ from x
 ''')
 employees=cursor.fetchall()
 #Add manually big point-working locations
-employees.append((10.674913,47.575498,101)) #MPE Garry
-employees.append((10.674391,47.573509,300)) #PMG Füssen
-employees.append((10.670645,47.573964,250)) #Bihler
-employees.append((10.678405,47.577558,63)) #Scheibel
-employees.append((10.673072,47.572910,150)) #Zetka
+employees.append((101,10.674913,47.575498)) #MPE Garry
+employees.append((300,10.674391,47.573509)) #PMG Füssen
+employees.append((250,10.670645,47.573964)) #Bihler
+employees.append((63,10.678405,47.577558)) #Scheibel
+employees.append((150,10.673072,47.572910)) #Zetka
 
-origins = employees +  population
+origins =  population + employees
 
 for i in origins:
     print("insert into onetomany_weighted(persons,geom) SELECT %i, geom from pgr_fromAtoB_split_long('ways_split_long',%f,%f,%f,%f);" % (i[0],i[1],i[2],destination_x,destination_y))
