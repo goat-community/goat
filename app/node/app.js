@@ -19,21 +19,39 @@ app.use(function(request,response,next){
 });
 
 
+
+
 app.get('/load_ways', (request,response) => {
-  pool.query('select id, class_id, st_AsGeoJSON(geom) geom from ways limit 100', (err,res) => {
+	pool.query(`select id, class_id, st_AsGeoJSON(geom) geom from ways
+	where st_intersects(geom,st_buffer(st_setsrid(st_point(10.683605,47.575593),4326)::geography,1000))`, (err,res) => {
     if (err) return console.log(err);
     let rows = res.rows
-    let features = [];
-    for (row of rows){
-    	let geojson = JSON.parse(row.geom)
-	    geojson.properties = { id: row.id, class_id: row.class_id}
-	    features.push(geojson)
-    }
-    
-    response.send(features);
+  var obj, i;
+	obj = {
+		type: "FeatureCollection",
+		features: []
+	};
+
+		for (i = 0; i < rows.length; i++) {
+			var item, feature, geometry;
+			item = rows[i];
+	
+			geometry = JSON.parse(item.geom);
+			delete item.geom;
+	
+			feature = {
+				type: "Feature",
+				properties: item,
+				geometry: geometry
+			}
+	
+			obj.features.push(feature);
+		} 
+
+     response.send(obj);
   
   });
 });
 
-module.exports = app;
 
+module.exports = app;
