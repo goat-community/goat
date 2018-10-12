@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 var categories_db_style = {
 	'Education':['kindergarten','primary_school','secondary_school'],
 	'Gastronomy':['bar','biergarten','cafe','pub','fast_food','ice_cream','restaurant'],
@@ -21,5 +15,6 @@ var dictionary = {
 	'input':'Scenario',
 	'default' : 'Default'
 
-
 }
+
+export {categories_db_style,dictionary};

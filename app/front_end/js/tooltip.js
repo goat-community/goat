@@ -1,9 +1,16 @@
-var helpTooltip;
+//import map, point,linestring,Overlay
+import {map} from './map';
+import Point from 'ol/geom/Point';
+import LineString from 'ol/geom/LineString';
+import Overlay from 'ol/Overlay';
 
+
+var helpTooltip;
 var listener_start;
 var listener_end;
 var tool_tip = function(interaction,modus){
     var sketch;  
+   
 		map.getOverlays().getArray().slice(0).forEach(function(overlay) {
 						if (overlay.getProperties().element.id !='startaddresse'){																	
 		 					map.removeOverlay(overlay);
@@ -31,9 +38,9 @@ var tool_tip = function(interaction,modus){
         
         if (sketch) {
           var geom1 = (sketch.getGeometry());
-          if (geom1 instanceof ol.geom.Point) {
+          if (geom1 instanceof Point) {
             helpMsg = '<b>Click button again <br> for new calculation</b>';
-          } else if (geom1 instanceof ol.geom.LineString) {
+          } else if (geom1 instanceof LineString) {
             helpMsg = continueLineMsg;
           }
          
@@ -61,7 +68,7 @@ var tool_tip = function(interaction,modus){
         }
         helpTooltipElement = document.createElement('div');
         helpTooltipElement.className = 'tooltip hidden';
-        helpTooltip = new ol.Overlay({
+        helpTooltip = new Overlay({
           element: helpTooltipElement,
           offset: [15, 0],
           positioning: 'center-left'
@@ -105,6 +112,12 @@ var tool_tip = function(interaction,modus){
 };
 
  
+export {tool_tip};
+
+
+
+
+
  var tool_info = {"Starting point calculation ":`You can press this button and click<br> 
                                 at any visible place on the map for<br>
                                 starting a calculation.`,
