@@ -1,8 +1,23 @@
- 	
+import {GeoJSON,WFS,GML} from 'ol/format';
+import {Vector as VectorLayer} from 'ol/layer';
+import {Vector as VectorSource} from 'ol/source'; 
+import ApiConstants from './secrets';	
+import {bbox as bboxStrategy} from 'ol/loadingstrategy';
+import {map} from './map';
+import {iconStyle,drawing_style} from './style';
+import Select from 'ol/interaction/Select';
+import {Draw, Modify, Snap} from 'ol/interaction';
+import { pointerMove} from 'ol/events/condition';
+import {Stroke, Style} from 'ol/style';
+import Feature from 'ol/Feature';
+import {tool_tip} from './tooltip';
+import {draw_isochrone} from './isochrones';
  	
 const userid = Math.floor(Math.random() * 10000000);
+
 var objectid; 	
-	var formatWFS = new ol.format.WFS();
+var formatWFS = new WFS();
+var formatGeoJSON = new GeoJSON();
 var formatGML;
 var number_calculations = 0;
 
@@ -14,9 +29,9 @@ var cql="userid="+userid.toString();
 /////////////////////////////////////////LineLineLine///////////////////////////////////////////////////////////////////////
 
 
-var source_drawnLine = new ol.source.Vector({
+var source_drawnLine = new VectorSource({
     loader: function (extent) {
-        $.ajax(address_geoserver+'wfs?', {
+        $.ajax(ApiConstants.address_geoserver+'wfs?', {
             type: 'GET',
             data: {
                 service: 'WFS',
@@ -29,28 +44,32 @@ var source_drawnLine = new ol.source.Vector({
             }
         }).done(function (response) {
             source_drawnLine.addFeatures(formatWFS.readFeatures(response));
+            
         });
     },
     //strategy: ol.loadingstrategy.tile(ol.tilegrid.createXYZ()),
-    strategy: ol.loadingstrategy.bbox,
+    strategy: bboxStrategy,
     projection: 'EPSG:3857'
 });
 
 
 
-var drawnLine = new ol.layer.Vector({
+var drawnLine = new VectorLayer({
     source: source_drawnLine,
-    style: drawing_style
+   style: drawing_style
 });
 
 map.addLayer(drawnLine);
+
+
+
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////PointPointPoint///////////////////////////////////////////////////////////////////////
 	
-var sourceWFS_point = new ol.source.Vector({
+var sourceWFS_point = new VectorSource({
     loader: function (extent) {
-        $.ajax(address_geoserver+'wfs?', {
+        $.ajax(ApiConstants.address_geoserver+'wfs?', {
             type: 'GET',
             data: {
                 service: 'WFS',
@@ -62,17 +81,19 @@ var sourceWFS_point = new ol.source.Vector({
                 //bbox: extent.join(',') + ',EPSG:3857'
             }
         }).done(function (response) {
-            sourceWFS_point.addFeatures(formatWFS.readFeatures(response));
+            var resp = formatWFS.readFeatures(response);
+            
+            sourceWFS_point.addFeatures(resp);
         });
     },
     //strategy: ol.loadingstrategy.tile(ol.tilegrid.createXYZ()),
-    strategy: ol.loadingstrategy.bbox,
+    strategy: bboxStrategy,
     projection: 'EPSG:3857'
 });
 
 
 	
-var layerWFS_point = new ol.layer.Vector({
+var layerWFS_point = new VectorLayer({
     source: sourceWFS_point,
     style: iconStyle
 });
@@ -80,15 +101,16 @@ var layerWFS_point = new ol.layer.Vector({
 map.addLayer(layerWFS_point);	
 
 
+
 var interaction;
 
-var interactionSelectPointerMove = new ol.interaction.Select({
-    condition: ol.events.condition.pointerMove
+var interactionSelectPointerMove = new Select({
+    condition: pointerMove
 });
 
-var interactionSelect = new ol.interaction.Select({
-    style: new ol.style.Style({
-        stroke: new ol.style.Stroke({
+var interactionSelect = new Select({
+    style: new Style({
+        stroke: new Stroke({
             color: '#FF2828'
         })
     })
@@ -108,7 +130,7 @@ var transactWFS = function (mode, f,formatGML,way_type) {
     var geometry = f.getGeometry().clone();
     geometry.transform("EPSG:3857", "EPSG:4326");
 
-    var  newFeature = new ol.Feature({	
+    var  newFeature = new Feature({	
 		 
 		userid : userid,                
         geometry: geometry,
@@ -134,7 +156,7 @@ var transactWFS = function (mode, f,formatGML,way_type) {
             break;
     }
     var payload = xs.serializeToString(node);
-    $.ajax(address_geoserver+'wfs', {
+    $.ajax(ApiConstants.address_geoserver+'wfs', {
         type: 'POST',
         dataType: 'xml',
         processData: false,
@@ -159,18 +181,18 @@ $('button').click(function () {
          //Define Format and table for POST
          	var way_type = this.id.replace('btn','');
 
-			formatGML = new ol.format.GML({
+			formatGML = new GML({
 				featureNS: 'muc',
-				featureType: 'cite:input_network',
-				srsName: 'EPSG:3857'
+				featureType: 'cite:input_network'//,
+				//srsName: 'EPSG:3857'
 			});
 	        
         
-            interaction = new ol.interaction.Draw({
+            interaction = new Draw({
                 type: 'LineString',
                 source: drawnLine.getSource()
             });
-            var interactionSnap = new ol.interaction.Snap({
+            var interactionSnap = new Snap({
     				source: drawnLine.getSource()
 				});
             map.addInteraction(interaction);
@@ -187,20 +209,22 @@ $('button').click(function () {
 				
 		 //Define Format and table for POST
 		 	
-            formatGML = new ol.format.GML({
+            formatGML = new GML({
     				featureNS: 'muc',
-    				featureType: 'cite:starting_point_isochrones',
-    				srsName: 'EPSG:3857'
+    				featureType: 'cite:starting_point_isochrones'//,
+    			//	srsName: 'EPSG:3857'
 			});
   
            
-            interaction = new ol.interaction.Draw({
+            interaction = new Draw({
                	type:'Point',
                 source: layerWFS_point.getSource()
             });
 
+           
+           
             tool_tip(interaction,'point');
-            var interactionSnap = new ol.interaction.Snap({
+            var interactionSnap = new Snap({
     			source: layerWFS_point.getSource()
 			});
 
@@ -235,13 +259,13 @@ $('button').click(function () {
             break;
             
         case 'btnDelete':
-    		formatGML = new ol.format.GML({
+    		formatGML = new GML({
 				featureNS: 'muc',
-				featureType: 'cite:input_network',
-				srsName: 'EPSG:3857'
+				featureType: 'cite:input_network'//,
+			//	srsName: 'EPSG:3857'
 			});
 				
-            interaction = new ol.interaction.Select();
+            interaction = new Select();
             interaction.getFeatures().on('add', function (e) {
                 transactWFS('delete', e.target.item(0),formatGML);
                 interactionSelectPointerMove.getFeatures().clear();
@@ -254,6 +278,11 @@ $('button').click(function () {
             break;
     }
 });
+export {userid,number_calculations,layerWFS_point,drawnLine};
+
+
+
+
 
 //http://212.83.58.36:8080/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=gid:xxx;&typeNames=cite:pois
 /*

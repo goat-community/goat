@@ -1,48 +1,45 @@
-	
-       	
-var defaultStyle_isochrones = new ol.style.Style({
-	  fill: new ol.style.Fill({
+import {Icon,Circle as Circle, Fill, RegularShape, Stroke, Style, Text} from 'ol/style';
+
+
+ 
+
+var defaultStyle_isochrones = new Style({
+	  fill: new Fill({
 	    color: [0, 0, 0, 0]
 	  }),
-	  stroke: new ol.style.Stroke({
+	  stroke: new  Stroke({
 	    color: '#0d0d0d',
 	    width: 7
 	  })
 	});
 
-var boundaryStyle = new ol.style.Style({
-	  fill: new ol.style.Fill({
+var boundaryStyle = new Style({
+	  fill: new  Fill({
 	    color: [0, 0, 0, 0]
 	  }),
-	  stroke: new ol.style.Stroke({
+	  stroke: new Stroke({
 	    color: '#707070',
 	    width: 5.5
 	  })
 	});
 	
 
-	var vector_style = new ol.style.Style({
-          fill: new ol.style.Fill({
-            color: 'rgb(0, 102, 255)'
-          }),
-          stroke: new ol.style.Stroke({
-            color: '#0066ff',
-            width: 10
-          }),
-          image: new ol.style.Circle({
-            radius: 10,
-            fill: new ol.style.Fill({
-              color: '#0066ff'
-            })
-          })
-        });
-        
-        
-     
-
-        
-
-	      
+var vector_style = new Style({
+				fill: new Fill({
+					color: 'rgb(0, 102, 255)'
+				}),
+				stroke: new  Stroke({
+					color: '#0066ff',
+					width: 10
+				}),
+				image: new Circle({
+					radius: 10,
+					fill: new Fill({
+						color: '#0066ff'
+					})
+				})
+			});
+			
 		var colors_isochrones_input ={
 					"1":'#22D329',
 					"2":'#20C830',
@@ -66,10 +63,6 @@ var boundaryStyle = new ol.style.Style({
 					"20":'#000ABF'    	    	
 		    
 		      };     
-     
-
-	      
-      
       
       var colors_isochrones_default = {
 			"1":'#ffffe0',
@@ -96,23 +89,15 @@ var boundaryStyle = new ol.style.Style({
       };        
       
        
-       colors_way_types = {
+      var colors_way_types = {
        	'Bridge':'#4842f4',
        	'Street':'#f44141'
        }
-      
-
-    
-
       var color_diff_default = [6.10,13.42,11.789];
-      
       var color_1_default = [255,255,224];
-
       var color_diff_input = [1.789,10.578,-9.631];
-      
       var color_1_input = [34,211,41];
 
-       
       function set_color(time,color_diff,color_1){
       	
       	if (time < 1){
@@ -137,8 +122,8 @@ var boundaryStyle = new ol.style.Style({
         	dash_type=[10,10]
         }
         color = colors_way_types[color];
-        let style = new ol.style.Style({
-					  stroke: new ol.style.Stroke({
+        let style = new  Style({
+					  stroke: new  Stroke({
 					    color: color,
 					    width: 5,
 					    lineDash: dash_type
@@ -155,9 +140,11 @@ var boundaryStyle = new ol.style.Style({
         function iconStyle(feature, resolution) {
         		var number = feature.get('number_calculation');
         		var path = 'http://www.open-accessibility.org/accessibility/markers/marker-'+number+'.png';
-        
-        var style = new ol.style.Style({
-		      image: new ol.style.Icon(/** @type {olx.style.IconOptions} */ ({
+		
+				console.log(feature);
+
+        var style = new  Style({
+		      image: new  Icon(/** @type {olx.style.IconOptions} */ ({
 		        anchor: [0.4, 40],
 		        anchorXUnits: 'fraction',
 		        anchorYUnits: 'pixels',
@@ -171,16 +158,19 @@ var boundaryStyle = new ol.style.Style({
       }      
       
 	var array_pois = [];	
-	
-	var setStyle_pois = function (){
+	var _pois;
+	var setStyle_pois = function (pois_geom,pois){
 		array_pois = [];
-		thematic_selection = $("#main_thematic_data .content :checkbox:checked");
+		var thematic_selection = $("#main_thematic_data .content :checkbox:checked");
 		for (var i=0; i < thematic_selection.length; i++){
 			array_pois.push(thematic_selection[i].id.replace('check_',''));
 			
 		} 	
-		for (i in pois_geom){
-			pois_geom[i].setStyle(poisStyle); 
+	
+	  _pois = pois
+		var j;
+		for (j in pois_geom){
+			pois_geom[j].setStyle(poisStyle); 
 		}
 	
 	
@@ -196,13 +186,14 @@ var boundaryStyle = new ol.style.Style({
         		var amenity = feature.get('amenity');
         		
         		if ($.inArray(amenity,array_pois) != -1){
-        		
-	        		var amenity = pois[amenity][0]
+					console.log(_pois);
+					var amenity = _pois[amenity][0]
+					console.log(amenity);
 	        		
 	        		var path = 'http://www.open-accessibility.org/accessibility/markers/pois/'+amenity+'.png';
 	        		
-	        		var style = new ol.style.Style({
-			      		image: new ol.style.Icon(/** @type {olx.style.IconOptions} */ ({
+	        		var style = new  Style({
+			      		image: new  Icon(/** @type {olx.style.IconOptions} */ ({
 			       		//anchor: [0.4, 40],
 			        anchorXUnits: 'fraction',
 			        anchorYUnits: 'pixels',
@@ -243,8 +234,8 @@ var boundaryStyle = new ol.style.Style({
       	 
       		
 				if (!styleCache_default[level]) {
-          		styleCache_default[level] = new ol.style.Style({
-            	stroke: new ol.style.Stroke({
+          		styleCache_default[level] = new  Style({
+            	stroke: new  Stroke({
 	    				color: colors_isochrones_default[level],
 	    				width: 5
          		 })   
@@ -258,8 +249,8 @@ var boundaryStyle = new ol.style.Style({
         else{        
 				
 				if (!styleCache_input[level]) {
-          		styleCache_input[level] = new ol.style.Style({
-            	stroke: new ol.style.Stroke({
+          		styleCache_input[level] = new  Style({
+            	stroke: new Stroke({
 	    				color: colors_isochrones_input[level],
 	    				width: 5
          		 })          
@@ -270,14 +261,10 @@ var boundaryStyle = new ol.style.Style({
         }
  
         return [defaultStyle_isochrones,output];
-      }        
-      
-      
-      
-      
-      
-      styleCache_input_network = {};
-      styleCache_default_network = {};
+			}  
+			      
+    var  styleCache_input_network = {};
+    var  styleCache_default_network = {};
       
       function network_style(feature, resolution) {
         // get the incomeLevel from the feature properties
@@ -291,8 +278,8 @@ var boundaryStyle = new ol.style.Style({
       	 
       			
 				var color =  set_color(level/speed,color_diff_default,color_1_default);  
-          		var style = new ol.style.Style({
-            	stroke: new ol.style.Stroke({
+          		var style = new Style({
+            	stroke: new Stroke({
 	    				color: `rgb(${Math.round(color[0])},${Math.round(color[1])},${Math.round(color[2])})`,
 	    				width: 2
          			 	})   
@@ -306,8 +293,8 @@ var boundaryStyle = new ol.style.Style({
 
 				var color =  set_color(level/speed,color_diff_input,color_1_input);  
 				
-				var style = new ol.style.Style({
-            	stroke: new ol.style.Stroke({
+				var style = new Style({
+            	stroke: new Stroke({
 	    				color: `rgb(${Math.round(color[0])},${Math.round(color[1])},${Math.round(color[2])})`,
 	    				width: 2
          		 		})          
@@ -315,9 +302,8 @@ var boundaryStyle = new ol.style.Style({
 				        
         }
         		
-        
- 
         return style;
-      }        
+			}
+			        
       
-  	
+  	export {boundaryStyle,styleFunction1,iconStyle,drawing_style,network_style,colors_isochrones_default,poisStyle,setStyle_pois};

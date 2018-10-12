@@ -1,7 +1,9 @@
-    
+import {number_calculations} from './interaction';
 
 var dropdown_slider;    
- 
+var header_array = ['header_legend_','header_additional_layer_','header_thematic_data_','header_index_calculation_'];
+var content_array = ['content_legend_','content_additional_layer_','content_thematic_data_','content_index_calculation_'];
+
 var append_dropdown_slider = function(){
  	var number = number_calculations.toString();
  	var radio_index = `<input type="radio" class="index_radio" name="index_input_number" value="speed" checked="checked">Speed [km/h]<br>
@@ -51,9 +53,7 @@ var append_dropdown_slider = function(){
 
 	
 	
-	
-	header_array = ['header_legend_','header_additional_layer_','header_thematic_data_','header_index_calculation_'];
-	content_array = ['content_legend_','content_additional_layer_','content_thematic_data_','content_index_calculation_'];
+ 
 	
 	
 
@@ -61,14 +61,6 @@ var append_dropdown_slider = function(){
 	
 	$(".fa-chevron-down").click();
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -96,10 +88,11 @@ var categories_db_style = {
 
 
 var pois ={};
-for (i in categories_db_style){
+var c;
+for (c in categories_db_style){
 	
 		
-	pois = Object.assign(pois,categories_db_style[i]);
+	pois = Object.assign(pois,categories_db_style[c]);
 }
 
 
@@ -110,3 +103,5 @@ var dictionary = {
 
 
 }
+console.log(header_array);
+export {dropdown_slider,append_dropdown_slider,categories_db_style,pois,dictionary,header_array,content_array};

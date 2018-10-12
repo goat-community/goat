@@ -1,10 +1,16 @@
 
-var header_array = [];
-var content_array = [];
+import {map} from './map';
+import {pois,categories_db_style,dictionary,header_array,content_array} from './variables';
+import {isochrones,network} from './isochrones';
+import {addRemoveAccesibilityLayer} from './layers';
+import {pois_geom} from './other_layers';
+import {drawnLine} from './interaction';
+
+
+
 
 
 let index_function = function () {
-	
 	  
  	 function isUneven(n) {
   		return n % 2 == 1;
@@ -85,9 +91,7 @@ let index_function = function () {
 			$('#check_'+elements[i]).prop("checked", $('#'+category).is(":checked")); 	
 		}
 		if ($('#accessibility_basemap_select').val() != 'no_basemap'){
-		    map.removeLayer(layer_accessibility);
-		    accessibility_layer();
-		    map.addLayer(layer_accessibility);
+			addRemoveAccesibilityLayer.add(map);
   		}  
 	});
 	$('.thematic_item_checkShared').click(function(){
@@ -165,7 +169,7 @@ let index_function = function () {
 		}
 		else{
 		    let number = $(this).parent().attr('id').replace('calculation_','');
-	
+	var i;
 			 //When clicked all the sub_headers and the content, which is visible is toogled  
 			 for (i in header_array){
 			 
@@ -184,10 +188,10 @@ let index_function = function () {
 
 
 	$("body").on('click','.fa-caret-right, .fa-caret-down',function () {
-		
-    	$header = $(this).parent();
+	
+    	var $header = $(this).parent();
     //getting the next element
-    	$content = $header.next();
+    	var $content = $header.next();
     //open up the content needed - toggle the slide- if visible, slide up, if not slidedown.
 		$(this).toggleClass("fa-caret-right fa-caret-down");    	
     	$content.slideToggle();
@@ -196,11 +200,18 @@ let index_function = function () {
 	});
 }	
 
+
+$(window).load(index_function);
+
+
+
 //Removes the complete layer when cross of the calculation is
 $("body").on('click','.cross_layer',function () {
 	let layers = $(this).siblings().children().children()
 	$.each(layers,function(key,value){
 		let id = value.id.replace('isochrones_','')		
+
+		
 		map.removeLayer(isochrones[id])
 		map.removeLayer(network[id])
 		map.removeLayer(pois_geom[id])

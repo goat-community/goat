@@ -1,18 +1,27 @@
-// Create the map 
+import {transform} from 'ol/proj';
+import {map} from './map';
+import ApiConstants from './secrets';
+import {styleFunction1,network_style} from './style';
+import {Vector as VectorLayer} from 'ol/layer';
+import {Vector as VectorSource} from 'ol/source';
+import {GeoJSON, WFS} from 'ol/format';
+import {Stroke, Style} from 'ol/style';
+import {userid,number_calculations,layerWFS_point,drawnLine} from './interaction';
+import {append_dropdown_slider,dictionary} from './variables';
 
 
 
-const thematic_data = {};
+
 var number_isochrone_default = 1;
 var number_isochrone_input = 1;
 const isochrones = {};
 const network = {};
-var vectorSource;
+
 //////////////////////////////////////////////////////////////////
 let draw_isochrone = function(coordinate_input,objectid,parent_id) {
 	$('#mySpinner').addClass('spinner');
  	
- 	const coordinates= ol.proj.transform([coordinate_input[0],coordinate_input[1]],'EPSG:3857','EPSG:4326');
+ 	const coordinates= transform([coordinate_input[0],coordinate_input[1]],'EPSG:3857','EPSG:4326');
 	let modus = document.getElementById('modus').value;     	
  	
 
@@ -20,32 +29,32 @@ let draw_isochrone = function(coordinate_input,objectid,parent_id) {
 		modus=2			
 	}	     	
  	
-  	let network_url =  address_geoserver+`wfs?service=WFS&version=1.1.0
-  					   &request=GetFeature&viewparams=
-  					   objectid:${objectid};
-  					   modus:${modus};
-  					   userid:${userid}
-  					   &typeNames=cite:show_network`;
+	let network_url =  ApiConstants.address_geoserver+`wfs?service=WFS&version=1.1.0
+						&request=GetFeature&viewparams=
+						objectid:${objectid};
+						modus:${modus};
+						userid:${userid}
+						&typeNames=cite:show_network`;
 
   	network_url = network_url.replace(/\s+/g, '');
   	
-  	let save_isochrones_url = address_geoserver+`wfs?service=WFS&version=1.1.0
-						  	  &request=GetFeature&viewparams=
-						  	  userid_input:${userid};
-						  	  minutes:${document.getElementById('max_traveltime').value};
-						 	  x:${coordinates[0]};
-						  	  y:${coordinates[1]};
-						  	  steps:${document.getElementById('steps_isochrones').value};
-						  	  speed:${document.getElementById('travel_speed').value};
-						  	  concavity:${document.getElementById('concavity').value};
-						  	  modus:${modus};
-						  	  objectid_input:${objectid};
-						  	  parent_id:${parent_id}
-						  	  &typeNames=cite:save_isochrones`;
+	  let save_isochrones_url = ApiConstants.address_geoserver+`wfs?service=WFS&version=1.1.0
+							&request=GetFeature&viewparams=
+							userid_input:${userid};
+							minutes:${document.getElementById('max_traveltime').value};
+							x:${coordinates[0]};
+							y:${coordinates[1]};
+							steps:${document.getElementById('steps_isochrones').value};
+							speed:${document.getElementById('travel_speed').value};
+							concavity:${document.getElementById('concavity').value};
+							modus:${modus};
+							objectid_input:${objectid};
+							parent_id:${parent_id}
+							&typeNames=cite:save_isochrones`;
 
   	save_isochrones_url = save_isochrones_url.replace(/\s+/g, '');
 
-  	console.log(save_isochrones_url)
+	
    
    	if (modus =='2' && parent_id != 1){
 		save_isochrones_url = save_isochrones_url.replace('save_isochrones','save_isochrones_input');	  
@@ -61,23 +70,40 @@ let draw_isochrone = function(coordinate_input,objectid,parent_id) {
  //This work around has to be improved (NodeJS) 
   
 
-	var isochrone = new ol.layer.Vector({
-	    source: new ol.source.Vector({
-	    	url:save_isochrones_url,
-
-	    	format: new ol.format.WFS({
+	var isochrone = new VectorLayer({
+	    source: new VectorSource({
+	   // 	url:save_isochrones_url,
+		//	format: new GeoJSON()
+	    	format: new WFS({
 
 	    	})
 	    })   
 	       
 	});
-
+	
 
 	map.addLayer(isochrone);
 
-	// Listener is waiting until the layer is loaded 
-	var listenerKey = isochrone.getSource().on('change', function(e) {
+
 		
+		fetch(save_isochrones_url, {
+			method: 'GET',
+		}).then(function (response) {
+			isochrone_load_fn ();
+		//	return response.json();
+		}).then(function (json) {
+
+			//var features = new ol.format.GeoJSON().readFeatures(json);
+		
+			
+
+
+
+		});
+
+
+function isochrone_load_fn (){
+
 		
 	    $('#mySpinner').removeClass('spinner'); //Spinner while calculation is done
 		
@@ -85,29 +111,22 @@ let draw_isochrone = function(coordinate_input,objectid,parent_id) {
 		if (text_calculation == ""){
 		 	append_dropdown_slider(); 
 		}		 	 
-	 	 
 	 	var type_calculation = layer_name.split('_')[0];
-	 	
-	 	 
-	 	   
-	    var  cql_isochrone = address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:isochrones&srsname=EPSG:3857&CQL_Filter=objectid='+objectid.toString();
-	    
-		var layer = new ol.layer.Vector({
+	    var  cql_isochrone = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:isochrones&srsname=EPSG:3857&CQL_Filter=objectid='+objectid.toString();
+		var layer = new VectorLayer({
 			style:styleFunction1,
-	        source: new ol.source.Vector({
-	         			url:cql_isochrone,
-	           	  		format: new ol.format.WFS({
+	        source: new VectorSource({
+						 url:cql_isochrone,
+						// format: new GeoJSON(),
+	           	  		format: new  WFS({
 
 	            	})
 	        })
 	    })    		    
-	    
-	    
 		//The isochrones are loaded directly from the isochrones table. Note there was an issue with incorrect geometries when loaded directly from SQL-View
 		isochrones[layer_name] = layer
 		map.addLayer(isochrones[layer_name]);
 		show_network(network_url,layer_name);
-		
 		var checkbox_layer = `<input type="checkbox" class ="filled-in isochrones_check" name="isochrones_${type_calculation}" 
 							  id="isochrones_${layer_name}" checked></input> 
 	 						  <label style="color: white !important;"for="isochrones_${layer_name}">${dictionary[type_calculation]}</label>`	
@@ -120,17 +139,17 @@ let draw_isochrone = function(coordinate_input,objectid,parent_id) {
 	   
 
 	    $("#additional_layer_container_"+type_calculation+'_'+number_calculations).append(checkbox_network);	
-	   
-
-
 	    var checkbox_pois = `<input style="margin-left:7px;" type="checkbox" class="filled-in pois_check" id="show_pois_${type_calculation}_${number_calculations}"/>
 	   						<label for="show_pois_${type_calculation}_${number_calculations}">POIs</label>`
-		
 		$("#additional_layer_container_"+type_calculation+'_'+number_calculations).append(checkbox_pois)
+	//	Observable.unByKey(listenerKey);
+		layerWFS_point.getSource().clear();
+}
 
-		ol.Observable.unByKey(listenerKey);
-		layerWFS_point.getSource().clear()
-	});
+	// Listener is waiting until the layer is loaded 
+	// var listenerKey = isochrone.getSource().on('change', function(e) {
+		
+	// });
 };
 
 
@@ -140,10 +159,11 @@ $('#btnInsertintoNetwork').click(function () {
 	
 	$('#mySpinner').addClass('spinner');
 
-	const InsertintoNetwork = new ol.layer.Vector({
-    	source: new ol.source.Vector({
-     				url:address_geoserver+"wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=userid:"+userid.toString()+"&typeNames=cite:insert_into_network",
-        			format: new ol.format.WFS({
+	const InsertintoNetwork = new VectorLayer({
+    	source: new VectorSource({
+     				url:ApiConstants.address_geoserver+"wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=userid:"+userid.toString()+"&typeNames=cite:insert_into_network",
+				//	format: new GeoJSON()
+					 		format: new WFS({
        		})
     	})   
        
@@ -171,8 +191,8 @@ function network_style_default(feature, resolution) {
 	const speed = document.getElementById('travel_speed').value;   
 				
 	const color =  set_color(level/speed,color_diff_default,color_1_default);  
-	const style = new ol.style.Style({
-		stroke: new ol.style.Stroke({
+	const style = new Style({
+		stroke: new Stroke({
 					color: `rgb(${Math.round(color[0])},${Math.round(color[1])},${Math.round(color[2])})`,
 					width: 2
 	 			})   
@@ -189,8 +209,8 @@ function network_style_input(feature, resolution) {
 
 	const color =  set_color(level/speed,color_diff_input,color_1_input);  
 		
-	const style = new ol.style.Style({
-    				stroke: new ol.style.Stroke({
+	const style = new Style({
+    				stroke: new Stroke({
 						color: `rgb(${Math.round(color[0])},${Math.round(color[1])},${Math.round(color[2])})`,
 						width: 2
  					})          
@@ -208,12 +228,13 @@ var show_network = function(network_url,layer_name){
 	  	const network_style = network_style_input;
 	}
 	  
-	const network_layer = new ol.layer.Vector({
+	const network_layer = new VectorLayer({
 	  	opacity:1,
 	  	style: network_style,
-		   source: new ol.source.Vector({
-	     	url:network_url,
-	        format: new ol.format.WFS({
+		   source: new VectorSource({
+			 url:network_url,
+			// format: new GeoJSON()
+	        format: new  WFS({
 
 	        })
 	     })   
@@ -230,8 +251,11 @@ var show_network = function(network_url,layer_name){
 	const z_network_layer = network[layer_name].getZIndex();
 	network[layer_name].setVisible(false);
 
-	const z_point = map.getLayers().a.length-1; //Put the point above the network layer
+
+	console.log(map.getLayers().getLength());	
+	const z_point = map.getLayers().getLength()-1; //Put the point above the network layer
 	layerWFS_point.setZIndex(z_point);
 }
 
 
+export {draw_isochrone,isochrones,network};

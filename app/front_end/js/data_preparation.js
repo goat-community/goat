@@ -1,5 +1,8 @@
+import {pois} from './variables';
+import {isochrones} from './isochrones';
+import {colors_isochrones_default} from './style';
 
-
+const thematic_data = {};
 $("body").on('click','.fa-chevron-right',function () {	
 	var ids = [];
 	
@@ -54,7 +57,7 @@ var create_dropdown = function(time_steps,ids){
 		if (ids.length == 2){ //If two calculations are done the color get displayed next to each other
 			colors = colors + '<div class="legend_item"  style="margin-left: 7px;margin-right: 7px;width:50px;height:20px;border:2px solid #000;background-color:'+colors_isochrones_input[value]+';"></div>'				
 		}			  	
-		legend_item = 	'<br>'+colors+'<span>'+value+' minutes</span><br>'	   
+		var legend_item = 	'<br>'+colors+'<span>'+value+' minutes</span><br>'	   
 		   	legend = legend + legend_item
 			
 	})
@@ -90,8 +93,8 @@ $("body").on('change','.dropdown_thematic',function () {
 		var keys_feature = Object.keys(one_object_input);
    	}
 	   
-	thematic_selection = $("#main_thematic_data .content :checkbox:checked");
-	array_pois = [];
+	var thematic_selection = $("#main_thematic_data .content :checkbox:checked");
+	var array_pois = [];
 
 
 	for (var i=0; i < thematic_selection.length; i++){
@@ -132,5 +135,7 @@ $("body").on('change','.dropdown_thematic',function () {
 	$('#content_thematic_data_'+counter).append($(table));
 		
 })
+
+export {thematic_data};
    
     

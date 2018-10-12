@@ -1,15 +1,23 @@
-var reached_network_url = address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&typeNames=cite:reached_network';
-	       	
+import ApiConstants from './secrets';
+import {map} from './map';
+import { Vector as VectorLayer} from 'ol/layer';
+import {Vector as VectorSource} from 'ol/source';
+import {WFS} from 'ol/format';
+import {thematic_data} from './data_preparation';
+import {poisStyle,setStyle_pois} from './style';
+import {pois} from './variables'
 
 
 
-thematic_data_json = {};
+
+var reached_network_url = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&typeNames=cite:reached_network';
+
 var pois_geom ={};
 
 $("body").on('click','#btnIndex',function (){
 	$('#mySpinner').addClass('spinner');
 	var radio_input = $(this).siblings(':radio:checked').val()
-	var theurl = address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=gid:xxx;&typeNames=cite:thematic_data_json';
+	var theurl = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=gid:xxx;&typeNames=cite:thematic_data_json';
 
 	
 	var number = $(this).parent().attr('id').replace('content_index_calculation_',''); //Get the number of the calculation
@@ -29,11 +37,11 @@ $("body").on('change','.pois_check',function (){
 	if ($(this).is(":checked")){
 	
 		
-		var theurl = address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=gid:xxx;&typeNames=cite:pois';
+		var theurl = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=gid:xxx;&typeNames=cite:pois';
 	
 		load_layer_gid(theurl,'pois',id);
 			
-		setStyle_pois();
+		setStyle_pois(pois_geom,pois);
 	}
 	else{		
 		map.removeLayer(pois_geom[id])
@@ -46,9 +54,13 @@ $("body").on('change','.pois_check',function (){
 
 
 var prepare_loading = function (id,theurl) {
+
+	
 				var layers = thematic_data[id]
 						
-					var gid_list =[];	//Is checking for the gids of one calculation and pushing them into an array
+					var gid_list =[];
+					var x;
+						//Is checking for the gids of one calculation and pushing them into an array
 					for (x in layers){
 						gid_list.push(layers[x].gid)				
 					}		
@@ -59,12 +71,12 @@ var prepare_loading = function (id,theurl) {
 				   var url = theurl.replace('xxx',max_gid)	
 		
 					//This should be changed and NodeJS should be used for thematic data 
-					 var layer = new ol.layer.Vector({			//Layer is loaded
+					 var layer = new VectorLayer({			//Layer is loaded
 				      	opacity:1,
 						style:poisStyle,
-				        source: new ol.source.Vector({
+				        source: new VectorSource({
 				         	url:url,			
-				        	format: new ol.format.WFS({
+				        	format: new WFS({
 				
 				            })
 				         })   
@@ -100,7 +112,7 @@ var load_layer_gid = function (theurl,modus,id) {
 	
 
 
-
+////
 
 var calculation = function (layer_id,layer,modus) {
 	var array_pois = []	
@@ -113,7 +125,7 @@ var calculation = function (layer_id,layer,modus) {
 		var divider = 1;	
 	}
 	
-	thematic_selection = $("#main_thematic_data .content :checkbox:checked");
+ var thematic_selection = $("#main_thematic_data .content :checkbox:checked");
 	for (var i=0; i < thematic_selection.length; i++){
 		array_pois.push(thematic_selection[i].id.replace('check_',''));
 			
@@ -160,7 +172,6 @@ var calculation = function (layer_id,layer,modus) {
 }
 
 
-
-	
+export {pois_geom};
 	
 	
