@@ -97,7 +97,18 @@ Note this will drop your database and create a new database.
 
 ##### 8. View GOAT in the browser
 
-If all steps were successful you will be able to use GOAT when opening the index.html file in the front-end directory.
+
+The front-end is bundled using parcel. In order to start the bundling go to the front-end directory and run:
+
+`npm install`
+
+`npm start`
+
+If all steps were successful you will be able to use GOAT when typing the following into your browser:
+
+http://localhost:8585
+
+You can run the bundeling inside your VM or on your host. The built-in watch functionality provided by parcel is at the moment only working, when you run it on your host.
 
 ##### 9. Optional: Pre-calculate accessibility heat-map
 
