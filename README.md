@@ -26,8 +26,6 @@ Openlayers 3
 
 NodeJS 8.12.0
 
-Nginx
-
 Vagrant 2.1.2
 
 Docker
