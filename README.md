@@ -106,7 +106,7 @@ The front-end is bundled using parcel. In order to start the bundling go to the 
 
 `npm start`
 
-If all steps were successful you will be able to use GOAT when typing the following into your browser:
+If all steps were successful you will be able to use GOAT by typing the following into your browser:
 
 http://localhost:8585
 
