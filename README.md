@@ -24,6 +24,8 @@ Shell
 
 Openlayers 3
 
+Parcel
+
 NodeJS 8.12.0
 
 Vagrant 2.1.2
