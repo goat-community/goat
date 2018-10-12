@@ -2,6 +2,8 @@ import {pois} from './variables';
 import {isochrones} from './isochrones';
 import {colors_isochrones_default} from './style';
 
+console.log('testets')
+
 const thematic_data = {};
 $("body").on('click','.fa-chevron-right',function () {	
 	var ids = [];
