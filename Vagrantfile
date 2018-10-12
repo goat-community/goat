@@ -18,8 +18,8 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 81, host: 8081
   config.vm.network "forwarded_port", guest: 3000, host: 3000
   config.vm.network "forwarded_port", guest: 5432, host: 65432
-  
-
+  config.vm.network "forwarded_port", guest: 8585, host: 8585
+  config.vm.network "forwarded_port", guest: 9090, host: 9090
   # Folder Settings
   config.vm.synced_folder "./app", "/home/vagrant/app"
   config.vm.provision :shell, path: "./app/installation/install_db.sh"

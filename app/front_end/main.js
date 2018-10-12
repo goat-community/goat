@@ -1,8 +1,8 @@
 
-import './JsScripts/events';
-import './JsScripts/tooltip';
-import './JsScripts/index_functions';
-import './JsScripts/map';
-import './JsScripts/data_preparation';
-import './JsScripts/isochrones';
-import './JsScripts/interaction';
+import './js/events';
+import './js/tooltip';
+import './js/index_functions';
+import './js/map';
+import './js/data_preparation';
+import './js/isochrones';
+import './js/interaction';
