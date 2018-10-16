@@ -1,8 +1,9 @@
-## Welcome to GitHub Pages
+## Welcome to the Home of GOAT
 
-You can use the [editor on GitHub](https://github.com/EPajares/goat/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
-
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+GOAT is meant to be an open source, interactive, flexible and useful accessibility tool for urban, spatial and transport planning.
+It uses completely built on open source software and the main data source is OpenStreetMap. 
+This allows you to setup your own GOAT without any paywall. The flexible architecture however allows you to include various data sources
+and the modular logic 
 
 ### Markdown
 
@@ -23,7 +24,7 @@ Syntax highlighted code block
 
 **Bold** and _Italic_ and `Code` text
 
-[Link](url) and ![Image](src)
+[Link](http://open-accessibility.org/wp/en/accessibility/) and ![Image](src)
 ```
 
 For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
