@@ -24,7 +24,7 @@ wget --output-document="raw-osm.osm.pbf" $DOWNLOAD_LINK
 osmosis --read-pbf file="raw-osm.osm.pbf" $BOUNDING_BOX --write-xml file="study_area.osm"
 
 PGPASSFILE=~/.pgpass osm2pgsql -d $DATABASE -H $HOST -U $USER --hstore -E 4326 study_area.osm 
-PGPASSFILE=~/.pgpass osm2pgrouting --dbname $DATABASE --host $HOST --username $USER --file "study_area.osm" --conf ../config/mapconfig.xml --clean
+PGPASSFILE=~/.pgpass osm2pgrouting --dbname $DATABASE --host $HOST --username $USER --file "study_area.osm" --conf mapconfig.xml --clean
 PGPASSFILE=~/.pgpass shp2pgsql -I -s 4326  study_area.shp public.study_area | psql PGPASSWORD=PASSWORD -d $DATABASE -U $USER -h $HOST -q
 
 #Schreibtisch has to be replaced by GitHub Link

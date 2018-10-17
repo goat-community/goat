@@ -17,7 +17,8 @@
     "materialize-css": "^1.0.0-rc.2",
     "ol": "^5.2.0",
     "ol-ext": "^3.0.1",
-    "parcel-bundler": "^1.9.7"
+    "parcel-bundler": "^1.9.7",
+    "watchman": "^1.0.0"
   },
   "devDependencies": {
     "http-proxy-middleware": "^0.19.0"
