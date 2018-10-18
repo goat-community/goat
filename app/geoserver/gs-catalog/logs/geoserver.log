@@ -6939,3 +6939,406 @@ Caused by: org.postgresql.util.PSQLException: ERROR: relation "munich_addresses"
 2018-10-14 15:30:37,019 INFO [geoserver.security] - Reloading user/groups successful for service named default
 2018-10-14 15:30:37,634 INFO [geoserver.security] - AuthenticationCache Initialized with 1000 Max Entries, 300 seconds idle time, 600 seconds time to live and 3 concurrency level
 2018-10-14 15:30:37,635 INFO [geoserver.security] - AuthenticationCache Eviction Task created to run every 600 seconds
+2018-10-18 17:35:43,807 INFO [org.geoserver] - GeoServer configuration lock is enabled
+2018-10-18 17:35:43,946 INFO [org.geoserver] - Loaded style 'pophatch'
+2018-10-18 17:35:43,947 INFO [org.geoserver] - Loaded style 'grass'
+2018-10-18 17:35:43,948 INFO [org.geoserver] - Loaded style 'polygon'
+2018-10-18 17:35:43,949 INFO [org.geoserver] - Loaded style 'capitals'
+2018-10-18 17:35:43,950 INFO [org.geoserver] - Loaded style 'raster'
+2018-10-18 17:35:43,951 INFO [org.geoserver] - Loaded style 'line'
+2018-10-18 17:35:43,952 INFO [org.geoserver] - Loaded style 'dem'
+2018-10-18 17:35:43,952 INFO [org.geoserver] - Loaded style 'tiger_roads'
+2018-10-18 17:35:43,953 INFO [org.geoserver] - Loaded style 'simple_roads'
+2018-10-18 17:35:43,953 INFO [org.geoserver] - Loaded style 'population'
+2018-10-18 17:35:43,954 INFO [org.geoserver] - Loaded style 'giant_polygon'
+2018-10-18 17:35:43,955 INFO [org.geoserver] - Loaded style 'style_heatmap'
+2018-10-18 17:35:43,956 INFO [org.geoserver] - Loaded style 'poi'
+2018-10-18 17:35:43,956 INFO [org.geoserver] - Loaded style 'green'
+2018-10-18 17:35:43,957 INFO [org.geoserver] - Loaded style 'generic'
+2018-10-18 17:35:43,959 INFO [org.geoserver] - Loaded style 'grid_1001'
+2018-10-18 17:35:43,960 INFO [org.geoserver] - Loaded style 'restricted'
+2018-10-18 17:35:43,960 INFO [org.geoserver] - Loaded style 'simple_streams'
+2018-10-18 17:35:43,961 INFO [org.geoserver] - Loaded style 'poly_landmarks'
+2018-10-18 17:35:43,962 INFO [org.geoserver] - Loaded style 'point'
+2018-10-18 17:35:43,962 INFO [org.geoserver] - Loaded style 'rain'
+2018-10-18 17:35:43,963 INFO [org.geoserver] - Loaded style 'cite_lakes'
+2018-10-18 17:35:43,963 INFO [org.geoserver] - Loaded style 'burg'
+2018-10-18 17:35:43,966 INFO [org.geoserver] - Loaded default workspace cite
+2018-10-18 17:35:43,978 INFO [org.geoserver] - Loaded workspace 'cite'
+2018-10-18 17:35:44,281 INFO [org.geoserver] - Loaded data store 'database', enabled
+2018-10-18 17:35:45,394 INFO [org.geoserver] - Loaded feature type 'reached_network', enabled
+2018-10-18 17:35:45,407 INFO [org.geoserver] - Loaded layer 'reached_network'
+2018-10-18 17:35:45,416 INFO [org.geoserver] - Loaded feature type 'grid_150', enabled
+2018-10-18 17:35:45,418 INFO [org.geoserver] - Loaded layer 'grid_150'
+2018-10-18 17:35:45,429 INFO [org.geoserver] - Loaded feature type 'isochrones', enabled
+2018-10-18 17:35:45,432 INFO [org.geoserver] - Loaded layer 'isochrones'
+2018-10-18 17:35:45,440 INFO [org.geoserver] - Loaded feature type 'heatmap', enabled
+2018-10-18 17:35:45,443 INFO [org.geoserver] - Loaded layer 'heatmap'
+2018-10-18 17:35:45,446 INFO [org.geoserver] - Loaded feature type 'study_area', enabled
+2018-10-18 17:35:45,448 INFO [org.geoserver] - Loaded layer 'study_area'
+2018-10-18 17:35:45,452 INFO [org.geoserver] - Loaded feature type 'population', enabled
+2018-10-18 17:35:45,453 INFO [catalog.impl] - Layer cite:population is missing the default style, assigning one automatically
+2018-10-18 17:35:45,747 WARN [geoserver.catalog] - Error while getting feature type, flushing cache and retrying: Error occurred building feature type
+2018-10-18 17:35:45,819 WARN [catalog.impl] - Layer cite:population is missing the default style, failed to associate one automatically
+java.io.IOException: Error occurred building feature type
+	at org.geotools.jdbc.JDBCFeatureSource.buildFeatureType(JDBCFeatureSource.java:361)
+	at org.geotools.jdbc.JDBCDataStore.createFeatureSource(JDBCDataStore.java:928)
+	at org.geotools.data.store.ContentDataStore.getFeatureSource(ContentDataStore.java:335)
+	at org.geotools.data.store.ContentDataStore.getFeatureSource(ContentDataStore.java:305)
+	at org.geotools.data.store.ContentDataStore.getSchema(ContentDataStore.java:292)
+	at org.geotools.jdbc.JDBCDataStore.createVirtualTable(JDBCDataStore.java:323)
+	at org.geoserver.catalog.VirtualTableCallback.initialize(VirtualTableCallback.java:55)
+	at org.geoserver.catalog.ResourcePool.getCacheableFeatureType(ResourcePool.java:966)
+	at org.geoserver.catalog.ResourcePool.tryGetFeatureType(ResourcePool.java:950)
+	at org.geoserver.catalog.ResourcePool.getFeatureType(ResourcePool.java:944)
+	at org.geoserver.catalog.ResourcePool.getFeatureType(ResourcePool.java:931)
+	at org.geoserver.catalog.impl.FeatureTypeInfoImpl.getFeatureType(FeatureTypeInfoImpl.java:121)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.geoserver.catalog.impl.ModificationProxy.invoke(ModificationProxy.java:147)
+	at com.sun.proxy.$Proxy27.getFeatureType(Unknown Source)
+	at org.geoserver.catalog.CatalogBuilder.getDefaultStyle(CatalogBuilder.java:1584)
+	at org.geoserver.catalog.impl.CatalogImpl.validate(CatalogImpl.java:687)
+	at org.geoserver.catalog.impl.CatalogImpl.add(CatalogImpl.java:636)
+	at org.geoserver.config.GeoServerLoader$LayerLoader.accept(GeoServerLoader.java:209)
+	at org.geoserver.config.GeoServerLoader.loadDataStore(GeoServerLoader.java:708)
+	at org.geoserver.config.GeoServerLoader.readCatalog(GeoServerLoader.java:556)
+	at org.geoserver.config.GeoServerLoader.readCatalog(GeoServerLoader.java:393)
+	at org.geoserver.config.DefaultGeoServerLoader.loadCatalog(DefaultGeoServerLoader.java:36)
+	at org.geoserver.config.GeoServerLoader.postProcessBeforeInitialization(GeoServerLoader.java:264)
+	at org.geoserver.config.GeoServerLoaderProxy.postProcessBeforeInitialization(GeoServerLoaderProxy.java:59)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsBeforeInitialization(AbstractAutowireCapableBeanFactory.java:409)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1620)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:555)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:483)
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:351)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveValueIfNecessary(BeanDefinitionValueResolver.java:108)
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveConstructorArguments(ConstructorResolver.java:648)
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:145)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1193)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1095)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:513)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:483)
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:296)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:351)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveValueIfNecessary(BeanDefinitionValueResolver.java:108)
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveConstructorArguments(ConstructorResolver.java:648)
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:145)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1193)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1095)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:513)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:483)
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:351)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveValueIfNecessary(BeanDefinitionValueResolver.java:108)
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveConstructorArguments(ConstructorResolver.java:648)
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:145)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1193)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1095)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:513)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:483)
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:351)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveValueIfNecessary(BeanDefinitionValueResolver.java:108)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyPropertyValues(AbstractAutowireCapableBeanFactory.java:1531)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1276)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:553)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:483)
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:351)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveValueIfNecessary(BeanDefinitionValueResolver.java:108)
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveConstructorArguments(ConstructorResolver.java:648)
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:145)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1193)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1095)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:513)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:483)
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:761)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:866)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:542)
+	at org.springframework.web.context.ContextLoader.configureAndRefreshWebApplicationContext(ContextLoader.java:443)
+	at org.springframework.web.context.ContextLoader.initWebApplicationContext(ContextLoader.java:325)
+	at org.springframework.web.context.ContextLoaderListener.contextInitialized(ContextLoaderListener.java:107)
+	at org.geoserver.platform.GeoServerContextLoaderListener.contextInitialized(GeoServerContextLoaderListener.java:23)
+	at org.apache.catalina.core.StandardContext.listenerStart(StandardContext.java:4792)
+	at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:5256)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:150)
+	at org.apache.catalina.core.ContainerBase.addChildInternal(ContainerBase.java:754)
+	at org.apache.catalina.core.ContainerBase.addChild(ContainerBase.java:730)
+	at org.apache.catalina.core.StandardHost.addChild(StandardHost.java:734)
+	at org.apache.catalina.startup.HostConfig.deployDirectory(HostConfig.java:1140)
+	at org.apache.catalina.startup.HostConfig$DeployDirectory.run(HostConfig.java:1875)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: org.postgresql.util.PSQLException: ERROR: column reference "population" is ambiguous
+  Position: 42
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2476)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2189)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:300)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:428)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:354)
+	at org.postgresql.jdbc.PgStatement.executeWithFlags(PgStatement.java:301)
+	at org.postgresql.jdbc.PgStatement.executeCachedSql(PgStatement.java:287)
+	at org.postgresql.jdbc.PgStatement.executeWithFlags(PgStatement.java:264)
+	at org.postgresql.jdbc.PgStatement.executeQuery(PgStatement.java:231)
+	at org.apache.commons.dbcp.DelegatingStatement.executeQuery(DelegatingStatement.java:208)
+	at org.apache.commons.dbcp.DelegatingStatement.executeQuery(DelegatingStatement.java:208)
+	at org.geotools.jdbc.JDBCFeatureSource.getColumnMetadata(JDBCFeatureSource.java:878)
+	at org.geotools.jdbc.JDBCFeatureSource.buildFeatureType(JDBCFeatureSource.java:193)
+	... 115 more
+2018-10-18 17:35:45,829 INFO [org.geoserver] - Loaded layer 'population'
+2018-10-18 17:35:45,834 INFO [org.geoserver] - Loaded feature type 'ways', enabled
+2018-10-18 17:35:45,837 INFO [org.geoserver] - Loaded layer 'ways'
+2018-10-18 17:35:45,839 INFO [org.geoserver] - Loaded feature type 'ways_select', enabled
+2018-10-18 17:35:45,842 INFO [org.geoserver] - Loaded layer 'ways_select'
+2018-10-18 17:35:45,848 INFO [org.geoserver] - Loaded feature type 'save_isochrones', enabled
+2018-10-18 17:35:45,849 INFO [org.geoserver] - Loaded layer 'save_isochrones'
+2018-10-18 17:35:45,852 INFO [org.geoserver] - Loaded feature type 'insert_into_network', enabled
+2018-10-18 17:35:45,853 INFO [catalog.impl] - Layer cite:insert_into_network is missing the default style, assigning one automatically
+2018-10-18 17:35:45,868 INFO [org.geoserver] - Loaded layer 'insert_into_network'
+2018-10-18 17:35:45,873 INFO [org.geoserver] - Loaded feature type 'study_area_union', enabled
+2018-10-18 17:35:45,878 INFO [org.geoserver] - Loaded layer 'study_area_union'
+2018-10-18 17:35:45,881 INFO [org.geoserver] - Loaded feature type 'grid_100', enabled
+2018-10-18 17:35:45,885 INFO [org.geoserver] - Loaded layer 'grid_100'
+2018-10-18 17:35:45,887 INFO [org.geoserver] - Loaded feature type 'thematic_data_json', enabled
+2018-10-18 17:35:45,889 INFO [catalog.impl] - Layer cite:thematic_data_json is missing the default style, assigning one automatically
+2018-10-18 17:35:45,898 INFO [org.geoserver] - Loaded layer 'thematic_data_json'
+2018-10-18 17:35:45,901 INFO [org.geoserver] - Loaded feature type 'input_network', enabled
+2018-10-18 17:35:45,902 INFO [org.geoserver] - Loaded layer 'input_network'
+2018-10-18 17:35:45,906 INFO [org.geoserver] - Loaded feature type 'matching_addresses', enabled
+2018-10-18 17:35:45,910 INFO [org.geoserver] - Loaded layer 'matching_addresses'
+2018-10-18 17:35:45,917 INFO [org.geoserver] - Loaded feature type 'munich_addresses', enabled
+2018-10-18 17:35:45,920 INFO [org.geoserver] - Loaded layer 'munich_addresses'
+2018-10-18 17:35:45,927 INFO [org.geoserver] - Loaded feature type 'pois', enabled
+2018-10-18 17:35:45,930 INFO [org.geoserver] - Loaded layer 'pois'
+2018-10-18 17:35:45,935 INFO [org.geoserver] - Loaded feature type 'show_network', enabled
+2018-10-18 17:35:45,937 INFO [org.geoserver] - Loaded layer 'show_network'
+2018-10-18 17:35:45,942 INFO [org.geoserver] - Loaded feature type 'save_isochrones_input', enabled
+2018-10-18 17:35:45,946 INFO [org.geoserver] - Loaded layer 'save_isochrones_input'
+2018-10-18 17:35:45,947 INFO [org.geoserver] - Loaded feature type 'thematic_data', enabled
+2018-10-18 17:35:45,948 INFO [catalog.impl] - Layer cite:thematic_data is missing the default style, assigning one automatically
+2018-10-18 17:35:45,957 WARN [geoserver.catalog] - Error while getting feature type, flushing cache and retrying: Error occurred building feature type
+2018-10-18 17:35:45,970 WARN [catalog.impl] - Layer cite:thematic_data is missing the default style, failed to associate one automatically
+java.io.IOException: Error occurred building feature type
+	at org.geotools.jdbc.JDBCFeatureSource.buildFeatureType(JDBCFeatureSource.java:361)
+	at org.geotools.jdbc.JDBCDataStore.createFeatureSource(JDBCDataStore.java:928)
+	at org.geotools.data.store.ContentDataStore.getFeatureSource(ContentDataStore.java:335)
+	at org.geotools.data.store.ContentDataStore.getFeatureSource(ContentDataStore.java:305)
+	at org.geotools.data.store.ContentDataStore.getSchema(ContentDataStore.java:292)
+	at org.geotools.jdbc.JDBCDataStore.createVirtualTable(JDBCDataStore.java:323)
+	at org.geoserver.catalog.VirtualTableCallback.initialize(VirtualTableCallback.java:55)
+	at org.geoserver.catalog.ResourcePool.getCacheableFeatureType(ResourcePool.java:966)
+	at org.geoserver.catalog.ResourcePool.tryGetFeatureType(ResourcePool.java:950)
+	at org.geoserver.catalog.ResourcePool.getFeatureType(ResourcePool.java:944)
+	at org.geoserver.catalog.ResourcePool.getFeatureType(ResourcePool.java:931)
+	at org.geoserver.catalog.impl.FeatureTypeInfoImpl.getFeatureType(FeatureTypeInfoImpl.java:121)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.geoserver.catalog.impl.ModificationProxy.invoke(ModificationProxy.java:147)
+	at com.sun.proxy.$Proxy27.getFeatureType(Unknown Source)
+	at org.geoserver.catalog.CatalogBuilder.getDefaultStyle(CatalogBuilder.java:1584)
+	at org.geoserver.catalog.impl.CatalogImpl.validate(CatalogImpl.java:687)
+	at org.geoserver.catalog.impl.CatalogImpl.add(CatalogImpl.java:636)
+	at org.geoserver.config.GeoServerLoader$LayerLoader.accept(GeoServerLoader.java:209)
+	at org.geoserver.config.GeoServerLoader.loadDataStore(GeoServerLoader.java:708)
+	at org.geoserver.config.GeoServerLoader.readCatalog(GeoServerLoader.java:556)
+	at org.geoserver.config.GeoServerLoader.readCatalog(GeoServerLoader.java:393)
+	at org.geoserver.config.DefaultGeoServerLoader.loadCatalog(DefaultGeoServerLoader.java:36)
+	at org.geoserver.config.GeoServerLoader.postProcessBeforeInitialization(GeoServerLoader.java:264)
+	at org.geoserver.config.GeoServerLoaderProxy.postProcessBeforeInitialization(GeoServerLoaderProxy.java:59)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsBeforeInitialization(AbstractAutowireCapableBeanFactory.java:409)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1620)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:555)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:483)
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:351)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveValueIfNecessary(BeanDefinitionValueResolver.java:108)
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveConstructorArguments(ConstructorResolver.java:648)
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:145)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1193)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1095)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:513)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:483)
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:296)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:351)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveValueIfNecessary(BeanDefinitionValueResolver.java:108)
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveConstructorArguments(ConstructorResolver.java:648)
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:145)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1193)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1095)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:513)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:483)
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:351)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveValueIfNecessary(BeanDefinitionValueResolver.java:108)
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveConstructorArguments(ConstructorResolver.java:648)
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:145)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1193)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1095)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:513)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:483)
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:351)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveValueIfNecessary(BeanDefinitionValueResolver.java:108)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyPropertyValues(AbstractAutowireCapableBeanFactory.java:1531)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1276)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:553)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:483)
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:351)
+	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveValueIfNecessary(BeanDefinitionValueResolver.java:108)
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveConstructorArguments(ConstructorResolver.java:648)
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:145)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1193)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1095)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:513)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:483)
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:306)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:302)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:197)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:761)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:866)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:542)
+	at org.springframework.web.context.ContextLoader.configureAndRefreshWebApplicationContext(ContextLoader.java:443)
+	at org.springframework.web.context.ContextLoader.initWebApplicationContext(ContextLoader.java:325)
+	at org.springframework.web.context.ContextLoaderListener.contextInitialized(ContextLoaderListener.java:107)
+	at org.geoserver.platform.GeoServerContextLoaderListener.contextInitialized(GeoServerContextLoaderListener.java:23)
+	at org.apache.catalina.core.StandardContext.listenerStart(StandardContext.java:4792)
+	at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:5256)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:150)
+	at org.apache.catalina.core.ContainerBase.addChildInternal(ContainerBase.java:754)
+	at org.apache.catalina.core.ContainerBase.addChild(ContainerBase.java:730)
+	at org.apache.catalina.core.StandardHost.addChild(StandardHost.java:734)
+	at org.apache.catalina.startup.HostConfig.deployDirectory(HostConfig.java:1140)
+	at org.apache.catalina.startup.HostConfig$DeployDirectory.run(HostConfig.java:1875)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: org.postgresql.util.PSQLException: ERROR: relation "munich_addresses" does not exist
+  Position: 90
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2476)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2189)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:300)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:428)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:354)
+	at org.postgresql.jdbc.PgStatement.executeWithFlags(PgStatement.java:301)
+	at org.postgresql.jdbc.PgStatement.executeCachedSql(PgStatement.java:287)
+	at org.postgresql.jdbc.PgStatement.executeWithFlags(PgStatement.java:264)
+	at org.postgresql.jdbc.PgStatement.executeQuery(PgStatement.java:231)
+	at org.apache.commons.dbcp.DelegatingStatement.executeQuery(DelegatingStatement.java:208)
+	at org.apache.commons.dbcp.DelegatingStatement.executeQuery(DelegatingStatement.java:208)
+	at org.geotools.jdbc.JDBCFeatureSource.getColumnMetadata(JDBCFeatureSource.java:878)
+	at org.geotools.jdbc.JDBCFeatureSource.buildFeatureType(JDBCFeatureSource.java:193)
+	... 115 more
+2018-10-18 17:35:45,973 INFO [org.geoserver] - Loaded layer 'thematic_data'
+2018-10-18 17:35:45,977 INFO [org.geoserver] - Loaded feature type 'test_input', enabled
+2018-10-18 17:35:45,979 INFO [org.geoserver] - Loaded layer 'test_input'
+2018-10-18 17:35:45,983 INFO [org.geoserver] - Loaded feature type 'starting_point_isochrones', enabled
+2018-10-18 17:35:45,984 INFO [org.geoserver] - Loaded layer 'starting_point_isochrones'
+2018-10-18 17:35:46,037 WARN [security.impl] - Namespace/Workspace zugangzurbahn is unknown in rule zugangzurbahn.user_input1.w=*
+2018-10-18 17:35:46,039 WARN [security.impl] - Layer zugangzurbahn is unknown in rule + zugangzurbahn.user_input1.w=*
+2018-10-18 17:35:46,040 WARN [security.impl] - Namespace/Workspace zugangzurbahn is unknown in rule zugangzurbahn.user_input1.r=*
+2018-10-18 17:35:46,041 WARN [security.impl] - Layer zugangzurbahn is unknown in rule + zugangzurbahn.user_input1.r=*
+2018-10-18 17:35:46,198 INFO [org.geoserver] - Loaded service 'wfs', enabled
+2018-10-18 17:35:46,200 INFO [org.geoserver] - Loaded service 'WMTSInfoImpl--188b9d5:166883f5e18:-8000', enabled
+2018-10-18 17:35:46,211 INFO [org.geoserver] - Loaded service 'wcs', enabled
+2018-10-18 17:35:46,233 INFO [org.geoserver] - Loaded service 'wms', enabled
+2018-10-18 17:35:46,275 INFO [config.GeoserverXMLResourceProvider] - Will look for 'geowebcache.xml' in directory '/opt/geoserver_data/gwc'.
+2018-10-18 17:35:46,354 INFO [config.GeoserverXMLResourceProvider] - Found configuration file in gwc
+2018-10-18 17:35:46,355 INFO [config.GeoserverXMLResourceProvider] - Found configuration file in gwc
+2018-10-18 17:35:46,356 INFO [config.GeoserverXMLResourceProvider] - Found configuration file in gwc
+2018-10-18 17:35:46,416 WARN [config.XMLConfiguration] - ********************************************************************************
+2018-10-18 17:35:46,417 WARN [config.XMLConfiguration] - *** GWC configuration validation error: cvc-elt.1: Cannot find the declaration of element 'gwcConfiguration'.
+2018-10-18 17:35:46,417 WARN [config.XMLConfiguration] - *** Will try to use configuration anyway. Please check the order of declared elements against the schema.
+2018-10-18 17:35:46,417 WARN [config.XMLConfiguration] - ********************************************************************************
+2018-10-18 17:35:46,472 INFO [config.XMLConfiguration] - Initializing GridSets from gwc
+2018-10-18 17:35:46,474 INFO [config.XMLConfiguration] - Initializing layers from gwc
+2018-10-18 17:35:46,509 INFO [gwc.layer] - Initializing GWC configuration based on GeoServer's Catalog
+2018-10-18 17:35:46,510 INFO [gwc.layer] - GeoServer TileLayer store base directory is: gwc-layers
+2018-10-18 17:35:46,510 INFO [gwc.layer] - Loading tile layers from gwc-layers
+2018-10-18 17:35:46,598 INFO [storage.BlobStoreAggregator] - BlobStoreConfiguration gwc contained no blob store infos.
+2018-10-18 17:35:46,606 INFO [storage.DefaultStorageFinder] - ***********************************************************************************************************************
+2018-10-18 17:35:46,606 INFO [storage.DefaultStorageFinder] - *** Found Java environment variable GEOSERVER_DATA_DIR set to /opt/geoserver_data/, using it as the default prefix. ***
+2018-10-18 17:35:46,607 INFO [storage.DefaultStorageFinder] - ***********************************************************************************************************************
+2018-10-18 17:35:46,695 INFO [gwc.config] - Initializing GeoServer specific GWC configuration from gwc-gs.xml
+2018-10-18 17:35:46,927 INFO [config.GeoserverXMLResourceProvider] - Will look for 'geowebcache-diskquota.xml' in directory '/opt/geoserver_data/gwc'.
+2018-10-18 17:35:46,940 INFO [config.GeoserverXMLResourceProvider] - Will look for 'geowebcache-diskquota-jdbc.xml' in directory '/opt/geoserver_data/gwc'.
+2018-10-18 17:35:46,954 INFO [diskquota.ConfigLoader] - DiskQuota configuration is not readable: gwc/geowebcache-diskquota.xml
+2018-10-18 17:35:46,970 INFO [diskquota.ConfigLoader] - DiskQuota configuration is not readable: gwc/geowebcache-diskquota.xml
+2018-10-18 17:35:46,971 INFO [diskquota.DiskQuotaMonitor] - Setting up disk quota periodic enforcement task
+2018-10-18 17:35:46,972 INFO [diskquota.DiskQuotaMonitor] - 0 layers configured with their own quotas. 
+2018-10-18 17:35:46,977 INFO [diskquota.DiskQuotaMonitor] - 18 layers attached to global quota 500.0 MB
+2018-10-18 17:35:47,007 INFO [diskquota.DiskQuotaMonitor] - Disk quota periodic enforcement task set up every 10 SECONDS
+2018-10-18 17:35:48,206 INFO [ows.OWSHandlerMapping] - Mapped URL path [/TestWfsPost] onto handler 'wfsTestServlet'
+2018-10-18 17:35:48,206 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wfs/*] onto handler 'dispatcher'
+2018-10-18 17:35:48,206 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wfs] onto handler 'dispatcher'
+2018-10-18 17:35:50,943 INFO [ows.OWSHandlerMapping] - Mapped URL path [/gwc/service/**] onto handler 'dispatcher'
+2018-10-18 17:35:50,972 INFO [geowebcache.GeoWebCacheDispatcher] - Invoked setServletPrefix(gwc)
+2018-10-18 17:35:51,020 INFO [georss.GeoRSSPoller] - Initializing GeoRSS poller in a background job...
+2018-10-18 17:35:51,024 INFO [georss.GeoRSSPoller] - No enabled GeoRSS feeds found, poller will not run.
+2018-10-18 17:35:51,212 INFO [wms.WMSService] - Will NOT recombine tiles for non-tiling clients.
+2018-10-18 17:35:51,215 INFO [wms.WMSService] - Will proxy requests to backend that are not getmap or getcapabilities.
+2018-10-18 17:35:51,296 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wcs] onto handler 'dispatcher'
+2018-10-18 17:35:51,297 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wcs/*] onto handler 'dispatcher'
+2018-10-18 17:35:51,733 INFO [ows.OWSHandlerMapping] - Mapped URL path [/ows/**] onto handler 'dispatcher'
+2018-10-18 17:35:51,733 INFO [ows.OWSHandlerMapping] - Mapped URL path [/ows] onto handler 'dispatcher'
+2018-10-18 17:35:52,691 INFO [ows.OWSHandlerMapping] - Mapped URL path [/kml] onto handler 'dispatcher'
+2018-10-18 17:35:52,691 INFO [ows.OWSHandlerMapping] - Mapped URL path [/kml/*] onto handler 'dispatcher'
+2018-10-18 17:35:52,698 INFO [ows.OWSHandlerMapping] - Mapped URL path [/kml/icon/**/*] onto handler 'kmlIconService'
+2018-10-18 17:35:52,935 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wms] onto handler 'dispatcher'
+2018-10-18 17:35:52,935 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wms/*] onto handler 'dispatcher'
+2018-10-18 17:35:53,062 INFO [ows.OWSHandlerMapping] - Mapped URL path [/animate/*] onto handler 'dispatcher'
+2018-10-18 17:35:53,062 INFO [ows.OWSHandlerMapping] - Mapped URL path [/animate] onto handler 'dispatcher'
+2018-10-18 17:35:55,133 INFO [geoserver.security] - Start reloading user/groups for service named default
+2018-10-18 17:35:55,139 INFO [geoserver.security] - Reloading user/groups successful for service named default
+2018-10-18 17:35:55,320 INFO [geoserver.security] - AuthenticationCache Initialized with 1000 Max Entries, 300 seconds idle time, 600 seconds time to live and 3 concurrency level
+2018-10-18 17:35:55,320 INFO [geoserver.security] - AuthenticationCache Eviction Task created to run every 600 seconds
