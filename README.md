@@ -61,7 +61,7 @@ accurate disaggregation.
 
 #### 5. Define your bounding box and the OSM-Downloadlink
 
-Open the file customize the DOWNLOAD_LINK and BOUNDING_BOX.
+Open the file secret.js in the config folder. Customize the DOWNLOAD_LINK and define your BOUNDING_BOX.
 
 #### 6. Setup GOAT
 
