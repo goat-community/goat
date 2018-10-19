@@ -316,6 +316,7 @@ var ExtractStreetsLayer = new VectorLayer({
     source: ExtractStreetsSource,
     style: boundaryStyle
 });
+
 ExtractStreetsLayer.setMap(map);
 
 var searchInteraction = {
@@ -356,6 +357,7 @@ var searchInteraction = {
     },
     init: function(){
         this.stop();
+        waysInteraction.remove();
         QueryLayer.getSource().clear();
         ExtractStreetsSource.clear();
         //Add circle interaction to search for the geojson features on the map
@@ -376,21 +378,40 @@ var searchInteraction = {
     }
 }
 
-//BUTTON EVENT HANDLERS
+ExtractStreetsSource.on('changefeature',function (evt){
+    if (waysInteraction.interactionType == 'modify'){
+       
+        var index = waysInteraction.featuresToCommit.findIndex(i => i.ol_uid == evt.feature.ol_uid )
+        if (index == -1){
+            waysInteraction.featuresToCommit.push(evt.feature)
+        } else {
+            waysInteraction.featuresToCommit[index]=evt.feature;
+        }
+    }
+});
 
+
+
+//BUTTON EVENT HANDLERS
+var staticUserId = 1; //temporary
 var waysInteraction = {
     featuresToCommit: [],
+    featuresIDsToDelete: [],
     currentInteraction: null,
     interactionType: null,
     snapInteraction: null,
-    drawStart: function (evt) {
+    interactionStart: function (evt) {
         waysInteraction.featuresToCommit = [];
        
         
     },
-    drawEnd: function (evt){
-     var geom = evt.getGeometry();
-
+    interactionEnd: function (evt){
+        if (waysInteraction.interactionType == 'draw'){
+            var feature = evt.feature;
+            waysInteraction.featuresToCommit.push(feature);
+        }
+     console.log(waysInteraction.featuresToCommit);
+     waysInteraction.transact();
     },
     remove: function(){
      if (this.snapInteraction != null){
@@ -399,6 +420,7 @@ var waysInteraction = {
      if (this.currentInteraction != null){
          map.removeInteraction(this.currentInteraction);
      }
+     this.featuresToCommit = [];
     },
     add: function (interaction,type){
         this.remove();
@@ -407,12 +429,89 @@ var waysInteraction = {
         map.addInteraction(snap);
         this.currentInteraction = interaction;
         this.interactionType = type;
-        interaction.on('drawstart',this.drawStart);
-        interaction.on('drawend',this.drawEnd);
+        interaction.on(type+'start',this.interactionStart);
+        interaction.on(type+'end',this.interactionEnd);
         this.snapInteraction = snap
+    },
+    transact: function (){
+        // 1- Get the features, transform geometry and properties
+
+        //There is the case on update interaction when some features needs to be added
+        //and the features that are already in table needs to be updated
+       var featuresToAdd = this.featuresToCommit.filter(f => {
+            var props = f.getProperties();
+            if ((typeof f.getId() == 'undefined' && Object.keys(props).length == 1) || !props.hasOwnProperty('original_id')){
+                return f
+            }
+        }).map(f=> {
+            var geometry = f.getGeometry().clone();
+            geometry.transform("EPSG:3857", "EPSG:4326");
+            var transformed = new Feature({	
+                userid : staticUserId,                
+                geom: geometry,
+                class_id: f.getProperties().class_id,
+                original_id: f.getProperties().id
+            });
+            transformed.setGeometryName("geom");
+            return transformed
+        });
+        console.log(featuresToAdd);
+
+        var featuresToUpdate = this.featuresToCommit.filter(f => {
+            var props = f.getProperties();
+            if ((props.hasOwnProperty('original_id')) && (this.interactionType = 'update') ){
+                return f
+            }
+        }).map(f=> {
+            var geometry = f.getGeometry().clone();
+            geometry.transform("EPSG:3857", "EPSG:4326");
+            var transformed = new Feature({	
+                userid : staticUserId,                
+                geom: geometry,
+                class_id: f.getProperties().class_id,
+                original_id: f.getProperties().id
+            });
+            transformed.setGeometryName("geom");
+            return transformed
+        });
+        console.log(featuresToUpdate);
+
+       var formatGML ={
+            featureNS: ApiConstants.geoserver_namespaceURI,
+            featureType: ApiConstants.geoserver_workspace + ':ways_userinput'
+    };
+    var node;
+   
+    switch (this.interactionType) {
+            case 'draw':
+                node = formatWFS.writeTransaction(featuresToAdd, null, null, formatGML);       
+                break;
+            case 'modify':
+                node = formatWFS.writeTransaction(featuresToAdd,featuresToUpdate,null,formatGML);
+                break;
+            case 'delete':
+                node = formatWFS.writeTransaction(null, null, null, formatGML);
+                break;
+        }
+     var payload = xs.serializeToString(node);
+    
+     fetch(ApiConstants.wfs_url, {
+        method: 'POST',
+        body: payload,
+        headers: {
+            'Content-Type': 'application/xml'
+        }
+        }).then(function (response) {
+            
+        })
+
     }
+
+
 }
 
+
+//Button click events
 $('.expert_draw').click(function () {
     let buttonID = this.id;
     if (buttonID == 'btnQuery'){
@@ -434,12 +533,11 @@ $('.expert_draw').click(function () {
                 source: ExtractStreetsSource,
                 });
                 console.log('modify executed');
-        waysInteraction.add(modifyInteraction,'edit');
+        waysInteraction.add(modifyInteraction,'modify');
         break
         case 'btnDelete':
+        // ADD BUTTON DELETE
         break;
-        //click event
-       
     }
 
  
@@ -447,7 +545,7 @@ $('.expert_draw').click(function () {
 
 })
 
-//Interaction Functions
+
 
 
 
