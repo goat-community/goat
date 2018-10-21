@@ -38,7 +38,7 @@ CREATE TABLE public.starting_point_isochrones (
 	CONSTRAINT starting_point_isochrones_pkey PRIMARY KEY (gid)
 );
 
-create table addresses_residential(
+CREATE TABLE addresses_residential(
 osm_id bigint,
 street varchar(200),
 housenumber varchar(100),
@@ -48,11 +48,11 @@ area float,
 population integer,
 distance float);
 
-alter table addresses_residential add column gid serial;
-alter table addresses_residential add primary key (gid);
+ALTER TABLE addresses_residential add column gid serial;
+ALTER TABLE addresses_residential add primary key (gid);
 CREATE INDEX index_addresses_residential ON addresses_residential USING GIST (geom);
 
 
 
-create table study_area_union as
-select st_union(geom) geom from study_area;
+CREATE TABLE study_area_union as
+SELECT st_union(geom) geom FROM study_area;

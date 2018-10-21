@@ -6,7 +6,7 @@ CREATE TABLE public.variable_container (
 	CONSTRAINT variable_container_pkey PRIMARY KEY (identifier)
 );
 
-insert into variable_container(identifier,variable_array) 
+insert INTO variable_container(identifier,variable_array) 
 values('poi_categories',
 '{"kindergarten","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food",
 "ice_cream","restaurant","sum_addresses","sum_population","cinema","library","night_club","recycling",
@@ -17,6 +17,16 @@ values('poi_categories',
 "picnic_site","hotel","museum","hostel","guest_house","attraction","attraction","viewpoint","gallery"}');
 
 
-insert into variable_container(identifier,variable_array) 
+insert INTO variable_container(identifier,variable_array) 
 values('excluded_class_id_walking',
 '{101,102,103,104,105,106,107,501,502,503,504}');
+
+insert INTO variable_container(identifier,variable_array)
+values('landuse_with_no_residents',
+'{"AX_TagebauGrubeSteinbruch",
+"AX_SportFreizeitUndErholungsflaeche",
+"AX_FlaecheBesondererFunktionalerPraegung",
+"AX_Halde",
+"AX_Friedhof",
+"AX_IndustrieUndGewerbeflaeche"}'
+);

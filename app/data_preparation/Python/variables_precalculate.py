@@ -11,13 +11,13 @@ prepare_tables = '''select * from hexagrid(grid_size);
 	delete from grid_grid_size where geom in (select * from g);
 
 
-	alter table grid_grid_size add column grid_id serial; 
-	drop table if exists precalculate_walking_grid_size;
+	ALTER TABLE grid_grid_size add column grid_id serial; 
+	DROP TABLE IF EXISTS precalculate_walking_grid_size;
     create table precalculate_walking_grid_size(grid_id int4,step int4,geom geometry,thematic_data jsonb);
 
-    alter table grid_grid_size add column area_isochrone float8;
+    ALTER TABLE grid_grid_size add column area_isochrone float8;
 
-    alter table grid_grid_size add column area_buffer float8;
+    ALTER TABLE grid_grid_size add column area_buffer float8;
 	'''
 
 
@@ -72,7 +72,7 @@ thematic_data_sql ='''	--Pois and public transport stops are combined and all wh
 		where m.id = x.node
 	
 	)
-	update precalculate_walking_grid_size set thematic_data = z.array_to_json
+	UPDATE precalculate_walking_grid_size set thematic_data = z.array_to_json
 	from (
 	select grid_id_replace,array_to_json(array_agg(row_to_json(x))) from(
 	select amenity,name,min(cost) as cost from test_pois --Every entrance or bus_stop is only counted once (shortest distance is taken)
@@ -84,7 +84,7 @@ thematic_data_sql ='''	--Pois and public transport stops are combined and all wh
 	where precalculate_walking_grid_size.grid_id = grid_id_replace; '''
 
 
-final_sql = '''update grid_grid_size set area_isochrone = st_area(x.geom::geography)
+final_sql = '''UPDATE grid_grid_size set area_isochrone = st_area(x.geom::geography)
                from precalculate_walking_grid_size x
                where grid_grid_size.grid_id = x.grid_id;'''
 
@@ -106,18 +106,18 @@ sql_calculate_accessibility = '''with y as (
 	group by grid_id, amenity
 )
 
-update precalculate_walking_grid_size 
+UPDATE precalculate_walking_grid_size 
 SET index_0_001 = index_0_001||y.index_part
 from y
 where precalculate_walking_grid_size.grid_id = y.grid_id;'''
 
-sql_new_grid= '''drop table if exists grid;
+sql_new_grid= '''DROP TABLE IF EXISTS grid;
 select distinct grid_id, geom into grid from grid_grid_size;
-alter table grid add primary key (grid_id);
+ALTER TABLE grid add primary key (grid_id);
 --drop table grid_grid_size  '''
 
 
 
-sql_clean = 'drop table if exists grid; alter table grid_grid_size add column id serial; CREATE INDEX test_index_sensitivity ON test(sensitivity);'
+sql_clean = 'DROP TABLE IF EXISTS grid; ALTER TABLE grid_grid_size add column id serial; CREATE INDEX test_index_sensitivity ON test(sensitivity);'
 
 public_transport_stops = ['bus_stop','tram_stop','subway_entrance','sbahn_regional']

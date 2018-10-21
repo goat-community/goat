@@ -110,7 +110,7 @@
             
             // the part below is just to make the bounds show up on the page
             var boundsOutput = document.getElementById('bounds');
-            function updateBounds() {
+            function UPDATEBounds() {
                 var code =
                     "    var bounds = new OpenLayers.Bounds(\n" +
                     "        " + map.getExtent().toBBOX().replace(/,/g, ', ') + "\n" +
@@ -118,10 +118,10 @@
                     "    map.zoomToExtent(bounds);"
                 boundsOutput.innerHTML = code;
             }
-            // update the bounds with each map move
-            map.events.register('moveend', map, updateBounds);
-            // and update the bounds on first load
-            updateBounds();
+            // UPDATE the bounds with each map move
+            map.events.register('moveend', map, UPDATEBounds);
+            // and UPDATE the bounds on first load
+            UPDATEBounds();
         }
         
     </script>

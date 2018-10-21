@@ -1,11 +1,11 @@
-create table muenchen as 
+CREATE TABLE muenchen as 
 
 WITH dump AS (
-    SELECT                       --columns from your multipolygon table 
+    SELECT                       --columns FROM your multipolygon table 
       (ST_DUMP(st_union)).geom AS geometry 
-    FROM (select st_union(way) from planet_osm_polygon  where boundary = 'administrative'
-and name LIKE 'Bezirksteil%' ) x                           --the name of your multipolygon table
+    FROM (SELECT st_union(way) FROM planet_osm_polygon  WHERE boundary = 'administrative'
+AND name LIKE 'Bezirksteil%' ) x                           --the name of your multipolygon table
 ) 
 SELECT 
-  geometry::geometry(Polygon,4326)         --type cast using SRID from multipolygon
+  geometry::geometry(Polygon,4326)         --type cast using SRID FROM multipolygon
 FROM dump;

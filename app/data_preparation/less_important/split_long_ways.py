@@ -5,13 +5,13 @@ cursor=con.cursor()
 
 
 sql_tables = '''
-drop table if exists ways_split_long_vertices_pgr cascade;
+DROP TABLE IF EXISTS ways_split_long_vertices_pgr cascade;
 CREATE TABLE ways_split_long_vertices_pgr (
 	id bigserial NOT NULL,
 	geom geometry NULL,
 	CONSTRAINT ways_split_long_vertices_pgr_pkey PRIMARY KEY (id)
 );
-drop table if exists ways_split_long cascade;
+DROP TABLE IF EXISTS ways_split_long cascade;
 create table ways_split_long(
 	id serial, 
 	class_id integer,
@@ -55,7 +55,7 @@ for i in ways_to_split:
         con.commit()
 
 sql_fill_tables = '''
-update ways_split_long set class_id = ways.class_id from ways
+UPDATE ways_split_long set class_id = ways.class_id from ways
 where ways_id = ways.id;
 
 insert into ways_split_long(class_id,ways_id,geom)
@@ -81,15 +81,15 @@ with s as (
 	from ways_split_long w, ways_split_long_vertices_pgr v
 	where st_startpoint(w.geom) = v.geom
 ) 
-update ways_split_long set source = s.source from s where ways_split_long.id = s.id;
+UPDATE ways_split_long set source = s.source from s where ways_split_long.id = s.id;
 
 with t as (
 	select w.id,st_endpoint(w.geom), v.id as target
 	from ways_split_long w, ways_split_long_vertices_pgr v
 	where st_endpoint(w.geom) = v.geom
 ) 
-update ways_split_long set target = t.target from t where ways_split_long.id = t.id;
-update ways_split_long set length_m = st_length(geom::geography);
+UPDATE ways_split_long set target = t.target from t where ways_split_long.id = t.id;
+UPDATE ways_split_long set length_m = st_length(geom::geography);
 '''
 #cursor.execute(sql_fill_tables)
 con.commit()

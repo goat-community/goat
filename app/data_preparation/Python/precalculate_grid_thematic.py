@@ -53,8 +53,8 @@ def calculate_index(grid_size):
     for i in sensitivities:
         
         sensitivity = str(i).split('.')[1]
-        cursor.execute('alter table precalculate_walking_%s add column index_0_%s jsonb' % (grid_size,sensitivity))
-        cursor.execute('''update precalculate_walking_%s set index_0_%s='{"a":"first_value"}'::jsonb''' % (grid_size,sensitivity))
+        cursor.execute('ALTER TABLE precalculate_walking_%s add column index_0_%s jsonb' % (grid_size,sensitivity))
+        cursor.execute('''UPDATE precalculate_walking_%s set index_0_%s='{"a":"first_value"}'::jsonb''' % (grid_size,sensitivity))
         
         sql_expand_json = 'select g.grid_id, '
         
@@ -72,11 +72,11 @@ def calculate_index(grid_size):
         
       # print(sql_expand_json)
         
-        cursor.execute('''update precalculate_walking_100 set index_0_001= index_0_001- 'a' '''.replace('001',sensitivity).replace('100',grid_size))
+        cursor.execute('''UPDATE precalculate_walking_100 set index_0_001= index_0_001- 'a' '''.replace('001',sensitivity).replace('100',grid_size))
         
         
-        cursor.execute('alter table grid_%s add column index_0_%s jsonb' % (grid_size,sensitivity))
-        cursor.execute('''update grid_100 set index_0_001 = p.index_0_001 
+        cursor.execute('ALTER TABLE grid_%s add column index_0_%s jsonb' % (grid_size,sensitivity))
+        cursor.execute('''UPDATE grid_100 set index_0_001 = p.index_0_001 
                           from precalculate_walking_100 p where grid_100.grid_id = p.grid_id'''.replace('001',sensitivity).replace('100',grid_size))
         #if sensitivities.index(i) == 0:
             
@@ -86,7 +86,7 @@ def calculate_index(grid_size):
             #cursor.execute('insert into grid_%s ' % (grid_size) + sql_expand_json)
         con.commit()
     
-    #cursor.execute('drop table if exists grid')
+    #cursor.execute('DROP TABLE IF EXISTS grid')
     con.commit()
 
 
