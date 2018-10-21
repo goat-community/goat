@@ -50,14 +50,23 @@ https://www.virtualbox.org/
 
 https://www.vagrantup.com/
 
-#### 4. Prepare shapefile and provide administrative boundaries
+#### 4. Prepare your data
 
-You need a shapefile with administrative boundaries and column with the number of inhabitants in this administrative 
-unit, it works for any spatial resolution. The column has to be named “sum_pop” and has to be saved as string. 
+Put all your data into the data folder!
+
+##### If you want to disaggregate population data
+
+You need a shapefile with administrative boundaries and a column with the number of inhabitants in this administrative 
+unit, it works for any spatial resolution. The column has to be named “sum_pop” and has to be saved as integer. 
 As the population data is used for population disaggregation, data on higher resolution will give you a more 
 accurate disaggregation.
 
-**You have to put the file into the app/data folder.**
+Optional: In the case you have custom landuse data you can place the data as shapefile (name the file: landuse.shp) into your data folder. The table has to include a column named "landuse". You can define in the table variable_container, which landuse category you want to exclude from the population disaggregation. For instance you can exclude graveyards or farmland and as consequences houses standing on these landuse categories are marked as not uninhabited. 
+
+##### If you already have population data on a high-resolution
+
+Just place a shapefile called population.shp into your data folder. The geometry type has to be point and the number of residents have to be saved as integer into a column called "population". 
+
 
 #### 5. Define your bounding box and the OSM-Downloadlink
 
