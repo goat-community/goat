@@ -19,7 +19,28 @@ app.use(function(request,response,next){
 });
 
 
-
+app.get('/multiple_isochrone/:amenity',(request,response) => {
+	const {amenity} = request.params;
+	pool.query(`SELECT ST_X(geom) x,ST_Y(geom) y FROM pois WHERE amenity = '${amenity}'`
+		, (err, res) => {
+		if (err) return console.log(err);
+		let array_objectids = [];
+		for (i = 0; i < res.rows.length; i++){
+			const objectid = Math.floor(Math.random() * 10000000);
+			array_objectids.push(objectid);
+			let sql_query = `INSERT INTO isochrones(userid,id,step,geom,speed,concavity,modus,objectid,parent_id)
+							 SELECT *,83.33 speed,0.99 concavity,1 modus,${objectid} objectid,1 parent_id 
+							 FROM isochrones(1,10,${res.rows[i].x},${res.rows[i].y},1,83.33,0.99,1,${objectid},1)` 
+			console.log(sql_query);
+			pool.query(sql_query
+			,(err,res) => {
+				if(err) return console.log(err);
+				console.log(res.rows)
+			})
+		}
+		
+	});
+});
 
 app.get('/load_ways', (request,response) => {
 	pool.query(`select id, class_id, st_AsGeoJSON(geom) geom from ways

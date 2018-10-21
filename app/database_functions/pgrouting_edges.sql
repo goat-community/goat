@@ -17,7 +17,7 @@ begin
   WHERE v.identifier = 'excluded_class_id_walking';
   
   SELECT id INTO id_vertex
-   FROM ways_vertices_pgr v
+  FROM ways_vertices_pgr v
 --It is snapped to the closest vertex within 50 m. If no vertex is within 50m not calculation is started.
            WHERE ST_DWithin(v.geom::geography, ST_SetSRID(ST_Point(x,y)::geography, 4326), 250)
            ORDER BY ST_Distance(v.geom::geography, ST_SetSRID(ST_Point(x,y)::geography, 4326))
@@ -31,7 +31,8 @@ begin
 		  (SELECT t1.seq, t1.id1 AS Node, t1.id2 AS Edge, t1.cost, t2.geom FROM PGR_DrivingDistance(
 --This routing is for pedestrians, thus some way_classes are excluded.  
 			'SELECT id::int4, source, target, length_m as cost FROM ways 
-			 WHERE not class_id = any(''' || excluded_class_id || ''')',
+			 WHERE not class_id = any(''' || excluded_class_id || ''')'
+			 || ' and' || ' ST_DWithin(geom::geography, ST_SetSRID(ST_Point('||x||','||y||')::geography, 4326),'||distance||')',
   		  id_vertex, 
 	       distance, false, false) t1, ways t2
            WHERE t1.id2 = t2.id) as route
