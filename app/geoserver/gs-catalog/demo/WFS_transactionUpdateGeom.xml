@@ -1,7 +1,7 @@
 <!--       YOU PROBABLY DO NOT WANT TO RUN THIS QUERY SINCE 
               IT WILL MODIFY YOUR SOURCE DATA FILES
 
-     This will update one of the geometry fields in the tasmania_roads dataset.
+     This will UPDATE one of the geometry fields in the tasmania_roads dataset.
      
      
 -->
@@ -12,7 +12,7 @@
   xmlns:gml="http://www.opengis.net/gml"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/WFS-transaction.xsd">
-  <wfs:Update typeName="topp:tasmania_roads">
+  <wfs:UPDATE typeName="topp:tasmania_roads">
     <wfs:Property>
       <wfs:Name>the_geom</wfs:Name>
       <wfs:Value>
@@ -28,5 +28,5 @@
     <ogc:Filter>
       <ogc:FeatureId fid="tasmania_roads.1"/>
     </ogc:Filter>
-  </wfs:Update>
+  </wfs:UPDATE>
 </wfs:Transaction>

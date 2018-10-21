@@ -12,27 +12,27 @@ edges type_edges[];
 pg_function varchar:='pgrouting_edges';
 begin
 --If the modus is input the routing tables for the network with userinput have to be choosen
--- Order matters first
+-- ORDER matters first
   IF parent_id_input = 2 THEN
     pg_function = 'pgrouting_edges_input';
-  ELSIF modus = 2 and parent_id_input > 2 THEN
+  ELSIF modus = 2 AND parent_id_input > 2 THEN
     pg_function = 'pgrouting_edges_input_double';
   END IF;
   
   
   
 --A table called edges is created for saving the reached network
-  execute format('insert into edges select *,'||objectid_input||' from '||pg_function||'('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||')');
+  execute format('insert INTO edges SELECT *,'||objectid_input||' FROM '||pg_function||'('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||')');
 
---The speed input, time input and step input are used to draw isochrones with the corresponding intervals
+--The speed input, time input AND step input are used to draw isochrones with the corresponding intervals
   loop
   exit when counter =n;
   counter :=counter +1;
   upper_limit :=(minutes * speed/n)*counter; 
   under_limit :=(minutes * speed/n)*counter - (minutes * speed/n);
   --A concave hull is created (isochrones) the concavity can be set 	
-  FOR r IN select userid_input,counter,(upper_limit/speed)::numeric, ST_CollectionExtract(ST_ConcaveHull(ST_Collect(geom),concavity,false),3)
-  from edges where cost between 0 and upper_limit and objectid = objectid_input
+  For r IN SELECT userid_input,counter,(upper_limit/speed)::numeric, ST_CollectionExtract(ST_ConcaveHull(ST_Collect(geom),concavity,false),3)
+  FROM edges WHERE cost between 0 AND upper_limit AND objectid = objectid_input
   
   LOOP
   RETURN NEXT r;

@@ -4,8 +4,8 @@ module.exports = {
     address_geoserver : 'http://localhost:9090/http://localhost:80/geoserver/'/* 'http://localhost:8080/geoserver/'   'http://212.83.58.36:8080/geoserver/'*/, 
     host_geoserver_url: 'http://localhost:80/geoserver/',
     guest_geoserver_url: 'http://localhost:8080/geoserver/',
-    x : 10.70171,
-    y : 47.57143,
+    x : 11.745520,
+    y : 48.402546,
     ip_address : 'http://localhost',
     proxy_url: 'http://localhost:9090/'
 }

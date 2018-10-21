@@ -1,5 +1,5 @@
 x = """-- Preparing the tables
-drop table if exists helping_table;
+DROP TABLE IF EXISTS helping_table;
 
 create table helping_table(
 osm_id bigint,
@@ -42,13 +42,13 @@ and m.gid='02.3.1'
 and st_intersects(x.geom,b.geom)) x;
 
 --All addresses which intersect with an building the area of the building is added to the address
-update helping_table set area=b.area
+UPDATE helping_table set area=b.area
 from buildings_residential b 
 where st_intersects(helping_table.geom,b.geom) ;
 
 
---For all addresses which are not directly lying on a building but close (12m) the closes building is updated
-update helping_table set area=t.area 
+--For all addresses which are not directly lying on a building but close (12m) the closes building is UPDATEd
+UPDATE helping_table set area=t.area 
 from(
 	--The area and the osm_id is selected from the created selection and the helping_table 
 	select z.osm_id,z.street,z.housenumber,z.geom, b.area, st_distance(z.geom::geography, b.geom::geography) 
@@ -86,13 +86,13 @@ from(
 where helping_table.osm_id=t.osm_id;
 
 --For all addresses which are directly derived the area is added through the osm_id
-update helping_table set area=b.area
+UPDATE helping_table set area=b.area
 from buildings_residential b
 where helping_table.osm_id=b.osm_id;
 
 --For building with various different addresses on it the area of each building has to be split between the different 
 	--addresses 
-update helping_table set area = helping_table.area/t.count from
+UPDATE helping_table set area = helping_table.area/t.count from
 	(select area,count(*) from helping_table h 
 	where area in(
 		--Only the areas are selected which are not null and not in the list of the doubled areas
@@ -114,7 +114,7 @@ where helping_table.area = t.area;
 
 --The problem was that we have buildings which have more than twice the same address and which also 
 --have different addresses on the same building (normally bigger buildings)
-update helping_table set area = helping_table.area / z.count 
+UPDATE helping_table set area = helping_table.area / z.count 
 from (
 --Now we have to count how often the area is existing, because we have to divide the area by this count
 select y.area, count(y.*) from (
@@ -139,7 +139,7 @@ where helping_table.area  = z.area;
 
 --All building which are not in a min distance of 12 m and are not intersecting with an address are assiciated
 --with a address
-update helping_table set area=helping_table.area+x.area 
+UPDATE helping_table set area=helping_table.area+x.area 
 from(
 	select k.osm_id,k.street,k.housenumber,k.geom,k.origin,b.area,st_distance(b.geom::geography,k.geom::geography) 
 	from buildings_residential b, study_area m,helping_table k
@@ -169,7 +169,7 @@ select * from helping_table where area is not null;
 
 
 
-preparation = """drop table if exists addresses_residential;
+preparation = """DROP TABLE IF EXISTS addresses_residential;
 create table addresses_residential(
 osm_id bigint,
 street varchar(200),
@@ -181,20 +181,20 @@ population integer,
 distance float);"""
 
 
-index_keys ="""alter table addresses_residential add column gid serial;
-alter table addresses_residential add primary key (gid);
+index_keys ="""ALTER TABLE addresses_residential add column gid serial;
+ALTER TABLE addresses_residential add primary key (gid);
 CREATE INDEX index_addresses_residential ON addresses_residential USING GIST (geom);"""
 
-calculate_population ="""drop table if exists concat_address;
+calculate_population ="""DROP TABLE IF EXISTS concat_address;
 
 select distinct row_number() over() as id,concat(street,housenumber),area,geom 
 into concat_address 
 from addresses_residential;
 
-alter table concat_address add primary key (id );
+ALTER TABLE concat_address add primary key (id );
 CREATE INDEX index_concat_address ON concat_address USING GIST (geom);
 
-alter table addresses_residential add column gid_administrative_boundary varchar(20);
+ALTER TABLE addresses_residential add column gid_administrative_boundary varchar(20);
 
 with area_built_up as (
 
@@ -203,12 +203,12 @@ with area_built_up as (
 	where st_within(a.geom,m.geom)
 	group by gid
 )
-update addresses_residential set population = x.sum_pop*(addresses_residential.area/x.area),
+UPDATE addresses_residential set population = x.sum_pop*(addresses_residential.area/x.area),
 gid_administrative_boundary=x.gid
 from area_built_up x
 where st_within(addresses_residential.geom,x.geom);
 
-drop table if exists concat_address;
+DROP TABLE IF EXISTS concat_address;
 
 """
 

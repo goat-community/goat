@@ -81,9 +81,9 @@ https://gist.github.com/wpscholar/a49594e2e2b918f4d0c4
 
 `sudo bash app/installation/setup_goat.sh`
 
-##### Update data
+##### UPDATE data
 
-In case you want to update all your data you can simply run the following from your project directory.
+In case you want to UPDATE all your data you can simply run the following from your project directory.
 
 `sudo /etc/init.d/postgresql restart`
 

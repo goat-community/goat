@@ -4,7 +4,7 @@ sudo apt install wget
 #Install PostGreSQL, PostGIS, pgRouting and osm2pgrouting (source)
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt bionic-pgdg main" >> /etc/apt/sources.list'
 wget --quiet -O - http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | sudo apt-key add -
-sudo apt update
+sudo apt UPDATE
 sudo apt install postgresql-10 -y
 sudo apt install postgresql-10-postgis-2.4 -y
 sudo apt install postgresql-10-postgis-scripts -y
@@ -51,7 +51,7 @@ sudo /etc/init.d/postgresql restart
 
 echo "Install Docker-CE"
 
-apt-get -y update
+apt-get -y UPDATE
 
 apt-get -y install \
     apt-transport-https \
@@ -66,7 +66,7 @@ add-apt-repository \
    $(lsb_release -cs) \
    stable"
 
-apt-get -y update
+apt-get -y UPDATE
 
 apt-get -y install docker-ce
 
