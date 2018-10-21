@@ -27,12 +27,21 @@ PGPASSFILE=~/.pgpass osm2pgsql -d $DATABASE -H $HOST -U $USER --hstore -E 4326 s
 PGPASSFILE=~/.pgpass osm2pgrouting --dbname $DATABASE --host $HOST --username $USER --file "study_area.osm" --conf ../config/mapconfig.xml --clean
 PGPASSFILE=~/.pgpass shp2pgsql -I -s 4326  study_area.shp public.study_area | psql PGPASSWORD=PASSWORD -d $DATABASE -U $USER -h $HOST -q
 
-if [ -e landuse.shp ]
+
+
+if [ -e population.shp ]
 then
-    echo 'Your custom landuse table will be used.'
-    PGPASSFILE=~/.pgpass shp2pgsql -I -s 4326  landuse.shp public.landuse | psql PGPASSWORD=PASSWORD -d $DATABASE -U $USER -h $HOST -q
+    echo 'Your custom population table will be used.'
+    PGPASSFILE=~/.pgpass shp2pgsql -I -s 4326  population.shp public.population | psql PGPASSWORD=PASSWORD -d $DATABASE -U $USER -h $HOST -q
 else
-    echo 'For the population disaggregation only landuse from OSM will be used.'
+    echo 'The population will be disaggregated.'
+    if [ -e landuse.shp ]
+    then
+        echo 'Your custom landuse table will be used.'
+        PGPASSFILE=~/.pgpass shp2pgsql -I -s 4326  landuse.shp public.landuse | psql PGPASSWORD=PASSWORD -d $DATABASE -U $USER -h $HOST -q
+    else
+        echo 'For the population disaggregation only landuse from OSM will be used.'
+    fi
 fi
 
 for file in ../data_preparation/SQL/*; do PGPASSFILE=~/.pgpass psql -d $DATABASE -U $USER -h $HOST -f $file 2>/dev/null; done

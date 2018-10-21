@@ -92,3 +92,8 @@ ALTER TABLE pois add primary key(gid);
 
 CREATE INDEX index_pois ON pois USING GIST (geom);
 
+UPDATE pois SET amenity = shop
+WHERE shop IS NOT NULL;
+
+ALTER TABLE pois DROP COLUMN shop;
+

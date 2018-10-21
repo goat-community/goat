@@ -15,13 +15,6 @@ with var_poi as (
 		AND amenity = any(variable_array)
 		AND i.gid= input_gid
 		AND st_intersects(p.geom,i.geom)
-		UNION ALL 
-		SELECT i.gid,i.step, p.gid as poi_gid,p.shop,p.name, p.geom  
-		FROM pois p,isochrones i,variable_container v 
-		WHERE v.identifier = 'poi_categories'
-		AND shop = any(variable_array)
-		AND i.gid= input_gid
-		AND st_intersects(p.geom,i.geom)
 		UNION ALL
 		SELECT i.gid,i.step,p.gid as poi_gid,public_transport_stop,p.name,p.geom
 		FROM public_transport_stops p, isochrones i
@@ -67,42 +60,7 @@ with var_poi as (
 	SELECT amenity,name,cost FROM test_pois
 	WHERE amenity not in('subway_entrance','bus_stop','tram_stop','sbahn_regional'))x) z 
 	WHERE isochrones.gid = z.input_gid;
-		
-		--UPDATE isochrones set pois = zz.array_to_json 
-	--FROM 
-		--WHERE isochrones.gid = zz.gid;
-	
-	--The same is done for the population
-	--Be aware the population data is saved without geometry AND address (data privacy!)
-	--with var_population as (
-	--		SELECT i.gid,i.step, p.gid address_gid,p.population,p.geom 
-		--	FROM addresses_residential p,isochrones i
-			--WHERE gid= input_gid
-			--AND st_intersects(p.geom,i.geom)
-			
-			
-	--	)	
-	--!!!!The SELECTion of the nearest vertex has to be improved!!!!	
-	--,min_dist as (
-		--SELECT  min(st_distance(x.geom,v.geom)) as min_dist,
-		--x.address_gid,v.id 
-		--FROM  ways_vertices_pgr v,var_population x
-		--WHERE v.id in
-		--(SELECT node FROM edges WHERE gid= input_gid)
-		--AND St_dwithin(v.geom::geography,x.geom::geography,50,true)
-		--GROUP BY x.address_gid,v.id
-		--)
-	--UPDATE isochrones set population = zz.array_to_json 
-	--FROM 	
-	--(SELECT gid,array_to_json(array_agg(row_to_json(z))) FROM	
-	--(SELECT v.gid,v.step,v.address_gid,v.population,cost 
-	--FROM var_population v,	
-	--(SELECT min(cost) as cost,address_gid 
-	--FROM min_dist m,edges WHERE m.id=node
-	--GROUP BY address_gid) z
-	--WHERE v.address_gid = z.address_gid) z
-	--GROUP BY gid) zz
-	--WHERE isochrones.gid = zz.gid;
+
 	return query SELECT i.gid, i.pois FROM isochrones i WHERE gid= input_gid;
 END ;
 $function$

@@ -22,14 +22,9 @@ UNION ALL
 SELECT p.* FROM (
 	SELECT i.gid,count(*),amenity FROM isochrones i, 
 	pois p
-	WHERE st_intersects(i.geom,p.geom)  AND objectid=input_objectid AND shop IS NULL
+	WHERE st_intersects(i.geom,p.geom)  AND objectid=input_objectid
 	GROUP BY i.gid,amenity
-	UNION ALL
-	SELECT i.gid,count(*),shop FROM isochrones i, 
-	pois p
-	WHERE st_intersects(i.geom,p.geom)  AND objectid=input_objectid AND amenity IS NULL
-	GROUP BY i.gid,shop) p
-	,variable_container
+) p ,variable_container
 WHERE amenity = any(variable_array)
 AND identifier = 'poi_categories'
 UNION ALL
