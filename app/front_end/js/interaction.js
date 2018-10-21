@@ -1,5 +1,5 @@
 import {GeoJSON,WFS,GML} from 'ol/format';
-import {intersects as intersectsFilter} from 'ol/format/filter';
+import {intersects as intersectsFilter,equalTo as equalToFilter, and as andFilter} from 'ol/format/filter';
 import {fromCircle} from 'ol/geom/Polygon';
 import {Vector as VectorLayer} from 'ol/layer';
 import {Vector as VectorSource} from 'ol/source'; 
@@ -286,7 +286,7 @@ $('button').click(function () {
 
 
 //--- WAYS LAYER USER INTERACTION ---//
-
+var staticUserId = 1; //temporary
 function WfsRequestFunction (srsName,namespace,workspace,layerName,filter){
     console.log(srsName,namespace,workspace,layerName,filter);
     var wfs = new WFS().writeGetFeature({
@@ -327,32 +327,83 @@ var searchInteraction = {
     drawStopEvent: function (evt){
      
         $('#mySpinner').addClass('spinner');
+
+        //1 - SPATIAL INTERSECT WITH ORIGINAL DATA
         var circle = evt.feature.getGeometry();  
-        console.log(circle);  
-       var geom = fromCircle(circle);
-       var filter = intersectsFilter('geom', geom, 'EPSG:3857');
+       var circleGeom = fromCircle(circle);
+       var filterIntersect = intersectsFilter('geom', circleGeom, 'EPSG:3857');
+
         //Get the feature that intersect with geometry
-       var wfsRequestXmlString = WfsRequestFunction('EPSG:3857',ApiConstants.geoserver_namespaceURI, ApiConstants.geoserver_workspace,'ways',filter);
-        fetch(ApiConstants.wfs_url,{
+       var wfsRequestXmlStringOriginalTable = WfsRequestFunction('EPSG:3857',ApiConstants.geoserver_namespaceURI, ApiConstants.geoserver_workspace,'ways',filterIntersect);
+       var originalTableRequest = fetch(ApiConstants.wfs_url,{
             method: 'POST',
-            body: wfsRequestXmlString,
+            body: wfsRequestXmlStringOriginalTable,
             headers: {
                 'Content-Type': 'application/xml',
                 'Accept': 'application/xml'
             }
         }).then(function(response){
             return response.json();
-        }).then(function (json) {
-            $('#mySpinner').removeClass('spinner');	
-            var features = new GeoJSON().readFeatures(json);
-            if (features.length == 0) {
-                return;
+        })
+
+         //2 - USER INPUT FILTER BASED ON USER ID
+       var filterUserInputTable = equalToFilter('userid', staticUserId);
+       var combinedFilter = andFilter(filterUserInputTable,filterIntersect)
+       var wfsRequestXmlStringUserInputTable = WfsRequestFunction('EPSG:3857',ApiConstants.geoserver_namespaceURI, ApiConstants.geoserver_workspace,'ways_userinput',combinedFilter);
+        var userInputTableRequest = fetch(ApiConstants.wfs_url,{
+            method: 'POST',
+            body: wfsRequestXmlStringUserInputTable,
+            headers: {
+                'Content-Type': 'application/xml',
+                'Accept': 'application/xml'
             }
-            ExtractStreetsSource.clear();
-            ExtractStreetsSource.addFeatures(features);
-            searchInteraction.stop();
-          
+        }).then(function(response){
+            return response.json();
         });
+
+        //3- START THE REQUESTS AND FILTER THE RESULTS
+        Promise.all([originalTableRequest,userInputTableRequest]).then(function(values){
+            $('#mySpinner').removeClass('spinner');
+            var originalFeatures = new GeoJSON().readFeatures(values[0]); 
+            var userInputFeatures = new GeoJSON().readFeatures(values[1]);
+            ExtractStreetsSource.clear();
+            ExtractStreetsSource.addFeatures(originalFeatures);
+            searchInteraction.stop();
+            ///Filter out original features from user drawned features
+            var userInputFeaturesWithOriginalId  = [];
+            var originalIdsArr = []
+            var userInputFeaturesWithoutOriginalId = [];
+
+            var i;
+
+            for (i=0;i<userInputFeatures.length;i++){
+                var currentFeature = userInputFeatures[i];
+                var id = parseInt(currentFeature.getId().split(".")[1]);
+                currentFeature.setId(id);
+                if (currentFeature.getProperties().original_id != null){
+                    userInputFeaturesWithOriginalId.push(currentFeature)
+                    originalIdsArr.push(currentFeature.getProperties().original_id);
+                } else {
+                    userInputFeaturesWithoutOriginalId.push(currentFeature);
+                }
+                console.log(currentFeature.getId());
+            }
+
+            for (var i=0;i<originalFeatures.length;i++){
+                var currentFeature = originalFeatures[i];
+                var original_id = currentFeature.getProperties().id;
+                if (originalIdsArr.includes(original_id)){
+                    ExtractStreetsSource.removeFeature(currentFeature);
+                }
+            }
+            ExtractStreetsSource.addFeatures(userInputFeaturesWithOriginalId);
+            ExtractStreetsSource.addFeatures(userInputFeaturesWithoutOriginalId);
+
+            console.log(originalFeatures);
+            console.log(userInputFeaturesWithOriginalId);
+            console.log(userInputFeaturesWithoutOriginalId);
+        });
+
 
     },
     init: function(){
@@ -393,7 +444,7 @@ ExtractStreetsSource.on('changefeature',function (evt){
 
 
 //BUTTON EVENT HANDLERS
-var staticUserId = 1; //temporary
+
 var waysInteraction = {
     featuresToCommit: [],
     featuresIDsToDelete: [],
@@ -436,51 +487,51 @@ var waysInteraction = {
     transact: function (){
         // 1- Get the features, transform geometry and properties
 
+
+        var featuresToAdd = [];
+        var featuresToUpdate = [];
+
+//        var transformedBackArr = [];
+        var featuresToRemoveArr = [];
         //There is the case on update interaction when some features needs to be added
         //and the features that are already in table needs to be updated
-       var featuresToAdd = this.featuresToCommit.filter(f => {
+        var i;
+        for (i=0;i<this.featuresToCommit.length;i++){
+            var f = this.featuresToCommit[i];
+            //Feature Properties
             var props = f.getProperties();
+            //Transform the feature
+            var geometry = f.getGeometry().clone();
+            geometry.transform("EPSG:3857", "EPSG:4326");
+            var transformed = new Feature({	
+                userid : staticUserId,                
+                geom: geometry,
+                class_id: f.getProperties().class_id,
+                original_id: f.getProperties().id
+            });
+            transformed.setGeometryName("geom");
+
             if ((typeof f.getId() == 'undefined' && Object.keys(props).length == 1) || !props.hasOwnProperty('original_id')){
-                return f
+                featuresToAdd.push(transformed);
+                featuresToRemoveArr.push(f);
+
+            } else if((props.hasOwnProperty('original_id')) && (this.interactionType == 'modify')) {
+                transformed.setId(f.getId());
+                featuresToUpdate.push(transformed);
             }
-        }).map(f=> {
-            var geometry = f.getGeometry().clone();
-            geometry.transform("EPSG:3857", "EPSG:4326");
-            var transformed = new Feature({	
-                userid : staticUserId,                
-                geom: geometry,
-                class_id: f.getProperties().class_id,
-                original_id: f.getProperties().id
-            });
-            transformed.setGeometryName("geom");
-            return transformed
-        });
+        }
+        console.log('-------------')
         console.log(featuresToAdd);
-
-        var featuresToUpdate = this.featuresToCommit.filter(f => {
-            var props = f.getProperties();
-            if ((props.hasOwnProperty('original_id')) && (this.interactionType = 'update') ){
-                return f
-            }
-        }).map(f=> {
-            var geometry = f.getGeometry().clone();
-            geometry.transform("EPSG:3857", "EPSG:4326");
-            var transformed = new Feature({	
-                userid : staticUserId,                
-                geom: geometry,
-                class_id: f.getProperties().class_id,
-                original_id: f.getProperties().id
-            });
-            transformed.setGeometryName("geom");
-            return transformed
-        });
         console.log(featuresToUpdate);
+        console.log('-------------')
 
-       var formatGML ={
-            featureNS: ApiConstants.geoserver_namespaceURI,
-            featureType: ApiConstants.geoserver_workspace + ':ways_userinput'
+    console.log(ApiConstants.geoserver_workspace);
+    formatGML = {
+        featureNS: ApiConstants.geoserver_namespaceURI,
+        featureType: 'ways_userinput',
+        srsName: 'urn:x-ogc:def:crs:EPSG:4326'
     };
-    var node;
+       var node;
    
     switch (this.interactionType) {
             case 'draw':
@@ -493,17 +544,36 @@ var waysInteraction = {
                 node = formatWFS.writeTransaction(null, null, null, formatGML);
                 break;
         }
+        console.log(node);
      var payload = xs.serializeToString(node);
     
-     fetch(ApiConstants.wfs_url, {
-        method: 'POST',
-        body: payload,
-        headers: {
-            'Content-Type': 'application/xml'
-        }
-        }).then(function (response) {
-            
-        })
+    $.ajax({
+        type: "POST",
+        url: ApiConstants.wfs_url,
+        data: new XMLSerializer().serializeToString(node),
+        contentType: 'text/xml',
+        success: function(data) {
+            console.log(data);
+            var result = formatWFS.readTransactionResponse(data);
+            var FIDs = result.insertIds;
+            console.log(result);
+            if (FIDs != undefined && FIDs[0]!="none"){
+                var i;
+                for (i=0;i<FIDs.length;i++){
+                    var id = parseInt(FIDs[i].split(".")[1]);
+                    ExtractStreetsSource.removeFeature(featuresToRemoveArr[i])
+                    featuresToAdd[i].setId(id);
+                    featuresToAdd[i].getGeometry().transform("EPSG:4326", "EPSG:3857")
+                    ExtractStreetsSource.addFeature(featuresToAdd[i]);
+                }
+            }
+        },
+        error: function(e) {
+         
+        },
+        context: this
+    });
+
 
     }
 
