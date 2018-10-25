@@ -628,6 +628,7 @@ var waysInteraction = {
      unByKey(this.deleteListenerKey);
      popupOverlay.setPosition(undefined);
      this.featuresToCommit = [];
+     this.featureToDelete = null;
     },
     add: function (interaction,type){
         this.remove();
@@ -663,13 +664,19 @@ var waysInteraction = {
                 //Transform the feature
                 var geometry = f.getGeometry().clone();
                 geometry.transform("EPSG:3857", "EPSG:4326");
+
+             
+
                 var transformed = new Feature({	
                     userid : staticUserId,                
                     geom: geometry,
-                    class_id: f.getProperties().class_id,
-                    original_id: f.getProperties().id
+                    class_id: f.getProperties().class_id
                 });
                 transformed.setGeometryName("geom");
+
+                if (!props.hasOwnProperty('original_id') && ((this.interactionType == 'modify'))){
+                    transformed.set('original_id',f.getProperties().id);
+                }
 
                 if ((typeof f.getId() == 'undefined' && Object.keys(props).length == 1) || !props.hasOwnProperty('original_id')){
                     featuresToAdd.push(transformed);
@@ -697,7 +704,9 @@ var waysInteraction = {
         srsName: 'urn:x-ogc:def:crs:EPSG:4326'
     };
        var node;
-   
+    
+    console.log(this.featureToDelete);
+    console.log(this.interactionType);
     switch (this.interactionType) {
             case 'draw':
                 node = formatWFS.writeTransaction(featuresToAdd, null, null, formatGML);       
@@ -706,11 +715,13 @@ var waysInteraction = {
                 node = formatWFS.writeTransaction(featuresToAdd,featuresToUpdate,null,formatGML);
                 break;
             case 'delete':
+            console.log('passed here');
                 node = formatWFS.writeTransaction(null, null, this.featureToDelete, formatGML);
                 break;
         }
         console.log(node);
      var payload = xs.serializeToString(node);
+     console.log(payload)
     
     $.ajax({
         type: "POST",
