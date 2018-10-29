@@ -19,9 +19,18 @@ PGPASSFILE=~/.pgpass psql -d $DATABASE -U $USER -h $HOST -c "create extension hs
 
 
 cd ~/app/data
-wget --output-document="raw-osm.osm.pbf" $DOWNLOAD_LINK
+#wget --output-document="raw-osm.osm.pbf" $DOWNLOAD_LINK
 
-osmosis --read-pbf file="raw-osm.osm.pbf" $BOUNDING_BOX --write-xml file="study_area.osm"
+if [ -z "$BOUNDING_BOX_2" ]
+then 
+    echo 'One bounding box was chosen.'
+    osmosis --read-pbf file="raw-osm.osm.pbf" $BOUNDING_BOX --write-xml file="study_area.osm"
+else
+    echo 'You have set two bounding boxes. The raw-file will be cut and then merged together'
+    osmosis --read-pbf file="raw-osm.osm.pbf" $BOUNDING_BOX --write-xml file="study_area1.osm"
+    osmosis --read-pbf file="raw-osm.osm.pbf" $BOUNDING_BOX_2 --write-xml file="study_area2.osm"
+    osmosis --rx study_area1.osm --rx study_area2.osm --m --wx study_area.osm
+fi
 
 PGPASSFILE=~/.pgpass osm2pgsql -d $DATABASE -H $HOST -U $USER --hstore -E 4326 study_area.osm 
 PGPASSFILE=~/.pgpass osm2pgrouting --dbname $DATABASE --host $HOST --username $USER --file "study_area.osm" --conf ../config/mapconfig.xml --clean
