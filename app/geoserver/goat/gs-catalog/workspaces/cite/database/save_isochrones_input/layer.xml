@@ -1,0 +1,15 @@
+<layer>
+  <name>save_isochrones_input</name>
+  <id>LayerInfoImpl--4efdcae4:15df0131d46:4626</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--167589b6:15c77205b7f:-7ffb</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--4efdcae4:15df0131d46:4625</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>
