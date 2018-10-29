@@ -19,7 +19,7 @@ PGPASSFILE=~/.pgpass psql -d $DATABASE -U $USER -h $HOST -c "create extension hs
 
 
 cd ~/app/data
-#wget --output-document="raw-osm.osm.pbf" $DOWNLOAD_LINK
+wget --output-document="raw-osm.osm.pbf" $DOWNLOAD_LINK
 
 if [ -z "$BOUNDING_BOX_2" ]
 then 
