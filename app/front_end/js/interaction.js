@@ -212,7 +212,7 @@ $('button').click(function () {
 		 
 		 case 'draw_isochrone':
 
-				
+	      searchInteraction.stop();	
 		 //Define Format and table for POST
 		 	
             formatGML = new GML({
@@ -322,6 +322,38 @@ var formatLength = function(line) {
 
 
 var staticUserId = 1; //temporary
+
+
+
+
+
+
+function deleteWaysFeature (mode,user_id,deleted_feature_ids,drawned_fid){
+fetch(ApiConstants.nodeapi_baseurl + '/userdata',{
+    method: 'POST',
+        body: JSON.stringify({
+        mode: mode,
+        user_id: user_id,
+        deleted_feature_ids: deleted_feature_ids,
+        drawned_fid: drawned_fid
+        }),
+    headers: {
+        'Content-Type': 'application/json' ,
+        'Accept': 'application/json'
+    }
+}).then(function (data) {  
+    return data.json();
+    }).then(function(json) {
+    if (mode == 'read'){
+        waysInteraction.featuresIDsToDelete = json[0].deleted_feature_ids;
+    }
+    console.log(json);
+    }).catch(function (error) {  
+    console.log('Request failure: ', error);  
+    });
+}
+deleteWaysFeature('read',staticUserId);
+
 function WfsRequestFunction (srsName,namespace,workspace,layerName,filter){
     console.log(srsName,namespace,workspace,layerName,filter);
     var wfs = new WFS().writeGetFeature({
@@ -335,6 +367,8 @@ function WfsRequestFunction (srsName,namespace,workspace,layerName,filter){
     var xmlparser = xs.serializeToString(wfs);
     return xmlparser;
 }
+
+
 
 
     //Add the query layer to the map
@@ -469,7 +503,7 @@ var searchInteraction = {
          //2 - USER INPUT FILTER BASED ON USER ID
        var filterUserInputTable = equalToFilter('userid', staticUserId);
        var combinedFilter = andFilter(filterUserInputTable,filterIntersect)
-       var wfsRequestXmlStringUserInputTable = WfsRequestFunction('EPSG:3857',ApiConstants.geoserver_namespaceURI, ApiConstants.geoserver_workspace,'ways_userinput',combinedFilter);
+       var wfsRequestXmlStringUserInputTable = WfsRequestFunction('EPSG:3857',ApiConstants.geoserver_namespaceURI, ApiConstants.geoserver_workspace,'ways_modified',combinedFilter);
         var userInputTableRequest = fetch(ApiConstants.wfs_url,{
             method: 'POST',
             body: wfsRequestXmlStringUserInputTable,
@@ -512,7 +546,7 @@ var searchInteraction = {
             for (var i=0;i<originalFeatures.length;i++){
                 var currentFeature = originalFeatures[i];
                 var original_id = currentFeature.getProperties().id;
-                if (originalIdsArr.includes(original_id)){
+                if (originalIdsArr.includes(original_id) || waysInteraction.featuresIDsToDelete.includes(original_id.toString())){
                     ExtractStreetsSource.removeFeature(currentFeature);
                 }
             }
@@ -529,9 +563,7 @@ var searchInteraction = {
     },
     init: function(){
         this.stop();
-        waysInteraction.remove();
-        QueryLayer.getSource().clear();
-        ExtractStreetsSource.clear();
+      
         //Add circle interaction to search for the geojson features on the map
         var circleDraw = new Draw({
             source: QueryLayer.getSource(),
@@ -554,6 +586,9 @@ var searchInteraction = {
             map.removeInteraction(this.interaction);
         }
         this.interaction = null;
+        waysInteraction.remove();
+        QueryLayer.getSource().clear();
+        ExtractStreetsSource.clear();
         
     }
 }
@@ -573,10 +608,6 @@ ExtractStreetsSource.on('changefeature',function (evt){
 
 //BUTTON EVENT HANDLERS
 
-
-
-
-
 var waysInteraction = {
     featuresToCommit: [],
     featuresIDsToDelete: [],
@@ -587,7 +618,30 @@ var waysInteraction = {
     featureToDelete: null,
     popupDeleteYesFn: function (evt){
         var f = waysInteraction.featureToDelete;
-        waysInteraction.transact();
+        var prop = f.getProperties();
+        if (prop.hasOwnProperty('original_id')){
+            if (prop.original_id != null){
+                console.log(f);
+                var fid = f.getProperties().original_id.toString();
+                waysInteraction.featuresIDsToDelete.push(fid);
+                deleteWaysFeature ('delete',staticUserId,waysInteraction.featuresIDsToDelete,prop.id)
+                deleteWaysFeature ('update',staticUserId,waysInteraction.featuresIDsToDelete);
+            } else {
+                deleteWaysFeature ('delete',staticUserId,waysInteraction.featuresIDsToDelete,prop.id)
+            }
+        } else {
+            var fid;
+            if (!prop.hasOwnProperty('original_id') && !prop.hasOwnProperty('id')  ) {
+                fid = f.getId().toString();
+                deleteWaysFeature ('delete',staticUserId,waysInteraction.featuresIDsToDelete,fid)
+            } else {
+                fid = f.getProperties().id.toString();
+                waysInteraction.featuresIDsToDelete.push(fid);
+                deleteWaysFeature ('update',staticUserId,waysInteraction.featuresIDsToDelete);
+            }
+            
+           
+        }
         ExtractStreetsSource.removeFeature(waysInteraction.featureToDelete);
         closePopupFn();
     },
@@ -603,6 +657,7 @@ var waysInteraction = {
             waysInteraction.featureToDelete = feature;
             SelectedLayerSource.addFeature(feature);
             console.log(feature);
+            map.addOverlay(popupOverlay);
             popupOverlay.setPosition(startCoord);    
         }
     },
@@ -629,6 +684,7 @@ var waysInteraction = {
      popupOverlay.setPosition(undefined);
      this.featuresToCommit = [];
      this.featureToDelete = null;
+     closePopupFn();
     },
     add: function (interaction,type){
         this.remove();
@@ -664,9 +720,6 @@ var waysInteraction = {
                 //Transform the feature
                 var geometry = f.getGeometry().clone();
                 geometry.transform("EPSG:3857", "EPSG:4326");
-
-             
-
                 var transformed = new Feature({	
                     userid : staticUserId,                
                     geom: geometry,
@@ -687,10 +740,6 @@ var waysInteraction = {
                     featuresToUpdate.push(transformed);
                 }
             }
-        } else if (this.interactionType == 'delete'){
-            if (this.featureToDelete.getProperties().original_id != null){
-                return;
-            }
         } else {
             return;
         }
@@ -700,7 +749,7 @@ var waysInteraction = {
     console.log(ApiConstants.geoserver_workspace);
     formatGML = {
         featureNS: ApiConstants.geoserver_namespaceURI,
-        featureType: 'ways_userinput',
+        featureType: 'ways_modified',
         srsName: 'urn:x-ogc:def:crs:EPSG:4326'
     };
        var node;
@@ -729,9 +778,6 @@ var waysInteraction = {
         data: new XMLSerializer().serializeToString(node),
         contentType: 'text/xml',
         success: function(data) {
-            if (this.interactionType == 'delete'){
-                return;
-            }
             console.log(data);
             var result = formatWFS.readTransactionResponse(data);
             var FIDs = result.insertIds;
@@ -769,6 +815,8 @@ var waysInteraction = {
 var container = document.getElementById('popup');
 var content = document.getElementById('popup-content');
 var closer = document.getElementById('popup-closer');
+var btnNoDeleteFeature = document.getElementById('btnNoDeleteFeature');
+var btnYesDeleteFeature = document.getElementById('btnYesDeleteFeature');
 container.style.visibility = 'visible';
 var popupOverlay = new Overlay({
 element: container,
@@ -777,10 +825,11 @@ autoPanAnimation: {
     duration: 250
 }
 });
-map.addOverlay(popupOverlay)
+
 
 function closePopupFn (){
 popupOverlay.setPosition(undefined);
+map.removeOverlay(popupOverlay);
 SelectedLayerSource.clear();
 closer.blur();
 return false;
@@ -796,11 +845,21 @@ btnYesDeleteFeature.onclick = waysInteraction.popupDeleteYesFn;
 //Button click events
 $('.expert_draw').click(function () {
     let buttonID = this.id;
+    console.log(buttonID);
     if (buttonID == 'btnQuery'){
         searchInteraction.init();
         CircleRadius.add();
         return;
     }
+
+    
+    map.getOverlays().getArray().slice(0).forEach(function(overlay) {
+   															
+             map.removeOverlay(overlay);
+      	
+    });
+
+    waysInteraction.remove();
 
     switch(buttonID){
         case 'btnDraw':
@@ -819,7 +878,6 @@ $('.expert_draw').click(function () {
         waysInteraction.add(modifyInteraction,'modify');
         break
         case 'btnDelete':
-        // ADD BUTTON DELETE
         waysInteraction.add(null,'delete');
         break;
     }
