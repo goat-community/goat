@@ -23,45 +23,6 @@ var jsonParser = bodyParser.json()
 	  // to support JSON-encoded bodies
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
-
-
-
-
-app.get('/load_ways', (request,response) => {
-	pool.query(`select id, class_id, st_AsGeoJSON(geom) geom from ways
-	where st_intersects(geom,st_buffer(st_setsrid(st_point(10.683605,47.575593),4326)::geography,1000))`, (err,res) => {
-    if (err) return console.log(err);
-    let rows = res.rows
-  var obj, i;
-	obj = {
-		type: "FeatureCollection",
-		features: []
-	};
-
-		for (i = 0; i < rows.length; i++) {
-			var item, feature, geometry;
-			item = rows[i];
-	
-			geometry = JSON.parse(item.geom);
-			delete item.geom;
-	
-			feature = {
-				type: "Feature",
-				properties: item,
-				geometry: geometry
-			}
-	
-			obj.features.push(feature);
-		} 
-
-     response.send(obj);
-  
-  });
-});
-
-
-
-
 app.post('/userdata',jsonParser, (request,response) => {
 	//CRUD OPERATION
 	var mode = request.body.mode;
@@ -69,11 +30,13 @@ app.post('/userdata',jsonParser, (request,response) => {
 		if (err) return console.log(err);
 			   response.send(res.rows);
 	}
-	if (mode == 'read'){
-		pool.query('SELECT * FROM user_data where id = ($1)',[request.body.id], returnResult);
-	} else if (mode == 'update'){
-		console.log(request.body.deleted_feature_ids);		
-		pool.query('UPDATE user_data SET deleted_feature_ids=($2) WHERE id=($1)',[request.body.id,request.body.deleted_feature_ids],returnResult);
+	if (mode == 'read'){ //read is used to fill tha array of ways delete features ids on the application startup
+		pool.query('SELECT * FROM user_data where id = ($1)',[request.body.user_id], returnResult);
+	} else if (mode == 'update'){	//update is used to fill the array with ways features that are not drawned by the user	
+		pool.query('UPDATE user_data SET deleted_feature_ids=($2) WHERE id=($1)',[request.body.user_id,request.body.deleted_feature_ids],returnResult);
+	} else if (mode == 'delete'){  //delete is used to delete the feature from ways_modified table if the user has drawned that feature by himself
+		pool.query('DELETE FROM ways_modified WHERE id=($1)',[request.body.drawned_fid],returnResult); 
+		//*later we can require guid (unique id) for security here, for the user to be able to delete the feature and use a nodejs library to prevent sql incjection attacks*//
 	}
 	
 });

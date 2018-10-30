@@ -10,7 +10,8 @@ module.exports = {
     x : 10.70171,
     y : 47.57143,
     ip_address : 'http://localhost',
-    proxy_url: 'http://localhost:9090/'
+    proxy_url: 'http://localhost:9090/',
+    nodeapi_baseurl: 'http://localhost:9090/http://localhost:3000'
 }
 
 
