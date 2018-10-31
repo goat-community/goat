@@ -92,8 +92,8 @@ ALTER TABLE non_residential_ids add primary key(gid);
 --All buildings smaller 54 square meters are excluded
 
 SELECT * ,st_area(geom::geography) as area, 
-(tags -> 'building:levels')::integer as building_levels, 
-(tags -> 'roof:levels')::integer as roof_levels 
+(tags -> 'building:levels')::float as building_levels, 
+(tags -> 'roof:levels')::float as roof_levels 
 INTO buildings_residential
 FROM buildings_residential_table b
 WHERE b.osm_id not in(SELECT osm_id FROM non_residential_ids)
