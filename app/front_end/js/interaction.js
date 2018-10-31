@@ -30,7 +30,13 @@ var number_calculations = 0;
 var xs = new XMLSerializer();
 
 var cql="userid="+userid.toString();
-	
+    
+
+var dynamicVars = {
+    objectid: null,
+    parent_id: null
+} 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////LineLineLine///////////////////////////////////////////////////////////////////////
 
@@ -244,10 +250,14 @@ $('button').click(function () {
                 var coordinates = feature.getGeometry().getCoordinates();
                 console.log(coordinates);
                 var modus = document.getElementById('modus').value;
-     	
+                    dynamicVars.objectid = objectid;
  					if (modus=='double_calculation'){
- 						var new_objectid = Math.floor(Math.random() * 10000000);
-				
+                         var new_objectid = Math.floor(Math.random() * 10000000);
+                         
+                      
+
+                        console.log('passed here')
+
 					   draw_isochrone(coordinates,new_objectid,objectid);  //A objectid for the second isochrone is created and the first objectid is used as parent_id 
  					   draw_isochrone(coordinates,objectid,1);		
 	
@@ -888,6 +898,6 @@ $('.expert_draw').click(function () {
 })
 
 
-export {userid,number_calculations,layerWFS_point,drawnLine};
+export {userid,number_calculations,layerWFS_point,drawnLine,dynamicVars};
 
 
