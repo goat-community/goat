@@ -106,23 +106,6 @@ var accessibility_layer = function(){
   
 }
 
-var addRemoveAccesibilityLayer = {
-    layer: null,
-    add : function (map){
-      if (this.layer != null) {
-        this.remove(map);
-      }
-      this.layer = accessibility_layer();
-      map.addLayer(this.layer);
-    },
-    remove : function (map){
-      map.removeLayer(this.layer);
-    }
-}
-
-
-
-
 
 
 //Load Study Area
@@ -150,22 +133,6 @@ study_area.getSource().on('change', function(e) {
 	}
 })
 
-var ways_url = ApiConstants.proxy_url+'http://localhost:3000/load_ways'
-var ways_layers = new VectorLayer({           
-           source: new VectorSource({
-           url:ways_url,
-           format: new GeoJSON()
-     })    
-});
-
-var WaysLayers = {
-  addTo: function(map){
-    map.addLayer(ways_layers);
-  },
-  removeFrom: function(map){
-    map.removeLayer(ways_layers);
-  }
-}
 
 
 	
@@ -174,4 +141,4 @@ function GetBaseLayers(){
   return layers;
 }
 
-export {GetBaseLayers,addRemoveAccesibilityLayer,WaysLayers};
+export {GetBaseLayers};
