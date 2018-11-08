@@ -28,6 +28,8 @@ Parcel
 
 NodeJS 8.12.0
 
+Virtual Box 5.2.18
+
 Vagrant 2.1.2
 
 Docker
