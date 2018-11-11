@@ -20,7 +20,7 @@ ENV CATALINA_OPTS='-Xms256m -Xmx1g -Dfile.encoding=UTF-8 -D-XX:SoftRefLRUPolicyM
 WORKDIR /tmp
 
 # init
-RUN apk -U upgrade --UPDATE && \
+RUN apk -U upgrade --update && \
     apk add curl && \
     apk add openssl && \
     rm -rf $CATALINA_HOME/webapps/*
