@@ -17,7 +17,6 @@ PGPASSFILE=~/.pgpass psql -d $DATABASE -U $USER -h $HOST -c "create extension po
 PGPASSFILE=~/.pgpass psql -d $DATABASE -U $USER -h $HOST -c "create extension pgrouting;"
 PGPASSFILE=~/.pgpass psql -d $DATABASE -U $USER -h $HOST -c "create extension hstore;"
 
-
 cd ~/app/data
 wget --output-document="raw-osm.osm.pbf" $DOWNLOAD_LINK
 
