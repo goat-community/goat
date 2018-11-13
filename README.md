@@ -159,6 +159,14 @@ Password: earlmanigault
 
 Port: 65432
 
+##### Common Issues
 
+If you use Windows as your host OS it might happen that you have issue when executing the shell scripts. Due to the different ways Unix-like systems and Windows are dealing with line endings. You will get an warning like "\r command not found". In order to convert the shell scripts to files the Linux-VM can execute you may have to convert the files first. You can use a tool like dos2unix.
 
+You potentially have to run all the following commands:
 
+`sudo apt install dos2unix`
+`dos2unix ~/app/installation/install_software.sh`
+`dos2unix ~/app/installation/setup_goat.sh`
+`dos2unix ~/app/config/secret.js`
+`dos2unix ~/app/geoserver/install_geoserver.sh`
