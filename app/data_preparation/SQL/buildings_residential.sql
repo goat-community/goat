@@ -91,14 +91,15 @@ ALTER TABLE non_residential_ids add primary key(gid);
 
 --All buildings smaller 54 square meters are excluded
 
+
 SELECT * ,st_area(geom::geography) as area, 
-(tags -> 'building:levels')::float as building_levels, 
-(tags -> 'roof:levels')::float as roof_levels 
+CASE WHEN (tags -> 'building:levels')~E'^\\d+$' THEN (tags -> 'building:levels')::integer ELSE null end as building_levels,
+CASE WHEN (tags -> 'roof:levels')~E'^\\d+$' THEN (tags -> 'roof:levels')::integer ELSE null end as roof_levels
 INTO buildings_residential
 FROM buildings_residential_table b
 WHERE b.osm_id not in(SELECT osm_id FROM non_residential_ids)
-AND st_area(geom::geography) > 54
-;
+AND st_area(geom::geography) > 54;
+
 
 --All Building with no levels get building_levels = 2 AND roof_levels = 1
 UPDATE buildings_residential 
@@ -126,7 +127,6 @@ WHERE building_levels_residential IS NULL;
 
 --Population of each adminstrative boundary is assigned to the residential buildings
 
-
 with x as (
 SELECT m.gid,sum(b.area*building_levels_residential) as sum_buildings_area 
 FROM buildings_residential b, study_area m
@@ -142,11 +142,15 @@ study_area m
 WHERE st_intersects(b.geom,m.geom)
 AND m.gid=x.gid;
 
+
+
+
 DROP TABLE buildings_residential;
-ALTER TABLE buildings_pop rename to buildings_residential;
-
+alter table buildings_pop drop column gid;
+select * into buildings_residential from buildings_pop ;
+drop table buildings_pop;
 CREATE INDEX index_buildings_residential ON buildings_residential  USING GIST (geom);
-
+alter table buildings_residential add column gid serial;
 ALTER TABLE buildings_residential add primary key(gid);
 
 
@@ -162,3 +166,4 @@ DROP TABLE leisure_table;
 DROP TABLE landuse_table;
 DROP TABLE school_table;
 DROP TABLE non_residential_ids;
+
