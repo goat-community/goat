@@ -166,7 +166,11 @@ If you use Windows as your host OS it might happen that you have issue when exec
 You potentially have to run all the following commands:
 
 `sudo apt install dos2unix`
+
 `dos2unix ~/app/installation/install_software.sh`
+
 `dos2unix ~/app/installation/setup_goat.sh`
+
 `dos2unix ~/app/config/secret.js`
+
 `dos2unix ~/app/geoserver/install_geoserver.sh`
