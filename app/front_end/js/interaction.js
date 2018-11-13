@@ -148,7 +148,7 @@ var transactWFS = function (mode, f,formatGML,way_type) {
         case 'insert':
             node = formatWFS.writeTransaction([newFeature], null, null, formatGML);       
             break;
-        case 'UPDATE':
+        case 'update':
             node = formatWFS.writeTransaction(null, [newFeature], null, formatGML);
             break;
         case 'delete':
