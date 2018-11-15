@@ -24,13 +24,16 @@ app.get('/multiple_isochrones/:parameters',(request,response) => {
 	parameters = JSON.parse(parameters);
 	let array_objectids = [];
 	const {amenity,userid,minutes,step,speed,concavity,modus,parent_id} = parameters
-	pool.query(`SELECT ST_X(p.geom) x,ST_Y(p.geom) y FROM pois p, study_area_union s WHERE p.amenity = '${amenity}' and ST_Intersects(p.geom,s.geom)`
+	console.log(typeof(Array.from(amenity)))
+	console.log(amenity)
+	let multi_isochrone;
+	pool.query(`SELECT ST_X(p.geom) x,ST_Y(p.geom) y FROM pois p, study_area_union s WHERE p.amenity::varchar in($1) and ST_Intersects(p.geom,s.geom)`,[amenity]
 		, (err, res) => {
 		if (err) return console.log(err);
 		for (i = 0; i < res.rows.length; i++){
 			const objectid = Math.floor(Math.random() * 10000000);
 			array_objectids.push(objectid);
-
+			
 			let sql_query = `INSERT INTO isochrones(userid,id,step,geom,speed,concavity,modus,objectid,parent_id)
 							 SELECT *,$1 speed,$2 concavity,$3,$4 objectid,$5 parent_id 
 							 FROM isochrones($6,$7,$8,$9,$10,$11,$12,$13,$14,$15)` 
@@ -44,22 +47,24 @@ app.get('/multiple_isochrones/:parameters',(request,response) => {
 		console.log(array_objectids);
 		pool.query(`WITH u AS
 					(
-						SELECT st_union(st_intersection(i.geom,s.geom)) geom, s.sum_pop
+						SELECT st_union(st_intersection(i.geom,s.geom)) geom, s.sum_pop, i.step, s.name
 						FROM isochrones i, study_area s
-						WHERE step = 10
-						AND st_intersects(i.geom,s.geom)
-						AND objectid in($1)
-						GROUP BY s.gid
+						WHERE st_intersects(i.geom,s.geom)
+						AND objectid::varchar in($1)
+						GROUP BY s.gid, i.step
 					)
-					SELECT u.geom, u.sum_pop, sum(p.population),sum(p.population)/u.sum_pop
+					SELECT u.geom, u.sum_pop, sum(p.population),
+					sum(p.population)/(0.1+u.sum_pop) share_population,u.step, u.name --0.1 is added in order to avoid error division by zero
 					FROM u, population p
 					WHERE ST_Intersects(u.geom,p.geom)
-					GROUP BY u.geom, u.sum_pop`,[array_objectids]
+					GROUP BY u.geom, u.sum_pop, u.step, u.name`,[array_objectids]
 		,(err,res) => {
 		if (err) return console.log(err);
-		console.log(res.rows);
+		multi_isochrone = res.rows;
 		})
+
 	});
+	response.send(multi_isochrone)
 
 
 
