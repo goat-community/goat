@@ -31,13 +31,6 @@ thematic_data_sql ='''	--Pois and public transport stops are combined and all wh
 		and amenity = any(variable_array)
 		and i.grid_id= grid_id_replace
 		and st_intersects(p.geom,i.geom)
-		union all 
-		select i.grid_id,i.step, p.gid as poi_gid,p.shop,p.name, p.geom  
-		from pois p,precalculate_walking_grid_size i,variable_container v 
-		where v.identifier = 'poi_categories'
-		and shop = any(variable_array)
-		and i.grid_id= grid_id_replace
-		and st_intersects(p.geom,i.geom)
 		union all
 		select i.grid_id,i.step,p.gid as poi_gid,public_transport_stop,p.name,p.geom
 		from public_transport_stops p, precalculate_walking_grid_size i
