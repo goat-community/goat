@@ -133,7 +133,19 @@ study_area.getSource().on('change', function(e) {
 	}
 })
 
-
+var addRemoveAccesibilityLayer = {	
+  layer: null,	
+  add : function (map){	
+    if (this.layer != null) {	
+      this.remove(map);	
+    }	
+    this.layer = accessibility_layer();	
+    map.addLayer(this.layer);	
+  },	
+  remove : function (map){	
+    map.removeLayer(this.layer);	
+  }	
+}
 
 	
 //EXPORT MODULAR FUNCTIONS
@@ -141,4 +153,4 @@ function GetBaseLayers(){
   return layers;
 }
 
-export {GetBaseLayers};
+export {GetBaseLayers,addRemoveAccesibilityLayer};
