@@ -88,13 +88,13 @@ https://gist.github.com/wpscholar/a49594e2e2b918f4d0c4
 
 ##### 6.2. Install the necessary software
 
+`vagrant ssh`
+
 `sudo bash app/installation/install_software.sh`
 
 This script can take a while as it installs quite some software on your VM. If you want to check what is installed exactly you can view the install_software.sh script.
 
 ##### 6.3. Fill your database
-
-`vagrant ssh`
 
 `sudo bash app/installation/setup_goat.sh`
 
