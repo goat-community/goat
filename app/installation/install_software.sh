@@ -8,7 +8,7 @@ sudo apt update
 sudo apt install postgresql-10 -y
 sudo apt install postgresql-10-postgis-2.4 -y
 sudo apt install postgresql-10-postgis-scripts -y
-
+sudo apt install postgresql-plpython3-10
 #to get the commandline tools shp2pgsql, raster2pgsql you need to do this
 sudo apt install postgis -y
 sudo apt install postgresql-10-pgrouting -y

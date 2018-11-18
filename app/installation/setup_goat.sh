@@ -16,7 +16,7 @@ sudo -u postgres psql -c "ALTER USER goat with superuser;"
 PGPASSFILE=~/.pgpass psql -d $DATABASE -U $USER -h $HOST -c "create extension postgis;"
 PGPASSFILE=~/.pgpass psql -d $DATABASE -U $USER -h $HOST -c "create extension pgrouting;"
 PGPASSFILE=~/.pgpass psql -d $DATABASE -U $USER -h $HOST -c "create extension hstore;"
-
+PGPASSFILE=~/.pgpass psql -d $DATABASE -U $USER -h $HOST -c "create extension plpython3u;"
 cd ~/app/data
 wget --output-document="raw-osm.osm.pbf" $DOWNLOAD_LINK
 
