@@ -14,7 +14,8 @@ values('poi_categories',
 "optician","hairdresser","tailer","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
 "alcohol","bakery","butcher","clothes","convenience","fashion","florist","greengrocer","grocery",
 "kiosk","mall","organic","second_hand","shoes","sports","supermarket","toys","marketplace",
-"picnic_site","hotel","museum","hostel","guest_house","attraction","attraction","viewpoint","gallery"}');
+"picnic_site","hotel","museum","hostel","guest_house","attraction","attraction","viewpoint","gallery","bus_stop",
+"tram_stop","subway_entrance","sbahn_regional"}');
 
 
 insert INTO variable_container(identifier,variable_array) 
