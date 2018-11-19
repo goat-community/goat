@@ -296,7 +296,7 @@ $('button').click(function () {
 });
 
 
-
+//GET/INSERT USER FROM DB//
 
 //////////////////////////////--- WAYS LAYER USER INTERACTION ---//////////////////////////////
 
@@ -333,6 +333,23 @@ var formatLength = function(line) {
 
 var staticUserId = 1; //temporary
 
+function InsertUserInDb (mode, generated_id){
+    fetch (ApiConstants.nodeapi_baseurl + '/userdata',{
+        method: 'POST',
+        body: JSON.stringify({
+        mode: mode,
+        generated_id: generated_id
+        }),
+    headers: {
+        'Content-Type': 'application/json' ,
+        'Accept': 'application/json'
+    }
+    }).then(function(data){
+        return data.json;
+    });
+}
+
+InsertUserInDb('insert',userid)
 
 
 

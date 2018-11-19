@@ -43,15 +43,7 @@
         <sql>with x as (&#xd;
 	select  *&#xd;
 	from &#xd;
-	heatmap(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace( &#xd;
-	&apos;[&apos;||%amenities%||&apos;]&apos;, &#xd;
-&apos;ppp&apos;,&apos;&quot;&apos;&apos;&apos;)&#xd;
-,&apos;ttt&apos;,&apos;:&apos;),&#xd;
-&apos;lll&apos;,&apos;,&apos;),&#xd;
-&apos;ccc&apos;,&apos;&apos;&apos;&quot;&apos;),&#xd;
-&apos;eee&apos;,&apos;{&apos;),&#xd;
-&apos;xxx&apos;,&apos;}&apos;),&apos;one&apos;,&apos;1&apos;),&apos;two&apos;,&apos;2&apos;),&apos;three&apos;,&apos;3&apos;),&apos;four&apos;,&apos;4&apos;),&apos;five&apos;,&apos;5&apos;),&#xd;
-&apos;index_0_001&apos;)&#xd;
+		heatmap(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;),&apos;index_0_001&apos;)&#xd;
 ),&#xd;
 y as (SELECT grid_id,accessibility_index,geom, ntile(5) over &#xd;
 (order by accessibility_index) AS percentile&#xd;
