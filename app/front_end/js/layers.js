@@ -80,21 +80,17 @@ $('body').on('change','#layer-select',function(){
 })
 
 
-var numbers = {'1':'one','2':'two','3':'three','4':'four','5':'five'}
-
-
-
-
-
 var accessibility_layer = function(){
   let heatmap_input ={};
   let select_heatmap_input = $('#main_thematic_data .content :checkbox:checked')
   let link = ApiConstants.host_geoserver_url+'cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:heatmap&LAYERS=cite%3Aheatmap&viewparams=amenities:%27'
   let link_part = '' 
   for (var i=0; i < select_heatmap_input.length; i++){
-    link_part = link_part + "eeeppp" + select_heatmap_input[i].id.replace('check_','') + 'cccttt' + numbers[$(select_heatmap_input[i]).next().next().val()] + 'xxxlll'
+    link_part = link_part + '{"\'' + select_heatmap_input[i].id.replace('check_','') + '\'":' + $(select_heatmap_input[i]).next().next().val() + '},'
   }
-  link = link + link_part.slice(0, -3) + '%27' +';resolution:300'
+  link_part = '['+link_part.slice(0, -1)+']';
+  console.log(link_part)
+  link = link + btoa(link_part) + '%27' +';resolution:300'
 
  return new ImageLayer({
       opacity: 1,
