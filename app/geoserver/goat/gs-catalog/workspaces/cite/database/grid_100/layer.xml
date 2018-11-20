@@ -1,0 +1,15 @@
+<layer>
+  <name>grid_100</name>
+  <id>LayerInfoImpl-1300f075:161aa836d51:-4f51</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-1300f075:161aa836d51:-4f5d</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-1300f075:161aa836d51:-4f52</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

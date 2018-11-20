@@ -1,94 +1,99 @@
-drop table if exists pois;
-create table pois as (
+DROP TABLE IF EXISTS pois;
+CREATE TABLE pois as (
 
-select osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
+SELECT osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom
-from planet_osm_point
-where amenity is not null and shop is null and amenity <> 'school'
+FROM planet_osm_point
+WHERE amenity IS NOT NULL AND shop IS NULL AND amenity <> 'school'
 
-union all 
+UNION ALL 
 
-select osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
+SELECT osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom
-from planet_osm_point
-where shop is not null and amenity is null
+FROM planet_osm_point
+WHERE shop IS NOT NULL AND amenity IS NULL
 
-union all 
+UNION ALL 
 
-select osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
+SELECT osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom
-from planet_osm_polygon
-where amenity is not null and amenity <> 'school' 
+FROM planet_osm_polygon
+WHERE amenity IS NOT NULL AND amenity <> 'school' 
 
-union all 
+UNION ALL 
 
-select osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
+SELECT osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom
-from planet_osm_polygon
-where shop is not null 
+FROM planet_osm_polygon
+WHERE shop IS NOT NULL 
 
 
-union all
+UNION ALL
 
-select osm_id, access,"addr:housenumber" as housenumber, tourism, shop, denomination,brand,name,
+SELECT osm_id, access,"addr:housenumber" as housenumber, tourism, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom
-from planet_osm_point
-where tourism is not null
+FROM planet_osm_point
+WHERE tourism IS NOT NULL
 
 
-union all 
+UNION ALL 
 
-select * from (
-select osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
+SELECT * FROM (
+SELECT osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom
-from planet_osm_polygon
-where amenity = 'school') x
-where name LIKE '%Grundschule%'
-or name like 'gymnasium' 
-or name like '%Mittelschule%' 
-or name like '%Realschule%'
-or name like '%Haupt%'
+FROM planet_osm_polygon
+WHERE amenity = 'school') x
+WHERE name LIKE '%Grundschule%'
+OR name like 'gymnasium' 
+OR name like '%Mittelschule%' 
+OR name like '%Realschule%'
+OR name like '%Haupt%'
 
-union all 
+UNION ALL 
 
-select * from (
-select osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
+SELECT * FROM (
+SELECT osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom
-from planet_osm_point
-where amenity = 'school') x
-where name LIKE '%Grundschule%'
-or name like '%gymnasium%' 
-or name like '%Mittelschule%' 
-or name like '%Haupt%'
-or name like '%Realschule%'
+FROM planet_osm_point
+WHERE amenity = 'school') x
+WHERE name LIKE '%Grundschule%'
+OR name like '%gymnasium%' 
+OR name like '%Mittelschule%' 
+OR name like '%Haupt%'
+OR name like '%Realschule%'
 );
 
 
 
-update pois set amenity = 'primary_school'
-where amenity = 'school' 
-and name LIKE '%Grundschule%';
+UPDATE pois set amenity = 'primary_school'
+WHERE amenity = 'school' 
+AND name LIKE '%Grundschule%';
 
-update pois set amenity = 'secondary_school'
-where amenity = 'school' 
-and name like '%gymnasium%' 
-or name like '%Mittelschule%' 
-or name like '%Haupt%'
-or name like '%Realschule%';
+UPDATE pois set amenity = 'secondary_school'
+WHERE amenity = 'school' 
+AND name like '%gymnasium%' 
+OR name like '%Mittelschule%' 
+OR name like '%Haupt%'
+OR name like '%Realschule%';
 
 
 --For Munich grocery == convencience
-update pois set shop = 'convenience'
-where shop ='grocery';
+UPDATE pois set shop = 'convenience'
+WHERE shop ='grocery';
 
-update pois set shop = 'clothes'
-where shop ='fashion';
+UPDATE pois set shop = 'clothes'
+WHERE shop ='fashion';
 
 
-alter table pois add column gid serial;
+ALTER TABLE pois add column gid serial;
 
-alter table pois add primary key(gid); 
+ALTER TABLE pois add primary key(gid); 
 
 
 CREATE INDEX index_pois ON pois USING GIST (geom);
+
+UPDATE pois SET amenity = shop
+WHERE shop IS NOT NULL;
+
+ALTER TABLE pois DROP COLUMN shop;
 

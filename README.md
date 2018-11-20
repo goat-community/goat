@@ -28,6 +28,8 @@ Parcel
 
 NodeJS 8.12.0
 
+Virtual Box 5.2.18
+
 Vagrant 2.1.2
 
 Docker
@@ -50,18 +52,27 @@ https://www.virtualbox.org/
 
 https://www.vagrantup.com/
 
-#### 4. Prepare shapefile and provide administrative boundaries
+#### 4. Prepare your data
 
-You need a shapefile with administrative boundaries and column with the number of inhabitants in this administrative 
-unit, it works for any spatial resolution. The column has to be named “sum_pop” and has to be saved as string. 
+Put all your data into the data folder!
+
+##### If you want to disaggregate population data
+
+You need a shapefile with administrative boundaries and a column with the number of inhabitants in this administrative 
+unit, it works for any spatial resolution. The column has to be named “sum_pop” and has to be saved as integer. 
 As the population data is used for population disaggregation, data on higher resolution will give you a more 
-accurate disaggregation.
+accurate disaggregation. Make sure you change the name of your spatial unit to name_administrative.
 
-**You have to put the file into the app/data folder.**
+Optional: In the case you have custom landuse data you can place the data as shapefile (name the file: landuse.shp) into your data folder. The table has to include a column named "landuse". You can define in the table variable_container, which landuse category you want to exclude from the population disaggregation. For instance you can exclude graveyards or farmland and as consequences houses standing on these landuse categories are marked as not uninhabited. 
+
+##### If you already have population data on a high-resolution
+
+Just place a shapefile called population.shp into your data folder. The geometry type has to be point and the number of residents have to be saved as integer into a column called "population". 
+
 
 #### 5. Define your bounding box and the OSM-Downloadlink
 
-Open the file customize the DOWNLOAD_LINK and BOUNDING_BOX.
+Open the file secret.js in the config folder. Customize the DOWNLOAD_LINK and define your BOUNDING_BOX.
 
 #### 6. Setup GOAT
 
@@ -75,15 +86,21 @@ For more Vagrant commands checkout:
 
 https://gist.github.com/wpscholar/a49594e2e2b918f4d0c4
 
-##### 6.2. Fill your database
+##### 6.2. Install the necessary software
 
 `vagrant ssh`
 
+`sudo bash app/installation/install_software.sh`
+
+This script can take a while as it installs quite some software on your VM. If you want to check what is installed exactly you can view the install_software.sh script.
+
+##### 6.3. Fill your database
+
 `sudo bash app/installation/setup_goat.sh`
 
-##### Update data
+##### UPDATE data
 
-In case you want to update all your data you can simply run the following from your project directory.
+In case you want to UPDATE all your data you can simply run the following from your project directory.
 
 `sudo /etc/init.d/postgresql restart`
 
@@ -96,6 +113,8 @@ Note this will drop your database and create a new database.
 `cd ~/app/geoserver`
 
 `sudo bash install_geoserver.sh`
+
+Geoserver is running inside docker, which itself is inside the VM.
 
 ##### 8. View GOAT in the browser
 
@@ -140,6 +159,18 @@ Password: earlmanigault
 
 Port: 65432
 
+##### Common Issues
 
+If you use Windows as your host OS it might happen that you have issue when executing the shell scripts. Due to the different ways Unix-like systems and Windows are dealing with line endings. You will get an warning like "\r command not found". In order to convert the shell scripts to files the Linux-VM can execute you may have to convert the files first. You can use a tool like dos2unix.
 
+You potentially have to run all the following commands:
 
+`sudo apt install dos2unix`
+
+`dos2unix ~/app/installation/install_software.sh`
+
+`dos2unix ~/app/installation/setup_goat.sh`
+
+`dos2unix ~/app/config/secret.js`
+
+`dos2unix ~/app/geoserver/install_geoserver.sh`

@@ -6,25 +6,25 @@ DECLARE
    i text;
   
 BEGIN
-   drop table if exists pre_network;
-   create table pre_network as 
-   select w.id id,class_id,source,target,geom,0 as help 
-   from ways_userinput w, user_input_network i
-   where st_intersects(w.geom,i.geometry)
-   and w.userid is null;
-   FOR i IN
-      SELECT gid from user_input_network 
+   DROP TABLE IF EXISTS pre_network;
+   CREATE TABLE pre_network as 
+   SELECT w.id id,class_id,source,target,geom,0 as help 
+   FROM ways_userinput w, user_input_network i
+   WHERE st_intersects(w.geom,i.geometry)
+   AND w.userid IS NULL;
+   For i IN
+      SELECT gid FROM user_input_network 
    LOOP
 	  execute 
-	  	'update pre_network set help=1 from user_input_network i where i.gid ='|| i || 
-	  	' and st_intersects(pre_network.geom,i.geometry)';
+	  	'UPDATE pre_network set help=1 FROM user_input_network i WHERE i.gid ='|| i || 
+	  	' AND st_intersects(pre_network.geom,i.geometry)';
       execute 
-      	'insert into pre_network(class_id,geom,help) 
-		select w.class_id,(st_dump(ST_CollectionExtract(st_split(w.geom,i.geometry),2))).geom,0
-		from pre_network w, user_input_network i
-		where i.gid=' || i || ' and st_intersects(w.geom,i.geometry)';
+      	'insert INTO pre_network(class_id,geom,help) 
+		SELECT w.class_id,(st_dump(ST_CollectionExtract(st_split(w.geom,i.geometry),2))).geom,0
+		FROM pre_network w, user_input_network i
+		WHERE i.gid=' || i || ' AND st_intersects(w.geom,i.geometry)';
       execute
-      	'delete from pre_network where help = 1';
+      	'delete FROM pre_network WHERE help = 1';
       
 		
     END LOOP;

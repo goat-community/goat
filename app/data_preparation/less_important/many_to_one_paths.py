@@ -14,7 +14,7 @@ where st_intersects(geom,
 st_buffer(st_setsrid(st_point(%f,%f),4326)::geography,%i))''' % (destination_x,destination_y,buffer_destination)
 
 
-cursor.execute('drop table if exists onetomany_weighted; create table onetomany_weighted(id serial,persons integer, geom geometry);')
+cursor.execute('DROP TABLE IF EXISTS onetomany_weighted; create table onetomany_weighted(id serial,persons integer, geom geometry);')
 cursor.execute(sql_origins)
 population = cursor.fetchall()
 
