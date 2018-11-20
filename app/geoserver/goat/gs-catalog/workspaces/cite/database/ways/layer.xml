@@ -1,0 +1,15 @@
+<layer>
+  <name>ways</name>
+  <id>LayerInfoImpl--57bbcc21:162c3d4cf5c:-78f6</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--167589b6:15c77205b7f:-7fff</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--57bbcc21:162c3d4cf5c:-78f7</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

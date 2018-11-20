@@ -7,26 +7,26 @@ r geometry;
 i integer;
 begin
   
-  FOR i IN
-      select gid from user_input_network where userid = input_userid
+  For i IN
+      SELECT gid FROM user_input_network WHERE userid = input_userid
    LOOP
-  drop table if exists new_test;
-  drop table if exists union_test;
-  create table union_test as
-  select st_union(y.geometry) as geom 
-  from user_input_network y 
-  where y.gid <> i;
+  DROP TABLE IF EXISTS new_test;
+  DROP TABLE IF EXISTS union_test;
+  CREATE TABLE union_test as
+  SELECT st_union(y.geometry) as geom 
+  FROM user_input_network y 
+  WHERE y.gid <> i;
   
-  FOR r IN select (st_dump(ST_CollectionExtract(st_split(x.geometry,u.geom),2))).geom
-		from union_test u, user_input_network x
-		where x.gid = i
+  For r IN SELECT (st_dump(ST_CollectionExtract(st_split(x.geometry,u.geom),2))).geom
+		FROM union_test u, user_input_network x
+		WHERE x.gid = i
 
   LOOP
   RETURN NEXT r;
   END LOOP;
   end loop;
-  drop table if exists new_test;
-  drop table if exists union_test;
+  DROP TABLE IF EXISTS new_test;
+  DROP TABLE IF EXISTS union_test;
   RETURN;
   
 END ;

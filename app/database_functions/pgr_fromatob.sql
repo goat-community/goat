@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.pgr_fromatob(edges_subset character varying, x1 double precision, y1 double precision, x2 double precision, y2 double precision, OUT ways_id bigint, OUT seq integer, OUT cost double precision, OUT name text, OUT geom geometry, OUT heading double precision)
+CREATE OR REPLACE FUNCTION public.pgr_FROMatob(edges_subset character varying, x1 double precision, y1 double precision, x2 double precision, y2 double precision, OUT ways_id bigint, OUT seq integer, OUT cost double precision, OUT name text, OUT geom geometry, OUT heading double precision)
  RETURNS SETOF record
  LANGUAGE sql
 AS $function$

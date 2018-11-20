@@ -7,15 +7,15 @@ DECLARE
 begin
 
 
-  drop table if exists edges_temp;
-  create table edges_temp as
-  select * from pgrouting_edges_snaptolerance(minutes,x,y,speed,1,1,snap_tolerance); 
+  DROP TABLE IF EXISTS edges_temp;
+  CREATE TABLE edges_temp as
+  SELECT * FROM pgrouting_edges_snaptolerance(minutes,x,y,speed,1,1,snap_tolerance); 
 
-  --insert into edges_precalculate_100
-  --select id as grid_id,* from edges_temp; 
+  --insert INTO edges_precalculate_100
+  --SELECT id as grid_id,* FROM edges_temp; 
   
-  return query select id,minutes,ST_CollectionExtract(ST_concavehull(ST_COLLECT(geom),concavity,false),3)
-  from edges_temp 
+  return query SELECT id,minutes,ST_CollectionExtract(ST_concavehull(ST_COLLECT(geom),concavity,false),3)
+  FROM edges_temp 
 
   Return ;
   
