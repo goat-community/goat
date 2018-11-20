@@ -4,8 +4,4 @@ ubuntu-bionic-18.04-cloudimg-console.log
 /app/data/*
 !/app/data/.gitkeep
 /app/geoserver/gs-catalog/logs
-/app/front_end/dist
-/app/front_end/node_modules
-/app/front_end/package-lock.json
-/app/front_end/.cache
 
