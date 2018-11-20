@@ -1,8 +1,8 @@
-import {number_calculations} from './interaction';
+import {number_calculations,dynamicVars} from './interaction';
 
 var dropdown_slider;    
-var header_array = ['header_legend_','header_additional_layer_','header_thematic_data_','header_index_calculation_'];
-var content_array = ['content_legend_','content_additional_layer_','content_thematic_data_','content_index_calculation_'];
+var header_array = ['header_legend_','header_additional_layer_','header_thematic_data_','header_index_calculation_','header_download_data_'];
+var content_array = ['content_legend_','content_additional_layer_','content_thematic_data_','content_index_calculation_','content_download_data_'];
 
 var append_dropdown_slider = function(){
  	var number = number_calculations.toString();
@@ -41,13 +41,25 @@ var append_dropdown_slider = function(){
 	   <div class="header1" id="header_thematic_data_${number}"><i class="fa fa-caret-right" style="font-size:24px"></i><span>Thematic Data</span> 
 	    </div>
 	    <div class="content" id="content_thematic_data_${number}">    	
-	</div>   
+	</div> 
+	
 	<div class="header1" id="header_index_calculation_${number}"><i class="fa fa-caret-right" style="font-size:24px"></i><span>Calculation Accessibility Index</span>
 	    </div>
 	    <div class="content" id="content_index_calculation_${number}"><span style="margin-left:5px;"><b>Cost sensitivity parameter</b></span>
 	    <input style="margin-left:5px;" type="text" id ="y_value_${number}" value="-0.1"><br>	
 	    <button style="margin-left:5px;margin-bottom:5px;"id="btnIndex">Calculate</button>	  	    	
-	    </div>
+		</div>
+
+	<div class="header1" id="header_download_data_${number}"><i class="fa fa-caret-right" style="font-size:24px"></i><span>Download</span> 
+	</div>
+	<div class="content" id="content_download_data_${number}">
+	<select style="margin-left:7px;" class="dropdown_thematic" id="select_dowload_format.${dynamicVars.objectid}">
+		<option value="" selected="" disabled="" hidden="">Choose format</option>
+		<option value="1">JSON</option>
+		<option value="2">Shapefile</option>
+	</select>
+	</div>	
+
 	</div>`
 
 
