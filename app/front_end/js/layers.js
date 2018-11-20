@@ -80,21 +80,17 @@ $('body').on('change','#layer-select',function(){
 })
 
 
-var numbers = {'1':'one','2':'two','3':'three','4':'four','5':'five'}
-
-
-
-
-
 var accessibility_layer = function(){
   let heatmap_input ={};
   let select_heatmap_input = $('#main_thematic_data .content :checkbox:checked')
   let link = ApiConstants.guest_geoserver_url+'cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:heatmap&LAYERS=cite%3Aheatmap&viewparams=amenities:%27'
   let link_part = '' 
   for (var i=0; i < select_heatmap_input.length; i++){
-    link_part = link_part + "eeeppp" + select_heatmap_input[i].id.replace('check_','') + 'cccttt' + numbers[$(select_heatmap_input[i]).next().next().val()] + 'xxxlll'
+    link_part = link_part + '{"\'' + select_heatmap_input[i].id.replace('check_','') + '\'":' + $(select_heatmap_input[i]).next().next().val() + '},'
   }
-  link = link + link_part.slice(0, -3) + '%27' +';resolution:300'
+  link_part = '['+link_part.slice(0, -1)+']';
+  console.log(link_part)
+  link = link + btoa(link_part) + '%27' +';resolution:300'
 
  return new ImageLayer({
       opacity: 1,
@@ -105,23 +101,6 @@ var accessibility_layer = function(){
   })
   
 }
-
-var addRemoveAccesibilityLayer = {
-    layer: null,
-    add : function (map){
-      if (this.layer != null) {
-        this.remove(map);
-      }
-      this.layer = accessibility_layer();
-      map.addLayer(this.layer);
-    },
-    remove : function (map){
-      map.removeLayer(this.layer);
-    }
-}
-
-
-
 
 
 
@@ -150,23 +129,19 @@ study_area.getSource().on('change', function(e) {
 	}
 })
 
-var ways_url = ApiConstants.proxy_url+'http://localhost:3000/load_ways'
-var ways_layers = new VectorLayer({           
-           source: new VectorSource({
-           url:ways_url,
-           format: new GeoJSON()
-     })    
-});
-
-var WaysLayers = {
-  addTo: function(map){
-    map.addLayer(ways_layers);
-  },
-  removeFrom: function(map){
-    map.removeLayer(ways_layers);
-  }
+var addRemoveAccesibilityLayer = {	
+  layer: null,	
+  add : function (map){	
+    if (this.layer != null) {	
+      this.remove(map);	
+    }	
+    this.layer = accessibility_layer();	
+    map.addLayer(this.layer);	
+  },	
+  remove : function (map){	
+    map.removeLayer(this.layer);	
+  }	
 }
-
 
 	
 //EXPORT MODULAR FUNCTIONS
@@ -174,4 +149,4 @@ function GetBaseLayers(){
   return layers;
 }
 
-export {GetBaseLayers,addRemoveAccesibilityLayer,WaysLayers};
+export {GetBaseLayers,addRemoveAccesibilityLayer};

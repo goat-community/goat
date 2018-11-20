@@ -4,10 +4,14 @@ module.exports = {
     address_geoserver : 'http://localhost:9090/http://localhost:8080/geoserver/'/* 'http://localhost:8080/geoserver/'   'http://212.83.58.36:8080/geoserver/'*/, 
     host_geoserver_url: 'http://localhost:8080/geoserver/',
     guest_geoserver_url: 'http://localhost:8080/geoserver/',
-    x : 11.745520,
-    y : 48.402546,
+    geoserver_workspace: 'cite',
+    wfs_url: 'http://localhost:9090/http://localhost:8080/geoserver/cite/wfs',
+    geoserver_namespaceURI: 'muc',
+    x : 10.70171,
+    y : 47.57143,
     ip_address : 'http://localhost',
-    proxy_url: 'http://localhost:9090/'
+    proxy_url: 'http://localhost:9090/',
+    nodeapi_baseurl: 'http://localhost:9090/http://localhost:3000'
 }
 
 
