@@ -18,11 +18,6 @@ var map = new Map({
 });
 
 
-//////*****WAYS LAYER*****///////////////////
-
-WaysLayers.addTo(map);
-// WaysLayers.removeFrom(map);
-//////////////////////////////////////////////
 
 ////////Ol3-ext Photon Address
 var search = new SearchPhoton(

@@ -1,8 +1,9 @@
 import {pois} from './variables';
 import {isochrones} from './isochrones';
 import {colors_isochrones_default} from './style';
+import ApiConstants from './secrets';
+var FileSaver = require('file-saver');
 
-console.log('testets')
 
 const thematic_data = {};
 $("body").on('click','.fa-chevron-right',function () {	
@@ -72,9 +73,45 @@ var create_dropdown = function(time_steps,ids){
 	$("#legend_container_"+number).append(legend);
 }
 
-   
+function downloadIsochrone (objectid,outputformat){
+	var  cql_isochrone = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:isochrones&outputFormat='+outputformat+'&srsname=EPSG:3857&CQL_Filter=objectid='+objectid.toString();
+	var extension;
+		if (outputformat == 'application/json' ){
+			extension = 'json'
+		} else {
+			extension = 'zip'
+		}
+
+	  var xhr = new XMLHttpRequest();
+		xhr.open('GET', cql_isochrone, true);
+		xhr.responseType = "blob";
+		xhr.onreadystatechange = function (){
+			if (xhr.readyState === 4) {
+				var blob = xhr.response;
+				FileSaver.saveAs(blob, "isochrones."+objectid+"."+extension);
+			}
+		};
+		xhr.send();
+
+
+	
+}
    
 $("body").on('change','.dropdown_thematic',function () {
+
+	if (this.id.toString().indexOf('select_dowload_format') > -1){
+		var objId = this.id.split('.')[1];
+		var outputFormat;
+		console.log(this.value);
+		console.log(objId);
+		if (this.value == 1){
+			outputFormat = 'application/json'
+		} else {
+			outputFormat = 'shape-zip'
+		}
+		downloadIsochrone(objId,outputFormat)
+	}
+
 
    var counter = this.id.replace('isochrone_','')
 

@@ -29,13 +29,13 @@ var vector_style = new Style({
 					color: 'rgb(0, 102, 255)'
 				}),
 				stroke: new  Stroke({
-					color: '#0066ff',
+					color: '#FF0000',
 					width: 10
 				}),
 				image: new Circle({
 					radius: 10,
 					fill: new Fill({
-						color: '#0066ff'
+						color: '#FF0000'
 					})
 				})
 			});
@@ -306,4 +306,4 @@ var vector_style = new Style({
 			}
 			        
       
-  	export {boundaryStyle,styleFunction1,iconStyle,drawing_style,network_style,colors_isochrones_default,poisStyle,setStyle_pois};
+  	export {boundaryStyle,styleFunction1,iconStyle,drawing_style,network_style,colors_isochrones_default,poisStyle,setStyle_pois,vector_style};
