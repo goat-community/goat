@@ -54,7 +54,7 @@ https://www.vagrantup.com/
 
 #### 4. Prepare your data
 
-Put all your data into the data folder!
+Put all your app/data into the data folder!
 
 ##### If you want to disaggregate population data
 
