@@ -1,5 +1,7 @@
 import {inherits as ol_inherits} from 'ol';
-import ol_control_Control from 'ol/control/Control'
+import ol_control_Control from 'ol/control/Control';
+import ApiConstants from './secrets';
+
 
 
 function ol_legend(e) {
@@ -20,7 +22,8 @@ function ol_legend(e) {
                 var url = layers[i].getSource().getUrl();
             }
             var legendImg = document.createElement('img');
-            legendImg.src = url + '&version=' + wmsVersion + '&service=WMS&request=GetLegendGraphic&sld_version=1.1.0&layer=' + layers[i].getSource().getParams().layers + '&format=' + format;
+            console.log(layers[i].getSource());
+            legendImg.src = ApiConstants.address_geoserver + 'ows?service=WMS&request=GetLegendGraphic&format=image/png&layer=cite:heatmap';
             legendDiv.appendChild(legendImg);
         }
     }
@@ -28,4 +31,6 @@ function ol_legend(e) {
         element: legendDiv
     });
 }
-inherits(ol_legend, ol_control_Control);
+ol_inherits(ol_legend, ol_control_Control);
+
+export {ol_legend};
