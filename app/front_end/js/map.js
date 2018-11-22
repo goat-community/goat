@@ -4,6 +4,7 @@ import ApiConstants from './secrets';
 import {GetBaseLayers,addRemoveAccesibilityLayer,WaysLayers} from './layers';
 import 'ol-ext/control/Search.css';
 import SearchPhoton from 'ol-ext/control/SearchPhoton';
+import {ol_legend} from './legend';
 
 
 var center = transform([ApiConstants.x,ApiConstants.y], 'EPSG:4326', 'EPSG:3857');
@@ -16,6 +17,7 @@ var map = new Map({
       zoom: 14
     })
 });
+
 
 
 
@@ -53,6 +55,11 @@ $('body').on('change','#accessibility_basemap_select',function(){
   let style = this.value;
   if (style != 'no_basemap'){
     addRemoveAccesibilityLayer.add(map);
+
+    map.addControl(new ol_legend({
+      map: map,
+      class: 'ol_legend'
+    }));
   }
   else{
     map.getLayers().forEach(function (layer) {

@@ -338,7 +338,7 @@ function InsertUserInDb (mode, generated_id){
         method: 'POST',
         body: JSON.stringify({
         mode: mode,
-        generated_id: generated_id
+        id: generated_id
         }),
     headers: {
         'Content-Type': 'application/json' ,
@@ -349,7 +349,6 @@ function InsertUserInDb (mode, generated_id){
     });
 }
 
-InsertUserInDb('insert',userid)
 
 
 
@@ -376,10 +375,11 @@ fetch(ApiConstants.nodeapi_baseurl + '/userdata',{
     }
     console.log(json);
     }).catch(function (error) {  
-    console.log('Request failure: ', error);  
+       InsertUserInDb('insert',userid) //if user doesn't exist add it on DB
+     //  console.log('Request failure: ', error);  
     });
 }
-deleteWaysFeature('read',staticUserId);
+deleteWaysFeature('read',userid);
 
 function WfsRequestFunction (srsName,namespace,workspace,layerName,filter){
     console.log(srsName,namespace,workspace,layerName,filter);

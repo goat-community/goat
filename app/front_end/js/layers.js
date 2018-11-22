@@ -93,6 +93,7 @@ var accessibility_layer = function(){
 
 var layer_accessibility = new ImageLayer({
   opacity: 1,
+  showLegend: true,
   source: new ImageWMS({
     url: link
   })
@@ -107,8 +108,9 @@ layer_accessibility.set('name', 'layer_accessibility');
 var study_area_url = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:study_area_union&srsname=EPSG:3857'
 
  var study_area = new VectorLayer({
- 			      style: boundaryStyle,
+             style: boundaryStyle,
             source: new VectorSource({
+            
             url:study_area_url,
             format: new WFS()
       })    
