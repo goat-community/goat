@@ -417,3 +417,11 @@ display:block !important;
 .popup-button:focus {
   background-color: transparent !important;
 }
+
+/* LEGEND STYLE */
+.ol_legend {
+  bottom: 0px;
+  left: 0px;
+  position: absolute;
+  background-color: #FFFFFF;
+}

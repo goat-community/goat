@@ -89,17 +89,16 @@ var accessibility_layer = function(){
     link_part = link_part + '{"\'' + select_heatmap_input[i].id.replace('check_','') + '\'":' + $(select_heatmap_input[i]).next().next().val() + '},'
   }
   link_part = '['+link_part.slice(0, -1)+']';
-  console.log(link_part)
   link = link + btoa(link_part) + '%27' +';resolution:300'
 
- return new ImageLayer({
-      opacity: 1,
-      source: new ImageWMS({
-        url: link,
-        name:'layer_accessibility'
-      })
+var layer_accessibility = new ImageLayer({
+  opacity: 1,
+  source: new ImageWMS({
+    url: link
   })
-  
+});
+layer_accessibility.set('name', 'layer_accessibility');
+ return layer_accessibility
 }
 
 
@@ -137,6 +136,7 @@ var addRemoveAccesibilityLayer = {
     }	
     this.layer = accessibility_layer();	
     map.addLayer(this.layer);	
+ 
   },	
   remove : function (map){	
     map.removeLayer(this.layer);	
