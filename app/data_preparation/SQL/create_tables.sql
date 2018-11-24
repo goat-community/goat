@@ -52,7 +52,61 @@ ALTER TABLE addresses_residential add column gid serial;
 ALTER TABLE addresses_residential add primary key (gid);
 CREATE INDEX index_addresses_residential ON addresses_residential USING GIST (geom);
 
-
-
 CREATE TABLE study_area_union as
 SELECT st_union(geom) geom FROM study_area;
+
+
+
+-- Table: public.ways_modified
+
+-- DROP TABLE public.ways_modified;
+
+CREATE TABLE public.ways_modified
+(
+    id bigint NOT NULL,
+    class_id integer,
+    geom geometry(LineString,4326),
+    userid integer,
+    original_id integer,
+    CONSTRAINT ways_modified_id_pkey PRIMARY KEY (id)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.ways_modified
+    OWNER to goat;
+
+-- Index: ways_modified_index
+
+-- DROP INDEX public.ways_modified_index;
+
+CREATE INDEX ways_modified_index
+    ON public.ways_modified USING gist
+    (geom)
+    TABLESPACE pg_default;
+
+-- Table: public.user_data
+
+-- DROP TABLE public.user_data;
+
+
+DROP SEQUENCE IF EXISTS user_data_id_seq;
+CREATE SEQUENCE user_data_id_seq;
+
+CREATE TABLE public.user_data
+(
+    id bigint NOT NULL DEFAULT nextval('user_data_id_seq'::regclass),
+    name character varying COLLATE pg_catalog."default",
+    surname character varying COLLATE pg_catalog."default",
+    deleted_feature_ids bigint[],
+    CONSTRAINT user_data_pkey PRIMARY KEY (id)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.user_data
+    OWNER to goat;
