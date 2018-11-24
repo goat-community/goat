@@ -330,9 +330,6 @@ var formatLength = function(line) {
 
 
 
-
-var staticUserId = 1; //temporary
-
 function InsertUserInDb (mode, generated_id){
     fetch (ApiConstants.nodeapi_baseurl + '/userdata',{
         method: 'POST',
@@ -528,7 +525,7 @@ var searchInteraction = {
         })
 
          //2 - USER INPUT FILTER BASED ON USER ID
-       var filterUserInputTable = equalToFilter('userid', staticUserId);
+       var filterUserInputTable = equalToFilter('userid', userid);
        var combinedFilter = andFilter(filterUserInputTable,filterIntersect)
        var wfsRequestXmlStringUserInputTable = WfsRequestFunction('EPSG:3857',ApiConstants.geoserver_namespaceURI, ApiConstants.geoserver_workspace,'ways_modified',combinedFilter);
         var userInputTableRequest = fetch(ApiConstants.wfs_url,{
@@ -651,20 +648,20 @@ var waysInteraction = {
                 console.log(f);
                 var fid = f.getProperties().original_id.toString();
                 waysInteraction.featuresIDsToDelete.push(fid);
-                deleteWaysFeature ('delete',staticUserId,waysInteraction.featuresIDsToDelete,prop.id)
-                deleteWaysFeature ('update',staticUserId,waysInteraction.featuresIDsToDelete);
+                deleteWaysFeature ('delete',userid,waysInteraction.featuresIDsToDelete,prop.id)
+                deleteWaysFeature ('update',userid,waysInteraction.featuresIDsToDelete);
             } else {
-                deleteWaysFeature ('delete',staticUserId,waysInteraction.featuresIDsToDelete,prop.id)
+                deleteWaysFeature ('delete',userid,waysInteraction.featuresIDsToDelete,prop.id)
             }
         } else {
             var fid;
             if (!prop.hasOwnProperty('original_id') && !prop.hasOwnProperty('id')  ) {
                 fid = f.getId().toString();
-                deleteWaysFeature ('delete',staticUserId,waysInteraction.featuresIDsToDelete,fid)
+                deleteWaysFeature ('delete',userid,waysInteraction.featuresIDsToDelete,fid)
             } else {
                 fid = f.getProperties().id.toString();
                 waysInteraction.featuresIDsToDelete.push(fid);
-                deleteWaysFeature ('update',staticUserId,waysInteraction.featuresIDsToDelete);
+                deleteWaysFeature ('update',userid,waysInteraction.featuresIDsToDelete);
             }
             
            
@@ -748,7 +745,7 @@ var waysInteraction = {
                 var geometry = f.getGeometry().clone();
                 geometry.transform("EPSG:3857", "EPSG:4326");
                 var transformed = new Feature({	
-                    userid : staticUserId,                
+                    userid : userid,                
                     geom: geometry,
                     class_id: f.getProperties().class_id
                 });
