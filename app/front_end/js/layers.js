@@ -110,7 +110,6 @@ var study_area_url = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1
  var study_area = new VectorLayer({
              style: boundaryStyle,
             source: new VectorSource({
-            
             url:study_area_url,
             format: new WFS()
       })    
