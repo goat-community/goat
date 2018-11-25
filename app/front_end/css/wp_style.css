@@ -421,7 +421,7 @@ display:block !important;
 /* LEGEND STYLE */
 .ol_legend {
   bottom: 0px;
-  left: 30%;
+  left: 23%;
   position: absolute;
   background-color: transparent;
 }
@@ -461,6 +461,7 @@ display:block !important;
 .layer-legend .layer-items-container {
   padding: 32px 0 0 0;
   max-height: 400px;
+  width: 200px;
   overflow-x: hidden;
   overflow-y: auto;
 }
