@@ -38,6 +38,10 @@ search.on('select', function(e)
 });
 map.addControl(search);
 
+map.addControl(new ol_legend({
+  map: map,
+  class: 'ol_legend'
+}));
 
 //Events for accesibility layer
 
@@ -56,10 +60,7 @@ $('body').on('change','#accessibility_basemap_select',function(){
   if (style != 'no_basemap'){
     addRemoveAccesibilityLayer.add(map);
 
-    map.addControl(new ol_legend({
-      map: map,
-      class: 'ol_legend'
-    }));
+   
   }
   else{
     map.getLayers().forEach(function (layer) {
