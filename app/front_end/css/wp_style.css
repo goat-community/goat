@@ -421,7 +421,62 @@ display:block !important;
 /* LEGEND STYLE */
 .ol_legend {
   bottom: 0px;
-  left: 0px;
+  left: 30%;
   position: absolute;
-  background-color: #FFFFFF;
+  background-color: transparent;
+}
+
+
+.layer-legend {
+  background-color: transparent;
+  float: left;
+  min-width: 200px;
+  min-height: 28px;
+  font-size: 13px;
+  max-height: 400px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+
+.layer-legend .layer-legend-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 5px;
+  width: 200px;
+  height: 28px;
+  padding: 3px 10px;
+  background-color: #19B037;
+  color: white;
+  border-radius: 5px 0 5px 0;
+}
+
+.layer-legend .layer-legend-header .fa {
+  cursor: pointer;
+  padding: 3px;
+  float: right;
+}
+
+.layer-legend .layer-items-container {
+  padding: 32px 0 0 0;
+  max-height: 400px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.layer-legend .layer-items-container {
+  margin: 28px 0 0 0;
+  padding: 0;
+  background-color: white;
+}
+.layer-legend .layer-items-container .layer-item {
+  padding: 0 10px 10px 10px;
+}
+.layer-legend .layer-items-container .layer-item span {
+  display: block;
+  white-space: nowrap;
+}
+.layer-legend .layer-items-container .layer-item img {
+  display: block;
 }
