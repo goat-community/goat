@@ -50,7 +50,10 @@ https://www.virtualbox.org/
 
 #### 3. Install Vagrant
 
+It was only tested with the version mentioned above. Accordingly if you want to avoid unexpected issues, stick with that version.
+
 https://www.vagrantup.com/
+
 
 #### 4. Prepare your data
 
