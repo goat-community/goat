@@ -57,7 +57,7 @@ https://www.vagrantup.com/
 
 #### 4. Prepare your data
 
-Put all your app/data into the data folder!
+Put all your data into the app/data folder!
 
 ##### If you want to disaggregate population data
 
@@ -75,7 +75,7 @@ Just place a shapefile called population.shp into your data folder. The geometry
 
 #### 5. Define your bounding box and the OSM-Downloadlink
 
-Open the file secret.js in the config folder. Customize the DOWNLOAD_LINK and define your BOUNDING_BOX.
+Open the file secret.js in the app/config folder. Customize the DOWNLOAD_LINK and define your BOUNDING_BOX.
 
 #### 6. Setup GOAT
 
@@ -109,7 +109,7 @@ In case you want to UPDATE all your data you can simply run the following from y
 
 `sudo bash app/installation/setup_goat.sh` (run on your VM)
 
-Note this will drop your database and create a new database. 
+!!Note this will drop your database and create a new database.!! 
 
 ##### 7. Start Geoserver
 
