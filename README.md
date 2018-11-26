@@ -40,7 +40,7 @@ For the developed Vagrant and Docker are used. In order to start and customize G
 
 #### 1. Get a copy of GOAT
 
-`git clone https://github.com/EPajares/goat.git` 
+`git clone https://github.com/EPajares/goat.git` (run on your host)
 
 or copy as zip-folder
 
@@ -80,7 +80,7 @@ Open the file secret.js in the config folder. Customize the DOWNLOAD_LINK and de
 
 Open a command window and go into the project folder. Run the command:
 
-`vagrant up`
+`vagrant up` (run on your host)
 
 For more Vagrant commands checkout:
 
@@ -88,55 +88,62 @@ https://gist.github.com/wpscholar/a49594e2e2b918f4d0c4
 
 ##### 6.2. Install the necessary software
 
-`vagrant ssh`
+`vagrant ssh` (run on your host)
 
-`sudo bash app/installation/install_software.sh`
+`sudo bash app/installation/install_software.sh` (run on your VM)
 
 This script can take a while as it installs quite some software on your VM. If you want to check what is installed exactly you can view the install_software.sh script.
 
 ##### 6.3. Fill your database
 
-`sudo bash app/installation/setup_goat.sh`
+`sudo bash app/installation/setup_goat.sh` (run on your VM)
 
 ##### UPDATE data
 
 In case you want to UPDATE all your data you can simply run the following from your project directory.
 
-`sudo /etc/init.d/postgresql restart`
+`sudo /etc/init.d/postgresql restart` (run on your VM)
 
-`sudo bash app/installation/setup_goat.sh`
+`sudo bash app/installation/setup_goat.sh` (run on your VM)
 
 Note this will drop your database and create a new database. 
 
 ##### 7. Start Geoserver
 
-`cd ~/app/geoserver`
+`cd ~/app/geoserver` (run on your VM)
 
-`sudo bash install_geoserver.sh`
+`sudo bash install_geoserver.sh` (run on your VM)
 
-Geoserver is running inside docker, which itself is inside the VM.
+Geoserver is running inside docker, which itself is inside your VM. You can check if Geoserver is up and running by typing http://localhost:8080/geoserver/index.html into your browser. The default password for your Geoserver instance is:
+
+User: admin
+Password : geoserver
 
 ##### 8. View GOAT in the browser
 
 
-The front-end is bundled using parcel. In order to start the bundling go to the front-end directory and run:
+The front-end is bundled using parcel. At the moment it is recommended to run parcel on your host. For this you need to have NodeJS installed on your host:
 
-`npm install`
+https://nodejs.org/en/
 
-`npm start`
+In order to start the bundling go to the front-end directory and run:
+
+`npm install` (run on your host)
+
+`npm start` (run on your host)
 
 If all steps were successful you will be able to use GOAT by typing the following into your browser:
 
 http://localhost:8585
 
-You can run the bundeling inside your VM or on your host. The built-in watch functionality provided by parcel is at the moment only working, when you run it on your host.
+You can also run parcel on your VM, however you have to open port 9090 and port 8585. This can be done on your Vagrantfile.
 
 ##### 9. Optional: Pre-calculate accessibility heat-map
 
 GOAT allows you to use pre-calculated matrices that are used to visualize the dynamic heatmap. 
 In order to start the pre-calculation you currently have to start the script manually with the following command:
 
-`python3 ~/app/data_preparation/Python/precalculate_grid_thematic.py`
+`python3 ~/app/data_preparation/Python/precalculate_grid_thematic.py` (run on your VM)
 
 Depending on the size of your study area the calculation can take a bit.
 
@@ -165,12 +172,12 @@ If you use Windows as your host OS it might happen that you have issue when exec
 
 You potentially have to run all the following commands:
 
-`sudo apt install dos2unix`
+`sudo apt install dos2unix` (run on your VM)
 
-`dos2unix ~/app/installation/install_software.sh`
+`dos2unix ~/app/installation/install_software.sh` (run on your VM)
 
-`dos2unix ~/app/installation/setup_goat.sh`
+`dos2unix ~/app/installation/setup_goat.sh` (run on your VM)
 
-`dos2unix ~/app/config/secret.js`
+`dos2unix ~/app/config/secret.js` (run on your VM)
 
-`dos2unix ~/app/geoserver/install_geoserver.sh`
+`dos2unix ~/app/geoserver/install_geoserver.sh` (run on your VM)
