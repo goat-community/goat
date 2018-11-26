@@ -3,7 +3,7 @@
 ## About
 
 This is the experimental release of Geo Open Accessibility Tool (GOAT). GOAT is meant to be an open source, interactive, 
-flexible and useful web-tool for accessibility planning. Its main data source is OpenStreetMap, however other data source can 
+flexible and useful web-tool for accessibility planning. Its main data source is OpenStreetMap, however other data sources can 
 be used as well. The backbone of the application is a PostgreSQL/PostGIS database. 
 
 ## Software and Libraries used
