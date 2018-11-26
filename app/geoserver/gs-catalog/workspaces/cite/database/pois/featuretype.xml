@@ -48,13 +48,7 @@ and v.identifier = &apos;poi_categories&apos;&#xd;
 union all &#xd;
 select i.gid,pt.name,pt.public_transport_stop,pt.geom from public_transport_stops pt, isochrones i&#xd;
 where i.gid = %gid%&#xd;
-and st_intersects(pt.geom,i.geom)&#xd;
-union all&#xd;
-select i.gid,p.name,p.shop,p.geom from pois p, isochrones i,variable_container v &#xd;
-where i.gid = %gid%&#xd;
-and st_intersects(p.geom,i.geom)&#xd;
-and shop = any(v.variable_array)&#xd;
-and v.identifier = &apos;poi_categories&apos;
+and st_intersects(pt.geom,i.geom)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
