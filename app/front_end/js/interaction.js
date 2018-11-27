@@ -128,10 +128,6 @@ var interactionSelect = new Select({
     })
 });
 	
-	
-	
-
-	
 
 //wfs-t
 var dirty = {};
@@ -186,36 +182,8 @@ $('button').click(function () {
     interactionSelect.getFeatures().clear();
     map.removeInteraction(interactionSelect);
 
-    switch ($(this).attr('class')) {
-
-        case 'draw_way':
-
-         //Define Format and table for POST
-         	var way_type = this.id.replace('btn','');
-
-			formatGML = new GML({
-				featureNS: 'muc',
-				featureType: 'cite:input_network'//,
-				//srsName: 'EPSG:3857'
-			});
-	        
-        
-            interaction = new Draw({
-                type: 'LineString',
-                source: drawnLine.getSource()
-            });
-            var interactionSnap = new Snap({
-    				source: drawnLine.getSource()
-				});
-            map.addInteraction(interaction);
-            map.addInteraction(interactionSnap);
-            interaction.on('drawend', function (e) {
-                transactWFS('insert', e.feature,formatGML,way_type);
-               
-            });
-            tool_tip(interaction,'line');
-            break;
-		 
+    switch ($(this).attr('class')) {  //legacy that this is an case statement
+ 
 		 case 'draw_isochrone':
 
 	      searchInteraction.stop();	
@@ -273,22 +241,6 @@ $('button').click(function () {
             });
             	            
             break;
-            
-        case 'btnDelete':
-    		formatGML = new GML({
-				featureNS: 'muc',
-				featureType: 'cite:input_network'//,
-			//	srsName: 'EPSG:3857'
-			});
-				
-            interaction = new Select();
-            interaction.getFeatures().on('add', function (e) {
-                transactWFS('delete', e.target.item(0),formatGML);
-                interactionSelectPointerMove.getFeatures().clear();
-                interaction.getFeatures().clear();
-            });
-            map.addInteraction(interaction);
-            break;
 
         default:
             break;
@@ -328,8 +280,6 @@ var formatLength = function(line) {
     return output;
   };
 
-
-
 function InsertUserInDb (mode, generated_id){
     fetch (ApiConstants.nodeapi_baseurl + '/userdata',{
         method: 'POST',
@@ -345,11 +295,6 @@ function InsertUserInDb (mode, generated_id){
         return data.json;
     });
 }
-
-
-
-
-
 
 function deleteWaysFeature (mode,user_id,deleted_feature_ids,drawned_fid){
 fetch(ApiConstants.nodeapi_baseurl + '/userdata',{
