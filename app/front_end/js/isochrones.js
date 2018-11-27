@@ -146,10 +146,6 @@ function isochrone_load_fn (){
 		layerWFS_point.getSource().clear();
 }
 
-	// Listener is waiting until the layer is loaded 
-	// var listenerKey = isochrone.getSource().on('change', function(e) {
-		
-	// });
 };
 
 
@@ -162,8 +158,7 @@ $('#btnInsertintoNetwork').click(function () {
 	const InsertintoNetwork = new VectorLayer({
     	source: new VectorSource({
      				url:ApiConstants.address_geoserver+"wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=userid:"+userid.toString()+"&typeNames=cite:insert_into_network",
-				//	format: new GeoJSON()
-					 		format: new WFS({
+					 	format: new WFS({
        		})
     	})   
        
@@ -193,9 +188,9 @@ function network_style_default(feature, resolution) {
 	const color =  set_color(level/speed,color_diff_default,color_1_default);  
 	const style = new Style({
 		stroke: new Stroke({
-					color: `rgb(${Math.round(color[0])},${Math.round(color[1])},${Math.round(color[2])})`,
-					width: 2
-	 			})   
+			color: `rgb(${Math.round(color[0])},${Math.round(color[1])},${Math.round(color[2])})`,
+			width: 2
+	 	})   
 	})
 
 	return style;
@@ -210,10 +205,10 @@ function network_style_input(feature, resolution) {
 	const color =  set_color(level/speed,color_diff_input,color_1_input);  
 		
 	const style = new Style({
-    				stroke: new Stroke({
-						color: `rgb(${Math.round(color[0])},${Math.round(color[1])},${Math.round(color[2])})`,
-						width: 2
- 					})          
+    	stroke: new Stroke({
+			color: `rgb(${Math.round(color[0])},${Math.round(color[1])},${Math.round(color[2])})`,
+			width: 2
+ 		})          
 	})	
 
 
