@@ -18,7 +18,7 @@ PGPASSFILE=~/.pgpass psql -d $DATABASE -U $USER -h $HOST -c "create extension pg
 PGPASSFILE=~/.pgpass psql -d $DATABASE -U $USER -h $HOST -c "create extension hstore;"
 PGPASSFILE=~/.pgpass psql -d $DATABASE -U $USER -h $HOST -c "create extension plpython3u;"
 cd ~/app/data
-#wget --output-document="raw-osm.osm.pbf" $DOWNLOAD_LINK
+wget --output-document="raw-osm.osm.pbf" $DOWNLOAD_LINK
 
 if [ -z "$BOUNDING_BOX_2" ]
 then 
