@@ -477,6 +477,7 @@ display:block !important;
 .layer-legend .layer-items-container .layer-item span {
   display: block;
   white-space: nowrap;
+  font-size: 15px;
 }
 .layer-legend .layer-items-container .layer-item img {
   display: block;

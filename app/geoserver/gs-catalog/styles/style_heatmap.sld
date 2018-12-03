@@ -6,7 +6,7 @@
       <sld:FeatureTypeStyle>
         <sld:Name>name</sld:Name>
                 <sld:Rule>
-          <sld:Name>0</sld:Name>
+          <sld:Name>No accessibility</sld:Name>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -34,7 +34,7 @@
           </sld:PolygonSymbolizer>
         </sld:Rule>
         <sld:Rule>
-          <sld:Name>1</sld:Name>
+          <sld:Name>Low accessibility</sld:Name>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThanOrEqualTo>
@@ -62,7 +62,7 @@
           </sld:PolygonSymbolizer>
         </sld:Rule>
         <sld:Rule>
-          <sld:Name>2</sld:Name>
+          <sld:Name>Rather low accessibility</sld:Name>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -90,7 +90,7 @@
           </sld:PolygonSymbolizer>
         </sld:Rule>
         <sld:Rule>
-          <sld:Name>3</sld:Name>
+          <sld:Name>Medium accessibility</sld:Name>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -118,7 +118,7 @@
           </sld:PolygonSymbolizer>
         </sld:Rule>
         <sld:Rule>
-          <sld:Name>4</sld:Name>
+          <sld:Name>Rather high accessibility</sld:Name>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -146,7 +146,7 @@
           </sld:PolygonSymbolizer>
         </sld:Rule>
         <sld:Rule>
-          <sld:Name>5</sld:Name>
+          <sld:Name>High accessibility</sld:Name>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
