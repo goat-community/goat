@@ -1,1 +1,58 @@
-theme: jekyll-theme-cayman
+# Site settings
+title: Open Accessibility
+email: your-email@domain.com
+description: >
+  Welcome to Open Accessibility
+  Perform your own accessibility analysis!.
+lang: en-US
+
+baseurl: "/goat" # the subpath of your site, e.g. /blog/
+url: https://aksakalli.github.io/jekyll-doc-theme # the base hostname & protocol for your site
+git_address: https://github.com/EPajares/goat
+appURL: http://open-accessibility.org/wp/en/accessibility/
+git_edit_address: https://github.com/aksakalli/jekyll-doc-theme/blob/gh-pages
+
+# theme options from https://bootswatch.com/
+# comment out this to use default Bootstrap
+bootwatch: paper
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+gems:
+  - jekyll-feed
+  - jekyll-redirect-from
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - .idea/
+  - .gitignore
+  - README.md
+timezone: Europe/Berlin
+defaults:
+- scope:
+    path: _posts
+    type: posts
+  values:
+    layout: post
+    sectionid: blog
+
+- scope:
+    path: _docs
+    type: docs
+  values:
+    layout: docs
+    sectionid: docs
+    seo:
+      type: "WebPage"
+
+collections:
+  docs:
+    permalink: /:collection/:path/
+    output: true
+  posts:
+    permalink: /blog/:year/:month/:day/:title/
+    output: true
