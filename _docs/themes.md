@@ -3,246 +3,151 @@ title: Themes
 permalink: /docs/themes/
 ---
 
-By default, this website uses `paper` theme, but you can change it to another [bootwatch theme](https://bootswatch.com/3/) by setting
-`bootwatch` variable in `_config.yml` file.
-(Don't forget to restart `Jekyll` if you are running locally because the configuration is not re-read upon change.)
+---
+title: Quick Start
+permalink: /docs/quick_start/
+---
 
-<div class="row">
+## Setup GOAT
+For the developed Vagrant and Docker are used. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. In order to start and customize GOAT for your study area, you have to follow these steps:
 
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#cerulean/"><img src="https://bootswatch.com/3/cerulean/thumbnail.png" class="img-responsive" alt="Cerulean"></a>
-      </div>
-      <div class="caption">
-        <h3>Cerulean</h3>
-        <p>A calm blue sky</p>
-      </div>
-    </div>
-  </div>
+#### 1. Get a copy of GOAT
 
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#cosmo/"><img class="img-responsive" src="https://bootswatch.com/3/cosmo/thumbnail.png" alt="Cosmo"></a>
-      </div>
-      <div class="caption">
-        <h3>Cosmo</h3>
-        <p>An ode to Metro</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#cyborg/"><img class="img-responsive" src="https://bootswatch.com/3/cyborg/thumbnail.png" alt="Cyborg"></a>
-      </div>
-      <div class="caption">
-        <h3>Cyborg</h3>
-        <p>Jet black and electric blue</p>
+```
+git clone https://github.com/EPajares/goat.git (run on your host or copy as zip-folder)
+```
 
 
-      </div>
-    </div>
-  </div>
+#### 2. Install Virtualbox
+[https://www.virtualbox.org/](https://www.virtualbox.org/)
 
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#darkly/"><img class="img-responsive" src="https://bootswatch.com/3/darkly/thumbnail.png" alt="Darkly"></a>
-      </div>
-      <div class="caption">
-        <h3>Darkly</h3>
-        <p>Flatly in night mode</p>
+#### 3. Install Vagrant
+It was only tested with the version mentioned above. Accordingly if you want to avoid unexpected issues, stick with that version.
 
+[https://www.virtualbox.org/](https://www.vagrantup.com/)
 
-      </div>
-    </div>
-  </div>
+#### 4. Prepare your data
+Put all your data into the app/data folder!
 
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#flatly/"><img class="img-responsive" src="https://bootswatch.com/3/flatly/thumbnail.png" alt="Flatly"></a>
-      </div>
-      <div class="caption">
-        <h3>Flatly</h3>
-        <p>Flat and modern</p>
+##### If you want to disaggregate population data
+You need a shapefile with administrative boundaries and a column with the number of inhabitants in this administrative unit, it works for any spatial resolution. The column has to be named “sum_pop” and has to be saved as integer. As the population data is used for population disaggregation, data on higher resolution will give you a more accurate disaggregation. Make sure you change the name of your spatial unit to name_administrative.
 
+Optional: In the case you have custom landuse data you can place the data as shapefile (name the file: landuse.shp) into your data folder. The table has to include a column named "landuse". You can define in the table variable_container, which landuse category you want to exclude from the population disaggregation. For instance you can exclude graveyards or farmland and as consequences houses standing on these landuse categories are marked as not uninhabited.
 
-      </div>
-    </div>
-  </div>
+##### If you already have population data on a high-resolution
+Just place a shapefile called population.shp into your data folder. The geometry type has to be point and the number of residents have to be saved as integer into a column called "population".
 
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#journal/"><img class="img-responsive" src="https://bootswatch.com/3/journal/thumbnail.png" alt="Journal"></a>
-      </div>
-      <div class="caption">
-        <h3>Journal</h3>
-        <p>Crisp like a new sheet of paper</p>
+#### 5. Define your bounding box and the OSM-Downloadlink
+Open the file secret.js in the app/config folder. Customize the DOWNLOAD_LINK and define your BOUNDING_BOX.
 
+#### 6. Setup GOAT
+##### 6.1. Start Vagrant
+Open a command window and go into the project folder. Run the command:
 
-      </div>
-    </div>
-  </div>
+`vagrant up` (run on your host)
 
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#lumen/"><img src="https://bootswatch.com/3/lumen/thumbnail.png" class="img-responsive" alt="Lumen"></a>
-      </div>
-      <div class="caption">
-        <h3>Lumen</h3>
-        <p>Light and shadow</p>
+For more Vagrant commands checkout:
+
+[https://gist.github.com/wpscholar/a49594e2e2b918f4d0c4](https://gist.github.com/wpscholar/a49594e2e2b918f4d0c4)
+
+##### 6.2. Install the necessary software
+
+`vagrant ssh` (run on your host)
+
+`sudo bash app/installation/install_software.sh` (run on your VM)
+
+This script can take a while as it installs quite some software on your VM. If you want to check what is installed exactly you can view the install_software.sh script.
+This script can take a while as it installs quite some software on your VM. If you want to check what is installed exactly you can view the install_software.sh script.
 
 
-      </div>
-    </div>
-  </div>
+##### 6.3. Fill your database
 
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#paper/"><img class="img-responsive" src="https://bootswatch.com/3/paper/thumbnail.png" alt="Paper"></a>
-      </div>
-      <div class="caption">
-        <h3>Paper</h3>
-        <p>Material is the metaphor</p>
+`sudo bash app/installation/setup_goat.sh` (run on your VM)
 
+##### UPDATE data
 
-      </div>
-    </div>
-  </div>
+In case you want to UPDATE all your data you can simply run the following from your project directory.
 
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#readable/"><img class="img-responsive" src="https://bootswatch.com/3/readable/thumbnail.png" alt="Readable"></a>
-      </div>
-      <div class="caption">
-        <h3>Readable</h3>
-        <p>Optimized for legibility</p>
+`sudo /etc/init.d/postgresql restart` (run on your VM)
 
+`sudo bash app/installation/setup_goat.sh` (run on your VM)
 
-      </div>
-    </div>
-  </div>
+!!Note this will drop your database and create a new database.!! 
 
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#sandstone/"><img src="https://bootswatch.com/3/sandstone/thumbnail.png" class="img-responsive" alt="Sandstone"></a>
-      </div>
-      <div class="caption">
-        <h3>Sandstone</h3>
-        <p>A touch of warmth</p>
+##### 7. Start Geoserver
+
+`cd ~/app/geoserver` (run on your VM)
+
+`sudo bash install_geoserver.sh` (run on your VM)
+
+Geoserver is running inside docker, which itself is inside your VM. You can check if Geoserver is up and running by typing `http://localhost:8080/geoserver/index.html` into your browser. The default password for your Geoserver instance is:
+
+```
+User: admin
+Password : geoserver
+```
+
+##### 8. View GOAT in the browser
 
 
-      </div>
-    </div>
-  </div>
+The front-end is bundled using parcel. At the moment it is recommended to run parcel on your host. For this you need to have NodeJS installed on your host:
 
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#simplex/"><img class="img-responsive" src="https://bootswatch.com/3/simplex/thumbnail.png" alt="Simplex"></a>
-      </div>
-      <div class="caption">
-        <h3>Simplex</h3>
-        <p>Mini and minimalist</p>
+[https://nodejs.org/en/](https://nodejs.org/en/)
+
+In order to start the bundling go to the front-end directory and run:
+
+`npm install` (run on your host)
+
+`npm start` (run on your host)
+
+If all steps were successful you will be able to use GOAT by typing the following into your browser:
+
+[http://localhost:8585](http://localhost:8585)
+
+You can also run parcel on your VM, however you have to open port 9090 and port 8585. This can be done on your Vagrantfile.
+
+##### 9. Optional: Pre-calculate accessibility heat-map
+
+GOAT allows you to use pre-calculated matrices that are used to visualize the dynamic heatmap. 
+In order to start the pre-calculation you currently have to start the script manually with the following command:
+
+`python3 ~/app/data_preparation/Python/precalculate_grid_thematic.py` (run on your VM)
+
+Depending on the size of your study area the calculation can take a bit.
+
+You can also set different grid_sizes in the script.
 
 
-      </div>
-    </div>
-  </div>
+##### 10. Connect to your database
 
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#slate/"><img class="img-responsive" src="https://bootswatch.com/3/slate/thumbnail.png" alt="Slate"></a>
-      </div>
-      <div class="caption">
-        <h3>Slate</h3>
-        <p>Shades of gunmetal gray</p>
+You can connect to the PostgreSQL database with the following default credentials: 
+
+**Change your credentials especially if you want to run GOAT in production**
+
+```
+Host: localhost
+User: goat
+Database: goat
+Password: earlmanigault
+Port: 65432
+```
+
+##### Common Issues
+
+If you use Windows as your host OS it might happen that you have issue when executing the shell scripts. Due to the different ways Unix-like systems and Windows are dealing with line endings. You will get an warning like "\r command not found". This especially happens if you open the shell scripts or the config.js with Wordpad or the text editor coming with Windows. You can avoid this by using an editor like Visual Studio Code. 
+In the case you still face the issue you can convert the shell scripts and the secret.js with a tool like dos2unix.
+
+You potentially have to run all the following commands:
+
+`sudo apt install dos2unix` (run on your VM)
+
+`dos2unix ~/app/installation/install_software.sh` (run on your VM)
+
+`dos2unix ~/app/installation/setup_goat.sh` (run on your VM)
+
+`dos2unix ~/app/config/secret.js` (run on your VM)
+
+`dos2unix ~/app/geoserver/install_geoserver.sh` (run on your VM)
 
 
 
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#solar/"><img class="img-responsive" src="https://bootswatch.com/solar/thumbnail.png" alt="Solar"></a>
-      </div>
-      <div class="caption">
-        <h3>Solar</h3>
-        <p>A spin on Solarized</p>
-
-
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#spacelab/"><img class="img-responsive" src="https://bootswatch.com/3/spacelab/thumbnail.png" alt="Spacelab"></a>
-      </div>
-      <div class="caption">
-        <h3>Spacelab</h3>
-        <p>Silvery and sleek</p>
-
-
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#superhero/"><img class="img-responsive" src="https://bootswatch.com/3/superhero/thumbnail.png" alt="Superhero"></a>
-      </div>
-      <div class="caption">
-        <h3>Superhero</h3>
-        <p>The brave and the blue</p>
-
-
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#united/"><img class="img-responsive" src="https://bootswatch.com/3/united/thumbnail.png" alt="United"></a>
-      </div>
-      <div class="caption">
-        <h3>United</h3>
-        <p>Ubuntu orange and unique font</p>
-
-
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-4 col-sm-6">
-    <div class="thumbnail">
-      <div class="image">
-        <a href="#yeti/"><img class="img-responsive" src="https://bootswatch.com/3/yeti/thumbnail.png" alt="Yeti"></a>
-      </div>
-      <div class="caption">
-        <h3>Yeti</h3>
-        <p>A friendly foundation</p>
-
-
-      </div>
-    </div>
-  </div>
-
-
-</div>
