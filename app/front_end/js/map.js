@@ -38,10 +38,13 @@ search.on('select', function(e)
 });
 map.addControl(search);
 
-map.addControl(new ol_legend({
+
+var legendControl = new ol_legend({
   map: map,
   class: 'ol_legend'
-}));
+});
+
+map.addControl(legendControl);
 
 //Events for accesibility layer
 

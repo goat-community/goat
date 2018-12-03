@@ -22,6 +22,6 @@ let app = express();
 
 
 
-
+app.use(express.static('markers'));
 app.use(bundler.middleware());
 app.listen(8585);
