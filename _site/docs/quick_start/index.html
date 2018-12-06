@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/goat/css/main.css">
+    <link rel="stylesheet" href="/goat/css/font-awesome.min.css">
+
+    <link rel="shortcut icon" href="/goat/favicon.ico?1">
+    <!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>Quick Start | Open Accessibility</title>
+<meta name="generator" content="Jekyll v3.8.4" />
+<meta property="og:title" content="Quick Start" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Setup GOAT For the developed Vagrant and Docker are used. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. In order to start and customize GOAT for your study area, you have to follow these steps:" />
+<meta property="og:description" content="Setup GOAT For the developed Vagrant and Docker are used. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. In order to start and customize GOAT for your study area, you have to follow these steps:" />
+<link rel="canonical" href="http://localhost:4000/goat/docs/quick_start/" />
+<meta property="og:url" content="http://localhost:4000/goat/docs/quick_start/" />
+<meta property="og:site_name" content="Open Accessibility" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-12-05T21:47:18+01:00" />
+<script type="application/ld+json">
+{"headline":"Quick Start","dateModified":"2018-12-05T21:47:18+01:00","datePublished":"2018-12-05T21:47:18+01:00","@type":"WebPage","url":"http://localhost:4000/goat/docs/quick_start/","description":"Setup GOAT For the developed Vagrant and Docker are used. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. In order to start and customize GOAT for your study area, you have to follow these steps:","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+    <link rel="canonical" href="http://localhost:4000/goat/docs/quick_start/">
+    <link rel="alternate" type="application/rss+xml" title="Open Accessibility" href="http://localhost:4000/goat/feed.xml" />
+</head>
+
+
+<body>
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container navbar-container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+            <a class="navbar-brand" href="/goat/">
+                <span><img src="/goat/img/logonav.png" alt="Logo"></span> Open Accessibility
+            </a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+                    <li ><a href="http://open-accessibility.org/wp/en/accessibility/">GOAT Application</a></li>
+                    <li  class="active" ><a href="/goat/docs/home/">Docs</a></li>
+                    <li ><a href="/goat/blog/2017/05/03/jekyll-doc-theme/">Blog</a></li>
+                 
+   
+            </ul>
+            <div class="navbar-right">
+                <form class="navbar-form navbar-left">
+                    <div class="form-group has-feedback">
+                        <input id="search-box" type="text" class="form-control" placeholder="Search...">
+                        <i class="fa fa-search form-control-feedback"></i>
+                    </div>
+                </form>
+                <ul class="nav navbar-nav">
+                    <li><a href="https://github.com/EPajares/goat"><i class="fa fa-github" aria-hidden="true"></i></a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+
+    <div class="page-content">
+        <div class="wrapper">
+            <div class="container">
+    <div class="row">
+        <div class="col-md-4">
+          <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-1" aria-expanded="false" aria-controls="collapse-1">
+          About
+        </a>
+      </h4>
+    </div>
+    <div id="collapse-1" class="panel-collapse collapse" role="tabpanel" aria-label="Side Navigation">
+      <div class="list-group">
+        
+          
+          
+          <a class="list-group-item " href="/goat/docs/background/">Background</a>
+        
+          
+          
+          <a class="list-group-item " href="/goat/docs/home/">What is GOAT?</a>
+        
+          
+          
+          <a class="list-group-item active" href="/goat/docs/quick_start/">Setup your own GOAT</a>
+        
+          
+          
+          <a class="list-group-item " href="/goat/docs/about/">About</a>
+        
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-2" aria-expanded="false" aria-controls="collapse-2">
+          Technical Documentation
+        </a>
+      </h4>
+    </div>
+    <div id="collapse-2" class="panel-collapse collapse" role="tabpanel" aria-label="Side Navigation">
+      <div class="list-group">
+        
+          
+          
+          <a class="list-group-item " href="/goat/docs/technicalarchitecture/">Technical Architecture</a>
+        
+          
+          
+          <a class="list-group-item " href="/goat/docs/cheatsheet/">Markdown Cheatsheet</a>
+        
+          
+          
+          <a class="list-group-item " href="/goat/docs/font-awesome/">Font Awesome Icon List</a>
+        
+          
+          
+          <a class="list-group-item " href="/goat/docs/bootstrap/">Bootstrap Features</a>
+        
+      </div>
+    </div>
+  </div>
+
+</div>
+
+        </div>
+
+        <div class="col-md-8">
+            <h1>Quick Start</h1>
+            <div id="markdown-content-container"><h2 id="setup-goat">Setup GOAT</h2>
+<p>For the developed Vagrant and Docker are used. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. In order to start and customize GOAT for your study area, you have to follow these steps:</p>
+
+<h4 id="1-get-a-copy-of-goat">1. Get a copy of GOAT</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/EPajares/goat.git (run on your host or copy as zip-folder)
+</code></pre></div></div>
+
+<h4 id="2-install-virtualbox">2. Install Virtualbox</h4>
+<p><a href="https://www.virtualbox.org/">https://www.virtualbox.org/</a></p>
+
+<h4 id="3-install-vagrant">3. Install Vagrant</h4>
+<p>It was only tested with the version mentioned above. Accordingly if you want to avoid unexpected issues, stick with that version.</p>
+
+<p><a href="https://www.vagrantup.com/">https://www.virtualbox.org/</a></p>
+
+<h4 id="4-prepare-your-data">4. Prepare your data</h4>
+<p>Put all your data into the app/data folder!</p>
+
+<h5 id="if-you-want-to-disaggregate-population-data">If you want to disaggregate population data</h5>
+<p>You need a shapefile with administrative boundaries and a column with the number of inhabitants in this administrative unit, it works for any spatial resolution. The column has to be named “sum_pop” and has to be saved as integer. As the population data is used for population disaggregation, data on higher resolution will give you a more accurate disaggregation. Make sure you change the name of your spatial unit to name_administrative.</p>
+
+<p>Optional: In the case you have custom landuse data you can place the data as shapefile (name the file: landuse.shp) into your data folder. The table has to include a column named “landuse”. You can define in the table variable_container, which landuse category you want to exclude from the population disaggregation. For instance you can exclude graveyards or farmland and as consequences houses standing on these landuse categories are marked as not uninhabited.</p>
+
+<h5 id="if-you-already-have-population-data-on-a-high-resolution">If you already have population data on a high-resolution</h5>
+<p>Just place a shapefile called population.shp into your data folder. The geometry type has to be point and the number of residents have to be saved as integer into a column called “population”.</p>
+
+<h4 id="5-define-your-bounding-box-and-the-osm-downloadlink">5. Define your bounding box and the OSM-Downloadlink</h4>
+<p>Open the file secret.js in the app/config folder. Customize the DOWNLOAD_LINK and define your BOUNDING_BOX.</p>
+
+<h4 id="6-setup-goat">6. Setup GOAT</h4>
+<h5 id="61-start-vagrant">6.1. Start Vagrant</h5>
+<p>Open a command window and go into the project folder. Run the command:</p>
+
+<p><code class="highlighter-rouge">vagrant up</code> (run on your host)</p>
+
+<p>For more Vagrant commands checkout:</p>
+
+<p><a href="https://gist.github.com/wpscholar/a49594e2e2b918f4d0c4">https://gist.github.com/wpscholar/a49594e2e2b918f4d0c4</a></p>
+
+<h5 id="62-install-the-necessary-software">6.2. Install the necessary software</h5>
+
+<p><code class="highlighter-rouge">vagrant ssh</code> (run on your host)</p>
+
+<p><code class="highlighter-rouge">sudo bash app/installation/install_software.sh</code> (run on your VM)</p>
+
+<p>This script can take a while as it installs quite some software on your VM. If you want to check what is installed exactly you can view the install_software.sh script.
+This script can take a while as it installs quite some software on your VM. If you want to check what is installed exactly you can view the install_software.sh script.</p>
+
+<h5 id="63-fill-your-database">6.3. Fill your database</h5>
+
+<p><code class="highlighter-rouge">sudo bash app/installation/setup_goat.sh</code> (run on your VM)</p>
+
+<h5 id="update-data">UPDATE data</h5>
+
+<p>In case you want to UPDATE all your data you can simply run the following from your project directory.</p>
+
+<p><code class="highlighter-rouge">sudo /etc/init.d/postgresql restart</code> (run on your VM)</p>
+
+<p><code class="highlighter-rouge">sudo bash app/installation/setup_goat.sh</code> (run on your VM)</p>
+
+<p>!!Note this will drop your database and create a new database.!!</p>
+
+<h5 id="7-start-geoserver">7. Start Geoserver</h5>
+
+<p><code class="highlighter-rouge">cd ~/app/geoserver</code> (run on your VM)</p>
+
+<p><code class="highlighter-rouge">sudo bash install_geoserver.sh</code> (run on your VM)</p>
+
+<p>Geoserver is running inside docker, which itself is inside your VM. You can check if Geoserver is up and running by typing <code class="highlighter-rouge">http://localhost:8080/geoserver/index.html</code> into your browser. The default password for your Geoserver instance is:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User: admin
+Password : geoserver
+</code></pre></div></div>
+
+<h5 id="8-view-goat-in-the-browser">8. View GOAT in the browser</h5>
+
+<p>The front-end is bundled using parcel. At the moment it is recommended to run parcel on your host. For this you need to have NodeJS installed on your host:</p>
+
+<p><a href="https://nodejs.org/en/">https://nodejs.org/en/</a></p>
+
+<p>In order to start the bundling go to the front-end directory and run:</p>
+
+<p><code class="highlighter-rouge">npm install</code> (run on your host)</p>
+
+<p><code class="highlighter-rouge">npm start</code> (run on your host)</p>
+
+<p>If all steps were successful you will be able to use GOAT by typing the following into your browser:</p>
+
+<p><a href="http://localhost:8585">http://localhost:8585</a></p>
+
+<p>You can also run parcel on your VM, however you have to open port 9090 and port 8585. This can be done on your Vagrantfile.</p>
+
+<h5 id="9-optional-pre-calculate-accessibility-heat-map">9. Optional: Pre-calculate accessibility heat-map</h5>
+
+<p>GOAT allows you to use pre-calculated matrices that are used to visualize the dynamic heatmap. 
+In order to start the pre-calculation you currently have to start the script manually with the following command:</p>
+
+<p><code class="highlighter-rouge">python3 ~/app/data_preparation/Python/precalculate_grid_thematic.py</code> (run on your VM)</p>
+
+<p>Depending on the size of your study area the calculation can take a bit.</p>
+
+<p>You can also set different grid_sizes in the script.</p>
+
+<h5 id="10-connect-to-your-database">10. Connect to your database</h5>
+
+<p>You can connect to the PostgreSQL database with the following default credentials:</p>
+
+<p><strong>Change your credentials especially if you want to run GOAT in production</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Host: localhost
+User: goat
+Database: goat
+Password: earlmanigault
+Port: 65432
+</code></pre></div></div>
+
+<h5 id="common-issues">Common Issues</h5>
+
+<p>If you use Windows as your host OS it might happen that you have issue when executing the shell scripts. Due to the different ways Unix-like systems and Windows are dealing with line endings. You will get an warning like “\r command not found”. This especially happens if you open the shell scripts or the config.js with Wordpad or the text editor coming with Windows. You can avoid this by using an editor like Visual Studio Code. 
+In the case you still face the issue you can convert the shell scripts and the secret.js with a tool like dos2unix.</p>
+
+<p>You potentially have to run all the following commands:</p>
+
+<p><code class="highlighter-rouge">sudo apt install dos2unix</code> (run on your VM)</p>
+
+<p><code class="highlighter-rouge">dos2unix ~/app/installation/install_software.sh</code> (run on your VM)</p>
+
+<p><code class="highlighter-rouge">dos2unix ~/app/installation/setup_goat.sh</code> (run on your VM)</p>
+
+<p><code class="highlighter-rouge">dos2unix ~/app/config/secret.js</code> (run on your VM)</p>
+
+<p><code class="highlighter-rouge">dos2unix ~/app/geoserver/install_geoserver.sh</code> (run on your VM)</p>
+
+</div>
+            <div style="clear:both;">
+              <p class="text-center">
+                <br />
+                <a target="_blank" href="https://github.com/aksakalli/jekyll-doc-theme/blob/gh-pages/_docs/themes.md" class="btn btn-default githubEditButton" role="button">
+                  <i class="fa fa-pencil fa-lg"></i> Improve this page
+                </a>
+              </p>
+            </div>
+            <hr>
+            
+
+
+
+
+
+  
+  
+
+  
+  
+
+  
+  
+    <ul class="pager">
+      
+        
+        
+        <li class="previous">
+          <a href="/goat/docs/home/">
+            <span aria-hidden="true">&larr;</span> Previous
+          </a>
+        </li>
+      
+
+      
+        
+        
+        <li class="next">
+          <a href="/goat/docs/about/">
+            Next <span aria-hidden="true">&rarr;</span>
+          </a>
+        </li>
+      
+      </ul>
+    <div class="clear"></div>
+    
+
+        </div>
+
+    </div>
+</div>
+
+        </div>
+    </div>
+
+    <footer class="footer">
+    <div class="container">
+
+        <p class="text-center">
+            Open Accessibility 2018 |
+            All Rights Reserved
+        </p>
+        <!-- <p class="text-muted">Place sticky footer content here.</p> -->
+    </div>
+</footer>
+
+    <script>
+  var baseurl = '/goat'
+</script>
+<script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="/goat/js/bootstrap.min.js "></script>
+<script src="/goat/js/typeahead.bundle.min.js "></script>
+
+<script src="/goat/js/main.js "></script>
+
+</body>
+
+</html>
