@@ -2,9 +2,10 @@ ubuntu-bionic-18.04-cloudimg-console.log
 .vagrant
 /app/data/*
 !/app/data/.gitkeep
-/app/geoserver/gs-catalog/logs
+/app/geoserver/gs-catalog/logs/*
 /app/front_end/dist
 /app/front_end/node_modules
 /app/front_end/.cache
 /app/node/node_modules
 /_site
+/.sass-cache
