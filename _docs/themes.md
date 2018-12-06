@@ -1,9 +1,4 @@
 ---
-title: Themes
-permalink: /docs/themes/
----
-
----
 title: Quick Start
 permalink: /docs/quick_start/
 ---

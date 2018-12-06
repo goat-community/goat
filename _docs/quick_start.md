@@ -1,9 +1,8 @@
 ---
-title: Quick Start
+title: Setup your own GOAT
 permalink: /docs/quick_start/
 ---
 
-## Setup GOAT
 For the developed Vagrant and Docker are used. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. In order to start and customize GOAT for your study area, you have to follow these steps:
 
 #### 1. Get a copy of GOAT

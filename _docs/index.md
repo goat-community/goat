@@ -1,17 +1,14 @@
 ---
-title: Welcome
+title: What is GOAT?
 permalink: /docs/home/
 redirect_from: /docs/index.html
 ---
-##  Welcome to the Home of GOAT
-GOAT is meant to be an open source, interactive, flexible and useful accessibility tool for urban, spatial and transport planning.
-It uses completely built on open source software and the main data source is OpenStreetMap. 
-This allows you to setup your own GOAT without any paywall. The flexible architecture however allows you to include various data sources
-and the modular logic 
 
-## Software and Libraries used
-
-The following software, languages and libraries are currently used:
-
-<img class="img-responsive" src="../../img/libraries_used.png" alt="Libraries Used">
+#### GOAT....
+#####   ...is an interactive, flexible and useful accessibility instrument.
+#####   ...focuses on active mobility (e.g. walking and cycling).
+#####   ...allows you to model scenarios.
+#####   ...can be setup for every place in the world.
+#####   ...is open source and built completely on open source software.
+#####   ...is higly customizable and extendable.  
 

@@ -1,12 +1,14 @@
-- title: Getting Started
+- title: About
   docs:
+  - background
   - home
-  - themes
-  - customization
+  - quick_start
   - about
 
-- title: Examples
+
+- title: Technical Documentation
   docs:
+  - technicalarchitecture
   - cheatsheet
   - font-awesome
   - bootstrap
