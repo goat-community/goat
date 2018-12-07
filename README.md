@@ -64,10 +64,11 @@ Put all your data into the app/data folder!
 
 You need a shapefile with administrative boundaries and a column with the number of inhabitants in this administrative 
 unit, it works for any spatial resolution. The column has to be named “sum_pop” and has to be saved as integer. 
+(name the file: **study_area.shp**)
 As the population data is used for population disaggregation, data on higher resolution will give you a more 
 accurate disaggregation. 
 
-Optional: In the case you have custom landuse data you can place the data as shapefile (name the file: landuse.shp) into your data folder. The table has to include a column named "landuse". You can define in the table variable_container, which landuse category you want to exclude from the population disaggregation. For instance you can exclude graveyards or farmland and as consequences houses standing on these landuse categories are marked as not uninhabited. 
+Optional: In the case you have custom landuse data you can place the data as shapefile (name the file: **landuse.shp**) into your data folder. The table has to include a column named "landuse". You can define in the table variable_container, which landuse category you want to exclude from the population disaggregation. For instance you can exclude graveyards or farmland and as consequences houses standing on these landuse categories are marked as not uninhabited. 
 
 ##### If you already have population data on a high-resolution
 
