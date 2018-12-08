@@ -1,13 +1,11 @@
 import ApiConstants from './secrets';
 import {map} from './map';
 import { Vector as VectorLayer} from 'ol/layer';
-import {Vector as VectorSource,Cluster} from 'ol/source';
-import {WFS,GeoJSON} from 'ol/format';
+import {Vector as VectorSource} from 'ol/source';
+import {WFS} from 'ol/format';
 import {thematic_data} from './data_preparation';
 import {poisStyle,setStyle_pois} from './style';
-import {pois} from './variables';
-import {bbox} from 'ol/loadingstrategy';
-
+import {pois} from './variables'
 
 
 
@@ -39,7 +37,7 @@ $("body").on('change','.pois_check',function (){
 	if ($(this).is(":checked")){
 	
 		
-		var theurl = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=gid:xxx;&typeNames=cite:pois&outputFormat=application/json';
+		var theurl = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=gid:xxx;&typeNames=cite:pois';
 	
 		load_layer_gid(theurl,'pois',id);
 			
@@ -71,62 +69,19 @@ var prepare_loading = function (id,theurl) {
 					
 					
 				   var url = theurl.replace('xxx',max_gid)	
+		
+					//This should be changed and NodeJS should be used for thematic data 
+					 var layer = new VectorLayer({			//Layer is loaded
+				      	opacity:1,
+						style:poisStyle,
+				        source: new VectorSource({
+				         	url:url,			
+				        	format: new WFS({
 				
-				   //Layer Clustering 
-
-
-				//  var poisSource = new VectorSource({
-				// 	url:url,			
-				// 	format: new WFS({
-				// 	})
-				// });  
-
-
-				var poisSource = new VectorSource({
-					format: new GeoJSON(),
-					loader: function(extent, resolution, projection) {					
-					   var xhr = new XMLHttpRequest();
-					   xhr.open('GET', url);
-					   var onError = function() {
-						poisSource.removeLoadedExtent(extent);
-					   }
-					   xhr.onerror = onError;
-					   xhr.onload = function() {
-						 if (xhr.status == 200) {
-							poisSource.addFeatures(
-								poisSource.getFormat().readFeatures(xhr.responseText));
-								poisSource.refresh();
-						 } else {
-						   onError();
-						 }
-					   }
-					   xhr.send();
-					 },
-					 strategy: bbox
-				   });
-
-
-
-
-
-
-
-				var clusterSource = new Cluster({
-				distance: 30,
-				source: poisSource
-				});
-
-				clusterSource.on('addfeature',function (e){
-					console.log(e);
-				})
-
-				//This should be changed and NodeJS should be used for thematic data 
-					var layer = new VectorLayer({			//Layer is loaded
-					opacity:1,
-					style:poisStyle,
-					source: clusterSource 
-									
-				})
+				            })
+				         })   
+							           
+					})
 					return layer
 			}
 
@@ -218,5 +173,3 @@ var calculation = function (layer_id,layer,modus) {
 
 
 export {pois_geom};
-	
-	
