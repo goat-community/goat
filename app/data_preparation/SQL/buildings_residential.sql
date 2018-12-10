@@ -81,6 +81,7 @@ DELETE FROM non_residential_ids
 WHERE osm_id NOT IN (SELECT osm_id FROM x);
 
 
+
 ALTER TABLE buildings_residential_table add column gid serial;
 
 ALTER TABLE buildings_residential_table add primary key(gid);
@@ -91,14 +92,14 @@ ALTER TABLE non_residential_ids add primary key(gid);
 
 --All buildings smaller 54 square meters are excluded
 
-
-SELECT * ,st_area(geom::geography) as area, 
+CREATE TABLE buildings_residential as
+SELECT * ,st_area(b.geom::geography) as area, 
 CASE WHEN (tags -> 'building:levels')~E'^\\d+$' THEN (tags -> 'building:levels')::integer ELSE null end as building_levels,
 CASE WHEN (tags -> 'roof:levels')~E'^\\d+$' THEN (tags -> 'roof:levels')::integer ELSE null end as roof_levels
-INTO buildings_residential
-FROM buildings_residential_table b
+FROM buildings_residential_table b, landuse l
 WHERE b.osm_id not in(SELECT osm_id FROM non_residential_ids)
-AND st_area(geom::geography) > 54;
+AND ST_Intersects(b.geom,l.geom) 
+AND ST_Area(b.geom::geography) > 54;
 
 
 --All Building with no levels get building_levels = 2 AND roof_levels = 1
