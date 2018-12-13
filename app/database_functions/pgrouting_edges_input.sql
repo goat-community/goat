@@ -13,8 +13,8 @@ AS $function$
 	  
 	  SELECT variable_array::text
   	  INTO excluded_class_id 
-      	  FROM variable_container v
-          WHERE v.identifier = 'excluded_class_id_walking';
+      FROM variable_container v
+      WHERE v.identifier = 'excluded_class_id_walking';
 
 	  SELECT id INTO id_vertex
       FROM ways_userinput_vertices_pgr  v
@@ -40,4 +40,4 @@ AS $function$
 	  END LOOP;
 	  RETURN;
 	END ;
-	$function$
+$function$
