@@ -1,10 +1,29 @@
+CREATE OR REPLACE FUNCTION public.network_modification(input_userid integer)
+ RETURNS SETOF integer
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+   i text;
+   cnt integer;
+   count_bridges integer;
+BEGIN
+   
+delete FROM ways_userinput WHERE userid = input_userid;
+delete FROM ways_userinput_vertices_pgr WHERE userid = input_userid;
+   
+   
 DROP TABLE IF EXISTS drawn_features;
 DROP TABLE IF EXISTS existing_network;
 DROP TABLE IF EXISTS intersection_existing_network;
+DROP TABLE IF EXISTS drawn_features_union;
+DROP TABLE IF EXISTS new_network;
+DROP TABLE IF EXISTS no_intersection;
+DROP TABLE IF EXISTS one_intersection;
+DROP TABLE IF EXISTS two_intersections;
 
 CREATE TEMP TABLE drawn_features as
 SELECT id,geom,class_id,userid  FROM ways_modified
-WHERE userid = 1154498;
+WHERE userid = input_userid;
 
 --Extends drawn lines by a distance of approx. 1 meter
 WITH extend_first_part AS (
@@ -74,7 +93,7 @@ FROM (
 --All the lines FROM the existing network which intersect with the draw network are split, this
 --is done as a new node now is added	
 
-SELECT * FROM split_existing_network()
+PERFORM split_existing_network();
 
 
 CREATE TEMP TABLE existing_network as 
@@ -110,13 +129,13 @@ WHERE st_endpoint(existing_network.geom) = x.geom;
 
 
 SELECT count(*) INTO cnt
-FROM drawn_features
+FROM drawn_features;
 
 
 IF cnt = 1 THEN
     CREATE TEMP TABLE drawn_features_union as
     SELECT geometry as geom
-    FROM drawn_features
+    FROM drawn_features;
 ELSE
 	    --Split_userinput is a funtion which needs userid as input
 	CREATE TEMP TABLE drawn_features_union as
@@ -189,41 +208,106 @@ WHERE new_network .geom = x.geom;
 -- All lines, which have two intersection points with the existing network are assigned with vertices
 
 --First the source vertext is assign AND put INTO a new preliminary table 
-CREATE TABLE xxx as
+CREATE TEMP TABLE two_intersections as
+SELECT t.geom geom,i.vertex_id AS source, 0 target
+FROM (
+	SELECT geom,st_startpoint(geom) _1
+	FROM 
+	(
+		SELECT distinct t.* FROM new_network t,intersection_existing_network i
+		WHERE source IS NULL AND target IS NULL
+		AND st_intersects(i.geom,t.geom)) x
+	) t,
+	intersection_existing_network i
+--geometries are compared as text
+WHERE st_astext(i.geom) = st_astext(t._1);
 
-WITH two_intersections as(
-	SELECT t.geom geom,i.vertex_id AS source, 0 target
+UPDATE two_intersections set target = x.target 
+FROM (
+	SELECT t.geom geom,i.vertex_id as target
 	FROM (
-		SELECT geom,st_startpoint(geom) _1
+		SELECT geom, st_endpoint(geom) _2
 		FROM 
 		(
-			SELECT distinct t.* FROM testtest t,intersection_existing_network i
+			SELECT distinct t.* FROM new_network t,intersection_existing_network i
 			WHERE source IS NULL AND target IS NULL
 			AND st_intersects(i.geom,t.geom)) x
-		) t,
-		intersection_existing_network i
-	--geometries are compared as text
-	WHERE st_astext(i.geom) = st_astext(t._1)
-),
-update_1 as(
-		--Afterwards the target is UPDATEd as well
-	UPDATE two_intersections set target = x.target 
-	FROM (
-		SELECT t.geom geom,i.vertex_id as target
-		FROM (
-			SELECT geom, st_endpoint(geom) _2
-			FROM 
-			(
-				SELECT distinct t.* FROM testtest t,intersection_existing_network i
-				WHERE source IS NULL AND target IS NULL
-				AND st_intersects(i.geom,t.geom)) x
-			) t,intersection_existing_network i
-	--geometries are compared as text
-		WHERE st_astext(i.geom) = st_astext(t._2)
-		)x
-	WHERE two_intersections.geom = x.geom
+		) t,intersection_existing_network i
+--geometries are compared as text
+	WHERE st_astext(i.geom) = st_astext(t._2)
+	)x
+WHERE two_intersections.geom = x.geom;
 
-) 
+
 UPDATE new_network set source = two_intersections.source, target = two_intersections.target
-FROM two_intersections
-WHERE testtest.geom = two_intersections.geom;
+FROM two_intersections 
+WHERE new_network.geom = two_intersections.geom;
+
+
+--All new lines which are not interseting with the already existing network are getting new vertices as well
+CREATE TEMP TABLE no_intersection as
+SELECT y.st_startpoint as vertex,
+--SELECT the max vertex_id so far
+(SELECT max(max) FROM (
+SELECT max(source) FROM new_network
+UNION ALL 
+SELECT max(target) FROM new_network) x) + row_number() over() as vertex_id
+---------------------------------------------------------
+FROM 
+--SELECTs distinct vertices 
+(SELECT distinct *
+FROM (
+	SELECT st_startpoint(geom),source 
+	FROM new_network
+	WHERE source IS NULL
+	UNION ALL
+	SELECT st_endpoint(geom),target 
+	FROM new_network
+	WHERE target IS NULL) x
+) y;
+	
+UPDATE new_network set source = v.vertex_id
+FROM no_intersection v
+WHERE st_startpoint(geom) = v.vertex;
+
+UPDATE new_network set target = v.vertex_id
+FROM no_intersection v
+WHERE st_endpoint(geom) = v.vertex;
+
+--Delte those WHERE source AND target are so close to each other that they are identical 
+delete FROM new_network 
+WHERE source=target;
+
+----------------------------------------------------------------------------------------------------------------------
+--INSERT NEW VERTICES AND WAYS INTO THE EXISTING TABLES
+----------------------------------------------------------------------------------------------------------------------
+
+insert INTO ways_userinput_vertices_pgr(id,geom,userid)
+SELECT vertex_id::bigint,geom,input_userid FROM intersection_existing_network;
+
+insert INTO ways_userinput_vertices_pgr(id,geom,userid)
+SELECT distinct *,input_userid FROM (
+SELECT source::bigint,st_startpoint(geom) FROM new_network
+WHERE source not in (SELECT vertex_id FROM intersection_existing_network)
+UNION ALL
+SELECT target::bigint,st_endpoint(geom) FROM new_network
+WHERE target not in (SELECT vertex_id FROM intersection_existing_network)) x;
+
+insert INTO ways_userinput(id,source,target,geom,userid)
+SELECT (SELECT max(id) FROM ways_userinput) + row_number() over(),source,target,geom,input_userid FROM new_network;
+
+insert INTO ways_userinput(id,source,target,geom,userid) 
+SELECT (SELECT max(id) FROM ways_userinput) + row_number() over(),source,target,geom,input_userid FROM existing_network;
+
+UPDATE ways_userinput 
+set length_m = st_length(geom::geography)
+WHERE length_m IS NULL;
+
+--DELETE FROM ways_userinput WHERE source IS NULL OR target IS NULL;
+
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+
+
+END
+$function$
