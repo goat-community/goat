@@ -30,7 +30,7 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>insert_into_network</name>
-        <sql>select * from insert_into_network(%userid%)
+        <sql>select * from network_modification(%userid%)
 </sql>
         <escapeSql>false</escapeSql>
         <parameter>
