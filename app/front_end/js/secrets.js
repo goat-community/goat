@@ -7,8 +7,8 @@ module.exports = {
     geoserver_workspace: 'cite',
     wfs_url: 'http://localhost:9090/http://localhost:8080/geoserver/cite/wfs',
     geoserver_namespaceURI: 'muc',
-    x : 10.70171,
-    y : 47.57143,
+    x : 13.386841,
+    y : 52.516221,
     ip_address : 'http://localhost',
     proxy_url: 'http://localhost:9090/',
     nodeapi_baseurl: 'http://localhost:9090/http://localhost:3000'

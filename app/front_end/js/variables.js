@@ -80,18 +80,18 @@ var categories_db_style = {
 'Education':{'kindergarten':['kindergarten','Kindergarten'],'primary_school':['school-15','Primary school'],'secondary_school':['school-15','Secondary school']},
 'Gastronomy':{'bar':['bar-15','Bar'],'biergarten':['biergarten','Biergarten'],'cafe':['cafe-15','Café'],'pub':['pub','Pub'],'fast_food':['fast-food-15','Fast food'],
 'ice_cream':['ice-cream-15','Ice cream'],'restaurant':['restaurant-15','Restaurant']},
-'Population':{'address':['','Addresses'],'population':['','Population']},
-'Other':{'library':['library-15','Library'],'night_club':['night-club','Night-Club'],'recycling':['recycling-15','Recycling']},
+'Population':{'address':['address-15','Addresses'],'population':['population-15','Population']},
+'Other':{'library':['library-15','Library'],'night_club':['night-club-15','Night-Club'],'recycling':['recycling-15','Recycling']},
 'Transport':{'bicycle_rental':['bicycle-share-15','Bicycle rental'],'car_sharing':['car-15','Car sharing'],'charging_station':['charging-station','Charging station'],
 'bus_stop':['bus-15','Bus'],'tram_stop':['rail-light-15','Tram station'],
 'subway_entrance':['rail-metro-15','U-Bahn station'],'sbahn_regional':['rail-15','S-Bahn station'],'taxi':['taxi','Taxi']},
 'Services':{'hairdresser':['hairdresser-15','Hairdresser'],'atm':['atm','ATM'],'bank':['bank-15','Bank'],'dentist':['dentist-15','Dentist']
 ,'doctors':['doctor-15','Doctor'],'pharmacy':['pharmacy-15','Pharmacy'],
 'post_box':['post_box','Post box'],'post_office':['post-15','Post office'],'fuel':['fuel-15','Fuel']},
-'Shop':{'alcohol':['alcohol-shop-15','Alcohol shop'],'bakery':['bakery-15','Bakery'],'butcher':['butcher','Butcher'],'clothes':['clothing-store-15','Clothing store']
+'Shop':{'alcohol':['alcohol-shop-15','Alcohol shop'],'bakery':['bakery-15','Bakery'],'butcher':['butcher-15','Butcher'],'clothes':['clothing-store-15','Clothing store']
 ,'convenience':['grocery-15','Convencience store']
-,'greengrocer':['grocery-15','Greengrocer'],'kiosk':['marker-15','Kiosk'],'mall':['marker-15','Mall'],'shoes':['shoes','Shoes'],
-'supermarket':['supermarket','Supermarket'],'marketplace':['marker-15','Marketplace']},
+,'greengrocer':['grocery-15','Greengrocer'],'kiosk':['kiosk-15','Kiosk'],'mall':['mall-15','Mall'],'shoes':['shoes','Shoes'],
+'supermarket':['supermarket','Supermarket'],'marketplace':['marketplace-15','Marketplace']},
 'TourismLeisure':{"cinema":['cinema-15','Cinema'],"theatre":['theatre-15','Theatre'],"museum":['museum-15','Museum'],"picnic_site":['picnic','Picnic-site'],
 "hotel":['hotel','Hotel'],"hostel":['hostel','Hostel'],
 "guest_house":['guest_house','Guest house'],"attraction":['attraction-15','Attraction']
