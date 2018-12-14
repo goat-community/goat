@@ -1,12 +1,10 @@
 @font-face { 
   font-family: 'Lovelo'; 
-  src: url('http://open-accessibility.org/wp/wp-content/themes/salient/css/fonts/Lovelo_Black.eot'); 
-  src: url('http://open-accessibility.org/wp/wp-content/themes/salient/css/fonts/Lovelo_Black.eot?#iefix') 
-  format('embedded-opentype'), 
-  url('http://open-accessibility.org/wp/wp-content/themes/salient/css/fonts/Lovelo_Black.woff') format('woff'),  
-  url('http://open-accessibility.org/wp/wp-content/themes/salient/css/fonts/Lovelo_Black.ttf') format('truetype'), 
-  url('http://open-accessibility.org/wp/wp-content/themes/salient/css/fonts/Lovelo_Black.svg#loveloblack') 
-  format('svg'); 
+  src: url('./fonts/Lovelo_Black.eot'); 
+  src: url('./fonts/Lovelo_Black.eot?#iefix') format('embedded-opentype'), 
+  url('./fonts/Lovelo_Black.woff') format('woff'),  
+  url('./fonts/Lovelo_Black.ttf') format('truetype'), 
+  url('./fonts/Lovelo_Black.svg#loveloblack')  format('svg'); 
   font-weight: normal; 
   font-style: normal; 
   } 

@@ -173,5 +173,3 @@ var calculation = function (layer_id,layer,modus) {
 
 
 export {pois_geom};
-	
-	

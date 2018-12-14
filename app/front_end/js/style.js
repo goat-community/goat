@@ -190,7 +190,7 @@ var vector_style = new Style({
 					var amenity = _pois[amenity][0]
 					console.log(amenity);
 	        		
-	        		var path = 'http://www.open-accessibility.org/accessibility/markers/pois/'+amenity+'.png';
+	        		var path = '../pois/'+amenity+'.png';
 	        		
 	        		var style = new  Style({
 			      		image: new  Icon(/** @type {olx.style.IconOptions} */ ({

@@ -42,7 +42,6 @@ let index_function = function () {
 				  				  +`<img style="padding-right:5px;" for="check_${array[key_1]}" src="../pois/${pois[array[key_1]][0]}.png">`
 			     				  +`<label style="cursor:pointer;" for="check_${array[key_1]}">${pois[array[key_1]][1]}</label>`	
 								  + `<input name="n" class="thematic_data_weight"type="number" min="1" max="5" step="1" value="1"/>`
-				console.log(pois[array[key_1]][0]);
 				  
 				  if (isUneven(parseInt(key_1)+1)){
 				  
