@@ -93,7 +93,7 @@ ALTER TABLE non_residential_ids add primary key(gid);
 --All buildings smaller 54 square meters are excluded
 
 CREATE TABLE buildings_residential as
-SELECT * ,st_area(b.geom::geography) as area, 
+SELECT b.* ,st_area(b.geom::geography) as area, 
 CASE WHEN (tags -> 'building:levels')~E'^\\d+$' THEN (tags -> 'building:levels')::integer ELSE null end as building_levels,
 CASE WHEN (tags -> 'roof:levels')~E'^\\d+$' THEN (tags -> 'roof:levels')::integer ELSE null end as roof_levels
 FROM buildings_residential_table b, landuse l
