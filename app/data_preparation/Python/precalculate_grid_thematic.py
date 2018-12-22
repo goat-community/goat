@@ -6,6 +6,7 @@ from variables_precalculate import *
 
 
 
+start = time.time()
 
 con = psycopg2.connect("dbname='goat' user='goat' host='localhost' password='earlmanigault'")
 cursor = con.cursor()
@@ -108,3 +109,6 @@ calculate_index(500)
 
 
 con.close()
+end = time.time()
+print('Running the script took:')
+print(end - start)
