@@ -10,7 +10,7 @@ baseurl: "/goat" # the subpath of your site, e.g. /blog/
 url: https://aksakalli.github.io/jekyll-doc-theme # the base hostname & protocol for your site
 git_address: https://github.com/EPajares/goat
 appURL: http://open-accessibility.org/wp/en/accessibility/
-git_edit_address: https://github.com/aksakalli/jekyll-doc-theme/blob/gh-pages
+git_edit_address: https://github.com/EPajares/goat/tree/gh-pages/
 
 # theme options from https://bootswatch.com/
 # comment out this to use default Bootstrap
