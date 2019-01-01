@@ -10,32 +10,28 @@ var listener_start;
 var listener_end;
 var tool_tip = function(interaction,modus){
     var sketch;  
-   
 		map.getOverlays().getArray().slice(0).forEach(function(overlay) {
 						if (overlay.getProperties().element.id !='startaddresse'){																	
 		 					map.removeOverlay(overlay);
 						}		
 		});
-
       var helpTooltipElement;
-
-     
-      
       var continueLineMsg = '<b>Single click to draw <br> Double click to finish</b>';
       var pointerMoveHandler = function(evt) {
-        if (evt.dragging) {
+        if (evt.dragging && modus != 'modify') {
           return;
         }
         /** @type {string} */
         var helpMsg = '<b>Click for starting to draw<b>';
-
-        
-        
 		  if(modus=='point'){
 				helpMsg = '<b>Click for Calculation</b>'          	
         }
-                
-        
+      if (modus == 'modify'){
+        helpMsg = '<b>Click and drag the features to modify</b>' 
+      }
+      if (modus == 'delete'){
+        helpMsg = '<b>Click on feature to delete it</b>' 
+      }
         if (sketch) {
           var geom1 = (sketch.getGeometry());
           if (geom1 instanceof Point) {
@@ -45,23 +41,15 @@ var tool_tip = function(interaction,modus){
           }
          
         }
-		  //console.log(sketch);
         helpTooltipElement.innerHTML = helpMsg;
         helpTooltip.setPosition(evt.coordinate);
-
         helpTooltipElement.classList.remove('hidden');
       };
-      
-      
       map.on('pointermove', pointerMoveHandler);
-
       map.getViewport().addEventListener('mouseout', function() {
         helpTooltipElement.classList.add('hidden');
       });
-
       var typeSelect = document.getElementById('type');
-
-
       function createHelpTooltip() {
         if (helpTooltipElement) {
           helpTooltipElement.parentNode.removeChild(helpTooltipElement);
@@ -75,27 +63,23 @@ var tool_tip = function(interaction,modus){
         });
         map.addOverlay(helpTooltip);
       }
-      
-      
       createHelpTooltip();
+      if (interaction){ 
+        listener_start = interaction.on('drawstart',
+        function(evt) {
+          // set sketch
+          sketch = evt.feature;
+        }, this);
+
+        listener_end =  interaction.on('drawend',
+              function() {
+                if (modus != 'point'){
+                sketch = null;
+            }
+              }, this);
+      }
+     
       
-      listener_start = interaction.on('drawstart',
-            function(evt) {
-              // set sketch
-              sketch = evt.feature;
-
-
-            }, this);
-
-
-      listener_end =  interaction.on('drawend',
-            function() {
-              if (modus != 'point'){
-              sketch = null;
-					}
-            }, this);
-      
-
 ///Abbrechen bei ESC
 		$(document).keyup(function(e) {
      if (e.keyCode == 27) { 
@@ -113,11 +97,6 @@ var tool_tip = function(interaction,modus){
 
  
 export {tool_tip};
-
-
-
-
-
  var tool_info = {"Starting point calculation ":`You can press this button and click<br> 
                                 at any visible place on the map for<br>
                                 starting a calculation.`,
@@ -128,6 +107,8 @@ export {tool_tip};
                                 gets added. As consequence the<br> 
                                 routing algorithm allows for turns<br>
                                 on the newly created intersections.<br>`,
+           "Load Ways Features":`Load ways by drawing a circle on the map<br>`,
+           "Drawing":`You can add, modify and delete features on the map by using these buttons.<br>`,
     "Draw new bridge or tunnel ":`You can start drawing new bridges<br>
                                  or tunnels by clicking the button.<br>
                                  If you decide to use this drawing tool<br>

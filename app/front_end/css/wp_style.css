@@ -112,14 +112,14 @@ td, th {
   background-color:#c97968 ;
   padding: 2px;
   cursor: pointer;
-  font-weight: bold;
+
 }
 .container .content {
   display: none;
   padding-left : 5px;
   padding-right : 5px;
   background: white;
-  font-family: Open Sans;
+  font-family: 'Roboto', sans-serif;
 }
 
 
@@ -153,14 +153,14 @@ background-color: #19b037 !important;
   #main_thematic_data .header, .container .header{
   background-color: #26AE3F !important;
   padding: 8px !important;
-  font-family: Open Sans;
+  font-family: 'Roboto', sans-serif;
   color: white !important;
  
   }
 
   #main_thematic_data .header1, .container .header1{
   background-color: white !important;
-  font-family: Open Sans;
+  font-family: 'Roboto', sans-serif;
   padding: 8px !important;
       
   }
@@ -169,15 +169,13 @@ background-color: #19b037 !important;
 
   #controls{
     position: absolute; 
-    font-family: Open Sans; 
+    font-family: 'Roboto', sans-serif;
     z-index: 10000; 
     display: inline-block; 
     top: 15%; 
     background-color: #f8f8f8;
     padding: 10px;
-    border: #2FAC45 solid 3px;
-    font-weight: bold;
-    
+    border: #2FAC45 solid 3px;    
   }
 
   
@@ -257,7 +255,7 @@ background-size: 65px 20px;
       opacity: 0.7;
       font-size: 17px;
       white-space: nowrap;
-      font-family: Open Sans; 
+      font-family: 'Roboto', sans-serif;
     }
     .tooltip-measure {
       opacity: 1;
@@ -448,6 +446,8 @@ display:block !important;
   background-color: #19B037;
   color: white;
   border-radius: 5px 0 5px 0;
+  font-size:14px;
+  font-family: Roboto;
 }
 
 .layer-legend .layer-legend-header .fa {
@@ -480,3 +480,4 @@ display:block !important;
 .layer-legend .layer-items-container .layer-item img {
   display: block;
 }
+
