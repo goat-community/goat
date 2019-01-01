@@ -304,6 +304,49 @@ var vector_style = new Style({
         		
         return style;
 			}
-			        
+
+
+
+	////////Ways Styling based on feature attributes//////////
+			//Ways original features
+			var waysDefaultStyle = new Style({
+				fill: new  Fill({
+					color: [0, 0, 0, 0]
+				}),
+				stroke: new Stroke({
+					color: '#707070',
+					width: 4
+				})
+			});
+			//Ways modified features 
+			var waysModifiedStyle = new Style({
+				fill: new  Fill({
+					color: [0, 0, 0, 0]
+				}),
+				stroke: new Stroke({
+					color: '#FF0000',
+					width: 4
+				})
+			});
+			//Ways new features
+			var waysNewStyle = new Style({
+				fill: new  Fill({
+					color: [0, 0, 0, 0]
+				}),
+				stroke: new Stroke({
+					color: '#6495ED',
+					width: 4
+				})
+			});
+			function waysStyle (feature,resolution){
+				var props = feature.getProperties();			
+				if ((props.hasOwnProperty('type') && props['original_id'] == null) || Object.keys(props).length == 1){
+					return [waysNewStyle];  //Features drawned 
+				} else if (!props.hasOwnProperty('original_id') && Object.keys(props).length > 1) {
+					return [waysDefaultStyle]; //Features are from original table
+				} else {
+					return [waysModifiedStyle]; //Feature are modified
+				}
+			}    
       
-  	export {boundaryStyle,styleFunction1,iconStyle,drawing_style,network_style,colors_isochrones_default,poisStyle,setStyle_pois,vector_style};
+  	export {boundaryStyle,styleFunction1,iconStyle,drawing_style,network_style,colors_isochrones_default,poisStyle,setStyle_pois,vector_style,waysStyle};

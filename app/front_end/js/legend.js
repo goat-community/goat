@@ -44,6 +44,7 @@ function ol_legend(e) {
     var format = options.format || 'image/png';
     var legendOlDiv = document.createElement('div');
     legendOlDiv.className = options.class + ' ol-unselectable';
+    legendOlDiv.id = 'layerLegendId';
     var htmlString = `<div id="layer-legend" class="layer-legend">
                         <div class="layer-legend-header">
                                 Layer Legend
