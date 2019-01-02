@@ -92,7 +92,7 @@ var categories_db_style = {
 ,'convenience':['grocery-15','Convencience store']
 ,'greengrocer':['grocery-15','Greengrocer'],'kiosk':['kiosk-15','Kiosk'],'mall':['mall-15','Mall'],'shoes':['shoes','Shoes'],
 'supermarket':['supermarket','Supermarket'],'marketplace':['marketplace-15','Marketplace']},
-'TourismLeisure':{"cinema":['cinema-15','Cinema'],"theatre":['theatre-15','Theatre'],"museum":['museum-15','Museum'],"picnic_site":['picnic','Picnic-site'],
+'Tourism___Leisure':{"cinema":['cinema-15','Cinema'],"theatre":['theatre-15','Theatre'],"museum":['museum-15','Museum'],"picnic_site":['picnic','Picnic-site'],
 "hotel":['hotel','Hotel'],"hostel":['hostel','Hostel'],
 "guest_house":['guest_house','Guest house'],"attraction":['attraction-15','Attraction']
 ,"viewpoint":['viewpoint','Viewpoint'],"gallery":['art-gallery-15','Gallery']}}
