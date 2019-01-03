@@ -17,6 +17,8 @@ var number_isochrone_input = 1;
 const isochrones = {};
 const network = {};
 
+console.log(userid)
+
 //////////////////////////////////////////////////////////////////
 let draw_isochrone = function(coordinate_input,objectid,parent_id) {
 	$('#mySpinner').addClass('spinner');
@@ -157,8 +159,8 @@ $('#btnInsertintoNetwork').click(function () {
 
 	const InsertintoNetwork = new VectorLayer({
     	source: new VectorSource({
-     				url:ApiConstants.address_geoserver+"wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=userid:"+userid.toString()+"&typeNames=cite:insert_into_network",
-					 	format: new WFS({
+				url:ApiConstants.address_geoserver+"wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=userid:"+userid.toString()+"&typeNames=cite:network_modification",
+					format: new WFS({
        		})
     	})   
        
@@ -170,11 +172,11 @@ $('#btnInsertintoNetwork').click(function () {
 	
 	InsertintoNetwork.getSource().on('change', function(e) {
 			$('#mySpinner').removeClass('spinner');	
-			
+			/*
 			for (let i of drawnLine.getSource().getFeatures()){
 				i.set('line_type','solid');
 			}	    
-
+			*/
 	})
 
 });
