@@ -36,7 +36,8 @@ Docker
 
 ## Setup GOAT
 
-For the developed Vagrant and Docker are used. In order to start and customize GOAT for your study area you have to follow these steps:
+For the developed Vagrant and Docker are used. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. 
+In order to start and customize GOAT for your study area, you have to follow these steps:
 
 #### 1. Get a copy of GOAT
 
@@ -171,7 +172,8 @@ Port: 65432
 
 ##### Common Issues
 
-If you use Windows as your host OS it might happen that you have issue when executing the shell scripts. Due to the different ways Unix-like systems and Windows are dealing with line endings. You will get an warning like "\r command not found". In order to convert the shell scripts to files the Linux-VM can execute you may have to convert the files first. You can use a tool like dos2unix.
+If you use Windows as your host OS it might happen that you have issue when executing the shell scripts. Due to the different ways Unix-like systems and Windows are dealing with line endings. You will get an warning like "\r command not found". This especially happens if you open the shell scripts or the config.js with Wordpad or the text editor coming with Windows. You can avoid this by using an editor like Visual Studio Code. 
+In the case you still face the issue you can convert the shell scripts and the secret.js with a tool like dos2unix.
 
 You potentially have to run all the following commands:
 

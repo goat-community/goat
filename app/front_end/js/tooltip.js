@@ -97,29 +97,19 @@ var tool_tip = function(interaction,modus){
 
  
 export {tool_tip};
- var tool_info = {"Starting point calculation ":`You can press this button and click<br> 
+
+
+
+
+
+var tool_info = {"Starting point calculation ":`You can press this button and click<br> 
                                 at any visible place on the map for<br>
                                 starting a calculation.`,
-                "Draw new way ":`You can start drawing new ways by<br> 
-                                clicking the button. If you decide<br> 
-                                to draw a way, at any intersection<br>
-                                with the existing network a new node<br>
-                                gets added. As consequence the<br> 
-                                routing algorithm allows for turns<br>
-                                on the newly created intersections.<br>`,
-           "Load Ways Features":`Load ways by drawing a circle on the map<br>`,
-           "Drawing":`You can add, modify and delete features on the map by using these buttons.<br>`,
-    "Draw new bridge or tunnel ":`You can start drawing new bridges<br>
-                                 or tunnels by clicking the button.<br>
-                                 If you decide to use this drawing tool<br>
-                                 once added to network the drawn feature<br>
-                                 is only intersecting at its starting and <br><br>
-                                 end point with the network. Accordingly the <br>
-                                 behaviour of a tunnel or bridge gets considered, as<br>
-                                 for example ways under a bridge cannot<br> 
-                                 be used. Currently only one bridge can<br> 
-                                 added per session but you can add as<br>
-                                 many ways you want.`,
+           "Load Ways Features":`You can load a subset of the road network into your map<br>
+                                 by clicking the button and simply drawing a circle .`,          
+                      "Drawing":`There are existing three ways of modifying the network.<br>
+                                 You can draw a new way feature, delete an existing feature <br>
+                                 or modify the shape of an existing feature.<br>`,
   "Add new lines to network ":`Once this button is clicked the drawn<br>
                                   lines are inserted into the routing<br>
                                   network. Depending on the number of drawn<br>
@@ -157,20 +147,14 @@ export {tool_tip};
                                    the modified network or on both networks<br> 
                                    at the same time.`,
                            "GOAT":`<b>Geo Open Accessibility Tool (GOAT)</b><br>
-                                    This is tool could be developed thanks to powerful Open source<br>
-                                    software/libraries and the OpenStreetMap-project. The most relevant<br>
-                                    software used are Postgresql, PostGIS, GeoServer, Openlayers 3 <br>
-                                    and jQuery. Geo-Data is originating from OpenStreetMap, <br>
-                                    population data and municipal boundaries were provided by <br>
-                                    the city of Munich.`,
+                                    This is tool could be developed thanks to powerful open source<br>
+                                    software and the OpenStreetMap-project.`,
                   "Choose basemap ":`You can choose betweeen different basemaps,<br>
                                      please consider if you want to select the<br> 
                                      most up-to-date basemap choose OSM-Standard,<br>
                                      OSM-Carto-DB-Light, OSM-Carto-DB-Dark or <br>
                                      PublicTransport.`        
-                                    };
-
-
+};
 
                              
 $("body").on('click','.fa-info-circle',function(){
