@@ -1,9 +1,9 @@
 <layer>
-  <name>insert_into_network</name>
-  <id>LayerInfoImpl--4efdcae4:15df0131d46:464f</id>
+  <name>network_modification</name>
+  <id>LayerInfoImpl--70f0b4aa:1680434e31e:-7fe9</id>
   <type>VECTOR</type>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl--4efdcae4:15df0131d46:464e</id>
+    <id>FeatureTypeInfoImpl--70f0b4aa:1680434e31e:-7fea</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>

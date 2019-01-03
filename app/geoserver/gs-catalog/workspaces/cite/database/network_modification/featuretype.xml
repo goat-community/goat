@@ -1,14 +1,14 @@
 <featureType>
-  <id>FeatureTypeInfoImpl--4efdcae4:15df0131d46:464e</id>
-  <name>insert_into_network</name>
-  <nativeName>insert_into_network</nativeName>
+  <id>FeatureTypeInfoImpl--70f0b4aa:1680434e31e:-7fea</id>
+  <name>network_modification</name>
+  <nativeName>network_modification</nativeName>
   <namespace>
     <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
   </namespace>
-  <title>insert_into_network</title>
+  <title>network_modification</title>
   <keywords>
     <string>features</string>
-    <string>insert_into_network</string>
+    <string>network_modification</string>
   </keywords>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
@@ -29,13 +29,13 @@
   <metadata>
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
-        <name>insert_into_network</name>
-        <sql>select * from insert_into_network(%userid%)
+        <name>network_modification</name>
+        <sql>select * from network_modification(%userid%)
 </sql>
         <escapeSql>false</escapeSql>
         <parameter>
           <name>userid</name>
-          <defaultValue>54531</defaultValue>
+          <defaultValue>9159246</defaultValue>
         </parameter>
       </virtualTable>
     </entry>

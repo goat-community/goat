@@ -20,7 +20,7 @@ import {draw_isochrone} from './isochrones';
 
 
 const userid = Math.floor(Math.random() * 10000000);
-
+console.log(userid);
 var objectid; 	
 var formatWFS = new WFS();
 var formatGeoJSON = new GeoJSON();
@@ -128,10 +128,6 @@ var interactionSelect = new Select({
     })
 });
 	
-	
-	
-
-	
 
 //wfs-t
 var dirty = {};
@@ -180,115 +176,51 @@ var transactWFS = function (mode, f,formatGML,way_type) {
     });
 };
 	
-$('button').click(function () {
+$('#btnIsochrone').click(function () {
 
     map.removeInteraction(interaction);
-    interactionSelect.getFeatures().clear();
+    //interactionSelect.getFeatures().clear();
     map.removeInteraction(interactionSelect);
 
-    switch ($(this).attr('class')) {
+    searchInteraction.stop();	
+    //Define Format and table for POST	 	
+    formatGML = new GML({
+            featureNS: 'muc',
+            featureType: 'cite:starting_point_isochrones'//,
+        //	srsName: 'EPSG:3857'
+    });
+    interaction = new Draw({
+        type:'Point',
+        source: layerWFS_point.getSource()
+    });
+    tool_tip(interaction,'point');
+    var interactionSnap = new Snap({
+        source: layerWFS_point.getSource()
+    });
+    map.addInteraction(interaction);
+    interaction.on('drawend', function (e) {
+        transactWFS('insert', e.feature,formatGML);
+        number_calculations = number_calculations + 1;				 
+        var feature=e.feature;
+        map.removeInteraction(interaction);
+        var coordinates = feature.getGeometry().getCoordinates();
+        console.log(coordinates);
+        var modus = document.getElementById('modus').value;
+            dynamicVars.objectid = objectid;
+            if (modus=='double_calculation'){
+                var new_objectid = Math.floor(Math.random() * 10000000);
+                draw_isochrone(coordinates,new_objectid,objectid);  //A objectid for the second isochrone is created and the first objectid is used as parent_id 
+                draw_isochrone(coordinates,objectid,1);		
+            }
+            else if (modus=="2"){
+                draw_isochrone(coordinates,objectid,2);	     					
+            }
+            else{
+            draw_isochrone(coordinates,objectid,1); 		
+            }           	            
 
-        case 'draw_way':
-
-         //Define Format and table for POST
-         	var way_type = this.id.replace('btn','');
-
-			formatGML = new GML({
-				featureNS: 'muc',
-				featureType: 'cite:input_network'//,
-				//srsName: 'EPSG:3857'
-			});
-	        
-        
-            interaction = new Draw({
-                type: 'LineString',
-                source: drawnLine.getSource()
-            });
-            var interactionSnap = new Snap({
-    				source: drawnLine.getSource()
-				});
-            map.addInteraction(interaction);
-            map.addInteraction(interactionSnap);
-            interaction.on('drawend', function (e) {
-                transactWFS('insert', e.feature,formatGML,way_type);
-               
-            });
-            tool_tip(interaction,'line');
-            break;
-		 
-		 case 'draw_isochrone':
-
-	      searchInteraction.stop();	
-		 //Define Format and table for POST
-		 	
-            formatGML = new GML({
-    				featureNS: 'muc',
-    				featureType: 'cite:starting_point_isochrones'//,
-    			//	srsName: 'EPSG:3857'
-			});
-  
-           
-            interaction = new Draw({
-               	type:'Point',
-                source: layerWFS_point.getSource()
-            });
-
-           
-           
-            tool_tip(interaction,'point');
-            var interactionSnap = new Snap({
-    			source: layerWFS_point.getSource()
-			});
-
-            map.addInteraction(interaction);
-            interaction.on('drawend', function (e) {
-                transactWFS('insert', e.feature,formatGML);
-                number_calculations = number_calculations + 1;
-					 
-                var feature=e.feature;
-                map.removeInteraction(interaction);
-                var coordinates = feature.getGeometry().getCoordinates();
-                console.log(coordinates);
-                var modus = document.getElementById('modus').value;
-                    dynamicVars.objectid = objectid;
- 					if (modus=='double_calculation'){
-                         var new_objectid = Math.floor(Math.random() * 10000000);
-					   draw_isochrone(coordinates,new_objectid,objectid);  //A objectid for the second isochrone is created and the first objectid is used as parent_id 
- 					   draw_isochrone(coordinates,objectid,1);		
-	
- 					}
- 					else if (modus=="2"){
-						draw_isochrone(coordinates,objectid,2);	     					
- 					}
- 					else{
-            		draw_isochrone(coordinates,objectid,1);
-            		
-            	}
-                	
-            });
-            	            
-            break;
-            
-        case 'btnDelete':
-    		formatGML = new GML({
-				featureNS: 'muc',
-				featureType: 'cite:input_network'//,
-			//	srsName: 'EPSG:3857'
-			});
-            interaction = new Select();
-            interaction.getFeatures().on('add', function (e) {
-                transactWFS('delete', e.target.item(0),formatGML);
-                interactionSelectPointerMove.getFeatures().clear();
-                interaction.getFeatures().clear();
-            });
-            map.addInteraction(interaction);
-            break;
-
-        default:
-            break;
-    }
+    })
 });
-
 
 //GET/INSERT USER FROM DB//
 
@@ -319,8 +251,6 @@ var formatLength = function(line) {
     }
     return output;
   };
-
-
 
 function InsertUserInDb (mode, generated_id){
     fetch (ApiConstants.nodeapi_baseurl + '/userdata',{
