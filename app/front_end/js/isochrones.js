@@ -95,23 +95,15 @@ let draw_isochrone = function(coordinate_input,objectid,parent_id) {
 	
 
 	map.addLayer(isochrone);
-
-
-		
-		fetch(save_isochrones_url, {
-			method: 'GET',
-		}).then(function (response) {
-			isochrone_load_fn ();
-		//	return response.json();
-		}).then(function (json) {
-
-			//var features = new ol.format.GeoJSON().readFeatures(json);
-		
-			
-
-
-
-		});
+	
+	fetch(save_isochrones_url, {
+		method: 'GET',
+	}).then(function (response) {
+		isochrone_load_fn ();
+	//	return response.json();
+	}).then(function (json) {
+		//var features = new ol.format.GeoJSON().readFeatures(json);
+	});
 
 
 function isochrone_load_fn (){

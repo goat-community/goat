@@ -72,14 +72,14 @@ map.addControl(legendControl);
 $('body').on('change','.thematic_data_weight, .thematic_item_check',function(){
  
   if ($('#accessibility_basemap_select').val() != 'no_basemap'){
- console.log('testtest');
+
     addRemoveAccesibilityLayer.add(map);
   }  
 
 })
 
 $('body').on('change','#accessibility_basemap_select',function(){
- console.log('testtest');
+
   let style = this.value;
   if (style != 'no_basemap'){
     addRemoveAccesibilityLayer.add(map);
