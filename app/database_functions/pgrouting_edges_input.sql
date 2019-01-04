@@ -28,6 +28,7 @@ AS $function$
       FROM ways_userinput_vertices_pgr  v
 --It is snapped to the closest vertex within 50 m. If no vertex is within 50m not calculation is started.
       WHERE ST_DWithin(v.geom::geography, ST_SetSRID(ST_Point(x,y)::geography, 4326), 250)
+	  AND userid is null or userid = userid_input
       ORDER BY ST_Distance(v.geom::geography, ST_SetSRID(ST_Point(x,y)::geography, 4326))
       limit 1;
       UPDATE starting_point_isochrones set geometry = v.geom FROM ways_userinput_vertices_pgr v 
