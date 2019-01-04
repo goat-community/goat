@@ -7,6 +7,7 @@ r type_edges;
 distance numeric;
 id_vertex integer;
 excluded_class_id text;
+number_calculation_input integer;
 begin
 --The speed AND minutes input are considered as distance
   distance=speed*minutes;
@@ -18,13 +19,21 @@ begin
   
   SELECT id INTO id_vertex
   FROM ways_vertices_pgr v
---It is snapped to the closest vertex within 50 m. If no vertex is within 50m not calculation is started.
-           WHERE ST_DWithin(v.geom::geography, ST_SetSRID(ST_Point(x,y)::geography, 4326), 250)
-           ORDER BY ST_Distance(v.geom::geography, ST_SetSRID(ST_Point(x,y)::geography, 4326))
-           limit 1;
+--It is snapped to the closest vertex within 50 m. If no vertex is within 50m no calculation is started.
+  WHERE ST_DWithin(v.geom::geography, ST_SetSRID(ST_Point(x,y)::geography, 4326), 250)
+  ORDER BY ST_Distance(v.geom::geography, ST_SetSRID(ST_Point(x,y)::geography, 4326))
+  limit 1;
   
-  UPDATE starting_point_isochrones set geometry = v.geom FROM ways_vertices_pgr v 
-  WHERE v.id = id_vertex AND starting_point_isochrones.objectid = objectid_input; 
+ 
+  SELECT count(objectid) + 1 INTO number_calculation_input
+  FROM starting_point_isochrones
+  WHERE userid = userid_input;
+ 
+  INSERT INTO starting_point_isochrones(userid,geom,objectid,number_calculation)
+  SELECT userid_input, v.geom, objectid_input, number_calculation_input
+  FROM ways_vertices_pgr v
+  WHERE v.id = id_vertex;
+  
   For r IN SELECT * FROM 
 --The function Pgr_DrivingDistance delivers the reached network 
 --In this case the routing is done on a not modified table
