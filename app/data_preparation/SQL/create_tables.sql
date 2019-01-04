@@ -30,11 +30,11 @@ CREATE TABLE public.edges (
 create index index_edges on edges using gist(geom);
 
 CREATE TABLE public.starting_point_isochrones (
-	gid int4 NOT NULL,
-	userid int4 NULL,
-	geometry geometry NULL,
-	objectid int4 NULL,
-	number_calculation int4 NULL,
+	gid serial,
+	userid int4 NOT NULL,
+	geom geometry,
+	objectid int4 NOT NULL,
+	number_calculation int4,
 	CONSTRAINT starting_point_isochrones_pkey PRIMARY KEY (gid)
 );
 
@@ -68,6 +68,7 @@ CREATE TABLE public.ways_modified
     geom geometry(LineString,4326),
     userid integer,
     original_id integer,
+	type varchar(20),
     CONSTRAINT ways_modified_id_pkey PRIMARY KEY (id)
 )
 WITH (

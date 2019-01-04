@@ -13,7 +13,7 @@ DELETE FROM ways_userinput_vertices_pgr WHERE userid = input_userid;
 DROP TABLE IF EXISTS drawn_features, existing_network, intersection_existing_network, drawn_features_union, new_network, delete_extended_part, vertices_to_assign; 
 
 CREATE TEMP TABLE drawn_features as
-SELECT id,geom,class_id,userid, original_id, infra_type  FROM ways_modified
+SELECT id,geom,class_id,userid, original_id, type  FROM ways_modified
 WHERE userid = input_userid;
 
 --Extends drawn lines by a distance of approx. 1 meter
@@ -98,7 +98,7 @@ END IF;
 --Split the new lines WHERE they intersect with the new network
 DROP TABLE IF EXISTS new_network;
 CREATE TEMP TABLE new_network as
-SELECT row_number() over() as gid,NULL AS class_id, NULL AS infra_type, NULL AS mother_id, geom 
+SELECT row_number() over() as gid,NULL AS class_id, NULL AS type, NULL AS mother_id, geom 
 FROM(
 	SELECT DISTINCT (st_dump(ST_CollectionExtract(st_split(x.geom,i.geom),2))).geom as geom
 	FROM 
@@ -116,18 +116,18 @@ WHERE st_length(geom::geography)*100 < 1;
 /*It takes the class_id from way_modified. For splitting the network a union is done accordingly the class_id can not be kept.
  The following query creating a little buffer for the intersection as the line to line intersection was not working as expected. */
 WITH y as (
-	SELECT geom,st_buffer(geom::geography,0.01)::geometry buffer, class_id, infra_type, id AS mother_id
+	SELECT geom,st_buffer(geom::geography,0.01)::geometry buffer, class_id, type, id AS mother_id
 	FROM ways_modified
 	WHERE userid = input_userid
 ),
 z as(
-	SELECT x.geom, y.class_id, x.gid, y.infra_type, y.mother_id, ST_length(ST_intersection(y.buffer,x.geom)::geography)--st_intersection(st_buffer(d.geom,0.0000001),x.geom), st_length(st_intersection(st_buffer(d.geom,0.0000001),x.geom))
+	SELECT x.geom, y.class_id, x.gid, y.type, y.mother_id, ST_length(ST_intersection(y.buffer,x.geom)::geography)--st_intersection(st_buffer(d.geom,0.0000001),x.geom), st_length(st_intersection(st_buffer(d.geom,0.0000001),x.geom))
 	FROM y, new_network x
 	WHERE st_intersects(y.buffer,x.geom)
 	AND  ST_length(ST_intersection(y.buffer,x.geom)::geography) > 0.1
 ),
 zz as(
-	SELECT DISTINCT z.class_id,z.gid, z.infra_type, z.mother_id FROM z,
+	SELECT DISTINCT z.class_id,z.gid, z.type, z.mother_id FROM z,
 	(
 		SELECT gid, max(st_length) st_length
 		FROM z
@@ -136,19 +136,19 @@ zz as(
 	WHERE z.gid = m.gid 
 	AND z.st_length = m.st_length
 )
-UPDATE new_network SET class_id = zz.class_id, infra_type = zz.infra_type, mother_id = zz.mother_id
+UPDATE new_network SET class_id = zz.class_id, type = zz.type, mother_id = zz.mother_id
 FROM zz 
 WHERE new_network.gid = zz.gid;
 
 /*Use the not unsplit geometry in case of a bridge or underpass*/
 UPDATE new_network SET geom = m.geom
 FROM ways_modified m 
-WHERE new_network.infra_type = 'bridge'
+WHERE new_network.type = 'bridge'
 AND new_network.mother_id = m.id::varchar;
 
 DROP TABLE IF EXISTS new_network_temp;
 CREATE TEMP TABLE new_network_temp AS 
-SELECT DISTINCT ON (geom) geom, gid, class_id, infra_type  
+SELECT DISTINCT ON (geom) geom, gid, class_id, type  
 FROM new_network;
 DROP TABLE new_network;
 ALTER TABLE new_network_temp RENAME TO new_network;
