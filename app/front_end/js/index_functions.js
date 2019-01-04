@@ -20,12 +20,12 @@ let index_function = function () {
 	 	
     $(document).ready(function(e) {
     	let keys_categories = Object.keys(categories_db_style);		
-    	let thematic_select_html = '<div class="header" id="select_thematic_data" ><i class="fa fa-chevron-down" style="font-size:24px" ><span style="font-size:14px;font-family: Open Sans;margin-left:5px;">Select Thematic Data</span></i></div>';     
+    	let thematic_select_html = '<div class="header" id="select_thematic_data" ><i class="fa fa-chevron-down" style="font-size:24px" ><span style="font-size:16px;font-family: Roboto;margin-left:5px;">Select Thematic Data</span></i></div>';     
 		
     	for (let key in keys_categories) {
     		let pre_html_thematic = `<div class="header1 category" id="select_${keys_categories[key]}"><i class="fa fa-caret-right" style="font-size:24px"></i>
     								<input type="checkbox" class ="filled-in thematic_check" id="check_${keys_categories[key]}" unchecked></input>
-									<label for="check_${keys_categories[key]}">${keys_categories[key]}</label>
+									<label for="check_${keys_categories[key]}">${keys_categories[key].replace("___"," ")}</label>
 									</div>  	
 									<div class="content" id="content_select_${keys_categories[key]}"><table class=table_item_select>content_replace</table></div> 
 									</div>`  
