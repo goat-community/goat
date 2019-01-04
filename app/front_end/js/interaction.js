@@ -9,7 +9,7 @@ import {Vector as VectorSource} from 'ol/source';
 import ApiConstants from './secrets';	
 import {bbox as bboxStrategy} from 'ol/loadingstrategy';
 import {map} from './map';
-import {iconStyle,drawing_style,boundaryStyle,vector_style} from './style';
+import {iconStyle,drawing_style,boundaryStyle,vector_style,waysStyle} from './style';
 import Select from 'ol/interaction/Select';
 import {Draw, Modify, Snap} from 'ol/interaction';
 import { pointerMove} from 'ol/events/condition';
@@ -225,7 +225,6 @@ $('#btnIsochrone').click(function () {
 //GET/INSERT USER FROM DB//
 
 //////////////////////////////--- WAYS LAYER USER INTERACTION ---//////////////////////////////
-
 var sketch; 
 var measureTooltipElement;
 var measureTooltip;
@@ -240,7 +239,6 @@ function createMeasureTooltip() {
     map.addOverlay(measureTooltip);
   }
 
-  
 var formatLength = function(line) {
     var length = getLength(line);
     var output;
@@ -289,10 +287,8 @@ fetch(ApiConstants.nodeapi_baseurl + '/userdata',{
     if (mode == 'read'){
         waysInteraction.featuresIDsToDelete = json[0].deleted_feature_ids;
     }
-    console.log(json);
     }).catch(function (error) {  
-       InsertUserInDb('insert',userid) //if user doesn't exist add it on DB
-     //  console.log('Request failure: ', error);  
+       InsertUserInDb('insert',userid) //if user doesn't exist add it on DB 
     });
 }
 deleteWaysFeature('read',userid);
@@ -310,10 +306,6 @@ function WfsRequestFunction (srsName,namespace,workspace,layerName,filter){
     var xmlparser = xs.serializeToString(wfs);
     return xmlparser;
 }
-
-
-
-
     //Add the query layer to the map
 var QueryLayerSouce = new VectorSource({wrapX: false});
 var QueryLayer = new VectorLayer({
@@ -326,7 +318,7 @@ var QueryLayer = new VectorLayer({
 var ExtractStreetsSource = new VectorSource({wrapX: false});
 var ExtractStreetsLayer = new VectorLayer({
     source: ExtractStreetsSource,
-    style: boundaryStyle
+    style: waysStyle
 });
 
 ExtractStreetsLayer.setMap(map);
@@ -355,6 +347,11 @@ var CircleRadius = {
     circleCenterCoordinates: null,
     CircleRadiusLength: null,
     pointerMoveHandler: function(evt){
+     
+        if (searchInteraction.circleRadius == null){
+            measureTooltipElement.innerHTML = "Click to start Drawing the circle (Max Radius 1000m)";
+            measureTooltip.setPosition(evt.coordinate);
+        }
         if (evt.dragging ||searchInteraction.circleRadius == null) {
             return;
         }
@@ -364,7 +361,7 @@ var CircleRadius = {
         CircleRadius.circleCenterCoordinates = currentCoord;
         centerCoord = currentCoord;
      }
-
+     console.log('mouse is moving...')
      var deltaX = Math.pow(currentCoord[0]-centerCoord[0],2);
      var deltaY = Math.pow(currentCoord[1]-centerCoord[1],2);
      var radiusLength = Math.sqrt(deltaX+deltaY).toFixed(); // this one is used to check if the radius is greater than 1000m, not dependended from interaction
@@ -582,27 +579,19 @@ var waysInteraction = {
                 waysInteraction.featuresIDsToDelete.push(fid);
                 deleteWaysFeature ('update',userid,waysInteraction.featuresIDsToDelete);
             }
-            
-           
         }
         ExtractStreetsSource.removeFeature(waysInteraction.featureToDelete);
         closePopupFn();
     },
+    popupAddYesFn: function (evt){
+        waysInteraction.transact();
+    },
     deleteFeature: function(evt){
-        //This function will be added on map click event 
+        //This function will be added on map click event on Delete
         SelectedLayerSource.clear();
         var coord = evt.coordinate;
         var feature = ExtractStreetsSource.getClosestFeatureToCoordinate(coord);
-        if (feature != null){
-            var geometry = feature.getGeometry();
-            var coordinates = geometry.getCoordinates();
-            var startCoord = coordinates[0];
-            waysInteraction.featureToDelete = feature;
-            SelectedLayerSource.addFeature(feature);
-            console.log(feature);
-            map.addOverlay(popupOverlay);
-            popupOverlay.setPosition(startCoord);    
-        }
+        waysInteraction.popupFn('delete',feature);
     },
     interactionStart: function (evt) {
         waysInteraction.featuresToCommit = [];
@@ -611,8 +600,9 @@ var waysInteraction = {
         if (waysInteraction.interactionType == 'draw'){
             var feature = evt.feature;
             waysInteraction.featuresToCommit.push(feature);
+            waysInteraction.popupFn('add',feature);
+            return; // Feature will be saved after attribute selection
         }
-     console.log(waysInteraction.featuresToCommit);
      waysInteraction.transact();
     },
     remove: function(){
@@ -645,8 +635,7 @@ var waysInteraction = {
             this.deleteListenerKey  = map.on('click',this.deleteFeature);
         }
     },
-    transact: function (){
-        
+    transact: function (){        
         //DRAW/MODIFY INTERACTION
         if (this.interactionType == 'draw' || this.interactionType == 'modify'){
             // 1- Get the features, transform geometry and properties
@@ -669,15 +658,17 @@ var waysInteraction = {
                     class_id: f.getProperties().class_id
                 });
                 transformed.setGeometryName("geom");
-
+                if (this.interactionType == 'draw'){
+                    //Get Selected Ways type
+                    transformed.set('type',document.getElementById('ways_type').value);
+                    console.log(transformed);
+                }
                 if (!props.hasOwnProperty('original_id') && ((this.interactionType == 'modify'))){
                     transformed.set('original_id',f.getProperties().id);
                 }
-
                 if ((typeof f.getId() == 'undefined' && Object.keys(props).length == 1) || !props.hasOwnProperty('original_id')){
                     featuresToAdd.push(transformed);
                     featuresToRemoveArr.push(f);
-
                 } else if((props.hasOwnProperty('original_id')) && (this.interactionType == 'modify')) {
                     transformed.setId(f.getId());
                     featuresToUpdate.push(transformed);
@@ -686,35 +677,26 @@ var waysInteraction = {
         } else {
             return;
         }
-        
-
-
-    console.log(ApiConstants.geoserver_workspace);
     formatGML = {
         featureNS: ApiConstants.geoserver_namespaceURI,
         featureType: 'ways_modified',
         srsName: 'urn:x-ogc:def:crs:EPSG:4326'
     };
        var node;
-    
-    console.log(this.featureToDelete);
-    console.log(this.interactionType);
     switch (this.interactionType) {
             case 'draw':
-                node = formatWFS.writeTransaction(featuresToAdd, null, null, formatGML);       
+                node = formatWFS.writeTransaction(featuresToAdd, null, null, formatGML);   
                 break;
             case 'modify':
                 node = formatWFS.writeTransaction(featuresToAdd,featuresToUpdate,null,formatGML);
                 break;
             case 'delete':
-            console.log('passed here');
                 node = formatWFS.writeTransaction(null, null, this.featureToDelete, formatGML);
                 break;
         }
         console.log(node);
      var payload = xs.serializeToString(node);
-     console.log(payload)
-    
+     console.log(payload)    
     $.ajax({
         type: "POST",
         url: ApiConstants.wfs_url,
@@ -735,31 +717,92 @@ var waysInteraction = {
                     ExtractStreetsSource.addFeature(featuresToAdd[i]);
                 }
             }
+            if (waysInteraction.interactionType == 'draw'){
+                waysInteraction.featuresToCommit = [];
+                closePopupFn();  //Close popup on transaction end
+            }
         },
-        error: function(e) {
-         
-        },
+        error: function(e) {},
         context: this
     });
-
-
+    },
+    popupFn: function (type,feature){
+        if (feature != null){
+            waysInteraction.toggleHelpTooltip(waysInteraction.interaction,waysInteraction.interactionType,0); //Removes Helptooltip when popup is opened
+            SelectedLayerSource.clear();        
+            var geometry = feature.getGeometry();
+            var coordinates = geometry.getCoordinates();
+            var startCoord = coordinates[0];            
+            SelectedLayerSource.addFeature(feature);
+            map.addOverlay(popupOverlay);
+            popupOverlay.setPosition(startCoord);  
+        } else {return;}
+        if (type == 'add'){
+                //Create Popup Content for Add Interaction (//Road Type: road, bridge)
+                var htmlStringContent =  
+                `<table>
+                <tbody>
+                    <tr>
+                        <td style="padding: 1px 1px"><label>Type: </label></td>
+                        <td style="padding: 1px 1px">
+                           <span class="right_side">
+                            <select id="ways_type">
+                              <option value="way">Way</option>    
+                              <option value="bridge">Bridge</option>
+                            </select>
+                          </span>
+                        </td>
+                    </tr>
+                </tbody>
+                </table>` 
+                var htmlStringHeader = `<span>Attributes</span>`               
+                document.getElementById('btnYesFeature').innerHTML = 'Save';
+                document.getElementById('btnNoFeature').innerHTML = 'Clear';
+                btnNoFeature.onclick = closePopupFn;
+                btnYesFeature.onclick = waysInteraction.popupAddYesFn;
+                closer.onclick = closePopupFn
+               
+        } else if (type == 'delete'){
+                btnNoFeature.onclick = closePopupFn;
+                btnYesFeature.onclick = waysInteraction.popupDeleteYesFn;
+                waysInteraction.featureToDelete = feature;
+                //Create Popup Content for Delete Interaction
+                var htmlStringContent = `Are sure you want to delete the selected feature ?`;
+                var htmlStringHeader = `<span>Confirm</span>`;
+                document.getElementById('btnYesFeature').innerHTML = 'Yes';
+                document.getElementById('btnNoFeature').innerHTML = 'No';
+                closer.onclick = closePopupFn;
+        }
+        document.getElementById('popup-content').innerHTML = htmlStringContent;
+        document.getElementById('popup-header').innerHTML = htmlStringHeader;
+        if (type == 'add'){ $("#ways_type").material_select();}
+      
+    },
+    toggleHelpTooltip: function (interaction,type, state){ // ex. (delete, 1)
+        if (type == null ) {return;}
+        if (state == 1){
+                tool_tip(interaction,type);
+        } else { // Close Help Tooltip
+            //Remove Tooltip when Popup is Opened 
+            map.getOverlays().getArray().slice(0).forEach(function(overlay) {
+                if (overlay.getProperties().element.id !='startaddresse'){																	
+                     map.removeOverlay(overlay);
+                }		
+             });
+        }
     }
 
 
 }
 
-
-
-
-
  /**
- * Popup Dialog Box for delete function.
+ * Popup Dialog Box function.
  */
 var container = document.getElementById('popup');
 var content = document.getElementById('popup-content');
 var closer = document.getElementById('popup-closer');
-var btnNoDeleteFeature = document.getElementById('btnNoDeleteFeature');
-var btnYesDeleteFeature = document.getElementById('btnYesDeleteFeature');
+var btnNoFeature = document.getElementById('btnNoFeature');
+var btnYesFeature = document.getElementById('btnYesFeature');
 container.style.visibility = 'visible';
 var popupOverlay = new Overlay({
 element: container,
@@ -774,16 +817,16 @@ function closePopupFn (){
 popupOverlay.setPosition(undefined);
 map.removeOverlay(popupOverlay);
 SelectedLayerSource.clear();
+if (waysInteraction.featuresToCommit != null){
+    waysInteraction.featuresToCommit.forEach(feature => {
+        ExtractStreetsSource.removeFeature(feature);
+    });
+}
 closer.blur();
+// Reopen Helptooltip when popup is closed
+waysInteraction.toggleHelpTooltip(waysInteraction.interaction,waysInteraction.interactionType,1);
 return false;
 }
-
-
-closer.onclick = closePopupFn
-btnNoDeleteFeature.onclick = closePopupFn
-btnYesDeleteFeature.onclick = waysInteraction.popupDeleteYesFn;
-
-
 
 //Button click events
 $('.expert_draw').click(function () {
@@ -796,10 +839,8 @@ $('.expert_draw').click(function () {
     }
 
     
-    map.getOverlays().getArray().slice(0).forEach(function(overlay) {
-   															
-             map.removeOverlay(overlay);
-      	
+    map.getOverlays().getArray().slice(0).forEach(function(overlay) {   															
+             map.removeOverlay(overlay);      	
     });
 
     waysInteraction.remove();
@@ -817,16 +858,14 @@ $('.expert_draw').click(function () {
         var modifyInteraction = new Modify({
                 source: ExtractStreetsSource,
                 });
-                console.log('modify executed');
         waysInteraction.add(modifyInteraction,'modify');
+        tool_tip(modifyInteraction,'modify');
         break
         case 'btnDelete':
         waysInteraction.add(null,'delete');
+        tool_tip(null,'delete');
         break;
     }
-
- 
-
 
 })
 
