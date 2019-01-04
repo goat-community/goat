@@ -26,10 +26,19 @@ let draw_isochrone = function(coordinate_input,objectid,parent_id) {
  	const coordinates= transform([coordinate_input[0],coordinate_input[1]],'EPSG:3857','EPSG:4326');
 	let modus = document.getElementById('modus').value;     	
  	
+       	/*
+	modus = 1 (default calculation)
+	modus = 2 (input calculation)
+	modus = 3 (double calculation - default)
+	modus = 4 (double calculation - input)
+	*/ 
 
-	if (modus=="double_calculation"){
-		modus=2			
-	}	     	
+	if (modus == "double_calculation" && parent_id == 1){
+		modus = '3'			
+	}
+	else if (modus == "double_calculation"){
+		modus = '4'
+	} 	
  	
 	let network_url =  ApiConstants.address_geoserver+`wfs?service=WFS&version=1.1.0
 						&request=GetFeature&viewparams=
@@ -40,26 +49,27 @@ let draw_isochrone = function(coordinate_input,objectid,parent_id) {
 
   	network_url = network_url.replace(/\s+/g, '');
   	
-	  let save_isochrones_url = ApiConstants.address_geoserver+`wfs?service=WFS&version=1.1.0
-							&request=GetFeature&viewparams=
-							userid_input:${userid};
-							minutes:${document.getElementById('max_traveltime').value};
-							x:${coordinates[0]};
-							y:${coordinates[1]};
-							steps:${document.getElementById('steps_isochrones').value};
-							speed:${document.getElementById('travel_speed').value};
-							concavity:${document.getElementById('concavity').value};
-							modus:${modus};
-							objectid_input:${objectid};
-							parent_id:${parent_id}
-							&typeNames=cite:save_isochrones`;
+	let save_isochrones_url = ApiConstants.address_geoserver+`wfs?service=WFS&version=1.1.0
+						&request=GetFeature&viewparams=
+						userid_input:${userid};
+						minutes:${document.getElementById('max_traveltime').value};
+						x:${coordinates[0]};
+						y:${coordinates[1]};
+						steps:${document.getElementById('steps_isochrones').value};
+						speed:${document.getElementById('travel_speed').value};
+						concavity:${document.getElementById('concavity').value};
+						modus:${modus};
+						objectid_input:${objectid};
+						parent_id:${parent_id}
+						&typeNames=cite:save_isochrones`;
 
   	save_isochrones_url = save_isochrones_url.replace(/\s+/g, '');
 
 	
-   
-   	if (modus =='2' && parent_id != 1){
-		save_isochrones_url = save_isochrones_url.replace('save_isochrones','save_isochrones_input');	  
+
+
+   	if (modus == 2 || modus == 4 ){
+		//save_isochrones_url = save_isochrones_url.replace('save_isochrones','save_isochrones_input');	  
 		var layer_name = 'input_' + number_calculations.toString();     
    	}
    	else{

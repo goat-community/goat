@@ -130,6 +130,7 @@ var interactionSelect = new Select({
 	
 
 //wfs-t
+/*
 var dirty = {};
 var transactWFS = function (mode, f,formatGML,way_type) {
 	
@@ -138,14 +139,11 @@ var transactWFS = function (mode, f,formatGML,way_type) {
     var geometry = f.getGeometry().clone();
     geometry.transform("EPSG:3857", "EPSG:4326");
 
-    var  newFeature = new Feature({	
-		 
+    var  newFeature = new Feature({		 
 		userid : userid,                
         geometry: geometry,
-        objectid:objectid,
-        number_calculation:number_calculations + 1,
-        way_type : way_type 
-       
+        objectid: objectid,
+        number_calculation:number_calculations + 1
     });
     newFeature.setGeometryName("geometry");
     newFeature.setProperties(newFeature.getProperties());
@@ -175,7 +173,7 @@ var transactWFS = function (mode, f,formatGML,way_type) {
         source_drawnLine.clear();
     });
 };
-	
+*/	
 $('#btnIsochrone').click(function () {
 
     map.removeInteraction(interaction);
@@ -199,7 +197,8 @@ $('#btnIsochrone').click(function () {
     });
     map.addInteraction(interaction);
     interaction.on('drawend', function (e) {
-        transactWFS('insert', e.feature,formatGML);
+        //transactWFS('insert', e.feature,formatGML);
+        objectid = Math.floor(Math.random() * 10000000);
         number_calculations = number_calculations + 1;				 
         var feature=e.feature;
         map.removeInteraction(interaction);
