@@ -4,7 +4,7 @@ import {pois,categories_db_style,dictionary,header_array,content_array} from './
 import {isochrones,network} from './isochrones';
 import {addRemoveAccesibilityLayer} from './layers';
 import {pois_geom} from './other_layers';
-import {drawnLine} from './interaction';
+import {drawnLine,ExtractStreetsLayer,QueryLayer} from './interaction';
 
 
 
@@ -156,6 +156,17 @@ let index_function = function () {
     			map.removeLayer(drawnLine);
 			}
 	});
+
+	$("body").on('change','#toggle_ways_layer', function () { 
+		if (this.checked){		
+			ExtractStreetsLayer.setVisible(false);
+			QueryLayer.setVisible(false);
+		} 			
+		else {			
+			ExtractStreetsLayer.setVisible(true);
+			QueryLayer.setVisible(true);
+		}
+});
 	
 	//Toogle function for the Select_thematic_data section
 	$("body").on('click','.fa-chevron-right, .fa-chevron-down',function () {

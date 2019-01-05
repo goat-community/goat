@@ -177,10 +177,8 @@ var transactWFS = function (mode, f,formatGML,way_type) {
 $('#btnIsochrone').click(function () {
 
     map.removeInteraction(interaction);
-    //interactionSelect.getFeatures().clear();
     map.removeInteraction(interactionSelect);
-
-    searchInteraction.stop();	
+    waysInteraction.remove();
     //Define Format and table for POST	 	
     formatGML = new GML({
             featureNS: 'muc',
@@ -830,6 +828,10 @@ return false;
 //Button click events
 $('.expert_draw').click(function () {
     let buttonID = this.id;
+    if (ExtractStreetsLayer.getVisible() == false){
+        alert('Layer is not visible');
+        return;
+    }
     console.log(buttonID);
     if (buttonID == 'btnQuery'){
         searchInteraction.init();
@@ -869,6 +871,6 @@ $('.expert_draw').click(function () {
 })
 
 
-export {userid,number_calculations,layerWFS_point,drawnLine,dynamicVars};
+export {userid,number_calculations,layerWFS_point,drawnLine,dynamicVars,ExtractStreetsLayer,QueryLayer};
 
 
