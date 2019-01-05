@@ -328,8 +328,8 @@ var vector_style = new Style({
 					width: 4
 				})
 			});
-			//Ways new features
-			var waysNewStyle = new Style({
+			//Ways new Road features
+			var waysNewRoadStyle = new Style({
 				fill: new  Fill({
 					color: [0, 0, 0, 0]
 				}),
@@ -338,10 +338,25 @@ var vector_style = new Style({
 					width: 4
 				})
 			});
+			//Ways new Bridge features
+			var waysNewBridgeStyle = new Style({
+				fill: new  Fill({
+					color: [0, 0, 0, 0]
+				}),
+				stroke: new Stroke({
+					color: '#FFA500',
+					width: 4
+				})
+			});
 			function waysStyle (feature,resolution){
 				var props = feature.getProperties();			
 				if ((props.hasOwnProperty('type') && props['original_id'] == null) || Object.keys(props).length == 1){
-					return [waysNewStyle];  //Features drawned 
+					//Distinguish Roads from Bridge features
+					if (props.type == 'bridge'){
+						return[waysNewBridgeStyle]
+					} else {
+						return[waysNewRoadStyle];
+					}
 				} else if (!props.hasOwnProperty('original_id') && Object.keys(props).length > 1) {
 					return [waysDefaultStyle]; //Features are from original table
 				} else {
