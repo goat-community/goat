@@ -88,7 +88,8 @@ let draw_isochrone = function(coordinate_input,objectid,parent_id) {
 	    	format: new WFS({
 
 	    	})
-	    })   
+		}),
+		zIndex: 10  
 	       
 	});
 	
@@ -124,7 +125,8 @@ function isochrone_load_fn (){
 	           	  		format: new  WFS({
 
 	            	})
-	        })
+			}),
+			zIndex: 10 
 	    })    		    
 		//The isochrones are loaded directly from the isochrones table. Note there was an issue with incorrect geometries when loaded directly from SQL-View
 		isochrones[layer_name] = layer
