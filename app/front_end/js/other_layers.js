@@ -8,8 +8,6 @@ import {poisStyle,setStyle_pois} from './style';
 import {pois} from './variables'
 
 
-
-
 var reached_network_url = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&typeNames=cite:reached_network';
 
 var pois_geom ={};
@@ -26,10 +24,8 @@ $("body").on('click','#btnIndex',function (){
 	load_layer_gid(theurl,radio_input,'default_'+number);
 	load_layer_gid(theurl,radio_input,'input_'+number);
 
-	})
+})
 	
-	
-
 
 $("body").on('change','.pois_check',function (){
 	
@@ -54,36 +50,32 @@ $("body").on('change','.pois_check',function (){
 
 
 var prepare_loading = function (id,theurl) {
-
-	
-				var layers = thematic_data[id]
-						
-					var gid_list =[];
-					var x;
-						//Is checking for the gids of one calculation and pushing them into an array
-					for (x in layers){
-						gid_list.push(layers[x].gid)				
-					}		
-					
-					var max_gid = Math.max.apply(null, gid_list); //The highest gid is taken as it is gid from isochrone with the highest step
-					
-					
-				   var url = theurl.replace('xxx',max_gid)	
+	var layers = thematic_data[id]
+			
+		var gid_list =[];
+		var x;
+			//Is checking for the gids of one calculation and pushing them into an array
+		for (x in layers){
+			gid_list.push(layers[x].gid)				
+		}		
 		
-					//This should be changed and NodeJS should be used for thematic data 
-					 var layer = new VectorLayer({			//Layer is loaded
-				      	opacity:1,
-						style:poisStyle,
-				        source: new VectorSource({
-				         	url:url,			
-				        	format: new WFS({
-				
-				            })
-				         })   
-							           
-					})
-					return layer
-			}
+		var max_gid = Math.max.apply(null, gid_list); //The highest gid is taken as it is gid from isochrone with the highest step
+		
+		var url = theurl.replace('xxx',max_gid)	
+
+		var layer = new VectorLayer({			//Layer is loaded
+			opacity:1,
+			style:poisStyle,
+			source: new VectorSource({
+				url:url,			
+				format: new WFS({
+	
+				})
+				})   
+							
+		})
+		return layer
+}
 
 var load_layer_gid = function (theurl,modus,id) {
 			
@@ -110,9 +102,6 @@ var load_layer_gid = function (theurl,modus,id) {
 			
 }
 	
-
-
-////
 
 var calculation = function (layer_id,layer,modus) {
 	var array_pois = []	

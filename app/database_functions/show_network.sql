@@ -9,12 +9,13 @@ ways_table varchar(20) := 'ways';
 sql_userid varchar(100):='';
 excluded_class_id varchar(200);
 excluded_ways_id text;
+column_userid varchar(10) :='';
 begin
   --depending on the modus the default OR the input table is used
   if modus_input = 2 OR modus_input = 4 then
   	ways_table = 'ways_userinput';
-  	sql_userid = ' AND w.userid IS NULL OR w.userid ='||userid_input;
-  
+  	sql_userid = ' AND userid IS NULL OR userid ='||userid_input;
+    column_userid = ', w.userid ';
   END IF;
  
   RAISE NOTICE '%',sql_userid;
@@ -35,13 +36,14 @@ begin
   return query execute '
   with xx AS (
 		SELECT * FROM (		--Select all that share ways that share a node with the edges
-			SELECT w.id, n.node, w.source, w.target, w.geom, coalesce(w.class_id,0) class_id, n.cost 
+			SELECT w.id, n.node, w.source, w.target, w.geom, coalesce(w.class_id,0) class_id, n.cost'||column_userid||' 
 			FROM '||ways_table||' w, temp_edges n 
 			WHERE w.source = n.node
-			OR w.target = n.node '||sql_userid||
-		') t 
+			OR w.target = n.node 
+		) t 
 		WHERE NOT t.class_id = ANY('''||excluded_class_id||''')
-		and NOT t.id::int4 = any('''|| excluded_ways_id ||''') 
+		and NOT t.id::int4 = any('''|| excluded_ways_id ||''')'
+		||sql_userid||'
 	),
 	x AS (
 		SELECT xx.*
