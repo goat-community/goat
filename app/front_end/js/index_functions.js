@@ -25,7 +25,7 @@ let index_function = function () {
     	for (let key in keys_categories) {
     		let pre_html_thematic = `<div class="header1 category" id="select_${keys_categories[key]}"><i class="fa fa-caret-right" style="font-size:24px"></i>
     								<input type="checkbox" class ="filled-in thematic_check" id="check_${keys_categories[key]}" unchecked></input>
-									<label for="check_${keys_categories[key]}">${keys_categories[key].replace("___"," ")}</label>
+									<label for="check_${keys_categories[key]}">${keys_categories[key].replace("___","&")}</label>
 									</div>  	
 									<div class="content" id="content_select_${keys_categories[key]}"><table class=table_item_select>content_replace</table></div> 
 									</div>`  
