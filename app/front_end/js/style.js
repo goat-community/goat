@@ -274,7 +274,7 @@ var vector_style = new Style({
 		var speed = document.getElementById('travel_speed').value;   
         
     	  //If the parent_id is one it is a default isochrone
-        if (modus == 1 ){       
+        if (modus == 1 || modus == 3){       
       	 
       			
 				var color =  set_color(level/speed,color_diff_default,color_1_default);  
