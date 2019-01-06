@@ -43,8 +43,7 @@ let draw_isochrone = function(coordinate_input,objectid,parent_id) {
 	let network_url =  ApiConstants.address_geoserver+`wfs?service=WFS&version=1.1.0
 						&request=GetFeature&viewparams=
 						objectid:${objectid};
-						modus:${modus};
-						userid:${userid}
+						modus:${modus}
 						&typeNames=cite:show_network`;
 
   	network_url = network_url.replace(/\s+/g, '');

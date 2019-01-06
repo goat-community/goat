@@ -11,12 +11,17 @@ under_limit integer;
 edges type_edges[];
 begin
 --If the modus is input the routing tables for the network with userinput have to be choosen
+  DROP TABLE IF EXISTS temp_edges;
   IF modus <> 1 THEN
-    execute format('INSERT INTO edges SELECT *,'||objectid_input||' FROM pgrouting_edges_input('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||','||modus||')');
+    execute format('CREATE TEMP TABLE temp_edges as SELECT *,'||objectid_input||' FROM pgrouting_edges_input('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||','||modus||')');
   ELSE 
-    execute format('INSERT INTO edges SELECT *,'||objectid_input||' FROM pgrouting_edges('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||')');
+    execute format('CREATE TEMP TABLE temp_edges as SELECT *,'||objectid_input||' FROM pgrouting_edges('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||')');
   END IF;
-
+  
+  INSERT INTO edges(edge,node,cost,class_id,objectid,geom) 
+  SELECT id AS edge,node,cost,class_id,objectid_input,geom  
+  FROM show_network(round(minutes*speed,0),modus,userid_input);
+  DROP TABLE IF EXISTS temp_edges;
 --The speed input, time input AND step input are used to draw isochrones with the corresponding intervals
   loop
   exit when counter =n;
@@ -36,3 +41,5 @@ begin
   
 END;
 $function$
+
+

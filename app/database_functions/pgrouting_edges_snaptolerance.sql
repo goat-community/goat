@@ -32,9 +32,8 @@ begin
   SELECT userid_input, v.geom, objectid_input, number_calculation_input
   FROM ways_vertices_pgr v
   WHERE v.id = id_vertex;
-  UPDATE starting_point_isochrones set geometry = v.geom FROM ways_vertices_pgr v 
-  WHERE v.id = id_vertex AND starting_point_isochrones.objectid = objectid_input; 
-  
+
+
   For r IN SELECT * FROM 
 --The function Pgr_DrivingDistance delivers the reached network 
 --In this case the routing is done on a not modified table
