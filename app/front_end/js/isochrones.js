@@ -127,7 +127,16 @@ function isochrone_load_fn (){
 	            	})
 			}),
 			zIndex: 10 
-	    })    		    
+		})
+		
+		layer.once('render', function(event) {
+			if (layer.getVisible()) {
+					//Expand Right Panel on Layer Render
+					$("#calculation_"+number_calculations).children().first().click();
+	            	$("#header_legend_"+number_calculations).children().first().click();
+				 }
+		});
+		
 		//The isochrones are loaded directly from the isochrones table. Note there was an issue with incorrect geometries when loaded directly from SQL-View
 		isochrones[layer_name] = layer
 		map.addLayer(isochrones[layer_name]);

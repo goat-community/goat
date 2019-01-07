@@ -481,3 +481,9 @@ display:block !important;
   display: block;
 }
 
+.calculationTreeItems {
+  font-size: 15px;
+  font-family: Roboto;
+  margin-left: 5px;
+}
+
