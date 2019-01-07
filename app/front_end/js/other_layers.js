@@ -134,12 +134,7 @@ var calculation = function (layer_id,layer,modus) {
 		
 		layer_id = layer_id + '_json'	
 		thematic_data[layer_id] = feature;	//Data is saved in thematic_data_json objectd
-		
-
-		
-
-		var index_pois = 0;
-		
+		var index_pois = 0;		
 		for (var x=0; x < array_pois.length; x++){				
 			var array_objects = feature.pois_isochrones;
 			var index_part = 0;		
