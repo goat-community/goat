@@ -129,12 +129,25 @@ function isochrone_load_fn (){
 			zIndex: 10 
 		})
 		
+		
 		layer.once('render', function(event) {
+			//If Modus is double calculation this event will fire once // for the last layer 'default'
+			
 			if (layer.getVisible()) {
-					//Expand Right Panel on Layer Render
-					$("#calculation_"+number_calculations).children().first().click();
-	            	$("#header_legend_"+number_calculations).children().first().click();
-				 }
+				if(document.getElementById('modus').value == 'double_calculation')
+				{
+					layer.rendered = true;
+					var defaultLayerObj = isochrones['default_'+layer_name.split('_')[1]];
+					var inputLayerObj = isochrones['input_'+layer_name.split('_')[1]];
+					//Check if both layer are rendered
+					if (!(defaultLayerObj.hasOwnProperty('rendered') && inputLayerObj.hasOwnProperty('rendered'))){
+						return;
+					}
+				}
+				//Expand Right Panel on Layer Render
+				$("#calculation_"+number_calculations).children().first().click();
+				$("#header_legend_"+number_calculations).children().first().click();
+			}
 		});
 		
 		//The isochrones are loaded directly from the isochrones table. Note there was an issue with incorrect geometries when loaded directly from SQL-View

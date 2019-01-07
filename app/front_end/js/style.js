@@ -364,4 +364,4 @@ var vector_style = new Style({
 				}
 			}    
       
-  	export {boundaryStyle,styleFunction1,iconStyle,drawing_style,network_style,colors_isochrones_default,poisStyle,setStyle_pois,vector_style,waysStyle};
+  	export {boundaryStyle,styleFunction1,iconStyle,drawing_style,network_style,colors_isochrones_default,colors_isochrones_input,poisStyle,setStyle_pois,vector_style,waysStyle};

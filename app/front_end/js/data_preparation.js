@@ -1,6 +1,6 @@
 import {pois} from './variables';
 import {isochrones} from './isochrones';
-import {colors_isochrones_default} from './style';
+import {colors_isochrones_default,colors_isochrones_input} from './style';
 import ApiConstants from './secrets';
 import {GeoJSON} from 'ol/format';
 var FileSaver = require("file-saver");
