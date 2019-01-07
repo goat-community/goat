@@ -139,7 +139,7 @@ var vector_style = new Style({
 
         function iconStyle(feature, resolution) {
         		var number = feature.get('number_calculation');
-        		var path = 'http://www.open-accessibility.org/accessibility/markers/marker-'+number+'.png';
+        		var path = '../markers/marker-'+number+'.png';
 		
 				console.log(feature);
 

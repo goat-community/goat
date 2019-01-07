@@ -20,7 +20,7 @@ let index_function = function () {
 	 	
     $(document).ready(function(e) {
     	let keys_categories = Object.keys(categories_db_style);		
-    	let thematic_select_html = '<div class="header" id="select_thematic_data" ><i class="fa fa-chevron-down" style="font-size:24px" ><span style="font-size:16px;font-family: Roboto;margin-left:5px;">Select Thematic Data</span></i></div>';     
+    	let thematic_select_html = '<div class="header" id="select_thematic_data" ><i class="fa fa-chevron-down" style="font-size:24px" ><span style="font-size:17px;font-family: Roboto;font-weight: bold;margin-left:5px;">Select Thematic Data</span></i></div>';     
 		
     	for (let key in keys_categories) {
     		let pre_html_thematic = `<div class="header1 category" id="select_${keys_categories[key]}"><i class="fa fa-caret-right" style="font-size:24px"></i>
@@ -159,13 +159,15 @@ let index_function = function () {
 
 	$("body").on('change','#toggle_ways_layer', function () { 
 		if (this.checked){		
-			ExtractStreetsLayer.setVisible(false);
-			QueryLayer.setVisible(false);
-		} 			
-		else {			
 			ExtractStreetsLayer.setVisible(true);
 			QueryLayer.setVisible(true);
+		} 			
+		else {			
+			ExtractStreetsLayer.setVisible(false);
+			QueryLayer.setVisible(false);
 		}
+		ExtractStreetsLayer.getSource().changed();
+		QueryLayer.getSource().changed();
 });
 	
 	//Toogle function for the Select_thematic_data section
@@ -194,6 +196,8 @@ let index_function = function () {
 			}
 
 		}
+
+		console.log(id);
 	});
 
 
