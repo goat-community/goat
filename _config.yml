@@ -9,7 +9,7 @@ lang: en-US
 baseurl: "/goat" # the subpath of your site, e.g. /blog/
 url: https://aksakalli.github.io/jekyll-doc-theme # the base hostname & protocol for your site
 git_address: https://github.com/EPajares/goat
-appURL: http://open-accessibility.org/wp/en/accessibility/
+appURL: https://open-accessibility.org/wp/en/accessibility/
 git_edit_address: https://github.com/EPajares/goat/tree/gh-pages/
 
 # theme options from https://bootswatch.com/
