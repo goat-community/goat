@@ -6,8 +6,8 @@ description: >
   Perform your own accessibility analysis!.
 lang: en-US
 
-baseurl: "/goat" # the subpath of your site, e.g. /blog/
-url: https://github.com/EPajares # the base hostname & protocol for your site
+baseurl: "" # the subpath of your site, e.g. /blog/
+url: "https://epajares.github.io" # the base hostname & protocol for your site
 git_address: https://github.com/EPajares/goat
 appURL: https://open-accessibility.org/wp/en/accessibility/
 git_edit_address: https://github.com/EPajares/goat/tree/gh-pages/
