@@ -476,7 +476,6 @@ var searchInteraction = {
                 } else {
                     userInputFeaturesWithoutOriginalId.push(currentFeature);
                 }
-                console.log(currentFeature.getId());
             }
 
             for (var i=0;i<originalFeatures.length;i++){
@@ -613,6 +612,8 @@ var waysInteraction = {
     }
     if (CircleRadius.radiusInteraction){
         map.removeInteraction(CircleRadius.radiusInteraction);
+        searchInteraction.circleRadius = null;
+        CircleRadius.remove();
     }
      //Unbound delete function listener key
      unByKey(this.deleteListenerKey);
@@ -842,6 +843,8 @@ $('.expert_draw').click(function () {
         alert('Layer is not visible');
         return;
     }
+
+
     console.log(buttonID);
     if (buttonID == 'btnQuery'){
         searchInteraction.init();
@@ -879,6 +882,20 @@ function removeHelpTooltip() {
         map.removeOverlay(overlay);      	
      });
 }
+
+///Abbrechen bei ESC
+$(document).keyup(function(e) {
+    if (e.keyCode == 27) { 
+         //Remove Isochrone Interaction
+        if (interaction) {map.removeInteraction(interaction);}
+        waysInteraction.remove();
+        map.getOverlays().getArray().slice(0).forEach(function(overlay) {
+            if (overlay.getProperties().element.id !='startaddresse'){																					 					
+                        map.removeOverlay(overlay);
+            }	
+       });
+   }
+});
 
 
 

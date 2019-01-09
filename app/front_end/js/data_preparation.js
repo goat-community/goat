@@ -58,7 +58,10 @@ var create_dropdown = function(time_steps,ids){
 		value = value.toString();
 		  	dropdown = dropdown + '<option value="'+id.toString()+'">'+value+' min'
 		 	
-		 	var colors = '<div class="legend_item" style="margin-left: 7px;margin-right: 7px;width:50px;height:20px;border:2px solid #000;background-color:'+colors_isochrones_default[value]+';"></div>'
+			 var colors = '<div class="legend_item" style="margin-left: 7px;margin-right: 7px;width:50px;height:20px;border:2px solid #000;background-color:'+colors_isochrones_default[value]+';"></div>'
+		if (ids.length == 1 && ids[0].includes('input')){
+			var colors = '<div class="legend_item" style="margin-left: 7px;margin-right: 7px;width:50px;height:20px;border:2px solid #000;background-color:'+colors_isochrones_input[value]+';"></div>'
+		}
 		if (ids.length == 2){ //If two calculations are done the color get displayed next to each other
 			colors = colors + '<div class="legend_item"  style="margin-left: 7px;margin-right: 7px;width:50px;height:20px;border:2px solid #000;background-color:'+colors_isochrones_input[value]+';"></div>'				
 		}			  	
