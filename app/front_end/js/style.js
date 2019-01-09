@@ -139,7 +139,7 @@ var vector_style = new Style({
 
         function iconStyle(feature, resolution) {
         		var number = feature.get('number_calculation');
-        		var path = 'http://www.open-accessibility.org/accessibility/markers/marker-'+number+'.png';
+        		var path = '../marker-'+number+'.png';
 		
 				console.log(feature);
 
@@ -148,7 +148,6 @@ var vector_style = new Style({
 		        anchor: [0.4, 40],
 		        anchorXUnits: 'fraction',
 		        anchorYUnits: 'pixels',
-		        //opacity: 0.75,
 		        src: path,
 		        scale:0.5
 		      }))})
@@ -281,7 +280,7 @@ var vector_style = new Style({
           		var style = new Style({
             	stroke: new Stroke({
 	    				color: `rgb(${Math.round(color[0])},${Math.round(color[1])},${Math.round(color[2])})`,
-	    				width: 2
+	    				width: 3
          			 	})   
          		})
 
@@ -296,7 +295,7 @@ var vector_style = new Style({
 				var style = new Style({
             	stroke: new Stroke({
 	    				color: `rgb(${Math.round(color[0])},${Math.round(color[1])},${Math.round(color[2])})`,
-	    				width: 2
+	    				width: 3
          		 		})          
         		})
 				        
