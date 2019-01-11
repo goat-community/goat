@@ -314,7 +314,7 @@ var vector_style = new Style({
 				}),
 				stroke: new Stroke({
 					color: '#707070',
-					width: 4
+					width: 3
 				})
 			});
 			//Ways modified features 
@@ -324,7 +324,8 @@ var vector_style = new Style({
 				}),
 				stroke: new Stroke({
 					color: '#FF0000',
-					width: 4
+					width: 3,
+					lineDash: [10,10]
 				})
 			});
 			//Ways new Road features
@@ -334,7 +335,8 @@ var vector_style = new Style({
 				}),
 				stroke: new Stroke({
 					color: '#6495ED',
-					width: 4
+					width: 4,
+					lineDash: [10,10]
 				})
 			});
 			//Ways new Bridge features
@@ -344,7 +346,8 @@ var vector_style = new Style({
 				}),
 				stroke: new Stroke({
 					color: '#FFA500',
-					width: 4
+					width: 4,
+					lineDash: [10,10]
 				})
 			});
 			function waysStyle (feature,resolution){
