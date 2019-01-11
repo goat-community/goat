@@ -38,8 +38,9 @@
 
 <body style="margin: 0px;">
     <div style="position: absolute; z-index: 10000; display: inline-block; left: 89%;top: 5%;">
-        <a class="nectar-button large regular extra-color-2  regular-button" style="visibility: visible;" href="https://epajares.github.io/goat/"
-            data-color-override="false" data-hover-color-override="false" data-hover-text-color-override="#fff"><span style="font-size:17px;font-family: Roboto;font-weight: bold;letter-spacing: 0px;">Home</span></a>
+        <a class="waves-effect waves-light btn btnCustom" style="visibility: visible; width:80px !important; font-size: 17px !important;" href="https://epajares.github.io/goat/">
+            <span style="font-family: Roboto;font-weight: bold;letter-spacing: 0px;">Home</span>
+        </a>
     </div>
 
 
@@ -62,17 +63,21 @@
         <div style="padding: 0px 10px 10px 10px; margin-top: 0px;">
             <div>
                 <span>Starting point calculation <i class="fa fa-info-circle" aria-hidden="true"></i></span>
-                <span class="right_side"><button style="width: 50px;" class="draw_isochrone" id="btnIsochrone"><i class="material-icons">add_location</i></button></span>
+                <span class="right_side">
+                    <a style="width: 50px;" class="draw_isochrone waves-effect waves-light btn btnCustom" id="btnIsochrone">
+                        <i class="material-icons">add_location</i>
+                    </a>
+                </span>
             </div>
             <div>
                 <span>Load network<i class="fa fa-info-circle" aria-hidden="true"></i></span>
-                <span class="right_side"><button style="width: 50px;" class="expert_draw" id="btnQuery"><i class="material-icons">filter_tilt_shift</i></button></span>
+                <span class="right_side"><a style="width: 50px;" class="expert_draw waves-effect waves-light btn btnCustom" id="btnQuery"><i class="material-icons">filter_tilt_shift</i></a></span>
             </div>
             <div>
                 <span>Modify network<i class="fa fa-info-circle" aria-hidden="true"></i></span>
-                <span class="right_side"><button style="width: 50px;" class="expert_draw" id="btnModify"><i class="material-icons">build</i></button></span>
-                <span class="right_side"><button style="width: 50px;" class="expert_draw" id="btnDelete"><i class="material-icons">delete</i></button></span>
-                <span class="right_side"><button style="width: 50px;" class="expert_draw" id="btnDraw"><i class="material-icons">timeline</i></button></span>
+                <span class="right_side"><a style="width: 50px;" class="expert_draw waves-effect waves-light btn btnCustom" id="btnModify"><i class="material-icons">build</i></a></span>
+                <span class="right_side"><a style="width: 50px;" class="expert_draw waves-effect waves-light btn btnCustom" id="btnDelete"><i class="material-icons">delete</i></a></span>
+                <span class="right_side"><a style="width: 50px;" class="expert_draw waves-effect waves-light btn btnCustom" id="btnDraw"><i class="material-icons">timeline</i></a></span>
             </div>
             <div>
                 Show network
@@ -83,7 +88,7 @@
 
             <div>
                 <span>Add network modification<i class="fa fa-info-circle" aria-hidden="true"></i></span>
-                <span class="right_side"><button class="nectar-button small regular extra-color-2  regular-button" id="btnInsertintoNetwork">Modify network</button></span>
+                <span class="right_side"><a class="waves-effect waves-light btn btnCustom" id="btnInsertintoNetwork"><i class="material-icons">cloud_upload</i></a></span>
             </div>
             <table>
                 <tbody>
@@ -223,9 +228,9 @@ padding: 10px;"><i
             </div>
             
          <div style="text-align:center;display:inline-block;float: right;">            
-            <button style="height: 30px; width: 50px; border: 1px solid;background: none;box-shadow: none;border-radius: 0px;" class="popup-button"  id="btnNoFeature"></button>            
-                <button style="height: 30px; width: 50px;color:#2fac45;background-color: none;border: 1px solid;background: none;box-shadow: none;border-radius: 0px;" class="popup-button"  id="btnYesFeature"></button>
-            </div>
+            <button style="height: 30px; width: auto; border: 1px solid;background: none;box-shadow: none;border-radius: 0px;" class="popup-button"  id="btnNoFeature"></button>            
+            <button style="height: 30px; width: auto; color:#2fac45;background-color: none;border: 1px solid;background: none;box-shadow: none;border-radius: 0px;" class="popup-button"  id="btnYesFeature"></button>
+        </div>
             
         </div>
         <div id="information" class='information' style="width: 5%; height: 85%;">

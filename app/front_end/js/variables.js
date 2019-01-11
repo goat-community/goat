@@ -47,13 +47,13 @@ var append_dropdown_slider = function(){
 	    </div>
 	    <div class="content" id="content_index_calculation_${number}"><span style="margin-left:5px;"><b>Cost sensitivity parameter</b></span>
 	    <input style="margin-left:5px;" type="text" id ="y_value_${number}" value="-0.1"><br>	
-	    <button style="margin-left:5px;margin-bottom:5px;"id="btnIndex">Calculate</button>	  	    	
+	    <a class="waves-effect waves-light btn btnCustom" style="visibility: visible; width:auto !important; font-size: 13px !important;margin-left:5px !important;margin-bottom:5px !important;padding-right: 3px !important; padding-left: 3px !important;" id="btnIndex">Calculate</a>	  	    	
 		</div>
 
 	<div class="header1" id="header_download_data_${number}"><i class="fa fa-caret-right" style="font-size:24px"><span class="calculationTreeItems">Download Isochrones and Ways</span></i> 
 	</div>
 	<div class="content" id="content_download_data_${number}">
-	<select style="margin-left:7px;" class="dropdown_thematic" id="select_dowload_format.${dynamicVars.objectid}">
+	<select style="margin-left:7px; margin-bottom: 5px;" class="dropdown_thematic" id="select_dowload_format.${dynamicVars.objectid}">
 		<option value="" selected="" disabled="" hidden="">Choose format</option>
 		<option value="1">JSON</option>
 		<option value="2">Shapefile</option>
