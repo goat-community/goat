@@ -78,20 +78,6 @@ var tool_tip = function(interaction,modus){
             }
               }, this);
       }
-     
-      
-///Abbrechen bei ESC
-		$(document).keyup(function(e) {
-     if (e.keyCode == 27) { 
-     		map.removeInteraction(interaction);
-     		map.getOverlays().getArray().slice(0).forEach(function(overlay) {
-				if (overlay.getProperties().element.id !='startaddresse'){																					 					
-		 					map.removeOverlay(overlay);
-				}	
-		});
-    }
-});
-
 
 };
 
@@ -105,12 +91,12 @@ export {tool_tip};
 var tool_info = {"Starting point calculation ":`You can press this button and click<br> 
                                 at any visible place on the map for<br>
                                 starting a calculation.`,
-           "Load Ways Features":`You can load a subset of the road network into your map<br>
+           "Load network":`You can load a subset of the road network into your map<br>
                                  by clicking the button and simply drawing a circle .`,          
-                      "Drawing":`There are existing three ways of modifying the network.<br>
+                      "Modify network":`There are existing three ways of modifying the network.<br>
                                  You can draw a new way feature, delete an existing feature <br>
                                  or modify the shape of an existing feature.<br>`,
-  "Add new lines to network ":`Once this button is clicked the drawn<br>
+  "Add network modification":`Once this button is clicked the drawn<br>
                                   lines are inserted into the routing<br>
                                   network. Depending on the number of drawn<br>
                                   features the calculation in the back-end<br> 

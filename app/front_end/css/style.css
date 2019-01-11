@@ -481,3 +481,20 @@ display:block !important;
   display: block;
 }
 
+.calculationTreeItems {
+  font-size: 15px;
+  font-family: Roboto;
+  margin-left: 5px;
+}
+
+.btnCustom {
+  padding: 0px 0px 0px 0px !important;
+  background-color: #2FAC45 !important;
+  margin: 1px !important;
+  font-size: 1.8rem !important;
+  width: 50px !important;
+}
+
+.btnCustom i {
+font-size: 1.8rem !important;
+}

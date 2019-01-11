@@ -358,7 +358,6 @@ var CircleRadius = {
         CircleRadius.circleCenterCoordinates = currentCoord;
         centerCoord = currentCoord;
      }
-     console.log('mouse is moving...')
      var deltaX = Math.pow(currentCoord[0]-centerCoord[0],2);
      var deltaY = Math.pow(currentCoord[1]-centerCoord[1],2);
      var radiusLength = Math.sqrt(deltaX+deltaY).toFixed(); // this one is used to check if the radius is greater than 1000m, not dependended from interaction
@@ -477,7 +476,6 @@ var searchInteraction = {
                 } else {
                     userInputFeaturesWithoutOriginalId.push(currentFeature);
                 }
-                console.log(currentFeature.getId());
             }
 
             for (var i=0;i<originalFeatures.length;i++){
@@ -500,7 +498,7 @@ var searchInteraction = {
     },
     init: function(){
         this.stop();
-      
+        removeHelpTooltip();
         //Add circle interaction to search for the geojson features on the map
         var circleDraw = new Draw({
             source: QueryLayer.getSource(),
@@ -609,11 +607,22 @@ var waysInteraction = {
      if (this.currentInteraction != null){
          map.removeInteraction(this.currentInteraction);
      }
+     if (searchInteraction.interaction != null){
+        map.removeInteraction(searchInteraction.interaction);
+    }
+    if (CircleRadius.radiusInteraction){
+        map.removeInteraction(CircleRadius.radiusInteraction);
+        searchInteraction.circleRadius = null;
+        CircleRadius.remove();
+    }
      //Unbound delete function listener key
      unByKey(this.deleteListenerKey);
      popupOverlay.setPosition(undefined);
      this.featuresToCommit = [];
      this.featureToDelete = null;
+     if (searchInteraction.interaction != null){
+        map.removeInteraction(searchInteraction.interaction);
+    }
      closePopupFn();
     },
     add: function (interaction,type){
@@ -828,24 +837,22 @@ return false;
 //Button click events
 $('.expert_draw').click(function () {
     let buttonID = this.id;
+    //Remove Isochrone Interaction
+    if (interaction) {map.removeInteraction(interaction);}
     if (ExtractStreetsLayer.getVisible() == false){
         alert('Layer is not visible');
         return;
     }
+
+
     console.log(buttonID);
     if (buttonID == 'btnQuery'){
         searchInteraction.init();
         CircleRadius.add();
         return;
     }
-
-    
-    map.getOverlays().getArray().slice(0).forEach(function(overlay) {   															
-             map.removeOverlay(overlay);      	
-    });
-
+    removeHelpTooltip ();
     waysInteraction.remove();
-
     switch(buttonID){
         case 'btnDraw':
        var drawInteraction = new Draw({
@@ -869,6 +876,28 @@ $('.expert_draw').click(function () {
     }
 
 })
+
+function removeHelpTooltip() {
+    map.getOverlays().getArray().slice(0).forEach(function(overlay) {
+        map.removeOverlay(overlay);      	
+     });
+}
+
+///Abbrechen bei ESC
+$(document).keyup(function(e) {
+    if (e.keyCode == 27) { 
+         //Remove Isochrone Interaction
+        if (interaction) {map.removeInteraction(interaction);}
+        waysInteraction.remove();
+        map.getOverlays().getArray().slice(0).forEach(function(overlay) {
+            if (overlay.getProperties().element.id !='startaddresse'){																					 					
+                        map.removeOverlay(overlay);
+            }	
+       });
+   }
+});
+
+
 
 
 export {userid,number_calculations,layerWFS_point,drawnLine,dynamicVars,ExtractStreetsLayer,QueryLayer};

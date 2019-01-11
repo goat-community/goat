@@ -8,7 +8,7 @@
     <title>GOAT</title>
     <link rel="icon" type="image/png" href="markers/logo.png">
     <link rel="stylesheet" href="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.2.0/css/ol.css">
-    <link rel="stylesheet" href="css/wp_style.css">
+    <link rel="stylesheet" href="css/style.css">
     <link href='https://api.mapbox.com/mapbox.js/v3.1.1/mapbox.css' rel='stylesheet' />
     <link rel='stylesheet' id='redux-google-fonts-salient_redux-css'  href='http://fonts.googleapis.com/css?family=Open+Sans%3A300&#038;ver=1508922787' type='text/css' media='all' /> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -38,8 +38,9 @@
 
 <body style="margin: 0px;">
     <div style="position: absolute; z-index: 10000; display: inline-block; left: 89%;top: 5%;">
-        <a class="nectar-button large regular extra-color-2  regular-button" style="visibility: visible;" href="http://open-accessibility.org/wp/"
-            data-color-override="false" data-hover-color-override="false" data-hover-text-color-override="#fff"><span>Home</span></a>
+        <a class="waves-effect waves-light btn btnCustom" style="visibility: visible; width:80px !important; font-size: 17px !important;" href="https://epajares.github.io/goat/">
+            <span style="font-family: Roboto;font-weight: bold;letter-spacing: 0px;">Home</span>
+        </a>
     </div>
 
 
@@ -57,33 +58,37 @@
     <div id="controls" style=" width: 23%; position: absolute;z-index: 10000;display: inline-block; top: 10%; background-color: #f8f8f8;padding: 0px;">
         <div class="header" style="margin-top: 0px; background: #2fac45; color: white; padding: 10px; border: 1px solid #2fac45;"
             id="header_controls">
-            <span style="font-size:16px">Controls</span>
+            <span style="font-size:17px;font-weight: bold">Controls</span>
         </div>
         <div style="padding: 0px 10px 10px 10px; margin-top: 0px;">
             <div>
                 <span>Starting point calculation <i class="fa fa-info-circle" aria-hidden="true"></i></span>
-                <span class="right_side"><button style="width: 50px;" class="draw_isochrone" id="btnIsochrone"><i class="material-icons">add_location</i></button></span>
+                <span class="right_side">
+                    <a style="width: 50px;" class="draw_isochrone waves-effect waves-light btn btnCustom" id="btnIsochrone">
+                        <i class="material-icons">add_location</i>
+                    </a>
+                </span>
             </div>
             <div>
                 <span>Load network<i class="fa fa-info-circle" aria-hidden="true"></i></span>
-                <span class="right_side"><button style="width: 50px;" class="expert_draw" id="btnQuery"><i class="material-icons">filter_tilt_shift</i></button></span>
+                <span class="right_side"><a style="width: 50px;" class="expert_draw waves-effect waves-light btn btnCustom" id="btnQuery"><i class="material-icons">filter_tilt_shift</i></a></span>
             </div>
             <div>
                 <span>Modify network<i class="fa fa-info-circle" aria-hidden="true"></i></span>
-                <span class="right_side"><button style="width: 50px;" class="expert_draw" id="btnModify"><i class="material-icons">build</i></button></span>
-                <span class="right_side"><button style="width: 50px;" class="expert_draw" id="btnDelete"><i class="material-icons">delete</i></button></span>
-                <span class="right_side"><button style="width: 50px;" class="expert_draw" id="btnDraw"><i class="material-icons">timeline</i></button></span>
+                <span class="right_side"><a style="width: 50px;" class="expert_draw waves-effect waves-light btn btnCustom" id="btnModify"><i class="material-icons">build</i></a></span>
+                <span class="right_side"><a style="width: 50px;" class="expert_draw waves-effect waves-light btn btnCustom" id="btnDelete"><i class="material-icons">delete</i></a></span>
+                <span class="right_side"><a style="width: 50px;" class="expert_draw waves-effect waves-light btn btnCustom" id="btnDraw"><i class="material-icons">timeline</i></a></span>
             </div>
             <div>
                 Show network
-                <input type="checkbox" class="filled-in pois_check" id="toggle_ways_layer"></input>
+                <input type="checkbox" class="filled-in pois_check" id="toggle_ways_layer" checked></input>
                 <label style="margin-left: 5%; height: 15px;" for="toggle_ways_layer"></label>
 
             </div>
 
             <div>
                 <span>Add network modification<i class="fa fa-info-circle" aria-hidden="true"></i></span>
-                <span class="right_side"><button class="nectar-button small regular extra-color-2  regular-button" id="btnInsertintoNetwork">Modify network</button></span>
+                <span class="right_side"><a class="waves-effect waves-light btn btnCustom" id="btnInsertintoNetwork"><i class="material-icons">cloud_upload</i></a></span>
             </div>
             <table>
                 <tbody>
@@ -188,7 +193,10 @@
 
 
         <div style="margin-left:10px;margin-bottom:10px;margin-top:5%;"><img style="width:10%;height:10%;" src="markers/logo.png"></img>
-            <span><b>GOAT</b><i class="fa fa-info-circle" aria-hidden="true"></i></span></div>
+            <span><b>GOAT</b><i class="fa fa-info-circle" aria-hidden="true"></i></span>
+            <a href="https://www.open-accessibility.org/data_privacy_en.html" target="_blank" style="float:right;margin-right: 5px;margin-top: 20px !important;color:#646464;" href="#">&copy; Imprint & Privacy<a>
+        </div>
+
     </div>
 
     <div id="toogle_left" style=" position: absolute; font-family: Open Sans; z-index: 10000; display: inline-block; top: 10%; background-color: #f8f8f8;
@@ -220,9 +228,9 @@ padding: 10px;"><i
             </div>
             
          <div style="text-align:center;display:inline-block;float: right;">            
-            <button style="height: 30px; width: 50px; border: 1px solid;background: none;box-shadow: none;border-radius: 0px;" class="popup-button"  id="btnNoFeature"></button>            
-                <button style="height: 30px; width: 50px;color:#2fac45;background-color: none;border: 1px solid;background: none;box-shadow: none;border-radius: 0px;" class="popup-button"  id="btnYesFeature"></button>
-            </div>
+            <button style="height: 30px; width: auto; border: 1px solid;background: none;box-shadow: none;border-radius: 0px;" class="popup-button"  id="btnNoFeature"></button>            
+            <button style="height: 30px; width: auto; color:#2fac45;background-color: none;border: 1px solid;background: none;box-shadow: none;border-radius: 0px;" class="popup-button"  id="btnYesFeature"></button>
+        </div>
             
         </div>
         <div id="information" class='information' style="width: 5%; height: 85%;">
