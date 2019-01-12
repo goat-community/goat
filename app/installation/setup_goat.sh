@@ -1,7 +1,7 @@
 #!/bin/sh
 #Variables
-source ~/app/config/secrets.js
 
+source ~/app/config/secrets.js
 echo "$HOST:$PORT:$DATABASE:$USER:$PASSWORD" > .pgpass
 chmod 600 .pgpass
 
