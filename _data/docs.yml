@@ -1,9 +1,8 @@
 - title: About
   docs:
   - background
-  - home
-  - quick_start
   - about
+  - quick_start
 
 
 - title: Technical Documentation

@@ -8,7 +8,7 @@ lang: en-US
 baseurl: "" # the subpath of your site, e.g. /blog/
 url: "https://open-accessibility.org" # the base hostname & protocol for your site
 git_address: https://github.com/EPajares/goat
-appURL: https://open-accessibility.org/wp/en/accessibility/
+appURL: https://goat.open-accessibility.org
 git_edit_address: https://github.com/EPajares/goat/tree/gh-pages/
 
 # theme options from https://bootswatch.com/
