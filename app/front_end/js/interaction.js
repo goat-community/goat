@@ -425,7 +425,7 @@ var searchInteraction = {
 
         //Get the feature that intersect with geometry
        var wfsRequestXmlStringOriginalTable = WfsRequestFunction('EPSG:3857',ApiConstants.geoserver_namespaceURI, ApiConstants.geoserver_workspace,'ways',filterIntersect);
-       var originalTableRequest = fetch(ApiConstants.wfs_url,{
+       var originalTableRequest = fetch(ApiConstants.address_geoserver+ApiConstants.geoserver_workspace+'/wfs',{
             method: 'POST',
             body: wfsRequestXmlStringOriginalTable,
             headers: {
@@ -440,7 +440,7 @@ var searchInteraction = {
        var filterUserInputTable = equalToFilter('userid', userid);
        var combinedFilter = andFilter(filterUserInputTable,filterIntersect)
        var wfsRequestXmlStringUserInputTable = WfsRequestFunction('EPSG:3857',ApiConstants.geoserver_namespaceURI, ApiConstants.geoserver_workspace,'ways_modified',combinedFilter);
-        var userInputTableRequest = fetch(ApiConstants.wfs_url,{
+        var userInputTableRequest = fetch(ApiConstants.address_geoserver+ApiConstants.geoserver_workspace+'/wfs',{
             method: 'POST',
             body: wfsRequestXmlStringUserInputTable,
             headers: {
@@ -705,7 +705,7 @@ var waysInteraction = {
      console.log(payload)    
     $.ajax({
         type: "POST",
-        url: ApiConstants.wfs_url,
+        url: ApiConstants.address_geoserver+ApiConstants.geoserver_workspace+'/wfs',
         data: new XMLSerializer().serializeToString(node),
         contentType: 'text/xml',
         success: function(data) {
