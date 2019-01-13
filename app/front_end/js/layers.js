@@ -83,7 +83,7 @@ $('body').on('change','#layer-select',function(){
 var accessibility_layer = function(){
   let heatmap_input ={};
   let select_heatmap_input = $('#main_thematic_data .content :checkbox:checked')
-  let link = ApiConstants.guest_geoserver_url+'cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:heatmap&LAYERS=cite%3Aheatmap&viewparams=amenities:%27'
+  let link = ApiConstants.address_geoserver+'cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:heatmap&LAYERS=cite%3Aheatmap&viewparams=amenities:%27'
   let link_part = '' 
   for (var i=0; i < select_heatmap_input.length; i++){
     link_part = link_part + '{"\'' + select_heatmap_input[i].id.replace('check_','') + '\'":' + $(select_heatmap_input[i]).siblings()[3].value + '},'
