@@ -28,7 +28,7 @@ function addRowFn(layer){
     
         var legendItemImg = document.createElement('img');
         legendItemImg.style = "width:100%;height:auto;"
-        legendItemImg.src = ApiConstants.guest_geoserver_url + 'ows?service=WMS&request=GetLegendGraphic&format=image/png&layer=' +layerName;
+        legendItemImg.src = ApiConstants.address_geoserver + 'ows?service=WMS&request=GetLegendGraphic&format=image/png&layer=' +layerName;
         legendItemDiv.appendChild(legendItemImg);
     }
 
