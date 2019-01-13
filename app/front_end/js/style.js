@@ -189,7 +189,7 @@ var vector_style = new Style({
 					var amenity = _pois[amenity][0]
 					console.log(amenity);
 	        		
-	        		var path = '../pois/'+amenity+'.png';
+	        		var path = '../markes/pois/'+amenity+'.png';
 	        		
 	        		var style = new  Style({
 			      		image: new  Icon(/** @type {olx.style.IconOptions} */ ({

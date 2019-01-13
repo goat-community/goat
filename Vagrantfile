@@ -18,6 +18,7 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 81, host: 8081
   config.vm.network "forwarded_port", guest: 3000, host: 3000
   config.vm.network "forwarded_port", guest: 5432, host: 65432
+    config.vm.network "forwarded_port", guest: 3200, host: 3200
   # Folder Settings
   config.vm.synced_folder "./app", "/home/vagrant/app"
   config.vm.provision :shell, path: "./app/installation/reboot.sh", run: 'always'
