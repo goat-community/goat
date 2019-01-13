@@ -23,7 +23,7 @@ var jsonParser = bodyParser.json()
 	  // to support JSON-encoded bodies
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
-app.get('/multiple_isochrones/:parameters',(request,response) => {
+app.get('/node/multiple_isochrones/:parameters',(request,response) => {
 	let {parameters} = request.params;
 	parameters = JSON.parse(parameters);
 	let array_objectids = [];
@@ -74,7 +74,7 @@ app.get('/multiple_isochrones/:parameters',(request,response) => {
 
 });
 
-app.post('/userdata',jsonParser, (request,response) => {
+app.post('/node/userdata',jsonParser, (request,response) => {
 	//CRUD OPERATION
 	var mode = request.body.mode;
 	function returnResult (err,res){

@@ -11,11 +11,7 @@ function addRowFn(layer){
         } catch (err) {
             var url = layer.getSource().getUrl();
         }
-
-        console.log(url);
         var layerName = gup('layers',url.toString());
-       
-        console.log(layerName);
         if (layerName == null) return;
         var legendItemDiv = document.createElement('div');
         legendItemDiv.className = 'layer-item';
@@ -62,7 +58,6 @@ function ol_legend(e) {
     options.map.getLayers().on("add",function(e){
         e.stopPropagation();
         addRowFn(e.element);
-        console.log(e);
     });
     options.map.getLayers().on("remove",function(e){
         e.stopPropagation();

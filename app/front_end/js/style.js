@@ -138,20 +138,16 @@ var vector_style = new Style({
     
 
         function iconStyle(feature, resolution) {
-        		var number = feature.get('number_calculation');
-        		var path = '../marker-'+number+'.png';
-		
-				console.log(feature);
-
-        var style = new  Style({
-		      image: new  Icon(/** @type {olx.style.IconOptions} */ ({
-		        anchor: [0.4, 40],
-		        anchorXUnits: 'fraction',
-		        anchorYUnits: 'pixels',
-		        src: path,
-		        scale:0.5
-		      }))})
-		  
+			var number = feature.get('number_calculation');
+			var path = '../markers/marker-'+number+'.png';
+			var style = new  Style({
+				image: new  Icon(/** @type {olx.style.IconOptions} */ ({
+					anchor: [0.4, 40],
+					anchorXUnits: 'fraction',
+					anchorYUnits: 'pixels',
+					src: path,
+					scale:0.5
+				}))})
 	  
 		  return [style];
       }      
@@ -185,12 +181,8 @@ var vector_style = new Style({
         		var amenity = feature.get('amenity');
         		
         		if ($.inArray(amenity,array_pois) != -1){
-					console.log(_pois);
-					var amenity = _pois[amenity][0]
-					console.log(amenity);
-	        		
-	        		var path = '../markes/pois/'+amenity+'.png';
-	        		
+					var amenity = _pois[amenity][0]	        		
+	        		var path = '../markers/pois/'+amenity+'.png';	        		
 	        		var style = new  Style({
 			      		image: new  Icon(/** @type {olx.style.IconOptions} */ ({
 			       		//anchor: [0.4, 40],
@@ -200,8 +192,6 @@ var vector_style = new Style({
 			        scale:1.5
 			      }))})
 		      }
-		      
-		      
 		      else{
 		      	style = defaultStyle_isochrones
 		      

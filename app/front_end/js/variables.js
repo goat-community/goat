@@ -110,5 +110,4 @@ var dictionary = {
 
 
 }
-console.log(header_array);
 export {dropdown_slider,append_dropdown_slider,categories_db_style,pois,dictionary,header_array,content_array};
