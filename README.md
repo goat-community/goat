@@ -186,3 +186,20 @@ You potentially have to run all the following commands:
 `dos2unix ~/app/config/secret.js` (run on your VM)
 
 `dos2unix ~/app/geoserver/install_geoserver.sh` (run on your VM)
+
+##### Backup Database
+
+Login as root user:
+`sudo su`
+Login as user postgres:
+`su - postgres`
+Open the crontab for the postgres user:
+`crontab -e`
+Add these lines to crontab file for having a backup every second day (they can be customized):
+
+1 * * * 1 pg_dump -U postgres goat > /var/lib/postgresql/backup/backup_last_monday.sql
+1 * * * 3 pg_dump -U postgres goat > /var/lib/postgresql/backup/backup_last_wednesday.sql
+1 * * * 5 pg_dump -U postgres goat > /var/lib/postgresql/backup/backup_last_friday.sql
+1 * * * 7 pg_dump -U postgres goat > /var/lib/postgresql/backup/backup_last_sunday.sql
+
+Checkout: https://crontab.guru/

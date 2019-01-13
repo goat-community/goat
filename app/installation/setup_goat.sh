@@ -1,7 +1,7 @@
 #!/bin/sh
 #Variables
-source ~/app/config/secrets.js
 
+source ~/app/config/secrets.js
 echo "$HOST:$PORT:$DATABASE:$USER:$PASSWORD" > .pgpass
 chmod 600 .pgpass
 
@@ -9,7 +9,7 @@ sudo -u postgres psql -c "drop database goat"
 sudo -u postgres psql -c "drop user goat;"
 sudo -u postgres psql -c "create database goat;"
 sudo -u postgres psql -c "create user goat;"
-sudo -u postgres psql -c "alter user goat with encrypted password 'earlmanigault';"
+sudo -u postgres psql -c "alter user goat with encrypted password '$PASSWORD';"
 sudo -u postgres psql -c "ALTER USER goat with superuser;"
 
 
