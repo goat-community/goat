@@ -25,6 +25,7 @@ CREATE TABLE public.edges (
 	geom geometry NULL,
 	objectid int4 NULL,
 	id serial NOT NULL,
+	class_id int4,
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
 );
 create index index_edges on edges using gist(geom);
