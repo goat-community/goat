@@ -60,7 +60,6 @@ var oepnv_karte = new TileLayer({
     maxZoom:18,
     })
    })
-  console.log(oepnv_karte);
   
   layers.push(oepnv_karte);
   styles.push('PublicTransport');

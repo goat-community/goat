@@ -17,8 +17,6 @@ var number_isochrone_input = 1;
 const isochrones = {};
 const network = {};
 
-console.log(userid)
-
 //////////////////////////////////////////////////////////////////
 let draw_isochrone = function(coordinate_input,objectid,parent_id) {
 	$('#mySpinner').addClass('spinner');
@@ -272,9 +270,6 @@ var show_network = function(network_url,layer_name){
 	isochrones[layer_name].setZIndex(z_isochrones+1); //Put isochrone above the network layer
 	const z_network_layer = network[layer_name].getZIndex();
 	network[layer_name].setVisible(false);
-
-
-	console.log(map.getLayers().getLength());	
 	const z_point = map.getLayers().getLength()-1; //Put the point above the network layer
 	layerWFS_point.setZIndex(z_point);
 }

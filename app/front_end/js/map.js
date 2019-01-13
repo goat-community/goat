@@ -20,8 +20,6 @@ var map = new Map({
     })
 });
 
-console.log(GetBaseLayers());
-
 GetBaseLayers().forEach(function(layer,index,array){
   if (layer.get('name') =='StudyArea'){
   //For all basemaps a filter excluding everything a part from the Study-Area is set.
@@ -88,7 +86,6 @@ $('body').on('change','#accessibility_basemap_select',function(){
   }
   else{
     map.getLayers().forEach(function (layer) {
-      console.log(layer.get('name'));
     if (layer.get('name') != undefined & layer.get('name') === 'layer_accessibility') {
       addRemoveAccesibilityLayer.remove(map);
     }

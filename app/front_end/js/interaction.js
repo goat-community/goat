@@ -20,7 +20,6 @@ import {draw_isochrone} from './isochrones';
 
 
 const userid = Math.floor(Math.random() * 10000000);
-console.log(userid);
 var objectid; 	
 var formatWFS = new WFS();
 var formatGeoJSON = new GeoJSON();
@@ -201,7 +200,6 @@ $('#btnIsochrone').click(function () {
         var feature=e.feature;
         map.removeInteraction(interaction);
         var coordinates = feature.getGeometry().getCoordinates();
-        console.log(coordinates);
         var modus = document.getElementById('modus').value;
             dynamicVars.objectid = objectid;
             if (modus=='double_calculation'){
@@ -291,7 +289,6 @@ fetch(ApiConstants.nodeapi_baseurl + '/userdata',{
 deleteWaysFeature('read',userid);
 
 function WfsRequestFunction (srsName,namespace,workspace,layerName,filter){
-    console.log(srsName,namespace,workspace,layerName,filter);
     var wfs = new WFS().writeGetFeature({
         srsName: srsName,
         featureNS: namespace,
@@ -556,7 +553,6 @@ var waysInteraction = {
         var prop = f.getProperties();
         if (prop.hasOwnProperty('original_id')){
             if (prop.original_id != null){
-                console.log(f);
                 var fid = f.getProperties().original_id.toString();
                 waysInteraction.featuresIDsToDelete.push(fid);
                 deleteWaysFeature ('delete',userid,waysInteraction.featuresIDsToDelete,prop.id)
@@ -667,7 +663,6 @@ var waysInteraction = {
                 if (this.interactionType == 'draw'){
                     //Get Selected Ways type
                     transformed.set('type',document.getElementById('ways_type').value);
-                    console.log(transformed);
                 }
                 if (!props.hasOwnProperty('original_id') && ((this.interactionType == 'modify'))){
                     transformed.set('original_id',f.getProperties().id);
@@ -700,19 +695,15 @@ var waysInteraction = {
                 node = formatWFS.writeTransaction(null, null, this.featureToDelete, formatGML);
                 break;
         }
-        console.log(node);
-     var payload = xs.serializeToString(node);
-     console.log(payload)    
+     var payload = xs.serializeToString(node);  
     $.ajax({
         type: "POST",
         url: ApiConstants.address_geoserver+ApiConstants.geoserver_workspace+'/wfs',
         data: new XMLSerializer().serializeToString(node),
         contentType: 'text/xml',
-        success: function(data) {
-            console.log(data);
+        success: function(data) {    
             var result = formatWFS.readTransactionResponse(data);
-            var FIDs = result.insertIds;
-            console.log(result);
+            var FIDs = result.insertIds;   
             if (FIDs != undefined && FIDs[0]!="none"){
                 var i;
                 for (i=0;i<FIDs.length;i++){
@@ -845,7 +836,6 @@ $('.expert_draw').click(function () {
     }
 
 
-    console.log(buttonID);
     if (buttonID == 'btnQuery'){
         searchInteraction.init();
         CircleRadius.add();

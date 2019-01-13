@@ -14,8 +14,7 @@ var nodeProxy =  proxy({target: 'http://localhost:3000',changeOrigin: true});
 
 app.use('/geoserver',geoserverProxy);
 app.use('/node',nodeProxy);
-
-app.use(express.static('markers'));
+app.use('/markers', express.static('markers'));
 app.use(express.static('css'));
 app.use(express.static('lib'))
 app.use(bundler.middleware());
