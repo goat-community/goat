@@ -5,9 +5,8 @@ module.exports = {
     nodeapi_baseurl: 'http://localhost:8585/node',
     geoserver_workspace: 'cite',
     geoserver_namespaceURI: 'muc',
-    x : 13.386841,
-    y : 52.516221
+    x : 11.571687,
+    y : 48.144310
 }
-
 
 
