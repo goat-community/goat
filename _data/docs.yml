@@ -2,12 +2,10 @@
   docs:
   - background
   - about
-  - quick_start
+
 
 
 - title: Technical Documentation
   docs:
   - technicalarchitecture
-  - cheatsheet
-  - font-awesome
-  - bootstrap
+  - quick_start
