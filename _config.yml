@@ -1,8 +1,11 @@
 # Site settings
 title: Open Accessibility
-email: your-email@domain.com
+email: elias.pajares@tum.de
 description: >
-  Welcome to Open Accessibility!
+  On Open Accessibility you can work with the dynamic, interactive  and open 
+  accessibility tool GOAT. It is possible to model effortless the effect of transport and land-use 
+  changes on walking accessibility.  
+    
 lang: en-US
 
 baseurl: "" # the subpath of your site, e.g. /blog/
