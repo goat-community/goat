@@ -59,6 +59,9 @@ Many more related questions on transport and land-use planning will follow. GOAT
 
 GOAT architecture is completely built with open source software, in addition it is open source itself (Licence GPL-3.0). This means that GOAT can be modified and used by anyone (free of charge). Anyone can also contribute towards improving the GOAT functionality and operation.
 
+<img class="img-responsive" src="../../img/love_osm_os.png" alt="GOAT loves OSM and open source">
+
+
 The OpenStreetMap-data (OSM) with which GOAT is built is available worldwide and free of charge. OSM is seen as extremely valuable source but it also has to be highlighted that it is not only targeted to consume the data but also actively be part of the OSM-community. This decision is seen as essential for the health of this project and many more. It also has to be underlined that the setup of GOAT allows frequent data updates, this makes it easy for users to improve OSM as data warehouse and benefit from rising data quality in the analyses. 
 
 Although GOAT is built with OSM-data other data sources can be conveniently added to the GOAT.

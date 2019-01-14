@@ -10,11 +10,13 @@ The efficient interaction of software in GOAT is made possible by the popular cl
 Just like many applications today, GOAT has a database that allows efficient storage and organization of information. Information can therefore be accessed, managed and updated appropriately. 
 As database PostgreSQL is used and the spatial extension PostGIS. Both together act as core of the application.
 
+<img class="img-responsive" src="../../img/libraries_used.png" alt="Libraries Used">
+
 Additionally, the underlying database allows ,with the help of the extension pgRouting, for routing and calculation of the isochrones. Most spatial operations in GOAT are done in Spatial SQL with the procedural programming language Pl/pgSQL and Python as Pl/Python.
 Geoserver is used for sharing geospatial data with the web. The geoserver further communicates directly with the database and serves this data to the web. This is done with the standardized services WFS, WFS-T and WMS. Geoserver runs with Tomcat inside a Docker containers. 
 In instances where more customizable interaction with the geospatial data is required, a NodeJS server is used. 
 
-<img class="img-responsive" src="../../img/libraries_used.png" alt="Libraries Used">
+<img class="img-responsive" src="../../img/server_client_architecture.png" alt="Server-Client Architecture">
 
 In the front-end, data is retrieved by the commonly used webstack (HTML, CSS, JavaScript) with the help of the Openlayers library. 
 All software used in GOAT are open source and have a strong worldwide community acceptance and reputation. This setup was initially tested on an Ubuntu Server 18.04 machine but the same could be user on other Linux distros with a few customizations done to its setup.
