@@ -75,7 +75,7 @@ var categories_db_style = {
 'Education':{'kindergarten':['kindergarten','Kindergarten'],'primary_school':['school-15','Primary school'],'secondary_school':['school-15','Secondary school']},
 'Gastronomy':{'bar':['bar-15','Bar'],'biergarten':['biergarten','Biergarten'],'cafe':['cafe-15','Café'],'pub':['pub','Pub'],'fast_food':['fast-food-15','Fast food'],
 'ice_cream':['ice-cream-15','Ice cream'],'restaurant':['restaurant-15','Restaurant']},
-'Population':{'address':['address-15','Addresses'],'population':['population-15','Population']},
+'Population':{'population':['population-15','Population']},
 'Other':{'library':['library-15','Library'],'night_club':['night-club-15','Night-Club'],'recycling':['recycling-15','Recycling']},
 'Transport':{'bicycle_rental':['bicycle-share-15','Bicycle rental'],'car_sharing':['car-15','Car sharing'],'charging_station':['charging-station','Charging station'],
 'bus_stop':['bus-15','Bus'],'tram_stop':['rail-light-15','Tram station'],

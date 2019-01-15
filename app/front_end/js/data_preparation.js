@@ -66,7 +66,7 @@ var create_dropdown = function(time_steps,ids){
 		if (ids.length == 1 && ids[0].includes('input')){
 			var colors = '<div class="legend_item" style="margin-left: 7px;margin-right: 7px;width:50px;height:20px;border:2px solid #000;background-color:'+colors_isochrones_input[value]+';"></div>'
 			if (key == 0){
-				var label = '<span style="margin-left: 7px;margin-right: 7px;font-weight: bold;">Input</span><br>'
+				var label = '<span style="margin-left: 7px;margin-right: 7px;font-weight: bold;">Scenario</span><br>'
 				colors = label + colors;
 			}
 		}
@@ -74,7 +74,7 @@ var create_dropdown = function(time_steps,ids){
 			var inputDiv = '<div class="legend_item"  style="margin-left: 7px;margin-right: 7px;width:50px;height:20px;border:2px solid #000;background-color:'+colors_isochrones_input[value]+';"></div>'
 			colors = colors + inputDiv;
 			if (key == 0){
-				var label = '<span style="margin-left: 7px;margin-right: 7px;font-weight: bold;">Default</span><span style="margin-left: 7px;margin-right: 7px;font-weight: bold;">Input</span><br>'
+				var label = '<span style="margin-left: 7px;margin-right: 7px;font-weight: bold;">Default</span><span style="margin-left: 7px;margin-right: 7px;font-weight: bold;">Scenario</span><br>'
 				colors = label + colors;
 			}		
 		}		
@@ -95,8 +95,9 @@ var create_dropdown = function(time_steps,ids){
 }
 
 function downloadFn (objectid,outputformat){
-	var  cql_isochrone = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:isochrones&outputFormat='+outputformat+'&srsname=EPSG:3857&CQL_Filter=objectid='+objectid.toString();
-	var  ways = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=objectid:'+objectid+';modus:1&typeNames=cite:show_network&outputFormat='+outputformat+'&srsname=EPSG:3857';
+	//var  cql_isochrone = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:isochrones&outputFormat='+outputformat+'&srsname=EPSG:3857&CQL_Filter=objectid='+objectid.toString();
+	var  cql_isochrone = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=objectid:'+objectid.toString()+'&typeName=cite:download_isochrones&outputFormat='+outputformat+'&srsname=EPSG:4326';
+	var  ways = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=objectid:'+objectid+'&typeNames=cite:download_reached_network&outputFormat='+outputformat+'&srsname=EPSG:4326';
 	var extension;
 		if (outputformat == 'application/json' ){
 			extension = 'json'
@@ -121,7 +122,7 @@ function downloadFn (objectid,outputformat){
 		var isochrones = values[0]; 
 		zip.file("isochrones."+objectid+"."+extension, isochrones);
 		var ways = values[1];
-		zip.file("newtwork."+objectid+"."+extension, ways);
+		zip.file("network."+objectid+"."+extension, ways);
 
 		zip.generateAsync({type:"blob"})
 			.then(function(content) {
