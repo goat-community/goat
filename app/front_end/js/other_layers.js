@@ -148,8 +148,9 @@ var calculation = function (layer_id,layer,modus) {
 				}
 			index_pois = index_pois + index_part		
 		}	
-		thematic_data[layer_id]['index_pois']	= index_pois;			
-		var index_html = '<br>'+layer_id.split('_')[0]+'(y = '+y.toString()+'): '+index_pois.toFixed(2).toString() //selects the word default or input + rounds
+		thematic_data[layer_id]['index_pois']	= index_pois;	
+		var description = {"input":"Scenario","default":"Default"}		
+		var index_html = '<br>'+description[layer_id.split('_')[0]]+' (y = '+y.toString()+'): '+index_pois.toFixed(2).toString() //selects the word default or input + rounds
 		$('#content_index_calculation_'+number).append(index_html)	
 		$('#mySpinner').removeClass('spinner');																																														 
 	}) 		

@@ -20,6 +20,7 @@ def calculate_isochrones(grid_size):
 	con.commit()
 	cursor.execute('select grid_id, st_x(st_centroid(geom)), st_y(st_centroid(geom)) from grid_%s order by grid_id' % (grid_size))
 	grid = cursor.fetchall()
+
 	for i in grid:
 	    #time.sleep(1)
 	    
