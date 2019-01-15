@@ -3,39 +3,53 @@ title: Setup your own GOAT
 permalink: /docs/quick_start/
 ---
 
-For the developed Vagrant and Docker are used. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. In order to start and customize GOAT for your study area, you have to follow these steps:
+
+For the developed Vagrant and Docker are used. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. 
+In order to start and customize GOAT for your study area, you have to follow these steps:
 
 #### 1. Get a copy of GOAT
 
-```
-git clone https://github.com/EPajares/goat.git (run on your host or copy as zip-folder)
-```
+`git clone https://github.com/EPajares/goat.git` (run on your host)
 
+or copy as zip-folder
 
 #### 2. Install Virtualbox
+
 [https://www.virtualbox.org/](https://www.virtualbox.org/)
 
 #### 3. Install Vagrant
+
 It was only tested with the version mentioned above. Accordingly if you want to avoid unexpected issues, stick with that version.
 
-[https://www.virtualbox.org/](https://www.vagrantup.com/)
+[https://www.vagrantup.com/](https://www.vagrantup.com/)
+
 
 #### 4. Prepare your data
+
 Put all your data into the app/data folder!
 
 ##### If you want to disaggregate population data
-You need a shapefile with administrative boundaries and a column with the number of inhabitants in this administrative unit, it works for any spatial resolution. The column has to be named “sum_pop” and has to be saved as integer. As the population data is used for population disaggregation, data on higher resolution will give you a more accurate disaggregation. Make sure you change the name of your spatial unit to name_administrative.
 
-Optional: In the case you have custom landuse data you can place the data as shapefile (name the file: landuse.shp) into your data folder. The table has to include a column named "landuse". You can define in the table variable_container, which landuse category you want to exclude from the population disaggregation. For instance you can exclude graveyards or farmland and as consequences houses standing on these landuse categories are marked as not uninhabited.
+You need a shapefile with administrative boundaries and a column with the number of inhabitants in this administrative 
+unit, it works for any spatial resolution. The column has to be named “sum_pop” and has to be saved as integer. 
+As the population data is used for population disaggregation, data on higher resolution will give you a more 
+accurate disaggregation. Make sure you change the name of your spatial unit to name_administrative.
+
+Optional: In the case you have custom landuse data you can place the data as shapefile (name the file: landuse.shp) into your data folder. The table has to include a column named "landuse". You can define in the table variable_container, which landuse category you want to exclude from the population disaggregation. For instance you can exclude graveyards or farmland and as consequences houses standing on these landuse categories are marked as not uninhabited. 
 
 ##### If you already have population data on a high-resolution
-Just place a shapefile called population.shp into your data folder. The geometry type has to be point and the number of residents have to be saved as integer into a column called "population".
+
+Just place a shapefile called population.shp into your data folder. The geometry type has to be point and the number of residents have to be saved as integer into a column called "population". 
+
 
 #### 5. Define your bounding box and the OSM-Downloadlink
+
 Open the file secret.js in the app/config folder. Customize the DOWNLOAD_LINK and define your BOUNDING_BOX.
 
 #### 6. Setup GOAT
+
 ##### 6.1. Start Vagrant
+
 Open a command window and go into the project folder. Run the command:
 
 `vagrant up` (run on your host)
@@ -51,8 +65,6 @@ For more Vagrant commands checkout:
 `sudo bash app/installation/install_software.sh` (run on your VM)
 
 This script can take a while as it installs quite some software on your VM. If you want to check what is installed exactly you can view the install_software.sh script.
-This script can take a while as it installs quite some software on your VM. If you want to check what is installed exactly you can view the install_software.sh script.
-
 
 ##### 6.3. Fill your database
 
@@ -74,12 +86,10 @@ In case you want to UPDATE all your data you can simply run the following from y
 
 `sudo bash install_geoserver.sh` (run on your VM)
 
-Geoserver is running inside docker, which itself is inside your VM. You can check if Geoserver is up and running by typing `http://localhost:8080/geoserver/index.html` into your browser. The default password for your Geoserver instance is:
+Geoserver is running inside docker, which itself is inside your VM. You can check if Geoserver is up and running by typing [http://localhost:8080/geoserver/index.html](http://localhost:8080/geoserver/index.html) into your browser. The default password for your Geoserver instance is:
 
-```
 User: admin
 Password : geoserver
-```
 
 ##### 8. View GOAT in the browser
 
@@ -118,13 +128,15 @@ You can connect to the PostgreSQL database with the following default credential
 
 **Change your credentials especially if you want to run GOAT in production**
 
-```
 Host: localhost
+
 User: goat
+
 Database: goat
+
 Password: earlmanigault
+
 Port: 65432
-```
 
 ##### Common Issues
 
@@ -143,5 +155,28 @@ You potentially have to run all the following commands:
 
 `dos2unix ~/app/geoserver/install_geoserver.sh` (run on your VM)
 
+##### Backup Database
 
+Login as root user:
 
+`sudo su`
+
+Login as user postgres:
+
+`su - postgres`
+
+Open the crontab for the postgres user:
+
+`crontab -e`
+
+Add these lines to crontab file for having a backup every second day (they can be customized):
+
+1 * * * 1 pg_dump -U postgres goat > /var/lib/postgresql/backup/backup_last_monday.sql
+
+1 * * * 3 pg_dump -U postgres goat > /var/lib/postgresql/backup/backup_last_wednesday.sql
+
+1 * * * 5 pg_dump -U postgres goat > /var/lib/postgresql/backup/backup_last_friday.sql
+
+1 * * * 7 pg_dump -U postgres goat > /var/lib/postgresql/backup/backup_last_sunday.sql
+
+Checkout: [https://crontab.guru/](https://crontab.guru/)
