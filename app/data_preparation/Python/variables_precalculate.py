@@ -22,59 +22,62 @@ prepare_tables = '''select * from hexagrid(grid_size);
 
 
 
-thematic_data_sql ='''	--Pois and public transport stops are combined and all which are intersecting with the precalculate_walking_grid_size
-	--are selected.
-        with var_poi as (
-		select i.grid_id,i.step, p.gid as poi_gid,p.amenity,p.name, p.geom  
-		from pois p,precalculate_walking_grid_size i,variable_container v 
-		where v.identifier = 'poi_categories'
-		and amenity = any(variable_array)
-		and i.grid_id= grid_id_replace
-		and st_intersects(p.geom,i.geom)
-		union all
-		select i.grid_id,i.step,p.gid as poi_gid,public_transport_stop,p.name,p.geom
-		from public_transport_stops p, precalculate_walking_grid_size i
-		where i.grid_id= grid_id_replace
-		and st_intersects(p.geom,i.geom)
+thematic_data_sql ='''
+	with var_poi as (
+		SELECT i.grid_id,i.step, p.gid as poi_gid,p.amenity,p.name, p.geom  
+		FROM pois p,precalculate_walking_grid_size i,variable_container v 
+		WHERE v.identifier = 'poi_categories'
+		AND amenity = any(variable_array)
+		AND i.grid_id= grid_id_replace
+		AND st_intersects(p.geom,i.geom)
+		UNION ALL
+		SELECT i.grid_id,i.step,p.gid as poi_gid,public_transport_stop,p.name,p.geom
+		FROM public_transport_stops p, precalculate_walking_grid_size i
+		WHERE i.grid_id= grid_id_replace
+		AND st_intersects(p.geom,i.geom)
 		
 	)	
 	
-	--The distance from each POI/transport stop to a calculated vertex from the edges table
-	--is calculated and the cost is passed is saved.
-	--!!!!The selection of the nearest vertex has to be improved!!!!
-	,min_dist as (
-		select  poi_gid,name,amenity,v.id,st_distance(x.geom,v.geom) as min_dist,x.geom 
-		from  ways_vertices_pgr v,var_poi x
-		where 
-		v.id 
-		in(select node from edges_temp)
-		and St_dwithin(v.geom::geography,x.geom::geography,50,true)
+	--The distance FROM each POI/transport stop to a calculated vertex FROM the edges table
+	--is calculated AND the cost is passed is saved.
+	--!!!!The SELECTion of the nearest vertex has to be improved!!!!
+	,vertices_edges AS (
+		SELECT min(cost) AS cost, geom
+		FROM (SELECT st_startpoint(geom) geom, cost
+			  FROM edges_temp
+			  UNION ALL
+			  SELECT st_endpoint(geom) geom, cost
+			  FROM edges_temp
+			) x
+		GROUP BY geom
 	)
-	
-	,min_dist1 as (
-		select * from min_dist where min_dist <> 0
-		and min_dist in(
-		select min(min_dist) from min_dist group by poi_gid)
-	)	
-		
-	--The pois are saved as jsonb and saved at the precalculate_walking_grid_size table	
-	,test_pois as (
-		select amenity,name,cost from min_dist1 m,
-		(select node,min(cost) as cost from edges_temp 
-		group by node) x
-		where m.id = x.node
-	
+	,distance as (
+		SELECT  poi_gid,name,amenity,st_distance(x.geom,v.geom) as min_dist, v.cost, x.geom 
+		FROM  vertices_edges v, var_poi x
+		WHERE St_dwithin(v.geom::geography,x.geom::geography,50,true)
+		AND st_distance(x.geom,v.geom) <> 0
+	)
+	,cost_pois as (
+		SELECT * FROM distance 
+		WHERE min_dist <> 0
+		AND min_dist in(
+		SELECT min(min_dist) FROM distance GROUP BY poi_gid)
 	)
 	UPDATE precalculate_walking_grid_size set thematic_data = z.array_to_json
-	from (
-	select grid_id_replace,array_to_json(array_agg(row_to_json(x))) from(
-	select amenity,name,min(cost) as cost from test_pois --Every entrance or bus_stop is only counted once (shortest distance is taken)
-	where amenity in('subway_entrance','bus_stop','tram_stop','sbahn_regional') 
-	group by amenity,name
-	union all
-	select amenity,name,cost from test_pois
-	where amenity not in('subway_entrance','bus_stop','tram_stop','sbahn_regional'))x) z 
-	where precalculate_walking_grid_size.grid_id = grid_id_replace; '''
+	FROM (
+	SELECT grid_id_replace as grid_id,array_to_json(array_agg(row_to_json(x))) 
+		FROM(
+			SELECT amenity,name,min(cost) as cost FROM cost_pois --Every entrance OR bus_stop is only counted once (shortest distance is taken)
+			WHERE amenity in('subway_entrance','bus_stop','tram_stop','sbahn_regional') 
+			GROUP BY amenity,name
+			UNION ALL
+			SELECT amenity,name,cost FROM cost_pois
+			WHERE amenity not in('subway_entrance','bus_stop','tram_stop','sbahn_regional')
+			)x
+		) z 
+	WHERE precalculate_walking_grid_size.grid_id = z.grid_id;
+
+'''
 
 
 final_sql = '''UPDATE grid_grid_size set area_isochrone = st_area(x.geom::geography)
