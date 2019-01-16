@@ -49,7 +49,9 @@ Although GOAT is at an early stage of development, it can be used to answer diff
 
 - How many residents are served by certain public transport stops? Where can the perfect location for a new public transport be in order to serve as many residents as possible?
 
-- What is the effect of a new pedestrian bridge on the accessibility of a neighborhood?- How does the accessibility of a place change if there is temporary closure of a walkway?
+- What is the effect of a new pedestrian bridge on the accessibility of a neighborhood?- 
+
+- How does the accessibility of a place change if there is temporary closure of a walkway?
 
 - How high is the diversity and availability of gastronomy in different neighborhoods?
 
