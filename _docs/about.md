@@ -1,6 +1,6 @@
 ---
 title: What is GOAT?
-permalink: /docs/about/
+permalink: /docs/about
 ---
 
 ### Main characteristics
