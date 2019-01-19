@@ -4,3 +4,6 @@ _site
 *.gem
 .bundle
 vendor/bundle
+ubuntu-bionic-18.04-cloudimg-console.log
+.vagrant/
+app/
