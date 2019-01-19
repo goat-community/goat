@@ -1,16 +1,18 @@
 # Site settings
 title: Open Accessibility
-email: your-email@domain.com
+email: elias.pajares@tum.de
 description: >
-  Welcome to Open Accessibility
-  Perform your own accessibility analysis!.
+  On Open Accessibility you can work with the dynamic, interactive  and open 
+  accessibility planning tool GOAT. This makes it a great instrument to support transport and 
+  land-use planning. 
+    
 lang: en-US
 
-baseurl: "/goat" # the subpath of your site, e.g. /blog/
-url: https://aksakalli.github.io/jekyll-doc-theme # the base hostname & protocol for your site
+baseurl: "" # the subpath of your site, e.g. /blog/
+url: "https://open-accessibility.org" # the base hostname & protocol for your site
 git_address: https://github.com/EPajares/goat
-appURL: http://open-accessibility.org/wp/en/accessibility/
-git_edit_address: https://github.com/aksakalli/jekyll-doc-theme/blob/gh-pages
+appURL: https://goat.open-accessibility.org
+git_edit_address: https://github.com/EPajares/goat/tree/gh-pages/
 
 # theme options from https://bootswatch.com/
 # comment out this to use default Bootstrap
@@ -19,7 +21,7 @@ bootwatch: paper
 # Build settings
 markdown: kramdown
 highlighter: rouge
-gems:
+plugins:
   - jekyll-feed
   - jekyll-redirect-from
   - jekyll-seo-tag

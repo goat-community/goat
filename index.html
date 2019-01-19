@@ -3,58 +3,99 @@ layout: default
 ---
 
 <div class="header-container jumbotron">
-    <div class="container">
-        <h1>Welcome to Open Accessibility</h1>
-        <p><span style="background-color:#26AE3F;padding:5px;">Perform your own accessibility analysis!</span></p>
-        <p><a class="btn btn-primary btn-lg" href="{{ "/docs/home/" | prepend: site.baseurl }}" role="button">Learn more</a></p>
+    <div class="container" style="margin-top:5%">
+        <p></p>
+        <p><span style="font-weight: 500;font-size: 60px;color:rgb(58, 54, 54);">Welcome to Open Accessibility</span></p>
+        <p><a class="btn btn-primary btn-lg" href="https://goat.open-accessibility.org" role="button">Try GOAT!</a></p>
+        <p></p>
     </div>
 </div>
 
 
 <div class="container">
-
-    <div class="row">
-        <div class="col-md-6">
-            <h2 class="header-light regular-pad">What is GOAT?</h2>
-              <p class="lead">This is the experimental release of (GOAT). <br>                  
-                  GOAT or (Geo Open Accessibility Tool) is meant to be an open source, interactive, flexible 
-                  and useful web-tool for accessibility planning. Its main data source is OpenStreetMap,
-                   however other data sources can be used as well.
-                    The backbone of the application is a PostgreSQL/PostGIS database..</p>
-        </div>
-        <div class="col-md-6 text-center">
-            <img src="img/open_accessibility_2.png" alt="" class="img-responsive">
-        </div>
-    </div>
-    <hr>
+    
 
     <div class="row">
         <div class="col-sm-4">
             <h1 class="text-center">
                     <img src="img/opensource.png" alt="" >
             </h1>
-            <h3 class="text-center">Open Data & Open Source</h3>
-            <p>Get started by cloning source into GitHub account of your project. Thanks to <a href="https://pages.github.com">GitHub Pages</a>,
-              it will be automatically compiled and published under your project's subdomain on `github.io`.
-            </p>
+            <h5 class="text-center">Open Data & Open Source</h5>
         </div>
         <div class="col-sm-4">
             <h1 class="text-center">
                  <img src="img/scenario_building.png" alt="" >
             </h1>
-            <h3 class="text-center">Scenario Building<br> &nbsp;</h3>
-            <p>This template uses <a href="https://github.com/twbs/bootstrap-sass">bootstrap-sass</a> along with <a href="https://bootswatch.com/">Bootwatch themes</a>.
-            You can change the theme or write your custom by overwriting bootstrap sass variables for a different color set, font options, etc.</p>
-        </div>
+            <h5 class="text-center">Scenario Building<br> &nbsp;</h5>
+      </div>
         <div class="col-sm-4">
             <h1 class="text-center"> 
                 <img src="img/interactive_calculation.png" alt="" >
             </h1>
-            <h3 class="text-center">Realistic &  interactive calculations</h3>
-            <p>Leverage from Git version control system by
-              maintaining your documentation along with the source code; publish the page when you merge to the master branch.</p>
+            <h5 class="text-center">Dynamic Calculations</h5>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-6">
+            <h4 class="header-light regular-pad">What is GOAT?</h4>
+              <p class="lead">        
+                GOAT stands for Geo Open Accessibility Tool. This web-tool is meant to be open source, interactive, 
+                flexible and useful for accessibility planning. It is under development at the 
+                <a href='https://www.sv.bgu.tum.de'>Chair for Urban Structure and Transport Planning at TUM</a>. 
+                Currently, GOAT is designed to assist pedestrians in movement from one place to another, however, frequent 
+                enhancements and extensions will be made on a regular basis. At the moment you can test the demo version 
+                of GOAT for the city of Munich <a href="https://goat.open-accessibility.org">here</a>.</p>
+        </div>
+        <div class="col-md-6 text-center">
+            <img src="img/heatmap_transport.png" alt="" class="img-responsive">
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-6 text-center">
+            <img src="img/isochrone_amenities.png" alt="" class="img-responsive">
+        </div>
+        <div class="col-md-6">
+            <h4 class="header-light regular-pad">Why GOAT?</h4>
+              <p class="lead">There is rising awareness that active mobility plays a vital role in urban transport systems. 
+                  However, to date there are few planning instruments that are focusing on walking and cycling. 
+                  GOAT as an accessibility tool is therefore designed to model walking accessibility and serve as a 
+                  suitable instrument for easier, better and more open transport and urban planning.</p>
+        </div>
+        
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-6">
+            <h4 class="header-light regular-pad">Main Features</h4>
+              <p class="lead">        
+                    The main focus of GOAT is to offer dynamic accessibility analysis at the neighbourhood level. At the moment, 
+                    only the walking mode is supported but soon cycling will follow. With GOAT, you can calculate different accessibility 
+                    indicators such as isochrones and gravity-based heat-maps. What is more special about GOAT is that you can develop your 
+                    own case scenarios, for instance you can model a new bridge over a river, and examine corresponding changes in accessibility. 
+              </p>
+        </div>
+        <div class="col-md-6 text-center">
+            <img src="img/draw_bridge.png" alt="" class="img-responsive">        
         </div>
     </div>
 
 
 </div>
+
+<!-- Matomo -->
+<script type="text/javascript">
+    var _paq = _paq || [];
+    /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+      var u="//analytics.open-accessibility.org/";
+      _paq.push(['setTrackerUrl', u+'piwik.php']);
+      _paq.push(['setSiteId', '1']);
+      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+      g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+    })();
+  </script>
+  <!-- End Matomo Code -->
