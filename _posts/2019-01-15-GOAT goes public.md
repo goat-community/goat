@@ -13,10 +13,11 @@ This site should not only serve the purpose of hosting the GOAT application but 
 
 
 As first guidance the following videos shall help to understand the core features of GOAT.
-
-<iframe width="640" height="564" src="https://player.vimeo.com/video/311547681" frameborder="0" allowFullScreen mozallowfullscreen webkitAllowFullScreen></iframe>
-<iframe width="640" height="564" src="https://player.vimeo.com/video/311550100" frameborder="0" allowFullScreen mozallowfullscreen webkitAllowFullScreen></iframe>
-<iframe width="640" height="564" src="https://player.vimeo.com/video/311549509" frameborder="0" allowFullScreen mozallowfullscreen webkitAllowFullScreen></iframe>
+<p align="left">
+<iframe width="500" height="281" src="https://player.vimeo.com/video/311547681" frameborder="0" allowFullScreen mozallowfullscreen webkitAllowFullScreen></iframe>
+<iframe width="500" height="281" src="https://player.vimeo.com/video/311550100" frameborder="0" allowFullScreen mozallowfullscreen webkitAllowFullScreen></iframe>
+<iframe width="500" height="281" src="https://player.vimeo.com/video/311549509" frameborder="0" allowFullScreen mozallowfullscreen webkitAllowFullScreen></iframe>
+</p>
 
 
 
