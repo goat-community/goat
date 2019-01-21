@@ -1,0 +1,15 @@
+<layer>
+  <name>download_isochrones</name>
+  <id>LayerInfoImpl-27a7374d:16852ca7929:-5f58</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--167589b6:15c77205b7f:-7ffb</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-27a7374d:16852ca7929:-5f59</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

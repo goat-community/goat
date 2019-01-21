@@ -8,25 +8,23 @@ DECLARE
 BEGIN
    DROP TABLE IF EXISTS pre_network;
    CREATE TABLE pre_network as 
-   SELECT w.id id,class_id,source,target,geom,0 as help 
-   FROM ways_userinput w, user_input_network i
-   WHERE st_intersects(w.geom,i.geometry)
+   SELECT w.id,w.class_id,w.source,w.target,w.geom,0 as help 
+   FROM ways_userinput w, drawn_features i
+   WHERE st_intersects(w.geom,i.geom)
    AND w.userid IS NULL;
    For i IN
-      SELECT gid FROM user_input_network 
+      SELECT id FROM drawn_features 
    LOOP
 	  execute 
-	  	'UPDATE pre_network set help=1 FROM user_input_network i WHERE i.gid ='|| i || 
-	  	' AND st_intersects(pre_network.geom,i.geometry)';
+	  	'UPDATE pre_network set help=1 FROM drawn_features i WHERE i.id ='|| i || 
+	  	' AND st_intersects(pre_network.geom,i.geom)';
       execute 
       	'insert INTO pre_network(class_id,geom,help) 
-		SELECT w.class_id,(st_dump(ST_CollectionExtract(st_split(w.geom,i.geometry),2))).geom,0
-		FROM pre_network w, user_input_network i
-		WHERE i.gid=' || i || ' AND st_intersects(w.geom,i.geometry)';
+		SELECT w.class_id,(st_dump(ST_CollectionExtract(st_split(w.geom,i.geom),2))).geom,0
+		FROM pre_network w, drawn_features i
+		WHERE i.id=' || i || ' AND st_intersects(w.geom,i.geom)';
       execute
       	'delete FROM pre_network WHERE help = 1';
-      
-		
     END LOOP;
 END
 $function$

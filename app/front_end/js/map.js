@@ -5,7 +5,9 @@ import {GetBaseLayers,addRemoveAccesibilityLayer,WaysLayers} from './layers';
 import 'ol-ext/control/Search.css';
 import SearchPhoton from 'ol-ext/control/SearchPhoton';
 import {ol_legend} from './legend';
-
+import Mask from 'ol-ext/filter/Mask';
+import {Fill} from 'ol/style';
+import {getCenter} from 'ol/extent';
 
 var center = transform([ApiConstants.x,ApiConstants.y], 'EPSG:4326', 'EPSG:3857');
 var map = new Map({
@@ -18,9 +20,26 @@ var map = new Map({
     })
 });
 
-
-
-
+GetBaseLayers().forEach(function(layer,index,array){
+  if (layer.get('name') =='StudyArea'){
+  //For all basemaps a filter excluding everything a part from the Study-Area is set.
+    var i;
+    layer.getSource().on('change', function(e) {
+      var f = layer.getSource().getFeatures()[0];
+      var extent = f.getGeometry().getExtent();
+      map.getView().fit(extent,map.getSize());
+      var center = getCenter(extent);
+      var geographicCenter = transform([center[0],center[1]], 'EPSG:3857','EPSG:4326');
+      //Update ApiConstant
+      ApiConstants.x = geographicCenter[0];
+      ApiConstants.y = geographicCenter[1];
+      var mask = new Mask({ feature: f, inner:false, fill: new Fill({ color:[169,169,169,0.8] }) })
+      for (i of array){
+        i.addFilter(mask);
+      }
+    })
+  }
+});
 ////////Ol3-ext Photon Address
 var search = new SearchPhoton(
   {	
@@ -38,24 +57,27 @@ search.on('select', function(e)
 });
 map.addControl(search);
 
-map.addControl(new ol_legend({
+
+var legendControl = new ol_legend({
   map: map,
   class: 'ol_legend'
-}));
+});
+
+map.addControl(legendControl);
 
 //Events for accesibility layer
 
 $('body').on('change','.thematic_data_weight, .thematic_item_check',function(){
  
   if ($('#accessibility_basemap_select').val() != 'no_basemap'){
- console.log('testtest');
+
     addRemoveAccesibilityLayer.add(map);
   }  
 
 })
 
 $('body').on('change','#accessibility_basemap_select',function(){
- console.log('testtest');
+
   let style = this.value;
   if (style != 'no_basemap'){
     addRemoveAccesibilityLayer.add(map);
@@ -64,7 +86,6 @@ $('body').on('change','#accessibility_basemap_select',function(){
   }
   else{
     map.getLayers().forEach(function (layer) {
-      console.log(layer.get('name'));
     if (layer.get('name') != undefined & layer.get('name') === 'layer_accessibility') {
       addRemoveAccesibilityLayer.remove(map);
     }

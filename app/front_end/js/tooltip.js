@@ -10,32 +10,28 @@ var listener_start;
 var listener_end;
 var tool_tip = function(interaction,modus){
     var sketch;  
-   
 		map.getOverlays().getArray().slice(0).forEach(function(overlay) {
 						if (overlay.getProperties().element.id !='startaddresse'){																	
 		 					map.removeOverlay(overlay);
 						}		
 		});
-
       var helpTooltipElement;
-
-     
-      
       var continueLineMsg = '<b>Single click to draw <br> Double click to finish</b>';
       var pointerMoveHandler = function(evt) {
-        if (evt.dragging) {
+        if (evt.dragging && modus != 'modify') {
           return;
         }
         /** @type {string} */
         var helpMsg = '<b>Click for starting to draw<b>';
-
-        
-        
 		  if(modus=='point'){
 				helpMsg = '<b>Click for Calculation</b>'          	
         }
-                
-        
+      if (modus == 'modify'){
+        helpMsg = '<b>Click and drag the features to modify</b>' 
+      }
+      if (modus == 'delete'){
+        helpMsg = '<b>Click on feature to delete it</b>' 
+      }
         if (sketch) {
           var geom1 = (sketch.getGeometry());
           if (geom1 instanceof Point) {
@@ -45,23 +41,15 @@ var tool_tip = function(interaction,modus){
           }
          
         }
-		  //console.log(sketch);
         helpTooltipElement.innerHTML = helpMsg;
         helpTooltip.setPosition(evt.coordinate);
-
         helpTooltipElement.classList.remove('hidden');
       };
-      
-      
       map.on('pointermove', pointerMoveHandler);
-
       map.getViewport().addEventListener('mouseout', function() {
         helpTooltipElement.classList.add('hidden');
       });
-
       var typeSelect = document.getElementById('type');
-
-
       function createHelpTooltip() {
         if (helpTooltipElement) {
           helpTooltipElement.parentNode.removeChild(helpTooltipElement);
@@ -75,39 +63,21 @@ var tool_tip = function(interaction,modus){
         });
         map.addOverlay(helpTooltip);
       }
-      
-      
       createHelpTooltip();
-      
-      listener_start = interaction.on('drawstart',
-            function(evt) {
-              // set sketch
-              sketch = evt.feature;
+      if (interaction){ 
+        listener_start = interaction.on('drawstart',
+        function(evt) {
+          // set sketch
+          sketch = evt.feature;
+        }, this);
 
-
-            }, this);
-
-
-      listener_end =  interaction.on('drawend',
-            function() {
-              if (modus != 'point'){
-              sketch = null;
-					}
-            }, this);
-      
-
-///Abbrechen bei ESC
-		$(document).keyup(function(e) {
-     if (e.keyCode == 27) { 
-     		map.removeInteraction(interaction);
-     		map.getOverlays().getArray().slice(0).forEach(function(overlay) {
-				if (overlay.getProperties().element.id !='startaddresse'){																					 					
-		 					map.removeOverlay(overlay);
-				}	
-		});
-    }
-});
-
+        listener_end =  interaction.on('drawend',
+              function() {
+                if (modus != 'point'){
+                sketch = null;
+            }
+              }, this);
+      }
 
 };
 
@@ -121,23 +91,24 @@ export {tool_tip};
 var tool_info = {"Starting point calculation ":`You can press this button and click<br> 
                                 at any visible place on the map for<br>
                                 starting a calculation.`,
-           "Load Ways Features":`You can load a subset of the road network into your map<br>
-                                 by clicking the button and simply drawing a circle .`,          
-                      "Drawing":`There are existing three ways of modifying the network.<br>
+           "Load network":`You can load a subset of the road network into your map<br>
+                                 by clicking the button and simply drawing a circle.<br>
+                                 These streets can be used to modify the transport network.`,          
+                      "Modify network":`There are existing three ways of modifying the network.<br>
                                  You can draw a new way feature, delete an existing feature <br>
                                  or modify the shape of an existing feature.<br>`,
-  "Add new lines to network ":`Once this button is clicked the drawn<br>
+  "Add network modification":`Once this button is clicked the drawn<br>
                                   lines are inserted into the routing<br>
                                   network. Depending on the number of drawn<br>
                                   features the calculation in the back-end<br> 
                                   can take a couple of seconds.`,
-              "Travel Time (min) ":`The chosen tavel time is the maximum<br>
+              "Travel Time (min) ":`The chosen travel time is the maximum<br>
                                   travel time of the drawn isochrone and<br>
-                                  is the maximum travel time when the<br>
-                                  accessibility index gets calculated`, 
+                                  is the maximum travel time when the dynamic<br>
+                                  accessibility index (not the heat-map) get calculated`, 
                  "Walking Speed ":`The average walking speed is<br>
                                   around 5 km/h, but it can vary depending<br>
-                                  on the person.<br>`,
+                                  on the person. You are free to customize this value<br>`,
               "Number isochrones ":`The number of isochrones<br>
                                   defines how many isochrones are drawn,<br> 
                                   the division of the the selected travel time<br>
@@ -145,26 +116,40 @@ var tool_info = {"Starting point calculation ":`You can press this button and cl
                                   the travel time interval.`,
            "Concavity isochrones ":`An isochrone (in this context) is defining<br> 
                                    the area, which can be reached in a certain<br>
-                                   time. The input for creating the <br>
-                                   isochrone are the reached points or network<br>
-                                   For the calculating of a convex <br> 
-                                   isochrone an polygon get spanned, with<br>
-                                   the minimum area possible. Although this<br> 
-                                   method is the fastest, it can be the least<br> 
-                                   accurate. Therefore, it is possible<br> 
-                                   to calculate concave hulls instead<br>
-                                   Depending on the concavity the<br>
+                                   time. The input for creating the isochrone is the<br> 
+                                   reached network. For the calculating of a convex<br> 
+                                   isochrone an polygon get spanned, like a rubber<br> 
+                                   band around some nails. Although this method is<br> 
+                                   the fastest for calculating an isochrone, it can be the<br> 
+                                   least accurate.<br> 
+                                   Therefore it is possible to calculate concave hulls<br> 
+                                   instead. Depending on the concavity the<br>
                                    area of the polygon is following more closely<br>
-                                   the reached network. This can be an advantage<br>
-                                   but also and disadvantage`,
+                                   the reached network. As the algorithm can only be an<br>
+                                   approximation it might be that when calculating<br> 
+                                   an scenario GOAT indicates that some areas, which<br> 
+                                   should not be affected by the network are showing<br> 
+                                   a different shape. Accordingly for some<br>
+                                   representation the convex hull can deliver<br>
+                                   more consistent and understandable results.`,
               "Calculation modus ":`Once new links and nodes are added to<br>
                                    the network, it is possible to perform a<br> 
                                    calculation on the default network, on<br>
                                    the modified network or on both networks<br> 
                                    at the same time.`,
+          "Accessibility basemap":`By selecting the thematic data you want to analyse<br>
+                                   and by selecting the walkability basemap in the<br>
+                                   dropdown menu you can visualize an dynamic and<br>
+                                   customizable heat-map. For allowing a high<br> 
+                                   performance the heat-map uses precalculated<br>
+                                   travel times, the index however get calculated<br>
+                                   interactively. This means you can assess the<br>
+                                   accessibility to different amenities interactively<br>
+                                   but you cannot built scenarios.`,
                            "GOAT":`<b>Geo Open Accessibility Tool (GOAT)</b><br>
                                     This is tool could be developed thanks to powerful open source<br>
-                                    software and the OpenStreetMap-project.`,
+                                    software and the OpenStreetMap-project. For the population numbers<br>
+                                    data from the Statistikamt München is used.`,
                   "Choose basemap ":`You can choose betweeen different basemaps,<br>
                                      please consider if you want to select the<br> 
                                      most up-to-date basemap choose OSM-Standard,<br>

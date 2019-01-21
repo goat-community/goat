@@ -6,6 +6,7 @@ from variables_precalculate import *
 
 
 
+start = time.time()
 
 con = psycopg2.connect("dbname='goat' user='goat' host='localhost' password='earlmanigault'")
 cursor = con.cursor()
@@ -19,6 +20,7 @@ def calculate_isochrones(grid_size):
 	con.commit()
 	cursor.execute('select grid_id, st_x(st_centroid(geom)), st_y(st_centroid(geom)) from grid_%s order by grid_id' % (grid_size))
 	grid = cursor.fetchall()
+
 	for i in grid:
 	    #time.sleep(1)
 	    
@@ -108,3 +110,6 @@ calculate_index(500)
 
 
 con.close()
+end = time.time()
+print('Running the script took:')
+print(end - start)

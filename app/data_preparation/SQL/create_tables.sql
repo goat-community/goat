@@ -9,7 +9,7 @@ CREATE TABLE public.isochrones (
 	modus varchar(20) NULL,
 	objectid int4 NULL,
 	parent_id int4 NULL,
-	population jsonb NULL,
+	population int4 NULL,
 	pois text NULL,
 	sum_pois text NULL,
 	CONSTRAINT isochrones_pkey PRIMARY KEY (gid)
@@ -25,16 +25,17 @@ CREATE TABLE public.edges (
 	geom geometry NULL,
 	objectid int4 NULL,
 	id serial NOT NULL,
+	class_id int4,
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
 );
 create index index_edges on edges using gist(geom);
 
 CREATE TABLE public.starting_point_isochrones (
-	gid int4 NOT NULL,
-	userid int4 NULL,
-	geometry geometry NULL,
-	objectid int4 NULL,
-	number_calculation int4 NULL,
+	gid serial,
+	userid int4 NOT NULL,
+	geom geometry,
+	objectid int4 NOT NULL,
+	number_calculation int4,
 	CONSTRAINT starting_point_isochrones_pkey PRIMARY KEY (gid)
 );
 
@@ -68,6 +69,7 @@ CREATE TABLE public.ways_modified
     geom geometry(LineString,4326),
     userid integer,
     original_id integer,
+	type varchar(20),
     CONSTRAINT ways_modified_id_pkey PRIMARY KEY (id)
 )
 WITH (

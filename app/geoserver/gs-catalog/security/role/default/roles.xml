@@ -3,7 +3,6 @@
 <roleList>
 <role id="ADMIN"/>
 <role id="GROUP_ADMIN"/>
-<role id="yingminjin"/>
 </roleList>
 <userList>
 <userRoles username="admin">
@@ -16,7 +15,6 @@
 <userRoles username="yingminjin">
 <roleRef roleID="ADMIN"/>
 <roleRef roleID="GROUP_ADMIN"/>
-<roleRef roleID="yingminjin"/>
 </userRoles>
 </userList>
 <groupList/>

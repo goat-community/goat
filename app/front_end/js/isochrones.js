@@ -24,40 +24,49 @@ let draw_isochrone = function(coordinate_input,objectid,parent_id) {
  	const coordinates= transform([coordinate_input[0],coordinate_input[1]],'EPSG:3857','EPSG:4326');
 	let modus = document.getElementById('modus').value;     	
  	
+       	/*
+	modus = 1 (default calculation)
+	modus = 2 (input calculation)
+	modus = 3 (double calculation - default)
+	modus = 4 (double calculation - input)
+	*/ 
 
-	if (modus=="double_calculation"){
-		modus=2			
-	}	     	
+	if (modus == "double_calculation" && parent_id == 1){
+		modus = '3'			
+	}
+	else if (modus == "double_calculation"){
+		modus = '4'
+	} 	
  	
 	let network_url =  ApiConstants.address_geoserver+`wfs?service=WFS&version=1.1.0
 						&request=GetFeature&viewparams=
 						objectid:${objectid};
-						modus:${modus};
-						userid:${userid}
+						modus:${modus}
 						&typeNames=cite:show_network`;
 
   	network_url = network_url.replace(/\s+/g, '');
   	
-	  let save_isochrones_url = ApiConstants.address_geoserver+`wfs?service=WFS&version=1.1.0
-							&request=GetFeature&viewparams=
-							userid_input:${userid};
-							minutes:${document.getElementById('max_traveltime').value};
-							x:${coordinates[0]};
-							y:${coordinates[1]};
-							steps:${document.getElementById('steps_isochrones').value};
-							speed:${document.getElementById('travel_speed').value};
-							concavity:${document.getElementById('concavity').value};
-							modus:${modus};
-							objectid_input:${objectid};
-							parent_id:${parent_id}
-							&typeNames=cite:save_isochrones`;
+	let save_isochrones_url = ApiConstants.address_geoserver+`wfs?service=WFS&version=1.1.0
+						&request=GetFeature&viewparams=
+						userid_input:${userid};
+						minutes:${document.getElementById('max_traveltime').value};
+						x:${coordinates[0]};
+						y:${coordinates[1]};
+						steps:${document.getElementById('steps_isochrones').value};
+						speed:${document.getElementById('travel_speed').value};
+						concavity:${document.getElementById('concavity').value};
+						modus:${modus};
+						objectid_input:${objectid};
+						parent_id:${parent_id}
+						&typeNames=cite:save_isochrones`;
 
   	save_isochrones_url = save_isochrones_url.replace(/\s+/g, '');
 
 	
-   
-   	if (modus =='2' && parent_id != 1){
-		save_isochrones_url = save_isochrones_url.replace('save_isochrones','save_isochrones_input');	  
+
+
+   	if (modus == 2 || modus == 4 ){
+		//save_isochrones_url = save_isochrones_url.replace('save_isochrones','save_isochrones_input');	  
 		var layer_name = 'input_' + number_calculations.toString();     
    	}
    	else{
@@ -77,29 +86,22 @@ let draw_isochrone = function(coordinate_input,objectid,parent_id) {
 	    	format: new WFS({
 
 	    	})
-	    })   
+		}),
+		zIndex: 10  
 	       
 	});
 	
 
 	map.addLayer(isochrone);
-
-
-		
-		fetch(save_isochrones_url, {
-			method: 'GET',
-		}).then(function (response) {
-			isochrone_load_fn ();
-		//	return response.json();
-		}).then(function (json) {
-
-			//var features = new ol.format.GeoJSON().readFeatures(json);
-		
-			
-
-
-
-		});
+	
+	fetch(save_isochrones_url, {
+		method: 'GET',
+	}).then(function (response) {
+		isochrone_load_fn ();
+	//	return response.json();
+	}).then(function (json) {
+		//var features = new ol.format.GeoJSON().readFeatures(json);
+	});
 
 
 function isochrone_load_fn (){
@@ -121,8 +123,31 @@ function isochrone_load_fn (){
 	           	  		format: new  WFS({
 
 	            	})
-	        })
-	    })    		    
+			}),
+			zIndex: 10 
+		})
+		
+		
+		layer.once('render', function(event) {
+			//If Modus is double calculation this event will fire once // for the last layer 'default'
+			
+			if (layer.getVisible()) {
+				if(document.getElementById('modus').value == 'double_calculation')
+				{
+					layer.rendered = true;
+					var defaultLayerObj = isochrones['default_'+layer_name.split('_')[1]];
+					var inputLayerObj = isochrones['input_'+layer_name.split('_')[1]];
+					//Check if both layer are rendered
+					if (!(defaultLayerObj.hasOwnProperty('rendered') && inputLayerObj.hasOwnProperty('rendered'))){
+						return;
+					}
+				}
+				//Expand Right Panel on Layer Render
+				$("#calculation_"+number_calculations).children().first().click();
+				$("#header_legend_"+number_calculations).children().first().click();
+			}
+		});
+		
 		//The isochrones are loaded directly from the isochrones table. Note there was an issue with incorrect geometries when loaded directly from SQL-View
 		isochrones[layer_name] = layer
 		map.addLayer(isochrones[layer_name]);
@@ -157,8 +182,8 @@ $('#btnInsertintoNetwork').click(function () {
 
 	const InsertintoNetwork = new VectorLayer({
     	source: new VectorSource({
-     				url:ApiConstants.address_geoserver+"wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=userid:"+userid.toString()+"&typeNames=cite:insert_into_network",
-					 	format: new WFS({
+				url:ApiConstants.address_geoserver+"wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=userid:"+userid.toString()+"&typeNames=cite:network_modification",
+					format: new WFS({
        		})
     	})   
        
@@ -170,11 +195,11 @@ $('#btnInsertintoNetwork').click(function () {
 	
 	InsertintoNetwork.getSource().on('change', function(e) {
 			$('#mySpinner').removeClass('spinner');	
-			
+			/*
 			for (let i of drawnLine.getSource().getFeatures()){
 				i.set('line_type','solid');
 			}	    
-
+			*/
 	})
 
 });
@@ -245,9 +270,6 @@ var show_network = function(network_url,layer_name){
 	isochrones[layer_name].setZIndex(z_isochrones+1); //Put isochrone above the network layer
 	const z_network_layer = network[layer_name].getZIndex();
 	network[layer_name].setVisible(false);
-
-
-	console.log(map.getLayers().getLength());	
 	const z_point = map.getLayers().getLength()-1; //Put the point above the network layer
 	layerWFS_point.setZIndex(z_point);
 }

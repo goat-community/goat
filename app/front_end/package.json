@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "parcel build index.html --public-url --out-dir public"
   },
   "author": "admin",
   "license": "ISC",
@@ -14,7 +15,9 @@
     "cors-anywhere": "^0.4.1",
     "express": "^4.16.3",
     "file-saver": "^1.3.8",
+    "hammerjs": "^2.0.8",
     "jquery": "^3.3.1",
+    "jszip": "^3.1.5",
     "materialize-css": "^1.0.0-rc.2",
     "ol": "^5.2.0",
     "ol-ext": "^3.0.2",
