@@ -40,7 +40,11 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>download_isochrones</name>
-        <sql>select * from &#xd;
+        <sql>select *, &#xd;
+case when modus = &apos;1&apos; or modus = &apos;3&apos; then &apos;default&apos;&#xd;
+else &apos;scenario&apos;&#xd;
+end as calc_type&#xd;
+from &#xd;
 isochrones &#xd;
 where objectid = %objectid%&#xd;
 or parent_id = %objectid%
