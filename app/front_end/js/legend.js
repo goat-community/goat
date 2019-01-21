@@ -11,11 +11,7 @@ function addRowFn(layer){
         } catch (err) {
             var url = layer.getSource().getUrl();
         }
-
-        console.log(url);
         var layerName = gup('layers',url.toString());
-       
-        console.log(layerName);
         if (layerName == null) return;
         var legendItemDiv = document.createElement('div');
         legendItemDiv.className = 'layer-item';
@@ -27,7 +23,8 @@ function addRowFn(layer){
         legendItemDiv.appendChild(legendItemSpan);
     
         var legendItemImg = document.createElement('img');
-        legendItemImg.src = ApiConstants.guest_geoserver_url + 'ows?service=WMS&request=GetLegendGraphic&format=image/png&layer=' +layerName;
+        legendItemImg.style = "width:100%;height:auto;"
+        legendItemImg.src = ApiConstants.address_geoserver + 'ows?service=WMS&request=GetLegendGraphic&format=image/png&layer=' +layerName;
         legendItemDiv.appendChild(legendItemImg);
     }
 
@@ -43,6 +40,7 @@ function ol_legend(e) {
     var format = options.format || 'image/png';
     var legendOlDiv = document.createElement('div');
     legendOlDiv.className = options.class + ' ol-unselectable';
+    legendOlDiv.id = 'layerLegendId';
     var htmlString = `<div id="layer-legend" class="layer-legend">
                         <div class="layer-legend-header">
                                 Layer Legend
@@ -60,7 +58,6 @@ function ol_legend(e) {
     options.map.getLayers().on("add",function(e){
         e.stopPropagation();
         addRowFn(e.element);
-        console.log(e);
     });
     options.map.getLayers().on("remove",function(e){
         e.stopPropagation();

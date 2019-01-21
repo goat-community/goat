@@ -138,21 +138,16 @@ var vector_style = new Style({
     
 
         function iconStyle(feature, resolution) {
-        		var number = feature.get('number_calculation');
-        		var path = 'http://www.open-accessibility.org/accessibility/markers/marker-'+number+'.png';
-		
-				console.log(feature);
-
-        var style = new  Style({
-		      image: new  Icon(/** @type {olx.style.IconOptions} */ ({
-		        anchor: [0.4, 40],
-		        anchorXUnits: 'fraction',
-		        anchorYUnits: 'pixels',
-		        //opacity: 0.75,
-		        src: path,
-		        scale:0.5
-		      }))})
-		  
+			var number = feature.get('number_calculation');
+			var path = '../markers/marker-'+number+'.png';
+			var style = new  Style({
+				image: new  Icon(/** @type {olx.style.IconOptions} */ ({
+					anchor: [0.4, 40],
+					anchorXUnits: 'fraction',
+					anchorYUnits: 'pixels',
+					src: path,
+					scale:0.5
+				}))})
 	  
 		  return [style];
       }      
@@ -186,12 +181,8 @@ var vector_style = new Style({
         		var amenity = feature.get('amenity');
         		
         		if ($.inArray(amenity,array_pois) != -1){
-					console.log(_pois);
-					var amenity = _pois[amenity][0]
-					console.log(amenity);
-	        		
-	        		var path = 'http://www.open-accessibility.org/accessibility/markers/pois/'+amenity+'.png';
-	        		
+					var amenity = _pois[amenity][0]	        		
+	        		var path = '../markers/pois/'+amenity+'.png';	        		
 	        		var style = new  Style({
 			      		image: new  Icon(/** @type {olx.style.IconOptions} */ ({
 			       		//anchor: [0.4, 40],
@@ -201,8 +192,6 @@ var vector_style = new Style({
 			        scale:1.5
 			      }))})
 		      }
-		      
-		      
 		      else{
 		      	style = defaultStyle_isochrones
 		      
@@ -274,14 +263,14 @@ var vector_style = new Style({
 		var speed = document.getElementById('travel_speed').value;   
         
     	  //If the parent_id is one it is a default isochrone
-        if (modus == 1 ){       
+        if (modus == 1 || modus == 3){       
       	 
       			
 				var color =  set_color(level/speed,color_diff_default,color_1_default);  
           		var style = new Style({
             	stroke: new Stroke({
 	    				color: `rgb(${Math.round(color[0])},${Math.round(color[1])},${Math.round(color[2])})`,
-	    				width: 2
+	    				width: 3
          			 	})   
          		})
 
@@ -296,7 +285,7 @@ var vector_style = new Style({
 				var style = new Style({
             	stroke: new Stroke({
 	    				color: `rgb(${Math.round(color[0])},${Math.round(color[1])},${Math.round(color[2])})`,
-	    				width: 2
+	    				width: 3
          		 		})          
         		})
 				        
@@ -304,6 +293,67 @@ var vector_style = new Style({
         		
         return style;
 			}
-			        
+
+
+
+	////////Ways Styling based on feature attributes//////////
+			//Ways original features
+			var waysDefaultStyle = new Style({
+				fill: new  Fill({
+					color: [0, 0, 0, 0]
+				}),
+				stroke: new Stroke({
+					color: '#707070',
+					width: 3
+				})
+			});
+			//Ways modified features 
+			var waysModifiedStyle = new Style({
+				fill: new  Fill({
+					color: [0, 0, 0, 0]
+				}),
+				stroke: new Stroke({
+					color: '#FF0000',
+					width: 3,
+					lineDash: [10,10]
+				})
+			});
+			//Ways new Road features
+			var waysNewRoadStyle = new Style({
+				fill: new  Fill({
+					color: [0, 0, 0, 0]
+				}),
+				stroke: new Stroke({
+					color: '#6495ED',
+					width: 4,
+					lineDash: [10,10]
+				})
+			});
+			//Ways new Bridge features
+			var waysNewBridgeStyle = new Style({
+				fill: new  Fill({
+					color: [0, 0, 0, 0]
+				}),
+				stroke: new Stroke({
+					color: '#FFA500',
+					width: 4,
+					lineDash: [10,10]
+				})
+			});
+			function waysStyle (feature,resolution){
+				var props = feature.getProperties();			
+				if ((props.hasOwnProperty('type') && props['original_id'] == null) || Object.keys(props).length == 1){
+					//Distinguish Roads from Bridge features
+					if (props.type == 'bridge'){
+						return[waysNewBridgeStyle]
+					} else {
+						return[waysNewRoadStyle];
+					}
+				} else if (!props.hasOwnProperty('original_id') && Object.keys(props).length > 1) {
+					return [waysDefaultStyle]; //Features are from original table
+				} else {
+					return [waysModifiedStyle]; //Feature are modified
+				}
+			}    
       
-  	export {boundaryStyle,styleFunction1,iconStyle,drawing_style,network_style,colors_isochrones_default,poisStyle,setStyle_pois,vector_style};
+  	export {boundaryStyle,styleFunction1,iconStyle,drawing_style,network_style,colors_isochrones_default,colors_isochrones_input,poisStyle,setStyle_pois,vector_style,waysStyle};

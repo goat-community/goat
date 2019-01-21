@@ -2,7 +2,7 @@
 var categories_db_style = {
 	'Education':['kindergarten','primary_school','secondary_school'],
 	'Gastronomy':['bar','biergarten','cafe','pub','fast_food','ice_cream','restaurant'],
-	'Population':['sum_addresses','sum_population'],
+	'Population':['sum_population'],
 	'Other':['library','night_club','recycling'],
 	'Transport':['bicycle_rental','car_sharing','charging_station','bus_stop','tram_stop','subway_entrance','sbahn_regional','taxi'],
 	'Services':['hairdresser','tailer','atm','bank','dentist','doctors','pharmacy','post_box','post_office','fuel'],

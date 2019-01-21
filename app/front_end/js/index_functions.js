@@ -4,7 +4,7 @@ import {pois,categories_db_style,dictionary,header_array,content_array} from './
 import {isochrones,network} from './isochrones';
 import {addRemoveAccesibilityLayer} from './layers';
 import {pois_geom} from './other_layers';
-import {drawnLine} from './interaction';
+import {drawnLine,ExtractStreetsLayer,QueryLayer} from './interaction';
 
 
 
@@ -20,13 +20,12 @@ let index_function = function () {
 	 	
     $(document).ready(function(e) {
     	let keys_categories = Object.keys(categories_db_style);		
-    	let thematic_select_html = '<div class="header" id="select_thematic_data" ><i class="fa fa-chevron-down" style="font-size:24px" ><span style="font-size:14px;font-family: Open Sans;margin-left:5px;">Select Thematic Data</span></i></div>';     
-    	
+    	let thematic_select_html = '<div class="header" id="select_thematic_data" ><i class="fa fa-chevron-down" style="font-size:24px" ><span style="font-size:17px;font-family: Roboto;font-weight: bold;margin-left:5px;">Select Thematic Data</span></i></div>';     
+		
     	for (let key in keys_categories) {
-
     		let pre_html_thematic = `<div class="header1 category" id="select_${keys_categories[key]}"><i class="fa fa-caret-right" style="font-size:24px"></i>
     								<input type="checkbox" class ="filled-in thematic_check" id="check_${keys_categories[key]}" unchecked></input>
-									<label for="check_${keys_categories[key]}">${keys_categories[key]}</label>
+									<label for="check_${keys_categories[key]}">${keys_categories[key].replace("___","&")}</label>
 									</div>  	
 									<div class="content" id="content_select_${keys_categories[key]}"><table class=table_item_select>content_replace</table></div> 
 									</div>`  
@@ -39,8 +38,10 @@ let index_function = function () {
 			let row;			
 			for (let key_1 in array){
 				  let cell = `<input type="checkbox" class ="filled-in thematic_item_check thematic_item_checkShared" id="check_${array[key_1]}" unchecked></input>`
-				 				+`<label for="check_${array[key_1]}">${pois[array[key_1]][1]}</label>`	+ `<input name="n" class="thematic_data_weight"type="number" min="1" max="5" step="1" value="1"/>`
-
+								  +`<label for="check_${array[key_1]}" style="padding-left:25px;height:16px;"></label>`
+				  				  +`<img style="padding-right:5px;" for="check_${array[key_1]}" src="../markers/pois/${pois[array[key_1]][0]}.png">`
+			     				  +`<label style="cursor:pointer;" for="check_${array[key_1]}">${pois[array[key_1]][1]}</label>`	
+								  + `<input name="n" class="thematic_data_weight"type="number" min="1" max="5" step="1" value="1"/>`
 				  
 				  if (isUneven(parseInt(key_1)+1)){
 				  
@@ -98,7 +99,6 @@ let index_function = function () {
 		
 		var pid = $(this).parent().closest('div').attr('id');
 		pid = pid.slice(pid.indexOf('_')+1,pid.length);
-		console.log(pid);
 		let category = pid.replace('select_','check_');
 		let elements = Object.keys(categories_db_style[category.replace('check_','')]); //Selects the pois, which are belonging to one category 
 		var len = elements.length,counter=0;
@@ -155,6 +155,19 @@ let index_function = function () {
     			map.removeLayer(drawnLine);
 			}
 	});
+
+	$("body").on('change','#toggle_ways_layer', function () { 
+		if (this.checked){		
+			ExtractStreetsLayer.setVisible(true);
+			QueryLayer.setVisible(true);
+		} 			
+		else {			
+			ExtractStreetsLayer.setVisible(false);
+			QueryLayer.setVisible(false);
+		}
+		ExtractStreetsLayer.getSource().changed();
+		QueryLayer.getSource().changed();
+});
 	
 	//Toogle function for the Select_thematic_data section
 	$("body").on('click','.fa-chevron-right, .fa-chevron-down',function () {

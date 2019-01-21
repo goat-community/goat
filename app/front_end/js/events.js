@@ -5,10 +5,12 @@ $( document ).ready(function() {
      $("#toogle_left").click(function() {
        if (!leftMenu) {
          $("#toogle_left").animate({left: "0%"});
+         $("#layerLegendId").animate({left: "0%"});
          leftMenu = true;
        }
        else {
          $("#toogle_left").animate({left: "23%"});
+         $("#layerLegendId").animate({left: "23%"});
          leftMenu = false;     
        }
      });

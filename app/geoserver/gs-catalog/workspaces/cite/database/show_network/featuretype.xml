@@ -21,17 +21,17 @@
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>-180.0</minx>
-    <maxx>180.0</maxx>
-    <miny>-90.0</miny>
-    <maxy>90.0</maxy>
+    <minx>-1.0</minx>
+    <maxx>0.0</maxx>
+    <miny>-1.0</miny>
+    <maxy>0.0</maxy>
     <crs>EPSG:4326</crs>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>-180.0</minx>
-    <maxx>180.0</maxx>
-    <miny>-90.0</miny>
-    <maxy>90.0</maxy>
+    <minx>-1.0</minx>
+    <maxx>0.0</maxx>
+    <miny>-1.0</miny>
+    <maxy>0.0</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
@@ -40,7 +40,9 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>show_network</name>
-        <sql>select *,%modus% as modus from show_network(%objectid%,%modus%,%userid%)
+        <sql>select *, %modus% as modus&#xd;
+from edges &#xd;
+where objectid = %objectid%
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
@@ -51,14 +53,12 @@
         <parameter>
           <name>modus</name>
           <defaultValue>1</defaultValue>
-        </parameter>
-        <parameter>
-          <name>userid</name>
-          <defaultValue>1</defaultValue>
+          <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
         <parameter>
           <name>objectid</name>
-          <defaultValue>10</defaultValue>
+          <defaultValue>4725350</defaultValue>
+          <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
       </virtualTable>
     </entry>

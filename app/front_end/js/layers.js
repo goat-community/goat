@@ -3,10 +3,9 @@
  import {OSM,XYZ,BingMaps,Vector as VectorSource, ImageWMS} from 'ol/source';
  import {WFS,GeoJSON} from 'ol/format';
  import {boundaryStyle} from './style';
- import {Fill} from 'ol/style';
  import ApiConstants from './secrets';
- import Mask from 'ol-ext/filter/Mask';
-//  import {map} from './map';
+
+
 
 var oepnv_attribution = '<a href="https://memomaps.de/">memomaps.de</a> <a href="http://creativecommons.org/licenses/by-sa/2.0/">'
 +'CC-BY-SA</a>, map data <a href="http://openstreetmap.org/">'
@@ -61,7 +60,6 @@ var oepnv_karte = new TileLayer({
     maxZoom:18,
     })
    })
-  console.log(oepnv_karte);
   
   layers.push(oepnv_karte);
   styles.push('PublicTransport');
@@ -80,14 +78,14 @@ $('body').on('change','#layer-select',function(){
   }
 })
 
-
+/////
 var accessibility_layer = function(){
   let heatmap_input ={};
   let select_heatmap_input = $('#main_thematic_data .content :checkbox:checked')
-  let link = ApiConstants.guest_geoserver_url+'cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:heatmap&LAYERS=cite%3Aheatmap&viewparams=amenities:%27'
+  let link = ApiConstants.address_geoserver+'cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:heatmap&LAYERS=cite%3Aheatmap&viewparams=amenities:%27'
   let link_part = '' 
   for (var i=0; i < select_heatmap_input.length; i++){
-    link_part = link_part + '{"\'' + select_heatmap_input[i].id.replace('check_','') + '\'":' + $(select_heatmap_input[i]).next().next().val() + '},'
+    link_part = link_part + '{"\'' + select_heatmap_input[i].id.replace('check_','') + '\'":' + $(select_heatmap_input[i]).siblings()[3].value + '},'
   }
   link_part = '['+link_part.slice(0, -1)+']';
   link = link + btoa(link_part) + '%27' +';resolution:300'
@@ -109,6 +107,7 @@ layer_accessibility.set('name', 'layer_accessibility');
 var study_area_url = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:study_area_union&srsname=EPSG:3857'
 
  var study_area = new VectorLayer({
+              name: 'StudyArea',
              style: boundaryStyle,
             source: new VectorSource({
             url:study_area_url,
@@ -120,15 +119,7 @@ var study_area_url = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1
 
 layers.push(study_area);
 
-//For all basemaps a filter excluding everything a part from the Study-Area is set.
-var i;
-study_area.getSource().on('change', function(e) {
-	var f = study_area.getSource().getFeatures()[0]
-	var mask = new Mask({ feature: f, inner:false, fill: new Fill({ color:[169,169,169,0.8] }) })
-	for (i of layers){
-		i.addFilter(mask);
-	}
-})
+
 
 var addRemoveAccesibilityLayer = {	
   layer: null,	

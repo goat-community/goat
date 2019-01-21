@@ -10,7 +10,7 @@ insert INTO variable_container(identifier,variable_array)
 values('poi_categories',
 '{"kindergarten","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food",
 "ice_cream","restaurant","sum_addresses","sum_population","cinema","library","night_club","recycling",
-"car_sharing","charging_station","bus_station","tram_station","subway_station","railway_station","taxi",
+"car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi",
 "optician","hairdresser","tailer","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
 "alcohol","bakery","butcher","clothes","convenience","fashion","florist","greengrocer","grocery",
 "kiosk","mall","organic","second_hand","shoes","sports","supermarket","toys","marketplace",

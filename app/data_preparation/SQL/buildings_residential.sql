@@ -140,7 +140,7 @@ round(m.sum_pop*(b.area*building_levels_residential/sum_buildings_area)) as popu
 INTO buildings_pop
 FROM buildings_residential b, x,
 study_area m
-WHERE st_intersects(b.geom,m.geom)
+WHERE st_intersects(b.geom,m.geom) AND x.sum_buildings_area <> 0
 AND m.gid=x.gid;
 
 

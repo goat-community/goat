@@ -1,0 +1,74 @@
+<featureType>
+  <id>FeatureTypeInfoImpl-27a7374d:16852ca7929:-5f59</id>
+  <name>download_isochrones</name>
+  <nativeName>download_isochrones</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
+  </namespace>
+  <title>download_isochrones</title>
+  <keywords>
+    <string>features</string>
+    <string>download_isochrones</string>
+  </keywords>
+  <nativeCRS>GEOGCS[&quot;WGS 84&quot;, 
+  DATUM[&quot;World Geodetic System 1984&quot;, 
+    SPHEROID[&quot;WGS 84&quot;, 6378137.0, 298.257223563, AUTHORITY[&quot;EPSG&quot;,&quot;7030&quot;]], 
+    AUTHORITY[&quot;EPSG&quot;,&quot;6326&quot;]], 
+  PRIMEM[&quot;Greenwich&quot;, 0.0, AUTHORITY[&quot;EPSG&quot;,&quot;8901&quot;]], 
+  UNIT[&quot;degree&quot;, 0.017453292519943295], 
+  AXIS[&quot;Geodetic longitude&quot;, EAST], 
+  AXIS[&quot;Geodetic latitude&quot;, NORTH], 
+  AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>11.5004401496142</minx>
+    <maxx>11.6681658</maxx>
+    <miny>48.1007003568613</miny>
+    <maxy>48.2033189181738</maxy>
+    <crs>EPSG:4326</crs>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>11.5004401496142</minx>
+    <maxx>11.6681658</maxx>
+    <miny>48.1007003568613</miny>
+    <maxy>48.2033189181738</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>download_isochrones</name>
+        <sql>select *, &#xd;
+case when modus = &apos;1&apos; or modus = &apos;3&apos; then &apos;default&apos;&#xd;
+else &apos;scenario&apos;&#xd;
+end as calc_type&#xd;
+from &#xd;
+isochrones &#xd;
+where objectid = %objectid%&#xd;
+or parent_id = %objectid%
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>4326</srid>
+        </geometry>
+        <parameter>
+          <name>objectid</name>
+          <defaultValue>1</defaultValue>
+          <regexpValidator>^[\w\d\s]+$</regexpValidator>
+        </parameter>
+      </virtualTable>
+    </entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
+  </store>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

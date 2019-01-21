@@ -3,27 +3,25 @@ CREATE OR REPLACE FUNCTION public.isochrones(userid_input integer, minutes integ
  LANGUAGE plpgsql
 AS $function$
 DECLARE
---Declares the output as type pg_isochrone
+--Declares the output as type type_isochrone
 r type_isochrone;
 counter integer :=0;
 upper_limit integer;
 under_limit integer;
 edges type_edges[];
-pg_function varchar:='pgrouting_edges';
 begin
 --If the modus is input the routing tables for the network with userinput have to be choosen
--- ORDER matters first
-  IF parent_id_input = 2 THEN
-    pg_function = 'pgrouting_edges_input';
-  ELSIF modus = 2 AND parent_id_input > 2 THEN
-    pg_function = 'pgrouting_edges_input_double';
+  DROP TABLE IF EXISTS temp_edges;
+  IF modus <> 1 THEN
+    execute format('CREATE TEMP TABLE temp_edges as SELECT *,'||objectid_input||' FROM pgrouting_edges_input('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||','||modus||')');
+  ELSE 
+    execute format('CREATE TEMP TABLE temp_edges as SELECT *,'||objectid_input||' FROM pgrouting_edges('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||')');
   END IF;
   
-  
-  
---A table called edges is created for saving the reached network
-  execute format('insert INTO edges SELECT *,'||objectid_input||' FROM '||pg_function||'('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||')');
-
+  INSERT INTO edges(edge,node,cost,class_id,objectid,geom) 
+  SELECT id AS edge,node,cost,class_id,objectid_input,geom  
+  FROM show_network(round(minutes*speed,0),modus,userid_input);
+  DROP TABLE IF EXISTS temp_edges;
 --The speed input, time input AND step input are used to draw isochrones with the corresponding intervals
   loop
   exit when counter =n;
@@ -43,3 +41,5 @@ begin
   
 END;
 $function$
+
+

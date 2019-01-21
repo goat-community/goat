@@ -9,7 +9,7 @@ import {Vector as VectorSource} from 'ol/source';
 import ApiConstants from './secrets';	
 import {bbox as bboxStrategy} from 'ol/loadingstrategy';
 import {map} from './map';
-import {iconStyle,drawing_style,boundaryStyle,vector_style} from './style';
+import {iconStyle,drawing_style,boundaryStyle,vector_style,waysStyle} from './style';
 import Select from 'ol/interaction/Select';
 import {Draw, Modify, Snap} from 'ol/interaction';
 import { pointerMove} from 'ol/events/condition';
@@ -20,7 +20,6 @@ import {draw_isochrone} from './isochrones';
 
 
 const userid = Math.floor(Math.random() * 10000000);
-
 var objectid; 	
 var formatWFS = new WFS();
 var formatGeoJSON = new GeoJSON();
@@ -130,6 +129,7 @@ var interactionSelect = new Select({
 	
 
 //wfs-t
+/*
 var dirty = {};
 var transactWFS = function (mode, f,formatGML,way_type) {
 	
@@ -138,14 +138,11 @@ var transactWFS = function (mode, f,formatGML,way_type) {
     var geometry = f.getGeometry().clone();
     geometry.transform("EPSG:3857", "EPSG:4326");
 
-    var  newFeature = new Feature({	
-		 
+    var  newFeature = new Feature({		 
 		userid : userid,                
         geometry: geometry,
-        objectid:objectid,
-        number_calculation:number_calculations + 1,
-        way_type : way_type 
-       
+        objectid: objectid,
+        number_calculation:number_calculations + 1
     });
     newFeature.setGeometryName("geometry");
     newFeature.setProperties(newFeature.getProperties());
@@ -175,83 +172,54 @@ var transactWFS = function (mode, f,formatGML,way_type) {
         source_drawnLine.clear();
     });
 };
-	
-$('button').click(function () {
+*/	
+$('#btnIsochrone').click(function () {
 
     map.removeInteraction(interaction);
-    interactionSelect.getFeatures().clear();
     map.removeInteraction(interactionSelect);
+    waysInteraction.remove();
+    //Define Format and table for POST	 	
+    formatGML = new GML({
+            featureNS: 'muc',
+            featureType: 'cite:starting_point_isochrones'//,
+        //	srsName: 'EPSG:3857'
+    });
+    interaction = new Draw({
+        type:'Point',
+        source: layerWFS_point.getSource()
+    });
+    tool_tip(interaction,'point');
+    var interactionSnap = new Snap({
+        source: layerWFS_point.getSource()
+    });
+    map.addInteraction(interaction);
+    interaction.on('drawend', function (e) {
+        //transactWFS('insert', e.feature,formatGML);
+        objectid = Math.floor(Math.random() * 10000000);
+        number_calculations = number_calculations + 1;				 
+        var feature=e.feature;
+        map.removeInteraction(interaction);
+        var coordinates = feature.getGeometry().getCoordinates();
+        var modus = document.getElementById('modus').value;
+            dynamicVars.objectid = objectid;
+            if (modus=='double_calculation'){
+                var new_objectid = Math.floor(Math.random() * 10000000);
+                draw_isochrone(coordinates,new_objectid,objectid);  //A objectid for the second isochrone is created and the first objectid is used as parent_id 
+                draw_isochrone(coordinates,objectid,1);		
+            }
+            else if (modus=="2"){
+                draw_isochrone(coordinates,objectid,2);	     					
+            }
+            else{
+            draw_isochrone(coordinates,objectid,1); 		
+            }           	            
 
-    switch ($(this).attr('class')) {  //legacy that this is an case statement
- 
-		 case 'draw_isochrone':
-
-	      searchInteraction.stop();	
-		 //Define Format and table for POST
-		 	
-            formatGML = new GML({
-    				featureNS: 'muc',
-    				featureType: 'cite:starting_point_isochrones'//,
-    			//	srsName: 'EPSG:3857'
-			});
-  
-           
-            interaction = new Draw({
-               	type:'Point',
-                source: layerWFS_point.getSource()
-            });
-
-           
-           
-            tool_tip(interaction,'point');
-            var interactionSnap = new Snap({
-    			source: layerWFS_point.getSource()
-			});
-
-            map.addInteraction(interaction);
-            interaction.on('drawend', function (e) {
-                transactWFS('insert', e.feature,formatGML);
-                number_calculations = number_calculations + 1;
-					 
-                var feature=e.feature;
-                map.removeInteraction(interaction);
-                var coordinates = feature.getGeometry().getCoordinates();
-                console.log(coordinates);
-                var modus = document.getElementById('modus').value;
-                    dynamicVars.objectid = objectid;
- 					if (modus=='double_calculation'){
-                         var new_objectid = Math.floor(Math.random() * 10000000);
-                         
-                      
-
-                        console.log('passed here')
-
-					   draw_isochrone(coordinates,new_objectid,objectid);  //A objectid for the second isochrone is created and the first objectid is used as parent_id 
- 					   draw_isochrone(coordinates,objectid,1);		
-	
- 					}
- 					else if (modus=="2"){
-						draw_isochrone(coordinates,objectid,2);	     					
- 					}
- 					else{
-            		draw_isochrone(coordinates,objectid,1);
-            		
-            	}
-                	
-            });
-            	            
-            break;
-
-        default:
-            break;
-    }
+    })
 });
-
 
 //GET/INSERT USER FROM DB//
 
 //////////////////////////////--- WAYS LAYER USER INTERACTION ---//////////////////////////////
-
 var sketch; 
 var measureTooltipElement;
 var measureTooltip;
@@ -266,7 +234,6 @@ function createMeasureTooltip() {
     map.addOverlay(measureTooltip);
   }
 
-  
 var formatLength = function(line) {
     var length = getLength(line);
     var output;
@@ -315,16 +282,13 @@ fetch(ApiConstants.nodeapi_baseurl + '/userdata',{
     if (mode == 'read'){
         waysInteraction.featuresIDsToDelete = json[0].deleted_feature_ids;
     }
-    console.log(json);
     }).catch(function (error) {  
-       InsertUserInDb('insert',userid) //if user doesn't exist add it on DB
-     //  console.log('Request failure: ', error);  
+       InsertUserInDb('insert',userid) //if user doesn't exist add it on DB 
     });
 }
 deleteWaysFeature('read',userid);
 
 function WfsRequestFunction (srsName,namespace,workspace,layerName,filter){
-    console.log(srsName,namespace,workspace,layerName,filter);
     var wfs = new WFS().writeGetFeature({
         srsName: srsName,
         featureNS: namespace,
@@ -336,10 +300,6 @@ function WfsRequestFunction (srsName,namespace,workspace,layerName,filter){
     var xmlparser = xs.serializeToString(wfs);
     return xmlparser;
 }
-
-
-
-
     //Add the query layer to the map
 var QueryLayerSouce = new VectorSource({wrapX: false});
 var QueryLayer = new VectorLayer({
@@ -352,7 +312,7 @@ var QueryLayer = new VectorLayer({
 var ExtractStreetsSource = new VectorSource({wrapX: false});
 var ExtractStreetsLayer = new VectorLayer({
     source: ExtractStreetsSource,
-    style: boundaryStyle
+    style: waysStyle
 });
 
 ExtractStreetsLayer.setMap(map);
@@ -381,6 +341,11 @@ var CircleRadius = {
     circleCenterCoordinates: null,
     CircleRadiusLength: null,
     pointerMoveHandler: function(evt){
+     
+        if (searchInteraction.circleRadius == null){
+            measureTooltipElement.innerHTML = "Click to start Drawing the circle (Max Radius 1000m)";
+            measureTooltip.setPosition(evt.coordinate);
+        }
         if (evt.dragging ||searchInteraction.circleRadius == null) {
             return;
         }
@@ -390,7 +355,6 @@ var CircleRadius = {
         CircleRadius.circleCenterCoordinates = currentCoord;
         centerCoord = currentCoord;
      }
-
      var deltaX = Math.pow(currentCoord[0]-centerCoord[0],2);
      var deltaY = Math.pow(currentCoord[1]-centerCoord[1],2);
      var radiusLength = Math.sqrt(deltaX+deltaY).toFixed(); // this one is used to check if the radius is greater than 1000m, not dependended from interaction
@@ -458,7 +422,7 @@ var searchInteraction = {
 
         //Get the feature that intersect with geometry
        var wfsRequestXmlStringOriginalTable = WfsRequestFunction('EPSG:3857',ApiConstants.geoserver_namespaceURI, ApiConstants.geoserver_workspace,'ways',filterIntersect);
-       var originalTableRequest = fetch(ApiConstants.wfs_url,{
+       var originalTableRequest = fetch(ApiConstants.address_geoserver+ApiConstants.geoserver_workspace+'/wfs',{
             method: 'POST',
             body: wfsRequestXmlStringOriginalTable,
             headers: {
@@ -473,7 +437,7 @@ var searchInteraction = {
        var filterUserInputTable = equalToFilter('userid', userid);
        var combinedFilter = andFilter(filterUserInputTable,filterIntersect)
        var wfsRequestXmlStringUserInputTable = WfsRequestFunction('EPSG:3857',ApiConstants.geoserver_namespaceURI, ApiConstants.geoserver_workspace,'ways_modified',combinedFilter);
-        var userInputTableRequest = fetch(ApiConstants.wfs_url,{
+        var userInputTableRequest = fetch(ApiConstants.address_geoserver+ApiConstants.geoserver_workspace+'/wfs',{
             method: 'POST',
             body: wfsRequestXmlStringUserInputTable,
             headers: {
@@ -509,7 +473,6 @@ var searchInteraction = {
                 } else {
                     userInputFeaturesWithoutOriginalId.push(currentFeature);
                 }
-                console.log(currentFeature.getId());
             }
 
             for (var i=0;i<originalFeatures.length;i++){
@@ -532,7 +495,7 @@ var searchInteraction = {
     },
     init: function(){
         this.stop();
-      
+        removeHelpTooltip();
         //Add circle interaction to search for the geojson features on the map
         var circleDraw = new Draw({
             source: QueryLayer.getSource(),
@@ -590,7 +553,6 @@ var waysInteraction = {
         var prop = f.getProperties();
         if (prop.hasOwnProperty('original_id')){
             if (prop.original_id != null){
-                console.log(f);
                 var fid = f.getProperties().original_id.toString();
                 waysInteraction.featuresIDsToDelete.push(fid);
                 deleteWaysFeature ('delete',userid,waysInteraction.featuresIDsToDelete,prop.id)
@@ -608,27 +570,19 @@ var waysInteraction = {
                 waysInteraction.featuresIDsToDelete.push(fid);
                 deleteWaysFeature ('update',userid,waysInteraction.featuresIDsToDelete);
             }
-            
-           
         }
         ExtractStreetsSource.removeFeature(waysInteraction.featureToDelete);
         closePopupFn();
     },
+    popupAddYesFn: function (evt){
+        waysInteraction.transact();
+    },
     deleteFeature: function(evt){
-        //This function will be added on map click event 
+        //This function will be added on map click event on Delete
         SelectedLayerSource.clear();
         var coord = evt.coordinate;
         var feature = ExtractStreetsSource.getClosestFeatureToCoordinate(coord);
-        if (feature != null){
-            var geometry = feature.getGeometry();
-            var coordinates = geometry.getCoordinates();
-            var startCoord = coordinates[0];
-            waysInteraction.featureToDelete = feature;
-            SelectedLayerSource.addFeature(feature);
-            console.log(feature);
-            map.addOverlay(popupOverlay);
-            popupOverlay.setPosition(startCoord);    
-        }
+        waysInteraction.popupFn('delete',feature);
     },
     interactionStart: function (evt) {
         waysInteraction.featuresToCommit = [];
@@ -637,8 +591,9 @@ var waysInteraction = {
         if (waysInteraction.interactionType == 'draw'){
             var feature = evt.feature;
             waysInteraction.featuresToCommit.push(feature);
+            waysInteraction.popupFn('add',feature);
+            return; // Feature will be saved after attribute selection
         }
-     console.log(waysInteraction.featuresToCommit);
      waysInteraction.transact();
     },
     remove: function(){
@@ -648,11 +603,22 @@ var waysInteraction = {
      if (this.currentInteraction != null){
          map.removeInteraction(this.currentInteraction);
      }
+     if (searchInteraction.interaction != null){
+        map.removeInteraction(searchInteraction.interaction);
+    }
+    if (CircleRadius.radiusInteraction){
+        map.removeInteraction(CircleRadius.radiusInteraction);
+        searchInteraction.circleRadius = null;
+        CircleRadius.remove();
+    }
      //Unbound delete function listener key
      unByKey(this.deleteListenerKey);
      popupOverlay.setPosition(undefined);
      this.featuresToCommit = [];
      this.featureToDelete = null;
+     if (searchInteraction.interaction != null){
+        map.removeInteraction(searchInteraction.interaction);
+    }
      closePopupFn();
     },
     add: function (interaction,type){
@@ -671,8 +637,7 @@ var waysInteraction = {
             this.deleteListenerKey  = map.on('click',this.deleteFeature);
         }
     },
-    transact: function (){
-        
+    transact: function (){        
         //DRAW/MODIFY INTERACTION
         if (this.interactionType == 'draw' || this.interactionType == 'modify'){
             // 1- Get the features, transform geometry and properties
@@ -695,15 +660,16 @@ var waysInteraction = {
                     class_id: f.getProperties().class_id
                 });
                 transformed.setGeometryName("geom");
-
+                if (this.interactionType == 'draw'){
+                    //Get Selected Ways type
+                    transformed.set('type',document.getElementById('ways_type').value);
+                }
                 if (!props.hasOwnProperty('original_id') && ((this.interactionType == 'modify'))){
                     transformed.set('original_id',f.getProperties().id);
                 }
-
                 if ((typeof f.getId() == 'undefined' && Object.keys(props).length == 1) || !props.hasOwnProperty('original_id')){
                     featuresToAdd.push(transformed);
                     featuresToRemoveArr.push(f);
-
                 } else if((props.hasOwnProperty('original_id')) && (this.interactionType == 'modify')) {
                     transformed.setId(f.getId());
                     featuresToUpdate.push(transformed);
@@ -712,45 +678,32 @@ var waysInteraction = {
         } else {
             return;
         }
-        
-
-
-    console.log(ApiConstants.geoserver_workspace);
     formatGML = {
         featureNS: ApiConstants.geoserver_namespaceURI,
         featureType: 'ways_modified',
         srsName: 'urn:x-ogc:def:crs:EPSG:4326'
     };
        var node;
-    
-    console.log(this.featureToDelete);
-    console.log(this.interactionType);
     switch (this.interactionType) {
             case 'draw':
-                node = formatWFS.writeTransaction(featuresToAdd, null, null, formatGML);       
+                node = formatWFS.writeTransaction(featuresToAdd, null, null, formatGML);   
                 break;
             case 'modify':
                 node = formatWFS.writeTransaction(featuresToAdd,featuresToUpdate,null,formatGML);
                 break;
             case 'delete':
-            console.log('passed here');
                 node = formatWFS.writeTransaction(null, null, this.featureToDelete, formatGML);
                 break;
         }
-        console.log(node);
-     var payload = xs.serializeToString(node);
-     console.log(payload)
-    
+     var payload = xs.serializeToString(node);  
     $.ajax({
         type: "POST",
-        url: ApiConstants.wfs_url,
+        url: ApiConstants.address_geoserver+ApiConstants.geoserver_workspace+'/wfs',
         data: new XMLSerializer().serializeToString(node),
         contentType: 'text/xml',
-        success: function(data) {
-            console.log(data);
+        success: function(data) {    
             var result = formatWFS.readTransactionResponse(data);
-            var FIDs = result.insertIds;
-            console.log(result);
+            var FIDs = result.insertIds;   
             if (FIDs != undefined && FIDs[0]!="none"){
                 var i;
                 for (i=0;i<FIDs.length;i++){
@@ -761,31 +714,92 @@ var waysInteraction = {
                     ExtractStreetsSource.addFeature(featuresToAdd[i]);
                 }
             }
+            if (waysInteraction.interactionType == 'draw'){
+                waysInteraction.featuresToCommit = [];
+                closePopupFn();  //Close popup on transaction end
+            }
         },
-        error: function(e) {
-         
-        },
+        error: function(e) {},
         context: this
     });
-
-
+    },
+    popupFn: function (type,feature){
+        if (feature != null){
+            waysInteraction.toggleHelpTooltip(waysInteraction.interaction,waysInteraction.interactionType,0); //Removes Helptooltip when popup is opened
+            SelectedLayerSource.clear();        
+            var geometry = feature.getGeometry();
+            var coordinates = geometry.getCoordinates();
+            var startCoord = coordinates[0];            
+            SelectedLayerSource.addFeature(feature);
+            map.addOverlay(popupOverlay);
+            popupOverlay.setPosition(startCoord);  
+        } else {return;}
+        if (type == 'add'){
+                //Create Popup Content for Add Interaction (//Road Type: road, bridge)
+                var htmlStringContent =  
+                `<table>
+                <tbody>
+                    <tr>
+                        <td style="padding: 1px 1px"><label>Type: </label></td>
+                        <td style="padding: 1px 1px">
+                           <span class="right_side">
+                            <select id="ways_type">
+                              <option value="way">Way</option>    
+                              <option value="bridge">Bridge</option>
+                            </select>
+                          </span>
+                        </td>
+                    </tr>
+                </tbody>
+                </table>` 
+                var htmlStringHeader = `<span>Attributes</span>`               
+                document.getElementById('btnYesFeature').innerHTML = 'Save';
+                document.getElementById('btnNoFeature').innerHTML = 'Clear';
+                btnNoFeature.onclick = closePopupFn;
+                btnYesFeature.onclick = waysInteraction.popupAddYesFn;
+                closer.onclick = closePopupFn
+               
+        } else if (type == 'delete'){
+                btnNoFeature.onclick = closePopupFn;
+                btnYesFeature.onclick = waysInteraction.popupDeleteYesFn;
+                waysInteraction.featureToDelete = feature;
+                //Create Popup Content for Delete Interaction
+                var htmlStringContent = `Are sure you want to delete the selected feature ?`;
+                var htmlStringHeader = `<span>Confirm</span>`;
+                document.getElementById('btnYesFeature').innerHTML = 'Yes';
+                document.getElementById('btnNoFeature').innerHTML = 'No';
+                closer.onclick = closePopupFn;
+        }
+        document.getElementById('popup-content').innerHTML = htmlStringContent;
+        document.getElementById('popup-header').innerHTML = htmlStringHeader;
+        if (type == 'add'){ $("#ways_type").material_select();}
+      
+    },
+    toggleHelpTooltip: function (interaction,type, state){ // ex. (delete, 1)
+        if (type == null ) {return;}
+        if (state == 1){
+                tool_tip(interaction,type);
+        } else { // Close Help Tooltip
+            //Remove Tooltip when Popup is Opened 
+            map.getOverlays().getArray().slice(0).forEach(function(overlay) {
+                if (overlay.getProperties().element.id !='startaddresse'){																	
+                     map.removeOverlay(overlay);
+                }		
+             });
+        }
     }
 
 
 }
 
-
-
-
-
  /**
- * Popup Dialog Box for delete function.
+ * Popup Dialog Box function.
  */
 var container = document.getElementById('popup');
 var content = document.getElementById('popup-content');
 var closer = document.getElementById('popup-closer');
-var btnNoDeleteFeature = document.getElementById('btnNoDeleteFeature');
-var btnYesDeleteFeature = document.getElementById('btnYesDeleteFeature');
+var btnNoFeature = document.getElementById('btnNoFeature');
+var btnYesFeature = document.getElementById('btnYesFeature');
 container.style.visibility = 'visible';
 var popupOverlay = new Overlay({
 element: container,
@@ -800,36 +814,35 @@ function closePopupFn (){
 popupOverlay.setPosition(undefined);
 map.removeOverlay(popupOverlay);
 SelectedLayerSource.clear();
+if (waysInteraction.featuresToCommit != null){
+    waysInteraction.featuresToCommit.forEach(feature => {
+        ExtractStreetsSource.removeFeature(feature);
+    });
+}
 closer.blur();
+// Reopen Helptooltip when popup is closed
+waysInteraction.toggleHelpTooltip(waysInteraction.interaction,waysInteraction.interactionType,1);
 return false;
 }
-
-
-closer.onclick = closePopupFn
-btnNoDeleteFeature.onclick = closePopupFn
-btnYesDeleteFeature.onclick = waysInteraction.popupDeleteYesFn;
-
-
 
 //Button click events
 $('.expert_draw').click(function () {
     let buttonID = this.id;
-    console.log(buttonID);
+    //Remove Isochrone Interaction
+    if (interaction) {map.removeInteraction(interaction);}
+    if (ExtractStreetsLayer.getVisible() == false){
+        alert('Layer is not visible');
+        return;
+    }
+
+
     if (buttonID == 'btnQuery'){
         searchInteraction.init();
         CircleRadius.add();
         return;
     }
-
-    
-    map.getOverlays().getArray().slice(0).forEach(function(overlay) {
-   															
-             map.removeOverlay(overlay);
-      	
-    });
-
+    removeHelpTooltip ();
     waysInteraction.remove();
-
     switch(buttonID){
         case 'btnDraw':
        var drawInteraction = new Draw({
@@ -843,20 +856,40 @@ $('.expert_draw').click(function () {
         var modifyInteraction = new Modify({
                 source: ExtractStreetsSource,
                 });
-                console.log('modify executed');
         waysInteraction.add(modifyInteraction,'modify');
+        tool_tip(modifyInteraction,'modify');
         break
         case 'btnDelete':
         waysInteraction.add(null,'delete');
+        tool_tip(null,'delete');
         break;
     }
 
- 
-
-
 })
 
+function removeHelpTooltip() {
+    map.getOverlays().getArray().slice(0).forEach(function(overlay) {
+        map.removeOverlay(overlay);      	
+     });
+}
 
-export {userid,number_calculations,layerWFS_point,drawnLine,dynamicVars};
+///Abbrechen bei ESC
+$(document).keyup(function(e) {
+    if (e.keyCode == 27) { 
+         //Remove Isochrone Interaction
+        if (interaction) {map.removeInteraction(interaction);}
+        waysInteraction.remove();
+        map.getOverlays().getArray().slice(0).forEach(function(overlay) {
+            if (overlay.getProperties().element.id !='startaddresse'){																					 					
+                        map.removeOverlay(overlay);
+            }	
+       });
+   }
+});
+
+
+
+
+export {userid,number_calculations,layerWFS_point,drawnLine,dynamicVars,ExtractStreetsLayer,QueryLayer};
 
 
