@@ -7,7 +7,7 @@ permalink: /docs/background/
 
 While cycling and walking were seen as insignificant modes of transport in the past, there is a fast rising interest for establishing conditions that actively promote them. This shift is due to the unmatched benefits that active mobility bring to our cities, local economy, physical health and the general environment.
 
-<img class="img-responsive" src="../../img/modalsplit.png" alt="Modal Split">
+<img class="img-responsive" src="../../img/modalsplit.png" alt="modal split in germany high share of pedestrians" title="Modal Split in Germany">
 
 Active mobility takes a large share of daily transport activities. Just like in many other countries walking and cycling play a vital role in everyday mobility in Germany (see: [Modal split in different cities worldwide](https://en.wikipedia.org/wiki/Modal_share)).
 In addition, walking and cycling play the crucial role of acting as feeders for public transport systems. In many cities and municipalities across the world, pedestrians and cyclists take a larger share of transportation modes in use. This could be harvested extensively to bring a wide range of positive impacts.
@@ -37,7 +37,7 @@ Brömmelstroet, Marco et al. 2016)*
 Unlike transport models accessibility models are showing potential, for example, “How many additional jobs can be reached with a new transit line?” instead of trying to predict the growth of ridership due to new transit lines.
 
 ###### Accessibility components
-<img class="img-responsive" src="../../img/accessibility_components.png" alt="Accessibility components">
+<img class="img-responsive" src="../../img/accessibility_components.png" alt="accessibility components from research" title="Accessibility components">
 
 
 With the so called accessibility components (Geurs and van Wee 2004) the accessibility concept can be made concrete. Each component can have an influence on accessibility, thus ideally all four components are considered. The access to supermarkets for instance could be influenced by the number of shops available (land-use), the quality of the transport network (transport), the opening hours of the supermarkets (temporal) and finally by the financial budget of people (individual).
