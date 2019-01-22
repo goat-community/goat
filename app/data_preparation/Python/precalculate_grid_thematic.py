@@ -108,7 +108,8 @@ calculate_index(500)
 #calculate_isochrones(1000)
 
 
-
+cursor.execute(sql_grid_population)
+con.commit()
 con.close()
 end = time.time()
 print('Running the script took:')
