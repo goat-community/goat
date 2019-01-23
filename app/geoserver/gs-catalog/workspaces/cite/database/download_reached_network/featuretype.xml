@@ -19,7 +19,7 @@
   AXIS[&quot;Geodetic longitude&quot;, EAST], 
   AXIS[&quot;Geodetic latitude&quot;, NORTH], 
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
-  <srs>EPSG:404000</srs>
+  <srs>EPSG:4326</srs>
   <nativeBoundingBox>
     <minx>11.4942588293946</minx>
     <maxx>11.6681658</maxx>
