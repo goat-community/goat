@@ -42,18 +42,23 @@
         <name>heatmap_population</name>
         <sql>with x as (&#xd;
 	select  *&#xd;
-	from &#xd;
-		heatmap(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;),&apos;index_0_001&apos;)&#xd;
+	from heatmap(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;),&apos;index_0_001&apos;)&#xd;
+	&#xd;
 ),&#xd;
 y as (&#xd;
 	SELECT x.grid_id,x.accessibility_index,x.geom, ntile(5) over &#xd;
-	(order by x.accessibility_index) AS percentile_accessibility, g.percentile_population, &#xd;
-	g.percentile_population-ntile(5) over (order by x.accessibility_index) AS population_accessibility&#xd;
-	FROM x, grid_500 g WHERE accessibility_index &lt;&gt; 0&#xd;
-	AND g.grid_id = x.grid_id&#xd;
-	ORDER BY grid_id&#xd;
+	(order by x.accessibility_index) AS percentile_accessibility&#xd;
+	FROM x &#xd;
+	WHERE accessibility_index &lt;&gt; 0&#xd;
+	UNION ALL &#xd;
+	SELECT x.grid_id, accessibility_index, x.geom, 0&#xd;
+	FROM x&#xd;
+	WHERE accessibility_index = 0&#xd;
 )&#xd;
-select * from y
+select y.*, g.percentile_population, &#xd;
+g.percentile_population-y.percentile_accessibility AS population_accessibility &#xd;
+from y, grid_500 g&#xd;
+WHERE g.grid_id = y.grid_id
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
