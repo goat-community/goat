@@ -21,7 +21,7 @@
           </ogc:Filter>
           <sld:PolygonSymbolizer>
             <sld:Fill>
-              <sld:CssParameter name="fill">#f7fbff</sld:CssParameter>
+              <sld:CssParameter name="fill">#2b83ba</sld:CssParameter>
               <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
             </sld:Fill>
             <!--
@@ -49,7 +49,7 @@
           </ogc:Filter>
           <sld:PolygonSymbolizer>
             <sld:Fill>
-              <sld:CssParameter name="fill">#f7fbff</sld:CssParameter>
+              <sld:CssParameter name="fill">#abdda4</sld:CssParameter>
               <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
             </sld:Fill>
             <!--
@@ -77,7 +77,7 @@
           </ogc:Filter>
           <sld:PolygonSymbolizer>
             <sld:Fill>
-              <sld:CssParameter name="fill">#c7dcef</sld:CssParameter>
+              <sld:CssParameter name="fill">#ffffbf</sld:CssParameter>
               <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
             </sld:Fill>
             <!--
@@ -90,7 +90,7 @@
           </sld:PolygonSymbolizer>
         </sld:Rule>
         <sld:Rule>
-          <sld:Name>Rather high desity surplus</sld:Name>
+          <sld:Name>Rather high density surplus</sld:Name>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -105,7 +105,7 @@
           </ogc:Filter>
           <sld:PolygonSymbolizer>
             <sld:Fill>
-              <sld:CssParameter name="fill">#72b2d7</sld:CssParameter>
+              <sld:CssParameter name="fill">#fdae61</sld:CssParameter>
               <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
             </sld:Fill>
             <!--
@@ -133,7 +133,7 @@
           </ogc:Filter>
           <sld:PolygonSymbolizer>
             <sld:Fill>
-              <sld:CssParameter name="fill">#2878b8</sld:CssParameter>
+              <sld:CssParameter name="fill">#d7191c</sld:CssParameter>
               <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
             </sld:Fill>
             <!--
@@ -145,34 +145,7 @@
 			-->
           </sld:PolygonSymbolizer>
         </sld:Rule>
-        <sld:Rule>
-          <sld:Name>High accessibility</sld:Name>
-          <ogc:Filter>
-            <ogc:And>
-              <ogc:PropertyIsGreaterThan>
-                <ogc:PropertyName>population_accessibility</ogc:PropertyName>
-                <ogc:Literal>5</ogc:Literal>
-              </ogc:PropertyIsGreaterThan>
-              <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>population_accessibility</ogc:PropertyName>
-                <ogc:Literal>6</ogc:Literal>
-              </ogc:PropertyIsLessThanOrEqualTo>
-            </ogc:And>
-          </ogc:Filter>
-          <sld:PolygonSymbolizer>
-            <sld:Fill>
-              <sld:CssParameter name="fill">#08306b</sld:CssParameter>
-              <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
-            </sld:Fill>
-            <!--
-            <sld:Stroke>
-              <sld:CssParameter name="stroke">#000001</sld:CssParameter>
-              <sld:CssParameter name="stroke-linejoin">bevel</sld:CssParameter>
-              <sld:CssParameter name="stroke-width">0.00000</sld:CssParameter>
-            </sld:Stroke>
-        	-->  
-		</sld:PolygonSymbolizer>
-        </sld:Rule>
+       
       </sld:FeatureTypeStyle>
     </sld:UserStyle>
   </sld:NamedLayer>
