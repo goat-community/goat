@@ -9,10 +9,10 @@
           <sld:Name>High accessibility surplus</sld:Name>
           <ogc:Filter>
             <ogc:And>
-              <ogc:PropertyIsGreaterThan>
+              <ogc:PropertyIsGreaterThanOrEqualTo>
                 <ogc:PropertyName>population_accessibility</ogc:PropertyName>
                 <ogc:Literal>-5</ogc:Literal>
-              </ogc:PropertyIsGreaterThan>
+              </ogc:PropertyIsGreaterThanOrEqualTo>
               <ogc:PropertyIsLessThanOrEqualTo>
                 <ogc:PropertyName>population_accessibility</ogc:PropertyName>
                 <ogc:Literal>-3</ogc:Literal>
