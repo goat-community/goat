@@ -42,7 +42,7 @@
       <key>STYLES</key>
       <defaultValue></defaultValue>
       <availableStyles class="sorted-set"/>
-      <defaultStyle>polygon</defaultStyle>
+      <defaultStyle>cite:style_heatmap_population</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>
   <gutter>0</gutter>
