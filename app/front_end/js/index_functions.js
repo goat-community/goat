@@ -92,7 +92,20 @@ let index_function = function () {
 			$('#check_'+elements[i]).prop("checked", $('#'+category).is(":checked")); 	
 		}
 		if ($('#accessibility_basemap_select').val() != 'no_basemap'){
-			addRemoveAccesibilityLayer.add(map);
+			var style = $('#accessibility_basemap_select').val();
+			 //Layer Type
+			 var type;
+			 switch (style) {
+			   case "walkability":
+				 type = "heatmap";
+				 break;
+			   case "population":
+				 type = "heatmap_population"
+			   default:
+				 break;
+			 }
+
+			addRemoveAccesibilityLayer.add(map,type);
   		}  
 	});
 	$('.thematic_item_checkShared').click(function(){
