@@ -79,10 +79,11 @@ $('body').on('change','#layer-select',function(){
 })
 
 /////
-var accessibility_layer = function(){
+var accessibility_layer = function(LayerType){
+  //Type Heatmap Or Heatmap Population
   let heatmap_input ={};
   let select_heatmap_input = $('#main_thematic_data .content :checkbox:checked')
-  let link = ApiConstants.address_geoserver+'cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:heatmap&LAYERS=cite%3Aheatmap&viewparams=amenities:%27'
+  let link = ApiConstants.address_geoserver+'cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:'+LayerType+'&LAYERS=cite%3A'+LayerType+'&viewparams=amenities:%27'
   let link_part = '' 
   for (var i=0; i < select_heatmap_input.length; i++){
     link_part = link_part + '{"\'' + select_heatmap_input[i].id.replace('check_','') + '\'":' + $(select_heatmap_input[i]).siblings()[3].value + '},'
@@ -123,11 +124,11 @@ layers.push(study_area);
 
 var addRemoveAccesibilityLayer = {	
   layer: null,	
-  add : function (map){	
+  add : function (map,type){	
     if (this.layer != null) {	
       this.remove(map);	
     }	
-    this.layer = accessibility_layer();	
+    this.layer = accessibility_layer(type);	
     map.addLayer(this.layer);	
  
   },	
