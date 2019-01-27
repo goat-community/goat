@@ -4,7 +4,7 @@ title:  "Development path of Geo Open Accessibility Tool (GOAT)"
 author: Elias Pajares
 ---
 
-Geo Open Accessibility Tool (GOAT) is by far not where it should be. Apart from the on-going professionalization which are seen as crucial to provide a truly useful and stable accessibility instrument, additional features will be implemented on a regular basis.
+Geo Open Accessibility Tool (GOAT) is by far not where it should be. Apart from the on-going professionalization which is seen as crucial to provide a truly useful and stable accessibility instrument, additional features will be implemented on a regular basis.
 The main objective we have been focusing on in the past months was making the interactive network modification and the setup process better. Little time was spent for coming up with new features. However, there are some new envisioned and edge cutting features which will bring GOAT to the status where the first version (GOAT 1.0) will be released.
 
 So far, GOAT is still very much a personal project as funding for this first stable release has not been secured. Consequently, the date for the first ground-breaking release of GOAT for production purposes remains undefined. Our current estimated time is between 1 and 2 years. Nonetheless I feel it’s important to communicate the potential features that GOAT will have in future and further show directions which this instrument will take. In the course of development, some GOAT features will be added and others probably removed. 
