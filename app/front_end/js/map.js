@@ -91,7 +91,7 @@ $('body').on('change','#accessibility_basemap_select',function(){
       default:
         break;
     }
-    addRemoveAccesibilityLayer.add(map,type);
+    addRemoveAccesibilityLayer.add(map);
   }
   else{
     map.getLayers().forEach(function (layer) {
