@@ -106,8 +106,14 @@ let index_function = function () {
 			 }
 
 			addRemoveAccesibilityLayer.add(map,type);
-  		}  
+		  }
+
+		  //Auto Thematic Data Refresh
+		  $('select[id^="isochrone_"]').trigger("change");
+		  
 	});
+
+
 	$('.thematic_item_checkShared').click(function(){
 		
 		var pid = $(this).parent().closest('div').attr('id');
