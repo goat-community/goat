@@ -79,7 +79,19 @@ $('body').on('change','#layer-select',function(){
 })
 
 /////
-var accessibility_layer = function(LayerType){
+var accessibility_layer = function(){
+  var LayerType;
+  var style = $('#accessibility_basemap_select').val();
+  //Get Layer Type
+  switch (style) {
+    case "walkability":
+    LayerType = "heatmap";
+    break;
+    case "population":
+    LayerType = "heatmap_population"
+    default:
+    break;
+  }
   //Type Heatmap Or Heatmap Population
   let heatmap_input ={};
   let select_heatmap_input = $('#main_thematic_data .content :checkbox:checked')
@@ -124,11 +136,11 @@ layers.push(study_area);
 
 var addRemoveAccesibilityLayer = {	
   layer: null,	
-  add : function (map,type){	
+  add : function (map){	
     if (this.layer != null) {	
       this.remove(map);	
     }	
-    this.layer = accessibility_layer(type);	
+    this.layer = accessibility_layer();	
     map.addLayer(this.layer);	
  
   },	
