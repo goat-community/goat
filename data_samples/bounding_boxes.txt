@@ -9,4 +9,4 @@ BOUNDING_BOX="--bounding-box top=48.2458 left=11.7314 bottom=47.9072 right=12.11
 Füssen
 BOUNDING_BOX="--bounding-box top=47.627164 left=10.568114 bottom=47.549202 right=10.721907"
 München
-BOUNDING_BOX=="--bounding-box top=48.253542 left=11.335899 bottom=48.055609 right=11.733349"
+BOUNDING_BOX="--bounding-box top=48.253542 left=11.335899 bottom=48.055609 right=11.733349"
