@@ -119,28 +119,28 @@ sql_clean = 'DROP TABLE IF EXISTS grid; ALTER TABLE grid_grid_size add column id
 public_transport_stops = ['bus_stop','tram_stop','subway_entrance','sbahn_regional']
 
 sql_grid_population = '''
-ALTER TABLE grid_500 ADD COLUMN population integer;
-ALTER TABLE grid_500 ADD COLUMN percentile_population integer;
+ALTER TABLE grid_grid_size ADD COLUMN population integer;
+ALTER TABLE grid_grid_size ADD COLUMN percentile_population integer;
 WITH sum_pop AS (
 	SELECT g.grid_id, sum(p.population)::integer AS population  
-	FROM grid_500 g, population p
+	FROM grid_grid_size g, population p
 	WHERE ST_Intersects(g.geom,p.geom)
 	GROUP BY grid_id
 )
-UPDATE grid_500 SET population=s.population
+UPDATE grid_grid_size SET population=s.population
 FROM sum_pop s 
-WHERE grid_500.grid_id = s.grid_id;
+WHERE grid_grid_size.grid_id = s.grid_id;
 
 
 WITH p AS (
 	SELECT grid_id,ntile(5) over 
 	(order by population) AS percentile
-	FROM grid_500 where population <> 0
+	FROM grid_grid_size where population <> 0
 	ORDER BY grid_id
 )
-UPDATE grid_500 SET percentile_population = p.percentile
+UPDATE grid_grid_size SET percentile_population = p.percentile
 FROM p
-WHERE grid_500.grid_id = p.grid_id;
+WHERE grid_grid_size.grid_id = p.grid_id;
 
-UPDATE grid_500 SET percentile_population = 0
+UPDATE grid_grid_size SET percentile_population = 0
 WHERE percentile_population IS NULL;'''
