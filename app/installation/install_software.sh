@@ -18,7 +18,8 @@ sudo apt purge osm2pgrouting -y
 
 #Install Python packages
 sudo apt install python3-pip -y
-pip3 install psycopg2
+pip3 install psycopg2-binary
+pip3 install pyshp
 
 cd app
 

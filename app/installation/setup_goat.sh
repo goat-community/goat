@@ -30,12 +30,14 @@ else
     osmosis --read-pbf file="raw-osm.osm.pbf" $BOUNDING_BOX_2 --write-xml file="study_area2.osm"
     osmosis --rx study_area1.osm --rx study_area2.osm --m --wx study_area.osm
 fi
-
+osmconvert study_area.osm --drop-author --drop-version --out-osm -o=study_area_reduced.osm
+rm study_area
+mv study_area_recuded.osm study_area.osm
 PGPASSFILE=~/.pgpass osm2pgsql -d $DATABASE -H $HOST -U $USER --hstore -E 4326 study_area.osm 
 PGPASSFILE=~/.pgpass osm2pgrouting --dbname $DATABASE --host $HOST --username $USER --file "study_area.osm" --conf ../config/mapconfig.xml --clean
 PGPASSFILE=~/.pgpass shp2pgsql -I -s 4326  study_area.shp public.study_area | psql PGPASSWORD=PASSWORD -d $DATABASE -U $USER -h $HOST -q
 
-
+#shp2pgsql -s 4326 ../data/download.shp ccd_hoods_new | PGPASSWORD=password psql -h hostname -d database -U username -q
 
 if [ -e population.shp ]
 then

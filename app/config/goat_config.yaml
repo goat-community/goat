@@ -1,0 +1,10 @@
+DATABASE:
+  HOST: "localhost"
+  PORT: 5432
+  DB_NAME: "goat"
+  USER: "goat"
+  PASSWORD: "earlmanigault"
+
+DATA_SOURCE:  
+  OSM_DOWNLOAD_LINK: "https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf"
+  BUFFER_BOUNDING_BOX: 0.025 #in degree (default: approx. 3km)
