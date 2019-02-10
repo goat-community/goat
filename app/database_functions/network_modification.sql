@@ -12,9 +12,15 @@ DELETE FROM ways_userinput WHERE userid = input_userid;
 DELETE FROM ways_userinput_vertices_pgr WHERE userid = input_userid; 
 DROP TABLE IF EXISTS drawn_features, existing_network, intersection_existing_network, drawn_features_union, new_network, delete_extended_part, vertices_to_assign; 
 
+--Update ways_modified status column "1 == added"
+UPDATE ways_modified SET status = 1 WHERE userid = input_userid;
+
+
 CREATE TEMP TABLE drawn_features as
 SELECT id,geom,class_id,userid, original_id, type  FROM ways_modified
 WHERE userid = input_userid;
+
+
 
 --Extends drawn lines by a distance of approx. 1 meter
 WITH extend_first_part AS (
