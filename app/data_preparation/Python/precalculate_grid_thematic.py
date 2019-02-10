@@ -1,14 +1,24 @@
 import psycopg2
-
 import time
 import math
 from variables_precalculate import *
-
-
+from pathlib import Path
+import yaml
 
 start = time.time()
 
-con = psycopg2.connect("dbname='goat' user='goat' host='localhost' password='earlmanigault'")
+with open(str(Path.home())+"/app/config/goat_config.yaml", 'r') as stream:
+    config = yaml.load(stream)
+secrets = config["DATABASE"]
+host = secrets["HOST"]
+port = str(secrets["PORT"])
+db_name = secrets["DB_NAME"]
+user = secrets["USER"]
+password = secrets["PASSWORD"]
+
+
+
+con = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db_name,user,host,password))
 cursor = con.cursor()
 grid_size = 500
 
@@ -18,7 +28,7 @@ def calculate_isochrones(grid_size):
 	snap_tolerance = math.sqrt(2)*int(grid_size)
 	cursor.execute(prepare_tables.replace('grid_size',grid_size))
 	con.commit()
-	cursor.execute('select grid_id, st_x(st_centroid(geom)), st_y(st_centroid(geom)) from grid_%s order by grid_id limit 100' % (grid_size))
+	cursor.execute('select grid_id, st_x(st_centroid(geom)), st_y(st_centroid(geom)) from grid_%s order by grid_id' % (grid_size))
 	grid = cursor.fetchall()
 
 	for i in grid:
