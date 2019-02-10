@@ -1,5 +1,22 @@
 --CREATE TABLE ways_userinput AND way_userinput_vertices_pgr
 
+
+ALTER TABLE ways_vertices_pgr ADD COLUMN class_ids int[];
+WITH class_ids AS (
+	SELECT vv.id, array_agg(DISTINCT x.class_id) class_ids
+	FROM ways_vertices_pgr vv
+	LEFT JOIN
+	(	SELECT v.id,w.class_id 
+		FROM ways_vertices_pgr v, ways w 
+		WHERE st_intersects(v.geom,w.geom)
+	) x
+	ON vv.id = x.id
+	GROUP BY vv.id
+)
+UPDATE ways_vertices_pgr SET class_ids = c.class_ids
+FROM class_ids c
+WHERE ways_vertices_pgr.id = c.id;
+
 CREATE TABLE ways_userinput as
 SELECT * FROM ways;
 

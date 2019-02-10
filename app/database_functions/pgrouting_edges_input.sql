@@ -44,6 +44,7 @@ AS $function$
 	SELECT id, geom INTO id_vertex, geom_vertex
 	FROM ways_userinput_vertices_pgr
 	WHERE userid is null or userid = userid_vertex
+	AND (class_ids <@ excluded_class_id::int[]) IS false
 	ORDER BY geom <-> point
 	LIMIT 1;
 	IF ST_Distance(geom_vertex::geography,point::geography)>250 THEN
@@ -53,13 +54,13 @@ AS $function$
 
 
 	IF modus <> 3 THEN 
-	SELECT count(objectid) + 1 INTO number_calculation_input
-	FROM starting_point_isochrones
-	WHERE userid = userid_input; 
-	INSERT INTO starting_point_isochrones(userid,geom,objectid,number_calculation)
-	SELECT userid_input, v.geom, objectid_input, number_calculation_input
-	FROM ways_userinput_vertices_pgr v
-	WHERE v.id = id_vertex;
+		SELECT count(objectid) + 1 INTO number_calculation_input
+		FROM starting_point_isochrones
+		WHERE userid = userid_input; 
+		INSERT INTO starting_point_isochrones(userid,geom,objectid,number_calculation)
+		SELECT userid_input, v.geom, objectid_input, number_calculation_input
+		FROM ways_userinput_vertices_pgr v
+		WHERE v.id = id_vertex;
 	END IF; 
 
 
