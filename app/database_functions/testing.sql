@@ -1,15 +1,14 @@
-with x as (
-	select  *
-	from 
-		heatmap(convert_from(decode('W3siJ2tpbmRlcmdhcnRlbiciOjF9XQ==','base64'),'UTF-8'),'index_0_001')
-),
-y as (
-	SELECT x.grid_id,x.accessibility_index,x.geom, ntile(5) over 
-	(order by x.accessibility_index) AS percentile_accessibility, g.percentile_population, 
-	g.percentile_population-ntile(5) over (order by x.accessibility_index) AS population_accessibility
-	FROM x, grid_500 g WHERE accessibility_index <> 0
-	AND g.grid_id = x.grid_id
-	ORDER BY grid_id
-)
-select * from y;
+CREATE OR REPLACE FUNCTION test()
+  RETURNS TABLE (geom geometry,cost numeric)
+AS $$
 
+ query = "SELECT t1.cost, t2.geom \
+		FROM PGR_DrivingDistance( \
+		'SELECT id::int4, source, target, length_m as cost \
+		FROM ways',1,83.33, false, false) t1, "+"ways"+" t2 WHERE t1.id2 = t2.id"
+ plan = plpy.prepare(query)
+ response = plpy.execute(plan)
+ row_count  = response.nrows() 
+ return response[0:row_count]
+$$ LANGUAGE plpython3u;   
+   
