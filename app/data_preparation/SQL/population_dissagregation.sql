@@ -2,7 +2,7 @@
 
 ALTER TABLE study_area ALTER COLUMN sum_pop TYPE integer using sum_pop::integer;
 
-ALTER TABLE study_area drop column area;
+ALTER TABLE study_area DROP COLUMN IF EXISTS area;
 
 DROP TABLE IF EXISTS buildings_residential;
 DROP TABLE IF EXISTS buildings_residential_table;
