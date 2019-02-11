@@ -669,6 +669,9 @@ var waysInteraction = {
                     //Get Selected Ways type
                     transformed.set('type',document.getElementById('ways_type').value);
                 }
+                if (props.type && props.type != null && this.interactionType == 'modify'){
+                    props.original_id = null;
+                }
                 if (!props.hasOwnProperty('original_id') && ((this.interactionType == 'modify'))){
                     transformed.set('original_id',f.getProperties().id);
                 }
