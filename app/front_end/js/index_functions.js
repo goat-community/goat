@@ -2,7 +2,7 @@
 import {map} from './map';
 import {pois,categories_db_style,dictionary,header_array,content_array} from './variables';
 import {isochrones,network} from './isochrones';
-import {addRemoveAccesibilityLayer} from './layers';
+import {addRemoveAccesibilityLayer,poisWMSLayer} from './layers';
 import {pois_geom} from './other_layers';
 import {drawnLine,ExtractStreetsLayer,QueryLayer} from './interaction';
 
@@ -177,7 +177,19 @@ let index_function = function () {
 		ExtractStreetsLayer.getSource().changed();
 		QueryLayer.getSource().changed();
 });
-	
+	//Toggle POIS Layers 
+	$("body").on('change','#toggle_pois_layer', function () { 
+		if (this.checked){		
+			poisWMSLayer.setVisible(true);
+		} 			
+		else {			
+			poisWMSLayer.setVisible(false);
+		}
+		poisWMSLayer.getSource().changed();
+	});
+
+
+
 	//Toogle function for the Select_thematic_data section
 	$("body").on('click','.fa-chevron-right, .fa-chevron-down',function () {
 		let keys_categories = Object.keys(categories_db_style);

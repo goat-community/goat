@@ -651,18 +651,26 @@ var waysInteraction = {
                 var f = this.featuresToCommit[i];
                 //Feature Properties
                 var props = f.getProperties();
+                //Set status to null
+                f.setProperties({
+                        status: null
+                });
                 //Transform the feature
                 var geometry = f.getGeometry().clone();
                 geometry.transform("EPSG:3857", "EPSG:4326");
                 var transformed = new Feature({	
                     userid : userid,                
                     geom: geometry,
-                    class_id: f.getProperties().class_id
+                    class_id: f.getProperties().class_id,
+                    status: null
                 });
                 transformed.setGeometryName("geom");
                 if (this.interactionType == 'draw'){
                     //Get Selected Ways type
                     transformed.set('type',document.getElementById('ways_type').value);
+                }
+                if (props.type && props.type != null && this.interactionType == 'modify'){
+                    props.original_id = null;
                 }
                 if (!props.hasOwnProperty('original_id') && ((this.interactionType == 'modify'))){
                     transformed.set('original_id',f.getProperties().id);
@@ -704,6 +712,7 @@ var waysInteraction = {
         success: function(data) {    
             var result = formatWFS.readTransactionResponse(data);
             var FIDs = result.insertIds;   
+        
             if (FIDs != undefined && FIDs[0]!="none"){
                 var i;
                 for (i=0;i<FIDs.length;i++){
@@ -885,6 +894,36 @@ $(document).keyup(function(e) {
             }	
        });
    }
+});
+
+
+
+$('#btnInsertintoNetwork').click(function () {	
+	$('#mySpinner').addClass('spinner');
+	const InsertintoNetwork = new VectorLayer({
+    	source: new VectorSource({
+				url:ApiConstants.address_geoserver+"wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=userid:"+userid.toString()+"&typeNames=cite:network_modification",
+					format: new WFS({
+       		})
+    	})   
+       
+	});
+
+	map.addLayer(InsertintoNetwork);
+	
+   //Update Feature Line type
+    ExtractStreetsSource.getFeatures().forEach(feature => {
+        var prop = feature.getProperties();
+        if (prop.hasOwnProperty("status")){
+            feature.setProperties({
+                status: 1
+            });
+        }
+    });
+	InsertintoNetwork.getSource().on('change', function(e) {
+			$('#mySpinner').removeClass('spinner');	
+	})
+
 });
 
 
