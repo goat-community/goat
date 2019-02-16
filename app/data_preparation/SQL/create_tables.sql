@@ -70,6 +70,7 @@ CREATE TABLE public.ways_modified
     userid integer,
     original_id integer,
 	type varchar(20),
+	status bigint,
     CONSTRAINT ways_modified_id_pkey PRIMARY KEY (id)
 )
 WITH (

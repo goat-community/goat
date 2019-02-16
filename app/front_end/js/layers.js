@@ -149,10 +149,24 @@ var addRemoveAccesibilityLayer = {
   }	
 }
 
+
+//POIS WMS Layer
+var poisWMSLayer = new ImageLayer({
+  opacity: 1,
+  showLegend: true,
+  visible: false,
+  source: new ImageWMS({
+    url:  ApiConstants.address_geoserver + "wms",
+    params: {'LAYERS': 'cite:pois_test'},
+    ratio: 1,
+    serverType: 'geoserver'
+  })
+});
+layers.push(poisWMSLayer);
 	
 //EXPORT MODULAR FUNCTIONS
 function GetBaseLayers(){
   return layers;
 }
 
-export {GetBaseLayers,addRemoveAccesibilityLayer};
+export {GetBaseLayers,addRemoveAccesibilityLayer,poisWMSLayer};

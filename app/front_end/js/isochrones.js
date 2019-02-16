@@ -175,34 +175,6 @@ function isochrone_load_fn (){
 
 
 
-$('#btnInsertintoNetwork').click(function () {
-			
-	
-	$('#mySpinner').addClass('spinner');
-
-	const InsertintoNetwork = new VectorLayer({
-    	source: new VectorSource({
-				url:ApiConstants.address_geoserver+"wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=userid:"+userid.toString()+"&typeNames=cite:network_modification",
-					format: new WFS({
-       		})
-    	})   
-       
-	});
-
-	map.addLayer(InsertintoNetwork);
-	
-	
-	
-	InsertintoNetwork.getSource().on('change', function(e) {
-			$('#mySpinner').removeClass('spinner');	
-			/*
-			for (let i of drawnLine.getSource().getFeatures()){
-				i.set('line_type','solid');
-			}	    
-			*/
-	})
-
-});
 
 function network_style_default(feature, resolution) {
 	
