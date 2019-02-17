@@ -102,6 +102,22 @@ for (c in categories_db_style){
 	pois = Object.assign(pois,categories_db_style[c]);
 }
 
+function GetPoiCategory(amenityType) {
+	var AmenityCategory;
+	var CategoriesKeys = Object.keys(categories_db_style);
+		CategoriesKeys.forEach(ck => {
+			var value = categories_db_style[ck];
+			var subKeys = Object.keys(value);
+			subKeys.forEach(sk => {
+				if (sk == amenityType){
+					AmenityCategory = ck;
+				}
+			});
+		});
+		return AmenityCategory;
+  }
+
+
 
 
 var dictionary = {
@@ -110,4 +126,4 @@ var dictionary = {
 
 
 }
-export {dropdown_slider,append_dropdown_slider,categories_db_style,pois,dictionary,header_array,content_array};
+export {dropdown_slider,append_dropdown_slider,categories_db_style,pois,dictionary,header_array,content_array,GetPoiCategory};

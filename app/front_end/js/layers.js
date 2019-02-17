@@ -162,6 +162,7 @@ var addRemoveAccesibilityLayer = {
 var poisWMSLayer = new ImageLayer({
   opacity: 1,
   zIndex: 6,
+  getInfo: true,
   showLegend: false,
   visible: false,
   source: new ImageWMS({
@@ -173,6 +174,8 @@ var poisWMSLayer = new ImageLayer({
   })
 });
 layers.push(poisWMSLayer);
+
+
 
 
 	
