@@ -304,6 +304,7 @@ function WfsRequestFunction (srsName,namespace,workspace,layerName,filter){
 var QueryLayerSouce = new VectorSource({wrapX: false});
 var QueryLayer = new VectorLayer({
         source: QueryLayerSouce,
+        zIndex: 3,
         style: drawing_style
     });
     QueryLayer.setMap(map);
@@ -312,6 +313,7 @@ var QueryLayer = new VectorLayer({
 var ExtractStreetsSource = new VectorSource({wrapX: false});
 var ExtractStreetsLayer = new VectorLayer({
     source: ExtractStreetsSource,
+    zIndex: 3,
     style: waysStyle
 });
 
@@ -321,6 +323,7 @@ ExtractStreetsLayer.setMap(map);
 var CircleRadiusLayerSource = new VectorSource({wrapX: false});
 var CircleRadiusLayer = new VectorLayer({
         source: CircleRadiusLayerSource,
+        zIndex: 3,
         style: drawing_style
     });
 CircleRadiusLayer.setMap(map);
