@@ -80,9 +80,18 @@ $('body').on('change','#accessibility_basemap_select',function(){
 
   let style = this.value;
   if (style != 'no_basemap'){
+    //Layer Type
+    var type;
+    switch (style) {
+      case "walkability":
+        type = "heatmap";
+        break;
+      case "population":
+        type = "heatmap_population"
+      default:
+        break;
+    }
     addRemoveAccesibilityLayer.add(map);
-
-   
   }
   else{
     map.getLayers().forEach(function (layer) {

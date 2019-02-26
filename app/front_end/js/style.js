@@ -296,64 +296,81 @@ var vector_style = new Style({
 
 
 
-	////////Ways Styling based on feature attributes//////////
+////////Ways Styling based on feature attributes//////////
 			//Ways original features
-			var waysDefaultStyle = new Style({
-				fill: new  Fill({
-					color: [0, 0, 0, 0]
-				}),
-				stroke: new Stroke({
-					color: '#707070',
-					width: 3
-				})
-			});
+			function waysDefaultStyle(feature){
+				var style = new Style({
+					fill: new  Fill({
+						color: [0, 0, 0, 0]
+					}),
+					stroke: new Stroke({
+						color: '#707070',
+						width: 3
+					})
+				});
+				return [style]
+			}
+			
 			//Ways modified features 
-			var waysModifiedStyle = new Style({
-				fill: new  Fill({
-					color: [0, 0, 0, 0]
-				}),
-				stroke: new Stroke({
-					color: '#FF0000',
-					width: 3,
-					lineDash: [10,10]
-				})
-			});
+			function waysModifiedStyle(feature) {	
+				var style = new Style({
+					fill: new  Fill({
+						color: [0, 0, 0, 0]
+					}),
+					stroke: new Stroke({
+						color: '#FF0000',
+						width: 3,
+						lineDash: feature.getProperties()["status"] == 1 ? [0,0] : [10,10]
+					})
+				});
+				return [style]
+			}
+		
 			//Ways new Road features
-			var waysNewRoadStyle = new Style({
-				fill: new  Fill({
-					color: [0, 0, 0, 0]
-				}),
-				stroke: new Stroke({
-					color: '#6495ED',
-					width: 4,
-					lineDash: [10,10]
-				})
-			});
+			function waysNewRoadStyle (feature) {
+				var style = new Style({
+					fill: new  Fill({
+						color: [0, 0, 0, 0]
+					}),
+					stroke: new Stroke({
+						color: '#6495ED',
+						width: 4,
+						lineDash: feature.getProperties()["status"] == 1 ? [0,0] : [10,10]
+					})
+				});
+				return [style]
+			}
+		
 			//Ways new Bridge features
-			var waysNewBridgeStyle = new Style({
-				fill: new  Fill({
-					color: [0, 0, 0, 0]
-				}),
-				stroke: new Stroke({
-					color: '#FFA500',
-					width: 4,
-					lineDash: [10,10]
-				})
-			});
+			function waysNewBridgeStyle(feature) {
+				var style = new Style({
+					fill: new  Fill({
+						color: [0, 0, 0, 0]
+					}),
+					stroke: new Stroke({
+						color: '#FFA500',
+						width: 4,
+						lineDash: feature.getProperties()["status"] == 1 ? [0,0] : [10,10]
+					})
+				});
+				return [style]
+			}
+		
 			function waysStyle (feature,resolution){
 				var props = feature.getProperties();			
 				if ((props.hasOwnProperty('type') && props['original_id'] == null) || Object.keys(props).length == 1){
 					//Distinguish Roads from Bridge features
 					if (props.type == 'bridge'){
-						return[waysNewBridgeStyle]
+						return waysNewBridgeStyle(feature);
 					} else {
-						return[waysNewRoadStyle];
+						return waysNewRoadStyle(feature);
 					}
 				} else if (!props.hasOwnProperty('original_id') && Object.keys(props).length > 1) {
-					return [waysDefaultStyle]; //Features are from original table
+					return waysDefaultStyle(feature); //Features are from original table
 				} else {
-					return [waysModifiedStyle]; //Feature are modified
+					return waysModifiedStyle(feature); //Feature are modified
 				}
-			}    
+			}
+			
       
   	export {boundaryStyle,styleFunction1,iconStyle,drawing_style,network_style,colors_isochrones_default,colors_isochrones_input,poisStyle,setStyle_pois,vector_style,waysStyle};

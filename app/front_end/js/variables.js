@@ -72,25 +72,25 @@ var append_dropdown_slider = function(){
 
 
 var categories_db_style = {
-'Education':{'kindergarten':['kindergarten','Kindergarten'],'primary_school':['school-15','Primary school'],'secondary_school':['school-15','Secondary school']},
-'Gastronomy':{'bar':['bar-15','Bar'],'biergarten':['biergarten','Biergarten'],'cafe':['cafe-15','Café'],'pub':['pub','Pub'],'fast_food':['fast-food-15','Fast food'],
-'ice_cream':['ice-cream-15','Ice cream'],'restaurant':['restaurant-15','Restaurant']},
-'Population':{'population':['population-15','Population']},
-'Other':{'library':['library-15','Library'],'night_club':['night-club-15','Night-Club'],'recycling':['recycling-15','Recycling']},
-'Transport':{'bicycle_rental':['bicycle-share-15','Bicycle rental'],'car_sharing':['car-15','Car sharing'],'charging_station':['charging-station','Charging station'],
-'bus_stop':['bus-15','Bus'],'tram_stop':['rail-light-15','Tram station'],
-'subway_entrance':['rail-metro-15','U-Bahn station'],'sbahn_regional':['rail-15','S-Bahn station'],'taxi':['taxi','Taxi']},
-'Services':{'hairdresser':['hairdresser-15','Hairdresser'],'atm':['atm','ATM'],'bank':['bank-15','Bank'],'dentist':['dentist-15','Dentist']
-,'doctors':['doctor-15','Doctor'],'pharmacy':['pharmacy-15','Pharmacy'],
-'post_box':['post_box','Post box'],'post_office':['post-15','Post office'],'fuel':['fuel-15','Fuel']},
-'Shop':{'alcohol':['alcohol-shop-15','Alcohol shop'],'bakery':['bakery-15','Bakery'],'butcher':['butcher-15','Butcher'],'clothes':['clothing-store-15','Clothing store']
-,'convenience':['grocery-15','Convencience store']
-,'greengrocer':['grocery-15','Greengrocer'],'kiosk':['kiosk-15','Kiosk'],'mall':['mall-15','Mall'],'shoes':['shoes','Shoes'],
-'supermarket':['supermarket','Supermarket'],'marketplace':['marketplace-15','Marketplace']},
-'Tourism___Leisure':{"cinema":['cinema-15','Cinema'],"theatre":['theatre-15','Theatre'],"museum":['museum-15','Museum'],"picnic_site":['picnic','Picnic-site'],
+'Education':{'kindergarten':['kindergarten','Kindergarten'],'primary_school':['primary_school','Primary school'],'secondary_school':['secondary_school','Secondary school']},
+'Gastronomy':{'bar':['bar','Bar'],'biergarten':['biergarten','Biergarten'],'cafe':['cafe','Café'],'pub':['pub','Pub'],'fast_food':['fast_food','Fast food'],
+'ice_cream':['ice_cream','Ice cream'],'restaurant':['restaurant','Restaurant']},
+'Population':{'population':['population','Population']},
+'Other':{'library':['library','Library'],'night_club':['night_club','Night-Club'],'recycling':['recycling','Recycling']},
+'Transport':{'bicycle_rental':['bicycle_rental','Bicycle rental'],'car_sharing':['car_sharing','Car sharing'],'charging_station':['charging_station','Charging station'],
+'bus_stop':['bus_stop','Bus'],'tram_stop':['tram_stop','Tram station'],
+'subway_entrance':['subway_entrance','U-Bahn station'],'sbahn_regional':['sbahn_regional','S-Bahn station'],'taxi':['taxi','Taxi']},
+'Services':{'hairdresser':['hairdresser','Hairdresser'],'atm':['atm','ATM'],'bank':['bank','Bank'],'dentist':['dentist','Dentist']
+,'doctors':['doctors','Doctor'],'pharmacy':['pharmacy','Pharmacy'],
+'post_box':['post_box','Post box'],'post_office':['post_office','Post office'],'fuel':['fuel','Fuel']},
+'Shop':{'alcohol':['alcohol','Alcohol shop'],'bakery':['bakery','Bakery'],'butcher':['butcher','Butcher'],'clothes':['clothes','Clothing store']
+,'convenience':['convenience','Convencience store']
+,'greengrocer':['greengrocer','Greengrocer'],'kiosk':['kiosk','Kiosk'],'mall':['mall','Mall'],'shoes':['shoes','Shoes'],
+'supermarket':['supermarket','Supermarket'],'marketplace':['marketplace','Marketplace']},
+'Tourism___Leisure':{"cinema":['cinema','Cinema'],"theatre":['theatre','Theatre'],"museum":['museum','Museum'],"picnic_site":['picnic_site','Picnic-site'],
 "hotel":['hotel','Hotel'],"hostel":['hostel','Hostel'],
-"guest_house":['guest_house','Guest house'],"attraction":['attraction-15','Attraction']
-,"viewpoint":['viewpoint','Viewpoint'],"gallery":['art-gallery-15','Gallery']}}
+"guest_house":['guest_house','Guest house'],"attraction":['attraction','Attraction']
+,"viewpoint":['viewpoint','Viewpoint'],"gallery":['gallery','Gallery']}}
 
 
 
@@ -102,6 +102,22 @@ for (c in categories_db_style){
 	pois = Object.assign(pois,categories_db_style[c]);
 }
 
+function GetPoiCategory(amenityType) {
+	var AmenityCategory;
+	var CategoriesKeys = Object.keys(categories_db_style);
+		CategoriesKeys.forEach(ck => {
+			var value = categories_db_style[ck];
+			var subKeys = Object.keys(value);
+			subKeys.forEach(sk => {
+				if (sk == amenityType){
+					AmenityCategory = ck;
+				}
+			});
+		});
+		return AmenityCategory;
+  }
+
+
 
 
 var dictionary = {
@@ -110,4 +126,4 @@ var dictionary = {
 
 
 }
-export {dropdown_slider,append_dropdown_slider,categories_db_style,pois,dictionary,header_array,content_array};
+export {dropdown_slider,append_dropdown_slider,categories_db_style,pois,dictionary,header_array,content_array,GetPoiCategory};
