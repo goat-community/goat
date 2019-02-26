@@ -12,7 +12,7 @@
       <FeatureTypeStyle>
         <Rule>
           <Title>POIS TYPES</Title>
-          <MaxScaleDenominator>60000</MaxScaleDenominator>
+          <MaxScaleDenominator>80000</MaxScaleDenominator>
           <PointSymbolizer>
             <Graphic>
               <ExternalGraphic>

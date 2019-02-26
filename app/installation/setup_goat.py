@@ -18,14 +18,13 @@ password = secrets["PASSWORD"]
 os.system('echo '+':'.join([host,port,db_name,user,password])+' > .pgpass')
 os.system("sudo chmod 600 .pgpass")
 
-'''
 os.system('sudo -u postgres psql -c "DROP DATABASE %s;"' % db_name) 
 os.system('sudo -u postgres psql -c "DROP USER %s;"' % user) 
 os.system('sudo -u postgres psql -c "CREATE DATABASE %s;"' % db_name)
 os.system('sudo -u postgres psql -c "CREATE USER %s;"' % user)
 os.system('sudo -u postgres psql -c "ALTER USER ' + user + ' WITH ENCRYPTED PASSWORD '+"'"+password+"'"+';"')
 os.system('sudo -u postgres psql -c "ALTER USER %s WITH SUPERUSER;"' % user)
-'''
+
 #Create extensions
 os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION plpython3u;"' % (db_name,user,host))
 os.chdir('app/data')
@@ -37,10 +36,11 @@ top = bbox[3]+buffer
 left = bbox[0]-buffer
 bottom = bbox[1]-buffer
 right = bbox[2]+buffer
-'''
+
 bounding_box = '--bounding-box top=%f left=%f bottom=%f right=%f' % (top,left,bottom,right)
- 
-os.system('wget --output-document="raw-osm.osm.pbf" %s' % config['DATA_SOURCE']['OSM_DOWNLOAD_LINK'])
+
+if (config['DATA_SOURCE']['OSM_DOWNLOAD_LINK'] != 'no_download'):
+    os.system('wget --output-document="raw-osm.osm.pbf" %s' % config['DATA_SOURCE']['OSM_DOWNLOAD_LINK'])
 
 os.system('osmosis --read-pbf file="raw-osm.osm.pbf" %s --write-xml file="study_area.osm"' % bounding_box)
 
@@ -55,7 +55,6 @@ for file in glob.glob("*.shp"):
     os.system('PGPASSFILE=~/.pgpass shp2pgsql -I -s 4326  %s public.%s | psql PGPASSWORD=%s -d %s -U %s -h %s -q' % (file,file.split('.')[0],password,db_name,user,host))
     print(file)
 
-'''
 
 
 os.chdir(str(Path.home())+'/app/data_preparation/SQL')
@@ -68,10 +67,11 @@ os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,ho
 source_population = config['DATA_SOURCE']['POPULATION']
 print ('It was chosen to use population from: ', source_population)
 if (source_population == 'extrapolation'):
-    os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'population_dissagregation.sql'))
+    os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'buildings_residential.sql'))
     os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'census.sql'))
 elif(source_population == 'disaggregation'):
-    os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'population_dissagregation.sql'))
+    os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'buildings_residential.sql'))
+    os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'population_disagregation.sql'))
 
 os.chdir(str(Path.home())+'/app/database_functions')
 for file in glob.glob("*.sql"):

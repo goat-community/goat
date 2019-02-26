@@ -1,4 +1,9 @@
 --CREATE TABLE ways_userinput AND way_userinput_vertices_pgr
+ALTER TABLE ways rename column gid to id;
+ALTER TABLE ways rename column the_geom to geom;
+ALTER TABLE ways_vertices_pgr rename column the_geom to geom;
+ALTER TABLE ways alter column target type int4;
+ALTER TABLE ways alter column source type int4;
 
 
 ALTER TABLE ways_vertices_pgr ADD COLUMN class_ids int[];
@@ -64,20 +69,14 @@ SELECT * FROM ways;
 CREATE TABLE ways_userinput_vertices_pgr as
 SELECT * FROM ways_vertices_pgr;
 
-ALTER TABLE ways rename column gid to id;
-ALTER TABLE ways_userinput rename column gid to id;
+
+--ALTER TABLE ways_userinput rename column gid to id;
 ALTER TABLE ways_userinput add column userid int4;
 ALTER TABLE ways_userinput_vertices_pgr add column userid int4;
-
-
-ALTER TABLE ways rename column the_geom to geom;
-ALTER TABLE ways_vertices_pgr rename column the_geom to geom;
-ALTER TABLE ways alter column target type int4;
-ALTER TABLE ways alter column source type int4;
-ALTER TABLE ways_userinput rename column the_geom to geom;
-ALTER TABLE ways_userinput_vertices_pgr rename column the_geom to geom;
-ALTER TABLE ways_userinput alter column target type int4;
-ALTER TABLE ways_userinput alter column source type int4;
+--ALTER TABLE ways_userinput rename column the_geom to geom;
+--ALTER TABLE ways_userinput_vertices_pgr rename column the_geom to geom;
+--ALTER TABLE ways_userinput alter column target type int4;
+--ALTER TABLE ways_userinput alter column source type int4;
 
 ALTER TABLE public.ways_userinput ADD CONSTRAINT ways_userinput_pkey PRIMARY KEY (id);
 ALTER TABLE public.ways_userinput ADD CONSTRAINT ways_userinput_class_id_fkey ForEIGN KEY (class_id) REFERENCES osm_way_classes(class_id);

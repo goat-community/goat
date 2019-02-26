@@ -123,7 +123,7 @@ CREATE TABLE public.variable_container (
 	CONSTRAINT variable_container_pkey PRIMARY KEY (identifier)
 );
 
-insert INTO variable_container(identifier,variable_array) 
+INSERT INTO variable_container(identifier,variable_array) 
 values('poi_categories',
 '{"kindergarten","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food",
 "ice_cream","restaurant","sum_addresses","sum_population","cinema","library","night_club","recycling",
@@ -135,16 +135,60 @@ values('poi_categories',
 "tram_stop","subway_entrance","sbahn_regional"}');
 
 
-insert INTO variable_container(identifier,variable_array) 
+INSERT INTO variable_container(identifier,variable_array) 
 values('excluded_class_id_walking',
 '{101,102,103,104,105,106,107,501,502,503,504}');
 
-insert INTO variable_container(identifier,variable_array)
-values('landuse_with_no_residents',
+INSERT INTO variable_container(identifier,variable_array)
+values('custom_landuse_no_residents',
 '{"AX_TagebauGrubeSteinbruch",
 "AX_SportFreizeitUndErholungsflaeche",
 "AX_FlaecheBesondererFunktionalerPraegung",
 "AX_Halde",
 "AX_Friedhof",
 "AX_IndustrieUndGewerbeflaeche"}'
+);
+
+INSERT INTO variable_container(identifier,variable_array)
+values('osm_landuse_no_residents',
+'{"farmyard","quarry","industrial","retail","commercial","military","cemetery","landfill","allotments","recreation ground","railway"}'
+);
+
+--All buildings that can be potentially residential
+INSERT INTO variable_container(identifier,variable_array)
+values('building_types_potentially_residential',
+'{"residential","yes","house","detached","terrace","apartments","home"}'
+);
+--All buildings that are definitely residential
+INSERT INTO variable_container(identifier,variable_array)
+values('building_types_residential',
+'{"residential","detached","terrace","apartments","home"}'
+);
+
+INSERT INTO variable_container(identifier,variable_array)
+values('tourism_no_residents',
+'{"zoo"}'
+);
+
+INSERT INTO variable_container(identifier,variable_array)
+values('amenity_no_residents',
+'{"hospital","university","community_centre","school"}'
+);
+
+INSERT INTO variable_container(identifier,variable_simple)
+values('default_building_levels',
+'2'
+);
+INSERT INTO variable_container(identifier,variable_simple)
+values('minimum_building_size_residential',
+'54'
+);
+
+INSERT INTO variable_container(identifier,variable_simple)
+values('census_minimum_number_new_buildings',
+'1'
+);
+INSERT INTO variable_container(identifier,variable_simple)
+values('average_gross_living_area',
+'60'
 );
