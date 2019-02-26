@@ -8,7 +8,6 @@ ALTER TABLE buildings ADD PRIMARY KEY(gid);
 CREATE INDEX ON buildings USING GIST(geom);
 /*Extrapolation census grid*/
 /*There is used the census table, OSM data and (optional) a table with building footprints (they could be also used from OSM)*/
-
 DROP TABLE IF EXISTS population_census;
 DROP TABLE IF EXISTS non_residential_buildings;
 DROP TABLE IF EXISTS intersection_buildings_grid;
@@ -212,19 +211,6 @@ WHERE s.name = r.name
 AND ST_Intersects(s.geom,census.geom)
 AND census.pop > 0;
 
-/*
-CREATE TABLE population_census AS 
-WITH sum_area AS (
-	SELECT c.gid,sum(b.area) AS sum_area
-	FROM census c, buildings_residential_fusion b
-	WHERE ST_Intersects(c.geom,b.geom)
-	GROUP BY c.gid
-)
-SELECT row_number() over() AS gid,c.new_pop *(b.area/s.sum_area) AS population, b.geom, new_pop, b.area, sum_area
-FROM census c, sum_area s, buildings_residential_fusion b
-WHERE c.gid = s.gid 
-AND ST_Intersects(c.geom,b.geom)
-
 --Disaggregate from the census level to the buildings
 CREATE TABLE population_census AS 
 WITH x AS (
@@ -235,12 +221,6 @@ WITH x AS (
 SELECT row_number() over() AS gid, b.geom, pop_building AS population
 FROM  buildings_residential_fusion b, x 
 WHERE ST_Intersects(b.geom,x.geom);
-*/
-
-CREATE TABLE population_census AS 
-SELECT gid, new_pop AS population, ST_Centroid(geom) AS geom
-FROM census
-WHERE new_pop > 0;
 
 ALTER TABLE population_census add primary key(gid);
 
@@ -253,3 +233,42 @@ DROP TABLE IF EXISTS buildings_points;
 DROP TABLE IF EXISTS buildings_residential_intersect;
 DROP TABLE IF EXISTS buildings_residential_fusion;
 DROP TABLE IF EXISTS intersect_custom_landuse;
+
+
+
+
+ALTER TABLE census ADD COLUMN built_up_residential NUMERIC;
+UPDATE census SET built_up_residential = x.sum_area 
+FROM 
+(
+	SELECT c.gid, sum(b.area) sum_area
+	FROM buildings_residential_fusion b, census c 
+	WHERE ST_Intersects(b.geom,c.geom)
+	GROUP BY c.gid
+) x
+WHERE census.gid = x.gid;
+
+DROP TABLE census_intersection
+
+CREATE TABLE census_intersection AS 
+SELECT row_number() over() as gid, pop, ST_Intersection(s.geom,c.geom) AS geom, c.built_up_residential
+FROM study_area s, census c 
+WHERE ST_Intersects(s.geom,c.geom)
+
+
+
+
+WITH c AS (
+	SELECT row_number() over() as gid, pop, ST_Intersection(s.geom,c.geom) AS geom, c.built_up_residential
+	FROM study_area s, census c 
+	WHERE ST_Intersects(s.geom,c.geom)
+),
+b AS (
+	SELECT c.gid, sum(b.area) sum_part
+	FROM c, buildings_residential_fusion b 
+	WHERE ST_Intersects(c.geom,b.geom)
+	GROUP BY c.gid
+)
+SELECT b.sum_part AS built_up_residential, (b.sum_part/c.built_up_residential) * c.pop AS pop, c.geom 
+FROM c,b 
+WHERE c.gid = b.gid; 
