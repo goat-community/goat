@@ -1,8 +1,7 @@
-
 import {map} from './map';
 import {pois,categories_db_style,dictionary,header_array,content_array} from './variables';
 import {isochrones,network} from './isochrones';
-import {addRemoveAccesibilityLayer} from './layers';
+import {addRemoveAccesibilityLayer,poisWMSLayer} from './layers';
 import {pois_geom} from './other_layers';
 import {drawnLine,ExtractStreetsLayer,QueryLayer} from './interaction';
 
@@ -39,7 +38,7 @@ let index_function = function () {
 			for (let key_1 in array){
 				  let cell = `<input type="checkbox" class ="filled-in thematic_item_check thematic_item_checkShared" id="check_${array[key_1]}" unchecked></input>`
 								  +`<label for="check_${array[key_1]}" style="padding-left:25px;height:16px;"></label>`
-				  				  +`<img style="padding-right:5px;" for="check_${array[key_1]}" src="../markers/pois/${pois[array[key_1]][0]}.png">`
+				  				  +`<img for="check_${array[key_1]}" src="../markers/pois_new/${pois[array[key_1]][0]}.png">`
 			     				  +`<label style="cursor:pointer;" for="check_${array[key_1]}">${pois[array[key_1]][1]}</label>`	
 								  + `<input name="n" class="thematic_data_weight"type="number" min="1" max="5" step="1" value="1"/>`
 				  
@@ -93,8 +92,46 @@ let index_function = function () {
 		}
 		if ($('#accessibility_basemap_select').val() != 'no_basemap'){
 			addRemoveAccesibilityLayer.add(map);
-  		}  
+		  }
+	
+
+		  //Auto Thematic Data Refresh
+		  $('select[id^="isochrone_"]').trigger("change");
+		  UpdatePoisLayer ();
+		  
 	});
+
+
+	function UpdatePoisLayer (){
+
+		var thematic_selection = $("#main_thematic_data .content :checkbox:checked");
+		var array_pois = [];
+	
+	
+		for (var i=0; i < thematic_selection.length; i++){									
+			var poi = thematic_selection[i].id.replace('check_','')
+			array_pois.push(poi);		
+				
+		} 	
+	//Update POIS WMS Layer Params
+	var list = array_pois.length == 0 ? "'-1'":array_pois.map(x => "'" + x + "'").toString();
+	poisWMSLayer.getSource()
+				.updateParams({'LAYERS': 'cite:pois_test', 'cql_filter':"amenity IN ('-1',"+list+")"});
+	}
+
+
+	//Toggle POIS Layers 
+	$("body").on('change','#toggle_pois_layer', function () { 
+		if (this.checked){		
+			poisWMSLayer.setVisible(true);
+		} 			
+		else {			
+			poisWMSLayer.setVisible(false);
+		}
+		poisWMSLayer.getSource().changed();
+	});
+
+
 	$('.thematic_item_checkShared').click(function(){
 		
 		var pid = $(this).parent().closest('div').attr('id');
@@ -116,6 +153,11 @@ let index_function = function () {
 		else if(counter < len){
 			$('#'+category).prop('checked',true);
 		}
+
+		//Auto Thematic Data Refresh
+		$('select[id^="isochrone_"]').trigger("change");
+		//Update WMS Layer
+		UpdatePoisLayer ();
 	});
 	 
 	 
@@ -169,6 +211,9 @@ let index_function = function () {
 		QueryLayer.getSource().changed();
 });
 	
+
+
+
 	//Toogle function for the Select_thematic_data section
 	$("body").on('click','.fa-chevron-right, .fa-chevron-down',function () {
 		let keys_categories = Object.keys(categories_db_style);

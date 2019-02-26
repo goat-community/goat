@@ -24,6 +24,7 @@ begin
   
   SELECT id, geom INTO id_vertex, geom_vertex
   FROM ways_vertices_pgr
+  WHERE (class_ids <@ excluded_class_id::int[]) IS false
   ORDER BY geom <-> point
   LIMIT 1;
   IF ST_Distance(geom_vertex::geography,point::geography)>250 THEN

@@ -17,6 +17,10 @@ import {Stroke, Style} from 'ol/style';
 import Feature from 'ol/Feature';
 import {tool_tip} from './tooltip';
 import {draw_isochrone} from './isochrones';
+import maputils from './utils/maputils';
+import {humanize} from './helpers';
+import {GetPoiCategory} from './variables';
+
 
 
 const userid = Math.floor(Math.random() * 10000000);
@@ -304,6 +308,7 @@ function WfsRequestFunction (srsName,namespace,workspace,layerName,filter){
 var QueryLayerSouce = new VectorSource({wrapX: false});
 var QueryLayer = new VectorLayer({
         source: QueryLayerSouce,
+        zIndex: 3,
         style: drawing_style
     });
     QueryLayer.setMap(map);
@@ -312,6 +317,7 @@ var QueryLayer = new VectorLayer({
 var ExtractStreetsSource = new VectorSource({wrapX: false});
 var ExtractStreetsLayer = new VectorLayer({
     source: ExtractStreetsSource,
+    zIndex: 3,
     style: waysStyle
 });
 
@@ -321,6 +327,7 @@ ExtractStreetsLayer.setMap(map);
 var CircleRadiusLayerSource = new VectorSource({wrapX: false});
 var CircleRadiusLayer = new VectorLayer({
         source: CircleRadiusLayerSource,
+        zIndex: 3,
         style: drawing_style
     });
 CircleRadiusLayer.setMap(map);
@@ -651,18 +658,26 @@ var waysInteraction = {
                 var f = this.featuresToCommit[i];
                 //Feature Properties
                 var props = f.getProperties();
+                //Set status to null
+                f.setProperties({
+                        status: null
+                });
                 //Transform the feature
                 var geometry = f.getGeometry().clone();
                 geometry.transform("EPSG:3857", "EPSG:4326");
                 var transformed = new Feature({	
                     userid : userid,                
                     geom: geometry,
-                    class_id: f.getProperties().class_id
+                    class_id: f.getProperties().class_id,
+                    status: null
                 });
                 transformed.setGeometryName("geom");
                 if (this.interactionType == 'draw'){
                     //Get Selected Ways type
                     transformed.set('type',document.getElementById('ways_type').value);
+                }
+                if (props.type && props.type != null && this.interactionType == 'modify'){
+                    props.original_id = null;
                 }
                 if (!props.hasOwnProperty('original_id') && ((this.interactionType == 'modify'))){
                     transformed.set('original_id',f.getProperties().id);
@@ -704,6 +719,7 @@ var waysInteraction = {
         success: function(data) {    
             var result = formatWFS.readTransactionResponse(data);
             var FIDs = result.insertIds;   
+        
             if (FIDs != undefined && FIDs[0]!="none"){
                 var i;
                 for (i=0;i<FIDs.length;i++){
@@ -730,9 +746,10 @@ var waysInteraction = {
             var geometry = feature.getGeometry();
             var coordinates = geometry.getCoordinates();
             var startCoord = coordinates[0];            
-            SelectedLayerSource.addFeature(feature);
+            SelectedLayerSource.addFeature(feature);           
             map.addOverlay(popupOverlay);
-            popupOverlay.setPosition(startCoord);  
+            popupOverlay.setPosition(startCoord); 
+             
         } else {return;}
         if (type == 'add'){
                 //Create Popup Content for Add Interaction (//Road Type: road, bridge)
@@ -886,6 +903,126 @@ $(document).keyup(function(e) {
        });
    }
 });
+
+
+
+$('#btnInsertintoNetwork').click(function () {	
+	$('#mySpinner').addClass('spinner');
+	const InsertintoNetwork = new VectorLayer({
+    	source: new VectorSource({
+				url:ApiConstants.address_geoserver+"wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=userid:"+userid.toString()+"&typeNames=cite:network_modification",
+					format: new WFS({
+       		})
+    	})   
+       
+	});
+
+	map.addLayer(InsertintoNetwork);
+	
+   //Update Feature Line type
+    ExtractStreetsSource.getFeatures().forEach(feature => {
+        var prop = feature.getProperties();
+        if (prop.hasOwnProperty("status")){
+            feature.setProperties({
+                status: 1
+            });
+        }
+    });
+	InsertintoNetwork.getSource().on('change', function(e) {
+			$('#mySpinner').removeClass('spinner');	
+	})
+
+});
+
+
+//POIS WMS POPUP
+var getInfoContainer =  document.getElementById('getinfo');
+var getInfoCloser = document.getElementById("getinfo-closer");
+var getInfoHeader = document.getElementById('getinfo-popup-header');
+var getInfoContent = document.getElementById("getinfo-popup-content");
+
+getInfoCloser.onclick = closeGetInfo;
+
+var getInfoPopupOverlay = new Overlay({
+    element: getInfoContainer,
+    autoPan: true,
+    autoPanAnimation: {
+        duration: 250
+    }
+});
+
+function closeGetInfo (){
+    getInfoPopupOverlay.setPosition(undefined);
+    map.removeOverlay(getInfoPopupOverlay);
+}
+
+
+map.on('click',function(evt){
+    closeGetInfo();
+    if (waysInteraction.currentInteraction != null){
+        return;
+    }
+    var coordinate = evt.coordinate;
+    var layers = map.getLayers().getArray();
+    var layerToQuery;
+    var projection =  map.getView().getProjection();
+    var resolution = map.getView().getResolution();
+    layers.forEach(layer => {
+    if (layer.get('getInfo') == true){
+      layerToQuery = layer;
+    }
+  });
+  if (layerToQuery.getVisible() == false){
+      return;
+  }
+  
+    if (layerToQuery){
+      var url = layerToQuery.getSource().getGetFeatureInfoUrl(coordinate,resolution,projection,{'INFO_FORMAT': 'application/json'});
+      $.ajax(url, {
+        type: 'post'
+      }).then((response) => {
+          if (response.error) {
+            return [];
+          }
+         var features = maputils.geojsonToFeature(response);
+         if (features.length == 0) return;
+          openGetInfoPopup(features);
+          var headerString = `<span>POIS</span>`;
+          var props = features[0].getProperties();
+          var amenityType = props['amenity'];
+          if (amenityType){
+           var Category = GetPoiCategory(amenityType);
+           headerString = `<span>POIS - ` + Category + ` </span>`
+          }
+
+          getInfoHeader.innerHTML = headerString;
+          var htmlString = ``;
+          const keys = Object.keys(props)
+          keys.forEach(key => {
+              if (key == 'geometry' || props[key] == null) return;
+            htmlString +=  `<tr><td style="width: 30%;padding: 5px 5px;border: 1px solid gainsboro;text-align:center;font-weight:bold;">` 
+                            + humanize(key) + `</td><td style="width: 30%;padding: 5px 5px;border: 1px solid gainsboro;word-break: keep-all;">` 
+                            + humanize(props[key]) + `</td></tr>`;
+          });
+          getInfoContent.innerHTML = `<table>`+htmlString+`</table>`;
+        });
+    }
+  });
+
+  function openGetInfoPopup(feature) {
+    if (feature.length == 0) {
+        closeGetInfo();
+        return;
+    }
+    var feature = feature[0];
+    getInfoContainer.style.visibility = 'visible';   
+    var geometry = feature.getGeometry();
+    var coordinates = geometry.getCoordinates();
+    var props = feature.getProperties();
+    map.addOverlay(getInfoPopupOverlay);
+    getInfoPopupOverlay.setPosition(coordinates);   
+  }
+
 
 
 

@@ -117,14 +117,14 @@ function isochrone_load_fn (){
 	    var  cql_isochrone = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:isochrones&srsname=EPSG:3857&CQL_Filter=objectid='+objectid.toString();
 		var layer = new VectorLayer({
 			style:styleFunction1,
+			zIndex: 4,
 	        source: new VectorSource({
 						 url:cql_isochrone,
 						// format: new GeoJSON(),
 	           	  		format: new  WFS({
 
 	            	})
-			}),
-			zIndex: 10 
+			})
 		})
 		
 		
@@ -164,9 +164,9 @@ function isochrone_load_fn (){
 	   
 
 	    $("#additional_layer_container_"+type_calculation+'_'+number_calculations).append(checkbox_network);	
-	    var checkbox_pois = `<input style="margin-left:7px;" type="checkbox" class="filled-in pois_check" id="show_pois_${type_calculation}_${number_calculations}"/>
-	   						<label for="show_pois_${type_calculation}_${number_calculations}">POIs</label>`
-		$("#additional_layer_container_"+type_calculation+'_'+number_calculations).append(checkbox_pois)
+	    // var checkbox_pois = `<input style="margin-left:7px;" type="checkbox" class="filled-in pois_check" id="show_pois_${type_calculation}_${number_calculations}"/>
+	   	// 					<label for="show_pois_${type_calculation}_${number_calculations}">POIs</label>`
+		// $("#additional_layer_container_"+type_calculation+'_'+number_calculations).append(checkbox_pois)
 	//	Observable.unByKey(listenerKey);
 		layerWFS_point.getSource().clear();
 }
@@ -175,34 +175,6 @@ function isochrone_load_fn (){
 
 
 
-$('#btnInsertintoNetwork').click(function () {
-			
-	
-	$('#mySpinner').addClass('spinner');
-
-	const InsertintoNetwork = new VectorLayer({
-    	source: new VectorSource({
-				url:ApiConstants.address_geoserver+"wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=userid:"+userid.toString()+"&typeNames=cite:network_modification",
-					format: new WFS({
-       		})
-    	})   
-       
-	});
-
-	map.addLayer(InsertintoNetwork);
-	
-	
-	
-	InsertintoNetwork.getSource().on('change', function(e) {
-			$('#mySpinner').removeClass('spinner');	
-			/*
-			for (let i of drawnLine.getSource().getFeatures()){
-				i.set('line_type','solid');
-			}	    
-			*/
-	})
-
-});
 
 function network_style_default(feature, resolution) {
 	

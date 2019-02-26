@@ -17,6 +17,7 @@ var i, ii;
 for (i = 0, ii = styles.length; i < ii; ++i) {
   layers.push(new TileLayer({
       visible: false,
+      type: 'baselayer',
       preload: Infinity,
       source: new OSM({
       "url": urls[i],
@@ -28,6 +29,7 @@ for (i = 0, ii = styles.length; i < ii; ++i) {
 
 var bingmaps = new TileLayer({
     visible: false,
+    type: 'baselayer',
     preload: Infinity,
     source: new BingMaps({
       key: ApiConstants.bingmaps_key,
@@ -41,6 +43,7 @@ layers.push(bingmaps);
 styles.push('Aerial');
 
 var mapbox = new TileLayer({
+  type: 'baselayer',
 	source: new XYZ({
 	url: 'https://api.mapbox.com/styles/v1/mapbox/streets-v10/tiles/256/{z}/{x}/{y}?access_token='+ApiConstants.mapbox_key
 	})
@@ -53,7 +56,9 @@ styles.push('Mapbox');
 var oepnv_karte = new TileLayer({
   //extent: [-20037508,-20037508,20037508,20037508],
   visible: false,
+  type: 'baselayer',
   preload: Infinity,
+  
   source: new XYZ({
     attributions: oepnv_attribution,
     url:"https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
@@ -68,6 +73,7 @@ var oepnv_karte = new TileLayer({
 $('body').on('change','#layer-select',function(){
   var style = this.value;
   for (var i = 0, ii = layers.length; i < ii; ++i) {
+    if (layers[i].get('type') != 'baselayer') return;
     layers[i].setVisible(styles[i] === style);
     if (style == 'Mapbox'){
     	$('#mapbox').show()
@@ -80,9 +86,22 @@ $('body').on('change','#layer-select',function(){
 
 /////
 var accessibility_layer = function(){
+  var LayerType;
+  var style = $('#accessibility_basemap_select').val();
+  //Get Layer Type
+  switch (style) {
+    case "walkability":
+    LayerType = "heatmap";
+    break;
+    case "population":
+    LayerType = "heatmap_population"
+    default:
+    break;
+  }
+  //Type Heatmap Or Heatmap Population
   let heatmap_input ={};
   let select_heatmap_input = $('#main_thematic_data .content :checkbox:checked')
-  let link = ApiConstants.address_geoserver+'cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:heatmap&LAYERS=cite%3Aheatmap&viewparams=amenities:%27'
+  let link = ApiConstants.address_geoserver+'cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:'+LayerType+'&LAYERS=cite%3A'+LayerType+'&viewparams=amenities:%27'
   let link_part = '' 
   for (var i=0; i < select_heatmap_input.length; i++){
     link_part = link_part + '{"\'' + select_heatmap_input[i].id.replace('check_','') + '\'":' + $(select_heatmap_input[i]).siblings()[3].value + '},'
@@ -92,6 +111,7 @@ var accessibility_layer = function(){
 
 var layer_accessibility = new ImageLayer({
   opacity: 1,
+  zIndex: 2,
   showLegend: true,
   source: new ImageWMS({
     url: link
@@ -136,10 +156,32 @@ var addRemoveAccesibilityLayer = {
   }	
 }
 
+
+//POIS WMS Layer
+
+var poisWMSLayer = new ImageLayer({
+  opacity: 1,
+  zIndex: 6,
+  getInfo: true,
+  showLegend: false,
+  visible: false,
+  source: new ImageWMS({
+    selectedPois: [""],
+    url:  ApiConstants.address_geoserver + "wms",
+    params: {'LAYERS': 'cite:pois_test', 'cql_filter':"amenity IN ('-1')"},
+    ratio: 1,
+    serverType: 'geoserver'
+  })
+});
+layers.push(poisWMSLayer);
+
+
+
+
 	
 //EXPORT MODULAR FUNCTIONS
 function GetBaseLayers(){
   return layers;
 }
 
-export {GetBaseLayers,addRemoveAccesibilityLayer};
+export {GetBaseLayers,addRemoveAccesibilityLayer,poisWMSLayer};
