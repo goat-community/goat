@@ -4,8 +4,10 @@ permalink: /docs/quick_start/
 ---
 
 
-For the developed Vagrant and Docker are used. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. 
-In order to start and customize GOAT for your study area, you have to follow these steps:
+GOAT fells at home on Linux distribution Ubuntu. However, with the help an virtual machine (controlled by Vagrant) and with Docker you can offer GOAT a home also on your Windows or Mac OS for development and testing. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt.
+
+
+<b>In order to start and customize GOAT for your study area, you have to follow these steps:<b>
 
 #### 1. Get a copy of GOAT
 
@@ -23,12 +25,56 @@ It was only tested with the version mentioned above. Accordingly if you want to 
 
 [https://www.vagrantup.com/](https://www.vagrantup.com/)
 
+#### 4. Configure GOAT
 
-#### 4. Prepare your data
+There is one central configuration file for setting up GOAT. You can find this file at `your-GOAT-directory/app/config/goat_config.yaml`.
+At the moment not all configuration possibilities are in here but it is targeted to move more and more of the configuration in here. 
 
-Put all your data into the app/data folder!
+#### 5. Prepare your data
 
-##### If you want to disaggregate population data
+<b>Necessary shapefile<b>
+
+study_area.shp
+
+There is one folder (your-GOAT-directory/app/data) in which you can organize the data you want to load into the database. 
+The setup-script will search for shapefiles in this directory and upload all of them into your database. The only file that is essential for setting up GOAT is a shapefile defining your study area. Other data is optional, however especially landuse data or custom population data can improve data quality.
+As high-resolution population data is one of most important data source for GOAT there are three different ways for you to feed the data into the system. Depending on your data availability you can pick one approach in the `your-GOAT-directory/app/config/goat_config.yaml`.
+
+##### Population disaggregation
+
+<b>Custom data<b>
+
+landuse.shp (optional)
+
+Two SQL-scripts do the job for you:
+
+The script `your-GOAT-directory/app/data_preparation/SQL/buildings_residential.sql` will extract all the residential buildings from the planet_osm_polygon-table (this table contains all OSM-polygons in you study area and will be created automatically). As OSM data is of varying quality and tagging-schemes are not always consistent there are several attributes on which this extraction can be done. In addition a custom landuse-table can help to select only residential buildings. You can customize the settings for this extraction in the table variable_container either before the setup `your-GOAT-directory/app/data_preparation/SQL/create_tables.sql` but also afterwards to tune you disaggregation. 
+
+There is a second script that actually disaggregates the population data from the boundaries you added with your study_area to the individual buildings. As the population disaggregation is based on OpenStreetMap data, it relies on relatively complete OSM-buildings footprints. In addition, especially in areas with heterogenous building levels it is recommended to check if buildings levels are mapped properly. If there are no buildings levels mapped a default value, which can be defined by you in the database table `variable_container` will be used. 
+
+In general it is highly recommended to check for the data quality in your study area. If you are unhappy with the data quality it is highl recommended to improve the local OSM dataset. Very often with some little mapping effort you can improve data quality essentially. The setup of GOAT allows you to update the data after successful mapping. 
+
+
+##### Census extrapolation 
+
+<b>Custom data<b>
+
+census.shp
+
+landuse.shp (optional)
+
+In the case you have census data in your study area but you know the data is outdated. GOAT has an script included that allows you to update the census grids based on current population numbers in your whole study area. The script checks for areas where new development took place and estimates based on average gross living area how many residents live in the affected grids. You can also customize the same in the `variable_container`. This procedure also makes use of the extracted residential buildings as described in the population dissagregation.
+
+##### Custom high-resolution population data 
+
+<b>Custom data<b>
+
+population.shp
+
+If you have population data as point source you can upload the same in the database.
+
+Just place a shapefile called population.shp into your data folder. The geometry type has to be point and the number of residents have to be saved as integer into a column called "population". 
+
 
 You need a shapefile with administrative boundaries and a column with the number of inhabitants in this administrative 
 unit, it works for any spatial resolution. The column has to be named “sum_pop” and has to be saved as integer. 
@@ -37,9 +83,10 @@ accurate disaggregation. Make sure you change the name of your spatial unit to n
 
 Optional: In the case you have custom landuse data you can place the data as shapefile (name the file: landuse.shp) into your data folder. The table has to include a column named "landuse". You can define in the table variable_container, which landuse category you want to exclude from the population disaggregation. For instance you can exclude graveyards or farmland and as consequences houses standing on these landuse categories are marked as not uninhabited. 
 
-##### If you already have population data on a high-resolution
 
-Just place a shapefile called population.shp into your data folder. The geometry type has to be point and the number of residents have to be saved as integer into a column called "population". 
+
+
+##### Filename convention
 
 
 #### 5. Define your bounding box and the OSM-Downloadlink
