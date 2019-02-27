@@ -129,7 +129,7 @@ This script can take a while as it installs quite some software on your VM. If y
 
 In case you want to UPDATE all your data you can simply run the following from your project directory.
 
-`python3 app/installation/setup_goat.sh` (run on your VM)
+`python3 app/installation/setup_goat.py` (run on your VM)
 
 <b><font color="red">!!Note this will drop your database and create a new database.!!</font><b>
 
