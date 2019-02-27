@@ -213,7 +213,7 @@ You potentially have to run all the following commands:
 
 Make backup directory
 
-`mkdir /var/lib/postgresql/backup`
+`sudo mkdir /var/lib/postgresql/backup`
 
 Login as root user:
 
