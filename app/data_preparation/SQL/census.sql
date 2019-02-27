@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS buildings;
 CREATE TABLE buildings AS 
 SELECT building, amenity, tourism, way AS geom 
 FROM planet_osm_polygon 
@@ -74,7 +75,7 @@ FROM
 buildings_residential_intersect AS br LEFT JOIN
 (	SELECT gid, geom 
 	FROM landuse 
-	WHERE objart IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'custom_landuse_no_residents')
+	WHERE landuse IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'custom_landuse_no_residents')
 
 ) AS l 
 ON ST_Intersects (br.geom, l.geom)
