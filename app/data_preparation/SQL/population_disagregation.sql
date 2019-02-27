@@ -1,28 +1,3 @@
---All Building with no levels get building_levels = 2 AND roof_levels = 1
-UPDATE buildings_residential 
-set building_levels = (SELECT variable_simple::integer FROM variable_container WHERE identifier = 'default_building_levels'), 
-roof_levels = 1 
-WHERE building_levels IS NULL;
-
---Substract one level when POI on building (more classification has to be done in the future)
-
-ALTER TABLE buildings_residential 
-add column building_levels_residential integer; 
-
-with x as (
-    SELECT distinct b.gid
-    FROM buildings_residential b, pois p 
-    WHERE st_intersects(b.geom,p.geom)
-)
-UPDATE buildings_residential 
-set building_levels_residential = building_levels - 1
-FROM x
-WHERE buildings_residential.gid = x.gid;
-UPDATE buildings_residential 
-set building_levels_residential = building_levels
-WHERE building_levels_residential IS NULL;
-
-
 --Population of each adminstrative boundary is assigned to the residential buildings
 CREATE TABLE buildings_pop AS
 with x as (
