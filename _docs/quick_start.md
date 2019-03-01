@@ -163,12 +163,19 @@ User: admin
 
 Password : geoserver
 
-##### 8. View GOAT in the browser
+##### 8. Start Node-Server
 
+`cd ~/app/node` (run on your VM)
+
+`npm install` (run on your VM)
+
+`npm start` (run on your VM)
+
+##### 9. View GOAT in the browser
 
 The front-end is bundled using parcel. At the moment it is recommended to run parcel on your host. For this you need to have NodeJS installed on your host:
 
-In order to start the bundling go to the front-end directory and run:
+In order to start the bundling go to the front-end directory, open console window and run:
 
 `npm install` (run on your host)
 
@@ -180,7 +187,7 @@ If all steps were successful you will be able to use GOAT by typing the followin
 
 You can also run parcel on your VM, however you have to open port 9090 and port 8585. This can be done on your Vagrantfile.
 
-##### 9. Optional: Pre-calculate accessibility heat-map
+##### 10. Optional: Pre-calculate accessibility heat-map
 
 GOAT allows you to use pre-calculated matrices that are used to visualize the dynamic heatmaps. 
 In order to start the pre-calculation you currently have to start the script manually with the following command:
@@ -190,6 +197,39 @@ In order to start the pre-calculation you currently have to start the script man
 Depending on the size of your study area the calculation can take a bit.
 
 You can also set different grid_sizes in the script.
+
+##### 11. How start and stop GOAT
+
+<b>Stop<b>
+
+After you have followed this documentation you will have two console windows open (one for the front-end and one for the NodeJS-server) you can kill the processes with Ctrl + c.  
+
+If you want to turn your VM off: 
+
+Go to your `your-GOAT-directory` on your guest operation system.
+
+Type `vagrant halt`. This will turn your VM off. 
+
+<b>Start<b>
+
+If you want to start GOAT again. Simply open a command prompt and go to `your-GOAT-directory` and type `vagrant up`.
+After some seconds you VM should be up an running. Your database and Geoserver are already up and running. However the front-end and the NodeJS-server you have to start manually. You have to repeat part of the procedure of 8. and 9.
+
+Open a new console window and run the following:
+
+`cd your-GOAT-directory/app/front_end` (on your host)
+
+`npm start` (on your host)
+
+Open a new console window and run the following:
+
+`cd your-GOAT-directory` (on your host)
+
+`vagrant ssh` (on your host)
+
+`cd app/node` (on your VM)
+
+`npm start` (on your VM)
 
 
 ##### Common Issues
