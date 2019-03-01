@@ -206,9 +206,11 @@ After you have followed this documentation you will have two console windows ope
 
 If you want to turn your VM off: 
 
-Go to your `your-GOAT-directory` on your guest operation system.
+`cd your-GOAT-directory` (on your host)
 
-Type `vagrant halt`. This will turn your VM off. 
+`vagrant halt` (on your host)
+
+Check for more vagrant commands: [https://www.vagrantup.com/docs/cli/](https://www.vagrantup.com/docs/cli/)
 
 <b>Start<b>
 
