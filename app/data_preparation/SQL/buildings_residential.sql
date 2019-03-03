@@ -21,6 +21,7 @@ WHERE building IS NOT NULL
 AND leisure IS NULL
 AND amenity IS NULL
 AND tourism IS NULL
+AND office IS NULL
 AND shop IS NULL
 AND sport IS NULL
 AND building IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'building_types_potentially_residential');
