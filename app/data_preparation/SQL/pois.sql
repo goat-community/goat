@@ -102,15 +102,6 @@ ALTER TABLE pois DROP COLUMN shop;
 --Create first pois as it is continuing with gid----------------------------
 --------------------------------------------------------------------------
 
-
-
---ALTER TABLE hilfstabelle_pois
---ALTER TABLE hilfstabelle_pois add column bus_station integer;
---ALTER TABLE hilfstabelle_pois add column subway_station integer;
---ALTER TABLE hilfstabelle_pois add column tram_station integer;
---ALTER TABLE hilfstabelle_pois add column railway_station integer;
-
-
 --Create public_transport_stops
 DROP TABLE IF EXISTS public_transport_stops;
 SELECT *, (SELECT max(gid) FROM pois) + row_number() over() as gid

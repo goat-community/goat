@@ -4,6 +4,7 @@
 import os, glob, yaml
 from pathlib import Path
 import shapefile
+import datetime
 os.system('sudo /etc/init.d/postgresql restart')
 os.chdir(Path.home())
 with open(str(Path.home())+"/app/config/goat_config.yaml", 'r') as stream:
@@ -44,9 +45,18 @@ if (config['DATA_SOURCE']['OSM_DOWNLOAD_LINK'] != 'no_download'):
 
 os.system('osmosis --read-pbf file="raw-osm.osm.pbf" %s --write-xml file="study_area.osm"' % bounding_box)
 
+#Create timestamps
+os.system('rm timestamps.txt')
+os.system('touch timestamps.txt')
+currentDT = datetime.datetime.now()
+timestamp = currentDT.strftime("%Y-%m-%d")+'T'+currentDT.strftime("%H:%M:%S")+'Z'
+print(timestamp)
+file = open("timestamps.txt","a")
+file.write(timestamp+'\n')
+file.close()
 
 os.system('osmconvert study_area.osm --drop-author --drop-version --out-osm -o=study_area_reduced.osm')
-os.system('rm study_area | mv study_area_recuded.osm study_area.osm')
+os.system('rm study_area.osm | mv study_area_reduced.osm study_area.osm')
 os.system('PGPASSFILE=~/.pgpass osm2pgsql -d %s -H %s -U %s --hstore -E 4326 study_area.osm' % (db_name,host,user)) 
 os.system('PGPASSFILE=~/.pgpass osm2pgrouting --dbname %s --host %s --username %s --file "study_area.osm" --conf ../config/mapconfig.xml --clean' % (db_name,host,user))
 

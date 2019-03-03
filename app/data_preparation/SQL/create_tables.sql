@@ -172,12 +172,12 @@ values('tourism_no_residents',
 
 INSERT INTO variable_container(identifier,variable_array)
 values('amenity_no_residents',
-'{"hospital","university","community_centre","school"}'
+'{"hospital","university","community_centre","school","kindergarten","recreation_ground","wood"}'
 );
 
 INSERT INTO variable_container(identifier,variable_simple)
 values('default_building_levels',
-'2'
+'3'
 );
 INSERT INTO variable_container(identifier,variable_simple)
 values('minimum_building_size_residential',
@@ -190,5 +190,5 @@ values('census_minimum_number_new_buildings',
 );
 INSERT INTO variable_container(identifier,variable_simple)
 values('average_gross_living_area',
-'60'
+'50'
 );
