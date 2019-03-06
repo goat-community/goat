@@ -245,8 +245,6 @@ You potentially have to run all the following commands:
 
 `dos2unix ~/app/installation/install_software.sh` (run on your VM)
 
-`dos2unix ~/app/installation/setup_goat.sh` (run on your VM)
-
 `dos2unix ~/app/config/goat_config.yaml` (run on your VM)
 
 `dos2unix ~/app/geoserver/install_geoserver.sh` (run on your VM)
