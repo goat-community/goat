@@ -168,7 +168,7 @@ var poisWMSLayer = new ImageLayer({
   source: new ImageWMS({
     selectedPois: [""],
     url:  ApiConstants.address_geoserver + "wms",
-    params: {'LAYERS': 'cite:pois_test', 'cql_filter':"amenity IN ('-1')"},
+    params: {'LAYERS': 'cite:pois_info', 'cql_filter':"amenity IN ('-1')"},
     ratio: 1,
     serverType: 'geoserver'
   })
