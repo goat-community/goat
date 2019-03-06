@@ -108,14 +108,6 @@ UPDATE buildings_residential
 set building_levels_residential = building_levels
 WHERE building_levels_residential IS NULL;
 
-
-
-DELETE FROM buildings_residential b
-USING study_area s
-WHERE ST_Intersects(s.geom,b.geom)
-AND s.sum_pop IS NULL 
-OR s.sum_pop = 0;
-
 CREATE TABLE landuse_osm AS 
 SELECT landuse, name, tags, way AS geom 
 FROM planet_osm_polygon 
