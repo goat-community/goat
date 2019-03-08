@@ -116,7 +116,7 @@ let index_function = function () {
 	//Update POIS WMS Layer Params
 	var list = array_pois.length == 0 ? "'-1'":array_pois.map(x => "'" + x + "'").toString();
 	poisWMSLayer.getSource()
-				.updateParams({'LAYERS': 'cite:pois_info', 'cql_filter':"amenity IN ('-1',"+list+")"});
+				.updateParams({'LAYERS': 'cite:pois_info', 'cql_filter':"amenity IN ('-1','population',"+list+")"});
 	}
 
 
