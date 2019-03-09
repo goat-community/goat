@@ -1,28 +1,28 @@
 DROP TABLE IF EXISTS pois;
 CREATE TABLE pois as (
 
-SELECT osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
+SELECT osm_id,'point' as orgin_geometry, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom
 FROM planet_osm_point
 WHERE amenity IS NOT NULL AND shop IS NULL AND amenity <> 'school'
 
 UNION ALL 
 
-SELECT osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
+SELECT osm_id,'point' as orgin_geometry, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom
 FROM planet_osm_point
 WHERE shop IS NOT NULL AND amenity IS NULL
 
 UNION ALL 
 
-SELECT osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
+SELECT osm_id, 'polygon' as orgin_geometr, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom
 FROM planet_osm_polygon
 WHERE amenity IS NOT NULL AND amenity <> 'school' 
 
 UNION ALL 
 
-SELECT osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
+SELECT osm_id,'polygon' as orgin_geometry, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom
 FROM planet_osm_polygon
 WHERE shop IS NOT NULL 
@@ -30,7 +30,7 @@ WHERE shop IS NOT NULL
 
 UNION ALL
 
-SELECT osm_id, access,"addr:housenumber" as housenumber, tourism, shop, denomination,brand,name,
+SELECT osm_id,'point' as orgin_geometry, access,"addr:housenumber" as housenumber, tourism, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom
 FROM planet_osm_point
 WHERE tourism IS NOT NULL
@@ -39,7 +39,7 @@ WHERE tourism IS NOT NULL
 UNION ALL 
 
 SELECT * FROM (
-SELECT osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
+SELECT osm_id, 'polygon' as orgin_geometry, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom
 FROM planet_osm_polygon
 WHERE amenity = 'school') x
@@ -52,7 +52,7 @@ OR name like '%Haupt%'
 UNION ALL 
 
 SELECT * FROM (
-SELECT osm_id, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
+SELECT osm_id,'point' as orgin_geometry, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom
 FROM planet_osm_point
 WHERE amenity = 'school') x
@@ -104,7 +104,7 @@ ALTER TABLE pois DROP COLUMN shop;
 
 --Create public_transport_stops
 DROP TABLE IF EXISTS public_transport_stops;
-SELECT *, (SELECT max(gid) FROM pois) + row_number() over() as gid
+SELECT *, 'point' as orgin_geometry,(SELECT max(gid) FROM pois) + row_number() over() as gid
 INTO public_transport_stops FROM (
 SELECT osm_id,'bus_stop' as public_transport_stop,name,way as geom FROM planet_osm_point 
 WHERE highway = 'bus_stop' AND name IS NOT NULL
