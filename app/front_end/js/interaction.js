@@ -1033,7 +1033,7 @@ map.on('click',function(evt){
           var htmlString = ``;
           const keys = Object.keys(props)
           keys.forEach(key => {
-              if (key == 'geometry' || props[key] == null || typeof(props[key]) == 'number') return;
+              if (key == 'geometry' || props[key] == null || typeof(props[key]) == 'number' || key =='orgin_geometry') return;
             htmlString +=  `<tr><td style="width: 30%;padding: 5px 5px;border: 1px solid gainsboro;text-align:center;font-weight:bold;">` 
                             + humanize(key) + `</td><td style="width: 30%;padding: 5px 5px;border: 1px solid gainsboro;word-break: keep-all;">` 
                             + humanize(props[key]) + `</td></tr>`;
