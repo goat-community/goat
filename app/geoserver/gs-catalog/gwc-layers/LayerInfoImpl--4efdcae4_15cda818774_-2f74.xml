@@ -10,9 +10,25 @@
   <gridSubsets>
     <gridSubset>
       <gridSetName>EPSG:900913</gridSetName>
+      <extent>
+        <coords>
+          <double>1299261.5517434638</double>
+          <double>6129657.642038238</double>
+          <double>1301377.9467704762</double>
+          <double>6131406.079236099</double>
+        </coords>
+      </extent>
     </gridSubset>
     <gridSubset>
       <gridSetName>EPSG:4326</gridSetName>
+      <extent>
+        <coords>
+          <double>11.6714651</double>
+          <double>48.1368834</double>
+          <double>11.690477</double>
+          <double>48.1473641</double>
+        </coords>
+      </extent>
     </gridSubset>
   </gridSubsets>
   <metaWidthHeight>
@@ -21,13 +37,6 @@
   </metaWidthHeight>
   <expireCache>0</expireCache>
   <expireClients>0</expireClients>
-  <parameterFilters>
-    <styleParameterFilter>
-      <key>STYLES</key>
-      <defaultValue></defaultValue>
-      <availableStyles class="sorted-set"/>
-      <defaultStyle>simple_roads</defaultStyle>
-    </styleParameterFilter>
-  </parameterFilters>
+  <parameterFilters/>
   <gutter>0</gutter>
 </GeoServerTileLayer>

@@ -5,11 +5,12 @@ ALTER TABLE ways_vertices_pgr rename column the_geom to geom;
 ALTER TABLE ways alter column target type int4;
 ALTER TABLE ways alter column source type int4;
 
-insert INTO osm_way_classes(class_id,name) values(501,'secondary_use_sidepath');
-insert INTO osm_way_classes(class_id,name) values(502,'secondary_link_use_sidepath');
-insert INTO osm_way_classes(class_id,name) values(503,'tertiary_use_sidepath');
-insert INTO osm_way_classes(class_id,name) values(504,'tertiary_link_use_sidepath');
-insert INTO osm_way_classes(class_id,name) values(601,'foot_yes');
+INSERT INTO osm_way_classes(class_id,name) values(501,'secondary_use_sidepath');
+INSERT INTO osm_way_classes(class_id,name) values(502,'secondary_link_use_sidepath');
+INSERT INTO osm_way_classes(class_id,name) values(503,'tertiary_use_sidepath');
+INSERT INTO osm_way_classes(class_id,name) values(504,'tertiary_link_use_sidepath');
+INSERT INTO osm_way_classes(class_id,name) values(601,'foot_yes');
+INSERT INTO osm_way_classes(class_id,name) values(701,'network_island');
 
 WITH links_to_UPDATE as (
 	SELECT osm_id, o.class_id 
@@ -82,7 +83,26 @@ UPDATE ways SET class_id = 601
 FROM links_to_UPDATE l
 WHERE ways.osm_id = l.osm_id;
 
+--Mark network islands in the network
 
+WITH RECURSIVE ways_no_islands AS (
+ SELECT id,geom
+ FROM ways
+ WHERE id = 1
+ UNION
+ SELECT w.id,w.geom
+ FROM ways w, ways_no_islands n
+ WHERE ST_Intersects(n.geom,w.geom)
+) 
+UPDATE ways SET class_id = 701 
+FROM (
+	SELECT w.id
+	FROM ways w
+	LEFT JOIN ways_no_islands n
+	ON w.id = n.id
+	WHERE n.id IS null
+) x
+WHERE ways.id = x.id;
 
 ALTER TABLE ways_vertices_pgr ADD COLUMN class_ids int[];
 WITH class_ids AS (
