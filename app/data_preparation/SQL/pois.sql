@@ -15,7 +15,7 @@ WHERE shop IS NOT NULL AND amenity IS NULL
 
 UNION ALL 
 
-SELECT osm_id, 'polygon' as orgin_geometr, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
+SELECT osm_id, 'polygon' as orgin_geometry, access,"addr:housenumber" as housenumber, amenity, shop, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom
 FROM planet_osm_polygon
 WHERE amenity IS NOT NULL AND amenity <> 'school' 
