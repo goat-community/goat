@@ -137,7 +137,7 @@ values('poi_categories',
 
 INSERT INTO variable_container(identifier,variable_array) 
 values('excluded_class_id_walking',
-'{101,102,103,104,105,106,107,501,502,503,504}');
+'{101,102,103,104,105,106,107,501,502,503,504,701}');
 
 INSERT INTO variable_container(identifier,variable_array)
 values('custom_landuse_no_residents',

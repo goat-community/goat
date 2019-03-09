@@ -6,7 +6,7 @@
       <sld:FeatureTypeStyle>
         <sld:Name>name</sld:Name>
                 <sld:Rule>
-          <sld:Name>No accessibility</sld:Name>
+          <sld:Name>Very low accessibility</sld:Name>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -21,7 +21,7 @@
           </ogc:Filter>
           <sld:PolygonSymbolizer>
             <sld:Fill>
-              <sld:CssParameter name="fill">#f7fbff</sld:CssParameter>
+              <sld:CssParameter name="fill">#d7191c</sld:CssParameter>
               <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
             </sld:Fill>
             <!--
@@ -49,7 +49,7 @@
           </ogc:Filter>
           <sld:PolygonSymbolizer>
             <sld:Fill>
-              <sld:CssParameter name="fill">#f7fbff</sld:CssParameter>
+              <sld:CssParameter name="fill">#f69053</sld:CssParameter>
               <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
             </sld:Fill>
             <!--
@@ -77,7 +77,7 @@
           </ogc:Filter>
           <sld:PolygonSymbolizer>
             <sld:Fill>
-              <sld:CssParameter name="fill">#c7dcef</sld:CssParameter>
+              <sld:CssParameter name="fill">#ffdf9a</sld:CssParameter>
               <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
             </sld:Fill>
             <!--
@@ -105,7 +105,7 @@
           </ogc:Filter>
           <sld:PolygonSymbolizer>
             <sld:Fill>
-              <sld:CssParameter name="fill">#72b2d7</sld:CssParameter>
+              <sld:CssParameter name="fill">#dcf09e</sld:CssParameter>
               <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
             </sld:Fill>
             <!--
@@ -133,7 +133,7 @@
           </ogc:Filter>
           <sld:PolygonSymbolizer>
             <sld:Fill>
-              <sld:CssParameter name="fill">#2878b8</sld:CssParameter>
+              <sld:CssParameter name="fill">#8acc62</sld:CssParameter>
               <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
             </sld:Fill>
             <!--
@@ -161,7 +161,7 @@
           </ogc:Filter>
           <sld:PolygonSymbolizer>
             <sld:Fill>
-              <sld:CssParameter name="fill">#08306b</sld:CssParameter>
+              <sld:CssParameter name="fill">#1a9641</sld:CssParameter>
               <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
             </sld:Fill>
             <!--
