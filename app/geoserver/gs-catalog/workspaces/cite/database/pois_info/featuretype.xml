@@ -1,11 +1,11 @@
 <featureType>
   <id>FeatureTypeInfoImpl-314e65dc:168e2ce74d0:-7c4f</id>
-  <name>pois_test</name>
+  <name>pois_info</name>
   <nativeName>pois_test</nativeName>
   <namespace>
     <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
   </namespace>
-  <title>pois_test</title>
+  <title>pois_info</title>
   <keywords>
     <string>features</string>
     <string>pois_test</string>
@@ -40,11 +40,11 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>pois_test</name>
-        <sql>select p.name,p.amenity,p.geom from pois p,variable_container v &#xd;
+        <sql>select p.name,p.amenity,p.osm_id,p.geom from pois p,variable_container v &#xd;
 where amenity = any(v.variable_array)&#xd;
 and v.identifier = &apos;poi_categories&apos;&#xd;
 union all &#xd;
-select pt.name,pt.public_transport_stop,pt.geom from public_transport_stops pt
+select pt.name,pt.public_transport_stop,null as osm_id,pt.geom from public_transport_stops pt
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
