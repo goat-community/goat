@@ -181,7 +181,7 @@ $("body").on('change','.dropdown_thematic',function () {
 	} 	
 
 	keys_feature = array_pois;       
-    //keys_feature.push('population')   
+    keys_feature.push('population')   
 	var attribute = ''
 	var extra_column = ''
 
