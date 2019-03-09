@@ -76,7 +76,7 @@ var categories_db_style = {
 'Food___Drink':{'bar':['bar','Bar'],'biergarten':['biergarten','Biergarten'],'cafe':['cafe','Café'],'pub':['pub','Pub'],'fast_food':['fast_food','Fast food'],
 'ice_cream':['ice_cream','Ice cream'],'restaurant':['restaurant','Restaurant'],'nightclub':['nightclub','Night-Club']},
 'Transport':{'bicycle_rental':['bicycle_rental','Bicycle rental'],'car_sharing':['car_sharing','Car sharing'],'charging_station':['charging_station','Charging station'],
-'bus_stop':['bus_stop','Bus'],'tram_stop':['tram_stop','Tram station'],
+'bus_stop':['bus_stop','Bus'],'tram_stop':['tram_stop','Tram Stop'],
 'subway_entrance':['subway_entrance','U-Bahn station'],'rail_station':['rail_station','Rail Station'],'taxi':['taxi','Taxi']},
 'Services':{'hairdresser':['hairdresser','Hairdresser'],'atm':['atm','ATM'],'bank':['bank','Bank'],'dentist':['dentist','Dentist']
 ,'doctors':['doctors','Doctor'],'pharmacy':['pharmacy','Pharmacy'],
