@@ -181,12 +181,13 @@ $("body").on('change','.dropdown_thematic',function () {
 	} 	
 
 	keys_feature = array_pois;       
-       
+    keys_feature.push('population')   
 	var attribute = ''
 	var extra_column = ''
 
 	//Depending on the input data the table is created & Keep old loop
 	for (var element in keys_feature){
+		console.log(keys_feature)
 		if (('default_'+counter) in thematic_data && ('input_'+counter) in thematic_data){
 			
 			attribute = attribute + '<tr>'+'<td>'+pois[keys_feature[element]][1]+'</td>' +'<td>'+one_object_default[keys_feature[element]]+'</td>'+'<td>'+one_object_input[keys_feature[element]]+'</td>'+ '</tr>'

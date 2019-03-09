@@ -938,10 +938,14 @@ $('#btnInsertintoNetwork').click(function () {
 //POIS WMS POPUP
 var getInfoContainer =  document.getElementById('getinfo');
 var getInfoCloser = document.getElementById("getinfo-closer");
+var editOsmPois = document.getElementById("osm_edit");
 var getInfoHeader = document.getElementById('getinfo-popup-header');
 var getInfoContent = document.getElementById("getinfo-popup-content");
+var currentPoisFeature = null;
+
 
 getInfoCloser.onclick = closeGetInfo;
+editOsmPois.onclick = editOSMFeature;
 
 var getInfoPopupOverlay = new Overlay({
     element: getInfoContainer,
@@ -954,6 +958,29 @@ var getInfoPopupOverlay = new Overlay({
 function closeGetInfo (){
     getInfoPopupOverlay.setPosition(undefined);
     map.removeOverlay(getInfoPopupOverlay);
+}
+
+function editOSMFeature ()
+{
+  if (currentPoisFeature == null) return;
+  //Get Feature properties
+  var properties = currentPoisFeature.getProperties();
+  var origin_geometry = properties['orgin_geometry'];
+  var osm_id = properties['osm_id'];
+  if (osm_id == null) return;
+  //Type of Feature  Node || Way
+  var type; 
+  if (origin_geometry == 'polygon'){
+    type = 'way';
+  } else if(origin_geometry == 'point'){
+    type = 'node';
+  } else {
+    type = null;
+  }
+  if (type != null){
+    var osmlink =  "https://www.openstreetmap.org/edit?editor=id&"+type+"="+parseInt(osm_id);
+    window.open(osmlink, '_blank')
+  }
 }
 
 
@@ -990,6 +1017,13 @@ map.on('click',function(evt){
           var headerString = `<span>POIS</span>`;
           var props = features[0].getProperties();
           var amenityType = props['amenity'];
+          currentPoisFeature = features[0];
+          editOsmPois.style.visibility = 'visible';
+          if (props['osm_id'] == null){
+            editOsmPois.style.visibility = 'hidden';
+          }
+          
+
           if (amenityType){
            var Category = GetPoiCategory(amenityType);
            headerString = `<span>POIS - ` + Category + ` </span>`
@@ -999,7 +1033,7 @@ map.on('click',function(evt){
           var htmlString = ``;
           const keys = Object.keys(props)
           keys.forEach(key => {
-              if (key == 'geometry' || props[key] == null) return;
+              if (key == 'geometry' || props[key] == null || typeof(props[key]) == 'number' || key =='orgin_geometry') return;
             htmlString +=  `<tr><td style="width: 30%;padding: 5px 5px;border: 1px solid gainsboro;text-align:center;font-weight:bold;">` 
                             + humanize(key) + `</td><td style="width: 30%;padding: 5px 5px;border: 1px solid gainsboro;word-break: keep-all;">` 
                             + humanize(props[key]) + `</td></tr>`;

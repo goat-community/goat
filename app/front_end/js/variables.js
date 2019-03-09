@@ -72,25 +72,22 @@ var append_dropdown_slider = function(){
 
 
 var categories_db_style = {
-'Education':{'kindergarten':['kindergarten','Kindergarten'],'primary_school':['primary_school','Primary school'],'secondary_school':['secondary_school','Secondary school']},
-'Gastronomy':{'bar':['bar','Bar'],'biergarten':['biergarten','Biergarten'],'cafe':['cafe','Café'],'pub':['pub','Pub'],'fast_food':['fast_food','Fast food'],
-'ice_cream':['ice_cream','Ice cream'],'restaurant':['restaurant','Restaurant']},
-'Population':{'population':['population','Population']},
-'Other':{'library':['library','Library'],'night_club':['night_club','Night-Club'],'recycling':['recycling','Recycling']},
+'Education':{'kindergarten':['kindergarten','Kindergarten'],'primary_school':['primary_school','Primary school'],'secondary_school':['secondary_school','Secondary school'],'library':['library','Library']},
+'Food___Drink':{'bar':['bar','Bar'],'biergarten':['biergarten','Biergarten'],'cafe':['cafe','Café'],'pub':['pub','Pub'],'fast_food':['fast_food','Fast food'],
+'ice_cream':['ice_cream','Ice cream'],'restaurant':['restaurant','Restaurant'],'nightclub':['nightclub','Night-Club']},
 'Transport':{'bicycle_rental':['bicycle_rental','Bicycle rental'],'car_sharing':['car_sharing','Car sharing'],'charging_station':['charging_station','Charging station'],
-'bus_stop':['bus_stop','Bus'],'tram_stop':['tram_stop','Tram station'],
-'subway_entrance':['subway_entrance','U-Bahn station'],'sbahn_regional':['sbahn_regional','S-Bahn station'],'taxi':['taxi','Taxi']},
+'bus_stop':['bus_stop','Bus'],'tram_stop':['tram_stop','Tram Stop'],
+'subway_entrance':['subway_entrance','U-Bahn station'],'rail_station':['rail_station','Rail Station'],'taxi':['taxi','Taxi']},
 'Services':{'hairdresser':['hairdresser','Hairdresser'],'atm':['atm','ATM'],'bank':['bank','Bank'],'dentist':['dentist','Dentist']
 ,'doctors':['doctors','Doctor'],'pharmacy':['pharmacy','Pharmacy'],
-'post_box':['post_box','Post box'],'post_office':['post_office','Post office'],'fuel':['fuel','Fuel']},
-'Shop':{'alcohol':['alcohol','Alcohol shop'],'bakery':['bakery','Bakery'],'butcher':['butcher','Butcher'],'clothes':['clothes','Clothing store']
-,'convenience':['convenience','Convencience store']
+'post_box':['post_box','Post box'],'fuel':['fuel','Fuel'],'recycling':['recycling','Recycling']},
+'Shop':{'bakery':['bakery','Bakery'],'butcher':['butcher','Butcher'],'clothes':['clothes','Clothing store']
+,'convenience':['convenience','Convenience store']
 ,'greengrocer':['greengrocer','Greengrocer'],'kiosk':['kiosk','Kiosk'],'mall':['mall','Mall'],'shoes':['shoes','Shoes'],
 'supermarket':['supermarket','Supermarket'],'marketplace':['marketplace','Marketplace']},
-'Tourism___Leisure':{"cinema":['cinema','Cinema'],"theatre":['theatre','Theatre'],"museum":['museum','Museum'],"picnic_site":['picnic_site','Picnic-site'],
+'Tourism___Leisure':{"cinema":['cinema','Cinema'],"theatre":['theatre','Theatre'],"museum":['museum','Museum'],
 "hotel":['hotel','Hotel'],"hostel":['hostel','Hostel'],
-"guest_house":['guest_house','Guest house'],"attraction":['attraction','Attraction']
-,"viewpoint":['viewpoint','Viewpoint'],"gallery":['gallery','Gallery']}}
+"guest_house":['guest_house','Guest house'],"gallery":['gallery','Gallery']}}
 
 
 
@@ -101,6 +98,12 @@ for (c in categories_db_style){
 		
 	pois = Object.assign(pois,categories_db_style[c]);
 }
+
+var population ={
+	"Population":{'population': ['population','Population']}
+}
+
+pois = Object.assign(pois,population["Population"]);
 
 function GetPoiCategory(amenityType) {
 	var AmenityCategory;
