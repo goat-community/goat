@@ -44,7 +44,7 @@
 where amenity = any(v.variable_array)&#xd;
 and v.identifier = &apos;poi_categories&apos;&#xd;
 union all &#xd;
-select pt.name,pt.public_transport_stop,null as osm_id,pt.geom from public_transport_stops pt
+select pt.name,pt.public_transport_stop, pt.osm_id,pt.geom from public_transport_stops pt
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
