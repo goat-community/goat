@@ -40,11 +40,11 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>pois_test</name>
-        <sql>select p.name,p.amenity,p.osm_id,p.geom from pois p,variable_container v &#xd;
+        <sql>select p.name,p.amenity,p.osm_id,p.orgin_geometry,p.geom from pois p,variable_container v &#xd;
 where amenity = any(v.variable_array)&#xd;
 and v.identifier = &apos;poi_categories&apos;&#xd;
 union all &#xd;
-select pt.name,pt.public_transport_stop, pt.osm_id,pt.geom from public_transport_stops pt
+select pt.name,pt.public_transport_stop,null as osm_id,null as orgin_geometry,pt.geom from public_transport_stops pt
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>

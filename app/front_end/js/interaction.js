@@ -941,7 +941,8 @@ var getInfoCloser = document.getElementById("getinfo-closer");
 var editOsmPois = document.getElementById("osm_edit");
 var getInfoHeader = document.getElementById('getinfo-popup-header');
 var getInfoContent = document.getElementById("getinfo-popup-content");
-var currentPoisOsmId = null;
+var currentPoisFeature = null;
+
 
 getInfoCloser.onclick = closeGetInfo;
 editOsmPois.onclick = editOSMFeature;
@@ -961,10 +962,25 @@ function closeGetInfo (){
 
 function editOSMFeature ()
 {
-  if (currentPoisOsmId == null) return;
+  if (currentPoisFeature == null) return;
+  //Get Feature properties
+  var properties = currentPoisFeature.getProperties();
+  var origin_geometry = properties['orgin_geometry'];
+  var osm_id = properties['osm_id'];
+  if (osm_id == null) return;
   //Type of Feature  Node || Way
-  var osmlink =  "https://www.openstreetmap.org/edit?editor=id&node="+parseInt(currentPoisOsmId);
-  window.open(osmlink, '_blank')
+  var type; 
+  if (origin_geometry == 'polygon'){
+    type = 'way';
+  } else if(origin_geometry == 'point'){
+    type = 'node';
+  } else {
+    type = null;
+  }
+  if (type != null){
+    var osmlink =  "https://www.openstreetmap.org/edit?editor=id&"+type+"="+parseInt(osm_id);
+    window.open(osmlink, '_blank')
+  }
 }
 
 
@@ -1001,11 +1017,12 @@ map.on('click',function(evt){
           var headerString = `<span>POIS</span>`;
           var props = features[0].getProperties();
           var amenityType = props['amenity'];
-          currentPoisOsmId = props['osm_id'];
+          currentPoisFeature = features[0];
           editOsmPois.style.visibility = 'visible';
-          if (currentPoisOsmId == null){
+          if (props['osm_id'] == null){
             editOsmPois.style.visibility = 'hidden';
           }
+          
 
           if (amenityType){
            var Category = GetPoiCategory(amenityType);
