@@ -469,8 +469,26 @@ display:block !important;
 .ol-popup-closer {
   text-decoration: none;
   position: absolute;
+  cursor: pointer;
+  color:grey;
   top: 2px;
   right: 8px;
+}
+
+.popup-edit {
+  cursor: pointer;
+  position: absolute;
+  top: 2px;
+  right: 25px;
+  color:rgb(51, 51, 51);
+  text-decoration: none;
+  font-weight: bolder;
+}
+.ol-popup-closer:hover{
+  color: red;
+}
+.popup-edit:hover{
+  color:#53CAFF;
 }
 .ol-popup-closer:after {
   content: "✖";
