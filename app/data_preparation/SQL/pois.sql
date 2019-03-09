@@ -106,21 +106,21 @@ ALTER TABLE pois DROP COLUMN shop;
 DROP TABLE IF EXISTS public_transport_stops;
 SELECT *, (SELECT max(gid) FROM pois) + row_number() over() as gid
 INTO public_transport_stops FROM (
-SELECT 'bus_stop' as public_transport_stop,name,way as geom FROM planet_osm_point 
+SELECT osm_id,'bus_stop' as public_transport_stop,name,way as geom FROM planet_osm_point 
 WHERE highway = 'bus_stop' AND name IS NOT NULL
 UNION ALL
-SELECT 'bus_stop' as public_transport_stop,name,way as geom FROM planet_osm_point 
+SELECT osm_id,'bus_stop' as public_transport_stop,name,way as geom FROM planet_osm_point 
 WHERE public_transport = 'platform' AND name IS NOT NULL AND tags -> 'bus'='yes'
 UNION ALL
-SELECT 'tram_stop' as public_transport_stop,name,way as geom FROM planet_osm_point 
+SELECT osm_id,'tram_stop' as public_transport_stop,name,way as geom FROM planet_osm_point 
 WHERE public_transport = 'stop_position' 
 AND tags -> 'tram'='yes'
 AND name IS NOT NULL
 UNION ALL
-SELECT  'subway_entrance' as public_transport,name, way as geom FROM planet_osm_point
+SELECT osm_id,'subway_entrance' as public_transport,name, way as geom FROM planet_osm_point
 WHERE railway = 'subway_entrance'
 UNION ALL
-SELECT 'sbahn_regional' as public_transport,name,way as geom 
+SELECT osm_id,'rail_station' as public_transport,name,way as geom 
 FROM planet_osm_point WHERE railway = 'stop'
 AND tags -> 'train' ='yes') x;
 
