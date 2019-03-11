@@ -42,9 +42,9 @@
       <key>STYLES</key>
       <defaultValue></defaultValue>
       <availableStyles class="sorted-set">
-        <string>style_heatmap</string>
+        <string>cite:style_heatmap</string>
       </availableStyles>
-      <defaultStyle>style_heatmap</defaultStyle>
+      <defaultStyle>cite:style_heatmap</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>
   <gutter>0</gutter>

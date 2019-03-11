@@ -50,7 +50,10 @@ y as (SELECT grid_id,accessibility_index,geom, ntile(5) over &#xd;
 FROM x where accessibility_index &lt;&gt; 0&#xd;
 ORDER BY grid_id&#xd;
 )&#xd;
-select * from y
+select g.grid_id,g.geom, y.accessibility_index, COALESCE(y.percentile,0) percentile&#xd;
+from grid_500 g&#xd;
+LEFT JOIN y&#xd;
+ON g.grid_id = y.grid_id
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
@@ -60,7 +63,7 @@ select * from y
         </geometry>
         <parameter>
           <name>amenities</name>
-          <defaultValue>&apos;eeepppprimary_schoolccctttonexxxllleeepppsecondary_schoolcccttttwoxxx&apos;</defaultValue>
+          <defaultValue>&apos;W3siJ2J1c19zdG9wJyI6Mn0seyIndHJhbV9zdG9wJyI6M31d&apos;</defaultValue>
         </parameter>
       </virtualTable>
     </entry>

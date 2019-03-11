@@ -93,7 +93,7 @@ var accessibility_layer = function(){
     case "walkability":
     LayerType = "heatmap";
     break;
-    case "population":
+    case "walkability-population":
     LayerType = "heatmap_population"
     default:
     break;
