@@ -11,12 +11,12 @@
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
                 <ogc:PropertyName>percentile</ogc:PropertyName>
-                <ogc:Literal>0</ogc:Literal>
+                <ogc:Literal>-1</ogc:Literal>
               </ogc:PropertyIsGreaterThan>
-              <ogc:PropertyIsLessThanOrEqualTo>
+              <ogc:PropertyIsLessThan>
                 <ogc:PropertyName>percentile</ogc:PropertyName>
                 <ogc:Literal>1</ogc:Literal>
-              </ogc:PropertyIsLessThanOrEqualTo>
+              </ogc:PropertyIsLessThan>
             </ogc:And>
           </ogc:Filter>
           <sld:PolygonSymbolizer>
@@ -39,11 +39,11 @@
             <ogc:And>
               <ogc:PropertyIsGreaterThanOrEqualTo>
                 <ogc:PropertyName>percentile</ogc:PropertyName>
-                <ogc:Literal>1</ogc:Literal>
+                <ogc:Literal>0</ogc:Literal>
               </ogc:PropertyIsGreaterThanOrEqualTo>
               <ogc:PropertyIsLessThanOrEqualTo>
                 <ogc:PropertyName>percentile</ogc:PropertyName>
-                <ogc:Literal>2</ogc:Literal>
+                <ogc:Literal>1</ogc:Literal>
               </ogc:PropertyIsLessThanOrEqualTo>
             </ogc:And>
           </ogc:Filter>
@@ -67,11 +67,11 @@
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
                 <ogc:PropertyName>percentile</ogc:PropertyName>
-                <ogc:Literal>2</ogc:Literal>
+                <ogc:Literal>1</ogc:Literal>
               </ogc:PropertyIsGreaterThan>
               <ogc:PropertyIsLessThanOrEqualTo>
                 <ogc:PropertyName>percentile</ogc:PropertyName>
-                <ogc:Literal>3</ogc:Literal>
+                <ogc:Literal>2</ogc:Literal>
               </ogc:PropertyIsLessThanOrEqualTo>
             </ogc:And>
           </ogc:Filter>
@@ -95,11 +95,11 @@
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
                 <ogc:PropertyName>percentile</ogc:PropertyName>
-                <ogc:Literal>3</ogc:Literal>
+                <ogc:Literal>2</ogc:Literal>
               </ogc:PropertyIsGreaterThan>
               <ogc:PropertyIsLessThanOrEqualTo>
                 <ogc:PropertyName>percentile</ogc:PropertyName>
-                <ogc:Literal>4</ogc:Literal>
+                <ogc:Literal>3</ogc:Literal>
               </ogc:PropertyIsLessThanOrEqualTo>
             </ogc:And>
           </ogc:Filter>
@@ -123,11 +123,11 @@
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
                 <ogc:PropertyName>percentile</ogc:PropertyName>
-                <ogc:Literal>4</ogc:Literal>
+                <ogc:Literal>3</ogc:Literal>
               </ogc:PropertyIsGreaterThan>
               <ogc:PropertyIsLessThanOrEqualTo>
                 <ogc:PropertyName>percentile</ogc:PropertyName>
-                <ogc:Literal>5</ogc:Literal>
+                <ogc:Literal>4</ogc:Literal>
               </ogc:PropertyIsLessThanOrEqualTo>
             </ogc:And>
           </ogc:Filter>
@@ -151,11 +151,11 @@
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
                 <ogc:PropertyName>percentile</ogc:PropertyName>
-                <ogc:Literal>5</ogc:Literal>
+                <ogc:Literal>4</ogc:Literal>
               </ogc:PropertyIsGreaterThan>
               <ogc:PropertyIsLessThanOrEqualTo>
                 <ogc:PropertyName>percentile</ogc:PropertyName>
-                <ogc:Literal>6</ogc:Literal>
+                <ogc:Literal>5</ogc:Literal>
               </ogc:PropertyIsLessThanOrEqualTo>
             </ogc:And>
           </ogc:Filter>
