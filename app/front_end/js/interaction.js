@@ -749,7 +749,7 @@ var waysInteraction = {
             SelectedLayerSource.addFeature(feature);           
             map.addOverlay(popupOverlay);
             popupOverlay.setPosition(startCoord); 
-             
+             //
         } else {return;}
         if (type == 'add'){
                 //Create Popup Content for Add Interaction (//Road Type: road, bridge)
