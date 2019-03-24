@@ -50,7 +50,7 @@ def calculate_isochrones(grid_size):
         SELECT * FROM iso;
         UPDATE grid_%s SET isochrone_gid = i.gid FROM isochrones i 
         WHERE i.objectid = %i	
-        AND grid_id = %i;''' % (objectid, x, y, 83.33, 0.99, objectid,str(grid_size), objectid, grid_id)
+        AND grid_id = %i;''' % (objectid, x, y, 83.33, 1, objectid,str(grid_size), objectid, grid_id)
   
         sql_update_grid= '''UPDATE grid_%i set area_isochrone = st_area(i.geom::geography)
                from isochrones i
