@@ -9,11 +9,12 @@ distance numeric;
 id_vertex integer;
 geom_vertex geometry;
 excluded_class_id text;
+categories_no_foot text;
 number_calculation_input integer;
 begin
 --The speed AND minutes input are considered as distance
   distance=speed*minutes;
-
+  
   -- input point
   point:= ST_SetSRID(ST_MakePoint(x,y), 4326);
   
@@ -22,6 +23,11 @@ begin
   FROM variable_container v
   WHERE v.identifier = 'excluded_class_id_walking';
   
+  SELECT variable_array::text 
+  INTO categories_no_foot
+  FROM variable_container
+  WHERE identifier = 'categories_no_foot';
+ 
   SELECT id, geom INTO id_vertex, geom_vertex
   FROM ways_vertices_pgr
   WHERE (class_ids <@ excluded_class_id::int[]) IS false
@@ -46,8 +52,9 @@ begin
 		  (SELECT t1.seq, t1.id1 AS Node, t1.id2 AS Edge, t1.cost, t2.geom FROM PGR_DrivingDistance(
 --This routing is for pedestrians, thus some way_classes are excluded.  
 			'SELECT id::int4, source, target, length_m as cost FROM ways 
-			 WHERE not class_id = any(''' || excluded_class_id || ''')
-       AND' || ' geom && ST_Buffer('''||point::text||'''::geography,'||distance||')::geometry',
+			 WHERE NOT class_id = any(''' || excluded_class_id || ''')
+       		 AND (NOT foot = any('''||categories_no_foot||''') OR foot IS NULL)
+       		 AND' || ' geom && ST_Buffer('''||point::text||'''::geography,'||distance||')::geometry',
   		  id_vertex, 
 	       distance, false, false) t1, ways t2
            WHERE t1.id2 = t2.id) as route
@@ -58,3 +65,7 @@ begin
   RETURN;
 END ;
 $function$;
+
+--SELECT * FROM pgrouting_edges(15,11.575260,48.148124,83.33,1,1)
+
+

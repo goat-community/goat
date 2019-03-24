@@ -10,6 +10,7 @@ sql_userid varchar(100):='';
 excluded_class_id varchar(200);
 excluded_ways_id text;
 column_userid varchar(10) :='';
+categories_no_foot text; 
 begin
   --depending on the modus the default OR the input table is used
   if modus_input = 2 OR modus_input = 4 then
@@ -33,16 +34,23 @@ begin
   INTO excluded_class_id 
   FROM variable_container v
   WHERE v.identifier = 'excluded_class_id_walking';
+ 
+  SELECT variable_array::text 
+  INTO categories_no_foot
+  FROM variable_container
+  WHERE identifier = 'categories_no_foot';
+ 
   return query execute '
   with xx AS (
 		SELECT * FROM (		--Select all that share ways that share a node with the edges
-			SELECT w.id, n.node, w.source, w.target, w.geom, coalesce(w.class_id,0) class_id, n.cost'||column_userid||' 
+			SELECT w.id, n.node, w.source, w.target, w.geom, coalesce(w.class_id,0) class_id, n.cost'||column_userid||',foot 
 			FROM '||ways_table||' w, temp_edges n 
 			WHERE w.source = n.node
 			OR w.target = n.node 
 		) t 
 		WHERE NOT t.class_id = ANY('''||excluded_class_id||''')
-		and NOT t.id::int4 = any('''|| excluded_ways_id ||''')'
+		AND (NOT foot = any('''||categories_no_foot||''') OR foot IS NULL)
+		AND NOT t.id::int4 = any('''|| excluded_ways_id ||''')'
 		||sql_userid||'
 	),
 	x AS (
@@ -87,15 +95,16 @@ begin
 	LEFT JOIN z ON x.id = z.id 
 	WHERE z.id IS NULL
 	UNION ALL 
-	SELECT * FROM z
+	SELECT z.id, z.node, z.cost, z.class_id, z.geom  FROM z
 	UNION ALL
-	SELECT * FROM (
-		SELECT w.id, n.node, n.cost, w.class_id, w.geom 
+	SELECT id, node, cost, class_id, geom FROM (
+		SELECT w.id, n.node, n.cost, w.class_id, w.geom, foot
 		FROM '||ways_table||' w, temp_edges n 
 		WHERE  w.source = n.node
 		AND w.target = n.node
 	) t 
-	WHERE NOT t.class_id = ANY('''||excluded_class_id||''')';
+	WHERE NOT t.class_id = ANY('''||excluded_class_id||''')
+	AND (NOT foot = any('''||categories_no_foot||''') OR foot IS NULL)';
 --Workaround St_CollectionExtract AND filter all with length 0
   RETURN;
 END ;
