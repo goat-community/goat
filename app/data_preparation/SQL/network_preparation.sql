@@ -102,6 +102,8 @@ WITH RECURSIVE ways_no_islands AS (
  SELECT w.id,w.geom
  FROM ways w, ways_no_islands n
  WHERE ST_Intersects(n.geom,w.geom)
+ AND w.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'excluded_class_id_walking')
+ AND (w.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') OR foot IS NULL)  
 ) 
 UPDATE ways SET class_id = 701 
 FROM (
@@ -111,7 +113,13 @@ FROM (
 	ON w.id = n.id
 	WHERE n.id IS null
 ) x
-WHERE ways.id = x.id;
+WHERE ways.id = x.id
+AND ways.class_id::text NOT IN (SELECT unnest(variable_array) from variable_container WHERE identifier = 'excluded_class_id_walking')
+AND (
+	ways.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') 
+	OR ways.foot IS NULL
+); 
+
 
 ALTER TABLE ways_vertices_pgr ADD COLUMN class_ids int[];
 WITH class_ids AS (

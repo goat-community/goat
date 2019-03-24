@@ -29,7 +29,7 @@ CREATE TABLE public.edges (
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
 );
 create index index_edges on edges using gist(geom);
-CREATE INDEX ON edges USING btree(objectid);
+CREATE INDEX ON edges USING btree(objectid,cost);
 
 CREATE TABLE public.starting_point_isochrones (
 	gid serial,
