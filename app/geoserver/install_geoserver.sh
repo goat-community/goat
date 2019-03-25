@@ -33,12 +33,11 @@ echo "Build geoserver docker image"
 
 #curl -jkSL https://raw.githubusercontent.com/terrestris/docker-geoserver/master/Dockerfile -o ./Dockerfile
 
-docker build --force-rm --build-arg GS_VERSION=2.13.1 -t geoserver:2.13.1 .
+docker build --force-rm --build-arg GS_VERSION=2.15.0 -t geoserver:2.15.0 .
 
 echo "Starting geoserver container..."
 
-docker run -d -v $(pwd)/gs-catalog:/opt/geoserver_data/ -p 80:8080 --restart=on-failure --name $CONTAINER_NAME geoserver:2.13.1
-
+docker run -d -v $(pwd)/gs-catalog:/opt/geoserver_data/ -p 80:8080 --restart=on-failure --name $CONTAINER_NAME geoserver:2.15.0
 sleep 10
 
 echo "Running $CONTAINER_NAME..."
