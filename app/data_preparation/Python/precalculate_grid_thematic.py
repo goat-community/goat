@@ -80,7 +80,6 @@ def calculate_index(grid_size):
     cursor.execute(
         "select variable_array from variable_container where identifier = 'poi_categories'")
     pois = cursor.fetchall()[0][0]
-    #cursor.execute(sql_new_grid.replace('grid_size', grid_size))
 
     for sensitivity in sensitivities:
 
@@ -90,7 +89,7 @@ def calculate_index(grid_size):
 
         sql_expand_json = 'select g.grid_id, '
 
-        for poi in pois:#public_transport_stops+pois:
+        for poi in pois:
             cursor.execute(sql_calculate_accessibility % (float('0.'+sensitivity),grid_size,poi,poi,grid_size,sensitivity,sensitivity,grid_size))
             con.commit()
 
