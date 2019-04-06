@@ -131,8 +131,9 @@ values('poi_categories',
 "ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
 "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi",
 "hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
-"bakery","butcher","clothes","convenience","fashion","florist","greengrocer","grocery",
-"kiosk","mall","organic","shoes","sports","supermarket","marketplace",
+"bakery","butcher","clothes","convenience","fashion","florist","greengrocer",
+"kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
+"hypermarket","international_supermarket","chemist","organic","marketplace",
 "hotel","museum","hostel","guest_house","viewpoint","gallery","bus_stop",
 "tram_stop","subway_entrance","rail_station"}');
 
@@ -198,4 +199,24 @@ values('census_minimum_number_new_buildings',
 INSERT INTO variable_container(identifier,variable_simple)
 values('average_gross_living_area',
 '50'
+);
+
+INSERT INTO variable_container(identifier,variable_array)
+values('chains_discount_supermarket',
+'{"Aldi","Penny","Lidl","Netto","Norma"}'
+);
+
+INSERT INTO variable_container(identifier,variable_array)
+values('chains_hypermarket',
+'{"Hit","Kaufland","V-Markt","Marktkauf"}'
+);
+
+INSERT INTO variable_container(identifier,variable_array)
+values('chains_health_food',
+'{"Vitalia","Reformhaus"}'
+);
+
+INSERT INTO variable_container(identifier,variable_array)
+values('no_end_consumer_store',
+'{"Hamberger","Metro"}'
 );
