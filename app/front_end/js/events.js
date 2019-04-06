@@ -30,33 +30,32 @@ $( document ).ready(function() {
      });
  
  });
- 
+    
     $(document).ready(function() {
+
+    populate('#timePicker');
+
      $('select').material_select();
 
-     timePicker();
 
+    
     });
 
 
-  // Time Picker
-   function timePicker(){
-    $('#timePicker').timepicker({
-      timeFormat: 'h:mm p',
-      interval: 30,
-      dynamic: false,
-      dropdown: true,
-      scrollbar: true
-  });
-   }
-
-   $('#toggle_pois_timepicker').change(function() {   
-    if (this.checked) {
-      $('.timePicker').show();
-
-    } else {
-        $('.timePicker').hide();        
+  function populate(selector) {
+    var select = $(selector);
+    var hours, minutes, ampm;
+    for (var i = 0; i <= 1450; i += 60) {
+        hours = Math.floor(i / 60);
+        minutes = i % 60;
+        if (minutes < 10) {
+            minutes = '0' + minutes; // adding leading zero to minutes portion
+        }
+        //add the value to dropdownlist
+        select.append($('<option></option>')
+            .attr('value', hours + ':' + minutes)
+            .text(hours + ':' + minutes));
     }
-  });
+}
 
    ////////////////

@@ -90,7 +90,8 @@ let draw_isochrone = function(coordinate_input,objectid,parent_id) {
 		zIndex: 10  
 	       
 	});
-	
+
+
 
 	map.addLayer(isochrone);
 	
@@ -126,6 +127,7 @@ function isochrone_load_fn (){
 	            	})
 			})
 		})
+
 		
 		
 		layer.once('render', function(event) {
@@ -145,6 +147,12 @@ function isochrone_load_fn (){
 				//Expand Right Panel on Layer Render
 				$("#calculation_"+number_calculations).children().first().click();
 				$("#header_legend_"+number_calculations).children().first().click();
+
+				if( $('#poisTimeSelectorDiv').length ) 
+				{
+					$('#poisTimeSelectorDiv').removeClass('disabledDiv');
+					//$('.selectTime')
+				}
 			}
 		});
 		
@@ -245,6 +253,8 @@ var show_network = function(network_url,layer_name){
 	const z_point = map.getLayers().getLength()-1; //Put the point above the network layer
 	layerWFS_point.setZIndex(z_point);
 }
+
+
 
 
 export {draw_isochrone,isochrones,network};

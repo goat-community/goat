@@ -114,9 +114,9 @@ let index_function = function () {
 				
 		} 	
 	//Update POIS WMS Layer Params
-	var list = array_pois.length == 0 ? "'-1'":array_pois.map(x => "'" + x + "'").toString();
+	var list = array_pois.length == 0 ? 'cG9wdWxhdGlvbg==':btoa(array_pois.toString());
 	poisWMSLayer.getSource()
-				.updateParams({'LAYERS': 'cite:pois_info', 'cql_filter':"amenity IN ('-1','population',"+list+")"});
+				.updateParams({'LAYERS': 'cite:pois_info', 'viewparams':"amenities:'"+list+"';"});
 	}
 
 
@@ -270,10 +270,42 @@ $("body").on('click','.cross_layer',function () {
 		let id = value.id.replace('isochrones_','')		
 
 		
-		map.removeLayer(isochrones[id])
+		map.removeLayer(isochrones[id]);
+		if (isochrones[id]){
+			isochrones[id].set('status','deleted');	
+		}
+
 		map.removeLayer(network[id])
 		map.removeLayer(pois_geom[id])
 	})
 	let number = layers[0].id.split('_')[2];
-	$('#calculation_'+number).parent().remove()
+	$('#calculation_'+number).parent().remove();
+	
+	
+	if( $('#poisTimeSelectorDiv').length ) //POISTimeSelectorState
+	{
+		UpdatePOISTimeSelectionState();
+	}
 });
+
+
+//Enables or Disable time selection checkbox if there are any isochrones. 
+function UpdatePOISTimeSelectionState () {
+	var timeselectionstatus = false;
+	
+	for (var key in isochrones) {
+		var status = isochrones[key].get('status');
+	  if (status != 'deleted'){
+			 timeselectionstatus = true;
+			 break;
+		}
+	}
+	if (timeselectionstatus === false) {
+		$('#poisTimeSelectorDiv').addClass('disabledDiv');
+		//Uncheck checkbox 
+		$('#toggle_pois_timepicker').prop('checked', false).removeAttr('checked');
+		//Hide time picker.
+		$('.timePicker').hide();  
+	}
+
+	}
