@@ -40,11 +40,15 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>pois_test</name>
-        <sql>select p.name,p.amenity,p.osm_id,p.orgin_geometry,p.geom from pois p,variable_container v &#xd;
-where amenity = any(v.variable_array)&#xd;
+        <sql>with x as (&#xd;
+	select  *&#xd;
+	from regexp_split_to_table(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;), &apos;,&apos;) as amenity&#xd;
+)&#xd;
+select p.name,p.amenity,p.osm_id,p.opening_hours,p.orgin_geometry,p.geom from pois p,variable_container v &#xd;
+where amenity = ANY (select amenity from x)&#xd;
 and v.identifier = &apos;poi_categories&apos;&#xd;
 union all &#xd;
-select pt.name,pt.public_transport_stop,null as osm_id,null as orgin_geometry,pt.geom from public_transport_stops pt
+select pt.name,pt.public_transport_stop,null as osm_id,null as orgin_geometry,null as opening_hours,pt.geom from public_transport_stops pt where public_transport_stop = ANY (select amenity from x)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
@@ -52,6 +56,10 @@ select pt.name,pt.public_transport_stop,null as osm_id,null as orgin_geometry,pt
           <type>Geometry</type>
           <srid>4326</srid>
         </geometry>
+        <parameter>
+          <name>amenities</name>
+          <defaultValue>&apos;J3tyZXN0YXVyYW50LHBvc3Rib3h9Jw==&apos;</defaultValue>
+        </parameter>
       </virtualTable>
     </entry>
     <entry key="cachingEnabled">false</entry>
@@ -59,8 +67,11 @@ select pt.name,pt.public_transport_stop,null as osm_id,null as orgin_geometry,pt
   <store class="dataStore">
     <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
   </store>
+  <serviceConfiguration>false</serviceConfiguration>
   <maxFeatures>0</maxFeatures>
   <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
   <overridingServiceSRS>false</overridingServiceSRS>
   <skipNumberMatched>false</skipNumberMatched>
   <circularArcPresent>false</circularArcPresent>
