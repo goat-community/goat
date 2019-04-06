@@ -33,5 +33,30 @@ $( document ).ready(function() {
  
     $(document).ready(function() {
      $('select').material_select();
-   });
- 
+
+     timePicker();
+
+    });
+
+
+  // Time Picker
+   function timePicker(){
+    $('#timePicker').timepicker({
+      timeFormat: 'h:mm p',
+      interval: 30,
+      dynamic: false,
+      dropdown: true,
+      scrollbar: true
+  });
+   }
+
+   $('#toggle_pois_timepicker').change(function() {   
+    if (this.checked) {
+      $('.timePicker').show();
+
+    } else {
+        $('.timePicker').hide();        
+    }
+  });
+
+   ////////////////
