@@ -10,7 +10,8 @@ CREATE TABLE public.isochrones (
 	objectid int4 NULL,
 	parent_id int4 NULL,
 	population int4 NULL,
-	pois text NULL,
+	pois text NULL, 
+	sum_pois_time text NULL,
 	sum_pois text NULL,
 	CONSTRAINT isochrones_pkey PRIMARY KEY (gid)
 );
