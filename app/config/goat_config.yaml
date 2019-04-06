@@ -12,6 +12,6 @@ DATA_SOURCE:
   #extrapolation ==> census.shp + landuse.shp needed as input
   #disaggregation ==> landuse.shp needed as input + high-resolution population input data + high completness number of floors
   #custom_population ==> population.shp custom population data needed  
-  POPULATION: "extrapolation" 
+  POPULATION: "disaggregation" 
   
 
