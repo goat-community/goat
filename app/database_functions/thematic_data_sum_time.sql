@@ -23,7 +23,7 @@ begin
 		SELECT i.gid,count(*),amenity FROM isochrones i, 
 		pois p
 		WHERE st_intersects(i.geom,p.geom)  
-		AND objectid=6329537
+		AND objectid=input_objectid
 		and amenity in ('supermarket','bakery','chemist','pharmacy','butcher','restaurant','bar','pub','fast_food','cafe','ice_cream','biergarten','museum','hairdresser','library','beverages','art','books','fuel')
 		AND new_opening_hours ->> 'Th' is not null 
 		and not (new_opening_hours @> '{"Th": ["closed"]}')

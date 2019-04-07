@@ -130,10 +130,12 @@ AND amenity = 'supermarket';
 
 
 UPDATE pois SET amenity = 'organic'
-WHERE organic = 'only';
+WHERE organic = 'only'
+AND amenity = 'supermarket';
 
 UPDATE pois SET amenity = 'international_supermarket'
-WHERE origin is not null;
+WHERE origin is not null
+AND amenity = 'supermarket';
 
 --------------------------------------------------------------------------
 --Create first pois as it is continuing with gid----------------------------
