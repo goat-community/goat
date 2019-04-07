@@ -1,0 +1,15 @@
+#packaged-by-terrestris {
+  color: #fff;
+  position: absolute;
+  top: 69px;
+  left: 10px;
+}
+
+#packaged-by-terrestris a,
+#packaged-by-terrestris a:link,
+#packaged-by-terrestris a:visited,
+#packaged-by-terrestris a:hover,
+#packaged-by-terrestris a:active {
+  color: #fff;
+  text-decoration: underline;
+}

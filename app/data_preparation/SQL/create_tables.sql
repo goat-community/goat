@@ -10,7 +10,8 @@ CREATE TABLE public.isochrones (
 	objectid int4 NULL,
 	parent_id int4 NULL,
 	population int4 NULL,
-	pois text NULL,
+	pois text NULL, 
+	sum_pois_time text NULL,
 	sum_pois text NULL,
 	CONSTRAINT isochrones_pkey PRIMARY KEY (gid)
 );
@@ -29,6 +30,7 @@ CREATE TABLE public.edges (
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
 );
 create index index_edges on edges using gist(geom);
+CREATE INDEX ON edges USING btree(objectid,cost);
 
 CREATE TABLE public.starting_point_isochrones (
 	gid serial,
@@ -128,16 +130,22 @@ values('poi_categories',
 '{"kindergarten","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food",
 "ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
 "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi",
-"optician","hairdresser","tailer","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
-"alcohol","bakery","butcher","clothes","convenience","fashion","florist","greengrocer","grocery",
-"kiosk","mall","organic","second_hand","shoes","sports","supermarket","toys","marketplace",
-"picnic_site","hotel","museum","hostel","guest_house","attraction","attraction","viewpoint","gallery","bus_stop",
+"hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
+"bakery","butcher","clothes","convenience","fashion","florist","greengrocer",
+"kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
+"hypermarket","international_supermarket","chemist","organic","marketplace",
+"hotel","museum","hostel","guest_house","viewpoint","gallery","bus_stop",
 "tram_stop","subway_entrance","rail_station"}');
 
 
 INSERT INTO variable_container(identifier,variable_array) 
 values('excluded_class_id_walking',
-'{0,101,102,103,104,105,106,107,501,502,503,504,701}');
+'{0,101,102,103,104,105,106,107,501,502,503,504,701,801}');
+
+INSERT INTO variable_container(identifier,variable_array) 
+values('categories_no_foot',
+'{"use_sidepath","no"}');
+
 
 INSERT INTO variable_container(identifier,variable_array)
 values('custom_landuse_no_residents',
@@ -191,4 +199,24 @@ values('census_minimum_number_new_buildings',
 INSERT INTO variable_container(identifier,variable_simple)
 values('average_gross_living_area',
 '50'
+);
+
+INSERT INTO variable_container(identifier,variable_array)
+values('chains_discount_supermarket',
+'{"Aldi","Penny","Lidl","Netto","Norma"}'
+);
+
+INSERT INTO variable_container(identifier,variable_array)
+values('chains_hypermarket',
+'{"Hit","Kaufland","V-Markt","Marktkauf"}'
+);
+
+INSERT INTO variable_container(identifier,variable_array)
+values('chains_health_food',
+'{"Vitalia","Reformhaus"}'
+);
+
+INSERT INTO variable_container(identifier,variable_array)
+values('no_end_consumer_store',
+'{"Hamberger","Metro"}'
 );
