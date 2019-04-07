@@ -1,8 +1,8 @@
 <GeoServerTileLayer>
-  <id>LayerInfoImpl-22fef441:16876478b09:-7ffe</id>
+  <id>LayerInfoImpl--3717634a:169f75d2f85:-7471</id>
   <enabled>true</enabled>
   <inMemoryCached>true</inMemoryCached>
-  <name>cite:heatmap_luptai</name>
+  <name>cite:heatmap_population</name>
   <mimeFormats>
     <string>image/png</string>
     <string>image/jpeg</string>
@@ -10,25 +10,9 @@
   <gridSubsets>
     <gridSubset>
       <gridSetName>EPSG:900913</gridSetName>
-      <extent>
-        <coords>
-          <double>1265659.0000000005</double>
-          <double>6116874.999999992</double>
-          <double>1305278.499999997</double>
-          <double>6146249.999999992</double>
-        </coords>
-      </extent>
     </gridSubset>
     <gridSubset>
       <gridSetName>EPSG:4326</gridSetName>
-      <extent>
-        <coords>
-          <double>11.3696082418343</double>
-          <double>48.0601950790122</double>
-          <double>11.725516265826</double>
-          <double>48.236257187597</double>
-        </coords>
-      </extent>
     </gridSubset>
   </gridSubsets>
   <metaWidthHeight>
@@ -42,7 +26,7 @@
       <key>STYLES</key>
       <defaultValue></defaultValue>
       <availableStyles class="sorted-set"/>
-      <defaultStyle>cite:style_heatmap_luptai</defaultStyle>
+      <defaultStyle>cite:style_heatmap_population</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>
   <gutter>0</gutter>
