@@ -87,7 +87,7 @@ var categories_db_style = {
 'supermarket':['supermarket','Supermarket'],'discount_supermarket':['discount_supermarket','Discount Supermarket'],
 'international_supermarket':['international_supermarket','International Supermarket'], 
 'hypermarket':['hypermarket','Hypermarket'],'chemist':['chemist','Chemist'],
-'organic':['organic','Organic Food'],'health_food':['health_food','Health Food'],
+'organic':['organic','Organic Food'],
 'marketplace':['marketplace','Marketplace']},
 'Tourism___Leisure':{"cinema":['cinema','Cinema'],"theatre":['theatre','Theatre'],"museum":['museum','Museum'],
 "hotel":['hotel','Hotel'],"hostel":['hostel','Hostel'],
