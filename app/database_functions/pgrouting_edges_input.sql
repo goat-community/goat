@@ -12,6 +12,7 @@ AS $function$
 	excluded_ways_id text;
 	userid_vertex integer;
 	number_calculation_input integer;
+	categories_no_foot text;
 	begin
 	--The speed AND minutes input are considered as distance
 	distance=speed*minutes;
@@ -26,11 +27,15 @@ AS $function$
 	userid_vertex = 1;
 	END IF;
 
-
 	SELECT variable_array::text
 	INTO excluded_class_id 
 	FROM variable_container v
 	WHERE v.identifier = 'excluded_class_id_walking';
+
+	SELECT variable_array::text 
+  	INTO categories_no_foot
+  	FROM variable_container
+  	WHERE identifier = 'categories_no_foot';
 
 	SELECT array_append(array_agg(id),0::bigint)::text INTO excluded_ways_id FROM (
 	SELECT Unnest(deleted_feature_ids) id FROM user_data
@@ -50,9 +55,6 @@ AS $function$
 	IF ST_Distance(geom_vertex::geography,point::geography)>250 THEN
 	RETURN;
 	END IF;
-
-
-
 	IF modus <> 3 THEN 
 		SELECT count(objectid) + 1 INTO number_calculation_input
 		FROM starting_point_isochrones
@@ -73,6 +75,7 @@ AS $function$
 			WHERE not class_id = any(''' || excluded_class_id || ''') 
 			AND geom && ST_Buffer('''||point::text||'''::geography,'||distance||')::geometry
 			AND not id::int4 = any('''|| excluded_ways_id ||''') 
+			AND (NOT foot = any('''||categories_no_foot||''') OR foot IS NULL)
 			AND userid IS NULL OR userid='||userid_input,
 			id_vertex, 
 			distance, false, false) t1, ways_userinput t2

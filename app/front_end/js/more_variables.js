@@ -6,8 +6,8 @@ var categories_db_style = {
 	'Other':['library','night_club','recycling'],
 	'Transport':['bicycle_rental','car_sharing','charging_station','bus_stop','tram_stop','subway_entrance','sbahn_regional','taxi'],
 	'Services':['hairdresser','tailer','atm','bank','dentist','doctors','pharmacy','post_box','post_office','fuel'],
-	'Shop':['alcohol','bakery','butcher','clothes','convenience','fashion','greengrocer','grocery','kiosk','mall',
-	'second_hand','shoes','sports','supermarket','marketplace'],
+	'Shop':['alcohol','bakery','butcher','clothes','convenience','fashion','greengrocer','kiosk','mall',
+	'second_hand','shoes','sports','supermarket','discount_supermarket','international_supermarket','chemist','hypermarket','organic','marketplace'],
 	'TourismLeisure':["cinema","theatre","museum","picnic_site","hotel","hostel","guest_house","attraction","viewpoint","gallery"]
 }
 

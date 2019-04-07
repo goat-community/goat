@@ -41,7 +41,7 @@ right = bbox[2]+buffer
 bounding_box = '--bounding-box top=%f left=%f bottom=%f right=%f' % (top,left,bottom,right)
 
 if (config['DATA_SOURCE']['OSM_DOWNLOAD_LINK'] != 'no_download'):
-    os.system('wget --output-document="raw-osm.osm.pbf" %s' % config['DATA_SOURCE']['OSM_DOWNLOAD_LINK'])
+    os.system('wget --no-check-certificate --output-document="raw-osm.osm.pbf" %s' % config['DATA_SOURCE']['OSM_DOWNLOAD_LINK'])
 
 os.system('osmosis --read-pbf file="raw-osm.osm.pbf" %s --write-xml file="study_area.osm"' % bounding_box)
 

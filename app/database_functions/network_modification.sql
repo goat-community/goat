@@ -321,10 +321,10 @@ FROM vertices_to_assign va
 WHERE va.id >=(SELECT min(vertex_id) from intersection_existing_network); 
 
 INSERT INTO ways_userinput(id,class_id,source,target,geom,userid)
-SELECT (SELECT max(id) FROM ways_userinput) + row_number() over(),class_id::integer,source,target,geom,input_userid FROM new_network;
+SELECT (SELECT max(id) FROM ways_userinput) + row_number() over(),coalesce(class_id::integer,100),source,target,geom,input_userid FROM new_network;
 
 INSERT INTO ways_userinput(id,class_id,source,target,geom,userid) 
-SELECT (SELECT max(id) FROM ways_userinput) + row_number() over(),class_id::integer,source,target,geom,input_userid FROM existing_network;
+SELECT (SELECT max(id) FROM ways_userinput) + row_number() over(),coalesce(class_id::integer,100),source,target,geom,input_userid FROM existing_network;
 
 UPDATE ways_userinput 
 set length_m = st_length(geom::geography)

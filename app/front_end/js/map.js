@@ -25,6 +25,13 @@ GetBaseLayers().forEach(function(layer,index,array){
   //For all basemaps a filter excluding everything a part from the Study-Area is set.
     var i;
     layer.getSource().on('change', function(e) {
+      //Remove loading Mask
+      if( $('.loader').length )
+      {
+        $('.loader').remove();
+      }
+      
+      
       var f = layer.getSource().getFeatures()[0];
       var extent = f.getGeometry().getExtent();
       map.getView().fit(extent,map.getSize());
@@ -69,8 +76,8 @@ map.addControl(legendControl);
 
 $('body').on('change','.thematic_data_weight, .thematic_item_check',function(){
  
-  if ($('#accessibility_basemap_select').val() != 'no_basemap'){
-
+  var selectedWalkabilityType = $('#accessibility_basemap_select').val();
+  if (["no_basemap","heatmap_population","heatmap_area_isochrone"].indexOf(selectedWalkabilityType) == -1){
     addRemoveAccesibilityLayer.add(map);
   }  
 
@@ -80,17 +87,6 @@ $('body').on('change','#accessibility_basemap_select',function(){
 
   let style = this.value;
   if (style != 'no_basemap'){
-    //Layer Type
-    var type;
-    switch (style) {
-      case "walkability":
-        type = "heatmap";
-        break;
-      case "population":
-        type = "heatmap_population"
-      default:
-        break;
-    }
     addRemoveAccesibilityLayer.add(map);
   }
   else{
@@ -102,6 +98,8 @@ $('body').on('change','#accessibility_basemap_select',function(){
   }
   
 });
+
+
 
 function getMap(){
   return map;
