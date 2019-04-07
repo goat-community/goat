@@ -88,7 +88,7 @@ UPDATE grid_grid_size SET percentile_area_isochrone = p.percentile
 FROM p
 WHERE grid_grid_size.grid_id = p.grid_id;
 
-UPDATE grid_grid_size SET percentile_population = 0
-WHERE percentile_population IS NULL;
+UPDATE grid_grid_size SET percentile_area_isochrone = 0
+WHERE percentile_area_isochrone IS NULL;
 
 '''

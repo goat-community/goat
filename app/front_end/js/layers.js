@@ -112,6 +112,7 @@ var accessibility_layer = function(){
 
   //No view params
   if (style === "heatmap_population" || style == "heatmap_area_isochrone") {
+    console.log(style)
      link = ApiConstants.address_geoserver+'cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:'+style+'&LAYERS=cite%3A'+style
   }
 
