@@ -76,8 +76,8 @@ map.addControl(legendControl);
 
 $('body').on('change','.thematic_data_weight, .thematic_item_check',function(){
  
-  if ($('#accessibility_basemap_select').val() != 'no_basemap'){
-
+  var selectedWalkabilityType = $('#accessibility_basemap_select').val();
+  if (["no_basemap","heatmap_population","heatmap_area_isochrone"].indexOf(selectedWalkabilityType) == -1){
     addRemoveAccesibilityLayer.add(map);
   }  
 
@@ -87,17 +87,6 @@ $('body').on('change','#accessibility_basemap_select',function(){
 
   let style = this.value;
   if (style != 'no_basemap'){
-    //Layer Type
-    var type;
-    switch (style) {
-      case "walkability":
-        type = "heatmap";
-        break;
-      case "population":
-        type = "heatmap_population"
-      default:
-        break;
-    }
     addRemoveAccesibilityLayer.add(map);
   }
   else{

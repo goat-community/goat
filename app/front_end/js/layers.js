@@ -95,10 +95,11 @@ var accessibility_layer = function(){
     break;
     case "walkability-population":
     LayerType = "heatmap_luptai"
+    break;
     default:
     break;
   }
-  //Type Heatmap Or Heatmap Population
+  //Type Heatmap Or Heatmap Population with view params
   let heatmap_input ={};
   let select_heatmap_input = $('#main_thematic_data .content :checkbox:checked')
   let link = ApiConstants.address_geoserver+'cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:'+LayerType+'&LAYERS=cite%3A'+LayerType+'&viewparams=amenities:%27'
@@ -108,6 +109,12 @@ var accessibility_layer = function(){
   }
   link_part = '['+link_part.slice(0, -1)+']';
   link = link + btoa(link_part) + '%27' //+';resolution:300'
+
+  //No view params
+  if (style === "heatmap_population" || style == "heatmap_area_isochrone") {
+     link = ApiConstants.address_geoserver+'cite/wms?service=WMS&version=1.1.0&request=GetMap&layers=cite:'+style+'&LAYERS=cite%3A'+style
+  }
+
 
 var layer_accessibility = new ImageLayer({
   opacity: 1,
