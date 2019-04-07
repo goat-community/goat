@@ -158,7 +158,6 @@ var addRemoveAccesibilityLayer = {
 
 
 //POIS WMS Layer
-
 var poisWMSLayer = new ImageLayer({
   opacity: 1,
   zIndex: 6,
@@ -168,7 +167,7 @@ var poisWMSLayer = new ImageLayer({
   source: new ImageWMS({
     selectedPois: [""],
     url:  ApiConstants.address_geoserver + "wms",
-    params: {'LAYERS': 'cite:pois_info', 'cql_filter':"amenity IN ('-1','population')"},
+    params: {'LAYERS': 'cite:pois_info'},
     ratio: 1,
     serverType: 'geoserver'
   })

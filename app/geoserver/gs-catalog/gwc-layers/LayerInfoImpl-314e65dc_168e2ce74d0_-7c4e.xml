@@ -42,7 +42,7 @@
       <key>STYLES</key>
       <defaultValue></defaultValue>
       <availableStyles class="sorted-set"/>
-      <defaultStyle>pois</defaultStyle>
+      <defaultStyle>cite:pois</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>
   <gutter>0</gutter>

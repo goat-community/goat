@@ -26,6 +26,10 @@
 </head>
 
 <body style="margin: 0px;">
+
+    <div class="loader">
+    </div>
+
     <div style="position: absolute; z-index: 10000; display: inline-block; left: 89%;top: 5%;">
         <a class="waves-effect waves-light btn btnCustom" style="visibility: visible; width:80px !important; font-size: 17px !important;" href="https://epajares.github.io/goat/">
             <span style="font-family: Roboto;font-weight: bold;letter-spacing: 0px;">Home</span>
@@ -57,6 +61,13 @@
                 <span class="right_side"><a style="width: 50px;" class="expert_draw waves-effect waves-light btn btnCustom" id="btnDelete"><i class="material-icons">delete</i></a></span>
                 <span class="right_side"><a style="width: 50px;" class="expert_draw waves-effect waves-light btn btnCustom" id="btnDraw"><i class="material-icons">timeline</i></a></span>
             </div>
+            
+            
+            <div>
+                <span>Add network modification<i class="fa fa-info-circle" aria-hidden="true"></i></span>
+                <span class="right_side"><a class="waves-effect waves-light btn btnCustom" id="btnInsertintoNetwork"><i class="material-icons">cloud_upload</i></a></span>
+            </div>
+
             <div>
                 Show network
                 <input type="checkbox" class="filled-in pois_check" id="toggle_ways_layer" checked></input>
@@ -70,12 +81,43 @@
 
             </div>
 
-            <div>
-                <span>Add network modification<i class="fa fa-info-circle" aria-hidden="true"></i></span>
-                <span class="right_side"><a class="waves-effect waves-light btn btnCustom" id="btnInsertintoNetwork"><i class="material-icons">cloud_upload</i></a></span>
+            <!-- Pois time selector (temporary) -------------------- ---------------------- ----------------------- -->
+            <div id="poisTimeSelectorDiv" class="disabledDiv">
+                Pois Time Picker 
+                <input type="checkbox" class="filled-in pois_check" id="toggle_pois_timepicker"></input>
+                <label style="margin-left: 5%; height: 15px;float:right;" for="toggle_pois_timepicker"></label>
             </div>
+
             <table>
                 <tbody>
+                          
+                            <tr class="timePicker">          
+                                <td><label>Select day of Week <i class="fa fa-info-circle" aria-hidden="true"></i></label></td>
+                                <td><span class="right_side">
+                                        <select id="weekday" class="selectTime">                                                
+                                                <option value="Mo" selected>Monday</option>
+                                                <option value="Tu">Tuesday</option>
+                                                <option value="We">Wednesday</option>
+                                                <option value="Th">Thursday</option>
+                                                <option value="Fr">Friday</option>
+                                                <option value="Sa">Saturday</option>
+                                                <option value="Sa">Sunday</option>
+                                            </select>
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr class="timePicker">
+                                    <td><label>Select time <i class="fa fa-info-circle" aria-hidden="true"></i></label></td>
+                                <td>
+                                    <span class="right_side">
+                                        <select id="timePicker" class="selectTime">
+                                        </select>
+                                    </span>
+                                </td>
+                            
+                            </tr>
+                    <!-- ---- ----------------------------------------------------------------------------->
+
                     <tr>
                         <td><label>Travel Time (min) <i class="fa fa-info-circle" aria-hidden="true"></i></label></td>
                         <td><span class="right_side">
@@ -233,7 +275,7 @@ padding: 10px;"><i
 
         <div id="information" class='information' style="width: 5%; height: 85%;">
 
-            <div id="container_right" class="container" style="width:20%; position: absolute; left: 80%; top: 15%; z-index: 100000000000;border: #2FAC45 solid 3px;">
+            <div id="container_right" class="container" style="width:20%; position: absolute; left: 80%; top: 15%; z-index: 10000;border: #2FAC45 solid 3px;">
 
                 <div id="main_thematic_data">
                 </div>

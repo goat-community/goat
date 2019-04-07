@@ -41,7 +41,9 @@ $("body").on('click','.fa-chevron-right',function () {
 		create_dropdown(time_steps,ids);	 
     
 	}  	
-
+	
+	//Update Isochrone Pois Time Data... 
+	IsochronesPOISTimeUpdate();
 })
 
 
@@ -149,19 +151,29 @@ $("body").on('change','.dropdown_thematic',function () {
    var counter = this.id.replace('isochrone_','')
 
    var id = parseInt($(this).val())
-   $("#table_thematic_data_"+counter).remove();
+	 if (!id) {return;}
+	 $("#table_thematic_data_"+counter).remove();
    var keys_feature;		
-
 		
 		//Depending on the modus the input data for the table is selected 
 	if ('default_'+counter in thematic_data){     	
 		var one_object_default = $.grep(thematic_data['default_'+counter], function(element){ return element.id == id; })	//The object with the right calculation time is selected
-			one_object_default = JSON.parse(one_object_default[0].sum_pois);
+
+		
+			if ( $('#toggle_pois_timepicker').is(':checked') == true){
+				one_object_default = JSON.parse(poisTimeResultObj[one_object_default[0].gid]);
+			} else {
+				one_object_default = JSON.parse(one_object_default[0].sum_pois);
+			}
 			var keys_feature = Object.keys(one_object_default);
 	}
    	if ('input_'+counter in thematic_data){     		
    	var one_object_input = $.grep(thematic_data['input_'+counter], function(element){ return element.id == id; })
-		one_object_input = JSON.parse(one_object_input[0].sum_pois);
+		if ($('#toggle_pois_timepicker').is(':checked') == true){
+			one_object_input = JSON.parse(poisTimeResultObj[one_object_input[0].gid]);
+		} else {
+			one_object_input = JSON.parse(one_object_input[0].sum_pois);
+		}
 		var keys_feature = Object.keys(one_object_input);
    	}
 	   
@@ -208,6 +220,70 @@ $("body").on('change','.dropdown_thematic',function () {
 	$('#content_thematic_data_'+counter).append($(table));
 		
 })
+
+
+
+
+///////////////////Time Selector//////////////////////////
+$('#toggle_pois_timepicker').change(function() {   
+    if (this.checked) {
+      $('.timePicker').show();
+			IsochronesPOISTimeUpdate();		
+		} else {
+				$('.timePicker').hide();  
+			$('select[id^="isochrone_"]').trigger("change");
+		}
+  });
+
+	$('.selectTime').change(function(time) 
+	{
+			IsochronesPOISTimeUpdate();
+  });
+
+//Update Thematic Data if User checks time... 
+var poisTimeResultObj = {};
+function IsochronesPOISTimeUpdate (){
+	//Get selected time (Default Selected Monday, 0:00)
+	var day = $("#weekday").val();
+	var time = $("#timePicker").val();
+	if (!day || !time )
+	{
+			return;
+	}
+	var objIds = [];
+	var reqUrls = [];
+	var reqPromises = [];
+	for (var key in thematic_data){
+		//Since obj id the same for each interval we get it from first elemen
+		var objId = thematic_data[key][0].objectid;
+		objIds.push(objId);
+		var  isoTimeReqUrl = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=objectid:'+objId.toString()+';day:'+day.toString()+';hour:'+time.toString()+'&typeName=cite:isochrones_time&outputFormat=application/json';
+		reqUrls.push(isoTimeReqUrl);
+		var req = fetch(isoTimeReqUrl,{
+			method: 'GET',
+		}).then(function(response){
+			return response.json();
+		});
+		reqPromises.push(req);
+	}
+	Promise.all(reqPromises).then(function(values) { 
+	//Loop through returned values.
+		values.forEach((isochrone,index) => {
+		//Loop through isochrone gids and assing sum pois time to thematic data
+			isochrone.features.forEach((feature,index) => {
+				var gid_out = feature.properties.gid_out;
+				var sum_pois_time_out = feature.properties.sum_pois_time_out;
+				var objectid_out = feature.properties.objectid_out;
+				poisTimeResultObj[gid_out] = sum_pois_time_out;
+
+			});
+		});	
+		//Trigger change event 
+		$('select[id^="isochrone_"]').trigger("change");
+	});
+}
+
+
 
 export {thematic_data};
    

@@ -30,8 +30,32 @@ $( document ).ready(function() {
      });
  
  });
- 
+    
     $(document).ready(function() {
+
+    populate('#timePicker');
+
      $('select').material_select();
-   });
- 
+
+
+    
+    });
+
+
+  function populate(selector) {
+    var select = $(selector);
+    var hours, minutes, ampm;
+    for (var i = 0; i <= 1450; i += 60) {
+        hours = Math.floor(i / 60);
+        minutes = i % 60;
+        if (minutes < 10) {
+            minutes = '0' + minutes; // adding leading zero to minutes portion
+        }
+        //add the value to dropdownlist
+        select.append($('<option></option>')
+            .attr('value', hours + ':' + minutes)
+            .text(hours + ':' + minutes));
+    }
+}
+
+   ////////////////
