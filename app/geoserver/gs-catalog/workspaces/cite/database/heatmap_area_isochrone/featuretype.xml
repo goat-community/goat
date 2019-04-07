@@ -1,11 +1,11 @@
 <featureType>
-  <id>FeatureTypeInfoImpl--3717634a:169f75d2f85:-7472</id>
-  <name>heatmap_population</name>
+  <id>FeatureTypeInfoImpl-43681859:169f6f20a03:-3397</id>
+  <name>heatmap_area_isochrone</name>
   <nativeName>grid_500</nativeName>
   <namespace>
     <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
   </namespace>
-  <title>heatmap_population</title>
+  <title>heatmap_area_isochrone</title>
   <keywords>
     <string>features</string>
     <string>grid_500</string>
@@ -37,6 +37,16 @@
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
   <enabled>true</enabled>
   <metadata>
+    <entry key="elevation">
+      <dimensionInfo>
+        <enabled>false</enabled>
+      </dimensionInfo>
+    </entry>
+    <entry key="time">
+      <dimensionInfo>
+        <enabled>false</enabled>
+      </dimensionInfo>
+    </entry>
     <entry key="cachingEnabled">false</entry>
   </metadata>
   <store class="dataStore">

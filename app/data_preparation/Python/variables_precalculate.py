@@ -52,7 +52,7 @@ sql_clean = 'DROP TABLE IF EXISTS grid; ALTER TABLE grid_grid_size add column id
 
 sql_grid_population = '''
 ALTER TABLE grid_grid_size ADD COLUMN population integer;
-ALTER TABLE grid_grid_size ADD COLUMN percentile_population integer;
+ALTER TABLE grid_grid_size ADD COLUMN percentile_population smallint;
 WITH sum_pop AS (
 	SELECT g.grid_id, sum(p.population)::integer AS population  
 	FROM grid_grid_size g, population p
@@ -75,4 +75,20 @@ FROM p
 WHERE grid_grid_size.grid_id = p.grid_id;
 
 UPDATE grid_grid_size SET percentile_population = 0
-WHERE percentile_population IS NULL;'''
+WHERE percentile_population IS NULL;
+
+ALTER TABLE grid_grid_size ADD COLUMN percentile_area_isochrone smallint;
+WITH p AS (
+	SELECT grid_id,ntile(5) over 
+	(order by area_isochrone) AS percentile
+	FROM grid_grid_size where area_isochrone IS NOT NULL 
+	ORDER BY grid_id
+)
+UPDATE grid_grid_size SET percentile_area_isochrone = p.percentile
+FROM p
+WHERE grid_grid_size.grid_id = p.grid_id;
+
+UPDATE grid_grid_size SET percentile_population = 0
+WHERE percentile_population IS NULL;
+
+'''

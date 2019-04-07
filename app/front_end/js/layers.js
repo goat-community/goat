@@ -94,7 +94,7 @@ var accessibility_layer = function(){
     LayerType = "heatmap";
     break;
     case "walkability-population":
-    LayerType = "heatmap_population"
+    LayerType = "heatmap_luptai"
     default:
     break;
   }
@@ -107,7 +107,7 @@ var accessibility_layer = function(){
     link_part = link_part + '{"\'' + select_heatmap_input[i].id.replace('check_','') + '\'":' + $(select_heatmap_input[i]).siblings()[3].value + '},'
   }
   link_part = '['+link_part.slice(0, -1)+']';
-  link = link + btoa(link_part) + '%27' +';resolution:300'
+  link = link + btoa(link_part) + '%27' //+';resolution:300'
 
 var layer_accessibility = new ImageLayer({
   opacity: 1,
