@@ -25,6 +25,13 @@ GetBaseLayers().forEach(function(layer,index,array){
   //For all basemaps a filter excluding everything a part from the Study-Area is set.
     var i;
     layer.getSource().on('change', function(e) {
+      //Remove loading Mask
+      if( $('.loader').length )
+      {
+        $('.loader').remove();
+      }
+      
+      
       var f = layer.getSource().getFeatures()[0];
       var extent = f.getGeometry().getExtent();
       map.getView().fit(extent,map.getSize());
@@ -102,6 +109,8 @@ $('body').on('change','#accessibility_basemap_select',function(){
   }
   
 });
+
+
 
 function getMap(){
   return map;
