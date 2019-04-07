@@ -90,10 +90,10 @@ let index_function = function () {
 		for (let i in elements){ 	
 			$('#check_'+elements[i]).prop("checked", $('#'+category).is(":checked")); 	
 		}
-		if ($('#accessibility_basemap_select').val() != 'no_basemap'){
+		var selectedWalkabilityType = $('#accessibility_basemap_select').val();
+		if (["no_basemap","heatmap_population","heatmap_area_isochrone"].indexOf(selectedWalkabilityType) == -1){
 			addRemoveAccesibilityLayer.add(map);
 		  }
-	
 
 		  //Auto Thematic Data Refresh
 		  $('select[id^="isochrone_"]').trigger("change");
