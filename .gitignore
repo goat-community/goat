@@ -10,3 +10,5 @@ ubuntu-bionic-18.04-cloudimg-console.log
 /app/node/node_modules
 /_site
 /.sass-cache
+node_modules
+/dist
