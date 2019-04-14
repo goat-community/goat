@@ -1,0 +1,58 @@
+html {
+  /* otherwise we have always vertical scrollbars */
+  overflow-y: hidden !important;
+}
+
+.wg-app {
+  font-family: "Avenir", Helvetica, Arial, sans-serif;
+  position: relative;
+  width: 100%;
+}
+.wg-app-embedded {
+  width: 100%;
+  height: 100%;
+  border: 2px solid grey;
+}
+
+.wg-map {
+}
+.wg-app-embedded .wgu-map {
+}
+
+.wg-app-logo {
+  left: 8px;
+  bottom: 50px;
+}
+
+.wg-measurewin {
+  left: auto !important;
+  top: auto !important;
+  right: 10px;
+  bottom: 4.8em;
+}
+
+.wg-layerlist {
+  left: auto !important;
+  top: 75px !important;
+  right: 10px;
+}
+
+.wg-footer-left {
+  padding-left: 5px;
+}
+.wg-footer-right {
+  padding-right: 5px;
+}
+.wg-footer-left a,
+.wg-footer-right a {
+  color: inherit;
+}
+
+.wg-win-title {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  /* Introduced in IE 10, See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/ */
+  -ms-user-select: none;
+  user-select: none;
+}

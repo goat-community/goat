@@ -1,38 +1,48 @@
 <template>
-  <v-app>
-    <v-toolbar app>
-      <v-toolbar-title class="headline text-uppercase">
-        <span>Vuetify</span>
-        <span class="font-weight-light">MATERIAL DESIGN</span>
-      </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-btn
-        flat
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-      >
-        <span class="mr-2">Latest Release</span>
-      </v-btn>
-    </v-toolbar>
-
+  <v-app
+    id="wg-app"
+    data-app
+    :class="{ 'wg-app': true, 'wg-app-embedded': isEmbedded }"
+  >
     <v-content>
-      <HelloWorld/>
+      <v-container id="ol-map-container" fluid fill-height style="padding: 0">
+        <app-map :color="baseColor" />
+      </v-container>
     </v-content>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld'
-
+import Vue from "vue";
+import { EventBus } from "./EventBus.js";
+import appMap from "./components/ol/Map";
 export default {
-  name: 'App',
+  name: "wg-app",
   components: {
-    HelloWorld
+    appMap
   },
-  data () {
+  data() {
     return {
-      //
+      isEmbedded: false,
+      baseColor: Vue.prototype.$appConfig.baseColor
+    };
+  },
+  mounted() {
+    // apply the isEmbedded state to the member var
+    this.isEmbedded = this.$isEmbedded;
+
+    // make the refs (floating module window, which are not connected to their
+    // related components, e.g. buttons to toggle them)
+    const refs = this.$refs;
+    let cmpLookup = {};
+    for (const key of Object.keys(refs)) {
+      cmpLookup[key] = refs[key][0];
     }
-  }
-}
+    Vue.prototype.cmpLookup = cmpLookup;
+    // inform registered cmps that the app is mounted and the dynamic
+    // components are available
+    EventBus.$emit("app-mounted");
+  },
+  methods: {}
+};
 </script>

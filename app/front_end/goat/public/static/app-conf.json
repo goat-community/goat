@@ -1,0 +1,108 @@
+{
+  "tittle": "GOAT - Geo Open Accessibility Tool",
+  "baseColor": "red darken-3",
+  "logo": "./src/assets/img/logo.png",
+  "map": {
+    "projectionCode": "EPSG:3857",
+    "proj4Defs": [
+      {
+        "code": "EPSG:3006",
+        "projection": "+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+      }
+    ],
+    "zoom": 7,
+    "resolutions": [
+      156543.03,
+      78271.52,
+      39135.76,
+      19567.88,
+      9783.94,
+      4891.97,
+      2445.98,
+      1222.99,
+      611.5,
+      305.75,
+      152.87,
+      76.437,
+      38.219,
+      19.109,
+      9.5546,
+      4.7773,
+      2.3887,
+      1.1943,
+      0.5972
+    ],
+    "center": [0, 0],
+    "layers": [
+      {
+        "type": "OSM",
+        "name": "osm-standard",
+        "title": "OSM Standard",
+        "url": "http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "group": "background",
+        "maxZoom": 19,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true
+      },
+      {
+        "type": "OSM",
+        "name": "osm-carto-db-light",
+        "title": "OSM Light",
+        "url": "http://{a-c}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "group": "background",
+        "maxZoom": 19,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true
+      },
+      {
+        "type": "OSM",
+        "name": "osm-carto-db-dark",
+        "title": "OSM Dark",
+        "url": "http://{a-c}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+        "group": "background",
+        "maxZoom": 19,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true
+      },
+      {
+        "type": "XYZ",
+        "name": "mabox-streets",
+        "title": "Mapbox",
+        "group": "background",
+        "url": "https://api.mapbox.com/styles/v1/mapbox/streets-v10/tiles/256/{z}/{x}/{y}",
+        "accessToken": "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
+        "maxZoom": 19,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true
+      },
+      {
+        "type": "XYZ",
+        "name": "memomaps-public-transport",
+        "title": "Public Transport",
+        "group": "background",
+        "url": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
+        "maxZoom": 18,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true
+      },
+      {
+        "type": "BING",
+        "name": "bing-aerial",
+        "title": "Bing Aerial",
+        "group": "background",
+        "accessToken": "Avv4X-3gpZJQ_Ln2eAilMZ8qNI4Y6UtspyNxgIzoCSZC26xi_aXb3AiaXnutPPjH",
+        "imagerySet": "Aerial",
+        "maxZoom": 19,
+        "queryable": false,
+        "visible": true,
+        "displayInLayerList": true
+      }
+    ]
+  },
+  "controls": {}
+}
