@@ -149,7 +149,8 @@ var tool_info = {"Starting point calculation ":`You can press this button and cl
                            "GOAT":`<b>Geo Open Accessibility Tool (GOAT)</b><br>
                                     This is tool could be developed thanks to powerful open source<br>
                                     software and the OpenStreetMap-project. For the population numbers<br>
-                                    data from the Statistikamt München is used.`,
+                                    data from the Statistikamt München and the German Zensus 2011 are used.<br>
+                                    Icons are used from: Maps Icons Collection, <a href="https://mapicons.mapsmarker.com">https://mapicons.mapsmarker.com</a>.`,
                   "Choose basemap ":`You can choose betweeen different basemaps,<br>
                                      please consider if you want to select the<br> 
                                      most up-to-date basemap choose OSM-Standard,<br>
