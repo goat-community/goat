@@ -1,6 +1,7 @@
 {
   "tittle": "GOAT - Geo Open Accessibility Tool",
   "baseColor": "red darken-3",
+  "controlsColor": "#26AE3F",
   "logo": "./src/assets/img/logo.png",
   "map": {
     "projectionCode": "EPSG:3857",
@@ -10,7 +11,7 @@
         "projection": "+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
       }
     ],
-    "zoom": 7,
+    "zoom": 13,
     "resolutions": [
       156543.03,
       78271.52,
@@ -32,7 +33,7 @@
       1.1943,
       0.5972
     ],
-    "center": [0, 0],
+    "center": [1289645.541227, 6129485.298188],
     "layers": [
       {
         "type": "OSM",
@@ -76,7 +77,7 @@
         "accessToken": "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
         "maxZoom": 19,
         "queryable": false,
-        "visible": false,
+        "visible": true,
         "displayInLayerList": true
       },
       {
@@ -99,7 +100,7 @@
         "imagerySet": "Aerial",
         "maxZoom": 19,
         "queryable": false,
-        "visible": true,
+        "visible": false,
         "displayInLayerList": true
       }
     ]

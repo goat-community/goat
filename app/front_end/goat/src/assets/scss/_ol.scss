@@ -1,0 +1,255 @@
+.ol-unsupported {
+  display: none;
+}
+.ol-viewport .ol-unselectable {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+.ol-control {
+  border-radius: 4px;
+  background-color: #fff;
+  -webkit-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45);
+}
+.no-boxshadow .ol-control {
+  border: 1px solid #c5c5c5;
+}
+.ol-control:hover {
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+.ol-rotate {
+  transition: opacity 0.25s;
+}
+.ol-rotate.ol-hidden {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s linear, visibility 0s linear 0.25s;
+}
+@media print {
+  .ol-full-screen {
+    display: none;
+  }
+}
+.ol-control button {
+  border-radius: 4px;
+  cursor: pointer;
+  display: block;
+  padding: 0;
+  color: #424242;
+  color: rgba(66, 66, 66, 1);
+  font-size: 1em;
+  text-decoration: none;
+  text-align: center;
+  height: 2em;
+  width: 2em;
+  background-color: white;
+  border: none;
+}
+.ol-control button::-moz-focus-inner {
+  border: none;
+  padding: 0;
+}
+.ol-control button:hover {
+  color: #eeeeee;
+  text-decoration: none;
+  background-color: #S;
+}
+button.ol-zoom-in {
+  border-radius: 4px 4px 0 0;
+  border-bottom: 1px solid #c5c5c5 !important;
+}
+button.ol-zoom-out {
+  border-radius: 0 0 4px 4px;
+}
+.ol-control.ol-rotate button {
+  border-radius: 0;
+  background-color: transparent;
+}
+.ol-rotate.ol-control {
+  background-color: transparent;
+  box-shadow: none;
+}
+.ol-compass {
+  background-size: 2em;
+  display: block;
+  font-family: Arial;
+  font-weight: normal;
+  height: 2em;
+  width: 2em;
+}
+.ol-scale-line,
+.ol-scale-line:not([ie8andbelow]) {
+  background: #ffffff;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  display: inline-block;
+  padding: 2px;
+  position: relative;
+}
+.ol-scale-line-inner {
+  border-bottom-right-radius: 3px;
+  border-bottom-left-radius: 3px;
+  border: 1px solid #424242;
+  border-top: none;
+  color: #424242;
+  font-size: 10px;
+  text-align: center;
+  margin: 1px;
+  padding: 0px 2px;
+}
+/* invisible but not hidden */
+.ol-has-tooltip [role="tooltip"] {
+  position: absolute;
+  clip: rect(1px 1px 1px 1px); /* < IE8 */
+  clip: rect(1px, 1px, 1px, 1px);
+  padding: 0;
+  border: 0;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  font-weight: normal;
+  font-size: 14px;
+  text-shadow: 0 0 2px #fff;
+}
+.ol-attribution {
+  text-align: right;
+  bottom: 0.5em;
+  padding: 0.35em 0;
+  position: absolute;
+  right: 0.5em;
+  max-width: calc(100% - 3.5em);
+  z-index: 30;
+}
+.ol-attribution ul {
+  margin: 0;
+  padding: 0 0.5em;
+  font-size: 0.7rem;
+  line-height: 1.375em;
+  color: #fff;
+  max-width: 60%;
+}
+.ol-attribution li {
+  display: inline;
+  list-style: none;
+  line-height: inherit;
+}
+.ol-attribution li:not(:last-child):after {
+  content: " ";
+}
+.ol-attribution ul,
+.ol-attribution button {
+  display: inline;
+}
+.ol-attribution:not(.ol-collapsed) button:hover [role="tooltip"],
+.ol-attribution.ol-collapsed ul {
+  display: none;
+}
+.ol-attribution.ol-logo-only ul {
+  display: block;
+}
+.ol-attribution:not(.ol-collapsed) {
+  background: transparent;
+}
+.ol-control.ol-attribution:not(.ol-collapsed) {
+  box-shadow: none;
+}
+.ol-attribution:not(.ol-collapsed) button {
+  background: transparent;
+  color: #000;
+}
+.ol-attribution:not(.ol-collapsed) button:hover {
+  background: #424242;
+  color: #fff;
+}
+.ol-attribution.ol-collapsed button {
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 15px;
+  color: #fff;
+  height: 1.5em;
+  width: 1.5em;
+}
+.ol-attribution.ol-uncollapsible {
+  bottom: 0;
+  right: 0;
+  border-radius: 4px 0 0;
+  height: 1.1em;
+  line-height: 1em;
+}
+.ol-attribution.ol-logo-only {
+  background: transparent;
+  bottom: 0.4em;
+  height: 1.1em;
+  line-height: 1em;
+}
+.ol-attribution.ol-uncollapsible img {
+  margin-top: -0.2em;
+  max-height: 1.6em;
+}
+.ol-attribution.ol-logo-only button,
+.ol-attribution.ol-uncollapsible button {
+  display: none;
+}
+
+/*workaround to remove ol logo until class for the logo*/
+.ol-attribution img {
+  display: none;
+}
+.ol-box {
+  box-sizing: border-box;
+  border-radius: 2px;
+  border: 2px solid blue;
+}
+.ol-dragzoom {
+  border-color: #007aff;
+  border-width: 3px;
+  background-color: rgba(255, 255, 255, 0.4);
+}
+&[class*="#{$media-l}"] {
+  .ol-scale-line,
+  .ol-scale-line-inner {
+    display: none;
+  }
+  .ol-attribution {
+    max-width: calc(100% - 3.5em);
+    padding: 0;
+  }
+  .ol-attribution ul {
+    color: #000;
+  }
+  .ol-control.ol-attribution:not(.ol-collapsed) {
+    -webkit-box-shadow: 0 0 5px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.45);
+  }
+  .ol-control.ol-attribution.ol-collapsed {
+    background-color: transparent;
+    box-shadow: none;
+  }
+  .ol-attribution:not(.ol-collapsed) {
+    background: rgba(255, 255, 255, 0.9);
+  }
+  .ol-attribution:not(.ol-collapsed) button {
+    background: transparent;
+    color: #000;
+  }
+  .ol-attribution.ol-collapsed button {
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 15px;
+    color: #fff;
+    height: 1.5em;
+    width: 1.5em;
+  }
+}
+
+&[class*="#{$media-l}"] {
+  .ol-attribution {
+    bottom: 1rem;
+    left: 1rem;
+    right: auto;
+  }
+}

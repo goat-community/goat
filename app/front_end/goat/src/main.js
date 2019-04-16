@@ -6,7 +6,7 @@ import App from "./App";
 import UrlUtil from "./util/Url";
 
 require("../node_modules/ol/ol.css");
-require("./assets/css/app.css");
+require("./assets/scss/app.scss");
 
 Vue.config.productionTip = false;
 

@@ -1,0 +1,14 @@
+.no-map {
+  background-color: #eeeeee;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  display: block;
+  height: 100%;
+  width: 100%;
+  z-index: 100000;
+}
+.no-map-message {
+  margin: auto;
+  position: relative;
+  text-align: center;
+  top: 50%;
+}

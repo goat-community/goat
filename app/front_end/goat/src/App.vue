@@ -6,7 +6,7 @@
   >
     <v-content>
       <v-container id="ol-map-container" fluid fill-height style="padding: 0">
-        <app-map :color="baseColor" />
+        <app-map :color="controlsColor" />
       </v-container>
     </v-content>
   </v-app>
@@ -24,7 +24,8 @@ export default {
   data() {
     return {
       isEmbedded: false,
-      baseColor: Vue.prototype.$appConfig.baseColor
+      baseColor: Vue.prototype.$appConfig.baseColor,
+      controlsColor: Vue.prototype.$appConfig.controlsColor
     };
   },
   mounted() {
