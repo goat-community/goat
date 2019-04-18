@@ -1,4 +1,4 @@
-import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
+import { Circle as CircleStyle, Fill, Stroke, Style } from "ol/style";
 
 /**
  * Factory, which creates OpenLayers style instances according to a given config
@@ -8,15 +8,15 @@ import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
  * For advanced styling use a custom style function or
  * GeoStyler<https://github.com/terrestris/geostyler>
  */
-export const OlStyleFactory = {
 
+export const OlStyleFactory = {
   /**
    * Returns an OpenLayers Style instance due to given config.
    *
    * @param  {Object} styleConf  Style config object
    * @return {Style}             OL Style instance
    */
-  getInstance (styleConf) {
+  getInstance(styleConf) {
     if (!styleConf) {
       return;
     } else if (styleConf.radius) {
@@ -34,7 +34,7 @@ export const OlStyleFactory = {
    * @param  {Object} styleConf  Style config object
    * @return {Style}             OL style instance
    */
-  createPointStyle (styleConf) {
+  createPointStyle(styleConf) {
     return new Style({
       image: new CircleStyle({
         radius: styleConf.radius,
@@ -50,7 +50,7 @@ export const OlStyleFactory = {
    * @param  {Object} styleConf  Style config object
    * @return {Style}             OL style instance
    */
-  createLineStyle (styleConf) {
+  createLineStyle(styleConf) {
     const olStyle = new Style({
       stroke: OlStyleFactory.createStroke(styleConf)
     });
@@ -64,7 +64,7 @@ export const OlStyleFactory = {
    * @param  {Object} styleConf  Style config object
    * @return {Style}             OL style instance
    */
-  createPolygonStyle (styleConf) {
+  createPolygonStyle(styleConf) {
     let olStyle = OlStyleFactory.createLineStyle(styleConf);
     olStyle.setFill(OlStyleFactory.createFill(styleConf));
 
@@ -77,7 +77,7 @@ export const OlStyleFactory = {
    * @param  {Object} styleConf Style config object
    * @return {Stroke}           OL Stroke instance
    */
-  createStroke (styleConf) {
+  createStroke(styleConf) {
     return new Stroke({
       color: styleConf.strokeColor,
       width: styleConf.strokeWidth
@@ -90,10 +90,9 @@ export const OlStyleFactory = {
    * @param  {Object} styleConf Style config object
    * @return {Fill}             OL Fill instance
    */
-  createFill (styleConf) {
+  createFill(styleConf) {
     return new Fill({
       color: styleConf.fillColor
     });
   }
-
-}
+};
