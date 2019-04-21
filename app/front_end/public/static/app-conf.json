@@ -103,6 +103,17 @@
         "visible": false,
         "displayInLayerList": true
       }
+    ],
+    "controls": [
+        {
+          "name": "home",
+          "options": {
+            "zoomOnStart": true
+          }
+        },
+        {
+          "name": "legend"
+        }
     ]
   },
   "controls": {}

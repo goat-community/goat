@@ -3,6 +3,13 @@
 ></template>
 
 <script>
+// helper function to detect a CSS color
+// Taken from Vuetify sources
+// https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/mixins/colorable.ts
+function isCssColor(color) {
+  return !!color && !!color.match(/^(#|(rgb|hsl)a?\()/);
+}
+
 import Vue from "vue";
 import Map from "ol/Map";
 import View from "ol/View";
@@ -37,6 +44,9 @@ export default {
     window.setTimeout(() => {
       me.map.setTarget(document.getElementById("ol-map-container"));
       me.map.updateSize();
+
+      // adjust the bg color of the OL buttons (like zoom, rotate north, ...)
+      me.setOlButtonColor();
 
       // initialize map hover functionality
       me.setupMapHover();
@@ -101,6 +111,57 @@ export default {
     },
 
     /**
+     * Sets the background color of the OL buttons to the color property.
+     */
+    setOlButtonColor() {
+      var me = this;
+
+      if (isCssColor(me.color)) {
+        // directly apply the given CSS color
+        if (document.querySelector(".ol-zoom")) {
+          document.querySelector(".ol-zoom .ol-zoom-in").style.backgroundColor =
+            me.color;
+          document.querySelector(
+            ".ol-zoom .ol-zoom-out"
+          ).style.backgroundColor = me.color;
+        }
+        if (document.querySelector(".ol-rotate")) {
+          document.querySelector(
+            ".ol-rotate .ol-rotate-reset"
+          ).style.backgroundColor = me.color;
+        }
+      } else {
+        // apply vuetify color by transforming the color to the corresponding
+        // CSS class (see https://vuetifyjs.com/en/framework/colors)
+        const [colorName, colorModifier] = me.color
+          .toString()
+          .trim()
+          .split(" ", 2);
+        if (document.querySelector(".ol-zoom")) {
+          document
+            .querySelector(".ol-zoom .ol-zoom-in")
+            .classList.add(colorName);
+          document
+            .querySelector(".ol-zoom .ol-zoom-in")
+            .classList.add(colorModifier);
+          document
+            .querySelector(".ol-zoom .ol-zoom-out")
+            .classList.add(colorName);
+          document
+            .querySelector(".ol-zoom .ol-zoom-out")
+            .classList.add(colorModifier);
+        }
+        if (document.querySelector(".ol-rotate")) {
+          document
+            .querySelector(".ol-rotate .ol-rotate-reset")
+            .classList.add(colorName);
+          document
+            .querySelector(".ol-rotate .ol-rotate-reset")
+            .classList.add(colorModifier);
+        }
+      }
+    },
+    /**
      * Initializes the map hover functionality:
      * Adds a little tooltip like DOM element, wrapped as OL Overlay to the
      * map.
@@ -156,6 +217,17 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
+div.ol-zoom {
+  top: auto;
+  left: auto;
+  bottom: 3em;
+  right: 0.5em;
+}
+
+div.ol-attribution.ol-uncollapsible {
+  bottom: 12px;
+}
+
 /* Hover tooltip */
 .wg-hover-tooltiptext {
   width: 120px;
