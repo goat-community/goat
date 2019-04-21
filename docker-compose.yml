@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  example-service:
+    build:
+      context: .
+      dockerfile: app/front_end/Dockerfile
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - 8080:8080
+    command: npm run serve
