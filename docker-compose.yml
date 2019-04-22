@@ -1,12 +1,39 @@
 version: "3"
 
+volumes:
+  geo-db-data:
+
 services:
+  db:
+    image: kartoza/postgis:11.0-2.5
+    volumes:
+      - geo-db-data:/var/lib/postgresql
+    ports:
+      - 65432:5432
+    env_file:
+      - docker-env/db.env
+    restart: on-failure
+    healthcheck:
+      test: "exit 0"
+
+  geoserver:
+    image: kartoza/geoserver:2.15.0
+    volumes:
+      - ./app/server/geoserver/data_dir:/opt/geoserver/data_dir
+    ports:
+      - "8080:8080"
+    restart: on-failure
+    env_file:
+      - docker-env/geoserver.env
+    depends_on:
+      - db
+
   client:
     build:
-      context: .
-      dockerfile: app/client/Dockerfile
+      context: ./app/client
+      dockerfile: ./Dockerfile
     volumes:
-      - .:/usr/src/app
+      - ./app/client:/usr/src/app
       - /usr/src/app/node_modules
     ports:
-      - 8080:80
+      - 5000:80
