@@ -7,7 +7,7 @@ permalink: /docs/quick_start/
 GOAT<sub>beta</sub> feels at home on the Linux distribution Ubuntu (18.04). However, with the help of an virtual machine (controlled by Vagrant) and with Docker you can offer GOAT<sub>beta</sub> a home also on your Windows or Mac OS for development and testing. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt.
 The setup of GOAT<sub>beta</sub> is highly automated, however the user has some customization options. Furthermore, it was decided to let the user type some commands on its own for allowing a more transparent and understandable setup. 
 
-If you have any issues during the process, check here: [Common Issues](../common_issues/)
+If you have any issues during the process [Click Here](../common_issues/).
 
 #### 1. Get a copy of GOAT<sub>beta</sub>
 
