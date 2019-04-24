@@ -42,8 +42,6 @@ Select the object you want to adjust (e.g. building, street, POI). To add a tag,
 
 If the spatial extent of an object is incorrect, you can move the nodes to the correct position by clicking and dragging.
 
-<font color="red">INSERT VIDEO?</font>
-
 
 #### 5. Add new objects
 
