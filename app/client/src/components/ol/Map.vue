@@ -220,8 +220,8 @@ export default {
 div.ol-zoom {
   top: auto;
   left: auto;
-  bottom: 3em;
-  right: 0.5em;
+  top: 1em;
+  left: 1em;
 }
 
 div.ol-attribution.ol-uncollapsible {

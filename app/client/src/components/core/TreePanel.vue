@@ -79,4 +79,8 @@ export default {
   color: white;
   text-decoration: none;
 }
+
+.rotate {
+  transform: rotate(-90deg);
+}
 </style>
