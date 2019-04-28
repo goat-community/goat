@@ -17,16 +17,31 @@ services:
       test: "exit 0"
 
   geoserver:
-    image: kartoza/geoserver:2.15.0
+    image: camptocamp/geoserver:jetty-2.15.0
     volumes:
-      - ./app/server/geoserver/data_dir:/opt/geoserver/data_dir
+      - ./app/server/geoserver/data_dir:/mnt/geoserver_datadir
     ports:
-      - "8080:8080"
+      - 8080:8080
     restart: on-failure
-    env_file:
-      - docker-env/geoserver.env
     depends_on:
       - db
+
+  api:
+    build:
+      context: ./app/server/api
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./app/server/api:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - 8000:80
+
+  print:
+    image: camptocamp/mapfish_print:3.18
+    volumes:
+      - ./app/server/mapfishprint:/usr/local/tomcat/webapps/ROOT/print-apps
+    ports:
+      - 8585:8080
 
   client:
     build:
@@ -37,3 +52,11 @@ services:
       - /usr/src/app/node_modules
     ports:
       - 5000:80
+      
+  # nginx-proxy:
+  #   image: nginx:latest
+  #   container_name: reverseproxy
+  #   volumes:
+  #     - ./app/server/reverseproxy/nginx.conf:/etc/nginx/nginx.conf
+  #   ports:
+  #     - 3000:80

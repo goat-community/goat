@@ -4,6 +4,8 @@
     data-app
     :class="{ 'wg-app': true, 'wg-app-embedded': isEmbedded }"
   >
+    <app-sidebar />
+    <tree-panel />
     <v-content>
       <v-container id="ol-map-container" fluid fill-height style="padding: 0">
         <app-map :color="controlsColor" />
@@ -16,10 +18,14 @@
 import Vue from "vue";
 import { EventBus } from "./EventBus.js";
 import appMap from "./components/ol/Map";
+import appSidebar from "./components/core/SideDrawer";
+import treePanel from "./components/core/TreePanel";
 export default {
   name: "wg-app",
   components: {
-    appMap
+    appMap,
+    appSidebar,
+    treePanel
   },
   data() {
     return {
