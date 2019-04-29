@@ -4,8 +4,9 @@ permalink: /docs/quick_start/
 ---
 
 
-GOAT<sub>beta</sub> feels at home on the Linux distribution Ubuntu (18.04). However, with the help of an virtual machine (controlled by Vagrant) and with Docker you can offer GOAT<sub>beta</sub> a home also on your Windows or Mac OS for development and testing. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt.
-The setup of GOAT<sub>beta</sub> is highly automated, however the user has some customization options. Furthermore, it was decided to let the user type some commands on its own for allowing a more transparent and understandable setup. 
+GOAT<sub>beta</sub> feels at home on the Linux distribution Ubuntu (18.04). However, with the help of an virtual machine (controlled by Vagrant) and with Docker you can offer GOAT<sub>beta</sub> a home also on your Windows or Mac OS for development and testing. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. The setup of GOAT<sub>beta</sub> is highly automated, however the user has some customization options. Furthermore, it was decided to let the user type some commands on its own for allowing a more transparent and understandable setup. 
+
+Git Bash Tutorial: [https://www.atlassian.com/git/tutorials/git-bash/](https://www.atlassian.com/git/tutorials/git-bash/)
 
 If you have any issues during the process [Click Here](../common_issues/).
 
@@ -36,6 +37,8 @@ It was only tested with the version mentioned above. Accordingly if you want to 
 There is one central configuration file for setting up GOAT<sub>beta</sub>. You can find this file at `your-GOAT-directory/app/config/goat_config.yaml`.
 At the moment not all configuration possibilities are in here but it is targeted to move more and more of the configuration in here. 
 
+It is recommended not to open the files with your default editor as this may cause errors. Use editors such as [Visual Studio Code](https://code.visualstudio.com/) instead.
+
 #### 4. Prepare your data
 
 If you want to apply the tool to your own study area or adjust the input data, follow the descriptions in the following documentation: [Data Preparation](../data_preparation/)
@@ -46,7 +49,9 @@ If you want to apply the tool to your own study area or adjust the input data, f
 
 Open a command window and go into the project folder. Run the command:
 
-`vagrant up` (run on your host)
+`vagrant up` (run on your <font color="RoyalBlue"> host</font>)
+
+<img class="img-responsive" src="../../img/vagrant_up.png" alt="how your command window should look like" title="Start vagrant" width="600" height="350" style="border: 2px solid RoyalBlue;"/>
 
 For more Vagrant commands checkout:
 
@@ -54,21 +59,21 @@ For more Vagrant commands checkout:
 
 ##### 5.2. Install the necessary software
 
-`vagrant ssh` (run on your host)
+`vagrant ssh` (run on your <font color="RoyalBlue"> host</font>)
 
-`sudo bash app/installation/install_software.sh` (run on your VM)
+`sudo bash app/installation/install_software.sh` (run on your <font color="chocolate"> VM</font>)
 
 This script can take a while as it installs quite some software on your VM. If you want to check what is installed exactly you can view the install_software.sh script.
 
 ##### 5.3. Fill your database
 
-`python3 app/installation/setup_goat.py` (run on your VM)
+`python3 app/installation/setup_goat.py` (run on your <font color="chocolate"> VM</font>)
 
 ##### UPDATE data
 
 In case you want to UPDATE all your data you can simply run the following from your project directory.
 
-`python3 app/installation/setup_goat.py` (run on your VM)
+`python3 app/installation/setup_goat.py` (run on your <font color="chocolate"> VM</font>)
 
 <b><font color="red">!!Note this will drop your database and create a new database.!!</font><b>
 
@@ -91,9 +96,9 @@ Port: 65432
 
 ##### 7. Start Geoserver
 
-`cd ~/app/geoserver` (run on your VM)
+`cd ~/app/geoserver` (run on your <font color="chocolate"> VM</font>)
 
-`sudo bash install_geoserver.sh` (run on your VM)
+`sudo bash install_geoserver.sh` (run on your <font color="chocolate"> VM</font>)
 
 Geoserver is running inside docker, which itself is inside your VM. You can check if Geoserver is up and running by typing [http://localhost:8080/geoserver/index.html](http://localhost:8080/geoserver/index.html) into your browser. 
 The default password for your Geoserver instance is:
@@ -104,11 +109,11 @@ Password : geoserver
 
 ##### 8. Start Node-Server
 
-`cd ~/app/node` (run on your VM)
+`cd ~/app/node` (run on your <font color="chocolate"> VM</font>)
 
-`npm install` (run on your VM)
+`npm install` (run on your <font color="chocolate"> VM</font>)
 
-`npm start` (run on your VM)
+`npm start` (run on your <font color="chocolate"> VM</font>)
 
 ##### 9. View GOAT<sub>beta</sub> in the browser
 
@@ -116,9 +121,9 @@ The front-end is bundled using parcel. At the moment it is recommended to run pa
 
 In order to start the bundling go to the front-end directory, open console window and run:
 
-`npm install` (run on your host)
+`npm install` (run on your <font color="RoyalBlue"> host</font>)
 
-`npm start` (run on your host)
+`npm start` (run on your <font color="RoyalBlue"> host</font>)
 
 If all steps were successful you will be able to use GOAT<sub>beta</sub> by typing the following into your browser:
 
@@ -145,9 +150,9 @@ After you have followed this documentation you will have two console windows ope
 
 If you want to turn your VM off: 
 
-`cd your-GOAT-directory` (on your host)
+`cd your-GOAT-directory` (on your <font color="RoyalBlue"> host</font>)
 
-`vagrant halt` (on your host)
+`vagrant halt` (on your <font color="RoyalBlue"> host</font>)
 
 Check for more vagrant commands: [https://www.vagrantup.com/docs/cli/](https://www.vagrantup.com/docs/cli/)
 
@@ -158,20 +163,25 @@ After some seconds you VM should be up an running. Your database and Geoserver a
 
 Open a new console window and run the following:
 
-`cd your-GOAT-directory/app/front_end` (on your host)
+`cd your-GOAT-directory/app/front_end` (on your <font color="RoyalBlue"> host</font>)
 
-`npm start` (on your host)
+`npm start` (on your <font color="RoyalBlue"> host</font>)
+
+<img class="img-responsive" src="../../img/start_frontend.png" alt="how your command window should look like" title="Start the front-end" width="600" height="340" style="border: 2px solid RoyalBlue;"/>
 
 Open a new console window and run the following:
 
-`cd your-GOAT-directory` (on your host)
+`cd your-GOAT-directory` (on your <font color="RoyalBlue"> host</font>)
 
-`vagrant ssh` (on your host)
+`vagrant ssh` (on your <font color="RoyalBlue"> host</font>)
 
-`cd app/node` (on your VM)
+<img class="img-responsive" src="../../img/start_VM.png" alt="how your command window should look like" title="Start the VM" width="600" height="400" style="border: 2px solid RoyalBlue;"/>
 
-`npm start` (on your VM)
+`cd app/node` (run on your <span style="color:#01A9DB">VM</span>)
 
+`npm start` (run on your <font color="chocolate">VM</font>)
+
+<img class="img-responsive" src="../../img/start_nodeJS-server.png" alt="how your command window should look like" title="Start the NodeJS-server" width="600" height="260" style="border: 2px solid chocolate;"/>
 
 ##### Backup Database
 

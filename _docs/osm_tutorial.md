@@ -47,10 +47,11 @@ If the spatial extent of an object is incorrect, you can move the nodes to the c
 
 Zoom to the position of the new object and select in the header which object type you want to add (point, line or area). Place the new nodes with a single left click and end the input with a double left click. Right-clicking offers some options for adjusting the objects (e.g. square the corners of the area). On the left, you can now select the object type and insert features and keys. 
 
-<video  width="750" height="420" controls>
-<source src="../../img/OSM_add_building.mp4" type="video/mp4">
-Your browser does not support the video tag.
-</video>
+<p align="left">
+<div class="embed-responsive embed-responsive-16by9">
+  <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/311547681" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+</div>
+</p>
 
 
 #### 6. Save the changes
