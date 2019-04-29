@@ -20,6 +20,8 @@ If you have any issues during the process [Click Here](../common_issues/).
 
 [https://www.virtualbox.org/](https://www.virtualbox.org/)
 
+Make sure that Hyper-V is enabled on your computer, i.e. it allows virtual machines to run.
+
 <b>Install Vagrant (Version 2.2.2)<b>
 
 [https://www.vagrantup.com/](https://www.vagrantup.com/)
@@ -49,9 +51,9 @@ If you want to apply the tool to your own study area or adjust the input data, f
 
 Open a command window and go into the project folder. Run the command:
 
-`vagrant up` (run on your <font color="RoyalBlue"> host</font>)
+`vagrant up` (run on your <span style="color:#07d">host</span>)
 
-<img class="img-responsive" src="../../img/vagrant_up.png" alt="how your command window should look like" title="Start vagrant" width="600" height="350" style="border: 2px solid RoyalBlue;"/>
+<img class="img-responsive" src="../../img/vagrant_up.png" alt="how your command window should look like" title="Start vagrant" width="600" height="350" style="border: 2px solid #07d;"/>
 
 For more Vagrant commands checkout:
 
@@ -59,21 +61,21 @@ For more Vagrant commands checkout:
 
 ##### 5.2. Install the necessary software
 
-`vagrant ssh` (run on your <font color="RoyalBlue"> host</font>)
+`vagrant ssh` (run on your <span style="color:#07d">host</span>)
 
-`sudo bash app/installation/install_software.sh` (run on your <font color="chocolate"> VM</font>)
+`sudo bash app/installation/install_software.sh` (run on your <span style="color:#FE9A2E">VM</span>)
 
 This script can take a while as it installs quite some software on your VM. If you want to check what is installed exactly you can view the install_software.sh script.
 
 ##### 5.3. Fill your database
 
-`python3 app/installation/setup_goat.py` (run on your <font color="chocolate"> VM</font>)
+`python3 app/installation/setup_goat.py` (run on your <span style="color:#FE9A2E">VM</span>)
 
 ##### UPDATE data
 
 In case you want to UPDATE all your data you can simply run the following from your project directory.
 
-`python3 app/installation/setup_goat.py` (run on your <font color="chocolate"> VM</font>)
+`python3 app/installation/setup_goat.py` (run on your <span style="color:#FE9A2E">VM</span>)
 
 <b><font color="red">!!Note this will drop your database and create a new database.!!</font><b>
 
@@ -96,9 +98,9 @@ Port: 65432
 
 ##### 7. Start Geoserver
 
-`cd ~/app/geoserver` (run on your <font color="chocolate"> VM</font>)
+`cd ~/app/geoserver` (run on your <span style="color:#FE9A2E">VM</span>)
 
-`sudo bash install_geoserver.sh` (run on your <font color="chocolate"> VM</font>)
+`sudo bash install_geoserver.sh` (run on your <span style="color:#FE9A2E">VM</span>)
 
 Geoserver is running inside docker, which itself is inside your VM. You can check if Geoserver is up and running by typing [http://localhost:8080/geoserver/index.html](http://localhost:8080/geoserver/index.html) into your browser. 
 The default password for your Geoserver instance is:
@@ -109,11 +111,11 @@ Password : geoserver
 
 ##### 8. Start Node-Server
 
-`cd ~/app/node` (run on your <font color="chocolate"> VM</font>)
+`cd ~/app/node` (run on your <span style="color:#FE9A2E">VM</span>)
 
-`npm install` (run on your <font color="chocolate"> VM</font>)
+`npm install` (run on your <span style="color:#FE9A2E">VM</span>)
 
-`npm start` (run on your <font color="chocolate"> VM</font>)
+`npm start` (run on your <span style="color:#FE9A2E">VM</span>)
 
 ##### 9. View GOAT<sub>beta</sub> in the browser
 
@@ -121,9 +123,9 @@ The front-end is bundled using parcel. At the moment it is recommended to run pa
 
 In order to start the bundling go to the front-end directory, open console window and run:
 
-`npm install` (run on your <font color="RoyalBlue"> host</font>)
+`npm install` (run on your <span style="color:#07d">host</span>)
 
-`npm start` (run on your <font color="RoyalBlue"> host</font>)
+`npm start` (run on your <span style="color:#07d">host</span>)
 
 If all steps were successful you will be able to use GOAT<sub>beta</sub> by typing the following into your browser:
 
@@ -136,7 +138,7 @@ You can also run parcel on your VM, however you have to open port 9090 and port 
 GOAT<sub>beta</sub> allows you to use pre-calculated matrices that are used to visualize the dynamic heatmaps. 
 In order to start the pre-calculation you currently have to start the script manually with the following command:
 
-`python3 ~/app/data_preparation/Python/precalculate_grid_thematic.py` (run on your VM)
+`python3 ~/app/data_preparation/Python/precalculate_grid_thematic.py` (run on your <span style="color:#FE9A2E">VM</span>)
 
 Depending on the size of your study area the calculation can take a bit.
 
@@ -150,9 +152,9 @@ After you have followed this documentation you will have two console windows ope
 
 If you want to turn your VM off: 
 
-`cd your-GOAT-directory` (on your <font color="RoyalBlue"> host</font>)
+`cd your-GOAT-directory` (on your <span style="color:#07d">host</span>)
 
-`vagrant halt` (on your <font color="RoyalBlue"> host</font>)
+`vagrant halt` (on your <span style="color:#07d">host</span>)
 
 Check for more vagrant commands: [https://www.vagrantup.com/docs/cli/](https://www.vagrantup.com/docs/cli/)
 
@@ -163,25 +165,25 @@ After some seconds you VM should be up an running. Your database and Geoserver a
 
 Open a new console window and run the following:
 
-`cd your-GOAT-directory/app/front_end` (on your <font color="RoyalBlue"> host</font>)
+`cd your-GOAT-directory/app/front_end` (on your <span style="color:#07d">host</span>)
 
-`npm start` (on your <font color="RoyalBlue"> host</font>)
+`npm start` (on your <span style="color:#07d">host</span>)
 
-<img class="img-responsive" src="../../img/start_frontend.png" alt="how your command window should look like" title="Start the front-end" width="600" height="340" style="border: 2px solid RoyalBlue;"/>
+<img class="img-responsive" src="../../img/start_frontend.png" alt="how your command window should look like" title="Start the front-end" width="600" height="340" style="border: 2px solid #07d;"/>
 
 Open a new console window and run the following:
 
-`cd your-GOAT-directory` (on your <font color="RoyalBlue"> host</font>)
+`cd your-GOAT-directory` (on your <span style="color:#07d">host</span>)
 
-`vagrant ssh` (on your <font color="RoyalBlue"> host</font>)
+`vagrant ssh` (on your <span style="color:#07d">host</span>)
 
-<img class="img-responsive" src="../../img/start_VM.png" alt="how your command window should look like" title="Start the VM" width="600" height="400" style="border: 2px solid RoyalBlue;"/>
+<img class="img-responsive" src="../../img/start_VM.png" alt="how your command window should look like" title="Start the VM" width="600" height="400" style="border: 2px solid #07d;"/>
 
-`cd app/node` (run on your <span style="color:#01A9DB">VM</span>)
+`cd app/node` (run on your <span style="color:#FE9A2E">VM</span>)
 
-`npm start` (run on your <font color="chocolate">VM</font>)
+`npm start` (run on your <span style="color:#FE9A2E">VM</span>)
 
-<img class="img-responsive" src="../../img/start_nodeJS-server.png" alt="how your command window should look like" title="Start the NodeJS-server" width="600" height="260" style="border: 2px solid chocolate;"/>
+<img class="img-responsive" src="../../img/start_nodeJS-server.png" alt="how your command window should look like" title="Start the NodeJS-server" width="600" height="260" style="border: 2px solid #FE9A2E;"/>
 
 ##### Backup Database
 
