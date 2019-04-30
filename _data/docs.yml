@@ -9,4 +9,8 @@
   - quick_start
   - data_preparation
   - common_issues
+  
+- title: Contribute to OSM
+  docs:
   - osm_tutorial
+  - complete_pois

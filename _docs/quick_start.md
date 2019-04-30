@@ -4,7 +4,9 @@ permalink: /docs/quick_start/
 ---
 
 
-GOAT<sub>beta</sub> feels at home on the Linux distribution Ubuntu (18.04). However, with the help of an virtual machine (controlled by Vagrant) and with Docker you can offer GOAT<sub>beta</sub> a home also on your Windows or Mac OS for development and testing. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. The setup of GOAT<sub>beta</sub> is highly automated, however the user has some customization options. Furthermore, it was decided to let the user type some commands on its own for allowing a more transparent and understandable setup. 
+GOAT<sub>beta</sub> feels at home on the Linux distribution Ubuntu (18.04). However, with the help of a virtual machine (controlled by Vagrant) and with Docker you can offer GOAT<sub>beta</sub> a home also on your Windows or Mac OS for development and testing. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. The setup of GOAT<sub>beta</sub> is highly automated, however the user has some customization options. Furthermore, it was decided to let the user type some commands on its own for allowing a more transparent and understandable setup. 
+
+<img class="img-responsive" src="../../img/VM.png" alt="Icon VM and Host" title="The VM runs on your Host" width="275"/>
 
 Git Bash Tutorial: [https://www.atlassian.com/git/tutorials/git-bash/](https://www.atlassian.com/git/tutorials/git-bash/)
 
@@ -12,7 +14,9 @@ If you have any issues during the process [Click Here](../common_issues/).
 
 #### 1. Get a copy of GOAT<sub>beta</sub>
 
-`git clone https://github.com/EPajares/goat.git` (run on your host)
+`git clone https://github.com/EPajares/goat.git` (run on your <span style="color:#07d">host</span>)
+
+<img class="img-responsive" src="../../img/git_clone.png" alt="how your command window should look like" title="Get a copy of GOAT<sub>beta</sub>" width="600" height="400" style="border: 2px solid #07d;"/>
 
 #### 2. Install Software on your Host
 
@@ -65,6 +69,8 @@ For more Vagrant commands checkout:
 
 `sudo bash app/installation/install_software.sh` (run on your <span style="color:#FE9A2E">VM</span>)
 
+<img class="img-responsive" src="../../img/vagrant_ssh+sudo_bash.png" alt="how your command window should look like" title="Enter the VM and install the necessary software" width="600" height="472" style="border: 2px solid #07d;"/>
+
 This script can take a while as it installs quite some software on your VM. If you want to check what is installed exactly you can view the install_software.sh script.
 
 ##### 5.3. Fill your database
@@ -102,6 +108,8 @@ Port: 65432
 
 `sudo bash install_geoserver.sh` (run on your <span style="color:#FE9A2E">VM</span>)
 
+<img class="img-responsive" src="../../img/start_geoserver.png" alt="how your command window should look like" title="Go to the folder where the Geoserver is stored and start it" width="600" height="247" style="border: 2px solid #FE9A2E;"/>
+
 Geoserver is running inside docker, which itself is inside your VM. You can check if Geoserver is up and running by typing [http://localhost:8080/geoserver/index.html](http://localhost:8080/geoserver/index.html) into your browser. 
 The default password for your Geoserver instance is:
 
@@ -116,6 +124,8 @@ Password : geoserver
 `npm install` (run on your <span style="color:#FE9A2E">VM</span>)
 
 `npm start` (run on your <span style="color:#FE9A2E">VM</span>)
+
+Note: Do not close the node server and front-end windows. If you want to stop the process, follow the steps in chapter 11. 
 
 ##### 9. View GOAT<sub>beta</sub> in the browser
 
@@ -155,6 +165,8 @@ If you want to turn your VM off:
 `cd your-GOAT-directory` (on your <span style="color:#07d">host</span>)
 
 `vagrant halt` (on your <span style="color:#07d">host</span>)
+
+<img class="img-responsive" src="../../img/vagrant_halt.png" alt="how your command window should look like" title="How to turn off your VM" width="600" style="border: 2px solid #07d;"/>
 
 Check for more vagrant commands: [https://www.vagrantup.com/docs/cli/](https://www.vagrantup.com/docs/cli/)
 
