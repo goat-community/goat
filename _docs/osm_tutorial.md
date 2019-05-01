@@ -1,5 +1,5 @@
 ---
-title: How to make changes in OSM?
+title: Making changes in OSM
 permalink: /docs/osm_tutorial/
 ---
 
