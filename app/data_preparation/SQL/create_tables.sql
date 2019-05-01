@@ -29,6 +29,7 @@ CREATE TABLE public.edges (
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
 );
 create index index_edges on edges using gist(geom);
+CREATE INDEX ON edges USING btree(objectid,cost);
 
 CREATE TABLE public.starting_point_isochrones (
 	gid serial,
@@ -128,16 +129,21 @@ values('poi_categories',
 '{"kindergarten","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food",
 "ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
 "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi",
-"optician","hairdresser","tailer","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
-"alcohol","bakery","butcher","clothes","convenience","fashion","florist","greengrocer","grocery",
-"kiosk","mall","organic","second_hand","shoes","sports","supermarket","toys","marketplace",
-"picnic_site","hotel","museum","hostel","guest_house","attraction","attraction","viewpoint","gallery","bus_stop",
+"hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
+"bakery","butcher","clothes","convenience","fashion","florist","greengrocer","grocery",
+"kiosk","mall","organic","shoes","sports","supermarket","marketplace",
+"hotel","museum","hostel","guest_house","viewpoint","gallery","bus_stop",
 "tram_stop","subway_entrance","rail_station"}');
 
 
 INSERT INTO variable_container(identifier,variable_array) 
 values('excluded_class_id_walking',
-'{0,101,102,103,104,105,106,107,501,502,503,504,701}');
+'{0,101,102,103,104,105,106,107,501,502,503,504,701,801}');
+
+INSERT INTO variable_container(identifier,variable_array) 
+values('categories_no_foot',
+'{"use_sidepath","no"}');
+
 
 INSERT INTO variable_container(identifier,variable_array)
 values('custom_landuse_no_residents',
