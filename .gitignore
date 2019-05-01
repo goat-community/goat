@@ -12,3 +12,4 @@ ubuntu-bionic-18.04-cloudimg-console.log
 /.sass-cache
 node_modules
 /dist
+/app/data_preparation/Python/__pycache__
