@@ -29,9 +29,9 @@ Press the "Edit" button to start editing.
 
 Zoom in and click on an object. Every object has features (e.g. a building consists of a building type, number of levels, height and address; also further information such as architect and wheelchair access can be inserted), some specific features are defined as <b>tags</b>. A tag consists of a key (e.g. building type) and a value (e.g. residential), means <i>building type = residential</i>. 
  
-These tags are very usefull for planners like us as we can filter by different building types, e.g. select all buildings that are residential. 
+By using these tags semantical-rich data is produced which is of special value for planners. As it allows for the analysis of different functions in space e.g. select all buildings that are residential.
 
-Before starting with editing it makes sense to familiarize onself with the provided tags and keys. Therefore OSM wiki is a good source: 
+Before starting with editing it makes sense to familiarize yourself with the provided tags and keys. Therefore the OSM wiki is a very important reference:
 
 [https://wiki.openstreetmap.org/wiki/Map_Features](https://wiki.openstreetmap.org/wiki/Map_Features)
 

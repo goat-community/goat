@@ -4,13 +4,13 @@ permalink: /docs/quick_start/
 ---
 
 
-GOAT<sub>beta</sub> feels at home on the Linux distribution Ubuntu (18.04). However, with the help of a virtual machine (controlled by Vagrant) and with Docker you can offer GOAT<sub>beta</sub> a home also on your Windows or Mac OS for development and testing. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. The setup of GOAT<sub>beta</sub> is highly automated, however the user has some customization options. Furthermore, it was decided to let the user type some commands on its own for allowing a more transparent and understandable setup. 
+GOAT<sub>beta</sub> feels at home on the Linux distribution Ubuntu (18.04). However, with the help of a virtual machine (controlled by Vagrant) and with Docker you can offer GOAT<sub>beta</sub> a home also on your Windows or Mac OS for development and testing. It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. The setup of GOAT<sub>beta</sub> is highly automated, however the user has some customization options. Furthermore, it was decided to let the user type some commands on its own for allowing a more transparent and understandable setup.
 
-<img class="img-responsive" src="../../img/VM.png" alt="Icon VM and Host" title="The VM runs on your Host" width="275"/>
+<img class="img-responsive" src="../../img/virtual_machine.png" alt="Icon VM and Host" title="The VM runs on your Host" width="275"/>
 
 Git Bash Tutorial: [https://www.atlassian.com/git/tutorials/git-bash/](https://www.atlassian.com/git/tutorials/git-bash/)
 
-If you have any issues during the process [Click Here](../common_issues/).
+In case of issues you can check [common issues](../common_issues/).
 
 #### 1. Get a copy of GOAT<sub>beta</sub>
 
@@ -40,14 +40,14 @@ It was only tested with the version mentioned above. Accordingly if you want to 
 
 #### 3. Configure GOAT<sub>beta</sub>
 
-There is one central configuration file for setting up GOAT<sub>beta</sub>. You can find this file at `your-GOAT-directory/app/config/goat_config.yaml`.
+There is one key configuration file for setting up GOAT<sub>beta</sub>. You can find this file at `your-GOAT-directory/app/config/goat_config.yaml`.
 At the moment not all configuration possibilities are in here but it is targeted to move more and more of the configuration in here. 
 
-It is recommended not to open the files with your default editor as this may cause errors. Use editors such as [Visual Studio Code](https://code.visualstudio.com/) instead.
+It is recommended to open the files with a proper editor such as [Visual Studio Code](https://code.visualstudio.com/).
 
 #### 4. Prepare your data
 
-If you want to apply the tool to your own study area or adjust the input data, follow the descriptions in the following documentation: [Data Preparation](../data_preparation/)
+If you want to apply the tool to your own study area or adjust the input data, follow the description at [Data Preparation](../data_preparation/).
 
 #### 5. Setup GOAT<sub>beta</sub>
 
@@ -77,14 +77,6 @@ This script can take a while as it installs quite some software on your VM. If y
 
 `python3 app/installation/setup_goat.py` (run on your <span style="color:#FE9A2E">VM</span>)
 
-##### UPDATE data
-
-In case you want to UPDATE all your data you can simply run the following from your project directory.
-
-`python3 app/installation/setup_goat.py` (run on your <span style="color:#FE9A2E">VM</span>)
-
-<b><font color="red">!!Note this will drop your database and create a new database.!!</font><b>
-
 ##### 6. Connect to your database
 
 You can connect to the PostgreSQL database with the following default credentials: 
@@ -100,7 +92,6 @@ Database: goat
 Password: earlmanigault
 
 Port: 65432
-
 
 ##### 7. Start Geoserver
 
@@ -125,7 +116,7 @@ Password : geoserver
 
 `npm start` (run on your <span style="color:#FE9A2E">VM</span>)
 
-Note: Do not close the node server and front-end windows. If you want to stop the process, follow the steps in chapter 11. 
+Keep this console window open as long as you want to use GOAT. For turning GOAT off you can follow the steps in chapter 11. 
 
 ##### 9. View GOAT<sub>beta</sub> in the browser
 
@@ -141,7 +132,6 @@ If all steps were successful you will be able to use GOAT<sub>beta</sub> by typi
 
 [http://localhost:8585](http://localhost:8585)
 
-You can also run parcel on your VM, however you have to open port 9090 and port 8585. This can be done on your Vagrantfile.
 
 ##### 10. Optional: Pre-calculate accessibility heat-map
 
@@ -226,3 +216,12 @@ Add these lines to crontab file for having a backup every second day (they can b
 1 * * * 7 pg_dump -U postgres goat > /var/lib/postgresql/backup/backup_last_sunday.sql
 
 Checkout: [https://crontab.guru/](https://crontab.guru/)
+
+
+##### Update data
+
+In case you want to update all your data you can simply run the following from your project directory.
+
+`python3 app/installation/setup_goat.py` (run on your <span style="color:#FE9A2E">VM</span>)
+
+<b><font color="red">!!Note this will drop your database and create a new database.!!</font><b>
