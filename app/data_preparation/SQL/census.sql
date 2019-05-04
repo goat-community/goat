@@ -8,6 +8,9 @@ DROP TABLE IF EXISTS census_split_new_development;
 DROP TABLE IF EXISTS point_addresses;
 DROP TABLE IF EXISTS census_split;
 DROP TABLE IF EXISTS buildings_to_map;
+DROP TABLE IF EXISTS buildings_fixed_population;
+DROP TABLE IF EXISTS updated_census;
+
 
 CREATE TABLE point_addresses AS
 SELECT row_number() over() AS gid, b.building_levels, 
@@ -19,7 +22,6 @@ AND ST_Intersects(p.way,b.geom);
 ALTER TABLE point_addresses ADD PRIMARY key(gid);
 CREATE INDEX ON point_addresses USING GIST(geom);
 ALTER TABLE point_addresses ADD COLUMN area NUMERIC; 
-
 
 WITH count_addresses AS 
 (
@@ -48,8 +50,6 @@ WHERE ST_intersects(c.geom, b.geom)
 AND ST_area(b.geom::geography) > (SELECT variable_simple::integer FROM variable_container WHERE identifier = 'minimum_building_size_residential');
 
 
-
-
 ---order by biggest area and allocate grid
 CREATE TABLE buildings_points AS
 WITH x AS (
@@ -73,6 +73,28 @@ FROM
 CREATE INDEX ON buildings_points USING GIST(geom);
 ALTER TABLE buildings_points ADD PRIMARY key(gid);
 
+ALTER TABLE buildings_points ADD COLUMN fixed_population numeric;
+DO $$                  
+    BEGIN 
+        IF EXISTS
+            ( SELECT 1
+              FROM   information_schema.tables 
+              WHERE  table_schema = 'public'
+              AND    table_name = 'fixed_population'
+            )
+        THEN
+            WITH fixed_population AS (
+				SELECT b.geom, f.population AS fixed_population
+				FROM buildings_residential b, fixed_population f
+				WHERE ST_Intersects(f.geom,b.geom)
+			)
+			UPDATE buildings_points b
+			SET fixed_population = f.fixed_population
+			FROM fixed_population f
+			WHERE ST_Intersects(b.geom,f.geom);
+        END IF ;
+    END
+$$ ;
 
 CREATE TABLE census_split AS 
 WITH built_up_per_grid AS (
@@ -97,6 +119,15 @@ FROM built_up_per_grid b, split_grids s, built_up_part_grid p
 WHERE b.gid = s.parent_id 
 AND s.gid = p.gid;
 
+--Delete buildings that have fixed population
+CREATE TABLE buildings_fixed_population (LIKE buildings_points INCLUDING ALL); 
+INSERT INTO buildings_fixed_population
+SELECT * FROM buildings_points
+WHERE fixed_population IS NOT NULL;
+
+DELETE FROM buildings_points 
+WHERE fixed_population IS NOT NULL;
+
 
 --Add number of residential buildings to census_split
 
@@ -118,6 +149,17 @@ ALTER TABLE census_split DROP COLUMN IF EXISTS new_pop;
 ALTER TABLE census_split ADD COLUMN new_pop numeric;
 UPDATE census_split SET new_pop = pop;
 
+WITH census_to_update AS (
+	SELECT c.gid,sum(fixed_population) AS sum_fixed_pop
+	FROM buildings_fixed_population b, census_split c
+	WHERE ST_Intersects(b.geom,c.geom)
+	AND c.new_pop > 0
+	GROUP BY c.gid
+)
+UPDATE census_split c 
+SET new_pop = new_pop - cu.sum_fixed_pop
+FROM census_to_update cu
+WHERE c.gid = cu.gid;
 
 WITH grids_new_development AS
 (
@@ -150,13 +192,26 @@ CREATE INDEX ON census_split_new_development USING GIST(geom);
 CREATE TABLE buildings_to_map AS 
 SELECT b.*,tags -> 'building:levels'  
 FROM buildings_residential b, 
-(SELECT b.* 
-FROM buildings_points b, census_split_new_development c 
-WHERE ST_Intersects(c.geom,b.geom)
+(	
+	SELECT b.* 
+	FROM buildings_points b, census_split_new_development c 
+	WHERE ST_Intersects(c.geom,b.geom)
 ) c
 WHERE ST_Intersects(b.geom,c.geom)
 AND (tags -> 'building:levels') IS NULL; 
  
+--Substract fixed population from study_area
+WITH study_area_to_update AS (
+	SELECT s.gid,sum(fixed_population) AS sum_fixed_pop
+	FROM buildings_fixed_population b, study_area s
+	WHERE ST_Intersects(b.geom,s.geom)
+	GROUP BY s.gid
+)
+UPDATE study_area s 
+SET sum_pop = sum_pop - c.sum_fixed_pop
+FROM study_area_to_update c
+WHERE s.gid = c.gid; 
+
 --Check if assigned population exceed population growth
 --If so reduce population in the affected grids
 --Distribute the rest of the population
@@ -209,14 +264,47 @@ AND census_split.pop > 0;
 
 
 CREATE TABLE population AS 
-SELECT b.*, (b.area/c.sum_built_up)*new_pop population
+SELECT b.*, (b.area/c.sum_built_up)*new_pop population 
 FROM buildings_points b, census_split c 
 WHERE ST_Intersects(b.geom,c.geom);
+
+ALTER TABLE population DROP COLUMN fixed_population;
+
+INSERT INTO population
+SELECT * 
+FROM buildings_fixed_population;
+
+--Add fixed population again to study_area
+WITH study_area_to_update AS (
+	SELECT s.gid,sum(fixed_population) AS sum_fixed_pop
+	FROM buildings_fixed_population b, study_area s
+	WHERE ST_Intersects(b.geom,s.geom)
+	GROUP BY s.gid
+)
+UPDATE study_area s 
+SET sum_pop = sum_pop + c.sum_fixed_pop
+FROM study_area_to_update c
+WHERE s.gid = c.gid; 
 
 ALTER TABLE population add primary key(gid);
 
 CREATE INDEX ON population USING GIST (geom);
 
+DELETE FROM population 
+WHERE population < 0;
+
+--Create new census_table
+CREATE TABLE updated_census AS 
+SELECT c.id,sum(population) pop, c.geom  
+FROM population p, census c 
+WHERE ST_Intersects(c.geom, p.geom)
+GROUP BY c.id, c.geom;
+
+ALTER TABLE updated_census ADD PRIMARY key(id);
+CREATE INDEX ON updated_census USING gist(geom);
+
 DROP TABLE IF EXISTS intersection_buildings_grid;
 DROP TABLE IF EXISTS buildings_points;
 DROP TABLE IF EXISTS point_addresses;
+DROP TABLE IF EXISTS census_split;
+DROP TABLE IF EXISTS buildings_fixed_population;

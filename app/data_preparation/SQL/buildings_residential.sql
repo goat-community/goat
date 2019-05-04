@@ -53,10 +53,10 @@ WHERE l.landuse IN(SELECT UNNEST(variable_array) FROM variable_container WHERE i
 AND p.building NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'building_types_residential')
 AND st_intersects(p.way,l.geom);
 --Delete duplicates 
-WITH x AS
-    (SELECT DISTINCT osm_id FROM non_residential_ids)
-DELETE FROM non_residential_ids 
-WHERE osm_id NOT IN (SELECT osm_id FROM x);
+CREATE TABLE distinct_non_residential_ids AS 
+SELECT DISTINCT osm_id FROM non_residential_ids;
+DROP TABLE non_residential_ids;
+ALTER TABLE distinct_non_residential_ids RENAME TO non_residential_ids;
 
 ALTER TABLE buildings_residential_table add column gid serial;
 ALTER TABLE buildings_residential_table add primary key(gid);
@@ -64,9 +64,6 @@ ALTER TABLE non_residential_ids add column gid serial;
 ALTER TABLE non_residential_ids add primary key(gid);
 
 --All buildings smaller 54 square meters are excluded
-
-
-
 
 
 CREATE TABLE buildings_residential AS
@@ -78,7 +75,7 @@ WITH x AS (
 	WHERE ST_Intersects(b.geom,l.geom) 
 	AND ST_Area(b.geom::geography) > (SELECT variable_simple::integer FROM variable_container WHERE identifier = 'minimum_building_size_residential')
 )
-SELECT x.* 
+SELECT DISTINCT x.* 
 FROM x 
 LEFT JOIN non_residential_ids n
 ON  x.osm_id = n.osm_id
@@ -93,7 +90,7 @@ WHERE building_levels IS NULL;
 --Substract one level when POI on building (more classification has to be done in the future)
 
 ALTER TABLE buildings_residential 
-add column building_levels_residential integer; 
+ADD COLUMN building_levels_residential integer; 
 
 with x as (
     SELECT distinct b.gid
