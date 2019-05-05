@@ -8,12 +8,20 @@
         <v-divider></v-divider>
       </v-card-text>
       <v-card-text>
-        <v-form>
-          <v-text-field name="tittle" label="Tittle" type="text"></v-text-field>
+        <v-form ref="form" lazy-validation>
+          <v-text-field
+            name="tittle"
+            label="Tittle"
+            type="text"
+            :rules="rules.tittle"
+            required
+          ></v-text-field>
           <v-select
             :items="layouts"
             prepend-icon="map"
             label="Layout"
+            :rules="rules.required"
+            required
           ></v-select>
           <v-select
             :items="scales"
@@ -21,11 +29,15 @@
             item-text="display"
             item-value="value"
             label="Scale"
+            :rules="rules.required"
+            required
           ></v-select>
           <v-select
             :items="resolutions"
             prepend-icon="aspect_ratio"
             label="Resolution"
+            :rules="rules.required"
+            required
           ></v-select>
           <v-select
             :items="crs"
@@ -33,6 +45,8 @@
             item-text="display"
             item-value="value"
             label="Reference System"
+            :rules="rules.required"
+            required
           ></v-select>
 
           <v-layout row>
@@ -57,7 +71,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn class="white--text" color="green">Print</v-btn>
+        <v-btn class="white--text" color="green" @click="print">Print</v-btn>
       </v-card-actions>
     </v-card>
   </v-flex>
@@ -66,6 +80,13 @@
 <script>
 export default {
   data: () => ({
+    rules: {
+      tittle: [
+        v => !!v || "Field is required",
+        v => (v && v.length <= 20) || "Tittle must be less than 20 characters"
+      ],
+      required: [v => !!v || "Field is required"]
+    },
     defaultLayout: "A4 Portrait",
     layouts: ["A4 Portrait", "A4 Landscape", "A3 Portrait", "A3 Landscape"],
     scales: [
@@ -83,7 +104,13 @@ export default {
   }),
   components: {},
   computed: {},
-  methods: {},
+  methods: {
+    print() {
+      if (this.$refs.form.validate()) {
+        console.log("init print...");
+      }
+    }
+  },
   mounted() {}
 };
 </script>

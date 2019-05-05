@@ -7,7 +7,7 @@
       <v-card-text class="pr-16 pl-16 pt-0 pb-0 mb-2">
         <v-divider></v-divider>
       </v-card-text>
-      <v-subheader> Measure </v-subheader>
+      <v-subheader><h3>Measure</h3> </v-subheader>
       <v-divider></v-divider>
 
       <!-- Measure -->
@@ -20,7 +20,7 @@
           :class="{
             'expansion-panel__container--active': activeId === item.id
           }"
-          @click.native="toggle(item.id)"
+          @click.native="toggle(item.id, 'measure')"
         >
           <div slot="header">
             <v-layout row>
@@ -42,7 +42,7 @@
       <v-divider class="mb-3"></v-divider>
 
       <!-- Draw -->
-      <v-subheader> Draw </v-subheader>
+      <v-subheader> <h3>Draw</h3> </v-subheader>
       <v-divider></v-divider>
       <v-expansion-panel class="elevation-0">
         <v-expansion-panel-content
@@ -52,7 +52,7 @@
           :class="{
             'expansion-panel__container--active': activeId === item.id
           }"
-          @click.native="toggle(item.id)"
+          @click.native="toggle(item.id, 'draw')"
         >
           <div slot="header">
             <v-layout row>
@@ -75,12 +75,36 @@
             </v-layout>
           </div>
           <v-card @click.stop="doNothing" class="card">
-            <v-card-text
-              >Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-              enim ad minim veniam, quis nostrud exercitation ullamco laboris
-              nisi ut aliquip ex ea commodo consequat.</v-card-text
-            >
+            <v-card-text>
+              <!-- Stroke Settings  -->
+              <v-layout row wrap align-center class="ml-3">
+                <v-flex xs4>
+                  <span>Line Stroke</span>
+                </v-flex>
+                <v-flex xs8 class="pl-2">
+                  <v-slider v-model="stroke" min="1" max="15"></v-slider>
+                </v-flex>
+              </v-layout>
+
+              <!-- Color Settings  -->
+              <v-layout row wrap align-center class="ml-3">
+                <v-flex xs4>
+                  <span>Color</span>
+                </v-flex>
+                <v-flex xs8>
+                  <swatches
+                    v-model="colors.selected"
+                    colors="text-basic"
+                    swatch-size="24"
+                    shape="circles"
+                    exception-mode="hidden"
+                    row-length="6"
+                    :exceptions="colors.exceptions"
+                    inline
+                  ></swatches>
+                </v-flex>
+              </v-layout>
+            </v-card-text>
           </v-card>
         </v-expansion-panel-content>
       </v-expansion-panel>
@@ -96,8 +120,17 @@
 </template>
 
 <script>
+import Swatches from "vue-swatches";
+import "vue-swatches/dist/vue-swatches.min.css";
+
 export default {
+  components: { Swatches },
   data: () => ({
+    stroke: "2",
+    colors: {
+      selected: "#cc0001",
+      exceptions: ["#FFFFFF", "#000000"]
+    },
     measureItems: [
       {
         id: 1,
@@ -118,7 +151,7 @@ export default {
       },
       {
         id: 4,
-        icon: "far fa-dot-circle",
+        icon: "fas fa-dot-circle",
         text: "Point with coordinates"
       },
       {
@@ -139,11 +172,12 @@ export default {
     ],
     activeId: undefined
   }),
-  components: {},
   computed: {},
   methods: {
-    toggle(id) {
+    toggle(id, type) {
       //1- Set active index of clicked item or remove it
+      //- If type is measure  toggle off drawing section if opened
+      if (type === "measure") this.closeDrawSection();
       if (this.activeId === id) {
         this.activeId = undefined;
       } else {
@@ -153,11 +187,14 @@ export default {
     doNothing() {},
     clear() {
       if (this.activeId !== undefined) {
-        //Option only for draw section items.
-        let el = this.$refs[this.activeId];
-        if (el) el[0].$el.click();
+        this.closeDrawSection();
         this.activeId = undefined;
       }
+    },
+    closeDrawSection() {
+      //Option only for draw section items.
+      let el = this.$refs[this.activeId];
+      if (el) el[0].$el.click();
     }
   },
   mounted() {}

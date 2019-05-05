@@ -14,7 +14,7 @@
       class="white"
     >
       <v-layout justify-space-between column fill-height>
-        <component v-bind:is="currentComponent"></component>
+        <component v-bind:is="activeUpComponent"></component>
         <v-icon @click="hide" class="close-icon">close</v-icon>
       </v-layout>
     </v-navigation-drawer>
@@ -34,7 +34,7 @@
         <v-list>
           <template v-for="(item, index) in upItems">
             <v-list-tile
-              @click="showHideComponent(item.componentToShow)"
+              @click="toggleComponent(item.componentToShow)"
               :key="index"
               active-class="red--text"
             >
@@ -49,7 +49,10 @@
         </v-list>
         <v-list justify-end>
           <template v-for="(item, index) in bottomItems">
-            <v-list-tile @click="showDialog(item.componentToShow)" :key="index">
+            <v-list-tile
+              @click="toggleDialog(item.componentToShow)"
+              :key="index"
+            >
               <v-list-tile-action>
                 <v-icon color="white" light v-html="item.icon"></v-icon>
               </v-list-tile-action>
@@ -61,6 +64,12 @@
         </v-list>
       </v-layout>
     </v-navigation-drawer>
+    <component
+      :visible="showDialog"
+      @close="showDialog = false"
+      v-bind:is="activeBottomComponent"
+    ></component>
+    <!-- <app-about :visible="showDialog" @close="showDialog = false" /> -->
   </div>
 </template>
 
@@ -116,38 +125,43 @@ export default {
     ],
     bottomItems: [
       {
-        icon: "fas fa-info-circle",
-        text: "Info",
-        componentToShow: "app-about"
-      },
-      {
         icon: "fas fa-cog",
         text: "Settings",
         componentToShow: "app-settings"
+      },
+      {
+        icon: "fas fa-info-circle",
+        text: "Info",
+        componentToShow: "app-about"
       }
     ],
     container: false,
-    currentComponent: "",
-    responsive: false
+    activeUpComponent: "",
+    activeBottomComponent: "",
+    responsive: false,
+    showDialog: false
   }),
   computed: {},
   mounted() {},
   beforeDestroy() {},
   methods: {
-    showHideComponent(component) {
-      if (component === this.currentComponent) {
+    toggleComponent(component) {
+      if (component === this.activeUpComponent) {
         this.hide();
       } else {
         this.container = true;
-        this.currentComponent = component;
+        this.activeUpComponent = component;
       }
     },
-    showDialog(component) {
-      console.log(component);
+    toggleDialog(component) {
+      this.activeBottomComponent = component;
+      this.showDialog = true;
     },
     hide() {
       this.container = false;
-      this.currentComponent = "";
+      this.activeUpComponent = "";
+      this.activeBottomComponent = "";
+      this.showDialog = false;
     }
   }
 };

@@ -8,25 +8,29 @@
         <v-divider></v-divider>
       </v-card-text>
       <v-card-text>
-        <v-form>
+        <v-form ref="login" lazy-validation>
           <v-text-field
             prepend-icon="person"
             name="username"
             label="Username"
             type="text"
+            :rules="rules.username"
+            required
           ></v-text-field>
           <v-text-field
             prepend-icon="lock"
             name="password"
             label="Password"
             id="password"
+            :rules="rules.password"
             type="password"
+            required
           ></v-text-field>
         </v-form>
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn class="white--text" color="green">Login</v-btn>
+        <v-btn class="white--text" @click="login" color="green">Login</v-btn>
       </v-card-actions>
     </v-card>
   </v-flex>
@@ -34,12 +38,21 @@
 
 <script>
 export default {
-  data() {
-    return {};
-  },
+  data: () => ({
+    rules: {
+      username: [v => !!v || "Username is required"],
+      password: [v => !!v || "Password is required"]
+    }
+  }),
   components: {},
   computed: {},
-  methods: {},
+  methods: {
+    login() {
+      if (this.$refs.login.validate()) {
+        console.log("init login...");
+      }
+    }
+  },
   mounted() {}
 };
 </script>
