@@ -208,7 +208,7 @@ values('chains_discount_supermarket',
 
 INSERT INTO variable_container(identifier,variable_array)
 values('chains_hypermarket',
-'{"Hit","Kaufland","V-Markt","Marktkauf"}'
+'{"Hit","Real","Kaufland","V-Markt","Marktkauf"}'
 );
 
 INSERT INTO variable_container(identifier,variable_array)
@@ -219,4 +219,10 @@ values('chains_health_food',
 INSERT INTO variable_container(identifier,variable_array)
 values('no_end_consumer_store',
 '{"Hamberger","Metro"}'
+);
+
+
+INSERT INTO variable_container(identifier,variable_array)
+values('operators_bicycle_rental',
+'{"Münchner Verkehrs gesellschaft","Münchner Verkehrsgesellschaft","MVG"}'
 );

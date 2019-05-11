@@ -137,6 +137,18 @@ UPDATE pois SET amenity = 'international_supermarket'
 WHERE origin is not null
 AND amenity = 'supermarket';
 
+--Select relevant operators bicycle_rental
+
+DELETE FROM pois 
+WHERE (NOT lower(operator) ~~ 
+ANY
+(
+	SELECT concat(concat('%',lower(unnest(variable_array))),'%') 
+	FROM variable_container WHERE identifier = 'operators_bicycle_rental'
+)  
+OR operator IS NULL) 
+AND amenity = 'bicycle_rental' 
+
 --------------------------------------------------------------------------
 --Create first pois as it is continuing with gid----------------------------
 --------------------------------------------------------------------------
