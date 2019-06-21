@@ -24,3 +24,15 @@ CREATE TYPE public.type_isochrone_thematic AS
 	geom geometry,
 	sum_pois text
 );
+
+CREATE TYPE public.type_catchment_edges AS
+(
+	start_vertex integer,
+	node integer,
+	edge integer,
+	cost numeric,
+	geom geometry,
+	objectid integer	
+);
+
+
