@@ -72,13 +72,21 @@
 </template>
 
 <script>
+//Child components
 import isochroneOptions from "./isochroneOptions";
 import isochroneResults from "./isochroneResults";
 
+//Store & Bus imports
 import { EventBus } from "../../EventBus.js";
 import { mapActions } from "vuex";
 
+//Ol imports
 import { transform } from "ol/proj.js";
+import VectorSource from "ol/source/Vector";
+import VectorLayer from "ol/layer/Vector";
+import Style from "ol/style/Style";
+import Stroke from "ol/style/Stroke";
+import Fill from "ol/style/Fill";
 
 export default {
   components: {
@@ -98,6 +106,9 @@ export default {
     EventBus.$on("ol-map-mounted", olMap => {
       // make the OL map accesible in this component
       me.map = olMap;
+
+      //Create isochrone layer
+      me.createIsochroneLayer();
     });
   },
   methods: {
@@ -106,7 +117,6 @@ export default {
       const me = this;
       me.map.once("singleclick", me.onMapClick);
     },
-
     /**
      * Handler for 'singleclick' on the map.
      * Collects data and passes it to corresponding objects.
@@ -132,6 +142,30 @@ export default {
       });
       //Start Isochrone Calculation
       this.calculateIsochrone();
+    },
+
+    /**
+     * Creates a vector layer for the isochrone calculations results and adds it to the
+     * map and store.
+     */
+    createIsochroneLayer() {
+      var me = this;
+      let source = new VectorSource();
+      var vector = new VectorLayer({
+        name: "Isochrone Layer",
+        source: source,
+        style: new Style({
+          fill: new Fill({
+            color: "rgba(255, 255, 255, 0.2)"
+          }),
+          stroke: new Stroke({
+            color: "rgba(0, 0, 0, 0.5)",
+            width: 2
+          })
+        })
+      });
+      me.map.addLayer(vector);
+      this.$store.commit("ADD_ISOCHRONE_LAYER", vector);
     }
   },
   mounted() {}

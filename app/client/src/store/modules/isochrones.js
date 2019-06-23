@@ -1,5 +1,7 @@
 import axios from "axios";
 import { getField, updateField } from "vuex-map-fields";
+import { toStringHDMS } from "ol/coordinate";
+import maputils from "../../utils/MapUtils";
 
 const state = {
   position: {
@@ -25,85 +27,14 @@ const state = {
       active: "1"
     }
   },
-  isochrones: [
-    {
-      id: 1,
-      name: "Calculation1",
-      isExpanded: true,
-      position: "Müllerstraße 23, 80469 München",
-      speed: "40 km/h",
-      time: "3 min",
-      data: [
-        {
-          type: "Default",
-          range: "15 min",
-          area: "250 km^2",
-          visible: true,
-          feature: {}
-        },
-        {
-          type: "Default",
-          range: "30 min",
-          area: "500 km^2",
-          visible: true,
-          feature: {}
-        },
-        {
-          type: "Input",
-          range: "15 min",
-          area: "250 km^2",
-          visible: true,
-          feature: {}
-        },
-        {
-          type: "Input",
-          range: "30 min",
-          area: "503 km^2",
-          visible: true,
-          feature: {}
-        }
-      ]
-    },
-    {
-      id: 2,
-      name: "Calculation2",
-      isExpanded: true,
-      position: "Müllerstraße 100, 80468 Berlin",
-      speed: "40 km/h",
-      time: "3 min",
-      data: [
-        {
-          type: "Default",
-          range: "15 min",
-          area: "250 km^2",
-          visible: true
-        },
-        {
-          type: "Default",
-          range: "30 min",
-          area: "500 km^2",
-          visible: true
-        },
-        {
-          type: "Input",
-          range: "15 min",
-          area: "250 km^2",
-          visible: true
-        },
-        {
-          type: "Input",
-          range: "30 min",
-          area: "503 km^2",
-          visible: true
-        }
-      ]
-    }
-  ]
+  calculations: [],
+  isochroneLayer: null
 };
 
 const getters = {
-  allIsochrones: state => state.isochrones,
+  calculations: state => state.calculations,
   options: state => state.options,
+  isochroneLayer: state => state.isochroneLayer,
   getField
 };
 
@@ -111,6 +42,7 @@ const actions = {
   async calculateIsochrone({ commit }) {
     let viewParams = "";
     //Isochrone Position Param
+
     if (state.position.coordinate !== null) {
       let x = state.position.coordinate[0];
       let y = state.position.coordinate[1];
@@ -145,31 +77,75 @@ const actions = {
     const response = await axios.get(
       "http://5d0ba1fc89166d00146e39fb.mockapi.io/api/v2/isochrones"
     );
+    let isochrones = response.data[0];
+    let calculationData = [];
 
-    //   let transformet = {};
-    console.log(response.data);
+    let olFeatures = maputils.geojsonToFeature(isochrones);
 
-    commit("CALCULATE_ISOCHRONE", response.data);
+    olFeatures.forEach(feature => {
+      let obj = {
+        type: feature.getProperties().modus,
+        range: "15 min",
+        area: "250 km^2",
+        visible: true,
+        feature: feature
+      };
+      calculationData.push(obj);
+    });
+
+    //TODO: Don't get calculation options from state at this moment.
+    const isochroneId = state.calculations.length + 1;
+    let transformedData = {
+      id: isochroneId,
+      name: "Calculation - " + isochroneId,
+      time: state.options.minutes + " min",
+      position: toStringHDMS(state.position.coordinate),
+      speed: state.options.speed + " km/h",
+      isExpanded: true,
+      data: calculationData
+    };
+
+    commit("CALCULATE_ISOCHRONE", transformedData);
+
+    //Add features to isochrone layer
+    if (state.isochroneLayer) {
+      state.isochroneLayer.getSource().addFeatures(olFeatures);
+    }
   },
 
-  removeIsochrone({ commit }, id) {
-    commit("REMOVE_ISOCHRONE", id);
+  removeCalculation({ commit }, calculation) {
+    commit("REMOVE_ISOCHRONE_FEATURES", calculation);
+    commit("REMOVE_CALCULATION", calculation);
   }
 };
 
 const mutations = {
   CALCULATE_ISOCHRONE(state, isochrone) {
-    //TODO: ...
-    //1- Transform isochrone data here and add it to the state
-    //2- Add dada to state
-    state.isochrones.unshift(isochrone);
+    state.calculations.unshift(isochrone);
   },
-  REMOVE_ISOCHRONE(state, id) {
-    state.isochrones = state.isochrones.filter(isochrone => isochrone.id != id);
-  },
+
   UPDATE_POSITION(state, position) {
     Object.assign(state.position, position);
   },
+  ADD_ISOCHRONE_LAYER(state, layer) {
+    state.isochroneLayer = layer;
+  },
+  CLEAR_ISOCHRONE_LAYER(state) {
+    state.isochroneLayer.getSource().clear();
+  },
+  REMOVE_CALCULATION(state, calculation) {
+    let id = calculation.id;
+    state.calculations = state.calculations.filter(
+      calculation => calculation.id != id
+    );
+  },
+  REMOVE_ISOCHRONE_FEATURES(state, calculation) {
+    var isochrones = calculation.data;
+    isochrones.forEach(isochrone => {
+      state.isochroneLayer.getSource().removeFeature(isochrone.feature);
+    });
+  },
+  TOGGLE_ISOCHRONE_FEATURE_VISIBILITY() {},
   updateField
 };
 
