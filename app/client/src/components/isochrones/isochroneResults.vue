@@ -35,7 +35,7 @@
                   : 'fas fa-chevron-right'
               "
             ></v-icon>
-            <h3>{{ isochrone.title }}</h3>
+            <h3>{{ isochrone.position }}</h3>
           </v-subheader>
           <v-card-text class="pt-0" v-show="isochrone.isExpanded">
             <v-data-table
