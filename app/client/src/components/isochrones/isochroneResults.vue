@@ -1,21 +1,27 @@
 <template>
   <v-layout>
     <v-flex xs12 class="mx-2">
-      <template v-for="isochrone in allIsochrones">
-        <v-card class="mb-3 " :key="isochrone.id">
+      <template v-for="calculation in calculations">
+        <v-card class="mb-3 " :key="calculation.id">
           <!-- Isochrone Nr -->
-          <div class="isochrone-nr">{{ isochrone.id }}</div>
+          <div class="isochrone-nr">{{ calculation.id }}</div>
           <v-card-title class="pb-0 mb-0">
             <span>
               <v-icon small class="mr-1">fas fa-clock</v-icon>
-              <span>{{ isochrone.time }}</span>
+              <span>{{ calculation.time }}</span>
               <v-icon small class="ml-2 mr-1">fas fa-tachometer-alt</v-icon>
-              <span>{{ isochrone.speed }}</span>
+              <span>{{ calculation.speed }}</span>
               <v-icon small class="result-icons ml-4 mr-2">fas fa-table</v-icon>
               <v-icon small class="result-icons mr-2">fas fa-pencil-alt</v-icon>
               <v-icon small class="result-icons mr-2">fas fa-eye-slash</v-icon>
               <v-icon small class="result-icons mr-2">fas fa-download</v-icon>
-              <v-icon small class="result-icons mr-1"> fas fa-trash-alt</v-icon>
+              <v-icon
+                @click="deleteCalculation(calculation)"
+                small
+                class="result-icons mr-1"
+              >
+                fas fa-trash-alt</v-icon
+              >
               <br />
             </span>
             <v-card-text class="pr-0 pl-0 pt-0 pb-0">
@@ -24,23 +30,23 @@
           </v-card-title>
           <v-subheader
             class="clickable"
-            @click="isochrone.isExpanded = !isochrone.isExpanded"
+            @click="calculation.isExpanded = !calculation.isExpanded"
           >
             <v-icon
               small
               class="mr-2"
               v-html="
-                isochrone.isExpanded
+                calculation.isExpanded
                   ? 'fas fa-chevron-down'
                   : 'fas fa-chevron-right'
               "
             ></v-icon>
-            <h3>{{ isochrone.position }}</h3>
+            <h3>{{ calculation.position }}</h3>
           </v-subheader>
-          <v-card-text class="pt-0" v-show="isochrone.isExpanded">
+          <v-card-text class="pt-0" v-show="calculation.isExpanded">
             <v-data-table
               :headers="headers"
-              :items="isochrone.data"
+              :items="calculation.data"
               class="elevation-1"
               hide-actions
             >
@@ -50,9 +56,9 @@
                 <td>{{ props.item.area }}</td>
                 <td>
                   <v-switch
-                    v-model="props.item.visible"
                     primary
                     hide-details
+                    @change="toggleIsochroneVisibility(props.item)"
                   ></v-switch>
                 </td>
               </template>
@@ -61,13 +67,16 @@
         </v-card>
       </template>
     </v-flex>
+    <confirm ref="confirm"></confirm>
   </v-layout>
 </template>
-
 <script>
-import { mapGetters } from "vuex";
-
+import { mapGetters, mapActions } from "vuex";
+import Confirm from "../core/Confirm";
 export default {
+  components: {
+    confirm: Confirm
+  },
   data() {
     return {
       headers: [
@@ -78,8 +87,28 @@ export default {
       ]
     };
   },
-  methods: {},
-  computed: mapGetters(["allIsochrones"])
+  methods: {
+    ...mapActions(["removeCalculation"]),
+    deleteCalculation(calculation) {
+      this.$refs.confirm
+        .open(
+          "Delete",
+          "Are you sure you want to delete Calculation " +
+            calculation.id +
+            " ?",
+          { color: "green" }
+        )
+        .then(confirm => {
+          if (confirm) {
+            this.removeCalculation(calculation);
+          }
+        });
+    },
+    toggleIsochroneVisibility(isochrone) {
+      this.$store.commit("TOGGLE_ISOCHRONE_FEATURE_VISIBILITY", isochrone);
+    }
+  },
+  computed: mapGetters(["calculations"])
 };
 </script>
 <style>
