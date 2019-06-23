@@ -7,7 +7,6 @@ BEGIN
 	
 	DROP TABLE IF EXISTS pois_and_pt;
 	CREATE temp TABLE pois_and_pt AS 
-
 	SELECT p.gid as poi_gid,p.amenity,p.name, p.geom  
 	FROM pois p,variable_container v, isochrone b 
 	WHERE v.identifier = 'poi_categories'
@@ -20,13 +19,19 @@ BEGIN
 
 	ALTER TABLE pois_and_pt ADD PRIMARY key(poi_gid);
 	CREATE INDEX ON pois_and_pt USING gist(geom);
-	--!!!!The Selection of the nearest vertex has to be improved!!!!
+	
 	RETURN query 
 	WITH distance_pois as (
-		SELECT DISTINCT on(x.poi_gid) x.poi_gid,name,amenity,st_distance(x.geom,v.geom) as min_dist, v.cost, x.geom 
-		FROM  temp_extrapolated_reached_vertices v, pois_and_pt x
-		WHERE v.geom && ST_Buffer(x.geom,snap_distance)--snap_distance/*100m => approx. 0.0009 */)
-		ORDER BY x.poi_gid, st_distance(x.geom,v.geom)
+		SELECT p.amenity, p.name, p.geom, vertices.cost
+		FROM
+		pois_and_pt p
+		CROSS JOIN LATERAL
+	  	(SELECT geom, cost
+	   	FROM temp_extrapolated_reached_vertices t
+		WHERE t.geom && ST_Buffer(p.geom,snap_distance)
+	   	ORDER BY
+	    p.geom <-> t.geom
+	   	LIMIT 1) AS vertices
 	)
 	SELECT array_to_json(array_agg(row_to_json(x)))::jsonb 
 	FROM
