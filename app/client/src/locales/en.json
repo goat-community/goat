@@ -1,0 +1,104 @@
+{
+  "appTitle": "GOAT",
+  "appBar": {
+    "login": {
+      "title": "Login",
+      "form": {
+        "username": {
+          "label": "Username",
+          "rule": "Username is required"
+        },
+        "password": {
+          "label": "Password",
+          "rule": "Password is required"
+        },
+        "submit": "Login"
+      }
+    },
+    "printMap": {
+      "title": "Print Map",
+      "form": {
+        "title": {
+          "label": "Title",
+          "rule": "Field is required"
+        },
+        "layout": {
+          "label": "Layout",
+          "rule": "Field is required"
+        },
+        "scale": {
+          "label": "Scale",
+          "rule": "Field is required"
+        },
+        "resolution": {
+          "label": "Resolution",
+          "rule": "Field is required"
+        },
+        "crs": {
+          "label": "Reference System",
+          "rule": "Field is required"
+        },
+        "submit": "Print"
+      }
+    },
+    "drawAndMeasure": {
+      "title": "Draw and Measure",
+      "measure": {
+        "header": "Measure",
+        "length": "Length",
+        "area": "Area"
+      },
+      "draw": {
+        "header": "Draw",
+        "point": "Point",
+        "pointWithCoord": "Point with coordinates",
+        "line": "Line",
+        "polygon": "Polygon",
+        "label": "Label",
+        "color": "Color",
+        "transparency": "Transparency"
+      },
+      "clear": "Clear"
+    },
+    "filter": {
+      "title": "Filter"
+    },
+    "edit": {
+      "title": "Edit"
+    },
+    "settings": {
+      "title": "Settings",
+      "language": "Language",
+      "units": {
+        "header": "Units",
+        "km": "Kilometers",
+        "miles": "Miles"
+      }
+    },
+    "about": {
+      "title": "About GOAT",
+      "content": "stands for Geo Open Accessibility Tool. This web-tool is meant to be open source, interactive, flexible and useful for accessibility planning. It is under development at the Chair for Urban Structure and Transport Planning at TUM.....",
+      "moreInfo": "More Info"
+    }
+  },
+  "isochrones": {
+    "title": "Isochrones",
+    "startPoint": {
+      "title": "Starting Point"
+    },
+    "options": {
+      "title": "Options",
+      "subOptions": "Isochrone Settings",
+      "speed": "km/h",
+      "time": "min",
+      "nr": "Isochrones",
+      "calcType": "Concavity Isochrones",
+      "calcModus": "Calculation Modues"
+    },
+    "results": {
+      "title": "Results"
+    }
+  },
+  "layerTree": {},
+  "map": {}
+}
