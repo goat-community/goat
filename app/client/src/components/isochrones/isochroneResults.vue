@@ -56,6 +56,7 @@
                 <td>{{ props.item.area }}</td>
                 <td>
                   <v-switch
+                    :input-value="props.item.isVisible"
                     primary
                     hide-details
                     @change="toggleIsochroneVisibility(props.item)"
@@ -105,6 +106,8 @@ export default {
         });
     },
     toggleIsochroneVisibility(isochrone) {
+      console.log(isochrone);
+
       this.$store.commit("TOGGLE_ISOCHRONE_FEATURE_VISIBILITY", isochrone);
     }
   },
