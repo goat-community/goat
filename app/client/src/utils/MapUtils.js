@@ -6,6 +6,7 @@ import Vector from "ol/source/Vector";
 import GeoJSON from "ol/format/GeoJSON";
 import { getTopLeft, getBottomLeft } from "ol/extent";
 import WKT from "ol/format/WKT";
+import { getArea } from "ol/sphere";
 
 const maputils = {
   isWithinVisibleScales: function isWithinVisibleScales(
@@ -108,6 +109,15 @@ const maputils = {
         break;
     }
     return center;
+  },
+  getPolygonArea: function getPolygonArea(polygon) {
+    const type = polygon.getType();
+    let output = "";
+    if (type === "Polygon" || type === "MultiPolygon") {
+      const area = getArea(polygon);
+      output = `${Math.round((area / 1000000) * 100) / 100} km²`;
+    }
+    return output;
   },
   resolutionToScale: function resolutionToScale(resolution, projection) {
     const dpi = 25.4 / 0.28;

@@ -73,7 +73,7 @@ export default {
   name: "tree-panel",
   data: () => ({
     activeComponent: "map-isochrones",
-    logo: "logo.png",
+    logo: "img/logo.png",
     drawer: true,
     mini: false,
     responsive: false
