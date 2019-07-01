@@ -21,7 +21,7 @@ import Overlay from "ol/Overlay";
 import { EventBus } from "../../EventBus";
 import { LayerFactory } from "../../factory/layer.js";
 
-import { mapMutations } from "vuex";
+import { mapGetters } from "vuex";
 
 export default {
   name: "app-map",
@@ -49,6 +49,8 @@ export default {
 
       // adjust the bg color of the OL buttons (like zoom, rotate north, ...)
       me.setOlButtonColor();
+
+      me.setupMapHover();
     }, 200);
   },
   created() {
@@ -109,6 +111,41 @@ export default {
       return layers;
     },
 
+    setupMapHover() {
+      const me = this;
+      const map = me.map;
+
+      //Adds map helptooltip overlay
+      let helptooltipOverlayEl = document.createElement("div");
+      let helptooltipCurrentMessage = me.helpTooltip.currentMessage;
+      helptooltipOverlayEl.className = "tooltip tooltip-help";
+      let helptooltipOverlay = new Overlay({
+        element: helptooltipOverlayEl,
+        offset: [15, 15],
+        positioning: "top-left"
+      });
+      helptooltipOverlay.setPosition(undefined);
+      helptooltipOverlayEl.innerHTML = helptooltipCurrentMessage;
+      map.addOverlay(helptooltipOverlay);
+
+      //Init map hover event
+
+      map.on("pointermove", function(event) {
+        //Check helptooltip status
+        if (me.helpTooltip.isActive) {
+          helptooltipOverlay.setPosition(event.coordinate);
+          if (me.helpTooltip.currentMessage !== helptooltipCurrentMessage) {
+            helptooltipOverlayEl.innerHTML = me.helpTooltip.currentMessage;
+            helptooltipCurrentMessage = me.helpTooltip.currentMessage;
+          }
+        } else {
+          if (helptooltipOverlay.getPosition() !== undefined) {
+            helptooltipOverlay.setPosition(undefined);
+          }
+        }
+      });
+    },
+
     /**
      * Sets the background color of the OL buttons to the color property.
      */
@@ -159,22 +196,12 @@ export default {
             .classList.add(colorModifier);
         }
       }
-    },
-
-    setHelpTooltip() {
-      let me = this;
-      let element = document.createElement("div");
-      element.className = "tooltip tooltip-help";
-      let overlay = new Overlay({
-        element: element,
-        offset: [15, 15],
-        positioning: "top-left"
-      });
-      me.map.addOverlay(overlay);
-      me.setHelpTooltip({ overlay: overlay, element: element });
-    },
-    ...mapMutations("map", {
-      setHelpTooltip: "SET_HELP_TOOLTIP"
+    }
+  },
+  computed: {
+    ...mapGetters("map", {
+      helpTooltip: "helpTooltip",
+      currentMessage: "currentMessage"
     })
   }
 };

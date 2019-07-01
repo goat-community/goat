@@ -1,4 +1,4 @@
-import axios from "axios";
+import http from "../../services/http";
 import { getField, updateField } from "vuex-map-fields";
 import { toStringHDMS } from "ol/coordinate";
 import { transform } from "ol/proj.js";
@@ -137,7 +137,7 @@ const actions = {
     //Request URL
 
     //Mock API
-    const response = await axios.get(
+    const response = await http.get(
       "http://5d0ba1fc89166d00146e39fb.mockapi.io/api/v2/isochrones"
     );
     let isochrones = response.data[0];
