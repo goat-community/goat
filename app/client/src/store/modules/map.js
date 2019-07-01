@@ -6,9 +6,8 @@ const state = {
     }
   },
   helpTooltip: {
-    pointerMoveEvent: null,
-    overlay: null,
-    element: null
+    isActive: false,
+    currentMessage: ""
   }
 };
 
@@ -21,9 +20,15 @@ const getters = {
 const actions = {};
 
 const mutations = {
-  SET_HELP_TOOLTIP(state, payload) {
-    state.overlay = payload.overlay;
-    state.element = payload.element;
+  UPDATE_HELP_TOOLTIP(state, message) {
+    state.currentMessage = message;
+  },
+  START_HELP_TOOLTIP(state, message) {
+    state.helpTooltip.isActive = true;
+    state.helpTooltip.currentMessage = message;
+  },
+  STOP_HELP_TOOLTIP(state) {
+    state.helpTooltip.isActive = false;
   },
   SET_MAP(state, map) {
     state.map = map;

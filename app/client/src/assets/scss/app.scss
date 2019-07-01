@@ -63,16 +63,17 @@ html {
 
 /*Measure Styling */
 .tooltip {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-style: normal;
   position: relative;
   border-radius: 4px;
   color: white;
-  padding: 2px 8px;
+  padding: 4px 8px;
   opacity: 0.7;
   white-space: pre-wrap;
-  font-size: 12px;
+  font-size: 17px;
   z-index: 100 !important;
+  font-family: "Roboto", sans-serif;
+  background: rgba(0, 0, 0, 0.5);
 }
 .tooltip-help {
   background: rgba(140, 140, 140, 0.9);
@@ -95,7 +96,7 @@ html {
 
 .tooltip-measure:before,
 .tooltip-static:before {
-  border-top: 6px solid rgba(255, 0, 0, 0.9);
+  border-top: 6px solid rgba(0, 0, 0, 0.5);
   border-right: 6px solid transparent;
   border-left: 6px solid transparent;
   content: "";
@@ -106,5 +107,5 @@ html {
 }
 
 .tooltip-static:before {
-  border-top-color: rgba(255, 0, 0, 0.9);
+  border-top-color: #ffcc33;
 }

@@ -108,7 +108,10 @@ export default {
       me.createIsochroneLayer();
     });
   },
-  computed: mapGetters("isochrones", { styleData: "styleData" }),
+  computed: {
+    ...mapGetters("isochrones", { styleData: "styleData" }),
+    ...mapGetters("map", { messages: "messages" })
+  },
   methods: {
     ...mapActions("isochrones", { calculateIsochrone: "calculateIsochrone" }),
     ...mapMutations("isochrones", {
@@ -116,9 +119,16 @@ export default {
       updatePosition: "UPDATE_POSITION",
       addIsochroneLayer: "ADD_ISOCHRONE_LAYER"
     }),
+
+    ...mapMutations("map", {
+      startHelpTooltip: "START_HELP_TOOLTIP",
+      stopHelpTooltip: "STOP_HELP_TOOLTIP"
+    }),
     registerMapClick() {
       const me = this;
       me.map.once("singleclick", me.onMapClick);
+      me.startHelpTooltip(me.messages.interaction.calculateIsochrone);
+      me.map.getTarget().style.cursor = "pointer";
     },
     /**
      * Handler for 'singleclick' on the map.
@@ -139,12 +149,14 @@ export default {
         "EPSG:4326"
       );
 
-      this.updatePosition({
+      me.updatePosition({
         coordinate: coordinateWgs84,
         city: ""
       });
       //Start Isochrone Calculation
-      this.calculateIsochrone();
+      me.calculateIsochrone();
+      me.stopHelpTooltip();
+      me.map.getTarget().style.cursor = "";
     },
 
     /**
