@@ -78,7 +78,7 @@ import isochroneResults from "./isochroneResults";
 
 //Store & Bus imports
 import { EventBus } from "../../EventBus.js";
-import { mapGetters, mapActions } from "vuex";
+import { mapGetters, mapActions, mapMutations } from "vuex";
 
 //Ol imports
 import { transform } from "ol/proj.js";
@@ -108,9 +108,14 @@ export default {
       me.createIsochroneLayer();
     });
   },
-  computed: mapGetters(["styleData"]),
+  computed: mapGetters("isochrones", { styleData: "styleData" }),
   methods: {
-    ...mapActions(["calculateIsochrone"]),
+    ...mapActions("isochrones", { calculateIsochrone: "calculateIsochrone" }),
+    ...mapMutations("isochrones", {
+      addStyleInCache: "ADD_STYLE_IN_CACHE",
+      updatePosition: "UPDATE_POSITION",
+      addIsochroneLayer: "ADD_ISOCHRONE_LAYER"
+    }),
     registerMapClick() {
       const me = this;
       me.map.once("singleclick", me.onMapClick);
@@ -134,7 +139,7 @@ export default {
         "EPSG:4326"
       );
 
-      this.$store.commit("UPDATE_POSITION", {
+      this.updatePosition({
         coordinate: coordinateWgs84,
         city: ""
       });
@@ -192,7 +197,7 @@ export default {
                   isochroneType: "default",
                   styleName: "GenericIsochroneStyle"
                 };
-                this.$store.commit("ADD_STYLE_IN_CACHE", payload);
+                this.addStyleInCache(payload);
               }
               styles.push(
                 styleData.styleCache.default["GenericIsochroneStyle"]
@@ -203,7 +208,7 @@ export default {
               if (!styleData.styleCache.default[level]) {
                 let style = new Style({
                   stroke: new Stroke({
-                    color: styleData.defaultIsochroneColors[level],
+                    color: feature.get("color"),
                     width: 5
                   })
                 });
@@ -212,14 +217,14 @@ export default {
                   isochroneType: "default",
                   styleName: level
                 };
-                this.$store.commit("ADD_STYLE_IN_CACHE", payload);
+                this.addStyleInCache(payload);
               }
               styles.push(styleData.styleCache.default[level]);
             } else {
               if (!styleData.styleCache.input[level]) {
                 let style = new Style({
                   stroke: new Stroke({
-                    color: styleData.inputIsochroneColors[level],
+                    color: feature.get("color"),
                     width: 5
                   })
                 });
@@ -228,7 +233,7 @@ export default {
                   isochroneType: "input",
                   styleName: level
                 };
-                this.$store.commit("ADD_STYLE_IN_CACHE", payload);
+                this.addStyleInCache(payload);
               }
               styles.push(styleData.styleCache.input[level]);
             }
@@ -249,7 +254,7 @@ export default {
         }
       });
       me.map.addLayer(vector);
-      this.$store.commit("ADD_ISOCHRONE_LAYER", vector);
+      this.addIsochroneLayer(vector);
     }
   },
   mounted() {}

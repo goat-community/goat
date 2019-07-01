@@ -145,7 +145,7 @@ const actions = {
 
     //Order features based on id
     isochrones.features.sort((a, b) => {
-      return a.properties.id - b.properties.id;
+      return a.properties.step - b.properties.step;
     });
 
     //TODO: Don't get calculation options from state at this moment.
@@ -153,16 +153,28 @@ const actions = {
 
     let olFeatures = maputils.geojsonToFeature(isochrones);
     olFeatures.forEach(feature => {
-      console.log(maputils.getPolygonArea(feature.getGeometry()));
+      let color = "";
+      let level = feature.get("step");
+      let parentId = feature.get("parent_id");
+
+      // If the parentId is 1 it is a default isochrone, otherwise is a input
+      if (parentId === 1) {
+        color = state.styleData.defaultIsochroneColors[level];
+      } else {
+        color = state.styleData.inputIsochroneColors[level];
+      }
       let obj = {
         id: feature.getId(),
         type: feature.getProperties().modus,
-        range: "15 min",
+        range: feature.getProperties().step + " min",
+        color: color,
         area: maputils.getPolygonArea(feature.getGeometry()),
         isVisible: true
       };
       feature.set("isVisible", true);
       feature.set("calculationNumber", calculationNumber);
+      feature.set("color", color);
+
       calculationData.push(obj);
     });
 
@@ -247,6 +259,7 @@ const mutations = {
 };
 
 export default {
+  namespaced: true,
   state,
   getters,
   actions,

@@ -21,6 +21,8 @@ import Overlay from "ol/Overlay";
 import { EventBus } from "../../EventBus";
 import { LayerFactory } from "../../factory/layer.js";
 
+import { mapMutations } from "vuex";
+
 export default {
   name: "app-map",
   props: {
@@ -47,9 +49,6 @@ export default {
 
       // adjust the bg color of the OL buttons (like zoom, rotate north, ...)
       me.setOlButtonColor();
-
-      // initialize map hover functionality
-      me.setupMapHover();
     }, 200);
   },
   created() {
@@ -161,56 +160,22 @@ export default {
         }
       }
     },
-    /**
-     * Initializes the map hover functionality:
-     * Adds a little tooltip like DOM element, wrapped as OL Overlay to the
-     * map.
-     * Registers a 'pointermove' event on the map and shwos the layer's
-     * 'hoverAttribute' if the layer is configured as 'hoverable'
-     */
-    setupMapHover() {
-      const me = this;
-      const map = me.map;
-      let overlay;
-      let overlayEl;
 
-      // create a span to show map tooltip
-      overlayEl = document.createElement("span");
-      overlayEl.classList.add("wg-hover-tooltiptext");
-      map.getTarget().append(overlayEl);
-
-      // wrap the tooltip span in a OL overlay and add it to map
-      overlay = new Overlay({
-        element: overlayEl,
-        autoPan: true,
-        autoPanAnimation: {
-          duration: 250
-        }
+    setHelpTooltip() {
+      let me = this;
+      let element = document.createElement("div");
+      element.className = "tooltip tooltip-help";
+      let overlay = new Overlay({
+        element: element,
+        offset: [15, 15],
+        positioning: "top-left"
       });
-      map.addOverlay(overlay);
-
-      map.on("pointermove", function(event) {
-        let hoverAttr;
-        const features = map.getFeaturesAtPixel(event.pixel, {
-          layerFilter: layer => {
-            if (layer.get("hoverable")) {
-              hoverAttr = layer.get("hoverAttribute");
-            }
-            return layer.get("hoverable");
-          }
-        });
-        if (!features || !hoverAttr) {
-          hoverAttr = null;
-          overlayEl.innerHTML = null;
-          overlay.setPosition(undefined);
-          return;
-        }
-        const feature = features[0];
-        var attr = feature.get(hoverAttr);
-        overlayEl.innerHTML = attr;
-        overlay.setPosition(event.coordinate);
-      });
-    }
+      me.map.addOverlay(overlay);
+      me.setHelpTooltip({ overlay: overlay, element: element });
+    },
+    ...mapMutations("map", {
+      setHelpTooltip: "SET_HELP_TOOLTIP"
+    })
   }
 };
 </script>
