@@ -81,9 +81,9 @@ export default {
     isIsochroneOptionsVisible: true
   }),
   computed: {
-    ...mapGetters(["options"]),
+    ...mapGetters("isochrones", { options: "options" }),
 
-    ...mapFields({
+    ...mapFields("isochrones", {
       minutes: "options.minutes",
       speed: "options.speed",
       steps: "options.steps",
