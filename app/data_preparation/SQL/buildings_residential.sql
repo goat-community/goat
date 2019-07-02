@@ -41,7 +41,7 @@ CREATE INDEX index_landuse ON landuse_no_residents USING GIST (way);
 CREATE TABLE non_residential_ids AS
 SELECT osm_id
 FROM planet_osm_polygon b,landuse_no_residents lu
-WHERE st_intersects(b.way,lu.way)
+WHERE st_intersects(b.way,lu.way) AND ST_Area(ST_Intersection(b.way, lu.way)) / ST_Area(b.way) > 0.5
 AND building NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'building_types_residential');
 
 
@@ -51,7 +51,7 @@ SELECT p.osm_id FROM
 landuse l, variable_container v, planet_osm_polygon p
 WHERE l.landuse IN(SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'custom_landuse_no_residents')
 AND p.building NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'building_types_residential')
-AND st_intersects(p.way,l.geom);
+AND st_intersects(p.way,l.geom) AND ST_Area(ST_Intersection(p.way, l.geom)) / ST_Area(p.way) > 0.5;
 --Delete duplicates 
 CREATE TABLE distinct_non_residential_ids AS 
 SELECT DISTINCT osm_id FROM non_residential_ids;
