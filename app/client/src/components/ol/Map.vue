@@ -21,6 +21,8 @@ import Overlay from "ol/Overlay";
 import { EventBus } from "../../EventBus";
 import { LayerFactory } from "../../factory/layer.js";
 
+import { mapGetters } from "vuex";
+
 export default {
   name: "app-map",
   props: {
@@ -48,7 +50,6 @@ export default {
       // adjust the bg color of the OL buttons (like zoom, rotate north, ...)
       me.setOlButtonColor();
 
-      // initialize map hover functionality
       me.setupMapHover();
     }, 200);
   },
@@ -110,6 +111,41 @@ export default {
       return layers;
     },
 
+    setupMapHover() {
+      const me = this;
+      const map = me.map;
+
+      //Adds map helptooltip overlay
+      let helptooltipOverlayEl = document.createElement("div");
+      let helptooltipCurrentMessage = me.helpTooltip.currentMessage;
+      helptooltipOverlayEl.className = "tooltip tooltip-help";
+      let helptooltipOverlay = new Overlay({
+        element: helptooltipOverlayEl,
+        offset: [15, 15],
+        positioning: "top-left"
+      });
+      helptooltipOverlay.setPosition(undefined);
+      helptooltipOverlayEl.innerHTML = helptooltipCurrentMessage;
+      map.addOverlay(helptooltipOverlay);
+
+      //Init map hover event
+
+      map.on("pointermove", function(event) {
+        //Check helptooltip status
+        if (me.helpTooltip.isActive) {
+          helptooltipOverlay.setPosition(event.coordinate);
+          if (me.helpTooltip.currentMessage !== helptooltipCurrentMessage) {
+            helptooltipOverlayEl.innerHTML = me.helpTooltip.currentMessage;
+            helptooltipCurrentMessage = me.helpTooltip.currentMessage;
+          }
+        } else {
+          if (helptooltipOverlay.getPosition() !== undefined) {
+            helptooltipOverlay.setPosition(undefined);
+          }
+        }
+      });
+    },
+
     /**
      * Sets the background color of the OL buttons to the color property.
      */
@@ -160,57 +196,13 @@ export default {
             .classList.add(colorModifier);
         }
       }
-    },
-    /**
-     * Initializes the map hover functionality:
-     * Adds a little tooltip like DOM element, wrapped as OL Overlay to the
-     * map.
-     * Registers a 'pointermove' event on the map and shwos the layer's
-     * 'hoverAttribute' if the layer is configured as 'hoverable'
-     */
-    setupMapHover() {
-      const me = this;
-      const map = me.map;
-      let overlay;
-      let overlayEl;
-
-      // create a span to show map tooltip
-      overlayEl = document.createElement("span");
-      overlayEl.classList.add("wg-hover-tooltiptext");
-      map.getTarget().append(overlayEl);
-
-      // wrap the tooltip span in a OL overlay and add it to map
-      overlay = new Overlay({
-        element: overlayEl,
-        autoPan: true,
-        autoPanAnimation: {
-          duration: 250
-        }
-      });
-      map.addOverlay(overlay);
-
-      map.on("pointermove", function(event) {
-        let hoverAttr;
-        const features = map.getFeaturesAtPixel(event.pixel, {
-          layerFilter: layer => {
-            if (layer.get("hoverable")) {
-              hoverAttr = layer.get("hoverAttribute");
-            }
-            return layer.get("hoverable");
-          }
-        });
-        if (!features || !hoverAttr) {
-          hoverAttr = null;
-          overlayEl.innerHTML = null;
-          overlay.setPosition(undefined);
-          return;
-        }
-        const feature = features[0];
-        var attr = feature.get(hoverAttr);
-        overlayEl.innerHTML = attr;
-        overlay.setPosition(event.coordinate);
-      });
     }
+  },
+  computed: {
+    ...mapGetters("map", {
+      helpTooltip: "helpTooltip",
+      currentMessage: "currentMessage"
+    })
   }
 };
 </script>

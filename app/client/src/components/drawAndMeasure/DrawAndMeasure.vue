@@ -93,7 +93,7 @@
                     class="ml-3"
                     v-model="colors.selected"
                     colors="text-advanced"
-                    swatch-size="24 "
+                    swatch-size="24"
                     popover-to="left"
                     :exceptions="colors.exceptions"
                   ></swatches>

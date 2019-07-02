@@ -56,10 +56,17 @@
                 <td>{{ props.item.area }}</td>
                 <td>
                   <v-switch
+                    :input-value="props.item.isVisible"
                     primary
                     hide-details
-                    @change="toggleIsochroneVisibility(props.item)"
+                    @change="toggleIsochroneFeatureVisibility(props.item)"
                   ></v-switch>
+                </td>
+                <td>
+                  <div
+                    class="legend"
+                    :style="{ backgroundColor: props.item.color }"
+                  ></div>
                 </td>
               </template>
             </v-data-table>
@@ -71,7 +78,7 @@
   </v-layout>
 </template>
 <script>
-import { mapGetters, mapActions } from "vuex";
+import { mapGetters, mapActions, mapMutations } from "vuex";
 import Confirm from "../core/Confirm";
 export default {
   components: {
@@ -83,12 +90,17 @@ export default {
         { text: "Type", value: "type", sortable: false },
         { text: "Range", value: "range", sortable: false },
         { text: "Area", value: "area", sortable: false },
-        { text: "Visible", value: "visible", sortable: false }
+        { text: "Visible", value: "visible", sortable: false },
+        { text: "Legend", value: "legend", sortable: false }
       ]
     };
   },
+
   methods: {
-    ...mapActions(["removeCalculation"]),
+    ...mapActions("isochrones", { removeCalculation: "removeCalculation" }),
+    ...mapMutations("isochrones", {
+      toggleIsochroneFeatureVisibility: "TOGGLE_ISOCHRONE_FEATURE_VISIBILITY"
+    }),
     deleteCalculation(calculation) {
       this.$refs.confirm
         .open(
@@ -103,12 +115,11 @@ export default {
             this.removeCalculation(calculation);
           }
         });
-    },
-    toggleIsochroneVisibility(isochrone) {
-      this.$store.commit("TOGGLE_ISOCHRONE_FEATURE_VISIBILITY", isochrone);
     }
   },
-  computed: mapGetters(["calculations"])
+  computed: {
+    ...mapGetters("isochrones", { calculations: "calculations" })
+  }
 };
 </script>
 <style>
@@ -140,5 +151,11 @@ table.v-table tbody th {
 }
 table.v-table thead tr {
   height: 32px;
+}
+
+.legend {
+  height: 24px;
+  width: 24px;
+  border-radius: 7px;
 }
 </style>
