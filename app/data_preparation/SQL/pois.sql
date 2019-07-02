@@ -147,7 +147,7 @@ ANY
 	FROM variable_container WHERE identifier = 'operators_bicycle_rental'
 )  
 OR operator IS NULL) 
-AND amenity = 'bicycle_rental' 
+AND amenity = 'bicycle_rental';
 
 --------------------------------------------------------------------------
 --Create first pois as it is continuing with gid----------------------------
