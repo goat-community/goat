@@ -7,6 +7,13 @@
     <app-sidebar />
     <tree-panel />
     <v-content>
+      <v-progress-linear
+        :indeterminate="true"
+        color="green"
+        height="4"
+        class="ma-0 pa-0"
+        v-show="isNetworkBusy"
+      ></v-progress-linear>
       <v-container id="ol-map-container" fluid fill-height style="padding: 0">
         <app-map :color="controlsColor" />
       </v-container>
@@ -20,6 +27,8 @@ import { EventBus } from "./EventBus.js";
 import appMap from "./components/ol/Map";
 import appSidebar from "./components/core/SideDrawer";
 import treePanel from "./components/core/TreePanel";
+
+import { mapGetters } from "vuex";
 export default {
   name: "wg-app",
   components: {
@@ -50,6 +59,9 @@ export default {
     // components are available
     EventBus.$emit("app-mounted");
   },
-  methods: {}
+  methods: {},
+  computed: {
+    ...mapGetters("loader", { isNetworkBusy: "isNetworkBusy" })
+  }
 };
 </script>

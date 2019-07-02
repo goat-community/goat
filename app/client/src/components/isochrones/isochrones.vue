@@ -78,15 +78,13 @@ import isochroneResults from "./isochroneResults";
 
 //Store & Bus imports
 import { EventBus } from "../../EventBus.js";
-import { mapActions } from "vuex";
+import { mapGetters, mapActions, mapMutations } from "vuex";
 
 //Ol imports
 import { transform } from "ol/proj.js";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
-import Style from "ol/style/Style";
-import Stroke from "ol/style/Stroke";
-import Fill from "ol/style/Fill";
+import { Style, Stroke, Fill, Icon } from "ol/style";
 
 export default {
   components: {
@@ -99,7 +97,6 @@ export default {
     isOptionsElVisible: true,
     isResultsElVisible: true
   }),
-  computed: {},
   created() {
     var me = this;
     // Listen to the ol-map-mounted event and receive the OL map instance
@@ -111,11 +108,27 @@ export default {
       me.createIsochroneLayer();
     });
   },
+  computed: {
+    ...mapGetters("isochrones", { styleData: "styleData" }),
+    ...mapGetters("map", { messages: "messages" })
+  },
   methods: {
-    ...mapActions(["calculateIsochrone"]),
+    ...mapActions("isochrones", { calculateIsochrone: "calculateIsochrone" }),
+    ...mapMutations("isochrones", {
+      addStyleInCache: "ADD_STYLE_IN_CACHE",
+      updatePosition: "UPDATE_POSITION",
+      addIsochroneLayer: "ADD_ISOCHRONE_LAYER"
+    }),
+
+    ...mapMutations("map", {
+      startHelpTooltip: "START_HELP_TOOLTIP",
+      stopHelpTooltip: "STOP_HELP_TOOLTIP"
+    }),
     registerMapClick() {
       const me = this;
       me.map.once("singleclick", me.onMapClick);
+      me.startHelpTooltip(me.messages.interaction.calculateIsochrone);
+      me.map.getTarget().style.cursor = "pointer";
     },
     /**
      * Handler for 'singleclick' on the map.
@@ -136,12 +149,14 @@ export default {
         "EPSG:4326"
       );
 
-      this.$store.commit("UPDATE_POSITION", {
+      me.updatePosition({
         coordinate: coordinateWgs84,
         city: ""
       });
       //Start Isochrone Calculation
-      this.calculateIsochrone();
+      me.calculateIsochrone();
+      me.stopHelpTooltip();
+      me.map.getTarget().style.cursor = "";
     },
 
     /**
@@ -149,23 +164,109 @@ export default {
      * map and store.
      */
     createIsochroneLayer() {
-      var me = this;
-      let source = new VectorSource();
-      var vector = new VectorLayer({
+      let me = this;
+      let vector = new VectorLayer({
         name: "Isochrone Layer",
-        source: source,
-        style: new Style({
-          fill: new Fill({
-            color: "rgba(255, 255, 255, 0.2)"
-          }),
-          stroke: new Stroke({
-            color: "rgba(0, 0, 0, 0.5)",
-            width: 2
-          })
-        })
+        source: new VectorSource(),
+        style: feature => {
+          // Style array
+          let styles = [];
+          let styleData = me.styleData;
+          // Get the incomeLevel and parentId from the feature properties
+          let level = feature.get("step");
+          let parentId = feature.get("parent_id");
+          let isVisible = feature.get("isVisible");
+          let geomType = feature.getGeometry().getType();
+
+          /**
+           * Creates styles for isochrone polygon geometry type and isochrone
+           * center marker.
+           */
+          if (
+            geomType === "Polygon" ||
+            geomType === "MultiPolygon" ||
+            geomType === "LineString"
+          ) {
+            //Check feature isVisible Property
+            if (isVisible === false) {
+              return;
+            }
+
+            //Fallback isochrone style
+            if (!parentId) {
+              if (!styleData.styleCache.default["GenericIsochroneStyle"]) {
+                let genericIsochroneStyle = new Style({
+                  fill: new Fill({
+                    color: [0, 0, 0, 0]
+                  }),
+                  stroke: new Stroke({
+                    color: "#0d0d0d",
+                    width: 7
+                  })
+                });
+                let payload = {
+                  style: genericIsochroneStyle,
+                  isochroneType: "default",
+                  styleName: "GenericIsochroneStyle"
+                };
+                this.addStyleInCache(payload);
+              }
+              styles.push(
+                styleData.styleCache.default["GenericIsochroneStyle"]
+              );
+            }
+            // If the parentId is 1 it is a default isochrone
+            if (parentId === 1) {
+              if (!styleData.styleCache.default[level]) {
+                let style = new Style({
+                  stroke: new Stroke({
+                    color: feature.get("color"),
+                    width: 5
+                  })
+                });
+                let payload = {
+                  style: style,
+                  isochroneType: "default",
+                  styleName: level
+                };
+                this.addStyleInCache(payload);
+              }
+              styles.push(styleData.styleCache.default[level]);
+            } else {
+              if (!styleData.styleCache.input[level]) {
+                let style = new Style({
+                  stroke: new Stroke({
+                    color: feature.get("color"),
+                    width: 5
+                  })
+                });
+                let payload = {
+                  style: style,
+                  isochroneType: "input",
+                  styleName: level
+                };
+                this.addStyleInCache(payload);
+              }
+              styles.push(styleData.styleCache.input[level]);
+            }
+          } else {
+            let path = `img/markers/marker-${feature.get(
+              "calculationNumber"
+            )}.png`;
+            let markerStyle = new Style({
+              image: new Icon({
+                anchor: [0.5, 0.96],
+                src: path,
+                scale: 0.5
+              })
+            });
+            styles.push(markerStyle);
+          }
+          return styles;
+        }
       });
       me.map.addLayer(vector);
-      this.$store.commit("ADD_ISOCHRONE_LAYER", vector);
+      this.addIsochroneLayer(vector);
     }
   },
   mounted() {}
