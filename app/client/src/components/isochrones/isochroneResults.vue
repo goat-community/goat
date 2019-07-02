@@ -14,7 +14,12 @@
               <v-icon small class="result-icons ml-4 mr-2">fas fa-table</v-icon>
               <v-icon small class="result-icons mr-2">fas fa-pencil-alt</v-icon>
               <v-icon small class="result-icons mr-2">fas fa-eye-slash</v-icon>
-              <v-icon small class="result-icons mr-2">fas fa-download</v-icon>
+              <v-icon
+                @click="toggleDownloadDialog(calculation)"
+                small
+                class="result-icons mr-2"
+                >fas fa-download</v-icon
+              >
               <v-icon
                 @click="deleteCalculation(calculation)"
                 small
@@ -75,14 +80,22 @@
       </template>
     </v-flex>
     <confirm ref="confirm"></confirm>
+    <download
+      :visible="showDialog"
+      :calculation="selectedCalculation"
+      @close="showDialog = false"
+    ></download>
   </v-layout>
 </template>
 <script>
 import { mapGetters, mapActions, mapMutations } from "vuex";
 import Confirm from "../core/Confirm";
+import Download from "./Download";
+
 export default {
   components: {
-    confirm: Confirm
+    confirm: Confirm,
+    download: Download
   },
   data() {
     return {
@@ -92,7 +105,9 @@ export default {
         { text: "Area", value: "area", sortable: false },
         { text: "Visible", value: "visible", sortable: false },
         { text: "Legend", value: "legend", sortable: false }
-      ]
+      ],
+      showDialog: false,
+      selectedCalculation: null
     };
   },
 
@@ -115,6 +130,11 @@ export default {
             this.removeCalculation(calculation);
           }
         });
+    },
+    toggleDownloadDialog(calculation) {
+      console.log(calculation);
+      this.showDialog = true;
+      this.selectedCalculation = calculation;
     }
   },
   computed: {
