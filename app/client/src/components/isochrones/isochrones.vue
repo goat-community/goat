@@ -73,8 +73,8 @@
 
 <script>
 //Child components
-import isochroneOptions from "./isochroneOptions";
-import isochroneResults from "./isochroneResults";
+import IsochroneOptions from "./IsochroneOptions";
+import IsochroneResults from "./IsochroneResults";
 
 //Store & Bus imports
 import { EventBus } from "../../EventBus.js";
@@ -88,8 +88,8 @@ import { Style, Stroke, Fill, Icon } from "ol/style";
 
 export default {
   components: {
-    "isochrone-options": isochroneOptions,
-    "isochrone-results": isochroneResults
+    "isochrone-options": IsochroneOptions,
+    "isochrone-results": IsochroneResults
   },
   data: () => ({
     clicked: false,
