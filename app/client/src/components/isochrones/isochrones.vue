@@ -56,7 +56,10 @@
         @click="isResultsElVisible = !isResultsElVisible"
       >
         <v-icon
-          :class="{ activeIcon: isResultsElVisible, 'mr-2': true }"
+          :class="{
+            activeIcon: isResultsElVisible,
+            'mr-2': true
+          }"
           style="margin-right: 2px;"
           small
           >fas fa-bullseye</v-icon

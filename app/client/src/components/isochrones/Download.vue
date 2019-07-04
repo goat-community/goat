@@ -37,6 +37,10 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+import maputils from "../../utils/MapUtils";
+import { saveAs } from "file-saver";
+
 export default {
   props: {
     calculation: { type: Object, required: false },
@@ -48,9 +52,32 @@ export default {
     items: ["GeoJson", "Shapefile"]
   }),
   methods: {
-    download() {}
+    download() {
+      let me = this;
+      if (me.selected === "GeoJson") {
+        let featuresArray = [];
+        let data = me.calculation.data;
+        data.forEach(isochrone => {
+          let id = isochrone.id;
+          let feature = me.isochroneLayer.getSource().getFeatureById(id);
+          if (feature) {
+            let clonedFeature = feature.clone();
+            clonedFeature.unset("isVisible");
+            featuresArray.push(clonedFeature);
+          }
+        });
+        let json = maputils.featuresToGeojson(featuresArray, "EPSG:3857");
+        let blob = new Blob([json], { type: "application/json" });
+        let exportName = me.name;
+        if (me.name.length === 0) {
+          exportName = "export";
+        }
+        saveAs(blob, `${exportName}.json`);
+      }
+    }
   },
   computed: {
+    ...mapGetters("isochrones", { isochroneLayer: "isochroneLayer" }),
     show: {
       get() {
         return this.visible;
