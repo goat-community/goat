@@ -185,6 +185,7 @@ const actions = {
       position: toStringHDMS(state.position.coordinate),
       speed: state.options.speed + " km/h",
       isExpanded: true,
+      isVisible: true,
       data: calculationData
     };
 
@@ -247,6 +248,20 @@ const mutations = {
         isochroneFeature.set("isVisible", feature.isVisible);
       }
     }
+  },
+  TOGGLE_ISOCHRONE_CALCULATION_VISIBILITY(state, calculation) {
+    calculation.isVisible = !calculation.isVisible;
+
+    calculation.data.forEach(isochrone => {
+      let featureId = isochrone.id;
+      isochrone.isVisible = calculation.isVisible;
+      let isochroneFeature = state.isochroneLayer
+        .getSource()
+        .getFeatureById(featureId);
+      if (isochroneFeature) {
+        isochroneFeature.set("isVisible", calculation.isVisible);
+      }
+    });
   },
   ADD_STYLE_IN_CACHE(state, payload) {
     let style = payload.style;
