@@ -7,15 +7,9 @@
     <app-sidebar />
     <tree-panel />
     <v-content>
-      <v-progress-linear
-        :indeterminate="true"
-        color="green"
-        height="4"
-        class="ma-0 pa-0"
-        v-show="isNetworkBusy"
-      ></v-progress-linear>
       <v-container id="ol-map-container" fluid fill-height style="padding: 0">
         <app-map :color="controlsColor" />
+        <map-loading-progress-status />
       </v-container>
     </v-content>
   </v-app>
@@ -27,14 +21,15 @@ import { EventBus } from "./EventBus.js";
 import appMap from "./components/ol/Map";
 import appSidebar from "./components/core/SideDrawer";
 import treePanel from "./components/core/TreePanel";
+import MapLoadingProgressStatus from "./components/ol/MapLoadingProgressStatus";
 
-import { mapGetters } from "vuex";
 export default {
   name: "wg-app",
   components: {
     appMap,
     appSidebar,
-    treePanel
+    treePanel,
+    MapLoadingProgressStatus
   },
   data() {
     return {
@@ -58,10 +53,6 @@ export default {
     // inform registered cmps that the app is mounted and the dynamic
     // components are available
     EventBus.$emit("app-mounted");
-  },
-  methods: {},
-  computed: {
-    ...mapGetters("loader", { isNetworkBusy: "isNetworkBusy" })
   }
 };
 </script>
