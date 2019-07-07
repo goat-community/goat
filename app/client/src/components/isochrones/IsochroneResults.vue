@@ -11,10 +11,27 @@
               <span>{{ calculation.time }}</span>
               <v-icon small class="ml-2 mr-1">fas fa-tachometer-alt</v-icon>
               <span>{{ calculation.speed }}</span>
-              <v-icon small class="result-icons ml-4 mr-2">fas fa-table</v-icon>
+              <v-icon
+                @click="showPoisTable(calculation)"
+                small
+                class="result-icons ml-4 mr-2"
+                >fas fa-table</v-icon
+              >
               <v-icon small class="result-icons mr-2">fas fa-pencil-alt</v-icon>
-              <v-icon small class="result-icons mr-2">fas fa-eye-slash</v-icon>
-              <v-icon small class="result-icons mr-2">fas fa-download</v-icon>
+              <v-icon
+                @click="showHideCalculation(calculation)"
+                small
+                class="result-icons mr-2"
+                v-html="
+                  calculation.isVisible ? 'fas fa-eye-slash' : 'fas fa-eye'
+                "
+              ></v-icon>
+              <v-icon
+                @click="toggleDownloadDialog(calculation)"
+                small
+                class="result-icons mr-2"
+                >fas fa-download</v-icon
+              >
               <v-icon
                 @click="deleteCalculation(calculation)"
                 small
@@ -75,14 +92,23 @@
       </template>
     </v-flex>
     <confirm ref="confirm"></confirm>
+    <download
+      :visible="showDialog"
+      :calculation="selectedCalculation"
+      @close="showDialog = false"
+    ></download>
   </v-layout>
 </template>
 <script>
 import { mapGetters, mapActions, mapMutations } from "vuex";
 import Confirm from "../core/Confirm";
+import Download from "./IsochronesDownload";
+import IsochroneUtils from "../../utils/IsochroneUtils";
+
 export default {
   components: {
-    confirm: Confirm
+    confirm: Confirm,
+    download: Download
   },
   data() {
     return {
@@ -92,14 +118,20 @@ export default {
         { text: "Area", value: "area", sortable: false },
         { text: "Visible", value: "visible", sortable: false },
         { text: "Legend", value: "legend", sortable: false }
-      ]
+      ],
+      showDialog: false,
+      selectedCalculation: null
     };
   },
 
   methods: {
     ...mapActions("isochrones", { removeCalculation: "removeCalculation" }),
     ...mapMutations("isochrones", {
-      toggleIsochroneFeatureVisibility: "TOGGLE_ISOCHRONE_FEATURE_VISIBILITY"
+      toggleIsochroneFeatureVisibility: "TOGGLE_ISOCHRONE_FEATURE_VISIBILITY",
+      toggleIsochroneCalculationVisibility:
+        "TOGGLE_ISOCHRONE_CALCULATION_VISIBILITY",
+      toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY",
+      setSelectedThematicData: "SET_SELECTED_THEMATIC_DATA"
     }),
     deleteCalculation(calculation) {
       this.$refs.confirm
@@ -115,10 +147,41 @@ export default {
             this.removeCalculation(calculation);
           }
         });
+    },
+    toggleDownloadDialog(calculation) {
+      this.showDialog = true;
+      this.selectedCalculation = calculation;
+    },
+    showHideCalculation(calculation) {
+      let me = this;
+      me.toggleIsochroneCalculationVisibility(calculation);
+    },
+    showPoisTable(calculation) {
+      let me = this;
+      let features = IsochroneUtils.getCalculationFeatures(
+        calculation,
+        me.isochroneLayer
+      );
+
+      let calculationId = calculation.id;
+      let calculationName = calculation.name;
+      let pois = IsochroneUtils.getCalculationPoisObject(features);
+
+      let payload = {
+        calculationId: calculationId,
+        calculationName: calculationName,
+        pois: pois
+      };
+
+      me.setSelectedThematicData(payload);
+      me.toggleThematicDataVisibility(true);
     }
   },
   computed: {
-    ...mapGetters("isochrones", { calculations: "calculations" })
+    ...mapGetters("isochrones", {
+      calculations: "calculations",
+      isochroneLayer: "isochroneLayer"
+    })
   }
 };
 </script>
@@ -157,5 +220,9 @@ table.v-table thead tr {
   height: 24px;
   width: 24px;
   border-radius: 7px;
+}
+
+.activeIcon {
+  color: #30c2ff;
 }
 </style>
