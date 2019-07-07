@@ -102,7 +102,8 @@
 <script>
 import { mapGetters, mapActions, mapMutations } from "vuex";
 import Confirm from "../core/Confirm";
-import Download from "./Download";
+import Download from "./IsochronesDownload";
+import IsochroneUtils from "../../utils/IsochroneUtils";
 
 export default {
   components: {
@@ -128,7 +129,9 @@ export default {
     ...mapMutations("isochrones", {
       toggleIsochroneFeatureVisibility: "TOGGLE_ISOCHRONE_FEATURE_VISIBILITY",
       toggleIsochroneCalculationVisibility:
-        "TOGGLE_ISOCHRONE_CALCULATION_VISIBILITY"
+        "TOGGLE_ISOCHRONE_CALCULATION_VISIBILITY",
+      toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY",
+      setSelectedThematicData: "SET_SELECTED_THEMATIC_DATA"
     }),
     deleteCalculation(calculation) {
       this.$refs.confirm
@@ -154,11 +157,31 @@ export default {
       me.toggleIsochroneCalculationVisibility(calculation);
     },
     showPoisTable(calculation) {
-      console.log(calculation);
+      let me = this;
+      let features = IsochroneUtils.getCalculationFeatures(
+        calculation,
+        me.isochroneLayer
+      );
+
+      let calculationId = calculation.id;
+      let calculationName = calculation.name;
+      let pois = IsochroneUtils.getCalculationPoisObject(features);
+
+      let payload = {
+        calculationId: calculationId,
+        calculationName: calculationName,
+        pois: pois
+      };
+
+      me.setSelectedThematicData(payload);
+      me.toggleThematicDataVisibility(true);
     }
   },
   computed: {
-    ...mapGetters("isochrones", { calculations: "calculations" })
+    ...mapGetters("isochrones", {
+      calculations: "calculations",
+      isochroneLayer: "isochroneLayer"
+    })
   }
 };
 </script>

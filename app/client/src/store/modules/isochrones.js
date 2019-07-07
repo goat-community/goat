@@ -81,7 +81,9 @@ const state = {
       "19": "#0114B7",
       "20": "#000ABF"
     }
-  }
+  },
+  isThematicDataVisible: false,
+  selectedThematicData: null
 };
 
 const getters = {
@@ -89,6 +91,8 @@ const getters = {
   options: state => state.options,
   isochroneLayer: state => state.isochroneLayer,
   styleData: state => state.styleData,
+  isThematicDataVisible: state => state.isThematicDataVisible,
+  selectedThematicData: state => state.selectedThematicData,
   getField
 };
 
@@ -270,7 +274,13 @@ const mutations = {
     //Adds style into cache based on isochrone type
     state.styleData.styleCache[isochroneType][styleName] = style;
   },
-  updateField
+  updateField,
+  TOGGLE_THEMATIC_DATA_VISIBILITY(state, isVisible) {
+    state.isThematicDataVisible = isVisible;
+  },
+  SET_SELECTED_THEMATIC_DATA(state, thematicDataObject) {
+    state.selectedThematicData = thematicDataObject;
+  }
 };
 
 export default {

@@ -1,75 +1,100 @@
 <template>
   <v-flex xs12 sm8 md4>
     <v-card flat>
-      <v-card-title primary-title>
-        <span class="title font-weight-regular">{{
-          $t("isochrones.title")
-        }}</span>
-      </v-card-title>
-      <v-card-text class="pr-16 pl-16 pt-0 pb-0">
-        <v-divider></v-divider>
-      </v-card-text>
-      <v-card-text>
-        <v-layout row>
-          <v-flex xs12>
-            <v-text-field
-              solo
-              label="Starting Point"
-              hide-details
-              prepend-inner-icon="search"
-            ></v-text-field>
-          </v-flex>
-          <v-flex xs2>
-            <v-btn fab small flat @click="registerMapClick">
-              <v-icon color="#30C2FF">fas fa-map-marker-alt</v-icon>
-            </v-btn>
-          </v-flex>
-        </v-layout>
-      </v-card-text>
-      <v-card-text class="pr-16 pl-16 pt-0 pb-0">
-        <v-divider></v-divider>
-      </v-card-text>
+      <!-- THEMATIC DATA -->
+      <template v-if="isThematicDataVisible === true">
+        <v-card-title primary-title class="py-2">
+          <v-btn
+            flat
+            class="my-0 py-0"
+            icon
+            light
+            @click="toggleThematicDataVisibility(false)"
+          >
+            <v-icon color="rgba(0,0,0,0.54)">fas fa-arrow-left</v-icon>
+          </v-btn>
+          <span class="title font-weight-regular">Thematic Data</span>
+        </v-card-title>
+        <v-card-text class="pr-16 pl-16 pt-0 pb-0 mb-2">
+          <v-divider></v-divider>
+        </v-card-text>
 
-      <!-- Isochrone Options -->
-      <v-subheader
-        class="clickable"
-        @click="isOptionsElVisible = !isOptionsElVisible"
-      >
-        <v-icon
-          :class="{ activeIcon: isOptionsElVisible, 'mr-2': true }"
-          small
-          class="mr-2"
-          >fas fa-sliders-h</v-icon
+        <isochrone-thematic-data />
+      </template>
+
+      <!-- ISOCHRONE OPTIONS AND RESULTS  -->
+      <template v-else>
+        <v-card-title primary-title>
+          <span class="title font-weight-regular">{{
+            $t("isochrones.title")
+          }}</span>
+        </v-card-title>
+        <v-card-text class="pr-16 pl-16 pt-0 pb-0">
+          <v-divider></v-divider>
+        </v-card-text>
+        <v-card-text>
+          <v-layout row>
+            <v-flex xs12>
+              <v-text-field
+                solo
+                label="Starting Point"
+                hide-details
+                prepend-inner-icon="search"
+              ></v-text-field>
+            </v-flex>
+            <v-flex xs2>
+              <v-btn fab small flat @click="registerMapClick">
+                <v-icon color="#30C2FF">fas fa-map-marker-alt</v-icon>
+              </v-btn>
+            </v-flex>
+          </v-layout>
+        </v-card-text>
+        <v-card-text class="pr-16 pl-16 pt-0 pb-0">
+          <v-divider></v-divider>
+        </v-card-text>
+
+        <!-- Isochrone Options -->
+        <v-subheader
+          class="clickable"
+          @click="isOptionsElVisible = !isOptionsElVisible"
         >
-        <h3>{{ $t("isochrones.options.title") }}</h3>
-      </v-subheader>
-      <div v-show="isOptionsElVisible">
-        <isochrone-options />
-      </div>
+          <v-icon
+            :class="{ activeIcon: isOptionsElVisible, 'mr-2': true }"
+            small
+            class="mr-2"
+            >fas fa-sliders-h</v-icon
+          >
+          <h3>{{ $t("isochrones.options.title") }}</h3>
+        </v-subheader>
+        <div v-show="isOptionsElVisible">
+          <isochrone-options />
+        </div>
 
-      <!-- Isochrone Results  -->
-      <v-card-text class="pr-16 pl-16 pt-0 pb-0">
-        <v-divider></v-divider>
-      </v-card-text>
-      <v-subheader
-        class="clickable"
-        @click="isResultsElVisible = !isResultsElVisible"
-      >
-        <v-icon
-          :class="{
-            activeIcon: isResultsElVisible,
-            'mr-2': true
-          }"
-          style="margin-right: 2px;"
-          small
-          >fas fa-bullseye</v-icon
+        <!-- Isochrone Results  -->
+        <v-card-text class="pr-16 pl-16 pt-0 pb-0">
+          <v-divider></v-divider>
+        </v-card-text>
+        <v-subheader
+          class="clickable"
+          @click="isResultsElVisible = !isResultsElVisible"
         >
-        <h3>{{ $t("isochrones.results.title") }}</h3>
-      </v-subheader>
+          <v-icon
+            :class="{
+              activeIcon: isResultsElVisible,
+              'mr-2': true
+            }"
+            style="margin-right: 2px;"
+            small
+            >fas fa-bullseye</v-icon
+          >
+          <h3>{{ $t("isochrones.results.title") }}</h3>
+        </v-subheader>
 
-      <div v-show="isResultsElVisible">
-        <isochrone-results />
-      </div>
+        <div v-show="isResultsElVisible">
+          <isochrone-results />
+        </div>
+      </template>
+      <!-- -- -->
     </v-card>
   </v-flex>
 </template>
@@ -78,6 +103,7 @@
 //Child components
 import IsochroneOptions from "./IsochroneOptions";
 import IsochroneResults from "./IsochroneResults";
+import IsochronThematicData from "./IsochronesThematicData";
 
 //Store & Bus imports
 import { EventBus } from "../../EventBus.js";
@@ -92,7 +118,8 @@ import { Style, Stroke, Fill, Icon } from "ol/style";
 export default {
   components: {
     "isochrone-options": IsochroneOptions,
-    "isochrone-results": IsochroneResults
+    "isochrone-results": IsochroneResults,
+    "isochrone-thematic-data": IsochronThematicData
   },
   data: () => ({
     clicked: false,
@@ -112,7 +139,10 @@ export default {
     });
   },
   computed: {
-    ...mapGetters("isochrones", { styleData: "styleData" }),
+    ...mapGetters("isochrones", {
+      styleData: "styleData",
+      isThematicDataVisible: "isThematicDataVisible"
+    }),
     ...mapGetters("map", { messages: "messages" })
   },
   methods: {
@@ -120,7 +150,8 @@ export default {
     ...mapMutations("isochrones", {
       addStyleInCache: "ADD_STYLE_IN_CACHE",
       updatePosition: "UPDATE_POSITION",
-      addIsochroneLayer: "ADD_ISOCHRONE_LAYER"
+      addIsochroneLayer: "ADD_ISOCHRONE_LAYER",
+      toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY"
     }),
 
     ...mapMutations("map", {
