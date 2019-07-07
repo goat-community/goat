@@ -51,6 +51,4 @@ begin
   
 END;
 $function$
-
-
 --SELECT * FROM isochrones(111,15,11.575260,48.148124,2,83.33,0.99,1,44435,1)
