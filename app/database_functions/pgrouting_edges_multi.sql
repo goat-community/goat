@@ -1,4 +1,3 @@
-
 CREATE OR REPLACE FUNCTION public.pgrouting_edges_multi(minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, objectids int[])
  RETURNS SETOF type_catchment_edges 
  LANGUAGE plpgsql
@@ -42,8 +41,8 @@ begin
  FROM closest_vertices c;
   
  RETURN query 
-  SELECT x.from_v::int start_vertex, x.node::int, x.edge::int, x.agg_cost::numeric AS cost, w.geom, c.objectid, w.class_id
-  FROM ways w, 
+  SELECT x.from_v::int start_vertex, x.node::int, x.edge::int, x.agg_cost::numeric AS cost, w.geom, c.objectid
+  FROM ways_vertices_pgr w, 
   (	SELECT from_v, node, edge, agg_cost FROM pgr_drivingDistance(
 	'SELECT id::int4, source, target, length_m as cost 
 	FROM ways
@@ -52,6 +51,6 @@ begin
 	AND geom && (SELECT ST_Buffer(ST_Union(c.geom)::geography,'||distance||')::geometry FROM closest_vertices c)'
 	,array_starting_vertices, distance,FALSE,FALSE)
   )x, closest_vertices c
-  WHERE w.id = x.edge AND c.closest_vertices = from_v;
+  WHERE w.id = x.node AND c.closest_vertices = from_v;
 END ;
 $function$;
