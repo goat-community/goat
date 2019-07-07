@@ -63,8 +63,8 @@
 
 <script>
 // Utilities
-import Isochrones from "../isochrones/isochrones";
-import LayerTree from "../layers/layerTree/layerTree";
+import Isochrones from "../isochrones/Isochrones";
+import LayerTree from "../layers/layerTree/LayerTree";
 export default {
   components: {
     "map-isochrones": Isochrones,
