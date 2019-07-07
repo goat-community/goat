@@ -25,7 +25,7 @@ CREATE TYPE public.type_isochrone_thematic AS
 	sum_pois text
 );
 
-CREATE TYPE public.type_catchment_edges AS
+CREATE TYPE public.type_catchment_vertices AS
 (
 	start_vertex integer,
 	node integer,
