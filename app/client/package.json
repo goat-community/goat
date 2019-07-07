@@ -11,6 +11,7 @@
   "dependencies": {
     "axios": "^0.19.0",
     "core-js": "^2.6.5",
+    "file-saver": "^2.0.2",
     "ol": "^5.3.1",
     "vue": "^2.6.6",
     "vue-flag-icon": "^1.0.6",
