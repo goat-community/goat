@@ -94,39 +94,21 @@ app.post('/node/userdata',jsonParser, (request,response) => {
 });
 
 
+// this for calling the isochrones_api.  This will create a feature collection.
 
-/*
-app.get('/load_ways', (request,response) => {
-	pool.query(`select id, class_id, st_AsGeoJSON(geom) geom from ways
-	where st_intersects(geom,st_buffer(st_setsrid(st_point(10.683605,47.575593),4326)::geography,1000))`, (err,res) => {
-    if (err) return console.log(err);
-    let rows = res.rows
-  var obj, i;
-	obj = {
-		type: "FeatureCollection",
-		features: []
-	};
+/*SELECT jsonb_build_object(
+    'type',     'FeatureCollection',
+    'features', jsonb_agg(features.feature)
+)
+FROM (
+SELECT jsonb_build_object(
+    'type',       'Feature',
+    'gid',         gid,
+    'geometry',   ST_AsGeoJSON(geom)::jsonb,
+    'properties', to_jsonb(inputs) - 'gid' - 'geom'
+) AS feature 
+FROM (SELECT * FROM isochrones_api(32431,15,11.575260,48.148124,3,83.33,0.99,'default')) inputs) features;
 
-		for (i = 0; i < rows.length; i++) {
-			var item, feature, geometry;
-			item = rows[i];
-	
-			geometry = JSON.parse(item.geom);
-			delete item.geom;
-	
-			feature = {
-				type: "Feature",
-				properties: item,
-				geometry: geometry
-			}
-	
-			obj.features.push(feature);
-		} 
-
-     response.send(obj);
-  
-  });
-});
 */
 
 module.exports = app;
