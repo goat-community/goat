@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION public.pgrouting_edges_multi(minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, objectids int[])
- RETURNS SETOF type_catchment_edges 
+ RETURNS SETOF type_catchment_vertices
  LANGUAGE plpgsql
 AS $function$
 DECLARE
@@ -12,15 +12,9 @@ begin
   DROP TABLE IF EXISTS closest_vertices;
   distance = minutes*speed;
  
-  SELECT variable_array::text
-  INTO excluded_class_id 
-  FROM variable_container v
-  WHERE v.identifier = 'excluded_class_id_walking';
-  
-  SELECT variable_array::text 
-  INTO categories_no_foot
-  FROM variable_container
-  WHERE identifier = 'categories_no_foot';
+  SELECT select_from_variable_container('excluded_class_id_walking'),
+  select_from_variable_container('categories_no_foot')
+  INTO excluded_class_id, categories_no_foot;
  
   CREATE temp TABLE closest_vertices AS  
   SELECT closest_vertex[1]::bigint closest_vertices, closest_vertex[2]::geometry AS geom, objectid 
