@@ -33,10 +33,20 @@ const IsochroneUtils = {
         if (!obj[modus]) {
           obj[modus] = {};
         }
-        obj[modus][time] = pois !== null ? JSON.parse(pois) : null;
+        obj[modus][time] = pois;
       });
     }
     return obj;
+  },
+  getIsochroneAliasFromKey: function getIsochroneAliasFromKey(key) {
+    let isochroneMapping = {
+      "1": "Default",
+      "2": "Input",
+      "3": "Default",
+      "4": "Input"
+    };
+    let alias = isochroneMapping[key] ? isochroneMapping[key] : key;
+    return alias;
   }
 };
 

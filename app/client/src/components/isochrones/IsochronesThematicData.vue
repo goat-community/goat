@@ -55,6 +55,7 @@
 <script>
 import { mapGetters } from "vuex";
 import helpers from "../../utils/Helpers";
+import IsochroneUtils from "../../utils/IsochroneUtils";
 export default {
   data: () => ({
     pagination: {
@@ -74,15 +75,10 @@ export default {
         }
       ];
 
-      //TODO: Temporary!!, Remove this from here.
-      let isochroneMapping = {
-        "1": "Default",
-        "2": "Input"
-      };
       const keys = Object.keys(pois);
       for (const key of keys) {
         headers.push({
-          text: isochroneMapping[key] ? isochroneMapping[key] : key,
+          text: IsochroneUtils.getIsochroneAliasFromKey(key),
           value: key,
           sortable: false
         });

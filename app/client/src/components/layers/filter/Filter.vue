@@ -7,16 +7,19 @@
       <v-card-text class="pr-16 pl-16 pt-0 pb-0">
         <v-divider></v-divider>
       </v-card-text>
-      <v-card-text> </v-card-text>
+      <v-card-text><pois /></v-card-text>
       <v-card-actions> </v-card-actions>
     </v-card>
   </v-flex>
 </template>
 
 <script>
+import pois from "./Pois";
 export default {
   data: () => ({}),
-  components: {},
+  components: {
+    pois
+  },
   computed: {},
   methods: {},
   mounted() {}
