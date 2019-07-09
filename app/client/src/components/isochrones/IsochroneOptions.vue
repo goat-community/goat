@@ -34,7 +34,7 @@
 
       <v-slider
         min="1"
-        max="40"
+        max="10"
         inverse-label
         v-model="speed"
         prepend-icon="fas fa-tachometer-alt"
@@ -54,6 +54,8 @@
       </v-slider>
 
       <v-select
+        item-text="display"
+        item-value="value"
         v-model="concavityIsochrones"
         :value="concavityIsochrones"
         :items="options.concavityIsochrones.values"

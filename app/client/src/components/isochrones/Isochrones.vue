@@ -206,10 +206,11 @@ export default {
           // Style array
           let styles = [];
           let styleData = me.styleData;
-          // Get the incomeLevel and parentId from the feature properties
+          // Get the incomeLevel and modus from the feature properties
           let level = feature.get("step");
-          let parentId = feature.get("parent_id");
+          let modus = feature.get("modus");
           let isVisible = feature.get("isVisible");
+
           let geomType = feature.getGeometry().getType();
 
           /**
@@ -227,7 +228,7 @@ export default {
             }
 
             //Fallback isochrone style
-            if (!parentId) {
+            if (!modus) {
               if (!styleData.styleCache.default["GenericIsochroneStyle"]) {
                 let genericIsochroneStyle = new Style({
                   fill: new Fill({
@@ -249,8 +250,8 @@ export default {
                 styleData.styleCache.default["GenericIsochroneStyle"]
               );
             }
-            // If the parentId is 1 it is a default isochrone
-            if (parentId === 1) {
+            // If the modus is 1 it is a default isochrone
+            if (modus === 1 || modus === 3) {
               if (!styleData.styleCache.default[level]) {
                 let style = new Style({
                   stroke: new Stroke({

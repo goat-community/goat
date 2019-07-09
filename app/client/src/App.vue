@@ -23,6 +23,8 @@ import appSidebar from "./components/core/SideDrawer";
 import treePanel from "./components/core/TreePanel";
 import MapLoadingProgressStatus from "./components/ol/MapLoadingProgressStatus";
 
+import { mapMutations } from "vuex";
+
 export default {
   name: "wg-app",
   components: {
@@ -53,6 +55,15 @@ export default {
     // inform registered cmps that the app is mounted and the dynamic
     // components are available
     EventBus.$emit("app-mounted");
+
+    //Generate UserId
+    const userid = Math.floor(Math.random() * 10000000);
+    this.setUserId(userid);
+  },
+  methods: {
+    ...mapMutations("user", {
+      setUserId: "SET_USER_ID"
+    })
   }
 };
 </script>
