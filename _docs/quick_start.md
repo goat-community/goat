@@ -122,7 +122,9 @@ Keep this console window open as long as you want to use GOAT. For turning GOAT 
 
 The front-end is bundled using parcel. At the moment it is recommended to run parcel on your host. For this you need to have NodeJS installed on your host:
 
-In order to start the bundling go to the front-end directory, open console window and run:
+In order to start the bundling, open a new console window, go into the project folder and run:
+
+`cd app/front_end` (run on your <span style="color:#07d">host</span>)
 
 `npm install` (run on your <span style="color:#07d">host</span>)
 
