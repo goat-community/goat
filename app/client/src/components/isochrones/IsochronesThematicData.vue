@@ -64,6 +64,17 @@ export default {
     selectedTime: null,
     search: ""
   }),
+  methods: {
+    isAmenitySelected(amenity) {
+      let isChecked;
+      this.selectedThematicData.filterSelectedPois.forEach(item => {
+        if (item["weight"] && !item["children"] && item.value === amenity) {
+          isChecked = true;
+        }
+      });
+      return isChecked;
+    }
+  },
   computed: {
     tableHeaders() {
       let pois = this.selectedThematicData.pois;
@@ -101,34 +112,41 @@ export default {
       return timeValues;
     },
     tableItems() {
-      let pois = this.selectedThematicData.pois;
-
-      let selectedTime = this.selectedTime;
+      let me = this;
+      let pois = me.selectedThematicData.pois;
+      let selectedTime = me.selectedTime;
       let items = [];
       let keys = Object.keys(pois);
 
       if (keys.length > 0) {
         let sumPois = pois[keys[0]][selectedTime];
         if (sumPois) {
-          //Loop through  pois
-          for (const key in sumPois) {
-            let obj = {
-              pois: helpers.humanize(key)
-            };
-            //Default or input calculation
-            obj[keys[0]] = sumPois[key];
-            //Double calculation
-            if (pois[keys[1]]) {
-              obj[keys[1]] = pois[keys[1]][selectedTime][key];
+          //Loop through  amenities
+          for (const amenity in sumPois) {
+            let isAmenitySelected = me.isAmenitySelected(amenity);
+            if (isAmenitySelected) {
+              let obj = {
+                pois: helpers.humanize(amenity)
+              };
+              //Default or input calculation
+              obj[keys[0]] = sumPois[amenity];
+              //Double calculation
+              if (pois[keys[1]]) {
+                obj[keys[1]] = pois[keys[1]][selectedTime][amenity];
+              }
+              items.push(obj);
             }
-            items.push(obj);
           }
         }
       }
       return items;
     },
+
     ...mapGetters("isochrones", {
       selectedThematicData: "selectedThematicData"
+    }),
+    ...mapGetters("pois", {
+      getPoisItems: "selectedPois"
     })
   }
 };
