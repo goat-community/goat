@@ -198,6 +198,12 @@ const actions = {
   removeCalculation({ commit }, calculation) {
     commit("REMOVE_ISOCHRONE_FEATURES", calculation);
     commit("REMOVE_CALCULATION", calculation);
+  },
+
+  setSelectedThematicData({ commit, rootState }, thematicDataObject) {
+    //Assign Selected Pois from the tree
+    thematicDataObject.filterSelectedPois = rootState.pois.selectedPois;
+    commit("SET_SELECTED_THEMATIC_DATA", thematicDataObject);
   }
 };
 
