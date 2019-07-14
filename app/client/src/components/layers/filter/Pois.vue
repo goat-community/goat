@@ -10,7 +10,7 @@
     return-object
     item-key="name"
     selected-color="green"
-    active-class="grey lighten-4 indigo--text"
+    active-class="grey lighten-4 indigo--text "
     on-icon="check_box"
     off-icon="check_box_outline_blank"
     indeterminate-icon="indeterminate_check_box"
@@ -95,8 +95,7 @@ export default {
   flex-shrink: 1;
 }
 
-.v-treeview-node__root {
-  min-height: 34px;
-  height: auto;
+.v-treeview-node__content {
+  line-height: 1;
 }
 </style>
