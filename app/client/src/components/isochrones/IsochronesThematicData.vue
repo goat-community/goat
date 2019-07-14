@@ -27,7 +27,7 @@
       <v-data-table
         :headers="tableHeaders"
         :items="tableItems"
-        class="elevation-1"
+        class="elevation-1 mb-2"
         :search="search"
         :no-data-text="
           selectedTime === null
@@ -48,6 +48,9 @@
           </td>
         </template>
       </v-data-table>
+      <span v-if="getPoisItems.length === 0" style="color: red;"
+        ><i>Note: Select Amenities and Time to filter the table. </i></span
+      >
     </v-flex>
   </v-layout>
 </template>

@@ -2,7 +2,7 @@
   <v-flex xs12 sm8 md4>
     <v-card flat>
       <v-card-title primary-title>
-        <span class="title font-weight-regular">Layer Tree</span>
+        <span class="title font-weight-regular">Layers</span>
       </v-card-title>
       <v-card-text class="pr-16 pl-16 pt-0 pb-0">
         <v-divider></v-divider>
