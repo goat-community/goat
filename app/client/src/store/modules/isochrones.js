@@ -5,6 +5,7 @@ import { transform } from "ol/proj.js";
 import maputils from "../../utils/MapUtils";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
+import IsochroneUtils from "../../utils/IsochroneUtils";
 
 const state = {
   position: {
@@ -13,21 +14,32 @@ const state = {
   },
   options: {
     minutes: "10",
-    speed: "20",
+    speed: "5",
     steps: "2",
     concavityIsochrones: {
       name: "concavity",
-      values: ["convex", "0", "1", "2", "3", "4", "5"],
-      active: "0"
+      values: [
+        { display: "convex", value: "1" },
+        { display: "0", value: "0.99" },
+        { display: "1", value: "0.98" },
+        { display: "2", value: "0.95" },
+        { display: "3", value: "0.9" },
+        { display: "4", value: "0.8" },
+        { display: "5", value: "0.7" }
+      ],
+      active: "0.99"
     },
     calculationModes: {
       name: "modus",
       values: [
-        { display: "Default Network", value: "1" },
-        { display: "Modified Network", value: "2" },
-        { display: "Modified Network (Double Calculation)", value: "3" }
+        { display: "Default Network", value: "default" },
+        { display: "Modified Network", value: "scenario" },
+        {
+          display: "Modified Network (Double Calculation)",
+          value: "comparison"
+        }
       ],
-      active: "1"
+      active: "default"
     }
   },
   calculations: [],
@@ -97,19 +109,7 @@ const getters = {
 };
 
 const actions = {
-  async calculateIsochrone({ commit }) {
-    let viewParams = "";
-    //Isochrone Position Param
-
-    if (state.position.coordinate !== null) {
-      let x = state.position.coordinate[0];
-      let y = state.position.coordinate[1];
-      let param = `x:${x};y:${y};`;
-      viewParams += param;
-    } else {
-      return;
-    }
-
+  async calculateIsochrone({ commit, rootState }) {
     //Add center feature to isochrone layer
     let iconMarkerFeature = new Feature({
       geometry: new Point(
@@ -119,57 +119,50 @@ const actions = {
     });
     commit("ADD_ISOCHRONE_FEATURES", [iconMarkerFeature]);
 
-    //Isochrone Options Params
-    Object.keys(state.options).forEach(key => {
-      let value = state.options[key];
-      let param;
-      if (typeof value === "object") {
-        param = value.name + ":" + value.active + ";";
-      } else {
-        param = key + ":" + value + ";";
+    const isochronesResponse = await http.get("/api/isochrone", {
+      params: {
+        user_id: rootState.user.userId,
+        minutes: state.options.minutes,
+        x: state.position.coordinate[0],
+        y: state.position.coordinate[1],
+        n: state.options.steps,
+        concavity: state.options.concavityIsochrones.active,
+        speed: state.options.speed * 16.6666667, //Converts it to meter/minute
+        modus: state.options.calculationModes.active
       }
-      viewParams += param;
     });
 
-    //Temporary
-    viewParams +=
-      "userid_input:6545766;objectid_input:3194193;parent_id:1&typeNames=cite:save_isochrones";
-
-    //Final URL
-    let url = `https://goat.open-accessibility.org/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=${viewParams}`;
-    console.log(url);
-    //Request URL
-
-    //Mock API
-    const response = await http.get(
-      "http://5d0ba1fc89166d00146e39fb.mockapi.io/api/v2/isochrones"
-    );
-    let isochrones = response.data[0];
+    let isochrones = isochronesResponse.data;
+    console.log(isochrones);
     let calculationData = [];
-
-    //Order features based on id
-    isochrones.features.sort((a, b) => {
-      return a.properties.step - b.properties.step;
-    });
 
     //TODO: Don't get calculation options from state at this moment.
     const calculationNumber = state.calculations.length + 1;
 
     let olFeatures = maputils.geojsonToFeature(isochrones);
+    //Order features based on id
+    olFeatures.sort((a, b) => {
+      return a.get("step") - b.get("step");
+    });
+
+    console.log(olFeatures);
     olFeatures.forEach(feature => {
+      feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
       let color = "";
       let level = feature.get("step");
-      let parentId = feature.get("parent_id");
+      let modus = feature.get("modus");
 
-      // If the parentId is 1 it is a default isochrone, otherwise is a input
-      if (parentId === 1) {
+      // If the modus is 1 it is a default isochrone, otherwise is a input or double calculation
+      if (modus === 1 || modus === 3) {
         color = state.styleData.defaultIsochroneColors[level];
       } else {
         color = state.styleData.inputIsochroneColors[level];
       }
       let obj = {
         id: feature.getId(),
-        type: feature.getProperties().modus,
+        type: IsochroneUtils.getIsochroneAliasFromKey(
+          feature.getProperties().modus
+        ),
         range: feature.getProperties().step + " min",
         color: color,
         area: maputils.getPolygonArea(feature.getGeometry()),
@@ -205,6 +198,12 @@ const actions = {
   removeCalculation({ commit }, calculation) {
     commit("REMOVE_ISOCHRONE_FEATURES", calculation);
     commit("REMOVE_CALCULATION", calculation);
+  },
+
+  setSelectedThematicData({ commit, rootState }, thematicDataObject) {
+    //Assign Selected Pois from the tree
+    thematicDataObject.filterSelectedPois = rootState.pois.selectedPois;
+    commit("SET_SELECTED_THEMATIC_DATA", thematicDataObject);
   }
 };
 

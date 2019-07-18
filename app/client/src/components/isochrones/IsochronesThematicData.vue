@@ -27,7 +27,7 @@
       <v-data-table
         :headers="tableHeaders"
         :items="tableItems"
-        class="elevation-1"
+        class="elevation-1 mb-2"
         :search="search"
         :no-data-text="
           selectedTime === null
@@ -48,6 +48,9 @@
           </td>
         </template>
       </v-data-table>
+      <span v-if="getPoisItems.length === 0" style="color: red;"
+        ><i>Note: Select Amenities and Time to filter the table. </i></span
+      >
     </v-flex>
   </v-layout>
 </template>
@@ -55,6 +58,7 @@
 <script>
 import { mapGetters } from "vuex";
 import helpers from "../../utils/Helpers";
+import IsochroneUtils from "../../utils/IsochroneUtils";
 export default {
   data: () => ({
     pagination: {
@@ -63,6 +67,17 @@ export default {
     selectedTime: null,
     search: ""
   }),
+  methods: {
+    isAmenitySelected(amenity) {
+      let isChecked;
+      this.selectedThematicData.filterSelectedPois.forEach(item => {
+        if (item["weight"] && !item["children"] && item.value === amenity) {
+          isChecked = true;
+        }
+      });
+      return isChecked;
+    }
+  },
   computed: {
     tableHeaders() {
       let pois = this.selectedThematicData.pois;
@@ -74,15 +89,10 @@ export default {
         }
       ];
 
-      //TODO: Temporary!!, Remove this from here.
-      let isochroneMapping = {
-        "1": "Default",
-        "2": "Input"
-      };
       const keys = Object.keys(pois);
       for (const key of keys) {
         headers.push({
-          text: isochroneMapping[key] ? isochroneMapping[key] : key,
+          text: IsochroneUtils.getIsochroneAliasFromKey(key),
           value: key,
           sortable: false
         });
@@ -105,34 +115,41 @@ export default {
       return timeValues;
     },
     tableItems() {
-      let pois = this.selectedThematicData.pois;
-
-      let selectedTime = this.selectedTime;
+      let me = this;
+      let pois = me.selectedThematicData.pois;
+      let selectedTime = me.selectedTime;
       let items = [];
       let keys = Object.keys(pois);
 
       if (keys.length > 0) {
         let sumPois = pois[keys[0]][selectedTime];
         if (sumPois) {
-          //Loop through  pois
-          for (const key in sumPois) {
-            let obj = {
-              pois: helpers.humanize(key)
-            };
-            //Default or input calculation
-            obj[keys[0]] = sumPois[key];
-            //Double calculation
-            if (pois[keys[1]]) {
-              obj[keys[1]] = pois[keys[1]][selectedTime][key];
+          //Loop through  amenities
+          for (const amenity in sumPois) {
+            let isAmenitySelected = me.isAmenitySelected(amenity);
+            if (isAmenitySelected) {
+              let obj = {
+                pois: helpers.humanize(amenity)
+              };
+              //Default or input calculation
+              obj[keys[0]] = sumPois[amenity];
+              //Double calculation
+              if (pois[keys[1]]) {
+                obj[keys[1]] = pois[keys[1]][selectedTime][amenity];
+              }
+              items.push(obj);
             }
-            items.push(obj);
           }
         }
       }
       return items;
     },
+
     ...mapGetters("isochrones", {
       selectedThematicData: "selectedThematicData"
+    }),
+    ...mapGetters("pois", {
+      getPoisItems: "selectedPois"
     })
   }
 };
