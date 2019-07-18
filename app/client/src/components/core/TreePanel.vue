@@ -26,16 +26,18 @@
           </v-btn>
         </v-toolbar>
 
-        <v-layout
-          justify-space-between
-          column
-          fill-height
-          style="overflow-y: auto;"
-        >
-          <keep-alive>
-            <component v-bind:is="activeComponent"></component>
-          </keep-alive>
-        </v-layout>
+        <vue-scroll>
+          <v-layout
+            justify-space-between
+            column
+            fill-height
+            style="overflow-y: auto;"
+          >
+            <keep-alive>
+              <component v-bind:is="activeComponent"></component>
+            </keep-alive>
+          </v-layout>
+        </vue-scroll>
 
         <v-layout align-end>
           <v-bottom-nav

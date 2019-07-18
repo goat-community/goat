@@ -14,7 +14,7 @@
               <v-icon
                 @click="showPoisTable(calculation)"
                 small
-                class="result-icons ml-4 mr-2"
+                class="result-icons ml-5 mr-2"
                 >fas fa-table</v-icon
               >
               <v-icon small class="result-icons mr-2">fas fa-pencil-alt</v-icon>
@@ -125,13 +125,15 @@ export default {
   },
 
   methods: {
-    ...mapActions("isochrones", { removeCalculation: "removeCalculation" }),
+    ...mapActions("isochrones", {
+      removeCalculation: "removeCalculation",
+      setSelectedThematicData: "setSelectedThematicData"
+    }),
     ...mapMutations("isochrones", {
       toggleIsochroneFeatureVisibility: "TOGGLE_ISOCHRONE_FEATURE_VISIBILITY",
       toggleIsochroneCalculationVisibility:
         "TOGGLE_ISOCHRONE_CALCULATION_VISIBILITY",
-      toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY",
-      setSelectedThematicData: "SET_SELECTED_THEMATIC_DATA"
+      toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY"
     }),
     deleteCalculation(calculation) {
       this.$refs.confirm
