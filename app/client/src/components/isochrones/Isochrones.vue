@@ -5,7 +5,7 @@
       <template v-if="isThematicDataVisible === true">
         <v-card-title primary-title class="py-2">
           <v-btn
-            flat
+            text
             class="my-0 py-0"
             icon
             light
@@ -13,7 +13,7 @@
           >
             <v-icon color="rgba(0,0,0,0.54)">fas fa-arrow-left</v-icon>
           </v-btn>
-          <span class="title font-weight-regular">Thematic Data</span>
+          <span class="title">Thematic Data</span>
         </v-card-title>
         <v-card-text class="pr-16 pl-16 pt-0 pb-0 mb-2">
           <v-divider></v-divider>
@@ -24,26 +24,33 @@
 
       <!-- ISOCHRONE OPTIONS AND RESULTS  -->
       <template v-else>
-        <v-card-title primary-title>
-          <span class="title font-weight-regular">{{
-            $t("isochrones.title")
-          }}</span>
-        </v-card-title>
+        <v-subheader>
+          <span class="title">{{ $t("isochrones.title") }}</span>
+        </v-subheader>
+
         <v-card-text class="pr-16 pl-16 pt-0 pb-0">
           <v-divider></v-divider>
         </v-card-text>
         <v-card-text>
           <v-layout row>
-            <v-flex xs12>
+            <v-flex xs10>
               <v-text-field
                 solo
-                label="Starting Point"
+                label="Search Road"
                 hide-details
                 prepend-inner-icon="search"
               ></v-text-field>
             </v-flex>
             <v-flex xs2>
-              <v-btn fab small flat @click="registerMapClick">
+              <v-btn
+                class="ml-2 mt-1"
+                outlined
+                fab
+                large
+                rounded
+                text
+                @click="registerMapClick"
+              >
                 <v-icon color="#30C2FF">fas fa-map-marker-alt</v-icon>
               </v-btn>
             </v-flex>

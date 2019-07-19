@@ -2,7 +2,8 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from "vue";
 
-import "./plugins/vuetify";
+import vuetify from "@/plugins/vuetify";
+
 import "./plugins/vuescroll";
 // Plugins
 import i18n from "./plugins/i18n";
@@ -45,6 +46,7 @@ fetch("static/app-conf" + appCtxFile + ".json")
       el: "#app",
       i18n,
       store,
+      vuetify,
       render: h => h(App)
     });
   });

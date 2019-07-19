@@ -1,5 +1,4 @@
 import TileLayer from "ol/layer/Tile";
-import TileWmsSource from "ol/source/TileWMS";
 import OsmSource from "ol/source/OSM";
 import BingMaps from "ol/source/BingMaps";
 import VectorTileLayer from "ol/layer/VectorTile";
@@ -10,6 +9,8 @@ import TopoJsonFormat from "ol/format/TopoJSON";
 import KmlFormat from "ol/format/KML";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
+import ImageWMS from "ol/source/ImageWMS.js";
+import { Image as ImageLayer } from "ol/layer.js";
 import XyzSource from "ol/source/XYZ";
 import { OlStyleFactory } from "./OlStyle";
 import OlStyleDefs from "../style/OlStyleDefs";
@@ -68,20 +69,20 @@ export const LayerFactory = {
    * @return {ol.layer.Tile} OL WMS layer instance
    */
   createWmsLayer(lConf) {
-    const layer = new TileLayer({
+    const layer = new ImageLayer({
       name: lConf.name,
+      title: lConf.title,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
-      extent: lConf.extent,
       visible: lConf.visible,
       opacity: lConf.opacity,
-      source: new TileWmsSource({
+      source: new ImageWMS({
         url: lConf.url,
         params: {
-          LAYERS: lConf.layers,
-          TILED: lConf.tiled
+          LAYERS: lConf.layers
         },
         serverType: lConf.serverType,
+        ratio: lConf.ratio,
         attributions: lConf.attributions
       })
     });
@@ -98,6 +99,8 @@ export const LayerFactory = {
   createXyzLayer(lConf) {
     const xyzLayer = new TileLayer({
       name: lConf.name,
+      title: lConf.title,
+
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
@@ -122,6 +125,7 @@ export const LayerFactory = {
   createOsmLayer(lConf) {
     const layer = new TileLayer({
       name: lConf.name,
+      title: lConf.title,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
@@ -144,6 +148,7 @@ export const LayerFactory = {
   createBingLayer(lConf) {
     const layer = new TileLayer({
       name: lConf.name,
+      title: lConf.title,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
@@ -167,6 +172,7 @@ export const LayerFactory = {
   createVectorLayer(lConf) {
     const vectorLayer = new VectorLayer({
       name: lConf.name,
+      title: lConf.title,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       extent: lConf.extent,
@@ -195,6 +201,8 @@ export const LayerFactory = {
   createVectorTileLayer(lConf) {
     const vtLayer = new VectorTileLayer({
       name: lConf.name,
+      title: lConf.title,
+
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
