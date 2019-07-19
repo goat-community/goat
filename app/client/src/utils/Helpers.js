@@ -6,7 +6,15 @@ const helpers = {
       .replace(/^[a-z]/, function(m) {
         return m.toUpperCase();
       });
-  }
+  },
+  groupBy: (items, key) =>
+    items.reduce(
+      (result, item) => ({
+        ...result,
+        [item[key]]: [...(result[item[key]] || []), item]
+      }),
+      {}
+    )
 };
 
 export default helpers;

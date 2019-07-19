@@ -6,7 +6,9 @@
     ref="poisTree"
     activatable
     open-on-click
+    dense
     selectable
+    rounded
     return-object
     item-key="name"
     selected-color="green"
@@ -17,6 +19,9 @@
   >
     <template v-slot:prepend="{ item, open }">
       <img v-if="item.icon" class="pois-icon" :src="getPoisIconUrl(item)" />
+    </template>
+    <template v-slot:label="{ item, open }">
+      <div class="tree-label-custom">{{ item.name }}</div>
     </template>
     <template v-slot:append="{ item, open }">
       <template v-if="item.icon">
@@ -85,7 +90,7 @@ export default {
 }
 
 .pois-icon {
-  margin-bottom: 13px;
+  margin-bottom: 15px;
 }
 .v-treeview-node--leaf {
   margin-left: 30px;
@@ -94,8 +99,16 @@ export default {
 .v-treeview-node__label {
   flex-shrink: 1;
 }
-
-.v-treeview-node__content {
-  line-height: 1;
+.tree-label-custom {
+  display: block;
+  width: 130px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.v-treeview-node--leaf > .v-treeview-node__root {
+  padding-left: 5px;
+  padding-right: 4px;
 }
 </style>

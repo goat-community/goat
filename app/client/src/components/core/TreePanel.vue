@@ -5,26 +5,28 @@
     :mini-variant.sync="mini"
     app
     persistent
+    permanent
     left
     hide-overlay
     mini-variant-width="50"
     width="350"
+    class="right-shadow"
   >
     <v-layout v-bind:class="getColor" justify-space-between column fill-height>
       <template v-if="mini">
-        <v-btn flat icon light @click.stop="mini = !mini">
+        <v-btn class="ml-2 mt-2" text icon light @click.stop="mini = !mini">
           <v-icon color="white">fas fa-chevron-right</v-icon>
         </v-btn>
       </template>
       <template v-if="!mini">
-        <v-toolbar flat class="toolbar green" height="50">
+        <v-app-bar flat class="toolbar green" height="50">
           <img :src="logo" width="40px" />
           <v-toolbar-title class="white--text">GOAT</v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn flat icon light @click.stop="mini = !mini">
+          <v-btn text icon light @click.stop="mini = !mini">
             <v-icon color="white">fas fa-chevron-left</v-icon>
           </v-btn>
-        </v-toolbar>
+        </v-app-bar>
 
         <vue-scroll>
           <v-layout
@@ -40,23 +42,25 @@
         </vue-scroll>
 
         <v-layout align-end>
-          <v-bottom-nav
-            color="green"
+          <v-bottom-navigation
+            background-color="green"
             flat
-            value="true"
-            :active.sync="activeComponent"
-            height="50"
             dark
+            horizontal
+            grow
+            value="true"
+            v-model="activeComponent"
+            height="50"
           >
-            <v-btn color="#30C2FF" flat value="map-isochrones">
+            <v-btn color="#30C2FF" text value="map-isochrones">
               <span>Isochrones</span>
               <v-icon>fas fa-bullseye</v-icon>
             </v-btn>
-            <v-btn color="#30C2FF" flat value="map-layertree">
+            <v-btn color="#30C2FF" text value="map-layertree">
               <span>Layers</span>
               <v-icon>fas fa-layer-group</v-icon>
             </v-btn>
-          </v-bottom-nav>
+          </v-bottom-navigation>
         </v-layout>
       </template>
     </v-layout>
@@ -90,7 +94,7 @@ export default {
   methods: {}
 };
 </script>
-<style>
+<style lang="css">
 .toolbar {
   font-weight: bold;
   font-size: 18px;
@@ -102,5 +106,9 @@ export default {
 
 .rotate {
   transform: rotate(-90deg);
+}
+
+.right-shadow {
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 20px;
 }
 </style>

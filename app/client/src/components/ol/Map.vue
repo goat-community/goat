@@ -14,7 +14,6 @@ import Vue from "vue";
 import Map from "ol/Map";
 import View from "ol/View";
 import Zoom from "ol/control/Zoom";
-import SelectInteraction from "ol/interaction/Select";
 import { defaults as defaultInteractions } from "ol/interaction";
 import Overlay from "ol/Overlay";
 // import the app-wide EventBus
@@ -22,6 +21,8 @@ import { EventBus } from "../../EventBus";
 import { LayerFactory } from "../../factory/layer.js";
 
 import { mapGetters } from "vuex";
+import helpers from "../../utils/Helpers";
+import { Group as LayerGroup } from "ol/layer.js";
 
 export default {
   name: "app-map",
@@ -82,31 +83,26 @@ export default {
      * @return {ol.layer.Base[]} Array of OL layer instances
      */
     createLayers() {
-      const me = this;
       let layers = [];
-      this.$appConfig.map.layers.reverse().forEach(function(lConf) {
-        let layer = LayerFactory.getInstance(lConf);
-        layers.push(layer);
-
-        // if layer is selectable register a select interaction
-        if (lConf.selectable) {
-          const selectClick = new SelectInteraction({
-            layers: [layer]
-          });
-          // forward an event if feature selection changes
-          selectClick.on("select", function(evt) {
-            // TODO use identifier for layer (once its implemented)
-            EventBus.$emit(
-              "map-selectionchange",
-              layer.get("name"),
-              evt.selected,
-              evt.deselected
-            );
-          });
-          // register/activate interaction on map
-          me.map.addInteraction(selectClick);
+      const layersConfigGrouped = helpers.groupBy(
+        this.$appConfig.map.layers,
+        "group"
+      );
+      for (var group in layersConfigGrouped) {
+        if (!layersConfigGrouped.hasOwnProperty(group)) {
+          continue;
         }
-      });
+        const mapLayers = [];
+        layersConfigGrouped[group].reverse().forEach(function(lConf) {
+          const layer = LayerFactory.getInstance(lConf);
+          mapLayers.push(layer);
+        });
+        let layerGroup = new LayerGroup({
+          name: group !== undefined ? group.toString() : "Other Layers",
+          layers: mapLayers
+        });
+        layers.push(layerGroup);
+      }
 
       return layers;
     },

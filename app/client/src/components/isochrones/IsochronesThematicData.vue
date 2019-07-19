@@ -34,13 +34,13 @@
             ? 'Select time to filter'
             : 'No data for the selected time'
         "
-        :rows-per-page-items="[
+        :items-per-page-options="[
           5,
           10,
           15,
           { text: '$vuetify.dataIterator.rowsPerPageAll', value: -1 }
         ]"
-        :pagination.sync="pagination"
+        :options.sync="pagination"
       >
         <template v-slot:items="props">
           <td v-for="(header, index) in tableHeaders" :key="index">
@@ -62,7 +62,7 @@ import IsochroneUtils from "../../utils/IsochroneUtils";
 export default {
   data: () => ({
     pagination: {
-      rowsPerPage: 15
+      rowsPerPage: 10
     },
     selectedTime: null,
     search: ""

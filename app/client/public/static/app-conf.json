@@ -36,11 +36,59 @@
     "center": [1289645.541227, 6129485.298188],
     "layers": [
       {
+        "type": "WMS",
+        "name": "walkability",
+        "title": "Walkability",
+        "url": "https://goat.open-accessibility.org/geoserver/wms",
+        "group": "Accessibility Basemap",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true
+      },
+      {
+        "type": "WMS",
+        "name": "population",
+        "title": "Population",
+        "url": "https://goat.open-accessibility.org/geoserver/wms",
+        "group": "Accessibility Basemap",
+        "layers": "cite:heatmap_population",
+        "serverType": "geoserver",
+        "opacity": 1,
+        "visible": false,
+        "displayInLayerList": true
+      },
+      {
+        "type": "WMS",
+        "name": "area-isochrone",
+        "title": "Area Isochrone",
+        "url": "https://goat.open-accessibility.org/geoserver/wms",
+        "group": "Accessibility Basemap",
+        "layers": "cite:heatmap_area_isochrone",
+        "opacity": 1,
+        "serverType": "geoserver",
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true
+      },
+      {
+        "type": "WMS",
+        "name": "walkability-population",
+        "title": "Walkability Population",
+        "url": "http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "group": "Accessibility Basemap",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true
+      },
+
+      {
         "type": "OSM",
         "name": "osm-standard",
         "title": "OSM Standard",
         "url": "http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "group": "background",
+        "group": "Background Layers",
         "maxZoom": 19,
         "queryable": false,
         "visible": false,
@@ -51,7 +99,7 @@
         "name": "osm-carto-db-light",
         "title": "OSM Light",
         "url": "http://{a-c}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-        "group": "background",
+        "group": "Background Layers",
         "maxZoom": 19,
         "queryable": false,
         "visible": false,
@@ -62,7 +110,7 @@
         "name": "osm-carto-db-dark",
         "title": "OSM Dark",
         "url": "http://{a-c}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-        "group": "background",
+        "group": "Background Layers",
         "maxZoom": 19,
         "queryable": false,
         "visible": false,
@@ -72,7 +120,7 @@
         "type": "XYZ",
         "name": "mabox-streets",
         "title": "Mapbox",
-        "group": "background",
+        "group": "Background Layers",
         "url": "https://api.mapbox.com/styles/v1/mapbox/streets-v10/tiles/256/{z}/{x}/{y}",
         "accessToken": "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
         "maxZoom": 19,
@@ -84,7 +132,7 @@
         "type": "XYZ",
         "name": "memomaps-public-transport",
         "title": "Public Transport",
-        "group": "background",
+        "group": "Background Layers",
         "url": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
         "maxZoom": 18,
         "queryable": false,
@@ -95,7 +143,7 @@
         "type": "BING",
         "name": "bing-aerial",
         "title": "Bing Aerial",
-        "group": "background",
+        "group": "Background Layers",
         "accessToken": "Avv4X-3gpZJQ_Ln2eAilMZ8qNI4Y6UtspyNxgIzoCSZC26xi_aXb3AiaXnutPPjH",
         "imagerySet": "Aerial",
         "maxZoom": 19,
@@ -105,15 +153,15 @@
       }
     ],
     "controls": [
-        {
-          "name": "home",
-          "options": {
-            "zoomOnStart": true
-          }
-        },
-        {
-          "name": "legend"
+      {
+        "name": "home",
+        "options": {
+          "zoomOnStart": true
         }
+      },
+      {
+        "name": "legend"
+      }
     ]
   },
   "controls": {}
