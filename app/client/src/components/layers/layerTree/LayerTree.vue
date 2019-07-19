@@ -123,14 +123,17 @@ export default {
           if (layer instanceof Group) {
             me.getMapLayerObj(layer);
           } else {
-            let layerOpt = {
-              id: index,
-              name: layer.get("title") || layer.get("name") || "Unnamed layer",
-              isVisible: layer.getVisible() || false,
-              showOptions: false,
-              mapLayer: layer
-            };
-            obj.children.push(layerOpt);
+            if (layer.get("displayInLayerList")) {
+              let layerOpt = {
+                id: index,
+                name:
+                  layer.get("title") || layer.get("name") || "Unnamed layer",
+                isVisible: layer.getVisible() || false,
+                showOptions: false,
+                mapLayer: layer
+              };
+              obj.children.push(layerOpt);
+            }
           }
         });
       } else if (layer instanceof Vector) {
@@ -145,7 +148,10 @@ export default {
     doNothing() {},
     toggleLayerVisibility(clickedLayer, layerGroup) {
       //Turn off other layers if layer group is background layers.
-      if (layerGroup.name === "Background Layers") {
+      if (
+        layerGroup.name === "Background Layers" ||
+        layerGroup.name === "Accessibility Basemap"
+      ) {
         layerGroup.children.forEach(layer => {
           if (layer.id === clickedLayer.id) return;
           layer.isVisible = false;

@@ -34,12 +34,15 @@
         <v-card-text>
           <v-layout row>
             <v-flex xs10>
-              <v-text-field
+              <v-autocomplete
                 solo
                 label="Search Road"
+                :search-input.sync="search"
                 hide-details
+                hide-no-data
                 prepend-inner-icon="search"
-              ></v-text-field>
+                return-object
+              ></v-autocomplete>
             </v-flex>
             <v-flex xs2>
               <v-btn
@@ -132,7 +135,11 @@ export default {
     clicked: false,
     isStartPointElVisible: true,
     isOptionsElVisible: true,
-    isResultsElVisible: true
+    isResultsElVisible: true,
+    //Road Search
+    model: null,
+    search: null,
+    isLoading: false
   }),
   created() {
     var me = this;
@@ -150,7 +157,17 @@ export default {
       styleData: "styleData",
       isThematicDataVisible: "isThematicDataVisible"
     }),
-    ...mapGetters("map", { messages: "messages" })
+    ...mapGetters("map", { messages: "messages" }),
+    fields() {
+      if (!this.model) return [];
+
+      return Object.keys(this.model).map(key => {
+        return {
+          key,
+          value: this.model[key] || "n/a"
+        };
+      });
+    }
   },
   methods: {
     ...mapActions("isochrones", { calculateIsochrone: "calculateIsochrone" }),
@@ -208,6 +225,7 @@ export default {
       let me = this;
       let vector = new VectorLayer({
         name: "Isochrone Layer",
+        zIndex: 2,
         source: new VectorSource(),
         style: feature => {
           // Style array
@@ -311,7 +329,27 @@ export default {
       this.addIsochroneLayer(vector);
     }
   },
-  mounted() {}
+  watch: {
+    search(val) {
+      console.log(val);
+
+      // Items have already been requested
+      if (this.isLoading) return;
+
+      this.isLoading = true;
+
+      // Lazily load input items
+      fetch("https://api.publicapis.org/entries")
+        .then(res => res.json())
+        .then(res => {
+          console.log(res);
+        })
+        .catch(err => {
+          console.log(err);
+        })
+        .finally(() => (this.isLoading = false));
+    }
+  }
 };
 </script>
 <style lang="css" scoped>

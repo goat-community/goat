@@ -44,7 +44,8 @@
         "opacity": 1,
         "queryable": false,
         "visible": false,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "zIndex": 1
       },
       {
         "type": "WMS",
@@ -56,7 +57,8 @@
         "serverType": "geoserver",
         "opacity": 1,
         "visible": false,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "zIndex": 1
       },
       {
         "type": "WMS",
@@ -69,7 +71,8 @@
         "serverType": "geoserver",
         "queryable": false,
         "visible": false,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "zIndex": 1
       },
       {
         "type": "WMS",
@@ -80,7 +83,8 @@
         "opacity": 1,
         "queryable": false,
         "visible": false,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "zIndex": 1
       },
 
       {
