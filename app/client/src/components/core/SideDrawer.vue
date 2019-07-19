@@ -39,6 +39,7 @@
       right
       hide-overlay
       class="green"
+      :class="{ 'left-shadow': container === false }"
       width="50"
     >
       <v-layout justify-space-between column fill-height>

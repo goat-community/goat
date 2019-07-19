@@ -76,6 +76,7 @@ export const LayerFactory = {
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
       opacity: lConf.opacity,
+      zIndex: lConf.zIndex,
       source: new ImageWMS({
         url: lConf.url,
         params: {
