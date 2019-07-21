@@ -11,6 +11,8 @@
         "projection": "+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
       }
     ],
+    "minZoom": 10,
+    "maxZoom": 20,
     "zoom": 13,
     "resolutions": [
       156543.03,
@@ -36,11 +38,39 @@
     "center": [1289645.541227, 6129485.298188],
     "layers": [
       {
+        "type": "VECTOR",
+        "lid": "study-area",
+        "name": "study-area",
+        "url": "/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:study_area_union&srsname=EPSG:4326&outputFormat=json",
+        "formatConfig": {},
+        "format": "GeoJSON",
+        "displayInLayerList": false,
+        "visible": true,
+        "zIndex": 4,
+        "styleRef": "boundaryStyle"
+      },
+      {
+        "type": "WMS",
+        "name": "pois",
+        "title": "Point of Interest",
+        "url": "https://goat.open-accessibility.org/geoserver/wms",
+        "group": "Pois Layer",
+        "layers": "cite:pois_info",
+        "viewparams": "amenities:'cG9wdWxhdGlvbg=='",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true,
+        "zIndex": 2
+      },
+      {
         "type": "WMS",
         "name": "walkability",
         "title": "Walkability",
         "url": "https://goat.open-accessibility.org/geoserver/wms",
         "group": "Accessibility Basemap",
+        "layers": "cite:heatmap",
+        "viewparams": "amenities:'W10='",
         "opacity": 1,
         "queryable": false,
         "visible": false,
@@ -62,6 +92,21 @@
       },
       {
         "type": "WMS",
+        "name": "walkability-population",
+        "title": "Walkability Population",
+        "url": "https://goat.open-accessibility.org/geoserver/wms",
+        "group": "Accessibility Basemap",
+        "layers": "cite:heatmap_luptai",
+        "viewparams": "amenities:W10=",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true,
+        "zIndex": 1
+      },
+
+      {
+        "type": "WMS",
         "name": "area-isochrone",
         "title": "Area Isochrone",
         "url": "https://goat.open-accessibility.org/geoserver/wms",
@@ -69,18 +114,6 @@
         "layers": "cite:heatmap_area_isochrone",
         "opacity": 1,
         "serverType": "geoserver",
-        "queryable": false,
-        "visible": false,
-        "displayInLayerList": true,
-        "zIndex": 1
-      },
-      {
-        "type": "WMS",
-        "name": "walkability-population",
-        "title": "Walkability Population",
-        "url": "http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "group": "Accessibility Basemap",
-        "opacity": 1,
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,

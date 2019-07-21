@@ -36,8 +36,14 @@
             <v-flex xs10>
               <v-autocomplete
                 solo
+                v-model="model"
+                :items="items"
+                :loading="isLoading"
                 label="Search Road"
                 :search-input.sync="search"
+                item-text="Description"
+                append-icon=""
+                item-value="API"
                 hide-details
                 hide-no-data
                 prepend-inner-icon="search"
@@ -110,13 +116,14 @@
 </template>
 
 <script>
+import { Mapable } from "../../mixins/Mapable";
+
 //Child components
 import IsochroneOptions from "./IsochroneOptions";
 import IsochroneResults from "./IsochroneResults";
 import IsochronThematicData from "./IsochronesThematicData";
 
-//Store & Bus imports
-import { EventBus } from "../../EventBus.js";
+//Store imports
 import { mapGetters, mapActions, mapMutations } from "vuex";
 
 //Ol imports
@@ -126,6 +133,7 @@ import VectorLayer from "ol/layer/Vector";
 import { Style, Stroke, Fill, Icon } from "ol/style";
 
 export default {
+  mixins: [Mapable],
   components: {
     "isochrone-options": IsochroneOptions,
     "isochrone-results": IsochroneResults,
@@ -137,21 +145,12 @@ export default {
     isOptionsElVisible: true,
     isResultsElVisible: true,
     //Road Search
+    descriptionLimit: 60,
+    entries: [],
     model: null,
     search: null,
     isLoading: false
   }),
-  created() {
-    var me = this;
-    // Listen to the ol-map-mounted event and receive the OL map instance
-    EventBus.$on("ol-map-mounted", olMap => {
-      // make the OL map accesible in this component
-      me.map = olMap;
-
-      //Create isochrone layer
-      me.createIsochroneLayer();
-    });
-  },
   computed: {
     ...mapGetters("isochrones", {
       styleData: "styleData",
@@ -166,6 +165,16 @@ export default {
           key,
           value: this.model[key] || "n/a"
         };
+      });
+    },
+    items() {
+      return this.entries.map(entry => {
+        const Description =
+          entry.Description.length > this.descriptionLimit
+            ? entry.Description.slice(0, this.descriptionLimit) + "..."
+            : entry.Description;
+
+        return Object.assign({}, entry, { Description });
       });
     }
   },
@@ -182,6 +191,12 @@ export default {
       startHelpTooltip: "START_HELP_TOOLTIP",
       stopHelpTooltip: "STOP_HELP_TOOLTIP"
     }),
+    /**
+     * This function is executed, after the map is bound (see mixins/Mapable)
+     */
+    onMapBound() {
+      this.createIsochroneLayer();
+    },
     registerMapClick() {
       const me = this;
       me.map.once("singleclick", me.onMapClick);
@@ -333,16 +348,21 @@ export default {
     search(val) {
       console.log(val);
 
+      // Items have already been loaded
+      if (this.items.length > 0) return;
+
       // Items have already been requested
       if (this.isLoading) return;
 
       this.isLoading = true;
 
       // Lazily load input items
-      fetch("https://api.publicapis.org/entries")
+      fetch("")
         .then(res => res.json())
         .then(res => {
-          console.log(res);
+          const { count, entries } = res;
+          this.count = count;
+          this.entries = entries;
         })
         .catch(err => {
           console.log(err);

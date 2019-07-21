@@ -43,7 +43,7 @@
                   <v-flex xs2>
                     <v-icon
                       :class="{
-                        'active-icon': item.isVisible === true,
+                        'active-icon': item.mapLayer.getVisible() === true,
                         'expansion-panel__container--active':
                           item.showOptions === true
                       }"
@@ -55,7 +55,7 @@
                   </v-flex>
                   <v-flex xs1>
                     <v-icon
-                      v-show="item.isVisible"
+                      v-show="item.mapLayer.getVisible()"
                       @click.stop="toggleLayerOptions(item)"
                     ></v-icon>
                   </v-flex>
@@ -89,7 +89,7 @@ export default {
     onMapBound() {
       const me = this;
       const localVectorLayers = {
-        name: "Local Vector Layers",
+        name: "Vector Layers",
         id: 100,
         isExpanded: [false],
         children: []
@@ -99,9 +99,13 @@ export default {
         .getArray()
         .forEach((layer, index) => {
           let obj = me.getMapLayerObj(layer, index);
-          if (layer instanceof Group) {
+          if (layer instanceof Group && layer.get("name") != "undefined") {
             me.layers.push(obj);
-          } else if (layer instanceof Vector) {
+          } else if (
+            layer instanceof Vector &&
+            layer.get("name") != "undefined" &&
+            layer.get("displayInLayerList") === true
+          ) {
             localVectorLayers.children.push(obj);
           }
         });
@@ -128,7 +132,6 @@ export default {
                 id: index,
                 name:
                   layer.get("title") || layer.get("name") || "Unnamed layer",
-                isVisible: layer.getVisible() || false,
                 showOptions: false,
                 mapLayer: layer
               };
@@ -139,7 +142,6 @@ export default {
       } else if (layer instanceof Vector) {
         obj.id = index;
         obj.name = layer.get("title") || layer.get("name");
-        obj.isVisible = layer.getVisible() || false;
         obj.showOptions = false;
         obj.mapLayer = layer;
       }
@@ -154,14 +156,12 @@ export default {
       ) {
         layerGroup.children.forEach(layer => {
           if (layer.id === clickedLayer.id) return;
-          layer.isVisible = false;
           layer.showOptions = false;
           layer.mapLayer.setVisible(false);
         });
       }
-      clickedLayer.isVisible = !clickedLayer.isVisible;
-      clickedLayer.mapLayer.setVisible(clickedLayer.isVisible);
-      if (clickedLayer.isVisible === false) {
+      clickedLayer.mapLayer.setVisible(!clickedLayer.mapLayer.getVisible());
+      if (clickedLayer.mapLayer.getVisible() === false) {
         clickedLayer.showOptions = false;
       }
     },

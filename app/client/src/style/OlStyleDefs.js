@@ -3,19 +3,13 @@ import OlStroke from "ol/style/Stroke";
 import OlFill from "ol/style/Fill";
 
 export default {
-  shopStyle: new OlStyle({
-    stroke: new OlStroke({
-      color: "red",
-      width: 3.25
-    })
-  }),
-  neWorldMvt: new OlStyle({
-    stroke: new OlStroke({
-      color: "gray",
-      width: 1
-    }),
+  boundaryStyle: new OlStyle({
     fill: new OlFill({
-      color: "rgba(20,20,20,0.1)"
+      color: [0, 0, 0, 0]
+    }),
+    stroke: new OlStroke({
+      color: "#707070",
+      width: 5.5
     })
   })
 };
