@@ -16,12 +16,15 @@ import View from "ol/View";
 import Zoom from "ol/control/Zoom";
 import { defaults as defaultInteractions } from "ol/interaction";
 import Overlay from "ol/Overlay";
+import Mask from "ol-ext/filter/Mask";
+import OlFill from "ol/style/Fill";
 // import the app-wide EventBus
 import { EventBus } from "../../EventBus";
 import { LayerFactory } from "../../factory/layer.js";
 
 import { mapGetters } from "vuex";
 import helpers from "../../utils/Helpers";
+import Layers from "../../utils/Layer";
 import { Group as LayerGroup } from "ol/layer.js";
 
 export default {
@@ -32,7 +35,10 @@ export default {
   data() {
     return {
       zoom: this.$appConfig.map.zoom,
-      center: this.$appConfig.map.center
+      center: this.$appConfig.map.center,
+      minZoom: this.$appConfig.map.minZoom,
+      maxZoom: this.$appConfig.map.maxZoom,
+      allLayers: []
     };
   },
   mounted() {
@@ -68,13 +74,17 @@ export default {
       interactions: interactions,
       view: new View({
         center: me.center || [0, 0],
-        zoom: me.zoom
+        zoom: me.zoom,
+        minZoom: me.minZoom,
+        maxZoom: me.maxZoom
       })
     });
 
     // create layers from config and add them to map
     const layers = me.createLayers();
     me.map.getLayers().extend(layers);
+    //Create mask filters
+    me.createMaskFilters(layers);
   },
 
   methods: {
@@ -106,7 +116,41 @@ export default {
 
       return layers;
     },
+    createMaskFilters(mapLayers) {
+      const me = this;
 
+      //Filter background layers
+      const backgroundLayers = [];
+      mapLayers.forEach(layer => {
+        if (layer.get("name") === "Background Layers") {
+          backgroundLayers.push(...layer.getLayers().getArray());
+        }
+      });
+
+      //Reference study area layer
+      let studyAreaLayer;
+      Layers.getAllChildLayers(me.map).forEach(layer => {
+        if (layer.get("name") === "study-area") {
+          studyAreaLayer = layer;
+        }
+      });
+
+      //Create masks
+      if (studyAreaLayer) {
+        studyAreaLayer.getSource().on("change", function() {
+          console.log("changed");
+          const feature = studyAreaLayer.getSource().getFeatures()[0];
+          const mask = new Mask({
+            feature: feature,
+            inner: false,
+            fill: new OlFill({ color: [169, 169, 169, 0.8] })
+          });
+          for (const i of backgroundLayers) {
+            i.addFilter(mask);
+          }
+        });
+      }
+    },
     setupMapHover() {
       const me = this;
       const map = me.map;

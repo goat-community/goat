@@ -38,18 +38,24 @@
 </template>
 
 <script>
+import { Mapable } from "../../../mixins/Mapable";
+import Utils from "../../../utils/Layer";
 import { mapGetters, mapActions } from "vuex";
+
 export default {
+  mixins: [Mapable],
   data: () => ({
     open: [],
-    tree: []
+    tree: [],
+    heatmapLayers: [],
+    poisLayer: null
   }),
   methods: {
     ...mapActions("pois", {
       updateSelectedPois: "updateSelectedPois"
     }),
     getPoisIconUrl(item) {
-      var images = require.context(
+      const images = require.context(
         "../../../assets/img/pois/",
         false,
         /\.png$/
@@ -65,12 +71,64 @@ export default {
       if (item.weight > 1) {
         item.weight--;
       }
+    },
+    onMapBound() {
+      const me = this;
+      const map = me.map;
+      const heatmapLayerNames = ["walkability", "walkability-population"];
+      const poisLayerName = "pois";
+
+      const allLayers = Utils.getAllChildLayers(map);
+      allLayers.forEach(layer => {
+        const layerName = layer.get("name");
+        if (heatmapLayerNames.includes(layerName)) {
+          me.heatmapLayers.push(layer);
+        }
+        if (layerName === poisLayerName) {
+          me.poisLayer = layer;
+        }
+      });
+    },
+    updateHeatmapLayerViewParams(selectedPois) {
+      const me = this;
+      const viewParams = selectedPois.map(item => {
+        const { value, weight } = item;
+        return {
+          [`'${value}'`]: weight
+        };
+      });
+      console.log(viewParams);
+
+      me.heatmapLayers.forEach(layer => {
+        layer.getSource().updateParams({
+          viewparams: `amenities:'${btoa(JSON.stringify(viewParams))}'`
+        });
+        if (viewParams.length === 0) {
+          layer.setVisible(false);
+        }
+
+        layer.getSource().refresh();
+      });
+    },
+    updatePoisLayerViewParams(selectedPois) {
+      const me = this;
+      if (me.poisLayer) {
+        const viewparams = selectedPois.map(item => {
+          const { value } = item;
+          return value;
+        });
+        me.poisLayer.getSource().updateParams({
+          viewparams: `amenities:'${btoa(viewparams.toString())}'`
+        });
+      }
     }
   },
   watch: {
     tree: function() {
-      let me = this;
+      const me = this;
       me.updateSelectedPois(me.tree);
+      me.updateHeatmapLayerViewParams(me.tree);
+      me.updatePoisLayerViewParams(me.tree);
     }
   },
   computed: {
