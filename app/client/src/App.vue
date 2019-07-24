@@ -6,8 +6,8 @@
   >
     <app-sidebar />
     <tree-panel />
-    <v-content>
-      <v-container id="ol-map-container" fluid fill-height style="padding: 0">
+    <v-content class="pr-0">
+      <v-container id="ol-map-container" fluid fill-height class="pa-0">
         <app-map :color="controlsColor" />
         <map-loading-progress-status />
       </v-container>

@@ -1,14 +1,14 @@
 <template>
-  <v-dialog v-model="show" max-width="450px">
+  <v-dialog v-model="show" max-width="500px">
     <v-card flat>
-      <v-toolbar color="green" dark>
-        <v-toolbar-side-icon><v-icon>fas fa-cog</v-icon></v-toolbar-side-icon>
+      <v-app-bar color="green" dark>
+        <v-app-bar-nav-icon><v-icon>fas fa-cog</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title>{{ $t("appBar.settings.title") }}</v-toolbar-title>
         <v-spacer></v-spacer>
-        <v-toolbar-side-icon @click.stop="show = false"
-          ><v-icon>close</v-icon></v-toolbar-side-icon
+        <v-app-bar-nav-icon @click.stop="show = false"
+          ><v-icon>close</v-icon></v-app-bar-nav-icon
         >
-      </v-toolbar>
+      </v-app-bar>
 
       <!-- App Language Settings -->
       <v-subheader
@@ -22,7 +22,7 @@
           <span>
             <v-btn-toggle v-model="defaultLanguage" mandatory>
               <v-btn
-                flat
+                text
                 v-for="entry in languages"
                 :key="entry.title"
                 @click="changeLocale(entry.language)"

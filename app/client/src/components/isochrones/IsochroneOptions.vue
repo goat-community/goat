@@ -56,6 +56,7 @@
       <v-select
         item-text="display"
         item-value="value"
+        outlined
         v-model="concavityIsochrones"
         :value="concavityIsochrones"
         :items="options.concavityIsochrones.values"
@@ -66,6 +67,7 @@
         item-text="display"
         item-value="value"
         v-model="calculationModes"
+        outlined
         :value="concavityIsochrones"
         :items="options.calculationModes.values"
         :label="$t('isochrones.options.calcModus')"

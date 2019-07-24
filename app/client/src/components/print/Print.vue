@@ -1,11 +1,10 @@
 <template>
   <v-flex xs12 sm8 md4>
     <v-card flat>
-      <v-card-title primary-title>
-        <span class="title font-weight-regular">{{
-          $t("appBar.printMap.title")
-        }}</span>
-      </v-card-title>
+      <v-subheader>
+        <span class="title">{{ $t("appBar.printMap.title") }}</span>
+      </v-subheader>
+
       <v-card-text class="pr-16 pl-16 pt-0 pb-0">
         <v-divider></v-divider>
       </v-card-text>
