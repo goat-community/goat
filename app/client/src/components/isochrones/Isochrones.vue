@@ -5,7 +5,7 @@
       <template v-if="isThematicDataVisible === true">
         <v-card-title primary-title class="py-2">
           <v-btn
-            flat
+            text
             class="my-0 py-0"
             icon
             light
@@ -13,7 +13,7 @@
           >
             <v-icon color="rgba(0,0,0,0.54)">fas fa-arrow-left</v-icon>
           </v-btn>
-          <span class="title font-weight-regular">Thematic Data</span>
+          <span class="title">Thematic Data</span>
         </v-card-title>
         <v-card-text class="pr-16 pl-16 pt-0 pb-0 mb-2">
           <v-divider></v-divider>
@@ -24,26 +24,42 @@
 
       <!-- ISOCHRONE OPTIONS AND RESULTS  -->
       <template v-else>
-        <v-card-title primary-title>
-          <span class="title font-weight-regular">{{
-            $t("isochrones.title")
-          }}</span>
-        </v-card-title>
+        <v-subheader>
+          <span class="title">{{ $t("isochrones.title") }}</span>
+        </v-subheader>
+
         <v-card-text class="pr-16 pl-16 pt-0 pb-0">
           <v-divider></v-divider>
         </v-card-text>
         <v-card-text>
           <v-layout row>
-            <v-flex xs12>
-              <v-text-field
+            <v-flex xs10>
+              <v-autocomplete
                 solo
-                label="Starting Point"
+                v-model="model"
+                :items="items"
+                :loading="isLoading"
+                label="Search Road"
+                :search-input.sync="search"
+                item-text="Description"
+                append-icon=""
+                item-value="API"
                 hide-details
+                hide-no-data
                 prepend-inner-icon="search"
-              ></v-text-field>
+                return-object
+              ></v-autocomplete>
             </v-flex>
             <v-flex xs2>
-              <v-btn fab small flat @click="registerMapClick">
+              <v-btn
+                class="ml-2 mt-1"
+                outlined
+                fab
+                large
+                rounded
+                text
+                @click="registerMapClick"
+              >
                 <v-icon color="#30C2FF">fas fa-map-marker-alt</v-icon>
               </v-btn>
             </v-flex>
@@ -100,13 +116,14 @@
 </template>
 
 <script>
+import { Mapable } from "../../mixins/Mapable";
+
 //Child components
 import IsochroneOptions from "./IsochroneOptions";
 import IsochroneResults from "./IsochroneResults";
 import IsochronThematicData from "./IsochronesThematicData";
 
-//Store & Bus imports
-import { EventBus } from "../../EventBus.js";
+//Store imports
 import { mapGetters, mapActions, mapMutations } from "vuex";
 
 //Ol imports
@@ -116,6 +133,7 @@ import VectorLayer from "ol/layer/Vector";
 import { Style, Stroke, Fill, Icon } from "ol/style";
 
 export default {
+  mixins: [Mapable],
   components: {
     "isochrone-options": IsochroneOptions,
     "isochrone-results": IsochroneResults,
@@ -125,25 +143,40 @@ export default {
     clicked: false,
     isStartPointElVisible: true,
     isOptionsElVisible: true,
-    isResultsElVisible: true
+    isResultsElVisible: true,
+    //Road Search
+    descriptionLimit: 60,
+    entries: [],
+    model: null,
+    search: null,
+    isLoading: false
   }),
-  created() {
-    var me = this;
-    // Listen to the ol-map-mounted event and receive the OL map instance
-    EventBus.$on("ol-map-mounted", olMap => {
-      // make the OL map accesible in this component
-      me.map = olMap;
-
-      //Create isochrone layer
-      me.createIsochroneLayer();
-    });
-  },
   computed: {
     ...mapGetters("isochrones", {
       styleData: "styleData",
       isThematicDataVisible: "isThematicDataVisible"
     }),
-    ...mapGetters("map", { messages: "messages" })
+    ...mapGetters("map", { messages: "messages" }),
+    fields() {
+      if (!this.model) return [];
+
+      return Object.keys(this.model).map(key => {
+        return {
+          key,
+          value: this.model[key] || "n/a"
+        };
+      });
+    },
+    items() {
+      return this.entries.map(entry => {
+        const Description =
+          entry.Description.length > this.descriptionLimit
+            ? entry.Description.slice(0, this.descriptionLimit) + "..."
+            : entry.Description;
+
+        return Object.assign({}, entry, { Description });
+      });
+    }
   },
   methods: {
     ...mapActions("isochrones", { calculateIsochrone: "calculateIsochrone" }),
@@ -158,6 +191,12 @@ export default {
       startHelpTooltip: "START_HELP_TOOLTIP",
       stopHelpTooltip: "STOP_HELP_TOOLTIP"
     }),
+    /**
+     * This function is executed, after the map is bound (see mixins/Mapable)
+     */
+    onMapBound() {
+      this.createIsochroneLayer();
+    },
     registerMapClick() {
       const me = this;
       me.map.once("singleclick", me.onMapClick);
@@ -201,6 +240,7 @@ export default {
       let me = this;
       let vector = new VectorLayer({
         name: "Isochrone Layer",
+        zIndex: 2,
         source: new VectorSource(),
         style: feature => {
           // Style array
@@ -304,7 +344,32 @@ export default {
       this.addIsochroneLayer(vector);
     }
   },
-  mounted() {}
+  watch: {
+    search(val) {
+      console.log(val);
+
+      // Items have already been loaded
+      if (this.items.length > 0) return;
+
+      // Items have already been requested
+      if (this.isLoading) return;
+
+      this.isLoading = true;
+
+      // Lazily load input items
+      fetch("")
+        .then(res => res.json())
+        .then(res => {
+          const { count, entries } = res;
+          this.count = count;
+          this.entries = entries;
+        })
+        .catch(err => {
+          console.log(err);
+        })
+        .finally(() => (this.isLoading = false));
+    }
+  }
 };
 </script>
 <style lang="css" scoped>
