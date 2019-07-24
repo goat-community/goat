@@ -10,6 +10,8 @@ import TopoJsonFormat from "ol/format/TopoJSON";
 import KmlFormat from "ol/format/KML";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
+import ImageWMS from "ol/source/ImageWMS.js";
+import { Image as ImageLayer } from "ol/layer.js";
 import XyzSource from "ol/source/XYZ";
 import { OlStyleFactory } from "./OlStyle";
 import OlStyleDefs from "../style/OlStyleDefs";
@@ -46,6 +48,8 @@ export const LayerFactory = {
     // create correct layer type
     if (lConf.type === "WMS") {
       return this.createWmsLayer(lConf);
+    } else if (lConf.type === "WMSTILE") {
+      return this.createWmsTileLayer(lConf);
     } else if (lConf.type === "XYZ") {
       return this.createXyzLayer(lConf);
     } else if (lConf.type === "OSM") {
@@ -68,18 +72,50 @@ export const LayerFactory = {
    * @return {ol.layer.Tile} OL WMS layer instance
    */
   createWmsLayer(lConf) {
+    const layer = new ImageLayer({
+      name: lConf.name,
+      title: lConf.title,
+      lid: lConf.lid,
+      displayInLayerList: lConf.displayInLayerList,
+      visible: lConf.visible,
+      opacity: lConf.opacity,
+      zIndex: lConf.zIndex,
+      source: new ImageWMS({
+        url: lConf.url,
+        params: {
+          LAYERS: lConf.layers,
+          viewparams: lConf.viewparams
+        },
+        serverType: lConf.serverType,
+        ratio: lConf.ratio,
+        attributions: lConf.attributions
+      })
+    });
+
+    return layer;
+  },
+  /**
+   * Returns an OpenLayers WMS Tile layer instance due to given config.
+   *
+   * @param  {Object} lConf  Layer config object
+   * @return {ol.layer.Tile} OL WMS layer instance
+   */
+  createWmsTileLayer(lConf) {
     const layer = new TileLayer({
       name: lConf.name,
+      title: lConf.title,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       extent: lConf.extent,
       visible: lConf.visible,
       opacity: lConf.opacity,
+      zIndex: lConf.zIndex,
       source: new TileWmsSource({
         url: lConf.url,
         params: {
           LAYERS: lConf.layers,
-          TILED: lConf.tiled
+          TILED: lConf.tiled,
+          viewparams: lConf.viewparams
         },
         serverType: lConf.serverType,
         attributions: lConf.attributions
@@ -98,6 +134,8 @@ export const LayerFactory = {
   createXyzLayer(lConf) {
     const xyzLayer = new TileLayer({
       name: lConf.name,
+      title: lConf.title,
+
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
@@ -122,6 +160,7 @@ export const LayerFactory = {
   createOsmLayer(lConf) {
     const layer = new TileLayer({
       name: lConf.name,
+      title: lConf.title,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
@@ -144,6 +183,7 @@ export const LayerFactory = {
   createBingLayer(lConf) {
     const layer = new TileLayer({
       name: lConf.name,
+      title: lConf.title,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
@@ -167,11 +207,13 @@ export const LayerFactory = {
   createVectorLayer(lConf) {
     const vectorLayer = new VectorLayer({
       name: lConf.name,
+      title: lConf.title,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       extent: lConf.extent,
       visible: lConf.visible,
       opacity: lConf.opacity,
+      zIndex: lConf.zIndex,
       source: new VectorSource({
         url: lConf.url,
         format: new this.formatMapping[lConf.format](lConf.formatConfig),
@@ -195,6 +237,8 @@ export const LayerFactory = {
   createVectorTileLayer(lConf) {
     const vtLayer = new VectorTileLayer({
       name: lConf.name,
+      title: lConf.title,
+
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,

@@ -1,46 +1,63 @@
 <template>
   <v-layout>
-    <v-flex xs12 class="mx-2">
+    <v-flex xs12 class="mx-3">
       <template v-for="calculation in calculations">
         <v-card class="mb-3 " :key="calculation.id">
           <!-- Isochrone Nr -->
           <div class="isochrone-nr">{{ calculation.id }}</div>
           <v-card-title class="pb-0 mb-0">
-            <span>
-              <v-icon small class="mr-1">fas fa-clock</v-icon>
-              <span>{{ calculation.time }}</span>
-              <v-icon small class="ml-2 mr-1">fas fa-tachometer-alt</v-icon>
-              <span>{{ calculation.speed }}</span>
-              <v-icon
-                @click="showPoisTable(calculation)"
-                small
-                class="result-icons ml-5 mr-2"
-                >fas fa-table</v-icon
-              >
-              <v-icon small class="result-icons mr-2">fas fa-pencil-alt</v-icon>
-              <v-icon
-                @click="showHideCalculation(calculation)"
-                small
-                class="result-icons mr-2"
-                v-html="
-                  calculation.isVisible ? 'fas fa-eye-slash' : 'fas fa-eye'
-                "
-              ></v-icon>
-              <v-icon
-                @click="toggleDownloadDialog(calculation)"
-                small
-                class="result-icons mr-2"
-                >fas fa-download</v-icon
-              >
-              <v-icon
-                @click="deleteCalculation(calculation)"
-                small
-                class="result-icons mr-1"
-              >
-                fas fa-trash-alt</v-icon
-              >
-              <br />
-            </span>
+            <v-layout row wrap align-center>
+              <v-flex xs6>
+                <v-card-text class="pa-0 ma-0">
+                  <v-icon small class="mr-1 text-xs-center"
+                    >fas fa-clock</v-icon
+                  >
+                  <span class="subtitle-2 text-xs-center">{{
+                    calculation.time
+                  }}</span>
+                  <v-icon small class="ml-2 mr-1 "
+                    >fas fa-tachometer-alt</v-icon
+                  >
+                  <span class="subtitle-2 text-xs-center">{{
+                    calculation.speed
+                  }}</span>
+                </v-card-text>
+              </v-flex>
+              <v-flex xs6>
+                <v-card-text class="pa-0 ma-0">
+                  <v-icon
+                    @click="showPoisTable(calculation)"
+                    small
+                    class="result-icons ml-4 mr-2"
+                    >fas fa-table</v-icon
+                  >
+                  <v-icon small class="result-icons mr-2"
+                    >fas fa-pencil-alt</v-icon
+                  >
+                  <v-icon
+                    @click="showHideCalculation(calculation)"
+                    small
+                    class="result-icons mr-2"
+                    v-html="
+                      calculation.isVisible ? 'fas fa-eye-slash' : 'fas fa-eye'
+                    "
+                  ></v-icon>
+                  <v-icon
+                    @click="toggleDownloadDialog(calculation)"
+                    small
+                    class="result-icons mr-2"
+                    >fas fa-download</v-icon
+                  >
+                  <v-icon
+                    @click="deleteCalculation(calculation)"
+                    small
+                    class="result-icons mr-1"
+                  >
+                    fas fa-trash-alt</v-icon
+                  >
+                </v-card-text>
+              </v-flex>
+            </v-layout>
             <v-card-text class="pr-0 pl-0 pt-0 pb-0">
               <v-divider></v-divider>
             </v-card-text>
@@ -60,31 +77,32 @@
             ></v-icon>
             <h3>{{ calculation.position }}</h3>
           </v-subheader>
-          <v-card-text class="pt-0" v-show="calculation.isExpanded">
+          <v-card-text class="pt-0 " v-show="calculation.isExpanded">
             <v-data-table
               :headers="headers"
               :items="calculation.data"
-              class="elevation-1"
-              hide-actions
+              class="elevation-1 subtitle-1"
+              hide-default-footer
+              light
             >
               <template v-slot:items="props">
                 <td>{{ props.item.type }}</td>
                 <td>{{ props.item.range }}</td>
                 <td>{{ props.item.area }}</td>
-                <td>
-                  <v-switch
-                    :input-value="props.item.isVisible"
-                    primary
-                    hide-details
-                    @change="toggleIsochroneFeatureVisibility(props.item)"
-                  ></v-switch>
-                </td>
-                <td>
-                  <div
-                    class="legend"
-                    :style="{ backgroundColor: props.item.color }"
-                  ></div>
-                </td>
+              </template>
+              <template v-slot:item.visible="{ item }">
+                <v-switch
+                  v-model="item.isVisible"
+                  primary
+                  hide-details
+                  @change="toggleIsochroneFeatureVisibility(item)"
+                ></v-switch>
+              </template>
+              <template v-slot:item.legend="{ item }">
+                <div
+                  class="legend"
+                  :style="{ backgroundColor: item.color }"
+                ></div>
               </template>
             </v-data-table>
           </v-card-text>
@@ -187,7 +205,7 @@ export default {
   }
 };
 </script>
-<style>
+<style lang="css">
 .result-icons {
   color: "#4A4A4A";
 }
@@ -199,25 +217,16 @@ export default {
   position: absolute;
   left: 6px;
 }
-table.v-table tbody td:first-child,
-table.v-table tbody td:not(:first-child),
-table.v-table tbody th:first-child,
-table.v-table tbody th:not(:first-child),
-table.v-table thead td:first-child,
-table.v-table thead td:not(:first-child),
-table.v-table thead th:first-child,
-table.v-table thead th:not(:first-child) {
-  padding: 0 10px;
+.v-data-table td,
+.v-data-table th {
+  padding: 0 5px;
 }
-
-table.v-table tbody td,
-table.v-table tbody th {
-  height: 32px;
+.v-data-table th {
+  font-size: 14px;
 }
-table.v-table thead tr {
-  height: 32px;
+.v-data-table td {
+  font-size: 13px;
 }
-
 .legend {
   height: 24px;
   width: 24px;
@@ -226,5 +235,9 @@ table.v-table thead tr {
 
 .activeIcon {
   color: #30c2ff;
+}
+.v-input--selection-controls {
+  margin-top: 0px;
+  padding-top: 0px;
 }
 </style>

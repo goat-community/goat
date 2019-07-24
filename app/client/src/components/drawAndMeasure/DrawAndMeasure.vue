@@ -1,11 +1,9 @@
 <template>
   <v-flex xs12 sm8 md4>
     <v-card flat>
-      <v-card-title primary-title>
-        <span class="title font-weight-regular">{{
-          $t("appBar.drawAndMeasure.title")
-        }}</span>
-      </v-card-title>
+      <v-subheader>
+        <span class="title">{{ $t("appBar.drawAndMeasure.title") }}</span>
+      </v-subheader>
       <v-card-text class="pr-16 pl-16 pt-0 pb-0 mb-2">
         <v-divider></v-divider>
       </v-card-text>
@@ -15,18 +13,13 @@
       <v-divider></v-divider>
 
       <!-- Measure -->
-      <v-expansion-panel class="elevation-0">
-        <v-expansion-panel-content
-          expand-icon=""
-          readonly
-          v-for="item in measureItems"
-          :key="item.id"
-          :class="{
-            'expansion-panel__container--active': activeId === item.id
-          }"
-          @click.native="toggle(item.id, 'measure')"
-        >
-          <div slot="header">
+      <v-expansion-panels accordion>
+        <v-expansion-panel readonly v-for="item in measureItems" :key="item.id">
+          <v-expansion-panel-header
+            class="elevation-1"
+            expand-icon=""
+            v-slot="{ open }"
+          >
             <v-layout row>
               <v-flex xs2>
                 <v-icon
@@ -40,27 +33,31 @@
                 <span>{{ item.text }}</span>
               </v-flex>
             </v-layout>
-          </div>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-      <v-divider class="mb-3"></v-divider>
+          </v-expansion-panel-header>
+
+          <v-expansion-panel-content
+            :class="{
+              'expansion-panel__container--active': activeId === item.id
+            }"
+            @click.native="toggle(item.id, 'measure')"
+          >
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+        <v-divider class="mb-3"></v-divider>
+      </v-expansion-panels>
 
       <!-- Draw -->
       <v-subheader>
         <h3>{{ $t("appBar.drawAndMeasure.draw.header") }}</h3>
       </v-subheader>
       <v-divider></v-divider>
-      <v-expansion-panel class="elevation-0">
-        <v-expansion-panel-content
-          expand-icon=""
-          v-for="item in drawItems"
-          :key="item.id"
-          :class="{
-            'expansion-panel__container--active': activeId === item.id
-          }"
-          @click.native="toggle(item.id, 'draw')"
-        >
-          <div slot="header">
+      <v-expansion-panels accordion>
+        <v-expansion-panel v-for="item in drawItems" :key="item.id">
+          <v-expansion-panel-header
+            class="elevation-1"
+            expand-icon=""
+            v-slot="{ open }"
+          >
             <v-layout row>
               <v-flex xs2>
                 <v-icon
@@ -79,47 +76,55 @@
                 }}</v-icon>
               </v-flex>
             </v-layout>
-          </div>
-          <v-card @click.stop="doNothing" class="card">
-            <v-card-text>
-              <!--Color Settings  -->
-              <v-layout row wrap align-center class="ml-3">
-                <v-flex xs4>
-                  <span>{{ $t("appBar.drawAndMeasure.draw.color") }}</span>
-                </v-flex>
-                <v-flex xs8>
-                  <swatches
-                    @input="colorChange"
-                    class="ml-3"
-                    v-model="colors.selected"
-                    colors="text-advanced"
-                    swatch-size="24"
-                    popover-to="left"
-                    :exceptions="colors.exceptions"
-                  ></swatches>
-                </v-flex>
-              </v-layout>
+          </v-expansion-panel-header>
+          <v-expansion-panel-content
+            :class="{
+              'expansion-panel__container--active': activeId === item.id
+            }"
+            @click.native="toggle(item.id, 'draw')"
+          >
+            <v-card @click.stop="doNothing" class="card">
+              <v-card-text>
+                <!--Color Settings  -->
+                <v-layout row wrap align-center class="ml-3">
+                  <v-flex xs4>
+                    <span>{{ $t("appBar.drawAndMeasure.draw.color") }}</span>
+                  </v-flex>
+                  <v-flex xs8>
+                    <swatches
+                      @input="colorChange"
+                      class="ml-3"
+                      v-model="colors.selected"
+                      colors="text-advanced"
+                      swatch-size="24"
+                      popover-to="left"
+                      :exceptions="colors.exceptions"
+                    ></swatches>
+                  </v-flex>
+                </v-layout>
 
-              <!--Transparency Settings -->
-              <v-layout row wrap align-center class="ml-3">
-                <v-flex xs4>
-                  <span>{{
-                    $t("appBar.drawAndMeasure.draw.transparency")
-                  }}</span>
-                </v-flex>
-                <v-flex xs8 class="pl-4 pr-3">
-                  <v-slider
-                    v-model="transparency"
-                    @change="transparencyChange"
-                    min="1"
-                    max="100"
-                  ></v-slider>
-                </v-flex>
-              </v-layout>
-            </v-card-text>
-          </v-card>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
+                <!--Transparency Settings -->
+                <v-layout row wrap align-center class="ml-3">
+                  <v-flex xs4>
+                    <span>{{
+                      $t("appBar.drawAndMeasure.draw.transparency")
+                    }}</span>
+                  </v-flex>
+                  <v-flex xs8 class="pl-4 pr-3">
+                    <v-slider
+                      v-model="transparency"
+                      @change="transparencyChange"
+                      min="1"
+                      max="100"
+                    ></v-slider>
+                  </v-flex>
+                </v-layout>
+              </v-card-text>
+            </v-card>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+      </v-expansion-panels>
+
       <v-divider></v-divider>
 
       <v-card-text> </v-card-text>
@@ -238,5 +243,9 @@ export default {
 .activeIcon {
   font-size: 20px;
   color: white;
+}
+
+.v-expansion-panel-content >>> .v-expansion-panel-content__wrap {
+  padding: 0px;
 }
 </style>

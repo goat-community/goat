@@ -1,9 +1,12 @@
 import "@fortawesome/fontawesome-free/css/all.css"; // Ensure you are using css-loader
 
 import Vue from "vue";
-import Vuetify from "vuetify/lib";
-import "vuetify/src/stylus/app.styl";
+import Vuetify from "vuetify";
 
-Vue.use(Vuetify, {
-  iconfont: "fa"
+Vue.use(Vuetify);
+
+export default new Vuetify({
+  icons: {
+    iconfont: "fa" // default - only for display purposes
+  }
 });

@@ -1,17 +1,17 @@
 <template>
   <v-dialog v-model="show" max-width="350px">
     <v-card>
-      <v-toolbar color="green" dark>
-        <v-toolbar-side-icon><v-icon>info</v-icon></v-toolbar-side-icon>
+      <v-app-bar color="green" dark>
+        <v-app-bar-nav-icon><v-icon>info</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title>{{ $t("appBar.about.title") }}</v-toolbar-title>
         <v-spacer></v-spacer>
-        <v-toolbar-side-icon @click.stop="show = false"
-          ><v-icon>close</v-icon></v-toolbar-side-icon
+        <v-app-bar-nav-icon @click.stop="show = false"
+          ><v-icon>close</v-icon></v-app-bar-nav-icon
         >
-      </v-toolbar>
+      </v-app-bar>
       <v-card-title primary-title>
         <div>
-          <div class="">
+          <div class="body-1">
             <span
               ><b>{{ $t("appTitle") }}</b> {{ $t("appBar.about.content") }}
             </span>
