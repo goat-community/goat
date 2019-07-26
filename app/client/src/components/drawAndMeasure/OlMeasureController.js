@@ -2,13 +2,11 @@ import DrawInteraction from "ol/interaction/Draw";
 import { unByKey } from "ol/Observable.js";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
-import Style from "ol/style/Style";
-import Stroke from "ol/style/Stroke";
-import Circle from "ol/style/Circle";
-import Fill from "ol/style/Fill";
 import { getArea, getLength } from "ol/sphere.js";
 import Overlay from "ol/Overlay.js";
 import { LineString, Polygon } from "ol/geom.js";
+import OlStyleDefs from "../../style/OlStyleDefs";
+
 /**
  * Class holding the OpenLayers related logic for the measure tool.
  */
@@ -43,22 +41,14 @@ export default class OlMeasureController {
    */
   createMeasureLayer() {
     const me = this;
-    const measureConf = me.measureConf;
     // create a vector layer to
-    var source = new VectorSource();
-    var vector = new VectorLayer({
+    const source = new VectorSource();
+    const style = OlStyleDefs.getMeasureStyle(me.measureConf);
+    const vector = new VectorLayer({
       name: "Measure Layer",
       displayInLayerList: false,
       source: source,
-      style: new Style({
-        fill: new Fill({
-          color: measureConf.fillColor || "rgba(255, 255, 255, 0.2)"
-        }),
-        stroke: new Stroke({
-          color: measureConf.strokeColor || "rgba(0, 0, 0, 0.5)",
-          width: 4
-        })
-      })
+      style: style
     });
 
     me.map.addLayer(vector);
@@ -72,7 +62,6 @@ export default class OlMeasureController {
    */
   addInteraction(measureType) {
     const me = this;
-    const measureConf = me.measureConf;
     // cleanup possible old draw interaction
     if (me.draw) {
       me.removeInteraction();
@@ -81,26 +70,7 @@ export default class OlMeasureController {
     var draw = new DrawInteraction({
       source: me.source,
       type: type,
-      style: new Style({
-        fill: new Fill({
-          color: measureConf.sketchFillColor || "rgba(255, 255, 255, 0.2)"
-        }),
-        stroke: new Stroke({
-          color: measureConf.sketchStrokeColor || "rgba(0, 0, 0, 0.5)",
-          lineDash: [10, 10],
-          width: 2
-        }),
-        image: new Circle({
-          radius: 5,
-          stroke: new Stroke({
-            color: measureConf.sketchVertexStrokeColor || "rgba(0, 0, 0, 0.7)"
-          }),
-          fill: new Fill({
-            color:
-              measureConf.sketchVertexFillColor || "rgba(255, 255, 255, 0.2)"
-          })
-        })
-      })
+      style: OlStyleDefs.getMeasureInteractionStyle(me.measureConf)
     });
     me.map.addInteraction(draw);
     me.createMeasureTooltip();
