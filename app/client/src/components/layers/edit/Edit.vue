@@ -19,24 +19,45 @@
         >
         </v-select>
         <v-divider></v-divider>
+        <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
+          <p class="mb-1">Select</p>
+          <v-btn-toggle>
+            <v-btn text @click="selectLayerFeatures('single')">
+              <v-icon>far fa-hand-pointer</v-icon>
+            </v-btn>
+            <v-btn text @click="selectLayerFeatures('multiple')">
+              <v-icon>far fa-dot-circle</v-icon>
+            </v-btn>
+          </v-btn-toggle>
+        </v-flex>
         <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0">
-          <p>Tools</p>
-          <v-btn-toggle rounded>
+          <p class="mb-1">Tools</p>
+          <v-btn-toggle>
             <v-btn text>
               <v-icon medium>timeline</v-icon>
             </v-btn>
             <v-btn text>
               <v-icon>far fa-edit</v-icon>
             </v-btn>
-            <v-btn text>
-              <v-icon>far fa-dot-circle</v-icon>
-            </v-btn>
+
             <v-btn text>
               <v-icon>far fa-trash-alt</v-icon>
             </v-btn>
           </v-btn-toggle>
         </v-flex>
       </v-card-text>
+
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn
+          v-show="selectedLayer != null"
+          class="white--text"
+          color="green"
+          @click="clear"
+        >
+          Clear
+        </v-btn>
+      </v-card-actions>
     </v-card>
   </v-flex>
 </template>
@@ -45,10 +66,14 @@
 import { Mapable } from "../../../mixins/Mapable";
 import LayerUtils from "../../../utils/Layer";
 
+import OlEditController from "./OlEditController";
+import OlSelectController from "./OlSelectController";
+
 export default {
   mixins: [Mapable],
   data: () => ({
     selectedLayer: null,
+    selectedFeatures: [],
     editableLayers: []
   }),
   watch: {
@@ -66,9 +91,14 @@ export default {
         layer => layer.get("canEdit")
       );
       me.editableLayers = [...editableLayers];
-
-      console.log(me.editableLayers[0]);
-    }
+      //Initialize ol select and edit controllers.
+      me.olSelectCtrl = new OlSelectController(me.map);
+      me.olEditCtrl = new OlEditController(me.map);
+    },
+    selectLayerFeatures(type) {
+      console.log(type);
+    },
+    clear() {}
   }
 };
 </script>

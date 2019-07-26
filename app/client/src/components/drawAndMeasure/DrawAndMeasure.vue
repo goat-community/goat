@@ -199,19 +199,19 @@ export default {
     onMapBound() {
       const me = this;
       const measureConf = me.$appConfig.map.modules[me.moduleName] || {};
-      this.olMapCtrl = new OlMeasureController(me.map, measureConf);
+      me.olMapCtrl = new OlMeasureController(me.map, measureConf);
       me.olMapCtrl.createMeasureLayer();
     },
     toggle(item, type) {
       const me = this;
       //1- Set active index of clicked item or remove it
       //- If type is measure  toggle off drawing section if opened
-      this.olMapCtrl.removeInteraction();
+      me.olMapCtrl.removeInteraction();
       const id = item.id;
       if (type === "measure") {
-        this.closeDrawSection();
-        if (this.activeId === id) {
-          this.activeId = undefined;
+        me.closeDrawSection();
+        if (me.activeId === id) {
+          me.activeId = undefined;
           me.activeMeasureType = "";
         } else {
           this.activeId = id;

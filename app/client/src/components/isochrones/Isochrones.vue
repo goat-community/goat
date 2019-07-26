@@ -125,6 +125,8 @@ import IsochroneOptions from "./IsochroneOptions";
 import IsochroneResults from "./IsochroneResults";
 import IsochronThematicData from "./IsochronesThematicData";
 
+import OlStyleDefs from "../../style/OlStyleDefs";
+
 //Store imports
 import { mapGetters, mapActions, mapMutations } from "vuex";
 
@@ -132,7 +134,6 @@ import { mapGetters, mapActions, mapMutations } from "vuex";
 import { transform } from "ol/proj.js";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
-import { Style, Stroke, Fill, Icon } from "ol/style";
 
 export default {
   mixins: [Mapable],
@@ -239,108 +240,16 @@ export default {
      * map and store.
      */
     createIsochroneLayer() {
-      let me = this;
-      let vector = new VectorLayer({
+      const me = this;
+      const style = OlStyleDefs.getIsochroneStyle(
+        me.styleData,
+        me.addStyleInCache
+      );
+      const vector = new VectorLayer({
         name: "Isochrone Layer",
         zIndex: 2,
         source: new VectorSource(),
-        style: feature => {
-          // Style array
-          let styles = [];
-          let styleData = me.styleData;
-          // Get the incomeLevel and modus from the feature properties
-          let level = feature.get("step");
-          let modus = feature.get("modus");
-          let isVisible = feature.get("isVisible");
-
-          let geomType = feature.getGeometry().getType();
-
-          /**
-           * Creates styles for isochrone polygon geometry type and isochrone
-           * center marker.
-           */
-          if (
-            geomType === "Polygon" ||
-            geomType === "MultiPolygon" ||
-            geomType === "LineString"
-          ) {
-            //Check feature isVisible Property
-            if (isVisible === false) {
-              return;
-            }
-
-            //Fallback isochrone style
-            if (!modus) {
-              if (!styleData.styleCache.default["GenericIsochroneStyle"]) {
-                let genericIsochroneStyle = new Style({
-                  fill: new Fill({
-                    color: [0, 0, 0, 0]
-                  }),
-                  stroke: new Stroke({
-                    color: "#0d0d0d",
-                    width: 7
-                  })
-                });
-                let payload = {
-                  style: genericIsochroneStyle,
-                  isochroneType: "default",
-                  styleName: "GenericIsochroneStyle"
-                };
-                this.addStyleInCache(payload);
-              }
-              styles.push(
-                styleData.styleCache.default["GenericIsochroneStyle"]
-              );
-            }
-            // If the modus is 1 it is a default isochrone
-            if (modus === 1 || modus === 3) {
-              if (!styleData.styleCache.default[level]) {
-                let style = new Style({
-                  stroke: new Stroke({
-                    color: feature.get("color"),
-                    width: 5
-                  })
-                });
-                let payload = {
-                  style: style,
-                  isochroneType: "default",
-                  styleName: level
-                };
-                this.addStyleInCache(payload);
-              }
-              styles.push(styleData.styleCache.default[level]);
-            } else {
-              if (!styleData.styleCache.input[level]) {
-                let style = new Style({
-                  stroke: new Stroke({
-                    color: feature.get("color"),
-                    width: 5
-                  })
-                });
-                let payload = {
-                  style: style,
-                  isochroneType: "input",
-                  styleName: level
-                };
-                this.addStyleInCache(payload);
-              }
-              styles.push(styleData.styleCache.input[level]);
-            }
-          } else {
-            let path = `img/markers/marker-${feature.get(
-              "calculationNumber"
-            )}.png`;
-            let markerStyle = new Style({
-              image: new Icon({
-                anchor: [0.5, 0.96],
-                src: path,
-                scale: 0.5
-              })
-            });
-            styles.push(markerStyle);
-          }
-          return styles;
-        }
+        style: style
       });
       me.map.addLayer(vector);
       this.addIsochroneLayer(vector);
@@ -349,10 +258,8 @@ export default {
   watch: {
     search(val) {
       console.log(val);
-
       // Items have already been loaded
       if (this.items.length > 0) return;
-
       // Items have already been requested
       if (this.isLoading) return;
 
