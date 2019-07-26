@@ -1,6 +1,8 @@
 language: node_js
 node_js: stable
-install:
-- npm install
+branches:
+  only:
+    - master
+    - development
 script:
-- npm run build
+- ./scripts/after-success.sh
