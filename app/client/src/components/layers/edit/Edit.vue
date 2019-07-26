@@ -23,16 +23,16 @@
           <p>Tools</p>
           <v-btn-toggle rounded>
             <v-btn text>
-              <v-icon>fas fa-plus</v-icon>
+              <v-icon medium>timeline</v-icon>
             </v-btn>
             <v-btn text>
-              <v-icon>fas fa-pen</v-icon>
+              <v-icon>far fa-edit</v-icon>
             </v-btn>
             <v-btn text>
               <v-icon>far fa-dot-circle</v-icon>
             </v-btn>
             <v-btn text>
-              <v-icon>fas fa-trash-alt</v-icon>
+              <v-icon>far fa-trash-alt</v-icon>
             </v-btn>
           </v-btn-toggle>
         </v-flex>
