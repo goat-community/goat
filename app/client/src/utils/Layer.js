@@ -3,7 +3,7 @@ import { Group as LayerGroup } from "ol/layer.js";
 /**
  * Util class for OL layers
  */
-const LayerUtil = {
+const LayerUtils = {
   /**
    * Returns a set of map layers which matches the given key value pair.
    *
@@ -39,7 +39,7 @@ const LayerUtil = {
    * @return {ol.layer.Base} The OL layer instance or undefined
    */
   getLayerByLid(lid, olMap) {
-    return LayerUtil.getLayersBy("lid", lid, olMap)[0];
+    return LayerUtils.getLayersBy("lid", lid, olMap)[0];
   },
 
   /**
@@ -79,4 +79,4 @@ const LayerUtil = {
   }
 };
 
-export default LayerUtil;
+export default LayerUtils;

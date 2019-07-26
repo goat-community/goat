@@ -10,15 +10,17 @@
       <v-subheader
         ><h3>{{ $t("appBar.drawAndMeasure.measure.header") }}</h3>
       </v-subheader>
-      <v-divider></v-divider>
 
       <!-- Measure -->
       <v-expansion-panels accordion>
         <v-expansion-panel readonly v-for="item in measureItems" :key="item.id">
           <v-expansion-panel-header
-            class="elevation-1"
             expand-icon=""
             v-slot="{ open }"
+            :class="{
+              'expansion-panel__container--active': activeId === item.id
+            }"
+            @click="toggle(item, 'measure')"
           >
             <v-layout row>
               <v-flex xs2>
@@ -34,24 +36,15 @@
               </v-flex>
             </v-layout>
           </v-expansion-panel-header>
-
-          <v-expansion-panel-content
-            :class="{
-              'expansion-panel__container--active': activeId === item.id
-            }"
-            @click.native="toggle(item.id, 'measure')"
-          >
-          </v-expansion-panel-content>
         </v-expansion-panel>
-        <v-divider class="mb-3"></v-divider>
       </v-expansion-panels>
 
       <!-- Draw -->
-      <v-subheader>
+      <!-- <v-subheader>
         <h3>{{ $t("appBar.drawAndMeasure.draw.header") }}</h3>
       </v-subheader>
       <v-divider></v-divider>
-      <v-expansion-panels accordion>
+      <v-expansion-panel accordion>
         <v-expansion-panel v-for="item in drawItems" :key="item.id">
           <v-expansion-panel-header
             class="elevation-1"
@@ -85,7 +78,7 @@
           >
             <v-card @click.stop="doNothing" class="card">
               <v-card-text>
-                <!--Color Settings  -->
+               
                 <v-layout row wrap align-center class="ml-3">
                   <v-flex xs4>
                     <span>{{ $t("appBar.drawAndMeasure.draw.color") }}</span>
@@ -103,7 +96,7 @@
                   </v-flex>
                 </v-layout>
 
-                <!--Transparency Settings -->
+             
                 <v-layout row wrap align-center class="ml-3">
                   <v-flex xs4>
                     <span>{{
@@ -123,7 +116,7 @@
             </v-card>
           </v-expansion-panel-content>
         </v-expansion-panel>
-      </v-expansion-panels>
+      </v-expansion-panel> -->
 
       <v-divider></v-divider>
 
@@ -139,12 +132,17 @@
 </template>
 
 <script>
-import Swatches from "vue-swatches";
+// import Swatches from "vue-swatches";
 import "vue-swatches/dist/vue-swatches.min.css";
 
+import { Mapable } from "../../mixins/Mapable";
+import OlMeasureController from "./OlMeasureController";
+
 export default {
-  components: { Swatches },
+  mixins: [Mapable],
   data: () => ({
+    activeMeasureType: "",
+    moduleName: "measuretool",
     stroke: "2",
     colors: {
       selected: "#3c78d8",
@@ -155,12 +153,14 @@ export default {
       {
         id: 1,
         icon: "fas fa-ruler",
-        text: "Length" //this.$t("appBar.drawAndMeasure.measure.length")
+        text: "Length", //this.$t("appBar.drawAndMeasure.measure.length")
+        measureType: "distance"
       },
       {
         id: 2,
         icon: "fas fa-ruler-combined",
-        text: "Area"
+        text: "Area",
+        measureType: "area"
       }
     ],
     drawItems: [
@@ -192,16 +192,32 @@ export default {
     ],
     activeId: undefined
   }),
-  computed: {},
   methods: {
-    toggle(id, type) {
+    /**
+     * This function is executed, after the map is bound (see mixins/Mapable)
+     */
+    onMapBound() {
+      const me = this;
+      const measureConf = me.$appConfig.map.modules[me.moduleName] || {};
+      this.olMapCtrl = new OlMeasureController(me.map, measureConf);
+      me.olMapCtrl.createMeasureLayer();
+    },
+    toggle(item, type) {
+      const me = this;
       //1- Set active index of clicked item or remove it
       //- If type is measure  toggle off drawing section if opened
-      if (type === "measure") this.closeDrawSection();
-      if (this.activeId === id) {
-        this.activeId = undefined;
-      } else {
-        this.activeId = id;
+      this.olMapCtrl.removeInteraction();
+      const id = item.id;
+      if (type === "measure") {
+        this.closeDrawSection();
+        if (this.activeId === id) {
+          this.activeId = undefined;
+          me.activeMeasureType = "";
+        } else {
+          this.activeId = id;
+          me.olMapCtrl.addInteraction(item.measureType);
+          me.activeMeasureType = item.measureType;
+        }
       }
     },
     doNothing() {},
@@ -210,6 +226,7 @@ export default {
         this.closeDrawSection();
         this.activeId = undefined;
       }
+      this.olMapCtrl.clear();
     },
     closeDrawSection() {
       //Option only for draw section items.

@@ -3,22 +3,24 @@
     <v-card flat>
       <!-- THEMATIC DATA -->
       <template v-if="isThematicDataVisible === true">
-        <v-card-title primary-title class="py-2">
+        <v-layout>
           <v-btn
             text
-            class="my-0 py-0"
             icon
+            small
+            class="mt-1"
             light
             @click="toggleThematicDataVisibility(false)"
           >
             <v-icon color="rgba(0,0,0,0.54)">fas fa-arrow-left</v-icon>
           </v-btn>
-          <span class="title">Thematic Data</span>
-        </v-card-title>
+          <v-subheader class="ml- pl-0">
+            <span class="title">Thematic Data</span>
+          </v-subheader>
+        </v-layout>
         <v-card-text class="pr-16 pl-16 pt-0 pb-0 mb-2">
           <v-divider></v-divider>
         </v-card-text>
-
         <isochrone-thematic-data />
       </template>
 
@@ -33,7 +35,7 @@
         </v-card-text>
         <v-card-text>
           <v-layout row>
-            <v-flex xs10>
+            <v-flex xs9>
               <v-autocomplete
                 solo
                 v-model="model"
@@ -48,14 +50,14 @@
                 hide-no-data
                 prepend-inner-icon="search"
                 return-object
+                class="ml-3 mt-1"
               ></v-autocomplete>
             </v-flex>
-            <v-flex xs2>
+            <v-flex xs3>
               <v-btn
-                class="ml-2 mt-1"
                 outlined
                 fab
-                large
+                class="ml-4"
                 rounded
                 text
                 @click="registerMapClick"
