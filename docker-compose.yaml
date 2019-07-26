@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  client:
+    build: 
+      context: ./app/client
+      target: 'develop-stage'
+    ports:
+      - '5000:5000'
+    volumes:
+      - './app/client:/app'
+    command: /bin/sh -c "npm run serve"
+    
