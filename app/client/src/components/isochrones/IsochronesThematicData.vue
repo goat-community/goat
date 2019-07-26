@@ -1,8 +1,8 @@
 <template>
-  <v-layout row>
-    <v-flex xs12 class="mx-4">
+  <v-layout>
+    <v-flex xs12 class="mx-5">
       <v-card-text class="ma-0 pa-0">
-        <p class="font-weight-medium  text-xs-right ma-0 pa-0">
+        <p class="font-weight-medium  text-right ma-0 pa-0">
           - {{ selectedThematicData.calculationName }}
         </p>
       </v-card-text>
