@@ -25,87 +25,6 @@ var jsonParser = bodyParser.json();
 // to support JSON-encoded bodies
 var urlencodedParser = bodyParser.urlencoded({ extended: false });
 
-app.get("/api/multiple_isochrones/:parameters", (request, response) => {
-  let { parameters } = request.params;
-  parameters = JSON.parse(parameters);
-  console.log(parameters);
-  let array_objectids = [];
-  const {
-    amenity,
-    userid,
-    minutes,
-    step,
-    speed,
-    concavity,
-    modus,
-    parent_id
-  } = parameters;
-  console.log(typeof Array.from(amenity));
-  console.log(amenity);
-  let multi_isochrone;
-  pool.query(
-    `SELECT ST_X(p.geom) x,ST_Y(p.geom) y FROM pois p, study_area_union s WHERE p.amenity::varchar in($1) and ST_Intersects(p.geom,s.geom)`,
-    [amenity],
-    (err, res) => {
-      if (err) return console.log(err);
-      for (i = 0; i < res.rows.length; i++) {
-        const objectid = Math.floor(Math.random() * 10000000);
-        array_objectids.push(objectid);
-
-        let sql_query = `INSERT INTO isochrones(userid,id,step,geom,speed,concavity,modus,objectid,parent_id)
-							 SELECT *,$1 speed,$2 concavity,$3,$4 objectid,$5 parent_id 
-							 FROM isochrones($6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`;
-
-        pool.query(
-          sql_query,
-          [
-            speed,
-            concavity,
-            modus,
-            objectid,
-            parent_id,
-            userid,
-            minutes,
-            res.rows[i].x,
-            res.rows[i].y,
-            step,
-            speed,
-            concavity,
-            modus,
-            objectid,
-            parent_id
-          ],
-          (err, res) => {
-            if (err) return console.log(err);
-            console.log(res.rows);
-          }
-        );
-      }
-      console.log(array_objectids);
-      pool.query(
-        `WITH u AS
-					(
-						SELECT st_union(st_intersection(i.geom,s.geom)) geom, s.sum_pop, i.step, s.name
-						FROM isochrones i, study_area s
-						WHERE st_intersects(i.geom,s.geom)
-						AND objectid::varchar in($1)
-						GROUP BY s.gid, i.step
-					)
-					SELECT u.geom, u.sum_pop, sum(p.population),
-					sum(p.population)/(0.1+u.sum_pop) share_population,u.step, u.name --0.1 is added in order to avoid error division by zero
-					FROM u, population p
-					WHERE ST_Intersects(u.geom,p.geom)
-					GROUP BY u.geom, u.sum_pop, u.step, u.name`,
-        [array_objectids],
-        (err, res) => {
-          if (err) return console.log(err);
-          multi_isochrone = res.rows;
-        }
-      );
-    }
-  );
-  response.send(multi_isochrone);
-});
 
 app.post("/api/userdata", jsonParser, (request, response) => {
   //CRUD OPERATION
@@ -193,21 +112,5 @@ app.get("/api/isochrone", jsonParser, (request, response) => {
   );
 });
 
-// this for calling the isochrones_api.  This will create a feature collection.
-
-/*SELECT jsonb_build_object(
-    'type',     'FeatureCollection',
-    'features', jsonb_agg(features.feature)
-)
-FROM (
-SELECT jsonb_build_object(
-    'type',       'Feature',
-    'gid',         gid,
-    'geometry',   ST_AsGeoJSON(geom)::jsonb,
-    'properties', to_jsonb(inputs) - 'gid' - 'geom'
-) AS feature 
-FROM (SELECT * FROM isochrones_api(32431,15,11.575260,48.148124,3,83.33,0.99,'default')) inputs) features;
-
-*/
 
 module.exports = app;

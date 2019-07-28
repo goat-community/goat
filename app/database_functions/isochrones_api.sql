@@ -60,6 +60,12 @@ begin
 	PERFORM thematic_data_sum(objectid_default);
 	
   END IF ;
+  
+  UPDATE isochrones 
+  SET starting_point = ST_AsText(s.geom)
+  FROM starting_point_isochrones
+  WHERE i.objectid IN (objectid_default,objectid_scenario);
+  
   RETURN query SELECT distinct i.gid,i.objectid,ARRAY[x,y] coordinates,i.step,i.speed,i.concavity,i.modus::integer,i.parent_id,i.sum_pois::jsonb, i.geom 
   FROM isochrones i
   WHERE i.objectid IN (objectid_default,objectid_scenario);
