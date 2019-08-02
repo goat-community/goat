@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION public.precalculate_grid(grid text, minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, objectids int[])
-RETURNS SETOF type_catchment_edges
+RETURNS SETOF type_catchment_vertices
  LANGUAGE plpgsql
 AS $function$
 DECLARE 
@@ -10,7 +10,7 @@ BEGIN
 	DROP TABLE IF EXISTS temp_all_extrapolated_vertices;
 	CREATE temp TABLE temp_multi_reached_vertices AS 
 	SELECT *
-	FROM pgrouting_edges_multi(minutes,array_starting_points,speed,objectids);
+	FROM pgrouting_edges_multi(minutes,array_starting_points,speed/3.6,objectids);
 	ALTER TABLE temp_multi_reached_vertices ADD COLUMN id serial;
 	ALTER TABLE temp_multi_reached_vertices ADD PRIMARY key(id);
 	
@@ -30,7 +30,7 @@ BEGIN
 	
 			CREATE temp TABLE temp_extrapolated_reached_vertices AS 
 			SELECT * 
-			FROM extrapolate_reached_vertices(minutes*speed,ARRAY[0,101,102,103,104,105,106,107,501,502,503,504,701,801],ARRAY['no','use_sidepath']);
+			FROM extrapolate_reached_vertices(minutes*60,ARRAY[0,101,102,103,104,105,106,107,501,502,503,504,701,801],ARRAY['no','use_sidepath']);
 			
 			ALTER TABLE temp_extrapolated_reached_vertices ADD COLUMN id serial;
 			ALTER TABLE temp_extrapolated_reached_vertices ADD PRIMARY key(id);
@@ -58,3 +58,5 @@ BEGIN
 		END LOOP;
 END 
 $function$;
+
+--SELECT * FROM precalculate_grid('grid_500',15,array[[11.4765751342908,48.0842050053819],[11.4785199868809,48.0819545493074]],5,array[1258,615])

@@ -11,6 +11,7 @@ under_limit integer;
 edges type_edges[];
 begin
 --If the modus is input the routing tables for the network with userinput have to be choosen
+  speed = speed/3.6;
   DROP TABLE IF EXISTS temp_edges;
   IF modus <> 1 THEN
     execute format('CREATE TEMP TABLE temp_edges as SELECT *,'||objectid_input||' FROM pgrouting_edges_input('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||','||modus||')');
@@ -20,16 +21,16 @@ begin
   
   INSERT INTO edges(edge,node,cost,class_id,objectid,geom) 
   SELECT id AS edge,node,cost,class_id,objectid_input,geom  
-  FROM show_network(round(minutes*speed,0),modus,userid_input);
+  FROM show_network(round(minutes*60,0),modus,userid_input);
   DROP TABLE IF EXISTS temp_edges;
 --The speed input, time input AND step input are used to draw isochrones with the corresponding intervals
   loop
   exit when counter =n;
   counter :=counter +1;
-  upper_limit :=(minutes * speed/n)*counter; 
-  under_limit :=(minutes * speed/n)*counter - (minutes * speed/n);
+  upper_limit :=(minutes*60/n)*counter; 
+  under_limit :=(minutes*60/n)*counter - (minutes * 60/n);
   --A concave hull is created (isochrones) the concavity can be set 	
-  For r IN SELECT userid_input,counter,(upper_limit/speed)::numeric, ST_CollectionExtract(ST_ConcaveHull(ST_Collect(geom),concavity,false),3)
+  For r IN SELECT userid_input,counter,(upper_limit/60)::numeric, ST_CollectionExtract(ST_ConcaveHull(ST_Collect(geom),concavity,false),3)
           FROM 
           (
               SELECT st_startpoint(geom) geom
@@ -51,4 +52,4 @@ begin
   
 END;
 $function$
---SELECT * FROM isochrones(111,15,11.575260,48.148124,2,83.33,0.99,1,44435,1)
+--SELECT * FROM isochrones(111,15,11.575260,48.148124,2,5,0.99,1,44435,1)

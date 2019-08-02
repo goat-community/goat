@@ -7,7 +7,7 @@ import yaml
 
 
 step = 100
-
+grid_size = 500
 start = time.time()
 
 #with open(str(Path.home())+"/app/config/goat_config.yaml", 'r') as stream:
@@ -25,6 +25,9 @@ password = secrets["PASSWORD"]
 con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s'" % (
     db_name, user, port, host, password))
 cursor = con.cursor()
+
+cursor.execute(prepare_tables.replace('grid_size', str(grid_size)))
+con.commit()
 
 sql_ordered_grid = '''DROP TABLE IF EXISTS grid_ordered;
 CREATE temp TABLE grid_ordered AS 
@@ -54,7 +57,7 @@ while lower_limit < count_grids:
     		FROM grid_ordered 
     		WHERE id BETWEEN %i AND %i
     	)
-    		SELECT precalculate_grid('grid_500',15, x.array_starting_points, 83.33, x.grid_ids) 
+    		SELECT precalculate_grid('grid_500',15, x.array_starting_points, 5, x.grid_ids) 
     		FROM x;'''
     cursor.execute(sql_bulk_calculation % (lower_limit, lower_limit+step-1))
     con.commit()

@@ -32,17 +32,33 @@ BEGIN
 	   	ORDER BY
 	    p.geom <-> t.geom
 	   	LIMIT 1) AS vertices
-	)
-	SELECT array_to_json(array_agg(row_to_json(x)))::jsonb 
-	FROM
+	),
+	key_value AS 
 	(
-		SELECT amenity,name,min(cost) as cost FROM distance_pois --Every entrance OR bus_stop is only counted once (shortest distance is taken)
-		WHERE amenity = ANY (ARRAY['subway_entrance','bus_stop','tram_stop','sbahn_regional'])
-		GROUP BY amenity,name
-		UNION ALL
-		SELECT amenity,name,cost FROM distance_pois
-		WHERE amenity != ANY (ARRAY['subway_entrance','bus_stop','tram_stop','sbahn_regional'])
-	)x;
+		SELECT jsonb_build_object(amenity,cost) AS pois
+		FROM
+		(
+			SELECT amenity, array_agg(cost) AS cost 
+			FROM 
+			(
+				SELECT amenity,min(cost) as cost FROM distance_pois --Every entrance OR bus_stop is only counted once (shortest distance is taken)
+				WHERE amenity = ANY (ARRAY['subway_entrance','bus_stop','tram_stop','sbahn_regional'])
+				GROUP BY amenity,name
+			) x
+			GROUP BY amenity
+			UNION ALL
+			SELECT amenity,array_agg(cost) FROM distance_pois
+			WHERE amenity != ANY (ARRAY['subway_entrance','bus_stop','tram_stop','sbahn_regional'])
+			GROUP BY amenity
+		)x
+	)
+	SELECT regexp_replace(array_agg((pois))::text,
+	    '}"(,)"{|\\| |^{"|"}$', 
+	    '\1', 
+	    'g'
+	)::jsonb
+	FROM key_value
+	;
 	
 END 
 $function$;
