@@ -10,7 +10,8 @@ CREATE TYPE type_isochrones_api AS
 	modus integer,
 	parent_id integer,
 	sum_pois jsonb, 
-	geom geometry
+	geom geometry,
+  starting_point text
 );
 
 CREATE OR REPLACE FUNCTION public.isochrones_api(userid_input integer, minutes integer, x numeric, y numeric, n integer, speed_input numeric, concavity numeric, modus_input text)

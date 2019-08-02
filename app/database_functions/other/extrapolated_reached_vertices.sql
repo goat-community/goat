@@ -1,5 +1,16 @@
+DROP TABLE IF EXISTS temp_reached_vertices;
+CREATE temp TABLE temp_reached_vertices
+(
+	start_vertex integer,
+	node integer,
+	edge integer,
+	cost NUMERIC,
+	geom geometry,
+	objectid integer
+);
+
 CREATE OR REPLACE FUNCTION public.extrapolate_reached_vertices(max_cost NUMERIC, excluded_class_id integer[], categories_no_foot text[])
-RETURNS SETOF type_catchment_edges
+RETURNS SETOF type_catchment_vertices
  LANGUAGE sql
 AS $function$
 

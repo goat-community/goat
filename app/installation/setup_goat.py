@@ -83,7 +83,8 @@ elif(source_population == 'disaggregation'):
     os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'buildings_residential.sql'))
     os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'population_disagregation.sql'))
 
-os.chdir(str(Path.home())+'/app/database_functions')
-for file in glob.glob("*.sql"):
+for file in Path(str(Path.home())+'/app/database_functions').glob('**/*.sql'):
     os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,file))
+
+
 
