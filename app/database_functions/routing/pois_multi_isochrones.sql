@@ -1,5 +1,3 @@
---alphashape_parameter NUMERIC = 0.00003;
---region_type 'envelope' or study_area
 CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, minutes integer, speed_input numeric, alphashape_parameter_input NUMERIC, modus_input integer,region_type text, region text[], amenities text[])
 RETURNS SETOF type_pois_multi_isochrones
 AS $function$ 
@@ -177,8 +175,12 @@ DECLARE
  		WHERE objectid = objectid_multi_isochrone;
 	END;
 $function$ LANGUAGE plpgsql;
-
-
+/*
+SELECT *
+FROM pois_multi_isochrones(1,10,5.0,0.00003,1,'envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 
+--alphashape_parameter NUMERIC = 0.00003;
+--region_type 'envelope' or study_area
+*/
 /*
 CREATE OR REPLACE FUNCTION pois_multi_isochrones (pois text,userid integer, minutes integer,step integer, speed numeric,concavity numeric,modus integer,parent_id integer)
   RETURNS TABLE (geom geometry,population_administrative integer, reached_population integer, share_population float, step integer, name varchar, pois jsonb)
