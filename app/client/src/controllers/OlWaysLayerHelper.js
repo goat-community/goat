@@ -6,6 +6,7 @@ import http from "../services/http";
  */
 const WaysLayerHelper = {
   featuresIDsToDelete: [],
+  selectedWayType: null,
   filterResults(response, source) {
     console.log(response);
     const waysFeatures = new GeoJSON().readFeatures(response.first.data);
@@ -102,8 +103,7 @@ const WaysLayerHelper = {
             response.data.deleted_feature_ids;
         }
       });
-  },
-  popupFn() {}
+  }
 };
 
 export default WaysLayerHelper;
