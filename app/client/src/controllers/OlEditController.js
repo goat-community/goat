@@ -1,6 +1,8 @@
 import OlStyleDefs from "../style/OlStyleDefs";
 import OlBaseController from "./OlBaseController";
 import { Modify, Draw, Snap } from "ol/interaction";
+import VectorSource from "ol/source/Vector";
+import VectorLayer from "ol/layer/Vector";
 import Overlay from "ol/Overlay.js";
 import store from "../store/modules/user";
 import Feature from "ol/Feature";
@@ -9,6 +11,7 @@ import http from "../services/http";
 import { unByKey } from "ol/Observable";
 import OlWaysLayerHelper from "./OlWaysLayerHelper";
 import htmlString from "../templates/edit-popup-template";
+
 /**
  * Class holding the OpenLayers related logic for the edit tool.
  */
@@ -28,6 +31,16 @@ export default class OlEditController extends OlBaseController {
     const style = OlStyleDefs.getEditStyle();
     super.createLayer("Edit Layer", style);
     me.source.on("changefeature", me.onFeatureChange.bind(me));
+
+    //Create highlight layer
+    const highlightSource = new VectorSource({ wrapX: false });
+    const highlightLayer = new VectorLayer({
+      displayInLayerList: false,
+      source: highlightSource,
+      style: OlStyleDefs.getFeatureHighlightStyle()
+    });
+    me.map.addLayer(highlightLayer);
+    me.highlightSource = highlightSource;
   }
 
   /**
@@ -90,6 +103,11 @@ export default class OlEditController extends OlBaseController {
    */
   onPointerMove(evt) {
     const me = this;
+    //Hide helptooltip if mouse is over popoverlay
+    if (me.popupOverlay.getPosition() !== undefined) {
+      me.helpTooltip.setPosition(undefined);
+      return;
+    }
     const coordinate = evt.coordinate;
     me.helpTooltipElement.innerHTML = me.helpMessage;
     me.helpTooltip.setPosition(coordinate);
@@ -101,7 +119,6 @@ export default class OlEditController extends OlBaseController {
   onFeatureChange(evt) {
     const me = this;
     if (me.currentInteraction === "modify") {
-      console.log("feature changed");
       const index = me.featuresToCommit.findIndex(
         i => i.ol_uid === evt.feature.ol_uid
       );
@@ -127,8 +144,9 @@ export default class OlEditController extends OlBaseController {
   onDrawEnd(evt) {
     const me = this;
     const feature = evt.feature;
+    me.closePopup();
     me.featuresToCommit.push(feature);
-
+    me.highlightSource.addFeature(feature);
     const featureCoordinates = feature.getGeometry().getCoordinates();
     me.popupOverlay.setPosition(featureCoordinates[0]);
     me.popup.title = "Attributes";
@@ -159,7 +177,7 @@ export default class OlEditController extends OlBaseController {
     const me = this;
     const coordinate = evt.coordinate;
     const feature = me.source.getClosestFeatureToCoordinate(coordinate);
-
+    me.highlightSource.addFeature(feature);
     me.selectedFeature = feature;
     if (feature) {
       const featureCoordinates = feature.getGeometry().getCoordinates();
@@ -190,6 +208,7 @@ export default class OlEditController extends OlBaseController {
   commitFeature() {
     const me = this;
     me.transact();
+    me.closePopup();
   }
 
   /**
@@ -201,6 +220,7 @@ export default class OlEditController extends OlBaseController {
       me.popupOverlay.setPosition(undefined);
       me.popup.isVisible = false;
     }
+    me.highlightSource.clear();
   }
 
   /**
@@ -238,7 +258,7 @@ export default class OlEditController extends OlBaseController {
       transformed.setGeometryName("geom");
 
       if (me.currentInteraction === "draw") {
-        transformed.set("type", "bridge");
+        transformed.set("type", OlWaysLayerHelper.selectedWayType);
       }
       if (
         props.type &&
@@ -337,7 +357,8 @@ export default class OlEditController extends OlBaseController {
     element.innerHTML = htmlString;
     me.popupOverlay = new Overlay({
       element: me.popup.el.$el,
-      autoPan: true,
+      autoPan: false,
+      autoPanMargin: 40,
       autoPanAnimation: {
         duration: 250
       }
@@ -370,6 +391,14 @@ export default class OlEditController extends OlBaseController {
     }
     if (me.pointerMoveKey) {
       unByKey(me.pointerMoveKey);
+    }
+  }
+
+  clear() {
+    super.clear();
+    const me = this;
+    if (me.highlightSource) {
+      me.highlightSource.clear();
     }
   }
 }

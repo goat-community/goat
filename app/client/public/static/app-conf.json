@@ -73,7 +73,7 @@
         "opacity": 1,
         "queryable": false,
         "visible": false,
-        "canEdit": true,
+        "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 2
       },

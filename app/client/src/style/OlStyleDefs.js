@@ -232,6 +232,25 @@ const OlStyleDefs = {
     };
 
     return styleFunction;
+  },
+  getFeatureHighlightStyle: () => {
+    return [
+      new OlStyle({
+        fill: new OlFill({
+          color: "rgb(0, 102, 255)"
+        }),
+        stroke: new OlStroke({
+          color: "#FF0000",
+          width: 10
+        }),
+        image: new OlCircle({
+          radius: 10,
+          fill: new OlFill({
+            color: "#FF0000"
+          })
+        })
+      })
+    ];
   }
 };
 

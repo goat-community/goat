@@ -20,18 +20,19 @@
         </v-select>
         <v-divider></v-divider>
         <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
-          <p class="mb-1">Select</p>
+          <p class="mb-1">Select features</p>
           <v-btn-toggle v-model="toggleSelection">
             <v-btn text>
-              <v-icon>far fa-hand-pointer</v-icon>
-            </v-btn>
-            <v-btn text>
               <v-icon>far fa-dot-circle</v-icon>
+            </v-btn>
+            <v-btn text v-show="false">
+              <v-icon>far fa-hand-pointer</v-icon>
             </v-btn>
           </v-btn-toggle>
         </v-flex>
         <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0">
-          <p class="mb-1">Tools</p>
+          <v-divider class="mb-1"></v-divider>
+          <p class="mb-1">Edit Tools</p>
           <v-btn-toggle v-model="toggleEdit">
             <v-btn text>
               <v-icon medium>add</v-icon>
@@ -43,6 +44,7 @@
               <v-icon>far fa-trash-alt</v-icon>
             </v-btn>
           </v-btn-toggle>
+          <v-divider class="mt-4"></v-divider>
         </v-flex>
       </v-card-text>
 
@@ -69,13 +71,47 @@
         </v-btn>
       </template>
       <template v-slot:body>
-        <b>Are you sure you want to delete the selected feature ?</b>
+        <div v-if="popup.selectedInteraction === 'delete'">
+          <b>Are you sure you want to delete the selected feature ?</b>
+        </div>
+        <div v-else-if="popup.selectedInteraction === 'add'">
+          <span>Select way type: </span>
+          <v-select
+            :items="waysTypes.values"
+            item-text="display"
+            item-value="value"
+            v-model="waysTypes.active"
+            @change="updateSelectedWaysType"
+            label="Way Type"
+            solo
+            required
+            class="pt-2 ma-0"
+          ></v-select>
+        </div>
       </template>
       <template v-slot:actions>
-        <v-btn color="primary darken-1" @click="olEditCtrl.deleteFeature()" text
-          >Yes</v-btn
-        >
-        <v-btn color="grey" text @click="olEditCtrl.closePopup()">Cancel</v-btn>
+        <template v-if="popup.selectedInteraction === 'delete'">
+          <v-btn
+            color="primary darken-1"
+            @click="olEditCtrl.deleteFeature()"
+            text
+            >Yes</v-btn
+          >
+          <v-btn color="grey" text @click="olEditCtrl.closePopup()"
+            >Cancel</v-btn
+          >
+        </template>
+        <template v-else-if="popup.selectedInteraction === 'add'">
+          <v-btn
+            color="primary darken-1"
+            @click="olEditCtrl.commitFeature()"
+            text
+            >Save</v-btn
+          >
+          <v-btn color="grey" text @click="olEditCtrl.closePopup()"
+            >Cancel</v-btn
+          >
+        </template>
       </template>
     </overlay-popup>
   </v-flex>
@@ -93,6 +129,7 @@ import OlSelectController from "../../../controllers/OlSelectController";
 import OlWaysLayerHelper from "../../../controllers/OlWaysLayerHelper";
 
 import Overlay from "../../ol/Overlay";
+import WaysLayerHelper from "../../../controllers/OlWaysLayerHelper";
 
 export default {
   components: {
@@ -111,6 +148,13 @@ export default {
       isVisible: false,
       el: null,
       selectedInteraction: null
+    },
+    waysTypes: {
+      values: [
+        { display: "Bridge", value: "bridge" },
+        { display: "Road", value: "road" }
+      ],
+      active: "road"
     }
   }),
   watch: {
@@ -240,6 +284,13 @@ export default {
       } else {
         console.log(response);
       }
+    },
+
+    /**
+     * Changes ways type between road or bridge
+     */
+    updateSelectedWaysType(value) {
+      WaysLayerHelper.selectedWayType = value;
     },
 
     /**
