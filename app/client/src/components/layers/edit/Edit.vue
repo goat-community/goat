@@ -21,25 +21,24 @@
         <v-divider></v-divider>
         <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
           <p class="mb-1">Select</p>
-          <v-btn-toggle>
-            <v-btn text @click="selectLayerFeatures('single')">
+          <v-btn-toggle v-model="toggleSelection">
+            <v-btn text>
               <v-icon>far fa-hand-pointer</v-icon>
             </v-btn>
-            <v-btn text @click="selectLayerFeatures('multiple')">
+            <v-btn text>
               <v-icon>far fa-dot-circle</v-icon>
             </v-btn>
           </v-btn-toggle>
         </v-flex>
         <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0">
           <p class="mb-1">Tools</p>
-          <v-btn-toggle>
+          <v-btn-toggle v-model="toggleEdit">
             <v-btn text>
-              <v-icon medium>timeline</v-icon>
+              <v-icon medium>add</v-icon>
             </v-btn>
             <v-btn text>
               <v-icon>far fa-edit</v-icon>
             </v-btn>
-
             <v-btn text>
               <v-icon>far fa-trash-alt</v-icon>
             </v-btn>
@@ -59,27 +58,82 @@
         </v-btn>
       </v-card-actions>
     </v-card>
+    <!-- Popup overlay  -->
+    <overlay-popup :title="popup.title" v-show="popup.isVisible" ref="popup">
+      <v-btn icon>
+        <v-icon>close</v-icon>
+      </v-btn>
+      <template v-slot:close>
+        <v-btn @click="olEditCtrl.closePopup()" icon>
+          <v-icon>close</v-icon>
+        </v-btn>
+      </template>
+      <template v-slot:body>
+        <b>Are you sure you want to delete the selected feature ?</b>
+      </template>
+      <template v-slot:actions>
+        <v-btn color="primary darken-1" @click="olEditCtrl.deleteFeature()" text
+          >Yes</v-btn
+        >
+        <v-btn color="grey" text @click="olEditCtrl.closePopup()">Cancel</v-btn>
+      </template>
+    </overlay-popup>
   </v-flex>
 </template>
 
 <script>
+import { EventBus } from "../../../EventBus";
 import { Mapable } from "../../../mixins/Mapable";
+import { InteractionsToggle } from "../../../mixins/InteractionsToggle";
 import LayerUtils from "../../../utils/Layer";
 
-import OlEditController from "./OlEditController";
-import OlSelectController from "./OlSelectController";
+import OlEditController from "../../../controllers/OlEditController";
+import OlSelectController from "../../../controllers/OlSelectController";
+
+import OlWaysLayerHelper from "../../../controllers/OlWaysLayerHelper";
+
+import Overlay from "../../ol/Overlay";
 
 export default {
-  mixins: [Mapable],
+  components: {
+    "overlay-popup": Overlay
+  },
+  mixins: [InteractionsToggle, Mapable],
   data: () => ({
+    interactionType: "edit-interaction",
     selectedLayer: null,
     selectedFeatures: [],
-    editableLayers: []
+    editableLayers: [],
+    toggleSelection: undefined,
+    toggleEdit: undefined,
+    popup: {
+      title: "",
+      isVisible: false,
+      el: null,
+      selectedInteraction: null
+    }
   }),
   watch: {
     selectedLayer: value => {
       console.log(value);
+    },
+    toggleSelection: {
+      handler(state) {
+        const me = this;
+        me.toggleSelectInteraction(state);
+      }
+    },
+    toggleEdit: {
+      handler(state) {
+        const me = this;
+        me.toggleEditInteraction(state);
+      }
     }
+  },
+  mounted() {
+    const me = this;
+    me.popup.el = me.$refs.popup;
+    me.olEditCtrl.referencePopupElement(me.popup);
   },
   methods: {
     /**
@@ -91,14 +145,130 @@ export default {
         layer => layer.get("canEdit")
       );
       me.editableLayers = [...editableLayers];
-      //Initialize ol select and edit controllers.
+
+      //Initialize ol select controllers.
       me.olSelectCtrl = new OlSelectController(me.map);
+      me.olSelectCtrl.createSelectionLayer();
+
+      //Initialize ol edit controller
       me.olEditCtrl = new OlEditController(me.map);
+      me.olEditCtrl.createEditLayer();
     },
-    selectLayerFeatures(type) {
-      console.log(type);
+
+    /**
+     * Toggle the select interaction
+     */
+    toggleSelectInteraction(state) {
+      const me = this;
+
+      //Close other interactions.
+      EventBus.$emit("ol-interaction-activated", me.interactionType);
+
+      let selectionType;
+      switch (state) {
+        case 0:
+          selectionType = "single";
+          break;
+        case 1:
+          selectionType = "multiple";
+          break;
+        default:
+          break;
+      }
+      if (selectionType !== undefined) {
+        me.clearSelection();
+        me.olSelectCtrl.addInteraction(
+          selectionType,
+          me.selectedLayer,
+          me.onSelectionStart,
+          me.onSelectionEnd
+        );
+      } else {
+        me.olSelectCtrl.removeInteraction();
+      }
     },
-    clear() {}
+
+    /**
+     * Toggle the edit interaction
+     */
+    toggleEditInteraction(state) {
+      const me = this;
+
+      let editType;
+      switch (state) {
+        case 0:
+          editType = "add";
+          break;
+        case 1:
+          editType = "modify";
+          break;
+        case 2:
+          editType = "delete";
+          break;
+        default:
+          break;
+      }
+      if (editType !== undefined) {
+        me.olEditCtrl.addInteraction(editType);
+      } else {
+        me.olEditCtrl.removeInteraction();
+      }
+    },
+
+    /**
+     * Callback function executed when selection interaction starts.
+     */
+    onSelectionStart() {
+      const me = this;
+      me.olEditCtrl.clear();
+    },
+
+    /**
+     * Callback function executed when selection interaction ends.
+     *
+     * @param  {ol/feature} features The features returned from selection interaction
+     */
+    onSelectionEnd(response) {
+      const me = this;
+      me.toggleSelection = undefined;
+      if (response.second) {
+        //Selected layer is the road network (ways)
+        OlWaysLayerHelper.filterResults(
+          response,
+          me.olEditCtrl.getLayerSource()
+        );
+      } else {
+        console.log(response);
+      }
+    },
+
+    /**
+     * Clears all the selection
+     */
+    clearSelection() {
+      const me = this;
+      me.olEditCtrl.clear();
+      me.olSelectCtrl.clear();
+    },
+
+    /**
+     * Clears  edit interaction
+     */
+    clearEdit() {
+      const me = this;
+      me.olEditCtrl.clear();
+    },
+
+    /**
+     * Clears all the selection and edit interactions.
+     */
+    clear() {
+      const me = this;
+      me.clearSelection();
+      me.clearEdit();
+      me.toggleSelection = undefined;
+      me.toggleEdit = undefined;
+    }
   }
 };
 </script>

@@ -4,7 +4,7 @@ import OlFill from "ol/style/Fill";
 import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 
-export default {
+const OlStyleDefs = {
   boundaryStyle: () => {
     return new OlStyle({
       fill: new OlFill({
@@ -50,14 +50,16 @@ export default {
   },
   getSelectStyle: () => {
     return new OlStyle({
-      fill: new OlFill({
-        color: "rgba(255, 255, 255, 0.2)"
-      }),
       stroke: new OlStroke({
-        color: "rgba(0, 0, 0, 0.5)",
-        width: 4
+        color: "#fe4a49",
+        width: 5,
+        lineDash: [10, 10]
       })
     });
+  },
+  getEditStyle: () => {
+    //TODO: Add a generic style here for other layers
+    return OlStyleDefs.waysStyleFn();
   },
   getIsochroneStyle: (styleData, addStyleInCache) => {
     const styleFunction = feature => {
@@ -153,5 +155,84 @@ export default {
     };
 
     return styleFunction;
+  },
+  defaultStyle: () => {
+    const style = new OlStyle({
+      fill: new OlFill({
+        color: [0, 0, 0, 0]
+      }),
+      stroke: new OlStroke({
+        color: "#707070",
+        width: 3
+      })
+    });
+    return [style];
+  },
+  waysModifiedStyle: feature => {
+    const style = new OlStyle({
+      fill: new OlFill({
+        color: [0, 0, 0, 0]
+      }),
+      stroke: new OlStroke({
+        color: "#FF0000",
+        width: 3,
+        lineDash: feature.getProperties()["status"] == 1 ? [0, 0] : [10, 10]
+      })
+    });
+    return [style];
+  },
+  waysNewRoadStyle: feature => {
+    const style = new OlStyle({
+      fill: new OlFill({
+        color: [0, 0, 0, 0]
+      }),
+      stroke: new OlStroke({
+        color: "#6495ED",
+        width: 4,
+        lineDash: feature.getProperties()["status"] == 1 ? [0, 0] : [10, 10]
+      })
+    });
+    return [style];
+  },
+  waysNewBridgeStyle: feature => {
+    const style = new OlStyle({
+      fill: new OlFill({
+        color: [0, 0, 0, 0]
+      }),
+      stroke: new OlStroke({
+        color: "#FFA500",
+        width: 4,
+        lineDash: feature.getProperties()["status"] == 1 ? [0, 0] : [10, 10]
+      })
+    });
+    return [style];
+  },
+  waysStyleFn: () => {
+    const me = OlStyleDefs;
+    const styleFunction = feature => {
+      const props = feature.getProperties();
+      if (
+        (props.hasOwnProperty("type") && props["original_id"] == null) ||
+        Object.keys(props).length == 1
+      ) {
+        //Distinguish Roads from Bridge features
+        if (props.type == "bridge") {
+          return me.waysNewBridgeStyle(feature);
+        } else {
+          return me.waysNewRoadStyle(feature);
+        }
+      } else if (
+        !props.hasOwnProperty("original_id") &&
+        Object.keys(props).length > 1
+      ) {
+        return me.defaultStyle(); //Features are from original table
+      } else {
+        return me.waysModifiedStyle(feature); //Feature are modified
+      }
+    };
+
+    return styleFunction;
   }
 };
+
+export default OlStyleDefs;

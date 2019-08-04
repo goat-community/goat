@@ -51,6 +51,19 @@
       },
       {
         "type": "WMS",
+        "name": "ways",
+        "title": "Road Network",
+        "url": "/geoserver/wms",
+        "layers": "cite:ways",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": true,
+        "displayInLayerList": false,
+        "zIndex": 2
+      },
+      {
+        "type": "WMS",
         "name": "pois",
         "title": "Point of Interest",
         "url": "https://goat.open-accessibility.org/geoserver/wms",

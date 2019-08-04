@@ -135,12 +135,16 @@
 // import Swatches from "vue-swatches";
 import "vue-swatches/dist/vue-swatches.min.css";
 
+import { EventBus } from "../../EventBus";
 import { Mapable } from "../../mixins/Mapable";
-import OlMeasureController from "./OlMeasureController";
+import { InteractionsToggle } from "../../mixins/InteractionsToggle";
+
+import OlMeasureController from "../../controllers/OlMeasureController";
 
 export default {
-  mixins: [Mapable],
+  mixins: [InteractionsToggle, Mapable],
   data: () => ({
+    interactionType: "measure-interaction",
     activeMeasureType: "",
     moduleName: "measuretool",
     stroke: "2",
@@ -204,9 +208,14 @@ export default {
     },
     toggle(item, type) {
       const me = this;
+
+      //Close other interactions.
+      EventBus.$emit("ol-interaction-activated", me.interactionType);
+
       //1- Set active index of clicked item or remove it
       //- If type is measure  toggle off drawing section if opened
       me.olMapCtrl.removeInteraction();
+
       const id = item.id;
       if (type === "measure") {
         me.closeDrawSection();
