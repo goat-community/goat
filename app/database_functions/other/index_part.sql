@@ -1,14 +1,14 @@
-SELECT grid_id, part_accessibility_index((pois -> 'atm'),0.01) FROM grid_500
-
-CREATE OR REPLACE FUNCTION public.part_accessibility_index(traveltime_array jsonb, beta numeric)
-RETURNS SETOF NUMERIC 
-
-LANGUAGE sql
+CREATE OR REPLACE FUNCTION public.part_accessibility_index(traveltime_array NUMERIC[], beta numeric)
+RETURNS NUMERIC 
 AS $function$
-	WITH index_part AS 
-	(
-		SELECT EXP(beta*jsonb_array_elements(traveltime_array)::text::numeric) AS part
+DECLARE 
+	sum_index NUMERIC;
+BEGIN 
+	SELECT COALESCE(sum(part),0) INTO sum_index
+	FROM ( 
+		SELECT EXP(UNNEST(traveltime_array)*(beta)) AS part
 	)
-	SELECT sum(part) 
-	FROM index_part;
-$function$
+	index_part; 
+	RETURN sum_index; 
+END;
+$function$ LANGUAGE plpgsql immutable;

@@ -17,7 +17,26 @@ CREATE TABLE public.isochrones (
 	CONSTRAINT isochrones_pkey PRIMARY KEY (gid)
 );
 CREATE INDEX index_isochrones ON isochrones USING gist (geom) ;
+CREATE INDEX ON isochrones USING btree(objectid,parent_id);
 
+CREATE TABLE public.multi_isochrones (
+	userid int4 NULL,
+	id int4 NULL,
+	step int4 NULL,
+	geom geometry NULL,
+	gid serial NOT NULL,
+	speed numeric NULL,
+	alphashape_parameter numeric NULL,
+	modus integer NULL,
+	objectid int4 NULL,
+	parent_id int4 NULL,
+	population jsonb NULL,
+	starting_point numeric[][] NULL,
+	CONSTRAINT multi_isochrones_pkey PRIMARY KEY (gid)
+);
+
+CREATE INDEX ON multi_isochrones USING gist (geom);
+CREATE INDEX ON multi_isochrones USING btree(objectid,parent_id);
 
 CREATE TABLE public.edges (
 	seq int4 NULL,
@@ -30,7 +49,7 @@ CREATE TABLE public.edges (
 	class_id int4,
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
 );
-create index index_edges on edges using gist(geom);
+CREATE INDEX index_edges ON edges USING gist(geom);
 CREATE INDEX ON edges USING btree(objectid,cost);
 
 CREATE TABLE public.starting_point_isochrones (
@@ -41,6 +60,7 @@ CREATE TABLE public.starting_point_isochrones (
 	number_calculation int4,
 	CONSTRAINT starting_point_isochrones_pkey PRIMARY KEY (gid)
 );
+CREATE INDEX ON starting_point_isochrones USING gist(geom);
 
 CREATE TABLE addresses_residential(
 osm_id bigint,

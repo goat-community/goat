@@ -85,6 +85,7 @@ WHERE shop ='fashion';
 ALTER TABLE pois add column gid serial;
 ALTER TABLE pois add primary key(gid); 
 CREATE INDEX index_pois ON pois USING GIST (geom);
+CREATE INDEX ON pois(amenity);
 
 UPDATE pois SET amenity = shop
 WHERE shop IS NOT NULL;

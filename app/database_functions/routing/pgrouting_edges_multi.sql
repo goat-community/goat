@@ -10,6 +10,7 @@ categories_no_foot text;
 buffer geometry;
 begin
   DROP TABLE IF EXISTS closest_vertices;
+  speed = speed/3.6;
   distance = minutes*speed*60;
  
   SELECT select_from_variable_container('excluded_class_id_walking'),
@@ -35,10 +36,10 @@ begin
  FROM closest_vertices c;
   
  RETURN query 
-  SELECT x.from_v::int start_vertex, x.node::int, x.edge::int, x.agg_cost::numeric AS cost, w.geom, c.objectid
+  SELECT x.from_v::int start_vertex, x.node::int, x.edge::int, (x.agg_cost/speed)::numeric AS cost, w.geom, c.objectid
   FROM ways_vertices_pgr w, 
   (	SELECT from_v, node, edge, agg_cost FROM pgr_drivingDistance(
-	'SELECT id::int4, source, target, length_m*'||speed||' as cost 
+	'SELECT id::int4, source, target, length_m/'||speed||' as cost 
 	FROM ways
 	WHERE NOT class_id = any(''' || excluded_class_id || ''')
     AND (NOT foot = any('''||categories_no_foot||''') OR foot IS NULL)
