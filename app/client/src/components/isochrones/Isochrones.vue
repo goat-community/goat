@@ -119,7 +119,8 @@
 
 <script>
 import { Mapable } from "../../mixins/Mapable";
-
+import { EventBus } from "../../EventBus";
+import { InteractionsToggle } from "../../mixins/InteractionsToggle";
 //Child components
 import IsochroneOptions from "./IsochroneOptions";
 import IsochroneResults from "./IsochroneResults";
@@ -134,15 +135,17 @@ import { mapGetters, mapActions, mapMutations } from "vuex";
 import { transform } from "ol/proj.js";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
+import { unByKey } from "ol/Observable";
 
 export default {
-  mixins: [Mapable],
+  mixins: [InteractionsToggle, Mapable],
   components: {
     "isochrone-options": IsochroneOptions,
     "isochrone-results": IsochroneResults,
     "isochrone-thematic-data": IsochronThematicData
   },
   data: () => ({
+    interactionType: "isochrone-interaction",
     clicked: false,
     isStartPointElVisible: true,
     isOptionsElVisible: true,
@@ -152,7 +155,8 @@ export default {
     entries: [],
     model: null,
     search: null,
-    isLoading: false
+    isLoading: false,
+    mapClickListener: null
   }),
   computed: {
     ...mapGetters("isochrones", {
@@ -202,7 +206,10 @@ export default {
     },
     registerMapClick() {
       const me = this;
-      me.map.once("singleclick", me.onMapClick);
+      //Close other interactions.
+      EventBus.$emit("ol-interaction-activated", me.interactionType);
+
+      me.mapClickListener = me.map.once("singleclick", me.onMapClick);
       me.startHelpTooltip(me.messages.interaction.calculateIsochrone);
       me.map.getTarget().style.cursor = "pointer";
     },
@@ -231,8 +238,7 @@ export default {
       });
       //Start Isochrone Calculation
       me.calculateIsochrone();
-      me.stopHelpTooltip();
-      me.map.getTarget().style.cursor = "";
+      me.clear();
     },
 
     /**
@@ -253,6 +259,15 @@ export default {
       });
       me.map.addLayer(vector);
       this.addIsochroneLayer(vector);
+    },
+
+    clear() {
+      const me = this;
+      if (me.mapClickListener) {
+        unByKey(me.mapClickListener);
+      }
+      me.stopHelpTooltip();
+      me.map.getTarget().style.cursor = "";
     }
   },
   watch: {

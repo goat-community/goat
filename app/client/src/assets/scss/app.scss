@@ -57,6 +57,8 @@ html {
 
 /*Measure Styling */
 .tooltip {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-style: normal;
   position: relative;
   background: rgba(0, 0, 0, 0.5);
   border-radius: 4px;
@@ -64,6 +66,7 @@ html {
   padding: 4px 8px;
   opacity: 0.7;
   white-space: nowrap;
+  font-size: 14px;
 }
 .tooltip-measure {
   opacity: 1;
@@ -73,6 +76,9 @@ html {
   background-color: #ffcc33;
   color: black;
   border: 1px solid white;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-style: normal;
+  font-size: 14px;
   font-weight: bold;
 }
 .tooltip-measure:before,

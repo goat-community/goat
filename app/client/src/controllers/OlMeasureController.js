@@ -1,38 +1,17 @@
 import DrawInteraction from "ol/interaction/Draw";
 import { unByKey } from "ol/Observable.js";
-import VectorSource from "ol/source/Vector";
-import VectorLayer from "ol/layer/Vector";
 import { getArea, getLength } from "ol/sphere.js";
-import Overlay from "ol/Overlay.js";
 import { LineString, Polygon } from "ol/geom.js";
-import OlStyleDefs from "../../style/OlStyleDefs";
+import OlStyleDefs from "../style/OlStyleDefs";
+import OlBaseController from "./OlBaseController";
 
 /**
  * Class holding the OpenLayers related logic for the measure tool.
  */
-export default class OlMeasureController {
-  /* the OL map we want to measure on */
-  map = null;
-  /**
-   * The measure tooltip element.
-   * @type {Element}
-   */
-  measureTooltipElement;
-  /**
-   * Overlay to show the measurement.
-   * @type {module:ol/Overlay}
-   */
-  measureTooltip;
-
-  /**
-   * Overlay objects to be removed on map clear.
-   * @type {module:ol/Overlay []}
-   */
-  overlayersGarbageCollector = [];
-
-  constructor(olMap, measureConf) {
-    this.map = olMap;
-    this.measureConf = measureConf || {};
+export default class OlMeasureController extends OlBaseController {
+  constructor(map, measureConf) {
+    super(map);
+    Object.assign(this, { measureConf });
   }
 
   /**
@@ -41,20 +20,8 @@ export default class OlMeasureController {
    */
   createMeasureLayer() {
     const me = this;
-    // create a vector layer to
-    const source = new VectorSource();
     const style = OlStyleDefs.getMeasureStyle(me.measureConf);
-    const vector = new VectorLayer({
-      name: "Measure Layer",
-      displayInLayerList: false,
-      source: source,
-      style: style
-    });
-
-    me.map.addLayer(vector);
-
-    // make vector source available as member
-    me.source = source;
+    super.createLayer("Measure Layer", style);
   }
 
   /**
@@ -66,38 +33,48 @@ export default class OlMeasureController {
     if (me.draw) {
       me.removeInteraction();
     }
-    var type = measureType === "area" ? "Polygon" : "LineString";
-    var draw = new DrawInteraction({
+    let type = measureType === "area" ? "Polygon" : "LineString";
+    let draw = new DrawInteraction({
       source: me.source,
       type: type,
       style: OlStyleDefs.getMeasureInteractionStyle(me.measureConf)
     });
     me.map.addInteraction(draw);
-    me.createMeasureTooltip();
 
-    var listener;
-    var sketch;
+    me.pointerMoveKey = me.map.on("pointermove", me.onPointerMove.bind(me));
+    me.createTooltip();
+    me.createHelpTooltip();
+
+    me.helpMessage = "Click to start measuring";
+
+    let listener;
+    let sketch;
 
     draw.on(
       "drawstart",
       evt => {
         // preserve sketch
         sketch = evt.feature;
-
         /** @type {module:ol/coordinate~Coordinate|undefined} */
-        var tooltipCoord = evt.coordinate;
+        let tooltipCoord = evt.coordinate;
         me.listener = sketch.getGeometry().on("change", function(evt) {
-          var geom = evt.target;
-          var output;
+          const geom = evt.target;
+          let output;
           if (geom instanceof Polygon) {
             output = me.formatArea(geom);
             tooltipCoord = geom.getInteriorPoint().getCoordinates();
+            if (geom.getLinearRing(0).getCoordinates().length > 3) {
+              me.helpMessage = "Double-click or click starting point to finish";
+            } else {
+              me.helpMessage = "Click to continue drawing";
+            }
           } else if (geom instanceof LineString) {
             output = me.formatLength(geom);
             tooltipCoord = geom.getLastCoordinate();
+            me.helpMessage = "Double-click or click starting point to finish";
           }
-          me.measureTooltipElement.innerHTML = output;
-          me.measureTooltip.setPosition(tooltipCoord);
+          me.tooltipElement.innerHTML = output;
+          me.tooltip.setPosition(tooltipCoord);
         });
       },
       me
@@ -106,13 +83,15 @@ export default class OlMeasureController {
     draw.on(
       "drawend",
       () => {
-        me.measureTooltipElement.className = "tooltip tooltip-static";
-        me.measureTooltip.setOffset([0, -7]);
+        me.tooltipElement.className = "tooltip tooltip-static";
+        me.tooltip.setOffset([0, -7]);
+        me.helpMessage = "Click to start measuring";
+        me.helpTooltipElement.innerHTML = me.helpMessage;
         // unset sketch
         sketch = null;
         // unset tooltip so that a new one can be created
-        me.measureTooltipElement = null;
-        me.createMeasureTooltip();
+        me.tooltipElement = null;
+        me.createTooltip();
         unByKey(listener);
       },
       me
@@ -121,6 +100,17 @@ export default class OlMeasureController {
     // make draw interaction available as member
     me.draw = draw;
   }
+
+  /**
+   * Event for updating the measure help tooltip
+   */
+  onPointerMove(evt) {
+    const me = this;
+    const coordinate = evt.coordinate;
+    me.helpTooltipElement.innerHTML = me.helpMessage;
+    me.helpTooltip.setPosition(coordinate);
+  }
+
   /**
    * Calculates and formats the length of the given line.
    *
@@ -136,6 +126,7 @@ export default class OlMeasureController {
     }
     return output;
   }
+
   /**
    * Calculates and formats the area of the given polygon.
    *
@@ -153,47 +144,15 @@ export default class OlMeasureController {
   }
 
   /**
-   * Creates a new measure tooltip
-   */
-  createMeasureTooltip() {
-    const me = this;
-    if (me.measureTooltipElement) {
-      me.measureTooltipElement.parentNode.removeChild(me.measureTooltipElement);
-    }
-    me.measureTooltipElement = document.createElement("div");
-    me.measureTooltipElement.className = "tooltip tooltip-measure";
-    me.measureTooltip = new Overlay({
-      element: me.measureTooltipElement,
-      name: "measure-overlay",
-      offset: [0, -15],
-      positioning: "bottom-center"
-    });
-    me.map.addOverlay(me.measureTooltip);
-    me.overlayersGarbageCollector.push(me.measureTooltip);
-  }
-
-  /**
    * Removes the current interaction and clears the values.
    */
   removeInteraction() {
     const me = this;
-    console.log(me.map.getOverlays());
     if (me.draw) {
       me.map.removeInteraction(me.draw);
     }
-  }
-  clear() {
-    const me = this;
-    me.removeInteraction();
-    console.log(me.map.getOverlays());
-    if (me.overlayersGarbageCollector) {
-      me.overlayersGarbageCollector.forEach(overlay => {
-        me.map.removeOverlay(overlay);
-      });
-      me.overlayersGarbageCollector = [];
-    }
-    if (me.source) {
-      me.source.clear();
+    if (me.pointerMoveKey) {
+      unByKey(me.pointerMoveKey);
     }
   }
 }
