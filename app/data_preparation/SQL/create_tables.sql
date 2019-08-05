@@ -13,10 +13,10 @@ CREATE TABLE public.isochrones (
 	pois text NULL, 
 	sum_pois_time text NULL,
 	sum_pois text NULL,
-	starting_point text NULL
+	starting_point text NULL,
 	CONSTRAINT isochrones_pkey PRIMARY KEY (gid)
 );
-CREATE INDEX index_isochrones ON isochrones USING gist (geom) ;
+CREATE INDEX index_isochrones ON isochrones USING gist (geom);
 CREATE INDEX ON isochrones USING btree(objectid,parent_id);
 
 CREATE TABLE public.multi_isochrones (

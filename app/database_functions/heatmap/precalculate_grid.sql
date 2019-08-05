@@ -5,15 +5,20 @@ AS $function$
 DECLARE 
 	i integer;
 	count_vertices integer;
+	excluded_class_id integer[];
+	categories_no_foot text[];
 BEGIN 
 	DROP TABLE IF EXISTS temp_multi_reached_vertices;
 	DROP TABLE IF EXISTS temp_all_extrapolated_vertices;
 	CREATE temp TABLE temp_multi_reached_vertices AS 
 	SELECT *
-	FROM pgrouting_edges_multi(minutes,array_starting_points,speed/3.6,objectids);
+	FROM pgrouting_edges_multi(minutes,array_starting_points,speed,objectids);
 	ALTER TABLE temp_multi_reached_vertices ADD COLUMN id serial;
 	ALTER TABLE temp_multi_reached_vertices ADD PRIMARY key(id);
 	
+	SELECT select_from_variable_container('excluded_class_id_walking')::text[],
+	select_from_variable_container('categories_no_foot')::text
+	INTO excluded_class_id, categories_no_foot;
 
 	FOR i IN SELECT DISTINCT objectid FROM temp_multi_reached_vertices
 	LOOP 
@@ -30,7 +35,7 @@ BEGIN
 	
 			CREATE temp TABLE temp_extrapolated_reached_vertices AS 
 			SELECT * 
-			FROM extrapolate_reached_vertices(minutes*60,ARRAY[0,101,102,103,104,105,106,107,501,502,503,504,701,801],ARRAY['no','use_sidepath']);
+			FROM extrapolate_reached_vertices(minutes*60,(speed/3.6),excluded_class_id,categories_no_foot);
 			
 			ALTER TABLE temp_extrapolated_reached_vertices ADD COLUMN id serial;
 			ALTER TABLE temp_extrapolated_reached_vertices ADD PRIMARY key(id);
