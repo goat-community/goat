@@ -74,9 +74,9 @@ for i in ways_to_split:
         end = round(end+fraction,5)
         if end > 1:
             end = 1
-        print(end)
-        cursor.execute('''insert into preliminary_ways_split_long(ways_id,geom)
-                          select id ways_id,class_id st_line_substring(geom,%f,%f)
+        #print(end)
+        cursor.execute('''insert into preliminary_ways_split_long(ways_id,class_id,geom)
+                          select id ways_id,class_id, st_line_substring(geom,%f,%f)
                           geom from ways where id=%i''' % (start,end,i[0]))
 
         con.commit()
@@ -119,7 +119,7 @@ with t as (
 UPDATE ways_split_long set target = t.target from t where ways_split_long.id = t.id;
 UPDATE ways_split_long set length_m = st_length(geom::geography);
 '''
-#cursor.execute(sql_fill_tables)
+cursor.execute(sql_fill_tables)
 con.commit()
 con.close()
 
