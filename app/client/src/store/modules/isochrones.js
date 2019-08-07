@@ -2,6 +2,7 @@ import http from "../../services/http";
 import { getField, updateField } from "vuex-map-fields";
 import { toStringHDMS } from "ol/coordinate";
 import { transform } from "ol/proj.js";
+
 import maputils from "../../utils/MapUtils";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
@@ -133,7 +134,6 @@ const actions = {
     });
 
     let isochrones = isochronesResponse.data;
-    console.log(isochrones);
     let calculationData = [];
 
     //TODO: Don't get calculation options from state at this moment.
@@ -145,7 +145,6 @@ const actions = {
       return a.get("step") - b.get("step");
     });
 
-    console.log(olFeatures);
     olFeatures.forEach(feature => {
       feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
       let color = "";
@@ -179,18 +178,21 @@ const actions = {
       id: calculationNumber,
       name: "Calculation - " + calculationNumber,
       time: state.options.minutes + " min",
-      position: toStringHDMS(state.position.coordinate),
+      position: toStringHDMS(
+        olFeatures[0].get("coordinates") || state.position.coordinate
+      ),
       speed: state.options.speed + " km/h",
       isExpanded: true,
       isVisible: true,
       data: calculationData
     };
 
-    iconMarkerFeature
-      .getGeometry()
-      .setCoordinates(maputils.getCenter(olFeatures[0].getGeometry()));
-    commit("CALCULATE_ISOCHRONE", transformedData);
+    const transformedPoint = new Point(
+      transform(olFeatures[0].get("coordinates"), "EPSG:4326", "EPSG:3857") //TODO: Get source projection from the map here.
+    );
+    iconMarkerFeature.setGeometry(transformedPoint);
 
+    commit("CALCULATE_ISOCHRONE", transformedData);
     //Add features to isochrone layer
     commit("ADD_ISOCHRONE_FEATURES", olFeatures);
   },
