@@ -268,6 +268,7 @@ export default {
       }
       me.stopHelpTooltip();
       me.map.getTarget().style.cursor = "";
+      EventBus.$emit("ol-interaction-stoped", me.interactionType);
     }
   },
   watch: {

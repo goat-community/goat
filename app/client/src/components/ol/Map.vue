@@ -1,6 +1,29 @@
 <template>
-  <div></div
-></template>
+  <!-- Popup overlay  -->
+  <overlay-popup :title="popup.title" v-show="popup.isVisible" ref="popup">
+    <v-btn icon>
+      <v-icon>close</v-icon>
+    </v-btn>
+    <template v-slot:close>
+      <v-btn @click="closePopup()" icon>
+        <v-icon>close</v-icon>
+      </v-btn>
+    </template>
+    <template v-slot:body>
+      <span v-html="popup.rawHtml"></span>
+      <v-divider></v-divider>
+      <v-data-table
+        :headers="getInfoHeader"
+        :items="getInfoResult"
+        hide-default-header
+        hide-default-footer
+        dense
+        flat
+      ></v-data-table>
+      <v-divider></v-divider>
+    </template>
+  </overlay-popup>
+</template>
 
 <script>
 // helper function to detect a CSS color
@@ -25,9 +48,17 @@ import { LayerFactory } from "../../factory/layer.js";
 import { mapGetters } from "vuex";
 import helpers from "../../utils/Helpers";
 import Layers from "../../utils/Layer";
+import maputils from "../../utils/MapUtils";
 import { Group as LayerGroup } from "ol/layer.js";
 
+import http from "../../services/http";
+
+import OverlayPopup from "./Overlay";
+
 export default {
+  components: {
+    "overlay-popup": OverlayPopup
+  },
   name: "app-map",
   props: {
     color: { type: String, required: false, default: "green darken-3" }
@@ -38,7 +69,18 @@ export default {
       center: this.$appConfig.map.center,
       minZoom: this.$appConfig.map.minZoom,
       maxZoom: this.$appConfig.map.maxZoom,
-      allLayers: []
+      allLayers: [],
+      activeInteractions: [],
+      popup: {
+        rawHtml: null,
+        title: "Info",
+        isVisible: false
+      },
+      getInfoHeader: [
+        { text: "Property", value: "property" },
+        { text: "Value", value: "value" }
+      ],
+      getInfoResult: []
     };
   },
   mounted() {
@@ -58,6 +100,10 @@ export default {
       me.setOlButtonColor();
 
       me.setupMapHover();
+
+      //Get Info
+      me.setupMapClick();
+      me.createPopupOverlay();
     }, 200);
   },
   created() {
@@ -85,6 +131,15 @@ export default {
     me.map.getLayers().extend(layers);
     //Create mask filters
     me.createMaskFilters(layers);
+
+    EventBus.$on("ol-interaction-activated", startedInteraction => {
+      me.activeInteractions.push(startedInteraction);
+    });
+    EventBus.$on("ol-interaction-stoped", stopedInteraction => {
+      me.activeInteractions = me.activeInteractions.filter(
+        interaction => interaction !== stopedInteraction
+      );
+    });
   },
 
   methods: {
@@ -116,6 +171,11 @@ export default {
 
       return layers;
     },
+
+    /**
+     * Creates a filter mask of the city using ol mask extension.
+     * Hides other municipalities and states.
+     */
     createMaskFilters(mapLayers) {
       const me = this;
 
@@ -138,7 +198,6 @@ export default {
       //Create masks
       if (studyAreaLayer) {
         studyAreaLayer.getSource().on("change", function() {
-          console.log("changed");
           const feature = studyAreaLayer.getSource().getFeatures()[0];
           const mask = new Mask({
             feature: feature,
@@ -151,6 +210,10 @@ export default {
         });
       }
     },
+
+    /**
+     * Map hover used for helper tooltips.
+     */
     setupMapHover() {
       const me = this;
       const map = me.map;
@@ -236,6 +299,124 @@ export default {
             .classList.add(colorModifier);
         }
       }
+    },
+
+    /**
+     * Show popup for the get info module.
+     */
+    createPopupOverlay() {
+      const me = this;
+      me.popupOverlay = new Overlay({
+        element: me.$refs.popup.$el,
+        autoPan: false,
+        autoPanMargin: 40,
+        autoPanAnimation: {
+          duration: 250
+        }
+      });
+      me.map.addOverlay(me.popupOverlay);
+    },
+
+    /**
+     * Closes the popup if user click X button.
+     */
+    closePopup() {
+      const me = this;
+      if (me.popupOverlay) {
+        me.popupOverlay.setPosition(undefined);
+        me.popup.isVisible = false;
+      }
+    },
+
+    /**
+     * Map click event for "Get Info" Module.
+     */
+    setupMapClick() {
+      const me = this;
+      const map = me.map;
+      me.mapClickListenerKey = map.on("click", evt => {
+        if (me.activeInteractions.length > 0) {
+          me.popupOverlay.setPosition(undefined);
+          return;
+        }
+        const coordinate = evt.coordinate;
+        const projection = me.map.getView().getProjection();
+        const resolution = me.map.getView().getResolution();
+        let layerToQuery;
+        Layers.getAllChildLayers(me.map).forEach(layer => {
+          if (layer.get("queryable") === true) {
+            layerToQuery = layer;
+          }
+        });
+        if (!layerToQuery || layerToQuery.getVisible() == false) {
+          return;
+        }
+        const url = layerToQuery
+          .getSource()
+          .getGetFeatureInfoUrl(coordinate, resolution, projection, {
+            INFO_FORMAT: "application/json"
+          });
+        http.get(url).then(function(response) {
+          const features = response.data.features;
+          if (features.length === 0) {
+            me.popupOverlay.setPosition(undefined);
+            return;
+          }
+
+          const olFeatures = maputils.geojsonToFeature(response.data);
+          const featureCoordinates = olFeatures[0]
+            .getGeometry()
+            .getCoordinates();
+          const props = olFeatures[0].getProperties();
+
+          let overlayCoordinates;
+          if (olFeatures[0].getGeometry().getType() === "Point") {
+            overlayCoordinates = featureCoordinates;
+          } else {
+            overlayCoordinates = featureCoordinates[0];
+          }
+
+          me.popupOverlay.setPosition(overlayCoordinates);
+          me.popup.isVisible = true;
+          me.popup.title = `Info - (${layerToQuery.get("title")})`;
+
+          if (layerToQuery.get("name") === "pois") {
+            const osmId = props["osm_id"];
+            const originGeometry = props["orgin_geometry"];
+            if (osmId !== null) {
+              let type;
+              switch (originGeometry) {
+                case "polygon":
+                  type = "way";
+                  break;
+                case "point":
+                  type = "node";
+                  break;
+                default:
+                  type = null;
+                  break;
+              }
+
+              me.popup.rawHtml = `<a style="text-decoration:none;" 
+                                        href="https://www.openstreetmap.org/edit?editor=id&${type}=${osmId}" target="_blank" title="">
+                              <i class="fa fa-edit"></i> Edit with OSM</a>`;
+            }
+          }
+
+          const excludedProperties = ["geometry", "orgin_geometry", "osm_id"];
+          let transformed = [];
+          Object.keys(props).forEach(k => {
+            if (!excludedProperties.includes(k)) {
+              transformed.push({
+                property: helpers.humanize(k),
+                value: props[k] === null ? "---" : props[k]
+              });
+            }
+          });
+
+          me.getInfoResult = transformed;
+        });
+      });
     }
   },
   computed: {
