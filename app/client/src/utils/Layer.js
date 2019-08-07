@@ -1,9 +1,10 @@
 import { Group as LayerGroup } from "ol/layer.js";
+import { WFS } from "ol/format";
 
 /**
  * Util class for OL layers
  */
-const LayerUtil = {
+const LayerUtils = {
   /**
    * Returns a set of map layers which matches the given key value pair.
    *
@@ -39,7 +40,7 @@ const LayerUtil = {
    * @return {ol.layer.Base} The OL layer instance or undefined
    */
   getLayerByLid(lid, olMap) {
-    return LayerUtil.getLayersBy("lid", lid, olMap)[0];
+    return LayerUtils.getLayersBy("lid", lid, olMap)[0];
   },
 
   /**
@@ -76,7 +77,49 @@ const LayerUtil = {
     }
     const extent = vecLayer.getSource().getExtent();
     olMap.getView().fit(extent);
+  },
+
+  /**
+   * Creates the WFS serialized string
+   *
+   * @param  {string} srsName The source coordinate reference system
+   * @param  {string} namespace The Geoserver namespace
+   * @param  {string} workspace The Geoserver workspace
+   * @param  {string} layerName The Layer name
+   * @param  {ol.format.filter} filter The Openlayers filter
+   *
+   */
+  wfsRequestParser(srsName, workspace, layerName, filter) {
+    const xs = new XMLSerializer();
+    const wfs = new WFS().writeGetFeature({
+      srsName: srsName,
+      featurePrefix: workspace,
+      featureTypes: [layerName],
+      outputFormat: "application/json",
+      filter: filter
+    });
+    const xmlparser = xs.serializeToString(wfs);
+    return xmlparser;
+  },
+  wfsTransactionParser(
+    featuresToAdd,
+    featuresToUpdate,
+    featuresToDelete,
+    formatGML
+  ) {
+    const wfs = new WFS();
+    const xml = wfs.writeTransaction(
+      featuresToAdd,
+      featuresToUpdate,
+      featuresToDelete,
+      formatGML
+    );
+    return xml;
+  },
+  readTransactionResponse(data) {
+    const wfs = new WFS();
+    return wfs.readTransactionResponse(data);
   }
 };
 
-export default LayerUtil;
+export default LayerUtils;

@@ -75,6 +75,7 @@ export const LayerFactory = {
     const layer = new ImageLayer({
       name: lConf.name,
       title: lConf.title,
+      canEdit: lConf.canEdit,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
@@ -104,6 +105,7 @@ export const LayerFactory = {
     const layer = new TileLayer({
       name: lConf.name,
       title: lConf.title,
+      canEdit: lConf.canEdit,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       extent: lConf.extent,
@@ -135,7 +137,6 @@ export const LayerFactory = {
     const xyzLayer = new TileLayer({
       name: lConf.name,
       title: lConf.title,
-
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
@@ -208,6 +209,7 @@ export const LayerFactory = {
     const vectorLayer = new VectorLayer({
       name: lConf.name,
       title: lConf.title,
+      canEdit: lConf.canEdit,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       extent: lConf.extent,
@@ -238,7 +240,7 @@ export const LayerFactory = {
     const vtLayer = new VectorTileLayer({
       name: lConf.name,
       title: lConf.title,
-
+      canEdit: lConf.canEdit,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,

@@ -8,7 +8,7 @@
           <v-card-title class="pb-0 mb-0">
             <v-layout row wrap align-center>
               <v-flex xs6>
-                <v-card-text class="pa-0 ma-0">
+                <v-card-text class="pa-0 ma-0 ml-3">
                   <v-icon small class="mr-1 text-xs-center"
                     >fas fa-clock</v-icon
                   >
@@ -28,7 +28,7 @@
                   <v-icon
                     @click="showPoisTable(calculation)"
                     small
-                    class="result-icons ml-4 mr-2"
+                    class="result-icons ml-7 mr-2"
                     >fas fa-table</v-icon
                   >
                   <v-icon small class="result-icons mr-2"
@@ -92,7 +92,7 @@
               </template>
               <template v-slot:item.visible="{ item }">
                 <v-switch
-                  v-model="item.isVisible"
+                  :input-value="item.isVisible"
                   primary
                   hide-details
                   @change="toggleIsochroneFeatureVisibility(item)"

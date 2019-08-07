@@ -1,0 +1,9 @@
+language: node_js
+node_js: stable
+sudo: required
+branches:
+  only:
+    - master
+    - development
+script:
+- ./scripts/after-success.sh
