@@ -12,7 +12,7 @@
       }
     ],
     "minZoom": 10,
-    "maxZoom": 20,
+    "maxZoom": 21,
     "zoom": 13,
     "resolutions": [
       156543.03,
@@ -66,12 +66,12 @@
         "type": "WMS",
         "name": "pois",
         "title": "Point of Interest",
-        "url": "https://goat.open-accessibility.org/geoserver/wms",
+        "url": "/geoserver/wms",
         "group": "Pois Layer",
         "layers": "cite:pois_info",
         "viewparams": "amenities:'cG9wdWxhdGlvbg=='",
         "opacity": 1,
-        "queryable": false,
+        "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
