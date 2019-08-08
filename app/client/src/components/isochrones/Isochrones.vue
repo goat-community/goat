@@ -3,22 +3,24 @@
     <v-card flat>
       <!-- THEMATIC DATA -->
       <template v-if="isThematicDataVisible === true">
-        <v-card-title primary-title class="py-2">
+        <v-layout>
           <v-btn
             text
-            class="my-0 py-0"
             icon
+            small
+            class="mt-1"
             light
             @click="toggleThematicDataVisibility(false)"
           >
             <v-icon color="rgba(0,0,0,0.54)">fas fa-arrow-left</v-icon>
           </v-btn>
-          <span class="title">Thematic Data</span>
-        </v-card-title>
+          <v-subheader class="ml- pl-0">
+            <span class="title">Thematic Data</span>
+          </v-subheader>
+        </v-layout>
         <v-card-text class="pr-16 pl-16 pt-0 pb-0 mb-2">
           <v-divider></v-divider>
         </v-card-text>
-
         <isochrone-thematic-data />
       </template>
 
@@ -33,7 +35,7 @@
         </v-card-text>
         <v-card-text>
           <v-layout row>
-            <v-flex xs10>
+            <v-flex xs9>
               <v-autocomplete
                 solo
                 v-model="model"
@@ -48,14 +50,14 @@
                 hide-no-data
                 prepend-inner-icon="search"
                 return-object
+                class="ml-3 mt-1"
               ></v-autocomplete>
             </v-flex>
-            <v-flex xs2>
+            <v-flex xs3>
               <v-btn
-                class="ml-2 mt-1"
                 outlined
                 fab
-                large
+                class="ml-4"
                 rounded
                 text
                 @click="registerMapClick"
@@ -117,11 +119,14 @@
 
 <script>
 import { Mapable } from "../../mixins/Mapable";
-
+import { EventBus } from "../../EventBus";
+import { InteractionsToggle } from "../../mixins/InteractionsToggle";
 //Child components
 import IsochroneOptions from "./IsochroneOptions";
 import IsochroneResults from "./IsochroneResults";
 import IsochronThematicData from "./IsochronesThematicData";
+
+import OlStyleDefs from "../../style/OlStyleDefs";
 
 //Store imports
 import { mapGetters, mapActions, mapMutations } from "vuex";
@@ -130,16 +135,17 @@ import { mapGetters, mapActions, mapMutations } from "vuex";
 import { transform } from "ol/proj.js";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
-import { Style, Stroke, Fill, Icon } from "ol/style";
+import { unByKey } from "ol/Observable";
 
 export default {
-  mixins: [Mapable],
+  mixins: [InteractionsToggle, Mapable],
   components: {
     "isochrone-options": IsochroneOptions,
     "isochrone-results": IsochroneResults,
     "isochrone-thematic-data": IsochronThematicData
   },
   data: () => ({
+    interactionType: "isochrone-interaction",
     clicked: false,
     isStartPointElVisible: true,
     isOptionsElVisible: true,
@@ -149,7 +155,8 @@ export default {
     entries: [],
     model: null,
     search: null,
-    isLoading: false
+    isLoading: false,
+    mapClickListener: null
   }),
   computed: {
     ...mapGetters("isochrones", {
@@ -199,7 +206,10 @@ export default {
     },
     registerMapClick() {
       const me = this;
-      me.map.once("singleclick", me.onMapClick);
+      //Close other interactions.
+      EventBus.$emit("ol-interaction-activated", me.interactionType);
+
+      me.mapClickListener = me.map.once("singleclick", me.onMapClick);
       me.startHelpTooltip(me.messages.interaction.calculateIsochrone);
       me.map.getTarget().style.cursor = "pointer";
     },
@@ -228,8 +238,7 @@ export default {
       });
       //Start Isochrone Calculation
       me.calculateIsochrone();
-      me.stopHelpTooltip();
-      me.map.getTarget().style.cursor = "";
+      me.clear();
     },
 
     /**
@@ -237,120 +246,35 @@ export default {
      * map and store.
      */
     createIsochroneLayer() {
-      let me = this;
-      let vector = new VectorLayer({
+      const me = this;
+      const style = OlStyleDefs.getIsochroneStyle(
+        me.styleData,
+        me.addStyleInCache
+      );
+      const vector = new VectorLayer({
         name: "Isochrone Layer",
         zIndex: 2,
         source: new VectorSource(),
-        style: feature => {
-          // Style array
-          let styles = [];
-          let styleData = me.styleData;
-          // Get the incomeLevel and modus from the feature properties
-          let level = feature.get("step");
-          let modus = feature.get("modus");
-          let isVisible = feature.get("isVisible");
-
-          let geomType = feature.getGeometry().getType();
-
-          /**
-           * Creates styles for isochrone polygon geometry type and isochrone
-           * center marker.
-           */
-          if (
-            geomType === "Polygon" ||
-            geomType === "MultiPolygon" ||
-            geomType === "LineString"
-          ) {
-            //Check feature isVisible Property
-            if (isVisible === false) {
-              return;
-            }
-
-            //Fallback isochrone style
-            if (!modus) {
-              if (!styleData.styleCache.default["GenericIsochroneStyle"]) {
-                let genericIsochroneStyle = new Style({
-                  fill: new Fill({
-                    color: [0, 0, 0, 0]
-                  }),
-                  stroke: new Stroke({
-                    color: "#0d0d0d",
-                    width: 7
-                  })
-                });
-                let payload = {
-                  style: genericIsochroneStyle,
-                  isochroneType: "default",
-                  styleName: "GenericIsochroneStyle"
-                };
-                this.addStyleInCache(payload);
-              }
-              styles.push(
-                styleData.styleCache.default["GenericIsochroneStyle"]
-              );
-            }
-            // If the modus is 1 it is a default isochrone
-            if (modus === 1 || modus === 3) {
-              if (!styleData.styleCache.default[level]) {
-                let style = new Style({
-                  stroke: new Stroke({
-                    color: feature.get("color"),
-                    width: 5
-                  })
-                });
-                let payload = {
-                  style: style,
-                  isochroneType: "default",
-                  styleName: level
-                };
-                this.addStyleInCache(payload);
-              }
-              styles.push(styleData.styleCache.default[level]);
-            } else {
-              if (!styleData.styleCache.input[level]) {
-                let style = new Style({
-                  stroke: new Stroke({
-                    color: feature.get("color"),
-                    width: 5
-                  })
-                });
-                let payload = {
-                  style: style,
-                  isochroneType: "input",
-                  styleName: level
-                };
-                this.addStyleInCache(payload);
-              }
-              styles.push(styleData.styleCache.input[level]);
-            }
-          } else {
-            let path = `img/markers/marker-${feature.get(
-              "calculationNumber"
-            )}.png`;
-            let markerStyle = new Style({
-              image: new Icon({
-                anchor: [0.5, 0.96],
-                src: path,
-                scale: 0.5
-              })
-            });
-            styles.push(markerStyle);
-          }
-          return styles;
-        }
+        style: style
       });
       me.map.addLayer(vector);
       this.addIsochroneLayer(vector);
+    },
+
+    clear() {
+      const me = this;
+      if (me.mapClickListener) {
+        unByKey(me.mapClickListener);
+      }
+      me.stopHelpTooltip();
+      me.map.getTarget().style.cursor = "";
     }
   },
   watch: {
     search(val) {
       console.log(val);
-
       // Items have already been loaded
       if (this.items.length > 0) return;
-
       // Items have already been requested
       if (this.isLoading) return;
 
