@@ -167,6 +167,9 @@ INSERT INTO variable_container(identifier,variable_array)
 values('categories_no_foot',
 '{"use_sidepath","no"}');
 
+INSERT INTO variable_container(identifier,variable_simple) 
+values('max_length_links',
+'300');
 
 INSERT INTO variable_container(identifier,variable_array)
 values('custom_landuse_no_residents',
