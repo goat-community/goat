@@ -56,6 +56,7 @@ app.post("/api/userdata", jsonParser, (request, response) => {
     );
     //*later we can require guid (unique id) for security here, for the user to be able to delete the feature and use a nodejs library to prevent sql incjection attacks*//
   } else if (mode == "insert") {
+    console.log(request.body.id);
     pool.query(
       "INSERT INTO user_data (id) VALUES ($1)",
       [request.body.id],
