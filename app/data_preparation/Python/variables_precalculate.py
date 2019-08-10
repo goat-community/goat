@@ -13,31 +13,9 @@ prepare_tables = '''select * from hexagrid(grid_size);
 
 	ALTER TABLE grid_grid_size add column grid_id serial;
     ALTER TABLE grid_grid_size add column area_isochrone float8;
-    ALTER TABLE grid_grid_size ADD COLUMN isochrone_gid integer;
     ALTER TABLE grid_grid_size ADD COLUMN pois jsonb;
-    ALTER TABLE grid_grid_size add column area_buffer float8;
 	'''
 
-sensitivities = ['001']
-
-sql_calculate_accessibility = '''with y as (
-	select grid_id, jsonb_build_object(amenity, sum(exp(cost::numeric*-%f))) index_part from(
-
-		SELECT u.grid_id, obj.value->>'amenity' as amenity,obj.value->>'name',obj.value->>'cost' As cost
-		FROM  (
-		   select grid_id,pois
-		   FROM   grid_%i
-		   WHERE  pois @> '[{"amenity":"%s"}]'
-		   ) u
-		JOIN LATERAL jsonb_array_elements(pois) obj(value) 
-		ON obj.value->>'amenity' = '%s'
-		order by grid_id) x
-	group by grid_id, amenity
-)
-UPDATE grid_%i 
-SET index_0_%s = index_0_%s||y.index_part
-from y
-where grid_%i.grid_id = y.grid_id;'''
 
 sql_new_grid= '''DROP TABLE IF EXISTS grid;
 select distinct grid_id, geom into grid from grid_grid_size;
@@ -48,7 +26,7 @@ ALTER TABLE grid add primary key (grid_id);
 
 sql_clean = 'DROP TABLE IF EXISTS grid; ALTER TABLE grid_grid_size add column id serial; CREATE INDEX test_index_sensitivity ON test(sensitivity);'
 
-#public_transport_stops = ['bus_stop','tram_stop','subway_entrance','sbahn_regional']
+
 
 sql_grid_population = '''
 ALTER TABLE grid_grid_size ADD COLUMN population integer;

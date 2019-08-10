@@ -266,7 +266,7 @@ var vector_style = new Style({
         if (modus == 1 || modus == 3){       
       	 
       			
-				var color =  set_color(level/speed,color_diff_default,color_1_default);  
+				var color =  set_color(level/60,color_diff_default,color_1_default);  
           		var style = new Style({
             	stroke: new Stroke({
 	    				color: `rgb(${Math.round(color[0])},${Math.round(color[1])},${Math.round(color[2])})`,
@@ -280,7 +280,7 @@ var vector_style = new Style({
         //If the parent_id is not one it is a input isochrone
         else {        
 
-				var color =  set_color(level/speed,color_diff_input,color_1_input);  
+				var color =  set_color(level/60,color_diff_input,color_1_input);  
 				
 				var style = new Style({
             	stroke: new Stroke({

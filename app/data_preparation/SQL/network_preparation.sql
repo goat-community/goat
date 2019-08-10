@@ -1,3 +1,35 @@
+CREATE OR REPLACE FUNCTION public.split_long_way(geom geometry, length_m NUMERIC, max_length integer)
+RETURNS SETOF geometry
+AS $function$
+DECLARE 
+	fraction NUMERIC;
+	end_border NUMERIC :=0;
+	start_border NUMERIC;
+BEGIN 
+	fraction = 1/ceil(length_m/max_length);
+	WHILE end_border < 1 LOOP 
+		start_border = round(end_border,5);
+		end_border = round(end_border+fraction,5);
+		IF end_border > 1 THEN 
+			end_border = 1;
+		END IF;
+		RETURN NEXT st_linesubstring(geom,start_border,end_border);
+	END LOOP; 
+	
+END;
+$function$ LANGUAGE plpgsql immutable;
+
+CREATE OR REPLACE FUNCTION select_from_variable_container(identifier_input text)
+RETURNS SETOF text[]
+ LANGUAGE sql
+AS $function$
+
+	SELECT variable_array 
+	FROM variable_container
+	WHERE identifier = identifier_input;
+
+$function$;
+
 ALTER TABLE ways
 DROP COLUMN RULE,DROP COLUMN x1,DROP COLUMN x2,DROP COLUMN y1,DROP COLUMN y2;
 ALTER TABLE ways rename column gid to id;
@@ -13,85 +45,9 @@ SET foot = p.foot, bicycle = p.bicycle
 FROM planet_osm_line p 
 WHERE ways.osm_id = p.osm_id;
 
---INSERT INTO osm_way_classes(class_id,name) values(501,'secondary_use_sidepath');
---INSERT INTO osm_way_classes(class_id,name) values(502,'secondary_link_use_sidepath');
---INSERT INTO osm_way_classes(class_id,name) values(503,'tertiary_use_sidepath');
---INSERT INTO osm_way_classes(class_id,name) values(504,'tertiary_link_use_sidepath');
 INSERT INTO osm_way_classes(class_id,name) values(801,'foot_no');
 INSERT INTO osm_way_classes(class_id,name) values(701,'network_island');
 
-/*
-WITH links_to_UPDATE as (
-	SELECT osm_id, o.class_id 
-	FROM planet_osm_line p, osm_way_classes o
-	WHERE highway in('secondary','secondary_link','tertiary','tertiary_link')
-	AND foot = 'use_sidepath'
-	AND concat(highway,'_use_sidepath') = o.name
-)
-UPDATE ways SET class_id = l.class_id
-FROM links_to_UPDATE l
-WHERE ways.osm_id = l.osm_id;
-
-
-WITH links_to_UPDATE as (
-	SELECT osm_id, o.class_id 
-	FROM planet_osm_line p, osm_way_classes o
-	WHERE highway in('secondary','secondary_link','tertiary','tertiary_link')
-	AND foot = 'use_sidepath'
-	AND concat(highway,'_use_sidepath') = o.name
-)
-UPDATE ways SET class_id = l.class_id
-FROM links_to_UPDATE l
-WHERE ways.osm_id = l.osm_id;
-
-WITH links_to_UPDATE as (
-	SELECT osm_id
-	FROM planet_osm_line p
-	WHERE foot = 'yes'
-)
-UPDATE ways SET class_id = 601
-FROM links_to_UPDATE l
-WHERE ways.osm_id = l.osm_id;
-
-WITH links_to_UPDATE as (
-	SELECT osm_id, o.class_id 
-	FROM planet_osm_line p, osm_way_classes o
-	WHERE highway in('secondary','secondary_link','tertiary','tertiary_link')
-	AND foot = 'use_sidepath'
-	AND concat(highway,'_use_sidepath') = o.name
-)
-UPDATE ways SET class_id = l.class_id
-FROM links_to_UPDATE l
-WHERE ways.osm_id = l.osm_id;
-
-
-WITH class_id as (
-	SELECT unnest(variable_array) class_id
-	FROM variable_container 
-	WHERE identifier = 'excluded_class_id_walking'
-),
-class_names as(
-	SELECT c.class_id, o.name
-	FROM class_id c, osm_way_classes o
-	WHERE c.class_id::integer = o.class_id
-	AND c.class_id::integer < 500
-),
-links_to_UPDATE as(
-	SELECT osm_id
-	FROM planet_osm_line p, class_names c
-	WHERE p.highway = c.name
-	AND foot = 'yes'
-	UNION ALL
-	SELECT osm_id
-	FROM planet_osm_line p
-	WHERE (tags -> 'sidewalk') IS NOT NULL
-	AND (tags -> 'sidewalk') <> 'no'
-	AND (tags -> 'sidewalk') <> 'none'
-)
-UPDATE ways SET class_id = 601
-FROM links_to_UPDATE l
-WHERE ways.osm_id = l.osm_id;
-*/
 --Mark network islands in the network
 
 WITH RECURSIVE ways_no_islands AS (
@@ -120,6 +76,75 @@ AND (
 	OR ways.foot IS NULL
 ); 
 
+/*Split long ways that. Parameter max_length can be set in the variable container*/
+DO $$
+DECLARE
+	max_length integer; 
+	excluded_class_id integer[];
+	categories_no_foot text[];
+BEGIN 
+	
+	SELECT select_from_variable_container('excluded_class_id_walking')::integer[],
+	select_from_variable_container('categories_no_foot')::text[]
+	INTO excluded_class_id, categories_no_foot;
+ 	
+	SELECT variable_simple::integer
+	INTO max_length
+	FROM variable_container
+	WHERE identifier = 'max_length_links';
+
+	WITH splited_ways AS (
+		SELECT id, class_id,ST_Length(split_long_way(geom,length_m::NUMERIC,max_length)::geography) AS length_m,
+		osm_id, foot, bicycle, split_long_way(geom,length_m::NUMERIC,max_length) AS geom
+		FROM ways w
+		WHERE length_m > max_length
+		AND w.class_id not in (select UNNEST(excluded_class_id))
+		AND (foot not in (SELECT UNNEST(categories_no_foot)) OR foot IS NULL)
+	),
+	delete_old AS (
+		DELETE FROM ways w 
+		USING splited_ways s 
+		WHERE w.id = s.id
+	)
+	INSERT INTO ways(class_id,length_m,osm_id,foot,bicycle,geom)
+	SELECT class_id,length_m, osm_id, foot, bicycle, geom 
+	FROM splited_ways;
+
+	UPDATE ways w SET SOURCE = v.id 
+	FROM ways_vertices_pgr v 
+	WHERE ST_astext(st_startpoint(w.geom)) = ST_astext(v.geom)
+	AND SOURCE IS NULL;
+
+	UPDATE ways w SET target = v.id 
+	FROM ways_vertices_pgr v 
+	WHERE ST_astext(st_endpoint(w.geom)) = ST_astext(v.geom)
+	AND target IS null;
+
+	WITH new_vertices AS (
+		SELECT st_startpoint(geom) AS geom 
+		FROM ways  
+		WHERE SOURCE IS NULL 
+		UNION ALL 
+		SELECT st_endpoint(geom) AS geom 
+		FROM ways
+		WHERE target IS NULL 
+	)
+	INSERT INTO ways_vertices_pgr(geom)
+	SELECT DISTINCT geom 
+	FROM new_vertices; 
+	
+	UPDATE ways w SET SOURCE = v.id 
+	FROM ways_vertices_pgr v 
+	WHERE ST_astext(st_startpoint(w.geom)) = ST_astext(v.geom)
+	AND SOURCE IS NULL;
+
+	UPDATE ways w SET target = v.id 
+	FROM ways_vertices_pgr v 
+	WHERE ST_astext(st_endpoint(w.geom)) = ST_astext(v.geom)
+	AND target IS null;
+
+END
+$$;
 
 ALTER TABLE ways_vertices_pgr ADD COLUMN class_ids int[];
 WITH class_ids AS (
@@ -191,7 +216,6 @@ ALTER TABLE ways_userinput add column userid int4;
 ALTER TABLE ways_userinput_vertices_pgr add column userid int4;
 CREATE INDEX ON ways_userinput USING btree (userid);
 CREATE INDEX ON ways_userinput_vertices_pgr USING btree (userid);
-
 CREATE INDEX ON ways USING btree(foot);
 
 

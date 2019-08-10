@@ -43,7 +43,7 @@
         <sql>with x as (&#xd;
 	select  *&#xd;
 	from &#xd;
-		heatmap(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;),&apos;index_0_001&apos;)&#xd;
+		heatmap(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;),&apos;index_0_003&apos;)&#xd;
 ),&#xd;
 y as (SELECT grid_id,accessibility_index,geom, ntile(5) over &#xd;
 (order by accessibility_index) AS percentile&#xd;
@@ -56,11 +56,6 @@ LEFT JOIN y&#xd;
 ON g.grid_id = y.grid_id
 </sql>
         <escapeSql>false</escapeSql>
-        <geometry>
-          <name>geom</name>
-          <type>Geometry</type>
-          <srid>4326</srid>
-        </geometry>
         <parameter>
           <name>amenities</name>
           <defaultValue>&apos;W3siJ2J1c19zdG9wJyI6Mn0seyIndHJhbV9zdG9wJyI6M31d&apos;</defaultValue>
@@ -72,8 +67,11 @@ ON g.grid_id = y.grid_id
   <store class="dataStore">
     <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
   </store>
+  <serviceConfiguration>false</serviceConfiguration>
   <maxFeatures>0</maxFeatures>
   <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
   <overridingServiceSRS>false</overridingServiceSRS>
   <skipNumberMatched>false</skipNumberMatched>
   <circularArcPresent>false</circularArcPresent>

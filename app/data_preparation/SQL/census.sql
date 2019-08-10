@@ -286,8 +286,10 @@ SET sum_pop = sum_pop + c.sum_fixed_pop
 FROM study_area_to_update c
 WHERE s.gid = c.gid; 
 
-ALTER TABLE population add primary key(gid);
+ALTER TABLE population DROP COLUMN gid;
+ALTER TABLE population ADD COLUMN gid serial;
 
+ALTER TABLE population add primary key(gid);
 CREATE INDEX ON population USING GIST (geom);
 
 DELETE FROM population 
@@ -300,7 +302,8 @@ FROM population p, census c
 WHERE ST_Intersects(c.geom, p.geom)
 GROUP BY c.id, c.geom;
 
-ALTER TABLE updated_census ADD PRIMARY key(id);
+ALTER TABLE updated_census ADD COLUMN gid serial;
+ALTER TABLE updated_census ADD PRIMARY key(gid);
 CREATE INDEX ON updated_census USING gist(geom);
 
 DROP TABLE IF EXISTS intersection_buildings_grid;
