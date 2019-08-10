@@ -43,9 +43,9 @@
                 :loading="isLoading"
                 label="Search Road"
                 :search-input.sync="search"
-                item-text="Description"
+                item-text="display_name"
                 append-icon=""
-                item-value="API"
+                item-value="osm_id"
                 hide-details
                 hide-no-data
                 prepend-inner-icon="search"
@@ -67,6 +67,7 @@
             </v-flex>
           </v-layout>
         </v-card-text>
+
         <v-card-text class="pr-16 pl-16 pt-0 pb-0">
           <v-divider></v-divider>
         </v-card-text>
@@ -137,6 +138,8 @@ import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import { unByKey } from "ol/Observable";
 
+import axios from "axios";
+
 export default {
   mixins: [InteractionsToggle, Mapable],
   components: {
@@ -151,7 +154,7 @@ export default {
     isOptionsElVisible: true,
     isResultsElVisible: true,
     //Road Search
-    descriptionLimit: 60,
+    descriptionLimit: 30,
     entries: [],
     model: null,
     search: null,
@@ -176,12 +179,12 @@ export default {
     },
     items() {
       return this.entries.map(entry => {
-        const Description =
-          entry.Description.length > this.descriptionLimit
-            ? entry.Description.slice(0, this.descriptionLimit) + "..."
-            : entry.Description;
+        const DisplayName =
+          entry.display_name.length > this.descriptionLimit
+            ? entry.display_name.slice(0, this.descriptionLimit) + "..."
+            : entry.display_name;
 
-        return Object.assign({}, entry, { Description });
+        return Object.assign({}, entry, { DisplayName });
       });
     }
   },
@@ -274,26 +277,25 @@ export default {
   watch: {
     search(val) {
       console.log(val);
-      // Items have already been loaded
-      if (this.items.length > 0) return;
+
       // Items have already been requested
       if (this.isLoading) return;
 
       this.isLoading = true;
 
-      // Lazily load input items
-      fetch("")
-        .then(res => res.json())
-        .then(res => {
-          const { count, entries } = res;
-          this.count = count;
-          this.entries = entries;
-        })
-        .catch(err => {
-          console.log(err);
-        })
-        .finally(() => (this.isLoading = false));
+      axios
+        .get(`${this.searchUrl}?key=${this.searchKey}&q=${this.search}`)
+        .then(response => {
+          this.count = response.data.length;
+          this.entries = response.data;
+          this.isLoading = false;
+        });
     }
+  },
+  mounted() {
+    const me = this;
+    me.searchUrl = process.env.VUE_APP_SEARCH_URL;
+    me.searchKey = process.env.VUE_APP_SEARCH_KEY;
   }
 };
 </script>

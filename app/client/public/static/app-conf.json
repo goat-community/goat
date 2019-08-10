@@ -79,6 +79,20 @@
       },
       {
         "type": "WMS",
+        "name": "study_area_administration",
+        "title": "Administrative Units",
+        "url": "/geoserver/wms",
+        "group": "Administrative Layers",
+        "layers": "cite:study_area",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1
+      },
+      {
+        "type": "WMS",
         "name": "walkability",
         "title": "Walkability",
         "url": "https://goat.open-accessibility.org/geoserver/wms",

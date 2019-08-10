@@ -55,6 +55,9 @@ import http from "../../services/http";
 
 import OverlayPopup from "./Overlay";
 
+//Store imports
+import { mapMutations } from "vuex";
+
 export default {
   components: {
     "overlay-popup": OverlayPopup
@@ -199,6 +202,14 @@ export default {
       if (studyAreaLayer) {
         studyAreaLayer.getSource().on("change", function() {
           const feature = studyAreaLayer.getSource().getFeatures()[0];
+          const bbox = feature
+            .clone()
+            .getGeometry()
+            .transform("EPSG:3857", "EPSG:4326")
+            .getExtent()
+            .toString();
+          me.setStudyAreaBbox(bbox);
+          console.log(bbox);
           const mask = new Mask({
             feature: feature,
             inner: false,
@@ -417,7 +428,10 @@ export default {
           me.getInfoResult = transformed;
         });
       });
-    }
+    },
+    ...mapMutations("map", {
+      setStudyAreaBbox: "SET_STUDYAREA_BBOX"
+    })
   },
   computed: {
     ...mapGetters("map", {
