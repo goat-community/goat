@@ -55,17 +55,18 @@ begin
     END IF; 
     /*default or scenario*/
   	objectid_default = random_between(1,900000000);
-	INSERT INTO isochrones(userid,id,step,geom,speed,concavity,modus,objectid,parent_id) 
-	SELECT *,speed_input,concavity,modus,objectid_default,1
-	FROM isochrones(userid_input,minutes,x,y,n,speed_input,concavity,modus,objectid_default,1);
-	PERFORM thematic_data_sum(objectid_default);
+    INSERT INTO isochrones(userid,id,step,geom,speed,concavity,modus,objectid,parent_id) 
+    SELECT *,speed_input,concavity,modus,objectid_default,1
+    FROM isochrones(userid_input,minutes,x,y,n,speed_input,concavity,modus,objectid_default,1);
+    PERFORM thematic_data_sum(objectid_default);
 	
   END IF ;
   
   UPDATE isochrones i
   SET starting_point = ST_AsText(s.geom)
   FROM starting_point_isochrones s
-  WHERE i.objectid IN (objectid_default,objectid_scenario);
+  WHERE i.objectid = s.objectid 
+  AND starting_point IS null;
   
   RETURN query SELECT distinct i.gid,i.objectid,ARRAY[x,y] coordinates,i.step,i.speed,
   i.concavity,i.modus::integer,i.parent_id,i.sum_pois::jsonb, i.geom, i.starting_point 
