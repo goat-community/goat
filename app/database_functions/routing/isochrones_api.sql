@@ -62,12 +62,13 @@ begin
 	
   END IF ;
   
-  UPDATE isochrones 
+  UPDATE isochrones i
   SET starting_point = ST_AsText(s.geom)
-  FROM starting_point_isochrones
+  FROM starting_point_isochrones s
   WHERE i.objectid IN (objectid_default,objectid_scenario);
   
-  RETURN query SELECT distinct i.gid,i.objectid,ARRAY[x,y] coordinates,i.step,i.speed,i.concavity,i.modus::integer,i.parent_id,i.sum_pois::jsonb, i.geom 
+  RETURN query SELECT distinct i.gid,i.objectid,ARRAY[x,y] coordinates,i.step,i.speed,
+  i.concavity,i.modus::integer,i.parent_id,i.sum_pois::jsonb, i.geom, i.starting_point 
   FROM isochrones i
   WHERE i.objectid IN (objectid_default,objectid_scenario);
 END ;
