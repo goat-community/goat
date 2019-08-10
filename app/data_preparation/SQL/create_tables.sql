@@ -13,10 +13,30 @@ CREATE TABLE public.isochrones (
 	pois text NULL, 
 	sum_pois_time text NULL,
 	sum_pois text NULL,
+	starting_point text NULL,
 	CONSTRAINT isochrones_pkey PRIMARY KEY (gid)
 );
-CREATE INDEX index_isochrones ON isochrones USING gist (geom) ;
+CREATE INDEX index_isochrones ON isochrones USING gist (geom);
+CREATE INDEX ON isochrones USING btree(objectid,parent_id);
 
+CREATE TABLE public.multi_isochrones (
+	userid int4 NULL,
+	id int4 NULL,
+	step int4 NULL,
+	geom geometry NULL,
+	gid serial NOT NULL,
+	speed numeric NULL,
+	alphashape_parameter numeric NULL,
+	modus integer NULL,
+	objectid int4 NULL,
+	parent_id int4 NULL,
+	population jsonb NULL,
+	starting_point numeric[][] NULL,
+	CONSTRAINT multi_isochrones_pkey PRIMARY KEY (gid)
+);
+
+CREATE INDEX ON multi_isochrones USING gist (geom);
+CREATE INDEX ON multi_isochrones USING btree(objectid,parent_id);
 
 CREATE TABLE public.edges (
 	seq int4 NULL,
@@ -29,7 +49,7 @@ CREATE TABLE public.edges (
 	class_id int4,
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
 );
-create index index_edges on edges using gist(geom);
+CREATE INDEX index_edges ON edges USING gist(geom);
 CREATE INDEX ON edges USING btree(objectid,cost);
 
 CREATE TABLE public.starting_point_isochrones (
@@ -40,6 +60,7 @@ CREATE TABLE public.starting_point_isochrones (
 	number_calculation int4,
 	CONSTRAINT starting_point_isochrones_pkey PRIMARY KEY (gid)
 );
+CREATE INDEX ON starting_point_isochrones USING gist(geom);
 
 CREATE TABLE addresses_residential(
 osm_id bigint,
@@ -131,7 +152,7 @@ values('poi_categories',
 "ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
 "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi",
 "hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
-"bakery","butcher","clothes","convenience","fashion","florist","greengrocer",
+"bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer",
 "kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
 "hypermarket","international_supermarket","chemist","organic","marketplace",
 "hotel","museum","hostel","guest_house","viewpoint","gallery","bus_stop",
@@ -146,6 +167,9 @@ INSERT INTO variable_container(identifier,variable_array)
 values('categories_no_foot',
 '{"use_sidepath","no"}');
 
+INSERT INTO variable_container(identifier,variable_simple) 
+values('max_length_links',
+'300');
 
 INSERT INTO variable_container(identifier,variable_array)
 values('custom_landuse_no_residents',

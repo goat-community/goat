@@ -1,10 +1,12 @@
 CREATE OR REPLACE FUNCTION public.precalculate_grid(grid text, minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, objectids int[])
-RETURNS SETOF type_catchment_edges
+RETURNS SETOF type_catchment_vertices
  LANGUAGE plpgsql
 AS $function$
 DECLARE 
 	i integer;
 	count_vertices integer;
+	excluded_class_id integer[];
+	categories_no_foot text[];
 BEGIN 
 	DROP TABLE IF EXISTS temp_multi_reached_vertices;
 	DROP TABLE IF EXISTS temp_all_extrapolated_vertices;
@@ -14,6 +16,9 @@ BEGIN
 	ALTER TABLE temp_multi_reached_vertices ADD COLUMN id serial;
 	ALTER TABLE temp_multi_reached_vertices ADD PRIMARY key(id);
 	
+	SELECT select_from_variable_container('excluded_class_id_walking')::text[],
+	select_from_variable_container('categories_no_foot')::text
+	INTO excluded_class_id, categories_no_foot;
 
 	FOR i IN SELECT DISTINCT objectid FROM temp_multi_reached_vertices
 	LOOP 
@@ -30,7 +35,7 @@ BEGIN
 	
 			CREATE temp TABLE temp_extrapolated_reached_vertices AS 
 			SELECT * 
-			FROM extrapolate_reached_vertices(minutes*speed,ARRAY[0,101,102,103,104,105,106,107,501,502,503,504,701,801],ARRAY['no','use_sidepath']);
+			FROM extrapolate_reached_vertices(minutes*60,(speed/3.6),excluded_class_id,categories_no_foot);
 			
 			ALTER TABLE temp_extrapolated_reached_vertices ADD COLUMN id serial;
 			ALTER TABLE temp_extrapolated_reached_vertices ADD PRIMARY key(id);
@@ -58,3 +63,5 @@ BEGIN
 		END LOOP;
 END 
 $function$;
+
+--SELECT * FROM precalculate_grid('grid_500',15,array[[11.4765751342908,48.0842050053819],[11.4785199868809,48.0819545493074]],5,array[1258,615])

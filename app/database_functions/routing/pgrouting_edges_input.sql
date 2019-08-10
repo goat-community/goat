@@ -15,7 +15,7 @@ AS $function$
 	categories_no_foot text;
 	begin
 	--The speed AND minutes input are considered as distance
-	distance=speed*minutes;
+	distance=speed*minutes*60;
 	userid_vertex = userid_input;
 	-- input point
 	point:= ST_SetSRID(ST_MakePoint(x,y), 4326);
@@ -61,7 +61,7 @@ AS $function$
 
 	RETURN query 
 	--In this case the routing is done on a modified table
-	SELECT id_vertex, p.id1::integer AS node, p.id2::integer AS edge, p.cost::numeric, v.geom, objectid_input 
+	SELECT id_vertex, p.id1::integer AS node, p.id2::integer AS edge, (p.cost/speed)::numeric, v.geom, objectid_input 
 	FROM PGR_DrivingDistance(
 		'SELECT id::int4, source, target, length_m as cost FROM ways_userinput 
 		WHERE not class_id = any(''' || excluded_class_id || ''')   			
