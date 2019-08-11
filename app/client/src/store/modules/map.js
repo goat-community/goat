@@ -9,7 +9,7 @@ const state = {
     isActive: false,
     currentMessage: ""
   },
-  studyAreaBbox: []
+  studyAreaBbox: ""
 };
 
 const getters = {

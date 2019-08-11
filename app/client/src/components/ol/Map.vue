@@ -93,7 +93,8 @@ export default {
     Vue.prototype.$map = me.map;
     // Send the event 'ol-map-mounted' with the OL map as payload
     EventBus.$emit("ol-map-mounted", me.map);
-
+    //Add map to the vuex store.
+    me.setMap(me.map);
     // resize the map, so it fits to parent
     window.setTimeout(() => {
       me.map.setTarget(document.getElementById("ol-map-container"));
@@ -346,6 +347,7 @@ export default {
       const me = this;
       const map = me.map;
       me.mapClickListenerKey = map.on("click", evt => {
+        console.log("clicked..");
         if (me.activeInteractions.length > 0) {
           me.popupOverlay.setPosition(undefined);
           return;
@@ -430,7 +432,8 @@ export default {
       });
     },
     ...mapMutations("map", {
-      setStudyAreaBbox: "SET_STUDYAREA_BBOX"
+      setStudyAreaBbox: "SET_STUDYAREA_BBOX",
+      setMap: "SET_MAP"
     })
   },
   computed: {

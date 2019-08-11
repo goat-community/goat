@@ -67,6 +67,7 @@ export default class OlEditController extends OlBaseController {
         me.edit = new Modify({ source: me.source });
         me.edit.on("modifystart", me.onModifyStart.bind(me));
         me.edit.on("modifyend", me.onModifyEnd.bind(me));
+        me.snap = new Snap({ source: me.source });
         me.currentInteraction = "modify";
         me.helpMessage = "Click and drag the features to modify";
         break;
