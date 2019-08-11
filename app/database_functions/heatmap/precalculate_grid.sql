@@ -12,7 +12,7 @@ BEGIN
 	DROP TABLE IF EXISTS temp_all_extrapolated_vertices;
 	CREATE temp TABLE temp_multi_reached_vertices AS 
 	SELECT *
-	FROM pgrouting_edges_multi(minutes,array_starting_points,speed,objectids);
+	FROM pgrouting_edges_multi(1,minutes,array_starting_points,speed,objectids,1);
 	ALTER TABLE temp_multi_reached_vertices ADD COLUMN id serial;
 	ALTER TABLE temp_multi_reached_vertices ADD PRIMARY key(id);
 	

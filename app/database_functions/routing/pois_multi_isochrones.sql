@@ -31,12 +31,6 @@ DECLARE
 		WHERE name IN (SELECT UNNEST(region));
 		
 		buffer_mask = ST_buffer(mask::geography,buffer)::geometry;
-	
-		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) 
-		INTO points_array
-		FROM pois p
-		WHERE p.amenity IN (SELECT UNNEST(amenities))
-		AND st_intersects(p.geom, buffer_mask);
  	 
  	ELSE 
 		boundary_envelope = region::numeric[];
@@ -50,13 +44,23 @@ DECLARE
 	
  		SELECT ST_Buffer(mask::geography,buffer)::geometry 
  		INTO buffer_mask;
-
-		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) 
-		INTO points_array
+	
+ 	 END IF;
+ 	
+	
+	SELECT DISTINCT p_array
+	INTO points_array
+	FROM (
+		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) AS p_array
 		FROM pois p
 		WHERE p.amenity IN (SELECT UNNEST(amenities))
- 		AND st_intersects(p.geom, buffer_mask);		
- 	 END IF;
+		AND st_intersects(p.geom, buffer_mask)
+		UNION ALL
+		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) AS p_array
+		FROM public_transport_stops p
+		WHERE p.public_transport_stop IN (SELECT UNNEST(amenities))
+		AND st_intersects(p.geom, buffer_mask)
+	) x;	
  	---------------------------------------------------------------------------------
  	--------------------------get catchment of all starting points-------------------
  	---------------------------------------------------------------------------------
@@ -70,7 +74,7 @@ DECLARE
  	DROP TABLE IF EXISTS temp_catchment_vertices;
     CREATE TEMP TABLE temp_catchment_vertices AS
 	SELECT start_vertex,node,edge,cost,geom,objectid 
- 	FROM pgrouting_edges_multi(minutes, points_array, speed_input::NUMERIC, objectids_array); -- routing is expensive
+ 	FROM pgrouting_edges_multi(userid_input, minutes, points_array, speed_input::NUMERIC, objectids_array, modus_input); -- routing is expensive
 
  	ALTER TABLE temp_catchment_vertices ADD COLUMN id serial;
  	ALTER TABLE temp_catchment_vertices ADD PRIMARY key(id);
@@ -175,6 +179,7 @@ DECLARE
  		WHERE objectid = objectid_multi_isochrone;
 	END;
 $function$ LANGUAGE plpgsql;
+
 /*
 SELECT *
 FROM pois_multi_isochrones(1,10,5.0,0.00003,1,'envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 

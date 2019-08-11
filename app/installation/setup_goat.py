@@ -72,6 +72,9 @@ os.chdir(str(Path.home())+'/app/data_preparation/SQL')
 os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'create_tables.sql'))
 os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'types.sql'))
 os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'pois.sql'))
+
+os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,str(Path.home())+'/app/database_functions/other/select_from_variable_container.sql'))
+os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,str(Path.home())+'/app/database_functions/other/split_long_way.sql'))
 os.system('PGPASSFILE=~/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'network_preparation.sql'))
 
 source_population = config['DATA_SOURCE']['POPULATION']

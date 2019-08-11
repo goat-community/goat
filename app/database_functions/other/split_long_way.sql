@@ -13,7 +13,7 @@ BEGIN
 		IF end_border > 1 THEN 
 			end_border = 1;
 		END IF;
-		RETURN NEXT st_line_substring(geom,start_border,end_border);
+		RETURN NEXT st_linesubstring(geom,start_border,end_border);
 	END LOOP; 
 	
 END;
