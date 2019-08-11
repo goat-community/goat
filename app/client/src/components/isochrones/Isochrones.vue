@@ -41,16 +41,23 @@
                 v-model="model"
                 :items="items"
                 :loading="isLoading"
-                label="Search Road"
+                label="Search Starting Point"
                 :search-input.sync="search"
-                item-text="Description"
+                item-text="DisplayName"
                 append-icon=""
-                item-value="API"
+                clear-icon="close"
+                @click:clear="clearSearch"
+                @change="selectSearchStartingPoint"
+                clearable
+                item-value="osm_id"
                 hide-details
+                hide-selected
                 hide-no-data
                 prepend-inner-icon="search"
                 return-object
                 class="ml-3 mt-1"
+                dense
+                :menu-props="{ maxHeight: 600 }"
               ></v-autocomplete>
             </v-flex>
             <v-flex xs3>
@@ -67,6 +74,7 @@
             </v-flex>
           </v-layout>
         </v-card-text>
+
         <v-card-text class="pr-16 pl-16 pt-0 pb-0">
           <v-divider></v-divider>
         </v-card-text>
@@ -137,6 +145,10 @@ import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import { unByKey } from "ol/Observable";
 
+//Other imports
+import axios from "axios";
+import helpers from "../../utils/Helpers";
+
 export default {
   mixins: [InteractionsToggle, Mapable],
   components: {
@@ -151,7 +163,7 @@ export default {
     isOptionsElVisible: true,
     isResultsElVisible: true,
     //Road Search
-    descriptionLimit: 60,
+    descriptionLimit: 30,
     entries: [],
     model: null,
     search: null,
@@ -163,7 +175,10 @@ export default {
       styleData: "styleData",
       isThematicDataVisible: "isThematicDataVisible"
     }),
-    ...mapGetters("map", { messages: "messages" }),
+    ...mapGetters("map", {
+      messages: "messages",
+      studyAreaBbox: "studyAreaBbox"
+    }),
     fields() {
       if (!this.model) return [];
 
@@ -176,12 +191,12 @@ export default {
     },
     items() {
       return this.entries.map(entry => {
-        const Description =
-          entry.Description.length > this.descriptionLimit
-            ? entry.Description.slice(0, this.descriptionLimit) + "..."
-            : entry.Description;
+        const DisplayName =
+          entry.display_name.length > this.descriptionLimit
+            ? entry.display_name.slice(0, this.descriptionLimit) + "..."
+            : entry.display_name;
 
-        return Object.assign({}, entry, { Description });
+        return Object.assign({}, entry, { DisplayName });
       });
     }
   },
@@ -234,11 +249,23 @@ export default {
 
       me.updatePosition({
         coordinate: coordinateWgs84,
-        city: ""
+        placeName: ""
       });
       //Start Isochrone Calculation
       me.calculateIsochrone();
       me.clear();
+    },
+    selectSearchStartingPoint() {
+      const me = this;
+      if (!this.search || !this.model) return;
+      const lat = parseFloat(this.model.lat);
+      const lon = parseFloat(this.model.lon);
+
+      me.updatePosition({
+        coordinate: [lon, lat],
+        placeName: this.model.DisplayName
+      });
+      me.calculateIsochrone();
     },
 
     /**
@@ -268,31 +295,38 @@ export default {
       }
       me.stopHelpTooltip();
       me.map.getTarget().style.cursor = "";
+      EventBus.$emit("ol-interaction-stoped", me.interactionType);
+    },
+    clearSearch() {
+      this.entries = [];
+      this.count = 0;
     }
   },
   watch: {
-    search(val) {
-      console.log(val);
-      // Items have already been loaded
-      if (this.items.length > 0) return;
+    search: helpers.debounce(function() {
       // Items have already been requested
-      if (this.isLoading) return;
-
+      if (this.isLoading || !this.search) return;
       this.isLoading = true;
-
-      // Lazily load input items
-      fetch("")
-        .then(res => res.json())
-        .then(res => {
-          const { count, entries } = res;
-          this.count = count;
-          this.entries = entries;
+      if (!this.studyAreaBbox) return;
+      axios
+        .get(
+          `${this.searchUrl}?key=${this.searchKey}&q=${this.search}
+            &viewbox=${this.studyAreaBbox}&bounded=1`
+        )
+        .then(response => {
+          this.count = response.data.length;
+          this.entries = response.data;
+          this.isLoading = false;
         })
-        .catch(err => {
-          console.log(err);
-        })
-        .finally(() => (this.isLoading = false));
-    }
+        .catch(() => {
+          this.isLoading = false;
+        });
+    }, 600)
+  },
+  mounted() {
+    const me = this;
+    me.searchUrl = process.env.VUE_APP_SEARCH_URL;
+    me.searchKey = process.env.VUE_APP_SEARCH_KEY;
   }
 };
 </script>

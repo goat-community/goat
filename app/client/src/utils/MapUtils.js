@@ -136,6 +136,41 @@ const maputils = {
     const mpu = projection.getMetersPerUnit();
     const resolution = scale / (mpu * 39.37 * dpi);
     return resolution;
+  },
+  flyTo: function flyTo(destination, map, done) {
+    const duration = 2000;
+    const view = map.getView();
+    const zoom = view.getZoom();
+    let parts = 2;
+    var called = false;
+    function callback(complete) {
+      --parts;
+      if (called) {
+        return;
+      }
+      if (parts === 0 || !complete) {
+        called = true;
+        done(complete);
+      }
+    }
+    view.animate(
+      {
+        center: destination,
+        duration: duration
+      },
+      callback
+    );
+    view.animate(
+      {
+        zoom: zoom - 1,
+        duration: duration / 2
+      },
+      {
+        zoom: zoom,
+        duration: duration / 2
+      },
+      callback
+    );
   }
 };
 

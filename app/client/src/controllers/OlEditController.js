@@ -10,7 +10,6 @@ import LayerUtils from "../utils/Layer";
 import http from "../services/http";
 import { unByKey } from "ol/Observable";
 import OlWaysLayerHelper from "./OlWaysLayerHelper";
-import htmlString from "../templates/edit-popup-template";
 
 /**
  * Class holding the OpenLayers related logic for the edit tool.
@@ -68,6 +67,7 @@ export default class OlEditController extends OlBaseController {
         me.edit = new Modify({ source: me.source });
         me.edit.on("modifystart", me.onModifyStart.bind(me));
         me.edit.on("modifyend", me.onModifyEnd.bind(me));
+        me.snap = new Snap({ source: me.source });
         me.currentInteraction = "modify";
         me.helpMessage = "Click and drag the features to modify";
         break;
@@ -353,8 +353,6 @@ export default class OlEditController extends OlBaseController {
    */
   createPopupOverlay() {
     const me = this;
-    const element = document.createElement("div");
-    element.innerHTML = htmlString;
     me.popupOverlay = new Overlay({
       element: me.popup.el.$el,
       autoPan: false,
