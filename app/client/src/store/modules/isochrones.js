@@ -11,7 +11,7 @@ import IsochroneUtils from "../../utils/IsochroneUtils";
 const state = {
   position: {
     coordinate: null,
-    city: null
+    placeName: ""
   },
   options: {
     minutes: "10",
@@ -128,7 +128,7 @@ const actions = {
         y: state.position.coordinate[1],
         n: state.options.steps,
         concavity: state.options.concavityIsochrones.active,
-        speed: state.options.speed * 16.6666667, //Converts it to meter/minute
+        speed: state.options.speed,
         modus: state.options.calculationModes.active
       }
     });
@@ -174,13 +174,19 @@ const actions = {
       calculationData.push(obj);
     });
 
+    const isochroneStartingPoint = maputils
+      .wktToFeature(olFeatures[0].get("starting_point"), "EPSG:4326")
+      .getGeometry()
+      .getCoordinates();
+
+    console.log(state.position.placeName);
     let transformedData = {
       id: calculationNumber,
       name: "Calculation - " + calculationNumber,
       time: state.options.minutes + " min",
-      position: toStringHDMS(
-        olFeatures[0].get("coordinates") || state.position.coordinate
-      ),
+      position:
+        state.position.placeName ||
+        toStringHDMS(isochroneStartingPoint || state.position.coordinate),
       speed: state.options.speed + " km/h",
       isExpanded: true,
       isVisible: true,
@@ -188,9 +194,17 @@ const actions = {
     };
 
     const transformedPoint = new Point(
-      transform(olFeatures[0].get("coordinates"), "EPSG:4326", "EPSG:3857") //TODO: Get source projection from the map here.
+      transform(isochroneStartingPoint, "EPSG:4326", "EPSG:3857") //TODO: Get source projection from the map here.
     );
     iconMarkerFeature.setGeometry(transformedPoint);
+
+    if (state.position.placeName) {
+      maputils.flyTo(
+        transformedPoint.getCoordinates(),
+        rootState.map.map,
+        function() {}
+      );
+    }
 
     commit("CALCULATE_ISOCHRONE", transformedData);
     //Add features to isochrone layer

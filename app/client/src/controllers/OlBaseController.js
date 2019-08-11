@@ -111,7 +111,9 @@ export default class OlBaseController {
    */
   clear() {
     const me = this;
-    me.removeInteraction();
+    if (me.removeInteraction) {
+      me.removeInteraction();
+    }
     if (me.source) {
       me.source.clear();
     }

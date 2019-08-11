@@ -12,7 +12,7 @@
       }
     ],
     "minZoom": 10,
-    "maxZoom": 20,
+    "maxZoom": 21,
     "zoom": 13,
     "resolutions": [
       156543.03,
@@ -66,16 +66,30 @@
         "type": "WMS",
         "name": "pois",
         "title": "Point of Interest",
-        "url": "https://goat.open-accessibility.org/geoserver/wms",
+        "url": "/geoserver/wms",
         "group": "Pois Layer",
         "layers": "cite:pois_info",
         "viewparams": "amenities:'cG9wdWxhdGlvbg=='",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 2
+      },
+      {
+        "type": "WMS",
+        "name": "study_area_administration",
+        "title": "Administrative Units",
+        "url": "/geoserver/wms",
+        "group": "Administrative Layers",
+        "layers": "cite:study_area",
         "opacity": 1,
         "queryable": false,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
-        "zIndex": 2
+        "zIndex": 1
       },
       {
         "type": "WMS",

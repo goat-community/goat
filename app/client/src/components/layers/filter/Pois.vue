@@ -63,13 +63,17 @@ export default {
       return images("./" + item.icon + ".png");
     },
     increaseWeight(item) {
+      const me = this;
       if (item.weight < 10) {
         item.weight++;
+        me.updateHeatmapLayerViewParams(me.tree);
       }
     },
     decreaseWeight(item) {
+      const me = this;
       if (item.weight > 1) {
         item.weight--;
+        me.updateHeatmapLayerViewParams(me.tree);
       }
     },
     onMapBound() {
@@ -91,12 +95,17 @@ export default {
     },
     updateHeatmapLayerViewParams(selectedPois) {
       const me = this;
-      const viewParams = selectedPois.map(item => {
+
+      const viewParams = selectedPois.reduce((filtered, item) => {
         const { value, weight } = item;
-        return {
-          [`'${value}'`]: weight
-        };
-      });
+        if (value != "undefined" && weight != undefined) {
+          filtered.push({
+            [`'${value}'`]: weight
+          });
+        }
+        return filtered;
+      }, []);
+
       console.log(viewParams);
 
       me.heatmapLayers.forEach(layer => {
@@ -113,12 +122,16 @@ export default {
     updatePoisLayerViewParams(selectedPois) {
       const me = this;
       if (me.poisLayer) {
-        const viewparams = selectedPois.map(item => {
+        const viewParams = selectedPois.reduce((filtered, item) => {
           const { value } = item;
-          return value;
-        });
+          if (value != "undefined") {
+            filtered.push(value);
+          }
+          return filtered;
+        }, []);
+
         me.poisLayer.getSource().updateParams({
-          viewparams: `amenities:'${btoa(viewparams.toString())}'`
+          viewparams: `amenities:'${btoa(viewParams.toString())}'`
         });
       }
     }
