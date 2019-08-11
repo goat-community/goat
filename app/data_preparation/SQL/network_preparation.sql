@@ -1,35 +1,3 @@
-CREATE OR REPLACE FUNCTION public.split_long_way(geom geometry, length_m NUMERIC, max_length integer)
-RETURNS SETOF geometry
-AS $function$
-DECLARE 
-	fraction NUMERIC;
-	end_border NUMERIC :=0;
-	start_border NUMERIC;
-BEGIN 
-	fraction = 1/ceil(length_m/max_length);
-	WHILE end_border < 1 LOOP 
-		start_border = round(end_border,5);
-		end_border = round(end_border+fraction,5);
-		IF end_border > 1 THEN 
-			end_border = 1;
-		END IF;
-		RETURN NEXT st_linesubstring(geom,start_border,end_border);
-	END LOOP; 
-	
-END;
-$function$ LANGUAGE plpgsql immutable;
-
-CREATE OR REPLACE FUNCTION select_from_variable_container(identifier_input text)
-RETURNS SETOF text[]
- LANGUAGE sql
-AS $function$
-
-	SELECT variable_array 
-	FROM variable_container
-	WHERE identifier = identifier_input;
-
-$function$;
-
 ALTER TABLE ways
 DROP COLUMN RULE,DROP COLUMN x1,DROP COLUMN x2,DROP COLUMN y1,DROP COLUMN y2;
 ALTER TABLE ways rename column gid to id;
