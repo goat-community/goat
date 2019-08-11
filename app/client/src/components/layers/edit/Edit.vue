@@ -319,6 +319,7 @@ export default {
       me.clearEdit();
       me.toggleSelection = undefined;
       me.toggleEdit = undefined;
+      EventBus.$emit("ol-interaction-stoped", me.interactionType);
     }
   }
 };

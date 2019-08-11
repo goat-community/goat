@@ -236,6 +236,7 @@ export default {
         this.activeId = undefined;
       }
       this.olMapCtrl.clear();
+      EventBus.$emit("ol-interaction-stoped", this.interactionType);
     },
     closeDrawSection() {
       //Option only for draw section items.
