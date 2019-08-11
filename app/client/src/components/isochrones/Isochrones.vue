@@ -41,16 +41,23 @@
                 v-model="model"
                 :items="items"
                 :loading="isLoading"
-                label="Search Road"
+                label="Search Starting Point"
                 :search-input.sync="search"
-                item-text="display_name"
+                item-text="DisplayName"
                 append-icon=""
+                clear-icon="close"
+                @click:clear="clearSearch"
+                @change="selectSearchStartingPoint"
+                clearable
                 item-value="osm_id"
                 hide-details
+                hide-selected
                 hide-no-data
                 prepend-inner-icon="search"
                 return-object
                 class="ml-3 mt-1"
+                dense
+                :menu-props="{ maxHeight: 600 }"
               ></v-autocomplete>
             </v-flex>
             <v-flex xs3>
@@ -138,7 +145,9 @@ import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import { unByKey } from "ol/Observable";
 
+//Other imports
 import axios from "axios";
+import helpers from "../../utils/Helpers";
 
 export default {
   mixins: [InteractionsToggle, Mapable],
@@ -166,7 +175,10 @@ export default {
       styleData: "styleData",
       isThematicDataVisible: "isThematicDataVisible"
     }),
-    ...mapGetters("map", { messages: "messages" }),
+    ...mapGetters("map", {
+      messages: "messages",
+      studyAreaBbox: "studyAreaBbox"
+    }),
     fields() {
       if (!this.model) return [];
 
@@ -237,11 +249,23 @@ export default {
 
       me.updatePosition({
         coordinate: coordinateWgs84,
-        city: ""
+        placeName: ""
       });
       //Start Isochrone Calculation
       me.calculateIsochrone();
       me.clear();
+    },
+    selectSearchStartingPoint() {
+      const me = this;
+      if (!this.search || !this.model) return;
+      const lat = parseFloat(this.model.lat);
+      const lon = parseFloat(this.model.lon);
+
+      me.updatePosition({
+        coordinate: [lon, lat],
+        placeName: this.model.DisplayName
+      });
+      me.calculateIsochrone();
     },
 
     /**
@@ -272,25 +296,32 @@ export default {
       me.stopHelpTooltip();
       me.map.getTarget().style.cursor = "";
       EventBus.$emit("ol-interaction-stoped", me.interactionType);
+    },
+    clearSearch() {
+      this.entries = [];
+      this.count = 0;
     }
   },
   watch: {
-    search(val) {
-      console.log(val);
-
+    search: helpers.debounce(function() {
       // Items have already been requested
-      if (this.isLoading) return;
-
+      if (this.isLoading || !this.search) return;
       this.isLoading = true;
-
+      if (!this.studyAreaBbox) return;
       axios
-        .get(`${this.searchUrl}?key=${this.searchKey}&q=${this.search}`)
+        .get(
+          `${this.searchUrl}?key=${this.searchKey}&q=${this.search}
+            &viewbox=${this.studyAreaBbox}&bounded=1`
+        )
         .then(response => {
           this.count = response.data.length;
           this.entries = response.data;
           this.isLoading = false;
+        })
+        .catch(() => {
+          this.isLoading = false;
         });
-    }
+    }, 600)
   },
   mounted() {
     const me = this;
