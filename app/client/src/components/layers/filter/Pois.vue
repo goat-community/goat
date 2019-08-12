@@ -79,7 +79,11 @@ export default {
     onMapBound() {
       const me = this;
       const map = me.map;
-      const heatmapLayerNames = ["walkability", "walkability-population"];
+      const heatmapLayerNames = [
+        "walkability",
+        "walkability-population",
+        "heatmap-dynamic"
+      ];
       const poisLayerName = "pois";
 
       const allLayers = Utils.getAllChildLayers(map);
@@ -96,23 +100,41 @@ export default {
     updateHeatmapLayerViewParams(selectedPois) {
       const me = this;
 
-      const viewParams = selectedPois.reduce((filtered, item) => {
+      const standardHeatmapViewParams = selectedPois.reduce(
+        (filtered, item) => {
+          const { value, weight } = item;
+          if (value != "undefined" && weight != undefined) {
+            filtered.push({
+              [`'${value}'`]: weight
+            });
+          }
+          return filtered;
+        },
+        []
+      );
+
+      const dynamicHeatmapViewParams = selectedPois.reduce((filtered, item) => {
         const { value, weight } = item;
         if (value != "undefined" && weight != undefined) {
           filtered.push({
-            [`'${value}'`]: weight
+            [`${value}`]: { sensitivity: -0.001, weight: weight }
           });
         }
         return filtered;
       }, []);
 
-      console.log(viewParams);
-
       me.heatmapLayers.forEach(layer => {
+        const layerName = layer.get("name");
+        const viewparams = JSON.stringify(
+          layerName === "heatmap-dynamic"
+            ? dynamicHeatmapViewParams
+            : standardHeatmapViewParams
+        );
+        console.log(viewparams);
         layer.getSource().updateParams({
-          viewparams: `amenities:'${btoa(JSON.stringify(viewParams))}'`
+          viewparams: `amenities:'${btoa(viewparams)}'`
         });
-        if (viewParams.length === 0) {
+        if (standardHeatmapViewParams.length === 0) {
           layer.setVisible(false);
         }
 
