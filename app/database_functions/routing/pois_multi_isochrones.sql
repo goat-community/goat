@@ -1,3 +1,14 @@
+DROP TABLE IF EXISTS temp_reached_vertices;
+CREATE temp TABLE temp_reached_vertices
+(
+	start_vertex integer,
+	node integer,
+	edge integer,
+	cnt integer,
+	cost NUMERIC,
+	geom geometry,
+	objectid integer
+);
 CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, minutes integer, speed_input numeric, alphashape_parameter_input NUMERIC, modus_input integer,region_type text, region text[], amenities text[])
 RETURNS SETOF type_pois_multi_isochrones
 AS $function$ 
@@ -73,7 +84,7 @@ DECLARE
  	
  	DROP TABLE IF EXISTS temp_catchment_vertices;
     CREATE TEMP TABLE temp_catchment_vertices AS
-	SELECT start_vertex,node,edge,cost,geom,objectid 
+	SELECT start_vertex,node,edge,cnt,cost,geom,objectid 
  	FROM pgrouting_edges_multi(userid_input, minutes, points_array, speed_input::NUMERIC, objectids_array, modus_input); -- routing is expensive
 
  	ALTER TABLE temp_catchment_vertices ADD COLUMN id serial;
@@ -96,7 +107,7 @@ DECLARE
  	
 			DROP TABLE IF EXISTS temp_reached_vertices;	-- this table is used by the extrapolate_reached_vertices function
 			CREATE TABLE temp_reached_vertices AS 
-			SELECT start_vertex, node, edge, cost, geom, objectid 
+			SELECT start_vertex, node, edge, cnt, cost, geom, objectid 
 			FROM temp_catchment_vertices
 			WHERE objectid = i;				
 			--ALTER TABLE temp_reached_vertices ADD COLUMN id serial; --we cannot add columns to the table, it would break extrapolate_reached_vertices()
