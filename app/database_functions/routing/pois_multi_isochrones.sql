@@ -24,10 +24,17 @@ DECLARE
 	categories_no_foot text[];
 	population_mask jsonb;
 	objectid_multi_isochrone integer;
+	max_length_links numeric;
 	BEGIN
 	--------------------------------------------------------------------------------------
 	----------------------get starting points depending on passed parameters--------------
 	--------------------------------------------------------------------------------------	
+	
+	SELECT variable_simple::NUMERIC 
+	INTO max_length_links
+	FROM variable_container
+	WHERE identifier = 'max_length_links';
+		
 	SELECT select_from_variable_container('excluded_class_id_walking')::text[],
 	select_from_variable_container('categories_no_foot')::text
 	INTO excluded_class_id, categories_no_foot;
@@ -115,7 +122,7 @@ DECLARE
 				
 			INSERT INTO extrapolated_reached_vertices
 			SELECT * 
-			FROM extrapolate_reached_vertices(minutes*60,(speed_input/3.6),excluded_class_id,categories_no_foot); 
+			FROM extrapolate_reached_vertices(minutes*60,max_length_links,(speed_input/3.6),excluded_class_id,categories_no_foot); 
  	
 			END IF;
 			
@@ -142,8 +149,8 @@ DECLARE
  		
 		objectid_multi_isochrone = random_between(1,900000000);
 	
-		INSERT INTO multi_isochrones(userid,geom,speed,alphashape_parameter,modus,objectid,parent_id)
-		SELECT userid_input,ST_Union(geom) AS geom, speed_input, alphashape_parameter_input, modus_input, objectid_multi_isochrone, 1
+		INSERT INTO multi_isochrones(objectid, coordinates, userid, step, speed, alphashape_parameter, modus, parent_id, geom)
+		SELECT objectid_multi_isochrone,points_array AS coordinates, userid_input,minutes AS step,speed_input,alphashape_parameter_input,modus_input, 1, ST_Union(geom) AS geom
 		FROM isos;
 		
  		IF region_type = 'study_area' THEN
@@ -185,7 +192,7 @@ DECLARE
 			WHERE multi_isochrones.objectid = objectid_multi_isochrone;
  		END IF; 
  		RETURN query 
- 		SELECT userid,geom geometry,gid,speed,alphashape_parameter,modus,objectid,parent_id,population
+ 		SELECT gid,objectid, coordinates, userid,step,speed,alphashape_parameter,modus, parent_id, population, geom geometry 
  		FROM multi_isochrones
  		WHERE objectid = objectid_multi_isochrone;
 	END;
