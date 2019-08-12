@@ -20,20 +20,21 @@ CREATE INDEX index_isochrones ON isochrones USING gist (geom);
 CREATE INDEX ON isochrones USING btree(objectid,parent_id);
 
 CREATE TABLE public.multi_isochrones (
+	gid serial NOT NULL,
+	objectid int4 NULL,
+	coordinates numeric[][],
 	userid int4 NULL,
 	id int4 NULL,
 	step int4 NULL,
-	geom geometry NULL,
-	gid serial NOT NULL,
 	speed numeric NULL,
 	alphashape_parameter numeric NULL,
 	modus integer NULL,
-	objectid int4 NULL,
 	parent_id int4 NULL,
 	population jsonb NULL,
-	starting_point numeric[][] NULL,
+	geom geometry NULL,	
 	CONSTRAINT multi_isochrones_pkey PRIMARY KEY (gid)
 );
+
 
 CREATE INDEX ON multi_isochrones USING gist (geom);
 CREATE INDEX ON multi_isochrones USING btree(objectid,parent_id);

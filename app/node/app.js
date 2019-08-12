@@ -114,4 +114,53 @@ app.get("/api/isochrone", jsonParser, (request, response) => {
 });
 
 
+
+app.get("/api/pois_multi_isochrones", jsonParser, (request, response) => {
+  let requiredParams = [
+    "user_id",
+    "minutes",
+    "speed",
+    "alphashape_parameter",
+    "modus",
+    "region_type",
+    "region",
+    "amenities"
+  ];
+  let queryValues = [];
+
+  requiredParams.forEach(key => {
+    let value = request.query[key];
+    if (!value) {
+      response.send("An error happened");
+      return;
+    }
+    queryValues.push(value);
+  });
+
+  console.log(queryValues);
+  // Make sure to set the correct content type
+  response.set("content-type", "application/json");
+
+  pool.query(
+      `SELECT jsonb_build_object(
+      'type',     'FeatureCollection',
+      'features', jsonb_agg(features.feature)
+    )
+    FROM (
+    SELECT jsonb_build_object(
+      'type',       'Feature',
+      'id',         gid,
+      'geometry',   ST_AsGeoJSON(geom)::jsonb,
+      'properties', to_jsonb(inputs) - 'gid' - 'geom'
+    ) AS feature 
+    FROM (SELECT * FROM pois_multi_isochrones($1,$2,$3,$4,$5,$6,$7::text[],$8::text[])) inputs) features;`,
+    queryValues,
+    (err, res) => {
+      if (err) return console.log(err);
+      console.log(res);
+      response.send(res.rows[0].jsonb_build_object);
+    }
+  );
+});
+
 module.exports = app;
