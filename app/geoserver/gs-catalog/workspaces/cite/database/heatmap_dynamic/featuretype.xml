@@ -1,0 +1,73 @@
+<featureType>
+  <id>FeatureTypeInfoImpl--291279f8:16c802859a4:-2a6c</id>
+  <name>heatmap_dynamic</name>
+  <nativeName>heatmap_dynamic</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
+  </namespace>
+  <title>heatmap_dynamic</title>
+  <keywords>
+    <string>features</string>
+    <string>heatmap_dynamic</string>
+  </keywords>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>11.3579391262936</minx>
+    <maxx>11.725516265826</maxx>
+    <miny>48.0601950790122</miny>
+    <maxy>48.2497178957151</maxy>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>11.3579391262936</minx>
+    <maxx>11.725516265826</maxx>
+    <miny>48.0601950790122</miny>
+    <maxy>48.2497178957151</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>heatmap_dynamic</name>
+        <sql>with x as (&#xd;
+	select *&#xd;
+from &#xd;
+heatmap_dynamic(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;))&#xd;
+),&#xd;
+y as (SELECT grid_id,accessibility_index,geom, ntile(5) over &#xd;
+(order by accessibility_index) AS percentile&#xd;
+FROM x where accessibility_index &lt;&gt; 0&#xd;
+ORDER BY grid_id&#xd;
+)&#xd;
+select g.grid_id,g.geom, y.accessibility_index, COALESCE(y.percentile,0) percentile&#xd;
+from grid_500 g&#xd;
+LEFT JOIN y&#xd;
+ON g.grid_id = y.grid_id
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>-1</srid>
+        </geometry>
+        <parameter>
+          <name>amenities</name>
+          <defaultValue>&apos;W3siJ2J1c19zdG9wJyI6Mn0seyIndHJhbV9zdG9wJyI6M31d&apos;</defaultValue>
+        </parameter>
+      </virtualTable>
+    </entry>
+    <entry key="cachingEnabled">false</entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>
