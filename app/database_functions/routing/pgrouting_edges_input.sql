@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION public.pgrouting_edges_input(minutes integer, x numeric, y numeric, speed numeric, userid_input integer, objectid_input integer, modus integer)
- RETURNS SETOF type_catchment_vertices
+ RETURNS SETOF type_catchment_vertices_single
  LANGUAGE plpgsql
 AS $function$
 	DECLARE
@@ -20,11 +20,11 @@ AS $function$
 	-- input point
 	point:= ST_SetSRID(ST_MakePoint(x,y), 4326);
 	IF modus = 3  THEN
-	userid_vertex = 1;
-	userid_input = 1;
+		userid_vertex = 1;
+		userid_input = 1;
 
 	ELSEIF modus = 4 THEN  	 
-	userid_vertex = 1;
+		userid_vertex = 1;
 	END IF;
 
 	SELECT select_from_variable_container('excluded_class_id_walking'),

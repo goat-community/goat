@@ -35,7 +35,7 @@ begin
  FROM closest_vertices c;
 	
  RETURN query 
-  SELECT x.from_v::int start_vertex, x.node::int, x.edge::int, (x.agg_cost/speed)::numeric AS cost, w.geom, c.objectid
+  SELECT x.from_v::int start_vertex, x.node::int, x.edge::int, w.cnt, (x.agg_cost/speed)::numeric AS cost, w.geom, c.objectid
   FROM ways_userinput_vertices_pgr w, 
   (SELECT from_v, node, edge, agg_cost FROM pgr_drivingDistance(
 	'SELECT * FROM fetch_ways_routing('''||buffer||''','||speed||','''||excluded_class_id||''','''||categories_no_foot||''','||modus_input||','||userid_input||')'
