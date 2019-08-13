@@ -6,7 +6,7 @@
           ><v-icon>fas fa-chart-line</v-icon></v-app-bar-nav-icon
         >
         <v-toolbar-title
-          >Dynamic Heatmap - ({{ selectedAmenity.name }})</v-toolbar-title
+          >Heatmap - ({{ selectedAmenity.name }})</v-toolbar-title
         >
 
         <v-spacer></v-spacer>
@@ -15,14 +15,28 @@
         >
       </v-app-bar>
       <v-card-text>
-        <!-- <v-select class="mx-2" label="Select sensitivity" outlined></v-select> -->
-        <v-text-field
-          v-model="selectedAmenity.sensitivity"
+        <v-select
+          v-model="selectedAmenity.weight"
+          :items="weightListValues"
           class="mx-2"
-          label="Accessibility index"
+          label="Select Weight"
           outlined
-        ></v-text-field>
-        <line-chart :amenity="selectedAmenity" />
+        ></v-select>
+        <v-checkbox
+          class="ml-2"
+          v-model="expertHeatmap"
+          label="Expert Heatmap"
+        ></v-checkbox>
+        <template v-if="expertHeatmap === true">
+          <v-combobox
+            v-model="selectedAmenity.sensitivity"
+            :items="sensitivityListValues"
+            class="mx-2"
+            label="Sensitivity index"
+            outlined
+          ></v-combobox>
+          <sensitivity-chart :amenity="selectedAmenity" />
+        </template>
       </v-card-text>
       <v-card-actions> </v-card-actions>
     </v-card>
@@ -30,11 +44,18 @@
 </template>
 
 <script>
-import LineChart from "../../other/LineChart";
+import SensitivityChart from "../../other/chart/SensitivityChart";
 
 export default {
   components: {
-    LineChart
+    SensitivityChart
+  },
+  data() {
+    return {
+      expertHeatmap: false,
+      weightListValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      sensitivityListValues: [-0.001, -0.002, -0.003]
+    };
   },
   props: {
     visible: { type: Boolean, required: false, default: false },
