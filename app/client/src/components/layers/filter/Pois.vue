@@ -26,19 +26,12 @@
       </template>
       <template v-slot:append="{ item, open }">
         <template v-if="item.icon">
-          <v-icon @click="increaseWeight(item)" small class="arrow-icons mr-1">
-            fas fa-arrow-up
-          </v-icon>
-          <span>{{ item.weight }}</span>
-          <v-icon @click="decreaseWeight(item)" small class="arrow-icons mr-1">
-            fas fa-arrow-down
-          </v-icon>
           <v-icon
             @click="toggleDynamicHeatmapDialog(item)"
             small
-            class="arrow-icons ml-1"
+            class="arrow-icons mr-1"
           >
-            fas fa-pen
+            fas fa-cog
           </v-icon>
         </template>
       </template>
@@ -81,20 +74,6 @@ export default {
         /\.png$/
       );
       return images("./" + item.icon + ".png");
-    },
-    increaseWeight(item) {
-      const me = this;
-      if (item.weight < 10) {
-        item.weight++;
-        me.updateHeatmapLayerViewParams(me.tree);
-      }
-    },
-    decreaseWeight(item) {
-      const me = this;
-      if (item.weight > 1) {
-        item.weight--;
-        me.updateHeatmapLayerViewParams(me.tree);
-      }
     },
     onMapBound() {
       const me = this;
@@ -220,7 +199,7 @@ export default {
 }
 .tree-label-custom {
   display: block;
-  width: 113px;
+  width: 150px;
   word-wrap: break-word;
   overflow-wrap: break-word;
   overflow: hidden;
