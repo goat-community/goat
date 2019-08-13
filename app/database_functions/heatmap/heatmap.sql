@@ -28,4 +28,4 @@ END ;
 $function$
 
 --Example
---select  * from heatmap('[{"''bus_stop''":2},{"''tram_stop''":3}]','index_0_001')
+--select  * from heatmap('[{"''bus_stop''":2},{"''tram_stop''":3}]','index_0_003')

@@ -30,22 +30,26 @@ CREATE TYPE public.type_catchment_vertices AS
 	start_vertex integer,
 	node integer,
 	edge integer,
+	cnt integer,
 	cost numeric,
 	geom geometry,
 	objectid integer	
 );
 
+
 CREATE TYPE type_pois_multi_isochrones AS 
 (
-	userid integer, 
-	geom geometry, 
 	gid integer, 
+	objectid integer,
+	coordinates NUMERIC[][],
+	userid integer,
+	step integer, 
 	speed NUMERIC, 
 	alphashape_parameter NUMERIC,
 	modus integer, 
-	objectid integer, 
 	parent_id integer, 
-	population jsonb
+	population jsonb,
+	geom geometry	
 );
 
 

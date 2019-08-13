@@ -1,37 +1,6 @@
-CREATE OR REPLACE FUNCTION public.split_long_way(geom geometry, length_m NUMERIC, max_length integer)
-RETURNS SETOF geometry
-AS $function$
-DECLARE 
-	fraction NUMERIC;
-	end_border NUMERIC :=0;
-	start_border NUMERIC;
-BEGIN 
-	fraction = 1/ceil(length_m/max_length);
-	WHILE end_border < 1 LOOP 
-		start_border = round(end_border,5);
-		end_border = round(end_border+fraction,5);
-		IF end_border > 1 THEN 
-			end_border = 1;
-		END IF;
-		RETURN NEXT st_linesubstring(geom,start_border,end_border);
-	END LOOP; 
-	
-END;
-$function$ LANGUAGE plpgsql immutable;
-
-CREATE OR REPLACE FUNCTION select_from_variable_container(identifier_input text)
-RETURNS SETOF text[]
- LANGUAGE sql
-AS $function$
-
-	SELECT variable_array 
-	FROM variable_container
-	WHERE identifier = identifier_input;
-
-$function$;
-
 ALTER TABLE ways
-DROP COLUMN RULE,DROP COLUMN x1,DROP COLUMN x2,DROP COLUMN y1,DROP COLUMN y2;
+DROP COLUMN RULE,DROP COLUMN x1,DROP COLUMN x2,DROP COLUMN y1,DROP COLUMN y2, DROP COLUMN priority
+DROP COLUMN length,DROP COLUMN cost,DROP COLUMN reverse_cost, DROP COLUMN cost_s, DROP COLUMN reverse_cost_s;
 ALTER TABLE ways rename column gid to id;
 ALTER TABLE ways rename column the_geom to geom;
 ALTER TABLE ways_vertices_pgr rename column the_geom to geom;
@@ -39,6 +8,21 @@ ALTER TABLE ways alter column target type int4;
 ALTER TABLE ways alter column source type int4;
 ALTER TABLE ways ADD COLUMN foot text;
 ALTER TABLE ways ADD COLUMN bicycle text;
+
+UPDATE ways_vertices_pgr v SET cnt = y.cnt
+FROM (
+	SELECT SOURCE, count(source) cnt 
+	FROM 
+	(
+		SELECT SOURCE FROM ways 
+		UNION ALL
+		SELECT target FROM ways 
+	) x 
+	GROUP BY SOURCE 
+) y
+WHERE v.id = y.SOURCE;
+
+
 
 UPDATE ways 
 SET foot = p.foot, bicycle = p.bicycle
@@ -204,6 +188,10 @@ SET class_ids = array[0]
 FROM vertices_to_update v
 WHERE ways_vertices_pgr.id = v.id;
 
+CREATE INDEX ON ways USING btree(foot);
+CREATE INDEX ON ways USING btree(id);
+CREATE INDEX ON ways_vertices_pgr USING btree(cnt);
+
 CREATE TABLE ways_userinput (LIKE ways INCLUDING ALL);
 INSERT INTO ways_userinput
 SELECT * FROM ways;
@@ -216,6 +204,6 @@ ALTER TABLE ways_userinput add column userid int4;
 ALTER TABLE ways_userinput_vertices_pgr add column userid int4;
 CREATE INDEX ON ways_userinput USING btree (userid);
 CREATE INDEX ON ways_userinput_vertices_pgr USING btree (userid);
-CREATE INDEX ON ways USING btree(foot);
+
 
 
