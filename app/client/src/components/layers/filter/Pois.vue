@@ -1,54 +1,74 @@
 <template>
-  <v-treeview
-    v-model="tree"
-    :open="open"
-    :items="allPois"
-    ref="poisTree"
-    activatable
-    open-on-click
-    dense
-    selectable
-    rounded
-    return-object
-    item-key="name"
-    selected-color="green"
-    active-class="grey lighten-4 indigo--text "
-    on-icon="check_box"
-    off-icon="check_box_outline_blank"
-    indeterminate-icon="indeterminate_check_box"
-  >
-    <template v-slot:prepend="{ item, open }">
-      <img v-if="item.icon" class="pois-icon" :src="getPoisIconUrl(item)" />
-    </template>
-    <template v-slot:label="{ item, open }">
-      <div class="tree-label-custom">{{ item.name }}</div>
-    </template>
-    <template v-slot:append="{ item, open }">
-      <template v-if="item.icon">
-        <v-icon @click="increaseWeight(item)" small class="arrow-icons mr-1">
-          fas fa-arrow-up
-        </v-icon>
-        <span>{{ item.weight }}</span>
-        <v-icon @click="decreaseWeight(item)" small class="arrow-icons ml-1">
-          fas fa-arrow-down
-        </v-icon>
+  <div>
+    <v-treeview
+      v-model="tree"
+      :open="open"
+      :items="allPois"
+      ref="poisTree"
+      activatable
+      open-on-click
+      dense
+      selectable
+      rounded
+      return-object
+      item-key="name"
+      selected-color="green"
+      active-class="grey lighten-4 indigo--text "
+      on-icon="check_box"
+      off-icon="check_box_outline_blank"
+      indeterminate-icon="indeterminate_check_box"
+    >
+      <template v-slot:prepend="{ item, open }">
+        <img v-if="item.icon" class="pois-icon" :src="getPoisIconUrl(item)" />
       </template>
-    </template>
-  </v-treeview>
+      <template v-slot:label="{ item, open }">
+        <div class="tree-label-custom">{{ item.name }}</div>
+      </template>
+      <template v-slot:append="{ item, open }">
+        <template v-if="item.icon">
+          <v-icon @click="increaseWeight(item)" small class="arrow-icons mr-1">
+            fas fa-arrow-up
+          </v-icon>
+          <span>{{ item.weight }}</span>
+          <v-icon @click="decreaseWeight(item)" small class="arrow-icons mr-1">
+            fas fa-arrow-down
+          </v-icon>
+          <v-icon
+            @click="toggleDynamicHeatmapDialog(item)"
+            small
+            class="arrow-icons ml-1"
+          >
+            fas fa-pen
+          </v-icon>
+        </template>
+      </template>
+    </v-treeview>
+    <dynamic-heatmap
+      :visible="showDynamicHeatmapDialog"
+      :selectedAmenity="selectedAmenity"
+      @close="showDynamicHeatmapDialog = false"
+    />
+  </div>
 </template>
 
 <script>
 import { Mapable } from "../../../mixins/Mapable";
 import Utils from "../../../utils/Layer";
 import { mapGetters, mapActions } from "vuex";
+import DynamicHeatmap from "./DynamicHeatmap";
 
 export default {
   mixins: [Mapable],
+  components: {
+    "dynamic-heatmap": DynamicHeatmap
+  },
   data: () => ({
     open: [],
     tree: [],
     heatmapLayers: [],
-    poisLayer: null
+    poisLayer: null,
+    showDynamicHeatmapDialog: false,
+    selectedAmenity: {}
   }),
   methods: {
     ...mapActions("pois", {
@@ -114,10 +134,10 @@ export default {
       );
 
       const dynamicHeatmapViewParams = selectedPois.reduce((filtered, item) => {
-        const { value, weight } = item;
+        const { value, weight, sensitivity } = item;
         if (value != "undefined" && weight != undefined) {
           filtered.push({
-            [`${value}`]: { sensitivity: -0.001, weight: weight }
+            [`${value}`]: { sensitivity: sensitivity, weight: weight }
           });
         }
         return filtered;
@@ -156,6 +176,12 @@ export default {
           viewparams: `amenities:'${btoa(viewParams.toString())}'`
         });
       }
+    },
+    toggleDynamicHeatmapDialog(amenity) {
+      console.log(this.showDynamicHeatmapDialog);
+      console.log(amenity);
+      this.selectedAmenity = amenity;
+      this.showDynamicHeatmapDialog = true;
     }
   },
   watch: {
@@ -194,7 +220,7 @@ export default {
 }
 .tree-label-custom {
   display: block;
-  width: 130px;
+  width: 113px;
   word-wrap: break-word;
   overflow-wrap: break-word;
   overflow: hidden;
