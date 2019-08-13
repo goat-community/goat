@@ -1,3 +1,14 @@
+DROP TABLE IF EXISTS temp_reached_vertices;
+CREATE temp TABLE temp_reached_vertices
+(
+	start_vertex integer,
+	node integer,
+	edge integer,
+	cnt integer,
+	cost NUMERIC,
+	geom geometry,
+	objectid integer
+);
 CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, minutes integer, speed_input numeric, alphashape_parameter_input NUMERIC, modus_input integer,region_type text, region text[], amenities text[])
 RETURNS SETOF type_pois_multi_isochrones
 AS $function$ 
@@ -13,10 +24,17 @@ DECLARE
 	categories_no_foot text[];
 	population_mask jsonb;
 	objectid_multi_isochrone integer;
+	max_length_links numeric;
 	BEGIN
 	--------------------------------------------------------------------------------------
 	----------------------get starting points depending on passed parameters--------------
 	--------------------------------------------------------------------------------------	
+	
+	SELECT variable_simple::NUMERIC 
+	INTO max_length_links
+	FROM variable_container
+	WHERE identifier = 'max_length_links';
+		
 	SELECT select_from_variable_container('excluded_class_id_walking')::text[],
 	select_from_variable_container('categories_no_foot')::text
 	INTO excluded_class_id, categories_no_foot;
@@ -31,12 +49,6 @@ DECLARE
 		WHERE name IN (SELECT UNNEST(region));
 		
 		buffer_mask = ST_buffer(mask::geography,buffer)::geometry;
-	
-		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) 
-		INTO points_array
-		FROM pois p
-		WHERE p.amenity IN (SELECT UNNEST(amenities))
-		AND st_intersects(p.geom, buffer_mask);
  	 
  	ELSE 
 		boundary_envelope = region::numeric[];
@@ -50,13 +62,23 @@ DECLARE
 	
  		SELECT ST_Buffer(mask::geography,buffer)::geometry 
  		INTO buffer_mask;
-
-		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) 
-		INTO points_array
+	
+ 	 END IF;
+ 	
+	
+	SELECT DISTINCT p_array
+	INTO points_array
+	FROM (
+		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) AS p_array
 		FROM pois p
 		WHERE p.amenity IN (SELECT UNNEST(amenities))
- 		AND st_intersects(p.geom, buffer_mask);		
- 	 END IF;
+		AND st_intersects(p.geom, buffer_mask)
+		UNION ALL
+		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) AS p_array
+		FROM public_transport_stops p
+		WHERE p.public_transport_stop IN (SELECT UNNEST(amenities))
+		AND st_intersects(p.geom, buffer_mask)
+	) x;	
  	---------------------------------------------------------------------------------
  	--------------------------get catchment of all starting points-------------------
  	---------------------------------------------------------------------------------
@@ -69,8 +91,8 @@ DECLARE
  	
  	DROP TABLE IF EXISTS temp_catchment_vertices;
     CREATE TEMP TABLE temp_catchment_vertices AS
-	SELECT start_vertex,node,edge,cost,geom,objectid 
- 	FROM pgrouting_edges_multi(minutes, points_array, speed_input::NUMERIC, objectids_array); -- routing is expensive
+	SELECT start_vertex,node,edge,cnt,cost,geom,objectid 
+ 	FROM pgrouting_edges_multi(userid_input, minutes, points_array, speed_input::NUMERIC, objectids_array, modus_input); -- routing is expensive
 
  	ALTER TABLE temp_catchment_vertices ADD COLUMN id serial;
  	ALTER TABLE temp_catchment_vertices ADD PRIMARY key(id);
@@ -92,7 +114,7 @@ DECLARE
  	
 			DROP TABLE IF EXISTS temp_reached_vertices;	-- this table is used by the extrapolate_reached_vertices function
 			CREATE TABLE temp_reached_vertices AS 
-			SELECT start_vertex, node, edge, cost, geom, objectid 
+			SELECT start_vertex, node, edge, cnt, cost, geom, objectid 
 			FROM temp_catchment_vertices
 			WHERE objectid = i;				
 			--ALTER TABLE temp_reached_vertices ADD COLUMN id serial; --we cannot add columns to the table, it would break extrapolate_reached_vertices()
@@ -100,7 +122,7 @@ DECLARE
 				
 			INSERT INTO extrapolated_reached_vertices
 			SELECT * 
-			FROM extrapolate_reached_vertices(minutes*60,(speed_input/3.6),excluded_class_id,categories_no_foot); 
+			FROM extrapolate_reached_vertices(minutes*60,max_length_links,(speed_input/3.6),excluded_class_id,categories_no_foot); 
  	
 			END IF;
 			
@@ -127,8 +149,8 @@ DECLARE
  		
 		objectid_multi_isochrone = random_between(1,900000000);
 	
-		INSERT INTO multi_isochrones(userid,geom,speed,alphashape_parameter,modus,objectid,parent_id)
-		SELECT userid_input,ST_Union(geom) AS geom, speed_input, alphashape_parameter_input, modus_input, objectid_multi_isochrone, 1
+		INSERT INTO multi_isochrones(objectid, coordinates, userid, step, speed, alphashape_parameter, modus, parent_id, geom)
+		SELECT objectid_multi_isochrone,points_array AS coordinates, userid_input,minutes AS step,speed_input,alphashape_parameter_input,modus_input, 1, ST_Union(geom) AS geom
 		FROM isos;
 		
  		IF region_type = 'study_area' THEN
@@ -170,11 +192,12 @@ DECLARE
 			WHERE multi_isochrones.objectid = objectid_multi_isochrone;
  		END IF; 
  		RETURN query 
- 		SELECT userid,geom geometry,gid,speed,alphashape_parameter,modus,objectid,parent_id,population
+ 		SELECT gid,objectid, coordinates, userid,step,speed,alphashape_parameter,modus, parent_id, population, geom geometry 
  		FROM multi_isochrones
  		WHERE objectid = objectid_multi_isochrone;
 	END;
 $function$ LANGUAGE plpgsql;
+
 /*
 SELECT *
 FROM pois_multi_isochrones(1,10,5.0,0.00003,1,'envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 

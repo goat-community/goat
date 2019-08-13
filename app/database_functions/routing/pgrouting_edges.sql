@@ -1,5 +1,19 @@
+CREATE TYPE public.type_catchment_vertices_single AS
+(
+	start_vertex integer,
+	node integer,
+	edge integer,
+	cost numeric,
+	geom geometry,
+	objectid integer	
+);
+
+
+
+
+
 CREATE OR REPLACE FUNCTION public.pgrouting_edges(minutes integer, x numeric, y numeric, speed numeric, userid_input integer, objectid_input integer)
- RETURNS SETOF type_catchment_vertices
+ RETURNS SETOF type_catchment_vertices_single
  LANGUAGE plpgsql
 AS $function$
 DECLARE
@@ -21,7 +35,7 @@ begin
 
   SELECT closest_vertex[1] AS id, closest_vertex[2] geom 
   INTO id_vertex, geom_vertex
-  FROM closest_vertex(x,y,0.0018 /*100m => approx. 0.0009 */,'excluded_class_id_walking');
+  FROM closest_vertex(userid_input,x,y,0.0018 /*100m => approx. 0.0009 */,'excluded_class_id_walking',1);
     
   SELECT count(objectid) + 1 INTO number_calculation_input
   FROM starting_point_isochrones

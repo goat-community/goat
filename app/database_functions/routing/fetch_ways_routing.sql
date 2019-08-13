@@ -1,12 +1,16 @@
-CREATE OR REPLACE FUNCTION public.fetch_ways_routing(table_name text, buffer_geom text, speed_input NUMERIC, distance NUMERIC, excluded_class_id text[], categories_no_foot text[], modus_input integer, userid_input integer)
-RETURNS SETOF fetch_ways_routing
+CREATE TYPE type_fetch_ways_routing AS (id integer, SOURCE integer, target integer, cost float);
+
+CREATE OR REPLACE FUNCTION public.fetch_ways_routing(buffer_geom text, speed_input NUMERIC, excluded_class_id text[], categories_no_foot text[], modus_input integer, userid_input integer)
+RETURNS SETOF type_fetch_ways_routing
 AS $function$
 DECLARE 
 	excluded_ways_id text;
-	sql_ways_ids text;
-	sql_userid text;
+	sql_ways_ids text := '';
+	sql_userid text := '';
+	table_name text := 'ways';
 BEGIN 
 	IF modus_input <> 1 THEN 
+		table_name = 'ways_userinput';
 		SELECT array_append(array_agg(x.id),0)::text 
 		INTO excluded_ways_id 
 		FROM (
@@ -22,11 +26,11 @@ BEGIN
 		sql_ways_ids = ' AND NOT id::int4 = any('''|| excluded_ways_id ||''') ';
 	END IF;
 	RETURN query EXECUTE format(
-		'SELECT  id::integer, source, target, (length_m/'||speed_input||')::numeric as cost 
+		'SELECT  id::integer, source, target, length_m as cost 
 		FROM '||quote_ident(table_name)||
 		' WHERE NOT class_id = any(''' || excluded_class_id::text || ''')
     	AND (NOT foot = any('''||categories_no_foot::text||''') OR foot IS NULL)
-		AND geom && '||buffer_geom||sql_userid||sql_ways_ids
+		AND geom && ST_GeomFromText('''||buffer_geom||''')'||sql_userid||sql_ways_ids
 	);
 END;
 $function$ LANGUAGE plpgsql;
