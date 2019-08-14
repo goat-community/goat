@@ -120,17 +120,15 @@ const actions = {
     });
     commit("ADD_ISOCHRONE_FEATURES", [iconMarkerFeature]);
 
-    const isochronesResponse = await http.get("/api/isochrone", {
-      params: {
-        user_id: rootState.user.userId,
-        minutes: state.options.minutes,
-        x: state.position.coordinate[0],
-        y: state.position.coordinate[1],
-        n: state.options.steps,
-        concavity: state.options.concavityIsochrones.active,
-        speed: state.options.speed,
-        modus: state.options.calculationModes.active
-      }
+    const isochronesResponse = await http.post("/api/isochrone", {
+      user_id: rootState.user.userId,
+      minutes: state.options.minutes,
+      x: state.position.coordinate[0],
+      y: state.position.coordinate[1],
+      n: state.options.steps,
+      concavity: state.options.concavityIsochrones.active,
+      speed: state.options.speed,
+      modus: state.options.calculationModes.active
     });
 
     let isochrones = isochronesResponse.data;

@@ -39,6 +39,7 @@
     <dynamic-heatmap
       :visible="showDynamicHeatmapDialog"
       :selectedAmenity="selectedAmenity"
+      @updated="updateHeatmapLayerViewParams"
       @close="showDynamicHeatmapDialog = false"
     />
   </div>
@@ -96,9 +97,9 @@ export default {
         }
       });
     },
-    updateHeatmapLayerViewParams(selectedPois) {
+    updateHeatmapLayerViewParams() {
       const me = this;
-
+      const selectedPois = me.tree;
       const standardHeatmapViewParams = selectedPois.reduce(
         (filtered, item) => {
           const { value, weight } = item;
@@ -129,7 +130,7 @@ export default {
             ? dynamicHeatmapViewParams
             : standardHeatmapViewParams
         );
-        console.log(viewparams);
+
         layer.getSource().updateParams({
           viewparams: `amenities:'${btoa(viewparams)}'`
         });
@@ -167,7 +168,7 @@ export default {
     tree: function() {
       const me = this;
       me.updateSelectedPois(me.tree);
-      me.updateHeatmapLayerViewParams(me.tree);
+      me.updateHeatmapLayerViewParams();
       me.updatePoisLayerViewParams(me.tree);
     }
   },
