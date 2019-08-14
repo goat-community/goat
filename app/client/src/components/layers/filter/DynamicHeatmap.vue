@@ -18,6 +18,7 @@
         <v-select
           v-model="selectedAmenity.weight"
           :items="weightListValues"
+          @change="updateHeatmap"
           class="mx-2"
           label="Select Weight"
           outlined
@@ -31,6 +32,7 @@
           <v-combobox
             v-model="selectedAmenity.sensitivity"
             :items="sensitivityListValues"
+            @change="updateHeatmap"
             class="mx-2"
             label="Sensitivity index"
             outlined
@@ -57,9 +59,15 @@ export default {
       sensitivityListValues: [-0.001, -0.002, -0.003]
     };
   },
+
   props: {
     visible: { type: Boolean, required: false, default: false },
     selectedAmenity: { type: Object }
+  },
+  methods: {
+    updateHeatmap() {
+      this.$emit("updated");
+    }
   },
   computed: {
     show: {
