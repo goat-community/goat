@@ -153,7 +153,7 @@ app.get("/api/pois_multi_isochrones", jsonParser, (request, response) => {
       'geometry',   ST_AsGeoJSON(geom)::jsonb,
       'properties', to_jsonb(inputs) - 'gid' - 'geom'
     ) AS feature 
-    FROM (SELECT * FROM pois_multi_isochrones($1,$2,$3,$4,$5,$6,$7::text[],$8::text[])) inputs) features;`,
+    FROM (SELECT * FROM pois_multi_isochrones($1,$2,$3,$4,$5,$6,$7,$8)) inputs) features;`,
     queryValues,
     (err, res) => {
       if (err) return console.log(err);
