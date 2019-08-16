@@ -14,14 +14,7 @@
   >
     <v-layout v-bind:class="getColor" justify-space-between column fill-height>
       <template v-if="mini">
-        <v-btn
-          class="ml-2 mt-2"
-          text
-          small
-          icon
-          light
-          @click.stop="mini = !mini"
-        >
+        <v-btn class="ml-2 mt-2" text icon light @click.stop="mini = !mini">
           <v-icon color="white">fas fa-chevron-right</v-icon>
         </v-btn>
       </template>

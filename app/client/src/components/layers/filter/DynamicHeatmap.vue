@@ -19,7 +19,7 @@
           v-model="selectedAmenity.weight"
           :items="weightListValues"
           @change="updateHeatmap"
-          class="mx-2"
+          class="mx-2 mt-4"
           label="Select Weight"
           outlined
         ></v-select>
