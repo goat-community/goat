@@ -1,78 +1,108 @@
 <template>
   <v-flex xs12>
     <!-- Isochrone Options -->
+    <v-card-text class="pr-16 pl-16 pt-0 pb-0">
+      <v-divider></v-divider>
+    </v-card-text>
     <v-subheader
-      class="clickable isochroneOptionsHeader ml-1 py-1 mb-2 "
-      @click="isIsochroneOptionsVisible = !isIsochroneOptionsVisible"
+      class="clickable"
+      @click="isOptionsElVisible = !isOptionsElVisible"
     >
       <v-icon
+        :style="isOptionsElVisible === true ? { color: '#30c2ff' } : {}"
         small
         class="mr-2"
-        v-html="
-          isIsochroneOptionsVisible
-            ? 'fas fa-chevron-down'
-            : 'fas fa-chevron-right'
-        "
-      ></v-icon>
-      <h4>{{ $t("isochrones.options.subOptions") }}</h4>
+        >fas fa-sliders-h</v-icon
+      >
+      <h3>{{ $t("isochrones.options.title") }}</h3>
     </v-subheader>
-
-    <v-flex
-      xs-12
-      class="mx-4 isochroneOptions"
-      v-show="isIsochroneOptionsVisible"
-    >
-      <v-slider
-        min="1"
-        max="20"
-        inverse-label
-        v-model="minutes"
-        prepend-icon="fas fa-clock"
-        :label="minutes + ' min'"
+    <div v-if="isOptionsElVisible">
+      <v-subheader
+        class="clickable isochroneOptionsHeader ml-1 py-1 mb-2 "
+        @click="isIsochroneOptionsVisible = !isIsochroneOptionsVisible"
       >
-      </v-slider>
+        <v-icon
+          small
+          class="mr-2"
+          v-html="
+            isIsochroneOptionsVisible
+              ? 'fas fa-chevron-down'
+              : 'fas fa-chevron-right'
+          "
+        ></v-icon>
+        <h4>{{ $t("isochrones.options.subOptions") }}</h4>
+      </v-subheader>
 
-      <v-slider
-        min="1"
-        max="10"
-        inverse-label
-        v-model="speed"
-        prepend-icon="fas fa-tachometer-alt"
-        :label="speed + ' km/h'"
+      <v-flex
+        xs12
+        class="mx-4 isochroneOptions"
+        v-if="isIsochroneOptionsVisible"
       >
-      </v-slider>
+        <v-slider
+          min="1"
+          max="20"
+          inverse-label
+          v-model="minutes"
+          prepend-icon="fas fa-clock"
+          :label="minutes + ' min'"
+        >
+        </v-slider>
 
-      <v-slider
-        class="mb-1"
-        v-model="steps"
-        min="1"
-        max="8"
-        inverse-label
-        prepend-icon="fas fa-sort-numeric-up"
-        :label="'Isochrones (' + steps + ')'"
-      >
-      </v-slider>
+        <v-slider
+          min="1"
+          max="10"
+          inverse-label
+          v-model="speed"
+          prepend-icon="fas fa-tachometer-alt"
+          :label="speed + ' km/h'"
+        >
+        </v-slider>
 
-      <v-select
-        item-text="display"
-        item-value="value"
-        outlined
-        v-model="concavityIsochrones"
-        :value="concavityIsochrones"
-        :items="options.concavityIsochrones.values"
-        :label="$t('isochrones.options.calcType')"
-      ></v-select>
+        <v-slider
+          v-if="options.calculationType === 'single'"
+          class="mb-1"
+          v-model="steps"
+          min="1"
+          max="8"
+          inverse-label
+          prepend-icon="fas fa-sort-numeric-up"
+          :label="'Isochrones (' + steps + ')'"
+        >
+        </v-slider>
 
-      <v-select
-        item-text="display"
-        item-value="value"
-        v-model="calculationModes"
-        outlined
-        :value="concavityIsochrones"
-        :items="options.calculationModes.values"
-        :label="$t('isochrones.options.calcModus')"
-      ></v-select>
-    </v-flex>
+        <v-select
+          v-if="options.calculationType === 'single'"
+          item-text="display"
+          item-value="value"
+          outlined
+          v-model="concavityIsochrones"
+          :value="concavityIsochrones"
+          :items="options.concavityIsochrones.values"
+          :label="$t('isochrones.options.calcType')"
+        ></v-select>
+
+        <v-select
+          item-text="display"
+          item-value="value"
+          v-model="calculationModes"
+          outlined
+          :value="calculationModes"
+          :items="options.calculationModes.values"
+          :label="$t('isochrones.options.calcModus')"
+        ></v-select>
+
+        <v-select
+          v-if="options.calculationType === 'multiple'"
+          item-text="display"
+          item-value="value"
+          v-model="alphaShapeParameter"
+          outlined
+          :value="alphaShapeParameter"
+          :items="options.alphaShapeParameter.values"
+          label="Alpha-shape Parameter"
+        ></v-select>
+      </v-flex>
+    </div>
   </v-flex>
 </template>
 <script>
@@ -82,17 +112,18 @@ import { mapFields } from "vuex-map-fields";
 export default {
   name: "isochrone-options",
   data: () => ({
+    isOptionsElVisible: true,
     isIsochroneOptionsVisible: true
   }),
   computed: {
     ...mapGetters("isochrones", { options: "options" }),
-
     ...mapFields("isochrones", {
       minutes: "options.minutes",
       speed: "options.speed",
       steps: "options.steps",
       concavityIsochrones: "options.concavityIsochrones.active",
-      calculationModes: "options.calculationModes.active"
+      calculationModes: "options.calculationModes.active",
+      alphaShapeParameter: "options.alphaShapeParameter.active"
     })
   },
   methods: {}

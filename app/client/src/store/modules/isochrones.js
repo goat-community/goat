@@ -14,6 +14,7 @@ const state = {
     placeName: ""
   },
   options: {
+    calculationType: "single",
     minutes: "10",
     speed: "5",
     steps: "2",
@@ -41,9 +42,22 @@ const state = {
         }
       ],
       active: "default"
+    },
+    alphaShapeParameter: {
+      name: "alphashape",
+      values: [{ display: "0.00003", value: "0.00003" }],
+      active: "0.00003"
     }
   },
   calculations: [],
+  multiIsochroneCalculationMethods: {
+    name: "multiIsochroneCalculationMethods",
+    values: [
+      { display: "Study Area", value: "study_area" },
+      { display: "Draw Boundary", value: "draw" }
+    ],
+    active: null
+  },
   isochroneLayer: null,
   styleData: {
     styleCache: {
@@ -106,6 +120,9 @@ const getters = {
   styleData: state => state.styleData,
   isThematicDataVisible: state => state.isThematicDataVisible,
   selectedThematicData: state => state.selectedThematicData,
+  alphaShapeParameter: state => state.alphaShapeParameter,
+  multiIsochroneCalculationMethods: state =>
+    state.multiIsochroneCalculationMethods,
   getField
 };
 
