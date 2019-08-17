@@ -30,6 +30,7 @@
         class="select-method-height mx-1 my-1"
         v-model="activeMultiIsochroneMethod"
         :items="multiIsochroneCalculationMethods.values"
+        @change="toggleInteraction"
         label="Select Method"
         solo
       ></v-select>
@@ -73,10 +74,13 @@
 <script>
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
+import { Mapable } from "../../mixins/Mapable";
 import { InteractionsToggle } from "../../mixins/InteractionsToggle";
 
+import OlIsochroneController from "../../controllers/OlIsochroneController";
+
 export default {
-  mixins: [InteractionsToggle],
+  mixins: [Mapable, InteractionsToggle],
   data: () => ({
     isIsochroneStartElVisible: true,
     interactionType: "isochrone-multiple-interaction"
@@ -97,6 +101,20 @@ export default {
     }
   },
   methods: {
+    /**
+     * This function is executed, after the map is bound (see mixins/Mapable)
+     */
+    onMapBound() {
+      const me = this;
+      //Initialize ol isochrone controllers.
+      console.log("map bounded...");
+      me.olIsochroneCtrl = new OlIsochroneController(me.map);
+      me.olIsochroneCtrl.createSelectionLayer();
+    },
+    toggleInteraction() {
+      const me = this;
+      me.olIsochroneCtrl.addInteraction("multiple");
+    },
     clear() {
       this.activeMultiIsochroneMethod = null;
     }
