@@ -23,8 +23,8 @@
             <!-- Isochrone Nr -->
             <div class="isochrone-nr">{{ calculation.id }}</div>
             <v-card-title class="pb-0 mb-0">
-              <v-layout row wrap align-center>
-                <v-flex xs6>
+              <v-layout row wrap>
+                <v-layout align-start justify-start>
                   <v-card-text class="pa-0 ma-0 ml-3">
                     <v-icon small class="mr-1 text-xs-center"
                       >fas fa-clock</v-icon
@@ -39,43 +39,40 @@
                       calculation.speed
                     }}</span>
                   </v-card-text>
-                </v-flex>
-                <v-flex xs6>
-                  <v-card-text class="pa-0 ma-0">
-                    <v-icon
-                      @click="showPoisTable(calculation)"
-                      small
-                      class="result-icons ml-7 mr-2"
-                      >fas fa-table</v-icon
-                    >
-                    <v-icon small class="result-icons mr-2"
-                      >fas fa-pencil-alt</v-icon
-                    >
-                    <v-icon
-                      @click="showHideCalculation(calculation)"
-                      small
-                      class="result-icons mr-2"
-                      v-html="
-                        calculation.isVisible
-                          ? 'fas fa-eye-slash'
-                          : 'fas fa-eye'
-                      "
-                    ></v-icon>
-                    <v-icon
-                      @click="toggleDownloadDialog(calculation)"
-                      small
-                      class="result-icons mr-2"
-                      >fas fa-download</v-icon
-                    >
-                    <v-icon
-                      @click="deleteCalculation(calculation)"
-                      small
-                      class="result-icons mr-1"
-                    >
-                      fas fa-trash-alt</v-icon
-                    >
-                  </v-card-text>
-                </v-flex>
+                </v-layout>
+
+                <v-layout row>
+                  <v-spacer></v-spacer>
+
+                  <v-icon
+                    @click="showPoisTable(calculation)"
+                    small
+                    class="result-icons mr-2"
+                    >fas fa-table</v-icon
+                  >
+
+                  <v-icon
+                    @click="showHideCalculation(calculation)"
+                    small
+                    class="result-icons mr-2"
+                    v-html="
+                      calculation.isVisible ? 'fas fa-eye-slash' : 'fas fa-eye'
+                    "
+                  ></v-icon>
+                  <v-icon
+                    @click="toggleDownloadDialog(calculation)"
+                    small
+                    class="result-icons mr-2"
+                    >fas fa-download</v-icon
+                  >
+                  <v-icon
+                    @click="deleteCalculation(calculation)"
+                    small
+                    class="result-icons mr-6"
+                  >
+                    fas fa-trash-alt</v-icon
+                  >
+                </v-layout>
               </v-layout>
               <v-card-text class="pr-0 pl-0 pt-0 pb-0">
                 <v-divider></v-divider>

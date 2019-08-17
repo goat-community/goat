@@ -23,12 +23,7 @@
           label="Select Weight"
           outlined
         ></v-select>
-        <v-checkbox
-          class="ml-2"
-          v-model="expertHeatmap"
-          label="Expert Heatmap"
-        ></v-checkbox>
-        <template v-if="expertHeatmap === true">
+        <template>
           <v-combobox
             v-model="selectedAmenity.sensitivity"
             :items="sensitivityListValues"
@@ -54,7 +49,6 @@ export default {
   },
   data() {
     return {
-      expertHeatmap: false,
       weightListValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
       sensitivityListValues: [-0.001, -0.002, -0.003]
     };

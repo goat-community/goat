@@ -47,9 +47,15 @@ export default {
             ],
             xAxes: [
               {
+                ticks: {
+                  beginAtZero: true,
+                  callback: function(value) {
+                    return (value / 60).toFixed(1);
+                  }
+                },
                 scaleLabel: {
                   display: true,
-                  labelString: "Traveltime (seconds)"
+                  labelString: "Traveltime (minutes)"
                 }
               }
             ]
