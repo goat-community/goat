@@ -53,7 +53,6 @@
             background-color="green"
             flat
             dark
-            horizontal
             grow
             value="true"
             v-model="activeComponent"
