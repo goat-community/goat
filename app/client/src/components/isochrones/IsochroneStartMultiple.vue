@@ -111,12 +111,15 @@ export default {
       me.olIsochroneCtrl = new OlIsochroneController(me.map);
       me.olIsochroneCtrl.createSelectionLayer();
     },
-    toggleInteraction() {
+    toggleInteraction(type) {
       const me = this;
+
+      console.log(type);
       me.olIsochroneCtrl.addInteraction("multiple");
     },
     clear() {
       this.activeMultiIsochroneMethod = null;
+      this.olIsochroneCtrl.clear();
     }
   }
 };

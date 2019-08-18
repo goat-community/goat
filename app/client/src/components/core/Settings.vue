@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="show" max-width="500px">
+  <v-dialog v-model="show" scrollable max-width="500px">
     <v-card flat>
       <v-app-bar color="green" dark>
         <v-app-bar-nav-icon><v-icon>fas fa-cog</v-icon></v-app-bar-nav-icon>
@@ -9,50 +9,51 @@
           ><v-icon>close</v-icon></v-app-bar-nav-icon
         >
       </v-app-bar>
-
-      <!-- App Language Settings -->
-      <v-subheader
-        ><h3>{{ $t("appBar.settings.language") }}</h3></v-subheader
-      >
-      <v-card-text class="pr-16 pl-16 pt-0 pb-0 mb-2">
-        <v-divider></v-divider>
-      </v-card-text>
-      <v-card-text>
-        <div class="">
-          <span>
-            <v-btn-toggle v-model="defaultLanguage" mandatory>
-              <v-btn
-                text
-                v-for="entry in languages"
-                :key="entry.title"
-                @click="changeLocale(entry.language)"
-              >
-                <flag :iso="entry.flag" v-bind:squared="false" />
-                <span class="pl-2">{{ entry.title }}</span>
-              </v-btn>
-            </v-btn-toggle>
-          </span>
-        </div>
-      </v-card-text>
-      <!-- Map Units Settings  -->
-      <v-subheader
-        ><h3>{{ $t("appBar.settings.units.header") }}</h3></v-subheader
-      >
-      <v-card-text class="pr-16 pl-16 pt-0 pb-0">
-        <v-divider></v-divider>
-      </v-card-text>
-      <v-card-text>
-        <v-radio-group v-model="units" row style="justify-content: center;">
-          <v-radio
-            :label="$t('appBar.settings.units.km')"
-            value="kilometers"
-          ></v-radio>
-          <v-radio
-            :label="$t('appBar.settings.units.miles')"
-            value="miles"
-          ></v-radio>
-        </v-radio-group>
-      </v-card-text>
+      <vue-scroll>
+        <!-- App Language Settings -->
+        <v-subheader
+          ><h3>{{ $t("appBar.settings.language") }}</h3></v-subheader
+        >
+        <v-card-text class="pr-16 pl-16 pt-0 pb-0 mb-2">
+          <v-divider></v-divider>
+        </v-card-text>
+        <v-card-text>
+          <div class="">
+            <span>
+              <v-btn-toggle v-model="defaultLanguage" mandatory>
+                <v-btn
+                  text
+                  v-for="entry in languages"
+                  :key="entry.title"
+                  @click="changeLocale(entry.language)"
+                >
+                  <flag :iso="entry.flag" v-bind:squared="false" />
+                  <span class="pl-2">{{ entry.title }}</span>
+                </v-btn>
+              </v-btn-toggle>
+            </span>
+          </div>
+        </v-card-text>
+        <!-- Map Units Settings  -->
+        <v-subheader
+          ><h3>{{ $t("appBar.settings.units.header") }}</h3></v-subheader
+        >
+        <v-card-text class="pr-16 pl-16 pt-0 pb-0">
+          <v-divider></v-divider>
+        </v-card-text>
+        <v-card-text>
+          <v-radio-group v-model="units" row style="justify-content: center;">
+            <v-radio
+              :label="$t('appBar.settings.units.km')"
+              value="kilometers"
+            ></v-radio>
+            <v-radio
+              :label="$t('appBar.settings.units.miles')"
+              value="miles"
+            ></v-radio>
+          </v-radio-group>
+        </v-card-text>
+      </vue-scroll>
     </v-card>
   </v-dialog>
 </template>
