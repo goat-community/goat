@@ -10,7 +10,9 @@
         <v-app-bar-nav-icon><v-icon>delete</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title class="white--text">{{ title }}</v-toolbar-title>
       </v-app-bar>
-      <v-card-text v-show="!!message">{{ message }}</v-card-text>
+      <v-card-title class="body-1" v-show="!!message">{{
+        message
+      }}</v-card-title>
       <v-card-actions class="pt-0">
         <v-spacer></v-spacer>
         <v-btn color="primary darken-1" text @click.native="agree">Yes</v-btn>

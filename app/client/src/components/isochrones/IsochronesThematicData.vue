@@ -48,9 +48,18 @@
           </td>
         </template>
       </v-data-table>
-      <span v-if="getPoisItems.length === 0" style="color: red;"
-        ><i>Note: Select Amenities and Time to filter the table. </i></span
+
+      <v-alert
+        v-if="getPoisItems.length === 0"
+        border="left"
+        colored-border
+        class="mb-1 mt-2 elevation-2"
+        icon="info"
+        color="green"
+        dense
       >
+        Select <b>Amenities</b> and <b>Time</b> to filter the table.
+      </v-alert>
     </v-flex>
   </v-layout>
 </template>
