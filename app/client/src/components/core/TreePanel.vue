@@ -15,7 +15,7 @@
     <v-layout v-bind:class="getColor" justify-space-between column fill-height>
       <template v-if="mini">
         <v-btn
-          class="ml-2 mt-2"
+          class="ml-3 mt-2"
           text
           small
           icon
@@ -53,7 +53,6 @@
             background-color="green"
             flat
             dark
-            horizontal
             grow
             value="true"
             v-model="activeComponent"

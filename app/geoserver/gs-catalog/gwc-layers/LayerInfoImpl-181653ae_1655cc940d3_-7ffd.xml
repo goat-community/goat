@@ -26,7 +26,7 @@
       <key>STYLES</key>
       <defaultValue></defaultValue>
       <availableStyles class="sorted-set"/>
-      <defaultStyle>polygon</defaultStyle>
+      <defaultStyle>boundary_style</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>
   <gutter>0</gutter>
