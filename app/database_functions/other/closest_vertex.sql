@@ -23,7 +23,7 @@ BEGIN
   	SELECT w.id, w.geom 
   	INTO id_vertex, geom_vertex
   	FROM ways_userinput_vertices_pgr w
-  	WHERE userid IS NULL OR userid = userid_vertex
+  	WHERE (userid IS NULL OR userid = userid_vertex)
   	AND (class_ids <@ excluded_class_id::int[]) IS FALSE
   	ORDER BY geom <-> point
   	LIMIT 1;
