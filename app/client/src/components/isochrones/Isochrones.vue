@@ -7,14 +7,13 @@
           <v-btn
             text
             icon
-            small
-            class="mt-1"
+            class="mt-1 ml-1"
             light
             @click="toggleThematicDataVisibility(false)"
           >
             <v-icon color="rgba(0,0,0,0.54)">fas fa-arrow-left</v-icon>
           </v-btn>
-          <v-subheader class="ml- pl-0">
+          <v-subheader class="ml-1 pl-0">
             <span class="title">Thematic Data</span>
           </v-subheader>
         </v-layout>
@@ -24,101 +23,19 @@
         <isochrone-thematic-data />
       </template>
 
-      <!-- ISOCHRONE OPTIONS AND RESULTS  -->
+      <!-- ISOCHRONES  -->
       <template v-else>
         <v-subheader>
           <span class="title">{{ $t("isochrones.title") }}</span>
         </v-subheader>
+        <isochrone-type />
 
-        <v-card-text class="pr-16 pl-16 pt-0 pb-0">
-          <v-divider></v-divider>
-        </v-card-text>
-        <v-card-text>
-          <v-layout row>
-            <v-flex xs9>
-              <v-autocomplete
-                solo
-                v-model="model"
-                :items="items"
-                :loading="isLoading"
-                label="Search Starting Point"
-                :search-input.sync="search"
-                item-text="DisplayName"
-                append-icon=""
-                clear-icon="close"
-                @click:clear="clearSearch"
-                @change="selectSearchStartingPoint"
-                clearable
-                item-value="osm_id"
-                hide-details
-                hide-selected
-                hide-no-data
-                prepend-inner-icon="search"
-                return-object
-                class="ml-3 mt-1"
-                dense
-                :menu-props="{ maxHeight: 600 }"
-              ></v-autocomplete>
-            </v-flex>
-            <v-flex xs3>
-              <v-btn
-                outlined
-                fab
-                class="ml-4"
-                rounded
-                text
-                @click="registerMapClick"
-              >
-                <v-icon color="#30C2FF">fas fa-map-marker-alt</v-icon>
-              </v-btn>
-            </v-flex>
-          </v-layout>
-        </v-card-text>
-
-        <v-card-text class="pr-16 pl-16 pt-0 pb-0">
-          <v-divider></v-divider>
-        </v-card-text>
-
-        <!-- Isochrone Options -->
-        <v-subheader
-          class="clickable"
-          @click="isOptionsElVisible = !isOptionsElVisible"
-        >
-          <v-icon
-            :class="{ activeIcon: isOptionsElVisible, 'mr-2': true }"
-            small
-            class="mr-2"
-            >fas fa-sliders-h</v-icon
-          >
-          <h3>{{ $t("isochrones.options.title") }}</h3>
-        </v-subheader>
-        <div v-show="isOptionsElVisible">
-          <isochrone-options />
-        </div>
-
-        <!-- Isochrone Results  -->
-        <v-card-text class="pr-16 pl-16 pt-0 pb-0">
-          <v-divider></v-divider>
-        </v-card-text>
-        <v-subheader
-          class="clickable"
-          @click="isResultsElVisible = !isResultsElVisible"
-        >
-          <v-icon
-            :class="{
-              activeIcon: isResultsElVisible,
-              'mr-2': true
-            }"
-            style="margin-right: 2px;"
-            small
-            >fas fa-bullseye</v-icon
-          >
-          <h3>{{ $t("isochrones.results.title") }}</h3>
-        </v-subheader>
-
-        <div v-show="isResultsElVisible">
-          <isochrone-results />
-        </div>
+        <isochrone-start-single v-if="options.calculationType === 'single'" />
+        <isochrone-start-multiple
+          v-if="options.calculationType === 'multiple'"
+        />
+        <isochrone-options />
+        <isochrone-results />
       </template>
       <!-- -- -->
     </v-card>
@@ -127,91 +44,46 @@
 
 <script>
 import { Mapable } from "../../mixins/Mapable";
-import { EventBus } from "../../EventBus";
-import { InteractionsToggle } from "../../mixins/InteractionsToggle";
+
 //Child components
 import IsochroneOptions from "./IsochroneOptions";
 import IsochroneResults from "./IsochroneResults";
 import IsochronThematicData from "./IsochronesThematicData";
+import IsochroneType from "./IsochroneType";
+import IsochroneStartSingle from "./IsochroneStartSingle";
+import IsochroneStartMultiple from "./IsochroneStartMultiple";
 
 import OlStyleDefs from "../../style/OlStyleDefs";
 
 //Store imports
-import { mapGetters, mapActions, mapMutations } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 
 //Ol imports
-import { transform } from "ol/proj.js";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
-import { unByKey } from "ol/Observable";
-
-//Other imports
-import axios from "axios";
-import helpers from "../../utils/Helpers";
 
 export default {
-  mixins: [InteractionsToggle, Mapable],
+  mixins: [Mapable],
   components: {
     "isochrone-options": IsochroneOptions,
     "isochrone-results": IsochroneResults,
-    "isochrone-thematic-data": IsochronThematicData
+    "isochrone-thematic-data": IsochronThematicData,
+    "isochrone-type": IsochroneType,
+    "isochrone-start-single": IsochroneStartSingle,
+    "isochrone-start-multiple": IsochroneStartMultiple
   },
-  data: () => ({
-    interactionType: "isochrone-interaction",
-    clicked: false,
-    isStartPointElVisible: true,
-    isOptionsElVisible: true,
-    isResultsElVisible: true,
-    //Road Search
-    descriptionLimit: 30,
-    entries: [],
-    model: null,
-    search: null,
-    isLoading: false,
-    mapClickListener: null
-  }),
   computed: {
     ...mapGetters("isochrones", {
       styleData: "styleData",
-      isThematicDataVisible: "isThematicDataVisible"
-    }),
-    ...mapGetters("map", {
-      messages: "messages",
-      studyAreaBbox: "studyAreaBbox"
-    }),
-    fields() {
-      if (!this.model) return [];
-
-      return Object.keys(this.model).map(key => {
-        return {
-          key,
-          value: this.model[key] || "n/a"
-        };
-      });
-    },
-    items() {
-      return this.entries.map(entry => {
-        const DisplayName =
-          entry.display_name.length > this.descriptionLimit
-            ? entry.display_name.slice(0, this.descriptionLimit) + "..."
-            : entry.display_name;
-
-        return Object.assign({}, entry, { DisplayName });
-      });
-    }
+      isThematicDataVisible: "isThematicDataVisible",
+      options: "options"
+    })
   },
   methods: {
-    ...mapActions("isochrones", { calculateIsochrone: "calculateIsochrone" }),
     ...mapMutations("isochrones", {
       addStyleInCache: "ADD_STYLE_IN_CACHE",
-      updatePosition: "UPDATE_POSITION",
       addIsochroneLayer: "ADD_ISOCHRONE_LAYER",
       toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY"
-    }),
-
-    ...mapMutations("map", {
-      startHelpTooltip: "START_HELP_TOOLTIP",
-      stopHelpTooltip: "STOP_HELP_TOOLTIP"
     }),
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
@@ -219,55 +91,6 @@ export default {
     onMapBound() {
       this.createIsochroneLayer();
     },
-    registerMapClick() {
-      const me = this;
-      //Close other interactions.
-      EventBus.$emit("ol-interaction-activated", me.interactionType);
-
-      me.mapClickListener = me.map.once("singleclick", me.onMapClick);
-      me.startHelpTooltip(me.messages.interaction.calculateIsochrone);
-      me.map.getTarget().style.cursor = "pointer";
-    },
-    /**
-     * Handler for 'singleclick' on the map.
-     * Collects data and passes it to corresponding objects.
-     * @param  {ol/MapBrowserEvent} evt The OL event of 'singleclick' on the map
-     */
-    onMapClick(evt) {
-      const me = this;
-      //Update Isochrone Position (City or Coordinate)
-      const projection = me.map
-        .getView()
-        .getProjection()
-        .getCode();
-
-      const coordinateWgs84 = transform(
-        evt.coordinate,
-        projection,
-        "EPSG:4326"
-      );
-
-      me.updatePosition({
-        coordinate: coordinateWgs84,
-        placeName: ""
-      });
-      //Start Isochrone Calculation
-      me.calculateIsochrone();
-      me.clear();
-    },
-    selectSearchStartingPoint() {
-      const me = this;
-      if (!this.search || !this.model) return;
-      const lat = parseFloat(this.model.lat);
-      const lon = parseFloat(this.model.lon);
-
-      me.updatePosition({
-        coordinate: [lon, lat],
-        placeName: this.model.DisplayName
-      });
-      me.calculateIsochrone();
-    },
-
     /**
      * Creates a vector layer for the isochrone calculations results and adds it to the
      * map and store.
@@ -286,52 +109,7 @@ export default {
       });
       me.map.addLayer(vector);
       this.addIsochroneLayer(vector);
-    },
-
-    clear() {
-      const me = this;
-      if (me.mapClickListener) {
-        unByKey(me.mapClickListener);
-      }
-      me.stopHelpTooltip();
-      me.map.getTarget().style.cursor = "";
-      EventBus.$emit("ol-interaction-stoped", me.interactionType);
-    },
-    clearSearch() {
-      this.entries = [];
-      this.count = 0;
     }
-  },
-  watch: {
-    search: helpers.debounce(function() {
-      // Items have already been requested
-      if (this.isLoading || !this.search) return;
-      this.isLoading = true;
-      if (!this.studyAreaBbox) return;
-      axios
-        .get(
-          `${this.searchUrl}?key=${this.searchKey}&q=${this.search}
-            &viewbox=${this.studyAreaBbox}&bounded=1`
-        )
-        .then(response => {
-          this.count = response.data.length;
-          this.entries = response.data;
-          this.isLoading = false;
-        })
-        .catch(() => {
-          this.isLoading = false;
-        });
-    }, 600)
-  },
-  mounted() {
-    const me = this;
-    me.searchUrl = process.env.VUE_APP_SEARCH_URL;
-    me.searchKey = process.env.VUE_APP_SEARCH_KEY;
   }
 };
 </script>
-<style lang="css" scoped>
-.activeIcon {
-  color: #30c2ff;
-}
-</style>
