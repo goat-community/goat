@@ -1,19 +1,3 @@
-
-CREATE TYPE type_isochrones_api AS
-(
-	gid integer, 
-	objectid integer, 
-	coordinates NUMERIC[],
-	step integer,
-	speed NUMERIC,
-	shape_precision NUMERIC,
-	modus integer,
-	parent_id integer,
-	sum_pois jsonb, 
-	geom geometry,
-  starting_point text
-);
-
 CREATE TYPE type_isochrones_api AS
 (
 	gid integer, 
