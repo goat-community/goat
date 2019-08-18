@@ -6,7 +6,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 // use it before all route definitions
 app.use(cors({ origin: "*" }));
-app.use(function(request, response, next) {
+app.use(function (request, response, next) {
   response.header("Access-Control-Allow-Origin", "*");
   response.header(
     "Access-Control-Allow-Methods",
@@ -117,6 +117,7 @@ app.post("/api/pois_multi_isochrones", jsonParser, (request, response) => {
     "user_id",
     "minutes",
     "speed",
+    "n",
     "alphashape_parameter",
     "modus",
     "region_type",
@@ -152,9 +153,48 @@ app.post("/api/pois_multi_isochrones", jsonParser, (request, response) => {
   ) AS feature 
   FROM (SELECT * FROM pois_multi_isochrones(${queryValues[0]},${
     queryValues[1]
-  },${queryValues[2]},${queryValues[3]},${queryValues[4]},${
+    },${queryValues[2]},${queryValues[3]},${queryValues[4]},${
     queryValues[5]
-  },ARRAY[${queryValues[6]}],ARRAY[${queryValues[7]}])) inputs) features;`;
+    },${queryValues[6]},ARRAY[${queryValues[7]}],ARRAY[${queryValues[8]}])) inputs) features;`;
+
+  pool.query(sqlQuery, (err, res) => {
+    if (err) return console.log(err);
+    response.send(res.rows[0].jsonb_build_object);
+  });
+});
+
+app.post("/api/count_pois_multi_isochrones", jsonParser, (request, response) => {
+  let requiredParams = [
+    "minutes",
+    "speed",
+    "region_type",
+    "region",
+    "amenities"
+  ];
+  let queryValues = [];
+
+  requiredParams.forEach(key => {
+    let value = request.body[key];
+    console.log(value);
+    if (!value) {
+      response.send("An error happened");
+      return;
+    }
+    queryValues.push(value);
+  });
+
+  console.log(queryValues);
+  // Make sure to set the correct content type
+
+  response.set("content-type", "application/json");
+  const sqlQuery = `
+  SELECT jsonb_build_object(
+    'type',       'Feature',
+    'geometry',   ST_AsGeoJSON(geom)::jsonb,
+    'properties', to_jsonb(inputs) - 'geom'
+  ) AS feature 
+  FROM (SELECT count_pois, geom FROM count_pois_multi_isochrones(${queryValues[0]},${queryValues[1]
+    },${queryValues[2]},ARRAY[${queryValues[3]}],ARRAY[${queryValues[4]}])) inputs;`;
 
   pool.query(sqlQuery, (err, res) => {
     if (err) return console.log(err);
