@@ -21,15 +21,14 @@ const state = {
     concavityIsochrones: {
       name: "concavity",
       values: [
-        { display: "convex", value: "1" },
-        { display: "0", value: "0.99" },
-        { display: "1", value: "0.98" },
-        { display: "2", value: "0.95" },
-        { display: "3", value: "0.9" },
-        { display: "4", value: "0.8" },
-        { display: "5", value: "0.7" }
+        { display: "0", value: "0.00003" },
+        { display: "1", value: "0.000003" },
+        { display: "2", value: "0.0000025" },
+        { display: "3", value: "0.000002" },
+        { display: "4", value: "0.0000017" },
+        { display: "5", value: "0.0000015" }
       ],
-      active: "0.99"
+      active: "0.00003"
     },
     calculationModes: {
       name: "modus",
