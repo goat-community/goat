@@ -93,7 +93,7 @@
       "time": "min",
       "nr": "Isochrones",
       "calcType": "Concavity Isochrones",
-      "calcModus": "Calculation Modues"
+      "calcModus": "Calculation Modes"
     },
     "results": {
       "title": "Results"
