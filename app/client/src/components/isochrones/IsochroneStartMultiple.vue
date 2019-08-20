@@ -34,40 +34,33 @@
         label="Select Method"
         solo
       ></v-select>
-
-      <v-alert
-        v-if="isReady"
-        border="left"
-        colored-border
-        class="mb-0 mt-2 mx-1 elevation-2"
-        icon="info"
-        color="green"
-        dense
-      >
-        Select zones for the calculation.
-      </v-alert>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn
-          v-if="isReady"
-          outlined
-          class="white--text"
-          color="red"
-          @click="clear"
-        >
-          Clear
-        </v-btn>
-        <v-btn
-          v-if="isReady"
-          disabled
-          outlined
-          class="white--text mr-1"
+      <template v-if="this.activeMultiIsochroneMethod !== null">
+        <v-alert
+          border="left"
+          colored-border
+          class="mb-0 mt-2 mx-1 elevation-2"
+          icon="info"
           color="green"
-          @click="clear"
+          dense
         >
-          Calculate
-        </v-btn>
-      </v-card-actions>
+          {{ getInfoLabelText }}
+        </v-alert>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn outlined class="white--text" color="red" @click="clear">
+            Clear
+          </v-btn>
+          <v-btn
+            :disabled="isCalculationDisabled"
+            outlined
+            class="white--text mr-1"
+            color="green"
+            @click="clear"
+          >
+            Calculate
+          </v-btn>
+        </v-card-actions>
+      </template>
     </v-flex>
   </v-flex>
 </template>
@@ -87,17 +80,35 @@ export default {
   }),
   computed: {
     ...mapGetters("isochrones", {
-      multiIsochroneCalculationMethods: "multiIsochroneCalculationMethods"
+      multiIsochroneCalculationMethods: "multiIsochroneCalculationMethods",
+      countPois: "countPois"
     }),
     ...mapFields("isochrones", {
       activeMultiIsochroneMethod: "multiIsochroneCalculationMethods.active"
     }),
-    isReady() {
-      if (this.activeMultiIsochroneMethod !== null) {
-        return true;
-      } else {
+    isCalculationDisabled() {
+      if (this.countPois > 0 && this.countPois < 150) {
         return false;
+      } else {
+        return true;
       }
+    },
+    getInfoLabelText() {
+      let text = "";
+      if (
+        this.countPois === 0 &&
+        this.activeMultiIsochroneMethod === "study_area"
+      ) {
+        text = "Select zones and amenities to enable calculation.";
+      } else if (
+        this.countPois === 0 &&
+        this.activeMultiIsochroneMethod === "draw"
+      ) {
+        text = "Draw boundary and select amenities to enable calculation.";
+      } else {
+        text = `Amenities Count: ${this.countPois} (Limit: 150)`;
+      }
+      return text;
     }
   },
   methods: {
@@ -115,11 +126,13 @@ export default {
       const me = this;
 
       console.log(type);
+      me.olIsochroneCtrl.removeInteraction();
       me.olIsochroneCtrl.addInteraction("multiple");
     },
     clear() {
       this.activeMultiIsochroneMethod = null;
       this.olIsochroneCtrl.clear();
+      console.log(this.countPois);
     }
   }
 };

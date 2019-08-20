@@ -16,7 +16,7 @@ BEGIN
             ST_Intersects (s.geom, ST_SetSrid (ST_POINT (region[1], region[2]), 4326));
     ELSE
         SELECT
-            ST_Envelope (region[1],
+            ST_MakeEnvelope (region[1],
                 region[2],
                 region[3],
                 region[4]) INTO region_geom;

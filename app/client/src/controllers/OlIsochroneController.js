@@ -4,11 +4,9 @@ import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import DrawInteraction, { createBox } from "ol/interaction/Draw";
 import { unByKey } from "ol/Observable";
-import isochroneStore from "../store/modules/isochrones";
-import poisStore from "../store/modules/pois";
 import LayerUtils from "../utils/Layer";
 import { transform } from "ol/proj.js";
-
+import store from "../store/index.js";
 export default class OlIsochroneController extends OlBaseController {
   constructor(map) {
     super(map);
@@ -23,11 +21,13 @@ export default class OlIsochroneController extends OlBaseController {
     const selectionSource = new VectorSource({ wrapX: false });
     const selectionLayer = new VectorLayer({
       displayInLayerList: false,
+      zIndex: 4,
       source: selectionSource,
       style: OlStyleDefs.getFeatureHighlightStyle()
     });
     me.map.addLayer(selectionLayer);
     me.selectionSource = selectionSource;
+    store.commit("isochrones/ADD_SELECTION_LAYER", selectionLayer);
   }
 
   /**
@@ -40,9 +40,9 @@ export default class OlIsochroneController extends OlBaseController {
     if (calculationType === "single") {
       console.log("single...");
     } else {
-      console.log(isochroneStore.state.multiIsochroneCalculationMethods);
+      console.log(store.state.isochrones.multiIsochroneCalculationMethods);
       if (
-        isochroneStore.state.multiIsochroneCalculationMethods.active ===
+        store.state.isochrones.multiIsochroneCalculationMethods.active ===
         "study_area"
       ) {
         //Study are method
@@ -58,11 +58,12 @@ export default class OlIsochroneController extends OlBaseController {
       } else {
         //Draw Boundary box method
         const drawBoundary = new DrawInteraction({
-          source: me.selectionSource,
           type: "Circle",
           geometryFunction: createBox()
         });
 
+        drawBoundary.on("drawstart", me.onDrawStart.bind(me));
+        drawBoundary.on("drawend", me.onDrawEnd.bind(me));
         me.map.addInteraction(drawBoundary);
 
         // make select interaction available as member
@@ -79,18 +80,43 @@ export default class OlIsochroneController extends OlBaseController {
     const me = this;
     const map = me.map;
     me.mapClickListenerKey = map.on("click", evt => {
-      const coordinate = transform(evt.coordinate, "EPSG:3857", "EPSG:4326");
-      const speed = isochroneStore.state.options.speed;
-      const minutes = isochroneStore.state.options.minutes;
-      const regionType = "study_area";
+      const region = transform(
+        evt.coordinate,
+        "EPSG:3857",
+        "EPSG:4326"
+      ).toString();
+      const regionType = "'study_area'";
+      store.dispatch("isochrones/countStudyAreaPois", {
+        regionType,
+        region
+      });
+    });
+  }
 
-      const amenities = poisStore.state.selectedPois
-        .map(item => {
-          return "'" + item.value + "'";
-        })
-        .toString();
+  /**
+   * Draw interaction start event handler
+   */
+  onDrawStart() {
+    const me = this;
+    me.selectionSource.clear();
+  }
 
-      console.log(coordinate, speed, minutes, regionType, amenities);
+  /**
+   * Draw interaction end event handler
+   */
+  onDrawEnd(evt) {
+    const feature = evt.feature;
+    const region = feature
+      .getGeometry()
+      .clone()
+      .transform("EPSG:3857", "EPSG:4326")
+      .getExtent()
+      .toString();
+
+    const regionType = "'draw'";
+    store.dispatch("isochrones/countStudyAreaPois", {
+      regionType,
+      region
     });
   }
 
