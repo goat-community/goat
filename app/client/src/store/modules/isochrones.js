@@ -58,6 +58,8 @@ const state = {
     active: null
   },
   isochroneLayer: null,
+  selectionLayer: null,
+  selectedStudyAreas: [],
   styleData: {
     styleCache: {
       default: {},
@@ -116,12 +118,25 @@ const getters = {
   calculations: state => state.calculations,
   options: state => state.options,
   isochroneLayer: state => state.isochroneLayer,
+  selectionLayer: state => state.selectionLayer,
   styleData: state => state.styleData,
   isThematicDataVisible: state => state.isThematicDataVisible,
   selectedThematicData: state => state.selectedThematicData,
   alphaShapeParameter: state => state.alphaShapeParameter,
   multiIsochroneCalculationMethods: state =>
     state.multiIsochroneCalculationMethods,
+  countPois: state => {
+    let count = 0;
+    if (state.selectionLayer) {
+      count = state.selectionLayer
+        .getSource()
+        .getFeatures()
+        .reduce((accumulator, currentValue) => {
+          return accumulator + currentValue.get("count_pois");
+        }, 0);
+    }
+    return count;
+  },
   getField
 };
 
@@ -224,7 +239,27 @@ const actions = {
     //Add features to isochrone layer
     commit("ADD_ISOCHRONE_FEATURES", olFeatures);
   },
-
+  async countStudyAreaPois({ commit, rootState }, options) {
+    const amenities = rootState.pois.selectedPois
+      .map(item => {
+        return "'" + item.value + "'";
+      })
+      .toString();
+    const response = await http.post("/api/count_pois_multi_isochrones", {
+      minutes: rootState.isochrones.options.minutes,
+      speed: rootState.isochrones.options.speed,
+      amenities: amenities,
+      region_type: options.regionType,
+      region: options.region
+    });
+    if (response.data.feature) {
+      let olFeatures = maputils.geojsonToFeature(response.data.feature);
+      olFeatures.forEach(feature => {
+        feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
+      });
+      commit("ADD_STUDYAREA_FEATURES", olFeatures);
+    }
+  },
   removeCalculation({ commit }, calculation) {
     commit("REMOVE_ISOCHRONE_FEATURES", calculation);
     commit("REMOVE_CALCULATION", calculation);
@@ -247,6 +282,9 @@ const mutations = {
   ADD_ISOCHRONE_LAYER(state, layer) {
     state.isochroneLayer = layer;
   },
+  ADD_SELECTION_LAYER(state, layer) {
+    state.selectionLayer = layer;
+  },
   CLEAR_ISOCHRONE_LAYER(state) {
     state.isochroneLayer.getSource().clear();
   },
@@ -265,10 +303,19 @@ const mutations = {
       }
     });
   },
+
   ADD_ISOCHRONE_FEATURES(state, features) {
     if (state.isochroneLayer) {
       state.isochroneLayer.getSource().addFeatures(features);
     }
+  },
+  ADD_STUDYAREA_FEATURES(state, features) {
+    if (state.selectionLayer) {
+      state.selectionLayer.getSource().addFeatures(features);
+    }
+  },
+  REMOVE_STUDYAREA_FEATURES(state) {
+    state.selectionLayer.getSource().clear();
   },
   TOGGLE_ISOCHRONE_FEATURE_VISIBILITY(state, feature) {
     let featureId = feature.id;
