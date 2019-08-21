@@ -68,6 +68,8 @@
 //Store imports
 import { mapGetters, mapActions } from "vuex";
 import { mapFields } from "vuex-map-fields";
+
+import { EventBus } from "../../EventBus";
 import { Mapable } from "../../mixins/Mapable";
 import { InteractionsToggle } from "../../mixins/InteractionsToggle";
 
@@ -125,17 +127,22 @@ export default {
       me.olIsochroneCtrl = new OlIsochroneController(me.map);
       me.olIsochroneCtrl.createSelectionLayer();
     },
-    toggleInteraction(type) {
+    toggleInteraction() {
       const me = this;
-
-      console.log(type);
+      //Close other interactions.
+      EventBus.$emit("ol-interaction-activated", me.interactionType);
       me.olIsochroneCtrl.removeInteraction();
       me.olIsochroneCtrl.addInteraction("multiple");
     },
     clear() {
       this.activeMultiIsochroneMethod = null;
-      this.olIsochroneCtrl.clear();
-      console.log(this.countPois);
+    }
+  },
+  watch: {
+    activeMultiIsochroneMethod: function(val) {
+      if (val === null) {
+        this.olIsochroneCtrl.clear();
+      }
     }
   }
 };
@@ -145,6 +152,6 @@ export default {
   color: #30c2ff;
 }
 .select-method-height >>> .v-input__control {
-  height: 40px;
+  height: 60px;
 }
 </style>

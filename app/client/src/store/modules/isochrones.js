@@ -253,7 +253,7 @@ const actions = {
 
     let transformedData = {
       id: calculationNumber,
-      name: "Calculation - " + calculationNumber,
+      calculationType: calculationType,
       time: state.options.minutes + " min",
       speed: state.options.speed + " km/h",
       isExpanded: true,
@@ -282,6 +282,7 @@ const actions = {
         toStringHDMS(isochroneStartingPoint || state.position.coordinate) ||
         "";
     } else {
+      commit("RESET_MULTIISOCHRONE_START");
       transformedData.position = "Multi-Isochrone Calculation";
     }
 
@@ -307,7 +308,7 @@ const actions = {
 
       olFeatures.forEach(feature => {
         feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
-        if (options.region_type === "draw") {
+        if (options.regionType === "'draw'") {
           feature.set("regionEnvelope", options.region);
         }
       });
@@ -315,7 +316,6 @@ const actions = {
     }
   },
   removeCalculation({ commit }, calculation) {
-    commit("REMOVE_ISOCHRONE_FEATURES", calculation);
     commit("REMOVE_CALCULATION", calculation);
   },
 
@@ -339,6 +339,9 @@ const mutations = {
   ADD_SELECTION_LAYER(state, layer) {
     state.selectionLayer = layer;
   },
+  RESET_MULTIISOCHRONE_START(state) {
+    state.multiIsochroneCalculationMethods.active = null;
+  },
   CLEAR_ISOCHRONE_LAYER(state) {
     state.isochroneLayer.getSource().clear();
   },
@@ -347,17 +350,23 @@ const mutations = {
     state.calculations = state.calculations.filter(
       calculation => calculation.id != id
     );
-  },
-  REMOVE_ISOCHRONE_FEATURES(state, calculation) {
-    let isochronesId = calculation.id;
+    state.calculations = state.calculations.map(calculation => {
+      if (calculation.id > id) {
+        calculation.id = calculation.id - 1;
+      }
+      return calculation;
+    });
     let isochroneSource = state.isochroneLayer.getSource();
     isochroneSource.getFeatures().forEach(isochroneFeature => {
-      if (isochroneFeature.get("calculationNumber") === isochronesId) {
+      const isochroneCalculationNr = isochroneFeature.get("calculationNumber");
+      if (isochroneCalculationNr === id) {
         isochroneSource.removeFeature(isochroneFeature);
+      }
+      if (isochroneCalculationNr > id) {
+        isochroneFeature.set("calculationNumber", isochroneCalculationNr - 1);
       }
     });
   },
-
   ADD_ISOCHRONE_FEATURES(state, features) {
     if (state.isochroneLayer) {
       state.isochroneLayer.getSource().addFeatures(features);

@@ -1,7 +1,7 @@
 <template>
   <v-flex xs12 sm8 md4>
     <v-card flat>
-      <!-- THEMATIC DATA -->
+      <!-- THEMATIC DATA || MULTI-ISOCHRONE DATA-->
       <template v-if="isThematicDataVisible === true">
         <v-layout>
           <v-btn
@@ -14,7 +14,11 @@
             <v-icon color="rgba(0,0,0,0.54)">fas fa-arrow-left</v-icon>
           </v-btn>
           <v-subheader class="ml-1 pl-0">
-            <span class="title">Thematic Data</span>
+            <span class="title">{{
+              selectedThematicData.calculationType === "single"
+                ? "Thematic Data"
+                : "Multi-Isochrone Data"
+            }}</span>
           </v-subheader>
         </v-layout>
         <v-card-text class="pr-16 pl-16 pt-0 pb-0 mb-2">
@@ -76,7 +80,8 @@ export default {
     ...mapGetters("isochrones", {
       styleData: "styleData",
       isThematicDataVisible: "isThematicDataVisible",
-      options: "options"
+      options: "options",
+      selectedThematicData: "selectedThematicData"
     })
   },
   methods: {

@@ -38,6 +38,27 @@ const IsochroneUtils = {
     }
     return obj;
   },
+  getMultiIsochroneTableData: function getMultiIsochroneTableData(
+    isochroneFeatures
+  ) {
+    let multiIsochroneTableData = [];
+    isochroneFeatures.forEach(feature => {
+      const populationObj = feature.get("population")[0];
+      const studyAreaName = Object.keys(populationObj)[0];
+      const studyAreaNameReached = Object.keys(populationObj)[1];
+
+      const obj = {
+        isochrone: `${IsochroneUtils.getIsochroneAliasFromKey(
+          feature.get("modus")
+        )} - ${feature.get("step")} min`,
+        studyArea: studyAreaName,
+        population: populationObj[studyAreaName],
+        reachPopulation: populationObj[studyAreaNameReached]
+      };
+      multiIsochroneTableData.push(obj);
+    });
+    return multiIsochroneTableData;
+  },
   getIsochroneAliasFromKey: function getIsochroneAliasFromKey(key) {
     let isochroneMapping = {
       "1": "Default",
