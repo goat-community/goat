@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, minutes integer, speed_input numeric, n integer, alphashape_parameter_input NUMERIC, modus_input integer,region_type text, region text[], amenities text[])
+CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, minutes integer, speed_input numeric, n integer, alphashape_parameter_input NUMERIC, modus_input text,region_type text, region text[], amenities text[])
 RETURNS SETOF type_pois_multi_isochrones
 AS $function$ 
 DECLARE 	
@@ -14,12 +14,12 @@ DECLARE
 	population_mask jsonb;
 	objectid_multi_isochrone integer;
 	max_length_links numeric;
+	calc_modus integer;
 	BEGIN
-	--------------------------------------------------------------------------------------
-	----------------------get starting points depending on passed parameters--------------
-	--------------------------------------------------------------------------------------	
 
-    buffer = (minutes::numeric/60::numeric)*speed_input*1000;
+	/*Scenario building has to be implemented*/
+    calc_modus = 1;
+	buffer = (minutes::numeric/60::numeric)*speed_input*1000;
  
  	IF region_type = 'study_area' THEN
  		--Logic to intersect the amenities with a study area defined by name
@@ -66,7 +66,7 @@ DECLARE
  		
 	SELECT DISTINCT objectid 
 	INTO objectid_multi_isochrone  
-	FROM multi_isochrones(userid_input,minutes,n,speed_input,alphashape_parameter_input,modus_input,1,points_array);
+	FROM multi_isochrones(userid_input,minutes,n,speed_input,alphashape_parameter_input,calc_modus,1,points_array);
 		
 	IF region_type = 'study_area' THEN
 	 	WITH expand_population AS 
@@ -118,13 +118,12 @@ DECLARE
 	END;
 $function$ LANGUAGE plpgsql;
 
-
 /*
 SELECT *
-FROM pois_multi_isochrones(1,15,5.0,3,0.00003,1,'study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) 
+FROM pois_multi_isochrones(1,15,5.0,3,0.00003,'default','study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) 
 
 SELECT *
-FROM pois_multi_isochrones(1,10,5.0,2,0.00003,1,'envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 
+FROM pois_multi_isochrones(1,10,5.0,2,0.00003,'default','envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 
 --alphashape_parameter NUMERIC = 0.00003;
 --region_type 'envelope' or study_area
 */
