@@ -172,34 +172,37 @@ const actions = {
       });
       isochroneEndpoint = "isochrone";
     } else {
-      sharedParams.modus = 1; //TODO: REMOVE THIS.
       const regionType = state.multiIsochroneCalculationMethods.active;
       const regionFeatures = state.selectionLayer.getSource().getFeatures();
-
-      const regionData = regionFeatures
+      const region = regionFeatures
         .map(feature => {
-          return feature
-            .get("regionData")
-            .split(",")
-            .map(coord => {
-              return `'${coord}'`;
-            })
-            .toString();
+          if (regionType === "draw") {
+            return feature
+              .get("regionEnvelope")
+              .split(",")
+              .map(coord => {
+                return `'${coord}'`;
+              })
+              .toString();
+          } else {
+            return `'${feature.get("region_name")}'`;
+          }
         })
         .toString();
-      console.log(regionData);
+
       params = Object.assign(sharedParams, {
         alphashape_parameter: parseFloat(
           state.options.alphaShapeParameter.active
         ),
         region_type: `'${regionType}'`,
-        region: regionData,
+        region: region,
         amenities: rootState.pois.selectedPois
           .map(item => {
             return "'" + item.value + "'";
           })
           .toString()
       });
+      params.modus = `'${state.options.calculationModes.active}'`;
       isochroneEndpoint = "pois_multi_isochrones";
     }
 
@@ -304,7 +307,9 @@ const actions = {
 
       olFeatures.forEach(feature => {
         feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
-        feature.set("regionData", options.region);
+        if (options.region_type === "draw") {
+          feature.set("regionEnvelope", options.region);
+        }
       });
       commit("ADD_STUDYAREA_FEATURES", olFeatures);
     }
