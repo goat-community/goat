@@ -59,7 +59,6 @@
         </v-slider>
 
         <v-slider
-          v-if="options.calculationType === 'single'"
           class="mb-1"
           v-model="steps"
           min="1"
