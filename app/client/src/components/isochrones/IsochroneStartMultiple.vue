@@ -55,7 +55,7 @@
             outlined
             class="white--text mr-1"
             color="green"
-            @click="clear"
+            @click="calculateIsochrone"
           >
             Calculate
           </v-btn>
@@ -65,7 +65,8 @@
   </v-flex>
 </template>
 <script>
-import { mapGetters } from "vuex";
+//Store imports
+import { mapGetters, mapActions } from "vuex";
 import { mapFields } from "vuex-map-fields";
 import { Mapable } from "../../mixins/Mapable";
 import { InteractionsToggle } from "../../mixins/InteractionsToggle";
@@ -86,6 +87,7 @@ export default {
     ...mapFields("isochrones", {
       activeMultiIsochroneMethod: "multiIsochroneCalculationMethods.active"
     }),
+
     isCalculationDisabled() {
       if (this.countPois > 0 && this.countPois < 150) {
         return false;
@@ -115,6 +117,7 @@ export default {
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
+    ...mapActions("isochrones", { calculateIsochrone: "calculateIsochrone" }),
     onMapBound() {
       const me = this;
       //Initialize ol isochrone controllers.

@@ -59,7 +59,6 @@ const state = {
   },
   isochroneLayer: null,
   selectionLayer: null,
-  selectedStudyAreas: [],
   styleData: {
     styleCache: {
       default: {},
@@ -142,26 +141,72 @@ const getters = {
 
 const actions = {
   async calculateIsochrone({ commit, rootState }) {
-    //Add center feature to isochrone layer
-    let iconMarkerFeature = new Feature({
-      geometry: new Point(
-        transform(state.position.coordinate, "EPSG:4326", "EPSG:3857") //TODO: Get source projection from the map here.
-      ),
-      calculationNumber: state.calculations.length + 1
-    });
-    commit("ADD_ISOCHRONE_FEATURES", [iconMarkerFeature]);
-
-    const isochronesResponse = await http.post("/api/isochrone", {
+    //Selected isochrone calculation type. single | multiple
+    const calculationType = rootState.isochrones.options.calculationType;
+    const sharedParams = {
       user_id: rootState.user.userId,
       minutes: state.options.minutes,
-      x: state.position.coordinate[0],
-      y: state.position.coordinate[1],
-      n: state.options.steps,
-      concavity: state.options.concavityIsochrones.active,
       speed: state.options.speed,
+      n: state.options.steps,
       modus: state.options.calculationModes.active
-    });
+    };
+    let isochroneEndpoint;
+    let params;
 
+    //Marker Feature for single isochrone calculation;
+    let iconMarkerFeature;
+
+    if (calculationType === "single") {
+      iconMarkerFeature = new Feature({
+        geometry: new Point(
+          transform(state.position.coordinate, "EPSG:4326", "EPSG:3857") //TODO: Get source projection from the map here.
+        ),
+        calculationNumber: state.calculations.length + 1
+      });
+      commit("ADD_ISOCHRONE_FEATURES", [iconMarkerFeature]);
+
+      params = Object.assign(sharedParams, {
+        x: state.position.coordinate[0],
+        y: state.position.coordinate[1],
+        concavity: state.options.concavityIsochrones.active
+      });
+      isochroneEndpoint = "isochrone";
+    } else {
+      sharedParams.modus = 1; //TODO: REMOVE THIS.
+      const regionType = state.multiIsochroneCalculationMethods.active;
+      const regionFeatures = state.selectionLayer.getSource().getFeatures();
+
+      const regionData = regionFeatures
+        .map(feature => {
+          return feature
+            .get("regionData")
+            .split(",")
+            .map(coord => {
+              return `'${coord}'`;
+            })
+            .toString();
+        })
+        .toString();
+      console.log(regionData);
+      params = Object.assign(sharedParams, {
+        alphashape_parameter: parseFloat(
+          state.options.alphaShapeParameter.active
+        ),
+        region_type: `'${regionType}'`,
+        region: regionData,
+        amenities: rootState.pois.selectedPois
+          .map(item => {
+            return "'" + item.value + "'";
+          })
+          .toString()
+      });
+      isochroneEndpoint = "pois_multi_isochrones";
+    }
+
+    const isochronesResponse = await http.post(
+      `/api/${isochroneEndpoint}`,
+      params
+    );
     let isochrones = isochronesResponse.data;
     let calculationData = [];
 
@@ -203,36 +248,38 @@ const actions = {
       calculationData.push(obj);
     });
 
-    const isochroneStartingPoint = maputils
-      .wktToFeature(olFeatures[0].get("starting_point"), "EPSG:4326")
-      .getGeometry()
-      .getCoordinates();
-
-    console.log(state.position.placeName);
     let transformedData = {
       id: calculationNumber,
       name: "Calculation - " + calculationNumber,
       time: state.options.minutes + " min",
-      position:
-        state.position.placeName ||
-        toStringHDMS(isochroneStartingPoint || state.position.coordinate),
       speed: state.options.speed + " km/h",
       isExpanded: true,
       isVisible: true,
       data: calculationData
     };
 
-    const transformedPoint = new Point(
-      transform(isochroneStartingPoint, "EPSG:4326", "EPSG:3857") //TODO: Get source projection from the map here.
-    );
-    iconMarkerFeature.setGeometry(transformedPoint);
-
-    if (state.position.placeName) {
-      maputils.flyTo(
-        transformedPoint.getCoordinates(),
-        rootState.map.map,
-        function() {}
+    if (calculationType === "single") {
+      const isochroneStartingPoint = maputils
+        .wktToFeature(olFeatures[0].get("starting_point"), "EPSG:4326")
+        .getGeometry()
+        .getCoordinates();
+      const transformedPoint = new Point(
+        transform(isochroneStartingPoint, "EPSG:4326", "EPSG:3857") //TODO: Get source projection from the map here.
       );
+      iconMarkerFeature.setGeometry(transformedPoint);
+      if (state.position.placeName) {
+        maputils.flyTo(
+          transformedPoint.getCoordinates(),
+          rootState.map.map,
+          function() {}
+        );
+      }
+      transformedData.position =
+        state.position.placeName ||
+        toStringHDMS(isochroneStartingPoint || state.position.coordinate) ||
+        "";
+    } else {
+      transformedData.position = "Multi-Isochrone Calculation";
     }
 
     commit("CALCULATE_ISOCHRONE", transformedData);
@@ -254,8 +301,10 @@ const actions = {
     });
     if (response.data.feature) {
       let olFeatures = maputils.geojsonToFeature(response.data.feature);
+
       olFeatures.forEach(feature => {
         feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
+        feature.set("regionData", options.region);
       });
       commit("ADD_STUDYAREA_FEATURES", olFeatures);
     }
