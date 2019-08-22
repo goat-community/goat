@@ -30,49 +30,47 @@ con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s
 cursor = con.cursor()
 
 
-# =============================================================================
-# cursor.execute(prepare_tables.replace('grid_size', str(grid_size)))
-# con.commit()
-# 
-# sql_ordered_grid = '''DROP TABLE IF EXISTS grid_ordered;
-# CREATE temp TABLE grid_ordered AS 
-# SELECT starting_points, grid_id
-# FROM (
-#     SELECT ARRAY[ST_X(st_centroid(geom))::numeric,ST_Y(ST_Centroid(geom))::numeric] starting_points, grid_id 
-#     FROM %s 
-#     ORDER BY st_centroid(geom)
-# ) x;
-# ALTER TABLE grid_ordered ADD COLUMN id serial;
-# ALTER TABLE grid_ordered ADD PRIMARY key(id);'''
-# 
-# cursor.execute(sql_ordered_grid % grid)
-# con.commit()
-# 
-# cursor.execute('SELECT count(*) FROM grid_ordered;')
-# count_grids = cursor.fetchall()[0][0]
-# 
-# print('Bulk calculation is starting...')
-# 
-# lower_limit = 1
-# while lower_limit < count_grids:
-#     print(lower_limit)
-#  
-#     sql_bulk_calculation = '''
-#         WITH x AS 
-#     	(
-#     		SELECT array_agg(starting_points) AS array_starting_points, array_agg(grid_id) AS grid_ids
-#     		FROM grid_ordered 
-#     		WHERE id BETWEEN %i AND %i
-#     	)
-#     		SELECT precalculate_grid('%s',15, x.array_starting_points, 5, x.grid_ids) 
-#     		FROM x;'''
-#     cursor.execute(sql_bulk_calculation % (lower_limit, lower_limit+step-1, grid))
-#     con.commit()
-#     lower_limit = lower_limit + step
-# 
-# 
-# 
-# =============================================================================
+cursor.execute(prepare_tables.replace('grid_size', str(grid_size)))
+con.commit()
+
+sql_ordered_grid = '''DROP TABLE IF EXISTS grid_ordered;
+CREATE temp TABLE grid_ordered AS 
+SELECT starting_points, grid_id
+FROM (
+    SELECT ARRAY[ST_X(st_centroid(geom))::numeric,ST_Y(ST_Centroid(geom))::numeric] starting_points, grid_id 
+    FROM %s 
+    ORDER BY st_centroid(geom)
+) x;
+ALTER TABLE grid_ordered ADD COLUMN id serial;
+ALTER TABLE grid_ordered ADD PRIMARY key(id);'''
+
+cursor.execute(sql_ordered_grid % grid)
+con.commit()
+
+cursor.execute('SELECT count(*) FROM grid_ordered;')
+count_grids = cursor.fetchall()[0][0]
+
+print('Bulk calculation is starting...')
+
+lower_limit = 1
+while lower_limit < count_grids:
+    print(lower_limit)
+ 
+    sql_bulk_calculation = '''
+        WITH x AS 
+    	(
+    		SELECT array_agg(starting_points) AS array_starting_points, array_agg(grid_id) AS grid_ids
+    		FROM grid_ordered 
+    		WHERE id BETWEEN %i AND %i
+    	)
+    		SELECT precalculate_grid('%s',15, x.array_starting_points, 5, x.grid_ids) 
+    		FROM x;'''
+    cursor.execute(sql_bulk_calculation % (lower_limit, lower_limit+step-1, grid))
+    con.commit()
+    lower_limit = lower_limit + step
+
+
+
 print('Expanding jsonb to columns is starting...')
 
 sql_poi_categories = '''SELECT poi FROM (
