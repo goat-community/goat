@@ -97,7 +97,7 @@
         "title": "Heatmap Dynamic",
         "url": "/geoserver/wms",
         "group": "Accessibility Basemap",
-        "layers": "cite:heatmap_dynamic",
+        "layers": "cite:heatmap",
         "viewparams": "amenities:W10=",
         "opacity": 1,
         "queryable": false,

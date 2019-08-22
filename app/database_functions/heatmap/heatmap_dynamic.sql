@@ -11,9 +11,9 @@ BEGIN
   LOOP
 
     sql_query = concat(sql_query, (i ->> jsonb_object_keys(i))::jsonb ->> 'weight');  
-	sql_query = concat(sql_query,'*part_accessibility_index(');
+	sql_query = concat(sql_query,'*part_accessibility_index(jsonb_arr2text_arr(pois ->''');
 	sql_query = concat(sql_query,jsonb_object_keys(i));
-	sql_query = concat(sql_query,',');
+	sql_query = concat(sql_query,''')::numeric[],');
 	sql_query = concat(sql_query,(i ->> jsonb_object_keys(i))::jsonb ->> 'sensitivity');
 	sql_query = concat(sql_query,')+');
 	
@@ -23,6 +23,7 @@ BEGIN
   RETURN;
 END;
 $function$
+
 
 /*select * 
 from heatmap_dynamic('[

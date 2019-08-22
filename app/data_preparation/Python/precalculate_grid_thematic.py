@@ -12,6 +12,8 @@ grid_size = 500
 beta = -0.003
 grid = 'grid_'+str(500)
 
+sensitivities = [-0.004,-0.0035,-0.003,-0.0025,-0.002,-0.0015,-0.001]
+
 start = time.time()
 with open(str(Path.home())+"/app/config/goat_config.yaml", 'r') as stream:
     config = yaml.load(stream)
@@ -36,13 +38,13 @@ CREATE temp TABLE grid_ordered AS
 SELECT starting_points, grid_id
 FROM (
     SELECT ARRAY[ST_X(st_centroid(geom))::numeric,ST_Y(ST_Centroid(geom))::numeric] starting_points, grid_id 
-    FROM grid_500 
+    FROM %s 
     ORDER BY st_centroid(geom)
 ) x;
 ALTER TABLE grid_ordered ADD COLUMN id serial;
 ALTER TABLE grid_ordered ADD PRIMARY key(id);'''
 
-cursor.execute(sql_ordered_grid)
+cursor.execute(sql_ordered_grid % grid)
 con.commit()
 
 cursor.execute('SELECT count(*) FROM grid_ordered;')
@@ -61,9 +63,9 @@ while lower_limit < count_grids:
     		FROM grid_ordered 
     		WHERE id BETWEEN %i AND %i
     	)
-    		SELECT precalculate_grid('grid_500',15, x.array_starting_points, 5, x.grid_ids) 
+    		SELECT precalculate_grid('%s',15, x.array_starting_points, 5, x.grid_ids) 
     		FROM x;'''
-    cursor.execute(sql_bulk_calculation % (lower_limit, lower_limit+step-1))
+    cursor.execute(sql_bulk_calculation % (lower_limit, lower_limit+step-1, grid))
     con.commit()
     lower_limit = lower_limit + step
 
@@ -76,35 +78,28 @@ SELECT unnest(variable_array::text[]) poi FROM variable_container WHERE identifi
 ) x 
 ORDER BY poi;
 '''
-
+sql_index = '''UPDATE %s g SET %s = %s || x.object
+FROM (
+    SELECT grid_id, jsonb_build_object('%s',accessibility_index) as object
+    FROM heatmap_dynamic('[{"%s":{"sensitivity":%s,"weight":1}}]')
+    WHERE accessibility_index <> 0
+) x
+WHERE g.grid_id = x.grid_id;'''
+        
 cursor.execute(sql_poi_categories)
 poi_categories = cursor.fetchall()
 
-
-
-
-for i in poi_categories:
-    cursor.execute('ALTER TABLE %s ADD COLUMN %s numeric[];' % (grid,i[0]))
-    cursor.execute('''UPDATE %s set %s= jsonb_arr2text_arr((pois ->> '%s')::jsonb)::numeric[];''' % (grid,i[0],i[0]))
-
-print('Precalculate index is starting...')
-
-column_name_index = str(-beta).replace('.','_')
-cursor.execute('ALTER TABLE %s ADD COLUMN index_%s jsonb;' % (grid,column_name_index))
-cursor.execute('''UPDATE %s SET index_%s = '{}'::jsonb;''' % (grid,column_name_index))
-
-sql_compute_index = '''
-UPDATE %s SET index_%s = index_%s || jsonb_build_object('%s',x.accessibility_index)
-FROM (
-     SELECT grid_id, accessibility_index 
-    from heatmap_dynamic('[{"%s":{"sensitivity":%s,"weight":1}}]')
-    WHERE accessibility_index <> 0
-) x 
-WHERE %s.grid_id = x.grid_id
-'''
-
-for i in poi_categories:
-    cursor.execute(sql_compute_index % (grid,column_name_index,column_name_index,i[0],i[0],beta,grid))
+for s in sensitivities:
+    print(s)
+    new_column = 'index_'+str(s).split('.')[1]
+    cursor.execute('ALTER TABLE %s DROP COLUMN IF EXISTS %s;' % (grid,new_column))
+    cursor.execute('ALTER TABLE %s ADD COLUMN %s jsonb;' % (grid,new_column))
+    cursor.execute('''UPDATE %s SET %s = '{}'::jsonb;''' % (grid,new_column))
+    for p in poi_categories:
+        p = p[0]
+        cursor.execute(sql_index % (grid,new_column,new_column,p,p,s))
+        
+    cursor.execute('CREATE INDEX ON %s USING GIN(%s);' % (grid,new_column))           
 
 cursor.execute(sql_grid_population.replace('grid_size', str(grid_size)))
 
