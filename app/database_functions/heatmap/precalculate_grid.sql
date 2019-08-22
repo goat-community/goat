@@ -7,6 +7,7 @@ DECLARE
 	count_vertices integer;
 	excluded_class_id integer[];
 	categories_no_foot text[];
+	max_length_links integer;
 BEGIN 
 	DROP TABLE IF EXISTS temp_multi_reached_vertices;
 	DROP TABLE IF EXISTS temp_all_extrapolated_vertices;
@@ -19,6 +20,11 @@ BEGIN
 	SELECT select_from_variable_container('excluded_class_id_walking')::text[],
 	select_from_variable_container('categories_no_foot')::text
 	INTO excluded_class_id, categories_no_foot;
+	
+	SELECT variable_simple::integer
+	INTO max_length_links
+	FROM variable_container 
+	WHERE identifier = 'max_length_links';
 
 	FOR i IN SELECT DISTINCT objectid FROM temp_multi_reached_vertices
 	LOOP 
@@ -35,7 +41,7 @@ BEGIN
 	
 			CREATE temp TABLE temp_extrapolated_reached_vertices AS 
 			SELECT * 
-			FROM extrapolate_reached_vertices(minutes*60,(speed/3.6),excluded_class_id,categories_no_foot);
+			FROM extrapolate_reached_vertices(minutes*60,max_length_links,(speed/3.6),excluded_class_id,categories_no_foot);
 			
 			ALTER TABLE temp_extrapolated_reached_vertices ADD COLUMN id serial;
 			ALTER TABLE temp_extrapolated_reached_vertices ADD PRIMARY key(id);

@@ -43,7 +43,7 @@
         <sql>with x as (&#xd;
 	select  *&#xd;
 	from &#xd;
-		heatmap(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;),&apos;index_0_003&apos;)&#xd;
+		heatmap(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;))&#xd;
 ),&#xd;
 y as (SELECT grid_id,accessibility_index,geom, ntile(5) over &#xd;
 (order by accessibility_index) AS percentile&#xd;

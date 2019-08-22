@@ -42,7 +42,7 @@
         <name>heatmap_population</name>
         <sql>with x as (&#xd;
 	select  *&#xd;
-	from heatmap(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;),&apos;index_0_003&apos;)&#xd;
+	from heatmap(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;))&#xd;
 	&#xd;
 ),&#xd;
 y as (&#xd;
@@ -61,11 +61,6 @@ from y, grid_500 g&#xd;
 WHERE g.grid_id = y.grid_id
 </sql>
         <escapeSql>false</escapeSql>
-        <geometry>
-          <name>geom</name>
-          <type>Geometry</type>
-          <srid>4326</srid>
-        </geometry>
         <parameter>
           <name>amenities</name>
           <defaultValue>&apos;W3siJ2tpbmRlcmdhcnRlbiciOjF9XQ==&apos;</defaultValue>
