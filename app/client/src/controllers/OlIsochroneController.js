@@ -18,7 +18,9 @@ export default class OlIsochroneController extends OlBaseController {
    */
   createSelectionLayer() {
     const me = this;
-    const selectionSource = new VectorSource({ wrapX: false });
+    const selectionSource = new VectorSource({
+      wrapX: false
+    });
     const selectionLayer = new VectorLayer({
       displayInLayerList: false,
       zIndex: 4,
@@ -36,11 +38,12 @@ export default class OlIsochroneController extends OlBaseController {
   addInteraction(calculationType) {
     const me = this;
     me.clear();
+    me.createHelpTooltip();
+    me.pointerMoveKey = me.map.on("pointermove", me.onPointerMove.bind(me));
     //Add Interaction for single|multiple calculation type...
     if (calculationType === "single") {
       console.log("single...");
     } else {
-      console.log(store.state.isochrones.multiIsochroneCalculationMethods);
       if (
         store.state.isochrones.multiIsochroneCalculationMethods.active ===
         "study_area"
@@ -55,6 +58,7 @@ export default class OlIsochroneController extends OlBaseController {
           me.studyAreaLayer[0].setVisible(true);
         }
         me.setupMapClick();
+        me.helpMessage = "Click to select the study area.";
       } else {
         //Draw Boundary box method
         const drawBoundary = new DrawInteraction({
@@ -65,9 +69,9 @@ export default class OlIsochroneController extends OlBaseController {
         drawBoundary.on("drawstart", me.onDrawStart.bind(me));
         drawBoundary.on("drawend", me.onDrawEnd.bind(me));
         me.map.addInteraction(drawBoundary);
-
         // make select interaction available as member
         me.drawBoundary = drawBoundary;
+        me.helpMessage = "Click to start drawing the boundary.";
       }
     }
   }
@@ -99,12 +103,14 @@ export default class OlIsochroneController extends OlBaseController {
   onDrawStart() {
     const me = this;
     me.selectionSource.clear();
+    me.helpMessage = "Click to finish drawing.";
   }
 
   /**
    * Draw interaction end event handler
    */
   onDrawEnd(evt) {
+    const me = this;
     const feature = evt.feature;
     const region = feature
       .getGeometry()
@@ -118,8 +124,22 @@ export default class OlIsochroneController extends OlBaseController {
       regionType,
       region
     });
+    me.helpTooltipElement.innerHTML = "Click to start drawing.";
   }
 
+  /**
+   * Event for updating the edit help tooltip
+   */
+  onPointerMove(evt) {
+    const me = this;
+    const coordinate = evt.coordinate;
+    me.helpTooltipElement.innerHTML = me.helpMessage;
+    me.helpTooltip.setPosition(coordinate);
+  }
+
+  /**
+   * Removes the current area selection interaction.
+   */
   removeInteraction() {
     const me = this;
     // cleanup possible old select interaction
@@ -128,6 +148,9 @@ export default class OlIsochroneController extends OlBaseController {
     }
     if (me.mapClickListenerKey) {
       unByKey(me.mapClickListenerKey);
+    }
+    if (me.pointerMoveKey) {
+      unByKey(me.pointerMoveKey);
     }
   }
 

@@ -1,4 +1,6 @@
 import http from "../../services/http";
+import axios from "axios";
+
 import { getField, updateField } from "vuex-map-fields";
 import { toStringHDMS } from "ol/coordinate";
 import { transform } from "ol/proj.js";
@@ -290,29 +292,69 @@ const actions = {
     //Add features to isochrone layer
     commit("ADD_ISOCHRONE_FEATURES", olFeatures);
   },
-  async countStudyAreaPois({ commit, rootState }, options) {
-    const amenities = rootState.pois.selectedPois
-      .map(item => {
-        return "'" + item.value + "'";
-      })
-      .toString();
-    const response = await http.post("/api/count_pois_multi_isochrones", {
-      minutes: rootState.isochrones.options.minutes,
-      speed: rootState.isochrones.options.speed,
-      amenities: amenities,
-      region_type: options.regionType,
-      region: options.region
-    });
-    if (response.data.feature) {
-      let olFeatures = maputils.geojsonToFeature(response.data.feature);
 
-      olFeatures.forEach(feature => {
-        feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
-        if (options.regionType === "'draw'") {
-          feature.set("regionEnvelope", options.region);
+  async countStudyAreaPois({ commit, rootState }, options) {
+    if (!rootState.isochrones.selectionLayer) return;
+    const selectedFeatures = rootState.isochrones.selectionLayer
+      .getSource()
+      .getFeatures();
+    if (selectedFeatures.length > 0 || options) {
+      const amenities = rootState.pois.selectedPois
+        .map(item => {
+          return "'" + item.value + "'";
+        })
+        .toString();
+      const params = {
+        minutes: rootState.isochrones.options.minutes,
+        speed: rootState.isochrones.options.speed,
+        amenities: amenities
+      };
+      let promiseArray = [];
+      if (options) {
+        promiseArray.push(
+          http.post(
+            "/api/count_pois_multi_isochrones",
+            Object.assign(params, {
+              region_type: options.regionType,
+              region: options.region
+            })
+          )
+        );
+      } else {
+        promiseArray = selectedFeatures.map(feature => {
+          return http.post(
+            "/api/count_pois_multi_isochrones",
+            Object.assign(params, {
+              region_type: feature.get("region_type"),
+              region: feature.get("region")
+            })
+          );
+        });
+      }
+
+      axios.all(promiseArray).then(results => {
+        if (!options) {
+          rootState.isochrones.selectionLayer.getSource().clear();
         }
+        results.map(response => {
+          console.log(response);
+          const configData = JSON.parse(response.config.data);
+          if (response.data.feature) {
+            const olFeatures = maputils.geojsonToFeature(response.data.feature);
+            olFeatures.forEach(feature => {
+              feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
+              feature.set("region_type", configData.region_type);
+              feature.set("region", configData.region);
+
+              if (configData.regionType === "'draw'") {
+                feature.set("regionEnvelope", configData.region);
+              }
+            });
+            console.log(olFeatures);
+            commit("ADD_STUDYAREA_FEATURES", olFeatures);
+          }
+        });
       });
-      commit("ADD_STUDYAREA_FEATURES", olFeatures);
     }
   },
   removeCalculation({ commit }, calculation) {
