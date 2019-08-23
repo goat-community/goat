@@ -304,6 +304,7 @@ const actions = {
           return "'" + item.value + "'";
         })
         .toString();
+      if (amenities === "") return;
       const params = {
         minutes: rootState.isochrones.options.minutes,
         speed: rootState.isochrones.options.speed,
@@ -314,28 +315,40 @@ const actions = {
         promiseArray.push(
           http.post(
             "/api/count_pois_multi_isochrones",
-            Object.assign(params, {
-              region_type: options.regionType,
-              region: options.region
-            })
+            Object.assign(
+              {
+                region_type: options.regionType,
+                region: options.region
+              },
+              params
+            )
           )
         );
       } else {
-        promiseArray = selectedFeatures.map(feature => {
+        const promises = selectedFeatures.map(feature => {
           return http.post(
             "/api/count_pois_multi_isochrones",
-            Object.assign(params, {
-              region_type: feature.get("region_type"),
-              region: feature.get("region")
-            })
+            Object.assign(
+              {
+                region_type: feature.get("region_type"),
+                region: feature.get("region")
+              },
+              params
+            )
           );
         });
+        promiseArray = [...promises];
       }
-
+      console.log(promiseArray);
       axios.all(promiseArray).then(results => {
         if (!options) {
+          const features = rootState.isochrones.selectionLayer
+            .getSource()
+            .getFeatures();
+          console.log(features);
           rootState.isochrones.selectionLayer.getSource().clear();
         }
+        console.log(results);
         results.map(response => {
           console.log(response);
           const configData = JSON.parse(response.config.data);
@@ -346,7 +359,7 @@ const actions = {
               feature.set("region_type", configData.region_type);
               feature.set("region", configData.region);
 
-              if (configData.regionType === "'draw'") {
+              if (configData.region_type === "'draw'") {
                 feature.set("regionEnvelope", configData.region);
               }
             });
