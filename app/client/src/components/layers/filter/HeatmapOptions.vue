@@ -25,14 +25,14 @@
             outlined
           ></v-select>
           <template>
-            <v-combobox
+            <v-select
               v-model="selectedAmenity.sensitivity"
               :items="sensitivityListValues"
               @change="updateHeatmap"
               class="mx-2"
               label="Sensitivity index"
               outlined
-            ></v-combobox>
+            ></v-select>
             <sensitivity-chart :amenity="selectedAmenity" />
           </template>
         </v-card-text>
@@ -51,7 +51,15 @@ export default {
   data() {
     return {
       weightListValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-      sensitivityListValues: [-0.001, -0.002, -0.003]
+      sensitivityListValues: [
+        -0.004,
+        -0.0035,
+        -0.003,
+        -0.0025,
+        -0.002,
+        -0.0015,
+        -0.001
+      ]
     };
   },
 
