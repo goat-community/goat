@@ -103,7 +103,7 @@ export default {
         const { value, weight, sensitivity } = item;
         if (value != "undefined" && weight != undefined) {
           filtered.push({
-            [`'${value}'`]: { sensitivity: sensitivity, weight: weight }
+            [`${value}`]: { sensitivity: sensitivity, weight: weight }
           });
         }
         return filtered;

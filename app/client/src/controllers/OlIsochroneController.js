@@ -124,7 +124,8 @@ export default class OlIsochroneController extends OlBaseController {
       regionType,
       region
     });
-    me.helpTooltipElement.innerHTML = "Click to start drawing.";
+    me.helpMessage = "Click to start drawing.";
+    me.helpTooltipElement.innerHTML = me.helpMessage;
   }
 
   /**
