@@ -141,6 +141,7 @@ export default {
   watch: {
     activeMultiIsochroneMethod: function(val) {
       if (val === null) {
+        EventBus.$emit("ol-interaction-stoped", this.interactionType);
         this.olIsochroneCtrl.clear();
       }
     }
