@@ -38,6 +38,34 @@ const IsochroneUtils = {
     }
     return obj;
   },
+  getMultiIsochroneTableData: function getMultiIsochroneTableData(
+    isochroneFeatures
+  ) {
+    let multiIsochroneTableData = [];
+    isochroneFeatures.forEach(feature => {
+      let obj = {
+        isochrone: `${IsochroneUtils.getIsochroneAliasFromKey(
+          feature.get("modus")
+        )} - ${feature.get("step")} min`
+      };
+      const populationObj = feature.get("population");
+      //Multi-isochrone is created using draw
+      if (feature.get("population").bounding_box) {
+        obj.studyArea = "-- (Draw)";
+        obj.population = populationObj.bounding_box;
+        obj.reachPopulation = populationObj.bounding_box_reached;
+      } else {
+        //Multi-isochrone is created from study-area
+        obj.studyArea = Object.keys(populationObj[0])[0];
+        obj.population = populationObj[0][Object.keys(populationObj[0])[0]];
+        obj.reachPopulation =
+          populationObj[0][Object.keys(populationObj[0])[1]];
+      }
+
+      multiIsochroneTableData.push(obj);
+    });
+    return multiIsochroneTableData;
+  },
   getIsochroneAliasFromKey: function getIsochroneAliasFromKey(key) {
     let isochroneMapping = {
       "1": "Default",

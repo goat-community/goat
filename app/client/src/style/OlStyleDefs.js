@@ -50,6 +50,9 @@ const OlStyleDefs = {
   },
   getSelectStyle: () => {
     return new OlStyle({
+      fill: new OlFill({
+        color: [0, 0, 0, 0]
+      }),
       stroke: new OlStroke({
         color: "#fe4a49",
         width: 5,
@@ -237,7 +240,7 @@ const OlStyleDefs = {
     return [
       new OlStyle({
         fill: new OlFill({
-          color: "rgb(0, 102, 255)"
+          color: [0, 0, 0, 0]
         }),
         stroke: new OlStroke({
           color: "#FF0000",
