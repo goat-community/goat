@@ -27,7 +27,7 @@
       <template v-slot:append="{ item, open }">
         <template v-if="item.icon">
           <v-icon
-            @click="toggleDynamicHeatmapDialog(item)"
+            @click="toggleHeatmapDialog(item)"
             small
             class="arrow-icons mr-1"
           >
@@ -36,11 +36,11 @@
         </template>
       </template>
     </v-treeview>
-    <dynamic-heatmap
-      :visible="showDynamicHeatmapDialog"
+    <heatmap-options
+      :visible="showHeatmapOptionsDialog"
       :selectedAmenity="selectedAmenity"
       @updated="updateHeatmapLayerViewParams"
-      @close="showDynamicHeatmapDialog = false"
+      @close="showHeatmapOptionsDialog = false"
     />
   </div>
 </template>
@@ -49,24 +49,27 @@
 import { Mapable } from "../../../mixins/Mapable";
 import Utils from "../../../utils/Layer";
 import { mapGetters, mapActions } from "vuex";
-import DynamicHeatmap from "./DynamicHeatmap";
+import HeatmapOptions from "./HeatmapOptions";
 
 export default {
   mixins: [Mapable],
   components: {
-    "dynamic-heatmap": DynamicHeatmap
+    "heatmap-options": HeatmapOptions
   },
   data: () => ({
     open: [],
     tree: [],
     heatmapLayers: [],
     poisLayer: null,
-    showDynamicHeatmapDialog: false,
+    showHeatmapOptionsDialog: false,
     selectedAmenity: {}
   }),
   methods: {
     ...mapActions("pois", {
       updateSelectedPois: "updateSelectedPois"
+    }),
+    ...mapActions("isochrones", {
+      countStudyAreaPois: "countStudyAreaPois"
     }),
     getPoisIconUrl(item) {
       const images = require.context(
@@ -79,11 +82,7 @@ export default {
     onMapBound() {
       const me = this;
       const map = me.map;
-      const heatmapLayerNames = [
-        "walkability",
-        "walkability-population",
-        "heatmap-dynamic"
-      ];
+      const heatmapLayerNames = ["walkability", "walkability-population"];
       const poisLayerName = "pois";
 
       const allLayers = Utils.getAllChildLayers(map);
@@ -100,20 +99,7 @@ export default {
     updateHeatmapLayerViewParams() {
       const me = this;
       const selectedPois = me.tree;
-      const standardHeatmapViewParams = selectedPois.reduce(
-        (filtered, item) => {
-          const { value, weight } = item;
-          if (value != "undefined" && weight != undefined) {
-            filtered.push({
-              [`'${value}'`]: weight
-            });
-          }
-          return filtered;
-        },
-        []
-      );
-
-      const dynamicHeatmapViewParams = selectedPois.reduce((filtered, item) => {
+      const heatmapViewParams = selectedPois.reduce((filtered, item) => {
         const { value, weight, sensitivity } = item;
         if (value != "undefined" && weight != undefined) {
           filtered.push({
@@ -124,17 +110,12 @@ export default {
       }, []);
 
       me.heatmapLayers.forEach(layer => {
-        const layerName = layer.get("name");
-        const viewparams = JSON.stringify(
-          layerName === "heatmap-dynamic"
-            ? dynamicHeatmapViewParams
-            : standardHeatmapViewParams
-        );
-
+        const viewparams = JSON.stringify(heatmapViewParams);
         layer.getSource().updateParams({
           viewparams: `amenities:'${btoa(viewparams)}'`
         });
-        if (standardHeatmapViewParams.length === 0) {
+
+        if (heatmapViewParams.length === 0) {
           layer.setVisible(false);
         }
 
@@ -157,11 +138,9 @@ export default {
         });
       }
     },
-    toggleDynamicHeatmapDialog(amenity) {
-      console.log(this.showDynamicHeatmapDialog);
-      console.log(amenity);
+    toggleHeatmapDialog(amenity) {
       this.selectedAmenity = amenity;
-      this.showDynamicHeatmapDialog = true;
+      this.showHeatmapOptionsDialog = true;
     }
   },
   watch: {
@@ -170,6 +149,7 @@ export default {
       me.updateSelectedPois(me.tree);
       me.updateHeatmapLayerViewParams();
       me.updatePoisLayerViewParams(me.tree);
+      me.countStudyAreaPois();
     }
   },
   computed: {

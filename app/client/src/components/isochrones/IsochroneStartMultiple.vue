@@ -34,46 +34,42 @@
         label="Select Method"
         solo
       ></v-select>
-
-      <v-alert
-        v-if="isReady"
-        border="left"
-        colored-border
-        class="mb-0 mt-2 mx-1 elevation-2"
-        icon="info"
-        color="green"
-        dense
-      >
-        Select zones for the calculation.
-      </v-alert>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn
-          v-if="isReady"
-          outlined
-          class="white--text"
-          color="red"
-          @click="clear"
-        >
-          Clear
-        </v-btn>
-        <v-btn
-          v-if="isReady"
-          disabled
-          outlined
-          class="white--text mr-1"
+      <template v-if="this.activeMultiIsochroneMethod !== null">
+        <v-alert
+          border="left"
+          colored-border
+          class="mb-0 mt-2 mx-1 elevation-2"
+          icon="info"
           color="green"
-          @click="clear"
+          dense
         >
-          Calculate
-        </v-btn>
-      </v-card-actions>
+          {{ getInfoLabelText }}
+        </v-alert>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn outlined class="white--text" color="red" @click="clear">
+            Clear
+          </v-btn>
+          <v-btn
+            :disabled="isCalculationDisabled"
+            outlined
+            class="white--text mr-1"
+            color="green"
+            @click="calculateIsochrone"
+          >
+            Calculate
+          </v-btn>
+        </v-card-actions>
+      </template>
     </v-flex>
   </v-flex>
 </template>
 <script>
-import { mapGetters } from "vuex";
+//Store imports
+import { mapGetters, mapActions } from "vuex";
 import { mapFields } from "vuex-map-fields";
+
+import { EventBus } from "../../EventBus";
 import { Mapable } from "../../mixins/Mapable";
 import { InteractionsToggle } from "../../mixins/InteractionsToggle";
 
@@ -87,23 +83,43 @@ export default {
   }),
   computed: {
     ...mapGetters("isochrones", {
-      multiIsochroneCalculationMethods: "multiIsochroneCalculationMethods"
+      multiIsochroneCalculationMethods: "multiIsochroneCalculationMethods",
+      countPois: "countPois"
     }),
     ...mapFields("isochrones", {
       activeMultiIsochroneMethod: "multiIsochroneCalculationMethods.active"
     }),
-    isReady() {
-      if (this.activeMultiIsochroneMethod !== null) {
-        return true;
-      } else {
+
+    isCalculationDisabled() {
+      if (this.countPois > 0 && this.countPois < 150) {
         return false;
+      } else {
+        return true;
       }
+    },
+    getInfoLabelText() {
+      let text = "";
+      if (
+        this.countPois === 0 &&
+        this.activeMultiIsochroneMethod === "study_area"
+      ) {
+        text = "Select zones and amenities to enable calculation.";
+      } else if (
+        this.countPois === 0 &&
+        this.activeMultiIsochroneMethod === "draw"
+      ) {
+        text = "Draw boundary and select amenities to enable calculation.";
+      } else {
+        text = `Amenities Count: ${this.countPois} (Limit: 150)`;
+      }
+      return text;
     }
   },
   methods: {
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
+    ...mapActions("isochrones", { calculateIsochrone: "calculateIsochrone" }),
     onMapBound() {
       const me = this;
       //Initialize ol isochrone controllers.
@@ -113,10 +129,20 @@ export default {
     },
     toggleInteraction() {
       const me = this;
+      //Close other interactions.
+      EventBus.$emit("ol-interaction-activated", me.interactionType);
+      me.olIsochroneCtrl.removeInteraction();
       me.olIsochroneCtrl.addInteraction("multiple");
     },
     clear() {
       this.activeMultiIsochroneMethod = null;
+    }
+  },
+  watch: {
+    activeMultiIsochroneMethod: function(val) {
+      if (val === null) {
+        this.olIsochroneCtrl.clear();
+      }
     }
   }
 };
@@ -126,6 +152,6 @@ export default {
   color: #30c2ff;
 }
 .select-method-height >>> .v-input__control {
-  height: 40px;
+  height: 60px;
 }
 </style>
