@@ -9,6 +9,7 @@
           ><v-icon>close</v-icon></v-app-bar-nav-icon
         >
       </v-app-bar>
+
       <v-card-title primary-title>
         <div>
           <div class="body-1">
