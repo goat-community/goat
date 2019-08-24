@@ -191,26 +191,30 @@ export default {
       this.selectedCalculation = calculation;
     },
     showHideCalculation(calculation) {
-      let me = this;
+      const me = this;
       me.toggleIsochroneCalculationVisibility(calculation);
     },
     showPoisTable(calculation) {
-      let me = this;
-      let features = IsochroneUtils.getCalculationFeatures(
+      const me = this;
+      const features = IsochroneUtils.getCalculationFeatures(
         calculation,
         me.isochroneLayer
       );
-
-      let calculationId = calculation.id;
-      let calculationName = calculation.name;
-      let pois = IsochroneUtils.getCalculationPoisObject(features);
-
-      let payload = {
-        calculationId: calculationId,
-        calculationName: calculationName,
+      console.log(features);
+      const pois = IsochroneUtils.getCalculationPoisObject(features);
+      console.log(pois);
+      const payload = {
+        calculationId: calculation.id,
+        calculationName: `Calculation - ${calculation.id}`,
+        calculationType: calculation.calculationType,
         pois: pois
       };
-
+      if (calculation.calculationType === "multiple") {
+        const multiIsochroneTableData = IsochroneUtils.getMultiIsochroneTableData(
+          features
+        );
+        payload.multiIsochroneTableData = multiIsochroneTableData;
+      }
       me.setSelectedThematicData(payload);
       me.toggleThematicDataVisibility(true);
     }
