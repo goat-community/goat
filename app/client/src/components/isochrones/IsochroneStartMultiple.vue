@@ -43,7 +43,7 @@
           color="green"
           dense
         >
-          {{ getInfoLabelText }}
+          <span v-html="getInfoLabelText"></span>
         </v-alert>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -103,12 +103,14 @@ export default {
         this.countPois === 0 &&
         this.activeMultiIsochroneMethod === "study_area"
       ) {
-        text = "Select zones and amenities to enable calculation.";
+        text =
+          "Select <b>study zones</b> and <b>amenities</b> to enable calculation.";
       } else if (
         this.countPois === 0 &&
         this.activeMultiIsochroneMethod === "draw"
       ) {
-        text = "Draw boundary and select amenities to enable calculation.";
+        text =
+          "Draw <b>boundary</b> and select <b>amenities</b> to enable calculation.";
       } else {
         text = `Amenities Count: ${this.countPois} (Limit: 150)`;
       }
@@ -153,6 +155,6 @@ export default {
   color: #30c2ff;
 }
 .select-method-height >>> .v-input__control {
-  height: 60px;
+  height: 56px;
 }
 </style>

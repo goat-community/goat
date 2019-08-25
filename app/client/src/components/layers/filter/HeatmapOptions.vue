@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import SensitivityChart from "../../other/chart/SensitivityChart";
+import SensitivityChart from "../../other/SensitivityChart";
 
 export default {
   components: {
