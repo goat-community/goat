@@ -45,41 +45,52 @@
       <v-layout justify-space-between column fill-height>
         <v-list>
           <template v-for="(item, index) in upItems">
-            <v-list-item
-              @click="toggleComponent(item.componentToShow)"
-              :key="index"
-              active-class="red--text"
-            >
-              <v-list-item-action>
-                <v-icon
-                  :style="
-                    activeUpComponent === item.componentToShow
-                      ? 'color: #30c2ff;'
-                      : 'color: white'
-                  "
-                  light
-                  v-html="item.icon"
-                ></v-icon>
-              </v-list-item-action>
-              <v-list-item-content>
-                <v-list-item-title v-html="item.text"></v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
+            <v-tooltip left :key="index">
+              <template v-slot:activator="{ on }">
+                <v-list-item
+                  @click="toggleComponent(item.componentToShow)"
+                  v-on="on"
+                  active-class="red--text"
+                >
+                  <v-list-item-action>
+                    <v-icon
+                      :style="
+                        activeUpComponent === item.componentToShow
+                          ? 'color: #30c2ff;'
+                          : 'color: white'
+                      "
+                      light
+                      v-html="item.icon"
+                    ></v-icon>
+                  </v-list-item-action>
+
+                  <v-list-item-content>
+                    <v-list-item-title v-html="item.text"></v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </template>
+              <span>{{ item.text }}</span>
+            </v-tooltip>
           </template>
         </v-list>
         <v-list justify-end>
           <template v-for="(item, index) in bottomItems">
-            <v-list-item
-              @click="toggleDialog(item.componentToShow)"
-              :key="index"
-            >
-              <v-list-item-action>
-                <v-icon color="white" light v-html="item.icon"></v-icon>
-              </v-list-item-action>
-              <v-list-item-content>
-                <v-list-item-title v-html="item.text"></v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
+            <v-tooltip left :key="index">
+              <template v-slot:activator="{ on }">
+                <v-list-item
+                  @click="toggleDialog(item.componentToShow)"
+                  v-on="on"
+                >
+                  <v-list-item-action>
+                    <v-icon color="white" light v-html="item.icon"></v-icon>
+                  </v-list-item-action>
+                  <v-list-item-content>
+                    <v-list-item-title v-html="item.text"></v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </template>
+              <span>{{ item.text }}</span>
+            </v-tooltip>
           </template>
         </v-list>
       </v-layout>

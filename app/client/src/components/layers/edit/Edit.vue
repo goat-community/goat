@@ -22,27 +22,52 @@
         <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
           <p class="mb-1">Select features</p>
           <v-btn-toggle v-model="toggleSelection">
-            <v-btn text>
-              <v-icon>far fa-dot-circle</v-icon>
-            </v-btn>
-            <v-btn text v-show="false">
-              <v-icon>far fa-hand-pointer</v-icon>
-            </v-btn>
+            <v-tooltip top>
+              <template v-slot:activator="{ on }">
+                <v-btn v-on="on" text>
+                  <v-icon>far fa-dot-circle</v-icon>
+                </v-btn>
+              </template>
+              <span>Draw a circle to select features</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <template v-slot:activator="{ on }">
+                <v-btn v-on="on" text v-show="false">
+                  <v-icon>far fa-hand-pointer</v-icon>
+                </v-btn>
+              </template>
+              <span>Select features on map</span>
+            </v-tooltip>
           </v-btn-toggle>
         </v-flex>
         <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0">
           <v-divider class="mb-1"></v-divider>
           <p class="mb-1">Edit Tools</p>
           <v-btn-toggle v-model="toggleEdit">
-            <v-btn text>
-              <v-icon medium>add</v-icon>
-            </v-btn>
-            <v-btn text>
-              <v-icon>far fa-edit</v-icon>
-            </v-btn>
-            <v-btn text>
-              <v-icon>far fa-trash-alt</v-icon>
-            </v-btn>
+            <v-tooltip top>
+              <template v-slot:activator="{ on }">
+                <v-btn v-on="on" text>
+                  <v-icon medium>add</v-icon>
+                </v-btn>
+              </template>
+              <span>Draw Feature</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <template v-slot:activator="{ on }">
+                <v-btn v-on="on" text>
+                  <v-icon>far fa-edit</v-icon>
+                </v-btn>
+              </template>
+              <span>Modify Feature</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <template v-slot:activator="{ on }">
+                <v-btn v-on="on" text>
+                  <v-icon>far fa-trash-alt</v-icon>
+                </v-btn>
+              </template>
+              <span>Delete Feature</span>
+            </v-tooltip>
           </v-btn-toggle>
           <v-divider class="mt-4"></v-divider>
         </v-flex>

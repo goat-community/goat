@@ -43,35 +43,62 @@
 
                 <v-layout row>
                   <v-spacer></v-spacer>
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <v-icon
+                        @click="showPoisTable(calculation)"
+                        small
+                        v-on="on"
+                        class="result-icons mr-2"
+                        >fas fa-table</v-icon
+                      >
+                    </template>
+                    <span>Show Data</span>
+                  </v-tooltip>
 
-                  <v-icon
-                    @click="showPoisTable(calculation)"
-                    small
-                    class="result-icons mr-2"
-                    >fas fa-table</v-icon
-                  >
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <v-icon
+                        @click="showHideCalculation(calculation)"
+                        small
+                        v-on="on"
+                        class="result-icons mr-2"
+                        v-html="
+                          calculation.isVisible
+                            ? 'fas fa-eye-slash'
+                            : 'fas fa-eye'
+                        "
+                      ></v-icon>
+                    </template>
+                    <span>Toggle Visibility</span>
+                  </v-tooltip>
 
-                  <v-icon
-                    @click="showHideCalculation(calculation)"
-                    small
-                    class="result-icons mr-2"
-                    v-html="
-                      calculation.isVisible ? 'fas fa-eye-slash' : 'fas fa-eye'
-                    "
-                  ></v-icon>
-                  <v-icon
-                    @click="toggleDownloadDialog(calculation)"
-                    small
-                    class="result-icons mr-2"
-                    >fas fa-download</v-icon
-                  >
-                  <v-icon
-                    @click="deleteCalculation(calculation)"
-                    small
-                    class="result-icons mr-6"
-                  >
-                    fas fa-trash-alt</v-icon
-                  >
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <v-icon
+                        @click="toggleDownloadDialog(calculation)"
+                        small
+                        v-on="on"
+                        class="result-icons mr-2"
+                        >fas fa-download</v-icon
+                      >
+                    </template>
+                    <span>Download</span>
+                  </v-tooltip>
+
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <v-icon
+                        @click="deleteCalculation(calculation)"
+                        small
+                        v-on="on"
+                        class="result-icons mr-6"
+                      >
+                        fas fa-trash-alt</v-icon
+                      >
+                    </template>
+                    <span>Delete</span>
+                  </v-tooltip>
                 </v-layout>
               </v-layout>
               <v-card-text class="pr-0 pl-0 pt-0 pb-0">
