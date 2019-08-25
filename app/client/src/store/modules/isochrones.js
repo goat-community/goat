@@ -304,7 +304,18 @@ const actions = {
           return "'" + item.value + "'";
         })
         .toString();
-      if (amenities === "") return;
+      if (amenities === "") {
+        commit(
+          "map/TOGGLE_SNACKBAR",
+          {
+            type: "error",
+            message: "You must select at least one amenity",
+            state: true
+          },
+          { root: true }
+        );
+        return;
+      }
       const params = {
         minutes: rootState.isochrones.options.minutes,
         speed: rootState.isochrones.options.speed,

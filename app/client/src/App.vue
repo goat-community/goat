@@ -10,6 +10,7 @@
       <v-container id="ol-map-container" fluid fill-height class="pa-0">
         <app-map :color="controlsColor" />
         <map-loading-progress-status />
+        <snackbar />
       </v-container>
     </v-content>
   </v-app>
@@ -22,6 +23,7 @@ import appMap from "./components/ol/Map";
 import appSidebar from "./components/core/SideDrawer";
 import treePanel from "./components/core/TreePanel";
 import MapLoadingProgressStatus from "./components/ol/MapLoadingProgressStatus";
+import Snackbar from "./components/other/Snackbar";
 
 import { mapMutations } from "vuex";
 
@@ -31,7 +33,8 @@ export default {
     appMap,
     appSidebar,
     treePanel,
-    MapLoadingProgressStatus
+    MapLoadingProgressStatus,
+    Snackbar
   },
   data() {
     return {

@@ -77,9 +77,6 @@ export default {
       dynamicHeatmapTravelTimes: "dynamicHeatmapTravelTimes"
     }),
     accessibilityGravityData() {
-      console.log("passed");
-      console.log(this.amenity);
-
       const accessibilityGravity = this.dynamicHeatmapTravelTimes.map(
         x => Math.exp(x * this.amenity.sensitivity) * 100
       );
