@@ -26,13 +26,19 @@
       </template>
       <template v-slot:append="{ item, open }">
         <template v-if="item.icon">
-          <v-icon
-            @click="toggleHeatmapDialog(item)"
-            small
-            class="arrow-icons mr-1"
-          >
-            fas fa-cog
-          </v-icon>
+          <v-tooltip top>
+            <template v-slot:activator="{ on }">
+              <v-icon
+                @click="toggleHeatmapDialog(item)"
+                small
+                v-on="on"
+                class="arrow-icons mr-1"
+              >
+                fas fa-cog
+              </v-icon>
+            </template>
+            <span>Weight and Sensitivity Settings</span>
+          </v-tooltip>
         </template>
       </template>
     </v-treeview>

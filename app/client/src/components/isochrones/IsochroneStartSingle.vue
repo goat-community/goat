@@ -46,16 +46,22 @@
           ></v-autocomplete>
         </v-flex>
         <v-flex xs3>
-          <v-btn
-            outlined
-            fab
-            class="ml-4"
-            rounded
-            text
-            @click="registerMapClick"
-          >
-            <v-icon color="#30C2FF">fas fa-map-marker-alt</v-icon>
-          </v-btn>
+          <v-tooltip top>
+            <template v-slot:activator="{ on }">
+              <v-btn
+                outlined
+                fab
+                v-on="on"
+                class="ml-4"
+                rounded
+                text
+                @click="registerMapClick"
+              >
+                <v-icon color="#30C2FF">fas fa-map-marker-alt</v-icon>
+              </v-btn>
+            </template>
+            <span>Click on map to start Isochrone calculation</span>
+          </v-tooltip>
         </v-flex>
       </v-layout>
     </v-card-text>
