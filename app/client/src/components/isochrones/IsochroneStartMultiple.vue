@@ -147,6 +147,10 @@ export default {
         this.olIsochroneCtrl.clear();
       }
     }
+  },
+  beforeDestroy() {
+    this.activeMultiIsochroneMethod = null;
+    this.olIsochroneCtrl.clear();
   }
 };
 </script>
