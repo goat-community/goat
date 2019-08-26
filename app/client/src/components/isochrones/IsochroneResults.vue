@@ -227,9 +227,7 @@ export default {
         calculation,
         me.isochroneLayer
       );
-      console.log(features);
       const pois = IsochroneUtils.getCalculationPoisObject(features);
-      console.log(pois);
       const payload = {
         calculationId: calculation.id,
         calculationName: `Calculation - ${calculation.id}`,

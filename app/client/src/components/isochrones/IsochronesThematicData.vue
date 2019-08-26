@@ -171,6 +171,9 @@ export default {
             //Loop through  amenities
             for (const amenity in sumPois) {
               let isAmenitySelected = me.isAmenitySelected(amenity);
+              if (amenity === "population") {
+                isAmenitySelected = true;
+              }
               if (isAmenitySelected) {
                 let obj = {
                   pois: helpers.humanize(amenity)

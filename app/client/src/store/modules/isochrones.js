@@ -314,6 +314,10 @@ const actions = {
           },
           { root: true }
         );
+        //Reset all study area features count_point property to zero.
+        selectedFeatures.forEach(feature => {
+          feature.set("count_pois", 0);
+        });
         return;
       }
       const params = {

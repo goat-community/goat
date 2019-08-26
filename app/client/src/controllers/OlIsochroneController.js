@@ -58,6 +58,7 @@ export default class OlIsochroneController extends OlBaseController {
           me.studyAreaLayer[0].setVisible(true);
         }
         me.setupMapClick();
+        me.multiIsoCalcMethod = "study_area";
         me.helpMessage = "Click to select the study area.";
       } else {
         //Draw Boundary box method
@@ -72,6 +73,7 @@ export default class OlIsochroneController extends OlBaseController {
         // make select interaction available as member
         me.drawBoundary = drawBoundary;
         me.helpMessage = "Click to start drawing the boundary.";
+        me.multiIsoCalcMethod = "draw";
       }
     }
   }
@@ -84,11 +86,23 @@ export default class OlIsochroneController extends OlBaseController {
     const me = this;
     const map = me.map;
     me.mapClickListenerKey = map.on("click", evt => {
+      //Check if there is a feature already selected at clicked coordinate,
+      //and if so, delete it and return.
+      const featureAtCoord = me.selectionSource.getFeaturesAtCoordinate(
+        evt.coordinate
+      );
+      if (featureAtCoord.length > 0) {
+        me.selectionSource.removeFeature(featureAtCoord[0]);
+        me.helpTooltipElement.innerHTML = me.helpMessage;
+        return;
+      }
+
       const region = transform(
         evt.coordinate,
         "EPSG:3857",
         "EPSG:4326"
       ).toString();
+
       const regionType = "'study_area'";
       store.dispatch("isochrones/countStudyAreaPois", {
         regionType,
@@ -134,7 +148,15 @@ export default class OlIsochroneController extends OlBaseController {
   onPointerMove(evt) {
     const me = this;
     const coordinate = evt.coordinate;
-    me.helpTooltipElement.innerHTML = me.helpMessage;
+    if (
+      me.multiIsoCalcMethod === "study_area" &&
+      me.selectionSource.getFeaturesAtCoordinate(coordinate).length > 0
+    ) {
+      me.helpTooltipElement.innerHTML = "Click to remove it";
+    } else {
+      me.helpTooltipElement.innerHTML = me.helpMessage;
+    }
+
     me.helpTooltip.setPosition(coordinate);
   }
 
@@ -153,6 +175,7 @@ export default class OlIsochroneController extends OlBaseController {
     if (me.pointerMoveKey) {
       unByKey(me.pointerMoveKey);
     }
+    me.multiIsoCalcMethod = null;
   }
 
   clear() {
@@ -160,6 +183,9 @@ export default class OlIsochroneController extends OlBaseController {
     const me = this;
     if (me.selectionSource) {
       me.selectionSource.clear();
+    }
+    if (me.studyAreaLayer) {
+      me.studyAreaLayer[0].setVisible(false);
     }
   }
 }
