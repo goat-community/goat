@@ -6,7 +6,7 @@ import VectorLayer from "ol/layer/Vector";
 import Overlay from "ol/Overlay.js";
 import store from "../store/modules/user";
 import Feature from "ol/Feature";
-import LayerUtils from "../utils/Layer";
+import { wfsTransactionParser, readTransactionResponse } from "../utils/Layer";
 import http from "../services/http";
 import { unByKey } from "ol/Observable";
 import OlWaysLayerHelper from "./OlWaysLayerHelper";
@@ -299,15 +299,10 @@ export default class OlEditController extends OlBaseController {
     let payload;
     switch (me.currentInteraction) {
       case "draw":
-        payload = LayerUtils.wfsTransactionParser(
-          featuresToAdd,
-          null,
-          null,
-          formatGML
-        );
+        payload = wfsTransactionParser(featuresToAdd, null, null, formatGML);
         break;
       case "modify":
-        payload = LayerUtils.wfsTransactionParser(
+        payload = wfsTransactionParser(
           featuresToAdd,
           featuresToUpdate,
           null,
@@ -315,12 +310,7 @@ export default class OlEditController extends OlBaseController {
         );
         break;
       case "delete":
-        payload = LayerUtils.wfsTransactionParser(
-          null,
-          null,
-          featuresToRemove,
-          formatGML
-        );
+        payload = wfsTransactionParser(null, null, featuresToRemove, formatGML);
         break;
     }
     payload = new XMLSerializer().serializeToString(payload);
@@ -329,7 +319,7 @@ export default class OlEditController extends OlBaseController {
         headers: { "Content-Type": "text/xml" }
       })
       .then(function(response) {
-        const result = LayerUtils.readTransactionResponse(response.data);
+        const result = readTransactionResponse(response.data);
         const FIDs = result.insertIds;
 
         if (FIDs != undefined && FIDs[0] != "none") {

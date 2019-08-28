@@ -4,7 +4,7 @@ import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import DrawInteraction, { createBox } from "ol/interaction/Draw";
 import { unByKey } from "ol/Observable";
-import LayerUtils from "../utils/Layer";
+import { getAllChildLayers } from "../utils/Layer";
 import { transform } from "ol/proj.js";
 import store from "../store/index.js";
 export default class OlIsochroneController extends OlBaseController {
@@ -50,7 +50,7 @@ export default class OlIsochroneController extends OlBaseController {
       ) {
         //Study are method
         if (!me.studyAreaLayer) {
-          me.studyAreaLayer = LayerUtils.getAllChildLayers(me.map).filter(
+          me.studyAreaLayer = getAllChildLayers(me.map).filter(
             layer => layer.get("name") === "study_area_administration"
           );
         }

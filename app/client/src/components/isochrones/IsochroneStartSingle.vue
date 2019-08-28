@@ -79,7 +79,7 @@ import { unByKey } from "ol/Observable";
 import axios from "axios";
 
 //Other imports
-import helpers from "../../utils/Helpers";
+import { debounce } from "../../utils/Helpers";
 
 //Ol imports
 import { transform } from "ol/proj.js";
@@ -192,7 +192,7 @@ export default {
     }
   },
   watch: {
-    search: helpers.debounce(function() {
+    search: debounce(function() {
       // Items have already been requested
       if (this.isLoading || !this.search) return;
       this.isLoading = true;

@@ -5,7 +5,12 @@ import { getField, updateField } from "vuex-map-fields";
 import { toStringHDMS } from "ol/coordinate";
 import { transform } from "ol/proj.js";
 
-import maputils from "../../utils/MapUtils";
+import {
+  geojsonToFeature,
+  getPolygonArea,
+  wktToFeature,
+  flyTo
+} from "../../utils/MapUtils";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import IsochroneUtils from "../../utils/IsochroneUtils";
@@ -218,7 +223,7 @@ const actions = {
     //TODO: Don't get calculation options from state at this moment.
     const calculationNumber = state.calculations.length + 1;
 
-    let olFeatures = maputils.geojsonToFeature(isochrones);
+    let olFeatures = geojsonToFeature(isochrones);
     //Order features based on id
     olFeatures.sort((a, b) => {
       return a.get("step") - b.get("step");
@@ -243,7 +248,7 @@ const actions = {
         ),
         range: feature.getProperties().step + " min",
         color: color,
-        area: maputils.getPolygonArea(feature.getGeometry()),
+        area: getPolygonArea(feature.getGeometry()),
         isVisible: true
       };
       feature.set("isVisible", true);
@@ -264,8 +269,10 @@ const actions = {
     };
 
     if (calculationType === "single") {
-      const isochroneStartingPoint = maputils
-        .wktToFeature(olFeatures[0].get("starting_point"), "EPSG:4326")
+      const isochroneStartingPoint = wktToFeature(
+        olFeatures[0].get("starting_point"),
+        "EPSG:4326"
+      )
         .getGeometry()
         .getCoordinates();
       const transformedPoint = new Point(
@@ -273,7 +280,7 @@ const actions = {
       );
       iconMarkerFeature.setGeometry(transformedPoint);
       if (state.position.placeName) {
-        maputils.flyTo(
+        flyTo(
           transformedPoint.getCoordinates(),
           rootState.map.map,
           function() {}
@@ -368,7 +375,7 @@ const actions = {
           console.log(response);
           const configData = JSON.parse(response.config.data);
           if (response.data.feature) {
-            const olFeatures = maputils.geojsonToFeature(response.data.feature);
+            const olFeatures = geojsonToFeature(response.data.feature);
             olFeatures.forEach(feature => {
               feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
               feature.set("region_type", configData.region_type);

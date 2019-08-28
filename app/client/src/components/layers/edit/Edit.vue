@@ -146,7 +146,7 @@
 import { EventBus } from "../../../EventBus";
 import { Mapable } from "../../../mixins/Mapable";
 import { InteractionsToggle } from "../../../mixins/InteractionsToggle";
-import LayerUtils from "../../../utils/Layer";
+import { getAllChildLayers } from "../../../utils/Layer";
 
 import OlEditController from "../../../controllers/OlEditController";
 import OlSelectController from "../../../controllers/OlSelectController";
@@ -210,8 +210,8 @@ export default {
      */
     onMapBound() {
       const me = this;
-      const editableLayers = LayerUtils.getAllChildLayers(me.map).filter(
-        layer => layer.get("canEdit")
+      const editableLayers = getAllChildLayers(me.map).filter(layer =>
+        layer.get("canEdit")
       );
       me.editableLayers = [...editableLayers];
 

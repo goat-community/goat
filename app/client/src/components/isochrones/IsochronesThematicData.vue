@@ -71,7 +71,7 @@
 
 <script>
 import { mapGetters } from "vuex";
-import helpers from "../../utils/Helpers";
+import { humanize } from "../../utils/Helpers";
 import IsochroneUtils from "../../utils/IsochroneUtils";
 export default {
   data: () => ({
@@ -176,7 +176,7 @@ export default {
               }
               if (isAmenitySelected) {
                 let obj = {
-                  pois: helpers.humanize(amenity)
+                  pois: humanize(amenity)
                 };
                 //Default or input calculation
                 obj[keys[0]] = sumPois[amenity];

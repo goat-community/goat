@@ -38,7 +38,7 @@
 
 <script>
 import { mapGetters } from "vuex";
-import maputils from "../../utils/MapUtils";
+import { featuresToGeojson } from "../../utils/MapUtils";
 import { saveAs } from "file-saver";
 
 export default {
@@ -66,7 +66,7 @@ export default {
             featuresArray.push(clonedFeature);
           }
         });
-        let json = maputils.featuresToGeojson(featuresArray, "EPSG:3857");
+        let json = featuresToGeojson(featuresArray, "EPSG:3857");
         let blob = new Blob([json], { type: "application/json" });
         let exportName = me.name;
         if (me.name.length === 0) {

@@ -11,7 +11,7 @@ import http from "../services/http";
 import axios from "axios";
 
 import OlStyleDefs from "../style/OlStyleDefs";
-import LayerUtils from "../utils/Layer";
+import { wfsRequestParser } from "../utils/Layer";
 
 import store from "../store/modules/user";
 import OlBaseController from "./OlBaseController";
@@ -105,7 +105,7 @@ export default class OlSelectController extends OlBaseController {
           .getParams()
           .LAYERS.split(":");
 
-        const xmlRequest = LayerUtils.wfsRequestParser(
+        const xmlRequest = wfsRequestParser(
           "EPSG:3857",
           layerParams[0],
           layerParams[1],
@@ -128,7 +128,7 @@ export default class OlSelectController extends OlBaseController {
             filterUserInputTable,
             filterIntersect
           );
-          const waysModifiedReq = LayerUtils.wfsRequestParser(
+          const waysModifiedReq = wfsRequestParser(
             "EPSG:3857",
             layerParams[0],
             "ways_modified",
