@@ -53,7 +53,7 @@
 
 <script>
 import { Mapable } from "../../../mixins/Mapable";
-import Utils from "../../../utils/Layer";
+import { getAllChildLayers } from "../../../utils/Layer";
 import { mapGetters, mapActions } from "vuex";
 import HeatmapOptions from "./HeatmapOptions";
 
@@ -91,7 +91,7 @@ export default {
       const heatmapLayerNames = ["walkability", "walkability-population"];
       const poisLayerName = "pois";
 
-      const allLayers = Utils.getAllChildLayers(map);
+      const allLayers = getAllChildLayers(map);
       allLayers.forEach(layer => {
         const layerName = layer.get("name");
         if (heatmapLayerNames.includes(layerName)) {

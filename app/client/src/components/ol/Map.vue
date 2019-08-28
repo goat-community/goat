@@ -46,9 +46,9 @@ import { EventBus } from "../../EventBus";
 import { LayerFactory } from "../../factory/layer.js";
 
 import { mapGetters } from "vuex";
-import helpers from "../../utils/Helpers";
-import Layers from "../../utils/Layer";
-import maputils from "../../utils/MapUtils";
+import { groupBy, humanize } from "../../utils/Helpers";
+import { getAllChildLayers } from "../../utils/Layer";
+import { geojsonToFeature } from "../../utils/MapUtils";
 import { Group as LayerGroup } from "ol/layer.js";
 
 import http from "../../services/http";
@@ -153,10 +153,7 @@ export default {
      */
     createLayers() {
       let layers = [];
-      const layersConfigGrouped = helpers.groupBy(
-        this.$appConfig.map.layers,
-        "group"
-      );
+      const layersConfigGrouped = groupBy(this.$appConfig.map.layers, "group");
       for (var group in layersConfigGrouped) {
         if (!layersConfigGrouped.hasOwnProperty(group)) {
           continue;
@@ -193,7 +190,7 @@ export default {
 
       //Reference study area layer
       let studyAreaLayer;
-      Layers.getAllChildLayers(me.map).forEach(layer => {
+      getAllChildLayers(me.map).forEach(layer => {
         if (layer.get("name") === "study-area") {
           studyAreaLayer = layer;
         }
@@ -356,7 +353,7 @@ export default {
         const projection = me.map.getView().getProjection();
         const resolution = me.map.getView().getResolution();
         let layerToQuery;
-        Layers.getAllChildLayers(me.map).forEach(layer => {
+        getAllChildLayers(me.map).forEach(layer => {
           if (layer.get("queryable") === true) {
             layerToQuery = layer;
           }
@@ -376,7 +373,7 @@ export default {
             return;
           }
 
-          const olFeatures = maputils.geojsonToFeature(response.data);
+          const olFeatures = geojsonToFeature(response.data);
           const featureCoordinates = olFeatures[0]
             .getGeometry()
             .getCoordinates();
@@ -421,7 +418,7 @@ export default {
           Object.keys(props).forEach(k => {
             if (!excludedProperties.includes(k)) {
               transformed.push({
-                property: helpers.humanize(k),
+                property: humanize(k),
                 value: props[k] === null ? "---" : props[k]
               });
             }
