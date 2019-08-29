@@ -81,7 +81,11 @@
 </template>
 
 <script>
+import { Mapable } from "../../mixins/Mapable";
+import OlPrintController from "../../controllers/OlPrintController";
+
 export default {
+  mixins: [Mapable],
   data: () => ({
     rules: {
       tittle: [
@@ -112,8 +116,21 @@ export default {
       if (this.$refs.form.validate()) {
         console.log("init print...");
       }
+    },
+    /**
+     * This function is executed, after the map is bound (see mixins/Mapable)
+     */
+    onMapBound() {
+      //Initialize ol print controller
+      this.olPrintCtrl = new OlPrintController(this.map, this.rotation);
     }
   },
-  mounted() {}
+  mounted() {},
+  activated: function() {
+    this.olPrintCtrl.activate();
+  },
+  deactivated: function() {
+    this.olPrintCtrl.deactivate();
+  }
 };
 </script>
