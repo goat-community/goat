@@ -1,4 +1,4 @@
-export function PrintUtils() {
+export default function PrintUtils() {
   /**
    * @type {number}
    * @private
