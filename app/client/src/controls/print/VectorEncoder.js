@@ -377,21 +377,22 @@ VectorEncoder.prototype.encodeVectorStyleStroke = function(
   symbolizer,
   strokeStyle
 ) {
-  const strokeColor = strokeStyle.getColor();
+  const strokeColor = /** @type {import('ol/color.js').Color} */ (strokeStyle.getColor());
   if (strokeColor !== null) {
-    if (!(typeof strokeColor === "string" || Array.isArray(strokeColor))) {
-      throw new Error("Wrong strokeColor type");
-    }
+    console.assert(
+      typeof strokeColor === "string" || Array.isArray(strokeColor)
+    );
     const strokeColorRgba = asColorArray(strokeColor);
-    if (!Array.isArray(strokeColor)) {
-      throw new Error("Wrong strokeColor type");
-    }
+    console.assert(
+      Array.isArray(strokeColorRgba),
+      "only supporting stroke colors"
+    );
     symbolizer.strokeColor = rgbArrayToHex(strokeColorRgba);
     symbolizer.strokeOpacity = strokeColorRgba[3];
   }
   const strokeDashstyle = strokeStyle.getLineDash();
   if (strokeDashstyle !== null) {
-    /** @type {import('mapfish-print-v3.js').MapFishPrintSymbolizerLine} */ (symbolizer).strokeDashstyle = strokeDashstyle.join(
+    /** @type {import('/print/mapfish-print-v3.js').MapFishPrintSymbolizerLine} */ (symbolizer).strokeDashstyle = strokeDashstyle.join(
       " "
     );
   }
@@ -401,7 +402,7 @@ VectorEncoder.prototype.encodeVectorStyleStroke = function(
   }
   const strokeLineCap = strokeStyle.getLineCap();
   if (strokeLineCap) {
-    /** @type {import('mapfish-print-v3.js').MapFishPrintSymbolizerLine} */ (symbolizer).strokeLinecap = strokeLineCap;
+    /** @type {import('/print/mapfish-print-v3.js').MapFishPrintSymbolizerLine} */ (symbolizer).strokeLinecap = strokeStyle.getLineCap();
   }
 };
 
