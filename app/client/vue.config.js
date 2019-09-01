@@ -7,11 +7,15 @@ module.exports = {
     },
     proxy: {
       "/api": {
-        target: process.env.API_BASEURL, //ADD THIS TO .ENV VARIABLES
+        target: process.env.API_BASEURL,
         changeOrigin: true
       },
       "/geoserver": {
-        target: process.env.GEOSERVER_BASEURL, //ADD THIS TO .ENV VARIABLES
+        target: process.env.GEOSERVER_BASEURL,
+        changeOrigin: true
+      },
+      "/printproxy": {
+        target: "https://geomapfish-demo-2-4.camptocamp.com/",
         changeOrigin: true
       }
     }
@@ -19,9 +23,9 @@ module.exports = {
 
   pluginOptions: {
     i18n: {
-      locale: 'en',
-      fallbackLocale: 'en',
-      localeDir: 'locales',
+      locale: "en",
+      fallbackLocale: "en",
+      localeDir: "locales",
       enableInSFC: true
     }
   }
