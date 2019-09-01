@@ -458,7 +458,7 @@ PrintService.prototype.getOpacityOrInherited_ = function(layer) {
  */
 PrintService.prototype.createReport = function(printSpec, opt_httpConfig) {
   const format = printSpec.format || "pdf";
-  const url = `${this.url_}/report.${format}`;
+  const url = `${this.url_}/goat/buildreport.${format}`;
   const httpConfig = /** @type {angular.IRequestShortcutConfig} */ ({
     headers: {
       "Content-Type": "application/json; charset=UTF-8"

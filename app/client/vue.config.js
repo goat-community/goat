@@ -14,8 +14,8 @@ module.exports = {
         target: process.env.GEOSERVER_BASEURL,
         changeOrigin: true
       },
-      "/printproxy": {
-        target: "https://geomapfish-demo-2-4.camptocamp.com/",
+      "/print": {
+        target: "http://localhost:8080/print/",
         changeOrigin: true
       }
     }

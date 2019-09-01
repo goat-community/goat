@@ -244,7 +244,7 @@ export function createBasicWMSLayer(
 /**
  * Get the WMTS legend URL for the given layer.
  * @param {import("ol/layer/Tile.js").default} layer Tile layer as returned by the
- * ngeo layerHelper service.
+ * layerHelper service.
  * @return {string|undefined} The legend URL or undefined.
  */
 export function getWMTSLegendURL(layer) {
