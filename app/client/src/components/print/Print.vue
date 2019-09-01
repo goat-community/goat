@@ -38,6 +38,7 @@
             prepend-icon="map"
             :label="$t('appBar.printMap.form.layout.label')"
             :rules="rules.required"
+            @change="setLayout"
             required
           ></v-select>
           <v-select
@@ -46,14 +47,23 @@
             prepend-icon="fas fa-ruler-horizontal"
             :label="$t('appBar.printMap.form.scale.label')"
             :rules="rules.required"
+            @change="getSetScale"
             required
-          ></v-select>
+          >
+            <template slot="selection" slot-scope="{ item }">
+              1 : {{ numberWithCommas(item) }}
+            </template>
+            <template slot="item" slot-scope="{ item }">
+              1 : {{ numberWithCommas(item) }}
+            </template>
+          </v-select>
           <v-select
             v-model="layoutInfo.dpi"
             :items="layoutInfo.dpis"
             prepend-icon="aspect_ratio"
             :label="$t('appBar.printMap.form.resolution.label')"
             :rules="rules.required"
+            @change="setDpi"
             required
           ></v-select>
           <v-select
@@ -121,7 +131,7 @@ import {
   getWMSLegendURL
 } from "../../utils/Layer";
 
-import { humanize } from "../../utils/Helpers";
+import { humanize, numberWithCommas } from "../../utils/Helpers";
 import axios from "axios";
 import * as olEvents from "ol/events.js";
 import * as olMath from "ol/math.js";
@@ -168,7 +178,7 @@ export default {
       label: {},
       params: {}
     },
-    baseUrl: "./printproxy",
+    baseUrl: "./print",
     /**
      * Events
      */
@@ -188,7 +198,7 @@ export default {
   },
   methods: {
     humanize,
-
+    numberWithCommas,
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
@@ -355,7 +365,7 @@ export default {
      * @private
      */
     getCapabilities() {
-      this.capabilities = axios.get(`${this.baseUrl}/capabilities.json`);
+      this.capabilities = axios.get(`${this.baseUrl}/goat/capabilities.json`);
     },
 
     /**
@@ -800,15 +810,16 @@ export default {
         }
         const mapSize = this.map.getSize() || [0, 0];
         this.layoutInfo.scale = opt_scale;
-        const res = this.PrintUtils.getOptimalResolution(
+        const res = this.printUtils_.getOptimalResolution(
           mapSize,
           this.paperSize_,
           opt_scale
         );
 
         const view = this.map.getView();
-        const contrainRes = view.getConstraints().resolution(res, 1, mapSize);
+        const contrainRes = this.map.getView().constrainResolution(res, 0, 1);
         view.setResolution(contrainRes);
+
         // Render the map to update the postcompose mask manually
         this.map.render();
         this.scaleManuallySelected_ = true;
