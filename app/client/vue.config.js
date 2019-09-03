@@ -15,7 +15,7 @@ module.exports = {
         changeOrigin: true
       },
       "/print": {
-        target: "http://localhost:8080/print/",
+        target: process.env.PRINT_URL,
         changeOrigin: true
       }
     }

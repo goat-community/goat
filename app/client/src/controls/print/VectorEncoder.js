@@ -501,4 +501,63 @@ VectorEncoder.prototype.encodeTextStyle = function(symbolizers, textStyle) {
   }
 };
 
+VectorEncoder.prototype.encodeOverlay = function(overlay) {
+  let encOverlayLayer;
+  const element = overlay.getElement();
+  if (element.className === "tooltip tooltip-static") {
+    const center = overlay.getPosition();
+    if (center) {
+      const text = element.innerText;
+      console.log(text);
+      encOverlayLayer = {
+        type: "geojson",
+        style: {
+          version: "2",
+          "[_style_0 = 'overlay-style']": {
+            symbolizers: [
+              {
+                externalGraphic: window.location.origin + "/img/bubble.png",
+                graphicWidth: 20,
+                graphicHeight: 35,
+                graphicYOffset: -35,
+                graphicXOffset: -2,
+                type: "point"
+              },
+              {
+                type: "text",
+                label: text,
+                fontFamily: "sans-serif",
+                fontSize: "12px",
+                fontWeight: "bold",
+                fillColor: "#000000",
+                fontColor: "#000000",
+                labelXOffset: -22,
+                labelYOffset: 5
+              }
+            ]
+          }
+        },
+        geoJson: {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              properties: {
+                _style_0: "overlay-style"
+              },
+              geometry: {
+                type: "Point",
+                coordinates: [center[0], center[1], 0]
+              }
+            }
+          ]
+        },
+        name: "drawing",
+        opacity: 1
+      };
+    }
+  }
+  return encOverlayLayer;
+};
+
 export default VectorEncoder;

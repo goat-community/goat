@@ -60,7 +60,8 @@
         "visible": false,
         "canEdit": true,
         "displayInLayerList": false,
-        "zIndex": 2
+        "zIndex": 2,
+        "serverType": "geoserver"
       },
       {
         "type": "WMS",
@@ -75,7 +76,8 @@
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
-        "zIndex": 2
+        "zIndex": 2,
+        "serverType": "geoserver"
       },
       {
         "type": "WMS",
@@ -89,7 +91,8 @@
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
-        "zIndex": 1
+        "zIndex": 1,
+        "serverType": "geoserver"
       },
       {
         "type": "WMS",
@@ -103,7 +106,8 @@
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
-        "zIndex": 1
+        "zIndex": 1,
+        "serverType": "geoserver"
       },
       {
         "type": "WMS",
@@ -112,11 +116,11 @@
         "url": "/geoserver/wms",
         "group": "Accessibility Basemap",
         "layers": "cite:heatmap_population",
-        "serverType": "geoserver",
         "opacity": 1,
         "visible": false,
         "displayInLayerList": true,
-        "zIndex": 1
+        "zIndex": 1,
+        "serverType": "geoserver"
       },
       {
         "type": "WMS",
@@ -130,7 +134,8 @@
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
-        "zIndex": 1
+        "zIndex": 1,
+        "serverType": "geoserver"
       },
 
       {
@@ -141,11 +146,11 @@
         "group": "Accessibility Basemap",
         "layers": "cite:heatmap_area_isochrone",
         "opacity": 1,
-        "serverType": "geoserver",
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
-        "zIndex": 1
+        "zIndex": 1,
+        "serverType": "geoserver"
       },
 
       {
