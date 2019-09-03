@@ -218,6 +218,10 @@ PrintService.prototype.encodeVectorLayer = function(arr, layer, resolution) {
   this.vectorEncoder.encodeVectorLayer(arr, layer, resolution);
 };
 
+PrintService.prototype.encodeOverlay = function(overlay) {
+  return this.vectorEncoder.encodeOverlay(overlay);
+};
+
 /**
  * @param {Array<import('print/mapfish-print-v3.js').MapFishPrintLayer>} arr Array.
  * @param {import("ol/layer/Image.js").default} layer Layer.
@@ -261,8 +265,8 @@ PrintService.prototype.encodeImageWmsLayer_ = function(arr, layer) {
  * @private
  */
 PrintService.prototype.encodeWmsLayer_ = function(arr, layer, url, params) {
-  if (url.startsWith("//")) {
-    url = window.location.protocol + url;
+  if (url.startsWith("/")) {
+    url = window.location.origin + url;
   }
   const url_url = new URL(url);
   /** @type {Object<string, string>} */
@@ -437,6 +441,31 @@ PrintService.prototype.getWmtsUrl_ = function(source) {
   return getAbsoluteUrl_(urls[0]);
 };
 
+PrintService.prototype.getGridLayer = function() {
+  return {
+    type: "grid",
+    gridType: "LINES",
+    numberOfLines: [5, 5],
+    renderAsSvg: true,
+    valueFormat: "###,###",
+    unitFormat: " %s",
+    horizontalYOffset: -8,
+    verticalXOffset: 8,
+    formatGroupingSeparator: "'",
+    font: {
+      name: [
+        "Arial",
+        "Helvetica",
+        "Nimbus Sans L",
+        "Liberation Sans",
+        "FreeSans",
+        "Sans-serif"
+      ],
+      size: 8
+    }
+  };
+};
+
 /**
  * Return an opacity value for the specified layer.
  * @param {import("ol/layer/Base.js").default} layer Layer.
@@ -453,18 +482,13 @@ PrintService.prototype.getOpacityOrInherited_ = function(layer) {
 /**
  * Send a create report request to the MapFish Print service.
  * @param {import('print/mapfish-print-v3.js').MapFishPrintSpec} printSpec Print specification.
- * @param {angular.IRequestShortcutConfig=} opt_httpConfig $http config object.
- * @return {angular.IHttpPromise<Object>} HTTP promise.
+ * @return {angular.httpPromise<Object>} HTTP promise.
  */
-PrintService.prototype.createReport = function(printSpec, opt_httpConfig) {
+PrintService.prototype.createReport = function(printSpec) {
   const format = printSpec.format || "pdf";
   const url = `${this.url_}/goat/buildreport.${format}`;
-  const httpConfig = /** @type {angular.IRequestShortcutConfig} */ ({
-    headers: {
-      "Content-Type": "application/json; charset=UTF-8"
-    }
-  });
-  Object.assign(httpConfig, opt_httpConfig !== undefined ? opt_httpConfig : {});
+  const httpConfig = {};
+  Object.assign(httpConfig, { responseType: "blob" });
   return http.post(url, printSpec, httpConfig);
 };
 

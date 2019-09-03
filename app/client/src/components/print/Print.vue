@@ -99,12 +99,22 @@
               ></v-text-field>
             </v-flex>
           </v-layout>
-
-          <v-checkbox
-            class="ml-1"
-            v-model="layoutInfo.legend"
-            label="Legend"
-          ></v-checkbox>
+          <v-layout row class="ml-0 mt-2">
+            <v-flex xs6>
+              <v-checkbox
+                class="ml-1"
+                v-model="layoutInfo.legend"
+                label="Legend"
+              ></v-checkbox>
+            </v-flex>
+            <v-flex xs6>
+              <v-checkbox
+                class="ml-1"
+                v-model="showGrid"
+                label="Grid"
+              ></v-checkbox>
+            </v-flex>
+          </v-layout>
         </v-form>
       </v-card-text>
       <v-card-actions>
@@ -126,7 +136,6 @@ import PrintUtils, {
 import PrintService from "../../controls/print/Service";
 import {
   getFlatLayers,
-  createBasicWMSLayer,
   getWMTSLegendURL,
   getWMSLegendURL
 } from "../../utils/Layer";
@@ -140,6 +149,7 @@ import olLayerTile from "ol/layer/Tile.js";
 import olLayerGroup from "ol/layer/Group.js";
 import olMap from "ol/Map.js";
 import ImageWMS from "ol/source/ImageWMS.js";
+var FileSaver = require("file-saver");
 
 export default {
   mixins: [Mapable],
@@ -155,6 +165,7 @@ export default {
     crs: [{ display: "Web Mercator", value: "EPSG:3857" }],
     selectedCrs: "EPSG:3857",
     rotation: 0,
+    showGrid: true,
     layoutInfo: {
       attributes: [],
       dpi: 254,
@@ -283,30 +294,6 @@ export default {
         let print_native_angle = true;
         for (let i = 0, ii = ol_layers.length; i < ii; i++) {
           let layer = ol_layers[i];
-          const metadata = layer.get("metadata");
-          if (metadata) {
-            const server_name = metadata.ogcServer;
-            const layer_names = metadata.printLayers || metadata.layers;
-            if (server_name && layer_names) {
-              const server = this.ogcServers_[server_name];
-              if (server) {
-                layer = createBasicWMSLayer(
-                  server.url,
-                  layer_names,
-                  server.imageType,
-                  server.type,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  { opacity: layer.get("opacity") }
-                );
-                layer.setZIndex(-200);
-              } else {
-                console.error("Missing ogcServer:", server_name);
-              }
-            }
-          }
 
           // Get the print native angle parameter for WMS layers when set to not use default value
           // Is applied only once when the value is overridden with a metadata from administration
@@ -340,6 +327,10 @@ export default {
           email
         );
 
+        if (this.showGrid === true) {
+          spec.attributes.map.layers.unshift(this.printService.getGridLayer());
+        }
+
         // Add feature overlay layer to print spec.
         /** @type {import('print/mapfish-print-v3.js').MapFishPrintLayer[]} */
         const layers = [];
@@ -352,7 +343,23 @@ export default {
           spec.attributes.map.layers.unshift(layers[0]);
         }
 
-        this.printService.createReport(spec);
+        //Print Overlays (for measure label)
+        this.map.getOverlays().forEach(overlay => {
+          console.log(overlay);
+          // spec.attributes.map.layers.unshift(this.printService.encodeOverlay(overlay));
+          const encodedOverlay = this.printService.encodeOverlay(overlay);
+          if (encodedOverlay) {
+            spec.attributes.map.layers.unshift(encodedOverlay);
+          }
+        });
+
+        this.printService.createReport(spec).then(response => {
+          console.log(response.data);
+          console.log(response);
+          if (response.status === 200) {
+            FileSaver.saveAs(response.data, "map.pdf");
+          }
+        });
 
         // remove temporary map
         map.setTarget("");
@@ -681,11 +688,7 @@ export default {
         }
         /** @type {import('print/mapfish-print-v3').MapFishPrintLegendClass[]} */
         const classes = [];
-        if (
-          layer.getVisible() &&
-          layer.getSource() &&
-          (layer instanceof olLayerTile || layer instanceof ImageWMS)
-        ) {
+        if (layer.getVisible() && layer.getSource()) {
           let icon_dpi;
           // For WMTS layers.
           if (layer instanceof olLayerTile) {
@@ -708,66 +711,71 @@ export default {
             }
           } else {
             const source = layer.getSource();
-            if (!(source instanceof ImageWMS)) {
-              throw new Error("Wrong source type");
-            }
-            // For each name in a WMS layer.
-            const layerNames = /** @type {string} */ source
-              .getParams()
-              .LAYERS.split(",");
-            layerNames.forEach(name => {
-              if (!this.map) {
-                throw new Error("Missing map");
-              }
-              if (!source.serverType_) {
-                throw new Error("Missing source.serverType_");
-              }
-              const type = icon_dpi ? "image" : source.serverType_;
-              if (!icon_dpi) {
-                const url = getWMSLegendURL(
-                  source.getUrl(),
-                  name,
-                  scale,
-                  undefined,
-                  undefined,
-                  undefined,
-                  source.serverType_,
-                  dpi,
-                  this.legendOptions.useBbox ? bbox : undefined,
-                  this.map
-                    .getView()
-                    .getProjection()
-                    .getCode(),
-                  this.legendOptions.params[source.serverType_]
-                );
-                if (!url) {
-                  throw new Error("Missing url");
+            if (source instanceof ImageWMS) {
+              // For each name in a WMS layer.
+              const layerNames = /** @type {string} */ source
+                .getParams()
+                .LAYERS.split(",");
+              layerNames.forEach(name => {
+                if (!this.map) {
+                  throw new Error("Missing map");
                 }
-                icon_dpi = {
-                  url: url,
-                  dpi: 72
-                };
-              }
+                if (!source.serverType_) {
+                  throw new Error("Missing source.serverType_");
+                }
+                const type = icon_dpi ? "image" : source.serverType_;
+                if (!icon_dpi) {
+                  let layerUrl = source.getUrl();
+                  if (layerUrl.startsWith("/")) {
+                    layerUrl = window.location.origin + layerUrl;
+                  }
+                  const url = getWMSLegendURL(
+                    layerUrl,
+                    name,
+                    scale,
+                    undefined,
+                    undefined,
+                    undefined,
+                    source.serverType_,
+                    dpi,
+                    this.legendOptions.useBbox ? bbox : undefined,
+                    this.map
+                      .getView()
+                      .getProjection()
+                      .getCode(),
+                    this.legendOptions.params[source.serverType_]
+                  );
+                  if (!url) {
+                    throw new Error("Missing url");
+                  }
+                  icon_dpi = {
+                    url: url,
+                    dpi: 72
+                  };
+                }
 
-              // Don't add classes without legend url or from layers without any
-              // active name.
-              if (icon_dpi && name.length !== 0) {
-                classes.push(
-                  Object.assign(
-                    {
-                      name:
-                        this.legendOptions.label[type] === false ? "" : name,
-                      icons: [icon_dpi.url]
-                    },
-                    icon_dpi.dpi != 72
-                      ? {
-                          dpi: icon_dpi.dpi
-                        }
-                      : {}
-                  )
-                );
-              }
-            });
+                // Don't add classes without legend url or from layers without any
+                // active name.
+                if (icon_dpi && name.length !== 0) {
+                  classes.push(
+                    Object.assign(
+                      {
+                        name:
+                          this.legendOptions.label[type] === false
+                            ? ""
+                            : layer.get("title") || name,
+                        icons: [icon_dpi.url]
+                      },
+                      icon_dpi.dpi != 72
+                        ? {
+                            dpi: icon_dpi.dpi
+                          }
+                        : {}
+                    )
+                  );
+                }
+              });
+            }
           }
         }
 
