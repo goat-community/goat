@@ -4,15 +4,15 @@
     data-app
     :class="{ 'wg-app': true, 'wg-app-embedded': isEmbedded }"
   >
-    <app-sidebar />
     <tree-panel />
-    <v-content class="pr-0">
+    <v-content>
       <v-container id="ol-map-container" fluid fill-height class="pa-0">
         <app-map :color="controlsColor" />
         <map-loading-progress-status />
         <snackbar />
       </v-container>
     </v-content>
+    <app-sidebar />
   </v-app>
 </template>
 
