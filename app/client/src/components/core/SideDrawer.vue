@@ -10,7 +10,7 @@
       value="true"
       right
       :permanent="container === true"
-      width="350"
+      width="300"
       hide-overlay
       class="white left-shadow"
     >
@@ -226,7 +226,7 @@ export default {
 }
 
 #app-toolbar-content {
-  padding-right: 50px;
+  margin-right: 50px;
   .close-icon {
     position: absolute;
     right: 10px;

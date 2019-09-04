@@ -17,7 +17,6 @@
                 v-model="item.value"
                 :label="humanize(item.name)"
                 type="text"
-                :rules="rules.tittle"
                 required
               ></v-text-field>
               <v-textarea
@@ -156,10 +155,6 @@ export default {
   data: () => ({
     active: false,
     rules: {
-      tittle: [
-        v => !!v || "Field is required",
-        v => (v && v.length <= 20) || "Tittle must be less than 20 characters"
-      ],
       required: [v => !!v || "Field is required"]
     },
     crs: [{ display: "Web Mercator", value: "EPSG:3857" }],
