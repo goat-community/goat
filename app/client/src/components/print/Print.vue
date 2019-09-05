@@ -8,120 +8,145 @@
       <v-card-text class="pr-16 pl-16 pt-0 pb-0">
         <v-divider></v-divider>
       </v-card-text>
-      <v-card-text>
-        <v-form ref="form" lazy-validation>
-          <template v-for="(item, index) in layoutInfo.simpleAttributes">
-            <span :key="index">
-              <v-text-field
-                v-if="item.type === 'text'"
-                v-model="item.value"
-                :label="humanize(item.name)"
-                type="text"
-                required
-              ></v-text-field>
-              <v-textarea
-                v-if="item.type === 'textarea'"
-                v-model="item.value"
-                rows="2"
-                auto-grow
-                :label="humanize(item.name)"
-              ></v-textarea>
-            </span>
-          </template>
+      <template
+        v-if="
+          isState('CAPABILITIES_NOT_LOADED') !== true &&
+            isState('ERROR_ON_GETCAPABILITIES') !== true
+        "
+      >
+        <v-card-text>
+          <v-form ref="form" lazy-validation>
+            <template v-for="(item, index) in layoutInfo.simpleAttributes">
+              <span :key="index">
+                <v-text-field
+                  v-if="item.type === 'text' && item.name != 'crsDescription'"
+                  v-model="item.value"
+                  :label="humanize(item.name)"
+                  type="text"
+                  required
+                ></v-text-field>
+                <v-textarea
+                  v-if="item.type === 'textarea'"
+                  v-model="item.value"
+                  rows="2"
+                  auto-grow
+                  :label="humanize(item.name)"
+                ></v-textarea>
+              </span>
+            </template>
 
-          <v-select
-            v-model="layoutInfo.layout"
-            :items="layoutInfo.layouts"
-            item-text="name"
-            item-value="name"
-            prepend-icon="map"
-            :label="$t('appBar.printMap.form.layout.label')"
-            :rules="rules.required"
-            @change="setLayout"
-            required
-          ></v-select>
-          <v-select
-            v-model="layoutInfo.scale"
-            :items="layoutInfo.scales"
-            prepend-icon="fas fa-ruler-horizontal"
-            :label="$t('appBar.printMap.form.scale.label')"
-            :rules="rules.required"
-            @change="getSetScale"
-            required
+            <v-select
+              v-model="layoutInfo.layout"
+              :items="layoutInfo.layouts"
+              item-text="name"
+              item-value="name"
+              prepend-icon="map"
+              :label="$t('appBar.printMap.form.layout.label')"
+              :rules="rules.required"
+              @change="setLayout"
+              required
+            ></v-select>
+            <v-select
+              v-model="layoutInfo.scale"
+              :items="layoutInfo.scales"
+              prepend-icon="fas fa-ruler-horizontal"
+              :label="$t('appBar.printMap.form.scale.label')"
+              :rules="rules.required"
+              @change="getSetScale"
+              required
+            >
+              <template slot="selection" slot-scope="{ item }">
+                1 : {{ numberWithCommas(item) }}
+              </template>
+              <template slot="item" slot-scope="{ item }">
+                1 : {{ numberWithCommas(item) }}
+              </template>
+            </v-select>
+            <v-select
+              v-model="layoutInfo.dpi"
+              :items="layoutInfo.dpis"
+              prepend-icon="aspect_ratio"
+              :label="$t('appBar.printMap.form.resolution.label')"
+              :rules="rules.required"
+              @change="setDpi"
+              required
+            ></v-select>
+            <v-select
+              v-model="selectedCrs"
+              :items="crs"
+              prepend-icon="language"
+              item-text="display"
+              item-value="value"
+              :label="$t('appBar.printMap.form.crs.label')"
+              :rules="rules.required"
+              required
+            ></v-select>
+
+            <v-layout row class="ml-0">
+              <v-flex xs9 class="pr-3">
+                <v-slider
+                  class="pt-4"
+                  prepend-icon="rotate_right"
+                  v-model="rotation"
+                  track-color="#1867C0"
+                  color="#1867C0"
+                  :min="-180"
+                  :max="180"
+                ></v-slider>
+              </v-flex>
+
+              <v-flex xs3>
+                <v-text-field
+                  v-model="rotation"
+                  suffix="°"
+                  class="mt-0"
+                  type="number"
+                ></v-text-field>
+              </v-flex>
+            </v-layout>
+            <v-layout row class="ml-0 mt-2">
+              <v-flex xs6>
+                <v-checkbox
+                  class="ml-1"
+                  v-model="layoutInfo.legend"
+                  label="Legend"
+                ></v-checkbox>
+              </v-flex>
+              <v-flex xs6>
+                <v-checkbox
+                  class="ml-1"
+                  v-model="showGrid"
+                  label="Grid"
+                ></v-checkbox>
+              </v-flex>
+            </v-layout>
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            class="white--text"
+            color="green"
+            :disabled="isState('PRINTING')"
+            @click="print('pdf')"
+            >{{ $t("appBar.printMap.form.submit") }}</v-btn
           >
-            <template slot="selection" slot-scope="{ item }">
-              1 : {{ numberWithCommas(item) }}
-            </template>
-            <template slot="item" slot-scope="{ item }">
-              1 : {{ numberWithCommas(item) }}
-            </template>
-          </v-select>
-          <v-select
-            v-model="layoutInfo.dpi"
-            :items="layoutInfo.dpis"
-            prepend-icon="aspect_ratio"
-            :label="$t('appBar.printMap.form.resolution.label')"
-            :rules="rules.required"
-            @change="setDpi"
-            required
-          ></v-select>
-          <v-select
-            v-model="selectedCrs"
-            :items="crs"
-            prepend-icon="language"
-            item-text="display"
-            item-value="value"
-            :label="$t('appBar.printMap.form.crs.label')"
-            :rules="rules.required"
-            required
-          ></v-select>
-
-          <v-layout row class="ml-0">
-            <v-flex xs9 class="pr-3">
-              <v-slider
-                class="pt-4"
-                prepend-icon="rotate_right"
-                v-model="rotation"
-                track-color="#1867C0"
-                color="#1867C0"
-                :min="-180"
-                :max="180"
-              ></v-slider>
-            </v-flex>
-
-            <v-flex xs3>
-              <v-text-field
-                v-model="rotation"
-                suffix="°"
-                class="mt-0"
-                type="number"
-              ></v-text-field>
-            </v-flex>
-          </v-layout>
-          <v-layout row class="ml-0 mt-2">
-            <v-flex xs6>
-              <v-checkbox
-                class="ml-1"
-                v-model="layoutInfo.legend"
-                label="Legend"
-              ></v-checkbox>
-            </v-flex>
-            <v-flex xs6>
-              <v-checkbox
-                class="ml-1"
-                v-model="showGrid"
-                label="Grid"
-              ></v-checkbox>
-            </v-flex>
-          </v-layout>
-        </v-form>
+        </v-card-actions>
+      </template>
+      <v-card-text
+        class="pr-16 pl-16 pt-2 pb-0"
+        v-if="isState('CAPABILITIES_NOT_LOADED')"
+      >
+        <p class="subtitle-2">Connecting to the print server, please wait...</p>
       </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn class="white--text" color="green" @click="print('pdf')">{{
-          $t("appBar.printMap.form.submit")
-        }}</v-btn>
-      </v-card-actions>
+      <v-card-text
+        class="pr-16 pl-16 pt-2 pb-0"
+        v-if="isState('ERROR_ON_GETCAPABILITIES')"
+      >
+        <p class="subtitle-2">
+          The print server is unavailable. Please, try later....
+        </p>
+      </v-card-text>
     </v-card>
   </v-flex>
 </template>
@@ -157,6 +182,14 @@ export default {
     rules: {
       required: [v => !!v || "Field is required"]
     },
+    printStateEnum: {
+      NOT_IN_USE: "notInUse",
+      PRINTING: "printing",
+      ERROR_ON_REPORT: "errorOnReport",
+      CAPABILITIES_NOT_LOADED: "capabilitiesNotLoaded",
+      ERROR_ON_GETCAPABILITIES: "errorOnGetCapabilities"
+    },
+    printState: "capabilitiesNotLoaded",
     crs: [{ display: "Web Mercator", value: "EPSG:3857" }],
     selectedCrs: "EPSG:3857",
     rotation: 0,
@@ -237,6 +270,13 @@ export default {
         if (!this.map) {
           throw new Error("Missing map");
         }
+
+        // Do not print if a print task is already processing.
+        if (this.printState === this.printStateEnum.PRINTING) {
+          return;
+        }
+        this.printState = this.printStateEnum.PRINTING;
+
         const mapSize = this.map.getSize();
         const viewResolution = this.map.getView().getResolution() || 0;
         const scale =
@@ -280,6 +320,9 @@ export default {
         if (typeof this.layoutInfo.layout != "string") {
           throw new Error("Wrong layoutInfo.layout type");
         }
+
+        //Add crs description
+        customAttributes.crsDescription = this.selectedCrs;
 
         // convert the WMTS layers to WMS
         const map = new olMap({});
@@ -349,8 +392,7 @@ export default {
         });
 
         this.printService.createReport(spec).then(response => {
-          console.log(response.data);
-          console.log(response);
+          this.printState = this.printStateEnum.NOT_IN_USE;
           if (response.status === 200) {
             FileSaver.saveAs(response.data, "map.pdf");
           }
@@ -836,6 +878,16 @@ export default {
      */
     setDpi(dpi) {
       this.layoutInfo.dpi = dpi;
+    },
+
+    /**
+     * Check the current state of the print.
+     * @param {string} stateEnumKey An enum key
+     * @return {boolean} True if the given state matches with the current print
+     *     state. False otherwise.
+     */
+    isState(stateEnumKey) {
+      return this.printState === this.printStateEnum[stateEnumKey];
     }
   },
 
@@ -860,6 +912,7 @@ export default {
         }
 
         // Get capabilities - On success
+        this.printState = this.printStateEnum.NOT_IN_USE;
         this.parseCapabilities_(resp);
         console.log(this.layoutInfo);
         this.postComposeListenerKey_ = olEvents.listen(
@@ -884,6 +937,7 @@ export default {
       },
       () => {
         // Get capabilities - On error
+        this.printState = this.printStateEnum.ERROR_ON_GETCAPABILITIES;
         this.capabilities_ = null;
       }
     );

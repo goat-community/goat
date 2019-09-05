@@ -235,6 +235,8 @@ const actions = {
       let level = feature.get("step");
       let modus = feature.get("modus");
 
+      //Remove coordinates property (multi-isochrones not printing, probably a bug. )
+      feature.unset("coordinates");
       // If the modus is 1 it is a default isochrone, otherwise is a input or double calculation
       if (modus === 1 || modus === 3) {
         color = state.styleData.defaultIsochroneColors[level];
