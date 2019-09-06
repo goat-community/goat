@@ -76,12 +76,20 @@
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn
+          v-show="selectedLayer != null && selectedLayer.get('name') === 'ways'"
+          class="white--text"
+          color="green"
+          @click="clear"
+        >
+          <v-icon left>cloud_upload</v-icon> Upload
+        </v-btn>
+        <v-btn
           v-show="selectedLayer != null"
           class="white--text"
           color="green"
           @click="clear"
         >
-          Clear
+          <v-icon left>delete</v-icon> Clear
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -183,9 +191,6 @@ export default {
     }
   }),
   watch: {
-    selectedLayer: value => {
-      console.log(value);
-    },
     toggleSelection: {
       handler(state) {
         const me = this;

@@ -42,7 +42,7 @@
       }
     },
     "drawAndMeasure": {
-      "title": "Draw and Measure",
+      "title": "Measure",
       "measure": {
         "header": "Measure",
         "length": "Length",

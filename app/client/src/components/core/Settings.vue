@@ -35,7 +35,7 @@
           </div>
         </v-card-text>
         <!-- Map Units Settings  -->
-        <v-subheader
+        <!-- <v-subheader
           ><h3>{{ $t("appBar.settings.units.header") }}</h3></v-subheader
         >
         <v-card-text class="pr-16 pl-16 pt-0 pb-0">
@@ -52,7 +52,7 @@
               value="miles"
             ></v-radio>
           </v-radio-group>
-        </v-card-text>
+        </v-card-text> -->
       </vue-scroll>
     </v-card>
   </v-dialog>
