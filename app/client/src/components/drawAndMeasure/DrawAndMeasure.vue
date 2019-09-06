@@ -123,9 +123,10 @@
       <v-card-text> </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn class="white--text" color="green" @click="clear">{{
-          $t("appBar.drawAndMeasure.clear")
-        }}</v-btn>
+        <v-btn class="white--text" color="green" @click="clear">
+          <v-icon left>delete</v-icon
+          >{{ $t("appBar.drawAndMeasure.clear") }}</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-flex>

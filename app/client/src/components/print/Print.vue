@@ -70,7 +70,14 @@
               :rules="rules.required"
               @change="setDpi"
               required
-            ></v-select>
+            >
+              <template slot="selection" slot-scope="{ item }">
+                {{ item }} dpi
+              </template>
+              <template slot="item" slot-scope="{ item }">
+                {{ item }} dpi
+              </template>
+            </v-select>
             <v-select
               v-model="selectedCrs"
               :items="crs"
@@ -129,6 +136,8 @@
             color="green"
             :disabled="isState('PRINTING')"
             @click="print('pdf')"
+          >
+            <v-icon left>print</v-icon
             >{{ $t("appBar.printMap.form.submit") }}</v-btn
           >
         </v-card-actions>
