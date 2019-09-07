@@ -6,10 +6,18 @@
   >
     <tree-panel />
     <v-content>
-      <v-container id="ol-map-container" fluid fill-height class="pa-0">
+      <v-container
+        style="height: 100vh; max-height: 100%;"
+        id="ol-map-container"
+        fluid
+        fill-height
+        class="pa-0"
+      >
         <app-map :color="controlsColor" />
         <map-loading-progress-status />
         <snackbar />
+        <background-switcher />
+        <Legend />
       </v-container>
     </v-content>
     <app-sidebar />
@@ -19,11 +27,15 @@
 <script>
 import Vue from "vue";
 import { EventBus } from "./EventBus.js";
-import appMap from "./components/ol/Map";
+
 import appSidebar from "./components/core/SideDrawer";
 import treePanel from "./components/core/TreePanel";
-import MapLoadingProgressStatus from "./components/ol/MapLoadingProgressStatus";
 import Snackbar from "./components/other/Snackbar";
+
+import appMap from "./components/ol/Map";
+import MapLoadingProgressStatus from "./components/ol/MapLoadingProgressStatus";
+import Legend from "./components/ol/Legend";
+import BackgroundSwitcher from "./components/ol/BackgroundSwitcher";
 
 import { mapMutations } from "vuex";
 
@@ -34,7 +46,9 @@ export default {
     appSidebar,
     treePanel,
     MapLoadingProgressStatus,
-    Snackbar
+    Snackbar,
+    Legend,
+    BackgroundSwitcher
   },
   data() {
     return {

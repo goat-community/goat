@@ -103,6 +103,34 @@ const WaysLayerHelper = {
             response.data.deleted_feature_ids;
         }
       });
+  },
+  uploadWaysFeatures(userId, streetSource) {
+    http
+      .get("./geoserver/wfs", {
+        params: {
+          service: "WFS",
+          version: " 1.1.0",
+          request: "GetFeature",
+          viewparams: `userid:${userId}`,
+          typeNames: "cite:network_modification"
+        }
+      })
+      .then(function(response) {
+        if (response.status === 200) {
+          //Update Feature Line type
+          streetSource.getFeatures().forEach(feature => {
+            const prop = feature.getProperties();
+            if (prop.hasOwnProperty("status")) {
+              feature.setProperties({
+                status: 1
+              });
+            }
+          });
+        }
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
   }
 };
 

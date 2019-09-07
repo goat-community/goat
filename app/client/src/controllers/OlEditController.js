@@ -202,6 +202,10 @@ export default class OlEditController extends OlBaseController {
     me.closePopup();
   }
 
+  uploadWaysFeatures() {
+    OlWaysLayerHelper.uploadWaysFeatures(store.state.userId, this.source);
+  }
+
   /**
    * Commit feature  if user selects yes
    */

@@ -75,14 +75,16 @@
 
       <v-card-actions>
         <v-spacer></v-spacer>
+        <!-- Logic only for road layer -->
         <v-btn
           v-show="selectedLayer != null && selectedLayer.get('name') === 'ways'"
           class="white--text"
           color="green"
-          @click="clear"
+          @click="uploadWaysFeatures"
         >
           <v-icon left>cloud_upload</v-icon> Upload
         </v-btn>
+        <!-- ---------------- -->
         <v-btn
           v-show="selectedLayer != null"
           class="white--text"
@@ -330,6 +332,10 @@ export default {
       const me = this;
       me.olEditCtrl.clear();
       me.olSelectCtrl.clear();
+    },
+
+    uploadWaysFeatures() {
+      this.olEditCtrl.uploadWaysFeatures();
     },
 
     /**
