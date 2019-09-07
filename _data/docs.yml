@@ -14,3 +14,7 @@
   docs:
   - osm_tutorial
   - complete_pois
+
+- title: Contribute to the GOAT Website
+  docs: 
+  - contribute_docs
