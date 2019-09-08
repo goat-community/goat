@@ -67,8 +67,7 @@ import { Group } from "ol/layer.js";
 export default {
   mixins: [Mapable],
   data: () => ({
-    backgroundLayers: [],
-    activeBaseLayer: null
+    backgroundLayers: []
   }),
   methods: {
     /**
