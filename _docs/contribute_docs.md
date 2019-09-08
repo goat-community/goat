@@ -103,7 +103,7 @@ Push your changes to your origin repository on GitHub:
 
 #### 9. Make a pull request
 
-When you have completed your changes and are satisfied with them, you can send a pull request to the website owner.
+When you have finalized your changes and are completely satisfied with them, you can send a pull request to the website owner.
 
 First, you need to get the newest version of the upstream repository again:
 
@@ -121,11 +121,11 @@ Push the new version to your origin GitHub repository:
 
 `git push origin gh-pages`
 
-Go on GitHub, navigate to your fork of the GOAT repository and click on "New pull request". 
+Go on GitHub, navigate to your fork of the GOAT repository. There you can see your recently pushed branches. Click on "Compare & pull request" for the branch you want to submit.
 
-FOTO EINFÜGEN
+<img class="img-responsive" src="../../img/git_pull_request.png" alt="how to make a pull request to the original GOAT repository" title="Make a pull request"/>
 
-Explain in detail what you have done and submit it. 
+Explain in detail what you have done and submit it by pressing the button "Create pull request".
 
 If the website owner likes your changes, he will accept them and they will soon be visible online on the website.
 
