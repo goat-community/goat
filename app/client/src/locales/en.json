@@ -83,8 +83,10 @@
   },
   "isochrones": {
     "title": "Isochrones",
-    "startPoint": {
-      "title": "Starting Point"
+    "startSingle": {
+      "title": "Starting Point",
+      "searchBox": "Search Starting Point",
+      "startTooltip": "Click on map to start Isochrone calculation"
     },
     "options": {
       "title": "Options",
@@ -93,7 +95,8 @@
       "time": "min",
       "nr": "Isochrones",
       "calcType": "Concavity Isochrones",
-      "calcModus": "Calculation Modes"
+      "calcModus": "Calculation Modes",
+      "alphaShapeMode": "Alpha-shape Parameter"
     },
     "results": {
       "title": "Results"

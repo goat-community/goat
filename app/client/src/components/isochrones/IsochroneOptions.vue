@@ -98,7 +98,7 @@
           outlined
           :value="alphaShapeParameter"
           :items="options.alphaShapeParameter.values"
-          label="Alpha-shape Parameter"
+          :label="$t('isochrones.options.alphaShapeMode')"
         ></v-select>
       </v-flex>
     </div>
