@@ -65,7 +65,7 @@
           max="8"
           inverse-label
           prepend-icon="fas fa-sort-numeric-up"
-          :label="'Isochrones (' + steps + ')'"
+          :label="`${$t('isochrones.isochrones')} (${steps})`"
         >
         </v-slider>
 

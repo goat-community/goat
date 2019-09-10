@@ -16,7 +16,7 @@
         small
         >fas fa-map-marker-alt</v-icon
       >
-      <h3>{{ $t("isochrones.startSingle.title") }}</h3>
+      <h3>{{ $t("isochrones.single.title") }}</h3>
     </v-subheader>
     <v-card-text v-show="isIsochroneStartElVisible" class="pt-0 pb-1 mt-0 mb-1">
       <v-layout row>
@@ -26,7 +26,7 @@
             v-model="model"
             :items="items"
             :loading="isLoading"
-            :label="$t('isochrones.startSingle.searchBox')"
+            :label="$t('isochrones.single.searchBox')"
             :search-input.sync="search"
             item-text="DisplayName"
             append-icon=""
@@ -60,7 +60,7 @@
                 <v-icon color="#30C2FF">fas fa-map-marker-alt</v-icon>
               </v-btn>
             </template>
-            <span>{{ $t("isochrones.startSingle.startTooltip") }}</span>
+            <span>{{ $t("isochrones.single.startTooltip") }}</span>
           </v-tooltip>
         </v-flex>
       </v-layout>

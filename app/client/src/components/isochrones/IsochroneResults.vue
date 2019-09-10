@@ -53,7 +53,7 @@
                         >fas fa-table</v-icon
                       >
                     </template>
-                    <span>Show Data</span>
+                    <span>{{ $t("isochrones.results.showDataTooltip") }}</span>
                   </v-tooltip>
 
                   <v-tooltip top>
@@ -70,7 +70,9 @@
                         "
                       ></v-icon>
                     </template>
-                    <span>Toggle Visibility</span>
+                    <span>{{
+                      $t("isochrones.results.toggleVisibilityTooltip")
+                    }}</span>
                   </v-tooltip>
 
                   <v-tooltip top>
@@ -83,7 +85,7 @@
                         >fas fa-download</v-icon
                       >
                     </template>
-                    <span>Download</span>
+                    <span>{{ $t("isochrones.results.downloadTooltip") }}</span>
                   </v-tooltip>
 
                   <v-tooltip top>
@@ -97,7 +99,9 @@
                         fas fa-trash-alt</v-icon
                       >
                     </template>
-                    <span>Delete</span>
+                    <span>{{
+                      $t("isochrones.results.deleteCalcTooltip")
+                    }}</span>
                   </v-tooltip>
                 </v-layout>
               </v-layout>
@@ -174,13 +178,6 @@ export default {
   },
   data() {
     return {
-      headers: [
-        { text: "Type", value: "type", sortable: false },
-        { text: "Range", value: "range", sortable: false },
-        { text: "Area", value: "area", sortable: false },
-        { text: "Visible", value: "visible", sortable: false },
-        { text: "Legend", value: "legend", sortable: false }
-      ],
       showDialog: false,
       selectedCalculation: null,
       isResultsElVisible: true
@@ -201,10 +198,8 @@ export default {
     deleteCalculation(calculation) {
       this.$refs.confirm
         .open(
-          "Delete",
-          "Are you sure you want to delete Calculation " +
-            calculation.id +
-            " ?",
+          this.$t("isochrones.deleteTitle"),
+          this.$t("isochrones.deleteMessage") + " " + calculation.id + " ?",
           { color: "green" }
         )
         .then(confirm => {
@@ -248,7 +243,36 @@ export default {
     ...mapGetters("isochrones", {
       calculations: "calculations",
       isochroneLayer: "isochroneLayer"
-    })
+    }),
+    headers() {
+      return [
+        {
+          text: this.$t("isochrones.results.table.type"),
+          value: "type",
+          sortable: false
+        },
+        {
+          text: this.$t("isochrones.results.table.range"),
+          value: "range",
+          sortable: false
+        },
+        {
+          text: this.$t("isochrones.results.table.area"),
+          value: "area",
+          sortable: false
+        },
+        {
+          text: this.$t("isochrones.results.table.visible"),
+          value: "visible",
+          sortable: false
+        },
+        {
+          text: this.$t("isochrones.results.table.legend"),
+          value: "legend",
+          sortable: false
+        }
+      ];
+    }
   }
 };
 </script>
