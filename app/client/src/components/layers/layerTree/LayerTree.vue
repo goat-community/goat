@@ -1,7 +1,7 @@
 <template>
   <v-flex xs12 sm8 md4>
     <v-subheader>
-      <span class="title">Layers</span>
+      <span class="title">{{ $t("layerTree.title") }}</span>
     </v-subheader>
     <v-divider></v-divider>
 

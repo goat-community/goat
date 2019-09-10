@@ -18,7 +18,7 @@
         small
         >fas fa-bullseye</v-icon
       >
-      <h3>Isochrone Calculation</h3>
+      <h3>{{ $t("isochrones.calculation") }}</h3>
     </v-subheader>
     <v-card-text
       v-show="isIsochroneCalculationTypeElVisible"
@@ -30,8 +30,11 @@
         v-model="calculationType"
         row
       >
-        <v-radio label="Single" value="single"></v-radio>
-        <v-radio label="Multiple" value="multiple"></v-radio>
+        <v-radio :label="$t('isochrones.single.type')" value="single"></v-radio>
+        <v-radio
+          :label="$t('isochrones.multiple.type')"
+          value="multiple"
+        ></v-radio>
       </v-radio-group>
     </v-card-text>
   </v-flex>

@@ -83,10 +83,27 @@
   },
   "isochrones": {
     "title": "Isochrones",
-    "startSingle": {
+    "calculation": "Isochrone Calculation",
+    "single": {
       "title": "Starting Point",
+      "type": "Single",
       "searchBox": "Search Starting Point",
-      "startTooltip": "Click on map to start Isochrone calculation"
+      "startTooltip": "Click on map to start Isochrone calculation",
+      "tableDataTitle": "Thematic Data"
+    },
+    "multiple": {
+      "title": "Start",
+      "type": "Multiple",
+      "selectMethod": "Select Method",
+      "studyArea": "Study Area",
+      "clear": "Clear",
+      "calculate": "Calculate",
+      "studyAreaInfoLabel": "Select <b>study zones</b> and <b>amenities</b> to enable calculation.",
+      "drawBoundary": "Draw Boundary",
+      "amenityCount": "Amenity Count",
+      "limit": "Limit",
+      "drawBoundaryInfoLabel": "Draw <b>boundary</b> and select <b>amenities</b> to enable calculation.",
+      "tableDataTitle": "Multi-Isochrone Data"
     },
     "options": {
       "title": "Options",
@@ -99,9 +116,43 @@
       "alphaShapeMode": "Alpha-shape Parameter"
     },
     "results": {
-      "title": "Results"
-    }
+      "title": "Results",
+      "showDataTooltip": "Show Data",
+      "toggleVisibilityTooltip": "Toggle Visibility",
+      "downloadTooltip": "Download",
+      "deleteCalcTooltip": "Delete Calculation",
+      "table": {
+        "type": "Type",
+        "range": "Range",
+        "area": "Area",
+        "visible": "Visible",
+        "legend": "Legend"
+      }
+    },
+    "tableData": {
+      "timeFilter": "Time filter",
+      "searchPois": "Search Point of Interest",
+      "selectTimeMsg": "Select time to filter",
+      "noDataMsg": "No data for the selected time",
+      "selectAmenitiesMsg": "Select <b>Amenities</b> and <b>Time</b> to filter the table.",
+      "table": {
+        "pois": "Point of Interest",
+        "isochrone": "Isochrone",
+        "studyArea": "Study Area",
+        "population": "Population",
+        "reachedPopulation": "Reached Population"
+      }
+    },
+    "isochrones": "Isochrones",
+    "deleteTitle": "Delete",
+    "deleteMessage": "Are you sure you want to delete Calculation"
   },
-  "layerTree": {},
-  "map": {}
+  "layerTree": {
+    "title": "Layers"
+  },
+  "map": {},
+  "confirm": {
+    "yes": "Yes",
+    "cancel": "Cancel"
+  }
 }
