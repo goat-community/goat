@@ -2,6 +2,7 @@ const state = {
   allPois: [
     {
       name: "Education",
+      categoryValue: "education",
       id: 1,
       children: [
         {
@@ -36,6 +37,7 @@ const state = {
     },
     {
       name: "Food and Drink",
+      categoryValue: "foodAndDrink",
       children: [
         {
           name: "Bar",
@@ -97,6 +99,7 @@ const state = {
     },
     {
       name: "Transport",
+      categoryValue: "transport",
       children: [
         {
           name: "Bicycle rental",
@@ -158,6 +161,7 @@ const state = {
     },
     {
       name: "Services",
+      categoryValue: "services",
       children: [
         {
           name: "Hairdresser",
@@ -226,6 +230,7 @@ const state = {
     },
     {
       name: "Shop",
+      categoryValue: "shop",
       children: [
         {
           name: "Bakery",
@@ -336,6 +341,7 @@ const state = {
     },
     {
       name: "Tourism & Leisure",
+      categoryValue: "tourismAndLeisure",
       children: [
         {
           name: "Cinema",
