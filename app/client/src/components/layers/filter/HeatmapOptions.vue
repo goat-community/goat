@@ -7,7 +7,7 @@
         >
         <v-toolbar-title
           >{{ $t("appBar.filter.poisSettings.title") }} - ({{
-            selectedAmenity.name
+            getDisplayName(selectedAmenity)
           }})</v-toolbar-title
         >
 
@@ -72,6 +72,14 @@ export default {
   methods: {
     updateHeatmap() {
       this.$emit("updated");
+    },
+    getDisplayName(item) {
+      let value;
+      if (item.value) {
+        //Display name for amenities
+        value = this.$t(`pois.${item.value}`);
+      }
+      return value;
     }
   },
   computed: {

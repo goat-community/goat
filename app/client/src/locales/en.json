@@ -79,6 +79,7 @@
     "filter": {
       "title": "Filter",
       "poisSettings": {
+        "buttonTooltip": "Weight and Sensitivity Settings",
         "title": "Heatmap",
         "selectWeight": "Select Weight",
         "sensitivityIndex": "Sensitivity index",
@@ -196,5 +197,72 @@
     "layerLegend": {
       "title": "Layers Legend"
     }
+  },
+  "pois": {
+    "education": "Education",
+    "foodAndDrink": "Food and Drink",
+    "transport": "Transport",
+    "services": "Services",
+    "shop": "Shop",
+    "tourismAndLeisure": "Tourism & Leisure",
+
+    "kindergarten": "Kindergarten",
+    "primary_school": "Primary school",
+    "secondary_school": "Secondary school",
+    "library": "Library",
+
+    "bar": "Bar",
+    "biergarten": "Biergarten",
+    "cafe": "Café",
+    "pub": "Pub",
+    "fast_food": "Fast Food",
+    "ice_cream": "Ice Cream",
+    "restaurant": "Restaurant",
+    "nightclub": "Night-Club",
+
+    "bicycle_rental": "Bicycle rental",
+    "car_sharing": "Car sharing",
+    "charging_station": "Charging station",
+    "bus_stop": "Bus",
+    "tram_stop": "Tram Stop",
+    "subway_entrance": "U-Bahn station",
+    "rail_station": "Rail Station",
+    "taxi": "Taxi",
+
+    "hairdresser": "Hairdresser",
+    "atm": "ATM",
+    "bank": "Bank",
+    "dentist": "Dentist",
+    "doctors": "Doctor",
+    "pharmacy": "Pharmacy",
+    "post_box": "Post box",
+    "fuel": "Fuel",
+    "recycling": "Recycling",
+
+    "bakery": "Bakery",
+    "butcher": "Butcher",
+    "clothes": "Clothing store",
+    "convenience": "Convenience store",
+    "greengrocer": "Greengrocer",
+    "kiosk": "Kiosk",
+    "mall": "Mall",
+    "shoes": "Shoes",
+    "supermarket": "Supermarket",
+    "discount_supermarket": "Discount Supermarket",
+    "international_supermarket": "International Supermarket",
+    "hypermarket": "Hypermarket",
+    "chemist": "Chemist",
+    "organic": "Organic Food",
+    "marketplace": "Marketplace",
+
+    "cinema": "Cinema",
+    "theatre": "Theatre",
+    "museum": "Museum",
+    "hotel": "Hotel",
+    "hostel": "Hostel",
+    "guest_house": "Guest house",
+    "gallery": "Gallery",
+
+    "population": "Population"
   }
 }

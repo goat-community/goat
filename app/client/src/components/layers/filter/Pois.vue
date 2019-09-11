@@ -22,7 +22,7 @@
         <img v-if="item.icon" class="pois-icon" :src="getPoisIconUrl(item)" />
       </template>
       <template v-slot:label="{ item, open }">
-        <div class="tree-label-custom">{{ item.name }}</div>
+        <div class="tree-label-custom">{{ getDisplayName(item) }}</div>
       </template>
       <template v-slot:append="{ item, open }">
         <template v-if="item.icon">
@@ -37,7 +37,7 @@
                 fas fa-cog
               </v-icon>
             </template>
-            <span>Weight and Sensitivity Settings</span>
+            <span>{{ $t("appBar.filter.poisSettings.buttonTooltip") }}</span>
           </v-tooltip>
         </template>
       </template>
@@ -147,6 +147,17 @@ export default {
     toggleHeatmapDialog(amenity) {
       this.selectedAmenity = amenity;
       this.showHeatmapOptionsDialog = true;
+    },
+    getDisplayName(item) {
+      let value;
+      if (item.value) {
+        //Display name for amenities
+        value = this.$t(`pois.${item.value}`);
+      } else {
+        //Display name from categories
+        value = this.$t(`pois.${item.categoryValue}`);
+      }
+      return value;
     }
   },
   watch: {
