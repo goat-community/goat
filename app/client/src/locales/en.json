@@ -1,6 +1,20 @@
 {
   "appTitle": "GOAT",
+  "buttonLabels": {
+    "yes": "Yes",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
   "appBar": {
+    "buttons": {
+      "login": "Login",
+      "print": "Print",
+      "drawAndMeasure": "Draw and Measure",
+      "filter": "Filter",
+      "edit": "Edit",
+      "settings": "Settings",
+      "info": "Info"
+    },
     "login": {
       "title": "Login",
       "form": {
@@ -17,6 +31,8 @@
     },
     "printMap": {
       "title": "Print Map",
+      "connectionMsg": "Connecting to the print server, please wait...",
+      "unavailableMsg": "The print server is unavailable. Please, try later....",
       "form": {
         "title": {
           "label": "Title",
@@ -61,11 +77,37 @@
       "clear": "Clear"
     },
     "filter": {
-      "title": "Filter"
+      "title": "Filter",
+      "poisSettings": {
+        "title": "Heatmap",
+        "selectWeight": "Select Weight",
+        "sensitivityIndex": "Sensitivity index",
+        "sensitivityGraph": {
+          "title": "Accessibility",
+          "gravity": "Accessibility Gravity (%)",
+          "travelTime": "Traveltime (minutes)"
+        }
+      }
     },
     "edit": {
-      "title": "Edit"
+      "title": "Edit",
+      "selectLayer": "Layer to edit",
+      "selectFeatures": "Select features",
+      "drawCircle": "Draw a circle to select features",
+      "selectOnMap": "Select features on map",
+      "editTools": "Edit Tools",
+      "drawFeatureTooltip": "Draw Feature",
+      "modifyFeatureTooltip": "Modify Feature",
+      "deleteFeature": "Delete Feature",
+      "clearBtn": "Clear",
+      "uploadBtn": "Upload",
+      "popup": {
+        "deleteFeatureMsg": "Are you sure you want to delete the selected feature ?",
+        "selectWayType": "Select way type: ",
+        "wayType": "Way Type"
+      }
     },
+
     "settings": {
       "title": "Settings",
       "language": "Language",
@@ -150,9 +192,9 @@
   "layerTree": {
     "title": "Layers"
   },
-  "map": {},
-  "confirm": {
-    "yes": "Yes",
-    "cancel": "Cancel"
+  "map": {
+    "layerLegend": {
+      "title": "Layers Legend"
+    }
   }
 }

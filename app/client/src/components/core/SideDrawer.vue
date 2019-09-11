@@ -130,54 +130,57 @@ export default {
     "app-about": About
   },
   data: () => ({
-    upItems: [
-      {
-        icon: "fas fa-user",
-        text: "Login",
-        componentToShow: "map-login"
-      },
-      {
-        icon: "fas fa-print",
-        text: "Print",
-        componentToShow: "map-print"
-      },
-      {
-        icon: "fas fa-paint-brush",
-        text: "Draw and Measure",
-        componentToShow: "map-draw-measure"
-      },
-      {
-        icon: "fas fa-filter",
-        text: "Filter",
-        componentToShow: "map-filter"
-      },
-      {
-        icon: "fas fa-edit",
-        text: "Edit",
-        componentToShow: "map-edit"
-      }
-    ],
-    bottomItems: [
-      {
-        icon: "fas fa-cog",
-        text: "Settings",
-        componentToShow: "app-settings"
-      },
-      {
-        icon: "fas fa-info-circle",
-        text: "Info",
-        componentToShow: "app-about"
-      }
-    ],
     container: false,
     activeUpComponent: "",
     activeBottomComponent: "",
     responsive: false,
     showDialog: false
   }),
-  computed: {},
-  mounted() {},
-  beforeDestroy() {},
+  computed: {
+    upItems() {
+      return [
+        {
+          icon: "fas fa-user",
+          text: this.$t("appBar.buttons.login"),
+          componentToShow: "map-login"
+        },
+        {
+          icon: "fas fa-print",
+          text: this.$t("appBar.buttons.print"),
+          componentToShow: "map-print"
+        },
+        {
+          icon: "fas fa-paint-brush",
+          text: this.$t("appBar.buttons.drawAndMeasure"),
+          componentToShow: "map-draw-measure"
+        },
+        {
+          icon: "fas fa-filter",
+          text: this.$t("appBar.buttons.filter"),
+          componentToShow: "map-filter"
+        },
+        {
+          icon: "fas fa-edit",
+          text: this.$t("appBar.buttons.edit"),
+          componentToShow: "map-edit"
+        }
+      ];
+    },
+    bottomItems() {
+      return [
+        {
+          icon: "fas fa-cog",
+          text: this.$t("appBar.buttons.settings"),
+          componentToShow: "app-settings"
+        },
+        {
+          icon: "fas fa-info-circle",
+          text: this.$t("appBar.buttons.info"),
+          componentToShow: "app-about"
+        }
+      ];
+    }
+  },
   methods: {
     toggleComponent(component) {
       if (component === this.activeUpComponent) {

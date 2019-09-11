@@ -5,7 +5,7 @@
   >
     <v-expansion-panel style="background-color: white;">
       <v-expansion-panel-header
-        >Layers Legend
+        >{{ $t("map.layerLegend.title") }}
         <template v-slot:actions>
           <v-icon small>$vuetify.icons.expand</v-icon>
         </template>
