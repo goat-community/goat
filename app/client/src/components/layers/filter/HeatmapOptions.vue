@@ -6,7 +6,9 @@
           ><v-icon>fas fa-chart-line</v-icon></v-app-bar-nav-icon
         >
         <v-toolbar-title
-          >Heatmap - ({{ selectedAmenity.name }})</v-toolbar-title
+          >{{ $t("appBar.filter.poisSettings.title") }} - ({{
+            selectedAmenity.name
+          }})</v-toolbar-title
         >
 
         <v-spacer></v-spacer>
@@ -21,7 +23,7 @@
             :items="weightListValues"
             @change="updateHeatmap"
             class="mx-2 mt-4"
-            label="Select Weight"
+            :label="$t('appBar.filter.poisSettings.selectWeight')"
             outlined
           ></v-select>
           <template>
@@ -30,7 +32,7 @@
               :items="sensitivityListValues"
               @change="updateHeatmap"
               class="mx-2"
-              label="Sensitivity index"
+              :label="$t('appBar.filter.poisSettings.sensitivityIndex')"
               outlined
             ></v-select>
             <sensitivity-chart :amenity="selectedAmenity" />

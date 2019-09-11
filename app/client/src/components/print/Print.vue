@@ -146,14 +146,14 @@
         class="pr-16 pl-16 pt-2 pb-0"
         v-if="isState('CAPABILITIES_NOT_LOADED')"
       >
-        <p class="subtitle-2">Connecting to the print server, please wait...</p>
+        <p class="subtitle-2">{{ $t("appBar.printMap.connectionMsg") }}</p>
       </v-card-text>
       <v-card-text
         class="pr-16 pl-16 pt-2 pb-0"
         v-if="isState('ERROR_ON_GETCAPABILITIES')"
       >
         <p class="subtitle-2">
-          The print server is unavailable. Please, try later....
+          {{ $t("appBar.printMap.unavailableMsg") }}
         </p>
       </v-card-text>
     </v-card>

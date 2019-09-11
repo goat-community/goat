@@ -2,7 +2,7 @@
   <v-flex xs12 sm8 md4>
     <v-card flat>
       <v-subheader>
-        <span class="title">Edit</span>
+        <span class="title">{{ $t("appBar.edit.title") }}</span>
       </v-subheader>
       <v-card-text class="pr-16 pl-16 pt-0 pb-0">
         <v-divider></v-divider>
@@ -15,12 +15,12 @@
           item-value="values_.name"
           return-object
           solo
-          label="Layer to edit"
+          :label="$t('appBar.edit.selectLayer')"
         >
         </v-select>
         <v-divider></v-divider>
         <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
-          <p class="mb-1">Select features</p>
+          <p class="mb-1">{{ $t("appBar.edit.selectFeatures") }}</p>
           <v-btn-toggle v-model="toggleSelection">
             <v-tooltip top>
               <template v-slot:activator="{ on }">
@@ -28,7 +28,7 @@
                   <v-icon>far fa-dot-circle</v-icon>
                 </v-btn>
               </template>
-              <span>Draw a circle to select features</span>
+              <span>{{ $t("appBar.edit.drawCircle") }}</span>
             </v-tooltip>
             <v-tooltip top>
               <template v-slot:activator="{ on }">
@@ -36,13 +36,13 @@
                   <v-icon>far fa-hand-pointer</v-icon>
                 </v-btn>
               </template>
-              <span>Select features on map</span>
+              <span>{{ $t("appBar.edit.selectOnMap") }}</span>
             </v-tooltip>
           </v-btn-toggle>
         </v-flex>
         <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0">
           <v-divider class="mb-1"></v-divider>
-          <p class="mb-1">Edit Tools</p>
+          <p class="mb-1">{{ $t("appBar.edit.editTools") }}</p>
           <v-btn-toggle v-model="toggleEdit">
             <v-tooltip top>
               <template v-slot:activator="{ on }">
@@ -50,7 +50,7 @@
                   <v-icon medium>add</v-icon>
                 </v-btn>
               </template>
-              <span>Draw Feature</span>
+              <span>{{ $t("appBar.edit.drawFeatureTooltip") }}</span>
             </v-tooltip>
             <v-tooltip top>
               <template v-slot:activator="{ on }">
@@ -58,7 +58,7 @@
                   <v-icon>far fa-edit</v-icon>
                 </v-btn>
               </template>
-              <span>Modify Feature</span>
+              <span>{{ $t("appBar.edit.modifyFeatureTooltip") }}</span>
             </v-tooltip>
             <v-tooltip top>
               <template v-slot:activator="{ on }">
@@ -66,7 +66,7 @@
                   <v-icon>far fa-trash-alt</v-icon>
                 </v-btn>
               </template>
-              <span>Delete Feature</span>
+              <span>{{ $t("appBar.edit.deleteFeature") }}</span>
             </v-tooltip>
           </v-btn-toggle>
           <v-divider class="mt-4"></v-divider>
@@ -82,7 +82,7 @@
           color="green"
           @click="uploadWaysFeatures"
         >
-          <v-icon left>cloud_upload</v-icon> Upload
+          <v-icon left>cloud_upload</v-icon>{{ $t("appBar.edit.uploadBtn") }}
         </v-btn>
         <!-- ---------------- -->
         <v-btn
@@ -91,7 +91,7 @@
           color="green"
           @click="clear"
         >
-          <v-icon left>delete</v-icon> Clear
+          <v-icon left>delete</v-icon>{{ $t("appBar.edit.clearBtn") }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -107,17 +107,17 @@
       </template>
       <template v-slot:body>
         <div v-if="popup.selectedInteraction === 'delete'">
-          <b>Are you sure you want to delete the selected feature ?</b>
+          <b>{{ $t("appBar.edit.popup.deleteFeatureMsg") }}</b>
         </div>
         <div v-else-if="popup.selectedInteraction === 'add'">
-          <span>Select way type: </span>
+          <span>{{ $t("appBar.edit.popup.selectWayType") }}</span>
           <v-select
             :items="waysTypes.values"
             item-text="display"
             item-value="value"
             v-model="waysTypes.active"
             @change="updateSelectedWaysType"
-            label="Way Type"
+            :label="$t('appBar.edit.popup.wayType')"
             solo
             required
             class="pt-2 ma-0"
@@ -130,22 +130,22 @@
             color="primary darken-1"
             @click="olEditCtrl.deleteFeature()"
             text
-            >Yes</v-btn
+            >{{ $t("buttonLabels.yes") }}</v-btn
           >
-          <v-btn color="grey" text @click="olEditCtrl.closePopup()"
-            >Cancel</v-btn
-          >
+          <v-btn color="grey" text @click="olEditCtrl.closePopup()">{{
+            $t("buttonLabels.cancel")
+          }}</v-btn>
         </template>
         <template v-else-if="popup.selectedInteraction === 'add'">
           <v-btn
             color="primary darken-1"
             @click="olEditCtrl.commitFeature()"
             text
-            >Save</v-btn
+            >{{ $t("buttonLabels.save") }}</v-btn
           >
-          <v-btn color="grey" text @click="olEditCtrl.closePopup()"
-            >Cancel</v-btn
-          >
+          <v-btn color="grey" text @click="olEditCtrl.closePopup()">{{
+            $t("buttonLabels.cancel")
+          }}</v-btn>
         </template>
       </template>
     </overlay-popup>
