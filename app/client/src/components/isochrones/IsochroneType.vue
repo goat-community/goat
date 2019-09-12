@@ -18,7 +18,7 @@
         small
         >fas fa-bullseye</v-icon
       >
-      <h3>{{ $t("isochrones.calculation") }}</h3>
+      <h3>{{ $t("isochrones.calculationTitle") }}</h3>
     </v-subheader>
     <v-card-text
       v-show="isIsochroneCalculationTypeElVisible"

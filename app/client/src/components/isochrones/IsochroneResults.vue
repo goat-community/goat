@@ -122,7 +122,13 @@
                     : 'fas fa-chevron-right'
                 "
               ></v-icon>
-              <h3>{{ calculation.position }}</h3>
+              <h3>
+                {{
+                  calculation.position === "multiIsochroneCalculation"
+                    ? $t("isochrones.results.multiIsochroneHeader")
+                    : calculation.position
+                }}
+              </h3>
             </v-subheader>
             <v-card-text class="pt-0 " v-show="calculation.isExpanded">
               <v-data-table

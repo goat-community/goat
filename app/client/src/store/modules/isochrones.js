@@ -40,10 +40,19 @@ const state = {
     calculationModes: {
       name: "modus",
       values: [
-        { display: "Default Network", value: "default" },
-        { display: "Modified Network", value: "scenario" },
+        {
+          display: "Default Network",
+          name: "defaultNetwork",
+          value: "default"
+        },
+        {
+          display: "Modified Network",
+          name: "modifiedNetwork",
+          value: "scenario"
+        },
         {
           display: "Modified Network (Double Calculation)",
+          name: "modifiedNetworkDoubleCalc",
           value: "comparison"
         }
       ],
@@ -59,8 +68,16 @@ const state = {
   multiIsochroneCalculationMethods: {
     name: "multiIsochroneCalculationMethods",
     values: [
-      { display: "Study Area", value: "study_area" },
-      { display: "Draw Boundary", value: "draw" }
+      {
+        display: "Study Area",
+        name: "studyArea",
+        value: "study_area"
+      },
+      {
+        display: "Draw Boundary",
+        name: "drawBoundary",
+        value: "draw"
+      }
     ],
     active: null
   },
@@ -294,7 +311,7 @@ const actions = {
         "";
     } else {
       commit("RESET_MULTIISOCHRONE_START");
-      transformedData.position = "Multi-Isochrone Calculation";
+      transformedData.position = "multiIsochroneCalculation";
     }
 
     commit("CALCULATE_ISOCHRONE", transformedData);
@@ -318,7 +335,7 @@ const actions = {
           "map/TOGGLE_SNACKBAR",
           {
             type: "error",
-            message: "You must select at least one amenity",
+            message: "selectAmenities",
             state: true
           },
           { root: true }
