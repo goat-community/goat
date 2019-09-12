@@ -3,7 +3,11 @@
     <v-flex xs12 class="mx-3">
       <v-card-text class="ma-0 py-0 pt-0 pb-2">
         <p class="font-weight-medium  text-right ma-0 pa-0">
-          - {{ selectedThematicData.calculationName }}
+          {{
+            `${$t("isochrones.calculation")} - ${
+              selectedThematicData.calculationId
+            }`
+          }}
         </p>
       </v-card-text>
 
@@ -94,6 +98,7 @@ export default {
   computed: {
     tableHeaders() {
       let headers;
+      console.log(this.selectedThematicData);
       if (this.selectedThematicData.calculationType === "single") {
         let pois = this.selectedThematicData.pois;
         headers = [

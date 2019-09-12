@@ -8,7 +8,11 @@
     <v-icon color="white" class="mr-3">
       info
     </v-icon>
-    {{ snackbar.message }}
+    {{
+      snackbar.message
+        ? $t(`map.snackbarMessages.${snackbar.message}`)
+        : snackbar.message
+    }}
     <v-btn text @click="hideSnackbar({ state: false })">
       <v-icon>close</v-icon>
     </v-btn>

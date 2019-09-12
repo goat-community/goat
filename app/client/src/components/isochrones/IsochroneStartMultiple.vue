@@ -16,7 +16,7 @@
         small
         >fas fa-map-marker-alt</v-icon
       >
-      <h3>Start</h3>
+      <h3>{{ $t("isochrones.multiple.title") }}</h3>
     </v-subheader>
     <v-flex
       xs12
@@ -25,7 +25,6 @@
       class="mx-4"
     >
       <v-select
-        item-text="display"
         item-value="value"
         class="select-method-height mx-1 my-1"
         v-model="activeMultiIsochroneMethod"
@@ -33,7 +32,14 @@
         @change="toggleInteraction"
         :label="$t('isochrones.multiple.selectMethod')"
         solo
-      ></v-select>
+      >
+        <template slot="selection" slot-scope="{ item }">
+          {{ $t(`isochrones.multiple.${item.name}`) }}
+        </template>
+        <template slot="item" slot-scope="{ item }">
+          {{ $t(`isochrones.multiple.${item.name}`) }}
+        </template>
+      </v-select>
       <template v-if="this.activeMultiIsochroneMethod !== null">
         <v-alert
           border="left"

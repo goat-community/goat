@@ -81,14 +81,20 @@
         ></v-select>
 
         <v-select
-          item-text="display"
           item-value="value"
           v-model="calculationModes"
           outlined
           :value="calculationModes"
           :items="options.calculationModes.values"
           :label="$t('isochrones.options.calcModus')"
-        ></v-select>
+        >
+          <template slot="selection" slot-scope="{ item }">
+            {{ $t(`isochrones.options.${item.name}`) }}
+          </template>
+          <template slot="item" slot-scope="{ item }">
+            {{ $t(`isochrones.options.${item.name}`) }}
+          </template>
+        </v-select>
 
         <v-select
           v-if="options.calculationType === 'multiple'"

@@ -21,7 +21,7 @@
                 <v-text-field
                   v-if="item.type === 'text' && item.name != 'crsDescription'"
                   v-model="item.value"
-                  :label="humanize(item.name)"
+                  :label="$t(`appBar.printMap.form.${item.name}.label`)"
                   type="text"
                   required
                 ></v-text-field>
