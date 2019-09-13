@@ -4,10 +4,9 @@ branches:
   only:
     - master
     - development
-before_install:
-  - cd app/client
 install:
-  - npm install
+  - "cd $TRAVIS_BUILD_DIR/app/client"
+  - "npm install"
 script:
-  - cd app/client
-  - npm run build
+  - "cd $TRAVIS_BUILD_DIR/app/client"
+  - "npm run build"
