@@ -1,9 +1,13 @@
 language: node_js
 node_js: stable
-sudo: required
 branches:
   only:
     - master
     - development
+before_install:
+  - cd app/client
+install:
+  - npm install
 script:
-- ./scripts/after-success.sh
+  - cd app/client
+  - npm run build
