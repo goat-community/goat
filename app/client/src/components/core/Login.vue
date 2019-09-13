@@ -30,9 +30,10 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn class="white--text" @click="login" color="green">{{
-          $t("appBar.login.form.submit")
-        }}</v-btn>
+        <v-btn class="white--text" @click="login" color="green">
+          <v-icon left>fas fa-sign-in-alt</v-icon
+          >{{ $t("appBar.login.form.submit") }}</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-flex>
