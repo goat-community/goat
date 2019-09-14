@@ -204,6 +204,33 @@
     },
     "snackbarMessages": {
       "selectAmenities": "You must select at least one amenity"
+    },
+    "layerGroup": {
+      "poisLayers": "Pois Layer",
+      "administrativeLayers": "Administrative Layers",
+      "accessbilityBasemaps": "Accessibility Basemap",
+      "backgroundLayers": "Background Layers"
+    },
+    "layerName": {
+      "pois": "Point of Interest",
+      "administrativeUnits": "Administrative Units",
+      "areaIsochrone": "Area Isochrone",
+      "walkabilityPopulation": "Walkability Population",
+      "population": "Population",
+      "walkability": "Walkability"
+    },
+    "tooltips": {
+      "clickForCalculation": "Click for Calculation",
+      "clickToSelectStudyArea": "Click to select the study area",
+      "maxCircleRadius": "Maximum circle radius is 1000 m",
+      "clickToStartMeasure": "Click to start measuring",
+      "clickToStartDrawing": "Click to start drawing",
+      "clickToContinueDrawing": "Click to continue drawing",
+      "clickToFinishDrawing": "Click to finish drawing",
+      "clickToStartDrawingBoundary": "Click to start drawing the boundary",
+      "clickToStartDrawingCircle": "Click to start drawing the circle (Max Radius 1000 m)",
+      "clickToFinishDrawingPolygon": "Double-click or click starting point to finish",
+      "clickOnFeatureToDelete": "Click on feature to delete it"
     }
   },
   "pois": {
