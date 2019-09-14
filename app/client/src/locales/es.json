@@ -1,3 +1,330 @@
 {
-  "message": "hello i18n !!"
+    "appTitle": "",
+    "buttonLabels": {
+        "yes": "",
+        "cancel": "",
+        "save": ""
+    },
+    "appBar": {
+        "buttons": {
+            "login": "",
+            "print": "",
+            "drawAndMeasure": "",
+            "filter": "",
+            "edit": "",
+            "settings": "",
+            "info": ""
+        },
+        "login": {
+            "title": "",
+            "form": {
+                "username": {
+                    "label": "",
+                    "rule": ""
+                },
+                "password": {
+                    "label": "",
+                    "rule": ""
+                },
+                "submit": ""
+            }
+        },
+        "printMap": {
+            "title": "",
+            "connectionMsg": "",
+            "unavailableMsg": "",
+            "form": {
+                "title": {
+                    "label": "",
+                    "rule": ""
+                },
+                "layout": {
+                    "label": "",
+                    "rule": ""
+                },
+                "scale": {
+                    "label": "",
+                    "rule": ""
+                },
+                "resolution": {
+                    "label": "",
+                    "rule": ""
+                },
+                "crs": {
+                    "label": "",
+                    "rule": ""
+                },
+                "submit": ""
+            }
+        },
+        "drawAndMeasure": {
+            "title": "",
+            "measure": {
+                "header": "",
+                "length": "",
+                "area": ""
+            },
+            "draw": {
+                "header": "",
+                "point": "",
+                "pointWithCoord": "",
+                "line": "",
+                "polygon": "",
+                "label": "",
+                "color": "",
+                "transparency": ""
+            },
+            "clear": ""
+        },
+        "filter": {
+            "title": "",
+            "poisSettings": {
+                "buttonTooltip": "",
+                "title": "",
+                "selectWeight": "",
+                "sensitivityIndex": "",
+                "sensitivityGraph": {
+                    "title": "",
+                    "gravity": "",
+                    "travelTime": ""
+                }
+            }
+        },
+        "edit": {
+            "title": "",
+            "selectLayer": "",
+            "selectFeatures": "",
+            "drawCircle": "",
+            "selectOnMap": "",
+            "editTools": "",
+            "drawFeatureTooltip": "",
+            "modifyFeatureTooltip": "",
+            "deleteFeature": "",
+            "clearBtn": "",
+            "uploadBtn": "",
+            "popup": {
+                "deleteFeatureMsg": "",
+                "selectWayType": "",
+                "wayType": ""
+            }
+        },
+        "settings": {
+            "title": "",
+            "language": "",
+            "units": {
+                "header": "",
+                "km": "",
+                "miles": ""
+            }
+        },
+        "about": {
+            "title": "",
+            "content": "",
+            "moreInfo": ""
+        }
+    },
+    "isochrones": {
+        "title": "",
+        "calculation": "",
+        "calculationTitle": "",
+        "single": {
+            "title": "",
+            "type": "",
+            "searchBox": "",
+            "startTooltip": "",
+            "tableDataTitle": ""
+        },
+        "multiple": {
+            "title": "",
+            "type": "",
+            "selectMethod": "",
+            "studyArea": "",
+            "clear": "",
+            "calculate": "",
+            "studyAreaInfoLabel": "",
+            "drawBoundary": "",
+            "amenityCount": "",
+            "limit": "",
+            "drawBoundaryInfoLabel": "",
+            "tableDataTitle": ""
+        },
+        "options": {
+            "title": "",
+            "subOptions": "",
+            "speed": "",
+            "time": "",
+            "nr": "",
+            "calcType": "",
+            "calcModus": "",
+            "alphaShapeMode": "",
+            "defaultNetwork": "",
+            "modifiedNetwork": "",
+            "modifiedNetworkDoubleCalc": ""
+        },
+        "results": {
+            "title": "",
+            "multiIsochroneHeader": "",
+            "showDataTooltip": "",
+            "toggleVisibilityTooltip": "",
+            "downloadTooltip": "",
+            "deleteCalcTooltip": "",
+            "table": {
+                "type": "",
+                "range": "",
+                "area": "",
+                "visible": "",
+                "legend": ""
+            }
+        },
+        "tableData": {
+            "timeFilter": "",
+            "searchPois": "",
+            "selectTimeMsg": "",
+            "noDataMsg": "",
+            "selectAmenitiesMsg": "",
+            "table": {
+                "pois": "",
+                "isochrone": "",
+                "studyArea": "",
+                "population": "",
+                "reachedPopulation": ""
+            }
+        },
+        "isochrones": "",
+        "deleteTitle": "",
+        "deleteMessage": ""
+    },
+    "layerTree": {
+        "title": ""
+    },
+    "map": {
+        "layerLegend": {
+            "title": ""
+        },
+        "snackbarMessages": {
+            "selectAmenities": ""
+        },
+        "layerGroup": {
+            "poisLayers": "",
+            "administrativeLayers": "",
+            "accessbilityBasemaps": "",
+            "backgroundLayers": ""
+        },
+        "layerName": {
+            "pois": "",
+            "administrativeUnits": "",
+            "areaIsochrone": "",
+            "walkabilityPopulation": "",
+            "population": "",
+            "walkability": ""
+        },
+        "tooltips": {
+            "clickForCalculation": "",
+            "clickToSelectStudyArea": "",
+            "maxCircleRadius": "",
+            "clickToStartMeasure": "",
+            "clickToStartDrawing": "",
+            "clickToContinueDrawing": "",
+            "clickToFinishDrawing": "",
+            "clickToStartDrawingBoundary": "",
+            "clickToStartDrawingCircle": "",
+            "clickToFinishDrawingPolygon": "",
+            "clickOnFeatureToDelete": ""
+        }
+    },
+    "pois": {
+        "education": "",
+        "foodAndDrink": "",
+        "transport": "",
+        "services": "",
+        "shop": "",
+        "tourismAndLeisure": "",
+        "kindergarten": "",
+        "primary_school": "",
+        "secondary_school": "",
+        "library": "",
+        "bar": "",
+        "biergarten": "",
+        "cafe": "",
+        "pub": "",
+        "fast_food": "",
+        "ice_cream": "",
+        "restaurant": "",
+        "nightclub": "",
+        "bicycle_rental": "",
+        "car_sharing": "",
+        "charging_station": "",
+        "bus_stop": "",
+        "tram_stop": "",
+        "subway_entrance": "",
+        "rail_station": "",
+        "taxi": "",
+        "hairdresser": "",
+        "atm": "",
+        "bank": "",
+        "dentist": "",
+        "doctors": "",
+        "pharmacy": "",
+        "post_box": "",
+        "fuel": "",
+        "recycling": "",
+        "bakery": "",
+        "butcher": "",
+        "clothes": "",
+        "convenience": "",
+        "greengrocer": "",
+        "kiosk": "",
+        "mall": "",
+        "shoes": "",
+        "supermarket": "",
+        "discount_supermarket": "",
+        "international_supermarket": "",
+        "hypermarket": "",
+        "chemist": "",
+        "organic": "",
+        "marketplace": "",
+        "cinema": "",
+        "theatre": "",
+        "museum": "",
+        "hotel": "",
+        "hostel": "",
+        "guest_house": "",
+        "gallery": "",
+        "population": ""
+    },
+    "$vuetify": {
+        "close": "",
+        "dataIterator": {
+            "pageText": "",
+            "noResultsText": "",
+            "loadingText": ""
+        },
+        "dataTable": {
+            "itemsPerPageText": "",
+            "ariaLabel": {
+                "sortDescending": "",
+                "sortAscending": "",
+                "sortNone": ""
+            }
+        },
+        "dataFooter": {
+            "itemsPerPageText": "",
+            "itemsPerPageAll": "",
+            "nextPage": "",
+            "prevPage": "",
+            "firstPage": "",
+            "lastPage": ""
+        },
+        "datePicker": {
+            "itemsSelected": ""
+        },
+        "noDataText": "",
+        "carousel": {
+            "prev": "",
+            "next": ""
+        },
+        "calendar": {
+            "moreEvents": ""
+        }
+    }
 }
