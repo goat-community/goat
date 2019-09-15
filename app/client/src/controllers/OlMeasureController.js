@@ -4,6 +4,7 @@ import { getArea, getLength } from "ol/sphere.js";
 import { LineString, Polygon } from "ol/geom.js";
 import OlStyleDefs from "../style/OlStyleDefs";
 import OlBaseController from "./OlBaseController";
+import i18n from "../../src/plugins/i18n";
 
 /**
  * Class holding the OpenLayers related logic for the measure tool.
@@ -45,7 +46,7 @@ export default class OlMeasureController extends OlBaseController {
     me.createTooltip();
     me.createHelpTooltip();
 
-    me.helpMessage = "Click to start measuring";
+    me.helpMessage = i18n.t("map.tooltips.clickToStartMeasure");
 
     let listener;
     let sketch;
@@ -64,14 +65,16 @@ export default class OlMeasureController extends OlBaseController {
             output = me.formatArea(geom);
             tooltipCoord = geom.getInteriorPoint().getCoordinates();
             if (geom.getLinearRing(0).getCoordinates().length > 3) {
-              me.helpMessage = "Double-click or click starting point to finish";
+              me.helpMessage = i18n.t(
+                "map.tooltips.clickToFinishDrawingPolygon"
+              );
             } else {
-              me.helpMessage = "Click to continue drawing";
+              me.helpMessage = i18n.t("map.tooltips.clickToContinueDrawing");
             }
           } else if (geom instanceof LineString) {
             output = me.formatLength(geom);
             tooltipCoord = geom.getLastCoordinate();
-            me.helpMessage = "Double-click or click starting point to finish";
+            me.helpMessage = i18n.t("map.tooltips.clickToFinishDrawingPolygon");
           }
           me.tooltipElement.innerHTML = output;
           me.tooltip.setPosition(tooltipCoord);
@@ -85,7 +88,7 @@ export default class OlMeasureController extends OlBaseController {
       () => {
         me.tooltipElement.className = "tooltip tooltip-static";
         me.tooltip.setOffset([0, -7]);
-        me.helpMessage = "Click to start measuring";
+        me.helpMessage = i18n.t("map.tooltips.clickToStartMeasure");
         me.helpTooltipElement.innerHTML = me.helpMessage;
         // unset sketch
         sketch = null;

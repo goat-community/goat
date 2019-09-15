@@ -269,7 +269,9 @@ export default {
      */
     toggleEditInteraction(state) {
       const me = this;
-
+      //Remove select interaction
+      me.olSelectCtrl.removeInteraction();
+      me.toggleSelection = undefined;
       let editType;
       switch (state) {
         case 0:

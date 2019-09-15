@@ -15,6 +15,7 @@ import { wfsRequestParser } from "../utils/Layer";
 
 import store from "../store/modules/user";
 import OlBaseController from "./OlBaseController";
+import i18n from "../../src/plugins/i18n";
 
 /**
  * Class holding the OpenLayers related logic for the select tool.
@@ -174,9 +175,9 @@ export default class OlSelectController extends OlBaseController {
     const coordinate = evt.coordinate;
     let innerHTML;
     if (!me.circleRadius || me.circleRadius === 0) {
-      innerHTML = "Click to start Drawing the circle (Max Radius 1000m)";
+      innerHTML = i18n.t("map.tooltips.clickToStartDrawingCircle");
     } else if (me.circleRadius > 1000) {
-      innerHTML = "Maximum Circle Radius is 1000 m";
+      innerHTML = i18n.t("map.tooltips.maxCircleRadius");
     } else {
       innerHTML = me.circleRadius + " m";
     }

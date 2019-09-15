@@ -1,9 +1,6 @@
 const state = {
   map: null,
   messages: {
-    interaction: {
-      calculateIsochrone: "Click for calculation"
-    },
     snackbar: {
       type: "info",
       message: "",
