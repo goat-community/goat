@@ -76,7 +76,7 @@ export default {
       activeInteractions: [],
       popup: {
         rawHtml: null,
-        title: "Info",
+        title: "info",
         isVisible: false
       },
       getInfoHeader: [
@@ -388,7 +388,7 @@ export default {
 
           me.popupOverlay.setPosition(overlayCoordinates);
           me.popup.isVisible = true;
-          me.popup.title = `Info - (${layerToQuery.get("title")})`;
+          me.popup.title = `info`;
 
           if (layerToQuery.get("name") === "pois") {
             const osmId = props["osm_id"];
@@ -409,7 +409,9 @@ export default {
 
               me.popup.rawHtml = `<a style="text-decoration:none;" 
                                         href="https://www.openstreetmap.org/edit?editor=id&${type}=${osmId}" target="_blank" title="">
-                              <i class="fa fa-edit"></i> Edit with OSM</a>`;
+                              <i class="fa fa-edit"></i> ${me.$t(
+                                "map.popup.editWithOsm"
+                              )}</a>`;
             }
           }
 

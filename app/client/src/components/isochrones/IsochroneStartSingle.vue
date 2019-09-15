@@ -135,7 +135,7 @@ export default {
       EventBus.$emit("ol-interaction-activated", me.interactionType);
 
       me.mapClickListener = me.map.once("singleclick", me.onMapClick);
-      me.startHelpTooltip(me.messages.interaction.calculateIsochrone);
+      me.startHelpTooltip(this.$t("map.tooltips.clickForCalculation"));
       me.map.getTarget().style.cursor = "pointer";
     },
     /**

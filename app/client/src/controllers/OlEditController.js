@@ -10,6 +10,7 @@ import { wfsTransactionParser, readTransactionResponse } from "../utils/Layer";
 import http from "../services/http";
 import { unByKey } from "ol/Observable";
 import OlWaysLayerHelper from "./OlWaysLayerHelper";
+import i18n from "../../src/plugins/i18n";
 
 /**
  * Class holding the OpenLayers related logic for the edit tool.
@@ -61,7 +62,7 @@ export default class OlEditController extends OlBaseController {
         me.edit.on("drawend", me.onDrawEnd.bind(me));
         me.snap = new Snap({ source: me.source });
         me.currentInteraction = "draw";
-        me.helpMessage = "Click to start drawing";
+        me.helpMessage = i18n.t("map.tooltips.clickToStartDrawing");
         break;
       case "modify":
         me.edit = new Modify({ source: me.source });
@@ -69,7 +70,7 @@ export default class OlEditController extends OlBaseController {
         me.edit.on("modifyend", me.onModifyEnd.bind(me));
         me.snap = new Snap({ source: me.source });
         me.currentInteraction = "modify";
-        me.helpMessage = "Click and drag the features to modify";
+        me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
         break;
       case "delete":
         me.currentInteraction = "delete";
@@ -77,7 +78,7 @@ export default class OlEditController extends OlBaseController {
           "click",
           me.openDeletePopup.bind(me)
         );
-        me.helpMessage = "Click on feature to delete it";
+        me.helpMessage = i18n.t("map.tooltips.clickOnFeatureToDelete");
 
         break;
       default:
@@ -149,7 +150,7 @@ export default class OlEditController extends OlBaseController {
     me.highlightSource.addFeature(feature);
     const featureCoordinates = feature.getGeometry().getCoordinates();
     me.popupOverlay.setPosition(featureCoordinates[0]);
-    me.popup.title = "Attributes";
+    me.popup.title = "attributes";
     me.popup.selectedInteraction = "add";
     me.popup.isVisible = true;
   }

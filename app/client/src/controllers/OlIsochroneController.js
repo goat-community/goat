@@ -7,6 +7,8 @@ import { unByKey } from "ol/Observable";
 import { getAllChildLayers } from "../utils/Layer";
 import { transform } from "ol/proj.js";
 import store from "../store/index.js";
+import i18n from "../../src/plugins/i18n";
+
 export default class OlIsochroneController extends OlBaseController {
   constructor(map) {
     super(map);
@@ -59,7 +61,7 @@ export default class OlIsochroneController extends OlBaseController {
         }
         me.setupMapClick();
         me.multiIsoCalcMethod = "study_area";
-        me.helpMessage = "Click to select the study area.";
+        me.helpMessage = i18n.t("map.tooltips.clickToSelectStudyArea");
       } else {
         //Draw Boundary box method
         const drawBoundary = new DrawInteraction({
@@ -72,7 +74,7 @@ export default class OlIsochroneController extends OlBaseController {
         me.map.addInteraction(drawBoundary);
         // make select interaction available as member
         me.drawBoundary = drawBoundary;
-        me.helpMessage = "Click to start drawing the boundary.";
+        me.helpMessage = i18n.t("map.tooltips.clickToStartDrawingBoundary");
         me.multiIsoCalcMethod = "draw";
       }
     }
@@ -117,7 +119,7 @@ export default class OlIsochroneController extends OlBaseController {
   onDrawStart() {
     const me = this;
     me.selectionSource.clear();
-    me.helpMessage = "Click to finish drawing.";
+    me.helpMessage = i18n.t("map.tooltips.clickToFinishDrawing");
   }
 
   /**
@@ -138,7 +140,7 @@ export default class OlIsochroneController extends OlBaseController {
       regionType,
       region
     });
-    me.helpMessage = "Click to start drawing.";
+    me.helpMessage = i18n.t("map.tooltips.clickToStartDrawing");
     me.helpTooltipElement.innerHTML = me.helpMessage;
   }
 
@@ -152,7 +154,7 @@ export default class OlIsochroneController extends OlBaseController {
       me.multiIsoCalcMethod === "study_area" &&
       me.selectionSource.getFeaturesAtCoordinate(coordinate).length > 0
     ) {
-      me.helpTooltipElement.innerHTML = "Click to remove it";
+      me.helpTooltipElement.innerHTML = i18n.t("map.tooltips.clickToRemove");
     } else {
       me.helpTooltipElement.innerHTML = me.helpMessage;
     }
