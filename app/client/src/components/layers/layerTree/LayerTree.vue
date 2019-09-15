@@ -50,17 +50,44 @@
                       >done</v-icon
                     >
                   </v-flex>
-                  <v-flex xs9>
+                  <v-flex xs98>
                     <span>{{ item.name }}</span>
                   </v-flex>
                   <v-flex xs1>
                     <v-icon
                       v-show="item.mapLayer.getVisible()"
+                      small
+                      style="width: 30px; height: 30px;"
+                      v-html="
+                        item.showOptions === false
+                          ? 'fas fa-chevron-down'
+                          : 'fas fa-chevron-up'
+                      "
+                      :class="{
+                        'expansion-panel__container--active':
+                          item.showOptions === true
+                      }"
                       @click.stop="toggleLayerOptions(item)"
                     ></v-icon>
                   </v-flex>
                 </v-layout>
               </v-expansion-panel-header>
+              <v-card
+                class="pt-2"
+                v-show="item.showOptions === true"
+                style="background-color: white;"
+                transition="slide-y-reverse-transition"
+              >
+                <v-slider
+                  :value="item.mapLayer.getOpacity()"
+                  class="mx-5"
+                  step="0.05"
+                  min="0"
+                  max="1"
+                  @input="changeLayerOpacity($event, item.mapLayer)"
+                  label="Transparency"
+                ></v-slider>
+              </v-card>
             </v-expansion-panel>
           </v-expansion-panels>
 
@@ -166,7 +193,11 @@ export default {
       }
     },
     toggleLayerOptions(item) {
+      console.log("passed here....");
       item.showOptions = !item.showOptions;
+    },
+    changeLayerOpacity(value, layer) {
+      layer.setOpacity(value);
     }
   },
   mounted() {}
@@ -187,5 +218,9 @@ export default {
 
 .v-expansion-panel-content >>> .v-expansion-panel-content__wrap {
   padding: 0px;
+}
+
+.v-expansion-panel-content >>> .v-input__slot {
+  margin-bottom: 0px;
 }
 </style>
