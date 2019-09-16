@@ -100,7 +100,7 @@ for s in sensitivities:
         cursor.execute(sql_index % (grid,new_column,new_column,p,p,s))
         
     cursor.execute('CREATE INDEX ON %s USING GIN(%s);' % (grid,new_column))           
-
+    con.commit()
 cursor.execute(sql_grid_population.replace('grid_size', str(grid_size)))
 
 con.commit()
