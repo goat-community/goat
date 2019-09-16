@@ -18,13 +18,13 @@ AS $function$
 WITH touching_network AS 
 (
 	SELECT * FROM (
-		SELECT t.start_vertex, w.id, w.geom, w.SOURCE, w.target, t.cost, t.node, t.edge, t.cnt, w.length_m, t.objectid, w.class_id, w.foot  
+		SELECT t.start_vertex, w.id, w.geom, w.SOURCE, w.target, t.cost, t.node, t.edge, 1 as cnt, w.length_m, t.objectid, w.class_id, w.foot  
 		FROM temp_reached_vertices t, ways w
 		WHERE t.node = w.target 
 		AND t.node <> w.SOURCE
 		AND t.cost + (max_length_links/speed) > max_cost
 		UNION ALL 
-		SELECT t.start_vertex, w.id, w.geom, w.SOURCE, w.target, t.cost, t.node, t.edge, t.cnt, w.length_m, t.objectid, w.class_id, w.foot 
+		SELECT t.start_vertex, w.id, w.geom, w.SOURCE, w.target, t.cost, t.node, t.edge, 1 as cnt, w.length_m, t.objectid, w.class_id, w.foot 
 		FROM temp_reached_vertices t, ways w
 		WHERE t.node <> w.target 
 		AND t.node = w.SOURCE
@@ -55,6 +55,6 @@ FROM touching_network t, not_completely_reached_network n
 WHERE t.target = n.source 
 AND (max_cost-cost)/(t.length_m/speed) BETWEEN 0 AND 1 
 UNION ALL 
-SELECT start_vertex, node, edge, cnt, cost, geom, objectid FROM temp_reached_vertices;
+SELECT start_vertex, node, edge, 1 as cnt , cost, geom, objectid FROM temp_reached_vertices;
 
 $function$;
