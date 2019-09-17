@@ -9,7 +9,7 @@ branches:
     - development
 script:
   - cd $TRAVIS_BUILD_DIR
-  - ls
+  - ls cd/scripts
   - chmod +x ./scripts/docker-publish-travis.sh
 deploy:
   provider: script
