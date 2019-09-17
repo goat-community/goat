@@ -17,7 +17,7 @@ BEGIN
 	  column_index = format('index_%s',split_part(((i ->> jsonb_object_keys(i))::jsonb ->> 'sensitivity')::text,'.',2));
 	  weight_amenity = ((i ->> jsonb_object_keys(i))::jsonb ->> 'weight');
 	 
-      sql_single_query = format('%s*COALESCE((%s -> %s)::text::numeric,0) +',weight,column_index,amenity);
+      sql_single_query = format('%s*COALESCE((%s -> %s)::text::numeric,0) +',weight_amenity,column_index,amenity);
 	  sql_query = concat(sql_query,sql_single_query);
 	  array_amenities = array_amenities || amenity;
   END LOOP;
