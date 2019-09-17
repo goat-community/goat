@@ -1,5 +1,4 @@
 language: generic
-node_js: stable
 sudo: required
 dist: trusty
 services:
@@ -10,5 +9,8 @@ branches:
     - development
 script:
   - cd $TRAVIS_BUILD_DIR
-  - chmod -R a+x scripts
-  - ./scripts/docker-publish-travis.sh
+  - chmod +x ./scripts/docker-publish-travis.sh
+deploy:
+  provider: script
+  script: ./scripts/docker-publish-travis.sh
+  skip_cleanup: true
