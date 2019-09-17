@@ -9,9 +9,10 @@ branches:
     - development
 script:
   - cd $TRAVIS_BUILD_DIR
-  - ls cd/scripts
-  - chmod +x ./scripts/docker-publish-travis.sh
+  - cd scripts
+  - ls
+  - chmod +x scripts/docker-publish-travis.sh
 deploy:
   provider: script
-  script: ./scripts/docker-publish-travis.sh
+  script: scripts/docker-publish-travis.sh
   skip_cleanup: true
