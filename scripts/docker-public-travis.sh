@@ -14,7 +14,7 @@ esac
 
 docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
-docker build -f ./app/client/Dockerfile -t goat-client:$DOCKER_TAG ./app/client --no-cache
+docker build -f app/client/Dockerfile -t goat-client:$DOCKER_TAG app/client --no-cache
 
 docker tag goat-client:$DOCKER_TAG $DOCKER_USERNAME/goat-client:$DOCKER_TAG
 
