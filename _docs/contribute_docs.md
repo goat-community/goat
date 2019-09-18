@@ -3,7 +3,8 @@ title: Contribute to the documentation
 permalink: /docs/contribute_docs/
 ---
 
-GOAT<sub>beta</sub> is an open source project. You can not only use it, but your are also very welcome to contribute. Besides contributing code or collecting OpenStreetMap data, you can also help improving our documentation. This website is hosted on Github with the rest of the GOAT codebase and is using [https://jekyllrb.com/](Jekyll) as static site generator. This allows to build a website with the markdown language based on templates.
+GOAT<sub>beta</sub> is an open source project. You can not only use it, but your are also very welcome to contribute. Besides contributing code or collecting OpenStreetMap data, you can also help improving our documentation. This website is hosted on Github with the rest of the GOAT codebase and is using [Jekyll](https://jekyllrb.com/) as static site generator. This allows to build a website with the markdown language based on templates.
+
 In order to contribute to the website you will need to have a code editor, Git and Jekyll installed, furthermore you need a Github-Account.
 The following steps show one possible workflow to contribute to the website. 
 
