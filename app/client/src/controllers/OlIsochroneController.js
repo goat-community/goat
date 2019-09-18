@@ -4,9 +4,11 @@ import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import DrawInteraction, { createBox } from "ol/interaction/Draw";
 import { unByKey } from "ol/Observable";
-import LayerUtils from "../utils/Layer";
+import { getAllChildLayers } from "../utils/Layer";
 import { transform } from "ol/proj.js";
 import store from "../store/index.js";
+import i18n from "../../src/plugins/i18n";
+
 export default class OlIsochroneController extends OlBaseController {
   constructor(map) {
     super(map);
@@ -50,7 +52,7 @@ export default class OlIsochroneController extends OlBaseController {
       ) {
         //Study are method
         if (!me.studyAreaLayer) {
-          me.studyAreaLayer = LayerUtils.getAllChildLayers(me.map).filter(
+          me.studyAreaLayer = getAllChildLayers(me.map).filter(
             layer => layer.get("name") === "study_area_administration"
           );
         }
@@ -58,7 +60,8 @@ export default class OlIsochroneController extends OlBaseController {
           me.studyAreaLayer[0].setVisible(true);
         }
         me.setupMapClick();
-        me.helpMessage = "Click to select the study area.";
+        me.multiIsoCalcMethod = "study_area";
+        me.helpMessage = i18n.t("map.tooltips.clickToSelectStudyArea");
       } else {
         //Draw Boundary box method
         const drawBoundary = new DrawInteraction({
@@ -71,7 +74,8 @@ export default class OlIsochroneController extends OlBaseController {
         me.map.addInteraction(drawBoundary);
         // make select interaction available as member
         me.drawBoundary = drawBoundary;
-        me.helpMessage = "Click to start drawing the boundary.";
+        me.helpMessage = i18n.t("map.tooltips.clickToStartDrawingBoundary");
+        me.multiIsoCalcMethod = "draw";
       }
     }
   }
@@ -84,11 +88,23 @@ export default class OlIsochroneController extends OlBaseController {
     const me = this;
     const map = me.map;
     me.mapClickListenerKey = map.on("click", evt => {
+      //Check if there is a feature already selected at clicked coordinate,
+      //and if so, delete it and return.
+      const featureAtCoord = me.selectionSource.getFeaturesAtCoordinate(
+        evt.coordinate
+      );
+      if (featureAtCoord.length > 0) {
+        me.selectionSource.removeFeature(featureAtCoord[0]);
+        me.helpTooltipElement.innerHTML = me.helpMessage;
+        return;
+      }
+
       const region = transform(
         evt.coordinate,
         "EPSG:3857",
         "EPSG:4326"
       ).toString();
+
       const regionType = "'study_area'";
       store.dispatch("isochrones/countStudyAreaPois", {
         regionType,
@@ -103,7 +119,7 @@ export default class OlIsochroneController extends OlBaseController {
   onDrawStart() {
     const me = this;
     me.selectionSource.clear();
-    me.helpMessage = "Click to finish drawing.";
+    me.helpMessage = i18n.t("map.tooltips.clickToFinishDrawing");
   }
 
   /**
@@ -124,7 +140,7 @@ export default class OlIsochroneController extends OlBaseController {
       regionType,
       region
     });
-    me.helpMessage = "Click to start drawing.";
+    me.helpMessage = i18n.t("map.tooltips.clickToStartDrawing");
     me.helpTooltipElement.innerHTML = me.helpMessage;
   }
 
@@ -134,7 +150,15 @@ export default class OlIsochroneController extends OlBaseController {
   onPointerMove(evt) {
     const me = this;
     const coordinate = evt.coordinate;
-    me.helpTooltipElement.innerHTML = me.helpMessage;
+    if (
+      me.multiIsoCalcMethod === "study_area" &&
+      me.selectionSource.getFeaturesAtCoordinate(coordinate).length > 0
+    ) {
+      me.helpTooltipElement.innerHTML = i18n.t("map.tooltips.clickToRemove");
+    } else {
+      me.helpTooltipElement.innerHTML = me.helpMessage;
+    }
+
     me.helpTooltip.setPosition(coordinate);
   }
 
@@ -153,6 +177,7 @@ export default class OlIsochroneController extends OlBaseController {
     if (me.pointerMoveKey) {
       unByKey(me.pointerMoveKey);
     }
+    me.multiIsoCalcMethod = null;
   }
 
   clear() {
@@ -160,6 +185,9 @@ export default class OlIsochroneController extends OlBaseController {
     const me = this;
     if (me.selectionSource) {
       me.selectionSource.clear();
+    }
+    if (me.studyAreaLayer) {
+      me.studyAreaLayer[0].setVisible(false);
     }
   }
 }

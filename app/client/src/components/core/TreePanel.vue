@@ -59,11 +59,11 @@
             height="50"
           >
             <v-btn color="#30C2FF" text value="map-isochrones">
-              <span>Isochrones</span>
+              <span>{{ $t("isochrones.title") }}</span>
               <v-icon>fas fa-bullseye</v-icon>
             </v-btn>
             <v-btn color="#30C2FF" text value="map-layertree">
-              <span>Layers</span>
+              <span>{{ $t("layerTree.title") }}</span>
               <v-icon>fas fa-layer-group</v-icon>
             </v-btn>
           </v-bottom-navigation>

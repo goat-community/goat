@@ -16,7 +16,7 @@
         small
         >fas fa-map-marker-alt</v-icon
       >
-      <h3>Start</h3>
+      <h3>{{ $t("isochrones.multiple.title") }}</h3>
     </v-subheader>
     <v-flex
       xs12
@@ -25,15 +25,21 @@
       class="mx-4"
     >
       <v-select
-        item-text="display"
         item-value="value"
         class="select-method-height mx-1 my-1"
         v-model="activeMultiIsochroneMethod"
         :items="multiIsochroneCalculationMethods.values"
         @change="toggleInteraction"
-        label="Select Method"
+        :label="$t('isochrones.multiple.selectMethod')"
         solo
-      ></v-select>
+      >
+        <template slot="selection" slot-scope="{ item }">
+          {{ $t(`isochrones.multiple.${item.name}`) }}
+        </template>
+        <template slot="item" slot-scope="{ item }">
+          {{ $t(`isochrones.multiple.${item.name}`) }}
+        </template>
+      </v-select>
       <template v-if="this.activeMultiIsochroneMethod !== null">
         <v-alert
           border="left"
@@ -43,12 +49,12 @@
           color="green"
           dense
         >
-          {{ getInfoLabelText }}
+          <span v-html="getInfoLabelText"></span>
         </v-alert>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn outlined class="white--text" color="red" @click="clear">
-            Clear
+            {{ $t("isochrones.multiple.clear") }}
           </v-btn>
           <v-btn
             :disabled="isCalculationDisabled"
@@ -57,7 +63,7 @@
             color="green"
             @click="calculateIsochrone"
           >
-            Calculate
+            {{ $t("isochrones.multiple.calculate") }}
           </v-btn>
         </v-card-actions>
       </template>
@@ -103,14 +109,16 @@ export default {
         this.countPois === 0 &&
         this.activeMultiIsochroneMethod === "study_area"
       ) {
-        text = "Select zones and amenities to enable calculation.";
+        text = this.$t("isochrones.multiple.studyAreaInfoLabel");
       } else if (
         this.countPois === 0 &&
         this.activeMultiIsochroneMethod === "draw"
       ) {
-        text = "Draw boundary and select amenities to enable calculation.";
+        text = this.$t("isochrones.multiple.drawBoundaryInfoLabel");
       } else {
-        text = `Amenities Count: ${this.countPois} (Limit: 150)`;
+        text = `${this.$t("isochrones.multiple.amenityCount")}: ${
+          this.countPois
+        } (${this.$t("isochrones.multiple.limit")}: 150)`;
       }
       return text;
     }
@@ -141,9 +149,14 @@ export default {
   watch: {
     activeMultiIsochroneMethod: function(val) {
       if (val === null) {
+        EventBus.$emit("ol-interaction-stoped", this.interactionType);
         this.olIsochroneCtrl.clear();
       }
     }
+  },
+  beforeDestroy() {
+    this.activeMultiIsochroneMethod = null;
+    this.olIsochroneCtrl.clear();
   }
 };
 </script>
@@ -152,6 +165,6 @@ export default {
   color: #30c2ff;
 }
 .select-method-height >>> .v-input__control {
-  height: 60px;
+  height: 56px;
 }
 </style>

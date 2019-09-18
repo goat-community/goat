@@ -1,8 +1,11 @@
 const state = {
   map: null,
   messages: {
-    interaction: {
-      calculateIsochrone: "Click for calculation"
+    snackbar: {
+      type: "info",
+      message: "",
+      state: false,
+      timeout: 2000
     }
   },
   helpTooltip: {
@@ -16,7 +19,8 @@ const getters = {
   map: state => state.map,
   helpTooltip: state => state.helpTooltip,
   messages: state => state.messages,
-  studyAreaBbox: state => state.studyAreaBbox
+  studyAreaBbox: state => state.studyAreaBbox,
+  snackbar: state => state.messages.snackbar
 };
 
 const actions = {};
@@ -24,6 +28,9 @@ const actions = {};
 const mutations = {
   UPDATE_HELP_TOOLTIP(state, message) {
     state.currentMessage = message;
+  },
+  TOGGLE_SNACKBAR(state, payload) {
+    Object.assign(state.messages.snackbar, payload);
   },
   START_HELP_TOOLTIP(state, message) {
     state.helpTooltip.isActive = true;

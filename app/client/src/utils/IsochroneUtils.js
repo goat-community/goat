@@ -49,20 +49,31 @@ const IsochroneUtils = {
         )} - ${feature.get("step")} min`
       };
       const populationObj = feature.get("population");
-      //Multi-isochrone is created using draw
       if (feature.get("population").bounding_box) {
+        //Multi-isochrone is created using draw
         obj.studyArea = "-- (Draw)";
         obj.population = populationObj.bounding_box;
         obj.reachPopulation = populationObj.bounding_box_reached;
+        multiIsochroneTableData.push(obj);
       } else {
         //Multi-isochrone is created from study-area
-        obj.studyArea = Object.keys(populationObj[0])[0];
-        obj.population = populationObj[0][Object.keys(populationObj[0])[0]];
-        obj.reachPopulation =
-          populationObj[0][Object.keys(populationObj[0])[1]];
-      }
 
-      multiIsochroneTableData.push(obj);
+        populationObj.forEach(currentStudyArea => {
+          const studyArea = Object.keys(currentStudyArea);
+          console.log(studyArea);
+          multiIsochroneTableData.push(
+            Object.assign(
+              {
+                studyArea: Object.keys(currentStudyArea)[0],
+                population: currentStudyArea[Object.keys(currentStudyArea)[0]],
+                reachPopulation:
+                  currentStudyArea[Object.keys(currentStudyArea)[1]]
+              },
+              obj
+            )
+          );
+        });
+      }
     });
     return multiIsochroneTableData;
   },

@@ -4,24 +4,38 @@
     data-app
     :class="{ 'wg-app': true, 'wg-app-embedded': isEmbedded }"
   >
-    <app-sidebar />
     <tree-panel />
-    <v-content class="pr-0">
-      <v-container id="ol-map-container" fluid fill-height class="pa-0">
+    <v-content>
+      <v-container
+        style="height: 100vh; max-height: 100%;"
+        id="ol-map-container"
+        fluid
+        fill-height
+        class="pa-0"
+      >
         <app-map :color="controlsColor" />
         <map-loading-progress-status />
+        <snackbar />
+        <background-switcher />
+        <Legend />
       </v-container>
     </v-content>
+    <app-sidebar />
   </v-app>
 </template>
 
 <script>
 import Vue from "vue";
 import { EventBus } from "./EventBus.js";
-import appMap from "./components/ol/Map";
+
 import appSidebar from "./components/core/SideDrawer";
 import treePanel from "./components/core/TreePanel";
+import Snackbar from "./components/other/Snackbar";
+
+import appMap from "./components/ol/Map";
 import MapLoadingProgressStatus from "./components/ol/MapLoadingProgressStatus";
+import Legend from "./components/ol/Legend";
+import BackgroundSwitcher from "./components/ol/BackgroundSwitcher";
 
 import { mapMutations } from "vuex";
 
@@ -31,7 +45,10 @@ export default {
     appMap,
     appSidebar,
     treePanel,
-    MapLoadingProgressStatus
+    MapLoadingProgressStatus,
+    Snackbar,
+    Legend,
+    BackgroundSwitcher
   },
   data() {
     return {

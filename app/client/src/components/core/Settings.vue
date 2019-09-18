@@ -35,7 +35,7 @@
           </div>
         </v-card-text>
         <!-- Map Units Settings  -->
-        <v-subheader
+        <!-- <v-subheader
           ><h3>{{ $t("appBar.settings.units.header") }}</h3></v-subheader
         >
         <v-card-text class="pr-16 pl-16 pt-0 pb-0">
@@ -52,13 +52,14 @@
               value="miles"
             ></v-radio>
           </v-radio-group>
-        </v-card-text>
+        </v-card-text> -->
       </vue-scroll>
     </v-card>
   </v-dialog>
 </template>
 <script>
 import i18n from "@/plugins/i18n";
+import { EventBus } from "../../EventBus";
 export default {
   props: ["visible"],
   data() {
@@ -70,12 +71,15 @@ export default {
         { flag: "de", language: "de", title: "German" },
         { flag: "es", language: "es", title: "Español" },
         { flag: "al", language: "al", title: "Shqip" }
-      ]
+      ],
+      interactionType: "languageChange"
     };
   },
   methods: {
     changeLocale(locale) {
       i18n.locale = locale;
+      //Close other interactions.
+      EventBus.$emit("ol-interaction-activated", this.interactionType);
     }
   },
   computed: {

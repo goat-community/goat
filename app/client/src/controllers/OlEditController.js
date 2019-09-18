@@ -6,10 +6,11 @@ import VectorLayer from "ol/layer/Vector";
 import Overlay from "ol/Overlay.js";
 import store from "../store/modules/user";
 import Feature from "ol/Feature";
-import LayerUtils from "../utils/Layer";
+import { wfsTransactionParser, readTransactionResponse } from "../utils/Layer";
 import http from "../services/http";
 import { unByKey } from "ol/Observable";
 import OlWaysLayerHelper from "./OlWaysLayerHelper";
+import i18n from "../../src/plugins/i18n";
 
 /**
  * Class holding the OpenLayers related logic for the edit tool.
@@ -61,7 +62,7 @@ export default class OlEditController extends OlBaseController {
         me.edit.on("drawend", me.onDrawEnd.bind(me));
         me.snap = new Snap({ source: me.source });
         me.currentInteraction = "draw";
-        me.helpMessage = "Click to start drawing";
+        me.helpMessage = i18n.t("map.tooltips.clickToStartDrawing");
         break;
       case "modify":
         me.edit = new Modify({ source: me.source });
@@ -69,7 +70,7 @@ export default class OlEditController extends OlBaseController {
         me.edit.on("modifyend", me.onModifyEnd.bind(me));
         me.snap = new Snap({ source: me.source });
         me.currentInteraction = "modify";
-        me.helpMessage = "Click and drag the features to modify";
+        me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
         break;
       case "delete":
         me.currentInteraction = "delete";
@@ -77,7 +78,7 @@ export default class OlEditController extends OlBaseController {
           "click",
           me.openDeletePopup.bind(me)
         );
-        me.helpMessage = "Click on feature to delete it";
+        me.helpMessage = i18n.t("map.tooltips.clickOnFeatureToDelete");
 
         break;
       default:
@@ -149,7 +150,7 @@ export default class OlEditController extends OlBaseController {
     me.highlightSource.addFeature(feature);
     const featureCoordinates = feature.getGeometry().getCoordinates();
     me.popupOverlay.setPosition(featureCoordinates[0]);
-    me.popup.title = "Attributes";
+    me.popup.title = "attributes";
     me.popup.selectedInteraction = "add";
     me.popup.isVisible = true;
   }
@@ -200,6 +201,10 @@ export default class OlEditController extends OlBaseController {
       store.state.userId
     );
     me.closePopup();
+  }
+
+  uploadWaysFeatures() {
+    OlWaysLayerHelper.uploadWaysFeatures(store.state.userId, this.source);
   }
 
   /**
@@ -299,15 +304,10 @@ export default class OlEditController extends OlBaseController {
     let payload;
     switch (me.currentInteraction) {
       case "draw":
-        payload = LayerUtils.wfsTransactionParser(
-          featuresToAdd,
-          null,
-          null,
-          formatGML
-        );
+        payload = wfsTransactionParser(featuresToAdd, null, null, formatGML);
         break;
       case "modify":
-        payload = LayerUtils.wfsTransactionParser(
+        payload = wfsTransactionParser(
           featuresToAdd,
           featuresToUpdate,
           null,
@@ -315,12 +315,7 @@ export default class OlEditController extends OlBaseController {
         );
         break;
       case "delete":
-        payload = LayerUtils.wfsTransactionParser(
-          null,
-          null,
-          featuresToRemove,
-          formatGML
-        );
+        payload = wfsTransactionParser(null, null, featuresToRemove, formatGML);
         break;
     }
     payload = new XMLSerializer().serializeToString(payload);
@@ -329,7 +324,7 @@ export default class OlEditController extends OlBaseController {
         headers: { "Content-Type": "text/xml" }
       })
       .then(function(response) {
-        const result = LayerUtils.readTransactionResponse(response.data);
+        const result = readTransactionResponse(response.data);
         const FIDs = result.insertIds;
 
         if (FIDs != undefined && FIDs[0] != "none") {
