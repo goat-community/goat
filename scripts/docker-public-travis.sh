@@ -10,8 +10,12 @@ case "$TRAVIS_BRANCH" in
     ;;
   "test_travis")
     DOCKER_ENV=development
-    DOCKER_TAG=dev
-    ;;    
+    DOCKER_TAG=test
+    ;;
+  "development")
+  DOCKER_ENV=development
+  DOCKER_TAG=dev
+  ;;
 esac
 
 docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
