@@ -16,7 +16,7 @@
         small
         >fas fa-map-marker-alt</v-icon
       >
-      <h3>Start</h3>
+      <h3>{{ $t("isochrones.single.title") }}</h3>
     </v-subheader>
     <v-card-text v-show="isIsochroneStartElVisible" class="pt-0 pb-1 mt-0 mb-1">
       <v-layout row>
@@ -26,7 +26,7 @@
             v-model="model"
             :items="items"
             :loading="isLoading"
-            label="Search Starting Point"
+            :label="$t('isochrones.single.searchBox')"
             :search-input.sync="search"
             item-text="DisplayName"
             append-icon=""
@@ -46,16 +46,22 @@
           ></v-autocomplete>
         </v-flex>
         <v-flex xs3>
-          <v-btn
-            outlined
-            fab
-            class="ml-4"
-            rounded
-            text
-            @click="registerMapClick"
-          >
-            <v-icon color="#30C2FF">fas fa-map-marker-alt</v-icon>
-          </v-btn>
+          <v-tooltip top>
+            <template v-slot:activator="{ on }">
+              <v-btn
+                outlined
+                fab
+                v-on="on"
+                class="ml-4"
+                rounded
+                text
+                @click="registerMapClick"
+              >
+                <v-icon color="#30C2FF">fas fa-map-marker-alt</v-icon>
+              </v-btn>
+            </template>
+            <span>{{ $t("isochrones.single.startTooltip") }}</span>
+          </v-tooltip>
         </v-flex>
       </v-layout>
     </v-card-text>
@@ -73,7 +79,7 @@ import { unByKey } from "ol/Observable";
 import axios from "axios";
 
 //Other imports
-import helpers from "../../utils/Helpers";
+import { debounce } from "../../utils/Helpers";
 
 //Ol imports
 import { transform } from "ol/proj.js";
@@ -129,7 +135,7 @@ export default {
       EventBus.$emit("ol-interaction-activated", me.interactionType);
 
       me.mapClickListener = me.map.once("singleclick", me.onMapClick);
-      me.startHelpTooltip(me.messages.interaction.calculateIsochrone);
+      me.startHelpTooltip(this.$t("map.tooltips.clickForCalculation"));
       me.map.getTarget().style.cursor = "pointer";
     },
     /**
@@ -186,7 +192,7 @@ export default {
     }
   },
   watch: {
-    search: helpers.debounce(function() {
+    search: debounce(function() {
       // Items have already been requested
       if (this.isLoading || !this.search) return;
       this.isLoading = true;

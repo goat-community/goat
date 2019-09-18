@@ -32,7 +32,9 @@
                 >
               </v-flex>
               <v-flex xs10>
-                <span>{{ item.text }}</span>
+                <span>{{
+                  $t(`appBar.drawAndMeasure.measure.${item.name}`)
+                }}</span>
               </v-flex>
             </v-layout>
           </v-expansion-panel-header>
@@ -123,9 +125,10 @@
       <v-card-text> </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn class="white--text" color="green" @click="clear">{{
-          $t("appBar.drawAndMeasure.clear")
-        }}</v-btn>
+        <v-btn class="white--text" color="green" @click="clear">
+          <v-icon left>delete</v-icon
+          >{{ $t("appBar.drawAndMeasure.clear") }}</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-flex>
@@ -157,13 +160,13 @@ export default {
       {
         id: 1,
         icon: "fas fa-ruler",
-        text: "Length", //this.$t("appBar.drawAndMeasure.measure.length")
+        name: "length", //this.$t("appBar.drawAndMeasure.measure.length")
         measureType: "distance"
       },
       {
         id: 2,
         icon: "fas fa-ruler-combined",
-        text: "Area",
+        name: "area",
         measureType: "area"
       }
     ],
@@ -171,27 +174,27 @@ export default {
       {
         id: 3,
         icon: "far fa-dot-circle",
-        text: "Point"
+        name: "point"
       },
       {
         id: 4,
         icon: "fas fa-dot-circle",
-        text: "Point with coordinates"
+        name: "pointWithCoord"
       },
       {
         id: 5,
         icon: "fas fa-project-diagram",
-        text: "Line"
+        name: "line"
       },
       {
         id: 6,
         icon: "fas fa-draw-polygon",
-        text: "Polygon"
+        name: "polygon"
       },
       {
         id: 7,
         icon: "fas fa-font",
-        text: "Label"
+        name: "label"
       }
     ],
     activeId: undefined

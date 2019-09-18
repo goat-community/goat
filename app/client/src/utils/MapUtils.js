@@ -8,170 +8,174 @@ import { getTopLeft, getBottomLeft } from "ol/extent";
 import WKT from "ol/format/WKT";
 import { getArea } from "ol/sphere";
 
-const maputils = {
-  isWithinVisibleScales: function isWithinVisibleScales(
-    scale,
-    maxScale,
-    minScale
-  ) {
-    if (maxScale || minScale) {
-      // Alter 1: maxscale and minscale
-      if (maxScale && minScale) {
-        if (scale > maxScale && scale < minScale) {
-          return true;
-        }
-      } else if (maxScale) {
-        // Alter 2: only maxscale
-        if (scale > maxScale) {
-          return true;
-        }
-      } else if (minScale) {
-        // Alter 3: only minscale
-        if (scale < minScale) {
-          return true;
-        }
+export function isWithinVisibleScales(scale, maxScale, minScale) {
+  if (maxScale || minScale) {
+    // Alter 1: maxscale and minscale
+    if (maxScale && minScale) {
+      if (scale > maxScale && scale < minScale) {
+        return true;
       }
-    } else {
-      // Alter 4: no scale limit
-      return true;
-    }
-    return false;
-  },
-  customProjection: function customProjection(projectionCode, extent) {
-    return new Projection({
-      code: projectionCode,
-      extent
-    });
-  },
-  tileGrid: function tileGrid(settings, defaultSettings = {}) {
-    const tileGridSettings = Object.assign({}, defaultSettings, settings);
-    const extent = tileGridSettings.extent;
-    tileGridSettings.origin =
-      tileGridSettings.alignBottomLeft === false
-        ? getTopLeft(extent)
-        : getBottomLeft(extent);
-    return new TileGrid(tileGridSettings);
-  },
-  checkZoomChange: function checkZoomChange(resolution, currentResolution) {
-    if (resolution !== currentResolution) {
-      return true;
-    }
-
-    return false;
-  },
-  createPointFeature: function createPointFeature(coordinate, style) {
-    const feature = new Feature({
-      geometry: new Point(coordinate)
-    });
-    feature.setStyle(style);
-    return feature;
-  },
-  geojsonToFeature: function geojsonToFeature(obj) {
-    const vectorSource = new Vector({
-      features: new GeoJSON().readFeatures(obj)
-    });
-    return vectorSource.getFeatures();
-  },
-  featuresToGeojson: function featuresToGeojson(features, sourceProjection) {
-    const format = new GeoJSON({ featureProjection: sourceProjection });
-    const json = format.writeFeatures(features);
-    return json;
-  },
-  wktToFeature: function wktToFeature(wkt, srsName) {
-    const format = new WKT();
-    const feature = format.readFeature(wkt, {
-      dataProjection: srsName,
-      featureProjection: srsName
-    });
-    return feature;
-  },
-  getCenter: function getCenter(geometry) {
-    const type = geometry.getType();
-    let center;
-    switch (type) {
-      case "Polygon":
-        center = geometry.getInteriorPoint().getCoordinates();
-        break;
-      case "MultiPolygon":
-        center = geometry.getInteriorPoints().getFirstCoordinate();
-        break;
-      case "Point":
-        center = geometry.getCoordinates();
-        break;
-      case "MultiPoint":
-        center = geometry[0].getCoordinates();
-        break;
-      case "LineString":
-        center = geometry.getCoordinateAt(0.5);
-        break;
-      case "MultiLineString":
-        center = geometry.getLineStrings()[0].getCoordinateAt(0.5);
-        break;
-      case "Circle":
-        center = geometry.getCenter();
-        break;
-      default:
-        break;
-    }
-    return center;
-  },
-  getPolygonArea: function getPolygonArea(polygon) {
-    const type = polygon.getType();
-    let output = "";
-    if (type === "Polygon" || type === "MultiPolygon") {
-      const area = getArea(polygon);
-      output = `${Math.round((area / 1000000) * 100) / 100} km²`;
-    }
-    return output;
-  },
-  resolutionToScale: function resolutionToScale(resolution, projection) {
-    const dpi = 25.4 / 0.28;
-    const mpu = projection.getMetersPerUnit();
-    let scale = resolution * mpu * 39.37 * dpi;
-    scale = Math.round(scale);
-    return scale;
-  },
-  scaleToResolution: function scaleToResolution(scale, projection) {
-    const dpi = 25.4 / 0.28;
-    const mpu = projection.getMetersPerUnit();
-    const resolution = scale / (mpu * 39.37 * dpi);
-    return resolution;
-  },
-  flyTo: function flyTo(destination, map, done) {
-    const duration = 2000;
-    const view = map.getView();
-    const zoom = view.getZoom();
-    let parts = 2;
-    var called = false;
-    function callback(complete) {
-      --parts;
-      if (called) {
-        return;
+    } else if (maxScale) {
+      // Alter 2: only maxscale
+      if (scale > maxScale) {
+        return true;
       }
-      if (parts === 0 || !complete) {
-        called = true;
-        done(complete);
+    } else if (minScale) {
+      // Alter 3: only minscale
+      if (scale < minScale) {
+        return true;
       }
     }
-    view.animate(
-      {
-        center: destination,
-        duration: duration
-      },
-      callback
-    );
-    view.animate(
-      {
-        zoom: zoom - 1,
-        duration: duration / 2
-      },
-      {
-        zoom: zoom,
-        duration: duration / 2
-      },
-      callback
-    );
+  } else {
+    // Alter 4: no scale limit
+    return true;
   }
-};
+  return false;
+}
 
-export default maputils;
+export function customProjection(projectionCode, extent) {
+  return new Projection({
+    code: projectionCode,
+    extent
+  });
+}
+
+export function tileGrid(settings, defaultSettings = {}) {
+  const tileGridSettings = Object.assign({}, defaultSettings, settings);
+  const extent = tileGridSettings.extent;
+  tileGridSettings.origin =
+    tileGridSettings.alignBottomLeft === false
+      ? getTopLeft(extent)
+      : getBottomLeft(extent);
+  return new TileGrid(tileGridSettings);
+}
+
+export function checkZoomChange(resolution, currentResolution) {
+  if (resolution !== currentResolution) {
+    return true;
+  }
+
+  return false;
+}
+
+export function createPointFeature(coordinate, style) {
+  const feature = new Feature({
+    geometry: new Point(coordinate)
+  });
+  feature.setStyle(style);
+  return feature;
+}
+
+export function geojsonToFeature(obj) {
+  const vectorSource = new Vector({
+    features: new GeoJSON().readFeatures(obj)
+  });
+  return vectorSource.getFeatures();
+}
+
+export function featuresToGeojson(features, sourceProjection) {
+  const format = new GeoJSON({ featureProjection: sourceProjection });
+  const json = format.writeFeatures(features);
+  return json;
+}
+
+export function wktToFeature(wkt, srsName) {
+  const format = new WKT();
+  const feature = format.readFeature(wkt, {
+    dataProjection: srsName,
+    featureProjection: srsName
+  });
+  return feature;
+}
+
+export function getCenter(geometry) {
+  const type = geometry.getType();
+  let center;
+  switch (type) {
+    case "Polygon":
+      center = geometry.getInteriorPoint().getCoordinates();
+      break;
+    case "MultiPolygon":
+      center = geometry.getInteriorPoints().getFirstCoordinate();
+      break;
+    case "Point":
+      center = geometry.getCoordinates();
+      break;
+    case "MultiPoint":
+      center = geometry[0].getCoordinates();
+      break;
+    case "LineString":
+      center = geometry.getCoordinateAt(0.5);
+      break;
+    case "MultiLineString":
+      center = geometry.getLineStrings()[0].getCoordinateAt(0.5);
+      break;
+    case "Circle":
+      center = geometry.getCenter();
+      break;
+    default:
+      break;
+  }
+  return center;
+}
+
+export function getPolygonArea(polygon) {
+  const type = polygon.getType();
+  let output = "";
+  if (type === "Polygon" || type === "MultiPolygon") {
+    const area = getArea(polygon);
+    output = `${Math.round((area / 1000000) * 100) / 100} km²`;
+  }
+  return output;
+}
+
+export function resolutionToScale(resolution, projection) {
+  const dpi = 25.4 / 0.28;
+  const mpu = projection.getMetersPerUnit();
+  let scale = resolution * mpu * 39.37 * dpi;
+  scale = Math.round(scale);
+  return scale;
+}
+
+export function scaleToResolution(scale, projection) {
+  const dpi = 25.4 / 0.28;
+  const mpu = projection.getMetersPerUnit();
+  const resolution = scale / (mpu * 39.37 * dpi);
+  return resolution;
+}
+
+export function flyTo(destination, map, done) {
+  const duration = 2000;
+  const view = map.getView();
+  const zoom = view.getZoom();
+  let parts = 2;
+  var called = false;
+  function callback(complete) {
+    --parts;
+    if (called) {
+      return;
+    }
+    if (parts === 0 || !complete) {
+      called = true;
+      done(complete);
+    }
+  }
+  view.animate(
+    {
+      center: destination,
+      duration: duration
+    },
+    callback
+  );
+  view.animate(
+    {
+      zoom: zoom - 1,
+      duration: duration / 2
+    },
+    {
+      zoom: zoom,
+      duration: duration / 2
+    },
+    callback
+  );
+}

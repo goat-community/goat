@@ -3,7 +3,11 @@
     <v-flex xs12 class="mx-3">
       <v-card-text class="ma-0 py-0 pt-0 pb-2">
         <p class="font-weight-medium  text-right ma-0 pa-0">
-          - {{ selectedThematicData.calculationName }}
+          {{
+            `${$t("isochrones.calculation")} - ${
+              selectedThematicData.calculationId
+            }`
+          }}
         </p>
       </v-card-text>
 
@@ -12,7 +16,7 @@
         :items="isochroneSteps"
         item-text="display"
         item-value="value"
-        label="Time filter"
+        :label="$t('isochrones.tableData.timeFilter')"
         v-model="selectedTime"
       ></v-select>
 
@@ -20,7 +24,7 @@
         v-if="selectedThematicData.calculationType === 'single'"
         v-model="search"
         append-icon="search"
-        label="Search Point of Interest"
+        :label="$t('isochrones.tableData.searchPois')"
         single-line
         hide-details
         class="mb-2 pt-0 mt-0"
@@ -33,8 +37,8 @@
         :search="search"
         :no-data-text="
           selectedTime === null
-            ? 'Select time to filter'
-            : 'No data for the selected time'
+            ? $t('isochrones.tableData.selectTimeMsg')
+            : $t('isochrones.tableData.noDataMsg')
         "
         :items-per-page-options="[
           5,
@@ -63,7 +67,7 @@
         color="green"
         dense
       >
-        Select <b>Amenities</b> and <b>Time</b> to filter the table.
+        <span v-html="$t('isochrones.tableData.selectAmenitiesMsg')"></span>
       </v-alert>
     </v-flex>
   </v-layout>
@@ -71,7 +75,6 @@
 
 <script>
 import { mapGetters } from "vuex";
-import helpers from "../../utils/Helpers";
 import IsochroneUtils from "../../utils/IsochroneUtils";
 export default {
   data: () => ({
@@ -95,11 +98,12 @@ export default {
   computed: {
     tableHeaders() {
       let headers;
+      console.log(this.selectedThematicData);
       if (this.selectedThematicData.calculationType === "single") {
         let pois = this.selectedThematicData.pois;
         headers = [
           {
-            text: "Point of Interest",
+            text: this.$t("isochrones.tableData.table.pois"),
             value: "pois",
             sortable: false
           }
@@ -117,25 +121,25 @@ export default {
       } else {
         headers = [
           {
-            text: "Isochrone",
+            text: this.$t("isochrones.tableData.table.isochrone"),
             value: "isochrone",
             sortable: false,
             width: "32%"
           },
           {
-            text: "Study Area",
+            text: this.$t("isochrones.tableData.table.studyArea"),
             value: "studyArea",
             sortable: false,
             width: "18%"
           },
           {
-            text: "Population",
+            text: this.$t("isochrones.tableData.table.population"),
             value: "population",
             sortable: false,
             width: "25%"
           },
           {
-            text: "Reached Population",
+            text: this.$t("isochrones.tableData.table.reachedPopulation"),
             value: "reachPopulation",
             sortable: false,
             width: "25%"
@@ -171,9 +175,12 @@ export default {
             //Loop through  amenities
             for (const amenity in sumPois) {
               let isAmenitySelected = me.isAmenitySelected(amenity);
+              if (amenity === "population") {
+                isAmenitySelected = true;
+              }
               if (isAmenitySelected) {
                 let obj = {
-                  pois: helpers.humanize(amenity)
+                  pois: amenity ? this.$t(`pois.${amenity}`) : amenity
                 };
                 //Default or input calculation
                 obj[keys[0]] = sumPois[amenity];

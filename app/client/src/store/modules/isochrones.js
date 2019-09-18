@@ -5,7 +5,12 @@ import { getField, updateField } from "vuex-map-fields";
 import { toStringHDMS } from "ol/coordinate";
 import { transform } from "ol/proj.js";
 
-import maputils from "../../utils/MapUtils";
+import {
+  geojsonToFeature,
+  getPolygonArea,
+  wktToFeature,
+  flyTo
+} from "../../utils/MapUtils";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import IsochroneUtils from "../../utils/IsochroneUtils";
@@ -35,10 +40,19 @@ const state = {
     calculationModes: {
       name: "modus",
       values: [
-        { display: "Default Network", value: "default" },
-        { display: "Modified Network", value: "scenario" },
+        {
+          display: "Default Network",
+          name: "defaultNetwork",
+          value: "default"
+        },
+        {
+          display: "Modified Network",
+          name: "modifiedNetwork",
+          value: "scenario"
+        },
         {
           display: "Modified Network (Double Calculation)",
+          name: "modifiedNetworkDoubleCalc",
           value: "comparison"
         }
       ],
@@ -54,8 +68,16 @@ const state = {
   multiIsochroneCalculationMethods: {
     name: "multiIsochroneCalculationMethods",
     values: [
-      { display: "Study Area", value: "study_area" },
-      { display: "Draw Boundary", value: "draw" }
+      {
+        display: "Study Area",
+        name: "studyArea",
+        value: "study_area"
+      },
+      {
+        display: "Draw Boundary",
+        name: "drawBoundary",
+        value: "draw"
+      }
     ],
     active: null
   },
@@ -218,7 +240,7 @@ const actions = {
     //TODO: Don't get calculation options from state at this moment.
     const calculationNumber = state.calculations.length + 1;
 
-    let olFeatures = maputils.geojsonToFeature(isochrones);
+    let olFeatures = geojsonToFeature(isochrones);
     //Order features based on id
     olFeatures.sort((a, b) => {
       return a.get("step") - b.get("step");
@@ -230,6 +252,8 @@ const actions = {
       let level = feature.get("step");
       let modus = feature.get("modus");
 
+      //Remove coordinates property (multi-isochrones not printing, probably a bug. )
+      feature.unset("coordinates");
       // If the modus is 1 it is a default isochrone, otherwise is a input or double calculation
       if (modus === 1 || modus === 3) {
         color = state.styleData.defaultIsochroneColors[level];
@@ -243,7 +267,7 @@ const actions = {
         ),
         range: feature.getProperties().step + " min",
         color: color,
-        area: maputils.getPolygonArea(feature.getGeometry()),
+        area: getPolygonArea(feature.getGeometry()),
         isVisible: true
       };
       feature.set("isVisible", true);
@@ -264,8 +288,10 @@ const actions = {
     };
 
     if (calculationType === "single") {
-      const isochroneStartingPoint = maputils
-        .wktToFeature(olFeatures[0].get("starting_point"), "EPSG:4326")
+      const isochroneStartingPoint = wktToFeature(
+        olFeatures[0].get("starting_point"),
+        "EPSG:4326"
+      )
         .getGeometry()
         .getCoordinates();
       const transformedPoint = new Point(
@@ -273,7 +299,7 @@ const actions = {
       );
       iconMarkerFeature.setGeometry(transformedPoint);
       if (state.position.placeName) {
-        maputils.flyTo(
+        flyTo(
           transformedPoint.getCoordinates(),
           rootState.map.map,
           function() {}
@@ -285,7 +311,7 @@ const actions = {
         "";
     } else {
       commit("RESET_MULTIISOCHRONE_START");
-      transformedData.position = "Multi-Isochrone Calculation";
+      transformedData.position = "multiIsochroneCalculation";
     }
 
     commit("CALCULATE_ISOCHRONE", transformedData);
@@ -304,7 +330,22 @@ const actions = {
           return "'" + item.value + "'";
         })
         .toString();
-      if (amenities === "") return;
+      if (amenities === "") {
+        commit(
+          "map/TOGGLE_SNACKBAR",
+          {
+            type: "error",
+            message: "selectAmenities",
+            state: true
+          },
+          { root: true }
+        );
+        //Reset all study area features count_point property to zero.
+        selectedFeatures.forEach(feature => {
+          feature.set("count_pois", 0);
+        });
+        return;
+      }
       const params = {
         minutes: rootState.isochrones.options.minutes,
         speed: rootState.isochrones.options.speed,
@@ -353,7 +394,7 @@ const actions = {
           console.log(response);
           const configData = JSON.parse(response.config.data);
           if (response.data.feature) {
-            const olFeatures = maputils.geojsonToFeature(response.data.feature);
+            const olFeatures = geojsonToFeature(response.data.feature);
             olFeatures.forEach(feature => {
               feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
               feature.set("region_type", configData.region_type);

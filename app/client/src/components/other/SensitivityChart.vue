@@ -19,7 +19,9 @@ export default {
           labels: this.dynamicHeatmapTravelTimes,
           datasets: [
             {
-              label: "Accessibility",
+              label: this.$t(
+                "appBar.filter.poisSettings.sensitivityGraph.title"
+              ),
               fill: false,
               borderColor: "rgb(54, 162, 235)",
               data: this.accessibilityGravityData,
@@ -41,7 +43,9 @@ export default {
                 },
                 scaleLabel: {
                   display: true,
-                  labelString: "Accessibility Gravity (%)"
+                  labelString: this.$t(
+                    "appBar.filter.poisSettings.sensitivityGraph.gravity"
+                  )
                 }
               }
             ],
@@ -55,7 +59,9 @@ export default {
                 },
                 scaleLabel: {
                   display: true,
-                  labelString: "Traveltime (minutes)"
+                  labelString: this.$t(
+                    "appBar.filter.poisSettings.sensitivityGraph.travelTime"
+                  )
                 }
               }
             ]
@@ -77,9 +83,6 @@ export default {
       dynamicHeatmapTravelTimes: "dynamicHeatmapTravelTimes"
     }),
     accessibilityGravityData() {
-      console.log("passed");
-      console.log(this.amenity);
-
       const accessibilityGravity = this.dynamicHeatmapTravelTimes.map(
         x => Math.exp(x * this.amenity.sensitivity) * 100
       );

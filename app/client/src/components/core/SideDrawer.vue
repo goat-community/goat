@@ -10,7 +10,7 @@
       value="true"
       right
       :permanent="container === true"
-      width="350"
+      width="300"
       hide-overlay
       class="white left-shadow"
     >
@@ -45,41 +45,52 @@
       <v-layout justify-space-between column fill-height>
         <v-list>
           <template v-for="(item, index) in upItems">
-            <v-list-item
-              @click="toggleComponent(item.componentToShow)"
-              :key="index"
-              active-class="red--text"
-            >
-              <v-list-item-action>
-                <v-icon
-                  :style="
-                    activeUpComponent === item.componentToShow
-                      ? 'color: #30c2ff;'
-                      : 'color: white'
-                  "
-                  light
-                  v-html="item.icon"
-                ></v-icon>
-              </v-list-item-action>
-              <v-list-item-content>
-                <v-list-item-title v-html="item.text"></v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
+            <v-tooltip left :key="index">
+              <template v-slot:activator="{ on }">
+                <v-list-item
+                  @click="toggleComponent(item.componentToShow)"
+                  v-on="on"
+                  active-class="red--text"
+                >
+                  <v-list-item-action>
+                    <v-icon
+                      :style="
+                        activeUpComponent === item.componentToShow
+                          ? 'color: #30c2ff;'
+                          : 'color: white'
+                      "
+                      light
+                      v-html="item.icon"
+                    ></v-icon>
+                  </v-list-item-action>
+
+                  <v-list-item-content>
+                    <v-list-item-title v-html="item.text"></v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </template>
+              <span>{{ item.text }}</span>
+            </v-tooltip>
           </template>
         </v-list>
         <v-list justify-end>
           <template v-for="(item, index) in bottomItems">
-            <v-list-item
-              @click="toggleDialog(item.componentToShow)"
-              :key="index"
-            >
-              <v-list-item-action>
-                <v-icon color="white" light v-html="item.icon"></v-icon>
-              </v-list-item-action>
-              <v-list-item-content>
-                <v-list-item-title v-html="item.text"></v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
+            <v-tooltip left :key="index">
+              <template v-slot:activator="{ on }">
+                <v-list-item
+                  @click="toggleDialog(item.componentToShow)"
+                  v-on="on"
+                >
+                  <v-list-item-action>
+                    <v-icon color="white" light v-html="item.icon"></v-icon>
+                  </v-list-item-action>
+                  <v-list-item-content>
+                    <v-list-item-title v-html="item.text"></v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </template>
+              <span>{{ item.text }}</span>
+            </v-tooltip>
           </template>
         </v-list>
       </v-layout>
@@ -119,54 +130,57 @@ export default {
     "app-about": About
   },
   data: () => ({
-    upItems: [
-      {
-        icon: "fas fa-user",
-        text: "Login",
-        componentToShow: "map-login"
-      },
-      {
-        icon: "fas fa-print",
-        text: "Print",
-        componentToShow: "map-print"
-      },
-      {
-        icon: "fas fa-paint-brush",
-        text: "Draw and Measure",
-        componentToShow: "map-draw-measure"
-      },
-      {
-        icon: "fas fa-filter",
-        text: "Filter",
-        componentToShow: "map-filter"
-      },
-      {
-        icon: "fas fa-edit",
-        text: "Edit",
-        componentToShow: "map-edit"
-      }
-    ],
-    bottomItems: [
-      {
-        icon: "fas fa-cog",
-        text: "Settings",
-        componentToShow: "app-settings"
-      },
-      {
-        icon: "fas fa-info-circle",
-        text: "Info",
-        componentToShow: "app-about"
-      }
-    ],
     container: false,
     activeUpComponent: "",
     activeBottomComponent: "",
     responsive: false,
     showDialog: false
   }),
-  computed: {},
-  mounted() {},
-  beforeDestroy() {},
+  computed: {
+    upItems() {
+      return [
+        {
+          icon: "fas fa-user",
+          text: this.$t("appBar.buttons.login"),
+          componentToShow: "map-login"
+        },
+        {
+          icon: "fas fa-print",
+          text: this.$t("appBar.buttons.print"),
+          componentToShow: "map-print"
+        },
+        {
+          icon: "fas fa-paint-brush",
+          text: this.$t("appBar.buttons.drawAndMeasure"),
+          componentToShow: "map-draw-measure"
+        },
+        {
+          icon: "fas fa-filter",
+          text: this.$t("appBar.buttons.filter"),
+          componentToShow: "map-filter"
+        },
+        {
+          icon: "fas fa-edit",
+          text: this.$t("appBar.buttons.edit"),
+          componentToShow: "map-edit"
+        }
+      ];
+    },
+    bottomItems() {
+      return [
+        {
+          icon: "fas fa-cog",
+          text: this.$t("appBar.buttons.settings"),
+          componentToShow: "app-settings"
+        },
+        {
+          icon: "fas fa-info-circle",
+          text: this.$t("appBar.buttons.info"),
+          componentToShow: "app-about"
+        }
+      ];
+    }
+  },
   methods: {
     toggleComponent(component) {
       if (component === this.activeUpComponent) {
@@ -215,7 +229,7 @@ export default {
 }
 
 #app-toolbar-content {
-  padding-right: 50px;
+  margin-right: 50px;
   .close-icon {
     position: absolute;
     right: 10px;

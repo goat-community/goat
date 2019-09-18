@@ -43,35 +43,66 @@
 
                 <v-layout row>
                   <v-spacer></v-spacer>
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <v-icon
+                        @click="showPoisTable(calculation)"
+                        small
+                        v-on="on"
+                        class="result-icons mr-2"
+                        >fas fa-table</v-icon
+                      >
+                    </template>
+                    <span>{{ $t("isochrones.results.showDataTooltip") }}</span>
+                  </v-tooltip>
 
-                  <v-icon
-                    @click="showPoisTable(calculation)"
-                    small
-                    class="result-icons mr-2"
-                    >fas fa-table</v-icon
-                  >
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <v-icon
+                        @click="showHideCalculation(calculation)"
+                        small
+                        v-on="on"
+                        class="result-icons mr-2"
+                        v-html="
+                          calculation.isVisible
+                            ? 'fas fa-eye-slash'
+                            : 'fas fa-eye'
+                        "
+                      ></v-icon>
+                    </template>
+                    <span>{{
+                      $t("isochrones.results.toggleVisibilityTooltip")
+                    }}</span>
+                  </v-tooltip>
 
-                  <v-icon
-                    @click="showHideCalculation(calculation)"
-                    small
-                    class="result-icons mr-2"
-                    v-html="
-                      calculation.isVisible ? 'fas fa-eye-slash' : 'fas fa-eye'
-                    "
-                  ></v-icon>
-                  <v-icon
-                    @click="toggleDownloadDialog(calculation)"
-                    small
-                    class="result-icons mr-2"
-                    >fas fa-download</v-icon
-                  >
-                  <v-icon
-                    @click="deleteCalculation(calculation)"
-                    small
-                    class="result-icons mr-6"
-                  >
-                    fas fa-trash-alt</v-icon
-                  >
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <v-icon
+                        @click="toggleDownloadDialog(calculation)"
+                        small
+                        v-on="on"
+                        class="result-icons mr-2"
+                        >fas fa-download</v-icon
+                      >
+                    </template>
+                    <span>{{ $t("isochrones.results.downloadTooltip") }}</span>
+                  </v-tooltip>
+
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <v-icon
+                        @click="deleteCalculation(calculation)"
+                        small
+                        v-on="on"
+                        class="result-icons mr-6"
+                      >
+                        fas fa-trash-alt</v-icon
+                      >
+                    </template>
+                    <span>{{
+                      $t("isochrones.results.deleteCalcTooltip")
+                    }}</span>
+                  </v-tooltip>
                 </v-layout>
               </v-layout>
               <v-card-text class="pr-0 pl-0 pt-0 pb-0">
@@ -91,7 +122,13 @@
                     : 'fas fa-chevron-right'
                 "
               ></v-icon>
-              <h3>{{ calculation.position }}</h3>
+              <h3>
+                {{
+                  calculation.position === "multiIsochroneCalculation"
+                    ? $t("isochrones.results.multiIsochroneHeader")
+                    : calculation.position
+                }}
+              </h3>
             </v-subheader>
             <v-card-text class="pt-0 " v-show="calculation.isExpanded">
               <v-data-table
@@ -147,13 +184,6 @@ export default {
   },
   data() {
     return {
-      headers: [
-        { text: "Type", value: "type", sortable: false },
-        { text: "Range", value: "range", sortable: false },
-        { text: "Area", value: "area", sortable: false },
-        { text: "Visible", value: "visible", sortable: false },
-        { text: "Legend", value: "legend", sortable: false }
-      ],
       showDialog: false,
       selectedCalculation: null,
       isResultsElVisible: true
@@ -174,10 +204,8 @@ export default {
     deleteCalculation(calculation) {
       this.$refs.confirm
         .open(
-          "Delete",
-          "Are you sure you want to delete Calculation " +
-            calculation.id +
-            " ?",
+          this.$t("isochrones.deleteTitle"),
+          this.$t("isochrones.deleteMessage") + " " + calculation.id + " ?",
           { color: "green" }
         )
         .then(confirm => {
@@ -200,9 +228,7 @@ export default {
         calculation,
         me.isochroneLayer
       );
-      console.log(features);
       const pois = IsochroneUtils.getCalculationPoisObject(features);
-      console.log(pois);
       const payload = {
         calculationId: calculation.id,
         calculationName: `Calculation - ${calculation.id}`,
@@ -223,7 +249,36 @@ export default {
     ...mapGetters("isochrones", {
       calculations: "calculations",
       isochroneLayer: "isochroneLayer"
-    })
+    }),
+    headers() {
+      return [
+        {
+          text: this.$t("isochrones.results.table.type"),
+          value: "type",
+          sortable: false
+        },
+        {
+          text: this.$t("isochrones.results.table.range"),
+          value: "range",
+          sortable: false
+        },
+        {
+          text: this.$t("isochrones.results.table.area"),
+          value: "area",
+          sortable: false
+        },
+        {
+          text: this.$t("isochrones.results.table.visible"),
+          value: "visible",
+          sortable: false
+        },
+        {
+          text: this.$t("isochrones.results.table.legend"),
+          value: "legend",
+          sortable: false
+        }
+      ];
+    }
   }
 };
 </script>

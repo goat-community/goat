@@ -1,0 +1,105 @@
+---
+
+throwErrorOnExtraParameters: false
+defaultToSvg: true
+
+templates:
+  A4 portrait: !template
+    reportTemplate: A4_Portrait.jrxml
+    attributes:
+      title:
+        !string &title
+        default: "Print"
+      crsDescription:
+        !string &crsDescription
+        default: ""
+      legend: !legend &legend {}
+      map: 
+        !map &map
+        maxDpi: 254
+        dpiSuggestions: [254]
+        zoomLevels:
+          !zoomLevels
+          scales: [100, 250, 500, 2500, 5000, 10000, 25000, 50000, 100000, 500000]
+        width: 540
+        height: 650  
+      northArrow: 
+        !northArrow &northArrow
+        size: 50
+        default:
+          graphic: "file://north.svg"  
+      scalebar: 
+        !scalebar &scalebar
+        width: 180
+        height: 30
+        default:
+          type: "bar_sub"
+          fontSize: 8
+          barSize: 5
+       
+    processors: &processors
+    - !reportBuilder  # compile all reports in current directory
+      directory: '.'
+    - !prepareLegend
+      maxWidth: 138
+      dpi: 80
+      template: legend.jrxml
+    - !createMap
+      inputMapper: {map: map}
+      outputMapper: {mapSubReport: mapSubReport}
+    - !createNorthArrow {}
+    - !createScalebar {}
+    
+  A4 landscape: !template
+    reportTemplate: A4_Landscape.jrxml
+    attributes:
+      title: *title
+      crsDescription: *crsDescription
+      legend: *legend
+      map: !map
+        <<: *map
+        width: 780
+        height: 451
+      northArrow: *northArrow
+      scalebar: *scalebar
+    processors: *processors
+     
+  A3 portrait: !template
+    reportTemplate: A3_Portrait.jrxml
+    attributes:
+      title: *title
+      crsDescription: *crsDescription
+      legend: *legend
+      map: !map
+        <<: *map
+        width: 770
+        height: 980
+      northArrow: *northArrow
+      scalebar: !scalebar
+        <<: *scalebar
+        default:
+          type: "bar_sub"
+          fontSize: 10
+          barSize: 7
+          intervals: 5
+    processors: *processors
+                 
+  A3 landscape: !template
+    reportTemplate: A3_Landscape.jrxml
+    attributes:
+      title: *title
+      crsDescription: *crsDescription
+      legend: *legend
+      map: !map
+        <<: *map
+        width: 1128
+        height: 639
+      northArrow: *northArrow
+      scalebar: !scalebar
+        <<: *scalebar
+        default:
+          type: "bar_sub"
+          fontSize: 10
+          barSize: 7
+          intervals: 5
+    processors: *processors

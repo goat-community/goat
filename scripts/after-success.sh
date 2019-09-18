@@ -1,1 +1,0 @@
-echo "Build succeeded :)"

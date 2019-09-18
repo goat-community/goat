@@ -16,8 +16,8 @@
           <v-subheader class="ml-1 pl-0">
             <span class="title">{{
               selectedThematicData.calculationType === "single"
-                ? "Thematic Data"
-                : "Multi-Isochrone Data"
+                ? $t("isochrones.single.tableDataTitle")
+                : $t("isochrones.multiple.tableDataTitle")
             }}</span>
           </v-subheader>
         </v-layout>

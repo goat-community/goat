@@ -22,17 +22,23 @@
         <img v-if="item.icon" class="pois-icon" :src="getPoisIconUrl(item)" />
       </template>
       <template v-slot:label="{ item, open }">
-        <div class="tree-label-custom">{{ item.name }}</div>
+        <div class="tree-label-custom">{{ getDisplayName(item) }}</div>
       </template>
       <template v-slot:append="{ item, open }">
         <template v-if="item.icon">
-          <v-icon
-            @click="toggleHeatmapDialog(item)"
-            small
-            class="arrow-icons mr-1"
-          >
-            fas fa-cog
-          </v-icon>
+          <v-tooltip top>
+            <template v-slot:activator="{ on }">
+              <v-icon
+                @click="toggleHeatmapDialog(item)"
+                small
+                v-on="on"
+                class="arrow-icons mr-1"
+              >
+                fas fa-cog
+              </v-icon>
+            </template>
+            <span>{{ $t("appBar.filter.poisSettings.buttonTooltip") }}</span>
+          </v-tooltip>
         </template>
       </template>
     </v-treeview>
@@ -47,7 +53,7 @@
 
 <script>
 import { Mapable } from "../../../mixins/Mapable";
-import Utils from "../../../utils/Layer";
+import { getAllChildLayers } from "../../../utils/Layer";
 import { mapGetters, mapActions } from "vuex";
 import HeatmapOptions from "./HeatmapOptions";
 
@@ -85,7 +91,7 @@ export default {
       const heatmapLayerNames = ["walkability", "walkability-population"];
       const poisLayerName = "pois";
 
-      const allLayers = Utils.getAllChildLayers(map);
+      const allLayers = getAllChildLayers(map);
       allLayers.forEach(layer => {
         const layerName = layer.get("name");
         if (heatmapLayerNames.includes(layerName)) {
@@ -141,6 +147,17 @@ export default {
     toggleHeatmapDialog(amenity) {
       this.selectedAmenity = amenity;
       this.showHeatmapOptionsDialog = true;
+    },
+    getDisplayName(item) {
+      let value;
+      if (item.value) {
+        //Display name for amenities
+        value = this.$t(`pois.${item.value}`);
+      } else {
+        //Display name from categories
+        value = this.$t(`pois.${item.categoryValue}`);
+      }
+      return value;
     }
   },
   watch: {

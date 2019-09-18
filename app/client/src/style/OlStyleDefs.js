@@ -113,6 +113,9 @@ const OlStyleDefs = {
         if (modus === 1 || modus === 3) {
           if (!styleData.styleCache.default[level]) {
             let style = new OlStyle({
+              fill: new OlFill({
+                color: [0, 0, 0, 0]
+              }),
               stroke: new OlStroke({
                 color: feature.get("color"),
                 width: 5
@@ -129,6 +132,9 @@ const OlStyleDefs = {
         } else {
           if (!styleData.styleCache.input[level]) {
             let style = new OlStyle({
+              fill: new OlFill({
+                color: [0, 0, 0, 0]
+              }),
               stroke: new OlStroke({
                 color: feature.get("color"),
                 width: 5

@@ -2,7 +2,7 @@
   <v-flex xs12 sm8 md4>
     <v-card flat>
       <v-subheader>
-        <span class="title">Filter</span>
+        <span class="title">{{ $t("appBar.filter.title") }}</span>
       </v-subheader>
       <v-card-text class="pr-16 pl-16 pt-0 pb-0">
         <v-divider></v-divider>
@@ -16,12 +16,8 @@
 <script>
 import pois from "./Pois";
 export default {
-  data: () => ({}),
   components: {
     pois
-  },
-  computed: {},
-  methods: {},
-  mounted() {}
+  }
 };
 </script>

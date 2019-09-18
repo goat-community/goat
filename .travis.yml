@@ -1,9 +1,17 @@
-language: node_js
-node_js: stable
+language: generic
 sudo: required
+dist: trusty
+services:
+  - docker
 branches:
   only:
     - master
     - development
 script:
-- ./scripts/after-success.sh
+  - cd $TRAVIS_BUILD_DIR
+  - ls
+  - "chmod +x ./scripts/docker-publish-travis.sh"
+deploy:
+  provider: script
+  script: "./scripts/docker-publish-travis.sh"
+  skip_cleanup: true
