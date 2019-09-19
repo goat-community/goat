@@ -6,6 +6,7 @@ import { toDegrees } from "ol/math.js";
 import olStyleIcon from "ol/style/Icon.js";
 import olStyleCircle from "ol/style/Circle.js";
 import { asArray as asColorArray } from "ol/color.js";
+import { fromCircle } from "ol/geom/Polygon";
 
 /**
  * @constructor
@@ -67,6 +68,14 @@ VectorEncoder.prototype.encodeVectorLayer = function(arr, layer, resolution) {
   for (let i = 0, ii = features.length; i < ii; ++i) {
     const originalFeature = features[i];
 
+    if (
+      originalFeature.getGeometry() &&
+      originalFeature.getGeometry().getType() === "Circle"
+    ) {
+      //Convert Circle Geometry to Polygon
+      const geometry = originalFeature.getGeometry();
+      originalFeature.setGeometry(fromCircle(geometry, 100));
+    }
     /**
      * @type {?import("ol/style/Style.js").default|Array<import("ol/style/Style.js").default>}
      */
@@ -107,6 +116,7 @@ VectorEncoder.prototype.encodeVectorLayer = function(arr, layer, resolution) {
           }
         } else {
           const styledFeature = originalFeature.clone();
+
           styledFeature.setGeometry(geometry);
           geojsonFeature = this.geojsonFormat.writeFeatureObject(styledFeature);
           geometry = /** @type {import("ol/geom/Geometry.js").default} */ (styledFeature.getGeometry());
