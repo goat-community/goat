@@ -1,7 +1,9 @@
 <template>
   <v-card ref="popup" max-width="344" width="250" class="ol-popup mx-auto">
     <v-toolbar color="green" flat height="50" dark>
-      <v-toolbar-title>{{ $t(`map.popup.${title}`) }}</v-toolbar-title>
+      <v-toolbar-title>{{
+        title ? $t(`map.popup.${title}`) : ""
+      }}</v-toolbar-title>
       <v-spacer></v-spacer>
       <slot name="close"></slot>
     </v-toolbar>
