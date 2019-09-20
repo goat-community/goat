@@ -8,7 +8,6 @@ const WaysLayerHelper = {
   featuresIDsToDelete: [],
   selectedWayType: null,
   filterResults(response, source) {
-    console.log(response);
     const waysFeatures = new GeoJSON().readFeatures(response.first.data);
     const waysModified = new GeoJSON().readFeatures(response.second.data);
     source.addFeatures(waysFeatures);
@@ -129,7 +128,7 @@ const WaysLayerHelper = {
         }
       })
       .catch(function(error) {
-        console.log(error);
+        throw new Error(error);
       });
   }
 };

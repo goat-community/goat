@@ -320,8 +320,6 @@ export default {
           response,
           me.olEditCtrl.getLayerSource()
         );
-      } else {
-        console.log(response);
       }
     },
 

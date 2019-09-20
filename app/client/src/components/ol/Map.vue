@@ -207,7 +207,6 @@ export default {
             .getExtent()
             .toString();
           me.setStudyAreaBbox(bbox);
-          console.log(bbox);
           const mask = new Mask({
             feature: feature,
             inner: false,
@@ -344,7 +343,6 @@ export default {
       const me = this;
       const map = me.map;
       me.mapClickListenerKey = map.on("click", evt => {
-        console.log("clicked..");
         if (me.activeInteractions.length > 0) {
           me.popupOverlay.setPosition(undefined);
           return;
