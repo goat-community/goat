@@ -54,6 +54,8 @@
           "label": "Reference System",
           "rule": "Field is required"
         },
+        "legend": "Legend",
+        "grid": "Grid",
         "submit": "Print"
       }
     },
@@ -195,7 +197,10 @@
     "deleteMessage": "Are you sure you want to delete Calculation"
   },
   "layerTree": {
-    "title": "Layers"
+    "title": "Layers",
+    "settings": {
+      "transparency": "Transparency"
+    }
   },
   "map": {
     "layerLegend": {
@@ -216,12 +221,20 @@
       "backgroundLayers": "Background Layers"
     },
     "layerName": {
+      "studyArea": "Study Area",
+      "ways": "Ways",
       "pois": "Point of Interest",
       "administrativeUnits": "Administrative Units",
-      "areaIsochrone": "Area Isochrone",
-      "walkabilityPopulation": "Walkability Population",
+      "walkability": "Walkability",
       "population": "Population",
-      "walkability": "Walkability"
+      "walkabilityPopulation": "Walkability Population",
+      "areaIsochrone": "Area Isochrone",
+      "osmStandard": "OSM Standard",
+      "osmLight": "OSM Light",
+      "osmDark": "OSM Dark",
+      "mapboxStreets": "Mapbox",
+      "publicTransport": "Public Transport",
+      "bingAerial": "Bing Aerial"
     },
     "tooltips": {
       "clickForCalculation": "Click for Calculation",

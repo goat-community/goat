@@ -19,7 +19,11 @@
               style="max-height: 150px;padding-right:10px;"
             >
               <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
-                {{ item.get("title") }}
+                {{
+                  $te(`map.layerName.${item.get("name")}`)
+                    ? $t(`map.layerName.${item.get("name")}`)
+                    : item.get("name")
+                }}
               </p>
               <v-divider></v-divider>
               <img

@@ -53,7 +53,7 @@ export default class OlIsochroneController extends OlBaseController {
         //Study are method
         if (!me.studyAreaLayer) {
           me.studyAreaLayer = getAllChildLayers(me.map).filter(
-            layer => layer.get("name") === "study_area_administration"
+            layer => layer.get("name") === "administrativeUnits"
           );
         }
         if (me.studyAreaLayer.length > 0) {

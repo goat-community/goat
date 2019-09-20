@@ -27,7 +27,7 @@
           <v-card-title
             class="fill-height align-end pl-1 pr-0 mb-0 pb-0 caption"
             style="font-size: 10px;"
-            >{{ item.get("title") }}</v-card-title
+            >{{ $t(`map.layerName.${item.get("name")}`) }}</v-card-title
           >
         </v-img>
       </v-card>
@@ -53,7 +53,7 @@
           <v-card-title
             class="fill-height align-end pl-1 pr-0 mb-0 pb-0 caption"
             style="font-size: 10px;"
-            >{{ item.get("title") }}</v-card-title
+            >{{ $t(`map.layerName.${item.get("name")}`) }}</v-card-title
           >
         </v-img>
       </v-card>
@@ -82,7 +82,7 @@ export default {
         .forEach(layer => {
           if (
             layer instanceof Group &&
-            layer.get("name") === "Background Layers"
+            layer.get("name") === "backgroundLayers"
           ) {
             me.backgroundLayers = layer.getLayers().getArray();
           }
