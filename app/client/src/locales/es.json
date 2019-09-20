@@ -54,7 +54,9 @@
                     "label": "",
                     "rule": ""
                 },
-                "submit": ""
+                "submit": "",
+                "legend": "",
+                "grid": ""
             }
         },
         "drawAndMeasure": {
@@ -195,7 +197,10 @@
         "deleteMessage": ""
     },
     "layerTree": {
-        "title": ""
+        "title": "",
+        "settings": {
+            "transparency": ""
+        }
     },
     "map": {
         "layerLegend": {
@@ -216,7 +221,15 @@
             "areaIsochrone": "",
             "walkabilityPopulation": "",
             "population": "",
-            "walkability": ""
+            "walkability": "",
+            "studyArea": "",
+            "ways": "",
+            "osmStandard": "",
+            "osmLight": "",
+            "osmDark": "",
+            "mapboxStreets": "",
+            "publicTransport": "",
+            "bingAerial": ""
         },
         "tooltips": {
             "clickForCalculation": "",
@@ -229,7 +242,14 @@
             "clickToStartDrawingBoundary": "",
             "clickToStartDrawingCircle": "",
             "clickToFinishDrawingPolygon": "",
-            "clickOnFeatureToDelete": ""
+            "clickOnFeatureToDelete": "",
+            "clickAndDragToModify": "",
+            "clickToRemove": ""
+        },
+        "popup": {
+            "attributes": "",
+            "info": "",
+            "editWithOsm": ""
         }
     },
     "pois": {
