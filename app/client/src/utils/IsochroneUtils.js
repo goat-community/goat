@@ -59,8 +59,6 @@ const IsochroneUtils = {
         //Multi-isochrone is created from study-area
 
         populationObj.forEach(currentStudyArea => {
-          const studyArea = Object.keys(currentStudyArea);
-          console.log(studyArea);
           multiIsochroneTableData.push(
             Object.assign(
               {

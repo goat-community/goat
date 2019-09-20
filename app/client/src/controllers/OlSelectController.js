@@ -43,128 +43,128 @@ export default class OlSelectController extends OlBaseController {
     onSelectionStart,
     onSelectionEnd
   ) {
-    console.log(selectionType);
-    const me = this;
-    // cleanup possible old select interaction
-    if (me.select) {
-      me.clear();
-    }
-
-    let listener;
-    let sketch;
-
-    const select = new DrawInteraction({
-      source: me.source,
-      type: "Circle",
-      condition: function() {
-        if (me.circleRadius > 1000) {
-          return false;
-        } else {
-          return true;
-        }
+    if (selectionType === "multiple") {
+      const me = this;
+      // cleanup possible old select interaction
+      if (me.select) {
+        me.clear();
       }
-    });
 
-    me.map.addInteraction(select);
+      let listener;
+      let sketch;
 
-    me.createTooltip();
-    me.pointerMoveKey = me.map.on("pointermove", me.onPointerMove.bind(me));
-
-    select.on(
-      "drawstart",
-      evt => {
-        //clear existing geometry
-        me.source.clear();
-        onSelectionStart();
-        // preserve sketch
-        sketch = evt.feature;
-        me.listener = sketch.getGeometry().on("change", function(evt) {
-          const geom = evt.target;
-          const type = geom.getType();
-          if (type === "Circle") {
-            me.circleRadius = geom.getRadius().toFixed();
+      const select = new DrawInteraction({
+        source: me.source,
+        type: "Circle",
+        condition: function() {
+          if (me.circleRadius > 1000) {
+            return false;
+          } else {
+            return true;
           }
-        });
-      },
-      me
-    );
+        }
+      });
 
-    select.on(
-      "drawend",
-      evt => {
-        const circle = evt.feature.getGeometry();
-        //Create polygon from circle geometry;
-        const circleAsPolygon = fromCircle(circle);
-        const filterIntersect = intersectsFilter(
-          "geom",
-          circleAsPolygon,
-          "EPSG:3857"
-        );
+      me.map.addInteraction(select);
 
-        const layerParams = selectedLayer
-          .getSource()
-          .getParams()
-          .LAYERS.split(":");
+      me.createTooltip();
+      me.pointerMoveKey = me.map.on("pointermove", me.onPointerMove.bind(me));
 
-        const xmlRequest = wfsRequestParser(
-          "EPSG:3857",
-          layerParams[0],
-          layerParams[1],
-          filterIntersect
-        );
+      select.on(
+        "drawstart",
+        evt => {
+          //clear existing geometry
+          me.source.clear();
+          onSelectionStart();
+          // preserve sketch
+          sketch = evt.feature;
+          me.listener = sketch.getGeometry().on("change", function(evt) {
+            const geom = evt.target;
+            const type = geom.getType();
+            if (type === "Circle") {
+              me.circleRadius = geom.getRadius().toFixed();
+            }
+          });
+        },
+        me
+      );
 
-        const requests = [
-          http.post("geoserver/cite/wfs", xmlRequest, {
-            headers: { "Content-Type": "text/xml" }
-          })
-        ];
-
-        if (layerParams[1] === "ways") {
-          console.log(store);
-          const filterUserInputTable = equalToFilter(
-            "userid",
-            store.state.userId
+      select.on(
+        "drawend",
+        evt => {
+          const circle = evt.feature.getGeometry();
+          //Create polygon from circle geometry;
+          const circleAsPolygon = fromCircle(circle);
+          const filterIntersect = intersectsFilter(
+            "geom",
+            circleAsPolygon,
+            "EPSG:3857"
           );
-          const combinedFilter = andFilter(
-            filterUserInputTable,
-            filterIntersect
-          );
-          const waysModifiedReq = wfsRequestParser(
+
+          const layerParams = selectedLayer
+            .getSource()
+            .getParams()
+            .LAYERS.split(":");
+
+          const xmlRequest = wfsRequestParser(
             "EPSG:3857",
             layerParams[0],
-            "ways_modified",
-            combinedFilter
+            layerParams[1],
+            filterIntersect
           );
-          requests.push(
-            http.post("geoserver/cite/wfs", waysModifiedReq, {
+
+          const requests = [
+            http.post("geoserver/cite/wfs", xmlRequest, {
               headers: { "Content-Type": "text/xml" }
             })
-          );
-        }
+          ];
 
-        axios
-          .all(requests)
-          .then(
-            axios.spread((first, second) => {
-              onSelectionEnd({
-                first: first,
-                second: second
-              });
-            })
-          )
-          .catch(error => {
-            console.log(error);
-          });
-        // unset sketch
-        sketch = null;
-        unByKey(listener);
-        me.circleRadius = 0;
-      },
-      me
-    );
+          if (layerParams[1] === "ways") {
+            const filterUserInputTable = equalToFilter(
+              "userid",
+              store.state.userId
+            );
+            const combinedFilter = andFilter(
+              filterUserInputTable,
+              filterIntersect
+            );
+            const waysModifiedReq = wfsRequestParser(
+              "EPSG:3857",
+              layerParams[0],
+              "ways_modified",
+              combinedFilter
+            );
+            requests.push(
+              http.post("geoserver/cite/wfs", waysModifiedReq, {
+                headers: { "Content-Type": "text/xml" }
+              })
+            );
+          }
 
-    // make select interaction available as member
-    me.select = select;
+          axios
+            .all(requests)
+            .then(
+              axios.spread((first, second) => {
+                onSelectionEnd({
+                  first: first,
+                  second: second
+                });
+              })
+            )
+            .catch(error => {
+              throw new Error(error);
+            });
+          // unset sketch
+          sketch = null;
+          unByKey(listener);
+          me.circleRadius = 0;
+        },
+        me
+      );
+
+      // make select interaction available as member
+      me.select = select;
+    }
   }
 
   /**

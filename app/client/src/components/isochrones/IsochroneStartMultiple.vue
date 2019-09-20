@@ -131,7 +131,6 @@ export default {
     onMapBound() {
       const me = this;
       //Initialize ol isochrone controllers.
-      console.log("map bounded...");
       me.olIsochroneCtrl = new OlIsochroneController(me.map);
       me.olIsochroneCtrl.createSelectionLayer();
     },

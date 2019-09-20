@@ -192,7 +192,6 @@ export default {
       }
     },
     toggleLayerOptions(item) {
-      console.log("passed here....");
       item.showOptions = !item.showOptions;
     },
     changeLayerOpacity(value, layer) {

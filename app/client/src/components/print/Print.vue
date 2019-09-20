@@ -392,7 +392,6 @@ export default {
 
         //Print Overlays (for measure label)
         this.map.getOverlays().forEach(overlay => {
-          console.log(overlay);
           // spec.attributes.map.layers.unshift(this.printService.encodeOverlay(overlay));
           const encodedOverlay = this.printService.encodeOverlay(overlay);
           if (encodedOverlay) {
@@ -724,7 +723,6 @@ export default {
 
       // Get layers from layertree only.
       // const dataLayerGroup = getGroupFromMap(this.map, "group");
-      console.log(this.map.getLayerGroup());
       const layers = getFlatLayers(this.map.getLayerGroup());
 
       // For each visible layer in reverse order, get the legend url.
@@ -927,7 +925,6 @@ export default {
         // Get capabilities - On success
         this.printState = this.printStateEnum.NOT_IN_USE;
         this.parseCapabilities_(resp);
-        console.log(this.layoutInfo);
         this.postComposeListenerKey_ = olEvents.listen(
           this.map,
           "postcompose",

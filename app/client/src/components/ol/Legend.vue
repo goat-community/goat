@@ -57,8 +57,6 @@ export default {
       me.layers = allLayers.filter(
         layer => layer.getSource().serverType_ === "geoserver"
       );
-
-      console.log(me.layers);
     },
     getImageUrl(item) {
       const baseUrl = window.location.origin;
