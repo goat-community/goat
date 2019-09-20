@@ -183,7 +183,7 @@ export default {
       //Filter background layers
       const backgroundLayers = [];
       mapLayers.forEach(layer => {
-        if (layer.get("name") === "Background Layers") {
+        if (layer.get("name") === "backgroundLayers") {
           backgroundLayers.push(...layer.getLayers().getArray());
         }
       });
@@ -191,7 +191,7 @@ export default {
       //Reference study area layer
       let studyAreaLayer;
       getAllChildLayers(me.map).forEach(layer => {
-        if (layer.get("name") === "study-area") {
+        if (layer.get("name") === "studyArea") {
           studyAreaLayer = layer;
         }
       });

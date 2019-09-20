@@ -11,12 +11,17 @@
           class="mt-4"
           :items="editableLayers"
           v-model="selectedLayer"
-          item-text="values_.title"
           item-value="values_.name"
           return-object
           solo
           :label="$t('appBar.edit.selectLayer')"
         >
+          <template slot="selection" slot-scope="{ item }">
+            {{ translate("layerName", item.get("name")) }}
+          </template>
+          <template slot="item" slot-scope="{ item }">
+            {{ translate("layerName", item.get("name")) }}
+          </template>
         </v-select>
         <v-divider></v-divider>
         <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
@@ -358,6 +363,17 @@ export default {
       me.toggleSelection = undefined;
       me.toggleEdit = undefined;
       EventBus.$emit("ol-interaction-stoped", me.interactionType);
+    },
+    translate(type, key) {
+      //type = {layerGroup || layerName}
+      //Checks if key exists and translates it othewise return the input value
+
+      const canTranslate = this.$te(`map.${type}.${key}`);
+      if (canTranslate) {
+        return this.$t(`map.${type}.${key}`);
+      } else {
+        return key;
+      }
     }
   }
 };
