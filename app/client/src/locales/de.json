@@ -194,7 +194,13 @@
         },
         "isochrones": "",
         "deleteTitle": "",
-        "deleteMessage": ""
+        "deleteMessage": "",
+        "download": {
+            "title": "",
+            "fileName": "",
+            "outputFormat": "",
+            "download": ""
+        }
     },
     "layerTree": {
         "title": "",
@@ -249,7 +255,12 @@
         "popup": {
             "attributes": "",
             "info": "",
-            "editWithOsm": ""
+            "editWithOsm": "",
+            "confirm": ""
+        },
+        "layerListValues": {
+            "road": "",
+            "bridge": ""
         }
     },
     "pois": {
