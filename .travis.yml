@@ -7,11 +7,8 @@ branches:
   only:
     - master
     - development
+    - test_travis
+before_script:
+  - chmod -R a+x scripts
 script:
-  - cd $TRAVIS_BUILD_DIR
-  - ls
-  - "chmod +x ./scripts/docker-publish-travis.sh"
-deploy:
-  provider: script
-  script: "./scripts/docker-publish-travis.sh"
-  skip_cleanup: true
+  - ./scripts/docker-public-travis.sh

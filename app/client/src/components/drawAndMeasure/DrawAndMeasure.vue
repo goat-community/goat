@@ -246,12 +246,8 @@ export default {
       let el = this.$refs[this.activeId];
       if (el) el[0].$el.click();
     },
-    colorChange(color) {
-      console.log(color);
-    },
-    transparencyChange(value) {
-      console.log(value);
-    }
+    colorChange() {},
+    transparencyChange() {}
   },
   mounted() {}
 };

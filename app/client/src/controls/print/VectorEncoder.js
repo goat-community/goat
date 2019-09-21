@@ -6,6 +6,7 @@ import { toDegrees } from "ol/math.js";
 import olStyleIcon from "ol/style/Icon.js";
 import olStyleCircle from "ol/style/Circle.js";
 import { asArray as asColorArray } from "ol/color.js";
+import { fromCircle } from "ol/geom/Polygon";
 
 /**
  * @constructor
@@ -67,6 +68,14 @@ VectorEncoder.prototype.encodeVectorLayer = function(arr, layer, resolution) {
   for (let i = 0, ii = features.length; i < ii; ++i) {
     const originalFeature = features[i];
 
+    if (
+      originalFeature.getGeometry() &&
+      originalFeature.getGeometry().getType() === "Circle"
+    ) {
+      //Convert Circle Geometry to Polygon
+      const geometry = originalFeature.getGeometry();
+      originalFeature.setGeometry(fromCircle(geometry, 100));
+    }
     /**
      * @type {?import("ol/style/Style.js").default|Array<import("ol/style/Style.js").default>}
      */
@@ -107,6 +116,7 @@ VectorEncoder.prototype.encodeVectorLayer = function(arr, layer, resolution) {
           }
         } else {
           const styledFeature = originalFeature.clone();
+
           styledFeature.setGeometry(geometry);
           geojsonFeature = this.geojsonFormat.writeFeatureObject(styledFeature);
           geometry = /** @type {import("ol/geom/Geometry.js").default} */ (styledFeature.getGeometry());
@@ -219,9 +229,7 @@ VectorEncoder.prototype.encodeVectorStyleFill = function(
 ) {
   let fillColor = /** @type {import('ol/color.js').Color} */ (fillStyle.getColor());
   if (fillColor !== null) {
-    console.assert(typeof fillColor === "string" || Array.isArray(fillColor));
     fillColor = asColorArray(fillColor);
-    console.assert(Array.isArray(fillColor), "only supporting fill colors");
     symbolizer.fillColor = rgbArrayToHex(fillColor);
     symbolizer.fillOpacity = fillColor[3];
   }
@@ -379,14 +387,7 @@ VectorEncoder.prototype.encodeVectorStyleStroke = function(
 ) {
   const strokeColor = /** @type {import('ol/color.js').Color} */ (strokeStyle.getColor());
   if (strokeColor !== null) {
-    console.assert(
-      typeof strokeColor === "string" || Array.isArray(strokeColor)
-    );
     const strokeColorRgba = asColorArray(strokeColor);
-    console.assert(
-      Array.isArray(strokeColorRgba),
-      "only supporting stroke colors"
-    );
     symbolizer.strokeColor = rgbArrayToHex(strokeColorRgba);
     symbolizer.strokeOpacity = strokeColorRgba[3];
   }
@@ -508,7 +509,6 @@ VectorEncoder.prototype.encodeOverlay = function(overlay) {
     const center = overlay.getPosition();
     if (center) {
       const text = element.innerText;
-      console.log(text);
       encOverlayLayer = {
         type: "geojson",
         style: {

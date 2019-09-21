@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 DOCKER_ENV=''
 DOCKER_TAG=''
 
@@ -6,10 +8,14 @@ case "$TRAVIS_BRANCH" in
     DOCKER_ENV=production
     DOCKER_TAG=latest
     ;;
-  "development")
+  "test_travis")
     DOCKER_ENV=development
-    DOCKER_TAG=dev
-    ;;    
+    DOCKER_TAG=test
+    ;;
+  "development")
+  DOCKER_ENV=development
+  DOCKER_TAG=dev
+  ;;
 esac
 
 docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD

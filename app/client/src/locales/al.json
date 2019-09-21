@@ -54,7 +54,9 @@
                     "label": "Sistemi referencë",
                     "rule": "Fusha është e detyrueshme"
                 },
-                "submit": "Printo"
+                "submit": "Printo",
+                "legend": "Legjenda",
+                "grid": "Rrjeti"
             }
         },
         "drawAndMeasure": {
@@ -192,10 +194,19 @@
         },
         "isochrones": "Izokrone",
         "deleteTitle": "Fshi",
-        "deleteMessage": "Jeni i sigurt që doni ta fshini llogaritjen"
+        "deleteMessage": "Jeni i sigurt që doni ta fshini llogaritjen",
+        "download": {
+            "title": "Shkarko Izokronet",
+            "fileName": "Emri i skedarit",
+            "outputFormat": "Zgjidh formatin",
+            "download": "Shkarko"
+        }
     },
     "layerTree": {
-        "title": "Shtresat"
+        "title": "Shtresat",
+        "settings": {
+            "transparency": "Transparanca"
+        }
     },
     "map": {
         "layerLegend": {
@@ -216,7 +227,15 @@
             "areaIsochrone": "Area Isochrone",
             "walkabilityPopulation": "Walkability Population",
             "population": "Population",
-            "walkability": "Walkability"
+            "walkability": "Walkability",
+            "studyArea": "Zona e studimit",
+            "ways": "Rrugët",
+            "osmStandard": "OSM Standard",
+            "osmLight": "OSM Light",
+            "osmDark": "OSM Dark",
+            "mapboxStreets": "Mapbox",
+            "publicTransport": "Transporti Publik",
+            "bingAerial": "Imazh Bing"
         },
         "tooltips": {
             "clickForCalculation": "Kliko për llogaritje",
@@ -229,7 +248,19 @@
             "clickToStartDrawingBoundary": "Kliko të fillosh të vizatosh kufirin",
             "clickToStartDrawingCircle": "Kliko të fillosh vizatimin e rrethit (Rrezja max 1000 m)",
             "clickToFinishDrawingPolygon": "Dopjo-klik ose klik pikën e fillimit për të përfunduar",
-            "clickOnFeatureToDelete": "Kliko objektin për ta fshirë"
+            "clickOnFeatureToDelete": "Kliko objektin për ta fshirë",
+            "clickAndDragToModify": "Kliko dhe tërhiq objektin për ta modifikuar",
+            "clickToRemove": "Kliko për ta fshirë"
+        },
+        "popup": {
+            "attributes": "Atributet",
+            "info": "Info",
+            "editWithOsm": "Modifiko në OSM",
+            "confirm": "Konfirmo"
+        },
+        "layerListValues": {
+            "road": "Rrugë",
+            "bridge": "Urë"
         }
     },
     "pois": {

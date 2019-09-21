@@ -380,18 +380,13 @@ const actions = {
         });
         promiseArray = [...promises];
       }
-      console.log(promiseArray);
+
       axios.all(promiseArray).then(results => {
         if (!options) {
-          const features = rootState.isochrones.selectionLayer
-            .getSource()
-            .getFeatures();
-          console.log(features);
           rootState.isochrones.selectionLayer.getSource().clear();
         }
-        console.log(results);
+
         results.map(response => {
-          console.log(response);
           const configData = JSON.parse(response.config.data);
           if (response.data.feature) {
             const olFeatures = geojsonToFeature(response.data.feature);
@@ -404,7 +399,6 @@ const actions = {
                 feature.set("regionEnvelope", configData.region);
               }
             });
-            console.log(olFeatures);
             commit("ADD_STUDYAREA_FEATURES", olFeatures);
           }
         });

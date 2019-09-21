@@ -50,11 +50,7 @@ export default {
   components: {},
   computed: {},
   methods: {
-    login() {
-      if (this.$refs.login.validate()) {
-        console.log("init login...");
-      }
-    }
+    login() {}
   },
   mounted() {}
 };

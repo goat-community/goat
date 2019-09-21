@@ -17,7 +17,7 @@
               <v-icon small>fas fa-layer-group</v-icon>
             </v-flex>
             <v-flex xs10>
-              <div>{{ layerGroup.name }}</div>
+              <div>{{ translate("layerGroup", layerGroup.name) }}</div>
             </v-flex>
             <v-flex xs1>
               <v-icon v-html="open ? 'remove' : 'add'"></v-icon>
@@ -51,7 +51,7 @@
                     >
                   </v-flex>
                   <v-flex xs98>
-                    <span>{{ item.name }}</span>
+                    <span>{{ translate("layerName", item.name) }}</span>
                   </v-flex>
                   <v-flex xs1>
                     <v-icon
@@ -85,7 +85,7 @@
                   min="0"
                   max="1"
                   @input="changeLayerOpacity($event, item.mapLayer)"
-                  label="Transparency"
+                  :label="$t('layerTree.settings.transparency')"
                 ></v-slider>
               </v-card>
             </v-expansion-panel>
@@ -157,8 +157,7 @@ export default {
             if (layer.get("displayInLayerList")) {
               let layerOpt = {
                 id: index,
-                name:
-                  layer.get("title") || layer.get("name") || "Unnamed layer",
+                name: layer.get("name") || "Unnamed layer",
                 showOptions: false,
                 mapLayer: layer
               };
@@ -168,7 +167,7 @@ export default {
         });
       } else if (layer instanceof Vector) {
         obj.id = index;
-        obj.name = layer.get("title") || layer.get("name");
+        obj.name = layer.get("name");
         obj.showOptions = false;
         obj.mapLayer = layer;
       }
@@ -178,8 +177,8 @@ export default {
     toggleLayerVisibility(clickedLayer, layerGroup) {
       //Turn off other layers if layer group is background layers.
       if (
-        layerGroup.name === "Background Layers" ||
-        layerGroup.name === "Accessibility Basemap"
+        layerGroup.name === "backgroundLayers" ||
+        layerGroup.name === "accessbilityBasemaps"
       ) {
         layerGroup.children.forEach(layer => {
           if (layer.id === clickedLayer.id) return;
@@ -193,11 +192,20 @@ export default {
       }
     },
     toggleLayerOptions(item) {
-      console.log("passed here....");
       item.showOptions = !item.showOptions;
     },
     changeLayerOpacity(value, layer) {
       layer.setOpacity(value);
+    },
+    translate(type, key) {
+      //type = {layerGroup || layerName}
+      //Checks if key exists and translates it othewise return the input value
+      const canTranslate = this.$te(`map.${type}.${key}`);
+      if (canTranslate) {
+        return this.$t(`map.${type}.${key}`);
+      } else {
+        return key;
+      }
     }
   },
   mounted() {}
