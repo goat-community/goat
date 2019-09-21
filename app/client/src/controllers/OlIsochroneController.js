@@ -43,40 +43,37 @@ export default class OlIsochroneController extends OlBaseController {
     me.createHelpTooltip();
     me.pointerMoveKey = me.map.on("pointermove", me.onPointerMove.bind(me));
     //Add Interaction for single|multiple calculation type...
-    if (calculationType === "single") {
-      console.log("single...");
-    } else {
-      if (
-        store.state.isochrones.multiIsochroneCalculationMethods.active ===
+    if (
+      calculationType === "multiple" &&
+      store.state.isochrones.multiIsochroneCalculationMethods.active ===
         "study_area"
-      ) {
-        //Study are method
-        if (!me.studyAreaLayer) {
-          me.studyAreaLayer = getAllChildLayers(me.map).filter(
-            layer => layer.get("name") === "study_area_administration"
-          );
-        }
-        if (me.studyAreaLayer.length > 0) {
-          me.studyAreaLayer[0].setVisible(true);
-        }
-        me.setupMapClick();
-        me.multiIsoCalcMethod = "study_area";
-        me.helpMessage = i18n.t("map.tooltips.clickToSelectStudyArea");
-      } else {
-        //Draw Boundary box method
-        const drawBoundary = new DrawInteraction({
-          type: "Circle",
-          geometryFunction: createBox()
-        });
-
-        drawBoundary.on("drawstart", me.onDrawStart.bind(me));
-        drawBoundary.on("drawend", me.onDrawEnd.bind(me));
-        me.map.addInteraction(drawBoundary);
-        // make select interaction available as member
-        me.drawBoundary = drawBoundary;
-        me.helpMessage = i18n.t("map.tooltips.clickToStartDrawingBoundary");
-        me.multiIsoCalcMethod = "draw";
+    ) {
+      //Study are method
+      if (!me.studyAreaLayer) {
+        me.studyAreaLayer = getAllChildLayers(me.map).filter(
+          layer => layer.get("name") === "administrativeUnits"
+        );
       }
+      if (me.studyAreaLayer.length > 0) {
+        me.studyAreaLayer[0].setVisible(true);
+      }
+      me.setupMapClick();
+      me.multiIsoCalcMethod = "study_area";
+      me.helpMessage = i18n.t("map.tooltips.clickToSelectStudyArea");
+    } else {
+      //Draw Boundary box method
+      const drawBoundary = new DrawInteraction({
+        type: "Circle",
+        geometryFunction: createBox()
+      });
+
+      drawBoundary.on("drawstart", me.onDrawStart.bind(me));
+      drawBoundary.on("drawend", me.onDrawEnd.bind(me));
+      me.map.addInteraction(drawBoundary);
+      // make select interaction available as member
+      me.drawBoundary = drawBoundary;
+      me.helpMessage = i18n.t("map.tooltips.clickToStartDrawingBoundary");
+      me.multiIsoCalcMethod = "draw";
     }
   }
 

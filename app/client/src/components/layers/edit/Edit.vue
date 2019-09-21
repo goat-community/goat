@@ -11,12 +11,17 @@
           class="mt-4"
           :items="editableLayers"
           v-model="selectedLayer"
-          item-text="values_.title"
           item-value="values_.name"
           return-object
           solo
           :label="$t('appBar.edit.selectLayer')"
         >
+          <template slot="selection" slot-scope="{ item }">
+            {{ translate("layerName", item.get("name")) }}
+          </template>
+          <template slot="item" slot-scope="{ item }">
+            {{ translate("layerName", item.get("name")) }}
+          </template>
         </v-select>
         <v-divider></v-divider>
         <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
@@ -113,7 +118,6 @@
           <span>{{ $t("appBar.edit.popup.selectWayType") }}</span>
           <v-select
             :items="waysTypes.values"
-            item-text="display"
             item-value="value"
             v-model="waysTypes.active"
             @change="updateSelectedWaysType"
@@ -121,7 +125,14 @@
             solo
             required
             class="pt-2 ma-0"
-          ></v-select>
+          >
+            <template slot="selection" slot-scope="{ item }">
+              {{ translate("layerListValues", item) }}
+            </template>
+            <template slot="item" slot-scope="{ item }">
+              {{ translate("layerListValues", item) }}
+            </template>
+          </v-select>
         </div>
       </template>
       <template v-slot:actions>
@@ -185,10 +196,7 @@ export default {
       selectedInteraction: null
     },
     waysTypes: {
-      values: [
-        { display: "Bridge", value: "bridge" },
-        { display: "Road", value: "road" }
-      ],
+      values: ["bridge", "road"],
       active: "road"
     }
   }),
@@ -243,10 +251,10 @@ export default {
       let selectionType;
       switch (state) {
         case 0:
-          selectionType = "single";
+          selectionType = "multiple";
           break;
         case 1:
-          selectionType = "multiple";
+          selectionType = "single";
           break;
         default:
           break;
@@ -315,8 +323,6 @@ export default {
           response,
           me.olEditCtrl.getLayerSource()
         );
-      } else {
-        console.log(response);
       }
     },
 
@@ -358,6 +364,17 @@ export default {
       me.toggleSelection = undefined;
       me.toggleEdit = undefined;
       EventBus.$emit("ol-interaction-stoped", me.interactionType);
+    },
+    translate(type, key) {
+      //type = {layerGroup || layerName}
+      //Checks if key exists and translates it othewise return the input value
+
+      const canTranslate = this.$te(`map.${type}.${key}`);
+      if (canTranslate) {
+        return this.$t(`map.${type}.${key}`);
+      } else {
+        return key;
+      }
     }
   }
 };

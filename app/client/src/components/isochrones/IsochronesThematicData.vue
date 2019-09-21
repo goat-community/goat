@@ -98,7 +98,6 @@ export default {
   computed: {
     tableHeaders() {
       let headers;
-      console.log(this.selectedThematicData);
       if (this.selectedThematicData.calculationType === "single") {
         let pois = this.selectedThematicData.pois;
         headers = [

@@ -183,7 +183,7 @@ export default {
       //Filter background layers
       const backgroundLayers = [];
       mapLayers.forEach(layer => {
-        if (layer.get("name") === "Background Layers") {
+        if (layer.get("name") === "backgroundLayers") {
           backgroundLayers.push(...layer.getLayers().getArray());
         }
       });
@@ -191,7 +191,7 @@ export default {
       //Reference study area layer
       let studyAreaLayer;
       getAllChildLayers(me.map).forEach(layer => {
-        if (layer.get("name") === "study-area") {
+        if (layer.get("name") === "studyArea") {
           studyAreaLayer = layer;
         }
       });
@@ -207,7 +207,6 @@ export default {
             .getExtent()
             .toString();
           me.setStudyAreaBbox(bbox);
-          console.log(bbox);
           const mask = new Mask({
             feature: feature,
             inner: false,
@@ -344,7 +343,6 @@ export default {
       const me = this;
       const map = me.map;
       me.mapClickListenerKey = map.on("click", evt => {
-        console.log("clicked..");
         if (me.activeInteractions.length > 0) {
           me.popupOverlay.setPosition(undefined);
           return;
