@@ -194,7 +194,13 @@
         },
         "isochrones": "Izokrone",
         "deleteTitle": "Fshi",
-        "deleteMessage": "Jeni i sigurt që doni ta fshini llogaritjen"
+        "deleteMessage": "Jeni i sigurt që doni ta fshini llogaritjen",
+        "download": {
+            "title": "Shkarko Izokronet",
+            "fileName": "Emri i skedarit",
+            "outputFormat": "Zgjidh formatin",
+            "download": "Shkarko"
+        }
     },
     "layerTree": {
         "title": "Shtresat",
@@ -249,7 +255,12 @@
         "popup": {
             "attributes": "Atributet",
             "info": "Info",
-            "editWithOsm": "Modifiko në OSM"
+            "editWithOsm": "Modifiko në OSM",
+            "confirm": "Konfirmo"
+        },
+        "layerListValues": {
+            "road": "Rrugë",
+            "bridge": "Urë"
         }
     },
     "pois": {
