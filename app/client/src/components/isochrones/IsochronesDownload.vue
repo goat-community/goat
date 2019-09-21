@@ -5,7 +5,7 @@
         <v-app-bar-nav-icon
           ><v-icon>fas fa-file-download</v-icon></v-app-bar-nav-icon
         >
-        <v-toolbar-title>Download Isochrones</v-toolbar-title>
+        <v-toolbar-title>{{ $t("isochrones.download.title") }}</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-app-bar-nav-icon @click.stop="show = false"
           ><v-icon>close</v-icon></v-app-bar-nav-icon
@@ -14,22 +14,22 @@
       <v-card-title primary-title>
         <v-flex xs12>
           <v-text-field
-            name="username"
-            label="Filename"
+            :label="$t(`isochrones.download.fileName`)"
             v-model="name"
             type="text"
           ></v-text-field>
           <v-select
             :items="items"
             v-model="selected"
-            label="Choose output format"
+            :label="$t(`isochrones.download.outputFormat`)"
           ></v-select>
         </v-flex>
       </v-card-title>
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn class="white--text" @click="download()" color="green"
-          >Download</v-btn
+          ><v-icon left>fas fa-download</v-icon
+          >{{ $t("isochrones.download.download") }}</v-btn
         >
       </v-card-actions>
     </v-card>

@@ -118,7 +118,6 @@
           <span>{{ $t("appBar.edit.popup.selectWayType") }}</span>
           <v-select
             :items="waysTypes.values"
-            item-text="display"
             item-value="value"
             v-model="waysTypes.active"
             @change="updateSelectedWaysType"
@@ -126,7 +125,14 @@
             solo
             required
             class="pt-2 ma-0"
-          ></v-select>
+          >
+            <template slot="selection" slot-scope="{ item }">
+              {{ translate("layerListValues", item) }}
+            </template>
+            <template slot="item" slot-scope="{ item }">
+              {{ translate("layerListValues", item) }}
+            </template>
+          </v-select>
         </div>
       </template>
       <template v-slot:actions>
@@ -190,10 +196,7 @@ export default {
       selectedInteraction: null
     },
     waysTypes: {
-      values: [
-        { display: "Bridge", value: "bridge" },
-        { display: "Road", value: "road" }
-      ],
+      values: ["bridge", "road"],
       active: "road"
     }
   }),
@@ -248,10 +251,10 @@ export default {
       let selectionType;
       switch (state) {
         case 0:
-          selectionType = "single";
+          selectionType = "multiple";
           break;
         case 1:
-          selectionType = "multiple";
+          selectionType = "single";
           break;
         default:
           break;

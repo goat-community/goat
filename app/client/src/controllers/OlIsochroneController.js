@@ -43,7 +43,6 @@ export default class OlIsochroneController extends OlBaseController {
     me.createHelpTooltip();
     me.pointerMoveKey = me.map.on("pointermove", me.onPointerMove.bind(me));
     //Add Interaction for single|multiple calculation type...
-
     if (
       calculationType === "multiple" &&
       store.state.isochrones.multiIsochroneCalculationMethods.active ===
