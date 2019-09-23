@@ -67,7 +67,7 @@ export default {
       defaultLanguage: 0,
       units: "kilometers",
       languages: [
-        { flag: "us", language: "en", title: "English" },
+        { flag: "gb", language: "en", title: "English" },
         { flag: "de", language: "de", title: "German" },
         { flag: "es", language: "es", title: "Español" },
         { flag: "al", language: "al", title: "Shqip" }
