@@ -45,6 +45,8 @@ Change to the "gh-pages" branch, where the website documents are stored:
 
 `git checkout gh-pages`
 
+If you receive an error message that this branch does not yet exist, visit the GitHub website, navigate to your repository and create a new branch called "gh-pages".
+
 #### 5. Make sure to have the newest file versions
 
 Before making any changes, it makes always sense to ensure your local repository is up to date with the upstream repository.
