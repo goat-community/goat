@@ -2,12 +2,8 @@ version: "3.7"
 
 services:
   client:
-    build: 
-      context: ./app/client
-      target: 'develop-stage'
+    build:
+      context: .
+      dockerfile: app/client/Dockerfile
     ports:
-      - '5000:5000'
-    volumes:
-      - './app/client:/app'
-    command: /bin/sh -c "npm run serve"
-    
+      - "5000:80"
