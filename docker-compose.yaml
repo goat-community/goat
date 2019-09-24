@@ -1,9 +1,15 @@
 version: "3.7"
 
 services:
-  client:
-    build:
-      context: .
-      dockerfile: app/client/Dockerfile
+  print:
+    image: camptocamp/mapfish_print:3.16
+    volumes:
+      - ./app/print/templates:/usr/local/tomcat/webapps/ROOT/print-apps
     ports:
-      - "5000:80"
+      - 8080:8080
+  # client:
+  #   build:
+  #     context: .
+  #     dockerfile: app/client/Dockerfile
+  #   ports:
+  #     - "5000:80"
