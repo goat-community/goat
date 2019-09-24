@@ -1,7 +1,7 @@
 # develop stage
 FROM node:11.1-alpine as develop-stage
 WORKDIR /app
-COPY package*.json ./
+COPY app/client/package*.json ./
 RUN npm install
 COPY . .
 
