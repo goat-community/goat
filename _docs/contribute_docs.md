@@ -83,7 +83,9 @@ You can view your changes on a local website by executing the following command:
 
 `bundle exec jekyll serve`
 
-With this command, [Jekyll](https://jekyllrb.com/) creates a local website using the programming language [Ruby](https://www.ruby-lang.org/en/). You can access it by typing the following into your browser: 
+With this command, [Jekyll](https://jekyllrb.com/) creates a local website using the programming language [Ruby](https://www.ruby-lang.org/en/) (if Jekyll is not yet installed on your computer, it can be downloaded [here](https://jekyllrb.com/docs/installation/)). 
+
+You can access the local website by typing the following into your browser: 
 
 [http://localhost:4000](http://localhost:4000)
 
