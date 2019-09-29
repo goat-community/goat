@@ -157,5 +157,8 @@ export default class OlMeasureController extends OlBaseController {
     if (me.pointerMoveKey) {
       unByKey(me.pointerMoveKey);
     }
+    if (me.clearOverlays) {
+      me.clearOverlays();
+    }
   }
 }

@@ -37,6 +37,7 @@ export default class OlEditController extends OlBaseController {
     const highlightLayer = new VectorLayer({
       displayInLayerList: false,
       source: highlightSource,
+      zIndex: 5,
       style: OlStyleDefs.getFeatureHighlightStyle()
     });
     me.map.addLayer(highlightLayer);
@@ -384,6 +385,9 @@ export default class OlEditController extends OlBaseController {
     }
     if (me.pointerMoveKey) {
       unByKey(me.pointerMoveKey);
+    }
+    if (me.clearOverlays) {
+      me.clearOverlays();
     }
   }
 

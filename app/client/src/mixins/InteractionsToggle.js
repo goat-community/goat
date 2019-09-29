@@ -9,8 +9,8 @@ export const InteractionsToggle = {
     EventBus.$on("ol-interaction-activated", activatedInteraction => {
       if (activatedInteraction !== me.interactionType) {
         //If a clear method does exist, call it.
-        if (me.clear) {
-          me.clear();
+        if (me.stop) {
+          me.stop();
         }
       }
     });

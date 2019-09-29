@@ -363,6 +363,14 @@ export default {
       me.clearEdit();
       me.toggleSelection = undefined;
       me.toggleEdit = undefined;
+    },
+    /**
+     * Stop edit and select interactions (Doesn't deletes the features)
+     */
+    stop() {
+      const me = this;
+      me.olSelectCtrl.removeInteraction();
+      me.olEditCtrl.removeInteraction();
       EventBus.$emit("ol-interaction-stoped", me.interactionType);
     },
     translate(type, key) {
