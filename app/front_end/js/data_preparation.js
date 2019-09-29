@@ -255,6 +255,7 @@ function IsochronesPOISTimeUpdate (){
 	var reqPromises = [];
 	for (var key in thematic_data){
 		//Since obj id the same for each interval we get it from first elemen
+		if (key.includes("_json")) {break;}
 		var objId = thematic_data[key][0].objectid;
 		objIds.push(objId);
 		var  isoTimeReqUrl = ApiConstants.address_geoserver+'wfs?service=WFS&version=1.1.0&request=GetFeature&viewparams=objectid:'+objId.toString()+';day:'+day.toString()+';hour:'+time.toString()+'&typeName=cite:isochrones_time&outputFormat=application/json';
