@@ -239,6 +239,13 @@ export default {
         this.activeId = undefined;
       }
       this.olMapCtrl.clear();
+    },
+    /**
+     * Stop edit and select interactions (Doesn't deletes the features)
+     */
+    stop() {
+      const me = this;
+      me.olMapCtrl.removeInteraction();
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
     },
     closeDrawSection() {

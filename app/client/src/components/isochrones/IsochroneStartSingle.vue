@@ -184,6 +184,13 @@ export default {
       }
       me.stopHelpTooltip();
       me.map.getTarget().style.cursor = "";
+    },
+    /**
+     * stops single isochrone interaction
+     */
+    stop() {
+      const me = this;
+      me.clear();
       EventBus.$emit("ol-interaction-stoped", me.interactionType);
     },
     clearSearch() {
