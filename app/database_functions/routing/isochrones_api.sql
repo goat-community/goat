@@ -25,9 +25,9 @@ begin
   --The function creating isochrones is executed AND the result is saved INTO the table isochrones
 	/*
 	modus = 1 (default calculation)
-	modus = 2 (input calculation)
+	modus = 2 (scenario calculation)
 	modus = 3 (comparison - default)
-	modus = 4 (comparison - input)
+	modus = 4 (comparison - scenario)
 	*/ 
 
   IF modus_input = 'comparison' THEN 
