@@ -70,6 +70,7 @@ export default {
         { flag: "gb", language: "en", title: "English" },
         { flag: "de", language: "de", title: "German" },
         { flag: "es", language: "es", title: "Español" },
+        { flag: "fr", language: "fr", title: "French" },
         { flag: "al", language: "al", title: "Shqip" }
       ],
       interactionType: "languageChange"
