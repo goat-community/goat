@@ -13,10 +13,17 @@ begin
 --If the modus is input the routing tables for the network with userinput have to be choosen
   speed = speed/3.6;
   DROP TABLE IF EXISTS temp_edges;
-  DROP TABLE IF EXISTS temp_step_vertices;
   DROP TABLE IF EXISTS isos;
-  CREATE temp TABLE temp_step_vertices (geom geometry);
   CREATE temp TABLE isos OF type_isochrone;
+
+--It can not drop the temp_step_vertices table in case of double calculation.
+  IF modus <> 4 THEN 
+    DROP TABLE IF EXISTS temp_step_vertices;
+    CREATE temp TABLE temp_step_vertices (geom geometry);
+  ELSE 
+    DELETE FROM temp_step_vertices;
+  END IF;
+
   IF modus <> 1 THEN
     execute format('CREATE TEMP TABLE temp_edges as SELECT *,'||objectid_input||' FROM pgrouting_edges_input('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||','||modus||')');
   ELSE 
@@ -51,7 +58,7 @@ begin
   IF (SELECT count(*) FROM temp_step_vertices LIMIT 4) > 3 THEN
   	  INSERT INTO isos 
 	  SELECT userid_input,counter,(upper_limit/60)::numeric, 
-	  ST_SETSRID (pgr_pointsaspolygon ('SELECT (row_number() over())::integer as id, ST_X(geom)::float x, ST_Y(geom)::float y 
+	  ST_SETSRID(pgr_pointsaspolygon ('SELECT (row_number() over())::integer as id, ST_X(geom)::float x, ST_Y(geom)::float y 
 	  FROM temp_step_vertices',shape_precision),4326);      
 
   END IF;
@@ -61,4 +68,4 @@ begin
   
 END;
 $function$
---SELECT * FROM isochrones(111,15,11.575260,48.148124,2,5,0.00003,1,44435,1)
+--SELECT * FROM isochrones_alphashape(111,15,11.575260,48.148124,2,5,0.00003,1,44435,1)
