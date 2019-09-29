@@ -1,361 +1,361 @@
 {
-    "appTitle": "",
+    "appTitle": "GOAT",
     "buttonLabels": {
-        "yes": "",
-        "cancel": "",
-        "save": ""
+        "yes": "Si",
+        "cancel": "Cancelar",
+        "save": "Guardar"
     },
     "appBar": {
         "buttons": {
-            "login": "",
-            "print": "",
-            "drawAndMeasure": "",
-            "filter": "",
-            "edit": "",
-            "settings": "",
-            "info": ""
+            "login": "Login",
+            "print": "Imprimir",
+            "drawAndMeasure": "Dibujar y medir",
+            "filter": "Filtro",
+            "edit": "Editar",
+            "settings": "Opciones",
+            "info": "Info"
         },
         "login": {
-            "title": "",
+            "title": "Login",
             "form": {
                 "username": {
-                    "label": "",
-                    "rule": ""
+                    "label": "Usuario",
+                    "rule": "Se requiere nombre de usuario"
                 },
                 "password": {
-                    "label": "",
-                    "rule": ""
+                    "label": "Contraseña",
+                    "rule": "Se requiere contraseña"
                 },
-                "submit": ""
+                "submit": "Iniciar sesión"
             }
         },
         "printMap": {
-            "title": "",
-            "connectionMsg": "",
-            "unavailableMsg": "",
+            "title": "Imprimir mapa",
+            "connectionMsg": "Conectándose al servidor de impresión, espere ...",
+            "unavailableMsg": "El servidor de impresión no está disponible. Por favor, inténtalo más tarde.....",
             "form": {
                 "title": {
-                    "label": "",
-                    "rule": ""
+                    "label": "Título",
+                    "rule": "Dato requerido"
                 },
                 "layout": {
-                    "label": "",
-                    "rule": ""
+                    "label": "Diseño",
+                    "rule": "Dato requerido"
                 },
                 "scale": {
-                    "label": "",
-                    "rule": ""
+                    "label": "Escala",
+                    "rule": "Dato requerido"
                 },
                 "resolution": {
-                    "label": "",
-                    "rule": ""
+                    "label": "Resolución",
+                    "rule": "Dato requerido"
                 },
                 "crs": {
-                    "label": "",
-                    "rule": ""
+                    "label": "Sistema de referencia",
+                    "rule": "Dato requerido"
                 },
-                "submit": "",
-                "legend": "",
-                "grid": ""
+                "submit": "Impresión",
+                "legend": "Leyenda",
+                "grid": "Cuadrícula"
             }
         },
         "drawAndMeasure": {
-            "title": "",
+            "title": "Medida",
             "measure": {
-                "header": "",
-                "length": "",
-                "area": ""
+                "header": "Medida",
+                "length": "Longitud",
+                "area": "Zona"
             },
             "draw": {
-                "header": "",
-                "point": "",
-                "pointWithCoord": "",
-                "line": "",
-                "polygon": "",
-                "label": "",
-                "color": "",
-                "transparency": ""
+                "header": "Dibujar",
+                "point": "Punto",
+                "pointWithCoord": "Punto con coordenadas",
+                "line": "Línea",
+                "polygon": "Polígono",
+                "label": "Etiqueta",
+                "color": "Color",
+                "transparency": "Transparencia"
             },
-            "clear": ""
+            "clear": "Borrar"
         },
         "filter": {
-            "title": "",
+            "title": "Filtrar",
             "poisSettings": {
-                "buttonTooltip": "",
-                "title": "",
-                "selectWeight": "",
-                "sensitivityIndex": "",
+                "buttonTooltip": "Ajustes de importancia y sensibilidad",
+                "title": "Mapa térmico",
+                "selectWeight": "Seleccione importancia",
+                "sensitivityIndex": "Índice de sensibilidad",
                 "sensitivityGraph": {
-                    "title": "",
-                    "gravity": "",
-                    "travelTime": ""
+                    "title": "Accesibilidad",
+                    "gravity": "Accesibilidad Gravedad (%)",
+                    "travelTime": "Tiempo de viaje (minutos)"
                 }
             }
         },
         "edit": {
-            "title": "",
-            "selectLayer": "",
-            "selectFeatures": "",
-            "drawCircle": "",
-            "selectOnMap": "",
-            "editTools": "",
-            "drawFeatureTooltip": "",
-            "modifyFeatureTooltip": "",
-            "deleteFeature": "",
-            "clearBtn": "",
-            "uploadBtn": "",
+            "title": "Editar",
+            "selectLayer": "Capa para editar",
+            "selectFeatures": "Seleccionar funciones",
+            "drawCircle": "Dibuja un círculo para seleccionar objetos",
+            "selectOnMap": "Selecciona objetos en el mapa",
+            "editTools": "Herramientas de edición",
+            "drawFeatureTooltip": "Característica de dibujo",
+            "modifyFeatureTooltip": "Modificar función",
+            "deleteFeature": "Eliminar característica",
+            "clearBtn": "Claro",
+            "uploadBtn": "Subir",
             "popup": {
-                "deleteFeatureMsg": "",
-                "selectWayType": "",
-                "wayType": ""
+                "deleteFeatureMsg": "¿Está seguro de que desea eliminar la función seleccionada?",
+                "selectWayType": "Selecciona tipo de camino: ",
+                "wayType": "Tipo de vía"
             }
         },
         "settings": {
-            "title": "",
-            "language": "",
+            "title": "Configuraciones",
+            "language": "Idioma",
             "units": {
-                "header": "",
-                "km": "",
-                "miles": ""
+                "header": "Unidad",
+                "km": "Kilómetros",
+                "miles": "Millas"
             }
         },
         "about": {
-            "title": "",
-            "content": "",
-            "moreInfo": ""
+            "title": "Sobre GOAT",
+            "content": "significa Geo Open Accessibility Tool. Esta herramienta web está pensada de ser de código abierto, interactiva, flexible y útil para la planificación de accesibilidad. Está en desarrollo en el Chair of Urban Structure and Transport Planning en la TUM .....",
+            "moreInfo": "Más información"
         }
     },
     "isochrones": {
-        "title": "",
-        "calculation": "",
-        "calculationTitle": "",
+        "title": "Isócronas",
+        "calculation": "Cálculo",
+        "calculationTitle": "Cálculo de isócronas",
         "single": {
-            "title": "",
-            "type": "",
-            "searchBox": "",
-            "startTooltip": "",
-            "tableDataTitle": ""
+            "title": "Punto de partida",
+            "type": "Simple",
+            "searchBox": "Buscar punto de partida",
+            "startTooltip": "Haga clic en el mapa para comenzar el cálculo de isócrona",
+            "tableDataTitle": "Datos temáticos"
         },
         "multiple": {
-            "title": "",
-            "type": "",
-            "selectMethod": "",
-            "studyArea": "",
-            "clear": "",
-            "calculate": "",
-            "studyAreaInfoLabel": "",
-            "drawBoundary": "",
-            "amenityCount": "",
-            "limit": "",
-            "drawBoundaryInfoLabel": "",
-            "tableDataTitle": ""
+            "title": "Inicio",
+            "type": "Múltiple",
+            "selectMethod": "Seleccionar método",
+            "studyArea": "Área de estudio",
+            "clear": "Claro",
+            "calculate": "Calcular",
+            "studyAreaInfoLabel": "Seleccione <b> zonas de estudio </b> y <b> servicios </b> para habilitar el cálculo.",
+            "drawBoundary": "Dibujar límite",
+            "amenityCount": "Cuenta de servicios",
+            "limit": "Límite",
+            "drawBoundaryInfoLabel": "Dibuje <b> límite </b> y seleccione <b> servicios </b> para habilitar el cálculo.",
+            "tableDataTitle": "Datos de múltiples isocronas"
         },
         "options": {
-            "title": "",
-            "subOptions": "",
-            "speed": "",
-            "time": "",
-            "nr": "",
-            "calcType": "",
-            "calcModus": "",
-            "alphaShapeMode": "",
-            "defaultNetwork": "",
-            "modifiedNetwork": "",
-            "modifiedNetworkDoubleCalc": ""
+            "title": "Opciones",
+            "subOptions": "Configuración de isócrona",
+            "speed": "km / h",
+            "time": "min",
+            "nr": "Isócronas",
+            "calcType": "Concavidad de isócronas",
+            "calcModus": "Modos de cálculo",
+            "alphaShapeMode": "Parámetro de forma alfa",
+            "defaultNetwork": "Red standard",
+            "modifiedNetwork": "Red modificada",
+            "modifiedNetworkDoubleCalc": "Red modificada (doble cálculo)"
         },
         "results": {
-            "title": "",
-            "multiIsochroneHeader": "",
-            "showDataTooltip": "",
-            "toggleVisibilityTooltip": "",
-            "downloadTooltip": "",
-            "deleteCalcTooltip": "",
+            "title": "Resultados",
+            "multiIsochroneHeader": "Cálculo de múltiples isocronas",
+            "showDataTooltip": "Mostrar datos",
+            "toggleVisibilityTooltip": "Alternar visibilidad",
+            "downloadTooltip": "Descargar",
+            "deleteCalcTooltip": "Eliminar cálculo",
             "table": {
-                "type": "",
-                "range": "",
-                "area": "",
-                "visible": "",
-                "legend": ""
+                "type": "Tipo",
+                "range": "Distancia",
+                "area": "Zona",
+                "visible": "Visible",
+                "legend": "Leyenda"
             }
         },
         "tableData": {
-            "timeFilter": "",
-            "searchPois": "",
-            "selectTimeMsg": "",
-            "noDataMsg": "",
-            "selectAmenitiesMsg": "",
+            "timeFilter": "Filtro de tiempo",
+            "searchPois": "Buscar punto de interés",
+            "selectTimeMsg": "Seleccione el tiempo para filtrar",
+            "noDataMsg": "No hay datos para el tiempo seleccionado.",
+            "selectAmenitiesMsg": "Seleccione <b> Servicios </b> y <b> Hora </b> para filtrar la tabla.",
             "table": {
-                "pois": "",
-                "isochrone": "",
-                "studyArea": "",
-                "population": "",
-                "reachedPopulation": ""
+                "pois": "Punto de interés",
+                "isochrone": "Isocrona",
+                "studyArea": "Área de estudio",
+                "population": "Población",
+                "reachedPopulation": "Población alcanzada"
             }
         },
-        "isochrones": "",
-        "deleteTitle": "",
-        "deleteMessage": "",
+        "isochrones": "Isócronas",
+        "deleteTitle": "Eliminar",
+        "deleteMessage": "¿Está seguro de que desea eliminar el cálculo?",
         "download": {
-            "title": "",
-            "fileName": "",
-            "outputFormat": "",
-            "download": ""
+            "title": "Descargar Isochrones",
+            "fileName": "Nombre del archivo",
+            "outputFormat": "Elije el formato",
+            "download": "Descargar"
         }
     },
     "layerTree": {
-        "title": "",
+        "title": "Capas",
         "settings": {
-            "transparency": ""
+            "transparency": "Transparencia"
         }
     },
     "map": {
         "layerLegend": {
-            "title": ""
+            "title": "Capas Leyenda"
         },
         "snackbarMessages": {
-            "selectAmenities": ""
+            "selectAmenities": "Debe seleccionar al menos una amenidad"
         },
         "layerGroup": {
-            "poisLayers": "",
-            "administrativeLayers": "",
-            "accessbilityBasemaps": "",
-            "backgroundLayers": ""
+            "poisLayers": "Capa Pois",
+            "administrativeLayers": "Capas Administrativas",
+            "accessbilityBasemaps": "Mapa base de accesibilidad",
+            "backgroundLayers": "Capas de fondo"
         },
         "layerName": {
-            "pois": "",
-            "administrativeUnits": "",
-            "areaIsochrone": "",
-            "walkabilityPopulation": "",
-            "population": "",
-            "walkability": "",
-            "studyArea": "",
-            "ways": "",
-            "osmStandard": "",
-            "osmLight": "",
-            "osmDark": "",
-            "mapboxStreets": "",
-            "publicTransport": "",
-            "bingAerial": ""
+            "pois": "Punto de interés",
+            "administrativeUnits": "Unidades administrativas",
+            "areaIsochrone": "Tamaño Isócrona",
+            "walkabilityPopulation": "Población - Walkability",
+            "population": "Población",
+            "walkability": "Walkability",
+            "studyArea": "Área de estudio",
+            "ways": "Vías",
+            "osmStandard": "OSM Standard",
+            "osmLight": "OSM Light",
+            "osmDark": "OSM Dark",
+            "mapboxStreets": "Mapbox",
+            "publicTransport": "Transporte público",
+            "bingAerial": "Bing Aerial"
         },
         "tooltips": {
-            "clickForCalculation": "",
-            "clickToSelectStudyArea": "",
-            "maxCircleRadius": "",
-            "clickToStartMeasure": "",
-            "clickToStartDrawing": "",
-            "clickToContinueDrawing": "",
-            "clickToFinishDrawing": "",
-            "clickToStartDrawingBoundary": "",
-            "clickToStartDrawingCircle": "",
-            "clickToFinishDrawingPolygon": "",
-            "clickOnFeatureToDelete": "",
-            "clickAndDragToModify": "",
-            "clickToRemove": ""
+            "clickForCalculation": "Haga clic para calcular",
+            "clickToSelectStudyArea": "Haga clic para seleccionar el área de estudio.",
+            "maxCircleRadius": "El radio máximo del círculo es de 1000 m.",
+            "clickToStartMeasure": "Haga clic para comenzar a medir",
+            "clickToStartDrawing": "Haga clic para comenzar a dibujar",
+            "clickToContinueDrawing": "Haga clic para continuar dibujando",
+            "clickToFinishDrawing": "Haga clic para terminar de dibujar",
+            "clickToStartDrawingBoundary": "Haga clic para comenzar a dibujar el límite",
+            "clickToStartDrawingCircle": "Haga clic para comenzar a dibujar el círculo (Radio máximo 1000 m)",
+            "clickToFinishDrawingPolygon": "Haga doble clic o haga clic en el punto de partida para finalizar",
+            "clickOnFeatureToDelete": "Haga clic en el objeto para eliminarla.",
+            "clickAndDragToModify": "Haga clic y arrastre el objeto para modificar",
+            "clickToRemove": "Haga clic para eliminarlo"
         },
         "popup": {
-            "attributes": "",
-            "info": "",
-            "editWithOsm": "",
-            "confirm": ""
+            "attributes": "Atributos",
+            "info": "Informacion",
+            "editWithOsm": "Editar con OSM",
+            "confirm": "Confirmar"
         },
         "layerListValues": {
-            "road": "",
-            "bridge": ""
+            "road": "Carretera",
+            "bridge": "Puente"
         }
     },
     "pois": {
-        "education": "",
-        "foodAndDrink": "",
-        "transport": "",
-        "services": "",
-        "shop": "",
-        "tourismAndLeisure": "",
-        "kindergarten": "",
-        "primary_school": "",
-        "secondary_school": "",
-        "library": "",
-        "bar": "",
-        "biergarten": "",
-        "cafe": "",
-        "pub": "",
-        "fast_food": "",
-        "ice_cream": "",
-        "restaurant": "",
-        "nightclub": "",
-        "bicycle_rental": "",
-        "car_sharing": "",
-        "charging_station": "",
-        "bus_stop": "",
-        "tram_stop": "",
-        "subway_entrance": "",
-        "rail_station": "",
-        "taxi": "",
-        "hairdresser": "",
-        "atm": "",
-        "bank": "",
-        "dentist": "",
-        "doctors": "",
-        "pharmacy": "",
-        "post_box": "",
-        "fuel": "",
-        "recycling": "",
-        "bakery": "",
-        "butcher": "",
-        "clothes": "",
-        "convenience": "",
-        "greengrocer": "",
-        "kiosk": "",
-        "mall": "",
-        "shoes": "",
-        "supermarket": "",
-        "discount_supermarket": "",
-        "international_supermarket": "",
-        "hypermarket": "",
-        "chemist": "",
-        "organic": "",
-        "marketplace": "",
-        "cinema": "",
-        "theatre": "",
-        "museum": "",
-        "hotel": "",
-        "hostel": "",
-        "guest_house": "",
-        "gallery": "",
-        "population": ""
+        "education": "Educación",
+        "foodAndDrink": "Comida y bebida",
+        "transport": "Transporte",
+        "services": "Servicios",
+        "shop": "Tienda",
+        "tourismAndLeisure": "Turismo y Recreo",
+        "kindergarten": "Jardín de infancia",
+        "primary_school": "Escuela primaria",
+        "secondary_school": "Escuela secundaria",
+        "library": "Biblioteca",
+        "bar": "Bar",
+        "biergarten": "Biergarten",
+        "cafe": "Café",
+        "pub": "Pub",
+        "fast_food": "Comida rápida",
+        "ice_cream": "Helado",
+        "restaurant": "Restaurante",
+        "nightclub": "Club nocturno",
+        "bicycle_rental": "Alquiler de bicicletas",
+        "car_sharing": "Auto compartido",
+        "charging_station": "Estación de recarga",
+        "bus_stop": "Autobús",
+        "tram_stop": "Parada de tranvía",
+        "subway_entrance": "Estación de Metro",
+        "rail_station": "Estacion de tren",
+        "taxi": "Taxi",
+        "hairdresser": "Peluquero",
+        "atm": "Cajero",
+        "bank": "Banco",
+        "dentist": "Dentista",
+        "doctors": "Doctor",
+        "pharmacy": "Farmacia",
+        "post_box": "Buzón",
+        "fuel": "Combustible",
+        "recycling": "Reciclaje",
+        "bakery": "Panadería",
+        "butcher": "Carnicero",
+        "clothes": "Tienda de ropa",
+        "convenience": "Colmado",
+        "greengrocer": "Verdulero",
+        "kiosk": "Quiosco",
+        "mall": "Centro comercial",
+        "shoes": "Zapatos",
+        "supermarket": "Supermercado",
+        "discount_supermarket": "Supermercado de descuento",
+        "international_supermarket": "Supermercado internacional",
+        "hypermarket": "Hipermercado",
+        "chemist": "Droguería",
+        "organic": "Alimentos orgánicos",
+        "marketplace": "Mercado",
+        "cinema": "Cine",
+        "theatre": "Teatro",
+        "museum": "Museo",
+        "hotel": "Hotel",
+        "hostel": "Hostal",
+        "guest_house": "Casa de huespedes",
+        "gallery": "Galería",
+        "population": "Población"
     },
     "$vuetify": {
-        "close": "",
+        "close": "Cerrar",
         "dataIterator": {
-            "pageText": "",
-            "noResultsText": "",
-            "loadingText": ""
+            "pageText": "{0} - {1} de {2}",
+            "noResultsText": "No se encontraron registros coincidentes",
+            "loadingText": "Cargando artículos ..."
         },
         "dataTable": {
-            "itemsPerPageText": "",
+            "itemsPerPageText": "Filas por página:",
             "ariaLabel": {
-                "sortDescending": "",
-                "sortAscending": "",
-                "sortNone": ""
+                "sortDescending": ": Ordenada descendiendo. Activar para eliminar la clasificación.",
+                "sortAscending": ": Ordenado ascendente. Activar para ordenar descendente.",
+                "sortNone": ": No clasificado. Activar para ordenar ascendente."
             }
         },
         "dataFooter": {
-            "itemsPerPageText": "",
-            "itemsPerPageAll": "",
-            "nextPage": "",
-            "prevPage": "",
-            "firstPage": "",
-            "lastPage": ""
+            "itemsPerPageText": "Elementos por página:",
+            "itemsPerPageAll": "Todas",
+            "nextPage": "Siguiente página",
+            "prevPage": "Pagina anterior",
+            "firstPage": "Primera página",
+            "lastPage": "Última página"
         },
         "datePicker": {
-            "itemsSelected": ""
+            "itemsSelected": "{0} seleccionado"
         },
-        "noDataText": "",
+        "noDataText": "Datos no disponibles",
         "carousel": {
-            "prev": "",
-            "next": ""
+            "prev": "Visual anterior",
+            "next": "Siguiente visual"
         },
         "calendar": {
-            "moreEvents": ""
+            "moreEvents": "{0} más"
         }
     }
 }
