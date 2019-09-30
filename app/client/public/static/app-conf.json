@@ -153,6 +153,7 @@
         "group": "backgroundLayers",
         "maxZoom": 19,
         "queryable": false,
+        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true
       },
@@ -163,6 +164,7 @@
         "group": "backgroundLayers",
         "maxZoom": 19,
         "queryable": false,
+        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true
       },
@@ -173,6 +175,7 @@
         "group": "backgroundLayers",
         "maxZoom": 19,
         "queryable": false,
+        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true
       },
@@ -184,6 +187,7 @@
         "accessToken": "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
         "maxZoom": 19,
         "queryable": false,
+        "cascadePrint": true,
         "visible": true,
         "displayInLayerList": true
       },
@@ -194,6 +198,7 @@
         "url": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
         "maxZoom": 18,
         "queryable": false,
+        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true
       },
@@ -205,6 +210,7 @@
         "imagerySet": "Aerial",
         "maxZoom": 19,
         "queryable": false,
+        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true
       }

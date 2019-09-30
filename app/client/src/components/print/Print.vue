@@ -252,7 +252,10 @@ export default {
      */
     onMapBound() {
       this.printUtils_ = new PrintUtils();
-      this.printService = new PrintService(this.baseUrl);
+      this.printService = new PrintService(
+        this.baseUrl,
+        process.env.VUE_APP_MAPPROXY_URL
+      );
 
       const getSizeFn = () => this.paperSize_;
       let getRotationFn;

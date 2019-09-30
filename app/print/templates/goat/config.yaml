@@ -16,8 +16,8 @@ templates:
       legend: !legend &legend {}
       map: 
         !map &map
-        maxDpi: 254
-        dpiSuggestions: [254]
+        maxDpi: 200
+        dpiSuggestions: [120,200]
         zoomLevels:
           !zoomLevels
           scales: [100, 250, 500, 2500, 5000, 10000, 25000, 50000, 100000, 500000]
