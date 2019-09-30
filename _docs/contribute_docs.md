@@ -46,6 +46,8 @@ Change to the "website-development" branch, at this branch the development versi
 
 `git checkout website-development`
 
+If you receive an error message that this branch does not yet exist, visit the GitHub website, navigate to your repository and create a new branch called "gh-pages".
+
 #### 5. Make sure to have the newest file versions
 
 Before making any changes, it makes always sense to ensure your local repository is up to date with the upstream repository.
@@ -82,7 +84,9 @@ You can view your changes on a local website by executing the following command:
 
 `bundle exec jekyll serve`
 
-With this command Jekyll creates a local website. You can access it by typing the following into your browser: 
+With this command, [Jekyll](https://jekyllrb.com/) creates a local website using the programming language [Ruby](https://www.ruby-lang.org/en/) (if Jekyll is not yet installed on your computer, it can be downloaded [here](https://jekyllrb.com/docs/installation/)). 
+
+You can access the local website by typing the following into your browser: 
 
 [http://localhost:4000](http://localhost:4000)
 
