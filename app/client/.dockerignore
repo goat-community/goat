@@ -4,7 +4,6 @@
 .gitignore
 .vs
 .vscode
-.env
 docker-compose*.yml
 *.md
 hosts
