@@ -95,8 +95,8 @@
                   class="pt-4"
                   prepend-icon="rotate_right"
                   v-model="rotation"
-                  track-color="#1867C0"
-                  color="#1867C0"
+                  track-color="#30C2FF"
+                  color="#30C2FF"
                   :min="-180"
                   :max="180"
                 ></v-slider>

@@ -111,6 +111,7 @@
                       @change="transparencyChange"
                       min="1"
                       max="100"
+                      color="#30C2FF"
                     ></v-slider>
                   </v-flex>
                 </v-layout>

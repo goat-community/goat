@@ -45,6 +45,7 @@
           v-model="minutes"
           prepend-icon="fas fa-clock"
           :label="minutes + ' min'"
+          color="#30C2FF"
         >
         </v-slider>
 
@@ -55,6 +56,7 @@
           v-model="speed"
           prepend-icon="fas fa-tachometer-alt"
           :label="speed + ' km/h'"
+          color="#30C2FF"
         >
         </v-slider>
 
@@ -66,6 +68,7 @@
           inverse-label
           prepend-icon="fas fa-sort-numeric-up"
           :label="`${$t('isochrones.isochrones')} (${steps})`"
+          color="#30C2FF"
         >
         </v-slider>
 

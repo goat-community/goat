@@ -52,18 +52,23 @@
           <v-bottom-navigation
             background-color="green"
             flat
+            horizontal
             dark
             grow
             value="true"
             v-model="activeComponent"
             height="50"
           >
-            <v-btn color="#30C2FF" text value="map-isochrones">
-              <span>{{ $t("isochrones.title") }}</span>
+            <v-btn text value="map-isochrones">
+              <span style="font-size: 0.85rem;">{{
+                $t("isochrones.title")
+              }}</span>
               <v-icon>fas fa-bullseye</v-icon>
             </v-btn>
-            <v-btn color="#30C2FF" text value="map-layertree">
-              <span>{{ $t("layerTree.title") }}</span>
+            <v-btn text value="map-layertree">
+              <span style="font-size: 0.85rem;">{{
+                $t("layerTree.title")
+              }}</span>
               <v-icon>fas fa-layer-group</v-icon>
             </v-btn>
           </v-bottom-navigation>
