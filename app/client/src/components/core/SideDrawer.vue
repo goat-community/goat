@@ -51,14 +51,15 @@
                   @click="toggleComponent(item.componentToShow)"
                   v-on="on"
                   active-class="red--text"
+                  :style="
+                    activeUpComponent === item.componentToShow
+                      ? 'background-color: #99D19B;'
+                      : 'background-color: #4CAF50'
+                  "
                 >
                   <v-list-item-action>
                     <v-icon
-                      :style="
-                        activeUpComponent === item.componentToShow
-                          ? 'color: #30c2ff;'
-                          : 'color: white'
-                      "
+                      style="color: white;"
                       light
                       v-html="item.icon"
                     ></v-icon>
