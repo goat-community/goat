@@ -1,1 +1,0 @@
-FROM camptocamp/mapfish_print:3.16

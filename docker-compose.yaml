@@ -13,7 +13,7 @@ services:
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./configuration/traefik.toml:/etc/traefik/traefik.toml
+      - ./config/traefik.toml:/etc/traefik/traefik.toml
       - ./ssl:/ssl
     labels:
       - "traefik.frontend.entryPoints=https,http"
@@ -27,12 +27,23 @@ services:
     build:
       context: ./app/client
     image: goat-client
-    ports:
-      - 5000:80
     container_name: goat-client
     labels:
       - "traefik.frontend.entryPoints=https,http"
       - "traefik.frontend.rule=Host:docker.localhost"
+      - "traefik.port=80"
+      - "traefik.enable=true"
+    networks:
+      proxy:
+
+  api:
+    build:
+      context: ./app/api
+    image: goat-api
+    container_name: goat-api
+    labels:
+      - "traefik.frontend.entryPoints=https,http"
+      - "traefik.frontend.rule=Host:docker.localhost;PathPrefix:/geoserver"
       - "traefik.port=80"
       - "traefik.enable=true"
     networks:
@@ -63,7 +74,7 @@ services:
     labels:
       - "traefik.backend=print"
       - "traefik.frontend.entryPoints=https,http"
-      - "traefik.frontend.rule=Host:print.docker.localhost"
+      - "traefik.frontend.rule=Host:docker.localhost;PathPrefix:/print"
       - "traefik.port=8080"
       - "traefik.enable=true"
     networks:
