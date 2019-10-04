@@ -63,8 +63,12 @@ begin
   
   UPDATE isochrones i
   SET starting_point = ST_AsText(s.geom)
-  FROM starting_point_isochrones s
-  WHERE i.objectid = s.objectid 
+  FROM (
+      SELECT DISTINCT s.geom 
+      FROM starting_point_isochrones s
+      WHERE s.objectid = objectid_default 
+  ) s
+  WHERE i.objectid IN (objectid_default,objectid_scenario)
   AND starting_point IS null;
   
   RETURN query SELECT distinct i.gid,i.objectid,ARRAY[x,y] coordinates,i.step,i.speed,
