@@ -31,7 +31,7 @@
         },
         "printMap": {
             "title": "Karte drucken",
-            "connectionMsg": "Verbindung zum Druckserver wird hergestellt, bitte warten ...",
+            "connectionMsg": "Verbindung zum Server wird hergestellt, bitte warten ...",
             "unavailableMsg": "Druckserver ist nicht verfügbar. Bitte später versuchen...",
             "form": {
                 "title": {
@@ -64,7 +64,7 @@
             "measure": {
                 "header": "Messen",
                 "length": "Länge",
-                "area": "Bereich"
+                "area": "Fläche"
             },
             "draw": {
                 "header": "Zeichnen",
@@ -152,16 +152,16 @@
         },
         "options": {
             "title": "Optionen",
-            "subOptions": "Einstellungen Isochrone",
+            "subOptions": "Einstellungen Isochronen",
             "speed": "km/h",
             "time": "Min",
             "nr": "Isochronen",
-            "calcType": "Konkavitätsisochronen",
+            "calcType": "Detaillierungsgrad Isochrone",
             "calcModus": "Berechnungsmodi",
-            "alphaShapeMode": "Alpha-shape Parameter",
-            "defaultNetwork": "Standardnetzwerk",
-            "modifiedNetwork": "Geändertes Netzwerk",
-            "modifiedNetworkDoubleCalc": "Geändertes Netzwerk (Doppelberechnung)"
+            "alphaShapeMode": "Detaillierungsgrad Isochrone",
+            "defaultNetwork": "Unverändertes Netzwerk",
+            "modifiedNetwork": "Scenario",
+            "modifiedNetworkDoubleCalc": "Standard und Scenario"
         },
         "results": {
             "title": "Ergebnisse",
@@ -172,15 +172,15 @@
             "deleteCalcTooltip": "Berechnung löschen",
             "table": {
                 "type": "Art",
-                "range": "Reichweite",
+                "range": "Zeit",
                 "area": "Bereich",
-                "visible": "Sichtbar",
+                "visible": "Anzeige",
                 "legend": "Legende"
             }
         },
         "tableData": {
-            "timeFilter": "Zeitfilter",
-            "searchPois": "Sonderziel suchen",
+            "timeFilter": "Filter Reisezeit",
+            "searchPois": "Point of Interest suchen",
             "selectTimeMsg": "Zeit zum Filtern auswählen",
             "noDataMsg": "Keine Daten für ausgewählte Zeit",
             "selectAmenitiesMsg": "Wählen Sie <b> amenities </ b> und <b> Time </ b> aus, um die Tabelle zu filtern.",
@@ -217,17 +217,17 @@
         },
         "layerGroup": {
             "poisLayers": "Pois Layer",
-            "administrativeLayers": "Verwaltungslayer",
-            "accessbilityBasemaps": "Grundkarte Erreichbarkeit",
+            "administrativeLayers": "Layer Verwaltungsgrenzen",
+            "accessbilityBasemaps": "Grundkarten Erreichbarkeit",
             "backgroundLayers": "Hintergrundlayer"
         },
         "layerName": {
             "pois": "Point of Interest",
-            "administrativeUnits": "Verwaltungseinheiten",
-            "areaIsochrone": "Area Isochrone",
-            "walkabilityPopulation": "Fußläufigkeit",
+            "administrativeUnits": "Administrative Grenzen",
+            "areaIsochrone": "Isochronengröße",
+            "walkabilityPopulation": "Walkability - Population Index",
             "population": "Population",
-            "walkability": "Fußläufigkeit",
+            "walkability": "Walkability",
             "studyArea": "Untersuchungsgebiet",
             "ways": "Wege",
             "osmStandard": "OSM Standard",
