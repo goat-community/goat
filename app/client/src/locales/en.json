@@ -170,6 +170,7 @@
       "toggleVisibilityTooltip": "Toggle Visibility",
       "downloadTooltip": "Download",
       "deleteCalcTooltip": "Delete Calculation",
+      "additionalLayers": "Additional layers",
       "table": {
         "type": "Type",
         "range": "Range",
