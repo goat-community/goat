@@ -156,9 +156,9 @@
             "speed": "km/h",
             "time": "min",
             "nr": "Isochrones",
-            "calcType": "Concavity Isochrones",
+            "calcType": "Level of detail isochrones",
             "calcModus": "Calculation Modes",
-            "alphaShapeMode": "Alpha-shape Parameter",
+            "alphaShapeMode": "Level of detail isochrones",
             "defaultNetwork": "Default Network",
             "modifiedNetwork": "Modified Network",
             "modifiedNetworkDoubleCalc": "Modified Network (Double Calculation)"
@@ -181,7 +181,7 @@
         "tableData": {
             "timeFilter": "Time filter",
             "searchPois": "Search Point of Interest",
-            "selectTimeMsg": "Select time to filter",
+            "selectTimeMsg": "Select travel time to filter",
             "noDataMsg": "No data for the selected time",
             "selectAmenitiesMsg": "Select <b>Amenities</b> and <b>Time</b> to filter the table.",
             "table": {
