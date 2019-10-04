@@ -43,6 +43,20 @@
 
                 <v-layout row>
                   <v-spacer></v-spacer>
+
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <v-icon
+                        small
+                        v-on="on"
+                        @click="showAdditionalLayerDialog(calculation)"
+                        class="result-icons mr-2"
+                        >fas fa-layer-group</v-icon
+                      >
+                    </template>
+                    <span>{{ $t("isochrones.results.additionalLayers") }}</span>
+                  </v-tooltip>
+
                   <v-tooltip top>
                     <template v-slot:activator="{ on }">
                       <v-icon
@@ -164,10 +178,15 @@
       </v-flex>
       <confirm ref="confirm"></confirm>
       <download
-        :visible="showDialog"
+        :visible="downloadDialogState"
         :calculation="selectedCalculation"
-        @close="showDialog = false"
+        @close="downloadDialogState = false"
       ></download>
+      <additional-layers
+        :visible="additionalLayersDialogState"
+        :calculation="selectedCalculation"
+        @close="additionalLayersDialogState = false"
+      ></additional-layers>
     </v-layout>
   </v-flex>
 </template>
@@ -175,16 +194,19 @@
 import { mapGetters, mapActions, mapMutations } from "vuex";
 import Confirm from "../core/Confirm";
 import Download from "./IsochronesDownload";
+import AdditionalLayers from "./IsochronesAdditionalLayers";
 import IsochroneUtils from "../../utils/IsochroneUtils";
 
 export default {
   components: {
     confirm: Confirm,
-    download: Download
+    download: Download,
+    additionalLayers: AdditionalLayers
   },
   data() {
     return {
-      showDialog: false,
+      downloadDialogState: false,
+      additionalLayersDialogState: false,
       selectedCalculation: null,
       isResultsElVisible: true
     };
@@ -215,7 +237,7 @@ export default {
         });
     },
     toggleDownloadDialog(calculation) {
-      this.showDialog = true;
+      this.downloadDialogState = true;
       this.selectedCalculation = calculation;
     },
     showHideCalculation(calculation) {
@@ -243,6 +265,11 @@ export default {
       }
       me.setSelectedThematicData(payload);
       me.toggleThematicDataVisibility(true);
+    },
+    showAdditionalLayerDialog(calculation) {
+      this.additionalLayersDialogState = true;
+      this.selectedCalculation = calculation;
+      console.log(this.selectedCalculation);
     }
   },
   computed: {
