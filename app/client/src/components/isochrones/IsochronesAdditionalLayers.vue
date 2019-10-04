@@ -15,7 +15,10 @@
       </v-app-bar>
 
       <v-card-title primary-title v-if="calculation">
-        <v-flex xs12> </v-flex>
+        <v-flex xs12>
+          <v-checkbox label="Default Road Network"></v-checkbox>
+          <v-checkbox label="Modified Road Network"></v-checkbox>
+        </v-flex>
       </v-card-title>
     </v-card>
   </v-dialog>
