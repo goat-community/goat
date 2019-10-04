@@ -63,9 +63,13 @@ begin
   
   UPDATE isochrones i
   SET starting_point = ST_AsText(s.geom)
-  FROM starting_point_isochrones s
-  WHERE i.objectid = s.objectid 
-  AND starting_point IS null;
+  FROM (
+      SELECT s.geom 
+      FROM starting_point_isochrones s
+      WHERE s.objectid IN (objectid_default,objectid_scenario)
+      LIMIT 1
+  ) s
+  WHERE i.starting_point IS NULL;
   
   RETURN query SELECT distinct i.gid,i.objectid,ARRAY[x,y] coordinates,i.step,i.speed,
   i.concavity AS shape_precision,i.modus::integer,i.parent_id,i.sum_pois::jsonb, i.geom, i.starting_point 
