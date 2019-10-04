@@ -42,17 +42,36 @@
           "label": "Layout",
           "rule": "Field is required"
         },
-        "scale": {
-          "label": "Scale",
-          "rule": "Field is required"
+        "options": {
+          "title": "Options",
+          "subOptions": "Isochrone Settings",
+          "speed": "km/h",
+          "time": "min",
+          "nr": "Isochrones",
+          "calcType": "Level of detail isochrones",
+          "calcModus": "Calculation Modes",
+          "alphaShapeMode": "Level of detail isochrones",
+          "defaultNetwork": "Default Network",
+          "modifiedNetwork": "Modified Network",
+          "modifiedNetworkDoubleCalc": "Modified Network (Double Calculation)"
         },
         "resolution": {
           "label": "Resolution",
           "rule": "Field is required"
         },
-        "crs": {
-          "label": "Reference System",
-          "rule": "Field is required"
+        "tableData": {
+          "timeFilter": "Time filter",
+          "searchPois": "Search Point of Interest",
+          "selectTimeMsg": "Select travel time to filter",
+          "noDataMsg": "No data for the selected time",
+          "selectAmenitiesMsg": "Select <b>Amenities</b> and <b>Time</b> to filter the table.",
+          "table": {
+            "pois": "Point of Interest",
+            "isochrone": "Isochrone",
+            "studyArea": "Study Area",
+            "population": "Population",
+            "reachedPopulation": "Reached Population"
+          }
         },
         "submit": "Print",
         "legend": "Legend",
