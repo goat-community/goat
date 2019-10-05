@@ -43,7 +43,8 @@ export default {
           this.$emit("close");
         }
       }
-    }
+    },
+    getIsochroneCalculationType(data) {}
   }
 };
 </script>
