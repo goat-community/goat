@@ -10,7 +10,7 @@
       "login": "Login",
       "print": "Print",
       "drawAndMeasure": "Draw and Measure",
-      "filter": "Thematic Data",
+      "filter": "Filter",
       "edit": "Edit",
       "settings": "Settings",
       "info": "Info"
@@ -42,36 +42,17 @@
           "label": "Layout",
           "rule": "Field is required"
         },
-        "options": {
-          "title": "Options",
-          "subOptions": "Isochrone Settings",
-          "speed": "km/h",
-          "time": "min",
-          "nr": "Isochrones",
-          "calcType": "Level of detail isochrones",
-          "calcModus": "Calculation Modes",
-          "alphaShapeMode": "Level of detail isochrones",
-          "defaultNetwork": "Default Network",
-          "modifiedNetwork": "Modified Network",
-          "modifiedNetworkDoubleCalc": "Modified Network (Double Calculation)"
+        "scale": {
+          "label": "Scale",
+          "rule": "Field is required"
         },
         "resolution": {
           "label": "Resolution",
           "rule": "Field is required"
         },
-        "tableData": {
-          "timeFilter": "Time filter",
-          "searchPois": "Search Point of Interest",
-          "selectTimeMsg": "Select travel time to filter",
-          "noDataMsg": "No data for the selected time",
-          "selectAmenitiesMsg": "Select <b>Amenities</b> and <b>Time</b> to filter the table.",
-          "table": {
-            "pois": "Point of Interest",
-            "isochrone": "Isochrone",
-            "studyArea": "Study Area",
-            "population": "Population",
-            "reachedPopulation": "Reached Population"
-          }
+        "crs": {
+          "label": "Reference System",
+          "rule": "Field is required"
         },
         "submit": "Print",
         "legend": "Legend",
@@ -98,7 +79,7 @@
       "clear": "Clear"
     },
     "filter": {
-      "title": "Thematic Data",
+      "title": "Filter",
       "poisSettings": {
         "buttonTooltip": "Weight and Sensitivity Settings",
         "title": "Heatmap",
@@ -152,7 +133,7 @@
       "title": "Starting Point",
       "type": "Single",
       "searchBox": "Search Starting Point",
-      "startTooltip": "Click on map to start Isochrone calculation",
+      "startTooltip": "Click on button to start calculation.",
       "tableDataTitle": "Thematic Data"
     },
     "multiple": {
@@ -175,9 +156,9 @@
       "speed": "km/h",
       "time": "min",
       "nr": "Isochrones",
-      "calcType": "Concavity Isochrones",
+      "calcType": "Level of detail isochrones",
       "calcModus": "Calculation Modes",
-      "alphaShapeMode": "Alpha-shape Parameter",
+      "alphaShapeMode": "Level of detail isochrones",
       "defaultNetwork": "Default Network",
       "modifiedNetwork": "Modified Network",
       "modifiedNetworkDoubleCalc": "Modified Network (Double Calculation)"
@@ -189,7 +170,6 @@
       "toggleVisibilityTooltip": "Toggle Visibility",
       "downloadTooltip": "Download",
       "deleteCalcTooltip": "Delete Calculation",
-      "additionalLayers": "Additional layers",
       "table": {
         "type": "Type",
         "range": "Range",
@@ -201,7 +181,7 @@
     "tableData": {
       "timeFilter": "Time filter",
       "searchPois": "Search Point of Interest",
-      "selectTimeMsg": "Select time to filter",
+      "selectTimeMsg": "Select travel time to filter",
       "noDataMsg": "No data for the selected time",
       "selectAmenitiesMsg": "Select <b>Amenities</b> and <b>Time</b> to filter the table.",
       "table": {
@@ -245,7 +225,7 @@
       "pois": "Point of Interest",
       "administrativeUnits": "Administrative Units",
       "areaIsochrone": "Area Isochrone",
-      "walkabilityPopulation": "Walkability Population",
+      "walkabilityPopulation": "Walkability Population Index",
       "population": "Population",
       "walkability": "Walkability",
       "studyArea": "Study Area",
