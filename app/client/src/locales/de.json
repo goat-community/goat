@@ -32,7 +32,7 @@
         "printMap": {
             "title": "Karte drucken",
             "connectionMsg": "Verbindung zum Server wird hergestellt, bitte warten ...",
-            "unavailableMsg": "Druckserver ist nicht verfügbar. Bitte später versuchen...",
+            "unavailableMsg": "Server ist nicht verfügbar. Bitte später nochmal versuchen...",
             "form": {
                 "title": {
                     "label": "Titel",
@@ -133,7 +133,7 @@
             "title": "Startpunkt",
             "type": "Single",
             "searchBox": "Startpunkt suchen",
-            "startTooltip": "Klicke auf die Karte, um die Isochronenberechnung zu starten",
+            "startTooltip": "Klicke auf den Button, um die Isochronenberechnung zu starten",
             "tableDataTitle": "Thematische Daten"
         },
         "multiple": {
@@ -156,10 +156,10 @@
             "speed": "km/h",
             "time": "Min",
             "nr": "Isochronen",
-            "calcType": "Detaillierungsgrad Isochrone",
+            "calcType": "Detaillierungsgrad Isochronen",
             "calcModus": "Berechnungsmodi",
-            "alphaShapeMode": "Detaillierungsgrad Isochrone",
-            "defaultNetwork": "Unverändertes Netzwerk",
+            "alphaShapeMode": "Detaillierungsgrad Isochronen",
+            "defaultNetwork": "Standard",
             "modifiedNetwork": "Scenario",
             "modifiedNetworkDoubleCalc": "Standard und Scenario"
         },
@@ -167,7 +167,7 @@
             "title": "Ergebnisse",
             "multiIsochroneHeader": "Multi-Isochrone-Berechnung",
             "showDataTooltip": "Daten anzeigen",
-            "toggleVisibilityTooltip": "Sichtbarkeit umschalten",
+            "toggleVisibilityTooltip": "Anzeige umschalten",
             "downloadTooltip": "Herunterladen",
             "deleteCalcTooltip": "Berechnung löschen",
             "table": {
@@ -180,16 +180,16 @@
         },
         "tableData": {
             "timeFilter": "Filter Reisezeit",
-            "searchPois": "Point of Interest suchen",
+            "searchPois": "Ziele suchen",
             "selectTimeMsg": "Zeit zum Filtern auswählen",
             "noDataMsg": "Keine Daten für ausgewählte Zeit",
             "selectAmenitiesMsg": "Wählen Sie <b> amenities </ b> und <b> Time </ b> aus, um die Tabelle zu filtern.",
             "table": {
-                "pois": "Point of Interest",
+                "pois": "Ziele",
                 "isochrone": "Isochrone",
                 "studyArea": "Untersuchungsgebiet",
                 "population": "Bevölkerung",
-                "reachedPopulation": "Erreichte Bevölkerung"
+                "reachedPopulation": "Erreichbare Bevölkerung"
             }
         },
         "isochrones": "Isochronen",
@@ -219,7 +219,7 @@
             "poisLayers": "Pois Layer",
             "administrativeLayers": "Layer Verwaltungsgrenzen",
             "accessbilityBasemaps": "Grundkarten Erreichbarkeit",
-            "backgroundLayers": "Hintergrundlayer"
+            "backgroundLayers": "Hintergrundkarten"
         },
         "layerName": {
             "pois": "Point of Interest",
@@ -241,21 +241,21 @@
             "clickForCalculation": "Für Berechnung klicken",
             "clickToSelectStudyArea": "Klicken für Auswahl des Untersuchungsbereichs",
             "maxCircleRadius": "Maximaler Kreisradius ist 1000m",
-            "clickToStartMeasure": "Klicken für Messungsstart",
+            "clickToStartMeasure": "Klicken, um Messung zu starten",
             "clickToStartDrawing": "Klicken, um Zeichnen zu starten",
             "clickToContinueDrawing": "Klicken, um mit Zeichnen fortzufahren",
             "clickToFinishDrawing": "Klicken, um Zeichnen zu beenden",
-            "clickToStartDrawingBoundary": "Klicken, um Begrenzung zu zeichnen",
+            "clickToStartDrawingBoundary": "Klicken, um Begrenzungsrechteck zu zeichnen",
             "clickToStartDrawingCircle": "Klicken, um Kreis zu zeichnen (max. Radius 1000m)",
-            "clickToFinishDrawingPolygon": "Doppel(klicken) auf Startpunkt, um Vorgang zu beenden",
-            "clickOnFeatureToDelete": "Auf die Funktion klicken, um sie zu löschen",
-            "clickAndDragToModify": "Features anklicken und ziehen, um sie zu ändern",
+            "clickToFinishDrawingPolygon": "Doppel(klick) auf Startpunkt, um Vorgang zu beenden",
+            "clickOnFeatureToDelete": "Auf das Objekt klicken, um es zu löschen",
+            "clickAndDragToModify": "Objekt anklicken und ziehen, um es zu verändern",
             "clickToRemove": "Zum Entfernen klicken"
         },
         "popup": {
             "attributes": "Attribute",
             "info": "Info",
-            "editWithOsm": "Mit OSM bearbeiten",
+            "editWithOsm": "In OSM bearbeiten",
             "confirm": "Bestätigen"
         },
         "layerListValues": {
@@ -268,7 +268,7 @@
         "foodAndDrink": "Essen und Trinken",
         "transport": "Transport",
         "services": "Dienstleistungen",
-        "shop": "Geschäft",
+        "shop": "Einkaufen",
         "tourismAndLeisure": "Tourismus & Freizeit",
         "kindergarten": "Kindergarten",
         "primary_school": "Grundschule",
@@ -286,7 +286,7 @@
         "car_sharing": "Car Sharing",
         "charging_station": "Ladestation",
         "bus_stop": "Bus",
-        "tram_stop": "Straßenbahnhaltestelle",
+        "tram_stop": "Tramhaltestelle",
         "subway_entrance": "U-Bahn Station",
         "rail_station": "Bahnhof",
         "taxi": "Taxi",
@@ -301,7 +301,7 @@
         "recycling": "Recycling",
         "bakery": "Bäckerei",
         "butcher": "Metzger",
-        "clothes": "Bekleidungsgeschäft",
+        "clothes": "Bekleidung",
         "convenience": "Gemischtwarenladen",
         "greengrocer": "Gemüsehändler",
         "kiosk": "Kiosk",

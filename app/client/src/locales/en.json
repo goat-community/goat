@@ -133,7 +133,7 @@
             "title": "Starting Point",
             "type": "Single",
             "searchBox": "Search Starting Point",
-            "startTooltip": "Click on map to start Isochrone calculation",
+            "startTooltip": "Click on button to start calculation.",
             "tableDataTitle": "Thematic Data"
         },
         "multiple": {
@@ -225,7 +225,7 @@
             "pois": "Point of Interest",
             "administrativeUnits": "Administrative Units",
             "areaIsochrone": "Area Isochrone",
-            "walkabilityPopulation": "Walkability Population",
+            "walkabilityPopulation": "Walkability Population Index",
             "population": "Population",
             "walkability": "Walkability",
             "studyArea": "Study Area",
