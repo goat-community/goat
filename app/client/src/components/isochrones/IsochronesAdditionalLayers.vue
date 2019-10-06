@@ -21,14 +21,14 @@
             :input-value="_getState('Default')"
             @change="_toggleRoadNetwork($event, 'Default')"
             v-show="groupedCalculationData.hasOwnProperty('Default')"
-            label="Default Road Network"
+            :label="$t('isochrones.additionalLayers.defaultNetwork')"
           ></v-checkbox>
           <v-checkbox
             class="mt-2"
             :input-value="_getState('Input')"
             @change="_toggleRoadNetwork($event, 'Input')"
             v-show="groupedCalculationData.hasOwnProperty('Input')"
-            label="Modified Road Network"
+            :label="$t('isochrones.additionalLayers.inputNetwork')"
           ></v-checkbox>
         </v-flex>
       </v-card-title>

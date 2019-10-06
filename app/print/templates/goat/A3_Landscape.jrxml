@@ -36,7 +36,7 @@
 				<subreportExpression><![CDATA[$P{mapSubReport}]]></subreportExpression>
 			</subreport>
 			<textField>
-				<reportElement x="480" y="740" width="170" height="30" uuid="f3e984ef-2d92-4e15-9987-1611b6ec57e3">
+				<reportElement x="480" y="755" width="170" height="30" uuid="f3e984ef-2d92-4e15-9987-1611b6ec57e3">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
@@ -45,7 +45,7 @@
 				<textFieldExpression><![CDATA[String.format("1:%.0f", $P{mapContext}.getRoundedScaleDenominator())]]></textFieldExpression>
 			</textField>
 			<subreport>
-				<reportElement x="490" y="772" width="180" height="30" uuid="2c657d1d-8276-4fbd-972f-1cfc2cf4c026">
+				<reportElement x="10" y="740" width="180" height="30" uuid="2c657d1d-8276-4fbd-972f-1cfc2cf4c026">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 				</reportElement>
@@ -71,22 +71,29 @@
 				</reportElement>
 			</break>
 			<textField>
-				<reportElement x="14" y="785" width="110" height="13" forecolor="#6B6B6B" uuid="1d04e690-a1fe-4e1d-abba-31fa59580ac4">
+				<reportElement x="1028" y="783" width="110" height="13" forecolor="#6B6B6B" uuid="1d04e690-a1fe-4e1d-abba-31fa59580ac4">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 				</reportElement>
-				<textElement textAlignment="Left">
+				<textElement textAlignment="Right">
 					<font size="8" isItalic="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Printed: " + new SimpleDateFormat("M/d/yyyy", new Locale("en")).format(new Date())]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="1034" y="782" width="104" height="18" forecolor="#6B6B6B" uuid="f3597e4d-55f7-41c4-8fa2-ba98b76edcd3"/>
-				<textElement>
-					<font isItalic="true"/>
+				<reportElement x="10" y="780" width="104" height="18" forecolor="#6B6B6B" uuid="f3597e4d-55f7-41c4-8fa2-ba98b76edcd3"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="8" isItalic="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{crsDescription}]]></textFieldExpression>
 			</textField>
+			<staticText>
+				<reportElement x="990" y="740" width="148" height="14" forecolor="#0645AD" uuid="adcf600f-1dd2-4f34-8fff-e8e1625728bf"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[www.open-accessibility.org]]></text>
+			</staticText>
 		</band>
 	</title>
 	<detail>

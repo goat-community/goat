@@ -54,6 +54,18 @@ export function debounce(fn, delay) {
   };
 }
 
+export function getCurrentDate() {
+  const today = new Date();
+  return (
+    today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate()
+  );
+}
+
+export function getCurrentTime() {
+  const today = new Date();
+  return today.getHours() + "-" + today.getMinutes() + "-" + today.getSeconds();
+}
+
 /**
  * Takes a hex value and prepends a zero if it's a single digit.
  * @param {string} hex Hex value to prepend if single digit.

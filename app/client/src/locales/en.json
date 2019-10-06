@@ -55,6 +55,7 @@
           "rule": "Field is required"
         },
         "submit": "Print",
+        "abort": "Abort",
         "legend": "Legend",
         "grid": "Grid"
       }
@@ -201,6 +202,10 @@
       "fileName": "Filename",
       "outputFormat": "Choose output format",
       "download": "Download"
+    },
+    "additionalLayers": {
+      "defaultNetwork": "Default Road Network",
+      "inputNetwork": "Input Road Network"
     }
   },
   "layerTree": {

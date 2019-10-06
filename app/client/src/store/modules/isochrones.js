@@ -419,10 +419,8 @@ const actions = {
     }
   },
 
-  toggleRoadNetwork({ commit, rootState }, payload) {
-    console.log(commit);
+  toggleRoadNetwork({ rootState }, payload) {
     const calculation = payload.calculation;
-
     addProps(
       calculation.additionalData,
       `${payload.type}.state`,
@@ -464,13 +462,15 @@ const actions = {
               ...olFeatures
             ];
 
-            if (payload.state === true) {
+            if (
+              payload.state === true &&
+              rootState.isochrones.isochroneRoadNetworkLayer !== null
+            ) {
               //1- Add features to road network layer
-              if (rootState.isochrones.isochroneRoadNetworkLayer !== null) {
-                rootState.isochrones.isochroneRoadNetworkLayer
-                  .getSource()
-                  .addFeatures(olFeatures);
-              }
+
+              rootState.isochrones.isochroneRoadNetworkLayer
+                .getSource()
+                .addFeatures(olFeatures);
             }
           }
         })
@@ -489,7 +489,6 @@ const actions = {
       });
     } else {
       //3- Add already loaded feature again to the road network layer
-      console.log("add existing loaded features if those exists. ... ");
       rootState.isochrones.isochroneRoadNetworkLayer
         .getSource()
         .addFeatures(features);
