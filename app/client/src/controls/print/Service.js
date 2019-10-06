@@ -86,14 +86,14 @@ export default function PrintService(url, mapproxyUrl) {
 /**
  * Cancel a report.
  * @param {string} ref Print report reference.
- * @param {angular.IRequestShortcutConfig=} opt_httpConfig $http config object.
- * @return {angular.IHttpPromise<Object>} HTTP promise.
+ * @param {RequestShortcutConfig=} opt_httpConfig $http config object.
+ * @return {HttpPromise<Object>} HTTP promise.
  */
 PrintService.prototype.cancel = function(ref, opt_httpConfig) {
   const httpConfig =
     opt_httpConfig !== undefined
       ? opt_httpConfig
-      : /** @type {angular.IRequestShortcutConfig} */ ({});
+      : /** @type {RequestShortcutConfig} */ ({});
   const url = `${this.url_}/cancel/${ref}`;
   // "delete" is a reserved word, so use ['delete']
   return http["delete"](url, httpConfig);
@@ -514,29 +514,36 @@ PrintService.prototype.getOpacityOrInherited_ = function(layer) {
 /**
  * Send a create report request to the MapFish Print service.
  * @param {import('print/mapfish-print-v3.js').MapFishPrintSpec} printSpec Print specification.
- * @return {angular.httpPromise<Object>} HTTP promise.
+ * @return {httpPromise<Object>} HTTP promise.
  */
 PrintService.prototype.createReport = function(printSpec) {
   const format = printSpec.format || "pdf";
-  const url = `${this.url_}/goat/buildreport.${format}`;
+  const url = `${this.url_}/goat/report.${format}`;
+  const httpConfig = {};
+  Object.assign(httpConfig, { responseType: "json" });
+  return http.post(url, printSpec, httpConfig);
+};
+
+/**
+ * Send a create report request to the MapFish Print service.
+ * @param {import('print/mapfish-print-v3.js').MapFishPrintSpec} printSpec Print specification.
+ * @return {httpPromise<Object>} HTTP promise.
+ */
+PrintService.prototype.downloadReport = function(referenceId) {
+  const url = `${this.url_}/goat/report/${referenceId}`;
   const httpConfig = {};
   Object.assign(httpConfig, { responseType: "blob" });
-  return http.post(url, printSpec, httpConfig);
+  return http.get(url, httpConfig);
 };
 
 /**
  * Get the status of a report.
  * @param {string} ref Print report reference.
- * @param {angular.IRequestShortcutConfig=} opt_httpConfig $http config object.
- * @return {angular.IHttpPromise<Object>} HTTP promise.
+ * @return {httpPromise<Object>} HTTP promise.
  */
-PrintService.prototype.getStatus = function(ref, opt_httpConfig) {
-  const httpConfig =
-    opt_httpConfig !== undefined
-      ? opt_httpConfig
-      : /** @type {angular.IRequestShortcutConfig} */ ({});
-  const url = `${this.url_}/status/${ref}.json`;
-  return http.get(url, httpConfig);
+PrintService.prototype.getStatus = function(ref) {
+  const url = `${this.url_}/goat/status/${ref}.json`;
+  return http.get(url);
 };
 
 /**
@@ -545,5 +552,15 @@ PrintService.prototype.getStatus = function(ref, opt_httpConfig) {
  * @return {string} The report URL for this ref.
  */
 PrintService.prototype.getReportUrl = function(ref) {
-  return `${this.url_}/report/${ref}`;
+  return `${this.url_}/goat/report/${ref}`;
+};
+
+/**
+ * Cancel the print job
+ * @param {import('print/mapfish-print-v3.js').MapFishPrintSpec} printSpec Print specification.
+ * @return {httpPromise<Object>} HTTP promise.
+ */
+PrintService.prototype.cancelReportJob = function(referenceId) {
+  const url = `${this.url_}/goat/cancel/${referenceId}`;
+  return http.delete(url);
 };

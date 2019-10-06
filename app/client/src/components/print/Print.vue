@@ -131,6 +131,21 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
+          <v-progress-circular
+            indeterminate
+            color="#30C2FF"
+            class="mr-2"
+            v-if="isState('PRINTING')"
+          ></v-progress-circular>
+          <v-btn
+            class="white--text"
+            v-if="isState('PRINTING')"
+            color="error"
+            @click="abort()"
+          >
+            <v-icon left>clear</v-icon
+            >{{ $t("appBar.printMap.form.abort") }}</v-btn
+          >
           <v-btn
             class="white--text"
             color="green"
@@ -183,6 +198,7 @@ import olLayerGroup from "ol/layer/Group.js";
 import olMap from "ol/Map.js";
 import ImageWMS from "ol/source/ImageWMS.js";
 var FileSaver = require("file-saver");
+import { getCurrentDate, getCurrentTime } from "../../utils/Helpers";
 
 export default {
   mixins: [Mapable],
@@ -215,6 +231,7 @@ export default {
       simpleAttributes: []
     },
     capabilities: null,
+    currentJob: null,
     formats_: [],
     layouts_: [],
     layout_: null,
@@ -247,6 +264,8 @@ export default {
   methods: {
     humanize,
     numberWithCommas,
+    getCurrentDate,
+    getCurrentTime,
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
@@ -402,16 +421,87 @@ export default {
           }
         });
 
-        this.printService.createReport(spec).then(response => {
-          this.printState = this.printStateEnum.NOT_IN_USE;
-          if (response.status === 200) {
-            FileSaver.saveAs(response.data, "map.pdf");
-          }
-        });
+        this.printService
+          .createReport(spec)
+          .then(response => {
+            if (response.status === 200) {
+              console.log(response);
+              this.currentJob = response.data;
+              //Starts a interval timer every 1 second to check for the print job status
+              this.getJobStatus();
+            }
+          })
+          .catch(() => {
+            this.printState = this.printStateEnum.NOT_IN_USE;
+            this.currentJob = null;
+            throw new Error("A server eror happened ");
+          });
 
         // remove temporary map
         map.setTarget("");
       }
+    },
+
+    /**
+     * Aborts the ongoing print job..
+     * @private
+     */
+    abort() {
+      const me = this;
+      if (me.currentJob) {
+        const refId = me.currentJob.ref;
+        this.printService.cancelReportJob(refId);
+        this.printState = this.printStateEnum.NOT_IN_USE;
+      }
+
+      if (me.polling) {
+        clearInterval(me.polling);
+      }
+
+      me.currentJob = null;
+    },
+
+    /**
+     * Download the report using reference id.
+     * @param {string} refId The report reference id
+     * @private
+     */
+    download(refId) {
+      this.printService
+        .downloadReport(refId)
+        .then(response => {
+          this.printState = this.printStateEnum.NOT_IN_USE;
+          if (response.status === 200) {
+            console.log(response);
+            FileSaver.saveAs(
+              response.data,
+              `goat_print_${this.getCurrentDate()}_${this.getCurrentTime()}.pdf`
+            );
+          }
+        })
+        .catch(() => {
+          this.printState = this.printStateEnum.NOT_IN_USE;
+          throw new Error("A server eror happened ");
+        });
+    },
+
+    getJobStatus() {
+      const me = this;
+      const jobRef = this.currentJob.ref;
+      if (!jobRef) return;
+      me.polling = setInterval(() => {
+        if (me.currentJob) {
+          me.printService.getStatus(jobRef).then(response => {
+            const status = response.data.status;
+            console.log(status);
+            if (status === "finished" && me.currentJob) {
+              clearInterval(me.polling);
+              me.currentJob = null;
+              me.download(jobRef);
+            }
+          });
+        }
+      }, 1500);
     },
 
     /**
@@ -971,6 +1061,7 @@ export default {
     }
     this.setRotation(0);
     this.map.render(); // Redraw (remove) post compose mask;
+    this.abort();
   }
 };
 </script>

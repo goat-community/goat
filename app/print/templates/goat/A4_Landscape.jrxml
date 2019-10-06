@@ -46,16 +46,16 @@
 				<textFieldExpression><![CDATA[String.format("1:%.0f", $P{mapContext}.getRoundedScaleDenominator())]]></textFieldExpression>
 			</textField>
 			<subreport>
-				<reportElement x="110" y="520" width="180" height="30" uuid="2c657d1d-8276-4fbd-972f-1cfc2cf4c026">
+				<reportElement x="11" y="510" width="180" height="30" uuid="2c657d1d-8276-4fbd-972f-1cfc2cf4c026">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 				</reportElement>
 				<subreportExpression><![CDATA[$P{scalebarSubReport}]]></subreportExpression>
 			</subreport>
 			<textField>
-				<reportElement x="700" y="537" width="90" height="17" forecolor="#6B6B6B" uuid="f7cf672f-834a-44ce-b1c7-0c7fe8db0f86"/>
-				<textElement textAlignment="Right">
-					<font fontName="SansSerif" isItalic="true"/>
+				<reportElement x="10" y="538" width="90" height="17" forecolor="#6B6B6B" uuid="f7cf672f-834a-44ce-b1c7-0c7fe8db0f86"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom">
+					<font fontName="SansSerif" size="8" isItalic="true"/>
 					<paragraph lineSpacing="Proportional" lineSpacingSize="0.0"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{crsDescription}]]></textFieldExpression>
@@ -76,15 +76,22 @@
 				</reportElement>
 			</break>
 			<textField>
-				<reportElement x="0" y="542" width="110" height="13" forecolor="#6B6B6B" uuid="1d07458c-242d-454f-8c72-aaf22e8c5b0c">
+				<reportElement x="680" y="540" width="110" height="13" forecolor="#6B6B6B" uuid="1d07458c-242d-454f-8c72-aaf22e8c5b0c">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 				</reportElement>
-				<textElement textAlignment="Left">
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
 					<font size="8" isItalic="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Printed: " + new SimpleDateFormat("M/d/yyyy", new Locale("en")).format(new Date())]]></textFieldExpression>
 			</textField>
+			<staticText>
+				<reportElement x="680" y="520" width="110" height="13" forecolor="#0645AD" uuid="c168aaf6-121c-497d-b514-49bc34884a87"/>
+				<textElement textAlignment="Right">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<text><![CDATA[www.open-accessibility.org]]></text>
+			</staticText>
 		</band>
 	</title>
 	<detail>
