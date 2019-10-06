@@ -110,7 +110,6 @@
 // Utilities
 import {} from "vuex";
 
-import Login from "./Login";
 import Settings from "./Settings";
 import About from "./About";
 
@@ -123,7 +122,6 @@ export default {
   name: "app-sidebar",
   components: {
     "map-print": Print,
-    "map-login": Login,
     "map-draw-measure": DrawAndMeasure,
     "map-filter": Filter,
     "map-edit": Edit,
@@ -141,9 +139,14 @@ export default {
     upItems() {
       return [
         {
-          icon: "fas fa-user",
-          text: this.$t("appBar.buttons.login"),
-          componentToShow: "map-login"
+          icon: "fas fa-filter",
+          text: this.$t("appBar.buttons.filter"),
+          componentToShow: "map-filter"
+        },
+        {
+          icon: "fas fa-edit",
+          text: this.$t("appBar.buttons.edit"),
+          componentToShow: "map-edit"
         },
         {
           icon: "fas fa-print",
@@ -154,16 +157,6 @@ export default {
           icon: "fas fa-paint-brush",
           text: this.$t("appBar.buttons.drawAndMeasure"),
           componentToShow: "map-draw-measure"
-        },
-        {
-          icon: "fas fa-filter",
-          text: this.$t("appBar.buttons.filter"),
-          componentToShow: "map-filter"
-        },
-        {
-          icon: "fas fa-edit",
-          text: this.$t("appBar.buttons.edit"),
-          componentToShow: "map-edit"
         }
       ];
     },

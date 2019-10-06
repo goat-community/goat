@@ -88,6 +88,7 @@ export default {
     ...mapMutations("isochrones", {
       addStyleInCache: "ADD_STYLE_IN_CACHE",
       addIsochroneLayer: "ADD_ISOCHRONE_LAYER",
+      addIsochroneNetworkLayer: "ADD_ISOCHRONE_ROAD_NETWORK_LAYER",
       toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY"
     }),
     /**
@@ -95,6 +96,7 @@ export default {
      */
     onMapBound() {
       this.createIsochroneLayer();
+      this.createIsochroneRoadNetworkLayer();
     },
     /**
      * Creates a vector layer for the isochrone calculations results and adds it to the
@@ -108,12 +110,30 @@ export default {
       );
       const vector = new VectorLayer({
         name: "Isochrone Layer",
-        zIndex: 2,
+        zIndex: 7,
         source: new VectorSource(),
         style: style
       });
       me.map.addLayer(vector);
       this.addIsochroneLayer(vector);
+    },
+
+    /**
+     * Creates a vector layer for the isochrone calculations results and adds it to the
+     * map and store.
+     */
+    createIsochroneRoadNetworkLayer() {
+      const me = this;
+      const style = OlStyleDefs.getIsochroneNetworkStyle();
+      const vector = new VectorLayer({
+        renderMode: "image",
+        name: "isochroneRoadNetworkLayer",
+        zIndex: 6,
+        source: new VectorSource(),
+        style: style
+      });
+      me.map.addLayer(vector);
+      this.addIsochroneNetworkLayer(vector);
     }
   }
 };

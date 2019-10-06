@@ -14,6 +14,8 @@ import {
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import IsochroneUtils from "../../utils/IsochroneUtils";
+import { groupBy } from "../../utils/Helpers";
+import { getNestedProperty, addProps } from "../../utils/Helpers";
 
 const state = {
   position: {
@@ -83,6 +85,7 @@ const state = {
   },
   isochroneLayer: null,
   selectionLayer: null,
+  isochroneRoadNetworkLayer: null,
   styleData: {
     styleCache: {
       default: {},
@@ -158,7 +161,14 @@ const getters = {
           return accumulator + currentValue.get("count_pois");
         }, 0);
     }
+
     return count;
+  },
+  getGroupedCalculationData: state => id => {
+    const calculation = state.calculations.find(
+      calculation => calculation.id === id
+    );
+    return calculation ? groupBy(calculation.data, "type") : {};
   },
   getField
 };
@@ -240,7 +250,7 @@ const actions = {
     //TODO: Don't get calculation options from state at this moment.
     const calculationNumber = state.calculations.length + 1;
 
-    let olFeatures = geojsonToFeature(isochrones);
+    let olFeatures = geojsonToFeature(isochrones, {});
     //Order features based on id
     olFeatures.sort((a, b) => {
       return a.get("step") - b.get("step");
@@ -265,6 +275,8 @@ const actions = {
         type: IsochroneUtils.getIsochroneAliasFromKey(
           feature.getProperties().modus
         ),
+        objectId: feature.getProperties().objectid,
+        modus: modus,
         range: feature.getProperties().step + " min",
         color: color,
         area: getPolygonArea(feature.getGeometry()),
@@ -284,7 +296,8 @@ const actions = {
       speed: state.options.speed + " km/h",
       isExpanded: true,
       isVisible: true,
-      data: calculationData
+      data: calculationData,
+      additionalData: {}
     };
 
     if (calculationType === "single") {
@@ -389,7 +402,7 @@ const actions = {
         results.map(response => {
           const configData = JSON.parse(response.config.data);
           if (response.data.feature) {
-            const olFeatures = geojsonToFeature(response.data.feature);
+            const olFeatures = geojsonToFeature(response.data.feature, {});
             olFeatures.forEach(feature => {
               feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
               feature.set("region_type", configData.region_type);
@@ -405,6 +418,84 @@ const actions = {
       });
     }
   },
+
+  toggleRoadNetwork({ commit, rootState }, payload) {
+    console.log(commit);
+    const calculation = payload.calculation;
+
+    addProps(
+      calculation.additionalData,
+      `${payload.type}.state`,
+      payload.state
+    );
+
+    if (
+      !!getNestedProperty(
+        calculation.additionalData,
+        `${payload.type}.features`
+      ) === false
+    ) {
+      //Road Network Feature aren't loaded.
+      const groupedData = payload.groupedData[payload.type];
+      if (!groupedData || groupedData.length < 1) return;
+      const objectId = groupedData[0].objectId;
+      const modus = groupedData[0].modus;
+
+      addProps(calculation.additionalData, `${payload.type}.features`, []);
+
+      http
+        .get("./geoserver/wfs", {
+          params: {
+            service: "WFS",
+            version: " 1.1.0",
+            request: "GetFeature",
+            viewparams: `objectid:${objectId};modus:${modus}`,
+            outputFormat: "application/json",
+            typeNames: "cite:show_network"
+          }
+        })
+        .then(function(response) {
+          if (response.status === 200) {
+            let olFeatures = geojsonToFeature(response.data, {
+              dataProjection: "EPSG:4326",
+              featureProjection: "EPSG:3857"
+            });
+            calculation.additionalData[payload.type]["features"] = [
+              ...olFeatures
+            ];
+
+            if (payload.state === true) {
+              //1- Add features to road network layer
+              if (rootState.isochrones.isochroneRoadNetworkLayer !== null) {
+                rootState.isochrones.isochroneRoadNetworkLayer
+                  .getSource()
+                  .addFeatures(olFeatures);
+              }
+            }
+          }
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+    }
+
+    const features = calculation.additionalData[payload.type]["features"];
+    if (payload.state === false && features.length > 0) {
+      //2- Remove features from road network layer
+      features.forEach(feature => {
+        rootState.isochrones.isochroneRoadNetworkLayer
+          .getSource()
+          .removeFeature(feature);
+      });
+    } else {
+      //3- Add already loaded feature again to the road network layer
+      console.log("add existing loaded features if those exists. ... ");
+      rootState.isochrones.isochroneRoadNetworkLayer
+        .getSource()
+        .addFeatures(features);
+    }
+  },
+
   removeCalculation({ commit }, calculation) {
     commit("REMOVE_CALCULATION", calculation);
   },
@@ -425,6 +516,9 @@ const mutations = {
   },
   ADD_ISOCHRONE_LAYER(state, layer) {
     state.isochroneLayer = layer;
+  },
+  ADD_ISOCHRONE_ROAD_NETWORK_LAYER(state, layer) {
+    state.isochroneRoadNetworkLayer = layer;
   },
   ADD_SELECTION_LAYER(state, layer) {
     state.selectionLayer = layer;
@@ -454,6 +548,15 @@ const mutations = {
       }
       if (isochroneCalculationNr > id) {
         isochroneFeature.set("calculationNumber", isochroneCalculationNr - 1);
+      }
+    });
+    const isochroneRoadNetworkLayerSource = state.isochroneRoadNetworkLayer.getSource();
+    Object.keys(calculation.additionalData).forEach(type => {
+      const features = calculation.additionalData[type].features;
+      if (isochroneRoadNetworkLayerSource && features) {
+        features.forEach(feature => {
+          isochroneRoadNetworkLayerSource.removeFeature(feature);
+        });
       }
     });
   },

@@ -17,6 +17,27 @@ export function groupBy(items, key) {
   );
 }
 
+export function getNestedProperty(obj, key) {
+  return key.split(".").reduce(function(o, x) {
+    return typeof o == "undefined" || o === null ? o : o[x];
+  }, obj);
+}
+
+export function addProps(obj, arr, val) {
+  if (typeof arr == "string") arr = arr.split(".");
+
+  obj[arr[0]] = obj[arr[0]] || {};
+
+  var tmpObj = obj[arr[0]];
+
+  if (arr.length > 1) {
+    arr.shift();
+    addProps(tmpObj, arr, val);
+  } else obj[arr[0]] = val;
+
+  return obj;
+}
+
 export function numberWithCommas(x) {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
