@@ -16,8 +16,20 @@
 
       <v-card-title primary-title v-if="calculation">
         <v-flex xs12>
-          <v-checkbox label="Default Road Network"></v-checkbox>
-          <v-checkbox label="Modified Road Network"></v-checkbox>
+          <v-checkbox
+            class="mt-2"
+            :input-value="_getState('Default')"
+            @change="_toggleRoadNetwork($event, 'Default')"
+            v-show="groupedCalculationData.hasOwnProperty('Default')"
+            label="Default Road Network"
+          ></v-checkbox>
+          <v-checkbox
+            class="mt-2"
+            :input-value="_getState('Input')"
+            @change="_toggleRoadNetwork($event, 'Input')"
+            v-show="groupedCalculationData.hasOwnProperty('Input')"
+            label="Modified Road Network"
+          ></v-checkbox>
         </v-flex>
       </v-card-title>
     </v-card>
@@ -25,7 +37,8 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters, mapActions } from "vuex";
+import { getNestedProperty } from "../../utils/Helpers";
 
 export default {
   props: {
@@ -33,7 +46,9 @@ export default {
     visible: { type: Boolean, required: true }
   },
   computed: {
-    ...mapGetters("isochrones", { isochroneLayer: "isochroneLayer" }),
+    ...mapGetters("isochrones", {
+      getGroupedCalculationData: "getGroupedCalculationData"
+    }),
     show: {
       get() {
         return this.visible;
@@ -44,7 +59,32 @@ export default {
         }
       }
     },
-    getIsochroneCalculationType(data) {}
+    groupedCalculationData: {
+      get() {
+        return this.getGroupedCalculationData(this.calculation.id);
+      }
+    }
+  },
+  methods: {
+    ...mapActions("isochrones", {
+      toggleRoadNetwork: "toggleRoadNetwork"
+    }),
+    _getState(type) {
+      const state = getNestedProperty(
+        this.calculation.additionalData,
+        `${type}.state`
+      );
+      return !!state;
+    },
+    _toggleRoadNetwork(state, type) {
+      const groupedData = this.getGroupedCalculationData(this.calculation.id);
+      this.toggleRoadNetwork({
+        calculation: this.calculation,
+        groupedData: groupedData,
+        state: !!state,
+        type: type
+      });
+    }
   }
 };
 </script>

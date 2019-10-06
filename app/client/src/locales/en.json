@@ -166,6 +166,7 @@
     "results": {
       "title": "Results",
       "multiIsochroneHeader": "Multi-Isochrone Calculation",
+      "additionalLayers": "Additional Layers",
       "showDataTooltip": "Show Data",
       "toggleVisibilityTooltip": "Toggle Visibility",
       "downloadTooltip": "Download",

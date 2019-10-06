@@ -66,9 +66,9 @@ export function createPointFeature(coordinate, style) {
   return feature;
 }
 
-export function geojsonToFeature(obj) {
+export function geojsonToFeature(obj, options) {
   const vectorSource = new Vector({
-    features: new GeoJSON().readFeatures(obj)
+    features: new GeoJSON().readFeatures(obj, options)
   });
   return vectorSource.getFeatures();
 }

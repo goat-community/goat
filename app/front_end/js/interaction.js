@@ -1011,7 +1011,7 @@ map.on('click',function(evt){
           if (response.error) {
             return [];
           }
-         var features = maputils.geojsonToFeature(response);
+         var features = maputils.geojsonToFeature(response,{});
          if (features.length == 0) return;
           openGetInfoPopup(features);
           var headerString = `<span>POIS</span>`;
