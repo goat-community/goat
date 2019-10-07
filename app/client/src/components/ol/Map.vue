@@ -371,7 +371,7 @@ export default {
             return;
           }
 
-          const olFeatures = geojsonToFeature(response.data);
+          const olFeatures = geojsonToFeature(response.data, {});
           const featureCoordinates = olFeatures[0]
             .getGeometry()
             .getCoordinates();

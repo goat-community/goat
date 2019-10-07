@@ -51,14 +51,15 @@
                   @click="toggleComponent(item.componentToShow)"
                   v-on="on"
                   active-class="red--text"
+                  :style="
+                    activeUpComponent === item.componentToShow
+                      ? 'background-color: #99D19B;'
+                      : 'background-color: #4CAF50'
+                  "
                 >
                   <v-list-item-action>
                     <v-icon
-                      :style="
-                        activeUpComponent === item.componentToShow
-                          ? 'color: #30c2ff;'
-                          : 'color: white'
-                      "
+                      style="color: white;"
                       light
                       v-html="item.icon"
                     ></v-icon>
@@ -109,7 +110,6 @@
 // Utilities
 import {} from "vuex";
 
-import Login from "./Login";
 import Settings from "./Settings";
 import About from "./About";
 
@@ -122,7 +122,6 @@ export default {
   name: "app-sidebar",
   components: {
     "map-print": Print,
-    "map-login": Login,
     "map-draw-measure": DrawAndMeasure,
     "map-filter": Filter,
     "map-edit": Edit,
@@ -140,9 +139,14 @@ export default {
     upItems() {
       return [
         {
-          icon: "fas fa-user",
-          text: this.$t("appBar.buttons.login"),
-          componentToShow: "map-login"
+          icon: "fas fa-filter",
+          text: this.$t("appBar.buttons.filter"),
+          componentToShow: "map-filter"
+        },
+        {
+          icon: "fas fa-edit",
+          text: this.$t("appBar.buttons.edit"),
+          componentToShow: "map-edit"
         },
         {
           icon: "fas fa-print",
@@ -153,16 +157,6 @@ export default {
           icon: "fas fa-paint-brush",
           text: this.$t("appBar.buttons.drawAndMeasure"),
           componentToShow: "map-draw-measure"
-        },
-        {
-          icon: "fas fa-filter",
-          text: this.$t("appBar.buttons.filter"),
-          componentToShow: "map-filter"
-        },
-        {
-          icon: "fas fa-edit",
-          text: this.$t("appBar.buttons.edit"),
-          componentToShow: "map-edit"
         }
       ];
     },

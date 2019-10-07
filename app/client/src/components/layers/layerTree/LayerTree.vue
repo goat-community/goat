@@ -86,6 +86,7 @@
                   max="1"
                   @input="changeLayerOpacity($event, item.mapLayer)"
                   :label="$t('layerTree.settings.transparency')"
+                  color="#30C2FF"
                 ></v-slider>
               </v-card>
             </v-expansion-panel>

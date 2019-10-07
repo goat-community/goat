@@ -49,6 +49,7 @@ export default class OlBaseController {
     const vector = new VectorLayer({
       name: name,
       displayInLayerList: false,
+      zIndex: 5,
       source: source,
       style: style
     });
@@ -106,6 +107,16 @@ export default class OlBaseController {
     me.overlayersGarbageCollector.push(me.helpTooltip);
   }
 
+  clearOverlays() {
+    const me = this;
+    if (me.overlayersGarbageCollector) {
+      me.overlayersGarbageCollector.forEach(overlay => {
+        me.map.removeOverlay(overlay);
+      });
+      me.overlayersGarbageCollector = [];
+    }
+  }
+
   /**
    * Removes the current interaction and clears the values.
    */
@@ -117,11 +128,6 @@ export default class OlBaseController {
     if (me.source) {
       me.source.clear();
     }
-    if (me.overlayersGarbageCollector) {
-      me.overlayersGarbageCollector.forEach(overlay => {
-        me.map.removeOverlay(overlay);
-      });
-      me.overlayersGarbageCollector = [];
-    }
+    me.clearOverlays();
   }
 }
