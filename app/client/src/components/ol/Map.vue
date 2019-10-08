@@ -36,7 +36,6 @@ function isCssColor(color) {
 import Vue from "vue";
 import Map from "ol/Map";
 import View from "ol/View";
-import Zoom from "ol/control/Zoom";
 import { defaults as defaultInteractions } from "ol/interaction";
 import Overlay from "ol/Overlay";
 import Mask from "ol-ext/filter/Mask";
@@ -117,10 +116,9 @@ export default {
     const interactions = defaultInteractions({
       altShiftDragRotate: me.rotateableMap
     });
-    let controls = [new Zoom()];
+
     me.map = new Map({
       layers: [],
-      controls: controls,
       interactions: interactions,
       view: new View({
         center: me.center || [0, 0],
@@ -275,6 +273,12 @@ export default {
         if (document.querySelector(".ol-rotate")) {
           document.querySelector(
             ".ol-rotate .ol-rotate-reset"
+          ).style.backgroundColor = me.color;
+        }
+
+        if (document.querySelector(".ol-attribution")) {
+          document.querySelector(
+            ".ol-attribution button[type='button']"
           ).style.backgroundColor = me.color;
         }
       } else {
@@ -451,8 +455,8 @@ div.ol-zoom {
   left: 1em;
 }
 
-div.ol-attribution.ol-uncollapsible {
-  bottom: 12px;
+div.ol-attribution {
+  bottom: 0px;
 }
 
 /* Hover tooltip */

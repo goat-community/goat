@@ -13,11 +13,14 @@ templates:
       crsDescription:
         !string &crsDescription
         default: ""
+      attributions:
+        !string &attributions
+        default: ""
       legend: !legend &legend {}
       map: 
         !map &map
-        maxDpi: 190
-        dpiSuggestions: [190,127,72]
+        maxDpi: 254
+        dpiSuggestions: [254]
         zoomLevels:
           !zoomLevels
           scales: [100, 250, 500, 2500, 5000, 10000, 25000, 50000, 100000, 500000]
@@ -55,6 +58,7 @@ templates:
     attributes:
       title: *title
       crsDescription: *crsDescription
+      attributions: *attributions
       legend: *legend
       map: !map
         <<: *map
@@ -69,6 +73,7 @@ templates:
     attributes:
       title: *title
       crsDescription: *crsDescription
+      attributions: *attributions
       legend: *legend
       map: !map
         <<: *map
@@ -89,6 +94,7 @@ templates:
     attributes:
       title: *title
       crsDescription: *crsDescription
+      attributions: *attributions
       legend: *legend
       map: !map
         <<: *map
