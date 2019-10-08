@@ -60,9 +60,9 @@
             }
         },
         "drawAndMeasure": {
-            "title": "Mesure",
+            "title": "Mesurer",
             "measure": {
-                "header": "Mesure",
+                "header": "Mesurer",
                 "length": "Longueur",
                 "area": "Zone"
             },
@@ -95,9 +95,9 @@
         "edit": {
             "title": "Modifier",
             "selectLayer": "Couche à éditer",
-            "selectFeatures": "Sélectionner des fonctionnalités",
-            "drawCircle": "Tracez un cercle pour sélectionner les caractéristiques",
-            "selectOnMap": "Sélectionner des entités sur la carte",
+            "selectFeatures": "Sélectionner des éléments",
+            "drawCircle": "Cliquez ici pour tracer un cercle",
+            "selectOnMap": "Sélectionner des éléments sur la carte",
             "editTools": "Outils d'édition",
             "drawFeatureTooltip": "Dessiner un élément",
             "modifyFeatureTooltip": "Modifier l'élément",
@@ -106,8 +106,8 @@
             "uploadBtn": "Télécharger",
             "popup": {
                 "deleteFeatureMsg": "Êtes-vous sûr de vouloir supprimer l'élément sélectionné ?",
-                "selectWayType": "Sélectionnez le type de chemin : ",
-                "wayType": "Type de chemin"
+                "selectWayType": "Sélectionnez le type de trajet : ",
+                "wayType": "Type de trajet"
             }
         },
         "settings": {
@@ -121,19 +121,19 @@
         },
         "about": {
             "title": "À propos de GOAT",
-            "content": "GOAT est l'abréviation de Geo Open Accessibility Tool. Cet outil Web est censé être open source, interactif, flexible et utile pour la planification de l'accessibilité. Il est en cours de développement à la chaire de la structure urbaine et de la planification des transports de l'Université Technique de Munich .....",
+            "content": "est l'abréviation de Geo Open Accessibility Tool. Cet outil Web est censé être open source, interactif, flexible et utile pour la planification de l'accessibilité urbaine. Il est en cours de développement au Chair of Urban Structure and Transport Planning de l'Université Technique de Munich .....",
             "moreInfo": "Plus d'informations"
         }
     },
     "isochrones": {
         "title": "Isochrones",
         "calculation": "Calcul",
-        "calculationTitle": "Calcul de l'isochrone",
+        "calculationTitle": "Calcul d'isochrone",
         "single": {
             "title": "Point de départ",
             "type": "Un seul",
-            "searchBox": "Trouver le départ",
-            "startTooltip": "Cliquez sur le bouton pour commencer le calcul des isochrones.",
+            "searchBox": "Rechercher un départ",
+            "startTooltip": "Cliquez sur le bouton pour commencer le calcul des isochrones",
             "tableDataTitle": "Données thématiques"
         },
         "multiple": {
@@ -156,9 +156,9 @@
             "speed": "km/h",
             "time": "min",
             "nr": "Isochrones",
-            "calcType": "Isochrones de concavité",
+            "calcType": "Niveau de précision",
             "calcModus": "Modes de calcul",
-            "alphaShapeMode": "Paramètre de l'alpha-shape",
+            "alphaShapeMode": "Niveau de précision",
             "defaultNetwork": "Réseau par défaut",
             "modifiedNetwork": "Réseau modifié",
             "modifiedNetworkDoubleCalc": "Réseau modifié (double calcul)"
@@ -218,27 +218,27 @@
         "layerGroup": {
             "poisLayers": "Couche des Pois",
             "administrativeLayers": "Couches administratives",
-            "accessbilityBasemaps": "Plan d'accessibilité",
+            "accessbilityBasemaps": "Les couches d'accessibilité",
             "backgroundLayers": "Couches d'arrière-plan"
         },
         "layerName": {
             "pois": "Point d'intérêt",
-            "administrativeUnits": "Unités administratives",
-            "areaIsochrone": "Zone d'isochrone",
+            "administrativeUnits": "Divisions administratives",
+            "areaIsochrone": "Superficie de l'isochrone",
             "walkabilityPopulation": "Population piétonnière",
             "population": "Population",
             "walkability": "Accessibilité piétonne",
             "studyArea": "Zone d'étude",
-            "ways": "Chemins",
+            "ways": "Trajets",
             "osmStandard": "Standard OSM",
-            "osmLight": "OSM clair",
-            "osmDark": "OSM sombre ",
+            "osmLight": "OSM Light",
+            "osmDark": "OSM Dark",
             "mapboxStreets": "Mapbox",
             "publicTransport": "Transport public",
             "bingAerial": "Bing Aerial"
         },
         "tooltips": {
-            "clickForCalculation": "Cliquez pour calculer",
+            "clickForCalculation": "Cliquez sur la carte pour calculer",
             "clickToSelectStudyArea": "Cliquez pour sélectionner la zone d'étude",
             "maxCircleRadius": "Le rayon maximum du cercle est de 1000 m",
             "clickToStartMeasure": "Cliquez pour commencer à mesurer",
@@ -248,8 +248,8 @@
             "clickToStartDrawingBoundary": "Cliquez pour commencer à dessiner la limite",
             "clickToStartDrawingCircle": "Cliquez pour commencer à dessiner le cercle (rayon maximum 1000 m)",
             "clickToFinishDrawingPolygon": "Double-cliquez ou cliquez sur le point de départ pour terminer",
-            "clickOnFeatureToDelete": "Cliquez sur fonctionnalité pour le supprimer",
-            "clickAndDragToModify": "Cliquez et faites glisser les fonctionnalités à modifier",
+            "clickOnFeatureToDelete": "Cliquez sur l'élément pour le supprimer",
+            "clickAndDragToModify": "Cliquez et faites glisser les éléments à modifier",
             "clickToRemove": "Cliquez pour effacer"
         },
         "popup": {
@@ -265,7 +265,7 @@
     },
     "pois": {
         "education": "Éducation",
-        "foodAndDrink": "Nourriture et boisson",
+        "foodAndDrink": "Manger et boire",
         "transport": "Transport",
         "services": "Services",
         "shop": "Magasin",
@@ -291,7 +291,7 @@
         "rail_station": "Gare ferroviaire",
         "taxi": "Taxi",
         "hairdresser": "Coiffeur",
-        "atm": "Guichet automatique bancaire",
+        "atm": "GAB",
         "bank": "Banque",
         "dentist": "Dentiste",
         "doctors": "Médecin",
