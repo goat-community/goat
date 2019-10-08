@@ -19,7 +19,11 @@
             <template v-for="(item, index) in layoutInfo.simpleAttributes">
               <span :key="index">
                 <v-text-field
-                  v-if="item.type === 'text' && item.name != 'crsDescription'"
+                  v-if="
+                    item.type === 'text' &&
+                      item.name != 'crsDescription' &&
+                      item.name != 'attributions'
+                  "
                   v-model="item.value"
                   :label="$t(`appBar.printMap.form.${item.name}.label`)"
                   type="text"
@@ -185,7 +189,8 @@ import PrintService from "../../controls/print/Service";
 import {
   getFlatLayers,
   getWMTSLegendURL,
-  getWMSLegendURL
+  getWMSLegendURL,
+  getActiveBaseLayer
 } from "../../utils/Layer";
 
 import { humanize, numberWithCommas } from "../../utils/Helpers";
@@ -355,6 +360,18 @@ export default {
         //Add crs description
         customAttributes.crsDescription = this.selectedCrs;
 
+        //Get Baselayer description\
+        let attributions = "";
+        const activeBaselayer = getActiveBaseLayer(this.map);
+        if (activeBaselayer.length > 0) {
+          const activeBaseLayerName = activeBaselayer[0].get("name");
+          attributions = this.$appConfig.map.layers.filter(
+            layerConf => layerConf.name === activeBaseLayerName
+          )[0].attributions;
+        }
+
+        customAttributes.attributions = attributions;
+
         // convert the WMTS layers to WMS
         const map = new olMap({});
         map.setView(this.map.getView());
@@ -425,7 +442,6 @@ export default {
           .createReport(spec)
           .then(response => {
             if (response.status === 200) {
-              console.log(response);
               this.currentJob = response.data;
               //Starts a interval timer every 1 second to check for the print job status
               this.getJobStatus();
@@ -472,7 +488,6 @@ export default {
         .then(response => {
           this.printState = this.printStateEnum.NOT_IN_USE;
           if (response.status === 200) {
-            console.log(response);
             FileSaver.saveAs(
               response.data,
               `goat_print_${this.getCurrentDate()}_${this.getCurrentTime()}.pdf`
@@ -493,7 +508,6 @@ export default {
         if (me.currentJob) {
           me.printService.getStatus(jobRef).then(response => {
             const status = response.data.status;
-            console.log(status);
             if (status === "finished" && me.currentJob) {
               clearInterval(me.polling);
               me.currentJob = null;

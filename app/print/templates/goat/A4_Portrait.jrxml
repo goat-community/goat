@@ -12,6 +12,7 @@
 		<parameterDescription><![CDATA[]]></parameterDescription>
 	</parameter>
 	<parameter name="crsDescription" class="java.lang.String"/>
+	<parameter name="attributions" class="java.lang.String"/>
 	<parameter name="mapContext" class="org.mapfish.print.attribute.map.MapfishMapContext"/>
 	<title>
 		<band height="802" splitType="Stretch">
@@ -103,6 +104,18 @@
 				</textElement>
 				<text><![CDATA[www.open-accessibility.org]]></text>
 			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="399" y="729" width="150" height="10" backcolor="rgba(255, 255, 255, 0.64705884)" uuid="363a768f-3c5f-456a-ac03-767f448bbc0c">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Bottom" markup="html">
+					<font fontName="Arial" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{attributions}]]></textFieldExpression>
+			</textField>
 		</band>
 	</title>
 	<detail>
