@@ -1,7 +1,7 @@
 <template>
   <v-expansion-panels
     dark
-    style="position:absolute;bottom:30px;right:10px;maxWidth: 200px;"
+    style="position:absolute;bottom:35px;right:10px;maxWidth: 200px;"
   >
     <v-expansion-panel style="background-color: white;">
       <v-expansion-panel-header

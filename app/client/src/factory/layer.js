@@ -148,7 +148,8 @@ export const LayerFactory = {
         url: lConf.hasOwnProperty("accessToken")
           ? lConf.url + "?access_token=" + lConf.accessToken
           : lConf.url,
-        maxZoom: lConf.maxZoom
+        maxZoom: lConf.maxZoom,
+        attributions: lConf.attributions
       })
     });
 
@@ -186,6 +187,11 @@ export const LayerFactory = {
    * @return {ol.layer.Tile} OL BING layer instance
    */
   createBingLayer(lConf) {
+    const bingMaps = new BingMaps({
+      key: lConf.accessToken,
+      imagerySet: lConf.imagerySet,
+      maxZoom: lConf.maxZoom
+    });
     const layer = new TileLayer({
       name: lConf.name,
       title: lConf.title,
@@ -194,11 +200,7 @@ export const LayerFactory = {
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
       opacity: lConf.opacity,
-      source: new BingMaps({
-        key: lConf.accessToken,
-        imagerySet: lConf.imagerySet,
-        maxZoom: lConf.maxZoom
-      })
+      source: bingMaps
     });
 
     return layer;

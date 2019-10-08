@@ -269,7 +269,6 @@ export default {
     showAdditionalLayerDialog(calculation) {
       this.additionalLayersDialogState = true;
       this.selectedCalculation = calculation;
-      console.log(this.selectedCalculation);
     }
   },
   computed: {

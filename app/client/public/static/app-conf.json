@@ -155,7 +155,8 @@
         "queryable": false,
         "cascadePrint": true,
         "visible": false,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
       },
       {
         "type": "OSM",
@@ -166,7 +167,8 @@
         "queryable": false,
         "cascadePrint": true,
         "visible": false,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
       },
       {
         "type": "OSM",
@@ -177,7 +179,8 @@
         "queryable": false,
         "cascadePrint": true,
         "visible": false,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
       },
       {
         "type": "XYZ",
@@ -189,7 +192,8 @@
         "queryable": false,
         "cascadePrint": true,
         "visible": true,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.mapbox.com/map-feedback/'>Mapbox</a> © <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap contributors</a>"
       },
       {
         "type": "XYZ",
@@ -200,7 +204,8 @@
         "queryable": false,
         "cascadePrint": true,
         "visible": false,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.memomaps.de/'>Memomaps</a>"
       },
       {
         "type": "BING",
@@ -212,7 +217,8 @@
         "queryable": false,
         "cascadePrint": true,
         "visible": false,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "attributions": "© Microsoft Coorporation © Digital Globe ©CNES Distribution Airbus DS <a href='https://www.microsoft.com/en-us/maps/product'>Terms of use</a> "
       }
     ],
     "controls": [
