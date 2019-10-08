@@ -132,8 +132,8 @@
         "single": {
             "title": "Point de départ",
             "type": "Un seul",
-            "searchBox": "Rechercher le point de départ",
-            "startTooltip": "Cliquez sur la carte pour commencer le calcul des isochrones",
+            "searchBox": "Trouver le départ",
+            "startTooltip": "Cliquez sur le bouton pour commencer le calcul des isochrones.",
             "tableDataTitle": "Données thématiques"
         },
         "multiple": {
@@ -172,7 +172,7 @@
             "deleteCalcTooltip": "Supprimer le calcul",
             "table": {
                 "type": "Type",
-                "range": "Gamme",
+                "range": "Temps",
                 "area": "Zone",
                 "visible": "Visible",
                 "legend": "Légende"
