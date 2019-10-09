@@ -10,6 +10,8 @@ In the case you still face the issue you can convert the shell scripts and the s
 
 You potentially have to run all the following commands:
 
+`sudo apt update` (run on your VM)
+
 `sudo apt install dos2unix` (run on your VM)
 
 `dos2unix ~/app/installation/install_software.sh` (run on your VM)
