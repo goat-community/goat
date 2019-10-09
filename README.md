@@ -7,19 +7,13 @@ flexible and useful web-tool for accessibility planning.
 
 Please visit the website of Open accessibility for more information:
  
-[GOAT Website](https://open-accessibility.org)
+[GOAT Website and Docs](https://open-accessibility.org)
 
-GOAT-Beta demo:
-https://goat.open-accessibility.org/
+[GOAT-Beta demo](https://goat.open-accessibility.org/)
 
-Get started:
-https://www.open-accessibility.org/docs/quick_start/
-
-GOAT-Beta videos:
-https://www.open-accessibility.org/blog/2019/01/15/GOAT-goes-public/
-
+[Join GOAT User Group on Telegram](https://t.me/joinchat/EpAk7BYbIF72q7D3OTUCZQ)
 
 You want to help translating the GOAT userinterface? You are very welcome to help us. Just check the following POEditor-Link:
-https://poeditor.com/join/project/M2FCLLqSoe
+[Click here](https://poeditor.com/join/project/M2FCLLqSoe)
 
 
