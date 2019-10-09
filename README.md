@@ -13,7 +13,7 @@ Please visit the website of Open accessibility for more information:
 
 [Join GOAT User Group on Telegram](https://t.me/joinchat/EpAk7BYbIF72q7D3OTUCZQ)
 
-You want to help translating the GOAT userinterface? You are very welcome to help us. Just check the following POEditor-Link:
+If you want to help us translating the GOAT userinterface, you are very welcome to help us. Just check the following POEditor-Link:
 [Click here](https://poeditor.com/join/project/M2FCLLqSoe)
 
 
