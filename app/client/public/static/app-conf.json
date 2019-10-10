@@ -79,6 +79,19 @@
       },
       {
         "type": "WMS",
+        "name": "lit",
+        "url": "/geoserver/wms",
+        "group": "administrativeLayers",
+        "layers": "cite:ways_lit",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "administrativeUnits",
         "url": "/geoserver/wms",
         "group": "administrativeLayers",
