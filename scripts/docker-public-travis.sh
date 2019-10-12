@@ -22,12 +22,12 @@ docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
 docker build -f app/client/Dockerfile -t goat-client:$DOCKER_TAG app/client --no-cache
 docker build -f app/api/Dockerfile -t goat-api:$DOCKER_TAG app/api --no-cache
-#docker build -f app/geoserver/Dockerfile -t goat-geoserver:$DOCKER_TAG app/geoserver --no-cache
+docker build -f app/geoserver/Dockerfile -t goat-geoserver:$DOCKER_TAG app/geoserver --no-cache
 
 docker tag goat-client:$DOCKER_TAG $DOCKER_USERNAME/goat-client:$DOCKER_TAG
 docker tag goat-api:$DOCKER_TAG $DOCKER_USERNAME/goat-api:$DOCKER_TAG
-#docker tag goat-geoserver:$DOCKER_TAG $DOCKER_USERNAME/goat-geoserver:$DOCKER_TAG
+docker tag goat-geoserver:$DOCKER_TAG $DOCKER_USERNAME/goat-geoserver:$DOCKER_TAG
 
 docker push $DOCKER_USERNAME/goat-client:$DOCKER_TAG
 docker push $DOCKER_USERNAME/goat-api:$DOCKER_TAG
-#docker push $DOCKER_USERNAME/goat-geoserver:$DOCKER_TAG
+docker push $DOCKER_USERNAME/goat-geoserver:$DOCKER_TAG
