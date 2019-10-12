@@ -13,27 +13,27 @@ services:
       abstract: GOAT Mapproxy configuration.
 
 layers:
-  - name: osm-standard
+  - name: osmStandard
     title: OSM Standard
     sources: [osm_standard_cache]
 
-  - name: osm-light
+  - name: osmLight
     title: OSM Light
     sources: [osm_light_cache]
 
-  - name: osm-dark
+  - name: osmDark
     title: OSM Dark
     sources: [osm_dark_cache]
 
-  - name: mapbox-streets
+  - name: mapboxStreets
     title: Mapbox Streets
     sources: [mapbox_streets_cache]
 
-  - name: public-transport
+  - name: publicTransport
     title: Public Transport
     sources: [public_transport_cache]
 
-  - name: bing-aerial
+  - name: bingAerial
     title: Bing Aerial
     sources: [bing_aerial_cache]
 
