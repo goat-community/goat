@@ -10,8 +10,8 @@
       "login": "Login",
       "print": "Print",
       "drawAndMeasure": "Draw and Measure",
-      "filter": "Filter",
-      "edit": "Edit",
+      "filter": "Thematic Data Filter",
+      "edit": "Draw scenario",
       "settings": "Settings",
       "info": "Info"
     },
@@ -80,7 +80,7 @@
       "clear": "Clear"
     },
     "filter": {
-      "title": "Filter",
+      "title": "Thematic Data Filter",
       "poisSettings": {
         "buttonTooltip": "Weight and Sensitivity Settings",
         "title": "Heatmap",
@@ -94,7 +94,7 @@
       }
     },
     "edit": {
-      "title": "Edit",
+      "title": "Draw scenario",
       "selectLayer": "Layer to edit",
       "selectFeatures": "Select features",
       "drawCircle": "Draw a circle to select features",
@@ -144,11 +144,11 @@
       "studyArea": "Study Area",
       "clear": "Clear",
       "calculate": "Calculate",
-      "studyAreaInfoLabel": "Select <b>study zones</b> and <b>amenities</b> to enable calculation.",
+      "studyAreaInfoLabel": "Select <b>study area</b> on the map and <b>points of interest</b> from the thematic data filter to enable calculation.",
       "drawBoundary": "Draw Boundary",
       "amenityCount": "Amenity Count",
       "limit": "Limit",
-      "drawBoundaryInfoLabel": "Draw <b>boundary</b> and select <b>amenities</b> to enable calculation.",
+      "drawBoundaryInfoLabel": "Draw <b>boundary</b> on the map and select <b>points of interest</b> from the thematic data filter to enable calculation.",
       "tableDataTitle": "Multi-Isochrone Data"
     },
     "options": {
@@ -185,7 +185,7 @@
       "searchPois": "Search Point of Interest",
       "selectTimeMsg": "Select travel time to filter",
       "noDataMsg": "No data for the selected time",
-      "selectAmenitiesMsg": "Select <b>Amenities</b> and <b>Time</b> to filter the table.",
+      "selectAmenitiesMsg": "Select <b>Points of Interest</b> and <b>Time</b> to filter the table.",
       "table": {
         "pois": "Point of Interest",
         "isochrone": "Isochrone",
@@ -219,12 +219,12 @@
       "title": "Layers Legend"
     },
     "snackbarMessages": {
-      "selectAmenities": "You must select at least one amenity"
+      "selectAmenities": "You must select at least one point of interest"
     },
     "layerGroup": {
-      "poisLayers": "Pois Layer",
+      "poisLayers": "Point of Interest",
       "administrativeLayers": "Administrative Layers",
-      "accessbilityBasemaps": "Accessibility Basemap",
+      "accessbilityBasemaps": "Accessibility",
       "backgroundLayers": "Background Layers"
     },
     "layerName": {

@@ -10,8 +10,8 @@
             "login": "Login",
             "print": "Drucken",
             "drawAndMeasure": "Messen",
-            "filter": "Filter",
-            "edit": "Bearbeiten",
+            "filter": "Filter Thematische Daten",
+            "edit": "Szenarien Entwickeln",
             "settings": "Einstellungen",
             "info": "Info"
         },
@@ -79,7 +79,7 @@
             "clear": "Löschen"
         },
         "filter": {
-            "title": "Filter",
+            "title": "Filter Thematische Daten",
             "poisSettings": {
                 "buttonTooltip": "Einstellung Gewichtung und Sensitivität",
                 "title": "Heatmap",
@@ -93,7 +93,7 @@
             }
         },
         "edit": {
-            "title": "Bearbeiten",
+            "title": "Szenarien entwickeln",
             "selectLayer": "Layer zum Bearbeiten",
             "selectFeatures": "Objekte auswählen",
             "drawCircle": "Kreis zeichnen, um Objekte auszuwählen",
@@ -143,11 +143,11 @@
             "studyArea": "Untersuchungsgebiet",
             "clear": "Löschen",
             "calculate": "Berechne",
-            "studyAreaInfoLabel": "Wählen Sie <b> Untersuchungsgebiete </ b> und <b> Einrichtungen </ b> aus, um die Berechnung zu ermöglichen.",
+            "studyAreaInfoLabel": "Wählen Sie <b> Untersuchungsgebiete </ b> auf der Karte aus und <b> Ziele </ b> im Filter Thematische Daten aus, um die Berechnung zu ermöglichen.",
             "drawBoundary": "Grenze zeichnen",
             "amenityCount": "Anzahl Einrichtungen",
             "limit": "Grenze",
-            "drawBoundaryInfoLabel": "Zeichnen Sie eine <b> Grenze</ b> ein und wählen Sie <b> Einrichtungen </ b> aus, um die Berechnung zu aktivieren.",
+            "drawBoundaryInfoLabel": "Zeichnen Sie eine <b> Grenze</ b> auf der Karte ein und wählen Sie <b> Ziele </ b> im Filter Thematische Daten aus aus, um die Berechnung zu ermöglichen.",
             "tableDataTitle": "Daten Multi-Isochrone"
         },
         "options": {
@@ -166,6 +166,7 @@
         "results": {
             "title": "Ergebnisse",
             "multiIsochroneHeader": "Multi-Isochrone-Berechnung",
+            "additionalLayers": "Weitere Layer",
             "showDataTooltip": "Daten anzeigen",
             "toggleVisibilityTooltip": "Anzeige umschalten",
             "downloadTooltip": "Herunterladen",
@@ -183,7 +184,7 @@
             "searchPois": "Ziele suchen",
             "selectTimeMsg": "Zeit zum Filtern auswählen",
             "noDataMsg": "Keine Daten für ausgewählte Zeit",
-            "selectAmenitiesMsg": "Wählen Sie <b> amenities </ b> und <b> Time </ b> aus, um die Tabelle zu filtern.",
+            "selectAmenitiesMsg": "Wählen Sie <b> Ziele </ b> und die <b> Reisezeit </ b> aus, um die Tabelle zu filtern.",
             "table": {
                 "pois": "Ziele",
                 "isochrone": "Isochrone",
@@ -203,7 +204,7 @@
         }
     },
     "layerTree": {
-        "title": "Layers",
+        "title": "Layer",
         "settings": {
             "transparency": "Transparenz"
         }
@@ -213,7 +214,7 @@
             "title": "Legende Layer"
         },
         "snackbarMessages": {
-            "selectAmenities": "Mind. eine Einrichtung auswählen"
+            "selectAmenities": "Mind. ein Ziel auswählen"
         },
         "layerGroup": {
             "poisLayers": "Pois Layer",
