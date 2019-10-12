@@ -93,6 +93,20 @@
       },
       {
         "type": "WMS",
+        "name": "Ways Test",
+        "url": "/geoserver/wms",
+        "group": "administrativeLayers",
+        "layers": "cite:ways_test",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "walkability",
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",

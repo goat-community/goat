@@ -73,7 +73,7 @@
         </v-slider>
 
         <v-select
-          v-if="options.calculationType === 'single'"
+          v-if="options.calculationType"
           item-text="display"
           item-value="value"
           outlined
@@ -98,17 +98,6 @@
             {{ $t(`isochrones.options.${item.name}`) }}
           </template>
         </v-select>
-
-        <v-select
-          v-if="options.calculationType === 'multiple'"
-          item-text="display"
-          item-value="value"
-          v-model="alphaShapeParameter"
-          outlined
-          :value="alphaShapeParameter"
-          :items="options.alphaShapeParameter.values"
-          :label="$t('isochrones.options.alphaShapeMode')"
-        ></v-select>
       </v-flex>
     </div>
   </v-flex>
