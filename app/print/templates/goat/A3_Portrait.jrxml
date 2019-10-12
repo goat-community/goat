@@ -104,7 +104,7 @@
 			<staticText>
 				<reportElement x="631" y="1080" width="148" height="20" forecolor="#0645AD" uuid="610c6040-fe82-46d5-be8e-68ef6751996b"/>
 				<textElement textAlignment="Right">
-					<font fontName="Arial" size="8"/>
+					<font size="8"/>
 				</textElement>
 				<text><![CDATA[www.open-accessibility.org]]></text>
 			</staticText>
@@ -116,7 +116,7 @@
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 				</reportElement>
 				<textElement textAlignment="Right" verticalAlignment="Bottom" markup="html">
-					<font fontName="Arial" size="8"/>
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{attributions}]]></textFieldExpression>
 			</textField>
