@@ -157,7 +157,7 @@
             "time": "Min",
             "nr": "Isochronen",
             "calcType": "Detaillierungsgrad Isochronen",
-            "calcModus": "Berechnungsmodi",
+            "calcModus": "Berechnungsmodus",
             "alphaShapeMode": "Detaillierungsgrad Isochronen",
             "defaultNetwork": "Standard",
             "modifiedNetwork": "Scenario",
