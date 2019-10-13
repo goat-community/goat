@@ -10,8 +10,8 @@
             "login": "Login",
             "print": "Imprimir",
             "drawAndMeasure": "Herramientas de medición",
-            "filter": "Filtro",
-            "edit": "Editar",
+            "filter": "Filtro datos temáticos",
+            "edit": "Dessarolar escenario",
             "settings": "Opciones",
             "info": "Info"
         },
@@ -79,7 +79,7 @@
             "clear": "Borrar"
         },
         "filter": {
-            "title": "Filtrar",
+            "title": "Filtro datos temáticos",
             "poisSettings": {
                 "buttonTooltip": "Ajustes de importancia y sensibilidad",
                 "title": "Mapa térmico",
@@ -93,7 +93,7 @@
             }
         },
         "edit": {
-            "title": "Editar",
+            "title": "Dessarolar escenario",
             "selectLayer": "Capa para editar",
             "selectFeatures": "Seleccionar funciones",
             "drawCircle": "Dibuja un círculo para seleccionar objetos",
@@ -166,6 +166,7 @@
         "results": {
             "title": "Resultados",
             "multiIsochroneHeader": "Cálculo de múltiples isocronas",
+            "additionalLayers": "Capas adicionales",
             "showDataTooltip": "Mostrar datos",
             "toggleVisibilityTooltip": "Alternar visibilidad",
             "downloadTooltip": "Descargar",
@@ -183,7 +184,7 @@
             "searchPois": "Filtrar información de interés",
             "selectTimeMsg": "Seleccione el tiempo para filtrar",
             "noDataMsg": "No hay datos para el tiempo seleccionado.",
-            "selectAmenitiesMsg": "Seleccione el <b> periodo de tiempo </b> y <b> servicios de interés </b> para filtrar la tabla.",
+            "selectAmenitiesMsg": "Seleccione el <b> periodo de tiempo </b> y <b> destinos </b> en el Filtro datos temáticos para filtrar la tabla.",
             "table": {
                 "pois": "Información de interés",
                 "isochrone": "Isocrona",
