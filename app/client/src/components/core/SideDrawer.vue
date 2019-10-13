@@ -139,7 +139,7 @@ export default {
     upItems() {
       return [
         {
-          icon: "fas fa-database",
+          icon: "fas fa-filter",
           text: this.$t("appBar.buttons.filter"),
           componentToShow: "map-filter"
         },
