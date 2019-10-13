@@ -8,16 +8,19 @@ services:
     image: "traefik:1.7.2-alpine"
     container_name: "traefik"
     ports:
-      - "8080:8080"
-      - "80:80"
-      - "443:443"
+      - "8080:8080" # - App Port
+      - "80:80" # - Default Port
+      - "443:443" # - SSL Port
+      - "31951:31951" # - Mapproxy
+      - "8000:8000" # - Traefik UI
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./config/traefik.toml:/etc/traefik/traefik.toml
       - ./ssl:/ssl
     labels:
-      - "traefik.frontend.entryPoints=https,http"
-      - "traefik.frontend.rule=Host:traefik.docker.localhost"
+      - "traefik.backend=traefik-ui"
+      - "traefik.frontend.entryPoints=https,http,traefik-ui"
+      - "traefik.frontend.rule=Host:localhost;"
       - "traefik.port=8080"
       - "traefik.enable=true"
     networks:
@@ -29,8 +32,9 @@ services:
     image: goat-client
     container_name: goat-client
     labels:
+      - "traefik.backend=client"
       - "traefik.frontend.entryPoints=https,http"
-      - "traefik.frontend.rule=Host:docker.localhost"
+      - "traefik.frontend.rule=Host:localhost;"
       - "traefik.port=80"
       - "traefik.enable=true"
     networks:
@@ -42,9 +46,10 @@ services:
     image: goat-api
     container_name: goat-api
     labels:
+      - "traefik.backend=api"
       - "traefik.frontend.entryPoints=https,http"
-      - "traefik.frontend.rule=Host:docker.localhost;PathPrefix:/geoserver"
-      - "traefik.port=80"
+      - "traefik.frontend.rule=Host:localhost;PathPrefix:/api"
+      - "traefik.port=3000"
       - "traefik.enable=true"
     networks:
       proxy:
@@ -60,7 +65,7 @@ services:
     labels:
       - "traefik.backend=geoserver"
       - "traefik.frontend.entryPoints=https,http"
-      - "traefik.frontend.rule=Host:docker.localhost;PathPrefix:/geoserver"
+      - "traefik.frontend.rule=Host:localhost;PathPrefix:/geoserver"
       - "traefik.port=8080"
       - "traefik.enable=true"
     networks:
@@ -74,7 +79,7 @@ services:
     labels:
       - "traefik.backend=print"
       - "traefik.frontend.entryPoints=https,http"
-      - "traefik.frontend.rule=Host:docker.localhost;PathPrefix:/print"
+      - "traefik.frontend.rule=Host:localhost;PathPrefix:/print"
       - "traefik.port=8080"
       - "traefik.enable=true"
     networks:
@@ -86,9 +91,9 @@ services:
       - ./app/mapproxy:/mapproxy
     container_name: goat-mapproxy
     labels:
-      - "traefik.backend=print"
-      - "traefik.frontend.entryPoints=https,http"
-      - "traefik.frontend.rule=Host:mapproxy.docker.localhost"
+      - "traefik.backend=mapproxy"
+      - "traefik.frontend.entryPoints=mapproxy"
+      - "traefik.frontend.rule=Host:localhost;"
       - "traefik.port=8080"
       - "traefik.enable=true"
     networks:
