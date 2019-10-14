@@ -18,10 +18,13 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 81, host: 8081
   config.vm.network "forwarded_port", guest: 3000, host: 3000
   config.vm.network "forwarded_port", guest: 5432, host: 65432
-  config.vm.network "forwarded_port", guest: 3200, host: 3200
-  config.vm.network "forwarded_port", guest: 4000, host: 4000
+  config.vm.network "forwarded_port", guest: 31951, host: 31951
+
   # Folder Settings
   config.vm.synced_folder "./app", "/home/vagrant/app"
+  config.vm.synced_folder "./scripts", "/home/vagrant/scripts"
+  config.vm.provision "file", source: "./docker-compose.yaml", destination: "docker-compose.yaml"
+
   config.vm.provision :shell, inline: "sudo apt update"
   config.vm.provision :shell, path: "./app/installation/reboot.sh", run: 'always'
 end
