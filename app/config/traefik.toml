@@ -15,6 +15,12 @@ logLevel = "DEBUG"
   [entryPoints.https]
     address = ":443"
   
+  [entryPoints.mapproxy]
+    address = ":31951"
+  
+  [entryPoints.traefik-ui]
+    address = ":8000"
+
   [entryPoints.https.tls]
     [[entryPoints.https.tls.certificates]]
       certFile = "/ssl/crud.crt"
@@ -34,5 +40,5 @@ entrypoint="traefik"
 # docker
 [docker]
 endpoint = "unix:///var/run/docker.sock"
-domain = "docker.localhost"
+domain = "localhost"
 exposedByDefault = false
