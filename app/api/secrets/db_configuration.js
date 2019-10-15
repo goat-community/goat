@@ -1,7 +1,7 @@
 module.exports= {
 	user: 'goat',
-	host: 'goat.open-accessibility.org',
+	host: 'localhost',
 	database: 'goat',
 	password: 'earlmanigault',
-	port: 5432
+	port: 65432
 };
