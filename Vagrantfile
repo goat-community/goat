@@ -6,7 +6,8 @@ Vagrant.configure("2") do |config|
 
   #Box Settings
   config.vm.box = "ubuntu/bionic64"
-
+  config.disksize.size = '15GB'
+  
   #Provider Settings
   config.vm.provider "virtualbox" do |vb|
     vb.memory = 4096
@@ -21,9 +22,7 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 31951, host: 31951
 
   # Folder Settings
-  config.vm.synced_folder "./app", "/home/vagrant/app"
-  config.vm.synced_folder "./scripts", "/home/vagrant/scripts"
-  config.vm.provision "file", source: "./docker-compose.yaml", destination: "docker-compose.yaml"
+  config.vm.synced_folder "./", "/home/vagrant/app", type: "rsync", rsync__auto: true, rsync__exclude: ['./git*']  
 
   config.vm.provision :shell, inline: "sudo apt update"
   config.vm.provision :shell, path: "./app/installation/reboot.sh", run: 'always'
