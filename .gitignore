@@ -8,6 +8,7 @@ ubuntu-bionic-18.04-cloudimg-console.log
 /app/front_end/node_modules
 /app/front_end/.cache
 /app/node/node_modules
+/app/database/data
 /_site
 /.sass-cache
 /app/data_preparation/Python/__pycache__
