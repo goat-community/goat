@@ -7,7 +7,7 @@ DATABASE:
 
 DATA_SOURCE:  
   #"no_download" if you don't want to download OSM data automatically. Make sure that the file is called raw-osm.osm.pbf.
-  OSM_DOWNLOAD_LINK: "no_download" #"https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf" 
+  OSM_DOWNLOAD_LINK: "https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf" 
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
   #extrapolation ==> census.shp + landuse.shp needed as input
   #disaggregation ==> landuse.shp needed as input + high-resolution population input data + high completness number of floors

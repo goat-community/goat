@@ -24,9 +24,13 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 31951, host: 31951
 
   # Folder Settings
-  config.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__exclude: ".git/"
-  
+
+  config.vm.synced_folder "./app", "/home/vagrant/app"
+  config.vm.synced_folder "./scripts", "/home/vagrant/scripts"
+
+  config.vm.provision :docker
+  config.vm.provision :docker_compose
 
   config.vm.provision :shell, inline: "sudo apt update"
-  config.vm.provision :shell, path: "./app/installation/reboot.sh", run: 'always'
+
 end

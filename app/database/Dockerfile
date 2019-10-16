@@ -44,6 +44,6 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &&  echo $TZ > /etc/timezone
 #RUN /etc/init.d/postgresql restart
 
 # Add backup job
-RUN chmod +x /opt/pgbackup.sh
+#RUN chmod +x /opt/pgbackup.sh
 
 #VOLUME [/backups]

@@ -23,8 +23,8 @@
     <entry key="Support on the fly geometry simplification">true</entry>
     <entry key="Connection timeout">20</entry>
     <entry key="create database">false</entry>
-    <entry key="port">5432</entry>
-    <entry key="passwd">crypt1:5ZjiNXz8zMyln+3jSXCGYrfiu0rdFWqt</entry>
+    <entry key="port">65432</entry>
+    <entry key="passwd">crypt1:u7BTymT4VoqnoBqSI+8MBn/Miqtkeo9y</entry>
     <entry key="min connections">1</entry>
     <entry key="dbtype">postgis</entry>
     <entry key="namespace">muc</entry>
