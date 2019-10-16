@@ -1,26 +1,10 @@
 version: "3.7"
 
-# volumes:
-#   postgres11-postgis2.5:
-# services:
-#   postgres:
-#     build:
-#       context: ./app/database
-#     image: goat-database
-#     container_name: goat-database
-#     volumes:
-#       - postgres11-postgis2.5:/var/lib/postgresql/data
-#       - ./app/database:/opt
-#     networks:
-#       - postgres_conn
-#     ports:
-#       - '65432:5432'
-
-# networks:
-#   postgres_conn:
-#     driver: bridge
 networks:
   proxy:
+
+volumes:
+  postgres11-postgis2.5:
 
 services:
   traefik:
@@ -49,7 +33,7 @@ services:
       dockerfile: Dockerfile.dev
       context: ./app/client
     image: goat-client
-    volumes: 
+    volumes:
       - /app/node_modules
       - ./app/client:/app
     container_name: goat-client
@@ -66,7 +50,7 @@ services:
     build:
       context: ./app/api
     image: goat-api
-    volumes: 
+    volumes:
       - /app/node_modules
       - ./app/api:/app
     container_name: goat-api
@@ -121,5 +105,18 @@ services:
       - "traefik.frontend.rule=Host:localhost;"
       - "traefik.port=8080"
       - "traefik.enable=true"
+    networks:
+      proxy:
+
+  postgres:
+    build:
+      context: ./app/database
+    image: goat-database
+    container_name: goat-database
+    volumes:
+      - postgres11-postgis2.5:/var/lib/postgresql/data
+      - ./app/database:/opt
+    ports:
+      - "65432:5432"
     networks:
       proxy:
