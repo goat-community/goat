@@ -71,6 +71,12 @@ apt-get -y update
 
 apt-get -y install docker-ce
 
+sudo curl -L "https://github.com/docker/compose/releases/download/1.23.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+sudo chmod +x /usr/local/bin/docker-compose
+
+docker-compose --version
+
 
 # #Install NodeJS (currently not on docker container as nodemon was not working properly)
 # curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
