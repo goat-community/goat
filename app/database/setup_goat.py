@@ -6,6 +6,7 @@ from pathlib import Path
 import shapefile
 import datetime
 
+os.chdir("/opt")
 pgpass = open(".pgpass", "r").read().split(':') 
 with open("goat_config.yaml", 'r') as stream:
     config = yaml.load(stream)
@@ -17,6 +18,7 @@ user = pgpass[3]
 password = pgpass[4]
 
 os.system("chmod 600 .pgpass")
+os.system("chmod +x pgbackup.sh")
 
 os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name)
 os.system('psql -U postgres -c "DROP DATABASE %s;"' % db_name) 

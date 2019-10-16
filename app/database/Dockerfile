@@ -43,7 +43,8 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &&  echo $TZ > /etc/timezone
 #RUN cp ./postgresql.conf /etc/postgresql/11/main/
 #RUN /etc/init.d/postgresql restart
 
-# Add backup job
-#RUN chmod +x /opt/pgbackup.sh
+CMD ['python3 /opt/setup_goat.py']
 
-#VOLUME [/backups]
+VOLUME [/opt]
+
+#RUN python3 /opt/setup_goat.py
