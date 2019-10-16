@@ -77,7 +77,10 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 docker-compose --version
 
+snap install docker && 
 
+
+apt install docker-compose
 # #Install NodeJS (currently not on docker container as nodemon was not working properly)
 # curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
 # sudo apt install -y nodejs
