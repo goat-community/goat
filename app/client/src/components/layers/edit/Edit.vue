@@ -363,6 +363,7 @@ export default {
       me.clearEdit();
       me.toggleSelection = undefined;
       me.toggleEdit = undefined;
+      EventBus.$emit("ol-interaction-stoped", me.interactionType);
     },
     /**
      * Stop edit and select interactions (Doesn't deletes the features)

@@ -93,6 +93,7 @@ export default {
       set(value) {
         if (!value) {
           this.$emit("close");
+          EventBus.$emit("ol-interaction-stoped", this.interactionType);
         }
       }
     }
