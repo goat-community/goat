@@ -8,18 +8,17 @@ services:
     image: "traefik:1.7.2-alpine"
     container_name: "traefik"
     ports:
-      - "8080:8080" # - App Port
       - "80:80" # - Default Port
       - "443:443" # - SSL Port
       - "31951:31951" # - Mapproxy
       - "8000:8000" # - Traefik UI
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./config/traefik.toml:/etc/traefik/traefik.toml
-      - ./ssl:/ssl
+      - ./app/config/traefik.toml:/etc/traefik/traefik.toml
+      - ./app/config/ssl:/ssl
     labels:
-      - "traefik.backend=traefik-ui"
-      - "traefik.frontend.entryPoints=https,http,traefik-ui"
+      - "traefik.backend=traefik"
+      - "traefik.frontend.entryPoints=traefik-ui"
       - "traefik.frontend.rule=Host:localhost;"
       - "traefik.port=8080"
       - "traefik.enable=true"
