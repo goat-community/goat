@@ -1,18 +1,7 @@
-FROM postgres:11
-ENV POSTGISV=2.5
-ENV TZ=Europe/Berlin
+FROM kartoza/postgis:11.0-2.5
 
-
-RUN apt-get update \
-   && apt-get install -y --no-install-recommends \
-   postgresql-$PG_MAJOR-postgis-$POSTGISV \
-   postgresql-$PG_MAJOR-postgis-$POSTGISV-scripts \ 
-   postgresql-$PG_MAJOR-pgrouting \
-   postgresql-$PG_MAJOR-pgrouting-scripts \
-   postgresql-server-dev-$PG_MAJOR \
-   &&  apt-get purge -y --auto-remove postgresql-server-dev-$PG_MAJOR
-
-RUN apt install osmosis -y \
+RUN apt update \ 
+   &&  apt install osmosis -y \
    &&  apt install osmctools -y \
    &&  apt install osm2pgsql -y \
    &&  apt install python3 -y \
@@ -23,28 +12,9 @@ RUN apt install osmosis -y \
    &&  pip3 install pyshp \
    &&  pip3 install pyyaml 
 
-RUN apt-get install -y cmake expat libexpat1-dev libboost-dev libboost-program-options-dev libpqxx-dev
+RUN wget http://security.ubuntu.com/ubuntu/pool/universe/b/boost1.62/libboost-program-options1.62.0_1.62.0+dfsg-5_amd64.deb \
+   && dpkg -i libboost-program-options1.62.0_1.62.0+dfsg-5_amd64.deb \
+   && wget http://ftp.br.debian.org/debian/pool/main/o/osm2pgrouting/osm2pgrouting_2.2.0-1_amd64.deb \
+   && dpkg -i osm2pgrouting_2.2.0-1_amd64.deb 
 
-ENV OSM_2_PGROUTING_VERSION=2.2.0
-RUN apt install git -y \
-   &&  git clone https://github.com/pgRouting/osm2pgrouting.git
-RUN apt purge osm2pgrouting -y \
-   &&  cd osm2pgrouting \
-   &&  git fetch --all \
-   &&  git checkout v${OSM_2_PGROUTING_VERSION} \
-   &&  cmake -H. -Bbuild \
-   &&  cd build/ \
-   &&  make \
-   &&  make install
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &&  echo $TZ > /etc/timezone
-
-#Exchange config files
-#RUN cp ./pg_hba.conf /etc/postgresql/11/main/
-#RUN cp ./postgresql.conf /etc/postgresql/11/main/
-#RUN /etc/init.d/postgresql restart
-
-CMD ['python3 /opt/setup_goat.py']
-
-VOLUME [/opt]
-
-#RUN python3 /opt/setup_goat.py
