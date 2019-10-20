@@ -3,9 +3,6 @@ version: "3.7"
 networks:
   proxy:
 
-volumes:
-  postgres11-postgis2.5:
-
 services:
   traefik:
     image: "traefik:1.7.2-alpine"
@@ -114,7 +111,7 @@ services:
     image: goat-database
     container_name: goat-database
     volumes:
-      - postgres11-postgis2.5:/var/lib/postgresql/data
+      - ./app/database/postgres_data:/var/lib/postgresql/data
       - ./app/database:/opt
     ports:
       - "65432:5432"
