@@ -187,8 +187,5 @@ export default class OlIsochroneController extends OlBaseController {
     if (me.selectionSource) {
       me.selectionSource.clear();
     }
-    if (me.studyAreaLayer) {
-      me.studyAreaLayer[0].setVisible(false);
-    }
   }
 }

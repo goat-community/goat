@@ -138,9 +138,10 @@ export default {
       me.activeInteractions.push(startedInteraction);
     });
     EventBus.$on("ol-interaction-stoped", stopedInteraction => {
-      me.activeInteractions = me.activeInteractions.filter(
-        interaction => interaction !== stopedInteraction
-      );
+      me.activeInteractions = Array.from(new Set(me.activeInteractions));
+      me.activeInteractions = me.activeInteractions.filter(interaction => {
+        return interaction !== stopedInteraction;
+      });
     });
   },
 
