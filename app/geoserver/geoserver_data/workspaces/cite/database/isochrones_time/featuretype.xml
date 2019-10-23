@@ -1,0 +1,62 @@
+<featureType>
+  <id>FeatureTypeInfoImpl-1761347:169df7ded47:4d1</id>
+  <name>isochrones_time</name>
+  <nativeName>isochrones_time</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
+  </namespace>
+  <title>isochrones_time</title>
+  <keywords>
+    <string>features</string>
+    <string>isochrones_time</string>
+  </keywords>
+  <srs>EPSG:404000</srs>
+  <nativeBoundingBox>
+    <minx>-1.0</minx>
+    <maxx>0.0</maxx>
+    <miny>-1.0</miny>
+    <maxy>0.0</maxy>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>-1.0</minx>
+    <maxx>0.0</maxx>
+    <miny>-1.0</miny>
+    <maxy>0.0</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>isochrones_time</name>
+        <sql>select * from thematic_data_sum_time(%objectid%, &apos;%day%&apos;, &apos;%hour%&apos;)
+</sql>
+        <escapeSql>false</escapeSql>
+        <parameter>
+          <name>hour</name>
+          <defaultValue>-1</defaultValue>
+        </parameter>
+        <parameter>
+          <name>day</name>
+          <defaultValue>-1</defaultValue>
+        </parameter>
+        <parameter>
+          <name>objectid</name>
+          <defaultValue>1</defaultValue>
+        </parameter>
+      </virtualTable>
+    </entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

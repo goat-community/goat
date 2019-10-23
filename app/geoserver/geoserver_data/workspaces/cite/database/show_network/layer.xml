@@ -1,0 +1,15 @@
+<layer>
+  <name>show_network</name>
+  <id>LayerInfoImpl-73928646:15f344c7677:-7b47</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--167589b6:15c77205b7f:-7ffb</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-73928646:15f344c7677:-7b48</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

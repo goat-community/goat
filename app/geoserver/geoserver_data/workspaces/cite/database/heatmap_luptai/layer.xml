@@ -1,0 +1,15 @@
+<layer>
+  <name>heatmap_luptai</name>
+  <id>LayerInfoImpl-22fef441:16876478b09:-7ffe</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--3717634a:169f75d2f85:-7477</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-22fef441:16876478b09:-7fff</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>
