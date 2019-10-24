@@ -61,19 +61,50 @@ services:
       proxy:
 
   geoserver:
-    build:
-      context: ./app/geoserver
-    image: goat-geoserver:2.15
+    image: kartoza/geoserver:2.15.0
     volumes:
-      - ./app/geoserver/gs-catalog:/opt/geoserver_data/
+      - ./app/geoserver/geoserver_data:/opt/geoserver/data_dir
     container_name: goat-geoserver
     restart: on-failure
+    depends_on:
+      - db
+    env_file:
+      - ./app/config/docker-env/geoserver.env
     labels:
       - "traefik.backend=geoserver"
       - "traefik.frontend.entryPoints=https,http"
       - "traefik.frontend.rule=Host:localhost;PathPrefix:/geoserver"
       - "traefik.port=8080"
       - "traefik.enable=true"
+    networks:
+      proxy:
+
+  db:
+    build:
+      context: ./app/database
+    image: goat-database
+    container_name: goat-database
+    restart: on-failure
+    volumes:
+      - ./app/database/postgres_data:/var/lib/postgresql
+      - ./app/database:/opt
+    env_file:
+      - ./app/config/docker-env/db.env
+    ports:
+      - "65432:5432"
+    networks:
+      proxy:
+
+  db-dbbackups:
+    image: kartoza/pg-backup:11.0
+    container_name: goat-database-backup
+    volumes:
+      - ./app/database/backups:/backups
+    env_file:
+      - ./app/config/docker-env/db-backups.env
+    restart: on-failure
+    depends_on:
+      - db
     networks:
       proxy:
 
@@ -102,18 +133,5 @@ services:
       - "traefik.frontend.rule=Host:localhost;"
       - "traefik.port=8080"
       - "traefik.enable=true"
-    networks:
-      proxy:
-
-  postgres:
-    build:
-      context: ./app/database
-    image: goat-database
-    container_name: goat-database
-    volumes:
-      - ./app/database/postgres_data:/var/lib/postgresql/data
-      - ./app/database:/opt
-    ports:
-      - "65432:5432"
     networks:
       proxy:
