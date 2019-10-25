@@ -17,4 +17,7 @@ RUN wget http://security.ubuntu.com/ubuntu/pool/universe/b/boost1.62/libboost-pr
    && wget http://ftp.br.debian.org/debian/pool/main/o/osm2pgrouting/osm2pgrouting_2.2.0-1_amd64.deb \
    && dpkg -i osm2pgrouting_2.2.0-1_amd64.deb 
 
+COPY pg_hba.conf /etc/postgresql/11/main/
+COPY postgresql.conf /etc/postgresql/11/main/
+
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &&  echo $TZ > /etc/timezone
