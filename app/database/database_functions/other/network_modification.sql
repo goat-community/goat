@@ -252,22 +252,24 @@ WHERE ST_DWithin(b.geom, a.geom, 0.00001);
 /*Set source and target of existing network*/
 UPDATE existing_network set source = x.id 
 FROM (
+
 	SELECT v.id,v.geom 
 	FROM ways_userinput_vertices_pgr v, existing_network i
-	WHERE st_intersects(v.geom,ST_Buffer(i.geom::geography,0.001)::geometry)
+	WHERE v.geom && ST_Buffer(i.geom::geography,0.001)::geometry
 	AND v.userid IS NULL
+	
+	
 	UNION ALL
 	SELECT vertex_id,geom FROM intersection_existing_network
 	) x
 WHERE st_startpoint(existing_network.geom) = x.geom;
 
 
-
 UPDATE existing_network set target = x.id 
 FROM (
 	SELECT v.id,v.geom 
 	FROM ways_userinput_vertices_pgr v, existing_network i
-	WHERE st_intersects(v.geom,ST_Buffer(i.geom::geography,0.001)::geometry)
+	WHERE v.geom && ST_Buffer(i.geom::geography,0.001)::geometry
 	AND v.userid IS NULL
 	UNION ALL
 	SELECT vertex_id,geom FROM intersection_existing_network
@@ -286,7 +288,7 @@ WITH start_end AS (
 v as (
 	SELECT v.id,v.geom 
 	FROM ways_userinput_vertices_pgr v, new_network i
-	WHERE st_intersects(v.geom,ST_Buffer(i.geom::geography,0.001)::geometry)
+	WHERE v.geom && ST_Buffer(i.geom::geography,0.001)::geometry
 	AND v.userid IS NULL
 	UNION ALL
 	SELECT vertex_id,geom FROM intersection_existing_network
@@ -294,8 +296,8 @@ v as (
 vertices_to_remove as
 (
 	SELECT s.geom 
-	from start_end s, v 
-	where ST_Intersects(v.geom,ST_Buffer(s.geom::geography,0.001)::geometry)
+	FROM start_end s, v 
+	WHERE v.geom && ST_Buffer(s.geom::geography,0.001)::geometry
 )
 SELECT * FROM v 
 UNION ALL 
@@ -304,11 +306,11 @@ WHERE geom not in (SELECT geom FROM vertices_to_remove);
 	
 UPDATE new_network set source = v.id 
 FROM vertices_to_assign v
-WHERE ST_Intersects(ST_Buffer(ST_StartPoint(new_network.geom)::geography,0.001)::geometry,v.geom);
+WHERE ST_Buffer(ST_StartPoint(new_network.geom)::geography,0.001)::geometry && v.geom;
 
 UPDATE new_network set target = v.id 
 FROM vertices_to_assign v
-WHERE ST_Intersects(ST_Buffer(ST_EndPoint(new_network.geom)::geography,0.001)::geometry,v.geom);
+WHERE ST_Buffer(ST_EndPoint(new_network.geom)::geography,0.001)::geometry && v.geom;
 
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -332,7 +334,6 @@ WHERE length_m IS NULL;
 
 ---------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------
-
 
 END
 $function$
