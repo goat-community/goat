@@ -3,6 +3,9 @@ version: "3.7"
 networks:
   proxy:
 
+volumes:
+  postgres_data:
+
 services:
   traefik:
     image: "traefik:1.7.2-alpine"
@@ -27,14 +30,18 @@ services:
 
   client:
     build:
+      dockerfile: Dockerfile.dev
       context: ./app/client
     image: goat-client
+    volumes:
+      - /app/node_modules
+      - ./app/client:/app
     container_name: goat-client
     labels:
       - "traefik.backend=client"
       - "traefik.frontend.entryPoints=https,http"
       - "traefik.frontend.rule=Host:localhost;"
-      - "traefik.port=80"
+      - "traefik.port=5000"
       - "traefik.enable=true"
     networks:
       proxy:
@@ -43,7 +50,12 @@ services:
     build:
       context: ./app/api
     image: goat-api
+    volumes:
+      - /app/node_modules
+      - ./app/api:/app
     container_name: goat-api
+    env_file:
+      - ./app/config/docker-env/api.env
     labels:
       - "traefik.backend=api"
       - "traefik.frontend.entryPoints=https,http"
@@ -54,19 +66,50 @@ services:
       proxy:
 
   geoserver:
-    build:
-      context: ./app/geoserver
-    image: goat-geoserver:2.15
+    image: kartoza/geoserver:2.15.0
     volumes:
-      - ./app/geoserver/gs-catalog:/opt/geoserver_data/
+      - ./app/geoserver/geoserver_data:/opt/geoserver/data_dir
     container_name: goat-geoserver
     restart: on-failure
+    depends_on:
+      - db
+    env_file:
+      - ./app/config/docker-env/geoserver.env
     labels:
       - "traefik.backend=geoserver"
       - "traefik.frontend.entryPoints=https,http"
       - "traefik.frontend.rule=Host:localhost;PathPrefix:/geoserver"
       - "traefik.port=8080"
       - "traefik.enable=true"
+    networks:
+      proxy:
+
+  db:
+    image: eliaspajares/goat-database:latest
+    container_name: goat-database
+    restart: on-failure
+    volumes:
+      # we are mounting a named volume here instead of a data directory path because of
+      # a windows 10 premission issue. See https://github.com/docker-library/postgres/issues/435)
+      - postgres_data:/var/lib/postgresql
+      - ./app/database:/opt
+    env_file:
+      - ./app/config/docker-env/db.env
+    ports:
+      - "65432:5432"
+    networks:
+      proxy:
+
+  db-dbbackups:
+    image: eliaspajares/goat-database-backup:latest
+    container_name: goat-database-backup
+    volumes:
+      - ./app/database/backups:/backups
+    env_file:
+      - ./app/config/docker-env/db-backups.env
+    restart: on-failure
+    depends_on:
+      - db
     networks:
       proxy:
 
