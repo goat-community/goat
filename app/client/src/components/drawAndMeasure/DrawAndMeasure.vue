@@ -239,6 +239,7 @@ export default {
         this.closeDrawSection();
         this.activeId = undefined;
       }
+      this.stop();
       this.olMapCtrl.clear();
     },
     /**
