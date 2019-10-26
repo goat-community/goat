@@ -98,7 +98,8 @@
                 <v-slider
                   class="pt-4"
                   prepend-icon="rotate_right"
-                  v-model="rotation"
+                  :value="rotation"
+                  @input="changeRotation"
                   track-color="#30C2FF"
                   color="#30C2FF"
                   :min="-180"
@@ -108,7 +109,8 @@
 
               <v-flex xs3>
                 <v-text-field
-                  v-model="rotation"
+                  :value="rotation"
+                  @input="changeRotation"
                   suffix="°"
                   class="mt-0"
                   type="number"
@@ -261,25 +263,33 @@ export default {
   }),
   components: {},
   computed: {},
-  watch: {
-    rotation: function(val) {
-      this.setRotation(val);
-    }
-  },
+
   methods: {
     humanize,
     numberWithCommas,
     getCurrentDate,
     getCurrentTime,
+    changeRotation(rotation) {
+      this.setRotation(rotation);
+    },
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
     onMapBound() {
+      if (!this.map) {
+        throw new Error("Missing map");
+      }
       this.printUtils_ = new PrintUtils();
       this.printService = new PrintService(
         this.baseUrl,
         process.env.VUE_APP_MAPPROXY_URL
       );
+
+      olEvents.listen(this.map.getView(), "change:rotation", event => {
+        this.updateRotation_(
+          Math.round(olMath.toDegrees(event.target.getRotation()))
+        );
+      });
 
       const getSizeFn = () => this.paperSize_;
       let getRotationFn;
