@@ -54,6 +54,8 @@ services:
       - /app/node_modules
       - ./app/api:/app
     container_name: goat-api
+    env_file:
+      - ./app/config/docker-env/api.env
     labels:
       - "traefik.backend=api"
       - "traefik.frontend.entryPoints=https,http"
