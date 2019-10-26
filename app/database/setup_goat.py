@@ -14,7 +14,7 @@ with open("goat_config.yaml", 'r') as stream:
 pgpass = config["DATABASE"]
 host = pgpass["HOST"]
 port = str(pgpass["PORT"])
-db_name = pgpass["DB_NAME"]
+db_name = pgpass["DB_NAME"]+'new'
 user = pgpass["USER"]
 password = pgpass["PASSWORD"]
 
@@ -22,14 +22,11 @@ os.system('echo '+':'.join([host,port,db_name,user,password])+' > .pgpass')
 os.system("chmod 600 .pgpass")
 os.system("chmod +x pgbackup.sh")
 
-os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name)
-os.system('psql -U postgres -c "DROP DATABASE %s;"' % db_name) 
-os.system('psql -U postgres -c "DROP USER %s;"' % user) 
 os.system('psql -U postgres -c "CREATE DATABASE %s;"' % db_name)
 
-os.system('psql -U postgres -c "CREATE USER %s;"' % user)
-os.system('psql -U postgres -c "ALTER USER ' + user + ' WITH ENCRYPTED PASSWORD '+"'"+password+"'"+';"')
-os.system('psql -U postgres -c "ALTER USER %s WITH SUPERUSER;"' % user)
+#os.system('psql -U postgres -c "CREATE USER %s;"' % user)
+#os.system('psql -U postgres -c "ALTER USER ' + user + ' WITH ENCRYPTED PASSWORD '+"'"+password+"'"+';"')
+#os.system('psql -U postgres -c "ALTER USER %s WITH SUPERUSER;"' % user)
 
 # #Create extensions
 os.system('PGPASSFILE=/opt/.pgpass psql -d %s -U %s -h %s -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION plpython3u;"' % (db_name,user,host))
@@ -94,3 +91,8 @@ elif(source_population == 'disaggregation'):
 
 for file in Path('../../database_functions').glob('**/*.sql'):
      os.system('PGPASSFILE=/opt/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,file))
+
+os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % pgpass["DB_NAME"])
+os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (pgpass["DB_NAME"],pgpass["DB_NAME"]+'old'))
+os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name, pgpass["DB_NAME"]))
+os.system('psql -U postgres -c "DROP DATABASE %s;"' % (pgpass["DB_NAME"]+'old'))
