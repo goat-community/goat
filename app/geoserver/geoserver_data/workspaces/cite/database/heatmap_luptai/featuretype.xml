@@ -40,10 +40,8 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>heatmap_population</name>
-        <sql>with x as (&#xd;
-	select  *&#xd;
-	from heatmap(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;))&#xd;
-	&#xd;
+        <sql>WITH x AS (&#xd;
+	SELECT * FROM heatmap(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;))&#xd;
 ),&#xd;
 y as (&#xd;
 	SELECT x.grid_id,x.accessibility_index,x.geom, ntile(5) over &#xd;
@@ -55,12 +53,18 @@ y as (&#xd;
 	FROM x&#xd;
 	WHERE accessibility_index = 0&#xd;
 )&#xd;
-select y.*, g.percentile_population, &#xd;
-g.percentile_population-y.percentile_accessibility AS population_accessibility &#xd;
-from y, grid_500 g&#xd;
-WHERE g.grid_id = y.grid_id
+select g.grid_id, COALESCE(y.percentile_accessibility,0) AS accessibility_index, g.percentile_population, &#xd;
+g.percentile_population-COALESCE(y.percentile_accessibility,0) AS population_accessibility, g.geom &#xd;
+FROM grid_500 g&#xd;
+LEFT JOIN y &#xd;
+ON g.grid_id = y.grid_id
 </sql>
         <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>-1</srid>
+        </geometry>
         <parameter>
           <name>amenities</name>
           <defaultValue>&apos;W3siJ2tpbmRlcmdhcnRlbiciOjF9XQ==&apos;</defaultValue>
