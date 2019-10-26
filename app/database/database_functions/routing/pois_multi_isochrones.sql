@@ -23,7 +23,7 @@ DECLARE
  
  	IF region_type = 'study_area' THEN
  		--Logic to intersect the amenities with a study area defined by name
-		SELECT ST_Union(geom) AS geom, array_to_json(array_agg(jsonb_build_object(name,sum_pop))) 
+		SELECT ST_Union(geom) AS geom, array_to_json(array_agg(jsonb_build_object(name,round(sum_pop,-1)))) 
 		INTO mask, population_mask
 		FROM study_area
 		WHERE name IN (SELECT UNNEST(region));
@@ -35,7 +35,7 @@ DECLARE
 		
 		mask = ST_MakeEnvelope(boundary_envelope[1],boundary_envelope[2],boundary_envelope[3],boundary_envelope[4],4326);
 	
-		SELECT jsonb_build_object('bounding_box',sum(population)::integer) AS sum_pop
+		SELECT jsonb_build_object('bounding_box',round(sum(population)::integer,-1)) AS sum_pop
 		INTO population_mask
 		FROM population p 
 		WHERE ST_Intersects(p.geom,mask);		
@@ -82,7 +82,7 @@ DECLARE
 			AND m.objectid = objectid_multi_isochrone
 		),
 		reached_population AS (
-			SELECT i.gid, i.name, jsonb_build_object(concat(i.name,'_reached'),sum(p.population)::integer) reached_population
+			SELECT i.gid, i.name, jsonb_build_object(concat(i.name,'_reached'),round(sum(p.population)::integer,-1)) reached_population
 			FROM iso_intersection i, population p  
 			WHERE ST_intersects(i.geom, p.geom)
 			GROUP BY i.gid, i.name
@@ -103,7 +103,7 @@ DECLARE
 		UPDATE multi_isochrones 
 		SET population = population_mask || x.reached_population
 		FROM (
-			SELECT m.gid, jsonb_build_object('bounding_box_reached',sum(p.population)::integer) AS reached_population
+			SELECT m.gid, jsonb_build_object('bounding_box_reached',round(sum(p.population)::integer,-1)) AS reached_population
 			FROM population p, multi_isochrones m 
 			WHERE ST_Intersects(p.geom,ST_Intersection(mask,ST_SetSrid(m.geom,4326)))
 			AND m.objectid = objectid_multi_isochrone
