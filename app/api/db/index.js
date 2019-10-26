@@ -7,5 +7,5 @@ const password = process.env.POSTGRES_PASS;
 const port = process.env.POSTGRES_PORT;
 
 const pool = new Pool({ user, host, database, password, port });
-console.log(pool);
+
 module.exports = pool;
