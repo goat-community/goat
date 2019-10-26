@@ -3,6 +3,9 @@ version: "3.7"
 networks:
   proxy:
 
+volumes:
+  postgres_data:
+
 services:
   traefik:
     image: "traefik:1.7.2-alpine"
@@ -84,12 +87,10 @@ services:
     container_name: goat-database
     restart: on-failure
     volumes:
-      - ./app/database/postgres_data:/var/lib/postgresql
+      # we are mounting a named volume here instead of a data directory path because of
+      # a windows 10 premission issue. See https://github.com/docker-library/postgres/issues/435)
+      - postgres_data:/var/lib/postgresql
       - ./app/database:/opt
-    environment:
-      - POSTGRES_DB=goat
-      - POSTGRES_USER=goat
-      - ALLOW_IP_RANGE=0.0.0.0/0
     env_file:
       - ./app/config/docker-env/db.env
     ports:
@@ -98,7 +99,7 @@ services:
       proxy:
 
   db-dbbackups:
-    image: kartoza/pg-backup:11.0
+    image: eliaspajares/goat-database-backup:latest
     container_name: goat-database-backup
     volumes:
       - ./app/database/backups:/backups
