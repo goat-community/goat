@@ -1,0 +1,37 @@
+---
+title: Videos
+layout: default
+---
+
+<div class="container">
+    <h1>Videos</h1>
+    <br>
+    <div class="row videos">
+        {% for video in site.videos %}
+            <div class="col-sm-6 col-md-4">
+                <div class="card">
+                    {% if video.image %}
+                        <img src="{{ video.image }}" class="card-img-top" alt="{{ video.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title text-center"><a href="#" data-toggle="modal" data-target="#modal-video" data-video="{{ video.vimeo }}">{{ video.title }}</a></h5>
+                        <div class="card-text">{{ video.content }}</div>
+                        <div class="text-center"><a href="#" class="btn btn-primary" data-toggle="modal" data-target="#modal-video" data-video="{{ video.vimeo }}">Watch</a></div>
+                    </div>
+                </div>            
+            </div>
+            {% cycle '', '<div class="clearfix visible-sm-block"></div>' %}
+            {% cycle '', '', '<div class="clearfix visible-md-block visible-lg-block"></div>' %}
+        {% endfor %}
+    </div>
+    <div id="modal-video" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="LargeModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <iframe id="iframe-video" class="embed-responsive-item" src="" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                </div>            
+            </div>
+        </div>
+    </div>
+    <br>
+</div>
