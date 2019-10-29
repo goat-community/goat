@@ -88,14 +88,6 @@ For more Vagrant commands checkout:
 [https://gist.github.com/wpscholar/a49594e2e2b918f4d0c4](https://gist.github.com/wpscholar/a49594e2e2b918f4d0c4)
 
 
-##### 5.2. Install the necessary software
-
-`docker-compose up -d` (run on your <span style="color:#07d">host</span>)
-
-##### 5.3. Fill your database
-
-`docker exec -it goat-database python3 /opt/setup_goat.py` (run on your <span style="color:#FE9A2E">VM</span>)
-
 ##### 6. Connect to your database
 
 You can connect to the PostgreSQL database with the following default credentials: 
@@ -120,107 +112,51 @@ User: admin
 
 Password : geoserver
 
+You can access Geoserver by typing the following into your browser:
+
+[http://localhost/geoserver](http://localhost/geoserver)
+
 ##### 8. View GOAT<sub>beta</sub> in the browser
 
 If all steps were successful you will be able to use GOAT<sub>beta</sub> by typing the following into your browser:
 
-Docker on host:
-
-[http://localhost](http://localhost)
-
-With Virtual Machine:
-
 [http://localhost:8080](http://localhost:8080)
 
-##### 10. Optional: Pre-calculate accessibility heat-map
 
-GOAT<sub>beta</sub> allows you to use pre-calculated matrices that are used to visualize the dynamic heatmaps. 
-In order to start the pre-calculation you currently have to start the script manually with the following command:
+##### 9. How start and stop GOAT<sub>beta</sub>
 
-`python3 ~/app/data_preparation/Python/precalculate_grid_thematic.py` (run on your <span style="color:#FE9A2E">VM</span>)
+Navigate to your GOAT-folder (in this folder there should be the docker-compose.yml file)
 
-Depending on the size of your study area the calculation can take a bit.
 
-You can also set different grid_sizes in the script.
-
-##### 11. How start and stop GOAT<sub>beta</sub>
 
 <b>Stop<b>
 
-After you have followed this documentation you will have two console windows open (one for the front-end and one for the NodeJS-server) you can kill the processes with Ctrl + c.  
+`docker-compose down` (run on your <span style="color:#FE9A2E">VM</span>) (This will stop all running containers)
 
-If you want to turn your VM off: 
+`exit` (run on your <span style="color:#FE9A2E">VM</span>)
 
-`cd your-GOAT-directory` (on your <span style="color:#07d">host</span>)
-
-`vagrant halt` (on your <span style="color:#07d">host</span>)
-
-<img class="img-responsive" src="../../img/vagrant_halt.png" alt="how your command window should look like" title="How to turn off your VM" width="600" style="border: 2px solid #07d;"/>
-
-Check for more vagrant commands: [https://www.vagrantup.com/docs/cli/](https://www.vagrantup.com/docs/cli/)
+`vagrant halt` (run on your <span style="color:#07d">host</span>)
 
 <b>Start<b>
 
-If you want to start GOAT<sub>beta</sub> again. Simply open a command prompt and go to `your-GOAT-directory` and type `vagrant up`.
-After some seconds you VM should be up an running. Your database and Geoserver are already up and running. However the front-end and the NodeJS-server you have to start manually. You have to repeat part of the procedure of 8. and 9.
+`vagrant up` (run on your <span style="color:#07d">host</span>)
 
-Open a new console window and run the following:
+##### 10. Backup Database
 
-`cd your-GOAT-directory/app/front_end` (on your <span style="color:#07d">host</span>)
+Per default the database is configured to run every day a backup at 11 PM. In case your database is not running at that time, the backup will be produced once you start GOAT.
 
-`npm start` (on your <span style="color:#07d">host</span>)
+In case you want an immediate backup you can simply run:
 
-<img class="img-responsive" src="../../img/start_frontend.png" alt="how your command window should look like" title="Start the front-end" width="600" height="340" style="border: 2px solid #07d;"/>
+`docker exec -it goat-database-backup /bin/bash backups.sh` (run on your <span style="color:#FE9A2E">VM</span>)
 
-Open a new console window and run the following:
+##### 11. Update data
 
-`cd your-GOAT-directory` (on your <span style="color:#07d">host</span>)
+In case you want to update all your data you can simply run the following from your project directory:
 
-`vagrant ssh` (on your <span style="color:#07d">host</span>)
-
-<img class="img-responsive" src="../../img/start_VM.png" alt="how your command window should look like" title="Start the VM" width="600" height="400" style="border: 2px solid #07d;"/>
-
-`cd app/node` (run on your <span style="color:#FE9A2E">VM</span>)
-
-`npm start` (run on your <span style="color:#FE9A2E">VM</span>)
-
-<img class="img-responsive" src="../../img/start_nodeJS-server.png" alt="how your command window should look like" title="Start the NodeJS-server" width="600" height="260" style="border: 2px solid #FE9A2E;"/>
-
-##### Backup Database
-
-Make backup directory
-
-`sudo mkdir /var/lib/postgresql/backup`
-
-Login as root user:
-
-`sudo su`
-
-Login as user postgres:
-
-`su - postgres`
-
-Open the crontab for the postgres user:
-
-`crontab -e`
-
-Add these lines to crontab file for having a backup every second day (they can be customized):
-
-1 * * * 1 pg_dump -U postgres goat > /var/lib/postgresql/backup/backup_last_monday.sql
-
-1 * * * 3 pg_dump -U postgres goat > /var/lib/postgresql/backup/backup_last_wednesday.sql
-
-1 * * * 5 pg_dump -U postgres goat > /var/lib/postgresql/backup/backup_last_friday.sql
-
-1 * * * 7 pg_dump -U postgres goat > /var/lib/postgresql/backup/backup_last_sunday.sql
-
-Checkout: [https://crontab.guru/](https://crontab.guru/)
-
-
-##### Update data
-
-In case you want to update all your data you can simply run the following from your project directory.
-
-`python3 app/installation/setup_goat.py` (run on your <span style="color:#FE9A2E">VM</span>)
+`docker exec -it goat-database python3 /opt/setup_goat.py` (run on your <span style="color:#FE9A2E">VM</span>)
 
 <b><font color="red">!!Note this will drop your database and create a new database.!!</font><b>
+
+Furthermore you need to run the pre-calculation script again in order to be able to use the heatmaps:
+
+`docker exec -it goat-database python3 /opt/data_preparation/Python/precalculate_grid_thematic.py` (run on your <span style="color:#FE9A2E">VM</span>)

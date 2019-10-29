@@ -36,7 +36,7 @@ As docker and docker-compose were originally build for the Linux OS, it could be
 
 In case you don't manage to install docker on your machine. You can follow the setup procedure described here: 
 
-[Setup your own GOAT (alternative)](../setup_goat_vm/)
+[Setup your own GOAT (alternative)](../quick_start_vm/)
 
 #### 3. Configure GOAT<sub>beta</sub>
 
@@ -51,13 +51,11 @@ If you want to apply the tool to your own study area or adjust the input data, f
 
 #### 5. Setup GOAT<sub>beta</sub>
 
-##### With Docker on your host
-
 Open a command window and go into the project folder. You will run all commands directly from your host. 
 
 Install all the software and start services:
 
-`docker-compose up -d` (This will start all service you need for docker)
+`docker-compose up -d` (This will start all service you need for goat (Database, Geoserver, NodeJS, etc.))
 
 Fill and prepare the goat-database:
 
@@ -69,6 +67,10 @@ In order to start the pre-calculation you currently have to start the script man
 `docker exec -it goat-database python3 /opt/data_preparation/Python/precalculate_grid_thematic.py`
 
 Depending on the size of your study-area this can take some time. For Munich approx. 20 minutes.
+
+For more Docker commands checkout:
+
+[https://jstobigdata.com/docker-compose-cheatsheet/](https://jstobigdata.com/docker-compose-cheatsheet/)
 
 ##### 6. Connect to your database
 
