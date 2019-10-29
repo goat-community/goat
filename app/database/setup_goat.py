@@ -83,8 +83,15 @@ elif(source_population == 'disaggregation'):
     os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'population_disagregation.sql'))
 
 
-for file in Path('../../database_functions').glob('**/*.sql'):
+for file in Path('../../database_functions/other').glob('*.sql'):
      os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,file))
+
+for file in Path('../../database_functions/routing').glob('*.sql'):
+     os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,file))
+
+for file in Path('../../database_functions/heatmap').glob('*.sql'):
+     os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,file))
+
 
 os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % pgpass["DB_NAME"])
 os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (pgpass["DB_NAME"],pgpass["DB_NAME"]+'old'))
