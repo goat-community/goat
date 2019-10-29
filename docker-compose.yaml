@@ -32,7 +32,7 @@ services:
     build:
       dockerfile: Dockerfile.dev
       context: ./app/client
-    image: eliaspajares/goat-client
+    image: goat-client
     volumes:
       - /app/node_modules
       - ./app/client:/app
@@ -49,7 +49,7 @@ services:
   api:
     build:
       context: ./app/api
-    image: eliaspajares/goat-api
+    image: eliaspajares/goat-api:dev
     volumes:
       - /app/node_modules
       - ./app/api:/app
@@ -66,15 +66,13 @@ services:
       proxy:
 
   geoserver:
-    image: kartoza/geoserver:2.15.0
+    image: oscarfonts/geoserver:2.15.0
     volumes:
-      - ./app/geoserver/geoserver_data:/opt/geoserver/data_dir
+      - ./app/geoserver/geoserver_data:/var/local/geoserver
     container_name: goat-geoserver
     restart: on-failure
     depends_on:
       - db
-    env_file:
-      - ./app/config/docker-env/geoserver.env
     labels:
       - "traefik.backend=geoserver"
       - "traefik.frontend.entryPoints=https,http"
