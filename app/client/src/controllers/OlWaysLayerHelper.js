@@ -6,7 +6,7 @@ import http from "../services/http";
  */
 const WaysLayerHelper = {
   featuresIDsToDelete: [],
-  selectedWayType: null,
+  selectedWayType: "road",
   filterResults(response, source) {
     const waysFeatures = new GeoJSON().readFeatures(response.first.data);
     const waysModified = new GeoJSON().readFeatures(response.second.data);

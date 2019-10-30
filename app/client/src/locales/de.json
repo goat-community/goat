@@ -121,7 +121,7 @@
         },
         "about": {
             "title": "Über GOAT",
-            "content": "steht für Geo Open Accessibility Tool. Dieses Web-Tool soll Open Source, interaktiv, flexibel und nützlich in der Erreichbarkeitsplanung sein. Es befindet sich gegenwärtig an der Professur für Siedlungsstruktur und Verkehrsplanung der TUM in Entwicklung....",
+            "content": "steht für Geo Open Accessibility Tool. Dieses Web-Tool ist Open Source, interaktiv, flexibel und kann in der Erreichbarkeitsplanung eingesetzt werden. GOAT befindet sich in der Entwicklung an der Professur für Siedlungsstruktur und Verkehrsplanung der TUM....",
             "moreInfo": "Mehr Info"
         }
     },
@@ -138,16 +138,16 @@
         },
         "multiple": {
             "title": "Anfang",
-            "type": "Mehrere",
+            "type": "Multi",
             "selectMethod": "Methode auswählen",
             "studyArea": "Untersuchungsgebiet",
             "clear": "Löschen",
             "calculate": "Berechne",
-            "studyAreaInfoLabel": "Wählen Sie <b> Untersuchungsgebiete </ b> auf der Karte aus und <b> Ziele </ b> im Filter Thematische Daten aus, um die Berechnung zu ermöglichen.",
+            "studyAreaInfoLabel": "Wählen Sie <b> Untersuchungsgebiete </b> auf der Karte aus und <b> Ziele </b> im Filter Thematische Daten aus, um die Berechnung zu ermöglichen.",
             "drawBoundary": "Grenze zeichnen",
             "amenityCount": "Anzahl Einrichtungen",
             "limit": "Grenze",
-            "drawBoundaryInfoLabel": "Zeichnen Sie eine <b> Grenze</ b> auf der Karte ein und wählen Sie <b> Ziele </ b> im Filter Thematische Daten aus aus, um die Berechnung zu ermöglichen.",
+            "drawBoundaryInfoLabel": "Zeichnen Sie eine <b> Grenze</b> auf der Karte ein und wählen Sie <b> Ziele </b> im Filter Thematische Daten aus aus, um die Berechnung zu ermöglichen.",
             "tableDataTitle": "Daten Multi-Isochrone"
         },
         "options": {
@@ -174,7 +174,7 @@
             "table": {
                 "type": "Art",
                 "range": "Zeit",
-                "area": "Bereich",
+                "area": "Größe",
                 "visible": "Anzeige",
                 "legend": "Legende"
             }
@@ -184,7 +184,7 @@
             "searchPois": "Ziele suchen",
             "selectTimeMsg": "Zeit zum Filtern auswählen",
             "noDataMsg": "Keine Daten für ausgewählte Zeit",
-            "selectAmenitiesMsg": "Wählen Sie <b> Ziele </ b> und die <b> Reisezeit </ b> aus, um die Tabelle zu filtern.",
+            "selectAmenitiesMsg": "Wählen Sie <b> Ziele </b> und die <b> Reisezeit </b> aus, um die Tabelle zu filtern.",
             "table": {
                 "pois": "Ziele",
                 "isochrone": "Isochrone",
@@ -283,12 +283,12 @@
         "ice_cream": "Eisdiele",
         "restaurant": "Restaurant",
         "nightclub": "Nachtclub",
-        "bicycle_rental": "Fahrradverleih",
-        "car_sharing": "Car Sharing",
+        "bicycle_rental": "Bikesharing",
+        "car_sharing": "Carsharing",
         "charging_station": "Ladestation",
-        "bus_stop": "Bus",
+        "bus_stop": "Bushaltestelle",
         "tram_stop": "Tramhaltestelle",
-        "subway_entrance": "U-Bahn Station",
+        "subway_entrance": "U-Bahn-Station",
         "rail_station": "Bahnhof",
         "taxi": "Taxi",
         "hairdresser": "Friseur",
@@ -334,7 +334,7 @@
         "dataTable": {
             "itemsPerPageText": "Zeilen pro Seite:",
             "ariaLabel": {
-                "sortDescending": ": Absteigend sortiert. Zur Entfernung der Sortierung, Option aktivieren.",
+                "sortDescending": ": Absteigend sortiert. Um Sortierung aufzuheben, Option aktivieren.",
                 "sortAscending": ": Aufsteigend sortiert. Option aktivieren, um absteigend zu sortieren.",
                 "sortNone": ": Nicht sortiert. Option aktivieren, um aufsteigend zu sortieren."
             }
