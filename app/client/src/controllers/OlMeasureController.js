@@ -157,5 +157,11 @@ export default class OlMeasureController extends OlBaseController {
     if (me.pointerMoveKey) {
       unByKey(me.pointerMoveKey);
     }
+    if (me.helpTooltip) {
+      me.map.removeOverlay(me.helpTooltip);
+    }
+    if (me.tooltip) {
+      me.map.removeOverlay(me.tooltip);
+    }
   }
 }

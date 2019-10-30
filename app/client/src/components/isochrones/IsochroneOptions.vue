@@ -88,7 +88,7 @@
           v-model="calculationModes"
           outlined
           :value="calculationModes"
-          :items="options.calculationModes.values"
+          :items="filterCalcModeValues(options.calculationType)"
           :label="$t('isochrones.options.calcModus')"
         >
           <template slot="selection" slot-scope="{ item }">
@@ -123,7 +123,20 @@ export default {
       alphaShapeParameter: "options.alphaShapeParameter.active"
     })
   },
-  methods: {}
+  methods: {
+    filterCalcModeValues(type) {
+      if (type === "multiple") {
+        return this.options.calculationModes.values.filter(item => {
+          return (
+            item.name !== "modifiedNetwork" &&
+            item.name !== "modifiedNetworkDoubleCalc"
+          );
+        });
+      } else {
+        return this.options.calculationModes.values;
+      }
+    }
+  }
 };
 </script>
 <style lang="css">
