@@ -143,6 +143,7 @@ export default {
     },
     clear() {
       this.activeMultiIsochroneMethod = null;
+      EventBus.$emit("ol-interaction-stoped", this.interactionType);
     },
     /**
      * stops multi isochrone interaction
@@ -150,7 +151,6 @@ export default {
     stop() {
       const me = this;
       me.clear();
-      EventBus.$emit("ol-interaction-stoped", this.interactionType);
     }
   },
   watch: {
