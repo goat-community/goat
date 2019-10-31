@@ -99,5 +99,5 @@ os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name, pg
 os.system('psql -U postgres -c "DROP DATABASE %s;"' % (pgpass["DB_NAME"]+'old'))
 
 #Create pgpass for goat-database
-os.system('echo '+':'.join([host,port,config["DATABASE"],user,password])+' > /.pgpass')
-os.system("chmod 600 .pgpass")
+os.system('echo '+':'.join([host,port,pgpass["DB_NAME"],user,password])+' > /.pgpass')
+os.system("chmod 600 /.pgpass")
