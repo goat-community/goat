@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS unnest_2d_1d;
 CREATE OR REPLACE FUNCTION unnest_2d_1d(anyarray)
   RETURNS SETOF anyarray AS
 $func$

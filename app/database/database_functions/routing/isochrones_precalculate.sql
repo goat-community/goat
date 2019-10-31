@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS isochrones_precalculate;
 CREATE OR REPLACE FUNCTION public.isochrones_precalculate(minutes integer, x numeric, y numeric, id integer, speed numeric, concavity numeric, snap_tolerance integer)
  RETURNS TABLE(grid_id integer, time_step integer, geometry geometry)
  LANGUAGE plpgsql

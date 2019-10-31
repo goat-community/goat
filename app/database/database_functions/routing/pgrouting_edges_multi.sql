@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS pgrouting_edges_multi;
 CREATE OR REPLACE FUNCTION public.pgrouting_edges_multi(userid_input integer, minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, objectids int[], modus_input integer)
  RETURNS SETOF type_catchment_vertices
  LANGUAGE plpgsql

@@ -1,3 +1,4 @@
+DROP TYPE IF EXISTS type_edges CASCADE;
 CREATE TYPE public.type_edges AS
 (
 	seq integer,
@@ -7,6 +8,7 @@ CREATE TYPE public.type_edges AS
 	geom geometry
 );
 
+DROP TYPE IF EXISTS type_isochrone CASCADE;
 CREATE TYPE public.type_isochrone AS
 (
 	userid integer,
@@ -15,6 +17,7 @@ CREATE TYPE public.type_isochrone AS
 	geom geometry
 );
 
+DROP TYPE IF EXISTS type_isochrone_thematic CASCADE;
 CREATE TYPE public.type_isochrone_thematic AS
 (
 	gid integer,
@@ -25,6 +28,7 @@ CREATE TYPE public.type_isochrone_thematic AS
 	sum_pois text
 );
 
+DROP TYPE IF EXISTS type_catchment_vertices CASCADE;
 CREATE TYPE public.type_catchment_vertices AS
 (
 	start_vertex integer,
@@ -36,7 +40,7 @@ CREATE TYPE public.type_catchment_vertices AS
 	objectid integer	
 );
 
-
+DROP TYPE IF EXISTS type_pois_multi_isochrones CASCADE;
 CREATE TYPE type_pois_multi_isochrones AS 
 (
 	gid integer, 
@@ -50,6 +54,39 @@ CREATE TYPE type_pois_multi_isochrones AS
 	parent_id integer, 
 	population jsonb,
 	geom geometry	
+);
+DROP TYPE IF EXISTS type_isochrones_api CASCADE;
+CREATE TYPE type_isochrones_api AS
+(
+	gid integer, 
+	objectid integer, 
+	coordinates NUMERIC[],
+	step integer,
+	speed NUMERIC,
+	shape_precision NUMERIC,
+	modus integer,
+	parent_id integer,
+	sum_pois jsonb, 
+	geom geometry,
+  	starting_point text
+);
+DROP TYPE IF EXISTS type_fetch_ways_routing CASCADE;
+CREATE TYPE type_fetch_ways_routing AS
+(
+	id integer, 
+	SOURCE integer, 
+	target integer, 
+	cost float
+);
+DROP TYPE IF EXISTS type_catchment_vertices_single CASCADE;
+CREATE TYPE public.type_catchment_vertices_single AS
+(
+	start_vertex integer,
+	node integer,
+	edge integer,
+	cost numeric,
+	geom geometry,
+	objectid integer	
 );
 
 

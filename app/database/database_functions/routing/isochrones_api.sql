@@ -1,18 +1,4 @@
-CREATE TYPE type_isochrones_api AS
-(
-	gid integer, 
-	objectid integer, 
-	coordinates NUMERIC[],
-	step integer,
-	speed NUMERIC,
-	shape_precision NUMERIC,
-	modus integer,
-	parent_id integer,
-	sum_pois jsonb, 
-	geom geometry,
-  starting_point text
-);
-
+DROP FUNCTION IF EXISTS isochrones_api;
 CREATE OR REPLACE FUNCTION public.isochrones_api(userid_input integer, minutes integer, x numeric, y numeric, n integer, speed_input numeric, shape_precision numeric, modus_input text)
  RETURNS SETOF type_isochrones_api
  LANGUAGE plpgsql

@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS isochrones;
 CREATE OR REPLACE FUNCTION public.isochrones(userid_input integer, minutes integer, x numeric, y numeric, n integer, speed numeric, concavity numeric, modus integer, objectid_input integer, parent_id_input integer)
  RETURNS SETOF type_isochrone
  LANGUAGE plpgsql

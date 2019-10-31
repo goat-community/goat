@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS isochrones_alphashape;
 CREATE OR REPLACE FUNCTION public.isochrones_alphashape(userid_input integer, minutes integer, x numeric, y numeric, n integer, speed numeric, shape_precision numeric, modus integer, objectid_input integer, parent_id_input integer)
  RETURNS SETOF type_isochrone
  LANGUAGE plpgsql

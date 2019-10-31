@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS pois_multi_isochrones;
 CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, minutes integer, speed_input numeric, n integer, alphashape_parameter_input NUMERIC, modus_input text,region_type text, region text[], amenities text[])
 RETURNS SETOF type_pois_multi_isochrones
 AS $function$ 

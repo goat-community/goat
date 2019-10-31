@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS thematic_data_json;
 CREATE OR REPLACE FUNCTION public.thematic_data_json(input_gid integer)
  RETURNS TABLE(gid_isochrone integer, pois_isochrones text)
  LANGUAGE plpgsql

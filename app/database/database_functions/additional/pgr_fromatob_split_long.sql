@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS pgr_FROMatob_split_long;
 CREATE OR REPLACE FUNCTION public.pgr_FROMatob_split_long(edges_subset character varying, x1 double precision, y1 double precision, x2 double precision, y2 double precision, OUT seq integer, OUT cost double precision, OUT geom geometry, OUT heading double precision)
  RETURNS SETOF record
  LANGUAGE sql

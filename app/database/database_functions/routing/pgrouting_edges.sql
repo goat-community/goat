@@ -1,17 +1,4 @@
-CREATE TYPE public.type_catchment_vertices_single AS
-(
-	start_vertex integer,
-	node integer,
-	edge integer,
-	cost numeric,
-	geom geometry,
-	objectid integer	
-);
-
-
-
-
-
+DROP FUNCTION IF EXISTS pgrouting_edges;
 CREATE OR REPLACE FUNCTION public.pgrouting_edges(minutes integer, x numeric, y numeric, speed numeric, userid_input integer, objectid_input integer)
  RETURNS SETOF type_catchment_vertices_single
  LANGUAGE plpgsql

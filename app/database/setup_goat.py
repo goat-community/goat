@@ -6,9 +6,9 @@ from pathlib import Path
 import shapefile
 import datetime
 
-
+#Read Configuration
 with open("/opt/goat_config.yaml", 'r') as stream:
-    config = yaml.load(stream)
+    config = yaml.load(stream,Loader=yaml.FullLoader)
 
 pgpass = config["DATABASE"]
 host = pgpass["HOST"]
@@ -17,12 +17,12 @@ db_name = pgpass["DB_NAME"]+'new'
 user = pgpass["USER"]
 password = pgpass["PASSWORD"]
 
+#Create pgpass-file for temporary database
 os.system('echo '+':'.join([host,port,db_name,user,password])+' > /.pgpass')
 os.system("chmod 600 .pgpass")
-
+#Create temporary database
 os.system('psql -U postgres -c "CREATE DATABASE %s;"' % db_name)
-
-# #Create extensions
+#Create extensions
 os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION plpython3u;"' % (db_name,user,host))
 
 os.chdir('/opt/data')
@@ -97,3 +97,7 @@ os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_
 os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (pgpass["DB_NAME"],pgpass["DB_NAME"]+'old'))
 os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name, pgpass["DB_NAME"]))
 os.system('psql -U postgres -c "DROP DATABASE %s;"' % (pgpass["DB_NAME"]+'old'))
+
+#Create pgpass for goat-database
+os.system('echo '+':'.join([host,port,config["DATABASE"],user,password])+' > /.pgpass')
+os.system("chmod 600 .pgpass")
