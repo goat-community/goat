@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS makegrid_2d;
 CREATE OR REPLACE FUNCTION public.makegrid_2d(bound_polygon geometry, width_step integer, height_step integer)
  RETURNS geometry
  LANGUAGE plpgsql

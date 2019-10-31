@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS network_modification;
 CREATE OR REPLACE FUNCTION public.network_modification(input_userid integer)
  RETURNS SETOF integer
  LANGUAGE plpgsql

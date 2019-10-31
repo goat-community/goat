@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS pgrouting_edges_biking;
 CREATE OR REPLACE FUNCTION public.pgrouting_edges_biking(minutes integer, x numeric, y numeric, user_type varchar, userid_input integer, objectid_input integer)
  RETURNS SETOF type_edges
  LANGUAGE plpgsql

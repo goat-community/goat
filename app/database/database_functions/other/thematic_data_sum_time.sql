@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS thematic_data_sum_time;
 CREATE OR REPLACE FUNCTION public.thematic_data_sum_time(input_objectid integer, day text, hour text)
  RETURNS TABLE(objectid_out integer, gid_out integer, sum_pois_time_out text)
  LANGUAGE plpgsql

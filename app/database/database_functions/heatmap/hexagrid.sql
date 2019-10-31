@@ -1,5 +1,5 @@
 --Forked FROM https://gist.github.com/dbauszus/1ba78db34da0140e02c03d99303812ea
-
+DROP FUNCTION IF EXISTS hexagrid;
 CREATE OR REPLACE FUNCTION public.hexagrid(_height numeric)
  RETURNS void 
  LANGUAGE plpgsql

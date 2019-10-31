@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS thematic_data_sum;
 CREATE OR REPLACE FUNCTION public.thematic_data_sum(input_objectid integer)
  RETURNS TABLE(gid_isochrone integer, pois_isochrones jsonb)
  LANGUAGE plpgsql

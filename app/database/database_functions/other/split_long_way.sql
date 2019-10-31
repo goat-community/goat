@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS split_long_way;
 CREATE OR REPLACE FUNCTION public.split_long_way(geom geometry, length_m NUMERIC, max_length integer)
 RETURNS SETOF geometry
 AS $function$

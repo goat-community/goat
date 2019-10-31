@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS show_network;
 CREATE OR REPLACE FUNCTION public.show_network(max_cost float,modus_input integer, userid_input integer)
  RETURNS TABLE(id bigint,node integer,cost NUMERIC,class_id integer, geom geometry)
  LANGUAGE plpgsql

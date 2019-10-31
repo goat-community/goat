@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS closest_vertex;
 CREATE OR REPLACE FUNCTION public.closest_vertex(userid_input integer,x NUMERIC,y NUMERIC, snap_distance NUMERIC, excluded_classes text,modus integer)
  RETURNS SETOF text[]
  LANGUAGE plpgsql

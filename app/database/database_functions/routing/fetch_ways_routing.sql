@@ -1,4 +1,3 @@
-CREATE TYPE type_fetch_ways_routing AS (id integer, SOURCE integer, target integer, cost float);
 
 CREATE OR REPLACE FUNCTION public.fetch_ways_routing(buffer_geom text, speed_input NUMERIC, excluded_class_id text[], categories_no_foot text[], modus_input integer, userid_input integer)
 RETURNS SETOF type_fetch_ways_routing

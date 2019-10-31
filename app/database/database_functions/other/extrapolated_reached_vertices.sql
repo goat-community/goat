@@ -9,7 +9,7 @@ CREATE temp TABLE temp_reached_vertices
 	geom geometry,
 	objectid integer
 );
-
+DROP FUNCTION IF EXISTS extrapolate_reached_vertices;
 CREATE OR REPLACE FUNCTION public.extrapolate_reached_vertices(max_cost NUMERIC, max_length_links NUMERIC, speed NUMERIC , excluded_class_id integer[], categories_no_foot text[])
 RETURNS SETOF type_catchment_vertices
  LANGUAGE sql

@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS bulk_precalculate_grid;
 CREATE OR REPLACE FUNCTION bulk_precalculate_grid(grid text, number_bulk integer)
 RETURNS SETOF integer 
 LANGUAGE plpgsql
