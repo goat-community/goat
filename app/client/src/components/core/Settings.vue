@@ -21,15 +21,17 @@
           <div class="">
             <span>
               <v-btn-toggle v-model="defaultLanguage" mandatory>
-                <v-btn
-                  text
-                  v-for="entry in languages"
-                  :key="entry.title"
-                  @click="changeLocale(entry.language)"
-                >
-                  <flag :iso="entry.flag" v-bind:squared="false" />
-                  <span class="pl-2">{{ entry.title }}</span>
-                </v-btn>
+                <v-flex class="mx-2">
+                  <v-btn
+                    text
+                    v-for="entry in languages"
+                    :key="entry.title"
+                    @click="changeLocale(entry.language)"
+                  >
+                    <flag :iso="entry.flag" v-bind:squared="false" />
+                    <span class="pl-2">{{ entry.title }}</span>
+                  </v-btn>
+                </v-flex>
               </v-btn-toggle>
             </span>
           </div>
@@ -91,6 +93,7 @@ export default {
       set(value) {
         if (!value) {
           this.$emit("close");
+          EventBus.$emit("ol-interaction-stoped", this.interactionType);
         }
       }
     }

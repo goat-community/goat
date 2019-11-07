@@ -365,6 +365,15 @@ export default {
       me.toggleEdit = undefined;
       EventBus.$emit("ol-interaction-stoped", me.interactionType);
     },
+    /**
+     * Stop edit and select interactions (Doesn't deletes the features)
+     */
+    stop() {
+      const me = this;
+      me.olSelectCtrl.removeInteraction();
+      me.olEditCtrl.removeInteraction();
+      EventBus.$emit("ol-interaction-stoped", me.interactionType);
+    },
     translate(type, key) {
       //type = {layerGroup || layerName}
       //Checks if key exists and translates it othewise return the input value

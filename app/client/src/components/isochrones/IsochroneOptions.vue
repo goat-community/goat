@@ -45,6 +45,7 @@
           v-model="minutes"
           prepend-icon="fas fa-clock"
           :label="minutes + ' min'"
+          color="#30C2FF"
         >
         </v-slider>
 
@@ -55,6 +56,7 @@
           v-model="speed"
           prepend-icon="fas fa-tachometer-alt"
           :label="speed + ' km/h'"
+          color="#30C2FF"
         >
         </v-slider>
 
@@ -66,11 +68,12 @@
           inverse-label
           prepend-icon="fas fa-sort-numeric-up"
           :label="`${$t('isochrones.isochrones')} (${steps})`"
+          color="#30C2FF"
         >
         </v-slider>
 
         <v-select
-          v-if="options.calculationType === 'single'"
+          v-if="options.calculationType"
           item-text="display"
           item-value="value"
           outlined
@@ -85,7 +88,7 @@
           v-model="calculationModes"
           outlined
           :value="calculationModes"
-          :items="options.calculationModes.values"
+          :items="filterCalcModeValues(options.calculationType)"
           :label="$t('isochrones.options.calcModus')"
         >
           <template slot="selection" slot-scope="{ item }">
@@ -95,17 +98,6 @@
             {{ $t(`isochrones.options.${item.name}`) }}
           </template>
         </v-select>
-
-        <v-select
-          v-if="options.calculationType === 'multiple'"
-          item-text="display"
-          item-value="value"
-          v-model="alphaShapeParameter"
-          outlined
-          :value="alphaShapeParameter"
-          :items="options.alphaShapeParameter.values"
-          :label="$t('isochrones.options.alphaShapeMode')"
-        ></v-select>
       </v-flex>
     </div>
   </v-flex>
@@ -131,7 +123,20 @@ export default {
       alphaShapeParameter: "options.alphaShapeParameter.active"
     })
   },
-  methods: {}
+  methods: {
+    filterCalcModeValues(type) {
+      if (type === "multiple") {
+        return this.options.calculationModes.values.filter(item => {
+          return (
+            item.name !== "modifiedNetwork" &&
+            item.name !== "modifiedNetworkDoubleCalc"
+          );
+        });
+      } else {
+        return this.options.calculationModes.values;
+      }
+    }
+  }
 };
 </script>
 <style lang="css">

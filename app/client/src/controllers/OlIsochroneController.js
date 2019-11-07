@@ -25,7 +25,7 @@ export default class OlIsochroneController extends OlBaseController {
     });
     const selectionLayer = new VectorLayer({
       displayInLayerList: false,
-      zIndex: 4,
+      zIndex: 5,
       source: selectionSource,
       style: OlStyleDefs.getFeatureHighlightStyle()
     });
@@ -175,6 +175,10 @@ export default class OlIsochroneController extends OlBaseController {
       unByKey(me.pointerMoveKey);
     }
     me.multiIsoCalcMethod = null;
+
+    if (me.clearOverlays) {
+      me.clearOverlays();
+    }
   }
 
   clear() {
@@ -182,9 +186,6 @@ export default class OlIsochroneController extends OlBaseController {
     const me = this;
     if (me.selectionSource) {
       me.selectionSource.clear();
-    }
-    if (me.studyAreaLayer) {
-      me.studyAreaLayer[0].setVisible(false);
     }
   }
 }

@@ -88,7 +88,7 @@ export default {
     onMapBound() {
       const me = this;
       const map = me.map;
-      const heatmapLayerNames = ["walkability", "walkability-population"];
+      const heatmapLayerNames = ["walkability", "walkabilityPopulation"];
       const poisLayerName = "pois";
 
       const allLayers = getAllChildLayers(map);

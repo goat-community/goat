@@ -1,13 +1,140 @@
 version: "3.7"
 
+networks:
+  proxy:
+
+volumes:
+  postgres_data:
+
 services:
-  client:
-    build: 
-      context: ./app/client
-      target: 'develop-stage'
+  traefik:
+    image: "traefik:1.7.2-alpine"
+    container_name: "traefik"
     ports:
-      - '5000:5000'
+      - "80:80" # - Default Port
+      - "443:443" # - SSL Port
+      - "31951:31951" # - Mapproxy
+      - "8000:8000" # - Traefik UI
     volumes:
-      - './app/client:/app'
-    command: /bin/sh -c "npm run serve"
-    
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./app/config/traefik.toml:/etc/traefik/traefik.toml
+      - ./app/config/ssl:/ssl
+    labels:
+      - "traefik.backend=traefik"
+      - "traefik.frontend.entryPoints=traefik-ui"
+      - "traefik.frontend.rule=Host:localhost;"
+      - "traefik.port=8080"
+      - "traefik.enable=true"
+    networks:
+      proxy:
+
+  client:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./app/client
+    image: goat-client
+    volumes:
+      - /app/node_modules
+      - ./app/client:/app
+    container_name: goat-client
+    labels:
+      - "traefik.backend=client"
+      - "traefik.frontend.entryPoints=https,http"
+      - "traefik.frontend.rule=Host:localhost;"
+      - "traefik.port=5000"
+      - "traefik.enable=true"
+    networks:
+      proxy:
+
+  api:
+    build:
+      context: ./app/api
+    image: eliaspajares/goat-api:dev
+    volumes:
+      - /app/node_modules
+      - ./app/api:/app
+    container_name: goat-api
+    env_file:
+      - ./app/config/docker-env/api.env
+    labels:
+      - "traefik.backend=api"
+      - "traefik.frontend.entryPoints=https,http"
+      - "traefik.frontend.rule=Host:localhost;PathPrefix:/api"
+      - "traefik.port=3000"
+      - "traefik.enable=true"
+    networks:
+      proxy:
+
+  geoserver:
+    image: oscarfonts/geoserver:2.15.0
+    volumes:
+      - ./app/geoserver/geoserver_data:/var/local/geoserver
+    container_name: goat-geoserver
+    restart: on-failure
+    depends_on:
+      - db
+    labels:
+      - "traefik.backend=geoserver"
+      - "traefik.frontend.entryPoints=https,http"
+      - "traefik.frontend.rule=Host:localhost;PathPrefix:/geoserver"
+      - "traefik.port=8080"
+      - "traefik.enable=true"
+    networks:
+      proxy:
+
+  db:
+    image: eliaspajares/goat-database:latest
+    container_name: goat-database
+    restart: on-failure
+    volumes:
+      # we are mounting a named volume here instead of a data directory path because of
+      # a windows 10 premission issue. See https://github.com/docker-library/postgres/issues/435)
+      - postgres_data:/var/lib/postgresql
+      - ./app/database:/opt
+    env_file:
+      - ./app/config/docker-env/db.env
+    ports:
+      - "65432:5432"
+    networks:
+      proxy:
+
+  db-dbbackups:
+    image: eliaspajares/goat-database-backup:latest
+    container_name: goat-database-backup
+    volumes:
+      - ./app/database/backups:/backups
+    env_file:
+      - ./app/config/docker-env/db-backups.env
+    restart: on-failure
+    depends_on:
+      - db
+    networks:
+      proxy:
+
+  print:
+    image: camptocamp/mapfish_print:3.16
+    volumes:
+      - ./app/print/templates:/usr/local/tomcat/webapps/ROOT/print-apps
+    container_name: goat-print
+    labels:
+      - "traefik.backend=print"
+      - "traefik.frontend.entryPoints=https,http"
+      - "traefik.frontend.rule=Host:localhost;PathPrefix:/print"
+      - "traefik.port=8080"
+      - "traefik.enable=true"
+    networks:
+      proxy:
+
+  mapproxy:
+    image: kartoza/mapproxy
+    volumes:
+      - ./app/mapproxy:/mapproxy
+    container_name: goat-mapproxy
+    labels:
+      - "traefik.backend=mapproxy"
+      - "traefik.frontend.entryPoints=mapproxy"
+      - "traefik.frontend.rule=Host:localhost;"
+      - "traefik.port=8080"
+      - "traefik.enable=true"
+    networks:
+      proxy:

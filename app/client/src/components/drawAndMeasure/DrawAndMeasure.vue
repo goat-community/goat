@@ -111,6 +111,7 @@
                       @change="transparencyChange"
                       min="1"
                       max="100"
+                      color="#30C2FF"
                     ></v-slider>
                   </v-flex>
                 </v-layout>
@@ -238,7 +239,15 @@ export default {
         this.closeDrawSection();
         this.activeId = undefined;
       }
+      this.stop();
       this.olMapCtrl.clear();
+    },
+    /**
+     * Stop edit and select interactions (Doesn't deletes the features)
+     */
+    stop() {
+      const me = this;
+      me.olMapCtrl.removeInteraction();
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
     },
     closeDrawSection() {

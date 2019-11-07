@@ -9,9 +9,9 @@
         "buttons": {
             "login": "Login",
             "print": "Imprimir",
-            "drawAndMeasure": "Dibujar y medir",
-            "filter": "Filtro",
-            "edit": "Editar",
+            "drawAndMeasure": "Herramientas de medición",
+            "filter": "Filtro datos temáticos",
+            "edit": "Dessarolar escenario",
             "settings": "Opciones",
             "info": "Info"
         },
@@ -63,8 +63,8 @@
             "title": "Medida",
             "measure": {
                 "header": "Medida",
-                "length": "Longitud",
-                "area": "Zona"
+                "length": "Distancia",
+                "area": "Área"
             },
             "draw": {
                 "header": "Dibujar",
@@ -79,7 +79,7 @@
             "clear": "Borrar"
         },
         "filter": {
-            "title": "Filtrar",
+            "title": "Filtro datos temáticos",
             "poisSettings": {
                 "buttonTooltip": "Ajustes de importancia y sensibilidad",
                 "title": "Mapa térmico",
@@ -93,7 +93,7 @@
             }
         },
         "edit": {
-            "title": "Editar",
+            "title": "Dessarolar escenario",
             "selectLayer": "Capa para editar",
             "selectFeatures": "Seleccionar funciones",
             "drawCircle": "Dibuja un círculo para seleccionar objetos",
@@ -102,7 +102,7 @@
             "drawFeatureTooltip": "Característica de dibujo",
             "modifyFeatureTooltip": "Modificar función",
             "deleteFeature": "Eliminar característica",
-            "clearBtn": "Claro",
+            "clearBtn": "Borrar",
             "uploadBtn": "Subir",
             "popup": {
                 "deleteFeatureMsg": "¿Está seguro de que desea eliminar la función seleccionada?",
@@ -121,7 +121,7 @@
         },
         "about": {
             "title": "Sobre GOAT",
-            "content": "significa Geo Open Accessibility Tool. Esta herramienta web está pensada de ser de código abierto, interactiva, flexible y útil para la planificación de accesibilidad. Está en desarrollo en el Chair of Urban Structure and Transport Planning en la TUM .....",
+            "content": "es la sigla en inglés de Geo Open Accessibility Tool. Esta herramienta web ha sido concebida como de código abierto, flexible, interactiva, y útil para la planificación basada en accesibilidad. Está siendo desarollada en la TUM (Chair of Urban Structure and Transport Planning).....",
             "moreInfo": "Más información"
         }
     },
@@ -133,17 +133,17 @@
             "title": "Punto de partida",
             "type": "Simple",
             "searchBox": "Buscar punto de partida",
-            "startTooltip": "Haga clic en el mapa para comenzar el cálculo de isócrona",
-            "tableDataTitle": "Datos temáticos"
+            "startTooltip": "Haga clic en el botón para iniciar el cálculo",
+            "tableDataTitle": "Información espacial"
         },
         "multiple": {
             "title": "Inicio",
             "type": "Múltiple",
             "selectMethod": "Seleccionar método",
             "studyArea": "Área de estudio",
-            "clear": "Claro",
+            "clear": "Borrar",
             "calculate": "Calcular",
-            "studyAreaInfoLabel": "Seleccione <b> zonas de estudio </b> y <b> servicios </b> para habilitar el cálculo.",
+            "studyAreaInfoLabel": "Seleccione <b> area de estudio </b> y <b> servicios </b> para habilitar el cálculo.",
             "drawBoundary": "Dibujar límite",
             "amenityCount": "Cuenta de servicios",
             "limit": "Límite",
@@ -156,7 +156,7 @@
             "speed": "km / h",
             "time": "min",
             "nr": "Isócronas",
-            "calcType": "Concavidad de isócronas",
+            "calcType": "Detalle de la isocrona",
             "calcModus": "Modos de cálculo",
             "alphaShapeMode": "Parámetro de forma alfa",
             "defaultNetwork": "Red standard",
@@ -166,26 +166,27 @@
         "results": {
             "title": "Resultados",
             "multiIsochroneHeader": "Cálculo de múltiples isocronas",
+            "additionalLayers": "Capas adicionales",
             "showDataTooltip": "Mostrar datos",
             "toggleVisibilityTooltip": "Alternar visibilidad",
             "downloadTooltip": "Descargar",
             "deleteCalcTooltip": "Eliminar cálculo",
             "table": {
                 "type": "Tipo",
-                "range": "Distancia",
-                "area": "Zona",
+                "range": "Tiempo",
+                "area": "Area",
                 "visible": "Visible",
-                "legend": "Leyenda"
+                "legend": "Color"
             }
         },
         "tableData": {
             "timeFilter": "Filtro de tiempo",
-            "searchPois": "Buscar punto de interés",
+            "searchPois": "Filtrar información de interés",
             "selectTimeMsg": "Seleccione el tiempo para filtrar",
             "noDataMsg": "No hay datos para el tiempo seleccionado.",
-            "selectAmenitiesMsg": "Seleccione <b> Servicios </b> y <b> Hora </b> para filtrar la tabla.",
+            "selectAmenitiesMsg": "Seleccione el <b> periodo de tiempo </b> y <b> destinos </b> en el Filtro datos temáticos para filtrar la tabla.",
             "table": {
-                "pois": "Punto de interés",
+                "pois": "Información de interés",
                 "isochrone": "Isocrona",
                 "studyArea": "Área de estudio",
                 "population": "Población",
@@ -217,8 +218,8 @@
         },
         "layerGroup": {
             "poisLayers": "Capa Pois",
-            "administrativeLayers": "Capas Administrativas",
-            "accessbilityBasemaps": "Mapa base de accesibilidad",
+            "administrativeLayers": "Límites administrativos",
+            "accessbilityBasemaps": "Accesibilidad",
             "backgroundLayers": "Capas de fondo"
         },
         "layerName": {
@@ -282,9 +283,9 @@
         "ice_cream": "Helado",
         "restaurant": "Restaurante",
         "nightclub": "Club nocturno",
-        "bicycle_rental": "Alquiler de bicicletas",
+        "bicycle_rental": "Alquiler de bicis",
         "car_sharing": "Auto compartido",
-        "charging_station": "Estación de recarga",
+        "charging_station": "Estación de carga",
         "bus_stop": "Autobús",
         "tram_stop": "Parada de tranvía",
         "subway_entrance": "Estación de Metro",
