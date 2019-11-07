@@ -19,7 +19,7 @@ Clone the GOAT-repo to a folder of your choice. Navigate first to the folder and
 <img class="img-responsive" src="../../img/git_clone.png" alt="how your command window should look like" title="Get a copy of GOAT<sub>beta</sub>" width="600" height="400" style="border: 2px solid #07d;"/>
 
 
-#### 2 Use a Virtual Machine to install Docker and the necessary software 
+#### 2. Use a Virtual Machine to install Docker and the necessary software 
 
 In case you don't manage to install docker on your Windows or MacOS host, it is recommended to use a Virtual Machine that is controlled by Vagrant. 
 
@@ -114,7 +114,7 @@ Password : geoserver
 
 You can access Geoserver by typing the following into your browser:
 
-[http://localhost/geoserver](http://localhost/geoserver)
+[http://localhost:8080/geoserver](http://localhost/geoserver)
 
 ##### 8. View GOAT<sub>beta</sub> in the browser
 
