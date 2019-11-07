@@ -166,8 +166,10 @@
         "group": "backgroundLayers",
         "maxZoom": 19,
         "queryable": false,
+        "cascadePrint": true,
         "visible": false,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
       },
       {
         "type": "OSM",
@@ -176,8 +178,10 @@
         "group": "backgroundLayers",
         "maxZoom": 19,
         "queryable": false,
+        "cascadePrint": true,
         "visible": false,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
       },
       {
         "type": "OSM",
@@ -186,8 +190,10 @@
         "group": "backgroundLayers",
         "maxZoom": 19,
         "queryable": false,
+        "cascadePrint": true,
         "visible": false,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
       },
       {
         "type": "XYZ",
@@ -197,8 +203,10 @@
         "accessToken": "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
         "maxZoom": 19,
         "queryable": false,
+        "cascadePrint": true,
         "visible": true,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.mapbox.com/map-feedback/'>Mapbox</a> © <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap contributors</a>"
       },
       {
         "type": "XYZ",
@@ -207,8 +215,10 @@
         "url": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
         "maxZoom": 18,
         "queryable": false,
+        "cascadePrint": true,
         "visible": false,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.memomaps.de/'>Memomaps</a>"
       },
       {
         "type": "BING",
@@ -218,8 +228,10 @@
         "imagerySet": "Aerial",
         "maxZoom": 19,
         "queryable": false,
+        "cascadePrint": true,
         "visible": false,
-        "displayInLayerList": true
+        "displayInLayerList": true,
+        "attributions": "© Microsoft Coorporation © Digital Globe ©CNES Distribution Airbus DS <a href='https://www.microsoft.com/en-us/maps/product'>Terms of use</a> "
       }
     ],
     "controls": [

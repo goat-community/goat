@@ -19,7 +19,11 @@
             <template v-for="(item, index) in layoutInfo.simpleAttributes">
               <span :key="index">
                 <v-text-field
-                  v-if="item.type === 'text' && item.name != 'crsDescription'"
+                  v-if="
+                    item.type === 'text' &&
+                      item.name != 'crsDescription' &&
+                      item.name != 'attributions'
+                  "
                   v-model="item.value"
                   :label="$t(`appBar.printMap.form.${item.name}.label`)"
                   type="text"
@@ -94,9 +98,10 @@
                 <v-slider
                   class="pt-4"
                   prepend-icon="rotate_right"
-                  v-model="rotation"
-                  track-color="#1867C0"
-                  color="#1867C0"
+                  :value="rotation"
+                  @input="changeRotation"
+                  track-color="#30C2FF"
+                  color="#30C2FF"
                   :min="-180"
                   :max="180"
                 ></v-slider>
@@ -104,7 +109,8 @@
 
               <v-flex xs3>
                 <v-text-field
-                  v-model="rotation"
+                  :value="rotation"
+                  @input="changeRotation"
                   suffix="°"
                   class="mt-0"
                   type="number"
@@ -131,6 +137,21 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
+          <v-progress-circular
+            indeterminate
+            color="#30C2FF"
+            class="mr-2"
+            v-if="isState('PRINTING')"
+          ></v-progress-circular>
+          <v-btn
+            class="white--text"
+            v-if="isState('PRINTING')"
+            color="error"
+            @click="abort()"
+          >
+            <v-icon left>clear</v-icon
+            >{{ $t("appBar.printMap.form.abort") }}</v-btn
+          >
           <v-btn
             class="white--text"
             color="green"
@@ -170,7 +191,8 @@ import PrintService from "../../controls/print/Service";
 import {
   getFlatLayers,
   getWMTSLegendURL,
-  getWMSLegendURL
+  getWMSLegendURL,
+  getActiveBaseLayer
 } from "../../utils/Layer";
 
 import { humanize, numberWithCommas } from "../../utils/Helpers";
@@ -183,6 +205,7 @@ import olLayerGroup from "ol/layer/Group.js";
 import olMap from "ol/Map.js";
 import ImageWMS from "ol/source/ImageWMS.js";
 var FileSaver = require("file-saver");
+import { getCurrentDate, getCurrentTime } from "../../utils/Helpers";
 
 export default {
   mixins: [Mapable],
@@ -215,6 +238,7 @@ export default {
       simpleAttributes: []
     },
     capabilities: null,
+    currentJob: null,
     formats_: [],
     layouts_: [],
     layout_: null,
@@ -239,20 +263,33 @@ export default {
   }),
   components: {},
   computed: {},
-  watch: {
-    rotation: function(val) {
-      this.setRotation(val);
-    }
-  },
+
   methods: {
     humanize,
     numberWithCommas,
+    getCurrentDate,
+    getCurrentTime,
+    changeRotation(rotation) {
+      this.setRotation(rotation);
+    },
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
     onMapBound() {
+      if (!this.map) {
+        throw new Error("Missing map");
+      }
       this.printUtils_ = new PrintUtils();
-      this.printService = new PrintService(this.baseUrl);
+      this.printService = new PrintService(
+        this.baseUrl,
+        process.env.VUE_APP_MAPPROXY_URL
+      );
+
+      olEvents.listen(this.map.getView(), "change:rotation", event => {
+        this.updateRotation_(
+          Math.round(olMath.toDegrees(event.target.getRotation()))
+        );
+      });
 
       const getSizeFn = () => this.paperSize_;
       let getRotationFn;
@@ -333,6 +370,18 @@ export default {
         //Add crs description
         customAttributes.crsDescription = this.selectedCrs;
 
+        //Get Baselayer description\
+        let attributions = "";
+        const activeBaselayer = getActiveBaseLayer(this.map);
+        if (activeBaselayer.length > 0) {
+          const activeBaseLayerName = activeBaselayer[0].get("name");
+          attributions = this.$appConfig.map.layers.filter(
+            layerConf => layerConf.name === activeBaseLayerName
+          )[0].attributions;
+        }
+
+        customAttributes.attributions = attributions;
+
         // convert the WMTS layers to WMS
         const map = new olMap({});
         map.setView(this.map.getView());
@@ -399,16 +448,84 @@ export default {
           }
         });
 
-        this.printService.createReport(spec).then(response => {
-          this.printState = this.printStateEnum.NOT_IN_USE;
-          if (response.status === 200) {
-            FileSaver.saveAs(response.data, "map.pdf");
-          }
-        });
+        this.printService
+          .createReport(spec)
+          .then(response => {
+            if (response.status === 200) {
+              this.currentJob = response.data;
+              //Starts a interval timer every 1 second to check for the print job status
+              this.getJobStatus();
+            }
+          })
+          .catch(() => {
+            this.printState = this.printStateEnum.NOT_IN_USE;
+            this.currentJob = null;
+            throw new Error("A server eror happened ");
+          });
 
         // remove temporary map
         map.setTarget("");
       }
+    },
+
+    /**
+     * Aborts the ongoing print job..
+     * @private
+     */
+    abort() {
+      const me = this;
+      if (me.currentJob) {
+        const refId = me.currentJob.ref;
+        this.printService.cancelReportJob(refId);
+        this.printState = this.printStateEnum.NOT_IN_USE;
+      }
+
+      if (me.polling) {
+        clearInterval(me.polling);
+      }
+
+      me.currentJob = null;
+    },
+
+    /**
+     * Download the report using reference id.
+     * @param {string} refId The report reference id
+     * @private
+     */
+    download(refId) {
+      this.printService
+        .downloadReport(refId)
+        .then(response => {
+          this.printState = this.printStateEnum.NOT_IN_USE;
+          if (response.status === 200) {
+            FileSaver.saveAs(
+              response.data,
+              `goat_print_${this.getCurrentDate()}_${this.getCurrentTime()}.pdf`
+            );
+          }
+        })
+        .catch(() => {
+          this.printState = this.printStateEnum.NOT_IN_USE;
+          throw new Error("A server eror happened ");
+        });
+    },
+
+    getJobStatus() {
+      const me = this;
+      const jobRef = this.currentJob.ref;
+      if (!jobRef) return;
+      me.polling = setInterval(() => {
+        if (me.currentJob) {
+          me.printService.getStatus(jobRef).then(response => {
+            const status = response.data.status;
+            if (status === "finished" && me.currentJob) {
+              clearInterval(me.polling);
+              me.currentJob = null;
+              me.download(jobRef);
+            }
+          });
+        }
+      }, 1500);
     },
 
     /**
@@ -968,6 +1085,7 @@ export default {
     }
     this.setRotation(0);
     this.map.render(); // Redraw (remove) post compose mask;
+    this.abort();
   }
 };
 </script>

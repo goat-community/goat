@@ -197,11 +197,8 @@ export default class OlSelectController extends OlBaseController {
     if (me.pointerMoveKey) {
       unByKey(me.pointerMoveKey);
     }
-    if (me.overlayersGarbageCollector) {
-      me.overlayersGarbageCollector.forEach(overlay => {
-        me.map.removeOverlay(overlay);
-      });
-      me.overlayersGarbageCollector = [];
+    if (me.clearOverlays) {
+      me.clearOverlays();
     }
   }
 }

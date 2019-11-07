@@ -182,6 +182,28 @@ export function getFlatLayers_(layer, array, computedOpacity) {
 }
 
 /**
+ * Gets teh active baselayer if there
+ * is one activated otherwise it will return an empty array.
+ * @param  {ol.Map} olMap           The map to perform the search on.
+ * @return {Array<import("ol/layer/Layer.js").default<import('ol/source/Source.js').default>>} Layers.
+ */
+
+export function getActiveBaseLayer(map) {
+  const activeBaselayer = map
+    .getLayers()
+    .getArray()
+    .filter(groupLayer => {
+      return groupLayer.get("name") === "backgroundLayers";
+    })[0]
+    .getLayers()
+    .getArray()
+    .filter(layer => {
+      return layer.getVisible() === true;
+    });
+  return activeBaselayer;
+}
+
+/**
  * Create and return a basic WMS layer with only a source URL and a comma
  * separated layers names (see {@link import("ol/source/ImageWMS.js").default}).
  *

@@ -3,6 +3,27 @@ import OlStroke from "ol/style/Stroke";
 import OlFill from "ol/style/Fill";
 import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
+import store from "../store/modules/isochrones";
+
+const colorDiffDefault = [6.1, 13.42, 11.789];
+const color1Default = [255, 255, 224];
+const colorDiffInput = [1.789, 10.578, -9.631];
+const color1Input = [34, 211, 41];
+
+function setNetworkColor(time, colorDiff, color1) {
+  let color;
+  if (time < 1) {
+    color = color1;
+  } else {
+    let diffTime = time - 1;
+    color = [
+      color1[0] - colorDiff[0] * diffTime,
+      color1[1] - colorDiff[1] * diffTime,
+      color1[2] - colorDiff[2] * diffTime
+    ];
+  }
+  return color;
+}
 
 const OlStyleDefs = {
   boundaryStyle: () => {
@@ -163,6 +184,32 @@ const OlStyleDefs = {
       return styles;
     };
 
+    return styleFunction;
+  },
+  getIsochroneNetworkStyle: () => {
+    const styleFunction = feature => {
+      const modus = feature.get("modus");
+      const level = feature.get("cost");
+      let speed = store.state.options.speed * 16.6666667;
+      let color;
+      if (modus == 1 || modus == 3) {
+        color = setNetworkColor(level / speed, colorDiffDefault, color1Default);
+      } //If the parent_id is not one it is a input isochrone
+      else {
+        color = setNetworkColor(level / speed, colorDiffInput, color1Input);
+      }
+
+      const style = new OlStyle({
+        stroke: new OlStroke({
+          color: `rgb(${Math.round(color[0])},${Math.round(
+            color[1]
+          )},${Math.round(color[2])})`,
+          width: 3
+        })
+      });
+
+      return [style];
+    };
     return styleFunction;
   },
   defaultStyle: () => {

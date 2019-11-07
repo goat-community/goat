@@ -186,6 +186,13 @@ export default {
       me.map.getTarget().style.cursor = "";
       EventBus.$emit("ol-interaction-stoped", me.interactionType);
     },
+    /**
+     * stops single isochrone interaction
+     */
+    stop() {
+      const me = this;
+      me.clear();
+    },
     clearSearch() {
       this.entries = [];
       this.count = 0;

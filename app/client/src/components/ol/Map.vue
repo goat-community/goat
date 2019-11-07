@@ -36,7 +36,6 @@ function isCssColor(color) {
 import Vue from "vue";
 import Map from "ol/Map";
 import View from "ol/View";
-import Zoom from "ol/control/Zoom";
 import { defaults as defaultInteractions } from "ol/interaction";
 import Overlay from "ol/Overlay";
 import Mask from "ol-ext/filter/Mask";
@@ -117,10 +116,9 @@ export default {
     const interactions = defaultInteractions({
       altShiftDragRotate: me.rotateableMap
     });
-    let controls = [new Zoom()];
+
     me.map = new Map({
       layers: [],
-      controls: controls,
       interactions: interactions,
       view: new View({
         center: me.center || [0, 0],
@@ -140,9 +138,10 @@ export default {
       me.activeInteractions.push(startedInteraction);
     });
     EventBus.$on("ol-interaction-stoped", stopedInteraction => {
-      me.activeInteractions = me.activeInteractions.filter(
-        interaction => interaction !== stopedInteraction
-      );
+      me.activeInteractions = Array.from(new Set(me.activeInteractions));
+      me.activeInteractions = me.activeInteractions.filter(interaction => {
+        return interaction !== stopedInteraction;
+      });
     });
   },
 
@@ -277,6 +276,12 @@ export default {
             ".ol-rotate .ol-rotate-reset"
           ).style.backgroundColor = me.color;
         }
+
+        if (document.querySelector(".ol-attribution")) {
+          document.querySelector(
+            ".ol-attribution button[type='button']"
+          ).style.backgroundColor = me.color;
+        }
       } else {
         // apply vuetify color by transforming the color to the corresponding
         // CSS class (see https://vuetifyjs.com/en/framework/colors)
@@ -371,7 +376,7 @@ export default {
             return;
           }
 
-          const olFeatures = geojsonToFeature(response.data);
+          const olFeatures = geojsonToFeature(response.data, {});
           const featureCoordinates = olFeatures[0]
             .getGeometry()
             .getCoordinates();
@@ -451,8 +456,8 @@ div.ol-zoom {
   left: 1em;
 }
 
-div.ol-attribution.ol-uncollapsible {
-  bottom: 12px;
+div.ol-attribution {
+  bottom: 0px;
 }
 
 /* Hover tooltip */

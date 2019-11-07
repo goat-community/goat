@@ -143,12 +143,19 @@ export default {
     },
     clear() {
       this.activeMultiIsochroneMethod = null;
+      EventBus.$emit("ol-interaction-stoped", this.interactionType);
+    },
+    /**
+     * stops multi isochrone interaction
+     */
+    stop() {
+      const me = this;
+      me.clear();
     }
   },
   watch: {
     activeMultiIsochroneMethod: function(val) {
       if (val === null) {
-        EventBus.$emit("ol-interaction-stoped", this.interactionType);
         this.olIsochroneCtrl.clear();
       }
     }
