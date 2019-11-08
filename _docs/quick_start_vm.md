@@ -64,20 +64,33 @@ Go into your VM:
 
 Install all the software and start services:
 
-`docker-compose up -d` (run on your <span style="color:#FE9A2E">VM</span>)(This will start all service you need for docker)
+`sudo docker-compose up -d` (run on your <span style="color:#FE9A2E">VM</span>)(This will start all service you need for docker)
+
+----
+
+In case you receive the following error message: "Can't find a suitable configuration file in this directory or any parent. Are you in the right directory?", open your goat folder via the Windows or MacOS file explorer and copy the `docker-compose.yaml` file in the subfolder "app". 
+Then run the following command on your <span style="color:#FE9A2E">VM</span>:
+
+`cd app/`
+
+`mv docker-compose.yaml ~`
+
+`cd ..`
+
+And run the `sudo docker-compose up -d` command again.
+
+----
 
 Fill and prepare the goat-database:
 
-`docker exec -it goat-database python3 /opt/setup_goat.py` (run on your <span style="color:#FE9A2E">VM</span>)
+`sudo docker exec -it goat-database python3 /opt/setup_goat.py` (run on your <span style="color:#FE9A2E">VM</span>)
 
 GOAT<sub>beta</sub> allows you to use pre-calculated matrices that are used to visualize the dynamic heatmaps. 
 In order to start the pre-calculation you currently have to start the script manually with the following command:
 
-`docker exec -it goat-database python3 /opt/data_preparation/Python/precalculate_grid_thematic.py` (run on your <span style="color:#FE9A2E">VM</span>)
+`sudo docker exec -it goat-database python3 /opt/data_preparation/Python/precalculate_grid_thematic.py` (run on your <span style="color:#FE9A2E">VM</span>)
 
 Depending on the size of your study-area this can take some time. For Munich approx. 20 minutes.
-
-`docker exec -it goat-database python3 /opt/setup_goat.py` (run on your <span style="color:#FE9A2E">VM</span>)
 
 For more Docker commands checkout:
 
@@ -131,7 +144,7 @@ Navigate to your GOAT-folder (in this folder there should be the docker-compose.
 
 <b>Stop<b>
 
-`docker-compose down` (run on your <span style="color:#FE9A2E">VM</span>) (This will stop all running containers)
+`sudo docker-compose down` (run on your <span style="color:#FE9A2E">VM</span>) (This will stop all running containers)
 
 `exit` (run on your <span style="color:#FE9A2E">VM</span>)
 
@@ -147,16 +160,16 @@ Per default the database is configured to run every day a backup at 11 PM. In ca
 
 In case you want an immediate backup you can simply run:
 
-`docker exec -it goat-database-backup /bin/bash backups.sh` (run on your <span style="color:#FE9A2E">VM</span>)
+`sudo docker exec -it goat-database-backup /bin/bash backups.sh` (run on your <span style="color:#FE9A2E">VM</span>)
 
 ##### 11. Update data
 
 In case you want to update all your data you can simply run the following from your project directory:
 
-`docker exec -it goat-database python3 /opt/setup_goat.py` (run on your <span style="color:#FE9A2E">VM</span>)
+`sudo docker exec -it goat-database python3 /opt/setup_goat.py` (run on your <span style="color:#FE9A2E">VM</span>)
 
 <b><font color="red">!!Note this will drop your database and create a new database.!!</font><b>
 
 Furthermore you need to run the pre-calculation script again in order to be able to use the heatmaps:
 
-`docker exec -it goat-database python3 /opt/data_preparation/Python/precalculate_grid_thematic.py` (run on your <span style="color:#FE9A2E">VM</span>)
+`sudo docker exec -it goat-database python3 /opt/data_preparation/Python/precalculate_grid_thematic.py` (run on your <span style="color:#FE9A2E">VM</span>)
