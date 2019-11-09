@@ -14,6 +14,9 @@ ALTER TABLE ways ADD COLUMN lit text;
 ALTER TABLE ways ADD COLUMN parking text;
 ALTER TABLE ways ADD COLUMN segregated text;
 ALTER TABLE ways ADD COLUMN sidewalk text;
+ALTER TABLE ways ADD COLUMN sidewalk_both_width numeric;
+ALTER TABLE ways ADD COLUMN sidewalk_left_width numeric;
+ALTER TABLE ways ADD COLUMN sidewalk_right_width numeric;
 ALTER TABLE ways ADD COLUMN smoothness text;
 ALTER TABLE ways ADD COLUMN surface text;
 ALTER TABLE ways ADD COLUMN wheelchair text;
@@ -32,7 +35,6 @@ FROM (
 	GROUP BY SOURCE 
 ) y
 WHERE v.id = y.SOURCE;
-
 
 
 UPDATE ways 
@@ -69,6 +71,21 @@ UPDATE ways
 SET sidewalk = (tags -> 'sidewalk')
 FROM planet_osm_line p
 WHERE ways.osm_id = p.osm_id;
+
+UPDATE ways 
+SET sidewalk_both_width = l.sidewalk_both_width::numeric
+FROM (select p.*, (tags -> 'sidewalk:both:width') as sidewalk_both_width from planet_osm_line p) l
+WHERE ways.osm_id = l.osm_id;
+
+UPDATE ways 
+SET sidewalk_left_width = l.sidewalk_left_width::numeric
+FROM (select p.*, (tags -> 'sidewalk:left:width') as sidewalk_left_width from planet_osm_line p) l
+WHERE ways.osm_id = l.osm_id;
+
+UPDATE ways 
+SET sidewalk_right_width = l.sidewalk_right_width::numeric
+FROM (select p.*, (tags -> 'sidewalk:right:width') as sidewalk_bright_width from planet_osm_line p) l
+WHERE ways.osm_id = l.osm_id;
 
 UPDATE ways 
 SET smoothness = (tags -> 'smoothness')
