@@ -8,6 +8,7 @@ ALTER TABLE ways alter column target type int4;
 ALTER TABLE ways alter column source type int4;
 ALTER TABLE ways ADD COLUMN bicycle text;
 ALTER TABLE ways ADD COLUMN foot text;
+ALTER TABLE ways ADD COLUMN highway text;
 ALTER TABLE ways ADD COLUMN incline text;
 ALTER TABLE ways ADD COLUMN lanes numeric;
 ALTER TABLE ways ADD COLUMN lit text;
@@ -38,7 +39,7 @@ WHERE v.id = y.SOURCE;
 
 
 UPDATE ways 
-SET foot = p.foot, bicycle = p.bicycle, surface = p.surface, width = p.width
+SET foot = p.foot, bicycle = p.bicycle, highway = p.highway, surface = p.surface, width = p.width
 FROM planet_osm_line p 
 WHERE ways.osm_id = p.osm_id;
 
