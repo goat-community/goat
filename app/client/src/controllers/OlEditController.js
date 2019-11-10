@@ -209,6 +209,13 @@ export default class OlEditController extends OlBaseController {
   }
 
   /**
+   * Read or insert deleted feature of the user.
+   */
+  readOrInsertDeletedWaysFeatures() {
+    OlWaysLayerHelper.commitDelete("read", store.state.userId);
+  }
+
+  /**
    * Commit feature  if user selects yes
    */
   commitFeature() {
