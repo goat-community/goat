@@ -16,7 +16,7 @@ sensitivities = [-0.004,-0.0035,-0.003,-0.0025,-0.002,-0.0015,-0.001]
 
 start = time.time()
 with open("/opt/goat_config.yaml", 'r') as stream:
-    config = yaml.load(stream)
+    config = yaml.load(stream, Loader=yaml.FullLoader)
 secrets = config["DATABASE"]
 host = secrets["HOST"]
 port = str(secrets["PORT"])
