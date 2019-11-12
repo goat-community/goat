@@ -182,7 +182,7 @@ values('categories_smoothness_limited_wheelchair',
 
 INSERT INTO variable_container(identifier,variable_array) 
 values('categories_surface_no_wheelchair',
-'{"ground","grass","sand","dirt"}');
+'{"ground","grass","sand","dirt","unhewn_cobblestone"}');
 
 INSERT INTO variable_container(identifier,variable_array) 
 values('categories_highway_onstreet_wheelchair_yes',
