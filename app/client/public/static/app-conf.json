@@ -93,7 +93,7 @@
       },
       {
         "type": "WMS",
-        "name": "Illuminance",
+        "name": "illuminance",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
         "layers": "cite:ways_lit",
@@ -106,7 +106,7 @@
       },
       {
         "type": "WMS",
-        "name": "Wheelchair Usability",
+        "name": "wheelchairUsability",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
         "layers": "cite:ways_wheelchair",

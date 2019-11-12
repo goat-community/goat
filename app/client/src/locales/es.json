@@ -226,6 +226,8 @@
         "layerName": {
             "pois": "Punto de interés",
             "administrativeUnits": "Unidades administrativas",
+            "illuminance": "Illuminance",
+            "wheelchairUsability": "Wheelchair Usability",
             "areaIsochrone": "Tamaño Isócrona",
             "walkabilityPopulation": "Población - Walkability",
             "population": "Población",
