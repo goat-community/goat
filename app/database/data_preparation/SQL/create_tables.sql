@@ -168,6 +168,42 @@ INSERT INTO variable_container(identifier,variable_array)
 values('categories_no_foot',
 '{"use_sidepath","no"}');
 
+INSERT INTO variable_container(identifier,variable_array) 
+values('categories_sidewalk_no_foot',
+'{"separate"}'); -- only for visualization
+
+INSERT INTO variable_container(identifier,variable_array) 
+values('categories_smoothness_no_wheelchair',
+'{"very_bad","horrible","very_horrible","impassable"}');
+
+INSERT INTO variable_container(identifier,variable_array) 
+values('categories_smoothness_limited_wheelchair',
+'{"bad"}');
+
+INSERT INTO variable_container(identifier,variable_array) 
+values('categories_surface_no_wheelchair',
+'{"ground","grass","sand","dirt"}');
+
+INSERT INTO variable_container(identifier,variable_array) 
+values('categories_highway_onstreet_wheelchair_yes',
+'{"living_street"}');
+
+INSERT INTO variable_container(identifier,variable_array) 
+values('categories_highway_onstreet_wheelchair_limited',
+'{"residential"}');
+
+INSERT INTO variable_container(identifier,variable_array) 
+values('categories_highway_lit_yes',
+'{"living_street","residential","secondary","tertiary"}');
+
+INSERT INTO variable_container(identifier,variable_array) 
+values('categories_highway_lit_no',
+'{"track"}');
+
+INSERT INTO variable_container(identifier,variable_array) 
+values('categories_surface_lit_no',
+'{"ground","gravel","unpaved","grass"}');
+
 INSERT INTO variable_container(identifier,variable_simple) 
 values('max_length_links',
 '300');
