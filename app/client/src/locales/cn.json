@@ -224,6 +224,7 @@
     "layerGroup": {
       "poisLayers": "Pois Layer",
       "administrativeLayers": "Administrative Layers",
+      "streetlevelqualityLayers": "Street Level Quality",
       "accessbilityBasemaps": "Accessibility Basemap",
       "backgroundLayers": "Background Layers"
     },

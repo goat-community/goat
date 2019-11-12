@@ -219,6 +219,7 @@
         "layerGroup": {
             "poisLayers": "Pois Layer",
             "administrativeLayers": "Layer Verwaltungsgrenzen",
+            "streetlevelqualityLayers": "Street Level Quality",
             "accessbilityBasemaps": "Grundkarten Erreichbarkeit",
             "backgroundLayers": "Hintergrundkarten"
         },
