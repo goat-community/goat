@@ -184,7 +184,7 @@ else:
     INNER JOIN pg_namespace n ON (n.oid = c.relnamespace)
     WHERE c.reltuples <> 0 AND c.relkind = 'r'
     AND nspname = 'public';
-    ''';
+    '''
     cursor.execute(sql_select_not_empty_tables)
     tables_to_update = cursor.fetchall()
     #Refresh all tables that have changed
