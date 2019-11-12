@@ -10,7 +10,7 @@
     <string>features</string>
     <string>ways_lit</string>
   </keywords>
-  <srs>EPSG:404000</srs>
+  <srs>EPSG:4326</srs>
   <nativeBoundingBox>
     <minx>11.3157817</minx>
     <maxx>11.7678993</maxx>
@@ -30,10 +30,41 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>ways_lit</name>
-        <sql>select * FROM ways&#xd;
-where lit is not null
+        <sql>WITH variables AS &#xd;
+(&#xd;
+	SELECT &#xd;
+	select_from_variable_container(&apos;categories_highway_lit_yes&apos;) AS categories_highway_lit_yes,&#xd;
+	select_from_variable_container(&apos;categories_highway_lit_no&apos;) AS categories_highway_lit_no,&#xd;
+	select_from_variable_container(&apos;categories_surface_lit_no&apos;) AS categories_surface_lit_no,&#xd;
+	select_from_variable_container(&apos;excluded_class_id_walking&apos;) AS excluded_class_id_walking,&#xd;
+	select_from_variable_container(&apos;categories_no_foot&apos;) AS categories_no_foot,&#xd;
+	select_from_variable_container(&apos;categories_sidewalk_no_foot&apos;) AS categories_sidewalk_no_foot&#xd;
+)&#xd;
+SELECT lit, highway, surface, w.geom,&#xd;
+CASE WHEN &#xd;
+	lit IN (&apos;yes&apos;,&apos;Yes&apos;) &#xd;
+	OR (lit IS NULL AND highway IN (SELECT UNNEST(categories_highway_lit_yes) FROM variables))&#xd;
+	THEN &apos;yes&apos; &#xd;
+WHEN&#xd;
+	lit IN (&apos;no&apos;,&apos;No&apos;)&#xd;
+	OR (lit IS NULL AND (highway IN (SELECT UNNEST(categories_highway_lit_no) FROM variables) &#xd;
+	OR surface IN (SELECT UNNEST(categories_surface_lit_no) FROM variables))&#xd;
+	)&#xd;
+	THEN &apos;no&apos;&#xd;
+ELSE &apos;unclassified&apos;&#xd;
+END AS lit_classified&#xd;
+FROM ways w, study_area s&#xd;
+WHERE class_id::text NOT IN (SELECT UNNEST(excluded_class_id_walking) FROM variables)&#xd;
+AND (foot IS NULL OR foot NOT IN (SELECT UNNEST(categories_no_foot) FROM variables))&#xd;
+AND (sidewalk IS NULL OR sidewalk NOT IN (SELECT UNNEST(categories_sidewalk_no_foot) FROM variables))&#xd;
+AND ST_Intersects(s.geom,w.geom)
 </sql>
         <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>-1</srid>
+        </geometry>
       </virtualTable>
     </entry>
     <entry key="cachingEnabled">false</entry>
