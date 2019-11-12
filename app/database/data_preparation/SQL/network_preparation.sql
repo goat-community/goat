@@ -8,16 +8,20 @@ ALTER TABLE ways alter column target type int4;
 ALTER TABLE ways alter column source type int4;
 ALTER TABLE ways ADD COLUMN bicycle text;
 ALTER TABLE ways ADD COLUMN foot text;
+ALTER TABLE ways ADD COLUMN highway text;
 ALTER TABLE ways ADD COLUMN incline text;
 ALTER TABLE ways ADD COLUMN lanes numeric;
 ALTER TABLE ways ADD COLUMN lit text;
 ALTER TABLE ways ADD COLUMN parking text;
 ALTER TABLE ways ADD COLUMN segregated text;
 ALTER TABLE ways ADD COLUMN sidewalk text;
+ALTER TABLE ways ADD COLUMN sidewalk_both_width numeric;
+ALTER TABLE ways ADD COLUMN sidewalk_left_width numeric;
+ALTER TABLE ways ADD COLUMN sidewalk_right_width numeric;
 ALTER TABLE ways ADD COLUMN smoothness text;
 ALTER TABLE ways ADD COLUMN surface text;
 ALTER TABLE ways ADD COLUMN wheelchair text;
-ALTER TABLE ways ADD COLUMN width text;
+ALTER TABLE ways ADD COLUMN width numeric;
 
 
 UPDATE ways_vertices_pgr v SET cnt = y.cnt
@@ -34,14 +38,16 @@ FROM (
 WHERE v.id = y.SOURCE;
 
 
-
 UPDATE ways 
-SET foot = p.foot, bicycle = p.bicycle, surface = p.surface, width = p.width
+SET foot = p.foot, bicycle = p.bicycle, highway = p.highway, surface = p.surface, 
+width = (CASE WHEN p.width ~ '^[0-9.]*$' THEN p.width::numeric ELSE NULL END)
 FROM planet_osm_line p 
 WHERE ways.osm_id = p.osm_id;
 
 UPDATE ways 
-SET incline = (tags -> 'incline')
+SET incline = (tags -> 'incline'), lit = (tags -> 'lit'), parking = (tags -> 'parking'), 
+segregated = (tags -> 'segregated'),sidewalk = (tags -> 'sidewalk'), smoothness = (tags -> 'smoothness'), 
+wheelchair = (tags -> 'wheelchair')
 FROM planet_osm_line p
 WHERE ways.osm_id = p.osm_id;
 
@@ -51,35 +57,19 @@ FROM (select p.*, (tags -> 'lanes') as lanes from planet_osm_line p) l
 WHERE ways.osm_id = l.osm_id;
 
 UPDATE ways 
-SET lit = (tags -> 'lit')
-FROM planet_osm_line p
-WHERE ways.osm_id = p.osm_id;
+SET sidewalk_both_width = l.sidewalk_both_width::numeric
+FROM (select p.*, (tags -> 'sidewalk:both:width') as sidewalk_both_width from planet_osm_line p) l
+WHERE ways.osm_id = l.osm_id;
 
 UPDATE ways 
-SET parking = (tags -> 'parking')
-FROM planet_osm_line p
-WHERE ways.osm_id = p.osm_id;
+SET sidewalk_left_width = l.sidewalk_left_width::numeric
+FROM (select p.*, (tags -> 'sidewalk:left:width') as sidewalk_left_width from planet_osm_line p) l
+WHERE ways.osm_id = l.osm_id;
 
 UPDATE ways 
-SET segregated = (tags -> 'segregated')
-FROM planet_osm_line p
-WHERE ways.osm_id = p.osm_id;
-
-UPDATE ways 
-SET sidewalk = (tags -> 'sidewalk')
-FROM planet_osm_line p
-WHERE ways.osm_id = p.osm_id;
-
-UPDATE ways 
-SET smoothness = (tags -> 'smoothness')
-FROM planet_osm_line p
-WHERE ways.osm_id = p.osm_id;
-
-UPDATE ways 
-SET wheelchair = (tags -> 'wheelchair')
-FROM planet_osm_line p
-WHERE ways.osm_id = p.osm_id;
-
+SET sidewalk_right_width = l.sidewalk_right_width::numeric
+FROM (select p.*, (tags -> 'sidewalk:right:width') as sidewalk_right_width from planet_osm_line p) l
+WHERE ways.osm_id = l.osm_id;
 
 
 INSERT INTO osm_way_classes(class_id,name) values(801,'foot_no');
