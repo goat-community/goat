@@ -1,0 +1,116 @@
+<featureType>
+  <id>FeatureTypeInfoImpl-7407ec68:16e4f6e0398:6bfe</id>
+  <name>ways_wheelchair</name>
+  <nativeName>ways_wheelchair</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
+  </namespace>
+  <title>ways_wheelchair</title>
+  <keywords>
+    <string>features</string>
+    <string>ways_wheelchair_</string>
+  </keywords>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>11.5042826706177</minx>
+    <maxx>11.5665668</maxx>
+    <miny>48.1884164</miny>
+    <maxy>48.2245022</maxy>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>11.5042826706177</minx>
+    <maxx>11.5665668</maxx>
+    <miny>48.1884164</miny>
+    <maxy>48.2245022</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>ways_wheelchair</name>
+        <sql>WITH variables AS &#xd;
+(&#xd;
+	SELECT &#xd;
+	select_from_variable_container(&apos;categories_smoothness_no_wheelchair&apos;) AS categories_smoothness_no_wheelchair,&#xd;
+	select_from_variable_container(&apos;categories_smoothness_limited_wheelchair&apos;) AS categories_smoothness_limited_wheelchair,&#xd;
+	select_from_variable_container(&apos;categories_surface_no_wheelchair&apos;) AS categories_surface_no_wheelchair,&#xd;
+	select_from_variable_container(&apos;categories_highway_onstreet_wheelchair_yes&apos;) AS categories_highway_onstreet_wheelchair_yes,&#xd;
+	select_from_variable_container(&apos;categories_highway_onstreet_wheelchair_limited&apos;) AS categories_highway_onstreet_wheelchair_limited,&#xd;
+	select_from_variable_container(&apos;excluded_class_id_walking&apos;) AS excluded_class_id_walking,&#xd;
+	select_from_variable_container(&apos;categories_no_foot&apos;) AS categories_no_foot,&#xd;
+	select_from_variable_container(&apos;categories_sidewalk_no_foot&apos;) AS categories_sidewalk_no_foot&#xd;
+)&#xd;
+SELECT wheelchair, sidewalk, sidewalk_both_width, sidewalk_left_width, sidewalk_right_width, highway, surface, width, smoothness,w.geom,&#xd;
+CASE WHEN &#xd;
+	wheelchair IN (&apos;yes&apos;,&apos;Yes&apos;) &#xd;
+	OR ( sidewalk IN (&apos;both&apos;,&apos;left&apos;,&apos;right&apos;)&#xd;
+		AND (&#xd;
+			sidewalk_both_width &gt;= 1.80 OR sidewalk_left_width &gt;= 1.80 OR sidewalk_right_width &gt;= 1.80&#xd;
+			)&#xd;
+		) &#xd;
+	OR (wheelchair IS NULL AND width &gt;= 1.80 AND highway &lt;&gt; &apos;steps&apos; &#xd;
+		AND (smoothness IS NULL OR smoothness NOT IN (SELECT UNNEST(categories_smoothness_no_wheelchair) FROM variables))&#xd;
+		AND (surface IS NULL OR surface NOT IN (SELECT UNNEST(categories_surface_no_wheelchair) FROM variables))&#xd;
+		)&#xd;
+	OR (wheelchair IS NULL AND highway IN (SELECT UNNEST(categories_highway_onstreet_wheelchair_yes) FROM variables))&#xd;
+	THEN &apos;yes&apos; &#xd;
+WHEN&#xd;
+	wheelchair IN (&apos;limited&apos;,&apos;Limited&apos;)&#xd;
+	OR ( sidewalk IN (&apos;both&apos;,&apos;left&apos;,&apos;right&apos;)&#xd;
+		AND (&#xd;
+			(sidewalk_both_width &lt; 1.80 OR sidewalk_left_width &lt; 1.80 OR sidewalk_right_width &lt; 1.80 OR &#xd;
+			(sidewalk_both_width IS NULL AND sidewalk_left_width IS NULL AND sidewalk_right_width IS NULL)&#xd;
+			)&#xd;
+		) &#xd;
+		OR (wheelchair IS NULL AND width &gt;= 0.90 AND highway &lt;&gt; &apos;steps&apos; &#xd;
+		AND (smoothness IS NULL OR smoothness NOT IN (SELECT UNNEST(categories_smoothness_limited_wheelchair) FROM variables)) &#xd;
+		AND (surface IS NULL OR surface NOT IN (SELECT UNNEST(categories_surface_no_wheelchair) FROM variables))&#xd;
+		))&#xd;
+	OR (wheelchair IS NULL AND highway IN (SELECT UNNEST(categories_highway_onstreet_wheelchair_limited) FROM variables))&#xd;
+	THEN &apos;limited&apos;&#xd;
+WHEN&#xd;
+	wheelchair IN (&apos;no&apos;,&apos;No&apos;)&#xd;
+	--OR ( sidewalk IN (&apos;both&apos;,&apos;left&apos;,&apos;right&apos;)&#xd;
+		--AND (&#xd;
+			--((sidewalk_both_width &lt; 0.90 OR sidewalk_both_width IS NULL) &#xd;
+			--AND (sidewalk_left_width &lt; 0.90 OR sidewalk_left_width IS NULL)&#xd;
+			--AND (sidewalk_right_width &lt; 0.90 OR sidewalk_right_width IS NULL)&#xd;
+			--)&#xd;
+		--) &#xd;
+		OR (wheelchair IS NULL AND (width &lt; 0.90 OR highway = &apos;steps&apos; &#xd;
+		OR smoothness IN (SELECT UNNEST(categories_smoothness_limited_wheelchair) FROM variables) &#xd;
+		AND surface IN (SELECT UNNEST(categories_surface_no_wheelchair) FROM variables))&#xd;
+		)--)&#xd;
+	THEN &apos;no&apos;&#xd;
+ELSE &apos;unclassified&apos;&#xd;
+END AS wheelchair_classified&#xd;
+FROM ways w, study_area s&#xd;
+WHERE class_id::text NOT IN (SELECT UNNEST(excluded_class_id_walking) FROM variables)&#xd;
+AND (foot IS NULL OR foot NOT IN (SELECT UNNEST(categories_no_foot) FROM variables))&#xd;
+AND (sidewalk IS NULL OR sidewalk NOT IN (SELECT UNNEST(categories_sidewalk_no_foot) FROM variables))&#xd;
+AND ST_Intersects(s.geom,w.geom)
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>-1</srid>
+        </geometry>
+      </virtualTable>
+    </entry>
+    <entry key="cachingEnabled">false</entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

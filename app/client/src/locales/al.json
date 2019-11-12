@@ -218,6 +218,7 @@
         "layerGroup": {
             "poisLayers": "Shtresa e pikave të interesit",
             "administrativeLayers": "Shtresat administrative",
+            "streetlevelqualityLayers": "Street Level Quality",
             "accessbilityBasemaps": "Basemap i arritshmërisë",
             "backgroundLayers": "Shtresat bazë"
         },
