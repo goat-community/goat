@@ -218,6 +218,7 @@
         "layerGroup": {
             "poisLayers": "Couche des Pois",
             "administrativeLayers": "Couches administratives",
+            "streetlevelqualityLayers": "Street Level Quality",
             "accessbilityBasemaps": "Les couches d'accessibilité",
             "backgroundLayers": "Couches d'arrière-plan"
         },

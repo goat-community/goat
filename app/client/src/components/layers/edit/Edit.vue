@@ -237,6 +237,9 @@ export default {
       //Initialize ol edit controller
       me.olEditCtrl = new OlEditController(me.map);
       me.olEditCtrl.createEditLayer();
+
+      //Read or Insert ways deleted features
+      me.olEditCtrl.readOrInsertDeletedWaysFeatures();
     },
 
     /**

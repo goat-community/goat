@@ -1,13 +1,28 @@
 ALTER TABLE ways
-DROP COLUMN RULE,DROP COLUMN x1,DROP COLUMN x2,DROP COLUMN y1,DROP COLUMN y2, DROP COLUMN priority,
+DROP COLUMN RULE,DROP COLUMN x1,DROP COLUMN x2,DROP COLUMN y1,DROP COLUMN y2, DROP COLUMN priority
 DROP COLUMN length,DROP COLUMN cost,DROP COLUMN reverse_cost, DROP COLUMN cost_s, DROP COLUMN reverse_cost_s;
 ALTER TABLE ways rename column gid to id;
 ALTER TABLE ways rename column the_geom to geom;
 ALTER TABLE ways_vertices_pgr rename column the_geom to geom;
 ALTER TABLE ways alter column target type int4;
 ALTER TABLE ways alter column source type int4;
-ALTER TABLE ways ADD COLUMN foot text;
 ALTER TABLE ways ADD COLUMN bicycle text;
+ALTER TABLE ways ADD COLUMN foot text;
+ALTER TABLE ways ADD COLUMN highway text;
+ALTER TABLE ways ADD COLUMN incline text;
+ALTER TABLE ways ADD COLUMN lanes numeric;
+ALTER TABLE ways ADD COLUMN lit text;
+ALTER TABLE ways ADD COLUMN parking text;
+ALTER TABLE ways ADD COLUMN segregated text;
+ALTER TABLE ways ADD COLUMN sidewalk text;
+ALTER TABLE ways ADD COLUMN sidewalk_both_width numeric;
+ALTER TABLE ways ADD COLUMN sidewalk_left_width numeric;
+ALTER TABLE ways ADD COLUMN sidewalk_right_width numeric;
+ALTER TABLE ways ADD COLUMN smoothness text;
+ALTER TABLE ways ADD COLUMN surface text;
+ALTER TABLE ways ADD COLUMN wheelchair text;
+ALTER TABLE ways ADD COLUMN width numeric;
+
 
 UPDATE ways_vertices_pgr v SET cnt = y.cnt
 FROM (
@@ -23,11 +38,39 @@ FROM (
 WHERE v.id = y.SOURCE;
 
 
-
 UPDATE ways 
-SET foot = p.foot, bicycle = p.bicycle
+SET foot = p.foot, bicycle = p.bicycle, highway = p.highway, surface = p.surface, 
+width = (CASE WHEN p.width ~ '^[0-9.]*$' THEN p.width::numeric ELSE NULL END)
 FROM planet_osm_line p 
 WHERE ways.osm_id = p.osm_id;
+
+UPDATE ways 
+SET incline = (tags -> 'incline'), lit = (tags -> 'lit'), parking = (tags -> 'parking'), 
+segregated = (tags -> 'segregated'),sidewalk = (tags -> 'sidewalk'), smoothness = (tags -> 'smoothness'), 
+wheelchair = (tags -> 'wheelchair')
+FROM planet_osm_line p
+WHERE ways.osm_id = p.osm_id;
+
+UPDATE ways 
+SET lanes = l.lanes::numeric
+FROM (select p.*, (tags -> 'lanes') as lanes from planet_osm_line p) l
+WHERE ways.osm_id = l.osm_id;
+
+UPDATE ways 
+SET sidewalk_both_width = l.sidewalk_both_width::numeric
+FROM (select p.*, (tags -> 'sidewalk:both:width') as sidewalk_both_width from planet_osm_line p) l
+WHERE ways.osm_id = l.osm_id;
+
+UPDATE ways 
+SET sidewalk_left_width = l.sidewalk_left_width::numeric
+FROM (select p.*, (tags -> 'sidewalk:left:width') as sidewalk_left_width from planet_osm_line p) l
+WHERE ways.osm_id = l.osm_id;
+
+UPDATE ways 
+SET sidewalk_right_width = l.sidewalk_right_width::numeric
+FROM (select p.*, (tags -> 'sidewalk:right:width') as sidewalk_right_width from planet_osm_line p) l
+WHERE ways.osm_id = l.osm_id;
+
 
 INSERT INTO osm_way_classes(class_id,name) values(801,'foot_no');
 INSERT INTO osm_way_classes(class_id,name) values(701,'network_island');
