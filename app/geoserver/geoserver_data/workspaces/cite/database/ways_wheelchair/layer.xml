@@ -1,17 +1,17 @@
 <layer>
-  <name>ways_lit</name>
-  <id>LayerInfoImpl-7440d3b:16da56943d6:-7ffd</id>
+  <name>ways_wheelchair</name>
+  <id>LayerInfoImpl-7407ec68:16e4f6e0398:6bff</id>
   <type>VECTOR</type>
   <defaultStyle>
-    <id>StyleInfoImpl-7407ec68:16e4a1b5dd3:-269c</id>
+    <id>StyleInfoImpl-7407ec68:16e4c9e42b6:44c9</id>
   </defaultStyle>
   <styles class="linked-hash-set">
     <style>
-      <id>StyleInfoImpl--167589b6:15c77205b7f:-7ffe</id>
+      <id>StyleInfoImpl-7407ec68:16e4c9e42b6:44c9</id>
     </style>
   </styles>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl-7440d3b:16da56943d6:-7ffe</id>
+    <id>FeatureTypeInfoImpl-7407ec68:16e4f6e0398:6bfe</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>
