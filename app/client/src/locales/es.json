@@ -219,6 +219,7 @@
         "layerGroup": {
             "poisLayers": "Capa Pois",
             "administrativeLayers": "Límites administrativos",
+            "streetlevelqualityLayers": "Street Level Quality",
             "accessbilityBasemaps": "Accesibilidad",
             "backgroundLayers": "Capas de fondo"
         },
