@@ -1,0 +1,83 @@
+<featureType>
+  <id>FeatureTypeInfoImpl-7440d3b:16da56943d6:-7ffe</id>
+  <name>ways_lit</name>
+  <nativeName>ways_lit</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
+  </namespace>
+  <title>ways_lit</title>
+  <keywords>
+    <string>features</string>
+    <string>ways_lit</string>
+  </keywords>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>11.3157817</minx>
+    <maxx>11.7678993</maxx>
+    <miny>48.0166256</miny>
+    <maxy>48.2930864</maxy>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>11.3157817</minx>
+    <maxx>11.7678993</maxx>
+    <miny>48.0166256</miny>
+    <maxy>48.2930864</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>ways_lit</name>
+        <sql>WITH variables AS &#xd;
+(&#xd;
+	SELECT &#xd;
+	select_from_variable_container(&apos;categories_highway_lit_yes&apos;) AS categories_highway_lit_yes,&#xd;
+	select_from_variable_container(&apos;categories_highway_lit_no&apos;) AS categories_highway_lit_no,&#xd;
+	select_from_variable_container(&apos;categories_surface_lit_no&apos;) AS categories_surface_lit_no,&#xd;
+	select_from_variable_container(&apos;excluded_class_id_walking&apos;) AS excluded_class_id_walking,&#xd;
+	select_from_variable_container(&apos;categories_no_foot&apos;) AS categories_no_foot,&#xd;
+	select_from_variable_container(&apos;categories_sidewalk_no_foot&apos;) AS categories_sidewalk_no_foot&#xd;
+)&#xd;
+SELECT lit, highway, surface, w.geom,&#xd;
+CASE WHEN &#xd;
+	lit IN (&apos;yes&apos;,&apos;Yes&apos;) &#xd;
+	OR (lit IS NULL AND highway IN (SELECT UNNEST(categories_highway_lit_yes) FROM variables))&#xd;
+	THEN &apos;yes&apos; &#xd;
+WHEN&#xd;
+	lit IN (&apos;no&apos;,&apos;No&apos;)&#xd;
+	OR (lit IS NULL AND (highway IN (SELECT UNNEST(categories_highway_lit_no) FROM variables) &#xd;
+	OR surface IN (SELECT UNNEST(categories_surface_lit_no) FROM variables))&#xd;
+	)&#xd;
+	THEN &apos;no&apos;&#xd;
+ELSE &apos;unclassified&apos;&#xd;
+END AS lit_classified&#xd;
+FROM ways w, study_area s&#xd;
+WHERE class_id::text NOT IN (SELECT UNNEST(excluded_class_id_walking) FROM variables)&#xd;
+AND (foot IS NULL OR foot NOT IN (SELECT UNNEST(categories_no_foot) FROM variables))&#xd;
+AND (sidewalk IS NULL OR sidewalk NOT IN (SELECT UNNEST(categories_sidewalk_no_foot) FROM variables))&#xd;
+AND ST_Intersects(s.geom,w.geom)
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>-1</srid>
+        </geometry>
+      </virtualTable>
+    </entry>
+    <entry key="cachingEnabled">false</entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>
