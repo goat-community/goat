@@ -225,6 +225,8 @@
         "layerName": {
             "pois": "Point d'intérêt",
             "administrativeUnits": "Divisions administratives",
+            "illuminance": "Luminosité",
+            "wheelchairUsability": "Accessibilité pour personnes avec mobilité reduite",
             "areaIsochrone": "Superficie de l'isochrone",
             "walkabilityPopulation": "Population piétonnière",
             "population": "Population",
