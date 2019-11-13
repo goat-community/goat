@@ -93,32 +93,6 @@
       },
       {
         "type": "WMS",
-        "name": "illuminance",
-        "url": "/geoserver/wms",
-        "group": "streetlevelqualityLayers",
-        "layers": "cite:ways_lit",
-        "opacity": 1,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "serverType": "geoserver"
-      },
-      {
-        "type": "WMS",
-        "name": "wheelchairUsability",
-        "url": "/geoserver/wms",
-        "group": "streetlevelqualityLayers",
-        "layers": "cite:ways_wheelchair",
-        "opacity": 1,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "serverType": "geoserver"
-      },
-      {
-        "type": "WMS",
         "name": "walkability",
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
