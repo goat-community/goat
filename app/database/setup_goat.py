@@ -134,7 +134,7 @@ db_temp.execute_script_psql('/opt/data_preparation/SQL/create_tables.sql')
 db_temp.execute_script_psql('/opt/data_preparation/SQL/types.sql')
 #Create functions that are needed for data_preparation
 db_temp.execute_script_psql('/opt/database_functions/other/select_from_variable_container.sql')
-db_temp.execute_script_psql('split_long_way.sql')
+db_temp.execute_script_psql('/opt/database_functions/other/split_long_way.sql')
 
 
 if (setup_type in ['new_setup','update_all','update_population','update_pois','update_network']):
