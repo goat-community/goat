@@ -43,6 +43,16 @@ password = pgpass["PASSWORD"]
 osm_data_recency = config['DATA_SOURCE']['OSM_DATA_RECENCY']
 
 
+class DB_connection:
+    def __init__(self, db_name, user, host):
+        self.db_name = db_name
+        self.user = user
+        self.host = host
+    def execute_script_psql(self,script):
+        os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (self.db_name,self.user,self.host,script))
+
+db_temp = DB_connection(db_name,user,host)
+
 #Create pgpass-file for temporary database
 os.system('echo '+':'.join([host,port,db_name,user,password])+' > /.pgpass')
 os.system("chmod 600 .pgpass")
@@ -119,15 +129,13 @@ if (setup_type in ['update_all','update_population','update_pois','update_networ
         os.system('pg_dump -U %s -d %s -t %s | psql -d %s -U %s' % (user,pgpass["DB_NAME"],table_name,db_name,user))
 
 
+#Create tables and types
+db_temp.execute_script_psql('/opt/data_preparation/SQL/create_tables.sql')
+db_temp.execute_script_psql('/opt/data_preparation/SQL/types.sql')
 #Create functions that are needed for data_preparation
-os.chdir('/opt/data_preparation/SQL')
-os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'create_tables.sql'))
-os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'types.sql'))
-os.chdir('/opt/database_functions/other')
-os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'select_from_variable_container.sql'))
-os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'split_long_way.sql'))
+db_temp.execute_script_psql('/opt/database_functions/other/select_from_variable_container.sql')
+db_temp.execute_script_psql('split_long_way.sql')
 
-os.chdir('/opt/data')
 
 if (setup_type in ['new_setup','update_all','update_population','update_pois','update_network']):
     os.system('PGPASSFILE=/.pgpass osm2pgsql -d %s -H %s -U %s --hstore -E 4326 study_area.osm' % (db_name,host,user)) 
@@ -139,26 +147,26 @@ if (setup_type in ['new_setup','update_population','update_pois']):
         source_population = config['DATA_SOURCE']['POPULATION']
         print ('It was chosen to use population from: ', source_population)
         if (source_population == 'extrapolation'):
-            os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'../data_preparation/SQL/buildings_residential.sql'))
-            os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'../data_preparation/SQL/census.sql'))
+            db_temp.execute_script_psql('../data_preparation/SQL/buildings_residential.sql')
+            db_temp.execute_script_psql('../data_preparation/SQL/census.sql')
         elif(source_population == 'disaggregation'):
-            os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'../data_preparation/SQL/buildings_residential.sql'))
-            os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'../data_preparation/SQL/population_disagregation.sql'))
+            db_temp.execute_script_psql('../data_preparation/SQL/buildings_residential.sql')
+            db_temp.execute_script_psql('../data_preparation/SQL/population_disagregation.sql')
 
 if (setup_type in ['new_setup','update_all','update_network']):
-    os.system('PGPASSFILE=/.pgpass osm2pgrouting --dbname %s --host %s --username %s --file "study_area.osm" --conf ../mapconfig.xml --clean' % (db_name,host,user))
-    os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,'../data_preparation/SQL/network_preparation.sql'))
+    os.system('PGPASSFILE=/.pgpass osm2pgrouting --dbname %s --host %s --username %s --file "study_area.osm" --conf ../mapconfig.xml --clean' % (db_name,host,user)) 
+    db_temp.execute_script_psql('../data_preparation/SQL/network_preparation.sql')
 
 
 if (setup_type == 'new_setup'):
     for file in Path('../../database_functions/other').glob('*.sql'):
-        os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,file))
+        db_temp.execute_script_psql(file)
 
     for file in Path('../../database_functions/routing').glob('*.sql'):
-        os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,file))
+        db_temp.execute_script_psql(file)
 
     for file in Path('../../database_functions/heatmap').glob('*.sql'):
-        os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,file))
+        db_temp.execute_script_psql(file)
 
     #Create pgpass for goat-database
     os.system('echo '+':'.join([host,port,pgpass["DB_NAME"],user,password])+' > /.pgpass')
