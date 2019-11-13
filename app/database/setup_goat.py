@@ -25,7 +25,7 @@ parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 
 parser.add_argument('-t',help=help_text)
 setup_type = parser.parse_args().t
-print('You decided to the following setup-type: %s' % setup_type)
+print('You decided to do the following setup-type: %s' % setup_type)
 
 if not setup_type:
     sys.exit('You have defined no setup-type!')
@@ -151,13 +151,8 @@ if (setup_type in ['new_setup','update_all','update_network']):
 
 
 if (setup_type == 'new_setup'):
-
-    #Create pgpass for goat-database
-    os.system('echo '+':'.join([host,port,pgpass["DB_NAME"],user,password])+' > /.pgpass')
-    os.system("chmod 600 /.pgpass")
-
     for file in Path('../../database_functions/other').glob('*.sql'):
-     os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,file))
+        os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,file))
 
     for file in Path('../../database_functions/routing').glob('*.sql'):
         os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,file))
@@ -165,10 +160,15 @@ if (setup_type == 'new_setup'):
     for file in Path('../../database_functions/heatmap').glob('*.sql'):
         os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name,user,host,file))
 
+    #Create pgpass for goat-database
+    os.system('echo '+':'.join([host,port,pgpass["DB_NAME"],user,password])+' > /.pgpass')
+    os.system("chmod 600 /.pgpass")
+
+
     os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % pgpass["DB_NAME"])
     os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (pgpass["DB_NAME"],pgpass["DB_NAME"]+'old'))
     os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name, pgpass["DB_NAME"]))
-
+    os.system('psql -U postgres -c "DROP DATABASE %s;"' % (pgpass["DB_NAME"]+'old'))
 else:
     #Create pgpass for goat-database
     os.system('echo '+':'.join([host,port,pgpass["DB_NAME"],user,password])+' > /.pgpass')
