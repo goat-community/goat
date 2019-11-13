@@ -6,23 +6,12 @@ ALTER TABLE ways rename column the_geom to geom;
 ALTER TABLE ways_vertices_pgr rename column the_geom to geom;
 ALTER TABLE ways alter column target type int4;
 ALTER TABLE ways alter column source type int4;
-ALTER TABLE ways ADD COLUMN bicycle text;
-ALTER TABLE ways ADD COLUMN foot text;
-ALTER TABLE ways ADD COLUMN highway text;
-ALTER TABLE ways ADD COLUMN incline text;
-ALTER TABLE ways ADD COLUMN lanes numeric;
-ALTER TABLE ways ADD COLUMN lit text;
-ALTER TABLE ways ADD COLUMN parking text;
-ALTER TABLE ways ADD COLUMN segregated text;
-ALTER TABLE ways ADD COLUMN sidewalk text;
-ALTER TABLE ways ADD COLUMN sidewalk_both_width numeric;
-ALTER TABLE ways ADD COLUMN sidewalk_left_width numeric;
-ALTER TABLE ways ADD COLUMN sidewalk_right_width numeric;
-ALTER TABLE ways ADD COLUMN smoothness text;
-ALTER TABLE ways ADD COLUMN surface text;
-ALTER TABLE ways ADD COLUMN wheelchair text;
-ALTER TABLE ways ADD COLUMN width numeric;
-
+ALTER TABLE ways 
+	ADD COLUMN bicycle text, ADD COLUMN foot text, ADD COLUMN highway text, ADD COLUMN incline text, 
+	ADD COLUMN lanes NUMERIC, ADD COLUMN lit text, ADD COLUMN parking text, ADD COLUMN segregated text, 
+	ADD COLUMN sidewalk text, ADD COLUMN sidewalk_both_width NUMERIC, ADD COLUMN sidewalk_left_width NUMERIC,
+    ADD COLUMN sidewalk_right_width NUMERIC, ADD COLUMN smoothness text, ADD COLUMN surface text,
+    ADD COLUMN wheelchair text, ADD COLUMN width numeric;
 
 UPDATE ways_vertices_pgr v SET cnt = y.cnt
 FROM (

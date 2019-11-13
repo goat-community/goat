@@ -226,6 +226,8 @@
         "layerName": {
             "pois": "Point of Interest",
             "administrativeUnits": "Administrative Grenzen",
+            "illuminance": "Beleuchtung",
+            "wheelchairUsability": "Barrierefreiheit",
             "areaIsochrone": "Isochronengröße",
             "walkabilityPopulation": "Walkability - Population Index",
             "population": "Population",

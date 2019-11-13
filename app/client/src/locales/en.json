@@ -231,6 +231,8 @@
     "layerName": {
       "pois": "Point of Interest",
       "administrativeUnits": "Administrative Units",
+      "illuminance": "Illuminance",
+      "wheelchairUsability": "Wheelchair Usability",
       "areaIsochrone": "Area Isochrone",
       "walkabilityPopulation": "Walkability Population Index",
       "population": "Population",
