@@ -28,20 +28,102 @@ FROM (
 ) y
 WHERE v.id = y.SOURCE;
 
-
 UPDATE ways 
-SET foot = p.foot, bicycle = p.bicycle, highway = p.highway, surface = p.surface, 
-	width = (CASE WHEN p.width ~ '^[0-9.]*$' THEN p.width::numeric ELSE NULL END)
-FROM planet_osm_line p 
+SET foot = p.foot, bicycle = p.bicycle,
+from planet_osm_line p
 WHERE ways.osm_id = p.osm_id;
 
+/*Split long ways that. Parameter max_length can be set in the variable container*/
+DO $$
+DECLARE
+	max_length integer; 
+	excluded_class_id integer[];
+	categories_no_foot text[];
+BEGIN 
+	
+	SELECT select_from_variable_container('excluded_class_id_walking')::integer[],
+	select_from_variable_container('categories_no_foot')::text[]
+	INTO excluded_class_id, categories_no_foot;
+ 	
+	SELECT variable_simple::integer
+	INTO max_length
+	FROM variable_container
+	WHERE identifier = 'max_length_links';
+
+	WITH splited_ways AS (
+		SELECT id,class_id,ST_Length(split_long_way(geom,length_m::NUMERIC,max_length)::geography) AS length_m,
+		osm_id, foot,bicycle, split_long_way(geom,length_m::NUMERIC,max_length) AS geom
+		FROM ways w
+		WHERE length_m > max_length
+		AND w.class_id not in (select UNNEST(excluded_class_id))
+		AND (foot not in (SELECT UNNEST(categories_no_foot)) OR foot IS NULL)
+	),
+	delete_old AS (
+		DELETE FROM ways w 
+		USING splited_ways s 
+		WHERE w.id = s.id
+	)
+	INSERT INTO ways(class_id,length_m,osm_id,foot,bicycle,geom)
+	SELECT class_id,length_m, osm_id, foot, bicycle, geom 
+	FROM splited_ways;
+
+	UPDATE ways w SET SOURCE = v.id 
+	FROM ways_vertices_pgr v 
+	WHERE ST_astext(st_startpoint(w.geom)) = ST_astext(v.geom)
+	AND SOURCE IS NULL;
+
+	UPDATE ways w SET target = v.id 
+	FROM ways_vertices_pgr v 
+	WHERE ST_astext(st_endpoint(w.geom)) = ST_astext(v.geom)
+	AND target IS null;
+
+	WITH new_vertices AS (
+		SELECT st_startpoint(geom) AS geom 
+		FROM ways  
+		WHERE SOURCE IS NULL 
+		UNION ALL 
+		SELECT st_endpoint(geom) AS geom 
+		FROM ways
+		WHERE target IS NULL 
+	)
+	INSERT INTO ways_vertices_pgr(geom)
+	SELECT DISTINCT geom 
+	FROM new_vertices; 
+	
+	UPDATE ways w SET SOURCE = v.id 
+	FROM ways_vertices_pgr v 
+	WHERE ST_astext(st_startpoint(w.geom)) = ST_astext(v.geom)
+	AND SOURCE IS NULL;
+
+	UPDATE ways w SET target = v.id 
+	FROM ways_vertices_pgr v 
+	WHERE ST_astext(st_endpoint(w.geom)) = ST_astext(v.geom)
+	AND target IS null;
+
+END
+$$;
+
 UPDATE ways 
-SET incline = (tags -> 'incline'), lit = (tags -> 'lit'), parking = (tags -> 'parking'), 
-	parking_lane_both = (tags -> 'parking:lane:both'),	parking_lane_right = (tags -> 'parking:lane:right'), 
-	parking_lane_left = (tags -> 'parking:lane:left'), segregated = (tags -> 'segregated'),
-	sidewalk = (tags -> 'sidewalk'), smoothness = (tags -> 'smoothness'), wheelchair = (tags -> 'wheelchair')
-FROM planet_osm_line p
-WHERE ways.osm_id = p.osm_id;
+SET highway = l.highway, surface = l.surface, 
+	width = (CASE WHEN l.width ~ '^[0-9.]*$' THEN l.width::numeric ELSE NULL END)
+FROM (select osm_id, highway, surface, width from planet_osm_line p) l
+WHERE ways.osm_id = l.osm_id;
+
+UPDATE ways 
+SET incline = l.incline, lit = l.lit, parking = l.parking, 
+	parking_lane_both = l.parking_lane_both, parking_lane_right = l.parking_lane_right, 
+	parking_lane_left = l.parking_lane_left, segregated = l.segregated,
+	sidewalk = l.sidewalk, smoothness = l.smoothness, wheelchair = l.wheelchair
+FROM (select osm_id, (tags -> 'incline') AS incline, (tags -> 'lit') AS lit, 
+	(tags -> 'parking') AS parking, (tags -> 'parking:lane:both') AS parking_lane_both, 
+	(tags -> 'parking:lane:right') AS parking_lane_right, 
+	(tags -> 'parking:lane:left') AS parking_lane_left,
+	(tags -> 'segregated') AS segregated, 
+	(tags -> 'sidewalk') AS sidewalk, 
+	(tags -> 'smoothness') AS smoothness,
+	(tags -> 'wheelchair') AS wheelchair
+	from planet_osm_line p) l
+WHERE ways.osm_id = l.osm_id;
 
 UPDATE ways
 SET incline_percent=xx.incline_percent::integer 
@@ -104,76 +186,6 @@ AND (
 	OR ways.foot IS NULL
 ); 
 
-/*Split long ways that. Parameter max_length can be set in the variable container*/
-DO $$
-DECLARE
-	max_length integer; 
-	excluded_class_id integer[];
-	categories_no_foot text[];
-BEGIN 
-	
-	SELECT select_from_variable_container('excluded_class_id_walking')::integer[],
-	select_from_variable_container('categories_no_foot')::text[]
-	INTO excluded_class_id, categories_no_foot;
- 	
-	SELECT variable_simple::integer
-	INTO max_length
-	FROM variable_container
-	WHERE identifier = 'max_length_links';
-
-	WITH splited_ways AS (
-		SELECT id, class_id,ST_Length(split_long_way(geom,length_m::NUMERIC,max_length)::geography) AS length_m,
-		osm_id, foot, bicycle, split_long_way(geom,length_m::NUMERIC,max_length) AS geom
-		FROM ways w
-		WHERE length_m > max_length
-		AND w.class_id not in (select UNNEST(excluded_class_id))
-		AND (foot not in (SELECT UNNEST(categories_no_foot)) OR foot IS NULL)
-	),
-	delete_old AS (
-		DELETE FROM ways w 
-		USING splited_ways s 
-		WHERE w.id = s.id
-	)
-	INSERT INTO ways(class_id,length_m,osm_id,foot,bicycle,geom)
-	SELECT class_id,length_m, osm_id, foot, bicycle, geom 
-	FROM splited_ways;
-
-	UPDATE ways w SET SOURCE = v.id 
-	FROM ways_vertices_pgr v 
-	WHERE ST_astext(st_startpoint(w.geom)) = ST_astext(v.geom)
-	AND SOURCE IS NULL;
-
-	UPDATE ways w SET target = v.id 
-	FROM ways_vertices_pgr v 
-	WHERE ST_astext(st_endpoint(w.geom)) = ST_astext(v.geom)
-	AND target IS null;
-
-	WITH new_vertices AS (
-		SELECT st_startpoint(geom) AS geom 
-		FROM ways  
-		WHERE SOURCE IS NULL 
-		UNION ALL 
-		SELECT st_endpoint(geom) AS geom 
-		FROM ways
-		WHERE target IS NULL 
-	)
-	INSERT INTO ways_vertices_pgr(geom)
-	SELECT DISTINCT geom 
-	FROM new_vertices; 
-	
-	UPDATE ways w SET SOURCE = v.id 
-	FROM ways_vertices_pgr v 
-	WHERE ST_astext(st_startpoint(w.geom)) = ST_astext(v.geom)
-	AND SOURCE IS NULL;
-
-	UPDATE ways w SET target = v.id 
-	FROM ways_vertices_pgr v 
-	WHERE ST_astext(st_endpoint(w.geom)) = ST_astext(v.geom)
-	AND target IS null;
-
-END
-$$;
-
 ALTER TABLE ways_vertices_pgr ADD COLUMN class_ids int[];
 WITH class_ids AS (
 	SELECT vv.id, array_agg(DISTINCT x.class_id) class_ids
@@ -235,6 +247,97 @@ WHERE ways_vertices_pgr.id = v.id;
 CREATE INDEX ON ways USING btree(foot);
 CREATE INDEX ON ways USING btree(id);
 CREATE INDEX ON ways_vertices_pgr USING btree(cnt);
+
+WITH variables AS 
+(
+    SELECT variable_object AS wheelchair ,
+    select_from_variable_container('excluded_class_id_walking') AS excluded_class_id_walking,
+    select_from_variable_container('categories_no_foot') AS categories_no_foot,
+    select_from_variable_container('categories_sidewalk_no_foot') AS categories_sidewalk_no_foot
+    FROM variable_container
+    WHERE identifier='wheelchair'
+) 
+UPDATE ways w SET wheelchair_classified = x.wheelchair_classified
+FROM
+    (SELECT w.id,
+    CASE WHEN 
+        wheelchair IN ('yes','Yes') 
+        OR ( sidewalk IN ('both','left','right')
+            AND (
+                sidewalk_both_width >= 1.80 OR sidewalk_left_width >= 1.80 OR sidewalk_right_width >= 1.80
+                )
+            ) 
+        OR (wheelchair IS NULL AND width >= 1.80 AND highway <> 'steps' 
+            AND (smoothness IS NULL OR 
+            (smoothness NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_no')::jsonb) FROM variables)
+            AND smoothness NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_limited')::jsonb) FROM variables)
+            )
+            AND (surface IS NULL OR surface NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'surface_no')::jsonb) FROM variables))
+            AND (incline_percent IS NULL OR incline_percent < 6)
+            ))
+        OR (wheelchair IS NULL AND highway IN (SELECT jsonb_array_elements_text((wheelchair ->> 'highway_onstreet_yes')::jsonb) FROM variables))
+        THEN 'yes'
+    WHEN
+        wheelchair IN ('limited','Limited')
+        OR ( sidewalk IN ('both','left','right')
+            AND (
+                (sidewalk_both_width < 1.80 OR sidewalk_left_width < 1.80 OR sidewalk_right_width < 1.80 OR 
+                (sidewalk_both_width IS NULL AND sidewalk_left_width IS NULL AND sidewalk_right_width IS NULL)
+                )
+            ) 
+            OR (wheelchair IS NULL AND width >= 0.90 AND highway <> 'steps' 
+            AND (smoothness IS NULL OR smoothness NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_no')::jsonb) FROM variables)) 
+            AND (surface IS NULL OR surface NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'surface_no')::jsonb) FROM variables))
+            AND (incline_percent IS NULL OR incline_percent < 6)
+            ))
+        OR (wheelchair IS NULL AND highway IN (SELECT jsonb_array_elements_text((wheelchair ->> 'highway_onstreet_limited')::jsonb) FROM variables))
+        THEN 'limited'
+    WHEN
+        wheelchair IN ('no','No')
+            OR (wheelchair IS NULL AND (width < 0.90 OR highway = 'steps' 
+                OR smoothness IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_no')::jsonb) FROM variables) 
+                OR surface IN (SELECT jsonb_array_elements_text((wheelchair ->> 'surface_no')::jsonb) FROM variables)
+                OR (incline_percent IS NOT NULL AND incline_percent > 6))
+            )
+        THEN 'no'
+    ELSE 'unclassified'
+    END AS wheelchair_classified
+    FROM ways w, study_area s
+    WHERE class_id::text NOT IN (SELECT UNNEST(excluded_class_id_walking) FROM variables)
+    AND (foot IS NULL OR foot NOT IN (SELECT UNNEST(categories_no_foot) FROM variables))
+    ) x
+WHERE w.id = x.id
+;
+
+
+WITH variables AS 
+(
+    SELECT variable_object AS lit ,
+    select_from_variable_container('excluded_class_id_walking') AS excluded_class_id_walking,
+    select_from_variable_container('categories_no_foot') AS categories_no_foot,
+    select_from_variable_container('categories_sidewalk_no_foot') AS categories_sidewalk_no_foot
+    FROM variable_container
+    WHERE identifier='lit'
+)
+UPDATE ways w SET lit_classified = x.lit_classified
+FROM
+    (SELECT w.id,
+    CASE WHEN 
+        lit IN ('yes','Yes') 
+        OR (lit IS NULL AND highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_yes')::jsonb) FROM variables))
+        THEN 'yes' 
+    WHEN
+        lit IN ('no','No')
+        OR (lit IS NULL AND (highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_no')::jsonb) FROM variables) 
+        OR surface IN (SELECT jsonb_array_elements_text((lit ->> 'surface_no')::jsonb) FROM variables))
+        )
+        THEN 'no'
+    ELSE 'unclassified'
+    END AS lit_classified 
+    FROM ways w, study_area s
+    ) x
+WHERE w.id = x.id
+;
 
 CREATE TABLE ways_userinput (LIKE ways INCLUDING ALL);
 INSERT INTO ways_userinput
