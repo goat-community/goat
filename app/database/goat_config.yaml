@@ -11,10 +11,20 @@ DATA_SOURCE:
   #"most_recent" if the data from the OSM-Download-Link has not the recency you need. 
   OSM_DATA_RECENCY: "standard"
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
+  
+
+  
+DATA_REFINEMENT_VARIABLES:
   #extrapolation ==> census.shp + landuse.shp needed as input
   #disaggregation ==> landuse.shp needed as input + high-resolution population input data + high completness number of floors
   #custom_population ==> population.shp custom population data needed  
-  POPULATION: "extrapolation" 
-
-  
-
+ 
+  POPULATION: "extrapolation"
+  POI_CATEGORIES: [
+    "kindergarten","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
+    "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
+    "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
+    "hypermarket","international_supermarket","chemist","organic","marketplace",
+    "hotel","museum","hostel","guest_house","viewpoint","gallery","bus_stop",
+    "tram_stop","subway_entrance","rail_station"
+    ]
