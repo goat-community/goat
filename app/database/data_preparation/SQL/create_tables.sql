@@ -143,7 +143,7 @@ CREATE TABLE public.variable_container (
 	identifier varchar(100) NOT NULL,
 	variable_simple text NULL,
 	variable_array text[] NULL,
-	variable_object json NULL,
+	variable_object jsonb NULL,
 	CONSTRAINT variable_container_pkey PRIMARY KEY (identifier)
 );
 
@@ -171,38 +171,6 @@ values('categories_no_foot',
 INSERT INTO variable_container(identifier,variable_array) 
 values('categories_sidewalk_no_foot',
 '{"separate"}'); -- only for visualization
-
-INSERT INTO variable_container(identifier,variable_array) 
-values('categories_smoothness_no_wheelchair',
-'{"very_bad","horrible","very_horrible","impassable"}');
-
-INSERT INTO variable_container(identifier,variable_array) 
-values('categories_smoothness_limited_wheelchair',
-'{"bad"}');
-
-INSERT INTO variable_container(identifier,variable_array) 
-values('categories_surface_no_wheelchair',
-'{"ground","grass","sand","dirt","unhewn_cobblestone"}');
-
-INSERT INTO variable_container(identifier,variable_array) 
-values('categories_highway_onstreet_wheelchair_yes',
-'{"living_street"}');
-
-INSERT INTO variable_container(identifier,variable_array) 
-values('categories_highway_onstreet_wheelchair_limited',
-'{"residential"}');
-
-INSERT INTO variable_container(identifier,variable_array) 
-values('categories_highway_lit_yes',
-'{"living_street","residential","secondary","tertiary"}');
-
-INSERT INTO variable_container(identifier,variable_array) 
-values('categories_highway_lit_no',
-'{"track"}');
-
-INSERT INTO variable_container(identifier,variable_array) 
-values('categories_surface_lit_no',
-'{"ground","gravel","unpaved","grass"}');
 
 INSERT INTO variable_container(identifier,variable_simple) 
 values('max_length_links',
@@ -287,3 +255,15 @@ INSERT INTO variable_container(identifier,variable_array)
 values('operators_bicycle_rental',
 '{"Münchner Verkehrs gesellschaft","Münchner Verkehrsgesellschaft","MVG"}'
 );
+
+INSERT INTO variable_container(identifier,variable_object) 
+SELECT 'wheelchair', jsonb_build_object('smoothness_no', ARRAY['very_bad','horrible','very_horrible','impassable'],
+						'smoothness_limited', ARRAY['bad'],
+						'surface_no', ARRAY['ground','grass','sand','dirt','unhewn_cobblestone'],
+						'highway_onstreet_yes', ARRAY['living_street'],
+						'highway_onstreet_limited', ARRAY['residential']);
+
+INSERT INTO variable_container(identifier,variable_object) 
+SELECT 'lit', jsonb_build_object('highway_yes', ARRAY['living_street','residential','secondary','tertiary'],
+						'highway_no', ARRAY['track'],
+						'surface_no', ARRAY['ground', 'gravel', 'unpaved', 'grass']);
