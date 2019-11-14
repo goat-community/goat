@@ -225,6 +225,8 @@
         "layerName": {
             "pois": "Pikat e interesit",
             "administrativeUnits": "Njesitë administrative",
+            "illuminance": "Illuminance",
+            "wheelchairUsability": "Wheelchair Usability",
             "areaIsochrone": "Area Isochrone",
             "walkabilityPopulation": "Walkability Population",
             "population": "Population",
