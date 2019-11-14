@@ -7,12 +7,12 @@ ALTER TABLE ways_vertices_pgr rename column the_geom to geom;
 ALTER TABLE ways alter column target type int4;
 ALTER TABLE ways alter column source type int4;
 ALTER TABLE ways 
-	ADD COLUMN bicycle text, ADD COLUMN foot text, ADD COLUMN highway text, ADD COLUMN incline text, 
-	ADD COLUMN lanes NUMERIC, ADD COLUMN lit text, ADD COLUMN parking text, ADD COLUMN parking_lane_both text,
-	ADD COLUMN parking_lane_right text, ADD COLUMN parking_lane_left text, ADD COLUMN segregated text, 
-	ADD COLUMN sidewalk text, ADD COLUMN sidewalk_both_width NUMERIC, ADD COLUMN sidewalk_left_width NUMERIC,
-    ADD COLUMN sidewalk_right_width NUMERIC, ADD COLUMN smoothness text, ADD COLUMN surface text,
-    ADD COLUMN wheelchair text, ADD COLUMN width numeric;
+	ADD COLUMN bicycle text, ADD COLUMN foot text, ADD COLUMN highway text, ADD COLUMN incline text, ADD COLUMN incline_percent integer,
+	ADD COLUMN lanes NUMERIC, ADD COLUMN lit text, ADD COLUMN lit_classified text, ADD COLUMN parking text, 
+	ADD COLUMN parking_lane_both text, ADD COLUMN parking_lane_right text, ADD COLUMN parking_lane_left text, 
+	ADD COLUMN segregated text, ADD COLUMN sidewalk text, ADD COLUMN sidewalk_both_width NUMERIC, 
+	ADD COLUMN sidewalk_left_width NUMERIC, ADD COLUMN sidewalk_right_width NUMERIC, ADD COLUMN smoothness text, 
+	ADD COLUMN surface text, ADD COLUMN wheelchair text, ADD COLUMN wheelchair_classified text, ADD COLUMN width numeric;
 
 
 UPDATE ways_vertices_pgr v SET cnt = y.cnt
@@ -42,6 +42,15 @@ SET incline = (tags -> 'incline'), lit = (tags -> 'lit'), parking = (tags -> 'pa
 	sidewalk = (tags -> 'sidewalk'), smoothness = (tags -> 'smoothness'), wheelchair = (tags -> 'wheelchair')
 FROM planet_osm_line p
 WHERE ways.osm_id = p.osm_id;
+
+UPDATE ways
+SET incline_percent=xx.incline_percent::integer 
+FROM (
+	SELECT id, regexp_REPLACE(incline,'[^0-9]+','','g') AS incline_percent
+	FROM ways
+) xx 
+WHERE xx.incline_percent IS NOT NULL AND xx.incline_percent <> '' 
+AND ways.id = xx.id;
 
 UPDATE ways 
 SET lanes = l.lanes::numeric
