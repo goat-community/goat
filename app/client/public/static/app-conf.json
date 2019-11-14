@@ -93,6 +93,20 @@
       },
       {
         "type": "WMS",
+        "name": "walkability",
+        "url": "/geoserver/wms",
+        "group": "accessbilityBasemaps",
+        "layers": "cite:heatmap",
+        "viewparams": "amenities:'W10='",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "population",
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
