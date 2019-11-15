@@ -91,6 +91,7 @@ services:
       # a windows 10 premission issue. See https://github.com/docker-library/postgres/issues/435)
       - postgres_data:/var/lib/postgresql
       - ./app/database:/opt
+      - ./app/config:/opt/config
     env_file:
       - ./app/config/docker-env/db.env
     ports:
