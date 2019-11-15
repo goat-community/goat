@@ -9,7 +9,7 @@ from argparse import RawTextHelpFormatter
 
 #Define command line options
 help_text = '''You can define the update type. 
-             1. -t new_setup                    Do a completely fresh setup and drop your old database.
+             1. -t new_setup             Do a completely fresh setup and drop your old database.
              2. -t all                   Drop all tables created by GOAT and recreate them with new data (other tables will not be affected). 
              3. -t population            Update the population numbers.
              4. -t pois                  Update your POIs. 
