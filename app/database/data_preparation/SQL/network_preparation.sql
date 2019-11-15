@@ -29,7 +29,7 @@ FROM (
 WHERE v.id = y.SOURCE;
 
 UPDATE ways 
-SET foot = p.foot, bicycle = p.bicycle,
+SET foot = p.foot, bicycle = p.bicycle
 from planet_osm_line p
 WHERE ways.osm_id = p.osm_id;
 
