@@ -1,5 +1,5 @@
-DROP FUNCTION IF EXISTS fetch_ways_routing;
-CREATE OR REPLACE FUNCTION public.fetch_ways_routing(buffer_geom text, speed_input NUMERIC, excluded_class_id text[], categories_no_foot text[], modus_input integer, userid_input integer, routing_profile text)
+DROP FUNCTION IF EXISTS fetch_ways_routing_edited;
+CREATE OR REPLACE FUNCTION public.fetch_ways_routing_edited(buffer_geom text, speed_input NUMERIC, excluded_class_id text[], categories_no_foot text[], modus_input integer, userid_input integer, routing_profile text)
 RETURNS SETOF type_fetch_ways_routing
 AS $function$
 DECLARE 
@@ -26,17 +26,14 @@ BEGIN
 		sql_ways_ids = ' AND NOT id::int4 = any('''|| excluded_ways_id ||''') ';
 	END IF;
 
-	IF  routing_profile = 'safe_routing' THEN
-		sql_routing_profile = 'AND lit = '''||'yes'||''' OR highway = any('''||categories_lit_yes:text||''')';
+	IF  routing_profile = 'safe_night' THEN
+		sql_routing_profile = 'AND (lit_classified = ''yes'' OR lit_classified = ''unclassified'')';
 	END IF;
 
 	IF  routing_profile = 'wheelchair' THEN
-		sql_routing_profile = 'AND (wheelchair = '''||'yes'||''' OR wheelchair = '''||'limited'||''' OR 
-		(wheelchair IS NULL AND NOT highway = '''||'steps'||''' AND (width IS NULL OR width >= 0.9) AND 
-		NOT smoothness = any('''||categories_smoothness_no_wheelchair::text||''') AND 
-		NOT surface = any('''||categories_surface_no_wheelchair::text||'''))
-		)';
-	END IF;
+		sql_routing_profile = 'AND (wheelchair_classified =''yes'') OR wheelchair_classified =''limited''
+		OR wheelchair_classified =''unclassified'')';
+	END IF; 
 
 	RETURN query EXECUTE format(
 		'SELECT  id::integer, source, target, length_m as cost 
@@ -48,5 +45,5 @@ BEGIN
 END;
 $function$ LANGUAGE plpgsql;
 
-/*select fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.2,48.11),0.001)),)
+/*select fetch_ways_routing_edited(ST_ASTEXT(ST_BUFFER(ST_POINT(11.2,48.11),0.001)),1.33,'{0,101,102,103,104,105,106,107,501,502,503,504,701,801}','{use_sidepath,no}',1,1,'safe_night');
 */
