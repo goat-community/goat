@@ -81,7 +81,6 @@ CREATE TABLE study_area_union as
 SELECT st_union(geom) geom FROM study_area;
 
 
-
 -- Table: public.ways_modified
 
 -- DROP TABLE public.ways_modified;

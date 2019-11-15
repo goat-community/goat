@@ -2,7 +2,7 @@ ubuntu-bionic-18.04-cloudimg-console.log
 .vagrant
 .gitignore
 /app/geoserver/geoserver_data/logs
-/app/config/goat_config.yaml
+/app/database/goat_config.yaml
 /app/client/public/static/app-config.json
 /app/front_end/dist
 /app/front_end/node_modules
