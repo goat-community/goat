@@ -46,7 +46,7 @@ Change to the "website-development" branch, at this branch the development versi
 
 `git checkout website-development`
 
-If you receive an error message that this branch does not yet exist, visit the GitHub website, navigate to your repository and create a new branch called "gh-pages".
+If you receive an error message that this branch does not yet exist, visit the GitHub website, navigate to your repository and create a new branch called "website-development".
 
 #### 5. Make sure to have the newest file versions
 
