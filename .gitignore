@@ -1,8 +1,9 @@
 ubuntu-bionic-18.04-cloudimg-console.log
 .vagrant
+.gitignore
 /app/data/*
 !/app/data/.gitkeep
-/app/geoserver/geoserver_data/logs/geoserver.log
+/app/geoserver/geoserver_data/logs/*
 /app/config/goat_config.yaml
 /app/front_end/dist
 /app/front_end/node_modules
@@ -14,5 +15,6 @@ ubuntu-bionic-18.04-cloudimg-console.log
 /_site
 /.sass-cache
 /app/database/data_preparation/Python/__pycache__
+/app/database/scripts/__pycache__
 node_modules
 dist
