@@ -28,9 +28,7 @@ BEGIN
 
 	IF  routing_profile = 'safe_night' THEN
 		sql_routing_profile = 'AND (lit_classified = ''yes'' OR lit_classified = ''unclassified'')';
-	END IF;
-
-	IF  routing_profile = 'wheelchair' THEN
+	ELSE IF  routing_profile = 'wheelchair' THEN
 		sql_routing_profile = 'AND (wheelchair_classified =''yes'') OR wheelchair_classified =''limited''
 		OR wheelchair_classified =''unclassified'')';
 	END IF; 
