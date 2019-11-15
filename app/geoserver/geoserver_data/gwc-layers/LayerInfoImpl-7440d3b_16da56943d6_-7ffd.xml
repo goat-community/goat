@@ -42,7 +42,7 @@
       <key>STYLES</key>
       <defaultValue></defaultValue>
       <availableStyles class="sorted-set">
-        <string>line</string>
+        <string>cite:lit</string>
       </availableStyles>
       <defaultStyle>cite:lit</defaultStyle>
     </styleParameterFilter>
