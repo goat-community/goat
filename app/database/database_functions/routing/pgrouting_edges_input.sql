@@ -33,12 +33,12 @@ AS $function$
 	INTO excluded_class_id, categories_no_foot;
 
 	SELECT array_append(array_agg(id),0::bigint)::text INTO excluded_ways_id FROM (
-	SELECT Unnest(deleted_feature_ids) id FROM user_data
-	WHERE id = userid_input
-	UNION ALL
-	SELECT original_id modified
-	FROM ways_modified 
-	WHERE userid = userid_input AND original_id IS NOT null
+		SELECT Unnest(deleted_feature_ids) id FROM user_data
+		WHERE id = userid_input
+		UNION ALL
+		SELECT original_id modified
+		FROM ways_modified 
+		WHERE userid = userid_input AND original_id IS NOT null
 	) x;
 
 	SELECT id, geom INTO id_vertex, geom_vertex
