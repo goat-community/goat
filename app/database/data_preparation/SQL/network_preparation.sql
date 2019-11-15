@@ -248,6 +248,7 @@ CREATE INDEX ON ways USING btree(foot);
 CREATE INDEX ON ways USING btree(id);
 CREATE INDEX ON ways_vertices_pgr USING btree(cnt);
 
+--precalculation of visualized features for wheelchair
 WITH variables AS 
 (
     SELECT variable_object AS wheelchair ,
@@ -309,7 +310,7 @@ FROM
 WHERE w.id = x.id
 ;
 
-
+--precalculation of visualized features for lit
 WITH variables AS 
 (
     SELECT variable_object AS lit ,
