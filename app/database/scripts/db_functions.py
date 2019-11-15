@@ -3,7 +3,7 @@
 
 import yaml, os, psycopg2
 class ReadYAML:
-    with open("/opt/goat_config.yaml", 'r') as stream:
+    with open("/opt/config/goat_config.yaml", 'r') as stream:
         conf = yaml.load(stream, Loader=yaml.FullLoader)
    
     db_conf = conf["DATABASE"]
