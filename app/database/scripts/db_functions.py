@@ -58,8 +58,15 @@ def create_variable_container():
             for k in v.keys():
                 objs = objs+ ",'%s', ARRAY%s" % (k,v[k])
             sql_insert = sql_insert + sql_object % (i,objs[1:])
-                
+
     return sql_create_table + sql_insert
+
+
+def update_variable_container(sql_command):
+    db_name,user,host = ReadYAML().db_credentials()[:3]
+    db = DB_connection(db_name,user,host)
+
+    db.execute_text_psql(sql_command)   
 
 
 def update_functions():
