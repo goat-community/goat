@@ -7,7 +7,7 @@ ALTER TABLE ways_vertices_pgr rename column the_geom to geom;
 ALTER TABLE ways alter column target type int4;
 ALTER TABLE ways alter column source type int4;
 ALTER TABLE ways 
-	ADD COLUMN bicycle_road text; ADD COLUMN bicycle text, ADD COLUMN cycleway text, ADD COLUMN foot text, 
+	ADD COLUMN bicycle_road text, ADD COLUMN bicycle text, ADD COLUMN cycleway text, ADD COLUMN foot text, 
 	ADD COLUMN highway text, ADD COLUMN incline text, ADD COLUMN incline_percent integer,
 	ADD COLUMN lanes NUMERIC, ADD COLUMN lit text, ADD COLUMN lit_classified text, ADD COLUMN parking text, 
 	ADD COLUMN parking_lane_both text, ADD COLUMN parking_lane_right text, ADD COLUMN parking_lane_left text, 
