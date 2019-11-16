@@ -37,6 +37,7 @@ CREATE TYPE public.type_catchment_vertices AS
 	cnt integer,
 	cost numeric,
 	geom geometry,
+	w_geom geometry,
 	objectid integer	
 );
 
