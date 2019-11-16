@@ -57,9 +57,9 @@ DATA_REFINEMENT_VARIABLES:
     wheelchair:
       smoothness_no: ["very_bad","horrible","very_horrible","impassable"]
       smoothness_limited: ['bad']
-      surface_no: ['ground','grass','sand','dirt','unhewn_cobblestone']
+      surface_no: ['ground','grass','sand','dirt','unhewn_cobblestone','unpaved']
       highway_onstreet_yes: ['living_street']
-      highway_onstreet_limited: ['residential']
+      highway_onstreet_limited: ['residential','service']
     lit: 
       highway_yes: ['living_street','residential','secondary','tertiary']
       highway_no: ['track']
