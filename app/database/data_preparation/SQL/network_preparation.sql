@@ -7,7 +7,8 @@ ALTER TABLE ways_vertices_pgr rename column the_geom to geom;
 ALTER TABLE ways alter column target type int4;
 ALTER TABLE ways alter column source type int4;
 ALTER TABLE ways 
-	ADD COLUMN bicycle text, ADD COLUMN foot text, ADD COLUMN highway text, ADD COLUMN incline text, ADD COLUMN incline_percent integer,
+	ADD COLUMN bicycle_road text, ADD COLUMN bicycle text, ADD COLUMN cycleway text, ADD COLUMN foot text, 
+	ADD COLUMN highway text, ADD COLUMN incline text, ADD COLUMN incline_percent integer,
 	ADD COLUMN lanes NUMERIC, ADD COLUMN lit text, ADD COLUMN lit_classified text, ADD COLUMN parking text, 
 	ADD COLUMN parking_lane_both text, ADD COLUMN parking_lane_right text, ADD COLUMN parking_lane_left text, 
 	ADD COLUMN segregated text, ADD COLUMN sidewalk text, ADD COLUMN sidewalk_both_width NUMERIC, 
@@ -110,11 +111,13 @@ FROM (select osm_id, highway, surface, width from planet_osm_line p) l
 WHERE ways.osm_id = l.osm_id;
 
 UPDATE ways 
-SET incline = l.incline, lit = l.lit, parking = l.parking, 
+SET bicycle_road = l.bicycle_road, cycleway = l.cycleway, incline = l.incline, lit = l.lit, parking = l.parking, 
 	parking_lane_both = l.parking_lane_both, parking_lane_right = l.parking_lane_right, 
 	parking_lane_left = l.parking_lane_left, segregated = l.segregated,
 	sidewalk = l.sidewalk, smoothness = l.smoothness, wheelchair = l.wheelchair
-FROM (select osm_id, (tags -> 'incline') AS incline, (tags -> 'lit') AS lit, 
+FROM (select osm_id, (tags -> 'bicycle_road') AS bicycle_road, 
+	(tags -> 'cycleway') AS cycleway, 
+	(tags -> 'incline') AS incline, (tags -> 'lit') AS lit, 
 	(tags -> 'parking') AS parking, (tags -> 'parking:lane:both') AS parking_lane_both, 
 	(tags -> 'parking:lane:right') AS parking_lane_right, 
 	(tags -> 'parking:lane:left') AS parking_lane_left,
