@@ -15,8 +15,9 @@ number_calculation_input integer;
 begin
 --The speed AND minutes input are considered as distance
 
-  IF  routing_profile = 'wheelchair' THEN
-  speed = 
+  IF  routing_profile = 'elderly' THEN
+    speed = 0.833333; --in varibale container packen
+  END IF; 
   
   distance=speed*(minutes*60);
   -- input point
@@ -52,5 +53,5 @@ begin
 END ;
 $function$;
 
-/* SELECT * FROM public.pgrouting_edges_edited(7, 11.546394, 48.195533, 1.33, 1, 15, 1, 'safe-night');
+/* SELECT * FROM public.pgrouting_edges_edited(7, 11.546394, 48.195533, 1.33, 1, 15, 1, 'safe_night');
 */

@@ -69,4 +69,4 @@ begin
   
 END;
 $function$
---SELECT * FROM isochrones_alphashape(111,15,11.575260,48.148124,2,5,0.00003,1,44435,1)
+--SELECT * FROM isochrones_alphashape_edited(111,7,11.543274,48.195524,2,5,0.00003,1,44435,1,'wheelchair')

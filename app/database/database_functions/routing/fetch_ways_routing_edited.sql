@@ -1,6 +1,7 @@
 DROP FUNCTION IF EXISTS fetch_ways_routing_edited;
-CREATE OR REPLACE FUNCTION public.fetch_ways_routing_edited(buffer_geom text, speed_input NUMERIC, excluded_class_id text[], categories_no_foot text[], modus_input integer, userid_input integer, routing_profile text)
-RETURNS SETOF type_fetch_ways_routing
+CREATE OR REPLACE FUNCTION public.fetch_ways_routing_edited(buffer_geom text, speed_input numeric, excluded_class_id text[], categories_no_foot text[], modus_input integer, userid_input integer, routing_profile text)
+ RETURNS SETOF type_fetch_ways_routing
+ LANGUAGE plpgsql
 AS $function$
 DECLARE 
 	excluded_ways_id text;
@@ -28,9 +29,10 @@ BEGIN
 
 	IF  routing_profile = 'safe_night' THEN
 		sql_routing_profile = 'AND (lit_classified = ''yes'' OR lit_classified = ''unclassified'')';
-	ELSE IF  routing_profile = 'wheelchair' THEN
-		sql_routing_profile = 'AND (wheelchair_classified =''yes'') OR wheelchair_classified =''limited''
-		OR wheelchair_classified =''unclassified'')';
+	END IF;
+	IF  routing_profile = 'wheelchair' THEN
+		sql_routing_profile = 'AND ((wheelchair_classified = ''yes'') OR wheelchair_classified = ''limited''
+		OR wheelchair_classified = ''unclassified'')';
 	END IF; 
 
 	RETURN query EXECUTE format(
@@ -41,7 +43,12 @@ BEGIN
 		AND geom && ST_GeomFromText('''||buffer_geom||''')'||sql_userid||sql_ways_ids||sql_routing_profile
 	);
 END;
-$function$ LANGUAGE plpgsql;
+$function$
 
-/*select fetch_ways_routing_edited(ST_ASTEXT(ST_BUFFER(ST_POINT(11.2,48.11),0.001)),1.33,'{0,101,102,103,104,105,106,107,501,502,503,504,701,801}','{use_sidepath,no}',1,1,'safe_night');
+/*select fetch_ways_routing_edited(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)),1.33,'{0,101,102,103,104,105,106,107,501,502,503,504,701,801}','{use_sidepath,no}',1,1,'safe_night');
+*/
+
+/*CREATE TABLE ways_safe AS 
+select f.*, w.geom FROM ways w, (SELECT * FROM fetch_ways_routing_edited(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.005)),2.5,'{0,101,102,103,104,105,106,107,501,502,503,504,701,801}','{use_sidepath,no}',1,1,'safe_night') AS ways_routing) f
+WHERE w.id = f.id;
 */
