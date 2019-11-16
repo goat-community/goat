@@ -6,6 +6,8 @@ from scripts import db_functions
 import argparse
 import sys
 from argparse import RawTextHelpFormatter
+from scripts.db_functions import DB_connection
+from scripts.db_functions import ReadYAML
 
 #Define command line options
 help_text = '''You can define the update type. 
@@ -30,6 +32,8 @@ if not setup_type:
 elif (setup_type == 'functions'):
     db_functions.update_functions()
 elif (setup_type == 'variable_container'):
-    db_functions.create_variable_container()
+    db_name,user,host = ReadYAML().db_credentials()[:3]
+    db_con = DB_connection(db_name,user,host)
+    db_con.execute_text_psql(db_functions.create_variable_container())
 else:
     setup_db.setup_db(setup_type)
