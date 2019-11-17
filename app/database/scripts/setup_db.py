@@ -10,6 +10,7 @@ def setup_db(setup_type):
     from scripts.db_functions import ReadYAML
     from scripts.db_functions import DB_connection
     from scripts.db_functions import create_variable_container
+    from scripts.db_functions import update_functions
 
     download_link,osm_data_recency,buffer,source_population = ReadYAML().data_source()
     db_name,user,host,port,password = ReadYAML().db_credentials()
@@ -43,6 +44,7 @@ def setup_db(setup_type):
     if (setup_type == 'new_setup'):
 
         bounding_box = '--bounding-box top=%f left=%f bottom=%f right=%f' % (top,left,bottom,right)
+        #print('osmosis --read-pbf file="raw-osm.osm.pbf" %s --write-xml file="study_area.osm"' % bounding_box)
         os.system('osmosis --read-pbf file="raw-osm.osm.pbf" %s --write-xml file="study_area.osm"' % bounding_box)
 
         #Create timestamps
@@ -125,6 +127,9 @@ def setup_db(setup_type):
         #Create pgpass for goat-database
         os.system('echo '+':'.join([host,str(port),db_name,user,password])+' > /.pgpass')
         os.system("chmod 600 /.pgpass")
+        
+        #Creates DB_functions
+        update_functions()
 
         os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name)
         os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name,db_name+'old'))
