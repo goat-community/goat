@@ -30,7 +30,6 @@ if not setup_type:
 elif (setup_type == 'functions'):
     db_functions.update_functions()
 elif (setup_type == 'variable_container'):
-    sql_command = db_functions.create_variable_container()
-    db_functions.update_variable_container(sql_command)
+    db_functions.create_variable_container()
 else:
     setup_db.setup_db(setup_type)
