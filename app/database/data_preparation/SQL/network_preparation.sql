@@ -356,5 +356,23 @@ ALTER TABLE ways_userinput_vertices_pgr add column userid int4;
 CREATE INDEX ON ways_userinput USING btree (userid);
 CREATE INDEX ON ways_userinput_vertices_pgr USING btree (userid);
 
+--creation of a table that stores all street crossings
+DROP TABLE IF EXISTS crossings;
+CREATE TABLE crossings AS
+(SELECT osm_id, highway, way FROM planet_osm_point WHERE highway = 'crossing');
 
-
+ALTER TABLE crossings
+	ADD COLUMN crossing text, ADD COLUMN crossing_ref text, 
+	ADD COLUMN kerb text, ADD COLUMN segregated text, 
+	ADD COLUMN supervised text, ADD COLUMN tactile_paving text,
+	ADD COLUMN wheelchair text;
+	 
+UPDATE crossings 
+SET crossing = l.crossing, crossing_ref = l.crossing_ref, kerb = l.kerb, segregated = l.segregated, supervised = l.supervised, 
+	tactile_paving = l.tactile_paving, wheelchair = l.wheelchair
+FROM (select osm_id, (tags -> 'crossing') AS crossing, 
+	(tags -> 'crossing_ref') AS crossing_ref, (tags -> 'kerb') AS kerb, 
+	(tags -> 'segregated') AS segregated, (tags -> 'supervised') AS supervised, 
+	(tags -> 'tactile_paving') AS tactile_paving, (tags -> 'wheelchair') AS wheelchair
+	FROM planet_osm_point p) l
+WHERE crossings.osm_id = l.osm_id;
