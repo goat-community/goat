@@ -35,7 +35,7 @@
       1.1943,
       0.5972
     ],
-    "center": [1289645.541227, 6129485.298188],
+    "center": [11.542392, 48.201336],
     "layers": [
       {
         "type": "VECTOR",
@@ -115,6 +115,19 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "Street Crossings",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:street_crossings",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 2,
         "serverType": "geoserver"
       },
       {
