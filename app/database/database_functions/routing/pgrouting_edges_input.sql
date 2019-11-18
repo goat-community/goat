@@ -23,7 +23,6 @@ AS $function$
 	IF modus = 3  THEN
 		userid_vertex = 1;
 		userid_input = 1;
-
 	ELSEIF modus = 4 THEN  	 
 		userid_vertex = 1;
 	END IF;
@@ -32,7 +31,8 @@ AS $function$
 	select_from_variable_container('categories_no_foot')
 	INTO excluded_class_id, categories_no_foot;
 
-	SELECT array_append(array_agg(id),0::bigint)::text INTO excluded_ways_id FROM (
+	SELECT array_append(array_agg(id),0::bigint)::text 
+	INTO excluded_ways_id FROM (
 		SELECT Unnest(deleted_feature_ids) id FROM user_data
 		WHERE id = userid_input
 		UNION ALL
@@ -41,15 +41,10 @@ AS $function$
 		WHERE userid = userid_input AND original_id IS NOT null
 	) x;
 
-	SELECT id, geom INTO id_vertex, geom_vertex
-	FROM ways_userinput_vertices_pgr
-	WHERE userid is null or userid = userid_vertex
-	AND (class_ids <@ excluded_class_id::int[]) IS false
-	ORDER BY geom <-> point
-	LIMIT 1;
-	IF ST_Distance(geom_vertex::geography,point::geography)>250 THEN
-	RETURN;
-	END IF;
+	SELECT closest_vertex[1] AS id, closest_vertex[2] geom 
+ 	INTO id_vertex, geom_vertex
+  	FROM closest_vertex(userid_input,x,y,0.0018 /*100m => approx. 0.0009 */,'excluded_class_id_walking',1);
+
 	IF modus <> 3 THEN 
 		SELECT count(objectid) + 1 INTO number_calculation_input
 		FROM starting_point_isochrones
