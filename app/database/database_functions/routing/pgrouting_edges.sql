@@ -47,3 +47,5 @@ begin
   RETURN;
 END ;
 $function$;
+
+--SELECT * FROM pgrouting_edges(10, 11.539832,48.197182, 1.333, 1, 1)

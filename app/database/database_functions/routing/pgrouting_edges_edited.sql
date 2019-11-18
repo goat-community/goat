@@ -9,9 +9,8 @@ buffer text;
 distance numeric;
 id_vertex integer;
 geom_vertex geometry;
-excluded_class_id text;
-categories_no_foot text;
 number_calculation_input integer;
+max_length_links integer;
 begin
 --The speed AND minutes input are considered as distance
 
@@ -20,10 +19,6 @@ begin
   END IF; 
   
   distance=speed*(minutes*60);
-  -- input point
-  SELECT select_from_variable_container('excluded_class_id_walking'),
-  select_from_variable_container('categories_no_foot')
-  INTO excluded_class_id, categories_no_foot;
 
   SELECT closest_vertex[1] AS id, closest_vertex[2] geom 
   INTO id_vertex, geom_vertex
@@ -41,17 +36,27 @@ begin
   SELECT ST_AsText(ST_Buffer(ST_Union(geom_vertex)::geography,distance)::geometry)  
   INTO buffer;
 
-  RETURN query
-  SELECT id_vertex, id1::integer AS node, id2::integer AS edge, (cost/speed)::NUMERIC, v.geom, objectid_input  
+  SELECT variable_simple::integer
+  INTO max_length_links
+  FROM variable_container 
+  WHERE identifier = 'max_length_links';
+	
+  DROP TABLE IF EXISTS temp_reached_vertices;
+  CREATE TEMP TABLE temp_reached_vertices as 
+  SELECT id_vertex AS start_vertex, id1::integer AS node, id2::integer AS edge, 1 AS cnt, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid 
   FROM PGR_DrivingDistance( 
-    	'SELECT * FROM fetch_ways_routing_edited('''||buffer||''','||speed||','''||excluded_class_id||''','''||categories_no_foot||''','||modus_input||','||userid_input||','''||routing_profile||''')'
+    	'SELECT * FROM fetch_ways_routing_edited('''||buffer||''','||speed||','||modus_input||','||userid_input||','''||routing_profile||''')'
 	    ,id_vertex, distance,FALSE,FALSE
       )p, ways_vertices_pgr v
-   WHERE p.id1 = v.id;
-  
+  WHERE p.id1 = v.id;
+    
+  RETURN query 
+  SELECT start_vertex,node,edge,cost,geom,objectid_input 
+  FROM extrapolate_reached_vertices(minutes*60,max_length_links,buffer,speed,modus_input,userid_input,routing_profile); 
+
+
   RETURN;
 END ;
 $function$;
 
-/* SELECT * FROM public.pgrouting_edges_edited(7, 11.546394, 48.195533, 1.33, 1, 15, 1, 'safe_night');
-*/
+--SELECT * FROM public.pgrouting_edges_edited(7, 11.546394, 48.195533, 1.33, 1, 15, 1, 'safe_night');

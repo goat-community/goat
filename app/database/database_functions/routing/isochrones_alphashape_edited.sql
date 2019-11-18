@@ -10,6 +10,7 @@ counter integer :=0;
 upper_limit integer;
 under_limit integer;
 edges type_edges[];
+max_length_links integer;
 begin
 --If the modus is input the routing tables for the network with userinput have to be choosen
   speed = speed/3.6;
@@ -28,9 +29,10 @@ begin
   IF modus <> 1 THEN
     execute format('CREATE TEMP TABLE temp_edges as SELECT *,'||objectid_input||' FROM pgrouting_edges_input('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||','||modus||')');
   ELSE 
-    execute format('CREATE TEMP TABLE temp_edges as SELECT *,'||objectid_input||' FROM pgrouting_edges_edited('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||','||modus||','''||routing_profile||''')');
+    execute format('SELECT *,'||objectid_input||' FROM pgrouting_edges_edited('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||','||modus||','''||routing_profile||''')');
   END IF;
   
+
   INSERT INTO edges(edge,node,cost,class_id,objectid,geom) 
   SELECT id AS edge,node,cost,class_id,objectid_input,geom  
   FROM show_network(round(minutes*60,0),modus,userid_input);
