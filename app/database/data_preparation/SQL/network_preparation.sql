@@ -376,3 +376,49 @@ FROM (select osm_id, (tags -> 'crossing') AS crossing,
 	(tags -> 'tactile_paving') AS tactile_paving, (tags -> 'wheelchair') AS wheelchair
 	FROM planet_osm_point p) l
 WHERE crossings.osm_id = l.osm_id;
+
+--creation of a table that stores all sidewalk geometries
+DROP TABLE IF EXISTS ways_offset;
+CREATE TABLE ways_offset AS
+SELECT w.id, w.sidewalk,(ST_OffsetCurve(w.geom,  0.00005, 'join=round mitre_limit=2.0')) AS geom_left, 
+	(ST_OffsetCurve(w.geom,  -0.00005, 'join=round mitre_limit=2.0')) AS geom_right
+FROM ways w
+WHERE w.sidewalk = 'both' OR w.sidewalk = 'left' OR w.sidewalk = 'right';
+
+CREATE INDEX ON ways_offset USING btree(id);
+CREATE INDEX ON ways_offset USING gist(geom_left);
+CREATE INDEX ON ways_offset USING gist(geom_right);
+
+CREATE TABLE footpaths_union_temp AS
+	SELECT o.geom_left AS geom, o.sidewalk,
+	CASE WHEN w.sidewalk_left_width IS NOT NULL 
+		THEN w.sidewalk_left_width
+	WHEN w.sidewalk_both_width IS NOT NULL 
+		THEN w.sidewalk_both_width
+	ELSE NULL
+	END AS width, highway
+	FROM ways w, ways_offset o
+	WHERE w.id=o.id AND (o.sidewalk = 'both' OR o.sidewalk = 'left' OR o.sidewalk IS NULL)
+UNION
+	SELECT o.geom_right AS geom, o.sidewalk,
+	CASE WHEN w.sidewalk_right_width IS NOT NULL 
+		THEN w.sidewalk_right_width
+	WHEN w.sidewalk_both_width IS NOT NULL 
+		THEN w.sidewalk_both_width
+	ELSE NULL
+	END AS width, highway
+	FROM ways w, ways_offset o
+	WHERE w.id=o.id AND (o.sidewalk = 'both' OR o.sidewalk = 'right' OR o.sidewalk IS NULL)
+UNION
+	SELECT geom, sidewalk, width, highway FROM ways
+	WHERE sidewalk = 'no'
+UNION
+	SELECT geom, sidewalk, width, highway FROM ways
+	WHERE highway = 'living_street'
+UNION
+	SELECT geom, sidewalk, width, highway FROM ways
+	WHERE sidewalk IS NULL AND (highway = 'cycleway' OR highway = 'path' OR highway = 'track' OR highway = 'footway' OR highway = 'steps' OR highway = 'service');
+
+CREATE INDEX ON footpaths_union_temp USING gist(geom);
+ALTER TABLE footpaths_union_temp ADD COLUMN id serial;
+ALTER TABLE footpaths_union_temp ADD PRIMARY KEY(id);

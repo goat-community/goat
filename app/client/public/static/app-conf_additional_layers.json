@@ -35,7 +35,7 @@
       1.1943,
       0.5972
     ],
-    "center": [11.542392, 48.201336],
+    "center": [1289645.541227, 6129485.298188],
     "layers": [
       {
         "type": "VECTOR",
@@ -128,6 +128,19 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 2,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "Footpath Width",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:footpath_width",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
         "serverType": "geoserver"
       },
       {
