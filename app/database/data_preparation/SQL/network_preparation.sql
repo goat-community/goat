@@ -401,6 +401,9 @@ CREATE TABLE footpaths_union_temp AS
 	END AS width, highway
 	FROM ways w, ways_offset o
 	WHERE w.id=o.id AND (o.sidewalk = 'both' OR o.sidewalk = 'left' OR o.sidewalk IS NULL)
+		AND w.class_id::text NOT IN (SELECT unnest(variable_array) from variable_container WHERE identifier = 'excluded_class_id_walking')
+		AND (w.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') 
+		OR w.foot IS NULL)
 UNION
 	SELECT o.geom_right AS geom, o.sidewalk,
 	CASE WHEN w.sidewalk_right_width IS NOT NULL 
@@ -411,6 +414,9 @@ UNION
 	END AS width, highway
 	FROM ways w, ways_offset o
 	WHERE w.id=o.id AND (o.sidewalk = 'both' OR o.sidewalk = 'right' OR o.sidewalk IS NULL)
+		AND w.class_id::text NOT IN (SELECT unnest(variable_array) from variable_container WHERE identifier = 'excluded_class_id_walking')
+		AND (w.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') 
+		OR w.foot IS NULL)
 UNION
 	SELECT geom, sidewalk, width, highway FROM ways
 	WHERE sidewalk = 'no'
@@ -433,6 +439,4 @@ CREATE INDEX ON footpaths_union_temp USING gist(geom);
 ALTER TABLE footpaths_union_temp ADD COLUMN id serial;
 ALTER TABLE footpaths_union_temp ADD PRIMARY KEY(id);
 
-SELECT * FROM footpaths_union_temp;
 
---creation of a table that stores all sidewalk geometries
