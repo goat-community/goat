@@ -145,6 +145,19 @@
       },
       {
         "type": "WMS",
+        "name": "Surface",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_surface",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "walkability",
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
