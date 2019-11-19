@@ -119,6 +119,19 @@
       },
       {
         "type": "WMS",
+        "name": "Lanes",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_lanes",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "Parking",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
