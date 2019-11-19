@@ -157,6 +157,15 @@ SET sidewalk_right_width = l.sidewalk_right_width::numeric
 FROM (select p.*, (tags -> 'sidewalk:right:width') as sidewalk_right_width from planet_osm_line p) l
 WHERE ways.osm_id = l.osm_id;
 
+--Updating default speed limits for living_streets
+UPDATE ways
+SET maxspeed_forward = 7
+WHERE highway = 'living_street' AND maxspeed_forward = 50;
+
+UPDATE ways
+SET maxspeed_backward = 7
+WHERE highway = 'living_street' AND maxspeed_backward = 50;
+
 
 INSERT INTO osm_way_classes(class_id,name) values(801,'foot_no');
 INSERT INTO osm_way_classes(class_id,name) values(701,'network_island');
