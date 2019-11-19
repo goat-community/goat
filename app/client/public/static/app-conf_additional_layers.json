@@ -132,6 +132,19 @@
       },
       {
         "type": "WMS",
+        "name": "Speed",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_speed",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "Street Crossings",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
