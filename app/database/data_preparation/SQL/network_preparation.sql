@@ -389,6 +389,8 @@ CREATE INDEX ON ways_offset USING btree(id);
 CREATE INDEX ON ways_offset USING gist(geom_left);
 CREATE INDEX ON ways_offset USING gist(geom_right);
 
+--table for visualization of the footpath width
+DROP TABLE IF EXISTS footpaths_union_temp;
 CREATE TABLE footpaths_union_temp AS
 	SELECT o.geom_left AS geom, o.sidewalk,
 	CASE WHEN w.sidewalk_left_width IS NOT NULL 
@@ -416,9 +418,21 @@ UNION
 	SELECT geom, sidewalk, width, highway FROM ways
 	WHERE highway = 'living_street'
 UNION
+	SELECT geom, sidewalk, 
+	CASE WHEN segregated = 'yes'
+		THEN width/2 
+	ELSE width
+	END AS width, highway 
+	FROM ways
+	WHERE highway ='cycleway' OR (foot = 'designated' AND bicycle = 'designated')
+UNION
 	SELECT geom, sidewalk, width, highway FROM ways
-	WHERE sidewalk IS NULL AND (highway = 'cycleway' OR highway = 'path' OR highway = 'track' OR highway = 'footway' OR highway = 'steps' OR highway = 'service');
+	WHERE sidewalk IS NULL AND highway IN ('path','track','footway','steps','service','pedestrian');
 
 CREATE INDEX ON footpaths_union_temp USING gist(geom);
 ALTER TABLE footpaths_union_temp ADD COLUMN id serial;
 ALTER TABLE footpaths_union_temp ADD PRIMARY KEY(id);
+
+SELECT * FROM footpaths_union_temp;
+
+--creation of a table that stores all sidewalk geometries
