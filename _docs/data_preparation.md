@@ -35,7 +35,7 @@ census.shp
 
 landuse.shp (optional)
 
-In the case you have census data in your study area but you know the data is outdated. GOAT<sub>beta</sub> has an script `your-GOAT-directory/app/data_preparation/SQL/census.sql` that allows you to update the census grids based on current population numbers in your whole study area. The script checks for areas where new development took place and estimates based on average gross living area how many residents live in the affected grids. You can also customize the same in the `variable_container`. This procedure also makes use of the extracted residential buildings as described in the population dissagregation.
+In the case you have census data in your study area but you know the data is outdated. GOAT<sub>beta</sub> has an script `your-GOAT-directory/app/data_preparation/SQL/census.sql` that allows you to update the census grids based on current population numbers in your whole study area. The script checks for areas where new development took place and estimates based on average gross living area how many residents live in the affected grids. You can also customize the same in the `variable_container`. This procedure also makes use of the extracted residential buildings as described in the population dissagregation. 
 
 ##### Custom high-resolution population data 
 
