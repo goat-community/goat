@@ -323,6 +323,10 @@ WHERE w.id = x.id
 ;
 
 --Precalculation of visualized features for lit
+DROP TABLE buffer_lamps;
+CREATE TABLE buffer_lamps as
+(SELECT ST_UNION(ST_BUFFER(way,0.00015,'quad_segs=8')) FROM planet_osm_point WHERE highway = 'street_lamp');
+
 WITH variables AS 
 (
     SELECT variable_object AS lit ,
@@ -338,6 +342,7 @@ FROM
     CASE WHEN 
         lit IN ('yes','Yes') 
         OR (lit IS NULL AND highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_yes')::jsonb) FROM variables))
+		OR (lit IS NULL AND ST_Intersects(b.st_union,w.geom)::boolean IS true)	
         THEN 'yes' 
     WHEN
         lit IN ('no','No')
@@ -347,7 +352,7 @@ FROM
         THEN 'no'
     ELSE 'unclassified'
     END AS lit_classified 
-    FROM ways w, study_area s
+    FROM ways w, buffer_lamps b
     ) x
 WHERE w.id = x.id
 ;
