@@ -32,6 +32,11 @@ const state = {
           value: "standard"
         },
         {
+          display: "Elderly",
+          name: "routingElderly",
+          value: "elderly"
+        },
+        {
           display: "Wheelchair",
           name: "routingWheelchair",
           value: "wheelchair"
@@ -39,7 +44,7 @@ const state = {
         {
           display: "Safe-night",
           name: "routingSafeNight",
-          value: "Safe-night"
+          value: "safe_night"
         }
       ],
       active: "standard"
