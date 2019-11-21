@@ -1,0 +1,59 @@
+<featureType>
+  <id>FeatureTypeInfoImpl-6fdb676a:16e7e68d9eb:-2204</id>
+  <name>ways_speed</name>
+  <nativeName>ways_speed</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
+  </namespace>
+  <title>ways_speed</title>
+  <keywords>
+    <string>features</string>
+    <string>ways_speed</string>
+  </keywords>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>11.5058152</minx>
+    <maxx>11.5665668</maxx>
+    <miny>48.1884244</miny>
+    <maxy>48.2238131</maxy>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>11.5058152</minx>
+    <maxx>11.5665668</maxx>
+    <miny>48.1884244</miny>
+    <maxy>48.2238131</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>ways_speed</name>
+        <sql>SELECT w.maxspeed_forward, w.geom FROM ways w, study_area s WHERE w.highway IN (&apos;motorway&apos;,&apos;trunk&apos;,&apos;primary&apos;,&apos;secondary&apos;,&apos;tertiary&apos;,&apos;residential&apos;,&#xd;
+	&apos;motorway_link&apos;,&apos;trunk_link&apos;,&apos;primary_link&apos;,&apos;secondary_link&apos;,&apos;tertiary_link&apos;,&#xd;
+	&apos;living_street&apos;,&apos;service&apos;, &apos;unclassified&apos;)&#xd;
+AND ST_Intersects(s.geom,w.geom)
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>-1</srid>
+        </geometry>
+      </virtualTable>
+    </entry>
+    <entry key="cachingEnabled">false</entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>
