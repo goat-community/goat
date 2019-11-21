@@ -19,14 +19,14 @@ WITH touching_network AS
 (
 	SELECT t.start_vertex, w.id, w.geom, w.SOURCE, w.target, t.cost, t.node, t.edge, 1 as cnt, w.cost AS w_cost, t.objectid
 	FROM temp_reached_vertices t, 
-	fetch_ways_routing_edited(buffer_geom,speed,modus_input,userid_input,routing_profile) w 
+	fetch_ways_routing(buffer_geom,speed,modus_input,userid_input,routing_profile) as w 
 	WHERE t.node = w.target 
 	AND t.node <> w.SOURCE
 	AND t.cost + (max_length_links/speed) > max_cost
 	UNION ALL 
 	SELECT t.start_vertex, w.id, w.geom, w.SOURCE, w.target, t.cost, t.node, t.edge, 1 as cnt, w.cost AS w_cost, t.objectid
 	FROM temp_reached_vertices t, 
-	fetch_ways_routing_edited(buffer_geom,speed,modus_input,userid_input,routing_profile)  w 
+	fetch_ways_routing(buffer_geom,speed,modus_input,userid_input,routing_profile) as w 
 	WHERE t.node <> w.target
 	AND t.node = w.SOURCE
 	AND t.cost + (max_length_links/speed) > max_cost
@@ -48,7 +48,7 @@ FROM touching_network t, not_completely_reached_network n
 WHERE t.SOURCE = n.source 
 AND 1-(max_cost-cost)/w_cost BETWEEN 0 AND 1
 UNION ALL 
-SELECT t.start_vertex::integer, 99999999 AS node, t.id::integer, t.cnt, max_cost AS cost, st_endpoint(st_linesubstring(geom,0.0,(max_cost-cost)/w_cost)) geom,st_linesubstring(geom,0.0,(max_cost-cost)/w_cost) as w_geom, objectid
+SELECT t.start_vertex::integer, 99999999 AS node, t.id::integer edges, t.cnt, max_cost AS cost, st_endpoint(st_linesubstring(geom,0.0,(max_cost-cost)/w_cost)) geom,st_linesubstring(geom,0.0,(max_cost-cost)/w_cost) as w_geom, objectid
 FROM touching_network t, not_completely_reached_network n
 WHERE t.target = n.source 
 AND (max_cost-cost)/w_cost BETWEEN 0 AND 1 

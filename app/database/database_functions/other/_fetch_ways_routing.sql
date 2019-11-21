@@ -1,5 +1,5 @@
-DROP FUNCTION IF EXISTS fetch_ways_routing_edited;
-CREATE OR REPLACE FUNCTION public.fetch_ways_routing_edited(buffer_geom text, speed_input numeric, modus_input integer, userid_input integer, routing_profile text)
+DROP FUNCTION IF EXISTS fetch_ways_routing;
+CREATE OR REPLACE FUNCTION public.fetch_ways_routing(buffer_geom text, speed_input numeric, modus_input integer, userid_input integer, routing_profile text)
  RETURNS SETOF type_fetch_ways_routing
  LANGUAGE plpgsql
 AS $function$
@@ -11,7 +11,9 @@ DECLARE
 	table_name text := 'ways';
 	excluded_class_id text;
 	categories_no_foot text;
+	userid_vertex integer;
 BEGIN 
+
 	IF modus_input <> 1 THEN 
 		table_name = 'ways_userinput';
 		SELECT array_append(array_agg(x.id),0)::text 
@@ -50,10 +52,10 @@ BEGIN
 END;
 $function$
 
-/*select fetch_ways_routing_edited(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)),1.33,'{0,101,102,103,104,105,106,107,501,502,503,504,701,801}','{use_sidepath,no}',1,1,'safe_night');
+/*select fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)),1.33,'{0,101,102,103,104,105,106,107,501,502,503,504,701,801}','{use_sidepath,no}',1,1,'safe_night');
 */
 
 /*CREATE TABLE ways_safe AS 
-select f.*, w.geom FROM ways w, (SELECT * FROM fetch_ways_routing_edited(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.005)),2.5,'{0,101,102,103,104,105,106,107,501,502,503,504,701,801}','{use_sidepath,no}',1,1,'safe_night') AS ways_routing) f
+select f.*, w.geom FROM ways w, (SELECT * FROM fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.005)),2.5,'{0,101,102,103,104,105,106,107,501,502,503,504,701,801}','{use_sidepath,no}',1,1,'safe_night') AS ways_routing) f
 WHERE w.id = f.id;
 */

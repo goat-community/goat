@@ -77,7 +77,8 @@ CREATE TYPE type_fetch_ways_routing AS
 	id integer, 
 	SOURCE integer, 
 	target integer, 
-	cost float
+	cost float,
+	geom geometry
 );
 DROP TYPE IF EXISTS type_catchment_vertices_single CASCADE;
 CREATE TYPE public.type_catchment_vertices_single AS

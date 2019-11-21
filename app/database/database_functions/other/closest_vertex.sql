@@ -11,7 +11,7 @@ DECLARE
 	userid_vertex integer := 1;
 BEGIN
 	
-	IF modus = 2  THEN
+	IF modus <> 1  THEN
 		userid_vertex = userid_input;
 	END IF;
 -- input point
