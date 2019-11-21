@@ -129,7 +129,8 @@ export default {
       steps: "options.steps",
       concavityIsochrones: "options.concavityIsochrones.active",
       calculationModes: "options.calculationModes.active",
-      alphaShapeParameter: "options.alphaShapeParameter.active"
+      alphaShapeParameter: "options.alphaShapeParameter.active",
+      routingProfile: "options.routingProfile.active"
     })
   },
   methods: {
