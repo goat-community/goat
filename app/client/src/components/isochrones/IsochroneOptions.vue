@@ -38,6 +38,16 @@
         class="mx-4 isochroneOptions"
         v-if="isIsochroneOptionsVisible"
       >
+        <v-select
+          v-if="options.calculationType"
+          item-text="display"
+          item-value="value"
+          outlined
+          v-model="routingProfile"
+          :value="routingProfile"
+          :items="options.routingProfile.values"
+          :label="$t('isochrones.options.routingProfile')"
+        ></v-select>
         <v-slider
           min="1"
           max="20"
@@ -48,7 +58,6 @@
           color="#30C2FF"
         >
         </v-slider>
-
         <v-slider
           min="1"
           max="10"

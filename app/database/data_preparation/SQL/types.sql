@@ -41,6 +41,18 @@ CREATE TYPE public.type_catchment_vertices AS
 	objectid integer	
 );
 
+DROP TYPE IF EXISTS type_catchment_vertices_multi CASCADE;
+CREATE TYPE public.type_catchment_vertices_multi AS
+(
+	start_vertex integer,
+	node integer,
+	edge integer,
+	cnt integer,
+	cost numeric,
+	geom geometry,
+	objectid integer	
+);
+
 DROP TYPE IF EXISTS type_pois_multi_isochrones CASCADE;
 CREATE TYPE type_pois_multi_isochrones AS 
 (
@@ -88,6 +100,7 @@ CREATE TYPE public.type_catchment_vertices_single AS
 	edge integer,
 	cost numeric,
 	geom geometry,
+	w_geom geometry,
 	objectid integer	
 );
 
