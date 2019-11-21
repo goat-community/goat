@@ -43,7 +43,7 @@ AS $function$
 
 	SELECT closest_vertex[1] AS id, closest_vertex[2] geom 
  	INTO id_vertex, geom_vertex
-  	FROM closest_vertex(userid_input,x,y,0.0018 /*100m => approx. 0.0009 */,'excluded_class_id_walking',1);
+  	FROM closest_vertex(userid_input,x,y,0.0018 /*100m => approx. 0.0009 */,'excluded_class_id_walking',modus);
 
 	IF modus <> 3 THEN 
 		SELECT count(objectid) + 1 INTO number_calculation_input
@@ -59,12 +59,7 @@ AS $function$
 	--In this case the routing is done on a modified table
 	SELECT id_vertex, p.id1::integer AS node, p.id2::integer AS edge, (p.cost/speed)::numeric, v.geom, objectid_input 
 	FROM PGR_DrivingDistance(
-		'SELECT id::int4, source, target, length_m as cost FROM ways_userinput 
-		WHERE not class_id = any(''' || excluded_class_id || ''')   			
-		AND geom && ST_Buffer('''||point::text||'''::geography,'||distance||')::geometry
-		AND not id::int4 = any('''|| excluded_ways_id ||''') 
-		AND (NOT foot = any('''||categories_no_foot||''') OR foot IS NULL)
-		AND userid IS NULL OR userid='||userid_input,
+		'SELECT * FROM fetch_ways_routing('''||buffer||''','||speed||','||modus_input||','||userid_input||','''||routing_profile||''')',
 		id_vertex, 
 		distance, false, false
 	) p, ways_userinput_vertices_pgr v
