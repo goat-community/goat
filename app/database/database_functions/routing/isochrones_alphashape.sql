@@ -26,12 +26,8 @@ begin
     DELETE FROM temp_step_vertices;
   END IF;
 
-  --IF modus <> 1 THEN
-    --execute format('CREATE TEMP TABLE temp_edges as SELECT *,'||objectid_input||' FROM pgrouting_edges_input('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||','||modus||')');
-  --ELSE 
   EXECUTE format('CREATE TEMP TABLE extrapolated_vertices AS SELECT * FROM pgrouting_edges('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||','||modus||','''||routing_profile||''')');
-  --END IF;
-  
+
   /*Replacement for show_network goes in here*/
 --The speed input, time input AND step input are used to draw isochrones with the corresponding intervals
   LOOP
@@ -59,4 +55,4 @@ begin
   
 END;
 $function$
---SELECT * FROM isochrones_alphashape(111,7,11.543274,48.195524,2,5,0.00003,1,44435,1,'wheelchair')
+--SELECT * FROM isochrones_api(111,7,11.543274,48.195524,2,5,0.00003,'default','wheelchair')

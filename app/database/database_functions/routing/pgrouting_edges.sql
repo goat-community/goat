@@ -75,7 +75,7 @@ begin
   END IF;
 
   RETURN query 
-  SELECT start_vertex,node,edge,cost,geom,objectid_input 
+  SELECT start_vertex,node,edge,cost,geom,w_geom,objectid_input 
   FROM extrapolate_reached_vertices(minutes*60,max_length_links,buffer,speed,modus_input,userid_input,routing_profile); 
 
   RETURN;

@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS multi_isochrones;
-CREATE OR REPLACE FUNCTION public.multi_isochrones (userid_input integer, minutes integer, n integer, speed_input numeric, alphashape_parameter_input NUMERIC, modus_input integer, parent_id_input integer, points_array NUMERIC[][])
+CREATE OR REPLACE FUNCTION public.multi_isochrones (userid_input integer, minutes integer, n integer, speed_input numeric, alphashape_parameter_input NUMERIC, modus_input integer, parent_id_input integer, points_array NUMERIC[][],routing_profile text)
     RETURNS SETOF type_pois_multi_isochrones
     AS $function$
 DECLARE
@@ -30,7 +30,7 @@ BEGIN
     DROP TABLE IF EXISTS temp_catchment_vertices;
     CREATE TEMP TABLE temp_catchment_vertices AS
     SELECT start_vertex,node,edge,cnt,cost,geom,objectid
-    FROM pgrouting_edges_multi (userid_input,minutes,points_array,speed_input::NUMERIC,objectids_array,modus_input);
+    FROM pgrouting_edges_multi (userid_input,minutes,points_array,speed_input::NUMERIC,objectids_array,modus_input,routing_profile);
     -- routing is expensive
     ALTER TABLE temp_catchment_vertices ADD COLUMN id serial;
     ALTER TABLE temp_catchment_vertices ADD PRIMARY KEY (id);
@@ -83,38 +83,18 @@ BEGIN
             END LOOP;
         END LOOP;
     objectid_multi_isochrone = random_between (1, 900000000);
+    
     INSERT INTO multi_isochrones (objectid, coordinates, userid, step, speed, alphashape_parameter, modus, parent_id, geom)
-SELECT
-    objectid_multi_isochrone,
-    points_array AS coordinates,
-    userid_input,
-    step,
-    speed_input,
-    alphashape_parameter_input,
-    modus_input,
-    1,
-    ST_Union (geom) AS geom
-FROM
-    isos
-GROUP BY
-    step;
+    SELECT objectid_multi_isochrone,points_array AS coordinates,userid_input,step,speed_input,
+    alphashape_parameter_input,modus_input,parent_id_input, ST_Union (geom) AS geom
+    FROM isos
+    GROUP BY step;
+
     RETURN query
-    SELECT
-        gid,
-        objectid,
-        coordinates,
-        userid,
-        step,
-        speed,
-        alphashape_parameter,
-        modus,
-        parent_id,
-        population,
-        geom geometry
-    FROM
-        multi_isochrones
-    WHERE
-        objectid = objectid_multi_isochrone;
+    SELECT gid,objectid,coordinates,userid,step,speed,
+    alphashape_parameter,modus,parent_id,population,geom geometry
+    FROM multi_isochrones
+    WHERE objectid = objectid_multi_isochrone;
 END;
 $function$
 LANGUAGE plpgsql;

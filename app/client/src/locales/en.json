@@ -162,7 +162,8 @@
       "alphaShapeMode": "Level of detail isochrones",
       "defaultNetwork": "Default Network",
       "modifiedNetwork": "Modified Network",
-      "modifiedNetworkDoubleCalc": "Modified Network (Double Calculation)"
+      "modifiedNetworkDoubleCalc": "Modified Network (Double Calculation)",
+      "routingProfile": "Routing Profile"
     },
     "results": {
       "title": "Results",
