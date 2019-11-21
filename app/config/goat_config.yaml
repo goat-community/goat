@@ -9,7 +9,7 @@ DATA_SOURCE:
   #"no_download" if you don't want to download OSM data automatically. Make sure that the file is called raw-osm.osm.pbf.
   OSM_DOWNLOAD_LINK: "no_download" #"https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf" 
   #"most_recent" if the data from the OSM-Download-Link has not the recency you need. 
-  OSM_DATA_RECENCY: "standard"
+  OSM_DATA_RECENCY: "most_recent"
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
   
 
@@ -45,6 +45,10 @@ DATA_REFINEMENT_VARIABLES:
     building_types_residential: ["residential","detached","terrace","apartments","home"]
     tourism_no_residents: ["zoo"]
     amenity_no_residents: ["hospital","university","community_centre","school","kindergarten","recreation_ground","wood"]
+    amenity_opening_hours: ["atm","art","bakery","bank","bar","beverages","biergarten","books","butcher","cafe","chemist","clothes","coffee",
+      "convenience","dentist","discount_supermarket","doctors","driving_school","fast_food","fuel","hairdresser","hookah_lounge","hypermarket","ice_cream",
+      "international_supermarket","kiosk","library","museum","organic","pharmacy","post_office","pub","restaurant","social_facility","supermarket",
+      "toilets","veterinary"]
     default_building_levels: '3'
     minimum_building_size_residential: '54'
     census_minimum_number_new_buildings: '1'
