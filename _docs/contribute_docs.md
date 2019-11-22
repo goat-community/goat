@@ -60,17 +60,13 @@ Then get the newest version of the upstream repository:
 
 `git fetch upstream`
 
-Check if you are up to date:
-
-`git checkout website-development`
-
-Merge the new version into your website-development branch:
+Merge the new version of the website-development branch into your current branch:
 
 `git merge upstream/website-development`
 
 Push the new version to your origin GitHub repository:
 
-`git push origin website-development`
+`git push origin`
 
 Now you are ready to contribute.
 
