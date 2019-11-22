@@ -64,7 +64,7 @@ BEGIN
             --extrapolate each cluster of catchment vertices
             INSERT INTO temp_extrapolated_reached_vertices
             SELECT *
-            FROM extrapolate_reached_vertices (minutes * 60,max_length_links,(speed_input / 3.6),excluded_class_id,categories_no_foot);
+            FROM extrapolate_reached_vertices (minutes * 60,max_length_links,(speed_input/3.6),excluded_class_id,categories_no_foot);
             LOOP
                 exit
                 WHEN counter = n;
