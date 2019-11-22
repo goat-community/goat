@@ -12,3 +12,8 @@ AS $$
 		x="Error"
 	return x
 $$ LANGUAGE plpython3u;
+
+/*SELECT gid,amenity,opening_hours,check_open(opening_hours,array[21, 9, 0]) FROM pois WHERE opening_hours IS NOT NULL AND amenity = 'supermarket'
+*/
+
+
