@@ -323,7 +323,7 @@ WHERE w.id = x.id
 ;
 
 --Precalculation of visualized features for lit
-DROP TABLE buffer_lamps;
+DROP TABLE IF EXISTS buffer_lamps;
 CREATE TABLE buffer_lamps as
 (SELECT ST_UNION(ST_BUFFER(way,0.00015,'quad_segs=8')) FROM planet_osm_point WHERE highway = 'street_lamp');
 

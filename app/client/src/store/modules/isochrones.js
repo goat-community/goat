@@ -23,6 +23,32 @@ const state = {
     placeName: ""
   },
   options: {
+    routingProfile: {
+      name: "profile",
+      values: [
+        {
+          display: "Standard",
+          name: "routingStandard",
+          value: "standard"
+        },
+        {
+          display: "Elderly",
+          name: "routingElderly",
+          value: "elderly"
+        },
+        {
+          display: "Wheelchair",
+          name: "routingWheelchair",
+          value: "wheelchair"
+        },
+        {
+          display: "Safe-night",
+          name: "routingSafeNight",
+          value: "safe_night"
+        }
+      ],
+      active: "standard"
+    },
     calculationType: "single",
     minutes: "10",
     speed: "5",
@@ -141,6 +167,7 @@ const state = {
 };
 
 const getters = {
+  routingProfile: state => state.routingProfile,
   calculations: state => state.calculations,
   options: state => state.options,
   isochroneLayer: state => state.isochroneLayer,
@@ -202,7 +229,8 @@ const actions = {
       params = Object.assign(sharedParams, {
         x: state.position.coordinate[0],
         y: state.position.coordinate[1],
-        concavity: state.options.concavityIsochrones.active
+        concavity: state.options.concavityIsochrones.active,
+        routing_profile: state.options.routingProfile.active
       });
       isochroneEndpoint = "isochrone";
     } else {

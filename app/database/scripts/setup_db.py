@@ -121,6 +121,7 @@ def setup_db(setup_type):
     if (setup_type in ['new_setup','all','network']):
         os.system('PGPASSFILE=/.pgpass osm2pgrouting --dbname %s --host %s --username %s --file "study_area.osm" --conf ../mapconfig.xml --clean' % (db_name_temp,host,user)) 
         db_temp.execute_script_psql('../data_preparation/SQL/network_preparation.sql')
+        db_temp.execute_script_psql('../data_preparation/SQL/layer_preparation.sql')
 
 
     if (setup_type == 'new_setup'):

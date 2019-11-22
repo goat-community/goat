@@ -31,6 +31,7 @@ if not setup_type:
     sys.exit('You have defined no setup-type!')
 elif (setup_type == 'functions'):
     db_functions.update_functions()
+    print('yes')
 elif (setup_type == 'variable_container'):
     db_name,user,host = ReadYAML().db_credentials()[:3]
     db_con = DB_connection(db_name,user,host)
