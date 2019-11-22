@@ -35,7 +35,7 @@
       1.1943,
       0.5972
     ],
-    "center": [1289645.541227, 6129485.298188],
+    "center": [1285426, 6139436],
     "layers": [
       {
         "type": "VECTOR",
@@ -69,6 +69,21 @@
         "group": "poisLayers",
         "layers": "cite:pois_info",
         "viewparams": "amenities:'cG9wdWxhdGlvbg=='",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "pois_opening_hours",
+        "url": "/geoserver/wms",
+        "group": "poisLayers",
+        "layers": "cite:pois_opening_hours",
+        "viewparams": "amenities:'cmVzdGF1cmFudCxzdXBlcm1hcmtldA=='",
         "opacity": 1,
         "queryable": true,
         "visible": false,
