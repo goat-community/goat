@@ -1,12 +1,12 @@
 <layer>
-  <name>pois</name>
-  <id>LayerInfoImpl-73928646:15f67d946bd:-33bf</id>
+  <name>pois_opening_hours</name>
+  <id>LayerInfoImpl-441b8f48:16e8b9a9437:50cc</id>
   <type>VECTOR</type>
   <defaultStyle>
     <id>StyleInfoImpl-314e65dc:168e2ce74d0:-d65</id>
   </defaultStyle>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl-73928646:15f67d946bd:-33c0</id>
+    <id>FeatureTypeInfoImpl-441b8f48:16e8b9a9437:50cb</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>

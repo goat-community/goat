@@ -35,7 +35,7 @@
       1.1943,
       0.5972
     ],
-    "center": [1289645.541227, 6129485.298188],
+    "center": [1285426, 6139436],
     "layers": [
       {
         "type": "VECTOR",
@@ -79,6 +79,21 @@
       },
       {
         "type": "WMS",
+        "name": "pois_opening_hours",
+        "url": "/geoserver/wms",
+        "group": "poisLayers",
+        "layers": "cite:pois_opening_hours",
+        "viewparams": "amenities:'cmVzdGF1cmFudCxzdXBlcm1hcmtldA=='",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "administrativeUnits",
         "url": "/geoserver/wms",
         "group": "administrativeLayers",
@@ -93,7 +108,7 @@
       },
       {
         "type": "WMS",
-        "name": "Footpath Width",
+        "name": "footpathWidth",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
         "layers": "cite:footpath_width",
@@ -106,7 +121,7 @@
       },
       {
         "type": "WMS",
-        "name": "Illuminance",
+        "name": "illuminance",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
         "layers": "cite:ways_lit",
@@ -119,7 +134,7 @@
       },
       {
         "type": "WMS",
-        "name": "Lanes",
+        "name": "lanes",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
         "layers": "cite:ways_lanes",
@@ -132,7 +147,7 @@
       },
       {
         "type": "WMS",
-        "name": "Parking",
+        "name": "parking",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
         "layers": "cite:ways_parking",
@@ -145,7 +160,7 @@
       },
       {
         "type": "WMS",
-        "name": "Speed",
+        "name": "speed",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
         "layers": "cite:ways_speed",
@@ -158,7 +173,7 @@
       },
       {
         "type": "WMS",
-        "name": "Street Crossings",
+        "name": "streetCrossings",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
         "layers": "cite:street_crossings",
@@ -171,7 +186,7 @@
       },
       {
         "type": "WMS",
-        "name": "Surface",
+        "name": "surface",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
         "layers": "cite:ways_surface",
@@ -184,7 +199,7 @@
       },
       {
         "type": "WMS",
-        "name": "Wheelchair Usability",
+        "name": "wheelchairUsability",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
         "layers": "cite:ways_wheelchair",
