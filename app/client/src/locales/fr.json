@@ -225,7 +225,13 @@
         "layerName": {
             "pois": "Point d'intérêt",
             "administrativeUnits": "Divisions administratives",
+            "footpathWidth": "Footpath Width",
             "illuminance": "Luminosité",
+            "lanes": "Lanes",
+            "parking": "Parking",
+            "speed": "Speed",
+            "streetCrossings": "Street Crossings",
+            "surface": "Surface",
             "wheelchairUsability": "Accessibilité pour personnes avec mobilité reduite",
             "areaIsochrone": "Superficie de l'isochrone",
             "walkabilityPopulation": "Population piétonnière",
