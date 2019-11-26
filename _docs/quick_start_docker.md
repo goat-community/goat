@@ -5,16 +5,15 @@ permalink: /docs/quick_start_docker/
 
 
 GOAT<sub>beta</sub> is a web-application and is designed to feel at home on the Linux operating system. However, with the help of containers (Docker) and/or virtual machines (VM) you can install it on your Windows or Mac for development and testing.
+You are supposed to type some commands into the command line, in case you are not familiar with the command line you can find many tutorials on the web. 
 
-It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. The setup of GOAT<sub>beta</sub> is highly automated, though the user still has many customization options.
-
-Git Bash Tutorial: [https://www.atlassian.com/git/tutorials/git-bash/](https://www.atlassian.com/git/tutorials/git-bash/)
 
 #### 1. Get a copy of GOAT<sub>beta</sub>
 
+It is recommended to use Git for fetching the project.
 Clone the GOAT-repo to a folder of your choice. Navigate first to the folder and run:
 
-`git clone https://github.com/EPajares/goat.git` (run on your <span style="color:#07d">host</span>)
+`git clone https://github.com/goat-community/goat.git` (run on your <span style="color:#07d">host</span>)
 
 <img class="img-responsive" src="../../img/git_clone.png" alt="how your command window should look like" title="Get a copy of GOAT<sub>beta</sub>" width="600" height="400" style="border: 2px solid #07d;"/>
 
