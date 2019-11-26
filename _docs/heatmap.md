@@ -8,7 +8,8 @@ GOAT allows you to calculate and visualize gravity-based accessibility measures,
 <img class="img-responsive" src="../../img/heatmap.png" title="Heatmap for groceries">
 
 #### 1. Calculation
-The calculation of the Heatmap is based on the calculation of the potential accessibility of opportunities in zone i to all other zones (n). The measure has the following form (Geurs and Van Wee 2004):
+The calculation of the Heatmap is based on the calculation of the potential accessibility of opportunities in zone i to all other zones (n). 
+The measure has the following form (Geurs and Van Wee 2004):
 <img class="img-responsive" src="../../img/potential_accessibility_measures.png">
 
 
