@@ -29,6 +29,12 @@
 
       <!-- ISOCHRONES  -->
       <template v-else>
+        <v-select
+          item-text="display"
+          item-value="value"
+          outlined
+          :label="$t('isochrones.options.routingProfile')"
+        ></v-select>
         <v-subheader>
           <span class="title">{{ $t("isochrones.title") }}</span>
         </v-subheader>
