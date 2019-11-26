@@ -1,5 +1,6 @@
 DROP FUNCTION IF EXISTS pois_multi_isochrones;
-CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, minutes integer, speed_input numeric, n integer, alphashape_parameter_input NUMERIC, modus_input text,region_type text, region text[], amenities text[])
+CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, minutes integer, speed_input numeric, 
+	n integer, routing_profile_input text, alphashape_parameter_input NUMERIC, modus_input text,region_type text, region text[], amenities text[])
 RETURNS SETOF type_pois_multi_isochrones
 AS $function$ 
 DECLARE 	
@@ -12,11 +13,13 @@ DECLARE
 	buffer integer;
  	excluded_class_id integer[];
 	categories_no_foot text[];
-	population_mask jsonb;
+	population_mask jsonb; 
 	objectid_multi_isochrone integer;
 	max_length_links numeric;
 	calc_modus integer;
 	BEGIN
+
+	RAISE NOTICE 'function start';
 
 	/*Scenario building has to be implemented*/
     calc_modus = 1;
@@ -67,7 +70,7 @@ DECLARE
  		
 	SELECT DISTINCT objectid 
 	INTO objectid_multi_isochrone  
-	FROM multi_isochrones(userid_input,minutes,n,speed_input,alphashape_parameter_input,calc_modus,1,points_array);
+	FROM multi_isochrones(userid_input,minutes,n,routing_profile_input,speed_input,alphashape_parameter_input,calc_modus,1,points_array);
 		
 	IF region_type = 'study_area' THEN
 	 	WITH expand_population AS 
@@ -113,7 +116,7 @@ DECLARE
 		WHERE multi_isochrones.gid = x.gid;
 	END IF; 
 	RETURN query 
-	SELECT gid,objectid, coordinates, userid,step,speed,alphashape_parameter,modus, parent_id, population, geom geometry 
+	SELECT gid,objectid, coordinates, userid,step, routing_profile, speed,alphashape_parameter,modus, parent_id, population, geom geometry 
 	FROM multi_isochrones
 	WHERE objectid = objectid_multi_isochrone;
 	END;

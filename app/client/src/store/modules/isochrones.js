@@ -258,6 +258,7 @@ const actions = {
         ),
         region_type: `'${regionType}'`,
         region: region,
+        routing_profile: `'${state.options.routingProfile.active}'`,
         amenities: rootState.pois.selectedPois
           .map(item => {
             return "'" + item.value + "'";
