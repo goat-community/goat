@@ -30,6 +30,7 @@ CREATE TABLE public.multi_isochrones (
 	alphashape_parameter numeric NULL,
 	modus integer NULL,
 	parent_id int4 NULL,
+	routing_profile TEXT,
 	population jsonb NULL,
 	geom geometry NULL,	
 	CONSTRAINT multi_isochrones_pkey PRIMARY KEY (gid)

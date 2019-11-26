@@ -40,7 +40,7 @@ BEGIN
 	ELSEIF routing_profile = 'wheelchair' THEN
 		sql_routing_profile = 'AND ((wheelchair_classified = ''yes'') OR wheelchair_classified = ''limited''
 		OR wheelchair_classified = ''unclassified'')';
-	END IF; 
+	END IF;
 
 	RETURN query EXECUTE format(
 		'SELECT  id::integer, source, target, length_m as cost, geom 
@@ -52,7 +52,7 @@ BEGIN
 END;
 $function$;
 
-/*select fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)),1.33,'{0,101,102,103,104,105,106,107,501,502,503,504,701,801}','{use_sidepath,no}',1,1,'safe_night');
+/*select fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)),1.33,1,1,'standard');
 */
 
 /*CREATE TABLE ways_safe AS 
@@ -73,34 +73,35 @@ CREATE temp TABLE temp_reached_vertices
 	objectid integer
 );
 DROP FUNCTION IF EXISTS extrapolate_reached_vertices;
-CREATE OR REPLACE FUNCTION public.extrapolate_reached_vertices(max_cost NUMERIC, max_length_links NUMERIC, buffer_geom text, speed NUMERIC ,userid_input integer, modus_input integer,  routing_profile text )
+CREATE OR REPLACE FUNCTION public.extrapolate_reached_vertices(max_cost NUMERIC, max_length_links NUMERIC, buffer_geom text, 
+	speed NUMERIC ,userid_input integer, modus_input integer,  routing_profile text )
 RETURNS SETOF type_catchment_vertices
  LANGUAGE sql
 AS $function$
 
 WITH touching_network AS 
 (
-	SELECT t.start_vertex, w.id, w.geom, w.SOURCE, w.target, t.cost, t.node, t.edge, 1 as cnt, w.cost AS w_cost, t.objectid
+	SELECT t.start_vertex, w.id, w.geom, w.source, w.target, t.cost, t.node, t.edge, 1 as cnt, w.cost AS w_cost, t.objectid
 	FROM temp_reached_vertices t, 
 	fetch_ways_routing(buffer_geom,speed,modus_input,userid_input,routing_profile) as w 
 	WHERE t.node = w.target 
-	AND t.node <> w.SOURCE
+	AND t.node <> w.source
 	AND t.cost + (max_length_links/speed) > max_cost
 	UNION ALL 
-	SELECT t.start_vertex, w.id, w.geom, w.SOURCE, w.target, t.cost, t.node, t.edge, 1 as cnt, w.cost AS w_cost, t.objectid
+	SELECT t.start_vertex, w.id, w.geom, w.source, w.target, t.cost, t.node, t.edge, 1 as cnt, w.cost AS w_cost, t.objectid
 	FROM temp_reached_vertices t, 
 	fetch_ways_routing(buffer_geom,speed,modus_input,userid_input,routing_profile) as w 
 	WHERE t.node <> w.target
-	AND t.node = w.SOURCE
+	AND t.node = w.source
 	AND t.cost + (max_length_links/speed) > max_cost
 ),
 not_completely_reached_network AS (
-	SELECT SOURCE 
+	SELECT source
 	FROM (
-		SELECT SOURCE 
+		SELECT source 
 		FROM touching_network t 
 		UNION ALL 
-		SELECT target 
+		SELECT target
 		FROM touching_network t 
 	) x
 	GROUP BY x.source
@@ -119,3 +120,6 @@ UNION ALL
 SELECT start_vertex, node, edge, 1 as cnt , cost, geom, null, objectid FROM temp_reached_vertices;
 
 $function$;
+
+/*select extrapolate_reached_vertices(100, 200, ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)), 1.33 ,1, 1, 'standard');
+*/
