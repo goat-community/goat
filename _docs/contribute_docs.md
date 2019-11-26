@@ -46,7 +46,7 @@ Change to the "website-development" branch, at this branch the development versi
 
 `git checkout website-development`
 
-If you receive an error message that this branch does not yet exist, visit the GitHub website, navigate to your repository and create a new branch called "gh-pages".
+If you receive an error message that this branch does not yet exist, visit the GitHub website, navigate to your repository and create a new branch called "website-development".
 
 #### 5. Make sure to have the newest file versions
 
@@ -60,17 +60,13 @@ Then get the newest version of the upstream repository:
 
 `git fetch upstream`
 
-Check if you are up to date:
-
-`git checkout website-development`
-
-Merge the new version into your website-development branch:
+Merge the new version of the website-development branch into your current branch:
 
 `git merge upstream/website-development`
 
 Push the new version to your origin GitHub repository:
 
-`git push origin website-development`
+`git push origin`
 
 Now you are ready to contribute.
 
