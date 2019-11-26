@@ -12,7 +12,7 @@ The calculation of the Heatmap is based on the calculation of the potential acce
 <img class="img-responsive" src="../../img/potential_accessibility_measures.png">
 
 
-As cost of travel C<sub>ij</sub> travel times between i and j are used. Travel times are computed in seconds. As cut-off value 15 minutes is used for the mode walking, this means that destination that are further away, then 15 minutes walking time are considered in the calculation of the index.
+As cost of travel C<sub>ij</sub> travel times between i and j are used. Travel times are computed in seconds. As cut-off value 15 minutes is used for the mode walking, this means that destination that are further away, then 15 minutes walking time are not considered in the calculation of the index.
 The sensitivity parameter defines how accessibility changes with increasing travel time. As the sensitivity parameter is decisive, when measuring accessibility, GOAT allows you to adjust them. The following graphs show the influence of the sensitivity parameter on accessibility. 
 
 <table><tr>
@@ -21,7 +21,7 @@ The sensitivity parameter defines how accessibility changes with increasing trav
 </tr></table>
 
 #### 2. Classification
-In order to classify the computed the accessibility levels, that we computed for each grid cell, a classification using quintiles is used. 
+In order to classify the computed accessibility levels, that we computed for each grid cell, a classification using quintiles is used. 
 
 #### 3. Example of calculation
 ##### 3.1 Calculation travel times
@@ -31,22 +31,26 @@ The travel times are calculated for each grid cell to the concerning destination
 
 <img class="img-responsive" src="../../img/grid_groceries.png" title="Accessibility to groceries" style="width: 600px;"/> 
 
+For one grid cell the calculation could be done like in the following examples:
+
+Uniform sensitivity parameter:
+<img class="img-responsive" src="../../img/accessiblity_uniform_sensitivity-index.png" style="width: 500px;">
+Varying sensitivity parameter for Hypermarket:
+<img class="img-responsive" src="../../img/accessiblity_different_sensitivity-indices.png" style="width: 500px;">
 
 ##### 3.2 Calculation with uniform sensitivity parameter
 In the first case we want to calculate the accessibility to groceries in 15min (β= -0.002).
 This means the sensitivity parameter is the same for every category of grocery. 
 
-<img class="img-responsive" src="../../img/accessiblity_uniform_sensitivity-index.png" style="width: 500px;">
 <img class="img-responsive" src="../../img/uniform_sensitivity.png" title="Accessibility to groceries in 15min with uniform sensitivity index">
 
 ##### 3.3 Calculation with different sensitivity indices
 In the second case we calculate the accessibility to groceries in 15min (β= -0.001 and 
 β= -0.002). This means the sensitivity parameter depends on the categories of grocery. For this example, we used β= -0.001 for the type of grocery hypermarket and β= -0.002 for discount supermarket und supermarket.
 
-<img class="img-responsive" src="../../img/accessiblity_different_sensitivity-indices.png" style="width: 500px;">
 <img class="img-responsive" src="../../img/different_sensitivity.png" title="Accessibility to groceries in 15min with different sensitivity indices" >
 
 
-If both examples are compared significant change in accessibility can be observed, as in the second example the sensitivity parameter is chosen in favor of hypermarkets. 
+If both examples are compared significant changes in accessibility can be observed, as in the second example the sensitivity parameter is chosen in favor of hypermarkets. 
 
 
