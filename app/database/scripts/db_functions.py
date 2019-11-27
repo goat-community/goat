@@ -13,9 +13,13 @@ class ReadYAML:
     def db_credentials(self):
         return self.db_conf["DB_NAME"],self.db_conf["USER"],self.db_conf["HOST"],self.db_conf["PORT"],self.db_conf["PASSWORD"]
     def data_source(self):
-        return self.source_conf["OSM_DOWNLOAD_LINK"],self.source_conf["OSM_DATA_RECENCY"],self.source_conf["BUFFER_BOUNDING_BOX"],self.refinement_conf["POPULATION"]
+        return self.source_conf["OSM_DOWNLOAD_LINK"],self.source_conf["OSM_DATA_RECENCY"],self.source_conf["BUFFER_BOUNDING_BOX"],self.refinement_conf["POPULATION"],self.refinement_conf["ADDITIONAL_WALKABILITY_LAYERS"]
     def data_refinement(self):
         return self.refinement_conf
+    def create_pgpass(self,db_prefix):
+        db_name = self.db_conf["DB_NAME"]+db_prefix
+        os.system('echo '+':'.join([self.db_conf["HOST"],str(self.db_conf["PORT"]),db_name,self.db_conf["USER"],self.db_conf["PASSWORD"]])+' > /.pgpass')
+        os.system("chmod 600 /.pgpass")
     
 class DB_connection:
     def __init__(self, db_name, user, host):
@@ -31,7 +35,6 @@ class DB_connection:
         con = psycopg2.connect("dbname='%s' user='%s' host='%s' port = '%s' password='%s'" % (
         self.db_name,self.user,port,self.host,password))
         return con.cursor()
-
 
 def create_variable_container():
     sql_create_table = '''DROP TABLE IF EXISTS variable_container;
