@@ -30,9 +30,10 @@ print('You decided to do the following setup-type: %s' % setup_type)
 if not setup_type:
     sys.exit('You have defined no setup-type!')
 elif (setup_type == 'functions'):
+    ReadYAML().create_pgpass('')
     db_functions.update_functions()
-    print('yes')
 elif (setup_type == 'variable_container'):
+    ReadYAML().create_pgpass('')
     db_name,user,host = ReadYAML().db_credentials()[:3]
     db_con = DB_connection(db_name,user,host)
     db_con.execute_text_psql(db_functions.create_variable_container())
