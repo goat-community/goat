@@ -33,8 +33,8 @@ CREATE INDEX ON ways_offset_sidewalk USING gist(geom_left);
 CREATE INDEX ON ways_offset_sidewalk USING gist(geom_right);
 
 --Table for visualization of the footpath width
-DROP TABLE IF EXISTS footpaths_union_temp;
-CREATE TABLE footpaths_union_temp AS
+DROP TABLE IF EXISTS footpaths_union;
+CREATE TABLE footpaths_union AS
 	SELECT o.geom_left AS geom, o.sidewalk,
 	CASE WHEN w.sidewalk_left_width IS NOT NULL 
 		THEN w.sidewalk_left_width
@@ -78,9 +78,9 @@ UNION
 	SELECT geom, sidewalk, width, highway FROM ways
 	WHERE sidewalk IS NULL AND highway IN ('path','track','footway','steps','service','pedestrian');
 
-CREATE INDEX ON footpaths_union_temp USING gist(geom);
-ALTER TABLE footpaths_union_temp ADD COLUMN id serial;
-ALTER TABLE footpaths_union_temp ADD PRIMARY KEY(id);
+CREATE INDEX ON footpaths_union USING gist(geom);
+ALTER TABLE footpaths_union ADD COLUMN id serial;
+ALTER TABLE footpaths_union ADD PRIMARY KEY(id);
 
 --Creation of a table that stores all parking geometries
 DROP TABLE IF EXISTS ways_offset_parking;
@@ -131,3 +131,6 @@ UNION
 	WHERE parking IS NULL AND parking_lane_right IS NULL AND parking_lane_left IS NULL AND parking_lane_both IS NULL
 	AND highway IN ('secondary','tertiary','residential','living_street','service','unclassified');
 
+--Drop tables that are no further needed
+DROP TABLE ways_offset_parking;
+DROP TABLE ways_offset_sidewalk;
