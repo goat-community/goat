@@ -30,7 +30,7 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>footpath_width</name>
-        <sql>SELECT f.* FROM footpaths_union_temp f, study_area s&#xd;
+        <sql>SELECT f.* FROM footpaths_union f, study_area s&#xd;
 WHERE ST_Intersects(s.geom,f.geom)
 </sql>
         <escapeSql>false</escapeSql>
