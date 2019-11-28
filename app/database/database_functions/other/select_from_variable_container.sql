@@ -20,5 +20,16 @@ AS $function$
 	FROM variable_container
 	WHERE identifier = identifier_input;
 
-$function$
+$function$;
 
+DROP FUNCTION IF EXISTS select_from_variable_container_o;
+CREATE OR REPLACE FUNCTION select_from_variable_container_o(identifier_input text)
+RETURNS jsonb
+ LANGUAGE sql
+AS $function$
+
+	SELECT variable_object 
+	FROM variable_container
+	WHERE identifier = identifier_input;
+
+$function$;
