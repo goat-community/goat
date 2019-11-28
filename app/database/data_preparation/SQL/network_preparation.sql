@@ -166,22 +166,121 @@ UPDATE ways
 SET maxspeed_backward = 7
 WHERE highway = 'living_street' AND maxspeed_backward = 50;
 
+--Precalculation of visualized features for wheelchair
+WITH variables AS 
+(
+    SELECT select_from_variable_container_o('wheelchair')  AS wheelchair,
+    select_from_variable_container('excluded_class_id_walking') AS excluded_class_id_walking,
+    select_from_variable_container('categories_no_foot') AS categories_no_foot,
+    select_from_variable_container('categories_sidewalk_no_foot') AS categories_sidewalk_no_foot
+) 
+UPDATE ways w SET wheelchair_classified = x.wheelchair_classified
+FROM
+    (SELECT w.id,
+    CASE WHEN 
+        wheelchair IN ('yes','Yes') 
+        OR ( sidewalk IN ('both','left','right')
+            AND (
+                sidewalk_both_width >= 1.80 OR sidewalk_left_width >= 1.80 OR sidewalk_right_width >= 1.80
+                )
+            ) 
+        OR (wheelchair IS NULL AND width >= 1.80 AND highway <> 'steps' 
+            AND (smoothness IS NULL OR 
+            (smoothness NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_no')::jsonb) FROM variables)
+            AND smoothness NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_limited')::jsonb) FROM variables)
+            )
+            AND (surface IS NULL OR surface NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'surface_no')::jsonb) FROM variables))
+            AND (incline_percent IS NULL OR incline_percent < 6)
+            ))
+        OR (wheelchair IS NULL AND highway IN (SELECT jsonb_array_elements_text((wheelchair ->> 'highway_onstreet_yes')::jsonb) FROM variables))
+        THEN 'yes'
+    WHEN
+        wheelchair IN ('limited','Limited')
+        OR ( sidewalk IN ('both','left','right')
+            AND (
+                (sidewalk_both_width < 1.80 OR sidewalk_left_width < 1.80 OR sidewalk_right_width < 1.80 OR 
+                (sidewalk_both_width IS NULL AND sidewalk_left_width IS NULL AND sidewalk_right_width IS NULL)
+                )
+            ) 
+            OR (wheelchair IS NULL AND width >= 0.90 AND highway <> 'steps' 
+            AND (smoothness IS NULL OR smoothness NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_no')::jsonb) FROM variables)) 
+            AND (surface IS NULL OR surface NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'surface_no')::jsonb) FROM variables))
+            AND (incline_percent IS NULL OR incline_percent < 6)
+            ))
+        OR (wheelchair IS NULL AND highway IN (SELECT jsonb_array_elements_text((wheelchair ->> 'highway_onstreet_limited')::jsonb) FROM variables))
+        THEN 'limited'
+    WHEN
+        wheelchair IN ('no','No')
+            OR (wheelchair IS NULL AND (width < 0.90 OR highway = 'steps' 
+                OR smoothness IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_no')::jsonb) FROM variables) 
+                OR surface IN (SELECT jsonb_array_elements_text((wheelchair ->> 'surface_no')::jsonb) FROM variables)
+                OR (incline_percent IS NOT NULL AND incline_percent > 6))
+            )
+			OR class_id::text IN (SELECT UNNEST(excluded_class_id_walking) FROM variables)
+			OR foot IN (SELECT UNNEST(categories_no_foot) FROM variables)
+        THEN 'no'
+    ELSE 'unclassified'
+    END AS wheelchair_classified
+    FROM ways w
+    ) x
+WHERE w.id = x.id;
+
+
+--Precalculation of visualized features for lit
+DROP TABLE IF EXISTS buffer_lamps;
+CREATE TABLE buffer_lamps as
+SELECT ST_BUFFER(way,0.00015,'quad_segs=8') AS geom 
+FROM planet_osm_point 
+WHERE highway = 'street_lamp';
+
+CREATE INDEX ON buffer_lamps USING gist(geom);
+
+UPDATE ways w SET lit_classified = 'yes'
+FROM buffer_lamps b
+WHERE (lit IS NULL OR lit = '')
+AND ST_Intersects(b.geom,w.geom);
+
+WITH variables AS 
+(
+    SELECT select_from_variable_container_o('lit') AS lit,
+    select_from_variable_container('excluded_class_id_walking') AS excluded_class_id_walking,
+    select_from_variable_container('categories_no_foot') AS categories_no_foot,
+    select_from_variable_container('categories_sidewalk_no_foot') AS categories_sidewalk_no_foot
+)
+UPDATE ways w SET lit_classified = x.lit_classified
+FROM
+    (SELECT w.id,
+    CASE WHEN 
+        lit IN ('yes','Yes') 
+        OR (lit IS NULL AND highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_yes')::jsonb) FROM variables))
+        THEN 'yes' 
+    WHEN
+        lit IN ('no','No')
+        OR (lit IS NULL AND (highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_no')::jsonb) FROM variables) 
+        OR surface IN (SELECT jsonb_array_elements_text((lit ->> 'surface_no')::jsonb) FROM variables))
+        )
+        THEN 'no'
+    ELSE 'unclassified'
+    END AS lit_classified 
+    FROM ways w
+    ) x
+WHERE w.id = x.id;
+
+--Mark network islands in the network
 
 INSERT INTO osm_way_classes(class_id,name) values(801,'foot_no');
 INSERT INTO osm_way_classes(class_id,name) values(701,'network_island');
 
---Mark network islands in the network
-
 WITH RECURSIVE ways_no_islands AS (
- SELECT id,geom
- FROM ways
- WHERE id = 1
- UNION
- SELECT w.id,w.geom
- FROM ways w, ways_no_islands n
- WHERE ST_Intersects(n.geom,w.geom)
- AND w.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'excluded_class_id_walking')
- AND (w.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') OR foot IS NULL)  
+	SELECT id,geom
+	FROM ways
+	WHERE id = 1
+	UNION
+	SELECT w.id,w.geom
+	FROM ways w, ways_no_islands n
+	WHERE ST_Intersects(n.geom,w.geom)
+	AND w.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'excluded_class_id_walking')
+	AND (w.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') OR foot IS NULL)  
 ) 
 UPDATE ways SET class_id = 701 
 FROM (
@@ -260,102 +359,10 @@ CREATE INDEX ON ways USING btree(foot);
 CREATE INDEX ON ways USING btree(id);
 CREATE INDEX ON ways_vertices_pgr USING btree(cnt);
 
---Precalculation of visualized features for wheelchair
-WITH variables AS 
-(
-    SELECT variable_object AS wheelchair ,
-    select_from_variable_container('excluded_class_id_walking') AS excluded_class_id_walking,
-    select_from_variable_container('categories_no_foot') AS categories_no_foot,
-    select_from_variable_container('categories_sidewalk_no_foot') AS categories_sidewalk_no_foot
-    FROM variable_container
-    WHERE identifier='wheelchair'
-) 
-UPDATE ways w SET wheelchair_classified = x.wheelchair_classified
-FROM
-    (SELECT w.id,
-    CASE WHEN 
-        wheelchair IN ('yes','Yes') 
-        OR ( sidewalk IN ('both','left','right')
-            AND (
-                sidewalk_both_width >= 1.80 OR sidewalk_left_width >= 1.80 OR sidewalk_right_width >= 1.80
-                )
-            ) 
-        OR (wheelchair IS NULL AND width >= 1.80 AND highway <> 'steps' 
-            AND (smoothness IS NULL OR 
-            (smoothness NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_no')::jsonb) FROM variables)
-            AND smoothness NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_limited')::jsonb) FROM variables)
-            )
-            AND (surface IS NULL OR surface NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'surface_no')::jsonb) FROM variables))
-            AND (incline_percent IS NULL OR incline_percent < 6)
-            ))
-        OR (wheelchair IS NULL AND highway IN (SELECT jsonb_array_elements_text((wheelchair ->> 'highway_onstreet_yes')::jsonb) FROM variables))
-        THEN 'yes'
-    WHEN
-        wheelchair IN ('limited','Limited')
-        OR ( sidewalk IN ('both','left','right')
-            AND (
-                (sidewalk_both_width < 1.80 OR sidewalk_left_width < 1.80 OR sidewalk_right_width < 1.80 OR 
-                (sidewalk_both_width IS NULL AND sidewalk_left_width IS NULL AND sidewalk_right_width IS NULL)
-                )
-            ) 
-            OR (wheelchair IS NULL AND width >= 0.90 AND highway <> 'steps' 
-            AND (smoothness IS NULL OR smoothness NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_no')::jsonb) FROM variables)) 
-            AND (surface IS NULL OR surface NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'surface_no')::jsonb) FROM variables))
-            AND (incline_percent IS NULL OR incline_percent < 6)
-            ))
-        OR (wheelchair IS NULL AND highway IN (SELECT jsonb_array_elements_text((wheelchair ->> 'highway_onstreet_limited')::jsonb) FROM variables))
-        THEN 'limited'
-    WHEN
-        wheelchair IN ('no','No')
-            OR (wheelchair IS NULL AND (width < 0.90 OR highway = 'steps' 
-                OR smoothness IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_no')::jsonb) FROM variables) 
-                OR surface IN (SELECT jsonb_array_elements_text((wheelchair ->> 'surface_no')::jsonb) FROM variables)
-                OR (incline_percent IS NOT NULL AND incline_percent > 6))
-            )
-        THEN 'no'
-    ELSE 'unclassified'
-    END AS wheelchair_classified
-    FROM ways w, study_area s
-    WHERE class_id::text NOT IN (SELECT UNNEST(excluded_class_id_walking) FROM variables)
-    AND (foot IS NULL OR foot NOT IN (SELECT UNNEST(categories_no_foot) FROM variables))
-    ) x
-WHERE w.id = x.id
-;
 
---Precalculation of visualized features for lit
-DROP TABLE IF EXISTS buffer_lamps;
-CREATE TABLE buffer_lamps as
-(SELECT ST_UNION(ST_BUFFER(way,0.00015,'quad_segs=8')) FROM planet_osm_point WHERE highway = 'street_lamp');
 
-WITH variables AS 
-(
-    SELECT variable_object AS lit ,
-    select_from_variable_container('excluded_class_id_walking') AS excluded_class_id_walking,
-    select_from_variable_container('categories_no_foot') AS categories_no_foot,
-    select_from_variable_container('categories_sidewalk_no_foot') AS categories_sidewalk_no_foot
-    FROM variable_container
-    WHERE identifier='lit'
-)
-UPDATE ways w SET lit_classified = x.lit_classified
-FROM
-    (SELECT w.id,
-    CASE WHEN 
-        lit IN ('yes','Yes') 
-        OR (lit IS NULL AND highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_yes')::jsonb) FROM variables))
-		OR (lit IS NULL AND ST_Intersects(b.st_union,w.geom)::boolean IS true)	
-        THEN 'yes' 
-    WHEN
-        lit IN ('no','No')
-        OR (lit IS NULL AND (highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_no')::jsonb) FROM variables) 
-        OR surface IN (SELECT jsonb_array_elements_text((lit ->> 'surface_no')::jsonb) FROM variables))
-        )
-        THEN 'no'
-    ELSE 'unclassified'
-    END AS lit_classified 
-    FROM ways w, buffer_lamps b
-    ) x
-WHERE w.id = x.id
-;
+
+
 
 CREATE TABLE ways_userinput (LIKE ways INCLUDING ALL);
 INSERT INTO ways_userinput
