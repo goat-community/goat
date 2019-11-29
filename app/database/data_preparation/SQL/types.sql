@@ -112,5 +112,6 @@ CREATE TYPE public.pois_visualization AS
 	opening_hours text, 
 	orgin_geometry text, 
 	geom geometry, 
-	status text
+	status text,
+	wheelchair text
 );
