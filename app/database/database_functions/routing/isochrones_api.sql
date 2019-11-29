@@ -17,12 +17,12 @@ begin
 	modus = 4 (comparison - scenario)
 	*/ 
 
-  /*with or without opening hours*/
-  IF d IS NULL OR h IS NULL OR m IS NULL   
+  /*without or with opening hours*/
+  IF d = 9999 OR h = 9999 OR m = 9999
     THEN 
-      sql_execution = 'public.thematic_data_sum_time(input_objectid integer, d integer, h integer, m integer)';
-    ELSE 
       sql_execution = '';
+    ELSE 
+      sql_execution = 'public.thematic_data_sum_time(input_objectid integer, d integer, h integer, m integer)';
   END IF;
 
 
