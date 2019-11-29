@@ -41,7 +41,7 @@ DECLARE
 	excluded_class_id integer[];
 	categories_no_foot text[];
 BEGIN 
-	
+	--We should add cycling here as well
 	SELECT select_from_variable_container('excluded_class_id_walking')::integer[],
 	select_from_variable_container('categories_no_foot')::text[]
 	INTO excluded_class_id, categories_no_foot;
@@ -267,8 +267,6 @@ FROM
 WHERE w.id = x.id;
 
 --Mark network islands in the network
-
-INSERT INTO osm_way_classes(class_id,name) values(801,'foot_no');
 INSERT INTO osm_way_classes(class_id,name) values(701,'network_island');
 
 WITH RECURSIVE ways_no_islands AS (
@@ -280,7 +278,12 @@ WITH RECURSIVE ways_no_islands AS (
 	FROM ways w, ways_no_islands n
 	WHERE ST_Intersects(n.geom,w.geom)
 	AND w.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'excluded_class_id_walking')
-	AND (w.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') OR foot IS NULL)  
+	AND w.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'excluded_class_id_cycling')
+	AND (
+	(w.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') OR foot IS NULL)
+	OR
+	(w.bicycle NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'categories_no_bicycle') OR bicycle IS NULL)
+)  
 ) 
 UPDATE ways SET class_id = 701 
 FROM (
@@ -291,29 +294,43 @@ FROM (
 	WHERE n.id IS null
 ) x
 WHERE ways.id = x.id
-AND ways.class_id::text NOT IN (SELECT unnest(variable_array) from variable_container WHERE identifier = 'excluded_class_id_walking')
+AND ways.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'excluded_class_id_walking')
+AND ways.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'excluded_class_id_cycling')
 AND (
-	ways.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') 
-	OR ways.foot IS NULL
+ 	(ways.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') OR foot IS NULL)
+	OR
+	(ways.bicycle NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'categories_no_bicycle') OR bicycle IS NULL)
 ); 
 
 ALTER TABLE ways_vertices_pgr ADD COLUMN class_ids int[];
-WITH class_ids AS (
-	SELECT vv.id, array_agg(DISTINCT x.class_id) class_ids
+ALTER TABLE ways_vertices_pgr ADD COLUMN foot text[];
+ALTER TABLE ways_vertices_pgr ADD COLUMN bicycle text[];
+ALTER TABLE ways_vertices_pgr ADD COLUMN lit_classified text[];
+ALTER TABLE ways_vertices_pgr ADD COLUMN wheelchair_classified text[];
+
+WITH ways_attributes AS (
+	SELECT vv.id, array_agg(DISTINCT x.class_id) class_ids,
+	array_agg(DISTINCT x.foot) AS foot,
+	array_agg(DISTINCT x.bicycle) bicycle,
+	array_agg(DISTINCT x.lit_classified) lit_classified,
+	array_agg(DISTINCT x.wheelchair_classified) wheelchair_classified
 	FROM ways_vertices_pgr vv
 	LEFT JOIN
-	(	SELECT v.id,
-		CASE WHEN w.foot in(SELECT unnest(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') 
-		THEN 801 ELSE w.class_id END AS class_id 
+	(	SELECT v.id, w.class_id, w.foot, w.bicycle, w.lit_classified, w.wheelchair_classified 
 		FROM ways_vertices_pgr v, ways w 
 		WHERE st_intersects(v.geom,w.geom)
 	) x
 	ON vv.id = x.id
 	GROUP BY vv.id
 )
-UPDATE ways_vertices_pgr SET class_ids = c.class_ids
-FROM class_ids c
-WHERE ways_vertices_pgr.id = c.id;
+UPDATE ways_vertices_pgr v
+SET class_ids = w.class_ids, 
+foot = w.foot,
+bicycle = w.bicycle,
+lit_classified = w.lit_classified,
+wheelchair_classified  = w.wheelchair_classified
+FROM ways_attributes w
+WHERE v.id = w.id;
 
 --Mark vertices that are on network islands
 WITH count_ids AS (
@@ -358,10 +375,6 @@ WHERE ways_vertices_pgr.id = v.id;
 CREATE INDEX ON ways USING btree(foot);
 CREATE INDEX ON ways USING btree(id);
 CREATE INDEX ON ways_vertices_pgr USING btree(cnt);
-
-
-
-
 
 
 CREATE TABLE ways_userinput (LIKE ways INCLUDING ALL);
