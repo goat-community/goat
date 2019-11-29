@@ -104,5 +104,13 @@ CREATE TYPE public.type_catchment_vertices_single AS
 	w_geom geometry,
 	objectid integer	
 );
-
-
+DROP TYPE IF EXISTS pois_visualization CASCADE;
+CREATE TYPE public.pois_visualization AS
+(
+	name text, 
+	osm_id bigint, 
+	opening_hours text, 
+	orgin_geometry text, 
+	geom geometry, 
+	status text
+);
