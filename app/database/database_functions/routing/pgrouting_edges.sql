@@ -11,6 +11,8 @@ DECLARE
   geom_vertex geometry;
   number_calculation_input integer;
   max_length_links integer;
+  speed_elderly numeric;
+  speed_wheelchair numeric;
   userid_vertex integer;
 begin
   --Adjust for Routing Modus(Default, Scenario, Comparison)
@@ -40,8 +42,13 @@ begin
 	END IF; 
   
   --Adjust for Routing Profile
+  SELECT select_from_variable_container_s('walking_speed_elderly')::numeric, select_from_variable_container_s('walking_speed_wheelchair')::numeric
+  INTO speed_elderly, speed_wheelchair;
+
   IF  routing_profile = 'elderly' THEN
-    speed = 0.833333; --put into variable_container
+    speed = speed_elderly; 
+  ELSEIF routing_profile = 'wheelchair' THEN
+    speed = speed_wheelchair; 
   END IF; 
   
   distance=speed*(minutes*60);
