@@ -3,7 +3,7 @@ title: Complete information about POIs
 permalink: /docs/complete_pois/
 ---
 
-If you find a POI with missing information in GOAT<sub>beta</sub>, you can edit it in OSM-database by clicking the "Edit with OSM" icon. 
+If you find a POI with missing information in GOAT, you can edit it in OSM-database by clicking the "Edit with OSM" icon. 
 
 <img class="img-responsive" src="../../img/OSM_POIs.png" alt="Link to OSM" title="Link to OSM">
 

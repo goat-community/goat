@@ -4,19 +4,19 @@ permalink: /docs/quick_start_docker/
 ---
 
 
-GOAT<sub>beta</sub> is a web-application and is designed to feel at home on the Linux operating system. However, with the help of containers (Docker) and/or virtual machines (VM) you can install it on your Windows or Mac for development and testing.
+GOAT is a web-application and is designed to feel at home on the Linux operating system. However, with the help of containers (Docker) and/or virtual machines (VM) you can install it on your Windows or Mac for development and testing.
 
-It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. The setup of GOAT<sub>beta</sub> is highly automated, though the user still has many customization options.
+It is recommended to use Git for fetching the project and if you are on Windows Git Bash is also a nice alternative to the windows command prompt. The setup of GOAT is highly automated, though the user still has many customization options.
 
 Git Bash Tutorial: [https://www.atlassian.com/git/tutorials/git-bash/](https://www.atlassian.com/git/tutorials/git-bash/)
 
-#### 1. Get a copy of GOAT<sub>beta</sub>
+#### 1. Get a copy of GOAT
 
 Clone the GOAT-repo to a folder of your choice. Navigate first to the folder and run:
 
 `git clone https://github.com/EPajares/goat.git` (run on your <span style="color:#07d">host</span>)
 
-<img class="img-responsive" src="../../img/git_clone.png" alt="how your command window should look like" title="Get a copy of GOAT<sub>beta</sub>" width="600" height="400" style="border: 2px solid #07d;"/>
+<img class="img-responsive" src="../../img/git_clone.png" alt="how your command window should look like" title="Get a copy of GOAT" width="600" height="400" style="border: 2px solid #07d;"/>
 
 
 
@@ -38,9 +38,9 @@ In case you don't manage to install docker on your machine. You can follow the s
 
 [Setup your own GOAT (alternative)](../quick_start_vm/)
 
-#### 3. Configure GOAT<sub>beta</sub>
+#### 3. Configure GOAT
 
-There is one key configuration file for setting up GOAT<sub>beta</sub>. You can find this file at `your-GOAT-directory/app/database/goat_config.yaml`.
+There is one key configuration file for setting up GOAT. You can find this file at `your-GOAT-directory/app/database/goat_config.yaml`.
 At the moment not all configuration possibilities are in here but it is targeted to move more and more of the configuration in here.
 
 It is recommended to open the files with a proper editor such as [Visual Studio Code](https://code.visualstudio.com/).
@@ -49,7 +49,7 @@ It is recommended to open the files with a proper editor such as [Visual Studio 
 
 If you want to apply the tool to your own study area or adjust the input data, follow the description at [Data Preparation](../data_preparation/).
 
-#### 5. Setup GOAT<sub>beta</sub>
+#### 5. Setup GOAT
 
 Open a command window and go into the project folder. You will run all commands directly from your host. 
 
@@ -61,7 +61,7 @@ Fill and prepare the goat-database:
 
 `docker exec -it goat-database python3 /opt/setup_goat.py` 
 
-GOAT<sub>beta</sub> allows you to use pre-calculated matrices that are used to visualize the dynamic heatmaps. 
+GOAT allows you to use pre-calculated matrices that are used to visualize the dynamic heatmaps. 
 In order to start the pre-calculation you currently have to start the script manually with the following command:
 
 `docker exec -it goat-database python3 /opt/data_preparation/Python/precalculate_grid_thematic.py`
@@ -76,7 +76,7 @@ For more Docker commands checkout:
 
 You can connect to the PostgreSQL database with the following default credentials: 
 
-**Change your credentials especially if you want to run GOAT<sub>beta</sub> in production**
+**Change your credentials especially if you want to run GOAT in production**
 
 Host: localhost
 
@@ -100,13 +100,13 @@ You can access Geoserver by typing the following into your browser:
 
 [http://localhost/geoserver](http://localhost/geoserver)
 
-##### 8. View GOAT<sub>beta</sub> in the browser
+##### 8. View GOAT in the browser
 
-If all steps were successful you will be able to use GOAT<sub>beta</sub> by typing the following into your browser:
+If all steps were successful you will be able to use GOAT by typing the following into your browser:
 
 [http://localhost](http://localhost)
 
-##### 9. How start and stop GOAT<sub>beta</sub>
+##### 9. How start and stop GOAT
 
 Navigate to your GOAT-folder (in this folder there should be the docker-compose.yml file)
 
