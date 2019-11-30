@@ -119,5 +119,5 @@ $function$
 LANGUAGE plpgsql;
 
 
-/*SELECT * FROM multi_isochrones(100,15,5,1.33,0.00003,1,1,ARRAY[[11.5669,48.1546],[11.5788,48.1545]],'wheelchair');
+/*SELECT * FROM multi_isochrones(100,15,5,1.33,0.00003,1,1,ARRAY[[11.5669,48.1546],[11.5788,48.1545]],'walking_wheelchair');
 */

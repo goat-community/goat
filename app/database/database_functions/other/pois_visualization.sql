@@ -10,15 +10,9 @@ begin
 
 DROP TABLE IF EXISTS visualization_pois;
 
-	-- Exclude POIs that are not accessible by wheelchair if routing_profile_input = wheelchair
-	IF routing_profile_input = 'wheelchair' THEN 
-		wheelchair_condition = ARRAY['no','No'];
-	ELSE 
-		wheelchair_condition = NULL;
-	END IF;
 
     --if no opening hours are provided by the user and routing profile is -not- wheelchair
-    IF (d = 9999 OR h = 9999 OR m = 9999) AND routing_profile_input <> 'wheelchair' THEN 
+    IF (d = 9999 OR h = 9999 OR m = 9999) AND routing_profile_input <> 'walking_wheelchair' THEN 
         RETURN query
         SELECT p.name,p.osm_id,p.opening_hours,p.orgin_geometry,p.geom, NULL AS status,p.wheelchair
         FROM pois p,variable_container v 
@@ -29,20 +23,20 @@ DROP TABLE IF EXISTS visualization_pois;
         FROM public_transport_stops pt 
         WHERE public_transport_stop IN(amenities_input);
     --if no opening hours are provided by the user and routing profile is wheelchair
-    ELSEIF (d = 9999 OR h = 9999 OR m = 9999) AND routing_profile_input = 'wheelchair' THEN 
+    ELSEIF (d = 9999 OR h = 9999 OR m = 9999) AND routing_profile_input = 'walking_wheelchair' THEN 
         RETURN query
         SELECT p.name,p.osm_id,p.opening_hours,p.orgin_geometry,p.geom, NULL AS status,p.wheelchair
         FROM pois p,variable_container v 
         WHERE p.amenity IN(amenities_input)
-        AND (p.wheelchair NOT IN (SELECT UNNEST(wheelchair_condition)) OR p.wheelchair IS NULL)
+        AND ((p.wheelchair <> 'no' AND p.wheelchair <> 'No') OR p.wheelchair IS NULL)
         AND v.identifier = 'poi_categories'
         UNION ALL 
         SELECT pt.name,NULL AS osm_id,NULL AS orgin_geometry,NULL AS opening_hours,pt.geom , NULL AS status,pt.wheelchair
         FROM public_transport_stops pt 
         WHERE public_transport_stop IN(amenities_input)
-        AND (wheelchair NOT IN (SELECT UNNEST(wheelchair_condition)) OR wheelchair IS NULL);
+        AND ((wheelchair <> 'no' AND wheelchair <> 'No') OR wheelchair IS NULL);
     --if opening hours are provided by the user and routing profile is -not- wheelchair
-    ELSEIF d <> 9999 AND h <> 9999 AND m <> 9999 AND routing_profile_input <> 'wheelchair' THEN 
+    ELSEIF d <> 9999 AND h <> 9999 AND m <> 9999 AND routing_profile_input <> 'walking_wheelchair' THEN 
         RETURN query
         WITH pois_status AS 
         (
@@ -69,12 +63,12 @@ DROP TABLE IF EXISTS visualization_pois;
         )
         SELECT * FROM pois_status
         WHERE status = 'True'
-        AND (wheelchair NOT IN (SELECT UNNEST(wheelchair_condition)) OR wheelchair IS NULL)
+        AND ((wheelchair <> 'no' AND wheelchair <> 'No') OR wheelchair IS NULL)
         UNION ALL
         SELECT pt.name,NULL AS osm_id, NULL AS opening_hours, NULL AS orgin_geometry,pt.geom, NULL AS status, wheelchair 
         FROM public_transport_stops pt 
         WHERE public_transport_stop IN(amenities_input)
-        AND (wheelchair NOT IN (SELECT UNNEST(wheelchair_condition)) OR wheelchair IS NULL);
+        AND ((wheelchair <> 'no' AND wheelchair <> 'No') OR wheelchair IS NULL);
     END IF;
 
 END ;
@@ -82,5 +76,5 @@ $function$
 
 /* SELECT * FROM 
 	(SELECT * FROM regexp_split_to_table(convert_from(decode('cmVzdGF1cmFudCxzdXBlcm1hcmtldA==','base64'),'UTF-8'), ',') AS amenity) x,
-	pois_visualization(x.amenity,'wheelchair', 20, 15, 0);
+	pois_visualization(x.amenity,'walking_wheelchair', 20, 15, 0);
 */
