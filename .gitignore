@@ -7,7 +7,6 @@ ubuntu-bionic-18.04-cloudimg-console.log
 /app/front_end/node_modules
 /app/front_end/.cache
 /app/node/node_modules
-/app/database/data
 /app/database/postgres_data
 /app/database/backups
 /_site

@@ -140,7 +140,9 @@ export default {
         }, []);
 
         me.poisLayer.getSource().updateParams({
-          viewparams: `amenities:'${btoa(viewParams.toString())}'`
+          viewparams: `amenities:'${btoa(
+            viewParams.toString()
+          )}';routing_profile:'${me.options.routingProfile.active}'`
         });
       }
     },
@@ -167,11 +169,17 @@ export default {
       me.updateHeatmapLayerViewParams();
       me.updatePoisLayerViewParams(me.tree);
       me.countStudyAreaPois();
+    },
+    "options.routingProfile.active": function() {
+      this.updatePoisLayerViewParams(this.tree);
     }
   },
   computed: {
     ...mapGetters("pois", {
       allPois: "allPois"
+    }),
+    ...mapGetters("isochrones", {
+      options: "options"
     })
   }
 };
