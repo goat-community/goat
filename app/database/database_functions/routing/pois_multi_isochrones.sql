@@ -49,7 +49,7 @@ DECLARE
  	END IF;
 
 	-- Exclude POIs that are not accessible by wheelchair if routing_profile_input = wheelchair
-	IF routing_profile_input = 'wheelchair' THEN 
+	IF routing_profile_input = 'walking_wheelchair' THEN 
 		wheelchair_condition = ARRAY['no','No'];
 	ELSE 
 		wheelchair_condition = NULL;
@@ -133,7 +133,7 @@ $function$ LANGUAGE plpgsql;
 
 /*
 SELECT *
-FROM pois_multi_isochrones(1,15,5.0,3,'wheelchair',0.00003,'walking','study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) ;
+FROM pois_multi_isochrones(1,15,5.0,3,'walking_wheelchair',0.00003,'walking','study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) ;
 
 SELECT *
 FROM pois_multi_isochrones(1,10,5.0,2,0.00003,'default','envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 
@@ -141,6 +141,6 @@ FROM pois_multi_isochrones(1,10,5.0,2,0.00003,'default','envelope',array['11.599
 --region_type 'envelope' or study_area
 
 SELECT *
-FROM pois_multi_isochrones(1,15,5.0,3,'wheelchair',0.00003,'walking','study_area',ARRAY['Hasenbergl-Lerchenau'],ARRAY['supermarket','bar']) ;
+FROM pois_multi_isochrones(1,15,5.0,3,'walking_wheelchair',0.00003,'walking','study_area',ARRAY['Hasenbergl-Lerchenau'],ARRAY['supermarket','bar']) ;
 */
 

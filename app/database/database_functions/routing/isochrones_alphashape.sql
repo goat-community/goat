@@ -55,4 +55,4 @@ begin
   
 END;
 $function$
---SELECT * FROM isochrones_api(111,7,11.543274,48.195524,2,5,0.00003,'default','wheelchair')
+--SELECT * FROM isochrones_api(111,7,11.543274,48.195524,2,5,0.00003,'default','walking_wheelchair')
