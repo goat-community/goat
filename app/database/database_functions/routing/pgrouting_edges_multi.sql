@@ -48,4 +48,4 @@ $function$;
 
 
 
---SELECT * FROM public.pgrouting_edges_multi(100, 15, ARRAY[[11.5669,48.1546],[11.5788,48.1545]], 1.33, ARRAY[1,2], 1, 'wheelchair');
+--SELECT * FROM public.pgrouting_edges_multi(100, 15, ARRAY[[11.5669,48.1546],[11.5788,48.1545]], 1.33, ARRAY[1,2], 1, 'walking_wheelchair');

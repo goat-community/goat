@@ -42,7 +42,7 @@
         <name>pois_test</name>
         <sql>SELECT * FROM &#xd;
 	(SELECT * FROM regexp_split_to_table(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;), &apos;,&apos;) AS amenity) x,&#xd;
-	pois_visualization(x.amenity,%d%,%h%,%m%)
+	pois_visualization(x.amenity, %routing_profile%, %d%, %h%, %m%)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
@@ -52,19 +52,23 @@
         </geometry>
         <parameter>
           <name>amenities</name>
-          <defaultValue>&apos;J3tyZXN0YXVyYW50LHBvc3Rib3h9Jw==&apos;</defaultValue>
+          <defaultValue>&apos;cmVzdGF1cmFudCxzdXBlcm1hcmtldA==&apos;</defaultValue>
+        </parameter>
+        <parameter>
+          <name>routing_profile</name>
+          <defaultValue>&apos;wheelchair&apos;</defaultValue>
         </parameter>
         <parameter>
           <name>d</name>
-          <defaultValue>20</defaultValue>
+          <defaultValue>9999</defaultValue>
         </parameter>
         <parameter>
           <name>h</name>
-          <defaultValue>15</defaultValue>
+          <defaultValue>9999</defaultValue>
         </parameter>
         <parameter>
           <name>m</name>
-          <defaultValue>0</defaultValue>
+          <defaultValue>9999</defaultValue>
         </parameter>
       </virtualTable>
     </entry>

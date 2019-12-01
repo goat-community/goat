@@ -82,7 +82,7 @@ END ;
 $function$
 
 
---SELECT * FROM isochrones_api(32431,15,11.546394,48.195533,3,5,0.00003,'default','standard',21,9,0)
+--SELECT * FROM isochrones_api(32431,15,11.546394,48.195533,3,5,0.00003,'default','walking_standard',21,9,0)
 --Options for modus: default,scenario,comparison
 
 
