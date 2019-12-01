@@ -13,13 +13,12 @@ DECLARE
 	buffer integer;
  	excluded_class_id integer[];
 	categories_no_foot text[];
+	wheelchair_condition text[];
 	population_mask jsonb; 
 	objectid_multi_isochrone integer;
 	max_length_links numeric;
 	calc_modus integer;
 	BEGIN
-
-	RAISE NOTICE 'function start';
 
 	/*Scenario building has to be implemented*/
     calc_modus = 1;
@@ -47,19 +46,29 @@ DECLARE
  		SELECT ST_Buffer(mask::geography,buffer)::geometry 
  		INTO buffer_mask;
 	
- 	 END IF;
- 	
+ 	END IF;
+
+	-- Exclude POIs that are not accessible by wheelchair if routing_profile_input = wheelchair
+	IF routing_profile_input = 'walking_wheelchair' THEN 
+		wheelchair_condition = ARRAY['no','No'];
+	ELSE 
+		wheelchair_condition = NULL;
+	END IF;
+
+
 	SELECT DISTINCT p_array
 	INTO points_array
 	FROM (
 		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) AS p_array
 		FROM pois p
 		WHERE p.amenity IN (SELECT UNNEST(amenities))
+		AND (p.wheelchair NOT IN (SELECT UNNEST(wheelchair_condition)) OR p.wheelchair IS NULL)
 		AND st_intersects(p.geom, buffer_mask)
 		UNION ALL
 		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) AS p_array
 		FROM public_transport_stops p
 		WHERE p.public_transport_stop IN (SELECT UNNEST(amenities))
+		AND (p.wheelchair NOT IN (SELECT UNNEST(wheelchair_condition)) OR p.wheelchair IS NULL)
 		AND st_intersects(p.geom, buffer_mask)
 	) x;	
  	---------------------------------------------------------------------------------
@@ -124,10 +133,14 @@ $function$ LANGUAGE plpgsql;
 
 /*
 SELECT *
-FROM pois_multi_isochrones(1,15,5.0,3,0.00003,'default','study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) 
+FROM pois_multi_isochrones(1,15,5.0,3,'walking_wheelchair',0.00003,'walking','study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) ;
 
 SELECT *
 FROM pois_multi_isochrones(1,10,5.0,2,0.00003,'default','envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 
 --alphashape_parameter NUMERIC = 0.00003;
 --region_type 'envelope' or study_area
+
+SELECT *
+FROM pois_multi_isochrones(1,15,5.0,3,'walking_wheelchair',0.00003,'walking','study_area',ARRAY['Hasenbergl-Lerchenau'],ARRAY['supermarket','bar']) ;
 */
+

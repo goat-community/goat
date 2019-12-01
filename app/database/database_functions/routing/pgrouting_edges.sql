@@ -45,9 +45,9 @@ begin
   SELECT select_from_variable_container_s('walking_speed_elderly')::numeric, select_from_variable_container_s('walking_speed_wheelchair')::numeric
   INTO speed_elderly, speed_wheelchair;
 
-  IF  routing_profile = 'elderly' THEN
+  IF  routing_profile = 'walking_elderly' THEN
     speed = speed_elderly; 
-  ELSEIF routing_profile = 'wheelchair' THEN
+  ELSEIF routing_profile = 'walking_wheelchair' THEN
     speed = speed_wheelchair; 
   END IF; 
   
@@ -89,4 +89,4 @@ begin
 END ;
 $function$;
 
---SELECT * FROM public.pgrouting_edges(7, 11.546394, 48.195533, 1.33, 1, 15, 1, 'safe_night');
+--SELECT * FROM public.pgrouting_edges(7, 11.546394, 48.195533, 1.33, 1, 15, 1, 'walking_safe_night');
