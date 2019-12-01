@@ -309,11 +309,11 @@ ALTER TABLE ways_vertices_pgr ADD COLUMN lit_classified text[];
 ALTER TABLE ways_vertices_pgr ADD COLUMN wheelchair_classified text[];
 
 WITH ways_attributes AS (
-	SELECT vv.id, array_agg(DISTINCT x.class_id) class_ids,
-	array_agg(DISTINCT x.foot) AS foot,
-	array_agg(DISTINCT x.bicycle) bicycle,
-	array_agg(DISTINCT x.lit_classified) lit_classified,
-	array_agg(DISTINCT x.wheelchair_classified) wheelchair_classified
+	SELECT vv.id, array_remove(array_agg(DISTINCT x.class_id),NULL) class_ids,
+	array_remove(array_agg(DISTINCT x.foot),NULL) AS foot,
+	array_remove(array_agg(DISTINCT x.bicycle),NULL) bicycle,
+	array_remove(array_agg(DISTINCT x.lit_classified),NULL) lit_classified,
+	array_remove(array_agg(DISTINCT x.wheelchair_classified),NULL) wheelchair_classified
 	FROM ways_vertices_pgr vv
 	LEFT JOIN
 	(	SELECT v.id, w.class_id, w.foot, w.bicycle, w.lit_classified, w.wheelchair_classified 
