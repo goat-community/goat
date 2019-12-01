@@ -83,7 +83,7 @@ services:
       proxy:
 
   db:
-    image: eliaspajares/goat-database:latest
+    image: eliaspajares/goat-database:dev
     container_name: goat-database
     restart: on-failure
     volumes:
