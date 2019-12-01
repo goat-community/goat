@@ -35,9 +35,9 @@ BEGIN
   	select_from_variable_container('categories_no_foot')
   	INTO excluded_class_id, categories_no_foot;
 
-	IF  routing_profile = 'safe_night' THEN
+	IF  routing_profile = 'walking_safe_night' THEN
 		sql_routing_profile = 'AND (lit_classified = ''yes'' OR lit_classified = ''unclassified'')';
-	ELSEIF routing_profile = 'wheelchair' THEN
+	ELSEIF routing_profile = 'walking_wheelchair' THEN
 		sql_routing_profile = 'AND ((wheelchair_classified = ''yes'') OR wheelchair_classified = ''limited''
 		OR wheelchair_classified = ''unclassified'')';
 	END IF;
@@ -52,11 +52,11 @@ BEGIN
 END;
 $function$;
 
-/*select fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)),1.33,1,1,'standard');
+/*select fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)),1.33,1,1,'walking_standard');
 */
 
 /*CREATE TABLE ways_safe AS 
-select f.*, w.geom FROM ways w, (SELECT * FROM fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.005)),2.5,'{0,101,102,103,104,105,106,107,501,502,503,504,701,801}','{use_sidepath,no}',1,1,'safe_night') AS ways_routing) f
+select f.*, w.geom FROM ways w, (SELECT * FROM fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.005)),2.5,'{0,101,102,103,104,105,106,107,501,502,503,504,701,801}','{use_sidepath,no}',1,1,'walking_safe_night') AS ways_routing) f
 WHERE w.id = f.id;
 */
 
@@ -121,5 +121,5 @@ SELECT start_vertex, node, edge, 1 as cnt , cost, geom, null, objectid FROM temp
 
 $function$;
 
-/*select extrapolate_reached_vertices(100, 200, ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)), 1.33 ,1, 1, 'standard');
+/*select extrapolate_reached_vertices(100, 200, ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)), 1.33 ,1, 1, 'walking_standard');
 */

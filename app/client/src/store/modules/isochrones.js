@@ -29,22 +29,22 @@ const state = {
         {
           display: "Standard",
           name: "routingStandard",
-          value: "standard"
+          value: "walking_standard"
         },
         {
           display: "Elderly",
           name: "routingElderly",
-          value: "elderly"
+          value: "walking_elderly"
         },
         {
           display: "Wheelchair",
           name: "routingWheelchair",
-          value: "wheelchair"
+          value: "walking_wheelchair"
         },
         {
           display: "Safe-night",
           name: "routingSafeNight",
-          value: "safe_night"
+          value: "walking_safe_night"
         }
       ],
       active: "standard"
