@@ -28,7 +28,7 @@ begin
 
   SELECT closest_vertex[1] AS id, closest_vertex[2] geom 
   INTO id_vertex, geom_vertex
-  FROM closest_vertex(userid_vertex,x,y,0.0018 /*100m => approx. 0.0009 */,'excluded_class_id_walking',1);
+  FROM closest_vertex(userid_vertex,x,y,0.0018 /*100m => approx. 0.0009 */,modus_input, routing_profile);
     
 
   IF modus_input <> 3 THEN 
