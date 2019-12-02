@@ -21,7 +21,7 @@ begin
   CREATE temp TABLE closest_vertices AS  
   SELECT closest_vertex[1]::bigint closest_vertices, closest_vertex[2]::geometry AS geom, objectid 
   FROM (
-	  SELECT closest_vertex(userid_input,lat_lon_array[1],lat_lon_array[2],0.0018 /*100m => approx. 0.0009 */,'excluded_class_id_walking', modus_input), objectid
+	  SELECT closest_vertex(userid_input,lat_lon_array[1],lat_lon_array[2],0.0018 /*100m => approx. 0.0009 */, modus_input, routing_profile), objectid
 	  FROM (
 	  	SELECT UNNEST_2d_1d(array_starting_points) AS lat_lon_array, UNNEST(objectids) AS objectid
 	  )x
