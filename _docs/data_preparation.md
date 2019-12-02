@@ -9,8 +9,8 @@ permalink: /docs/data_preparation/
 study_area.shp
 
 There is one folder (your-GOAT-directory/app/database/data) in which you can organize the data you want to load into the database. 
-The setup-script will search for shapefiles in this directory and upload all of them into your database. The only file that is essential for setting up GOAT<sub>beta</sub> is a shapefile defining your study area. Other data is optional, however especially landuse data or custom population data can improve data quality.
-As high-resolution population data is one of most important data source for GOAT<sub>beta</sub> there are three different ways for you to feed the data into the system. Depending on your data availability you can pick one approach in the `your-GOAT-directory/app/database/goat_config.yaml`.
+The setup-script will search for shapefiles in this directory and upload all of them into your database. The only file that is essential for setting up GOAT is a shapefile defining your study area. Other data is optional, however especially landuse data or custom population data can improve data quality.
+As high-resolution population data is one of most important data source for GOAT there are three different ways for you to feed the data into the system. Depending on your data availability you can pick one approach in the `your-GOAT-directory/app/database/goat_config.yaml`.
 
 ##### Population disaggregation
 
@@ -24,7 +24,7 @@ The script `your-GOAT-directory/app/database/data_preparation/SQL/buildings_resi
 
 There is a second script `your-GOAT-directory/app/database/data_preparation/SQL/population_disaggregation.sql` actually disaggregates the population data from the boundaries you added with your study_area to the individual buildings. As the population disaggregation is based on OpenStreetMap data, it relies on relatively complete OSM-buildings footprints. In addition, especially in areas with heterogenous building levels it is recommended to check if buildings levels are mapped properly. If there are no buildings levels mapped a default value, which can be defined by you in the database table `variable_container` will be used. 
 
-In general it is highly recommended to check for the data quality in your study area. If you are unhappy with the data quality it is highl recommended to improve the local OSM dataset. Very often with some little mapping effort you can improve data quality essentially. The setup of GOAT<sub>beta</sub> allows you to update the data after successful mapping. 
+In general it is highly recommended to check for the data quality in your study area. If you are unhappy with the data quality it is highl recommended to improve the local OSM dataset. Very often with some little mapping effort you can improve data quality essentially. The setup of GOAT allows you to update the data after successful mapping. 
 
 
 ##### Census extrapolation 
@@ -35,7 +35,7 @@ census.shp
 
 landuse.shp (optional)
 
-In the case you have census data in your study area but you know the data is outdated. GOAT<sub>beta</sub> has an script `your-GOAT-directory/app/database/data_preparation/SQL/census.sql` that allows you to update the census grids based on current population numbers in your whole study area. The script checks for areas where new development took place and estimates based on average gross living area how many residents live in the affected grids. You can also customize the same in the `variable_container`. This procedure also makes use of the extracted residential buildings as described in the population dissagregation.
+In the case you have census data in your study area but you know the data is outdated. GOAT has an script `your-GOAT-directory/app/database/data_preparation/SQL/census.sql` that allows you to update the census grids based on current population numbers in your whole study area. The script checks for areas where new development took place and estimates based on average gross living area how many residents live in the affected grids. You can also customize the same in the `variable_container`. This procedure also makes use of the extracted residential buildings as described in the population dissagregation.
 
 ##### Custom high-resolution population data 
 
