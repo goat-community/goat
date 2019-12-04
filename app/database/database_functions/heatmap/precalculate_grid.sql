@@ -16,12 +16,6 @@ DECLARE
 	y integer;
 BEGIN 
 
-	RAISE NOTICE 'minutes: %', minutes;
-	RAISE NOTICE 'array_starting_points: %', array_starting_points;
-	RAISE NOTICE 'speed: %', speed;
-	RAISE NOTICE 'objectids: %', objectids;
-	RAISE NOTICE 'routing_profile: %', routing_profile;
-
 	DROP TABLE IF EXISTS temp_multi_reached_vertices;
 	DROP TABLE IF EXISTS temp_all_extrapolated_vertices;
 	CREATE temp TABLE temp_multi_reached_vertices AS 
@@ -39,11 +33,8 @@ BEGIN
 	FROM variable_container 
 	WHERE identifier = 'max_length_links';
 
-	RAISE NOTICE 'start loop';
-
 	FOR i IN SELECT DISTINCT objectid FROM temp_multi_reached_vertices
 	LOOP 
-		RAISE NOTICE 'in the loop';
 		DROP TABLE IF EXISTS temp_reached_vertices;	
 		DROP TABLE IF EXISTS temp_extrapolated_reached_vertices;
 		
@@ -54,9 +45,6 @@ BEGIN
 
 		SELECT array_starting_points[i][1] INTO x;
     	SELECT array_starting_points[i][2] INTO y;
-				
-		RAISE NOTICE 'x: %',x;
-		RAISE NOTICE 'y: %',y;
 
    		buffer_point = ST_SetSRID(ST_MakePoint(x,y), 4326);
     	distance = minutes*speed*60;
