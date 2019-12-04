@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS precalculate_grid;
-CREATE OR REPLACE FUNCTION public.precalculate_grid(grid text, minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, objectids int[])
+CREATE OR REPLACE FUNCTION public.precalculate_grid(userid_input integer, grid text, minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, objectids int[], modus_input integer,routing_profile text)
 RETURNS SETOF type_catchment_vertices
  LANGUAGE plpgsql
 AS $function$
@@ -9,12 +9,24 @@ DECLARE
 	excluded_class_id integer[];
 	categories_no_foot text[];
 	max_length_links integer;
+	buffer text;
+    buffer_point geometry;
+	distance integer;
+	x integer;
+	y integer;
 BEGIN 
+
+	RAISE NOTICE 'minutes: %', minutes;
+	RAISE NOTICE 'array_starting_points: %', array_starting_points;
+	RAISE NOTICE 'speed: %', speed;
+	RAISE NOTICE 'objectids: %', objectids;
+	RAISE NOTICE 'routing_profile: %', routing_profile;
+
 	DROP TABLE IF EXISTS temp_multi_reached_vertices;
 	DROP TABLE IF EXISTS temp_all_extrapolated_vertices;
 	CREATE temp TABLE temp_multi_reached_vertices AS 
 	SELECT *
-	FROM pgrouting_edges_multi(1,minutes,array_starting_points,speed,objectids,1);
+	FROM pgrouting_edges_multi(1,minutes,array_starting_points,speed,objectids,1,routing_profile);
 	ALTER TABLE temp_multi_reached_vertices ADD COLUMN id serial;
 	ALTER TABLE temp_multi_reached_vertices ADD PRIMARY key(id);
 	
@@ -27,9 +39,11 @@ BEGIN
 	FROM variable_container 
 	WHERE identifier = 'max_length_links';
 
+	RAISE NOTICE 'start loop';
+
 	FOR i IN SELECT DISTINCT objectid FROM temp_multi_reached_vertices
 	LOOP 
-		RAISE NOTICE 'loop';
+		RAISE NOTICE 'in the loop';
 		DROP TABLE IF EXISTS temp_reached_vertices;	
 		DROP TABLE IF EXISTS temp_extrapolated_reached_vertices;
 		
@@ -37,13 +51,23 @@ BEGIN
 		SELECT start_vertex, node, edge, cost, geom, objectid 
 		FROM temp_multi_reached_vertices
 		WHERE objectid = i;
+
+		SELECT array_starting_points[i][1] INTO x;
+    	SELECT array_starting_points[i][2] INTO y;
 				
+		RAISE NOTICE 'x: %',x;
+		RAISE NOTICE 'y: %',y;
+
+   		buffer_point = ST_SetSRID(ST_MakePoint(x,y), 4326);
+    	distance = minutes*speed*60;
+    	buffer = ST_AsText(ST_Buffer(buffer_point::geography,distance)::geometry);
+
 		IF (SELECT count(*)	FROM temp_reached_vertices LIMIT 4) > 3 THEN 
 	
 			CREATE temp TABLE temp_extrapolated_reached_vertices AS 
 			SELECT * 
-			FROM extrapolate_reached_vertices(minutes*60,max_length_links,(speed/3.6),excluded_class_id,categories_no_foot);
-			
+			FROM extrapolate_reached_vertices(minutes*60,max_length_links,buffer,(speed/3.6),userid_input,modus_input,routing_profile);
+
 			ALTER TABLE temp_extrapolated_reached_vertices ADD COLUMN id serial;
 			ALTER TABLE temp_extrapolated_reached_vertices ADD PRIMARY key(id);
 			CREATE INDEX ON temp_extrapolated_reached_vertices USING gist(geom);
@@ -71,4 +95,4 @@ BEGIN
 END 
 $function$;
 
---SELECT * FROM precalculate_grid('grid_500',15,array[[11.4765751342908,48.0842050053819],[11.4785199868809,48.0819545493074]],5,array[1258,615])
+--SELECT * FROM precalculate_grid(1,'grid_500',15,array[[11.5669,48.1546],[11.5788,48.1545]],5,	array[1,2],1,'walking_standard');
