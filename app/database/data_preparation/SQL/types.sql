@@ -107,6 +107,7 @@ CREATE TYPE public.type_catchment_vertices_single AS
 DROP TYPE IF EXISTS pois_visualization CASCADE;
 CREATE TYPE public.pois_visualization AS
 (
+	amenity text,
 	name text, 
 	osm_id bigint, 
 	opening_hours text, 
