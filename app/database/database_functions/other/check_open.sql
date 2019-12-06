@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS check_open;
 CREATE OR REPLACE FUNCTION check_open (opening_hour text, ref_time integer[])
   RETURNS text
 AS $$
