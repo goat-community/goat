@@ -60,13 +60,20 @@ begin
   SELECT select_from_variable_container_s('max_length_links')::integer 
   INTO max_length_links;
 	
+  DROP TABLE IF EXISTS temp_fetched_ways;
+  CREATE TEMP TABLE temp_fetched_ways AS 
+  SELECT * FROM fetch_ways_routing(buffer,speed,modus_input,userid_input,routing_profile);
+  ALTER TABLE temp_fetched_ways ADD PRIMARY KEY(id);
+  CREATE INDEX ON temp_fetched_ways (target);
+  CREATE INDEX ON temp_fetched_ways (source);
+
   DROP TABLE IF EXISTS temp_reached_vertices;
 
   IF modus_input = 1 THEN 
     CREATE TEMP TABLE temp_reached_vertices as 
     SELECT id_vertex AS start_vertex, id1::integer AS node, id2::integer AS edge, 1 AS cnt, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid 
     FROM PGR_DrivingDistance( 
-        'SELECT * FROM fetch_ways_routing('''||buffer||''','||speed||','||modus_input||','||userid_input||','''||routing_profile||''')'
+        'SELECT * FROM temp_fetched_ways'
         ,id_vertex, distance,FALSE,FALSE
         )p, ways_vertices_pgr v
     WHERE p.id1 = v.id;
@@ -74,17 +81,55 @@ begin
     CREATE TEMP TABLE temp_reached_vertices as 
     SELECT id_vertex AS start_vertex, id1::integer AS node, id2::integer AS edge, 1 AS cnt, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid
     FROM PGR_DrivingDistance(
-      'SELECT * FROM fetch_ways_routing('''||buffer||''','||speed||','||modus_input||','||userid_input||','''||routing_profile||''')',
+      'SELECT * FROM temp_fetched_ways',
       id_vertex, 
       distance, false, false
     ) p, ways_userinput_vertices_pgr v
     WHERE p.id1 = v.id;
   END IF;
 
+  DROP TABLE IF EXISTS temp_extrapolated_vertices;
+  CREATE TEMP TABLE temp_extrapolated_vertices as 
+  SELECT * FROM extrapolate_reached_vertices(minutes*60,max_length_links,buffer,speed,modus_input,userid_input,routing_profile);
+  ALTER TABLE temp_extrapolated_vertices ADD COLUMN id serial;
+  ALTER TABLE temp_extrapolated_vertices ADD PRIMARY key(id);
+  CREATE INDEX ON temp_extrapolated_vertices(edge);
+  --Save reached network 
+  INSERT INTO edges(edge,cost,geom,objectid)
+  WITH not_in_reached_vertices AS 
+  (
+    SELECT w.*
+    FROM temp_fetched_ways w 
+    LEFT JOIN (SELECT * FROM temp_extrapolated_vertices WHERE w_geom IS NOT NULL) v
+    ON w.id = v.edge 
+    WHERE v.edge IS NULL
+  )
+  SELECT DISTINCT * 
+  FROM (
+	  SELECT n.id AS edge, v.cost,n.geom, objectid_input 
+	  FROM not_in_reached_vertices n, temp_extrapolated_vertices v 
+	  WHERE v.node = n.SOURCE
+	  AND v.w_geom IS NULL
+	  UNION ALL 
+	  SELECT n.id AS edge, v.cost,n.geom,objectid_input  
+	  FROM not_in_reached_vertices n, temp_extrapolated_vertices v 
+	  WHERE v.node = n.SOURCE
+	  AND v.w_geom IS NULL
+	  UNION ALL 
+	  SELECT v.edge, v.cost,w.geom,objectid_input 
+	  FROM temp_fetched_ways w, temp_extrapolated_vertices v 
+	  WHERE v.edge = w.id
+	  AND v.w_geom IS NULL
+	  UNION 
+	  SELECT edge, cost, w_geom AS geom,objectid_input 
+	  FROM temp_extrapolated_vertices 
+	  WHERE w_geom IS NOT NULL
+  ) x;
+
+
   RETURN query 
   SELECT start_vertex,node,edge,cost,geom,w_geom,objectid_input 
-  FROM extrapolate_reached_vertices(minutes*60,max_length_links,buffer,speed,modus_input,userid_input,routing_profile); 
-
+  FROM temp_extrapolated_vertices;
   RETURN;
 END ;
 $function$;
