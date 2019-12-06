@@ -179,19 +179,24 @@ FROM
     (SELECT w.id,
     CASE WHEN 
         wheelchair IN ('yes','Yes') 
-        OR ( sidewalk IN ('both','left','right')
-            AND (
-                sidewalk_both_width >= 1.80 OR sidewalk_left_width >= 1.80 OR sidewalk_right_width >= 1.80
-                )
-            ) 
+        OR (wheelchair IS NULL 
+			AND sidewalk IN ('both','left','right')
+            AND (sidewalk_both_width >= 1.80 OR sidewalk_left_width >= 1.80 OR sidewalk_right_width >= 1.80)
+			AND (incline_percent IS NULL OR incline_percent < 6) 
+			)
         OR (wheelchair IS NULL AND width >= 1.80 AND highway <> 'steps' 
-            AND (smoothness IS NULL OR 
-            (smoothness NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_no')::jsonb) FROM variables)
-            AND smoothness NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_limited')::jsonb) FROM variables)
-            )
-            AND (surface IS NULL OR surface NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'surface_no')::jsonb) FROM variables))
+            AND (smoothness IS NULL 
+				OR (smoothness NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_no')::jsonb) FROM variables)
+            		AND smoothness NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'smoothness_limited')::jsonb) FROM variables)
+           			)
+				)
+            AND (surface IS NULL 
+				OR (surface NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'surface_no')::jsonb) FROM variables)
+					AND surface NOT IN (SELECT jsonb_array_elements_text((wheelchair ->> 'surface_limited')::jsonb) FROM variables)
+					)
+				)
             AND (incline_percent IS NULL OR incline_percent < 6)
-            ))
+            )
         OR (wheelchair IS NULL AND highway IN (SELECT jsonb_array_elements_text((wheelchair ->> 'highway_onstreet_yes')::jsonb) FROM variables))
         THEN 'yes'
     WHEN
@@ -235,10 +240,6 @@ WHERE highway = 'street_lamp';
 
 CREATE INDEX ON buffer_lamps USING gist(geom);
 
-UPDATE ways w SET lit_classified = 'yes'
-FROM buffer_lamps b
-WHERE (lit IS NULL OR lit = '')
-AND ST_Intersects(b.geom,w.geom);
 
 WITH variables AS 
 (
@@ -265,6 +266,11 @@ FROM
     FROM ways w
     ) x
 WHERE w.id = x.id;
+
+UPDATE ways w SET lit_classified = 'yes'
+FROM buffer_lamps b
+WHERE (lit IS NULL OR lit = '')
+AND ST_Intersects(b.geom,w.geom);
 
 --Mark network islands in the network
 INSERT INTO osm_way_classes(class_id,name) values(701,'network_island');
