@@ -209,6 +209,20 @@
       "inputNetwork": "Input Road Network"
     }
   },
+  "poisFilter": {
+    "showTimeFilter": "Add time filter",
+    "selectHourLabel": "Select open time to filter",
+    "selectDayLabel": "Select day",
+    "daysOfWeek": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    }
+  },
   "layerTree": {
     "title": "Layers",
     "settings": {
