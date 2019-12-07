@@ -53,3 +53,8 @@ build-docker-image: app/$(COMPONENT)/Dockerfile
 .PHONY: release-docker-image
 release-docker-image: docker-login build-docker-image
 	$(DOCKER) push $(DOCKER_IMAGE)
+
+# target: make after-success
+.PHONY: after-success
+after-success:
+	@echo "Hooray! :)"
