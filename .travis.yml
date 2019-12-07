@@ -8,12 +8,11 @@ branches:
     - master
     - development
     - test_travis
-before_script:
-  - chmod -R a+x scripts
 script:
-  - ./scripts/docker-public-travis.sh
+  - make release-docker-image -e COMPONENT=client
+  - make release-docker-image -e COMPONENT=api
 after_success:
-  - ./scripts/after-success.sh
+  - make after-success
 notifications:
   email:
     on_success: never
