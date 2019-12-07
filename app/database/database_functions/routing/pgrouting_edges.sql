@@ -30,6 +30,7 @@ begin
   INTO id_vertex, geom_vertex
   FROM closest_vertex(userid_vertex,x,y,0.0018 /*100m => approx. 0.0009 */,modus_input, routing_profile);
     
+  raise notice '%', id_vertex;
 
   IF modus_input <> 3 THEN 
 		SELECT count(objectid) + 1 INTO number_calculation_input
