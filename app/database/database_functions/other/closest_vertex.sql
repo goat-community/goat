@@ -19,7 +19,7 @@ BEGIN
 	END IF;
 
 	no_foot = select_from_variable_container('categories_no_foot');	
-	excluded_class_id = select_from_variable_container('excluded_class_id_walking');	
+	excluded_class_id = select_from_variable_container('excluded_class_id_walking')::int[];	
 
 	IF routing_profile = 'walking_wheelchair' THEN 
 		no_wheelchair = ARRAY['no'];
@@ -35,17 +35,22 @@ BEGIN
 -- input point
 	point:= ST_SetSRID(ST_MakePoint(x,y), 4326);
 
+	raise notice '%', ST_AsText(point);
+	raise notice '%', no_foot;
+	raise notice '%', no_safe_night;
+	raise notice '%', no_wheelchair;
+
+
   	SELECT w.id, w.geom 
   	INTO id_vertex, geom_vertex
 	FROM ways_userinput_vertices_pgr w
 	WHERE (userid IS NULL OR userid = userid_vertex)
 	AND (class_ids <@ excluded_class_id) IS FALSE
-	AND (foot <@ no_foot) IS FALSE
+	AND ((foot <@ no_foot) IS FALSE OR foot = ARRAY[]::text[])
 	AND (wheelchair_classified <@ no_wheelchair) IS FALSE
 	AND (lit_classified <@ no_safe_night) IS FALSE
 	ORDER BY geom <-> point
 	LIMIT 1;
-  
   	IF ST_Distance(geom_vertex,point)>snap_distance THEN
     	RETURN;
   	END IF;
