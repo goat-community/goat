@@ -16,3 +16,6 @@ ubuntu-bionic-18.04-cloudimg-console.log
 /app/database/data_preparation/Python/__pycache__
 node_modules
 dist
+
+k8s/postgres.yaml
+.env

@@ -32,6 +32,9 @@ K8S_OBJ:=$(patsubst %.tpl.yaml,%.yaml,$(K8S_SRC))
 	DOCKER_IMAGE=$(DOCKER_IMAGE) \
 	NAMESPACE=$(NAMESPACE) \
 	VERSION=$(VERSION) \
+	POSTGRES_DB=$(POSTGRES_DB) \
+	POSTGRES_USER=$(POSTGRES_USER) \
+	POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
 	t=$$(cat $<); eval "echo \"$${t}\"" > $@
 
 # target: make help - displays this help.
@@ -58,3 +61,15 @@ release-docker-image: docker-login build-docker-image
 .PHONY: after-success
 after-success:
 	@echo "Hooray! :)"
+
+# target: make build-k8s VERSION=some_git_sha_comit
+.PHONY: build-k8s
+build-k8s:
+	rm -f $(K8S_OBJ)
+	make $(K8S_OBJ)
+	@echo "Built k8s/*.yaml from k8s/*.tpl.yaml"
+
+# target: make deploy-postgres-server
+.PHONY: deploy-postgres-server
+deploy-postgres-server: build-k8s
+	$(KCTL) config use-context goat && $(KCTL) apply -f k8s/postgres.yaml
