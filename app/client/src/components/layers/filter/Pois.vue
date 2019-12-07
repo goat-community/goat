@@ -166,6 +166,7 @@ export default {
     updateHeatmapLayerViewParams() {
       const me = this;
       const selectedPois = me.selectedPois;
+
       const heatmapViewParams = selectedPois.reduce((filtered, item) => {
         const { value, weight, sensitivity } = item;
         if (value != "undefined" && weight != undefined) {
