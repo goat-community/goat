@@ -40,9 +40,12 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>pois_test</name>
-        <sql>SELECT * FROM &#xd;
-	(SELECT * FROM regexp_split_to_table(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;), &apos;,&apos;) AS amenity) x,&#xd;
-	pois_visualization(x.amenity, %routing_profile%, %d%, %h%, %m%)
+        <sql>WITH am AS (&#xd;
+	SELECT string_to_array(amenity::text,&apos;,&apos;) AS amenity&#xd;
+	FROM convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;) AS amenity&#xd;
+)&#xd;
+SELECT *,concat(amenity,&apos;_&apos;,status) AS amenity_icon&#xd;
+FROM pois_visualization((SELECT amenity FROM am), %routing_profile%, %d%,%h%,%m%)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
@@ -56,7 +59,7 @@
         </parameter>
         <parameter>
           <name>routing_profile</name>
-          <defaultValue>&apos;wheelchair&apos;</defaultValue>
+          <defaultValue>&apos;walking_standard&apos;</defaultValue>
         </parameter>
         <parameter>
           <name>d</name>
