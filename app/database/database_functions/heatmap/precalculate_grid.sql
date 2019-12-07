@@ -12,8 +12,7 @@ DECLARE
 	buffer text;
     buffer_point geometry;
 	distance integer;
-	x integer;
-	y integer;
+	cnt integer := 0;
 BEGIN 
 
 	DROP TABLE IF EXISTS temp_multi_reached_vertices;
@@ -21,20 +20,19 @@ BEGIN
 	CREATE temp TABLE temp_multi_reached_vertices AS 
 	SELECT *
 	FROM pgrouting_edges_multi(1,minutes,array_starting_points,speed,objectids,1,routing_profile);
+
 	ALTER TABLE temp_multi_reached_vertices ADD COLUMN id serial;
 	ALTER TABLE temp_multi_reached_vertices ADD PRIMARY key(id);
 	
 	SELECT select_from_variable_container('excluded_class_id_walking')::text[],
-	select_from_variable_container('categories_no_foot')::text
-	INTO excluded_class_id, categories_no_foot;
+	select_from_variable_container('categories_no_foot')::text,
+	select_from_variable_container_s('max_length_links')
+	INTO excluded_class_id, categories_no_foot, max_length_links;
 	
-	SELECT variable_simple::integer
-	INTO max_length_links
-	FROM variable_container 
-	WHERE identifier = 'max_length_links';
-
-	FOR i IN SELECT DISTINCT objectid FROM temp_multi_reached_vertices
+	FOR i IN SELECT DISTINCT objectid FROM temp_multi_reached_vertices ORDER BY objectid
 	LOOP 
+		raise notice '%', cnt;
+		cnt = cnt + 1;
 		DROP TABLE IF EXISTS temp_reached_vertices;	
 		DROP TABLE IF EXISTS temp_extrapolated_reached_vertices;
 		
@@ -42,16 +40,18 @@ BEGIN
 		SELECT start_vertex, node, edge, cost, geom, objectid 
 		FROM temp_multi_reached_vertices
 		WHERE objectid = i;
-
-		SELECT array_starting_points[i][1] INTO x;
-    	SELECT array_starting_points[i][2] INTO y;
-
-   		buffer_point = ST_SetSRID(ST_MakePoint(x,y), 4326);
-    	distance = minutes*speed*60;
-    	buffer = ST_AsText(ST_Buffer(buffer_point::geography,distance)::geometry);
-
-		IF (SELECT count(*)	FROM temp_reached_vertices LIMIT 4) > 3 THEN 
 	
+
+   		buffer_point = ST_SetSRID(ST_MakePoint(array_starting_points[cnt][1],array_starting_points[cnt][2]), 4326);
+    	distance = minutes*60*(speed/3.6);
+    	buffer = ST_AsText(ST_Buffer(buffer_point::geography,distance)::geometry);
+		
+		raise notice '%', ST_ASTEXT(buffer_point);
+		raise notice '%', buffer;
+		raise notice '%', i;
+		raise notice '%', cnt;
+		IF (SELECT count(*)	FROM temp_reached_vertices LIMIT 4) > 3 THEN 
+			
 			CREATE temp TABLE temp_extrapolated_reached_vertices AS 
 			SELECT * 
 			FROM extrapolate_reached_vertices(minutes*60,max_length_links,buffer,(speed/3.6),userid_input,modus_input,routing_profile);
