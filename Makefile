@@ -7,6 +7,7 @@ ifeq ($(TRAVIS_BRANCH), master)
 endif
 
 # Project-related variables
+SHELL=/bin/bash
 NAMESPACE:=development
 PROJECT:=goatcommunity
 COMPONENT:=api
@@ -42,6 +43,15 @@ K8S_OBJ:=$(patsubst %.tpl.yaml,%.yaml,$(K8S_SRC))
 help:
 	@egrep '^# target' [Mm]akefile
 
+# target: make setup-kube-config
+.PHONY: setup-kube-config
+setup-kube-config:
+	mkdir -p ${HOME}/.kube/
+	cp k8s/config ${HOME}/.kube/config
+	$(KCTL) config set "clusters.goat.server" "${KUBE_CLUSTER_SERVER}"
+	$(KCTL) config set "clusters.goat.certificate-authority-data" "${KUBE_CLUSTER_CERTIFICATE}"
+	$(KCTL) config set "users.goat-admin.token" "${KUBE_CLIENT_TOKEN}"
+
 # target: make docker-login
 .PHONY: docker-login
 docker-login:
@@ -71,5 +81,5 @@ build-k8s:
 
 # target: make deploy-postgres-server
 .PHONY: deploy-postgres-server
-deploy-postgres-server: build-k8s
+deploy-postgres-server: setup-kube-config build-k8s
 	$(KCTL) config use-context goat && $(KCTL) apply -f k8s/postgres.yaml
