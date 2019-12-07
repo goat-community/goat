@@ -8,6 +8,8 @@ branches:
     - master
     - development
     - test_travis
+before_script:
+  - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt` && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 script:
   - make release-docker-image -e COMPONENT=client
   - make release-docker-image -e COMPONENT=api
