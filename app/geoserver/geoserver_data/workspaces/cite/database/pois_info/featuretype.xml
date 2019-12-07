@@ -51,7 +51,7 @@ FROM pois_visualization((SELECT amenity FROM am), %routing_profile%, %d%,%h%,%m%
         <geometry>
           <name>geom</name>
           <type>Geometry</type>
-          <srid>-1</srid>
+          <srid>4326</srid>
         </geometry>
         <parameter>
           <name>amenities</name>
