@@ -85,6 +85,11 @@ build-k8s:
 deploy-postgres-server: setup-kube-config build-k8s
 	$(KCTL) config use-context goat && $(KCTL) apply -f k8s/postgres.yaml
 
+# target: make deploy
+.PHONY: deploy
+deploy: setup-kube-config build-k8s
+	$(KCTL) config use-context goat && $(KCTL) apply -f k8s/$(COMPONENT).yaml
+
 # target: make build-postgis-docker-image
 .PHONY: build-postgis-docker-image
 build-postgis-docker-image: ../docker-postgis/Dockerfile
