@@ -49,7 +49,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:10.4
+          image: docker.io/goatcommunity/postgis:latest
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 5432

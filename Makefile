@@ -14,6 +14,7 @@ COMPONENT:=api
 VERSION?=$(shell git rev-parse HEAD)
 REGISTRY?=docker.io
 DOCKER_IMAGE?=$(REGISTRY)/$(PROJECT)/$(COMPONENT):$(VERSION)
+POSTGIS_DOCKER_IMAGE?=$(REGISTRY)/$(PROJECT)/postgis:latest
 K8S_CLUSTER?=goat
 
 # Build and test directories
@@ -83,3 +84,13 @@ build-k8s:
 .PHONY: deploy-postgres-server
 deploy-postgres-server: setup-kube-config build-k8s
 	$(KCTL) config use-context goat && $(KCTL) apply -f k8s/postgres.yaml
+
+# target: make build-postgis-docker-image
+.PHONY: build-postgis-docker-image
+build-postgis-docker-image: ../docker-postgis/Dockerfile
+	$(DOCKER) build -f ../docker-postgis/Dockerfile --pull -t $(POSTGIS_DOCKER_IMAGE) ../docker-postgis
+
+# target: make release-postgis-docker-image
+.PHONY: release-postgis-docker-image
+release-postgis-docker-image: docker-login build-postgis-docker-image
+	$(DOCKER) push $(POSTGIS_DOCKER_IMAGE)
