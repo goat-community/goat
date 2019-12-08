@@ -15,6 +15,8 @@ script:
   - make release-docker-image -e COMPONENT=client
   - make release-docker-image -e COMPONENT=api
   - make deploy-postgres-server
+  - make deploy -e COMPONENT=api
+  # - make deploy -e COMPONENT=client
 after_success:
   - make after-success
 notifications:
