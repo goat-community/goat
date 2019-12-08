@@ -106,7 +106,7 @@ const state = {
         { value: 18, display: "monday" },
         { value: 19, display: "tuesday" },
         { value: 20, display: "wednesday" },
-        { value: 21, display: "tuesday" },
+        { value: 21, display: "thursday" },
         { value: 22, display: "friday" },
         { value: 23, display: "saturday" },
         { value: 24, display: "sunday" }
