@@ -73,6 +73,7 @@
       on-icon="check_box"
       off-icon="check_box_outline_blank"
       indeterminate-icon="indeterminate_check_box"
+      @input="treeViewChanged"
     >
       <template v-slot:prepend="{ item, open }">
         <img v-if="item.icon" class="pois-icon" :src="getPoisIconUrl(item)" />
@@ -260,6 +261,10 @@ export default {
           nodeState: "activate"
         });
       }
+    },
+    treeViewChanged() {
+      //Prevent disabled pois that are locked to be selectable
+      this.selectedPois = this.selectedPois.filter(x => x.locked != true);
     }
   },
   watch: {
