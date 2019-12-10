@@ -768,7 +768,7 @@
           }
         ],
         "disabledPoisOnRoutingProfile": {
-          "wheelchair": [
+          "walking_wheelchair": [
             {
               "categoryValue": "services",
               "poisFiltered": ["recycling", "atm"]
@@ -807,7 +807,7 @@
               "value": "walking_safe_night"
             }
           ],
-          "active": "standard"
+          "active": "walking_standard"
         },
         "calculationType": "single",
         "minutes": "10",
