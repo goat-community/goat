@@ -73,13 +73,30 @@ body {
   bottom: 0;
   width: 100%;
   height: 46px;
-  padding-top: 10px;
-  background-color: $gray-lighter;
   color: $gray-dark;
+
+  img {
+    max-height: 140px;
+    width: auto;
+    margin: 40px;
+  }
+
+  .container > div {
+    border-top: solid 1px $gray-lighter;
+    padding-top: 20px;
+    padding-bottom: 30px;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer .container img {
+      display: block;
+      margin: 40px auto;
+  }
 }
 
 .post-list-container {
-  li a.active {
+  .footer {
     font-weight: bold;
   }
 }
