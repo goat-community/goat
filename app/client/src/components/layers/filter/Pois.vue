@@ -205,9 +205,11 @@ export default {
         me.poisLayer.getSource().updateParams({
           viewparams: `amenities:'${btoa(
             viewParams.toString()
-          )}';routing_profile:'${me.options.routingProfile.active}';d:${
-            me.getSelectedDay
-          };h:${me.getSelectedHour};m:${me.getSelectedMinutes};`
+          )}';routing_profile:'${
+            me.options.routingProfile.active["value"]
+          }';d:${me.getSelectedDay};h:${me.getSelectedHour};m:${
+            me.getSelectedMinutes
+          };`
         });
       }
     },
@@ -275,7 +277,7 @@ export default {
       me.updatePoisLayerViewParams(me.selectedPois);
       me.countStudyAreaPois();
     },
-    "options.routingProfile.active": function(newValue, oldValue) {
+    "options.routingProfile.active.value": function(newValue, oldValue) {
       this.toggleRoutingFilter(newValue, oldValue);
       this.updatePoisLayerViewParams(this.selectedPois);
     },
@@ -313,7 +315,7 @@ export default {
   },
   created() {
     this.init(this.$appConfig.componentData.pois);
-    this.toggleRoutingFilter(this.options.routingProfile.active, null);
+    this.toggleRoutingFilter(this.options.routingProfile.active["value"], null);
   }
 };
 </script>

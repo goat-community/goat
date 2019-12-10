@@ -113,7 +113,7 @@ const actions = {
         x: state.position.coordinate[0],
         y: state.position.coordinate[1],
         concavity: state.options.concavityIsochrones.active,
-        routing_profile: state.options.routingProfile.active
+        routing_profile: state.options.routingProfile.active["value"]
       });
       isochroneEndpoint = "isochrone";
     } else {
@@ -141,7 +141,7 @@ const actions = {
         ),
         region_type: `'${regionType}'`,
         region: region,
-        routing_profile: `'${state.options.routingProfile.active}'`,
+        routing_profile: `'${state.options.routingProfile.active["value"]}'`,
         amenities: rootState.pois.selectedPois
           .map(item => {
             return "'" + item.value + "'";
