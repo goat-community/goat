@@ -35,7 +35,7 @@ landuse.shp (optional)
 
 fixed_population.shp (optional)
 
-In the case you have census data in your study area but you know the data is outdated. GOAT<sub>beta</sub> has an script `your-GOAT-directory/app/data_preparation/SQL/census.sql` that allows you to update the census grids based on current population numbers in your whole study area, , which you provided in the layertable `study_area`. A prerequisite is that your population numbers for your `study_area` more recent, than your census data. Currently the script does only work if the population numbers have increased in the timespan that is lying between the reference year of the census data and the reference year of the administrative boundaries of your `study_area`. 
+In the case you have census data in your study area but you know the data is outdated. GOAT has an script `your-GOAT-directory/app/data_preparation/SQL/census.sql` that allows you to update the census grids based on current population numbers in your whole study area, , which you provided in the layertable `study_area`. A prerequisite is that your population numbers for your `study_area` more recent, than your census data. Currently the script does only work if the population numbers have increased in the timespan that is lying between the reference year of the census data and the reference year of the administrative boundaries of your `study_area`. 
 
 
 The script checks for areas where new development took place and estimates based on average gross living area how many residents live in the affected grids. You can also customize the same in the `variable_container`. This procedure also makes use of the extracted residential buildings as described in `your-GOAT-directory\app\data_preparation\SQL\buildings_residential.sql`

@@ -3,14 +3,14 @@ title: Contribute to the documentation
 permalink: /docs/contribute_docs/
 ---
 
-GOAT<sub>beta</sub> is an open source project. You can not only use it, but your are also very welcome to contribute. Besides contributing code or collecting OpenStreetMap data, you can also help improving our documentation. This website is hosted on Github with the rest of the GOAT codebase and is using [Jekyll](https://jekyllrb.com/) as static site generator. This allows to build a website with the markdown language based on templates.
+GOAT is an open source project. You can not only use it, but your are also very welcome to contribute. Besides contributing code or collecting OpenStreetMap data, you can also help improving our documentation. This website is hosted on Github with the rest of the GOAT codebase and is using [Jekyll](https://jekyllrb.com/) as static site generator. This allows to build a website with the markdown language based on templates.
 
 In order to contribute to the website you will need to have a code editor, Git and Jekyll installed, furthermore you need a Github-Account.
 The following steps show one possible workflow to contribute to the website. 
 
 #### 1. Get a fork of GOAT
 
-To make changes to the GOAT<sub>beta</sub> repository the easiest way is to first get a personal copy (called <i>fork</i>) of it. In your personal fork you can freely experiment and also push your changes to your own GitHub account.
+To make changes to the GOAT repository the easiest way is to first get a personal copy (called <i>fork</i>) of it. In your personal fork you can freely experiment and also push your changes to your own GitHub account.
 
 Go to [https://github.com/EPajares/goat/](https://github.com/EPajares/goat/) and press the "Fork" button. 
 
@@ -72,7 +72,7 @@ Now you are ready to contribute.
 
 #### 6. Make your changes
 
-All the markdown files of the website are stored in the "_docs" folder. It is recommended to open the files with a proper editor such as [Visual Studio Code](https://code.visualstudio.com/). You can edit the files and make the desired changes to improve the GOAT<sub>beta</sub> Docs.
+All the markdown files of the website are stored in the "_docs" folder. It is recommended to open the files with a proper editor such as [Visual Studio Code](https://code.visualstudio.com/). You can edit the files and make the desired changes to improve the GOAT Docs.
 
 #### 7. View your changes on a local website
 
