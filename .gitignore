@@ -18,4 +18,6 @@ node_modules
 dist
 
 k8s/postgres.yaml
+k8s/api.yaml
+k8s/client.yaml
 .env
