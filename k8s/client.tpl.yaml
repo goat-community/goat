@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${NAMESPACE}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goat-client
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: goat-client
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 50%
+  minReadySeconds: 15
+  template:
+    metadata:
+      labels:
+        app: goat-client
+    spec:
+      containers:
+      - image: ${DOCKER_IMAGE}
+        imagePullPolicy: IfNotPresent
+        name: goat-client
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            memory: 1Gi
+            cpu: 200m
+          limits:
+            memory: 2Gi
+            cpu: 300m
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 3000
+          initialDelaySeconds: 10
+          timeoutSeconds: 1
+          periodSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 3000
+          initialDelaySeconds: 20
+          timeoutSeconds: 1
+          periodSeconds: 5
+          failureThreshold: 3
+        env:
+          - name: VUE_APP_I18N_LOCALE
+            value: 'en'
+          - name: VUE_APP_I18N_FALLBACK_LOCALE
+            value: 'en'
+---
+# apiVersion: extensions/v1beta1
+# kind: Ingress
+# metadata:
+#   annotations:
+#     kubernetes.io/ingress.class: nginx
+#     cert-manager.io/cluster-issuer: letsencrypt-prod
+#   name: goat-client
+#   namespace: ${NAMESPACE}
+# spec:
+#   rules:
+#     - host: demo.open-accessibility.org
+#       http:
+#         paths:
+#           - backend:
+#               serviceName: goat-client
+#               servicePort: 80
+#             path: /
+#   tls:
+#   - hosts:
+#     - demo.open-accessibility.org
+#     secretName: letsencrypt-prod
+# ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: goat-client
+  namespace: ${NAMESPACE}
+spec:
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: goat-client
