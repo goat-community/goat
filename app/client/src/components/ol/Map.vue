@@ -72,6 +72,7 @@ export default {
       minZoom: this.$appConfig.map.minZoom,
       maxZoom: this.$appConfig.map.maxZoom,
       allLayers: [],
+      querableLayers: [],
       activeInteractions: [],
       popup: {
         rawHtml: null,
@@ -143,6 +144,10 @@ export default {
         return interaction !== stopedInteraction;
       });
     });
+
+    me.querableLayers = getAllChildLayers(me.map).filter(
+      layer => layer.get("queryable") === true
+    );
   },
 
   methods: {
@@ -355,12 +360,8 @@ export default {
         const coordinate = evt.coordinate;
         const projection = me.map.getView().getProjection();
         const resolution = me.map.getView().getResolution();
-        let layerToQuery;
-        getAllChildLayers(me.map).forEach(layer => {
-          if (layer.get("queryable") === true) {
-            layerToQuery = layer;
-          }
-        });
+        let layerToQuery = me.querableLayers[0];
+
         if (!layerToQuery || layerToQuery.getVisible() == false) {
           return;
         }
