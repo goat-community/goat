@@ -768,7 +768,7 @@
           }
         ],
         "disabledPoisOnRoutingProfile": {
-          "wheelchair": [
+          "walking_wheelchair": [
             {
               "categoryValue": "services",
               "poisFiltered": ["recycling", "atm"]
@@ -788,26 +788,30 @@
           "values": [
             {
               "display": "Standard",
-              "name": "routingStandard",
-              "value": "walking_standard"
+              "value": "walking_standard",
+              "defaultSpeed": 5
             },
             {
               "display": "Elderly",
-              "name": "routingElderly",
-              "value": "walking_elderly"
+              "value": "walking_elderly",
+              "defaultSpeed": 3
             },
             {
               "display": "Wheelchair",
-              "name": "routingWheelchair",
-              "value": "walking_wheelchair"
+              "value": "walking_wheelchair",
+              "defaultSpeed": 5
             },
             {
               "display": "Safe-night",
-              "name": "routingSafeNight",
-              "value": "walking_safe_night"
+              "value": "walking_safe_night",
+              "defaultSpeed": 5
             }
           ],
-          "active": "standard"
+          "active": {
+            "display": "Standard",
+            "value": "walking_standard",
+            "defaultSpeed": 5
+          }
         },
         "calculationType": "single",
         "minutes": "10",

@@ -280,7 +280,13 @@
       "clickToFinishDrawingPolygon": "Double-click or click starting point to finish",
       "clickOnFeatureToDelete": "Click on feature to delete it",
       "clickAndDragToModify": "Click and drag the features to modify",
-      "clickToRemove": "Click to remove it"
+      "clickToRemove": "Click to remove it",
+      "routingProfiles": {
+        "walking_standard": "Default routing",
+        "walking_elderly": " Routing with reduced walking speed",
+        "walking_wheelchair": "Routing excluding paths and points-of-interest that are not barrier-free",
+        "walking_safe_night": "Routing excluding unlit paths"
+      }
     },
     "popup": {
       "attributes": "Attributes",
