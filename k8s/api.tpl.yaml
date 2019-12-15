@@ -68,28 +68,29 @@ spec:
           - name: POSTGRES_PORT
             value: '5432'
 ---
-# apiVersion: extensions/v1beta1
-# kind: Ingress
-# metadata:
-#   annotations:
-#     kubernetes.io/ingress.class: nginx
-#     cert-manager.io/cluster-issuer: letsencrypt-prod
-#   name: goat-api
-#   namespace: ${NAMESPACE}
-# spec:
-#   rules:
-#     - host: ${DOMAIN}
-#       http:
-#         paths:
-#           - backend:
-#               serviceName: goat-api
-#               servicePort: 80
-#             path: /api
-#   tls:
-#   - hosts:
-#     - ${DOMAIN}
-#     secretName: letsencrypt-prod
-# ---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+  name: goat-api
+  namespace: ${NAMESPACE}
+spec:
+  rules:
+    - host: ${DOMAIN}
+      http:
+        paths:
+          - backend:
+              serviceName: goat-api
+              servicePort: 80
+            path: /api(/|$)(.*)
+  tls:
+  - hosts:
+    - ${DOMAIN}
+    secretName: letsencrypt-prod
+---
 apiVersion: v1
 kind: Service
 metadata:
