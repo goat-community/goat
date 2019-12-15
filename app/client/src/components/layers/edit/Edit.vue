@@ -249,7 +249,11 @@ export default {
       const me = this;
 
       //Close other interactions.
-      EventBus.$emit("ol-interaction-activated", me.interactionType);
+      if (state != undefined) {
+        EventBus.$emit("ol-interaction-activated", me.interactionType);
+      } else {
+        EventBus.$emit("ol-interaction-stoped", me.interactionType);
+      }
 
       let selectionType;
       switch (state) {
