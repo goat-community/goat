@@ -78,16 +78,16 @@ spec:
 #   namespace: ${NAMESPACE}
 # spec:
 #   rules:
-#     - host: demo-api.open-accessibility.org
+#     - host: ${DOMAIN}
 #       http:
 #         paths:
 #           - backend:
 #               serviceName: goat-api
 #               servicePort: 80
-#             path: /
+#             path: /api
 #   tls:
 #   - hosts:
-#     - demo-api.open-accessibility.org
+#     - ${DOMAIN}
 #     secretName: letsencrypt-prod
 # ---
 apiVersion: v1
