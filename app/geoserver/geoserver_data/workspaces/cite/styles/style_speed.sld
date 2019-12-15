@@ -1,231 +1,209 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<StyledLayerDescriptor xmlns="http://www.opengis.net/sld" version="1.1.0" xmlns:ogc="http://www.opengis.net/ogc" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/StyledLayerDescriptor.xsd" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:se="http://www.opengis.net/se">
+<StyledLayerDescriptor xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ogc="http://www.opengis.net/ogc" xmlns="http://www.opengis.net/sld" xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd" version="1.0.0">
   <NamedLayer>
-    <se:Name>speed</se:Name>
+    <Name>speed</Name>
     <UserStyle>
-      <se:Name>speed</se:Name>
-      <se:FeatureTypeStyle>
-        <se:Rule>
-          <se:Name>0 - 10 km/h</se:Name>
-          <se:Description>
-            <se:Title>0 - 10 km/h</se:Title>
-          </se:Description>
+      <Name>speed</Name>
+      <FeatureTypeStyle>
+        <Rule>
+          <Name>0 - 10 km/h</Name>
+            <Title>0 - 10 km/h</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsLessThanOrEqualTo>
               <ogc:PropertyName>maxspeed_forward</ogc:PropertyName>
               <ogc:Literal>10</ogc:Literal>
             </ogc:PropertyIsLessThanOrEqualTo>
           </ogc:Filter>
-          <se:LineSymbolizer>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#2a924a</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-              <se:SvgParameter name="stroke-linecap">square</se:SvgParameter>
-            </se:Stroke>
-          </se:LineSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>15 km/h</se:Name>
-          <se:Description>
-            <se:Title>15 km/h</se:Title>
-          </se:Description>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#2a924a</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>15 km/h</Name>
+            <Title>15 km/h</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
               <ogc:PropertyName>maxspeed_forward</ogc:PropertyName>
               <ogc:Literal>15</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
-          <se:LineSymbolizer>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#2ed558</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-              <se:SvgParameter name="stroke-linecap">square</se:SvgParameter>
-            </se:Stroke>
-          </se:LineSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>20 km/h</se:Name>
-          <se:Description>
-            <se:Title>20 km/h</se:Title>
-          </se:Description>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#2ed558</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>20 km/h</Name>
+            <Title>20 km/h</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
               <ogc:PropertyName>maxspeed_forward</ogc:PropertyName>
               <ogc:Literal>20</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
-          <se:LineSymbolizer>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#b3ef0f</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-              <se:SvgParameter name="stroke-linecap">square</se:SvgParameter>
-            </se:Stroke>
-          </se:LineSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>25 km/h</se:Name>
-          <se:Description>
-            <se:Title>25 km/h</se:Title>
-          </se:Description>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#b3ef0f</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>25 km/h</Name>
+            <Title>25 km/h</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
               <ogc:PropertyName>maxspeed_forward</ogc:PropertyName>
               <ogc:Literal>25</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
-          <se:LineSymbolizer>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#f1f131</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-              <se:SvgParameter name="stroke-linecap">square</se:SvgParameter>
-            </se:Stroke>
-          </se:LineSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>30 km/h</se:Name>
-          <se:Description>
-            <se:Title>30 km/h</se:Title>
-          </se:Description>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#f1f131</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>30 km/h</Name>
+            <Title>30 km/h</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
               <ogc:PropertyName>maxspeed_forward</ogc:PropertyName>
               <ogc:Literal>30</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
-          <se:LineSymbolizer>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#f09400</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-              <se:SvgParameter name="stroke-linecap">square</se:SvgParameter>
-            </se:Stroke>
-          </se:LineSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>40 km/h</se:Name>
-          <se:Description>
-            <se:Title>40 km/h</se:Title>
-          </se:Description>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#f09400</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>40 km/h</Name>
+            <Title>40 km/h</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
               <ogc:PropertyName>maxspeed_forward</ogc:PropertyName>
               <ogc:Literal>40</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
-          <se:LineSymbolizer>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#ec0700</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-              <se:SvgParameter name="stroke-linecap">square</se:SvgParameter>
-            </se:Stroke>
-          </se:LineSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>50 km/h</se:Name>
-          <se:Description>
-            <se:Title>50 km/h</se:Title>
-          </se:Description>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#ec0700</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>50 km/h</Name>
+            <Title>50 km/h</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
               <ogc:PropertyName>maxspeed_forward</ogc:PropertyName>
               <ogc:Literal>50</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
-          <se:LineSymbolizer>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#ff178b</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-              <se:SvgParameter name="stroke-linecap">square</se:SvgParameter>
-            </se:Stroke>
-          </se:LineSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>60 km/h</se:Name>
-          <se:Description>
-            <se:Title>60 km/h</se:Title>
-          </se:Description>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#ff178b</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>60 km/h</Name>
+            <Title>60 km/h</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
               <ogc:PropertyName>maxspeed_forward</ogc:PropertyName>
               <ogc:Literal>60</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
-          <se:LineSymbolizer>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#b83df0</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-              <se:SvgParameter name="stroke-linecap">square</se:SvgParameter>
-            </se:Stroke>
-          </se:LineSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>70 km/h</se:Name>
-          <se:Description>
-            <se:Title>70 km/h</se:Title>
-          </se:Description>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#b83df0</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>70 km/h</Name>
+            <Title>70 km/h</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
               <ogc:PropertyName>maxspeed_forward</ogc:PropertyName>
               <ogc:Literal>70</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
-          <se:LineSymbolizer>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#7312e1</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-              <se:SvgParameter name="stroke-linecap">square</se:SvgParameter>
-            </se:Stroke>
-          </se:LineSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>80 km/h</se:Name>
-          <se:Description>
-            <se:Title>80 km/h</se:Title>
-          </se:Description>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#7312e1</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>80 km/h</Name>
+            <Title>80 km/h</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
               <ogc:PropertyName>maxspeed_forward</ogc:PropertyName>
               <ogc:Literal>80</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
-          <se:LineSymbolizer>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#2739ff</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-              <se:SvgParameter name="stroke-linecap">square</se:SvgParameter>
-            </se:Stroke>
-          </se:LineSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>100 km/h</se:Name>
-          <se:Description>
-            <se:Title>100 km/h</se:Title>
-          </se:Description>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#2739ff</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>100 km/h</Name>
+            <Title>100 km/h</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
               <ogc:PropertyName>maxspeed_forward</ogc:PropertyName>
               <ogc:Literal>100</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
-          <se:LineSymbolizer>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#002fb2</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-              <se:SvgParameter name="stroke-linecap">square</se:SvgParameter>
-            </se:Stroke>
-          </se:LineSymbolizer>
-        </se:Rule>
-      </se:FeatureTypeStyle>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#002fb2</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+      </FeatureTypeStyle>
     </UserStyle>
   </NamedLayer>
 </StyledLayerDescriptor>
