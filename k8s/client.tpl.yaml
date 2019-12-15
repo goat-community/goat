@@ -65,7 +65,7 @@ spec:
 #   namespace: ${NAMESPACE}
 # spec:
 #   rules:
-#     - host: demo.open-accessibility.org
+#     - host: ${DOMAIN}
 #       http:
 #         paths:
 #           - backend:
@@ -74,7 +74,7 @@ spec:
 #             path: /
 #   tls:
 #   - hosts:
-#     - demo.open-accessibility.org
+#     - ${DOMAIN}
 #     secretName: letsencrypt-prod
 # ---
 apiVersion: v1

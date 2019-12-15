@@ -46,6 +46,12 @@ K8S_OBJ:=$(patsubst %.tpl.yaml,%.yaml,$(K8S_SRC))
 help:
 	@egrep '^# target' [Mm]akefile
 
+# target: make setup-general-utils
+.PHONY: setup-general-utils
+setup-general-utils:
+	$(KCTL) config use-context $(K8S_CLUSTER)
+	$(KCTL) apply -f k8s/general.yaml
+
 # target: make setup-kube-config
 .PHONY: setup-kube-config
 setup-kube-config:
@@ -54,6 +60,15 @@ setup-kube-config:
 	$(KCTL) config set "clusters.goat.server" "${KUBE_CLUSTER_SERVER}"
 	$(KCTL) config set "clusters.goat.certificate-authority-data" "${KUBE_CLUSTER_CERTIFICATE}"
 	$(KCTL) config set "users.goat-admin.token" "${KUBE_CLIENT_TOKEN}"
+
+# target: make setup-nginx
+.PHONY: setup-nginx
+setup-nginx: setup-general-utils
+	$(HELM) -n default install nginx-ingress stable/nginx-ingress --set controller.publishService.enabled=true
+	$(KCTL) -n cert-manager apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.11/deploy/manifests/00-crds.yaml
+	$(HELM) repo add jetstack https://charts.jetstack.io
+	$(HELM) install cert-manager --namespace cert-manager jetstack/cert-manager
+	$(KCTL) apply -f k8s/letscrypt.yaml
 
 # target: make docker-login
 .PHONY: docker-login
