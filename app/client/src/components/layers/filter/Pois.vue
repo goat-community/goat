@@ -73,6 +73,7 @@
       on-icon="check_box"
       off-icon="check_box_outline_blank"
       indeterminate-icon="indeterminate_check_box"
+      @input="treeViewChanged"
     >
       <template v-slot:prepend="{ item, open }">
         <img v-if="item.icon" class="pois-icon" :src="getPoisIconUrl(item)" />
@@ -204,9 +205,11 @@ export default {
         me.poisLayer.getSource().updateParams({
           viewparams: `amenities:'${btoa(
             viewParams.toString()
-          )}';routing_profile:'${me.options.routingProfile.active}';d:${
-            me.getSelectedDay
-          };h:${me.getSelectedHour};m:${me.getSelectedMinutes};`
+          )}';routing_profile:'${
+            me.options.routingProfile.active["value"]
+          }';d:${me.getSelectedDay};h:${me.getSelectedHour};m:${
+            me.getSelectedMinutes
+          };`
         });
       }
     },
@@ -260,6 +263,10 @@ export default {
           nodeState: "activate"
         });
       }
+    },
+    treeViewChanged() {
+      //Prevent disabled pois that are locked to be selectable
+      this.selectedPois = this.selectedPois.filter(x => x.locked != true);
     }
   },
   watch: {
@@ -270,7 +277,7 @@ export default {
       me.updatePoisLayerViewParams(me.selectedPois);
       me.countStudyAreaPois();
     },
-    "options.routingProfile.active": function(newValue, oldValue) {
+    "options.routingProfile.active.value": function(newValue, oldValue) {
       this.toggleRoutingFilter(newValue, oldValue);
       this.updatePoisLayerViewParams(this.selectedPois);
     },
@@ -308,7 +315,7 @@ export default {
   },
   created() {
     this.init(this.$appConfig.componentData.pois);
-    this.toggleRoutingFilter(this.options.routingProfile.active, null);
+    this.toggleRoutingFilter(this.options.routingProfile.active["value"], null);
   }
 };
 </script>
