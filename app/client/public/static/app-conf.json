@@ -165,6 +165,7 @@
         "opacity": 1,
         "visible": false,
         "canEdit": false,
+        "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
         "serverType": "geoserver"
@@ -191,6 +192,7 @@
         "opacity": 1,
         "visible": false,
         "canEdit": false,
+        "queryable": true,
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver"
