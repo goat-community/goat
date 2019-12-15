@@ -29,7 +29,7 @@ spec:
         imagePullPolicy: IfNotPresent
         name: goat-client
         ports:
-        - containerPort: 3000
+        - containerPort: 80
         resources:
           requests:
             memory: 1Gi
@@ -37,23 +37,6 @@ spec:
           limits:
             memory: 2Gi
             cpu: 300m
-        readinessProbe:
-          httpGet:
-            path: /ping
-            port: 3000
-          initialDelaySeconds: 10
-          timeoutSeconds: 1
-          periodSeconds: 5
-          failureThreshold: 3
-          successThreshold: 1
-        livenessProbe:
-          httpGet:
-            path: /ping
-            port: 3000
-          initialDelaySeconds: 20
-          timeoutSeconds: 1
-          periodSeconds: 5
-          failureThreshold: 3
         env:
           - name: VUE_APP_I18N_LOCALE
             value: 'en'
