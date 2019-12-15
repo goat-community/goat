@@ -9,6 +9,7 @@ endif
 # Project-related variables
 SHELL=/bin/bash
 NAMESPACE:=development
+DOMAIN:=demo.open-accessibility.org
 PROJECT:=goatcommunity
 COMPONENT:=api
 VERSION?=$(shell git rev-parse HEAD)
@@ -33,6 +34,7 @@ K8S_OBJ:=$(patsubst %.tpl.yaml,%.yaml,$(K8S_SRC))
 %.yaml: %.tpl.yaml
 	DOCKER_IMAGE=$(DOCKER_IMAGE) \
 	NAMESPACE=$(NAMESPACE) \
+	DOMAIN=$(DOMAIN) \
 	VERSION=$(VERSION) \
 	POSTGRES_DB=$(POSTGRES_DB) \
 	POSTGRES_USER=$(POSTGRES_USER) \
