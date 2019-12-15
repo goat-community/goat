@@ -59,6 +59,18 @@ spec:
             value: 'en'
           - name: VUE_APP_I18N_FALLBACK_LOCALE
             value: 'en'
+          - name: VUE_APP_SEARCH_KEY
+            value: 'ca068d7840bca4'
+          - name: VUE_APP_SEARCH_URL
+            value: https://api.locationiq.com/v1/autocomplete.php
+          - name: VUE_APP_MAPPROXY_URL
+            value: https://${DOMAIN}/map-proxy/
+          - name: API_BASEURL
+            value: https://${DOMAIN}/api/
+          - name: GEOSERVER_BASEURL
+            value: https://${DOMAIN}/geo-server/
+          - name: PRINT_URL
+            value: https://${DOMAIN}/print/
 ---
 # apiVersion: extensions/v1beta1
 # kind: Ingress
