@@ -55,27 +55,27 @@ spec:
           - name: PRINT_URL
             value: https://${DOMAIN}/print/
 ---
-# apiVersion: extensions/v1beta1
-# kind: Ingress
-# metadata:
-#   annotations:
-#     kubernetes.io/ingress.class: nginx
-#     cert-manager.io/cluster-issuer: letsencrypt-prod
-#   name: goat-client
-#   namespace: ${NAMESPACE}
-# spec:
-#   rules:
-#     - host: demo.open-accessibility.org
-#       http:
-#         paths:
-#           - backend:
-#               serviceName: goat-client
-#               servicePort: 80
-#             path: /
-#   tls:
-#   - hosts:
-#     - demo.open-accessibility.org
-#     secretName: letsencrypt-prod
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  name: goat-client
+  namespace: ${NAMESPACE}
+spec:
+  rules:
+    - host: ${DOMAIN}
+      http:
+        paths:
+          - backend:
+              serviceName: goat-client
+              servicePort: 80
+            path: /
+  tls:
+  - hosts:
+    - ${DOMAIN}
+    secretName: letsencrypt-prod
 # ---
 apiVersion: v1
 kind: Service
