@@ -9,11 +9,13 @@ lang: en-US
 
 baseurl: "" # the subpath of your site, e.g. /blog/
 url: "https://open-accessibility.org" # the base hostname & protocol for your site
-git_address: https://github.com/EPajares/goat
+
+git_address: https://github.com/goat-community/goat
 linkedin_address: https://www.linkedin.com/company/goat-tool/
 twitter_address: https://twitter.com/GoatTool
+
 appURL: https://goat.open-accessibility.org
-git_edit_address: https://github.com/EPajares/goat/tree/gh-pages/
+git_edit_address: https://github.com/goat-community/goat/tree/gh-pages/
 
 # theme options from https://bootswatch.com/
 # comment out this to use default Bootstrap
@@ -59,3 +61,5 @@ collections:
   posts:
     permalink: /blog/:year/:month/:day/:title/
     output: true
+  videos:
+    output: false
