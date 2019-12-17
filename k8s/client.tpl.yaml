@@ -76,7 +76,7 @@ spec:
   - hosts:
     - ${DOMAIN}
     secretName: letsencrypt-prod
-# ---
+---
 apiVersion: v1
 kind: Service
 metadata:
