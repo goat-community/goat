@@ -9,7 +9,7 @@ metadata:
   name: goat-api
   namespace: ${NAMESPACE}
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: goat-api
@@ -32,10 +32,10 @@ spec:
         - containerPort: 3000
         resources:
           requests:
-            memory: 1Gi
+            memory: 256Mi
             cpu: 200m
           limits:
-            memory: 2Gi
+            memory: 512Mi
             cpu: 300m
         readinessProbe:
           httpGet:
