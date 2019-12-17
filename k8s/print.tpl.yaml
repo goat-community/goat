@@ -44,6 +44,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rewrite-target: '/$2'
   name: goat-print
   namespace: ${NAMESPACE}
 spec:
@@ -54,7 +55,7 @@ spec:
           - backend:
               serviceName: goat-print
               servicePort: 80
-            path: /print
+            path: /print(/|$)(.*)
   tls:
   - hosts:
     - ${DOMAIN}
