@@ -55,7 +55,7 @@ spec:
           - backend:
               serviceName: goat-geoserver
               servicePort: 80
-            path: /geo-server(/|$)(.*)
+            path: /geoserver(/|$)(.*)
   tls:
   - hosts:
     - ${DOMAIN}
