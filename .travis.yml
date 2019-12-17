@@ -19,6 +19,7 @@ script:
   - make deploy-postgres-server
   - make deploy -e COMPONENT=api
   - make deploy -e COMPONENT=client
+  - make deploy -e COMPONENT=geoserver
   - make deploy -e COMPONENT=print
 after_success:
   - make after-success
