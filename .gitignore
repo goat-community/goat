@@ -20,4 +20,5 @@ dist
 k8s/postgres.yaml
 k8s/api.yaml
 k8s/client.yaml
+k8s/geoserver.yaml
 .env
