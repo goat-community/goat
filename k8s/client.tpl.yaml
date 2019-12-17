@@ -9,7 +9,7 @@ metadata:
   name: goat-client
   namespace: ${NAMESPACE}
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: goat-client
@@ -32,10 +32,10 @@ spec:
         - containerPort: 80
         resources:
           requests:
-            memory: 265Mi
+            memory: 512Mi
             cpu: 200m
           limits:
-            memory: 512Mi
+            memory: 1Gi
             cpu: 300m
         env:
           - name: VUE_APP_I18N_LOCALE
