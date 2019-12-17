@@ -51,7 +51,7 @@ spec:
           - name: API_BASEURL
             value: https://${DOMAIN}/api/
           - name: GEOSERVER_BASEURL
-            value: https://${DOMAIN}/geo-server/
+            value: https://${DOMAIN}/geoserver/
           - name: PRINT_URL
             value: https://${DOMAIN}/print/
 ---
