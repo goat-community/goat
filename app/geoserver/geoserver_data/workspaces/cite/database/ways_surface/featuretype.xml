@@ -30,7 +30,7 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>ways_surface</name>
-        <sql>SELECT w.geom,w.surface&#xd;
+        <sql>SELECT w.geom, w.highway, w.surface&#xd;
 FROM ways w, study_area s&#xd;
 WHERE highway IS NOT NULL&#xd;
 AND ST_Intersects(s.geom,w.geom)
