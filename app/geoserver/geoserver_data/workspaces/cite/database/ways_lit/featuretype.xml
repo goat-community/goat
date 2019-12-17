@@ -39,7 +39,7 @@
 	FROM variable_container&#xd;
 	WHERE identifier=&apos;lit&apos;&#xd;
 )&#xd;
-SELECT lit, lit_classified, w.geom&#xd;
+SELECT lit, lit_classified, highway, surface, w.geom&#xd;
 FROM ways w, study_area s&#xd;
 WHERE class_id::text NOT IN (SELECT UNNEST(excluded_class_id_walking) FROM variables)&#xd;
 AND (foot IS NULL OR foot NOT IN (SELECT UNNEST(categories_no_foot) FROM variables))&#xd;
