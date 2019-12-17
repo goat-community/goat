@@ -47,7 +47,7 @@ spec:
           - name: VUE_APP_SEARCH_URL
             value: https://api.locationiq.com/v1/autocomplete.php
           - name: VUE_APP_MAPPROXY_URL
-            value: https://${DOMAIN}/map-proxy/
+            value: https://${DOMAIN}/mapproxy/
           - name: API_BASEURL
             value: https://${DOMAIN}/api/
           - name: GEOSERVER_BASEURL

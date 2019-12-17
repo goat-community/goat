@@ -44,7 +44,6 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/rewrite-target: '/\$2'
   name: goat-geoserver
   namespace: ${NAMESPACE}
 spec:
@@ -55,7 +54,7 @@ spec:
           - backend:
               serviceName: goat-geoserver
               servicePort: 80
-            path: /geoserver(/|$)(.*)
+            path: /geoserver
   tls:
   - hosts:
     - ${DOMAIN}
