@@ -14,9 +14,15 @@ before_script:
 script:
   - make release-docker-image -e COMPONENT=client
   - make release-docker-image -e COMPONENT=api
+  - make release-docker-image -e COMPONENT=geoserver
+  - make release-docker-image -e COMPONENT=print
+  - make release-docker-image -e COMPONENT=mapproxy
   - make deploy-postgres-server
   - make deploy -e COMPONENT=api
   - make deploy -e COMPONENT=client
+  - make deploy -e COMPONENT=geoserver
+  - make deploy -e COMPONENT=print
+  - make deploy -e COMPONENT=mapproxy
 after_success:
   - make after-success
 notifications:
