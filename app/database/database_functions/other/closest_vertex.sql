@@ -57,3 +57,6 @@ BEGIN
   	RETURN query SELECT ARRAY[id_vertex::text, geom_vertex::text];
 END ;
 $function$;
+
+/*SELECT * FROM public.closest_vertex(1 ,11.5669,48.1546, 50, 1, 'walking_standard');
+*/
