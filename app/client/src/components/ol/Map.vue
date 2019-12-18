@@ -505,11 +505,8 @@ export default {
     }),
     currentInfo() {
       const feature = this.getInfoResult[this.popup.currentLayerIndex];
-
       if (!feature) return;
-
       const props = feature.getProperties();
-
       let transformed = [];
       const excludedProperties = [
         "geometry",
