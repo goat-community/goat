@@ -214,6 +214,7 @@
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
+        "requiresPois": true,
         "zIndex": 1,
         "serverType": "geoserver"
       },
@@ -240,6 +241,7 @@
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
+        "requiresPois": true,
         "zIndex": 1,
         "serverType": "geoserver"
       },
@@ -913,6 +915,13 @@
           "19": "#0114B7",
           "20": "#000ABF"
         }
+      }
+    }
+  },
+  "componentConf": {
+    "pois": {
+      "filters": {
+        "timeBasedCalculations": "yes"
       }
     }
   }
