@@ -6,13 +6,13 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: goat-client
+  name: goat-geoserver
   namespace: ${NAMESPACE}
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: goat-client
+      app: goat-geoserver
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -22,38 +22,21 @@ spec:
   template:
     metadata:
       labels:
-        app: goat-client
+        app: goat-geoserver
     spec:
       containers:
       - image: ${DOCKER_IMAGE}
         imagePullPolicy: IfNotPresent
-        name: goat-client
+        name: goat-geoserver
         ports:
-        - containerPort: 80
+        - containerPort: 8080
         resources:
           requests:
-            memory: 512Mi
+            memory: 256Mi
             cpu: 200m
           limits:
-            memory: 1Gi
+            memory: 512Mi
             cpu: 300m
-        env:
-          - name: VUE_APP_I18N_LOCALE
-            value: 'en'
-          - name: VUE_APP_I18N_FALLBACK_LOCALE
-            value: 'en'
-          - name: VUE_APP_SEARCH_KEY
-            value: 'ca068d7840bca4'
-          - name: VUE_APP_SEARCH_URL
-            value: https://api.locationiq.com/v1/autocomplete.php
-          - name: VUE_APP_MAPPROXY_URL
-            value: https://${DOMAIN}/mapproxy/
-          - name: API_BASEURL
-            value: https://${DOMAIN}/api/
-          - name: GEOSERVER_BASEURL
-            value: https://${DOMAIN}/geoserver/
-          - name: PRINT_URL
-            value: https://${DOMAIN}/print/
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -61,7 +44,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
-  name: goat-client
+  name: goat-geoserver
   namespace: ${NAMESPACE}
 spec:
   rules:
@@ -69,9 +52,9 @@ spec:
       http:
         paths:
           - backend:
-              serviceName: goat-client
+              serviceName: goat-geoserver
               servicePort: 80
-            path: /
+            path: /geoserver
   tls:
   - hosts:
     - ${DOMAIN}
@@ -80,13 +63,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: goat-client
+  name: goat-geoserver
   namespace: ${NAMESPACE}
 spec:
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8080
       protocol: TCP
   type: NodePort
   selector:
-    app: goat-client
+    app: goat-geoserver

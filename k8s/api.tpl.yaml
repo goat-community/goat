@@ -9,7 +9,7 @@ metadata:
   name: goat-api
   namespace: ${NAMESPACE}
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: goat-api
@@ -32,10 +32,10 @@ spec:
         - containerPort: 3000
         resources:
           requests:
-            memory: 1Gi
+            memory: 256Mi
             cpu: 200m
           limits:
-            memory: 2Gi
+            memory: 512Mi
             cpu: 300m
         readinessProbe:
           httpGet:
@@ -74,7 +74,6 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/rewrite-target: '/$2'
   name: goat-api
   namespace: ${NAMESPACE}
 spec:
@@ -85,7 +84,7 @@ spec:
           - backend:
               serviceName: goat-api
               servicePort: 80
-            path: /api(/|$)(.*)
+            path: /api
   tls:
   - hosts:
     - ${DOMAIN}
