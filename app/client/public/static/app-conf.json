@@ -789,22 +789,26 @@
             {
               "display": "Standard",
               "name": "routingStandard",
-              "value": "walking_standard"
+              "value": "walking_standard",
+              "speed_default": "5"
             },
             {
               "display": "Elderly",
               "name": "routingElderly",
-              "value": "walking_elderly"
+              "value": "walking_elderly",
+              "speed_default": "3"
             },
             {
               "display": "Wheelchair",
               "name": "routingWheelchair",
-              "value": "walking_wheelchair"
+              "value": "walking_wheelchair",
+              "speed_default": "5"
             },
             {
               "display": "Safe-night",
               "name": "routingSafeNight",
-              "value": "walking_safe_night"
+              "value": "walking_safe_night",
+              "speed_default": "5"
             }
           ],
           "active": "standard"
