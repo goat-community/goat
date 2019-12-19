@@ -1,15 +1,15 @@
-# Geo Open Accessibility Tool (GOAT) - Beta
+# Geo Open Accessibility Tool (GOAT)
 
 ## About
 
-This is the experimental release of Geo Open Accessibility Tool (GOAT). GOAT-Beta is meant to be an open source, interactive, 
+This is the experimental release of Geo Open Accessibility Tool (GOAT). GOAT is meant to be an open source, interactive, 
 flexible and useful web-tool for accessibility planning. 
 
 For more information:
 
 [GOAT Website and Docs](https://open-accessibility.org)
 
-[GOAT-Beta demo](https://goat.open-accessibility.org/)
+[GOAT demo](https://goat.open-accessibility.org/)
 
 [Join GOAT User Group on Telegram](https://t.me/joinchat/EpAk7BYbIF72q7D3OTUCZQ)
 
