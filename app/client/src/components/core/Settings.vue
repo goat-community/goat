@@ -2,7 +2,7 @@
   <v-dialog v-model="show" scrollable max-width="500px">
     <v-card flat>
       <v-app-bar color="green" dark>
-        <v-app-bar-nav-icon><v-icon>fas fa-cog</v-icon></v-app-bar-nav-icon>
+        <v-app-bar-nav-icon><v-icon>fas fa-flag</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title>{{ $t("appBar.settings.title") }}</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-app-bar-nav-icon @click.stop="show = false"

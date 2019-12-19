@@ -1,59 +1,61 @@
 <template>
   <div>
-    <v-switch
-      class="subtitle-2 mt-4 mb-0 pb-0"
-      dense
-      v-model="showTimeFilters"
-      @change="toggleTimeFilter"
-      :label="$t(`poisFilter.showTimeFilter`)"
-    ></v-switch>
-    <v-select
-      v-if="showTimeFilters"
-      class="mt-1 pt-1"
-      item-value="value"
-      :items="timeFilter.day.values"
-      v-model="dayFilter"
-      prepend-icon="today"
-      :label="$t('poisFilter.selectDayLabel')"
-    >
-      <template slot="selection" slot-scope="{ item }">
-        {{ $t(`poisFilter.daysOfWeek.${item.display}`) }}
-      </template>
-      <template slot="item" slot-scope="{ item }">
-        {{ $t(`poisFilter.daysOfWeek.${item.display}`) }}
-      </template>
-    </v-select>
+    <template v-if="timeBasedCalculations === 'yes'">
+      <v-switch
+        class="subtitle-2 mt-4 mb-0 pb-0"
+        dense
+        v-model="showTimeFilters"
+        @change="toggleTimeFilter"
+        :label="$t(`poisFilter.showTimeFilter`)"
+      ></v-switch>
+      <v-select
+        v-if="showTimeFilters"
+        class="mt-1 pt-1"
+        item-value="value"
+        :items="timeFilter.day.values"
+        v-model="dayFilter"
+        prepend-icon="today"
+        :label="$t('poisFilter.selectDayLabel')"
+      >
+        <template slot="selection" slot-scope="{ item }">
+          {{ $t(`poisFilter.daysOfWeek.${item.display}`) }}
+        </template>
+        <template slot="item" slot-scope="{ item }">
+          {{ $t(`poisFilter.daysOfWeek.${item.display}`) }}
+        </template>
+      </v-select>
 
-    <v-menu
-      v-if="showTimeFilters"
-      class="mt-0 pt-0"
-      ref="menu"
-      v-model="timeSelectMenu"
-      :close-on-content-click="false"
-      :nudge-right="40"
-      :return-value.sync="hourFilter"
-      transition="scale-transition"
-      offset-y
-    >
-      <template v-slot:activator="{ on }">
-        <v-text-field
+      <v-menu
+        v-if="showTimeFilters"
+        class="mt-0 pt-0"
+        ref="menu"
+        v-model="timeSelectMenu"
+        :close-on-content-click="false"
+        :nudge-right="40"
+        :return-value.sync="hourFilter"
+        transition="scale-transition"
+        offset-y
+      >
+        <template v-slot:activator="{ on }">
+          <v-text-field
+            v-model="hourFilter"
+            :label="$t('poisFilter.selectHourLabel')"
+            prepend-icon="access_time"
+            readonly
+            v-on="on"
+          ></v-text-field>
+        </template>
+        <v-time-picker
+          v-if="timeSelectMenu"
           v-model="hourFilter"
-          :label="$t('poisFilter.selectHourLabel')"
-          prepend-icon="access_time"
-          readonly
-          v-on="on"
-        ></v-text-field>
-      </template>
-      <v-time-picker
-        v-if="timeSelectMenu"
-        v-model="hourFilter"
-        format="24hr"
-        color="green"
-        full-width
-        @click:minute="$refs.menu.save(hourFilter)"
-      ></v-time-picker>
-    </v-menu>
-    <v-divider class="mx-2"></v-divider>
+          format="24hr"
+          color="green"
+          full-width
+          @click:minute="$refs.menu.save(hourFilter)"
+        ></v-time-picker>
+      </v-menu>
+      <v-divider class="mx-2"></v-divider>
+    </template>
 
     <v-treeview
       v-model="selectedPois"
@@ -73,6 +75,7 @@
       on-icon="check_box"
       off-icon="check_box_outline_blank"
       indeterminate-icon="indeterminate_check_box"
+      @input="treeViewChanged"
     >
       <template v-slot:prepend="{ item, open }">
         <img v-if="item.icon" class="pois-icon" :src="getPoisIconUrl(item)" />
@@ -113,7 +116,6 @@ import { getAllChildLayers } from "../../../utils/Layer";
 import { mapGetters, mapActions } from "vuex";
 import { mapFields } from "vuex-map-fields";
 import { mapMutations } from "vuex";
-
 import HeatmapOptions from "./HeatmapOptions";
 
 export default {
@@ -121,15 +123,20 @@ export default {
   components: {
     "heatmap-options": HeatmapOptions
   },
-  data: () => ({
-    timeSelectMenu: false,
-    showTimeFilters: false,
-    open: [],
-    heatmapLayers: [],
-    poisLayer: null,
-    showHeatmapOptionsDialog: false,
-    selectedAmenity: {}
-  }),
+  data() {
+    return {
+      timeBasedCalculations: this.$appConfig.componentConf.pois.filters
+        .timeBasedCalculations,
+      timeSelectMenu: false,
+      showTimeFilters: false,
+      open: [],
+      heatmapLayers: [],
+      poisLayer: null,
+      showHeatmapOptionsDialog: false,
+      selectedAmenity: {}
+    };
+  },
+
   methods: {
     ...mapActions("pois", {
       updateSelectedPoisForThematicData: "updateSelectedPoisForThematicData"
@@ -201,12 +208,16 @@ export default {
           return filtered;
         }, []);
 
+        let params = `amenities:'${btoa(
+          viewParams.toString()
+        )}';routing_profile:'${me.options.routingProfile.active["value"]}';`;
+
+        if (this.timeBasedCalculations === "yes") {
+          params += `d:${me.getSelectedDay};h:${me.getSelectedHour};m:${me.getSelectedMinutes};`;
+        }
+
         me.poisLayer.getSource().updateParams({
-          viewparams: `amenities:'${btoa(
-            viewParams.toString()
-          )}';routing_profile:'${me.options.routingProfile.active}';d:${
-            me.getSelectedDay
-          };h:${me.getSelectedHour};m:${me.getSelectedMinutes};`
+          viewparams: params
         });
       }
     },
@@ -260,6 +271,9 @@ export default {
           nodeState: "activate"
         });
       }
+    },
+    treeViewChanged() {
+      this.selectedPois = this.selectedPois.filter(x => x.locked != true);
     }
   },
   watch: {
@@ -270,8 +284,10 @@ export default {
       me.updatePoisLayerViewParams(me.selectedPois);
       me.countStudyAreaPois();
     },
-    "options.routingProfile.active": function(newValue, oldValue) {
-      this.toggleRoutingFilter(newValue, oldValue);
+    "options.routingProfile.active.value": function(newValue, oldValue) {
+      if (this.timeBasedCalculations === "yes") {
+        this.toggleRoutingFilter(newValue, oldValue);
+      }
       this.updatePoisLayerViewParams(this.selectedPois);
     },
     dayFilter: function() {
@@ -308,7 +324,7 @@ export default {
   },
   created() {
     this.init(this.$appConfig.componentData.pois);
-    this.toggleRoutingFilter(this.options.routingProfile.active, null);
+    this.toggleRoutingFilter(this.options.routingProfile.active["value"], null);
   }
 };
 </script>
