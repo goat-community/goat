@@ -802,20 +802,10 @@
               "defaultSpeed": 5
             },
             {
-              "display": "Elderly",
-              "value": "walking_elderly",
-              "defaultSpeed": 3
-            },
-            {
               "display": "Wheelchair",
               "value": "walking_wheelchair",
               "defaultSpeed": 5
-            },
-            {
-              "display": "Safe-night",
-              "value": "walking_safe_night",
-              "defaultSpeed": 5
-            }
+            } 
           ],
           "active": {
             "display": "Standard",
@@ -921,7 +911,7 @@
   "componentConf": {
     "pois": {
       "filters": {
-        "timeBasedCalculations": "yes"
+        "timeBasedCalculations": "no"
       }
     }
   }

@@ -26,7 +26,7 @@
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <!-- LAYERS -->
-          <v-expansion-panels>
+          <v-expansion-panels readonly>
             <v-expansion-panel
               v-for="(item, i) in layerGroup.children"
               :key="i"
@@ -193,8 +193,10 @@ export default {
           layer.mapLayer.setVisible(false);
         });
       }
+
       if (
         layerGroup.name === "accessbilityBasemaps" &&
+        clickedLayer.mapLayer.get("requiresPois") === true &&
         clickedLayer.mapLayer.getVisible() === false &&
         this.selectedPois.length === 0
       ) {
