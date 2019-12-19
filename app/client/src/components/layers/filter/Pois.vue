@@ -213,7 +213,7 @@ export default {
         )}';routing_profile:'${me.options.routingProfile.active["value"]}';`;
 
         if (this.timeBasedCalculations === "yes") {
-          params += `d:${me.getSelectedDay};h:${me.getSelectedHour};m:${me.getSelectedMinutes};`;
+          params += `d:${me.getSelectedDay};h:${me.getSelectedHour};m:${me.getSelectedMinutes};`
         }
 
         me.poisLayer.getSource().updateParams({
