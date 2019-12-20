@@ -44,14 +44,26 @@ FROM planet_osm_polygon b,landuse_no_residents lu
 WHERE st_intersects(b.way,lu.way) AND ST_Area(ST_Intersection(b.way, lu.way)) / ST_Area(b.way) > 0.5
 AND building NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'building_types_residential');
 
+DO $$                  
+    BEGIN 
+        IF EXISTS
+            ( SELECT 1
+              FROM   information_schema.tables 
+              WHERE  table_schema = 'public'
+              AND    table_name = 'landuse'
+            )
+        THEN
+			--Intersect with custom landuse table
+			INSERT INTO non_residential_ids 
+			SELECT p.osm_id FROM 
+			landuse l, variable_container v, planet_osm_polygon p
+			WHERE l.landuse IN(SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'custom_landuse_no_residents')
+			AND p.building NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'building_types_residential')
+			AND st_intersects(p.way,l.geom) AND ST_Area(ST_Intersection(p.way, l.geom)) / ST_Area(p.way) > 0.5;
+        END IF ;
+    END
+$$ ;
 
---Intersect with custom landuse table
-INSERT INTO non_residential_ids 
-SELECT p.osm_id FROM 
-landuse l, variable_container v, planet_osm_polygon p
-WHERE l.landuse IN(SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'custom_landuse_no_residents')
-AND p.building NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'building_types_residential')
-AND st_intersects(p.way,l.geom) AND ST_Area(ST_Intersection(p.way, l.geom)) / ST_Area(p.way) > 0.5;
 --Delete duplicates 
 CREATE TABLE distinct_non_residential_ids AS 
 SELECT DISTINCT osm_id FROM non_residential_ids;
@@ -64,22 +76,45 @@ ALTER TABLE non_residential_ids add column gid serial;
 ALTER TABLE non_residential_ids add primary key(gid);
 
 --All buildings smaller 54 square meters are excluded
-
-
-CREATE TABLE buildings_residential AS
-WITH x AS (
-	SELECT b.* ,st_area(b.geom::geography) as area, 
-	CASE WHEN (tags -> 'building:levels')~E'^\\d+$' THEN (tags -> 'building:levels')::integer ELSE null end as building_levels,
-	CASE WHEN (tags -> 'roof:levels')~E'^\\d+$' THEN (tags -> 'roof:levels')::integer ELSE null end as roof_levels
-	FROM buildings_residential_table b, landuse l
-	WHERE ST_Intersects(b.geom,l.geom) 
-	AND ST_Area(b.geom::geography) > (SELECT variable_simple::integer FROM variable_container WHERE identifier = 'minimum_building_size_residential')
-)
-SELECT DISTINCT x.* 
-FROM x 
-LEFT JOIN non_residential_ids n
-ON  x.osm_id = n.osm_id
-WHERE n.gid IS NULL; 
+DO $$                  
+    BEGIN 
+        IF EXISTS
+            ( SELECT 1
+              FROM   information_schema.tables 
+              WHERE  table_schema = 'public'
+              AND    table_name = 'landuse'
+            )
+        THEN			
+			CREATE TABLE buildings_residential AS
+			WITH x AS (
+			SELECT b.* ,st_area(b.geom::geography) as area, 
+			CASE WHEN (tags -> 'building:levels')~E'^\\d+$' THEN (tags -> 'building:levels')::integer ELSE null end as building_levels,
+			CASE WHEN (tags -> 'roof:levels')~E'^\\d+$' THEN (tags -> 'roof:levels')::integer ELSE null end as roof_levels
+			FROM buildings_residential_table b, landuse l
+			WHERE  st_intersects(b.geom,l.geom) and ST_Area(b.geom::geography) > (SELECT variable_simple::integer FROM variable_container WHERE identifier = 'minimum_building_size_residential')
+			)
+			SELECT DISTINCT x.* 
+			FROM x 
+			LEFT JOIN non_residential_ids n
+			ON  x.osm_id = n.osm_id
+			WHERE n.gid IS NULL; 
+		ELSE
+			CREATE TABLE buildings_residential AS
+			WITH x AS (
+				SELECT b.* ,st_area(b.geom::geography) as area, 
+				CASE WHEN (tags -> 'building:levels')~E'^\\d+$' THEN (tags -> 'building:levels')::integer ELSE null end as building_levels,
+				CASE WHEN (tags -> 'roof:levels')~E'^\\d+$' THEN (tags -> 'roof:levels')::integer ELSE null end as roof_levels
+				FROM buildings_residential_table b
+				WHERE  ST_Area(b.geom::geography) > (SELECT variable_simple::integer FROM variable_container WHERE identifier = 'minimum_building_size_residential')
+			)
+			SELECT DISTINCT x.* 
+			FROM x 
+			LEFT JOIN non_residential_ids n
+			ON  x.osm_id = n.osm_id
+			WHERE n.gid IS NULL; 
+        END IF ;
+    END
+$$ ;
 
 UPDATE buildings_residential 
 set building_levels = (SELECT variable_simple::integer FROM variable_container WHERE identifier = 'default_building_levels'), 

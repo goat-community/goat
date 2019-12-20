@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS heatmap;
 CREATE OR REPLACE FUNCTION public.heatmap(amenities text)
   RETURNS TABLE(grid_id integer, geom geometry, accessibility_index numeric)
  LANGUAGE plpgsql

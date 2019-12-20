@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS closest_pois;
 CREATE OR REPLACE FUNCTION closest_pois(snap_distance NUMERIC)
 RETURNS SETOF jsonb
  LANGUAGE plpgsql

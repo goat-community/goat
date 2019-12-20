@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS random_between;
 CREATE OR REPLACE FUNCTION random_between(low INT ,high INT) 
    RETURNS INT AS $$
 BEGIN

@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="show" max-width="350px">
+  <v-dialog v-model="show" max-width="355px">
     <v-card>
       <v-app-bar color="green" dark>
         <v-app-bar-nav-icon><v-icon>info</v-icon></v-app-bar-nav-icon>
@@ -48,3 +48,10 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.v-card__text,
+.v-card__title {
+  word-break: normal !important;
+}
+</style>

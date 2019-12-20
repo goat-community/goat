@@ -163,7 +163,7 @@ export default {
     bottomItems() {
       return [
         {
-          icon: "fas fa-cog",
+          icon: "fas fa-flag",
           text: this.$t("appBar.buttons.settings"),
           componentToShow: "app-settings"
         },

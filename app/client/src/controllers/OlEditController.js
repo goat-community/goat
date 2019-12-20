@@ -29,7 +29,9 @@ export default class OlEditController extends OlBaseController {
   createEditLayer() {
     const me = this;
     const style = OlStyleDefs.getEditStyle();
-    super.createLayer("Edit Layer", style);
+    super.createLayer("Edit Layer", style, {
+      queryable: true
+    });
     me.source.on("changefeature", me.onFeatureChange.bind(me));
 
     //Create highlight layer
@@ -206,6 +208,13 @@ export default class OlEditController extends OlBaseController {
 
   uploadWaysFeatures() {
     OlWaysLayerHelper.uploadWaysFeatures(store.state.userId, this.source);
+  }
+
+  /**
+   * Read or insert deleted feature of the user.
+   */
+  readOrInsertDeletedWaysFeatures() {
+    OlWaysLayerHelper.commitDelete("read", store.state.userId);
   }
 
   /**

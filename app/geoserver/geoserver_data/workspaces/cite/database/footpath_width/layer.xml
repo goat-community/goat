@@ -1,0 +1,20 @@
+<layer>
+  <name>footpath_width</name>
+  <id>LayerInfoImpl--30a88f0b:16e7c35aad0:-274c</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--30a88f0b:16e7c35aad0:-274b</id>
+  </defaultStyle>
+  <styles class="linked-hash-set">
+    <style>
+      <id>StyleInfoImpl--30a88f0b:16e7c35aad0:-274b</id>
+    </style>
+  </styles>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--30a88f0b:16e7c35aad0:-274d</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>
