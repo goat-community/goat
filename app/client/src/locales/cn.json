@@ -224,12 +224,21 @@
     "layerGroup": {
       "poisLayers": "Pois Layer",
       "administrativeLayers": "Administrative Layers",
+      "streetlevelqualityLayers": "Street Level Quality",
       "accessbilityBasemaps": "Accessibility Basemap",
       "backgroundLayers": "Background Layers"
     },
     "layerName": {
       "pois": "Point of Interest",
       "administrativeUnits": "Administrative Units",
+      "footpathWidth": "Footpath Width",
+      "illuminance": "Illuminance",
+      "lanes": "Lanes",
+      "parking": "Parking",
+      "speed": "Speed",
+      "streetCrossings": "Street Crossings",
+      "surface": "Surface",
+      "wheelchairUsability": "Wheelchair Usability",
       "areaIsochrone": "Area Isochrone",
       "walkabilityPopulation": "Walkability Population Index",
       "population": "Population",

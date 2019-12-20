@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS count_pois_multi_isochrones;
 CREATE OR REPLACE FUNCTION public.count_pois_multi_isochrones (minutes integer, speed_input numeric, region_type text, region NUMERIC[], amenities text[])
     RETURNS TABLE (region_name text, count_pois integer, geom geometry, buffer_geom geometry)
     AS $function$

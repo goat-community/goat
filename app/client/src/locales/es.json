@@ -12,7 +12,7 @@
             "drawAndMeasure": "Herramientas de medición",
             "filter": "Filtro datos temáticos",
             "edit": "Dessarolar escenario",
-            "settings": "Opciones",
+            "settings": "Idioma",
             "info": "Info"
         },
         "login": {
@@ -219,12 +219,21 @@
         "layerGroup": {
             "poisLayers": "Capa Pois",
             "administrativeLayers": "Límites administrativos",
+            "streetlevelqualityLayers": "Street Level Quality",
             "accessbilityBasemaps": "Accesibilidad",
             "backgroundLayers": "Capas de fondo"
         },
         "layerName": {
             "pois": "Punto de interés",
             "administrativeUnits": "Unidades administrativas",
+            "footpathWidth": "Footpath Width",
+            "illuminance": "Illuminance",
+            "lanes": "Lanes",
+            "parking": "Parking",
+            "speed": "Speed",
+            "streetCrossings": "Street Crossings",
+            "surface": "Surface",
+            "wheelchairUsability": "Wheelchair Usability",
             "areaIsochrone": "Tamaño Isócrona",
             "walkabilityPopulation": "Población - Walkability",
             "population": "Población",

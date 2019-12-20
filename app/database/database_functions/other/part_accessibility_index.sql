@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS part_accessibility_index;
 CREATE OR REPLACE FUNCTION public.part_accessibility_index(traveltime_array NUMERIC[], beta numeric)
 RETURNS NUMERIC 
 AS $function$

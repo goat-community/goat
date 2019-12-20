@@ -10,13 +10,13 @@
           <v-icon small>$vuetify.icons.expand</v-icon>
         </template>
       </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      <v-expansion-panel-content style="max-height:400px;">
         <vue-scroll>
           <template v-for="(item, index) in layers">
             <div
               :key="index"
               v-if="item.getVisible() === true"
-              style="max-height: 150px;padding-right:10px;"
+              style="padding-right:10px;"
             >
               <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
                 {{
@@ -62,7 +62,7 @@ export default {
       const baseUrl = window.location.origin;
       const url = `${baseUrl}/geoserver/ows?service=WMS&request=GetLegendGraphic&format=image/png&layer=${
         item.getSource().getParams().LAYERS
-      }`;
+      }&LANGUAGE=${this.$i18n.locale}`;
       return url;
     }
   }

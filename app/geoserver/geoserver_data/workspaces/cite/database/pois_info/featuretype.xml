@@ -40,15 +40,12 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>pois_test</name>
-        <sql>with x as (&#xd;
-	select  *&#xd;
-	from regexp_split_to_table(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;), &apos;,&apos;) as amenity&#xd;
+        <sql>WITH am AS (&#xd;
+	SELECT string_to_array(amenity::text,&apos;,&apos;) AS amenity&#xd;
+	FROM convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;) AS amenity&#xd;
 )&#xd;
-select p.name,p.amenity,p.osm_id,p.opening_hours,p.orgin_geometry,p.geom from pois p,variable_container v &#xd;
-where amenity = ANY (select amenity from x)&#xd;
-and v.identifier = &apos;poi_categories&apos;&#xd;
-union all &#xd;
-select pt.name,pt.public_transport_stop,null as osm_id,null as orgin_geometry,null as opening_hours,pt.geom from public_transport_stops pt where public_transport_stop = ANY (select amenity from x)
+SELECT *,concat(amenity,&apos;_&apos;,status) AS amenity_icon&#xd;
+FROM pois_visualization((SELECT amenity FROM am), %routing_profile%, %d%,%h%,%m%)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
@@ -58,7 +55,23 @@ select pt.name,pt.public_transport_stop,null as osm_id,null as orgin_geometry,nu
         </geometry>
         <parameter>
           <name>amenities</name>
-          <defaultValue>&apos;J3tyZXN0YXVyYW50LHBvc3Rib3h9Jw==&apos;</defaultValue>
+          <defaultValue>&apos;cmVzdGF1cmFudCxzdXBlcm1hcmtldA==&apos;</defaultValue>
+        </parameter>
+        <parameter>
+          <name>routing_profile</name>
+          <defaultValue>&apos;walking_standard&apos;</defaultValue>
+        </parameter>
+        <parameter>
+          <name>d</name>
+          <defaultValue>9999</defaultValue>
+        </parameter>
+        <parameter>
+          <name>h</name>
+          <defaultValue>9999</defaultValue>
+        </parameter>
+        <parameter>
+          <name>m</name>
+          <defaultValue>9999</defaultValue>
         </parameter>
       </virtualTable>
     </entry>

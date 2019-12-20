@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS split_existing_network;
 CREATE OR REPLACE FUNCTION public.split_existing_network()
  RETURNS SETOF integer
  LANGUAGE plpgsql

@@ -1,5 +1,6 @@
-CREATE OR REPLACE FUNCTION public.pgrouting_edges_multi(userid_input integer, minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, objectids int[], modus_input integer)
- RETURNS SETOF type_catchment_vertices
+DROP FUNCTION IF EXISTS pgrouting_edges_multi;
+CREATE OR REPLACE FUNCTION public.pgrouting_edges_multi(userid_input integer, minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, objectids int[], modus_input integer,routing_profile text)
+ RETURNS SETOF type_catchment_vertices_multi
  LANGUAGE plpgsql
 AS $function$
 DECLARE
@@ -20,7 +21,7 @@ begin
   CREATE temp TABLE closest_vertices AS  
   SELECT closest_vertex[1]::bigint closest_vertices, closest_vertex[2]::geometry AS geom, objectid 
   FROM (
-	  SELECT closest_vertex(userid_input,lat_lon_array[1],lat_lon_array[2],0.0018 /*100m => approx. 0.0009 */,'excluded_class_id_walking', modus_input), objectid
+	  SELECT closest_vertex(userid_input,lat_lon_array[1],lat_lon_array[2],0.0018 /*100m => approx. 0.0009 */, modus_input, routing_profile), objectid
 	  FROM (
 	  	SELECT UNNEST_2d_1d(array_starting_points) AS lat_lon_array, UNNEST(objectids) AS objectid
 	  )x
@@ -38,9 +39,13 @@ begin
   SELECT x.from_v::int start_vertex, x.node::int, x.edge::int, w.cnt, (x.agg_cost/speed)::numeric AS cost, w.geom, c.objectid
   FROM ways_userinput_vertices_pgr w, 
   (SELECT from_v, node, edge, agg_cost FROM pgr_drivingDistance(
-	'SELECT * FROM fetch_ways_routing('''||buffer||''','||speed||','''||excluded_class_id||''','''||categories_no_foot||''','||modus_input||','||userid_input||')'
+	'SELECT * FROM fetch_ways_routing('''||buffer||''','||speed||','||modus_input||','||userid_input||','''||routing_profile||''')'
 	,array_starting_vertices, distance,FALSE,FALSE)
   )x, closest_vertices c
   WHERE w.id = x.node AND c.closest_vertices = from_v;
 END ;
 $function$;
+
+
+
+--SELECT * FROM public.pgrouting_edges_multi(100, 15, ARRAY[[11.5669,48.1546],[11.5788,48.1545]], 1.33, ARRAY[1,2], 1, 'walking_wheelchair');

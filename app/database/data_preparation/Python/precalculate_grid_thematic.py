@@ -15,8 +15,8 @@ grid = 'grid_'+str(500)
 sensitivities = [-0.004,-0.0035,-0.003,-0.0025,-0.002,-0.0015,-0.001]
 
 start = time.time()
-with open("/opt/goat_config.yaml", 'r') as stream:
-    config = yaml.load(stream)
+with open("/opt/config/goat_config.yaml", 'r') as stream:
+    config = yaml.load(stream, Loader=yaml.FullLoader)
 secrets = config["DATABASE"]
 host = secrets["HOST"]
 port = str(secrets["PORT"])
@@ -63,7 +63,7 @@ while lower_limit < count_grids:
     		FROM grid_ordered 
     		WHERE id BETWEEN %i AND %i
     	)
-    		SELECT precalculate_grid('%s',15, x.array_starting_points, 5, x.grid_ids) 
+    		SELECT precalculate_grid(1,'%s',15, x.array_starting_points,5,x.grid_ids,1,'walking_standard') 
     		FROM x;'''
     cursor.execute(sql_bulk_calculation % (lower_limit, lower_limit+step-1, grid))
     con.commit()

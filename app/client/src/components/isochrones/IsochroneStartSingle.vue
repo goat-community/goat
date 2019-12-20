@@ -41,7 +41,6 @@
             prepend-inner-icon="search"
             return-object
             class="ml-3 mt-1"
-            dense
             :menu-props="{ maxHeight: 600 }"
           ></v-autocomplete>
         </v-flex>

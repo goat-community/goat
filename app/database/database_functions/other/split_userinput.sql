@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS split_userinput;
 CREATE OR REPLACE FUNCTION public.split_userinput()
  RETURNS SETOF geometry
  LANGUAGE plpgsql

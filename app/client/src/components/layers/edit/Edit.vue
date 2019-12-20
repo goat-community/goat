@@ -237,6 +237,9 @@ export default {
       //Initialize ol edit controller
       me.olEditCtrl = new OlEditController(me.map);
       me.olEditCtrl.createEditLayer();
+
+      //Read or Insert ways deleted features
+      me.olEditCtrl.readOrInsertDeletedWaysFeatures();
     },
 
     /**
@@ -246,7 +249,11 @@ export default {
       const me = this;
 
       //Close other interactions.
-      EventBus.$emit("ol-interaction-activated", me.interactionType);
+      if (state != undefined) {
+        EventBus.$emit("ol-interaction-activated", me.interactionType);
+      } else {
+        EventBus.$emit("ol-interaction-stoped", me.interactionType);
+      }
 
       let selectionType;
       switch (state) {
