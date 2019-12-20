@@ -193,9 +193,7 @@ export default {
           layer.mapLayer.setVisible(false);
         });
       }
-
       if (
-        layerGroup.name === "accessbilityBasemaps" &&
         clickedLayer.mapLayer.get("requiresPois") === true &&
         clickedLayer.mapLayer.getVisible() === false &&
         this.selectedPois.length === 0

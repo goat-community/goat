@@ -74,6 +74,7 @@
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
+        "requiresPois": true,
         "zIndex": 2,
         "serverType": "geoserver"
       },
