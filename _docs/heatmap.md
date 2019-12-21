@@ -3,18 +3,18 @@ title: Heatmap
 permalink: /docs/heatmap/
 ---
 
-GOAT allows you to calculate and visualize gravity-based accessibility measures, which are visualized as heatmaps. Based on pre-calculated travel times the heatmap is computed dynamically based on the selection of the user, as visualization a hexagonal grid is used. 
+GOAT allows you to calculate and visualize gravity-based accessibility measures, which are visualized as heatmaps. Based on pre-calculated travel times the heatmap is computed dynamically based on the selection of the user. A hexagonal grid is used for visualization.
 
 <img class="img-responsive" src="../../img/heatmap.png" title="Heatmap for groceries">
 
 #### 1. Calculation
-The calculation of the Heatmap is based on the calculation of the potential accessibility of opportunities in zone i to all other zones (n). 
+The calculation of the heatmap is based on the calculation of the potential accessibility of opportunities in zone i to all other zones (n). 
 The measure has the following form (Geurs and Van Wee 2004):
 <img class="img-responsive" src="../../img/potential_accessibility_measures.png">
 
 
-As cost of travel C<sub>ij</sub> travel times between i and j are used. Travel times are computed in seconds. As cut-off value 15 minutes is used for the mode walking, this means that destination that are further away, then 15 minutes walking time are not considered in the calculation of the index.
-The sensitivity parameter defines how accessibility changes with increasing travel time. As the sensitivity parameter is decisive, when measuring accessibility, GOAT allows you to adjust them. The following graphs show the influence of the sensitivity parameter on accessibility. 
+As cost of travel C<sub>ij</sub> travel times between i and j are used. Travel times are computed in seconds. As cut-off value 15 minutes is used for the mode walking, this means that destination that are further away then 15 minutes walking time are not considered in the calculation of the index.
+The sensitivity parameter defines how accessibility changes with increasing travel time. As the sensitivity parameter is decisive when measuring accessibility, GOAT allows you to adjust them. The following graphs show the influence of the sensitivity parameter on accessibility. 
 
 <table><tr>
 <td> <img class="img-responsive" src="../../img/sensitivity_index.png" title="Sensitivty index β= -0.003" style="width: 300px;"/> </td>
@@ -22,17 +22,17 @@ The sensitivity parameter defines how accessibility changes with increasing trav
 </tr></table>
 
 #### 2. Classification
-In order to classify the computed accessibility levels, that we computed for each grid cell, a classification using quintiles is used. 
+In order to classify the accessibility levels that were computed for each grid cell, a classification based on quintiles is used. 
 
 #### 3. Example of calculation
 ##### 3.1 Calculation travel times
-The following example illustrates how the gravity-based heat-map is calculated.
+The following example illustrates how the gravity-based heatmap is computed.
 The travel times are calculated for each grid cell to the concerning destination on the street network. 
 
 
 <img class="img-responsive" src="../../img/grid_groceries.png" title="Accessibility to groceries" style="width: 600px;"/> 
 
-For one grid cell the calculation could be done like in the following examples:
+For one grid cell the calculation could be done as in the following examples:
 
 Uniform sensitivity parameter:
 <img class="img-responsive" src="../../img/accessiblity_uniform_sensitivity-index.png" style="width: 500px;">
