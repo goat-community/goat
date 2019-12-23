@@ -1,6 +1,6 @@
 <style>
-  <id>StyleInfoImpl-7407ec68:16e4a1b5dd3:-269c</id>
-  <name>lit</name>
+  <id>StyleInfoImpl-791e7e6d:16f1e22d71b:-7c0b</id>
+  <name>style_street_furniture</name>
   <workspace>
     <id>WorkspaceInfoImpl--570ae188:124761b8d78:-7ff3</id>
   </workspace>
@@ -8,5 +8,5 @@
   <languageVersion>
     <version>1.0.0</version>
   </languageVersion>
-  <filename>lit.sld</filename>
+  <filename>style_street_furniture.sld</filename>
 </style>

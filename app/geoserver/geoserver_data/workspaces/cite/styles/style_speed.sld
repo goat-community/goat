@@ -6,6 +6,27 @@
       <Name>speed</Name>
       <FeatureTypeStyle>
         <Rule>
+          <Name>no data</Name>
+            <Title>
+              no data
+                <Localized lang="al">unclassified (albanian)</Localized>
+				<Localized lang="ar">unclassified (arabian)</Localized>
+            	<Localized lang="cn">unclassified (chinese)</Localized>
+				<Localized lang="de">keine Daten</Localized>
+            	<Localized lang="en">no data</Localized>
+				<Localized lang="es">ningún datos</Localized>
+            	<Localized lang="fr">pas de données</Localized>
+          	</Title>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#999999</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
           <Name>0 - 10 km/h</Name>
             <Title>0 - 10 km/h</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
