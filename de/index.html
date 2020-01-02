@@ -1,0 +1,121 @@
+---
+layout: default
+lang: de
+---
+
+<div class="header-container jumbotron">
+    <div class="container" style="margin-top:4%">
+        <p><span style="font-weight: 500;font-size: 60px;color:rgb(58, 54, 54);">Willkommen zu Open Accessibility</span></p>
+        <p><a class="btn btn-primary btn-lg" href="https://goat.open-accessibility.org" role="button">Try GOAT!</a></p>
+        <p></p>
+    </div>
+</div>
+
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-4">
+            <h1 class="text-center">
+                    <img src="{{ 'img/opensource.png' | absolute_url }}" alt="" >
+            </h1>
+            <h5 class="text-center">Open Data & Open Source</h5>
+        </div>
+        <div class="col-sm-4">
+            <h1 class="text-center">
+                 <img src="{{ 'img/scenario_building.png' | absolute_url }}" alt="" >
+            </h1>
+            <h5 class="text-center">Scenario Building<br> &nbsp;</h5>
+      </div>
+        <div class="col-sm-4">
+            <h1 class="text-center"> 
+                <img src="{{ 'img/interactive_calculation.png' | absolute_url }}" alt="" >
+            </h1>
+            <h5 class="text-center">Dynamische Berechnungen</h5>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-6">
+            <h4 class="header-light regular-pad">What is GOAT?</h4>
+              <p class="lead">        
+                GOAT stands for Geo Open Accessibility Tool. This web-tool is meant to be open source, interactive, 
+                flexible and useful for accessibility planning. It is under development at the 
+                <a href='https://www.sv.bgu.tum.de'>Chair for Urban Structure and Transport Planning at TUM</a>. 
+                Currently, GOAT is designed to model walking accessibility, however frequent 
+                enhancements and extensions will be made on a regular basis. At the moment you can test the demo version 
+                of GOAT for the city of Munich <a href="https://goat.open-accessibility.org">here</a>.</p>
+        </div>
+        <div class="col-md-6 text-center">
+            <img src="{{ 'img/heatmap.png' | absolute_url }}" alt="dynamic and interactive walkability and accessibility heatmap" Title="Dynamic walkability heatmap" class="img-responsive">
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-6 text-center">
+            <img src="{{ 'img/isochrone_amenities.png' | absolute_url }}" alt="walking catchment area and points of interest" Title="Walking catchment area" class="img-responsive">
+        </div>
+        <div class="col-md-6">
+            <h4 class="header-light regular-pad">Why to use GOAT?</h4>
+              <p class="lead">There is rising awareness that active mobility plays a vital role in urban transport systems. 
+                  However, to the date there are few planning instruments that are focusing on walking and cycling. 
+                  GOAT as an accessibility tool is therefore designed to model walking/cycling accessibility and serve as a 
+                  suitable instrument for easier, better and more open transport and urban planning.</p>
+        </div>
+        
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-6">
+            <h4 class="header-light regular-pad">What are the main features?</h4>
+              <p class="lead">        
+                    The main focus of GOAT is to offer dynamic accessibility analysis at the neighborhood level. At the moment, 
+                    only the walking mode is supported but soon cycling will follow. With GOAT, you can calculate different accessibility 
+                    indicators such as isochrones and gravity-based heat-maps. What is more special about GOAT is that you can develop your 
+                    own case scenarios, for instance you can model a new bridge over a river, and examine corresponding changes in accessibility.
+                    You can view GOAT in action in the videos <a href="/videos/">here</a>.
+              </p>
+        </div>
+        <div class="col-md-6 text-center">
+            <img src="{{ 'img/draw_bridge.png' | absolute_url }}" alt="scenario new pedestrian bridge drawn interactively" title="Scenario new pedestrian bridge" class="img-responsive">        
+        </div>
+    </div>
+
+
+</div>
+
+<!-- Matomo -->
+<script type="text/javascript">
+    var _paq = _paq || [];
+    /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+      var u="//analytics.open-accessibility.org/";
+      _paq.push(['setTrackerUrl', u+'piwik.php']);
+      _paq.push(['setSiteId', '1']);
+      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+      g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+    })();
+  </script>
+  <!-- End Matomo Code -->
+
+  <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.css" />
+  <script src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.js"></script>
+  <script>
+  window.addEventListener("load", function(){
+  window.cookieconsent.initialise({
+    "palette": {
+      "popup": {
+        "background": "#efefef",
+        "text": "#404040"
+      },
+      "button": {
+        "background": "#8ec760",
+        "text": "#ffffff"
+      }
+    },
+    "content": {
+      "href": "https://www.open-accessibility.org/data_privacy_en.html"
+    }
+  })});
+  </script>
