@@ -12,7 +12,7 @@ The following steps show one possible workflow to contribute to the website.
 
 To make changes to the GOAT repository the easiest way is to first get a personal copy (called <i>fork</i>) of it. In your personal fork you can freely experiment and also push your changes to your own GitHub account.
 
-Go to [https://github.com/EPajares/goat/](https://github.com/EPajares/goat/) and press the "Fork" button. 
+Go to [https://github.com/goat-community/goat](https://github.com/goat-community/goat) and press the "Fork" button. 
 
 <img class="img-responsive" src="../../img/git_fork.png" alt="how to get a fork of GOAT" title="Get a fork of GOAT"/>
 
@@ -38,7 +38,7 @@ In order to fetch changes done by other users frequently, it is recommended to a
 
 So far, the GitHub URL of your GOAT repository should be listed as <i> origin</i>. To later fetch from the original repository of the website you have to define the GitHub URL of the GOAT respository as <i> upstream</i>: 
 
-`git remote add upstream https://github.com/EPajares/goat.git`
+`git remote add upstream https://github.com/goat-community/goat.git`
 
 #### 4. Change to the "website-development" branch
 
