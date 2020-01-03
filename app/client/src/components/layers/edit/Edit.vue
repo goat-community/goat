@@ -80,16 +80,15 @@
 
       <v-card-actions>
         <v-spacer></v-spacer>
-        <!-- Logic only for road layer -->
+
         <v-btn
-          v-show="selectedLayer != null && selectedLayer.get('name') === 'ways'"
+          v-show="selectedLayer != null"
           class="white--text"
           color="green"
-          @click="uploadWaysFeatures"
+          @click="uploadFeatures"
         >
           <v-icon left>cloud_upload</v-icon>{{ $t("appBar.edit.uploadBtn") }}
         </v-btn>
-        <!-- ---------------- -->
         <v-btn
           v-show="selectedLayer != null"
           class="white--text"
@@ -172,10 +171,9 @@ import { getAllChildLayers } from "../../../utils/Layer";
 import OlEditController from "../../../controllers/OlEditController";
 import OlSelectController from "../../../controllers/OlSelectController";
 
-import OlWaysLayerHelper from "../../../controllers/OlWaysLayerHelper";
+import editLayerHelper from "../../../controllers/OlEditLayerHelper";
 
 import Overlay from "../../ol/Overlay";
-import WaysLayerHelper from "../../../controllers/OlWaysLayerHelper";
 
 export default {
   components: {
@@ -201,6 +199,14 @@ export default {
     }
   }),
   watch: {
+    selectedLayer(newValue) {
+      const me = this;
+      //Read or Insert deleted features
+      me.clear();
+      console.log(newValue);
+      editLayerHelper.selectedLayer = newValue;
+      me.olEditCtrl.readOrInsertDeletedFeatures();
+    },
     toggleSelection: {
       handler(state) {
         const me = this;
@@ -237,9 +243,6 @@ export default {
       //Initialize ol edit controller
       me.olEditCtrl = new OlEditController(me.map);
       me.olEditCtrl.createEditLayer();
-
-      //Read or Insert ways deleted features
-      me.olEditCtrl.readOrInsertDeletedWaysFeatures();
     },
 
     /**
@@ -325,11 +328,7 @@ export default {
       const me = this;
       me.toggleSelection = undefined;
       if (response.second) {
-        //Selected layer is the road network (ways)
-        OlWaysLayerHelper.filterResults(
-          response,
-          me.olEditCtrl.getLayerSource()
-        );
+        editLayerHelper.filterResults(response, me.olEditCtrl.getLayerSource());
       }
     },
 
@@ -337,7 +336,7 @@ export default {
      * Changes ways type between road or bridge
      */
     updateSelectedWaysType(value) {
-      WaysLayerHelper.selectedWayType = value;
+      editLayerHelper.selectedWayType = value;
     },
 
     /**
@@ -349,8 +348,8 @@ export default {
       me.olSelectCtrl.clear();
     },
 
-    uploadWaysFeatures() {
-      this.olEditCtrl.uploadWaysFeatures();
+    uploadFeatures() {
+      this.olEditCtrl.uploadFeatures();
     },
 
     /**
