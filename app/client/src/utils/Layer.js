@@ -383,3 +383,39 @@ export function getWMSLegendURL(
   }
   return olUriAppendParams(url, queryString);
 }
+
+/**
+ * Get decscibeFeatureType properties and converts to a json schema for generating dynamic vuetify fields
+ * @param {props} decscibeFeatureType json schema
+ * @return {object} Vuetify json schema form
+ */
+export function mapFeatureTypeProps(props, hiddenProps, layerName) {
+  console.log(layerName);
+  const mapping = {
+    string: "string",
+    int: "integer"
+  };
+  let obj = {
+    $id: "https://example.com/person.schema.json",
+    $schema: "http://json-schema.org/draft-07/schema#",
+    layerName: layerName,
+    type: "object",
+    required: [],
+    properties: {}
+  };
+  props.forEach(prop => {
+    let type = mapping[prop.localType];
+    if (type) {
+      obj.properties[prop.name] = {
+        type
+      };
+      if (prop.nillable === true) {
+        obj.required.push(prop.name);
+      }
+      if (hiddenProps.includes(prop.name)) {
+        obj.properties[prop.name]["x-display"] = "hidden";
+      }
+    }
+  });
+  return obj;
+}
