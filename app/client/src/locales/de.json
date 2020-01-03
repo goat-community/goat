@@ -12,7 +12,7 @@
             "drawAndMeasure": "Messen",
             "filter": "Filter Thematische Daten",
             "edit": "Szenarien Entwickeln",
-            "settings": "Einstellungen",
+            "settings": "Sprache",
             "info": "Info"
         },
         "login": {
@@ -226,7 +226,13 @@
         "layerName": {
             "pois": "Point of Interest",
             "administrativeUnits": "Administrative Grenzen",
+            "footpathWidth": "Fußwegbreite",
             "illuminance": "Beleuchtung",
+            "lanes": "Anzahl der Fahrspuren",
+            "parking": "Parkplätze am Straßenrand",
+            "speed": "Geschwindigkeitsbegrenzungen",
+            "streetCrossings": "Straßenquerungsmöglichkeiten",
+            "surface": "Oberfläche",
             "wheelchairUsability": "Barrierefreiheit",
             "areaIsochrone": "Isochronengröße",
             "walkabilityPopulation": "Walkability - Population Index",

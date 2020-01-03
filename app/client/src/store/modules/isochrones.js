@@ -22,50 +22,8 @@ const state = {
     coordinate: null,
     placeName: ""
   },
-  options: {
-    calculationType: "single",
-    minutes: "10",
-    speed: "5",
-    steps: "2",
-    concavityIsochrones: {
-      name: "concavity",
-      values: [
-        { display: "0", value: "0.00003" },
-        { display: "1", value: "0.000003" },
-        { display: "2", value: "0.0000025" },
-        { display: "3", value: "0.000002" },
-        { display: "4", value: "0.0000017" },
-        { display: "5", value: "0.0000015" }
-      ],
-      active: "0.00003"
-    },
-    calculationModes: {
-      name: "modus",
-      values: [
-        {
-          display: "Default Network",
-          name: "defaultNetwork",
-          value: "default"
-        },
-        {
-          display: "Modified Network",
-          name: "modifiedNetwork",
-          value: "scenario"
-        },
-        {
-          display: "Modified Network (Double Calculation)",
-          name: "modifiedNetworkDoubleCalc",
-          value: "comparison"
-        }
-      ],
-      active: "default"
-    },
-    alphaShapeParameter: {
-      name: "alphashape",
-      values: [{ display: "0.00003", value: "0.00003" }],
-      active: "0.00003"
-    }
-  },
+  options: [],
+  styleData: {},
   calculations: [],
   multiIsochroneCalculationMethods: {
     name: "multiIsochroneCalculationMethods",
@@ -86,61 +44,13 @@ const state = {
   isochroneLayer: null,
   selectionLayer: null,
   isochroneRoadNetworkLayer: null,
-  styleData: {
-    styleCache: {
-      default: {},
-      input: {}
-    },
-    defaultIsochroneColors: {
-      "1": "#ffffe0",
-      "2": "#fff2c7",
-      "3": "#ffe4b1",
-      "4": "#ffd69d",
-      "5": "#ffc88e",
-      "6": "#ffb981",
-      "7": "#ffaa76",
-      "8": "#ff9a6e",
-      "9": "#fc8968",
-      "10": "#f77a63",
-      "11": "#f16b5f",
-      "12": "#e95d5a",
-      "13": "#e14f55",
-      "14": "#d8404e",
-      "15": "#cd3346",
-      "16": "#c2263d",
-      "17": "#b61832",
-      "18": "#a80c25",
-      "19": "#9b0316",
-      "20": "#8b0000"
-    },
-    inputIsochroneColors: {
-      "1": "#22D329",
-      "2": "#20C830",
-      "3": "#1EBD38",
-      "4": "#1CB340",
-      "5": "#1AA848",
-      "6": "#199E50",
-      "7": "#179358",
-      "8": "#158860",
-      "9": "#137E68",
-      "10": "#117370",
-      "11": "#106977",
-      "12": "#0E5E7F",
-      "13": "#0C5487",
-      "14": "#0A498F",
-      "15": "#083E97",
-      "16": "#07349F",
-      "17": "#0529A7",
-      "18": "#031FAF",
-      "19": "#0114B7",
-      "20": "#000ABF"
-    }
-  },
+
   isThematicDataVisible: false,
   selectedThematicData: null
 };
 
 const getters = {
+  routingProfile: state => state.routingProfile,
   calculations: state => state.calculations,
   options: state => state.options,
   isochroneLayer: state => state.isochroneLayer,
@@ -202,7 +112,8 @@ const actions = {
       params = Object.assign(sharedParams, {
         x: state.position.coordinate[0],
         y: state.position.coordinate[1],
-        concavity: state.options.concavityIsochrones.active
+        concavity: state.options.concavityIsochrones.active,
+        routing_profile: state.options.routingProfile.active["value"]
       });
       isochroneEndpoint = "isochrone";
     } else {
@@ -230,6 +141,7 @@ const actions = {
         ),
         region_type: `'${regionType}'`,
         region: region,
+        routing_profile: `'${state.options.routingProfile.active["value"]}'`,
         amenities: rootState.pois.selectedPois
           .map(item => {
             return "'" + item.value + "'";
@@ -507,6 +419,13 @@ const actions = {
 };
 
 const mutations = {
+  INIT(state, config) {
+    if (config && typeof config === "object") {
+      for (const key of Object.keys(config)) {
+        state[key] = config[key];
+      }
+    }
+  },
   CALCULATE_ISOCHRONE(state, isochrone) {
     state.calculations.unshift(isochrone);
   },

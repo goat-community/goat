@@ -81,6 +81,23 @@ const OlStyleDefs = {
       })
     });
   },
+  getInfoStyle: () => {
+    return new OlStyle({
+      fill: new OlFill({
+        color: "rgba(255,0,0, 0.2)"
+      }),
+      stroke: new OlStroke({
+        color: "#FF0000",
+        width: 2
+      }),
+      image: new OlCircle({
+        radius: 7,
+        fill: new OlFill({
+          color: "#FF0000"
+        })
+      })
+    });
+  },
   getEditStyle: () => {
     //TODO: Add a generic style here for other layers
     return OlStyleDefs.waysStyleFn();

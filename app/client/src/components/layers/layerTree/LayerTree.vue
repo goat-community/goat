@@ -26,7 +26,7 @@
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <!-- LAYERS -->
-          <v-expansion-panels>
+          <v-expansion-panels readonly>
             <v-expansion-panel
               v-for="(item, i) in layerGroup.children"
               :key="i"
@@ -102,13 +102,19 @@
 <script>
 import { Mapable } from "../../../mixins/Mapable";
 import { Group, Vector } from "ol/layer.js";
+import { mapGetters, mapMutations } from "vuex";
+
 export default {
   mixins: [Mapable],
   data: () => ({
     layers: []
   }),
   components: {},
-  computed: {},
+  computed: {
+    ...mapGetters("pois", {
+      selectedPois: "selectedPois"
+    })
+  },
   methods: {
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
@@ -187,6 +193,17 @@ export default {
           layer.mapLayer.setVisible(false);
         });
       }
+      if (
+        clickedLayer.mapLayer.get("requiresPois") === true &&
+        clickedLayer.mapLayer.getVisible() === false &&
+        this.selectedPois.length === 0
+      ) {
+        this.toggleSnackbar({
+          type: "error",
+          message: "selectAmenities",
+          state: true
+        });
+      }
       clickedLayer.mapLayer.setVisible(!clickedLayer.mapLayer.getVisible());
       if (clickedLayer.mapLayer.getVisible() === false) {
         clickedLayer.showOptions = false;
@@ -207,9 +224,11 @@ export default {
       } else {
         return key;
       }
-    }
-  },
-  mounted() {}
+    },
+    ...mapMutations("map", {
+      toggleSnackbar: "TOGGLE_SNACKBAR"
+    })
+  }
 };
 </script>
 <style lang="css" scoped>
