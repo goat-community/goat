@@ -5,7 +5,7 @@ CREATE TABLE pois as (
 -- all amenities, excluding shops, schools and kindergartens
 SELECT osm_id,'point' as orgin_geometry, access,"addr:housenumber" as housenumber, amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom, tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_point
 WHERE amenity IS NOT NULL AND shop IS NULL AND amenity <> 'school' AND amenity <> 'kindergarten'
 
@@ -13,7 +13,7 @@ UNION ALL
 -- all shops that don't have an amenity'
 SELECT osm_id,'point' as orgin_geometry, access,"addr:housenumber" as housenumber, amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom, tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_point
 WHERE shop IS NOT NULL AND amenity IS NULL
 
@@ -21,7 +21,7 @@ UNION ALL
 -- all amenities that are not schools
 SELECT osm_id, 'polygon' as orgin_geometry, access,"addr:housenumber" as housenumber, amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom, tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_polygon
 WHERE amenity IS NOT NULL AND amenity <> 'school' AND amenity <> 'kindergarten'
 
@@ -29,7 +29,7 @@ UNION ALL
 -- all shops
 SELECT osm_id,'polygon' as orgin_geometry, access,"addr:housenumber" as housenumber, amenity, 
 shop, tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom, tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_polygon
 WHERE shop IS NOT NULL 
 
@@ -38,7 +38,7 @@ UNION ALL
 -- all tourism
 SELECT osm_id,'point' as orgin_geometry, access,"addr:housenumber" as housenumber, tourism, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom, tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_point
 WHERE tourism IS NOT NULL
 
@@ -47,7 +47,8 @@ UNION ALL
 -- all sports (sport stuff is usually not tagged with amenity, but with leisure=* and sport=*)
 SELECT osm_id,'point' as orgin_geometry, access,"addr:housenumber" as housenumber, 'sport' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
+tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_point
 WHERE (sport IS NOT NULL
 OR leisure = any('{sports_hall, fitness_center, sport_center, track, pitch}'))
@@ -57,7 +58,8 @@ UNION ALL
 
 SELECT osm_id,'polygon' as orgin_geometry, access,"addr:housenumber" as housenumber, 'sport' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, st_centroid(way) as geom
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, st_centroid(way) as geom,
+tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_polygon
 WHERE (sport IS NOT NULL
 OR leisure = any('{sports_hall, fitness_center, sport_center, track, pitch}'))
@@ -73,7 +75,8 @@ UNION ALL
 SELECT * FROM (
 SELECT osm_id, 'polygon' as orgin_geometry, access,"addr:housenumber" as housenumber, 'primary_school' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom,
+tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_polygon
 WHERE amenity = 'school') x
 
@@ -91,7 +94,8 @@ UNION ALL
 SELECT * FROM (
 SELECT osm_id, 'polygon' as orgin_geometry, access,"addr:housenumber" as housenumber, 'secondary_school' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom,
+tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_polygon
 WHERE amenity = 'school') x
 
@@ -142,7 +146,8 @@ UNION ALL
 SELECT * FROM (
 SELECT osm_id, 'point' as orgin_geometry, access,"addr:housenumber" as housenumber, 'primary_school' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom,
+tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_point
 WHERE amenity = 'school') x
 
@@ -160,7 +165,8 @@ UNION ALL
 SELECT * FROM (
 SELECT osm_id, 'point' as orgin_geometry, access,"addr:housenumber" as housenumber, 'secondary_school' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom,
+tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_point
 WHERE amenity = 'school') x
 
@@ -224,7 +230,8 @@ CREATE TEMP TABLE merged_kindergartens AS
 	SELECT max(osm_id) AS osm_id, 'polygon' as orgin_geometry, max(access) AS access, max("addr:housenumber") AS "addr:housenumber",
 	max(amenity) AS amenity, max(shop) AS shop, max(tags -> 'origin') AS origin, max(tags -> 'organic') AS organic, max(denomination) AS denomination,
 	max(brand) AS brand, max(name) AS name, max(operator) AS operator, max(public_transport) AS public_transport, max(railway) AS railway,
-	max(religion) AS religion, max(tags -> 'opening_hours') AS opening_hours, max(REF) AS ref, max(tags::TEXT)::hstore AS tags, m.geom
+	max(religion) AS religion, max(tags -> 'opening_hours') AS opening_hours, max(REF) AS ref, max(tags::TEXT)::hstore AS tags, m.geom,
+	max(tags -> 'wheelchair') as wheelchair
 	FROM planet_osm_polygon p, merged_geom m
 	WHERE amenity = 'kindergarten' AND st_contains(m.geom, p.way)
 	GROUP BY m.geom
@@ -235,7 +242,8 @@ INSERT INTO pois
 		
 SELECT DISTINCT p.osm_id,'point' as orgin_geometry, p.access, 'addr:housenumber', p.amenity, p.shop, --p."addr:housenumber" doesn't work
 p.tags -> 'origin' AS origin, p.tags -> 'organic' AS organic, p.denomination,p.brand,p.name,
-p.operator,p.public_transport,p.railway,p.religion,p.tags -> 'opening_hours' as opening_hours, p.ref, p.tags::hstore AS tags, p.way as geom
+p.operator,p.public_transport,p.railway,p.religion,p.tags -> 'opening_hours' as opening_hours, p.ref, p.tags::hstore AS tags, p.way as geom,
+p.tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_point p, merged_kindergartens
 WHERE p.amenity = 'kindergarten' AND NOT st_within(p.way, merged_kindergartens.geom)
 
@@ -243,7 +251,8 @@ UNION ALL
 
 SELECT osm_id,'polygon' as orgin_geometry, access, "addr:housenumber", amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(geom) AS geom
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(geom) AS geom,
+tags -> 'wheelchair' as wheelchair  
 FROM merged_kindergartens;
 
 ------------------------------------------end kindergarten-------------------------------------------
@@ -338,21 +347,21 @@ AND amenity = 'bicycle_rental';
 DROP TABLE IF EXISTS public_transport_stops;
 SELECT *, 'point' as orgin_geometry,(SELECT max(gid) FROM pois) + row_number() over() as gid
 INTO public_transport_stops FROM (
-SELECT osm_id,'bus_stop' as public_transport_stop,name,way as geom FROM planet_osm_point 
+SELECT osm_id,'bus_stop' as public_transport_stop,name,tags -> 'wheelchair' AS wheelchair, way as geom FROM planet_osm_point 
 WHERE highway = 'bus_stop' AND name IS NOT NULL
 UNION ALL
-SELECT osm_id,'bus_stop' as public_transport_stop,name,way as geom FROM planet_osm_point 
+SELECT osm_id,'bus_stop' as public_transport_stop,name,tags -> 'wheelchair' AS wheelchair, way as geom FROM planet_osm_point 
 WHERE public_transport = 'platform' AND name IS NOT NULL AND tags -> 'bus'='yes'
 UNION ALL
-SELECT osm_id,'tram_stop' as public_transport_stop,name,way as geom FROM planet_osm_point 
+SELECT osm_id,'tram_stop' as public_transport_stop,name,tags -> 'wheelchair' AS wheelchair,way as geom FROM planet_osm_point 
 WHERE public_transport = 'stop_position' 
 AND tags -> 'tram'='yes'
 AND name IS NOT NULL
 UNION ALL
-SELECT osm_id,'subway_entrance' as public_transport,name, way as geom FROM planet_osm_point
+SELECT osm_id,'subway_entrance' as public_transport,name,tags -> 'wheelchair' AS wheelchair, way as geom FROM planet_osm_point
 WHERE railway = 'subway_entrance'
 UNION ALL
-SELECT osm_id,'rail_station' as public_transport,name,way as geom 
+SELECT osm_id,'rail_station' as public_transport,name,tags -> 'wheelchair' AS wheelchair,way as geom 
 FROM planet_osm_point WHERE railway = 'stop'
 AND tags -> 'train' ='yes') x;
 

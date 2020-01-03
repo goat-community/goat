@@ -12,21 +12,21 @@ def setup_db(setup_type):
     from scripts.db_functions import create_variable_container
     from scripts.db_functions import update_functions
 
-    download_link,osm_data_recency,buffer,source_population = ReadYAML().data_source()
+    download_link,osm_data_recency,buffer,source_population, additional_walkability_layers = ReadYAML().data_source()
     db_name,user,host,port,password = ReadYAML().db_credentials()
-    db_name_temp = db_name+'neu'
+    db_name_temp = db_name+'temp'
 
     db_temp = DB_connection(db_name_temp,user,host)
 
-    #Create pgpass-file for temporary database
-    os.system('echo '+':'.join([host,str(port),db_name_temp,user,password])+' > /.pgpass')
-    os.system("chmod 600 .pgpass")
+   
     #Create temporary database
     os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name_temp)
     os.system('psql -U postgres -c "DROP DATABASE IF EXISTS %s;"' % db_name_temp)
     os.system('psql -U postgres -c "CREATE DATABASE %s;"' % db_name_temp)
+    #Create pgpass-file for temporary database
+    ReadYAML().create_pgpass('temp')
     #Create extensions
-    os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION plpython3u;"' % (db_name_temp,user,host))
+    os.system('psql -U postgres -d %s -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION plpython3u;"' % db_name_temp)
 
     os.chdir('/opt/data')
 
@@ -71,6 +71,7 @@ def setup_db(setup_type):
         for line in file:
             pass
         timestamp=str(line.replace('\n',''))
+        print('You are fetching the most recent changes from OSM.')
         os.system('osmupdate study_area.osm %s study_area_update.osm -b=%f,%f,%f,%f' % (timestamp,left,bottom,right,top))
 
         #Add new timestamp
@@ -121,24 +122,24 @@ def setup_db(setup_type):
     if (setup_type in ['new_setup','all','network']):
         os.system('PGPASSFILE=/.pgpass osm2pgrouting --dbname %s --host %s --username %s --file "study_area.osm" --conf ../mapconfig.xml --clean' % (db_name_temp,host,user)) 
         db_temp.execute_script_psql('../data_preparation/SQL/network_preparation.sql')
+        if (additional_walkability_layers == 'yes'):
+            db_temp.execute_script_psql('../data_preparation/SQL/layer_preparation.sql')
 
 
     if (setup_type == 'new_setup'):
-        #Create pgpass for goat-database
-        os.system('echo '+':'.join([host,str(port),db_name,user,password])+' > /.pgpass')
-        os.system("chmod 600 /.pgpass")
         
-        #Creates DB_functions
-        update_functions()
-
+        #Create pgpass for goat-database
+        ReadYAML().create_pgpass('')  
         os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name)
         os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name,db_name+'old'))
         os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name_temp, db_name))
         os.system('psql -U postgres -c "DROP DATABASE %s;"' % (db_name+'old'))
+        
+        #Creates DB_functions
+        update_functions()
     else:
         #Create pgpass for goat-database
-        os.system('echo '+':'.join([host,str(port),db_name,user,password])+' > /.pgpass')
-        os.system("chmod 600 /.pgpass")
+        ReadYAML().create_pgpass('')
         con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s'" % (
         db_name_temp, user, port, host, password))
 
