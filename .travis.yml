@@ -9,11 +9,22 @@ branches:
     - development
     - test_travis
 before_script:
-  - chmod -R a+x scripts
+  - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+  - make setup-kube-config
 script:
-  - ./scripts/docker-public-travis.sh
+  - make release-docker-image -e COMPONENT=client
+  - make release-docker-image -e COMPONENT=api
+  - make release-docker-image -e COMPONENT=geoserver
+  - make release-docker-image -e COMPONENT=print
+  - make release-docker-image -e COMPONENT=mapproxy
+  - make deploy-postgres-server
+  - make deploy -e COMPONENT=api
+  - make deploy -e COMPONENT=client
+  - make deploy -e COMPONENT=geoserver
+  - make deploy -e COMPONENT=print
+  - make deploy -e COMPONENT=mapproxy
 after_success:
-  - ./scripts/after-success.sh
+  - make after-success
 notifications:
   email:
     on_success: never
