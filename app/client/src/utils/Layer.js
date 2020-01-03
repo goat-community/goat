@@ -108,15 +108,26 @@ export function zoomToLayerExtent(vecLayer, olMap) {
  * @param  {ol.format.filter} filter The Openlayers filter
  *
  */
-export function wfsRequestParser(srsName, workspace, layerName, filter) {
+export function wfsRequestParser(
+  srsName,
+  workspace,
+  layerName,
+  filter,
+  viewparams = undefined
+) {
   const xs = new XMLSerializer();
-  const wfs = new WFS().writeGetFeature({
+  const opt = {
     srsName: srsName,
     featurePrefix: workspace,
     featureTypes: [layerName],
     outputFormat: "application/json",
     filter: filter
-  });
+  };
+  if (viewparams) {
+    opt.viewParams = viewparams.toString();
+  }
+  console.log(opt.viewParams);
+  const wfs = new WFS().writeGetFeature(opt);
   const xmlparser = xs.serializeToString(wfs);
   return xmlparser;
 }

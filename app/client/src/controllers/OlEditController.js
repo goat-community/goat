@@ -9,7 +9,7 @@ import Feature from "ol/Feature";
 import { wfsTransactionParser, readTransactionResponse } from "../utils/Layer";
 import http from "../services/http";
 import { unByKey } from "ol/Observable";
-import OlWaysLayerHelper from "./OlWaysLayerHelper";
+import editLayerHelper from "./OlEditLayerHelper";
 import i18n from "../../src/plugins/i18n";
 
 /**
@@ -57,10 +57,12 @@ export default class OlEditController extends OlBaseController {
     me.createHelpTooltip();
     me.pointerMoveKey = me.map.on("pointermove", me.onPointerMove.bind(me));
     me.createPopupOverlay();
-
     switch (editType) {
       case "add":
-        me.edit = new Draw({ source: me.source, type: "LineString" });
+        me.edit = new Draw({
+          source: me.source,
+          type: editLayerHelper.selectedLayer.get("editGeometry")
+        });
         me.edit.on("drawstart", me.onDrawStart.bind(me));
         me.edit.on("drawend", me.onDrawEnd.bind(me));
         me.snap = new Snap({ source: me.source });
@@ -152,7 +154,10 @@ export default class OlEditController extends OlBaseController {
     me.featuresToCommit.push(feature);
     me.highlightSource.addFeature(feature);
     const featureCoordinates = feature.getGeometry().getCoordinates();
-    me.popupOverlay.setPosition(featureCoordinates[0]);
+    const popupCoordinate = Array.isArray(featureCoordinates[0])
+      ? featureCoordinates[0]
+      : featureCoordinates;
+    me.popupOverlay.setPosition(popupCoordinate);
     me.popup.title = "attributes";
     me.popup.selectedInteraction = "add";
     me.popup.isVisible = true;
@@ -197,8 +202,7 @@ export default class OlEditController extends OlBaseController {
    */
   deleteFeature() {
     const me = this;
-    //TODO: If layer name is ways use openlayers ways layer helper
-    OlWaysLayerHelper.deleteFeature(
+    editLayerHelper.deleteFeature(
       me.selectedFeature,
       me.source,
       store.state.userId
@@ -206,15 +210,15 @@ export default class OlEditController extends OlBaseController {
     me.closePopup();
   }
 
-  uploadWaysFeatures() {
-    OlWaysLayerHelper.uploadWaysFeatures(store.state.userId, this.source);
+  uploadFeatures() {
+    editLayerHelper.uploadFeatures(store.state.userId, this.source);
   }
 
   /**
    * Read or insert deleted feature of the user.
    */
-  readOrInsertDeletedWaysFeatures() {
-    OlWaysLayerHelper.commitDelete("read", store.state.userId);
+  readOrInsertDeletedFeatures() {
+    editLayerHelper.commitDelete("read", store.state.userId);
   }
 
   /**
@@ -273,7 +277,7 @@ export default class OlEditController extends OlBaseController {
       transformed.setGeometryName("geom");
 
       if (me.currentInteraction === "draw") {
-        transformed.set("type", OlWaysLayerHelper.selectedWayType);
+        transformed.set("type", editLayerHelper.selectedWayType);
       }
       if (
         props.type &&
@@ -304,10 +308,13 @@ export default class OlEditController extends OlBaseController {
       }
     });
 
-    //TODO: Get feature namespace and feature type (layername) dynamically (node env or ol layer object)
+    const layerName = editLayerHelper.selectedLayer
+      .getSource()
+      .getParams()
+      .LAYERS.split(":")[1];
     const formatGML = {
       featureNS: "muc",
-      featureType: "ways_modified",
+      featureType: `${layerName}_modified`,
       srsName: "urn:x-ogc:def:crs:EPSG:4326"
     };
 

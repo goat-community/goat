@@ -78,6 +78,12 @@ const OlStyleDefs = {
         color: "#fe4a49",
         width: 5,
         lineDash: [10, 10]
+      }),
+      image: new OlCircle({
+        radius: 7,
+        fill: new OlFill({
+          color: "#FF0000"
+        })
       })
     });
   },
@@ -237,6 +243,12 @@ const OlStyleDefs = {
       stroke: new OlStroke({
         color: "#707070",
         width: 3
+      }),
+      image: new OlCircle({
+        radius: 7,
+        fill: new OlFill({
+          color: "#FF0000"
+        })
       })
     });
     return [style];

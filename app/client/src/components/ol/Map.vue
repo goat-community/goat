@@ -453,7 +453,7 @@ export default {
             case "WMS": {
               let url = layer
                 .getSource()
-                .getGetFeatureInfoUrl(coordinate, resolution, projection, {
+                .getFeatureInfoUrl(coordinate, resolution, projection, {
                   INFO_FORMAT: "application/json"
                 });
               promiseArray.push(
