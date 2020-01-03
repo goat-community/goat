@@ -114,7 +114,7 @@
           <b>{{ $t("appBar.edit.popup.deleteFeatureMsg") }}</b>
         </div>
         <div v-else-if="popup.selectedInteraction === 'add'">
-          <span>{{ $t("appBar.edit.popup.selectWayType") }}</span>
+          <!-- <span>{{ $t("appBar.edit.popup.selectWayType") }}</span>
           <v-select
             :items="waysTypes.values"
             item-value="value"
@@ -131,7 +131,19 @@
             <template slot="item" slot-scope="{ item }">
               {{ translate("layerListValues", item) }}
             </template>
-          </v-select>
+          </v-select> -->
+
+          <v-form v-model="formValid">
+            <v-jsonschema-form
+              v-if="schema[layerName]"
+              :schema="schema[layerName]"
+              :model="dataObject"
+              :options="options"
+              @error="showError"
+              @change="showChange"
+              @input="showInput"
+            />
+          </v-form>
         </div>
       </template>
       <template v-slot:actions>
@@ -172,12 +184,17 @@ import OlEditController from "../../../controllers/OlEditController";
 import OlSelectController from "../../../controllers/OlSelectController";
 
 import editLayerHelper from "../../../controllers/OlEditLayerHelper";
+import { mapFeatureTypeProps } from "../../../utils/Layer";
 
 import Overlay from "../../ol/Overlay";
+import http from "axios";
+
+import VJsonschemaForm from "../../other/dynamicForms/index";
 
 export default {
   components: {
-    "overlay-popup": Overlay
+    "overlay-popup": Overlay,
+    VJsonschemaForm
   },
   mixins: [InteractionsToggle, Mapable],
   data: () => ({
@@ -187,24 +204,31 @@ export default {
     editableLayers: [],
     toggleSelection: undefined,
     toggleEdit: undefined,
+
     popup: {
       title: "",
       isVisible: false,
       el: null,
       selectedInteraction: null
     },
-    waysTypes: {
-      values: ["bridge", "road"],
-      active: "road"
-    }
+    // waysTypes: {
+    //   values: ["bridge", "road"],
+    //   active: "road"
+    // },
+
+    hiddenProps: ["userid", "id", "original_id", "class_id", "status"],
+    //Edit form
+    schema: {},
+    dataObject: {},
+    formValid: false
   }),
   watch: {
     selectedLayer(newValue) {
       const me = this;
       //Read or Insert deleted features
       me.clear();
-      console.log(newValue);
       editLayerHelper.selectedLayer = newValue;
+      me.getlayerFeatureTypes();
       me.olEditCtrl.readOrInsertDeletedFeatures();
     },
     toggleSelection: {
@@ -340,6 +364,29 @@ export default {
     },
 
     /**
+     * Changes ways type between road or bridge
+     */
+    getlayerFeatureTypes() {
+      if (this.schema[this.layerName]) return;
+      http
+        .get(
+          `geoserver/wfs?request=describeFeatureType&typename=${this.layerName}_modified&outputFormat=application/json`
+        )
+        .then(response => {
+          const props = response.data.featureTypes[0].properties;
+          const jsonSchema = mapFeatureTypeProps(
+            props,
+            this.hiddenProps,
+            this.layerName.split(":")[1]
+          );
+          console.log(jsonSchema);
+          this.schema[this.layerName] = jsonSchema;
+          console.log(this.schema);
+          console.log(this.schema[this.layerName]);
+        });
+    },
+
+    /**
      * Clears all the selection
      */
     clearSelection() {
@@ -390,6 +437,28 @@ export default {
       } else {
         return key;
       }
+    },
+
+    showError(err) {
+      console.log(err);
+    },
+    showChange(e) {
+      console.log('"change" event', e);
+    },
+    showInput(e) {
+      console.log('"input" event', e);
+    }
+  },
+  computed: {
+    layerName() {
+      return this.selectedLayer.getSource().getParams().LAYERS;
+    },
+    options() {
+      return {
+        debug: false,
+        disableAll: false,
+        autoFoldObjects: true
+      };
     }
   }
 };

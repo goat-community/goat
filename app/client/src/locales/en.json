@@ -394,5 +394,18 @@
     "calendar": {
       "moreEvents": "{0} more"
     }
+  },
+  "common": {
+    "required": "This information is required"
+  },
+  "dynamicFields": {
+    "ways": {
+      "type": "Way Type"
+    },
+    "pois": {
+      "name": "Amenity",
+      "opening_hours": "Opening Hours",
+      "amenity": "Amenity"
+    }
   }
 }
