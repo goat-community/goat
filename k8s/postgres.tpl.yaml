@@ -11,9 +11,9 @@ metadata:
   labels:
     app: postgres
 data:
-  POSTGRES_DB: ${POSTGRES_DB}
+  POSTGRES_DBNAME: ${POSTGRES_DB}
   POSTGRES_USER: ${POSTGRES_USER}
-  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  POSTGRES_PASS: ${POSTGRES_PASSWORD}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -49,7 +49,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: docker.io/goatcommunity/postgis:latest
+          image: ${POSTGIS_DOCKER_IMAGE}
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 5432
