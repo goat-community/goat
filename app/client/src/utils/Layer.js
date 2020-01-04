@@ -126,7 +126,7 @@ export function wfsRequestParser(
   if (viewparams) {
     opt.viewParams = viewparams.toString();
   }
-  console.log(opt.viewParams);
+
   const wfs = new WFS().writeGetFeature(opt);
   const xmlparser = xs.serializeToString(wfs);
   return xmlparser;
@@ -389,8 +389,7 @@ export function getWMSLegendURL(
  * @param {props} decscibeFeatureType json schema
  * @return {object} Vuetify json schema form
  */
-export function mapFeatureTypeProps(props, hiddenProps, layerName) {
-  console.log(layerName);
+export function mapFeatureTypeProps(props, hiddenProps, layerName, listValues) {
   const mapping = {
     string: "string",
     int: "integer"
@@ -398,24 +397,51 @@ export function mapFeatureTypeProps(props, hiddenProps, layerName) {
   let obj = {
     $id: "https://example.com/person.schema.json",
     $schema: "http://json-schema.org/draft-07/schema#",
-    layerName: layerName,
     type: "object",
     required: [],
     properties: {}
   };
+
   props.forEach(prop => {
     let type = mapping[prop.localType];
     if (type) {
       obj.properties[prop.name] = {
-        type
+        type,
+        layerName
       };
-      if (prop.nillable === true) {
+      if (prop.nillable === false) {
         obj.required.push(prop.name);
       }
       if (hiddenProps.includes(prop.name)) {
         obj.properties[prop.name]["x-display"] = "hidden";
       }
+      if (
+        listValues[layerName][prop.name] &&
+        Array.isArray(listValues[layerName][prop.name].values)
+      ) {
+        obj.properties[prop.name]["enum"] =
+          listValues[layerName][prop.name].values;
+        //Show as autocomplete
+        obj.properties[prop.name]["isAutocomplete"] = true;
+      }
     }
   });
   return obj;
+}
+
+/**
+ * Get the array of pois values
+ * @param {poisConfiguration} object pois configuration
+ * @return {array} pois key values
+ */
+export function getPoisListValues(pois) {
+  const poisListValues = [];
+
+  pois.forEach(category => {
+    const children = category.children;
+    children.forEach(pois => {
+      poisListValues.push(pois.value);
+    });
+  });
+  return poisListValues;
 }

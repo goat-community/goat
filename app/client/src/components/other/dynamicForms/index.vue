@@ -36,7 +36,9 @@ export default {
   },
   computed: {
     resolvedSchema() {
-      return jrefs.resolve(this.schema);
+      const resolved = jrefs.resolve(this.schema);
+
+      return resolved;
     },
     fullOptions() {
       const httpLib = this.axios || this.$http || this.$axios;

@@ -52,9 +52,6 @@ jrefs.get_json_pointer = function(ref, root) {
     evalstr = evalstr.substr(1, evalstr.length - 1);
   }
   try {
-    if (jrefs.debug) {
-      console.log("evaluating '" + evalstr + "'");
-    }
     result = expr.getter(evalstr)(root);
   } catch (error) {
     console.error(error);
@@ -67,14 +64,8 @@ jrefs.replace = function(json, ids, root) {
   results = [];
   for (k in json) {
     v = json[k];
-    if (jrefs.debug && typeof ref === "string") {
-      console.log("checking " + k);
-    }
     if (v != null && v[jrefs.reftoken] != null) {
       ref = v[jrefs.reftoken];
-      if (jrefs.debug && typeof ref === "string") {
-        console.log("checking " + k + " -> " + ref);
-      }
       if (Object.keys(v).length > 1) {
         console.error(
           "json-ref-lite error: object '" +
@@ -87,9 +78,6 @@ jrefs.replace = function(json, ids, root) {
       } else if (ids[ref] != null) {
         json[k] = ids[ref];
       } else if (String(ref).match(new RegExp("^" + jrefs.pathtoken))) {
-        if (jrefs.debug) {
-          console.log("checking " + ref + " pathtoken");
-        }
         json[k] = jrefs.get_json_pointer(ref, root);
       }
       if (

@@ -535,7 +535,6 @@ export default {
      * @private
      */
     getCapabilities() {
-      console.log(`${this.baseUrl}/goat/capabilities.json`);
       this.capabilities = axios.get(`${this.baseUrl}/goat/capabilities.json`);
     },
 
