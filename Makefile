@@ -76,22 +76,22 @@ setup-nginx: setup-general-utils
 docker-login:
 	$(DOCKER) login -u $(DOCKER_USERNAME) -p $(DOCKER_PASSWORD) $(REGISTRY)
 
-# target: make build-docker-image VERSION=some_git_sha_comit COMPONENT=api|client
+# target: make build-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
 .PHONY: build-docker-image
 build-docker-image: app/$(COMPONENT)/Dockerfile
 	$(DOCKER) build -f app/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/$(COMPONENT)
 
-# target: make release-docker-image VERSION=some_git_sha_comit COMPONENT=api|client
+# target: make release-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
 .PHONY: release-docker-image
 release-docker-image: docker-login build-docker-image
 	$(DOCKER) push $(DOCKER_IMAGE)
 
-# target: make build-database-docker-image VERSION=some_git_sha_comit
+# target: make build-database-docker-image -e VERSION=some_git_sha_comit
 .PHONY: build-database-docker-image
 build-database-docker-image: app/database/Dockerfile
 	$(DOCKER) build -f app/database/Dockerfile --pull -t $(POSTGIS_DOCKER_IMAGE) app
 
-# target: make release-database-docker-image VERSION=some_git_sha_comit
+# target: make release-database-docker-image -e VERSION=some_git_sha_comit
 .PHONY: release-database-docker-image
 release-database-docker-image: docker-login build-database-docker-image
 	$(DOCKER) push $(POSTGIS_DOCKER_IMAGE)
@@ -101,7 +101,7 @@ release-database-docker-image: docker-login build-database-docker-image
 after-success:
 	@echo "Hooray! :)"
 
-# target: make build-k8s VERSION=some_git_sha_comit
+# target: make build-k8s -e VERSION=some_git_sha_comit
 .PHONY: build-k8s
 build-k8s:
 	rm -f $(K8S_OBJ)
@@ -113,7 +113,7 @@ build-k8s:
 deploy-postgres-server: setup-kube-config build-k8s
 	$(KCTL) config use-context goat && $(KCTL) apply -f k8s/postgres.yaml
 
-# target: make deploy
+# target: make deploy -e COMPONENT=api|client|geoserver|print|mapproxy
 .PHONY: deploy
 deploy: setup-kube-config build-k8s
 	$(KCTL) config use-context goat && $(KCTL) apply -f k8s/$(COMPONENT).yaml

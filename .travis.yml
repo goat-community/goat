@@ -24,7 +24,6 @@ script:
   - make deploy -e COMPONENT=geoserver
   - make deploy -e COMPONENT=print
   - make deploy -e COMPONENT=mapproxy
-  - make deploy-postgres-server
 after_success:
   - make after-success
 notifications:
