@@ -399,13 +399,21 @@
     "required": "This information is required"
   },
   "dynamicFields": {
-    "ways": {
-      "type": "Way Type"
+    "attributes": {
+      "ways": {
+        "type": "Way Type"
+      },
+      "pois_info": {
+        "amenity": "Amenity",
+        "name": "Name (Optional)",
+        "opening_hours": "Opening Hours (Optional)"
+      }
     },
-    "pois": {
-      "name": "Amenity",
-      "opening_hours": "Opening Hours",
-      "amenity": "Amenity"
+    "listValues": {
+      "ways": {
+        "road": "Road",
+        "bridge": "Bridge"
+      }
     }
   }
 }

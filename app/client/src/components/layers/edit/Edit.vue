@@ -139,33 +139,28 @@
               :schema="schema[layerName]"
               :model="dataObject"
               :options="options"
-              @error="showError"
-              @change="showChange"
-              @input="showInput"
             />
           </v-form>
         </div>
       </template>
       <template v-slot:actions>
         <template v-if="popup.selectedInteraction === 'delete'">
-          <v-btn
-            color="primary darken-1"
-            @click="olEditCtrl.deleteFeature()"
-            text
-            >{{ $t("buttonLabels.yes") }}</v-btn
-          >
-          <v-btn color="grey" text @click="olEditCtrl.closePopup()">{{
+          <v-btn color="primary darken-1" @click="ok('delete')" text>{{
+            $t("buttonLabels.yes")
+          }}</v-btn>
+          <v-btn color="grey" text @click="cancel()">{{
             $t("buttonLabels.cancel")
           }}</v-btn>
         </template>
         <template v-else-if="popup.selectedInteraction === 'add'">
           <v-btn
             color="primary darken-1"
-            @click="olEditCtrl.commitFeature()"
+            :disabled="formValid === false"
+            @click="ok('add')"
             text
             >{{ $t("buttonLabels.save") }}</v-btn
           >
-          <v-btn color="grey" text @click="olEditCtrl.closePopup()">{{
+          <v-btn color="grey" text @click="cancel()">{{
             $t("buttonLabels.cancel")
           }}</v-btn>
         </template>
@@ -178,7 +173,7 @@
 import { EventBus } from "../../../EventBus";
 import { Mapable } from "../../../mixins/Mapable";
 import { InteractionsToggle } from "../../../mixins/InteractionsToggle";
-import { getAllChildLayers } from "../../../utils/Layer";
+import { getAllChildLayers, getPoisListValues } from "../../../utils/Layer";
 
 import OlEditController from "../../../controllers/OlEditController";
 import OlSelectController from "../../../controllers/OlSelectController";
@@ -211,13 +206,10 @@ export default {
       el: null,
       selectedInteraction: null
     },
-    // waysTypes: {
-    //   values: ["bridge", "road"],
-    //   active: "road"
-    // },
 
-    hiddenProps: ["userid", "id", "original_id", "class_id", "status"],
     //Edit form
+    listValues: {},
+    hiddenProps: ["userid", "id", "original_id", "class_id", "status"],
     schema: {},
     dataObject: {},
     formValid: false
@@ -230,6 +222,7 @@ export default {
       editLayerHelper.selectedLayer = newValue;
       me.getlayerFeatureTypes();
       me.olEditCtrl.readOrInsertDeletedFeatures();
+      me.olEditCtrl.dataObject = this.dataObject;
     },
     toggleSelection: {
       handler(state) {
@@ -314,13 +307,17 @@ export default {
       //Remove select interaction
       me.olSelectCtrl.removeInteraction();
       me.toggleSelection = undefined;
-      let editType;
+      let editType, startCb, endCb;
       switch (state) {
         case 0:
           editType = "add";
+          startCb = this.onDrawStart;
+          endCb = this.onDrawEnd;
           break;
         case 1:
           editType = "modify";
+          startCb = this.onModifyStart;
+          endCb = this.onModifyEnd;
           break;
         case 2:
           editType = "delete";
@@ -329,7 +326,7 @@ export default {
           break;
       }
       if (editType !== undefined) {
-        me.olEditCtrl.addInteraction(editType);
+        me.olEditCtrl.addInteraction(editType, startCb, endCb);
       } else {
         me.olEditCtrl.removeInteraction();
       }
@@ -357,6 +354,49 @@ export default {
     },
 
     /**
+     * Modify interaction start event handler
+     */
+    onModifyStart() {
+      this.olEditCtrl.featuresToCommit = [];
+    },
+
+    /**
+     * Modify interaction end event handler
+     */
+    onModifyEnd() {
+      let props = {};
+      Object.keys(this.schema[this.layerName].properties).forEach(key => {
+        props[key] = null;
+      });
+      this.olEditCtrl.transact(props);
+    },
+
+    /**
+     * Draw interaction start event handler
+     */
+    onDrawStart() {
+      this.olEditCtrl.featuresToCommit = [];
+    },
+
+    /**
+     * Draw interaction start event handler
+     */
+    onDrawEnd(evt) {
+      const feature = evt.feature;
+      this.olEditCtrl.closePopup();
+      this.olEditCtrl.featuresToCommit.push(feature);
+      this.olEditCtrl.highlightSource.addFeature(feature);
+      const featureCoordinates = feature.getGeometry().getCoordinates();
+      const popupCoordinate = Array.isArray(featureCoordinates[0])
+        ? featureCoordinates[0]
+        : featureCoordinates;
+      this.olEditCtrl.popupOverlay.setPosition(popupCoordinate);
+      this.olEditCtrl.popup.title = "attributes";
+      this.olEditCtrl.popup.selectedInteraction = "add";
+      this.olEditCtrl.popup.isVisible = true;
+    },
+
+    /**
      * Changes ways type between road or bridge
      */
     updateSelectedWaysType(value) {
@@ -364,7 +404,7 @@ export default {
     },
 
     /**
-     * Changes ways type between road or bridge
+     * Get Layer attribute fields
      */
     getlayerFeatureTypes() {
       if (this.schema[this.layerName]) return;
@@ -377,12 +417,10 @@ export default {
           const jsonSchema = mapFeatureTypeProps(
             props,
             this.hiddenProps,
-            this.layerName.split(":")[1]
+            this.layerName.split(":")[1],
+            this.listValues
           );
-          console.log(jsonSchema);
           this.schema[this.layerName] = jsonSchema;
-          console.log(this.schema);
-          console.log(this.schema[this.layerName]);
         });
     },
 
@@ -430,7 +468,6 @@ export default {
     translate(type, key) {
       //type = {layerGroup || layerName}
       //Checks if key exists and translates it othewise return the input value
-
       const canTranslate = this.$te(`map.${type}.${key}`);
       if (canTranslate) {
         return this.$t(`map.${type}.${key}`);
@@ -438,15 +475,16 @@ export default {
         return key;
       }
     },
-
-    showError(err) {
-      console.log(err);
+    ok(type) {
+      if (type === "add") {
+        this.olEditCtrl.transact(this.dataObject);
+        this.olEditCtrl.closePopup();
+      } else {
+        this.olEditCtrl.deleteFeature();
+      }
     },
-    showChange(e) {
-      console.log('"change" event', e);
-    },
-    showInput(e) {
-      console.log('"input" event', e);
+    cancel() {
+      this.olEditCtrl.closePopup();
     }
   },
   computed: {
@@ -459,6 +497,19 @@ export default {
         disableAll: false,
         autoFoldObjects: true
       };
+    }
+  },
+  created() {
+    this.listValues = this.$appConfig.listValues;
+    //Edge Case (get all pois keys)
+    if (
+      this.listValues.pois_info.amenity &&
+      this.listValues.pois_info.amenity.values === "*"
+    ) {
+      const poisListValues = getPoisListValues(
+        this.$appConfig.componentData.pois.allPois
+      );
+      this.listValues.pois_info.amenity.values = poisListValues;
     }
   }
 };

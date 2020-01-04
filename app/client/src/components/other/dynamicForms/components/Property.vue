@@ -53,7 +53,7 @@
         <template v-slot:activator="{ on }">
           <v-text-field
             v-model="modelWrapper[modelKey]"
-            :label="translate(fullSchema.layerName, label)"
+            :label="translateField(label)"
             :name="fullKey"
             :required="required"
             :rules="rules"
@@ -114,7 +114,7 @@
         <template v-slot:activator="{ on }">
           <v-text-field
             v-model="modelWrapper[modelKey]"
-            :label="translate(fullSchema.layerName, label)"
+            :label="translateField(label)"
             :name="fullKey"
             :required="required"
             :rules="rules"
@@ -159,7 +159,7 @@
         <template v-if="fullSchema['x-display'] === 'color-picker'">
           <v-input
             :name="fullKey"
-            :label="translate(fullSchema.layerName, label)"
+            :label="translateField(label)"
             :required="required"
             :rules="rules"
             :disabled="disabled"
@@ -204,7 +204,7 @@
         <v-input
           v-else
           :name="fullKey"
-          :label="translate(fullSchema.layerName, label)"
+          :label="translateField(label)"
           :required="required"
           :rules="rules"
           :disabled="disabled"
@@ -229,6 +229,29 @@
         </v-input>
       </template>
 
+      <!-- auto-complete field on an ajax response with query -->
+      <v-autocomplete
+        v-else-if="fullSchema.isAutocomplete === true"
+        v-model="modelWrapper[modelKey]"
+        :items="selectItems"
+        :name="fullKey"
+        :label="translateField(label)"
+        :no-data-text="options.noDataMessage"
+        :disabled="disabled"
+        :required="required"
+        :rules="rules"
+        :clearable="!required"
+        @change="change"
+        @input="input"
+      >
+        <template slot="selection" slot-scope="{ item }">
+          {{ translateListValues(item) }}
+        </template>
+        <template slot="item" slot-scope="{ item }">
+          {{ translateListValues(item) }}
+        </template>
+      </v-autocomplete>
+
       <!-- Select field of objects based on an enum (array or not) -->
       <template
         v-else-if="
@@ -242,39 +265,18 @@
           v-model="modelWrapper[modelKey]"
           :items="selectItems"
           :name="fullKey"
-          :label="translate(fullSchema.layerName, label)"
+          :label="translateField(label)"
+          :item-text="translateListValues"
           :required="required"
           :rules="rules"
           :disabled="disabled"
           :clearable="!required"
           :multiple="fullSchema.type === 'array'"
-          :item-text="itemTitle"
           :item-value="itemKey"
           :return-object="true"
           @change="change"
           @input="input"
         >
-          <template slot="selection" slot-scope="data">
-            <div class="v-select__selection v-select__selection--comma">
-              <select-icon v-if="itemIcon" :value="data.item[itemIcon]" />
-              <span v-if="![null, undefined].includes(data.item[itemTitle])">{{
-                data.item[itemTitle] +
-                  (fullSchema.type === "array" &&
-                  data.index !== modelWrapper[modelKey].length - 1
-                    ? ",&nbsp;"
-                    : "")
-              }}</span>
-            </div>
-          </template>
-          <template slot="item" slot-scope="data">
-            <select-icon v-if="itemIcon" :value="data.item[itemIcon]" />
-            <select-item :title="data.item[itemTitle]" :options="options" />
-          </template>
-          <tooltip
-            slot="append-outer"
-            :options="options"
-            :html-description="htmlDescription"
-          />
         </v-select>
       </template>
 
@@ -289,178 +291,18 @@
           v-model="modelWrapper[modelKey]"
           :items="selectItems"
           :name="fullKey"
-          :label="translate(fullSchema.layerName, label)"
+          :label="translateField(label)"
           :required="required"
           :rules="rules"
           :disabled="disabled"
           :clearable="!required"
           :multiple="fullSchema.type === 'array'"
+          :item-text="translateListValues"
           @change="change"
           @input="input"
         >
-          <template slot="selection" slot-scope="data">
-            <div class="v-select__selection v-select__selection--comma">
-              <select-icon v-if="itemIcon" :value="data.item" />
-              <span v-if="![null, undefined].includes(data.item)">{{
-                data.item +
-                  (fullSchema.type === "array" &&
-                  data.index !== modelWrapper[modelKey].length - 1
-                    ? ",&nbsp;"
-                    : "")
-              }}</span>
-            </div>
-          </template>
-          <template slot="item" slot-scope="data">
-            <select-icon v-if="itemIcon" :value="data.item" />
-            <select-item :title="data.item" :options="options" />
-          </template>
-          <tooltip
-            slot="append-outer"
-            :options="options"
-            :html-description="htmlDescription"
-          />
         </v-select>
       </template>
-
-      <!-- Select field based on a oneOf on a simple type (array or simple value) -->
-      <!-- cf https://github.com/mozilla-services/react-jsonfullSchema-form/issues/532 -->
-      <template v-else-if="oneOfSelect">
-        <v-select
-          v-model="modelWrapper[modelKey]"
-          :items="selectItems"
-          :name="fullKey"
-          :label="translate(fullSchema.layerName, label)"
-          :required="required"
-          :disabled="disabled"
-          :rules="rules"
-          :clearable="!required"
-          :multiple="fullSchema.type === 'array'"
-          :item-text="itemTitle"
-          :item-value="itemKey"
-          @change="change"
-          @input="input"
-        >
-          <template slot="selection" slot-scope="data">
-            <div class="v-select__selection v-select__selection--comma">
-              <select-icon v-if="itemIcon" :value="data.item[itemIcon]" />
-              <span v-if="![null, undefined].includes(data.item[itemTitle])">{{
-                data.item[itemTitle] +
-                  (fullSchema.type === "array" &&
-                  data.index !== modelWrapper[modelKey].length - 1
-                    ? ",&nbsp;"
-                    : "")
-              }}</span>
-            </div>
-          </template>
-          <template slot="item" slot-scope="data">
-            <select-icon v-if="itemIcon" :value="data.item[itemIcon]" />
-            <select-item :title="data.item[itemTitle]" :options="options" />
-          </template>
-          <tooltip
-            slot="append-outer"
-            :options="options"
-            :html-description="htmlDescription"
-          />
-        </v-select>
-      </template>
-
-      <!-- Select field on an ajax response or from an array in another part of the data -->
-      <v-select
-        v-else-if="
-          fullSchema['x-display'] !== 'list' &&
-            (fromUrl || fullSchema['x-fromData'])
-        "
-        v-model="modelWrapper[modelKey]"
-        :items="selectItems"
-        :name="fullKey"
-        :label="translate(fullSchema.layerName, label)"
-        :no-data-text="options.noDataMessage"
-        :disabled="disabled"
-        :required="required"
-        :rules="rules"
-        :item-text="itemTitle"
-        :item-value="itemKey"
-        :return-object="
-          (fullSchema.type === 'array' && fullSchema.items.type === 'object') ||
-            fullSchema.type === 'object'
-        "
-        :clearable="!required"
-        :loading="loading"
-        :multiple="fullSchema.type === 'array'"
-        @change="change"
-        @input="input"
-      >
-        <template slot="selection" slot-scope="data">
-          <div class="v-select__selection v-select__selection--comma">
-            <select-icon v-if="itemIcon" :value="data.item[itemIcon]" />
-            <span v-if="![null, undefined].includes(data.item[itemTitle])">{{
-              data.item[itemTitle] +
-                (fullSchema.type === "array" &&
-                data.index !== modelWrapper[modelKey].length - 1
-                  ? ",&nbsp;"
-                  : "")
-            }}</span>
-          </div>
-        </template>
-        <template slot="item" slot-scope="data">
-          <select-icon v-if="itemIcon" :value="data.item[itemIcon]" />
-          <select-item :title="data.item[itemTitle]" :options="options" />
-        </template>
-        <tooltip
-          slot="append-outer"
-          :options="options"
-          :html-description="htmlDescription"
-        />
-      </v-select>
-
-      <!-- auto-complete field on an ajax response with query -->
-      <v-autocomplete
-        v-else-if="fromUrlWithQuery"
-        v-model="modelWrapper[modelKey]"
-        :items="selectItems"
-        :search-input.sync="q"
-        :name="fullKey"
-        :label="translate(fullSchema.layerName, label)"
-        :no-data-text="options.noDataMessage"
-        :disabled="disabled"
-        :required="required"
-        :rules="rules"
-        :item-text="itemTitle"
-        :item-value="itemKey"
-        :return-object="
-          (fullSchema.type === 'array' && fullSchema.items.type === 'object') ||
-            fullSchema.type === 'object'
-        "
-        :clearable="!required"
-        :filter="() => true"
-        :placeholder="options.searchMessage"
-        :loading="loading"
-        :multiple="fullSchema.type === 'array'"
-        @change="change"
-        @input="input"
-      >
-        <template slot="selection" slot-scope="data">
-          <select-icon v-if="itemIcon" :value="data.item[itemIcon]" />
-          <div v-if="![null, undefined].includes(data.item[itemTitle])">
-            {{
-              data.item[itemTitle] +
-                (fullSchema.type === "array" &&
-                data.index !== modelWrapper[modelKey].length - 1
-                  ? ",&nbsp;"
-                  : "")
-            }}
-          </div>
-        </template>
-        <template slot="item" slot-scope="data">
-          <select-icon v-if="itemIcon" :value="data.item[itemIcon]" />
-          <select-item :title="data.item[itemTitle]" :options="options" />
-        </template>
-        <tooltip
-          slot="append-outer"
-          :options="options"
-          :html-description="htmlDescription"
-        />
-      </v-autocomplete>
 
       <!-- Long text field in a textarea -->
       <v-textarea
@@ -472,7 +314,7 @@
         "
         v-model="modelWrapper[modelKey]"
         :name="fullKey"
-        :label="translate(fullSchema.layerName, label)"
+        :label="translateField(label)"
         :disabled="disabled"
         :required="required"
         :rules="rules"
@@ -495,7 +337,7 @@
         "
         v-model="modelWrapper[modelKey]"
         :name="fullKey"
-        :label="translate(fullSchema.layerName, label)"
+        :label="translateField(label)"
         :disabled="disabled"
         :required="required"
         :rules="rules"
@@ -515,7 +357,7 @@
         v-else-if="fullSchema.type === 'string'"
         v-model="modelWrapper[modelKey]"
         :name="fullKey"
-        :label="translate(fullSchema.layerName, label)"
+        :label="translateField(label)"
         :disabled="disabled"
         :required="required"
         :rules="rules"
@@ -537,7 +379,7 @@
         "
         v-model.number="modelWrapper[modelKey]"
         :name="fullKey"
-        :label="translate(fullSchema.layerName, label)"
+        :label="translateField(label)"
         :min="fullSchema.minimum"
         :max="fullSchema.maximum"
         :step="
@@ -563,7 +405,7 @@
         "
         v-model.number="modelWrapper[modelKey]"
         :name="fullKey"
-        :label="translate(fullSchema.layerName, label)"
+        :label="translateField(label)"
         :min="fullSchema.minimum"
         :max="fullSchema.maximum"
         :step="
@@ -587,7 +429,7 @@
       <v-checkbox
         v-else-if="fullSchema.type === 'boolean'"
         v-model="modelWrapper[modelKey]"
-        :label="translate(fullSchema.layerName, label)"
+        :label="translateField(label)"
         :name="fullKey"
         :disabled="disabled"
         :required="required"
@@ -611,7 +453,7 @@
         <v-combobox
           v-model="modelWrapper[modelKey]"
           :name="fullKey"
-          :label="translate(fullSchema.layerName, label)"
+          :label="translateField(label)"
           :required="required"
           :rules="rules"
           :disabled="disabled"
@@ -697,255 +539,6 @@
                 <slot :name="name" v-bind="slotData" />
               </template>
             </property>
-
-            <!-- Sub containers for allOfs -->
-            <template v-if="fullSchema.allOf && fullSchema.allOf.length">
-              <template v-if="!parentKey && fullSchema.allOf[0].title">
-                <!-- tabs at root level -->
-                <v-tabs
-                  v-if="options.allOfTabs"
-                  show-arrows
-                  :grow="options.tabsMode.includes('grow')"
-                  :centered="options.tabsMode.includes('centered')"
-                  :vertical="options.tabsMode.includes('vertical')"
-                >
-                  <v-tabs-slider />
-                  <v-tab
-                    v-for="(currentAllOf, i) in fullSchema.allOf"
-                    :key="i"
-                    :href="`#tab-${i}`"
-                  >
-                    {{ currentAllOf.title }}
-                  </v-tab>
-                  <v-tab-item
-                    v-for="(currentAllOf, i) in fullSchema.allOf"
-                    :key="i"
-                    :value="`tab-${i}`"
-                  >
-                    <property
-                      class="mt-2"
-                      :schema="
-                        Object.assign({}, currentAllOf, {
-                          type: 'object',
-                          title: null
-                        })
-                      "
-                      :model-wrapper="subModels"
-                      :model-root="modelRoot"
-                      :model-key="'allOf-' + i"
-                      :parent-key="parentKey"
-                      :options="options"
-                      @error="e => $emit('error', e)"
-                      @change="e => $emit('change', e)"
-                      @input="e => $emit('input', e)"
-                    >
-                      <!-- propagate slots to children, see https://gist.github.com/Loilo/73c55ed04917ecf5d682ec70a2a1b8e2 -->
-                      <slot
-                        v-for="(_, name) in $slots"
-                        :slot="name"
-                        :name="name"
-                      />
-                      <template
-                        v-for="(_, name) in $scopedSlots"
-                        :slot="name"
-                        slot-scope="slotData"
-                      >
-                        <slot :name="name" v-bind="slotData" />
-                      </template>
-                    </property>
-                  </v-tab-item>
-                </v-tabs>
-                <!-- Accordion for vuetify 2 -->
-                <v-expansion-panels
-                  v-else-if="options.vuetifyVersion === 2"
-                  :inset="options.accordionMode === 'inset'"
-                  :popout="options.accordionMode === 'popout'"
-                  focusable
-                >
-                  <v-expansion-panel
-                    v-for="(currentAllOf, i) in fullSchema.allOf"
-                    :key="i"
-                  >
-                    <v-expansion-panel-header style="font-weight:bold">
-                      {{ currentAllOf.title }}
-                    </v-expansion-panel-header>
-                    <v-expansion-panel-content class="pt-2">
-                      <property
-                        :schema="
-                          Object.assign({}, currentAllOf, {
-                            type: 'object',
-                            title: null
-                          })
-                        "
-                        :model-wrapper="subModels"
-                        :model-root="modelRoot"
-                        :model-key="'allOf-' + i"
-                        :parent-key="parentKey"
-                        :options="options"
-                        @error="e => $emit('error', e)"
-                        @change="e => $emit('change', e)"
-                        @input="e => $emit('input', e)"
-                      >
-                        <!-- propagate slots to children, see https://gist.github.com/Loilo/73c55ed04917ecf5d682ec70a2a1b8e2 -->
-                        <slot
-                          v-for="(_, name) in $slots"
-                          :slot="name"
-                          :name="name"
-                        />
-                        <template
-                          v-for="(_, name) in $scopedSlots"
-                          :slot="name"
-                          slot-scope="slotData"
-                        >
-                          <slot :name="name" v-bind="slotData" />
-                        </template>
-                      </property>
-                    </v-expansion-panel-content>
-                  </v-expansion-panel>
-                </v-expansion-panels>
-                <!-- Accordion for vuetify 1 -->
-                <v-expansion-panel
-                  v-else
-                  :inset="options.accordionMode === 'inset'"
-                  :popout="options.accordionMode === 'popout'"
-                  focusable
-                >
-                  <v-expansion-panel-content
-                    v-for="(currentAllOf, i) in fullSchema.allOf"
-                    :key="i"
-                  >
-                    <span slot="header" style="font-weight:bold">{{
-                      currentAllOf.title
-                    }}</span>
-                    <v-card>
-                      <v-card-text>
-                        <property
-                          :schema="
-                            Object.assign({}, currentAllOf, {
-                              type: 'object',
-                              title: null
-                            })
-                          "
-                          :model-wrapper="subModels"
-                          :model-root="modelRoot"
-                          :model-key="'allOf-' + i"
-                          :parent-key="parentKey"
-                          :options="options"
-                          @error="e => $emit('error', e)"
-                          @change="e => $emit('change', e)"
-                          @input="e => $emit('input', e)"
-                        >
-                          <!-- propagate slots to children, see https://gist.github.com/Loilo/73c55ed04917ecf5d682ec70a2a1b8e2 -->
-                          <slot
-                            v-for="(_, name) in $slots"
-                            :slot="name"
-                            :name="name"
-                          />
-                          <template
-                            v-for="(_, name) in $scopedSlots"
-                            :slot="name"
-                            slot-scope="slotData"
-                          >
-                            <slot :name="name" v-bind="slotData" />
-                          </template>
-                        </property>
-                      </v-card-text>
-                    </v-card>
-                  </v-expansion-panel-content>
-                </v-expansion-panel>
-              </template>
-              <template v-else>
-                <!-- simple objects if we are at first level -->
-                <property
-                  v-for="(currentAllOf, i) in fullSchema.allOf || []"
-                  :key="i"
-                  :schema="Object.assign({}, currentAllOf, { type: 'object' })"
-                  :model-wrapper="subModels"
-                  :model-root="modelRoot"
-                  :model-key="'allOf-' + i"
-                  :parent-key="parentKey"
-                  :options="options"
-                  @error="e => $emit('error', e)"
-                  @change="e => $emit('change', e)"
-                  @input="e => $emit('input', e)"
-                >
-                  <!-- propagate slots to children, see https://gist.github.com/Loilo/73c55ed04917ecf5d682ec70a2a1b8e2 -->
-                  <slot v-for="(_, name) in $slots" :slot="name" :name="name" />
-                  <template
-                    v-for="(_, name) in $scopedSlots"
-                    :slot="name"
-                    slot-scope="slotData"
-                  >
-                    <slot :name="name" v-bind="slotData" />
-                  </template>
-                </property>
-              </template>
-            </template>
-
-            <!-- Sub container with a select for oneOfs -->
-            <template v-if="fullSchema.oneOf">
-              <v-select
-                v-model="currentOneOf"
-                :items="fullSchema.oneOf"
-                :disabled="disabled"
-                :item-value="
-                  item => {
-                    return oneOfConstProp
-                      ? item.properties[oneOfConstProp.key].const
-                      : item.title;
-                  }
-                "
-                :label="
-                  oneOfConstProp
-                    ? oneOfConstProp.title || oneOfConstProp.key
-                    : 'Type'
-                "
-                :required="oneOfRequired"
-                :clearable="!oneOfRequired"
-                :rules="oneOfRules"
-                item-text="title"
-                return-object
-                @change="change"
-                @input="input"
-              >
-                <tooltip
-                  slot="append-outer"
-                  :options="options"
-                  :html-description="
-                    oneOfConstProp && oneOfConstProp.htmlDescription
-                  "
-                />
-              </v-select>
-              <!--{{ currentOneOf }}-->
-              <template v-if="currentOneOf && showCurrentOneOf">
-                <property
-                  :schema="
-                    Object.assign({}, currentOneOf, {
-                      title: null,
-                      type: 'object'
-                    })
-                  "
-                  :model-wrapper="subModels"
-                  :model-root="modelRoot"
-                  :parent-key="parentKey"
-                  :options="options"
-                  model-key="currentOneOf"
-                  @error="e => $emit('error', e)"
-                  @change="e => $emit('change', e)"
-                  @input="e => $emit('input', e)"
-                >
-                  <!-- propagate slots to children, see https://gist.github.com/Loilo/73c55ed04917ecf5d682ec70a2a1b8e2 -->
-                  <slot v-for="(_, name) in $slots" :slot="name" :name="name" />
-                  <template
-                    v-for="(_, name) in $scopedSlots"
-                    :slot="name"
-                    slot-scope="slotData"
-                  >
-                    <slot :name="name" v-bind="slotData" />
-                  </template>
-                </property>
-              </template>
-            </template>
           </v-layout>
         </v-slide-y-transition>
       </div>
@@ -1120,8 +713,6 @@
 </template>
 
 <script>
-import SelectIcon from "./SelectIcon.vue";
-import SelectItem from "./SelectItem.vue";
 import Tooltip from "./Tooltip.vue";
 import schemaUtils from "../utils/schema";
 import selectUtils from "../utils/select";
@@ -1130,7 +721,7 @@ const md = require("markdown-it")();
 
 export default {
   name: "Property",
-  components: { SelectIcon, SelectItem, Tooltip },
+  components: { Tooltip },
   props: [
     "schema",
     "modelWrapper",
@@ -1284,7 +875,6 @@ export default {
           JSON.stringify(this.fullSchema) !== this.lastFullSchema
         ) {
           this.lastFullSchema = JSON.stringify(this.fullSchema);
-          // console.log('Schema changed', JSON.stringify(this.fullSchema))
           this.initFromSchema();
           this.cleanUpExtraProperties();
           this.applySubModels();
@@ -1318,12 +908,29 @@ export default {
     }
   },
   methods: {
-    translate(layerName, field) {
-      const canTranslate = this.$te(`dynamicFields.${layerName}.${field}`);
+    translateField(field) {
+      const layerName = this.schema.layerName;
+      const canTranslate = this.$te(
+        `dynamicFields.attributes.${layerName}.${field}`
+      );
       if (canTranslate) {
-        return this.$t(`map.${layerName}.${field}`);
+        return this.$t(`dynamicFields.attributes.${layerName}.${field}`);
       } else {
         return field;
+      }
+    },
+    translateListValues(value) {
+      let layerName = this.schema.layerName;
+      let path = `dynamicFields.listValues.`;
+      if (layerName === "pois_info") {
+        layerName = "pois";
+        path = ``;
+      }
+      const canTranslate = this.$te(`${path}${layerName}.${value}`);
+      if (canTranslate) {
+        return this.$t(`${path}${layerName}.${value}`);
+      } else {
+        return value;
       }
     },
     updateSelectItems() {
@@ -1409,7 +1016,6 @@ export default {
         });
     },
     cleanUpExtraProperties() {
-      // console.log('Cleanup extra properties')
       // cleanup extra properties
       if (
         this.fullSchema.type === "object" &&
@@ -1419,21 +1025,18 @@ export default {
       ) {
         Object.keys(this.modelWrapper[this.modelKey]).forEach(key => {
           if (!this.fullSchema.properties.find(p => p.key === key)) {
-            // console.log(`Remove key ${this.modelKey}.${key}`)
             delete this.modelWrapper[this.modelKey][key];
           }
         });
       }
     },
     applySubModels() {
-      // console.log('Apply sub models')
       Object.keys(this.subModels).forEach(subModel => {
         Object.keys(this.subModels[subModel]).forEach(key => {
           if (
             this.modelWrapper[this.modelKey][key] !==
             this.subModels[subModel][key]
           ) {
-            // console.log(`Apply submodel ${this.modelKey}.${key}`, JSON.stringify(this.subModels[subModel][key]))
             this.$set(
               this.modelWrapper[this.modelKey],
               key,
@@ -1444,7 +1047,6 @@ export default {
       });
     },
     initFromSchema() {
-      // console.log('Init from schema')
       let model = this.modelWrapper[this.modelKey];
 
       // Manage default values

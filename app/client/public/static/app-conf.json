@@ -810,5 +810,17 @@
         "timeBasedCalculations": "no"
       }
     }
+  },
+  "listValues": {
+    "ways": {
+      "type": {
+        "values": ["bridge", "road"]
+      }
+    },
+    "pois_info": {
+      "amenity": {
+        "values": "*"
+      }
+    }
   }
 }
