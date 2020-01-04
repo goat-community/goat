@@ -81,6 +81,7 @@ export const LayerFactory = {
       visible: lConf.visible,
       opacity: lConf.opacity,
       queryable: lConf.queryable,
+      requiresPois: lConf.requiresPois,
       zIndex: lConf.zIndex,
       source: new ImageWMS({
         url: lConf.url,

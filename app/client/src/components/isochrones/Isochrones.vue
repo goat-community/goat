@@ -86,6 +86,7 @@ export default {
   },
   methods: {
     ...mapMutations("isochrones", {
+      init: "INIT",
       addStyleInCache: "ADD_STYLE_IN_CACHE",
       addIsochroneLayer: "ADD_ISOCHRONE_LAYER",
       addIsochroneNetworkLayer: "ADD_ISOCHRONE_ROAD_NETWORK_LAYER",
@@ -135,6 +136,9 @@ export default {
       me.map.addLayer(vector);
       this.addIsochroneNetworkLayer(vector);
     }
+  },
+  created() {
+    this.init(this.$appConfig.componentData.isochrones);
   }
 };
 </script>

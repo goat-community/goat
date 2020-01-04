@@ -1,5 +1,5 @@
 -- Add a column for slope values
-alter TABLE ways ADD COLUMN slope float;
+ALTER TABLE ways ADD COLUMN slope float;
 
 -- Update with: (elevation of end pt - elev of start pt )/length of segment
 UPDATE ways SET slope=c.slope
@@ -16,7 +16,7 @@ where ways.id = c.id
 ;
 
 
-alter TABLE ways ADD COLUMN length_dynamic float;
+ALTER TABLE ways ADD COLUMN length_dynamic float;
 
 UPDATE ways SET length_dynamic=c.length_dynamic
 from 

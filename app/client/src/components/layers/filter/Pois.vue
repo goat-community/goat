@@ -1,7 +1,64 @@
 <template>
   <div>
+    <template v-if="timeBasedCalculations === 'yes'">
+      <v-switch
+        class="subtitle-2 mt-4 mb-0 pb-0"
+        dense
+        v-model="showTimeFilters"
+        @change="toggleTimeFilter"
+        :label="$t(`poisFilter.showTimeFilter`)"
+      ></v-switch>
+      <v-select
+        v-if="showTimeFilters"
+        class="mt-1 pt-1"
+        item-value="value"
+        :items="timeFilter.day.values"
+        v-model="dayFilter"
+        prepend-icon="today"
+        :label="$t('poisFilter.selectDayLabel')"
+      >
+        <template slot="selection" slot-scope="{ item }">
+          {{ $t(`poisFilter.daysOfWeek.${item.display}`) }}
+        </template>
+        <template slot="item" slot-scope="{ item }">
+          {{ $t(`poisFilter.daysOfWeek.${item.display}`) }}
+        </template>
+      </v-select>
+
+      <v-menu
+        v-if="showTimeFilters"
+        class="mt-0 pt-0"
+        ref="menu"
+        v-model="timeSelectMenu"
+        :close-on-content-click="false"
+        :nudge-right="40"
+        :return-value.sync="hourFilter"
+        transition="scale-transition"
+        offset-y
+      >
+        <template v-slot:activator="{ on }">
+          <v-text-field
+            v-model="hourFilter"
+            :label="$t('poisFilter.selectHourLabel')"
+            prepend-icon="access_time"
+            readonly
+            v-on="on"
+          ></v-text-field>
+        </template>
+        <v-time-picker
+          v-if="timeSelectMenu"
+          v-model="hourFilter"
+          format="24hr"
+          color="green"
+          full-width
+          @click:minute="$refs.menu.save(hourFilter)"
+        ></v-time-picker>
+      </v-menu>
+      <v-divider class="mx-2"></v-divider>
+    </template>
+
     <v-treeview
-      v-model="tree"
+      v-model="selectedPois"
       :open="open"
       :items="allPois"
       ref="poisTree"
@@ -12,11 +69,13 @@
       rounded
       return-object
       item-key="name"
+      item-disabled="locked"
       selected-color="green"
       active-class="grey lighten-4 indigo--text "
       on-icon="check_box"
       off-icon="check_box_outline_blank"
       indeterminate-icon="indeterminate_check_box"
+      @input="treeViewChanged"
     >
       <template v-slot:prepend="{ item, open }">
         <img v-if="item.icon" class="pois-icon" :src="getPoisIconUrl(item)" />
@@ -55,6 +114,8 @@
 import { Mapable } from "../../../mixins/Mapable";
 import { getAllChildLayers } from "../../../utils/Layer";
 import { mapGetters, mapActions } from "vuex";
+import { mapFields } from "vuex-map-fields";
+import { mapMutations } from "vuex";
 import HeatmapOptions from "./HeatmapOptions";
 
 export default {
@@ -62,17 +123,23 @@ export default {
   components: {
     "heatmap-options": HeatmapOptions
   },
-  data: () => ({
-    open: [],
-    tree: [],
-    heatmapLayers: [],
-    poisLayer: null,
-    showHeatmapOptionsDialog: false,
-    selectedAmenity: {}
-  }),
+  data() {
+    return {
+      timeBasedCalculations: this.$appConfig.componentConf.pois.filters
+        .timeBasedCalculations,
+      timeSelectMenu: false,
+      showTimeFilters: false,
+      open: [],
+      heatmapLayers: [],
+      poisLayer: null,
+      showHeatmapOptionsDialog: false,
+      selectedAmenity: {}
+    };
+  },
+
   methods: {
     ...mapActions("pois", {
-      updateSelectedPois: "updateSelectedPois"
+      updateSelectedPoisForThematicData: "updateSelectedPoisForThematicData"
     }),
     ...mapActions("isochrones", {
       countStudyAreaPois: "countStudyAreaPois"
@@ -85,6 +152,7 @@ export default {
       );
       return images("./" + item.icon + ".png");
     },
+
     onMapBound() {
       const me = this;
       const map = me.map;
@@ -104,7 +172,8 @@ export default {
     },
     updateHeatmapLayerViewParams() {
       const me = this;
-      const selectedPois = me.tree;
+      const selectedPois = me.selectedPois;
+
       const heatmapViewParams = selectedPois.reduce((filtered, item) => {
         const { value, weight, sensitivity } = item;
         if (value != "undefined" && weight != undefined) {
@@ -139,8 +208,16 @@ export default {
           return filtered;
         }, []);
 
+        let params = `amenities:'${btoa(
+          viewParams.toString()
+        )}';routing_profile:'${me.options.routingProfile.active["value"]}';`;
+
+        if (this.timeBasedCalculations === "yes") {
+          params += `d:${me.getSelectedDay};h:${me.getSelectedHour};m:${me.getSelectedMinutes};`
+        }
+
         me.poisLayer.getSource().updateParams({
-          viewparams: `amenities:'${btoa(viewParams.toString())}'`
+          viewparams: params
         });
       }
     },
@@ -158,25 +235,100 @@ export default {
         value = this.$t(`pois.${item.categoryValue}`);
       }
       return value;
+    },
+    toggleTimeFilter() {
+      if (this.showTimeFilters === false) {
+        this.dayFilter = "";
+        this.hourFilter = null;
+        this.toggleNodeState({
+          excluded: this.disabledPoisOnTimeFilter,
+          nodeState: "deactivate"
+        });
+      } else {
+        //Disable pois icons which are excluded from time filter
+        this.toggleNodeState({
+          excluded: this.disabledPoisOnTimeFilter,
+          nodeState: "activate"
+        });
+      }
+    },
+    ...mapMutations("pois", {
+      toggleNodeState: "TOGGLE_NODE_STATE",
+      init: "INIT"
+    }),
+    toggleRoutingFilter(newValue, oldValue) {
+      const oldFiter = this.disabledPoisOnRoutingProfile[oldValue];
+      if (oldFiter) {
+        this.toggleNodeState({
+          excluded: oldFiter,
+          nodeState: "deactivate"
+        });
+      }
+      const newFilter = this.disabledPoisOnRoutingProfile[newValue];
+      if (newFilter) {
+        this.toggleNodeState({
+          excluded: newFilter,
+          nodeState: "activate"
+        });
+      }
+    },
+    treeViewChanged() {
+      this.selectedPois = this.selectedPois.filter(x => x.locked != true);
     }
   },
   watch: {
-    tree: function() {
+    selectedPois: function() {
       const me = this;
-      me.updateSelectedPois(me.tree);
+      me.updateSelectedPoisForThematicData(me.selectedPois);
       me.updateHeatmapLayerViewParams();
-      me.updatePoisLayerViewParams(me.tree);
+      me.updatePoisLayerViewParams(me.selectedPois);
       me.countStudyAreaPois();
+    },
+    "options.routingProfile.active.value": function(newValue, oldValue) {
+      if (this.timeBasedCalculations === "yes") {
+        this.toggleRoutingFilter(newValue, oldValue);
+      }
+      this.updatePoisLayerViewParams(this.selectedPois);
+    },
+    dayFilter: function() {
+      this.updatePoisLayerViewParams(this.selectedPois);
+    },
+    hourFilter: function() {
+      this.updatePoisLayerViewParams(this.selectedPois);
     }
   },
   computed: {
     ...mapGetters("pois", {
-      allPois: "allPois"
-    })
+      allPois: "allPois",
+      timeFilter: "timeFilter",
+      disabledPoisOnTimeFilter: "disabledPoisOnTimeFilter",
+      disabledPoisOnRoutingProfile: "disabledPoisOnRoutingProfile"
+    }),
+    ...mapGetters("isochrones", {
+      options: "options"
+    }),
+    ...mapFields("pois", {
+      dayFilter: "timeFilter.day.active",
+      hourFilter: "timeFilter.hour",
+      selectedPois: "selectedPois"
+    }),
+    getSelectedDay() {
+      return this.dayFilter ? this.dayFilter : 9999;
+    },
+    getSelectedHour() {
+      return this.hourFilter !== null ? this.hourFilter.split(":")[0] : 9999;
+    },
+    getSelectedMinutes() {
+      return this.hourFilter !== null ? this.hourFilter.split(":")[1] : 9999;
+    }
+  },
+  created() {
+    this.init(this.$appConfig.componentData.pois);
+    this.toggleRoutingFilter(this.options.routingProfile.active["value"], null);
   }
 };
 </script>
-<style>
+<style lang="css">
 .arrow-icons {
   color: "#4A4A4A";
 }

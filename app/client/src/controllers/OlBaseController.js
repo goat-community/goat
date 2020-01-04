@@ -41,18 +41,21 @@ export default class OlBaseController {
    * Creates a vector layer and adds it to the
    * map.
    */
-  createLayer(name, style) {
+  createLayer(name, style, opt = {}) {
     const me = this;
-
-    // create a vector layer to
-    const source = new VectorSource({ wrapX: false });
-    const vector = new VectorLayer({
+    // create a vector layer
+    const source = new VectorSource({
+      wrapX: false
+    });
+    const options = Object.assign(opt, {
       name: name,
       displayInLayerList: false,
       zIndex: 5,
       source: source,
       style: style
     });
+
+    const vector = new VectorLayer(options);
 
     me.map.addLayer(vector);
 
