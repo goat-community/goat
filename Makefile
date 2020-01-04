@@ -15,7 +15,7 @@ COMPONENT:=api
 VERSION?=$(shell git rev-parse HEAD)
 REGISTRY?=docker.io
 DOCKER_IMAGE?=$(REGISTRY)/$(PROJECT)/$(COMPONENT):$(VERSION)
-POSTGIS_DOCKER_IMAGE?=$(REGISTRY)/$(PROJECT)/postgis:latest
+POSTGIS_DOCKER_IMAGE?=$(REGISTRY)/$(PROJECT)/postgis:$(VERSION)
 K8S_CLUSTER?=goat
 
 # Build and test directories
@@ -33,6 +33,7 @@ K8S_OBJ:=$(patsubst %.tpl.yaml,%.yaml,$(K8S_SRC))
 
 %.yaml: %.tpl.yaml
 	DOCKER_IMAGE=$(DOCKER_IMAGE) \
+	POSTGIS_DOCKER_IMAGE=$(POSTGIS_DOCKER_IMAGE) \
 	NAMESPACE=$(NAMESPACE) \
 	DOMAIN=$(DOMAIN) \
 	VERSION=$(VERSION) \
@@ -80,10 +81,20 @@ docker-login:
 build-docker-image: app/$(COMPONENT)/Dockerfile
 	$(DOCKER) build -f app/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/$(COMPONENT)
 
-# target: make release-docker-image VERSION=some_git_sha_comit
+# target: make release-docker-image VERSION=some_git_sha_comit COMPONENT=api|client
 .PHONY: release-docker-image
 release-docker-image: docker-login build-docker-image
 	$(DOCKER) push $(DOCKER_IMAGE)
+
+# target: make build-database-docker-image VERSION=some_git_sha_comit
+.PHONY: build-database-docker-image
+build-database-docker-image: app/database/Dockerfile
+	$(DOCKER) build -f app/database/Dockerfile --pull -t $(POSTGIS_DOCKER_IMAGE) app
+
+# target: make release-database-docker-image VERSION=some_git_sha_comit
+.PHONY: release-database-docker-image
+release-database-docker-image: docker-login build-database-docker-image
+	$(DOCKER) push $(POSTGIS_DOCKER_IMAGE)
 
 # target: make after-success
 .PHONY: after-success
@@ -106,13 +117,3 @@ deploy-postgres-server: setup-kube-config build-k8s
 .PHONY: deploy
 deploy: setup-kube-config build-k8s
 	$(KCTL) config use-context goat && $(KCTL) apply -f k8s/$(COMPONENT).yaml
-
-# target: make build-postgis-docker-image
-.PHONY: build-postgis-docker-image
-build-postgis-docker-image: ../docker-postgis/Dockerfile
-	$(DOCKER) build -f ../docker-postgis/Dockerfile --pull -t $(POSTGIS_DOCKER_IMAGE) ../docker-postgis
-
-# target: make release-postgis-docker-image
-.PHONY: release-postgis-docker-image
-release-postgis-docker-image: docker-login build-postgis-docker-image
-	$(DOCKER) push $(POSTGIS_DOCKER_IMAGE)
