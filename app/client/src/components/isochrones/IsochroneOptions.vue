@@ -38,6 +38,43 @@
         class="mx-4 isochroneOptions"
         v-if="isIsochroneOptionsVisible"
       >
+        <v-select
+          v-if="options.calculationType"
+          item-text="display"
+          item-value="value"
+          outlined
+          return-object
+          v-model="routingProfile"
+          :value="routingProfile"
+          :items="options.routingProfile.values"
+          :label="$t('isochrones.options.routingProfile')"
+          @change="routingProfileChanged"
+        >
+          <template slot="selection" slot-scope="{ item }">
+            {{
+              $te(`isochrones.options.${item.value}`)
+                ? $t(`isochrones.options.${item.value}`)
+                : item.display
+            }}
+          </template>
+          <template slot="item" slot-scope="{ item }">
+            <v-tooltip top>
+              <template v-slot:activator="{ on }">
+                <v-icon class="mr-2" color="rgba(0, 0, 0, 0.54)" v-on="on"
+                  >info</v-icon
+                >
+              </template>
+              <span>{{
+                $t(`map.tooltips.routingProfiles.${item.value}`)
+              }}</span>
+            </v-tooltip>
+            {{
+              $te(`isochrones.options.${item.value}`)
+                ? $t(`isochrones.options.${item.value}`)
+                : item.display
+            }}
+          </template>
+        </v-select>
         <v-slider
           min="1"
           max="20"
@@ -48,7 +85,6 @@
           color="#30C2FF"
         >
         </v-slider>
-
         <v-slider
           min="1"
           max="10"
@@ -120,7 +156,8 @@ export default {
       steps: "options.steps",
       concavityIsochrones: "options.concavityIsochrones.active",
       calculationModes: "options.calculationModes.active",
-      alphaShapeParameter: "options.alphaShapeParameter.active"
+      alphaShapeParameter: "options.alphaShapeParameter.active",
+      routingProfile: "options.routingProfile.active"
     })
   },
   methods: {
@@ -135,6 +172,10 @@ export default {
       } else {
         return this.options.calculationModes.values;
       }
+    },
+    routingProfileChanged(selectedType) {
+      //Reset speed slider value based on routing profile default speed
+      this.speed = selectedType.defaultSpeed;
     }
   }
 };

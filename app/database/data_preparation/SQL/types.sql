@@ -37,6 +37,19 @@ CREATE TYPE public.type_catchment_vertices AS
 	cnt integer,
 	cost numeric,
 	geom geometry,
+	w_geom geometry,
+	objectid integer	
+);
+
+DROP TYPE IF EXISTS type_catchment_vertices_multi CASCADE;
+CREATE TYPE public.type_catchment_vertices_multi AS
+(
+	start_vertex integer,
+	node integer,
+	edge integer,
+	cnt integer,
+	cost numeric,
+	geom geometry,
 	objectid integer	
 );
 
@@ -48,6 +61,7 @@ CREATE TYPE type_pois_multi_isochrones AS
 	coordinates NUMERIC[][],
 	userid integer,
 	step integer, 
+	routing_profile text,
 	speed NUMERIC, 
 	alphashape_parameter NUMERIC,
 	modus integer, 
@@ -76,7 +90,8 @@ CREATE TYPE type_fetch_ways_routing AS
 	id integer, 
 	SOURCE integer, 
 	target integer, 
-	cost float
+	cost float,
+	geom geometry
 );
 DROP TYPE IF EXISTS type_catchment_vertices_single CASCADE;
 CREATE TYPE public.type_catchment_vertices_single AS
@@ -86,7 +101,18 @@ CREATE TYPE public.type_catchment_vertices_single AS
 	edge integer,
 	cost numeric,
 	geom geometry,
+	w_geom geometry,
 	objectid integer	
 );
-
-
+DROP TYPE IF EXISTS pois_visualization CASCADE;
+CREATE TYPE public.pois_visualization AS
+(
+	amenity text,
+	name text, 
+	osm_id bigint, 
+	opening_hours text, 
+	orgin_geometry text, 
+	geom geometry, 
+	status text,
+	wheelchair text
+);

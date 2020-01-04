@@ -2,6 +2,7 @@ import { Group as LayerGroup } from "ol/layer.js";
 import olLayerLayer from "ol/layer/Layer.js";
 import { WFS } from "ol/format";
 import olLayerImage from "ol/layer/Image.js";
+import olLayerVector from "ol/layer/Vector.js";
 import olSourceImageWMS from "ol/source/ImageWMS.js";
 import { appendParams as olUriAppendParams } from "ol/uri.js";
 
@@ -32,6 +33,21 @@ export function getLayersBy(key, value, olMap) {
   });
 
   return layerMatches;
+}
+
+/**
+ * Returns OL Layer type.
+ *
+ * @param  {ol.layer.Base} Object OL layer
+ */
+export function getLayerType(layer) {
+  let layerType;
+  if (layer instanceof olLayerImage) {
+    layerType = "WMS";
+  } else if (layer instanceof olLayerVector) {
+    layerType = "WFS";
+  }
+  return layerType;
 }
 
 /**

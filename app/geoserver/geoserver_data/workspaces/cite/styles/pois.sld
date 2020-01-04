@@ -17,7 +17,7 @@
             <Graphic>
               <ExternalGraphic>
              
-                <OnlineResource xlink:type="simple" xlink:href="pois/${strToLowerCase(amenity)}.png" />
+                <OnlineResource xlink:type="simple" xlink:href="pois/${strToLowerCase(amenity_icon)}.png" />
                 <Format>image/png</Format>
               </ExternalGraphic>
             <Size>

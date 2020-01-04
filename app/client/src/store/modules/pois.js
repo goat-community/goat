@@ -1,401 +1,12 @@
+import { getField, updateField } from "vuex-map-fields";
+import { toggleTreeLockState } from "../../utils/PoisUtils";
+
+//parts of the data will be loaded dynamically from app conf json
+
 const state = {
-  allPois: [
-    {
-      name: "Education",
-      categoryValue: "education",
-      id: 1,
-      children: [
-        {
-          name: "Kindergarten",
-          value: "kindergarten",
-          icon: "kindergarten",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Primary school",
-          value: "primary_school",
-          icon: "primary_school",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Secondary school",
-          value: "secondary_school",
-          icon: "secondary_school",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Library",
-          value: "library",
-          icon: "library",
-          weight: 1,
-          sensitivity: -0.003
-        }
-      ]
-    },
-    {
-      name: "Food and Drink",
-      categoryValue: "foodAndDrink",
-      children: [
-        {
-          name: "Bar",
-          value: "bar",
-          icon: "bar",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Biergarten",
-          value: "biergarten",
-          icon: "biergarten",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Café",
-          value: "cafe",
-          icon: "cafe",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Pub",
-          value: "pub",
-          icon: "pub",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Fast food",
-          value: "fast_food",
-          icon: "fast_food",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Ice cream",
-          value: "ice_cream",
-          icon: "ice_cream",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Restaurant",
-          value: "restaurant",
-          icon: "restaurant",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Night-Club",
-          value: "nightclub",
-          icon: "nightclub",
-          weight: 1,
-          sensitivity: -0.003
-        }
-      ]
-    },
-    {
-      name: "Transport",
-      categoryValue: "transport",
-      children: [
-        {
-          name: "Bicycle rental",
-          value: "bicycle_rental",
-          icon: "bicycle_rental",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Car sharing",
-          value: "car_sharing",
-          icon: "car_sharing",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Charging station",
-          value: "charging_station",
-          icon: "charging_station",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Bus",
-          value: "bus_stop",
-          icon: "bus_stop",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Tram Stop",
-          value: "tram_stop",
-          icon: "tram_stop",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "U-Bahn station",
-          value: "subway_entrance",
-          icon: "subway_entrance",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Rail Station",
-          value: "rail_station",
-          icon: "rail_station",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Taxi",
-          value: "taxi",
-          icon: "taxi",
-          weight: 1,
-          sensitivity: -0.003
-        }
-      ]
-    },
-    {
-      name: "Services",
-      categoryValue: "services",
-      children: [
-        {
-          name: "Hairdresser",
-          value: "hairdresser",
-          icon: "hairdresser",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "ATM",
-          value: "atm",
-          icon: "atm",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Bank",
-          value: "bank",
-          icon: "bank",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Dentist",
-          value: "dentist",
-          icon: "dentist",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Doctor",
-          value: "doctors",
-          icon: "doctors",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Pharmacy",
-          value: "pharmacy",
-          icon: "pharmacy",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Post box",
-          value: "post_box",
-          icon: "post_box",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Fuel",
-          value: "fuel",
-          icon: "fuel",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Recycling",
-          value: "recycling",
-          icon: "recycling",
-          weight: 1,
-          sensitivity: -0.003
-        }
-      ]
-    },
-    {
-      name: "Shop",
-      categoryValue: "shop",
-      children: [
-        {
-          name: "Bakery",
-          value: "bakery",
-          icon: "bakery",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Butcher",
-          value: "butcher",
-          icon: "butcher",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Clothing store",
-          value: "clothes",
-          icon: "clothes",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Convenience store",
-          value: "convenience",
-          icon: "convenience",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Greengrocer",
-          value: "greengrocer",
-          icon: "greengrocer",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Kiosk",
-          value: "kiosk",
-          icon: "kiosk",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Mall",
-          value: "mall",
-          icon: "mall",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Shoes",
-          value: "shoes",
-          icon: "shoes",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Supermarket",
-          value: "supermarket",
-          icon: "supermarket",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Discount Supermarket",
-          value: "discount_supermarket",
-          icon: "discount_supermarket",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "International Supermarket",
-          value: "international_supermarket",
-          icon: "international_supermarket",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Hypermarket",
-          value: "hypermarket",
-          icon: "hypermarket",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Chemist",
-          value: "chemist",
-          icon: "chemist",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Organic Food",
-          value: "organic",
-          icon: "organic",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Marketplace",
-          value: "marketplace",
-          icon: "marketplace",
-          weight: 1,
-          sensitivity: -0.003
-        }
-      ]
-    },
-    {
-      name: "Tourism & Leisure",
-      categoryValue: "tourismAndLeisure",
-      children: [
-        {
-          name: "Cinema",
-          value: "cinema",
-          icon: "cinema",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Theatre",
-          value: "theatre",
-          icon: "theatre",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Museum",
-          value: "museum",
-          icon: "museum",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Hotel",
-          value: "hotel",
-          icon: "hotel",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Hostel",
-          value: "hostel",
-          icon: "hostel",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Guest house",
-          value: "guest_house",
-          icon: "guest_house",
-          weight: 1,
-          sensitivity: -0.003
-        },
-        {
-          name: "Gallery",
-          value: "gallery",
-          icon: "gallery",
-          weight: 1,
-          sensitivity: -0.003
-        }
-      ]
-    }
-  ],
+  allPois: [],
   selectedPois: [],
+  filters: {},
   dynamicHeatmapTravelTimes: [
     0,
     10,
@@ -488,18 +99,37 @@ const state = {
     880,
     890,
     900
-  ]
+  ],
+  timeFilter: {
+    day: {
+      values: [
+        { value: 18, display: "monday" },
+        { value: 19, display: "tuesday" },
+        { value: 20, display: "wednesday" },
+        { value: 21, display: "thursday" },
+        { value: 22, display: "friday" },
+        { value: 23, display: "saturday" },
+        { value: 24, display: "sunday" }
+      ],
+      active: "" //no day
+    },
+    hour: null //no day
+  }
 };
 
 const getters = {
   selectedPois: state => state.selectedPois,
   allPois: state => state.allPois,
-  dynamicHeatmapTravelTimes: state => state.dynamicHeatmapTravelTimes
+  disabledPoisOnTimeFilter: state => state.filters.disabledPoisOnTimeFilter,
+  disabledPoisOnRoutingProfile: state =>
+    state.filters.disabledPoisOnRoutingProfile,
+  dynamicHeatmapTravelTimes: state => state.dynamicHeatmapTravelTimes,
+  timeFilter: state => state.timeFilter,
+  getField
 };
 
 const actions = {
-  updateSelectedPois({ commit, rootState }, selectedPois) {
-    commit("UPDATE_SELECTED_POIS", selectedPois);
+  updateSelectedPoisForThematicData({ rootState }, selectedPois) {
     if (rootState.isochrones.selectedThematicData) {
       rootState.isochrones.selectedThematicData.filterSelectedPois = selectedPois;
     }
@@ -507,9 +137,63 @@ const actions = {
 };
 
 const mutations = {
-  UPDATE_SELECTED_POIS(state, selectedPois) {
-    state.selectedPois = selectedPois;
-  }
+  INIT(state, config) {
+    if (config && typeof config === "object") {
+      for (const key of Object.keys(config)) {
+        state[key] = config[key];
+      }
+    }
+  },
+  TOGGLE_NODE_STATE(state, payload) {
+    const { excluded, nodeState } = payload;
+    //Node state can have 2 values (activate / deactivate)
+
+    excluded.forEach(element => {
+      const { categoryValue, poisFiltered } = element;
+      // setTimeout added to bypass a treeview bug.
+      setTimeout(() => {
+        state.allPois.forEach(category => {
+          if (category.categoryValue === categoryValue) {
+            //1- Locks all the category
+            if (poisFiltered.length === 1 && poisFiltered[0] === "*") {
+              toggleTreeLockState(category, nodeState);
+            }
+            //2- Locks certain pois in the category
+            if (poisFiltered.length >= 1) {
+              category.children.forEach(pois => {
+                if (poisFiltered.includes(pois.value)) {
+                  toggleTreeLockState(pois, nodeState);
+                }
+              });
+            }
+          }
+        });
+      }, 100);
+
+      //Unselect all pois if those are previosly selected and excluded from filters
+      if (nodeState === "activate") {
+        let _poisFilteredObj = [];
+        if (poisFiltered.length === 1 && poisFiltered[0] === "*") {
+          _poisFilteredObj = state.allPois.filter(
+            el => el.categoryValue === categoryValue
+          );
+
+          _poisFilteredObj = _poisFilteredObj[0].children.map(
+            item => item.value
+          );
+        } else {
+          _poisFilteredObj = poisFiltered;
+        }
+
+        let obj = state.selectedPois.filter(el => {
+          return !_poisFilteredObj.includes(el.value);
+        });
+
+        state.selectedPois = obj;
+      }
+    });
+  },
+  updateField
 };
 
 export default {

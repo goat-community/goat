@@ -5,21 +5,54 @@
       <v-icon>close</v-icon>
     </v-btn>
     <template v-slot:close>
+      <template v-if="getInfoResult.length > 1">
+        <span
+          >({{ popup.currentLayerIndex + 1 }} of
+          {{ getInfoResult.length }})</span
+        >
+        <v-icon
+          :disabled="popup.currentLayerIndex === 0"
+          style="cursor:pointer;"
+          @click="popup.currentLayerIndex -= 1"
+          >chevron_left</v-icon
+        >
+        <v-icon
+          :disabled="popup.currentLayerIndex === getInfoResult.length - 1"
+          style="cursor:pointer;"
+          @click="popup.currentLayerIndex += 1"
+          >chevron_right</v-icon
+        >
+      </template>
       <v-btn @click="closePopup()" icon>
         <v-icon>close</v-icon>
       </v-btn>
     </template>
     <template v-slot:body>
-      <span v-html="popup.rawHtml"></span>
+      <div class="subtitle-2 mb-4 font-weight-bold">
+        {{
+          getInfoResult[popup.currentLayerIndex]
+            ? getInfoResult[popup.currentLayerIndex].get("layerName")
+            : ""
+        }}
+      </div>
+
       <v-divider></v-divider>
-      <v-data-table
-        :headers="getInfoHeader"
-        :items="getInfoResult"
-        hide-default-header
-        hide-default-footer
-        dense
-        flat
-      ></v-data-table>
+      <span v-html="popup.rawHtml"></span>
+      <div style="height:190px;">
+        <vue-scroll>
+          <v-simple-table dense class="pr-2">
+            <template v-slot:default>
+              <tbody>
+                <tr v-for="item in currentInfo" :key="item.property">
+                  <td>{{ item.property }}</td>
+                  <td>{{ item.value }}</td>
+                </tr>
+              </tbody>
+            </template>
+          </v-simple-table>
+        </vue-scroll>
+      </div>
+
       <v-divider></v-divider>
     </template>
   </overlay-popup>
@@ -40,17 +73,21 @@ import { defaults as defaultInteractions } from "ol/interaction";
 import Overlay from "ol/Overlay";
 import Mask from "ol-ext/filter/Mask";
 import OlFill from "ol/style/Fill";
+import VectorSource from "ol/source/Vector";
+import VectorLayer from "ol/layer/Vector";
+import OlStyleDefs from "../../style/OlStyleDefs";
 // import the app-wide EventBus
 import { EventBus } from "../../EventBus";
 import { LayerFactory } from "../../factory/layer.js";
 
 import { mapGetters } from "vuex";
 import { groupBy, humanize } from "../../utils/Helpers";
-import { getAllChildLayers } from "../../utils/Layer";
+import { getAllChildLayers, getLayerType } from "../../utils/Layer";
 import { geojsonToFeature } from "../../utils/MapUtils";
 import { Group as LayerGroup } from "ol/layer.js";
 
 import http from "../../services/http";
+import axios from "axios";
 
 import OverlayPopup from "./Overlay";
 
@@ -72,16 +109,14 @@ export default {
       minZoom: this.$appConfig.map.minZoom,
       maxZoom: this.$appConfig.map.maxZoom,
       allLayers: [],
+      queryableLayers: [],
       activeInteractions: [],
       popup: {
         rawHtml: null,
         title: "info",
-        isVisible: false
+        isVisible: false,
+        currentLayerIndex: 0
       },
-      getInfoHeader: [
-        { text: "Property", value: "property" },
-        { text: "Value", value: "value" }
-      ],
       getInfoResult: []
     };
   },
@@ -134,6 +169,8 @@ export default {
     //Create mask filters
     me.createMaskFilters(layers);
 
+    me.createGetInfoLayer();
+
     EventBus.$on("ol-interaction-activated", startedInteraction => {
       me.activeInteractions.push(startedInteraction);
     });
@@ -170,6 +207,24 @@ export default {
       }
 
       return layers;
+    },
+
+    /**
+     * Creates a layer to visualize selected GetInfo features.
+     */
+    createGetInfoLayer() {
+      const source = new VectorSource({
+        wrapX: false
+      });
+      const vector = new VectorLayer({
+        name: "Get Info Layer",
+        displayInLayerList: false,
+        zIndex: 10,
+        source: source,
+        style: OlStyleDefs.getInfoStyle()
+      });
+      this.getInfoLayerSource = source;
+      this.map.addLayer(vector);
     },
 
     /**
@@ -339,6 +394,20 @@ export default {
         me.popupOverlay.setPosition(undefined);
         me.popup.isVisible = false;
       }
+      me.getInfoResult = [];
+      me.popup.currentLayerIndex = 0;
+      if (me.getInfoLayerSource) {
+        me.getInfoLayerSource.clear();
+      }
+    },
+
+    /**
+     * Show getInfo popup.
+     */
+    showPopup(coordinate) {
+      this.popupOverlay.setPosition(coordinate);
+      this.popup.isVisible = true;
+      this.popup.title = `info`;
     },
 
     /**
@@ -348,89 +417,80 @@ export default {
       const me = this;
       const map = me.map;
       me.mapClickListenerKey = map.on("click", evt => {
+        me.closePopup();
         if (me.activeInteractions.length > 0) {
-          me.popupOverlay.setPosition(undefined);
           return;
         }
         const coordinate = evt.coordinate;
         const projection = me.map.getView().getProjection();
         const resolution = me.map.getView().getResolution();
-        let layerToQuery;
-        getAllChildLayers(me.map).forEach(layer => {
-          if (layer.get("queryable") === true) {
-            layerToQuery = layer;
-          }
-        });
-        if (!layerToQuery || layerToQuery.getVisible() == false) {
-          return;
-        }
-        const url = layerToQuery
-          .getSource()
-          .getGetFeatureInfoUrl(coordinate, resolution, projection, {
-            INFO_FORMAT: "application/json"
-          });
-        http.get(url).then(function(response) {
-          const features = response.data.features;
-          if (features.length === 0) {
-            me.popupOverlay.setPosition(undefined);
-            return;
-          }
 
-          const olFeatures = geojsonToFeature(response.data, {});
-          const featureCoordinates = olFeatures[0]
-            .getGeometry()
-            .getCoordinates();
-          const props = olFeatures[0].getProperties();
+        me.queryableLayers = getAllChildLayers(me.map).filter(
+          layer =>
+            layer.get("queryable") === true && layer.getVisible() === true
+        );
 
-          let overlayCoordinates;
-          if (olFeatures[0].getGeometry().getType() === "Point") {
-            overlayCoordinates = featureCoordinates;
-          } else {
-            overlayCoordinates = featureCoordinates[0];
-          }
-
-          me.popupOverlay.setPosition(overlayCoordinates);
-          me.popup.isVisible = true;
-          me.popup.title = `info`;
-
-          if (layerToQuery.get("name") === "pois") {
-            const osmId = props["osm_id"];
-            const originGeometry = props["orgin_geometry"];
-            if (osmId !== null) {
-              let type;
-              switch (originGeometry) {
-                case "polygon":
-                  type = "way";
-                  break;
-                case "point":
-                  type = "node";
-                  break;
-                default:
-                  type = null;
-                  break;
-              }
-
-              me.popup.rawHtml = `<a style="text-decoration:none;" 
-                                        href="https://www.openstreetmap.org/edit?editor=id&${type}=${osmId}" target="_blank" title="">
-                              <i class="fa fa-edit"></i> ${me.$t(
-                                "map.popup.editWithOsm"
-                              )}</a>`;
-            }
-          }
-
-          const excludedProperties = ["geometry", "orgin_geometry", "osm_id"];
-          let transformed = [];
-          Object.keys(props).forEach(k => {
-            if (!excludedProperties.includes(k)) {
-              transformed.push({
-                property: humanize(k),
-                value: props[k] === null ? "---" : props[k]
+        //WMS Requests
+        let promiseArray = [];
+        me.queryableLayers.forEach(layer => {
+          const layerType = getLayerType(layer);
+          switch (layerType) {
+            case "WFS": {
+              let selectedFeatures = me.map.getFeaturesAtPixel(evt.pixel, {
+                hitTolerance: 4,
+                layerFilter: layerCandidate => {
+                  return layerCandidate.get("name") === layer.get("name");
+                }
               });
+              if (selectedFeatures !== null && selectedFeatures.length > 0) {
+                //TODO: If there are more then 2 features selected get the closest one to coordinate rather than the first element
+                const clonedFeature = selectedFeatures[0];
+                clonedFeature.set("layerName", layer.get("name"));
+                me.getInfoResult.push(clonedFeature);
+              }
+              break;
+            }
+            case "WMS": {
+              let url = layer
+                .getSource()
+                .getGetFeatureInfoUrl(coordinate, resolution, projection, {
+                  INFO_FORMAT: "application/json"
+                });
+              promiseArray.push(
+                http.get(url, {
+                  data: { layerName: layer.get("name") }
+                })
+              );
+              break;
+            }
+            default:
+              break;
+          }
+        });
+        if (promiseArray.length > 0) {
+          axios.all(promiseArray).then(function(results) {
+            results.forEach(response => {
+              const features = response.data.features;
+              const layerName = JSON.parse(response.config.data).layerName;
+              if (features && features.length === 0) {
+                return;
+              }
+              const olFeatures = geojsonToFeature(response.data, {});
+
+              olFeatures[0].set("layerName", layerName);
+              me.getInfoResult.push(olFeatures[0]);
+            });
+
+            if (me.getInfoResult.length > 0) {
+              me.showPopup(evt.coordinate);
             }
           });
-
-          me.getInfoResult = transformed;
-        });
+        } else {
+          //Only for WFS layer
+          if (me.getInfoResult.length > 0) {
+            me.showPopup(evt.coordinate);
+          }
+        }
       });
     },
     ...mapMutations("map", {
@@ -442,7 +502,29 @@ export default {
     ...mapGetters("map", {
       helpTooltip: "helpTooltip",
       currentMessage: "currentMessage"
-    })
+    }),
+    currentInfo() {
+      const feature = this.getInfoResult[this.popup.currentLayerIndex];
+      if (!feature) return;
+      const props = feature.getProperties();
+      let transformed = [];
+      const excludedProperties = [
+        "geometry",
+        "orgin_geometry",
+        "osm_id",
+        "layerName"
+      ];
+      Object.keys(props).forEach(k => {
+        if (!excludedProperties.includes(k) && !typeof k !== "object") {
+          transformed.push({
+            property: humanize(k),
+            value: !props[k] ? "---" : props[k]
+          });
+        }
+      });
+
+      return transformed;
+    }
   }
 };
 </script>

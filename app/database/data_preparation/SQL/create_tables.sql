@@ -30,6 +30,7 @@ CREATE TABLE public.multi_isochrones (
 	alphashape_parameter numeric NULL,
 	modus integer NULL,
 	parent_id int4 NULL,
+	routing_profile TEXT,
 	population jsonb NULL,
 	geom geometry NULL,	
 	CONSTRAINT multi_isochrones_pkey PRIMARY KEY (gid)
@@ -40,14 +41,11 @@ CREATE INDEX ON multi_isochrones USING gist (geom);
 CREATE INDEX ON multi_isochrones USING btree(objectid,parent_id);
 
 CREATE TABLE public.edges (
-	seq int4 NULL,
-	node int4 NULL,
 	edge int4 NULL,
 	cost numeric NULL,
 	geom geometry NULL,
 	objectid int4 NULL,
 	id serial NOT NULL,
-	class_id int4,
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
 );
 CREATE INDEX index_edges ON edges USING gist(geom);
