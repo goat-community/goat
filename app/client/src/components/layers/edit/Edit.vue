@@ -114,25 +114,6 @@
           <b>{{ $t("appBar.edit.popup.deleteFeatureMsg") }}</b>
         </div>
         <div v-else-if="popup.selectedInteraction === 'add'">
-          <!-- <span>{{ $t("appBar.edit.popup.selectWayType") }}</span>
-          <v-select
-            :items="waysTypes.values"
-            item-value="value"
-            v-model="waysTypes.active"
-            @change="updateSelectedWaysType"
-            :label="$t('appBar.edit.popup.wayType')"
-            solo
-            required
-            class="pt-2 ma-0"
-          >
-            <template slot="selection" slot-scope="{ item }">
-              {{ translate("layerListValues", item) }}
-            </template>
-            <template slot="item" slot-scope="{ item }">
-              {{ translate("layerListValues", item) }}
-            </template>
-          </v-select> -->
-
           <v-form v-model="formValid">
             <v-jsonschema-form
               v-if="schema[layerName]"
