@@ -203,4 +203,9 @@ app.post(
   }
 );
 
+// respond with "pong" when a GET request is made to /ping (HEALTHCHECK)
+app.get('/ping', function (_req, res) {
+  res.send('pong');
+});
+
 module.exports = app;
