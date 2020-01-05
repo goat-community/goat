@@ -514,6 +514,7 @@ export default {
         "geom",
         "orgin_geometry",
         "osm_id",
+        "gid",
         "layerName"
       ];
       Object.keys(props).forEach(k => {
