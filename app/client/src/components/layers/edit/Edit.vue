@@ -307,6 +307,7 @@ export default {
       //Remove select interaction
       me.olSelectCtrl.removeInteraction();
       me.toggleSelection = undefined;
+
       let editType, startCb, endCb;
       switch (state) {
         case 0:
@@ -327,8 +328,10 @@ export default {
       }
       if (editType !== undefined) {
         me.olEditCtrl.addInteraction(editType, startCb, endCb);
+        EventBus.$emit("ol-interaction-activated", me.interactionType);
       } else {
         me.olEditCtrl.removeInteraction();
+        EventBus.$emit("ol-interaction-stoped", me.interactionType);
       }
     },
 
