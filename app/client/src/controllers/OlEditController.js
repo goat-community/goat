@@ -6,11 +6,7 @@ import VectorLayer from "ol/layer/Vector";
 import Overlay from "ol/Overlay.js";
 import store from "../store/modules/user";
 import Feature from "ol/Feature";
-import {
-  wfsTransactionParser,
-  readTransactionResponse,
-  getLayerType
-} from "../utils/Layer";
+import { wfsTransactionParser, readTransactionResponse } from "../utils/Layer";
 import http from "../services/http";
 import { unByKey } from "ol/Observable";
 import editLayerHelper from "./OlEditLayerHelper";
@@ -225,8 +221,6 @@ export default class OlEditController extends OlBaseController {
       srsName: "urn:x-ogc:def:crs:EPSG:4326"
     };
 
-    console.log(getLayerType(editLayerHelper.selectedLayer));
-
     me.featuresToCommit.forEach(feature => {
       const props = feature.getProperties();
       //Transform the feature
@@ -306,9 +300,12 @@ export default class OlEditController extends OlBaseController {
           let i;
           for (i = 0; i < FIDs.length; i++) {
             const id = parseInt(FIDs[i].split(".")[1]);
-            me.source.removeFeature(featuresToRemove[i]);
+            if (layerName === "ways") {
+              me.source.removeFeature(featuresToRemove[i]);
+            }
             featuresToAdd[i].setId(id);
             featuresToAdd[i].getGeometry().transform("EPSG:4326", "EPSG:3857");
+
             me.source.addFeature(featuresToAdd[i]);
           }
         }
