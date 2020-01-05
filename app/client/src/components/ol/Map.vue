@@ -509,7 +509,9 @@ export default {
       const props = feature.getProperties();
       let transformed = [];
       const excludedProperties = [
+        "id",
         "geometry",
+        "geom",
         "orgin_geometry",
         "osm_id",
         "layerName"

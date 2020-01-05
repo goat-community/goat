@@ -6,7 +6,11 @@ import VectorLayer from "ol/layer/Vector";
 import Overlay from "ol/Overlay.js";
 import store from "../store/modules/user";
 import Feature from "ol/Feature";
-import { wfsTransactionParser, readTransactionResponse } from "../utils/Layer";
+import {
+  wfsTransactionParser,
+  readTransactionResponse,
+  getLayerType
+} from "../utils/Layer";
 import http from "../services/http";
 import { unByKey } from "ol/Observable";
 import editLayerHelper from "./OlEditLayerHelper";
@@ -211,6 +215,17 @@ export default class OlEditController extends OlBaseController {
     clonedProperties.userid = store.state.userId;
     delete clonedProperties["id"];
     delete clonedProperties["original_id"];
+    const layerName = editLayerHelper.selectedLayer
+      .getSource()
+      .getParams()
+      .LAYERS.split(":")[1];
+    const formatGML = {
+      featureNS: "muc",
+      featureType: `${layerName}_modified`,
+      srsName: "urn:x-ogc:def:crs:EPSG:4326"
+    };
+
+    console.log(getLayerType(editLayerHelper.selectedLayer));
 
     me.featuresToCommit.forEach(feature => {
       const props = feature.getProperties();
@@ -260,16 +275,6 @@ export default class OlEditController extends OlBaseController {
         featuresToUpdate.push(transformed);
       }
     });
-
-    const layerName = editLayerHelper.selectedLayer
-      .getSource()
-      .getParams()
-      .LAYERS.split(":")[1];
-    const formatGML = {
-      featureNS: "muc",
-      featureType: `${layerName}_modified`,
-      srsName: "urn:x-ogc:def:crs:EPSG:4326"
-    };
 
     let payload;
     switch (me.currentInteraction) {
