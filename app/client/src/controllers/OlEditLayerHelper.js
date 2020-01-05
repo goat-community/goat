@@ -34,9 +34,9 @@ const editLayerHelper = {
       const props = feature.getProperties();
       if (props.id) {
         originId = props.id;
-      } else if (props.osm_id) {
-        originId = props.osm_id;
-        feature.set("id", props.osm_id);
+      } else if (props.gid) {
+        originId = props.gid;
+        feature.set("id", props.gid);
       }
 
       if (
