@@ -394,5 +394,26 @@
     "calendar": {
       "moreEvents": "{0} more"
     }
+  },
+  "common": {
+    "required": "This information is required"
+  },
+  "dynamicFields": {
+    "attributes": {
+      "ways": {
+        "type": "Way Type"
+      },
+      "pois_info": {
+        "amenity": "Amenity",
+        "name": "Name (Optional)",
+        "opening_hours": "Opening Hours (Optional)"
+      }
+    },
+    "listValues": {
+      "ways": {
+        "road": "Road",
+        "bridge": "Bridge"
+      }
+    }
   }
 }

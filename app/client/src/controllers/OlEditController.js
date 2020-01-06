@@ -9,7 +9,7 @@ import Feature from "ol/Feature";
 import { wfsTransactionParser, readTransactionResponse } from "../utils/Layer";
 import http from "../services/http";
 import { unByKey } from "ol/Observable";
-import OlWaysLayerHelper from "./OlWaysLayerHelper";
+import editLayerHelper from "./OlEditLayerHelper";
 import i18n from "../../src/plugins/i18n";
 
 /**
@@ -49,7 +49,7 @@ export default class OlEditController extends OlBaseController {
   /**
    * Creates the edit interaction and adds it to the map.
    */
-  addInteraction(editType) {
+  addInteraction(editType, startCb, endCb) {
     const me = this;
     // cleanup possible old edit interaction
 
@@ -57,20 +57,22 @@ export default class OlEditController extends OlBaseController {
     me.createHelpTooltip();
     me.pointerMoveKey = me.map.on("pointermove", me.onPointerMove.bind(me));
     me.createPopupOverlay();
-
     switch (editType) {
       case "add":
-        me.edit = new Draw({ source: me.source, type: "LineString" });
-        me.edit.on("drawstart", me.onDrawStart.bind(me));
-        me.edit.on("drawend", me.onDrawEnd.bind(me));
+        me.edit = new Draw({
+          source: me.source,
+          type: editLayerHelper.selectedLayer.get("editGeometry")
+        });
+        me.edit.on("drawstart", startCb);
+        me.edit.on("drawend", endCb);
         me.snap = new Snap({ source: me.source });
         me.currentInteraction = "draw";
         me.helpMessage = i18n.t("map.tooltips.clickToStartDrawing");
         break;
       case "modify":
         me.edit = new Modify({ source: me.source });
-        me.edit.on("modifystart", me.onModifyStart.bind(me));
-        me.edit.on("modifyend", me.onModifyEnd.bind(me));
+        me.edit.on("modifystart", startCb);
+        me.edit.on("modifyend", endCb);
         me.snap = new Snap({ source: me.source });
         me.currentInteraction = "modify";
         me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
@@ -135,46 +137,6 @@ export default class OlEditController extends OlBaseController {
   }
 
   /**
-   * Draw interaction start event handler
-   */
-  onDrawStart() {
-    const me = this;
-    me.featuresToCommit = [];
-  }
-
-  /**
-   * Draw interaction start event handler
-   */
-  onDrawEnd(evt) {
-    const me = this;
-    const feature = evt.feature;
-    me.closePopup();
-    me.featuresToCommit.push(feature);
-    me.highlightSource.addFeature(feature);
-    const featureCoordinates = feature.getGeometry().getCoordinates();
-    me.popupOverlay.setPosition(featureCoordinates[0]);
-    me.popup.title = "attributes";
-    me.popup.selectedInteraction = "add";
-    me.popup.isVisible = true;
-  }
-
-  /**
-   * Modify interaction start event handler
-   */
-  onModifyStart() {
-    const me = this;
-    me.featuresToCommit = [];
-  }
-
-  /**
-   * Modify interaction end event handler
-   */
-  onModifyEnd() {
-    const me = this;
-    me.transact();
-  }
-
-  /**
    * Opens a popup for the delete confirmation
    */
   openDeletePopup(evt) {
@@ -197,8 +159,7 @@ export default class OlEditController extends OlBaseController {
    */
   deleteFeature() {
     const me = this;
-    //TODO: If layer name is ways use openlayers ways layer helper
-    OlWaysLayerHelper.deleteFeature(
+    editLayerHelper.deleteFeature(
       me.selectedFeature,
       me.source,
       store.state.userId
@@ -206,24 +167,15 @@ export default class OlEditController extends OlBaseController {
     me.closePopup();
   }
 
-  uploadWaysFeatures() {
-    OlWaysLayerHelper.uploadWaysFeatures(store.state.userId, this.source);
+  uploadFeatures() {
+    editLayerHelper.uploadFeatures(store.state.userId, this.source);
   }
 
   /**
    * Read or insert deleted feature of the user.
    */
-  readOrInsertDeletedWaysFeatures() {
-    OlWaysLayerHelper.commitDelete("read", store.state.userId);
-  }
-
-  /**
-   * Commit feature  if user selects yes
-   */
-  commitFeature() {
-    const me = this;
-    me.transact();
-    me.closePopup();
+  readOrInsertDeletedFeatures() {
+    editLayerHelper.commitDelete("read", store.state.userId);
   }
 
   /**
@@ -249,45 +201,59 @@ export default class OlEditController extends OlBaseController {
   /**
    * Transact features to the database using geoserver wfs-t protocol
    */
-  transact() {
+  transact(properties) {
     const me = this;
     const featuresToAdd = [];
     const featuresToUpdate = [];
     const featuresToRemove = [];
 
+    const clonedProperties = Object.assign({}, properties);
+    clonedProperties.userid = store.state.userId;
+    delete clonedProperties["id"];
+    delete clonedProperties["original_id"];
+    const layerName = editLayerHelper.selectedLayer
+      .getSource()
+      .getParams()
+      .LAYERS.split(":")[1];
+    const formatGML = {
+      featureNS: "muc",
+      featureType: `${layerName}_modified`,
+      srsName: "urn:x-ogc:def:crs:EPSG:4326"
+    };
+
     me.featuresToCommit.forEach(feature => {
       const props = feature.getProperties();
-      feature.setProperties({
-        status: null
-      });
-
       //Transform the feature
       const geometry = feature.getGeometry().clone();
       geometry.transform("EPSG:3857", "EPSG:4326");
       const transformed = new Feature({
-        userid: store.state.userId,
-        geom: geometry,
-        class_id: props.class_id || null,
-        status: null
+        geom: geometry
+      });
+      //Assign initial attributes
+      Object.keys(clonedProperties).forEach(key => {
+        let value;
+        if (props[key]) {
+          value = props[key];
+        } else if (clonedProperties[key]) {
+          value = clonedProperties[key];
+        } else {
+          value = null;
+        }
+        transformed.set(key, value);
       });
       transformed.setGeometryName("geom");
 
       if (me.currentInteraction === "draw") {
-        transformed.set("type", OlWaysLayerHelper.selectedWayType);
+        transformed.setProperties(clonedProperties);
       }
-      if (
-        props.type &&
-        props.type !== null &&
-        me.currentInteraction === "modify"
-      ) {
-        props.original_id = null;
-      }
+
       if (
         !props.hasOwnProperty("original_id") &&
         me.currentInteraction === "modify"
       ) {
         transformed.set("original_id", feature.getProperties().id);
       }
+
       if (
         (typeof feature.getId() == "undefined" &&
           Object.keys(props).length === 1) ||
@@ -303,13 +269,6 @@ export default class OlEditController extends OlBaseController {
         featuresToUpdate.push(transformed);
       }
     });
-
-    //TODO: Get feature namespace and feature type (layername) dynamically (node env or ol layer object)
-    const formatGML = {
-      featureNS: "muc",
-      featureType: "ways_modified",
-      srsName: "urn:x-ogc:def:crs:EPSG:4326"
-    };
 
     let payload;
     switch (me.currentInteraction) {
@@ -341,9 +300,12 @@ export default class OlEditController extends OlBaseController {
           let i;
           for (i = 0; i < FIDs.length; i++) {
             const id = parseInt(FIDs[i].split(".")[1]);
-            me.source.removeFeature(featuresToRemove[i]);
+            if (layerName === "ways") {
+              me.source.removeFeature(featuresToRemove[i]);
+            }
             featuresToAdd[i].setId(id);
             featuresToAdd[i].getGeometry().transform("EPSG:4326", "EPSG:3857");
+
             me.source.addFeature(featuresToAdd[i]);
           }
         }

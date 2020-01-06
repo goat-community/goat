@@ -453,7 +453,7 @@ export default {
             case "WMS": {
               let url = layer
                 .getSource()
-                .getGetFeatureInfoUrl(coordinate, resolution, projection, {
+                .getFeatureInfoUrl(coordinate, resolution, projection, {
                   INFO_FORMAT: "application/json"
                 });
               promiseArray.push(
@@ -509,9 +509,12 @@ export default {
       const props = feature.getProperties();
       let transformed = [];
       const excludedProperties = [
+        "id",
         "geometry",
+        "geom",
         "orgin_geometry",
         "osm_id",
+        "gid",
         "layerName"
       ];
       Object.keys(props).forEach(k => {
