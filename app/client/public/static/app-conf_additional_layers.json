@@ -98,6 +98,7 @@
         "group": "streetlevelqualityLayers",
         "layers": "cite:footpath_width",
         "opacity": 1,
+        "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
@@ -111,6 +112,7 @@
         "group": "streetlevelqualityLayers",
         "layers": "cite:ways_lit",
         "opacity": 1,
+        "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
@@ -171,6 +173,19 @@
       },
       {
         "type": "WMS",
+        "name": "streetFurniture",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:street_furniture",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "surface",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
@@ -180,6 +195,20 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "userStatements",
+        "url": "/geoserver/wms",
+        "group": "perceivedQuality",
+        "layers": "cite:user_statements",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
         "serverType": "geoserver"
       },
       {
