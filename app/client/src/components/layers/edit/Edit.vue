@@ -45,7 +45,7 @@
             </v-tooltip>
           </v-btn-toggle>
         </v-flex>
-        <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0">
+        <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
           <v-divider class="mb-1"></v-divider>
           <p class="mb-1">{{ $t("appBar.edit.editTools") }}</p>
           <v-btn-toggle v-model="toggleEdit">
@@ -74,7 +74,17 @@
               <span>{{ $t("appBar.edit.deleteFeature") }}</span>
             </v-tooltip>
           </v-btn-toggle>
-          <v-divider class="mt-4"></v-divider>
+        </v-flex>
+        <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-0">
+          <v-divider class="mb-1"></v-divider>
+          <p class="mb-1">Upload your data</p>
+          <v-file-input
+            :rules="uploadRules"
+            @change="readFile"
+            accept=".json"
+            label="File input"
+          ></v-file-input>
+          <v-divider></v-divider>
         </v-flex>
       </v-card-text>
 
@@ -181,12 +191,19 @@ export default {
     toggleSelection: undefined,
     toggleEdit: undefined,
 
+    //Popup configuration
     popup: {
       title: "",
       isVisible: false,
       el: null,
       selectedInteraction: null
     },
+
+    //Upload field.
+    uploadRules: [
+      value =>
+        !value || value.size < 1000000 || "File size should be less than 1 MB!"
+    ],
 
     //Edit form
     listValues: {},
@@ -241,6 +258,24 @@ export default {
       //Initialize ol edit controller
       me.olEditCtrl = new OlEditController(me.map);
       me.olEditCtrl.createEditLayer();
+    },
+
+    readFile(file) {
+      if (file) {
+        const reader = new FileReader();
+        reader.readAsText(file);
+        reader.onload = function() {
+          //STEPS
+          //1- Check for size and other validations
+          //2- Parse geojson data
+          //3- Check field names and geometry (fields should match and geometry type + crs have to be the same as the selected layer)
+          //4- Push the features to FeaturesToCommit array
+          //5- Transact using WFS
+        };
+        reader.onerror = function() {
+          console.log(reader.error);
+        };
+      }
     },
 
     /**
