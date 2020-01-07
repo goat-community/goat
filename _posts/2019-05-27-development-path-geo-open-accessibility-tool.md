@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Development path of Geo Open Accessibility Tool (GOAT)"
+title:  "Development path of GOAT"
 author: Elias Pajares
 ---
 

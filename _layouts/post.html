@@ -12,7 +12,6 @@ layout: default
                     {% for post in site.posts limit:10 %}
                     <li><a href="{{ post.url | prepend: site.baseurl }}" {% if page.title==post.title %} class="active" {% endif %}>{{ post.title }}</a></li>
                     {% endfor %}
-                    <li><a href="{{ "/allposts" | prepend: site.baseurl }}">All posts ...</a></li>
                 </ul>
             </div>
         </div>
