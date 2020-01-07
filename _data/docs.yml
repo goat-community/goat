@@ -9,8 +9,9 @@
   - quick_start_docker
   - quick_start_vm
   - data_preparation
-  - common_issues
   - heatmap
+  - alphashape
+  - population
   
 - title: Contribute to OSM
   docs:
