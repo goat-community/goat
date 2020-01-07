@@ -176,6 +176,7 @@ import Overlay from "../../ol/Overlay";
 import http from "axios";
 
 import VJsonschemaForm from "../../other/dynamicForms/index";
+import { geojsonToFeature } from "../../../utils/MapUtils";
 
 export default {
   components: {
@@ -264,10 +265,17 @@ export default {
       if (file) {
         const reader = new FileReader();
         reader.readAsText(file);
+        console.log(this.schema);
         reader.onload = function() {
           //STEPS
           //1- Check for size and other validations
           //2- Parse geojson data
+          const result = reader.result;
+          console.log(result);
+          const features = geojsonToFeature(result, {
+            dataProjection: "EPSG:4326"
+          });
+          console.log(features);
           //3- Check field names and geometry (fields should match and geometry type + crs have to be the same as the selected layer)
           //4- Push the features to FeaturesToCommit array
           //5- Transact using WFS
