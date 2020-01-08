@@ -76,26 +76,26 @@ DATA_REFINEMENT_VARIABLES:
     walking_speed_elderly: '0.83333'
     walking_speed_wheelchair: '1.38889'
     cycling_surface:
-      surface: 
-        paving_stones: '0.2'
-        sett: '0.3'
-        unhewn_cobblestone: '0.3'
-        cobblestone: '0.3'
-        pebblestone: '0.3'
-        unpaved: '0.2'
-        compacted: '0.05'
-        fine_gravel: '0.05'
-        gravel: '0.3'
-        sand: '0.4'
-        grass: '0.25'
-        mud: '0.4'
+      paving_stones: '0.2'
+      sett: '0.3'
+      unhewn_cobblestone: '0.3'
+      cobblestone: '0.3'
+      pebblestone: '0.3'
+      unpaved: '0.2'
+      compacted: '0.05'
+      fine_gravel: '0.05'
+      gravel: '0.3'
+      sand: '0.4'
+      grass: '0.25'
+      mud: '0.4'
 
-      smoothness:
-        intermediate: '0.05'
-        bad: '0.1'
-        very_bad: '0.2'
-        horrible: '0.3'
-        very_horrible: '0.5'
+    cycling_smoothness:
+      intermediate: '0.05'
+      bad: '0.1'
+      very_bad: '0.2'
+      horrible: '0.3'
+      very_horrible: '0.5'
+    resolution_dem: '30'
         
 
       

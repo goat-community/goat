@@ -26,7 +26,7 @@ BEGIN
         ELSEIF i < -6 AND i > -9 THEN
         	imp = 1.2179488+((6+i)*0.0703972);
         END IF;
-       impedances = array_append(impedances,imp); 
+       impedances = array_append(impedances,imp-1); 
     END LOOP;
    RETURN query SELECT impedances;
 

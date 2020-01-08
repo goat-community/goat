@@ -338,6 +338,19 @@ wheelchair_classified  = w.wheelchair_classified
 FROM ways_attributes w
 WHERE v.id = w.id;
 
+ALTER TABLE ways ADD COLUMN slope_profile jsonb[];
+ALTER TABLE ways ADD COLUMN s_imp NUMERIC;
+ALTER TABLE ways ADD COLUMN rs_imp NUMERIC;
+ALTER TABLE ways ADD COLUMN impedance_surface NUMERIC;
+
+UPDATE ways SET impedance_surface = (select_from_variable_container_o('cycling_surface') ->> surface)::NUMERIC 
+WHERE surface IS NOT NULL
+AND surface IN(SELECT jsonb_object_keys(select_from_variable_container_o('cycling_surface')));
+
+SELECT compute_slope_profile(id,TRUE,'ways') 
+FROM ways 
+WHERE length_m >= (SELECT select_from_variable_container_s('resolution_dem'))::numeric;
+
 --Mark vertices that are on network islands
 WITH count_ids AS (
 	SELECT count(*), source AS id 

@@ -59,7 +59,10 @@ def create_variable_container():
         elif isinstance(v,object):
             objs = ''
             for k in v.keys():
-                objs = objs+ ",'%s', ARRAY%s" % (k,v[k])
+                if isinstance(v[k],list):
+                    objs = objs+ ",'%s', ARRAY%s" % (k,v[k])
+                elif isinstance(v[k],object):
+                    objs = objs + ",'%s','%s'" % (k,v[k])
             sql_insert = sql_insert + sql_object % (i,objs[1:])
                 
     return sql_create_table + sql_insert
@@ -71,7 +74,7 @@ def update_functions():
     db_name,user,host = ReadYAML().db_credentials()[:3]
     db = DB_connection(db_name,user,host)
     db.execute_script_psql('/opt/data_preparation/SQL/types.sql')
-    for p in ['/opt/database_functions/other','/opt/database_functions/routing','/opt/database_functions/heatmap']:
+    for p in ['/opt/database_functions/other','/opt/database_functions/network','/opt/database_functions/routing','/opt/database_functions/heatmap']:
         for file in Path(p).glob('*.sql'):
             db.execute_script_psql(file)
 
