@@ -116,3 +116,9 @@ CREATE TYPE public.pois_visualization AS
 	status text,
 	wheelchair text
 );
+
+CREATE TYPE type_slope AS (
+	slope_profile jsonb[],
+	s_imp NUMERIC, 
+	rs_imp NUMERIC
+);
