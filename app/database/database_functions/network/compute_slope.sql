@@ -5,25 +5,32 @@ CREATE OR REPLACE FUNCTION compute_slope_profile(input_id bigint, table_update B
 AS $function$
 BEGIN	
 	
-	CREATE TEMP TABLE IF NOT EXISTS w_split(length_m numeric,geom geometry); 
+	CREATE TEMP TABLE IF NOT EXISTS w_split(id integer, length_m numeric, geom geometry, e_start geometry, e_end geometry, CONSTRAINT pk_id PRIMARY KEY(id)); 
 	DELETE FROM w_split;
-
+	
 	EXECUTE format(
 		'INSERT INTO w_split
-		SELECT length_m::numeric, split_long_way(geom,length_m::numeric,30) AS geom 	
-		FROM '||quote_ident(table_name)||' 
-		WHERE id = '||input_id	
+		WITH x as (
+			SELECT length_m::numeric, split_long_way(geom,length_m::numeric,30) AS geom 	
+			FROM '||quote_ident(table_name)||' 
+			WHERE id = '||input_id||'
+		)
+		SELECT ROW_NUMBER() OVER() AS id, length_m, geom, ST_STARTPOINT(geom) e_start, ST_ENDPOINT(geom) e_end
+		FROM x'	
 	);	
+	CREATE INDEX IF NOT EXISTS index_e_start ON w_split USING gist(e_start);
+	CREATE INDEX IF NOT EXISTS index_e_end ON w_split USING gist(e_end);
+
 	RETURN query
 	WITH es AS (
-		SELECT w.geom,ST_VALUE(d.rast,ST_STARTPOINT(w.geom)) e_start
+		SELECT w.geom,ST_VALUE(d.rast,w.e_start) e_start
 		FROM w_split w, dem d 
-		WHERE ST_Intersects(ST_STARTPOINT(w.geom),rast)
+		WHERE w.e_start && rast
 	),
 	ee AS (
-		SELECT length_m AS original_length, w.geom,ST_VALUE(d.rast,ST_ENDPOINT(w.geom)) e_end
+		SELECT length_m AS original_length, w.geom,ST_VALUE(d.rast,w.e_end) e_end
 		FROM w_split w, dem d 
-		WHERE ST_Intersects(ST_ENDPOINT(w.geom),rast)
+		WHERE w.e_start && rast
 	),
 	split_slope AS (
 		SELECT es.geom, ee.original_length,ST_Length(es.geom::geography) AS length_m, 
@@ -43,3 +50,28 @@ BEGIN
 	FROM x;
 END;
 $function$
+
+
+DROP TABLE IF EXISTS temp_slopes;
+CREATE TEMP TABLE temp_slopes AS
+WITH x AS (
+	SELECT compute_slope_profile(id,TRUE,'ways') AS slope_json
+	FROM ways 
+	LIMIT 10000
+)
+SELECT (slope_json[1] ->> 'id') AS id, (slope_json[1] ->> 's_imp') AS s_imp, (slope_json[1] ->> 'rs_imp') AS rs_imp, slope_json[2:] AS slope_profile
+FROM x;
+
+SELECT * FROM temp_slopes
+
+SELECT count(*) 
+FROM ways 
+WHERE length_m > 10
+
+ALTER TABLE temp_slopes ADD PRIMARY key(id);
+UPDATE ways w 
+SET slope_profile = t.slope_profile,
+s_imp = t.s_imp::numeric,
+rs_imp = t.rs_imp::numeric
+FROM temp_slopes t 
+WHERE w.id = t.id::bigint;
