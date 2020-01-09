@@ -11,6 +11,7 @@ def setup_db(setup_type):
     from scripts.db_functions import DB_connection
     from scripts.db_functions import create_variable_container
     from scripts.db_functions import update_functions
+    from scripts.db_functions import geojson_to_sql
 
     download_link,osm_data_recency,buffer,source_population, additional_walkability_layers = ReadYAML().data_source()
     db_name,user,host,port,password = ReadYAML().db_credentials()
@@ -126,6 +127,9 @@ def setup_db(setup_type):
             db_temp.execute_script_psql('../data_preparation/SQL/layer_preparation.sql')
 
 
+
+    
+    
     if (setup_type == 'new_setup'):
         
         #Create pgpass for goat-database
@@ -137,6 +141,7 @@ def setup_db(setup_type):
         
         #Creates DB_functions
         update_functions()
+
     else:
         #Create pgpass for goat-database
         ReadYAML().create_pgpass('')
@@ -163,3 +168,5 @@ def setup_db(setup_type):
 
         os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name_temp)
         os.system('psql -U postgres -c "DROP DATABASE %s;"' % db_name_temp)
+    
+

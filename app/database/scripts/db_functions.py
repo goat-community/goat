@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import yaml, os, psycopg2
+import yaml, os, psycopg2, glob
 class ReadYAML:
     with open("/opt/config/goat_config.yaml", 'r') as stream:
         conf = yaml.load(stream, Loader=yaml.FullLoader)
@@ -75,4 +75,48 @@ def update_functions():
         for file in Path(p).glob('*.sql'):
             db.execute_script_psql(file)
 
+def geojson_to_sql():
+    import json, glob
+    from geojson import FeatureCollection, Point
     
+    def check_valid(attr,keys):
+        if attr in keys:
+                o = feature['properties'][attr]
+                if o is not None and o != 'null' and o != 'NULL':
+                    x = o.replace("'","''")
+                    return x
+    
+    for file in glob.glob("/opt/data/custom_pois/*.geojson"):
+        with open(file, 'r') as stream:
+            data = json.load(stream)
+
+        con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s'" % (
+        'goat','goat','5432','localhost','earlmanigault'))
+        cursor = con.cursor()
+           
+        sql_insert_empty = '''INSERT INTO custom_pois(amenity,addr_street,addr_city,addr_postcode,name,opening_hours,geom) VALUES('%s','%s','%s','%s','%s','%s',%s);''' 
+        sql_bulk = '' 
+        for feature in data['features']:
+            amenity = file.split('/')[-1].split('-')[0]          
+            sql_insert_columns = ''
+            keys = feature['properties'].keys()
+            addr_street = check_valid('addr:street',keys)
+            addr_postcode = check_valid('addr_postcode',keys)
+            addr_city = check_valid('addr:city',keys)
+            name = check_valid('name',keys)
+            if name is None:
+                name = file.split('/')[-1].split('-')[1].split('.')[0]
+            opening_hours = check_valid('opening_hours',keys)
+
+            if feature['geometry'] is not None:
+                geom = "ST_SetSRID(ST_GeomFromGeoJSON('%s'),4326)" % str(feature['geometry']).replace("'",'"') 
+                sql_insert_filled = sql_insert_empty % (amenity,addr_street,addr_city,addr_postcode,name,opening_hours,geom)
+                sql_bulk = sql_bulk + sql_insert_filled     
+        cursor.execute(sql_bulk)       
+        con.commit()
+    con.close()
+    return sql_bulk
+
+#x = geojson_to_sql()
+
+
