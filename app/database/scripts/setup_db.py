@@ -117,6 +117,8 @@ def setup_db(setup_type):
             elif(source_population == 'disaggregation'):
                 db_temp.execute_script_psql('../data_preparation/SQL/buildings_residential.sql')
                 db_temp.execute_script_psql('../data_preparation/SQL/population_disagregation.sql')
+            elif(source_population == 'distribution_UA'):
+                db_temp.execute_script_psql('../data_preparation/SQL/population_distribution.sql')
 
     if (setup_type in ['new_setup','all','network']):
         os.system('PGPASSFILE=/.pgpass osm2pgrouting --dbname %s --host %s --username %s --file "study_area.osm" --conf ../mapconfig.xml --clean' % (db_name_temp,host,user)) 
