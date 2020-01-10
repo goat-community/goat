@@ -10,7 +10,7 @@
     <string>features</string>
     <string>user_statements</string>
   </keywords>
-  <srs>EPSG:3857</srs>
+  <srs>EPSG:4326</srs>
   <nativeBoundingBox>
     <minx>1282488.472</minx>
     <maxx>1286508.91</maxx>
