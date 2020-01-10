@@ -82,6 +82,7 @@
             :rules="uploadRules"
             @change="readFile"
             accept=".json"
+            clearable
             label="File input"
           ></v-file-input>
           <v-divider></v-divider>
@@ -173,6 +174,7 @@ import editLayerHelper from "../../../controllers/OlEditLayerHelper";
 import { mapFeatureTypeProps } from "../../../utils/Layer";
 
 import Overlay from "../../ol/Overlay";
+
 import http from "axios";
 
 import VJsonschemaForm from "../../other/dynamicForms/index";
@@ -209,6 +211,7 @@ export default {
     //Edit form
     listValues: {},
     hiddenProps: ["userid", "id", "original_id", "class_id", "status"],
+
     schema: {},
     dataObject: {},
     formValid: false
@@ -265,22 +268,63 @@ export default {
       if (file) {
         const reader = new FileReader();
         reader.readAsText(file);
-        console.log(this.schema);
-        reader.onload = function() {
-          //STEPS
+        const layerSchema = this.schema[this.layerName];
+        const layerFieldsKeys = Object.keys(layerSchema.properties);
+
+        reader.onload = () => {
           //1- Check for size and other validations
-          //2- Parse geojson data
+
           const result = reader.result;
-          console.log(result);
+          //2- Parse geojson data
           const features = geojsonToFeature(result, {
             dataProjection: "EPSG:4326"
           });
-          console.log(features);
-          //3- Check field names and geometry (fields should match and geometry type + crs have to be the same as the selected layer)
-          //4- Push the features to FeaturesToCommit array
-          //5- Transact using WFS
+
+          if (!features || features.length === 0) return;
+
+          //3- Check geometry type
+          if (
+            features[0].getGeometry().getType() !==
+            this.selectedLayer.get("editGeometry")
+          ) {
+            //Geojson not valid
+            console.log("Geojson geometry type doesn't match with the layer's");
+            return;
+          }
+
+          //4- Check field names
+          const props = features[0].getProperties();
+          const reqFields = layerFieldsKeys.filter(
+            el =>
+              !["original_id", "id", "userid"].includes(el) &&
+              layerSchema.required.includes(el)
+          );
+
+          const propKeys = Object.keys(props);
+          const intersected = propKeys.filter(
+            value => !reqFields.includes(value)
+          );
+          console.log(intersected);
+          console.log(propKeys);
+          if (propKeys.length !== intersected.length + reqFields.length) {
+            //Geojson not valid.
+            console.log("not valid");
+          } else {
+            console.log("valid");
+          }
+          //4- Transform features
+          features.forEach(feature => {
+            //Check id (osm_id, gid, id)
+            const props = feature.getProperties();
+            if (props.id) {
+              feature.set("original_id", props.id);
+            } else if (props.gid) {
+              feature.set("original_id", props.gid);
+              feature.set("id", props.gid);
+            }
+          });
         };
-        reader.onerror = function() {
+        reader.onerror = () => {
           console.log(reader.error);
         };
       }
