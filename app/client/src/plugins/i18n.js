@@ -19,7 +19,7 @@ function loadLocaleMessages() {
   });
   return messages;
 }
-
+console.log(navigator.language);
 export default new VueI18n({
   locale:
     navigator.language.split("-")[0] || process.env.VUE_APP_I18N_LOCALE || "en",
