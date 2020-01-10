@@ -117,7 +117,7 @@ def setup_db(setup_type):
             elif(source_population == 'disaggregation'):
                 db_temp.execute_script_psql('../data_preparation/SQL/buildings_residential.sql')
                 db_temp.execute_script_psql('../data_preparation/SQL/population_disagregation.sql')
-            elif(source_population == 'distribution_UA'):
+            elif(source_population == 'distribution'):
                 db_temp.execute_script_psql('../data_preparation/SQL/population_distribution.sql')
 
     if (setup_type in ['new_setup','all','network']):
