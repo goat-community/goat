@@ -52,26 +52,23 @@ END;
 $function$
 
 
+/*This is how the function can be executed
 DROP TABLE IF EXISTS temp_slopes;
 CREATE TEMP TABLE temp_slopes AS
 WITH x AS (
 	SELECT compute_slope_profile(id,TRUE,'ways') AS slope_json
 	FROM ways 
-	LIMIT 10000
+	WHERE class_id::text NOT IN(SELECT UNNEST(select_from_variable_container('excluded_class_id_cycling')))
+	AND length_m >= (SELECT select_from_variable_container_s('resolution_dem')::integer)
 )
 SELECT (slope_json[1] ->> 'id') AS id, (slope_json[1] ->> 's_imp') AS s_imp, (slope_json[1] ->> 'rs_imp') AS rs_imp, slope_json[2:] AS slope_profile
 FROM x;
-
-SELECT * FROM temp_slopes
-
-SELECT count(*) 
-FROM ways 
-WHERE length_m > 10
-
 ALTER TABLE temp_slopes ADD PRIMARY key(id);
+
 UPDATE ways w 
 SET slope_profile = t.slope_profile,
 s_imp = t.s_imp::numeric,
 rs_imp = t.rs_imp::numeric
 FROM temp_slopes t 
 WHERE w.id = t.id::bigint;
+*/
