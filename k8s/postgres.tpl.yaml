@@ -65,6 +65,9 @@ spec:
               name: postgredb
             - mountPath: /opt/config/
               name: goat-config
+            - mountPath: /opt/data
+              name: initial-data
+              subPath: ${NAMESPACE}
       volumes:
         - name: postgredb
           persistentVolumeClaim:
@@ -72,6 +75,10 @@ spec:
         - name: goat-config
           configMap:
             name: goat-config
+        - name: webroot
+          persistentVolumeClaim:
+            claimName: csi-s3-pvc
+            readOnly: false
 ---
 apiVersion: v1
 kind: Service
