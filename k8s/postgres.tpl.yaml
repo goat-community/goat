@@ -75,7 +75,7 @@ spec:
         - name: goat-config
           configMap:
             name: goat-config
-        - name: webroot
+        - name: initial-data
           persistentVolumeClaim:
             claimName: csi-s3-pvc
             readOnly: false
