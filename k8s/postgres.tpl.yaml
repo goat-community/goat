@@ -66,13 +66,10 @@ spec:
             - mountPath: /opt/config/
               name: goat-config
             - mountPath: /opt/data
-              name: initial-data
+              name: postgredb
               subPath: ${NAMESPACE}
       volumes:
         - name: postgredb
-          persistentVolumeClaim:
-            claimName: postgres-pv-claim
-        - name: initial-data
           persistentVolumeClaim:
             claimName: postgres-pv-claim
         - name: goat-config
