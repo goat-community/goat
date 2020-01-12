@@ -50,7 +50,7 @@ echo "kernel.shmmax=543252480" >> /etc/sysctl.conf
 echo "kernel.shmall=2097152" >> /etc/sysctl.conf
 
 # Setup Goat Data
-python setup_goat.py -t all
+python3 setup_goat.py -t all
 
 # Put lock file to make sure conf was not reinitialized
 touch ${SETUP_LOCKFILE}
