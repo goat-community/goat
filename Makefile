@@ -17,6 +17,8 @@ REGISTRY?=docker.io
 DOCKER_IMAGE?=$(REGISTRY)/$(PROJECT)/$(COMPONENT):$(VERSION)
 POSTGIS_DOCKER_IMAGE?=$(REGISTRY)/$(PROJECT)/postgis:$(VERSION)
 K8S_CLUSTER?=goat
+DO_SPACES_ACCESS_KEY_ID:=access_key_id
+DO_SPACES_SECRET_ACCESS_KEY:=secret_access_key
 
 # Build and test directories
 CWD:=$(shell pwd)
@@ -40,6 +42,8 @@ K8S_OBJ:=$(patsubst %.tpl.yaml,%.yaml,$(K8S_SRC))
 	POSTGRES_DB=$(POSTGRES_DB) \
 	POSTGRES_USER=$(POSTGRES_USER) \
 	POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+	DO_SPACES_ACCESS_KEY_ID=$(DO_SPACES_ACCESS_KEY_ID) \
+	DO_SPACES_SECRET_ACCESS_KEY=$(DO_SPACES_SECRET_ACCESS_KEY) \
 	t=$$(cat $<); eval "echo \"$${t}\"" > $@
 
 # target: make help - displays this help.
@@ -117,3 +121,10 @@ deploy-postgres-server: setup-kube-config build-k8s
 .PHONY: deploy
 deploy: setup-kube-config build-k8s
 	$(KCTL) config use-context goat && $(KCTL) apply -f k8s/$(COMPONENT).yaml
+
+# target: make deploy-s3-provisioner
+.PHONY: deploy-s3-provisioner
+deploy-s3-provisioner: setup-kube-config build-k8s
+	$(KCTL) config use-context goat
+	$(KCTL) apply -f k8s/s3-secrets.yaml
+	$(KCTL) apply -f k8s/road-external-data.yaml

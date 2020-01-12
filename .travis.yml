@@ -12,6 +12,7 @@ before_script:
   - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
   - make setup-kube-config
 script:
+  - make deploy-s3-provisioner
   - make release-database-docker-image
   - make release-docker-image -e COMPONENT=client
   - make release-docker-image -e COMPONENT=api
