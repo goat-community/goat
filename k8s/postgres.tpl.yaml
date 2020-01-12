@@ -72,13 +72,12 @@ spec:
         - name: postgredb
           persistentVolumeClaim:
             claimName: postgres-pv-claim
+        - name: initial-data
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
         - name: goat-config
           configMap:
             name: goat-config
-        - name: initial-data
-          persistentVolumeClaim:
-            claimName: csi-s3-pvc
-            readOnly: false
 ---
 apiVersion: v1
 kind: Service
