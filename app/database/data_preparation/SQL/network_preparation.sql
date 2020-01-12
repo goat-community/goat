@@ -347,9 +347,24 @@ UPDATE ways SET impedance_surface = (select_from_variable_container_o('cycling_s
 WHERE surface IS NOT NULL
 AND surface IN(SELECT jsonb_object_keys(select_from_variable_container_o('cycling_surface')));
 
-SELECT compute_slope_profile(id,TRUE,'ways') 
-FROM ways 
-WHERE length_m >= (SELECT select_from_variable_container_s('resolution_dem'))::numeric;
+DROP TABLE IF EXISTS temp_slopes;
+CREATE TEMP TABLE temp_slopes AS
+WITH x AS (
+	SELECT compute_slope_profile(id,TRUE,'ways') AS slope_json
+	FROM ways 
+	WHERE class_id::text NOT IN(SELECT UNNEST(select_from_variable_container('excluded_class_id_cycling')))
+	AND length_m >= (SELECT select_from_variable_container_s('resolution_dem')::integer)
+)
+SELECT (slope_json[1] ->> 'id') AS id, (slope_json[1] ->> 's_imp') AS s_imp, (slope_json[1] ->> 'rs_imp') AS rs_imp, slope_json[2:] AS slope_profile
+FROM x;
+ALTER TABLE temp_slopes ADD PRIMARY key(id);
+
+UPDATE ways w 
+SET slope_profile = t.slope_profile,
+s_imp = t.s_imp::numeric,
+rs_imp = t.rs_imp::numeric
+FROM temp_slopes t 
+WHERE w.id = t.id::bigint;
 
 --Mark vertices that are on network islands
 WITH count_ids AS (
