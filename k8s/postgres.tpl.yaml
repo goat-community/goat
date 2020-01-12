@@ -51,11 +51,6 @@ spec:
         - name: postgres
           image: ${POSTGIS_DOCKER_IMAGE}
           imagePullPolicy: "IfNotPresent"
-          # command:
-          #   - python3
-          #   - /opt/setup_goat.py
-          #   - -t
-          #   - new_setup
           ports:
             - containerPort: 5432
           envFrom:
