@@ -126,5 +126,5 @@ deploy: setup-kube-config build-k8s
 .PHONY: deploy-s3-provisioner
 deploy-s3-provisioner: setup-kube-config build-k8s
 	$(KCTL) config use-context goat
-	$(KCTL) apply -f k8s/s3-secrets.yaml
 	$(KCTL) apply -f k8s/road-external-data.yaml
+	$(KCTL) apply -f k8s/s3-secrets.yaml
