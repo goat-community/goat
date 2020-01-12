@@ -73,7 +73,7 @@ export default {
         { flag: "de", language: "de", title: "Deutsch" },
         { flag: "es", language: "es", title: "Español" },
         { flag: "fr", language: "fr", title: "Français" },
-        { flag: "al", language: "al", title: "Shqip" }
+        { flag: "al", language: "sq", title: "Shqip" }
       ],
       interactionType: "languageChange"
     };
