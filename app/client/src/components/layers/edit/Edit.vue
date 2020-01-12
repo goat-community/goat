@@ -165,7 +165,11 @@
 import { EventBus } from "../../../EventBus";
 import { Mapable } from "../../../mixins/Mapable";
 import { InteractionsToggle } from "../../../mixins/InteractionsToggle";
-import { getAllChildLayers, getPoisListValues } from "../../../utils/Layer";
+import {
+  getAllChildLayers,
+  getPoisListValues,
+  wfsTransactionParser
+} from "../../../utils/Layer";
 
 import OlEditController from "../../../controllers/OlEditController";
 import OlSelectController from "../../../controllers/OlSelectController";
@@ -179,6 +183,7 @@ import http from "axios";
 
 import VJsonschemaForm from "../../other/dynamicForms/index";
 import { geojsonToFeature } from "../../../utils/MapUtils";
+import { mapGetters } from "vuex";
 
 export default {
   components: {
@@ -264,6 +269,9 @@ export default {
       me.olEditCtrl.createEditLayer();
     },
 
+    /**
+     * Parse user input file and transform features if valid.
+     */
     readFile(file) {
       if (file) {
         const reader = new FileReader();
@@ -312,22 +320,52 @@ export default {
           } else {
             console.log("valid");
           }
+
           //4- Transform features
           features.forEach(feature => {
-            //Check id (osm_id, gid, id)
-            const props = feature.getProperties();
-            if (props.id) {
-              feature.set("original_id", props.id);
-            } else if (props.gid) {
-              feature.set("original_id", props.gid);
-              feature.set("id", props.gid);
-            }
+            //Set current userid
+            feature.set("userid", this.userId);
+
+            //Change geometry name to 'geom'
+            feature.set("geom", feature.getGeometry().clone());
+            feature.unset("geometry");
+            feature.setGeometryName("geom");
           });
+
+          //5- Upload features to DB
+          //TODO: Dont upload the features directly to the db. (Consider using a button instead.)
+          this.uploadUserFeaturesToDB(features);
         };
         reader.onerror = () => {
           console.log(reader.error);
         };
       }
+    },
+
+    /**
+     * Upload user uploaded features to DB using a wfs-t
+     */
+    uploadUserFeaturesToDB(featuresToUpload) {
+      const formatGML = {
+        featureNS: "muc",
+        featureType: `${this.layerName}_modified`,
+        srsName: "urn:x-ogc:def:crs:EPSG:4326"
+      };
+      const payload = wfsTransactionParser(
+        featuresToUpload,
+        null,
+        null,
+        formatGML
+      );
+      console.log(featuresToUpload);
+      console.log(payload);
+      http
+        .post("geoserver/wfs", new XMLSerializer().serializeToString(payload), {
+          headers: { "Content-Type": "text/xml" }
+        })
+        .then(function(response) {
+          console.log(response);
+        });
     },
 
     /**
@@ -568,7 +606,8 @@ export default {
         disableAll: false,
         autoFoldObjects: true
       };
-    }
+    },
+    ...mapGetters("user", { userId: "userId" })
   },
   created() {
     this.listValues = this.$appConfig.listValues;
