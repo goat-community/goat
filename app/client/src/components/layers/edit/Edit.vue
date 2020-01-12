@@ -45,7 +45,7 @@
             </v-tooltip>
           </v-btn-toggle>
         </v-flex>
-        <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0">
+        <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
           <v-divider class="mb-1"></v-divider>
           <p class="mb-1">{{ $t("appBar.edit.editTools") }}</p>
           <v-btn-toggle v-model="toggleEdit">
@@ -74,7 +74,18 @@
               <span>{{ $t("appBar.edit.deleteFeature") }}</span>
             </v-tooltip>
           </v-btn-toggle>
-          <v-divider class="mt-4"></v-divider>
+        </v-flex>
+        <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-0">
+          <v-divider class="mb-1"></v-divider>
+          <p class="mb-1">Upload your data</p>
+          <v-file-input
+            :rules="uploadRules"
+            @change="readFile"
+            accept=".json"
+            clearable
+            label="File input"
+          ></v-file-input>
+          <v-divider></v-divider>
         </v-flex>
       </v-card-text>
 
@@ -154,7 +165,11 @@
 import { EventBus } from "../../../EventBus";
 import { Mapable } from "../../../mixins/Mapable";
 import { InteractionsToggle } from "../../../mixins/InteractionsToggle";
-import { getAllChildLayers, getPoisListValues } from "../../../utils/Layer";
+import {
+  getAllChildLayers,
+  getPoisListValues,
+  wfsTransactionParser
+} from "../../../utils/Layer";
 
 import OlEditController from "../../../controllers/OlEditController";
 import OlSelectController from "../../../controllers/OlSelectController";
@@ -163,9 +178,12 @@ import editLayerHelper from "../../../controllers/OlEditLayerHelper";
 import { mapFeatureTypeProps } from "../../../utils/Layer";
 
 import Overlay from "../../ol/Overlay";
+
 import http from "axios";
 
 import VJsonschemaForm from "../../other/dynamicForms/index";
+import { geojsonToFeature } from "../../../utils/MapUtils";
+import { mapGetters } from "vuex";
 
 export default {
   components: {
@@ -181,6 +199,7 @@ export default {
     toggleSelection: undefined,
     toggleEdit: undefined,
 
+    //Popup configuration
     popup: {
       title: "",
       isVisible: false,
@@ -188,9 +207,16 @@ export default {
       selectedInteraction: null
     },
 
+    //Upload field.
+    uploadRules: [
+      value =>
+        !value || value.size < 1000000 || "File size should be less than 1 MB!"
+    ],
+
     //Edit form
     listValues: {},
     hiddenProps: ["userid", "id", "original_id", "class_id", "status"],
+
     schema: {},
     dataObject: {},
     formValid: false
@@ -241,6 +267,105 @@ export default {
       //Initialize ol edit controller
       me.olEditCtrl = new OlEditController(me.map);
       me.olEditCtrl.createEditLayer();
+    },
+
+    /**
+     * Parse user input file and transform features if valid.
+     */
+    readFile(file) {
+      if (file) {
+        const reader = new FileReader();
+        reader.readAsText(file);
+        const layerSchema = this.schema[this.layerName];
+        const layerFieldsKeys = Object.keys(layerSchema.properties);
+
+        reader.onload = () => {
+          //1- Check for size and other validations
+
+          const result = reader.result;
+          //2- Parse geojson data
+          const features = geojsonToFeature(result, {
+            dataProjection: "EPSG:4326"
+          });
+
+          if (!features || features.length === 0) return;
+
+          //3- Check geometry type
+          if (
+            features[0].getGeometry().getType() !==
+            this.selectedLayer.get("editGeometry")
+          ) {
+            //Geojson not valid
+            console.log("Geojson geometry type doesn't match with the layer's");
+            return;
+          }
+
+          //4- Check field names
+          const props = features[0].getProperties();
+          const reqFields = layerFieldsKeys.filter(
+            el =>
+              !["original_id", "id", "userid"].includes(el) &&
+              layerSchema.required.includes(el)
+          );
+
+          const propKeys = Object.keys(props);
+          const intersected = propKeys.filter(
+            value => !reqFields.includes(value)
+          );
+          console.log(intersected);
+          console.log(propKeys);
+          if (propKeys.length !== intersected.length + reqFields.length) {
+            //Geojson not valid.
+            console.log("not valid");
+          } else {
+            console.log("valid");
+          }
+
+          //4- Transform features
+          features.forEach(feature => {
+            //Set current userid
+            feature.set("userid", this.userId);
+
+            //Change geometry name to 'geom'
+            feature.set("geom", feature.getGeometry().clone());
+            feature.unset("geometry");
+            feature.setGeometryName("geom");
+          });
+
+          //5- Upload features to DB
+          //TODO: Dont upload the features directly to the db. (Consider using a button instead.)
+          this.uploadUserFeaturesToDB(features);
+        };
+        reader.onerror = () => {
+          console.log(reader.error);
+        };
+      }
+    },
+
+    /**
+     * Upload user uploaded features to DB using a wfs-t
+     */
+    uploadUserFeaturesToDB(featuresToUpload) {
+      const formatGML = {
+        featureNS: "muc",
+        featureType: `${this.layerName}_modified`,
+        srsName: "urn:x-ogc:def:crs:EPSG:4326"
+      };
+      const payload = wfsTransactionParser(
+        featuresToUpload,
+        null,
+        null,
+        formatGML
+      );
+      console.log(featuresToUpload);
+      console.log(payload);
+      http
+        .post("geoserver/wfs", new XMLSerializer().serializeToString(payload), {
+          headers: { "Content-Type": "text/xml" }
+        })
+        .then(function(response) {
+          console.log(response);
+        });
     },
 
     /**
@@ -481,7 +606,8 @@ export default {
         disableAll: false,
         autoFoldObjects: true
       };
-    }
+    },
+    ...mapGetters("user", { userId: "userId" })
   },
   created() {
     this.listValues = this.$appConfig.listValues;
