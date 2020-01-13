@@ -83,7 +83,7 @@ And run the `sudo docker-compose up -d` command again.
 
 Fill and prepare the goat-database:
 
-`sudo docker exec -it goat-database python3 /opt/setup_goat.py` (run on your <span style="color:#FE9A2E">VM</span>)
+`sudo docker exec -it goat-database python3 /opt/setup_goat.py -t new_setup` (run on your <span style="color:#FE9A2E">VM</span>)
 
 GOAT allows you to use pre-calculated matrices that are used to visualize the dynamic heatmaps. 
 In order to start the pre-calculation you currently have to start the script manually with the following command:
