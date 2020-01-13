@@ -23,73 +23,90 @@
             {{ translate("layerName", item.get("name")) }}
           </template>
         </v-select>
-        <v-divider></v-divider>
-        <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
-          <p class="mb-1">{{ $t("appBar.edit.selectFeatures") }}</p>
-          <v-btn-toggle v-model="toggleSelection">
-            <v-tooltip top>
-              <template v-slot:activator="{ on }">
-                <v-btn v-on="on" text>
-                  <v-icon>far fa-dot-circle</v-icon>
-                </v-btn>
-              </template>
-              <span>{{ $t("appBar.edit.drawCircle") }}</span>
-            </v-tooltip>
-            <v-tooltip top>
-              <template v-slot:activator="{ on }">
-                <v-btn v-on="on" text v-show="false">
-                  <v-icon>far fa-hand-pointer</v-icon>
-                </v-btn>
-              </template>
-              <span>{{ $t("appBar.edit.selectOnMap") }}</span>
-            </v-tooltip>
-          </v-btn-toggle>
-        </v-flex>
-        <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
-          <v-divider class="mb-1"></v-divider>
-          <p class="mb-1">{{ $t("appBar.edit.editTools") }}</p>
-          <v-btn-toggle v-model="toggleEdit">
-            <v-tooltip top>
-              <template v-slot:activator="{ on }">
-                <v-btn v-on="on" text>
-                  <v-icon medium>add</v-icon>
-                </v-btn>
-              </template>
-              <span>{{ $t("appBar.edit.drawFeatureTooltip") }}</span>
-            </v-tooltip>
-            <v-tooltip top>
-              <template v-slot:activator="{ on }">
-                <v-btn v-on="on" text>
-                  <v-icon>far fa-edit</v-icon>
-                </v-btn>
-              </template>
-              <span>{{ $t("appBar.edit.modifyFeatureTooltip") }}</span>
-            </v-tooltip>
-            <v-tooltip top>
-              <template v-slot:activator="{ on }">
-                <v-btn v-on="on" text>
-                  <v-icon>far fa-trash-alt</v-icon>
-                </v-btn>
-              </template>
-              <span>{{ $t("appBar.edit.deleteFeature") }}</span>
-            </v-tooltip>
-          </v-btn-toggle>
-        </v-flex>
-        <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-0">
-          <v-divider class="mb-1"></v-divider>
-          <p class="mb-1">Upload your data</p>
-          <v-file-input
-            :rules="uploadRules"
-            @change="readFile"
-            accept=".json"
-            clearable
-            label="File input"
-          ></v-file-input>
+        <v-alert
+          border="left"
+          colored-border
+          class="mb-2 mt-0 mx-0 elevation-2"
+          icon="info"
+          color="green"
+          dense
+          v-if="
+            selectedLayer &&
+              selectedLayer.getVisible() === false &&
+              selectedLayer.get('displayInLayerList')
+          "
+        >
+          <span v-html="$t('appBar.edit.activateLayerToDrawScenario')"></span>
+        </v-alert>
+        <template v-if="selectedLayer">
           <v-divider></v-divider>
-        </v-flex>
+          <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
+            <p class="mb-1">{{ $t("appBar.edit.selectFeatures") }}</p>
+            <v-btn-toggle v-model="toggleSelection">
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn v-on="on" text>
+                    <v-icon>far fa-dot-circle</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.drawCircle") }}</span>
+              </v-tooltip>
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn v-on="on" text v-show="false">
+                    <v-icon>far fa-hand-pointer</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.selectOnMap") }}</span>
+              </v-tooltip>
+            </v-btn-toggle>
+          </v-flex>
+          <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
+            <v-divider class="mb-1"></v-divider>
+            <p class="mb-1">{{ $t("appBar.edit.editTools") }}</p>
+            <v-btn-toggle v-model="toggleEdit">
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn v-on="on" text>
+                    <v-icon medium>add</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.drawFeatureTooltip") }}</span>
+              </v-tooltip>
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn v-on="on" text>
+                    <v-icon>far fa-edit</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.modifyFeatureTooltip") }}</span>
+              </v-tooltip>
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn v-on="on" text>
+                    <v-icon>far fa-trash-alt</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.deleteFeature") }}</span>
+              </v-tooltip>
+            </v-btn-toggle>
+          </v-flex>
+          <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-0">
+            <v-divider class="mb-1"></v-divider>
+            <p class="mb-1">Upload your data</p>
+            <v-file-input
+              :rules="uploadRules"
+              @change="readFile"
+              accept=".json"
+              clearable
+              label="File input"
+            ></v-file-input>
+            <v-divider></v-divider>
+          </v-flex>
+        </template>
       </v-card-text>
 
-      <v-card-actions>
+      <v-card-actions v-if="selectedLayer">
         <v-spacer></v-spacer>
 
         <v-btn
@@ -110,6 +127,7 @@
         </v-btn>
       </v-card-actions>
     </v-card>
+
     <!-- Popup overlay  -->
     <overlay-popup :title="popup.title" v-show="popup.isVisible" ref="popup">
       <v-btn icon>
@@ -503,13 +521,6 @@ export default {
       this.olEditCtrl.popup.title = "attributes";
       this.olEditCtrl.popup.selectedInteraction = "add";
       this.olEditCtrl.popup.isVisible = true;
-    },
-
-    /**
-     * Changes ways type between road or bridge
-     */
-    updateSelectedWaysType(value) {
-      editLayerHelper.selectedWayType = value;
     },
 
     /**

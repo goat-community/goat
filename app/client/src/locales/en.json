@@ -109,7 +109,8 @@
         "deleteFeatureMsg": "Are you sure you want to delete the selected feature ?",
         "selectWayType": "Select way type: ",
         "wayType": "Way Type"
-      }
+      },
+      "activateLayerToDrawScenario": "Plese activate the layer to be able to select features"
     },
     "settings": {
       "title": "Settings",
