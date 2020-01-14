@@ -124,6 +124,8 @@ export default class OlEditController extends OlBaseController {
    */
   onFeatureChange(evt) {
     const me = this;
+    //Exclude features from file input as we add this feature later when user click upload button
+    if (evt.feature.get("user_uploaded")) return;
     if (me.currentInteraction === "modify") {
       const index = me.featuresToCommit.findIndex(
         i => i.ol_uid === evt.feature.ol_uid

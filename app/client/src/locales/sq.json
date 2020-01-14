@@ -108,7 +108,16 @@
         "deleteFeatureMsg": "Jeni i sigurt që doni ta fshini objektin e zgjedhur ?",
         "selectWayType": "Zgjidh tipin e rrugës: ",
         "wayType": "Tipi i rrugës"
-      }
+      },
+      "activateLayerToDrawScenario": "Ju lutem aktivizoni shtresen qe te keni mundesi per zgjedhjen e objekteve",
+      "geometryTypeInfo": "Lloji i gjeometrise duhet te jete",
+      "requiredFields": "Fushat e kerkuara",
+      "referenceSystemInfo": "Sistemi reference duhet te jete",
+      "featuresNotyetUploaded": "Objektet akoma nuk jane ngarkuar. Klikoni butonin Ngarko qe te kryeni transaksionin",
+      "differentGeometryType": "Gjeometrite nuk jane te njejta",
+      "missingFields": "Mungojne fushat e kerkuara",
+      "fileCorrupted": "Skedar eshte i korruptuar",
+      "noFile": "Jo skedar"
     },
     "settings": {
       "title": "Cilësime",

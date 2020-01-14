@@ -13,6 +13,7 @@
           v-model="selectedLayer"
           item-value="values_.name"
           return-object
+          :loading="loadingLayerInfo"
           solo
           :label="$t('appBar.edit.selectLayer')"
         >
@@ -23,6 +24,7 @@
             {{ translate("layerName", item.get("name")) }}
           </template>
         </v-select>
+
         <v-alert
           border="left"
           colored-border
@@ -38,7 +40,7 @@
         >
           <span v-html="$t('appBar.edit.activateLayerToDrawScenario')"></span>
         </v-alert>
-        <template v-if="selectedLayer">
+        <template v-if="selectedLayer && schema[layerName]">
           <v-divider></v-divider>
           <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
             <p class="mb-1">{{ $t("appBar.edit.selectFeatures") }}</p>
@@ -97,16 +99,59 @@
             <v-file-input
               :rules="uploadRules"
               @change="readFile"
+              @click:clear="clearFile"
               accept=".json"
               clearable
+              v-model="file"
               label="File input"
             ></v-file-input>
+            <v-alert
+              v-if="
+                fileInputFeaturesCache.length === 0 &&
+                  isInputFileValid === true &&
+                  schema[layerName]
+              "
+              class="elevation-2"
+              type="info"
+              color="green"
+              border="left"
+              colored-border
+              dense
+            >
+              <span
+                >&#9679; {{ $t("appBar.edit.geometryTypeInfo") }}:
+                <b>{{ selectedLayer.get("editGeometry") }}</b>
+              </span>
+              <br />
+              <span
+                >&#9679; {{ $t("appBar.edit.referenceSystemInfo") }}
+                <b>EPSG:4326</b>
+              </span>
+              <br />
+              <span v-html="getFields"> </span>
+            </v-alert>
+            <v-alert
+              v-if="isInputFileValid === false"
+              class="elevation-2"
+              type="error"
+              dense
+            >
+              <span v-html="getValidationMessage"></span>
+            </v-alert>
+            <v-alert
+              class="elevation-2"
+              v-if="fileInputFeaturesCache.length > 0"
+              dense
+              type="info"
+            >
+              {{ $t("appBar.edit.featuresNotyetUploaded") }}
+            </v-alert>
             <v-divider></v-divider>
           </v-flex>
         </template>
       </v-card-text>
 
-      <v-card-actions v-if="selectedLayer">
+      <v-card-actions v-if="selectedLayer && schema[layerName]">
         <v-spacer></v-spacer>
 
         <v-btn
@@ -216,7 +261,7 @@ export default {
     editableLayers: [],
     toggleSelection: undefined,
     toggleEdit: undefined,
-
+    loadingLayerInfo: false,
     //Popup configuration
     popup: {
       title: "",
@@ -226,10 +271,20 @@ export default {
     },
 
     //Upload field.
+    file: null,
     uploadRules: [
       value =>
         !value || value.size < 1000000 || "File size should be less than 1 MB!"
     ],
+    fileInputFeaturesCache: [],
+    isInputFileValid: false,
+    validationMessageEnum: {
+      DIFFERENT_GEOMETRY_TYPE: "differentGeometryType",
+      MISSING_FIELDS: "missingFields",
+      FILE_CORRUPTED: "fileCorrupted",
+      NO_FILE: "noFile"
+    },
+    fileInputValidationMessage: "noFile",
 
     //Edit form
     listValues: {},
@@ -248,6 +303,7 @@ export default {
       me.getlayerFeatureTypes();
       me.olEditCtrl.readOrInsertDeletedFeatures();
       me.olEditCtrl.dataObject = this.dataObject;
+      this.loadingLayerInfo = true;
     },
     toggleSelection: {
       handler(state) {
@@ -294,8 +350,6 @@ export default {
       if (file) {
         const reader = new FileReader();
         reader.readAsText(file);
-        const layerSchema = this.schema[this.layerName];
-        const layerFieldsKeys = Object.keys(layerSchema.properties);
 
         reader.onload = () => {
           //1- Check for size and other validations
@@ -303,7 +357,8 @@ export default {
           const result = reader.result;
           //2- Parse geojson data
           const features = geojsonToFeature(result, {
-            dataProjection: "EPSG:4326"
+            dataProjection: "EPSG:4326",
+            featureProjection: "EPSG:3857"
           });
 
           if (!features || features.length === 0) return;
@@ -315,49 +370,69 @@ export default {
           ) {
             //Geojson not valid
             console.log("Geojson geometry type doesn't match with the layer's");
+            this.isInputFileValid = false;
+            this.fileInputValidationMessage = this.validationMessageEnum.DIFFERENT_GEOMETRY_TYPE;
+
             return;
           }
 
           //4- Check field names
           const props = features[0].getProperties();
-          const reqFields = layerFieldsKeys.filter(
-            el =>
-              !["original_id", "id", "userid"].includes(el) &&
-              layerSchema.required.includes(el)
-          );
 
           const propKeys = Object.keys(props);
           const intersected = propKeys.filter(
-            value => !reqFields.includes(value)
+            value => !this.reqFields.includes(value)
           );
-          console.log(intersected);
-          console.log(propKeys);
-          if (propKeys.length !== intersected.length + reqFields.length) {
+
+          if (propKeys.length !== intersected.length + this.reqFields.length) {
             //Geojson not valid.
-            console.log("not valid");
+
+            this.isInputFileValid = false;
+            this.fileInputValidationMessage = this.validationMessageEnum.MISSING_FIELDS;
           } else {
-            console.log("valid");
+            this.isInputFileValid = true;
           }
 
           //4- Transform features
           features.forEach(feature => {
             //Set current userid
             feature.set("userid", this.userId);
-
-            //Change geometry name to 'geom'
+            //Clone geometry and change name to 'geom' (should be the same as geoserver layer geometry name)
             feature.set("geom", feature.getGeometry().clone());
-            feature.unset("geometry");
             feature.setGeometryName("geom");
+            //Add an extra attribute to distinguish between local features from file upload and those that are laoded from the DB.
+            feature.set("user_uploaded", true);
+            //Remove previously geometry object
+            feature.unset("geometry");
           });
 
+          //Add features to the edit layer to let the user interact
+          if (this.olEditCtrl.source) {
+            this.olEditCtrl.source.addFeatures(features);
+            this.fileInputFeaturesCache = [...features];
+          }
           //5- Upload features to DB
-          //TODO: Dont upload the features directly to the db. (Consider using a button instead.)
-          this.uploadUserFeaturesToDB(features);
+          //Feature will be uplaaded when upload button is clicked
         };
         reader.onerror = () => {
           console.log(reader.error);
         };
       }
+    },
+
+    /**
+     * Clear event when X icon is clicked in the file input form.
+     * Cache features will be removed from edit layer.
+     */
+    clearFile() {
+      const editLayerSource = this.olEditCtrl.source;
+      if (!editLayerSource) return;
+      this.fileInputFeaturesCache.forEach(feature => {
+        editLayerSource.removeFeature(feature);
+      });
+      this.fileInputFeaturesCache = [];
+      this.isInputFileValid = true;
+      this.file = null;
     },
 
     /**
@@ -527,7 +602,10 @@ export default {
      * Get Layer attribute fields
      */
     getlayerFeatureTypes() {
-      if (this.schema[this.layerName]) return;
+      if (this.schema[this.layerName]) {
+        this.loadingLayerInfo = false;
+        return;
+      }
       http
         .get(
           `geoserver/wfs?request=describeFeatureType&typename=${this.layerName}_modified&outputFormat=application/json`
@@ -541,6 +619,8 @@ export default {
             this.listValues
           );
           this.schema[this.layerName] = jsonSchema;
+          this.loadingLayerInfo = false;
+          this.$forceUpdate();
         });
     },
 
@@ -570,6 +650,7 @@ export default {
      */
     clear() {
       const me = this;
+      me.clearFile();
       me.clearSelection();
       me.clearEdit();
       me.toggleSelection = undefined;
@@ -611,12 +692,34 @@ export default {
     layerName() {
       return this.selectedLayer.getSource().getParams().LAYERS;
     },
+    reqFields() {
+      const layerSchema = this.schema[this.layerName];
+      const layerFieldsKeys = Object.keys(layerSchema.properties);
+      return layerFieldsKeys.filter(
+        el =>
+          !["original_id", "id", "userid"].includes(el) &&
+          layerSchema.required.includes(el)
+      );
+    },
     options() {
       return {
         debug: false,
         disableAll: false,
         autoFoldObjects: true
       };
+    },
+    getValidationMessage() {
+      return `<span>${this.$t(
+        `appBar.edit.${this.fileInputValidationMessage}`
+      )}</span>`;
+    },
+    getFields() {
+      const layerName = this.schema[this.layerName];
+      return layerName && this.reqFields.length > 0
+        ? `&#9679; ${this.$t(
+            "appBar.edit.requiredFields"
+          )}: <span> <b>${this.reqFields.join(", ")}</b></span>`
+        : `<span></span>`;
     },
     ...mapGetters("user", { userId: "userId" })
   },
