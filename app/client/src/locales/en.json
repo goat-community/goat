@@ -118,7 +118,10 @@
       "differentGeometryType": "Geometries doesn't match",
       "missingFields": "Missing Fields",
       "fileCorrupted": "Geojson file is corrupted",
-      "noFile": "No file"
+      "noFile": "No file",
+      "allFeaturesUploaded": "All Features Uploaded",
+      "notAllUploaded": "Not all features uploaded",
+      "errorHappened": "An error happened"
     },
     "settings": {
       "title": "Settings",
@@ -290,6 +293,8 @@
       "clickOnFeatureToDelete": "Click on feature to delete it",
       "clickAndDragToModify": "Click and drag the features to modify",
       "clickToRemove": "Click to remove it",
+      "clickToPlacePoint": "Click to place the point",
+
       "routingProfiles": {
         "walking_standard": "Default routing",
         "walking_elderly": " Routing with reduced walking speed",
