@@ -38,18 +38,6 @@
     "center": [1289645.541227, 6129485.298188],
     "layers": [
       {
-        "type": "VECTOR",
-        "lid": "study-area",
-        "name": "studyArea",
-        "url": "/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:study_area_union&srsname=EPSG:4326&outputFormat=json",
-        "formatConfig": {},
-        "format": "GeoJSON",
-        "displayInLayerList": false,
-        "visible": true,
-        "zIndex": 4,
-        "styleRef": "boundaryStyle"
-      },
-      {
         "type": "WMS",
         "name": "ways",
         "url": "/geoserver/wms",
@@ -92,6 +80,19 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "extentStudyarea",
+        "url": "/geoserver/wms",
+        "group": "administrativeLayers",
+        "layers": "cite:crop_study_area",
+        "opacity": 1,
+        "queryable": false,
+        "visible": true,
+        "displayInLayerList": false,
+        "zIndex": 4,
         "serverType": "geoserver"
       },
       {
@@ -150,7 +151,6 @@
         "zIndex": 1,
         "serverType": "geoserver"
       },
-
       {
         "type": "OSM",
         "name": "osmStandard",
