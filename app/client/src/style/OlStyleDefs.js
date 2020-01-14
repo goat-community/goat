@@ -106,7 +106,7 @@ const OlStyleDefs = {
   },
   getEditStyle: () => {
     //TODO: Add a generic style here for other layers
-    return OlStyleDefs.waysStyleFn();
+    return OlStyleDefs.editStyleFn();
   },
   getIsochroneStyle: (styleData, addStyleInCache) => {
     const styleFunction = feature => {
@@ -235,6 +235,7 @@ const OlStyleDefs = {
     };
     return styleFunction;
   },
+
   defaultStyle: () => {
     const style = new OlStyle({
       fill: new OlFill({
@@ -248,6 +249,24 @@ const OlStyleDefs = {
         radius: 7,
         fill: new OlFill({
           color: "#FF0000"
+        })
+      })
+    });
+    return [style];
+  },
+  uploadedFeaturesStyle: () => {
+    const style = new OlStyle({
+      fill: new OlFill({
+        color: "#2196F3"
+      }),
+      stroke: new OlStroke({
+        color: "#2196F3",
+        width: 3
+      }),
+      image: new OlCircle({
+        radius: 7,
+        fill: new OlFill({
+          color: "#2196F3"
         })
       })
     });
@@ -292,10 +311,13 @@ const OlStyleDefs = {
     });
     return [style];
   },
-  waysStyleFn: () => {
+  editStyleFn: () => {
     const me = OlStyleDefs;
     const styleFunction = feature => {
       const props = feature.getProperties();
+      if (feature.get("user_uploaded")) {
+        return me.uploadedFeaturesStyle();
+      }
       if (
         (props.hasOwnProperty("type") && props["original_id"] == null) ||
         Object.keys(props).length == 1
