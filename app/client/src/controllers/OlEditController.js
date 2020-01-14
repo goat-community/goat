@@ -58,18 +58,25 @@ export default class OlEditController extends OlBaseController {
     me.pointerMoveKey = me.map.on("pointermove", me.onPointerMove.bind(me));
     me.createPopupOverlay();
     switch (editType) {
-      case "add":
+      case "add": {
+        let geometryType = editLayerHelper.selectedLayer.get("editGeometry");
         me.edit = new Draw({
           source: me.source,
-          type: editLayerHelper.selectedLayer.get("editGeometry")
+          type: geometryType
         });
         me.edit.on("drawstart", startCb);
         me.edit.on("drawend", endCb);
         me.snap = new Snap({ source: me.source });
         me.currentInteraction = "draw";
-        me.helpMessage = i18n.t("map.tooltips.clickToStartDrawing");
+
+        me.helpMessage = i18n.t(
+          geometryType === "Point"
+            ? "map.tooltips.clickToPlacePoint"
+            : "map.tooltips.clickToStartDrawing"
+        );
         break;
-      case "modify":
+      }
+      case "modify": {
         me.edit = new Modify({ source: me.source });
         me.edit.on("modifystart", startCb);
         me.edit.on("modifyend", endCb);
@@ -77,7 +84,9 @@ export default class OlEditController extends OlBaseController {
         me.currentInteraction = "modify";
         me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
         break;
-      case "delete":
+      }
+
+      case "delete": {
         me.currentInteraction = "delete";
         me.deleteFeatureListener = me.map.on(
           "click",
@@ -86,6 +95,8 @@ export default class OlEditController extends OlBaseController {
         me.helpMessage = i18n.t("map.tooltips.clickOnFeatureToDelete");
 
         break;
+      }
+
       default:
         break;
     }
@@ -124,6 +135,8 @@ export default class OlEditController extends OlBaseController {
    */
   onFeatureChange(evt) {
     const me = this;
+    //Exclude features from file input as we add this feature later when user click upload button
+    if (evt.feature.get("user_uploaded")) return;
     if (me.currentInteraction === "modify") {
       const index = me.featuresToCommit.findIndex(
         i => i.ol_uid === evt.feature.ol_uid
@@ -146,8 +159,13 @@ export default class OlEditController extends OlBaseController {
     me.highlightSource.addFeature(feature);
     me.selectedFeature = feature;
     if (feature) {
-      const featureCoordinates = feature.getGeometry().getCoordinates();
-      me.popupOverlay.setPosition(featureCoordinates[0]);
+      const geometry = feature.getGeometry();
+      const featureCoordinates = geometry.getCoordinates();
+      me.popupOverlay.setPosition(
+        geometry.getType() === "Point"
+          ? featureCoordinates
+          : featureCoordinates[0]
+      );
       me.popup.title = "confirm";
       me.popup.selectedInteraction = "delete";
       me.popup.isVisible = true;
@@ -159,11 +177,17 @@ export default class OlEditController extends OlBaseController {
    */
   deleteFeature() {
     const me = this;
-    editLayerHelper.deleteFeature(
-      me.selectedFeature,
-      me.source,
-      store.state.userId
-    );
+    //Check if feature is from file input (if so, just delete from edit layer)
+    if (me.selectedFeature.get("user_uploaded")) {
+      me.source.removeFeature(me.selectedFeature);
+    } else {
+      editLayerHelper.deleteFeature(
+        me.selectedFeature,
+        me.source,
+        store.state.userId
+      );
+    }
+
     me.closePopup();
   }
 
