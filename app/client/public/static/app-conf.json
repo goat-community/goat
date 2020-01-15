@@ -89,6 +89,7 @@
         "group": "administrativeLayers",
         "layers": "cite:crop_study_area",
         "opacity": 1,
+        "ratio": 3,
         "queryable": false,
         "visible": true,
         "displayInLayerList": false,

@@ -83,6 +83,7 @@ export const LayerFactory = {
       opacity: lConf.opacity,
       queryable: lConf.queryable,
       requiresPois: lConf.requiresPois,
+      ratio: lConf.ratio ? lConf.ratio : 1.5,
       zIndex: lConf.zIndex,
       source: new ImageWMS({
         url: lConf.url,
