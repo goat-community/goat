@@ -717,8 +717,6 @@ import Tooltip from "./Tooltip.vue";
 import schemaUtils from "../utils/schema";
 import selectUtils from "../utils/select";
 
-const md = require("markdown-it")();
-
 export default {
   name: "Property",
   components: { Tooltip },
@@ -761,9 +759,7 @@ export default {
       );
     },
     htmlDescription() {
-      return this.fullSchema && this.fullSchema.description
-        ? md.render(this.fullSchema.description)
-        : null;
+      return null;
     },
     fullKey() {
       return (this.parentKey + this.modelKey).replace("root.", "");
@@ -821,7 +817,7 @@ export default {
       return {
         ...props[key],
         key,
-        htmlDescription: md.render(props[key].description || "")
+        htmlDescription: ""
       };
     },
     oneOfRequired() {

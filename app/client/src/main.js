@@ -14,6 +14,9 @@ Vue.use(FlagIcon);
 import App from "./App";
 import UrlUtil from "./utils/Url";
 import store from "./store/index";
+import axios from "axios";
+import { geojsonToFeature } from "./utils/MapUtils";
+import { buffer } from "ol/extent";
 
 require("../node_modules/ol/ol.css");
 require("./assets/scss/app.scss");
@@ -34,13 +37,33 @@ if (appCtx) {
   appCtxFile = "-" + appCtx.replace(/(\.\.[/])+/g, "");
 }
 
-fetch("static/app-conf" + appCtxFile + ".json")
-  .then(function(response) {
-    return response.json();
-  })
-  .then(function(appConfig) {
-    // make app config accessible for all components
-    Vue.prototype.$appConfig = appConfig;
+function getAppConf() {
+  return axios.get("static/app-conf" + appCtxFile + ".json");
+}
+
+function getStudyAreaBbox() {
+  return axios.get(
+    "/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:study_area_union&srsname=EPSG:4326&outputFormat=json"
+  );
+}
+
+axios.all([getAppConf(), getStudyAreaBbox()]).then(
+  axios.spread(function(config, studyArea) {
+    //1- Make app config accessible for all components
+    Vue.prototype.$appConfig = config.data;
+
+    //2- Get study area bbox
+    if (studyArea.data.features.length > 0) {
+      const f = geojsonToFeature(studyArea.data, {
+        dataProjection: "EPSG:4326",
+        featureProjection: "EPSG:3857"
+      });
+      //Buffer study area extent to not be very strict.
+      const extent = buffer(f[0].getGeometry().getExtent(), 3000);
+      //Make extent available in $appConf so the map can use it.
+      Vue.prototype.$appConfig.map.extent = extent;
+    }
+
     /* eslint-disable no-new */
     new Vue({
       el: "#app",
@@ -49,4 +72,5 @@ fetch("static/app-conf" + appCtxFile + ".json")
       vuetify,
       render: h => h(App)
     });
-  });
+  })
+);
