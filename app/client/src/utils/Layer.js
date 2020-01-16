@@ -108,15 +108,26 @@ export function zoomToLayerExtent(vecLayer, olMap) {
  * @param  {ol.format.filter} filter The Openlayers filter
  *
  */
-export function wfsRequestParser(srsName, workspace, layerName, filter) {
+export function wfsRequestParser(
+  srsName,
+  workspace,
+  layerName,
+  filter,
+  viewparams = undefined
+) {
   const xs = new XMLSerializer();
-  const wfs = new WFS().writeGetFeature({
+  const opt = {
     srsName: srsName,
     featurePrefix: workspace,
     featureTypes: [layerName],
     outputFormat: "application/json",
     filter: filter
-  });
+  };
+  if (viewparams) {
+    opt.viewParams = viewparams.toString();
+  }
+
+  const wfs = new WFS().writeGetFeature(opt);
   const xmlparser = xs.serializeToString(wfs);
   return xmlparser;
 }
@@ -371,4 +382,66 @@ export function getWMSLegendURL(
     Object.assign(queryString, opt_additionalQueryString);
   }
   return olUriAppendParams(url, queryString);
+}
+
+/**
+ * Get decscibeFeatureType properties and converts to a json schema for generating dynamic vuetify fields
+ * @param {props} decscibeFeatureType json schema
+ * @return {object} Vuetify json schema form
+ */
+export function mapFeatureTypeProps(props, hiddenProps, layerName, listValues) {
+  const mapping = {
+    string: "string",
+    int: "integer"
+  };
+  let obj = {
+    $id: "https://example.com/person.schema.json",
+    $schema: "http://json-schema.org/draft-07/schema#",
+    type: "object",
+    required: [],
+    properties: {}
+  };
+
+  props.forEach(prop => {
+    let type = mapping[prop.localType];
+    if (type) {
+      obj.properties[prop.name] = {
+        type,
+        layerName
+      };
+      if (prop.nillable === false) {
+        obj.required.push(prop.name);
+      }
+      if (hiddenProps.includes(prop.name)) {
+        obj.properties[prop.name]["x-display"] = "hidden";
+      }
+      if (
+        listValues[layerName][prop.name] &&
+        Array.isArray(listValues[layerName][prop.name].values)
+      ) {
+        obj.properties[prop.name]["enum"] =
+          listValues[layerName][prop.name].values;
+        //Show as autocomplete
+        obj.properties[prop.name]["isAutocomplete"] = true;
+      }
+    }
+  });
+  return obj;
+}
+
+/**
+ * Get the array of pois values
+ * @param {poisConfiguration} object pois configuration
+ * @return {array} pois key values
+ */
+export function getPoisListValues(pois) {
+  const poisListValues = [];
+
+  pois.forEach(category => {
+    const children = category.children;
+    children.forEach(pois => {
+      poisListValues.push(pois.value);
+    });
+  });
+  return poisListValues;
 }

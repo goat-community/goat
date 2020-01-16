@@ -78,6 +78,12 @@ const OlStyleDefs = {
         color: "#fe4a49",
         width: 5,
         lineDash: [10, 10]
+      }),
+      image: new OlCircle({
+        radius: 7,
+        fill: new OlFill({
+          color: "#FF0000"
+        })
       })
     });
   },
@@ -100,7 +106,7 @@ const OlStyleDefs = {
   },
   getEditStyle: () => {
     //TODO: Add a generic style here for other layers
-    return OlStyleDefs.waysStyleFn();
+    return OlStyleDefs.editStyleFn();
   },
   getIsochroneStyle: (styleData, addStyleInCache) => {
     const styleFunction = feature => {
@@ -229,6 +235,7 @@ const OlStyleDefs = {
     };
     return styleFunction;
   },
+
   defaultStyle: () => {
     const style = new OlStyle({
       fill: new OlFill({
@@ -237,6 +244,30 @@ const OlStyleDefs = {
       stroke: new OlStroke({
         color: "#707070",
         width: 3
+      }),
+      image: new OlCircle({
+        radius: 7,
+        fill: new OlFill({
+          color: "#FF0000"
+        })
+      })
+    });
+    return [style];
+  },
+  uploadedFeaturesStyle: () => {
+    const style = new OlStyle({
+      fill: new OlFill({
+        color: "#2196F3"
+      }),
+      stroke: new OlStroke({
+        color: "#2196F3",
+        width: 3
+      }),
+      image: new OlCircle({
+        radius: 7,
+        fill: new OlFill({
+          color: "#2196F3"
+        })
       })
     });
     return [style];
@@ -250,6 +281,12 @@ const OlStyleDefs = {
         color: "#FF0000",
         width: 3,
         lineDash: feature.getProperties()["status"] == 1 ? [0, 0] : [10, 10]
+      }),
+      image: new OlCircle({
+        radius: 7,
+        fill: new OlFill({
+          color: "#FF0000"
+        })
       })
     });
     return [style];
@@ -280,10 +317,13 @@ const OlStyleDefs = {
     });
     return [style];
   },
-  waysStyleFn: () => {
+  editStyleFn: () => {
     const me = OlStyleDefs;
     const styleFunction = feature => {
       const props = feature.getProperties();
+      if (feature.get("user_uploaded")) {
+        return me.uploadedFeaturesStyle();
+      }
       if (
         (props.hasOwnProperty("type") && props["original_id"] == null) ||
         Object.keys(props).length == 1
@@ -294,13 +334,10 @@ const OlStyleDefs = {
         } else {
           return me.waysNewRoadStyle(feature);
         }
-      } else if (
-        !props.hasOwnProperty("original_id") &&
-        Object.keys(props).length > 1
-      ) {
-        return me.defaultStyle(); //Features are from original table
-      } else {
+      } else if (props.hasOwnProperty("type")) {
         return me.waysModifiedStyle(feature); //Feature are modified
+      } else {
+        return me.defaultStyle(); //Features are from original table
       }
     };
 

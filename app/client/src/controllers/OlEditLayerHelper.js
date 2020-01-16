@@ -2,20 +2,23 @@ import { GeoJSON } from "ol/format";
 import http from "../services/http";
 
 /**
- * Util class for OL ways layer.
+ * Util class for OL Edit layers.
  */
-const WaysLayerHelper = {
+const editLayerHelper = {
   featuresIDsToDelete: [],
+  selectedLayer: null,
   selectedWayType: "road",
   filterResults(response, source) {
-    const waysFeatures = new GeoJSON().readFeatures(response.first.data);
-    const waysModified = new GeoJSON().readFeatures(response.second.data);
-    source.addFeatures(waysFeatures);
+    const editFeatures = new GeoJSON().readFeatures(response.first.data);
+    const editFeaturesModified = new GeoJSON().readFeatures(
+      response.second.data
+    );
+    source.addFeatures(editFeatures);
     const userInputFeaturesWithOriginId = [];
     const originIdsArr = [];
     const userInputFeaturesNoOriginId = [];
 
-    waysModified.forEach(feature => {
+    editFeaturesModified.forEach(feature => {
       const id = parseInt(feature.getId().split(".")[1]);
       feature.setId(id);
       if (feature.getProperties().original_id != null) {
@@ -26,11 +29,22 @@ const WaysLayerHelper = {
       }
     });
 
-    waysFeatures.forEach(feature => {
-      const originId = feature.getProperties().id;
+    editFeatures.forEach(feature => {
+      let originId;
+      const props = feature.getProperties();
+      if (props.id) {
+        originId = props.id;
+      } else if (props.gid) {
+        originId = props.gid;
+        feature.set("id", props.gid);
+      } else if (props.osm_id) {
+        originId = props.osm_id;
+        feature.set("id", props.osm_id);
+      }
+
       if (
         originIdsArr.includes(originId) ||
-        WaysLayerHelper.featuresIDsToDelete.includes(originId.toString())
+        editLayerHelper.featuresIDsToDelete.includes(originId.toString())
       ) {
         source.removeFeature(feature);
       }
@@ -46,23 +60,23 @@ const WaysLayerHelper = {
     if (props.hasOwnProperty("original_id")) {
       if (props.original_id !== null) {
         const fid = feature.getProperties().original_id.toString();
-        WaysLayerHelper.featuresIDsToDelete.push(fid);
-        WaysLayerHelper.commitDelete(
+        editLayerHelper.featuresIDsToDelete.push(fid);
+        editLayerHelper.commitDelete(
           "delete",
           userid,
-          WaysLayerHelper.featuresIDsToDelete,
+          editLayerHelper.featuresIDsToDelete,
           props.id
         );
-        WaysLayerHelper.commitDelete(
+        editLayerHelper.commitDelete(
           "update",
           userid,
-          WaysLayerHelper.featuresIDsToDelete
+          editLayerHelper.featuresIDsToDelete
         );
       } else {
-        WaysLayerHelper.commitDelete(
+        editLayerHelper.commitDelete(
           "delete",
           userid,
-          WaysLayerHelper.featuresIDsToDelete,
+          editLayerHelper.featuresIDsToDelete,
           props.id
         );
       }
@@ -70,32 +84,38 @@ const WaysLayerHelper = {
       let fid;
       if (!props.hasOwnProperty("original_id") && !props.hasOwnProperty("id")) {
         fid = feature.getId().toString();
-        WaysLayerHelper.commitDelete(
+        editLayerHelper.commitDelete(
           "delete",
           userid,
-          WaysLayerHelper.featuresIDsToDelete,
+          editLayerHelper.featuresIDsToDelete,
           fid
         );
       } else {
         fid = feature.getProperties().id.toString();
-        WaysLayerHelper.featuresIDsToDelete.push(fid);
-        WaysLayerHelper.commitDelete(
+        editLayerHelper.featuresIDsToDelete.push(fid);
+        editLayerHelper.commitDelete(
           "update",
           userid,
-          WaysLayerHelper.featuresIDsToDelete
+          editLayerHelper.featuresIDsToDelete
         );
       }
     }
     source.removeFeature(feature);
   },
   commitDelete(mode, user_id, deleted_feature_ids, drawn_fid) {
+    const layerName = this.selectedLayer
+      .getSource()
+      .getParams()
+      .LAYERS.split(":")[1];
+
     fetch("/api/userdata", {
       method: "POST",
       body: JSON.stringify({
         mode: mode,
         user_id: user_id,
         deleted_feature_ids: deleted_feature_ids,
-        drawned_fid: drawn_fid
+        drawned_fid: drawn_fid,
+        layer_name: layerName
       }),
       headers: {
         "Content-Type": "application/json",
@@ -107,14 +127,16 @@ const WaysLayerHelper = {
       })
       .then(function(json) {
         if (mode == "read") {
-          WaysLayerHelper.featuresIDsToDelete = json[0].deleted_feature_ids;
+          editLayerHelper.featuresIDsToDelete = json[0].deleted_feature_ids
+            ? json[0].deleted_feature_ids
+            : [];
         }
       })
       .catch(function() {
-        WaysLayerHelper.insertUserInDb("insert", user_id);
+        editLayerHelper.insertUserInDb("insert", user_id);
       });
   },
-  uploadWaysFeatures(userId, streetSource) {
+  uploadFeatures(userId, streetSource) {
     http
       .get("./geoserver/wfs", {
         params: {
@@ -143,11 +165,16 @@ const WaysLayerHelper = {
       });
   },
   insertUserInDb(mode, generatedId) {
+    const layerName = this.selectedLayer
+      .getSource()
+      .getParams()
+      .LAYERS.split(":")[1];
     fetch("/api/userdata", {
       method: "POST",
       body: JSON.stringify({
         mode: mode,
-        id: generatedId
+        id: generatedId,
+        layer_name: layerName
       }),
       headers: {
         "Content-Type": "application/json",
@@ -159,4 +186,4 @@ const WaysLayerHelper = {
   }
 };
 
-export default WaysLayerHelper;
+export default editLayerHelper;
