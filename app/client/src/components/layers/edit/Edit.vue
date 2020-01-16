@@ -314,7 +314,7 @@ export default {
 
     //Edit form
     listValues: {},
-    hiddenProps: ["userid", "id", "original_id", "class_id", "status"],
+    hiddenProps: ["userid", "id", "original_id", "status"],
 
     schema: {},
     dataObject: {},

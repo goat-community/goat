@@ -6,7 +6,11 @@ import { INCHES_PER_METER, DOTS_PER_INCH } from "./PrintUtils";
  * @extends {Layer<any>}
  */
 export default class Mask extends Layer {
-  constructor(options = {}) {
+  constructor(
+    options = {
+      zIndex: 100
+    }
+  ) {
     super(options);
 
     /**
