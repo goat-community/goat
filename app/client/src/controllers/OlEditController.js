@@ -234,7 +234,7 @@ export default class OlEditController extends OlBaseController {
     const clonedProperties = Object.assign({}, properties);
     clonedProperties.userid = store.state.userId;
     delete clonedProperties["id"];
-    delete clonedProperties["original_id"];
+
     const layerName = editLayerHelper.selectedLayer
       .getSource()
       .getParams()
@@ -275,13 +275,17 @@ export default class OlEditController extends OlBaseController {
         !props.hasOwnProperty("original_id") &&
         me.currentInteraction === "modify"
       ) {
-        transformed.set("original_id", feature.getProperties().id);
+        transformed.set(
+          "original_id",
+          feature.get("id") ? feature.get("id") : null
+        );
       }
 
       if (
-        (typeof feature.getId() == "undefined" &&
+        (typeof feature.getId() === "undefined" &&
           Object.keys(props).length === 1) ||
-        !props.hasOwnProperty("original_id")
+        (!props.hasOwnProperty("original_id") &&
+          me.currentInteraction === "modify")
       ) {
         featuresToAdd.push(transformed);
         featuresToRemove.push(feature);
@@ -324,9 +328,7 @@ export default class OlEditController extends OlBaseController {
           let i;
           for (i = 0; i < FIDs.length; i++) {
             const id = parseInt(FIDs[i].split(".")[1]);
-            if (layerName === "ways") {
-              me.source.removeFeature(featuresToRemove[i]);
-            }
+            me.source.removeFeature(featuresToRemove[i]);
             featuresToAdd[i].setId(id);
             featuresToAdd[i].getGeometry().transform("EPSG:4326", "EPSG:3857");
 

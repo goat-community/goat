@@ -281,6 +281,12 @@ const OlStyleDefs = {
         color: "#FF0000",
         width: 3,
         lineDash: feature.getProperties()["status"] == 1 ? [0, 0] : [10, 10]
+      }),
+      image: new OlCircle({
+        radius: 7,
+        fill: new OlFill({
+          color: "#FF0000"
+        })
       })
     });
     return [style];
@@ -328,13 +334,10 @@ const OlStyleDefs = {
         } else {
           return me.waysNewRoadStyle(feature);
         }
-      } else if (
-        !props.hasOwnProperty("original_id") &&
-        Object.keys(props).length > 1
-      ) {
-        return me.defaultStyle(); //Features are from original table
-      } else {
+      } else if (props.hasOwnProperty("type")) {
         return me.waysModifiedStyle(feature); //Feature are modified
+      } else {
+        return me.defaultStyle(); //Features are from original table
       }
     };
 
