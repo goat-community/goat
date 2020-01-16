@@ -15,9 +15,9 @@ DATA_SOURCE:
 
 DATA_REFINEMENT_VARIABLES:
   #extrapolation ==> census.shp + landuse.shp needed as input
-  #disaggregation ==> landuse.shp needed as input + high-resolution population input data + high completness number of floors
+  #disaggregation ==> landuse.shp needed as input + high-resolution population input data + building data
+  #distribution ==> landuse.sho need as input + high-resolution population input data 
   #custom_population ==> population.shp custom population data needed  
- 
   POPULATION: "extrapolation"
   #"yes" if you want to add these layers 
   ADDITIONAL_WALKABILITY_LAYERS: "no" 
