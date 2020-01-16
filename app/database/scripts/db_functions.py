@@ -75,4 +75,14 @@ def update_functions():
         for file in Path(p).glob('*.sql'):
             db.execute_script_psql(file)
 
+def restore_db():
+    import os
+    db_name,user = ReadYAML().db_credentials()[:2]
     
+    os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'old'))
+    os.system('psql -U postgres -c "DROP DATABASE %s;"' % (db_name+'old'))
+    os.system('pg_restore -U %s -d %s -1 /opt/data/goat_db.dump' % (user,db_name+'temp'))
+    os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name)
+    os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name,db_name+'old'))
+    os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'temp'))
+    os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name+'temp',db_name))
