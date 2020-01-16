@@ -127,8 +127,7 @@ def setup_db(setup_type):
             db_temp.execute_script_psql('../data_preparation/SQL/layer_preparation.sql')
 
 
-    if (setup_type == 'new_setup'):
-        
+    if (setup_type == 'new_setup'):    
         #Create pgpass for goat-database
         ReadYAML().create_pgpass('')  
         os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name)
