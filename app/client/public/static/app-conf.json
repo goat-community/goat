@@ -38,18 +38,6 @@
     "center": [1289645.541227, 6129485.298188],
     "layers": [
       {
-        "type": "VECTOR",
-        "lid": "study-area",
-        "name": "studyArea",
-        "url": "/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:study_area_union&srsname=EPSG:4326&outputFormat=json",
-        "formatConfig": {},
-        "format": "GeoJSON",
-        "displayInLayerList": false,
-        "visible": true,
-        "zIndex": 4,
-        "styleRef": "boundaryStyle"
-      },
-      {
         "type": "WMS",
         "name": "ways",
         "url": "/geoserver/wms",
@@ -58,6 +46,7 @@
         "queryable": false,
         "visible": false,
         "canEdit": true,
+        "editGeometry": "LineString",
         "displayInLayerList": false,
         "zIndex": 2,
         "serverType": "geoserver"
@@ -72,7 +61,8 @@
         "opacity": 1,
         "queryable": true,
         "visible": false,
-        "canEdit": false,
+        "canEdit": true,
+        "editGeometry": "Point",
         "displayInLayerList": true,
         "requiresPois": true,
         "zIndex": 2,
@@ -90,6 +80,21 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMSTILE",
+        "name": "extentStudyarea",
+        "url": "/geoserver/wms",
+        "group": "administrativeLayers",
+        "layers": "cite:crop_study_area",
+        "opacity": 1,
+        "preload": "Infinity",
+        "ratio": 3,
+        "queryable": false,
+        "visible": true,
+        "displayInLayerList": false,
+        "zIndex": 4,
         "serverType": "geoserver"
       },
       {
@@ -148,7 +153,6 @@
         "zIndex": 1,
         "serverType": "geoserver"
       },
-
       {
         "type": "OSM",
         "name": "osmStandard",
@@ -699,7 +703,7 @@
               "display": "Wheelchair",
               "value": "walking_wheelchair",
               "defaultSpeed": 5
-            } 
+            }
           ],
           "active": {
             "display": "Standard",
@@ -806,6 +810,18 @@
     "pois": {
       "filters": {
         "timeBasedCalculations": "no"
+      }
+    }
+  },
+  "listValues": {
+    "ways": {
+      "type": {
+        "values": ["bridge", "road"]
+      }
+    },
+    "pois_info": {
+      "amenity": {
+        "values": "*"
       }
     }
   }

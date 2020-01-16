@@ -33,23 +33,23 @@ app.post("/api/userdata", jsonParser, (request, response) => {
     response.send(res.rows);
   }
   if (mode == "read") {
-    //read is used to fill tha array of ways delete features ids on the application startup
+    //read is used to fill tha array of delete features ids on the application startup
     pool.query(
       "SELECT * FROM user_data where id = ($1)",
       [request.body.user_id],
       returnResult
     );
   } else if (mode == "update") {
-    //update is used to fill the array with ways features that are not drawned by the user
+    //update is used to fill the array with features that are not drawned by the user
     pool.query(
       "UPDATE user_data SET deleted_feature_ids=($2) WHERE id=($1)",
       [request.body.user_id, request.body.deleted_feature_ids],
       returnResult
     );
   } else if (mode == "delete") {
-    //delete is used to delete the feature from ways_modified table if the user has drawned that feature by himself
+    //delete is used to delete the feature from modified table if the user has drawned that feature by himself
     pool.query(
-      "DELETE FROM ways_modified WHERE id=($1)",
+      `DELETE FROM ${request.body.layer_name}_modified WHERE id=($1)`,
       [request.body.drawned_fid],
       returnResult
     );
@@ -153,11 +153,7 @@ app.post("/api/pois_multi_isochrones", jsonParser, (request, response) => {
     'geometry',   ST_AsGeoJSON(geom)::jsonb,
     'properties', to_jsonb(inputs) - 'gid' - 'geom'
   ) AS feature 
-  FROM (SELECT * FROM pois_multi_isochrones(${queryValues[0]},${
-    queryValues[1]
-  },${queryValues[2]},${queryValues[3]},${queryValues[4]},${queryValues[5]},${queryValues[6]},${
-    queryValues[7]
-  },ARRAY[${queryValues[8]}],ARRAY[${queryValues[9]}])) inputs) features;`;
+  FROM (SELECT * FROM pois_multi_isochrones(${queryValues[0]},${queryValues[1]},${queryValues[2]},${queryValues[3]},${queryValues[4]},${queryValues[5]},${queryValues[6]},${queryValues[7]},ARRAY[${queryValues[8]}],ARRAY[${queryValues[9]}])) inputs) features;`;
   console.log(sqlQuery);
   pool.query(sqlQuery, (err, res) => {
     if (err) return console.log(err);
@@ -198,11 +194,7 @@ app.post(
     'geometry',   ST_AsGeoJSON(geom)::jsonb,
     'properties', to_jsonb(inputs) - 'geom'
   ) AS feature 
-  FROM (SELECT count_pois,region_name, geom FROM count_pois_multi_isochrones(${
-    queryValues[0]
-  },${queryValues[1]},${queryValues[2]},ARRAY[${queryValues[3]}],ARRAY[${
-      queryValues[4]
-    }])) inputs;`;
+  FROM (SELECT count_pois,region_name, geom FROM count_pois_multi_isochrones(${queryValues[0]},${queryValues[1]},${queryValues[2]},ARRAY[${queryValues[3]}],ARRAY[${queryValues[4]}])) inputs;`;
     pool.query(sqlQuery, (err, res) => {
       if (err) return console.log(err);
       console.log(res);
@@ -210,5 +202,10 @@ app.post(
     });
   }
 );
+
+// respond with "pong" when a GET request is made to /ping (HEALTHCHECK)
+app.get('/ping', function (_req, res) {
+  res.send('pong');
+});
 
 module.exports = app;

@@ -20,7 +20,7 @@
         <v-card-text>
           <div class="">
             <span>
-              <v-btn-toggle v-model="defaultLanguage" mandatory>
+              <v-btn-toggle v-model="selectedLanguage" mandatory>
                 <v-flex class="mx-2">
                   <v-btn
                     text
@@ -66,14 +66,14 @@ export default {
   props: ["visible"],
   data() {
     return {
-      defaultLanguage: 0,
+      selectedLanguage: 0,
       units: "kilometers",
       languages: [
         { flag: "gb", language: "en", title: "English" },
         { flag: "de", language: "de", title: "Deutsch" },
         { flag: "es", language: "es", title: "Español" },
         { flag: "fr", language: "fr", title: "Français" },
-        { flag: "al", language: "al", title: "Shqip" }
+        { flag: "al", language: "sq", title: "Shqip" }
       ],
       interactionType: "languageChange"
     };
@@ -97,6 +97,15 @@ export default {
         }
       }
     }
+  },
+  mounted() {
+    const currentLang = this.$i18n.locale;
+
+    this.languages.forEach((l, index) => {
+      if (l.language === currentLang) {
+        this.selectedLanguage = index;
+      }
+    });
   }
 };
 </script>

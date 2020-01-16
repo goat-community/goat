@@ -71,8 +71,7 @@ import Map from "ol/Map";
 import View from "ol/View";
 import { defaults as defaultInteractions } from "ol/interaction";
 import Overlay from "ol/Overlay";
-import Mask from "ol-ext/filter/Mask";
-import OlFill from "ol/style/Fill";
+
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import OlStyleDefs from "../../style/OlStyleDefs";
@@ -108,6 +107,7 @@ export default {
       center: this.$appConfig.map.center,
       minZoom: this.$appConfig.map.minZoom,
       maxZoom: this.$appConfig.map.maxZoom,
+      extent: this.$appConfig.map.extent, // Extent is fetched dynamically from the study area
       allLayers: [],
       queryableLayers: [],
       activeInteractions: [],
@@ -158,6 +158,7 @@ export default {
       view: new View({
         center: me.center || [0, 0],
         zoom: me.zoom,
+        extent: me.extent,
         minZoom: me.minZoom,
         maxZoom: me.maxZoom
       })
@@ -166,8 +167,6 @@ export default {
     // create layers from config and add them to map
     const layers = me.createLayers();
     me.map.getLayers().extend(layers);
-    //Create mask filters
-    me.createMaskFilters(layers);
 
     me.createGetInfoLayer();
 
@@ -225,52 +224,6 @@ export default {
       });
       this.getInfoLayerSource = source;
       this.map.addLayer(vector);
-    },
-
-    /**
-     * Creates a filter mask of the city using ol mask extension.
-     * Hides other municipalities and states.
-     */
-    createMaskFilters(mapLayers) {
-      const me = this;
-
-      //Filter background layers
-      const backgroundLayers = [];
-      mapLayers.forEach(layer => {
-        if (layer.get("name") === "backgroundLayers") {
-          backgroundLayers.push(...layer.getLayers().getArray());
-        }
-      });
-
-      //Reference study area layer
-      let studyAreaLayer;
-      getAllChildLayers(me.map).forEach(layer => {
-        if (layer.get("name") === "studyArea") {
-          studyAreaLayer = layer;
-        }
-      });
-
-      //Create masks
-      if (studyAreaLayer) {
-        studyAreaLayer.getSource().on("change", function() {
-          const feature = studyAreaLayer.getSource().getFeatures()[0];
-          const bbox = feature
-            .clone()
-            .getGeometry()
-            .transform("EPSG:3857", "EPSG:4326")
-            .getExtent()
-            .toString();
-          me.setStudyAreaBbox(bbox);
-          const mask = new Mask({
-            feature: feature,
-            inner: false,
-            fill: new OlFill({ color: [169, 169, 169, 0.8] })
-          });
-          for (const i of backgroundLayers) {
-            i.addFilter(mask);
-          }
-        });
-      }
     },
 
     /**
@@ -453,7 +406,7 @@ export default {
             case "WMS": {
               let url = layer
                 .getSource()
-                .getGetFeatureInfoUrl(coordinate, resolution, projection, {
+                .getFeatureInfoUrl(coordinate, resolution, projection, {
                   INFO_FORMAT: "application/json"
                 });
               promiseArray.push(
@@ -509,9 +462,12 @@ export default {
       const props = feature.getProperties();
       let transformed = [];
       const excludedProperties = [
+        "id",
         "geometry",
+        "geom",
         "orgin_geometry",
         "osm_id",
+        "gid",
         "layerName"
       ];
       Object.keys(props).forEach(k => {

@@ -109,7 +109,19 @@
         "deleteFeatureMsg": "Are you sure you want to delete the selected feature ?",
         "selectWayType": "Select way type: ",
         "wayType": "Way Type"
-      }
+      },
+      "activateLayerToDrawScenario": "Plese activate the layer to be able to select features",
+      "geometryTypeInfo": "Geometry type should be",
+      "requiredFields": "Required Fields",
+      "referenceSystemInfo": "Reference sytem should be in",
+      "featuresNotyetUploaded": "Features not yet uploaded. Click upload button to commit",
+      "differentGeometryType": "Geometries doesn't match",
+      "missingFields": "Missing Fields",
+      "fileCorrupted": "Geojson file is corrupted",
+      "noFile": "No file",
+      "allFeaturesUploaded": "All Features Uploaded",
+      "notAllUploaded": "Not all features uploaded",
+      "errorHappened": "An error happened"
     },
     "settings": {
       "title": "Settings",
@@ -282,6 +294,8 @@
       "clickOnFeatureToDelete": "Click on feature to delete it",
       "clickAndDragToModify": "Click and drag the features to modify",
       "clickToRemove": "Click to remove it",
+      "clickToPlacePoint": "Click to place the point",
+
       "routingProfiles": {
         "walking_standard": "Default routing",
         "walking_elderly": " Routing with reduced walking speed",
@@ -394,6 +408,27 @@
     },
     "calendar": {
       "moreEvents": "{0} more"
+    }
+  },
+  "common": {
+    "required": "This information is required"
+  },
+  "dynamicFields": {
+    "attributes": {
+      "ways": {
+        "type": "Way Type"
+      },
+      "pois_info": {
+        "amenity": "Amenity",
+        "name": "Name (Optional)",
+        "opening_hours": "Opening Hours (Optional)"
+      }
+    },
+    "listValues": {
+      "ways": {
+        "road": "Road",
+        "bridge": "Bridge"
+      }
     }
   }
 }
