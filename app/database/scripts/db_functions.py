@@ -82,8 +82,8 @@ def restore_db():
     os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'old'))
     os.system('psql -U postgres -c "DROP DATABASE %s;"' % (db_name+'old'))
     #Restore backup as temp db
-    os.system("psql -U postgres -c 'CREATE DATABASE %s' "% (db_name+'temp'))
-    os.system('psql -U %s -d %s /opt/data/goat_db.sql' % (user,db_name+'temp'))
+    os.system("psql -U postgres -c 'CREATE DATABASE %s;'"% (db_name+'temp'))
+    os.system('psql -U %s -d %s -f /opt/data/goat_dump.sql' % (user,db_name+'temp'))
     #Rename active database intto old DB
     os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name)
     os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name,db_name+'old'))
