@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <StyledLayerDescriptor xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ogc="http://www.opengis.net/ogc" xmlns="http://www.opengis.net/sld" xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd" version="1.0.0">
   <NamedLayer>
-    <Name>lit_2</Name>
+    <Name>lit</Name>
     <UserStyle>
-      <Name>lit_2</Name>
+      <Name>lit</Name>
       <FeatureTypeStyle>
         <Rule>
           <Name>yes</Name>

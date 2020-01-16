@@ -14,7 +14,7 @@ begin
 			WHERE st_intersects(i.geom,p.geom)  
 			AND objectid=input_objectid
 			AND amenity IN (SELECT (UNNEST(select_from_variable_container('amenity_opening_hours'))))
-			AND check_open(p.opening_hours,array[d,h,m]) = 'true'
+			AND check_open(p.opening_hours,array[d,h,m]) = 'True'
 			GROUP BY i.gid,amenity,p.opening_hours
 		) p ,variable_container
 		WHERE amenity = any(variable_array)
