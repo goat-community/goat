@@ -275,7 +275,10 @@ export default class OlEditController extends OlBaseController {
         !props.hasOwnProperty("original_id") &&
         me.currentInteraction === "modify"
       ) {
-        transformed.set("original_id", feature.getProperties().id);
+        transformed.set(
+          "original_id",
+          feature.get("id") ? feature.get("id") : null
+        );
       }
 
       if (
