@@ -1,4 +1,4 @@
-drop table dem_vec;
+/*drop table dem_vec;
 create table dem_vec as 
 select rid, dp.geom , dp.val from dem, ST_DumpAsPolygons(rast) dp;
 
@@ -73,5 +73,4 @@ AND length_m >= (SELECT select_from_variable_container_s('resolution_dem')::inte
 )
 SELECT (slope_json[1] ->> 'id') AS id, (slope_json[1] ->> 's_imp') AS s_imp, (slope_json[1] ->> 'rs_imp') AS rs_imp, slope_json[2:] AS slope_profile
 FROM x;
-
-
+*/

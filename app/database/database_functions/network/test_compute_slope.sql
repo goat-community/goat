@@ -1,5 +1,5 @@
 
---Convert raster to vector
+/*--Convert raster to vector
 CREATE TABLE elevation AS 
 SELECT geom,val 
 FROM dem, LATERAL ST_PixelAsCentroids(rast, 1)
@@ -49,3 +49,4 @@ SELECT length_m, geom, ele, lag(ele,1) OVER (
 	ORDER BY geom 
 ) 
 FROM ele
+*/
