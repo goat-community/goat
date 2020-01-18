@@ -65,6 +65,7 @@ import { mapGetters, mapMutations } from "vuex";
 //Ol imports
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
+import VectorImageLayer from "ol/layer/VectorImage";
 
 export default {
   mixins: [Mapable],
@@ -126,8 +127,7 @@ export default {
     createIsochroneRoadNetworkLayer() {
       const me = this;
       const style = OlStyleDefs.getIsochroneNetworkStyle();
-      const vector = new VectorLayer({
-        renderMode: "image",
+      const vector = new VectorImageLayer({
         name: "isochroneRoadNetworkLayer",
         zIndex: 6,
         source: new VectorSource(),
