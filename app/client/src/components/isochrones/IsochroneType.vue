@@ -32,10 +32,7 @@
         row
       >
         <v-radio :label="$t('isochrones.single.type')" value="single"></v-radio>
-        <v-radio
-          :label="$t('isochrones.multiple.type')"
-          value="multiple"
-        ></v-radio>
+        <v-radio :label="$t('isochrones.multiple.type')" value="multiple"></v-radio>
       </v-radio-group>
     </v-card-text>
   </v-flex>
@@ -54,13 +51,6 @@ export default {
       calculationType: "options.calculationType",
       calculationModes: "options.calculationModes.active"
     })
-  },
-  methods: {
-    changedType(type) {
-      if (type === "multiple") {
-        this.calculationModes = "default";
-      }
-    }
   }
 };
 </script>

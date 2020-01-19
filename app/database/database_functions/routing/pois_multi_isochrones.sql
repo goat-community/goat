@@ -21,7 +21,6 @@ DECLARE
 	BEGIN
 
 	/*Scenario building has to be implemented*/
-    calc_modus = 1;
 	buffer = (minutes::numeric/60::numeric)*speed_input*1000;
  
  	IF region_type = 'study_area' THEN
@@ -79,7 +78,7 @@ DECLARE
  		
 	SELECT DISTINCT objectid 
 	INTO objectid_multi_isochrone  
-	FROM multi_isochrones(userid_input,minutes,n,routing_profile_input,speed_input,alphashape_parameter_input,calc_modus,1,points_array);
+	FROM multi_isochrones(userid_input,minutes,n,routing_profile_input,speed_input,alphashape_parameter_input,modus_input,1,points_array);
 		
 	IF region_type = 'study_area' THEN
 	 	WITH expand_population AS 
