@@ -124,7 +124,7 @@
               </v-card-text>
             </v-card-title>
             <v-subheader
-              class="clickable"
+              class="clickable subheader mt-1"
               @click="calculation.isExpanded = !calculation.isExpanded"
             >
               <v-icon
@@ -143,6 +143,19 @@
                     : calculation.position
                 }}
               </h3>
+            </v-subheader>
+            <v-subheader
+              @click="calculation.isExpanded = !calculation.isExpanded"
+              class="clickable subheader subtitle-2"
+            >
+              <span
+                >{{ $t("isochrones.options.routingProfile") }} :
+                {{
+                  $te(`isochrones.options.${calculation.routing_profile}`)
+                    ? $t(`isochrones.options.${calculation.routing_profile}`)
+                    : calculation.routing_profile
+                }}</span
+              >
             </v-subheader>
             <v-card-text class="pt-0 " v-show="calculation.isExpanded">
               <v-data-table
@@ -242,6 +255,20 @@ export default {
     },
     showHideCalculation(calculation) {
       const me = this;
+      //Check if road netowrk is visible. Is so remove all features from map.
+      const roadNetworkData = calculation.additionalData;
+      for (let type in roadNetworkData) {
+        // type can be 'Deafult' or 'Input'
+        const state = roadNetworkData[type].state;
+        if (state === true) {
+          roadNetworkData[type].state = false;
+          const roadNetworkSource = this.isochroneRoadNetworkLayer.getSource();
+          const features = roadNetworkData[type].features;
+          features.forEach(feature => {
+            roadNetworkSource.removeFeature(feature);
+          });
+        }
+      }
       me.toggleIsochroneCalculationVisibility(calculation);
     },
     showPoisTable(calculation) {
@@ -274,7 +301,8 @@ export default {
   computed: {
     ...mapGetters("isochrones", {
       calculations: "calculations",
-      isochroneLayer: "isochroneLayer"
+      isochroneLayer: "isochroneLayer",
+      isochroneRoadNetworkLayer: "isochroneRoadNetworkLayer"
     }),
     headers() {
       return [
@@ -340,5 +368,9 @@ export default {
 .v-input--selection-controls {
   margin-top: 0px;
   padding-top: 0px;
+}
+
+.subheader {
+  height: 25px;
 }
 </style>
