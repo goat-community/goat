@@ -1,6 +1,6 @@
 DROP FUNCTION IF EXISTS pois_multi_isochrones;
 CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, minutes integer, speed_input numeric, 
-	n integer, routing_profile_input text, alphashape_parameter_input NUMERIC, modus_input text,region_type text, region text[], amenities text[])
+	n integer, routing_profile_input text, alphashape_parameter_input NUMERIC, modus_input integer,region_type text, region text[], amenities text[])
 RETURNS SETOF type_pois_multi_isochrones
 AS $function$ 
 DECLARE 	
@@ -73,8 +73,6 @@ DECLARE
  	---------------------------------------------------------------------------------
  	--------------------------get catchment of all starting points-------------------
  	---------------------------------------------------------------------------------
- 
- 
  		
 	SELECT DISTINCT objectid 
 	INTO objectid_multi_isochrone  
@@ -132,14 +130,11 @@ $function$ LANGUAGE plpgsql;
 
 /*
 SELECT *
-FROM pois_multi_isochrones(1,15,5.0,3,'walking_wheelchair',0.00003,'walking','study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) ;
+FROM pois_multi_isochrones(1,15,5.0,3,'walking_wheelchair',0.00003,1,'study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) ;
 
 SELECT *
-FROM pois_multi_isochrones(1,10,5.0,2,0.00003,'default','envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 
+FROM pois_multi_isochrones(1,10,5.0,2,'walking_standard',0.00003,1,'envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 
 --alphashape_parameter NUMERIC = 0.00003;
 --region_type 'envelope' or study_area
-
-SELECT *
-FROM pois_multi_isochrones(1,15,5.0,3,'walking_wheelchair',0.00003,'walking','study_area',ARRAY['Hasenbergl-Lerchenau'],ARRAY['supermarket','bar']) ;
 */
 

@@ -28,47 +28,6 @@ CREATE TYPE public.type_isochrone_thematic AS
 	sum_pois text
 );
 
-DROP TYPE IF EXISTS type_catchment_vertices CASCADE;
-CREATE TYPE public.type_catchment_vertices AS
-(
-	start_vertex integer,
-	node integer,
-	edge integer,
-	cnt integer,
-	cost numeric,
-	geom geometry,
-	w_geom geometry,
-	objectid integer	
-);
-
-DROP TYPE IF EXISTS type_catchment_vertices_multi CASCADE;
-CREATE TYPE public.type_catchment_vertices_multi AS
-(
-	start_vertex integer,
-	node integer,
-	edge integer,
-	cnt integer,
-	cost numeric,
-	geom geometry,
-	objectid integer	
-);
-
-DROP TYPE IF EXISTS type_pois_multi_isochrones CASCADE;
-CREATE TYPE type_pois_multi_isochrones AS 
-(
-	gid integer, 
-	objectid integer,
-	coordinates NUMERIC[][],
-	userid integer,
-	step integer, 
-	routing_profile text,
-	speed NUMERIC, 
-	alphashape_parameter NUMERIC,
-	modus integer, 
-	parent_id integer, 
-	population jsonb,
-	geom geometry	
-);
 DROP TYPE IF EXISTS type_isochrones_api CASCADE;
 CREATE TYPE type_isochrones_api AS
 (
@@ -104,6 +63,47 @@ CREATE TYPE public.type_catchment_vertices_single AS
 	w_geom geometry,
 	objectid integer	
 );
+DROP TYPE IF EXISTS type_temp_catchment_vertices_multi CASCADE;
+CREATE TYPE public.type_temp_catchment_vertices_multi AS
+(
+	id integer,
+	start_vertex integer,
+	node integer,
+	edge integer,
+	cost numeric,
+	geom geometry,
+	objectid integer,
+	routing_profile text	
+);
+DROP TYPE IF EXISTS type_catchment_vertices_multi CASCADE;
+CREATE TYPE public.type_catchment_vertices_multi AS
+(
+	start_vertex integer,
+	node integer,
+	edge integer,
+	cnt integer,
+	cost numeric,
+	geom geometry,
+	objectid integer	
+);
+
+DROP TYPE IF EXISTS type_pois_multi_isochrones CASCADE;
+CREATE TYPE type_pois_multi_isochrones AS 
+(
+	gid integer, 
+	objectid integer,
+	coordinates NUMERIC[][],
+	userid integer,
+	step integer, 
+	routing_profile text,
+	speed NUMERIC, 
+	alphashape_parameter NUMERIC,
+	modus integer, 
+	parent_id integer, 
+	population jsonb,
+	geom geometry	
+);
+
 DROP TYPE IF EXISTS pois_visualization CASCADE;
 CREATE TYPE public.pois_visualization AS
 (
