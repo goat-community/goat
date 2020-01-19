@@ -49,4 +49,5 @@ SELECT length_m, geom, ele, lag(ele,1) OVER (
 	ORDER BY geom 
 ) 
 FROM ele
+
 */

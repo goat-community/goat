@@ -1,3 +1,14 @@
+/*
+CREATE TABLE x AS 
+SELECT p.amenity, p.name,p.osm_id,p.opening_hours,p.orgin_geometry,p.geom, 'accessible' AS status,p.wheelchair
+FROM pois p
+LEFT JOIN (SELECT * FROM pois_modified pm WHERE pm.userid = 9715309) pm
+ON p.gid = pm.original_id
+WHERE pm.id IS NULL 
+AND p.amenity IN('kindergarten')
+*/
+
+
 --THIS FUNCTION CHECKS THE SELECTED ROUTING PROFILE AND IF THE USER INSERTED OPENING HOURS AND EXECUTS THE CORRESPONDING FUNCTION TO CREATE THE GEOSERVER VIEW
 DROP FUNCTION IF EXISTS pois_visualization;
 CREATE OR REPLACE FUNCTION public.pois_visualization(amenities_input text[], routing_profile_input text, d integer, h integer, m integer)
@@ -9,8 +20,6 @@ DECLARE
 begin
 
 DROP TABLE IF EXISTS visualization_pois;
-
-
     --if no opening hours are provided by the user and routing profile is -not- wheelchair
     IF (d = 9999 OR h = 9999 OR m = 9999) AND routing_profile_input <> 'walking_wheelchair' THEN 
         RETURN query
