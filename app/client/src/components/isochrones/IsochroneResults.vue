@@ -85,7 +85,9 @@
                       ></v-icon>
                     </template>
                     <span>{{
-                      $t("isochrones.results.toggleVisibilityTooltip")
+                      calculation.isVisible
+                        ? $t("isochrones.results.hideResultsTooltip")
+                        : $t("isochrones.results.showResultsTooltip")
                     }}</span>
                   </v-tooltip>
 
