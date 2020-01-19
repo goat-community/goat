@@ -186,6 +186,8 @@
       "additionalLayers": "Additional Layers",
       "showDataTooltip": "Show Data",
       "toggleVisibilityTooltip": "Toggle Visibility",
+      "showResultsTooltip": "Show Results",
+      "hideResultsTooltip": "Hide Results",
       "downloadTooltip": "Download",
       "deleteCalcTooltip": "Delete Calculation",
       "table": {
