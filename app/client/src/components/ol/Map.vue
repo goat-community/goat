@@ -447,7 +447,6 @@ export default {
       });
     },
     ...mapMutations("map", {
-      setStudyAreaBbox: "SET_STUDYAREA_BBOX",
       setMap: "SET_MAP"
     })
   },
