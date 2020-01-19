@@ -6,7 +6,8 @@ RETURNS SETOF type_pois_multi_isochrones
 AS $function$
 DECLARE
 modus integer;
-
+iso_parent_id integer;
+iso_gid integer;
 BEGIN
   --The function creating isochrones is executed AND the result is saved INTO the table isochrones
 	/*
@@ -21,12 +22,23 @@ BEGIN
 
        
         /*default*/
-        CREATE TEMP table x as 
+        CREATE TEMP TABLE IF NOT EXISTS x OF type_pois_multi_isochrones;
+        TRUNCATE x;
+        INSERT INTO x 
         SELECT * FROM pois_multi_isochrones(userid_input,minutes,speed_input,n,routing_profile_input,alphashape_parameter_input,3,region_type,region,amenities);
-        
+       
+        SELECT objectid INTO iso_parent_id FROM x;   
         /*scenario*/
         INSERT INTO x 
         SELECT * FROM pois_multi_isochrones(userid_input,minutes,speed_input,n,routing_profile_input,alphashape_parameter_input,4,region_type,region,amenities);
+       
+        SELECT gid INTO iso_gid FROM x WHERE x.modus = 4;    
+        UPDATE x SET parent_id = iso_parent_id WHERE x.modus = 4;
+                
+        UPDATE multi_isochrones m
+        SET parent_id = iso_parent_id
+        WHERE m.gid = iso_gid; 
+
         Return query select * from x;
     ELSE
     
