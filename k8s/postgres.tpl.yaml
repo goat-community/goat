@@ -51,11 +51,10 @@ spec:
         - name: postgres
           image: ${POSTGIS_DOCKER_IMAGE}
           imagePullPolicy: "IfNotPresent"
-          # command:
-          #   - python3
-          #   - /opt/setup_goat.py
-          #   - -t
-          #   - new_setup
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "python3", "/opt/setup_goat.py", "-t", "new_setup"]
           ports:
             - containerPort: 5432
           envFrom:
@@ -66,6 +65,9 @@ spec:
               name: postgredb
             - mountPath: /opt/config/
               name: goat-config
+            - mountPath: /opt/data
+              name: postgredb
+              subPath: ${NAMESPACE}
       volumes:
         - name: postgredb
           persistentVolumeClaim:
