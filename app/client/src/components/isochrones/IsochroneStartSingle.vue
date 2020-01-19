@@ -204,7 +204,7 @@ export default {
       if (!this.studyAreaBbox) return;
       axios
         .get(
-          `${this.searchUrl}?key=${this.searchKey}&q=${this.search}
+          `${this.searchUrl}autocomplete.php?key=${this.searchKey}&q=${this.search}
             &viewbox=${this.studyAreaBbox}&bounded=1`
         )
         .then(response => {
