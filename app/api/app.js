@@ -35,30 +35,33 @@ app.post("/api/userdata", jsonParser, (request, response) => {
   if (mode == "read") {
     //read is used to fill tha array of delete features ids on the application startup
     pool.query(
-      "SELECT * FROM user_data where id = ($1)",
-      [request.body.user_id],
+      "SELECT * FROM user_data where user_id = ($1) AND layer_name = ($2)",
+      [request.body.user_id, request.body.layer_name],
       returnResult
     );
   } else if (mode == "update") {
     //update is used to fill the array with features that are not drawned by the user
     pool.query(
-      "UPDATE user_data SET deleted_feature_ids=($2) WHERE id=($1)",
-      [request.body.user_id, request.body.deleted_feature_ids],
+      "UPDATE user_data SET deleted_feature_ids=($2) WHERE user_id=($1) AND  layer_name=($3)",
+      [
+        request.body.user_id,
+        request.body.deleted_feature_ids,
+        request.body.layer_name
+      ],
       returnResult
     );
   } else if (mode == "delete") {
     //delete is used to delete the feature from modified table if the user has drawned that feature by himself
     pool.query(
-      `DELETE FROM ${request.body.layer_name}_modified WHERE id=($1)`,
+      `DELETE FROM ${request.body.layer_name}_modified WHERE user_id=($1)`,
       [request.body.drawned_fid],
       returnResult
     );
     //*later we can require guid (unique id) for security here, for the user to be able to delete the feature and use a nodejs library to prevent sql incjection attacks*//
   } else if (mode == "insert") {
-    console.log(request.body.id);
     pool.query(
-      "INSERT INTO user_data (id) VALUES ($1)",
-      [request.body.id],
+      "INSERT INTO user_data (user_id, layer_name) VALUES ($1,$2)",
+      [request.body.user_id, request.body.layer_name],
       returnResult
     );
   }
@@ -204,8 +207,8 @@ app.post(
 );
 
 // respond with "pong" when a GET request is made to /ping (HEALTHCHECK)
-app.get('/ping', function (_req, res) {
-  res.send('pong');
+app.get("/ping", function(_req, res) {
+  res.send("pong");
 });
 
 module.exports = app;
