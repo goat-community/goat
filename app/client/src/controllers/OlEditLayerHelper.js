@@ -173,7 +173,7 @@ const editLayerHelper = {
       method: "POST",
       body: JSON.stringify({
         mode: mode,
-        id: generatedId,
+        user_id: generatedId,
         layer_name: layerName
       }),
       headers: {
