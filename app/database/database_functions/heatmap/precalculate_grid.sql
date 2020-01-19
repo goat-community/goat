@@ -1,6 +1,6 @@
 DROP FUNCTION IF EXISTS precalculate_grid;
 CREATE OR REPLACE FUNCTION public.precalculate_grid(userid_input integer, grid text, minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, objectids int[], modus_input integer,routing_profile text)
-RETURNS SETOF type_catchment_vertices
+RETURNS SETOF type_catchment_vertices_single
  LANGUAGE plpgsql
 AS $function$
 DECLARE 

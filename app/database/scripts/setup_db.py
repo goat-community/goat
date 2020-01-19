@@ -117,6 +117,8 @@ def setup_db(setup_type):
             elif(source_population == 'disaggregation'):
                 db_temp.execute_script_psql('../data_preparation/SQL/buildings_residential.sql')
                 db_temp.execute_script_psql('../data_preparation/SQL/population_disagregation.sql')
+            elif(source_population == 'distribution'):
+                db_temp.execute_script_psql('../data_preparation/SQL/population_distribution.sql')
 
     if (setup_type in ['new_setup','all','network']):
         os.system('PGPASSFILE=/.pgpass osm2pgrouting --dbname %s --host %s --username %s --file "study_area.osm" --conf ../mapconfig.xml --clean' % (db_name_temp,host,user)) 
@@ -125,8 +127,7 @@ def setup_db(setup_type):
             db_temp.execute_script_psql('../data_preparation/SQL/layer_preparation.sql')
 
 
-    if (setup_type == 'new_setup'):
-        
+    if (setup_type == 'new_setup'):    
         #Create pgpass for goat-database
         ReadYAML().create_pgpass('')  
         os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name)
