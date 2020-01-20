@@ -32,7 +32,10 @@
         row
       >
         <v-radio :label="$t('isochrones.single.type')" value="single"></v-radio>
-        <v-radio :label="$t('isochrones.multiple.type')" value="multiple"></v-radio>
+        <v-radio
+          :label="$t('isochrones.multiple.type')"
+          value="multiple"
+        ></v-radio>
       </v-radio-group>
     </v-card-text>
   </v-flex>
