@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: postgres
+  name: ${NAMESPACE}
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: postgres-config
-  namespace: postgres
+  namespace: ${NAMESPACE}
   labels:
     app: postgres
 data:
@@ -19,7 +19,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pv-claim
-  namespace: postgres
+  namespace: ${NAMESPACE}
   labels:
     app: postgres
 spec:
@@ -34,7 +34,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
-  namespace: postgres
+  namespace: ${NAMESPACE}
   labels:
     app: postgres
 spec:
@@ -51,10 +51,10 @@ spec:
         - name: postgres
           image: ${POSTGIS_DOCKER_IMAGE}
           imagePullPolicy: "IfNotPresent"
-          lifecycle:
-            postStart:
-              exec:
-                command: ["/bin/sh", "-c", "python3", "/opt/setup_goat.py", "-t", "new_setup"]
+          # lifecycle:
+          #   postStart:
+          #     exec:
+          #       command: ["/bin/sh", "-c", "python3", "/opt/setup_goat.py", "-t", "new_setup"]
           ports:
             - containerPort: 5432
           envFrom:
@@ -80,7 +80,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: postgres
+  namespace: ${NAMESPACE}
   labels:
     app: postgres
 spec:
@@ -94,11 +94,11 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: goat-config
-  namespace: postgres
+  namespace: ${NAMESPACE}
 data:
   goat_config.yaml: |
     DATABASE:
-      HOST: \"postgres.postgres.svc.cluster.local\"
+      HOST: \"postgres.${NAMESPACE}.svc.cluster.local\"
       PORT: 5432
       DB_NAME: \"${POSTGRES_DB}\"
       USER: \"${POSTGRES_USER}\"

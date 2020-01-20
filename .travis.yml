@@ -8,6 +8,7 @@ branches:
     - master
     - development
     - test_travis
+    - multiple_deployments
 before_script:
   - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
   - make setup-kube-config
@@ -18,12 +19,20 @@ script:
   - make release-docker-image -e COMPONENT=geoserver
   - make release-docker-image -e COMPONENT=print
   - make release-docker-image -e COMPONENT=mapproxy
+  # deploy to development
   - make deploy-postgres-server
   - make deploy -e COMPONENT=api
   - make deploy -e COMPONENT=client
   - make deploy -e COMPONENT=geoserver
   - make deploy -e COMPONENT=print
   - make deploy -e COMPONENT=mapproxy
+  # deploy to beta
+  - make deploy-postgres-server -e NAMESPACE=beta -e DOMAIN=beta.open-accessibility.org
+  - make deploy -e COMPONENT=api -e NAMESPACE=beta -e DOMAIN=beta.open-accessibility.org
+  - make deploy -e COMPONENT=client -e NAMESPACE=beta -e DOMAIN=beta.open-accessibility.org
+  - make deploy -e COMPONENT=geoserver -e NAMESPACE=beta -e DOMAIN=beta.open-accessibility.org
+  - make deploy -e COMPONENT=print -e NAMESPACE=beta -e DOMAIN=beta.open-accessibility.org
+  - make deploy -e COMPONENT=mapproxy -e NAMESPACE=beta -e DOMAIN=beta.open-accessibility.org
 after_success:
   - make after-success
 notifications:

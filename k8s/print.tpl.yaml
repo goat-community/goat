@@ -30,13 +30,6 @@ spec:
         name: goat-print
         ports:
         - containerPort: 8080
-        resources:
-          requests:
-            memory: 256Mi
-            cpu: 200m
-          limits:
-            memory: 512Mi
-            cpu: 300m
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
