@@ -40,7 +40,6 @@ export default {
       if (color && feature) {
         feature.set("color", color);
       }
-      console.log(feature);
     }
   },
   watch: {
