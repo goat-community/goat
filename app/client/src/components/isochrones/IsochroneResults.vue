@@ -275,7 +275,6 @@ export default {
       this.selectedCalculation = calculation;
     },
     toggleColorPickerDialog(item) {
-      console.log(item);
       this.isochroneColorPickerState = true;
       this.isochroneItem = item;
     },
