@@ -110,6 +110,7 @@ CREATE TABLE public.pois_modified (
 	geom geometry(POINT, 4326) NULL,
 	userid int4 NULL,
 	original_id int4 NULL,
+	wheelchair text,
 	CONSTRAINT pois_modified_id_pkey PRIMARY KEY (id)
 );
 
