@@ -45,14 +45,9 @@
 	FROM convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;) AS amenity&#xd;
 )&#xd;
 SELECT *,concat(amenity,&apos;_&apos;,status) AS amenity_icon&#xd;
-FROM pois_visualization((SELECT amenity FROM am), %routing_profile%, %d%,%h%,%m%)
+FROM pois_visualization(%userid%,(SELECT amenity FROM am), %routing_profile%, %d%,%h%,%m%)
 </sql>
         <escapeSql>false</escapeSql>
-        <geometry>
-          <name>geom</name>
-          <type>Geometry</type>
-          <srid>4326</srid>
-        </geometry>
         <parameter>
           <name>amenities</name>
           <defaultValue>&apos;cmVzdGF1cmFudCxzdXBlcm1hcmtldA==&apos;</defaultValue>
@@ -68,6 +63,10 @@ FROM pois_visualization((SELECT amenity FROM am), %routing_profile%, %d%,%h%,%m%
         <parameter>
           <name>h</name>
           <defaultValue>9999</defaultValue>
+        </parameter>
+        <parameter>
+          <name>userid</name>
+          <defaultValue>1</defaultValue>
         </parameter>
         <parameter>
           <name>m</name>

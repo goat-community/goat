@@ -30,7 +30,7 @@ services:
 
   client:
     build:
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       context: ./app/client
     image: goat-client
     volumes:
@@ -41,7 +41,7 @@ services:
       - "traefik.backend=client"
       - "traefik.frontend.entryPoints=https,http"
       - "traefik.frontend.rule=Host:localhost;"
-      - "traefik.port=80"
+      - "traefik.port=5000"
       - "traefik.enable=true"
     networks:
       proxy:

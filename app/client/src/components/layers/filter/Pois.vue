@@ -144,6 +144,7 @@ export default {
     ...mapActions("isochrones", {
       countStudyAreaPois: "countStudyAreaPois"
     }),
+
     getPoisIconUrl(item) {
       const images = require.context(
         "../../../assets/img/pois/",
@@ -215,9 +216,9 @@ export default {
         if (this.timeBasedCalculations === "yes") {
           params += `d:${me.getSelectedDay};h:${me.getSelectedHour};m:${me.getSelectedMinutes};`;
         }
-
+        console.log(me.userId);
         me.poisLayer.getSource().updateParams({
-          viewparams: params
+          viewparams: `userid:${me.userId};${params}`
         });
       }
     },
@@ -303,6 +304,9 @@ export default {
       timeFilter: "timeFilter",
       disabledPoisOnTimeFilter: "disabledPoisOnTimeFilter",
       disabledPoisOnRoutingProfile: "disabledPoisOnRoutingProfile"
+    }),
+    ...mapGetters("user", {
+      userId: "userId"
     }),
     ...mapGetters("isochrones", {
       options: "options"
