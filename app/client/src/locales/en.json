@@ -190,6 +190,7 @@
       "hideResultsTooltip": "Hide Results",
       "downloadTooltip": "Download",
       "deleteCalcTooltip": "Delete Calculation",
+      "changeColorTooltip": "Click to change color",
       "table": {
         "type": "Type",
         "range": "Range",
@@ -224,6 +225,9 @@
     "additionalLayers": {
       "defaultNetwork": "Default Road Network",
       "inputNetwork": "Input Road Network"
+    },
+    "pickColor": {
+      "title": "Isochrone Color"
     }
   },
   "poisFilter": {

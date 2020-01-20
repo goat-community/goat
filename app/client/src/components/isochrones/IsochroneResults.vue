@@ -181,10 +181,19 @@
                   ></v-switch>
                 </template>
                 <template v-slot:item.legend="{ item }">
-                  <div
-                    class="legend"
-                    :style="{ backgroundColor: item.color }"
-                  ></div>
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <div
+                        class="legend"
+                        @click="toggleColorPickerDialog(item)"
+                        v-on="on"
+                        :style="{ backgroundColor: item.color }"
+                      ></div
+                    ></template>
+                    <span>
+                      {{ $t("isochrones.results.changeColorTooltip") }}
+                    </span>
+                  </v-tooltip>
                 </template>
               </v-data-table>
             </v-card-text>
@@ -192,6 +201,7 @@
         </template>
       </v-flex>
       <confirm ref="confirm"></confirm>
+      <!-- DIALOG BOXES FOR ISOCHRONE RESULTS -->
       <download
         :visible="downloadDialogState"
         :calculation="selectedCalculation"
@@ -202,6 +212,11 @@
         :calculation="selectedCalculation"
         @close="additionalLayersDialogState = false"
       ></additional-layers>
+      <isochrone-color-picker
+        :visible="isochroneColorPickerState"
+        :isochroneItem="isochroneItem"
+        @close="isochroneColorPickerState = false"
+      ></isochrone-color-picker>
     </v-layout>
   </v-flex>
 </template>
@@ -211,18 +226,22 @@ import Confirm from "../core/Confirm";
 import Download from "./IsochronesDownload";
 import AdditionalLayers from "./IsochronesAdditionalLayers";
 import IsochroneUtils from "../../utils/IsochroneUtils";
+import IsochroneColorPicker from "./IsochroneColorPicker";
 
 export default {
   components: {
     confirm: Confirm,
     download: Download,
-    additionalLayers: AdditionalLayers
+    additionalLayers: AdditionalLayers,
+    IsochroneColorPicker
   },
   data() {
     return {
       downloadDialogState: false,
       additionalLayersDialogState: false,
+      isochroneColorPickerState: false,
       selectedCalculation: null,
+      isochroneItem: null,
       isResultsElVisible: true
     };
   },
@@ -254,6 +273,11 @@ export default {
     toggleDownloadDialog(calculation) {
       this.downloadDialogState = true;
       this.selectedCalculation = calculation;
+    },
+    toggleColorPickerDialog(item) {
+      console.log(item);
+      this.isochroneColorPickerState = true;
+      this.isochroneItem = item;
     },
     showHideCalculation(calculation) {
       const me = this;
@@ -363,6 +387,7 @@ export default {
 .legend {
   height: 24px;
   border-radius: 7px;
+  cursor: pointer;
 }
 .activeIcon {
   color: #30c2ff;
