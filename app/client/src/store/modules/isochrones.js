@@ -242,15 +242,12 @@ const actions = {
       const reverseGeocode = await http.get(
         `${process.env.VUE_APP_SEARCH_URL}reverse.php?key=${process.env.VUE_APP_SEARCH_KEY}&lat=${isochroneStartingPoint[1]}&lon=${isochroneStartingPoint[0]}&format=json`
       );
-      if (reverseGeocode.status === 200 && reverseGeocode.data.address.road) {
-        const address = reverseGeocode.data.address;
-        let road = address.road;
-        if (address.neighbourhood) {
-          road += `, ${address.neighbourhood}`;
-        }
+      if (reverseGeocode.status === 200 && reverseGeocode.data.display_name) {
+        const address = reverseGeocode.data.display_name;
 
-        const DisplayName = road.length > 30 ? road.slice(0, 30) + "..." : road;
-        if (road.length > 0) {
+        const DisplayName =
+          address.length > 30 ? address.slice(0, 30) + "..." : address;
+        if (address.length > 0) {
           transformedData.position = DisplayName;
         }
       }
