@@ -154,3 +154,199 @@ FROM x;
 
 
 
+--- Use alternative split_long_way() approach
+
+CREATE OR REPLACE FUNCTION public.split_long_way2(geom geometry, length_m numeric, max_length integer)
+ RETURNS geometry[]
+ LANGUAGE plpgsql
+ IMMUTABLE
+AS $function$
+DECLARE 
+	fraction NUMERIC;
+	end_border NUMERIC :=0;
+	start_border NUMERIC;
+	retval geometry[] = array[]::geometry[];
+BEGIN 
+	fraction = 1/ceil(length_m/max_length);
+	WHILE end_border < 1 LOOP 
+		start_border = round(end_border,5);
+		end_border = round(end_border+fraction,5);
+		retval = array_append(retval,ST_LineInterpolatePoint(geom, start_border)); 
+		IF end_border >= 1 THEN 
+			end_border = 1;
+			retval = array_append(retval,ST_EndPoint(geom));
+			exit;
+		END IF;
+		
+	END LOOP; 
+	RETURN retval;
+	
+END;
+$function$
+
+-- GROUP BY version 
+CREATE OR REPLACE FUNCTION public.compute_ways_slope_profile2(table_update boolean)
+ RETURNS SETOF jsonb[]
+ LANGUAGE plpgsql
+AS $function$
+BEGIN	
+	
+	IF NOT EXISTS(SELECT relname FROM pg_class WHERE relname='w_split_multi2') THEN
+		CREATE TEMP TABLE IF NOT EXISTS w_split_multi2(id integer primary key, wid integer, length_m numeric, geom geometry[]); 
+		CREATE INDEX IF NOT EXISTS idx_w_split_multi2_wid ON w_split_multi2 USING btree(wid);
+	else 
+		TRUNCATE w_split_multi2;
+	end if;
+
+	EXECUTE format(
+		'INSERT INTO w_split_multi2
+		WITH x as (
+			SELECT id as wid, length_m::numeric, split_long_way2(geom,length_m::numeric,30) AS geom 	
+			FROM ways 
+			WHERE class_id::text NOT IN(SELECT UNNEST(select_from_variable_container(''excluded_class_id_cycling'')))
+			AND length_m >= (SELECT select_from_variable_container_s(''resolution_dem'')::integer)
+		)
+		SELECT ROW_NUMBER() OVER() AS id, wid, length_m, geom
+		FROM x	'	
+	);	
+	
+	RETURN query
+	WITH 
+	w_unnested as (
+		select row_number() over (order by w.wid) as rnum, 
+		w.wid, length_m AS original_length, 
+		point as start,lead(point) over (partition by wid) as end
+		FROM w_split_multi2 w, unnest(w.geom) point
+	),
+	es AS (
+		SELECT w.rnum, w.wid, w.start, d.val e_start, st_distance(w.start::geography,w.end::geography ) as length_m
+		FROM w_unnested w, dem_vec d 
+		WHERE ST_Contains(d.geom, w.start) and w.end is not null
+	),
+	ee AS (
+		SELECT w.rnum, w.wid, w.original_length, w.end, d.val e_end
+		FROM w_unnested w, dem_vec d 
+		WHERE ST_Contains(d.geom, w.end) and w.end is not null
+	),
+	split_slope AS (
+		SELECT es.wid, es.start, ee.end, ee.original_length,es.length_m, 
+		(es.e_start-ee.e_end)/es.length_m AS slope,
+		slope_impedance((100*(es.e_start-ee.e_end)/es.length_m)::NUMERIC) AS s_imp
+		FROM es,ee
+		WHERE es.rnum = ee.rnum
+	),
+	x AS (
+		SELECT array_agg(jsonb_build_object('start',s.start,'end',s.end,'length',length_m,'slope',slope,'imp',s_imp)) slope_profile,
+		SUM((length_m/original_length)*s_imp[1])::NUMERIC s_imp,
+		SUM((length_m/original_length)*s_imp[2])::NUMERIC rs_imp,
+		wid
+		FROM split_slope s
+		group by wid
+	)
+	SELECT jsonb_build_object('s_imp',s_imp,'rs_imp',rs_imp,'id',x.wid) || slope_profile 
+	FROM x;
+END;
+$function$
+;
+drop table temp_slopes;
+CREATE TEMP TABLE temp_slopes AS
+WITH x AS (
+SELECT compute_ways_slope_profile2(TRUE) AS slope_json
+)
+SELECT (slope_json[1] ->> 'id') AS id, (slope_json[1] ->> 's_imp') AS s_imp, (slope_json[1] ->> 'rs_imp') AS rs_imp, slope_json[2:] AS slope_profile
+FROM x;
+
+	
+-- cursor version
+CREATE OR REPLACE FUNCTION public.compute_ways_slope_profile3(table_update boolean)
+ RETURNS SETOF jsonb[]
+ LANGUAGE plpgsql
+AS $function$
+declare 
+cur refcursor;
+rec record;
+way_id integer;
+retval jsonb[];
+BEGIN	
+	
+	IF NOT EXISTS(SELECT relname FROM pg_class WHERE relname='w_split_multi3') THEN
+		CREATE TEMP TABLE IF NOT EXISTS w_split_multi3(id integer primary key, wid integer, length_m numeric, geom geometry[]); 
+		CREATE INDEX IF NOT EXISTS idx_w_split_multi3_wid ON w_split_multi3 USING btree(wid);
+	else 
+		TRUNCATE w_split_multi3;
+	end if;
+
+	EXECUTE format(
+		'INSERT INTO w_split_multi3
+		WITH x as (
+			SELECT id as wid, length_m::numeric, split_long_way2(geom,length_m::numeric,30) AS geom 	
+			FROM ways 
+			WHERE class_id::text NOT IN(SELECT UNNEST(select_from_variable_container(''excluded_class_id_cycling'')))
+			AND length_m >= (SELECT select_from_variable_container_s(''resolution_dem'')::integer)
+		)
+		SELECT ROW_NUMBER() OVER() AS id, wid, length_m, geom
+		FROM x	'	
+	);	
+	
+	open cur for
+	select wid from w_split_multi3;
+
+	
+	loop 
+		fetch cur into way_id;
+		EXIT WHEN NOT FOUND;
+		
+	
+		WITH 
+		w_unnested as (
+			select row_number() over () as rnum, 
+			w.wid, length_m AS original_length, 
+			point as start,lead(point) over () as end
+			FROM w_split_multi3 w, unnest(w.geom) point
+			where w.wid = way_id
+		),
+		es AS (
+			SELECT w.rnum, w.wid, w.start, d.val e_start, st_distance(w.start::geography,w.end::geography ) as length_m
+			FROM w_unnested w, dem_vec d 
+			WHERE ST_Contains(d.geom, w.start) and w.end is not null
+		),
+		ee AS (
+			SELECT w.rnum, w.wid, w.original_length, w.end, d.val e_end
+			FROM w_unnested w, dem_vec d 
+			WHERE ST_Contains(d.geom, w.end) and w.end is not null
+		),
+		split_slope AS (
+			SELECT es.wid, es.start, ee.end, ee.original_length,es.length_m, 
+			(es.e_start-ee.e_end)/es.length_m AS slope,
+			slope_impedance((100*(es.e_start-ee.e_end)/es.length_m)::NUMERIC) AS s_imp
+			FROM es,ee
+			WHERE es.rnum = ee.rnum
+		),
+		x AS (
+			SELECT array_agg(jsonb_build_object('start',s.start,'end',s.end,'length',length_m,'slope',slope,'imp',s_imp)) slope_profile,
+			SUM((length_m/original_length)*s_imp[1])::NUMERIC s_imp,
+			SUM((length_m/original_length)*s_imp[2])::NUMERIC rs_imp,
+			wid
+			FROM split_slope s
+			group by wid
+		)
+		SELECT jsonb_build_object('s_imp',s_imp,'rs_imp',rs_imp,'id',x.wid) || slope_profile 
+		into retval
+		FROM x;
+		
+		return next retval;
+
+	end loop;
+END;
+$function$
+;
+
+drop table temp_slopes;
+CREATE TEMP TABLE temp_slopes AS
+WITH x AS (
+SELECT compute_ways_slope_profile3(TRUE) AS slope_json
+)
+SELECT (slope_json[1] ->> 'id') AS id, (slope_json[1] ->> 's_imp') AS s_imp, (slope_json[1] ->> 'rs_imp') AS rs_imp, slope_json[2:] AS slope_profile
+FROM x;
+
+	
