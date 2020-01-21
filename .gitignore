@@ -25,3 +25,4 @@ k8s/print.yaml
 k8s/mapproxy.yaml
 k8s/database.yaml
 .env
+/.vscode
