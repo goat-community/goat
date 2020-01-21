@@ -16,7 +16,7 @@
       >
         <v-img
           :src="
-            require(`../../assets/img/background-layers/${item.get(
+            require(`../../../../assets/img/background-layers/${item.get(
               'name'
             )}.png`)
           "
@@ -42,7 +42,7 @@
       >
         <v-img
           :src="
-            require(`../../assets/img/background-layers/${item.get(
+            require(`../../../../assets/img/background-layers/${item.get(
               'name'
             )}.png`)
           "
@@ -62,10 +62,11 @@
 </template>
 
 <script>
-import { Mapable } from "../../mixins/Mapable";
+import { Mapable } from "../../../../mixins/Mapable";
 import { Group } from "ol/layer.js";
 export default {
   mixins: [Mapable],
+  name: "background-switcher",
   data: () => ({
     backgroundLayers: []
   }),
