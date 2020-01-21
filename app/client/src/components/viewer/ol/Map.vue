@@ -1,106 +1,118 @@
 <template>
-  <!-- Popup overlay  -->
-  <overlay-popup :title="popup.title" v-show="popup.isVisible" ref="popup">
-    <v-btn icon>
-      <v-icon>close</v-icon>
-    </v-btn>
-    <template v-slot:close>
-      <template v-if="getInfoResult.length > 1">
-        <span
-          >({{ popup.currentLayerIndex + 1 }} of
-          {{ getInfoResult.length }})</span
-        >
-        <v-icon
-          :disabled="popup.currentLayerIndex === 0"
-          style="cursor:pointer;"
-          @click="popup.currentLayerIndex -= 1"
-          >chevron_left</v-icon
-        >
-        <v-icon
-          :disabled="popup.currentLayerIndex === getInfoResult.length - 1"
-          style="cursor:pointer;"
-          @click="popup.currentLayerIndex += 1"
-          >chevron_right</v-icon
-        >
-      </template>
-      <v-btn @click="closePopup()" icon>
+  <div id="ol-map-container">
+    <!-- Map Controls -->
+    <zoom-control :map="map" />
+
+    <progress-status :isNetworkBusy="isNetworkBusy" />
+    <background-switcher />
+    <map-legend />
+    <!-- Popup overlay  -->
+    <overlay-popup :title="popup.title" v-show="popup.isVisible" ref="popup">
+      <v-btn icon>
         <v-icon>close</v-icon>
       </v-btn>
-    </template>
-    <template v-slot:body>
-      <div class="subtitle-2 mb-4 font-weight-bold">
-        {{
-          getInfoResult[popup.currentLayerIndex]
-            ? getInfoResult[popup.currentLayerIndex].get("layerName")
-            : ""
-        }}
-      </div>
+      <template v-slot:close>
+        <template v-if="getInfoResult.length > 1">
+          <span
+            >({{ popup.currentLayerIndex + 1 }} of
+            {{ getInfoResult.length }})</span
+          >
+          <v-icon
+            :disabled="popup.currentLayerIndex === 0"
+            style="cursor:pointer;"
+            @click="popup.currentLayerIndex -= 1"
+            >chevron_left</v-icon
+          >
+          <v-icon
+            :disabled="popup.currentLayerIndex === getInfoResult.length - 1"
+            style="cursor:pointer;"
+            @click="popup.currentLayerIndex += 1"
+            >chevron_right</v-icon
+          >
+        </template>
+        <v-btn @click="closePopup()" icon>
+          <v-icon>close</v-icon>
+        </v-btn>
+      </template>
+      <template v-slot:body>
+        <div class="subtitle-2 mb-4 font-weight-bold">
+          {{
+            getInfoResult[popup.currentLayerIndex]
+              ? getInfoResult[popup.currentLayerIndex].get("layerName")
+              : ""
+          }}
+        </div>
 
-      <v-divider></v-divider>
-      <span v-html="popup.rawHtml"></span>
-      <div style="height:190px;">
-        <vue-scroll>
-          <v-simple-table dense class="pr-2">
-            <template v-slot:default>
-              <tbody>
-                <tr v-for="item in currentInfo" :key="item.property">
-                  <td>{{ item.property }}</td>
-                  <td>{{ item.value }}</td>
-                </tr>
-              </tbody>
-            </template>
-          </v-simple-table>
-        </vue-scroll>
-      </div>
+        <v-divider></v-divider>
+        <span v-html="popup.rawHtml"></span>
+        <div style="height:190px;">
+          <vue-scroll>
+            <v-simple-table dense class="pr-2">
+              <template v-slot:default>
+                <tbody>
+                  <tr v-for="item in currentInfo" :key="item.property">
+                    <td>{{ item.property }}</td>
+                    <td>{{ item.value }}</td>
+                  </tr>
+                </tbody>
+              </template>
+            </v-simple-table>
+          </vue-scroll>
+        </div>
 
-      <v-divider></v-divider>
-    </template>
-  </overlay-popup>
+        <v-divider></v-divider>
+      </template>
+    </overlay-popup>
+  </div>
 </template>
 
 <script>
-// helper function to detect a CSS color
-// Taken from Vuetify sources
-// https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/mixins/colorable.ts
-function isCssColor(color) {
-  return !!color && !!color.match(/^(#|(rgb|hsl)a?\()/);
-}
-
 import Vue from "vue";
 import Map from "ol/Map";
 import View from "ol/View";
+
+// ol imports
 import { defaults as defaultInteractions } from "ol/interaction";
 import Overlay from "ol/Overlay";
-
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
-import OlStyleDefs from "../../style/OlStyleDefs";
+
+// style imports
+import OlStyleDefs from "../../../style/OlStyleDefs";
+
 // import the app-wide EventBus
-import { EventBus } from "../../EventBus";
-import { LayerFactory } from "../../factory/layer.js";
+import { EventBus } from "../../../EventBus";
 
-import { mapGetters } from "vuex";
-import { groupBy, humanize } from "../../utils/Helpers";
-import { getAllChildLayers, getLayerType } from "../../utils/Layer";
-import { geojsonToFeature } from "../../utils/MapUtils";
+// utils imports
+import { LayerFactory } from "../../../factory/layer.js";
+import { groupBy, humanize, isCssColor } from "../../../utils/Helpers";
+import { getAllChildLayers, getLayerType } from "../../../utils/Layer";
+import { geojsonToFeature } from "../../../utils/MapUtils";
 import { Group as LayerGroup } from "ol/layer.js";
-
-import http from "../../services/http";
+import http from "../../../services/http";
 import axios from "axios";
-
-import OverlayPopup from "./Overlay";
 
 //Store imports
 import { mapMutations } from "vuex";
+import { mapGetters } from "vuex";
+
+//Map Controls
+import OverlayPopup from "./controls/Overlay";
+import MapLoadingProgressStatus from "./controls/MapLoadingProgressStatus";
+import Legend from "./controls/Legend";
+import BackgroundSwitcher from "./controls/BackgroundSwitcher";
+import ZoomControl from "./controls/ZoomControl";
+import { defaults as defaultControls, Attribution } from "ol/control";
 
 export default {
   components: {
-    "overlay-popup": OverlayPopup
+    "overlay-popup": OverlayPopup,
+    "progress-status": MapLoadingProgressStatus,
+    "map-legend": Legend,
+    "background-switcher": BackgroundSwitcher,
+    "zoom-control": ZoomControl
   },
-  name: "app-map",
-  props: {
-    color: { type: String, required: false, default: "green darken-3" }
-  },
+  name: "app-ol-map",
   data() {
     return {
       zoom: this.$appConfig.map.zoom,
@@ -108,6 +120,7 @@ export default {
       minZoom: this.$appConfig.map.minZoom,
       maxZoom: this.$appConfig.map.maxZoom,
       extent: this.$appConfig.map.extent, // Extent is fetched dynamically from the study area
+      color: this.$appConfig.controlsColor,
       allLayers: [],
       queryableLayers: [],
       activeInteractions: [],
@@ -152,9 +165,15 @@ export default {
       altShiftDragRotate: me.rotateableMap
     });
 
+    const attribution = new Attribution({
+      collapsible: true
+    });
     me.map = new Map({
       layers: [],
       interactions: interactions,
+      controls: defaultControls({ attribution: false, zoom: false }).extend([
+        attribution
+      ]),
       view: new View({
         center: me.center || [0, 0],
         zoom: me.zoom,
@@ -272,23 +291,24 @@ export default {
 
       if (isCssColor(me.color)) {
         // directly apply the given CSS color
-        if (document.querySelector(".ol-zoom")) {
-          document.querySelector(".ol-zoom .ol-zoom-in").style.backgroundColor =
-            me.color;
-          document.querySelector(
-            ".ol-zoom .ol-zoom-out"
-          ).style.backgroundColor = me.color;
-        }
-        if (document.querySelector(".ol-rotate")) {
-          document.querySelector(
+        const rotateEl = document.querySelector(".ol-rotate");
+        if (rotateEl) {
+          rotateEl.className += " elevation-5";
+          rotateEl.borderRadius = "40px";
+          const rotateElStyle = document.querySelector(
             ".ol-rotate .ol-rotate-reset"
-          ).style.backgroundColor = me.color;
+          ).style;
+          rotateElStyle.backgroundColor = me.color;
+          rotateElStyle.borderRadius = "40px";
         }
-
-        if (document.querySelector(".ol-attribution")) {
-          document.querySelector(
+        const attrEl = document.querySelector(".ol-attribution");
+        if (attrEl) {
+          attrEl.className += " elevation-5";
+          const elStyle = document.querySelector(
             ".ol-attribution button[type='button']"
-          ).style.backgroundColor = me.color;
+          ).style;
+          elStyle.backgroundColor = me.color;
+          elStyle.borderRadius = "40px";
         }
       } else {
         // apply vuetify color by transforming the color to the corresponding
@@ -297,20 +317,7 @@ export default {
           .toString()
           .trim()
           .split(" ", 2);
-        if (document.querySelector(".ol-zoom")) {
-          document
-            .querySelector(".ol-zoom .ol-zoom-in")
-            .classList.add(colorName);
-          document
-            .querySelector(".ol-zoom .ol-zoom-in")
-            .classList.add(colorModifier);
-          document
-            .querySelector(".ol-zoom .ol-zoom-out")
-            .classList.add(colorName);
-          document
-            .querySelector(".ol-zoom .ol-zoom-out")
-            .classList.add(colorModifier);
-        }
+
         if (document.querySelector(".ol-rotate")) {
           document
             .querySelector(".ol-rotate .ol-rotate-reset")
@@ -455,6 +462,7 @@ export default {
       helpTooltip: "helpTooltip",
       currentMessage: "currentMessage"
     }),
+    ...mapGetters("loader", { isNetworkBusy: "isNetworkBusy" }),
     currentInfo() {
       const feature = this.getInfoResult[this.popup.currentLayerIndex];
       if (!feature) return;
@@ -486,15 +494,18 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
-div.ol-zoom {
-  top: auto;
-  left: auto;
-  top: 1em;
-  left: 1em;
+div.ol-attribution {
+  bottom: 4px;
+  border-radius: 40px;
 }
 
-div.ol-attribution {
-  bottom: 0px;
+div.ol-control {
+  padding: 0px;
+  border-radius: 40px;
+}
+
+div.ol-control button {
+  margin: 0px !important;
 }
 
 /* Hover tooltip */
@@ -509,5 +520,14 @@ div.ol-attribution {
   /* Position the hover tooltip */
   position: absolute;
   z-index: 1;
+}
+
+.ol-attribution ul {
+  margin: 0;
+  padding: 0 0.5em;
+  font-size: 0.7rem;
+  line-height: 1.375em;
+  color: #000;
+  text-shadow: 0 0 2px #fff;
 }
 </style>
