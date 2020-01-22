@@ -11,7 +11,7 @@ branches:
     - test_travis
 stages:
   - name: build
-    if: fork = false
+    if: type = pull_request
   - name: release
     if: type = push AND fork = false
   - name: development-deploy

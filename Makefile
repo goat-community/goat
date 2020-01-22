@@ -83,7 +83,7 @@ build-docker-image: app/$(COMPONENT)/Dockerfile
 
 # target: make release-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
 .PHONY: release-docker-image
-release-docker-image: docker-login
+release-docker-image: docker-login build-docker-image
 	$(DOCKER) push $(DOCKER_IMAGE)
 
 # target: make build-database-docker-image -e VERSION=some_git_sha_comit
