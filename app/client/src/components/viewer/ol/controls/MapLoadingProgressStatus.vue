@@ -9,11 +9,10 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
-
 export default {
-  computed: {
-    ...mapGetters("loader", { isNetworkBusy: "isNetworkBusy" })
+  name: "progress-status",
+  props: {
+    isNetworkBusy: { type: Boolean, required: true }
   }
 };
 </script>

@@ -175,7 +175,10 @@
       "defaultNetwork": "Default Network",
       "modifiedNetwork": "Modified Network",
       "modifiedNetworkDoubleCalc": "Modified Network (Double Calculation)",
-      "routingProfile": "Routing Profile"
+      "routingProfile": "Routing Profile",
+      "walking_standard": "Standard",
+      "walking_elderly": "Elderly",
+      "walking_wheelchair": "Wheelchair"
     },
     "results": {
       "title": "Results",
@@ -183,8 +186,11 @@
       "additionalLayers": "Additional Layers",
       "showDataTooltip": "Show Data",
       "toggleVisibilityTooltip": "Toggle Visibility",
+      "showResultsTooltip": "Show Results",
+      "hideResultsTooltip": "Hide Results",
       "downloadTooltip": "Download",
       "deleteCalcTooltip": "Delete Calculation",
+      "changeColorTooltip": "Click to change color",
       "table": {
         "type": "Type",
         "range": "Range",
@@ -219,6 +225,9 @@
     "additionalLayers": {
       "defaultNetwork": "Default Road Network",
       "inputNetwork": "Input Road Network"
+    },
+    "pickColor": {
+      "title": "Isochrone Color"
     }
   },
   "poisFilter": {

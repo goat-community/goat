@@ -136,9 +136,6 @@
 </template>
 
 <script>
-// import Swatches from "vue-swatches";
-//import "vue-swatches/dist/vue-swatches.min.css";
-
 import { EventBus } from "../../EventBus";
 import { Mapable } from "../../mixins/Mapable";
 import { InteractionsToggle } from "../../mixins/InteractionsToggle";
