@@ -85,7 +85,9 @@
                       ></v-icon>
                     </template>
                     <span>{{
-                      $t("isochrones.results.toggleVisibilityTooltip")
+                      calculation.isVisible
+                        ? $t("isochrones.results.hideResultsTooltip")
+                        : $t("isochrones.results.showResultsTooltip")
                     }}</span>
                   </v-tooltip>
 
@@ -124,7 +126,7 @@
               </v-card-text>
             </v-card-title>
             <v-subheader
-              class="clickable"
+              class="clickable subheader mt-1"
               @click="calculation.isExpanded = !calculation.isExpanded"
             >
               <v-icon
@@ -143,6 +145,19 @@
                     : calculation.position
                 }}
               </h3>
+            </v-subheader>
+            <v-subheader
+              @click="calculation.isExpanded = !calculation.isExpanded"
+              class="clickable subheader subtitle-2"
+            >
+              <span
+                >{{ $t("isochrones.options.routingProfile") }} :
+                {{
+                  $te(`isochrones.options.${calculation.routing_profile}`)
+                    ? $t(`isochrones.options.${calculation.routing_profile}`)
+                    : calculation.routing_profile
+                }}</span
+              >
             </v-subheader>
             <v-card-text class="pt-0 " v-show="calculation.isExpanded">
               <v-data-table
@@ -166,10 +181,19 @@
                   ></v-switch>
                 </template>
                 <template v-slot:item.legend="{ item }">
-                  <div
-                    class="legend"
-                    :style="{ backgroundColor: item.color }"
-                  ></div>
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <div
+                        class="legend"
+                        @click="toggleColorPickerDialog(item)"
+                        v-on="on"
+                        :style="{ backgroundColor: item.color }"
+                      ></div
+                    ></template>
+                    <span>
+                      {{ $t("isochrones.results.changeColorTooltip") }}
+                    </span>
+                  </v-tooltip>
                 </template>
               </v-data-table>
             </v-card-text>
@@ -177,6 +201,7 @@
         </template>
       </v-flex>
       <confirm ref="confirm"></confirm>
+      <!-- DIALOG BOXES FOR ISOCHRONE RESULTS -->
       <download
         :visible="downloadDialogState"
         :calculation="selectedCalculation"
@@ -187,6 +212,11 @@
         :calculation="selectedCalculation"
         @close="additionalLayersDialogState = false"
       ></additional-layers>
+      <isochrone-color-picker
+        :visible="isochroneColorPickerState"
+        :isochroneItem="isochroneItem"
+        @close="isochroneColorPickerState = false"
+      ></isochrone-color-picker>
     </v-layout>
   </v-flex>
 </template>
@@ -196,18 +226,22 @@ import Confirm from "../core/Confirm";
 import Download from "./IsochronesDownload";
 import AdditionalLayers from "./IsochronesAdditionalLayers";
 import IsochroneUtils from "../../utils/IsochroneUtils";
+import IsochroneColorPicker from "./IsochroneColorPicker";
 
 export default {
   components: {
     confirm: Confirm,
     download: Download,
-    additionalLayers: AdditionalLayers
+    additionalLayers: AdditionalLayers,
+    IsochroneColorPicker
   },
   data() {
     return {
       downloadDialogState: false,
       additionalLayersDialogState: false,
+      isochroneColorPickerState: false,
       selectedCalculation: null,
+      isochroneItem: null,
       isResultsElVisible: true
     };
   },
@@ -240,8 +274,26 @@ export default {
       this.downloadDialogState = true;
       this.selectedCalculation = calculation;
     },
+    toggleColorPickerDialog(item) {
+      this.isochroneColorPickerState = true;
+      this.isochroneItem = item;
+    },
     showHideCalculation(calculation) {
       const me = this;
+      //Check if road netowrk is visible. Is so remove all features from map.
+      const roadNetworkData = calculation.additionalData;
+      for (let type in roadNetworkData) {
+        // type can be 'Deafult' or 'Input'
+        const state = roadNetworkData[type].state;
+        if (state === true) {
+          roadNetworkData[type].state = false;
+          const roadNetworkSource = this.isochroneRoadNetworkLayer.getSource();
+          const features = roadNetworkData[type].features;
+          features.forEach(feature => {
+            roadNetworkSource.removeFeature(feature);
+          });
+        }
+      }
       me.toggleIsochroneCalculationVisibility(calculation);
     },
     showPoisTable(calculation) {
@@ -274,7 +326,8 @@ export default {
   computed: {
     ...mapGetters("isochrones", {
       calculations: "calculations",
-      isochroneLayer: "isochroneLayer"
+      isochroneLayer: "isochroneLayer",
+      isochroneRoadNetworkLayer: "isochroneRoadNetworkLayer"
     }),
     headers() {
       return [
@@ -333,6 +386,7 @@ export default {
 .legend {
   height: 24px;
   border-radius: 7px;
+  cursor: pointer;
 }
 .activeIcon {
   color: #30c2ff;
@@ -340,5 +394,9 @@ export default {
 .v-input--selection-controls {
   margin-top: 0px;
   padding-top: 0px;
+}
+
+.subheader {
+  height: 25px;
 }
 </style>
