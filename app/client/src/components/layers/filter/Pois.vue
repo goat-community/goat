@@ -216,7 +216,7 @@ export default {
         if (this.timeBasedCalculations === "yes") {
           params += `d:${me.getSelectedDay};h:${me.getSelectedHour};m:${me.getSelectedMinutes};`;
         }
-        console.log(me.userId);
+
         me.poisLayer.getSource().updateParams({
           viewparams: `userid:${me.userId};${params}`
         });
