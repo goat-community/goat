@@ -86,16 +86,6 @@ build-docker-image: app/$(COMPONENT)/Dockerfile
 release-docker-image: docker-login build-docker-image
 	$(DOCKER) push $(DOCKER_IMAGE)
 
-# target: make build-database-docker-image -e VERSION=some_git_sha_comit
-.PHONY: build-database-docker-image
-build-database-docker-image: app/database/Dockerfile
-	$(DOCKER) build -f app/database/Dockerfile --pull -t $(POSTGIS_DOCKER_IMAGE) app
-
-# target: make release-database-docker-image -e VERSION=some_git_sha_comit
-.PHONY: release-database-docker-image
-release-database-docker-image: docker-login build-database-docker-image
-	$(DOCKER) push $(POSTGIS_DOCKER_IMAGE)
-
 # target: make after-success
 .PHONY: after-success
 after-success:
