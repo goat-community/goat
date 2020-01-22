@@ -89,6 +89,7 @@ services:
     volumes:
       # we are mounting a named volume here instead of a data directory path because of
       # a windows 10 premission issue. See https://github.com/docker-library/postgres/issues/435)
+      # ....
       - postgres_data:/var/lib/postgresql
       - ./app/database:/opt
       - ./app/config:/opt/config
