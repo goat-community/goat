@@ -23,6 +23,7 @@ jobs:
   include:
     - stage: release
       script:
+        - make release-database-docker-image
         - make release-docker-image -e COMPONENT=client
         - make release-docker-image -e COMPONENT=api
         - make release-docker-image -e COMPONENT=geoserver

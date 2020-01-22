@@ -15,7 +15,7 @@ COMPONENT:=api
 VERSION?=$(shell git rev-parse HEAD)
 REGISTRY?=docker.io
 DOCKER_IMAGE?=$(REGISTRY)/$(PROJECT)/$(COMPONENT):$(VERSION)
-POSTGIS_DOCKER_IMAGE?=eliaspajares/goat-database:latest
+POSTGIS_DOCKER_IMAGE?=$(REGISTRY)/$(PROJECT)/postgis:$(VERSION)
 K8S_CLUSTER?=goat
 
 # Build and test directories
