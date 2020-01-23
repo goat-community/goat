@@ -21,6 +21,8 @@ jobs:
       if: type = pull_request
       env: COMPONENT=client
       name: "Build of Client"
+      before_script:
+        - app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}" || travis_terminate 0
       script:
         - make build-docker-image
     - <<: *build
@@ -35,6 +37,10 @@ jobs:
     - <<: *build
       env: COMPONENT=mapproxy
       name: "Build of Mapproxy"
+    - <<: *build
+      env: COMPONENT=database
+      name: "Build of Database"
+      script: make build-database-docker-image
 
     #RELEASE STAGE
     - &release
@@ -42,8 +48,9 @@ jobs:
       if: type = push AND fork = false
       env: COMPONENT=client
       name: "Release Client"
-      script:
+      before_script:
         - app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}" || travis_terminate 0
+      script:
         - make release-docker-image -e COMPONENT=$COMPONENT
     - <<: *release
       env: COMPONENT=api
@@ -57,17 +64,22 @@ jobs:
     - <<: *release
       env: COMPONENT=mapproxy
       name: "Release Mapproxy"
+    - <<: *release
+      env: COMPONENT=database
+      name: "Release Database"
+      script: make release-database-docker-image
 
-    #DEV DEPLOY STAGE
+    #DEVELOPMENT DEPLOY STAGE
     - &development-deploy
       stage: development-deploy
       if: branch = development AND type = push AND fork = false
       env: COMPONENT=client
       name: "Development Deploy of Client"
-      script:
+      before_script:
+        - app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}" || travis_terminate 0
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
         - make setup-kube-config
-        - make deploy-postgres-server
+      script:
         - make deploy -e COMPONENT=$COMPONENT
     - <<: *development-deploy
       env: COMPONENT=api
@@ -81,6 +93,10 @@ jobs:
     - <<: *development-deploy
       env: COMPONENT=mapproxy
       name: "Development Deploy of Mapproxy"
+    - <<: *development-deploy
+      env: COMPONENT=database
+      name: "Development Deploy of Database"
+      script: make deploy-postgres-server
 
     #BETA DEPLOY STAGE
     - &beta-deploy
@@ -88,10 +104,11 @@ jobs:
       if: branch = beta AND type = push AND fork = false
       env: COMPONENT=client
       name: "Beta Deploy of Mapproxy"
-      script:
+      before_script:
+        - app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}" || travis_terminate 0
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
         - make setup-kube-config
-        - make deploy-postgres-server
+      script:
         - make deploy -e COMPONENT=$COMPONENT -e DOMAIN=beta.open-accessibility.org
     - <<: *beta-deploy
       env: COMPONENT=api
@@ -105,6 +122,10 @@ jobs:
     - <<: *beta-deploy
       env: COMPONENT=mapproxy
       name: "Beta Deploy of Mapproxy"
+    - <<: *beta-deploy
+      env: COMPONENT=database
+      name: "Beta Deploy of Database"
+      script: make deploy-postgres-server
 
 after_success:
   - make after-success
