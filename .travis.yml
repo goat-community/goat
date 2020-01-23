@@ -15,7 +15,7 @@ jobs:
     #BUILD STAGE
     - &build
       stage: build
-      if: type = pull_request AND ./app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE concat("app/", env(COMPONENT))
+      if: type = pull_request
       env: COMPONENT=client
       name: "Build of Client"
       script:
@@ -36,11 +36,12 @@ jobs:
     #RELEASE STAGE
     - &release
       stage: release
-      if: type = push AND fork = false AND ./app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE concat("app/", env(COMPONENT))
+      if: type = push AND fork = false
       env: COMPONENT=client
       name: "Release Client"
       script:
-        - make release-docker-image -e COMPONENT=$COMPONENT
+        - echo app/${COMPONENT}
+        - if .travis/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}"; then make release-docker-image -e COMPONENT=$COMPONENT
     - <<: *release
       env: COMPONENT=api
       name: "Release API"
