@@ -17,6 +17,7 @@ jobs:
       stage: build
       if: type = pull_request
       env: COMPONENT=client
+      name: concat("Build ", env(COMPONENT))
       script:
         - make build-docker-image
     - <<: *build
@@ -33,7 +34,7 @@ jobs:
       stage: release
       if: type = push AND fork = false
       env: COMPONENT=client
-      name: "Release {{env(COMPONENT)}}"
+      name: concat("Release of ", env(COMPONENT))
       script:
         - make release-docker-image -e COMPONENT=$COMPONENT
     - <<: *release
@@ -45,11 +46,12 @@ jobs:
     - <<: *release
       env: COMPONENT=mapproxy
 
-    #DEV DEPLOY
+    #DEV DEPLOY STAGE
     - &development-deploy
       stage: development-deploy
       if: branch = development AND type = push AND fork = false
       env: COMPONENT=client
+      name: concat("Development deploy of ", env(COMPONENT))
       script:
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
         - make setup-kube-config
@@ -64,16 +66,17 @@ jobs:
     - <<: *development-deploy
       env: COMPONENT=mapproxy
 
-    #BETA DEPLOY
+    #BETA DEPLOY STAGE
     - &beta-deploy
       stage: beta-deploy
       if: branch = beta AND type = push AND fork = false
       env: COMPONENT=client
+      name: concat("Beta deploy of ", env(COMPONENT))
       script:
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
         - make setup-kube-config
         - make deploy-postgres-server
-        - make deploy -e COMPONENT=$COMPONENT
+        - make deploy -e COMPONENT=$COMPONENT -e DOMAIN=beta.open-accessibility.org
     - <<: *beta-deploy
       env: COMPONENT=api
     - <<: *beta-deploy
