@@ -11,11 +11,12 @@ branches:
     - test_travis
 # MATRIX ENV
 env:
-  - COMPONENT=client
-  - COMPONENT=api
-  - COMPONENT=geoserver
-  - COMPONENT=print
-  - COMPONENT=mapproxy
+  matrix:
+    - COMPONENT=client
+    - COMPONENT=api
+    - COMPONENT=geoserver
+    - COMPONENT=print
+    - COMPONENT=mapproxy
 stages:
   - name: build
     if: type = pull_request
