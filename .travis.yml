@@ -17,41 +17,49 @@ jobs:
       stage: build
       if: type = pull_request
       env: COMPONENT=client
-      name: concat("Build ", env(COMPONENT))
+      name: "Build of Client"
       script:
         - make build-docker-image
     - <<: *build
       env: COMPONENT=api
+      name: "Build of API"
     - <<: *build
       env: COMPONENT=geoserver
+      name: "Build of Geoserver"
     - <<: *build
       env: COMPONENT=print
+      name: "Build of Print"
     - <<: *build
       env: COMPONENT=mapproxy
+      name: "Build of Mapproxy"
 
     #RELEASE STAGE
     - &release
       stage: release
       if: type = push AND fork = false
       env: COMPONENT=client
-      name: concat("Release of ", env(COMPONENT))
+      name: "Release Client"
       script:
         - make release-docker-image -e COMPONENT=$COMPONENT
     - <<: *release
       env: COMPONENT=api
+      name: "Release API"
     - <<: *release
       env: COMPONENT=geoserver
+      name: "Release Geoserver"
     - <<: *release
       env: COMPONENT=print
+      name: "Release Print"
     - <<: *release
       env: COMPONENT=mapproxy
+      name: "Release Mapproxy"
 
     #DEV DEPLOY STAGE
     - &development-deploy
       stage: development-deploy
       if: branch = development AND type = push AND fork = false
       env: COMPONENT=client
-      name: concat("Development deploy of ", env(COMPONENT))
+      name: "Development Deploy of Client"
       script:
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
         - make setup-kube-config
@@ -59,19 +67,23 @@ jobs:
         - make deploy -e COMPONENT=$COMPONENT
     - <<: *development-deploy
       env: COMPONENT=api
+      name: "Development Deploy of Client"
     - <<: *development-deploy
       env: COMPONENT=geoserver
+      name: "Development Deploy of Geoserver"
     - <<: *development-deploy
       env: COMPONENT=print
+      name: "Development Deploy of Print"
     - <<: *development-deploy
       env: COMPONENT=mapproxy
+      name: "Development Deploy of Mapproxy"
 
     #BETA DEPLOY STAGE
     - &beta-deploy
       stage: beta-deploy
       if: branch = beta AND type = push AND fork = false
       env: COMPONENT=client
-      name: concat("Beta deploy of ", env(COMPONENT))
+      name: "Beta Deploy of Mapproxy"
       script:
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
         - make setup-kube-config
@@ -79,12 +91,16 @@ jobs:
         - make deploy -e COMPONENT=$COMPONENT -e DOMAIN=beta.open-accessibility.org
     - <<: *beta-deploy
       env: COMPONENT=api
+      name: "Beta Deploy of API"
     - <<: *beta-deploy
       env: COMPONENT=geoserver
+      name: "Beta Deploy of Geoserver"
     - <<: *beta-deploy
       env: COMPONENT=print
+      name: "Beta Deploy of Print"
     - <<: *beta-deploy
       env: COMPONENT=mapproxy
+      name: "Beta Deploy of Mapproxy"
 
 after_success:
   - make after-success
