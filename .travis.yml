@@ -30,9 +30,10 @@ jobs:
   include:
     # RELEASE STAGE (TRIGGERS ONLY IN PULL REQUEST)
     - stage: build
+      env: COMPONENT=$COMPONENT
       script:
         - make build-database-docker-image
-        - make build-docker-image -e COMPONENT=$COMPONENT
+        - make build-docker-image
       # RELEASE STAGE (TRIGGERS ONLY IN PUSH || MERGE. BUILDS AND PUSHES DOCKER IMAGES TO DOCKERHUB)
     - stage: release
       script:
