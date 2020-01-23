@@ -1,3 +1,4 @@
+/*
 drop table dem_vec;
 create table dem_vec as 
 select rid, dp.geom , dp.val from dem, ST_DumpAsPolygons(rast) dp;
@@ -208,3 +209,4 @@ SELECT (slope_json[1] ->> 'id') AS id, (slope_json[1] ->> 's_imp') AS s_imp, (sl
 FROM x;
 
 
+*/
