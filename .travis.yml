@@ -11,44 +11,33 @@ branches:
     - test_travis
 # MATRIX ENV
 env:
-  matrix:
-    - COMPONENT=client
-    - COMPONENT=api
-    - COMPONENT=geoserver
-    - COMPONENT=print
-    - COMPONENT=mapproxy
-stages:
-  - name: build
-    if: type = pull_request
-  - name: release
-    if: type = push AND fork = false
-  - name: development-deploy
-    if: branch = development AND type = push AND fork = false
-  - name: beta-deploy
-    if: branch = beta AND type = push AND fork = false
+  - COMPONENT=client
+  - COMPONENT=api
+  - COMPONENT=geoserver
+  - COMPONENT=print
+  - COMPONENT=mapproxy
 jobs:
   include:
     # RELEASE STAGE (TRIGGERS ONLY IN PULL REQUEST)
-    - stage: build
-      env: COMPONENT=$COMPONENT
+    - name: "Build"
       script:
         - make build-database-docker-image
-        - make build-docker-image
+        - make build-docker-image -e COMPONENT=$COMPONENT
       # RELEASE STAGE (TRIGGERS ONLY IN PUSH || MERGE. BUILDS AND PUSHES DOCKER IMAGES TO DOCKERHUB)
-    - stage: release
+    - name: "Release"
       script:
         - make release-docker-image -e COMPONENT=$COMPONENT
-      #DEPLOY STAGE (DEPLOYS TO KUBERNETES CLUSTER USING DEVELOPMENT NAMESPACE)
-    - stage: development-deploy
-      script:
-        - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-        - make setup-kube-config
-        - make deploy -e COMPONENT=$COMPONENT
-    - stage: beta-deploy
-      script:
-        - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-        - make setup-kube-config
-        - make deploy -e COMPONENT=$COMPONENT -e NAMESPACE=beta -e DOMAIN=beta.open-accessibility.org
+    #   #DEPLOY STAGE (DEPLOYS TO KUBERNETES CLUSTER USING DEVELOPMENT NAMESPACE)
+    # - stage: development-deploy
+    #   script:
+    #     - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+    #     - make setup-kube-config
+    #     - make deploy -e COMPONENT=$COMPONENT
+    # - stage: beta-deploy
+    #   script:
+    #     - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+    #     - make setup-kube-config
+    #     - make deploy -e COMPONENT=$COMPONENT -e NAMESPACE=beta -e DOMAIN=beta.open-accessibility.org
 after_success:
   - make after-success
 notifications:
