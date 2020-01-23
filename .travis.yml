@@ -33,13 +33,14 @@ jobs:
       env: COMPONENT=print
     - <<: *build
       env: COMPONENT=mapproxy
+
     #RELEASE STAGE
     - &release
       stage: release
       if: type = push AND fork = false
       env: COMPONENT=client
       script:
-        - make release-docker-image
+        - make release-docker-image -e COMPONENT=$COMPONENT
     - <<: *release
       env: COMPONENT=api
     - <<: *release
@@ -59,6 +60,8 @@ jobs:
     #     - make deploy -e COMPONENT=geoserver
     #     - make deploy -e COMPONENT=print
     #     - make deploy -e COMPONENT=mapproxy
+    - &beta-deploy
+      stage: beta-deploy
     #BETA DEPLOY
     # - stage: beta-deploy
     #   script:
