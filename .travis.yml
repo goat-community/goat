@@ -1,5 +1,5 @@
 language: generic
-sudo: required
+sudo: false
 dist: trusty
 services:
   - docker
@@ -9,6 +9,9 @@ branches:
     - development
     - beta
     - test_travis
+
+before_script:
+  - chmod ugo+x ./app/scripts/build-condition.sh
 
 jobs:
   include:
