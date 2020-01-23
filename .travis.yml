@@ -40,7 +40,7 @@ jobs:
       env: COMPONENT=client
       name: "Release Client"
       script:
-        - if .travis/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}"; then make release-docker-image -e COMPONENT=$COMPONENT; else echo "${COMPONENT} is NOT being built"; fi
+        - if ./app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}"; then make release-docker-image -e COMPONENT=$COMPONENT; else echo "${COMPONENT} is NOT being built"; fi
     - <<: *release
       env: COMPONENT=api
       name: "Release API"
