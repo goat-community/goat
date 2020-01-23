@@ -9,18 +9,25 @@ branches:
     - development
     - beta
     - test_travis
-before_script:
-  - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-  - make setup-kube-config
-
 stages:
-  - release
+  - name: build
+    if: type = pull_request
+  - name: release
+    if: type = push AND fork = false
   - name: development-deploy
-    if: branch = development
+    if: branch = development AND type = push AND fork = false
   - name: beta-deploy
-    if: branch = beta
+    if: branch = beta AND type = push AND fork = false
 jobs:
   include:
+    - stage: build
+      script:
+        - make build-database-docker-image
+        - make build-docker-image -e COMPONENT=client
+        - make build-docker-image -e COMPONENT=api
+        - make build-docker-image -e COMPONENT=geoserver
+        - make build-docker-image -e COMPONENT=print
+        - make build-docker-image -e COMPONENT=mapproxy
     - stage: release
       script:
         - make release-database-docker-image
@@ -31,6 +38,8 @@ jobs:
         - make release-docker-image -e COMPONENT=mapproxy
     - stage: development-deploy
       script:
+        - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+        - make setup-kube-config
         - make deploy-postgres-server
         - make deploy -e COMPONENT=api
         - make deploy -e COMPONENT=client
@@ -39,7 +48,9 @@ jobs:
         - make deploy -e COMPONENT=mapproxy
     - stage: beta-deploy
       script:
-        - make deploy-postgres-server -e NAMESPACE=beta -e DOMAIN=beta.open-accessibility.org
+        - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+        - make setup-kube-config
+        - make deploy -e COMPONENT=postgres -e NAMESPACE=beta -e DOMAIN=beta.open-accessibility.org
         - make deploy -e COMPONENT=api -e NAMESPACE=beta -e DOMAIN=beta.open-accessibility.org
         - make deploy -e COMPONENT=client -e NAMESPACE=beta -e DOMAIN=beta.open-accessibility.org
         - make deploy -e COMPONENT=geoserver -e NAMESPACE=beta -e DOMAIN=beta.open-accessibility.org
