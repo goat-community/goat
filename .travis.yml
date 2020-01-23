@@ -33,7 +33,7 @@ jobs:
       stage: release
       if: type = push AND fork = false
       env: COMPONENT=client
-      name: "Release ${$COMPONENT}"
+      name: "Release {{env(COMPONENT)}}"
       script:
         - make release-docker-image -e COMPONENT=$COMPONENT
     - <<: *release
