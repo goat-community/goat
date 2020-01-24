@@ -35,7 +35,7 @@
       1.1943,
       0.5972
     ],
-    "center": [1289645.541227, 6129485.298188],
+    "center": [-965048, 5043809],
     "layers": [
       {
         "type": "VECTOR",
@@ -74,7 +74,6 @@
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
-        "requiresPois": true,
         "zIndex": 2,
         "serverType": "geoserver"
       },
@@ -94,6 +93,110 @@
       },
       {
         "type": "WMS",
+        "name": "Footpath Width",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:footpath_width",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "Illuminance",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_lit",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "Lanes",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_lanes",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "Parking",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_parking",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "Speed",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_speed",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "Street Crossings",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:street_crossings",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "Surface",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_surface",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "Wheelchair Usability",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_wheelchair",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "walkability",
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
@@ -103,7 +206,6 @@
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
-        "requiresPois": true,
         "zIndex": 1,
         "serverType": "geoserver"
       },
@@ -130,7 +232,6 @@
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
-        "requiresPois": true,
         "zIndex": 1,
         "serverType": "geoserver"
       },
@@ -255,14 +356,6 @@
           "id": 1,
           "children": [
             {
-              "name": "Kindergarten",
-              "value": "kindergarten",
-              "icon": "kindergarten",
-              "weight": 1,
-              "sensitivity": -0.003,
-              "locked": false
-            },
-            {
               "name": "Primary school",
               "value": "primary_school",
               "icon": "primary_school",
@@ -279,71 +372,9 @@
               "locked": false
             },
             {
-              "name": "Library",
-              "value": "library",
-              "icon": "library",
-              "weight": 1,
-              "sensitivity": -0.003
-            }
-          ]
-        },
-        {
-          "name": "Food and Drink",
-          "categoryValue": "foodAndDrink",
-          "children": [
-            {
-              "name": "Bar",
-              "value": "bar",
-              "icon": "bar",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Biergarten",
-              "value": "biergarten",
-              "icon": "biergarten",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Café",
-              "value": "cafe",
-              "icon": "cafe",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Pub",
-              "value": "pub",
-              "icon": "pub",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Fast food",
-              "value": "fast_food",
-              "icon": "fast_food",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Ice cream",
-              "value": "ice_cream",
-              "icon": "ice_cream",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Restaurant",
-              "value": "restaurant",
-              "icon": "restaurant",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Night-Club",
-              "value": "nightclub",
-              "icon": "nightclub",
+              "name": "University",
+              "value": "university",
+              "icon": "university",
               "weight": 1,
               "sensitivity": -0.003
             }
@@ -355,97 +386,18 @@
           "locked": false,
           "children": [
             {
-              "name": "Bicycle rental",
-              "value": "bicycle_rental",
-              "icon": "bicycle_rental",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Car sharing",
-              "value": "car_sharing",
-              "icon": "car_sharing",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Charging station",
-              "value": "charging_station",
-              "icon": "charging_station",
-              "weight": 1,
-              "sensitivity": -0.003,
-              "locked": false
-            },
-            {
               "name": "Bus",
               "value": "bus_stop",
               "icon": "bus_stop",
               "weight": 1,
               "sensitivity": -0.003
-            },
-            {
-              "name": "Tram Stop",
-              "value": "tram_stop",
-              "icon": "tram_stop",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "U-Bahn station",
-              "value": "subway_entrance",
-              "icon": "subway_entrance",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Rail Station",
-              "value": "rail_station",
-              "icon": "rail_station",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Taxi",
-              "value": "taxi",
-              "icon": "taxi",
-              "weight": 1,
-              "sensitivity": -0.003
-            }
+            }            
           ]
         },
         {
           "name": "Services",
           "categoryValue": "services",
           "children": [
-            {
-              "name": "Hairdresser",
-              "value": "hairdresser",
-              "icon": "hairdresser",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "ATM",
-              "value": "atm",
-              "icon": "atm",
-              "weight": 1,
-              "sensitivity": -0.003,
-              "locked": false
-            },
-            {
-              "name": "Bank",
-              "value": "bank",
-              "icon": "bank",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Dentist",
-              "value": "dentist",
-              "icon": "dentist",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
             {
               "name": "Doctor",
               "value": "doctors",
@@ -454,33 +406,11 @@
               "sensitivity": -0.003
             },
             {
-              "name": "Pharmacy",
-              "value": "pharmacy",
-              "icon": "pharmacy",
+              "name": "Hospital",
+              "value": "hospital",
+              "icon": "hospital",
               "weight": 1,
               "sensitivity": -0.003
-            },
-            {
-              "name": "Post box",
-              "value": "post_box",
-              "icon": "post_box",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Fuel",
-              "value": "fuel",
-              "icon": "fuel",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Recycling",
-              "value": "recycling",
-              "icon": "recycling",
-              "weight": 1,
-              "sensitivity": -0.003,
-              "locked": false
             }
           ]
         },
@@ -489,162 +419,9 @@
           "categoryValue": "shop",
           "children": [
             {
-              "name": "Bakery",
-              "value": "bakery",
-              "icon": "bakery",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Butcher",
-              "value": "butcher",
-              "icon": "butcher",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Clothing store",
-              "value": "clothes",
-              "icon": "clothes",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Convenience store",
-              "value": "convenience",
-              "icon": "convenience",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Greengrocer",
-              "value": "greengrocer",
-              "icon": "greengrocer",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Kiosk",
-              "value": "kiosk",
-              "icon": "kiosk",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Mall",
-              "value": "mall",
-              "icon": "mall",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Shoes",
-              "value": "shoes",
-              "icon": "shoes",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
               "name": "Supermarket",
               "value": "supermarket",
               "icon": "supermarket",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Discount Supermarket",
-              "value": "discount_supermarket",
-              "icon": "discount_supermarket",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "International Supermarket",
-              "value": "international_supermarket",
-              "icon": "international_supermarket",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Hypermarket",
-              "value": "hypermarket",
-              "icon": "hypermarket",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Chemist",
-              "value": "chemist",
-              "icon": "chemist",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Organic Food",
-              "value": "organic",
-              "icon": "organic",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Marketplace",
-              "value": "marketplace",
-              "icon": "marketplace",
-              "weight": 1,
-              "sensitivity": -0.003
-            }
-          ]
-        },
-        {
-          "name": "Tourism & Leisure",
-          "categoryValue": "tourismAndLeisure",
-          "children": [
-            {
-              "name": "Cinema",
-              "value": "cinema",
-              "icon": "cinema",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Theatre",
-              "value": "theatre",
-              "icon": "theatre",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Museum",
-              "value": "museum",
-              "icon": "museum",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Hotel",
-              "value": "hotel",
-              "icon": "hotel",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Hostel",
-              "value": "hostel",
-              "icon": "hostel",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Guest house",
-              "value": "guest_house",
-              "icon": "guest_house",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Gallery",
-              "value": "gallery",
-              "icon": "gallery",
               "weight": 1,
               "sensitivity": -0.003
             }
@@ -667,7 +444,7 @@
           }
         ],
         "disabledPoisOnRoutingProfile": {
-          "walking_wheelchair": [
+          "wheelchair": [
             {
               "categoryValue": "services",
               "poisFiltered": ["recycling", "atm"]
@@ -687,25 +464,26 @@
           "values": [
             {
               "display": "Standard",
-              "value": "walking_standard",
-              "defaultSpeed": 5
+              "name": "routingStandard",
+              "value": "walking_standard"
             },
             {
               "display": "Elderly",
-              "value": "walking_elderly",
-              "defaultSpeed": 3
+              "name": "routingElderly",
+              "value": "walking_elderly"
             },
             {
               "display": "Wheelchair",
-              "value": "walking_wheelchair",
-              "defaultSpeed": 5
-            } 
+              "name": "routingWheelchair",
+              "value": "walking_wheelchair"
+            },
+            {
+              "display": "Safe-night",
+              "name": "routingSafeNight",
+              "value": "walking_safe_night"
+            }
           ],
-          "active": {
-            "display": "Standard",
-            "value": "walking_standard",
-            "defaultSpeed": 5
-          }
+          "active": "standard"
         },
         "calculationType": "single",
         "minutes": "10",
@@ -799,13 +577,6 @@
           "19": "#0114B7",
           "20": "#000ABF"
         }
-      }
-    }
-  },
-  "componentConf": {
-    "pois": {
-      "filters": {
-        "timeBasedCalculations": "no"
       }
     }
   }
