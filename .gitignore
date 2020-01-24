@@ -14,6 +14,7 @@ ubuntu-bionic-18.04-cloudimg-console.log
 /_site
 /.sass-cache
 /app/database/data_preparation/Python/__pycache__
+/app/database/scripts/__pycache__
 node_modules
 dist
 k8s/postgres.yaml
@@ -23,3 +24,4 @@ k8s/geoserver.yaml
 k8s/print.yaml
 k8s/mapproxy.yaml
 .env
+/.vscode
