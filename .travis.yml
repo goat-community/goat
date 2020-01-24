@@ -60,7 +60,7 @@ jobs:
       if: branch = beta AND type = push AND fork = false
       name: "Beta Deploy Stage"
       env: 
-        - DOMAIN=beta.open-accessibility.org
+        - DOMAIN=test.open-accessibility.org
       before_script:
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
         - make setup-kube-config
