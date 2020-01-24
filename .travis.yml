@@ -44,13 +44,11 @@ jobs:
 
     #RELEASE STAGE
     - stage: release
+    - if: type = push AND fork = false
     - &release
-      if: type = push AND fork = false
       env: COMPONENT=client
-      before_script:
-        - app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}" || travis_terminate 0
       script:
-        - make release-docker-image -e COMPONENT=$COMPONENT
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}"; then make release-docker-image -e COMPONENT=$COMPONENT; else echo "NO CHANGES SINCE LAST COMMIT"; fi
     - <<: *release
       env: COMPONENT=api
     - <<: *release
@@ -59,9 +57,6 @@ jobs:
       env: COMPONENT=print
     - <<: *release
       env: COMPONENT=mapproxy
-    - <<: *release
-      env: COMPONENT=database
-      script: make release-database-docker-image
 
     #DEVELOPMENT DEPLOY STAGE
     - &development-deploy
