@@ -16,100 +16,67 @@ before_install:
 jobs:
   include:
     #BUILD STAGE
-    - &build
-      stage: build
+    - stage: build
       if: type = pull_request
-      env: COMPONENT=client
-      name: "Build of Client"
-      before_script:
-        - app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}" || travis_terminate 0
+      name: "Build Stage"
       script:
-        - make build-docker-image
-    - <<: *build
-      env: COMPONENT=api
-      name: "Build of API"
-    - <<: *build
-      env: COMPONENT=geoserver
-      name: "Build of Geoserver"
-    - <<: *build
-      env: COMPONENT=print
-      name: "Build of Print"
-    - <<: *build
-      env: COMPONENT=mapproxy
-      name: "Build of Mapproxy"
-    - <<: *build
-      env: COMPONENT=database
-      name: "Build of Database"
-      script: make build-database-docker-image
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/client"; then make build-docker-image -e COMPONENT=client; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/api"; then make build-docker-image -e COMPONENT=api; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/print"; then make build-docker-image -e COMPONENT=print; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/mapproxy"; then make build-docker-image -e COMPONENT=mapproxy; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/geoserver"; then make build-docker-image -e COMPONENT=geoserver; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/database"; then make build-database-docker-image; else echo "NO CHANGES SINCE LAST COMMIT"; fi
 
     #RELEASE STAGE
     - stage: release
       if: type = push AND fork = false
+      name: "Release Stage"
       script:
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/client"; then make release-docker-image -e COMPONENT=client; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/api"; then make release-docker-image -e COMPONENT=api; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/print"; then make release-docker-image -e COMPONENT=print; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/mapproxy"; then make release-docker-image -e COMPONENT=mapproxy; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/geoserver"; then make release-docker-image -e COMPONENT=geoserver; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/database"; then make release-database-docker-image; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+
 
     #DEVELOPMENT DEPLOY STAGE
-    - &development-deploy
       stage: development-deploy
       if: branch = development AND type = push AND fork = false
       env: COMPONENT=client
-      name: "Development Deploy of Client"
+      name: "Development Deploy Stage"
       before_script:
         - app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}" || travis_terminate 0
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
         - make setup-kube-config
       script:
-        - make deploy -e COMPONENT=$COMPONENT
-    - <<: *development-deploy
-      env: COMPONENT=api
-      name: "Development Deploy of Client"
-    - <<: *development-deploy
-      env: COMPONENT=geoserver
-      name: "Development Deploy of Geoserver"
-    - <<: *development-deploy
-      env: COMPONENT=print
-      name: "Development Deploy of Print"
-    - <<: *development-deploy
-      env: COMPONENT=mapproxy
-      name: "Development Deploy of Mapproxy"
-    - <<: *development-deploy
-      env: COMPONENT=database
-      name: "Development Deploy of Database"
-      script: make deploy-postgres-server
-
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/client"; then make deploy -e COMPONENT=client; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/api"; then make deploy -e COMPONENT=api; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/print"; then make deploy -e COMPONENT=print; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/mapproxy"; then make deploy -e COMPONENT=mapproxy; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/geoserver"; then make deploy -e COMPONENT=geoserver; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/database"; then make deploy-postgres-server; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        
+  
     #BETA DEPLOY STAGE
-    - &beta-deploy
       stage: beta-deploy
       if: branch = beta AND type = push AND fork = false
-      env: COMPONENT=client
-      name: "Beta Deploy of Mapproxy"
+      name: "Beta Deploy Stage"
+      env: 
+        - DOMAIN=beta.open-accessibility.org
       before_script:
         - app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}" || travis_terminate 0
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
         - make setup-kube-config
       script:
-        - make deploy -e COMPONENT=$COMPONENT -e DOMAIN=beta.open-accessibility.org
-    - <<: *beta-deploy
-      env: COMPONENT=api
-      name: "Beta Deploy of API"
-    - <<: *beta-deploy
-      env: COMPONENT=geoserver
-      name: "Beta Deploy of Geoserver"
-    - <<: *beta-deploy
-      env: COMPONENT=print
-      name: "Beta Deploy of Print"
-    - <<: *beta-deploy
-      env: COMPONENT=mapproxy
-      name: "Beta Deploy of Mapproxy"
-    - <<: *beta-deploy
-      env: COMPONENT=database
-      name: "Beta Deploy of Database"
-      script: make deploy-postgres-server
-
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/client"; then make deploy -e COMPONENT=client -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/api"; then make deploy -e COMPONENT=api -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/print"; then make deploy -e COMPONENT=print -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/mapproxy"; then make deploy -e COMPONENT=mapproxy -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/geoserver"; then make deploy -e COMPONENT=geoserver -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/database"; then make deploy-postgres-server -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+       
+  
 after_success:
   - make after-success
 notifications:
