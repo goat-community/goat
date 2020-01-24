@@ -70,9 +70,15 @@ jobs:
         - NAMESPACE=$TRAVIS_BRANCH
         - DOMAIN=$NAMESPACE.open-accessibility.org
       before_script:
+        # Sets up kubernetes configuration
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
         - make setup-kube-config
+        # Here we can overwrite the env variables for some edge cases
+        - if [[ $TRAVIS_BRANCH == "master" ]]; then
+          export NAMESPACE=goat; export DOMAIN=$NAMESPACE.open-accessibility.org;
+          fi
       script:
+        - bash -c 'echo $DOMAIN'
         - make deploy -e COMPONENT=client -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
         - make deploy -e COMPONENT=api -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
         - make deploy -e COMPONENT=print -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
