@@ -43,30 +43,24 @@ jobs:
       script: make build-database-docker-image
 
     #RELEASE STAGE
+    - stage: release
     - &release
-      stage: release
       if: type = push AND fork = false
       env: COMPONENT=client
-      name: "Release Client"
       before_script:
         - app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}" || travis_terminate 0
       script:
         - make release-docker-image -e COMPONENT=$COMPONENT
     - <<: *release
       env: COMPONENT=api
-      name: "Release API"
     - <<: *release
       env: COMPONENT=geoserver
-      name: "Release Geoserver"
     - <<: *release
       env: COMPONENT=print
-      name: "Release Print"
     - <<: *release
       env: COMPONENT=mapproxy
-      name: "Release Mapproxy"
     - <<: *release
       env: COMPONENT=database
-      name: "Release Database"
       script: make release-database-docker-image
 
     #DEVELOPMENT DEPLOY STAGE
