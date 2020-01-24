@@ -61,7 +61,6 @@ jobs:
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/database" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
           make release-database-docker-image; else
           echo "NO CHANGES SINCE LAST COMMIT"; fi
-
     #DEVELOPMENT DEPLOY STAGE
     - stage: development-deploy
       if: branch = development AND type = push AND fork = false
