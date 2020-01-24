@@ -42,19 +42,17 @@ jobs:
     #DEVELOPMENT DEPLOY STAGE
       stage: development-deploy
       if: branch = development AND type = push AND fork = false
-      env: COMPONENT=client
       name: "Development Deploy Stage"
       before_script:
-        - app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}" || travis_terminate 0
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
         - make setup-kube-config
       script:
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/client"; then make deploy -e COMPONENT=client; else echo "NO CHANGES SINCE LAST COMMIT"; fi
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/api"; then make deploy -e COMPONENT=api; else echo "NO CHANGES SINCE LAST COMMIT"; fi
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/print"; then make deploy -e COMPONENT=print; else echo "NO CHANGES SINCE LAST COMMIT"; fi
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/mapproxy"; then make deploy -e COMPONENT=mapproxy; else echo "NO CHANGES SINCE LAST COMMIT"; fi
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/geoserver"; then make deploy -e COMPONENT=geoserver; else echo "NO CHANGES SINCE LAST COMMIT"; fi
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/database"; then make deploy-postgres-server; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - make deploy -e COMPONENT=client
+        - make deploy -e COMPONENT=api
+        - make deploy -e COMPONENT=print
+        - make deploy -e COMPONENT=mapproxy
+        - make deploy -e COMPONENT=geoserver
+        - make deploy-postgres-server
         
   
     #BETA DEPLOY STAGE
@@ -64,16 +62,15 @@ jobs:
       env: 
         - DOMAIN=beta.open-accessibility.org
       before_script:
-        - app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}" || travis_terminate 0
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
         - make setup-kube-config
       script:
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/client"; then make deploy -e COMPONENT=client -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/api"; then make deploy -e COMPONENT=api -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/print"; then make deploy -e COMPONENT=print -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/mapproxy"; then make deploy -e COMPONENT=mapproxy -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/geoserver"; then make deploy -e COMPONENT=geoserver -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/database"; then make deploy-postgres-server -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - make deploy -e COMPONENT=client -e DOMAIN=$DOMAIN
+        - make deploy -e COMPONENT=api -e DOMAIN=$DOMAIN
+        - make deploy -e COMPONENT=print -e DOMAIN=$DOMAIN
+        - make deploy -e COMPONENT=mapproxy -e DOMAIN=$DOMAIN
+        - make deploy -e COMPONENT=geoserver -e DOMAIN=$DOMAIN
+        - make deploy-postgres-server -e DOMAIN=$DOMAIN
        
   
 after_success:
