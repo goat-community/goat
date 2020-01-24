@@ -38,9 +38,8 @@ jobs:
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/geoserver"; then make release-docker-image -e COMPONENT=geoserver; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/database"; then make release-database-docker-image; else echo "NO CHANGES SINCE LAST COMMIT"; fi
 
-
     #DEVELOPMENT DEPLOY STAGE
-      stage: development-deploy
+    - stage: development-deploy
       if: branch = development AND type = push AND fork = false
       name: "Development Deploy Stage"
       before_script:
@@ -53,13 +52,12 @@ jobs:
         - make deploy -e COMPONENT=mapproxy
         - make deploy -e COMPONENT=geoserver
         - make deploy-postgres-server
-        
-  
+
     #BETA DEPLOY STAGE
-      stage: beta-deploy
+    - stage: beta-deploy
       if: branch = beta AND type = push AND fork = false
       name: "Beta Deploy Stage"
-      env: 
+      env:
         - DOMAIN=test.open-accessibility.org
       before_script:
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
@@ -71,8 +69,7 @@ jobs:
         - make deploy -e COMPONENT=mapproxy -e DOMAIN=$DOMAIN
         - make deploy -e COMPONENT=geoserver -e DOMAIN=$DOMAIN
         - make deploy-postgres-server -e DOMAIN=$DOMAIN
-       
-  
+
 after_success:
   - make after-success
 notifications:
