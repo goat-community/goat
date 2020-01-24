@@ -7,7 +7,7 @@ branches:
     - master
     - development
     - beta
-    - test_travis
+    - matosinhos
 
 before_install:
   - chmod ugo+x ./app/scripts/build-condition.sh
@@ -84,6 +84,25 @@ jobs:
       env:
         - DOMAIN=beta.open-accessibility.org
         - NAMESPACE=beta
+      before_script:
+        - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+        - make setup-kube-config
+      script:
+        - make deploy -e COMPONENT=client -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
+        - make deploy -e COMPONENT=api -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
+        - make deploy -e COMPONENT=print -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
+        - make deploy -e COMPONENT=mapproxy -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
+        - make deploy -e COMPONENT=geoserver -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
+        - make deploy-postgres-server -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
+
+  
+    #BETA DEPLOY STAGE
+    - stage: matosinhos-deploy
+      if: branch = matosinhos AND type = push AND fork = false
+      name: "Matosinhos Deploy Stage"
+      env:
+        - DOMAIN=matosinhos.open-accessibility.org
+        - NAMESPACE=matosinhos
       before_script:
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
         - make setup-kube-config
