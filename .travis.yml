@@ -31,7 +31,7 @@ jobs:
       if: type = push AND fork = false
       name: "Release Stage"
       script:
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/client"; then make release-docker-image -e COMPONENT=client; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/client" || $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ; then make release-docker-image -e COMPONENT=client; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/api"; then make release-docker-image -e COMPONENT=api; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/print"; then make release-docker-image -e COMPONENT=print; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/mapproxy"; then make release-docker-image -e COMPONENT=mapproxy; else echo "NO CHANGES SINCE LAST COMMIT"; fi
