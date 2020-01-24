@@ -62,28 +62,13 @@ jobs:
           make release-database-docker-image; else
           echo "NO CHANGES SINCE LAST COMMIT"; fi
 
-    #DEVELOPMENT DEPLOY STAGE
-    - stage: development-deploy
-      if: branch = development AND type = push AND fork = false
-      name: "Development Deploy Stage"
-      before_script:
-        - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-        - make setup-kube-config
-      script:
-        - make deploy -e COMPONENT=client
-        - make deploy -e COMPONENT=api
-        - make deploy -e COMPONENT=print
-        - make deploy -e COMPONENT=mapproxy
-        - make deploy -e COMPONENT=geoserver
-        - make deploy-postgres-server
-
-    #BETA DEPLOY STAGE
-    - stage: beta-deploy
-      if: branch = beta AND type = push AND fork = false
-      name: "Beta Deploy Stage"
+    #DEPLOY STAGE
+    - stage: deploy
+      if: type = push AND fork = false
+      name: "Deploy Stage"
       env:
-        - DOMAIN=beta.open-accessibility.org
-        - NAMESPACE=beta
+        - NAMESPACE=$TRAVIS_BRANCH
+        - DOMAIN=$NAMESPACE.open-accessibility.org
       before_script:
         - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
         - make setup-kube-config
