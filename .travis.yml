@@ -44,19 +44,18 @@ jobs:
 
     #RELEASE STAGE
     - stage: release
-    - if: type = push AND fork = false
-    - &release
-      env: COMPONENT=client
+      if: type = push AND fork = false
+      env:
+        - COMPONENT=geoserver
+        - COMPONENT=client
+        - COMPONET=api
       script:
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/${COMPONENT}"; then make release-docker-image -e COMPONENT=$COMPONENT; else echo "NO CHANGES SINCE LAST COMMIT"; fi
-    - <<: *release
-      env: COMPONENT=api
-    - <<: *release
-      env: COMPONENT=geoserver
-    - <<: *release
-      env: COMPONENT=print
-    - <<: *release
-      env: COMPONENT=mapproxy
+        # - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/client"; then make release-docker-image -e COMPONENT=client; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        # - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/api"; then make release-docker-image -e COMPONENT=api; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        # - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/print"; then make release-docker-image -e COMPONENT=print; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        # - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/mapproxy"; then make release-docker-image -e COMPONENT=mapproxy; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        # - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/mapproxy"; then make release-docker-image -e COMPONENT=mapproxy; else echo "NO CHANGES SINCE LAST COMMIT"; fi
 
     #DEVELOPMENT DEPLOY STAGE
     - &development-deploy
