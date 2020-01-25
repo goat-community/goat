@@ -44,23 +44,17 @@ jobs:
       name: "Release Stage"
       script:
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/client" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
-          make release-docker-image -e COMPONENT=client; else
-          echo "NO CHANGES SINCE LAST COMMIT"; fi
+          make release-docker-image -e COMPONENT=client; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/api" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
-          make release-docker-image -e COMPONENT=api; else
-          echo "NO CHANGES SINCE LAST COMMIT"; fi
+          make release-docker-image -e COMPONENT=api; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/print" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
-          make release-docker-image -e COMPONENT=print; else
-          echo "NO CHANGES SINCE LAST COMMIT"; fi
+          make release-docker-image -e COMPONENT=print; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/mapproxy" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
-          make release-docker-image -e COMPONENT=mapproxy; else
-          echo "NO CHANGES SINCE LAST COMMIT"; fi
+          make release-docker-image -e COMPONENT=mapproxy; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/geoserver" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
-          make release-docker-image -e COMPONENT=geoserver; else
-          echo "NO CHANGES SINCE LAST COMMIT"; fi
+          make release-docker-image -e COMPONENT=geoserver; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/database" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
-          make release-database-docker-image; else
-          echo "NO CHANGES SINCE LAST COMMIT"; fi
+          make release-database-docker-image; else echo "NO CHANGES SINCE LAST COMMIT"; fi
 
     #DEPLOY STAGE
     - stage: deploy
@@ -79,12 +73,18 @@ jobs:
           fi
       script:
         - bash -c 'echo $DOMAIN'
-        - make deploy -e COMPONENT=client -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
-        - make deploy -e COMPONENT=api -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
-        - make deploy -e COMPONENT=print -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
-        - make deploy -e COMPONENT=mapproxy -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
-        - make deploy -e COMPONENT=geoserver -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
-        - make deploy-postgres-server -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/client" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
+          make deploy -e COMPONENT=client -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/api" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
+          make deploy -e COMPONENT=api -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/print" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
+          make deploy -e COMPONENT=print -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/mapproxy" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
+          make deploy -e COMPONENT=mapproxy -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/geoserver" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
+          make deploy -e COMPONENT=geoserver -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/database" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
+          make deploy-postgres-server -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
 
 after_success:
   - make after-success
