@@ -256,16 +256,14 @@
               "value": "primary_school",
               "icon": "primary_school",
               "weight": 1,
-              "sensitivity": -0.003,
-              "locked": false
+              "sensitivity": -0.003
             },
             {
               "name": "Secondary school",
               "value": "secondary_school",
               "icon": "secondary_school",
               "weight": 1,
-              "sensitivity": -0.003,
-              "locked": false
+              "sensitivity": -0.003
             },
             {
               "name": "University",
@@ -279,7 +277,6 @@
         {
           "name": "Transport",
           "categoryValue": "transport",
-          "locked": false,
           "children": [
             {
               "name": "Bus",
