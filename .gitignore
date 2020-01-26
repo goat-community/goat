@@ -2,6 +2,7 @@ ubuntu-bionic-18.04-cloudimg-console.log
 .vagrant
 /app/geoserver/geoserver_data/logs/geoserver.log
 /app/node/node_modules
+/config/goat_config.yaml
 /app/database/data
 /app/database/postgres_data
 /app/database/backups
