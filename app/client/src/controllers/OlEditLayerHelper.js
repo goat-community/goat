@@ -103,11 +103,14 @@ const editLayerHelper = {
     source.removeFeature(feature);
   },
   commitDelete(mode, user_id, deleted_feature_ids, drawn_fid) {
-    const layerName = this.selectedLayer
+    let layerName = this.selectedLayer
       .getSource()
       .getParams()
       .LAYERS.split(":")[1];
-
+    //TODO: We should fix this.
+    if (layerName === "pois_info" && mode === "delete") {
+      layerName = "pois";
+    }
     fetch("/api/userdata", {
       method: "POST",
       body: JSON.stringify({

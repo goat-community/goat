@@ -28,7 +28,6 @@
         class="pb-0 mb-0 justify-center radio-group-height"
         :value="calculationType"
         v-model="calculationType"
-        @change="changedType"
         row
       >
         <v-radio :label="$t('isochrones.single.type')" value="single"></v-radio>
