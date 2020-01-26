@@ -9,7 +9,18 @@ DECLARE
 	excluded_class_id text;
 	categories_no_foot text;
 	buffer text;
-begin
+  userid_vertex integer;
+BEGIN
+  
+  IF modus_input IN(1,3)  THEN
+		userid_vertex = 1;
+		userid_input = 1;
+  ELSEIF modus_input = 2 THEN
+    userid_vertex = userid_input;
+	ELSEIF modus_input = 4 THEN  	 
+		userid_vertex = 1;
+	END IF;
+  raise notice '%',modus_input;
   DROP TABLE IF EXISTS closest_vertices;
   speed = speed/3.6;
   distance = minutes*speed*60;
@@ -18,10 +29,13 @@ begin
   select_from_variable_container('categories_no_foot')
   INTO excluded_class_id, categories_no_foot;
  
-  CREATE temp TABLE closest_vertices AS  
+  CREATE TEMP TABLE IF NOT EXISTS closest_vertices (closest_vertices bigint, geom geometry, objectid integer);
+  TRUNCATE closest_vertices;
+
+  INSERT INTO closest_vertices
   SELECT closest_vertex[1]::bigint closest_vertices, closest_vertex[2]::geometry AS geom, objectid 
   FROM (
-	  SELECT closest_vertex(userid_input,lat_lon_array[1],lat_lon_array[2],0.0018 /*100m => approx. 0.0009 */, modus_input, routing_profile), objectid
+	  SELECT closest_vertex(userid_vertex,lat_lon_array[1],lat_lon_array[2],0.0018 /*100m => approx. 0.0009 */, modus_input, routing_profile), objectid
 	  FROM (
 	  	SELECT UNNEST_2d_1d(array_starting_points) AS lat_lon_array, UNNEST(objectids) AS objectid
 	  )x

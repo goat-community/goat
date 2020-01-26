@@ -30,5 +30,3 @@ COPY ./database $APP_PATH
 
 RUN mkdir -p ${APP_PATH}/config
 COPY ./config $APP_PATH/config
-
-# ENTRYPOINT ["/opt/extend-entrypoint.sh"]

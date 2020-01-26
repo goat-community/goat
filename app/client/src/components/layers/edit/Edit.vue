@@ -254,7 +254,7 @@ import {
   readTransactionResponse
 } from "../../../utils/Layer";
 
-import Overlay from "../../ol/Overlay";
+import OverlayPopup from "../../viewer/ol/controls/Overlay";
 
 import http from "axios";
 
@@ -264,7 +264,7 @@ import { mapGetters } from "vuex";
 
 export default {
   components: {
-    "overlay-popup": Overlay,
+    "overlay-popup": OverlayPopup,
     VJsonschemaForm
   },
   mixins: [InteractionsToggle, Mapable],
