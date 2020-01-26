@@ -96,6 +96,5 @@ DATA_REFINEMENT_VARIABLES:
       horrible: '0.3'
       very_horrible: '0.5'
     resolution_dem: '30'
-        
 
       
