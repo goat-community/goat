@@ -18,6 +18,7 @@
 </template>
 <script>
 export default {
+  name: "overlay-popup",
   props: {
     title: { type: String, required: false }
   }

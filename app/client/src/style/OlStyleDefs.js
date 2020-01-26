@@ -117,6 +117,7 @@ const OlStyleDefs = {
       let modus = feature.get("modus");
       let isVisible = feature.get("isVisible");
       let geomType = feature.getGeometry().getType();
+      const color = feature.get("color");
 
       /**
        * Creates styles for isochrone polygon geometry type and isochrone
@@ -155,7 +156,10 @@ const OlStyleDefs = {
         }
         // If the modus is 1 it is a default isochrone
         if (modus === 1 || modus === 3) {
-          if (!styleData.styleCache.default[level]) {
+          if (
+            !styleData.styleCache.default[level] ||
+            styleData.styleCache.default[level].getStroke().getColor() !== color //Updates default cache when user has changed the color
+          ) {
             let style = new OlStyle({
               fill: new OlFill({
                 color: [0, 0, 0, 0]
@@ -174,7 +178,10 @@ const OlStyleDefs = {
           }
           styles.push(styleData.styleCache.default[level]);
         } else {
-          if (!styleData.styleCache.input[level]) {
+          if (
+            !styleData.styleCache.input[level] ||
+            styleData.styleCache.input[level].getStroke().getColor() !== color //Updates input cache when user has changed the color
+          ) {
             let style = new OlStyle({
               fill: new OlFill({
                 color: [0, 0, 0, 0]
