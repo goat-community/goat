@@ -6,7 +6,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 // use it before all route definitions
 app.use(cors({ origin: "*" }));
-app.use(function(request, response, next) {
+app.use(function (request, response, next) {
   response.header("Access-Control-Allow-Origin", "*");
   response.header(
     "Access-Control-Allow-Methods",
@@ -53,7 +53,7 @@ app.post("/api/userdata", jsonParser, (request, response) => {
   } else if (mode == "delete") {
     //delete is used to delete the feature from modified table if the user has drawned that feature by himself
     pool.query(
-      `DELETE FROM ${request.body.layer_name}_modified WHERE user_id=($1)`,
+      `DELETE FROM ${request.body.layer_name}_modified WHERE userid=($1)`,
       [request.body.drawned_fid],
       returnResult
     );
@@ -207,7 +207,7 @@ app.post(
 );
 
 // respond with "pong" when a GET request is made to /ping (HEALTHCHECK)
-app.get("/ping", function(_req, res) {
+app.get("/ping", function (_req, res) {
   res.send("pong");
 });
 
