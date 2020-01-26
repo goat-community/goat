@@ -1,5 +1,6 @@
 <template>
   <v-expansion-panels
+    class="elevation-3"
     dark
     style="position:absolute;bottom:35px;right:10px;maxWidth: 200px;"
   >
@@ -39,11 +40,12 @@
   </v-expansion-panels>
 </template>
 <script>
-import { Mapable } from "../../mixins/Mapable";
-import { getAllChildLayers } from "../../utils/Layer";
+import { Mapable } from "../../../../mixins/Mapable";
+import { getAllChildLayers } from "../../../../utils/Layer";
 
 export default {
   mixins: [Mapable],
+  name: "map-legend",
   data: () => ({
     layers: []
   }),
