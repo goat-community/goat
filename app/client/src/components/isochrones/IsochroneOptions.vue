@@ -40,7 +40,6 @@
       >
         <v-select
           v-if="options.calculationType"
-          item-text="display"
           item-value="value"
           outlined
           return-object

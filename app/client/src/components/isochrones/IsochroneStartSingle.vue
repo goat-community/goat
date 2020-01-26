@@ -81,7 +81,7 @@ import axios from "axios";
 import { debounce } from "../../utils/Helpers";
 
 //Ol imports
-import { transform } from "ol/proj.js";
+import { transform, transformExtent } from "ol/proj.js";
 
 export default {
   mixins: [InteractionsToggle, Mapable],
@@ -97,8 +97,7 @@ export default {
   }),
   computed: {
     ...mapGetters("map", {
-      messages: "messages",
-      studyAreaBbox: "studyAreaBbox"
+      messages: "messages"
     }),
     fields() {
       if (!this.model) return [];
@@ -205,7 +204,7 @@ export default {
       if (!this.studyAreaBbox) return;
       axios
         .get(
-          `${this.searchUrl}?key=${this.searchKey}&q=${this.search}
+          `${this.searchUrl}autocomplete.php?key=${this.searchKey}&q=${this.search}
             &viewbox=${this.studyAreaBbox}&bounded=1`
         )
         .then(response => {
@@ -222,6 +221,11 @@ export default {
     const me = this;
     me.searchUrl = process.env.VUE_APP_SEARCH_URL;
     me.searchKey = process.env.VUE_APP_SEARCH_KEY;
+    this.studyAreaBbox = transformExtent(
+      this.$appConfig.map.extent,
+      "EPSG:3857",
+      "EPSG:4326"
+    );
   }
 };
 </script>
