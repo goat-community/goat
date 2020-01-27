@@ -330,6 +330,8 @@
         "hostel": "Hostel",
         "guest_house": "Shtëpi për mysafirë",
         "gallery": "Galeri",
+        "university": "University",
+        "hospital": "Hospital",
         "population": "Popullsi"
     },
     "$vuetify": {

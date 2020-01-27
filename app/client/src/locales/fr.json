@@ -330,6 +330,8 @@
         "hostel": "Auberge",
         "guest_house": "Maison d'hôtes ",
         "gallery": "Galerie",
+        "university": "University",
+        "hospital": "Hospital",
         "population": "Population"
     },
     "$vuetify": {
