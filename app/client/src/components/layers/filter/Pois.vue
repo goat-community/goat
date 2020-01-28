@@ -77,13 +77,13 @@
       indeterminate-icon="indeterminate_check_box"
       @input="treeViewChanged"
     >
-      <template v-slot:prepend="{ item, open }">
+      <template v-slot:prepend="{ item }">
         <img v-if="item.icon" class="pois-icon" :src="getPoisIconUrl(item)" />
       </template>
-      <template v-slot:label="{ item, open }">
+      <template v-slot:label="{ item }">
         <div class="tree-label-custom">{{ getDisplayName(item) }}</div>
       </template>
-      <template v-slot:append="{ item, open }">
+      <template v-slot:append="{ item }">
         <template v-if="item.icon">
           <v-tooltip top>
             <template v-slot:activator="{ on }">
