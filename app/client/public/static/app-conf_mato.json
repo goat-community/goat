@@ -74,6 +74,7 @@
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
+        "requiresPois": true,
         "zIndex": 2,
         "serverType": "geoserver"
       },
@@ -102,6 +103,7 @@
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
+        "requiresPois": true,
         "zIndex": 1,
         "serverType": "geoserver"
       },
@@ -128,6 +130,7 @@
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
+        "requiresPois": true,
         "zIndex": 1,
         "serverType": "geoserver"
       },
@@ -256,27 +259,31 @@
               "value": "primary_school",
               "icon": "primary_school",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity": -0.003,
+              "locked": false
             },
             {
               "name": "Secondary school",
               "value": "secondary_school",
               "icon": "secondary_school",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity": -0.003,
+              "locked": false
             },
             {
               "name": "University",
               "value": "university",
               "icon": "university",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity": -0.003,
+              "locked": false
             }
           ]
         },
         {
           "name": "Transport",
           "categoryValue": "transport",
+          "locked": false,
           "children": [
             {
               "name": "Bus",
@@ -284,7 +291,7 @@
               "icon": "bus_stop",
               "weight": 1,
               "sensitivity": -0.003
-            }            
+            }
           ]
         },
         {
@@ -292,16 +299,16 @@
           "categoryValue": "services",
           "children": [
             {
-              "name": "Doctor",
-              "value": "doctors",
-              "icon": "doctors",
+              "name": "Hospital",
+              "value": "hospital",
+              "icon": "hospital",
               "weight": 1,
               "sensitivity": -0.003
             },
             {
-              "name": "Hospital",
-              "value": "hospital",
-              "icon": "hospital",
+              "name": "Doctor",
+              "value": "doctors",
+              "icon": "doctors",
               "weight": 1,
               "sensitivity": -0.003
             }
@@ -337,7 +344,7 @@
           }
         ],
         "disabledPoisOnRoutingProfile": {
-          "wheelchair": [
+          "walking_wheelchair": [
             {
               "categoryValue": "services",
               "poisFiltered": ["recycling", "atm"]
@@ -459,6 +466,13 @@
           "19": "#0114B7",
           "20": "#000ABF"
         }
+      }
+    }
+  },
+  "componentConf": {
+    "pois": {
+      "filters": {
+        "timeBasedCalculations": "no"
       }
     }
   }
