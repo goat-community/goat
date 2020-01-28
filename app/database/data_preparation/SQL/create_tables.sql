@@ -78,12 +78,6 @@ CREATE INDEX index_addresses_residential ON addresses_residential USING GIST (ge
 CREATE TABLE study_area_union as
 SELECT st_union(geom) geom FROM study_area;
 
-CREATE TABLE crop_study_area AS 
-SELECT ST_DIFFERENCE(ST_MakeEnvelope(-180.0000, -90.0000, 180.0000, 90.0000,4326),geom) AS geom 
-FROM study_area_union
-ORDER BY ST_AREA(ST_DIFFERENCE(ST_MakeEnvelope(-180.0000, -90.0000, 180.0000, 90.0000,4326),geom))
-LIMIT 1;
-
 -- Table: public.ways_modified
 
 -- DROP TABLE public.ways_modified;
