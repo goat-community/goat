@@ -2,7 +2,7 @@
   <div>
     <!-- TOGGLE STREET VIEW -->
     <v-btn
-      v-if="!miniViewerVisible"
+      v-if="false"
       class="mx-2 miniviewer-button"
       fab
       dark
@@ -31,17 +31,14 @@
 </template>
 <script>
 import appMap from "./ol/Map";
-import appMapillary from "./mapillary/Mapillary";
 export default {
   name: "app-viewer",
   components: {
-    "app-ol-map": appMap,
-    "app-mapillary": appMapillary
+    "app-ol-map": appMap
   },
   data() {
     return {
       miniViewerVisible: false,
-      activeMiniViewComponent: "app-mapillary",
       activeFullViewComponent: "app-ol-map"
     };
   },
