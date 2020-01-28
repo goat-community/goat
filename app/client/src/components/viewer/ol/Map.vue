@@ -2,7 +2,7 @@
   <div id="ol-map-container">
     <!-- Map Controls -->
     <zoom-control :map="map" />
-
+    <full-screen />
     <progress-status :isNetworkBusy="isNetworkBusy" />
     <background-switcher />
     <map-legend />
@@ -102,6 +102,7 @@ import MapLoadingProgressStatus from "./controls/MapLoadingProgressStatus";
 import Legend from "./controls/Legend";
 import BackgroundSwitcher from "./controls/BackgroundSwitcher";
 import ZoomControl from "./controls/ZoomControl";
+import FullScreen from "./controls/Fullscreen";
 import { defaults as defaultControls, Attribution } from "ol/control";
 
 export default {
@@ -110,7 +111,8 @@ export default {
     "progress-status": MapLoadingProgressStatus,
     "map-legend": Legend,
     "background-switcher": BackgroundSwitcher,
-    "zoom-control": ZoomControl
+    "zoom-control": ZoomControl,
+    "full-screen": FullScreen
   },
   name: "app-ol-map",
   data() {

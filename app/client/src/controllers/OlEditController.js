@@ -338,8 +338,6 @@ export default class OlEditController extends OlBaseController {
         if (me.currentInteraction == "draw") {
           me.featuresToCommit = [];
         }
-        //Refresh selected layer
-        editLayerHelper.selectedLayer.getSource().refresh();
       });
   }
 

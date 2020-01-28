@@ -2,7 +2,7 @@
   <div>
     <!-- TOGGLE STREET VIEW -->
     <v-btn
-      v-if="false"
+      v-if="!miniViewerVisible"
       class="mx-2 miniviewer-button"
       fab
       dark
@@ -10,11 +10,11 @@
       color="green"
       @click="showMiniViewer"
     >
-      <v-icon dark>remove_red_eye</v-icon>
+      <v-icon dark>streetview</v-icon>
     </v-btn>
 
     <!-- MINI-VIEW -->
-    <v-slide-y-transition>
+    <v-expand-x-transition>
       <v-card v-if="miniViewerVisible" class="miniview" outlined>
         <div id="switch-triangle" @click="switchViews()">
           <v-icon large dark class="swap-icon">swap_horiz</v-icon>
@@ -23,7 +23,7 @@
           class="strech"
           v-bind:is="activeMiniViewComponent"
         ></component> </v-card
-    ></v-slide-y-transition>
+    ></v-expand-x-transition>
 
     <!-- FULL-VIEW -->
     <component class="strech" v-bind:is="activeFullViewComponent"></component>
@@ -31,15 +31,17 @@
 </template>
 <script>
 import appMap from "./ol/Map";
+import appMapillary from "./mapillary/Mapillary";
 export default {
   name: "app-viewer",
   components: {
-    "app-ol-map": appMap
+    "app-ol-map": appMap,
+    "app-mapillary": appMapillary
   },
   data() {
     return {
       miniViewerVisible: false,
-      activeMiniViewComponent: "app-ol-map",
+      activeMiniViewComponent: "app-mapillary",
       activeFullViewComponent: "app-ol-map"
     };
   },
@@ -61,7 +63,7 @@ export default {
 
 .miniviewer-button {
   position: absolute;
-  top: 110px;
+  top: 150px;
   left: 8px;
   z-index: 1;
 }
@@ -91,6 +93,7 @@ export default {
   background-color: white;
   box-shadow: 0 0 4px #00000060;
   border-radius: 8px;
+  z-index: 3;
 }
 
 #switch-triangle {
