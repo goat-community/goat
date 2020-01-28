@@ -62,6 +62,7 @@ axios.all([getAppConf(), getStudyAreaBbox()]).then(
       const extent = buffer(f[0].getGeometry().getExtent(), 3000);
       //Make extent available in $appConf so the map can use it.
       Vue.prototype.$appConfig.map.extent = extent;
+      Vue.prototype.$appConfig.map.studyAreaFeature = f;
     }
 
     /* eslint-disable no-new */
