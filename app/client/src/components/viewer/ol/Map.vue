@@ -76,6 +76,8 @@ import { defaults as defaultInteractions } from "ol/interaction";
 import Overlay from "ol/Overlay";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
+import Mask from "ol-ext/filter/Mask";
+import OlFill from "ol/style/Fill";
 
 // style imports
 import OlStyleDefs from "../../../style/OlStyleDefs";
@@ -188,7 +190,7 @@ export default {
     // create layers from config and add them to map
     const layers = me.createLayers();
     me.map.getLayers().extend(layers);
-
+    me.createMaskFilters(layers);
     me.createGetInfoLayer();
 
     EventBus.$on("ol-interaction-activated", startedInteraction => {
@@ -283,6 +285,33 @@ export default {
           }
         }
       });
+    },
+
+    /**
+     * Creates a filter mask of the city using ol mask extension.
+     * Hides other municipalities and states.
+     */
+    createMaskFilters(mapLayers) {
+      //Filter background layers
+      const backgroundLayers = [];
+      mapLayers.forEach(layer => {
+        if (layer.get("name") === "backgroundLayers") {
+          backgroundLayers.push(...layer.getLayers().getArray());
+        }
+      });
+
+      //Create masks
+      const feature = this.$appConfig.map.studyAreaFeature;
+
+      if (!feature[0]) return;
+      const mask = new Mask({
+        feature: feature[0],
+        inner: false,
+        fill: new OlFill({ color: [169, 169, 169, 0.8] })
+      });
+      for (const i of backgroundLayers) {
+        i.addFilter(mask);
+      }
     },
 
     /**

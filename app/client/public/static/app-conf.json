@@ -83,21 +83,6 @@
         "serverType": "geoserver"
       },
       {
-        "type": "WMSTILE",
-        "name": "extentStudyarea",
-        "url": "/geoserver/wms",
-        "group": "administrativeLayers",
-        "layers": "cite:crop_study_area",
-        "opacity": 1,
-        "preload": "Infinity",
-        "ratio": 3,
-        "queryable": false,
-        "visible": true,
-        "displayInLayerList": false,
-        "zIndex": 4,
-        "serverType": "geoserver"
-      },
-      {
         "type": "WMS",
         "name": "walkability",
         "url": "/geoserver/wms",
