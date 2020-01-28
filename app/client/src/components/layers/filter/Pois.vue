@@ -144,7 +144,6 @@ export default {
     ...mapActions("isochrones", {
       countStudyAreaPois: "countStudyAreaPois"
     }),
-
     getPoisIconUrl(item) {
       const images = require.context(
         "../../../assets/img/pois/",
@@ -218,7 +217,7 @@ export default {
         }
 
         me.poisLayer.getSource().updateParams({
-          viewparams: `userid:${me.userId};${params}`
+          viewparams: params
         });
       }
     },
@@ -280,10 +279,6 @@ export default {
   watch: {
     selectedPois: function() {
       const me = this;
-
-      if (me.selectedPois.length > 0 && me.poisLayer.getVisible() === false) {
-        me.poisLayer.setVisible(true);
-      }
       me.updateSelectedPoisForThematicData(me.selectedPois);
       me.updateHeatmapLayerViewParams();
       me.updatePoisLayerViewParams(me.selectedPois);
@@ -308,9 +303,6 @@ export default {
       timeFilter: "timeFilter",
       disabledPoisOnTimeFilter: "disabledPoisOnTimeFilter",
       disabledPoisOnRoutingProfile: "disabledPoisOnRoutingProfile"
-    }),
-    ...mapGetters("user", {
-      userId: "userId"
     }),
     ...mapGetters("isochrones", {
       options: "options"
