@@ -30,13 +30,6 @@ spec:
         name: goat-api
         ports:
         - containerPort: 3000
-        resources:
-          requests:
-            memory: 256Mi
-            cpu: 200m
-          limits:
-            memory: 512Mi
-            cpu: 300m
         readinessProbe:
           httpGet:
             path: /ping
@@ -60,7 +53,7 @@ spec:
           - name: POSTGRES_USER
             value: ${POSTGRES_USER}
           - name: POSTGRES_HOST
-            value: postgres.postgres.svc.cluster.local
+            value: postgres.${NAMESPACE}.svc.cluster.local
           - name: POSTGRES_DBNAME
             value: ${POSTGRES_DB}
           - name: POSTGRES_PASS

@@ -380,6 +380,8 @@
     "hostel": "Hostel",
     "guest_house": "Guest house",
     "gallery": "Gallery",
+    "university": "University",
+    "hospital": "Hospital",
     "population": "Population"
   },
   "$vuetify": {
