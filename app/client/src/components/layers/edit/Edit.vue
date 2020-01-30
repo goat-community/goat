@@ -93,7 +93,12 @@
               </v-tooltip>
             </v-btn-toggle>
           </v-flex>
-          <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-0">
+          <v-flex
+            v-if="isFileUploadEnabled === true"
+            xs12
+            v-show="selectedLayer != null"
+            class="mt-1 pt-0 mb-0"
+          >
             <v-divider class="mb-1"></v-divider>
             <p class="mb-1">Upload your data</p>
             <v-file-input
@@ -285,6 +290,7 @@ export default {
     },
 
     //Upload field.
+    isFileUploadEnabled: false,
     file: null,
     uploadRules: [
       value =>
@@ -817,6 +823,7 @@ export default {
   },
   created() {
     this.listValues = this.$appConfig.listValues;
+    this.isFileUploadEnabled = this.$appConfig.componentConf.edit.enableFileUpload;
     //Edge Case (get all pois keys)
     if (
       this.listValues.pois_info.amenity &&
