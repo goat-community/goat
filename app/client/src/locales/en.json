@@ -289,21 +289,20 @@
       "bingAerial": "Bing Aerial"
     },
     "tooltips": {
-      "clickForCalculation": "Click for Calculation",
-      "clickToSelectStudyArea": "Click to select the study area",
+      "clickForCalculation": "Click for Calculation. Press ESC to exit",
+      "clickToSelectStudyArea": "Click to select the study area. Press ESC to exit",
       "maxCircleRadius": "Maximum circle radius is 1000 m",
-      "clickToStartMeasure": "Click to start measuring",
-      "clickToStartDrawing": "Click to start drawing",
+      "clickToStartMeasure": "Click to start measuring. Press ESC to exit",
+      "clickToStartDrawing": "Click to start drawing. Press ESC to exit",
       "clickToContinueDrawing": "Click to continue drawing",
       "clickToFinishDrawing": "Click to finish drawing",
-      "clickToStartDrawingBoundary": "Click to start drawing the boundary",
-      "clickToStartDrawingCircle": "Click to start drawing the circle (Max Radius 1000 m)",
-      "clickToFinishDrawingPolygon": "Double-click or click starting point to finish",
+      "clickToStartDrawingBoundary": "Click to start drawing the boundary. <br> Press ESC to exit",
+      "clickToStartDrawingCircle": "Click to start drawing the circle (Max Radius 1000 m). <br> Press ESC to exit",
+      "clickToFinishDrawingPolygon": "Double-click or click starting point to finish.",
       "clickOnFeatureToDelete": "Click on feature to delete it",
       "clickAndDragToModify": "Click and drag the features to modify",
       "clickToRemove": "Click to remove it",
       "clickToPlacePoint": "Click to place the point",
-
       "routingProfiles": {
         "walking_standard": "Default routing",
         "walking_elderly": " Routing with reduced walking speed",

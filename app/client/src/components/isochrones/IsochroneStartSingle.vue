@@ -69,6 +69,7 @@
 <script>
 import { EventBus } from "../../EventBus";
 import { Mapable } from "../../mixins/Mapable";
+import { KeyShortcuts } from "../../mixins/KeyShortcuts";
 import { InteractionsToggle } from "../../mixins/InteractionsToggle";
 
 //Store imports
@@ -84,7 +85,7 @@ import { debounce } from "../../utils/Helpers";
 import { transform, transformExtent } from "ol/proj.js";
 
 export default {
-  mixins: [InteractionsToggle, Mapable],
+  mixins: [InteractionsToggle, Mapable, KeyShortcuts],
   data: () => ({
     interactionType: "isochrone-single-interaction",
     descriptionLimit: 30,
@@ -135,6 +136,9 @@ export default {
       me.mapClickListener = me.map.once("singleclick", me.onMapClick);
       me.startHelpTooltip(this.$t("map.tooltips.clickForCalculation"));
       me.map.getTarget().style.cursor = "pointer";
+      if (this.addKeyupListener) {
+        this.addKeyupListener();
+      }
     },
     /**
      * Handler for 'singleclick' on the map.
@@ -175,11 +179,13 @@ export default {
       });
       me.calculateIsochrone();
     },
+
     clear() {
       const me = this;
       if (me.mapClickListener) {
         unByKey(me.mapClickListener);
       }
+
       me.stopHelpTooltip();
       me.map.getTarget().style.cursor = "";
       EventBus.$emit("ol-interaction-stoped", me.interactionType);
