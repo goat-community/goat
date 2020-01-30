@@ -243,6 +243,7 @@
 <script>
 import { EventBus } from "../../../EventBus";
 import { Mapable } from "../../../mixins/Mapable";
+import { KeyShortcuts } from "../../../mixins/KeyShortcuts";
 import { InteractionsToggle } from "../../../mixins/InteractionsToggle";
 import {
   getAllChildLayers,
@@ -272,7 +273,7 @@ export default {
     "overlay-popup": OverlayPopup,
     VJsonschemaForm
   },
-  mixins: [InteractionsToggle, Mapable],
+  mixins: [InteractionsToggle, Mapable, KeyShortcuts],
   data: () => ({
     interactionType: "edit-interaction",
     selectedLayer: null,
@@ -557,6 +558,9 @@ export default {
           me.onSelectionStart,
           me.onSelectionEnd
         );
+        if (this.addKeyupListener) {
+          this.addKeyupListener();
+        }
       } else {
         me.olSelectCtrl.removeInteraction();
       }
@@ -592,7 +596,13 @@ export default {
       if (editType !== undefined) {
         me.olEditCtrl.addInteraction(editType, startCb, endCb);
         EventBus.$emit("ol-interaction-activated", me.interactionType);
-        me.map.getTarget().style.cursor = this.mapCursorTypeEnum[editType];
+        setTimeout(() => {
+          me.map.getTarget().style.cursor = this.mapCursorTypeEnum[editType];
+        }, 50);
+
+        if (this.addKeyupListener) {
+          this.addKeyupListener();
+        }
       } else {
         me.olEditCtrl.removeInteraction();
         EventBus.$emit("ol-interaction-stoped", me.interactionType);
@@ -653,7 +663,12 @@ export default {
      */
     onDrawEnd(evt) {
       const feature = evt.feature;
+
       this.olEditCtrl.closePopup();
+      //Disable interaction until user fills the attributes for the feature
+      if (this.olEditCtrl.edit) {
+        this.olEditCtrl.edit.setActive(false);
+      }
       this.olEditCtrl.featuresToCommit.push(feature);
       this.olEditCtrl.highlightSource.addFeature(feature);
       const featureCoordinates = feature.getGeometry().getCoordinates();

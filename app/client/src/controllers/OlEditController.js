@@ -211,6 +211,9 @@ export default class OlEditController extends OlBaseController {
       me.popupOverlay.setPosition(undefined);
       me.popup.isVisible = false;
     }
+    if (me.edit) {
+      me.edit.setActive(true);
+    }
     me.highlightSource.clear();
   }
 

@@ -77,12 +77,13 @@ import { mapFields } from "vuex-map-fields";
 
 import { EventBus } from "../../EventBus";
 import { Mapable } from "../../mixins/Mapable";
+import { KeyShortcuts } from "../../mixins/KeyShortcuts";
 import { InteractionsToggle } from "../../mixins/InteractionsToggle";
 
 import OlIsochroneController from "../../controllers/OlIsochroneController";
 
 export default {
-  mixins: [Mapable, InteractionsToggle],
+  mixins: [Mapable, InteractionsToggle, KeyShortcuts],
   data: () => ({
     isIsochroneStartElVisible: true,
     interactionType: "isochrone-multiple-interaction"
@@ -140,8 +141,13 @@ export default {
       EventBus.$emit("ol-interaction-activated", me.interactionType);
       me.olIsochroneCtrl.removeInteraction();
       me.olIsochroneCtrl.addInteraction("multiple");
+      me.map.getTarget().style.cursor = "pointer";
+      if (this.addKeyupListener) {
+        this.addKeyupListener();
+      }
     },
     clear() {
+      this.map.getTarget().style.cursor = "";
       this.activeMultiIsochroneMethod = null;
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
     },
