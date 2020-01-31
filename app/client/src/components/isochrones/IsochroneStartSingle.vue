@@ -52,7 +52,8 @@
                 fab
                 v-on="on"
                 class="ml-4"
-                rounded
+                depressed
+                :loading="isBusy"
                 text
                 @click="registerMapClick"
               >
@@ -99,6 +100,9 @@ export default {
   computed: {
     ...mapGetters("map", {
       messages: "messages"
+    }),
+    ...mapGetters("isochrones", {
+      isBusy: "isBusy"
     }),
     fields() {
       if (!this.model) return [];

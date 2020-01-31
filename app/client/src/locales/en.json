@@ -255,7 +255,8 @@
       "title": "Layers Legend"
     },
     "snackbarMessages": {
-      "selectAmenities": "You must select at least one point of interest"
+      "selectAmenities": "You must select at least one point of interest",
+      "calculateIsochroneError": "Sorry but here no calculation is possible"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
