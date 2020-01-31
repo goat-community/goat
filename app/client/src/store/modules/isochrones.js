@@ -158,7 +158,7 @@ const actions = {
     commit("SET_IS_BUSY", true);
     const isochronesResponse = await http
       .post(`/api/${isochroneEndpoint}`, params, {
-        timeout: 20000
+        timeout: 12000
       })
       .catch(() => {
         //Show error message
