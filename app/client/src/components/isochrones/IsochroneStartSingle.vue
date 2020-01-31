@@ -26,6 +26,7 @@
             v-model="model"
             :items="items"
             :loading="isLoading"
+            :disabled="isBusy"
             :label="$t('isochrones.single.searchBox')"
             :search-input.sync="search"
             item-text="DisplayName"
