@@ -256,7 +256,9 @@
     },
     "snackbarMessages": {
       "selectAmenities": "You must select at least one point of interest",
-      "calculateIsochroneError": "Sorry but here no calculation is possible"
+      "calculateIsochroneError": "Sorry but here no calculation is possible",
+      "uploadScenarioSuccess": "Features uploads successfully.",
+      "uploadScenarioError": "Sorry, an error happened while uploading the features in database."
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
@@ -426,7 +428,8 @@
   "dynamicFields": {
     "attributes": {
       "ways": {
-        "type": "Way Type"
+        "type": "Way Type",
+        "class_id": "Class Id"
       },
       "pois_info": {
         "amenity": "Amenity",

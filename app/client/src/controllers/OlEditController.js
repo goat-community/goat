@@ -191,8 +191,12 @@ export default class OlEditController extends OlBaseController {
     me.closePopup();
   }
 
-  uploadFeatures() {
-    editLayerHelper.uploadFeatures(store.state.userId, this.source);
+  /**
+   * Send a request.
+   * @param {requestCallback} onUploadCb - The callback that handles the response.
+   */
+  uploadFeatures(onUploadCb) {
+    editLayerHelper.uploadFeatures(store.state.userId, this.source, onUploadCb);
   }
 
   /**
@@ -351,7 +355,7 @@ export default class OlEditController extends OlBaseController {
     const me = this;
     me.popupOverlay = new Overlay({
       element: me.popup.el.$el,
-      autoPan: false,
+      autoPan: true,
       autoPanMargin: 40,
       autoPanAnimation: {
         duration: 250

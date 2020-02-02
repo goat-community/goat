@@ -136,7 +136,7 @@ const editLayerHelper = {
         editLayerHelper.insertUserInDb("insert", user_id);
       });
   },
-  uploadFeatures(userId, streetSource) {
+  uploadFeatures(userId, streetSource, onUploadCb) {
     http
       .get("./geoserver/wfs", {
         params: {
@@ -158,10 +158,11 @@ const editLayerHelper = {
               });
             }
           });
+          onUploadCb("success");
         }
       })
-      .catch(function(error) {
-        throw new Error(error);
+      .catch(() => {
+        onUploadCb("error");
       });
   },
   insertUserInDb(mode, generatedId) {

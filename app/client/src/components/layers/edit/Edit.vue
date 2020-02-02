@@ -168,6 +168,7 @@
         <v-btn
           v-show="selectedLayer != null"
           class="white--text"
+          :loading="isUploadBusy"
           color="green"
           @click="uploadFeatures"
         >
@@ -195,7 +196,7 @@
         <v-icon>close</v-icon>
       </v-btn>
       <template v-slot:close>
-        <v-btn @click="olEditCtrl.closePopup()" icon>
+        <v-btn @click="cancel()" icon>
           <v-icon>close</v-icon>
         </v-btn>
       </template>
@@ -266,7 +267,7 @@ import http from "axios";
 
 import VJsonschemaForm from "../../other/dynamicForms/index";
 import { geojsonToFeature } from "../../../utils/MapUtils";
-import { mapGetters } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 
 export default {
   components: {
@@ -282,6 +283,7 @@ export default {
     toggleSelection: undefined,
     toggleEdit: undefined,
     loadingLayerInfo: false,
+    isUploadBusy: false,
     //Popup configuration
     popup: {
       title: "",
@@ -665,22 +667,37 @@ export default {
       const feature = evt.feature;
 
       this.olEditCtrl.closePopup();
-      //Disable interaction until user fills the attributes for the feature
+      this.clearDataObject();
+      //Disable interaction until user fills the attributes for the feature and closes the popup
       if (this.olEditCtrl.edit) {
         this.olEditCtrl.edit.setActive(false);
       }
       this.olEditCtrl.featuresToCommit.push(feature);
       this.olEditCtrl.highlightSource.addFeature(feature);
       const featureCoordinates = feature.getGeometry().getCoordinates();
+
       const popupCoordinate = Array.isArray(featureCoordinates[0])
         ? featureCoordinates[0]
         : featureCoordinates;
+
       this.olEditCtrl.popupOverlay.setPosition(popupCoordinate);
       this.olEditCtrl.popup.title = "attributes";
       this.olEditCtrl.popup.selectedInteraction = "add";
       this.olEditCtrl.popup.isVisible = true;
       //update cache
       this.updateFileInputFeatureCache();
+    },
+
+    /**
+     * Clear data object that user has entered,
+     * so the next time the popup is opened the form is clean.
+     */
+    clearDataObject() {
+      if (this.dataObject) {
+        for (const key of Object.keys(this.dataObject)) {
+          this.dataObject[key] = null;
+        }
+      }
     },
 
     /**
@@ -734,12 +751,27 @@ export default {
       me.olSelectCtrl.clear();
     },
 
+    /**
+     * Upload drawn and modidified features for scenario calculations
+     */
     uploadFeatures() {
       //If there are file input feature commit those in db as well.
       if (this.fileInputFeaturesCache.length > 0) {
         this.uploadUserFeaturesToDB(this.fileInputFeaturesCache);
       }
-      this.olEditCtrl.uploadFeatures();
+      this.isUploadBusy = true;
+      this.olEditCtrl.uploadFeatures(state => {
+        this.isUploadBusy = false;
+        this.toggleSnackbar({
+          type: state, //success or error
+          message:
+            state === "success"
+              ? "uploadScenarioSuccess"
+              : "uploadScenarioError",
+          state: true,
+          timeout: 4000
+        });
+      });
     },
 
     /**
@@ -790,8 +822,16 @@ export default {
       }
     },
     cancel() {
+      if (this.olEditCtrl.featuresToCommit.length > 0) {
+        this.olEditCtrl.featuresToCommit.forEach(feature => {
+          this.olEditCtrl.source.removeFeature(feature);
+        });
+      }
       this.olEditCtrl.closePopup();
-    }
+    },
+    ...mapMutations("map", {
+      toggleSnackbar: "TOGGLE_SNACKBAR"
+    })
   },
   computed: {
     layerName() {
