@@ -121,7 +121,9 @@
       "noFile": "No file",
       "allFeaturesUploaded": "All Features Uploaded",
       "notAllUploaded": "Not all features uploaded",
-      "errorHappened": "An error happened"
+      "errorHappened": "An error happened",
+      "scenarioFeatures": "Scenario Features",
+      "uploadYourData": "Upload your data"
     },
     "settings": {
       "title": "Settings",
@@ -311,7 +313,10 @@
         "walking_elderly": " Routing with reduced walking speed",
         "walking_wheelchair": "Routing excluding paths and points-of-interest that are not barrier-free",
         "walking_safe_night": "Routing excluding unlit paths"
-      }
+      },
+      "zoomToFeature": "Zoom to feature",
+      "deleteFeature": "Delete Feature",
+      "uploadFeature": "Upload Feature"
     },
     "popup": {
       "attributes": "Attributes",

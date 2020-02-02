@@ -26,13 +26,14 @@ export default class OlEditController extends OlBaseController {
    * Creates the edit vector layer and add it to the
    * map.
    */
-  createEditLayer() {
+  createEditLayer(onFeatureChangeCb, onSourceChangeCb) {
     const me = this;
     const style = OlStyleDefs.getEditStyle();
     super.createLayer("Edit Layer", style, {
       queryable: true
     });
-    me.source.on("changefeature", me.onFeatureChange.bind(me));
+    me.source.on("changefeature", onFeatureChangeCb);
+    me.source.on("change", onSourceChangeCb);
 
     //Create highlight layer
     const highlightSource = new VectorSource({ wrapX: false });
@@ -131,31 +132,19 @@ export default class OlEditController extends OlBaseController {
   }
 
   /**
-   * Feature change event handler
-   */
-  onFeatureChange(evt) {
-    const me = this;
-    //Exclude features from file input as we add this feature later when user click upload button
-    if (evt.feature.get("user_uploaded")) return;
-    if (me.currentInteraction === "modify") {
-      const index = me.featuresToCommit.findIndex(
-        i => i.ol_uid === evt.feature.ol_uid
-      );
-      if (index === -1) {
-        me.featuresToCommit.push(evt.feature);
-      } else {
-        me.featuresToCommit[index] = evt.feature;
-      }
-    }
-  }
-
-  /**
    * Opens a popup for the delete confirmation
    */
   openDeletePopup(evt) {
     const me = this;
-    const coordinate = evt.coordinate;
-    const feature = me.source.getClosestFeatureToCoordinate(coordinate);
+    let feature;
+    if (evt.coordinate) {
+      const coordinate = evt.coordinate;
+      feature = me.source.getClosestFeatureToCoordinate(coordinate);
+    } else {
+      //Triggered when user click scenario data table
+      feature = evt;
+    }
+
     me.highlightSource.addFeature(feature);
     me.selectedFeature = feature;
     if (feature) {
