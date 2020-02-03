@@ -24,9 +24,7 @@
         <v-card-text class="pr-16 pl-16 pt-0 pb-0 mb-2">
           <v-divider></v-divider>
         </v-card-text>
-        <isochrone-thematic-data />
       </template>
-
       <!-- ISOCHRONES  -->
       <template v-else>
         <v-subheader>
@@ -52,7 +50,6 @@ import { Mapable } from "../../mixins/Mapable";
 //Child components
 import IsochroneOptions from "./IsochroneOptions";
 import IsochroneResults from "./IsochroneResults";
-import IsochronThematicData from "./IsochronesThematicData";
 import IsochroneType from "./IsochroneType";
 import IsochroneStartSingle from "./IsochroneStartSingle";
 import IsochroneStartMultiple from "./IsochroneStartMultiple";
@@ -72,7 +69,6 @@ export default {
   components: {
     "isochrone-options": IsochroneOptions,
     "isochrone-results": IsochroneResults,
-    "isochrone-thematic-data": IsochronThematicData,
     "isochrone-type": IsochroneType,
     "isochrone-start-single": IsochroneStartSingle,
     "isochrone-start-multiple": IsochroneStartMultiple
