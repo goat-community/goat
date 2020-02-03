@@ -21,7 +21,6 @@
             }}
           </p>
         </v-card-text>
-        <!-- -- -->
         <v-select
           v-if="selectedThematicData.calculationType === 'single'"
           :items="isochroneSteps"
