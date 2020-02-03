@@ -279,6 +279,9 @@ export default {
   watch: {
     selectedPois: function() {
       const me = this;
+      if (me.selectedPois.length > 0 && me.poisLayer.getVisible() === false) {
+        me.poisLayer.setVisible(true);
+      }
       me.updateSelectedPoisForThematicData(me.selectedPois);
       me.updateHeatmapLayerViewParams();
       me.updatePoisLayerViewParams(me.selectedPois);
