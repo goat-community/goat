@@ -7,13 +7,14 @@ DECLARE
 	pois_one_entrance text[] := select_from_variable_container('pois_one_entrance');
 	pois_more_entrances text[] := select_from_variable_container('pois_more_entrances');
 	excluded_pois_id integer[];
-	
 BEGIN 
+
 
 IF modus IN(2,4) THEN
 	excluded_pois_id = ids_modified_features(userid_input,'pois');
 ELSE 
 	excluded_pois_id = ARRAY[]::integer[];
+	userid_input = 1;
 END IF;
 
 WITH yy AS (
@@ -34,10 +35,10 @@ WITH yy AS (
 	SELECT i.gid,count(*),amenity 
 	FROM isochrones i, pois_userinput p
 	WHERE st_intersects(i.geom,p.geom) 
-	AND amenity = ANY(pois_one_entrance)
+	AND amenity IN (SELECT UNNEST(pois_one_entrance))
 	AND objectid=input_objectid
 	AND (p.userid = userid_input OR p.userid IS NULL)
-	AND p.gid != ANY(excluded_pois_id)
+	AND p.gid NOT IN (SELECT UNNEST(excluded_pois_id))
 	GROUP BY i.gid,amenity
 	UNION ALL
 	SELECT gid,count(*),amenity
@@ -45,10 +46,10 @@ WITH yy AS (
 		(SELECT i.gid, p.name,amenity,1 as count
 		FROM pois_userinput p, isochrones i
 		WHERE st_intersects(i.geom,p.geom)
-		AND amenity = ANY(pois_more_entrances)
+		AND amenity IN (SELECT UNNEST(pois_more_entrances))
 		AND i.objectid = input_objectid
 		AND (p.userid = userid_input OR p.userid IS NULL)
-		AND p.gid != ANY(excluded_pois_id)
+		AND p.gid NOT IN (SELECT UNNEST(excluded_pois_id))
 		GROUP BY i.gid,amenity,p.name) p
 	GROUP BY gid,amenity
 )

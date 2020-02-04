@@ -14,9 +14,9 @@ BEGIN
         RETURN query
         SELECT p.gid::bigint, p.amenity, p.name,p.osm_id,p.opening_hours,p.origin_geometry,p.geom, 'accessible' AS status,p.wheelchair
 		FROM pois_userinput p
-        WHERE amenity = ANY (amenities_input) 
-        AND (p.userid = userid_input OR p.userid IS NULL) 
-        AND p.gid != ANY(excluded_pois_id);
+        WHERE amenity IN (SELECT UNNEST(amenities_input)) 
+        AND (p.userid = userid_input OR p.userid IS NULL)
+        AND p.gid NOT IN (SELECT UNNEST(excluded_pois_id));
     --if no opening hours are provided by the user and routing profile is wheelchair
 
     ELSEIF (d = 9999 OR h = 9999 OR m = 9999) AND routing_profile_input = 'walking_wheelchair' THEN 
