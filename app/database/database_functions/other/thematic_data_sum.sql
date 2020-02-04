@@ -3,10 +3,13 @@ CREATE OR REPLACE FUNCTION public.thematic_data_sum(input_objectid integer)
  RETURNS TABLE(gid_isochrone integer, pois_isochrones jsonb)
  LANGUAGE plpgsql
 AS $function$
-begin
+DECLARE 
+	pois_one_entrance text[] := select_from_variable_container('pois_one_entrance');
+	pois_more_entrances text[] := select_from_variable_container('pois_more_entrances');
+BEGIN 
 	
-with yy as (
-	with xx as (
+WITH yy AS (
+	WITH xx AS (
 		SELECT a.gid,sum(a.population)::integer+(5-(sum(a.population)::integer%5)) as sum_pop 
 		FROM
 		(	
@@ -20,23 +23,22 @@ with yy as (
 	)
 	SELECT gid,sum_pop AS count,'population' AS pois_type FROM xx
 	UNION ALL
-	SELECT p.* FROM (
-		SELECT i.gid,count(*),amenity FROM isochrones i, 
-		pois p
-		WHERE st_intersects(i.geom,p.geom)  AND objectid=input_objectid
-		GROUP BY i.gid,amenity
-	) p ,variable_container
-	WHERE amenity = any(variable_array)
-	AND identifier = 'poi_categories'
+	SELECT i.gid,count(*),amenity 
+	FROM isochrones i, pois p
+	WHERE st_intersects(i.geom,p.geom) 
+	AND amenity = ANY(pois_categories)
+	AND objectid=input_objectid
+	GROUP BY i.gid,amenity
 	UNION ALL
-	SELECT gid,count(*),public_transport_stop
+	SELECT gid,count(*),amenity
 	FROM
-		(SELECT i.gid, p.name,public_transport_stop,1 as count
-		FROM public_transport_stops p, isochrones i
+		(SELECT i.gid, p.name,amenity,1 as count
+		FROM pois p, isochrones i
 		WHERE st_intersects(i.geom,p.geom)
+		AND amenity = ANY(pois_more_entrances)
 		AND i.objectid = input_objectid
-		GROUP BY i.gid,public_transport_stop,p.name) p
-	GROUP BY gid,public_transport_stop
+		GROUP BY i.gid,amenity,p.name) p
+	GROUP BY gid,amenity
 )
 update isochrones set sum_pois = jsonb_object::text 
 FROM (

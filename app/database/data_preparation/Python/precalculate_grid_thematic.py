@@ -73,9 +73,7 @@ while lower_limit < count_grids:
 
 print('Expanding jsonb to columns is starting...')
 
-sql_poi_categories = '''SELECT poi FROM (
-SELECT unnest(variable_array::text[]) poi FROM variable_container WHERE identifier = 'poi_categories' 
-) x 
+sql_poi_categories = '''SELECT UNNEST(select_from_variable_container('pois_one_entrance')||select_from_variable_container('pois_more_entrances')) poi
 ORDER BY poi;
 '''
 sql_index = '''UPDATE %s g SET %s = %s || x.object
