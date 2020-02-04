@@ -18,6 +18,7 @@ DECLARE
 	objectid_multi_isochrone integer;
 	max_length_links numeric;
 	calc_modus integer;
+	excluded_pois_id integer[];
 	BEGIN
 
 	/*Scenario building has to be implemented*/
@@ -52,6 +53,21 @@ DECLARE
 		wheelchair_condition = ARRAY['no','No'];
 	ELSE 
 		wheelchair_condition = NULL;
+	END IF;
+
+	IF modus_input IN (2,4) THEN
+		SELECT array_append(array_agg(x.id),0)
+		INTO excluded_pois_id 
+		FROM (
+			SELECT Unnest(deleted_feature_ids)::integer id 
+			FROM user_data
+			WHERE user_id = userid_input
+			AND layer_name = 'pois_info'
+			UNION ALL
+			SELECT original_id::integer modified
+			FROM pois_modified
+			WHERE userid = userid_input AND original_id IS NOT NULL
+		) x;		
 	END IF;
 
 

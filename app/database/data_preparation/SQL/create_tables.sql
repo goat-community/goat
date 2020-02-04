@@ -120,7 +120,7 @@ CREATE TABLE public.user_data
     name character varying COLLATE pg_catalog."default",
     surname character varying COLLATE pg_catalog."default",
     deleted_feature_ids bigint[],
-	user_id bigint,
+	userid bigint,
 	layer_name varchar(100),
     CONSTRAINT user_data_pkey PRIMARY KEY (id)
 )

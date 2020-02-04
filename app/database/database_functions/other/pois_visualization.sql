@@ -5,40 +5,30 @@ CREATE OR REPLACE FUNCTION public.pois_visualization(userid_input integer, ameni
  LANGUAGE plpgsql
 AS $function$
 DECLARE 	
-	
+	excluded_pois_id integer[] := ids_modified_features(userid_input,'pois');
+    
 BEGIN
 
     --if no opening hours are provided by the user and routing profile is -not- wheelchair
     IF (d = 9999 OR h = 9999 OR m = 9999) AND routing_profile_input <> 'walking_wheelchair' THEN 
         RETURN query
-        SELECT p.gid, p.amenity, p.name,p.osm_id,p.opening_hours,p.orgin_geometry,p.geom, 'accessible' AS status,p.wheelchair
-		FROM pois p
-		LEFT JOIN (SELECT * FROM pois_modified pm WHERE pm.userid = userid) pm
-		ON p.gid = pm.original_id
-		WHERE pm.id IS NULL 
-		AND p.amenity IN(SELECT unnest(amenities_input))
-		UNION ALL
-		SELECT p.gid, p.public_transport_stop, p.name,p.osm_id,null,p.orgin_geometry,p.geom, 'accessible' AS status,p.wheelchair
-		FROM public_transport_stops p
-		LEFT JOIN (SELECT * FROM pois_modified pm WHERE pm.userid = userid) pm
-		ON p.gid = pm.original_id
-		WHERE pm.id IS NULL 
-		AND p.public_transport_stop IN(SELECT unnest(amenities_input))
-		UNION ALL 
-		SELECT NULL, amenity,name, NULL, opening_hours, 'point', geom, 'accessible' AS status, wheelchair 
-		FROM pois_modified
-		WHERE userid = userid_input;
+        SELECT p.gid::bigint, p.amenity, p.name,p.osm_id,p.opening_hours,p.origin_geometry,p.geom, 'accessible' AS status,p.wheelchair
+		FROM pois_userinput p
+        WHERE amenity = ANY (amenities_input) 
+        AND (p.userid = userid_input OR p.userid IS NULL) 
+        AND p.gid != ANY(excluded_pois_id);
     --if no opening hours are provided by the user and routing profile is wheelchair
+
     ELSEIF (d = 9999 OR h = 9999 OR m = 9999) AND routing_profile_input = 'walking_wheelchair' THEN 
         RETURN query
-        SELECT p.gid, p.amenity,p.name,p.osm_id,p.opening_hours,p.orgin_geometry,p.geom, 
+        SELECT p.gid, p.amenity,p.name,p.osm_id,p.opening_hours,p.origin_geometry,p.geom, 
         CASE WHEN ((p.wheelchair <> 'no' AND p.wheelchair <> 'No') OR p.wheelchair IS NULL) 
         THEN 'accessible' ELSE 'not_accessible' END AS status,p.wheelchair
         FROM pois p,variable_container v 
         WHERE p.amenity IN(SELECT unnest(amenities_input))
         AND v.identifier = 'poi_categories'
         UNION ALL 
-        SELECT pt.gid, pt.public_transport_stop, pt.name,NULL AS osm_id,NULL AS orgin_geometry,NULL AS opening_hours,pt.geom , 
+        SELECT pt.gid, pt.public_transport_stop, pt.name,NULL AS osm_id,NULL AS origin_geometry,NULL AS opening_hours,pt.geom , 
         CASE WHEN ((pt.wheelchair <> 'no' AND pt.wheelchair <> 'No') OR pt.wheelchair IS NULL) 
         THEN 'accessible' ELSE 'not_accessible' END AS status,pt.wheelchair
         FROM public_transport_stops pt 
@@ -48,7 +38,7 @@ BEGIN
         RETURN query
         WITH pois_status AS 
         (
-            SELECT p.gid, p.amenity, p.name,p.osm_id,p.opening_hours,p.orgin_geometry,p.geom,
+            SELECT p.gid, p.amenity, p.name,p.osm_id,p.opening_hours,p.origin_geometry,p.geom,
             CASE WHEN check_open(opening_hours,array[d,h,m]) = 'True' THEN 'accessible'
             ELSE 'not_accessible' END AS status,p.wheelchair
             FROM pois p
@@ -57,7 +47,7 @@ BEGIN
         )
         SELECT * FROM pois_status
         UNION ALL
-        SELECT pt.gid,pt.public_transport_stop,pt.name,NULL AS osm_id, NULL AS opening_hours, NULL AS orgin_geometry,pt.geom, NULL AS status, wheelchair 
+        SELECT pt.gid,pt.public_transport_stop,pt.name,NULL AS osm_id, NULL AS opening_hours, NULL AS origin_geometry,pt.geom, NULL AS status, wheelchair 
         FROM public_transport_stops pt 
         WHERE public_transport_stop IN(SELECT unnest(amenities_input));
     --if opening hours are provided by the user and routing profile is wheelchair
@@ -65,7 +55,7 @@ BEGIN
         RETURN query
         WITH pois_status AS 
         (
-            SELECT p.gid,p.amenity,p.name,p.osm_id,p.opening_hours,p.orgin_geometry,p.geom,
+            SELECT p.gid,p.amenity,p.name,p.osm_id,p.opening_hours,p.origin_geometry,p.geom,
             CASE WHEN check_open(opening_hours,array[d,h,m]) = 'True' AND ((wheelchair <> 'no' AND wheelchair <> 'No') OR wheelchair IS NULL)
             THEN 'accessible'
             ELSE 'not_accessible' END AS status, p.wheelchair 
@@ -75,7 +65,7 @@ BEGIN
         )
         SELECT * FROM pois_status
         UNION ALL
-        SELECT pt.gid,pt.public_transport_stop,pt.name,NULL AS osm_id, NULL AS opening_hours, NULL AS orgin_geometry,pt.geom, NULL AS status, wheelchair 
+        SELECT pt.gid,pt.public_transport_stop,pt.name,NULL AS osm_id, NULL AS opening_hours, NULL AS origin_geometry,pt.geom, NULL AS status, wheelchair 
         FROM public_transport_stops pt 
         WHERE public_transport_stop IN(SELECT unnest(amenities_input))
         AND ((wheelchair <> 'no' AND wheelchair <> 'No') OR wheelchair IS NULL);
