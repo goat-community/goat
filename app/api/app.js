@@ -169,6 +169,8 @@ app.post(
   jsonParser,
   (request, response) => {
     let requiredParams = [
+      "user_id",
+      "modus", 
       "minutes",
       "speed",
       "region_type",
@@ -176,7 +178,6 @@ app.post(
       "amenities"
     ];
     let queryValues = [];
-
     requiredParams.forEach(key => {
       let value = request.body[key];
       console.log(value);
@@ -186,7 +187,7 @@ app.post(
       }
       queryValues.push(value);
     });
-
+    
     console.log(queryValues);
     // Make sure to set the correct content type
 
@@ -197,7 +198,7 @@ app.post(
     'geometry',   ST_AsGeoJSON(geom)::jsonb,
     'properties', to_jsonb(inputs) - 'geom'
   ) AS feature 
-  FROM (SELECT count_pois,region_name, geom FROM count_pois_multi_isochrones(${queryValues[0]},${queryValues[1]},${queryValues[2]},ARRAY[${queryValues[3]}],ARRAY[${queryValues[4]}])) inputs;`;
+  FROM (SELECT count_pois,region_name, geom FROM count_pois_multi_isochrones(${queryValues[0]},${queryValues[1]},${queryValues[2]},${queryValues[3]},${queryValues[4]},ARRAY[${queryValues[5]}],ARRAY[${queryValues[6]}])) inputs;`;
     pool.query(sqlQuery, (err, res) => {
       if (err) return console.log(err);
       console.log(res);
