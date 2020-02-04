@@ -1044,13 +1044,13 @@ export default {
     this.isFileUploadEnabled = this.$appConfig.componentConf.edit.enableFileUpload;
     //Edge Case (get all pois keys)
     if (
-      this.listValues.pois_info.amenity &&
-      this.listValues.pois_info.amenity.values === "*"
+      this.listValues.pois.amenity &&
+      this.listValues.pois.amenity.values === "*"
     ) {
       const poisListValues = getPoisListValues(
         this.$appConfig.componentData.pois.allPois
       );
-      this.listValues.pois_info.amenity.values = poisListValues;
+      this.listValues.pois.amenity.values = poisListValues;
     }
   }
 };

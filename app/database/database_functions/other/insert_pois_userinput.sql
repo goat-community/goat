@@ -2,8 +2,6 @@ DROP TRIGGER IF EXISTS trigger_insert_pois ON pois_modified;
 CREATE TRIGGER trigger_insert_pois AFTER INSERT ON pois_modified
 FOR EACH ROW EXECUTE PROCEDURE insert_pois_userinput();
 
-
-DROP FUNCTION IF EXISTS insert_pois_userinput;
 CREATE OR REPLACE FUNCTION public.insert_pois_userinput() 
 RETURNS TRIGGER AS $table_insert_pois$
 

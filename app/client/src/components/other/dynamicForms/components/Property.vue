@@ -918,7 +918,7 @@ export default {
     translateListValues(value) {
       let layerName = this.schema.layerName;
       let path = `dynamicFields.listValues.`;
-      if (layerName === "pois_info") {
+      if (layerName === "pois") {
         layerName = "pois";
         path = ``;
       }
