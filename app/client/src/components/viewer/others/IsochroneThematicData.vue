@@ -3,22 +3,27 @@
     v-draggable="draggableValue"
     class="elevation-4"
     id="isochroneWindowId"
-    :style="[isExpanded ? { height: '440px' } : { height: '55px' }]"
+    :style="[isExpanded ? { height: '440px' } : { height: '60px' }]"
     style="position:fixed;top:10px;left:360px;z-index:2;max-width:350px;min-width:350px;height:440px;overflow:hidden;"
   >
-    <v-layout justify-space-between column fill-height>
-      <v-app-bar :ref="handleId" color="green" style="cursor:grab;" dark>
-        <v-app-bar-nav-icon
-          ><v-icon>fas fa-bullseye</v-icon></v-app-bar-nav-icon
-        >
-        <v-toolbar-title>Isochrone</v-toolbar-title>
-        <v-spacer></v-spacer>
-        <v-icon @click="expand" class="toolbar-icons mr-2">
-          {{ isExpanded ? "fas fa-chevron-up" : "fas fa-chevron-down" }}</v-icon
-        >
-        <v-icon @click="close" class="toolbar-icons ml-2">fas fa-times</v-icon>
-      </v-app-bar>
-      <v-expand-transition>
+    <v-expand-transition>
+      <v-layout justify-space-between column fill-height>
+        <v-app-bar :ref="handleId" color="green" style="cursor:grab;" dark>
+          <v-app-bar-nav-icon
+            ><v-icon>fas fa-bullseye</v-icon></v-app-bar-nav-icon
+          >
+          <v-toolbar-title>Isochrone</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-icon @click="expand" class="toolbar-icons mr-2">
+            {{
+              isExpanded ? "fas fa-chevron-up" : "fas fa-chevron-down"
+            }}</v-icon
+          >
+          <v-icon @click="close" class="toolbar-icons ml-2"
+            >fas fa-times</v-icon
+          >
+        </v-app-bar>
+
         <vue-scroll>
           <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1">
             <v-card-text class="ma-0 py-0 pt-0 pb-2">
@@ -92,8 +97,8 @@
             </v-alert>
           </v-flex>
         </vue-scroll>
-      </v-expand-transition>
-    </v-layout>
+      </v-layout>
+    </v-expand-transition>
   </v-card>
 </template>
 
@@ -132,15 +137,6 @@ export default {
       return isChecked;
     },
     expand() {
-      // const el = document.getElementById("isochroneWindowId");
-      // if (!el) return;
-      // if (this.isExpanded) {
-      //   el.style.height = "0px";
-      //   this.isExpanded = false;
-      // } else {
-      //   el.style.height = "440px";
-      //   this.isExpanded = true;
-      // }
       this.isExpanded = !this.isExpanded;
     },
     close() {}
