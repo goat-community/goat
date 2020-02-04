@@ -76,12 +76,14 @@ export const LayerFactory = {
       name: lConf.name,
       title: lConf.title,
       canEdit: lConf.canEdit,
+      editGeometry: lConf.editGeometry,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
       opacity: lConf.opacity,
       queryable: lConf.queryable,
       requiresPois: lConf.requiresPois,
+      ratio: lConf.ratio ? lConf.ratio : 1.5,
       zIndex: lConf.zIndex,
       source: new ImageWMS({
         url: lConf.url,
@@ -114,6 +116,7 @@ export const LayerFactory = {
       extent: lConf.extent,
       visible: lConf.visible,
       opacity: lConf.opacity,
+      preload: lConf.preload ? parseFloat(lConf.preload) : 0, //Parse float is used because it's not possible to add values like Infinity in json config
       zIndex: lConf.zIndex,
       source: new TileWmsSource({
         url: lConf.url,

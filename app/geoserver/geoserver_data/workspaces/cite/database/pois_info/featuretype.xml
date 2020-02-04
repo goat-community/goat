@@ -21,17 +21,17 @@
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>10.5682558</minx>
-    <maxx>10.7208012</maxx>
-    <miny>47.5499986</miny>
-    <maxy>47.624327462928</maxy>
+    <minx>11.1288733</minx>
+    <maxx>11.3291714</maxx>
+    <miny>48.1034136</miny>
+    <maxy>48.2476698</maxy>
     <crs>EPSG:4326</crs>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>10.5682558</minx>
-    <maxx>10.7208012</maxx>
-    <miny>47.5499986</miny>
-    <maxy>47.624327462928</maxy>
+    <minx>11.1288733</minx>
+    <maxx>11.3291714</maxx>
+    <miny>48.1034136</miny>
+    <maxy>48.2476698</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
@@ -45,7 +45,7 @@
 	FROM convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;) AS amenity&#xd;
 )&#xd;
 SELECT *,concat(amenity,&apos;_&apos;,status) AS amenity_icon&#xd;
-FROM pois_visualization((SELECT amenity FROM am), %routing_profile%, %d%,%h%,%m%)
+FROM pois_visualization(%userid%,(SELECT amenity FROM am), %routing_profile%, %d%,%h%,%m%)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
@@ -68,6 +68,10 @@ FROM pois_visualization((SELECT amenity FROM am), %routing_profile%, %d%,%h%,%m%
         <parameter>
           <name>h</name>
           <defaultValue>9999</defaultValue>
+        </parameter>
+        <parameter>
+          <name>userid</name>
+          <defaultValue>1</defaultValue>
         </parameter>
         <parameter>
           <name>m</name>

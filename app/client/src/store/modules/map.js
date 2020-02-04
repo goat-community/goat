@@ -11,15 +11,14 @@ const state = {
   helpTooltip: {
     isActive: false,
     currentMessage: ""
-  },
-  studyAreaBbox: ""
+  }
 };
 
 const getters = {
   map: state => state.map,
   helpTooltip: state => state.helpTooltip,
   messages: state => state.messages,
-  studyAreaBbox: state => state.studyAreaBbox,
+
   snackbar: state => state.messages.snackbar
 };
 
@@ -41,9 +40,6 @@ const mutations = {
   },
   SET_MAP(state, map) {
     state.map = map;
-  },
-  SET_STUDYAREA_BBOX(state, bbox) {
-    state.studyAreaBbox = bbox;
   }
 };
 

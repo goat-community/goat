@@ -8,7 +8,7 @@ import sys
 from argparse import RawTextHelpFormatter
 from scripts.db_functions import DB_connection
 from scripts.db_functions import ReadYAML
-
+from scripts.db_functions import restore_db
 #Define command line options
 help_text = '''You can define the update type. 
              1. -t new_setup             Do a completely fresh setup and drop your old database.
@@ -18,6 +18,7 @@ help_text = '''You can define the update type.
              5. -t network               Update your network.
              6. -t functions             Update functions only.
              7. -t variable_container    Update variable container only.
+             8. -t restore_dump          Restore a database dump that is labelled goat_db.dmp
             '''
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
@@ -37,5 +38,7 @@ elif (setup_type == 'variable_container'):
     db_name,user,host = ReadYAML().db_credentials()[:3]
     db_con = DB_connection(db_name,user,host)
     db_con.execute_text_psql(db_functions.create_variable_container())
+elif (setup_type == 'restore_dump'):
+    restore_db()
 else:
     setup_db.setup_db(setup_type)

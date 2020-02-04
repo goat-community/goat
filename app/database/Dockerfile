@@ -15,9 +15,18 @@ RUN apt update \
 RUN wget http://security.ubuntu.com/ubuntu/pool/universe/b/boost1.62/libboost-program-options1.62.0_1.62.0+dfsg-5_amd64.deb \
    && dpkg -i libboost-program-options1.62.0_1.62.0+dfsg-5_amd64.deb \
    && wget http://ftp.br.debian.org/debian/pool/main/o/osm2pgrouting/osm2pgrouting_2.2.0-1_amd64.deb \
-   && dpkg -i osm2pgrouting_2.2.0-1_amd64.deb 
+   && dpkg -i osm2pgrouting_2.2.0-1_amd64.deb
 
-COPY pg_hba.conf /etc/postgresql/11/main/
-COPY postgresql.conf /etc/postgresql/11/main/
+COPY database/pg_hba.conf /etc/postgresql/11/main/
+COPY database/pg_hba.conf.template /etc/postgresql/11/main/
+COPY database/postgresql.conf /etc/postgresql/11/main/
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &&  echo $TZ > /etc/timezone
+
+ENV APP_PATH /opt
+WORKDIR ${APP_PATH}
+
+COPY ./database $APP_PATH
+
+RUN mkdir -p ${APP_PATH}/config
+COPY ./config $APP_PATH/config
