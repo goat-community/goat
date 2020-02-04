@@ -1,12 +1,12 @@
 <layer>
-  <name>pois_info_modified</name>
-  <id>LayerInfoImpl-5e8526f7:16f7b72c52e:-7ffe</id>
+  <name>pois</name>
+  <id>LayerInfoImpl-314e65dc:168e2ce74d0:-7c4e</id>
   <type>VECTOR</type>
   <defaultStyle>
-    <id>StyleInfoImpl--167589b6:15c77205b7f:-7fff</id>
+    <id>StyleInfoImpl-314e65dc:168e2ce74d0:-d65</id>
   </defaultStyle>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl-5e8526f7:16f7b72c52e:-7fff</id>
+    <id>FeatureTypeInfoImpl-314e65dc:168e2ce74d0:-7c4f</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>

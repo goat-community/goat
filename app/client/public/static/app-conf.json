@@ -68,7 +68,7 @@
         "name": "pois",
         "url": "/geoserver/wms",
         "group": "poisLayers",
-        "layers": "cite:pois_info",
+        "layers": "cite:pois",
         "viewparams": "amenities:'cG9wdWxhdGlvbg=='",
         "opacity": 1,
         "queryable": true,
@@ -819,7 +819,7 @@
         "values": ["bridge", "road"]
       }
     },
-    "pois_info": {
+    "pois": {
       "amenity": {
         "values": "*"
       }
