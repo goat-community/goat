@@ -1,5 +1,7 @@
 <template>
   <v-card
+    v-if="selectedThematicData"
+    v-show="isThematicDataVisible"
     v-draggable="draggableValue"
     class="elevation-4"
     id="isochroneWindowId"
@@ -103,7 +105,7 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import IsochroneUtils from "../../../utils/IsochroneUtils";
 import { Draggable } from "draggable-vue-directive";
 
@@ -247,10 +249,14 @@ export default {
     },
 
     ...mapGetters("isochrones", {
-      selectedThematicData: "selectedThematicData"
+      selectedThematicData: "selectedThematicData",
+      isThematicDataVisible: "isThematicDataVisible"
     }),
     ...mapGetters("pois", {
       getPoisItems: "selectedPois"
+    }),
+    ...mapMutations("isochrones", {
+      toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY"
     })
   },
   mounted() {
