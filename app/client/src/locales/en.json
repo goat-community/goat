@@ -436,7 +436,7 @@
         "type": "Way Type",
         "class_id": "Class Id"
       },
-      "pois_info": {
+      "pois": {
         "amenity": "Amenity",
         "name": "Name (Optional)",
         "opening_hours": "Opening Hours (Optional)"

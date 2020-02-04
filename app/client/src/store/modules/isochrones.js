@@ -307,6 +307,8 @@ const actions = {
         return;
       }
       const params = {
+        user_id: rootState.user.userId,
+        modus: "'" + state.options.calculationModes.active + "'",
         minutes: rootState.isochrones.options.minutes,
         speed: rootState.isochrones.options.speed,
         amenities: amenities

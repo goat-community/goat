@@ -22,6 +22,7 @@ BEGIN
 			SELECT Unnest(deleted_feature_ids)::integer id 
 			FROM user_data
 			WHERE id = userid_input
+			AND layer_name = 'ways'
 			UNION ALL
 			SELECT original_id::integer modified
 			FROM ways_modified 

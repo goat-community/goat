@@ -1,12 +1,20 @@
 DROP FUNCTION IF EXISTS count_pois_multi_isochrones;
-CREATE OR REPLACE FUNCTION public.count_pois_multi_isochrones (minutes integer, speed_input numeric, region_type text, region NUMERIC[], amenities text[])
+CREATE OR REPLACE FUNCTION public.count_pois_multi_isochrones (userid_input integer, modus_input text, minutes integer, speed_input numeric, region_type text, region NUMERIC[], amenities text[])
     RETURNS TABLE (region_name text, count_pois integer, geom geometry, buffer_geom geometry)
     AS $function$
 DECLARE
     buffer_geom geometry;
     region_geom geometry;
     region_name text;
+    excluded_pois_id integer[];
 BEGIN
+    IF modus_input = 'default' THEN
+        userid_input = 1;
+        excluded_pois_id = ARRAY[]::integer[];
+    ELSE
+        excluded_pois_id = ids_modified_features(userid_input,'pois');
+    END IF;
+
     IF region_type = 'study_area' THEN
         SELECT s.geom, name  
         INTO region_geom, region_name
@@ -19,15 +27,12 @@ BEGIN
     buffer_geom = ST_Buffer (region_geom::geography, (speed_input / 3.6) * 60 * minutes)::geometry;
     RETURN query 
     	WITH count_pois AS (
-        SELECT count(*) AS count_pois
-        FROM pois p
-        WHERE ST_Intersects (p.geom,buffer_geom)
-        AND amenity IN (SELECT UNNEST(amenities))
-        UNION ALL
-        SELECT count(*)
-        FROM public_transport_stops p
-        WHERE ST_Intersects (p.geom,buffer_geom)
-        AND public_transport_stop IN (SELECT UNNEST(amenities))
+            SELECT count(*) AS count_pois
+            FROM pois_userinput p
+            WHERE ST_Intersects (p.geom,buffer_geom)
+            AND (p.userid = userid_input OR p.userid IS NULL)
+            AND p.gid NOT IN (SELECT UNNEST(excluded_pois_id))
+            AND amenity IN (SELECT UNNEST(amenities))
         )
         SELECT region_name,sum(c.count_pois)::integer,
         region_geom, buffer_geom
@@ -36,5 +41,5 @@ END;
 $function$
 LANGUAGE plpgsql;
 
---SELECT * FROM count_pois_multi_isochrones(10,5,'envelope',ARRAY[11.4988,48.1879,11.5284,481723],ARRAY['bar','restaurant'])
---SELECT * FROM count_pois_multi_isochrones(10,5,'study_area',ARRAY[11.4988,48.1879],ARRAY['bar','restaurant'])
+--SELECT * FROM count_pois_multi_isochrones(100,'default,'10,5,'envelope',ARRAY[11.4988,48.1879,11.5284,481723],ARRAY['bar','restaurant'])
+--SELECT * FROM count_pois_multi_isochrones(100,'default',10,5,'study_area',ARRAY[11.247437,48.177883],ARRAY['bar','restaurant'])
