@@ -11,6 +11,7 @@ DATA_SOURCE:
   #"most_recent" if the data from the OSM-Download-Link has not the recency you need. 
   OSM_DATA_RECENCY: "standard"
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
+  EXTRACT_BBOX: "yes"
   
 
 DATA_REFINEMENT_VARIABLES:
@@ -95,6 +96,6 @@ DATA_REFINEMENT_VARIABLES:
       very_bad: '0.2'
       horrible: '0.3'
       very_horrible: '0.5'
-    resolution_dem: '30'
+    dem_resolution: '30'
 
       
