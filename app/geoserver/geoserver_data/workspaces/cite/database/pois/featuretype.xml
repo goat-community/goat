@@ -1,11 +1,11 @@
 <featureType>
   <id>FeatureTypeInfoImpl-314e65dc:168e2ce74d0:-7c4f</id>
-  <name>pois_info</name>
+  <name>pois</name>
   <nativeName>pois_test</nativeName>
   <namespace>
     <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
   </namespace>
-  <title>pois_info</title>
+  <title>pois</title>
   <keywords>
     <string>features</string>
     <string>pois_test</string>
@@ -58,10 +58,6 @@ FROM pois_visualization(%userid%,(SELECT amenity FROM am), %routing_profile%, %d
           <defaultValue>&apos;cmVzdGF1cmFudCxzdXBlcm1hcmtldA==&apos;</defaultValue>
         </parameter>
         <parameter>
-          <name>routing_profile</name>
-          <defaultValue>&apos;walking_standard&apos;</defaultValue>
-        </parameter>
-        <parameter>
           <name>d</name>
           <defaultValue>9999</defaultValue>
         </parameter>
@@ -76,6 +72,10 @@ FROM pois_visualization(%userid%,(SELECT amenity FROM am), %routing_profile%, %d
         <parameter>
           <name>m</name>
           <defaultValue>9999</defaultValue>
+        </parameter>
+        <parameter>
+          <name>routing_profile</name>
+          <defaultValue>&apos;walking_standard&apos;</defaultValue>
         </parameter>
       </virtualTable>
     </entry>

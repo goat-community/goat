@@ -384,7 +384,7 @@
       "ways": {
         "type": "Tipi i rruges"
       },
-      "pois_info": {
+      "pois": {
         "amenity": "Lloji",
         "name": "Emri (Opsional)",
         "opening_hours": "Orari (Opsional)"

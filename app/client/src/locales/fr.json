@@ -231,7 +231,6 @@
             "parking": "Parking",
             "speed": "Speed",
             "streetCrossings": "Street Crossings",
-            "streetFurniture": "Street Furniture",
             "surface": "Surface",
             "wheelchairUsability": "Accessibilité pour personnes avec mobilité reduite",
             "areaIsochrone": "Superficie de l'isochrone",
@@ -331,6 +330,8 @@
         "hostel": "Auberge",
         "guest_house": "Maison d'hôtes ",
         "gallery": "Galerie",
+        "university": "University",
+        "hospital": "Hospital",
         "population": "Population"
     },
     "$vuetify": {

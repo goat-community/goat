@@ -18,6 +18,7 @@ DECLARE
 	objectid_multi_isochrone integer;
 	max_length_links numeric;
 	calc_modus integer;
+	excluded_pois_id integer[];
 	BEGIN
 
 	/*Scenario building has to be implemented*/
@@ -29,7 +30,6 @@ DECLARE
 		INTO mask, population_mask
 		FROM study_area
 		WHERE name IN (SELECT UNNEST(region));
-		
 		buffer_mask = ST_buffer(mask::geography,buffer)::geometry;
  	 
  	ELSE 
@@ -54,21 +54,24 @@ DECLARE
 		wheelchair_condition = NULL;
 	END IF;
 
+	IF modus_input IN(2,4) THEN
+		excluded_pois_id = ids_modified_features(userid_input,'pois');
+	ELSE 
+		excluded_pois_id = ARRAY[]::integer[];
+		userid_input = 1;
+	END IF;
+
 
 	SELECT DISTINCT p_array
 	INTO points_array
 	FROM (
 		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) AS p_array
-		FROM pois p
+		FROM pois_userinput p
 		WHERE p.amenity IN (SELECT UNNEST(amenities))
+		AND (p.userid = userid_input OR p.userid IS NULL)
+        AND p.gid NOT IN (SELECT UNNEST(excluded_pois_id))
 		AND (p.wheelchair NOT IN (SELECT UNNEST(wheelchair_condition)) OR p.wheelchair IS NULL)
-		AND st_intersects(p.geom, buffer_mask)
-		UNION ALL
-		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) AS p_array
-		FROM public_transport_stops p
-		WHERE p.public_transport_stop IN (SELECT UNNEST(amenities))
-		AND (p.wheelchair NOT IN (SELECT UNNEST(wheelchair_condition)) OR p.wheelchair IS NULL)
-		AND st_intersects(p.geom, buffer_mask)
+		AND ST_intersects(p.geom, buffer_mask)
 	) x;	
  	---------------------------------------------------------------------------------
  	--------------------------get catchment of all starting points-------------------

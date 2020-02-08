@@ -54,6 +54,13 @@ export default {
       calculationType: "options.calculationType",
       calculationModes: "options.calculationModes.active"
     })
+  },
+  methods: {
+    changedType(type) {
+      if (type === "multiple") {
+        this.calculationModes = "default";
+      }
+    }
   }
 };
 </script>

@@ -22,6 +22,7 @@ const state = {
     coordinate: null,
     placeName: ""
   },
+  isBusy: false,
   options: [],
   styleData: {},
   calculations: [],
@@ -50,6 +51,7 @@ const state = {
 };
 
 const getters = {
+  isBusy: state => state.isBusy,
   routingProfile: state => state.routingProfile,
   calculations: state => state.calculations,
   options: state => state.options,
@@ -153,10 +155,26 @@ const actions = {
       isochroneEndpoint = "pois_multi_isochrones";
     }
 
-    const isochronesResponse = await http.post(
-      `/api/${isochroneEndpoint}`,
-      params
-    );
+    commit("SET_IS_BUSY", true);
+    const isochronesResponse = await http
+      .post(`/api/${isochroneEndpoint}`, params, {
+        timeout: 12000
+      })
+      .catch(() => {
+        //Show error message
+        commit(
+          "map/TOGGLE_SNACKBAR",
+          {
+            type: "error",
+            message: "calculateIsochroneError",
+            state: true
+          },
+          { root: true }
+        );
+      });
+
+    commit("SET_IS_BUSY", false);
+    if (!isochronesResponse) return;
     let isochrones = isochronesResponse.data;
     let calculationData = [];
 
@@ -289,6 +307,8 @@ const actions = {
         return;
       }
       const params = {
+        user_id: rootState.user.userId,
+        modus: "'" + state.options.calculationModes.active + "'",
         minutes: rootState.isochrones.options.minutes,
         speed: rootState.isochrones.options.speed,
         amenities: amenities
@@ -451,6 +471,9 @@ const mutations = {
   },
   ADD_ISOCHRONE_LAYER(state, layer) {
     state.isochroneLayer = layer;
+  },
+  SET_IS_BUSY(state, isBusy) {
+    state.isBusy = isBusy;
   },
   ADD_ISOCHRONE_ROAD_NETWORK_LAYER(state, layer) {
     state.isochroneRoadNetworkLayer = layer;
