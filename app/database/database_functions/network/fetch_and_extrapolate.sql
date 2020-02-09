@@ -9,49 +9,46 @@ DECLARE
 	sql_userid text := '';
 	sql_routing_profile text := '';
 	table_name text := 'ways';
-	excluded_class_id text;
-	categories_no_foot text;
+	excluded_class_id integer[];
+	filter_categories text[];
+	category text := jsonb_build_object('walking','foot','cycling','bicycle') ->>  split_part(routing_profile,'_',1);
+	sql_cost text := jsonb_build_object(
+	'cycling','length_m*(1+COALESCE(s_imp,0)+COALESCE(impedance_surface,0))::float as cost,length_m*(1+COALESCE(rs_imp,0)+COALESCE(impedance_surface,0))::float as reverse_cost',
+	'walking', 'length_m as cost, length_m as reverse_cost'
+	) ->> split_part(routing_profile,'_',1);
 	userid_vertex integer;
+	
 BEGIN 
+		
+	SELECT select_from_variable_container('excluded_class_id_' || category),
+  	select_from_variable_container('categories_no_' || category)
+  	INTO excluded_class_id, filter_categories;
 
 	IF modus_input <> 1 THEN 
 		table_name = 'ways_userinput';
-		SELECT array_append(array_agg(x.id),0)::text 
-		INTO excluded_ways_id 
-		FROM (
-			SELECT Unnest(deleted_feature_ids)::integer id 
-			FROM user_data
-			WHERE id = userid_input
-			AND layer_name = 'ways'
-			UNION ALL
-			SELECT original_id::integer modified
-			FROM ways_modified 
-			WHERE userid = userid_input AND original_id IS NOT NULL
-		) x;
+		SELECT ids_modified_features(userid,'ways')
+		INTO excluded_ways_id;
 		sql_userid = ' AND userid IS NULL OR userid='||userid_input;
 		sql_ways_ids = ' AND NOT id::int4 = any('''|| excluded_ways_id ||''') ';
 	END IF;
-
-	SELECT select_from_variable_container('excluded_class_id_walking'),
-  	select_from_variable_container('categories_no_foot')
-  	INTO excluded_class_id, categories_no_foot;
-
+	
 	IF  routing_profile = 'walking_safe_night' THEN
 		sql_routing_profile = 'AND (lit_classified = ''yes'' OR lit_classified = ''unclassified'')';
 	ELSEIF routing_profile = 'walking_wheelchair' THEN
 		sql_routing_profile = 'AND ((wheelchair_classified = ''yes'') OR wheelchair_classified = ''limited''
 		OR wheelchair_classified = ''unclassified'')';
 	END IF;
-
-	RETURN query EXECUTE format(
-		'SELECT  id::integer, source, target, length_m as cost, geom 
+	RAISE NOTICE '%',sql_cost;
+	RETURN query EXECUTE '
+		SELECT  id::integer, source, target,'||sql_cost||',slope_profile,geom 
 		FROM '||quote_ident(table_name)||
-		' WHERE NOT class_id = any(''' || excluded_class_id || ''')
-    	AND (NOT foot = any('''||categories_no_foot||''') OR foot IS NULL)
-		AND geom && ST_GeomFromText('''||buffer_geom||''')'||sql_userid||sql_ways_ids||sql_routing_profile
-	);
+		' WHERE class_id NOT IN(SELECT UNNEST($1))
+    	AND (foot NOT IN(SELECT UNNEST($2)) OR foot IS NULL)
+		AND geom && ST_GeomFromText($3)'||sql_userid||sql_ways_ids||sql_routing_profile
+	USING excluded_class_id, filter_categories,buffer_geom;
 END;
 $function$;
+
 
 /*select fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)),1.33,1,1,'walking_standard');
 */
@@ -75,7 +72,7 @@ CREATE temp TABLE temp_reached_vertices
 );
 DROP FUNCTION IF EXISTS extrapolate_reached_vertices;
 CREATE OR REPLACE FUNCTION public.extrapolate_reached_vertices(max_cost NUMERIC, max_length_links NUMERIC, buffer_geom text, 
-	speed NUMERIC ,userid_input integer, modus_input integer,  routing_profile text )
+	speed NUMERIC ,userid_input integer, modus_input integer, routing_profile text )
 RETURNS SETOF type_catchment_vertices_single
  LANGUAGE sql
 AS $function$

@@ -1,5 +1,5 @@
 
-DROP function slope_impedance;
+DROP FUNCTION IF EXISTS slope_impedance;
 CREATE OR REPLACE FUNCTION public.slope_impedance(slope numeric)
  RETURNS SETOF numeric[]
  LANGUAGE plpgsql
@@ -19,10 +19,8 @@ BEGIN
         	imp = 1;
         ELSEIF i < 9 AND i > 0 THEN
         	imp = 1-i*0.0430815;
-        	RAISE NOTICE '%',i;
         ELSEIF i < 0 AND i > -6 THEN 
         	imp = 1-i*0.0363248;
-        	RAISE NOTICE '%',i;
         ELSEIF i < -6 AND i > -9 THEN
         	imp = 1.2179488+((6+i)*0.0703972);
         END IF;
