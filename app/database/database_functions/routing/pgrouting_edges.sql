@@ -63,7 +63,8 @@ begin
 	
   DROP TABLE IF EXISTS temp_fetched_ways;
   CREATE TEMP TABLE temp_fetched_ways AS 
-  SELECT * FROM fetch_ways_routing(buffer,speed,modus_input,userid_input,routing_profile);
+  SELECT id,SOURCE,target,cost,reverse_cost,geom 
+  FROM fetch_ways_routing(buffer,speed,modus_input,userid_input,routing_profile);
   ALTER TABLE temp_fetched_ways ADD PRIMARY KEY(id);
   CREATE INDEX ON temp_fetched_ways (target);
   CREATE INDEX ON temp_fetched_ways (source);

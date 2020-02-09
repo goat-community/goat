@@ -19,3 +19,6 @@ BEGIN
 		USING userid_input, table_input, userid_input;
 END;
 $function$
+
+--SELECT ids_modified_features(1,'ways')
+ 
