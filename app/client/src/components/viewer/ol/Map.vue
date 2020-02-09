@@ -95,8 +95,7 @@ import http from "../../../services/http";
 import axios from "axios";
 
 //Store imports
-import { mapMutations } from "vuex";
-import { mapGetters } from "vuex";
+import { mapMutations, mapGetters, mapActions } from "vuex";
 
 //Map Controls
 import OverlayPopup from "./controls/Overlay";
@@ -158,6 +157,7 @@ export default {
 
       //Get Info
       me.setupMapClick();
+      me.setupMapPointerMove();
       me.createPopupOverlay();
     }, 200);
   },
@@ -402,7 +402,33 @@ export default {
     },
 
     /**
-     * Map click event for "Get Info" Module.
+     * Map pointer move event .
+     */
+    setupMapPointerMove() {
+      this.mapPointerMoveListenerKey = this.map.on("pointermove", evt => {
+        if (
+          evt.dragging ||
+          this.activeInteractions.length > 0 ||
+          !this.isochroneLayer
+        ) {
+          return;
+        }
+        const features = this.map.getFeaturesAtPixel(evt.pixel, {
+          layerFilter: candidate => {
+            if (candidate.get("name") === "Isochrone Layer") {
+              return true;
+            }
+            return false;
+          }
+        });
+
+        this.map.getTarget().style.cursor =
+          features.length > 0 ? "pointer" : "";
+      });
+    },
+
+    /**
+     * Map click event for Module.
      */
     setupMapClick() {
       const me = this;
@@ -412,6 +438,31 @@ export default {
         if (me.activeInteractions.length > 0) {
           return;
         }
+
+        //Check for isochrone features
+        const features = me.map.getFeaturesAtPixel(evt.pixel, {
+          layerFilter: candidate => {
+            if (candidate.get("name") === "Isochrone Layer") {
+              return true;
+            }
+            return false;
+          }
+        });
+        if (features.length > 0) {
+          // Toggle thematic data for isochrone window
+          const closestFeature = this.isochroneLayer
+            .getSource()
+            .getClosestFeatureToCoordinate(evt.coordinate);
+          if (!closestFeature) return;
+          this.showIsochroneWindow({
+            id: closestFeature.get("calculationNumber"),
+            calculationType: closestFeature.get("calculationType")
+          });
+
+          return;
+        }
+        //
+
         const coordinate = evt.coordinate;
         const projection = me.map.getView().getProjection();
         const resolution = me.map.getView().getResolution();
@@ -486,12 +537,18 @@ export default {
     },
     ...mapMutations("map", {
       setMap: "SET_MAP"
+    }),
+    ...mapActions("isochrones", {
+      showIsochroneWindow: "showIsochroneWindow"
     })
   },
   computed: {
     ...mapGetters("map", {
       helpTooltip: "helpTooltip",
       currentMessage: "currentMessage"
+    }),
+    ...mapGetters("isochrones", {
+      isochroneLayer: "isochroneLayer"
     }),
     ...mapGetters("loader", { isNetworkBusy: "isNetworkBusy" }),
     currentInfo() {
