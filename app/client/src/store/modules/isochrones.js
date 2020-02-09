@@ -87,7 +87,7 @@ const getters = {
 };
 
 const actions = {
-  async calculateIsochrone({ commit, rootState }) {
+  async calculateIsochrone({ dispatch, commit, rootState }) {
     //Selected isochrone calculation type. single | multiple
     const calculationType = rootState.isochrones.options.calculationType;
     const sharedParams = {
@@ -216,6 +216,8 @@ const actions = {
       feature.set("isVisible", true);
       feature.set("calculationNumber", calculationNumber);
       feature.set("color", color);
+      feature.set("calculationType", calculationType);
+      feature.set("hoverColor", "");
 
       calculationData.push(obj);
     });
@@ -277,6 +279,11 @@ const actions = {
     commit("CALCULATE_ISOCHRONE", transformedData);
     //Add features to isochrone layer
     commit("ADD_ISOCHRONE_FEATURES", olFeatures);
+    //Show isochrone window
+    dispatch("showIsochroneWindow", {
+      id: calculationNumber,
+      calculationType: calculationType
+    });
   },
 
   async countStudyAreaPois({ commit, rootState }, options) {
@@ -450,6 +457,46 @@ const actions = {
     //Assign Selected Pois from the tree
     thematicDataObject.filterSelectedPois = rootState.pois.selectedPois;
     commit("SET_SELECTED_THEMATIC_DATA", thematicDataObject);
+  },
+
+  /**
+   * Sets selected thematic data and opens isochrone window .
+   */
+  showIsochroneWindow({ dispatch, commit, rootState }, _payload) {
+    let calculation = rootState.isochrones.calculations.filter(
+      calculation => calculation.id === _payload.id
+    );
+    if (calculation.length === 0) return;
+    calculation = calculation[0];
+    const features = IsochroneUtils.getCalculationFeatures(
+      calculation,
+      rootState.isochrones.isochroneLayer
+    );
+    rootState.isochrones.isochroneLayer
+      .getSource()
+      .getFeatures()
+      .forEach(f => {
+        f.set("highlightFeature", false);
+      });
+    features.forEach(f => {
+      f.set("highlightFeature", true);
+    });
+    const pois = IsochroneUtils.getCalculationPoisObject(features);
+    const payload = {
+      calculationId: calculation.id,
+      calculationName: `Calculation - ${calculation.id}`,
+      calculationType: calculation.calculationType,
+      pois: pois
+    };
+    if (calculation.calculationType === "multiple") {
+      const multiIsochroneTableData = IsochroneUtils.getMultiIsochroneTableData(
+        features
+      );
+      payload.multiIsochroneTableData = multiIsochroneTableData;
+    }
+
+    dispatch("setSelectedThematicData", payload);
+    commit("TOGGLE_THEMATIC_DATA_VISIBILITY", true);
   }
 };
 

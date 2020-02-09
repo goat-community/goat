@@ -141,7 +141,18 @@ export default {
     expand() {
       this.isExpanded = !this.isExpanded;
     },
-    close() {}
+    close() {
+      this.isochroneLayer
+        .getSource()
+        .getFeatures()
+        .forEach(f => {
+          f.set("highlightFeature", false);
+        });
+      this.toggleThematicDataVisibility(false);
+    },
+    ...mapMutations("isochrones", {
+      toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY"
+    })
   },
   computed: {
     tableHeaders() {
@@ -250,13 +261,12 @@ export default {
 
     ...mapGetters("isochrones", {
       selectedThematicData: "selectedThematicData",
-      isThematicDataVisible: "isThematicDataVisible"
+      isThematicDataVisible: "isThematicDataVisible",
+      isochroneLayer: "isochroneLayer"
     }),
+
     ...mapGetters("pois", {
       getPoisItems: "selectedPois"
-    }),
-    ...mapMutations("isochrones", {
-      toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY"
     })
   },
   mounted() {
