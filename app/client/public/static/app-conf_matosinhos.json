@@ -58,6 +58,7 @@
         "queryable": false,
         "visible": false,
         "canEdit": true,
+        "editGeometry": "LineString",
         "displayInLayerList": false,
         "zIndex": 2,
         "serverType": "geoserver"
@@ -73,6 +74,7 @@
         "queryable": true,
         "visible": false,
         "canEdit": false,
+        "editGeometry": "Point",
         "displayInLayerList": true,
         "requiresPois": true,
         "zIndex": 2,
@@ -148,7 +150,6 @@
         "zIndex": 1,
         "serverType": "geoserver"
       },
-
       {
         "type": "OSM",
         "name": "osmStandard",
@@ -253,7 +254,7 @@
           "name": "Education",
           "categoryValue": "education",
           "id": 1,
-          "children": [
+          "children": [            
             {
               "name": "Primary school",
               "value": "primary_school",
@@ -275,11 +276,10 @@
               "value": "university",
               "icon": "university",
               "weight": 1,
-              "sensitivity": -0.003,
-              "locked": false
+              "sensitivity": -0.003
             }
           ]
-        },
+        },        
         {
           "name": "Transport",
           "categoryValue": "transport",
@@ -299,16 +299,16 @@
           "categoryValue": "services",
           "children": [
             {
-              "name": "Hospital",
-              "value": "hospital",
-              "icon": "hospital",
+              "name": "Doctor",
+              "value": "doctors",
+              "icon": "doctors",
               "weight": 1,
               "sensitivity": -0.003
             },
             {
-              "name": "Doctor",
-              "value": "doctors",
-              "icon": "doctors",
+              "name": "Hospital",
+              "value": "hospital",
+              "icon": "hospital",
               "weight": 1,
               "sensitivity": -0.003
             }
@@ -473,6 +473,18 @@
     "pois": {
       "filters": {
         "timeBasedCalculations": "no"
+      }
+    }
+  },
+  "listValues": {
+    "ways": {
+      "type": {
+        "values": ["bridge", "road"]
+      }
+    },
+    "pois_info": {
+      "amenity": {
+        "values": "*"
       }
     }
   }

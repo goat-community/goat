@@ -210,7 +210,9 @@ export default {
 
         let params = `amenities:'${btoa(
           viewParams.toString()
-        )}';routing_profile:'${me.options.routingProfile.active["value"]}';`;
+        )}';routing_profile:'${
+          me.options.routingProfile.active["value"]
+        }';userid:${me.userId};`;
 
         if (this.timeBasedCalculations === "yes") {
           params += `d:${me.getSelectedDay};h:${me.getSelectedHour};m:${me.getSelectedMinutes};`;
@@ -310,6 +312,7 @@ export default {
     ...mapGetters("isochrones", {
       options: "options"
     }),
+    ...mapGetters("user", { userId: "userId" }),
     ...mapFields("pois", {
       dayFilter: "timeFilter.day.active",
       hourFilter: "timeFilter.hour",

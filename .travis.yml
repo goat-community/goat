@@ -7,6 +7,7 @@ branches:
     - master
     - development
     - beta
+    - matosinhos
     - test_travis
 
 before_install:
