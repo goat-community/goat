@@ -5,8 +5,8 @@
     v-draggable="draggableValue"
     class="elevation-4"
     id="isochroneWindowId"
-    :style="[isExpanded ? { height: '440px' } : { height: '60px' }]"
-    style="position:fixed;top:10px;left:360px;z-index:2;max-width:350px;min-width:350px;height:440px;overflow:hidden;"
+    :style="[isExpanded ? { height: '450px' } : { height: '60px' }]"
+    style="position:fixed;top:10px;left:360px;z-index:2;max-width:350px;min-width:350px;height:450px;overflow:hidden;"
   >
     <v-expand-transition>
       <v-layout justify-space-between column fill-height>
@@ -29,13 +29,17 @@
         <vue-scroll>
           <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1">
             <v-card-text class="ma-0 py-0 pt-0 pb-2">
-              <p class="font-weight-medium  text-right ma-0 pa-0">
-                {{
-                  `${$t("isochrones.calculation")} - ${
-                    selectedThematicData.calculationId
-                  }`
-                }}
-              </p>
+              <v-layout row wrap justify-end>
+                <v-flex shrink>
+                  <v-chip class="mt-1 mb-0">
+                    {{
+                      `${$t("isochrones.calculation")} - ${
+                        selectedThematicData.calculationId
+                      }`
+                    }}
+                  </v-chip></v-flex
+                ></v-layout
+              >
             </v-card-text>
             <v-select
               v-if="selectedThematicData.calculationType === 'single'"
