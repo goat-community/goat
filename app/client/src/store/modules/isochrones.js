@@ -484,7 +484,6 @@ const actions = {
     const pois = IsochroneUtils.getCalculationPoisObject(features);
     const payload = {
       calculationId: calculation.id,
-      calculationName: `Calculation - ${calculation.id}`,
       calculationType: calculation.calculationType,
       pois: pois
     };
@@ -534,6 +533,16 @@ const mutations = {
   },
   REMOVE_CALCULATION(state, calculation) {
     let id = calculation.id;
+    if (
+      state.selectedThematicData &&
+      state.selectedThematicData.calculationId === id
+    ) {
+      state.selectedThematicData = null;
+    } else if (state.selectedThematicData) {
+      state.selectedThematicData.calculationId =
+        state.selectedThematicData.calculationId - 1;
+    }
+
     state.calculations = state.calculations.filter(
       calculation => calculation.id != id
     );
