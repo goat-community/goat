@@ -463,13 +463,11 @@ export default {
         });
         if (features.length > 0) {
           // Toggle thematic data for isochrone window
-          const closestFeature = this.isochroneLayer
-            .getSource()
-            .getClosestFeatureToCoordinate(evt.coordinate);
-          if (!closestFeature) return;
+          const isochroneFeature = features[0];
+          console.log(isochroneFeature);
           this.showIsochroneWindow({
-            id: closestFeature.get("calculationNumber"),
-            calculationType: closestFeature.get("calculationType")
+            id: isochroneFeature.get("calculationNumber"),
+            calculationType: isochroneFeature.get("calculationType")
           });
 
           return;

@@ -429,7 +429,10 @@ export default {
       }
     },
     scenarioDataTable() {
-      console.log(this.scenarioDataTable);
+      this.canCalculateScenario();
+    },
+    "options.calculationModes.active": function() {
+      this.canCalculateScenario();
     }
   },
   mounted() {
@@ -992,6 +995,37 @@ export default {
       this.olEditCtrl.closePopup();
     },
 
+    canCalculateScenario() {
+      let areAllFeaturesUploaded = true;
+      this.scenarioDataTable.forEach(f => {
+        if (f.status !== "Uploaded") {
+          areAllFeaturesUploaded = false;
+        }
+      });
+      console.log(this.options.calculationModes.active);
+      if (
+        areAllFeaturesUploaded === false &&
+        ["scenario", "comparison"].includes(
+          this.options.calculationModes.active
+        )
+      ) {
+        //Show snackbar warning that user has features not yet uploaded
+        console.log("not all features uploaded....");
+        this.toggleSnackbar({
+          type: "warning", //success or error
+          message: "notAllScnearioFeaturesUploaded",
+          state: true,
+          timeout: 150000
+        });
+      } else {
+        //Hide snackbar.
+        console.log("All features uploaded. ");
+        this.toggleSnackbar({
+          state: false
+        });
+      }
+    },
+
     /**
      * Method called when edit layer source is changed.
      * A debounce is addes to improve performance
@@ -1064,7 +1098,8 @@ export default {
           )}: <span> <b>${this.reqFields.join(", ")}</b></span>`
         : `<span></span>`;
     },
-    ...mapGetters("user", { userId: "userId" })
+    ...mapGetters("user", { userId: "userId" }),
+    ...mapGetters("isochrones", { options: "options" })
   },
 
   created() {
