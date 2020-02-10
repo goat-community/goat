@@ -6,13 +6,13 @@ AS $function$
 DECLARE
   r type_edges;
   buffer text;
-  distance numeric;
+  distance numeric := speed*(minutes*60);
   id_vertex integer;
   geom_vertex geometry;
   number_calculation_input integer;
-  max_length_links integer;
-  speed_elderly numeric;
-  speed_wheelchair numeric;
+  max_length_links integer := select_from_variable_container_s('max_length_links')::integer;
+  speed_elderly numeric := select_from_variable_container_s('walking_speed_elderly')::numeric;
+  speed_wheelchair numeric := select_from_variable_container_s('walking_speed_wheelchair')::numeric;
   userid_vertex integer;
 begin
   --Adjust for Routing Modus(Default, Scenario, Comparison)
@@ -30,8 +30,6 @@ begin
   INTO id_vertex, geom_vertex
   FROM closest_vertex(userid_vertex,x,y,0.0018 /*100m => approx. 0.0009 */,modus_input, routing_profile);
     
-  raise notice '%', id_vertex;
-
   IF modus_input <> 3 THEN 
 		SELECT count(objectid) + 1 INTO number_calculation_input
 		FROM starting_point_isochrones
@@ -42,24 +40,15 @@ begin
 		WHERE v.id = id_vertex;
 	END IF; 
   
-  --Adjust for Routing Profile
-  SELECT select_from_variable_container_s('walking_speed_elderly')::numeric, select_from_variable_container_s('walking_speed_wheelchair')::numeric
-  INTO speed_elderly, speed_wheelchair;
-
   IF  routing_profile = 'walking_elderly' THEN
     speed = speed_elderly; 
   ELSEIF routing_profile = 'walking_wheelchair' THEN
     speed = speed_wheelchair; 
   END IF; 
-  
-  distance=speed*(minutes*60);
 
 
   SELECT ST_AsText(ST_Buffer(ST_Union(geom_vertex)::geography,distance)::geometry)  
   INTO buffer;
-
-  SELECT select_from_variable_container_s('max_length_links')::integer 
-  INTO max_length_links;
 	
   DROP TABLE IF EXISTS temp_fetched_ways;
   CREATE TEMP TABLE temp_fetched_ways AS 
