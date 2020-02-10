@@ -11,6 +11,7 @@ DATA_SOURCE:
   #"most_recent" if the data from the OSM-Download-Link has not the recency you need. 
   OSM_DATA_RECENCY: "standard"
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
+  EXTRACT_BBOX: "yes"
   
 
 DATA_REFINEMENT_VARIABLES:
@@ -22,13 +23,13 @@ DATA_REFINEMENT_VARIABLES:
   #"yes" if you want to add these layers 
   ADDITIONAL_WALKABILITY_LAYERS: "no" 
   variable_container: 
-    poi_categories: ["kindergarten","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
+    pois_one_entrance: ["kindergarten","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
       "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
       "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
       "hypermarket","international_supermarket","chemist","organic","marketplace",
-      "hotel","museum","hostel","guest_house","viewpoint","gallery","bus_stop",
-      "tram_stop","subway_entrance","rail_station"
+      "hotel","museum","hostel","guest_house","viewpoint","gallery"
     ]
+    pois_more_entrances: ["bus_stop","tram_stop","subway_entrance","rail_station"]
     excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
     categories_no_foot: ["use_sidepath","no"]
     excluded_class_id_cycling: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
@@ -95,6 +96,6 @@ DATA_REFINEMENT_VARIABLES:
       very_bad: '0.2'
       horrible: '0.3'
       very_horrible: '0.5'
-    resolution_dem: '30'
+    dem_resolution: '30'
 
       
