@@ -72,7 +72,7 @@ import Map from "ol/Map";
 import View from "ol/View";
 
 // ol imports
-import { defaults as defaultInteractions } from "ol/interaction";
+
 import Overlay from "ol/Overlay";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
@@ -95,8 +95,7 @@ import http from "../../../services/http";
 import axios from "axios";
 
 //Store imports
-import { mapMutations } from "vuex";
-import { mapGetters } from "vuex";
+import { mapMutations, mapGetters, mapActions } from "vuex";
 
 //Map Controls
 import OverlayPopup from "./controls/Overlay";
@@ -105,7 +104,10 @@ import Legend from "./controls/Legend";
 import BackgroundSwitcher from "./controls/BackgroundSwitcher";
 import ZoomControl from "./controls/ZoomControl";
 import FullScreen from "./controls/Fullscreen";
+import DoubleClickZoom from "ol/interaction/DoubleClickZoom";
+
 import { defaults as defaultControls, Attribution } from "ol/control";
+import { defaults as defaultInteractions } from "ol/interaction";
 
 export default {
   components: {
@@ -158,6 +160,7 @@ export default {
 
       //Get Info
       me.setupMapClick();
+      me.setupMapPointerMove();
       me.createPopupOverlay();
     }, 200);
   },
@@ -165,19 +168,25 @@ export default {
     var me = this;
 
     // make map rotateable according to property
-    const interactions = defaultInteractions({
-      altShiftDragRotate: me.rotateableMap
-    });
 
     const attribution = new Attribution({
       collapsible: true
     });
+
+    //Need to reference as we should deactive double click zoom when there
+    //are active interaction like draw/modify
+    this.dblClickZoomInteraction = new DoubleClickZoom();
+
     me.map = new Map({
       layers: [],
-      interactions: interactions,
-      controls: defaultControls({ attribution: false, zoom: false }).extend([
-        attribution
-      ]),
+      interactions: defaultInteractions({
+        altShiftDragRotate: me.rotateableMap,
+        doubleClickZoom: false
+      }).extend([this.dblClickZoomInteraction]),
+      controls: defaultControls({
+        attribution: false,
+        zoom: false
+      }).extend([attribution]),
       view: new View({
         center: me.center || [0, 0],
         zoom: me.zoom,
@@ -396,13 +405,43 @@ export default {
      * Show getInfo popup.
      */
     showPopup(coordinate) {
+      this.map.getView().animate({
+        center: coordinate,
+        duration: 400
+      });
       this.popupOverlay.setPosition(coordinate);
       this.popup.isVisible = true;
       this.popup.title = `info`;
     },
 
     /**
-     * Map click event for "Get Info" Module.
+     * Map pointer move event .
+     */
+    setupMapPointerMove() {
+      this.mapPointerMoveListenerKey = this.map.on("pointermove", evt => {
+        if (
+          evt.dragging ||
+          this.activeInteractions.length > 0 ||
+          !this.isochroneLayer
+        ) {
+          return;
+        }
+        const features = this.map.getFeaturesAtPixel(evt.pixel, {
+          layerFilter: candidate => {
+            if (candidate.get("name") === "Isochrone Layer") {
+              return true;
+            }
+            return false;
+          }
+        });
+
+        this.map.getTarget().style.cursor =
+          features.length > 0 ? "pointer" : "";
+      });
+    },
+
+    /**
+     * Map click event for Module.
      */
     setupMapClick() {
       const me = this;
@@ -412,6 +451,29 @@ export default {
         if (me.activeInteractions.length > 0) {
           return;
         }
+
+        //Check for isochrone features
+        const features = me.map.getFeaturesAtPixel(evt.pixel, {
+          layerFilter: candidate => {
+            if (candidate.get("name") === "Isochrone Layer") {
+              return true;
+            }
+            return false;
+          }
+        });
+        if (features.length > 0) {
+          // Toggle thematic data for isochrone window
+          const isochroneFeature = features[0];
+          console.log(isochroneFeature);
+          this.showIsochroneWindow({
+            id: isochroneFeature.get("calculationNumber"),
+            calculationType: isochroneFeature.get("calculationType")
+          });
+
+          return;
+        }
+        //
+
         const coordinate = evt.coordinate;
         const projection = me.map.getView().getProjection();
         const resolution = me.map.getView().getResolution();
@@ -486,12 +548,18 @@ export default {
     },
     ...mapMutations("map", {
       setMap: "SET_MAP"
+    }),
+    ...mapActions("isochrones", {
+      showIsochroneWindow: "showIsochroneWindow"
     })
   },
   computed: {
     ...mapGetters("map", {
       helpTooltip: "helpTooltip",
       currentMessage: "currentMessage"
+    }),
+    ...mapGetters("isochrones", {
+      isochroneLayer: "isochroneLayer"
     }),
     ...mapGetters("loader", { isNetworkBusy: "isNetworkBusy" }),
     currentInfo() {
@@ -518,6 +586,16 @@ export default {
       });
 
       return transformed;
+    }
+  },
+  watch: {
+    activeInteractions() {
+      if (!this.dblClickZoomInteraction) return;
+      if (this.activeInteractions.length > 0) {
+        this.dblClickZoomInteraction.setActive(false);
+      } else {
+        this.dblClickZoomInteraction.setActive(true);
+      }
     }
   }
 };

@@ -24,17 +24,20 @@
           v-bind:is="activeMiniViewComponent"
         ></component> </v-card
     ></v-expand-x-transition>
-
+    <isochrone-thematic-data />
     <!-- FULL-VIEW -->
     <component class="strech" v-bind:is="activeFullViewComponent"></component>
   </div>
 </template>
 <script>
 import appMap from "./ol/Map";
+import IsochronThematicData from "./others/IsochroneThematicData";
+
 export default {
   name: "app-viewer",
   components: {
-    "app-ol-map": appMap
+    "app-ol-map": appMap,
+    "isochrone-thematic-data": IsochronThematicData
   },
   data() {
     return {
