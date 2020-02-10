@@ -150,11 +150,16 @@ export default class OlEditController extends OlBaseController {
     if (feature) {
       const geometry = feature.getGeometry();
       const featureCoordinates = geometry.getCoordinates();
-      me.popupOverlay.setPosition(
+      const popupCoordinate =
         geometry.getType() === "Point"
           ? featureCoordinates
-          : featureCoordinates[0]
-      );
+          : featureCoordinates[0];
+      me.map.getView().animate({
+        center: popupCoordinate,
+        duration: 400
+      });
+      me.popupOverlay.setPosition(popupCoordinate);
+
       me.popup.title = "confirm";
       me.popup.selectedInteraction = "delete";
       me.popup.isVisible = true;
