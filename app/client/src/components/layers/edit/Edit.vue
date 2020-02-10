@@ -372,7 +372,7 @@ export default {
     missingFieldsNames: "",
 
     //Edit form
-    listValues: {},
+    layerConf: {},
     hiddenProps: ["userid", "id", "original_id", "status"],
 
     schema: {},
@@ -810,11 +810,11 @@ export default {
         )
         .then(response => {
           const props = response.data.featureTypes[0].properties;
+          const layerName = this.layerName.split(":")[1];
           const jsonSchema = mapFeatureTypeProps(
             props,
-            this.hiddenProps,
-            this.layerName.split(":")[1],
-            this.listValues
+            layerName,
+            this.layerConf[layerName]
           );
           this.schema[this.layerName] = jsonSchema;
           this.loadingLayerInfo = false;
@@ -1055,17 +1055,17 @@ export default {
     ...mapGetters("user", { userId: "userId" })
   },
   created() {
-    this.listValues = this.$appConfig.listValues;
+    this.layerConf = this.$appConfig.layerConf;
     this.isFileUploadEnabled = this.$appConfig.componentConf.edit.enableFileUpload;
     //Edge Case (get all pois keys)
     if (
-      this.listValues.pois_info.amenity &&
-      this.listValues.pois_info.amenity.values === "*"
+      this.layerConf.pois_info.listValues.amenity &&
+      this.layerConf.pois_info.listValues.amenity.values === "*"
     ) {
       const poisListValues = getPoisListValues(
         this.$appConfig.componentData.pois.allPois
       );
-      this.listValues.pois_info.amenity.values = poisListValues;
+      this.layerConf.pois_info.listValues.amenity.values = poisListValues;
     }
   }
 };

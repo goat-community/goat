@@ -389,7 +389,7 @@ export function getWMSLegendURL(
  * @param {props} decscibeFeatureType json schema
  * @return {object} Vuetify json schema form
  */
-export function mapFeatureTypeProps(props, hiddenProps, layerName, listValues) {
+export function mapFeatureTypeProps(props, layerName, layerConf) {
   const mapping = {
     string: "string",
     int: "integer"
@@ -412,15 +412,15 @@ export function mapFeatureTypeProps(props, hiddenProps, layerName, listValues) {
       if (prop.nillable === false) {
         obj.required.push(prop.name);
       }
-      if (hiddenProps.includes(prop.name)) {
+      if (layerConf["hiddenProps"].includes(prop.name)) {
         obj.properties[prop.name]["x-display"] = "hidden";
       }
       if (
-        listValues[layerName][prop.name] &&
-        Array.isArray(listValues[layerName][prop.name].values)
+        layerConf["listValues"][prop.name] &&
+        Array.isArray(layerConf["listValues"][prop.name].values)
       ) {
         obj.properties[prop.name]["enum"] =
-          listValues[layerName][prop.name].values;
+          layerConf["listValues"][prop.name].values;
         //Show as autocomplete
         obj.properties[prop.name]["isAutocomplete"] = true;
       }
