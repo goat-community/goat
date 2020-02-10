@@ -6,7 +6,7 @@
     class="elevation-4"
     id="isochroneWindowId"
     :style="[isExpanded ? { height: '450px' } : { height: '60px' }]"
-    style="position:fixed;top:10px;left:360px;z-index:2;max-width:350px;min-width:350px;height:450px;overflow:hidden;"
+    style="position:fixed;top:10px;left:360px;z-index:2;max-width:370px;min-width:350px;height:450px;overflow:hidden;"
   >
     <v-expand-transition>
       <v-layout justify-space-between column fill-height>
