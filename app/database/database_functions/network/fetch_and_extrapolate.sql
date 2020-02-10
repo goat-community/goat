@@ -43,6 +43,7 @@ BEGIN
 		FROM '||quote_ident(table_name)||
 		' WHERE class_id NOT IN(SELECT UNNEST($1))
     	AND (foot NOT IN(SELECT UNNEST($2)) OR foot IS NULL)
+		AND death_end IS NULL
 		AND geom && ST_GeomFromText($3)'||sql_userid||sql_ways_ids||sql_routing_profile
 	USING excluded_class_id, filter_categories,buffer_geom;
 END;
