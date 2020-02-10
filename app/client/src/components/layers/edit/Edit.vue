@@ -923,8 +923,10 @@ export default {
           if (confirm) {
             //1- Call api to delete all features.
 
-            //2- Clear openlayers features
+            //2- Clear openlayers scenario features
             this.clear();
+            // This also deletes user scenario features from the map
+            this.olEditCtrl.deleteAll();
           }
         });
     },
