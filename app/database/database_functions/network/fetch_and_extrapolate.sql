@@ -19,15 +19,14 @@ DECLARE
 	userid_vertex integer;
 	
 BEGIN 
-		
-	SELECT select_from_variable_container('excluded_class_id_' || category),
-  	select_from_variable_container('categories_no_' || category)
-  	INTO excluded_class_id, filter_categories;
+
+	excluded_class_id = select_from_variable_container('excluded_class_id_' || category);
+  	filter_categories = select_from_variable_container('categories_no_' || category);
 
 	IF modus_input <> 1 THEN 
 		table_name = 'ways_userinput';
-		SELECT ids_modified_features(userid,'ways')
-		INTO excluded_ways_id;
+		excluded_ways_id = ids_modified_features(userid_input,'ways');
+
 		sql_userid = ' AND userid IS NULL OR userid='||userid_input;
 		sql_ways_ids = ' AND NOT id::int4 = any('''|| excluded_ways_id ||''') ';
 	END IF;

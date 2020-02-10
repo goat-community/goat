@@ -43,7 +43,7 @@ begin
     SELECT *,speed_input,shape_precision,4,objectid_scenario,objectid_default
     FROM isochrones_alphashape(userid_input,minutes,x,y,n,speed_input,shape_precision,4,objectid_scenario,objectid_default,routing_profile);
 
-    PERFORM thematic_data_sum(objectid_scenario,userid,modus);
+    PERFORM thematic_data_sum(objectid_scenario,userid_input,modus);
     PERFORM sql_execution;
 
   ELSE
