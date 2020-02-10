@@ -142,6 +142,8 @@ export default class OlEditController extends OlBaseController {
       feature = me.source.getClosestFeatureToCoordinate(coordinate);
     } else {
       //Triggered when user click scenario data table
+      //Create overlayer
+      me.createPopupOverlay();
       feature = evt;
     }
 
@@ -150,11 +152,16 @@ export default class OlEditController extends OlBaseController {
     if (feature) {
       const geometry = feature.getGeometry();
       const featureCoordinates = geometry.getCoordinates();
-      me.popupOverlay.setPosition(
+      const popupCoordinate =
         geometry.getType() === "Point"
           ? featureCoordinates
-          : featureCoordinates[0]
-      );
+          : featureCoordinates[0];
+      me.map.getView().animate({
+        center: popupCoordinate,
+        duration: 400
+      });
+      me.popupOverlay.setPosition(popupCoordinate);
+
       me.popup.title = "confirm";
       me.popup.selectedInteraction = "delete";
       me.popup.isVisible = true;
@@ -384,11 +391,31 @@ export default class OlEditController extends OlBaseController {
     }
   }
 
+  /**
+   * Doesnt clear features
+   */
   clear() {
-    super.clear();
-    const me = this;
-    if (me.highlightSource) {
-      me.highlightSource.clear();
+    if (this.highlightSource) {
+      this.highlightSource.clear();
     }
+    if (this.removeInteraction) {
+      this.removeInteraction();
+    }
+    super.clearOverlays();
+    this.source.getFeatures().forEach(f => {
+      const props = f.getProperties();
+      if (!props.hasOwnProperty("original_id")) {
+        this.source.removeFeature(f);
+      }
+    });
+  }
+
+  /**
+   * Delete all user scenario features
+   */
+
+  deleteAll() {
+    this.clear();
+    super.clear();
   }
 }

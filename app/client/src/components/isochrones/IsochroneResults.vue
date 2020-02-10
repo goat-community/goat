@@ -60,19 +60,6 @@
                   <v-tooltip top>
                     <template v-slot:activator="{ on }">
                       <v-icon
-                        @click="showPoisTable(calculation)"
-                        small
-                        v-on="on"
-                        class="result-icons mr-2"
-                        >fas fa-table</v-icon
-                      >
-                    </template>
-                    <span>{{ $t("isochrones.results.showDataTooltip") }}</span>
-                  </v-tooltip>
-
-                  <v-tooltip top>
-                    <template v-slot:activator="{ on }">
-                      <v-icon
                         @click="showHideCalculation(calculation)"
                         small
                         v-on="on"
@@ -225,7 +212,6 @@ import { mapGetters, mapActions, mapMutations } from "vuex";
 import Confirm from "../core/Confirm";
 import Download from "./IsochronesDownload";
 import AdditionalLayers from "./IsochronesAdditionalLayers";
-import IsochroneUtils from "../../utils/IsochroneUtils";
 import IsochroneColorPicker from "./IsochroneColorPicker";
 
 export default {
@@ -254,8 +240,7 @@ export default {
     ...mapMutations("isochrones", {
       toggleIsochroneFeatureVisibility: "TOGGLE_ISOCHRONE_FEATURE_VISIBILITY",
       toggleIsochroneCalculationVisibility:
-        "TOGGLE_ISOCHRONE_CALCULATION_VISIBILITY",
-      toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY"
+        "TOGGLE_ISOCHRONE_CALCULATION_VISIBILITY"
     }),
     deleteCalculation(calculation) {
       this.$refs.confirm
@@ -295,28 +280,6 @@ export default {
         }
       }
       me.toggleIsochroneCalculationVisibility(calculation);
-    },
-    showPoisTable(calculation) {
-      const me = this;
-      const features = IsochroneUtils.getCalculationFeatures(
-        calculation,
-        me.isochroneLayer
-      );
-      const pois = IsochroneUtils.getCalculationPoisObject(features);
-      const payload = {
-        calculationId: calculation.id,
-        calculationName: `Calculation - ${calculation.id}`,
-        calculationType: calculation.calculationType,
-        pois: pois
-      };
-      if (calculation.calculationType === "multiple") {
-        const multiIsochroneTableData = IsochroneUtils.getMultiIsochroneTableData(
-          features
-        );
-        payload.multiIsochroneTableData = multiIsochroneTableData;
-      }
-      me.setSelectedThematicData(payload);
-      me.toggleThematicDataVisibility(true);
     },
     showAdditionalLayerDialog(calculation) {
       this.additionalLayersDialogState = true;

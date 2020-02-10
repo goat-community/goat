@@ -813,16 +813,24 @@
       "enableFileUpload": true
     }
   },
-  "listValues": {
+
+  "layerConf": {
     "ways": {
-      "type": {
-        "values": ["bridge", "road"]
-      }
+      "listValues": {
+        "type": {
+          "values": ["bridge", "road"]
+        }
+      },
+
+      "hiddenProps": ["userid", "id", "original_id", "status", "class_id"]
     },
     "pois": {
-      "amenity": {
-        "values": "*"
-      }
+      "listValues": {
+        "amenity": {
+          "values": "*"
+        }
+      },
+      "hiddenProps": ["userid", "id", "original_id", "status"]
     }
   }
 }
