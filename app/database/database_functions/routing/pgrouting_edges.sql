@@ -60,9 +60,11 @@ begin
 
   DROP TABLE IF EXISTS temp_reached_vertices;
 
+  raise notice '%',id_vertex;
+
   IF modus_input = 1 THEN 
     CREATE TEMP TABLE temp_reached_vertices as 
-    SELECT id_vertex AS start_vertex, id1::integer AS node, id2::integer AS edge, 1 AS cnt, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid 
+    SELECT id_vertex AS start_vertex, id1::integer AS node, id2::integer AS edge, 1 AS cnt, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end 
     FROM PGR_DrivingDistance( 
         'SELECT * FROM temp_fetched_ways'
         ,id_vertex, distance,FALSE,FALSE
@@ -70,7 +72,7 @@ begin
     WHERE p.id1 = v.id;
   ELSE
     CREATE TEMP TABLE temp_reached_vertices as 
-    SELECT id_vertex AS start_vertex, id1::integer AS node, id2::integer AS edge, 1 AS cnt, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid
+    SELECT id_vertex AS start_vertex, id1::integer AS node, id2::integer AS edge, 1 AS cnt, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end
     FROM PGR_DrivingDistance(
       'SELECT * FROM temp_fetched_ways',
       id_vertex, 
