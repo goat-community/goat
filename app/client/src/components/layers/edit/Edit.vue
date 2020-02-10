@@ -1010,7 +1010,7 @@ export default {
         )
       ) {
         //Show snackbar warning that user has features not yet uploaded
-        console.log("not all features uploaded....");
+
         this.toggleSnackbar({
           type: "warning", //success or error
           message: "notAllScnearioFeaturesUploaded",
@@ -1019,7 +1019,7 @@ export default {
         });
       } else {
         //Hide snackbar.
-        console.log("All features uploaded. ");
+
         this.toggleSnackbar({
           state: false
         });
