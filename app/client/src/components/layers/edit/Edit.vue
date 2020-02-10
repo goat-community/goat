@@ -168,9 +168,18 @@
               :headers="headers"
               :loading="isTableLoading"
               :items="scenarioDataTable"
-              :items-per-page="5"
+              :items-per-page="15"
               class="elevation-0"
             >
+              <template v-slot:item.status="{ item }">
+                <v-chip
+                  small
+                  :color="item.status === 'Uploaded' ? 'success' : 'error'"
+                  dark
+                  >{{ item.status }}</v-chip
+                >
+              </template>
+
               <template v-slot:item.action="{ item }">
                 <!-- zoom to scenario feature -->
                 <v-tooltip top>
@@ -391,7 +400,7 @@ export default {
     headers: [
       { text: "Fid", value: "fid", sortable: false },
       { text: "Layer", value: "layerName", sortable: false },
-      { text: "Status", value: "status", sortable: false },
+      { text: "Status", value: "status", sortable: false, align: "center" },
       { text: "Actions", value: "action", sortable: false }
     ],
     scenarioDataTable: [],
@@ -418,6 +427,9 @@ export default {
         const me = this;
         me.toggleEditInteraction(state);
       }
+    },
+    scenarioDataTable() {
+      console.log(this.scenarioDataTable);
     }
   },
   mounted() {
@@ -1054,6 +1066,7 @@ export default {
     },
     ...mapGetters("user", { userId: "userId" })
   },
+
   created() {
     this.layerConf = this.$appConfig.layerConf;
     this.isFileUploadEnabled = this.$appConfig.componentConf.edit.enableFileUpload;
