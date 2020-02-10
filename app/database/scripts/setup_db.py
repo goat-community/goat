@@ -3,7 +3,7 @@
 def setup_db(setup_type):
     #Read Configuration
     import shapefile
-    import os, glob
+    import os, glob, os.path
     import datetime,psycopg2
     from datetime import timedelta
 
@@ -12,7 +12,7 @@ def setup_db(setup_type):
     from scripts.db_functions import create_variable_container
     from scripts.db_functions import update_functions
 
-    download_link,osm_data_recency,buffer,source_population, additional_walkability_layers = ReadYAML().data_source()
+    download_link,osm_data_recency,buffer,extract_bbox,source_population,additional_walkability_layers = ReadYAML().data_source()
     db_name,user,host,port,password = ReadYAML().db_credentials()
     db_name_temp = db_name+'temp'
 
@@ -41,10 +41,13 @@ def setup_db(setup_type):
     bottom = bbox[1]-buffer
     right = bbox[2]+buffer
 
-    if (setup_type == 'new_setup'):
-        bounding_box = '--bounding-box top=%f left=%f bottom=%f right=%f' % (top,left,bottom,right)
+    if (setup_type == 'new_setup'):  
         #print('osmosis --read-pbf file="raw-osm.osm.pbf" %s --write-xml file="study_area.osm"' % bounding_box)
-        os.system('osmosis --read-pbf file="raw-osm.osm.pbf" %s --write-xml file="study_area.osm"' % bounding_box)
+        if (extract_bbox == 'yes'):
+            
+            bounding_box = '--bounding-box top=%f left=%f bottom=%f right=%f' % (top,left,bottom,right)
+            print(bounding_box)
+            os.system('osmosis --read-pbf file="raw-osm.osm.pbf" %s --write-xml file="study_area.osm"' % bounding_box)
 
         #Create timestamps
         os.system('rm timestamps.txt')
@@ -57,6 +60,13 @@ def setup_db(setup_type):
         file.write(timestamp+'\n')
         file.close()
 
+        #Import DEM
+        if os.path.isfile('dem.tif'):
+            #--bounding-box top=48.248582 left=11.127238 bottom=48.101042 right=11.329993
+            #os.system('gdalwarp -dstnodata -999.0 -r near -ot Float32 -of GTiff -te %f %f %f %f dem.tif dem_cut.tif' % (left,top,right,bottom))
+            os.system('raster2pgsql -c -C -s 4326 -f rast -F -I -M -t 100x100 dem.tif public.dem > dem.sql')
+            db_temp.execute_script_psql('dem.sql')
+            db_temp.execute_script_psql('/opt/data_preparation/SQL/prepare_dem.sql')
         #Import shapefiles into database
         for file in glob.glob("*.shp"):
             print(file)
@@ -100,8 +110,9 @@ def setup_db(setup_type):
     db_temp.execute_script_psql('/opt/data_preparation/SQL/types.sql')
     #Create functions that are needed for data_preparation
     db_temp.execute_script_psql('/opt/database_functions/other/select_from_variable_container.sql')
-    db_temp.execute_script_psql('/opt/database_functions/other/split_long_way.sql')
-
+    db_temp.execute_script_psql('/opt/database_functions/network/split_long_way.sql')
+    db_temp.execute_script_psql('/opt/database_functions/network/compute_slope.sql')
+    db_temp.execute_script_psql('/opt/database_functions/network/slope_impedance.sql')
 
     if (setup_type in ['new_setup','all','population','pois','network']):
         os.system('PGPASSFILE=/.pgpass osm2pgsql -d %s -H %s -U %s --hstore -E 4326 study_area.osm' % (db_name_temp,host,user)) 
@@ -130,11 +141,12 @@ def setup_db(setup_type):
     if (setup_type == 'new_setup'):    
         #Create pgpass for goat-database
         ReadYAML().create_pgpass('')  
+        os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'old'))
+        os.system('psql -U postgres -c "DROP DATABASE %s;"' % (db_name+'old'))
         os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name)
         os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name,db_name+'old'))
         os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name_temp, db_name))
-        os.system('psql -U postgres -c "DROP DATABASE %s;"' % (db_name+'old'))
-        
+               
         #Creates DB_functions
         update_functions()
     else:
