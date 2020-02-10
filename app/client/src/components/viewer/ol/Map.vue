@@ -405,6 +405,10 @@ export default {
      * Show getInfo popup.
      */
     showPopup(coordinate) {
+      this.map.getView().animate({
+        center: coordinate,
+        duration: 400
+      });
       this.popupOverlay.setPosition(coordinate);
       this.popup.isVisible = true;
       this.popup.title = `info`;
