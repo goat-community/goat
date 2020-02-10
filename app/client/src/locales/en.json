@@ -103,7 +103,7 @@
       "drawFeatureTooltip": "Draw Feature",
       "modifyFeatureTooltip": "Modify Feature",
       "deleteFeature": "Delete Feature",
-      "clearBtn": "Clear",
+      "clearBtn": "Delete All",
       "uploadBtn": "Upload",
       "popup": {
         "deleteFeatureMsg": "Are you sure you want to delete the selected feature ?",
@@ -123,7 +123,9 @@
       "notAllUploaded": "Not all features uploaded",
       "errorHappened": "An error happened",
       "scenarioFeatures": "Scenario Features",
-      "uploadYourData": "Upload your data"
+      "uploadYourData": "Upload your data",
+      "deleteAllTitle": "Delete All",
+      "deleteAllMessage": "Are you sure you want to delete all scenario data."
     },
     "settings": {
       "title": "Settings",

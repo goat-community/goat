@@ -72,7 +72,7 @@ import Map from "ol/Map";
 import View from "ol/View";
 
 // ol imports
-import { defaults as defaultInteractions } from "ol/interaction";
+
 import Overlay from "ol/Overlay";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
@@ -104,7 +104,10 @@ import Legend from "./controls/Legend";
 import BackgroundSwitcher from "./controls/BackgroundSwitcher";
 import ZoomControl from "./controls/ZoomControl";
 import FullScreen from "./controls/Fullscreen";
+import DoubleClickZoom from "ol/interaction/DoubleClickZoom";
+
 import { defaults as defaultControls, Attribution } from "ol/control";
+import { defaults as defaultInteractions } from "ol/interaction";
 
 export default {
   components: {
@@ -165,19 +168,25 @@ export default {
     var me = this;
 
     // make map rotateable according to property
-    const interactions = defaultInteractions({
-      altShiftDragRotate: me.rotateableMap
-    });
 
     const attribution = new Attribution({
       collapsible: true
     });
+
+    //Need to reference as we should deactive double click zoom when there
+    //are active interaction like draw/modify
+    this.dblClickZoomInteraction = new DoubleClickZoom();
+
     me.map = new Map({
       layers: [],
-      interactions: interactions,
-      controls: defaultControls({ attribution: false, zoom: false }).extend([
-        attribution
-      ]),
+      interactions: defaultInteractions({
+        altShiftDragRotate: me.rotateableMap,
+        doubleClickZoom: false
+      }).extend([this.dblClickZoomInteraction]),
+      controls: defaultControls({
+        attribution: false,
+        zoom: false
+      }).extend([attribution]),
       view: new View({
         center: me.center || [0, 0],
         zoom: me.zoom,
@@ -575,6 +584,16 @@ export default {
       });
 
       return transformed;
+    }
+  },
+  watch: {
+    activeInteractions() {
+      if (!this.dblClickZoomInteraction) return;
+      if (this.activeInteractions.length > 0) {
+        this.dblClickZoomInteraction.setActive(false);
+      } else {
+        this.dblClickZoomInteraction.setActive(true);
+      }
     }
   }
 };

@@ -200,21 +200,6 @@
                   </template>
                   <span>{{ $t(`map.tooltips.deleteFeature`) }}</span>
                 </v-tooltip>
-                <!-- upload scenario feature -->
-                <v-tooltip top>
-                  <template v-slot:activator="{ on }">
-                    <v-icon
-                      class="scenario-icon"
-                      :disabled="isUploadBusy"
-                      v-on="on"
-                      v-if="item.status === 'Not uploaded'"
-                      @click="scenarioActionBtnHandler(item, 'upload')"
-                    >
-                      cloud_upload
-                    </v-icon>
-                  </template>
-                  <span>{{ $t(`map.tooltips.uploadFeature`) }}</span>
-                </v-tooltip>
               </template>
             </v-data-table>
           </v-flex>
@@ -237,14 +222,16 @@
         <v-btn
           v-show="selectedLayer != null"
           class="white--text"
-          color="green"
-          @click="clear"
+          color="error"
+          @click="deleteAll"
         >
           <v-icon left>delete</v-icon>{{ $t("appBar.edit.clearBtn") }}
         </v-btn>
       </v-card-actions>
     </v-card>
 
+    <!-- Confirm Delete all  -->
+    <confirm ref="confirm"></confirm>
     <!-- Popup overlay  -->
     <overlay-popup
       style="cursor: default;"
@@ -329,9 +316,11 @@ import VJsonschemaForm from "../../other/dynamicForms/index";
 import { geojsonToFeature } from "../../../utils/MapUtils";
 import { mapGetters, mapMutations } from "vuex";
 import { debounce } from "../../../utils/Helpers";
+import Confirm from "../../core/Confirm";
 
 export default {
   components: {
+    confirm: Confirm,
     "overlay-popup": OverlayPopup,
     VJsonschemaForm
   },
@@ -753,6 +742,10 @@ export default {
         ? featureCoordinates[0]
         : featureCoordinates;
 
+      this.map.getView().animate({
+        center: popupCoordinate,
+        duration: 400
+      });
       this.olEditCtrl.popupOverlay.setPosition(popupCoordinate);
       this.olEditCtrl.popup.title = "attributes";
       this.olEditCtrl.popup.selectedInteraction = "add";
@@ -914,6 +907,26 @@ export default {
       me.toggleSelection = undefined;
       me.toggleEdit = undefined;
       EventBus.$emit("ol-interaction-stoped", me.interactionType);
+    },
+
+    /**
+     * Delete all user scenario features in db.
+     */
+    deleteAll() {
+      this.$refs.confirm
+        .open(
+          this.$t("appBar.edit.deleteAllTitle"),
+          this.$t("appBar.edit.deleteAllMessage"),
+          { color: "green" }
+        )
+        .then(confirm => {
+          if (confirm) {
+            //1- Call api to delete all features.
+
+            //2- Clear openlayers features
+            this.clear();
+          }
+        });
     },
 
     /**
