@@ -49,37 +49,39 @@ begin
 
   SELECT ST_AsText(ST_Buffer(ST_Union(geom_vertex)::geography,distance)::geometry)  
   INTO buffer;
-	
+
   DROP TABLE IF EXISTS temp_fetched_ways;
+  DROP TABLE IF EXISTS temp_reached_vertices;
+
   CREATE TEMP TABLE temp_fetched_ways AS 
-  SELECT id,SOURCE,target,cost,reverse_cost,geom 
+  SELECT *
   FROM fetch_ways_routing(buffer,speed,modus_input,userid_input,routing_profile);
   ALTER TABLE temp_fetched_ways ADD PRIMARY KEY(id);
   CREATE INDEX ON temp_fetched_ways (target);
   CREATE INDEX ON temp_fetched_ways (source);
+  CREATE INDEX ON temp_fetched_ways (death_end);
 
-  DROP TABLE IF EXISTS temp_reached_vertices;
-
-  raise notice '%',id_vertex;
 
   IF modus_input = 1 THEN 
     CREATE TEMP TABLE temp_reached_vertices as 
     SELECT id_vertex AS start_vertex, id1::integer AS node, id2::integer AS edge, 1 AS cnt, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end 
     FROM PGR_DrivingDistance( 
-        'SELECT * FROM temp_fetched_ways'
-        ,id_vertex, distance,FALSE,FALSE
+        'SELECT * FROM temp_fetched_ways WHERE death_end IS NULL',
+        id_vertex, distance,FALSE,FALSE
         )p, ways_vertices_pgr v
     WHERE p.id1 = v.id;
   ELSE
     CREATE TEMP TABLE temp_reached_vertices as 
     SELECT id_vertex AS start_vertex, id1::integer AS node, id2::integer AS edge, 1 AS cnt, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end
     FROM PGR_DrivingDistance(
-      'SELECT * FROM temp_fetched_ways',
+      'SELECT * FROM temp_fetched_ways WHERE death_end IS NULL',
       id_vertex, 
       distance, false, false
     ) p, ways_userinput_vertices_pgr v
     WHERE p.id1 = v.id;
   END IF;
+
+  ALTER TABLE temp_reached_vertices ADD PRIMARY KEY(node);
 
   DROP TABLE IF EXISTS temp_extrapolated_vertices;
   CREATE TEMP TABLE temp_extrapolated_vertices as 
