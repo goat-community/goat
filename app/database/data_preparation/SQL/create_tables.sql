@@ -44,6 +44,7 @@ CREATE TABLE public.edges (
 	edge int4 NULL,
 	cost numeric NULL,
 	geom geometry NULL,
+	v_geom geometry NULL,
 	objectid int4 NULL,
 	id serial NOT NULL,
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
