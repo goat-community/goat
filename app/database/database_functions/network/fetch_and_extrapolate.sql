@@ -66,6 +66,7 @@ BEGIN
 	WHERE f.node = w.source 
 	AND s.node = w.target;
 	
+	
 	FOR i IN SELECT generate_series(step_isochrone,max_cost,step_isochrone)
 	LOOP
 		INSERT INTO edges 
