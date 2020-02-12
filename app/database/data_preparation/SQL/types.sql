@@ -63,7 +63,6 @@ CREATE TYPE public.type_catchment_vertices_single AS
 	edge integer,
 	cost numeric,
 	geom geometry,
-	w_geom geometry,
 	objectid integer	
 );
 DROP TYPE IF EXISTS type_temp_catchment_vertices_multi CASCADE;
