@@ -20,7 +20,7 @@ DECLARE
 	
 BEGIN 
 
-	excluded_class_id = select_from_variable_container('excluded_class_id_' || category);
+	excluded_class_id = select_from_variable_container('excluded_class_id_' || split_part(routing_profile,'_',1));
   	filter_categories = select_from_variable_container('categories_no_' || category);
 
 	IF modus_input <> 1 THEN 
@@ -52,71 +52,59 @@ $function$;
 /*select fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)),1.33,1,1,'walking_standard');
 */
 
-/*CREATE TABLE ways_safe AS 
-select f.*, w.geom FROM ways w, (SELECT * FROM fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.005)),2.5,'{0,101,102,103,104,105,106,107,501,502,503,504,701,801}','{use_sidepath,no}',1,1,'walking_safe_night') AS ways_routing) f
-WHERE w.id = f.id;
-*/
-
-
-DROP TABLE IF EXISTS temp_reached_vertices;
-CREATE temp TABLE temp_reached_vertices
-(
-	start_vertex integer,
-	node integer,
-	edge integer,
-	cnt integer,
-	cost NUMERIC,
-	geom geometry,
-	objectid integer
-);
-DROP FUNCTION IF EXISTS extrapolate_reached_vertices;
-CREATE OR REPLACE FUNCTION public.extrapolate_reached_vertices(max_cost NUMERIC, max_length_links NUMERIC, buffer_geom text, 
-	speed NUMERIC ,userid_input integer, modus_input integer, routing_profile text )
-RETURNS SETOF type_catchment_vertices_single
- LANGUAGE sql
-AS $function$
-
-WITH touching_network AS 
-(
-	SELECT t.start_vertex, w.id, w.geom, w.source, w.target, t.cost, t.node, t.edge, w.cost AS w_cost, t.objectid
-	FROM temp_reached_vertices t, 
-	fetch_ways_routing(buffer_geom,speed,modus_input,userid_input,routing_profile) as w 
-	WHERE t.node = w.target 
-	AND t.node <> w.source
-	AND t.cost + (max_length_links/speed) > max_cost
-	UNION ALL 
-	SELECT t.start_vertex, w.id, w.geom, w.source, w.target, t.cost, t.node, t.edge, w.cost AS w_cost, t.objectid
-	FROM temp_reached_vertices t, 
-	fetch_ways_routing(buffer_geom,speed,modus_input,userid_input,routing_profile) as w 
-	WHERE t.node <> w.target
-	AND t.node = w.source
-	AND t.cost + (max_length_links/speed) > max_cost
-),
-not_completely_reached_network AS (
-	SELECT source
-	FROM (
-		SELECT source 
-		FROM touching_network t 
+DROP FUNCTION IF EXISTS get_reached_network;
+CREATE OR REPLACE FUNCTION public.get_reached_network(objectid_input integer,max_cost NUMERIC, number_isochrones integer)
+RETURNS void AS
+$$
+DECLARE
+	i NUMERIC;
+	step_isochrone NUMERIC := max_cost/number_isochrones;
+BEGIN
+	INSERT INTO edges(edge,node,cost,geom,v_geom,objectid) 
+	SELECT w.id,s.node,s.cost,w.geom,s.geom AS v_geom,objectid_input
+	FROM temp_reached_vertices f, temp_reached_vertices s, temp_fetched_ways w 
+	WHERE f.node = w.source 
+	AND s.node = w.target;
+	
+	FOR i IN SELECT generate_series(step_isochrone,max_cost,step_isochrone)
+	LOOP
+		INSERT INTO edges 
+		SELECT x.id AS edge, x.node, i AS cost, ST_LINE_SUBSTRING(x.geom,1-((i-x.agg_cost)/x.cost),1) AS geom,
+		ST_STARTPOINT(ST_LINE_SUBSTRING(x.geom,1-((i-x.agg_cost)/x.cost),1)) AS v_geom, objectid_input 
+		FROM 
+		(
+			SELECT w.id, v.node, v.cost agg_cost, w.cost, w.geom
+			FROM temp_reached_vertices v, temp_fetched_ways w
+			WHERE v.node = w.target
+			AND w.death_end IS NULL 
+			AND v.cost < i
+		) x
+		LEFT JOIN (SELECT edge FROM edges e WHERE e.objectid = objectid_input AND cost < i) e
+		ON x.id = e.edge 
+		WHERE e.edge IS NULL
 		UNION ALL 
-		SELECT target
-		FROM touching_network t 
-	) x
-	GROUP BY x.source
-	HAVING count(x.source) < 2
-)
-SELECT t.start_vertex::integer, 99999999 AS node, t.id::integer edges, max_cost AS cost, st_startpoint(st_linesubstring(geom,1-(max_cost-cost)/w_cost,1)) geom, st_linesubstring(geom,1-(max_cost-cost)/w_cost,1) as w_geom,objectid 
-FROM touching_network t, not_completely_reached_network n 
-WHERE t.SOURCE = n.source 
-AND 1-(max_cost-cost)/w_cost BETWEEN 0 AND 1
-UNION ALL 
-SELECT t.start_vertex::integer, 99999999 AS node, t.id::integer edges, max_cost AS cost, st_endpoint(st_linesubstring(geom,0.0,(max_cost-cost)/w_cost)) geom,st_linesubstring(geom,0.0,(max_cost-cost)/w_cost) as w_geom, objectid
-FROM touching_network t, not_completely_reached_network n
-WHERE t.target = n.source 
-AND (max_cost-cost)/w_cost BETWEEN 0 AND 1 
-UNION ALL 
-SELECT start_vertex, node, edge, cost, geom, null, objectid FROM temp_reached_vertices;
-
-$function$;
-
-/*select extrapolate_reached_vertices(100, 200, ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)), 1.33 ,1, 1, 'walking_standard');
-*/
+		SELECT x.id AS edge, x.node, i AS cost, ST_LINE_SUBSTRING(x.geom,0,((i-x.agg_cost)/x.cost)) AS geom,
+		ST_ENDPOINT(ST_LINE_SUBSTRING(x.geom,0,(i-x.agg_cost)/x.cost)) AS v_geom, objectid_input 
+		FROM 
+		(
+			SELECT w.id, v.node, v.cost agg_cost, w.cost, w.geom 
+			FROM temp_reached_vertices v, temp_fetched_ways w
+			WHERE v.node = w.source
+			AND w.death_end IS NULL 
+			AND v.cost < i
+		) x
+		LEFT JOIN (SELECT edge FROM edges e WHERE e.objectid = objectid_input AND cost < i) e
+		ON x.id = e.edge 
+		WHERE e.edge IS NULL;
+	
+	END LOOP;
+		
+	INSERT INTO edges	
+	SELECT w.id AS edge,v.node,CASE WHEN w.SOURCE = v.node THEN v.cost + w.cost ELSE v.cost + w.reverse_cost END AS cost, 
+	w.geom,CASE WHEN w.source = v.node THEN ST_ENDPOINT(w.geom) ELSE ST_STARTPOINT(w.geom) END AS v_geom,objectid_input
+	FROM temp_reached_vertices v, temp_fetched_ways w 
+	WHERE v.death_end = TRUE 
+	AND v.node = w.death_end
+	AND w.cost < (max_cost-v.cost);
+END;
+$$ LANGUAGE plpgsql;
