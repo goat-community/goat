@@ -85,15 +85,18 @@ def geojson_to_sql():
                 if o is not None and o != 'null' and o != 'NULL':
                     x = o.replace("'","''")
                     return x
+    con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s'" % (
+    'goat','goat','5432','localhost','earlmanigault'))
+    cursor = con.cursor()
     
+    cursor.execute('DROP TABLE IF EXISTS custom_pois;')
+    cursor.execute('CREATE TABLE custom_pois(amenity text, addr_street text,addr_city text, addr_postcode text, name text, opening_hours text, geom geometry);')   
+
     for file in glob.glob("/opt/data/custom_pois/*.geojson"):
         with open(file, 'r') as stream:
             data = json.load(stream)
-
-        con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s'" % (
-        'goat','goat','5432','localhost','earlmanigault'))
-        cursor = con.cursor()
-           
+        print(file)
+   
         sql_insert_empty = '''INSERT INTO custom_pois(amenity,addr_street,addr_city,addr_postcode,name,opening_hours,geom) VALUES('%s','%s','%s','%s','%s','%s',%s);''' 
         sql_bulk = '' 
         for feature in data['features']:
