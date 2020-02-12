@@ -168,9 +168,18 @@
               :headers="headers"
               :loading="isTableLoading"
               :items="scenarioDataTable"
-              :items-per-page="5"
+              :items-per-page="15"
               class="elevation-0"
             >
+              <template v-slot:item.status="{ item }">
+                <v-chip
+                  small
+                  :color="item.status === 'Uploaded' ? 'success' : 'error'"
+                  dark
+                  >{{ item.status }}</v-chip
+                >
+              </template>
+
               <template v-slot:item.action="{ item }">
                 <!-- zoom to scenario feature -->
                 <v-tooltip top>
@@ -200,21 +209,6 @@
                   </template>
                   <span>{{ $t(`map.tooltips.deleteFeature`) }}</span>
                 </v-tooltip>
-                <!-- upload scenario feature -->
-                <v-tooltip top>
-                  <template v-slot:activator="{ on }">
-                    <v-icon
-                      class="scenario-icon"
-                      :disabled="isUploadBusy"
-                      v-on="on"
-                      v-if="item.status === 'Not uploaded'"
-                      @click="scenarioActionBtnHandler(item, 'upload')"
-                    >
-                      cloud_upload
-                    </v-icon>
-                  </template>
-                  <span>{{ $t(`map.tooltips.uploadFeature`) }}</span>
-                </v-tooltip>
               </template>
             </v-data-table>
           </v-flex>
@@ -237,14 +231,16 @@
         <v-btn
           v-show="selectedLayer != null"
           class="white--text"
-          color="green"
-          @click="clear"
+          color="error"
+          @click="deleteAll"
         >
           <v-icon left>delete</v-icon>{{ $t("appBar.edit.clearBtn") }}
         </v-btn>
       </v-card-actions>
     </v-card>
 
+    <!-- Confirm Delete all  -->
+    <confirm ref="confirm"></confirm>
     <!-- Popup overlay  -->
     <overlay-popup
       style="cursor: default;"
@@ -311,27 +307,23 @@ import {
   getPoisListValues,
   wfsTransactionParser
 } from "../../../utils/Layer";
-
 import OlEditController from "../../../controllers/OlEditController";
 import OlSelectController from "../../../controllers/OlSelectController";
-
 import editLayerHelper from "../../../controllers/OlEditLayerHelper";
 import {
   mapFeatureTypeProps,
   readTransactionResponse
 } from "../../../utils/Layer";
-
 import OverlayPopup from "../../viewer/ol/controls/Overlay";
-
 import http from "axios";
-
 import VJsonschemaForm from "../../other/dynamicForms/index";
 import { geojsonToFeature } from "../../../utils/MapUtils";
 import { mapGetters, mapMutations } from "vuex";
 import { debounce } from "../../../utils/Helpers";
-
+import Confirm from "../../core/Confirm";
 export default {
   components: {
+    confirm: Confirm,
     "overlay-popup": OverlayPopup,
     VJsonschemaForm
   },
@@ -352,7 +344,6 @@ export default {
       el: null,
       selectedInteraction: null
     },
-
     //Upload field.
     isFileUploadEnabled: false,
     file: null,
@@ -361,7 +352,6 @@ export default {
         !value || value.size < 1000000 || "File size should be less than 1 MB!"
     ],
     fileInputFeaturesCache: [],
-
     fileInputValidationMessageEnum: {
       FILE_VALID_OR_NO_FILE: "fileValidOrNoFile",
       DIFFERENT_GEOMETRY_TYPE: "differentGeometryType",
@@ -381,15 +371,12 @@ export default {
     },
     fileInputValidationMessage: "fileValidOrNoFile",
     missingFieldsNames: "",
-
     //Edit form
-    listValues: {},
+    layerConf: {},
     hiddenProps: ["userid", "id", "original_id", "status"],
-
     schema: {},
     dataObject: {},
     formValid: false,
-
     //Others
     mapCursorTypeEnum: {
       add: "crosshair",
@@ -397,12 +384,11 @@ export default {
       delete: "pointer",
       select: "pointer"
     },
-
     //Data table
     headers: [
       { text: "Fid", value: "fid", sortable: false },
       { text: "Layer", value: "layerName", sortable: false },
-      { text: "Status", value: "status", sortable: false },
+      { text: "Status", value: "status", sortable: false, align: "center" },
       { text: "Actions", value: "action", sortable: false }
     ],
     scenarioDataTable: [],
@@ -429,6 +415,12 @@ export default {
         const me = this;
         me.toggleEditInteraction(state);
       }
+    },
+    scenarioDataTable() {
+      this.canCalculateScenario();
+    },
+    "options.calculationModes.active": function() {
+      this.canCalculateScenario();
     }
   },
   mounted() {
@@ -446,11 +438,9 @@ export default {
         layer.get("canEdit")
       );
       me.editableLayers = [...editableLayers];
-
       //Initialize ol select controllers.
       me.olSelectCtrl = new OlSelectController(me.map);
       me.olSelectCtrl.createSelectionLayer();
-
       //Initialize ol edit controller
       me.olEditCtrl = new OlEditController(me.map);
       me.olEditCtrl.createEditLayer(
@@ -458,7 +448,6 @@ export default {
         this.onEditSourceChange
       );
     },
-
     /**
      * Parse user input file and transform features if valid.
      */
@@ -466,19 +455,15 @@ export default {
       if (file) {
         const reader = new FileReader();
         reader.readAsText(file);
-
         reader.onload = () => {
           //1- Check for size and other validations
-
           const result = reader.result;
           //2- Parse geojson data
           const features = geojsonToFeature(result, {
             dataProjection: "EPSG:4326",
             featureProjection: "EPSG:3857"
           });
-
           if (!features || features.length === 0) return;
-
           //3- Check geometry type
           if (
             features[0].getGeometry().getType() !==
@@ -488,14 +473,12 @@ export default {
             this.fileInputValidationMessage = this.fileInputValidationMessageEnum.DIFFERENT_GEOMETRY_TYPE;
             return;
           }
-
           //4- Check field names
           const props = features[0].getProperties();
           const propKeys = Object.keys(props);
           const intersected = propKeys.filter(
             value => !this.reqFields.includes(value)
           );
-
           if (propKeys.length !== intersected.length + this.reqFields.length) {
             //Geojson not valid.
             this.fileInputValidationMessage = this.fileInputValidationMessageEnum.MISSING_FIELDS;
@@ -509,7 +492,6 @@ export default {
           } else {
             this.fileInputValidationMessage = this.fileInputValidationMessageEnum.FILE_VALID_OR_NO_FILE;
           }
-
           //4- Transform features
           features.forEach(feature => {
             //Set current userid
@@ -522,7 +504,6 @@ export default {
             //Remove previously geometry object
             feature.unset("geometry");
           });
-
           //Add features to the edit layer to let the user interact
           if (this.olEditCtrl.source) {
             this.olEditCtrl.source.addFeatures(features);
@@ -537,7 +518,6 @@ export default {
         };
       }
     },
-
     /**
      * Clear event when X icon is clicked in the file input form.
      * Cache features will be removed from edit layer.
@@ -545,19 +525,16 @@ export default {
     clearFile() {
       const editLayerSource = this.olEditCtrl.source;
       if (!editLayerSource) return;
-
       editLayerSource.getFeatures().forEach(feature => {
         if (feature.get("user_uploaded")) {
           editLayerSource.removeFeature(feature);
         }
       });
       this.fileInputFeaturesCache = [];
-
       this.fileInputValidationMessage = this.fileInputValidationMessageEnum.FILE_VALID_OR_NO_FILE;
       this.file = null;
       this.missingFieldsNames = "";
     },
-
     /**
      * Upload user uploaded features to DB using a wfs-t
      */
@@ -599,13 +576,11 @@ export default {
           }, 3000);
         });
     },
-
     /**
      * Toggle the select interaction
      */
     toggleSelectInteraction(state) {
       const me = this;
-
       //Close other interactions.
       if (state != undefined) {
         EventBus.$emit("ol-interaction-activated", me.interactionType);
@@ -614,7 +589,6 @@ export default {
         EventBus.$emit("ol-interaction-stoped", me.interactionType);
         me.map.getTarget().style.cursor = "";
       }
-
       let selectionType;
       switch (state) {
         case 0:
@@ -641,7 +615,6 @@ export default {
         me.olSelectCtrl.removeInteraction();
       }
     },
-
     /**
      * Toggle the edit interaction
      */
@@ -650,7 +623,6 @@ export default {
       //Remove select interaction
       me.olSelectCtrl.removeInteraction();
       me.toggleSelection = undefined;
-
       let editType, startCb, endCb;
       switch (state) {
         case 0:
@@ -675,7 +647,6 @@ export default {
         setTimeout(() => {
           me.map.getTarget().style.cursor = this.mapCursorTypeEnum[editType];
         }, 50);
-
         if (this.addKeyupListener) {
           this.addKeyupListener();
         }
@@ -685,7 +656,6 @@ export default {
         me.map.getTarget().style.cursor = "";
       }
     },
-
     /**
      * Callback function executed when selection interaction starts.
      */
@@ -693,7 +663,6 @@ export default {
       const me = this;
       me.olEditCtrl.clear();
     },
-
     /**
      * Callback function executed when selection interaction ends.
      *
@@ -706,14 +675,12 @@ export default {
         editLayerHelper.filterResults(response, me.olEditCtrl.getLayerSource());
       }
     },
-
     /**
      * Modify interaction start event handler
      */
     onModifyStart() {
       this.olEditCtrl.featuresToCommit = [];
     },
-
     /**
      * Modify interaction end event handler
      */
@@ -726,14 +693,12 @@ export default {
       //update cache
       this.updateFileInputFeatureCache();
     },
-
     /**
      * Draw interaction start event handler
      */
     onDrawStart() {
       this.olEditCtrl.featuresToCommit = [];
     },
-
     /**
      * Draw interaction start event handler
      */
@@ -748,11 +713,13 @@ export default {
       this.olEditCtrl.featuresToCommit.push(feature);
       this.olEditCtrl.highlightSource.addFeature(feature);
       const featureCoordinates = feature.getGeometry().getCoordinates();
-
       const popupCoordinate = Array.isArray(featureCoordinates[0])
         ? featureCoordinates[0]
         : featureCoordinates;
-
+      this.map.getView().animate({
+        center: popupCoordinate,
+        duration: 400
+      });
       this.olEditCtrl.popupOverlay.setPosition(popupCoordinate);
       this.olEditCtrl.popup.title = "attributes";
       this.olEditCtrl.popup.selectedInteraction = "add";
@@ -760,7 +727,6 @@ export default {
       //update cache
       this.updateFileInputFeatureCache();
     },
-
     /**
      * Feature change event handler
      */
@@ -779,7 +745,6 @@ export default {
         }
       }
     },
-
     /**
      * Source change base event. Used to update scenario data table
      * This event is called very often, so for performance improvement a
@@ -789,7 +754,6 @@ export default {
       this.isTableLoading = true;
       this.updateDataTable();
     },
-
     /**
      * Clear data object that user has entered,
      * so the next time the popup is opened the form is clean.
@@ -801,7 +765,6 @@ export default {
         }
       }
     },
-
     /**
      * Get Layer attribute fields
      */
@@ -817,18 +780,17 @@ export default {
         )
         .then(response => {
           const props = response.data.featureTypes[0].properties;
+          const layerName = this.layerName.split(":")[1];
           const jsonSchema = mapFeatureTypeProps(
             props,
-            this.hiddenProps,
-            this.layerName.split(":")[1],
-            this.listValues
+            layerName,
+            this.layerConf[layerName]
           );
           this.schema[this.layerName] = jsonSchema;
           this.loadingLayerInfo = false;
           this.$forceUpdate();
         });
     },
-
     /**
      * Method used only on drawend or modifyend to update fileinput feature cache
      */
@@ -844,7 +806,6 @@ export default {
         this.fileInputFeaturesCache = uploadedFeatures;
       }
     },
-
     /**
      * Clears all the selection
      */
@@ -853,7 +814,6 @@ export default {
       me.olEditCtrl.clear();
       me.olSelectCtrl.clear();
     },
-
     /**
      * Upload drawn and modidified features for scenario calculations
      */
@@ -876,7 +836,6 @@ export default {
         });
       });
     },
-
     scenarioActionBtnHandler(item, type) {
       const fid = item.fid;
       if (!fid) return;
@@ -894,7 +853,6 @@ export default {
         this.olEditCtrl.openDeletePopup(feature);
       }
     },
-
     /**
      * Clears  edit interaction
      */
@@ -902,7 +860,6 @@ export default {
       const me = this;
       me.olEditCtrl.clear();
     },
-
     /**
      * Clears all the selection and edit interactions.
      */
@@ -915,7 +872,26 @@ export default {
       me.toggleEdit = undefined;
       EventBus.$emit("ol-interaction-stoped", me.interactionType);
     },
-
+    /**
+     * Delete all user scenario features in db.
+     */
+    deleteAll() {
+      this.$refs.confirm
+        .open(
+          this.$t("appBar.edit.deleteAllTitle"),
+          this.$t("appBar.edit.deleteAllMessage"),
+          { color: "green" }
+        )
+        .then(confirm => {
+          if (confirm) {
+            //1- Call api to delete all features.
+            //2- Clear openlayers scenario features
+            this.clear();
+            // This also deletes user scenario features from the map
+            this.olEditCtrl.deleteAll();
+          }
+        });
+    },
     /**
      * Stop edit and select interactions (Doesn't deletes the features)
      */
@@ -925,7 +901,6 @@ export default {
       me.olEditCtrl.removeInteraction();
       EventBus.$emit("ol-interaction-stoped", me.interactionType);
     },
-
     /**
      * Translate method to avoid inline html logic
      */
@@ -939,7 +914,6 @@ export default {
         return key;
       }
     },
-
     /**
      * Method used on popup save (draw)/ok(delete) depending on interaction type
      */
@@ -952,7 +926,6 @@ export default {
         this.olEditCtrl.deleteFeature();
       }
     },
-
     /**
      * Method used on popup cancel
      */
@@ -964,7 +937,34 @@ export default {
       }
       this.olEditCtrl.closePopup();
     },
+    canCalculateScenario() {
+      let areAllFeaturesUploaded = true;
+      this.scenarioDataTable.forEach(f => {
+        if (f.status !== "Uploaded") {
+          areAllFeaturesUploaded = false;
+        }
+      });
 
+      if (
+        areAllFeaturesUploaded === false &&
+        ["scenario", "comparison"].includes(
+          this.options.calculationModes.active
+        )
+      ) {
+        //Show snackbar warning that user has features not yet uploaded
+        this.toggleSnackbar({
+          type: "warning", //success or error
+          message: "notAllScnearioFeaturesUploaded",
+          state: true,
+          timeout: 150000
+        });
+      } else {
+        //Hide snackbar.
+        this.toggleSnackbar({
+          state: false
+        });
+      }
+    },
     /**
      * Method called when edit layer source is changed.
      * A debounce is addes to improve performance
@@ -973,7 +973,6 @@ export default {
     updateDataTable: debounce(function() {
       const features = this.olEditCtrl.source.getFeatures();
       const scenarioDataTable = [];
-
       features.forEach(f => {
         const prop = f.getProperties();
         if (prop.hasOwnProperty("original_id")) {
@@ -991,7 +990,6 @@ export default {
       this.scenarioDataTable = scenarioDataTable;
       this.isTableLoading = false;
     }, 900),
-
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR"
     })
@@ -1020,7 +1018,6 @@ export default {
       let message = `<span>${this.$t(
         `appBar.edit.${this.fileInputValidationMessage}`
       )}</span>`;
-
       if (
         this.fileInputValidationMessage ===
         this.fileInputValidationMessageEnum.MISSING_FIELDS
@@ -1037,20 +1034,21 @@ export default {
           )}: <span> <b>${this.reqFields.join(", ")}</b></span>`
         : `<span></span>`;
     },
-    ...mapGetters("user", { userId: "userId" })
+    ...mapGetters("user", { userId: "userId" }),
+    ...mapGetters("isochrones", { options: "options" })
   },
   created() {
-    this.listValues = this.$appConfig.listValues;
+    this.layerConf = this.$appConfig.layerConf;
     this.isFileUploadEnabled = this.$appConfig.componentConf.edit.enableFileUpload;
     //Edge Case (get all pois keys)
     if (
-      this.listValues.pois.amenity &&
-      this.listValues.pois.amenity.values === "*"
+      this.layerConf.pois.listValues.amenity &&
+      this.layerConf.pois.listValues.amenity.values === "*"
     ) {
       const poisListValues = getPoisListValues(
         this.$appConfig.componentData.pois.allPois
       );
-      this.listValues.pois.amenity.values = poisListValues;
+      this.layerConf.pois.listValues.amenity.values = poisListValues;
     }
   }
 };

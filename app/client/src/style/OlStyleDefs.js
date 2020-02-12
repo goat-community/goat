@@ -118,6 +118,7 @@ const OlStyleDefs = {
       let isVisible = feature.get("isVisible");
       let geomType = feature.getGeometry().getType();
       const color = feature.get("color");
+      const highlightFeature = feature.get("highlightFeature");
 
       /**
        * Creates styles for isochrone polygon geometry type and isochrone
@@ -153,6 +154,17 @@ const OlStyleDefs = {
             addStyleInCache(payload);
           }
           styles.push(styleData.styleCache.default["GenericIsochroneStyle"]);
+        }
+        //highlight color
+        if (highlightFeature !== false) {
+          styles.push(
+            new OlStyle({
+              stroke: new OlStroke({
+                color: "#FFFFFF",
+                width: 8
+              })
+            })
+          );
         }
         // If the modus is 1 it is a default isochrone
         if (modus === 1 || modus === 3) {
