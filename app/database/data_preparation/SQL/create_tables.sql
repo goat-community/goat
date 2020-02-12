@@ -41,7 +41,8 @@ CREATE INDEX ON multi_isochrones USING gist (geom);
 CREATE INDEX ON multi_isochrones USING btree(objectid,parent_id);
 
 CREATE TABLE public.edges (
-	edge int4 NULL,
+	edge integer NULL,
+	node integer NULL,
 	cost numeric NULL,
 	geom geometry NULL,
 	v_geom geometry NULL,
@@ -49,7 +50,7 @@ CREATE TABLE public.edges (
 	id serial NOT NULL,
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
 );
-CREATE INDEX index_edges ON edges USING gist(geom);
+--CREATE INDEX index_edges ON edges USING gist(geom);
 CREATE INDEX ON edges USING btree(objectid,cost);
 
 CREATE TABLE public.starting_point_isochrones (
