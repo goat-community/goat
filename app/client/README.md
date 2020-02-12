@@ -42,7 +42,7 @@ docker rmi 'first characters of "IMAGE ID"' --force
 ```
 docker system prune
 ```
-after that, press "y" to continue
+after that, press "y" to continue  
 4. Rebuild goat-client
 ```
 docker-compose up --build --force-recreate -d client
