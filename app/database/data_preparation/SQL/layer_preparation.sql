@@ -1,8 +1,20 @@
 --THIS FILE NEEDS TO BE EXECUTED TO CREATE ALL NECESSARY TABLES FOR THE STREET LEVEL QUALITY LAYERS
 --Creation of a table that stores all street crossings
+
+ALTER TABLE planet_osm_point 
+	ADD COLUMN crossing text, ADD COLUMN traffic_signals text;
+
+UPDATE planet_osm_point p
+SET crossing = l.crossing, traffic_signals = l.traffic_signals
+FROM (select osm_id, (tags -> 'crossing') AS crossing, 
+	(tags -> 'traffic_signals') AS traffic_signals
+	from planet_osm_point p) l
+WHERE p.osm_id = l.osm_id;
+
 DROP TABLE IF EXISTS crossings;
 CREATE TABLE crossings AS
-(SELECT osm_id, highway, way FROM planet_osm_point WHERE highway = 'crossing');
+(SELECT osm_id, highway, way, traffic_signals, crossing FROM planet_osm_point WHERE highway = 'crossing' 
+	OR (highway = 'traffic_signals' AND traffic_signals = 'pedestrian_crossing'));
 
 ALTER TABLE planet_osm_point 
 	ADD COLUMN crossing text, ADD COLUMN traffic_signals text;
