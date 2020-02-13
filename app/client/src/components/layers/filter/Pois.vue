@@ -77,13 +77,13 @@
       indeterminate-icon="indeterminate_check_box"
       @input="treeViewChanged"
     >
-      <template v-slot:prepend="{ item, open }">
+      <template v-slot:prepend="{ item }">
         <img v-if="item.icon" class="pois-icon" :src="getPoisIconUrl(item)" />
       </template>
-      <template v-slot:label="{ item, open }">
+      <template v-slot:label="{ item }">
         <div class="tree-label-custom">{{ getDisplayName(item) }}</div>
       </template>
-      <template v-slot:append="{ item, open }">
+      <template v-slot:append="{ item }">
         <template v-if="item.icon">
           <v-tooltip top>
             <template v-slot:activator="{ on }">
@@ -210,7 +210,9 @@ export default {
 
         let params = `amenities:'${btoa(
           viewParams.toString()
-        )}';routing_profile:'${me.options.routingProfile.active["value"]}';`;
+        )}';routing_profile:'${
+          me.options.routingProfile.active["value"]
+        }';userid:${me.userId};`;
 
         if (this.timeBasedCalculations === "yes") {
           params += `d:${me.getSelectedDay};h:${me.getSelectedHour};m:${me.getSelectedMinutes};`;
@@ -279,6 +281,9 @@ export default {
   watch: {
     selectedPois: function() {
       const me = this;
+      if (me.selectedPois.length > 0 && me.poisLayer.getVisible() === false) {
+        me.poisLayer.setVisible(true);
+      }
       me.updateSelectedPoisForThematicData(me.selectedPois);
       me.updateHeatmapLayerViewParams();
       me.updatePoisLayerViewParams(me.selectedPois);
@@ -307,6 +312,7 @@ export default {
     ...mapGetters("isochrones", {
       options: "options"
     }),
+    ...mapGetters("user", { userId: "userId" }),
     ...mapFields("pois", {
       dayFilter: "timeFilter.day.active",
       hourFilter: "timeFilter.hour",

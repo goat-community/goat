@@ -1,6 +1,6 @@
 DROP FUNCTION IF EXISTS pois_multi_isochrones;
 CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, minutes integer, speed_input numeric, 
-	n integer, routing_profile_input text, alphashape_parameter_input NUMERIC, modus_input text,region_type text, region text[], amenities text[])
+	n integer, routing_profile_input text, alphashape_parameter_input NUMERIC, modus_input integer,region_type text, region text[], amenities text[])
 RETURNS SETOF type_pois_multi_isochrones
 AS $function$ 
 DECLARE 	
@@ -18,10 +18,10 @@ DECLARE
 	objectid_multi_isochrone integer;
 	max_length_links numeric;
 	calc_modus integer;
+	excluded_pois_id integer[];
 	BEGIN
 
 	/*Scenario building has to be implemented*/
-    calc_modus = 1;
 	buffer = (minutes::numeric/60::numeric)*speed_input*1000;
  
  	IF region_type = 'study_area' THEN
@@ -30,7 +30,6 @@ DECLARE
 		INTO mask, population_mask
 		FROM study_area
 		WHERE name IN (SELECT UNNEST(region));
-		
 		buffer_mask = ST_buffer(mask::geography,buffer)::geometry;
  	 
  	ELSE 
@@ -55,31 +54,32 @@ DECLARE
 		wheelchair_condition = NULL;
 	END IF;
 
+	IF modus_input IN(2,4) THEN
+		excluded_pois_id = ids_modified_features(userid_input,'pois');
+	ELSE 
+		excluded_pois_id = ARRAY[]::integer[];
+		userid_input = 1;
+	END IF;
+
 
 	SELECT DISTINCT p_array
 	INTO points_array
 	FROM (
 		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) AS p_array
-		FROM pois p
+		FROM pois_userinput p
 		WHERE p.amenity IN (SELECT UNNEST(amenities))
+		AND (p.userid = userid_input OR p.userid IS NULL)
+        AND p.gid NOT IN (SELECT UNNEST(excluded_pois_id))
 		AND (p.wheelchair NOT IN (SELECT UNNEST(wheelchair_condition)) OR p.wheelchair IS NULL)
-		AND st_intersects(p.geom, buffer_mask)
-		UNION ALL
-		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) AS p_array
-		FROM public_transport_stops p
-		WHERE p.public_transport_stop IN (SELECT UNNEST(amenities))
-		AND (p.wheelchair NOT IN (SELECT UNNEST(wheelchair_condition)) OR p.wheelchair IS NULL)
-		AND st_intersects(p.geom, buffer_mask)
+		AND ST_intersects(p.geom, buffer_mask)
 	) x;	
  	---------------------------------------------------------------------------------
  	--------------------------get catchment of all starting points-------------------
  	---------------------------------------------------------------------------------
- 
- 
  		
 	SELECT DISTINCT objectid 
 	INTO objectid_multi_isochrone  
-	FROM multi_isochrones(userid_input,minutes,n,routing_profile_input,speed_input,alphashape_parameter_input,calc_modus,1,points_array);
+	FROM multi_isochrones(userid_input,minutes,n,routing_profile_input,speed_input,alphashape_parameter_input,modus_input,1,points_array);
 		
 	IF region_type = 'study_area' THEN
 	 	WITH expand_population AS 
@@ -133,14 +133,11 @@ $function$ LANGUAGE plpgsql;
 
 /*
 SELECT *
-FROM pois_multi_isochrones(1,15,5.0,3,'walking_wheelchair',0.00003,'walking','study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) ;
+FROM pois_multi_isochrones(1,15,5.0,3,'walking_wheelchair',0.00003,1,'study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) ;
 
 SELECT *
-FROM pois_multi_isochrones(1,10,5.0,2,0.00003,'default','envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 
+FROM pois_multi_isochrones(1,10,5.0,2,'walking_standard',0.00003,1,'envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 
 --alphashape_parameter NUMERIC = 0.00003;
 --region_type 'envelope' or study_area
-
-SELECT *
-FROM pois_multi_isochrones(1,15,5.0,3,'walking_wheelchair',0.00003,'walking','study_area',ARRAY['Hasenbergl-Lerchenau'],ARRAY['supermarket','bar']) ;
 */
 

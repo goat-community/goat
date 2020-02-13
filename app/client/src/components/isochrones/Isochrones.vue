@@ -1,34 +1,8 @@
 <template>
   <v-flex xs12 sm8 md4>
     <v-card flat>
-      <!-- THEMATIC DATA || MULTI-ISOCHRONE DATA-->
-      <template v-if="isThematicDataVisible === true">
-        <v-layout>
-          <v-btn
-            text
-            icon
-            class="mt-1 ml-1"
-            light
-            @click="toggleThematicDataVisibility(false)"
-          >
-            <v-icon color="rgba(0,0,0,0.54)">fas fa-arrow-left</v-icon>
-          </v-btn>
-          <v-subheader class="ml-1 pl-0">
-            <span class="title">{{
-              selectedThematicData.calculationType === "single"
-                ? $t("isochrones.single.tableDataTitle")
-                : $t("isochrones.multiple.tableDataTitle")
-            }}</span>
-          </v-subheader>
-        </v-layout>
-        <v-card-text class="pr-16 pl-16 pt-0 pb-0 mb-2">
-          <v-divider></v-divider>
-        </v-card-text>
-        <isochrone-thematic-data />
-      </template>
-
       <!-- ISOCHRONES  -->
-      <template v-else>
+      <template>
         <v-subheader>
           <span class="title">{{ $t("isochrones.title") }}</span>
         </v-subheader>
@@ -52,7 +26,6 @@ import { Mapable } from "../../mixins/Mapable";
 //Child components
 import IsochroneOptions from "./IsochroneOptions";
 import IsochroneResults from "./IsochroneResults";
-import IsochronThematicData from "./IsochronesThematicData";
 import IsochroneType from "./IsochroneType";
 import IsochroneStartSingle from "./IsochroneStartSingle";
 import IsochroneStartMultiple from "./IsochroneStartMultiple";
@@ -65,13 +38,13 @@ import { mapGetters, mapMutations } from "vuex";
 //Ol imports
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
+import VectorImageLayer from "ol/layer/VectorImage";
 
 export default {
   mixins: [Mapable],
   components: {
     "isochrone-options": IsochroneOptions,
     "isochrone-results": IsochroneResults,
-    "isochrone-thematic-data": IsochronThematicData,
     "isochrone-type": IsochroneType,
     "isochrone-start-single": IsochroneStartSingle,
     "isochrone-start-multiple": IsochroneStartMultiple
@@ -79,9 +52,7 @@ export default {
   computed: {
     ...mapGetters("isochrones", {
       styleData: "styleData",
-      isThematicDataVisible: "isThematicDataVisible",
-      options: "options",
-      selectedThematicData: "selectedThematicData"
+      options: "options"
     })
   },
   methods: {
@@ -89,9 +60,9 @@ export default {
       init: "INIT",
       addStyleInCache: "ADD_STYLE_IN_CACHE",
       addIsochroneLayer: "ADD_ISOCHRONE_LAYER",
-      addIsochroneNetworkLayer: "ADD_ISOCHRONE_ROAD_NETWORK_LAYER",
-      toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY"
+      addIsochroneNetworkLayer: "ADD_ISOCHRONE_ROAD_NETWORK_LAYER"
     }),
+
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
@@ -99,6 +70,7 @@ export default {
       this.createIsochroneLayer();
       this.createIsochroneRoadNetworkLayer();
     },
+
     /**
      * Creates a vector layer for the isochrone calculations results and adds it to the
      * map and store.
@@ -126,8 +98,7 @@ export default {
     createIsochroneRoadNetworkLayer() {
       const me = this;
       const style = OlStyleDefs.getIsochroneNetworkStyle();
-      const vector = new VectorLayer({
-        renderMode: "image",
+      const vector = new VectorImageLayer({
         name: "isochroneRoadNetworkLayer",
         zIndex: 6,
         source: new VectorSource(),

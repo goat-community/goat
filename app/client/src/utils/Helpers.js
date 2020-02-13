@@ -95,3 +95,10 @@ export function rgbArrayToHex(rgb) {
   const hexB = colorZeroPadding(b.toString(16));
   return `#${hexR}${hexG}${hexB}`;
 }
+
+// helper function to detect a CSS color
+// Taken from Vuetify sources
+// https://github.com/vuetifyjs/vuetify/blob/master/packages/vuetify/src/mixins/colorable.ts
+export function isCssColor(color) {
+  return !!color && !!color.match(/^(#|(rgb|hsl)a?\()/);
+}

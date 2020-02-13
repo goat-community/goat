@@ -1,3 +1,4 @@
+--Function has to be rewritten!!!!
 DROP FUNCTION IF EXISTS thematic_data_sum_time;
 CREATE OR REPLACE FUNCTION public.thematic_data_sum_time(input_objectid integer, d integer, h integer, m integer)
  RETURNS TABLE(objectid_out integer, gid_out integer, sum_pois_time_out text)

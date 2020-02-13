@@ -12,7 +12,7 @@
             "drawAndMeasure": "Messen",
             "filter": "Filter Thematische Daten",
             "edit": "Szenarien Entwickeln",
-            "settings": "Einstellungen",
+            "settings": "Sprache",
             "info": "Info"
         },
         "login": {
@@ -232,7 +232,6 @@
             "parking": "Parkplätze am Straßenrand",
             "speed": "Geschwindigkeitsbegrenzungen",
             "streetCrossings": "Straßenquerungsmöglichkeiten",
-            "streetFurniture": "Urbanes Mobiliar",
             "surface": "Oberfläche",
             "wheelchairUsability": "Barrierefreiheit",
             "areaIsochrone": "Isochronengröße",
@@ -332,6 +331,8 @@
         "hostel": "Herberge",
         "guest_house": "Gasthaus",
         "gallery": "Galerie",
+        "university": "Universität",
+        "hospital": "Krankenhaus",
         "population": "Bevölkerung"
     },
     "$vuetify": {

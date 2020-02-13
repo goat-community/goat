@@ -37,7 +37,7 @@
               <v-expansion-panel-header
                 expand-icon=""
                 @click="toggleLayerVisibility(item, layerGroup)"
-                v-slot="{ open }"
+                v-slot="{}"
               >
                 <v-layout row class="pl-2" wrap align-center>
                   <v-flex xs2>
@@ -193,9 +193,7 @@ export default {
           layer.mapLayer.setVisible(false);
         });
       }
-
       if (
-        layerGroup.name === "accessbilityBasemaps" &&
         clickedLayer.mapLayer.get("requiresPois") === true &&
         clickedLayer.mapLayer.getVisible() === false &&
         this.selectedPois.length === 0

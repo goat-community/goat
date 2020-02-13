@@ -40,7 +40,6 @@
       >
         <v-select
           v-if="options.calculationType"
-          item-text="display"
           item-value="value"
           outlined
           return-object
@@ -124,7 +123,7 @@
           v-model="calculationModes"
           outlined
           :value="calculationModes"
-          :items="filterCalcModeValues(options.calculationType)"
+          :items="filterCalcModeValues()"
           :label="$t('isochrones.options.calcModus')"
         >
           <template slot="selection" slot-scope="{ item }">
@@ -161,17 +160,8 @@ export default {
     })
   },
   methods: {
-    filterCalcModeValues(type) {
-      if (type === "multiple") {
-        return this.options.calculationModes.values.filter(item => {
-          return (
-            item.name !== "modifiedNetwork" &&
-            item.name !== "modifiedNetworkDoubleCalc"
-          );
-        });
-      } else {
-        return this.options.calculationModes.values;
-      }
+    filterCalcModeValues() {
+      return this.options.calculationModes.values;
     },
     routingProfileChanged(selectedType) {
       //Reset speed slider value based on routing profile default speed

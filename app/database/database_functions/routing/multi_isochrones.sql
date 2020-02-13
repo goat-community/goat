@@ -21,6 +21,12 @@ DECLARE
 
     arow record;
 BEGIN
+
+    IF modus_input IN(1,3)  THEN
+		userid_input = 1;
+	END IF;
+
+
     SELECT variable_simple::NUMERIC 
     INTO max_length_links
     FROM variable_container
@@ -30,47 +36,42 @@ BEGIN
     select_from_variable_container ('categories_no_foot')::text 
     INTO excluded_class_id, categories_no_foot;
 
-    SELECT array_agg(series) INTO objectids_array
+    SELECT array_agg(series) 
+    INTO objectids_array
     FROM 
     (
         SELECT generate_series(1, array_length(points_array, 1)) AS series
     ) x;
-    DROP TABLE IF EXISTS temp_catchment_vertices;
-    CREATE TEMP TABLE temp_catchment_vertices AS
-        SELECT start_vertex,node,edge,cnt,cost,geom,null,objectid
-        FROM pgrouting_edges_multi (userid_input,minutes,points_array,speed_input::NUMERIC,objectids_array,modus_input,routing_profile_input);
-    ALTER TABLE temp_catchment_vertices ADD COLUMN routing_profile text;
-    UPDATE temp_catchment_vertices SET routing_profile = routing_profile_input;
 
+    CREATE TEMP TABLE IF NOT EXISTS temp_catchment_vertices OF type_temp_catchment_vertices_multi (PRIMARY KEY (id));
+    TRUNCATE temp_catchment_vertices;
+
+    INSERT INTO temp_catchment_vertices
+    SELECT row_number() over() as id, start_vertex,node,edge,cost,geom,objectid,routing_profile_input
+    FROM pgrouting_edges_multi (userid_input,minutes,points_array,speed_input::NUMERIC,objectids_array,modus_input,routing_profile_input);
+    
     -- routing is expensive
-    ALTER TABLE temp_catchment_vertices ADD COLUMN id serial;
-    ALTER TABLE temp_catchment_vertices ADD PRIMARY KEY (id);
-    CREATE INDEX ON temp_catchment_vertices (objectid);
+    CREATE INDEX IF NOT EXISTS index_temp_catchment_vertices ON temp_catchment_vertices (objectid);
     ----------------------------------------------------------------------------------------
     -----------------extrapolate the catchment vertices-------------------------------------
     ----------------------------------------------------------------------------------------
-    DROP TABLE IF EXISTS temp_extrapolated_reached_vertices;
-    CREATE TEMP TABLE temp_extrapolated_reached_vertices AS --create empty table that will hold the extrapolated vertices
-    SELECT *
-    FROM temp_catchment_vertices
-    LIMIT 0;
-    DROP TABLE IF EXISTS temp_step_vertices;
-    CREATE temp TABLE temp_step_vertices AS
-    SELECT *
-    FROM temp_extrapolated_reached_vertices;
-    DROP TABLE IF EXISTS isos;
-    CREATE TEMP TABLE IF NOT EXISTS isos (
-        geom geometry,
-        step integer
-    );
+   
+    CREATE TEMP TABLE IF NOT EXISTS temp_extrapolated_reached_vertices OF type_catchment_vertices_single;
+    TRUNCATE temp_extrapolated_reached_vertices;
+
+    CREATE TEMP TABLE IF NOT EXISTS isos (geom geometry,step integer);
+    TRUNCATE isos;
 
     FOR i IN SELECT DISTINCT objectid FROM temp_catchment_vertices LOOP
-        DROP TABLE IF EXISTS temp_reached_vertices;
-        DELETE FROM temp_extrapolated_reached_vertices;
-        CREATE TEMP TABLE temp_reached_vertices ON COMMIT DROP AS
-        SELECT start_vertex, node, edge, cnt, COST, geom, objectid
+        CREATE TEMP TABLE IF NOT EXISTS temp_reached_vertices OF type_catchment_vertices_single;
+        CREATE TEMP TABLE IF NOT EXISTS temp_step_vertices OF type_catchment_vertices_single;
+        TRUNCATE temp_extrapolated_reached_vertices;
+        TRUNCATE temp_reached_vertices;
+        
+        INSERT INTO temp_reached_vertices 
+        SELECT start_vertex, node, edge, COST, geom, NULL, objectid
         FROM temp_catchment_vertices
-        WHERE objectid = i;
+        WHERE objectid = i::integer;
 
         counter = 0;
 
@@ -86,6 +87,7 @@ BEGIN
         SELECT *
         FROM extrapolate_reached_vertices(minutes * 60, max_length_links, buffer, (speed_input/3.6) ,userid_input, modus_input, routing_profile_input);
         LOOP
+            DELETE FROM temp_step_vertices;
             exit WHEN counter = n;
             counter := counter + 1;
             upper_limit := (minutes * 60 / n) * counter;
@@ -98,7 +100,6 @@ BEGIN
                 SELECT ST_SETSRID (pgr_pointsaspolygon ('SELECT (row_number() over())::integer as id, ST_X(geom)::float x, ST_Y(geom)::float y 
                 FROM temp_step_vertices',alphashape_parameter_input), 4326),(upper_limit / 60)::integer;
             END IF;
-            DELETE FROM temp_step_vertices;
         END LOOP;
     END LOOP;
     objectid_multi_isochrone = random_between (1, 900000000);

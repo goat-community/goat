@@ -13,7 +13,7 @@ class ReadYAML:
     def db_credentials(self):
         return self.db_conf["DB_NAME"],self.db_conf["USER"],self.db_conf["HOST"],self.db_conf["PORT"],self.db_conf["PASSWORD"]
     def data_source(self):
-        return self.source_conf["OSM_DOWNLOAD_LINK"],self.source_conf["OSM_DATA_RECENCY"],self.source_conf["BUFFER_BOUNDING_BOX"],self.refinement_conf["POPULATION"],self.refinement_conf["ADDITIONAL_WALKABILITY_LAYERS"]
+        return self.source_conf["OSM_DOWNLOAD_LINK"],self.source_conf["OSM_DATA_RECENCY"],self.source_conf["BUFFER_BOUNDING_BOX"],self.source_conf["EXTRACT_BBOX"],self.refinement_conf["POPULATION"],self.refinement_conf["ADDITIONAL_WALKABILITY_LAYERS"]
     def data_refinement(self):
         return self.refinement_conf
     def create_pgpass(self,db_prefix):
@@ -59,7 +59,10 @@ def create_variable_container():
         elif isinstance(v,object):
             objs = ''
             for k in v.keys():
-                objs = objs+ ",'%s', ARRAY%s" % (k,v[k])
+                if isinstance(v[k],list):
+                    objs = objs+ ",'%s', ARRAY%s" % (k,v[k])
+                elif isinstance(v[k],object):
+                    objs = objs + ",'%s','%s'" % (k,v[k])
             sql_insert = sql_insert + sql_object % (i,objs[1:])
                 
     return sql_create_table + sql_insert
@@ -71,8 +74,24 @@ def update_functions():
     db_name,user,host = ReadYAML().db_credentials()[:3]
     db = DB_connection(db_name,user,host)
     db.execute_script_psql('/opt/data_preparation/SQL/types.sql')
-    for p in ['/opt/database_functions/other','/opt/database_functions/routing','/opt/database_functions/heatmap']:
+    for p in ['/opt/database_functions/other','/opt/database_functions/network','/opt/database_functions/routing','/opt/database_functions/heatmap']:
         for file in Path(p).glob('*.sql'):
             db.execute_script_psql(file)
 
-    
+def restore_db():
+    import os
+    db_name,user = ReadYAML().db_credentials()[:2]
+    #Drop backup db tags as old DB
+    os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'old'))
+    os.system('psql -U postgres -c "DROP DATABASE %s;"' % (db_name+'old'))
+    os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'temp'))
+    os.system('psql -U postgres -c "DROP DATABASE IF EXISTS %s;"' % (db_name+'temp'))
+    #Restore backup as temp db
+    os.system("psql -U postgres -c 'CREATE DATABASE %s;'"% (db_name+'temp'))
+    os.system('psql -U %s -d %s -f /opt/data/goat_dump.sql' % (user,db_name+'temp'))
+    #Rename active database intto old DB
+    os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name)
+    os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name,db_name+'old'))
+    #Rename temp DB into active db
+    os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'temp'))
+    os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name+'temp',db_name))

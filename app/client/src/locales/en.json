@@ -12,7 +12,7 @@
       "drawAndMeasure": "Draw and Measure",
       "filter": "Thematic Data Filter",
       "edit": "Draw scenario",
-      "settings": "Settings",
+      "settings": "Language",
       "info": "Info"
     },
     "login": {
@@ -103,13 +103,29 @@
       "drawFeatureTooltip": "Draw Feature",
       "modifyFeatureTooltip": "Modify Feature",
       "deleteFeature": "Delete Feature",
-      "clearBtn": "Clear",
+      "clearBtn": "Delete All",
       "uploadBtn": "Upload",
       "popup": {
         "deleteFeatureMsg": "Are you sure you want to delete the selected feature ?",
         "selectWayType": "Select way type: ",
         "wayType": "Way Type"
-      }
+      },
+      "activateLayerToDrawScenario": "Plese activate the layer to be able to select features",
+      "geometryTypeInfo": "Geometry type should be",
+      "requiredFields": "Required Fields",
+      "referenceSystemInfo": "Reference sytem should be in",
+      "featuresNotyetUploaded": "Features not yet uploaded. Click upload button to commit",
+      "differentGeometryType": "Geometries doesn't match",
+      "missingFields": "Missing Fields",
+      "fileCorrupted": "Geojson file is corrupted",
+      "noFile": "No file",
+      "allFeaturesUploaded": "All Features Uploaded",
+      "notAllUploaded": "Not all features uploaded",
+      "errorHappened": "An error happened",
+      "scenarioFeatures": "Scenario Features",
+      "uploadYourData": "Upload your data",
+      "deleteAllTitle": "Delete All",
+      "deleteAllMessage": "Are you sure you want to delete all scenario data."
     },
     "settings": {
       "title": "Settings",
@@ -163,7 +179,10 @@
       "defaultNetwork": "Default Network",
       "modifiedNetwork": "Modified Network",
       "modifiedNetworkDoubleCalc": "Modified Network (Double Calculation)",
-      "routingProfile": "Routing Profile"
+      "routingProfile": "Routing Profile",
+      "walking_standard": "Standard",
+      "walking_elderly": "Elderly",
+      "walking_wheelchair": "Wheelchair"
     },
     "results": {
       "title": "Results",
@@ -171,8 +190,11 @@
       "additionalLayers": "Additional Layers",
       "showDataTooltip": "Show Data",
       "toggleVisibilityTooltip": "Toggle Visibility",
+      "showResultsTooltip": "Show Results",
+      "hideResultsTooltip": "Hide Results",
       "downloadTooltip": "Download",
       "deleteCalcTooltip": "Delete Calculation",
+      "changeColorTooltip": "Click to change color",
       "table": {
         "type": "Type",
         "range": "Range",
@@ -207,6 +229,9 @@
     "additionalLayers": {
       "defaultNetwork": "Default Road Network",
       "inputNetwork": "Input Road Network"
+    },
+    "pickColor": {
+      "title": "Isochrone Color"
     }
   },
   "poisFilter": {
@@ -234,7 +259,11 @@
       "title": "Layers Legend"
     },
     "snackbarMessages": {
-      "selectAmenities": "You must select at least one point of interest"
+      "selectAmenities": "You must select at least one point of interest",
+      "calculateIsochroneError": "Sorry but here no calculation is possible",
+      "uploadScenarioSuccess": "Features uploads successfully.",
+      "uploadScenarioError": "Sorry, an error happened while uploading the features in database.",
+      "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features."
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
@@ -252,7 +281,6 @@
       "parking": "Parking",
       "speed": "Speed",
       "streetCrossings": "Street Crossings",
-      "streetFurniture": "Street Furniture",
       "surface": "Surface",
       "wheelchairUsability": "Wheelchair Usability",
       "areaIsochrone": "Area Isochrone",
@@ -269,25 +297,29 @@
       "bingAerial": "Bing Aerial"
     },
     "tooltips": {
-      "clickForCalculation": "Click for Calculation",
-      "clickToSelectStudyArea": "Click to select the study area",
+      "clickForCalculation": "Click for Calculation. Press ESC to exit",
+      "clickToSelectStudyArea": "Click to select the study area. Press ESC to exit",
       "maxCircleRadius": "Maximum circle radius is 1000 m",
-      "clickToStartMeasure": "Click to start measuring",
-      "clickToStartDrawing": "Click to start drawing",
+      "clickToStartMeasure": "Click to start measuring. Press ESC to exit",
+      "clickToStartDrawing": "Click to start drawing. Press ESC to exit",
       "clickToContinueDrawing": "Click to continue drawing",
       "clickToFinishDrawing": "Click to finish drawing",
-      "clickToStartDrawingBoundary": "Click to start drawing the boundary",
-      "clickToStartDrawingCircle": "Click to start drawing the circle (Max Radius 1000 m)",
-      "clickToFinishDrawingPolygon": "Double-click or click starting point to finish",
+      "clickToStartDrawingBoundary": "Click to start drawing the boundary. <br> Press ESC to exit",
+      "clickToStartDrawingCircle": "Click to start drawing the circle (Max Radius 1000 m). <br> Press ESC to exit",
+      "clickToFinishDrawingPolygon": "Double-click or click starting point to finish.",
       "clickOnFeatureToDelete": "Click on feature to delete it",
       "clickAndDragToModify": "Click and drag the features to modify",
       "clickToRemove": "Click to remove it",
+      "clickToPlacePoint": "Click to place the point",
       "routingProfiles": {
         "walking_standard": "Default routing",
         "walking_elderly": " Routing with reduced walking speed",
         "walking_wheelchair": "Routing excluding paths and points-of-interest that are not barrier-free",
         "walking_safe_night": "Routing excluding unlit paths"
-      }
+      },
+      "zoomToFeature": "Zoom to feature",
+      "deleteFeature": "Delete Feature",
+      "uploadFeature": "Upload Feature"
     },
     "popup": {
       "attributes": "Attributes",
@@ -358,6 +390,8 @@
     "hostel": "Hostel",
     "guest_house": "Guest house",
     "gallery": "Gallery",
+    "university": "University",
+    "hospital": "Hospital",
     "population": "Population"
   },
   "$vuetify": {
@@ -394,6 +428,28 @@
     },
     "calendar": {
       "moreEvents": "{0} more"
+    }
+  },
+  "common": {
+    "required": "This information is required"
+  },
+  "dynamicFields": {
+    "attributes": {
+      "ways": {
+        "type": "Way Type",
+        "class_id": "Class Id"
+      },
+      "pois": {
+        "amenity": "Amenity",
+        "name": "Name (Optional)",
+        "opening_hours": "Opening Hours (Optional)"
+      }
+    },
+    "listValues": {
+      "ways": {
+        "road": "Road",
+        "bridge": "Bridge"
+      }
     }
   }
 }

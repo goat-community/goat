@@ -11,24 +11,25 @@ DATA_SOURCE:
   #"most_recent" if the data from the OSM-Download-Link has not the recency you need. 
   OSM_DATA_RECENCY: "standard"
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
+  EXTRACT_BBOX: "yes"
   
 
 DATA_REFINEMENT_VARIABLES:
   #extrapolation ==> census.shp + landuse.shp needed as input
-  #disaggregation ==> landuse.shp needed as input + high-resolution population input data + high completness number of floors
+  #disaggregation ==> landuse.shp needed as input + high-resolution population input data + building data
+  #distribution ==> landuse.sho need as input + high-resolution population input data 
   #custom_population ==> population.shp custom population data needed  
- 
   POPULATION: "extrapolation"
   #"yes" if you want to add these layers 
   ADDITIONAL_WALKABILITY_LAYERS: "no" 
   variable_container: 
-    poi_categories: ["kindergarten","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
+    pois_one_entrance: ["kindergarten","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
       "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
       "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
       "hypermarket","international_supermarket","chemist","organic","marketplace",
-      "hotel","museum","hostel","guest_house","viewpoint","gallery","bus_stop",
-      "tram_stop","subway_entrance","rail_station"
+      "hotel","museum","hostel","guest_house","viewpoint","gallery"
     ]
+    pois_more_entrances: ["bus_stop","tram_stop","subway_entrance","rail_station"]
     excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
     categories_no_foot: ["use_sidepath","no"]
     excluded_class_id_cycling: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
@@ -75,4 +76,26 @@ DATA_REFINEMENT_VARIABLES:
       surface_no: ['ground','gravel','unpaved','grass']
     walking_speed_elderly: '0.83333'
     walking_speed_wheelchair: '1.38889'
+    cycling_surface:
+      paving_stones: '0.2'
+      sett: '0.3'
+      unhewn_cobblestone: '0.3'
+      cobblestone: '0.3'
+      pebblestone: '0.3'
+      unpaved: '0.2'
+      compacted: '0.05'
+      fine_gravel: '0.05'
+      gravel: '0.3'
+      sand: '0.4'
+      grass: '0.25'
+      mud: '0.4'
+
+    cycling_smoothness:
+      intermediate: '0.05'
+      bad: '0.1'
+      very_bad: '0.2'
+      horrible: '0.3'
+      very_horrible: '0.5'
+    dem_resolution: '30'
+
       

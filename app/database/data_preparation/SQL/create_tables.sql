@@ -78,7 +78,6 @@ CREATE INDEX index_addresses_residential ON addresses_residential USING GIST (ge
 CREATE TABLE study_area_union as
 SELECT st_union(geom) geom FROM study_area;
 
-
 -- Table: public.ways_modified
 
 -- DROP TABLE public.ways_modified;
@@ -93,27 +92,23 @@ CREATE TABLE public.ways_modified
 	type varchar(20),
 	status bigint,
     CONSTRAINT ways_modified_id_pkey PRIMARY KEY (id)
-)
-WITH (
-    OIDS = FALSE
-)
-TABLESPACE pg_default;
+);
 
-ALTER TABLE public.ways_modified
-    OWNER to goat;
+CREATE INDEX ways_modified_index ON public.ways_modified USING gist(geom);
 
--- Index: ways_modified_index
+CREATE TABLE public.pois_modified (
+	id serial,
+	name text NULL,
+	amenity text NOT NULL,
+	opening_hours text NULL,
+	geom geometry(POINT, 4326) NULL,
+	userid int4 NULL,
+	original_id int4 NULL,
+	wheelchair text,
+	CONSTRAINT pois_modified_id_pkey PRIMARY KEY (id)
+);
 
--- DROP INDEX public.ways_modified_index;
-
-CREATE INDEX ways_modified_index
-    ON public.ways_modified USING gist
-    (geom)
-    TABLESPACE pg_default;
-
--- Table: public.user_data
-
--- DROP TABLE public.user_data;
+CREATE INDEX ON pois_modified USING gist(geom);
 
 
 DROP SEQUENCE IF EXISTS user_data_id_seq;
@@ -125,6 +120,8 @@ CREATE TABLE public.user_data
     name character varying COLLATE pg_catalog."default",
     surname character varying COLLATE pg_catalog."default",
     deleted_feature_ids bigint[],
+	userid bigint,
+	layer_name varchar(100),
     CONSTRAINT user_data_pkey PRIMARY KEY (id)
 )
 WITH (
