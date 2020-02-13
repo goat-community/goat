@@ -112,7 +112,7 @@
             "activateLayerToDrawScenario": "Bitte aktivieren Sie den Layer, um Objekte wählen zu können.",
             "geometryTypeInfo": "Benötigter Geometry Typ",
             "requiredFields": "Auszufüllende Felder",
-            "referenceSystemInfo": "Referenzsytem sollte sein",
+            "referenceSystemInfo": "Referenzsystem sollte sein",
             "featuresNotyetUploaded": "Objekte noch nicht hochgeladen. Klicken Sie auf Hochladen, um die Änderungen zu übernehmen.",
             "differentGeometryType": "Geometries doesn't match",
             "missingFields": "Fehlende Felder",
