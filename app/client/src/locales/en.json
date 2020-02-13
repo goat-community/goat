@@ -269,6 +269,7 @@
       "poisLayers": "Point of Interest",
       "administrativeLayers": "Administrative Layers",
       "streetlevelqualityLayers": "Street Level Quality",
+      "perceivedQuality": "Perceived Quality",
       "accessbilityBasemaps": "Accessibility",
       "backgroundLayers": "Background Layers"
     },
@@ -281,6 +282,7 @@
       "parking": "Parking",
       "speed": "Speed",
       "streetCrossings": "Street Crossings",
+      "streetFurniture": "Street Furniture",
       "surface": "Surface",
       "wheelchairUsability": "Wheelchair Usability",
       "areaIsochrone": "Area Isochrone",
