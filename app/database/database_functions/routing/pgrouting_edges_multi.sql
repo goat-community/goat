@@ -49,7 +49,7 @@ BEGIN
   SELECT x.from_v::int start_vertex, x.node::int, x.edge::int, w.cnt, (x.agg_cost/speed)::numeric AS cost, w.geom, c.objectid
   FROM ways_userinput_vertices_pgr w, 
   (SELECT from_v, node, edge, agg_cost FROM pgr_drivingDistance(
-	'SELECT id,source,target,cost,reverse_cost,geom FROM fetch_ways_routing('''||buffer||''','||speed||','||modus_input||','||userid_input||','''||routing_profile||''')'
+	'SELECT id,source,target,cost,reverse_cost,geom FROM fetch_ways_routing('''||buffer||''','||modus_input||','||userid_input||','''||routing_profile||''')'
 	,array_starting_vertices, distance,FALSE,FALSE)
   )x, closest_vertices c
   WHERE w.id = x.node AND c.closest_vertices = from_v;
