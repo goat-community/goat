@@ -79,7 +79,7 @@ DATA_REFINEMENT_VARIABLES:
     tag_new_radius: '130'
     search_conditions:
       hypovereinsbank: ['%hypo vereinsbank%', '%hypovereinsbank%']
-      raiffeisenbank: ['%raiffeisenbank%']
+      raiffeisenbank: ['%raiffeisenbank%', '%vr bank%', '%vr-bank%', '%volksbank%']
       sparkassse: ['%kreissparkasse%','%sparkasse%','%stadtsparkasse%']
       dm: ['%dm%']
       rossman: ['%rossmann%']
