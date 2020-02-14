@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS fetch_ways_routing;
-CREATE OR REPLACE FUNCTION public.fetch_ways_routing(buffer_geom text, speed_input numeric, modus_input integer, userid_input integer, routing_profile text)
+CREATE OR REPLACE FUNCTION public.fetch_ways_routing(buffer_geom text, modus_input integer, userid_input integer, routing_profile text,fetch_type text default 'multiple', vid integer default 1)
  RETURNS SETOF type_fetch_ways_routing
  LANGUAGE plpgsql
 AS $function$
@@ -8,6 +8,8 @@ DECLARE
 	sql_ways_ids text := '';
 	sql_userid text := '';
 	sql_routing_profile text := '';
+	sql_geom text;
+	sql_id text :='';
 	table_name text := 'ways';
 	excluded_class_id integer[];
 	filter_categories text[];
@@ -37,14 +39,22 @@ BEGIN
 		sql_routing_profile = 'AND ((wheelchair_classified = ''yes'') OR wheelchair_classified = ''limited''
 		OR wheelchair_classified = ''unclassified'')';
 	END IF;
-	RAISE NOTICE '%',sql_cost;
+	
+	IF fetch_type = 'single' THEN
+		sql_geom = '';
+		sql_id = format('AND (source = %s OR target = %s)',vid,vid);
+	ELSE 
+		sql_geom = format(' AND geom && ST_GeomFromText(''%s'')',buffer_geom);
+	END IF;
+
+
 	RETURN query EXECUTE '
 		SELECT  id::integer, source, target,'||sql_cost||',slope_profile,death_end,geom 
 		FROM '||quote_ident(table_name)||
 		' WHERE class_id NOT IN(SELECT UNNEST($1))
     	AND (foot NOT IN(SELECT UNNEST($2)) OR foot IS NULL)
-		AND geom && ST_GeomFromText($3)'||sql_userid||sql_ways_ids||sql_routing_profile
-	USING excluded_class_id, filter_categories,buffer_geom;
+		'||sql_geom||sql_userid||sql_ways_ids||sql_routing_profile||sql_id
+	USING excluded_class_id, filter_categories;
 END;
 $function$;
 
@@ -61,7 +71,7 @@ DECLARE
 	step_isochrone NUMERIC := max_cost/number_isochrones;
 BEGIN
 	INSERT INTO edges(edge,node,cost,geom,v_geom,objectid) 
-	SELECT w.id,s.node,s.cost,w.geom,s.geom AS v_geom,objectid_input
+	SELECT w.id,s.node,CASE WHEN s.cost > f.cost THEN s.cost ELSE f.cost END AS cost,w.geom,s.geom AS v_geom,objectid_input
 	FROM temp_reached_vertices f, temp_reached_vertices s, temp_fetched_ways w 
 	WHERE f.node = w.source 
 	AND s.node = w.target;
