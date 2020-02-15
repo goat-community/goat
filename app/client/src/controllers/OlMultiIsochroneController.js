@@ -7,9 +7,9 @@ import { unByKey } from "ol/Observable";
 import { getAllChildLayers } from "../utils/Layer";
 import { transform } from "ol/proj.js";
 import store from "../store/index.js";
-import i18n from "../../src/plugins/i18n";
+import i18n from "../plugins/i18n";
 
-export default class OlIsochroneController extends OlBaseController {
+export default class OlMultiIsochroneController extends OlBaseController {
   constructor(map) {
     super(map);
   }
