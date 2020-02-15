@@ -121,6 +121,7 @@ export default {
     pagination: {
       rowsPerPage: 10
     },
+    isochroneSteps: [],
     selectedTime: null,
     search: "",
     isExpanded: true,
@@ -210,20 +211,6 @@ export default {
       }
       return headers;
     },
-    isochroneSteps() {
-      let pois = this.selectedThematicData.pois;
-      let timeValues = [];
-      if (pois) {
-        for (const key in pois) {
-          let obj = pois[key];
-          for (const prop in obj) {
-            timeValues.push({ display: `${prop} min`, value: `${prop}` });
-          }
-          break;
-        }
-      }
-      return timeValues;
-    },
     tableItems() {
       let me = this;
       let items = [];
@@ -272,6 +259,28 @@ export default {
     ...mapGetters("pois", {
       getPoisItems: "selectedPois"
     })
+  },
+  watch: {
+    selectedThematicData(value) {
+      let pois = value.pois;
+      this.isochroneSteps = [];
+      if (pois) {
+        for (const key in pois) {
+          let obj = pois[key];
+          for (const prop in obj) {
+            this.isochroneSteps.push({
+              display: `${prop} min`,
+              value: `${prop}`
+            });
+          }
+          break;
+        }
+        this.selectedTime =
+          this.isochroneSteps.length > 0
+            ? this.isochroneSteps[this.isochroneSteps.length - 1].value
+            : [];
+      }
+    }
   },
   mounted() {
     const element = document.getElementById("ol-map-container");

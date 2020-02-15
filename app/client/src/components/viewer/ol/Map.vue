@@ -464,7 +464,6 @@ export default {
         if (features.length > 0) {
           // Toggle thematic data for isochrone window
           const isochroneFeature = features[0];
-          console.log(isochroneFeature);
           this.showIsochroneWindow({
             id: isochroneFeature.get("calculationNumber"),
             calculationType: isochroneFeature.get("calculationType")

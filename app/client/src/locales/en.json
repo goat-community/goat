@@ -208,7 +208,7 @@
       "searchPois": "Search Point of Interest",
       "selectTimeMsg": "Select travel time to filter",
       "noDataMsg": "No data for the selected time",
-      "selectAmenitiesMsg": "Select <b>Points of Interest</b> and <b>Time</b> to filter the table.",
+      "selectAmenitiesMsg": "Select <b>Points of Interest</b> to filter the table.",
       "table": {
         "pois": "Point of Interest",
         "isochrone": "Isochrone",
