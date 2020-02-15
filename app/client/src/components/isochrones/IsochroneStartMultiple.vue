@@ -26,6 +26,7 @@
     >
       <v-select
         item-value="value"
+        :disabled="isBusy"
         class="select-method-height mx-1 my-1"
         v-model="activeMultiIsochroneMethod"
         :items="multiIsochroneCalculationMethods.values"
@@ -61,6 +62,7 @@
             outlined
             class="white--text mr-1"
             color="green"
+            :loading="isBusy"
             @click="calculateIsochrone"
           >
             {{ $t("isochrones.multiple.calculate") }}
@@ -91,7 +93,8 @@ export default {
   computed: {
     ...mapGetters("isochrones", {
       multiIsochroneCalculationMethods: "multiIsochroneCalculationMethods",
-      countPois: "countPois"
+      countPois: "countPois",
+      isBusy: "isBusy"
     }),
     ...mapFields("isochrones", {
       activeMultiIsochroneMethod: "multiIsochroneCalculationMethods.active"
