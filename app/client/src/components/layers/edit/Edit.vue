@@ -232,6 +232,7 @@
           v-show="selectedLayer != null"
           class="white--text"
           color="error"
+          :disabled="scenarioDataTable.length === 0"
           @click="deleteAll"
         >
           <v-icon left>delete</v-icon>{{ $t("appBar.edit.clearBtn") }}
@@ -976,9 +977,13 @@ export default {
       features.forEach(f => {
         const prop = f.getProperties();
         if (prop.hasOwnProperty("original_id")) {
-          const status = prop.status ? "Uploaded" : "Not uploaded";
           const fid = f.getId();
-          const layerName = this.layerName.split(":")[1];
+          //Assign layerName to feature property if doesn't exist
+          if (!prop.layerName) {
+            f.set("layerName", this.layerName.split(":")[1]);
+          }
+          const layerName = f.get("layerName");
+          const status = prop.status ? "Uploaded" : "Not uploaded";
           const obj = {
             layerName,
             status,
