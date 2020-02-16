@@ -263,7 +263,9 @@
       "calculateIsochroneError": "Sorry but here no calculation is possible",
       "uploadScenarioSuccess": "Features uploads successfully.",
       "uploadScenarioError": "Sorry, an error happened while uploading the features in database.",
-      "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features."
+      "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features.",
+      "cantDeleteAllScenarioFeatures": "Sorry. Scenario data can't be deleted at the moment.",
+      "allScenarioFeaturesDelete": "All Scenario Data is deleted"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",

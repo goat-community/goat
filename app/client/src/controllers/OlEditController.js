@@ -417,5 +417,7 @@ export default class OlEditController extends OlBaseController {
   deleteAll() {
     this.clear();
     super.clear();
+    //Reset ids of deleted features..
+    editLayerHelper.featuresIDsToDelete = [];
   }
 }
