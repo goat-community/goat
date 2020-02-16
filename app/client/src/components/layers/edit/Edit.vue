@@ -886,10 +886,36 @@ export default {
         .then(confirm => {
           if (confirm) {
             //1- Call api to delete all features.
-            //2- Clear openlayers scenario features
-            this.clear();
-            // This also deletes user scenario features from the map
-            this.olEditCtrl.deleteAll();
+            const userId = this.userId;
+            //1- Call api to delete all features.
+            http
+              .post("api/deleteAllScenarioData", {
+                user_id: userId,
+                layer_names: ["ways", "pois"]
+              })
+              .then(response => {
+                if (response.data === "error") {
+                  //Show error message can't delete
+                  this.toggleSnackbar({
+                    type: "error", //success or error
+                    message: "cantDeleteAllScenarioFeatures",
+                    state: true,
+                    timeout: 4000
+                  });
+                } else {
+                  //Show success message
+                  this.toggleSnackbar({
+                    type: "success", //success or error
+                    message: "allScenarioFeaturesDelete",
+                    state: true,
+                    timeout: 4000
+                  });
+                  //2- Clear openlayers scenario features
+                  this.clear();
+                  // This also deletes user scenario features from the map
+                  this.olEditCtrl.deleteAll();
+                }
+              });
           }
         });
     },
