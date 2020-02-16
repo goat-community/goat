@@ -223,6 +223,7 @@
           v-show="selectedLayer != null"
           class="white--text"
           :loading="isUploadBusy"
+          :disabled="isDeleteAllBusy"
           color="green"
           @click="uploadFeatures"
         >
@@ -232,6 +233,7 @@
           v-show="selectedLayer != null"
           class="white--text"
           color="error"
+          :loading="isDeleteAllBusy"
           :disabled="scenarioDataTable.length === 0"
           @click="deleteAll"
         >
@@ -338,6 +340,7 @@ export default {
     toggleEdit: undefined,
     loadingLayerInfo: false,
     isUploadBusy: false,
+    isDeleteAllBusy: false,
     //Popup configuration
     popup: {
       title: "",
@@ -888,12 +891,14 @@ export default {
             //1- Call api to delete all features.
             const userId = this.userId;
             //1- Call api to delete all features.
+            this.isDeleteAllBusy = true;
             http
               .post("api/deleteAllScenarioData", {
                 user_id: userId,
                 layer_names: ["ways", "pois"]
               })
               .then(response => {
+                this.isDeleteAllBusy = false;
                 if (response.data === "error") {
                   //Show error message can't delete
                   this.toggleSnackbar({
@@ -915,6 +920,9 @@ export default {
                   // This also deletes user scenario features from the map
                   this.olEditCtrl.deleteAll();
                 }
+              })
+              .catch(() => {
+                this.isDeleteAllBusy = false;
               });
           }
         });
