@@ -918,8 +918,10 @@ export default {
         editLayerHelper.deletedFeatures = editLayerHelper.deletedFeatures.filter(
           f => f.getId() !== fid
         );
-        console.log(editLayerHelper.featuresIDsToDelete);
-        console.log(feature);
+        this.olEditCtrl.highlightSource.addFeature(feature);
+        setTimeout(() => {
+          this.olEditCtrl.highlightSource.removeFeature(feature);
+        }, 300);
         editLayerHelper.featuresIDsToDelete = editLayerHelper.featuresIDsToDelete.filter(
           id => feature.getProperties().id.toString() !== id
         );
