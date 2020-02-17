@@ -208,7 +208,7 @@
       "searchPois": "Search Point of Interest",
       "selectTimeMsg": "Select travel time to filter",
       "noDataMsg": "No data for the selected time",
-      "selectAmenitiesMsg": "Select <b>Points of Interest</b> and <b>Time</b> to filter the table.",
+      "selectAmenitiesMsg": "Select <b>Points of Interest</b> to filter the table.",
       "table": {
         "pois": "Point of Interest",
         "isochrone": "Isochrone",
@@ -263,7 +263,9 @@
       "calculateIsochroneError": "Sorry but here no calculation is possible",
       "uploadScenarioSuccess": "Features uploads successfully.",
       "uploadScenarioError": "Sorry, an error happened while uploading the features in database.",
-      "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features."
+      "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features.",
+      "cantDeleteAllScenarioFeatures": "Sorry. Scenario data can't be deleted at the moment.",
+      "allScenarioFeaturesDelete": "All Scenario Data is deleted"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
@@ -319,7 +321,8 @@
       },
       "zoomToFeature": "Zoom to feature",
       "deleteFeature": "Delete Feature",
-      "uploadFeature": "Upload Feature"
+      "uploadFeature": "Upload Feature",
+      "restoreFeature": "Restore Feature"
     },
     "popup": {
       "attributes": "Attributes",
