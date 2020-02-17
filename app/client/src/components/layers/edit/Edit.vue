@@ -1137,6 +1137,18 @@ export default {
         const isDeleted = fid;
         const status = prop.status === 1 ? "Uploaded" : "Not uploaded";
         const type = "Deleted";
+        let source = "";
+
+        if (
+          prop.hasOwnProperty("original_id") &&
+          f.get("original_id") === null
+        ) {
+          //Original deleted Features.
+          source = "drawn";
+        } else {
+          //Drawn Delete Feature
+          source = "original";
+        }
         const originalId = f.get("original_id");
 
         const obj = {
@@ -1145,7 +1157,8 @@ export default {
           isDeleted,
           originalId,
           status,
-          type
+          type,
+          source
         };
         scenarioDataTable.push(obj);
       });
@@ -1153,7 +1166,7 @@ export default {
       this.isTableLoading = false;
     }, 900),
     isRestoreBtnVisible(item) {
-      if (!item.originalId && item.isDeleted) {
+      if (item.source !== "original") {
         return false;
       }
       return item.isDeleted;

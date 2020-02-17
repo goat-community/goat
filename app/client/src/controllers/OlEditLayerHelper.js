@@ -73,6 +73,7 @@ const editLayerHelper = {
   },
   deleteFeature(feature, source, userid) {
     const props = feature.getProperties();
+    const beforeStatus = feature.get("status");
     feature.set("status", null);
     if (props.hasOwnProperty("original_id")) {
       if (props.original_id !== null) {
@@ -91,12 +92,15 @@ const editLayerHelper = {
           editLayerHelper.featuresIDsToDelete
         );
       } else {
-        editLayerHelper.deletedFeatures.push(feature);
+        if (beforeStatus !== null) {
+          editLayerHelper.deletedFeatures.push(feature);
+        }
+
         editLayerHelper.commitDelete(
           "delete",
           userid,
           editLayerHelper.featuresIDsToDelete,
-          props.id
+          props.id || feature.getId()
         );
       }
     } else {
