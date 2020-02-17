@@ -321,7 +321,8 @@
       },
       "zoomToFeature": "Zoom to feature",
       "deleteFeature": "Delete Feature",
-      "uploadFeature": "Upload Feature"
+      "uploadFeature": "Upload Feature",
+      "restoreFeature": "Restore Feature"
     },
     "popup": {
       "attributes": "Attributes",
