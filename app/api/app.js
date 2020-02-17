@@ -53,7 +53,7 @@ app.post("/api/userdata", jsonParser, (request, response) => {
   } else if (mode == "delete") {
     //delete is used to delete the feature from modified table if the user has drawned that feature by himself
     pool.query(
-      `DELETE FROM ${request.body.layer_name}_modified WHERE userid=($1)`,
+      `DELETE FROM ${request.body.layer_name}_modified WHERE id=($1)`,
       [request.body.drawned_fid],
       returnResult
     );
