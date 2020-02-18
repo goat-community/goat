@@ -8,12 +8,17 @@ DECLARE
   buffer text;
   distance numeric := speed*(minutes*60);
   id_vertex integer;
+  start_point geometry;
   geom_vertex geometry;
   number_calculation_input integer;
   max_length_links integer := select_from_variable_container_s('max_length_links')::integer;
   speed_elderly numeric := select_from_variable_container_s('walking_speed_elderly')::numeric;
   speed_wheelchair numeric := select_from_variable_container_s('walking_speed_wheelchair')::numeric;
   userid_vertex integer;
+  closest_point geometry; 
+  fraction float;
+  vid integer; 
+  wid integer;
 begin
   --Adjust for Routing Modus(Default, Scenario, Comparison)
   
@@ -26,18 +31,20 @@ begin
 		userid_vertex = 1;
 	END IF;
 
+/*
   SELECT closest_vertex[1] AS id, closest_vertex[2] geom 
   INTO id_vertex, geom_vertex
-  FROM closest_vertex(userid_vertex,x,y,0.0018 /*100m => approx. 0.0009 */,modus_input, routing_profile);
-    
+  FROM closest_vertex(userid_vertex,x,y,0.0018 100m => approx. 0.0009 ,modus_input, routing_profile);
+
+*/
+  start_point = ST_SETSRID(ST_POINT(x,y),4326);
   IF modus_input <> 3 THEN 
-		SELECT count(objectid) + 1 INTO number_calculation_input
+		SELECT count(objectid) + 1 
+    INTO number_calculation_input
 		FROM starting_point_isochrones
 		WHERE userid = userid_input; 
 		INSERT INTO starting_point_isochrones(userid,geom,objectid,number_calculation)
-		SELECT userid_input, v.geom, objectid_input, number_calculation_input
-		FROM ways_userinput_vertices_pgr v
-		WHERE v.id = id_vertex;
+		SELECT userid_input, start_point, objectid_input, number_calculation_input;
 	END IF; 
   
   IF  routing_profile = 'walking_elderly' THEN
@@ -47,7 +54,7 @@ begin
   END IF; 
 
 
-  SELECT ST_AsText(ST_Buffer(ST_Union(geom_vertex)::geography,distance)::geometry)  
+  SELECT ST_AsText(ST_Buffer(start_point::geography,distance)::geometry)  
   INTO buffer;
 
   DROP TABLE IF EXISTS temp_fetched_ways;
@@ -56,29 +63,48 @@ begin
   CREATE TEMP TABLE temp_fetched_ways AS 
   SELECT *
   FROM fetch_ways_routing(buffer,modus_input,userid_input,routing_profile);
+
   ALTER TABLE temp_fetched_ways ADD PRIMARY KEY(id);
   CREATE INDEX ON temp_fetched_ways (target);
   CREATE INDEX ON temp_fetched_ways (source);
   CREATE INDEX ON temp_fetched_ways (death_end);
 
+  SELECT c.closest_point, c.fraction, c.wid, c.vid 
+  INTO closest_point, fraction, wid, vid
+  FROM closest_point_network(x,y) c;
+
+  INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
+  SELECT 99999998, cost*fraction,reverse_cost*fraction,SOURCE,vid,ST_LINESUBSTRING(geom,0,fraction)
+	FROM temp_fetched_ways 
+  WHERE id = wid
+  UNION ALL 
+  SELECT 99999999, cost*(1-fraction),reverse_cost*(1-fraction),vid,target,ST_LINESUBSTRING(geom,fraction,1)
+	FROM temp_fetched_ways 
+  WHERE id = wid;
+  
+  DELETE FROM temp_fetched_ways WHERE id = wid;
 
   IF modus_input = 1 THEN 
     CREATE TEMP TABLE temp_reached_vertices as 
     SELECT id_vertex AS start_vertex, id1::integer AS node, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end 
     FROM PGR_DrivingDistance( 
-        'SELECT * FROM temp_fetched_ways WHERE death_end IS NULL',
-        id_vertex, distance,FALSE,FALSE
+        'SELECT * FROM temp_fetched_ways WHERE id <> '||wid,
+        vid, distance,FALSE,FALSE
         )p, ways_vertices_pgr v
-    WHERE p.id1 = v.id;
+    WHERE p.id1 = v.id
+    UNION ALL 
+    SELECT vid, vid, 0, closest_point, objectid_input, NULL;
+
   ELSE
     CREATE TEMP TABLE temp_reached_vertices as 
     SELECT id_vertex AS start_vertex, id1::integer AS node, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end
     FROM PGR_DrivingDistance(
-      'SELECT * FROM temp_fetched_ways WHERE death_end IS NULL',
-      id_vertex, 
-      distance, false, false
+      'SELECT * FROM temp_fetched_ways  WHERE id <> '||wid,
+      vid, distance, FALSE, FALSE
     ) p, ways_userinput_vertices_pgr v
-    WHERE p.id1 = v.id;
+    WHERE p.id1 = v.id
+    UNION ALL 
+    SELECT vid, vid, 0, closest_point, objectid_input, NULL;
   END IF;
 
   ALTER TABLE temp_reached_vertices ADD PRIMARY KEY(node);
@@ -89,4 +115,4 @@ begin
 END ;
 $function$;
 
---SELECT * FROM public.pgrouting_edges(7, 11.546394, 48.195533, 1.33, 1, 15, 1, 'walking_safe_night');
+--SELECT * FROM public.pgrouting_edges(7, 11.546394, 48.195533, 1.33, 2, 1, 15, 1, 'walking_safe_night');
