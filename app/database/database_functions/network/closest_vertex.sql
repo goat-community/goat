@@ -56,12 +56,6 @@ BEGIN
     	RETURN;
   	END IF;
 
-	IF death_end = TRUE THEN 
-		SELECT * 
-		FROM ways_userinput  
-
-		SELECT fetch_ways_routing('',modus,userid_input,routing_profile,single,)
-
   	RETURN query SELECT ARRAY[id_vertex::text, geom_vertex::text];
 END ;
 $function$;
