@@ -1,4 +1,5 @@
-CREATE TABLE death_end_v AS 
+DROP TABLE IF EXISTS death_end_v;
+CREATE TEMP TABLE death_end_v AS 
 WITH death_end AS (
 	SELECT count(source),source 
 	FROM (
@@ -25,9 +26,9 @@ UPDATE ways w SET death_end = w.source
 FROM death_end_v d 
 WHERE d.id = w.target;
 
-ALTER TABLE ways_userinput_vertices_pgr DROP COLUMN death_end_id; 
-ALTER TABLE ways_userinput_vertices_pgr ADD COLUMN death_end BOOLEAN;
-CREATE INDEX ON ways_userinput_vertices_pgr (death_end);
+ALTER TABLE ways_vertices_pgr DROP COLUMN death_end; 
+ALTER TABLE ways_vertices_pgr ADD COLUMN death_end BOOLEAN;
+CREATE INDEX ON ways_vertices_pgr (death_end);
 
 WITH s AS (
 	SELECT w.id,w.geom,w.target vid 
@@ -38,7 +39,7 @@ WITH s AS (
 	FROM ways w, death_end_v v
 	WHERE w.target = v.id
 )
-UPDATE ways_userinput_vertices_pgr v
+UPDATE ways_vertices_pgr v
 SET death_end = TRUE
 FROM s 
 WHERE v.id = s.vid; 
