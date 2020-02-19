@@ -90,14 +90,14 @@ def geojson_to_sql():
     cursor = con.cursor()
     
     cursor.execute('DROP TABLE IF EXISTS custom_pois;')
-    cursor.execute('CREATE TABLE custom_pois(amenity text, addr_street text,addr_city text, addr_postcode text, name text, opening_hours text, geom geometry);')   
+    cursor.execute('CREATE TABLE custom_pois(amenity text, addr_street text,addr_city text, addr_postcode text, name text, opening_hours text, geom geometry, stand_name text);')   
 
     for file in glob.glob("/opt/data/custom_pois/*.geojson"):
         with open(file, 'r') as stream:
             data = json.load(stream)
         print(file)
    
-        sql_insert_empty = '''INSERT INTO custom_pois(amenity,addr_street,addr_city,addr_postcode,name,opening_hours,geom) VALUES('%s','%s','%s','%s','%s','%s',%s);''' 
+        sql_insert_empty = '''INSERT INTO custom_pois(amenity,addr_street,addr_city,addr_postcode,name,opening_hours,geom, stand_name) VALUES('%s','%s','%s','%s','%s','%s',%s,'%s');''' 
         sql_bulk = '' 
         for feature in data['features']:
             amenity = file.split('/')[-1].split('-')[0]          
@@ -107,14 +107,15 @@ def geojson_to_sql():
             addr_postcode = check_valid('addr_postcode',keys)
             addr_city = check_valid('addr:city',keys)
             name = check_valid('name',keys)
+            stand_name = file.split('/')[-1].split('-')[1].split('.')[0]
             if name is None:
                 name = file.split('/')[-1].split('-')[1].split('.')[0]
             opening_hours = check_valid('opening_hours',keys)
 
             if feature['geometry'] is not None:
                 geom = "ST_SetSRID(ST_GeomFromGeoJSON('%s'),4326)" % str(feature['geometry']).replace("'",'"') 
-                sql_insert_filled = sql_insert_empty % (amenity,addr_street,addr_city,addr_postcode,name,opening_hours,geom)
-                sql_bulk = sql_bulk + sql_insert_filled     
+                sql_insert_filled = sql_insert_empty % (amenity,addr_street,addr_city,addr_postcode,name,opening_hours, geom, stand_name)
+                sql_bulk = sql_bulk + sql_insert_filled         
         cursor.execute(sql_bulk)       
         con.commit()
     con.close()
