@@ -171,6 +171,9 @@ const actions = {
           },
           { root: true }
         );
+        if (iconMarkerFeature) {
+          commit("REMOVE_ISOCHRONE_FEATURE", iconMarkerFeature);
+        }
       });
 
     commit("SET_IS_BUSY", false);
@@ -577,6 +580,11 @@ const mutations = {
   ADD_ISOCHRONE_FEATURES(state, features) {
     if (state.isochroneLayer) {
       state.isochroneLayer.getSource().addFeatures(features);
+    }
+  },
+  REMOVE_ISOCHRONE_FEATURE(state, feature) {
+    if (state.isochroneLayer && feature) {
+      state.isochroneLayer.getSource().removeFeature(feature);
     }
   },
   ADD_STUDYAREA_FEATURES(state, features) {
