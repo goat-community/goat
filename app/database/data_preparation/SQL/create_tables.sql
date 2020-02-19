@@ -40,7 +40,7 @@ CREATE TABLE public.multi_isochrones (
 CREATE INDEX ON multi_isochrones USING gist (geom);
 CREATE INDEX ON multi_isochrones USING btree(objectid,parent_id);
 
-CREATE TABLE public.edges (
+CREATE UNLOGGED TABLE public.edges (
 	edge integer NULL,
 	node integer NULL,
 	cost numeric NULL,
