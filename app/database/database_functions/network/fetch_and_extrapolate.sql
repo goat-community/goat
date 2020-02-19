@@ -55,11 +55,11 @@ BEGIN
 END;
 $function$;
 
-/*select fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)),1.33,1,1,'walking_standard');
+/*select fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)),1,1,'walking_standard');
 */
 
 DROP FUNCTION IF EXISTS get_reached_network;
-CREATE OR REPLACE FUNCTION public.get_reached_network(objectid_input integer,max_cost NUMERIC, number_isochrones integer)
+CREATE OR REPLACE FUNCTION public.get_reached_network(objectid_input integer,max_cost NUMERIC, number_isochrones integer, edges_to_exclude bigint[])
 RETURNS void AS
 $$
 DECLARE
@@ -89,6 +89,7 @@ BEGIN
 		LEFT JOIN (SELECT edge FROM edges e WHERE e.objectid = objectid_input AND cost < i) e
 		ON x.id = e.edge 
 		WHERE e.edge IS NULL
+		AND x.id NOT IN(SELECT UNNEST(edges_to_exclude))
 		UNION ALL 
 		SELECT x.id AS edge, x.node, i AS cost, ST_LINE_SUBSTRING(x.geom,0,((i-x.agg_cost)/x.cost)) AS geom,
 		ST_ENDPOINT(ST_LINE_SUBSTRING(x.geom,0,(i-x.agg_cost)/x.cost)) AS v_geom, objectid_input 
@@ -102,7 +103,8 @@ BEGIN
 		) x
 		LEFT JOIN (SELECT edge FROM edges e WHERE e.objectid = objectid_input AND cost < i) e
 		ON x.id = e.edge 
-		WHERE e.edge IS NULL;
+		WHERE e.edge IS NULL
+		AND x.id NOT IN(SELECT UNNEST(edges_to_exclude));
 	
 	END LOOP;
 	
@@ -113,5 +115,6 @@ BEGIN
 	WHERE v.death_end = TRUE 
 	AND v.node = w.death_end
 	AND w.cost < (max_cost-v.cost);
+	
 END;
 $$ LANGUAGE plpgsql;
