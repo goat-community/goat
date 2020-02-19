@@ -77,17 +77,18 @@ DATA_REFINEMENT_VARIABLES:
     walking_speed_wheelchair: '1.38889'
     duplicated_lookup_radius: '100' 
     tag_new_radius: '130'
-    search_conditions:
-      hypovereinsbank: ['%hypo vereinsbank%', '%hypovereinsbank%']
-      raiffeisenbank: ['%raiffeisenbank%', '%vr bank%', '%vr-bank%', '%volksbank%']
-      sparkassse: ['%kreissparkasse%','%sparkasse%','%stadtsparkasse%']
+    pois_search_conditions:
       dm: ['%dm%']
-      rossman: ['%rossmann%']
+      edeka: ['e center%', '%edeka%']
+      hypovereinsbank: ['%hypo vereinsbank%', '%hypovereinsbank%']
       lidl: ['lidl']
       mcdonalds: ['%mcdonald%']
-      vapiano: ['%vapiano%']      
+      raiffeisenbank: ['%raiffeisenbank%', '%vr bank%', '%vr-bank%', '%volksbank%']
       rewe: ['%rewe%']
-      edeka: ['e center%', '%edeka%']
+      rossman: ['%rossmann%']
+      sparkassse: ['%kreissparkasse%','%sparkasse%','%stadtsparkasse%']  
+      vapiano: ['%vapiano%']      
+      
 
       
 
