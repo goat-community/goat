@@ -513,6 +513,9 @@ const mutations = {
     }
   },
   CALCULATE_ISOCHRONE(state, isochrone) {
+    state.calculations.forEach(calculation => {
+      calculation.isExpanded = false;
+    });
     state.calculations.unshift(isochrone);
   },
   UPDATE_POSITION(state, position) {
