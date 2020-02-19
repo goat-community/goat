@@ -5,7 +5,7 @@
     v-draggable="draggableValue"
     class="elevation-4"
     id="isochroneWindowId"
-    :style="[isExpanded ? { height: '450px' } : { height: '60px' }]"
+    :style="[isExpanded ? { height: '400px' } : { height: '60px' }]"
     style="position:fixed;top:10px;left:360px;z-index:2;max-width:370px;min-width:350px;height:450px;overflow:hidden;"
   >
     <v-expand-transition>
@@ -30,6 +30,22 @@
           <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1">
             <v-card-text class="ma-0 py-0 pt-0 pb-2">
               <v-layout row wrap justify-end>
+                <v-alert
+                  v-if="
+                    getPoisItems.length === 0 &&
+                      selectedThematicData.calculationType === 'single'
+                  "
+                  border="left"
+                  colored-border
+                  class="mb-1 mt-2 elevation-2"
+                  icon="info"
+                  color="green"
+                  dense
+                >
+                  <span
+                    v-html="$t('isochrones.tableData.selectAmenitiesMsg')"
+                  ></span>
+                </v-alert>
                 <v-flex shrink>
                   <v-chip class="mt-1 mb-0">
                     {{
@@ -50,33 +66,18 @@
               v-model="selectedTime"
             ></v-select>
 
-            <v-text-field
-              v-if="selectedThematicData.calculationType === 'single'"
-              v-model="search"
-              append-icon="search"
-              :label="$t('isochrones.tableData.searchPois')"
-              single-line
-              hide-details
-              class="mb-2 pt-0 mt-0"
-            ></v-text-field>
-
             <v-data-table
               :headers="tableHeaders"
               :items="tableItems"
               class="elevation-1 mb-2"
               :search="search"
+              hide-default-footer
               :no-data-text="
                 selectedTime === null
                   ? $t('isochrones.tableData.selectTimeMsg')
                   : $t('isochrones.tableData.noDataMsg')
               "
-              :items-per-page-options="[
-                5,
-                10,
-                15,
-                { text: '$vuetify.dataIterator.rowsPerPageAll', value: -1 }
-              ]"
-              :options.sync="pagination"
+              :items-per-page="-1"
             >
               <template v-slot:items="props">
                 <td v-for="(header, index) in tableHeaders" :key="index">
@@ -84,23 +85,6 @@
                 </td>
               </template>
             </v-data-table>
-
-            <v-alert
-              v-if="
-                getPoisItems.length === 0 &&
-                  selectedThematicData.calculationType === 'single'
-              "
-              border="left"
-              colored-border
-              class="mb-1 mt-2 elevation-2"
-              icon="info"
-              color="green"
-              dense
-            >
-              <span
-                v-html="$t('isochrones.tableData.selectAmenitiesMsg')"
-              ></span>
-            </v-alert>
           </v-flex>
         </vue-scroll>
       </v-layout>
@@ -118,9 +102,6 @@ export default {
     Draggable
   },
   data: () => ({
-    pagination: {
-      rowsPerPage: 10
-    },
     isochroneSteps: [],
     selectedTime: null,
     search: "",
@@ -247,6 +228,19 @@ export default {
           items = me.selectedThematicData.multiIsochroneTableData;
         }
       }
+
+      //Sort table rows based on number of amenties || alphabeticaly (only on single calculations)
+      if (this.selectedThematicData.calculationType === "single") {
+        items.sort((a, b) => {
+          const b_Value = b[Object.keys(b)[0]];
+          const a_Value = a[Object.keys(a)[0]];
+          if (b_Value === a_Value) {
+            return a["pois"].localeCompare(b["pois"]);
+          }
+          return b_Value - a_Value;
+        });
+      }
+
       return items;
     },
 
