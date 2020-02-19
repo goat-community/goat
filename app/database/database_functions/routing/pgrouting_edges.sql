@@ -37,6 +37,10 @@ begin
   FROM closest_vertex(userid_vertex,x,y,0.0018 100m => approx. 0.0009 ,modus_input, routing_profile);
 
 */
+
+
+/*start_point still has to be tested as it is the point were the user clicked. Worst case could be that we don't fetch the whole network*/  
+
   start_point = ST_SETSRID(ST_POINT(x,y),4326);
   IF modus_input <> 3 THEN 
 		SELECT count(objectid) + 1 
@@ -47,7 +51,7 @@ begin
 		SELECT userid_input, start_point, objectid_input, number_calculation_input;
 	END IF; 
   
-  IF  routing_profile = 'walking_elderly' THEN
+  IF routing_profile = 'walking_elderly' THEN
     speed = speed_elderly; 
   ELSEIF routing_profile = 'walking_wheelchair' THEN
     speed = speed_wheelchair; 
@@ -109,10 +113,11 @@ begin
 
   ALTER TABLE temp_reached_vertices ADD PRIMARY KEY(node);
 
-  PERFORM get_reached_network(objectid_input,minutes*60,number_isochrones);
+  PERFORM get_reached_network(objectid_input,minutes*60,number_isochrones,ARRAY[99999998,99999999]);
 
   RETURN;
 END ;
 $function$;
 
 --SELECT * FROM public.pgrouting_edges(7, 11.546394, 48.195533, 1.33, 2, 1, 15, 1, 'walking_safe_night');
+--Speed in m/s
