@@ -21,7 +21,6 @@
         <template v-for="calculation in calculations">
           <v-card class="mb-3 " :key="calculation.id">
             <!-- Isochrone Nr -->
-
             <v-chip
               x-small
               dark
@@ -34,7 +33,6 @@
                 ><b>{{ calculation.id }}</b></span
               >
             </v-chip>
-
             <v-card-title class="pb-0 mb-0">
               <v-layout row wrap>
                 <v-layout align-start justify-start>
@@ -143,13 +141,23 @@
                     : 'fas fa-chevron-right'
                 "
               ></v-icon>
-              <h3>
-                {{
-                  calculation.position === "multiIsochroneCalculation"
-                    ? $t("isochrones.results.multiIsochroneHeader")
-                    : calculation.position
-                }}
-              </h3>
+              <v-tooltip
+                :disabled="calculation.position === 'multiIsochroneCalculation'"
+                open-delay="600"
+                max-width="300"
+                top
+              >
+                <template v-slot:activator="{ on }">
+                  <h3 class="result-title" v-on="on">
+                    {{
+                      calculation.position === "multiIsochroneCalculation"
+                        ? $t("isochrones.results.multiIsochroneHeader")
+                        : calculation.position
+                    }}
+                  </h3>
+                </template>
+                <span>{{ calculation.position }}</span></v-tooltip
+              >
             </v-subheader>
             <v-subheader
               @click="calculation.isExpanded = !calculation.isExpanded"
@@ -382,5 +390,14 @@ export default {
 
 .v-chip--label {
   border-radius: 0px 8px 8px 0px !important;
+}
+
+.result-title {
+  display: inline-block;
+  width: 265px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

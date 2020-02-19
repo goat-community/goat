@@ -268,10 +268,8 @@ const actions = {
       if (reverseGeocode.status === 200 && reverseGeocode.data.display_name) {
         const address = reverseGeocode.data.display_name;
 
-        const DisplayName =
-          address.length > 30 ? address.slice(0, 30) + "..." : address;
         if (address.length > 0) {
-          transformedData.position = DisplayName;
+          transformedData.position = address;
         }
       }
     } else {
