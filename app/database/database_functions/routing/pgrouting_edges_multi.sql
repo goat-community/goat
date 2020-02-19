@@ -1,15 +1,28 @@
 DROP FUNCTION IF EXISTS pgrouting_edges_multi;
-CREATE OR REPLACE FUNCTION public.pgrouting_edges_multi(userid_input integer, minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, objectids int[], modus_input integer,routing_profile text)
- RETURNS SETOF type_catchment_vertices_multi
+CREATE OR REPLACE FUNCTION public.pgrouting_edges_multi(userid_input integer, minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, number_isochrones integer, objectids int[], objectid_input integer, modus_input integer,routing_profile text)
+ RETURNS void --SETOF type_catchment_vertices_multi
  LANGUAGE plpgsql
 AS $function$
 DECLARE
 	distance integer;
-	array_starting_vertices bigint[];
+	array_starting_ids bigint[] := array[]::bigint[];
+  array_starting_geom geometry[] :=array[]::geometry[]; 
+  array_original_wid bigint[] := array[]::bigint[];
+  array_new_wid bigint[] := array[]::bigint[];
 	excluded_class_id text;
 	categories_no_foot text;
 	buffer text;
   userid_vertex integer;
+  counter integer := 1;
+  new_vid bigint := 999999999;
+  wid bigint;
+  new_wid1 bigint := 999999999;
+  new_wid2 bigint := 999999998;
+  closest_point geometry;
+  fraction float;
+  single_id integer;
+  x numeric;
+  y numeric;
 BEGIN
   
   IF modus_input IN(1,3)  THEN
@@ -22,40 +35,77 @@ BEGIN
 	END IF;
   raise notice '%',modus_input;
   DROP TABLE IF EXISTS closest_vertices;
-  speed = speed/3.6;
-  distance = minutes*speed*60;
- 
-  CREATE TEMP TABLE IF NOT EXISTS closest_vertices (closest_vertices bigint, geom geometry, objectid integer);
-  TRUNCATE closest_vertices;
 
-  INSERT INTO closest_vertices
-  SELECT closest_vertex[1]::bigint closest_vertices, closest_vertex[2]::geometry AS geom, objectid 
-  FROM (
-	  SELECT closest_vertex(userid_vertex,lat_lon_array[1],lat_lon_array[2],0.0018 /*100m => approx. 0.0009 */, modus_input, routing_profile), objectid
-	  FROM (
-	  	SELECT UNNEST_2d_1d(array_starting_points) AS lat_lon_array, UNNEST(objectids) AS objectid
-	  )x
-  ) y;
+  distance = (60*minutes)*speed;
   
- SELECT DISTINCT array_agg(closest_vertices)
- INTO array_starting_vertices
- FROM closest_vertices;
- 
- SELECT ST_AsText(ST_Buffer(ST_Union(c.geom)::geography,distance)::geometry)  
- INTO buffer
- FROM closest_vertices c;
-	
- RETURN query 
-  SELECT x.from_v::int start_vertex, x.node::int, x.edge::int, w.cnt, (x.agg_cost/speed)::numeric AS cost, w.geom, c.objectid
-  FROM ways_userinput_vertices_pgr w, 
+  SELECT ST_AsText(ST_Buffer(ST_Union(ST_POINT(c.lat_lon[1],c.lat_lon[2]))::geography,distance)::geometry)  
+  INTO buffer
+  FROM (SELECT unnest_2d_1d(array_starting_points) lat_lon) c;
+
+  DROP TABLE IF EXISTS temp_fetched_ways;
+  CREATE TEMP TABLE temp_fetched_ways AS 
+  SELECT * FROM fetch_ways_routing(buffer,modus_input,userid_input,routing_profile);
+
+  ALTER TABLE temp_fetched_ways ADD PRIMARY KEY(id);
+  CREATE INDEX ON temp_fetched_ways (target);
+  CREATE INDEX ON temp_fetched_ways (source);
+  CREATE INDEX ON temp_fetched_ways (death_end);
+
+  FOREACH single_id IN ARRAY objectids
+	LOOP
+    new_wid1 = new_wid1 - 1;
+    new_wid2 = new_wid1 - 1;
+    
+
+    new_vid = new_vid - 1;
+    raise notice '%',new_vid;
+    x = array_starting_points[counter][1];
+    y = array_starting_points[counter][2];
+
+    SELECT c.closest_point, c.fraction, c.wid
+    INTO closest_point, fraction, wid
+    FROM closest_point_network(x,y) c;
+
+    INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
+    SELECT new_wid1, cost*fraction,reverse_cost*fraction,SOURCE,new_vid,ST_LINESUBSTRING(geom,0,fraction)
+    FROM temp_fetched_ways 
+    WHERE id = wid
+    UNION ALL 
+    SELECT new_wid2, cost*(1-fraction),reverse_cost*(1-fraction),new_vid,target,ST_LINESUBSTRING(geom,fraction,1)
+    FROM temp_fetched_ways 
+    WHERE id = wid;   
+
+    array_starting_ids = array_starting_ids || new_vid;
+    array_starting_geom = array_starting_geom || closest_point;
+    array_original_wid = array_original_wid || wid;
+    array_new_wid = array_new_wid || new_wid1 || new_wid2;
+
+    counter = counter + 1;
+    new_wid1 = new_wid1 - 1;
+
+  END LOOP;
+
+  DROP TABLE IF EXISTS starting_vertices;
+  CREATE temp TABLE starting_vertices AS 
+  SELECT UNNEST(array_starting_ids) vid,UNNEST(objectids) objectid;
+
+  DROP TABLE IF EXISTS temp_reached_vertices;
+
+  CREATE TEMP TABLE temp_reached_vertices AS
+  SELECT x.node::int, min((x.agg_cost/speed)::numeric) AS cost, v.geom, v.death_end
+  FROM 
   (SELECT from_v, node, edge, agg_cost FROM pgr_drivingDistance(
-	'SELECT id,source,target,cost,reverse_cost,geom FROM fetch_ways_routing('''||buffer||''','||modus_input||','||userid_input||','''||routing_profile||''')'
-	,array_starting_vertices, distance,FALSE,FALSE)
-  )x, closest_vertices c
-  WHERE w.id = x.node AND c.closest_vertices = from_v;
+  'SELECT * FROM temp_fetched_ways WHERE NOT id = ANY('''||array_original_wid::text||''')'
+  ,array_starting_ids, distance,FALSE,FALSE)
+  ) x, ways_userinput_vertices_pgr v 
+  WHERE v.id = x.node
+  GROUP BY x.node, v.geom, v.death_end;
+
+  PERFORM get_reached_network(objectid_input,minutes*60,number_isochrones,array_new_wid);
+
 END ;
 $function$;
 
 
 
---SELECT * FROM public.pgrouting_edges_multi(100, 15, ARRAY[[11.5669,48.1546],[11.5788,48.1545]], 1.33, ARRAY[1,2], 1, 'walking_wheelchair');
+--SELECT * FROM public.pgrouting_edges_multi(100, 20, ARRAY[[11.2570,48.1841],[11.2314,48.1736],[11.2503,48.1928],[11.2487,48.1718]],1.33, 3, ARRAY[1,2,3,4], 100,20, 'walking_standard');
