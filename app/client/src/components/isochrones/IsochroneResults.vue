@@ -113,7 +113,7 @@
                         @click="deleteCalculation(calculation)"
                         small
                         v-on="on"
-                        class="result-icons mr-6"
+                        class="result-icons delete-icon mr-6"
                       >
                         fas fa-trash-alt</v-icon
                       >
@@ -353,10 +353,13 @@ export default {
 <style lang="css">
 .result-icons {
   color: "#4A4A4A";
+  cursor: pointer;
 }
 .result-icons:hover {
-  cursor: pointer;
   color: #30c2ff;
+}
+.delete-icon:hover {
+  color: #ff6060;
 }
 .isochrone-nr {
   position: absolute;
