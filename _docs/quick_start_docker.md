@@ -31,7 +31,7 @@ If you are on Windows follow:
 
 As docker and docker-compose were originally build for the Linux OS, it could be that you experience issues, when installing Docker on your Windows machine. There are some common issues and possible solutions listed here:
 
-[https://docs.docker.com/docker-for-windows/troubleshoot/](ttps://docs.docker.com/docker-for-windows/troubleshoot/)
+[https://docs.docker.com/docker-for-windows/troubleshoot/](https://docs.docker.com/docker-for-windows/troubleshoot/)
 
 In case you don't manage to install docker on your machine. You can follow the setup procedure described here: 
 
