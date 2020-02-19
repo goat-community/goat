@@ -21,23 +21,41 @@
         <template v-for="calculation in calculations">
           <v-card class="mb-3 " :key="calculation.id">
             <!-- Isochrone Nr -->
-            <div class="isochrone-nr">{{ calculation.id }}</div>
+
+            <v-chip
+              x-small
+              dark
+              label
+              color="#676767"
+              style="padding:5px;"
+              class="isochrone-nr"
+            >
+              <span
+                ><b>{{ calculation.id }}</b></span
+              >
+            </v-chip>
+
             <v-card-title class="pb-0 mb-0">
               <v-layout row wrap>
                 <v-layout align-start justify-start>
                   <v-card-text class="pa-0 ma-0 ml-3">
-                    <v-icon small class="mr-1 text-xs-center"
-                      >fas fa-clock</v-icon
-                    >
-                    <span class="subtitle-2 text-xs-center">{{
-                      calculation.time
-                    }}</span>
-                    <v-icon small class="ml-2 mr-1 "
-                      >fas fa-tachometer-alt</v-icon
-                    >
-                    <span class="subtitle-2 text-xs-center">{{
-                      calculation.speed
-                    }}</span>
+                    <v-chip small class="mb-1 mr-1">
+                      <v-avatar left>
+                        <v-icon small class="text-xs-center"
+                          >fas fa-clock</v-icon
+                        >
+                      </v-avatar>
+                      {{ calculation.time }}
+                    </v-chip>
+
+                    <v-chip small class="mb-1 ">
+                      <v-avatar left>
+                        <v-icon small class="text-xs-center"
+                          >fas fa-tachometer-alt</v-icon
+                        >
+                      </v-avatar>
+                      {{ calculation.speed }}
+                    </v-chip>
                   </v-card-text>
                 </v-layout>
 
@@ -334,7 +352,6 @@ export default {
 }
 .isochrone-nr {
   position: absolute;
-  left: 6px;
 }
 .v-data-table td,
 .v-data-table th {
@@ -361,5 +378,9 @@ export default {
 
 .subheader {
   height: 25px;
+}
+
+.v-chip--label {
+  border-radius: 0px 8px 8px 0px !important;
 }
 </style>
