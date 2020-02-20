@@ -25,7 +25,7 @@
               x-small
               dark
               label
-              color="#676767"
+              :color="isCalculationActive(calculation) ? '#30C2FF' : '#676767'"
               style="padding:5px;"
               class="isochrone-nr"
             >
@@ -260,8 +260,7 @@ export default {
 
   methods: {
     ...mapActions("isochrones", {
-      removeCalculation: "removeCalculation",
-      setSelectedThematicData: "setSelectedThematicData"
+      removeCalculation: "removeCalculation"
     }),
     ...mapMutations("isochrones", {
       toggleIsochroneFeatureVisibility: "TOGGLE_ISOCHRONE_FEATURE_VISIBILITY",
@@ -341,13 +340,27 @@ export default {
     showAdditionalLayerDialog(calculation) {
       this.additionalLayersDialogState = true;
       this.selectedCalculation = calculation;
+    },
+    isCalculationActive(calculation) {
+      if (
+        this.selectedThematicData &&
+        this.isThematicDataVisible &&
+        calculation &&
+        this.selectedThematicData.calculationId === calculation.id
+      ) {
+        return true;
+      } else {
+        return false;
+      }
     }
   },
   computed: {
     ...mapGetters("isochrones", {
       calculations: "calculations",
       isochroneLayer: "isochroneLayer",
-      isochroneRoadNetworkLayer: "isochroneRoadNetworkLayer"
+      isochroneRoadNetworkLayer: "isochroneRoadNetworkLayer",
+      selectedThematicData: "selectedThematicData",
+      isThematicDataVisible: "isThematicDataVisible"
     }),
     headers() {
       return [
