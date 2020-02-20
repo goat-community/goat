@@ -5,6 +5,7 @@
 [![Build Status](https://travis-ci.org/goat-community/goat.png?branch=master)](https://travis-ci.org/goat-community/goat)
 
 </div>
+
 ## About
 
 This is the experimental release of Geo Open Accessibility Tool (GOAT). GOAT is meant to be an open source, interactive,
