@@ -190,7 +190,7 @@
                     :input-value="item.isVisible"
                     primary
                     hide-details
-                    @change="toggleIsochroneFeatureVisibility(item)"
+                    @change="toggleIsochroneVisibility(item, calculation)"
                   ></v-switch>
                 </template>
                 <template v-slot:item.legend="{ item }">
@@ -268,6 +268,28 @@ export default {
       toggleIsochroneCalculationVisibility:
         "TOGGLE_ISOCHRONE_CALCULATION_VISIBILITY"
     }),
+    toggleIsochroneVisibility(feature, calculation) {
+      //Get all visible calculation
+      const visibleFeatures = calculation.data.filter(
+        feature => feature.isVisible === true
+      );
+
+      //If user has turned off other features, hide the result
+      if (
+        visibleFeatures.length === 1 &&
+        visibleFeatures[0].id === feature.id &&
+        visibleFeatures[0].isVisible === true
+      ) {
+        this.showHideCalculation(calculation);
+      } else {
+        this.toggleIsochroneFeatureVisibility(feature);
+      }
+
+      if (calculation.isVisible === false && feature.isVisible === true) {
+        this.showHideNetworkData(calculation);
+        calculation.isVisible = true;
+      }
+    },
     deleteCalculation(calculation) {
       this.$refs.confirm
         .open(
@@ -289,8 +311,7 @@ export default {
       this.isochroneColorPickerState = true;
       this.isochroneItem = item;
     },
-    showHideCalculation(calculation) {
-      const me = this;
+    showHideNetworkData(calculation) {
       //Check if road netowrk is visible. Is so remove all features from map.
       const roadNetworkData = calculation.additionalData;
       for (let type in roadNetworkData) {
@@ -299,10 +320,10 @@ export default {
         const roadNetworkSource = this.isochroneRoadNetworkLayer.getSource();
         const features = roadNetworkData[type].features;
         if (state === true && calculation.isVisible === true) {
-          // roadNetworkData[type].state = false;
-
           features.forEach(feature => {
-            roadNetworkSource.removeFeature(feature);
+            if (roadNetworkSource.hasFeature(feature)) {
+              roadNetworkSource.removeFeature(feature);
+            }
           });
         } else if (state === true && calculation.isVisible === false) {
           features.forEach(feature => {
@@ -310,7 +331,11 @@ export default {
           });
         }
       }
+    },
+    showHideCalculation(calculation) {
+      const me = this;
 
+      me.showHideNetworkData(calculation);
       me.toggleIsochroneCalculationVisibility(calculation);
     },
     showAdditionalLayerDialog(calculation) {
