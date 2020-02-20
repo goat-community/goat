@@ -3,7 +3,6 @@
         <img src="https://www.open-accessibility.org/img/logonav.png" width="175">
     </a>
 </div>
-<br />
 
 <h1 align="center">Geo Open Accessibility Tool (GOAT)</h1>
 
