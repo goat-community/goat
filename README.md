@@ -1,4 +1,11 @@
-# Geo Open Accessibility Tool (GOAT)
+<div align="center">
+    <a href="https://www.open-accessibility.org/">
+        <img src="https://www.open-accessibility.org/img/logonav.png" width="175">
+    </a>
+</div>
+<br />
+
+<h1 align="center">Geo Open Accessibility Tool (GOAT)</h1>
 
 <div align="center">
 
