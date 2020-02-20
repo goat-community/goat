@@ -437,18 +437,17 @@ const actions = {
     }
 
     const features = calculation.additionalData[payload.type]["features"];
+    const roadLayerSource = rootState.isochrones.isochroneRoadNetworkLayer.getSource();
     if (payload.state === false && features.length > 0) {
       //2- Remove features from road network layer
       features.forEach(feature => {
-        rootState.isochrones.isochroneRoadNetworkLayer
-          .getSource()
-          .removeFeature(feature);
+        if (roadLayerSource.hasFeature(feature)) {
+          roadLayerSource.removeFeature(feature);
+        }
       });
     } else {
       //3- Add already loaded feature again to the road network layer
-      rootState.isochrones.isochroneRoadNetworkLayer
-        .getSource()
-        .addFeatures(features);
+      roadLayerSource.addFeatures(features);
     }
   },
 

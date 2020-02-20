@@ -296,15 +296,21 @@ export default {
       for (let type in roadNetworkData) {
         // type can be 'Deafult' or 'Input'
         const state = roadNetworkData[type].state;
-        if (state === true) {
-          roadNetworkData[type].state = false;
-          const roadNetworkSource = this.isochroneRoadNetworkLayer.getSource();
-          const features = roadNetworkData[type].features;
+        const roadNetworkSource = this.isochroneRoadNetworkLayer.getSource();
+        const features = roadNetworkData[type].features;
+        if (state === true && calculation.isVisible === true) {
+          // roadNetworkData[type].state = false;
+
           features.forEach(feature => {
             roadNetworkSource.removeFeature(feature);
           });
+        } else if (state === true && calculation.isVisible === false) {
+          features.forEach(feature => {
+            roadNetworkSource.addFeature(feature);
+          });
         }
       }
+
       me.toggleIsochroneCalculationVisibility(calculation);
     },
     showAdditionalLayerDialog(calculation) {
