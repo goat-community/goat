@@ -63,3 +63,5 @@ collections:
     output: true
   videos:
     output: false
+  versions:
+    output: false

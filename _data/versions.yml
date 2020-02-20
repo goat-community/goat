@@ -1,0 +1,11 @@
+- title: munich
+  print: München
+  text: This is the version of the GOAT-homebase Munich.
+  url: https://goat.open-accessibility.org/
+
+- title: ffb
+  print: Fürstenfeldbruck
+  text:  This version is under development within the frame of the mFund project and 
+          contains first approaches of the cycling routing and land-use changes.
+  url: https://development.open-accessibility.org/
+
