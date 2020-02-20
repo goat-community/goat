@@ -34,7 +34,7 @@
             <v-icon color="white">fas fa-chevron-left</v-icon>
           </v-btn>
         </v-app-bar>
-
+        <routing-toolbar></routing-toolbar>
         <vue-scroll>
           <v-layout
             justify-space-between
@@ -82,10 +82,12 @@
 // Utilities
 import Isochrones from "../isochrones/Isochrones";
 import LayerTree from "../layers/layerTree/LayerTree";
+import RoutingToolbar from "./RoutingToolbar";
 export default {
   components: {
     "map-isochrones": Isochrones,
-    "map-layertree": LayerTree
+    "map-layertree": LayerTree,
+    "routing-toolbar": RoutingToolbar
   },
   name: "tree-panel",
   data: () => ({
