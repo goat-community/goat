@@ -92,16 +92,16 @@ BEGIN
   DROP TABLE IF EXISTS temp_reached_vertices;
 
   CREATE TEMP TABLE temp_reached_vertices AS
-  SELECT x.node::int, min((x.agg_cost/speed)::numeric) AS cost, v.geom, v.death_end
+  SELECT jsonb_object_agg(s.objectid,agg_cost/speed) AS node_cost,sort(array_agg(s.objectid)) objectids,x.node::int, min((x.agg_cost/speed)::numeric) AS min_cost, v.geom, v.death_end
   FROM 
   (SELECT from_v, node, edge, agg_cost FROM pgr_drivingDistance(
   'SELECT * FROM temp_fetched_ways WHERE NOT id = ANY('''||array_original_wid::text||''')'
   ,array_starting_ids, distance,FALSE,FALSE)
-  ) x, ways_userinput_vertices_pgr v 
-  WHERE v.id = x.node
+  ) x, ways_userinput_vertices_pgr v, starting_vertices s  
+  WHERE v.id = x.node AND s.vid = x.from_v
   GROUP BY x.node, v.geom, v.death_end;
 
-  PERFORM get_reached_network(objectid_input,minutes*60,number_isochrones,array_new_wid);
+  --PERFORM get_reached_network(objectid_input,minutes*60,number_isochrones,array_new_wid);
 
 END ;
 $function$;
