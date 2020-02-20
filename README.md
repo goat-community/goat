@@ -1,9 +1,14 @@
 # Geo Open Accessibility Tool (GOAT)
 
+<div align="center">
+
+[![Build Status](https://travis-ci.org/goat-community/goat.png?branch=master)](https://travis-ci.org/goat-community/goat)
+
+</div>
 ## About
 
-This is the experimental release of Geo Open Accessibility Tool (GOAT). GOAT is meant to be an open source, interactive, 
-flexible and useful web-tool for accessibility planning. 
+This is the experimental release of Geo Open Accessibility Tool (GOAT). GOAT is meant to be an open source, interactive,
+flexible and useful web-tool for accessibility planning.
 
 For more information:
 
@@ -20,5 +25,3 @@ For more information:
 If you want to help us translating the GOAT userinterface, you are very welcome to help us. Just check the following POEditor-Link:
 
 [Click here](https://poeditor.com/join/project/M2FCLLqSoe)
-
-
