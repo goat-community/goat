@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS pgrouting_edges_multi;
-CREATE OR REPLACE FUNCTION public.pgrouting_edges_multi(userid_input integer, minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, number_isochrones integer, objectids int[], objectid_input integer, modus_input integer,routing_profile text)
+CREATE OR REPLACE FUNCTION public.pgrouting_edges_multi(userid_input integer, minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, number_isochrones integer, ids_calc int[], objectid_input integer, modus_input integer,routing_profile text)
  RETURNS void --SETOF type_catchment_vertices_multi
  LANGUAGE plpgsql
 AS $function$
@@ -51,7 +51,7 @@ BEGIN
   CREATE INDEX ON temp_fetched_ways (source);
   CREATE INDEX ON temp_fetched_ways (death_end);
 
-  FOREACH single_id IN ARRAY objectids
+  FOREACH single_id IN ARRAY ids_calc
 	LOOP
     new_wid1 = new_wid1 - 1;
     new_wid2 = new_wid1 - 1;
@@ -87,12 +87,12 @@ BEGIN
 
   DROP TABLE IF EXISTS starting_vertices;
   CREATE temp TABLE starting_vertices AS 
-  SELECT UNNEST(array_starting_ids) vid,UNNEST(objectids) objectid;
+  SELECT UNNEST(array_starting_ids) vid,UNNEST(ids_calc) id_calc;
 
   DROP TABLE IF EXISTS temp_reached_vertices;
 
   CREATE TEMP TABLE temp_reached_vertices AS
-  SELECT jsonb_object_agg(s.objectid,agg_cost/speed) AS node_cost,sort(array_agg(s.objectid)) objectids,x.node::int, min((x.agg_cost/speed)::numeric) AS min_cost, v.geom, v.death_end
+  SELECT jsonb_object_agg(s.id_calc,agg_cost/speed) AS node_cost,sort(array_agg(s.id_calc)) ids_calc,x.node::int, min((x.agg_cost/speed)::numeric) AS min_cost, v.geom, v.death_end
   FROM 
   (SELECT from_v, node, edge, agg_cost FROM pgr_drivingDistance(
   'SELECT * FROM temp_fetched_ways WHERE NOT id = ANY('''||array_original_wid::text||''')'
@@ -101,7 +101,7 @@ BEGIN
   WHERE v.id = x.node AND s.vid = x.from_v
   GROUP BY x.node, v.geom, v.death_end;
 
-  --PERFORM get_reached_network(objectid_input,minutes*60,number_isochrones,array_new_wid);
+  PERFORM get_reached_network_multi(ids_calc,minutes*60, number_isochrones, array_new_wid, objectid_input);
 
 END ;
 $function$;
