@@ -314,6 +314,9 @@
       "clickToRemove": "Click to remove it",
       "clickToPlacePoint": "Click to place the point",
       "routingProfiles": {
+        "walking": "Walking",
+        "cycling": "Cycling",
+        "wheelchair": "Wheelchair",
         "walking_standard": "Default routing",
         "walking_elderly": " Routing with reduced walking speed",
         "walking_wheelchair": "Routing excluding paths and points-of-interest that are not barrier-free",
