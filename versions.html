@@ -1,0 +1,27 @@
+---
+title: "Available GOAT Versions"
+layout: default
+---
+
+<div class="container">
+    <h1>GOAT Versions</h1>
+    <br>
+    <div class="row videos">
+        {% for version in site.data.versions %}
+            <div class="col-sm-6 col-md-4">
+                <div class="card">
+                    <img src="../img/img_versions/{{version.title}}.png" class="card-img-top" alt="{{ version.title }}">
+                    <div class="card-body">
+                        <h5 class="card-title text-center"><a href="#" data-toggle="modal" data-target="#modal-version" data-version="{{ version.print }}">{{version.print}}</a></h5>
+                        <div class="card-text">{{version.text}}</div>
+                        <br>
+                        <div class="text-center"><a href="{{version.url}}"><a class="btn btn-primary" href="{{version.url}}">Visit</a></div>  
+                    </div>
+                </div> 
+            </div>  
+            {% cycle '', '<div class="clearfix visible-sm-block"></div>' %}
+            {% cycle '', '', '<div class="clearfix visible-md-block visible-lg-block"></div>' %}   
+        {% endfor %}
+    </div>
+    <br>
+</div>
