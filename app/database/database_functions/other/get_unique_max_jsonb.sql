@@ -69,3 +69,24 @@ RETURNS anyarray AS $$
                EXCEPT 
                SELECT unnest($2))
 $$ LANGUAGE sql;
+
+CREATE OR REPLACE FUNCTION add_value_to_object(input jsonb,added_value float,max_cost float)
+  RETURNS jsonb
+  LANGUAGE plpgsql IMMUTABLE AS -- language declaration required
+$func$
+DECLARE
+   _key   text;
+   _value NUMERIC;
+new_json jsonb := '{}'::jsonb;
+BEGIN
+    FOR _key, _value IN
+       SELECT * FROM jsonb_each($1)
+    LOOP
+    	IF _value < (max_cost - added_value) THEN 
+    		new_json = new_json || jsonb_build_object(_key,_value+added_value);   
+    	END IF;
+    END LOOP;
+	
+    RETURN new_json;
+END
+$func$;
