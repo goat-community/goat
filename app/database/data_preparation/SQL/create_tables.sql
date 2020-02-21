@@ -53,6 +53,35 @@ CREATE UNLOGGED TABLE public.edges (
 --CREATE INDEX index_edges ON edges USING gist(geom);
 CREATE INDEX ON edges USING btree(objectid,cost);
 
+CREATE UNLOGGED TABLE public.edges_multi (
+	edge integer NULL,
+	node integer NULL,
+	min_cost numeric NULL,
+	geom geometry NULL,
+	v_geom geometry NULL,
+	objectid int4 NULL,
+	node_cost_1 jsonb,
+	node_cost_2 jsonb,
+	id serial NOT NULL,
+	CONSTRAINT edges_multi_pkey PRIMARY KEY (id)
+);
+--CREATE INDEX index_edges ON edges USING gist(geom);
+CREATE INDEX ON edges_multi USING btree(objectid,min_cost);
+
+
+CREATE TABLE edges_multi_extrapolated(
+	edge integer,
+	node integer,
+	cost numeric,
+	geom geometry,
+	v_geom geometry,
+	id_calc integer, 
+	objectid integer,
+	id serial,
+	CONSTRAINT edges_multi_extrapolated_pkey PRIMARY KEY(id)
+);
+CREATE INDEX ON edges_multi_extrapolated USING btree(objectid,id_calc,cost);
+
 CREATE TABLE public.starting_point_isochrones (
 	gid serial,
 	userid int4 NOT NULL,
