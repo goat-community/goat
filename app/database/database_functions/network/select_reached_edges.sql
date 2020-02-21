@@ -1,17 +1,18 @@
-CREATE OR REPLACE FUNCTION select_reached_edges(id_calc integer,objectid_input integer,calc_step numeric) 
+CREATE OR REPLACE FUNCTION select_reached_edges(id_calc_input integer,objectid_input integer,calc_step numeric) 
 RETURNS SETOF geometry 
 LANGUAGE plpgsql
 AS $function$
 DECLARE 
-	id_calc_text text := id_calc::text;
+	id_calc_text text := id_calc_input::text;
 	sql_select text;
 BEGIN 
 	
 	RETURN query
     SELECT v_geom
-    FROM edges_multi_extrapolated
-    WHERE objectid = objectid_input
-    AND cost = calc_step
+    FROM edges_multi_extrapolated e
+    WHERE e.objectid = objectid_input
+    AND e.cost = calc_step
+    AND e.id_calc = id_calc_input
     UNION ALL
     SELECT v_geom
     FROM edges_multi
