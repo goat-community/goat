@@ -8,7 +8,8 @@
 
 <div align="center">
 
-[![Build Status](https://travis-ci.org/goat-community/goat.png?branch=master)](https://travis-ci.org/goat-community/goat)
+[![Build Status](https://travis-ci.org/goat-community/goat.png?branch=master)](https://travis-ci.org/goat-community/goat/tree/master)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 </div>
 
