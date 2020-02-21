@@ -8,8 +8,12 @@ ALTER TABLE custom_pois ADD gid int4 NOT NULL DEFAULT nextval('pois_gid_seq'::re
 
 DROP TABLE IF EXISTS pois_targets;
 CREATE INDEX IF NOT EXISTS custom_pois_idx ON custom_pois USING btree(gid);
-SELECT DISTINCT lower(stand_name) AS name, lower(amenity) AS amenity INTO pois_targets FROM custom_pois WHERE stand_name='raiffeisenbank';
+SELECT DISTINCT lower(stand_name) AS name, lower(amenity) AS amenity INTO pois_targets FROM custom_pois;
 SELECT * FROM pois_targets;
+
+SELECT stand_name, count(stand_name) FROM custom_pois_clip GROUP BY stand_name;
+
+SELECT amenity, count(amenity)FROM pois_backup GROUP BY amenity;
 
 -- 02. Change coordinate system of custom_pois
 
@@ -19,6 +23,7 @@ ALTER TABLE custom_pois
 	USING ST_Transform(geom,4326);
 
 SELECT pois_fussion(1);
+SELECT count(gid) FROM pois;
 
 -- 03. Clip custom pois to study area
 
@@ -28,8 +33,7 @@ INSERT INTO custom_pois_clip
 	SELECT p.* FROM custom_pois p
 	WHERE ST_Intersects((SELECT ST_Buffer(geom::geography, 1000) FROM study_area_union), p.geom);
 
--- 04. Loop execution
--- 02. Loop 
+
 
 CREATE OR REPLACE FUNCTION pois_fussion(value integer)
 	RETURNS integer 
@@ -46,13 +50,7 @@ BEGIN
 		curname = rowrec.name;
 		
 		-- 01.01. FILTER CASES FOR EACH AMENITY TYPE AND AMENITY NAME IN POIS
-		
-		--SELECT *
-		--FROM pois
-		--WHERE lower(name) LIKE ANY(SELECT jsonb_array_elements_text((select_from_variable_container_o ->> 'edeka')::jsonb)
-		--FROM select_from_variable_container_o('pois_search_conditions')
-		--)
-		--AND amenity = 'supermarket';	
+
 	
 		DROP TABLE IF EXISTS pois_case;
 		CREATE TABLE pois_case (LIKE pois INCLUDING ALL);
@@ -63,20 +61,20 @@ BEGIN
 		DELETE FROM pois p WHERE lower(p.amenity) = rowrec.amenity AND lower(p.name) LIKE ANY (SELECT jsonb_array_elements_text((select_from_variable_container_o ->> rowrec.name)::jsonb)
 			FROM select_from_variable_container_o('pois_search_conditions'));
 		
---		SELECT * FROM pois p WHERE lower(p.amenity) = rowrec.amenity AND lower(p.name) LIKE '%' || rowrec.name ||'%';
+--INSERT INTO pois_case SELECT *
+--FROM pois p WHERE lower(p.amenity) = 'supermarket' AND lower(p.name) LIKE ANY (SELECT jsonb_array_elements_text((select_from_variable_container_o ->> 'edeka')::jsonb)
+--FROM select_from_variable_container_o('pois_search_conditions'));
 
---		DELETE FROM pois p WHERE lower(p.amenity) = rowrec.amenity AND lower(p.name) LIKE '%' || rowrec.name ||'%';
-		
-		-- 01.02. FILTER CASES FOR EACH AMENITY TYPE AND AMENITY NAME IN CUSTOM POIS
+--DELETE FROM pois p WHERE lower(p.amenity) = 'supermarket' AND lower(p.name) LIKE ANY (SELECT jsonb_array_elements_text((select_from_variable_container_o ->> 'edeka')::jsonb)
+--FROM select_from_variable_container_o('pois_search_conditions'));
+			
+-- 01.02. FILTER CASES FOR EACH AMENITY TYPE AND AMENITY NAME IN CUSTOM POIS
 		
 		DROP TABLE IF EXISTS cus_pois_clip_case;
 		CREATE TABLE cus_pois_clip_case (LIKE custom_pois_clip INCLUDING ALL);
-		INSERT INTO cus_pois_clip_case SELECT * FROM custom_pois_clip WHERE lower(amenity) = rowrec.amenity AND lower(name) LIKE '%' || rowrec.name ||'%';
+		INSERT INTO cus_pois_clip_case SELECT * FROM custom_pois_clip WHERE lower(amenity) = rowrec.amenity AND lower(stand_name) LIKE '%' || rowrec.name ||'%';
 
---		DELETE FROM pois WHERE amenity = 'supermarket' AND name LIKE '%Rewe%';
---		SELECT count(amenity) FROM pois;
---		INSERT INTO cus_pois_clip_case SELECT * FROM custom_pois_clip WHERE lower(amenity) = 'supermarket' AND lower(name) LIKE '%rewe%';
---		INSERT INTO pois_case SELECT * FROM pois p WHERE lower(p.amenity) = 'supermarket' AND lower(p.name) LIKE '%rewe%';
+--INSERT INTO cus_pois_clip_case SELECT * FROM custom_pois_clip WHERE lower(amenity) = 'supermarket' AND lower(stand_name) LIKE '%' || 'edeka' ||'%';
 
 		--02. Data fusion cases
 		--02.01. Case 01: Duplicates in OSM, delete duplicates
@@ -93,7 +91,6 @@ BEGIN
 		JOIN pois_case p
 		ON ST_DWithin( o.geom::geography, p.geom::geography, select_from_variable_container_s('duplicated_lookup_radius')::float)
 		AND NOT ST_DWithin(o.geom, p.geom, 0);
---		SELECT * FROM pois_case_00_duplicates;
 --		SELECT * FROM pois_case;
 
 		--delete duplicates from pois_case
@@ -120,7 +117,7 @@ BEGIN
 	
 		INSERT INTO pois_case
 			SELECT * FROM  pois_case_00_duplicates;
-	
+
 		--02.02. Case 02: Duplicates in custom pois, delete duplicates 
 		--locate and extract duplicates from cus_pois_clip_case
 		
@@ -136,6 +133,16 @@ BEGIN
 		JOIN cus_pois_clip_case p
 		ON ST_DWithin( o.geom::geography, p.geom::geography, select_from_variable_container_s('duplicated_lookup_radius')::float)
 		AND NOT ST_DWithin(o.geom, p.geom, 0);
+
+		DELETE FROM cus_pois_clip_case WHERE geom=ANY(
+			SELECT o.geom
+		FROM cus_pois_clip_case o
+		JOIN cus_pois_clip_case p
+		ON ST_DWithin( o.geom::geography, p.geom::geography, select_from_variable_container_s('duplicated_lookup_radius')::float)
+		AND NOT ST_DWithin(o.geom, p.geom, 0));
+		
+		
+		
 	
 		-- Delete cases where st_distance = duplicate
 		
@@ -151,28 +158,37 @@ BEGIN
 	
 		INSERT INTO cus_pois_clip_case
 			SELECT * FROM  cus_pois_c00_duplicate;
+--SELECT * FROM cus_pois_clip_case;
 
 		--02.03. Case 03: Join opening hours from custom to osm
-		
-
 			
 		DROP TABLE IF EXISTS pois_case_op_hours;
 		CREATE TABLE pois_case_op_hours (LIKE pois_case INCLUDING ALL);
-		ALTER TABLE pois_case_op_hours ADD opening_ho varchar;
---		SELECT * FROM pois_case;
+		ALTER TABLE pois_case_op_hours ADD opening_hours_custom varchar;
+		
+		DROP TABLE IF EXISTS tag_lines;
+		CREATE TABLE tag_lines (LIKE pois_case);
+		ALTER TABLE tag_lines ADD st_shortestline geometry;
+		ALTER TABLE tag_lines ADD gid_custom int;
+		ALTER TABLE tag_lines ADD opening_hours_custom TEXT;
+		ALTER TABLE tag_lines ADD len float8;
+		
+		INSERT INTO tag_lines
+		SELECT p.*, st_shortestline(p.geom, c.geom), c.gid, c.opening_hours, st_length(st_shortestline(p.geom, c.geom)::geography)
+			FROM pois_case p, cus_pois_clip_case c 
+			WHERE ST_DWithin (p.geom::geography, c.geom::geography, select_from_variable_container_s('tag_new_radius')::float);
+		
+		DELETE FROM tag_lines a USING tag_lines b 
+		WHERE a.len > b.len AND (a.gid = b.gid);
 		
 		INSERT INTO pois_case_op_hours
-		SELECT p.*, c.opening_hours
+		SELECT p.*, c.opening_hours_custom
 			FROM pois_case p
-			LEFT OUTER JOIN cus_pois_clip_case c
-			ON ST_INTERSECTS(c.geom, ST_Buffer(p.geom::geography, select_from_variable_container_s('tag_new_radius')::float)::geometry)
-			ORDER BY c.opening_hours;
-		SELECT * FROM pois;
---		SELECT osm_id, count(osm_id)FROM pois_case_op_hours GROUP BY osm_id ORDER BY count(osm_id) DESC ;
---		SELECT * FROM pois_case_op_hours WHERE osm_id = 1741333377 OR osm_id = 3110157711;
+			LEFT JOIN tag_lines c
+ 			ON p.gid = c.gid;
 
-		UPDATE pois_case_op_hours SET opening_hours = opening_ho
-			WHERE opening_hours IS NULL;
+		UPDATE pois_case_op_hours SET opening_hours = opening_hours_custom
+			WHERE opening_hours IS NULL AND opening_hours_custom <>'None';
 		
 		DROP TABLE IF EXISTS pois_case;
 		CREATE TABLE pois_case (LIKE pois_case_op_hours INCLUDING ALL);
@@ -200,7 +216,7 @@ BEGIN
 			FROM  custom_new_pois;
 		
 
-		ALTER TABLE pois_case DROP COLUMN opening_ho;
+		ALTER TABLE pois_case DROP COLUMN opening_hours_custom;
 		--03. Append back to case
 
 		INSERT INTO pois (osm_id , orgin_geometry,"access", housenumber, amenity, origin , organic ,denomination ,brand ,"name" ,"operator" , public_transport, railway, religion, opening_hours,"ref", tags, geom, wheelchair )
@@ -217,6 +233,7 @@ BEGIN
 		DROP TABLE IF EXISTS custom_new_pois;
 		DROP TABLE IF EXISTS cus_pois_clip_case;
 		DROP TABLE IF EXISTS pois_case_op_hours;
+		DROP TABLE IF EXISTS tag_lines;
 	END LOOP;
 RETURN counter;
 END;
@@ -283,35 +300,55 @@ DROP TABLE custom_pois;
 DROP TABLE IF EXISTS pois_testcase_dm;
 DROP TABLE IF EXISTS custom_pois_testcase_dm;
 
-SELECT * INTO pois_testcase_dm FROM pois p WHERE amenity='chemist' AND lower(name) LIKE 'dm' AND (ST_Intersects((SELECT ST_Buffer(s.geom::geometry, 1000) FROM study_area_union s), p.geom)) ;
-SELECT * INTO custom_pois_testcase_dm FROM custom_pois_clip WHERE amenity ='chemist' AND lower(stand_name)= 'dm';
+SELECT * INTO pois_testcase_dm FROM pois p WHERE amenity='supermarket' AND lower(name) LIKE 'edeka' AND (ST_Intersects((SELECT ST_Buffer(s.geom::geometry, 1000) FROM study_area_union s), p.geom)) ;
+SELECT * INTO custom_pois_testcase_dm FROM custom_pois_clip WHERE amenity ='supermarket' AND lower(stand_name)= 'edeka';
 
 -- identify closer points
+CREATE TABLE tag_lines (LIKE pois_testcase_dm INCLUDING all);
 
-SELECT st_shortestline(p.geom, c.geom), p.gid AS gid_pois, c.gid AS gid_custom, st_length(st_shortestline(p.geom, c.geom)::geography) AS len 
-	INTO tag_lines FROM pois_testcase_dm p, custom_pois_testcase_dm c 
-	WHERE ST_DWithin (p.geom::geography, c.geom::geography, 130) ORDER BY gid_custom, len;
+ALTER TABLE tag_lines ADD st_shortestline geometry;
+ALTER TABLE tag_lines ADD gid_custom int;
+ALTER TABLE tag_lines ADD opening_hours_custom TEXT;
+ALTER TABLE tag_lines ADD len float8;
+SELECT * FROM tag_lines;
 
+INSERT INTO tag_lines
+SELECT p.*, st_shortestline(p.geom, c.geom), c.gid AS gid_custom, c.opening_hours AS opening_hours_custom, st_length(st_shortestline(p.geom, c.geom)::geography) AS len 
+	FROM pois_testcase_dm p, custom_pois_testcase_dm c 
+	WHERE ST_DWithin (p.geom::geography, c.geom::geography, select_from_variable_container_s('tag_new_radius')::float) ORDER BY gid_custom, len;
+SELECT gid, count(gid) FROM tag_lines GROUP BY gid ORDER BY gid;
 -- identify duplicates 
-HAVING count(gid_custom)>1
-SELECT gid_custom, count(gid_custom) FROM tag_lines GROUP BY gid_custom  ORDER BY gid_custom;
-SELECT gid_custom, count(gid_custom), len FROM tag_lines GROUP BY gid_custom, len ORDER BY gid_custom;
 
 DELETE FROM 
 	tag_lines a
 		USING tag_lines b
 WHERE 
 	a.len>b.len
-	AND (a.gid_pois = b.gid_pois);
+	AND (a.gid = b.gid);
+
+SELECT p.*, c.opening_hours_custom
+	FROM pois_testcase_dm p
+		LEFT OUTER JOIN tag_lines c
+ 		ON p.gid = c.gid;
+
+
+UPDATE tag_lines SET opening_hours = opening_hours_custom
+			WHERE opening_hours IS NULL AND opening_hours_custom <>'None';
+ 
 --tag lines contains the lines that have to be updated in pois for a specific amenity, 
+
+
 
 -- next step, join using gid_custom
 -- tag opening hours
 -- replace in database
 
-SELECT * FROM tag_lines ORDER BY gid_pois;
+SELECT * FROM tag_lines ORDER BY gid;
+SELECT gid_custom, count(gid_custom) FROM tag_lines GROUP BY gid_custom ORDER BY gid_custom ;
 SELECT * FROM pois_testcase_dm;
 SELECT * FROM custom_pois_testcase_dm;
 
 DROP TABLE IF EXISTS tag_lines;
 SELECT * FROM pois_testcase_dm;
+
+SELECT COUNT(gid) FROM pois WHERE gid=8715;
