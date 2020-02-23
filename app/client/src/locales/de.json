@@ -108,7 +108,23 @@
                 "deleteFeatureMsg": "Möchten Sie das ausgewählte Feature wirklich löschen?",
                 "selectWayType": "Art des Weges auswählen: ",
                 "wayType": "Art des Weges"
-            }
+            },
+            "activateLayerToDrawScenario": "Bitte aktivieren Sie den Layer, um Objekte wählen zu können.",
+            "geometryTypeInfo": "Benötigter Geometry Typ",
+            "requiredFields": "Auszufüllende Felder",
+            "referenceSystemInfo": "Referenzsystem sollte sein",
+            "featuresNotyetUploaded": "Objekte noch nicht hochgeladen. Klicken Sie auf Hochladen, um die Änderungen zu übernehmen.",
+            "differentGeometryType": "Geometries doesn't match",
+            "missingFields": "Fehlende Felder",
+            "fileCorrupted": "Geojson Datei ist beschädigt",
+            "noFile": "Keine Datei",
+            "allFeaturesUploaded": "Alle Objekte wurden hochgeladen",
+            "notAllUploaded": "Nicht alle Objekte wurden hochgeladen",
+            "errorHappened": "Es ist ein Fehler aufgetreten",
+            "scenarioFeatures": "Scenario Objekte",
+            "uploadYourData": "Bearbeitete Objekte hochladen",
+            "deleteAllTitle": "Alle löschen",
+            "deleteAllMessage": "Wollen Sie alle Scenario Daten löschen?"
         },
         "settings": {
             "title": "Einstellungen",
@@ -161,7 +177,11 @@
             "alphaShapeMode": "Detaillierungsgrad Isochronen",
             "defaultNetwork": "Standard",
             "modifiedNetwork": "Scenario",
-            "modifiedNetworkDoubleCalc": "Standard und Scenario"
+            "modifiedNetworkDoubleCalc": "Standard und Scenario",
+            "routingProfile": "Routing Profil",
+            "walking_standard": "Standard",
+            "walking_elderly": "Senior",
+            "walking_wheelchair": "Rollstuhl"
         },
         "results": {
             "title": "Ergebnisse",
@@ -169,6 +189,8 @@
             "additionalLayers": "Weitere Layer",
             "showDataTooltip": "Daten anzeigen",
             "toggleVisibilityTooltip": "Anzeige umschalten",
+            "showResultsTooltip": "Ergebnisse anzeigen",
+            "hideResultsTooltip": "Ergebnisse ausblenden",
             "downloadTooltip": "Herunterladen",
             "deleteCalcTooltip": "Berechnung löschen",
             "table": {
@@ -220,6 +242,7 @@
             "poisLayers": "Pois Layer",
             "administrativeLayers": "Layer Verwaltungsgrenzen",
             "streetlevelqualityLayers": "Street Level Quality",
+            "perceivedQuality": "Empfundene Qualität",
             "accessbilityBasemaps": "Grundkarten Erreichbarkeit",
             "backgroundLayers": "Hintergrundkarten"
         },
@@ -232,11 +255,12 @@
             "parking": "Parkplätze am Straßenrand",
             "speed": "Geschwindigkeitsbegrenzungen",
             "streetCrossings": "Straßenquerungsmöglichkeiten",
+            "streetFurniture": "Straßenmöbelierung",
             "surface": "Oberfläche",
             "wheelchairUsability": "Barrierefreiheit",
             "areaIsochrone": "Isochronengröße",
-            "walkabilityPopulation": "Walkability - Population Index",
-            "population": "Population",
+            "walkabilityPopulation": "Walkability - Bevölkerung Index",
+            "population": "Bevölkerung",
             "walkability": "Walkability",
             "studyArea": "Untersuchungsgebiet",
             "ways": "Wege",

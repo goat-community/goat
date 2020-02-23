@@ -6,6 +6,7 @@ import http from "../services/http";
  */
 const editLayerHelper = {
   featuresIDsToDelete: [],
+  deletedFeatures: [],
   selectedLayer: null,
   selectedWayType: "road",
   filterResults(response, source) {
@@ -46,6 +47,21 @@ const editLayerHelper = {
         originIdsArr.includes(originId) ||
         editLayerHelper.featuresIDsToDelete.includes(originId.toString())
       ) {
+        //check if feature already exist.
+        if (
+          editLayerHelper.deletedFeatures.filter(
+            f => f.getId() === feature.getId()
+          ).length === 0
+        ) {
+          const clonedFeature = feature.clone();
+          const layerName = this.selectedLayer
+            .getSource()
+            .getParams()
+            .LAYERS.split(":")[1];
+          clonedFeature.set("layerName", layerName);
+          clonedFeature.set("deletedId", originId);
+          editLayerHelper.deletedFeatures.push(feature.clone());
+        }
         source.removeFeature(feature);
       }
     });
@@ -57,10 +73,13 @@ const editLayerHelper = {
   },
   deleteFeature(feature, source, userid) {
     const props = feature.getProperties();
+    const beforeStatus = feature.get("status");
+    feature.set("status", null);
     if (props.hasOwnProperty("original_id")) {
       if (props.original_id !== null) {
         const fid = feature.getProperties().original_id.toString();
         editLayerHelper.featuresIDsToDelete.push(fid);
+        editLayerHelper.deletedFeatures.push(feature);
         editLayerHelper.commitDelete(
           "delete",
           userid,
@@ -73,11 +92,15 @@ const editLayerHelper = {
           editLayerHelper.featuresIDsToDelete
         );
       } else {
+        if (beforeStatus !== null) {
+          editLayerHelper.deletedFeatures.push(feature);
+        }
+
         editLayerHelper.commitDelete(
           "delete",
           userid,
           editLayerHelper.featuresIDsToDelete,
-          props.id
+          props.id || feature.getId()
         );
       }
     } else {
@@ -93,6 +116,7 @@ const editLayerHelper = {
       } else {
         fid = feature.getProperties().id.toString();
         editLayerHelper.featuresIDsToDelete.push(fid);
+        editLayerHelper.deletedFeatures.push(feature);
         editLayerHelper.commitDelete(
           "update",
           userid,
@@ -136,7 +160,8 @@ const editLayerHelper = {
         editLayerHelper.insertUserInDb("insert", user_id);
       });
   },
-  uploadFeatures(userId, streetSource, onUploadCb) {
+
+  uploadFeatures(userId, source, onUploadCb) {
     http
       .get("./geoserver/wfs", {
         params: {
@@ -149,8 +174,25 @@ const editLayerHelper = {
       })
       .then(function(response) {
         if (response.status === 200) {
+          //Set status of delete features as well
+          editLayerHelper.deletedFeatures = editLayerHelper.deletedFeatures.filter(
+            feature => {
+              feature.setProperties({
+                status: 1
+              });
+
+              //If there are any user drawn feature remove those.
+              if (feature.get("original_id") === null) {
+                return false;
+              } else {
+                return true;
+              }
+            }
+          );
+          console.log(editLayerHelper.deletedFeatures);
+
           //Update Feature Line type
-          streetSource.getFeatures().forEach(feature => {
+          source.getFeatures().forEach(feature => {
             const prop = feature.getProperties();
             if (prop.hasOwnProperty("status")) {
               feature.setProperties({

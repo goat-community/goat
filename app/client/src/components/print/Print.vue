@@ -991,7 +991,7 @@ export default {
         );
 
         const view = this.map.getView();
-        const contrainRes = this.map.getView().constrainResolution(res, 0, 1);
+        const contrainRes = view.getConstraints().resolution(res, 1, mapSize);
         view.setResolution(contrainRes);
 
         // Render the map to update the postcompose mask manually

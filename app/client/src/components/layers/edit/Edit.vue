@@ -176,6 +176,7 @@
                   small
                   :color="item.status === 'Uploaded' ? 'success' : 'error'"
                   dark
+                  class="mx-0 px-1"
                   >{{ item.status }}</v-chip
                 >
               </template>
@@ -199,6 +200,7 @@
                 <v-tooltip top>
                   <template v-slot:activator="{ on }">
                     <v-icon
+                      v-show="isDeleteBtnVisible(item)"
                       class="scenario-icon-delete"
                       :disabled="isUploadBusy"
                       v-on="on"
@@ -208,6 +210,20 @@
                     </v-icon>
                   </template>
                   <span>{{ $t(`map.tooltips.deleteFeature`) }}</span>
+                </v-tooltip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <v-icon
+                      v-show="isRestoreBtnVisible(item)"
+                      class="scenario-icon"
+                      :disabled="isUploadBusy"
+                      v-on="on"
+                      @click="scenarioActionBtnHandler(item, 'restore')"
+                    >
+                      restore_from_trash
+                    </v-icon>
+                  </template>
+                  <span>{{ $t(`map.tooltips.restoreFeature`) }}</span>
                 </v-tooltip>
               </template>
             </v-data-table>
@@ -223,6 +239,7 @@
           v-show="selectedLayer != null"
           class="white--text"
           :loading="isUploadBusy"
+          :disabled="isDeleteAllBusy"
           color="green"
           @click="uploadFeatures"
         >
@@ -232,6 +249,8 @@
           v-show="selectedLayer != null"
           class="white--text"
           color="error"
+          :loading="isDeleteAllBusy"
+          :disabled="scenarioDataTable.length === 0"
           @click="deleteAll"
         >
           <v-icon left>delete</v-icon>{{ $t("appBar.edit.clearBtn") }}
@@ -337,6 +356,7 @@ export default {
     toggleEdit: undefined,
     loadingLayerInfo: false,
     isUploadBusy: false,
+    isDeleteAllBusy: false,
     //Popup configuration
     popup: {
       title: "",
@@ -386,10 +406,34 @@ export default {
     },
     //Data table
     headers: [
-      { text: "Fid", value: "fid", sortable: false },
-      { text: "Layer", value: "layerName", sortable: false },
-      { text: "Status", value: "status", sortable: false, align: "center" },
-      { text: "Actions", value: "action", sortable: false }
+      {
+        text: "Layer",
+        value: "layerName",
+        sortable: false,
+        align: "center",
+        width: "20%"
+      },
+      {
+        text: "Status",
+        value: "status",
+        sortable: false,
+        align: "center",
+        width: "25%"
+      },
+      {
+        text: "Type",
+        value: "type",
+        sortable: false,
+        align: "center",
+        width: "25%"
+      },
+      {
+        text: "Actions",
+        value: "action",
+        sortable: false,
+        align: "center",
+        width: "25%"
+      }
     ],
     scenarioDataTable: [],
     isTableLoading: false
@@ -834,13 +878,25 @@ export default {
           state: true,
           timeout: 4000
         });
+        this.olEditCtrl.source.changed();
       });
     },
     scenarioActionBtnHandler(item, type) {
       const fid = item.fid;
       if (!fid) return;
-      const feature = this.olEditCtrl.source.getFeatureById(fid);
+      let feature;
+
+      if (item.type === "Deleted") {
+        feature = editLayerHelper.deletedFeatures.filter(
+          f => f.getId() === fid
+        );
+        feature.length > 0 ? (feature = feature[0]) : null;
+      } else {
+        feature = this.olEditCtrl.source.getFeatureById(fid);
+      }
+
       if (!feature) return;
+
       if (type === "zoom") {
         this.map.getView().fit(feature.getGeometry().getExtent(), {
           padding: [10, 10, 10, 10]
@@ -851,6 +907,38 @@ export default {
         }, 300);
       } else if (type === "delete") {
         this.olEditCtrl.openDeletePopup(feature);
+      } else if (type === "restore") {
+        const clonedFeature = feature.clone();
+        clonedFeature.setId(feature.getId());
+        clonedFeature.set("deletedId", feature.getId());
+
+        //If the deleted feature is not uploaded in the server consider it uploaded in client side
+        if (item.status === "Not uploaded") {
+          clonedFeature.set("status", 1);
+        } else {
+          clonedFeature.set("status", null);
+        }
+
+        this.map.getView().fit(feature.getGeometry().getExtent(), {
+          padding: [10, 10, 10, 10]
+        });
+        editLayerHelper.deletedFeatures = editLayerHelper.deletedFeatures.filter(
+          f => f.getId() !== fid
+        );
+        this.olEditCtrl.highlightSource.addFeature(feature);
+        setTimeout(() => {
+          this.olEditCtrl.highlightSource.removeFeature(feature);
+        }, 300);
+        editLayerHelper.featuresIDsToDelete = editLayerHelper.featuresIDsToDelete.filter(
+          id => feature.getProperties().id.toString() !== id
+        );
+        this.olEditCtrl.source.addFeature(clonedFeature);
+        //Commit restore changes. ("commitDelete" just updates array of deleted features ids in the database)
+        editLayerHelper.commitDelete(
+          "update",
+          this.userId,
+          editLayerHelper.featuresIDsToDelete
+        );
       }
     },
     /**
@@ -885,10 +973,41 @@ export default {
         .then(confirm => {
           if (confirm) {
             //1- Call api to delete all features.
-            //2- Clear openlayers scenario features
-            this.clear();
-            // This also deletes user scenario features from the map
-            this.olEditCtrl.deleteAll();
+            const userId = this.userId;
+            //1- Call api to delete all features.
+            this.isDeleteAllBusy = true;
+            http
+              .post("api/deleteAllScenarioData", {
+                user_id: userId,
+                layer_names: ["ways", "pois"]
+              })
+              .then(response => {
+                this.isDeleteAllBusy = false;
+                if (response.data === "error") {
+                  //Show error message can't delete
+                  this.toggleSnackbar({
+                    type: "error", //success or error
+                    message: "cantDeleteAllScenarioFeatures",
+                    state: true,
+                    timeout: 4000
+                  });
+                } else {
+                  //Show success message
+                  this.toggleSnackbar({
+                    type: "success", //success or error
+                    message: "allScenarioFeaturesDelete",
+                    state: true,
+                    timeout: 4000
+                  });
+                  //2- Clear openlayers scenario features
+                  this.clear();
+                  // This also deletes user scenario features from the map
+                  this.olEditCtrl.deleteAll();
+                }
+              })
+              .catch(() => {
+                this.isDeleteAllBusy = false;
+              });
           }
         });
     },
@@ -971,25 +1090,102 @@ export default {
      * It updates the scenario data table.
      */
     updateDataTable: debounce(function() {
-      const features = this.olEditCtrl.source.getFeatures();
+      const editLayerFeatures = this.olEditCtrl.source.getFeatures();
+      const deletedFeatures = editLayerHelper.deletedFeatures;
+
       const scenarioDataTable = [];
-      features.forEach(f => {
+      editLayerFeatures.forEach(f => {
         const prop = f.getProperties();
-        if (prop.hasOwnProperty("original_id")) {
-          const status = prop.status ? "Uploaded" : "Not uploaded";
+        if (
+          prop.hasOwnProperty("original_id") ||
+          (prop.hasOwnProperty("deletedId") && prop.status !== 1)
+        ) {
+          //Assign layerName to feature property if doesn't exist
+          if (!prop.layerName) {
+            f.set("layerName", this.layerName.split(":")[1]);
+          }
           const fid = f.getId();
-          const layerName = this.layerName.split(":")[1];
+          const layerName = f.get("layerName");
+          const isDeleted = false;
+          const status = prop.status ? "Uploaded" : "Not uploaded";
+          const originalId = f.get("original_id");
+          let type = "";
+          if (
+            prop.hasOwnProperty("original_id") &&
+            f.get("original_id") === null
+          ) {
+            type = "New";
+          } else if (prop.hasOwnProperty("deletedId")) {
+            type = "Restored"; //Not uploaded (if feature is uploaded it will not be visible in the list)
+          } else {
+            type = "Modified";
+          }
+
           const obj = {
+            fid,
             layerName,
+            isDeleted,
+            originalId,
             status,
-            fid
+            type
           };
           scenarioDataTable.push(obj);
         }
       });
+
+      deletedFeatures.forEach(f => {
+        const prop = f.getProperties();
+        const fid = f.getId() || prop.id;
+        if (!f.getId()) {
+          f.setId(prop.id);
+        }
+        if (!prop.layerName) {
+          f.set("layerName", this.layerName.split(":")[1]);
+        }
+        const layerName = f.get("layerName");
+        const isDeleted = fid;
+        const status = prop.status === 1 ? "Uploaded" : "Not uploaded";
+        const type = "Deleted";
+        let source = "";
+
+        if (
+          prop.hasOwnProperty("original_id") &&
+          f.get("original_id") === null
+        ) {
+          //Original deleted Features.
+          source = "drawn";
+        } else {
+          //Drawn Delete Feature
+          source = "original";
+        }
+        const originalId = f.get("original_id");
+
+        const obj = {
+          fid,
+          layerName,
+          isDeleted,
+          originalId,
+          status,
+          type,
+          source
+        };
+        scenarioDataTable.push(obj);
+      });
       this.scenarioDataTable = scenarioDataTable;
       this.isTableLoading = false;
     }, 900),
+    isRestoreBtnVisible(item) {
+      if (item.source !== "original") {
+        return false;
+      }
+      return item.isDeleted;
+    },
+    isDeleteBtnVisible(item) {
+      if (!item.originalId && item.isDeleted) {
+        return false;
+      }
+      return !item.isDeleted;
+    },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR"
     })
