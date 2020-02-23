@@ -17,6 +17,7 @@
       <v-card-title primary-title v-if="calculation">
         <v-flex xs12>
           <v-checkbox
+            :disabled="!calculation.isVisible"
             class="mt-2"
             :input-value="_getState('Default')"
             @change="_toggleRoadNetwork($event, 'Default')"
@@ -24,6 +25,7 @@
             :label="$t('isochrones.additionalLayers.defaultNetwork')"
           ></v-checkbox>
           <v-checkbox
+            :disabled="!calculation.isVisible"
             class="mt-2"
             :input-value="_getState('Input')"
             @change="_toggleRoadNetwork($event, 'Input')"

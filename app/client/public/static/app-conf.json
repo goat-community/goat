@@ -683,31 +683,6 @@
     },
     "isochrones": {
       "options": {
-        "routingProfile": {
-          "name": "profile",
-          "values": [
-            {
-              "display": "Standard",
-              "value": "walking_standard",
-              "defaultSpeed": 5
-            },
-            {
-              "display": "Elderly",
-              "value": "walking_elderly",
-              "defaultSpeed": 3
-            },
-            {
-              "display": "Wheelchair",
-              "value": "walking_wheelchair",
-              "defaultSpeed": 5
-            }
-          ],
-          "active": {
-            "display": "Standard",
-            "value": "walking_standard",
-            "defaultSpeed": 5
-          }
-        },
         "calculationType": "single",
         "minutes": "10",
         "speed": "5",
@@ -799,6 +774,35 @@
           "18": "#031FAF",
           "19": "#0114B7",
           "20": "#000ABF"
+        }
+      }
+    },
+    "routing": {
+      "default": "walking",
+      "options": {
+        "walking": {
+          "default": "standard",
+          "options": [
+            {
+              "value": "standard",
+              "speed": 5
+            },
+            { "value": "elderly", "speed": 3 }
+          ]
+        },
+        "cycling": {
+          "default": "standard",
+          "options": [
+            {
+              "value": "standard",
+              "speed": 8
+            },
+            { "value": "pedelec", "speed": 10 }
+          ]
+        },
+        "walking_wheelchair": {
+          "speed": 8,
+          "options": []
         }
       }
     }

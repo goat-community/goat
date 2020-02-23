@@ -911,7 +911,14 @@ export default {
         const clonedFeature = feature.clone();
         clonedFeature.setId(feature.getId());
         clonedFeature.set("deletedId", feature.getId());
-        clonedFeature.set("status", null);
+
+        //If the deleted feature is not uploaded in the server consider it uploaded in client side
+        if (item.status === "Not uploaded") {
+          clonedFeature.set("status", 1);
+        } else {
+          clonedFeature.set("status", null);
+        }
+
         this.map.getView().fit(feature.getGeometry().getExtent(), {
           padding: [10, 10, 10, 10]
         });

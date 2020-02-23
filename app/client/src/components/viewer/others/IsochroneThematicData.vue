@@ -3,108 +3,92 @@
     v-if="selectedThematicData"
     v-show="isThematicDataVisible"
     v-draggable="draggableValue"
-    class="elevation-4"
+    class="thematic-data elevation-4"
     id="isochroneWindowId"
-    :style="[isExpanded ? { height: '450px' } : { height: '60px' }]"
-    style="position:fixed;top:10px;left:360px;z-index:2;max-width:370px;min-width:350px;height:450px;overflow:hidden;"
+    :style="[isExpanded ? { height: '400px' } : { height: '50px' }]"
+    style="position:fixed;top:10px;left:360px;z-index:2;max-width:370px;min-width:370px;height:450px;overflow:hidden;"
   >
-    <v-expand-transition>
-      <v-layout justify-space-between column fill-height>
-        <v-app-bar :ref="handleId" color="green" style="cursor:grab;" dark>
-          <v-app-bar-nav-icon
-            ><v-icon>fas fa-bullseye</v-icon></v-app-bar-nav-icon
-          >
-          <v-toolbar-title>Isochrone</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-icon @click="expand" class="toolbar-icons mr-2">
-            {{
-              isExpanded ? "fas fa-chevron-up" : "fas fa-chevron-down"
-            }}</v-icon
-          >
-          <v-icon @click="close" class="toolbar-icons ml-2"
-            >fas fa-times</v-icon
-          >
-        </v-app-bar>
+    <v-layout justify-space-between column fill-height>
+      <v-app-bar
+        :ref="handleId"
+        color="green"
+        height="50"
+        style="cursor:grab;"
+        dark
+      >
+        <v-app-bar-nav-icon
+          ><v-icon>fas fa-bullseye</v-icon></v-app-bar-nav-icon
+        >
+        <v-toolbar-title>Isochrone</v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-icon @click="expand" class="toolbar-icons mr-2">
+          {{ isExpanded ? "fas fa-chevron-up" : "fas fa-chevron-down" }}</v-icon
+        >
+        <v-icon @click="close" class="toolbar-icons ml-2">fas fa-times</v-icon>
+      </v-app-bar>
 
-        <vue-scroll>
-          <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1">
-            <v-card-text class="ma-0 py-0 pt-0 pb-2">
-              <v-layout row wrap justify-end>
-                <v-flex shrink>
-                  <v-chip class="mt-1 mb-0">
-                    {{
-                      `${$t("isochrones.calculation")} - ${
-                        selectedThematicData.calculationId
-                      }`
-                    }}
-                  </v-chip></v-flex
-                ></v-layout
+      <vue-scroll>
+        <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1">
+          <v-card-text class="ma-0 py-0 pt-0 pb-2">
+            <v-layout row wrap justify-end>
+              <v-alert
+                v-if="
+                  getPoisItems.length === 0 &&
+                    selectedThematicData.calculationType === 'single'
+                "
+                border="left"
+                colored-border
+                class="mb-1 mt-2 elevation-2"
+                icon="info"
+                color="green"
+                dense
               >
-            </v-card-text>
-            <v-select
-              v-if="selectedThematicData.calculationType === 'single'"
-              :items="isochroneSteps"
-              item-text="display"
-              item-value="value"
-              :label="$t('isochrones.tableData.timeFilter')"
-              v-model="selectedTime"
-            ></v-select>
-
-            <v-text-field
-              v-if="selectedThematicData.calculationType === 'single'"
-              v-model="search"
-              append-icon="search"
-              :label="$t('isochrones.tableData.searchPois')"
-              single-line
-              hide-details
-              class="mb-2 pt-0 mt-0"
-            ></v-text-field>
-
-            <v-data-table
-              :headers="tableHeaders"
-              :items="tableItems"
-              class="elevation-1 mb-2"
-              :search="search"
-              :no-data-text="
-                selectedTime === null
-                  ? $t('isochrones.tableData.selectTimeMsg')
-                  : $t('isochrones.tableData.noDataMsg')
-              "
-              :items-per-page-options="[
-                5,
-                10,
-                15,
-                { text: '$vuetify.dataIterator.rowsPerPageAll', value: -1 }
-              ]"
-              :options.sync="pagination"
+                <span
+                  v-html="$t('isochrones.tableData.selectAmenitiesMsg')"
+                ></span>
+              </v-alert>
+              <v-flex shrink>
+                <v-chip class="mt-1 mb-0">
+                  {{
+                    `${$t("isochrones.calculation")} - ${
+                      selectedThematicData.calculationId
+                    }`
+                  }}
+                </v-chip></v-flex
+              ></v-layout
             >
-              <template v-slot:items="props">
-                <td v-for="(header, index) in tableHeaders" :key="index">
-                  {{ props.item[header.value] }}
-                </td>
-              </template>
-            </v-data-table>
+          </v-card-text>
+          <v-select
+            v-if="selectedThematicData.calculationType === 'single'"
+            :items="isochroneSteps"
+            item-text="display"
+            item-value="value"
+            :label="$t('isochrones.tableData.timeFilter')"
+            v-model="selectedTime"
+          ></v-select>
 
-            <v-alert
-              v-if="
-                getPoisItems.length === 0 &&
-                  selectedThematicData.calculationType === 'single'
-              "
-              border="left"
-              colored-border
-              class="mb-1 mt-2 elevation-2"
-              icon="info"
-              color="green"
-              dense
-            >
-              <span
-                v-html="$t('isochrones.tableData.selectAmenitiesMsg')"
-              ></span>
-            </v-alert>
-          </v-flex>
-        </vue-scroll>
-      </v-layout>
-    </v-expand-transition>
+          <v-data-table
+            :headers="tableHeaders"
+            :items="tableItems"
+            class="elevation-1 mb-2"
+            :search="search"
+            hide-default-footer
+            :no-data-text="
+              selectedTime === null
+                ? $t('isochrones.tableData.selectTimeMsg')
+                : $t('isochrones.tableData.noDataMsg')
+            "
+            :items-per-page="-1"
+          >
+            <template v-slot:items="props">
+              <td v-for="(header, index) in tableHeaders" :key="index">
+                {{ props.item[header.value] }}
+              </td>
+            </template>
+          </v-data-table>
+        </v-flex>
+      </vue-scroll>
+    </v-layout>
   </v-card>
 </template>
 
@@ -118,9 +102,6 @@ export default {
     Draggable
   },
   data: () => ({
-    pagination: {
-      rowsPerPage: 10
-    },
     isochroneSteps: [],
     selectedTime: null,
     search: "",
@@ -247,6 +228,19 @@ export default {
           items = me.selectedThematicData.multiIsochroneTableData;
         }
       }
+
+      //Sort table rows based on number of amenties || alphabeticaly (only on single calculations)
+      if (this.selectedThematicData.calculationType === "single") {
+        items.sort((a, b) => {
+          const b_Value = b[Object.keys(b)[0]];
+          const a_Value = a[Object.keys(a)[0]];
+          if (b_Value === a_Value) {
+            return a["pois"].localeCompare(b["pois"]);
+          }
+          return b_Value - a_Value;
+        });
+      }
+
       return items;
     },
 
@@ -262,8 +256,9 @@ export default {
   },
   watch: {
     selectedThematicData(value) {
-      let pois = value.pois;
       this.isochroneSteps = [];
+      if (!value) return;
+      let pois = value.pois;
       if (pois) {
         for (const key in pois) {
           let obj = pois[key];
@@ -293,5 +288,8 @@ export default {
 <style scoped>
 .toolbar-icons:hover {
   cursor: pointer;
+}
+.thematic-data {
+  transition: height 0.1s linear;
 }
 </style>
