@@ -103,7 +103,7 @@
       "drawFeatureTooltip": "Draw Feature",
       "modifyFeatureTooltip": "Modify Feature",
       "deleteFeature": "Delete Feature",
-      "clearBtn": "Clear",
+      "clearBtn": "Delete All",
       "uploadBtn": "Upload",
       "popup": {
         "deleteFeatureMsg": "Are you sure you want to delete the selected feature ?",
@@ -123,7 +123,9 @@
       "notAllUploaded": "Not all features uploaded",
       "errorHappened": "An error happened",
       "scenarioFeatures": "Scenario Features",
-      "uploadYourData": "Upload your data"
+      "uploadYourData": "Upload your data",
+      "deleteAllTitle": "Delete All",
+      "deleteAllMessage": "Are you sure you want to delete all scenario data."
     },
     "settings": {
       "title": "Settings",
@@ -260,7 +262,8 @@
       "selectAmenities": "You must select at least one point of interest",
       "calculateIsochroneError": "Sorry but here no calculation is possible",
       "uploadScenarioSuccess": "Features uploads successfully.",
-      "uploadScenarioError": "Sorry, an error happened while uploading the features in database."
+      "uploadScenarioError": "Sorry, an error happened while uploading the features in database.",
+      "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features."
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
