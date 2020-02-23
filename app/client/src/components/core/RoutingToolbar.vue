@@ -104,19 +104,16 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
 
 export default {
   data: () => ({
     route: null,
-    icons: {
-      walking: "fas fa-walking",
-      cycling: "fas fa-biking",
-      walking_wheelchair: "fas fa-wheelchair"
-    },
     routingData: null
   }),
   computed: {
+    ...mapGetters("isochrones", { icons: "routeIcons" }),
     ...mapFields("isochrones", {
       activeRoutingProfile: "activeRoutingProfile",
       speed: "options.speed"

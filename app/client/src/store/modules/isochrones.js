@@ -26,6 +26,11 @@ const state = {
   options: [],
   styleData: {},
   calculations: [],
+  routeIcons: {
+    walking: "fas fa-walking",
+    cycling: "fas fa-biking",
+    walking_wheelchair: "fas fa-wheelchair"
+  },
   activeRoutingProfile: null, //ex. "walking_standard"
   multiIsochroneCalculationMethods: {
     name: "multiIsochroneCalculationMethods",
@@ -54,6 +59,7 @@ const state = {
 const getters = {
   isBusy: state => state.isBusy,
   activeRoutingProfile: state => state.activeRoutingProfile,
+  routeIcons: state => state.routeIcons,
   calculations: state => state.calculations,
   options: state => state.options,
   isochroneLayer: state => state.isochroneLayer,
