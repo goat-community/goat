@@ -26,6 +26,7 @@ const state = {
   options: [],
   styleData: {},
   calculations: [],
+  activeRoutingProfile: null, //ex. "walking_standard"
   multiIsochroneCalculationMethods: {
     name: "multiIsochroneCalculationMethods",
     values: [
@@ -52,7 +53,7 @@ const state = {
 
 const getters = {
   isBusy: state => state.isBusy,
-  routingProfile: state => state.routingProfile,
+  activeRoutingProfile: state => state.activeRoutingProfile,
   calculations: state => state.calculations,
   options: state => state.options,
   isochroneLayer: state => state.isochroneLayer,
@@ -116,7 +117,7 @@ const actions = {
         x: state.position.coordinate[0],
         y: state.position.coordinate[1],
         concavity: state.options.concavityIsochrones.active,
-        routing_profile: state.options.routingProfile.active["value"]
+        routing_profile: state.activeRoutingProfile
       });
       isochroneEndpoint = "isochrone";
     } else {
@@ -144,7 +145,7 @@ const actions = {
         ),
         region_type: `'${regionType}'`,
         region: region,
-        routing_profile: `'${state.options.routingProfile.active["value"]}'`,
+        routing_profile: `'${state.activeRoutingProfile}'`,
         amenities: rootState.pois.selectedPois
           .map(item => {
             return "'" + item.value + "'";
@@ -230,7 +231,7 @@ const actions = {
       calculationType: calculationType,
       time: state.options.minutes + " min",
       speed: state.options.speed + " km/h",
-      routing_profile: state.options.routingProfile.active["value"],
+      routing_profile: state.activeRoutingProfile,
       isExpanded: true,
       isVisible: true,
       data: calculationData,

@@ -801,6 +801,34 @@
           "20": "#000ABF"
         }
       }
+    },
+    "routing": {
+      "default": "walking",
+      "options": {
+        "walking": {
+          "default": "standard",
+          "options": [
+            {
+              "value": "standard",
+              "speed": 5
+            },
+            { "value": "elderly", "speed": 3 }
+          ]
+        },
+        "cycling": {
+          "default": "standard",
+          "options": [
+            {
+              "value": "standard",
+              "speed": 8
+            },
+            { "value": "pedelec", "speed": 10 }
+          ]
+        },
+        "walking_wheelchair": {
+          "options": []
+        }
+      }
     }
   },
   "componentConf": {

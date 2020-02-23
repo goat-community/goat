@@ -911,7 +911,6 @@ export default {
         const clonedFeature = feature.clone();
         clonedFeature.setId(feature.getId());
         clonedFeature.set("deletedId", feature.getId());
-        console.log(item);
 
         //If the deleted feature is not uploaded in the server consider it uploaded in client side
         if (item.status === "Not uploaded") {

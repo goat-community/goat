@@ -210,9 +210,7 @@ export default {
 
         let params = `amenities:'${btoa(
           viewParams.toString()
-        )}';routing_profile:'${
-          me.options.routingProfile.active["value"]
-        }';userid:${me.userId};`;
+        )}';routing_profile:'${me.activeRoutingProfile}';userid:${me.userId};`;
 
         if (this.timeBasedCalculations === "yes") {
           params += `d:${me.getSelectedDay};h:${me.getSelectedHour};m:${me.getSelectedMinutes};`;
@@ -289,7 +287,7 @@ export default {
       me.updatePoisLayerViewParams(me.selectedPois);
       me.countStudyAreaPois();
     },
-    "options.routingProfile.active.value": function(newValue, oldValue) {
+    activeRoutingProfile: function(newValue, oldValue) {
       if (this.timeBasedCalculations === "yes") {
         this.toggleRoutingFilter(newValue, oldValue);
       }
@@ -310,7 +308,8 @@ export default {
       disabledPoisOnRoutingProfile: "disabledPoisOnRoutingProfile"
     }),
     ...mapGetters("isochrones", {
-      options: "options"
+      options: "options",
+      activeRoutingProfile: "activeRoutingProfile"
     }),
     ...mapGetters("user", { userId: "userId" }),
     ...mapFields("pois", {
@@ -330,7 +329,7 @@ export default {
   },
   created() {
     this.init(this.$appConfig.componentData.pois);
-    this.toggleRoutingFilter(this.options.routingProfile.active["value"], null);
+    this.toggleRoutingFilter(this.activeRoutingProfile, null);
   }
 };
 </script>
