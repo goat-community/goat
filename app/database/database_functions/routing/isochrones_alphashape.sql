@@ -11,7 +11,7 @@ DECLARE
 begin
 --If the modus is input the routing tables for the network with userinput have to be choosen
   speed = speed/3.6;
-  DROP TABLE IF EXISTS temp_edges;
+
   DROP TABLE IF EXISTS isos;
   CREATE temp TABLE isos OF type_isochrone;
 
