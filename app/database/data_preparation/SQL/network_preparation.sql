@@ -338,7 +338,7 @@ wheelchair_classified  = w.wheelchair_classified
 FROM ways_attributes w
 WHERE v.id = w.id;
 
---Add slope_profile to ways
+--Add slope_profile for ways
 DO $$
 BEGIN 
 	IF to_regclass('public.dem_vec') IS NOT NULL THEN 
@@ -411,10 +411,65 @@ SET class_ids = array[0]
 FROM vertices_to_update v
 WHERE ways_vertices_pgr.id = v.id;
 
+--Identify death_end in the network
+DROP TABLE IF EXISTS death_end_v;
+CREATE TEMP TABLE death_end_v AS 
+WITH death_end AS (
+	SELECT count(source),source 
+	FROM (
+		SELECT SOURCE 
+		FROM ways 
+		UNION ALL
+		SELECT target 
+		FROM ways 
+	) x
+	GROUP BY SOURCE 
+	HAVING count(source) = 1
+)
+SELECT v.*
+FROM ways_vertices_pgr v, death_end d
+WHERE v.id = d.SOURCE;
+
+ALTER TABLE ways ADD COLUMN death_end BIGINT;
+
+UPDATE ways w SET death_end = w.target  
+FROM death_end_v d 
+WHERE d.id = w.SOURCE;
+
+UPDATE ways w SET death_end = w.source 
+FROM death_end_v d 
+WHERE d.id = w.target;
+
+ALTER TABLE ways_vertices_pgr ADD COLUMN death_end BOOLEAN;
+CREATE INDEX ON ways_vertices_pgr (death_end);
+
+WITH s AS (
+	SELECT w.id,w.geom,w.target vid 
+	FROM ways w, death_end_v v
+	WHERE w.SOURCE = v.id
+	UNION ALL 
+	SELECT w.id,w.geom,w.source vid 
+	FROM ways w, death_end_v v
+	WHERE w.target = v.id
+)
+UPDATE ways_vertices_pgr v
+SET death_end = TRUE
+FROM s 
+WHERE v.id = s.vid; 
+
 CREATE INDEX ON ways USING btree(foot);
 CREATE INDEX ON ways USING btree(id);
 CREATE INDEX ON ways_vertices_pgr USING btree(cnt);
 
+CREATE SEQUENCE ways_vertices_pgr_id_seq;
+ALTER TABLE ways_vertices_pgr ALTER COLUMN id SET DEFAULT nextval('ways_vertices_pgr_id_seq');
+ALTER SEQUENCE ways_vertices_pgr_id_seq OWNED BY ways_vertices_pgr.id;
+SELECT setval('ways_vertices_pgr_id_seq', COALESCE(max(id), 0)) FROM ways_vertices_pgr;
+
+CREATE SEQUENCE ways_id_seq;
+ALTER TABLE ways ALTER COLUMN id SET DEFAULT nextval('ways_id_seq');
+ALTER SEQUENCE ways_id_seq OWNED BY ways.id;
+SELECT setval('ways_id_seq', COALESCE(max(id), 0)) FROM ways;
 
 CREATE TABLE ways_userinput (LIKE ways INCLUDING ALL);
 INSERT INTO ways_userinput
@@ -426,6 +481,8 @@ SELECT * FROM ways_vertices_pgr;
 
 ALTER TABLE ways_userinput add column userid int4;
 ALTER TABLE ways_userinput_vertices_pgr add column userid int4;
+ALTER TABLE ways_userinput ADD COLUMN original_id BIGINT;
 CREATE INDEX ON ways_userinput USING btree (userid);
 CREATE INDEX ON ways_userinput_vertices_pgr USING btree (userid);
+CREATE INDEX ON ways_userinput (original_id);
 
