@@ -126,10 +126,22 @@
               </v-layout>
               <v-card-text class="pr-0 pl-0 pt-0 pb-0">
                 <v-divider></v-divider>
+                <v-chip small class="mr-2 mt-1">
+                  <v-avatar left>
+                    <v-icon small class="text-xs-center">{{
+                      getRouteProfileIcon(calculation.routing_profile)
+                    }}</v-icon>
+                  </v-avatar>
+                  {{
+                    $te(`isochrones.options.${calculation.routing_profile}`)
+                      ? $t(`isochrones.options.${calculation.routing_profile}`)
+                      : calculation.routing_profile
+                  }}
+                </v-chip>
               </v-card-text>
             </v-card-title>
             <v-subheader
-              class="clickable subheader mt-1"
+              class="clickable subheader mt-1 pb-1"
               @click="calculation.isExpanded = !calculation.isExpanded"
             >
               <v-icon
@@ -159,19 +171,7 @@
                 <span>{{ calculation.position }}</span></v-tooltip
               >
             </v-subheader>
-            <v-subheader
-              @click="calculation.isExpanded = !calculation.isExpanded"
-              class="clickable subheader subtitle-2"
-            >
-              <span
-                >{{ $t("isochrones.options.routingProfile") }} :
-                {{
-                  $te(`isochrones.options.${calculation.routing_profile}`)
-                    ? $t(`isochrones.options.${calculation.routing_profile}`)
-                    : calculation.routing_profile
-                }}</span
-              >
-            </v-subheader>
+
             <v-card-text class="pt-0 " v-show="calculation.isExpanded">
               <v-data-table
                 :headers="headers"
@@ -352,11 +352,20 @@ export default {
       } else {
         return false;
       }
+    },
+    getRouteProfileIcon(route) {
+      const routingName = route.split("_")[0];
+      //Edge-case
+      if (route === "walking_wheelchair") {
+        return this.routeIcons[route];
+      }
+      return this.routeIcons[routingName];
     }
   },
   computed: {
     ...mapGetters("isochrones", {
       calculations: "calculations",
+      routeIcons: "routeIcons",
       isochroneLayer: "isochroneLayer",
       isochroneRoadNetworkLayer: "isochroneRoadNetworkLayer",
       selectedThematicData: "selectedThematicData",

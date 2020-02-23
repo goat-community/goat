@@ -182,7 +182,9 @@
       "routingProfile": "Routing Profile",
       "walking_standard": "Standard",
       "walking_elderly": "Elderly",
-      "walking_wheelchair": "Wheelchair"
+      "walking_wheelchair": "Wheelchair",
+      "cycling_standard": "Standard",
+      "cycling_pedelec": "Pedelec"
     },
     "results": {
       "title": "Results",
