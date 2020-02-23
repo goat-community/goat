@@ -683,31 +683,6 @@
     },
     "isochrones": {
       "options": {
-        "routingProfile": {
-          "name": "profile",
-          "values": [
-            {
-              "display": "Standard",
-              "value": "walking_standard",
-              "defaultSpeed": 5
-            },
-            {
-              "display": "Elderly",
-              "value": "walking_elderly",
-              "defaultSpeed": 3
-            },
-            {
-              "display": "Wheelchair",
-              "value": "walking_wheelchair",
-              "defaultSpeed": 5
-            }
-          ],
-          "active": {
-            "display": "Standard",
-            "value": "walking_standard",
-            "defaultSpeed": 5
-          }
-        },
         "calculationType": "single",
         "minutes": "10",
         "speed": "5",
