@@ -49,7 +49,7 @@
                     v-for="(r, i) in item.options"
                     :key="i"
                     :value="`${key}_${r.value}`"
-                    @change="onRouteProfileSelected(index)"
+                    @change="onRouteProfileSelected(index, r)"
                   >
                     <template v-slot:label>
                       <span class="subtitle-1 font-weight-medium ">
@@ -123,21 +123,30 @@ export default {
     })
   },
   methods: {
-    routingProfileChanged(selectedType) {
-      //Reset speed slider value based on routing profile default speed
-      this.speed = selectedType.defaultSpeed;
-    },
-    onRouteProfileSelected(index) {
+    onRouteProfileSelected(index, r) {
       this.route = index;
+      if (r.speed) {
+        this.speed = r.speed;
+      }
     },
     onRouteBtnClick(key) {
       //Select route
       this.route = Object.keys(this.routingData.options).indexOf(key);
       //Select default profile
-      const selectedOption = this.routingData.options[key].default;
-      this.activeRoutingProfile = selectedOption
-        ? `${key}_${selectedOption}`
-        : key;
+      const selectedOption = this.routingData.options[key];
+      const defaultValue = selectedOption.default;
+      this.activeRoutingProfile = defaultValue ? `${key}_${defaultValue}` : key;
+      this.changeDefaultSpeed(selectedOption);
+    },
+    changeDefaultSpeed(selectedOption) {
+      const selectedRadio = selectedOption.options.filter(v => {
+        return v.value === selectedOption.default;
+      });
+      if (selectedRadio.length === 1 && selectedRadio[0].speed) {
+        this.speed = selectedRadio[0].speed;
+      } else if (selectedOption.speed) {
+        this.speed = selectedOption.speed;
+      }
     }
   },
 
@@ -145,11 +154,13 @@ export default {
     this.routingData = this.$appConfig.componentData.routing;
     const options = this.routingData.options;
     const defaultRouteName = this.routingData.default;
-
     const routeOptions = Object.keys(options);
-
     this.route = routeOptions.indexOf(defaultRouteName);
     this.activeRoutingProfile = `${defaultRouteName}_${this.routingData.options[defaultRouteName].default}`;
+    //Add timeout to be sure that isochrone option is loaded and it doesn't override the default speed from routing
+    setTimeout(() => {
+      this.changeDefaultSpeed(this.routingData.options[defaultRouteName]);
+    }, 300);
   }
 };
 </script>
