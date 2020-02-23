@@ -26,6 +26,12 @@ const state = {
   options: [],
   styleData: {},
   calculations: [],
+  routeIcons: {
+    walking: "fas fa-walking",
+    cycling: "fas fa-biking",
+    walking_wheelchair: "fas fa-wheelchair"
+  },
+  activeRoutingProfile: null, //ex. "walking_standard"
   multiIsochroneCalculationMethods: {
     name: "multiIsochroneCalculationMethods",
     values: [
@@ -52,7 +58,8 @@ const state = {
 
 const getters = {
   isBusy: state => state.isBusy,
-  routingProfile: state => state.routingProfile,
+  activeRoutingProfile: state => state.activeRoutingProfile,
+  routeIcons: state => state.routeIcons,
   calculations: state => state.calculations,
   options: state => state.options,
   isochroneLayer: state => state.isochroneLayer,
@@ -116,7 +123,7 @@ const actions = {
         x: state.position.coordinate[0],
         y: state.position.coordinate[1],
         concavity: state.options.concavityIsochrones.active,
-        routing_profile: state.options.routingProfile.active["value"]
+        routing_profile: state.activeRoutingProfile
       });
       isochroneEndpoint = "isochrone";
     } else {
@@ -144,7 +151,7 @@ const actions = {
         ),
         region_type: `'${regionType}'`,
         region: region,
-        routing_profile: `'${state.options.routingProfile.active["value"]}'`,
+        routing_profile: `'${state.activeRoutingProfile}'`,
         amenities: rootState.pois.selectedPois
           .map(item => {
             return "'" + item.value + "'";
@@ -171,6 +178,9 @@ const actions = {
           },
           { root: true }
         );
+        if (iconMarkerFeature) {
+          commit("REMOVE_ISOCHRONE_FEATURE", iconMarkerFeature);
+        }
       });
 
     commit("SET_IS_BUSY", false);
@@ -227,7 +237,7 @@ const actions = {
       calculationType: calculationType,
       time: state.options.minutes + " min",
       speed: state.options.speed + " km/h",
-      routing_profile: state.options.routingProfile.active["value"],
+      routing_profile: state.activeRoutingProfile,
       isExpanded: true,
       isVisible: true,
       data: calculationData,
@@ -265,10 +275,8 @@ const actions = {
       if (reverseGeocode.status === 200 && reverseGeocode.data.display_name) {
         const address = reverseGeocode.data.display_name;
 
-        const DisplayName =
-          address.length > 30 ? address.slice(0, 30) + "..." : address;
         if (address.length > 0) {
-          transformedData.position = DisplayName;
+          transformedData.position = address;
         }
       }
     } else {
@@ -436,18 +444,17 @@ const actions = {
     }
 
     const features = calculation.additionalData[payload.type]["features"];
+    const roadLayerSource = rootState.isochrones.isochroneRoadNetworkLayer.getSource();
     if (payload.state === false && features.length > 0) {
       //2- Remove features from road network layer
       features.forEach(feature => {
-        rootState.isochrones.isochroneRoadNetworkLayer
-          .getSource()
-          .removeFeature(feature);
+        if (roadLayerSource.hasFeature(feature)) {
+          roadLayerSource.removeFeature(feature);
+        }
       });
     } else {
       //3- Add already loaded feature again to the road network layer
-      rootState.isochrones.isochroneRoadNetworkLayer
-        .getSource()
-        .addFeatures(features);
+      roadLayerSource.addFeatures(features);
     }
   },
 
@@ -510,6 +517,9 @@ const mutations = {
     }
   },
   CALCULATE_ISOCHRONE(state, isochrone) {
+    state.calculations.forEach(calculation => {
+      calculation.isExpanded = false;
+    });
     state.calculations.unshift(isochrone);
   },
   UPDATE_POSITION(state, position) {
@@ -577,6 +587,11 @@ const mutations = {
   ADD_ISOCHRONE_FEATURES(state, features) {
     if (state.isochroneLayer) {
       state.isochroneLayer.getSource().addFeatures(features);
+    }
+  },
+  REMOVE_ISOCHRONE_FEATURE(state, feature) {
+    if (state.isochroneLayer && feature) {
+      state.isochroneLayer.getSource().removeFeature(feature);
     }
   },
   ADD_STUDYAREA_FEATURES(state, features) {
