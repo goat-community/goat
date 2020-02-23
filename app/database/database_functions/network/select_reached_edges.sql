@@ -23,3 +23,28 @@ BEGIN
 
 END;
 $function$;
+
+
+CREATE OR REPLACE FUNCTION select_reached_edges_array(id_calc_input integer,objectid_input integer,calc_step numeric) 
+RETURNS SETOF geometry 
+LANGUAGE plpgsql
+AS $function$
+DECLARE 
+	sql_select text;
+BEGIN 
+	
+	RETURN query
+    SELECT v_geom
+    FROM edges_multi_extrapolated e
+    WHERE e.objectid = objectid_input
+    AND e.cost = calc_step
+    AND e.id_calc = id_calc_input
+    UNION ALL
+   	SELECT geom 
+	FROM edges_multi
+	WHERE duplicates @> ARRAY[id_calc_input]
+	AND greatest(combi_costs[(array_positions(combi_ids,id_calc_input))[1]],
+	combi_costs[(array_positions(combi_ids,id_calc_input))[2]])  < calc_step;
+END;
+$function$;
+--SELECT select_reached_edges_array(1,12,900)
