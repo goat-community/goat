@@ -10,7 +10,7 @@
           v-if="options.calculationType === 'multiple'"
         />
         <isochrone-options />
-        <isochrone-results />
+        <isochrone-results id="isochroneResultsEl" />
       </template>
       <!-- -- -->
     </v-card>

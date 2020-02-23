@@ -256,8 +256,9 @@ export default {
   },
   watch: {
     selectedThematicData(value) {
-      let pois = value.pois;
       this.isochroneSteps = [];
+      if (!value) return;
+      let pois = value.pois;
       if (pois) {
         for (const key in pois) {
           let obj = pois[key];
