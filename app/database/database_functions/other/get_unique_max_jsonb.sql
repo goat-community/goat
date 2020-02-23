@@ -90,3 +90,25 @@ BEGIN
     RETURN new_json;
 END
 $func$;
+
+
+CREATE OR REPLACE FUNCTION add_value_to_array(input_array NUMERIC[],added_value float,max_cost float)
+  RETURNS NUMERIC[] 
+  LANGUAGE plpgsql IMMUTABLE AS -- language declaration required
+$func$
+DECLARE
+   _value NUMERIC;
+   return_array NUMERIC[];
+BEGIN
+    
+	SELECT array_agg(a._value + added_value)::NUMERIC[]  
+	INTO return_array
+	FROM 
+	(
+	 	SELECT UNNEST(input_array) _value 	
+	) a
+	WHERE a._value < max_cost - added_value;
+	RETURN return_array;
+END
+$func$;
+--SELECT add_value_to_array(array[100,200,300,400]::NUMERIC[],99::float,800::float)
