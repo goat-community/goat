@@ -32,108 +32,73 @@
         ></v-icon>
         <h4>{{ $t("isochrones.options.subOptions") }}</h4>
       </v-subheader>
+      <v-expand-transition>
+        <v-flex
+          xs12
+          class="mx-4 isochroneOptions"
+          v-if="isIsochroneOptionsVisible"
+        >
+          <v-slider
+            min="1"
+            max="20"
+            inverse-label
+            v-model="minutes"
+            prepend-icon="fas fa-clock"
+            :label="minutes + ' min'"
+            color="#30C2FF"
+          >
+          </v-slider>
+          <v-slider
+            min="1"
+            max="10"
+            inverse-label
+            v-model="speed"
+            prepend-icon="fas fa-tachometer-alt"
+            :label="speed + ' km/h'"
+            color="#30C2FF"
+          >
+          </v-slider>
 
-      <v-flex
-        xs12
-        class="mx-4 isochroneOptions"
-        v-if="isIsochroneOptionsVisible"
-      >
-        <v-select
-          v-if="options.calculationType"
-          item-value="value"
-          outlined
-          return-object
-          v-model="routingProfile"
-          :value="routingProfile"
-          :items="options.routingProfile.values"
-          :label="$t('isochrones.options.routingProfile')"
-          @change="routingProfileChanged"
-        >
-          <template slot="selection" slot-scope="{ item }">
-            {{
-              $te(`isochrones.options.${item.value}`)
-                ? $t(`isochrones.options.${item.value}`)
-                : item.display
-            }}
-          </template>
-          <template slot="item" slot-scope="{ item }">
-            <v-tooltip top>
-              <template v-slot:activator="{ on }">
-                <v-icon class="mr-2" color="rgba(0, 0, 0, 0.54)" v-on="on"
-                  >info</v-icon
-                >
-              </template>
-              <span>{{
-                $t(`map.tooltips.routingProfiles.${item.value}`)
-              }}</span>
-            </v-tooltip>
-            {{
-              $te(`isochrones.options.${item.value}`)
-                ? $t(`isochrones.options.${item.value}`)
-                : item.display
-            }}
-          </template>
-        </v-select>
-        <v-slider
-          min="1"
-          max="20"
-          inverse-label
-          v-model="minutes"
-          prepend-icon="fas fa-clock"
-          :label="minutes + ' min'"
-          color="#30C2FF"
-        >
-        </v-slider>
-        <v-slider
-          min="1"
-          max="20"
-          inverse-label
-          v-model="speed"
-          prepend-icon="fas fa-tachometer-alt"
-          :label="speed + ' km/h'"
-          color="#30C2FF"
-        >
-        </v-slider>
+          <v-slider
+            class="mb-1"
+            v-model="steps"
+            min="1"
+            max="8"
+            inverse-label
+            prepend-icon="fas fa-sort-numeric-up"
+            :label="`${$t('isochrones.isochrones')} (${steps})`"
+            color="#30C2FF"
+          >
+          </v-slider>
 
-        <v-slider
-          class="mb-1"
-          v-model="steps"
-          min="1"
-          max="8"
-          inverse-label
-          prepend-icon="fas fa-sort-numeric-up"
-          :label="`${$t('isochrones.isochrones')} (${steps})`"
-          color="#30C2FF"
-        >
-        </v-slider>
+          <v-select
+            v-if="options.calculationType"
+            item-text="display"
+            item-value="value"
+            outlined
+            v-model="concavityIsochrones"
+            :value="concavityIsochrones"
+            :items="options.concavityIsochrones.values"
+            :label="$t('isochrones.options.calcType')"
+          ></v-select>
 
-        <v-select
-          v-if="options.calculationType"
-          item-text="display"
-          item-value="value"
-          outlined
-          v-model="concavityIsochrones"
-          :value="concavityIsochrones"
-          :items="options.concavityIsochrones.values"
-          :label="$t('isochrones.options.calcType')"
-        ></v-select>
-
-        <v-select
-          item-value="value"
-          v-model="calculationModes"
-          outlined
-          :value="calculationModes"
-          :items="filterCalcModeValues()"
-          :label="$t('isochrones.options.calcModus')"
-        >
-          <template slot="selection" slot-scope="{ item }">
-            {{ $t(`isochrones.options.${item.name}`) }}
-          </template>
-          <template slot="item" slot-scope="{ item }">
-            {{ $t(`isochrones.options.${item.name}`) }}
-          </template>
-        </v-select>
-      </v-flex>
+          <v-select
+            item-value="value"
+            v-model="calculationModes"
+            outlined
+            :value="calculationModes"
+            :items="filterCalcModeValues()"
+            :label="$t('isochrones.options.calcModus')"
+          >
+            <template slot="selection" slot-scope="{ item }">
+              {{ $t(`isochrones.options.${item.name}`) }}
+            </template>
+            <template slot="item" slot-scope="{ item }">
+              {{ $t(`isochrones.options.${item.name}`) }}
+            </template>
+          </v-select>
+        </v-flex>
+      </v-expand-transition>
     </div>
   </v-flex>
 </template>
@@ -155,17 +120,12 @@ export default {
       steps: "options.steps",
       concavityIsochrones: "options.concavityIsochrones.active",
       calculationModes: "options.calculationModes.active",
-      alphaShapeParameter: "options.alphaShapeParameter.active",
-      routingProfile: "options.routingProfile.active"
+      alphaShapeParameter: "options.alphaShapeParameter.active"
     })
   },
   methods: {
     filterCalcModeValues() {
       return this.options.calculationModes.values;
-    },
-    routingProfileChanged(selectedType) {
-      //Reset speed slider value based on routing profile default speed
-      this.speed = selectedType.defaultSpeed;
     }
   }
 };

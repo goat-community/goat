@@ -253,12 +253,14 @@ FROM
     (SELECT w.id,
     CASE WHEN 
         lit IN ('yes','Yes') 
-        OR (lit IS NULL AND highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_yes')::jsonb) FROM variables))
+        OR (lit IS NULL AND highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_yes')::jsonb) FROM variables)
+			AND maxspeed_forward<80)
         THEN 'yes' 
     WHEN
         lit IN ('no','No')
         OR (lit IS NULL AND (highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_no')::jsonb) FROM variables) 
-        OR surface IN (SELECT jsonb_array_elements_text((lit ->> 'surface_no')::jsonb) FROM variables))
+        OR surface IN (SELECT jsonb_array_elements_text((lit ->> 'surface_no')::jsonb) FROM variables)
+		OR maxspeed_forward>=80)
         )
         THEN 'no'
     ELSE 'unclassified'
