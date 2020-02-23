@@ -801,6 +801,7 @@
           ]
         },
         "walking_wheelchair": {
+          "speed": 8,
           "options": []
         }
       }
