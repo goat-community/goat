@@ -7,7 +7,6 @@ DECLARE
   r type_edges;
   buffer text;
   distance numeric := speed*(minutes*60);
-  id_vertex integer;
   start_point geometry;
   geom_vertex geometry;
   number_calculation_input integer;
@@ -77,43 +76,48 @@ begin
   INTO closest_point, fraction, wid, vid
   FROM closest_point_network(x,y) c;
 
-  INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
-  SELECT 99999998, cost*fraction,reverse_cost*fraction,SOURCE,vid,ST_LINESUBSTRING(geom,0,fraction)
-	FROM temp_fetched_ways 
-  WHERE id = wid
-  UNION ALL 
-  SELECT 99999999, cost*(1-fraction),reverse_cost*(1-fraction),vid,target,ST_LINESUBSTRING(geom,fraction,1)
-	FROM temp_fetched_ways 
-  WHERE id = wid;
+  RAISE NOTICE '%',vid;
+  IF vid IS NOT NULL THEN 
+
+    INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
+    SELECT 99999998, cost*fraction,reverse_cost*fraction,SOURCE,vid,ST_LINESUBSTRING(geom,0,fraction)
+    FROM temp_fetched_ways 
+    WHERE id = wid
+    UNION ALL 
+    SELECT 99999999, cost*(1-fraction),reverse_cost*(1-fraction),vid,target,ST_LINESUBSTRING(geom,fraction,1)
+    FROM temp_fetched_ways 
+    WHERE id = wid;
+    
+    DELETE FROM temp_fetched_ways WHERE id = wid;
+
+    IF modus_input = 1 THEN 
+      CREATE TEMP TABLE temp_reached_vertices as 
+      SELECT vid AS start_vertex, id1::integer AS node, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end 
+      FROM PGR_DrivingDistance( 
+          'SELECT * FROM temp_fetched_ways WHERE id <> '||wid,
+          vid, distance,FALSE,FALSE
+          )p, ways_vertices_pgr v
+      WHERE p.id1 = v.id
+      UNION ALL 
+      SELECT vid, vid, 0, closest_point, objectid_input, NULL;
+
+    ELSE
+      CREATE TEMP TABLE temp_reached_vertices as 
+      SELECT vid AS start_vertex, id1::integer AS node, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end
+      FROM PGR_DrivingDistance(
+        'SELECT * FROM temp_fetched_ways  WHERE id <> '||wid,
+        vid, distance, FALSE, FALSE
+      ) p, ways_userinput_vertices_pgr v
+      WHERE p.id1 = v.id
+      UNION ALL 
+      SELECT vid, vid, 0, closest_point, objectid_input, NULL;
+    END IF;
   
-  DELETE FROM temp_fetched_ways WHERE id = wid;
+    ALTER TABLE temp_reached_vertices ADD PRIMARY KEY(node);
 
-  IF modus_input = 1 THEN 
-    CREATE TEMP TABLE temp_reached_vertices as 
-    SELECT id_vertex AS start_vertex, id1::integer AS node, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end 
-    FROM PGR_DrivingDistance( 
-        'SELECT * FROM temp_fetched_ways WHERE id <> '||wid,
-        vid, distance,FALSE,FALSE
-        )p, ways_vertices_pgr v
-    WHERE p.id1 = v.id
-    UNION ALL 
-    SELECT vid, vid, 0, closest_point, objectid_input, NULL;
+    PERFORM get_reached_network(objectid_input,minutes*60,number_isochrones,ARRAY[99999998,99999999]);
 
-  ELSE
-    CREATE TEMP TABLE temp_reached_vertices as 
-    SELECT id_vertex AS start_vertex, id1::integer AS node, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end
-    FROM PGR_DrivingDistance(
-      'SELECT * FROM temp_fetched_ways  WHERE id <> '||wid,
-      vid, distance, FALSE, FALSE
-    ) p, ways_userinput_vertices_pgr v
-    WHERE p.id1 = v.id
-    UNION ALL 
-    SELECT vid, vid, 0, closest_point, objectid_input, NULL;
   END IF;
-
-  ALTER TABLE temp_reached_vertices ADD PRIMARY KEY(node);
-
-  PERFORM get_reached_network(objectid_input,minutes*60,number_isochrones,ARRAY[99999998,99999999]);
 
   RETURN;
 END ;
