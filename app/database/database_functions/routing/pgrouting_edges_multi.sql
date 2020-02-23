@@ -92,7 +92,9 @@ BEGIN
   DROP TABLE IF EXISTS temp_reached_vertices;
 
   CREATE TEMP TABLE temp_reached_vertices AS
-  SELECT jsonb_object_agg(s.id_calc,agg_cost/speed) AS node_cost,sort(array_agg(s.id_calc)) ids_calc,x.node::int, min((x.agg_cost/speed)::numeric) AS min_cost, v.geom, v.death_end
+  SELECT array_agg(agg_cost/speed) costs,array_agg(s.id_calc) ids_calc,
+  --jsonb_object_agg(s.id_calc,agg_cost/speed) AS node_cost,sort(array_agg(s.id_calc)) ids_calc,
+  x.node::int, min((x.agg_cost/speed)::numeric) AS min_cost, v.geom, v.death_end
   FROM 
   (SELECT from_v, node, edge, agg_cost FROM pgr_drivingDistance(
   'SELECT * FROM temp_fetched_ways WHERE NOT id = ANY('''||array_original_wid::text||''')'
@@ -101,11 +103,16 @@ BEGIN
   WHERE v.id = x.node AND s.vid = x.from_v
   GROUP BY x.node, v.geom, v.death_end;
 
-  PERFORM get_reached_network_multi(ids_calc,minutes*60, number_isochrones, array_new_wid, objectid_input);
+  ALTER TABLE temp_reached_vertices ADD PRIMARY KEY(node);
+  CREATE INDEX ON temp_reached_vertices (death_end);
+  PERFORM get_reached_network_multi_array(ids_calc,minutes*60, number_isochrones, array_new_wid, objectid_input);
 
 END ;
 $function$;
 
 
-
---SELECT * FROM public.pgrouting_edges_multi(100, 20, ARRAY[[11.2570,48.1841],[11.2314,48.1736],[11.2503,48.1928],[11.2487,48.1718]],1.33, 3, ARRAY[1,2,3,4], 100,20, 'walking_standard');
+/*
+SELECT * 
+FROM public.pgrouting_edges_multi(100,20, ARRAY[[11.2570,48.1841],[11.2314,48.1736],[11.2503,48.1928],[11.2487,48.1718]], 
+1.33, 1, ARRAY[1,2,3,4], 12,20, 'walking_wheelchair');
+*/
