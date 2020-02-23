@@ -700,6 +700,11 @@
               "display": "Wheelchair",
               "value": "walking_wheelchair",
               "defaultSpeed": 5
+            },
+            {
+              "display": "Cycling",
+              "value": "cycling_standard",
+              "defaultSpeed": 15
             }
           ],
           "active": {
