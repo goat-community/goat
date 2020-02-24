@@ -34,7 +34,8 @@ SET foot = p.foot, bicycle = p.bicycle
 from planet_osm_line p
 WHERE ways.osm_id = p.osm_id;
 
-/*Split long ways that. Parameter max_length can be set in the variable container*/
+/*There shouldn't be further need for splitting the network
+Split long ways that. Parameter max_length can be set in the variable container
 DO $$
 DECLARE
 	max_length integer; 
@@ -104,6 +105,7 @@ BEGIN
 END
 $$;
 
+*/
 UPDATE ways 
 SET highway = l.highway, surface = l.surface, 
 	width = (CASE WHEN l.width ~ '^[0-9.]*$' THEN l.width::numeric ELSE NULL END)
