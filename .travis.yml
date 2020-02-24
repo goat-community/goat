@@ -6,7 +6,7 @@ branches:
   only:
     - master
     - development
-    - beta
+    - ffb
     - matosinhos
     - test_travis
 
