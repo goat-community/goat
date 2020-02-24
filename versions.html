@@ -5,6 +5,10 @@ layout: default
 
 <div class="container">
     <h1>GOAT Versions</h1>
+    <div class="card-text">Since GOAT is a transferable and highly flexible tool, it can be deployed for different use cases.
+        Here all versions that are developed by the GOAT Community are provided for visiting and testing. Depending on the purpose of the version,
+        different analysis options are available. 
+    </div>
     <br>
     <div class="row videos">
         {% for version in site.data.versions %}
@@ -19,8 +23,6 @@ layout: default
                     </div>
                 </div> 
             </div>  
-            {% cycle '', '<div class="clearfix visible-sm-block"></div>' %}
-            {% cycle '', '', '<div class="clearfix visible-md-block visible-lg-block"></div>' %}   
         {% endfor %}
     </div>
     <br>
