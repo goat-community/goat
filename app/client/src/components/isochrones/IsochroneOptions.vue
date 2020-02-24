@@ -50,7 +50,7 @@
           </v-slider>
           <v-slider
             min="1"
-            max="10"
+            max="20"
             inverse-label
             v-model="speed"
             prepend-icon="fas fa-tachometer-alt"
