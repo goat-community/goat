@@ -1,7 +1,4 @@
-DROP TRIGGER IF EXISTS trigger_insert_pois ON pois_modified; 
-CREATE TRIGGER trigger_insert_pois AFTER INSERT ON pois_modified
-FOR EACH ROW EXECUTE PROCEDURE insert_pois_userinput();
-
+DROP FUNCTION insert_pois_userinput;
 CREATE OR REPLACE FUNCTION public.insert_pois_userinput() 
 RETURNS TRIGGER AS $table_insert_pois$
 
@@ -12,12 +9,7 @@ BEGIN
 END;
 $table_insert_pois$ LANGUAGE plpgsql;
 
-
-DROP TRIGGER IF EXISTS trigger_update_pois ON pois_modified; 
-CREATE TRIGGER trigger_update_pois AFTER UPDATE ON pois_modified
-FOR EACH ROW EXECUTE PROCEDURE update_pois_userinput();
-
-
+DROP FUNCTION update_pois_userinput;
 CREATE OR REPLACE FUNCTION public.update_pois_userinput() 
 RETURNS TRIGGER AS $table_update_pois$
 
@@ -28,3 +20,13 @@ BEGIN
 	RETURN NEW; 
 END;
 $table_update_pois$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_insert_pois ON pois_modified; 
+CREATE TRIGGER trigger_insert_pois AFTER INSERT ON pois_modified
+FOR EACH ROW EXECUTE PROCEDURE insert_pois_userinput();
+
+
+DROP TRIGGER IF EXISTS trigger_update_pois ON pois_modified; 
+CREATE TRIGGER trigger_update_pois AFTER UPDATE ON pois_modified
+FOR EACH ROW EXECUTE PROCEDURE update_pois_userinput();
+
