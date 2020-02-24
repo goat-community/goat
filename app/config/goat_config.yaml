@@ -75,4 +75,22 @@ DATA_REFINEMENT_VARIABLES:
       surface_no: ['ground','gravel','unpaved','grass']
     walking_speed_elderly: '0.83333'
     walking_speed_wheelchair: '1.38889'
+    duplicated_lookup_radius: '100' 
+    tag_new_radius: '130'
+    pois_search_conditions:
+      dm: ['%dm%']
+      edeka: ['e center%', '%edeka%']
+      hypovereinsbank: ['%hypo vereinsbank%', '%hypovereinsbank%']
+      lidl: ['lidl']
+      mcdonalds: ['%mcdonald%']
+      raiffeisenbank: ['%raiffeisenbank%', '%vr bank%', '%vr-bank%', '%volksbank%']
+      rewe: ['%rewe%']
+      rossman: ['%rossmann%']
+      sparkassse: ['%kreissparkasse%','%sparkasse%','%stadtsparkasse%']  
+      vapiano: ['%vapiano%']      
+      
+
+      
+
+
       
