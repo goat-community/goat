@@ -795,13 +795,13 @@
           "options": [
             {
               "value": "standard",
-              "speed": 8
+              "speed": 15
             },
-            { "value": "pedelec", "speed": 10 }
+            { "value": "pedelec", "speed": 23 }
           ]
         },
         "walking_wheelchair": {
-          "speed": 8,
+          "speed": 5,
           "options": []
         }
       }
