@@ -41,14 +41,6 @@ begin
 /*start_point still has to be tested as it is the point were the user clicked. Worst case could be that we don't fetch the whole network*/  
 
   start_point = ST_SETSRID(ST_POINT(x,y),4326);
-  IF modus_input <> 3 THEN 
-		SELECT count(objectid) + 1 
-    INTO number_calculation_input
-		FROM starting_point_isochrones
-		WHERE userid = userid_input; 
-		INSERT INTO starting_point_isochrones(userid,geom,objectid,number_calculation)
-		SELECT userid_input, start_point, objectid_input, number_calculation_input;
-	END IF; 
   
   IF routing_profile = 'walking_elderly' THEN
     speed = speed_elderly; 
@@ -76,7 +68,15 @@ begin
   INTO closest_point, fraction, wid, vid
   FROM closest_point_network(x,y) c;
 
-  RAISE NOTICE '%',vid;
+  IF modus_input <> 3 THEN 
+		SELECT count(objectid) + 1 
+    INTO number_calculation_input
+		FROM starting_point_isochrones
+		WHERE userid = userid_input; 
+		INSERT INTO starting_point_isochrones(userid,geom,objectid,number_calculation)
+		SELECT userid_input, closest_point, objectid_input, number_calculation_input;
+	END IF; 
+
   IF vid IS NOT NULL THEN 
 
     INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
