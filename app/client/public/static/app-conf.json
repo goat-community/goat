@@ -834,7 +834,7 @@
           "values": "*"
         }
       },
-      "hiddenProps": ["userid", "id", "original_id", "status"]
+      "hiddenProps": ["userid", "id", "original_id", "status","wheelchair","opening_hours"]
     }
   }
 }
