@@ -1,5 +1,5 @@
 ---
-title: Population Extrapolation
+title: Population Data
 permalink: /docs/population/
 ---
 
