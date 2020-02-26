@@ -32,81 +32,73 @@
         ></v-icon>
         <h4>{{ $t("isochrones.options.subOptions") }}</h4>
       </v-subheader>
-
-      <v-flex
-        xs12
-        class="mx-4 isochroneOptions"
-        v-if="isIsochroneOptionsVisible"
-      >
-        <v-slider
-          min="1"
-          max="20"
-          inverse-label
-          v-model="minutes"
-          prepend-icon="fas fa-clock"
-          :label="minutes + ' min'"
+      <v-expand-transition>
+        <v-flex
+          xs12
+          class="mx-4 isochroneOptions"
+          v-if="isIsochroneOptionsVisible"
         >
-        </v-slider>
+          <v-slider
+            min="1"
+            max="20"
+            inverse-label
+            v-model="minutes"
+            prepend-icon="fas fa-clock"
+            :label="minutes + ' min'"
+            color="#30C2FF"
+          >
+          </v-slider>
+          <v-slider
+            min="1"
+            max="20"
+            inverse-label
+            v-model="speed"
+            prepend-icon="fas fa-tachometer-alt"
+            :label="speed + ' km/h'"
+            color="#30C2FF"
+          >
+          </v-slider>
 
-        <v-slider
-          min="1"
-          max="10"
-          inverse-label
-          v-model="speed"
-          prepend-icon="fas fa-tachometer-alt"
-          :label="speed + ' km/h'"
-        >
-        </v-slider>
+          <v-slider
+            class="mb-1"
+            v-model="steps"
+            min="1"
+            max="8"
+            inverse-label
+            prepend-icon="fas fa-sort-numeric-up"
+            :label="`${$t('isochrones.isochrones')} (${steps})`"
+            color="#30C2FF"
+          >
+          </v-slider>
 
-        <v-slider
-          class="mb-1"
-          v-model="steps"
-          min="1"
-          max="8"
-          inverse-label
-          prepend-icon="fas fa-sort-numeric-up"
-          :label="`${$t('isochrones.isochrones')} (${steps})`"
-        >
-        </v-slider>
+          <v-select
+            v-if="options.calculationType"
+            item-text="display"
+            item-value="value"
+            outlined
+            v-model="concavityIsochrones"
+            :value="concavityIsochrones"
+            :items="options.concavityIsochrones.values"
+            :label="$t('isochrones.options.calcType')"
+          ></v-select>
 
-        <v-select
-          v-if="options.calculationType === 'single'"
-          item-text="display"
-          item-value="value"
-          outlined
-          v-model="concavityIsochrones"
-          :value="concavityIsochrones"
-          :items="options.concavityIsochrones.values"
-          :label="$t('isochrones.options.calcType')"
-        ></v-select>
-
-        <v-select
-          item-value="value"
-          v-model="calculationModes"
-          outlined
-          :value="calculationModes"
-          :items="options.calculationModes.values"
-          :label="$t('isochrones.options.calcModus')"
-        >
-          <template slot="selection" slot-scope="{ item }">
-            {{ $t(`isochrones.options.${item.name}`) }}
-          </template>
-          <template slot="item" slot-scope="{ item }">
-            {{ $t(`isochrones.options.${item.name}`) }}
-          </template>
-        </v-select>
-
-        <v-select
-          v-if="options.calculationType === 'multiple'"
-          item-text="display"
-          item-value="value"
-          v-model="alphaShapeParameter"
-          outlined
-          :value="alphaShapeParameter"
-          :items="options.alphaShapeParameter.values"
-          :label="$t('isochrones.options.alphaShapeMode')"
-        ></v-select>
-      </v-flex>
+          <v-select
+            item-value="value"
+            v-model="calculationModes"
+            outlined
+            :value="calculationModes"
+            :items="filterCalcModeValues()"
+            :label="$t('isochrones.options.calcModus')"
+          >
+            <template slot="selection" slot-scope="{ item }">
+              {{ $t(`isochrones.options.${item.name}`) }}
+            </template>
+            <template slot="item" slot-scope="{ item }">
+              {{ $t(`isochrones.options.${item.name}`) }}
+            </template>
+          </v-select>
+        </v-flex>
+      </v-expand-transition>
     </div>
   </v-flex>
 </template>
@@ -131,7 +123,11 @@ export default {
       alphaShapeParameter: "options.alphaShapeParameter.active"
     })
   },
-  methods: {}
+  methods: {
+    filterCalcModeValues() {
+      return this.options.calculationModes.values;
+    }
+  }
 };
 </script>
 <style lang="css">

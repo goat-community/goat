@@ -2,6 +2,7 @@ import { Group as LayerGroup } from "ol/layer.js";
 import olLayerLayer from "ol/layer/Layer.js";
 import { WFS } from "ol/format";
 import olLayerImage from "ol/layer/Image.js";
+import olLayerVector from "ol/layer/Vector.js";
 import olSourceImageWMS from "ol/source/ImageWMS.js";
 import { appendParams as olUriAppendParams } from "ol/uri.js";
 
@@ -32,6 +33,21 @@ export function getLayersBy(key, value, olMap) {
   });
 
   return layerMatches;
+}
+
+/**
+ * Returns OL Layer type.
+ *
+ * @param  {ol.layer.Base} Object OL layer
+ */
+export function getLayerType(layer) {
+  let layerType;
+  if (layer instanceof olLayerImage) {
+    layerType = "WMS";
+  } else if (layer instanceof olLayerVector) {
+    layerType = "WFS";
+  }
+  return layerType;
 }
 
 /**
@@ -92,15 +108,26 @@ export function zoomToLayerExtent(vecLayer, olMap) {
  * @param  {ol.format.filter} filter The Openlayers filter
  *
  */
-export function wfsRequestParser(srsName, workspace, layerName, filter) {
+export function wfsRequestParser(
+  srsName,
+  workspace,
+  layerName,
+  filter,
+  viewparams = undefined
+) {
   const xs = new XMLSerializer();
-  const wfs = new WFS().writeGetFeature({
+  const opt = {
     srsName: srsName,
     featurePrefix: workspace,
     featureTypes: [layerName],
     outputFormat: "application/json",
     filter: filter
-  });
+  };
+  if (viewparams) {
+    opt.viewParams = viewparams.toString();
+  }
+
+  const wfs = new WFS().writeGetFeature(opt);
   const xmlparser = xs.serializeToString(wfs);
   return xmlparser;
 }
@@ -179,6 +206,28 @@ export function getFlatLayers_(layer, array, computedOpacity) {
     }
   }
   return array;
+}
+
+/**
+ * Gets teh active baselayer if there
+ * is one activated otherwise it will return an empty array.
+ * @param  {ol.Map} olMap           The map to perform the search on.
+ * @return {Array<import("ol/layer/Layer.js").default<import('ol/source/Source.js').default>>} Layers.
+ */
+
+export function getActiveBaseLayer(map) {
+  const activeBaselayer = map
+    .getLayers()
+    .getArray()
+    .filter(groupLayer => {
+      return groupLayer.get("name") === "backgroundLayers";
+    })[0]
+    .getLayers()
+    .getArray()
+    .filter(layer => {
+      return layer.getVisible() === true;
+    });
+  return activeBaselayer;
 }
 
 /**
@@ -333,4 +382,66 @@ export function getWMSLegendURL(
     Object.assign(queryString, opt_additionalQueryString);
   }
   return olUriAppendParams(url, queryString);
+}
+
+/**
+ * Get decscibeFeatureType properties and converts to a json schema for generating dynamic vuetify fields
+ * @param {props} decscibeFeatureType json schema
+ * @return {object} Vuetify json schema form
+ */
+export function mapFeatureTypeProps(props, layerName, layerConf) {
+  const mapping = {
+    string: "string",
+    int: "integer"
+  };
+  let obj = {
+    $id: "https://example.com/person.schema.json",
+    $schema: "http://json-schema.org/draft-07/schema#",
+    type: "object",
+    required: [],
+    properties: {}
+  };
+
+  props.forEach(prop => {
+    let type = mapping[prop.localType];
+    if (type) {
+      obj.properties[prop.name] = {
+        type,
+        layerName
+      };
+      if (prop.nillable === false) {
+        obj.required.push(prop.name);
+      }
+      if (layerConf["hiddenProps"].includes(prop.name)) {
+        obj.properties[prop.name]["x-display"] = "hidden";
+      }
+      if (
+        layerConf["listValues"][prop.name] &&
+        Array.isArray(layerConf["listValues"][prop.name].values)
+      ) {
+        obj.properties[prop.name]["enum"] =
+          layerConf["listValues"][prop.name].values;
+        //Show as autocomplete
+        obj.properties[prop.name]["isAutocomplete"] = true;
+      }
+    }
+  });
+  return obj;
+}
+
+/**
+ * Get the array of pois values
+ * @param {poisConfiguration} object pois configuration
+ * @return {array} pois key values
+ */
+export function getPoisListValues(pois) {
+  const poisListValues = [];
+
+  pois.forEach(category => {
+    const children = category.children;
+    children.forEach(pois => {
+      poisListValues.push(pois.value);
+    });
+  });
+  return poisListValues;
 }
