@@ -103,7 +103,7 @@
       "drawFeatureTooltip": "Draw Feature",
       "modifyFeatureTooltip": "Modify Feature",
       "deleteFeature": "Delete Feature",
-      "clearBtn": "Delete All",
+      "clearBtn": "Revert",
       "uploadBtn": "Upload",
       "popup": {
         "deleteFeatureMsg": "Are you sure you want to delete the selected feature ?",
@@ -111,6 +111,7 @@
         "wayType": "Way Type"
       },
       "activateLayerToDrawScenario": "Plese activate the layer to be able to select features",
+      "dataTypeInfo": "Data type should be",
       "geometryTypeInfo": "Geometry type should be",
       "requiredFields": "Required Fields",
       "referenceSystemInfo": "Reference sytem should be in",
