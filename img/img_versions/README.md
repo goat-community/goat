@@ -1,0 +1,1 @@
+Images should have max height of 750 px
