@@ -74,6 +74,7 @@
         "queryable": true,
         "visible": false,
         "canEdit": true,
+        "editDataType": "GeoJSON",
         "editGeometry": "Point",
         "displayInLayerList": true,
         "requiresPois": true,
