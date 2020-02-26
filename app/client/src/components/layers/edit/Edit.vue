@@ -126,6 +126,11 @@
               dense
             >
               <span
+                >&#9679; {{ $t("appBar.edit.dataTypeInfo") }}:
+                <b>{{ selectedLayer.get("editDataType") }}</b>
+              </span>
+              <br />
+              <span
                 >&#9679; {{ $t("appBar.edit.geometryTypeInfo") }}:
                 <b>{{ selectedLayer.get("editGeometry") }}</b>
               </span>
