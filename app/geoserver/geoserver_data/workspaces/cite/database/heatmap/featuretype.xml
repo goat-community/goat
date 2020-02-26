@@ -1,0 +1,88 @@
+<featureType>
+  <id>FeatureTypeInfoImpl--4d0757f:161e6cb86ce:-5a36</id>
+  <name>heatmap</name>
+  <nativeName>heatmap</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
+  </namespace>
+  <title>heatmap</title>
+  <keywords>
+    <string>features</string>
+    <string>heatmap</string>
+  </keywords>
+  <nativeCRS>GEOGCS[&quot;WGS 84&quot;, 
+  DATUM[&quot;World Geodetic System 1984&quot;, 
+    SPHEROID[&quot;WGS 84&quot;, 6378137.0, 298.257223563, AUTHORITY[&quot;EPSG&quot;,&quot;7030&quot;]], 
+    AUTHORITY[&quot;EPSG&quot;,&quot;6326&quot;]], 
+  PRIMEM[&quot;Greenwich&quot;, 0.0, AUTHORITY[&quot;EPSG&quot;,&quot;8901&quot;]], 
+  UNIT[&quot;degree&quot;, 0.017453292519943295], 
+  AXIS[&quot;Geodetic longitude&quot;, EAST], 
+  AXIS[&quot;Geodetic latitude&quot;, NORTH], 
+  AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>11.3603382590879</minx>
+    <maxx>11.7231010881753</maxx>
+    <miny>48.0673908892548</miny>
+    <maxy>48.249056348695</maxy>
+    <crs>EPSG:4326</crs>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>11.3603382590879</minx>
+    <maxx>11.7231010881753</maxx>
+    <miny>48.0673908892548</miny>
+    <maxy>48.249056348695</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>heatmap</name>
+        <sql>with x as (&#xd;
+	select  *&#xd;
+	from heatmap(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;))&#xd;
+),&#xd;
+y as (&#xd;
+	SELECT x.grid_id,x.accessibility_index,x.geom, ntile(5) over &#xd;
+	(order by x.accessibility_index) AS percentile_accessibility&#xd;
+	FROM x &#xd;
+	WHERE accessibility_index &lt;&gt; 0&#xd;
+	UNION ALL &#xd;
+	SELECT x.grid_id, accessibility_index, x.geom, 0&#xd;
+	FROM x&#xd;
+	WHERE accessibility_index = 0&#xd;
+)&#xd;
+select g.grid_id, COALESCE(y.percentile_accessibility,0) AS accessibility_index, g.percentile_population, &#xd;
+g.percentile_population-COALESCE(y.percentile_accessibility,0) AS population_accessibility, g.geom &#xd;
+FROM grid_500 g&#xd;
+LEFT JOIN y &#xd;
+ON g.grid_id = y.grid_id
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>4326</srid>
+        </geometry>
+        <parameter>
+          <name>amenities</name>
+          <defaultValue>&apos;W3siJ2J1c19zdG9wJyI6Mn0seyIndHJhbV9zdG9wJyI6M31d&apos;</defaultValue>
+        </parameter>
+      </virtualTable>
+    </entry>
+    <entry key="cachingEnabled">false</entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

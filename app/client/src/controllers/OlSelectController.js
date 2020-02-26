@@ -101,16 +101,15 @@ export default class OlSelectController extends OlBaseController {
             "EPSG:3857"
           );
 
-          const layerParams = selectedLayer
-            .getSource()
-            .getParams()
-            .LAYERS.split(":");
+          const params = selectedLayer.getSource().getParams();
+          const layerParams = params.LAYERS.split(":");
 
           const xmlRequest = wfsRequestParser(
             "EPSG:3857",
             layerParams[0],
             layerParams[1],
-            filterIntersect
+            filterIntersect,
+            params.viewparams
           );
 
           const requests = [
@@ -119,27 +118,25 @@ export default class OlSelectController extends OlBaseController {
             })
           ];
 
-          if (layerParams[1] === "ways") {
-            const filterUserInputTable = equalToFilter(
-              "userid",
-              store.state.userId
-            );
-            const combinedFilter = andFilter(
-              filterUserInputTable,
-              filterIntersect
-            );
-            const waysModifiedReq = wfsRequestParser(
-              "EPSG:3857",
-              layerParams[0],
-              "ways_modified",
-              combinedFilter
-            );
-            requests.push(
-              http.post("geoserver/cite/wfs", waysModifiedReq, {
-                headers: { "Content-Type": "text/xml" }
-              })
-            );
-          }
+          const filterUserInputTable = equalToFilter(
+            "userid",
+            store.state.userId
+          );
+          const combinedFilter = andFilter(
+            filterUserInputTable,
+            filterIntersect
+          );
+          const modifiedReq = wfsRequestParser(
+            "EPSG:3857",
+            layerParams[0],
+            `${layerParams[1]}_modified`,
+            combinedFilter
+          );
+          requests.push(
+            http.post("geoserver/cite/wfs", modifiedReq, {
+              headers: { "Content-Type": "text/xml" }
+            })
+          );
 
           axios
             .all(requests)
@@ -197,11 +194,8 @@ export default class OlSelectController extends OlBaseController {
     if (me.pointerMoveKey) {
       unByKey(me.pointerMoveKey);
     }
-    if (me.overlayersGarbageCollector) {
-      me.overlayersGarbageCollector.forEach(overlay => {
-        me.map.removeOverlay(overlay);
-      });
-      me.overlayersGarbageCollector = [];
+    if (me.clearOverlays) {
+      me.clearOverlays();
     }
   }
 }

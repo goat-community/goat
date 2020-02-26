@@ -1,8 +1,5 @@
 <template>
   <v-flex xs12 sm8 md4>
-    <v-subheader>
-      <span class="title">{{ $t("layerTree.title") }}</span>
-    </v-subheader>
     <v-divider></v-divider>
 
     <v-expansion-panels accordion multiple>
@@ -26,7 +23,7 @@
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <!-- LAYERS -->
-          <v-expansion-panels>
+          <v-expansion-panels readonly>
             <v-expansion-panel
               v-for="(item, i) in layerGroup.children"
               :key="i"
@@ -37,7 +34,7 @@
               <v-expansion-panel-header
                 expand-icon=""
                 @click="toggleLayerVisibility(item, layerGroup)"
-                v-slot="{ open }"
+                v-slot="{}"
               >
                 <v-layout row class="pl-2" wrap align-center>
                   <v-flex xs2>
@@ -86,6 +83,7 @@
                   max="1"
                   @input="changeLayerOpacity($event, item.mapLayer)"
                   :label="$t('layerTree.settings.transparency')"
+                  color="#30C2FF"
                 ></v-slider>
               </v-card>
             </v-expansion-panel>
@@ -101,13 +99,19 @@
 <script>
 import { Mapable } from "../../../mixins/Mapable";
 import { Group, Vector } from "ol/layer.js";
+import { mapGetters, mapMutations } from "vuex";
+
 export default {
   mixins: [Mapable],
   data: () => ({
     layers: []
   }),
   components: {},
-  computed: {},
+  computed: {
+    ...mapGetters("pois", {
+      selectedPois: "selectedPois"
+    })
+  },
   methods: {
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
@@ -186,6 +190,17 @@ export default {
           layer.mapLayer.setVisible(false);
         });
       }
+      if (
+        clickedLayer.mapLayer.get("requiresPois") === true &&
+        clickedLayer.mapLayer.getVisible() === false &&
+        this.selectedPois.length === 0
+      ) {
+        this.toggleSnackbar({
+          type: "error",
+          message: "selectAmenities",
+          state: true
+        });
+      }
       clickedLayer.mapLayer.setVisible(!clickedLayer.mapLayer.getVisible());
       if (clickedLayer.mapLayer.getVisible() === false) {
         clickedLayer.showOptions = false;
@@ -206,9 +221,11 @@ export default {
       } else {
         return key;
       }
-    }
-  },
-  mounted() {}
+    },
+    ...mapMutations("map", {
+      toggleSnackbar: "TOGGLE_SNACKBAR"
+    })
+  }
 };
 </script>
 <style lang="css" scoped>

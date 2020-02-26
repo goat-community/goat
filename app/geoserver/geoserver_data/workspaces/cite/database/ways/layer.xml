@@ -1,0 +1,20 @@
+<layer>
+  <name>ways</name>
+  <id>LayerInfoImpl--57bbcc21:162c3d4cf5c:-78f6</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-7407ec68:16e4a1b5dd3:-269c</id>
+  </defaultStyle>
+  <styles class="linked-hash-set">
+    <style>
+      <id>StyleInfoImpl-7407ec68:16e4a1b5dd3:-269c</id>
+    </style>
+  </styles>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--57bbcc21:162c3d4cf5c:-78f7</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

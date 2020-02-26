@@ -2,7 +2,7 @@
   <v-dialog v-model="show" scrollable max-width="500px">
     <v-card flat>
       <v-app-bar color="green" dark>
-        <v-app-bar-nav-icon><v-icon>fas fa-cog</v-icon></v-app-bar-nav-icon>
+        <v-app-bar-nav-icon><v-icon>fas fa-flag</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title>{{ $t("appBar.settings.title") }}</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-app-bar-nav-icon @click.stop="show = false"
@@ -20,16 +20,18 @@
         <v-card-text>
           <div class="">
             <span>
-              <v-btn-toggle v-model="defaultLanguage" mandatory>
-                <v-btn
-                  text
-                  v-for="entry in languages"
-                  :key="entry.title"
-                  @click="changeLocale(entry.language)"
-                >
-                  <flag :iso="entry.flag" v-bind:squared="false" />
-                  <span class="pl-2">{{ entry.title }}</span>
-                </v-btn>
+              <v-btn-toggle v-model="selectedLanguage" mandatory>
+                <v-flex class="mx-2">
+                  <v-btn
+                    text
+                    v-for="entry in languages"
+                    :key="entry.title"
+                    @click="changeLocale(entry.language)"
+                  >
+                    <flag :iso="entry.flag" v-bind:squared="false" />
+                    <span class="pl-2">{{ entry.title }}</span>
+                  </v-btn>
+                </v-flex>
               </v-btn-toggle>
             </span>
           </div>
@@ -64,14 +66,14 @@ export default {
   props: ["visible"],
   data() {
     return {
-      defaultLanguage: 0,
+      selectedLanguage: 0,
       units: "kilometers",
       languages: [
         { flag: "gb", language: "en", title: "English" },
-        { flag: "de", language: "de", title: "German" },
+        { flag: "de", language: "de", title: "Deutsch" },
         { flag: "es", language: "es", title: "Español" },
         { flag: "fr", language: "fr", title: "Français" },
-        { flag: "al", language: "al", title: "Shqip" }
+        { flag: "al", language: "sq", title: "Shqip" }
       ],
       interactionType: "languageChange"
     };
@@ -91,9 +93,19 @@ export default {
       set(value) {
         if (!value) {
           this.$emit("close");
+          EventBus.$emit("ol-interaction-stoped", this.interactionType);
         }
       }
     }
+  },
+  mounted() {
+    const currentLang = this.$i18n.locale;
+
+    this.languages.forEach((l, index) => {
+      if (l.language === currentLang) {
+        this.selectedLanguage = index;
+      }
+    });
   }
 };
 </script>

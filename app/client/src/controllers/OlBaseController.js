@@ -41,17 +41,21 @@ export default class OlBaseController {
    * Creates a vector layer and adds it to the
    * map.
    */
-  createLayer(name, style) {
+  createLayer(name, style, opt = {}) {
     const me = this;
-
-    // create a vector layer to
-    const source = new VectorSource({ wrapX: false });
-    const vector = new VectorLayer({
+    // create a vector layer
+    const source = new VectorSource({
+      wrapX: false
+    });
+    const options = Object.assign(opt, {
       name: name,
       displayInLayerList: false,
+      zIndex: 5,
       source: source,
       style: style
     });
+
+    const vector = new VectorLayer(options);
 
     me.map.addLayer(vector);
 
@@ -99,11 +103,23 @@ export default class OlBaseController {
     me.helpTooltipElement.className = "tooltip";
     me.helpTooltip = new Overlay({
       element: me.helpTooltipElement,
-      offset: [15, 0],
-      positioning: "center-left"
+      offset: [15, 15],
+      positioning: "top-left",
+      stopEvent: true,
+      insertFirst: false
     });
     me.map.addOverlay(me.helpTooltip);
     me.overlayersGarbageCollector.push(me.helpTooltip);
+  }
+
+  clearOverlays() {
+    const me = this;
+    if (me.overlayersGarbageCollector) {
+      me.overlayersGarbageCollector.forEach(overlay => {
+        me.map.removeOverlay(overlay);
+      });
+      me.overlayersGarbageCollector = [];
+    }
   }
 
   /**
@@ -117,11 +133,6 @@ export default class OlBaseController {
     if (me.source) {
       me.source.clear();
     }
-    if (me.overlayersGarbageCollector) {
-      me.overlayersGarbageCollector.forEach(overlay => {
-        me.map.removeOverlay(overlay);
-      });
-      me.overlayersGarbageCollector = [];
-    }
+    me.clearOverlays();
   }
 }

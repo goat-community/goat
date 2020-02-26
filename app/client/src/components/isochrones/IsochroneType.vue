@@ -1,8 +1,5 @@
 <template>
   <v-flex xs12>
-    <v-card-text class="pr-16 pl-16 pt-0 pb-0">
-      <v-divider></v-divider>
-    </v-card-text>
     <v-subheader
       @click="
         isIsochroneCalculationTypeElVisible = !isIsochroneCalculationTypeElVisible
@@ -28,6 +25,7 @@
         class="pb-0 mb-0 justify-center radio-group-height"
         :value="calculationType"
         v-model="calculationType"
+        @change="changedType"
         row
       >
         <v-radio :label="$t('isochrones.single.type')" value="single"></v-radio>
@@ -50,8 +48,16 @@ export default {
   computed: {
     ...mapGetters("isochrones", { options: "options" }),
     ...mapFields("isochrones", {
-      calculationType: "options.calculationType"
+      calculationType: "options.calculationType",
+      calculationModes: "options.calculationModes.active"
     })
+  },
+  methods: {
+    changedType(type) {
+      if (type === "multiple") {
+        this.calculationModes = "default";
+      }
+    }
   }
 };
 </script>

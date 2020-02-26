@@ -14,57 +14,24 @@ import {
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import IsochroneUtils from "../../utils/IsochroneUtils";
+import { groupBy } from "../../utils/Helpers";
+import { getNestedProperty, addProps } from "../../utils/Helpers";
 
 const state = {
   position: {
     coordinate: null,
     placeName: ""
   },
-  options: {
-    calculationType: "single",
-    minutes: "10",
-    speed: "5",
-    steps: "2",
-    concavityIsochrones: {
-      name: "concavity",
-      values: [
-        { display: "0", value: "0.00003" },
-        { display: "1", value: "0.000003" },
-        { display: "2", value: "0.0000025" },
-        { display: "3", value: "0.000002" },
-        { display: "4", value: "0.0000017" },
-        { display: "5", value: "0.0000015" }
-      ],
-      active: "0.00003"
-    },
-    calculationModes: {
-      name: "modus",
-      values: [
-        {
-          display: "Default Network",
-          name: "defaultNetwork",
-          value: "default"
-        },
-        {
-          display: "Modified Network",
-          name: "modifiedNetwork",
-          value: "scenario"
-        },
-        {
-          display: "Modified Network (Double Calculation)",
-          name: "modifiedNetworkDoubleCalc",
-          value: "comparison"
-        }
-      ],
-      active: "default"
-    },
-    alphaShapeParameter: {
-      name: "alphashape",
-      values: [{ display: "0.00003", value: "0.00003" }],
-      active: "0.00003"
-    }
-  },
+  isBusy: false,
+  options: [],
+  styleData: {},
   calculations: [],
+  routeIcons: {
+    walking: "fas fa-walking",
+    cycling: "fas fa-biking",
+    walking_wheelchair: "fas fa-wheelchair"
+  },
+  activeRoutingProfile: null, //ex. "walking_standard"
   multiIsochroneCalculationMethods: {
     name: "multiIsochroneCalculationMethods",
     values: [
@@ -83,64 +50,20 @@ const state = {
   },
   isochroneLayer: null,
   selectionLayer: null,
-  styleData: {
-    styleCache: {
-      default: {},
-      input: {}
-    },
-    defaultIsochroneColors: {
-      "1": "#ffffe0",
-      "2": "#fff2c7",
-      "3": "#ffe4b1",
-      "4": "#ffd69d",
-      "5": "#ffc88e",
-      "6": "#ffb981",
-      "7": "#ffaa76",
-      "8": "#ff9a6e",
-      "9": "#fc8968",
-      "10": "#f77a63",
-      "11": "#f16b5f",
-      "12": "#e95d5a",
-      "13": "#e14f55",
-      "14": "#d8404e",
-      "15": "#cd3346",
-      "16": "#c2263d",
-      "17": "#b61832",
-      "18": "#a80c25",
-      "19": "#9b0316",
-      "20": "#8b0000"
-    },
-    inputIsochroneColors: {
-      "1": "#22D329",
-      "2": "#20C830",
-      "3": "#1EBD38",
-      "4": "#1CB340",
-      "5": "#1AA848",
-      "6": "#199E50",
-      "7": "#179358",
-      "8": "#158860",
-      "9": "#137E68",
-      "10": "#117370",
-      "11": "#106977",
-      "12": "#0E5E7F",
-      "13": "#0C5487",
-      "14": "#0A498F",
-      "15": "#083E97",
-      "16": "#07349F",
-      "17": "#0529A7",
-      "18": "#031FAF",
-      "19": "#0114B7",
-      "20": "#000ABF"
-    }
-  },
+  isochroneRoadNetworkLayer: null,
+
   isThematicDataVisible: false,
   selectedThematicData: null
 };
 
 const getters = {
+  isBusy: state => state.isBusy,
+  activeRoutingProfile: state => state.activeRoutingProfile,
+  routeIcons: state => state.routeIcons,
   calculations: state => state.calculations,
   options: state => state.options,
   isochroneLayer: state => state.isochroneLayer,
+  isochroneRoadNetworkLayer: state => state.isochroneRoadNetworkLayer,
   selectionLayer: state => state.selectionLayer,
   styleData: state => state.styleData,
   isThematicDataVisible: state => state.isThematicDataVisible,
@@ -158,13 +81,20 @@ const getters = {
           return accumulator + currentValue.get("count_pois");
         }, 0);
     }
+
     return count;
+  },
+  getGroupedCalculationData: state => id => {
+    const calculation = state.calculations.find(
+      calculation => calculation.id === id
+    );
+    return calculation ? groupBy(calculation.data, "type") : {};
   },
   getField
 };
 
 const actions = {
-  async calculateIsochrone({ commit, rootState }) {
+  async calculateIsochrone({ dispatch, commit, rootState }) {
     //Selected isochrone calculation type. single | multiple
     const calculationType = rootState.isochrones.options.calculationType;
     const sharedParams = {
@@ -192,7 +122,8 @@ const actions = {
       params = Object.assign(sharedParams, {
         x: state.position.coordinate[0],
         y: state.position.coordinate[1],
-        concavity: state.options.concavityIsochrones.active
+        concavity: state.options.concavityIsochrones.active,
+        routing_profile: state.activeRoutingProfile
       });
       isochroneEndpoint = "isochrone";
     } else {
@@ -220,6 +151,7 @@ const actions = {
         ),
         region_type: `'${regionType}'`,
         region: region,
+        routing_profile: `'${state.activeRoutingProfile}'`,
         amenities: rootState.pois.selectedPois
           .map(item => {
             return "'" + item.value + "'";
@@ -230,17 +162,36 @@ const actions = {
       isochroneEndpoint = "pois_multi_isochrones";
     }
 
-    const isochronesResponse = await http.post(
-      `/api/${isochroneEndpoint}`,
-      params
-    );
+    commit("SET_IS_BUSY", true);
+    const isochronesResponse = await http
+      .post(`/api/${isochroneEndpoint}`, params, {
+        timeout: 12000
+      })
+      .catch(() => {
+        //Show error message
+        commit(
+          "map/TOGGLE_SNACKBAR",
+          {
+            type: "error",
+            message: "calculateIsochroneError",
+            state: true
+          },
+          { root: true }
+        );
+        if (iconMarkerFeature) {
+          commit("REMOVE_ISOCHRONE_FEATURE", iconMarkerFeature);
+        }
+      });
+
+    commit("SET_IS_BUSY", false);
+    if (!isochronesResponse) return;
     let isochrones = isochronesResponse.data;
     let calculationData = [];
 
     //TODO: Don't get calculation options from state at this moment.
     const calculationNumber = state.calculations.length + 1;
 
-    let olFeatures = geojsonToFeature(isochrones);
+    let olFeatures = geojsonToFeature(isochrones, {});
     //Order features based on id
     olFeatures.sort((a, b) => {
       return a.get("step") - b.get("step");
@@ -265,6 +216,8 @@ const actions = {
         type: IsochroneUtils.getIsochroneAliasFromKey(
           feature.getProperties().modus
         ),
+        objectId: feature.getProperties().objectid,
+        modus: modus,
         range: feature.getProperties().step + " min",
         color: color,
         area: getPolygonArea(feature.getGeometry()),
@@ -273,6 +226,8 @@ const actions = {
       feature.set("isVisible", true);
       feature.set("calculationNumber", calculationNumber);
       feature.set("color", color);
+      feature.set("calculationType", calculationType);
+      feature.set("hoverColor", "");
 
       calculationData.push(obj);
     });
@@ -282,9 +237,11 @@ const actions = {
       calculationType: calculationType,
       time: state.options.minutes + " min",
       speed: state.options.speed + " km/h",
+      routing_profile: state.activeRoutingProfile,
       isExpanded: true,
       isVisible: true,
-      data: calculationData
+      data: calculationData,
+      additionalData: {}
     };
 
     if (calculationType === "single") {
@@ -294,6 +251,7 @@ const actions = {
       )
         .getGeometry()
         .getCoordinates();
+
       const transformedPoint = new Point(
         transform(isochroneStartingPoint, "EPSG:4326", "EPSG:3857") //TODO: Get source projection from the map here.
       );
@@ -309,6 +267,18 @@ const actions = {
         state.position.placeName ||
         toStringHDMS(isochroneStartingPoint || state.position.coordinate) ||
         "";
+
+      //Reverse Geocode coordinates
+      const reverseGeocode = await http.get(
+        `${process.env.VUE_APP_SEARCH_URL}reverse.php?key=${process.env.VUE_APP_SEARCH_KEY}&lat=${isochroneStartingPoint[1]}&lon=${isochroneStartingPoint[0]}&format=json`
+      );
+      if (reverseGeocode.status === 200 && reverseGeocode.data.display_name) {
+        const address = reverseGeocode.data.display_name;
+
+        if (address.length > 0) {
+          transformedData.position = address;
+        }
+      }
     } else {
       commit("RESET_MULTIISOCHRONE_START");
       transformedData.position = "multiIsochroneCalculation";
@@ -317,6 +287,11 @@ const actions = {
     commit("CALCULATE_ISOCHRONE", transformedData);
     //Add features to isochrone layer
     commit("ADD_ISOCHRONE_FEATURES", olFeatures);
+    //Show isochrone window
+    dispatch("showIsochroneWindow", {
+      id: calculationNumber,
+      calculationType: calculationType
+    });
   },
 
   async countStudyAreaPois({ commit, rootState }, options) {
@@ -347,6 +322,8 @@ const actions = {
         return;
       }
       const params = {
+        user_id: rootState.user.userId,
+        modus: "'" + state.options.calculationModes.active + "'",
         minutes: rootState.isochrones.options.minutes,
         speed: rootState.isochrones.options.speed,
         amenities: amenities
@@ -389,7 +366,7 @@ const actions = {
         results.map(response => {
           const configData = JSON.parse(response.config.data);
           if (response.data.feature) {
-            const olFeatures = geojsonToFeature(response.data.feature);
+            const olFeatures = geojsonToFeature(response.data.feature, {});
             olFeatures.forEach(feature => {
               feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
               feature.set("region_type", configData.region_type);
@@ -405,6 +382,82 @@ const actions = {
       });
     }
   },
+
+  toggleRoadNetwork({ rootState }, payload) {
+    const calculation = payload.calculation;
+    addProps(
+      calculation.additionalData,
+      `${payload.type}.state`,
+      payload.state
+    );
+
+    if (
+      !!getNestedProperty(
+        calculation.additionalData,
+        `${payload.type}.features`
+      ) === false
+    ) {
+      //Road Network Feature aren't loaded.
+      const groupedData = payload.groupedData[payload.type];
+      if (!groupedData || groupedData.length < 1) return;
+      const objectId = groupedData[0].objectId;
+      const modus = groupedData[0].modus;
+
+      addProps(calculation.additionalData, `${payload.type}.features`, []);
+
+      http
+        .get("./geoserver/wfs", {
+          params: {
+            service: "WFS",
+            version: " 1.1.0",
+            request: "GetFeature",
+            viewparams: `objectid:${objectId};modus:${modus}`,
+            outputFormat: "application/json",
+            typeNames: "cite:show_network"
+          }
+        })
+        .then(function(response) {
+          if (response.status === 200) {
+            let olFeatures = geojsonToFeature(response.data, {
+              dataProjection: "EPSG:4326",
+              featureProjection: "EPSG:3857"
+            });
+            calculation.additionalData[payload.type]["features"] = [
+              ...olFeatures
+            ];
+
+            if (
+              payload.state === true &&
+              rootState.isochrones.isochroneRoadNetworkLayer !== null
+            ) {
+              //1- Add features to road network layer
+
+              rootState.isochrones.isochroneRoadNetworkLayer
+                .getSource()
+                .addFeatures(olFeatures);
+            }
+          }
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
+    }
+
+    const features = calculation.additionalData[payload.type]["features"];
+    const roadLayerSource = rootState.isochrones.isochroneRoadNetworkLayer.getSource();
+    if (payload.state === false && features.length > 0) {
+      //2- Remove features from road network layer
+      features.forEach(feature => {
+        if (roadLayerSource.hasFeature(feature)) {
+          roadLayerSource.removeFeature(feature);
+        }
+      });
+    } else {
+      //3- Add already loaded feature again to the road network layer
+      roadLayerSource.addFeatures(features);
+    }
+  },
+
   removeCalculation({ commit }, calculation) {
     commit("REMOVE_CALCULATION", calculation);
   },
@@ -413,11 +466,60 @@ const actions = {
     //Assign Selected Pois from the tree
     thematicDataObject.filterSelectedPois = rootState.pois.selectedPois;
     commit("SET_SELECTED_THEMATIC_DATA", thematicDataObject);
+  },
+
+  /**
+   * Sets selected thematic data and opens isochrone window .
+   */
+  showIsochroneWindow({ dispatch, commit, rootState }, _payload) {
+    let calculation = rootState.isochrones.calculations.filter(
+      calculation => calculation.id === _payload.id
+    );
+    if (calculation.length === 0) return;
+    calculation = calculation[0];
+    const features = IsochroneUtils.getCalculationFeatures(
+      calculation,
+      rootState.isochrones.isochroneLayer
+    );
+    rootState.isochrones.isochroneLayer
+      .getSource()
+      .getFeatures()
+      .forEach(f => {
+        f.set("highlightFeature", false);
+      });
+    features.forEach(f => {
+      f.set("highlightFeature", true);
+    });
+    const pois = IsochroneUtils.getCalculationPoisObject(features);
+    const payload = {
+      calculationId: calculation.id,
+      calculationType: calculation.calculationType,
+      pois: pois
+    };
+    if (calculation.calculationType === "multiple") {
+      const multiIsochroneTableData = IsochroneUtils.getMultiIsochroneTableData(
+        features
+      );
+      payload.multiIsochroneTableData = multiIsochroneTableData;
+    }
+
+    dispatch("setSelectedThematicData", payload);
+    commit("TOGGLE_THEMATIC_DATA_VISIBILITY", true);
   }
 };
 
 const mutations = {
+  INIT(state, config) {
+    if (config && typeof config === "object") {
+      for (const key of Object.keys(config)) {
+        state[key] = config[key];
+      }
+    }
+  },
   CALCULATE_ISOCHRONE(state, isochrone) {
+    state.calculations.forEach(calculation => {
+      calculation.isExpanded = false;
+    });
     state.calculations.unshift(isochrone);
   },
   UPDATE_POSITION(state, position) {
@@ -425,6 +527,12 @@ const mutations = {
   },
   ADD_ISOCHRONE_LAYER(state, layer) {
     state.isochroneLayer = layer;
+  },
+  SET_IS_BUSY(state, isBusy) {
+    state.isBusy = isBusy;
+  },
+  ADD_ISOCHRONE_ROAD_NETWORK_LAYER(state, layer) {
+    state.isochroneRoadNetworkLayer = layer;
   },
   ADD_SELECTION_LAYER(state, layer) {
     state.selectionLayer = layer;
@@ -437,6 +545,16 @@ const mutations = {
   },
   REMOVE_CALCULATION(state, calculation) {
     let id = calculation.id;
+    if (
+      state.selectedThematicData &&
+      state.selectedThematicData.calculationId === id
+    ) {
+      state.selectedThematicData = null;
+    } else if (state.selectedThematicData) {
+      state.selectedThematicData.calculationId =
+        state.selectedThematicData.calculationId - 1;
+    }
+
     state.calculations = state.calculations.filter(
       calculation => calculation.id != id
     );
@@ -456,10 +574,24 @@ const mutations = {
         isochroneFeature.set("calculationNumber", isochroneCalculationNr - 1);
       }
     });
+    const isochroneRoadNetworkLayerSource = state.isochroneRoadNetworkLayer.getSource();
+    Object.keys(calculation.additionalData).forEach(type => {
+      const features = calculation.additionalData[type].features;
+      if (isochroneRoadNetworkLayerSource && features) {
+        features.forEach(feature => {
+          isochroneRoadNetworkLayerSource.removeFeature(feature);
+        });
+      }
+    });
   },
   ADD_ISOCHRONE_FEATURES(state, features) {
     if (state.isochroneLayer) {
       state.isochroneLayer.getSource().addFeatures(features);
+    }
+  },
+  REMOVE_ISOCHRONE_FEATURE(state, feature) {
+    if (state.isochroneLayer && feature) {
+      state.isochroneLayer.getSource().removeFeature(feature);
     }
   },
   ADD_STUDYAREA_FEATURES(state, features) {

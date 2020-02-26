@@ -1,0 +1,25 @@
+# Common
+.dockerignore
+.git
+.gitignore
+.vs
+.vscode
+docker-compose*.yml
+*.md
+hosts
+LICENSE
+
+# Node
+## Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+## Dependency directories
+**/bin/
+**/obj/
+**/node_modules/
+**/bower_components/
+**/wwwroot/lib/*
