@@ -1,11 +1,17 @@
 - title: munich
   print: München
-  text: This is the version of the GOAT-homebase Munich.
+  text: Munich is our home-based! This version of GOAT is currently the stablest version of the tool 
+        and will be updated frequently.  
   url: https://goat.open-accessibility.org/
 
 - title: ffb
   print: Fürstenfeldbruck
-  text:  This version is under development within the frame of the mFund project and 
-          contains first approaches of the cycling routing and land-use changes.
+  text:  This version of GOAT has the most recent features and 
+          contains first approaches of cycling routing and land-use changes.
   url: https://development.open-accessibility.org/
+
+- title: matosinhos
+  print: Matosinhos
+  text:  GOAT was transferred to Matosinhos in Portugal in a student project. We plan to keep this version online for some months.
+  url:   https://matosinhos.open-accessibility.org/
 
