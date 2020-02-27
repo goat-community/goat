@@ -15,8 +15,14 @@ BEGIN
 END;
 $BODY$ LANGUAGE plpgsql;
 
+-- meters to degrees: 
+-- 0.00001 * (100 / 111) * meters
+-- 5 km/h in m/s times 900 seconds to get max walking distance 
+-- (5 / 3.6) * 15 *60
 
-SELECT GetCellsInfluencedByGeometry((SELECT array_agg( geom) FROM pois_modified), 0.01)
+-- 
+
+SELECT GetCellsInfluencedByGeometry((SELECT array_agg( geom) FROM pois_modified), 0.01126126)
 
 CREATE INDEX gid ON grid_500(grid_id)
 ALTER TABLE grid_500
