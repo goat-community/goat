@@ -244,7 +244,7 @@ WITH p_n as (
 	AND w.id NOT IN (SELECT DISTINCT original_id FROM drawn_features where original_id is not null)
 )
 --It snaps approx. in a distance of 1 m
-SELECT a.class_id,(ST_Dump(ST_Split(ST_Snap(a.geom, b.geom, 0.00001),b.geom))).geom as geom, source,target
+SELECT a.id AS original_id, a.class_id,(ST_Dump(ST_Split(ST_Snap(a.geom, b.geom, 0.00001),b.geom))).geom as geom, source,target
 FROM 
 p_n a, (SELECT ST_Union(geom) geom from intersection_existing_network) b
 WHERE ST_DWithin(b.geom, a.geom, 0.00001);
@@ -326,8 +326,8 @@ WHERE va.id >=(SELECT min(vertex_id) from intersection_existing_network);
 INSERT INTO ways_userinput(id,class_id,source,target,geom,userid)
 SELECT (SELECT max(id) FROM ways_userinput) + row_number() over(),coalesce(class_id::integer,100),source,target,geom,input_userid FROM new_network;
 
-INSERT INTO ways_userinput(id,class_id,source,target,geom,userid) 
-SELECT (SELECT max(id) FROM ways_userinput) + row_number() over(),coalesce(class_id::integer,100),source,target,geom,input_userid FROM existing_network;
+INSERT INTO ways_userinput(id,class_id,source,target,geom,userid, original_id) 
+SELECT (SELECT max(id) FROM ways_userinput) + row_number() over(),coalesce(class_id::integer,100),source,target,geom,input_userid, original_id FROM existing_network;
 
 UPDATE ways_userinput 
 set length_m = st_length(geom::geography)

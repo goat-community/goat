@@ -102,13 +102,30 @@
             "drawFeatureTooltip": "Objekt zeichnen",
             "modifyFeatureTooltip": "Objekt ändern",
             "deleteFeature": "Objekt löschen",
-            "clearBtn": "Löschen",
+            "clearBtn": "Reset",
             "uploadBtn": "Hochladen",
             "popup": {
                 "deleteFeatureMsg": "Möchten Sie das ausgewählte Feature wirklich löschen?",
                 "selectWayType": "Art des Weges auswählen: ",
                 "wayType": "Art des Weges"
-            }
+            },
+            "activateLayerToDrawScenario": "Bitte aktivieren Sie den Layer, um Objekte wählen zu können.",
+            "dataTypeInfo": "Benötigter Datei Typ",
+            "geometryTypeInfo": "Benötigter Geometrie Typ",
+            "requiredFields": "Erforderliche Attribute",
+            "referenceSystemInfo": "Referenzsystem sollte sein",
+            "featuresNotyetUploaded": "Objekte noch nicht hochgeladen. Klicken Sie auf Hochladen, um die Änderungen zu übernehmen.",
+            "differentGeometryType": "Falscher Geometrie-Typ",
+            "missingFields": "Fehlende Felder",
+            "fileCorrupted": "Geojson Datei ist beschädigt",
+            "noFile": "Keine Datei",
+            "allFeaturesUploaded": "Alle Objekte wurden hochgeladen",
+            "notAllUploaded": "Nicht alle Objekte wurden hochgeladen",
+            "errorHappened": "Es ist ein Fehler aufgetreten",
+            "scenarioFeatures": "Scenario Objekte",
+            "uploadYourData": "Bearbeitete Objekte hochladen",
+            "deleteAllTitle": "Alle löschen",
+            "deleteAllMessage": "Wollen Sie alle Scenario Daten löschen?"
         },
         "settings": {
             "title": "Einstellungen",
@@ -140,10 +157,10 @@
             "title": "Anfang",
             "type": "Multi",
             "selectMethod": "Methode auswählen",
-            "studyArea": "Untersuchungsgebiet",
+            "studyArea": "Ort",
             "clear": "Löschen",
             "calculate": "Berechne",
-            "studyAreaInfoLabel": "Wählen Sie <b> Untersuchungsgebiete </b> auf der Karte aus und <b> Ziele </b> im Filter Thematische Daten aus, um die Berechnung zu ermöglichen.",
+            "studyAreaInfoLabel": "Wählen Sie <b> Orte </b> auf der Karte aus und <b> Ziele </b> im Filter Thematische Daten aus, um die Berechnung zu ermöglichen.",
             "drawBoundary": "Grenze zeichnen",
             "amenityCount": "Anzahl Einrichtungen",
             "limit": "Grenze",
@@ -161,7 +178,13 @@
             "alphaShapeMode": "Detaillierungsgrad Isochronen",
             "defaultNetwork": "Standard",
             "modifiedNetwork": "Scenario",
-            "modifiedNetworkDoubleCalc": "Standard und Scenario"
+            "modifiedNetworkDoubleCalc": "Standard und Scenario",
+            "routingProfile": "Routing Profil",
+            "walking_standard": "Standard",
+            "walking_elderly": "Senior",
+            "walking_wheelchair": "Rollstuhl",
+            "cycling_standard": "Standard",
+            "cycling_pedelec": "Pedelec"
         },
         "results": {
             "title": "Ergebnisse",
@@ -169,6 +192,8 @@
             "additionalLayers": "Weitere Layer",
             "showDataTooltip": "Daten anzeigen",
             "toggleVisibilityTooltip": "Anzeige umschalten",
+            "showResultsTooltip": "Ergebnisse anzeigen",
+            "hideResultsTooltip": "Ergebnisse ausblenden",
             "downloadTooltip": "Herunterladen",
             "deleteCalcTooltip": "Berechnung löschen",
             "table": {
@@ -188,7 +213,7 @@
             "table": {
                 "pois": "Ziele",
                 "isochrone": "Isochrone",
-                "studyArea": "Untersuchungsgebiet",
+                "studyArea": "Ort",
                 "population": "Bevölkerung",
                 "reachedPopulation": "Erreichbare Bevölkerung"
             }
@@ -203,6 +228,20 @@
             "download": "Herunterladen"
         }
     },
+    "poisFilter": {
+        "showTimeFilter": "Zeitlichen Filter hinzufügen",
+        "selectHourLabel": "Uhrzeit wählen",
+        "selectDayLabel": "Tag wählen",
+        "daysOfWeek": {
+          "monday": "Montag",
+          "tuesday": "Dienstag",
+          "wednesday": "Mittwoch",
+          "thursday": "Donnerstag",
+          "friday": "Freitag",
+          "saturday": "Samstag",
+          "sunday": "Sonntag"
+        }
+      },
     "layerTree": {
         "title": "Layer",
         "settings": {
@@ -220,6 +259,7 @@
             "poisLayers": "Pois Layer",
             "administrativeLayers": "Layer Verwaltungsgrenzen",
             "streetlevelqualityLayers": "Street Level Quality",
+            "perceivedQuality": "Empfundene Qualität",
             "accessbilityBasemaps": "Grundkarten Erreichbarkeit",
             "backgroundLayers": "Hintergrundkarten"
         },
@@ -232,11 +272,12 @@
             "parking": "Parkplätze am Straßenrand",
             "speed": "Geschwindigkeitsbegrenzungen",
             "streetCrossings": "Straßenquerungsmöglichkeiten",
+            "streetFurniture": "Straßenmöbelierung",
             "surface": "Oberfläche",
             "wheelchairUsability": "Barrierefreiheit",
             "areaIsochrone": "Isochronengröße",
-            "walkabilityPopulation": "Walkability - Population Index",
-            "population": "Population",
+            "walkabilityPopulation": "Walkability - Bevölkerung Index",
+            "population": "Bevölkerung",
             "walkability": "Walkability",
             "studyArea": "Untersuchungsgebiet",
             "ways": "Wege",
@@ -260,7 +301,47 @@
             "clickToFinishDrawingPolygon": "Doppel(klick) auf Startpunkt, um Vorgang zu beenden",
             "clickOnFeatureToDelete": "Auf das Objekt klicken, um es zu löschen",
             "clickAndDragToModify": "Objekt anklicken und ziehen, um es zu verändern",
-            "clickToRemove": "Zum Entfernen klicken"
+            "clickToRemove": "Zum Entfernen klicken",
+            "clickToPlacePoint": "Klicken, um den Punkt zu platzieren",
+            "routingProfiles": {
+              "walking": {
+                "title": "Fußgänger",
+                "options": {
+                  "standard": {
+                    "title": "Standard",
+                    "tooltip": "Standard Routing"
+                  },
+                  "elderly": {
+                    "title": "Senior",
+                    "tooltip": "Routing mit reduzierter Gehgeschwindigkeit"
+                  },
+                  "safe_night": {
+                    "title": "Safe night",
+                    "tooltip": "Routing nur entlang beleuchteter Wege"
+                  }
+                }
+              },
+              "cycling": {
+                "title": "Radfahrer",
+                "options": {
+                  "standard": {
+                    "title": "Standard",
+                    "tooltip": "Standard Routing"
+                  },
+                  "pedelec": {
+                    "title": "Pedelec",
+                    "tooltip": "Pedelec"
+                  }
+                }
+              },
+              "walking_wheelchair": {
+                "title": "Rollstuhl",
+                "tooltip": "Routing berücksichtigt nur barrierefreie Wege und Ziele"
+              }
+            },
+            "zoomToFeature": "Zum Objekt zoomen",
+            "deleteFeature": "Objekt löschen",
+            "uploadFeature": "Objekt hochladen"
         },
         "popup": {
             "attributes": "Attribute",

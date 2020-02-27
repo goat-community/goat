@@ -3,9 +3,6 @@
     <v-card flat>
       <!-- ISOCHRONES  -->
       <template>
-        <v-subheader>
-          <span class="title">{{ $t("isochrones.title") }}</span>
-        </v-subheader>
         <isochrone-type />
 
         <isochrone-start-single v-if="options.calculationType === 'single'" />
@@ -13,7 +10,7 @@
           v-if="options.calculationType === 'multiple'"
         />
         <isochrone-options />
-        <isochrone-results />
+        <isochrone-results id="isochroneResultsEl" />
       </template>
       <!-- -- -->
     </v-card>

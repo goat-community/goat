@@ -78,8 +78,21 @@ def update_functions():
         for file in Path(p).glob('*.sql'):
             db.execute_script_psql(file)
 
-def restore_db():
+def find_newest_dump(namespace):
     import os
+    fnames = []
+    for file in os.listdir("/opt/backups"):
+        if file.endswith(".sql") and namespace == file.split('_')[0]:
+            fnames.append(file)
+    newest_file = sorted(fnames)[-1]
+
+    return newest_file
+
+def restore_db(namespace):
+    import os
+    
+    newest_file = find_newest_dump(namespace)
+
     db_name,user = ReadYAML().db_credentials()[:2]
     #Drop backup db tags as old DB
     os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'old'))
@@ -88,10 +101,11 @@ def restore_db():
     os.system('psql -U postgres -c "DROP DATABASE IF EXISTS %s;"' % (db_name+'temp'))
     #Restore backup as temp db
     os.system("psql -U postgres -c 'CREATE DATABASE %s;'"% (db_name+'temp'))
-    os.system('psql -U %s -d %s -f /opt/data/goat_dump.sql' % (user,db_name+'temp'))
-    #Rename active database intto old DB
+    os.system('psql -U %s -d %s -f /opt/backups/%s' % (user,db_name+'temp',newest_file))
+    #Rename active database into old DB
     os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name)
     os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name,db_name+'old'))
     #Rename temp DB into active db
     os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'temp'))
     os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name+'temp',db_name))
+

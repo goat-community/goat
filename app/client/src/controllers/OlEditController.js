@@ -404,7 +404,15 @@ export default class OlEditController extends OlBaseController {
     super.clearOverlays();
     this.source.getFeatures().forEach(f => {
       const props = f.getProperties();
-      if (!props.hasOwnProperty("original_id")) {
+      if (
+        !props.hasOwnProperty("original_id") &&
+        !props.hasOwnProperty("status")
+      ) {
+        this.source.removeFeature(f);
+      }
+
+      //For uploaded restored features.
+      if (props.status === 1 && !props.hasOwnProperty("original_id")) {
         this.source.removeFeature(f);
       }
     });
@@ -417,5 +425,8 @@ export default class OlEditController extends OlBaseController {
   deleteAll() {
     this.clear();
     super.clear();
+    //Reset ids of deleted features..
+    editLayerHelper.featuresIDsToDelete = [];
+    editLayerHelper.deletedFeatures = [];
   }
 }

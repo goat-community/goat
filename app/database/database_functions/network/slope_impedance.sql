@@ -1,5 +1,5 @@
 
-DROP function slope_impedance;
+DROP FUNCTION IF EXISTS slope_impedance;
 CREATE OR REPLACE FUNCTION public.slope_impedance(slope numeric)
  RETURNS SETOF numeric[]
  LANGUAGE plpgsql

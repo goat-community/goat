@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS closest_pois;
-CREATE OR REPLACE FUNCTION closest_pois(snap_distance NUMERIC, objectid_input integer)
+CREATE OR REPLACE FUNCTION closest_pois(snap_distance NUMERIC)
 RETURNS SETOF jsonb
  LANGUAGE plpgsql
 AS $function$
@@ -11,21 +11,13 @@ BEGIN
 	DROP TABLE IF EXISTS pois_and_pt;
 	CREATE temp TABLE pois_and_pt AS 
 	SELECT p.gid as poi_gid,p.amenity,p.name, p.geom  
-	FROM pois p, isochrones b 
+	FROM pois p, isochrone b 
 	WHERE amenity = any(pois_one_entrance || pois_more_entrances)
-	AND ST_Intersects(p.geom, b.geom)
-	AND b.objectid = objectid_input;
+	AND ST_Intersects(p.geom, b.geom);
 
 	ALTER TABLE pois_and_pt ADD PRIMARY key(poi_gid);
 	CREATE INDEX ON pois_and_pt USING gist(geom);
 	
-	CREATE TEMP TABLE extrapolated_vertices AS
-	SELECT v_geom AS geom, cost 
-	FROM edges
-	WHERE objectid = objectid_input;
-
-	CREATE INDEX ON extrapolated_vertices USING GIST(geom);
-
 	RETURN query 
 	WITH distance_pois as (
 		SELECT p.amenity, p.name, p.geom, vertices.cost
@@ -33,7 +25,7 @@ BEGIN
 		pois_and_pt p
 		CROSS JOIN LATERAL
 	  	(SELECT geom, cost
-	   	FROM extrapolated_vertices t
+	   	FROM temp_extrapolated_reached_vertices t
 		WHERE t.geom && ST_Buffer(p.geom,snap_distance)
 	   	ORDER BY
 	    p.geom <-> t.geom
@@ -63,6 +55,8 @@ BEGIN
 	    '\1', 
 	    'g'
 	)::jsonb
-	FROM key_value;
+	FROM key_value
+	;
+	
 END 
 $function$;

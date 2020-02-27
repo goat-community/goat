@@ -343,6 +343,7 @@ const OlStyleDefs = {
       if (feature.get("user_uploaded")) {
         return me.uploadedFeaturesStyle();
       }
+
       if (
         (props.hasOwnProperty("type") && props["original_id"] == null) ||
         Object.keys(props).length == 1
