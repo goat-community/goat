@@ -25,9 +25,8 @@ BEGIN
         CASE WHEN ((p.wheelchair <> 'no' AND p.wheelchair <> 'No') OR p.wheelchair IS NULL) 
         THEN 'accessible' 
         ELSE 'not_accessible' END AS status,p.wheelchair
-        FROM pois p,variable_container v 
+        FROM pois_userinput p
         WHERE p.amenity IN(SELECT unnest(amenities_input))
-        AND v.identifier = 'poi_categories'
         ;
     --if opening hours are provided by the user and routing profile is -not- wheelchair
     ELSEIF d <> 9999 AND h <> 9999 AND m <> 9999 AND routing_profile_input <> 'walking_wheelchair' THEN 
@@ -38,7 +37,7 @@ BEGIN
             CASE WHEN check_open(opening_hours,array[d,h,m]) = 'True' 
             THEN 'accessible'
             ELSE 'not_accessible' END AS status,p.wheelchair
-            FROM pois p
+            FROM pois_userinput p
             WHERE p.amenity IN(SELECT unnest(amenities_input))
             AND opening_hours IS NOT NULL
         )
@@ -53,7 +52,7 @@ BEGIN
             CASE WHEN check_open(opening_hours,array[d,h,m]) = 'True' AND ((wheelchair <> 'no' AND wheelchair <> 'No') OR wheelchair IS NULL)
             THEN 'accessible'
             ELSE 'not_accessible' END AS status, p.wheelchair 
-            FROM pois p
+            FROM pois_userinput p
             WHERE p.amenity IN(SELECT unnest(amenities_input))
             AND opening_hours IS NOT NULL
         )
