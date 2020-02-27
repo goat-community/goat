@@ -70,10 +70,7 @@ export default {
       units: "kilometers",
       languages: [
         { flag: "gb", language: "en", title: "English" },
-        { flag: "de", language: "de", title: "Deutsch" },
-        { flag: "es", language: "es", title: "Español" },
-        { flag: "fr", language: "fr", title: "Français" },
-        { flag: "al", language: "sq", title: "Shqip" }
+        { flag: "de", language: "de", title: "Deutsch" }
       ],
       interactionType: "languageChange"
     };
