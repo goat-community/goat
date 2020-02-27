@@ -76,6 +76,7 @@ export const LayerFactory = {
       name: lConf.name,
       title: lConf.title,
       canEdit: lConf.canEdit,
+      editDataType: lConf.editDataType,
       editGeometry: lConf.editGeometry,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
