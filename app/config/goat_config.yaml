@@ -45,9 +45,9 @@ DATA_REFINEMENT_VARIABLES:
     ]
     osm_landuse_no_residents: ["farmyard","quarry","industrial","retail","commercial","military","cemetery","landfill","allotments","recreation ground","railway"]
     #All buildings that can be potentially residential
-    building_types_potentially_residential: ["residential","yes","house","detached","terrace","apartments","home"]
+    building_types_potentially_residential: ["residential","yes","house","detached","terrace","apartments","home","semidetached_house"]
     #All buildings that are definitely residential
-    building_types_residential: ["residential","detached","terrace","apartments","home"]
+    building_types_residential: ["residential","detached","terrace","apartments","home","semidetached_house"]
     tourism_no_residents: ["zoo"]
     amenity_no_residents: ["hospital","university","community_centre","school","kindergarten","recreation_ground","wood"]
     amenity_opening_hours: ["atm","art","bakery","bank","bar","beverages","biergarten","books","butcher","cafe","chemist","clothes","coffee",
