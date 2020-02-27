@@ -103,7 +103,7 @@
       "drawFeatureTooltip": "Draw Feature",
       "modifyFeatureTooltip": "Modify Feature",
       "deleteFeature": "Delete Feature",
-      "clearBtn": "Revert",
+      "clearBtn": "Revert All",
       "uploadBtn": "Upload",
       "popup": {
         "deleteFeatureMsg": "Are you sure you want to delete the selected feature ?",
