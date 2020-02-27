@@ -63,7 +63,7 @@
             class="mb-1"
             v-model="steps"
             min="1"
-            max="8"
+            max="4"
             inverse-label
             prepend-icon="fas fa-sort-numeric-up"
             :label="`${$t('isochrones.isochrones')} (${steps})`"
