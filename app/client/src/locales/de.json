@@ -160,7 +160,7 @@
             "studyArea": "Ort",
             "clear": "Löschen",
             "calculate": "Berechne",
-            "studyAreaInfoLabel": "Wählen Sie <b> Untersuchungsgebiete </b> auf der Karte aus und <b> Ziele </b> im Filter Thematische Daten aus, um die Berechnung zu ermöglichen.",
+            "studyAreaInfoLabel": "Wählen Sie <b> Orte </b> auf der Karte aus und <b> Ziele </b> im Filter Thematische Daten aus, um die Berechnung zu ermöglichen.",
             "drawBoundary": "Grenze zeichnen",
             "amenityCount": "Anzahl Einrichtungen",
             "limit": "Grenze",
@@ -213,7 +213,7 @@
             "table": {
                 "pois": "Ziele",
                 "isochrone": "Isochrone",
-                "studyArea": "Untersuchungsgebiet",
+                "studyArea": "Ort",
                 "population": "Bevölkerung",
                 "reachedPopulation": "Erreichbare Bevölkerung"
             }
