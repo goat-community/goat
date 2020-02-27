@@ -74,6 +74,7 @@
         "queryable": true,
         "visible": false,
         "canEdit": true,
+        "editDataType": "GeoJSON",
         "editGeometry": "Point",
         "displayInLayerList": true,
         "requiresPois": true,
@@ -690,7 +691,7 @@
         "concavityIsochrones": {
           "name": "concavity",
           "values": [
-            { "display": "0", "value": "0.00003" },
+            { "display": "Standard", "value": "0.00003" },
             { "display": "1", "value": "0.000003" },
             { "display": "2", "value": "0.0000025" },
             { "display": "3", "value": "0.000002" },
