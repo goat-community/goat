@@ -54,33 +54,6 @@
           </LineSymbolizer>
         </Rule>
         <Rule>
-          <Name>broken</Name>
-            <Title>
-              broken
-                <Localized lang="al">broken (albanian)</Localized>
-				<Localized lang="ar">broken (arabian)</Localized>
-            	<Localized lang="cn">broken (chinese)</Localized>
-				<Localized lang="de">beschädigte Oberfläche</Localized>
-            	<Localized lang="en">broken</Localized>
-				<Localized lang="es">broken (spanish)</Localized>
-            	<Localized lang="fr">broken (frensh)</Localized>
-          	</Title>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>surface</ogc:PropertyName>
-              <ogc:Literal>broken</ogc:Literal>
-            </ogc:PropertyIsEqualTo>
-          </ogc:Filter>
-          <LineSymbolizer>
-            <Stroke>
-              <CssParameter name="stroke">#eb3e47</CssParameter>
-              <CssParameter name="stroke-width">1</CssParameter>
-              <CssParameter name="stroke-linejoin">bevel</CssParameter>
-              <CssParameter name="stroke-linecap">square</CssParameter>
-            </Stroke>
-          </LineSymbolizer>
-        </Rule>
-        <Rule>
           <Name>cobblestone</Name>
             <Title>
               cobblestone
