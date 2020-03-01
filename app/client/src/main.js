@@ -7,8 +7,8 @@ import vuetify from "@/plugins/vuetify";
 import "./plugins/vuescroll";
 // Plugins
 import i18n from "./plugins/i18n";
-import FlagIcon from "vue-flag-icon";
-Vue.use(FlagIcon);
+import CountryFlag from "vue-country-flag";
+Vue.component("country-flag", CountryFlag);
 
 // Application imports
 import App from "./App";
