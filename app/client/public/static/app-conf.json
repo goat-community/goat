@@ -814,9 +814,7 @@
         "timeBasedCalculations": "no"
       }
     },
-    "edit": {
-      "enableFileUpload": true
-    }
+    "edit": {}
   },
 
   "layerConf": {
@@ -826,7 +824,7 @@
           "values": ["bridge", "road"]
         }
       },
-
+      "enableFileUpload": false,
       "hiddenProps": ["userid", "id", "original_id", "status", "class_id"]
     },
     "pois": {
@@ -835,6 +833,7 @@
           "values": "*"
         }
       },
+      "enableFileUpload": false,
       "hiddenProps": [
         "userid",
         "id",
