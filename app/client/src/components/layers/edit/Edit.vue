@@ -94,7 +94,7 @@
             </v-btn-toggle>
           </v-flex>
           <v-flex
-            v-if="isFileUploadEnabled === true"
+            v-if="layerConf[layerName.split(':')[1]].enableFileUpload === true"
             xs12
             v-show="selectedLayer != null"
             class="mt-1 pt-0 mb-0"
