@@ -76,7 +76,7 @@
         </v-list>
         <v-list justify-end>
           <language></language>
-          <v-tooltip left :key="index">
+          <v-tooltip left>
             <template v-slot:activator="{ on }">
               <v-btn
                 dark
