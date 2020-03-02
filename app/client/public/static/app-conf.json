@@ -79,7 +79,7 @@
         "editGeometry": "Point",
         "displayInLayerList": true,
         "requiresPois": true,
-        "zIndex": 2,
+        "zIndex": 7,
         "serverType": "geoserver"
       },
       {
@@ -836,7 +836,14 @@
           "values": "*"
         }
       },
-      "hiddenProps": ["userid", "id", "original_id", "status","wheelchair","opening_hours"]
+      "hiddenProps": [
+        "userid",
+        "id",
+        "original_id",
+        "status",
+        "wheelchair",
+        "opening_hours"
+      ]
     }
   }
 }
