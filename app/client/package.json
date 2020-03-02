@@ -18,7 +18,7 @@
     "ol-ext": "^3.1.8",
     "vue": "^2.6.6",
     "vue-chartjs": "^3.4.2",
-    "vue-flag-icon": "^1.0.6",
+    "vue-country-flag": "^1.3.1",
     "vue-i18n": "^8.14.1",
     "vue-router": "^3.1.3",
     "vuescroll": "^4.14.4",
