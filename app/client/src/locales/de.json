@@ -55,6 +55,7 @@
                     "rule": "Feld ist erforderlich"
                 },
                 "submit": "Drucken",
+                "abort": "Abbrechen",
                 "legend": "Legende",
                 "grid": "Gitter"
             }
@@ -196,6 +197,7 @@
             "hideResultsTooltip": "Ergebnisse ausblenden",
             "downloadTooltip": "Herunterladen",
             "deleteCalcTooltip": "Berechnung löschen",
+            "changeColorTooltip": "Farbe ändern",
             "table": {
                 "type": "Art",
                 "range": "Zeit",
@@ -226,8 +228,15 @@
             "fileName": "Dateiname",
             "outputFormat": "Ausgabeformat auswählen",
             "download": "Herunterladen"
+        },
+        "additionalLayers": {
+          "defaultNetwork": "Standard Straßennetzwerk",
+          "inputNetwork": "Modifiziertes Straßennetzwerk"
+        },
+        "pickColor": {
+          "title": "Farbe der Isochrone"
         }
-    },
+      },
     "poisFilter": {
         "showTimeFilter": "Zeitlichen Filter hinzufügen",
         "selectHourLabel": "Uhrzeit wählen",
@@ -253,7 +262,13 @@
             "title": "Legende Layer"
         },
         "snackbarMessages": {
-            "selectAmenities": "Mind. ein Ziel auswählen"
+            "selectAmenities": "Mind. ein Ziel auswählen",
+            "calculateIsochroneError": "Hier ist leider keine Berechnung möglich.",
+            "uploadScenarioSuccess": "Objekte wurden erfolgreich hochgeladen.",
+            "uploadScenarioError": "Leider ist beim Hochladen der Objekte in die Datenbank ein Fehler aufgetreten.",
+            "notAllScnearioFeaturesUploaded": "Bei der Berechnung der Szenarien-Isochrone werden nur hochgeladene Objekte berücksichtigt.",
+            "cantDeleteAllScenarioFeatures": "Die Szenarien-Daten können aktuell leider nicht gelöscht werden.",
+            "allScenarioFeaturesDelete": "Alle Szenarien-Daten wurden gelöscht"
         },
         "layerGroup": {
             "poisLayers": "Pois Layer",
@@ -341,7 +356,8 @@
             },
             "zoomToFeature": "Zum Objekt zoomen",
             "deleteFeature": "Objekt löschen",
-            "uploadFeature": "Objekt hochladen"
+            "uploadFeature": "Objekt hochladen",
+            "restoreFeature": "Objekt zurücksetzen"
         },
         "popup": {
             "attributes": "Attribute",
@@ -432,6 +448,7 @@
             }
         },
         "dataFooter": {
+            "pageText": "{0}-{1} von {2}",
             "itemsPerPageText": "Objekte pro Seite:",
             "itemsPerPageAll": "Alle",
             "nextPage": "Nächste Seite",
@@ -450,5 +467,27 @@
         "calendar": {
             "moreEvents": "{0} mehr"
         }
+    },
+    "common": {
+      "required": "Diese Information wird benötigt."
+    },
+    "dynamicFields": {
+      "attributes": {
+        "ways": {
+          "type": "Wegetyp",
+          "class_id": "Class Id"
+        },
+        "pois": {
+          "amenity": "Einrichtung",
+          "name": "Name (Optional)",
+          "opening_hours": "Öffnungszeiten (Optional)"
+        }
+      },
+      "listValues": {
+        "ways": {
+          "road": "Straße",
+          "bridge": "Brücke"
+        }
+      }
     }
-}
+  }
