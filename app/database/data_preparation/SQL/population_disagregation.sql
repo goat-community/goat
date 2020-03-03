@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS population;
 --Population of each adminstrative boundary is assigned to the residential buildings
 CREATE TABLE buildings_pop AS
 with x as (
@@ -8,7 +9,7 @@ with x as (
 )
 SELECT b.*,m.sum_pop as sum_population,m.area as area_administrative_boundary,
 x.sum_buildings_area,
-round(m.sum_pop*(b.area*building_levels_residential/sum_buildings_area)) as population_building
+m.sum_pop*(b.area*building_levels_residential/sum_buildings_area) as population_building
 FROM buildings_residential b, x,
 study_area m
 WHERE st_intersects(b.geom,m.geom) AND x.sum_buildings_area <> 0
@@ -31,6 +32,3 @@ FROM buildings_residential;
 CREATE INDEX index_population ON population USING GIST (geom);
 ALTER TABLE population ADD COLUMN gid serial;
 ALTER TABLE population ADD PRIMARY KEY(gid);
-
-
-
