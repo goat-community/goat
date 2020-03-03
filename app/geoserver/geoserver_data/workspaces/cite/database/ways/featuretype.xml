@@ -43,7 +43,7 @@
     <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
   </store>
   <serviceConfiguration>false</serviceConfiguration>
-  <cqlFilter>class_id NOT IN (501,502,503,504)</cqlFilter>
+  <cqlFilter>class_id NOT IN (0,101,102,103,104,105,106,107,501,502,503,504,701,801)</cqlFilter>
   <maxFeatures>0</maxFeatures>
   <numDecimals>0</numDecimals>
   <padWithZeros>false</padWithZeros>
