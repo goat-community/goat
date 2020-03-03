@@ -109,6 +109,22 @@
                 "selectWayType": "Art des Weges auswählen: ",
                 "wayType": "Art des Weges"
             },
+            "table": {
+                "layer": "Layer",
+                "status": "Status",
+                "type": "Art",
+                "actions": "Aktionen"
+            },
+            "type": {
+                "New": "Neu",
+                "Modified": "Geändert",
+                "Restored": "restauriert",
+                "Deleted": "Gelöscht"
+            },
+            "status": {
+                "Uploaded": "hochgeladen",
+                "NotUploaded": "Nicht hochgeladen"
+            },
             "activateLayerToDrawScenario": "Bitte aktivieren Sie den Layer, um Objekte wählen zu können.",
             "dataTypeInfo": "Benötigter Datei Typ",
             "geometryTypeInfo": "Benötigter Geometrie Typ",
