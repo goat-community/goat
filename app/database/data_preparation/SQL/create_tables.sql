@@ -124,7 +124,12 @@ ALTER TABLE addresses_residential add primary key (gid);
 CREATE INDEX index_addresses_residential ON addresses_residential USING GIST (geom);
 
 CREATE TABLE study_area_union as
-SELECT st_union(geom) geom FROM study_area;
+SELECT ST_Collect(ST_MakePolygon(geom)) As geom
+FROM 
+(
+   SELECT ST_ExteriorRing((ST_Dump(st_union(geom))).geom) As geom
+   FROM study_area
+) s;
 
 -- Table: public.ways_modified
 
