@@ -1,6 +1,8 @@
 ALTER TABLE study_area ALTER COLUMN sum_pop TYPE integer using sum_pop::integer;
-
 ALTER TABLE study_area DROP COLUMN IF EXISTS area;
+ALTER TABLE study_area add column area float;
+UPDATE study_area set area = st_area(geom::geography);
+
 
 DROP TABLE IF EXISTS buildings_residential;
 DROP TABLE IF EXISTS buildings_residential_table;
@@ -10,9 +12,6 @@ DROP TABLE IF EXISTS non_residential_ids;
 DROP TABLE IF EXISTS population;
 DROP TABLE IF EXISTS landuse_osm;
 
-ALTER TABLE study_area add column area float;
-
-UPDATE study_area set area = st_area(geom::geography);
 
 CREATE TABLE buildings_residential_table as 
 SELECT osm_id,building, "addr:housenumber",tags,way as geom

@@ -122,11 +122,16 @@ def setup_db(setup_type):
         os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name_temp,user,host,'../data_preparation/SQL/pois.sql'))
         if (setup_type in ['new_setup','population']):
             print ('It was chosen to use population from: ', source_population)
+            if os.path.isfile('buildings.shp'):
+                script_buildings = 'buildings_residential_custom.sql'
+            else:
+                script_buildings = 'buildings_residential'
+
             if (source_population == 'extrapolation'):
-                db_temp.execute_script_psql('../data_preparation/SQL/buildings_residential.sql')
+                db_temp.execute_script_psql('../data_preparation/SQL/'+script_buildings)
                 db_temp.execute_script_psql('../data_preparation/SQL/census.sql')
             elif(source_population == 'disaggregation'):
-                db_temp.execute_script_psql('../data_preparation/SQL/buildings_residential.sql')
+                db_temp.execute_script_psql('../data_preparation/SQL/'+script_buildings)
                 db_temp.execute_script_psql('../data_preparation/SQL/population_disagregation.sql')
             elif(source_population == 'distribution'):
                 db_temp.execute_script_psql('../data_preparation/SQL/population_distribution.sql')
