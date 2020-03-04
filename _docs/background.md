@@ -5,7 +5,7 @@ permalink: /docs/background/
 
 ### Active mobility matters!
 
-While cycling and walking were seen as insignificant modes of transport in the past, there is a fast rising interest for establishing conditions that actively promote them. This shift is consequent due to the unmatched benefits that active mobility brings to our cities, local economy, physical health and the general environment.
+While cycling and walking were seen as insignificant modes of transport in the past, there is a fast-rising interest in establishing conditions that actively promote them. This shift is consequent due to the unmatched benefits that active mobility brings to our cities, local economy, physical health, and the general environment.
 
 <img class="img-responsive" src="../../img/modalsplit.png" alt="modal split in germany high share of pedestrians" title="Modal Split in Germany">
 
