@@ -53,6 +53,7 @@ export default class OlMultiIsochroneController extends OlBaseController {
         me.studyAreaLayer = getAllChildLayers(me.map).filter(
           layer => layer.get("name") === "administrativeUnits"
         );
+        store.commit("isochrones/ADD_STUDY_AREA_LAYER", me.studyAreaLayer);
       }
       if (me.studyAreaLayer.length > 0) {
         me.studyAreaLayer[0].setVisible(true);

@@ -766,6 +766,9 @@ export default {
           me.olEditCtrl.featuresToCommit[index] = evt.feature;
         }
       }
+      if (evt.feature.get("layerName") === "pois") {
+        evt.feature.set("status", 1);
+      }
     },
     /**
      * Source change base event. Used to update scenario data table
