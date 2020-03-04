@@ -142,6 +142,7 @@ export default class OlSelectController extends OlBaseController {
             .all(requests)
             .then(
               axios.spread((first, second) => {
+                me.source.clear();
                 onSelectionEnd({
                   first: first,
                   second: second
@@ -149,6 +150,7 @@ export default class OlSelectController extends OlBaseController {
               })
             )
             .catch(error => {
+              me.source.clear();
               throw new Error(error);
             });
           // unset sketch

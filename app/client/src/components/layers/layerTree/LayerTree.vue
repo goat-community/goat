@@ -190,16 +190,26 @@ export default {
           layer.mapLayer.setVisible(false);
         });
       }
-      if (
-        clickedLayer.mapLayer.get("requiresPois") === true &&
-        clickedLayer.mapLayer.getVisible() === false &&
-        this.selectedPois.length === 0
-      ) {
+      if (layerGroup.name === "accessbilityBasemaps") {
         this.toggleSnackbar({
           type: "error",
           message: "selectAmenities",
-          state: true
+          state: false,
+          timeout: 0
         });
+      }
+      if (
+        clickedLayer.mapLayer.get("requiresPois") === true &&
+        this.selectedPois.length === 0
+      ) {
+        if (clickedLayer.mapLayer.getVisible() === false) {
+          this.toggleSnackbar({
+            type: "error",
+            message: "selectAmenities",
+            state: true,
+            timeout: 60000
+          });
+        }
       }
       clickedLayer.mapLayer.setVisible(!clickedLayer.mapLayer.getVisible());
       if (clickedLayer.mapLayer.getVisible() === false) {
