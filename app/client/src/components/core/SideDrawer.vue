@@ -83,11 +83,11 @@
                 small
                 href="http://open-accessibility.org"
                 target="_blank"
-                class="elevation-0 ma-0 pa-0"
+                class="elevation-0 ma-0 py-1"
                 v-on="on"
                 color="#4CAF50"
               >
-                <v-icon color="white" light>home</v-icon>
+                <v-icon color="white" large light>home</v-icon>
               </v-btn>
             </template>
 
