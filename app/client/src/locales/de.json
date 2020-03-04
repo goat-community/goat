@@ -13,7 +13,7 @@
             "filter": "Filter Thematische Daten",
             "edit": "Szenarien Entwickeln",
             "settings": "Sprache",
-            "info": "Info"
+            "info": "GOAT Homepage besuchen"
         },
         "login": {
             "title": "Login",
@@ -158,9 +158,9 @@
             "title": "Anfang",
             "type": "Multi",
             "selectMethod": "Methode auswählen",
-            "studyArea": "Ort",
+            "studyArea": "Ortsteil",
             "clear": "Löschen",
-            "calculate": "Berechne",
+            "calculate": "Berechnen",
             "studyAreaInfoLabel": "Wählen Sie <b> Orte </b> auf der Karte aus und <b> Ziele </b> im Filter Thematische Daten aus, um die Berechnung zu ermöglichen.",
             "drawBoundary": "Grenze zeichnen",
             "amenityCount": "Anzahl Einrichtungen",
@@ -291,7 +291,7 @@
             "surface": "Oberfläche",
             "wheelchairUsability": "Barrierefreiheit",
             "areaIsochrone": "Isochronengröße",
-            "walkabilityPopulation": "Walkability - Bevölkerung Index",
+            "walkabilityPopulation": "Walkability - Bevölkerungs - Index",
             "population": "Bevölkerung",
             "walkability": "Walkability",
             "studyArea": "Untersuchungsgebiet",
