@@ -37,28 +37,46 @@
               <v-layout row wrap>
                 <v-layout align-start justify-start>
                   <v-card-text class="pa-0 ma-0 ml-3">
-                    <v-chip small class="mb-1 mr-1">
+                    <v-chip small class="mr-2 my-1">
                       <v-avatar left>
-                        <v-icon small class="text-xs-center"
-                          >fas fa-clock</v-icon
-                        >
+                        <v-icon small class="text-xs-center">{{
+                          getRouteProfileIcon(calculation.routing_profile)
+                        }}</v-icon>
                       </v-avatar>
-                      {{ calculation.time }}
-                    </v-chip>
-
-                    <v-chip small class="mb-1 ">
-                      <v-avatar left>
-                        <v-icon small class="text-xs-center"
-                          >fas fa-tachometer-alt</v-icon
-                        >
-                      </v-avatar>
-                      {{ calculation.speed }}
+                      {{
+                        $te(`isochrones.options.${calculation.routing_profile}`)
+                          ? $t(
+                              `isochrones.options.${calculation.routing_profile}`
+                            )
+                          : calculation.routing_profile
+                      }}
                     </v-chip>
                   </v-card-text>
                 </v-layout>
 
                 <v-layout row>
                   <v-spacer></v-spacer>
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <v-icon
+                        small
+                        v-on="on"
+                        @click="toggleIsochroneWindow(calculation)"
+                        :color="
+                          isCalculationActive(calculation)
+                            ? '#30C2FF'
+                            : '#676767'
+                        "
+                        class="result-icons mr-2"
+                        >fas fa-table</v-icon
+                      >
+                    </template>
+                    <span>{{
+                      isCalculationActive(calculation)
+                        ? $t("isochrones.results.hideDataTooltip")
+                        : $t("isochrones.results.showDataTooltip")
+                    }}</span>
+                  </v-tooltip>
 
                   <v-tooltip top>
                     <template v-slot:activator="{ on }">
@@ -126,17 +144,21 @@
               </v-layout>
               <v-card-text class="pr-0 pl-0 pt-0 pb-0">
                 <v-divider></v-divider>
-                <v-chip small class="mr-2 mt-1">
+
+                <v-chip small class="my-1 mr-1">
                   <v-avatar left>
-                    <v-icon small class="text-xs-center">{{
-                      getRouteProfileIcon(calculation.routing_profile)
-                    }}</v-icon>
+                    <v-icon small class="text-xs-center">fas fa-clock</v-icon>
                   </v-avatar>
-                  {{
-                    $te(`isochrones.options.${calculation.routing_profile}`)
-                      ? $t(`isochrones.options.${calculation.routing_profile}`)
-                      : calculation.routing_profile
-                  }}
+                  {{ calculation.time }}
+                </v-chip>
+
+                <v-chip small class="my-1 ">
+                  <v-avatar left>
+                    <v-icon small class="text-xs-center"
+                      >fas fa-tachometer-alt</v-icon
+                    >
+                  </v-avatar>
+                  {{ calculation.speed }}
                 </v-chip>
               </v-card-text>
             </v-card-title>
@@ -260,12 +282,14 @@ export default {
 
   methods: {
     ...mapActions("isochrones", {
-      removeCalculation: "removeCalculation"
+      removeCalculation: "removeCalculation",
+      showIsochroneWindow: "showIsochroneWindow"
     }),
     ...mapMutations("isochrones", {
       toggleIsochroneFeatureVisibility: "TOGGLE_ISOCHRONE_FEATURE_VISIBILITY",
       toggleIsochroneCalculationVisibility:
-        "TOGGLE_ISOCHRONE_CALCULATION_VISIBILITY"
+        "TOGGLE_ISOCHRONE_CALCULATION_VISIBILITY",
+      toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY"
     }),
     toggleIsochroneVisibility(feature, calculation) {
       //Get all visible calculation
@@ -360,6 +384,24 @@ export default {
         return this.routeIcons[route];
       }
       return this.routeIcons[routingName];
+    },
+    toggleIsochroneWindow(calculation) {
+      if (this.isCalculationActive(calculation)) {
+        // Hide
+        this.isochroneLayer
+          .getSource()
+          .getFeatures()
+          .forEach(f => {
+            f.set("highlightFeature", false);
+          });
+        this.toggleThematicDataVisibility(false);
+      } else {
+        // Show
+        this.showIsochroneWindow({
+          id: calculation.id,
+          calculationType: calculation.calculationType
+        });
+      }
     }
   },
   computed: {

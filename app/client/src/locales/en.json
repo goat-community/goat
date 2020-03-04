@@ -208,6 +208,7 @@
       "multiIsochroneHeader": "Multi-Isochrone Calculation",
       "additionalLayers": "Additional Layers",
       "showDataTooltip": "Show Data",
+      "hideDataTooltip": "Hide Data",
       "toggleVisibilityTooltip": "Toggle Visibility",
       "showResultsTooltip": "Show Results",
       "hideResultsTooltip": "Hide Results",
