@@ -13,7 +13,7 @@
       "filter": "Thematic Data Filter",
       "edit": "Draw scenario",
       "settings": "Language",
-      "info": "Info"
+      "info": "Visit GOAT Homepage"
     },
     "login": {
       "title": "Login",
@@ -110,6 +110,22 @@
         "selectWayType": "Select way type: ",
         "wayType": "Way Type"
       },
+      "table": {
+        "layer": "Layer",
+        "status": "Status",
+        "type": "Type",
+        "actions": "Actions"
+      },
+      "type": {
+        "New": "New",
+        "Modified": "Modified",
+        "Restored": "Restored",
+        "Deleted": "Deleted"
+      },
+      "status": {
+        "Uploaded": "Uploaded",
+        "NotUploaded": "Not Uploaded"
+      },
       "activateLayerToDrawScenario": "Plese activate the layer to be able to select features",
       "dataTypeInfo": "Data type should be",
       "geometryTypeInfo": "Geometry type should be",
@@ -192,6 +208,7 @@
       "multiIsochroneHeader": "Multi-Isochrone Calculation",
       "additionalLayers": "Additional Layers",
       "showDataTooltip": "Show Data",
+      "hideDataTooltip": "Hide Data",
       "toggleVisibilityTooltip": "Toggle Visibility",
       "showResultsTooltip": "Show Results",
       "hideResultsTooltip": "Hide Results",

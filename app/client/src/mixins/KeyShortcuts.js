@@ -9,8 +9,8 @@ export const KeyShortcuts = {
         const key = evt.key;
         const code = evt.keyCode;
         if (key === "Escape" || code === "27") {
-          if (this.clear) {
-            this.clear();
+          if (this.stop) {
+            this.stop();
           }
         }
       };

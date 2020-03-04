@@ -358,20 +358,6 @@
           "locked": false,
           "children": [
             {
-              "name": "Bicycle rental",
-              "value": "bicycle_rental",
-              "icon": "bicycle_rental",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Car sharing",
-              "value": "car_sharing",
-              "icon": "car_sharing",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
               "name": "Charging station",
               "value": "charging_station",
               "icon": "charging_station",
@@ -383,20 +369,6 @@
               "name": "Bus",
               "value": "bus_stop",
               "icon": "bus_stop",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Tram Stop",
-              "value": "tram_stop",
-              "icon": "tram_stop",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "U-Bahn station",
-              "value": "subway_entrance",
-              "icon": "subway_entrance",
               "weight": 1,
               "sensitivity": -0.003
             },
@@ -534,13 +506,6 @@
               "sensitivity": -0.003
             },
             {
-              "name": "Mall",
-              "value": "mall",
-              "icon": "mall",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
               "name": "Shoes",
               "value": "shoes",
               "icon": "shoes",
@@ -558,13 +523,6 @@
               "name": "Discount Supermarket",
               "value": "discount_supermarket",
               "icon": "discount_supermarket",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "International Supermarket",
-              "value": "international_supermarket",
-              "icon": "international_supermarket",
               "weight": 1,
               "sensitivity": -0.003
             },
@@ -610,20 +568,6 @@
               "sensitivity": -0.003
             },
             {
-              "name": "Theatre",
-              "value": "theatre",
-              "icon": "theatre",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Museum",
-              "value": "museum",
-              "icon": "museum",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
               "name": "Hotel",
               "value": "hotel",
               "icon": "hotel",
@@ -641,13 +585,6 @@
               "name": "Guest house",
               "value": "guest_house",
               "icon": "guest_house",
-              "weight": 1,
-              "sensitivity": -0.003
-            },
-            {
-              "name": "Gallery",
-              "value": "gallery",
-              "icon": "gallery",
               "weight": 1,
               "sensitivity": -0.003
             }
@@ -795,11 +732,7 @@
         "cycling": {
           "default": "standard",
           "options": [
-            {
-              "value": "standard",
-              "speed": 15
-            },
-            { "value": "pedelec", "speed": 23 }
+           {"value": "standard", "speed": 15}
           ]
         },
         "walking_wheelchair": {

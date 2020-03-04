@@ -40,7 +40,7 @@ export default class OlEditController extends OlBaseController {
     const highlightLayer = new VectorLayer({
       displayInLayerList: false,
       source: highlightSource,
-      zIndex: 5,
+      zIndex: 10,
       style: OlStyleDefs.getFeatureHighlightStyle()
     });
     me.map.addLayer(highlightLayer);
