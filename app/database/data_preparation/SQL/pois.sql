@@ -338,7 +338,8 @@ WITH pt AS (
 	WHERE highway = 'bus_stop' AND name IS NOT NULL
 	UNION ALL
 	SELECT osm_id,'bus_stop' as public_transport_stop,name,tags -> 'wheelchair' AS wheelchair, way as geom FROM planet_osm_point 
-	WHERE public_transport = 'platform' AND name IS NOT NULL AND tags -> 'bus'='yes'
+	WHERE public_transport = 'platform' AND highway <> 'bus_stop'
+	AND name IS NOT NULL AND tags -> 'bus'='yes'
 	UNION ALL
 	SELECT osm_id,'tram_stop' as public_transport_stop,name,tags -> 'wheelchair' AS wheelchair,way as geom FROM planet_osm_point 
 	WHERE public_transport = 'stop_position' 
