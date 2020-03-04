@@ -189,9 +189,20 @@ export default {
         layer.getSource().updateParams({
           viewparams: `amenities:'${btoa(viewparams)}'`
         });
-
-        if (heatmapViewParams.length === 0) {
-          layer.setVisible(false);
+        if (layer.getVisible() === true && heatmapViewParams.length === 0) {
+          this.toggleSnackbar({
+            type: "error",
+            message: "selectAmenities",
+            timeout: 60000,
+            state: true
+          });
+        } else {
+          this.toggleSnackbar({
+            type: "error",
+            message: "selectAmenities",
+            state: false,
+            timeout: 0
+          });
         }
 
         layer.getSource().refresh();
@@ -274,7 +285,10 @@ export default {
     },
     treeViewChanged() {
       this.selectedPois = this.selectedPois.filter(x => x.locked != true);
-    }
+    },
+    ...mapMutations("map", {
+      toggleSnackbar: "TOGGLE_SNACKBAR"
+    })
   },
   watch: {
     selectedPois: function() {
