@@ -85,8 +85,8 @@ DATA_REFINEMENT_VARIABLES:
       mcdonalds: ['%mcdonald%']
       raiffeisenbank: ['%raiffeisenbank%', '%vr bank%', '%vr-bank%', '%volksbank%']
       rewe: ['%rewe%']
-      rossman: ['%rossmann%']
-      sparkassse: ['%kreissparkasse%','%sparkasse%','%stadtsparkasse%']  
+      rossmann: ['%rossmann%']
+      sparkasse: ['%kreissparkasse%','%sparkasse%','%stadtsparkasse%']  
       vapiano: ['%vapiano%']      
       
 
