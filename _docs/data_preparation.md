@@ -48,7 +48,7 @@ If you have population data as point source you can upload the same into the dat
 
 ##### Filename conventions
 
-The automated way the scripts process the data make it necessary that the your custom data is labelled correctly. It is important the filename and certain attributes are labelled as in the following examples. It is possible to import shapefiles with additional columns however it is important that the folowing conventions are followed. 
+The automated way the scripts process the data make it necessary that the your custom data is labelled correctly. It is important that the filename and certain attributes are labelled as in the following examples. It is possible to import shapefiles with additional columns however the folowing conventions must be followed.
 
 <img class="img-responsive" src="../../img/shapefile_study_area.png" alt="how your study area shapefile has to be for GOAT" title="Shapefile study area">
 
