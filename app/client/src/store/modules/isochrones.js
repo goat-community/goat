@@ -22,9 +22,16 @@ const state = {
     coordinate: null,
     placeName: ""
   },
+  isBusy: false,
   options: [],
   styleData: {},
   calculations: [],
+  routeIcons: {
+    walking: "fas fa-walking",
+    cycling: "fas fa-biking",
+    walking_wheelchair: "fas fa-wheelchair"
+  },
+  activeRoutingProfile: null, //ex. "walking_standard"
   multiIsochroneCalculationMethods: {
     name: "multiIsochroneCalculationMethods",
     values: [
@@ -46,14 +53,19 @@ const state = {
   isochroneRoadNetworkLayer: null,
 
   isThematicDataVisible: false,
-  selectedThematicData: null
+  selectedThematicData: null,
+  studyAreaLayer: null
 };
 
 const getters = {
-  routingProfile: state => state.routingProfile,
+  isBusy: state => state.isBusy,
+  activeRoutingProfile: state => state.activeRoutingProfile,
+  routeIcons: state => state.routeIcons,
   calculations: state => state.calculations,
   options: state => state.options,
   isochroneLayer: state => state.isochroneLayer,
+  studyAreaLayer: state => state.studyAreaLayer,
+  isochroneRoadNetworkLayer: state => state.isochroneRoadNetworkLayer,
   selectionLayer: state => state.selectionLayer,
   styleData: state => state.styleData,
   isThematicDataVisible: state => state.isThematicDataVisible,
@@ -84,7 +96,7 @@ const getters = {
 };
 
 const actions = {
-  async calculateIsochrone({ commit, rootState }) {
+  async calculateIsochrone({ dispatch, commit, rootState }) {
     //Selected isochrone calculation type. single | multiple
     const calculationType = rootState.isochrones.options.calculationType;
     const sharedParams = {
@@ -113,7 +125,7 @@ const actions = {
         x: state.position.coordinate[0],
         y: state.position.coordinate[1],
         concavity: state.options.concavityIsochrones.active,
-        routing_profile: state.options.routingProfile.active["value"]
+        routing_profile: state.activeRoutingProfile
       });
       isochroneEndpoint = "isochrone";
     } else {
@@ -141,7 +153,7 @@ const actions = {
         ),
         region_type: `'${regionType}'`,
         region: region,
-        routing_profile: `'${state.options.routingProfile.active["value"]}'`,
+        routing_profile: `'${state.activeRoutingProfile}'`,
         amenities: rootState.pois.selectedPois
           .map(item => {
             return "'" + item.value + "'";
@@ -152,10 +164,37 @@ const actions = {
       isochroneEndpoint = "pois_multi_isochrones";
     }
 
-    const isochronesResponse = await http.post(
-      `/api/${isochroneEndpoint}`,
-      params
-    );
+    commit("SET_IS_BUSY", true);
+    const isochronesResponse = await http
+      .post(`/api/${isochroneEndpoint}`, params, {
+        timeout: 120000
+      })
+      .catch(() => {
+        //Show error message
+        commit(
+          "map/TOGGLE_SNACKBAR",
+          {
+            type: "error",
+            message: "calculateIsochroneError",
+            state: true
+          },
+          { root: true }
+        );
+        if (iconMarkerFeature) {
+          commit("REMOVE_ISOCHRONE_FEATURE", iconMarkerFeature);
+        }
+      });
+
+    if (
+      calculationType === "multiple" &&
+      params.region_type === "'study_area'" &&
+      rootState.isochrones.studyAreaLayer.length > 0
+    ) {
+      //Turn off studyArea layer
+      rootState.isochrones.studyAreaLayer[0].setVisible(false);
+    }
+    commit("SET_IS_BUSY", false);
+    if (!isochronesResponse) return;
     let isochrones = isochronesResponse.data;
     let calculationData = [];
 
@@ -197,6 +236,8 @@ const actions = {
       feature.set("isVisible", true);
       feature.set("calculationNumber", calculationNumber);
       feature.set("color", color);
+      feature.set("calculationType", calculationType);
+      feature.set("hoverColor", "");
 
       calculationData.push(obj);
     });
@@ -206,6 +247,7 @@ const actions = {
       calculationType: calculationType,
       time: state.options.minutes + " min",
       speed: state.options.speed + " km/h",
+      routing_profile: state.activeRoutingProfile,
       isExpanded: true,
       isVisible: true,
       data: calculationData,
@@ -219,6 +261,7 @@ const actions = {
       )
         .getGeometry()
         .getCoordinates();
+
       const transformedPoint = new Point(
         transform(isochroneStartingPoint, "EPSG:4326", "EPSG:3857") //TODO: Get source projection from the map here.
       );
@@ -234,6 +277,18 @@ const actions = {
         state.position.placeName ||
         toStringHDMS(isochroneStartingPoint || state.position.coordinate) ||
         "";
+
+      //Reverse Geocode coordinates
+      const reverseGeocode = await http.get(
+        `${process.env.VUE_APP_SEARCH_URL}reverse.php?key=${process.env.VUE_APP_SEARCH_KEY}&lat=${isochroneStartingPoint[1]}&lon=${isochroneStartingPoint[0]}&format=json`
+      );
+      if (reverseGeocode.status === 200 && reverseGeocode.data.display_name) {
+        const address = reverseGeocode.data.display_name;
+
+        if (address.length > 0) {
+          transformedData.position = address;
+        }
+      }
     } else {
       commit("RESET_MULTIISOCHRONE_START");
       transformedData.position = "multiIsochroneCalculation";
@@ -242,6 +297,11 @@ const actions = {
     commit("CALCULATE_ISOCHRONE", transformedData);
     //Add features to isochrone layer
     commit("ADD_ISOCHRONE_FEATURES", olFeatures);
+    //Show isochrone window
+    dispatch("showIsochroneWindow", {
+      id: calculationNumber,
+      calculationType: calculationType
+    });
   },
 
   async countStudyAreaPois({ commit, rootState }, options) {
@@ -272,6 +332,8 @@ const actions = {
         return;
       }
       const params = {
+        user_id: rootState.user.userId,
+        modus: "'" + state.options.calculationModes.active + "'",
         minutes: rootState.isochrones.options.minutes,
         speed: rootState.isochrones.options.speed,
         amenities: amenities
@@ -392,18 +454,17 @@ const actions = {
     }
 
     const features = calculation.additionalData[payload.type]["features"];
+    const roadLayerSource = rootState.isochrones.isochroneRoadNetworkLayer.getSource();
     if (payload.state === false && features.length > 0) {
       //2- Remove features from road network layer
       features.forEach(feature => {
-        rootState.isochrones.isochroneRoadNetworkLayer
-          .getSource()
-          .removeFeature(feature);
+        if (roadLayerSource.hasFeature(feature)) {
+          roadLayerSource.removeFeature(feature);
+        }
       });
     } else {
       //3- Add already loaded feature again to the road network layer
-      rootState.isochrones.isochroneRoadNetworkLayer
-        .getSource()
-        .addFeatures(features);
+      roadLayerSource.addFeatures(features);
     }
   },
 
@@ -415,6 +476,45 @@ const actions = {
     //Assign Selected Pois from the tree
     thematicDataObject.filterSelectedPois = rootState.pois.selectedPois;
     commit("SET_SELECTED_THEMATIC_DATA", thematicDataObject);
+  },
+
+  /**
+   * Sets selected thematic data and opens isochrone window .
+   */
+  showIsochroneWindow({ dispatch, commit, rootState }, _payload) {
+    let calculation = rootState.isochrones.calculations.filter(
+      calculation => calculation.id === _payload.id
+    );
+    if (calculation.length === 0) return;
+    calculation = calculation[0];
+    const features = IsochroneUtils.getCalculationFeatures(
+      calculation,
+      rootState.isochrones.isochroneLayer
+    );
+    rootState.isochrones.isochroneLayer
+      .getSource()
+      .getFeatures()
+      .forEach(f => {
+        f.set("highlightFeature", false);
+      });
+    features.forEach(f => {
+      f.set("highlightFeature", true);
+    });
+    const pois = IsochroneUtils.getCalculationPoisObject(features);
+    const payload = {
+      calculationId: calculation.id,
+      calculationType: calculation.calculationType,
+      pois: pois
+    };
+    if (calculation.calculationType === "multiple") {
+      const multiIsochroneTableData = IsochroneUtils.getMultiIsochroneTableData(
+        features
+      );
+      payload.multiIsochroneTableData = multiIsochroneTableData;
+    }
+
+    dispatch("setSelectedThematicData", payload);
+    commit("TOGGLE_THEMATIC_DATA_VISIBILITY", true);
   }
 };
 
@@ -427,6 +527,9 @@ const mutations = {
     }
   },
   CALCULATE_ISOCHRONE(state, isochrone) {
+    state.calculations.forEach(calculation => {
+      calculation.isExpanded = false;
+    });
     state.calculations.unshift(isochrone);
   },
   UPDATE_POSITION(state, position) {
@@ -434,6 +537,9 @@ const mutations = {
   },
   ADD_ISOCHRONE_LAYER(state, layer) {
     state.isochroneLayer = layer;
+  },
+  SET_IS_BUSY(state, isBusy) {
+    state.isBusy = isBusy;
   },
   ADD_ISOCHRONE_ROAD_NETWORK_LAYER(state, layer) {
     state.isochroneRoadNetworkLayer = layer;
@@ -449,6 +555,16 @@ const mutations = {
   },
   REMOVE_CALCULATION(state, calculation) {
     let id = calculation.id;
+    if (
+      state.selectedThematicData &&
+      state.selectedThematicData.calculationId === id
+    ) {
+      state.selectedThematicData = null;
+    } else if (state.selectedThematicData) {
+      state.selectedThematicData.calculationId =
+        state.selectedThematicData.calculationId - 1;
+    }
+
     state.calculations = state.calculations.filter(
       calculation => calculation.id != id
     );
@@ -481,6 +597,11 @@ const mutations = {
   ADD_ISOCHRONE_FEATURES(state, features) {
     if (state.isochroneLayer) {
       state.isochroneLayer.getSource().addFeatures(features);
+    }
+  },
+  REMOVE_ISOCHRONE_FEATURE(state, feature) {
+    if (state.isochroneLayer && feature) {
+      state.isochroneLayer.getSource().removeFeature(feature);
     }
   },
   ADD_STUDYAREA_FEATURES(state, features) {
@@ -530,6 +651,9 @@ const mutations = {
   },
   SET_SELECTED_THEMATIC_DATA(state, thematicDataObject) {
     state.selectedThematicData = thematicDataObject;
+  },
+  ADD_STUDY_AREA_LAYER(state, studyAreaLayer) {
+    state.studyAreaLayer = studyAreaLayer;
   }
 };
 

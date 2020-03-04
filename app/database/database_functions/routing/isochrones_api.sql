@@ -34,7 +34,7 @@ begin
     SELECT *,speed_input,shape_precision,3,objectid_default,1
     FROM isochrones_alphashape(userid_input,minutes,x,y,n,speed_input,shape_precision,3,objectid_default,1,routing_profile);
 
-    PERFORM thematic_data_sum(objectid_default);
+    PERFORM thematic_data_sum(objectid_default,userid_input,modus);
     PERFORM sql_execution;
 
     /*double calculation - scenario*/
@@ -43,7 +43,7 @@ begin
     SELECT *,speed_input,shape_precision,4,objectid_scenario,objectid_default
     FROM isochrones_alphashape(userid_input,minutes,x,y,n,speed_input,shape_precision,4,objectid_scenario,objectid_default,routing_profile);
 
-    PERFORM thematic_data_sum(objectid_scenario);
+    PERFORM thematic_data_sum(objectid_scenario,userid_input,modus);
     PERFORM sql_execution;
 
   ELSE
@@ -59,7 +59,7 @@ begin
     SELECT *,speed_input,shape_precision,modus,objectid_default,1
     FROM isochrones_alphashape(userid_input,minutes,x,y,n,speed_input,shape_precision,modus,objectid_default,1,routing_profile);
 
-    PERFORM thematic_data_sum(objectid_default);
+    PERFORM thematic_data_sum(objectid_default,userid_input,modus);
     PERFORM sql_execution;
 	
   END IF ;
@@ -82,7 +82,7 @@ END ;
 $function$
 
 
---SELECT * FROM isochrones_api(32431,15,11.546394,48.195533,3,5,0.00003,'default','walking_standard',21,9,0)
+--SELECT * FROM isochrones_api(32431,15,11.242864,48.176953,3,5,0.00003,'default','walking_standard',21,9,0)
 --Options for modus: default,scenario,comparison
 
 

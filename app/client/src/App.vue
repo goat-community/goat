@@ -8,16 +8,13 @@
     <v-content>
       <v-container
         style="height: 100vh; max-height: 100%;"
-        id="ol-map-container"
         fluid
         fill-height
         class="pa-0"
       >
-        <app-map :color="controlsColor" />
-        <map-loading-progress-status />
+        <app-viewer />
+
         <snackbar />
-        <background-switcher />
-        <Legend />
       </v-container>
     </v-content>
     <app-sidebar />
@@ -31,30 +28,21 @@ import { EventBus } from "./EventBus.js";
 import appSidebar from "./components/core/SideDrawer";
 import treePanel from "./components/core/TreePanel";
 import Snackbar from "./components/other/Snackbar";
-
-import appMap from "./components/ol/Map";
-import MapLoadingProgressStatus from "./components/ol/MapLoadingProgressStatus";
-import Legend from "./components/ol/Legend";
-import BackgroundSwitcher from "./components/ol/BackgroundSwitcher";
-
+import Viewer from "./components/viewer/viewer";
 import { mapMutations } from "vuex";
 
 export default {
   name: "wg-app",
   components: {
-    appMap,
+    Snackbar,
     appSidebar,
     treePanel,
-    MapLoadingProgressStatus,
-    Snackbar,
-    Legend,
-    BackgroundSwitcher
+    "app-viewer": Viewer
   },
   data() {
     return {
       isEmbedded: false,
-      baseColor: Vue.prototype.$appConfig.baseColor,
-      controlsColor: Vue.prototype.$appConfig.controlsColor
+      baseColor: Vue.prototype.$appConfig.baseColor
     };
   },
   mounted() {

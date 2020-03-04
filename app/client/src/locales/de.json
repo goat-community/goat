@@ -13,7 +13,7 @@
             "filter": "Filter Thematische Daten",
             "edit": "Szenarien Entwickeln",
             "settings": "Sprache",
-            "info": "Info"
+            "info": "GOAT Homepage besuchen"
         },
         "login": {
             "title": "Login",
@@ -55,6 +55,7 @@
                     "rule": "Feld ist erforderlich"
                 },
                 "submit": "Drucken",
+                "abort": "Abbrechen",
                 "legend": "Legende",
                 "grid": "Gitter"
             }
@@ -102,13 +103,46 @@
             "drawFeatureTooltip": "Objekt zeichnen",
             "modifyFeatureTooltip": "Objekt ändern",
             "deleteFeature": "Objekt löschen",
-            "clearBtn": "Löschen",
+            "clearBtn": "Reset",
             "uploadBtn": "Hochladen",
             "popup": {
                 "deleteFeatureMsg": "Möchten Sie das ausgewählte Feature wirklich löschen?",
                 "selectWayType": "Art des Weges auswählen: ",
                 "wayType": "Art des Weges"
-            }
+            },
+            "table": {
+                "layer": "Layer",
+                "status": "Status",
+                "type": "Art",
+                "actions": "Aktionen"
+            },
+            "type": {
+                "New": "Neu",
+                "Modified": "Geändert",
+                "Restored": "restauriert",
+                "Deleted": "Gelöscht"
+            },
+            "status": {
+                "Uploaded": "hochgeladen",
+                "NotUploaded": "Nicht hochgeladen"
+            },
+            "activateLayerToDrawScenario": "Bitte aktivieren Sie den Layer, um Objekte wählen zu können.",
+            "dataTypeInfo": "Benötigter Datei Typ",
+            "geometryTypeInfo": "Benötigter Geometrie Typ",
+            "requiredFields": "Erforderliche Attribute",
+            "referenceSystemInfo": "Referenzsystem sollte sein",
+            "featuresNotyetUploaded": "Objekte noch nicht hochgeladen. Klicken Sie auf Hochladen, um die Änderungen zu übernehmen.",
+            "differentGeometryType": "Falscher Geometrie-Typ",
+            "missingFields": "Fehlende Felder",
+            "fileCorrupted": "Geojson Datei ist beschädigt",
+            "noFile": "Keine Datei",
+            "allFeaturesUploaded": "Alle Objekte wurden hochgeladen",
+            "notAllUploaded": "Nicht alle Objekte wurden hochgeladen",
+            "errorHappened": "Es ist ein Fehler aufgetreten",
+            "scenarioFeatures": "Scenario Objekte",
+            "uploadYourData": "Bearbeitete Objekte hochladen",
+            "deleteAllTitle": "Alle löschen",
+            "deleteAllMessage": "Wollen Sie alle Scenario Daten löschen?"
         },
         "settings": {
             "title": "Einstellungen",
@@ -140,10 +174,10 @@
             "title": "Anfang",
             "type": "Multi",
             "selectMethod": "Methode auswählen",
-            "studyArea": "Untersuchungsgebiet",
+            "studyArea": "Ortsteil",
             "clear": "Löschen",
-            "calculate": "Berechne",
-            "studyAreaInfoLabel": "Wählen Sie <b> Untersuchungsgebiete </b> auf der Karte aus und <b> Ziele </b> im Filter Thematische Daten aus, um die Berechnung zu ermöglichen.",
+            "calculate": "Berechnen",
+            "studyAreaInfoLabel": "Wählen Sie <b> Orte </b> auf der Karte aus und <b> Ziele </b> im Filter Thematische Daten aus, um die Berechnung zu ermöglichen.",
             "drawBoundary": "Grenze zeichnen",
             "amenityCount": "Anzahl Einrichtungen",
             "limit": "Grenze",
@@ -161,7 +195,13 @@
             "alphaShapeMode": "Detaillierungsgrad Isochronen",
             "defaultNetwork": "Standard",
             "modifiedNetwork": "Scenario",
-            "modifiedNetworkDoubleCalc": "Standard und Scenario"
+            "modifiedNetworkDoubleCalc": "Standard und Scenario",
+            "routingProfile": "Routing Profil",
+            "walking_standard": "Standard",
+            "walking_elderly": "Senior",
+            "walking_wheelchair": "Rollstuhl",
+            "cycling_standard": "Standard",
+            "cycling_pedelec": "Pedelec"
         },
         "results": {
             "title": "Ergebnisse",
@@ -169,8 +209,11 @@
             "additionalLayers": "Weitere Layer",
             "showDataTooltip": "Daten anzeigen",
             "toggleVisibilityTooltip": "Anzeige umschalten",
+            "showResultsTooltip": "Ergebnisse anzeigen",
+            "hideResultsTooltip": "Ergebnisse ausblenden",
             "downloadTooltip": "Herunterladen",
             "deleteCalcTooltip": "Berechnung löschen",
+            "changeColorTooltip": "Farbe ändern",
             "table": {
                 "type": "Art",
                 "range": "Zeit",
@@ -188,7 +231,7 @@
             "table": {
                 "pois": "Ziele",
                 "isochrone": "Isochrone",
-                "studyArea": "Untersuchungsgebiet",
+                "studyArea": "Ort",
                 "population": "Bevölkerung",
                 "reachedPopulation": "Erreichbare Bevölkerung"
             }
@@ -201,8 +244,29 @@
             "fileName": "Dateiname",
             "outputFormat": "Ausgabeformat auswählen",
             "download": "Herunterladen"
+        },
+        "additionalLayers": {
+          "defaultNetwork": "Standard Straßennetzwerk",
+          "inputNetwork": "Modifiziertes Straßennetzwerk"
+        },
+        "pickColor": {
+          "title": "Farbe der Isochrone"
         }
-    },
+      },
+    "poisFilter": {
+        "showTimeFilter": "Zeitlichen Filter hinzufügen",
+        "selectHourLabel": "Uhrzeit wählen",
+        "selectDayLabel": "Tag wählen",
+        "daysOfWeek": {
+          "monday": "Montag",
+          "tuesday": "Dienstag",
+          "wednesday": "Mittwoch",
+          "thursday": "Donnerstag",
+          "friday": "Freitag",
+          "saturday": "Samstag",
+          "sunday": "Sonntag"
+        }
+      },
     "layerTree": {
         "title": "Layer",
         "settings": {
@@ -214,12 +278,19 @@
             "title": "Legende Layer"
         },
         "snackbarMessages": {
-            "selectAmenities": "Mind. ein Ziel auswählen"
+            "selectAmenities": "Mind. ein Ziel auswählen",
+            "calculateIsochroneError": "Hier ist leider keine Berechnung möglich.",
+            "uploadScenarioSuccess": "Objekte wurden erfolgreich hochgeladen.",
+            "uploadScenarioError": "Leider ist beim Hochladen der Objekte in die Datenbank ein Fehler aufgetreten.",
+            "notAllScnearioFeaturesUploaded": "Bei der Berechnung der Szenarien-Isochrone werden nur hochgeladene Objekte berücksichtigt.",
+            "cantDeleteAllScenarioFeatures": "Die Szenarien-Daten können aktuell leider nicht gelöscht werden.",
+            "allScenarioFeaturesDelete": "Alle Szenarien-Daten wurden gelöscht"
         },
         "layerGroup": {
             "poisLayers": "Pois Layer",
             "administrativeLayers": "Layer Verwaltungsgrenzen",
             "streetlevelqualityLayers": "Street Level Quality",
+            "perceivedQuality": "Empfundene Qualität",
             "accessbilityBasemaps": "Grundkarten Erreichbarkeit",
             "backgroundLayers": "Hintergrundkarten"
         },
@@ -232,11 +303,12 @@
             "parking": "Parkplätze am Straßenrand",
             "speed": "Geschwindigkeitsbegrenzungen",
             "streetCrossings": "Straßenquerungsmöglichkeiten",
+            "streetFurniture": "Straßenmöbelierung",
             "surface": "Oberfläche",
             "wheelchairUsability": "Barrierefreiheit",
             "areaIsochrone": "Isochronengröße",
-            "walkabilityPopulation": "Walkability - Population Index",
-            "population": "Population",
+            "walkabilityPopulation": "Walkability - Bevölkerungs - Index",
+            "population": "Bevölkerung",
             "walkability": "Walkability",
             "studyArea": "Untersuchungsgebiet",
             "ways": "Wege",
@@ -260,7 +332,48 @@
             "clickToFinishDrawingPolygon": "Doppel(klick) auf Startpunkt, um Vorgang zu beenden",
             "clickOnFeatureToDelete": "Auf das Objekt klicken, um es zu löschen",
             "clickAndDragToModify": "Objekt anklicken und ziehen, um es zu verändern",
-            "clickToRemove": "Zum Entfernen klicken"
+            "clickToRemove": "Zum Entfernen klicken",
+            "clickToPlacePoint": "Klicken, um den Punkt zu platzieren",
+            "routingProfiles": {
+              "walking": {
+                "title": "Fußgänger",
+                "options": {
+                  "standard": {
+                    "title": "Standard",
+                    "tooltip": "Standard Routing"
+                  },
+                  "elderly": {
+                    "title": "Senior",
+                    "tooltip": "Routing mit reduzierter Gehgeschwindigkeit"
+                  },
+                  "safe_night": {
+                    "title": "Safe night",
+                    "tooltip": "Routing nur entlang beleuchteter Wege"
+                  }
+                }
+              },
+              "cycling": {
+                "title": "Radfahrer",
+                "options": {
+                  "standard": {
+                    "title": "Standard",
+                    "tooltip": "Standard Routing"
+                  },
+                  "pedelec": {
+                    "title": "Pedelec",
+                    "tooltip": "Pedelec"
+                  }
+                }
+              },
+              "walking_wheelchair": {
+                "title": "Rollstuhl",
+                "tooltip": "Routing berücksichtigt nur barrierefreie Wege und Ziele"
+              }
+            },
+            "zoomToFeature": "Zum Objekt zoomen",
+            "deleteFeature": "Objekt löschen",
+            "uploadFeature": "Objekt hochladen",
+            "restoreFeature": "Objekt zurücksetzen"
         },
         "popup": {
             "attributes": "Attribute",
@@ -331,6 +444,8 @@
         "hostel": "Herberge",
         "guest_house": "Gasthaus",
         "gallery": "Galerie",
+        "university": "Universität",
+        "hospital": "Krankenhaus",
         "population": "Bevölkerung"
     },
     "$vuetify": {
@@ -349,6 +464,7 @@
             }
         },
         "dataFooter": {
+            "pageText": "{0}-{1} von {2}",
             "itemsPerPageText": "Objekte pro Seite:",
             "itemsPerPageAll": "Alle",
             "nextPage": "Nächste Seite",
@@ -367,5 +483,27 @@
         "calendar": {
             "moreEvents": "{0} mehr"
         }
+    },
+    "common": {
+      "required": "Diese Information wird benötigt."
+    },
+    "dynamicFields": {
+      "attributes": {
+        "ways": {
+          "type": "Wegetyp",
+          "class_id": "Class Id"
+        },
+        "pois": {
+          "amenity": "Einrichtung",
+          "name": "Name (Optional)",
+          "opening_hours": "Öffnungszeiten (Optional)"
+        }
+      },
+      "listValues": {
+        "ways": {
+          "road": "Straße",
+          "bridge": "Brücke"
+        }
+      }
     }
-}
+  }

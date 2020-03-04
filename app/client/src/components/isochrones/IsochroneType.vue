@@ -1,8 +1,5 @@
 <template>
   <v-flex xs12>
-    <v-card-text class="pr-16 pl-16 pt-0 pb-0">
-      <v-divider></v-divider>
-    </v-card-text>
     <v-subheader
       @click="
         isIsochroneCalculationTypeElVisible = !isIsochroneCalculationTypeElVisible

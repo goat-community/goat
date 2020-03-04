@@ -231,6 +231,7 @@
             "parking": "Parking",
             "speed": "Speed",
             "streetCrossings": "Street Crossings",
+            "streetFurniture": "Street Furniture",
             "surface": "Surface",
             "wheelchairUsability": "Wheelchair Usability",
             "areaIsochrone": "Area Isochrone",
@@ -330,6 +331,8 @@
         "hostel": "Hostel",
         "guest_house": "Shtëpi për mysafirë",
         "gallery": "Galeri",
+        "university": "University",
+        "hospital": "Hospital",
         "population": "Popullsi"
     },
     "$vuetify": {

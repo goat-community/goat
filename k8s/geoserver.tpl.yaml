@@ -34,13 +34,6 @@ spec:
           subPath: datastore.xml
         ports:
         - containerPort: 8080
-        resources:
-          requests:
-            memory: 256Mi
-            cpu: 200m
-          limits:
-            memory: 512Mi
-            cpu: 300m
       volumes:
       - name: datastore-xml
         configMap:
@@ -105,7 +98,7 @@ data:
         <entry key=\"Batch insert size\">1</entry>
         <entry key=\"preparedStatements\">false</entry>
         <entry key=\"database\">${POSTGRES_DB}</entry>
-        <entry key=\"host\">postgres.postgres.svc.cluster.local</entry>
+        <entry key=\"host\">postgres.${NAMESPACE}.svc.cluster.local</entry>
         <entry key=\"Loose bbox\">true</entry>
         <entry key=\"Estimated extends\">true</entry>
         <entry key=\"fetch size\">1000</entry>

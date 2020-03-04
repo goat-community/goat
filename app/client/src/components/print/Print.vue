@@ -183,6 +183,8 @@
 
 <script>
 import { Mapable } from "../../mixins/Mapable";
+import MaskLayer from "../../utils/PrintMask";
+
 import PrintUtils, {
   INCHES_PER_METER,
   DOTS_PER_INCH
@@ -237,6 +239,7 @@ export default {
       scales: [],
       simpleAttributes: []
     },
+    maskLayer_: null,
     capabilities: null,
     currentJob: null,
     formats_: [],
@@ -254,8 +257,6 @@ export default {
     /**
      * Events
      */
-    postcomposeListener_: null,
-    postComposeListenerKey_: null,
     pointerDragListenerKey_: null,
     mapViewResolutionChangeKey_: null,
     onDragPreviousMousePosition_: null,
@@ -280,6 +281,7 @@ export default {
         throw new Error("Missing map");
       }
       this.printUtils_ = new PrintUtils();
+      this.maskLayer_ = new MaskLayer();
       this.printService = new PrintService(
         this.baseUrl,
         process.env.VUE_APP_MAPPROXY_URL
@@ -299,11 +301,10 @@ export default {
          */
         getRotationFn = () => this.rotation;
       }
-      this.postcomposeListener_ = this.printUtils_.createPrintMaskPostcompose(
-        getSizeFn,
-        this.getScaleFn.bind(this),
-        getRotationFn
-      );
+
+      this.maskLayer_.getSize = getSizeFn;
+      this.maskLayer_.getScale = this.getScaleFn.bind(this);
+      this.maskLayer_.getRotation = getRotationFn;
     },
 
     /**
@@ -990,7 +991,7 @@ export default {
         );
 
         const view = this.map.getView();
-        const contrainRes = this.map.getView().constrainResolution(res, 0, 1);
+        const contrainRes = view.getConstraints().resolution(res, 1, mapSize);
         view.setResolution(contrainRes);
 
         // Render the map to update the postcompose mask manually
@@ -1042,11 +1043,8 @@ export default {
         // Get capabilities - On success
         this.printState = this.printStateEnum.NOT_IN_USE;
         this.parseCapabilities_(resp);
-        this.postComposeListenerKey_ = olEvents.listen(
-          this.map,
-          "postcompose",
-          this.postcomposeListener_
-        );
+        this.map.addLayer(this.maskLayer_);
+
         this.pointerDragListenerKey_ = olEvents.listen(
           this.map,
           "pointerdrag",
@@ -1074,9 +1072,8 @@ export default {
     if (!this.map) {
       throw new Error("Missing map");
     }
-    if (this.postComposeListenerKey_) {
-      olEvents.unlistenByKey(this.postComposeListenerKey_);
-    }
+    this.map.removeLayer(this.maskLayer_);
+
     if (this.pointerDragListenerKey_) {
       olEvents.unlistenByKey(this.pointerDragListenerKey_);
     }
