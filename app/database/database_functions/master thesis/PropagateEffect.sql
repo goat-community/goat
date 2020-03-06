@@ -2,59 +2,79 @@ DROP FUNCTION IF EXISTS PropagateInsert;
 CREATE FUNCTION PropagateInsert(poi_id int) RETURNS void AS
 $BODY$
 DECLARE
-    r integer ARRAY;
 	insert_buffer geometry;
 	network_chunk_query TEXT;
-	source_node int;
-	target_node int;
 BEGIN
 	
-	insert_buffer = st_buffer(st_union(g), influencing_radius);
+	insert_buffer =
+		st_buffer(geom, 0.01)
+		FROM pois_userinput
+		WHERE gid = poi_id;
 	
 	UPDATE grid_500 SET dirty = TRUE
-   	WHERE st_contains(insert_buffer, grid_500.geom);
-   	
-    
+   	WHERE st_contains(insert_buffer, grid_500.geom);   
    
 	-- TODO: Max snapping distance
 	DROP TABLE IF EXISTS source_target_nodes;
-	CREATE TABLE source_target_nodes AS
-	(
-	SELECT source_nodes.id AS source_nodes, grid_id AS source_ids, target_node.id AS target_node, 255 AS target_id
-   	FROM
-   	(
-		SELECT id, pois_userinput.gid FROM ways_vertices_pgr, pois_userinput ORDER BY ways_vertices_pgr.geom
-		<->
-    	(select geom from pois_userinput where gid = 225)
-		LIMIT 1 
-	) AS target_node
-	
-	CROSS JOIN
-	(
-		SELECT g.grid_id, vertices.id
-		FROM
-		grid_500 g
-		CROSS JOIN LATERAL
-	  	(
-	  		SELECT geom, id
-	   		FROM ways_vertices_pgr w
-			WHERE w.geom && ST_Buffer(g.centroid,0.001) AND g.dirty = TRUE
-	   		ORDER BY
-	    	g.centroid <-> w.geom
-	   		LIMIT 1
-	   	) AS vertices
-	) AS source_nodes
-	)
-	
-	
-   network_chunk_query = fetch_ways_routing_text(st_astext(insert_buffer), 1, 1, 'walking_standard');
-  
-   	
+	CREATE TABLE source_target_nodes AS (
+		SELECT source_nodes.id AS source_nodes, grid_id AS source_ids, target_node.id AS target_node, poi_id AS target_id
+   		FROM (
+			SELECT id, pois_userinput.gid FROM ways_vertices_pgr, pois_userinput ORDER BY ways_vertices_pgr.geom
+			<->
+    		(select geom from pois_userinput where gid = poi_id)
+			LIMIT 1 
+		) AS target_node	
+		CROSS JOIN (
+			SELECT grid_id, vertices.id
+			FROM grid_500 g
+			CROSS JOIN LATERAL
+	  		(
+	  			SELECT geom, id
+	   			FROM ways_vertices_pgr w
+				WHERE w.geom && ST_Buffer(g.centroid,0.001) AND g.dirty = TRUE
+	   			ORDER BY
+	    		g.centroid <-> w.geom
+	   			LIMIT 1
+	   		) AS vertices
+		) AS source_nodes
+	);
 
-    UPDATE reached_points SET cell_id = grid_id, object_id = poi_id, cost = shortest_path_astar.cost
-   	FROM grid_500, shortest_path_astar(network_chunk_query, source_target_nodes.sources, source_target_nodes.target, FALSE, FALSE);
-   	WHERE dirty = TRUE;
-   	
+	network_chunk_query = fetch_ways_routing_text(st_astext(st_buffer(insert_buffer, 1)), 1, 1, 'walking_standard');
+	
+	WITH routes AS (
+		SELECT (pgr_astar(network_chunk_query, source_nodes::int4, target_node::int4, FALSE, FALSE)).cost, source_nodes, target_node, source_ids, target_id
+		FROM source_target_nodes
+	)
+	--TODO: update cost on conflict
+	INSERT INTO reached_points (cost, cell_id, object_id, user_id, scenario, routing_method)
+	SELECT sum(cost) AS cost, source_ids AS cell_id, target_id AS object_id, 1 AS user_id, 1 AS scenario, 'walking_standard' AS routing_method
+	FROM routes
+	GROUP BY source_nodes, source_ids, target_id;
+																--TODO: factor in amenity
+   	UPDATE reached_points SET cost_sensitivity = SensitivityFunction(cost, amenity_alpha_weights.alpha), weight = amenity_alpha_weights.weight
+   	FROM grid_500, amenity_alpha_weights, pois_userinput
+    WHERE grid_id = reached_points.cell_id AND dirty = TRUE AND amenity_alpha_weights.amenity = pois_userinput.amenity AND object_id = gid;
+																--TODO: factor in amenity
+   	UPDATE reached_points SET weighted_by_amenity = cost_sensitivity * weight
+    WHERE object_id = poi_id;
+	
+   
+   
+    UPDATE grid_500 SET poi_walkability_index = sum
+	FROM (	
+		SELECT sum(weighted_by_amenity), cell_id
+		FROM reached_points, grid_500
+		WHERE grid_id = cell_id AND dirty = TRUE
+		GROUP BY cell_id
+	) AS sum_per_cells
+	WHERE cell_id = grid_id;
+   
+   
+    --UPDATE grid_500 SET poi_walkability_index = sum(weighted_by_amenity)
+    --FROM reached_points
+    --WHERE grid_id = cell_id AND dirty = TRUE;
+	UPDATE grid_500 SET dirty = FALSE
+	WHERE dirty = TRUE;
 
     return;
 END;
@@ -62,11 +82,25 @@ $BODY$ LANGUAGE plpgsql;
 
 
 ----------------------------------------------------------------------------
+SELECT PropagateInsert(3255)
 
+DELETE FROM reached_points;
+UPDATE grid_500 SET dirty = FALSE;
+UPDATE grid_500 SET poi_walkability_index = NULL;
+  
+SELECT grid_id, poi_walkability_index
+FROM grid_500
+WHERE poi_walkability_index IS NOT NULL
+ORDER BY poi_walkability_index DESC
+
+
+SELECT gid, pois_userinput.amenity
+FROM pois_userinput, amenity_alpha_weights
+WHERE pois_userinput.amenity = amenity_alpha_weights.amenity
 
 
 WITH txt AS (
-	SELECT fetch_ways_routing_text(st_astext(st_buffer(geom, 0.01)), 1, 1, 'walking_standard')
+	SELECT fetch_ways_routing(st_astext(st_buffer(geom, 1)), 1, 1, 'walking_standard')
 	FROM pois
 	WHERE gid = 225
 ),
