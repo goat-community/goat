@@ -308,8 +308,16 @@ export default {
         feature => feature.isVisible === true
       );
 
+      let isNetworkVisible = false;
+      Object.keys(calculation.additionalData).forEach(key => {
+        if (calculation.additionalData[key].state === true) {
+          isNetworkVisible = true;
+        }
+      });
+
       //If user has turned off other features, hide the result
       if (
+        !isNetworkVisible &&
         visibleFeatures.length === 1 &&
         visibleFeatures[0].id === feature.id &&
         visibleFeatures[0].isVisible === true
@@ -320,7 +328,6 @@ export default {
       }
 
       if (calculation.isVisible === false && feature.isVisible === true) {
-        this.showHideNetworkData(calculation);
         calculation.isVisible = true;
       }
     },
