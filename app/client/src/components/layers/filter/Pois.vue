@@ -187,7 +187,7 @@ export default {
       me.heatmapLayers.forEach(layer => {
         const viewparams = JSON.stringify(heatmapViewParams);
         layer.getSource().updateParams({
-          viewparams: `amenities:'${btoa(viewparams)}'`
+          viewparams: `amenities:'${btoa(viewparams)}';userid:${me.userId};`
         });
 
         if (heatmapViewParams.length === 0) {
