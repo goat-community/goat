@@ -214,6 +214,7 @@
       "hideResultsTooltip": "Hide Results",
       "downloadTooltip": "Download",
       "deleteCalcTooltip": "Delete Calculation",
+      "deleteAll": "DELETE ALL",
       "changeColorTooltip": "Click to change color",
       "table": {
         "type": "Type",
@@ -239,7 +240,8 @@
     },
     "isochrones": "Isochrones",
     "deleteTitle": "Delete",
-    "deleteMessage": "Are you sure you want to delete Calculation",
+    "deleteMessage": "Are you sure you want to delete calculation",
+    "deleteAllMessage": "Are you sure you want to delete all calculations ?",
     "download": {
       "title": "Download Isochrones",
       "fileName": "Filename",
