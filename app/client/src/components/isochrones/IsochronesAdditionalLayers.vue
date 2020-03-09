@@ -102,7 +102,7 @@ export default {
           this.calculation.isVisible = false;
         }
       }
-    }
+    } //
   }
 };
 </script>
