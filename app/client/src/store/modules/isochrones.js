@@ -53,7 +53,8 @@ const state = {
   isochroneRoadNetworkLayer: null,
 
   isThematicDataVisible: false,
-  selectedThematicData: null
+  selectedThematicData: null,
+  studyAreaLayer: null
 };
 
 const getters = {
@@ -63,6 +64,7 @@ const getters = {
   calculations: state => state.calculations,
   options: state => state.options,
   isochroneLayer: state => state.isochroneLayer,
+  studyAreaLayer: state => state.studyAreaLayer,
   isochroneRoadNetworkLayer: state => state.isochroneRoadNetworkLayer,
   selectionLayer: state => state.selectionLayer,
   styleData: state => state.styleData,
@@ -165,7 +167,7 @@ const actions = {
     commit("SET_IS_BUSY", true);
     const isochronesResponse = await http
       .post(`/api/${isochroneEndpoint}`, params, {
-        timeout: 12000
+        timeout: 120000
       })
       .catch(() => {
         //Show error message
@@ -183,6 +185,14 @@ const actions = {
         }
       });
 
+    if (
+      calculationType === "multiple" &&
+      params.region_type === "'study_area'" &&
+      rootState.isochrones.studyAreaLayer.length > 0
+    ) {
+      //Turn off studyArea layer
+      rootState.isochrones.studyAreaLayer[0].setVisible(false);
+    }
     commit("SET_IS_BUSY", false);
     if (!isochronesResponse) return;
     let isochrones = isochronesResponse.data;
@@ -641,6 +651,9 @@ const mutations = {
   },
   SET_SELECTED_THEMATIC_DATA(state, thematicDataObject) {
     state.selectedThematicData = thematicDataObject;
+  },
+  ADD_STUDY_AREA_LAYER(state, studyAreaLayer) {
+    state.studyAreaLayer = studyAreaLayer;
   }
 };
 

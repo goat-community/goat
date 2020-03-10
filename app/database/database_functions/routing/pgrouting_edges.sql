@@ -6,21 +6,17 @@ AS $function$
 DECLARE
   r type_edges;
   buffer text;
-  distance numeric := speed*(minutes*60);
+  distance numeric;
   start_point geometry;
   geom_vertex geometry;
   number_calculation_input integer;
-  max_length_links integer := select_from_variable_container_s('max_length_links')::integer;
-  speed_elderly numeric := select_from_variable_container_s('walking_speed_elderly')::numeric;
-  speed_wheelchair numeric := select_from_variable_container_s('walking_speed_wheelchair')::numeric;
   userid_vertex integer;
   closest_point geometry; 
   fraction float;
   vid integer; 
   wid integer;
 begin
-  --Adjust for Routing Modus(Default, Scenario, Comparison)
-  
+
   IF modus_input IN(1,3)  THEN
 		userid_vertex = 1;
 		userid_input = 1;
@@ -29,25 +25,16 @@ begin
 	ELSEIF modus_input = 4 THEN  	 
 		userid_vertex = 1;
 	END IF;
-
-/*
-  SELECT closest_vertex[1] AS id, closest_vertex[2] geom 
-  INTO id_vertex, geom_vertex
-  FROM closest_vertex(userid_vertex,x,y,0.0018 100m => approx. 0.0009 ,modus_input, routing_profile);
-
-*/
-
-
 /*start_point still has to be tested as it is the point were the user clicked. Worst case could be that we don't fetch the whole network*/  
 
   start_point = ST_SETSRID(ST_POINT(x,y),4326);
   
-  IF routing_profile = 'walking_elderly' THEN
-    speed = speed_elderly; 
-  ELSEIF routing_profile = 'walking_wheelchair' THEN
-    speed = speed_wheelchair; 
-  END IF; 
-
+  distance = speed*(minutes*60);
+  
+  --For now only the speed differs
+  IF routing_profile = 'walking_elderly' THEN 
+    routing_profile = 'walking_standard';
+  END IF;
 
   SELECT ST_AsText(ST_Buffer(start_point::geography,distance)::geometry)  
   INTO buffer;
@@ -57,7 +44,7 @@ begin
 
   CREATE TEMP TABLE temp_fetched_ways AS 
   SELECT *
-  FROM fetch_ways_routing(buffer,modus_input,userid_input,routing_profile);
+  FROM fetch_ways_routing(buffer,modus_input,userid_input,speed, routing_profile);
 
   ALTER TABLE temp_fetched_ways ADD PRIMARY KEY(id);
   CREATE INDEX ON temp_fetched_ways (target);
@@ -92,10 +79,10 @@ begin
 
     IF modus_input = 1 THEN 
       CREATE TEMP TABLE temp_reached_vertices as 
-      SELECT vid AS start_vertex, id1::integer AS node, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end 
+      SELECT vid AS start_vertex, id1::integer AS node, cost::NUMERIC, v.geom, objectid_input AS objectid, v.death_end 
       FROM PGR_DrivingDistance( 
           'SELECT * FROM temp_fetched_ways WHERE id <> '||wid,
-          vid, distance,FALSE,FALSE
+          vid, distance/speed, FALSE, FALSE
           )p, ways_vertices_pgr v
       WHERE p.id1 = v.id
       UNION ALL 
@@ -103,10 +90,10 @@ begin
 
     ELSE
       CREATE TEMP TABLE temp_reached_vertices as 
-      SELECT vid AS start_vertex, id1::integer AS node, (cost/speed)::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end
+      SELECT vid AS start_vertex, id1::integer AS node, cost::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end
       FROM PGR_DrivingDistance(
         'SELECT * FROM temp_fetched_ways  WHERE id <> '||wid,
-        vid, distance, FALSE, FALSE
+        vid, distance/speed, FALSE, FALSE
       ) p, ways_userinput_vertices_pgr v
       WHERE p.id1 = v.id
       UNION ALL 
