@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS fetch_ways_routing;
-CREATE OR REPLACE FUNCTION public.fetch_ways_routing(buffer_geom text, modus_input integer, userid_input integer, routing_profile text)
+CREATE OR REPLACE FUNCTION public.fetch_ways_routing(buffer_geom text, modus_input integer, userid_input integer, speed_input numeric, routing_profile text)
  RETURNS SETOF type_fetch_ways_routing
  LANGUAGE plpgsql
 AS $function$
@@ -14,14 +14,14 @@ DECLARE
 	filter_categories text;
 	category text := jsonb_build_object('walking','foot','cycling','bicycle') ->>  split_part(routing_profile,'_',1);
 	sql_cost text := jsonb_build_object(
-	'cycling','length_m*(1+COALESCE(s_imp,0)+COALESCE(impedance_surface,0))::float as cost,length_m*(1+COALESCE(rs_imp,0)+COALESCE(impedance_surface,0))::float as reverse_cost',
-	'walking', 'length_m as cost, length_m as reverse_cost'
+	'cycling','(length_m*(1+COALESCE(s_imp,0)+COALESCE(impedance_surface,0))::float)/%s as cost,(length_m*(1+COALESCE(rs_imp,0)+COALESCE(impedance_surface,0))::float)/%s as reverse_cost',
+	'walking', 'length_m/%s as cost, length_m/%s as reverse_cost'
 	) ->> split_part(routing_profile,'_',1);
 	userid_vertex integer;
 	sql_select_ways text;
 	
 BEGIN 
-
+	sql_cost = format(sql_cost, speed_input, speed_input);
 	excluded_class_id = (select_from_variable_container('excluded_class_id_' || split_part(routing_profile,'_',1)))::text;
   	filter_categories = (select_from_variable_container('categories_no_' || category))::text;
 
