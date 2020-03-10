@@ -192,6 +192,20 @@
       },
       {
         "type": "WMS",
+        "name": "streetCategorysAggregated",
+        "url": "/geoserver/wms",
+        "group": "cyclingqualityLayers",
+        "layers": "cite:ways_category_aggregated",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "streetCrossings",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
