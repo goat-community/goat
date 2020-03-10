@@ -2,7 +2,7 @@
   <div>
     <!-- TOGGLE STREET VIEW -->
     <v-btn
-      v-if="false"
+      v-if="!miniViewerVisible"
       class="mx-2 miniviewer-button"
       fab
       dark
@@ -16,6 +16,9 @@
     <!-- MINI-VIEW -->
     <v-expand-x-transition>
       <v-card v-if="miniViewerVisible" class="miniview" outlined>
+        <div id="close-miniview" @click="closeMiniView()">
+          <v-icon dark class="close-icon">close</v-icon>
+        </div>
         <div id="switch-triangle" @click="switchViews()">
           <v-icon large dark class="swap-icon">swap_horiz</v-icon>
         </div>
@@ -31,25 +34,38 @@
 </template>
 <script>
 import appMap from "./ol/Map";
+import appMapillary from "./mapillary/Mapillary";
 import IsochronThematicData from "./others/IsochroneThematicData";
 
 export default {
   name: "app-viewer",
   components: {
     "app-ol-map": appMap,
+    "app-mapillary": appMapillary,
     "isochrone-thematic-data": IsochronThematicData
   },
   data() {
     return {
       miniViewerVisible: false,
-      activeFullViewComponent: "app-ol-map"
+      activeFullViewComponent: "app-ol-map",
+      activeMiniViewComponent: "app-mapillary"
     };
   },
   methods: {
     showMiniViewer() {
       this.miniViewerVisible = true;
     },
-    switchViews() {}
+    switchViews() {
+      [this.activeFullViewComponent, this.activeMiniViewComponent] = [
+        this.activeMiniViewComponent,
+        this.activeFullViewComponent
+      ];
+    },
+    closeMiniView() {
+      this.miniViewerVisible = false;
+      this.activeFullViewComponent = "app-ol-map";
+      this.activeMiniViewComponent = "app-mapillary";
+    }
   }
 };
 </script>
@@ -104,7 +120,7 @@ export default {
   height: 100px;
   width: 100px;
   opacity: 0.8;
-  background: #474a4e;
+  background: rgba(0, 0, 0, 0.5);
   transform: rotate(45deg);
   z-index: 2;
   cursor: pointer;
@@ -114,5 +130,23 @@ export default {
   position: absolute;
   bottom: -5px;
   right: 35px;
+}
+
+#close-miniview {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  border-radius: 15px;
+  height: 24px;
+  width: 24px;
+  opacity: 0.8;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2;
+  cursor: pointer;
+}
+
+.close-icon {
+  position: absolute;
 }
 </style>
