@@ -17,6 +17,28 @@
           <LineSymbolizer>
             <Stroke>
               <CssParameter name="stroke">#999999</CssParameter>
+              <CssParameter name="stroke-width">0.5</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>excellent</Name>
+            <Title>
+              excellent
+				<Localized lang="de">exzellent</Localized>
+            	<Localized lang="en">excellent</Localized>
+          	</Title>
+          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>smoothness</ogc:PropertyName>
+              <ogc:Literal>excellent</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
+          </ogc:Filter>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#1cac2a</CssParameter>
               <CssParameter name="stroke-width">1</CssParameter>
               <CssParameter name="stroke-linejoin">bevel</CssParameter>
               <CssParameter name="stroke-linecap">square</CssParameter>
@@ -24,21 +46,21 @@
           </LineSymbolizer>
         </Rule>
         <Rule>
-          <Name>impassable</Name>
+          <Name>good</Name>
             <Title>
-              impassable
-          		<Localized lang="de">nicht befahrbar</Localized>
-            	<Localized lang="en">impassable</Localized>
-          </Title>
+              good
+				<Localized lang="de">gut</Localized>
+            	<Localized lang="en">good</Localized>
+          	</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
               <ogc:PropertyName>smoothness</ogc:PropertyName>
-              <ogc:Literal>impassable</ogc:Literal>
+              <ogc:Literal>good</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
           <LineSymbolizer>
             <Stroke>
-              <CssParameter name="stroke">#bf1000</CssParameter>
+              <CssParameter name="stroke">#65df35</CssParameter>
               <CssParameter name="stroke-width">1</CssParameter>
               <CssParameter name="stroke-linejoin">bevel</CssParameter>
               <CssParameter name="stroke-linecap">square</CssParameter>
@@ -60,7 +82,85 @@
           </ogc:Filter>
           <LineSymbolizer>
             <Stroke>
-              <CssParameter name="stroke">#e3a619</CssParameter>
+              <CssParameter name="stroke">#fff301</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>bad</Name>
+            <Title>
+              bad
+				<Localized lang="de">schlecht</Localized>
+            	<Localized lang="en">bad</Localized>
+          	</Title>
+          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:Or>
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>smoothness</ogc:PropertyName>
+              <ogc:Literal>bad</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
+             <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>smoothness</ogc:PropertyName>
+              <ogc:Literal>very_bad</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
+              </ogc:Or>
+          </ogc:Filter>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#ff9305</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>horrible</Name>
+            <Title>
+              horrible
+          		<Localized lang="de">sehr schlecht</Localized>
+            	<Localized lang="en">horrible</Localized>
+          </Title>
+          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:Or>
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>smoothness</ogc:PropertyName>
+              <ogc:Literal>horrible</ogc:Literal>
+            </ogc:PropertyIsEqualTo>    
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>smoothness</ogc:PropertyName>
+              <ogc:Literal>very_horrible</ogc:Literal>
+            </ogc:PropertyIsEqualTo>    
+              </ogc:Or>
+          </ogc:Filter>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#ff1201</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>impassable</Name>
+            <Title>
+              impassable
+          		<Localized lang="de">nicht befahrbar</Localized>
+            	<Localized lang="en">impassable</Localized>
+          </Title>
+          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>smoothness</ogc:PropertyName>
+              <ogc:Literal>impassable</ogc:Literal>
+            </ogc:PropertyIsEqualTo>           
+          </ogc:Filter>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#ff0363</CssParameter>
               <CssParameter name="stroke-width">1</CssParameter>
               <CssParameter name="stroke-linejoin">bevel</CssParameter>
               <CssParameter name="stroke-linecap">square</CssParameter>
