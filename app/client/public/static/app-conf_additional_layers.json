@@ -220,6 +220,20 @@
       },
       {
         "type": "WMS",
+        "name": "streetFurnitureBicycles",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:street_furniture_bicycles",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "surface",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
