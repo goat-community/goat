@@ -37,7 +37,7 @@
           </ogc:Filter>
           <LineSymbolizer>
             <Stroke>
-              <CssParameter name="stroke">#2a924a</CssParameter>
+              <CssParameter name="stroke">#4e8df0</CssParameter>
               <CssParameter name="stroke-width">1</CssParameter>
               <CssParameter name="stroke-linejoin">bevel</CssParameter>
               <CssParameter name="stroke-linecap">square</CssParameter>
@@ -55,7 +55,7 @@
           </ogc:Filter>
           <LineSymbolizer>
             <Stroke>
-              <CssParameter name="stroke">#2ed558</CssParameter>
+              <CssParameter name="stroke">#3db9e9</CssParameter>
               <CssParameter name="stroke-width">1</CssParameter>
               <CssParameter name="stroke-linejoin">bevel</CssParameter>
               <CssParameter name="stroke-linecap">square</CssParameter>
@@ -73,7 +73,7 @@
           </ogc:Filter>
           <LineSymbolizer>
             <Stroke>
-              <CssParameter name="stroke">#b3ef0f</CssParameter>
+              <CssParameter name="stroke">#1bda61</CssParameter>
               <CssParameter name="stroke-width">1</CssParameter>
               <CssParameter name="stroke-linejoin">bevel</CssParameter>
               <CssParameter name="stroke-linecap">square</CssParameter>
@@ -91,7 +91,7 @@
           </ogc:Filter>
           <LineSymbolizer>
             <Stroke>
-              <CssParameter name="stroke">#f1f131</CssParameter>
+              <CssParameter name="stroke">#14c426</CssParameter>
               <CssParameter name="stroke-width">1</CssParameter>
               <CssParameter name="stroke-linejoin">bevel</CssParameter>
               <CssParameter name="stroke-linecap">square</CssParameter>
@@ -109,7 +109,7 @@
           </ogc:Filter>
           <LineSymbolizer>
             <Stroke>
-              <CssParameter name="stroke">#f09400</CssParameter>
+              <CssParameter name="stroke">#aada24</CssParameter>
               <CssParameter name="stroke-width">1</CssParameter>
               <CssParameter name="stroke-linejoin">bevel</CssParameter>
               <CssParameter name="stroke-linecap">square</CssParameter>
@@ -127,7 +127,7 @@
           </ogc:Filter>
           <LineSymbolizer>
             <Stroke>
-              <CssParameter name="stroke">#ec0700</CssParameter>
+              <CssParameter name="stroke">#e8e529</CssParameter>
               <CssParameter name="stroke-width">1</CssParameter>
               <CssParameter name="stroke-linejoin">bevel</CssParameter>
               <CssParameter name="stroke-linecap">square</CssParameter>
@@ -145,7 +145,7 @@
           </ogc:Filter>
           <LineSymbolizer>
             <Stroke>
-              <CssParameter name="stroke">#ff178b</CssParameter>
+              <CssParameter name="stroke">#efb513</CssParameter>
               <CssParameter name="stroke-width">1</CssParameter>
               <CssParameter name="stroke-linejoin">bevel</CssParameter>
               <CssParameter name="stroke-linecap">square</CssParameter>
@@ -163,7 +163,7 @@
           </ogc:Filter>
           <LineSymbolizer>
             <Stroke>
-              <CssParameter name="stroke">#b83df0</CssParameter>
+              <CssParameter name="stroke">#fd9a1f</CssParameter>
               <CssParameter name="stroke-width">1</CssParameter>
               <CssParameter name="stroke-linejoin">bevel</CssParameter>
               <CssParameter name="stroke-linecap">square</CssParameter>
@@ -181,7 +181,7 @@
           </ogc:Filter>
           <LineSymbolizer>
             <Stroke>
-              <CssParameter name="stroke">#7312e1</CssParameter>
+              <CssParameter name="stroke">#e91f0c</CssParameter>
               <CssParameter name="stroke-width">1</CssParameter>
               <CssParameter name="stroke-linejoin">bevel</CssParameter>
               <CssParameter name="stroke-linecap">square</CssParameter>
@@ -199,7 +199,7 @@
           </ogc:Filter>
           <LineSymbolizer>
             <Stroke>
-              <CssParameter name="stroke">#2739ff</CssParameter>
+              <CssParameter name="stroke">#e61484</CssParameter>
               <CssParameter name="stroke-width">1</CssParameter>
               <CssParameter name="stroke-linejoin">bevel</CssParameter>
               <CssParameter name="stroke-linecap">square</CssParameter>
@@ -217,7 +217,7 @@
           </ogc:Filter>
           <LineSymbolizer>
             <Stroke>
-              <CssParameter name="stroke">#002fb2</CssParameter>
+              <CssParameter name="stroke">#c250d8</CssParameter>
               <CssParameter name="stroke-width">1</CssParameter>
               <CssParameter name="stroke-linejoin">bevel</CssParameter>
               <CssParameter name="stroke-linecap">square</CssParameter>
