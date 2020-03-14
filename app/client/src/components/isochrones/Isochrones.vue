@@ -27,7 +27,10 @@ import IsochroneType from "./IsochroneType";
 import IsochroneStartSingle from "./IsochroneStartSingle";
 import IsochroneStartMultiple from "./IsochroneStartMultiple";
 
-import OlStyleDefs from "../../style/OlStyleDefs";
+import {
+  getIsochroneStyle,
+  getIsochroneNetworkStyle
+} from "../../style/OlStyleDefs";
 
 //Store imports
 import { mapGetters, mapMutations } from "vuex";
@@ -74,10 +77,7 @@ export default {
      */
     createIsochroneLayer() {
       const me = this;
-      const style = OlStyleDefs.getIsochroneStyle(
-        me.styleData,
-        me.addStyleInCache
-      );
+      const style = getIsochroneStyle(me.styleData, me.addStyleInCache);
       const vector = new VectorLayer({
         name: "Isochrone Layer",
         zIndex: 7,
@@ -94,7 +94,7 @@ export default {
      */
     createIsochroneRoadNetworkLayer() {
       const me = this;
-      const style = OlStyleDefs.getIsochroneNetworkStyle();
+      const style = getIsochroneNetworkStyle();
       const vector = new VectorImageLayer({
         name: "isochroneRoadNetworkLayer",
         zIndex: 6,

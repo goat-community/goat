@@ -1,4 +1,4 @@
-import OlStyleDefs from "../style/OlStyleDefs";
+import { getEditStyle, getFeatureHighlightStyle } from "../style/OlStyleDefs";
 import OlBaseController from "./OlBaseController";
 import { Modify, Draw, Snap } from "ol/interaction";
 import VectorSource from "ol/source/Vector";
@@ -28,7 +28,7 @@ export default class OlEditController extends OlBaseController {
    */
   createEditLayer(onFeatureChangeCb, onSourceChangeCb) {
     const me = this;
-    const style = OlStyleDefs.getEditStyle();
+    const style = getEditStyle();
     super.createLayer("Edit Layer", style, {
       queryable: true
     });
@@ -41,7 +41,7 @@ export default class OlEditController extends OlBaseController {
       displayInLayerList: false,
       source: highlightSource,
       zIndex: 10,
-      style: OlStyleDefs.getFeatureHighlightStyle()
+      style: getFeatureHighlightStyle()
     });
     me.map.addLayer(highlightLayer);
     me.highlightSource = highlightSource;
