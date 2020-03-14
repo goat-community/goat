@@ -80,8 +80,7 @@ import Mask from "ol-ext/filter/Mask";
 import OlFill from "ol/style/Fill";
 
 // style imports
-import OlStyleDefs from "../../../style/OlStyleDefs";
-
+import { getInfoStyle } from "../../../style/OlStyleDefs";
 // import the app-wide EventBus
 import { EventBus } from "../../../EventBus";
 
@@ -252,7 +251,7 @@ export default {
         displayInLayerList: false,
         zIndex: 10,
         source: source,
-        style: OlStyleDefs.getInfoStyle()
+        style: getInfoStyle()
       });
       this.getInfoLayerSource = source;
       this.map.addLayer(vector);
