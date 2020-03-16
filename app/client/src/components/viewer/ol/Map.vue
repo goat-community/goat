@@ -72,7 +72,6 @@ import Map from "ol/Map";
 import View from "ol/View";
 
 // ol imports
-
 import Overlay from "ol/Overlay";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";

@@ -3,6 +3,7 @@ import OlStroke from "ol/style/Stroke";
 import OlFill from "ol/style/Fill";
 import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
+import OlText from "ol/style/Text";
 import store from "../store/modules/isochrones";
 
 const colorDiffDefault = [6.1, 13.42, 11.789];
@@ -385,5 +386,116 @@ export const baseStyleDefs = {
         width: 5.5
       })
     });
+  }
+};
+
+/**
+ * Mapillary styles
+ */
+
+export const mapillaryStyleDefs = {
+  activeSequence: "",
+  baseOverlayStyle: map => {
+    const styleFunction = function(feature) {
+      // console.log(feature);
+      let color = "rgba(53, 175, 109,0.7)";
+      if (
+        feature.get("key") === mapillaryStyleDefs.activeSequence ||
+        feature.get("skey") === mapillaryStyleDefs.activeSequence
+      ) {
+        color = "#30C2FF";
+      }
+      const styleConfig = {
+        stroke: new OlStroke({
+          color: color,
+          width: 4
+        })
+      };
+      if (map.getView().getZoom() > 17) {
+        styleConfig.image = new OlCircle({
+          radius: 6,
+          fill: new OlFill({ color: color })
+        });
+      }
+      const style = new OlStyle(styleConfig);
+      return [style];
+    };
+    return styleFunction;
+  },
+  highlightStyle: feature => {
+    let styles = [];
+    const angle = feature.get("ca");
+    const skey = feature.get("skey");
+    if (angle) {
+      const wifiStyle = new OlStyle({
+        text: new OlText({
+          text: "\ue1d8",
+          scale: 1,
+          font: '900 18px "Material Icons"',
+          offsetY: -10,
+          rotation: (angle * Math.PI) / 180,
+          fill: new OlFill({
+            color:
+              skey === mapillaryStyleDefs.activeSequence ? "#30C2FF" : "#047d50"
+          }),
+          stroke: new OlStroke({
+            color:
+              skey === mapillaryStyleDefs.activeSequence
+                ? "#30C2FF"
+                : "#047d50",
+            width: 3
+          })
+        })
+      });
+      styles.push(wifiStyle);
+    }
+    const circleStyle = new OlStyle({
+      text: new OlText({
+        text: "\uf111",
+        scale: 0.9,
+        font: '900 18px "Font Awesome 5 Free"',
+        fill: new OlFill({
+          color:
+            skey === mapillaryStyleDefs.activeSequence ? "#30C2FF" : "#047d50"
+        }),
+        stroke: new OlStroke({ color: "white", width: 4 })
+      })
+    });
+    styles.push(circleStyle);
+    return styles;
+  },
+  circleSolidStyle: new OlStyle({
+    text: new OlText({
+      text: "\uf111",
+      scale: 0.7,
+      font: '900 18px "Font Awesome 5 Free"',
+      fill: new OlFill({ color: "red" }),
+      stroke: new OlStroke({ color: "white", width: 4 })
+    })
+  }),
+  wifiStyle: new OlStyle({
+    text: new OlText({
+      text: "\ue1d8",
+      scale: 1.2,
+      font: '900 18px "Material Icons"',
+      offsetY: -10,
+      rotation: 0,
+      fill: new OlFill({ color: "red" }),
+      stroke: new OlStroke({ color: "red", width: 3 })
+    })
+  }),
+  updateBearingStyle: bearing => {
+    const liveBearing = new OlStyle({
+      text: new OlText({
+        text: "\ue1d8",
+        scale: 1.2,
+        font: '900 18px "Material Icons"',
+        offsetY: -10,
+        rotation: (bearing * Math.PI) / 180,
+        fill: new OlFill({ color: "red" }),
+        stroke: new OlStroke({ color: "red", width: 3 })
+      })
+    });
+    return [liveBearing, mapillaryStyleDefs.circleSolidStyle];
   }
 };

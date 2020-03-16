@@ -13,23 +13,27 @@
       <v-icon dark>streetview</v-icon>
     </v-btn>
 
-    <!-- MINI-VIEW -->
-    <v-expand-x-transition>
-      <v-card v-if="miniViewerVisible" class="miniview" outlined>
-        <div id="close-miniview" @click="closeMiniView()">
-          <v-icon dark class="close-icon">close</v-icon>
-        </div>
-        <div id="switch-triangle" @click="switchViews()">
-          <v-icon large dark class="swap-icon">swap_horiz</v-icon>
-        </div>
-        <component
-          class="strech"
-          v-bind:is="activeMiniViewComponent"
-        ></component> </v-card
-    ></v-expand-x-transition>
+    <!-- ISOCHRONES-THEMATIC-DATA -->
     <isochrone-thematic-data />
+
+    <!-- MINI-VIEW -->
+
+    <v-card v-if="miniViewerVisible" class="miniview" outlined>
+      <div id="close-miniview" @click="closeMiniView()">
+        <v-icon dark class="close-icon">close</v-icon>
+      </div>
+      <div id="switch-triangle" @click="switchViews()">
+        <v-icon large dark class="swap-icon">swap_horiz</v-icon>
+      </div>
+      <component class="strech" v-bind:is="activeMiniViewComponent"></component>
+    </v-card>
+
     <!-- FULL-VIEW -->
-    <component class="strech" v-bind:is="activeFullViewComponent"></component>
+    <component
+      ref="fullView"
+      class="strech"
+      v-bind:is="activeFullViewComponent"
+    ></component>
   </div>
 </template>
 <script>
@@ -60,6 +64,9 @@ export default {
         this.activeMiniViewComponent,
         this.activeFullViewComponent
       ];
+      setTimeout(() => {
+        this.$refs.fullView.resize();
+      }, 200);
     },
     closeMiniView() {
       this.miniViewerVisible = false;
