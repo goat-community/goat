@@ -256,6 +256,7 @@ export default {
     this.map.removeLayer(this.movePointLayer);
     this.map.removeLayer(this.baseOverlayerLayer);
     this.map.removeLayer(this.hoverHighlightLayer);
+    this.mapillary.off(Viewer.nodechanged, this.mapillaryChanged);
   }
 };
 </script>

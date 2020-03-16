@@ -1,13 +1,17 @@
 <template>
   <div id="ol-map-container">
     <!-- Map Controls -->
-    <zoom-control :map="map" />
-    <full-screen />
+    <zoom-control v-show="!miniViewOlMap" :map="map" />
+    <full-screen v-show="!miniViewOlMap" />
     <progress-status :isNetworkBusy="isNetworkBusy" />
-    <background-switcher />
-    <map-legend />
+    <background-switcher v-show="!miniViewOlMap" />
+    <map-legend v-show="!miniViewOlMap" />
     <!-- Popup overlay  -->
-    <overlay-popup :title="popup.title" v-show="popup.isVisible" ref="popup">
+    <overlay-popup
+      :title="popup.title"
+      v-show="popup.isVisible && miniViewOlMap === false"
+      ref="popup"
+    >
       <v-btn icon>
         <v-icon>close</v-icon>
       </v-btn>
@@ -117,6 +121,9 @@ export default {
     "full-screen": FullScreen
   },
   name: "app-ol-map",
+  props: {
+    miniViewOlMap: { type: Boolean, required: true }
+  },
   data() {
     return {
       zoom: this.$appConfig.map.zoom,

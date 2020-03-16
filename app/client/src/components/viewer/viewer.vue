@@ -14,24 +14,43 @@
     </v-btn>
 
     <!-- ISOCHRONES-THEMATIC-DATA -->
-    <isochrone-thematic-data />
+    <isochrone-thematic-data v-show="!miniViewOlMap" />
 
-    <!-- MINI-VIEW -->
-
-    <v-card v-if="miniViewerVisible" class="miniview" outlined>
-      <div id="close-miniview" @click="closeMiniView()">
+    <!-- MAPILLARY-->
+    <div
+      v-if="miniViewerVisible"
+      :class="miniViewOlMap ? 'fullscreen' : 'miniview'"
+    >
+      <div v-if="!miniViewOlMap" id="close-miniview" @click="closeMiniView()">
         <v-icon dark class="close-icon">close</v-icon>
       </div>
-      <div id="switch-triangle" @click="switchViews()">
+      <div v-if="!miniViewOlMap" id="switch-triangle" @click="switchViews()">
         <v-icon large dark class="swap-icon">swap_horiz</v-icon>
       </div>
-      <component class="strech" v-bind:is="activeMiniViewComponent"></component>
-    </v-card>
+      <app-mapillary
+        ref="mapillary"
+        class="fullscreen"
+        v-if="miniViewerVisible"
+      ></app-mapillary>
+    </div>
 
-    <!-- FULL-VIEW -->
-    <component class="strech" v-bind:is="activeFullViewComponent"></component>
+    <!-- OL MAP -->
+    <div :class="miniViewOlMap ? 'miniview' : 'fullscreen'">
+      <div v-if="miniViewOlMap" id="close-miniview" @click="closeMiniView()">
+        <v-icon dark class="close-icon">close</v-icon>
+      </div>
+      <div v-if="miniViewOlMap" id="switch-triangle" @click="switchViews()">
+        <v-icon large dark class="swap-icon">swap_horiz</v-icon>
+      </div>
+      <app-ol-map
+        :miniViewOlMap="miniViewOlMap"
+        class="fullscreen"
+        ref="olmap"
+      ></app-ol-map>
+    </div>
   </div>
 </template>
+
 <script>
 import appMap from "./ol/Map";
 import appMapillary from "./mapillary/Mapillary";
@@ -47,8 +66,7 @@ export default {
   data() {
     return {
       miniViewerVisible: false,
-      activeFullViewComponent: "app-ol-map",
-      activeMiniViewComponent: "app-mapillary"
+      miniViewOlMap: false
     };
   },
   methods: {
@@ -56,15 +74,25 @@ export default {
       this.miniViewerVisible = true;
     },
     switchViews() {
-      [this.activeFullViewComponent, this.activeMiniViewComponent] = [
-        this.activeMiniViewComponent,
-        this.activeFullViewComponent
-      ];
+      this.miniViewOlMap = !this.miniViewOlMap;
+      this.updateViews();
+    },
+    updateViews() {
+      setTimeout(() => {
+        const mapillaryRef = this.$refs["mapillary"];
+        const olMapRef = this.$refs["olmap"];
+        if (mapillaryRef) {
+          mapillaryRef.mapillary.resize();
+        }
+        if (olMapRef) {
+          olMapRef.map.updateSize();
+        }
+      }, 90);
     },
     closeMiniView() {
       this.miniViewerVisible = false;
-      this.activeFullViewComponent = "app-ol-map";
-      this.activeMiniViewComponent = "app-mapillary";
+      this.miniViewOlMap = false;
+      this.updateViews();
     }
   }
 };
@@ -84,7 +112,7 @@ export default {
   z-index: 1;
 }
 
-.strech {
+.fullscreen {
   position: absolute;
   top: 0;
   left: 0;
@@ -105,7 +133,7 @@ export default {
 
   overflow: hidden;
   opacity: 1;
-  z-index: 1;
+  z-index: 10;
   background-color: white;
   box-shadow: 0 0 4px #00000060;
   border-radius: 8px;
@@ -122,7 +150,7 @@ export default {
   opacity: 0.8;
   background: rgba(0, 0, 0, 0.5);
   transform: rotate(45deg);
-  z-index: 2;
+  z-index: 20;
   cursor: pointer;
 }
 
@@ -142,7 +170,7 @@ export default {
   width: 24px;
   opacity: 0.8;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 2;
+  z-index: 20;
   cursor: pointer;
 }
 
