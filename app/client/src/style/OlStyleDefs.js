@@ -433,6 +433,7 @@ export const mapillaryStyleDefs = {
           scale: 1,
           font: '900 18px "Material Icons"',
           offsetY: -10,
+          rotateWithView: true,
           rotation: (angle * Math.PI) / 180,
           fill: new OlFill({
             color:
@@ -491,6 +492,7 @@ export const mapillaryStyleDefs = {
         scale: 1.2,
         font: '900 18px "Material Icons"',
         offsetY: -10,
+        rotateWithView: true,
         rotation: (bearing * Math.PI) / 180,
         fill: new OlFill({ color: "red" }),
         stroke: new OlStroke({ color: "red", width: 3 })

@@ -29,11 +29,7 @@
     </v-card>
 
     <!-- FULL-VIEW -->
-    <component
-      ref="fullView"
-      class="strech"
-      v-bind:is="activeFullViewComponent"
-    ></component>
+    <component class="strech" v-bind:is="activeFullViewComponent"></component>
   </div>
 </template>
 <script>
@@ -64,9 +60,6 @@ export default {
         this.activeMiniViewComponent,
         this.activeFullViewComponent
       ];
-      setTimeout(() => {
-        this.$refs.fullView.resize();
-      }, 200);
     },
     closeMiniView() {
       this.miniViewerVisible = false;
