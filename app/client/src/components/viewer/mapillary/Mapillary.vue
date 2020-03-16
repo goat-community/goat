@@ -4,31 +4,258 @@
 <script>
 import { Viewer } from "mapillary-js";
 
+import OlVectorLayer from "ol/layer/Vector";
+import OlVectorSource from "ol/source/Vector";
+import OlPoint from "ol/geom/Point";
+import OlVectorTileLayer from "ol/layer/VectorTile";
+import OlVectorTileSource from "ol/source/VectorTile";
+import MVT from "ol/format/MVT";
+import { createXYZ } from "ol/tilegrid";
+import { fromLonLat } from "ol/proj";
+import OlFeature from "ol/Feature";
+import { mapillaryStyleDefs } from "../../../style/OlStyleDefs";
+import { Mapable } from "../../../mixins/Mapable";
+import { unByKey } from "ol/Observable";
+
 import "mapillary-js/dist/mapillary.min.css";
 
 export default {
   name: "app-mapillary",
   data() {
     return {
-      mapillary: null
+      // Keys
+      cliendId: "MkJKbDA0bnZuZlcxeTJHTmFqN3g1dzo1YTM0NjRkM2EyZGU5MzBh",
+      key: "rrKZdmgdvup_KYJKTESq0Q",
+      organizationKey: "RmTboeISWnkEaYaSdtVRHp",
+      baseOverlayUrl:
+        "https://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt",
+      startSequenceKey: "k09tczrhxcsphcmlbo0dt2",
+      // Mapillary viewer
+      mapillary: null,
+      // Features
+      highlightFeature: null,
+      pointFeature: null,
+      // Layers
+      movePointLayer: null,
+      baseOverlayerLayer: null,
+      hoverHighlightLayer: null,
+      // Listener keys
+      mapClickListenerKey: null,
+      mapHoverListenerKey: null
     };
   },
+  mixins: [Mapable],
   mounted() {
-    const clientId = "MkJKbDA0bnZuZlcxeTJHTmFqN3g1dzo1YTM0NjRkM2EyZGU5MzBh";
-    const key = "rrKZdmgdvup_KYJKTESq0Q";
-
-    // var urlStartImage = `https://a.mapillary.com/v3/images/${key}?client_id=${clientId}`;
-    // var urlSequence = `https://a.mapillary.com/v3/sequences/JMOBN38RSF2h6dpuuiBz6w?client_id=${clientId}`;
-
-    // var imagesUrl = `https://a.mapillary.com/v3/images?client_id=${clientId}&sequence_keys=JMOBN38RSF2h6dpuuiBz6w`;
-
-    this.mapillary = new Viewer("mapillary-container", clientId, key, {
-      component: { cover: false }
-    });
+    this.mapillary = new Viewer(
+      "mapillary-container",
+      this.cliendId,
+      this.key,
+      {
+        component: { cover: false }
+      }
+    );
 
     window.addEventListener("resize", () => {
       this.mapillary.resize();
     });
+
+    this.createFeatureOverlay();
+    this.createMovePointLayer();
+    this.createBaseOverlayLayer();
+    this.createHoverHighlightLayer();
+    this.addInteractions();
+    this.mapClickListenerKey = this.map.on("click", this.onClick);
+    this.mapillary.on(Viewer.nodechanged, this.mapillaryChanged);
+    mapillaryStyleDefs.activeSequence = this.startSequenceKey;
+  },
+  methods: {
+    /**
+     * Overlay style
+     */
+    createFeatureOverlay() {
+      this.featureOverlay = new OlVectorLayer({
+        source: new OlVectorSource(),
+        map: this.map,
+        style: [
+          mapillaryStyleDefs.wifiStyle,
+          mapillaryStyleDefs.circleSolidStyle
+        ]
+      });
+    },
+
+    /**
+     * Radar point layer
+     */
+    createMovePointLayer() {
+      this.pointFeature = new OlFeature({
+        geometry: null
+      });
+      this.pointFeature.setStyle([
+        mapillaryStyleDefs.wifiStyle,
+        mapillaryStyleDefs.circleSolidStyle
+      ]);
+      this.movePointLayer = new OlVectorLayer({
+        zIndex: 10,
+        source: new OlVectorSource({ features: [this.pointFeature] })
+      });
+      this.map.addLayer(this.movePointLayer);
+    },
+
+    /**
+     * Overlay layer (sequences, images)
+     */
+    createBaseOverlayLayer() {
+      const me = this;
+      this.baseOverlayerLayer = new OlVectorTileLayer({
+        name: "mapillaryBaseOverlay",
+        source: new OlVectorTileSource({
+          attributions: "© Mapillary",
+          format: new MVT(),
+          tileGrid: createXYZ({ maxZoom: 14 }),
+          tilePixelRatio: 16,
+          opacity: 0.7,
+          url: this.baseOverlayUrl,
+          tileLoadFunction: function(tile, url) {
+            tile.setLoader(function(extent, resolution, projection) {
+              fetch(url).then(function(response) {
+                response.arrayBuffer().then(function(data) {
+                  const format = tile.getFormat(); // ol/format/MVT configured as source format
+                  let features = format.readFeatures(data, {
+                    extent: extent,
+                    featureProjection: projection
+                  });
+                  features = features.filter(f => {
+                    return (
+                      f.getProperties().organization_key === me.organizationKey
+                    );
+                  });
+                  tile.setFeatures(features);
+                });
+              });
+            });
+          }
+        }),
+        style: mapillaryStyleDefs.baseOverlayStyle(this.map)
+      });
+      this.map.addLayer(this.baseOverlayerLayer);
+    },
+
+    /**
+     * Create hover highlight layers
+     */
+    createHoverHighlightLayer() {
+      this.hoverHighlightLayer = new OlVectorLayer({
+        zIndex: 20,
+        name: "mapillaryHighlightLayer",
+        source: new OlVectorSource(),
+        style: mapillaryStyleDefs.highlightStyle
+      });
+      this.map.addLayer(this.hoverHighlightLayer);
+    },
+
+    /**
+     * Overlay layer interactions
+     */
+    addInteractions() {
+      this.mapHoverListenerKey = this.map.on("pointermove", evt => {
+        let features = this.map.getFeaturesAtPixel(evt.pixel, {
+          layerFilter: candidate => {
+            if (candidate.get("name") === "mapillaryBaseOverlay") {
+              return true;
+            }
+            return false;
+          }
+        });
+        this.hoverHighlightLayer.getSource().clear();
+        if (
+          features.length > 0 &&
+          features[0].getProperties().layer === "mapillary-images"
+        ) {
+          const feature = new OlFeature({
+            geometry: new OlPoint(features[0].getFlatCoordinates())
+          });
+          feature.setProperties(features[0].getProperties());
+          this.hoverHighlightLayer.getSource().addFeature(feature);
+          this.map.getTarget().style.cursor = "pointer";
+        } else {
+          this.map.getTarget().style.cursor = "";
+        }
+      });
+    },
+
+    /**
+     * Click event handler
+     */
+    onClick(evt) {
+      this.hoverHighlightLayer.getSource().clear();
+      const feature = this.map.forEachFeatureAtPixel(
+        evt.pixel,
+        function(feature) {
+          return feature;
+        },
+        {
+          layerFilter: layer => {
+            return layer === this.baseOverlayerLayer;
+          },
+          hitTolerance: 5
+        }
+      );
+
+      if (feature) {
+        if (feature.get("layer") === "mapillary-sequences") {
+          return;
+        }
+        var bearing = feature.get("ca");
+        this.mapillary.moveToKey(feature.get("key"));
+        this.featureOverlay.setStyle(
+          mapillaryStyleDefs.updateBearingStyle(bearing)
+        );
+        mapillaryStyleDefs.activeSequence = feature.get("skey");
+      } else {
+        return;
+      }
+      //Update layer
+      this.baseOverlayerLayer.changed();
+    },
+
+    /**
+     * Mapillary changed event handler
+     */
+    mapillaryChanged(node) {
+      if (this.featureOverlay.getVisible()) {
+        this.featureOverlay.setVisible(false);
+      }
+      const lonLat = new fromLonLat([
+        node.originalLatLon.lon,
+        node.originalLatLon.lat
+      ]);
+      this.map.getView().animate({
+        center: lonLat,
+        duration: 400
+      });
+      if (this.pointFeature.getGeometry() === null) {
+        this.pointFeature.setGeometry(new OlPoint(lonLat));
+      } else {
+        this.pointFeature.getGeometry().setCoordinates(lonLat);
+      }
+      this.pointFeature.setStyle(
+        mapillaryStyleDefs.updateBearingStyle(node.ca)
+      );
+    },
+
+    /**
+     * Resize method
+     */
+    resize() {
+      this.mapillary.resize();
+    }
+  },
+  destroyed() {
+    unByKey(this.mapClickListenerKey);
+    unByKey(this.mapHoverListenerKey);
+    this.map.removeLayer(this.movePointLayer);
+    this.map.removeLayer(this.baseOverlayerLayer);
+    this.map.removeLayer(this.hoverHighlightLayer);
   }
 };
 </script>
