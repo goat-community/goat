@@ -32,7 +32,7 @@
         "printMap": {
             "title": "Imprimir mapa",
             "connectionMsg": "Conectándose al servidor de impresión, espere ...",
-            "unavailableMsg": "El servidor de impresión no está disponible. Por favor, inténtalo más tarde.....",
+            "unavailableMsg": "El servidor de impresión no está disponible. Por favor, inténtelo más tarde.....",
             "form": {
                 "title": {
                     "label": "Título",
@@ -97,8 +97,8 @@
             "title": "Crear escenario",
             "selectLayer": "Seleccione capa a editar",
             "selectFeatures": "Seleccionar área a editar",
-            "drawCircle": "Dibuja un círculo para seleccionar los elementos a editar",
-            "selectOnMap": "Selecciona objetos en el mapa",
+            "drawCircle": "Dibuje un círculo para seleccionar los elementos a editar",
+            "selectOnMap": "Seleccione objetos en el mapa",
             "editTools": "Herramientas de edición",
             "drawFeatureTooltip": "Dibujar entidad",
             "modifyFeatureTooltip": "Modificar entidad",
@@ -107,7 +107,7 @@
             "uploadBtn": "Subir",
             "popup": {
                 "deleteFeatureMsg": "¿Está seguro de que desea eliminar la entidad seleccionada?",
-                "selectWayType": "Selecciona tipo de vía: ",
+                "selectWayType": "Seleccione el tipo de vía: ",
                 "wayType": "Tipo de vía"
             },
             "activateLayerToDrawScenario": "Por favor active una capa para poder seleccionar las entidades",
@@ -117,13 +117,13 @@
             "featuresNotyetUploaded": "Las entidades aún no han sido subidas. De click en subir para subir las entidades",
             "differentGeometryType": "Las geometrías no encajan",
             "missingFields": "Campos perdidos",
-            "fileCorrupted": "El archivo Geojson está corrupto",
-            "noFile": "NO hay archivo seleccionado",
+            "fileCorrupted": "El archivo geojson está corrupto",
+            "noFile": "No hay archivo seleccionado",
             "allFeaturesUploaded": "Todas las entidades han sido subidas",
             "notAllUploaded": "No todas las entidades han sido subidas",
             "errorHappened": "Ha ocurrido un error",
             "scenarioFeatures": "Entidades del escenario",
-            "uploadYourData": "Suba su archivo .json",
+            "uploadYourData": "Suba su archivo ",
             "deleteAllTitle": "Borrar todo",
             "deleteAllMessage": "¿Está seguro que quiere borrar toda la información de su <b> escenario?."
         },
@@ -346,21 +346,21 @@
         "bar": "Bar",
         "biergarten": "Biergarten",
         "cafe": "Café",
-        "pub": "Pub",
+        "pub": "Bar",
         "fast_food": "Comida rápida",
-        "ice_cream": "Helado",
+        "ice_cream": "Heladería",
         "restaurant": "Restaurante",
         "nightclub": "Club nocturno",
-        "bicycle_rental": "Alquiler de bicis",
+        "bicycle_rental": "Alquiler de bicicletas",
         "car_sharing": "Auto compartido",
         "charging_station": "Estación de carga",
-        "bus_stop": "Autobús",
+        "bus_stop": "Para de autobús",
         "tram_stop": "Parada de tranvía",
         "subway_entrance": "Estación de Metro",
         "rail_station": "Estacion de tren",
         "taxi": "Taxi",
-        "hairdresser": "Peluquero",
-        "atm": "Cajero",
+        "hairdresser": "Peluquería",
+        "atm": "Cajero automático",
         "bank": "Banco",
         "dentist": "Dentista",
         "doctors": "Doctor",
@@ -381,7 +381,7 @@
         "international_supermarket": "Supermercado internacional",
         "hypermarket": "Hipermercado",
         "chemist": "Droguería",
-        "organic": "Alimentos orgánicos",
+        "organic": "Supermercado orgánico",
         "marketplace": "Mercado",
         "cinema": "Cine",
         "theatre": "Teatro",
@@ -437,7 +437,7 @@
         "attributes": {
           "ways": {
             "type": "Tipo de vía",
-            "class_id": "ID de Classificación"
+            "class_id": "ID de clasificación"
           },
           "pois": {
             "amenity": "Amenidad",
