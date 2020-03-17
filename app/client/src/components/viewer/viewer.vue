@@ -19,6 +19,7 @@
     <!-- MAPILLARY-->
     <div
       v-if="miniViewerVisible"
+      class="elevation-4"
       :class="miniViewOlMap ? 'fullscreen' : 'miniview'"
     >
       <div v-if="!miniViewOlMap" id="close-miniview" @click="closeMiniView()">

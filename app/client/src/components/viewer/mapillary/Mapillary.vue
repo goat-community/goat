@@ -1,26 +1,42 @@
 <template>
-  <div id="mapillary-container"></div>
+  <div id="mapillary-container">
+    <mapillary-image-preview
+      ref="imagePreview"
+      :imageUrl="previewImageUrl"
+      v-show="previewImageUrl.length > 1"
+    />
+  </div>
 </template>
 <script>
 import { Viewer } from "mapillary-js";
 
+//Ol imports
 import OlVectorLayer from "ol/layer/Vector";
 import OlVectorSource from "ol/source/Vector";
 import OlPoint from "ol/geom/Point";
 import OlVectorTileLayer from "ol/layer/VectorTile";
 import OlVectorTileSource from "ol/source/VectorTile";
-import MVT from "ol/format/MVT";
+import OlOverlay from "ol/Overlay";
 import { createXYZ } from "ol/tilegrid";
 import { fromLonLat } from "ol/proj";
 import OlFeature from "ol/Feature";
+import MVT from "ol/format/MVT";
+import { unByKey } from "ol/Observable";
+
+//Style and map object import
 import { mapillaryStyleDefs } from "../../../style/OlStyleDefs";
 import { Mapable } from "../../../mixins/Mapable";
-import { unByKey } from "ol/Observable";
+
+// Image preview component import (enabled on hover)
+import MapillaryImagePreview from "./controls/MapillaryImagePreview";
 
 import "mapillary-js/dist/mapillary.min.css";
 
 export default {
   name: "app-mapillary",
+  components: {
+    "mapillary-image-preview": MapillaryImagePreview
+  },
   data() {
     return {
       // Keys
@@ -30,6 +46,8 @@ export default {
       baseOverlayUrl:
         "https://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt",
       startSequenceKey: "k09tczrhxcsphcmlbo0dt2",
+      // Preview Image url
+      previewImageUrl: "",
       // Mapillary viewer
       mapillary: null,
       // Features
@@ -41,7 +59,9 @@ export default {
       hoverHighlightLayer: null,
       // Listener keys
       mapClickListenerKey: null,
-      mapHoverListenerKey: null
+      mapHoverListenerKey: null,
+      // Overlays
+      imagePreviewOverlay: null
     };
   },
   mixins: [Mapable],
@@ -55,11 +75,9 @@ export default {
       }
     );
 
-    window.addEventListener("resize", () => {
-      this.mapillary.resize();
-    });
-
+    window.addEventListener("resize", this.resize());
     this.createFeatureOverlay();
+    this.createImagePreviewOverlay();
     this.createMovePointLayer();
     this.createBaseOverlayLayer();
     this.createHoverHighlightLayer();
@@ -81,6 +99,25 @@ export default {
           mapillaryStyleDefs.circleSolidStyle
         ]
       });
+    },
+
+    /**
+     * Image preview overlay
+     */
+
+    /**
+     * Show popup for the get info module.
+     */
+    createImagePreviewOverlay() {
+      this.imagePreviewOverlay = new OlOverlay({
+        element: this.$refs.imagePreview.$el,
+        autoPan: false,
+        autoPanMargin: 40,
+        autoPanAnimation: {
+          duration: 250
+        }
+      });
+      this.map.addOverlay(this.imagePreviewOverlay);
     },
 
     /**
@@ -171,6 +208,12 @@ export default {
           features.length > 0 &&
           features[0].getProperties().layer === "mapillary-images"
         ) {
+          this.previewImageUrl = `https://images.mapillary.com/${features[0].get(
+            "key"
+          )}/thumb-320.jpg`;
+          this.imagePreviewOverlay.setPosition(
+            features[0].getFlatCoordinates()
+          );
           const feature = new OlFeature({
             geometry: new OlPoint(features[0].getFlatCoordinates())
           });
@@ -178,6 +221,8 @@ export default {
           this.hoverHighlightLayer.getSource().addFeature(feature);
           this.map.getTarget().style.cursor = "pointer";
         } else {
+          this.previewImageUrl = "";
+          this.imagePreviewOverlay.setPosition(undefined);
           this.map.getTarget().style.cursor = "";
         }
       });
@@ -256,7 +301,10 @@ export default {
     this.map.removeLayer(this.movePointLayer);
     this.map.removeLayer(this.baseOverlayerLayer);
     this.map.removeLayer(this.hoverHighlightLayer);
+    this.map.removeOverlay(this.imagePreviewOverlay);
+    window.removeEventListener("resize", this.resize());
     this.mapillary.off(Viewer.nodechanged, this.mapillaryChanged);
+    this.mapillary.getComponent("sequence").stop();
   }
 };
 </script>
