@@ -81,13 +81,14 @@ DATA_REFINEMENT_VARIABLES:
       dm: ['%dm%']
       edeka: ['e center%', '%edeka%']
       hypovereinsbank: ['%hypo vereinsbank%', '%hypovereinsbank%']
-      lidl: ['lidl']
+      lidl: ['%lidl%']
       mcdonalds: ['%mcdonald%']
-      raiffeisenbank: ['%raiffeisenbank%', '%vr bank%', '%vr-bank%', '%volksbank%']
+      raiffeisenbank: ['%raiffeisenbank%', '%vr bank%', '%vr-bank%', '%volksbank%','%volks%', '%Münchner%']
       rewe: ['%rewe%']
       rossmann: ['%rossmann%']
       sparkasse: ['%kreissparkasse%','%sparkasse%','%stadtsparkasse%']  
-      vapiano: ['%vapiano%']      
+      vapiano: ['%vapiano%']
+      
       
 
       
