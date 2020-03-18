@@ -347,10 +347,9 @@ import VJsonschemaForm from "../../other/dynamicForms/index";
 import { geojsonToFeature } from "../../../utils/MapUtils";
 import { mapGetters, mapMutations } from "vuex";
 import { debounce } from "../../../utils/Helpers";
-import Confirm from "../../core/Confirm";
+
 export default {
   components: {
-    confirm: Confirm,
     "overlay-popup": OverlayPopup,
     VJsonschemaForm
   },

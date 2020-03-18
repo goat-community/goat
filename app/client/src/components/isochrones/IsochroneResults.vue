@@ -268,14 +268,14 @@
 </template>
 <script>
 import { mapGetters, mapActions, mapMutations } from "vuex";
-import Confirm from "../core/Confirm";
 import Download from "./IsochronesDownload";
 import AdditionalLayers from "./IsochronesAdditionalLayers";
 import IsochroneColorPicker from "./IsochroneColorPicker";
+import { Isochrones } from "../../mixins/Isochrones";
 
 export default {
+  mixins: [Isochrones],
   components: {
-    confirm: Confirm,
     download: Download,
     additionalLayers: AdditionalLayers,
     IsochroneColorPicker
@@ -330,19 +330,6 @@ export default {
       if (calculation.isVisible === false && feature.isVisible === true) {
         calculation.isVisible = true;
       }
-    },
-    deleteCalculation(calculation) {
-      this.$refs.confirm
-        .open(
-          this.$t("isochrones.deleteTitle"),
-          this.$t("isochrones.deleteMessage") + " " + calculation.id + " ?",
-          { color: "green" }
-        )
-        .then(confirm => {
-          if (confirm) {
-            this.removeCalculation(calculation);
-          }
-        });
     },
     toggleDownloadDialog(calculation) {
       this.downloadDialogState = true;
