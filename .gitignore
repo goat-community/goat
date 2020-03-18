@@ -27,3 +27,5 @@ k8s/database.yaml
 .env
 /.vscode
 app/database/data/study_area.prj
+app/client/public/static/app-conf_ffb.json
+app/database/data/study_area.prj
