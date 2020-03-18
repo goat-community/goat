@@ -26,3 +26,4 @@ k8s/mapproxy.yaml
 k8s/database.yaml
 .env
 /.vscode
+app/database/data/study_area.prj
