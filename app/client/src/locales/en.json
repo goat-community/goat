@@ -387,6 +387,11 @@
     "layerListValues": {
       "road": "Road",
       "bridge": "Bridge"
+    },
+    "contextMenu": {
+      "deleteIsochrone": "Delete Isochrone",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out"
     }
   },
   "pois": {

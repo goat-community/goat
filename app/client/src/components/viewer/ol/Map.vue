@@ -111,6 +111,10 @@ import DoubleClickZoom from "ol/interaction/DoubleClickZoom";
 import { defaults as defaultControls, Attribution } from "ol/control";
 import { defaults as defaultInteractions } from "ol/interaction";
 
+// Context menu
+import ContextMenu from "ol-contextmenu/dist/ol-contextmenu";
+import "ol-contextmenu/dist/ol-contextmenu.min.css";
+
 export default {
   components: {
     "overlay-popup": OverlayPopup,
@@ -172,8 +176,7 @@ export default {
   created() {
     var me = this;
 
-    // make map rotateable according to property
-
+    // Make map rotateable according to property
     const attribution = new Attribution({
       collapsible: true
     });
@@ -181,7 +184,6 @@ export default {
     //Need to reference as we should deactive double click zoom when there
     //are active interaction like draw/modify
     this.dblClickZoomInteraction = new DoubleClickZoom();
-
     me.map = new Map({
       layers: [],
       interactions: defaultInteractions({
@@ -201,12 +203,16 @@ export default {
       })
     });
 
-    // create layers from config and add them to map
+    // Create layers from config and add them to map
     const layers = me.createLayers();
     me.map.getLayers().extend(layers);
     me.createMaskFilters(layers);
     me.createGetInfoLayer();
 
+    // Setup context menu (right-click)
+    me.setupContentMenu();
+
+    // Event bus setup for managing interactions
     EventBus.$on("ol-interaction-activated", startedInteraction => {
       me.activeInteractions.push(startedInteraction);
     });
@@ -446,6 +452,40 @@ export default {
     },
 
     /**
+     * Right click menu .
+     */
+    setupContentMenu() {
+      const contextMenu = new ContextMenu({
+        width: 170,
+        defaultItems: true // defaultItems are (for now) Zoom In/Zoom Out
+      });
+
+      // Rename default items
+      for (let item of contextMenu.getDefaultItems()) {
+        if (item.text === "Zoom In") {
+          item.text = this.$t("map.contextMenu.zoomIn");
+          item.label = "zoomIn";
+        } else if (item.text === "Zoom Out") {
+          item.text = this.$t("map.contextMenu.zoomOut");
+          item.label = "zoomOut";
+        }
+      }
+
+      this.setContextMenu(contextMenu);
+      this.map.addControl(contextMenu);
+
+      // Before open event
+      contextMenu.on("beforeopen", () => {
+        let defaultItems = contextMenu.getDefaultItems();
+        defaultItems.forEach(defaultItem => {
+          defaultItem.text = this.$t(`map.contextMenu.${defaultItem.label}`);
+        });
+        contextMenu.clear();
+        contextMenu.extend(defaultItems);
+      });
+    },
+
+    /**
      * Map click event for Module.
      */
     setupMapClick() {
@@ -551,7 +591,8 @@ export default {
       });
     },
     ...mapMutations("map", {
-      setMap: "SET_MAP"
+      setMap: "SET_MAP",
+      setContextMenu: "SET_CONTEXTMENU"
     }),
     ...mapActions("isochrones", {
       showIsochroneWindow: "showIsochroneWindow"
