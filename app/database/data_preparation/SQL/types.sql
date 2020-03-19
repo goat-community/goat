@@ -28,19 +28,55 @@ CREATE TYPE public.type_isochrone_thematic AS
 	sum_pois text
 );
 
-DROP TYPE IF EXISTS type_catchment_vertices CASCADE;
-CREATE TYPE public.type_catchment_vertices AS
+DROP TYPE IF EXISTS type_isochrones_api CASCADE;
+CREATE TYPE type_isochrones_api AS
+(
+	gid integer, 
+	objectid integer, 
+	coordinates NUMERIC[],
+	step integer,
+	speed NUMERIC,
+	shape_precision NUMERIC,
+	modus integer,
+	parent_id integer,
+	sum_pois jsonb, 
+	geom geometry,
+  	starting_point text
+);
+DROP TYPE IF EXISTS type_fetch_ways_routing CASCADE;
+CREATE TYPE type_fetch_ways_routing AS
+(
+	id integer, 
+	SOURCE integer, 
+	target integer, 
+	cost float,
+	reverse_cost float,
+	slope_profile jsonb[],
+	death_end bigint,
+	geom geometry
+);
+DROP TYPE IF EXISTS type_catchment_vertices_single CASCADE;
+CREATE TYPE public.type_catchment_vertices_single AS
 (
 	start_vertex integer,
 	node integer,
 	edge integer,
-	cnt integer,
 	cost numeric,
 	geom geometry,
-	w_geom geometry,
 	objectid integer	
 );
-
+DROP TYPE IF EXISTS type_temp_catchment_vertices_multi CASCADE;
+CREATE TYPE public.type_temp_catchment_vertices_multi AS
+(
+	id integer,
+	start_vertex integer,
+	node integer,
+	edge integer,
+	cost numeric,
+	geom geometry,
+	objectid integer,
+	routing_profile text	
+);
 DROP TYPE IF EXISTS type_catchment_vertices_multi CASCADE;
 CREATE TYPE public.type_catchment_vertices_multi AS
 (
@@ -69,44 +105,11 @@ CREATE TYPE type_pois_multi_isochrones AS
 	population jsonb,
 	geom geometry	
 );
-DROP TYPE IF EXISTS type_isochrones_api CASCADE;
-CREATE TYPE type_isochrones_api AS
-(
-	gid integer, 
-	objectid integer, 
-	coordinates NUMERIC[],
-	step integer,
-	speed NUMERIC,
-	shape_precision NUMERIC,
-	modus integer,
-	parent_id integer,
-	sum_pois jsonb, 
-	geom geometry,
-  	starting_point text
-);
-DROP TYPE IF EXISTS type_fetch_ways_routing CASCADE;
-CREATE TYPE type_fetch_ways_routing AS
-(
-	id integer, 
-	SOURCE integer, 
-	target integer, 
-	cost float,
-	geom geometry
-);
-DROP TYPE IF EXISTS type_catchment_vertices_single CASCADE;
-CREATE TYPE public.type_catchment_vertices_single AS
-(
-	start_vertex integer,
-	node integer,
-	edge integer,
-	cost numeric,
-	geom geometry,
-	w_geom geometry,
-	objectid integer	
-);
+
 DROP TYPE IF EXISTS pois_visualization CASCADE;
 CREATE TYPE public.pois_visualization AS
 (
+	gid bigint,
 	amenity text,
 	name text, 
 	osm_id bigint, 

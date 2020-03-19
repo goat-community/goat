@@ -26,6 +26,7 @@
             v-model="model"
             :items="items"
             :loading="isLoading"
+            :disabled="isBusy"
             :label="$t('isochrones.single.searchBox')"
             :search-input.sync="search"
             item-text="DisplayName"
@@ -52,7 +53,8 @@
                 fab
                 v-on="on"
                 class="ml-4"
-                rounded
+                depressed
+                :loading="isBusy"
                 text
                 @click="registerMapClick"
               >
@@ -69,6 +71,7 @@
 <script>
 import { EventBus } from "../../EventBus";
 import { Mapable } from "../../mixins/Mapable";
+import { KeyShortcuts } from "../../mixins/KeyShortcuts";
 import { InteractionsToggle } from "../../mixins/InteractionsToggle";
 
 //Store imports
@@ -81,10 +84,10 @@ import axios from "axios";
 import { debounce } from "../../utils/Helpers";
 
 //Ol imports
-import { transform } from "ol/proj.js";
+import { transform, transformExtent } from "ol/proj.js";
 
 export default {
-  mixins: [InteractionsToggle, Mapable],
+  mixins: [InteractionsToggle, Mapable, KeyShortcuts],
   data: () => ({
     interactionType: "isochrone-single-interaction",
     descriptionLimit: 30,
@@ -97,8 +100,10 @@ export default {
   }),
   computed: {
     ...mapGetters("map", {
-      messages: "messages",
-      studyAreaBbox: "studyAreaBbox"
+      messages: "messages"
+    }),
+    ...mapGetters("isochrones", {
+      isBusy: "isBusy"
     }),
     fields() {
       if (!this.model) return [];
@@ -136,6 +141,9 @@ export default {
       me.mapClickListener = me.map.once("singleclick", me.onMapClick);
       me.startHelpTooltip(this.$t("map.tooltips.clickForCalculation"));
       me.map.getTarget().style.cursor = "pointer";
+      if (this.addKeyupListener) {
+        this.addKeyupListener();
+      }
     },
     /**
      * Handler for 'singleclick' on the map.
@@ -176,11 +184,13 @@ export default {
       });
       me.calculateIsochrone();
     },
+
     clear() {
       const me = this;
       if (me.mapClickListener) {
         unByKey(me.mapClickListener);
       }
+
       me.stopHelpTooltip();
       me.map.getTarget().style.cursor = "";
       EventBus.$emit("ol-interaction-stoped", me.interactionType);
@@ -205,7 +215,7 @@ export default {
       if (!this.studyAreaBbox) return;
       axios
         .get(
-          `${this.searchUrl}?key=${this.searchKey}&q=${this.search}
+          `${this.searchUrl}autocomplete.php?key=${this.searchKey}&q=${this.search}
             &viewbox=${this.studyAreaBbox}&bounded=1`
         )
         .then(response => {
@@ -222,6 +232,11 @@ export default {
     const me = this;
     me.searchUrl = process.env.VUE_APP_SEARCH_URL;
     me.searchKey = process.env.VUE_APP_SEARCH_KEY;
+    this.studyAreaBbox = transformExtent(
+      this.$appConfig.map.extent,
+      "EPSG:3857",
+      "EPSG:4326"
+    );
   }
 };
 </script>

@@ -50,7 +50,7 @@ export default class OlBaseController {
     const options = Object.assign(opt, {
       name: name,
       displayInLayerList: false,
-      zIndex: 5,
+      zIndex: 10,
       source: source,
       style: style
     });
@@ -103,8 +103,10 @@ export default class OlBaseController {
     me.helpTooltipElement.className = "tooltip";
     me.helpTooltip = new Overlay({
       element: me.helpTooltipElement,
-      offset: [15, 0],
-      positioning: "center-left"
+      offset: [15, 15],
+      positioning: "top-left",
+      stopEvent: true,
+      insertFirst: false
     });
     me.map.addOverlay(me.helpTooltip);
     me.overlayersGarbageCollector.push(me.helpTooltip);

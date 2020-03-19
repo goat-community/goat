@@ -26,6 +26,7 @@
     >
       <v-select
         item-value="value"
+        :disabled="isBusy"
         class="select-method-height mx-1 my-1"
         v-model="activeMultiIsochroneMethod"
         :items="multiIsochroneCalculationMethods.values"
@@ -61,7 +62,8 @@
             outlined
             class="white--text mr-1"
             color="green"
-            @click="calculateIsochrone"
+            :loading="isBusy"
+            @click="calcuateBtn"
           >
             {{ $t("isochrones.multiple.calculate") }}
           </v-btn>
@@ -77,12 +79,14 @@ import { mapFields } from "vuex-map-fields";
 
 import { EventBus } from "../../EventBus";
 import { Mapable } from "../../mixins/Mapable";
+import { KeyShortcuts } from "../../mixins/KeyShortcuts";
 import { InteractionsToggle } from "../../mixins/InteractionsToggle";
+import { unByKey } from "ol/Observable";
 
-import OlIsochroneController from "../../controllers/OlIsochroneController";
+import OlMultiIsochroneController from "../../controllers/OlMultiIsochroneController";
 
 export default {
-  mixins: [Mapable, InteractionsToggle],
+  mixins: [Mapable, InteractionsToggle, KeyShortcuts],
   data: () => ({
     isIsochroneStartElVisible: true,
     interactionType: "isochrone-multiple-interaction"
@@ -90,7 +94,8 @@ export default {
   computed: {
     ...mapGetters("isochrones", {
       multiIsochroneCalculationMethods: "multiIsochroneCalculationMethods",
-      countPois: "countPois"
+      countPois: "countPois",
+      isBusy: "isBusy"
     }),
     ...mapFields("isochrones", {
       activeMultiIsochroneMethod: "multiIsochroneCalculationMethods.active"
@@ -131,7 +136,7 @@ export default {
     onMapBound() {
       const me = this;
       //Initialize ol isochrone controllers.
-      me.olIsochroneCtrl = new OlIsochroneController(me.map);
+      me.olIsochroneCtrl = new OlMultiIsochroneController(me.map);
       me.olIsochroneCtrl.createSelectionLayer();
     },
     toggleInteraction() {
@@ -140,8 +145,20 @@ export default {
       EventBus.$emit("ol-interaction-activated", me.interactionType);
       me.olIsochroneCtrl.removeInteraction();
       me.olIsochroneCtrl.addInteraction("multiple");
+      me.map.getTarget().style.cursor = "pointer";
+      if (this.addKeyupListener) {
+        this.addKeyupListener();
+      }
+    },
+    calcuateBtn() {
+      this.calculateIsochrone();
+      this.clear();
     },
     clear() {
+      if (this.olIsochroneCtrl.mapClickListenerKey) {
+        unByKey(this.olIsochroneCtrl.mapClickListenerKey);
+      }
+      this.map.getTarget().style.cursor = "";
       this.activeMultiIsochroneMethod = null;
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
     },

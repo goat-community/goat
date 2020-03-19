@@ -58,6 +58,8 @@
         "queryable": false,
         "visible": false,
         "canEdit": true,
+        "editDataType": "GeoJSON",
+        "editGeometry": "LineString",
         "displayInLayerList": false,
         "zIndex": 2,
         "serverType": "geoserver"
@@ -67,15 +69,17 @@
         "name": "pois",
         "url": "/geoserver/wms",
         "group": "poisLayers",
-        "layers": "cite:pois_info",
+        "layers": "cite:pois",
         "viewparams": "amenities:'cG9wdWxhdGlvbg=='",
         "opacity": 1,
         "queryable": true,
         "visible": false,
-        "canEdit": false,
+        "canEdit": true,
+        "editDataType": "GeoJSON",
+        "editGeometry": "Point",
         "displayInLayerList": true,
         "requiresPois": true,
-        "zIndex": 2,
+        "zIndex": 7,
         "serverType": "geoserver"
       },
       {
@@ -148,7 +152,6 @@
         "zIndex": 1,
         "serverType": "geoserver"
       },
-
       {
         "type": "OSM",
         "name": "osmStandard",
@@ -682,31 +685,6 @@
     },
     "isochrones": {
       "options": {
-        "routingProfile": {
-          "name": "profile",
-          "values": [
-            {
-              "display": "Standard",
-              "value": "walking_standard",
-              "defaultSpeed": 5
-            },
-            {
-              "display": "Elderly",
-              "value": "walking_elderly",
-              "defaultSpeed": 3
-            },
-            {
-              "display": "Wheelchair",
-              "value": "walking_wheelchair",
-              "defaultSpeed": 5
-            } 
-          ],
-          "active": {
-            "display": "Standard",
-            "value": "walking_standard",
-            "defaultSpeed": 5
-          }
-        },
         "calculationType": "single",
         "minutes": "10",
         "speed": "5",
@@ -714,7 +692,7 @@
         "concavityIsochrones": {
           "name": "concavity",
           "values": [
-            { "display": "0", "value": "0.00003" },
+            { "display": "Standard", "value": "0.00003" },
             { "display": "1", "value": "0.000003" },
             { "display": "2", "value": "0.0000025" },
             { "display": "3", "value": "0.000002" },
@@ -800,6 +778,35 @@
           "20": "#000ABF"
         }
       }
+    },
+    "routing": {
+      "default": "walking",
+      "options": {
+        "walking": {
+          "default": "standard",
+          "options": [
+            {
+              "value": "standard",
+              "speed": 5
+            },
+            { "value": "elderly", "speed": 3 }
+          ]
+        },
+        "cycling": {
+          "default": "standard",
+          "options": [
+            {
+              "value": "standard",
+              "speed": 15
+            },
+            { "value": "pedelec", "speed": 23 }
+          ]
+        },
+        "walking_wheelchair": {
+          "speed": 5,
+          "options": []
+        }
+      }
     }
   },
   "componentConf": {
@@ -807,6 +814,35 @@
       "filters": {
         "timeBasedCalculations": "no"
       }
+    },
+    "edit": {}
+  },
+
+  "layerConf": {
+    "ways": {
+      "listValues": {
+        "type": {
+          "values": ["bridge", "road"]
+        }
+      },
+      "enableFileUpload": false,
+      "hiddenProps": ["userid", "id", "original_id", "status", "class_id"]
+    },
+    "pois": {
+      "listValues": {
+        "amenity": {
+          "values": "*"
+        }
+      },
+      "enableFileUpload": false,
+      "hiddenProps": [
+        "userid",
+        "id",
+        "original_id",
+        "status",
+        "wheelchair",
+        "opening_hours"
+      ]
     }
   }
 }
