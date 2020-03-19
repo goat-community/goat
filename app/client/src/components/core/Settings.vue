@@ -28,7 +28,7 @@
                     :key="entry.title"
                     @click="changeLocale(entry.language)"
                   >
-                    <flag :iso="entry.flag" v-bind:squared="false" />
+                    <!-- <flag :iso="entry.flag" v-bind:squared="false" /> -->
                     <span class="pl-2">{{ entry.title }}</span>
                   </v-btn>
                 </v-flex>
@@ -36,25 +36,6 @@
             </span>
           </div>
         </v-card-text>
-        <!-- Map Units Settings  -->
-        <!-- <v-subheader
-          ><h3>{{ $t("appBar.settings.units.header") }}</h3></v-subheader
-        >
-        <v-card-text class="pr-16 pl-16 pt-0 pb-0">
-          <v-divider></v-divider>
-        </v-card-text>
-        <v-card-text>
-          <v-radio-group v-model="units" row style="justify-content: center;">
-            <v-radio
-              :label="$t('appBar.settings.units.km')"
-              value="kilometers"
-            ></v-radio>
-            <v-radio
-              :label="$t('appBar.settings.units.miles')"
-              value="miles"
-            ></v-radio>
-          </v-radio-group>
-        </v-card-text> -->
       </vue-scroll>
     </v-card>
   </v-dialog>
@@ -70,10 +51,7 @@ export default {
       units: "kilometers",
       languages: [
         { flag: "gb", language: "en", title: "English" },
-        { flag: "de", language: "de", title: "Deutsch" },
-        { flag: "es", language: "es", title: "Español" },
-        { flag: "fr", language: "fr", title: "Français" },
-        { flag: "al", language: "sq", title: "Shqip" }
+        { flag: "de", language: "de", title: "Deutsch" }
       ],
       interactionType: "languageChange"
     };

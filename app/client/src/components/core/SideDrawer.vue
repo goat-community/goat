@@ -75,11 +75,31 @@
           </template>
         </v-list>
         <v-list justify-end>
-          <template v-for="(item, index) in bottomItems">
+          <language></language>
+          <v-tooltip left>
+            <template v-slot:activator="{ on }">
+              <v-btn
+                dark
+                small
+                href="http://open-accessibility.org"
+                target="_blank"
+                class="elevation-0 ma-0 py-1"
+                v-on="on"
+                color="#4CAF50"
+              >
+                <v-icon color="white" large light>home</v-icon>
+              </v-btn>
+            </template>
+
+            <span>{{ $t("appBar.buttons.info") }}</span>
+          </v-tooltip>
+
+          <!-- <template v-for="(item, index) in bottomItems">
             <v-tooltip left :key="index">
               <template v-slot:activator="{ on }">
                 <v-list-item
-                  @click="toggleDialog(item.componentToShow)"
+                  href="http://open-accessibility.org"
+                  target="_blank"
                   v-on="on"
                 >
                   <v-list-item-action>
@@ -92,16 +112,16 @@
               </template>
               <span>{{ item.text }}</span>
             </v-tooltip>
-          </template>
+          </template> -->
         </v-list>
       </v-layout>
     </v-navigation-drawer>
 
-    <component
+    <!-- <component
       :visible="showDialog"
       @close="showDialog = false"
       v-bind:is="activeBottomComponent"
-    ></component>
+    ></component> -->
     <!-- <app-about :visible="showDialog" @close="showDialog = false" /> -->
   </div>
 </template>
@@ -117,6 +137,7 @@ import Print from "../print/Print";
 import DrawAndMeasure from "../drawAndMeasure/DrawAndMeasure";
 import Filter from "../layers/filter/Filter";
 import Edit from "../layers/edit/Edit";
+import Language from "./Language";
 
 export default {
   name: "app-sidebar",
@@ -126,7 +147,8 @@ export default {
     "map-filter": Filter,
     "map-edit": Edit,
     "app-settings": Settings,
-    "app-about": About
+    "app-about": About,
+    language: Language
   },
   data: () => ({
     container: false,
@@ -161,18 +183,7 @@ export default {
       ];
     },
     bottomItems() {
-      return [
-        {
-          icon: "fas fa-flag",
-          text: this.$t("appBar.buttons.settings"),
-          componentToShow: "app-settings"
-        },
-        {
-          icon: "fas fa-info-circle",
-          text: this.$t("appBar.buttons.info"),
-          componentToShow: "app-about"
-        }
-      ];
+      return [];
     }
   },
   methods: {

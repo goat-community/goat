@@ -12,6 +12,7 @@ DECLARE
 	no_foot text[];
 	no_wheelchair text[];
 	no_safe_night text[];
+	v_death_end BOOLEAN;
 BEGIN
 	
 	IF modus <> 1  THEN
@@ -41,8 +42,8 @@ BEGIN
 	raise notice '%', no_wheelchair;
 
 
-  	SELECT w.id, w.geom 
-  	INTO id_vertex, geom_vertex
+  	SELECT w.id, w.geom,death_end 
+  	INTO id_vertex, geom_vertex, v_death_end
 	FROM ways_userinput_vertices_pgr w
 	WHERE (userid IS NULL OR userid = userid_vertex)
 	AND (class_ids <@ excluded_class_id) IS FALSE
@@ -54,6 +55,7 @@ BEGIN
   	IF ST_Distance(geom_vertex,point)>snap_distance THEN
     	RETURN;
   	END IF;
+
   	RETURN query SELECT ARRAY[id_vertex::text, geom_vertex::text];
 END ;
 $function$;

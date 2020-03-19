@@ -50,7 +50,7 @@ export default class OlBaseController {
     const options = Object.assign(opt, {
       name: name,
       displayInLayerList: false,
-      zIndex: 5,
+      zIndex: 10,
       source: source,
       style: style
     });
