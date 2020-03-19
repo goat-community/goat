@@ -7,8 +7,8 @@ import vuetify from "@/plugins/vuetify";
 import "./plugins/vuescroll";
 // Plugins
 import i18n from "./plugins/i18n";
-import FlagIcon from "vue-flag-icon";
-Vue.use(FlagIcon);
+import CountryFlag from "vue-country-flag";
+Vue.component("country-flag", CountryFlag);
 
 // Application imports
 import App from "./App";
@@ -17,6 +17,7 @@ import store from "./store/index";
 import axios from "axios";
 import { geojsonToFeature } from "./utils/MapUtils";
 import { buffer } from "ol/extent";
+import { getCenter } from "ol/extent";
 
 require("../node_modules/ol/ol.css");
 require("./assets/scss/app.scss");
@@ -58,10 +59,16 @@ axios.all([getAppConf(), getStudyAreaBbox()]).then(
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857"
       });
+      const originalExtent = f[0].getGeometry().getExtent();
       //Buffer study area extent to not be very strict.
-      const extent = buffer(f[0].getGeometry().getExtent(), 3000);
+      const bufferedExtent = buffer(originalExtent, 8000);
       //Make extent available in $appConf so the map can use it.
-      Vue.prototype.$appConfig.map.extent = extent;
+
+      Vue.prototype.$appConfig.map.extent = bufferedExtent;
+
+      if (!Vue.prototype.$appConfig.map.center) {
+        Vue.prototype.$appConfig.map.center = getCenter(originalExtent);
+      }
       Vue.prototype.$appConfig.map.studyAreaFeature = f;
     }
 

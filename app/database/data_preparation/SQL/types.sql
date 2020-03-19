@@ -50,6 +50,9 @@ CREATE TYPE type_fetch_ways_routing AS
 	SOURCE integer, 
 	target integer, 
 	cost float,
+	reverse_cost float,
+	slope_profile jsonb[],
+	death_end bigint,
 	geom geometry
 );
 DROP TYPE IF EXISTS type_catchment_vertices_single CASCADE;
@@ -60,7 +63,6 @@ CREATE TYPE public.type_catchment_vertices_single AS
 	edge integer,
 	cost numeric,
 	geom geometry,
-	w_geom geometry,
 	objectid integer	
 );
 DROP TYPE IF EXISTS type_temp_catchment_vertices_multi CASCADE;

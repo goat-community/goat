@@ -15,34 +15,79 @@
         >far fa-list-alt</v-icon
       >
       <h3>{{ $t("isochrones.results.title") }}</h3>
+      <v-spacer></v-spacer>
+
+      <v-btn
+        v-show="isResultsElVisible === true && calculations.length > 1"
+        small
+        @click.stop="deleteAll"
+        class="white--text"
+        color="error"
+      >
+        <v-icon left>delete</v-icon>{{ $t("isochrones.results.deleteAll") }}
+      </v-btn>
     </v-subheader>
     <v-layout>
       <v-flex xs12 class="mx-3" v-show="isResultsElVisible">
         <template v-for="calculation in calculations">
           <v-card class="mb-3 " :key="calculation.id">
             <!-- Isochrone Nr -->
-            <div class="isochrone-nr">{{ calculation.id }}</div>
+            <v-chip
+              x-small
+              dark
+              label
+              :color="isCalculationActive(calculation) ? '#30C2FF' : '#676767'"
+              style="padding:5px;"
+              class="isochrone-nr"
+            >
+              <span
+                ><b>{{ calculation.id }}</b></span
+              >
+            </v-chip>
             <v-card-title class="pb-0 mb-0">
               <v-layout row wrap>
                 <v-layout align-start justify-start>
                   <v-card-text class="pa-0 ma-0 ml-3">
-                    <v-icon small class="mr-1 text-xs-center"
-                      >fas fa-clock</v-icon
-                    >
-                    <span class="subtitle-2 text-xs-center">{{
-                      calculation.time
-                    }}</span>
-                    <v-icon small class="ml-2 mr-1 "
-                      >fas fa-tachometer-alt</v-icon
-                    >
-                    <span class="subtitle-2 text-xs-center">{{
-                      calculation.speed
-                    }}</span>
+                    <v-chip small class="mr-2 my-1">
+                      <v-avatar left>
+                        <v-icon small class="text-xs-center">{{
+                          getRouteProfileIcon(calculation.routing_profile)
+                        }}</v-icon>
+                      </v-avatar>
+                      {{
+                        $te(`isochrones.options.${calculation.routing_profile}`)
+                          ? $t(
+                              `isochrones.options.${calculation.routing_profile}`
+                            )
+                          : calculation.routing_profile
+                      }}
+                    </v-chip>
                   </v-card-text>
                 </v-layout>
 
                 <v-layout row>
                   <v-spacer></v-spacer>
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <v-icon
+                        small
+                        v-on="on"
+                        @click="toggleIsochroneWindow(calculation)"
+                        :color="
+                          isCalculationActive(calculation)
+                            ? '#30C2FF'
+                            : '#676767'
+                        "
+                        class="result-icons mr-2"
+                        >fas fa-table</v-icon
+                      >
+                    </template>
+                    <span>{{
+                      isCalculationActive(calculation)
+                        ? $t("isochrones.results.hideDataTooltip")
+                        : $t("isochrones.results.showDataTooltip")
+                    }}</span>
+                  </v-tooltip>
 
                   <v-tooltip top>
                     <template v-slot:activator="{ on }">
@@ -97,7 +142,7 @@
                         @click="deleteCalculation(calculation)"
                         small
                         v-on="on"
-                        class="result-icons mr-6"
+                        class="result-icons delete-icon mr-6"
                       >
                         fas fa-trash-alt</v-icon
                       >
@@ -110,10 +155,26 @@
               </v-layout>
               <v-card-text class="pr-0 pl-0 pt-0 pb-0">
                 <v-divider></v-divider>
+
+                <v-chip small class="my-1 mr-1">
+                  <v-avatar left>
+                    <v-icon small class="text-xs-center">fas fa-clock</v-icon>
+                  </v-avatar>
+                  {{ calculation.time }}
+                </v-chip>
+
+                <v-chip small class="my-1 ">
+                  <v-avatar left>
+                    <v-icon small class="text-xs-center"
+                      >fas fa-tachometer-alt</v-icon
+                    >
+                  </v-avatar>
+                  {{ calculation.speed }}
+                </v-chip>
               </v-card-text>
             </v-card-title>
             <v-subheader
-              class="clickable subheader mt-1"
+              class="clickable subheader mt-1 pb-1"
               @click="calculation.isExpanded = !calculation.isExpanded"
             >
               <v-icon
@@ -125,27 +186,25 @@
                     : 'fas fa-chevron-right'
                 "
               ></v-icon>
-              <h3>
-                {{
-                  calculation.position === "multiIsochroneCalculation"
-                    ? $t("isochrones.results.multiIsochroneHeader")
-                    : calculation.position
-                }}
-              </h3>
-            </v-subheader>
-            <v-subheader
-              @click="calculation.isExpanded = !calculation.isExpanded"
-              class="clickable subheader subtitle-2"
-            >
-              <span
-                >{{ $t("isochrones.options.routingProfile") }} :
-                {{
-                  $te(`isochrones.options.${calculation.routing_profile}`)
-                    ? $t(`isochrones.options.${calculation.routing_profile}`)
-                    : calculation.routing_profile
-                }}</span
+              <v-tooltip
+                :disabled="calculation.position === 'multiIsochroneCalculation'"
+                open-delay="600"
+                max-width="300"
+                top
+              >
+                <template v-slot:activator="{ on }">
+                  <h3 class="result-title" v-on="on">
+                    {{
+                      calculation.position === "multiIsochroneCalculation"
+                        ? $t("isochrones.results.multiIsochroneHeader")
+                        : calculation.position
+                    }}
+                  </h3>
+                </template>
+                <span>{{ calculation.position }}</span></v-tooltip
               >
             </v-subheader>
+
             <v-card-text class="pt-0 " v-show="calculation.isExpanded">
               <v-data-table
                 :headers="headers"
@@ -164,7 +223,7 @@
                     :input-value="item.isVisible"
                     primary
                     hide-details
-                    @change="toggleIsochroneFeatureVisibility(item)"
+                    @change="toggleIsochroneVisibility(item, calculation)"
                   ></v-switch>
                 </template>
                 <template v-slot:item.legend="{ item }">
@@ -235,13 +294,43 @@ export default {
   methods: {
     ...mapActions("isochrones", {
       removeCalculation: "removeCalculation",
-      setSelectedThematicData: "setSelectedThematicData"
+      showIsochroneWindow: "showIsochroneWindow"
     }),
     ...mapMutations("isochrones", {
       toggleIsochroneFeatureVisibility: "TOGGLE_ISOCHRONE_FEATURE_VISIBILITY",
       toggleIsochroneCalculationVisibility:
-        "TOGGLE_ISOCHRONE_CALCULATION_VISIBILITY"
+        "TOGGLE_ISOCHRONE_CALCULATION_VISIBILITY",
+      toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY"
     }),
+    toggleIsochroneVisibility(feature, calculation) {
+      //Get all visible calculation
+      const visibleFeatures = calculation.data.filter(
+        feature => feature.isVisible === true
+      );
+
+      let isNetworkVisible = false;
+      Object.keys(calculation.additionalData).forEach(key => {
+        if (calculation.additionalData[key].state === true) {
+          isNetworkVisible = true;
+        }
+      });
+
+      //If user has turned off other features, hide the result
+      if (
+        !isNetworkVisible &&
+        visibleFeatures.length === 1 &&
+        visibleFeatures[0].id === feature.id &&
+        visibleFeatures[0].isVisible === true
+      ) {
+        this.showHideCalculation(calculation);
+      } else {
+        this.toggleIsochroneFeatureVisibility(feature);
+      }
+
+      if (calculation.isVisible === false && feature.isVisible === true) {
+        calculation.isVisible = true;
+      }
+    },
     deleteCalculation(calculation) {
       this.$refs.confirm
         .open(
@@ -263,34 +352,99 @@ export default {
       this.isochroneColorPickerState = true;
       this.isochroneItem = item;
     },
-    showHideCalculation(calculation) {
-      const me = this;
+    showHideNetworkData(calculation) {
       //Check if road netowrk is visible. Is so remove all features from map.
       const roadNetworkData = calculation.additionalData;
       for (let type in roadNetworkData) {
         // type can be 'Deafult' or 'Input'
         const state = roadNetworkData[type].state;
-        if (state === true) {
-          roadNetworkData[type].state = false;
-          const roadNetworkSource = this.isochroneRoadNetworkLayer.getSource();
-          const features = roadNetworkData[type].features;
+        const roadNetworkSource = this.isochroneRoadNetworkLayer.getSource();
+        const features = roadNetworkData[type].features;
+        if (state === true && calculation.isVisible === true) {
           features.forEach(feature => {
-            roadNetworkSource.removeFeature(feature);
+            if (roadNetworkSource.hasFeature(feature)) {
+              roadNetworkSource.removeFeature(feature);
+            }
+          });
+        } else if (state === true && calculation.isVisible === false) {
+          features.forEach(feature => {
+            roadNetworkSource.addFeature(feature);
           });
         }
       }
+    },
+    showHideCalculation(calculation) {
+      const me = this;
+
+      me.showHideNetworkData(calculation);
       me.toggleIsochroneCalculationVisibility(calculation);
     },
     showAdditionalLayerDialog(calculation) {
       this.additionalLayersDialogState = true;
       this.selectedCalculation = calculation;
+    },
+    isCalculationActive(calculation) {
+      if (
+        this.selectedThematicData &&
+        this.isThematicDataVisible &&
+        calculation &&
+        this.selectedThematicData.calculationId === calculation.id
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+    getRouteProfileIcon(route) {
+      const routingName = route.split("_")[0];
+      //Edge-case
+      if (route === "walking_wheelchair") {
+        return this.routeIcons[route];
+      }
+      return this.routeIcons[routingName];
+    },
+    toggleIsochroneWindow(calculation) {
+      if (this.isCalculationActive(calculation)) {
+        // Hide
+        this.isochroneLayer
+          .getSource()
+          .getFeatures()
+          .forEach(f => {
+            f.set("highlightFeature", false);
+          });
+        this.toggleThematicDataVisibility(false);
+      } else {
+        // Show
+        this.showIsochroneWindow({
+          id: calculation.id,
+          calculationType: calculation.calculationType
+        });
+      }
+    },
+    deleteAll() {
+      this.$refs.confirm
+        .open(
+          this.$t("isochrones.deleteTitle"),
+          this.$t("isochrones.deleteAllMessage"),
+          { color: "green" }
+        )
+        .then(confirm => {
+          if (confirm) {
+            this.calculations.forEach(calculation => {
+              this.removeCalculation(calculation);
+            });
+          }
+        });
     }
   },
   computed: {
     ...mapGetters("isochrones", {
       calculations: "calculations",
+      routeIcons: "routeIcons",
       isochroneLayer: "isochroneLayer",
-      isochroneRoadNetworkLayer: "isochroneRoadNetworkLayer"
+      isochroneRoadNetworkLayer: "isochroneRoadNetworkLayer",
+      selectedThematicData: "selectedThematicData",
+      isThematicDataVisible: "isThematicDataVisible"
     }),
     headers() {
       return [
@@ -327,14 +481,16 @@ export default {
 <style lang="css">
 .result-icons {
   color: "#4A4A4A";
+  cursor: pointer;
 }
 .result-icons:hover {
-  cursor: pointer;
   color: #30c2ff;
+}
+.delete-icon:hover {
+  color: #ff6060;
 }
 .isochrone-nr {
   position: absolute;
-  left: 6px;
 }
 .v-data-table td,
 .v-data-table th {
@@ -361,5 +517,18 @@ export default {
 
 .subheader {
   height: 25px;
+}
+
+.v-chip--label {
+  border-radius: 0px 8px 8px 0px !important;
+}
+
+.result-title {
+  display: inline-block;
+  width: 265px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

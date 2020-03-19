@@ -34,8 +34,8 @@
             <v-icon color="white">fas fa-chevron-left</v-icon>
           </v-btn>
         </v-app-bar>
-
-        <vue-scroll>
+        <routing-toolbar></routing-toolbar>
+        <vue-scroll ref="vs">
           <v-layout
             justify-space-between
             column
@@ -82,10 +82,14 @@
 // Utilities
 import Isochrones from "../isochrones/Isochrones";
 import LayerTree from "../layers/layerTree/LayerTree";
+import RoutingToolbar from "./RoutingToolbar";
+import { mapGetters } from "vuex";
+
 export default {
   components: {
     "map-isochrones": Isochrones,
-    "map-layertree": LayerTree
+    "map-layertree": LayerTree,
+    "routing-toolbar": RoutingToolbar
   },
   name: "tree-panel",
   data: () => ({
@@ -98,11 +102,24 @@ export default {
   computed: {
     getColor() {
       return this.mini === true ? "green" : "";
-    }
+    },
+    ...mapGetters("isochrones", {
+      calculations: "calculations"
+    })
   },
   mounted() {},
   beforeDestroy() {},
-  methods: {}
+  methods: {},
+  watch: {
+    calculations(newValue, oldValue) {
+      const scrollEl = this.$refs["vs"];
+      setTimeout(() => {
+        if (oldValue.length === newValue.length) {
+          scrollEl.scrollIntoView("#isochroneResultsEl", 300);
+        }
+      }, 100);
+    }
+  }
 };
 </script>
 <style lang="css">
