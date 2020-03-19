@@ -40,7 +40,7 @@ export default {
   data() {
     return {
       // Keys
-      cliendId: "MkJKbDA0bnZuZlcxeTJHTmFqN3g1dzo1YTM0NjRkM2EyZGU5MzBh",
+      cliendId: "V1Qtd0JKNGhhb1J1cktMbmhFSi1iQTo5ODMxOWU3NmZlMjEyYTA3",
       key: "rrKZdmgdvup_KYJKTESq0Q",
       organizationKey: "RmTboeISWnkEaYaSdtVRHp",
       baseOverlayUrl:
