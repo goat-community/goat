@@ -176,7 +176,7 @@
             "calcType": "Nivel de detalle de las isocronas",
             "calcModus": "Modos de cálculo",
             "alphaShapeMode": "Parámetro de forma alfa",
-            "defaultNetwork": "Red standard",
+            "defaultNetwork": "Red estándar",
             "modifiedNetwork": "Red modificada",
             "modifiedNetworkDoubleCalc": "Red modificada (doble cálculo)",
             "routingProfile": "Perfiles de usuario para  ruteo",
@@ -263,7 +263,7 @@
             "calculateIsochroneError": "Lo sentimos, desde este punto no es posible calcular isocronas.",
             "uploadScenarioSuccess": "Las entidades han sido cargadas exitosamente.",
         "uploadScenarioError": "Lo sentimos, ha ocurrido un error mientras se cargaban las entidades en la base de datos.",
-        "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features."
+        "notAllScnearioFeaturesUploaded": " El escenario de isocronas no tendrá en cuenta las entidades subidas."
         },
         "layerGroup": {
             "poisLayers": "Puntos de interés",
@@ -354,10 +354,10 @@
         "bicycle_rental": "Alquiler de bicicletas",
         "car_sharing": "Auto compartido",
         "charging_station": "Estación de carga",
-        "bus_stop": "Para de autobús",
+        "bus_stop": "Parada de autobús",
         "tram_stop": "Parada de tranvía",
         "subway_entrance": "Estación de Metro",
-        "rail_station": "Estacion de tren",
+        "rail_station": "Estación de tren",
         "taxi": "Taxi",
         "hairdresser": "Peluquería",
         "atm": "Cajero automático",
@@ -377,7 +377,7 @@
         "mall": "Centro comercial",
         "shoes": "Zapatería",
         "supermarket": "Supermercado",
-        "discount_supermarket": "Supermercado de descuento",
+        "discount_supermarket": "Tienda de descuento",
         "international_supermarket": "Supermercado internacional",
         "hypermarket": "Hipermercado",
         "chemist": "Droguería",
@@ -398,7 +398,7 @@
         "close": "Cerrar",
         "dataIterator": {
             "pageText": "{0} - {1} de {2}",
-            "noResultsText": "No se encontraron registros coincidentes",
+            "noResultsText": "No se encontraron registros que coincidan",
             "loadingText": "Cargando artículos ..."
         },
         "dataTable": {
@@ -414,7 +414,7 @@
             "itemsPerPageText": "Filas por página:",
             "itemsPerPageAll": "Todos las filas",
             "nextPage": "Siguiente página",
-            "prevPage": "Pagina anterior",
+            "prevPage": "Página anterior",
             "firstPage": "Primera página",
             "lastPage": "Última página"
         },
