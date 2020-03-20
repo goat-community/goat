@@ -1,26 +1,31 @@
 DROP FUNCTION IF EXISTS closest_pois;
-CREATE OR REPLACE FUNCTION closest_pois(snap_distance NUMERIC)
+CREATE OR REPLACE FUNCTION closest_pois(snap_distance NUMERIC, objectid_input integer)
 RETURNS SETOF jsonb
  LANGUAGE plpgsql
 AS $function$
-
+DECLARE
+	pois_one_entrance text[] := select_from_variable_container('pois_one_entrance');
+	pois_more_entrances text[] := select_from_variable_container('pois_more_entrances');
 BEGIN 
 	
 	DROP TABLE IF EXISTS pois_and_pt;
 	CREATE temp TABLE pois_and_pt AS 
 	SELECT p.gid as poi_gid,p.amenity,p.name, p.geom  
-	FROM pois p,variable_container v, isochrone b 
-	WHERE v.identifier = 'poi_categories'
-	AND amenity = any(variable_array)
-	AND st_intersects(p.geom, b.geom)
-	UNION ALL 
-	SELECT p.gid as poi_gid,public_transport_stop AS amenity,p.name,p.geom
-	FROM public_transport_stops p, isochrone b
-	WHERE st_intersects(p.geom,b.geom);
+	FROM pois p, isochrones b 
+	WHERE amenity = any(pois_one_entrance || pois_more_entrances)
+	AND ST_Intersects(p.geom, b.geom)
+	AND b.objectid = objectid_input;
 
 	ALTER TABLE pois_and_pt ADD PRIMARY key(poi_gid);
 	CREATE INDEX ON pois_and_pt USING gist(geom);
 	
+	CREATE TEMP TABLE extrapolated_vertices AS
+	SELECT v_geom AS geom, cost 
+	FROM edges
+	WHERE objectid = objectid_input;
+
+	CREATE INDEX ON extrapolated_vertices USING GIST(geom);
+
 	RETURN query 
 	WITH distance_pois as (
 		SELECT p.amenity, p.name, p.geom, vertices.cost
@@ -28,7 +33,7 @@ BEGIN
 		pois_and_pt p
 		CROSS JOIN LATERAL
 	  	(SELECT geom, cost
-	   	FROM temp_extrapolated_reached_vertices t
+	   	FROM extrapolated_vertices t
 		WHERE t.geom && ST_Buffer(p.geom,snap_distance)
 	   	ORDER BY
 	    p.geom <-> t.geom
@@ -43,13 +48,13 @@ BEGIN
 			FROM 
 			(
 				SELECT amenity,min(cost) as cost FROM distance_pois --Every entrance OR bus_stop is only counted once (shortest distance is taken)
-				WHERE amenity = ANY (ARRAY['subway_entrance','bus_stop','tram_stop','sbahn_regional'])
+				WHERE amenity = ANY (pois_more_entrances)
 				GROUP BY amenity,name
 			) x
 			GROUP BY amenity
 			UNION ALL
 			SELECT amenity,array_agg(cost) FROM distance_pois
-			WHERE amenity != ANY (ARRAY['subway_entrance','bus_stop','tram_stop','sbahn_regional'])
+			WHERE amenity = ANY (pois_one_entrance)
 			GROUP BY amenity
 		)x
 	)
@@ -58,8 +63,6 @@ BEGIN
 	    '\1', 
 	    'g'
 	)::jsonb
-	FROM key_value
-	;
-	
+	FROM key_value;
 END 
 $function$;

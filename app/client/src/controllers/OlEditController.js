@@ -9,7 +9,7 @@ import Feature from "ol/Feature";
 import { wfsTransactionParser, readTransactionResponse } from "../utils/Layer";
 import http from "../services/http";
 import { unByKey } from "ol/Observable";
-import OlWaysLayerHelper from "./OlWaysLayerHelper";
+import editLayerHelper from "./OlEditLayerHelper";
 import i18n from "../../src/plugins/i18n";
 
 /**
@@ -26,20 +26,21 @@ export default class OlEditController extends OlBaseController {
    * Creates the edit vector layer and add it to the
    * map.
    */
-  createEditLayer() {
+  createEditLayer(onFeatureChangeCb, onSourceChangeCb) {
     const me = this;
     const style = OlStyleDefs.getEditStyle();
     super.createLayer("Edit Layer", style, {
       queryable: true
     });
-    me.source.on("changefeature", me.onFeatureChange.bind(me));
+    me.source.on("changefeature", onFeatureChangeCb);
+    me.source.on("change", onSourceChangeCb);
 
     //Create highlight layer
     const highlightSource = new VectorSource({ wrapX: false });
     const highlightLayer = new VectorLayer({
       displayInLayerList: false,
       source: highlightSource,
-      zIndex: 5,
+      zIndex: 10,
       style: OlStyleDefs.getFeatureHighlightStyle()
     });
     me.map.addLayer(highlightLayer);
@@ -49,7 +50,7 @@ export default class OlEditController extends OlBaseController {
   /**
    * Creates the edit interaction and adds it to the map.
    */
-  addInteraction(editType) {
+  addInteraction(editType, startCb, endCb) {
     const me = this;
     // cleanup possible old edit interaction
 
@@ -57,25 +58,36 @@ export default class OlEditController extends OlBaseController {
     me.createHelpTooltip();
     me.pointerMoveKey = me.map.on("pointermove", me.onPointerMove.bind(me));
     me.createPopupOverlay();
-
     switch (editType) {
-      case "add":
-        me.edit = new Draw({ source: me.source, type: "LineString" });
-        me.edit.on("drawstart", me.onDrawStart.bind(me));
-        me.edit.on("drawend", me.onDrawEnd.bind(me));
+      case "add": {
+        let geometryType = editLayerHelper.selectedLayer.get("editGeometry");
+        me.edit = new Draw({
+          source: me.source,
+          type: geometryType
+        });
+        me.edit.on("drawstart", startCb);
+        me.edit.on("drawend", endCb);
         me.snap = new Snap({ source: me.source });
         me.currentInteraction = "draw";
-        me.helpMessage = i18n.t("map.tooltips.clickToStartDrawing");
+
+        me.helpMessage = i18n.t(
+          geometryType === "Point"
+            ? "map.tooltips.clickToPlacePoint"
+            : "map.tooltips.clickToStartDrawing"
+        );
         break;
-      case "modify":
+      }
+      case "modify": {
         me.edit = new Modify({ source: me.source });
-        me.edit.on("modifystart", me.onModifyStart.bind(me));
-        me.edit.on("modifyend", me.onModifyEnd.bind(me));
+        me.edit.on("modifystart", startCb);
+        me.edit.on("modifyend", endCb);
         me.snap = new Snap({ source: me.source });
         me.currentInteraction = "modify";
         me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
         break;
-      case "delete":
+      }
+
+      case "delete": {
         me.currentInteraction = "delete";
         me.deleteFeatureListener = me.map.on(
           "click",
@@ -84,6 +96,8 @@ export default class OlEditController extends OlBaseController {
         me.helpMessage = i18n.t("map.tooltips.clickOnFeatureToDelete");
 
         break;
+      }
+
       default:
         break;
     }
@@ -118,74 +132,36 @@ export default class OlEditController extends OlBaseController {
   }
 
   /**
-   * Feature change event handler
-   */
-  onFeatureChange(evt) {
-    const me = this;
-    if (me.currentInteraction === "modify") {
-      const index = me.featuresToCommit.findIndex(
-        i => i.ol_uid === evt.feature.ol_uid
-      );
-      if (index === -1) {
-        me.featuresToCommit.push(evt.feature);
-      } else {
-        me.featuresToCommit[index] = evt.feature;
-      }
-    }
-  }
-
-  /**
-   * Draw interaction start event handler
-   */
-  onDrawStart() {
-    const me = this;
-    me.featuresToCommit = [];
-  }
-
-  /**
-   * Draw interaction start event handler
-   */
-  onDrawEnd(evt) {
-    const me = this;
-    const feature = evt.feature;
-    me.closePopup();
-    me.featuresToCommit.push(feature);
-    me.highlightSource.addFeature(feature);
-    const featureCoordinates = feature.getGeometry().getCoordinates();
-    me.popupOverlay.setPosition(featureCoordinates[0]);
-    me.popup.title = "attributes";
-    me.popup.selectedInteraction = "add";
-    me.popup.isVisible = true;
-  }
-
-  /**
-   * Modify interaction start event handler
-   */
-  onModifyStart() {
-    const me = this;
-    me.featuresToCommit = [];
-  }
-
-  /**
-   * Modify interaction end event handler
-   */
-  onModifyEnd() {
-    const me = this;
-    me.transact();
-  }
-
-  /**
    * Opens a popup for the delete confirmation
    */
   openDeletePopup(evt) {
     const me = this;
-    const coordinate = evt.coordinate;
-    const feature = me.source.getClosestFeatureToCoordinate(coordinate);
+    let feature;
+    if (evt.coordinate) {
+      const coordinate = evt.coordinate;
+      feature = me.source.getClosestFeatureToCoordinate(coordinate);
+    } else {
+      //Triggered when user click scenario data table
+      //Create overlayer
+      me.createPopupOverlay();
+      feature = evt;
+    }
+
     me.highlightSource.addFeature(feature);
     me.selectedFeature = feature;
     if (feature) {
-      const featureCoordinates = feature.getGeometry().getCoordinates();
-      me.popupOverlay.setPosition(featureCoordinates[0]);
+      const geometry = feature.getGeometry();
+      const featureCoordinates = geometry.getCoordinates();
+      const popupCoordinate =
+        geometry.getType() === "Point"
+          ? featureCoordinates
+          : featureCoordinates[0];
+      me.map.getView().animate({
+        center: popupCoordinate,
+        duration: 400
+      });
+      me.popupOverlay.setPosition(popupCoordinate);
+
       me.popup.title = "confirm";
       me.popup.selectedInteraction = "delete";
       me.popup.isVisible = true;
@@ -197,33 +173,33 @@ export default class OlEditController extends OlBaseController {
    */
   deleteFeature() {
     const me = this;
-    //TODO: If layer name is ways use openlayers ways layer helper
-    OlWaysLayerHelper.deleteFeature(
-      me.selectedFeature,
-      me.source,
-      store.state.userId
-    );
+    //Check if feature is from file input (if so, just delete from edit layer)
+    if (me.selectedFeature.get("user_uploaded")) {
+      me.source.removeFeature(me.selectedFeature);
+    } else {
+      editLayerHelper.deleteFeature(
+        me.selectedFeature,
+        me.source,
+        store.state.userId
+      );
+    }
+
     me.closePopup();
   }
 
-  uploadWaysFeatures() {
-    OlWaysLayerHelper.uploadWaysFeatures(store.state.userId, this.source);
+  /**
+   * Send a request.
+   * @param {requestCallback} onUploadCb - The callback that handles the response.
+   */
+  uploadFeatures(onUploadCb) {
+    editLayerHelper.uploadFeatures(store.state.userId, this.source, onUploadCb);
   }
 
   /**
    * Read or insert deleted feature of the user.
    */
-  readOrInsertDeletedWaysFeatures() {
-    OlWaysLayerHelper.commitDelete("read", store.state.userId);
-  }
-
-  /**
-   * Commit feature  if user selects yes
-   */
-  commitFeature() {
-    const me = this;
-    me.transact();
-    me.closePopup();
+  readOrInsertDeletedFeatures() {
+    editLayerHelper.commitDelete("read", store.state.userId);
   }
 
   /**
@@ -234,6 +210,9 @@ export default class OlEditController extends OlBaseController {
     if (me.popupOverlay) {
       me.popupOverlay.setPosition(undefined);
       me.popup.isVisible = false;
+    }
+    if (me.edit) {
+      me.edit.setActive(true);
     }
     me.highlightSource.clear();
   }
@@ -249,49 +228,67 @@ export default class OlEditController extends OlBaseController {
   /**
    * Transact features to the database using geoserver wfs-t protocol
    */
-  transact() {
+  transact(properties) {
     const me = this;
     const featuresToAdd = [];
     const featuresToUpdate = [];
     const featuresToRemove = [];
 
+    const clonedProperties = Object.assign({}, properties);
+    clonedProperties.userid = store.state.userId;
+    delete clonedProperties["id"];
+
+    const layerName = editLayerHelper.selectedLayer
+      .getSource()
+      .getParams()
+      .LAYERS.split(":")[1];
+    const formatGML = {
+      featureNS: "muc",
+      featureType: `${layerName}_modified`,
+      srsName: "urn:x-ogc:def:crs:EPSG:4326"
+    };
+
     me.featuresToCommit.forEach(feature => {
       const props = feature.getProperties();
-      feature.setProperties({
-        status: null
-      });
-
       //Transform the feature
       const geometry = feature.getGeometry().clone();
       geometry.transform("EPSG:3857", "EPSG:4326");
       const transformed = new Feature({
-        userid: store.state.userId,
-        geom: geometry,
-        class_id: props.class_id || null,
-        status: null
+        geom: geometry
+      });
+      //Assign initial attributes
+      Object.keys(clonedProperties).forEach(key => {
+        let value;
+        if (props[key]) {
+          value = props[key];
+        } else if (clonedProperties[key]) {
+          value = clonedProperties[key];
+        } else {
+          value = null;
+        }
+        transformed.set(key, value);
       });
       transformed.setGeometryName("geom");
 
       if (me.currentInteraction === "draw") {
-        transformed.set("type", OlWaysLayerHelper.selectedWayType);
+        transformed.setProperties(clonedProperties);
       }
-      if (
-        props.type &&
-        props.type !== null &&
-        me.currentInteraction === "modify"
-      ) {
-        props.original_id = null;
-      }
+
       if (
         !props.hasOwnProperty("original_id") &&
         me.currentInteraction === "modify"
       ) {
-        transformed.set("original_id", feature.getProperties().id);
+        transformed.set(
+          "original_id",
+          feature.get("id") ? feature.get("id") : null
+        );
       }
+
       if (
-        (typeof feature.getId() == "undefined" &&
+        (typeof feature.getId() === "undefined" &&
           Object.keys(props).length === 1) ||
-        !props.hasOwnProperty("original_id")
+        (!props.hasOwnProperty("original_id") &&
+          me.currentInteraction === "modify")
       ) {
         featuresToAdd.push(transformed);
         featuresToRemove.push(feature);
@@ -303,13 +300,6 @@ export default class OlEditController extends OlBaseController {
         featuresToUpdate.push(transformed);
       }
     });
-
-    //TODO: Get feature namespace and feature type (layername) dynamically (node env or ol layer object)
-    const formatGML = {
-      featureNS: "muc",
-      featureType: "ways_modified",
-      srsName: "urn:x-ogc:def:crs:EPSG:4326"
-    };
 
     let payload;
     switch (me.currentInteraction) {
@@ -344,6 +334,7 @@ export default class OlEditController extends OlBaseController {
             me.source.removeFeature(featuresToRemove[i]);
             featuresToAdd[i].setId(id);
             featuresToAdd[i].getGeometry().transform("EPSG:4326", "EPSG:3857");
+
             me.source.addFeature(featuresToAdd[i]);
           }
         }
@@ -360,7 +351,7 @@ export default class OlEditController extends OlBaseController {
     const me = this;
     me.popupOverlay = new Overlay({
       element: me.popup.el.$el,
-      autoPan: false,
+      autoPan: true,
       autoPanMargin: 40,
       autoPanAnimation: {
         duration: 250
@@ -400,11 +391,42 @@ export default class OlEditController extends OlBaseController {
     }
   }
 
+  /**
+   * Doesnt clear features
+   */
   clear() {
-    super.clear();
-    const me = this;
-    if (me.highlightSource) {
-      me.highlightSource.clear();
+    if (this.highlightSource) {
+      this.highlightSource.clear();
     }
+    if (this.removeInteraction) {
+      this.removeInteraction();
+    }
+    super.clearOverlays();
+    this.source.getFeatures().forEach(f => {
+      const props = f.getProperties();
+      if (
+        !props.hasOwnProperty("original_id") &&
+        !props.hasOwnProperty("status")
+      ) {
+        this.source.removeFeature(f);
+      }
+
+      //For uploaded restored features.
+      if (props.status === 1 && !props.hasOwnProperty("original_id")) {
+        this.source.removeFeature(f);
+      }
+    });
+  }
+
+  /**
+   * Delete all user scenario features
+   */
+
+  deleteAll() {
+    this.clear();
+    super.clear();
+    //Reset ids of deleted features..
+    editLayerHelper.featuresIDsToDelete = [];
+    editLayerHelper.deletedFeatures = [];
   }
 }

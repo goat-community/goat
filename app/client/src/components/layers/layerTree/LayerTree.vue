@@ -1,8 +1,5 @@
 <template>
   <v-flex xs12 sm8 md4>
-    <v-subheader>
-      <span class="title">{{ $t("layerTree.title") }}</span>
-    </v-subheader>
     <v-divider></v-divider>
 
     <v-expansion-panels accordion multiple>
@@ -37,7 +34,7 @@
               <v-expansion-panel-header
                 expand-icon=""
                 @click="toggleLayerVisibility(item, layerGroup)"
-                v-slot="{ open }"
+                v-slot="{}"
               >
                 <v-layout row class="pl-2" wrap align-center>
                   <v-flex xs2>
@@ -193,16 +190,26 @@ export default {
           layer.mapLayer.setVisible(false);
         });
       }
-      if (
-        clickedLayer.mapLayer.get("requiresPois") === true &&
-        clickedLayer.mapLayer.getVisible() === false &&
-        this.selectedPois.length === 0
-      ) {
+      if (layerGroup.name === "accessbilityBasemaps") {
         this.toggleSnackbar({
           type: "error",
           message: "selectAmenities",
-          state: true
+          state: false,
+          timeout: 0
         });
+      }
+      if (
+        clickedLayer.mapLayer.get("requiresPois") === true &&
+        this.selectedPois.length === 0
+      ) {
+        if (clickedLayer.mapLayer.getVisible() === false) {
+          this.toggleSnackbar({
+            type: "error",
+            message: "selectAmenities",
+            state: true,
+            timeout: 60000
+          });
+        }
       }
       clickedLayer.mapLayer.setVisible(!clickedLayer.mapLayer.getVisible());
       if (clickedLayer.mapLayer.getVisible() === false) {
