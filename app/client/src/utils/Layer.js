@@ -412,10 +412,15 @@ export function mapFeatureTypeProps(props, layerName, layerConf) {
       if (prop.nillable === false) {
         obj.required.push(prop.name);
       }
-      if (layerConf["hiddenProps"].includes(prop.name)) {
+      if (!layerConf) return;
+      if (
+        layerConf["hiddenProps"] &&
+        layerConf["hiddenProps"].includes(prop.name)
+      ) {
         obj.properties[prop.name]["x-display"] = "hidden";
       }
       if (
+        layerConf["listValues"] &&
         layerConf["listValues"][prop.name] &&
         Array.isArray(layerConf["listValues"][prop.name].values)
       ) {

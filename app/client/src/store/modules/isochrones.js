@@ -51,10 +51,12 @@ const state = {
   isochroneLayer: null,
   selectionLayer: null,
   isochroneRoadNetworkLayer: null,
-
   isThematicDataVisible: false,
   selectedThematicData: null,
-  studyAreaLayer: null
+  studyAreaLayer: null,
+
+  // Edit
+  scenarioDataTable: []
 };
 
 const getters = {
@@ -92,6 +94,7 @@ const getters = {
     );
     return calculation ? groupBy(calculation.data, "type") : {};
   },
+  scenarioDataTable: state => state.scenarioDataTable,
   getField
 };
 
