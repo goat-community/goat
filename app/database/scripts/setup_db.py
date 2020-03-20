@@ -19,7 +19,6 @@ def setup_db(setup_type):
 
     db_temp = DB_connection(db_name_temp,user,host)
 
-   
     #Create temporary database
     os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name_temp)
     os.system('psql -U postgres -c "DROP DATABASE IF EXISTS %s;"' % db_name_temp)
@@ -72,7 +71,11 @@ def setup_db(setup_type):
         for file in glob.glob("*.shp"):
             print(file)
             os.system('PGPASSFILE=/.pgpass shp2pgsql -I -s 4326  %s public.%s | PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -q' % (file,file.split('.')[0],db_name_temp,user,host))
-            
+        #Import custom pois
+        if glob.glob('custom_pois/*.geojson'):
+            geojson_to_sql(db_name_temp,user,host,port,password)
+            print('DELETE FROM custom_pois WHERE NOT ST_INTERSECTS(geom,ST_MAKEENVELOPE(%f,%f,%f,%f, 4326))' % (left,bottom,right,top))
+            db_temp.execute_text_psql('DELETE FROM custom_pois WHERE NOT ST_INTERSECTS(geom,ST_MAKEENVELOPE(%f,%f,%f,%f, 4326))' % (left,bottom,right,top))
 
     #Use OSM-Update-Tool in order to fetch the most recent data
     if (osm_data_recency == 'most_recent'):

@@ -22,37 +22,48 @@ INSERT INTO custom_pois_clip
 	SELECT p.* FROM custom_pois p
 	WHERE ST_Intersects((SELECT ST_Buffer(geom::geography, 1000) FROM study_area_union), p.geom);
 
-CREATE OR REPLACE FUNCTION pois_fussion(value integer)
+CREATE OR REPLACE FUNCTION pois_fusion(value integer)
 	RETURNS integer 
 	LANGUAGE plpgsql
 AS $function$
 DECLARE
-	curamenity TEXT;
-	curname TEXT;
-	counter INTEGER := 1;
+	curamenity text;
+	curname text;
+	counter integer := 1;
 	rowrec record;
+	duplicate_gids integer[];
 BEGIN
-	FOR rowrec IN SELECT pt.amenity, pt.name FROM pois_targets pt LOOP
-		curamenity=rowrec.amenity;
+	FOR rowrec IN SELECT DISTINCT lower(stand_name) AS name, lower(amenity) AS amenity FROM custom_pois LOOP
+		curamenity = rowrec.amenity;
 		curname = rowrec.name;
 		
-		-- 01.01. FILTER CASES FOR EACH AMENITY TYPE AND AMENITY NAME IN POIS
+		-- 01.01. CREATE TEMP TABLE FOR ALL POIS THAT ARE MATCHING THE pois_search_condition AND DELETE THOSE FROM POIS
 
-	
 		DROP TABLE IF EXISTS pois_case;
-		CREATE TABLE pois_case (LIKE pois INCLUDING ALL);
-		INSERT INTO pois_case SELECT *
-			FROM pois p WHERE lower(p.amenity) = rowrec.amenity AND lower(p.name) LIKE ANY (SELECT jsonb_array_elements_text((select_from_variable_container_o ->> rowrec.name)::jsonb)
-			FROM select_from_variable_container_o('pois_search_conditions'));
+		CREATE TEMP TABLE pois_case (LIKE pois INCLUDING ALL);
+		INSERT INTO pois_case 
+		SELECT *
+		FROM pois p WHERE lower(p.amenity) = rowrec.amenity 
+		AND lower(p.name) 
+		LIKE ANY (
+			SELECT jsonb_array_elements_text((select_from_variable_container_o ->> rowrec.name)::jsonb)
+			FROM select_from_variable_container_o('pois_search_conditions')
+		);
+		DELETE FROM pois p 
+		WHERE lower(p.amenity) = rowrec.amenity 
+		AND lower(p.name) LIKE ANY (
+			SELECT jsonb_array_elements_text((select_from_variable_container_o ->> rowrec.name)::jsonb)
+			FROM select_from_variable_container_o('pois_search_conditions')
+		);
 		
-		DELETE FROM pois p WHERE lower(p.amenity) = rowrec.amenity AND lower(p.name) LIKE ANY (SELECT jsonb_array_elements_text((select_from_variable_container_o ->> rowrec.name)::jsonb)
-			FROM select_from_variable_container_o('pois_search_conditions'));
-		
--- 01.02. FILTER CASES FOR EACH AMENITY TYPE AND AMENITY NAME IN CUSTOM POIS
+		-- 01.02. FILTER CASES FOR EACH AMENITY TYPE AND AMENITY NAME IN CUSTOM POIS
 		
 		DROP TABLE IF EXISTS cus_pois_clip_case;
-		CREATE TABLE cus_pois_clip_case (LIKE custom_pois_clip INCLUDING ALL);
-		INSERT INTO cus_pois_clip_case SELECT * FROM custom_pois_clip WHERE lower(amenity) = rowrec.amenity AND lower(stand_name) LIKE '%' || rowrec.name ||'%';
+		CREATE TEMP TABLE cus_pois_clip_case (LIKE custom_pois_clip INCLUDING ALL);
+		INSERT INTO cus_pois_clip_case 
+		SELECT * 
+		FROM custom_pois_clip 
+		WHERE lower(amenity) = rowrec.amenity AND lower(stand_name) LIKE '%' || rowrec.name ||'%';
 
 		--02. Data fusion cases
 		--02.01. Case 01: Duplicates in OSM, delete duplicates
@@ -70,6 +81,10 @@ BEGIN
 		ON ST_DWithin( o.geom::geography, p.geom::geography, select_from_variable_container_s('duplicated_lookup_radius')::float)
 		AND NOT ST_DWithin(o.geom, p.geom, 0);
 
+
+		select ARRAY[1,2,3,4,5]
+		into duplicate_gids;
+	
 		--delete duplicates from pois_case
 
 		DELETE FROM pois_case WHERE geom = ANY(

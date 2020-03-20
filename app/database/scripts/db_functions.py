@@ -78,18 +78,16 @@ def update_functions():
         for file in Path(p).glob('*.sql'):
             db.execute_script_psql(file)
 
-def geojson_to_sql():
+def geojson_to_sql(db_name,user,host,port,password):
     import json, glob
-    from geojson import FeatureCollection, Point
-    
+
     def check_valid(attr,keys):
         if attr in keys:
                 o = feature['properties'][attr]
                 if o is not None and o != 'null' and o != 'NULL':
                     x = o.replace("'","''")
                     return x
-    con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s'" % (
-    'goat','goat','5432','localhost','earlmanigault'))
+    con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s'" % (db_name,user,str(port),host,password))
     cursor = con.cursor()
     
     cursor.execute('DROP TABLE IF EXISTS custom_pois;')
@@ -123,8 +121,6 @@ def geojson_to_sql():
         con.commit()
     con.close()
     return sql_bulk
-
-#x = geojson_to_sql()
 
 def find_newest_dump(namespace):
     import os
