@@ -129,7 +129,7 @@ def setup_db(setup_type):
             if os.path.isfile('buildings.shp'):
                 script_buildings = 'buildings_residential_custom.sql'
             else:
-                script_buildings = 'buildings_residential'
+                script_buildings = 'buildings_residential.sql'
 
             if (source_population == 'extrapolation'):
                 db_temp.execute_script_psql('../data_preparation/SQL/'+script_buildings)
