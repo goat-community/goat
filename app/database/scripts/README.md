@@ -11,7 +11,7 @@ Each line is an amenity brand, create one new line for each custom_pois to be up
 ### 3.Install geojson module
 Run in console
 ```
-docker-exec -it goat-database pip3 install geojson
+docker exec -it goat-database pip3 install geojson
 ```
 ### 4.To run the custom pois compilation
 Run in console to standarize the custom_pois database
