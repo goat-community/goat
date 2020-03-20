@@ -246,13 +246,18 @@ export function getIsochroneStyle(styleData, addStyleInCache) {
   return styleFunction;
 }
 
-export function defaultStyle() {
+export function defaultStyle(feature) {
+  const geomType = feature.getGeometry().getType();
   const style = new OlStyle({
     fill: new OlFill({
-      color: [0, 0, 0, 0]
+      color: ["MultiPolygon", "Polygon"].includes(geomType)
+        ? "rgba(255, 0, 0, 0.7)"
+        : [0, 0, 0, 0]
     }),
     stroke: new OlStroke({
-      color: "#707070",
+      color: ["MultiPolygon", "Polygon"].includes(geomType)
+        ? "#FF0000"
+        : "#707070",
       width: 3
     }),
     image: new OlCircle({
@@ -348,7 +353,7 @@ export function editStyleFn() {
     } else if (props.hasOwnProperty("type")) {
       return waysModifiedStyle(feature); //Feature are modified
     } else {
-      return defaultStyle(); //Features are from original table
+      return defaultStyle(feature); //Features are from original table
     }
   };
 
