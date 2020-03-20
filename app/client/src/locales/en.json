@@ -287,7 +287,8 @@
       "uploadScenarioError": "Sorry, an error happened while uploading the features in database.",
       "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features.",
       "cantDeleteAllScenarioFeatures": "Sorry. Scenario data can't be deleted at the moment.",
-      "allScenarioFeaturesDelete": "All Scenario Data is deleted"
+      "allScenarioFeaturesDelete": "All Scenario Data is deleted",
+      "noScenarioFeatureChangeAvailable": "Please do network or land-use change first"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
@@ -295,7 +296,8 @@
       "streetlevelqualityLayers": "Street Level Quality",
       "perceivedQuality": "Perceived Quality",
       "accessbilityBasemaps": "Accessibility",
-      "backgroundLayers": "Background Layers"
+      "backgroundLayers": "Background Layers",
+      "buildings": "Buildings"
     },
     "layerName": {
       "pois": "Point of Interest",
@@ -315,6 +317,7 @@
       "walkability": "Walkability",
       "studyArea": "Study Area",
       "ways": "Ways",
+      "buildings": "Buildings",
       "osmStandard": "OSM Standard",
       "osmLight": "OSM Light",
       "osmDark": "OSM Dark",

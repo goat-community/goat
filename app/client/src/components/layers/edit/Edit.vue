@@ -94,7 +94,10 @@
             </v-btn-toggle>
           </v-flex>
           <v-flex
-            v-if="layerConf[layerName.split(':')[1]].enableFileUpload === true"
+            v-if="
+              layerConf.layerName &&
+                layerConf[layerName.split(':')[1]].enableFileUpload === true
+            "
             xs12
             v-show="selectedLayer != null"
             class="mt-1 pt-0 mb-0"
@@ -329,6 +332,9 @@ import { EventBus } from "../../../EventBus";
 import { Mapable } from "../../../mixins/Mapable";
 import { KeyShortcuts } from "../../../mixins/KeyShortcuts";
 import { InteractionsToggle } from "../../../mixins/InteractionsToggle";
+import { Isochrones } from "../../../mixins/Isochrones";
+import { mapFields } from "vuex-map-fields";
+
 import {
   getAllChildLayers,
   getPoisListValues,
@@ -353,7 +359,7 @@ export default {
     "overlay-popup": OverlayPopup,
     VJsonschemaForm
   },
-  mixins: [InteractionsToggle, Mapable, KeyShortcuts],
+  mixins: [InteractionsToggle, Mapable, KeyShortcuts, Isochrones],
   data: () => ({
     interactionType: "edit-interaction",
     selectedLayer: null,
@@ -400,7 +406,6 @@ export default {
     missingFieldsNames: "",
     //Edit form
     layerConf: {},
-    hiddenProps: ["userid", "id", "original_id", "status"],
     schema: {},
     dataObject: {},
     formValid: false,
@@ -412,7 +417,6 @@ export default {
       select: "pointer"
     },
     //Data table
-    scenarioDataTable: [],
     isTableLoading: false
   }),
   watch: {
@@ -438,10 +442,10 @@ export default {
       }
     },
     scenarioDataTable() {
-      this.canCalculateScenario();
+      this.canCalculateScenario(this.options.calculationModes.active);
     },
-    "options.calculationModes.active": function() {
-      this.canCalculateScenario();
+    "options.calculationModes.active": function(value) {
+      this.canCalculateScenario(value);
     }
   },
   mounted() {
@@ -1036,34 +1040,6 @@ export default {
       }
       this.olEditCtrl.closePopup();
     },
-    canCalculateScenario() {
-      let areAllFeaturesUploaded = true;
-      this.scenarioDataTable.forEach(f => {
-        if (f.status !== "Uploaded") {
-          areAllFeaturesUploaded = false;
-        }
-      });
-
-      if (
-        areAllFeaturesUploaded === false &&
-        ["scenario", "comparison"].includes(
-          this.options.calculationModes.active
-        )
-      ) {
-        //Show snackbar warning that user has features not yet uploaded
-        this.toggleSnackbar({
-          type: "warning", //success or error
-          message: "notAllScnearioFeaturesUploaded",
-          state: true,
-          timeout: 150000
-        });
-      } else {
-        //Hide snackbar.
-        this.toggleSnackbar({
-          state: false
-        });
-      }
-    },
     /**
      * Method called when edit layer source is changed.
      * A debounce is addes to improve performance
@@ -1243,7 +1219,10 @@ export default {
         : `<span></span>`;
     },
     ...mapGetters("user", { userId: "userId" }),
-    ...mapGetters("isochrones", { options: "options" })
+    ...mapGetters("isochrones", { options: "options" }),
+    ...mapFields("isochrones", {
+      scenarioDataTable: "scenarioDataTable"
+    })
   },
   created() {
     this.layerConf = this.$appConfig.layerConf;
