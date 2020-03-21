@@ -339,7 +339,12 @@ export function editStyleFn() {
     if (feature.get("user_uploaded")) {
       return uploadedFeaturesStyle();
     }
+    // Polygon (ex. building) style
+    if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
+      return defaultStyle(feature);
+    }
 
+    // Linestring (ex. ways ) style
     if (
       (props.hasOwnProperty("type") && props["original_id"] == null) ||
       Object.keys(props).length == 1

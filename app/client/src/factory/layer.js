@@ -80,6 +80,7 @@ export const LayerFactory = {
       editGeometry: lConf.editGeometry,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
+      displayInLegend: lConf.displayInLegend,
       visible: lConf.visible,
       opacity: lConf.opacity,
       queryable: lConf.queryable,

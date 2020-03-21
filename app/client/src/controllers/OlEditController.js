@@ -151,11 +151,10 @@ export default class OlEditController extends OlBaseController {
     me.selectedFeature = feature;
     if (feature) {
       const geometry = feature.getGeometry();
-      const featureCoordinates = geometry.getCoordinates();
-      const popupCoordinate =
-        geometry.getType() === "Point"
-          ? featureCoordinates
-          : featureCoordinates[0];
+      let popupCoordinate = geometry.getCoordinates();
+      while (popupCoordinate && Array.isArray(popupCoordinate[0])) {
+        popupCoordinate = popupCoordinate[0];
+      }
       me.map.getView().animate({
         center: popupCoordinate,
         duration: 400

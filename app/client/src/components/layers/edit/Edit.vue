@@ -729,6 +729,7 @@ export default {
      */
     onDrawEnd(evt) {
       const feature = evt.feature;
+      console.log(feature.getGeometry().getCoordinates());
       this.olEditCtrl.closePopup();
       this.clearDataObject();
       //Disable interaction until user fills the attributes for the feature and closes the popup
@@ -737,10 +738,10 @@ export default {
       }
       this.olEditCtrl.featuresToCommit.push(feature);
       this.olEditCtrl.highlightSource.addFeature(feature);
-      const featureCoordinates = feature.getGeometry().getCoordinates();
-      const popupCoordinate = Array.isArray(featureCoordinates[0])
-        ? featureCoordinates[0]
-        : featureCoordinates;
+      let popupCoordinate = feature.getGeometry().getCoordinates();
+      while (popupCoordinate && Array.isArray(popupCoordinate[0])) {
+        popupCoordinate = popupCoordinate[0];
+      }
       this.map.getView().animate({
         center: popupCoordinate,
         duration: 400
@@ -769,7 +770,7 @@ export default {
           me.olEditCtrl.featuresToCommit[index] = evt.feature;
         }
       }
-      if (evt.feature.get("layerName") === "pois") {
+      if (["pois", "buildings"].includes(evt.feature.get("layerName"))) {
         evt.feature.set("status", 1);
       }
     },
