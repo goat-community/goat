@@ -75,7 +75,7 @@
         "visible": false,
         "canEdit": true,
         "editDataType": "GeoJSON",
-        "editGeometry": "Polygon",
+        "editGeometry": "MultiPolygon",
         "displayInLayerList": true,
         "zIndex": 3,
         "serverType": "geoserver"
@@ -94,6 +94,7 @@
         "editDataType": "GeoJSON",
         "editGeometry": "Point",
         "displayInLayerList": true,
+        "displayInLegend": false,
         "requiresPois": true,
         "zIndex": 7,
         "serverType": "geoserver"
@@ -863,7 +864,14 @@
     "buildings": {
       "listValues": {},
       "enableFileUpload": false,
-      "hiddenProps": []
+      "hiddenProps": [
+        "gid",
+        "userid",
+        "id",
+        "original_id",
+        "status",
+        "class_id"
+      ]
     }
   }
 }

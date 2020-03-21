@@ -508,6 +508,10 @@
         "amenity": "Amenity",
         "name": "Name (Optional)",
         "opening_hours": "Opening Hours (Optional)"
+      },
+      "buildings": {
+        "building_levels": "Building Levels",
+        "building_type": "Building Type"
       }
     },
     "listValues": {
