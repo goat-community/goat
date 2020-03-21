@@ -342,14 +342,14 @@ wheelchair_classified  = w.wheelchair_classified
 FROM ways_attributes w
 WHERE v.id = w.id;
 
+
+ALTER TABLE ways ADD COLUMN slope_profile jsonb[];
+ALTER TABLE ways ADD COLUMN s_imp NUMERIC;
+ALTER TABLE ways ADD COLUMN rs_imp NUMERIC;
 --Add slope_profile for ways
 DO $$
 BEGIN 
 	IF to_regclass('public.dem_vec') IS NOT NULL THEN 
-		ALTER TABLE ways ADD COLUMN slope_profile jsonb[];
-		ALTER TABLE ways ADD COLUMN s_imp NUMERIC;
-		ALTER TABLE ways ADD COLUMN rs_imp NUMERIC;
-	
 		CREATE TEMP TABLE temp_slopes AS
 		WITH x AS (
 			SELECT compute_ways_slope_bulk(10000) AS slope_json
