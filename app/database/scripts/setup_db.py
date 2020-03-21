@@ -110,7 +110,7 @@ def setup_db(setup_type):
 
     #Create tables and types
     db_temp.execute_script_psql('/opt/data_preparation/SQL/create_tables.sql')
-    db_temp.execute_text_psql(create_variable_container())
+    create_variable_container(db_name_temp,user,str(port),host,password)
     db_temp.execute_script_psql('/opt/data_preparation/SQL/types.sql')
     #Create functions that are needed for data_preparation
     db_temp.execute_script_psql('/opt/database_functions/other/select_from_variable_container.sql')
