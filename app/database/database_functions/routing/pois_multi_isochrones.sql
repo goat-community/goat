@@ -58,7 +58,7 @@ DECLARE
 	-- Exclude POIs that are not accessible due to opening_hours if provided by the user
 	/*IF d <> 9999 AND h <> 9999 AND m <> 9999 THEN 
 			DROP TABLE IF EXISTS pois_closed;
-            CREATE TEMP TABLE pois_closed AS -- alles auskomment.
+            CREATE TEMP TABLE pois_closed AS 
 			SELECT gid  
             FROM pois_userinput p
             WHERE p.amenity IN(SELECT unnest(amenities))
