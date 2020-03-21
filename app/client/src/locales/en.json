@@ -103,6 +103,7 @@
       "drawFeatureTooltip": "Draw Feature",
       "modifyFeatureTooltip": "Modify Feature",
       "deleteFeature": "Delete Feature",
+      "moveFeature": "Move Feature",
       "clearBtn": "Revert All",
       "uploadBtn": "Upload",
       "popup": {
@@ -338,6 +339,7 @@
       "clickToStartDrawingCircle": "Click to start drawing the circle (Max Radius 1000 m). <br> Press ESC to exit",
       "clickToFinishDrawingPolygon": "Double-click or click starting point to finish.",
       "clickOnFeatureToDelete": "Click on feature to delete it",
+      "clickOnFeatureToMove": "Click and drag the feature to move",
       "clickAndDragToModify": "Click and drag the features to modify",
       "clickToRemove": "Click to remove it",
       "clickToPlacePoint": "Click to place the point",

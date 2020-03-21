@@ -91,6 +91,17 @@
                 </template>
                 <span>{{ $t("appBar.edit.deleteFeature") }}</span>
               </v-tooltip>
+              <v-tooltip
+                top
+                v-if="selectedLayer.get('editGeometry') !== 'Point'"
+              >
+                <template v-slot:activator="{ on }">
+                  <v-btn v-on="on" text>
+                    <v-icon>far fa-clone</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.moveFeature") }}</span>
+              </v-tooltip>
             </v-btn-toggle>
           </v-flex>
           <v-flex
@@ -414,7 +425,8 @@ export default {
       add: "crosshair",
       modify: "pointer",
       delete: "pointer",
-      select: "pointer"
+      select: "pointer",
+      move: "auto"
     },
     //Data table
     isTableLoading: false
@@ -663,6 +675,11 @@ export default {
         case 2:
           editType = "delete";
           break;
+        case 3:
+          editType = "move";
+          startCb = this.onModifyStart;
+          endCb = this.onModifyEnd;
+          break;
         default:
           break;
       }
@@ -760,7 +777,7 @@ export default {
       const me = this;
       //Exclude features from file input as we add this feature later when user click upload button
       if (evt.feature.get("user_uploaded")) return;
-      if (me.olEditCtrl.currentInteraction === "modify") {
+      if (["modify", "move"].includes(me.olEditCtrl.currentInteraction)) {
         const index = me.olEditCtrl.featuresToCommit.findIndex(
           i => i.ol_uid === evt.feature.ol_uid
         );
