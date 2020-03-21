@@ -199,6 +199,7 @@
             "routingProfile": "Routing Profil",
             "walking_standard": "Standard",
             "walking_elderly": "Senior",
+            "walking_safe_night": "Safe night",
             "walking_wheelchair": "Rollstuhl",
             "cycling_standard": "Standard",
             "cycling_pedelec": "Pedelec"
