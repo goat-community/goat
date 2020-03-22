@@ -27,8 +27,8 @@
       </template>
       <template v-if="!mini">
         <v-app-bar flat class="toolbar green" height="50">
-          <img :src="logo" width="40px" />
-          <v-toolbar-title class="white--text">GOAT</v-toolbar-title>
+          <img :src="logo" width="35px" />
+          <img :src="logoText" class="pt-1" width="95px" />
           <v-spacer></v-spacer>
           <v-btn text icon light @click.stop="mini = !mini">
             <v-icon color="white">fas fa-chevron-left</v-icon>
@@ -95,6 +95,7 @@ export default {
   data: () => ({
     activeComponent: "map-isochrones",
     logo: "img/logo.png",
+    logoText: "img/logo_text.png",
     drawer: true,
     mini: false,
     responsive: false
