@@ -23,6 +23,7 @@
 
 <script>
 import Vue from "vue";
+
 import { EventBus } from "./EventBus.js";
 
 import appSidebar from "./components/core/SideDrawer";
@@ -30,6 +31,8 @@ import treePanel from "./components/core/TreePanel";
 import Snackbar from "./components/other/Snackbar";
 import Viewer from "./components/viewer/viewer";
 import { mapMutations } from "vuex";
+
+import "@/globalComponents";
 
 export default {
   name: "wg-app",
