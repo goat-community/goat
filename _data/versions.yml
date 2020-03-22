@@ -10,6 +10,12 @@
           contains first approaches of cycling routing and land-use changes.
   url: https://development.open-accessibility.org/
 
+- title: hasenbergl
+  print: Hasenbergl-Lerchenau
+  text:  This version was developed within a master thesis project
+          and contains detailed analysis options on walkability.
+  url: https://hasenbergl.open-accessibility.org/
+
 - title: matosinhos
   print: Matosinhos
   text:  GOAT was transferred to Matosinhos in Portugal in a student project. We plan to keep this version online for some months.
