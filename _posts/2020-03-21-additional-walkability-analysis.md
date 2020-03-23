@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Four accessibility components"
+title:  "Additional walkability analysis"
 author: Ulrike Jehle
 ---
 
