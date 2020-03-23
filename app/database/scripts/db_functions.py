@@ -36,7 +36,13 @@ class DB_connection:
         self.db_name,self.user,port,self.host,password))
         return con.cursor()
 
-def create_variable_container():
+def create_variable_container(db_name,user,port,host,password):
+    import json 
+    import psycopg2
+
+    con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s'" % (db_name,user,str(port),host,password))
+    cursor = con.cursor()
+
     sql_create_table = '''DROP TABLE IF EXISTS variable_container;
     CREATE TABLE public.variable_container (
 	identifier varchar(100) NOT NULL,
@@ -46,27 +52,22 @@ def create_variable_container():
 	CONSTRAINT variable_container_pkey PRIMARY KEY (identifier)
     );'''
     variable_object = ReadYAML().data_refinement()['variable_container']
-    sql_simple = "INSERT INTO variable_container(identifier,variable_simple) VALUES('%s',%s);"
-    sql_array = "INSERT INTO variable_container(identifier,variable_array) VALUES('%s',ARRAY%s);"
-    sql_object = "INSERT INTO  variable_container(identifier,variable_object) SELECT '%s', jsonb_build_object(%s);"
+    sql_simple = "INSERT INTO variable_container(identifier,variable_simple) VALUES('%s',%s);\n"
+    sql_array = "INSERT INTO variable_container(identifier,variable_array) VALUES('%s',ARRAY%s);\n"
     sql_insert=''
+
+    cursor.execute(sql_create_table)
+    con.commit()
     for i in variable_object.keys():
         v = variable_object[i] 
         if isinstance(v,str):
-            sql_insert = sql_insert + (sql_simple % (i,v))
+            sql_insert = sql_simple % (i,v)
         elif isinstance(v,list):
-            sql_insert = sql_insert + (sql_array % (i,v))
+            sql_insert = sql_array % (i,v)
         elif isinstance(v,object):
-            objs = ''
-            for k in v.keys():
-                if isinstance(v[k],list):
-                    objs = objs+ ",'%s', ARRAY%s" % (k,v[k])
-                elif isinstance(v[k],object):
-                    objs = objs + ",'%s','%s'" % (k,v[k])
-            sql_insert = sql_insert + sql_object % (i,objs[1:])
-                
-    return sql_create_table + sql_insert
-
+            sql_insert = "INSERT INTO variable_container (identifier,variable_object) VALUES ( '{0}','{1}' );\n".format(i,json.dumps(v).strip())
+        cursor.execute(sql_insert)
+    con.commit()
 
 def update_functions():
     from pathlib import Path
