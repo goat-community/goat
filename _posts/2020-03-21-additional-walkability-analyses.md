@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Additional walkability analysis"
+title:  "Additional walkability analyses"
 author: Ulrike Jehle
 ---
 
