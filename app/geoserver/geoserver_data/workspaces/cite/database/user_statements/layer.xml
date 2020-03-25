@@ -1,0 +1,15 @@
+  <layer>
+  <name>user_statements</name>
+  <id>LayerInfoImpl--ea61fe0:16f51d9a2f4:-501a</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--ea61fe0:16f51d9a2f4:-382d</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--ea61fe0:16f51d9a2f4:-501b</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

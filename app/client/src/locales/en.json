@@ -103,6 +103,7 @@
       "drawFeatureTooltip": "Draw Feature",
       "modifyFeatureTooltip": "Modify Feature",
       "deleteFeature": "Delete Feature",
+      "moveFeature": "Move Feature",
       "clearBtn": "Revert All",
       "uploadBtn": "Upload",
       "popup": {
@@ -199,6 +200,7 @@
       "routingProfile": "Routing Profile",
       "walking_standard": "Standard",
       "walking_elderly": "Elderly",
+      "walking_safe_night": "Safe night",
       "walking_wheelchair": "Wheelchair",
       "cycling_standard": "Standard",
       "cycling_pedelec": "Pedelec"
@@ -287,7 +289,8 @@
       "uploadScenarioError": "Sorry, an error happened while uploading the features in database.",
       "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features.",
       "cantDeleteAllScenarioFeatures": "Sorry. Scenario data can't be deleted at the moment.",
-      "allScenarioFeaturesDelete": "All Scenario Data is deleted"
+      "allScenarioFeaturesDelete": "All Scenario Data is deleted",
+      "noScenarioFeatureChangeAvailable": "Please do network or land-use change first"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
@@ -295,7 +298,8 @@
       "streetlevelqualityLayers": "Street Level Quality",
       "perceivedQuality": "Perceived Quality",
       "accessbilityBasemaps": "Accessibility",
-      "backgroundLayers": "Background Layers"
+      "backgroundLayers": "Background Layers",
+      "buildings": "Buildings"
     },
     "layerName": {
       "pois": "Point of Interest",
@@ -317,6 +321,7 @@
       "walkability": "Walkability",
       "studyArea": "Study Area",
       "ways": "Ways",
+      "buildings": "Buildings",
       "osmStandard": "OSM Standard",
       "osmLight": "OSM Light",
       "osmDark": "OSM Dark",
@@ -336,6 +341,7 @@
       "clickToStartDrawingCircle": "Click to start drawing the circle (Max Radius 1000 m). <br> Press ESC to exit",
       "clickToFinishDrawingPolygon": "Double-click or click starting point to finish.",
       "clickOnFeatureToDelete": "Click on feature to delete it",
+      "clickOnFeatureToMove": "Click and drag the feature to move",
       "clickAndDragToModify": "Click and drag the features to modify",
       "clickToRemove": "Click to remove it",
       "clickToPlacePoint": "Click to place the point",
@@ -389,6 +395,11 @@
     "layerListValues": {
       "road": "Road",
       "bridge": "Bridge"
+    },
+    "contextMenu": {
+      "deleteIsochrone": "Delete Isochrone",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out"
     }
   },
   "pois": {
@@ -502,6 +513,10 @@
         "amenity": "Amenity",
         "name": "Name (Optional)",
         "opening_hours": "Opening Hours (Optional)"
+      },
+      "buildings": {
+        "building_levels": "Building Levels",
+        "building_type": "Building Type"
       }
     },
     "listValues": {
