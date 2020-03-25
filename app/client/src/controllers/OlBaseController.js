@@ -59,8 +59,9 @@ export default class OlBaseController {
 
     me.map.addLayer(vector);
 
-    // make vector source available as member
+    // make vector source and layer available as member
     me.source = source;
+    me.layer = vector;
   }
 
   /**

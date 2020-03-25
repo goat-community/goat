@@ -66,6 +66,22 @@
       },
       {
         "type": "WMS",
+        "name": "buildings",
+        "group": "buildings",
+        "url": "/geoserver/wms",
+        "layers": "cite:buildings",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": true,
+        "editDataType": "GeoJSON",
+        "editGeometry": "MultiPolygon",
+        "displayInLayerList": true,
+        "zIndex": 3,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "pois",
         "url": "/geoserver/wms",
         "group": "poisLayers",
@@ -78,6 +94,7 @@
         "editDataType": "GeoJSON",
         "editGeometry": "Point",
         "displayInLayerList": true,
+        "displayInLegend": false,
         "requiresPois": true,
         "zIndex": 7,
         "serverType": "geoserver"
@@ -842,6 +859,18 @@
         "status",
         "wheelchair",
         "opening_hours"
+      ]
+    },
+    "buildings": {
+      "listValues": {},
+      "enableFileUpload": false,
+      "hiddenProps": [
+        "gid",
+        "userid",
+        "id",
+        "original_id",
+        "status",
+        "class_id"
       ]
     }
   }
