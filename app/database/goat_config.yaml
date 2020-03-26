@@ -80,6 +80,7 @@ DATA_REFINEMENT_VARIABLES:
         "museum",
         "hostel",
         "guest_house",
+        "playground",
         "viewpoint",
         "gallery",
         "bus_stop",
