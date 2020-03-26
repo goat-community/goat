@@ -685,6 +685,13 @@
               "icon": "guest_house",
               "weight": 1,
               "sensitivity": -0.003
+            },
+            {
+              "name": "Playground",
+              "value": "playground",
+              "icon": "playground",
+              "weight": 1,
+              "sensitivity": -0.003
             }
           ]
         }
