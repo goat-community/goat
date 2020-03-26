@@ -490,6 +490,7 @@
     "gallery": "Galerie",
     "university": "Universität",
     "hospital": "Krankenhaus",
+    "playground": "Spielplatz",
     "population": "Bevölkerung"
   },
   "$vuetify": {
