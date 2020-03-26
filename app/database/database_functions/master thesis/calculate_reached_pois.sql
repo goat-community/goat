@@ -10,15 +10,11 @@ DECLARE
 	counter integer := 1;
 BEGIN 
 	
-	EXECUTE format('DROP TABLE IF EXISTS '||reached_pois_table||';');
-	EXECUTE format('CREATE TABLE '||reached_pois_table||'(cell_id int, object_id int, cost numeric, user_id int, scenario int, amenity text);');
-		
-	
 	FOREACH id_calc IN ARRAY ids_calc
 	LOOP 
 		
 		EXECUTE format('
-			INSERT INTO '||reached_pois_table||' (SELECT closest_pois.cell_id AS cell_id, closest_pois.object_id as object_id, closest_pois.reached_cost AS cost, null, 0, closest_pois.amenity as amenity
+			INSERT INTO '||reached_pois_table||' (SELECT closest_pois.cell_id AS cell_id, closest_pois.object_id as object_id, closest_pois.reached_cost AS cost, closest_pois.amenity as amenity, NULL, 0
 			FROM (
 				SELECT * FROM closest_reached_pois(0.0009, '||id_calc||')
 			) AS closest_pois )'
@@ -36,11 +32,11 @@ DROP TABLE reached_points;
 CREATE TABLE reached_points AS SELECT * FROM reached_pois_test;
 
 
-
+DELETE FROM reached_points;
 WITH grid_ids AS (
-	SELECT array_agg(grid_id) AS ids FROM grid_500
+	SELECT array_agg(grid_id) AS ids FROM grid_500 WHERE grid_id >= 100
 )
-SELECT CalculateReachedPOIs('reached_pois_test', ids) FROM grid_ids
+SELECT CalculateReachedPOIs('reached_points', ids) FROM grid_ids
        
 
 

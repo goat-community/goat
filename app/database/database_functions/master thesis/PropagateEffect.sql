@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS PropagateInsert;
-CREATE FUNCTION PropagateInsert(poi_id int, user_id int) RETURNS void AS
+CREATE FUNCTION PropagateInsert(poi_id int, user_id int, amenity TEXT) RETURNS void AS
 $BODY$
 DECLARE
 	insert_buffer geometry;
@@ -12,9 +12,6 @@ BEGIN
 		FROM pois_userinput
 		WHERE gid = poi_id;
 	
-	-- mark cells that need updating
-	UPDATE grid_500 SET dirty = TRUE
-   	WHERE st_contains(insert_buffer, grid_500.geom);
    
     -- will be used for routing to get the cost from cells to new point
     network_chunk_query = fetch_ways_routing_text(st_astext(insert_buffer), 1, 1, 'walking_standard');
@@ -41,9 +38,9 @@ BEGIN
 	  		(
 	  			SELECT geom, id
 	   			FROM ways_vertices_pgr w
-				WHERE w.geom && ST_Buffer(g.centroid,0.002) AND g.dirty = TRUE AND (NOT foot && ARRAY['use_sidepath','no'] OR foot IS NULL)
+				WHERE w.geom && ST_Buffer(st_centroid(g.geom),0.002) AND st_contains(insert_buffer, g.geom) AND (NOT foot && ARRAY['use_sidepath','no'] OR foot IS NULL)
 	   			ORDER BY
-	    		g.centroid <-> w.geom
+	    		st_centroid(g.geom) <-> w.geom
 	   			LIMIT 1
 	   		) AS vertices
 		) AS source_nodes
@@ -63,8 +60,8 @@ BEGIN
 	-- insert rows into reached points. Group by source nodes, because one route from a source node consists of multiple segments (a route is a sequence of traversed nodes with individual costs)
 	-- there is an index on cell_id and object id. 
 	--TODO: update cost on conflict -- actually there shouldn't be conflicts when inserting a poi in the frontend
-	INSERT INTO reached_points (cost, cell_id, object_id, user_id, scenario)
-	SELECT sum(cost) AS cost, source_ids AS cell_id, target_id AS object_id, PropagateInsert.user_id AS user_id, 1 AS scenario
+	INSERT INTO reached_points (cost, cell_id, object_id, user_id, scenario, amenity)
+	SELECT sum(cost) AS cost, source_ids AS cell_id, target_id AS object_id, PropagateInsert.user_id AS user_id, 1 AS scenario, PropagateInsert.amenity AS amenity
 	FROM routes
 	GROUP BY source_nodes, source_ids, target_id;
 
@@ -88,9 +85,6 @@ BEGIN
 	WHERE cell_id = grid_id;
    */
    
-	-- cells are done updating, unmark them
-	UPDATE grid_500 SET dirty = FALSE
-	WHERE dirty = TRUE;
 
     return;
 END;

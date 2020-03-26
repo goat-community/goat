@@ -1,4 +1,3 @@
-DELETE FROM edges
 
 DROP FUNCTION insert_pois_userinput CASCADE;
 CREATE OR REPLACE FUNCTION public.insert_pois_userinput() 
@@ -10,7 +9,7 @@ BEGIN
 	INSERT INTO pois_userinput(name,amenity,opening_hours,geom,userid,wheelchair,pois_modified_id)	
 	VALUES(NEW.name, NEW.amenity, NEW.opening_hours,NEW.geom,NEW.userid,NEW.wheelchair,NEW.id);
 	
-	PERFORM PropagateInsert(pois_userinput.gid)
+	PERFORM PropagateInsert(pois_userinput.gid, NEW.userid, NEW.amenity)
 	FROM pois_userinput
 	WHERE pois_modified_id = NEW.id;
 	--0.01126126
@@ -28,7 +27,7 @@ BEGIN																						--new.id = 226
 	
 	INSERT INTO pois_userinput(name,amenity,opening_hours,geom,userid,wheelchair,pois_modified_id)	
 	VALUES(NEW.name, NEW.amenity, NEW.opening_hours,NEW.geom,NEW.userid,NEW.wheelchair,NEW.id);
-	PERFORM PropagateInsert(pois_userinput.gid)
+	PERFORM PropagateInsert(pois_userinput.gid, NEW.userid, NEW.amenity)
 	FROM pois_userinput
 	WHERE pois_modified_id = NEW.id;
 	RETURN NEW; 
