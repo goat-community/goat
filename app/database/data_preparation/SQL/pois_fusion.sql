@@ -8,16 +8,41 @@ ALTER TABLE custom_pois
 	geometry(point, 4326)
 	USING ST_Transform(geom,4326);
 
-CREATE OR REPLACE FUNCTION pois_fusion(value integer)
-	RETURNS integer 
+CREATE OR REPLACE FUNCTION clean_duplicated_pois(table_name text)
+	RETURNS void
+	LANGUAGE plpgsql
+AS $function$
+DECLARE
+	radius text := 'duplicated_lookup_radius';
+BEGIN
+	DROP TABLE IF EXISTS pois_duplicated;
+	EXECUTE 'CREATE TEMP TABLE pois_duplicated (LIKE '|| quote_ident(table_name) ||' INCLUDING ALL)';
+	ALTER TABLE pois_duplicated ADD distance real;
+	EXECUTE 'INSERT INTO pois_duplicated 
+			SELECT o.*, ST_Distance(o.geom,p.geom) AS distance
+			FROM '|| quote_ident(table_name) ||' o
+			JOIN '|| quote_ident(table_name) ||' p
+			ON ST_DWithin( o.geom::geography, p.geom::geography, select_from_variable_container_s('|| quote_literal('duplicated_lookup_radius') ||')::float)
+			AND NOT ST_DWithin(o.geom, p.geom, 0)';
+	DELETE FROM
+			pois_duplicated a
+			USING pois_duplicated b
+		WHERE
+			a.gid > b.gid
+			AND a.distance = b.distance;
+	EXECUTE 'DELETE FROM '||quote_ident(table_name)||' WHERE gid = ANY (SELECT gid FROM pois_duplicated)';
+END;
+$function$
+
+CREATE OR REPLACE FUNCTION pois_fusion()
+	RETURNS void 
 	LANGUAGE plpgsql
 AS $function$
 DECLARE
 	curamenity text;
 	curname text;
-	counter integer := 1;
+	dummie TEXT;
 	rowrec record;
-	duplicate_gids integer[];
 BEGIN
 	FOR rowrec IN SELECT DISTINCT lower(stand_name) AS name, lower(amenity) AS amenity FROM custom_pois LOOP
 		curamenity = rowrec.amenity;
@@ -28,7 +53,7 @@ BEGIN
 		DROP TABLE IF EXISTS pois_case;
 		CREATE TEMP TABLE pois_case (LIKE pois INCLUDING ALL);
 		INSERT INTO pois_case 
-		SELECT *
+		SELECT *		
 		FROM pois p WHERE lower(p.amenity) = rowrec.amenity 
 		AND lower(p.name) 
 		LIKE ANY (
@@ -51,64 +76,17 @@ BEGIN
 		SELECT * 
 		FROM custom_pois 
 		WHERE lower(amenity) = rowrec.amenity AND lower(stand_name) LIKE '%' || rowrec.name ||'%';
-
 		--02. Data fusion cases
 		--02.01. Case 01: Duplicates in OSM, delete duplicates
 		--locate and extract duplicates from pois_case
-		
-		DROP TABLE IF EXISTS pois_case_00_duplicates;
-		CREATE TEMP TABLE pois_case_00_duplicates (LIKE pois_case INCLUDING ALL);
-		ALTER TABLE pois_case_00_duplicates ADD osm_id_2 bigint;
-		ALTER TABLE pois_case_00_duplicates ADD distance real;
-	
-		INSERT INTO pois_case_00_duplicates 
-		SELECT o.*, p.osm_id,
-			ST_Distance(o.geom,p.geom) AS distance
-		FROM pois_case o
-		JOIN pois_case p
-		ON ST_DWithin( o.geom::geography, p.geom::geography, select_from_variable_container_s('duplicated_lookup_radius')::float)
-		AND NOT ST_DWithin(o.geom, p.geom, 0);
 
-		-- Delete cases where st_distance = duplicate
-		
-		DELETE FROM
-			pois_case_00_duplicates a
-		USING pois_case_00_duplicates b
-		WHERE
-			a.osm_id > b.osm_id
-			AND a.distance = b.distance;
-	
-		-- Delete duplicated register in pois_case
-		
-		DELETE FROM pois_case WHERE gid = ANY (SELECT gid FROM pois_case_00_duplicates);
+		PERFORM clean_duplicated_pois('pois_case');
 
 		--02.02. Case 02: Duplicates in custom pois, delete duplicates 
 		--locate and extract duplicates from cus_pois_case
---check join		
-		DROP TABLE IF EXISTS cus_pois_c00_duplicate;
-		CREATE TEMP TABLE cus_pois_c00_duplicate (LIKE cus_pois_case INCLUDING ALL);
-		ALTER TABLE cus_pois_c00_duplicate ADD distance real;
-		INSERT INTO cus_pois_c00_duplicate 
-		SELECT o.* AS source_id,
-			ST_Distance(o.geom,p.geom) AS distance
-		FROM cus_pois_case o
-		JOIN cus_pois_case p
-		ON ST_DWithin( o.geom::geography, p.geom::geography, select_from_variable_container_s('duplicated_lookup_radius')::float)
-		AND NOT ST_DWithin(o.geom, p.geom, 0);
---check join
-		-- Delete cases where st_distance = duplicate
-		
-		DELETE FROM
-			cus_pois_c00_duplicate a
-			USING cus_pois_c00_duplicate b
-		WHERE
-			a.gid > b.gid
-			AND a.distance = b.distance;
-		ALTER TABLE cus_pois_c00_duplicate DROP COLUMN distance;
-		
-		-- Delete duplicated register in cus_pois_case
-		DELETE FROM cus_pois_case WHERE gid = ANY (SELECT gid FROM cus_pois_c00_duplicate);
-	
+
+		PERFORM clean_duplicated_pois('cus_pois_case');		
+
 		--02.03. Case 03: Join opening hours from custom to osm
 			
 		DROP TABLE IF EXISTS pois_case_op_hours;
@@ -128,7 +106,6 @@ BEGIN
 
 		UPDATE pois_case_op_hours SET opening_hours = opening_hours_custom
 		WHERE opening_hours IS NULL AND opening_hours_custom <>'None';
--- Improve this section
 		
 		DROP TABLE IF EXISTS pois_case;
 		CREATE TABLE pois_case (LIKE pois_case_op_hours INCLUDING ALL);
@@ -136,7 +113,6 @@ BEGIN
 		INSERT INTO pois_case
 		SELECT * FROM pois_case_op_hours;
 	
--- end improve
 		--02.04. Case 2: Add new points from custom_pois to OSM	
 		DROP TABLE IF EXISTS custom_new_pois;
 		CREATE TEMP TABLE custom_new_pois (LIKE cus_pois_case INCLUDING ALL);
@@ -158,28 +134,8 @@ BEGIN
 		INSERT INTO pois (osm_id , origin_geometry,"access", housenumber, amenity, origin , organic ,denomination ,brand ,"name" ,"operator" , public_transport, railway, religion, opening_hours,"ref", tags, geom, wheelchair )
 		SELECT osm_id , origin_geometry,"access", housenumber, amenity, origin , organic ,denomination ,brand ,"name" ,"operator" , public_transport, railway, religion, opening_hours,"ref", tags, geom, wheelchair
 		FROM pois_case;
-
 	END LOOP;
-RETURN counter;
 END;
 $function$
 
-SELECT pois_fusion(1);
-SELECT count(gid) AS counter FROM pois;
-
---SELECT * FROM pois_case;
---DROP TABLE IF EXISTS pois_targets;
-
---Restore
---DELETE FROM pois;
-
---INSERT INTO pois 
---SELECT * FROM pois_backup;
-
---
--- Backup
---CREATE TABLE pois_backup (LIKE pois INCLUDING all);
-
---INSERT INTO pois_backup
---SELECT * FROM pois;
---SELECT count(gid) FROM pois_backup;
+SELECT pois_fusion();
