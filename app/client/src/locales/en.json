@@ -464,6 +464,7 @@
     "gallery": "Gallery",
     "university": "University",
     "hospital": "Hospital",
+    "playground": "Playground",
     "population": "Population"
   },
   "$vuetify": {
