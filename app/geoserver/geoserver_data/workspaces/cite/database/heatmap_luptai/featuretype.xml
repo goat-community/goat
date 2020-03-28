@@ -41,7 +41,7 @@
       <virtualTable>
         <name>heatmap_population</name>
         <sql>WITH x AS (&#xd;
-	SELECT * FROM heatmap(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;))&#xd;
+	SELECT * FROM heatmap2(%userid%)&#xd;
 ),&#xd;
 y as (&#xd;
 	SELECT x.grid_id,x.accessibility_index,x.geom, ntile(5) over &#xd;
@@ -66,8 +66,8 @@ ON g.grid_id = y.grid_id
           <srid>-1</srid>
         </geometry>
         <parameter>
-          <name>amenities</name>
-          <defaultValue>&apos;W3siJ2tpbmRlcmdhcnRlbiciOjF9XQ==&apos;</defaultValue>
+          <name>userid</name>
+          <defaultValue>1</defaultValue>
         </parameter>
       </virtualTable>
     </entry>
