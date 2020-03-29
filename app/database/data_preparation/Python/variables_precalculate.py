@@ -15,9 +15,6 @@ prepare_tables = '''select * from hexagrid(grid_size);
     ALTER TABLE grid_grid_size add column area_isochrone float8;
     ALTER TABLE grid_grid_size ADD COLUMN pois jsonb;
 	ALTER TABLE grid_grid_size ADD COLUMN iso_geom geometry; 
-	UPDATE grid_grid_size SET iso_geom = i.geom
-	FROM isochrones i 
-	WHERE grid_id = i.objectid;
 	'''
 
 
@@ -73,4 +70,7 @@ WHERE grid_grid_size.grid_id = p.grid_id;
 UPDATE grid_grid_size SET percentile_area_isochrone = 0
 WHERE percentile_area_isochrone IS NULL;
 
+UPDATE grid_grid_size SET iso_geom = i.geom
+FROM isochrones i 
+WHERE grid_id = i.objectid;
 '''

@@ -9,10 +9,10 @@ import yaml
 step = 150
 #Grid size defines the size of each grid
 grid_size = 500
-beta = -0.003
+
 grid = 'grid_'+str(500)
 
-sensitivities = [-0.004,-0.0035,-0.003,-0.0025,-0.002,-0.0015,-0.001]
+sensitivities = [150000,200000,250000,300000,350000,400000,450000]
 
 start = time.time()
 with open("/opt/config/goat_config.yaml", 'r') as stream:
@@ -30,7 +30,7 @@ con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s
 cursor = con.cursor()
 
 
-cursor.execute(prepare_tables.replace('grid_size', str(grid_size)))
+#cursor.execute(prepare_tables.replace('grid_size', str(grid_size)))
 
 sql_ordered_grid = '''DROP TABLE IF EXISTS grid_ordered;
 CREATE temp TABLE grid_ordered AS 
@@ -52,7 +52,7 @@ count_grids = cursor.fetchall()[0][0]
 print('Bulk calculation is starting...')
 
 #Clean up edges and isochrones table 
-cursor.execute('DELETE FROM edges; DELETE FROM isochrones;')
+#cursor.execute('DELETE FROM edges; DELETE FROM isochrones;')
 con.commit()
 lower_limit = 1
 while lower_limit < count_grids:
@@ -67,7 +67,7 @@ while lower_limit < count_grids:
     	)
     		SELECT precalculate_grid(1,'%s',15, x.array_starting_points,5,x.grid_ids,1,'walking_standard') 
     		FROM x;'''
-    cursor.execute(sql_bulk_calculation % (lower_limit, lower_limit+step-1, grid))
+    #cursor.execute(sql_bulk_calculation % (lower_limit, lower_limit+step-1, grid))
     con.commit()
     lower_limit = lower_limit + step
 
@@ -76,7 +76,7 @@ DROP TABLE IF EXISTS reached_vertices_heatmap;
 CREATE TABLE reached_vertices_heatmap(
 	id serial,
 	node integer,
-	cost NUMERIC,
+	cost smallint,
 	geom geometry,
 	grid_id integer,
 	userid integer,
@@ -93,7 +93,7 @@ CREATE TABLE reached_pois_heatmap(
 	poi_gid integer,
 	amenity text,
 	name text,
-	cost NUMERIC,
+	cost smallint,
 	geom geometry,
 	grid_id integer,
 	userid integer,
@@ -108,16 +108,44 @@ INSERT INTO reached_vertices_heatmap(node,cost,geom,grid_id)
 SELECT node, cost, v_geom AS geom, objectid
 FROM edges; 
 '''
-cursor.execute(sql_create_reached_tables)
+#cursor.execute(sql_create_reached_tables)
 con.commit()
 
 
 for i in range(count_grids):
-    cursor.execute('SELECT closest_pois_precalculated(0.0009,%i)' % (i+1))
+    #cursor.execute('SELECT closest_pois_precalculated(0.0009,%i)' % (i+1))
     con.commit()
 
 
 print('Expanding jsonb to columns is starting...')
+
+
+sql_poi_categories = '''SELECT UNNEST(select_from_variable_container('pois_one_entrance')||select_from_variable_container('pois_more_entrances')) poi
+ORDER BY poi;
+'''
+sql_index = '''UPDATE %s g SET %s = %s || x.object
+FROM (
+    SELECT grid_id, jsonb_build_object('%s',accessibility_index) as object
+    FROM heatmap_dynamic(1,'{"%s":{"sensitivity":%s,"weight":1}}',1)
+) x
+WHERE g.grid_id = x.grid_id;'''
+        
+cursor.execute(sql_poi_categories)
+poi_categories = cursor.fetchall()
+
+for s in sensitivities:
+    print(s)
+    new_column = 'index_'+str(s)
+    cursor.execute('ALTER TABLE %s DROP COLUMN IF EXISTS %s;' % (grid,new_column))
+    cursor.execute('ALTER TABLE %s ADD COLUMN %s jsonb;' % (grid,new_column))
+    cursor.execute('''UPDATE %s SET %s = '{}'::jsonb;''' % (grid,new_column))
+    for p in poi_categories:
+        p = p[0]
+        cursor.execute(sql_index % (grid,new_column,new_column,p,p,s))
+        
+    cursor.execute('CREATE INDEX ON %s USING GIN(%s);' % (grid,new_column))           
+    con.commit()
+cursor.execute(sql_grid_population.replace('grid_size', str(grid_size)))
 
 con.commit()
 con.close()
