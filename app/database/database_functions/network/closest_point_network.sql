@@ -1,4 +1,4 @@
-DROP FUNCTION closest_point_network;
+DROP FUNCTION IF EXISTS closest_point_network;
 CREATE OR REPLACE FUNCTION closest_point_network(x NUMERIC, y NUMERIC)
 RETURNS TABLE(closest_point geometry, fraction float, vid integer, wid integer)
  LANGUAGE plpgsql
