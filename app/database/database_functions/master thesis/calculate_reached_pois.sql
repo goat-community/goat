@@ -14,7 +14,9 @@ BEGIN
 	LOOP 
 		
 		EXECUTE format('
-			INSERT INTO '||reached_pois_table||' (SELECT closest_pois.cell_id AS cell_id, closest_pois.object_id as object_id, closest_pois.reached_cost AS cost, closest_pois.amenity as amenity, NULL, 0
+			INSERT INTO '||reached_pois_table||' 
+			(SELECT closest_pois.cell_id AS cell_id, 
+			closest_pois.object_id as object_id, closest_pois.reached_cost AS cost, closest_pois.amenity as amenity, NULL, 0
 			FROM (
 				SELECT * FROM closest_reached_pois(0.0009, '||id_calc||')
 			) AS closest_pois )'
