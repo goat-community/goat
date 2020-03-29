@@ -275,6 +275,14 @@
           "id": 1,
           "children": [
             {
+              "name": "Nursery",
+              "value": "nursery",
+              "icon": "nursery",
+              "weight": 1,
+              "sensitivity": -0.003,
+              "locked": false
+            },
+            {
               "name": "Kindergarten",
               "value": "kindergarten",
               "icon": "kindergarten",
@@ -687,6 +695,7 @@
           {
             "categoryValue": "education",
             "poisFiltered": [
+              "nursery",
               "kindergarten",
               "primary_school",
               "secondary_school"
