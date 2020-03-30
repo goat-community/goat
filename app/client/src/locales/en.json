@@ -290,7 +290,8 @@
       "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features.",
       "cantDeleteAllScenarioFeatures": "Sorry. Scenario data can't be deleted at the moment.",
       "allScenarioFeaturesDelete": "All Scenario Data is deleted",
-      "noScenarioFeatureChangeAvailable": "Please do network or land-use change first"
+      "noScenarioFeatureChangeAvailable": "Please do network or land-use change first",
+      "cantPrintBaseLayer": "This baselayer can't be printed"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
