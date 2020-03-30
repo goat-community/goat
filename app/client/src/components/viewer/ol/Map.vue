@@ -24,13 +24,13 @@
           <v-icon
             :disabled="popup.currentLayerIndex === 0"
             style="cursor:pointer;"
-            @click="popup.currentLayerIndex -= 1"
+            @click="previousGetInfoLayer()"
             >chevron_left</v-icon
           >
           <v-icon
             :disabled="popup.currentLayerIndex === getInfoResult.length - 1"
             style="cursor:pointer;"
-            @click="popup.currentLayerIndex += 1"
+            @click="nextGetInfoLayer()"
             >chevron_right</v-icon
           >
         </template>
@@ -42,7 +42,17 @@
         <div class="subtitle-2 mb-4 font-weight-bold">
           {{
             getInfoResult[popup.currentLayerIndex]
-              ? getInfoResult[popup.currentLayerIndex].get("layerName")
+              ? $te(
+                  `map.layerName.${getInfoResult[popup.currentLayerIndex].get(
+                    "layerName"
+                  )}`
+                )
+                ? $t(
+                    `map.layerName.${getInfoResult[popup.currentLayerIndex].get(
+                      "layerName"
+                    )}`
+                  )
+                : getInfoResult[popup.currentLayerIndex].get("layerName")
               : ""
           }}
         </div>
@@ -261,7 +271,7 @@ export default {
       const vector = new VectorLayer({
         name: "Get Info Layer",
         displayInLayerList: false,
-        zIndex: 10,
+        zIndex: 20,
         source: source,
         style: getInfoStyle()
       });
@@ -415,12 +425,24 @@ export default {
     /**
      * Show getInfo popup.
      */
-    showPopup(coordinate) {
+    showPopup() {
+      // Clear highligh feature
+      this.getInfoLayerSource.clear();
+      let position = this.getInfoResult[this.popup.currentLayerIndex]
+        .getGeometry()
+        .getCoordinates();
+      // Add highlight feature
+      this.getInfoLayerSource.addFeature(
+        this.getInfoResult[this.popup.currentLayerIndex]
+      );
+      while (position && Array.isArray(position[0])) {
+        position = position[0];
+      }
       this.map.getView().animate({
-        center: coordinate,
+        center: position,
         duration: 400
       });
-      this.popupOverlay.setPosition(coordinate);
+      this.popupOverlay.setPosition(position);
       this.popup.isVisible = true;
       this.popup.title = `info`;
     },
@@ -579,16 +601,24 @@ export default {
             });
 
             if (me.getInfoResult.length > 0) {
-              me.showPopup(evt.coordinate);
+              me.showPopup();
             }
           });
         } else {
           //Only for WFS layer
           if (me.getInfoResult.length > 0) {
-            me.showPopup(evt.coordinate);
+            me.showPopup();
           }
         }
       });
+    },
+    previousGetInfoLayer() {
+      this.popup.currentLayerIndex -= 1;
+      this.showPopup();
+    },
+    nextGetInfoLayer() {
+      this.popup.currentLayerIndex += 1;
+      this.showPopup();
     },
     ...mapMutations("map", {
       setMap: "SET_MAP",
