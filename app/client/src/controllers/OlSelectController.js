@@ -10,7 +10,7 @@ import {
 import http from "../services/http";
 import axios from "axios";
 
-import OlStyleDefs from "../style/OlStyleDefs";
+import { getSelectStyle } from "../style/OlStyleDefs";
 import { wfsRequestParser } from "../utils/Layer";
 
 import store from "../store/modules/user";
@@ -30,7 +30,7 @@ export default class OlSelectController extends OlBaseController {
    * map.
    */
   createSelectionLayer() {
-    const style = OlStyleDefs.getSelectStyle();
+    const style = getSelectStyle();
     super.createLayer("Select Layer", style);
   }
 

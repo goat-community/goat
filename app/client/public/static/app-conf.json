@@ -66,6 +66,22 @@
       },
       {
         "type": "WMS",
+        "name": "buildings",
+        "group": "buildings",
+        "url": "/geoserver/wms",
+        "layers": "cite:buildings",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": true,
+        "editDataType": "GeoJSON",
+        "editGeometry": "MultiPolygon",
+        "displayInLayerList": true,
+        "zIndex": 3,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "pois",
         "url": "/geoserver/wms",
         "group": "poisLayers",
@@ -78,6 +94,7 @@
         "editDataType": "GeoJSON",
         "editGeometry": "Point",
         "displayInLayerList": true,
+        "displayInLegend": false,
         "requiresPois": true,
         "zIndex": 7,
         "serverType": "geoserver"
@@ -138,7 +155,6 @@
         "zIndex": 1,
         "serverType": "geoserver"
       },
-
       {
         "type": "WMS",
         "name": "areaIsochrone",
@@ -159,7 +175,6 @@
         "group": "backgroundLayers",
         "maxZoom": 19,
         "queryable": false,
-        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true,
         "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
@@ -171,7 +186,6 @@
         "group": "backgroundLayers",
         "maxZoom": 19,
         "queryable": false,
-        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true,
         "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
@@ -183,7 +197,6 @@
         "group": "backgroundLayers",
         "maxZoom": 19,
         "queryable": false,
-        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true,
         "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
@@ -196,7 +209,6 @@
         "accessToken": "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
         "maxZoom": 19,
         "queryable": false,
-        "cascadePrint": true,
         "visible": true,
         "displayInLayerList": true,
         "attributions": "© <a href='https://www.mapbox.com/map-feedback/'>Mapbox</a> © <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap contributors</a>"
@@ -208,7 +220,6 @@
         "url": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
         "maxZoom": 18,
         "queryable": false,
-        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true,
         "attributions": "© <a href='https://www.memomaps.de/'>Memomaps</a>"
@@ -221,7 +232,6 @@
         "imagerySet": "Aerial",
         "maxZoom": 19,
         "queryable": false,
-        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true,
         "attributions": "© Microsoft Coorporation © Digital Globe ©CNES Distribution Airbus DS <a href='https://www.microsoft.com/en-us/maps/product'>Terms of use</a> "
@@ -692,12 +702,30 @@
         "concavityIsochrones": {
           "name": "concavity",
           "values": [
-            { "display": "Standard", "value": "0.00003" },
-            { "display": "1", "value": "0.000003" },
-            { "display": "2", "value": "0.0000025" },
-            { "display": "3", "value": "0.000002" },
-            { "display": "4", "value": "0.0000017" },
-            { "display": "5", "value": "0.0000015" }
+            {
+              "display": "Standard",
+              "value": "0.00003"
+            },
+            {
+              "display": "1",
+              "value": "0.000003"
+            },
+            {
+              "display": "2",
+              "value": "0.0000025"
+            },
+            {
+              "display": "3",
+              "value": "0.000002"
+            },
+            {
+              "display": "4",
+              "value": "0.0000017"
+            },
+            {
+              "display": "5",
+              "value": "0.0000015"
+            }
           ],
           "active": "0.00003"
         },
@@ -724,7 +752,12 @@
         },
         "alphaShapeParameter": {
           "name": "alphashape",
-          "values": [{ "display": "0.00003", "value": "0.00003" }],
+          "values": [
+            {
+              "display": "0.00003",
+              "value": "0.00003"
+            }
+          ],
           "active": "0.00003"
         }
       },
@@ -789,7 +822,10 @@
               "value": "standard",
               "speed": 5
             },
-            { "value": "elderly", "speed": 3 }
+            {
+              "value": "elderly",
+              "speed": 3
+            }
           ]
         },
         "cycling": {
@@ -799,7 +835,10 @@
               "value": "standard",
               "speed": 15
             },
-            { "value": "pedelec", "speed": 23 }
+            {
+              "value": "pedelec",
+              "speed": 23
+            }
           ]
         },
         "walking_wheelchair": {
@@ -817,7 +856,6 @@
     },
     "edit": {}
   },
-
   "layerConf": {
     "ways": {
       "listValues": {
@@ -842,6 +880,18 @@
         "status",
         "wheelchair",
         "opening_hours"
+      ]
+    },
+    "buildings": {
+      "listValues": {},
+      "enableFileUpload": false,
+      "hiddenProps": [
+        "gid",
+        "userid",
+        "id",
+        "original_id",
+        "status",
+        "class_id"
       ]
     }
   }

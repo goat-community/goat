@@ -41,8 +41,11 @@
 <script>
 import i18n from "@/plugins/i18n";
 import { EventBus } from "../../EventBus";
+import { mapGetters } from "vuex";
+
 export default {
   props: ["visible"],
+
   data() {
     return {
       fab: false,
@@ -60,9 +63,16 @@ export default {
       i18n.locale = locale;
       //Close other interactions.
       EventBus.$emit("ol-interaction-activated", this.interactionType);
+      if (this.contextmenu) {
+        this.contextmenu.close();
+      }
+      EventBus.$emit("ol-interaction-stoped", this.interactionType);
     }
   },
   computed: {
+    ...mapGetters("map", {
+      contextmenu: "contextmenu"
+    }),
     notActiveLanguages() {
       const notActiveLanguages = this.languages.filter(value => {
         return value.language !== this.$i18n.locale;
