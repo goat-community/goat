@@ -4,7 +4,6 @@ import OlFill from "ol/style/Fill";
 import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
-import store from "../store/modules/isochrones";
 
 const colorDiffDefault = [6.1, 13.42, 11.789];
 const color1Default = [255, 255, 224];
@@ -103,7 +102,7 @@ export function getIsochroneNetworkStyle() {
   const styleFunction = feature => {
     const modus = feature.get("modus");
     const level = feature.get("cost");
-    let speed = store.state.options.speed * 16.6666667;
+    let speed = feature.get("speed") * 16.6666667;
     let color;
     if (modus == 1 || modus == 3) {
       color = setNetworkColor(level / speed, colorDiffDefault, color1Default);
