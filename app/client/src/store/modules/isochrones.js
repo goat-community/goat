@@ -438,7 +438,11 @@ const actions = {
             calculation.additionalData[payload.type]["features"] = [
               ...olFeatures
             ];
-
+            // Set isochrone calculation speed property for styling purpose
+            const speed = parseFloat(calculation.speed.split(" ")[0]);
+            olFeatures.forEach(feature => {
+              feature.set("speed", speed);
+            });
             if (
               payload.state === true &&
               rootState.isochrones.isochroneRoadNetworkLayer !== null

@@ -66,6 +66,7 @@ export default {
       if (this.contextmenu) {
         this.contextmenu.close();
       }
+      EventBus.$emit("ol-interaction-stoped", this.interactionType);
     }
   },
   computed: {
