@@ -858,7 +858,9 @@
         "original_id",
         "status",
         "wheelchair",
-        "opening_hours"
+        "opening_hours",
+        "status",
+        "amenity_icon"
       ]
     },
     "buildings": {
