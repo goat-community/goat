@@ -126,11 +126,11 @@ data:
       #\"yes\" if you want to add these layers 
       ADDITIONAL_WALKABILITY_LAYERS: \"no\" 
       variable_container: 
-        poi_categories: [\"kindergarten\",\"primary_school\",\"secondary_school\",\"bar\",\"biergarten\",\"cafe\",\"pub\",\"fast_food\",\"ice_cream\",\"restaurant\",\"theatre\",\"sum_population\",\"cinema\",\"library\",\"night_club\",\"recycling\",
+        poi_categories: [\"nursery\",\"kindergarten\",\"primary_school\",\"secondary_school\",\"bar\",\"biergarten\",\"cafe\",\"pub\",\"fast_food\",\"ice_cream\",\"restaurant\",\"theatre\",\"sum_population\",\"cinema\",\"library\",\"night_club\",\"recycling\",
           \"car_sharing\",\"bicycle_rental\",\"charging_station\",\"bus_station\",\"tram_station\",\"subway_station\",\"railway_station\",\"taxi\",\"hairdresser\",\"atm\",\"bank\",\"dentist\",\"doctors\",\"pharmacy\",\"post_box\",\"post_office\",\"fuel\",
           \"bakery\",\"butcher\",\"clothes\",\"convenience\",\"general\",\"fashion\",\"florist\",\"greengrocer\",\"kiosk\",\"mall\",\"shoes\",\"sports\",\"supermarket\",\"health_food\",\"discount_supermarket\",
           \"hypermarket\",\"international_supermarket\",\"chemist\",\"organic\",\"marketplace\",
-          \"hotel\",\"museum\",\"hostel\",\"guest_house\",\"viewpoint\",\"gallery\",\"bus_stop\",
+          \"hotel\",\"museum\",\"hostel\",\"guest_house\",\"playground\",\"viewpoint\",\"gallery\",\"bus_stop\",
           \"tram_stop\",\"subway_entrance\",\"rail_station\"
         ]
         excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
