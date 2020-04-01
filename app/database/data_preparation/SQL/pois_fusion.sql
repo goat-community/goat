@@ -1,13 +1,3 @@
-ALTER TABLE custom_pois ADD gid int4 NOT NULL DEFAULT nextval('pois_gid_seq'::regclass);
-CREATE INDEX IF NOT EXISTS custom_pois_idx ON custom_pois USING btree(gid);
-
--- 01. Change coordinate system of custom_pois
-
-ALTER TABLE custom_pois
-	ALTER COLUMN geom TYPE
-	geometry(point, 4326)
-	USING ST_Transform(geom,4326);
-
 CREATE OR REPLACE FUNCTION clean_duplicated_pois(table_name text)
 	RETURNS void
 	LANGUAGE plpgsql
@@ -32,7 +22,7 @@ BEGIN
 			AND a.distance = b.distance;
 	EXECUTE 'DELETE FROM '||quote_ident(table_name)||' WHERE gid = ANY (SELECT gid FROM pois_duplicated)';
 END;
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION pois_fusion()
 	RETURNS void 
@@ -95,14 +85,16 @@ BEGIN
 --
 		INSERT INTO pois_case_op_hours
 		SELECT p.*, vertices.opening_hours AS custom_opening_hours
-			FROM pois_case p
-			CROSS JOIN LATERAL
-			(SELECT c.geom, c.gid, c.opening_hours
+		FROM pois_case p
+		CROSS JOIN LATERAL
+		(	
+			SELECT c.geom, c.gid, c.opening_hours
 			FROM cus_pois_case c
 			WHERE c.geom && ST_Buffer(p.geom, select_from_variable_container_s('tag_new_radius')::float)
 			ORDER BY
 			p.geom <-> c.geom
-			LIMIT 1	) AS vertices;		
+			LIMIT 1	
+		) AS vertices;		
 
 		UPDATE pois_case_op_hours SET opening_hours = opening_hours_custom
 		WHERE opening_hours IS NULL AND opening_hours_custom <>'None';
@@ -126,15 +118,16 @@ BEGIN
 		WHERE ST_INTERSECTS( c.geom, ST_Buffer(p.geom::geography, select_from_variable_container_s('tag_new_radius')::float)::geometry);
 	
 		INSERT INTO pois_case (geom, opening_hours, amenity, name )
-			SELECT geom, opening_hours, amenity, stand_name
-			FROM  custom_new_pois;
+		SELECT geom, opening_hours, amenity, stand_name
+		FROM  custom_new_pois;
 
-		--03. Append back to case
+		--03. Append back to pois
 
 		INSERT INTO pois (osm_id , origin_geometry,"access", housenumber, amenity, origin , organic ,denomination ,brand ,"name" ,"operator" , public_transport, railway, religion, opening_hours,"ref", tags, geom, wheelchair )
 		SELECT osm_id , origin_geometry,"access", housenumber, amenity, origin , organic ,denomination ,brand ,"name" ,"operator" , public_transport, railway, religion, opening_hours,"ref", tags, geom, wheelchair
 		FROM pois_case;
 	END LOOP;
+
 END;
 $function$
 
