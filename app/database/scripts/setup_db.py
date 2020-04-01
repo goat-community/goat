@@ -26,7 +26,9 @@ def setup_db(setup_type):
     #Create pgpass-file for temporary database
     ReadYAML().create_pgpass('temp')
     #Create extensions
-    os.system('psql -U postgres -d %s -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION intarray;CREATE EXTENSION plpython3u;"' % db_name_temp)
+    os.system('psql -U postgres -d %s -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION plv8;CREATE EXTENSION intarray;CREATE EXTENSION plpython3u;"' % db_name_temp)
+
+    os.system('psql -U postgres -d %s -c "CREATE EXTENSION postgis_raster;"' % db_name_temp)
 
     os.chdir('/opt/data')
 
