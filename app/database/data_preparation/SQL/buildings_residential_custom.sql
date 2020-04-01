@@ -6,7 +6,7 @@ UPDATE study_area set area = st_area(geom::geography);
 DROP TABLE IF EXISTS buildings_residential;
 CREATE TABLE buildings_residential AS 
 SELECT CASE WHEN trunc(height/3)::integer = 0 THEN 1 ELSE trunc(height/3)::integer END AS building_levels, 
-ST_AREA(b.geom::geography) AS area,b.geom 
+ST_AREA(b.geom::geography) AS area,NULL AS roof_levels, b.geom 
 FROM buildings b, landuse l
 WHERE ST_Intersects(b.geom,l.geom)
 AND l.landuse NOT IN(SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'custom_landuse_no_residents')
