@@ -10,6 +10,7 @@ import * as olSize from "ol/size.js";
 import olSourceImageWMS from "ol/source/ImageWMS.js";
 import olSourceTileWMS from "ol/source/TileWMS.js";
 import olSourceWMTS from "ol/source/WMTS.js";
+import olSourceXYZ from "ol/source/XYZ";
 import olTilegridWMTS from "ol/tilegrid/WMTS.js";
 
 /**
@@ -367,6 +368,8 @@ PrintService.prototype.encodeTileLayer_ = function(arr, layer) {
     this.encodeTileWmtsLayer_(arr, layer);
   } else if (source instanceof olSourceTileWMS) {
     this.encodeTileWmsLayer_(arr, layer);
+  } else if (source instanceof olSourceXYZ) {
+    this.encodeXYZLayer_(arr, layer);
   }
 };
 
@@ -457,6 +460,23 @@ PrintService.prototype.encodeTileWmsLayer_ = function(arr, layer) {
     throw new Error("Missing urls");
   }
   this.encodeWmsLayer_(arr, layer, urls[0], source.getParams());
+};
+
+/**
+ * @param {Array<import('print/mapfish-print-v3.js').MapFishPrintLayer>} arr Array.
+ * @param {import("ol/layer/Tile.js").default} layer Layer.
+ * @private
+ */
+PrintService.prototype.encodeXYZLayer_ = function(arr, layer) {
+  const urls = layer.getSource().getUrls();
+  const object = {
+    baseURL: urls[0],
+    imageFormat: "image/png",
+    type: "osm",
+    opacity: this.getOpacityOrInherited_(layer),
+    useNativeAngle: this.printNativeAngle_
+  };
+  arr.push(object);
 };
 
 /**
