@@ -98,6 +98,104 @@
       },
       {
         "type": "WMS",
+        "name": "smoothness",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_smoothness",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "speed",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_speed",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "streetCategory",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_category",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "streetCategorysAggregated",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_category_aggregated",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "streetFurnitureBicycles",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:street_furniture_bicycles",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "surface",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_surface",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "wheelchairUsability",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_wheelchair",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "walkability",
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
@@ -257,6 +355,14 @@
           "categoryValue": "education",
           "id": 1,
           "children": [
+            {
+              "name": "Nursery",
+              "value": "nursery",
+              "icon": "nursery",
+              "weight": 1,
+              "sensitivity": -0.003,
+              "locked": false
+            },
             {
               "name": "Kindergarten",
               "value": "kindergarten",
@@ -587,6 +693,13 @@
               "icon": "guest_house",
               "weight": 1,
               "sensitivity": -0.003
+            },
+            {
+              "name": "Playground",
+              "value": "playground",
+              "icon": "playground",
+              "weight": 1,
+              "sensitivity": -0.003
             }
           ]
         }
@@ -600,6 +713,7 @@
           {
             "categoryValue": "education",
             "poisFiltered": [
+              "nursery",
               "kindergarten",
               "primary_school",
               "secondary_school"
