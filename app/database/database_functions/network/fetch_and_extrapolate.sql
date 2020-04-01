@@ -76,8 +76,8 @@ BEGIN
 	FOR i IN SELECT generate_series(step_isochrone,max_cost,step_isochrone)
 	LOOP
 		INSERT INTO edges 
-		SELECT x.id AS edge, x.node, i AS cost, ST_LINE_SUBSTRING(x.geom,1-((i-x.agg_cost)/x.cost),1) AS geom,
-		ST_STARTPOINT(ST_LINE_SUBSTRING(x.geom,1-((i-x.agg_cost)/x.cost),1)) AS v_geom, objectid_input 
+		SELECT x.id AS edge, x.node, i AS cost, ST_LINESUBSTRING(x.geom,1-((i-x.agg_cost)/x.cost),1) AS geom,
+		ST_STARTPOINT(ST_LINESUBSTRING(x.geom,1-((i-x.agg_cost)/x.cost),1)) AS v_geom, objectid_input 
 		FROM 
 		(
 			SELECT w.id, v.node, v.cost agg_cost, w.cost, w.geom
@@ -91,8 +91,8 @@ BEGIN
 		WHERE e.edge IS NULL
 		AND x.id NOT IN(SELECT UNNEST(edges_to_exclude))
 		UNION ALL 
-		SELECT x.id AS edge, x.node, i AS cost, ST_LINE_SUBSTRING(x.geom,0,((i-x.agg_cost)/x.cost)) AS geom,
-		ST_ENDPOINT(ST_LINE_SUBSTRING(x.geom,0,(i-x.agg_cost)/x.cost)) AS v_geom, objectid_input 
+		SELECT x.id AS edge, x.node, i AS cost, ST_LINESUBSTRING(x.geom,0,((i-x.agg_cost)/x.cost)) AS geom,
+		ST_ENDPOINT(ST_LINESUBSTRING(x.geom,0,(i-x.agg_cost)/x.cost)) AS v_geom, objectid_input 
 		FROM 
 		(
 			SELECT w.id, v.node, v.cost agg_cost, w.cost, w.geom 
