@@ -1,11 +1,10 @@
 CREATE OR REPLACE FUNCTION pois_fusion()
-	RETURNS void 
+	RETURNS VOID
 	LANGUAGE plpgsql
 AS $function$
 DECLARE
 	curamenity text;
 	curname text;
-	dummie TEXT;
 	rowrec record;
 BEGIN
 	FOR rowrec IN SELECT DISTINCT lower(stand_name) AS name, lower(amenity) AS amenity FROM custom_pois LOOP
@@ -41,17 +40,16 @@ BEGIN
 		FROM custom_pois 
 		WHERE lower(amenity) = rowrec.amenity AND lower(stand_name) LIKE '%' || rowrec.name ||'%';
 		--02. Data fusion cases
-		--02.01. Case 01: Duplicates in OSM, delete duplicates
-		--locate and extract duplicates from pois_case
+		--02.01. Delete duplicates
+		--locate and delete duplicates from pois_case
 
 		PERFORM clean_duplicated_pois('pois_case');
 
-		--02.02. Case 02: Duplicates in custom pois, delete duplicates 
-		--locate and extract duplicates from cus_pois_case
+		--locate and delete duplicates from cus_pois_case
 
 		PERFORM clean_duplicated_pois('cus_pois_case');		
 
-		--02.03. Case 03: Join opening hours from custom to osm
+		--02.02. Join opening hours from custom to osm
 			
 		DROP TABLE IF EXISTS pois_case_op_hours;
 		CREATE TEMP TABLE pois_case_op_hours (LIKE pois_case INCLUDING ALL);
@@ -72,35 +70,22 @@ BEGIN
 
 		UPDATE pois_case_op_hours SET opening_hours = opening_hours_custom
 		WHERE opening_hours IS NULL AND opening_hours_custom <>'None';
-		
-		DROP TABLE IF EXISTS pois_case;
-		CREATE TABLE pois_case (LIKE pois_case_op_hours INCLUDING ALL);
-		
-		INSERT INTO pois_case
-		SELECT * FROM pois_case_op_hours;
 	
-		--02.04. Case 2: Add new points from custom_pois to OSM	
-		DROP TABLE IF EXISTS custom_new_pois;
-		CREATE TEMP TABLE custom_new_pois (LIKE cus_pois_case INCLUDING ALL);
+		--02.03. Add new points from custom_pois to OSM	
 
-		INSERT INTO custom_new_pois
-		SELECT *
+		INSERT INTO pois_case_op_hours (geom, opening_hours, amenity, name )
+		SELECT geom, opening_hours, amenity, stand_name
 		FROM cus_pois_case
 		EXCEPT
-		SELECT c.*
-		FROM pois_case p, cus_pois_case c
+		SELECT c.geom, c.opening_hours, c.amenity, c.stand_name
+		FROM pois_case_op_hours p, cus_pois_case c
 		WHERE ST_INTERSECTS( c.geom, ST_Buffer(p.geom::geography, select_from_variable_container_s('tag_new_radius')::float)::geometry);
-	
-		INSERT INTO pois_case (geom, opening_hours, amenity, name )
-		SELECT geom, opening_hours, amenity, stand_name
-		FROM  custom_new_pois;
 
 		--03. Append back to pois
 
 		INSERT INTO pois (osm_id , origin_geometry,"access", housenumber, amenity, origin , organic ,denomination ,brand ,"name" ,"operator" , public_transport, railway, religion, opening_hours,"ref", tags, geom, wheelchair )
 		SELECT osm_id , origin_geometry,"access", housenumber, amenity, origin , organic ,denomination ,brand ,"name" ,"operator" , public_transport, railway, religion, opening_hours,"ref", tags, geom, wheelchair
-		FROM pois_case;
+		FROM pois_case_op_hours;
 	END LOOP;
-
 END;
 $function$
