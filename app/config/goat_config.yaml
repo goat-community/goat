@@ -100,10 +100,10 @@ DATA_REFINEMENT_VARIABLES:
     pois_search_conditions:
       chemist:
         dm: ['%dm%']
-        rossmann: ['%rossmann%']
+        rossmann: ['rossmann%']
       supermarket:
         edeka: ['e center%', '%edeka%']
-        rewe: ['%rewe%']
+        rewe: ['%rewe', '%rewe city%']
       discount_supermarket:
         lidl: ['%lidl%']
       bank: 
