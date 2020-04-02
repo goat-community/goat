@@ -5,7 +5,13 @@ RETURNS TRIGGER AS $table_insert_pois$
 BEGIN
 	INSERT INTO pois_userinput(name,amenity,opening_hours,geom,userid,wheelchair,pois_modified_id)	
 	VALUES(NEW.name, NEW.amenity, NEW.opening_hours,NEW.geom,NEW.userid,NEW.wheelchair,NEW.id);
-	RETURN NEW; 
+	
+	IF select_from_variable_container_s('HEATMAP_AUTO_REFRESH') = 'yes' THEN 
+		DELETE FROM reached_pois_heatmap WHERE userid = NEW.userid;
+		SELECT recompute_influenced_cells(NEW.userid,0.01126126);
+	END IF;
+	RETURN NEW;
+
 END;
 $table_insert_pois$ LANGUAGE plpgsql;
 
@@ -17,6 +23,11 @@ BEGIN
 	DELETE FROM pois_userinput WHERE pois_modified_id = NEW.id;
 	INSERT INTO pois_userinput(name,amenity,opening_hours,geom,userid,wheelchair,pois_modified_id)	
 	VALUES(NEW.name, NEW.amenity, NEW.opening_hours,NEW.geom,NEW.userid,NEW.wheelchair,NEW.id);
+
+	IF select_from_variable_container_s('HEATMAP_AUTO_REFRESH') = 'yes' THEN 
+		DELETE FROM reached_pois_heatmap WHERE userid = NEW.userid;
+		SELECT recompute_influenced_cells(NEW.userid,0.01126126);
+	END IF;
 	RETURN NEW; 
 END;
 $table_update_pois$ LANGUAGE plpgsql;
