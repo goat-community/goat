@@ -92,8 +92,11 @@ def geojson_to_sql(db_name,user,host,port,password):
     cursor = con.cursor()
     
     cursor.execute('DROP TABLE IF EXISTS custom_pois;')
-    cursor.execute('CREATE TABLE custom_pois(amenity text, addr_street text,addr_city text, addr_postcode text, name text, opening_hours text, geom geometry, stand_name text);')   
-
+    cursor.execute('''CREATE TABLE custom_pois
+                    (gid serial,amenity text, addr_street text,addr_city text, addr_postcode text, 
+                    name text, opening_hours text, geom geometry(POINT, 4326), stand_name text, 
+                    CONSTRAINT custom_pois_gid_pkey PRIMARY KEY (gid));''')
+    cursor.execute('CREATE INDEX ON custom_pois USING GIST(geom);')
     for file in glob.glob("/opt/data/custom_pois/*.geojson"):
         with open(file, 'r') as stream:
             data = json.load(stream)
@@ -122,6 +125,8 @@ def geojson_to_sql(db_name,user,host,port,password):
         con.commit()
     con.close()
     return sql_bulk
+
+geojson_to_sql('goat','goat','localhost',5432,'earlmanigault')
 
 def find_newest_dump(namespace):
     import os
