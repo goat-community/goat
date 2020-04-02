@@ -1,10 +1,10 @@
 DROP FUNCTION IF EXISTS heatmap;
 CREATE OR REPLACE FUNCTION public.heatmap(amenities jsonb)
-  RETURNS TABLE(grid_id integer, geom geometry, accessibility_index numeric)
+  RETURNS TABLE(grid_id integer, accessibility_index numeric)
  LANGUAGE plpgsql
 AS $function$
 DECLARE
-	sql_query text =  'SELECT grid_id,geom,';
+	sql_query text =  'SELECT grid_id,';
 	sql_single_query text;
 	array_amenities text[];
 	amenity text;
