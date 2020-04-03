@@ -163,6 +163,18 @@ CREATE TABLE public.pois_modified (
 
 CREATE INDEX ON pois_modified USING gist(geom);
 
+CREATE TABLE buildings_modified
+(
+	gid serial,
+	building_levels integer,
+	building_type text,
+	geom geometry,
+	userid integer,
+	original_id integer,
+	CONSTRAINT buildings_modified_gid_pkey PRIMARY KEY(gid)
+);
+
+CREATE INDEX ON buildings_modified USING GIST(geom);
 
 DROP SEQUENCE IF EXISTS user_data_id_seq;
 CREATE SEQUENCE user_data_id_seq;

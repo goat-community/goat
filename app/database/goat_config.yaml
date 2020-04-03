@@ -23,6 +23,7 @@ DATA_REFINEMENT_VARIABLES:
   variable_container:
     poi_categories:
       [
+        "nursery",
         "kindergarten",
         "primary_school",
         "secondary_school",
@@ -80,6 +81,7 @@ DATA_REFINEMENT_VARIABLES:
         "museum",
         "hostel",
         "guest_house",
+        "playground",
         "viewpoint",
         "gallery",
         "bus_stop",

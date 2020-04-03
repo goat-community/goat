@@ -1,0 +1,58 @@
+<featureType>
+  <id>FeatureTypeInfoImpl--6d2f9c7a:170d42cd1de:-233f</id>
+  <name>street_furniture_bicycles</name>
+  <nativeName>street_furniture_bicycles</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
+  </namespace>
+  <title>street_furniture_bicycles</title>
+  <keywords>
+    <string>features</string>
+    <string>street_furniture_bicycles</string>
+  </keywords>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>11.2220689</minx>
+    <maxx>11.2668107070052</maxx>
+    <miny>48.1602265007602</miny>
+    <maxy>48.1819246782929</maxy>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>11.2220689</minx>
+    <maxx>11.2668107070052</maxx>
+    <miny>48.1602265007602</miny>
+    <maxy>48.1819246782929</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>street_furniture_bicycles</name>
+        <sql>SELECT p.amenity, p.tags, p.geom FROM pois p, study_area s&#xd;
+WHERE st_intersects(s.geom,p.geom) &#xd;
+AND amenity IN (&apos;bicycle_parking&apos;)
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>-1</srid>
+        </geometry>
+      </virtualTable>
+    </entry>
+    <entry key="cachingEnabled">false</entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

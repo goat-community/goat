@@ -290,7 +290,8 @@
       "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features.",
       "cantDeleteAllScenarioFeatures": "Sorry. Scenario data can't be deleted at the moment.",
       "allScenarioFeaturesDelete": "All Scenario Data is deleted",
-      "noScenarioFeatureChangeAvailable": "Please do network or land-use change first"
+      "noScenarioFeatureChangeAvailable": "Please do network or land-use change first",
+      "cantPrintBaseLayer": "This baselayer can't be printed"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
@@ -308,9 +309,13 @@
       "illuminance": "Illuminance",
       "lanes": "Lanes",
       "parking": "Parking",
+      "smoothness": "Smoothness",
       "speed": "Speed",
+      "streetCategory": "Street Categories Detailled",
+      "streetCategorysAggregated": "Street Categories",
       "streetCrossings": "Street Crossings",
       "streetFurniture": "Street Furniture",
+      "streetFurnitureBicycles": "Bicycle Ranks",
       "surface": "Surface",
       "wheelchairUsability": "Wheelchair Usability",
       "areaIsochrone": "Area Isochrone",
@@ -407,6 +412,7 @@
     "services": "Services",
     "shop": "Shop",
     "tourismAndLeisure": "Tourism & Leisure",
+    "nursery": "Nursery",
     "kindergarten": "Kindergarten",
     "primary_school": "Primary school",
     "secondary_school": "Secondary school",
@@ -460,6 +466,7 @@
     "gallery": "Gallery",
     "university": "University",
     "hospital": "Hospital",
+    "playground": "Playground",
     "population": "Population"
   },
   "$vuetify": {
