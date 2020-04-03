@@ -55,7 +55,7 @@ BEGIN
 			AND amenity = ANY(pois_one_entrance)
 			AND r.grid_id = g.grid_id
 			AND (r.userid = userid_input OR userid IS NULL)
-			AND r.poi_gid != ANY(excluded_pois_id)
+			AND r.poi_gid NOT IN(SELECT UNNEST(excluded_pois_id))
 			GROUP BY r.grid_id
 			UNION ALL
 			SELECT r.grid_id,SUM(EXP(-(cost^2/(amenities_json -> r.amenity ->> 'sensitivity')::integer))*(amenities_json -> r.amenity ->> 'weight')::integer)::NUMERIC  
@@ -67,7 +67,7 @@ BEGIN
 				AND p.amenity = ANY(pois_more_entrances)
 				AND p.grid_id = g.grid_id
 				AND (p.userid = userid_input OR userid IS NULL)
-				AND p.poi_gid != ANY(excluded_pois_id)
+				AND p.poi_gid NOT IN(SELECT UNNEST(excluded_pois_id))
 				GROUP BY p.grid_id, p.amenity, p.name
 			) r
 			GROUP BY r.grid_id

@@ -6,13 +6,12 @@ AS $function$
 BEGIN 
 	IF modus_input = 1 THEN 
 		RETURN query
-		SELECT g.grid_id, h.accessibility_index, 
-		CASE WHEN h.accessibility_index <> 0 THEN ntile(5) over 
-		(order by h.accessibility_index) ELSE 0 END AS percentile_accessibility, g.geom
+		SELECT g.grid_id, h.accessibility_index, COALESCE(percentile_accessibility,0), g.geom
 		FROM grid_500 g
 		LEFT JOIN 
 		(
-			SELECT grid_id, accessibility_index 
+			SELECT grid_id, accessibility_index, CASE WHEN accessibility_index <> 0 THEN ntile(5) over 
+			(order by accessibility_index) ELSE 0 END AS percentile_accessibility 
 			FROM heatmap(amenities)
 		) h 
 		ON g.grid_id = h.grid_id;
@@ -25,7 +24,7 @@ BEGIN
 		),
 		hd AS (
 			SELECT * 
-		    FROM heatmap_dynamic(userid_input,amenities,modus_input)
+		    FROM heatmap_dynamic(userid_input,amenities,2)
 		), 
 		joined AS (
 			SELECT hs.grid_id,hs.accessibility_index
@@ -35,15 +34,16 @@ BEGIN
 			WHERE hd.grid_id IS NULL 
 			UNION ALL 
 			SELECT hd.grid_id, accessibility_index FROM hd 
+		),
+		percentiles AS (
+			SELECT grid_id, accessibility_index, CASE WHEN accessibility_index <> 0 THEN ntile(5) over 
+			(order by accessibility_index) ELSE 0 END AS percentile_accessibility
+			FROM joined 		
 		)
-		SELECT grid_id, accessibility_index, CASE WHEN accessibility_index <> 0 THEN ntile(5) over 
-		(order by accessibility_index) ELSE 0 END AS percentile_accessibility, geom 
-		FROM (
-			SELECT g.grid_id, j.accessibility_index, g.geom
-			FROM grid_500 g
-			LEFT JOIN joined j
-			ON g.grid_id = j.grid_id
-		) x;
+		SELECT g.grid_id, p.accessibility_index, COALESCE(p.percentile_accessibility,0) AS percentile_accessibility, g.geom
+		FROM grid_500 g
+		LEFT JOIN percentiles p
+		ON g.grid_id = p.grid_id;
 	ELSE 
 		RAISE NOTICE 'Please insert a valid modus.';
 	END IF; 
