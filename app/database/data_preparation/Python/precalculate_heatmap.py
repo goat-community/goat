@@ -30,7 +30,7 @@ con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s
 cursor = con.cursor()
 
 
-#cursor.execute(prepare_tables.replace('grid_size', str(grid_size)))
+cursor.execute(prepare_tables.replace('grid_size', str(grid_size)))
 
 sql_ordered_grid = '''DROP TABLE IF EXISTS grid_ordered;
 CREATE temp TABLE grid_ordered AS 
@@ -52,7 +52,7 @@ count_grids = cursor.fetchall()[0][0]
 print('Bulk calculation is starting...')
 
 #Clean up edges and isochrones table 
-#cursor.execute('DELETE FROM edges; DELETE FROM isochrones;')
+cursor.execute('DELETE FROM edges; DELETE FROM isochrones;')
 con.commit()
 lower_limit = 1
 while lower_limit < count_grids:
@@ -67,7 +67,7 @@ while lower_limit < count_grids:
     	)
     		SELECT precalculate_grid(1,'%s',15, x.array_starting_points,5,x.grid_ids,1,'walking_standard') 
     		FROM x;'''
-    #cursor.execute(sql_bulk_calculation % (lower_limit, lower_limit+step-1, grid))
+    cursor.execute(sql_bulk_calculation % (lower_limit, lower_limit+step-1, grid))
     con.commit()
     lower_limit = lower_limit + step
 
@@ -98,7 +98,8 @@ CREATE TABLE reached_pois_heatmap(
 	grid_id integer,
 	userid integer,
 	scenario_id integer,
-	CONSTRAINT reached_pois_heatmap_pkey PRIMARY KEY(id)
+	CONSTRAINT reached_pois_heatmap_pkey PRIMARY KEY(id),
+    FOREIGN KEY (poi_gid) REFERENCES pois_userinput (gid) ON DELETE CASCADE
 );
 CREATE INDEX ON reached_pois_heatmap(grid_id);
 CREATE INDEX ON reached_pois_heatmap(poi_gid);
@@ -108,12 +109,12 @@ INSERT INTO reached_vertices_heatmap(node,cost,geom,grid_id)
 SELECT node, cost, v_geom AS geom, objectid
 FROM edges; 
 '''
-#cursor.execute(sql_create_reached_tables)
+cursor.execute(sql_create_reached_tables)
 con.commit()
 
 
 for i in range(count_grids):
-    #cursor.execute('SELECT closest_pois_precalculated(0.0009,%i)' % (i+1))
+    cursor.execute('SELECT closest_pois_precalculated(0.0009,%i)' % (i+1))
     con.commit()
 
 
