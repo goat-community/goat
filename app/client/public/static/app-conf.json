@@ -272,7 +272,7 @@
               "value": "nursery",
               "icon": "nursery",
               "weight": 1,
-              "sensitivity": -0.003,
+              "sensitivity": 300000,
               "locked": false
             },
             {
