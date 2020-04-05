@@ -6,7 +6,7 @@ AS $function$
 BEGIN 
 	IF modus_input = 1 THEN 
 		RETURN query
-		SELECT g.grid_id, h.accessibility_index, COALESCE(percentile_accessibility,0), g.geom
+		SELECT g.grid_id, h.accessibility_index, COALESCE(percentile_accessibility,0)::smallint, g.percentile_population, g.geom
 		FROM grid_500 g
 		LEFT JOIN 
 		(
@@ -40,7 +40,8 @@ BEGIN
 			(order by accessibility_index) ELSE 0 END AS percentile_accessibility
 			FROM joined 		
 		)
-		SELECT g.grid_id, p.accessibility_index, COALESCE(p.percentile_accessibility,0) AS percentile_accessibility, g.geom
+		SELECT g.grid_id, p.accessibility_index, COALESCE(p.percentile_accessibility,0)::smallint AS percentile_accessibility, 
+		g.percentile_population, g.geom
 		FROM grid_500 g
 		LEFT JOIN percentiles p
 		ON g.grid_id = p.grid_id;
