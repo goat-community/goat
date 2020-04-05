@@ -125,6 +125,7 @@ CREATE TYPE type_heatmap
 AS (
 	grid_id integer,
 	accessibility_index NUMERIC, 
-	percentile_accessibility integer,
+	percentile_accessibility smallint,
+	percentile_population smallint,
 	geom geometry
 );
