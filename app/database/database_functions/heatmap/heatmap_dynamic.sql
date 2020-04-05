@@ -1,3 +1,4 @@
+DROP FUNCTION heatmap_dynamic;
 CREATE OR REPLACE FUNCTION public.heatmap_dynamic(userid_input integer, amenities_json jsonb, modus integer)
  RETURNS TABLE(grid_id integer, accessibility_index numeric)
  LANGUAGE plpgsql
@@ -47,32 +48,45 @@ BEGIN
 		excluded_pois_id = ids_modified_features(userid_input,'pois');
 		
 		RETURN query 
-		SELECT x.grid_id, sum(x.sum)
-		FROM (
-			SELECT r.grid_id,SUM(EXP(-(cost^2/(amenities_json -> r.amenity ->> 'sensitivity')::integer))*(amenities_json -> r.amenity ->> 'weight')::integer)::NUMERIC  
-			FROM reached_pois_heatmap r, grid_ids g
-			WHERE amenity = ANY(array_amenities)
-			AND amenity = ANY(pois_one_entrance)
-			AND r.grid_id = g.grid_id
-			AND (r.userid = userid_input OR userid IS NULL)
-			AND r.poi_gid NOT IN(SELECT UNNEST(excluded_pois_id))
-			GROUP BY r.grid_id
-			UNION ALL
-			SELECT r.grid_id,SUM(EXP(-(cost^2/(amenities_json -> r.amenity ->> 'sensitivity')::integer))*(amenities_json -> r.amenity ->> 'weight')::integer)::NUMERIC  
-			FROM 
-			(
-				SELECT p.grid_id, min(p.cost) AS cost, p.amenity 
-				FROM reached_pois_heatmap p, grid_ids g  
-				WHERE p.amenity = ANY(array_amenities)
-				AND p.amenity = ANY(pois_more_entrances)
-				AND p.grid_id = g.grid_id
-				AND (p.userid = userid_input OR userid IS NULL)
-				AND p.poi_gid NOT IN(SELECT UNNEST(excluded_pois_id))
-				GROUP BY p.grid_id, p.amenity, p.name
-			) r
-			GROUP BY r.grid_id
-		) x
-		GROUP BY x.grid_id;
+		WITH computed_grids AS 
+		(
+			SELECT x.grid_id, sum(x.sum) AS cost
+			FROM (
+				SELECT r.grid_id, SUM(EXP(-(cost^2/(amenities_json -> r.amenity ->> 'sensitivity')::integer))*(amenities_json -> r.amenity ->> 'weight')::integer)::NUMERIC  
+				FROM reached_pois_heatmap r, grid_ids g
+				WHERE amenity = ANY(array_amenities)
+				AND amenity = ANY(pois_one_entrance)
+				AND r.grid_id = g.grid_id
+				AND (r.userid = userid_input OR userid IS NULL)
+				AND r.poi_gid NOT IN(SELECT UNNEST(excluded_pois_id))
+				GROUP BY r.grid_id
+				UNION ALL
+				SELECT r.grid_id,SUM(EXP(-(cost^2/(amenities_json -> r.amenity ->> 'sensitivity')::integer))*(amenities_json -> r.amenity ->> 'weight')::integer)::NUMERIC  
+				FROM 
+				(
+					SELECT p.grid_id, min(p.cost) AS cost, p.amenity 
+					FROM reached_pois_heatmap p, grid_ids g  
+					WHERE p.amenity = ANY(array_amenities)
+					AND p.amenity = ANY(pois_more_entrances)
+					AND p.grid_id = g.grid_id
+					AND (p.userid = userid_input OR userid IS NULL)
+					AND p.poi_gid NOT IN(SELECT UNNEST(excluded_pois_id))
+					GROUP BY p.grid_id, p.amenity, p.name
+				) r
+				GROUP BY r.grid_id
+			) x
+			GROUP BY x.grid_id
+		),
+		grids_now_zero AS (
+			SELECT i.grid_id, COALESCE(c.cost,0)
+			FROM grid_ids i
+			LEFT JOIN computed_grids c
+			ON i.grid_id = c.grid_id
+			WHERE c.grid_id IS NULL  
+		)
+		SELECT * FROM computed_grids
+		UNION ALL 
+		SELECT * FROM grids_now_zero;
 	END IF;
 END;
 $function$;
@@ -80,5 +94,5 @@ $function$;
 
 /*
 SELECT * 
-FROM heatmap_dynamic(7833128, '{"kindergarten":{"sensitivity":2500000,"weight":1},"bus_stop":{"sensitivity":2500000,"weight":1}}'::jsonb,1)
+FROM heatmap_dynamic(7833128, '{"kindergarten":{"sensitivity":250000,"weight":1},"bus_stop":{"sensitivity":250000,"weight":1}}'::jsonb,1)
 */
