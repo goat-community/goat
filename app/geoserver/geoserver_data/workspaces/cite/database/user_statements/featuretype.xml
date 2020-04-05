@@ -1,0 +1,56 @@
+<featureType>
+  <id>FeatureTypeInfoImpl--ea61fe0:16f51d9a2f4:-501b</id>
+  <name>user_statements</name>
+  <nativeName>user_statements</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
+  </namespace>
+  <title>user_statements</title>
+  <keywords>
+    <string>features</string>
+    <string>user_statements</string>
+  </keywords>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>1282488.472</minx>
+    <maxx>1286508.91</maxx>
+    <miny>6139655.084</miny>
+    <maxy>6142432.41</maxy>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>1282488.472</minx>
+    <maxx>1286508.91</maxx>
+    <miny>6139655.084</miny>
+    <maxy>6142432.41</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>user_statements</name>
+        <sql>select * from user_statements
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>-1</srid>
+        </geometry>
+      </virtualTable>
+    </entry>
+    <entry key="cachingEnabled">false</entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

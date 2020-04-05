@@ -1,13 +1,17 @@
 <template>
   <div id="ol-map-container">
     <!-- Map Controls -->
-    <zoom-control :map="map" />
-    <full-screen />
+    <zoom-control v-show="!miniViewOlMap" :map="map" />
+    <full-screen v-show="!miniViewOlMap" />
     <progress-status :isNetworkBusy="isNetworkBusy" />
-    <background-switcher />
-    <map-legend />
+    <background-switcher v-show="!miniViewOlMap" />
+    <map-legend v-show="!miniViewOlMap" />
     <!-- Popup overlay  -->
-    <overlay-popup :title="popup.title" v-show="popup.isVisible" ref="popup">
+    <overlay-popup
+      :title="popup.title"
+      v-show="popup.isVisible && miniViewOlMap === false"
+      ref="popup"
+    >
       <v-btn icon>
         <v-icon>close</v-icon>
       </v-btn>
@@ -20,13 +24,13 @@
           <v-icon
             :disabled="popup.currentLayerIndex === 0"
             style="cursor:pointer;"
-            @click="popup.currentLayerIndex -= 1"
+            @click="previousGetInfoLayer()"
             >chevron_left</v-icon
           >
           <v-icon
             :disabled="popup.currentLayerIndex === getInfoResult.length - 1"
             style="cursor:pointer;"
-            @click="popup.currentLayerIndex += 1"
+            @click="nextGetInfoLayer()"
             >chevron_right</v-icon
           >
         </template>
@@ -38,7 +42,17 @@
         <div class="subtitle-2 mb-4 font-weight-bold">
           {{
             getInfoResult[popup.currentLayerIndex]
-              ? getInfoResult[popup.currentLayerIndex].get("layerName")
+              ? $te(
+                  `map.layerName.${getInfoResult[popup.currentLayerIndex].get(
+                    "layerName"
+                  )}`
+                )
+                ? $t(
+                    `map.layerName.${getInfoResult[popup.currentLayerIndex].get(
+                      "layerName"
+                    )}`
+                  )
+                : getInfoResult[popup.currentLayerIndex].get("layerName")
               : ""
           }}
         </div>
@@ -72,7 +86,6 @@ import Map from "ol/Map";
 import View from "ol/View";
 
 // ol imports
-
 import Overlay from "ol/Overlay";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
@@ -80,8 +93,7 @@ import Mask from "ol-ext/filter/Mask";
 import OlFill from "ol/style/Fill";
 
 // style imports
-import OlStyleDefs from "../../../style/OlStyleDefs";
-
+import { getInfoStyle } from "../../../style/OlStyleDefs";
 // import the app-wide EventBus
 import { EventBus } from "../../../EventBus";
 
@@ -109,6 +121,10 @@ import DoubleClickZoom from "ol/interaction/DoubleClickZoom";
 import { defaults as defaultControls, Attribution } from "ol/control";
 import { defaults as defaultInteractions } from "ol/interaction";
 
+// Context menu
+import ContextMenu from "ol-contextmenu/dist/ol-contextmenu";
+import "ol-contextmenu/dist/ol-contextmenu.min.css";
+
 export default {
   components: {
     "overlay-popup": OverlayPopup,
@@ -119,6 +135,9 @@ export default {
     "full-screen": FullScreen
   },
   name: "app-ol-map",
+  props: {
+    miniViewOlMap: { type: Boolean, required: true }
+  },
   data() {
     return {
       zoom: this.$appConfig.map.zoom,
@@ -167,8 +186,7 @@ export default {
   created() {
     var me = this;
 
-    // make map rotateable according to property
-
+    // Make map rotateable according to property
     const attribution = new Attribution({
       collapsible: true
     });
@@ -176,7 +194,6 @@ export default {
     //Need to reference as we should deactive double click zoom when there
     //are active interaction like draw/modify
     this.dblClickZoomInteraction = new DoubleClickZoom();
-
     me.map = new Map({
       layers: [],
       interactions: defaultInteractions({
@@ -196,12 +213,16 @@ export default {
       })
     });
 
-    // create layers from config and add them to map
+    // Create layers from config and add them to map
     const layers = me.createLayers();
     me.map.getLayers().extend(layers);
     me.createMaskFilters(layers);
     me.createGetInfoLayer();
 
+    // Setup context menu (right-click)
+    me.setupContentMenu();
+
+    // Event bus setup for managing interactions
     EventBus.$on("ol-interaction-activated", startedInteraction => {
       me.activeInteractions.push(startedInteraction);
     });
@@ -250,9 +271,9 @@ export default {
       const vector = new VectorLayer({
         name: "Get Info Layer",
         displayInLayerList: false,
-        zIndex: 10,
+        zIndex: 20,
         source: source,
-        style: OlStyleDefs.getInfoStyle()
+        style: getInfoStyle()
       });
       this.getInfoLayerSource = source;
       this.map.addLayer(vector);
@@ -404,12 +425,24 @@ export default {
     /**
      * Show getInfo popup.
      */
-    showPopup(coordinate) {
+    showPopup() {
+      // Clear highligh feature
+      this.getInfoLayerSource.clear();
+      let position = this.getInfoResult[this.popup.currentLayerIndex]
+        .getGeometry()
+        .getCoordinates();
+      // Add highlight feature
+      this.getInfoLayerSource.addFeature(
+        this.getInfoResult[this.popup.currentLayerIndex]
+      );
+      while (position && Array.isArray(position[0])) {
+        position = position[0];
+      }
       this.map.getView().animate({
-        center: coordinate,
+        center: position,
         duration: 400
       });
-      this.popupOverlay.setPosition(coordinate);
+      this.popupOverlay.setPosition(position);
       this.popup.isVisible = true;
       this.popup.title = `info`;
     },
@@ -437,6 +470,40 @@ export default {
 
         this.map.getTarget().style.cursor =
           features.length > 0 ? "pointer" : "";
+      });
+    },
+
+    /**
+     * Right click menu .
+     */
+    setupContentMenu() {
+      const contextMenu = new ContextMenu({
+        width: 170,
+        defaultItems: true // defaultItems are (for now) Zoom In/Zoom Out
+      });
+
+      // Rename default items
+      for (let item of contextMenu.getDefaultItems()) {
+        if (item.text === "Zoom In") {
+          item.text = this.$t("map.contextMenu.zoomIn");
+          item.label = "zoomIn";
+        } else if (item.text === "Zoom Out") {
+          item.text = this.$t("map.contextMenu.zoomOut");
+          item.label = "zoomOut";
+        }
+      }
+
+      this.setContextMenu(contextMenu);
+      this.map.addControl(contextMenu);
+
+      // Before open event
+      contextMenu.on("beforeopen", () => {
+        let defaultItems = contextMenu.getDefaultItems();
+        defaultItems.forEach(defaultItem => {
+          defaultItem.text = this.$t(`map.contextMenu.${defaultItem.label}`);
+        });
+        contextMenu.clear();
+        contextMenu.extend(defaultItems);
       });
     },
 
@@ -534,19 +601,28 @@ export default {
             });
 
             if (me.getInfoResult.length > 0) {
-              me.showPopup(evt.coordinate);
+              me.showPopup();
             }
           });
         } else {
           //Only for WFS layer
           if (me.getInfoResult.length > 0) {
-            me.showPopup(evt.coordinate);
+            me.showPopup();
           }
         }
       });
     },
+    previousGetInfoLayer() {
+      this.popup.currentLayerIndex -= 1;
+      this.showPopup();
+    },
+    nextGetInfoLayer() {
+      this.popup.currentLayerIndex += 1;
+      this.showPopup();
+    },
     ...mapMutations("map", {
-      setMap: "SET_MAP"
+      setMap: "SET_MAP",
+      setContextMenu: "SET_CONTEXTMENU"
     }),
     ...mapActions("isochrones", {
       showIsochroneWindow: "showIsochroneWindow"

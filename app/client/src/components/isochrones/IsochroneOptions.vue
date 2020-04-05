@@ -86,6 +86,7 @@
             item-value="value"
             v-model="calculationModes"
             outlined
+            @change="canCalculateScenario(calculationModes)"
             :value="calculationModes"
             :items="filterCalcModeValues()"
             :label="$t('isochrones.options.calcModus')"
@@ -103,17 +104,22 @@
   </v-flex>
 </template>
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import { mapFields } from "vuex-map-fields";
+import { Isochrones } from "../../mixins/Isochrones";
 
 export default {
   name: "isochrone-options",
+  mixins: [Isochrones],
   data: () => ({
     isOptionsElVisible: true,
     isIsochroneOptionsVisible: true
   }),
   computed: {
-    ...mapGetters("isochrones", { options: "options" }),
+    ...mapGetters("isochrones", {
+      options: "options",
+      scenarioDataTable: "scenarioDataTable"
+    }),
     ...mapFields("isochrones", {
       minutes: "options.minutes",
       speed: "options.speed",
@@ -126,7 +132,10 @@ export default {
   methods: {
     filterCalcModeValues() {
       return this.options.calculationModes.values;
-    }
+    },
+    ...mapMutations("map", {
+      toggleSnackbar: "TOGGLE_SNACKBAR"
+    })
   }
 };
 </script>
