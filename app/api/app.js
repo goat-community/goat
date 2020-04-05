@@ -40,7 +40,7 @@ app.post("/api/userdata", jsonParser, (request, response) => {
       returnResult
     );
   } else if (mode == "update") {
-    //update is used to fill the array with features that are not drawned by the user
+    //update is used to fill the array with features that are not drawn by the user
     pool.query(
       "UPDATE user_data SET deleted_feature_ids=($2) WHERE userid=($1) AND  layer_name=($3)",
       [
@@ -51,10 +51,19 @@ app.post("/api/userdata", jsonParser, (request, response) => {
       returnResult
     );
   } else if (mode == "delete") {
-    //delete is used to delete the feature from modified table if the user has drawned that feature by himself
+    //delete is used to delete the feature from modified table if the user has drawn that feature by himself
+    pool.query(
+      `DELETE FROM ${request.body.layer_name}_modified WHERE userid=($1) AND original_id = ANY(($2));`,
+      [
+        request.body.user_id,
+        request.body.deleted_feature_ids,
+      ]
+    );
     pool.query(
       `DELETE FROM ${request.body.layer_name}_modified WHERE id=($1)`,
-      [request.body.drawned_fid],
+      [
+        request.body.drawned_fid
+      ],
       returnResult
     );
     //*later we can require guid (unique id) for security here, for the user to be able to delete the feature and use a nodejs library to prevent sql incjection attacks*//
