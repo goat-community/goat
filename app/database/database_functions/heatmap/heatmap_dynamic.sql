@@ -1,4 +1,4 @@
-DROP FUNCTION heatmap_dynamic;
+DROP FUNCTION IF EXISTS heatmap_dynamic;
 CREATE OR REPLACE FUNCTION public.heatmap_dynamic(userid_input integer, amenities_json jsonb, modus integer)
  RETURNS TABLE(grid_id integer, accessibility_index numeric)
  LANGUAGE plpgsql

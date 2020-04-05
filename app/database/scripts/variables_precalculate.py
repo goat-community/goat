@@ -12,7 +12,6 @@ prepare_tables = '''select * from hexagrid(grid_size);
 
 
 	ALTER TABLE grid_grid_size add column grid_id serial;
-    ALTER TABLE grid_grid_size add column area_isochrone float8;
     ALTER TABLE grid_grid_size ADD COLUMN pois jsonb;
 	ALTER TABLE grid_grid_size ADD COLUMN iso_geom geometry; 
 	'''
@@ -56,21 +55,19 @@ WHERE grid_grid_size.grid_id = p.grid_id;
 UPDATE grid_grid_size SET percentile_population = 0
 WHERE percentile_population IS NULL;
 
-ALTER TABLE grid_grid_size ADD COLUMN percentile_area_isochrone smallint;
-WITH p AS (
-	SELECT grid_id,ntile(5) over 
-	(order by area_isochrone) AS percentile
-	FROM grid_grid_size where area_isochrone IS NOT NULL 
-	ORDER BY grid_id
-)
-UPDATE grid_grid_size SET percentile_area_isochrone = p.percentile
-FROM p
-WHERE grid_grid_size.grid_id = p.grid_id;
-
-UPDATE grid_grid_size SET percentile_area_isochrone = 0
-WHERE percentile_area_isochrone IS NULL;
-
 UPDATE grid_grid_size SET iso_geom = i.geom
 FROM isochrones i 
 WHERE grid_id = i.objectid;
+
+ALTER TABLE grid_grid_size ADD COLUMN percentile_area_isochrone smallint;
+UPDATE grid_grid_size SET percentile_area_isochrone = x.percentile 
+FROM (
+	SELECT grid_id,ntile(5) over 
+	(order by ST_AREA(iso_geom) ) AS percentile
+	FROM grid_grid_size
+	WHERE iso_geom IS NOT NULL 
+) x
+WHERE grid_grid_size.grid_id = x.grid_id;
+
+UPDATE grid_grid_size SET percentile_area_isochrone = 0 WHERE percentile_area_isochrone IS NULL; 
 '''

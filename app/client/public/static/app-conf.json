@@ -73,10 +73,10 @@
         "opacity": 1,
         "queryable": true,
         "visible": false,
-        "canEdit": true,
+        "canEdit": false,
         "editDataType": "GeoJSON",
         "editGeometry": "MultiPolygon",
-        "displayInLayerList": true,
+        "displayInLayerList": false,
         "zIndex": 3,
         "serverType": "geoserver"
       },
