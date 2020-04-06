@@ -51,6 +51,9 @@ operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_ho
 tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_point
 WHERE (sport IS NOT NULL
+-- leisure = any (SELECT select_from_variable_container_o('amenity_config')->'leisure->add')
+-- AND leisure !=(SELECT select_from_variable_container_o('amenity_config')->'leisur->discard')
+-- AND sport !=(SELECT select_from_variable_container_o('amenity_config')->'sport->discard') 
 OR leisure = any('{sports_hall, fitness_center, sport_center, track, pitch}'))
 AND leisure != 'fitness_station' AND sport != 'table_tennis'
 
@@ -62,6 +65,9 @@ operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_ho
 tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_polygon
 WHERE (sport IS NOT NULL
+-- leisure = any (SELECT select_from_variable_container_o('amenity_config')->'leisure_add')
+-- AND leisure !=(SELECT select_from_variable_container_o('amenity_config')->'leisure_discard')
+-- AND sport !=(SELECT select_from_variable_container_o('amenity_config')->'sport_discard') 
 OR leisure = any('{sports_hall, fitness_center, sport_center, track, pitch}'))
 AND leisure != 'fitness_station' AND sport != 'table_tennis'
 
