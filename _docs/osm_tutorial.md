@@ -67,3 +67,16 @@ After making changes it is important to save them by clicking on "save" in the h
 </p>
 
 For a more detailed tutorial see here: [https://learnosm.org/en/](https://learnosm.org/en/)
+
+#### Possibilities for groups
+
+<b>MapRoulette<b>
+
+[MapRoulette](https://maproulette.org/) is an online platform or tool that can be used to create mapping-related tasks in Open Street Map. It is also directly linked to OSM or its editor and everyone with an Open Street Map account also has access to these challenges. On MapRoulette, tasks exist worldwide from simple ones like adding a property to something more complex as in this work like checking and drawing buildings for residential areas. 
+<td> <img class="img-responsive" src="../../img/Maproulette.JPG" title="Sample task in MapRoulette"> </td>
+The challenges are primarily aimed at local processors who have better knowledge or access to the data. However, everyone can often help, by means of aerial photos. For the fulfillment of the tasks, points can be collected which can be compared with others. For example, tasks can be created with an Overpass Turbo query. E.g. all residential areas in Matosinhos:
+<td> <img class="img-responsive" src="../../img/Overpass.JPG" title="Example query in Overpass-Turbo"> </td>
+
+<b>Mapping Party<b>
+
+Another sociable method is to map in a group, often referred to as a "mapping party". With this one either undertakes a common tour through the area to be recorded in order to collect GPS data or one meets at a suitable location and records the data with the help of the abovementioned methods. Since mapping can be a bit monotonous in the long run, it is much more entertaining in a group, especially with snacks and drinks. Ideally, everyone should have an OSM account and their own computer or laptop. To prevent several people working on the same area, [MapRoulette](https://maproulette.org/), for example, can be used for better coordination.

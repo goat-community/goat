@@ -62,3 +62,35 @@ For grid cells for which no population was recorded in the census, the additiona
 
 This script delivers the following output:
 <td> <img class="img-responsive" src="../../img/census.png" title="Output of the script"> </td>
+
+
+#### Population distribution
+<b>Custom data<b>
+
+census.shp
+
+landuse.shp from Urban Atlas
+
+Script: `your-GOAT-directory/app/data_preparation/SQL/population_distribution.sql`
+
+This script is used as an option in case neither punctual population data is available nor the population can be distributed to the residential buildings because of incomplete OSM data. It is based on landuse data from Urban Atlas, which is available for many urban areas in Europe. Instead of allocating the population to the residential buildings, a distribution is made to the residential areas. These are divided into five types based on the respective building density, which allows a weighting of the different areas:
+
+- Continuous urban fabric (S.L. : > 80%)
+- Discontinuous dense urban fabric (S.L. : 50% - 80%)
+- Discontinuous medium density urban fabric (S.L. : 30% - 50%)
+- Discontinuous low density urban fabric (S.L. : 10% - 30%)
+- Discontinuous very low density urban fabric (S.L. : < 10%)
+
+An important part of this script is the function that creates a point grid in an area with a predefined resolution. The function requires two inputs. One is the geometry in which the point grid is to be created. This corresponds to the individual land areas or only the residential areas. The second is the parameter that defines the distance between the individual grid points. Since the value 1 would result in a grid width of 84 km, the parameters are accordingly small. A good approximation is provided by calculating the average building area and the respective building densities. In the example for Matosinhos the following values result:
+
+- Continuous urban fabric: 0,00019
+- Discontinuous dense urban fabric: 0,00023
+- Discontinuous medium density urban fabric: 0,00029
+- Discontinuous low density urban fabric: 0,00041
+- Discontinuous very low density urban fabric: 0,00082
+
+Part of the calculated grid in Matosinhos:
+
+<td> <img class="img-responsive" src="../../img/populationGrid_UA.jpeg" title="Output of the script"> </td>
+
+After the grid is created, the population is distributed over it. First, for each individual cell it is determined how many points of the grid are located in this cell. Then the population is distributed to these points by dividing the total population in the cell by the number of including points. This ensures that residential areas with denser development are also given a higher weighting.
