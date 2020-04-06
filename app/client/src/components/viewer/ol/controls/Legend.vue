@@ -57,7 +57,9 @@ export default {
       const me = this;
       const allLayers = getAllChildLayers(me.map);
       me.layers = allLayers.filter(
-        layer => layer.getSource().serverType_ === "geoserver"
+        layer =>
+          layer.getSource().serverType_ === "geoserver" &&
+          layer.get("displayInLegend") !== false
       );
     },
     getImageUrl(item) {

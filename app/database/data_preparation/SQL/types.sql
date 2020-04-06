@@ -109,7 +109,7 @@ CREATE TYPE type_pois_multi_isochrones AS
 DROP TYPE IF EXISTS pois_visualization CASCADE;
 CREATE TYPE public.pois_visualization AS
 (
-	gid bigint,
+	gid int,
 	amenity text,
 	name text, 
 	osm_id bigint, 
@@ -118,4 +118,14 @@ CREATE TYPE public.pois_visualization AS
 	geom geometry, 
 	status text,
 	wheelchair text
+);
+
+DROP TYPE IF EXISTS type_heatmap CASCADE;
+CREATE TYPE type_heatmap 
+AS (
+	grid_id integer,
+	accessibility_index NUMERIC, 
+	percentile_accessibility smallint,
+	percentile_population smallint,
+	geom geometry
 );

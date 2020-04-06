@@ -173,21 +173,18 @@ export default {
     updateHeatmapLayerViewParams() {
       const me = this;
       const selectedPois = me.selectedPois;
-
       const heatmapViewParams = selectedPois.reduce((filtered, item) => {
         const { value, weight, sensitivity } = item;
         if (value != "undefined" && weight != undefined) {
-          filtered.push({
-            [`${value}`]: { sensitivity: sensitivity, weight: weight }
-          });
+          filtered[`${value}`] = { sensitivity, weight };
         }
         return filtered;
-      }, []);
+      }, {});
 
       me.heatmapLayers.forEach(layer => {
         const viewparams = JSON.stringify(heatmapViewParams);
         layer.getSource().updateParams({
-          viewparams: `amenities:'${btoa(viewparams)}'`
+          viewparams: `amenities:'${btoa(viewparams)}';userid:${me.userId};`
         });
         if (layer.getVisible() === true && heatmapViewParams.length === 0) {
           this.toggleSnackbar({
