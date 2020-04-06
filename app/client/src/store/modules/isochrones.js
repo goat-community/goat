@@ -51,10 +51,12 @@ const state = {
   isochroneLayer: null,
   selectionLayer: null,
   isochroneRoadNetworkLayer: null,
-
   isThematicDataVisible: false,
   selectedThematicData: null,
-  studyAreaLayer: null
+  studyAreaLayer: null,
+
+  // Edit
+  scenarioDataTable: []
 };
 
 const getters = {
@@ -92,6 +94,7 @@ const getters = {
     );
     return calculation ? groupBy(calculation.data, "type") : {};
   },
+  scenarioDataTable: state => state.scenarioDataTable,
   getField
 };
 
@@ -435,7 +438,11 @@ const actions = {
             calculation.additionalData[payload.type]["features"] = [
               ...olFeatures
             ];
-
+            // Set isochrone calculation speed property for styling purpose
+            const speed = parseFloat(calculation.speed.split(" ")[0]);
+            olFeatures.forEach(feature => {
+              feature.set("speed", speed);
+            });
             if (
               payload.state === true &&
               rootState.isochrones.isochroneRoadNetworkLayer !== null

@@ -190,7 +190,7 @@ ALTER TABLE census_split_new_development ADD PRIMARY key(gid);
 CREATE INDEX ON census_split_new_development USING GIST(geom);
 
 CREATE TABLE buildings_to_map AS 
-SELECT b.*,tags -> 'building:levels'  
+SELECT b.*  
 FROM buildings_residential b, 
 (	
 	SELECT b.* 
@@ -198,7 +198,7 @@ FROM buildings_residential b,
 	WHERE ST_Intersects(c.geom,b.geom)
 ) c
 WHERE ST_Intersects(b.geom,c.geom)
-AND (tags -> 'building:levels') IS NULL; 
+AND (b.building_levels) IS NULL; 
  
 --Substract fixed population from study_area
 WITH study_area_to_update AS (

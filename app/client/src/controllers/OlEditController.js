@@ -1,6 +1,6 @@
-import OlStyleDefs from "../style/OlStyleDefs";
+import { getEditStyle, getFeatureHighlightStyle } from "../style/OlStyleDefs";
 import OlBaseController from "./OlBaseController";
-import { Modify, Draw, Snap } from "ol/interaction";
+import { Modify, Draw, Snap, Translate } from "ol/interaction";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import Overlay from "ol/Overlay.js";
@@ -28,7 +28,7 @@ export default class OlEditController extends OlBaseController {
    */
   createEditLayer(onFeatureChangeCb, onSourceChangeCb) {
     const me = this;
-    const style = OlStyleDefs.getEditStyle();
+    const style = getEditStyle();
     super.createLayer("Edit Layer", style, {
       queryable: true
     });
@@ -41,7 +41,7 @@ export default class OlEditController extends OlBaseController {
       displayInLayerList: false,
       source: highlightSource,
       zIndex: 10,
-      style: OlStyleDefs.getFeatureHighlightStyle()
+      style: getFeatureHighlightStyle()
     });
     me.map.addLayer(highlightLayer);
     me.highlightSource = highlightSource;
@@ -86,7 +86,6 @@ export default class OlEditController extends OlBaseController {
         me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
         break;
       }
-
       case "delete": {
         me.currentInteraction = "delete";
         me.deleteFeatureListener = me.map.on(
@@ -94,10 +93,16 @@ export default class OlEditController extends OlBaseController {
           me.openDeletePopup.bind(me)
         );
         me.helpMessage = i18n.t("map.tooltips.clickOnFeatureToDelete");
-
         break;
       }
-
+      case "move": {
+        me.currentInteraction = "move";
+        me.edit = new Translate({ layers: [me.layer] });
+        me.edit.on("translatestart", startCb);
+        me.edit.on("translateend", endCb);
+        me.helpMessage = i18n.t("map.tooltips.clickOnFeatureToMove");
+        break;
+      }
       default:
         break;
     }
@@ -151,11 +156,10 @@ export default class OlEditController extends OlBaseController {
     me.selectedFeature = feature;
     if (feature) {
       const geometry = feature.getGeometry();
-      const featureCoordinates = geometry.getCoordinates();
-      const popupCoordinate =
-        geometry.getType() === "Point"
-          ? featureCoordinates
-          : featureCoordinates[0];
+      let popupCoordinate = geometry.getCoordinates();
+      while (popupCoordinate && Array.isArray(popupCoordinate[0])) {
+        popupCoordinate = popupCoordinate[0];
+      }
       me.map.getView().animate({
         center: popupCoordinate,
         duration: 400
@@ -276,7 +280,7 @@ export default class OlEditController extends OlBaseController {
 
       if (
         !props.hasOwnProperty("original_id") &&
-        me.currentInteraction === "modify"
+        ["modify", "move"].includes(me.currentInteraction)
       ) {
         transformed.set(
           "original_id",
@@ -288,13 +292,13 @@ export default class OlEditController extends OlBaseController {
         (typeof feature.getId() === "undefined" &&
           Object.keys(props).length === 1) ||
         (!props.hasOwnProperty("original_id") &&
-          me.currentInteraction === "modify")
+          ["modify", "move"].includes(me.currentInteraction))
       ) {
         featuresToAdd.push(transformed);
         featuresToRemove.push(feature);
       } else if (
         props.hasOwnProperty("original_id") &&
-        me.currentInteraction === "modify"
+        ["modify", "move"].includes(me.currentInteraction)
       ) {
         transformed.setId(feature.getId());
         featuresToUpdate.push(transformed);
@@ -306,6 +310,7 @@ export default class OlEditController extends OlBaseController {
       case "draw":
         payload = wfsTransactionParser(featuresToAdd, null, null, formatGML);
         break;
+      case "move":
       case "modify":
         payload = wfsTransactionParser(
           featuresToAdd,
