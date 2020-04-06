@@ -100,6 +100,7 @@ DATA_REFINEMENT_VARIABLES:
     pois_search_conditions:
       chemist:
         dm: ['%dm%']
+          suspected: ['supermarket']
         rossmann: ['rossmann%']
       supermarket:
         edeka: ['e center%', '%edeka%']
@@ -114,5 +115,23 @@ DATA_REFINEMENT_VARIABLES:
         mcdonalds: ['%mcdonald%']
       restaurant:   
         vapiano: ['%vapiano%']
+    amenity_config:
+      leisure:
+        add: ['sports_hall', 'fitness_center', 'sport_center', 'track, pitch']
+        discard: ['fitness_station']
+      sport:
+        discard: ['table_tennis']
+      primary_school:
+        add: ['%grund-%', '%grund %', '%grundsch%' ]
+        discard: ['%grund-schule%']
+      secondary_school:
+        add: ['%haupt-%', '%haupt %', '%hauptsch%', '%mittel-%', '%mittel %', '%mittelsch%', '%real-%', 'real %', '%realsch%', '%förder-%', '%förder %', '%fördersch%',
+        '%gesamt-%', '%gesamt %', '%gesamtsch%', '%-gymnasium%', '%gymnasium-%', '% gymnasium%','%gymnasium %', '%fachobersch%']
+        discard: ['%haupt-schule%', '%mittel-schule%', '%real-schule%', '%förder-schule%', '%gesamt-schule%']
+      kindergarden: ['kindergarten']
+      
+
+
+
 
       
