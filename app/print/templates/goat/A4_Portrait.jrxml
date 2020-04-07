@@ -18,7 +18,7 @@
 		<band height="801" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<textField>
-				<reportElement x="1" y="625" width="368" height="30" uuid="0df1bafb-f886-4dfa-9621-e9ca6ec5ef02"/>
+				<reportElement x="1" y="625" width="553" height="30" uuid="0df1bafb-f886-4dfa-9621-e9ca6ec5ef02"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="20" isBold="true"/>
 				</textElement>
