@@ -308,6 +308,7 @@
               :schema="schema[layerName]"
               :model="dataObject"
               :options="options"
+              @input="e => inputFn(e)"
             />
           </v-form>
         </div>
@@ -335,6 +336,11 @@
         </template>
       </template>
     </overlay-popup>
+    <!-- Opening hours -->
+    <opening-hours
+      :visible="showOpeningHours"
+      @close="showOpeningHours = false"
+    />
   </v-flex>
 </template>
 
@@ -345,7 +351,6 @@ import { KeyShortcuts } from "../../../mixins/KeyShortcuts";
 import { InteractionsToggle } from "../../../mixins/InteractionsToggle";
 import { Isochrones } from "../../../mixins/Isochrones";
 import { mapFields } from "vuex-map-fields";
-
 import {
   getAllChildLayers,
   getPoisListValues,
@@ -361,6 +366,8 @@ import {
 import OverlayPopup from "../../viewer/ol/controls/Overlay";
 import http from "axios";
 import VJsonschemaForm from "../../other/dynamicForms/index";
+import OpeningHours from "../../other/OpeningHours";
+
 import { geojsonToFeature } from "../../../utils/MapUtils";
 import { mapGetters, mapMutations } from "vuex";
 import { debounce } from "../../../utils/Helpers";
@@ -368,6 +375,7 @@ import { debounce } from "../../../utils/Helpers";
 export default {
   components: {
     "overlay-popup": OverlayPopup,
+    "opening-hours": OpeningHours,
     VJsonschemaForm
   },
   mixins: [InteractionsToggle, Mapable, KeyShortcuts, Isochrones],
@@ -429,7 +437,9 @@ export default {
       move: "auto"
     },
     //Data table
-    isTableLoading: false
+    isTableLoading: false,
+    //Opening Hours
+    showOpeningHours: false
   }),
   watch: {
     selectedLayer(newValue) {
@@ -1159,6 +1169,11 @@ export default {
         return false;
       }
       return !item.isDeleted;
+    },
+    inputFn(e) {
+      if (e === "open_dialog") {
+        this.showOpeningHours = true;
+      }
     },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR"

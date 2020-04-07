@@ -35,7 +35,10 @@
       1.1943,
       0.5972
     ],
-    "center": [1289645.541227, 6129485.298188],
+    "center": [
+      1289645.541227,
+      6129485.298188
+    ],
     "layers": [
       {
         "type": "VECTOR",
@@ -683,7 +686,9 @@
         "disabledPoisOnTimeFilter": [
           {
             "categoryValue": "transport",
-            "poisFiltered": ["*"]
+            "poisFiltered": [
+              "*"
+            ]
           },
           {
             "categoryValue": "education",
@@ -699,11 +704,16 @@
           "walking_wheelchair": [
             {
               "categoryValue": "services",
-              "poisFiltered": ["recycling", "atm"]
+              "poisFiltered": [
+                "recycling",
+                "atm"
+              ]
             },
             {
               "categoryValue": "transport",
-              "poisFiltered": ["charging_station"]
+              "poisFiltered": [
+                "charging_station"
+              ]
             }
           ]
         }
@@ -876,11 +886,20 @@
     "ways": {
       "listValues": {
         "type": {
-          "values": ["bridge", "road"]
+          "values": [
+            "bridge",
+            "road"
+          ]
         }
       },
       "enableFileUpload": false,
-      "hiddenProps": ["userid", "id", "original_id", "status", "class_id"]
+      "hiddenProps": [
+        "userid",
+        "id",
+        "original_id",
+        "status",
+        "class_id"
+      ]
     },
     "pois": {
       "listValues": {
@@ -895,7 +914,6 @@
         "original_id",
         "status",
         "wheelchair",
-        "opening_hours",
         "status",
         "amenity_icon"
       ]
