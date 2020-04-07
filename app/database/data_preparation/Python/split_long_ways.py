@@ -76,7 +76,7 @@ for i in ways_to_split:
             end = 1
         #print(end)
         cursor.execute('''insert into preliminary_ways_split_long(ways_id,class_id,geom)
-                          select id ways_id,class_id, st_line_substring(geom,%f,%f)
+                          select id ways_id,class_id, st_linesubstring(geom,%f,%f)
                           geom from ways where id=%i''' % (start,end,i[0]))
 
         con.commit()
