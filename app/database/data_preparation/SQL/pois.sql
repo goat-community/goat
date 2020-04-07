@@ -271,18 +271,12 @@ tags -> 'wheelchair' as wheelchair
 FROM merged_kindergartens;
 
 --Distinguish kindergarten - nursery
-ALTER TABLE pois
-	ADD COLUMN max_age integer;
-
-UPDATE pois 
-SET max_age = l.max_age
-FROM (select osm_id, (tags -> 'max_age')::integer AS max_age
-	from pois p) l
-WHERE pois.osm_id = l.osm_id;
-
 UPDATE pois 
 SET amenity = 'nursery'
-WHERE max_age = 3 ;
+FROM (select osm_id, (tags -> 'max_age')::integer AS max_age
+	from pois p) l
+WHERE pois.osm_id = l.osm_id
+AND l.max_age = 3;
 
 ------------------------------------------end kindergarten-------------------------------------------
 
