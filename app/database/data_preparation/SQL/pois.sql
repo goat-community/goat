@@ -66,11 +66,9 @@ operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_ho
 tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_point
 WHERE (sport IS NOT NULL
--- leisure = any (SELECT select_from_variable_container_o('amenity_config')->'leisure->add')
--- AND leisure !=(SELECT select_from_variable_container_o('amenity_config')->'leisur->discard')
--- AND sport !=(SELECT select_from_variable_container_o('amenity_config')->'sport->discard') 
-OR leisure = any('{sports_hall, fitness_center, sport_center, track, pitch}'))
-AND leisure != 'fitness_station' AND sport != 'table_tennis'
+OR leisure = any (SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'leisure'->'add')::jsonb))))
+AND leisure !=(SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'leisure'->'discard')::jsonb)))
+AND sport !=(SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'sport'->'discard')::jsonb)))
 
 UNION ALL
 
@@ -80,11 +78,9 @@ operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_ho
 tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_polygon
 WHERE (sport IS NOT NULL
--- leisure = any (SELECT select_from_variable_container_o('amenity_config')->'leisure_add')
--- AND leisure !=(SELECT select_from_variable_container_o('amenity_config')->'leisure_discard')
--- AND sport !=(SELECT select_from_variable_container_o('amenity_config')->'sport_discard') 
-OR leisure = any('{sports_hall, fitness_center, sport_center, track, pitch}'))
-AND leisure != 'fitness_station' AND sport != 'table_tennis'
+OR leisure = any (SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'leisure'->'add')::jsonb))))
+AND leisure !=(SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'leisure'->'discard')::jsonb)))
+AND sport !=(SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'sport'->'discard')::jsonb)))
 
 UNION ALL
 
@@ -93,69 +89,35 @@ UNION ALL
 -------------------------------------------------------------------
 
 --------------------------primary_school (über Name, wenn kein isced:level)------------------
-SELECT * FROM (
 SELECT osm_id, 'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, 'primary_school' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom,
 tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_polygon
-WHERE amenity = 'school') x
-
-WHERE (lower(name) LIKE '%grund-%'
-OR name like '%Grund %'
-OR lower(name) like '%grundsch%'
-AND lower(name) NOT LIKE '%grund-schule%'
+WHERE amenity = 'school' AND (
+lower(name) LIKE ANY (SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'primary_school'->'add')::jsonb))) AND
+lower(name) NOT LIKE ANY (SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'primary_school'->'discard')::jsonb)))
 AND tags -> 'isced:level' IS NULL)
-OR tags -> 'isced:level' LIKE '1'
+OR tags -> 'isced:level' LIKE '%1%'
 
 UNION ALL
 
 
 --------------secondary_school; Haupt-/Mittel-/Realschule/Gymnasium (über Name, wenn kein isced:level)----------------
-SELECT * FROM (
+
 SELECT osm_id, 'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, 'secondary_school' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom,
 tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_polygon
-WHERE amenity = 'school') x
-
-WHERE (lower(name) LIKE '%haupt-%'
-OR name like '%Haupt %'
-OR lower(name) like '%hauptsch%'
-AND lower(name) NOT LIKE '%haupt-schule%'
-
-OR lower(name) like '%mittel-%'
-OR name like '%Mittel %'
-OR lower(name) like '%mittelsch%'
-AND lower(name) NOT LIKE '%mittel-schule%'
-
-OR lower(name) like '%real-%'
-OR name like '%Real %'
-OR lower(name) like '%realsch%'
-AND lower(name) NOT LIKE '%real-schule%'
-
-OR lower(name) like '%förder-%'
-OR name like '%Förder %'
-OR lower(name) like '%fördersch%'
-AND lower(name) NOT LIKE '%förder-schule%'
-
-OR lower(name) like '%gesamt-%'
-OR name like '%Gesamt %'
-OR lower(name) like '%gesamtsch%'
-AND lower(name) NOT LIKE '%gesamt-schule%'
-
-OR lower(name) like '%-gymnasium%'
-OR lower(name) like '%gymnasium-%'
-OR name like '% Gymnasium%'
-OR name like '%Gymnasium %'
-
-OR name like '%Fachobersch%'
-
-AND tags -> 'isced:level' IS NULL)
-
-OR tags -> 'isced:level' LIKE '2'
-OR tags -> 'isced:level' LIKE '3'
+WHERE amenity = 'school' AND ((
+lower(name) LIKE ANY (SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'secondary_school'->'add')::jsonb)))
+AND
+lower(name) NOT LIKE ANY (SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'secondary_school'->'discard')::jsonb)))
+AND tags -> 'isced:level' IS NULL
+)
+OR tags -> 'isced:level' LIKE ANY (ARRAY['%2%', '%3%'])
+)
 
 UNION ALL 
 
@@ -164,70 +126,38 @@ UNION ALL
 -----------------------------------------------------------------
 
 --------------------------primary_school (über Name, wenn kein isced:level)------------------
-SELECT * FROM (
+
 SELECT osm_id, 'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'primary_school' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom,
 tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_point
-WHERE amenity = 'school') x
-
-WHERE (lower(name) LIKE '%grund-%'
-OR name like '%Grund %'
-OR lower(name) like '%grundsch%'
-AND lower(name) NOT LIKE '%grund-schule%'
+WHERE amenity = 'school' AND (
+lower(name) LIKE ANY (SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'primary_school'->'add')::jsonb))) AND
+lower(name) NOT LIKE ANY (SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'primary_school'->'discard')::jsonb)))
 AND tags -> 'isced:level' IS NULL)
-OR tags -> 'isced:level' LIKE '1'
+OR tags -> 'isced:level' LIKE '%1%'
+
+
 
 UNION ALL
 
 
 --------------secondary_school; Haupt-/Mittel-/Realschule/Gymnasium (über Name, wenn kein isced:level)----------------
-SELECT * FROM (
+
 SELECT osm_id, 'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'secondary_school' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom,
 tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_point
-WHERE amenity = 'school') x
-
-WHERE (lower(name) LIKE '%haupt-%'
-OR name like '%Haupt %'
-OR lower(name) like '%hauptsch%'
-AND lower(name) NOT LIKE '%haupt-schule%'
-
-OR lower(name) like '%mittel-%'
-OR name like '%Mittel %'
-OR lower(name) like '%mittelsch%'
-AND lower(name) NOT LIKE '%mittel-schule%'
-
-OR lower(name) like '%real-%'
-OR name like '%Real %'
-OR lower(name) like '%realsch%'
-AND lower(name) NOT LIKE '%real-schule%'
-
-OR lower(name) like '%förder-%'
-OR name like '%Förder %'
-OR lower(name) like '%fördersch%'
-AND lower(name) NOT LIKE '%förder-schule%'
-
-OR lower(name) like '%gesamt-%'
-OR name like '%Gesamt %'
-OR lower(name) like '%gesamtsch%'
-AND lower(name) NOT LIKE '%gesamt-schule%'
-
-OR lower(name) like '%-gymnasium%'
-OR lower(name) like '%gymnasium-%'
-OR name like '% Gymnasium%'
-OR name like '%Gymnasium %'
-
-OR name like '%Fachobersch%'
-
-AND tags -> 'isced:level' IS NULL)
-
-OR tags -> 'isced:level' LIKE '2'
-OR tags -> 'isced:level' LIKE '3'
-
+WHERE amenity = 'school' AND ((
+lower(name) LIKE ANY (SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'secondary_school'->'add')::jsonb)))
+AND
+lower(name) NOT LIKE ANY (SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'secondary_school'->'discard')::jsonb)))
+AND tags -> 'isced:level' IS NULL
+)
+OR tags -> 'isced:level' LIKE ANY (ARRAY['%2%', '%3%'])
+)
 
 );
 

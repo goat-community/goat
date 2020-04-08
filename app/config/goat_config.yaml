@@ -101,7 +101,7 @@ DATA_REFINEMENT_VARIABLES:
     pois_search_conditions:
       chemist:
         dm: ['%dm%']
-          suspected: ['supermarket']
+        suspected: ['supermarket']
         rossmann: ['rossmann%']
       supermarket:
         edeka: ['e center%', '%edeka%']
