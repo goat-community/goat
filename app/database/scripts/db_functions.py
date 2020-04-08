@@ -126,7 +126,7 @@ def geojson_to_sql(db_name,user,host,port,password):
     con.close()
     return sql_bulk
 
-geojson_to_sql('goat','goat','localhost',5432,'earlmanigault')
+#geojson_to_sql('goat','goat','localhost',5432,'earlmanigault')
 
 def find_newest_dump(namespace):
     import os
