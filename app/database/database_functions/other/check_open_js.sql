@@ -1,12 +1,19 @@
 /*
 In order to use this function you need to install related Javascript module into DB.
 
+DROP TABLE IF EXISTS plv8_js_modules;
+CREATE TABLE plv8_js_modules (
+	module text unique primary key,
+	autoload bool default true,
+	source text
+);
+
 # Download Javascript code to tmp dir
-curl https://openingh.openstreetmap.de/opening_hours.js/opening_hours+deps.min.js -o /tmp/opening_hours.min.js
+wget -O opening_hours.js https://openingh.openstreetmap.de/opening_hours.js/opening_hours+deps.min.js
 
 # Run commands in psql 
 psql <connection options>
-goat=# \set opening_hours  `cat /tmp/opening_hours.min.js`
+goat=# \set opening_hours  `cat opening_hours.js`
 goat=# insert into plv8_js_modules values ('opening_hours',true,:'opening_hours');
 
 */

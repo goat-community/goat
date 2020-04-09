@@ -24,9 +24,10 @@ begin
     counter = counter + 1;
     IF (SELECT count(*) FROM edges WHERE objectid=objectid_input AND cost BETWEEN 0 AND i LIMIT 4) > 3 THEN 
       INSERT INTO isos 
-      SELECT userid_input,counter,i/60, 
-      ST_SETSRID(pgr_pointsaspolygon ('SELECT (row_number() over())::integer as id, ST_X(v_geom)::float x, ST_Y(v_geom)::float y 
-      FROM edges WHERE objectid='||objectid_input||'AND cost BETWEEN 0 AND '||i,shape_precision),4326);      
+      SELECT userid_input,counter,i/60,ST_SETSRID(ST_ConcaveHull(ST_Collect(v_geom),0.98, false),4326)
+      FROM edges
+      WHERE cost BETWEEN 0 AND i
+      AND objectid = objectid_input;      
     END IF;
     
   END LOOP;  
@@ -36,3 +37,4 @@ begin
 END;
 $function$
 --SELECT * FROM isochrones_alphashape(111,7,11.543274,48.195524,2,5,0.00003,1,1,1,'walking_wheelchair')
+
