@@ -199,6 +199,7 @@ import {
 
 import { humanize, numberWithCommas } from "../../utils/Helpers";
 import axios from "axios";
+import { mapMutations } from "vuex";
 import * as olEvents from "ol/events.js";
 import * as olMath from "ol/math.js";
 import olLayerImage from "ol/layer/Image.js";
@@ -206,6 +207,8 @@ import olLayerTile from "ol/layer/Tile.js";
 import olLayerGroup from "ol/layer/Group.js";
 import olMap from "ol/Map.js";
 import ImageWMS from "ol/source/ImageWMS.js";
+import olSourceXYZ from "ol/source/XYZ";
+
 var FileSaver = require("file-saver");
 import { getCurrentDate, getCurrentTime } from "../../utils/Helpers";
 
@@ -230,7 +233,7 @@ export default {
     showGrid: true,
     layoutInfo: {
       attributes: [],
-      dpi: 254,
+      dpi: 120,
       dpis: [],
       layout: "",
       layouts: [],
@@ -260,11 +263,9 @@ export default {
     pointerDragListenerKey_: null,
     mapViewResolutionChangeKey_: null,
     onDragPreviousMousePosition_: null,
-    rotationTimeoutPromise_: null
+    rotationTimeoutPromise_: null,
+    notPrintableTileSources: []
   }),
-  components: {},
-  computed: {},
-
   methods: {
     humanize,
     numberWithCommas,
@@ -991,7 +992,7 @@ export default {
         );
 
         const view = this.map.getView();
-        const contrainRes = this.map.getView().constrainResolution(res, 0, 1);
+        const contrainRes = view.getConstraints().resolution(res, 1, mapSize);
         view.setResolution(contrainRes);
 
         // Render the map to update the postcompose mask manually
@@ -1017,9 +1018,24 @@ export default {
      */
     isState(stateEnumKey) {
       return this.printState === this.printStateEnum[stateEnumKey];
-    }
-  },
+    },
 
+    /**
+     * Toggle alert message
+     * @param {evt} Evt
+     */
+    toggleMessage(evt) {
+      this.toggleSnackbar({
+        type: "error",
+        message: "cantPrintBaseLayer",
+        timeout: 60000,
+        state: !evt.oldValue
+      });
+    },
+    ...mapMutations("map", {
+      toggleSnackbar: "TOGGLE_SNACKBAR"
+    })
+  },
   activated: function() {
     this.active = true;
     if (!this.capabilities) {
@@ -1059,6 +1075,26 @@ export default {
           }
         );
         this.map.render();
+
+        const ol_layers = getFlatLayers(this.map.getLayerGroup());
+
+        ol_layers.forEach(layer => {
+          if (
+            layer instanceof olLayerTile &&
+            !(layer.getSource() instanceof olSourceXYZ)
+          ) {
+            layer.on("change:visible", this.toggleMessage);
+            this.notPrintableTileSources.push(layer);
+            if (layer.getVisible() === true) {
+              this.toggleSnackbar({
+                type: "error",
+                message: "cantPrintBaseLayer",
+                timeout: 60000,
+                state: true
+              });
+            }
+          }
+        });
       },
       () => {
         // Get capabilities - On error
@@ -1073,7 +1109,6 @@ export default {
       throw new Error("Missing map");
     }
     this.map.removeLayer(this.maskLayer_);
-
     if (this.pointerDragListenerKey_) {
       olEvents.unlistenByKey(this.pointerDragListenerKey_);
     }
@@ -1083,6 +1118,17 @@ export default {
     this.setRotation(0);
     this.map.render(); // Redraw (remove) post compose mask;
     this.abort();
+
+    this.notPrintableTileSources.forEach(layer => {
+      layer.un("change:visible", this.toggleMessage);
+    });
+    this.notPrintableTileSources = [];
+    this.toggleSnackbar({
+      type: "error",
+      message: "cantPrintBaseLayer",
+      timeout: 60000,
+      state: false
+    });
   }
 };
 </script>

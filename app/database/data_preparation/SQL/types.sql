@@ -50,6 +50,9 @@ CREATE TYPE type_fetch_ways_routing AS
 	SOURCE integer, 
 	target integer, 
 	cost float,
+	reverse_cost float,
+	slope_profile jsonb[],
+	death_end bigint,
 	geom geometry
 );
 DROP TYPE IF EXISTS type_catchment_vertices_single CASCADE;
@@ -60,7 +63,6 @@ CREATE TYPE public.type_catchment_vertices_single AS
 	edge integer,
 	cost numeric,
 	geom geometry,
-	w_geom geometry,
 	objectid integer	
 );
 DROP TYPE IF EXISTS type_temp_catchment_vertices_multi CASCADE;
@@ -107,7 +109,7 @@ CREATE TYPE type_pois_multi_isochrones AS
 DROP TYPE IF EXISTS pois_visualization CASCADE;
 CREATE TYPE public.pois_visualization AS
 (
-	gid bigint,
+	gid int,
 	amenity text,
 	name text, 
 	osm_id bigint, 
@@ -116,4 +118,14 @@ CREATE TYPE public.pois_visualization AS
 	geom geometry, 
 	status text,
 	wheelchair text
+);
+
+DROP TYPE IF EXISTS type_heatmap CASCADE;
+CREATE TYPE type_heatmap 
+AS (
+	grid_id integer,
+	accessibility_index NUMERIC, 
+	percentile_accessibility smallint,
+	percentile_population smallint,
+	geom geometry
 );

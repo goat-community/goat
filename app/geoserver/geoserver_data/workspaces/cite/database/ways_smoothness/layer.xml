@@ -1,0 +1,15 @@
+<layer>
+  <name>ways_smoothness</name>
+  <id>LayerInfoImpl--67ef8e3f:170863a1976:-1fae</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--67ef8e3f:170888bbcd2:-1fda</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--67ef8e3f:170863a1976:-1faf</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

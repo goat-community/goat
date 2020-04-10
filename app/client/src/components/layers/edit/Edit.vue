@@ -91,10 +91,24 @@
                 </template>
                 <span>{{ $t("appBar.edit.deleteFeature") }}</span>
               </v-tooltip>
+              <v-tooltip
+                top
+                v-if="selectedLayer.get('editGeometry') !== 'Point'"
+              >
+                <template v-slot:activator="{ on }">
+                  <v-btn v-on="on" text>
+                    <v-icon>far fa-clone</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.moveFeature") }}</span>
+              </v-tooltip>
             </v-btn-toggle>
           </v-flex>
           <v-flex
-            v-if="isFileUploadEnabled === true"
+            v-if="
+              layerConf.layerName &&
+                layerConf[layerName.split(':')[1]].enableFileUpload === true
+            "
             xs12
             v-show="selectedLayer != null"
             class="mt-1 pt-0 mb-0"
@@ -125,6 +139,11 @@
               colored-border
               dense
             >
+              <span
+                >&#9679; {{ $t("appBar.edit.dataTypeInfo") }}:
+                <b>{{ selectedLayer.get("editDataType") }}</b>
+              </span>
+              <br />
               <span
                 >&#9679; {{ $t("appBar.edit.geometryTypeInfo") }}:
                 <b>{{ selectedLayer.get("editGeometry") }}</b>
@@ -176,8 +195,12 @@
                   small
                   :color="item.status === 'Uploaded' ? 'success' : 'error'"
                   dark
-                  >{{ item.status }}</v-chip
+                  class="mx-0 px-1"
+                  >{{ $t(`appBar.edit.status.${item.status}`) }}</v-chip
                 >
+              </template>
+              <template v-slot:item.type="{ item }">
+                <span>{{ $t(`appBar.edit.type.${item.type}`) }}</span>
               </template>
 
               <template v-slot:item.action="{ item }">
@@ -199,6 +222,7 @@
                 <v-tooltip top>
                   <template v-slot:activator="{ on }">
                     <v-icon
+                      v-show="isDeleteBtnVisible(item)"
                       class="scenario-icon-delete"
                       :disabled="isUploadBusy"
                       v-on="on"
@@ -208,6 +232,20 @@
                     </v-icon>
                   </template>
                   <span>{{ $t(`map.tooltips.deleteFeature`) }}</span>
+                </v-tooltip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <v-icon
+                      v-show="isRestoreBtnVisible(item)"
+                      class="scenario-icon"
+                      :disabled="isUploadBusy"
+                      v-on="on"
+                      @click="scenarioActionBtnHandler(item, 'restore')"
+                    >
+                      restore_from_trash
+                    </v-icon>
+                  </template>
+                  <span>{{ $t(`map.tooltips.restoreFeature`) }}</span>
                 </v-tooltip>
               </template>
             </v-data-table>
@@ -223,6 +261,7 @@
           v-show="selectedLayer != null"
           class="white--text"
           :loading="isUploadBusy"
+          :disabled="isDeleteAllBusy"
           color="green"
           @click="uploadFeatures"
         >
@@ -232,6 +271,8 @@
           v-show="selectedLayer != null"
           class="white--text"
           color="error"
+          :loading="isDeleteAllBusy"
+          :disabled="scenarioDataTable.length === 0"
           @click="deleteAll"
         >
           <v-icon left>delete</v-icon>{{ $t("appBar.edit.clearBtn") }}
@@ -302,6 +343,9 @@ import { EventBus } from "../../../EventBus";
 import { Mapable } from "../../../mixins/Mapable";
 import { KeyShortcuts } from "../../../mixins/KeyShortcuts";
 import { InteractionsToggle } from "../../../mixins/InteractionsToggle";
+import { Isochrones } from "../../../mixins/Isochrones";
+import { mapFields } from "vuex-map-fields";
+
 import {
   getAllChildLayers,
   getPoisListValues,
@@ -320,14 +364,13 @@ import VJsonschemaForm from "../../other/dynamicForms/index";
 import { geojsonToFeature } from "../../../utils/MapUtils";
 import { mapGetters, mapMutations } from "vuex";
 import { debounce } from "../../../utils/Helpers";
-import Confirm from "../../core/Confirm";
+
 export default {
   components: {
-    confirm: Confirm,
     "overlay-popup": OverlayPopup,
     VJsonschemaForm
   },
-  mixins: [InteractionsToggle, Mapable, KeyShortcuts],
+  mixins: [InteractionsToggle, Mapable, KeyShortcuts, Isochrones],
   data: () => ({
     interactionType: "edit-interaction",
     selectedLayer: null,
@@ -337,6 +380,7 @@ export default {
     toggleEdit: undefined,
     loadingLayerInfo: false,
     isUploadBusy: false,
+    isDeleteAllBusy: false,
     //Popup configuration
     popup: {
       title: "",
@@ -373,7 +417,6 @@ export default {
     missingFieldsNames: "",
     //Edit form
     layerConf: {},
-    hiddenProps: ["userid", "id", "original_id", "status"],
     schema: {},
     dataObject: {},
     formValid: false,
@@ -382,16 +425,10 @@ export default {
       add: "crosshair",
       modify: "pointer",
       delete: "pointer",
-      select: "pointer"
+      select: "pointer",
+      move: "auto"
     },
     //Data table
-    headers: [
-      { text: "Fid", value: "fid", sortable: false },
-      { text: "Layer", value: "layerName", sortable: false },
-      { text: "Status", value: "status", sortable: false, align: "center" },
-      { text: "Actions", value: "action", sortable: false }
-    ],
-    scenarioDataTable: [],
     isTableLoading: false
   }),
   watch: {
@@ -417,10 +454,10 @@ export default {
       }
     },
     scenarioDataTable() {
-      this.canCalculateScenario();
+      this.canCalculateScenario(this.options.calculationModes.active);
     },
-    "options.calculationModes.active": function() {
-      this.canCalculateScenario();
+    "options.calculationModes.active": function(value) {
+      this.canCalculateScenario(value);
     }
   },
   mounted() {
@@ -638,6 +675,11 @@ export default {
         case 2:
           editType = "delete";
           break;
+        case 3:
+          editType = "move";
+          startCb = this.onModifyStart;
+          endCb = this.onModifyEnd;
+          break;
         default:
           break;
       }
@@ -704,6 +746,7 @@ export default {
      */
     onDrawEnd(evt) {
       const feature = evt.feature;
+      console.log(feature.getGeometry().getCoordinates());
       this.olEditCtrl.closePopup();
       this.clearDataObject();
       //Disable interaction until user fills the attributes for the feature and closes the popup
@@ -712,10 +755,10 @@ export default {
       }
       this.olEditCtrl.featuresToCommit.push(feature);
       this.olEditCtrl.highlightSource.addFeature(feature);
-      const featureCoordinates = feature.getGeometry().getCoordinates();
-      const popupCoordinate = Array.isArray(featureCoordinates[0])
-        ? featureCoordinates[0]
-        : featureCoordinates;
+      let popupCoordinate = feature.getGeometry().getCoordinates();
+      while (popupCoordinate && Array.isArray(popupCoordinate[0])) {
+        popupCoordinate = popupCoordinate[0];
+      }
       this.map.getView().animate({
         center: popupCoordinate,
         duration: 400
@@ -734,7 +777,7 @@ export default {
       const me = this;
       //Exclude features from file input as we add this feature later when user click upload button
       if (evt.feature.get("user_uploaded")) return;
-      if (me.olEditCtrl.currentInteraction === "modify") {
+      if (["modify", "move"].includes(me.olEditCtrl.currentInteraction)) {
         const index = me.olEditCtrl.featuresToCommit.findIndex(
           i => i.ol_uid === evt.feature.ol_uid
         );
@@ -743,6 +786,9 @@ export default {
         } else {
           me.olEditCtrl.featuresToCommit[index] = evt.feature;
         }
+      }
+      if (["pois", "buildings"].includes(evt.feature.get("layerName"))) {
+        evt.feature.set("status", 1);
       }
     },
     /**
@@ -834,13 +880,25 @@ export default {
           state: true,
           timeout: 4000
         });
+        this.olEditCtrl.source.changed();
       });
     },
     scenarioActionBtnHandler(item, type) {
       const fid = item.fid;
       if (!fid) return;
-      const feature = this.olEditCtrl.source.getFeatureById(fid);
+      let feature;
+
+      if (item.type === "Deleted") {
+        feature = editLayerHelper.deletedFeatures.filter(
+          f => f.getId() === fid
+        );
+        feature.length > 0 ? (feature = feature[0]) : null;
+      } else {
+        feature = this.olEditCtrl.source.getFeatureById(fid);
+      }
+
       if (!feature) return;
+
       if (type === "zoom") {
         this.map.getView().fit(feature.getGeometry().getExtent(), {
           padding: [10, 10, 10, 10]
@@ -851,6 +909,38 @@ export default {
         }, 300);
       } else if (type === "delete") {
         this.olEditCtrl.openDeletePopup(feature);
+      } else if (type === "restore") {
+        const clonedFeature = feature.clone();
+        clonedFeature.setId(feature.getId());
+        clonedFeature.set("deletedId", feature.getId());
+
+        //If the deleted feature is not uploaded in the server consider it uploaded in client side
+        if (item.status === "NotUploaded") {
+          clonedFeature.set("status", 1);
+        } else {
+          clonedFeature.set("status", null);
+        }
+
+        this.map.getView().fit(feature.getGeometry().getExtent(), {
+          padding: [10, 10, 10, 10]
+        });
+        editLayerHelper.deletedFeatures = editLayerHelper.deletedFeatures.filter(
+          f => f.getId() !== fid
+        );
+        this.olEditCtrl.highlightSource.addFeature(feature);
+        setTimeout(() => {
+          this.olEditCtrl.highlightSource.removeFeature(feature);
+        }, 300);
+        editLayerHelper.featuresIDsToDelete = editLayerHelper.featuresIDsToDelete.filter(
+          id => feature.getProperties().id.toString() !== id
+        );
+        this.olEditCtrl.source.addFeature(clonedFeature);
+        //Commit restore changes. ("commitDelete" just updates array of deleted features ids in the database)
+        editLayerHelper.commitDelete(
+          "update",
+          this.userId,
+          editLayerHelper.featuresIDsToDelete
+        );
       }
     },
     /**
@@ -885,10 +975,41 @@ export default {
         .then(confirm => {
           if (confirm) {
             //1- Call api to delete all features.
-            //2- Clear openlayers scenario features
-            this.clear();
-            // This also deletes user scenario features from the map
-            this.olEditCtrl.deleteAll();
+            const userId = this.userId;
+            //1- Call api to delete all features.
+            this.isDeleteAllBusy = true;
+            http
+              .post("api/deleteAllScenarioData", {
+                user_id: userId,
+                layer_names: ["ways", "pois"]
+              })
+              .then(response => {
+                this.isDeleteAllBusy = false;
+                if (response.data === "error") {
+                  //Show error message can't delete
+                  this.toggleSnackbar({
+                    type: "error", //success or error
+                    message: "cantDeleteAllScenarioFeatures",
+                    state: true,
+                    timeout: 4000
+                  });
+                } else {
+                  //Show success message
+                  this.toggleSnackbar({
+                    type: "success", //success or error
+                    message: "allScenarioFeaturesDelete",
+                    state: true,
+                    timeout: 4000
+                  });
+                  //2- Clear openlayers scenario features
+                  this.clear();
+                  // This also deletes user scenario features from the map
+                  this.olEditCtrl.deleteAll();
+                }
+              })
+              .catch(() => {
+                this.isDeleteAllBusy = false;
+              });
           }
         });
     },
@@ -937,64 +1058,145 @@ export default {
       }
       this.olEditCtrl.closePopup();
     },
-    canCalculateScenario() {
-      let areAllFeaturesUploaded = true;
-      this.scenarioDataTable.forEach(f => {
-        if (f.status !== "Uploaded") {
-          areAllFeaturesUploaded = false;
-        }
-      });
-
-      if (
-        areAllFeaturesUploaded === false &&
-        ["scenario", "comparison"].includes(
-          this.options.calculationModes.active
-        )
-      ) {
-        //Show snackbar warning that user has features not yet uploaded
-        this.toggleSnackbar({
-          type: "warning", //success or error
-          message: "notAllScnearioFeaturesUploaded",
-          state: true,
-          timeout: 150000
-        });
-      } else {
-        //Hide snackbar.
-        this.toggleSnackbar({
-          state: false
-        });
-      }
-    },
     /**
      * Method called when edit layer source is changed.
      * A debounce is addes to improve performance
      * It updates the scenario data table.
      */
     updateDataTable: debounce(function() {
-      const features = this.olEditCtrl.source.getFeatures();
+      const editLayerFeatures = this.olEditCtrl.source.getFeatures();
+      const deletedFeatures = editLayerHelper.deletedFeatures;
+
       const scenarioDataTable = [];
-      features.forEach(f => {
+      editLayerFeatures.forEach(f => {
         const prop = f.getProperties();
-        if (prop.hasOwnProperty("original_id")) {
-          const status = prop.status ? "Uploaded" : "Not uploaded";
+        if (
+          prop.hasOwnProperty("original_id") ||
+          (prop.hasOwnProperty("deletedId") && prop.status !== 1)
+        ) {
+          //Assign layerName to feature property if doesn't exist
+          if (!prop.layerName) {
+            f.set("layerName", this.layerName.split(":")[1]);
+          }
           const fid = f.getId();
-          const layerName = this.layerName.split(":")[1];
+          const layerName = f.get("layerName");
+          const isDeleted = false;
+          const status = prop.status ? "Uploaded" : "NotUploaded";
+          const originalId = f.get("original_id");
+          let type = "";
+          if (
+            prop.hasOwnProperty("original_id") &&
+            f.get("original_id") === null
+          ) {
+            type = "New";
+          } else if (prop.hasOwnProperty("deletedId")) {
+            type = "Restored"; //Not uploaded (if feature is uploaded it will not be visible in the list)
+          } else {
+            type = "Modified";
+          }
+
           const obj = {
+            fid,
             layerName,
+            isDeleted,
+            originalId,
             status,
-            fid
+            type
           };
           scenarioDataTable.push(obj);
         }
       });
+
+      deletedFeatures.forEach(f => {
+        const prop = f.getProperties();
+        const fid = f.getId() || prop.id;
+        if (!f.getId()) {
+          f.setId(prop.id);
+        }
+        if (!prop.layerName) {
+          f.set("layerName", this.layerName.split(":")[1]);
+        }
+        const layerName = f.get("layerName");
+        const isDeleted = fid;
+        const status = prop.status === 1 ? "Uploaded" : "NotUploaded";
+        const type = "Deleted";
+        let source = "";
+
+        if (
+          prop.hasOwnProperty("original_id") &&
+          f.get("original_id") === null
+        ) {
+          //Original deleted Features.
+          source = "drawn";
+        } else {
+          //Drawn Delete Feature
+          source = "original";
+        }
+        const originalId = f.get("original_id");
+
+        const obj = {
+          fid,
+          layerName,
+          isDeleted,
+          originalId,
+          status,
+          type,
+          source
+        };
+        scenarioDataTable.push(obj);
+      });
       this.scenarioDataTable = scenarioDataTable;
       this.isTableLoading = false;
     }, 900),
+    isRestoreBtnVisible(item) {
+      if (item.source !== "original") {
+        return false;
+      }
+      return item.isDeleted;
+    },
+    isDeleteBtnVisible(item) {
+      if (!item.originalId && item.isDeleted) {
+        return false;
+      }
+      return !item.isDeleted;
+    },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR"
     })
   },
   computed: {
+    headers() {
+      return [
+        {
+          text: this.$t("appBar.edit.table.layer"),
+          value: "layerName",
+          sortable: false,
+          align: "center",
+          width: "20%"
+        },
+        {
+          text: this.$t("appBar.edit.table.status"),
+          value: "status",
+          sortable: false,
+          align: "center",
+          width: "25%"
+        },
+        {
+          text: this.$t("appBar.edit.table.type"),
+          value: "type",
+          sortable: false,
+          align: "center",
+          width: "25%"
+        },
+        {
+          text: this.$t("appBar.edit.table.actions"),
+          value: "action",
+          sortable: false,
+          align: "center",
+          width: "25%"
+        }
+      ];
+    },
     layerName() {
       return this.selectedLayer.getSource().getParams().LAYERS;
     },
@@ -1035,7 +1237,10 @@ export default {
         : `<span></span>`;
     },
     ...mapGetters("user", { userId: "userId" }),
-    ...mapGetters("isochrones", { options: "options" })
+    ...mapGetters("isochrones", { options: "options" }),
+    ...mapFields("isochrones", {
+      scenarioDataTable: "scenarioDataTable"
+    })
   },
   created() {
     this.layerConf = this.$appConfig.layerConf;

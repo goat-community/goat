@@ -1,7 +1,7 @@
 {
     "appTitle": "GOAT",
     "buttonLabels": {
-        "yes": "Si",
+        "yes": "Sí",
         "cancel": "Cancelar",
         "save": "Guardar"
     },
@@ -9,11 +9,11 @@
         "buttons": {
             "login": "Login",
             "print": "Imprimir",
-            "drawAndMeasure": "Herramientas de medición",
-            "filter": "Filtro datos temáticos",
-            "edit": "Dessarolar escenario",
+            "drawAndMeasure": "Medir",
+            "filter": "Filtrar datos temáticos",
+            "edit": "Crear escenario",
             "settings": "Idioma",
-            "info": "Info"
+            "info": "Información"
         },
         "login": {
             "title": "Login",
@@ -32,14 +32,14 @@
         "printMap": {
             "title": "Imprimir mapa",
             "connectionMsg": "Conectándose al servidor de impresión, espere ...",
-            "unavailableMsg": "El servidor de impresión no está disponible. Por favor, inténtalo más tarde.....",
+            "unavailableMsg": "El servidor de impresión no está disponible. Por favor, inténtelo más tarde.....",
             "form": {
                 "title": {
                     "label": "Título",
                     "rule": "Dato requerido"
                 },
                 "layout": {
-                    "label": "Diseño",
+                    "label": "Tamaño y posición",
                     "rule": "Dato requerido"
                 },
                 "scale": {
@@ -51,18 +51,19 @@
                     "rule": "Dato requerido"
                 },
                 "crs": {
-                    "label": "Sistema de referencia",
+                    "label": "Sistema de coordenadas",
                     "rule": "Dato requerido"
                 },
                 "submit": "Impresión",
+                "abort": "Cancelar",
                 "legend": "Leyenda",
                 "grid": "Cuadrícula"
             }
         },
         "drawAndMeasure": {
-            "title": "Medida",
+            "title": "Medir",
             "measure": {
-                "header": "Medida",
+                "header": "Medir",
                 "length": "Distancia",
                 "area": "Área"
             },
@@ -79,61 +80,77 @@
             "clear": "Borrar"
         },
         "filter": {
-            "title": "Filtro datos temáticos",
+            "title": "Filtrar datos temáticos",
             "poisSettings": {
-                "buttonTooltip": "Ajustes de importancia y sensibilidad",
-                "title": "Mapa térmico",
-                "selectWeight": "Seleccione importancia",
+                "buttonTooltip": "Ajustes de ponderación y sensibilidad",
+                "title": "Mapa de calor",
+                "selectWeight": "Seleccione el factor de ponderación",
                 "sensitivityIndex": "Índice de sensibilidad",
                 "sensitivityGraph": {
                     "title": "Accesibilidad",
-                    "gravity": "Accesibilidad Gravedad (%)",
+                    "gravity": "Gravedad de la accesibilidad  (%)",
                     "travelTime": "Tiempo de viaje (minutos)"
                 }
             }
         },
         "edit": {
-            "title": "Dessarolar escenario",
-            "selectLayer": "Capa para editar",
-            "selectFeatures": "Seleccionar funciones",
-            "drawCircle": "Dibuja un círculo para seleccionar objetos",
-            "selectOnMap": "Selecciona objetos en el mapa",
+            "title": "Crear escenario",
+            "selectLayer": "Seleccione capa a editar",
+            "selectFeatures": "Seleccionar área a editar",
+            "drawCircle": "Dibuje un círculo para seleccionar los elementos a editar",
+            "selectOnMap": "Seleccione objetos en el mapa",
             "editTools": "Herramientas de edición",
-            "drawFeatureTooltip": "Característica de dibujo",
-            "modifyFeatureTooltip": "Modificar función",
-            "deleteFeature": "Eliminar característica",
+            "drawFeatureTooltip": "Dibujar entidad",
+            "modifyFeatureTooltip": "Modificar entidad",
+            "deleteFeature": "Eliminar entidad",
             "clearBtn": "Borrar",
             "uploadBtn": "Subir",
             "popup": {
-                "deleteFeatureMsg": "¿Está seguro de que desea eliminar la función seleccionada?",
-                "selectWayType": "Selecciona tipo de camino: ",
+                "deleteFeatureMsg": "¿Está seguro de que desea eliminar la entidad seleccionada?",
+                "selectWayType": "Seleccione el tipo de vía: ",
                 "wayType": "Tipo de vía"
-            }
+            },
+            "activateLayerToDrawScenario": "Por favor active una capa para poder seleccionar las entidades",
+            "geometryTypeInfo": "La geometría debe ser tipo",
+            "requiredFields": "Campo obligatorio",
+            "referenceSystemInfo": "El sistema de coordenadas debe estar configurado como",
+            "featuresNotyetUploaded": "Las entidades aún no han sido subidas. De click en subir para subir las entidades",
+            "differentGeometryType": "Las geometrías no encajan",
+            "missingFields": "Campos perdidos",
+            "fileCorrupted": "El archivo geojson está corrupto",
+            "noFile": "No hay archivo seleccionado",
+            "allFeaturesUploaded": "Todas las entidades han sido subidas",
+            "notAllUploaded": "No todas las entidades han sido subidas",
+            "errorHappened": "Ha ocurrido un error",
+            "scenarioFeatures": "Entidades del escenario",
+            "uploadYourData": "Suba su archivo ",
+            "deleteAllTitle": "Borrar todo",
+            "deleteAllMessage": "¿Está seguro que quiere borrar toda la información de su <b> escenario?."
         },
         "settings": {
-            "title": "Configuraciones",
+            "title": "Configuración",
             "language": "Idioma",
             "units": {
-                "header": "Unidad",
+                "header": "Unidades",
                 "km": "Kilómetros",
                 "miles": "Millas"
             }
         },
         "about": {
             "title": "Sobre GOAT",
-            "content": "es la sigla en inglés de Geo Open Accessibility Tool. Esta herramienta web ha sido concebida como de código abierto, flexible, interactiva, y útil para la planificación basada en accesibilidad. Está siendo desarollada en la TUM (Chair of Urban Structure and Transport Planning).....",
+            "content": "es la sigla en inglés de Geo Open Accessibility Tool. GOAT ha sido concebida como una herramienta flexible, interactiva y de código abierto que puede ser usada para la planificación basada en la accesibilidad. GOAT se encuentra en desarrollo en la TUM ( Chair of Urban Structure and Transport Planning).....",
             "moreInfo": "Más información"
         }
     },
     "isochrones": {
-        "title": "Isócronas",
+        "title": "Isocronas",
         "calculation": "Cálculo",
-        "calculationTitle": "Cálculo de isócronas",
+        "calculationTitle": "Cálculo de isocronas",
         "single": {
             "title": "Punto de partida",
             "type": "Simple",
             "searchBox": "Buscar punto de partida",
-            "startTooltip": "Haga clic en el botón para iniciar el cálculo",
+            "startTooltip": "Haga clic aquí para seleccionar un punto de partida en el mapa",
             "tableDataTitle": "Información espacial"
         },
         "multiple": {
@@ -143,66 +160,95 @@
             "studyArea": "Área de estudio",
             "clear": "Borrar",
             "calculate": "Calcular",
-            "studyAreaInfoLabel": "Seleccione <b> area de estudio </b> y <b> servicios </b> para habilitar el cálculo.",
-            "drawBoundary": "Dibujar límite",
-            "amenityCount": "Cuenta de servicios",
-            "limit": "Límite",
-            "drawBoundaryInfoLabel": "Dibuje <b> límite </b> y seleccione <b> servicios </b> para habilitar el cálculo.",
-            "tableDataTitle": "Datos de múltiples isocronas"
+            "studyAreaInfoLabel": "Seleccione un <b> área de estudio </b> y los <b> servicios </b> para habilitar el cálculo.",
+            "drawBoundary": "Dibujar área",
+            "amenityCount": "Número de servicios",
+            "limit": "Máximo",
+            "drawBoundaryInfoLabel": "Dibuje <b> un área </b> y seleccione los <b> servicios </b> para habilitar el cálculo.",
+            "tableDataTitle": "Datos de las isocronas múltiples"
         },
         "options": {
             "title": "Opciones",
-            "subOptions": "Configuración de isócrona",
+            "subOptions": "Configuración de las isocronas",
             "speed": "km / h",
             "time": "min",
-            "nr": "Isócronas",
-            "calcType": "Detalle de la isocrona",
+            "nr": "Isocronas",
+            "calcType": "Nivel de detalle de las isocronas",
             "calcModus": "Modos de cálculo",
             "alphaShapeMode": "Parámetro de forma alfa",
-            "defaultNetwork": "Red standard",
+            "defaultNetwork": "Red estándar",
             "modifiedNetwork": "Red modificada",
-            "modifiedNetworkDoubleCalc": "Red modificada (doble cálculo)"
+            "modifiedNetworkDoubleCalc": "Red modificada (doble cálculo)",
+            "routingProfile": "Perfiles de usuario para  ruteo",
+            "walking_standard": "Usuario estándar",
+            "walking_elderly": "Adulto mayor (tercera edad)",
+            "walking_safe_night": "Safe night",
+            "walking_wheelchair": "Usuario en silla de ruedas"
         },
         "results": {
             "title": "Resultados",
-            "multiIsochroneHeader": "Cálculo de múltiples isocronas",
+            "multiIsochroneHeader": "Cálculo de las isocronas múltiples",
             "additionalLayers": "Capas adicionales",
             "showDataTooltip": "Mostrar datos",
+            "showResultsTooltip": "Mostrar resultados",
+            "hideResultsTooltip": "Ocultar resultados",
             "toggleVisibilityTooltip": "Alternar visibilidad",
             "downloadTooltip": "Descargar",
             "deleteCalcTooltip": "Eliminar cálculo",
+            "changeColorTooltip": "Click aquí para cambiar el color",
             "table": {
                 "type": "Tipo",
                 "range": "Tiempo",
-                "area": "Area",
+                "area": "Área",
                 "visible": "Visible",
                 "legend": "Color"
             }
         },
         "tableData": {
-            "timeFilter": "Filtro de tiempo",
-            "searchPois": "Filtrar información de interés",
+            "timeFilter": "Seleccione límite de tiempo",
+            "searchPois": "Filtrar puntos de interés",
             "selectTimeMsg": "Seleccione el tiempo para filtrar",
             "noDataMsg": "No hay datos para el tiempo seleccionado.",
-            "selectAmenitiesMsg": "Seleccione el <b> periodo de tiempo </b> y <b> destinos </b> en el Filtro datos temáticos para filtrar la tabla.",
+            "selectAmenitiesMsg": "Seleccione el <b> límite de tiempo </b> y <b> destinos </b> en el Filtro datos temáticos para filtrar la tabla.",
             "table": {
-                "pois": "Información de interés",
+                "pois": "Puntos de interés",
                 "isochrone": "Isocrona",
                 "studyArea": "Área de estudio",
                 "population": "Población",
                 "reachedPopulation": "Población alcanzada"
             }
         },
-        "isochrones": "Isócronas",
+        "isochrones": "Isocronas",
         "deleteTitle": "Eliminar",
         "deleteMessage": "¿Está seguro de que desea eliminar el cálculo?",
         "download": {
-            "title": "Descargar Isochrones",
+            "title": "Descargar isocronas",
             "fileName": "Nombre del archivo",
-            "outputFormat": "Elije el formato",
+            "outputFormat": "Formato",
             "download": "Descargar"
-        }
+        },
+        "additionalLayers": {
+            "defaultNetwork": "Red vial por defecto",
+            "inputNetwork": "Red vial del escenario"
+          },
+          "pickColor": {
+            "title": "Color de isocrona"
+          }
     },
+    "poisFilter": {
+        "showTimeFilter": "Añadir filtro de tiempo",
+        "selectHourLabel": "Seleccione hora de apertura",
+        "selectDayLabel": "Seleccione el día de la semana",
+        "daysOfWeek": {
+          "monday": "Lunes",
+          "tuesday": "Martes",
+          "wednesday": "Miércoles",
+          "thursday": "Jueves",
+          "friday": "Viernes",
+          "saturday": "Sábado",
+          "sunday": "Domingo"
+        }
+      },
     "layerTree": {
         "title": "Capas",
         "settings": {
@@ -214,27 +260,31 @@
             "title": "Capas Leyenda"
         },
         "snackbarMessages": {
-            "selectAmenities": "Debe seleccionar al menos una amenidad"
+            "selectAmenities": "Debe seleccionar al menos una amenidad.",
+            "calculateIsochroneError": "Lo sentimos, desde este punto no es posible calcular isocronas.",
+            "uploadScenarioSuccess": "Las entidades han sido cargadas exitosamente.",
+        "uploadScenarioError": "Lo sentimos, ha ocurrido un error mientras se cargaban las entidades en la base de datos.",
+        "notAllScnearioFeaturesUploaded": " El escenario de isocronas no tendrá en cuenta las entidades subidas."
         },
         "layerGroup": {
-            "poisLayers": "Capa Pois",
+            "poisLayers": "Puntos de interés",
             "administrativeLayers": "Límites administrativos",
             "streetlevelqualityLayers": "Street Level Quality",
             "accessbilityBasemaps": "Accesibilidad",
-            "backgroundLayers": "Capas de fondo"
+            "backgroundLayers": "Mapas base"
         },
         "layerName": {
-            "pois": "Punto de interés",
+            "pois": "Puntos de interés",
             "administrativeUnits": "Unidades administrativas",
-            "footpathWidth": "Footpath Width",
-            "illuminance": "Illuminance",
-            "lanes": "Lanes",
-            "parking": "Parking",
-            "speed": "Speed",
-            "streetCrossings": "Street Crossings",
-            "surface": "Surface",
-            "wheelchairUsability": "Wheelchair Usability",
-            "areaIsochrone": "Tamaño Isócrona",
+            "footpathWidth": "Ancho de acera peatonal",
+            "illuminance": "Iluminación",
+            "lanes": "Carriles",
+            "parking": "Parqueo en vía",
+            "speed": "Velocidad",
+            "streetCrossings": "Cruces de calle",
+            "surface": "Superficie",
+            "wheelchairUsability": "Habilitado para usuarios en silla de ruedas",
+            "areaIsochrone": "Tamaño Isocrona",
             "walkabilityPopulation": "Población - Walkability",
             "population": "Población",
             "walkability": "Walkability",
@@ -248,23 +298,33 @@
             "bingAerial": "Bing Aerial"
         },
         "tooltips": {
-            "clickForCalculation": "Haga clic para calcular",
-            "clickToSelectStudyArea": "Haga clic para seleccionar el área de estudio.",
+            "clickForCalculation": "Haga clic para calcular, oprima ESC para salir",
+            "clickToSelectStudyArea": "Haga clic para seleccionar el área de estudio, oprima ESC para salir.",
             "maxCircleRadius": "El radio máximo del círculo es de 1000 m.",
-            "clickToStartMeasure": "Haga clic para comenzar a medir",
-            "clickToStartDrawing": "Haga clic para comenzar a dibujar",
+            "clickToStartMeasure": "Haga clic para comenzar a medir, oprima ESC para salir",
+            "clickToStartDrawing": "Haga clic para comenzar a dibujar, oprima ESC para salir",
             "clickToContinueDrawing": "Haga clic para continuar dibujando",
             "clickToFinishDrawing": "Haga clic para terminar de dibujar",
-            "clickToStartDrawingBoundary": "Haga clic para comenzar a dibujar el límite",
-            "clickToStartDrawingCircle": "Haga clic para comenzar a dibujar el círculo (Radio máximo 1000 m)",
+            "clickToStartDrawingBoundary": "Haga clic para comenzar a dibujar, , <br> oprima ESC para salir",
+            "clickToStartDrawingCircle": "Haga clic para comenzar a dibujar el círculo (Radio máximo 1000 m) <br> oprima ESC para salir",
             "clickToFinishDrawingPolygon": "Haga doble clic o haga clic en el punto de partida para finalizar",
             "clickOnFeatureToDelete": "Haga clic en el objeto para eliminarla.",
             "clickAndDragToModify": "Haga clic y arrastre el objeto para modificar",
-            "clickToRemove": "Haga clic para eliminarlo"
+            "clickToRemove": "Haga clic para eliminarlo",
+            "clickToPlacePoint": "Haga clic ",
+            "routingProfiles": {
+                "walking_standard": "Ruteo predeterminado",
+                "walking_elderly": " Ruteo con velocidad de caminata reducida",
+                "walking_wheelchair": "Ruteo excluyendo rutas y puntos de interés que no son sin barreras",
+                "walking_safe_night": "Ruteo excluyendo vías sin iluminación"
+            },
+            "zoomToFeature": "Zoom a la entidad",
+            "deleteFeature": "Borrar entidad",
+            "uploadFeature": "Actualizar entidad"
         },
         "popup": {
             "attributes": "Atributos",
-            "info": "Informacion",
+            "info": "Información",
             "editWithOsm": "Editar con OSM",
             "confirm": "Confirmar"
         },
@@ -287,21 +347,21 @@
         "bar": "Bar",
         "biergarten": "Biergarten",
         "cafe": "Café",
-        "pub": "Pub",
+        "pub": "Bar",
         "fast_food": "Comida rápida",
-        "ice_cream": "Helado",
+        "ice_cream": "Heladería",
         "restaurant": "Restaurante",
         "nightclub": "Club nocturno",
-        "bicycle_rental": "Alquiler de bicis",
+        "bicycle_rental": "Alquiler de bicicletas",
         "car_sharing": "Auto compartido",
         "charging_station": "Estación de carga",
-        "bus_stop": "Autobús",
+        "bus_stop": "Parada de autobús",
         "tram_stop": "Parada de tranvía",
         "subway_entrance": "Estación de Metro",
-        "rail_station": "Estacion de tren",
+        "rail_station": "Estación de tren",
         "taxi": "Taxi",
-        "hairdresser": "Peluquero",
-        "atm": "Cajero",
+        "hairdresser": "Peluquería",
+        "atm": "Cajero automático",
         "bank": "Banco",
         "dentist": "Dentista",
         "doctors": "Doctor",
@@ -310,28 +370,28 @@
         "fuel": "Combustible",
         "recycling": "Reciclaje",
         "bakery": "Panadería",
-        "butcher": "Carnicero",
+        "butcher": "Carnicería",
         "clothes": "Tienda de ropa",
-        "convenience": "Colmado",
-        "greengrocer": "Verdulero",
+        "convenience": "Tienda de conveniencia",
+        "greengrocer": "Verdulería",
         "kiosk": "Quiosco",
         "mall": "Centro comercial",
-        "shoes": "Zapatos",
+        "shoes": "Zapatería",
         "supermarket": "Supermercado",
-        "discount_supermarket": "Supermercado de descuento",
+        "discount_supermarket": "Tienda de descuento",
         "international_supermarket": "Supermercado internacional",
         "hypermarket": "Hipermercado",
         "chemist": "Droguería",
-        "organic": "Alimentos orgánicos",
+        "organic": "Supermercado orgánico",
         "marketplace": "Mercado",
         "cinema": "Cine",
         "theatre": "Teatro",
         "museum": "Museo",
         "hotel": "Hotel",
         "hostel": "Hostal",
-        "guest_house": "Casa de huespedes",
+        "guest_house": "Casa de huéspedes",
         "gallery": "Galería",
-        "university": "University",
+        "university": "Universidad",
         "hospital": "Hospital",
         "population": "Población"
     },
@@ -339,27 +399,28 @@
         "close": "Cerrar",
         "dataIterator": {
             "pageText": "{0} - {1} de {2}",
-            "noResultsText": "No se encontraron registros coincidentes",
+            "noResultsText": "No se encontraron registros que coincidan",
             "loadingText": "Cargando artículos ..."
         },
         "dataTable": {
             "itemsPerPageText": "Filas por página:",
             "ariaLabel": {
-                "sortDescending": ": Ordenada descendiendo. Activar para eliminar la clasificación.",
-                "sortAscending": ": Ordenado ascendente. Activar para ordenar descendente.",
-                "sortNone": ": No clasificado. Activar para ordenar ascendente."
+                "sortDescending": ": Clasificación descendente. Activar para eliminar la clasificación.",
+                "sortAscending": ": Clasificación ascendente. Activar para ordenar descendentemente.",
+                "sortNone": ": No clasificado. Activar para ordenar ascendentemente."
             }
         },
         "dataFooter": {
-            "itemsPerPageText": "Elementos por página:",
-            "itemsPerPageAll": "Todas",
+            "pageText": "{0}-{1} of {2}",
+            "itemsPerPageText": "Filas por página:",
+            "itemsPerPageAll": "Todos las filas",
             "nextPage": "Siguiente página",
-            "prevPage": "Pagina anterior",
+            "prevPage": "Página anterior",
             "firstPage": "Primera página",
             "lastPage": "Última página"
         },
         "datePicker": {
-            "itemsSelected": "{0} seleccionado"
+            "itemsSelected": "{0} seleccionados"
         },
         "noDataText": "Datos no disponibles",
         "carousel": {
@@ -368,6 +429,28 @@
         },
         "calendar": {
             "moreEvents": "{0} más"
+        }
+    },
+    "common": {
+        "required": "Esta información es necesaria"
+    },
+    "dynamicFields": {
+        "attributes": {
+          "ways": {
+            "type": "Tipo de vía",
+            "class_id": "ID de clasificación"
+          },
+          "pois": {
+            "amenity": "Amenidad",
+            "name": "Nombre (Opcional)",
+            "opening_hours": "Horas de atención (Opcional)"
+          }
+        },
+        "listValues": {
+          "ways": {
+            "road": "Calle",
+            "bridge": "Puente"
+          }
         }
     }
 }

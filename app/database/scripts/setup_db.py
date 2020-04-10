@@ -26,14 +26,17 @@ def setup_db(setup_type):
     #Create pgpass-file for temporary database
     ReadYAML().create_pgpass('temp')
     #Create extensions
-    os.system('psql -U postgres -d %s -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION plpython3u;"' % db_name_temp)
+    os.system('psql -U postgres -d %s -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION intarray;CREATE EXTENSION plpython3u;"' % db_name_temp)
 
+    #These extensions are needed when using the new DB-image
+    #os.system('psql -U postgres -d %s -c "CREATE EXTENSION postgis_raster;"' % db_name_temp)
+    #os.system('psql -U postgres -d %s -c "CREATE EXTENSION plv8;"' % db_name_temp)
     os.chdir('/opt/data')
 
 
     if (download_link != 'no_download' and setup_type == 'new_setup'):
         os.system('wget --no-check-certificate --output-document="raw-osm.osm.pbf" %s' % download_link)
-
+     
     #Define bounding box, the boundingbox is buffered by approx. 3 km
     bbox = shapefile.Reader("study_area.shp").bbox
     top = bbox[3]+buffer
@@ -42,11 +45,9 @@ def setup_db(setup_type):
     right = bbox[2]+buffer
 
     if (setup_type == 'new_setup'):  
-        #print('osmosis --read-pbf file="raw-osm.osm.pbf" %s --write-xml file="study_area.osm"' % bounding_box)
         if (extract_bbox == 'yes'):
-            
             bounding_box = '--bounding-box top=%f left=%f bottom=%f right=%f' % (top,left,bottom,right)
-            print(bounding_box)
+            print('Your bounding box is: ' + bounding_box)
             os.system('osmosis --read-pbf file="raw-osm.osm.pbf" %s --write-xml file="study_area.osm"' % bounding_box)
 
         #Create timestamps
@@ -62,7 +63,6 @@ def setup_db(setup_type):
 
         #Import DEM
         if os.path.isfile('dem.tif'):
-            #--bounding-box top=48.248582 left=11.127238 bottom=48.101042 right=11.329993
             #os.system('gdalwarp -dstnodata -999.0 -r near -ot Float32 -of GTiff -te %f %f %f %f dem.tif dem_cut.tif' % (left,top,right,bottom))
             os.system('raster2pgsql -c -C -s 4326 -f rast -F -I -M -t 100x100 dem.tif public.dem > dem.sql')
             db_temp.execute_script_psql('dem.sql')
@@ -122,11 +122,16 @@ def setup_db(setup_type):
         os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name_temp,user,host,'../data_preparation/SQL/pois.sql'))
         if (setup_type in ['new_setup','population']):
             print ('It was chosen to use population from: ', source_population)
+            if os.path.isfile('buildings.shp'):
+                script_buildings = 'buildings_residential_custom.sql'
+            else:
+                script_buildings = 'buildings_residential.sql'
+
             if (source_population == 'extrapolation'):
-                db_temp.execute_script_psql('../data_preparation/SQL/buildings_residential.sql')
+                db_temp.execute_script_psql('../data_preparation/SQL/'+script_buildings)
                 db_temp.execute_script_psql('../data_preparation/SQL/census.sql')
             elif(source_population == 'disaggregation'):
-                db_temp.execute_script_psql('../data_preparation/SQL/buildings_residential.sql')
+                db_temp.execute_script_psql('../data_preparation/SQL/'+script_buildings)
                 db_temp.execute_script_psql('../data_preparation/SQL/population_disagregation.sql')
             elif(source_population == 'distribution'):
                 db_temp.execute_script_psql('../data_preparation/SQL/population_distribution.sql')

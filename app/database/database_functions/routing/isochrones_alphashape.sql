@@ -4,51 +4,31 @@ CREATE OR REPLACE FUNCTION public.isochrones_alphashape(userid_input integer, mi
  LANGUAGE plpgsql
 AS $function$
 DECLARE
---Declares the output as type type_isochrone
-r type_isochrone;
-counter integer :=0;
-upper_limit integer;
-under_limit integer;
-edges type_edges[];
-max_length_links integer;
+  counter integer :=0;
+  max_length_links integer;
+  step_isochrone numeric = (minutes*60)/n;
+  i numeric;
 begin
 --If the modus is input the routing tables for the network with userinput have to be choosen
   speed = speed/3.6;
-  DROP TABLE IF EXISTS temp_edges;
+
   DROP TABLE IF EXISTS isos;
   CREATE temp TABLE isos OF type_isochrone;
 
 --It can not drop the temp_step_vertices table in case of double calculation.
-  IF modus <> 4 THEN 
-    DROP TABLE IF EXISTS temp_step_vertices;
-    CREATE temp TABLE temp_step_vertices (geom geometry);
-  ELSE 
-    DELETE FROM temp_step_vertices;
-  END IF;
 
-  EXECUTE format('CREATE TEMP TABLE extrapolated_vertices AS SELECT * FROM pgrouting_edges('||minutes||','||x||','||y||','||speed||','||userid_input||','||objectid_input||','||modus||','''||routing_profile||''')');
+  PERFORM pgrouting_edges(minutes,x,y,speed,n,userid_input,objectid_input,modus,routing_profile);
 
-  /*Replacement for show_network goes in here*/
---The speed input, time input AND step input are used to draw isochrones with the corresponding intervals
-  LOOP
-  exit WHEN counter =n;
-  counter :=counter +1;
-  upper_limit :=(minutes*60/n)*counter; 
-  under_limit :=(minutes*60/n)*counter - (minutes * 60/n);
-  --A concave hull is created (isochrones) the concavity can be set 
-  DELETE FROM temp_step_vertices;
-  INSERT INTO temp_step_vertices 
-  SELECT geom  
-  FROM extrapolated_vertices 
-  WHERE cost BETWEEN 0 AND upper_limit;
- 
-  IF (SELECT count(*) FROM temp_step_vertices LIMIT 4) > 3 THEN
-  	INSERT INTO isos 
-	  SELECT userid_input,counter,(upper_limit/60)::numeric, 
-	  ST_SETSRID(pgr_pointsaspolygon ('SELECT (row_number() over())::integer as id, ST_X(geom)::float x, ST_Y(geom)::float y 
-	  FROM temp_step_vertices',shape_precision),4326);      
-
-  END IF;
+  FOR i IN SELECT generate_series(step_isochrone,(minutes*60),step_isochrone)
+	LOOP
+    counter = counter + 1;
+    IF (SELECT count(*) FROM edges WHERE objectid=objectid_input AND cost BETWEEN 0 AND i LIMIT 4) > 3 THEN 
+      INSERT INTO isos 
+      SELECT userid_input,counter,i/60, 
+      ST_SETSRID(pgr_pointsaspolygon ('SELECT (row_number() over())::integer as id, ST_X(v_geom)::float x, ST_Y(v_geom)::float y 
+      FROM edges WHERE objectid='||objectid_input||'AND cost BETWEEN 0 AND '||i,shape_precision),4326);      
+    END IF;
+    
   END LOOP;  
   DROP TABLE IF EXISTS extrapolated_vertices;
   RETURN query SELECT * FROM isos;

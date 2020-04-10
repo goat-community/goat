@@ -173,25 +173,33 @@ export default {
     updateHeatmapLayerViewParams() {
       const me = this;
       const selectedPois = me.selectedPois;
-
       const heatmapViewParams = selectedPois.reduce((filtered, item) => {
         const { value, weight, sensitivity } = item;
         if (value != "undefined" && weight != undefined) {
-          filtered.push({
-            [`${value}`]: { sensitivity: sensitivity, weight: weight }
-          });
+          filtered[`${value}`] = { sensitivity, weight };
         }
         return filtered;
-      }, []);
+      }, {});
 
       me.heatmapLayers.forEach(layer => {
         const viewparams = JSON.stringify(heatmapViewParams);
         layer.getSource().updateParams({
-          viewparams: `amenities:'${btoa(viewparams)}'`
+          viewparams: `amenities:'${btoa(viewparams)}';userid:${me.userId};`
         });
-
-        if (heatmapViewParams.length === 0) {
-          layer.setVisible(false);
+        if (layer.getVisible() === true && heatmapViewParams.length === 0) {
+          this.toggleSnackbar({
+            type: "error",
+            message: "selectAmenities",
+            timeout: 60000,
+            state: true
+          });
+        } else {
+          this.toggleSnackbar({
+            type: "error",
+            message: "selectAmenities",
+            state: false,
+            timeout: 0
+          });
         }
 
         layer.getSource().refresh();
@@ -210,9 +218,7 @@ export default {
 
         let params = `amenities:'${btoa(
           viewParams.toString()
-        )}';routing_profile:'${
-          me.options.routingProfile.active["value"]
-        }';userid:${me.userId};`;
+        )}';routing_profile:'${me.activeRoutingProfile}';userid:${me.userId};`;
 
         if (this.timeBasedCalculations === "yes") {
           params += `d:${me.getSelectedDay};h:${me.getSelectedHour};m:${me.getSelectedMinutes};`;
@@ -276,7 +282,10 @@ export default {
     },
     treeViewChanged() {
       this.selectedPois = this.selectedPois.filter(x => x.locked != true);
-    }
+    },
+    ...mapMutations("map", {
+      toggleSnackbar: "TOGGLE_SNACKBAR"
+    })
   },
   watch: {
     selectedPois: function() {
@@ -289,7 +298,7 @@ export default {
       me.updatePoisLayerViewParams(me.selectedPois);
       me.countStudyAreaPois();
     },
-    "options.routingProfile.active.value": function(newValue, oldValue) {
+    activeRoutingProfile: function(newValue, oldValue) {
       if (this.timeBasedCalculations === "yes") {
         this.toggleRoutingFilter(newValue, oldValue);
       }
@@ -310,7 +319,8 @@ export default {
       disabledPoisOnRoutingProfile: "disabledPoisOnRoutingProfile"
     }),
     ...mapGetters("isochrones", {
-      options: "options"
+      options: "options",
+      activeRoutingProfile: "activeRoutingProfile"
     }),
     ...mapGetters("user", { userId: "userId" }),
     ...mapFields("pois", {
@@ -330,7 +340,7 @@ export default {
   },
   created() {
     this.init(this.$appConfig.componentData.pois);
-    this.toggleRoutingFilter(this.options.routingProfile.active["value"], null);
+    this.toggleRoutingFilter(this.activeRoutingProfile, null);
   }
 };
 </script>

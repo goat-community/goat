@@ -6,7 +6,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 // use it before all route definitions
 app.use(cors({ origin: "*" }));
-app.use(function (request, response, next) {
+app.use(function(request, response, next) {
   response.header("Access-Control-Allow-Origin", "*");
   response.header(
     "Access-Control-Allow-Methods",
@@ -40,7 +40,7 @@ app.post("/api/userdata", jsonParser, (request, response) => {
       returnResult
     );
   } else if (mode == "update") {
-    //update is used to fill the array with features that are not drawned by the user
+    //update is used to fill the array with features that are not drawn by the user
     pool.query(
       "UPDATE user_data SET deleted_feature_ids=($2) WHERE userid=($1) AND  layer_name=($3)",
       [
@@ -51,10 +51,19 @@ app.post("/api/userdata", jsonParser, (request, response) => {
       returnResult
     );
   } else if (mode == "delete") {
-    //delete is used to delete the feature from modified table if the user has drawned that feature by himself
+    //delete is used to delete the feature from modified table if the user has drawn that feature by himself
     pool.query(
-      `DELETE FROM ${request.body.layer_name}_modified WHERE userid=($1)`,
-      [request.body.drawned_fid],
+      `DELETE FROM ${request.body.layer_name}_modified WHERE userid=($1) AND original_id = ANY(($2));`,
+      [
+        request.body.user_id,
+        request.body.deleted_feature_ids,
+      ]
+    );
+    pool.query(
+      `DELETE FROM ${request.body.layer_name}_modified WHERE id=($1)`,
+      [
+        request.body.drawned_fid
+      ],
       returnResult
     );
     //*later we can require guid (unique id) for security here, for the user to be able to delete the feature and use a nodejs library to prevent sql incjection attacks*//
@@ -66,6 +75,41 @@ app.post("/api/userdata", jsonParser, (request, response) => {
     );
   }
 });
+
+/**
+ * Deletes all the rows of the user from "_modified" and "user_data" table
+ */
+app.post(
+  "/api/deleteAllScenarioData",
+  jsonParser,
+  async (request, response) => {
+    const layerNames = request.body.layer_names;
+    const userId = request.body.user_id;
+    try {
+      //1- Delete from user_data first
+      await pool.query(
+        `UPDATE user_data SET deleted_feature_ids='{}' WHERE userid=${userId}`,
+        []
+      );
+
+      //2- Delete from every layer modified table
+      for (const layerName of layerNames) {
+        await pool.query(
+          `DELETE FROM ${layerName}_modified WHERE userid=${userId};`,
+          []
+        );
+      }
+
+      //3- Rerun upload to reflect the changes.
+      await pool.query(`select * from network_modification(${userId})`);
+
+      response.send("success");
+    } catch (err) {
+      console.log(err.stack);
+      response.send("error");
+    }
+  }
+);
 
 app.post("/api/isochrone", jsonParser, (request, response) => {
   let requiredParams = [
@@ -170,7 +214,7 @@ app.post(
   (request, response) => {
     let requiredParams = [
       "user_id",
-      "modus", 
+      "modus",
       "minutes",
       "speed",
       "region_type",
@@ -187,7 +231,7 @@ app.post(
       }
       queryValues.push(value);
     });
-    
+
     console.log(queryValues);
     // Make sure to set the correct content type
 
@@ -208,7 +252,7 @@ app.post(
 );
 
 // respond with "pong" when a GET request is made to /ping (HEALTHCHECK)
-app.get("/ping", function (_req, res) {
+app.get("/ping", function(_req, res) {
   res.send("pong");
 });
 

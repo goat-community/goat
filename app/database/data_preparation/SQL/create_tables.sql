@@ -40,16 +40,64 @@ CREATE TABLE public.multi_isochrones (
 CREATE INDEX ON multi_isochrones USING gist (geom);
 CREATE INDEX ON multi_isochrones USING btree(objectid,parent_id);
 
-CREATE TABLE public.edges (
-	edge int4 NULL,
+CREATE UNLOGGED TABLE public.edges (
+	edge integer NULL,
+	node integer NULL,
 	cost numeric NULL,
 	geom geometry NULL,
+	v_geom geometry NULL,
 	objectid int4 NULL,
 	id serial NOT NULL,
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
 );
-CREATE INDEX index_edges ON edges USING gist(geom);
+--CREATE INDEX index_edges ON edges USING gist(geom);
 CREATE INDEX ON edges USING btree(objectid,cost);
+
+/*
+CREATE UNLOGGED TABLE public.edges_multi (
+	edge integer NULL,
+	node integer NULL,
+	min_cost numeric NULL,
+	geom geometry NULL,
+	v_geom geometry NULL,
+	objectid int4 NULL,
+	node_cost_1 jsonb,
+	node_cost_2 jsonb,
+	id serial NOT NULL,
+	CONSTRAINT edges_multi_pkey PRIMARY KEY (id)
+);
+--CREATE INDEX index_edges ON edges USING gist(geom);
+CREATE INDEX ON edges_multi USING btree(objectid,min_cost);
+*/
+CREATE UNLOGGED TABLE public.edges_multi (
+	edge integer NULL,
+	node integer NULL,
+	min_cost numeric NULL,
+	geom geometry NULL,
+	v_geom geometry NULL,
+	objectid integer NULL,
+	duplicates integer[],
+	combi_ids integer[],
+	combi_costs float[],
+	id serial NOT NULL,
+	CONSTRAINT edges_multi_pkey PRIMARY KEY (id)
+);
+--CREATE INDEX index_edges ON edges USING gist(geom);
+CREATE INDEX ON edges_multi USING btree(objectid,min_cost);
+CREATE INDEX ON edges_multi USING GIN(duplicates);
+
+CREATE UNLOGGED TABLE edges_multi_extrapolated(
+	edge integer,
+	node integer,
+	cost numeric,
+	geom geometry,
+	v_geom geometry,
+	id_calc integer, 
+	objectid integer,
+	id serial,
+	CONSTRAINT edges_multi_extrapolated_pkey PRIMARY KEY(id)
+);
+CREATE INDEX ON edges_multi_extrapolated USING btree(objectid,id_calc,cost);
 
 CREATE TABLE public.starting_point_isochrones (
 	gid serial,
@@ -76,7 +124,12 @@ ALTER TABLE addresses_residential add primary key (gid);
 CREATE INDEX index_addresses_residential ON addresses_residential USING GIST (geom);
 
 CREATE TABLE study_area_union as
-SELECT st_union(geom) geom FROM study_area;
+SELECT ST_Collect(ST_MakePolygon(geom)) As geom
+FROM 
+(
+   SELECT ST_ExteriorRing((ST_Dump(st_union(geom))).geom) As geom
+   FROM study_area
+) s;
 
 -- Table: public.ways_modified
 
@@ -110,6 +163,18 @@ CREATE TABLE public.pois_modified (
 
 CREATE INDEX ON pois_modified USING gist(geom);
 
+CREATE TABLE buildings_modified
+(
+	gid serial,
+	building_levels integer,
+	building_type text,
+	geom geometry,
+	userid integer,
+	original_id integer,
+	CONSTRAINT buildings_modified_gid_pkey PRIMARY KEY(gid)
+);
+
+CREATE INDEX ON buildings_modified USING GIST(geom);
 
 DROP SEQUENCE IF EXISTS user_data_id_seq;
 CREATE SEQUENCE user_data_id_seq;

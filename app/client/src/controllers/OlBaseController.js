@@ -50,7 +50,7 @@ export default class OlBaseController {
     const options = Object.assign(opt, {
       name: name,
       displayInLayerList: false,
-      zIndex: 5,
+      zIndex: 10,
       source: source,
       style: style
     });
@@ -59,8 +59,9 @@ export default class OlBaseController {
 
     me.map.addLayer(vector);
 
-    // make vector source available as member
+    // make vector source and layer available as member
     me.source = source;
+    me.layer = vector;
   }
 
   /**

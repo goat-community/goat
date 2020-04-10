@@ -27,15 +27,15 @@
       </template>
       <template v-if="!mini">
         <v-app-bar flat class="toolbar green" height="50">
-          <img :src="logo" width="40px" />
-          <v-toolbar-title class="white--text">GOAT</v-toolbar-title>
+          <img :src="logo" width="35px" />
+          <img :src="logoText" class="pt-1" width="95px" />
           <v-spacer></v-spacer>
           <v-btn text icon light @click.stop="mini = !mini">
             <v-icon color="white">fas fa-chevron-left</v-icon>
           </v-btn>
         </v-app-bar>
-
-        <vue-scroll>
+        <routing-toolbar></routing-toolbar>
+        <vue-scroll ref="vs">
           <v-layout
             justify-space-between
             column
@@ -82,15 +82,20 @@
 // Utilities
 import Isochrones from "../isochrones/Isochrones";
 import LayerTree from "../layers/layerTree/LayerTree";
+import RoutingToolbar from "./RoutingToolbar";
+import { mapGetters } from "vuex";
+
 export default {
   components: {
     "map-isochrones": Isochrones,
-    "map-layertree": LayerTree
+    "map-layertree": LayerTree,
+    "routing-toolbar": RoutingToolbar
   },
   name: "tree-panel",
   data: () => ({
     activeComponent: "map-isochrones",
     logo: "img/logo.png",
+    logoText: "img/logo_text.png",
     drawer: true,
     mini: false,
     responsive: false
@@ -98,11 +103,24 @@ export default {
   computed: {
     getColor() {
       return this.mini === true ? "green" : "";
-    }
+    },
+    ...mapGetters("isochrones", {
+      calculations: "calculations"
+    })
   },
   mounted() {},
   beforeDestroy() {},
-  methods: {}
+  methods: {},
+  watch: {
+    calculations(newValue, oldValue) {
+      const scrollEl = this.$refs["vs"];
+      setTimeout(() => {
+        if (oldValue.length === newValue.length) {
+          scrollEl.scrollIntoView("#isochroneResultsEl", 300);
+        }
+      }, 100);
+    }
+  }
 };
 </script>
 <style lang="css">
