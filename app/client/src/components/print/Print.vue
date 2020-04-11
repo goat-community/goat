@@ -283,11 +283,7 @@ export default {
       }
       this.printUtils_ = new PrintUtils();
       this.maskLayer_ = new MaskLayer();
-      this.printService = new PrintService(
-        this.baseUrl,
-        process.env.VUE_APP_MAPPROXY_URL
-      );
-
+      this.printService = new PrintService(this.baseUrl);
       olEvents.listen(this.map.getView(), "change:rotation", event => {
         this.updateRotation_(
           Math.round(olMath.toDegrees(event.target.getRotation()))

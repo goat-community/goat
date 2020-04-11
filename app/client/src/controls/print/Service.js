@@ -58,18 +58,12 @@ import olTilegridWMTS from "ol/tilegrid/WMTS.js";
  * @param {string} url URL to MapFish print web service.
  * @hidden
  */
-export default function PrintService(url, mapproxyUrl) {
+export default function PrintService(url) {
   /**
    * @type {string}
    * @private
    */
   this.url_ = url;
-
-  /**
-   * @type {string}
-   * @private
-   */
-  this.mapproxyUrl_ = mapproxyUrl;
 
   /**
    * @type {import("print/VectorEncoder.js").default}
