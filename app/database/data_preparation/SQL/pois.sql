@@ -233,8 +233,6 @@ UPDATE pois SET amenity = 'discount_supermarket'
 WHERE lower(name)~~ 
 ANY
 (
---	SELECT concat(concat('%',lower(unnest(variable_array))),'%') 
---	FROM variable_container WHERE identifier = 'chains_discount_supermarket'
 	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'discount_supermarket'),'%')
 )  
 AND amenity = 'supermarket';
@@ -243,8 +241,6 @@ UPDATE pois SET amenity = 'hypermarket'
 WHERE lower(name)~~ 
 ANY
 (
---	SELECT concat(concat('%',lower(unnest(variable_array))),'%') 
---	FROM variable_container WHERE identifier = 'chains_hypermarket'
 	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'hypermarket'),'%')
 )  
 AND amenity = 'supermarket';
@@ -253,8 +249,6 @@ UPDATE pois SET amenity = 'no_end_consumer_store'
 WHERE lower(name)~~ 
 ANY
 (
---	SELECT concat(concat('%',lower(unnest(variable_array))),'%') 
---	FROM variable_container WHERE identifier = 'no_end_consumer_store'
 	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'no_end_consumer_store'),'%')
 )  
 AND amenity = 'supermarket';
@@ -263,8 +257,6 @@ UPDATE pois SET amenity = 'health_food'
 WHERE lower(name)~~ 
 ANY
 (
---	SELECT concat(concat('%',lower(unnest(variable_array))),'%') 
---	FROM variable_container WHERE identifier = 'chains_health_food'
 	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'health_food'),'%')
 )  
 AND amenity = 'supermarket';
@@ -283,8 +275,6 @@ DELETE FROM pois
 WHERE (NOT lower(operator) ~~ 
 ANY
 (
---	SELECT concat(concat('%',lower(unnest(variable_array))),'%') 
---	FROM variable_container WHERE identifier = 'operators_bicycle_rental'
 	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'operators_bicycle_rental'),'%')
 )  
 OR operator IS NULL) 

@@ -58,13 +58,6 @@ DATA_REFINEMENT_VARIABLES:
     minimum_building_size_residential: '54'
     census_minimum_number_new_buildings: '1'
     average_gross_living_area: '50'
-    ## Lines to replace
-    chains_discount_supermarket: ["Aldi","Penny","Lidl","Netto","Norma"]
-    chains_hypermarket: ["Hit","Real","Kaufland","V-Markt","Marktkauf"]
-    chains_health_food: ["Vitalia","Reformhaus"]
-    no_end_consumer_store: ["Hamberger","Metro"]
-    ## End lines to replace
-    operators_bicycle_rental: ["Münchner Verkehrs gesellschaft","Münchner Verkehrsgesellschaft","MVG"]
     wheelchair:
       smoothness_no: ["very_bad","horrible","very_horrible","impassable"]
       smoothness_limited: ['bad']
@@ -102,6 +95,7 @@ DATA_REFINEMENT_VARIABLES:
     tag_new_radius: '130'
     #Definition of amenity parameters for data cleaning and data fusion
     #Structure: Facility -> name -> possible names in Data base
+    # possible names could be empty, those variables are only neccessary for pois_fussion (having a .json file)
     pois_search_conditions:
       chemist:
         dm: ['%dm%']
