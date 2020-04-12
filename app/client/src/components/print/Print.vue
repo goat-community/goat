@@ -877,6 +877,12 @@ export default {
               const layerNames = /** @type {string} */ source
                 .getParams()
                 .LAYERS.split(",");
+              const _layerLegend = {
+                name: this.$te(`map.layerName.${layer.get("name")}`)
+                  ? this.$t(`map.layerName.${layer.get("name")}`)
+                  : layer.get("name"),
+                icons: []
+              };
               layerNames.forEach(name => {
                 if (!this.map) {
                   throw new Error("Missing map");
@@ -884,60 +890,35 @@ export default {
                 if (!source.serverType_) {
                   throw new Error("Missing source.serverType_");
                 }
-                const type = icon_dpi ? "image" : source.serverType_;
-                if (!icon_dpi) {
-                  let layerUrl = source.getUrl();
-                  if (layerUrl.startsWith("/")) {
-                    layerUrl = window.location.origin + layerUrl;
-                  }
-                  const url = getWMSLegendURL(
-                    layerUrl,
-                    name,
-                    scale,
-                    undefined,
-                    undefined,
-                    undefined,
-                    source.serverType_,
-                    dpi,
-                    this.legendOptions.useBbox ? bbox : undefined,
-                    this.map
-                      .getView()
-                      .getProjection()
-                      .getCode(),
-                    this.legendOptions.params[source.serverType_]
-                  );
-                  if (!url) {
-                    throw new Error("Missing url");
-                  }
-                  icon_dpi = {
-                    url: url,
-                    dpi: 72
-                  };
+
+                let layerUrl = source.getUrl();
+                if (layerUrl.startsWith("/")) {
+                  layerUrl = window.location.origin + layerUrl;
                 }
 
-                // Don't add classes without legend url or from layers without any
-                // active name.
-                if (icon_dpi && name.length !== 0) {
-                  classes.push(
-                    Object.assign(
-                      {
-                        name:
-                          this.legendOptions.label[type] === false
-                            ? ""
-                            : this.$te(`map.layerName.${layer.get("name")}`)
-                            ? this.$t(`map.layerName.${layer.get("name")}`)
-                            : name,
-                        icons: [icon_dpi.url]
-                      },
-                      icon_dpi.dpi != 72
-                        ? {
-                            dpi: icon_dpi.dpi
-                          }
-                        : {}
-                    )
-                  );
+                const url = getWMSLegendURL(
+                  layerUrl,
+                  name,
+                  scale,
+                  undefined,
+                  undefined,
+                  undefined,
+                  source.serverType_,
+                  dpi,
+                  this.legendOptions.useBbox ? bbox : undefined,
+                  this.map
+                    .getView()
+                    .getProjection()
+                    .getCode(),
+                  this.legendOptions.params[source.serverType_],
+                  this.$i18n.locale
+                );
+                if (!url) {
+                  throw new Error("Missing url");
                 }
+                _layerLegend.icons.push(url);
               });
+              classes.push(_layerLegend);
             }
           }
         }

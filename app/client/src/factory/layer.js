@@ -93,7 +93,7 @@ export const LayerFactory = {
           LAYERS: lConf.layers,
           viewparams: lConf.viewparams
         },
-        serverType: lConf.serverType,
+        serverType: lConf.serverType ? lConf.serverType : "geoserver",
         ratio: lConf.ratio,
         attributions: lConf.attributions
       })
@@ -127,7 +127,7 @@ export const LayerFactory = {
           TILED: lConf.tiled,
           viewparams: lConf.viewparams
         },
-        serverType: lConf.serverType,
+        serverType: lConf.serverType ? lConf.serverType : "geoserver",
         attributions: lConf.attributions
       })
     });
