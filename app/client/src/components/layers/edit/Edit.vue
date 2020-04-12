@@ -756,7 +756,6 @@ export default {
      */
     onDrawEnd(evt) {
       const feature = evt.feature;
-      console.log(feature.getGeometry().getCoordinates());
       this.olEditCtrl.closePopup();
       this.clearDataObject();
       //Disable interaction until user fills the attributes for the feature and closes the popup
