@@ -56,6 +56,10 @@
           "label": "Reference System",
           "rule": "Field is required"
         },
+        "outputFormat": {
+          "label": "Output Format",
+          "rule": "Field is required"
+        },
         "submit": "Print",
         "abort": "Abort",
         "legend": "Legend",

@@ -93,6 +93,17 @@
               required
             ></v-select>
 
+            <v-select
+              v-model="selectedFormat"
+              :items="outputFormats"
+              prepend-icon="description"
+              item-text="display"
+              item-value="value"
+              :label="$t('appBar.printMap.form.outputFormat.label')"
+              :rules="rules.required"
+              required
+            ></v-select>
+
             <v-layout row class="ml-0">
               <v-flex xs9 class="pr-3">
                 <v-slider
@@ -229,6 +240,11 @@ export default {
     printState: "capabilitiesNotLoaded",
     crs: [{ display: "Web Mercator", value: "EPSG:3857" }],
     selectedCrs: "EPSG:3857",
+    outputFormats: [
+      { display: "PDF", value: "pdf" },
+      { display: "PNG", value: "png" }
+    ],
+    selectedFormat: "pdf",
     rotation: 0,
     showGrid: true,
     layoutInfo: {
@@ -446,6 +462,10 @@ export default {
           }
         });
 
+        // Specify output format
+        this.tempFormatValue = this.selectedFormat;
+        spec.format = this.selectedFormat;
+
         this.printService
           .createReport(spec)
           .then(response => {
@@ -498,7 +518,9 @@ export default {
           if (response.status === 200) {
             FileSaver.saveAs(
               response.data,
-              `goat_print_${this.getCurrentDate()}_${this.getCurrentTime()}.pdf`
+              `goat_print_${this.getCurrentDate()}_${this.getCurrentTime()}.${
+                this.tempFormatValue
+              }`
             );
           }
         })
