@@ -202,11 +202,7 @@ PrintService.prototype.encodeMap_ = function(map, scale, object) {
  */
 PrintService.prototype.encodeLayer = function(arr, layer, resolution) {
   if (!layer) return;
-  if (layer.get("cascadePrint")) {
-    //If cascade printing is enabled for tile layers the layers will be encoded as wms layers
-    // and a mapproxy request will be sent to a mapproxy service if available to cascade (interpolate) the tile layers.
-    this.encodeCascadeWmsLayer_(arr, layer);
-  } else if (layer instanceof olLayerImage) {
+  if (layer instanceof olLayerImage) {
     this.encodeImageLayer_(arr, layer);
   } else if (layer instanceof olLayerTile) {
     this.encodeTileLayer_(arr, layer);
