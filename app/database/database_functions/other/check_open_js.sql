@@ -8,7 +8,7 @@ CREATE TABLE plv8_js_modules (
 	source text
 );
 
-# Download Javascript code to tmp dir
+# Download Javascript 
 wget -O opening_hours.js https://openingh.openstreetmap.de/opening_hours.js/opening_hours+deps.min.js
 
 # Run commands in psql 
