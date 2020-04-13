@@ -325,6 +325,7 @@
       "poisLayers": "Pois Layer",
       "administrativeLayers": "Layer Verwaltungsgrenzen",
       "streetlevelqualityLayers": "Street Level Quality",
+      "environmentalQualityLayers": "Umwelt Informationen",
       "perceivedQuality": "Empfundene Qualität",
       "accessbilityBasemaps": "Grundkarten Erreichbarkeit",
       "backgroundLayers": "Hintergrundkarten"
@@ -332,6 +333,11 @@
     "layerName": {
       "pois": "Point of Interest",
       "administrativeUnits": "Administrative Grenzen",
+      "biotops": "Biotope",
+      "ffh-area": "FFH-Gebiete",
+      "natureReserves": "Naturschutzgebiete",
+      "noiseMainTrafficRoads": "Lärm von Hauptverkehrsstraßen",
+      "protectedLandscape": "Landschaftsschutzgebiete",
       "footpathWidth": "Fußwegbreite",
       "illuminance": "Beleuchtung",
       "lanes": "Anzahl der Fahrspuren",
