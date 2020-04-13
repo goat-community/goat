@@ -72,7 +72,6 @@ const getters = {
   styleData: state => state.styleData,
   isThematicDataVisible: state => state.isThematicDataVisible,
   selectedThematicData: state => state.selectedThematicData,
-  alphaShapeParameter: state => state.alphaShapeParameter,
   multiIsochroneCalculationMethods: state =>
     state.multiIsochroneCalculationMethods,
   countPois: state => {
@@ -127,7 +126,7 @@ const actions = {
       params = Object.assign(sharedParams, {
         x: state.position.coordinate[0],
         y: state.position.coordinate[1],
-        concavity: state.options.concavityIsochrones.active,
+        concavity: "0.00003",
         routing_profile: state.activeRoutingProfile
       });
       isochroneEndpoint = "isochrone";
@@ -151,9 +150,7 @@ const actions = {
         .toString();
 
       params = Object.assign(sharedParams, {
-        alphashape_parameter: parseFloat(
-          state.options.alphaShapeParameter.active
-        ),
+        alphashape_parameter: "0.00003",
         region_type: `'${regionType}'`,
         region: region,
         routing_profile: `'${state.activeRoutingProfile}'`,
