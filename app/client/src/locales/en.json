@@ -3,7 +3,9 @@
   "buttonLabels": {
     "yes": "Yes",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "ok": "Ok",
+    "remove": "Remove"
   },
   "appBar": {
     "buttons": {
@@ -52,6 +54,10 @@
         },
         "crs": {
           "label": "Reference System",
+          "rule": "Field is required"
+        },
+        "outputFormat": {
+          "label": "Output Format",
           "rule": "Field is required"
         },
         "submit": "Print",
@@ -536,5 +542,18 @@
         "bridge": "Bridge"
       }
     }
+  },
+  "openingHours": {
+    "openingTime": "Opening Time",
+    "closingTime": "Closing Time",
+    "default": "Default",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "publicHolidays": "Public Holidays"
   }
 }

@@ -25,35 +25,33 @@ spec:
         app: goat-client
     spec:
       containers:
-      - image: ${DOCKER_IMAGE}
-        imagePullPolicy: IfNotPresent
-        name: goat-client
-        ports:
-        - containerPort: 80
-        resources:
-          requests:
-            memory: 512Mi
-            cpu: 200m
-          limits:
-            memory: 1Gi
-            cpu: 300m
-        env:
-          - name: VUE_APP_I18N_LOCALE
-            value: 'en'
-          - name: VUE_APP_I18N_FALLBACK_LOCALE
-            value: 'en'
-          - name: VUE_APP_SEARCH_KEY
-            value: 'ca068d7840bca4'
-          - name: VUE_APP_SEARCH_URL
-            value: https://api.locationiq.com/v1/autocomplete.php
-          - name: VUE_APP_MAPPROXY_URL
-            value: https://${DOMAIN}/mapproxy/
-          - name: API_BASEURL
-            value: https://${DOMAIN}/api/
-          - name: GEOSERVER_BASEURL
-            value: https://${DOMAIN}/geoserver/
-          - name: PRINT_URL
-            value: https://${DOMAIN}/print/
+        - image: ${DOCKER_IMAGE}
+          imagePullPolicy: IfNotPresent
+          name: goat-client
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 200m
+            limits:
+              memory: 1Gi
+              cpu: 300m
+          env:
+            - name: VUE_APP_I18N_LOCALE
+              value: "en"
+            - name: VUE_APP_I18N_FALLBACK_LOCALE
+              value: "en"
+            - name: VUE_APP_SEARCH_KEY
+              value: "ca068d7840bca4"
+            - name: VUE_APP_SEARCH_URL
+              value: https://api.locationiq.com/v1/autocomplete.php
+            - name: API_BASEURL
+              value: https://${DOMAIN}/api/
+            - name: GEOSERVER_BASEURL
+              value: https://${DOMAIN}/geoserver/
+            - name: PRINT_URL
+              value: https://${DOMAIN}/print/
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -73,9 +71,9 @@ spec:
               servicePort: 80
             path: /
   tls:
-  - hosts:
-    - ${DOMAIN}
-    secretName: letsencrypt-prod
+    - hosts:
+        - ${DOMAIN}
+      secretName: letsencrypt-prod
 ---
 apiVersion: v1
 kind: Service
