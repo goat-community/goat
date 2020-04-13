@@ -116,4 +116,4 @@ def load_js_lib():
     os.system(f'psql -U {user} -d {db_name} -f /opt/database_functions/libs/plv8_js_modules.sql')
     os.system(f'psql -U {user} -d {db_name} -c "ALTER DATABASE {db_name} SET plv8.start_proc TO plv8_require"')
 
-load_js_lib()
+#load_js_lib()
