@@ -51,10 +51,12 @@ const state = {
   isochroneLayer: null,
   selectionLayer: null,
   isochroneRoadNetworkLayer: null,
-
   isThematicDataVisible: false,
   selectedThematicData: null,
-  studyAreaLayer: null
+  studyAreaLayer: null,
+
+  // Edit
+  scenarioDataTable: []
 };
 
 const getters = {
@@ -70,7 +72,6 @@ const getters = {
   styleData: state => state.styleData,
   isThematicDataVisible: state => state.isThematicDataVisible,
   selectedThematicData: state => state.selectedThematicData,
-  alphaShapeParameter: state => state.alphaShapeParameter,
   multiIsochroneCalculationMethods: state =>
     state.multiIsochroneCalculationMethods,
   countPois: state => {
@@ -92,6 +93,7 @@ const getters = {
     );
     return calculation ? groupBy(calculation.data, "type") : {};
   },
+  scenarioDataTable: state => state.scenarioDataTable,
   getField
 };
 
@@ -124,7 +126,7 @@ const actions = {
       params = Object.assign(sharedParams, {
         x: state.position.coordinate[0],
         y: state.position.coordinate[1],
-        concavity: state.options.concavityIsochrones.active,
+        concavity: "0.00003",
         routing_profile: state.activeRoutingProfile
       });
       isochroneEndpoint = "isochrone";
@@ -148,9 +150,7 @@ const actions = {
         .toString();
 
       params = Object.assign(sharedParams, {
-        alphashape_parameter: parseFloat(
-          state.options.alphaShapeParameter.active
-        ),
+        alphashape_parameter: "0.00003",
         region_type: `'${regionType}'`,
         region: region,
         routing_profile: `'${state.activeRoutingProfile}'`,
@@ -435,7 +435,11 @@ const actions = {
             calculation.additionalData[payload.type]["features"] = [
               ...olFeatures
             ];
-
+            // Set isochrone calculation speed property for styling purpose
+            const speed = parseFloat(calculation.speed.split(" ")[0]);
+            olFeatures.forEach(feature => {
+              feature.set("speed", speed);
+            });
             if (
               payload.state === true &&
               rootState.isochrones.isochroneRoadNetworkLayer !== null

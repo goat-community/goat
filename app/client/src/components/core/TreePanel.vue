@@ -27,8 +27,8 @@
       </template>
       <template v-if="!mini">
         <v-app-bar flat class="toolbar green" height="50">
-          <img :src="logo" width="40px" />
-          <v-toolbar-title class="white--text">GOAT</v-toolbar-title>
+          <img :src="logo" width="35px" />
+          <img :src="logoText" class="pt-1" width="95px" />
           <v-spacer></v-spacer>
           <v-btn text icon light @click.stop="mini = !mini">
             <v-icon color="white">fas fa-chevron-left</v-icon>
@@ -95,6 +95,7 @@ export default {
   data: () => ({
     activeComponent: "map-isochrones",
     logo: "img/logo.png",
+    logoText: "img/logo_text.png",
     drawer: true,
     mini: false,
     responsive: false
@@ -104,6 +105,7 @@ export default {
       return this.mini === true ? "green" : "";
     },
     ...mapGetters("isochrones", {
+      selectedThematicData: "selectedThematicData",
       calculations: "calculations"
     })
   },
@@ -111,13 +113,20 @@ export default {
   beforeDestroy() {},
   methods: {},
   watch: {
-    calculations(newValue, oldValue) {
-      const scrollEl = this.$refs["vs"];
-      setTimeout(() => {
-        if (oldValue.length === newValue.length) {
-          scrollEl.scrollIntoView("#isochroneResultsEl", 300);
-        }
-      }, 100);
+    selectedThematicData(calculation) {
+      if (calculation) {
+        this.calculations.forEach(value => {
+          if (value.id !== calculation.calculationId) {
+            value.isExpanded = false;
+          } else {
+            value.isExpanded = true;
+          }
+        });
+        const scrollEl = this.$refs["vs"];
+        setTimeout(() => {
+          scrollEl.scrollIntoView(`#result-${calculation.calculationId}`, 300);
+        }, 100);
+      }
     }
   }
 };

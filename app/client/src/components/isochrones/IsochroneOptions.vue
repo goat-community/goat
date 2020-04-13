@@ -70,22 +70,11 @@
             color="#30C2FF"
           >
           </v-slider>
-
-          <v-select
-            v-if="options.calculationType"
-            item-text="display"
-            item-value="value"
-            outlined
-            v-model="concavityIsochrones"
-            :value="concavityIsochrones"
-            :items="options.concavityIsochrones.values"
-            :label="$t('isochrones.options.calcType')"
-          ></v-select>
-
           <v-select
             item-value="value"
             v-model="calculationModes"
             outlined
+            @change="canCalculateScenario(calculationModes)"
             :value="calculationModes"
             :items="filterCalcModeValues()"
             :label="$t('isochrones.options.calcModus')"
@@ -103,22 +92,26 @@
   </v-flex>
 </template>
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import { mapFields } from "vuex-map-fields";
+import { Isochrones } from "../../mixins/Isochrones";
 
 export default {
   name: "isochrone-options",
+  mixins: [Isochrones],
   data: () => ({
     isOptionsElVisible: true,
     isIsochroneOptionsVisible: true
   }),
   computed: {
-    ...mapGetters("isochrones", { options: "options" }),
+    ...mapGetters("isochrones", {
+      options: "options",
+      scenarioDataTable: "scenarioDataTable"
+    }),
     ...mapFields("isochrones", {
       minutes: "options.minutes",
       speed: "options.speed",
       steps: "options.steps",
-      concavityIsochrones: "options.concavityIsochrones.active",
       calculationModes: "options.calculationModes.active",
       alphaShapeParameter: "options.alphaShapeParameter.active"
     })
@@ -126,7 +119,10 @@ export default {
   methods: {
     filterCalcModeValues() {
       return this.options.calculationModes.values;
-    }
+    },
+    ...mapMutations("map", {
+      toggleSnackbar: "TOGGLE_SNACKBAR"
+    })
   }
 };
 </script>

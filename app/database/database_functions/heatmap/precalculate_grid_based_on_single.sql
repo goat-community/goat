@@ -16,7 +16,8 @@ BEGIN
         SELECT geom, step, id_calc 
         FROM isochrones_alphashape(userid_input,minutes,points_array[counter][1],points_array[counter][2], 
         number_isochrones, speed_input, alphashape_parameter_input, modus_input, id_calc, 1, routing_profile_input);
-		
+
+/*		
 		EXECUTE format('
 			UPDATE '||grid||' set pois = closest_pois, area_isochrone = x.area
 			FROM (
@@ -26,6 +27,7 @@ BEGIN
 			) x
 			WHERE grid_id = '||id_calc
 		);
+*/
 		counter = counter + 1;
 			
 	END LOOP;

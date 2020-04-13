@@ -15,11 +15,29 @@
         >far fa-list-alt</v-icon
       >
       <h3>{{ $t("isochrones.results.title") }}</h3>
+      <v-spacer></v-spacer>
+
+      <v-btn
+        v-show="isResultsElVisible === true && calculations.length > 1"
+        small
+        @click.stop="deleteAll"
+        class="white--text"
+        color="error"
+      >
+        <v-icon left>delete</v-icon>{{ $t("isochrones.results.deleteAll") }}
+      </v-btn>
     </v-subheader>
     <v-layout>
       <v-flex xs12 class="mx-3" v-show="isResultsElVisible">
         <template v-for="calculation in calculations">
-          <v-card class="mb-3 " :key="calculation.id">
+          <v-card
+            class="mb-3 "
+            :id="`result-${calculation.id}`"
+            :key="calculation.id"
+            :class="{
+              'elevation-5': isCalculationActive(calculation)
+            }"
+          >
             <!-- Isochrone Nr -->
             <v-chip
               x-small
@@ -257,14 +275,14 @@
 </template>
 <script>
 import { mapGetters, mapActions, mapMutations } from "vuex";
-import Confirm from "../core/Confirm";
 import Download from "./IsochronesDownload";
 import AdditionalLayers from "./IsochronesAdditionalLayers";
 import IsochroneColorPicker from "./IsochroneColorPicker";
+import { Isochrones } from "../../mixins/Isochrones";
 
 export default {
+  mixins: [Isochrones],
   components: {
-    confirm: Confirm,
     download: Download,
     additionalLayers: AdditionalLayers,
     IsochroneColorPicker
@@ -297,8 +315,16 @@ export default {
         feature => feature.isVisible === true
       );
 
+      let isNetworkVisible = false;
+      Object.keys(calculation.additionalData).forEach(key => {
+        if (calculation.additionalData[key].state === true) {
+          isNetworkVisible = true;
+        }
+      });
+
       //If user has turned off other features, hide the result
       if (
+        !isNetworkVisible &&
         visibleFeatures.length === 1 &&
         visibleFeatures[0].id === feature.id &&
         visibleFeatures[0].isVisible === true
@@ -309,22 +335,8 @@ export default {
       }
 
       if (calculation.isVisible === false && feature.isVisible === true) {
-        this.showHideNetworkData(calculation);
         calculation.isVisible = true;
       }
-    },
-    deleteCalculation(calculation) {
-      this.$refs.confirm
-        .open(
-          this.$t("isochrones.deleteTitle"),
-          this.$t("isochrones.deleteMessage") + " " + calculation.id + " ?",
-          { color: "green" }
-        )
-        .then(confirm => {
-          if (confirm) {
-            this.removeCalculation(calculation);
-          }
-        });
     },
     toggleDownloadDialog(calculation) {
       this.downloadDialogState = true;
@@ -402,6 +414,21 @@ export default {
           calculationType: calculation.calculationType
         });
       }
+    },
+    deleteAll() {
+      this.$refs.confirm
+        .open(
+          this.$t("isochrones.deleteTitle"),
+          this.$t("isochrones.deleteAllMessage"),
+          { color: "green" }
+        )
+        .then(confirm => {
+          if (confirm) {
+            this.calculations.forEach(calculation => {
+              this.removeCalculation(calculation);
+            });
+          }
+        });
     }
   },
   computed: {

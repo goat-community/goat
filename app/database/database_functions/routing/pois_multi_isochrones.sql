@@ -1,6 +1,7 @@
 DROP FUNCTION IF EXISTS pois_multi_isochrones;
 CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, minutes integer, speed_input numeric, 
-	n integer, routing_profile_input text, alphashape_parameter_input NUMERIC, modus_input integer,region_type text, region text[], amenities text[])
+	n integer, routing_profile_input text, alphashape_parameter_input NUMERIC, modus_input integer,region_type text, 
+	region text[], amenities text[])
 RETURNS SETOF type_pois_multi_isochrones
 AS $function$ 
 DECLARE 	
@@ -54,6 +55,21 @@ DECLARE
 		wheelchair_condition = NULL;
 	END IF;
 
+	-- Exclude POIs that are not accessible due to opening_hours if provided by the user
+	/*IF d <> 9999 AND h <> 9999 AND m <> 9999 THEN 
+			DROP TABLE IF EXISTS pois_closed;
+            CREATE TEMP TABLE pois_closed AS 
+			SELECT gid  
+            FROM pois_userinput p
+            WHERE p.amenity IN(SELECT unnest(amenities))
+			AND check_open(opening_hours,array[d,h,m]) = 'False' 
+            AND opening_hours IS NOT NULL;
+	ELSE 
+		DROP TABLE IF EXISTS pois_closed;
+		CREATE TABLE pois_closed (no_entry integer);
+	END IF;
+*/
+
 	IF modus_input IN(2,4) THEN
 		excluded_pois_id = ids_modified_features(userid_input,'pois');
 	ELSE 
@@ -68,6 +84,7 @@ DECLARE
 		SELECT array_agg(ARRAY[ST_X(p.geom)::numeric, ST_Y(p.geom)::numeric]) AS p_array
 		FROM pois_userinput p
 		WHERE p.amenity IN (SELECT UNNEST(amenities))
+		--AND p.gid NOT IN (select gid from pois_closed)
 		AND (p.userid = userid_input OR p.userid IS NULL)
         AND p.gid NOT IN (SELECT UNNEST(excluded_pois_id))
 		AND (p.wheelchair NOT IN (SELECT UNNEST(wheelchair_condition)) OR p.wheelchair IS NULL)

@@ -22,8 +22,9 @@ DATA_REFINEMENT_VARIABLES:
   POPULATION: "extrapolation"
   #"yes" if you want to add these layers 
   ADDITIONAL_WALKABILITY_LAYERS: "no" 
-  variable_container: 
-    pois_one_entrance: ["kindergarten","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
+  variable_container:
+    heatmap_auto_refresh: "'yes'"
+    pois_one_entrance: ["kindergarten","nursery","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
       "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
       "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
       "hypermarket","international_supermarket","chemist","organic","marketplace",

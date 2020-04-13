@@ -35,7 +35,10 @@
       1.1943,
       0.5972
     ],
-    "center": [1289645.541227, 6129485.298188],
+    "center": [
+      1289645.541227,
+      6129485.298188
+    ],
     "layers": [
       {
         "type": "VECTOR",
@@ -78,6 +81,7 @@
         "editDataType": "GeoJSON",
         "editGeometry": "Point",
         "displayInLayerList": true,
+        "displayInLegend": false,
         "requiresPois": true,
         "zIndex": 7,
         "serverType": "geoserver"
@@ -95,6 +99,77 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "protectedLandscape",
+        "url": "https://www.lfu.bayern.de/gdi/wms/natur/schutzgebiete?",
+        "group": "environmentalQualityLayers",
+        "layers": "landschaftsschutzgebiet",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+      },
+      {
+        "type": "WMS",
+        "name": "noiseMainTrafficRoads",
+        "url": "https://www.lfu.bayern.de/gdi/wms/laerm/hauptverkehrsstrassen",
+        "group": "environmentalQualityLayers",
+        "layers": "mroadbylden",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+      },
+      {
+        "type": "WMS",
+        "name": "natureReserves",
+        "url": "https://www.lfu.bayern.de/gdi/wms/natur/schutzgebiete?",
+        "group": "environmentalQualityLayers",
+        "layers": "naturschutzgebiet",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+      },
+      {
+        "type": "WMS",
+        "name": "ffh-area",
+        "url": "https://www.lfu.bayern.de/gdi/wms/natur/schutzgebiete?",
+        "group": "environmentalQualityLayers",
+        "layers": "fauna_flora_habitat_gebiet",
+        "style": "cite:ffh",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+      },
+      {
+        "type": "WMS",
+        "name": "biotops",
+        "url": "https://www.lfu.bayern.de/gdi/wms/natur/biotopkartierung?",
+        "group": "environmentalQualityLayers",
+        "layers": "bio_fbk,bio_sbk,bio_abk",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
       },
       {
         "type": "WMS",
@@ -138,7 +213,6 @@
         "zIndex": 1,
         "serverType": "geoserver"
       },
-
       {
         "type": "WMS",
         "name": "areaIsochrone",
@@ -159,7 +233,6 @@
         "group": "backgroundLayers",
         "maxZoom": 19,
         "queryable": false,
-        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true,
         "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
@@ -171,7 +244,6 @@
         "group": "backgroundLayers",
         "maxZoom": 19,
         "queryable": false,
-        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true,
         "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
@@ -183,7 +255,6 @@
         "group": "backgroundLayers",
         "maxZoom": 19,
         "queryable": false,
-        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true,
         "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
@@ -196,7 +267,6 @@
         "accessToken": "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
         "maxZoom": 19,
         "queryable": false,
-        "cascadePrint": true,
         "visible": true,
         "displayInLayerList": true,
         "attributions": "© <a href='https://www.mapbox.com/map-feedback/'>Mapbox</a> © <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap contributors</a>"
@@ -208,7 +278,6 @@
         "url": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
         "maxZoom": 18,
         "queryable": false,
-        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true,
         "attributions": "© <a href='https://www.memomaps.de/'>Memomaps</a>"
@@ -221,7 +290,6 @@
         "imagerySet": "Aerial",
         "maxZoom": 19,
         "queryable": false,
-        "cascadePrint": true,
         "visible": false,
         "displayInLayerList": true,
         "attributions": "© Microsoft Coorporation © Digital Globe ©CNES Distribution Airbus DS <a href='https://www.microsoft.com/en-us/maps/product'>Terms of use</a> "
@@ -258,11 +326,19 @@
           "id": 1,
           "children": [
             {
+              "name": "Nursery",
+              "value": "nursery",
+              "icon": "nursery",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
               "name": "Kindergarten",
               "value": "kindergarten",
               "icon": "kindergarten",
               "weight": 1,
-              "sensitivity": -0.003,
+              "sensitivity":300000,
               "locked": false
             },
             {
@@ -270,7 +346,7 @@
               "value": "primary_school",
               "icon": "primary_school",
               "weight": 1,
-              "sensitivity": -0.003,
+              "sensitivity":300000,
               "locked": false
             },
             {
@@ -278,7 +354,7 @@
               "value": "secondary_school",
               "icon": "secondary_school",
               "weight": 1,
-              "sensitivity": -0.003,
+              "sensitivity":300000,
               "locked": false
             },
             {
@@ -286,7 +362,7 @@
               "value": "library",
               "icon": "library",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             }
           ]
         },
@@ -299,56 +375,56 @@
               "value": "bar",
               "icon": "bar",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Biergarten",
               "value": "biergarten",
               "icon": "biergarten",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Café",
               "value": "cafe",
               "icon": "cafe",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Pub",
               "value": "pub",
               "icon": "pub",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Fast food",
               "value": "fast_food",
               "icon": "fast_food",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Ice cream",
               "value": "ice_cream",
               "icon": "ice_cream",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Restaurant",
               "value": "restaurant",
               "icon": "restaurant",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Night-Club",
               "value": "nightclub",
               "icon": "nightclub",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             }
           ]
         },
@@ -358,11 +434,25 @@
           "locked": false,
           "children": [
             {
+              "name": "Bicycle rental",
+              "value": "bicycle_rental",
+              "icon": "bicycle_rental",
+              "weight": 1,
+              "sensitivity":300000
+            },
+            {
+              "name": "Car sharing",
+              "value": "car_sharing",
+              "icon": "car_sharing",
+              "weight": 1,
+              "sensitivity":300000
+            },
+            {
               "name": "Charging station",
               "value": "charging_station",
               "icon": "charging_station",
               "weight": 1,
-              "sensitivity": -0.003,
+              "sensitivity":300000,
               "locked": false
             },
             {
@@ -370,21 +460,35 @@
               "value": "bus_stop",
               "icon": "bus_stop",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
+            },
+            {
+              "name": "Tram Stop",
+              "value": "tram_stop",
+              "icon": "tram_stop",
+              "weight": 1,
+              "sensitivity":300000
+            },
+            {
+              "name": "U-Bahn station",
+              "value": "subway_entrance",
+              "icon": "subway_entrance",
+              "weight": 1,
+              "sensitivity":300000
             },
             {
               "name": "Rail Station",
               "value": "rail_station",
               "icon": "rail_station",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Taxi",
               "value": "taxi",
               "icon": "taxi",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             }
           ]
         },
@@ -397,14 +501,14 @@
               "value": "hairdresser",
               "icon": "hairdresser",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "ATM",
               "value": "atm",
               "icon": "atm",
               "weight": 1,
-              "sensitivity": -0.003,
+              "sensitivity":300000,
               "locked": false
             },
             {
@@ -412,49 +516,49 @@
               "value": "bank",
               "icon": "bank",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Dentist",
               "value": "dentist",
               "icon": "dentist",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Doctor",
               "value": "doctors",
               "icon": "doctors",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Pharmacy",
               "value": "pharmacy",
               "icon": "pharmacy",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Post box",
               "value": "post_box",
               "icon": "post_box",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Fuel",
               "value": "fuel",
               "icon": "fuel",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Recycling",
               "value": "recycling",
               "icon": "recycling",
               "weight": 1,
-              "sensitivity": -0.003,
+              "sensitivity":300000,
               "locked": false
             }
           ]
@@ -468,91 +572,105 @@
               "value": "bakery",
               "icon": "bakery",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Butcher",
               "value": "butcher",
               "icon": "butcher",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Clothing store",
               "value": "clothes",
               "icon": "clothes",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Convenience store",
               "value": "convenience",
               "icon": "convenience",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Greengrocer",
               "value": "greengrocer",
               "icon": "greengrocer",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Kiosk",
               "value": "kiosk",
               "icon": "kiosk",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
+            },
+            {
+              "name": "Mall",
+              "value": "mall",
+              "icon": "mall",
+              "weight": 1,
+              "sensitivity":300000
             },
             {
               "name": "Shoes",
               "value": "shoes",
               "icon": "shoes",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Supermarket",
               "value": "supermarket",
               "icon": "supermarket",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Discount Supermarket",
               "value": "discount_supermarket",
               "icon": "discount_supermarket",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
+            },
+            {
+              "name": "International Supermarket",
+              "value": "international_supermarket",
+              "icon": "international_supermarket",
+              "weight": 1,
+              "sensitivity":300000
             },
             {
               "name": "Hypermarket",
               "value": "hypermarket",
               "icon": "hypermarket",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Chemist",
               "value": "chemist",
               "icon": "chemist",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Organic Food",
               "value": "organic",
               "icon": "organic",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Marketplace",
               "value": "marketplace",
               "icon": "marketplace",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             }
           ]
         },
@@ -565,28 +683,56 @@
               "value": "cinema",
               "icon": "cinema",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
+            },
+            {
+              "name": "Theatre",
+              "value": "theatre",
+              "icon": "theatre",
+              "weight": 1,
+              "sensitivity":300000
+            },
+            {
+              "name": "Museum",
+              "value": "museum",
+              "icon": "museum",
+              "weight": 1,
+              "sensitivity":300000
             },
             {
               "name": "Hotel",
               "value": "hotel",
               "icon": "hotel",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Hostel",
               "value": "hostel",
               "icon": "hostel",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
             },
             {
               "name": "Guest house",
               "value": "guest_house",
               "icon": "guest_house",
               "weight": 1,
-              "sensitivity": -0.003
+              "sensitivity":300000
+            },
+            {
+              "name": "Gallery",
+              "value": "gallery",
+              "icon": "gallery",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Playground",
+              "value": "playground",
+              "icon": "playground",
+              "weight": 1,
+              "sensitivity": 300000
             }
           ]
         }
@@ -595,11 +741,14 @@
         "disabledPoisOnTimeFilter": [
           {
             "categoryValue": "transport",
-            "poisFiltered": ["*"]
+            "poisFiltered": [
+              "*"
+            ]
           },
           {
             "categoryValue": "education",
             "poisFiltered": [
+              "nursery",
               "kindergarten",
               "primary_school",
               "secondary_school"
@@ -610,11 +759,16 @@
           "walking_wheelchair": [
             {
               "categoryValue": "services",
-              "poisFiltered": ["recycling", "atm"]
+              "poisFiltered": [
+                "recycling",
+                "atm"
+              ]
             },
             {
               "categoryValue": "transport",
-              "poisFiltered": ["charging_station"]
+              "poisFiltered": [
+                "charging_station"
+              ]
             }
           ]
         }
@@ -629,12 +783,30 @@
         "concavityIsochrones": {
           "name": "concavity",
           "values": [
-            { "display": "Standard", "value": "0.00003" },
-            { "display": "1", "value": "0.000003" },
-            { "display": "2", "value": "0.0000025" },
-            { "display": "3", "value": "0.000002" },
-            { "display": "4", "value": "0.0000017" },
-            { "display": "5", "value": "0.0000015" }
+            {
+              "display": "Standard",
+              "value": "0.00003"
+            },
+            {
+              "display": "1",
+              "value": "0.000003"
+            },
+            {
+              "display": "2",
+              "value": "0.0000025"
+            },
+            {
+              "display": "3",
+              "value": "0.000002"
+            },
+            {
+              "display": "4",
+              "value": "0.0000017"
+            },
+            {
+              "display": "5",
+              "value": "0.0000015"
+            }
           ],
           "active": "0.00003"
         },
@@ -661,7 +833,12 @@
         },
         "alphaShapeParameter": {
           "name": "alphashape",
-          "values": [{ "display": "0.00003", "value": "0.00003" }],
+          "values": [
+            {
+              "display": "0.00003",
+              "value": "0.00003"
+            }
+          ],
           "active": "0.00003"
         }
       },
@@ -726,13 +903,23 @@
               "value": "standard",
               "speed": 5
             },
-            { "value": "elderly", "speed": 3 }
+            {
+              "value": "elderly",
+              "speed": 3
+            }
           ]
         },
         "cycling": {
           "default": "standard",
           "options": [
-           {"value": "standard", "speed": 15}
+            {
+              "value": "standard",
+              "speed": 15
+            },
+            {
+              "value": "pedelec",
+              "speed": 23
+            }
           ]
         },
         "walking_wheelchair": {
@@ -750,16 +937,24 @@
     },
     "edit": {}
   },
-
   "layerConf": {
     "ways": {
       "listValues": {
         "type": {
-          "values": ["bridge", "road"]
+          "values": [
+            "bridge",
+            "road"
+          ]
         }
       },
       "enableFileUpload": false,
-      "hiddenProps": ["userid", "id", "original_id", "status", "class_id"]
+      "hiddenProps": [
+        "userid",
+        "id",
+        "original_id",
+        "status",
+        "class_id"
+      ]
     },
     "pois": {
       "listValues": {
@@ -774,7 +969,21 @@
         "original_id",
         "status",
         "wheelchair",
+        "status",
+        "amenity_icon",
         "opening_hours"
+      ]
+    },
+    "buildings": {
+      "listValues": {},
+      "enableFileUpload": false,
+      "hiddenProps": [
+        "gid",
+        "userid",
+        "id",
+        "original_id",
+        "status",
+        "class_id"
       ]
     }
   }

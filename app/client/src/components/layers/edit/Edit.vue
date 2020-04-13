@@ -91,10 +91,24 @@
                 </template>
                 <span>{{ $t("appBar.edit.deleteFeature") }}</span>
               </v-tooltip>
+              <v-tooltip
+                top
+                v-if="selectedLayer.get('editGeometry') !== 'Point'"
+              >
+                <template v-slot:activator="{ on }">
+                  <v-btn v-on="on" text>
+                    <v-icon>far fa-clone</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.moveFeature") }}</span>
+              </v-tooltip>
             </v-btn-toggle>
           </v-flex>
           <v-flex
-            v-if="layerConf[layerName.split(':')[1]].enableFileUpload === true"
+            v-if="
+              layerConf.layerName &&
+                layerConf[layerName.split(':')[1]].enableFileUpload === true
+            "
             xs12
             v-show="selectedLayer != null"
             class="mt-1 pt-0 mb-0"
@@ -294,6 +308,7 @@
               :schema="schema[layerName]"
               :model="dataObject"
               :options="options"
+              @input="e => inputFn(e)"
             />
           </v-form>
         </div>
@@ -321,6 +336,11 @@
         </template>
       </template>
     </overlay-popup>
+    <!-- Opening hours -->
+    <opening-hours
+      :visible="showOpeningHours"
+      @close="showOpeningHours = false"
+    />
   </v-flex>
 </template>
 
@@ -329,6 +349,8 @@ import { EventBus } from "../../../EventBus";
 import { Mapable } from "../../../mixins/Mapable";
 import { KeyShortcuts } from "../../../mixins/KeyShortcuts";
 import { InteractionsToggle } from "../../../mixins/InteractionsToggle";
+import { Isochrones } from "../../../mixins/Isochrones";
+import { mapFields } from "vuex-map-fields";
 import {
   getAllChildLayers,
   getPoisListValues,
@@ -344,17 +366,19 @@ import {
 import OverlayPopup from "../../viewer/ol/controls/Overlay";
 import http from "axios";
 import VJsonschemaForm from "../../other/dynamicForms/index";
+import OpeningHours from "../../other/OpeningHours";
+
 import { geojsonToFeature } from "../../../utils/MapUtils";
 import { mapGetters, mapMutations } from "vuex";
 import { debounce } from "../../../utils/Helpers";
-import Confirm from "../../core/Confirm";
+
 export default {
   components: {
-    confirm: Confirm,
     "overlay-popup": OverlayPopup,
+    "opening-hours": OpeningHours,
     VJsonschemaForm
   },
-  mixins: [InteractionsToggle, Mapable, KeyShortcuts],
+  mixins: [InteractionsToggle, Mapable, KeyShortcuts, Isochrones],
   data: () => ({
     interactionType: "edit-interaction",
     selectedLayer: null,
@@ -401,7 +425,6 @@ export default {
     missingFieldsNames: "",
     //Edit form
     layerConf: {},
-    hiddenProps: ["userid", "id", "original_id", "status"],
     schema: {},
     dataObject: {},
     formValid: false,
@@ -410,11 +433,13 @@ export default {
       add: "crosshair",
       modify: "pointer",
       delete: "pointer",
-      select: "pointer"
+      select: "pointer",
+      move: "auto"
     },
     //Data table
-    scenarioDataTable: [],
-    isTableLoading: false
+    isTableLoading: false,
+    //Opening Hours
+    showOpeningHours: false
   }),
   watch: {
     selectedLayer(newValue) {
@@ -439,10 +464,10 @@ export default {
       }
     },
     scenarioDataTable() {
-      this.canCalculateScenario();
+      this.canCalculateScenario(this.options.calculationModes.active);
     },
-    "options.calculationModes.active": function() {
-      this.canCalculateScenario();
+    "options.calculationModes.active": function(value) {
+      this.canCalculateScenario(value);
     }
   },
   mounted() {
@@ -660,6 +685,11 @@ export default {
         case 2:
           editType = "delete";
           break;
+        case 3:
+          editType = "move";
+          startCb = this.onModifyStart;
+          endCb = this.onModifyEnd;
+          break;
         default:
           break;
       }
@@ -734,10 +764,10 @@ export default {
       }
       this.olEditCtrl.featuresToCommit.push(feature);
       this.olEditCtrl.highlightSource.addFeature(feature);
-      const featureCoordinates = feature.getGeometry().getCoordinates();
-      const popupCoordinate = Array.isArray(featureCoordinates[0])
-        ? featureCoordinates[0]
-        : featureCoordinates;
+      let popupCoordinate = feature.getGeometry().getCoordinates();
+      while (popupCoordinate && Array.isArray(popupCoordinate[0])) {
+        popupCoordinate = popupCoordinate[0];
+      }
       this.map.getView().animate({
         center: popupCoordinate,
         duration: 400
@@ -756,7 +786,7 @@ export default {
       const me = this;
       //Exclude features from file input as we add this feature later when user click upload button
       if (evt.feature.get("user_uploaded")) return;
-      if (me.olEditCtrl.currentInteraction === "modify") {
+      if (["modify", "move"].includes(me.olEditCtrl.currentInteraction)) {
         const index = me.olEditCtrl.featuresToCommit.findIndex(
           i => i.ol_uid === evt.feature.ol_uid
         );
@@ -766,7 +796,7 @@ export default {
           me.olEditCtrl.featuresToCommit[index] = evt.feature;
         }
       }
-      if (evt.feature.get("layerName") === "pois") {
+      if (["pois", "buildings"].includes(evt.feature.get("layerName"))) {
         evt.feature.set("status", 1);
       }
     },
@@ -1037,34 +1067,6 @@ export default {
       }
       this.olEditCtrl.closePopup();
     },
-    canCalculateScenario() {
-      let areAllFeaturesUploaded = true;
-      this.scenarioDataTable.forEach(f => {
-        if (f.status !== "Uploaded") {
-          areAllFeaturesUploaded = false;
-        }
-      });
-
-      if (
-        areAllFeaturesUploaded === false &&
-        ["scenario", "comparison"].includes(
-          this.options.calculationModes.active
-        )
-      ) {
-        //Show snackbar warning that user has features not yet uploaded
-        this.toggleSnackbar({
-          type: "warning", //success or error
-          message: "notAllScnearioFeaturesUploaded",
-          state: true,
-          timeout: 150000
-        });
-      } else {
-        //Hide snackbar.
-        this.toggleSnackbar({
-          state: false
-        });
-      }
-    },
     /**
      * Method called when edit layer source is changed.
      * A debounce is addes to improve performance
@@ -1167,6 +1169,11 @@ export default {
       }
       return !item.isDeleted;
     },
+    inputFn(e) {
+      if (e === "open_dialog") {
+        this.showOpeningHours = true;
+      }
+    },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR"
     })
@@ -1244,7 +1251,10 @@ export default {
         : `<span></span>`;
     },
     ...mapGetters("user", { userId: "userId" }),
-    ...mapGetters("isochrones", { options: "options" })
+    ...mapGetters("isochrones", { options: "options" }),
+    ...mapFields("isochrones", {
+      scenarioDataTable: "scenarioDataTable"
+    })
   },
   created() {
     this.layerConf = this.$appConfig.layerConf;

@@ -331,7 +331,8 @@ export function getWMSLegendURL(
   opt_dpi,
   opt_bbox,
   opt_srs,
-  opt_additionalQueryString
+  opt_additionalQueryString,
+  opt_language
 ) {
   if (!url) {
     return undefined;
@@ -347,6 +348,9 @@ export function getWMSLegendURL(
   };
   if (opt_scale !== undefined) {
     queryString.SCALE = opt_scale;
+  }
+  if (opt_language) {
+    queryString.LANGUAGE = opt_language;
   }
   if (opt_legendRule !== undefined) {
     queryString.RULE = opt_legendRule;
@@ -412,10 +416,15 @@ export function mapFeatureTypeProps(props, layerName, layerConf) {
       if (prop.nillable === false) {
         obj.required.push(prop.name);
       }
-      if (layerConf["hiddenProps"].includes(prop.name)) {
+      if (!layerConf) return;
+      if (
+        layerConf["hiddenProps"] &&
+        layerConf["hiddenProps"].includes(prop.name)
+      ) {
         obj.properties[prop.name]["x-display"] = "hidden";
       }
       if (
+        layerConf["listValues"] &&
         layerConf["listValues"][prop.name] &&
         Array.isArray(layerConf["listValues"][prop.name].values)
       ) {

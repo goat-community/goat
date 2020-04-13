@@ -27,11 +27,22 @@
                 }}
               </p>
               <v-divider></v-divider>
-              <img
-                style="max-width: 100%;"
-                :src="getImageUrl(item)"
-                class="white--text mt-0 pt-0"
-              />
+              <!-- Parent layer can have multiple child layers, so we need to loop through -->
+              <template
+                v-for="(layerName, index2) in item
+                  .getSource()
+                  .getParams()
+                  .LAYERS.split(',')"
+              >
+                <div :key="index2">
+                  <img
+                    style="max-width: 100%;"
+                    :src="getWMSLegendImageUrl(item, layerName)"
+                    class="white--text mt-0 pt-0"
+                  />
+                  <br />
+                </div>
+              </template>
             </div>
           </template>
         </vue-scroll>
@@ -41,8 +52,7 @@
 </template>
 <script>
 import { Mapable } from "../../../../mixins/Mapable";
-import { getAllChildLayers } from "../../../../utils/Layer";
-
+import { getAllChildLayers, getWMSLegendURL } from "../../../../utils/Layer";
 export default {
   mixins: [Mapable],
   name: "map-legend",
@@ -57,15 +67,31 @@ export default {
       const me = this;
       const allLayers = getAllChildLayers(me.map);
       me.layers = allLayers.filter(
-        layer => layer.getSource().serverType_ === "geoserver"
+        layer =>
+          layer.getSource().serverType_ === "geoserver" &&
+          layer.get("displayInLegend") !== false
       );
     },
-    getImageUrl(item) {
-      const baseUrl = window.location.origin;
-      const url = `${baseUrl}/geoserver/ows?service=WMS&request=GetLegendGraphic&format=image/png&layer=${
-        item.getSource().getParams().LAYERS
-      }&LANGUAGE=${this.$i18n.locale}`;
-      return url;
+    getWMSLegendImageUrl(item, layerName) {
+      let layerUrl = item.getSource().getUrl();
+      if (layerUrl.startsWith("/")) {
+        layerUrl = window.location.origin + layerUrl;
+      }
+      const legedUrl = getWMSLegendURL(
+        layerUrl,
+        layerName,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        item.getSource().serverType_,
+        120,
+        undefined,
+        undefined,
+        undefined,
+        this.$i18n.locale
+      );
+      return legedUrl;
     }
   }
 };

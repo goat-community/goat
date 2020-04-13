@@ -1,0 +1,15 @@
+<layer>
+  <name>street_furniture_bicycles</name>
+  <id>LayerInfoImpl--6d2f9c7a:170d42cd1de:-233e</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--6d2f9c7a:170d42cd1de:-22a7</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--6d2f9c7a:170d42cd1de:-233f</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

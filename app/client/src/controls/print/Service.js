@@ -10,6 +10,7 @@ import * as olSize from "ol/size.js";
 import olSourceImageWMS from "ol/source/ImageWMS.js";
 import olSourceTileWMS from "ol/source/TileWMS.js";
 import olSourceWMTS from "ol/source/WMTS.js";
+import olSourceXYZ from "ol/source/XYZ";
 import olTilegridWMTS from "ol/tilegrid/WMTS.js";
 
 /**
@@ -57,18 +58,12 @@ import olTilegridWMTS from "ol/tilegrid/WMTS.js";
  * @param {string} url URL to MapFish print web service.
  * @hidden
  */
-export default function PrintService(url, mapproxyUrl) {
+export default function PrintService(url) {
   /**
    * @type {string}
    * @private
    */
   this.url_ = url;
-
-  /**
-   * @type {string}
-   * @private
-   */
-  this.mapproxyUrl_ = mapproxyUrl;
 
   /**
    * @type {import("print/VectorEncoder.js").default}
@@ -207,11 +202,7 @@ PrintService.prototype.encodeMap_ = function(map, scale, object) {
  */
 PrintService.prototype.encodeLayer = function(arr, layer, resolution) {
   if (!layer) return;
-  if (layer.get("cascadePrint")) {
-    //If cascade printing is enabled for tile layers the layers will be encoded as wms layers
-    // and a mapproxy request will be sent to a mapproxy service if available to cascade (interpolate) the tile layers.
-    this.encodeCascadeWmsLayer_(arr, layer);
-  } else if (layer instanceof olLayerImage) {
+  if (layer instanceof olLayerImage) {
     this.encodeImageLayer_(arr, layer);
   } else if (layer instanceof olLayerTile) {
     this.encodeTileLayer_(arr, layer);
@@ -367,6 +358,8 @@ PrintService.prototype.encodeTileLayer_ = function(arr, layer) {
     this.encodeTileWmtsLayer_(arr, layer);
   } else if (source instanceof olSourceTileWMS) {
     this.encodeTileWmsLayer_(arr, layer);
+  } else if (source instanceof olSourceXYZ) {
+    this.encodeXYZLayer_(arr, layer);
   }
 };
 
@@ -457,6 +450,23 @@ PrintService.prototype.encodeTileWmsLayer_ = function(arr, layer) {
     throw new Error("Missing urls");
   }
   this.encodeWmsLayer_(arr, layer, urls[0], source.getParams());
+};
+
+/**
+ * @param {Array<import('print/mapfish-print-v3.js').MapFishPrintLayer>} arr Array.
+ * @param {import("ol/layer/Tile.js").default} layer Layer.
+ * @private
+ */
+PrintService.prototype.encodeXYZLayer_ = function(arr, layer) {
+  const urls = layer.getSource().getUrls();
+  const object = {
+    baseURL: urls[0],
+    imageFormat: "image/png",
+    type: "osm",
+    opacity: this.getOpacityOrInherited_(layer),
+    useNativeAngle: this.printNativeAngle_
+  };
+  arr.push(object);
 };
 
 /**

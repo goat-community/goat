@@ -83,7 +83,7 @@ services:
       proxy:
 
   db:
-    image: eliaspajares/goat-database:stable
+    image: goatcommunity/database:12-3-2.6.3-2.3.14
     container_name: goat-database
     restart: on-failure
     volumes:
@@ -97,19 +97,6 @@ services:
       - ./app/config/docker-env/db.env
     ports:
       - "65432:5432"
-    networks:
-      proxy:
-
-  db-dbbackups:
-    image: eliaspajares/goat-database-backup:latest
-    container_name: goat-database-backup
-    volumes:
-      - ./app/database/backups:/backups
-    env_file:
-      - ./app/config/docker-env/db-backups.env
-    restart: on-failure
-    depends_on:
-      - db
     networks:
       proxy:
 
@@ -127,16 +114,3 @@ services:
     networks:
       proxy:
 
-  mapproxy:
-    image: kartoza/mapproxy
-    volumes:
-      - ./app/mapproxy:/mapproxy
-    container_name: goat-mapproxy
-    labels:
-      - "traefik.backend=mapproxy"
-      - "traefik.frontend.entryPoints=mapproxy"
-      - "traefik.frontend.rule=Host:localhost;"
-      - "traefik.port=8080"
-      - "traefik.enable=true"
-    networks:
-      proxy:

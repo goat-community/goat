@@ -3,7 +3,9 @@
   "buttonLabels": {
     "yes": "Yes",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "ok": "Ok",
+    "remove": "Remove"
   },
   "appBar": {
     "buttons": {
@@ -52,6 +54,10 @@
         },
         "crs": {
           "label": "Reference System",
+          "rule": "Field is required"
+        },
+        "outputFormat": {
+          "label": "Output Format",
           "rule": "Field is required"
         },
         "submit": "Print",
@@ -103,6 +109,7 @@
       "drawFeatureTooltip": "Draw Feature",
       "modifyFeatureTooltip": "Modify Feature",
       "deleteFeature": "Delete Feature",
+      "moveFeature": "Move Feature",
       "clearBtn": "Revert All",
       "uploadBtn": "Upload",
       "popup": {
@@ -199,6 +206,7 @@
       "routingProfile": "Routing Profile",
       "walking_standard": "Standard",
       "walking_elderly": "Elderly",
+      "walking_safe_night": "Safe night",
       "walking_wheelchair": "Wheelchair",
       "cycling_standard": "Standard",
       "cycling_pedelec": "Pedelec"
@@ -214,6 +222,7 @@
       "hideResultsTooltip": "Hide Results",
       "downloadTooltip": "Download",
       "deleteCalcTooltip": "Delete Calculation",
+      "deleteAll": "DELETE ALL",
       "changeColorTooltip": "Click to change color",
       "table": {
         "type": "Type",
@@ -239,7 +248,8 @@
     },
     "isochrones": "Isochrones",
     "deleteTitle": "Delete",
-    "deleteMessage": "Are you sure you want to delete Calculation",
+    "deleteMessage": "Are you sure you want to delete calculation",
+    "deleteAllMessage": "Are you sure you want to delete all calculations ?",
     "download": {
       "title": "Download Isochrones",
       "fileName": "Filename",
@@ -285,26 +295,39 @@
       "uploadScenarioError": "Sorry, an error happened while uploading the features in database.",
       "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features.",
       "cantDeleteAllScenarioFeatures": "Sorry. Scenario data can't be deleted at the moment.",
-      "allScenarioFeaturesDelete": "All Scenario Data is deleted"
+      "allScenarioFeaturesDelete": "All Scenario Data is deleted",
+      "noScenarioFeatureChangeAvailable": "Please do network or land-use change first",
+      "cantPrintBaseLayer": "This baselayer can't be printed"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
-      "administrativeLayers": "Administrative Layers",
+      "administrativeLayers": "Administrative boundaries",
       "streetlevelqualityLayers": "Street Level Quality",
+      "environmentalQualityLayers": "Environmental data",
       "perceivedQuality": "Perceived Quality",
       "accessbilityBasemaps": "Accessibility",
-      "backgroundLayers": "Background Layers"
+      "backgroundLayers": "Background Layers",
+      "buildings": "Buildings"
     },
     "layerName": {
       "pois": "Point of Interest",
       "administrativeUnits": "Administrative Units",
+      "biotops": "Biotops",
+      "ffh-area": "FFH Area",
+      "natureReserves": "Nature Reserves",
+      "noiseMainTrafficRoads": "Noise levels - main roads",
+      "protectedLandscape": "Protected Landscape Areas",
       "footpathWidth": "Footpath Width",
       "illuminance": "Illuminance",
       "lanes": "Lanes",
       "parking": "Parking",
+      "smoothness": "Smoothness",
       "speed": "Speed",
+      "streetCategory": "Street Categories Detailled",
+      "streetCategorysAggregated": "Street Categories",
       "streetCrossings": "Street Crossings",
       "streetFurniture": "Street Furniture",
+      "streetFurnitureBicycles": "Bicycle Ranks",
       "surface": "Surface",
       "wheelchairUsability": "Wheelchair Usability",
       "areaIsochrone": "Area Isochrone",
@@ -313,6 +336,7 @@
       "walkability": "Walkability",
       "studyArea": "Study Area",
       "ways": "Ways",
+      "buildings": "Buildings",
       "osmStandard": "OSM Standard",
       "osmLight": "OSM Light",
       "osmDark": "OSM Dark",
@@ -332,6 +356,7 @@
       "clickToStartDrawingCircle": "Click to start drawing the circle (Max Radius 1000 m). <br> Press ESC to exit",
       "clickToFinishDrawingPolygon": "Double-click or click starting point to finish.",
       "clickOnFeatureToDelete": "Click on feature to delete it",
+      "clickOnFeatureToMove": "Click and drag the feature to move",
       "clickAndDragToModify": "Click and drag the features to modify",
       "clickToRemove": "Click to remove it",
       "clickToPlacePoint": "Click to place the point",
@@ -385,6 +410,11 @@
     "layerListValues": {
       "road": "Road",
       "bridge": "Bridge"
+    },
+    "contextMenu": {
+      "deleteIsochrone": "Delete Isochrone",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out"
     }
   },
   "pois": {
@@ -394,6 +424,7 @@
     "services": "Services",
     "shop": "Shop",
     "tourismAndLeisure": "Tourism & Leisure",
+    "nursery": "Nursery",
     "kindergarten": "Kindergarten",
     "primary_school": "Primary school",
     "secondary_school": "Secondary school",
@@ -447,6 +478,7 @@
     "gallery": "Gallery",
     "university": "University",
     "hospital": "Hospital",
+    "playground": "Playground",
     "population": "Population"
   },
   "$vuetify": {
@@ -498,6 +530,10 @@
         "amenity": "Amenity",
         "name": "Name (Optional)",
         "opening_hours": "Opening Hours (Optional)"
+      },
+      "buildings": {
+        "building_levels": "Building Levels",
+        "building_type": "Building Type"
       }
     },
     "listValues": {
@@ -506,5 +542,18 @@
         "bridge": "Bridge"
       }
     }
+  },
+  "openingHours": {
+    "openingTime": "Opening Time",
+    "closingTime": "Closing Time",
+    "default": "Default",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "publicHolidays": "Public Holidays"
   }
 }

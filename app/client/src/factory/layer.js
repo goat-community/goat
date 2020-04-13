@@ -14,7 +14,7 @@ import ImageWMS from "ol/source/ImageWMS.js";
 import { Image as ImageLayer } from "ol/layer.js";
 import XyzSource from "ol/source/XYZ";
 import { OlStyleFactory } from "./OlStyle";
-import OlStyleDefs from "../style/OlStyleDefs";
+import { baseStyleDefs } from "../style/OlStyleDefs";
 
 /**
  * Factory, which creates OpenLayers layer instances according to a given config
@@ -80,6 +80,7 @@ export const LayerFactory = {
       editGeometry: lConf.editGeometry,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
+      displayInLegend: lConf.displayInLegend,
       visible: lConf.visible,
       opacity: lConf.opacity,
       queryable: lConf.queryable,
@@ -92,7 +93,7 @@ export const LayerFactory = {
           LAYERS: lConf.layers,
           viewparams: lConf.viewparams
         },
-        serverType: lConf.serverType,
+        serverType: lConf.serverType ? lConf.serverType : "geoserver",
         ratio: lConf.ratio,
         attributions: lConf.attributions
       })
@@ -126,7 +127,7 @@ export const LayerFactory = {
           TILED: lConf.tiled,
           viewparams: lConf.viewparams
         },
-        serverType: lConf.serverType,
+        serverType: lConf.serverType ? lConf.serverType : "geoserver",
         attributions: lConf.attributions
       })
     });
@@ -234,7 +235,8 @@ export const LayerFactory = {
         attributions: lConf.attributions
       }),
       style:
-        OlStyleFactory.getInstance(lConf.style) || OlStyleDefs[lConf.styleRef],
+        OlStyleFactory.getInstance(lConf.style) ||
+        baseStyleDefs[lConf.styleRef],
       hoverable: lConf.hoverable,
       hoverAttribute: lConf.hoverAttribute
     });
@@ -263,7 +265,8 @@ export const LayerFactory = {
         attributions: lConf.attributions
       }),
       style:
-        OlStyleFactory.getInstance(lConf.style) || OlStyleDefs[lConf.styleRef],
+        OlStyleFactory.getInstance(lConf.style) ||
+        baseStyleDefs[lConf.styleRef],
       hoverable: lConf.hoverable,
       hoverAttribute: lConf.hoverAttribute
     });

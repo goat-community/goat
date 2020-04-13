@@ -1,509 +1,561 @@
 {
-    "appTitle": "GOAT",
-    "buttonLabels": {
-        "yes": "Ja",
-        "cancel": "Abbrechen",
-        "save": "Speichern"
+  "appTitle": "GOAT",
+  "buttonLabels": {
+    "yes": "Ja",
+    "cancel": "Abbrechen",
+    "save": "Speichern"
+  },
+  "appBar": {
+    "buttons": {
+      "login": "Login",
+      "print": "Drucken",
+      "drawAndMeasure": "Messen",
+      "filter": "Filter Thematische Daten",
+      "edit": "Szenarien Entwickeln",
+      "settings": "Sprache",
+      "info": "GOAT Homepage besuchen"
     },
-    "appBar": {
-        "buttons": {
-            "login": "Login",
-            "print": "Drucken",
-            "drawAndMeasure": "Messen",
-            "filter": "Filter Thematische Daten",
-            "edit": "Szenarien Entwickeln",
-            "settings": "Sprache",
-            "info": "GOAT Homepage besuchen"
+    "login": {
+      "title": "Login",
+      "form": {
+        "username": {
+          "label": "Benutzername",
+          "rule": "Benutzername ist erforderlich"
         },
-        "login": {
-            "title": "Login",
-            "form": {
-                "username": {
-                    "label": "Benutzername",
-                    "rule": "Benutzername ist erforderlich"
-                },
-                "password": {
-                    "label": "Passwort",
-                    "rule": "Passwort wird benötigt"
-                },
-                "submit": "Login"
-            }
+        "password": {
+          "label": "Passwort",
+          "rule": "Passwort wird benötigt"
         },
-        "printMap": {
-            "title": "Karte drucken",
-            "connectionMsg": "Verbindung zum Server wird hergestellt, bitte warten ...",
-            "unavailableMsg": "Server ist nicht verfügbar. Bitte später nochmal versuchen...",
-            "form": {
-                "title": {
-                    "label": "Titel",
-                    "rule": "Feld ist erforderlich"
-                },
-                "layout": {
-                    "label": "Layout",
-                    "rule": "Feld ist erforderlich"
-                },
-                "scale": {
-                    "label": "Maßstab",
-                    "rule": "Feld ist erforderlich"
-                },
-                "resolution": {
-                    "label": "Auflösung",
-                    "rule": "Feld ist erforderlich"
-                },
-                "crs": {
-                    "label": "Referenzsystem",
-                    "rule": "Feld ist erforderlich"
-                },
-                "submit": "Drucken",
-                "abort": "Abbrechen",
-                "legend": "Legende",
-                "grid": "Gitter"
-            }
-        },
-        "drawAndMeasure": {
-            "title": "Messen",
-            "measure": {
-                "header": "Messen",
-                "length": "Länge",
-                "area": "Fläche"
-            },
-            "draw": {
-                "header": "Zeichnen",
-                "point": "Punkt",
-                "pointWithCoord": "Punkt mit Koordinaten",
-                "line": "Linie",
-                "polygon": "Polygon",
-                "label": "Label",
-                "color": "Farbe",
-                "transparency": "Transparenz"
-            },
-            "clear": "Löschen"
-        },
-        "filter": {
-            "title": "Filter Thematische Daten",
-            "poisSettings": {
-                "buttonTooltip": "Einstellung Gewichtung und Sensitivität",
-                "title": "Heatmap",
-                "selectWeight": "Auswahl Gewichtung",
-                "sensitivityIndex": "Sensitivitätsindex",
-                "sensitivityGraph": {
-                    "title": "Erreichbarkeit",
-                    "gravity": "Gravitätsbasierte Erreichbarkeit (%)",
-                    "travelTime": "Reisezeit (Minuten)"
-                }
-            }
-        },
-        "edit": {
-            "title": "Szenarien entwickeln",
-            "selectLayer": "Layer zum Bearbeiten",
-            "selectFeatures": "Objekte auswählen",
-            "drawCircle": "Kreis zeichnen, um Objekte auszuwählen",
-            "selectOnMap": "Objekte auf Karte auswählen",
-            "editTools": "Bearbeitungstools",
-            "drawFeatureTooltip": "Objekt zeichnen",
-            "modifyFeatureTooltip": "Objekt ändern",
-            "deleteFeature": "Objekt löschen",
-            "clearBtn": "Reset",
-            "uploadBtn": "Hochladen",
-            "popup": {
-                "deleteFeatureMsg": "Möchten Sie das ausgewählte Feature wirklich löschen?",
-                "selectWayType": "Art des Weges auswählen: ",
-                "wayType": "Art des Weges"
-            },
-            "table": {
-                "layer": "Layer",
-                "status": "Status",
-                "type": "Art",
-                "actions": "Aktionen"
-            },
-            "type": {
-                "New": "Neu",
-                "Modified": "Geändert",
-                "Restored": "restauriert",
-                "Deleted": "Gelöscht"
-            },
-            "status": {
-                "Uploaded": "hochgeladen",
-                "NotUploaded": "Nicht hochgeladen"
-            },
-            "activateLayerToDrawScenario": "Bitte aktivieren Sie den Layer, um Objekte wählen zu können.",
-            "dataTypeInfo": "Benötigter Datei Typ",
-            "geometryTypeInfo": "Benötigter Geometrie Typ",
-            "requiredFields": "Erforderliche Attribute",
-            "referenceSystemInfo": "Referenzsystem sollte sein",
-            "featuresNotyetUploaded": "Objekte noch nicht hochgeladen. Klicken Sie auf Hochladen, um die Änderungen zu übernehmen.",
-            "differentGeometryType": "Falscher Geometrie-Typ",
-            "missingFields": "Fehlende Felder",
-            "fileCorrupted": "Geojson Datei ist beschädigt",
-            "noFile": "Keine Datei",
-            "allFeaturesUploaded": "Alle Objekte wurden hochgeladen",
-            "notAllUploaded": "Nicht alle Objekte wurden hochgeladen",
-            "errorHappened": "Es ist ein Fehler aufgetreten",
-            "scenarioFeatures": "Scenario Objekte",
-            "uploadYourData": "Bearbeitete Objekte hochladen",
-            "deleteAllTitle": "Alle löschen",
-            "deleteAllMessage": "Wollen Sie alle Scenario Daten löschen?"
-        },
-        "settings": {
-            "title": "Einstellungen",
-            "language": "Sprache",
-            "units": {
-                "header": "Einheiten",
-                "km": "Kilometer",
-                "miles": "Meilen"
-            }
-        },
-        "about": {
-            "title": "Über GOAT",
-            "content": "steht für Geo Open Accessibility Tool. Dieses Web-Tool ist Open Source, interaktiv, flexibel und kann in der Erreichbarkeitsplanung eingesetzt werden. GOAT befindet sich in der Entwicklung an der Professur für Siedlungsstruktur und Verkehrsplanung der TUM....",
-            "moreInfo": "Mehr Info"
-        }
+        "submit": "Login"
+      }
     },
-    "isochrones": {
-        "title": "Isochronen",
-        "calculation": "Berechnung",
-        "calculationTitle": "Isochronenberechnung",
-        "single": {
-            "title": "Startpunkt",
-            "type": "Single",
-            "searchBox": "Startpunkt suchen",
-            "startTooltip": "Klicke auf den Button, um die Isochronenberechnung zu starten",
-            "tableDataTitle": "Thematische Daten"
-        },
-        "multiple": {
-            "title": "Anfang",
-            "type": "Multi",
-            "selectMethod": "Methode auswählen",
-            "studyArea": "Ortsteil",
-            "clear": "Löschen",
-            "calculate": "Berechnen",
-            "studyAreaInfoLabel": "Wählen Sie <b> Orte </b> auf der Karte aus und <b> Ziele </b> im Filter Thematische Daten aus, um die Berechnung zu ermöglichen.",
-            "drawBoundary": "Grenze zeichnen",
-            "amenityCount": "Anzahl Einrichtungen",
-            "limit": "Grenze",
-            "drawBoundaryInfoLabel": "Zeichnen Sie eine <b> Grenze</b> auf der Karte ein und wählen Sie <b> Ziele </b> im Filter Thematische Daten aus aus, um die Berechnung zu ermöglichen.",
-            "tableDataTitle": "Daten Multi-Isochrone"
+    "printMap": {
+      "title": "Karte drucken",
+      "connectionMsg": "Verbindung zum Server wird hergestellt, bitte warten ...",
+      "unavailableMsg": "Server ist nicht verfügbar. Bitte später nochmal versuchen...",
+      "form": {
+        "title": {
+          "label": "Titel",
+          "rule": "Feld ist erforderlich"
         },
         "options": {
-            "title": "Optionen",
-            "subOptions": "Einstellungen Isochronen",
-            "speed": "km/h",
-            "time": "Min",
-            "nr": "Isochronen",
-            "calcType": "Detaillierungsgrad Isochronen",
-            "calcModus": "Berechnungsmodus",
-            "alphaShapeMode": "Detaillierungsgrad Isochronen",
-            "defaultNetwork": "Standard",
-            "modifiedNetwork": "Scenario",
-            "modifiedNetworkDoubleCalc": "Standard und Scenario",
-            "routingProfile": "Routing Profil",
-            "walking_standard": "Standard",
-            "walking_elderly": "Senior",
-            "walking_wheelchair": "Rollstuhl",
-            "cycling_standard": "Standard",
-            "cycling_pedelec": "Pedelec"
+          "title": "Optionen",
+          "subOptions": "Einstellungen Isochronen",
+          "speed": "km/h",
+          "time": "Min",
+          "nr": "Isochronen",
+          "calcType": "Detaillierungsgrad Isochronen",
+          "calcModus": "Berechnungsmodus",
+          "alphaShapeMode": "Detaillierungsgrad Isochronen",
+          "defaultNetwork": "Standard",
+          "modifiedNetwork": "Scenario",
+          "modifiedNetworkDoubleCalc": "Standard und Scenario",
+          "routingProfile": "Routing Profil",
+          "walking_standard": "Standard",
+          "walking_elderly": "Senior",
+          "walking_safe_night": "Safe night",
+          "walking_wheelchair": "Rollstuhl",
+          "cycling_standard": "Standard",
+          "cycling_pedelec": "Pedelec"
         },
         "results": {
-            "title": "Ergebnisse",
-            "multiIsochroneHeader": "Multi-Isochrone-Berechnung",
-            "additionalLayers": "Weitere Layer",
-            "showDataTooltip": "Daten anzeigen",
-            "toggleVisibilityTooltip": "Anzeige umschalten",
-            "showResultsTooltip": "Ergebnisse anzeigen",
-            "hideResultsTooltip": "Ergebnisse ausblenden",
-            "downloadTooltip": "Herunterladen",
-            "deleteCalcTooltip": "Berechnung löschen",
-            "changeColorTooltip": "Farbe ändern",
-            "table": {
-                "type": "Art",
-                "range": "Zeit",
-                "area": "Größe",
-                "visible": "Anzeige",
-                "legend": "Legende"
-            }
+          "title": "Ergebnisse",
+          "multiIsochroneHeader": "Multi-Isochrone-Berechnung",
+          "additionalLayers": "Weitere Layer",
+          "showDataTooltip": "Daten anzeigen",
+          "toggleVisibilityTooltip": "Anzeige umschalten",
+          "showResultsTooltip": "Ergebnisse anzeigen",
+          "hideResultsTooltip": "Ergebnisse ausblenden",
+          "downloadTooltip": "Herunterladen",
+          "deleteCalcTooltip": "Berechnung löschen",
+          "changeColorTooltip": "Farbe ändern",
+          "table": {
+            "type": "Art",
+            "range": "Zeit",
+            "area": "Größe",
+            "visible": "Anzeige",
+            "legend": "Legende"
+          }
         },
-        "tableData": {
-            "timeFilter": "Filter Reisezeit",
-            "searchPois": "Ziele suchen",
-            "selectTimeMsg": "Zeit zum Filtern auswählen",
-            "noDataMsg": "Keine Daten für ausgewählte Zeit",
-            "selectAmenitiesMsg": "Wählen Sie <b> Ziele </b> und die <b> Reisezeit </b> aus, um die Tabelle zu filtern.",
-            "table": {
-                "pois": "Ziele",
-                "isochrone": "Isochrone",
-                "studyArea": "Ort",
-                "population": "Bevölkerung",
-                "reachedPopulation": "Erreichbare Bevölkerung"
-            }
+        "scale": {
+          "label": "Maßstab",
+          "rule": "Feld ist erforderlich"
         },
-        "isochrones": "Isochronen",
-        "deleteTitle": "Löschen",
-        "deleteMessage": "Soll Berechnung wirklich gelöscht werden?",
-        "download": {
-            "title": "Isochronen herunterladen",
-            "fileName": "Dateiname",
-            "outputFormat": "Ausgabeformat auswählen",
-            "download": "Herunterladen"
+        "resolution": {
+          "label": "Auflösung",
+          "rule": "Feld ist erforderlich"
         },
-        "additionalLayers": {
-          "defaultNetwork": "Standard Straßennetzwerk",
-          "inputNetwork": "Modifiziertes Straßennetzwerk"
+        "crs": {
+          "label": "Referenzsystem",
+          "rule": "Feld ist erforderlich"
         },
-        "pickColor": {
-          "title": "Farbe der Isochrone"
-        }
-      },
-    "poisFilter": {
-        "showTimeFilter": "Zeitlichen Filter hinzufügen",
-        "selectHourLabel": "Uhrzeit wählen",
-        "selectDayLabel": "Tag wählen",
-        "daysOfWeek": {
-          "monday": "Montag",
-          "tuesday": "Dienstag",
-          "wednesday": "Mittwoch",
-          "thursday": "Donnerstag",
-          "friday": "Freitag",
-          "saturday": "Samstag",
-          "sunday": "Sonntag"
-        }
-      },
-    "layerTree": {
-        "title": "Layer",
-        "settings": {
-            "transparency": "Transparenz"
-        }
+        "submit": "Drucken",
+        "abort": "Abbrechen",
+        "legend": "Legende",
+        "grid": "Gitter"
+      }
     },
-    "map": {
-        "layerLegend": {
-            "title": "Legende Layer"
-        },
-        "snackbarMessages": {
-            "selectAmenities": "Mind. ein Ziel auswählen",
-            "calculateIsochroneError": "Hier ist leider keine Berechnung möglich.",
-            "uploadScenarioSuccess": "Objekte wurden erfolgreich hochgeladen.",
-            "uploadScenarioError": "Leider ist beim Hochladen der Objekte in die Datenbank ein Fehler aufgetreten.",
-            "notAllScnearioFeaturesUploaded": "Bei der Berechnung der Szenarien-Isochrone werden nur hochgeladene Objekte berücksichtigt.",
-            "cantDeleteAllScenarioFeatures": "Die Szenarien-Daten können aktuell leider nicht gelöscht werden.",
-            "allScenarioFeaturesDelete": "Alle Szenarien-Daten wurden gelöscht"
-        },
-        "layerGroup": {
-            "poisLayers": "Pois Layer",
-            "administrativeLayers": "Layer Verwaltungsgrenzen",
-            "streetlevelqualityLayers": "Street Level Quality",
-            "perceivedQuality": "Empfundene Qualität",
-            "accessbilityBasemaps": "Grundkarten Erreichbarkeit",
-            "backgroundLayers": "Hintergrundkarten"
-        },
-        "layerName": {
-            "pois": "Point of Interest",
-            "administrativeUnits": "Administrative Grenzen",
-            "footpathWidth": "Fußwegbreite",
-            "illuminance": "Beleuchtung",
-            "lanes": "Anzahl der Fahrspuren",
-            "parking": "Parkplätze am Straßenrand",
-            "speed": "Geschwindigkeitsbegrenzungen",
-            "streetCrossings": "Straßenquerungsmöglichkeiten",
-            "streetFurniture": "Straßenmöbelierung",
-            "surface": "Oberfläche",
-            "wheelchairUsability": "Barrierefreiheit",
-            "areaIsochrone": "Isochronengröße",
-            "walkabilityPopulation": "Walkability - Bevölkerungs - Index",
-            "population": "Bevölkerung",
-            "walkability": "Walkability",
-            "studyArea": "Untersuchungsgebiet",
-            "ways": "Wege",
-            "osmStandard": "OSM Standard",
-            "osmLight": "OSM Light",
-            "osmDark": "OSM Dark",
-            "mapboxStreets": "Mapbox",
-            "publicTransport": "Öffentlicher Verkehr",
-            "bingAerial": "Bing Aerial"
-        },
-        "tooltips": {
-            "clickForCalculation": "Für Berechnung klicken",
-            "clickToSelectStudyArea": "Klicken für Auswahl des Untersuchungsbereichs",
-            "maxCircleRadius": "Maximaler Kreisradius ist 1000m",
-            "clickToStartMeasure": "Klicken, um Messung zu starten",
-            "clickToStartDrawing": "Klicken, um Zeichnen zu starten",
-            "clickToContinueDrawing": "Klicken, um mit Zeichnen fortzufahren",
-            "clickToFinishDrawing": "Klicken, um Zeichnen zu beenden",
-            "clickToStartDrawingBoundary": "Klicken, um Begrenzungsrechteck zu zeichnen",
-            "clickToStartDrawingCircle": "Klicken, um Kreis zu zeichnen (max. Radius 1000m)",
-            "clickToFinishDrawingPolygon": "Doppel(klick) auf Startpunkt, um Vorgang zu beenden",
-            "clickOnFeatureToDelete": "Auf das Objekt klicken, um es zu löschen",
-            "clickAndDragToModify": "Objekt anklicken und ziehen, um es zu verändern",
-            "clickToRemove": "Zum Entfernen klicken",
-            "clickToPlacePoint": "Klicken, um den Punkt zu platzieren",
-            "routingProfiles": {
-              "walking": {
-                "title": "Fußgänger",
-                "options": {
-                  "standard": {
-                    "title": "Standard",
-                    "tooltip": "Standard Routing"
-                  },
-                  "elderly": {
-                    "title": "Senior",
-                    "tooltip": "Routing mit reduzierter Gehgeschwindigkeit"
-                  },
-                  "safe_night": {
-                    "title": "Safe night",
-                    "tooltip": "Routing nur entlang beleuchteter Wege"
-                  }
-                }
-              },
-              "cycling": {
-                "title": "Radfahrer",
-                "options": {
-                  "standard": {
-                    "title": "Standard",
-                    "tooltip": "Standard Routing"
-                  },
-                  "pedelec": {
-                    "title": "Pedelec",
-                    "tooltip": "Pedelec"
-                  }
-                }
-              },
-              "walking_wheelchair": {
-                "title": "Rollstuhl",
-                "tooltip": "Routing berücksichtigt nur barrierefreie Wege und Ziele"
-              }
+    "drawAndMeasure": {
+      "title": "Messen",
+      "measure": {
+        "header": "Messen",
+        "length": "Länge",
+        "area": "Fläche"
+      },
+      "draw": {
+        "header": "Zeichnen",
+        "point": "Punkt",
+        "pointWithCoord": "Punkt mit Koordinaten",
+        "line": "Linie",
+        "polygon": "Polygon",
+        "label": "Label",
+        "color": "Farbe",
+        "transparency": "Transparenz"
+      },
+      "clear": "Löschen"
+    },
+    "filter": {
+      "title": "Filter Thematische Daten",
+      "poisSettings": {
+        "buttonTooltip": "Einstellung Gewichtung und Sensitivität",
+        "title": "Heatmap",
+        "selectWeight": "Auswahl Gewichtung",
+        "sensitivityIndex": "Sensitivitätsindex",
+        "sensitivityGraph": {
+          "title": "Erreichbarkeit",
+          "gravity": "Gravitätsbasierte Erreichbarkeit (%)",
+          "travelTime": "Reisezeit (Minuten)"
+        }
+      }
+    },
+    "edit": {
+      "title": "Szenarien entwickeln",
+      "selectLayer": "Layer zum Bearbeiten",
+      "selectFeatures": "Objekte auswählen",
+      "drawCircle": "Kreis zeichnen, um Objekte auszuwählen",
+      "selectOnMap": "Objekte auf Karte auswählen",
+      "editTools": "Bearbeitungstools",
+      "drawFeatureTooltip": "Objekt zeichnen",
+      "modifyFeatureTooltip": "Objekt ändern",
+      "deleteFeature": "Objekt löschen",
+      "clearBtn": "Reset",
+      "uploadBtn": "Hochladen",
+      "popup": {
+        "deleteFeatureMsg": "Möchten Sie das ausgewählte Feature wirklich löschen?",
+        "selectWayType": "Art des Weges auswählen: ",
+        "wayType": "Art des Weges"
+      },
+      "table": {
+        "layer": "Layer",
+        "status": "Status",
+        "type": "Art",
+        "actions": "Aktionen"
+      },
+      "type": {
+        "New": "Neu",
+        "Modified": "Geändert",
+        "Restored": "restauriert",
+        "Deleted": "Gelöscht"
+      },
+      "status": {
+        "Uploaded": "hochgeladen",
+        "NotUploaded": "Nicht hochgeladen"
+      },
+      "activateLayerToDrawScenario": "Bitte aktivieren Sie den Layer, um Objekte wählen zu können.",
+      "dataTypeInfo": "Benötigter Datei Typ",
+      "geometryTypeInfo": "Benötigter Geometrie Typ",
+      "requiredFields": "Erforderliche Attribute",
+      "referenceSystemInfo": "Referenzsystem sollte sein",
+      "featuresNotyetUploaded": "Objekte noch nicht hochgeladen. Klicken Sie auf Hochladen, um die Änderungen zu übernehmen.",
+      "differentGeometryType": "Falscher Geometrie-Typ",
+      "missingFields": "Fehlende Felder",
+      "fileCorrupted": "Geojson Datei ist beschädigt",
+      "noFile": "Keine Datei",
+      "allFeaturesUploaded": "Alle Objekte wurden hochgeladen",
+      "notAllUploaded": "Nicht alle Objekte wurden hochgeladen",
+      "errorHappened": "Es ist ein Fehler aufgetreten",
+      "scenarioFeatures": "Scenario Objekte",
+      "uploadYourData": "Bearbeitete Objekte hochladen",
+      "deleteAllTitle": "Alle löschen",
+      "deleteAllMessage": "Wollen Sie alle Scenario Daten löschen?"
+    },
+    "settings": {
+      "title": "Einstellungen",
+      "language": "Sprache",
+      "units": {
+        "header": "Einheiten",
+        "km": "Kilometer",
+        "miles": "Meilen"
+      }
+    },
+    "about": {
+      "title": "Über GOAT",
+      "content": "steht für Geo Open Accessibility Tool. Dieses Web-Tool ist Open Source, interaktiv, flexibel und kann in der Erreichbarkeitsplanung eingesetzt werden. GOAT befindet sich in der Entwicklung an der Professur für Siedlungsstruktur und Verkehrsplanung der TUM....",
+      "moreInfo": "Mehr Info"
+    }
+  },
+  "isochrones": {
+    "title": "Isochronen",
+    "calculation": "Berechnung",
+    "calculationTitle": "Isochronenberechnung",
+    "single": {
+      "title": "Startpunkt",
+      "type": "Single",
+      "searchBox": "Startpunkt suchen",
+      "startTooltip": "Klicke auf den Button, um die Isochronenberechnung zu starten",
+      "tableDataTitle": "Thematische Daten"
+    },
+    "multiple": {
+      "title": "Anfang",
+      "type": "Multi",
+      "selectMethod": "Methode auswählen",
+      "studyArea": "Ortsteil",
+      "clear": "Löschen",
+      "calculate": "Berechnen",
+      "studyAreaInfoLabel": "Wählen Sie <b> Orte </b> auf der Karte aus und <b> Ziele </b> im Filter Thematische Daten aus, um die Berechnung zu ermöglichen.",
+      "drawBoundary": "Grenze zeichnen",
+      "amenityCount": "Anzahl Einrichtungen",
+      "limit": "Grenze",
+      "drawBoundaryInfoLabel": "Zeichnen Sie eine <b> Grenze</b> auf der Karte ein und wählen Sie <b> Ziele </b> im Filter Thematische Daten aus aus, um die Berechnung zu ermöglichen.",
+      "tableDataTitle": "Daten Multi-Isochrone"
+    },
+    "options": {
+      "title": "Optionen",
+      "subOptions": "Einstellungen Isochronen",
+      "speed": "km/h",
+      "time": "Min",
+      "nr": "Isochronen",
+      "calcType": "Detaillierungsgrad Isochronen",
+      "calcModus": "Berechnungsmodus",
+      "alphaShapeMode": "Detaillierungsgrad Isochronen",
+      "defaultNetwork": "Standard",
+      "modifiedNetwork": "Scenario",
+      "modifiedNetworkDoubleCalc": "Standard und Scenario",
+      "routingProfile": "Routing Profil",
+      "walking_standard": "Standard",
+      "walking_elderly": "Senior",
+      "walking_wheelchair": "Rollstuhl",
+      "cycling_standard": "Standard",
+      "cycling_pedelec": "Pedelec"
+    },
+    "results": {
+      "title": "Ergebnisse",
+      "multiIsochroneHeader": "Multi-Isochrone-Berechnung",
+      "additionalLayers": "Weitere Layer",
+      "showDataTooltip": "Daten anzeigen",
+      "toggleVisibilityTooltip": "Anzeige umschalten",
+      "showResultsTooltip": "Ergebnisse anzeigen",
+      "hideResultsTooltip": "Ergebnisse ausblenden",
+      "downloadTooltip": "Herunterladen",
+      "deleteCalcTooltip": "Berechnung löschen",
+      "changeColorTooltip": "Farbe ändern",
+      "table": {
+        "type": "Art",
+        "range": "Zeit",
+        "area": "Größe",
+        "visible": "Anzeige",
+        "legend": "Legende"
+      }
+    },
+    "tableData": {
+      "timeFilter": "Filter Reisezeit",
+      "searchPois": "Ziele suchen",
+      "selectTimeMsg": "Zeit zum Filtern auswählen",
+      "noDataMsg": "Keine Daten für ausgewählte Zeit",
+      "selectAmenitiesMsg": "Wählen Sie <b> Ziele </b> und die <b> Reisezeit </b> aus, um die Tabelle zu filtern.",
+      "table": {
+        "pois": "Ziele",
+        "isochrone": "Isochrone",
+        "studyArea": "Ort",
+        "population": "Bevölkerung",
+        "reachedPopulation": "Erreichbare Bevölkerung"
+      }
+    },
+    "isochrones": "Isochronen",
+    "deleteTitle": "Löschen",
+    "deleteMessage": "Soll Berechnung wirklich gelöscht werden?",
+    "download": {
+      "title": "Isochronen herunterladen",
+      "fileName": "Dateiname",
+      "outputFormat": "Ausgabeformat auswählen",
+      "download": "Herunterladen"
+    },
+    "additionalLayers": {
+      "defaultNetwork": "Standard Straßennetzwerk",
+      "inputNetwork": "Modifiziertes Straßennetzwerk"
+    },
+    "pickColor": {
+      "title": "Farbe der Isochrone"
+    }
+  },
+  "poisFilter": {
+    "showTimeFilter": "Zeitlichen Filter hinzufügen",
+    "selectHourLabel": "Uhrzeit wählen",
+    "selectDayLabel": "Tag wählen",
+    "daysOfWeek": {
+      "monday": "Montag",
+      "tuesday": "Dienstag",
+      "wednesday": "Mittwoch",
+      "thursday": "Donnerstag",
+      "friday": "Freitag",
+      "saturday": "Samstag",
+      "sunday": "Sonntag"
+    }
+  },
+  "layerTree": {
+    "title": "Layer",
+    "settings": {
+      "transparency": "Transparenz"
+    }
+  },
+  "map": {
+    "layerLegend": {
+      "title": "Legende Layer"
+    },
+    "snackbarMessages": {
+      "selectAmenities": "Mind. ein Ziel auswählen",
+      "calculateIsochroneError": "Hier ist leider keine Berechnung möglich.",
+      "uploadScenarioSuccess": "Objekte wurden erfolgreich hochgeladen.",
+      "uploadScenarioError": "Leider ist beim Hochladen der Objekte in die Datenbank ein Fehler aufgetreten.",
+      "notAllScnearioFeaturesUploaded": "Bei der Berechnung der Szenarien-Isochrone werden nur hochgeladene Objekte berücksichtigt.",
+      "cantDeleteAllScenarioFeatures": "Die Szenarien-Daten können aktuell leider nicht gelöscht werden.",
+      "allScenarioFeaturesDelete": "Alle Szenarien-Daten wurden gelöscht"
+    },
+    "layerGroup": {
+      "poisLayers": "POIs",
+      "administrativeLayers": "Verwaltungsgrenzen",
+      "streetlevelqualityLayers": "Street Level Quality",
+      "environmentalQualityLayers": "Umweltdaten",
+      "perceivedQuality": "Empfundene Qualität",
+      "accessbilityBasemaps": "Grundkarten Erreichbarkeit",
+      "backgroundLayers": "Hintergrundkarten"
+    },
+    "layerName": {
+      "pois": "Point of Interest",
+      "administrativeUnits": "Administrative Grenzen",
+      "biotops": "Biotope",
+      "ffh-area": "FFH-Gebiete",
+      "natureReserves": "Naturschutzgebiete",
+      "noiseMainTrafficRoads": "Lärm von Hauptverkehrsstraßen",
+      "protectedLandscape": "Landschaftsschutzgebiete",
+      "footpathWidth": "Fußwegbreite",
+      "illuminance": "Beleuchtung",
+      "lanes": "Anzahl der Fahrspuren",
+      "parking": "Parkplätze am Straßenrand",
+      "smoothness": "Oberflächenglätte",
+      "speed": "Geschwindigkeitsbegrenzungen",
+      "streetCategory": "Straßenkategorien - detailliert",
+      "streetCategorysAggregated": "Straßenkategorien",
+      "streetCrossings": "Straßenquerungsmöglichkeiten",
+      "streetFurniture": "Straßenmöbelierung",
+      "streetFurnitureBicycles": "Fahrradständer",
+      "surface": "Oberfläche",
+      "wheelchairUsability": "Barrierefreiheit",
+      "areaIsochrone": "Isochronengröße",
+      "walkabilityPopulation": "Walkability - Bevölkerungs - Index",
+      "population": "Bevölkerung",
+      "walkability": "Walkability",
+      "studyArea": "Untersuchungsgebiet",
+      "ways": "Wege",
+      "osmStandard": "OSM Standard",
+      "osmLight": "OSM Light",
+      "osmDark": "OSM Dark",
+      "mapboxStreets": "Mapbox",
+      "publicTransport": "Öffentlicher Verkehr",
+      "bingAerial": "Bing Aerial"
+    },
+    "tooltips": {
+      "clickForCalculation": "Für Berechnung klicken",
+      "clickToSelectStudyArea": "Klicken für Auswahl des Untersuchungsbereichs",
+      "maxCircleRadius": "Maximaler Kreisradius ist 1000m",
+      "clickToStartMeasure": "Klicken, um Messung zu starten",
+      "clickToStartDrawing": "Klicken, um Zeichnen zu starten",
+      "clickToContinueDrawing": "Klicken, um mit Zeichnen fortzufahren",
+      "clickToFinishDrawing": "Klicken, um Zeichnen zu beenden",
+      "clickToStartDrawingBoundary": "Klicken, um Begrenzungsrechteck zu zeichnen",
+      "clickToStartDrawingCircle": "Klicken, um Kreis zu zeichnen (max. Radius 1000m)",
+      "clickToFinishDrawingPolygon": "Doppel(klick) auf Startpunkt, um Vorgang zu beenden",
+      "clickOnFeatureToDelete": "Auf das Objekt klicken, um es zu löschen",
+      "clickAndDragToModify": "Objekt anklicken und ziehen, um es zu verändern",
+      "clickToRemove": "Zum Entfernen klicken",
+      "clickToPlacePoint": "Klicken, um den Punkt zu platzieren",
+      "routingProfiles": {
+        "walking": {
+          "title": "Fußgänger",
+          "options": {
+            "standard": {
+              "title": "Standard",
+              "tooltip": "Standard Routing"
             },
-            "zoomToFeature": "Zum Objekt zoomen",
-            "deleteFeature": "Objekt löschen",
-            "uploadFeature": "Objekt hochladen",
-            "restoreFeature": "Objekt zurücksetzen"
-        },
-        "popup": {
-            "attributes": "Attribute",
-            "info": "Info",
-            "editWithOsm": "In OSM bearbeiten",
-            "confirm": "Bestätigen"
-        },
-        "layerListValues": {
-            "road": "Straße",
-            "bridge": "Brücke"
-        }
-    },
-    "pois": {
-        "education": "Bildung",
-        "foodAndDrink": "Essen und Trinken",
-        "transport": "Transport",
-        "services": "Dienstleistungen",
-        "shop": "Einkaufen",
-        "tourismAndLeisure": "Tourismus & Freizeit",
-        "kindergarten": "Kindergarten",
-        "primary_school": "Grundschule",
-        "secondary_school": "Weiterführende Schule",
-        "library": "Bibliothek",
-        "bar": "Bar",
-        "biergarten": "Biergarten",
-        "cafe": "Café",
-        "pub": "Pub",
-        "fast_food": "Fast Food",
-        "ice_cream": "Eisdiele",
-        "restaurant": "Restaurant",
-        "nightclub": "Nachtclub",
-        "bicycle_rental": "Bikesharing",
-        "car_sharing": "Carsharing",
-        "charging_station": "Ladestation",
-        "bus_stop": "Bushaltestelle",
-        "tram_stop": "Tramhaltestelle",
-        "subway_entrance": "U-Bahn-Station",
-        "rail_station": "Bahnhof",
-        "taxi": "Taxi",
-        "hairdresser": "Friseur",
-        "atm": "Geldautomat",
-        "bank": "Bank",
-        "dentist": "Zahnarzt",
-        "doctors": "Arzt",
-        "pharmacy": "Apotheke",
-        "post_box": "Briefkasten",
-        "fuel": "Tankstelle",
-        "recycling": "Recycling",
-        "bakery": "Bäckerei",
-        "butcher": "Metzger",
-        "clothes": "Bekleidung",
-        "convenience": "Gemischtwarenladen",
-        "greengrocer": "Gemüsehändler",
-        "kiosk": "Kiosk",
-        "mall": "Einkaufszentrum",
-        "shoes": "Schuhgeschäft",
-        "supermarket": "Supermarkt",
-        "discount_supermarket": "Discounter",
-        "international_supermarket": "Internationaler Supermarkt",
-        "hypermarket": "Großmarkt",
-        "chemist": "Drogerie",
-        "organic": "Bio-Supermarkt",
-        "marketplace": "Marktplatz",
-        "cinema": "Kino",
-        "theatre": "Theater",
-        "museum": "Museum",
-        "hotel": "Hotel",
-        "hostel": "Herberge",
-        "guest_house": "Gasthaus",
-        "gallery": "Galerie",
-        "university": "Universität",
-        "hospital": "Krankenhaus",
-        "population": "Bevölkerung"
-    },
-    "$vuetify": {
-        "close": "Schließen",
-        "dataIterator": {
-            "pageText": "{0} - {1} von {2}",
-            "noResultsText": "Keine übereinstimmenden Aufzeichnungen gefunden",
-            "loadingText": "Artikel werden geladen ..."
-        },
-        "dataTable": {
-            "itemsPerPageText": "Zeilen pro Seite:",
-            "ariaLabel": {
-                "sortDescending": ": Absteigend sortiert. Um Sortierung aufzuheben, Option aktivieren.",
-                "sortAscending": ": Aufsteigend sortiert. Option aktivieren, um absteigend zu sortieren.",
-                "sortNone": ": Nicht sortiert. Option aktivieren, um aufsteigend zu sortieren."
+            "elderly": {
+              "title": "Senior",
+              "tooltip": "Routing mit reduzierter Gehgeschwindigkeit"
+            },
+            "safe_night": {
+              "title": "Safe night",
+              "tooltip": "Routing nur entlang beleuchteter Wege"
             }
+          }
         },
-        "dataFooter": {
-            "pageText": "{0}-{1} von {2}",
-            "itemsPerPageText": "Objekte pro Seite:",
-            "itemsPerPageAll": "Alle",
-            "nextPage": "Nächste Seite",
-            "prevPage": "Vorherige Seite",
-            "firstPage": "Erste Seite",
-            "lastPage": "Letzte Seite"
+        "cycling": {
+          "title": "Radfahrer",
+          "options": {
+            "standard": {
+              "title": "Standard",
+              "tooltip": "Standard Routing"
+            },
+            "pedelec": {
+              "title": "Pedelec",
+              "tooltip": "Pedelec"
+            }
+          }
         },
-        "datePicker": {
-            "itemsSelected": "{0} ausgewählt"
-        },
-        "noDataText": "Keine Daten verfügbar",
-        "carousel": {
-            "prev": "Vorheriges Bild",
-            "next": "Nächstes Bild"
-        },
-        "calendar": {
-            "moreEvents": "{0} mehr"
-        }
-    },
-    "common": {
-      "required": "Diese Information wird benötigt."
-    },
-    "dynamicFields": {
-      "attributes": {
-        "ways": {
-          "type": "Wegetyp",
-          "class_id": "Class Id"
-        },
-        "pois": {
-          "amenity": "Einrichtung",
-          "name": "Name (Optional)",
-          "opening_hours": "Öffnungszeiten (Optional)"
+        "walking_wheelchair": {
+          "title": "Rollstuhl",
+          "tooltip": "Routing berücksichtigt nur barrierefreie Wege und Ziele"
         }
       },
-      "listValues": {
-        "ways": {
-          "road": "Straße",
-          "bridge": "Brücke"
-        }
+      "zoomToFeature": "Zum Objekt zoomen",
+      "deleteFeature": "Objekt löschen",
+      "uploadFeature": "Objekt hochladen",
+      "restoreFeature": "Objekt zurücksetzen"
+    },
+    "popup": {
+      "attributes": "Attribute",
+      "info": "Info",
+      "editWithOsm": "In OSM bearbeiten",
+      "confirm": "Bestätigen"
+    },
+    "layerListValues": {
+      "road": "Straße",
+      "bridge": "Brücke"
+    },
+    "contextMenu": {
+      "deleteIsochrone": "Isochrone löschen",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out"
+    }
+  },
+  "pois": {
+    "education": "Bildung",
+    "foodAndDrink": "Essen und Trinken",
+    "transport": "Transport",
+    "services": "Dienstleistungen",
+    "shop": "Einkaufen",
+    "tourismAndLeisure": "Tourismus & Freizeit",
+    "nursery": "Krippe",
+    "kindergarten": "Kindergarten",
+    "primary_school": "Grundschule",
+    "secondary_school": "Weiterführende Schule",
+    "library": "Bibliothek",
+    "bar": "Bar",
+    "biergarten": "Biergarten",
+    "cafe": "Café",
+    "pub": "Pub",
+    "fast_food": "Fast Food",
+    "ice_cream": "Eisdiele",
+    "restaurant": "Restaurant",
+    "nightclub": "Nachtclub",
+    "bicycle_rental": "Bikesharing",
+    "car_sharing": "Carsharing",
+    "charging_station": "Ladestation",
+    "bus_stop": "Bushaltestelle",
+    "tram_stop": "Tramhaltestelle",
+    "subway_entrance": "U-Bahn-Station",
+    "rail_station": "Bahnhof",
+    "taxi": "Taxi",
+    "hairdresser": "Friseur",
+    "atm": "Geldautomat",
+    "bank": "Bank",
+    "dentist": "Zahnarzt",
+    "doctors": "Arzt",
+    "pharmacy": "Apotheke",
+    "post_box": "Briefkasten",
+    "fuel": "Tankstelle",
+    "recycling": "Recycling",
+    "bakery": "Bäckerei",
+    "butcher": "Metzger",
+    "clothes": "Bekleidung",
+    "convenience": "Gemischtwarenladen",
+    "greengrocer": "Gemüsehändler",
+    "kiosk": "Kiosk",
+    "mall": "Einkaufszentrum",
+    "shoes": "Schuhgeschäft",
+    "supermarket": "Supermarkt",
+    "discount_supermarket": "Discounter",
+    "international_supermarket": "Internationaler Supermarkt",
+    "hypermarket": "Großmarkt",
+    "chemist": "Drogerie",
+    "organic": "Bio-Supermarkt",
+    "marketplace": "Marktplatz",
+    "cinema": "Kino",
+    "theatre": "Theater",
+    "museum": "Museum",
+    "hotel": "Hotel",
+    "hostel": "Herberge",
+    "guest_house": "Gasthaus",
+    "gallery": "Galerie",
+    "university": "Universität",
+    "hospital": "Krankenhaus",
+    "playground": "Spielplatz",
+    "population": "Bevölkerung"
+  },
+  "$vuetify": {
+    "close": "Schließen",
+    "dataIterator": {
+      "pageText": "{0} - {1} von {2}",
+      "noResultsText": "Keine übereinstimmenden Aufzeichnungen gefunden",
+      "loadingText": "Artikel werden geladen ..."
+    },
+    "dataTable": {
+      "itemsPerPageText": "Zeilen pro Seite:",
+      "ariaLabel": {
+        "sortDescending": ": Absteigend sortiert. Um Sortierung aufzuheben, Option aktivieren.",
+        "sortAscending": ": Aufsteigend sortiert. Option aktivieren, um absteigend zu sortieren.",
+        "sortNone": ": Nicht sortiert. Option aktivieren, um aufsteigend zu sortieren."
+      }
+    },
+    "dataFooter": {
+      "pageText": "{0}-{1} von {2}",
+      "itemsPerPageText": "Objekte pro Seite:",
+      "itemsPerPageAll": "Alle",
+      "nextPage": "Nächste Seite",
+      "prevPage": "Vorherige Seite",
+      "firstPage": "Erste Seite",
+      "lastPage": "Letzte Seite"
+    },
+    "datePicker": {
+      "itemsSelected": "{0} ausgewählt"
+    },
+    "noDataText": "Keine Daten verfügbar",
+    "carousel": {
+      "prev": "Vorheriges Bild",
+      "next": "Nächstes Bild"
+    },
+    "calendar": {
+      "moreEvents": "{0} mehr"
+    }
+  },
+  "common": {
+    "required": "Diese Information wird benötigt."
+  },
+  "dynamicFields": {
+    "attributes": {
+      "ways": {
+        "type": "Wegetyp",
+        "class_id": "Class Id"
+      },
+      "pois": {
+        "amenity": "Einrichtung",
+        "name": "Name (Optional)",
+        "opening_hours": "Öffnungszeiten (Optional)"
+      }
+    },
+    "listValues": {
+      "ways": {
+        "road": "Straße",
+        "bridge": "Brücke"
       }
     }
   }
+}

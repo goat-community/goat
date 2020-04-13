@@ -29,12 +29,15 @@ def setup_db(setup_type):
     #Create extensions
     os.system('psql -U postgres -d %s -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION intarray;CREATE EXTENSION plpython3u;"' % db_name_temp)
 
+    #These extensions are needed when using the new DB-image
+    #os.system('psql -U postgres -d %s -c "CREATE EXTENSION postgis_raster;"' % db_name_temp)
+    #os.system('psql -U postgres -d %s -c "CREATE EXTENSION plv8;"' % db_name_temp)
     os.chdir('/opt/data')
 
 
     if (download_link != 'no_download' and setup_type == 'new_setup'):
         os.system('wget --no-check-certificate --output-document="raw-osm.osm.pbf" %s' % download_link)
-
+     
     #Define bounding box, the boundingbox is buffered by approx. 3 km
     bbox = shapefile.Reader("study_area.shp").bbox
     top = bbox[3]+buffer
@@ -43,11 +46,9 @@ def setup_db(setup_type):
     right = bbox[2]+buffer
 
     if (setup_type == 'new_setup'):  
-        #print('osmosis --read-pbf file="raw-osm.osm.pbf" %s --write-xml file="study_area.osm"' % bounding_box)
         if (extract_bbox == 'yes'):
-            
             bounding_box = '--bounding-box top=%f left=%f bottom=%f right=%f' % (top,left,bottom,right)
-            print(bounding_box)
+            print('Your bounding box is: ' + bounding_box)
             os.system('osmosis --read-pbf file="raw-osm.osm.pbf" %s --write-xml file="study_area.osm"' % bounding_box)
 
         #Create timestamps
@@ -63,7 +64,6 @@ def setup_db(setup_type):
 
         #Import DEM
         if os.path.isfile('dem.tif'):
-            #--bounding-box top=48.248582 left=11.127238 bottom=48.101042 right=11.329993
             #os.system('gdalwarp -dstnodata -999.0 -r near -ot Float32 -of GTiff -te %f %f %f %f dem.tif dem_cut.tif' % (left,top,right,bottom))
             os.system('raster2pgsql -c -C -s 4326 -f rast -F -I -M -t 100x100 dem.tif public.dem > dem.sql')
             db_temp.execute_script_psql('dem.sql')
@@ -126,7 +126,7 @@ def setup_db(setup_type):
             if os.path.isfile('buildings.shp'):
                 script_buildings = 'buildings_residential_custom.sql'
             else:
-                script_buildings = 'buildings_residential'
+                script_buildings = 'buildings_residential.sql'
 
             if (source_population == 'extrapolation'):
                 db_temp.execute_script_psql('../data_preparation/SQL/'+script_buildings)
@@ -155,6 +155,8 @@ def setup_db(setup_type):
                
         #Creates DB_functions
         update_functions()
+        #os.system(f'psql --U {user} -d {db_name} -f /opt/database_functions/libs/plv8_js_modules.sql')
+        #os.system(f'psql -U {user} -d {db_name} -c "ALTER DATABASE {db_name} SET plv8.start_proc TO plv8_require')
 
     else:
         #Create pgpass for goat-database
