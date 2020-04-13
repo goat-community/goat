@@ -11,7 +11,6 @@ def setup_db(setup_type):
     from scripts.db_functions import DB_connection
     from scripts.db_functions import create_variable_container
     from scripts.db_functions import update_functions
-    from scripts.db_functions import geojson_to_sql
 
     download_link,osm_data_recency,buffer,extract_bbox,source_population,additional_walkability_layers = ReadYAML().data_source()
     db_name,user,host,port,password = ReadYAML().db_credentials()
