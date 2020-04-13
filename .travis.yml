@@ -30,9 +30,6 @@ jobs:
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/print"; then
           make build-docker-image -e COMPONENT=print; else
           echo "NO CHANGES SINCE LAST COMMIT"; fi
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/mapproxy"; then
-          make build-docker-image -e COMPONENT=mapproxy; else
-          echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/geoserver"; then
           make build-docker-image -e COMPONENT=geoserver; else
           echo "NO CHANGES SINCE LAST COMMIT"; fi
@@ -51,8 +48,6 @@ jobs:
           make release-docker-image -e COMPONENT=api; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/print" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
           make release-docker-image -e COMPONENT=print; else echo "NO CHANGES SINCE LAST COMMIT"; fi
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/mapproxy" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
-          make release-docker-image -e COMPONENT=mapproxy; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/geoserver" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
           make release-docker-image -e COMPONENT=geoserver; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/database" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
