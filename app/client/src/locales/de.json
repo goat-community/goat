@@ -322,8 +322,8 @@
       "allScenarioFeaturesDelete": "Alle Szenarien-Daten wurden gelöscht"
     },
     "layerGroup": {
-      "poisLayers": "Pois Layer",
-      "administrativeLayers": "Layer Verwaltungsgrenzen",
+      "poisLayers": "POIs",
+      "administrativeLayers": "Verwaltungsgrenzen",
       "streetlevelqualityLayers": "Street Level Quality",
       "environmentalQualityLayers": "Umweltdaten",
       "perceivedQuality": "Empfundene Qualität",

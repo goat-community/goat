@@ -301,7 +301,7 @@
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
-      "administrativeLayers": "Administrative Layers",
+      "administrativeLayers": "Administrative boundaries",
       "streetlevelqualityLayers": "Street Level Quality",
       "environmentalQualityLayers": "Environmental data",
       "perceivedQuality": "Perceived Quality",
