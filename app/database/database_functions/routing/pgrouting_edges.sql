@@ -13,7 +13,7 @@ DECLARE
   userid_vertex integer;
   closest_point geometry; 
   fraction float;
-  vid bigint; 
+  vid integer; 
   wid integer;
 begin
 
@@ -79,23 +79,23 @@ begin
 
     IF modus_input = 1 THEN 
       CREATE TEMP TABLE temp_reached_vertices as 
-      SELECT vid AS start_vertex, node, agg_cost::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end 
+      SELECT vid AS start_vertex, id1::integer AS node, cost::NUMERIC, v.geom, objectid_input AS objectid, v.death_end 
       FROM PGR_DrivingDistance( 
           'SELECT * FROM temp_fetched_ways WHERE id <> '||wid,
-          vid, (distance/speed)::float, FALSE
+          vid, distance/speed, FALSE, FALSE
           )p, ways_vertices_pgr v
-      WHERE p.node = v.id
+      WHERE p.id1 = v.id
       UNION ALL 
       SELECT vid, vid, 0, closest_point, objectid_input, NULL;
 
     ELSE
       CREATE TEMP TABLE temp_reached_vertices as 
-      SELECT vid AS start_vertex, node, agg_cost::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end
+      SELECT vid AS start_vertex, id1::integer AS node, cost::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end
       FROM PGR_DrivingDistance(
         'SELECT * FROM temp_fetched_ways  WHERE id <> '||wid,
-        vid, (distance/speed)::float, FALSE
+        vid, distance/speed, FALSE, FALSE
       ) p, ways_userinput_vertices_pgr v
-      WHERE p.node = v.id
+      WHERE p.id1 = v.id
       UNION ALL 
       SELECT vid, vid, 0, closest_point, objectid_input, NULL;
     END IF;
