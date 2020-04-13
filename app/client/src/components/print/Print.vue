@@ -246,7 +246,7 @@ export default {
     ],
     selectedFormat: "pdf",
     rotation: 0,
-    showGrid: true,
+    showGrid: false,
     layoutInfo: {
       attributes: [],
       dpi: 120,
@@ -566,7 +566,7 @@ export default {
       const data = resp["data"];
       this.formats_ = data["formats"] || [];
       this.layouts_ = data["layouts"];
-      this.layout_ = data["layouts"][0];
+      this.layout_ = data["layouts"][1];
 
       this.layoutInfo.layouts = [];
       this.layouts_.forEach(layout => {
