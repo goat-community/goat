@@ -30,7 +30,14 @@
     <v-layout>
       <v-flex xs12 class="mx-3" v-show="isResultsElVisible">
         <template v-for="calculation in calculations">
-          <v-card class="mb-3 " :key="calculation.id">
+          <v-card
+            class="mb-3 "
+            :id="`result-${calculation.id}`"
+            :key="calculation.id"
+            :class="{
+              'elevation-5': isCalculationActive(calculation)
+            }"
+          >
             <!-- Isochrone Nr -->
             <v-chip
               x-small

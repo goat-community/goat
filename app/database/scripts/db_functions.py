@@ -109,3 +109,11 @@ def restore_db(namespace):
     os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'temp'))
     os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name+'temp',db_name))
 
+def load_js_lib():
+    import os 
+    db_name,user = ReadYAML().db_credentials()[:2]
+    os.system(f'psql -U {user} -d {db_name} -c "DROP TABLE IF EXISTS plv8_js_modules;"')
+    os.system(f'psql -U {user} -d {db_name} -f /opt/database_functions/libs/plv8_js_modules.sql')
+    os.system(f'psql -U {user} -d {db_name} -c "ALTER DATABASE {db_name} SET plv8.start_proc TO plv8_require"')
+
+#load_js_lib()

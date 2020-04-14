@@ -148,6 +148,8 @@ for s in sensitivities:
     con.commit()
 cursor.execute(sql_grid_population.replace('grid_size', str(grid_size)))
 
+cursor.execute('DELETE FROM edges;')
+
 con.commit()
 con.close()
 end = time.time()
