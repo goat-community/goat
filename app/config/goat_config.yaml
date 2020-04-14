@@ -58,11 +58,6 @@ DATA_REFINEMENT_VARIABLES:
     minimum_building_size_residential: '54'
     census_minimum_number_new_buildings: '1'
     average_gross_living_area: '50'
-    chains_discount_supermarket: ["Aldi","Penny","Lidl","Netto","Norma"]
-    chains_hypermarket: ["Hit","Real","Kaufland","V-Markt","Marktkauf"]
-    chains_health_food: ["Vitalia","Reformhaus"]
-    no_end_consumer_store: ["Hamberger","Metro"]
-    operators_bicycle_rental: ["Münchner Verkehrs gesellschaft","Münchner Verkehrsgesellschaft","MVG"]
     wheelchair:
       smoothness_no: ["very_bad","horrible","very_horrible","impassable"]
       smoothness_limited: ['bad']
@@ -98,15 +93,39 @@ DATA_REFINEMENT_VARIABLES:
     dem_resolution: '30'
     duplicated_lookup_radius: '100' 
     tag_new_radius: '130'
+    #Definition of amenity parameters for data cleaning and data fusion
+    #Structure: Facility -> name -> possible names in Data base
+    # possible names could be empty, those variables are only neccessary for pois_fussion (having a .json file)
     pois_search_conditions:
       chemist:
         dm: ['%dm%']
+        suspected: ['supermarket']
         rossmann: ['rossmann%']
       supermarket:
         edeka: ['e center%', '%edeka%']
         rewe: ['%rewe', '%rewe city%']
       discount_supermarket:
+        aldi: []
         lidl: ['%lidl%']
+        penny: []
+        netto: []
+        norma: []
+      hypermarket:
+        hit: []
+        real: []
+        kaufland: []
+        v-markt: []
+        marktkauf: []
+      no_end_consumer_store:
+        hamberger: []
+        metro: []
+      health_food:
+        vitalia: []
+        reformhaus: []
+      operators_bicycle_rental: 
+        münchner verkehrs gesellschaft: []
+        münchner verkehrsgesellschaft: []
+        mvg: []
       bank: 
         sparkasse: ['%kreissparkasse%','%sparkasse%','%stadtsparkasse%']   
         hypovereinsbank: ['%hypo vereinsbank%', '%hypovereinsbank%']
@@ -115,5 +134,23 @@ DATA_REFINEMENT_VARIABLES:
         mcdonalds: ['%mcdonald%']
       restaurant:   
         vapiano: ['%vapiano%']
+    amenity_config:
+      leisure:
+        add: ['sports_hall', 'fitness_center', 'sport_center', 'track, pitch']
+        discard: ['fitness_station']
+      sport:
+        discard: ['table_tennis']
+      primary_school:
+        add: ['%grund-%', '%grund %', '%grundsch%' ]
+        discard: ['%grund-schule%']
+      secondary_school:
+        add: ['%haupt-%', '%haupt %', '%hauptsch%', '%mittel-%', '%mittel %', '%mittelsch%', '%real-%', 'real %', '%realsch%', '%förder-%', '%förder %', '%fördersch%',
+        '%gesamt-%', '%gesamt %', '%gesamtsch%', '%-gymnasium%', '%gymnasium-%', '% gymnasium%','%gymnasium %', '%fachobersch%']
+        discard: ['%haupt-schule%', '%mittel-schule%', '%real-schule%', '%förder-schule%', '%gesamt-schule%']
+      kindergarden: ['kindergarten']
+      
+
+
+
 
       

@@ -15,3 +15,6 @@ node_modules
 dist
 .env
 /.vscode
+app/database/data/study_area.dbf
+app/database/data/study_area.shp
+app/database/data/study_area.shx
