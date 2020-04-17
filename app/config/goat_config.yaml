@@ -91,15 +91,20 @@ DATA_REFINEMENT_VARIABLES:
       horrible: '0.3'
       very_horrible: '0.5'
     dem_resolution: '30'
+    
     duplicated_lookup_radius: '100' 
     tag_new_radius: '130'
-    #Definition of amenity parameters for data cleaning and data fusion
-    #Structure: Facility -> name -> possible names in Data base
-    # possible names could be empty, those variables are only neccessary for pois_fussion (having a .json file)
+    ##----------------------------------------------------------------------------------------------------------##
+    ##-----------Definition of amenity parameters for POIS prearation and data fusion of new sources------------##
+    ##----------------------------------------------------------------------------------------------------------##
+    ##  Data structure:       Amenity type -> brand name -> different brand name variables
+    ##  Amenity tipe:         According to the types defined for GOAT
+    ##  Brand name:           Business/element generic name, this name will be implemented in data fusion
+    ##  Brand name variable:  Array that includes the brand names variances, for increase the lookup radius by name
+    ##                        Possible names are mandatory for the new POIS to include (with a .geojson file)
     pois_search_conditions:
       chemist:
         dm: ['%dm%']
-        suspected: ['supermarket']
         rossmann: ['rossmann%']
       supermarket:
         edeka: ['e center%', '%edeka%']
@@ -134,6 +139,15 @@ DATA_REFINEMENT_VARIABLES:
         mcdonalds: ['%mcdonald%']
       restaurant:   
         vapiano: ['%vapiano%']
+    ##----------------------------------------------------------------------------------------------------------##
+    ##-----------------------Amenity parameters for POIS preparation leisure and schools------------------------##
+    ##----------------------------------------------------------------------------------------------------------##
+    ##  Data structure:   Amenity type -> add/discard -> different parameters definition
+    ##  Amenity type:     Fixed parameter, do not change it
+    ##  Add/discard:      Fixed parameter, do not change it
+    ##  Add:              Amenity names to include into the specific category
+    ##  Discard:          Amenity names to exclude to the specific category
+
     amenity_config:
       leisure:
         add: ['sports_hall', 'fitness_center', 'sport_center', 'track, pitch']
