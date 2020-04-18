@@ -160,7 +160,7 @@ OR tags -> 'isced:level' LIKE ANY (ARRAY['%2%', '%3%'])
 -----------------------------------------------------------------
 -------------Insert kindergartens--------------------------------
 -----------------------------------------------------------------
-
+/*This here is a complete mess and not very understandable. I guess we will find a better solution*/
 DROP TABLE IF EXISTS merged_kindergartens;
 CREATE TEMP TABLE merged_kindergartens AS
 (
@@ -201,22 +201,28 @@ operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_ho
 tags -> 'wheelchair' as wheelchair  
 FROM merged_kindergartens;
 
+/*End*/
+
 --Distinguish kindergarten - nursery
+/*Please review this here. We should maybe limit this to amenity = 'kindergarten' only. Furthermore we can directly update the table without the need of the subquery*/
 UPDATE pois 
 SET amenity = 'nursery'
 FROM (select osm_id, (tags -> 'max_age')::integer AS max_age
 	from pois p) l
 WHERE pois.osm_id = l.osm_id
 AND l.max_age = 3;
-
+/*End*/
 ------------------------------------------end kindergarten-------------------------------------------
 
 --For Munich grocery == convencience
+/*The new re-classification function could also be used here.*/
 UPDATE pois set shop = 'convenience'
 WHERE shop ='grocery';
 
 UPDATE pois set shop = 'clothes'
 WHERE shop ='fashion';
+
+/*End*/
 
 ALTER TABLE pois add column gid serial;
 ALTER TABLE pois add primary key(gid); 
@@ -228,7 +234,7 @@ WHERE shop IS NOT NULL;
 ALTER TABLE pois DROP COLUMN shop;
 
 --Refinement Shopping
-
+/*The new re-classification function could also be used here.*/
 UPDATE pois SET amenity = 'discount_supermarket'
 WHERE lower(name)~~ 
 ANY
@@ -269,6 +275,8 @@ UPDATE pois SET amenity = 'international_supermarket'
 WHERE origin is not null
 AND amenity = 'supermarket';
 
+/*End*/
+
 --Select relevant operators bicycle_rental
 
 DELETE FROM pois 
@@ -279,6 +287,7 @@ ANY
 )  
 OR operator IS NULL) 
 AND amenity = 'bicycle_rental';
+
 
 --INSERT public_transport_stops
 WITH pt AS (
