@@ -91,7 +91,10 @@ DATA_REFINEMENT_VARIABLES:
       horrible: '0.3'
       very_horrible: '0.5'
     dem_resolution: '30'
-    
+    ##-------------------------------------Radius definition for POIS fusion------------------------------------##
+    ##  Duplicated lookup radius: Sensibility factor for delete duplicate entities in the databases (OSM and custom pois) (meters).
+    ##  Tag new radius: Radius search for tagging opening hours from Custom POIS to OSM POIS (meters). 
+
     duplicated_lookup_radius: '100' 
     tag_new_radius: '130'
     ##----------------------------------------------------------------------------------------------------------##
