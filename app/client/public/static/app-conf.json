@@ -88,6 +88,22 @@
       },
       {
         "type": "WMS",
+        "name": "buildings",
+        "group": "buildings",
+        "url": "/geoserver/wms",
+        "layers": "cite:buildings",
+        "opacity": 1,
+        "queryable": true,
+        "visible": true,
+        "canEdit": true,
+        "editDataType": "GeoJSON",
+        "editGeometry": "MultiPolygon",
+        "displayInLayerList": true,
+        "zIndex": 3,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "administrativeUnits",
         "url": "/geoserver/wms",
         "group": "administrativeLayers",
@@ -975,7 +991,11 @@
       ]
     },
     "buildings": {
-      "listValues": {},
+      "listValues": {
+          "building": {
+            "values":["residential","commercial","public"]
+          }
+      },
       "enableFileUpload": false,
       "hiddenProps": [
         "gid",
