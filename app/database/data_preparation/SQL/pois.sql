@@ -53,7 +53,15 @@ tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,nam
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom, tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_polygon
 WHERE shop IS NOT NULL 
+-- Convenience stores from cuisine parameter
 
+SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'international_supermarket' AS amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom, tags -> 'wheelchair' as wheelchair  
+FROM planet_osm_point
+WHERE tags ->'cuisine' IS NOT NULL AND shop = 'convenience'
+
+--
 
 UNION ALL
 -- all tourism
@@ -169,6 +177,7 @@ OR tags -> 'isced:level' LIKE ANY (ARRAY['%2%', '%3%'])
 /*This here is a complete mess and not very understandable. I guess we will find a better solution*/
 DROP TABLE IF EXISTS merged_kindergartens;
 CREATE TEMP TABLE merged_kindergartens AS
+CREATE TABLE merged_kindergartens AS 
 (
 	WITH merged_geom AS
 	(	
@@ -191,13 +200,18 @@ CREATE TEMP TABLE merged_kindergartens AS
 );
 
 INSERT INTO pois
-		
+-- fixed lines		
 SELECT DISTINCT p.osm_id,'point' as origin_geometry, p.access, 'addr:housenumber', p.amenity, p.shop, --p."addr:housenumber" doesn't work
 p.tags -> 'origin' AS origin, p.tags -> 'organic' AS organic, p.denomination,p.brand,p.name,
 p.operator,p.public_transport,p.railway,p.religion,p.tags -> 'opening_hours' as opening_hours, p.ref, p.tags::hstore AS tags, p.way as geom,
 p.tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_point p, merged_kindergartens
-WHERE p.amenity = 'kindergarten' AND NOT st_within(p.way, merged_kindergartens.geom)
+WHERE p.amenity = 'kindergarten' 
+EXCEPT SELECT DISTINCT p.osm_id,'point' as origin_geometry, p.access, 'addr:housenumber', p.amenity, p.shop, --p."addr:housenumber" doesn't work
+p.tags -> 'origin' AS origin, p.tags -> 'organic' AS organic, p.denomination,p.brand,p.name,
+p.operator,p.public_transport,p.railway,p.religion,p.tags -> 'opening_hours' as opening_hours, p.ref, p.tags::hstore AS tags, p.way as geom,
+p.tags -> 'wheelchair' as wheelchair
+FROM planet_osm_point p, merged_kindergartens WHERE st_within(p.way, merged_kindergartens.geom)
 
 UNION ALL
 
