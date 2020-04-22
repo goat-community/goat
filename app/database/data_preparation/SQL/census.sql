@@ -1,6 +1,6 @@
 /*Extrapolation census grid*/
 /*There is used the census table, OSM data and (optional) a table with building footprints (they could be also used from OSM)*/
-
+DROP TABLE IF EXISTS buildings_residential;
 DROP TABLE IF EXISTS population;
 DROP TABLE IF EXISTS intersection_buildings_grid;
 DROP TABLE IF EXISTS buildings_points;
@@ -11,6 +11,13 @@ DROP TABLE IF EXISTS buildings_to_map;
 DROP TABLE IF EXISTS buildings_fixed_population;
 DROP TABLE IF EXISTS updated_census;
 
+CREATE TABLE buildings_residential AS 
+SELECT * 
+FROM buildings
+WHERE residential_status = 'with_residents';
+
+ALTER TABLE buildings_residential ADD PRIMARY KEY(gid);
+CREATE INDEX ON buildings_residential USING gist(geom);
 
 CREATE TABLE point_addresses AS
 SELECT row_number() over() AS gid, b.building_levels, 
@@ -262,9 +269,9 @@ WHERE s.name = r.name
 AND ST_Intersects(s.geom,ST_Centroid(census_split.geom))
 AND census_split.pop > 0;
 
-
 CREATE TABLE population AS 
-SELECT b.*, (b.area/c.sum_built_up)*new_pop population 
+SELECT b.gid,b.building_levels,b.building_levels_residential,b.area::integer,b.geom,b.fixed_population, 
+(b.area/c.sum_built_up)*new_pop population 
 FROM buildings_points b, census_split c 
 WHERE ST_Intersects(b.geom,c.geom);
 
