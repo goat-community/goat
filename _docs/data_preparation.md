@@ -37,6 +37,8 @@ landuse.shp (optional)
 
 In the case you have census data in your study area but you know the data is outdated. GOAT has an script `your-GOAT-directory/app/database/data_preparation/SQL/census.sql` that allows you to update the census grids based on current population numbers in your whole study area. The script checks for areas where new development took place and estimates based on average gross living area how many residents live in the affected grids. You can also customize the same in the `variable_container`. This procedure also makes use of the extracted residential buildings as described in the population dissagregation.
 
+The 2011 census data for Germany can be downloaded here: [https://www.zensus2011.de/DE/Home/Aktuelles/DemografischeGrunddaten.html](https://www.zensus2011.de/DE/Home/Aktuelles/DemografischeGrunddaten.html)
+
 ##### Custom high-resolution population data 
 
 <b>Custom data<b>
