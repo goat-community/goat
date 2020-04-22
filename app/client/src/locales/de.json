@@ -323,6 +323,7 @@
     },
     "layerGroup": {
       "poisLayers": "POIs",
+      "buildings_landuse": "Gebäude und Flächennutzung",
       "administrativeLayers": "Verwaltungsgrenzen",
       "streetlevelqualityLayers": "Street Level Quality",
       "environmentalQualityLayers": "Umweltdaten",

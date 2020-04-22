@@ -301,6 +301,7 @@
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
+      "buildings_landuse": "Buildings and Landuse",
       "administrativeLayers": "Administrative boundaries",
       "streetlevelqualityLayers": "Street Level Quality",
       "environmentalQualityLayers": "Environmental data",
