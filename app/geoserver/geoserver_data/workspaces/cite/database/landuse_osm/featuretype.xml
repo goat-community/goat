@@ -40,22 +40,22 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>landuse_osm</name>
-        <sql>select l.landuse, null as amenity, null as leisure, l.name, l.geom from landuse_osm l, study_area s&#xd;
+        <sql>select l.landuse, null as amenity, null as leisure, l.name, ST_Intersection(l.geom,s.geom) as geom from landuse_osm l, study_area s&#xd;
 WHERE ST_Intersects(s.geom,l.geom)&#xd;
 union&#xd;
-SELECT &apos;community&apos; as landuse, p.amenity, p.leisure, p.name, p.way as geom FROM planet_osm_polygon p, study_area s&#xd;
+SELECT &apos;community&apos; as landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) as geom FROM planet_osm_polygon p, study_area s&#xd;
 where (amenity = &apos;hospital&apos; or amenity = &apos;school&apos;) and ST_Intersects(s.geom,p.way)&#xd;
 union&#xd;
-SELECT &apos;waters&apos; as landuse, p.amenity, p.leisure, p.name, p.way as geom FROM planet_osm_polygon p , study_area s&#xd;
+SELECT &apos;waters&apos; as landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) as geom FROM planet_osm_polygon p , study_area s&#xd;
 where leisure = &apos;swimming_pool&apos; and ST_Intersects(s.geom,p.way)&#xd;
 union&#xd;
-SELECT &apos;leisure&apos; as landuse, p.amenity, p.leisure, p.name, p.way as geom FROM planet_osm_polygon p , study_area s&#xd;
+SELECT &apos;leisure&apos; as landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) as geom FROM planet_osm_polygon p , study_area s&#xd;
 where leisure is not null and leisure not in (&apos;swimming_pool&apos;) and ST_Intersects(s.geom,p.way)&#xd;
 union&#xd;
-SELECT &apos;waters&apos; as landuse, p.amenity, p.leisure, p.name, p.way as geom FROM planet_osm_polygon p , study_area s&#xd;
+SELECT &apos;waters&apos; as landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) as geom FROM planet_osm_polygon p , study_area s&#xd;
 where &quot;natural&quot;=&apos;water&apos; and ST_Intersects(s.geom,p.way)&#xd;
 union&#xd;
-SELECT &apos;green_area&apos; as landuse, p.amenity, p.leisure, p.name, p.way as geom FROM planet_osm_polygon p , study_area s&#xd;
+SELECT &apos;green_area&apos; as landuse, p.amenity, p.leisure, p.name,ST_Intersection(p.way,s.geom) as geom FROM planet_osm_polygon p , study_area s&#xd;
 where &quot;natural&quot; in (&apos;scrub&apos;,&apos;wood&apos;,&apos;wetland&apos;,&apos;grassland&apos;,&apos;heath&apos;) and ST_Intersects(s.geom,p.way)
 </sql>
         <escapeSql>false</escapeSql>

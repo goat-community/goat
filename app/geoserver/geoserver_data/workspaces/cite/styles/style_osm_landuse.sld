@@ -49,8 +49,8 @@
           <Name>agriculture</Name>
             <Title>
               agriculture
-                <Localized lang="de">Grünflächen und Landwirtschaft</Localized>
-            	<Localized lang="en">Green Areas and Agriculture</Localized>
+                <Localized lang="de">Landwirtschaft</Localized>
+            	<Localized lang="en">Agriculture</Localized>
           </Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:Or>
@@ -59,9 +59,6 @@
                   <ogc:Or>
                     <ogc:Or>
                       <ogc:Or>
-                        <ogc:Or>
-                          <ogc:Or>
-                            <ogc:Or>
                               <ogc:Or>
                                 <ogc:Or>
                                   <ogc:Or>
@@ -90,26 +87,11 @@
                                   <ogc:Literal>farmyard</ogc:Literal>
                                 </ogc:PropertyIsEqualTo>
                               </ogc:Or>
-                              <ogc:PropertyIsEqualTo>
-                                <ogc:PropertyName>landuse</ogc:PropertyName>
-                                <ogc:Literal>forest</ogc:Literal>
-                              </ogc:PropertyIsEqualTo>
-                            </ogc:Or>
-                            <ogc:PropertyIsEqualTo>
-                              <ogc:PropertyName>landuse</ogc:PropertyName>
-                              <ogc:Literal>meadow</ogc:Literal>
-                            </ogc:PropertyIsEqualTo>
-                          </ogc:Or>
                           <ogc:PropertyIsEqualTo>
                             <ogc:PropertyName>landuse</ogc:PropertyName>
                             <ogc:Literal>greenhouse_horticulture</ogc:Literal>
                           </ogc:PropertyIsEqualTo>
                         </ogc:Or>
-                        <ogc:PropertyIsEqualTo>
-                          <ogc:PropertyName>landuse</ogc:PropertyName>
-                          <ogc:Literal>grass</ogc:Literal>
-                        </ogc:PropertyIsEqualTo>
-                      </ogc:Or>
                       <ogc:PropertyIsEqualTo>
                         <ogc:PropertyName>landuse</ogc:PropertyName>
                         <ogc:Literal>orchard</ogc:Literal>
@@ -134,11 +116,47 @@
                 <ogc:PropertyName>landuse</ogc:PropertyName>
                 <ogc:Literal>vineyard</ogc:Literal>
               </ogc:PropertyIsEqualTo>
+            </ogc:Or>
+          </ogc:Filter>
+          <PolygonSymbolizer>
+            <Fill>
+              <CssParameter name="fill">#c1ce44</CssParameter>
+            </Fill>
+            <Stroke>
+              <CssParameter name="stroke">#232323</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+            </Stroke>
+          </PolygonSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>nature</Name>
+            <Title>
+              nature
+                <Localized lang="de">Grünflächen</Localized>
+            	<Localized lang="en">Green Areas</Localized>
+          </Title>
+          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+                        <ogc:Or>
+                          <ogc:Or>
+                              <ogc:PropertyIsEqualTo>
+                                <ogc:PropertyName>landuse</ogc:PropertyName>
+                                <ogc:Literal>forest</ogc:Literal>
+                              </ogc:PropertyIsEqualTo>
+                            <ogc:PropertyIsEqualTo>
+                              <ogc:PropertyName>landuse</ogc:PropertyName>
+                              <ogc:Literal>meadow</ogc:Literal>
+                            </ogc:PropertyIsEqualTo>
+                          </ogc:Or>
+                        <ogc:PropertyIsEqualTo>
+                          <ogc:PropertyName>landuse</ogc:PropertyName>
+                          <ogc:Literal>grass</ogc:Literal>
+                        </ogc:PropertyIsEqualTo>
                <ogc:PropertyIsEqualTo>
                 <ogc:PropertyName>landuse</ogc:PropertyName>
                 <ogc:Literal>green_area</ogc:Literal>
               </ogc:PropertyIsEqualTo>
-            </ogc:Or>
+                                                </ogc:Or>
           </ogc:Filter>
           <PolygonSymbolizer>
             <Fill>
@@ -230,7 +248,7 @@
           </ogc:Filter>
           <PolygonSymbolizer>
             <Fill>
-              <CssParameter name="fill">#d7e882</CssParameter>
+              <CssParameter name="fill">#ebd100</CssParameter>
             </Fill>
             <Stroke>
               <CssParameter name="stroke">#232323</CssParameter>

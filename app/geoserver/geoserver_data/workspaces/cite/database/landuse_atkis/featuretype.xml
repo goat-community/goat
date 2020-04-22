@@ -40,7 +40,7 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>land_use</name>
-        <sql>select l.landuse, l.nam, l.geom as name from landuse l, study_area s&#xd;
+        <sql>select l.landuse, l.nam, ST_Intersection(l.geom,s.geom) as name from landuse l, study_area s&#xd;
 WHERE ST_Intersects(s.geom,l.geom)
 </sql>
         <escapeSql>false</escapeSql>
