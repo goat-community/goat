@@ -144,6 +144,33 @@
       },
       {
         "type": "WMS",
+        "name": "landuse",
+        "url": "/geoserver/wms",
+        "group": "environmentalQualityLayers",
+        "layers": "cite:landuse_atkis",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "landuse_osm",
+        "url": "/geoserver/wms",
+        "group": "environmentalQualityLayers",
+        "layers": "cite:landuse_osm",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "ffh-area",
         "url": "https://www.lfu.bayern.de/gdi/wms/natur/schutzgebiete?",
         "group": "environmentalQualityLayers",
