@@ -338,6 +338,8 @@
       "natureReserves": "Naturschutzgebiete",
       "noiseMainTrafficRoads": "Lärm von Hauptverkehrsstraßen",
       "protectedLandscape": "Landschaftsschutzgebiete",
+      "landuse": "Flächennutzung (ATKIS)",
+      "landuse_osm": "Flächennutzung (OSM)",
       "footpathWidth": "Fußwegbreite",
       "illuminance": "Beleuchtung",
       "lanes": "Anzahl der Fahrspuren",

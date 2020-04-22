@@ -317,6 +317,8 @@
       "natureReserves": "Nature Reserves",
       "noiseMainTrafficRoads": "Noise levels - main roads",
       "protectedLandscape": "Protected Landscape Areas",
+      "landuse": "Landuse (ATKIS)",
+      "landuse_osm": "Landuse (OSM)",
       "footpathWidth": "Footpath Width",
       "illuminance": "Illuminance",
       "lanes": "Lanes",
