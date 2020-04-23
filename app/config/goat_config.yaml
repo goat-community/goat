@@ -94,8 +94,10 @@ DATA_REFINEMENT_VARIABLES:
     ##-------------------------------------Radius definition for POIS fusion------------------------------------##
     ##  Duplicated lookup radius: Sensibility factor, entities for the same branch and amenity type into this radius will be considered as duplicated; it is applied for OSM and Custom POIS databases (meters).
     ##  Tag new radius: Radius search for tag opening hours from Custom POIS to OSM POIS (meters).
+    ##  Duplicated kindergarden lookup radius: the estimated distance between centroids of two polygons that represent the same kindergarden
     duplicated_lookup_radius: '100' 
     tag_new_radius: '130'
+    duplicated_kindergarden_lookup_radius: '40'
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------Definition of amenity parameters for POIS prearation and data fusion of new sources------------##
     ##----------------------------------------------------------------------------------------------------------##
