@@ -75,6 +75,7 @@
                 </template>
                 <span>{{ $t("appBar.edit.drawFeatureTooltip") }}</span>
               </v-tooltip>
+
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
                   <v-btn v-on="on" text>
@@ -91,6 +92,7 @@
                 </template>
                 <span>{{ $t("appBar.edit.deleteFeature") }}</span>
               </v-tooltip>
+
               <v-tooltip
                 top
                 v-if="selectedLayer.get('editGeometry') !== 'Point'"
@@ -101,6 +103,24 @@
                   </v-btn>
                 </template>
                 <span>{{ $t("appBar.edit.moveFeature") }}</span>
+              </v-tooltip>
+            </v-btn-toggle>
+
+            <v-btn-toggle v-model="toggleSnapGuide">
+              <v-tooltip
+                top
+                v-if="
+                  ['Polygon', 'MultiPolygon'].includes(
+                    selectedLayer.get('editGeometry')
+                  )
+                "
+              >
+                <template v-slot:activator="{ on }">
+                  <v-btn class="ml-2" v-on="on" text>
+                    <v-icon>grid_on</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.snapGuide") }}</span>
               </v-tooltip>
             </v-btn-toggle>
           </v-flex>
@@ -386,6 +406,7 @@ export default {
     editableLayers: [],
     toggleSelection: undefined,
     toggleEdit: undefined,
+    toggleSnapGuide: 0, // Used for snap and other functionalities (Active by default).
     loadingLayerInfo: false,
     isUploadBusy: false,
     isDeleteAllBusy: false,
@@ -462,6 +483,9 @@ export default {
         const me = this;
         me.toggleEditInteraction(state);
       }
+    },
+    toggleSnapGuide(value) {
+      this.toggleSnapGuideInteraction(value);
     },
     scenarioDataTable() {
       this.canCalculateScenario(this.options.calculationModes.active);
@@ -708,6 +732,20 @@ export default {
         me.map.getTarget().style.cursor = "";
       }
     },
+
+    /**
+     * Adds or remove snap interaction
+     */
+    toggleSnapGuideInteraction(state) {
+      if (state === 0) {
+        this.olEditCtrl.addSnapGuideInteraction();
+        this.olEditCtrl.isSnapGuideActive = true;
+      } else {
+        this.olEditCtrl.removeSnapGuideInteraction();
+        this.olEditCtrl.isSnapGuideActive = false;
+      }
+    },
+
     /**
      * Callback function executed when selection interaction starts.
      */

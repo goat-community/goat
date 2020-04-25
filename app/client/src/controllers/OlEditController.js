@@ -1,8 +1,10 @@
 import { getEditStyle, getFeatureHighlightStyle } from "../style/OlStyleDefs";
 import OlBaseController from "./OlBaseController";
 import { Modify, Draw, Snap, Translate } from "ol/interaction";
+import SnapGuides from "ol-ext/interaction/SnapGuides";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
+import VectorImageLayer from "ol/layer/VectorImage";
 import Overlay from "ol/Overlay.js";
 import store from "../store/modules/user";
 import Feature from "ol/Feature";
@@ -17,7 +19,7 @@ import i18n from "../../src/plugins/i18n";
  */
 export default class OlEditController extends OlBaseController {
   featuresToCommit = [];
-
+  isSnapGuideActive = 1;
   constructor(map) {
     super(map);
   }
@@ -108,6 +110,9 @@ export default class OlEditController extends OlBaseController {
     }
     if (me.edit) {
       me.map.addInteraction(me.edit);
+      if (this.isSnapGuideActive) {
+        me.addSnapGuideInteraction();
+      }
     }
     if (me.snap) {
       me.map.addInteraction(me.snap);
@@ -373,6 +378,7 @@ export default class OlEditController extends OlBaseController {
     const me = this;
     me.featuresToCommit = [];
     me.currentInteraction = "";
+    me.removeSnapGuideInteraction();
     me.closePopup();
     if (me.edit) {
       me.map.removeInteraction(me.edit);
@@ -393,6 +399,41 @@ export default class OlEditController extends OlBaseController {
     }
     if (me.clearOverlays) {
       me.clearOverlays();
+    }
+  }
+
+  /**
+   * Add snap interaction (aka guide lines) used for building
+   */
+  addSnapGuideInteraction() {
+    // Only for draw and edit
+    this.removeSnapGuideInteraction();
+    if (
+      this.edit &&
+      (this.edit instanceof Draw || this.edit instanceof Modify)
+    ) {
+      const snapi = new SnapGuides({
+        vectorClass: VectorImageLayer
+      });
+
+      if (this.edit instanceof Draw) {
+        snapi.setDrawInteraction(this.edit);
+      } else {
+        if (editLayerHelper.selectedLayer.get("editGeometry") === "Polygon") {
+          snapi.setModifyInteraction(this.edit);
+        }
+      }
+      this.map.addInteraction(snapi);
+      this.snapGuideInteraction = snapi;
+    }
+  }
+
+  /**
+   * Remove snap interaction (aka guide lines) used for building
+   */
+  removeSnapGuideInteraction() {
+    if (this.snapGuideInteraction) {
+      this.map.removeInteraction(this.snapGuideInteraction);
     }
   }
 
