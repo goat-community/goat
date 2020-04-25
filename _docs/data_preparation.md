@@ -12,6 +12,11 @@ There is one folder (your-GOAT-directory/app/database/data) in which you can org
 The setup-script will search for shapefiles in this directory and upload all of them into your database. The only file that is essential for setting up GOAT is a shapefile defining your study area. Other data is optional, however especially landuse data or custom population data can improve data quality.
 As high-resolution population data is one of most important data source for GOAT there are three different ways for you to feed the data into the system. Depending on your data availability you can pick one approach in the `your-GOAT-directory/app/database/goat_config.yaml`.
 
+If you want to use an administrative boundary (e.g. city) as study area, you can download the polygon from OSM via [overpass turbo](https://overpass-turbo.eu/). Example query for request the city area of München:
+
+<img class="img-responsive" src="../../img/overpass-query.png" alt="Overpass query for request the city area of München" title="Overpass query for request the city area of München">
+
+
 ##### Population disaggregation
 
 <b>Custom data<b>
@@ -24,7 +29,9 @@ The script `your-GOAT-directory/app/database/data_preparation/SQL/buildings_resi
 
 There is a second script `your-GOAT-directory/app/database/data_preparation/SQL/population_disaggregation.sql` actually disaggregates the population data from the boundaries you added with your study_area to the individual buildings. As the population disaggregation is based on OpenStreetMap data, it relies on relatively complete OSM-buildings footprints. In addition, especially in areas with heterogenous building levels it is recommended to check if buildings levels are mapped properly. If there are no buildings levels mapped a default value, which can be defined by you in the database table `variable_container` will be used. 
 
-In general it is highly recommended to check for the data quality in your study area. If you are unhappy with the data quality it is highl recommended to improve the local OSM dataset. Very often with some little mapping effort you can improve data quality essentially. The setup of GOAT allows you to update the data after successful mapping. 
+In general it is highly recommended to check for the data quality in your study area. If you are unhappy with the data quality it is highly recommended to improve the local OSM dataset. Very often with some little mapping effort you can improve data quality essentially. The setup of GOAT allows you to update the data after successful mapping. 
+
+In case you need an additional landuse data source for a study area within Europe, you can check out the [Urban Atlas](https://land.copernicus.eu/local/urban-atlas/urban-atlas-2018).
 
 
 ##### Census extrapolation 
@@ -37,7 +44,7 @@ landuse.shp (optional)
 
 In the case you have census data in your study area but you know the data is outdated. GOAT has an script `your-GOAT-directory/app/database/data_preparation/SQL/census.sql` that allows you to update the census grids based on current population numbers in your whole study area. The script checks for areas where new development took place and estimates based on average gross living area how many residents live in the affected grids. You can also customize the same in the `variable_container`. This procedure also makes use of the extracted residential buildings as described in the population dissagregation.
 
-The 2011 census data for Germany can be downloaded here: [https://www.zensus2011.de/DE/Home/Aktuelles/DemografischeGrunddaten.html](https://www.zensus2011.de/DE/Home/Aktuelles/DemografischeGrunddaten.html)
+The 2011 census data for Germany can be downloaded [here](https://www.zensus2011.de/DE/Home/Aktuelles/DemografischeGrunddaten.html).
 
 ##### Custom high-resolution population data 
 
