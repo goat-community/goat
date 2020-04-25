@@ -33,7 +33,7 @@ $(function() {
     // Video modal
     $("#modal-video").on('shown.bs.modal', function(e){
         var videoId = $(e.relatedTarget).attr('data-video');
-        var videoSrc = "https://player.vimeo.com/video/"+videoId+"?autoplay=1&title=0&byline=0&portrait=0";
+        var videoSrc = "https://player.vimeo.com/video/"+videoId+"?texttrack=en";
         $('#iframe-video').attr('src', videoSrc);
     });
 
