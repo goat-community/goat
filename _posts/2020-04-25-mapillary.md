@@ -23,7 +23,7 @@ By doing this fieldwork, we are providing and improving the data available to de
 
  <p align="left">
 <div class="embed-responsive embed-responsive-16by9">
-  <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/411741106?autoplay=1&loop=1&autopause=0" allow="autoplay; fullscreen" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+  <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/411741106?texttrack=en&autoplay=1&loop=1&autopause=0" allow="autoplay; fullscreen" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
 </div>
 </p>
 <i>Figure 4. The Mapillary images can be viewed directly in GOAT now</i>
