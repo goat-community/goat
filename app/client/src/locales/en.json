@@ -110,6 +110,7 @@
       "modifyFeatureTooltip": "Modify Feature",
       "deleteFeature": "Delete Feature",
       "moveFeature": "Move Feature",
+      "snapGuide": "Snap Guide",
       "clearBtn": "Revert All",
       "uploadBtn": "Upload",
       "popup": {
