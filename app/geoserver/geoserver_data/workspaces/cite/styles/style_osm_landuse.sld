@@ -12,27 +12,11 @@
                 <Localized lang="de">Gewässer</Localized>
             	<Localized lang="en">Waters</Localized>
           	</Title>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:Or>
-              <ogc:Or>
-                <ogc:PropertyIsEqualTo>
-                  <ogc:PropertyName>landuse</ogc:PropertyName>
-                  <ogc:Literal>basin</ogc:Literal>
-                </ogc:PropertyIsEqualTo>
-                <ogc:PropertyIsEqualTo>
-                  <ogc:PropertyName>landuse</ogc:PropertyName>
-                  <ogc:Literal>reservoir</ogc:Literal>
-                </ogc:PropertyIsEqualTo>
-              </ogc:Or>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>salt_pond</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-                <ogc:PropertyIsEqualTo>
-                  <ogc:PropertyName>landuse</ogc:PropertyName>
-                  <ogc:Literal>waters</ogc:Literal>
-                </ogc:PropertyIsEqualTo>
-            </ogc:Or>
+            <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>landuse</ogc:PropertyName>
+              <ogc:Literal>water</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
           </ogc:Filter>
           <PolygonSymbolizer>
             <Fill>
@@ -52,71 +36,11 @@
                 <Localized lang="de">Landwirtschaft</Localized>
             	<Localized lang="en">Agriculture</Localized>
           </Title>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:Or>
-              <ogc:Or>
-                <ogc:Or>
-                  <ogc:Or>
-                    <ogc:Or>
-                      <ogc:Or>
-                              <ogc:Or>
-                                <ogc:Or>
-                                  <ogc:Or>
-                                    <ogc:Or>
-                                      <ogc:PropertyIsEqualTo>
-                                        <ogc:PropertyName>landuse</ogc:PropertyName>
-                                        <ogc:Literal>allotments</ogc:Literal>
-                                      </ogc:PropertyIsEqualTo>
-                                      <ogc:PropertyIsEqualTo>
-                                        <ogc:PropertyName>landuse</ogc:PropertyName>
-                                        <ogc:Literal>aquaculture</ogc:Literal>
-                                      </ogc:PropertyIsEqualTo>
-                                    </ogc:Or>
-                                    <ogc:PropertyIsEqualTo>
-                                      <ogc:PropertyName>landuse</ogc:PropertyName>
-                                      <ogc:Literal>fallow</ogc:Literal>
-                                    </ogc:PropertyIsEqualTo>
-                                  </ogc:Or>
-                                  <ogc:PropertyIsEqualTo>
-                                    <ogc:PropertyName>landuse</ogc:PropertyName>
-                                    <ogc:Literal>farmland</ogc:Literal>
-                                  </ogc:PropertyIsEqualTo>
-                                </ogc:Or>
-                                <ogc:PropertyIsEqualTo>
-                                  <ogc:PropertyName>landuse</ogc:PropertyName>
-                                  <ogc:Literal>farmyard</ogc:Literal>
-                                </ogc:PropertyIsEqualTo>
-                              </ogc:Or>
-                          <ogc:PropertyIsEqualTo>
-                            <ogc:PropertyName>landuse</ogc:PropertyName>
-                            <ogc:Literal>greenhouse_horticulture</ogc:Literal>
-                          </ogc:PropertyIsEqualTo>
-                        </ogc:Or>
-                      <ogc:PropertyIsEqualTo>
-                        <ogc:PropertyName>landuse</ogc:PropertyName>
-                        <ogc:Literal>orchard</ogc:Literal>
-                      </ogc:PropertyIsEqualTo>
-                    </ogc:Or>
-                    <ogc:PropertyIsEqualTo>
-                      <ogc:PropertyName>landuse</ogc:PropertyName>
-                      <ogc:Literal>pasture</ogc:Literal>
-                    </ogc:PropertyIsEqualTo>
-                  </ogc:Or>
-                  <ogc:PropertyIsEqualTo>
-                    <ogc:PropertyName>landuse</ogc:PropertyName>
-                    <ogc:Literal>plant_nursery</ogc:Literal>
-                  </ogc:PropertyIsEqualTo>
-                </ogc:Or>
-                <ogc:PropertyIsEqualTo>
-                  <ogc:PropertyName>landuse</ogc:PropertyName>
-                  <ogc:Literal>plantation</ogc:Literal>
-                </ogc:PropertyIsEqualTo>
-              </ogc:Or>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>vineyard</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-            </ogc:Or>
+           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>landuse</ogc:PropertyName>
+              <ogc:Literal>agriculture</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
           </ogc:Filter>
           <PolygonSymbolizer>
             <Fill>
@@ -136,27 +60,11 @@
                 <Localized lang="de">Grünflächen</Localized>
             	<Localized lang="en">Green Areas</Localized>
           </Title>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-                        <ogc:Or>
-                          <ogc:Or>
-                              <ogc:PropertyIsEqualTo>
-                                <ogc:PropertyName>landuse</ogc:PropertyName>
-                                <ogc:Literal>forest</ogc:Literal>
-                              </ogc:PropertyIsEqualTo>
-                            <ogc:PropertyIsEqualTo>
-                              <ogc:PropertyName>landuse</ogc:PropertyName>
-                              <ogc:Literal>meadow</ogc:Literal>
-                            </ogc:PropertyIsEqualTo>
-                          </ogc:Or>
-                        <ogc:PropertyIsEqualTo>
-                          <ogc:PropertyName>landuse</ogc:PropertyName>
-                          <ogc:Literal>grass</ogc:Literal>
-                        </ogc:PropertyIsEqualTo>
-               <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>green_area</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-                                                </ogc:Or>
+           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>landuse</ogc:PropertyName>
+              <ogc:Literal>nature</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
           </ogc:Filter>
           <PolygonSymbolizer>
             <Fill>
@@ -176,45 +84,11 @@
                 <Localized lang="de">Sport- und Freizeitflächen</Localized>
             	<Localized lang="en">Sports and leisure areas</Localized>
           	</Title>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:Or>
-              <ogc:Or>
-                <ogc:Or>
-                  <ogc:Or>
-                    <ogc:Or>
-                      <ogc:PropertyIsEqualTo>
-                        <ogc:PropertyName>landuse</ogc:PropertyName>
-                        <ogc:Literal>garden</ogc:Literal>
-                      </ogc:PropertyIsEqualTo>
-                      <ogc:PropertyIsEqualTo>
-                        <ogc:PropertyName>landuse</ogc:PropertyName>
-                        <ogc:Literal>national_park</ogc:Literal>
-                      </ogc:PropertyIsEqualTo>
-                    </ogc:Or>
-                    <ogc:PropertyIsEqualTo>
-                      <ogc:PropertyName>landuse</ogc:PropertyName>
-                      <ogc:Literal>nature_reserve</ogc:Literal>
-                    </ogc:PropertyIsEqualTo>
-                  </ogc:Or>
-                  <ogc:PropertyIsEqualTo>
-                    <ogc:PropertyName>landuse</ogc:PropertyName>
-                    <ogc:Literal>park</ogc:Literal>
-                  </ogc:PropertyIsEqualTo>
-                </ogc:Or>
-                <ogc:PropertyIsEqualTo>
-                  <ogc:PropertyName>landuse</ogc:PropertyName>
-                  <ogc:Literal>village_green</ogc:Literal>
-                </ogc:PropertyIsEqualTo>
-              </ogc:Or>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>recreation_ground</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-               <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>leisure</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-            </ogc:Or>
+           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>landuse</ogc:PropertyName>
+              <ogc:Literal>leisure</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
           </ogc:Filter>
           <PolygonSymbolizer>
             <Fill>
@@ -234,17 +108,11 @@
                 <Localized lang="de">Friedhof</Localized>
             	<Localized lang="en">Cementery</Localized>
          	</Title>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:Or>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>cemetery</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>grave_yard</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-            </ogc:Or>
+           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>landuse</ogc:PropertyName>
+              <ogc:Literal>cemetery</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
           </ogc:Filter>
           <PolygonSymbolizer>
             <Fill>
@@ -264,17 +132,11 @@
                 <Localized lang="de">Wohngebiet</Localized>
             	<Localized lang="en">Residential area</Localized>
           	</Title>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:Or>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>residential</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>garages</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-            </ogc:Or>
+           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>landuse</ogc:PropertyName>
+              <ogc:Literal>residential</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
           </ogc:Filter>
           <PolygonSymbolizer>
             <Fill>
@@ -294,17 +156,11 @@
                 <Localized lang="de">Gewerbegebiet</Localized>
             	<Localized lang="en">Commercial area</Localized>
           	</Title>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:Or>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>commercial</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>retail</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-            </ogc:Or>
+           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>landuse</ogc:PropertyName>
+              <ogc:Literal>commercial</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
           </ogc:Filter>
           <PolygonSymbolizer>
             <Fill>
@@ -324,45 +180,11 @@
                 <Localized lang="de">Gemeinschaftseinrichtungen</Localized>
             	<Localized lang="en">Community facilities</Localized>
           	</Title>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:Or>
-              <ogc:Or>
-                <ogc:Or>
-                  <ogc:Or>
-                    <ogc:Or>
-                      <ogc:PropertyIsEqualTo>
-                        <ogc:PropertyName>landuse</ogc:PropertyName>
-                        <ogc:Literal>school</ogc:Literal>
-                      </ogc:PropertyIsEqualTo>
-                      <ogc:PropertyIsEqualTo>
-                        <ogc:PropertyName>landuse</ogc:PropertyName>
-                        <ogc:Literal>university</ogc:Literal>
-                      </ogc:PropertyIsEqualTo>
-                    </ogc:Or>
-                    <ogc:PropertyIsEqualTo>
-                      <ogc:PropertyName>landuse</ogc:PropertyName>
-                      <ogc:Literal>hospital</ogc:Literal>
-                    </ogc:PropertyIsEqualTo>
-                  </ogc:Or>
-                  <ogc:PropertyIsEqualTo>
-                    <ogc:PropertyName>landuse</ogc:PropertyName>
-                    <ogc:Literal>college</ogc:Literal>
-                  </ogc:PropertyIsEqualTo>
-                </ogc:Or>
-                <ogc:PropertyIsEqualTo>
-                  <ogc:PropertyName>landuse</ogc:PropertyName>
-                  <ogc:Literal>churchyard</ogc:Literal>
-                </ogc:PropertyIsEqualTo>
-              </ogc:Or>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>religious</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>community</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-            </ogc:Or>
+                    <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>landuse</ogc:PropertyName>
+              <ogc:Literal>community</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
           </ogc:Filter>
           <PolygonSymbolizer>
             <Fill>
@@ -382,23 +204,11 @@
                 <Localized lang="de">Industriegebiet</Localized>
             	<Localized lang="en">Industrial area</Localized>
           	</Title>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:Or>
-              <ogc:Or>
-                <ogc:PropertyIsEqualTo>
-                  <ogc:PropertyName>landuse</ogc:PropertyName>
-                  <ogc:Literal>industrial</ogc:Literal>
-                </ogc:PropertyIsEqualTo>
-                <ogc:PropertyIsEqualTo>
-                  <ogc:PropertyName>landuse</ogc:PropertyName>
-                  <ogc:Literal>landfill</ogc:Literal>
-                </ogc:PropertyIsEqualTo>
-              </ogc:Or>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>quarry</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-            </ogc:Or>
+                     <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>landuse</ogc:PropertyName>
+              <ogc:Literal>industrial</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
           </ogc:Filter>
           <PolygonSymbolizer>
             <Fill>
@@ -418,23 +228,11 @@
                 <Localized lang="de">Transportflächen</Localized>
             	<Localized lang="en">Transportation</Localized>
           	</Title>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:Or>
-              <ogc:Or>
-                <ogc:PropertyIsEqualTo>
-                  <ogc:PropertyName>landuse</ogc:PropertyName>
-                  <ogc:Literal>highway</ogc:Literal>
-                </ogc:PropertyIsEqualTo>
-                <ogc:PropertyIsEqualTo>
-                  <ogc:PropertyName>landuse</ogc:PropertyName>
-                  <ogc:Literal>parking</ogc:Literal>
-                </ogc:PropertyIsEqualTo>
-              </ogc:Or>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>landuse</ogc:PropertyName>
-                <ogc:Literal>railway</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-            </ogc:Or>
+           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>landuse</ogc:PropertyName>
+              <ogc:Literal>transportation</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
           </ogc:Filter>
           <PolygonSymbolizer>
             <Fill>
