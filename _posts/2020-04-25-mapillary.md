@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Covering Fürstenfeldbruck with Mapillary"
-author: Santiago German Linares Ramirez
+author: German Santiago Linares Ramirez, Emna Ben Hassine
 ---
 
 Data, Data and more Data! While working in the [mFund project](https://www.bmvi.de/SharedDocs/DE/Artikel/DG/mfund-projekte/GOAT.html) to bring GOAT’s feature to the municipality Fürstenfeldbruck, we have been looking for available information from many sources to accomplish the objectives. As always, OpenStreetMap has been a great source of information, but still a lot of details are missing. Here comes Mapillary, the easy way to describe it is “the Google Street View of open source”. People from all over the world have captured imagery from their cars, bikes or just by walking millions of kilometers of city streets, roads, pedestrian and bicycle-paths to have an up-to-date source of what is going on in the streets. But that is not everything, Mapillary’s magic is in their machine-generated map feature, so they can automatically detect different objects from the images (traffic signs, fire hydrant, lane markings, bicycle racks, etc.) and estimate their position on the map. Since in Fürstenfeldbruck only few parts of the road network were captured beforehand, we decided to go outside and take the pictures ourselves. This screenshot shows our coverage: 
