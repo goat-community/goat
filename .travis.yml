@@ -4,11 +4,11 @@ services:
   - docker
 branches:
   only:
-    - master
     - development
     - ffb
     - matosinhos
     - hasenbergl
+    - muenchen
     - test_travis
 
 before_install:
