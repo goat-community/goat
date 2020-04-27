@@ -22,7 +22,7 @@ For more information:
 
 [GOAT Website and Docs](https://open-accessibility.org)
 
-[GOAT demo](https://goat.open-accessibility.org/)
+[GOAT demo](http://www.open-accessibility.org/versions)
 
 [Join GOAT User Group on Telegram](https://t.me/joinchat/EpAk7BYbIF72q7D3OTUCZQ)
 
