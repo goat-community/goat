@@ -88,6 +88,12 @@ export default class OlEditController extends OlBaseController {
         me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
         break;
       }
+      case "modifyAttributes": {
+        me.currentInteraction = "modifyAttributes";
+        me.modifyAttributeLister = me.map.on("click", startCb);
+        me.helpMessage = i18n.t("map.tooltips.clickToModifyAttributes");
+        break;
+      }
       case "delete": {
         me.currentInteraction = "delete";
         me.deleteFeatureListener = me.map.on(
@@ -285,7 +291,7 @@ export default class OlEditController extends OlBaseController {
 
       if (
         !props.hasOwnProperty("original_id") &&
-        ["modify", "move"].includes(me.currentInteraction)
+        ["modify", "move", "modifyAttributes"].includes(me.currentInteraction)
       ) {
         transformed.set(
           "original_id",
@@ -297,13 +303,15 @@ export default class OlEditController extends OlBaseController {
         (typeof feature.getId() === "undefined" &&
           Object.keys(props).length === 1) ||
         (!props.hasOwnProperty("original_id") &&
-          ["modify", "move"].includes(me.currentInteraction))
+          ["modify", "move", "modifyAttributes"].includes(
+            me.currentInteraction
+          ))
       ) {
         featuresToAdd.push(transformed);
         featuresToRemove.push(feature);
       } else if (
         props.hasOwnProperty("original_id") &&
-        ["modify", "move"].includes(me.currentInteraction)
+        ["modify", "move", "modifyAttributes"].includes(me.currentInteraction)
       ) {
         transformed.setId(feature.getId());
         featuresToUpdate.push(transformed);
@@ -316,6 +324,7 @@ export default class OlEditController extends OlBaseController {
         payload = wfsTransactionParser(featuresToAdd, null, null, formatGML);
         break;
       case "move":
+      case "modifyAttributes":
       case "modify":
         payload = wfsTransactionParser(
           featuresToAdd,
@@ -390,6 +399,9 @@ export default class OlEditController extends OlBaseController {
     }
     if (me.deleteFeatureListener) {
       unByKey(me.deleteFeatureListener);
+    }
+    if (me.modifyAttributeLister) {
+      unByKey(me.modifyAttributeLister);
     }
     if (me.selectedFeature) {
       me.selectedFeature = null;

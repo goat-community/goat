@@ -84,6 +84,20 @@
                 </template>
                 <span>{{ $t("appBar.edit.modifyFeatureTooltip") }}</span>
               </v-tooltip>
+
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    v-show="selectedLayer.get('modifyAttributes') === true"
+                    v-on="on"
+                    text
+                  >
+                    <v-icon>far fa-list-alt</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.modifyAttributes") }}</span>
+              </v-tooltip>
+
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
                   <v-btn v-on="on" text>
@@ -95,7 +109,7 @@
 
               <v-tooltip
                 top
-                v-if="selectedLayer.get('editGeometry') !== 'Point'"
+                v-show="selectedLayer.get('editGeometry') !== 'Point'"
               >
                 <template v-slot:activator="{ on }">
                   <v-btn v-on="on" text>
@@ -105,7 +119,7 @@
                 <span>{{ $t("appBar.edit.moveFeature") }}</span>
               </v-tooltip>
             </v-btn-toggle>
-
+            <br />
             <v-btn-toggle v-model="toggleSnapGuide">
               <v-tooltip
                 top
@@ -116,7 +130,7 @@
                 "
               >
                 <template v-slot:activator="{ on }">
-                  <v-btn class="ml-2" v-on="on" text>
+                  <v-btn class="ml-0  mt-2" v-on="on" text>
                     <v-icon>grid_on</v-icon>
                   </v-btn>
                 </template>
@@ -313,7 +327,14 @@
         <v-icon>close</v-icon>
       </v-btn>
       <template v-slot:close>
-        <v-btn @click="cancel()" icon>
+        <v-btn
+          @click="
+            popup.selectedInteraction === 'modifyAttributes'
+              ? cancelAttributeEdit()
+              : cancel()
+          "
+          icon
+        >
           <v-icon>close</v-icon>
         </v-btn>
       </template>
@@ -321,7 +342,11 @@
         <div v-if="popup.selectedInteraction === 'delete'">
           <b>{{ $t("appBar.edit.popup.deleteFeatureMsg") }}</b>
         </div>
-        <div v-else-if="popup.selectedInteraction === 'add'">
+        <div
+          v-else-if="
+            ['add', 'modifyAttributes'].includes(popup.selectedInteraction)
+          "
+        >
           <v-form v-model="formValid">
             <v-jsonschema-form
               v-if="schema[layerName]"
@@ -342,17 +367,28 @@
             $t("buttonLabels.cancel")
           }}</v-btn>
         </template>
-        <template v-else-if="popup.selectedInteraction === 'add'">
+        <template
+          v-else-if="
+            ['add', 'modifyAttributes'].includes(popup.selectedInteraction)
+          "
+        >
           <v-btn
             color="primary darken-1"
             :disabled="formValid === false"
-            @click="ok('add')"
+            @click="ok(popup.selectedInteraction)"
             text
             >{{ $t("buttonLabels.save") }}</v-btn
           >
-          <v-btn color="grey" text @click="cancel()">{{
-            $t("buttonLabels.cancel")
-          }}</v-btn>
+          <v-btn
+            color="grey"
+            text
+            @click="
+              popup.selectedInteraction === 'modifyAttributes'
+                ? cancelAttributeEdit()
+                : cancel()
+            "
+            >{{ $t("buttonLabels.cancel") }}</v-btn
+          >
         </template>
       </template>
     </overlay-popup>
@@ -455,7 +491,8 @@ export default {
       modify: "pointer",
       delete: "pointer",
       select: "pointer",
-      move: "auto"
+      move: "auto",
+      modifyAttributes: "pointer"
     },
     //Data table
     isTableLoading: false,
@@ -707,9 +744,13 @@ export default {
           endCb = this.onModifyEnd;
           break;
         case 2:
-          editType = "delete";
+          editType = "modifyAttributes";
+          startCb = this.openModifyAttributePopup;
           break;
         case 3:
+          editType = "delete";
+          break;
+        case 4:
           editType = "move";
           startCb = this.onModifyStart;
           endCb = this.onModifyEnd;
@@ -765,6 +806,41 @@ export default {
         editLayerHelper.filterResults(response, me.olEditCtrl.getLayerSource());
       }
     },
+
+    /** Modify attribute interaction start */
+
+    /**
+     * Open modify attribute popup
+     */
+    openModifyAttributePopup(evt) {
+      const features = this.olEditCtrl.source.getFeaturesAtCoordinate(
+        evt.coordinate
+      );
+      this.olEditCtrl.highlightSource.clear();
+      if (features.length > 0) {
+        const feature = features[0];
+        const props = feature.getProperties();
+        for (const attr in this.dataObject) {
+          this.dataObject[attr] = attr in props ? props[attr] : null;
+        }
+        const geometry = feature.getGeometry();
+        let popupCoordinate = geometry.getCoordinates();
+        while (popupCoordinate && Array.isArray(popupCoordinate[0])) {
+          popupCoordinate = popupCoordinate[0];
+        }
+        this.map.getView().animate({
+          center: popupCoordinate,
+          duration: 400
+        });
+        this.olEditCtrl.popupOverlay.setPosition(popupCoordinate);
+        this.olEditCtrl.featuresToCommit.push(feature);
+        this.olEditCtrl.highlightSource.addFeature(feature.clone());
+        this.olEditCtrl.popup.title = "modifyAttributes";
+        this.olEditCtrl.popup.selectedInteraction = "modifyAttributes";
+        this.olEditCtrl.popup.isVisible = true;
+      }
+    },
+
     /**
      * Modify interaction start event handler
      */
@@ -824,7 +900,11 @@ export default {
       const me = this;
       //Exclude features from file input as we add this feature later when user click upload button
       if (evt.feature.get("user_uploaded")) return;
-      if (["modify", "move"].includes(me.olEditCtrl.currentInteraction)) {
+      if (
+        ["modify", "move", "modifyAttributes"].includes(
+          me.olEditCtrl.currentInteraction
+        )
+      ) {
         const index = me.olEditCtrl.featuresToCommit.findIndex(
           i => i.ol_uid === evt.feature.ol_uid
         );
@@ -1086,7 +1166,7 @@ export default {
      * Method used on popup save (draw)/ok(delete) depending on interaction type
      */
     ok(type) {
-      if (type === "add") {
+      if (["add", "modifyAttributes"].includes(type)) {
         this.olEditCtrl.transact(this.dataObject);
         this.olEditCtrl.closePopup();
       } else {
@@ -1095,7 +1175,7 @@ export default {
       }
     },
     /**
-     * Method used on popup cancel
+     * Methods used on popup cancel
      */
     cancel() {
       if (this.olEditCtrl.featuresToCommit.length > 0) {
@@ -1103,6 +1183,10 @@ export default {
           this.olEditCtrl.source.removeFeature(feature);
         });
       }
+      this.olEditCtrl.closePopup();
+    },
+    cancelAttributeEdit() {
+      this.olEditCtrl.featuresToCommit = [];
       this.olEditCtrl.closePopup();
     },
     /**
