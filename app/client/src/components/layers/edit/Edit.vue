@@ -807,8 +807,6 @@ export default {
       }
     },
 
-    /** Modify attribute interaction start */
-
     /**
      * Open modify attribute popup
      */
