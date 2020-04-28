@@ -21,7 +21,7 @@ help_text_type = '''You can define the update type.
              8. -t restore_dump          Restore a database dump that is labelled goat_db.sql
             '''
 
-setup_types = ['new_setup','all','population','pois','network','functions','variable_container','restore_dump']
+setup_types = ['new_setup','all','population','pois','network','functions','variable_container','restore_dump', 'employment']
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 

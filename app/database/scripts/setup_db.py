@@ -98,7 +98,7 @@ def setup_db(setup_type):
 
     #Copy custom data into temporary database
 
-    if (setup_type in ['all','population','pois','network']):
+    if (setup_type in ['all','population','pois','network', 'employment']):
         for file in glob.glob("*.shp"):
             table_name = file.split('.')[0]
             os.system('pg_dump -U %s -d %s -t %s | psql -d %s -U %s' % (user,db_name,table_name,db_name_temp,user))
@@ -113,11 +113,11 @@ def setup_db(setup_type):
     db_temp.execute_script_psql('/opt/database_functions/network/split_long_way.sql')
     db_temp.execute_script_psql('/opt/database_functions/network/compute_slope.sql')
     db_temp.execute_script_psql('/opt/database_functions/network/slope_impedance.sql')
+    db_temp.execute_script_psql('/opt/database_functions/other/print.sql')
 
-    if (setup_type in ['new_setup','all','population','pois','network']):
+    if (setup_type in ['new_setup','all','population','pois','network', 'employment']):
         os.system('PGPASSFILE=/.pgpass osm2pgsql -d %s -H %s -U %s --hstore -E 4326 study_area.osm' % (db_name_temp,host,user)) 
         
-
     if (setup_type in ['new_setup','population','pois']):    
         os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name_temp,user,host,'../data_preparation/SQL/pois.sql'))
         if (setup_type in ['new_setup','population']):
@@ -142,6 +142,12 @@ def setup_db(setup_type):
         if (additional_walkability_layers == 'yes'):
             db_temp.execute_script_psql('../data_preparation/SQL/layer_preparation.sql')
 
+    if(setup_type in ['new_setup', 'employment']):
+        if os.path.isfile('employees.shp'):
+            print('Executing script ../data_preparation/SQL/adjust_employees.sql...')
+            db_temp.execute_script_psql('../data_preparation/SQL/adjust_employees.sql')
+        else:
+            print('There was not file with employment information provided. There was no employee table created, thus skipping adjustment of employees.')
 
     if (setup_type == 'new_setup'):    
         #Create pgpass for goat-database
