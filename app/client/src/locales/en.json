@@ -306,6 +306,7 @@
       "streetlevelqualityLayers": "Street Level Quality",
       "environmentalQualityLayers": "Environmental data",
       "perceivedQuality": "Perceived Quality",
+      "additionalDataLayers": "Additional data",
       "accessbilityBasemaps": "Accessibility",
       "backgroundLayers": "Background Layers",
       "buildings": "Buildings"
@@ -313,6 +314,8 @@
     "layerName": {
       "pois": "Point of Interest",
       "administrativeUnits": "Administrative Units",
+      "accidents_pedestrian_2018": "Accidents with pedestrians (2018)",
+      "accidents_bike_2018":"Accidents with cyclists (2018)",
       "biotops": "Biotops",
       "ffh-area": "FFH Area",
       "natureReserves": "Nature Reserves",
