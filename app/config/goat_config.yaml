@@ -143,6 +143,8 @@ DATA_REFINEMENT_VARIABLES:
         mcdonalds: ['%mcdonald%']
       restaurant:   
         vapiano: ['%vapiano%']
+      nursery:
+        kinderkrippe: []
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------------------Amenity parameters for POIS preparation leisure and schools------------------------##
     ##----------------------------------------------------------------------------------------------------------##
