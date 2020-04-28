@@ -217,22 +217,16 @@ FROM kindergartens_polygons kp;
 
 --Distinguish kindergarten - nursery
 /*Please review this here. We should maybe limit this to amenity = 'kindergarten' only. Furthermore we can directly update the table without the need of the subquery*/
-UPDATE pois 
-SET amenity = 'nursery'
-FROM (select osm_id, (tags -> 'max_age')::integer AS max_age
-	from pois p) l
-WHERE pois.osm_id = l.osm_id
-AND l.max_age = 3;
+
+SELECT pois_reclassification_array('name','kindergarten','amenity','nursery',1);
+
 /*End*/
 ------------------------------------------end kindergarten-------------------------------------------
 
 --For Munich grocery == convencience
-/*The new re-classification function could also be used here.*/
-UPDATE pois set shop = 'convenience'
-WHERE shop ='grocery';
 
-UPDATE pois set shop = 'clothes'
-WHERE shop ='fashion';
+SELECT pois_reclassification('shop','grocery','shop','convenience');
+SELECT pois_reclassification('shop','fashion','shop','clothes');
 
 /*End*/
 
@@ -246,38 +240,11 @@ WHERE shop IS NOT NULL;
 ALTER TABLE pois DROP COLUMN shop;
 
 --Refinement Shopping
-/*The new re-classification function could also be used here.*/
-UPDATE pois SET amenity = 'discount_supermarket'
-WHERE lower(name)~~ 
-ANY
-(
-	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'discount_supermarket'),'%')
-)  
-AND amenity = 'supermarket';
 
-UPDATE pois SET amenity = 'hypermarket'
-WHERE lower(name)~~ 
-ANY
-(
-	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'hypermarket'),'%')
-)  
-AND amenity = 'supermarket';
-
-UPDATE pois SET amenity = 'no_end_consumer_store'
-WHERE lower(name)~~ 
-ANY
-(
-	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'no_end_consumer_store'),'%')
-)  
-AND amenity = 'supermarket';
-
-UPDATE pois SET amenity = 'health_food'
-WHERE lower(name)~~ 
-ANY
-(
-	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'health_food'),'%')
-)  
-AND amenity = 'supermarket';
+SELECT pois_reclassification_array('name','supermarket','amenity','discount_supermarket',2);
+SELECT pois_reclassification_array('name','supermarket','amenity','hypermarket',2);
+SELECT pois_reclassification_array('name','supermarket','amenity','no_end_consumer_store',2);
+SELECT pois_reclassification_array('name','supermarket','amenity','health_food',2);
 
 UPDATE pois SET amenity = 'organic'
 WHERE organic = 'only'
