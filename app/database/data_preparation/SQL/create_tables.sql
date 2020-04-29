@@ -169,6 +169,7 @@ CREATE TABLE buildings_modified
 	building text,
 	building_levels integer,
 	building_levels_residential integer,
+	new_levels_levels integer,
 	population numeric,
 	geom geometry,
 	userid integer,
