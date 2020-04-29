@@ -88,33 +88,6 @@
       },
       {
         "type": "WMS",
-        "name": "landuse",
-        "url": "/geoserver/wms",
-        "group": "buildings_landuse",
-        "layers": "cite:landuse_atkis",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "serverType": "geoserver"
-      },
-      {
-        "type": "WMS",
-        "name": "landuse_osm",
-        "url": "/geoserver/wms",
-        "group": "buildings_landuse",
-        "layers": "cite:landuse_osm",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "serverType": "geoserver"
-      },
-      {
-        "type": "WMS",
         "name": "administrativeUnits",
         "url": "/geoserver/wms",
         "group": "administrativeLayers",

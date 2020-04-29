@@ -301,7 +301,6 @@
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
-      "buildings_landuse": "Buildings and Landuse",
       "administrativeLayers": "Administrative boundaries",
       "streetlevelqualityLayers": "Street Level Quality",
       "environmentalQualityLayers": "Environmental data",
@@ -318,8 +317,6 @@
       "natureReserves": "Nature Reserves",
       "noiseMainTrafficRoads": "Noise levels - main roads",
       "protectedLandscape": "Protected Landscape Areas",
-      "landuse": "Landuse (ATKIS)",
-      "landuse_osm": "Landuse (OSM)",
       "footpathWidth": "Footpath Width",
       "illuminance": "Illuminance",
       "lanes": "Lanes",

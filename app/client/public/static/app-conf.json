@@ -88,49 +88,6 @@
       },
       {
         "type": "WMS",
-        "name": "landuse",
-        "url": "/geoserver/wms",
-        "group": "buildings_landuse",
-        "layers": "cite:landuse",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "serverType": "geoserver"
-      },
-      {
-        "type": "WMS",
-        "name": "landuse_osm",
-        "url": "/geoserver/wms",
-        "group": "buildings_landuse",
-        "layers": "cite:landuse_osm",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "serverType": "geoserver"
-      },
-      {
-        "type": "WMS",
-        "name": "buildings",
-        "group": "buildings_landuse",
-        "url": "/geoserver/wms",
-        "layers": "cite:buildings",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": true,
-        "editDataType": "GeoJSON",
-        "editGeometry": "MultiPolygon",
-        "displayInLayerList": true,
-        "zIndex": 3,
-        "serverType": "geoserver"
-      },
-      {
-        "type": "WMS",
         "name": "administrativeUnits",
         "url": "/geoserver/wms",
         "group": "administrativeLayers",
@@ -1018,11 +975,7 @@
       ]
     },
     "buildings": {
-      "listValues": {
-          "building": {
-            "values":["residential","commercial","public"]
-          }
-      },
+      "listValues": {},
       "enableFileUpload": false,
       "hiddenProps": [
         "gid",
