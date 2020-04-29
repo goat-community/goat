@@ -21,7 +21,7 @@ DATA_REFINEMENT_VARIABLES:
   #custom_population ==> population.shp custom population data needed  
   POPULATION: "extrapolation"
   #"yes" if you want to add these layers 
-  ADDITIONAL_WALKABILITY_LAYERS: "no" 
+  ADDITIONAL_WALKABILITY_LAYERS: "yes" 
   variable_container:
     heatmap_auto_refresh: "'yes'"
     pois_one_entrance: ["kindergarten","nursery","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
