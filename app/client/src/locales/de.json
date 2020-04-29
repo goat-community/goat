@@ -63,6 +63,7 @@
           "multiIsochroneHeader": "Multi-Isochrone-Berechnung",
           "additionalLayers": "Weitere Layer",
           "showDataTooltip": "Daten anzeigen",
+          "hideDataTooltip": "Daten ausblenden",
           "toggleVisibilityTooltip": "Anzeige umschalten",
           "showResultsTooltip": "Ergebnisse anzeigen",
           "hideResultsTooltip": "Ergebnisse ausblenden",
