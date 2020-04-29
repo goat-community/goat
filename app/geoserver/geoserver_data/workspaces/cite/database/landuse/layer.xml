@@ -1,0 +1,15 @@
+<layer>
+  <name>landuse</name>
+  <id>LayerInfoImpl-1e67e07:171a6fbbc9e:379b</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-6eed1f5b:1719ca112ea:-7fed</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-1e67e07:171a6fbbc9e:379a</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>
