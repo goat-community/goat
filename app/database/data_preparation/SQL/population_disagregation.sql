@@ -33,7 +33,7 @@ ALTER TABLE buildings_residential add primary key(gid);
 
 
 CREATE TABLE population AS 
-SELECT ST_Centroid(geom) geom,population_building population 
+SELECT ST_Centroid(geom) geom,population_building population, gid as building_gid 
 FROM buildings_residential;
 CREATE INDEX index_population ON population USING GIST (geom);
 ALTER TABLE population ADD COLUMN gid serial;
