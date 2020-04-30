@@ -32,4 +32,4 @@ For more information:
 
 If you want to help us translating the GOAT userinterface, you are very welcome to help us. Just check the following POEditor-Link:
 
-[Click here](https://poeditor.com/join/project/M2FCLLqSoe)
+[Click here](https://poeditor.com/join/project/yH6FuzIYHC)
