@@ -21,7 +21,15 @@ You can get administrative boundaries from different sources:
 [Worldwide - OpenStreetMap (via overpass turbo)](https://overpass-turbo.eu/) 
 
 Example query for requesting the city area of München in Overpass:
-<img class="img-responsive" src="../../img/overpass-query.png" alt="Overpass query for request the city area of München" title="Overpass query for request the city area of München">
+    
+{% raw %}
+```  
+[out:json][timeout:25];
+(relation["boundary"="administrative"]["name"="München"]({{bbox}}););
+out body;>;
+out skel qt;
+``` 
+{% endraw %}
 
 
 ##### Population disaggregation
