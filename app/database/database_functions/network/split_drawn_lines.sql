@@ -1,19 +1,23 @@
 DROP FUNCTION IF EXISTS split_by_drawn_lines;
-CREATE OR REPLACE FUNCTION split_by_drawn_lines(id_input integer)
+CREATE OR REPLACE FUNCTION split_by_drawn_lines(id_input integer, input_geom geometry)
 RETURNS SETOF geometry
- LANGUAGE sql
+ LANGUAGE plpgsql
 AS $function$
-	SELECT (dump).geom
-	FROM 
-	(
-		SELECT ST_DUMP(ST_CollectionExtract(ST_SPLIT(d.geom,u.geom),2)) AS dump
-		FROM drawn_features d, 
-		(
-			SELECT ST_UNION(geom) AS geom 
-			FROM drawn_features 
-			WHERE id <> id_input
-		) u
-		WHERE id = id_input 
-		AND ST_INtersects(d.geom,u.geom)
-	) d;
+DECLARE 
+	union_geom geometry;
+BEGIN 
+	
+	union_geom := (SELECT ST_UNION(geom) AS geom 
+	FROM drawn_features 
+	WHERE id <> id_input
+	AND ST_Intersects(geom,input_geom));
+
+	IF union_geom IS NOT NULL THEN
+		RETURN query
+		SELECT (dump).geom
+		FROM (SELECT ST_DUMP(ST_CollectionExtract(ST_SPLIT(input_geom,union_geom),2)) AS dump) d;
+	ELSE 
+		RETURN query SELECT input_geom;
+	END IF;
+END 
 $function$;

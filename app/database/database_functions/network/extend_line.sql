@@ -36,4 +36,4 @@ END
 $function$
 
 --1 meter in Germany approx. 0.0000127048
-SELECT extend_line(geom, 0.0000127048) FROM ways_modified WHERE id = 5;
+--SELECT extend_line(geom, 0.0000127048) FROM ways_modified WHERE id = 5;
