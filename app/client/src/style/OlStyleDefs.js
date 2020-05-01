@@ -345,7 +345,7 @@ export function editStyleFn() {
 
     // Linestring (ex. ways ) style
     if (
-      (props.hasOwnProperty("type") && props["original_id"] == null) ||
+      (props.hasOwnProperty("way_type") && props["original_id"] == null) ||
       Object.keys(props).length == 1
     ) {
       //Distinguish Roads from Bridge features
@@ -354,7 +354,7 @@ export function editStyleFn() {
       } else {
         return waysNewRoadStyle(feature);
       }
-    } else if (props.hasOwnProperty("type")) {
+    } else if (props.hasOwnProperty("way_type")) {
       return waysModifiedStyle(feature); //Feature are modified
     } else {
       return defaultStyle(feature); //Features are from original table
