@@ -349,7 +349,7 @@ export function editStyleFn() {
       Object.keys(props).length == 1
     ) {
       //Distinguish Roads from Bridge features
-      if (props.type == "bridge") {
+      if (props.way_type == "bridge") {
         return waysNewBridgeStyle(feature);
       } else {
         return waysNewRoadStyle(feature);
