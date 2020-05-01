@@ -1010,11 +1010,28 @@
   "layerConf": {
     "ways": {
       "listValues": {
-        "type": {
+        "way_type": {
           "values": [
             "bridge",
             "road"
           ]
+        },
+        "surface": {
+          "values": [
+            "asphalt",
+            "cobblestone",
+            "fine_gravel",
+            "gravel",
+            "grass",
+            "unpaved"
+          ]
+        },
+        "wheelchair": {
+          "values": [
+            "yes",
+            "no"
+          ]
+
         }
       },
       "enableFileUpload": false,
@@ -1023,7 +1040,7 @@
         "id",
         "original_id",
         "status",
-        "class_id"
+        "street_category"
       ]
     },
     "pois": {
