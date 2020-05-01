@@ -1,5 +1,4 @@
 
-
 DROP FUNCTION IF EXISTS network_modification;
 CREATE OR REPLACE FUNCTION public.network_modification(userid_input integer)
  RETURNS SETOF integer
@@ -169,10 +168,10 @@ WITH p_n as (
 	AND w.id NOT IN (SELECT DISTINCT original_id FROM drawn_features where original_id is not null)
 ),
 dump AS (
-	SELECT a.id AS original_id, a.class_id,ST_Dump(ST_Split(ST_Snap(a.geom, b.geom, 0.00001),b.geom)) as dump, source,target,
+	SELECT a.id AS original_id, a.class_id,ST_Dump(ST_Split(a.geom, b.geom)) as dump, source,target,
 	lit_classified, wheelchair_classified, impedance_surface
 	FROM 
-	p_n a, (SELECT ST_Union(geom) geom from intersection_existing_network) b
+	p_n a, (SELECT ST_Union(geom) geom from drawn_features) b
 	WHERE ST_DWithin(b.geom, a.geom, 0.00001)
 )
 SELECT original_id, class_id, (dump).geom, source,target, lit_classified, wheelchair_classified, impedance_surface
