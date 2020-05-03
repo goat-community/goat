@@ -1,3 +1,9 @@
+import {
+  linearInterpolation,
+  getClosest,
+  interpolateColor
+} from "../utils/Helpers";
+
 /**
  * Util class for Isochrone Calculation
  */
@@ -84,6 +90,38 @@ const IsochroneUtils = {
     };
     let alias = isochroneMapping[key] ? isochroneMapping[key] : key;
     return alias;
+  },
+  getInterpolatedColor(lowestValue, highestValue, value, color) {
+    const colorKeys = Object.keys(color).map(n => parseInt(n, 10));
+    //====//
+    // x1 lowest step value TODO: get this dynamically from the options
+    // x2 highest step value  TODO: get this dynamically from the options
+    // y1 lowest color key code
+    // y2 highest color key code
+    // x current step value
+    // Interpolates step values down to color key length
+    const interpolatedValue = linearInterpolation(
+      lowestValue,
+      highestValue,
+      colorKeys[0],
+      [...colorKeys].pop(),
+      value // isochrone step or cost
+    );
+    let interpolatedColor;
+    // Find if the interpolated value exists in colors key, if not find two closest values.
+    if (colorKeys.includes(interpolatedValue)) {
+      // No interpolation
+      interpolatedColor = color[interpolatedValue];
+    } else {
+      // Interpolate using factor
+      const closestKeys = getClosest(colorKeys, interpolatedValue); //ex [3,4] color object keys
+      const lowerColor = color[closestKeys[0]];
+      const upperColor = color[closestKeys[1]];
+      const factor = interpolatedValue - closestKeys[0]; // factor goes from 0 => 1
+      interpolatedColor = interpolateColor(lowerColor, upperColor, factor);
+    }
+
+    return interpolatedColor;
   }
 };
 
