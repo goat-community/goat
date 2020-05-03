@@ -20,7 +20,7 @@ import i18n from "../../src/plugins/i18n";
  */
 export default class OlEditController extends OlBaseController {
   featuresToCommit = [];
-  isSnapGuideActive = 1;
+  isSnapGuideActive = 0;
   constructor(map) {
     super(map);
   }
@@ -78,6 +78,9 @@ export default class OlEditController extends OlBaseController {
             ? "map.tooltips.clickToPlacePoint"
             : "map.tooltips.clickToStartDrawing"
         );
+        if (!["Point", "LineString"].includes(geometryType)) {
+          me.isSnapGuideActive = 1;
+        }
         break;
       }
       case "modify": {
@@ -118,6 +121,7 @@ export default class OlEditController extends OlBaseController {
         me.edit.on("modifystart", startCb);
         me.edit.on("modifyend", endCb);
         me.helpMessage = i18n.t("map.tooltips.drawHoleOnPolygon");
+        me.isSnapGuideActive = 1;
         break;
       }
       default:

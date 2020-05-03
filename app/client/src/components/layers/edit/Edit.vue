@@ -113,7 +113,16 @@
                 v-show="selectedLayer.get('editGeometry') !== 'Point'"
               >
                 <template v-slot:activator="{ on }">
-                  <v-btn :value="5" v-on="on" text>
+                  <v-btn
+                    v-show="
+                      !['Point', 'LineString'].includes(
+                        selectedLayer.get('editGeometry')
+                      )
+                    "
+                    :value="5"
+                    v-on="on"
+                    text
+                  >
                     <v-icon>far fa-clone</v-icon>
                   </v-btn>
                 </template>

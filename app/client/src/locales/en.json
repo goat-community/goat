@@ -233,7 +233,8 @@
         "area": "Area",
         "visible": "Visible",
         "legend": "Legend"
-      }
+      },
+      "colorMessage": "Lowest: <b>0 min</b>, Highest: <b>20 min</b>"
     },
     "tableData": {
       "timeFilter": "Time filter",
@@ -365,6 +366,8 @@
       "clickToModifyAttributes": "Click to modify attributes",
       "clickToRemove": "Click to remove it",
       "clickToPlacePoint": "Click to place the point",
+      "changeDefaultColorPalette": "Change color (default)",
+      "changeScenarioColorPalette": "Change color (scenario)",
       "routingProfiles": {
         "walking": {
           "title": "Walking",
