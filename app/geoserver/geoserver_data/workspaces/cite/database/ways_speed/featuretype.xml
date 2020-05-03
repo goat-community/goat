@@ -30,10 +30,11 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>ways_speed</name>
-        <sql>SELECT w.highway, w.maxspeed_forward, w.maxspeed_backward, w.geom FROM ways w, study_area s WHERE w.highway IN (&apos;motorway&apos;,&apos;trunk&apos;,&apos;primary&apos;,&apos;secondary&apos;,&apos;tertiary&apos;,&apos;residential&apos;,&#xd;
+        <sql>SELECT w.highway, w.maxspeed_forward, w.maxspeed_backward, w.geom, w.death_end FROM ways w, study_area s WHERE w.highway IN (&apos;motorway&apos;,&apos;trunk&apos;,&apos;primary&apos;,&apos;secondary&apos;,&apos;tertiary&apos;,&apos;residential&apos;,&#xd;
 	&apos;motorway_link&apos;,&apos;trunk_link&apos;,&apos;primary_link&apos;,&apos;secondary_link&apos;,&apos;tertiary_link&apos;,&#xd;
 	&apos;living_street&apos;,&apos;service&apos;, &apos;unclassified&apos;)&#xd;
-AND ST_Intersects(s.geom,w.geom)
+AND ST_Intersects(s.geom,w.geom)&#xd;
+AND NOT (highway = &apos;service&apos; AND death_end IS NOT NULL)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
