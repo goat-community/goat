@@ -540,8 +540,9 @@
   "dynamicFields": {
     "attributes": {
       "ways": {
-        "type": "Way Type",
-        "class_id": "Class Id"
+        "way_type": "Way type",
+        "surface": "Surface",
+        "wheelchair": "Wheelchair"
       },
       "pois": {
         "amenity": "Amenity",
