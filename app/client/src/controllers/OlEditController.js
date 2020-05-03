@@ -2,6 +2,7 @@ import { getEditStyle, getFeatureHighlightStyle } from "../style/OlStyleDefs";
 import OlBaseController from "./OlBaseController";
 import { Modify, Draw, Snap, Translate } from "ol/interaction";
 import SnapGuides from "ol-ext/interaction/SnapGuides";
+import DrawHole from "ol-ext/interaction/DrawHole";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import VectorImageLayer from "ol/layer/VectorImage";
@@ -19,7 +20,7 @@ import i18n from "../../src/plugins/i18n";
  */
 export default class OlEditController extends OlBaseController {
   featuresToCommit = [];
-  isSnapGuideActive = 1;
+  isSnapGuideActive = 0;
   constructor(map) {
     super(map);
   }
@@ -77,6 +78,9 @@ export default class OlEditController extends OlBaseController {
             ? "map.tooltips.clickToPlacePoint"
             : "map.tooltips.clickToStartDrawing"
         );
+        if (!["Point", "LineString"].includes(geometryType)) {
+          me.isSnapGuideActive = 1;
+        }
         break;
       }
       case "modify": {
@@ -109,6 +113,15 @@ export default class OlEditController extends OlBaseController {
         me.edit.on("translatestart", startCb);
         me.edit.on("translateend", endCb);
         me.helpMessage = i18n.t("map.tooltips.clickOnFeatureToMove");
+        break;
+      }
+      case "drawHole": {
+        me.currentInteraction = "drawHole";
+        me.edit = new DrawHole({ layers: [me.layer] });
+        me.edit.on("modifystart", startCb);
+        me.edit.on("modifyend", endCb);
+        me.helpMessage = i18n.t("map.tooltips.drawHoleOnPolygon");
+        me.isSnapGuideActive = 1;
         break;
       }
       default:
@@ -291,7 +304,9 @@ export default class OlEditController extends OlBaseController {
 
       if (
         !props.hasOwnProperty("original_id") &&
-        ["modify", "move", "modifyAttributes"].includes(me.currentInteraction)
+        ["modify", "move", "modifyAttributes", "drawHole"].includes(
+          me.currentInteraction
+        )
       ) {
         transformed.set(
           "original_id",
@@ -303,7 +318,7 @@ export default class OlEditController extends OlBaseController {
         (typeof feature.getId() === "undefined" &&
           Object.keys(props).length === 1) ||
         (!props.hasOwnProperty("original_id") &&
-          ["modify", "move", "modifyAttributes"].includes(
+          ["modify", "move", "modifyAttributes", "drawHole"].includes(
             me.currentInteraction
           ))
       ) {
@@ -311,7 +326,9 @@ export default class OlEditController extends OlBaseController {
         featuresToRemove.push(feature);
       } else if (
         props.hasOwnProperty("original_id") &&
-        ["modify", "move", "modifyAttributes"].includes(me.currentInteraction)
+        ["modify", "move", "modifyAttributes", "drawHole"].includes(
+          me.currentInteraction
+        )
       ) {
         transformed.setId(feature.getId());
         featuresToUpdate.push(transformed);
@@ -326,6 +343,7 @@ export default class OlEditController extends OlBaseController {
       case "move":
       case "modifyAttributes":
       case "modify":
+      case "drawHole":
         payload = wfsTransactionParser(
           featuresToAdd,
           featuresToUpdate,
