@@ -1,6 +1,6 @@
 /*Extrapolation census grid*/
 /*There is used the census table, OSM data and (optional) a table with building footprints (they could be also used from OSM)*/
-
+DROP TABLE IF EXISTS buildings_residential;
 DROP TABLE IF EXISTS population;
 DROP TABLE IF EXISTS intersection_buildings_grid;
 DROP TABLE IF EXISTS buildings_points;
@@ -11,10 +11,17 @@ DROP TABLE IF EXISTS buildings_to_map;
 DROP TABLE IF EXISTS buildings_fixed_population;
 DROP TABLE IF EXISTS updated_census;
 
+CREATE TABLE buildings_residential AS 
+SELECT * 
+FROM buildings
+WHERE residential_status = 'with_residents';
+
+ALTER TABLE buildings_residential ADD PRIMARY KEY(gid);
+CREATE INDEX ON buildings_residential USING gist(geom);
 
 CREATE TABLE point_addresses AS
 SELECT row_number() over() AS gid, b.building_levels, 
-b.roof_levels, b.building_levels_residential,p.way AS geom 
+b.roof_levels, b.building_levels_residential,p.way AS geom, b.gid AS building_gid 
 FROM planet_osm_point p, buildings_residential b 
 WHERE p."addr:housenumber" IS NOT NULL
 AND ST_Intersects(p.way,b.geom);
@@ -44,7 +51,7 @@ WITH buildings_no_address AS (
 	WHERE a.gid IS NULL 
 )
 SELECT ST_intersection (c.geom, b.geom) AS geom, b.building_levels, b.building_levels_residential,  
-b.gid, ST_Area(b.geom::geography) area_complete
+b.gid, ST_Area(b.geom::geography) area_complete, b.gid AS building_gid
 FROM buildings_no_address b, census c
 WHERE ST_intersects(c.geom, b.geom)
 AND ST_area(b.geom::geography) > (SELECT variable_simple::integer FROM variable_container WHERE identifier = 'minimum_building_size_residential');
@@ -61,12 +68,12 @@ SELECT row_number() over() as gid, u.*
 FROM 
 (
 	SELECT i.building_levels, i.building_levels_residential, 
-	i.area_complete AS area, ST_Centroid(i.geom) geom 
+	i.area_complete AS area, ST_Centroid(i.geom) geom, i.building_gid 
 	FROM intersection_buildings_grid i, x
 	WHERE x.area_part = st_area(geom) 
 	and x.gid = i.gid
 	UNION ALL 
-	SELECT p.building_levels, p.building_levels_residential, p.area, p.geom 
+	SELECT p.building_levels, p.building_levels_residential, p.area, p.geom, p.building_gid 
 	FROM point_addresses p
 ) u;
 
@@ -262,9 +269,9 @@ WHERE s.name = r.name
 AND ST_Intersects(s.geom,ST_Centroid(census_split.geom))
 AND census_split.pop > 0;
 
-
 CREATE TABLE population AS 
-SELECT b.*, (b.area/c.sum_built_up)*new_pop population 
+SELECT b.gid,b.building_levels,b.building_levels_residential,b.area::integer,b.geom,b.fixed_population, 
+(b.area/c.sum_built_up)*new_pop population, b.building_gid 
 FROM buildings_points b, census_split c 
 WHERE ST_Intersects(b.geom,c.geom);
 
@@ -311,3 +318,4 @@ DROP TABLE IF EXISTS buildings_points;
 DROP TABLE IF EXISTS point_addresses;
 DROP TABLE IF EXISTS census_split;
 DROP TABLE IF EXISTS buildings_fixed_population;
+DROP TABLE IF EXISTS buildings_residential;
