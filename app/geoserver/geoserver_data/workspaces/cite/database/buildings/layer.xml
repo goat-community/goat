@@ -1,12 +1,12 @@
 <layer>
   <name>buildings</name>
-  <id>LayerInfoImpl-673d21bb:1710d5f9b10:-7ff8</id>
+  <id>LayerInfoImpl--1d8fca23:171d9ed35d3:-629b</id>
   <type>VECTOR</type>
   <defaultStyle>
     <id>StyleInfoImpl--1244288d:1718c7ea852:-7f6a</id>
   </defaultStyle>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl-673d21bb:1710d5f9b10:-7ff9</id>
+    <id>FeatureTypeInfoImpl--1d8fca23:171d9ed35d3:-629c</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>
