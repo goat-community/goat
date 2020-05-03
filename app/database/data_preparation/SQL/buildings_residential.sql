@@ -12,17 +12,18 @@ UPDATE study_area SET area = st_area(geom::geography);
 
 
 CREATE TABLE buildings as 
-SELECT ROW_NUMBER() OVER() AS gid, osm_id,building, 
+SELECT ROW_NUMBER() OVER() AS gid, p.osm_id,p.building, 
 CASE 
-WHEN building = 'yes' THEN 'potential_residents' 
-WHEN building IN (SELECT UNNEST(select_from_variable_container('building_types_residential'))) THEN 'with_residents'
+WHEN p.building = 'yes' THEN 'potential_residents' 
+WHEN p.building IN (SELECT UNNEST(select_from_variable_container('building_types_residential'))) THEN 'with_residents'
 ELSE 'no_residents' END AS residential_status,
-"addr:housenumber",tags,ST_Area(way::geography)::integer as area, 
-CASE WHEN (tags -> 'building:levels')~E'^\\d+$' THEN (tags -> 'building:levels')::smallint ELSE null end as building_levels,
-CASE WHEN (tags -> 'roof:levels')~E'^\\d+$' THEN (tags -> 'roof:levels')::smallint ELSE null end as roof_levels,
-way as geom
-FROM planet_osm_polygon 
-WHERE building IS NOT NULL;
+"addr:housenumber",p.tags,ST_Area(p.way::geography)::integer as area, 
+CASE WHEN (p.tags -> 'building:levels')~E'^\\d+$' THEN (p.tags -> 'building:levels')::smallint ELSE null end as building_levels,
+CASE WHEN (p.tags -> 'roof:levels')~E'^\\d+$' THEN (p.tags -> 'roof:levels')::smallint ELSE null end as roof_levels,
+p.way as geom
+FROM planet_osm_polygon p, study_area s
+WHERE p.building IS NOT NULL
+AND ST_Intersects(s.geom,p.way);
 
 CREATE INDEX ON buildings USING GIST(geom);
 ALTER TABLE buildings ADD PRIMARY key(gid);
