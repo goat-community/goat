@@ -66,23 +66,6 @@
       },
       {
         "type": "WMS",
-        "name": "buildings",
-        "group": "buildings",
-        "url": "/geoserver/wms",
-        "layers": "cite:buildings",
-        "opacity": 1,
-        "queryable": false,
-        "visible": false,
-        "canEdit": true,
-        "editDataType": "GeoJSON",
-        "editGeometry": "MultiPolygon",
-        "modifyAttributes": true,
-        "displayInLayerList": false,
-        "zIndex": 3,
-        "serverType": "geoserver"
-      },
-      {
-        "type": "WMS",
         "name": "pois",
         "url": "/geoserver/wms",
         "group": "poisLayers",
