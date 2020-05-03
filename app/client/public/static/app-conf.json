@@ -130,7 +130,7 @@
         "type": "WMS",
         "name": "administrativeUnits",
         "url": "/geoserver/wms",
-        "group": "administrativeLayers",
+        "group": "buildings_landuse",
         "layers": "cite:study_area",
         "opacity": 1,
         "queryable": false,
