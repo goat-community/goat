@@ -366,6 +366,7 @@
       "walkability": "Walkability",
       "studyArea": "Untersuchungsgebiet",
       "ways": "Wege",
+      "buildings": "Gebäude",
       "osmStandard": "OSM Standard",
       "osmLight": "OSM Light",
       "osmDark": "OSM Dark",
