@@ -318,3 +318,4 @@ DROP TABLE IF EXISTS buildings_points;
 DROP TABLE IF EXISTS point_addresses;
 DROP TABLE IF EXISTS census_split;
 DROP TABLE IF EXISTS buildings_fixed_population;
+DROP TABLE IF EXISTS buildings_residential;
