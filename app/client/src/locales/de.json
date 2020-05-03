@@ -324,6 +324,7 @@
     },
     "layerGroup": {
       "poisLayers": "POIs",
+      "buildings_landuse": "Gebäude und Flächennutzung",
       "administrativeLayers": "Verwaltungsgrenzen",
       "streetlevelqualityLayers": "Street Level Quality",
       "environmentalQualityLayers": "Umweltdaten",
@@ -344,6 +345,8 @@
       "natureReserves": "Naturschutzgebiete",
       "noiseMainTrafficRoads": "Lärm von Hauptverkehrsstraßen",
       "protectedLandscape": "Landschaftsschutzgebiete",
+      "landuse": "Flächennutzung (ATKIS)",
+      "landuse_osm": "Flächennutzung (OSM)",
       "footpathWidth": "Fußwegbreite",
       "illuminance": "Beleuchtung",
       "lanes": "Anzahl der Fahrspuren",
