@@ -63,6 +63,7 @@
           "multiIsochroneHeader": "Multi-Isochrone-Berechnung",
           "additionalLayers": "Weitere Layer",
           "showDataTooltip": "Daten anzeigen",
+          "hideDataTooltip": "Daten ausblenden",
           "toggleVisibilityTooltip": "Anzeige umschalten",
           "showResultsTooltip": "Ergebnisse anzeigen",
           "hideResultsTooltip": "Ergebnisse ausblenden",
@@ -323,26 +324,34 @@
     },
     "layerGroup": {
       "poisLayers": "POIs",
+      "buildings_landuse": "Gebäude und Flächennutzung",
       "administrativeLayers": "Verwaltungsgrenzen",
       "streetlevelqualityLayers": "Street Level Quality",
       "environmentalQualityLayers": "Umweltdaten",
       "perceivedQuality": "Empfundene Qualität",
+      "additionalDataLayers": "Weitere Daten",
       "accessbilityBasemaps": "Grundkarten Erreichbarkeit",
       "backgroundLayers": "Hintergrundkarten"
     },
     "layerName": {
       "pois": "Point of Interest",
       "administrativeUnits": "Administrative Grenzen",
+      "accidents_pedestrian_2018": "Unfälle mit Fußgängern (2018)",
+      "accidents_pedestrian_2017": "Unfälle mit Fußgängern (2017)",
+      "accidents_bike_2018":"Unfälle mit Radfahrern (2018)",
+      "accidents_bike_2017":"Unfälle mit Radfahrern (2017)",
       "biotops": "Biotope",
       "ffh-area": "FFH-Gebiete",
       "natureReserves": "Naturschutzgebiete",
       "noiseMainTrafficRoads": "Lärm von Hauptverkehrsstraßen",
       "protectedLandscape": "Landschaftsschutzgebiete",
+      "landuse": "Flächennutzung (ATKIS)",
+      "landuse_osm": "Flächennutzung (OSM)",
       "footpathWidth": "Fußwegbreite",
       "illuminance": "Beleuchtung",
       "lanes": "Anzahl der Fahrspuren",
       "parking": "Parkplätze am Straßenrand",
-      "smoothness": "Oberflächenglätte",
+      "smoothness": "Qualität Oberfläche",
       "speed": "Geschwindigkeitsbegrenzungen",
       "streetCategory": "Straßenkategorien - detailliert",
       "streetCategorysAggregated": "Straßenkategorien",
@@ -357,6 +366,7 @@
       "walkability": "Walkability",
       "studyArea": "Untersuchungsgebiet",
       "ways": "Wege",
+      "buildings": "Gebäude",
       "osmStandard": "OSM Standard",
       "osmLight": "OSM Light",
       "osmDark": "OSM Dark",
@@ -542,8 +552,9 @@
   "dynamicFields": {
     "attributes": {
       "ways": {
-        "type": "Wegetyp",
-        "class_id": "Class Id"
+        "way_type": "Wegetyp",
+        "surface": "Oberfläche",
+        "wheelchair": "Rohlstuhl"
       },
       "pois": {
         "amenity": "Einrichtung",

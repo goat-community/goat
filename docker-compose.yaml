@@ -66,7 +66,7 @@ services:
       proxy:
 
   geoserver:
-    image: oscarfonts/geoserver:2.15.0
+    image: goatcommunity/geoserver:latest
     volumes:
       - ./app/geoserver/geoserver_data:/var/local/geoserver
     container_name: goat-geoserver

@@ -138,11 +138,13 @@ FROM
 CREATE TABLE public.ways_modified
 (
     id bigint NOT NULL,
-    class_id integer,
     geom geometry(LineString,4326),
+    way_type text,
+	surface text,
+	wheelchair text,
+	street_category text,
     userid integer,
     original_id integer,
-	type varchar(20),
 	status bigint,
     CONSTRAINT ways_modified_id_pkey PRIMARY KEY (id)
 );
@@ -166,8 +168,11 @@ CREATE INDEX ON pois_modified USING gist(geom);
 CREATE TABLE buildings_modified
 (
 	gid serial,
+	building text,
 	building_levels integer,
-	building_type text,
+	building_levels_residential integer,
+	new_levels_levels integer,
+	population numeric,
 	geom geometry,
 	userid integer,
 	original_id integer,

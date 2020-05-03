@@ -3,17 +3,19 @@
   "buttonLabels": {
     "yes": "Yes",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "ok": "Ok",
+    "remove": "Remove"
   },
   "appBar": {
     "buttons": {
       "login": "Login",
       "print": "Print",
       "drawAndMeasure": "Draw and Measure",
-      "filter": "Filter",
-      "edit": "Edit",
-      "settings": "Settings",
-      "info": "Info"
+      "filter": "Thematic Data Filter",
+      "edit": "Draw scenario",
+      "settings": "Language",
+      "info": "Visit GOAT Homepage"
     },
     "login": {
       "title": "Login",
@@ -54,6 +56,10 @@
           "label": "Reference System",
           "rule": "Field is required"
         },
+        "outputFormat": {
+          "label": "Output Format",
+          "rule": "Field is required"
+        },
         "submit": "Print",
         "abort": "Abort",
         "legend": "Legend",
@@ -80,7 +86,7 @@
       "clear": "Clear"
     },
     "filter": {
-      "title": "Filter",
+      "title": "Thematic Data Filter",
       "poisSettings": {
         "buttonTooltip": "Weight and Sensitivity Settings",
         "title": "Heatmap",
@@ -94,22 +100,58 @@
       }
     },
     "edit": {
-      "title": "Edit",
+      "title": "Draw scenario",
       "selectLayer": "Layer to edit",
       "selectFeatures": "Select features",
       "drawCircle": "Draw a circle to select features",
       "selectOnMap": "Select features on map",
       "editTools": "Edit Tools",
       "drawFeatureTooltip": "Draw Feature",
-      "modifyFeatureTooltip": "Modify Feature",
+      "modifyFeatureTooltip": "Modify Geometry",
       "deleteFeature": "Delete Feature",
-      "clearBtn": "Clear",
+      "moveFeature": "Move Feature",
+      "modifyAttributes": "Modify Attributes",
+      "snapGuide": "Snap Guide",
+      "clearBtn": "Revert All",
       "uploadBtn": "Upload",
       "popup": {
         "deleteFeatureMsg": "Are you sure you want to delete the selected feature ?",
         "selectWayType": "Select way type: ",
         "wayType": "Way Type"
-      }
+      },
+      "table": {
+        "layer": "Layer",
+        "status": "Status",
+        "type": "Type",
+        "actions": "Actions"
+      },
+      "type": {
+        "New": "New",
+        "Modified": "Modified",
+        "Restored": "Restored",
+        "Deleted": "Deleted"
+      },
+      "status": {
+        "Uploaded": "Uploaded",
+        "NotUploaded": "Not Uploaded"
+      },
+      "activateLayerToDrawScenario": "Plese activate the layer to be able to select features",
+      "dataTypeInfo": "Data type should be",
+      "geometryTypeInfo": "Geometry type should be",
+      "requiredFields": "Required Fields",
+      "referenceSystemInfo": "Reference sytem should be in",
+      "featuresNotyetUploaded": "Features not yet uploaded. Click upload button to commit",
+      "differentGeometryType": "Geometries doesn't match",
+      "missingFields": "Missing Fields",
+      "fileCorrupted": "Geojson file is corrupted",
+      "noFile": "No file",
+      "allFeaturesUploaded": "All Features Uploaded",
+      "notAllUploaded": "Not all features uploaded",
+      "errorHappened": "An error happened",
+      "scenarioFeatures": "Scenario Features",
+      "uploadYourData": "Upload your data",
+      "deleteAllTitle": "Delete All",
+      "deleteAllMessage": "Are you sure you want to delete all scenario data."
     },
     "settings": {
       "title": "Settings",
@@ -144,11 +186,11 @@
       "studyArea": "Study Area",
       "clear": "Clear",
       "calculate": "Calculate",
-      "studyAreaInfoLabel": "Select <b>study zones</b> and <b>amenities</b> to enable calculation.",
+      "studyAreaInfoLabel": "Select <b>study area</b> on the map and <b>points of interest</b> from the thematic data filter to enable calculation.",
       "drawBoundary": "Draw Boundary",
       "amenityCount": "Amenity Count",
       "limit": "Limit",
-      "drawBoundaryInfoLabel": "Draw <b>boundary</b> and select <b>amenities</b> to enable calculation.",
+      "drawBoundaryInfoLabel": "Draw <b>boundary</b> on the map and select <b>points of interest</b> from the thematic data filter to enable calculation.",
       "tableDataTitle": "Multi-Isochrone Data"
     },
     "options": {
@@ -162,16 +204,28 @@
       "alphaShapeMode": "Level of detail isochrones",
       "defaultNetwork": "Default Network",
       "modifiedNetwork": "Modified Network",
-      "modifiedNetworkDoubleCalc": "Modified Network (Double Calculation)"
+      "modifiedNetworkDoubleCalc": "Modified Network (Double Calculation)",
+      "routingProfile": "Routing Profile",
+      "walking_standard": "Standard",
+      "walking_elderly": "Elderly",
+      "walking_safe_night": "Safe night",
+      "walking_wheelchair": "Wheelchair",
+      "cycling_standard": "Standard",
+      "cycling_pedelec": "Pedelec"
     },
     "results": {
       "title": "Results",
       "multiIsochroneHeader": "Multi-Isochrone Calculation",
       "additionalLayers": "Additional Layers",
       "showDataTooltip": "Show Data",
+      "hideDataTooltip": "Hide Data",
       "toggleVisibilityTooltip": "Toggle Visibility",
+      "showResultsTooltip": "Show Results",
+      "hideResultsTooltip": "Hide Results",
       "downloadTooltip": "Download",
       "deleteCalcTooltip": "Delete Calculation",
+      "deleteAll": "DELETE ALL",
+      "changeColorTooltip": "Click to change color",
       "table": {
         "type": "Type",
         "range": "Range",
@@ -185,7 +239,7 @@
       "searchPois": "Search Point of Interest",
       "selectTimeMsg": "Select travel time to filter",
       "noDataMsg": "No data for the selected time",
-      "selectAmenitiesMsg": "Select <b>Amenities</b> and <b>Time</b> to filter the table.",
+      "selectAmenitiesMsg": "Select <b>Points of Interest</b> to filter the table.",
       "table": {
         "pois": "Point of Interest",
         "isochrone": "Isochrone",
@@ -196,7 +250,8 @@
     },
     "isochrones": "Isochrones",
     "deleteTitle": "Delete",
-    "deleteMessage": "Are you sure you want to delete Calculation",
+    "deleteMessage": "Are you sure you want to delete calculation",
+    "deleteAllMessage": "Are you sure you want to delete all calculations ?",
     "download": {
       "title": "Download Isochrones",
       "fileName": "Filename",
@@ -206,6 +261,23 @@
     "additionalLayers": {
       "defaultNetwork": "Default Road Network",
       "inputNetwork": "Input Road Network"
+    },
+    "pickColor": {
+      "title": "Isochrone Color"
+    }
+  },
+  "poisFilter": {
+    "showTimeFilter": "Add time filter",
+    "selectHourLabel": "Select open time to filter",
+    "selectDayLabel": "Select day",
+    "daysOfWeek": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
     }
   },
   "layerTree": {
@@ -219,24 +291,45 @@
       "title": "Layers Legend"
     },
     "snackbarMessages": {
-      "selectAmenities": "You must select at least one amenity"
+      "selectAmenities": "You must select at least one point of interest",
+      "calculateIsochroneError": "Sorry but here no calculation is possible",
+      "uploadScenarioSuccess": "Features uploads successfully.",
+      "uploadScenarioError": "Sorry, an error happened while uploading the features in database.",
+      "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features.",
+      "cantDeleteAllScenarioFeatures": "Sorry. Scenario data can't be deleted at the moment.",
+      "allScenarioFeaturesDelete": "All Scenario Data is deleted",
+      "noScenarioFeatureChangeAvailable": "Please do network or land-use change first",
+      "cantPrintBaseLayer": "This baselayer can't be printed"
     },
     "layerGroup": {
-      "poisLayers": "Pois Layer",
-      "administrativeLayers": "Administrative Layers",
+      "poisLayers": "Point of Interest",
+      "administrativeLayers": "Administrative boundaries",
       "streetlevelqualityLayers": "Street Level Quality",
-      "accessbilityBasemaps": "Accessibility Basemap",
-      "backgroundLayers": "Background Layers"
+      "environmentalQualityLayers": "Environmental data",
+      "perceivedQuality": "Perceived Quality",
+      "accessbilityBasemaps": "Accessibility",
+      "backgroundLayers": "Background Layers",
+      "buildings": "Buildings"
     },
     "layerName": {
       "pois": "Point of Interest",
       "administrativeUnits": "Administrative Units",
+      "biotops": "Biotops",
+      "ffh-area": "FFH Area",
+      "natureReserves": "Nature Reserves",
+      "noiseMainTrafficRoads": "Noise levels - main roads",
+      "protectedLandscape": "Protected Landscape Areas",
       "footpathWidth": "Footpath Width",
       "illuminance": "Illuminance",
       "lanes": "Lanes",
       "parking": "Parking",
+      "smoothness": "Smoothness",
       "speed": "Speed",
+      "streetCategory": "Street Categories Detailed",
+      "streetCategorysAggregated": "Street Categories",
       "streetCrossings": "Street Crossings",
+      "streetFurniture": "Street Furniture",
+      "streetFurnitureBicycles": "Bicycle Ranks",
       "surface": "Surface",
       "wheelchairUsability": "Wheelchair Usability",
       "areaIsochrone": "Area Isochrone",
@@ -245,6 +338,7 @@
       "walkability": "Walkability",
       "studyArea": "Study Area",
       "ways": "Ways",
+      "buildings": "Buildings",
       "osmStandard": "OSM Standard",
       "osmLight": "OSM Light",
       "osmDark": "OSM Dark",
@@ -253,29 +347,78 @@
       "bingAerial": "Bing Aerial"
     },
     "tooltips": {
-      "clickForCalculation": "Click for Calculation",
-      "clickToSelectStudyArea": "Click to select the study area",
+      "clickForCalculation": "Click for Calculation. Press ESC to exit",
+      "clickToSelectStudyArea": "Click to select the study area. Press ESC to exit",
       "maxCircleRadius": "Maximum circle radius is 1000 m",
-      "clickToStartMeasure": "Click to start measuring",
-      "clickToStartDrawing": "Click to start drawing",
+      "clickToStartMeasure": "Click to start measuring. Press ESC to exit",
+      "clickToStartDrawing": "Click to start drawing. Press ESC to exit",
       "clickToContinueDrawing": "Click to continue drawing",
       "clickToFinishDrawing": "Click to finish drawing",
-      "clickToStartDrawingBoundary": "Click to start drawing the boundary",
-      "clickToStartDrawingCircle": "Click to start drawing the circle (Max Radius 1000 m)",
-      "clickToFinishDrawingPolygon": "Double-click or click starting point to finish",
+      "clickToStartDrawingBoundary": "Click to start drawing the boundary. <br> Press ESC to exit",
+      "clickToStartDrawingCircle": "Click to start drawing the circle (Max Radius 1000 m). <br> Press ESC to exit",
+      "clickToFinishDrawingPolygon": "Double-click or click starting point to finish.",
       "clickOnFeatureToDelete": "Click on feature to delete it",
-      "clickAndDragToModify": "Click and drag the features to modify",
-      "clickToRemove": "Click to remove it"
+      "clickOnFeatureToMove": "Click and drag the feature to move",
+      "clickAndDragToModify": "Click and drag the features to modify geometry",
+      "clickToModifyAttributes": "Click to modify attributes",
+      "clickToRemove": "Click to remove it",
+      "clickToPlacePoint": "Click to place the point",
+      "routingProfiles": {
+        "walking": {
+          "title": "Walking",
+          "options": {
+            "standard": {
+              "title": "Standard",
+              "tooltip": "Default routing"
+            },
+            "elderly": {
+              "title": "Elderly",
+              "tooltip": "Routing with reduced walking speed"
+            },
+            "safe_night": {
+              "title": "Safe night",
+              "tooltip": "Routing excluding unlit paths"
+            }
+          }
+        },
+        "cycling": {
+          "title": "Cycling",
+          "options": {
+            "standard": {
+              "title": "Standard",
+              "tooltip": "Default Routing"
+            },
+            "pedelec": {
+              "title": "Pedelec",
+              "tooltip": "Pedelec"
+            }
+          }
+        },
+        "walking_wheelchair": {
+          "title": "Wheelchair",
+          "tooltip": "Routing excluding paths and points-of-interest that are not barrier-free"
+        }
+      },
+      "zoomToFeature": "Zoom to feature",
+      "deleteFeature": "Delete Feature",
+      "uploadFeature": "Upload Feature",
+      "restoreFeature": "Restore Feature"
     },
     "popup": {
       "attributes": "Attributes",
       "info": "Info",
       "editWithOsm": "Edit with OSM",
-      "confirm": "Confirm"
+      "confirm": "Confirm",
+      "modifyAttributes": "Modify Attributes"
     },
     "layerListValues": {
       "road": "Road",
       "bridge": "Bridge"
+    },
+    "contextMenu": {
+      "deleteIsochrone": "Delete Isochrone",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out"
     }
   },
   "pois": {
@@ -285,6 +428,7 @@
     "services": "Services",
     "shop": "Shop",
     "tourismAndLeisure": "Tourism & Leisure",
+    "nursery": "Nursery",
     "kindergarten": "Kindergarten",
     "primary_school": "Primary school",
     "secondary_school": "Secondary school",
@@ -336,6 +480,9 @@
     "hostel": "Hostel",
     "guest_house": "Guest house",
     "gallery": "Gallery",
+    "university": "University",
+    "hospital": "Hospital",
+    "playground": "Playground",
     "population": "Population"
   },
   "$vuetify": {
@@ -354,6 +501,7 @@
       }
     },
     "dataFooter": {
+      "pageText": "{0}-{1} of {2}",
       "itemsPerPageText": "Items per page:",
       "itemsPerPageAll": "All",
       "nextPage": "Next page",
@@ -372,5 +520,44 @@
     "calendar": {
       "moreEvents": "{0} more"
     }
+  },
+  "common": {
+    "required": "This information is required"
+  },
+  "dynamicFields": {
+    "attributes": {
+      "ways": {
+        "type": "Way Type",
+        "class_id": "Class Id"
+      },
+      "pois": {
+        "amenity": "Amenity",
+        "name": "Name (Optional)",
+        "opening_hours": "Opening Hours (Optional)"
+      },
+      "buildings": {
+        "building_levels": "Building Levels",
+        "building_type": "Building Type"
+      }
+    },
+    "listValues": {
+      "ways": {
+        "road": "Road",
+        "bridge": "Bridge"
+      }
+    }
+  },
+  "openingHours": {
+    "openingTime": "Opening Time",
+    "closingTime": "Closing Time",
+    "default": "Default",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "publicHolidays": "Public Holidays"
   }
 }

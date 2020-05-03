@@ -69,38 +69,102 @@
             <v-btn-toggle v-model="toggleEdit">
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
-                  <v-btn v-on="on" text>
+                  <v-btn :value="1" v-on="on" text>
                     <v-icon medium>add</v-icon>
                   </v-btn>
                 </template>
                 <span>{{ $t("appBar.edit.drawFeatureTooltip") }}</span>
               </v-tooltip>
+
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
-                  <v-btn v-on="on" text>
+                  <v-btn :value="2" v-on="on" text>
                     <v-icon>far fa-edit</v-icon>
                   </v-btn>
                 </template>
                 <span>{{ $t("appBar.edit.modifyFeatureTooltip") }}</span>
               </v-tooltip>
+
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
-                  <v-btn v-on="on" text>
+                  <v-btn
+                    :value="3"
+                    v-show="selectedLayer.get('modifyAttributes') === true"
+                    v-on="on"
+                    text
+                  >
+                    <v-icon>far fa-list-alt</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.modifyAttributes") }}</span>
+              </v-tooltip>
+
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn :value="4" v-on="on" text>
                     <v-icon>far fa-trash-alt</v-icon>
                   </v-btn>
                 </template>
                 <span>{{ $t("appBar.edit.deleteFeature") }}</span>
               </v-tooltip>
+
               <v-tooltip
                 top
-                v-if="selectedLayer.get('editGeometry') !== 'Point'"
+                v-show="selectedLayer.get('editGeometry') !== 'Point'"
               >
                 <template v-slot:activator="{ on }">
-                  <v-btn v-on="on" text>
+                  <v-btn
+                    v-show="
+                      !['Point', 'LineString'].includes(
+                        selectedLayer.get('editGeometry')
+                      )
+                    "
+                    :value="5"
+                    v-on="on"
+                    text
+                  >
                     <v-icon>far fa-clone</v-icon>
                   </v-btn>
                 </template>
                 <span>{{ $t("appBar.edit.moveFeature") }}</span>
+              </v-tooltip>
+            </v-btn-toggle>
+
+            <v-btn-toggle v-model="toggleEdit">
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    :value="6"
+                    class="ml-0 mr-2 mt-2"
+                    v-show="
+                      !['Point', 'LineString'].includes(
+                        selectedLayer.get('editGeometry')
+                      )
+                    "
+                    v-on="on"
+                    text
+                  >
+                    <v-icon>far fa-object-group</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.drawPolygonHole") }}</span>
+              </v-tooltip>
+            </v-btn-toggle>
+            <v-btn-toggle v-model="toggleSnapGuide">
+              <v-tooltip
+                top
+                v-if="
+                  ['Polygon', 'MultiPolygon'].includes(
+                    selectedLayer.get('editGeometry')
+                  )
+                "
+              >
+                <template v-slot:activator="{ on }">
+                  <v-btn class="ml-0 mt-2" v-on="on" text>
+                    <v-icon>fas fa-border-all</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.snapGuide") }}</span>
               </v-tooltip>
             </v-btn-toggle>
           </v-flex>
@@ -293,7 +357,14 @@
         <v-icon>close</v-icon>
       </v-btn>
       <template v-slot:close>
-        <v-btn @click="cancel()" icon>
+        <v-btn
+          @click="
+            popup.selectedInteraction === 'modifyAttributes'
+              ? cancelAttributeEdit()
+              : cancel()
+          "
+          icon
+        >
           <v-icon>close</v-icon>
         </v-btn>
       </template>
@@ -301,7 +372,11 @@
         <div v-if="popup.selectedInteraction === 'delete'">
           <b>{{ $t("appBar.edit.popup.deleteFeatureMsg") }}</b>
         </div>
-        <div v-else-if="popup.selectedInteraction === 'add'">
+        <div
+          v-else-if="
+            ['add', 'modifyAttributes'].includes(popup.selectedInteraction)
+          "
+        >
           <v-form v-model="formValid">
             <v-jsonschema-form
               v-if="schema[layerName]"
@@ -322,17 +397,28 @@
             $t("buttonLabels.cancel")
           }}</v-btn>
         </template>
-        <template v-else-if="popup.selectedInteraction === 'add'">
+        <template
+          v-else-if="
+            ['add', 'modifyAttributes'].includes(popup.selectedInteraction)
+          "
+        >
           <v-btn
             color="primary darken-1"
             :disabled="formValid === false"
-            @click="ok('add')"
+            @click="ok(popup.selectedInteraction)"
             text
             >{{ $t("buttonLabels.save") }}</v-btn
           >
-          <v-btn color="grey" text @click="cancel()">{{
-            $t("buttonLabels.cancel")
-          }}</v-btn>
+          <v-btn
+            color="grey"
+            text
+            @click="
+              popup.selectedInteraction === 'modifyAttributes'
+                ? cancelAttributeEdit()
+                : cancel()
+            "
+            >{{ $t("buttonLabels.cancel") }}</v-btn
+          >
         </template>
       </template>
     </overlay-popup>
@@ -386,6 +472,7 @@ export default {
     editableLayers: [],
     toggleSelection: undefined,
     toggleEdit: undefined,
+    toggleSnapGuide: 0, // Used for snap and other functionalities (Active by default).
     loadingLayerInfo: false,
     isUploadBusy: false,
     isDeleteAllBusy: false,
@@ -434,7 +521,9 @@ export default {
       modify: "pointer",
       delete: "pointer",
       select: "pointer",
-      move: "auto"
+      move: "auto",
+      modifyAttributes: "pointer",
+      drawHole: "crosshair"
     },
     //Data table
     isTableLoading: false,
@@ -462,6 +551,9 @@ export default {
         const me = this;
         me.toggleEditInteraction(state);
       }
+    },
+    toggleSnapGuide(value) {
+      this.toggleSnapGuideInteraction(value);
     },
     scenarioDataTable() {
       this.canCalculateScenario(this.options.calculationModes.active);
@@ -672,21 +764,30 @@ export default {
       me.toggleSelection = undefined;
       let editType, startCb, endCb;
       switch (state) {
-        case 0:
+        case 1:
           editType = "add";
           startCb = this.onDrawStart;
           endCb = this.onDrawEnd;
           break;
-        case 1:
+        case 2:
           editType = "modify";
           startCb = this.onModifyStart;
           endCb = this.onModifyEnd;
           break;
-        case 2:
+        case 3:
+          editType = "modifyAttributes";
+          startCb = this.openModifyAttributePopup;
+          break;
+        case 4:
           editType = "delete";
           break;
-        case 3:
+        case 5:
           editType = "move";
+          startCb = this.onModifyStart;
+          endCb = this.onModifyEnd;
+          break;
+        case 6:
+          editType = "drawHole";
           startCb = this.onModifyStart;
           endCb = this.onModifyEnd;
           break;
@@ -708,6 +809,20 @@ export default {
         me.map.getTarget().style.cursor = "";
       }
     },
+
+    /**
+     * Adds or remove snap interaction
+     */
+    toggleSnapGuideInteraction(state) {
+      if (state === 0) {
+        this.olEditCtrl.addSnapGuideInteraction();
+        this.olEditCtrl.isSnapGuideActive = true;
+      } else {
+        this.olEditCtrl.removeSnapGuideInteraction();
+        this.olEditCtrl.isSnapGuideActive = false;
+      }
+    },
+
     /**
      * Callback function executed when selection interaction starts.
      */
@@ -727,6 +842,39 @@ export default {
         editLayerHelper.filterResults(response, me.olEditCtrl.getLayerSource());
       }
     },
+
+    /**
+     * Open modify attribute popup
+     */
+    openModifyAttributePopup(evt) {
+      const features = this.olEditCtrl.source.getFeaturesAtCoordinate(
+        evt.coordinate
+      );
+      this.olEditCtrl.highlightSource.clear();
+      if (features.length > 0) {
+        const feature = features[0];
+        const props = feature.getProperties();
+        for (const attr in this.dataObject) {
+          this.dataObject[attr] = attr in props ? props[attr] : null;
+        }
+        const geometry = feature.getGeometry();
+        let popupCoordinate = geometry.getCoordinates();
+        while (popupCoordinate && Array.isArray(popupCoordinate[0])) {
+          popupCoordinate = popupCoordinate[0];
+        }
+        this.map.getView().animate({
+          center: popupCoordinate,
+          duration: 400
+        });
+        this.olEditCtrl.popupOverlay.setPosition(popupCoordinate);
+        this.olEditCtrl.featuresToCommit.push(feature);
+        this.olEditCtrl.highlightSource.addFeature(feature.clone());
+        this.olEditCtrl.popup.title = "modifyAttributes";
+        this.olEditCtrl.popup.selectedInteraction = "modifyAttributes";
+        this.olEditCtrl.popup.isVisible = true;
+      }
+    },
+
     /**
      * Modify interaction start event handler
      */
@@ -786,7 +934,11 @@ export default {
       const me = this;
       //Exclude features from file input as we add this feature later when user click upload button
       if (evt.feature.get("user_uploaded")) return;
-      if (["modify", "move"].includes(me.olEditCtrl.currentInteraction)) {
+      if (
+        ["modify", "move", "modifyAttributes", "drawHole"].includes(
+          me.olEditCtrl.currentInteraction
+        )
+      ) {
         const index = me.olEditCtrl.featuresToCommit.findIndex(
           i => i.ol_uid === evt.feature.ol_uid
         );
@@ -1048,7 +1200,7 @@ export default {
      * Method used on popup save (draw)/ok(delete) depending on interaction type
      */
     ok(type) {
-      if (type === "add") {
+      if (["add", "modifyAttributes"].includes(type)) {
         this.olEditCtrl.transact(this.dataObject);
         this.olEditCtrl.closePopup();
       } else {
@@ -1057,7 +1209,7 @@ export default {
       }
     },
     /**
-     * Method used on popup cancel
+     * Methods used on popup cancel
      */
     cancel() {
       if (this.olEditCtrl.featuresToCommit.length > 0) {
@@ -1065,6 +1217,10 @@ export default {
           this.olEditCtrl.source.removeFeature(feature);
         });
       }
+      this.olEditCtrl.closePopup();
+    },
+    cancelAttributeEdit() {
+      this.olEditCtrl.featuresToCommit = [];
       this.olEditCtrl.closePopup();
     },
     /**

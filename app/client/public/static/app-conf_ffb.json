@@ -88,6 +88,33 @@
       },
       {
         "type": "WMS",
+        "name": "landuse",
+        "url": "/geoserver/wms",
+        "group": "buildings_landuse",
+        "layers": "cite:landuse_atkis",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "landuse_osm",
+        "url": "/geoserver/wms",
+        "group": "buildings_landuse",
+        "layers": "cite:landuse_osm",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "administrativeUnits",
         "url": "/geoserver/wms",
         "group": "administrativeLayers",
@@ -170,6 +197,34 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_pedestrian_2018",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fussgaenger_250_2018",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_bike_2018",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fahrrad_250_2018",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
       },
       {
         "type": "WMS",
