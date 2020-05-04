@@ -144,6 +144,6 @@ export default {
 .colorPalettePicker {
   height: 20px;
   border-radius: 5px;
-  width: 250px;
+  width: 265px;
 }
 </style>

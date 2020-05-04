@@ -256,7 +256,7 @@ const actions = {
     let transformedData = {
       id: calculationNumber,
       calculationType: calculationType,
-      calculationMode: sharedParams.modus,
+      calculationMode: sharedParams.modus.replace(/'/g, ""), // remove extra apostrophe in multi-isochrone
       time: state.options.minutes + " min",
       speed: state.options.speed + " km/h",
       routing_profile: state.activeRoutingProfile,
@@ -267,11 +267,11 @@ const actions = {
     };
 
     // Add default calculation color palette.
-    if (sharedParams.modus === "default") {
+    if (transformedData.calculationMode === "default") {
       transformedData[`defaultColorPalette`] = state.defaultIsochroneColor;
-    } else if (sharedParams.modus === "scenario") {
+    } else if (transformedData.calculationMode === "scenario") {
       transformedData[`scenarioColorPalette`] = state.scenarioIsochroneColor;
-    } else if (sharedParams.modus === "comparison") {
+    } else if (transformedData.calculationMode === "comparison") {
       transformedData[`defaultColorPalette`] = state.defaultIsochroneColor;
       transformedData[`scenarioColorPalette`] = state.scenarioIsochroneColor;
     }
