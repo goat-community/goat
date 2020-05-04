@@ -100,6 +100,7 @@
                     <template v-slot:activator="{ on }">
                       <v-icon
                         small
+                        v-if="calculation.calculationType === 'single'"
                         v-on="on"
                         @click="showAdditionalLayerDialog(calculation)"
                         class="result-icons mr-2"
