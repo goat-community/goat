@@ -66,23 +66,6 @@
       },
       {
         "type": "WMS",
-        "name": "buildings",
-        "group": "buildings",
-        "url": "/geoserver/wms",
-        "layers": "cite:buildings",
-        "opacity": 1,
-        "queryable": false,
-        "visible": false,
-        "canEdit": false,
-        "editDataType": "GeoJSON",
-        "editGeometry": "MultiPolygon",
-        "modifyAttributes": true,
-        "displayInLayerList": false,
-        "zIndex": 3,
-        "serverType": "geoserver"
-      },
-      {
-        "type": "WMS",
         "name": "pois",
         "url": "/geoserver/wms",
         "group": "poisLayers",
@@ -102,9 +85,52 @@
       },
       {
         "type": "WMS",
+        "name": "landuse",
+        "url": "/geoserver/wms",
+        "group": "buildings_landuse",
+        "layers": "cite:landuse_atkis",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "landuse_osm",
+        "url": "/geoserver/wms",
+        "group": "buildings_landuse",
+        "layers": "cite:landuse_osm",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "buildings",
+        "group": "buildings_landuse",
+        "url": "/geoserver/wms",
+        "layers": "cite:buildings",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "editDataType": "GeoJSON",
+        "editGeometry": "MultiPolygon",
+        "displayInLayerList": false,
+        "zIndex": 3,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "administrativeUnits",
         "url": "/geoserver/wms",
-        "group": "administrativeLayers",
+        "group": "buildings_landuse",
         "layers": "cite:study_area",
         "opacity": 1,
         "queryable": false,
@@ -184,6 +210,62 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_pedestrian_2018",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fussgaenger_250_2018",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_pedestrian_2017",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fussgaenger_250_2017",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_bike_2018",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fahrrad_250_2018",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_bike_2017",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fahrrad_250_2017",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
       },
       {
         "type": "WMS",
@@ -853,50 +935,73 @@
         "styleCache": {
           "default": {},
           "input": {}
+        }
+      },
+      "defaultIsochroneColor": "b",
+      "scenarioIsochroneColor": "f",
+      "colors": {
+        "a": {
+          "1": "rgb(254, 202, 232)",
+          "2": "rgb(254, 144, 207)",
+          "3": "rgb(239, 002, 140)",
+          "4": "rgb(179, 001, 103)",
+          "5": "rgb(125, 001, 072)"
         },
-        "defaultIsochroneColors": {
-          "1": "#ffffe0",
-          "2": "#fff2c7",
-          "3": "#ffe4b1",
-          "4": "#ffd69d",
-          "5": "#ffc88e",
-          "6": "#ffb981",
-          "7": "#ffaa76",
-          "8": "#ff9a6e",
-          "9": "#fc8968",
-          "10": "#f77a63",
-          "11": "#f16b5f",
-          "12": "#e95d5a",
-          "13": "#e14f55",
-          "14": "#d8404e",
-          "15": "#cd3346",
-          "16": "#c2263d",
-          "17": "#b61832",
-          "18": "#a80c25",
-          "19": "#9b0316",
-          "20": "#8b0000"
+        "b": {
+          "1": "rgb(251, 188, 175)",
+          "2": "rgb(247, 122, 099)",
+          "3": "rgb(234, 049, 012)",
+          "4": "rgb(186, 039, 010)",
+          "5": "rgb(116, 024, 006)"
         },
-        "inputIsochroneColors": {
-          "1": "#22D329",
-          "2": "#20C830",
-          "3": "#1EBD38",
-          "4": "#1CB340",
-          "5": "#1AA848",
-          "6": "#199E50",
-          "7": "#179358",
-          "8": "#158860",
-          "9": "#137E68",
-          "10": "#117370",
-          "11": "#106977",
-          "12": "#0E5E7F",
-          "13": "#0C5487",
-          "14": "#0A498F",
-          "15": "#083E97",
-          "16": "#07349F",
-          "17": "#0529A7",
-          "18": "#031FAF",
-          "19": "#0114B7",
-          "20": "#000ABF"
+        "c": {
+          "1": "rgb(255, 200, 142)",
+          "2": "rgb(255, 171, 079)",
+          "3": "rgb(238, 125, 000)",
+          "4": "rgb(192, 101, 000)",
+          "5": "rgb(126, 066, 000)"
+        },
+        "d": {
+          "1": "rgb(254, 229, 168)",
+          "2": "rgb(253, 216, 123)",
+          "3": "rgb(252, 193, 044)",
+          "4": "rgb(231, 166, 003)",
+          "5": "rgb(193, 139, 003)"
+        },
+        "e": {
+          "1": "rgb(232, 240, 182)",
+          "2": "rgb(202, 220, 094)",
+          "3": "rgb(182, 206, 044)",
+          "4": "rgb(143, 161, 035)",
+          "5": "rgb(104, 117, 025)"
+        },
+        "f": {
+          "1": "rgb(220, 241, 211)",
+          "2": "rgb(173, 223, 153)",
+          "3": "rgb(097, 190, 060)",
+          "4": "rgb(071, 140, 044)",
+          "5": "rgb(054, 105, 033)"
+        },
+        "g": {
+          "1": "rgb(201, 237, 236)",
+          "2": "rgb(144, 216, 214)",
+          "3": "rgb(066, 190, 187)",
+          "4": "rgb(052, 152, 150)",
+          "5": "rgb(039, 111, 109)"
+        },
+        "h": {
+          "1": "rgb(197, 218, 237)",
+          "2": "rgb(126, 172, 214)",
+          "3": "rgb(066, 133, 194)",
+          "4": "rgb(042, 105, 162)",
+          "5": "rgb(032, 081, 126)"
+        },
+        "i": {
+          "1": "rgb(255, 255, 255)",
+          "2": "rgb(207, 207, 207)",
+          "3": "rgb(159, 159, 159)",
+          "4": "rgb(090, 090, 090)",
+          "5": "rgb(000, 000, 000)"
         }
       }
     },
@@ -947,12 +1052,31 @@
   "layerConf": {
     "ways": {
       "listValues": {
-        "type": {
+        "way_type": {
           "values": ["bridge", "road"]
+        },
+        "surface": {
+          "values": [
+            "asphalt",
+            "cobblestone",
+            "fine_gravel",
+            "gravel",
+            "grass",
+            "unpaved"
+          ]
+        },
+        "wheelchair": {
+          "values": ["yes", "no"]
         }
       },
       "enableFileUpload": false,
-      "hiddenProps": ["userid", "id", "original_id", "status", "class_id"]
+      "hiddenProps": [
+        "userid",
+        "id",
+        "original_id",
+        "status",
+        "street_category"
+      ]
     },
     "pois": {
       "listValues": {
@@ -973,7 +1097,11 @@
       ]
     },
     "buildings": {
-      "listValues": {},
+      "listValues": {
+          "building": {
+            "values":["residential","commercial","public"]
+          }
+      },
       "enableFileUpload": false,
       "hiddenProps": [
         "gid",
