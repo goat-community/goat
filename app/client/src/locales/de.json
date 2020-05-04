@@ -565,7 +565,15 @@
     "listValues": {
       "ways": {
         "road": "Straße",
-        "bridge": "Brücke"
+        "bridge": "Brücke",
+        "asphalt": "Asphalt",
+        "cobblestone": "Pflastersteine",
+        "fine_gravel": "Feiner Kies",
+        "gravel": "Kies",
+        "grass": "Grass",
+        "unpaved": "Unbefestigt",
+        "yes": "Ja",
+        "no": "Nein"
       }
     }
   }
