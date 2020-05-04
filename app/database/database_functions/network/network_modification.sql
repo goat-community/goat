@@ -52,8 +52,8 @@ IF cnt = 1 THEN
 ELSE 
 	CREATE TEMP TABLE split_drawn_features AS
 	SELECT split_by_drawn_lines(id::integer,geom) AS geom, way_type, surface, wheelchair, street_category, userid, original_id  
-	FROM drawn_features
-	WHERE way_type <> 'bridge';
+	FROM drawn_features;
+	--WHERE way_type <> 'bridge';
 
 END IF;
 
@@ -79,12 +79,12 @@ ALTER TABLE new_network ADD COLUMN gid serial;
 /*It deletes all parts that are smaller then once centimeter*/
 DELETE FROM new_network
 WHERE st_length(geom) < 0.000001;
-
+/*
 INSERT INTO new_network 
 SELECT geom, way_type, surface, wheelchair, street_category, userid, original_id 
 FROM drawn_features
 WHERE way_type = 'bridge';
-
+*/
 ALTER TABLE new_network ADD COLUMN source integer;
 ALTER TABLE new_network ADD COLUMN target integer;
 
