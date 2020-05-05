@@ -18,7 +18,9 @@
         </v-btn>
       </template>
 
-      <span>{{ $t(`map.tooltips.toggleFullscreen`) }}</span>
+      <span>{{
+        $t(`map.tooltips.${isFullscreen ? "exitFullScreen" : "openFullScreen"}`)
+      }}</span>
     </v-tooltip>
   </div>
 </template>

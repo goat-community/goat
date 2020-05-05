@@ -4,7 +4,7 @@
     <v-tooltip right>
       <template v-slot:activator="{ on }">
         <v-btn
-          v-if="!miniViewerVisible"
+          v-show="!miniViewerVisible"
           class="mx-2 miniviewer-button"
           fab
           dark

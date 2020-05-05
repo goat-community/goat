@@ -418,8 +418,9 @@
       "restoreFeature": "Restore Feature",
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
-      "toggleFullscreen": "Toggle Fullscreen",
-      "toggleStreetView": "Toggle StreetView"
+      "openFullScreen": "Open Fullscreen",
+      "exitFullScreen": "Exit Fullscreen",
+      "toggleStreetView": "Open StreetView"
     },
     "popup": {
       "attributes": "Attributes",
