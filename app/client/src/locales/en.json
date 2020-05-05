@@ -320,8 +320,8 @@
       "administrativeUnits": "Administrative Units",
       "accidents_pedestrian_2018": "Accidents with pedestrians (2018)",
       "accidents_pedestrian_2017": "Accidents with pedestrians (2017)",
-      "accidents_bike_2018":"Accidents with cyclists (2018)",
-      "accidents_bike_2017":"Accidents with cyclists (2017)",
+      "accidents_bike_2018": "Accidents with cyclists (2018)",
+      "accidents_bike_2017": "Accidents with cyclists (2017)",
       "biotops": "Biotops",
       "ffh-area": "FFH Area",
       "natureReserves": "Nature Reserves",
@@ -415,7 +415,11 @@
       "zoomToFeature": "Zoom to feature",
       "deleteFeature": "Delete Feature",
       "uploadFeature": "Upload Feature",
-      "restoreFeature": "Restore Feature"
+      "restoreFeature": "Restore Feature",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "toggleFullscreen": "Toggle Fullscreen",
+      "toggleStreetView": "Toggle StreetView"
     },
     "popup": {
       "attributes": "Attributes",
