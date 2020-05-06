@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="show" max-width="300px" v-if="isochroneItem">
+  <v-dialog v-model="show" scrollable max-width="330" v-if="calculation">
     <v-card>
       <v-app-bar color="green" dark>
         <v-app-bar-nav-icon><v-icon>colorize</v-icon></v-app-bar-nav-icon>
@@ -11,47 +11,117 @@
           ><v-icon>close</v-icon></v-app-bar-nav-icon
         >
       </v-app-bar>
-      <v-container class="py-0">
-        <v-row justify="space-around">
-          <v-color-picker
-            @input="updateFeatureColor"
-            v-model="isochroneItem.color"
-          ></v-color-picker> </v-row
-      ></v-container>
+      <vue-scroll>
+        <v-container class="pb-0">
+          <v-alert
+            border="left"
+            colored-border
+            class="mb-0 mt-2 mx-1 elevation-2"
+            icon="info"
+            color="green"
+            dense
+          >
+            <span v-html="$t('isochrones.results.colorMessage')"></span>
+          </v-alert>
+          <v-radio-group
+            @change="colorChanged"
+            class="ml-3 mt-3  mb-0"
+            v-model="calculation[`${selectedMode}ColorPalette`]"
+          >
+            <v-layout
+              row
+              wrap
+              align-center
+              class="mb-3"
+              v-for="(color, key, index) in colors"
+              :key="index"
+            >
+              <v-radio :value="key">
+                <template v-slot:label>
+                  <div
+                    class="colorPalettePicker"
+                    :style="{
+                      backgroundImage: `linear-gradient(to right, ${getPaletteColor(
+                        color
+                      )})`
+                    }"
+                  ></div>
+                </template>
+              </v-radio>
+            </v-layout>
+          </v-radio-group>
+        </v-container>
+      </vue-scroll>
     </v-card>
   </v-dialog>
 </template>
 
 <script>
 import { mapGetters } from "vuex";
+import IsochroneUtils from "../../utils/IsochroneUtils";
 
 export default {
   props: {
-    isochroneItem: { type: Object, required: false },
+    selectedMode: { type: String, required: false },
+    calculation: { type: Object, required: false },
     visible: { type: Boolean, required: true }
   },
   data: () => ({
-    selectedIsochroneFeature: null
+    modes: {
+      default: [1, 3],
+      scenario: [2, 4]
+    }
   }),
   methods: {
-    updateFeatureColor() {
-      const color = this.isochroneItem.color;
-      const feature = this.selectedIsochroneFeature;
-      if (color && feature) {
-        feature.set("color", color);
-      }
-    }
-  },
-  watch: {
-    isochroneItem() {
-      if (this.isochroneItem.id && this.isochroneLayer) {
-        //Reference isochrone Feature
-        this.selectedIsochroneFeature = this.isochroneLayer
+    getPaletteColor(color) {
+      return Object.values(color).toString();
+    },
+    colorChanged() {
+      const color = this.colors[
+        this.calculation[`${this.selectedMode}ColorPalette`]
+      ];
+
+      // Update isochrone color
+      this.calculation.data.forEach(obj => {
+        const selectedMode = this.modes[this.selectedMode];
+        const isochroneFeature = this.isochroneLayer
           .getSource()
-          .getFeatureById(this.isochroneItem.id);
-      }
+          .getFeatureById(obj.id);
+        if (selectedMode.includes(isochroneFeature.get("modus"))) {
+          const step = isochroneFeature.get("step");
+          const interpolatedColor = IsochroneUtils.getInterpolatedColor(
+            1,
+            20,
+            step,
+            color
+          );
+          isochroneFeature.set("color", interpolatedColor);
+          // legend el color
+          obj.color = interpolatedColor;
+        }
+      });
+
+      // Update network color
+      const selectedModeHumanize =
+        this.selectedMode === "default" ? "Default" : "Input";
+      if (!this.calculation.additionalData[selectedModeHumanize]) return;
+      this.calculation.additionalData[selectedModeHumanize].features.forEach(
+        feature => {
+          const cost = feature.get("cost");
+          const lowestCostValue = 0; // TODO: Find lowest and highest based on response data
+          const highestCostValue = 1200;
+          const interpolatedColor = IsochroneUtils.getInterpolatedColor(
+            lowestCostValue,
+            highestCostValue,
+            cost,
+            color
+          );
+          feature.set("color", interpolatedColor);
+        }
+      );
     }
   },
+  watch: {},
   computed: {
     show: {
       get() {
@@ -64,8 +134,16 @@ export default {
       }
     },
     ...mapGetters("isochrones", {
-      isochroneLayer: "isochroneLayer"
+      isochroneLayer: "isochroneLayer",
+      colors: "colors"
     })
   }
 };
 </script>
+<style lang="css" scoped>
+.colorPalettePicker {
+  height: 20px;
+  border-radius: 5px;
+  width: 265px;
+}
+</style>

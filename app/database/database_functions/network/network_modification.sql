@@ -17,7 +17,7 @@ DROP TABLE IF EXISTS drawn_features, existing_network, intersection_existing_net
 --Update ways_modified status column "1 == added"
 UPDATE ways_modified SET status = 1 WHERE userid = userid_input;
 
-CREATE TABLE drawn_features as
+CREATE TEMP TABLE drawn_features as
 SELECT id, extend_line(geom, 0.00001) AS geom, way_type, surface, wheelchair, street_category, userid, original_id 
 FROM ways_modified
 WHERE userid = userid_input;
@@ -31,7 +31,7 @@ FROM drawn_features d, ways_userinput w
 WHERE ST_INtersects(d.geom,w.geom);
 
 DROP TABLE IF EXISTS intersection_existing_network;
-CREATE TABLE intersection_existing_network AS 
+CREATE TEMP TABLE intersection_existing_network AS 
 SELECT (SELECT max(id) FROM ways_userinput_vertices_pgr) + row_number() over() as vertex_id, userid_input userid, geom, d_geom 
 FROM (SELECT DISTINCT (ST_DUMPpoints(geom)).geom AS geom, d_geom FROM pre_intersection_points) x;
 
@@ -50,16 +50,16 @@ IF cnt = 1 THEN
     SELECT geom, way_type, surface, wheelchair, street_category, userid, original_id  
 	FROM drawn_features;
 ELSE 
-	CREATE TABLE split_drawn_features AS
+	CREATE TEMP TABLE split_drawn_features AS
 	SELECT split_by_drawn_lines(id::integer,geom) AS geom, way_type, surface, wheelchair, street_category, userid, original_id  
-	FROM drawn_features
-	WHERE way_type <> 'bridge';
+	FROM drawn_features;
+	--WHERE way_type <> 'bridge';
 
 END IF;
 
 /*Split new network with existing network*/
 DROP TABLE IF EXISTS new_network;
-CREATE TABLE new_network AS
+CREATE TEMP TABLE new_network AS
 WITH union_existing_network AS 
 (
 	SELECT ST_UNION(w.geom) AS geom 	
@@ -79,12 +79,12 @@ ALTER TABLE new_network ADD COLUMN gid serial;
 /*It deletes all parts that are smaller then once centimeter*/
 DELETE FROM new_network
 WHERE st_length(geom) < 0.000001;
-
+/*
 INSERT INTO new_network 
 SELECT geom, way_type, surface, wheelchair, street_category, userid, original_id 
 FROM drawn_features
 WHERE way_type = 'bridge';
-
+*/
 ALTER TABLE new_network ADD COLUMN source integer;
 ALTER TABLE new_network ADD COLUMN target integer;
 
@@ -159,7 +159,7 @@ ALTER TABLE placeholder_intersection_existing_network RENAME TO intersection_exi
 --All the lines FROM the existing network which intersect with the draw network are split, this
 --is done as a new node now is added. This here has to be refactored as the code above!	
 DROP TABLE IF EXISTS existing_network;
-CREATE TABLE existing_network as 
+CREATE TEMP TABLE existing_network as 
 WITH p_n as ( 
 	SELECT DISTINCT w.id,w.class_id,w.source,w.target,w.geom, lit_classified, wheelchair_classified, impedance_surface
 	FROM ways_userinput w, drawn_features i

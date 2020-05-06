@@ -1,3 +1,9 @@
+DROP TABLE IF EXISTS buildings_residential;
+CREATE TABLE buildings_residential AS 
+SELECT * 
+FROM buildings
+WHERE residential_status = 'with_residents';
+
 DROP TABLE IF EXISTS population;
 --Population of each adminstrative boundary is assigned to the residential buildings
 CREATE TABLE buildings_pop AS
@@ -16,7 +22,7 @@ WHERE st_intersects(St_Centroid(b.geom),m.geom) AND x.sum_buildings_area <> 0
 AND m.gid=x.gid;
 
 DROP TABLE buildings_residential;
-alter table buildings_pop drop column gid;
+ALTER TABLE buildings_pop drop column gid;
 CREATE TABLE buildings_residential as 
 SELECT * from buildings_pop ;
 DROP TABLE buildings_pop;
@@ -27,8 +33,10 @@ ALTER TABLE buildings_residential add primary key(gid);
 
 
 CREATE TABLE population AS 
-SELECT ST_Centroid(geom) geom,population_building population 
+SELECT ST_Centroid(geom) geom,population_building population, gid as building_gid 
 FROM buildings_residential;
 CREATE INDEX index_population ON population USING GIST (geom);
 ALTER TABLE population ADD COLUMN gid serial;
 ALTER TABLE population ADD PRIMARY KEY(gid);
+
+DROP TABLE IF EXISTS buildings_residential;

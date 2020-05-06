@@ -69,7 +69,7 @@
             <v-btn-toggle v-model="toggleEdit">
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
-                  <v-btn v-on="on" text>
+                  <v-btn :value="1" v-on="on" text>
                     <v-icon medium>add</v-icon>
                   </v-btn>
                 </template>
@@ -78,7 +78,7 @@
 
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
-                  <v-btn v-on="on" text>
+                  <v-btn :value="2" v-on="on" text>
                     <v-icon>far fa-edit</v-icon>
                   </v-btn>
                 </template>
@@ -88,6 +88,7 @@
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
                   <v-btn
+                    :value="3"
                     v-show="selectedLayer.get('modifyAttributes') === true"
                     v-on="on"
                     text
@@ -100,7 +101,7 @@
 
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
-                  <v-btn v-on="on" text>
+                  <v-btn :value="4" v-on="on" text>
                     <v-icon>far fa-trash-alt</v-icon>
                   </v-btn>
                 </template>
@@ -112,14 +113,43 @@
                 v-show="selectedLayer.get('editGeometry') !== 'Point'"
               >
                 <template v-slot:activator="{ on }">
-                  <v-btn v-on="on" text>
+                  <v-btn
+                    v-show="
+                      !['Point', 'LineString'].includes(
+                        selectedLayer.get('editGeometry')
+                      )
+                    "
+                    :value="5"
+                    v-on="on"
+                    text
+                  >
                     <v-icon>far fa-clone</v-icon>
                   </v-btn>
                 </template>
                 <span>{{ $t("appBar.edit.moveFeature") }}</span>
               </v-tooltip>
             </v-btn-toggle>
-            <br />
+
+            <v-btn-toggle v-model="toggleEdit">
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    :value="6"
+                    class="ml-0 mr-2 mt-2"
+                    v-show="
+                      !['Point', 'LineString'].includes(
+                        selectedLayer.get('editGeometry')
+                      )
+                    "
+                    v-on="on"
+                    text
+                  >
+                    <v-icon>far fa-object-group</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.drawPolygonHole") }}</span>
+              </v-tooltip>
+            </v-btn-toggle>
             <v-btn-toggle v-model="toggleSnapGuide">
               <v-tooltip
                 top
@@ -130,8 +160,8 @@
                 "
               >
                 <template v-slot:activator="{ on }">
-                  <v-btn class="ml-0  mt-2" v-on="on" text>
-                    <v-icon>grid_on</v-icon>
+                  <v-btn class="ml-0 mt-2" v-on="on" text>
+                    <v-icon>fas fa-border-all</v-icon>
                   </v-btn>
                 </template>
                 <span>{{ $t("appBar.edit.snapGuide") }}</span>
@@ -492,7 +522,8 @@ export default {
       delete: "pointer",
       select: "pointer",
       move: "auto",
-      modifyAttributes: "pointer"
+      modifyAttributes: "pointer",
+      drawHole: "crosshair"
     },
     //Data table
     isTableLoading: false,
@@ -733,25 +764,30 @@ export default {
       me.toggleSelection = undefined;
       let editType, startCb, endCb;
       switch (state) {
-        case 0:
+        case 1:
           editType = "add";
           startCb = this.onDrawStart;
           endCb = this.onDrawEnd;
           break;
-        case 1:
+        case 2:
           editType = "modify";
           startCb = this.onModifyStart;
           endCb = this.onModifyEnd;
           break;
-        case 2:
+        case 3:
           editType = "modifyAttributes";
           startCb = this.openModifyAttributePopup;
           break;
-        case 3:
+        case 4:
           editType = "delete";
           break;
-        case 4:
+        case 5:
           editType = "move";
+          startCb = this.onModifyStart;
+          endCb = this.onModifyEnd;
+          break;
+        case 6:
+          editType = "drawHole";
           startCb = this.onModifyStart;
           endCb = this.onModifyEnd;
           break;
@@ -899,7 +935,7 @@ export default {
       //Exclude features from file input as we add this feature later when user click upload button
       if (evt.feature.get("user_uploaded")) return;
       if (
-        ["modify", "move", "modifyAttributes"].includes(
+        ["modify", "move", "modifyAttributes", "drawHole"].includes(
           me.olEditCtrl.currentInteraction
         )
       ) {
