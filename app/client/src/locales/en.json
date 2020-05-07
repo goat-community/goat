@@ -167,6 +167,9 @@
       "title": "About GOAT",
       "content": "stands for Geo Open Accessibility Tool. This web-tool is meant to be open source, interactive, flexible and useful for accessibility planning. It is under development at the Chair for Urban Structure and Transport Planning at TUM.....",
       "moreInfo": "More Info"
+    },
+    "documentation": {
+      "title": "Documentation"
     }
   },
   "isochrones": {
@@ -376,6 +379,7 @@
       "clickToPlacePoint": "Click to place the point",
       "changeDefaultColorPalette": "Change color (default)",
       "changeScenarioColorPalette": "Change color (scenario)",
+      "openDocumentation": "Open Documentation",
       "routingProfiles": {
         "walking": {
           "title": "Walking",
