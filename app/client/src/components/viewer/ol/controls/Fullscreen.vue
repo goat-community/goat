@@ -1,18 +1,27 @@
 <template>
   <div>
-    <v-btn
-      class="mx-2 zoom-buttons"
-      style="top:100px;"
-      fab
-      dark
-      x-small
-      color="green"
-      @click="toggleFullScreen"
-    >
-      <v-icon medium>{{
-        isFullscreen ? "fas fa-compress" : "fas fa-expand"
-      }}</v-icon>
-    </v-btn>
+    <v-tooltip right>
+      <template v-slot:activator="{ on }">
+        <v-btn
+          class="mx-2 zoom-buttons"
+          style="top:100px;"
+          fab
+          dark
+          x-small
+          color="green"
+          @click="toggleFullScreen"
+          v-on="on"
+        >
+          <v-icon medium>{{
+            isFullscreen ? "fas fa-compress" : "fas fa-expand"
+          }}</v-icon>
+        </v-btn>
+      </template>
+
+      <span>{{
+        $t(`map.tooltips.${isFullscreen ? "exitFullScreen" : "openFullScreen"}`)
+      }}</span>
+    </v-tooltip>
   </div>
 </template>
 <script>
