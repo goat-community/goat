@@ -15,7 +15,8 @@
       "filter": "Thematic Data Filter",
       "edit": "Draw scenario",
       "settings": "Language",
-      "info": "Visit GOAT Homepage"
+      "info": "Visit GOAT Homepage",
+      "osmMapMode": "OSM Map Mode"
     },
     "login": {
       "title": "Login",
@@ -289,6 +290,26 @@
     "title": "Layers",
     "settings": {
       "transparency": "Transparency"
+    },
+    "osmMode": {
+      "tasks": "OSM Mode Tasks",
+      "steps": "Steps",
+      "info": "Info",
+      "tasksList": {
+        "missingHours": "Check POIs for missing opening hours"
+      },
+      "missingHours": {
+        "title": "Opening Hours",
+        "shortDesc": "Fill out missing opening hours",
+        "longDesc": "Check out POIs for missing opening hours.",
+        "stepsDesc": {
+          "enablePoisLayer": "Turn on POIs in Thematic Data panel",
+          "clickPoisInMap": "Click a POIs in the map",
+          "clickEditWithOsm": "Click <b>'Edit with OSM'</b> link",
+          "fillOhInOSMiD": "Fill out opening hours in OSM iD"
+        },
+        "note": "Note: POIs are updated every 30 minutes"
+      }
     }
   },
   "map": {
