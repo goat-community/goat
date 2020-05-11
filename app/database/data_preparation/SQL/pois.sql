@@ -10,7 +10,10 @@ FROM planet_osm_point
 WHERE amenity IS NOT NULL AND shop IS NULL AND amenity <> 'school' AND amenity <> 'kindergarten'
 
 UNION ALL
+-- same block to edit--
+
 --all playgrounds (insert leisure as amenity)
+
 SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, leisure AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom, tags -> 'wheelchair' as wheelchair  
@@ -18,11 +21,14 @@ FROM planet_osm_point
 WHERE leisure = 'playground'
 
 UNION ALL
-SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, leisure AS amenity, shop, 
+
+SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, leisure AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom, tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_polygon
 WHERE leisure = 'playground'
+
+--end same block
 
 UNION ALL 
 -- all shops that don't have an amenity'
@@ -42,12 +48,11 @@ WHERE amenity IS NOT NULL AND amenity <> 'school' AND amenity <> 'kindergarten'
 
 UNION ALL 
 -- all shops
-SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, amenity, 
-shop, tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom, tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_polygon
 WHERE shop IS NOT NULL 
-
 
 UNION ALL
 -- all tourism
@@ -160,67 +165,68 @@ OR tags -> 'isced:level' LIKE ANY (ARRAY['%2%', '%3%'])
 -----------------------------------------------------------------
 -------------Insert kindergartens--------------------------------
 -----------------------------------------------------------------
-/*This here is a complete mess and not very understandable. I guess we will find a better solution*/
-DROP TABLE IF EXISTS merged_kindergartens;
-CREATE TEMP TABLE merged_kindergartens AS
-(
-	WITH merged_geom AS
-	(	
-		SELECT (ST_Dump(way)).geom
-		FROM (
-			SELECT ST_Union(way) AS way		
-			FROM planet_osm_polygon
-			WHERE amenity = 'kindergarten') x
-	)	
-	-- Get attributes back by getting all polygons that are within the merged geometry.
-	-- Group by the merged geometry. Aggregate all other attributes...
-	SELECT max(osm_id) AS osm_id, 'polygon' as origin_geometry, max(access) AS access, max("addr:housenumber") AS "addr:housenumber",
-	max(amenity) AS amenity, max(shop) AS shop, max(tags -> 'origin') AS origin, max(tags -> 'organic') AS organic, max(denomination) AS denomination,
-	max(brand) AS brand, max(name) AS name, max(operator) AS operator, max(public_transport) AS public_transport, max(railway) AS railway,
-	max(religion) AS religion, max(tags -> 'opening_hours') AS opening_hours, max(REF) AS ref, max(tags::TEXT)::hstore AS tags, m.geom,
-	max(tags -> 'wheelchair') as wheelchair
-	FROM planet_osm_polygon p, merged_geom m
-	WHERE amenity = 'kindergarten' AND st_contains(m.geom, p.way)
-	GROUP BY m.geom
-);
 
-INSERT INTO pois
-		
-SELECT DISTINCT p.osm_id,'point' as origin_geometry, p.access, 'addr:housenumber', p.amenity, p.shop, --p."addr:housenumber" doesn't work
+DROP TABLE IF EXISTS kindergartens_polygons;
+CREATE TEMP TABLE kindergartens_polygons AS (
+SELECT osm_id,'polygon' as origin_geometry, access, "addr:housenumber" as housenumber, amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination, brand, name,
+operator, public_transport, railway, religion, tags -> 'opening_hours' as opening_hours, ref, tags::hstore AS tags, way as geom,
+tags -> 'wheelchair' as wheelchair, ST_centroid(way) AS centroid
+FROM planet_osm_polygon
+WHERE amenity = 'kindergarten' );
+
+DROP TABLE IF EXISTS kindergarten_duplicates;
+CREATE TEMP TABLE kindergarten_duplicates AS (
+SELECT *
+FROM (
+	SELECT o.*, ST_Distance(o.centroid,p.centroid) AS distance
+	FROM kindergartens_polygons o
+	JOIN kindergartens_polygons p
+	ON ST_DWithin( o.centroid::geography, p.centroid::geography, select_from_variable_container_s('duplicated_kindergarden_lookup_radius')::float)
+	AND NOT ST_DWithin(o.centroid, p.centroid, 0)
+	) AS duplicates) ;
+
+DELETE FROM kindergartens_polygons WHERE osm_id = ANY (SELECT osm_id FROM kindergarten_duplicates);
+
+INSERT INTO kindergartens_polygons 
+SELECT max(osm_id), 'polygon' AS origin_geometry, max(access) AS access, max(housenumber) AS housenumber, 
+max(amenity) AS amenity, max(shop) AS shop, max(tags -> 'origin') AS origin, max(tags -> 'organic') AS organic, max(denomination) AS denomination,
+max(brand) AS brand, max(name) AS name, max(operator) AS operator, max(public_transport) AS public_transport, max(railway) AS railway,
+max(religion) AS religion, max(tags -> 'opening_hours') AS opening_hours, max(REF) AS ref, max(tags::TEXT)::hstore AS tags, null,
+max(tags -> 'wheelchair') AS wheelchair, max(centroid)::geometry
+FROM kindergarten_duplicates GROUP BY distance;
+
+INSERT INTO pois 
+SELECT DISTINCT p.osm_id,'point' as origin_geometry, p.access, "addr:housenumber" AS housenumber, p.amenity, p.shop, --p."addr:housenumber" doesn't work
 p.tags -> 'origin' AS origin, p.tags -> 'organic' AS organic, p.denomination,p.brand,p.name,
 p.operator,p.public_transport,p.railway,p.religion,p.tags -> 'opening_hours' as opening_hours, p.ref, p.tags::hstore AS tags, p.way as geom,
 p.tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_point p, merged_kindergartens
-WHERE p.amenity = 'kindergarten' AND NOT st_within(p.way, merged_kindergartens.geom)
+FROM planet_osm_point p, kindergartens_polygons kp 
+WHERE p.amenity = 'kindergarten' EXCEPT 
+SELECT DISTINCT kp.osm_id, kp.origin_geometry, kp.ACCESS, kp.housenumber, kp.amenity, kp.shop, kp.origin, kp.organic, kp.denomination, kp.brand, kp.name, 
+kp.OPERATOR, kp.public_transport, kp.railway, kp.religion, kp.opening_hours, kp.REF, kp.tags, kp.geom, kp.wheelchair
+FROM kindergartens_polygons kp, planet_osm_point p WHERE st_within(p.way, kp.geom) AND p.amenity = 'kindergarten'
 
-UNION ALL
+UNION ALL 
 
-SELECT osm_id,'polygon' as origin_geometry, access, "addr:housenumber", amenity, shop, 
-tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(geom) AS geom,
-tags -> 'wheelchair' as wheelchair  
-FROM merged_kindergartens;
+SELECT kp.osm_id, kp.origin_geometry, kp.ACCESS, kp.housenumber, kp.amenity, kp.shop, kp.origin, kp.organic, kp.denomination, kp.brand, kp.name, 
+kp.OPERATOR, kp.public_transport, kp.railway, kp.religion, kp.opening_hours, kp.REF, kp.tags, kp.centroid AS geom, kp.wheelchair
+FROM kindergartens_polygons kp;
 
 /*End*/
 
 --Distinguish kindergarten - nursery
 /*Please review this here. We should maybe limit this to amenity = 'kindergarten' only. Furthermore we can directly update the table without the need of the subquery*/
-UPDATE pois 
-SET amenity = 'nursery'
-FROM (select osm_id, (tags -> 'max_age')::integer AS max_age
-	from pois p) l
-WHERE pois.osm_id = l.osm_id
-AND l.max_age = 3;
+
+SELECT pois_reclassification_array('name','kindergarten','amenity','nursery',1);
+
 /*End*/
 ------------------------------------------end kindergarten-------------------------------------------
 
 --For Munich grocery == convencience
-/*The new re-classification function could also be used here.*/
-UPDATE pois set shop = 'convenience'
-WHERE shop ='grocery';
 
-UPDATE pois set shop = 'clothes'
-WHERE shop ='fashion';
+SELECT pois_reclassification('shop','grocery','shop','convenience');
+SELECT pois_reclassification('shop','fashion','shop','clothes');
 
 /*End*/
 
@@ -234,38 +240,11 @@ WHERE shop IS NOT NULL;
 ALTER TABLE pois DROP COLUMN shop;
 
 --Refinement Shopping
-/*The new re-classification function could also be used here.*/
-UPDATE pois SET amenity = 'discount_supermarket'
-WHERE lower(name)~~ 
-ANY
-(
-	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'discount_supermarket'),'%')
-)  
-AND amenity = 'supermarket';
 
-UPDATE pois SET amenity = 'hypermarket'
-WHERE lower(name)~~ 
-ANY
-(
-	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'hypermarket'),'%')
-)  
-AND amenity = 'supermarket';
-
-UPDATE pois SET amenity = 'no_end_consumer_store'
-WHERE lower(name)~~ 
-ANY
-(
-	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'no_end_consumer_store'),'%')
-)  
-AND amenity = 'supermarket';
-
-UPDATE pois SET amenity = 'health_food'
-WHERE lower(name)~~ 
-ANY
-(
-	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'health_food'),'%')
-)  
-AND amenity = 'supermarket';
+SELECT pois_reclassification_array('name','supermarket','amenity','discount_supermarket',2);
+SELECT pois_reclassification_array('name','supermarket','amenity','hypermarket',2);
+SELECT pois_reclassification_array('name','supermarket','amenity','no_end_consumer_store',2);
+SELECT pois_reclassification_array('name','supermarket','amenity','health_food',2);
 
 UPDATE pois SET amenity = 'organic'
 WHERE organic = 'only'
