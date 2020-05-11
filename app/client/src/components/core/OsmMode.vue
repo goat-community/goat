@@ -10,14 +10,10 @@
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title class="subtitle-1 font-weight-medium">{{
-                $te(`layerTree.osmMode.${task}.title`)
-                  ? $t(`layerTree.osmMode.${task}.title`)
-                  : task
+                $t(`layerTree.osmMode.${task}.title`)
               }}</v-list-item-title>
               <v-list-item-subtitle>{{
-                $te(`layerTree.osmMode.${task}.shortDesc`)
-                  ? $t(`layerTree.osmMode.${task}.shortDesc`)
-                  : task
+                $t(`layerTree.osmMode.${task}.shortDesc`)
               }}</v-list-item-subtitle>
             </v-list-item-content>
             <v-list-item-action>
@@ -34,9 +30,7 @@
         </v-btn>
         <v-subheader class="ml-1 pb-1 pl-0">
           <span class="title">{{
-            $te(`layerTree.osmMode.${activeTask}.title`)
-              ? $t(`layerTree.osmMode.${activeTask}.title`)
-              : task
+            $t(`layerTree.osmMode.${activeTask}.title`)
           }}</span>
         </v-subheader>
       </v-layout>
@@ -50,13 +44,7 @@
         color="green"
         dense
       >
-        <span
-          v-html="
-            $te(`layerTree.osmMode.${activeTask}.longDesc`)
-              ? $t(`layerTree.osmMode.${activeTask}.longDesc`)
-              : task
-          "
-        ></span>
+        <span v-html="$t(`layerTree.osmMode.${activeTask}.longDesc`)"></span>
       </v-alert>
 
       <v-subheader>
