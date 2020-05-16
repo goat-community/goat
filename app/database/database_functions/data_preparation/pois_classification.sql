@@ -16,7 +16,7 @@ DECLARE
 	looktype TEXT;
 BEGIN
 	
-	IF elementtype = 'value' THEN
+	IF elementtype = 'singlevalue' THEN
 	looktype = ' WHERE ';
 	ELSE 
 	looktype = ' WHERE tags -> ';
@@ -24,7 +24,7 @@ BEGIN
 	EXECUTE 
 	'UPDATE pois 
 	 SET '|| quote_ident(new_col) ||' = '|| quote_literal(new_name) ||
-	 looklike|| quote_ident(old_col) ||' = '|| quote_literal(old_name)||'' ;
+	 looktype|| quote_ident(old_col) ||' = '|| quote_literal(old_name)||'' ;
     
 END;
 $function$;
