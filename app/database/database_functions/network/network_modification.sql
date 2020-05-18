@@ -65,6 +65,7 @@ WITH union_existing_network AS
 	SELECT ST_UNION(w.geom) AS geom 	
 	FROM ways_userinput w, split_drawn_features d 
 	WHERE ST_INtersects(d.geom,w.geom)
+	AND w.userid IS NULL
 ),
 dump AS (
 	SELECT ST_DUMP(ST_CollectionExtract(ST_SPLIT(d.geom,w.geom),2)) AS geom,  
