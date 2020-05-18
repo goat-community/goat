@@ -8,15 +8,19 @@ const state = {
       timeout: 2000
     }
   },
+  layers: {}, // Only for operational layers
   helpTooltip: {
     isActive: false,
     currentMessage: ""
   },
-  contextmenu: null
+  contextmenu: null,
+  osmMode: false
 };
 
 const getters = {
   map: state => state.map,
+  layers: state => state.layers,
+  osmMode: state => state.osmMode,
   helpTooltip: state => state.helpTooltip,
   messages: state => state.messages,
   contextmenu: state => state.contextmenu,
@@ -32,6 +36,11 @@ const mutations = {
   TOGGLE_SNACKBAR(state, payload) {
     Object.assign(state.messages.snackbar, payload);
   },
+  SET_LAYER(state, layer) {
+    if (layer.get("name")) {
+      state.layers[layer.get("name")] = layer;
+    }
+  },
   START_HELP_TOOLTIP(state, message) {
     state.helpTooltip.isActive = true;
     state.helpTooltip.currentMessage = message;
@@ -44,6 +53,9 @@ const mutations = {
   },
   SET_CONTEXTMENU(state, contextmenu) {
     state.contextmenu = contextmenu;
+  },
+  SET_OSM_MODE(state) {
+    state.osmMode = !state.osmMode;
   }
 };
 
