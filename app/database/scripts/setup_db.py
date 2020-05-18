@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 def setup_db(setup_type):
     #Read Configuration
     import shapefile
@@ -16,9 +17,9 @@ def setup_db(setup_type):
     db_name,user,host,port,password = ReadYAML().db_credentials()
     db_name_temp = db_name+'temp'
 
-    db_temp = DB_connection(db_name_temp,user,host)
+    db_temp = DB_connection(db_name_temp,user,host,port,password)
 
-   
+
     #Create temporary database
     os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name_temp)
     os.system('psql -U postgres -c "DROP DATABASE IF EXISTS %s;"' % db_name_temp)
