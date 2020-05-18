@@ -40,8 +40,8 @@ elif (setup_type == 'functions'):
     db_functions.update_functions()
 elif (setup_type == 'variable_container'):
     ReadYAML().create_pgpass('')
-    db_name,user,host = ReadYAML().db_credentials()[:3]
-    db_con = DB_connection(db_name,user,host)
+    db_name,user,host,port,password = ReadYAML().db_credentials()[:5]
+    db_con = DB_connection(db_name,user,host,port,password)
     db_con.execute_text_psql(db_functions.create_variable_container())
 elif (setup_type == 'restore_dump' and namespace != None):
     restore_db(namespace)
