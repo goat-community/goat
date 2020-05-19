@@ -102,3 +102,44 @@ export function rgbArrayToHex(rgb) {
 export function isCssColor(color) {
   return !!color && !!color.match(/^(#|(rgb|hsl)a?\()/);
 }
+
+export function linearInterpolation(x1, x2, y1, y2, x) {
+  return (x - x1) * ((y2 - y1) / (x2 - x1)) + y1;
+}
+
+// Returns two closest values from the array. If value exist undefined is returned
+export function getClosest(a, x) {
+  var min = Math.min.apply(null, a),
+    max = Math.max.apply(null, a),
+    i,
+    len;
+
+  if (x < min) {
+    // if x is lower than the lowest value
+    return min;
+  } else if (x > max) {
+    // if x is greater than the 'greatest' value
+    return max;
+  }
+  a.sort();
+  for (i = 0, len = a.length; i < len; i++) {
+    if (x > a[i] && x < a[i + 1]) {
+      return [a[i], a[i + 1]];
+    }
+  }
+}
+
+// Returns a single rgb color interpolation between given rgb color
+// based on the factor given; via https://codepen.io/njmcode/pen/axoyD?editors=0010
+export function interpolateColor(color1, color2, factor) {
+  if (arguments.length < 3) {
+    factor = 0.5;
+  }
+  color1 = color1.match(/\d+/g).map(Number);
+  color2 = color2.match(/\d+/g).map(Number);
+  var result = color1.slice();
+  for (var i = 0; i < 3; i++) {
+    result[i] = Math.round(result[i] + factor * (color2[i] - color1[i]));
+  }
+  return `rgb(${result.toString()})`;
+}

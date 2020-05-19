@@ -1,27 +1,39 @@
 <template>
   <div>
-    <v-btn
-      class="mx-2 zoom-buttons"
-      style="top:20px;"
-      fab
-      dark
-      x-small
-      color="green"
-      @click="zoom(1)"
-    >
-      <span style="font-size:22px;">+</span>
-    </v-btn>
-    <v-btn
-      class="mx-2 zoom-buttons"
-      style="top:60px;"
-      fab
-      dark
-      x-small
-      color="green"
-      @click="zoom(-1)"
-    >
-      <span style="font-size:22px;">−</span>
-    </v-btn>
+    <v-tooltip right>
+      <template v-slot:activator="{ on }">
+        <v-btn
+          class="mx-2 zoom-buttons"
+          style="top:20px;"
+          fab
+          dark
+          x-small
+          color="green"
+          @click="zoom(1)"
+          v-on="on"
+        >
+          <span style="font-size:22px;">+</span>
+        </v-btn>
+      </template>
+      <span>{{ $t(`map.tooltips.zoomIn`) }}</span>
+    </v-tooltip>
+    <v-tooltip right>
+      <template v-slot:activator="{ on }">
+        <v-btn
+          class="mx-2 zoom-buttons"
+          style="top:60px;"
+          fab
+          dark
+          x-small
+          color="green"
+          @click="zoom(-1)"
+          v-on="on"
+        >
+          <span style="font-size:22px;">−</span>
+        </v-btn>
+      </template>
+      <span>{{ $t(`map.tooltips.zoomOut`) }}</span>
+    </v-tooltip>
   </div>
 </template>
 <script>

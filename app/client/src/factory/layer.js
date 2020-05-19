@@ -78,6 +78,7 @@ export const LayerFactory = {
       canEdit: lConf.canEdit,
       editDataType: lConf.editDataType,
       editGeometry: lConf.editGeometry,
+      modifyAttributes: lConf.modifyAttributes,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       displayInLegend: lConf.displayInLegend,
@@ -87,6 +88,7 @@ export const LayerFactory = {
       requiresPois: lConf.requiresPois,
       ratio: lConf.ratio ? lConf.ratio : 1.5,
       zIndex: lConf.zIndex,
+      docUrl: lConf.docUrl,
       source: new ImageWMS({
         url: lConf.url,
         params: {

@@ -65,6 +65,7 @@ const getters = {
   routeIcons: state => state.routeIcons,
   calculations: state => state.calculations,
   options: state => state.options,
+  colors: state => state.colors,
   isochroneLayer: state => state.isochroneLayer,
   studyAreaLayer: state => state.studyAreaLayer,
   isochroneRoadNetworkLayer: state => state.isochroneRoadNetworkLayer,
@@ -217,9 +218,19 @@ const actions = {
       feature.unset("coordinates");
       // If the modus is 1 it is a default isochrone, otherwise is a input or double calculation
       if (modus === 1 || modus === 3) {
-        color = state.styleData.defaultIsochroneColors[level];
+        color = IsochroneUtils.getInterpolatedColor(
+          1,
+          20,
+          level,
+          state.colors[state.defaultIsochroneColor]
+        );
       } else {
-        color = state.styleData.inputIsochroneColors[level];
+        color = IsochroneUtils.getInterpolatedColor(
+          1,
+          20,
+          level,
+          state.colors[state.scenarioIsochroneColor]
+        );
       }
       let obj = {
         id: feature.getId(),
@@ -245,6 +256,7 @@ const actions = {
     let transformedData = {
       id: calculationNumber,
       calculationType: calculationType,
+      calculationMode: sharedParams.modus.replace(/'/g, ""), // remove extra apostrophe in multi-isochrone
       time: state.options.minutes + " min",
       speed: state.options.speed + " km/h",
       routing_profile: state.activeRoutingProfile,
@@ -253,6 +265,16 @@ const actions = {
       data: calculationData,
       additionalData: {}
     };
+
+    // Add default calculation color palette.
+    if (transformedData.calculationMode === "default") {
+      transformedData[`defaultColorPalette`] = state.defaultIsochroneColor;
+    } else if (transformedData.calculationMode === "scenario") {
+      transformedData[`scenarioColorPalette`] = state.scenarioIsochroneColor;
+    } else if (transformedData.calculationMode === "comparison") {
+      transformedData[`defaultColorPalette`] = state.defaultIsochroneColor;
+      transformedData[`scenarioColorPalette`] = state.scenarioIsochroneColor;
+    }
 
     if (calculationType === "single") {
       const isochroneStartingPoint = wktToFeature(
@@ -437,8 +459,26 @@ const actions = {
             ];
             // Set isochrone calculation speed property for styling purpose
             const speed = parseFloat(calculation.speed.split(" ")[0]);
+            const lowestCostValue = 0; // TODO: Find lowest and highest based on response data
+            const highestCostValue = 1200;
             olFeatures.forEach(feature => {
               feature.set("speed", speed);
+              const cost = feature.get("cost");
+              const modus = feature.get("modus");
+              let color;
+              if (modus === 1 || modus === 3) {
+                color = state.colors[calculation.defaultColorPalette];
+              } else {
+                color = state.colors[calculation.scenarioColorPalette];
+              }
+
+              const interpolatedColor = IsochroneUtils.getInterpolatedColor(
+                lowestCostValue,
+                highestCostValue,
+                cost,
+                color
+              );
+              feature.set("color", interpolatedColor);
             });
             if (
               payload.state === true &&

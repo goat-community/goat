@@ -1,14 +1,14 @@
 <featureType>
-  <id>FeatureTypeInfoImpl-1aa3b2a:170a6cebe37:-7ffb</id>
-  <name>Test</name>
-  <nativeName>study_area</nativeName>
+  <id>FeatureTypeInfoImpl-6eed1f5b:1719ca112ea:-7ffd</id>
+  <name>landuse_atkis</name>
+  <nativeName>land_use</nativeName>
   <namespace>
     <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
   </namespace>
-  <title>Test</title>
+  <title>landuse_atkis</title>
   <keywords>
     <string>features</string>
-    <string>study_area</string>
+    <string>land_use</string>
   </keywords>
   <nativeCRS>GEOGCS[&quot;WGS 84&quot;, 
   DATUM[&quot;World Geodetic System 1984&quot;, 
@@ -21,23 +21,40 @@
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>11.693015585865664</minx>
-    <maxx>11.759892842082783</maxx>
-    <miny>48.09747023066492</miny>
-    <maxy>48.13791511124265</maxy>
+    <minx>11.1391020174565</minx>
+    <maxx>11.3164960223677</maxx>
+    <miny>48.1125603351637</miny>
+    <maxy>48.2323673942505</maxy>
     <crs>EPSG:4326</crs>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>11.693015585865664</minx>
-    <maxx>11.759892842082783</maxx>
-    <miny>48.09747023066492</miny>
-    <maxy>48.13791511124265</maxy>
+    <minx>11.1391020174565</minx>
+    <maxx>11.3164960223677</maxx>
+    <miny>48.1125603351637</miny>
+    <maxy>48.2323673942505</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
   <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>land_use</name>
+        <sql>select l.landuse, l.nam, ST_Intersection(l.geom,s.geom) as name from landuse l, study_area s&#xd;
+WHERE ST_Intersects(s.geom,l.geom)
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>name</name>
+          <type>Geometry</type>
+          <srid>4326</srid>
+        </geometry>
+      </virtualTable>
+    </entry>
+    <entry key="cachingEnabled">false</entry>
+  </metadata>
   <store class="dataStore">
-    <id>DataStoreInfoImpl-1aa3b2a:170a6cebe37:-7ffc</id>
+    <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
   </store>
   <serviceConfiguration>false</serviceConfiguration>
   <maxFeatures>0</maxFeatures>

@@ -57,8 +57,18 @@
           }}
         </div>
 
+        <a
+          v-if="currentInfoFeature && currentInfoFeature.get('osm_id')"
+          style="text-decoration:none;"
+          :href="getOsmHrefLink()"
+          target="_blank"
+          title=""
+        >
+          <i class="fa fa-edit"></i> {{ $t("map.popup.editWithOsm") }}</a
+        >
+
         <v-divider></v-divider>
-        <span v-html="popup.rawHtml"></span>
+
         <div style="height:190px;">
           <vue-scroll>
             <v-simple-table dense class="pr-2">
@@ -241,6 +251,7 @@ export default {
      */
     createLayers() {
       let layers = [];
+      const me = this;
       const layersConfigGrouped = groupBy(this.$appConfig.map.layers, "group");
       for (var group in layersConfigGrouped) {
         if (!layersConfigGrouped.hasOwnProperty(group)) {
@@ -250,6 +261,9 @@ export default {
         layersConfigGrouped[group].reverse().forEach(function(lConf) {
           const layer = LayerFactory.getInstance(lConf);
           mapLayers.push(layer);
+          if (layer.get("name")) {
+            me.setLayer(layer);
+          }
         });
         let layerGroup = new LayerGroup({
           name: group !== undefined ? group.toString() : "Other Layers",
@@ -620,9 +634,34 @@ export default {
       this.popup.currentLayerIndex += 1;
       this.showPopup();
     },
+    getOsmHrefLink() {
+      let link = ``;
+      if (this.currentInfoFeature && this.currentInfoFeature.get("osm_id")) {
+        const feature = this.currentInfoFeature;
+        const originGeometry = feature.getProperties()["orgin_geometry"];
+        let type;
+        switch (originGeometry) {
+          case "polygon":
+            type = "way";
+            break;
+          case "point":
+            type = "node";
+            break;
+          default:
+            type = null;
+            break;
+        }
+        link =
+          `https://www.openstreetmap.org/edit?editor=id&` +
+          `${type}` +
+          `=${feature.get("osm_id")}`;
+      }
+      return link;
+    },
     ...mapMutations("map", {
       setMap: "SET_MAP",
-      setContextMenu: "SET_CONTEXTMENU"
+      setContextMenu: "SET_CONTEXTMENU",
+      setLayer: "SET_LAYER"
     }),
     ...mapActions("isochrones", {
       showIsochroneWindow: "showIsochroneWindow"
@@ -661,6 +700,9 @@ export default {
       });
 
       return transformed;
+    },
+    currentInfoFeature() {
+      return this.getInfoResult[this.popup.currentLayerIndex];
     }
   },
   watch: {

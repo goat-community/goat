@@ -5,25 +5,6 @@ import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
 
-const colorDiffDefault = [6.1, 13.42, 11.789];
-const color1Default = [255, 255, 224];
-const colorDiffInput = [1.789, 10.578, -9.631];
-const color1Input = [34, 211, 41];
-
-function setNetworkColor(time, colorDiff, color1) {
-  let color;
-  if (time < 1) {
-    color = color1;
-  } else {
-    let diffTime = time - 1;
-    color = [
-      color1[0] - colorDiff[0] * diffTime,
-      color1[1] - colorDiff[1] * diffTime,
-      color1[2] - colorDiff[2] * diffTime
-    ];
-  }
-  return color;
-}
 export function getMeasureStyle(measureConf) {
   return new OlStyle({
     fill: new OlFill({
@@ -100,26 +81,13 @@ export function getEditStyle() {
 
 export function getIsochroneNetworkStyle() {
   const styleFunction = feature => {
-    const modus = feature.get("modus");
-    const level = feature.get("cost");
-    let speed = feature.get("speed") * 16.6666667;
-    let color;
-    if (modus == 1 || modus == 3) {
-      color = setNetworkColor(level / speed, colorDiffDefault, color1Default);
-    } //If the parent_id is not one it is a input isochrone
-    else {
-      color = setNetworkColor(level / speed, colorDiffInput, color1Input);
-    }
-
+    const color = feature.get("color");
     const style = new OlStyle({
       stroke: new OlStroke({
-        color: `rgb(${Math.round(color[0])},${Math.round(
-          color[1]
-        )},${Math.round(color[2])})`,
+        color: color,
         width: 3
       })
     });
-
     return [style];
   };
   return styleFunction;
@@ -345,16 +313,16 @@ export function editStyleFn() {
 
     // Linestring (ex. ways ) style
     if (
-      (props.hasOwnProperty("type") && props["original_id"] == null) ||
+      (props.hasOwnProperty("way_type") && props["original_id"] == null) ||
       Object.keys(props).length == 1
     ) {
       //Distinguish Roads from Bridge features
-      if (props.type == "bridge") {
+      if (props.way_type == "bridge") {
         return waysNewBridgeStyle(feature);
       } else {
         return waysNewRoadStyle(feature);
       }
-    } else if (props.hasOwnProperty("type")) {
+    } else if (props.hasOwnProperty("way_type")) {
       return waysModifiedStyle(feature); //Feature are modified
     } else {
       return defaultStyle(feature); //Features are from original table

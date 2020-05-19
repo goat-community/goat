@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="show" max-width="350px">
+  <v-dialog v-model="show" scrollable max-width="350px">
     <v-card>
       <v-app-bar color="green" dark>
         <v-app-bar-nav-icon
@@ -11,20 +11,22 @@
           ><v-icon>close</v-icon></v-app-bar-nav-icon
         >
       </v-app-bar>
-      <v-card-title primary-title>
-        <v-flex xs12>
-          <v-text-field
-            :label="$t(`isochrones.download.fileName`)"
-            v-model="name"
-            type="text"
-          ></v-text-field>
-          <v-select
-            :items="items"
-            v-model="selected"
-            :label="$t(`isochrones.download.outputFormat`)"
-          ></v-select>
-        </v-flex>
-      </v-card-title>
+      <vue-scroll>
+        <v-card-title primary-title>
+          <v-flex xs12>
+            <v-text-field
+              :label="$t(`isochrones.download.fileName`)"
+              v-model="name"
+              type="text"
+            ></v-text-field>
+            <v-select
+              :items="items"
+              v-model="selected"
+              :label="$t(`isochrones.download.outputFormat`)"
+            ></v-select>
+          </v-flex>
+        </v-card-title>
+      </vue-scroll>
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn class="white--text" @click="download()" color="green"
@@ -40,6 +42,7 @@
 import { mapGetters } from "vuex";
 import { featuresToGeojson } from "../../utils/MapUtils";
 import { saveAs } from "file-saver";
+import http from "../../services/http";
 
 export default {
   props: {
@@ -54,6 +57,10 @@ export default {
   methods: {
     download() {
       let me = this;
+      let exportName = me.name;
+      if (me.name.length === 0) {
+        exportName = "export";
+      }
       if (me.selected === "GeoJson") {
         let featuresArray = [];
         let data = me.calculation.data;
@@ -68,11 +75,26 @@ export default {
         });
         let json = featuresToGeojson(featuresArray, "EPSG:3857");
         let blob = new Blob([json], { type: "application/json" });
-        let exportName = me.name;
-        if (me.name.length === 0) {
-          exportName = "export";
-        }
+
         saveAs(blob, `${exportName}.json`);
+      } else if (me.selected === "Shapefile") {
+        const objectId = me.calculation.data[0].objectId;
+        http
+          .get("./geoserver/wfs", {
+            params: {
+              service: "WFS",
+              version: " 1.1.0",
+              request: "GetFeature",
+              viewparams: `objectid:${objectId}`,
+              outputFormat: "shape-zip",
+              typeNames: "cite:download_isochrones",
+              srsname: "EPSG:4326"
+            },
+            responseType: "blob"
+          })
+          .then(response => {
+            saveAs(response.data, `${exportName}.zip`);
+          });
       }
     }
   },
