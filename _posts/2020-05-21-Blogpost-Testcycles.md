@@ -13,6 +13,8 @@ The practical experience of each workshop is incorporated into the development p
 
 The second workshop started with a short presentation on the new version of GOAT and the focus was laid on the practical use of the tool by the workshop participants. For this purpose, tutorials were provided in the form of worksheets that allowed participants to test the new version of GOAT independently and to assess its usefulness and user-friendliness based on local planning issues. For this workshop, [a version of Fürstenfeldbruck](https://ffb.open-accessibility.org/) was provided, which was developed after the first workshop and contains all recent features such as cycling routing and scenarios on land-use changes. The GOAT-team helped with questions and observed and documented any usage difficulties that arose.
 
+The third workshop was held, due to the current situation, virtually via ZOOM. This test cycle was similar to the second one. It started with a presentation on the new features and improvements of GOAT, which was followed by practical use of the tool by the participants. For this workshop, numerous new layers such as accidents, noise levels, protected landscape areas, and buildings and land use were presented. The GOAT-team intervened when the participants needed help. 
+
 The participants suggested many good ideas for improvements. Among them:
 - add additional POIs, such as children’s playgrounds and nurseries to GOAT
 - consider the accessibility to green areas parks
@@ -22,8 +24,11 @@ The participants suggested many good ideas for improvements. Among them:
 - improve usability of the scenario building by providing a clearer workflow
 - consider different gradients for the calculation of accessibility with a wheelchair
 - provide the possibility to add new buildings as a new scenario
+- differentiation between different types of wheelchair (e.g. electric and non-electric)
+- enable storage and export of the developed scenarios
 
-The suggestions for improvement were documented and will be, wherever possible, implemented in the further development process. We are already looking forward to the third testing workshop in Fürstenfeldbruck and are curious to see what valuable feedback the participants will give us this time.
+
+The suggestions for improvement were documented and will be, wherever possible, implemented in the further development process. We are already looking forward to the last planning workshop, which will be structured in small groups according to the subject area. The goal of this workshop is to process real planning issues. We are curious to see what valuable feedback the participants will give us this time.
 
 
 
