@@ -3,7 +3,9 @@
   "buttonLabels": {
     "yes": "Yes",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "ok": "Ok",
+    "remove": "Remove"
   },
   "appBar": {
     "buttons": {
@@ -54,6 +56,10 @@
           "label": "Reference System",
           "rule": "Field is required"
         },
+        "outputFormat": {
+          "label": "Output Format",
+          "rule": "Field is required"
+        },
         "submit": "Print",
         "abort": "Abort",
         "legend": "Legend",
@@ -101,9 +107,12 @@
       "selectOnMap": "Select features on map",
       "editTools": "Edit Tools",
       "drawFeatureTooltip": "Draw Feature",
-      "modifyFeatureTooltip": "Modify Feature",
+      "modifyFeatureTooltip": "Modify Geometry",
       "deleteFeature": "Delete Feature",
       "moveFeature": "Move Feature",
+      "modifyAttributes": "Modify Attributes",
+      "drawPolygonHole": "Draw Polygon Hole",
+      "snapGuide": "Snap Guide",
       "clearBtn": "Revert All",
       "uploadBtn": "Upload",
       "popup": {
@@ -224,7 +233,8 @@
         "area": "Area",
         "visible": "Visible",
         "legend": "Legend"
-      }
+      },
+      "colorMessage": "Lowest: <b>0 min</b>, Highest: <b>20 min</b>"
     },
     "tableData": {
       "timeFilter": "Time filter",
@@ -295,9 +305,12 @@
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
-      "administrativeLayers": "Administrative Layers",
+      "buildings_landuse": "Buildings and Landuse",
+      "administrativeLayers": "Administrative boundaries",
       "streetlevelqualityLayers": "Street Level Quality",
+      "environmentalQualityLayers": "Environmental data",
       "perceivedQuality": "Perceived Quality",
+      "additionalDataLayers": "Additional data",
       "accessbilityBasemaps": "Accessibility",
       "backgroundLayers": "Background Layers",
       "buildings": "Buildings"
@@ -305,13 +318,28 @@
     "layerName": {
       "pois": "Point of Interest",
       "administrativeUnits": "Administrative Units",
+      "accidents_pedestrian_2018": "Accidents with pedestrians (2018)",
+      "accidents_pedestrian_2017": "Accidents with pedestrians (2017)",
+      "accidents_bike_2018":"Accidents with cyclists (2018)",
+      "accidents_bike_2017":"Accidents with cyclists (2017)",
+      "biotops": "Biotops",
+      "ffh-area": "FFH Area",
+      "natureReserves": "Nature Reserves",
+      "noiseMainTrafficRoads": "Noise levels - main roads",
+      "protectedLandscape": "Protected Landscape Areas",
+      "landuse": "Landuse (ATKIS)",
+      "landuse_osm": "Landuse (OSM)",
       "footpathWidth": "Footpath Width",
       "illuminance": "Illuminance",
       "lanes": "Lanes",
       "parking": "Parking",
+      "smoothness": "Smoothness",
       "speed": "Speed",
+      "streetCategory": "Street Categories Detailed",
+      "streetCategorysAggregated": "Street Categories",
       "streetCrossings": "Street Crossings",
       "streetFurniture": "Street Furniture",
+      "streetFurnitureBicycles": "Bicycle Ranks",
       "surface": "Surface",
       "wheelchairUsability": "Wheelchair Usability",
       "areaIsochrone": "Area Isochrone",
@@ -341,9 +369,13 @@
       "clickToFinishDrawingPolygon": "Double-click or click starting point to finish.",
       "clickOnFeatureToDelete": "Click on feature to delete it",
       "clickOnFeatureToMove": "Click and drag the feature to move",
-      "clickAndDragToModify": "Click and drag the features to modify",
+      "drawHoleOnPolygon": "Draw over the polygon to create a hole",
+      "clickAndDragToModify": "Click and drag the features to modify geometry",
+      "clickToModifyAttributes": "Click to modify attributes",
       "clickToRemove": "Click to remove it",
       "clickToPlacePoint": "Click to place the point",
+      "changeDefaultColorPalette": "Change color (default)",
+      "changeScenarioColorPalette": "Change color (scenario)",
       "routingProfiles": {
         "walking": {
           "title": "Walking",
@@ -389,7 +421,8 @@
       "attributes": "Attributes",
       "info": "Info",
       "editWithOsm": "Edit with OSM",
-      "confirm": "Confirm"
+      "confirm": "Confirm",
+      "modifyAttributes": "Modify Attributes"
     },
     "layerListValues": {
       "road": "Road",
@@ -408,6 +441,7 @@
     "services": "Services",
     "shop": "Shop",
     "tourismAndLeisure": "Tourism & Leisure",
+    "nursery": "Nursery",
     "kindergarten": "Kindergarten",
     "primary_school": "Primary school",
     "secondary_school": "Secondary school",
@@ -461,6 +495,7 @@
     "gallery": "Gallery",
     "university": "University",
     "hospital": "Hospital",
+    "playground": "Playground",
     "population": "Population"
   },
   "$vuetify": {
@@ -505,8 +540,9 @@
   "dynamicFields": {
     "attributes": {
       "ways": {
-        "type": "Way Type",
-        "class_id": "Class Id"
+        "way_type": "Way type",
+        "surface": "Surface",
+        "wheelchair": "Wheelchair"
       },
       "pois": {
         "amenity": "Amenity",
@@ -521,8 +557,29 @@
     "listValues": {
       "ways": {
         "road": "Road",
-        "bridge": "Bridge"
+        "bridge": "Bridge",
+        "asphalt": "Asphalt",
+        "cobblestone": "Cobblestone",
+        "fine_gravel": "Fine gravel",
+        "gravel": "Gravel",
+        "grass": "Grass",
+        "unpaved": "Unpaved",
+        "yes": "Yes",
+        "no": "No"
       }
     }
+  },
+  "openingHours": {
+    "openingTime": "Opening Time",
+    "closingTime": "Closing Time",
+    "default": "Default",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "publicHolidays": "Public Holidays"
   }
 }

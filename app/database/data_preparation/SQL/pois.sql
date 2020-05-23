@@ -9,6 +9,21 @@ operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_ho
 FROM planet_osm_point
 WHERE amenity IS NOT NULL AND shop IS NULL AND amenity <> 'school' AND amenity <> 'kindergarten'
 
+UNION ALL
+--all playgrounds (insert leisure as amenity)
+SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, leisure AS amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom, tags -> 'wheelchair' as wheelchair  
+FROM planet_osm_point
+WHERE leisure = 'playground'
+
+UNION ALL
+SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, leisure AS amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom, tags -> 'wheelchair' as wheelchair  
+FROM planet_osm_polygon
+WHERE leisure = 'playground'
+
 UNION ALL 
 -- all shops that don't have an amenity'
 SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, amenity, shop, 
@@ -254,6 +269,14 @@ tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,nam
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(geom) AS geom,
 tags -> 'wheelchair' as wheelchair  
 FROM merged_kindergartens;
+
+--Distinguish kindergarten - nursery
+UPDATE pois 
+SET amenity = 'nursery'
+FROM (select osm_id, (tags -> 'max_age')::integer AS max_age
+	from pois p) l
+WHERE pois.osm_id = l.osm_id
+AND l.max_age = 3;
 
 ------------------------------------------end kindergarten-------------------------------------------
 

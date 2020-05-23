@@ -138,11 +138,13 @@ FROM
 CREATE TABLE public.ways_modified
 (
     id bigint NOT NULL,
-    class_id integer,
     geom geometry(LineString,4326),
+    way_type text,
+	surface text,
+	wheelchair text,
+	street_category text,
     userid integer,
     original_id integer,
-	type varchar(20),
 	status bigint,
     CONSTRAINT ways_modified_id_pkey PRIMARY KEY (id)
 );
@@ -163,6 +165,21 @@ CREATE TABLE public.pois_modified (
 
 CREATE INDEX ON pois_modified USING gist(geom);
 
+CREATE TABLE buildings_modified
+(
+	gid serial,
+	building text,
+	building_levels integer,
+	building_levels_residential integer,
+	new_levels_levels integer,
+	population numeric,
+	geom geometry,
+	userid integer,
+	original_id integer,
+	CONSTRAINT buildings_modified_gid_pkey PRIMARY KEY(gid)
+);
+
+CREATE INDEX ON buildings_modified USING GIST(geom);
 
 DROP SEQUENCE IF EXISTS user_data_id_seq;
 CREATE SEQUENCE user_data_id_seq;
@@ -184,3 +201,17 @@ TABLESPACE pg_default;
 
 ALTER TABLE public.user_data
     OWNER to goat;
+
+CREATE TABLE custom_pois (
+	gid serial,
+	amenity text,
+	addr_street text,
+	addr_city text,
+	addr_postcode text,
+	name text,
+	opening_hours text,
+	geom geometry(Point,4326),
+	CONSTRAINT custom_pois_pkey PRIMARY KEY (gid)
+);
+
+CREATE INDEX ON custom_pois USING gist(geom);

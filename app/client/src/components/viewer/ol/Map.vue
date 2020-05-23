@@ -57,8 +57,18 @@
           }}
         </div>
 
+        <a
+          v-if="currentInfoFeature && currentInfoFeature.get('osm_id')"
+          style="text-decoration:none;"
+          :href="getOsmHrefLink()"
+          target="_blank"
+          title=""
+        >
+          <i class="fa fa-edit"></i> {{ $t("map.popup.editWithOsm") }}</a
+        >
+
         <v-divider></v-divider>
-        <span v-html="popup.rawHtml"></span>
+
         <div style="height:190px;">
           <vue-scroll>
             <v-simple-table dense class="pr-2">
@@ -620,6 +630,30 @@ export default {
       this.popup.currentLayerIndex += 1;
       this.showPopup();
     },
+    getOsmHrefLink() {
+      let link = ``;
+      if (this.currentInfoFeature && this.currentInfoFeature.get("osm_id")) {
+        const feature = this.currentInfoFeature;
+        const originGeometry = feature.getProperties()["orgin_geometry"];
+        let type;
+        switch (originGeometry) {
+          case "polygon":
+            type = "way";
+            break;
+          case "point":
+            type = "node";
+            break;
+          default:
+            type = null;
+            break;
+        }
+        link =
+          `https://www.openstreetmap.org/edit?editor=id&` +
+          `${type}` +
+          `=${feature.get("osm_id")}`;
+      }
+      return link;
+    },
     ...mapMutations("map", {
       setMap: "SET_MAP",
       setContextMenu: "SET_CONTEXTMENU"
@@ -661,6 +695,9 @@ export default {
       });
 
       return transformed;
+    },
+    currentInfoFeature() {
+      return this.getInfoResult[this.popup.currentLayerIndex];
     }
   },
   watch: {

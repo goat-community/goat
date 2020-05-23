@@ -40,25 +40,8 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>heatmap</name>
-        <sql>with x as (&#xd;
-	select  *&#xd;
-	from heatmap(convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;))&#xd;
-),&#xd;
-y as (&#xd;
-	SELECT x.grid_id,x.accessibility_index,x.geom, ntile(5) over &#xd;
-	(order by x.accessibility_index) AS percentile_accessibility&#xd;
-	FROM x &#xd;
-	WHERE accessibility_index &lt;&gt; 0&#xd;
-	UNION ALL &#xd;
-	SELECT x.grid_id, accessibility_index, x.geom, 0&#xd;
-	FROM x&#xd;
-	WHERE accessibility_index = 0&#xd;
-)&#xd;
-select g.grid_id, COALESCE(y.percentile_accessibility,0) AS accessibility_index, g.percentile_population, &#xd;
-g.percentile_population-COALESCE(y.percentile_accessibility,0) AS population_accessibility, g.geom &#xd;
-FROM grid_500 g&#xd;
-LEFT JOIN y &#xd;
-ON g.grid_id = y.grid_id
+        <sql>SELECT grid_id, percentile_accessibility AS accessibility_index, geom &#xd;
+FROM heatmap_geoserver(%userid%, convert_from(decode(%amenities%,&apos;base64&apos;), &apos;UTF-8&apos;)::jsonb, 2)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
@@ -69,6 +52,10 @@ ON g.grid_id = y.grid_id
         <parameter>
           <name>amenities</name>
           <defaultValue>&apos;W3siJ2J1c19zdG9wJyI6Mn0seyIndHJhbV9zdG9wJyI6M31d&apos;</defaultValue>
+        </parameter>
+        <parameter>
+          <name>userid</name>
+          <defaultValue>1</defaultValue>
         </parameter>
       </virtualTable>
     </entry>

@@ -119,3 +119,13 @@ CREATE TYPE public.pois_visualization AS
 	status text,
 	wheelchair text
 );
+
+DROP TYPE IF EXISTS type_heatmap CASCADE;
+CREATE TYPE type_heatmap 
+AS (
+	grid_id integer,
+	accessibility_index NUMERIC, 
+	percentile_accessibility smallint,
+	percentile_population smallint,
+	geom geometry
+);
