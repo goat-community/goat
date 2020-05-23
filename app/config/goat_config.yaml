@@ -7,7 +7,7 @@ DATABASE:
 
 DATA_SOURCE:  
   #"no_download" if you don't want to download OSM data automatically. Make sure that the file is called raw-osm.osm.pbf.
-  OSM_DOWNLOAD_LINK: "https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf" 
+  OSM_DOWNLOAD_LINK: "https://download.geofabrik.de/south-america/colombia-latest.osm.pbf" 
   #"most_recent" if the data from the OSM-Download-Link has not the recency you need. 
   OSM_DATA_RECENCY: "standard"
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
@@ -19,7 +19,7 @@ DATA_REFINEMENT_VARIABLES:
   #disaggregation ==> landuse.shp needed as input + high-resolution population input data + building data
   #distribution ==> landuse.sho need as input + high-resolution population input data 
   #custom_population ==> population.shp custom population data needed  
-  POPULATION: "extrapolation"
+  POPULATION: "custom_population"
   #"yes" if you want to add these layers 
   ADDITIONAL_WALKABILITY_LAYERS: "no" 
   variable_container: 
@@ -30,7 +30,7 @@ DATA_REFINEMENT_VARIABLES:
       "hotel","museum","hostel","guest_house","viewpoint","gallery"
     ]
     pois_more_entrances: ["bus_stop","tram_stop","subway_entrance","rail_station"]
-    excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
+    excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,801]
     categories_no_foot: ["use_sidepath","no"]
     excluded_class_id_cycling: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
     categories_no_bicycle: ["use_sidepath","no"]
