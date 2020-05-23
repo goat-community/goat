@@ -331,7 +331,8 @@ export function getWMSLegendURL(
   opt_dpi,
   opt_bbox,
   opt_srs,
-  opt_additionalQueryString
+  opt_additionalQueryString,
+  opt_language
 ) {
   if (!url) {
     return undefined;
@@ -347,6 +348,9 @@ export function getWMSLegendURL(
   };
   if (opt_scale !== undefined) {
     queryString.SCALE = opt_scale;
+  }
+  if (opt_language) {
+    queryString.LANGUAGE = opt_language;
   }
   if (opt_legendRule !== undefined) {
     queryString.RULE = opt_legendRule;

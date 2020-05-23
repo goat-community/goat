@@ -105,6 +105,7 @@ export default {
       return this.mini === true ? "green" : "";
     },
     ...mapGetters("isochrones", {
+      selectedThematicData: "selectedThematicData",
       calculations: "calculations"
     })
   },
@@ -112,13 +113,20 @@ export default {
   beforeDestroy() {},
   methods: {},
   watch: {
-    calculations(newValue, oldValue) {
-      const scrollEl = this.$refs["vs"];
-      setTimeout(() => {
-        if (oldValue.length === newValue.length) {
-          scrollEl.scrollIntoView("#isochroneResultsEl", 300);
-        }
-      }, 100);
+    selectedThematicData(calculation) {
+      if (calculation) {
+        this.calculations.forEach(value => {
+          if (value.id !== calculation.calculationId) {
+            value.isExpanded = false;
+          } else {
+            value.isExpanded = true;
+          }
+        });
+        const scrollEl = this.$refs["vs"];
+        setTimeout(() => {
+          scrollEl.scrollIntoView(`#result-${calculation.calculationId}`, 300);
+        }, 100);
+      }
     }
   }
 };

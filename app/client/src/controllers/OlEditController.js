@@ -1,8 +1,11 @@
 import { getEditStyle, getFeatureHighlightStyle } from "../style/OlStyleDefs";
 import OlBaseController from "./OlBaseController";
 import { Modify, Draw, Snap, Translate } from "ol/interaction";
+import SnapGuides from "ol-ext/interaction/SnapGuides";
+import DrawHole from "ol-ext/interaction/DrawHole";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
+import VectorImageLayer from "ol/layer/VectorImage";
 import Overlay from "ol/Overlay.js";
 import store from "../store/modules/user";
 import Feature from "ol/Feature";
@@ -17,7 +20,7 @@ import i18n from "../../src/plugins/i18n";
  */
 export default class OlEditController extends OlBaseController {
   featuresToCommit = [];
-
+  isSnapGuideActive = 0;
   constructor(map) {
     super(map);
   }
@@ -75,6 +78,9 @@ export default class OlEditController extends OlBaseController {
             ? "map.tooltips.clickToPlacePoint"
             : "map.tooltips.clickToStartDrawing"
         );
+        if (!["Point", "LineString"].includes(geometryType)) {
+          me.isSnapGuideActive = 1;
+        }
         break;
       }
       case "modify": {
@@ -84,6 +90,12 @@ export default class OlEditController extends OlBaseController {
         me.snap = new Snap({ source: me.source });
         me.currentInteraction = "modify";
         me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
+        break;
+      }
+      case "modifyAttributes": {
+        me.currentInteraction = "modifyAttributes";
+        me.modifyAttributeLister = me.map.on("click", startCb);
+        me.helpMessage = i18n.t("map.tooltips.clickToModifyAttributes");
         break;
       }
       case "delete": {
@@ -103,11 +115,23 @@ export default class OlEditController extends OlBaseController {
         me.helpMessage = i18n.t("map.tooltips.clickOnFeatureToMove");
         break;
       }
+      case "drawHole": {
+        me.currentInteraction = "drawHole";
+        me.edit = new DrawHole({ layers: [me.layer] });
+        me.edit.on("modifystart", startCb);
+        me.edit.on("modifyend", endCb);
+        me.helpMessage = i18n.t("map.tooltips.drawHoleOnPolygon");
+        me.isSnapGuideActive = 1;
+        break;
+      }
       default:
         break;
     }
     if (me.edit) {
       me.map.addInteraction(me.edit);
+      if (this.isSnapGuideActive) {
+        me.addSnapGuideInteraction();
+      }
     }
     if (me.snap) {
       me.map.addInteraction(me.snap);
@@ -280,7 +304,9 @@ export default class OlEditController extends OlBaseController {
 
       if (
         !props.hasOwnProperty("original_id") &&
-        ["modify", "move"].includes(me.currentInteraction)
+        ["modify", "move", "modifyAttributes", "drawHole"].includes(
+          me.currentInteraction
+        )
       ) {
         transformed.set(
           "original_id",
@@ -292,13 +318,17 @@ export default class OlEditController extends OlBaseController {
         (typeof feature.getId() === "undefined" &&
           Object.keys(props).length === 1) ||
         (!props.hasOwnProperty("original_id") &&
-          ["modify", "move"].includes(me.currentInteraction))
+          ["modify", "move", "modifyAttributes", "drawHole"].includes(
+            me.currentInteraction
+          ))
       ) {
         featuresToAdd.push(transformed);
         featuresToRemove.push(feature);
       } else if (
         props.hasOwnProperty("original_id") &&
-        ["modify", "move"].includes(me.currentInteraction)
+        ["modify", "move", "modifyAttributes", "drawHole"].includes(
+          me.currentInteraction
+        )
       ) {
         transformed.setId(feature.getId());
         featuresToUpdate.push(transformed);
@@ -311,7 +341,9 @@ export default class OlEditController extends OlBaseController {
         payload = wfsTransactionParser(featuresToAdd, null, null, formatGML);
         break;
       case "move":
+      case "modifyAttributes":
       case "modify":
+      case "drawHole":
         payload = wfsTransactionParser(
           featuresToAdd,
           featuresToUpdate,
@@ -373,6 +405,7 @@ export default class OlEditController extends OlBaseController {
     const me = this;
     me.featuresToCommit = [];
     me.currentInteraction = "";
+    me.removeSnapGuideInteraction();
     me.closePopup();
     if (me.edit) {
       me.map.removeInteraction(me.edit);
@@ -385,6 +418,9 @@ export default class OlEditController extends OlBaseController {
     if (me.deleteFeatureListener) {
       unByKey(me.deleteFeatureListener);
     }
+    if (me.modifyAttributeLister) {
+      unByKey(me.modifyAttributeLister);
+    }
     if (me.selectedFeature) {
       me.selectedFeature = null;
     }
@@ -393,6 +429,41 @@ export default class OlEditController extends OlBaseController {
     }
     if (me.clearOverlays) {
       me.clearOverlays();
+    }
+  }
+
+  /**
+   * Add snap interaction (aka guide lines) used for building
+   */
+  addSnapGuideInteraction() {
+    // Only for draw and edit
+    this.removeSnapGuideInteraction();
+    if (
+      this.edit &&
+      (this.edit instanceof Draw || this.edit instanceof Modify)
+    ) {
+      const snapi = new SnapGuides({
+        vectorClass: VectorImageLayer
+      });
+
+      if (this.edit instanceof Draw) {
+        snapi.setDrawInteraction(this.edit);
+      } else {
+        if (editLayerHelper.selectedLayer.get("editGeometry") === "Polygon") {
+          snapi.setModifyInteraction(this.edit);
+        }
+      }
+      this.map.addInteraction(snapi);
+      this.snapGuideInteraction = snapi;
+    }
+  }
+
+  /**
+   * Remove snap interaction (aka guide lines) used for building
+   */
+  removeSnapGuideInteraction() {
+    if (this.snapGuideInteraction) {
+      this.map.removeInteraction(this.snapGuideInteraction);
     }
   }
 

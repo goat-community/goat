@@ -78,6 +78,7 @@ export const LayerFactory = {
       canEdit: lConf.canEdit,
       editDataType: lConf.editDataType,
       editGeometry: lConf.editGeometry,
+      modifyAttributes: lConf.modifyAttributes,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       displayInLegend: lConf.displayInLegend,
@@ -93,7 +94,7 @@ export const LayerFactory = {
           LAYERS: lConf.layers,
           viewparams: lConf.viewparams
         },
-        serverType: lConf.serverType,
+        serverType: lConf.serverType ? lConf.serverType : "geoserver",
         ratio: lConf.ratio,
         attributions: lConf.attributions
       })
@@ -127,7 +128,7 @@ export const LayerFactory = {
           TILED: lConf.tiled,
           viewparams: lConf.viewparams
         },
-        serverType: lConf.serverType,
+        serverType: lConf.serverType ? lConf.serverType : "geoserver",
         attributions: lConf.attributions
       })
     });
