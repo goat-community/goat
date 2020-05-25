@@ -18,9 +18,10 @@ The second workshop started with a short presentation on the new version of GOAT
 The third workshop was done virtually, due to the current situation with COVID-19. This test cycle was similar to the second one. It started with a presentation on the new features and improvements of GOAT, which was followed by practical use of the tool by the participants. For this workshop, numerous new layers such as accidents, noise levels, protected landscape areas, and buildings and land use were presented. Furthermore, the new feature for the integration of Mapillary imagery was used and well received.
 
 The participants suggested many good ideas for improvements. Among them:
+
 - add additional POIs, such as children’s playgrounds and nurseries to GOAT
 - consider the accessibility to green areas and parks
-- include information about nature reserves, etc. to get an better idea where for example a new bicycle bridge can be positioned 
+- include information about nature reserves, etc. to get an better idea where for example a new bicycle bridge can be positioned
 - improve the printing feature
 - provide additional data export options
 - improve usability of the scenario building by providing a clearer workflow
@@ -29,5 +30,4 @@ The participants suggested many good ideas for improvements. Among them:
 - differentiation between different types of wheelchair (e.g. electric and non-electric)
 - enable storage and export of the developed scenarios
 
-
-The suggestions for improvements were documented and will be, wherever possible, implemented in the further development process. This first series of workshops will be followed by one larger application workshop in each of the municipalities (Fürstenfeldbruck, Freising and Munich) this summer. The goal of these workshops is to use GOAT for relevant concrete planning questions (e.g. access to schools in a new neighborhood), that are currently discussed in the particular context. A final synthesis workshop with participants from all municipalities and further experts will be organized in autumn. We are already looking forward to this!
+The suggestions for improvements were documented and will be, wherever possible, implemented in the further development process. This first series of workshops will be followed by one larger application workshop in each of the municipalities (Fürstenfeldbruck, Freising and Munich) this summer. The goal of these workshops is to use GOAT for relevant planning questions (e.g. access to schools in a new neighborhood), that are currently discussed in the particular context. A final synthesis workshop with participants from all municipalities and further experts will be organized in autumn. We are already looking forward to this!
