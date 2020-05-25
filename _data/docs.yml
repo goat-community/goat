@@ -12,6 +12,7 @@
   - heatmap
   - alphashape
   - population
+  - routing_profiles
   
 - title: Contribute to OSM
   docs:
