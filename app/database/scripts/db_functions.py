@@ -75,7 +75,7 @@ def update_functions():
     db_name,user,host = ReadYAML().db_credentials()[:3]
     db = DB_connection(db_name,user,host)
     db.execute_script_psql('/opt/data_preparation/SQL/types.sql')
-    for p in ['/opt/database_functions/other','/opt/database_functions/network','/opt/database_functions/routing','/opt/database_functions/heatmap']:
+    for p in ['/opt/database_functions/other','/opt/database_functions/network','/opt/database_functions/routing','/opt/database_functions/heatmap','/opt/database_functions/data_preparation']:
         for file in Path(p).glob('*.sql'):
             db.execute_script_psql(file)
 

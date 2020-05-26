@@ -218,15 +218,15 @@ FROM kindergartens_polygons kp;
 --Distinguish kindergarten - nursery
 /*Please review this here. We should maybe limit this to amenity = 'kindergarten' only. Furthermore we can directly update the table without the need of the subquery*/
 
-SELECT pois_reclassification_array('name','kindergarten','amenity','nursery',1);
+SELECT pois_reclassification_array('name','kindergarten','amenity','nursery','left');
 
 /*End*/
 ------------------------------------------end kindergarten-------------------------------------------
 
 --For Munich grocery == convencience
 
-SELECT pois_reclassification('shop','grocery','shop','convenience');
-SELECT pois_reclassification('shop','fashion','shop','clothes');
+SELECT pois_reclassification('shop','grocery','shop','convenience','singlevalue');
+SELECT pois_reclassification('shop','fashion','shop','clothes','singlevalue');
 
 /*End*/
 
@@ -241,10 +241,10 @@ ALTER TABLE pois DROP COLUMN shop;
 
 --Refinement Shopping
 
-SELECT pois_reclassification_array('name','supermarket','amenity','discount_supermarket',2);
-SELECT pois_reclassification_array('name','supermarket','amenity','hypermarket',2);
-SELECT pois_reclassification_array('name','supermarket','amenity','no_end_consumer_store',2);
-SELECT pois_reclassification_array('name','supermarket','amenity','health_food',2);
+SELECT pois_reclassification_array('name','supermarket','amenity','discount_supermarket','any');
+SELECT pois_reclassification_array('name','supermarket','amenity','hypermarket','any');
+SELECT pois_reclassification_array('name','supermarket','amenity','no_end_consumer_store','any');
+SELECT pois_reclassification_array('name','supermarket','amenity','health_food','any');
 
 UPDATE pois SET amenity = 'organic'
 WHERE organic = 'only'
@@ -324,3 +324,8 @@ ALTER TABLE pois_userinput ADD COLUMN pois_modified_id integer;
 ALTER TABLE pois_userinput
 ADD CONSTRAINT pois_userinput_id_fkey FOREIGN KEY (pois_modified_id) 
 REFERENCES pois_modified(id) ON DELETE CASCADE;
+
+-- Clean duplicates and integrate custom pois
+
+SELECT pois_fusion();
+
