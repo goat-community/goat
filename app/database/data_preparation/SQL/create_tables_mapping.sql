@@ -8,9 +8,10 @@ CREATE INDEX ON pois_mapping(amenity);
 
 DROP TABLE IF EXISTS ways_mapping;
 CREATE TABLE ways_mapping AS 
-SELECT * FROM ways;
+SELECT * FROM planet_osm_line WHERE highway IS NOT NULL;
 
-ALTER TABLE ways_mapping ADD primary key(id); 
+ALTER TABLE ways_mapping ADD primary key(osm_id); 
+ALTER TABLE ways_mapping RENAME COLUMN way TO geom;
 CREATE INDEX ON ways_mapping USING GIST (geom);
 
 DROP TABLE IF EXISTS buildings_mapping;
