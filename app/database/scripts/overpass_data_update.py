@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import psycopg2 
 from datetime import timedelta, datetime
 import requests
