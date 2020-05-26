@@ -114,3 +114,16 @@ services:
     networks:
       proxy:
 
+  
+  cron:
+    build:
+      context: ./app/cron
+    image: goat-cron
+    volumes:
+      - ./app/database:/opt
+      - ./app/config:/opt/config
+    container_name: goat-cron
+    env_file:
+      - ./app/config/docker-env/db.env
+    networks:
+      proxy:
