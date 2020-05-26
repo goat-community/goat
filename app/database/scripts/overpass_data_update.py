@@ -96,8 +96,7 @@ response = overpass_pois('amenity',ReadYAML().mapping_conf()['amenity'],diff_tim
 amenity_translation = {}
 print(xml_to_sql(response.content,'pois',amenity_translation))
 psycopg_execute(xml_to_sql(response.content,'pois',amenity_translation),cursor,con)
-print("It worked!")
-'''
+
 response = overpass_pois('shop',ReadYAML().mapping_conf()['shop_osm'],diff_time)
 shop_translation = {'shop':'amenity'}
 print(xml_to_sql(response.content,'pois',shop_translation))
@@ -112,12 +111,9 @@ response = overpass_buildings(diff_time)
 buildings_translation = {}
 print(xml_to_sql(response.content,'buildings',buildings_translation))
 psycopg_execute(xml_to_sql(response.content,'buildings',buildings_translation),cursor,con)
-'''
+
 file = open("/opt/data/overpass_update.txt","a")
 file.write(diff_time+'\n')
 file.close()
-
-#print(response.content)
-
 
 con.close()
