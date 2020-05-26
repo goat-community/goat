@@ -6,14 +6,14 @@ import xml.etree.ElementTree as ET
 from db_functions import ReadYAML
 from db_functions import DB_connection
 
-diff_time = (datetime.utcnow() - timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%SZ")
+diff_time = (datetime.utcnow() - timedelta(minutes=2)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 #Get DB credentials
 db_name,user,host,port,password = ReadYAML().db_credentials()
 #Get buffer for study_area
 buffer = ReadYAML().data_source()[2]
 #Connect to database
-db = DB_connection(db_name,user,host,port,password)
+db = DB_connection(db_name,user,'db',port,password)
 con,cursor = db.con_psycopg()
 #Get bounding box for study area
 cursor.execute('''SELECT ST_YMIN(ST_EXTENT(geom)),ST_XMIN(ST_EXTENT(geom)),ST_YMAX(ST_EXTENT(geom)),ST_XMAX(ST_EXTENT(geom))  
@@ -97,7 +97,7 @@ amenity_translation = {}
 print(xml_to_sql(response.content,'pois',amenity_translation))
 psycopg_execute(xml_to_sql(response.content,'pois',amenity_translation),cursor,con)
 
-
+'''
 response = overpass_pois('shop',ReadYAML().mapping_conf()['shop_osm'],diff_time)
 shop_translation = {'shop':'amenity'}
 print(xml_to_sql(response.content,'pois',shop_translation))
@@ -112,7 +112,10 @@ response = overpass_buildings(diff_time)
 buildings_translation = {}
 print(xml_to_sql(response.content,'buildings',buildings_translation))
 psycopg_execute(xml_to_sql(response.content,'buildings',buildings_translation),cursor,con)
-
+'''
+file = open("/opt/data/overpass_update.txt","a")
+file.write(diff_time+'\n')
+file.close()
 
 #print(response.content)
 
