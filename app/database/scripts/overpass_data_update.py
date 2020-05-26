@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import psycopg2 
 from datetime import timedelta, datetime
 import requests
@@ -97,7 +96,7 @@ response = overpass_pois('amenity',ReadYAML().mapping_conf()['amenity'],diff_tim
 amenity_translation = {}
 print(xml_to_sql(response.content,'pois',amenity_translation))
 psycopg_execute(xml_to_sql(response.content,'pois',amenity_translation),cursor,con)
-
+print("It worked!")
 '''
 response = overpass_pois('shop',ReadYAML().mapping_conf()['shop_osm'],diff_time)
 shop_translation = {'shop':'amenity'}
