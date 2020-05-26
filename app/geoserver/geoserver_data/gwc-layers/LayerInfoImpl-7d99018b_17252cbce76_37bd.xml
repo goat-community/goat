@@ -1,8 +1,8 @@
 <GeoServerTileLayer>
-  <id>LayerInfoImpl--235fe2ae:1722d57dc53:3174</id>
+  <id>LayerInfoImpl-7d99018b:17252cbce76:37bd</id>
   <enabled>true</enabled>
   <inMemoryCached>true</inMemoryCached>
-  <name>cite:mapping_ways_surface</name>
+  <name>cite:mapping_buildings_type</name>
   <mimeFormats>
     <string>image/png</string>
     <string>image/jpeg</string>
