@@ -1,0 +1,2 @@
+* * * * * root python3 /opt/scripts/overpass_data_update.py >> /var/log/cron.log
+# Empty line
