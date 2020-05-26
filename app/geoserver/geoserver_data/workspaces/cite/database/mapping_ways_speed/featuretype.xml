@@ -1,5 +1,5 @@
 <featureType>
-  <id>FeatureTypeInfoImpl--235fe2ae:1722d62e2d4:15d7</id>
+  <id>FeatureTypeInfoImpl-7d99018b:17250915a82:5c8b</id>
   <name>mapping_ways_speed</name>
   <nativeName>mapping_ways_speed</nativeName>
   <namespace>
@@ -21,17 +21,17 @@
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>-1.0</minx>
-    <maxx>0.0</maxx>
-    <miny>-1.0</miny>
-    <maxy>0.0</maxy>
+    <minx>11.3745276</minx>
+    <maxx>11.7165114</maxx>
+    <miny>48.0632375</miny>
+    <maxy>48.2487832</maxy>
     <crs>EPSG:4326</crs>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>-1.0</minx>
-    <maxx>0.0</maxx>
-    <miny>-1.0</miny>
-    <maxy>0.0</maxy>
+    <minx>11.3745276</minx>
+    <maxx>11.7165114</maxx>
+    <miny>48.0632375</miny>
+    <maxy>48.2487832</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
@@ -40,18 +40,19 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>mapping_ways_speed</name>
-        <sql>SELECT w.highway, w.maxspeed_forward, w.maxspeed_backward, w.geom, w.death_end FROM ways w, study_area s &#xd;
+        <sql>SELECT w.osm_id,w.highway,w.way AS geom&#xd;
+FROM planet_osm_line w, study_area s &#xd;
 WHERE w.highway IN (&apos;motorway&apos;,&apos;trunk&apos;,&apos;primary&apos;,&apos;secondary&apos;,&apos;tertiary&apos;,&apos;residential&apos;,&apos;motorway_link&apos;,&apos;trunk_link&apos;,&apos;primary_link&apos;,&apos;secondary_link&apos;,&apos;tertiary_link&apos;,&#xd;
 &apos;living_street&apos;,&apos;service&apos;, &apos;unclassified&apos;)&#xd;
-AND w.maxspeed_forward IS NULL&#xd;
-AND ST_Intersects(s.geom,w.geom)&#xd;
-AND NOT (highway = &apos;service&apos; AND death_end IS NOT NULL)
+AND ST_Intersects(s.geom,w.way)&#xd;
+AND (tags -&gt; &apos;maxspeed&apos;) IS NULL
 </sql>
         <escapeSql>false</escapeSql>
+        <keyColumn>osm_id</keyColumn>
         <geometry>
           <name>geom</name>
           <type>Geometry</type>
-          <srid>-1</srid>
+          <srid>4326</srid>
         </geometry>
       </virtualTable>
     </entry>
