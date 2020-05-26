@@ -49,14 +49,15 @@
 	FROM variable_container&#xd;
 	WHERE identifier=&apos;wheelchair&apos;&#xd;
 )&#xd;
-SELECT w.wheelchair, w.geom, &#xd;
-highway, incline, smoothness, surface, sidewalk, sidewalk_both_width, sidewalk_right_width, sidewalk_left_width, width&#xd;
-FROM ways w, study_area s&#xd;
-WHERE wheelchair is NULL &#xd;
-AND class_id::text NOT IN (SELECT UNNEST(excluded_class_id_walking) FROM variables)&#xd;
-AND (foot IS NULL OR foot NOT IN (SELECT UNNEST(categories_no_foot) FROM variables))&#xd;
-AND (sidewalk IS NULL OR sidewalk NOT IN (SELECT UNNEST(categories_sidewalk_no_foot) FROM variables))&#xd;
-AND ST_Intersects(s.geom,w.geom)
+SELECT w.wheelchair, p.way, &#xd;
+w.highway, w.incline, w.smoothness, w.surface, w.sidewalk, w.sidewalk_both_width, w.sidewalk_right_width, w.sidewalk_left_width, w.width, p.osm_id&#xd;
+FROM ways_mapping w, study_area s, planet_osm_line p&#xd;
+WHERE w.wheelchair is NULL &#xd;
+and w.osm_id = p.osm_id &#xd;
+AND w.class_id::text NOT IN (SELECT UNNEST(excluded_class_id_walking) FROM variables)&#xd;
+AND (w.foot IS NULL OR w.foot NOT IN (SELECT UNNEST(categories_no_foot) FROM variables))&#xd;
+AND (w.sidewalk IS NULL OR w.sidewalk NOT IN (SELECT UNNEST(categories_sidewalk_no_foot) FROM variables))&#xd;
+AND ST_Intersects(s.geom,p.way)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>

@@ -12,16 +12,16 @@
   </keywords>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>11.3672366</minx>
-    <maxx>11.7204827</maxx>
-    <miny>48.0617863</miny>
-    <maxy>48.2498881</maxy>
+    <minx>11.1723278</minx>
+    <maxx>11.2850618</maxx>
+    <miny>48.1407077</miny>
+    <maxy>48.2073106</maxy>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>11.3672366</minx>
-    <maxx>11.7204827</maxx>
-    <miny>48.0617863</miny>
-    <maxy>48.2498881</maxy>
+    <minx>11.1723278</minx>
+    <maxx>11.2850618</maxx>
+    <miny>48.1407077</miny>
+    <maxy>48.2073106</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
@@ -30,11 +30,11 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>mapping_way_surface</name>
-        <sql>SELECT w.geom, w.highway, w.surface&#xd;
-FROM ways w, study_area s&#xd;
-WHERE highway IS NOT NULL&#xd;
-AND surface IS NULL&#xd;
-AND ST_Intersects(s.geom,w.geom)
+        <sql>SELECT p.way, p.highway, p.surface, p.osm_id&#xd;
+FROM planet_osm_line p, study_area s&#xd;
+WHERE p.highway IS NOT NULL&#xd;
+AND p.surface IS NULL&#xd;
+AND ST_Intersects(s.geom,p.way)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
