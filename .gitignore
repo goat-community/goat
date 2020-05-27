@@ -18,3 +18,4 @@ dist
 app/database/data/study_area.dbf
 app/database/data/study_area.shp
 app/database/data/study_area.shx
+app/geoserver/geoserver_data/logs/geoserver.log.1
