@@ -88,6 +88,7 @@ export const LayerFactory = {
       requiresPois: lConf.requiresPois,
       ratio: lConf.ratio ? lConf.ratio : 1.5,
       zIndex: lConf.zIndex,
+      docUrl: lConf.docUrl,
       source: new ImageWMS({
         url: lConf.url,
         params: {

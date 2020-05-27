@@ -2,7 +2,7 @@
   <v-dialog v-model="show" scrollable max-width="330" v-if="calculation">
     <v-card>
       <v-app-bar color="green" dark>
-        <v-app-bar-nav-icon><v-icon>colorize</v-icon></v-app-bar-nav-icon>
+        <v-app-bar-nav-icon><v-icon>fas fa-palette</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title>{{
           $t("isochrones.pickColor.title")
         }}</v-toolbar-title>
