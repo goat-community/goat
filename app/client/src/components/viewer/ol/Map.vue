@@ -251,6 +251,7 @@ export default {
      */
     createLayers() {
       let layers = [];
+      const me = this;
       const layersConfigGrouped = groupBy(this.$appConfig.map.layers, "group");
       for (var group in layersConfigGrouped) {
         if (!layersConfigGrouped.hasOwnProperty(group)) {
@@ -260,6 +261,9 @@ export default {
         layersConfigGrouped[group].reverse().forEach(function(lConf) {
           const layer = LayerFactory.getInstance(lConf);
           mapLayers.push(layer);
+          if (layer.get("name")) {
+            me.setLayer(layer);
+          }
         });
         let layerGroup = new LayerGroup({
           name: group !== undefined ? group.toString() : "Other Layers",
@@ -656,7 +660,8 @@ export default {
     },
     ...mapMutations("map", {
       setMap: "SET_MAP",
-      setContextMenu: "SET_CONTEXTMENU"
+      setContextMenu: "SET_CONTEXTMENU",
+      setLayer: "SET_LAYER"
     }),
     ...mapActions("isochrones", {
       showIsochroneWindow: "showIsochroneWindow"

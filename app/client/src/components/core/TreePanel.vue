@@ -34,9 +34,10 @@
             <v-icon color="white">fas fa-chevron-left</v-icon>
           </v-btn>
         </v-app-bar>
-        <routing-toolbar></routing-toolbar>
-        <vue-scroll ref="vs">
+        <routing-toolbar v-show="!osmMode"></routing-toolbar>
+        <vue-scroll v-show="!osmMode" ref="vs">
           <v-layout
+            v-show="!osmMode"
             justify-space-between
             column
             fill-height
@@ -48,7 +49,7 @@
           </v-layout>
         </vue-scroll>
 
-        <v-layout align-end>
+        <v-layout v-show="!osmMode" align-end>
           <v-bottom-navigation
             background-color="green"
             flat
@@ -73,6 +74,9 @@
             </v-btn>
           </v-bottom-navigation>
         </v-layout>
+
+        <!-- OSM MODE TASKS -->
+        <osm-mode v-if="osmMode"></osm-mode>
       </template>
     </v-layout>
   </v-navigation-drawer>
@@ -83,13 +87,15 @@
 import Isochrones from "../isochrones/Isochrones";
 import LayerTree from "../layers/layerTree/LayerTree";
 import RoutingToolbar from "./RoutingToolbar";
+import OsmMode from "./OsmMode";
 import { mapGetters } from "vuex";
 
 export default {
   components: {
     "map-isochrones": Isochrones,
     "map-layertree": LayerTree,
-    "routing-toolbar": RoutingToolbar
+    "routing-toolbar": RoutingToolbar,
+    "osm-mode": OsmMode
   },
   name: "tree-panel",
   data: () => ({
@@ -107,6 +113,9 @@ export default {
     ...mapGetters("isochrones", {
       selectedThematicData: "selectedThematicData",
       calculations: "calculations"
+    }),
+    ...mapGetters("map", {
+      osmMode: "osmMode"
     })
   },
   mounted() {},
