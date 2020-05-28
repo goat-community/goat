@@ -2,7 +2,7 @@
   <v-speed-dial
     v-model="fab"
     direction="top"
-    class="mb-4"
+    class="mb-2"
     transition="slide-y-reverse-transition"
   >
     <template v-slot:activator>

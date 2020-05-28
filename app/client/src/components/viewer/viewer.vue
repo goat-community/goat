@@ -1,17 +1,23 @@
 <template>
   <div>
     <!-- TOGGLE STREET VIEW -->
-    <v-btn
-      v-if="!miniViewerVisible"
-      class="mx-2 miniviewer-button"
-      fab
-      dark
-      small
-      color="green"
-      @click="showMiniViewer"
-    >
-      <v-icon dark>streetview</v-icon>
-    </v-btn>
+    <v-tooltip right>
+      <template v-slot:activator="{ on }">
+        <v-btn
+          v-show="!miniViewerVisible"
+          class="mx-2 miniviewer-button"
+          fab
+          dark
+          small
+          color="green"
+          @click="showMiniViewer"
+          v-on="on"
+        >
+          <v-icon dark>streetview</v-icon>
+        </v-btn>
+      </template>
+      <span>{{ $t(`map.tooltips.toggleStreetView`) }}</span>
+    </v-tooltip>
 
     <!-- ISOCHRONES-THEMATIC-DATA -->
     <isochrone-thematic-data v-show="!miniViewOlMap" />
