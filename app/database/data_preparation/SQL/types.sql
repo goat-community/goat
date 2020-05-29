@@ -129,3 +129,14 @@ AS (
 	percentile_population smallint,
 	geom geometry
 );
+
+DROP TYPE IF EXISTS type_audience_heatmap CASCADE;
+CREATE TYPE type_audience_heatmap 
+AS (
+	grid_id integer,
+	original_audience_index INTEGER,
+	dynamic_audience_index_delta NUMERIC, 
+	audience_index NUMERIC,
+	percentile_audience smallint,
+	geom geometry
+);
