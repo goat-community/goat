@@ -29,7 +29,7 @@ WHERE p.osm_id = l.osm_id;
 DROP TABLE IF EXISTS crossings;
 CREATE TABLE crossings AS
 (SELECT osm_id, highway, way, traffic_signals, crossing FROM planet_osm_point WHERE highway = 'crossing' 
-	OR (highway = 'traffic_signals' AND traffic_signals = 'pedestrian_crossing'));
+	OR (highway = 'traffic_signals' AND traffic_signals IN ('pedestrian_crossing','crossing')));
 
 ALTER TABLE crossings 
 	ADD COLUMN crossing_ref text, 
@@ -50,6 +50,10 @@ WHERE crossings.osm_id = l.osm_id;
 UPDATE crossings 
 SET visualization = 'zebra'
 WHERE crossing_ref = 'zebra' OR crossing = 'marked';
+
+UPDATE crossings 
+SET visualization = 'traffic_signals'
+WHERE traffic_signals = 'crossing' OR traffic_signals = 'pedestrian_crossing';
 
 --Creation of a table that stores all sidewalk geometries
 DROP TABLE IF EXISTS ways_offset_sidewalk;
