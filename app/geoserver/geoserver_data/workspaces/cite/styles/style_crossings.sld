@@ -11,13 +11,13 @@
 
       <FeatureTypeStyle>
         <Rule>
-          <Title>CROSSING</Title>
+          <Title>visualization</Title>
           <MaxScaleDenominator>80000</MaxScaleDenominator>
           <PointSymbolizer>
             <Graphic>
               <ExternalGraphic>
              
-                <OnlineResource xlink:type="simple" xlink:href="street_crossings/${strToLowerCase(crossing)}.png" />
+                <OnlineResource xlink:type="simple" xlink:href="street_crossings/${strToLowerCase(visualization)}.png" />
                 <Format>image/png</Format>
               </ExternalGraphic>
             <Size>
