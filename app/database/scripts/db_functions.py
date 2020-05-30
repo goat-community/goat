@@ -3,12 +3,17 @@
 
 import yaml, os, psycopg2
 class ReadYAML:
+
+  
     with open("/opt/config/goat_config.yaml", 'r') as stream:
-        conf = yaml.load(stream, Loader=yaml.FullLoader)
-   
-    db_conf = conf["DATABASE"]
-    source_conf = conf["DATA_SOURCE"]
-    refinement_conf = conf["DATA_REFINEMENT_VARIABLES"]
+        goat_conf = yaml.load(stream, Loader=yaml.FullLoader)
+    
+    with open("/opt/config/osm_mapping_config.yaml", 'r') as stream:
+        osm_mapping_conf = yaml.load(stream, Loader=yaml.FullLoader)
+
+    db_conf = goat_conf["DATABASE"]
+    source_conf = goat_conf["DATA_SOURCE"]
+    refinement_conf = goat_conf["DATA_REFINEMENT_VARIABLES"]
 
     def db_credentials(self):
         return self.db_conf["DB_NAME"],self.db_conf["USER"],self.db_conf["HOST"],self.db_conf["PORT"],self.db_conf["PASSWORD"]
@@ -20,21 +25,26 @@ class ReadYAML:
         db_name = self.db_conf["DB_NAME"]+db_prefix
         os.system('echo '+':'.join([self.db_conf["HOST"],str(self.db_conf["PORT"]),db_name,self.db_conf["USER"],self.db_conf["PASSWORD"]])+' > /.pgpass')
         os.system("chmod 600 /.pgpass")
-    
+    def mapping_conf(self):
+        return self.osm_mapping_conf
+
 class DB_connection:
-    def __init__(self, db_name, user, host):
+    def __init__(self, db_name, user, host,port,password):
         self.db_name = db_name
         self.user = user
         self.host = host
+        self.port = port 
+        self.password = password
 
     def execute_script_psql(self,script):
         os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (self.db_name,self.user,self.host,script))
     def execute_text_psql(self,script):
         os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -c "%s"' % (self.db_name,self.user,self.host,script))
-    def con_psycopg(self,port,password):
+    def con_psycopg(self):
         con = psycopg2.connect("dbname='%s' user='%s' host='%s' port = '%s' password='%s'" % (
-        self.db_name,self.user,port,self.host,password))
-        return con.cursor()
+        self.db_name,self.user,self.host,self.port,self.password))
+        return con, con.cursor()
+
 
 def create_variable_container():
     sql_create_table = '''DROP TABLE IF EXISTS variable_container;
@@ -45,7 +55,10 @@ def create_variable_container():
 	variable_object jsonb NULL,
 	CONSTRAINT variable_container_pkey PRIMARY KEY (identifier)
     );'''
-    variable_object = ReadYAML().data_refinement()['variable_container']
+    
+    
+    variable_object = {**ReadYAML().data_refinement()['variable_container'],**ReadYAML().mapping_conf()}
+
     sql_simple = "INSERT INTO variable_container(identifier,variable_simple) VALUES('%s',%s);"
     sql_array = "INSERT INTO variable_container(identifier,variable_array) VALUES('%s',ARRAY%s);"
     sql_object = "INSERT INTO  variable_container(identifier,variable_object) SELECT '%s', jsonb_build_object(%s);"
