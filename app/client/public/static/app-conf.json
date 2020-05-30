@@ -1110,6 +1110,9 @@
           "options": []
         }
       }
+    },
+    "osmMapMode": {
+      "tasks": ["missingHours"]
     }
   },
   "componentConf": {
