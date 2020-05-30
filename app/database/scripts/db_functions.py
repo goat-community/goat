@@ -8,7 +8,7 @@ class ReadYAML:
     with open("/opt/config/goat_config.yaml", 'r') as stream:
         goat_conf = yaml.load(stream, Loader=yaml.FullLoader)
     
-    with open("/opt/config/osm_mapping_config.yaml", 'r') as stream:
+    with open("/opt/osm_mapping_config.yaml", 'r') as stream:
         osm_mapping_conf = yaml.load(stream, Loader=yaml.FullLoader)
 
     db_conf = goat_conf["DATABASE"]
