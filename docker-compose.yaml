@@ -117,7 +117,8 @@ services:
   
   cron:
     build:
-      context: ./app/cron
+      dockerfile: ./cron/Dockerfile
+      context: ./app
     image: goat-cron
     volumes:
       - ./app/database:/opt
