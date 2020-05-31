@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" v-if="item" scrollable max-width="815px">
     <v-card>
-      <v-app-bar color="green" dark>
+      <v-app-bar :color="color" dark>
         <v-app-bar-nav-icon
           ><v-icon>fas fa-question-circle</v-icon></v-app-bar-nav-icon
         >
@@ -17,7 +17,7 @@
         v-show="isLoading === true"
         indeterminate
         height="5"
-        color="green"
+        :color="color"
       ></v-progress-linear>
 
       <vue-scroll>
@@ -41,7 +41,8 @@
 export default {
   props: {
     visible: { type: Boolean, required: true },
-    item: { type: Object, required: false }
+    item: { type: Object, required: false },
+    color: { type: String, default: "#4CAF50" }
   },
   data: () => ({
     isLoading: true

@@ -31,6 +31,7 @@ import treePanel from "./components/core/TreePanel";
 import Snackbar from "./components/other/Snackbar";
 import Viewer from "./components/viewer/viewer";
 import { mapMutations } from "vuex";
+import { mapFields } from "vuex-map-fields";
 
 import "@/globalComponents";
 
@@ -44,9 +45,16 @@ export default {
   },
   data() {
     return {
-      isEmbedded: false,
-      baseColor: Vue.prototype.$appConfig.baseColor
+      isEmbedded: false
     };
+  },
+  created() {
+    this.activeColor = this.$appConfig.baseColor;
+  },
+  computed: {
+    ...mapFields("app", {
+      activeColor: "activeColor"
+    })
   },
   mounted() {
     // apply the isEmbedded state to the member var

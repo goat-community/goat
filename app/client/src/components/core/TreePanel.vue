@@ -12,7 +12,12 @@
     width="350"
     class="right-shadow"
   >
-    <v-layout v-bind:class="getColor" justify-space-between column fill-height>
+    <v-layout
+      :style="`background-color:${getColor};`"
+      justify-space-between
+      column
+      fill-height
+    >
       <template v-if="mini">
         <v-btn
           class="ml-3 mt-2"
@@ -26,7 +31,12 @@
         </v-btn>
       </template>
       <template v-if="!mini">
-        <v-app-bar flat class="toolbar green" height="50">
+        <v-app-bar
+          flat
+          class="toolbar"
+          :color="activeColor.primary"
+          height="50"
+        >
           <img :src="logo" width="35px" />
           <img :src="logoText" class="pt-1" width="95px" />
           <v-spacer></v-spacer>
@@ -51,7 +61,7 @@
 
         <v-layout v-show="!osmMode" align-end>
           <v-bottom-navigation
-            background-color="green"
+            :background-color="activeColor.primary"
             flat
             horizontal
             dark
@@ -108,7 +118,7 @@ export default {
   }),
   computed: {
     getColor() {
-      return this.mini === true ? "green" : "";
+      return this.mini === true ? this.activeColor.primary : "";
     },
     ...mapGetters("isochrones", {
       selectedThematicData: "selectedThematicData",
@@ -116,6 +126,9 @@ export default {
     }),
     ...mapGetters("map", {
       osmMode: "osmMode"
+    }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
     })
   },
   mounted() {},

@@ -1,13 +1,18 @@
 <template>
   <div id="ol-map-container">
     <!-- Map Controls -->
-    <zoom-control v-show="!miniViewOlMap" :map="map" />
-    <full-screen v-show="!miniViewOlMap" />
+    <zoom-control
+      v-show="!miniViewOlMap"
+      :map="map"
+      :color="activeColor.primary"
+    />
+    <full-screen v-show="!miniViewOlMap" :color="activeColor.primary" />
     <progress-status :isNetworkBusy="isNetworkBusy" />
     <background-switcher v-show="!miniViewOlMap" />
-    <map-legend v-show="!miniViewOlMap" />
+    <map-legend v-show="!miniViewOlMap" :color="activeColor.primary" />
     <!-- Popup overlay  -->
     <overlay-popup
+      :color="activeColor.primary"
       :title="popup.title"
       v-show="popup.isVisible && miniViewOlMap === false"
       ref="popup"
@@ -364,7 +369,7 @@ export default {
     setOlButtonColor() {
       var me = this;
 
-      if (isCssColor(me.color)) {
+      if (isCssColor(me.activeColor.primary)) {
         // directly apply the given CSS color
         const rotateEl = document.querySelector(".ol-rotate");
         if (rotateEl) {
@@ -373,7 +378,7 @@ export default {
           const rotateElStyle = document.querySelector(
             ".ol-rotate .ol-rotate-reset"
           ).style;
-          rotateElStyle.backgroundColor = me.color;
+          rotateElStyle.backgroundColor = me.activeColor.primary;
           rotateElStyle.borderRadius = "40px";
         }
         const attrEl = document.querySelector(".ol-attribution");
@@ -382,13 +387,13 @@ export default {
           const elStyle = document.querySelector(
             ".ol-attribution button[type='button']"
           ).style;
-          elStyle.backgroundColor = me.color;
+          elStyle.backgroundColor = me.activeColor.primary;
           elStyle.borderRadius = "40px";
         }
       } else {
         // apply vuetify color by transforming the color to the corresponding
         // CSS class (see https://vuetifyjs.com/en/framework/colors)
-        const [colorName, colorModifier] = me.color
+        const [colorName, colorModifier] = me.activeColor.primary
           .toString()
           .trim()
           .split(" ", 2);
@@ -672,6 +677,9 @@ export default {
       helpTooltip: "helpTooltip",
       currentMessage: "currentMessage"
     }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    }),
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer"
     }),
@@ -713,6 +721,9 @@ export default {
       } else {
         this.dblClickZoomInteraction.setActive(true);
       }
+    },
+    activeColor() {
+      this.setOlButtonColor();
     }
   }
 };

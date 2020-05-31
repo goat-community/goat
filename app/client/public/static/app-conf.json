@@ -1,6 +1,13 @@
 {
   "tittle": "GOAT - Geo Open Accessibility Tool",
-  "baseColor": "red darken-3",
+  "baseColor": {
+    "primary": "#4CAF50",
+    "secondary": "#99D19B"
+  },
+  "osmMappingColor": {
+    "primary": "#6A8972",
+    "secondary": "#94AC9A"
+  },
   "controlsColor": "#26AE3F",
   "logo": "./src/assets/img/logo.png",
   "map": {

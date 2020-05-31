@@ -41,7 +41,7 @@
         colored-border
         class="mb-0 mt-2 mx-1 elevation-2"
         icon="info"
-        color="green"
+        :color="activeColor.primary"
         dense
       >
         <span v-html="$t(`layerTree.osmMode.${activeTask}.longDesc`)"></span>
@@ -68,7 +68,7 @@
     </div>
     <v-layout align-end>
       <v-bottom-navigation
-        background-color="green"
+        :background-color="activeColor.primary"
         flat
         horizontal
         dark
@@ -103,6 +103,9 @@ export default {
   computed: {
     ...mapGetters("map", {
       layers: "layers"
+    }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
     })
   },
   methods: {

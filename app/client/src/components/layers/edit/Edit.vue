@@ -424,6 +424,7 @@
     </overlay-popup>
     <!-- Opening hours -->
     <opening-hours
+      :color="activeColor.primary"
       :visible="showOpeningHours"
       @close="showOpeningHours = false"
     />
@@ -1408,6 +1409,9 @@ export default {
     },
     ...mapGetters("user", { userId: "userId" }),
     ...mapGetters("isochrones", { options: "options" }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    }),
     ...mapFields("isochrones", {
       scenarioDataTable: "scenarioDataTable"
     })

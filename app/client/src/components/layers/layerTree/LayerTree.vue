@@ -107,6 +107,7 @@
       </v-expansion-panel>
     </v-expansion-panels>
     <documentation-dialog
+      :color="activeColor.primary"
       :visible="showDocumentationDialog"
       :item="selectedDocumentationItem"
       @close="showDocumentationDialog = false"
@@ -133,6 +134,9 @@ export default {
   computed: {
     ...mapGetters("pois", {
       selectedPois: "selectedPois"
+    }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
     })
   },
   methods: {

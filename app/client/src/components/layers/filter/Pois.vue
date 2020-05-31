@@ -49,7 +49,7 @@
           v-if="timeSelectMenu"
           v-model="hourFilter"
           format="24hr"
-          color="green"
+          :color="activeColor.primary"
           full-width
           @click:minute="$refs.menu.save(hourFilter)"
         ></v-time-picker>
@@ -70,7 +70,7 @@
       return-object
       item-key="name"
       item-disabled="locked"
-      selected-color="green"
+      :selected-color="activeColor.primary"
       active-class="grey lighten-4 indigo--text "
       on-icon="check_box"
       off-icon="check_box_outline_blank"
@@ -102,6 +102,7 @@
       </template>
     </v-treeview>
     <heatmap-options
+      :color="activeColor.primary"
       :visible="showHeatmapOptionsDialog"
       :selectedAmenity="selectedAmenity"
       @updated="updateHeatmapLayerViewParams"
@@ -323,6 +324,9 @@ export default {
       activeRoutingProfile: "activeRoutingProfile"
     }),
     ...mapGetters("user", { userId: "userId" }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    }),
     ...mapFields("pois", {
       dayFilter: "timeFilter.day.active",
       hourFilter: "timeFilter.hour",
