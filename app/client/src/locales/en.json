@@ -310,6 +310,10 @@
           "fillOhInOSMiD": "Fill out opening hours in OSM iD"
         },
         "note": "Note: POIs are updated every 30 minutes"
+      },
+      "dialogMessage": {
+        "title": "OSM Mode",
+        "body": "This mode lets you improve GOAT data and at the same time contribute to OSM. We have set up different tasks for layers with missing informations which can be filled using Id editor."
       }
     }
   },

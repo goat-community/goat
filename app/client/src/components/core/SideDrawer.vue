@@ -131,6 +131,7 @@
         </v-list>
       </v-layout>
     </v-navigation-drawer>
+    <confirm ref="confirm"></confirm>
 
     <!-- <component
       :visible="showDialog"
@@ -232,6 +233,17 @@ export default {
         EventBus.$emit("ol-interaction-stoped", "osm-map-mode");
         this.toggleComponent("map-filter");
         this.activeColor = this.$appConfig.osmMappingColor;
+        this.$refs.confirm.open(
+          this.$t("layerTree.osmMode.dialogMessage.title"),
+          this.$t("layerTree.osmMode.dialogMessage.body"),
+          {
+            color: this.activeColor.primary,
+            icon: "info",
+            width: 320,
+            showNo: false,
+            yesText: this.$t("buttonLabels.ok")
+          }
+        );
       } else {
         this.activeColor = this.$appConfig.baseColor;
       }
