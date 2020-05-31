@@ -170,7 +170,8 @@
       "moreInfo": "More Info"
     },
     "documentation": {
-      "title": "Documentation"
+      "title": "Documentation",
+      "openInNewTab": "Open in new tab"
     }
   },
   "isochrones": {
