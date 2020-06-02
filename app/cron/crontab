@@ -1,0 +1,2 @@
+*/5 * * * * root cd /opt/scripts && /usr/local/bin/python /opt/scripts/overpass_data_update.py >> /var/log/cron.log 2>&1
+# Empty line

@@ -129,7 +129,7 @@
                 <span>{{ $t("appBar.edit.moveFeature") }}</span>
               </v-tooltip>
             </v-btn-toggle>
-
+            <br />
             <v-btn-toggle v-model="toggleEdit">
               <v-tooltip top>
                 <template v-slot:activator="{ on }">

@@ -15,7 +15,8 @@
       "filter": "Thematic Data Filter",
       "edit": "Draw scenario",
       "settings": "Language",
-      "info": "Visit GOAT Homepage"
+      "info": "Visit GOAT Homepage",
+      "osmMapMode": "OSM Map Mode"
     },
     "login": {
       "title": "Login",
@@ -167,6 +168,9 @@
       "title": "About GOAT",
       "content": "stands for Geo Open Accessibility Tool. This web-tool is meant to be open source, interactive, flexible and useful for accessibility planning. It is under development at the Chair for Urban Structure and Transport Planning at TUM.....",
       "moreInfo": "More Info"
+    },
+    "documentation": {
+      "title": "Documentation"
     }
   },
   "isochrones": {
@@ -286,6 +290,26 @@
     "title": "Layers",
     "settings": {
       "transparency": "Transparency"
+    },
+    "osmMode": {
+      "tasks": "OSM Mode Tasks",
+      "steps": "Steps",
+      "info": "Info",
+      "tasksList": {
+        "missingHours": "Check POIs for missing opening hours"
+      },
+      "missingHours": {
+        "title": "Opening Hours",
+        "shortDesc": "Fill out missing opening hours",
+        "longDesc": "Check out POIs for missing opening hours.",
+        "stepsDesc": {
+          "enablePoisLayer": "Turn on POIs in Thematic Data panel",
+          "clickPoisInMap": "Click a POIs in the map",
+          "clickEditWithOsm": "Click <b>'Edit with OSM'</b> link",
+          "fillOhInOSMiD": "Fill out opening hours in OSM iD"
+        },
+        "note": "Note: POIs are updated every 30 minutes"
+      }
     }
   },
   "map": {
@@ -320,8 +344,8 @@
       "administrativeUnits": "Administrative Units",
       "accidents_pedestrian_2018": "Accidents with pedestrians (2018)",
       "accidents_pedestrian_2017": "Accidents with pedestrians (2017)",
-      "accidents_bike_2018":"Accidents with cyclists (2018)",
-      "accidents_bike_2017":"Accidents with cyclists (2017)",
+      "accidents_bike_2018": "Accidents with cyclists (2018)",
+      "accidents_bike_2017": "Accidents with cyclists (2017)",
       "biotops": "Biotops",
       "ffh-area": "FFH Area",
       "natureReserves": "Nature Reserves",
@@ -376,6 +400,7 @@
       "clickToPlacePoint": "Click to place the point",
       "changeDefaultColorPalette": "Change color (default)",
       "changeScenarioColorPalette": "Change color (scenario)",
+      "openDocumentation": "Open Documentation",
       "routingProfiles": {
         "walking": {
           "title": "Walking",
@@ -415,7 +440,12 @@
       "zoomToFeature": "Zoom to feature",
       "deleteFeature": "Delete Feature",
       "uploadFeature": "Upload Feature",
-      "restoreFeature": "Restore Feature"
+      "restoreFeature": "Restore Feature",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "openFullScreen": "Open Fullscreen",
+      "exitFullScreen": "Exit Fullscreen",
+      "toggleStreetView": "Open StreetView"
     },
     "popup": {
       "attributes": "Attributes",

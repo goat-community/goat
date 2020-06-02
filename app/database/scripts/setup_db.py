@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 def setup_db(setup_type):
     #Read Configuration
     import shapefile
@@ -11,14 +12,15 @@ def setup_db(setup_type):
     from scripts.db_functions import DB_connection
     from scripts.db_functions import create_variable_container
     from scripts.db_functions import update_functions
+    from scripts.db_functions import geojson_to_sql
 
     download_link,osm_data_recency,buffer,extract_bbox,source_population,additional_walkability_layers = ReadYAML().data_source()
     db_name,user,host,port,password = ReadYAML().db_credentials()
     db_name_temp = db_name+'temp'
 
-    db_temp = DB_connection(db_name_temp,user,host)
+    db_temp = DB_connection(db_name_temp,user,host,port,password)
 
-   
+
     #Create temporary database
     os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name_temp)
     os.system('psql -U postgres -c "DROP DATABASE IF EXISTS %s;"' % db_name_temp)
@@ -29,8 +31,8 @@ def setup_db(setup_type):
     os.system('psql -U postgres -d %s -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION intarray;CREATE EXTENSION plpython3u;"' % db_name_temp)
 
     #These extensions are needed when using the new DB-image
-    #os.system('psql -U postgres -d %s -c "CREATE EXTENSION postgis_raster;"' % db_name_temp)
-    #os.system('psql -U postgres -d %s -c "CREATE EXTENSION plv8;"' % db_name_temp)
+    os.system('psql -U postgres -d %s -c "CREATE EXTENSION postgis_raster;"' % db_name_temp)
+    os.system('psql -U postgres -d %s -c "CREATE EXTENSION plv8;"' % db_name_temp)
     os.chdir('/opt/data')
 
 
@@ -71,7 +73,10 @@ def setup_db(setup_type):
         for file in glob.glob("*.shp"):
             print(file)
             os.system('PGPASSFILE=/.pgpass shp2pgsql -I -s 4326  %s public.%s | PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -q' % (file,file.split('.')[0],db_name_temp,user,host))
-            
+        #Import custom pois
+        if glob.glob('custom_pois/*.geojson'):
+            geojson_to_sql(db_name_temp,user,host,port,password)
+            db_temp.execute_text_psql('DELETE FROM custom_pois WHERE NOT ST_INTERSECTS(geom,ST_MAKEENVELOPE(%f,%f,%f,%f, 4326))' % (left,bottom,right,top))
 
     #Use OSM-Update-Tool in order to fetch the most recent data
     if (osm_data_recency == 'most_recent'):
@@ -106,13 +111,19 @@ def setup_db(setup_type):
 
     #Create tables and types
     db_temp.execute_script_psql('/opt/data_preparation/SQL/create_tables.sql')
-    db_temp.execute_text_psql(create_variable_container())
+    create_variable_container(db_name_temp,user,str(port),host,password)
     db_temp.execute_script_psql('/opt/data_preparation/SQL/types.sql')
     #Create functions that are needed for data_preparation
-    db_temp.execute_script_psql('/opt/database_functions/other/select_from_variable_container.sql')
+    
+    db_temp.execute_script_psql('/opt/database_functions/data_preparation/select_from_variable_container.sql')
     db_temp.execute_script_psql('/opt/database_functions/network/split_long_way.sql')
     db_temp.execute_script_psql('/opt/database_functions/network/compute_slope.sql')
     db_temp.execute_script_psql('/opt/database_functions/network/slope_impedance.sql')
+    db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_fusion.sql')
+    db_temp.execute_script_psql('/opt/database_functions/data_preparation/clean_duplicated_pois.sql')
+    db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_reclassification_array.sql')
+    db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_classification.sql')
+
 
     if (setup_type in ['new_setup','all','population','pois','network']):
         os.system('PGPASSFILE=/.pgpass osm2pgsql -d %s -H %s -U %s --hstore -E 4326 study_area.osm' % (db_name_temp,host,user)) 
@@ -183,3 +194,5 @@ def setup_db(setup_type):
 
         os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name_temp)
         os.system('psql -U postgres -c "DROP DATABASE %s;"' % db_name_temp)
+    
+

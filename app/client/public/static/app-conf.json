@@ -350,7 +350,8 @@
         "displayInLayerList": true,
         "requiresPois": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "docUrl": "https://www.open-accessibility.org/docs/heatmap/"
       },
       {
         "type": "WMS",
@@ -1109,6 +1110,9 @@
           "options": []
         }
       }
+    },
+    "osmMapMode": {
+      "tasks": ["missingHours"]
     }
   },
   "componentConf": {
@@ -1168,9 +1172,9 @@
     },
     "buildings": {
       "listValues": {
-          "building": {
-            "values":["residential","commercial","public"]
-          }
+        "building": {
+          "values": ["residential", "commercial", "public"]
+        }
       },
       "enableFileUpload": false,
       "hiddenProps": [
