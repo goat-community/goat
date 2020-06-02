@@ -201,3 +201,17 @@ TABLESPACE pg_default;
 
 ALTER TABLE public.user_data
     OWNER to goat;
+
+CREATE TABLE custom_pois (
+	gid serial,
+	amenity text,
+	addr_street text,
+	addr_city text,
+	addr_postcode text,
+	name text,
+	opening_hours text,
+	geom geometry(Point,4326),
+	CONSTRAINT custom_pois_pkey PRIMARY KEY (gid)
+);
+
+CREATE INDEX ON custom_pois USING gist(geom);
