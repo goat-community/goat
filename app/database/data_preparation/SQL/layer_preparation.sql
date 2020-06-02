@@ -29,23 +29,31 @@ WHERE p.osm_id = l.osm_id;
 DROP TABLE IF EXISTS crossings;
 CREATE TABLE crossings AS
 (SELECT osm_id, highway, way, traffic_signals, crossing FROM planet_osm_point WHERE highway = 'crossing' 
-	OR (highway = 'traffic_signals' AND traffic_signals = 'pedestrian_crossing'));
+	OR (highway = 'traffic_signals' AND traffic_signals IN ('pedestrian_crossing','crossing')));
 
 ALTER TABLE crossings 
 	ADD COLUMN crossing_ref text, 
 	ADD COLUMN kerb text, ADD COLUMN segregated text, 
 	ADD COLUMN supervised text, ADD COLUMN tactile_paving text,
-	ADD COLUMN wheelchair text;
+	ADD COLUMN wheelchair text, ADD COLUMN visualization text;
 	 
 UPDATE crossings 
 SET crossing_ref = l.crossing_ref, kerb = l.kerb, segregated = l.segregated, supervised = l.supervised, 
-	tactile_paving = l.tactile_paving, wheelchair = l.wheelchair
+	tactile_paving = l.tactile_paving, wheelchair = l.wheelchair, visualization = l.crossing
 FROM (select osm_id, (tags -> 'crossing') AS crossing, 
 	(tags -> 'crossing_ref') AS crossing_ref, (tags -> 'kerb') AS kerb, 
 	(tags -> 'segregated') AS segregated, (tags -> 'supervised') AS supervised, 
 	(tags -> 'tactile_paving') AS tactile_paving, (tags -> 'wheelchair') AS wheelchair
 	FROM planet_osm_point p) l
 WHERE crossings.osm_id = l.osm_id;
+
+UPDATE crossings 
+SET visualization = 'zebra'
+WHERE crossing_ref = 'zebra' OR crossing = 'marked';
+
+UPDATE crossings 
+SET visualization = 'traffic_signals'
+WHERE traffic_signals = 'crossing' OR traffic_signals = 'pedestrian_crossing';
 
 --Creation of a table that stores all sidewalk geometries
 DROP TABLE IF EXISTS ways_offset_sidewalk;
