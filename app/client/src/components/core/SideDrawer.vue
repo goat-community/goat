@@ -234,8 +234,8 @@ export default {
         this.toggleComponent("map-filter");
         this.activeColor = this.$appConfig.osmMappingColor;
         this.$refs.confirm.open(
-          this.$t("layerTree.osmMode.dialogMessage.title"),
-          this.$t("layerTree.osmMode.dialogMessage.body"),
+          this.$t("map.osmMode.dialogMessage.title"),
+          this.$t("map.osmMode.dialogMessage.body"),
           {
             color: this.activeColor.primary,
             icon: "info",

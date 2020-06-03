@@ -45,21 +45,7 @@
       </template>
       <template v-slot:body>
         <div class="subtitle-2 mb-4 font-weight-bold">
-          {{
-            getInfoResult[popup.currentLayerIndex]
-              ? $te(
-                  `map.layerName.${getInfoResult[popup.currentLayerIndex].get(
-                    "layerName"
-                  )}`
-                )
-                ? $t(
-                    `map.layerName.${getInfoResult[popup.currentLayerIndex].get(
-                      "layerName"
-                    )}`
-                  )
-                : getInfoResult[popup.currentLayerIndex].get("layerName")
-              : ""
-          }}
+          {{ getPopupTitle() }}
         </div>
 
         <a
@@ -290,7 +276,7 @@ export default {
       const vector = new VectorLayer({
         name: "Get Info Layer",
         displayInLayerList: false,
-        zIndex: 20,
+        zIndex: 100,
         source: source,
         style: getInfoStyle()
       });
@@ -663,6 +649,30 @@ export default {
       }
       return link;
     },
+    getPopupTitle() {
+      if (this.getInfoResult[this.popup.currentLayerIndex]) {
+        const layer = this.getInfoResult[this.popup.currentLayerIndex];
+        const canTranslate = this.$te(
+          `map.layerName.${layer.get("layerName")}`
+        );
+        if (canTranslate) {
+          return this.$t(`map.layerName.${layer.get("layerName")}`);
+        } else if (
+          this.osmMode === true &&
+          this.osmMappingLayers[layer.get("layerName")] &&
+          this.$te(`map.osmMode.layers.${layer.get("layerName")}.layerName`)
+        ) {
+          const path = `map.osmMode.layers.${layer.get("layerName")}`;
+          return (
+            this.$t(`${path}.layerName`) +
+            " - " +
+            this.$t(`${path}.missingKeyWord`)
+          );
+        } else {
+          return layer.get("layerName");
+        }
+      }
+    },
     ...mapMutations("map", {
       setMap: "SET_MAP",
       setContextMenu: "SET_CONTEXTMENU",
@@ -675,7 +685,9 @@ export default {
   computed: {
     ...mapGetters("map", {
       helpTooltip: "helpTooltip",
-      currentMessage: "currentMessage"
+      currentMessage: "currentMessage",
+      osmMode: "osmMode",
+      osmMappingLayers: "osmMappingLayers"
     }),
     ...mapGetters("app", {
       activeColor: "activeColor"

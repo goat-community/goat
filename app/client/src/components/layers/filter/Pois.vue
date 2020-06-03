@@ -291,6 +291,7 @@ export default {
   watch: {
     selectedPois: function() {
       const me = this;
+      if (me.osmMode === true) return;
       if (me.selectedPois.length > 0 && me.poisLayer.getVisible() === false) {
         me.poisLayer.setVisible(true);
       }
@@ -326,6 +327,9 @@ export default {
     ...mapGetters("user", { userId: "userId" }),
     ...mapGetters("app", {
       activeColor: "activeColor"
+    }),
+    ...mapGetters("map", {
+      osmMode: "osmMode"
     }),
     ...mapFields("pois", {
       dayFilter: "timeFilter.day.active",

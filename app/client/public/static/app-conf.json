@@ -469,6 +469,100 @@
         "attributions": "© Microsoft Coorporation © Digital Globe ©CNES Distribution Airbus DS <a href='https://www.microsoft.com/en-us/maps/product'>Terms of use</a> "
       }
     ],
+    "osmMappingLayers": [
+      {
+        "type": "WMS",
+        "name": "osm-mapping-pois",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_pois_opening_hours",
+        "viewparams": "amenities:'cG9wdWxhdGlvbg=='",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 30,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-clock"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "osm-mapping-ways-speed",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_ways_speed",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 31,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-tachometer-alt"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "osm-mapping-ways-surface",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_way_surface",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 32,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-road"
+        }
+      },
+
+      {
+        "type": "WMS",
+        "name": "osm-mapping-ways-wheelchair",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_ways_wheelchair",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 33,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-wheelchair"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "osm-mapping-buildings-type",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_buildings_type",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 33,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-building"
+        }
+      }
+    ],
     "controls": [
       {
         "name": "home",
