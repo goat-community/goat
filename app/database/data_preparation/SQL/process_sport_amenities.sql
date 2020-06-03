@@ -4,14 +4,13 @@
 -----------------------------------------------------------DRAFT!!! ---------------------------------------------------------
 
 -- Spatial join of the sports fields into each sport complex
-
 -- Save polygons with sport centers
 
 DROP TABLE IF EXISTS sport_centers;
 CREATE TABLE sport_centers (LIKE planet_osm_polygon INCLUDING ALL);
 
 INSERT INTO sport_centers
-	SELECT * FROM planet_osm_polygon WHERE leisure = 'sports_centre' OR name LIKE '%Bezirkssportanlage%';
+	SELECT * FROM planet_osm_polygon WHERE leisure = any(ARRAY['sports_centre', 'water_park'])  OR name LIKE '%Bezirkssportanlage%' OR landuse ='recreation_ground';
 
 -- Join sport fields (sport is not null) 
 
@@ -31,7 +30,7 @@ SELECT group_id, complex_name, array_agg(sport::Text) FROM grouping_sports GROUP
 
 DROP TABLE IF EXISTS sport_complex;
 SELECT sc.*, s.array_agg AS sports INTO sport_complex
-FROM (SELECT * FROM planet_osm_polygon pop WHERE leisure = 'sports_centre' OR name LIKE '%Bezirkssportanlage%' ) AS sc
+FROM sport_centers sc
 LEFT JOIN (SELECT group_id, complex_name, array_agg(sport::Text) FROM grouping_sports GROUP BY group_id, complex_name ORDER BY group_id) AS s
 ON sc.osm_id = s.group_id;
 
@@ -44,8 +43,8 @@ DELETE FROM sport_complex WHERE sports IS NULL ;
 
 DROP TABLE IF EXISTS doors_field;
 SELECT pol.osm_id, count(poi.osm_id), 'Sport complex with gates' AS "case" INTO doors_field
-FROM (SELECT * FROM planet_osm_point pop WHERE barrier = 'gate') poi
-JOIN (SELECT * FROM planet_osm_polygon pop WHERE leisure = 'sports_centre' OR name LIKE '%Bezirkssportanlage%') AS pol 
+FROM (SELECT * FROM planet_osm_point pop WHERE barrier = 'gate' AND NOT ("access" = 'no' OR "access" ='private' ) OR "access" IS null) poi
+JOIN sport_centers AS pol 
 ON st_intersects (poi.way, ST_Boundary(pol.way))
 GROUP BY pol.osm_id, pol.way;
 
@@ -64,7 +63,7 @@ SELECT * FROM sport_complex_c1;
 
 DROP TABLE IF EXISTS sport_gate_pois;
 SELECT poi.osm_id AS point_osm_id , sc.*, poi.way AS waypoint INTO sport_gate_pois
-FROM (SELECT * FROM planet_osm_point pop WHERE barrier = 'gate') poi
+FROM (SELECT * FROM planet_osm_point WHERE barrier = 'gate' AND NOT ("access" = 'no' OR "access" ='private')OR "access" IS null) AS poi
 JOIN sport_complex AS sc
 ON st_intersects (poi.way, ST_boundary(sc.way));
 --ON st_intersects(poi.way, sc.way);
@@ -104,18 +103,26 @@ FROM sport_complex_inter sci
 LEFT JOIN sport_complex_c2 scc2
 ON sci.osm_id = scc2.osm_id;
 
+-- Sport fields that does not below to any complex
+
+DROP TABLE IF EXISTS sports_no_complex;
+SELECT * INTO sports_no_complex FROM planet_osm_polygon WHERE sport IS NOT NULL 
+EXCEPT
+SELECT pol.* FROM planet_osm_polygon pol, sport_centers sc
+WHERE st_intersects(pol.way, sc.way);
+
 -- Join to pois (in this case dummy pois)
 
 DROP TABLE IF EXISTS dummy_pois;
 CREATE TABLE dummy_pois (LIKE pois INCLUDING all);
-SELECT * FROM dummy_pois;
 
+SELECT * FROM dummy_pois;
 
 ALTER TABLE dummy_pois 
 ALTER COLUMN amenity TYPE varchar USING ARRAY[3]; 
 
 INSERT INTO dummy_pois (
-SELECT osm_id AS osm_id, 'polygon' AS origin_geometry, ACCESS, "addr:housenumber" AS housenumber, sports AS amenity_array, 
+SELECT osm_id AS osm_id, 'polygon' AS origin_geometry, ACCESS, "addr:housenumber" AS housenumber, sports AS amenity_array,
 tags ->'origin' AS origin, tags ->'organic' AS organic, denomination, brand, name,
 OPERATOR, public_transport, railway, religion, tags ->'opening_hours' AS opening_hours, REF, tags, geom AS geom, tags -> 'wheelchair' AS wheelchair
 FROM entry_points_intersections
@@ -134,59 +141,30 @@ tags ->'origin' AS origin, tags ->'organic' AS organic, denomination, brand, nam
 OPERATOR, public_transport, railway, religion, tags ->'opening_hours' AS opening_hours, REF, tags, ST_Centroid(way) AS geom, tags -> 'wheelchair' AS wheelchair
 FROM sport_complex_c2 WHERE "case" IS null
 
+UNION ALL 
+
+SELECT osm_id AS osm_id, 'polygon' AS origin_geometry, ACCESS, "addr:housenumber" AS housenumber, (concat('{',sport,'}'))::text[] AS amenity_array, 
+tags ->'origin' AS origin, tags ->'organic' AS organic, denomination, brand, name,
+OPERATOR, public_transport, railway, religion, tags ->'opening_hours' AS opening_hours, REF, tags, ST_Centroid(way) AS geom, tags -> 'wheelchair' AS wheelchair
+FROM sports_no_complex
+
 );
 
 SELECT * FROM dummy_pois;
 
+SELECT * FROM variable_container vc;
 
+--End
 
-SELECT * FROM entry_points_intersections;
-SELECT * FROM sport_complex_c2 scc ;
+-- Count sports
 
+SELECT DISTINCT amenity FROM dummy_pois;
+SELECT count(DISTINCT bi)
+FROM (select(UNNEST(amenity) AS bi) FROM dummy_pois) s;
 
-SELECT * FROM sport_complex_c2 WHERE "case" IS NULL;
--- In pois format
+select(UNNEST(amenity)) FROM dummy_pois;
 
-SELECT osm_id AS osm_id, 'polygon' AS origin_geometry, ACCESS, "addr:housenumber" AS housenumber, sports AS amenity_array, shop, 
-tags ->'origin' AS origin, tags ->'organic' AS organic, denomination, brand, name,
-OPERATOR, public_transport, railway, religion, tags ->'opening_hours' AS opening_hours, REF, tags, geom AS geom, tags -> 'wheelchair' AS wheelchair
-FROM entry_points_intersections;
-
--- Left join based on 
-
-DROP TABLE IF EXISTS intersection_ways;
-SELECT epi.osm_id AS osm_id_2, sc2.*, epi.geom AS waypoint INTO intersection_ways
-FROM (SELECT * FROM entry_points_intersections) epi
-JOIN (SELECT * FROM sport_complex_c2 WHERE "case" = 'Sport_complex_intersections') AS sc2
-ON st_intersects(sc2.way, epi.geom);
-
-SELECT * FROM intersection_ways;
-SELECT * FROM entry_points_intersections;
-
-
-
-SELECT * FROM sport_complex_c2 WHERE "case" = 'Sport_complex_intersections';
-
-DROP TABLE IF EXISTS sport_gate_pois;
-SELECT poi.osm_id AS point_osm_id , sc.*, poi.way AS waypoint INTO sport_gate_pois
-FROM (SELECT * FROM planet_osm_point pop WHERE barrier = 'gate') poi
-JOIN sport_complex AS sc
-ON st_intersects (poi.way, ST_boundary(sc.way));
-
-
-
-
-----------------------------------------------------------------------
------- Selection in pois_structure from case 1//Talk with Elías ------
-----------------------------------------------------------------------
-
-SELECT point_osm_id AS osm_id, 'polygon' AS origin_geometry, ACCESS, "addr:housenumber" AS housenumber, sports AS amenity_array, shop, 
-tags ->'origin' AS origin, tags ->'organic' AS organic, denomination, brand, name,
-OPERATOR, public_transport, railway, religion, tags ->'opening_hours' AS opening_hours, REF, tags, waypoint AS geom, tags -> 'wheelchair' AS wheelchair
-FROM sport_gate_pois;
-
--- END --
-
+SELECT unnest(amenity) FROM dummy_pois;
 
 --Extras temporal
 -- Backup
@@ -206,3 +184,24 @@ SELECT * FROM planet_osm_polygon WHERE barrier = 'fence';
 
 -- ALSO ADD individual fields (as normal pois)
 SELECT * FROM planet_osm_polygon pop WHERE landuse = 'recreation_ground';
+
+SELECT * FROM planet_osm_point WHERE sport IS NOT NULL;
+
+
+
+DROP TABLE IF EXISTS access_tests;
+SELECT * INTO access_tests FROM planet_osm_line WHERE highway = ANY (ARRAY ['footway','path','service','services'] ) AND ("access" != ANY (ARRAY ['private','no']) )
+
+
+
+SELECT * FROM planet_osm_polygon WHERE name = 'Michaeli-Freibad'
+
+SELECT * FROM planet_osm_polygon WHERE leisure ='water_park'
+
+
+SELECT * FROM planet_osm_polygon WHERE sport IS NOT NULL 
+EXCEPT
+SELECT pol.* FROM planet_osm_polygon pol, sport_centers sc
+WHERE st_intersects(pol.way, sc.way)
+
+;
