@@ -155,8 +155,23 @@ export default {
 
       this.activeLayer = layer;
       // (Workaround) Watch is not accessible on component destory so are forced to add this here
-      if (layer === null) {
-        // Remove cql filter from pois layer
+      if (
+        this.selectedPois.length === 0 &&
+        this.poisLayer.getVisible() === true
+      ) {
+        this.toggleSnackbar({
+          type: "error",
+          message: "selectAmenities",
+          timeout: 8000,
+          state: true
+        });
+      } else {
+        this.toggleSnackbar({
+          type: "error",
+          message: "selectAmenities",
+          state: false,
+          timeout: 0
+        });
       }
     },
     createOsmMappingLayers() {
@@ -276,6 +291,14 @@ export default {
       return value;
     },
     updatePoisViewParams() {
+      if (this.selectedPois.length > 0) {
+        this.toggleSnackbar({
+          type: "error",
+          message: "selectAmenities",
+          state: false,
+          timeout: 0
+        });
+      }
       const viewParams = this.selectedPois.reduce((filtered, item) => {
         const { value } = item;
         if (value != "undefined") {
@@ -289,7 +312,8 @@ export default {
       });
     },
     ...mapMutations("map", {
-      setOsmMappingLayer: "SET_OSM_MAPPING_LAYER"
+      setOsmMappingLayer: "SET_OSM_MAPPING_LAYER",
+      toggleSnackbar: "TOGGLE_SNACKBAR"
     }),
     ...mapActions("pois", {
       updateSelectedPoisForThematicData: "updateSelectedPoisForThematicData"
