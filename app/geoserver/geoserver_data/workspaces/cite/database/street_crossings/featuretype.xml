@@ -30,9 +30,9 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>street_crossings</name>
-        <sql>SELECT osm_id, c.way, c.crossing, c.crossing_ref, c.kerb, c.segregated, c.supervised, c.tactile_paving, c.wheelchair&#xd;
+        <sql>SELECT c.osm_id, c.way, c.crossing, c.crossing_ref, c.traffic_signals, c.kerb, c.segregated, c.supervised, c.tactile_paving, c.wheelchair, c.visualization&#xd;
 FROM crossings c, study_area s&#xd;
-WHERE ST_Intersects(s.geom,c.way) AND (crossing = &apos;zebra&apos; OR crossing = &apos;traffic_signals&apos; OR crossing = &apos;marked&apos; OR (highway = &apos;traffic_signals&apos;AND traffic_signals = &apos;pedestrian_crossing&apos;))
+WHERE ST_Intersects(s.geom,c.way) AND visualization IN (&apos;zebra&apos;,&apos;traffic_signals&apos;)
 </sql>
         <escapeSql>false</escapeSql>
         <keyColumn>osm_id</keyColumn>
