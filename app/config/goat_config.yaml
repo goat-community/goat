@@ -22,13 +22,13 @@ DATA_REFINEMENT_VARIABLES:
   POPULATION: "extrapolation"
   #"yes" if you want to add these layers 
   ADDITIONAL_WALKABILITY_LAYERS: "yes" 
+  OSM_MAPPING_FEATURE: "yes"
   variable_container:
     heatmap_auto_refresh: "'yes'"
     pois_one_entrance: ["kindergarten","nursery","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
       "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
       "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
-      "hypermarket","international_supermarket","chemist","organic","marketplace",
-      "hotel","museum","hostel","guest_house","viewpoint","gallery"
+      "hypermarket","international_supermarket","chemist","organic","marketplace","hotel","museum","hostel","guest_house","viewpoint","gallery","playground"
     ]
     pois_more_entrances: ["bus_stop","tram_stop","subway_entrance","rail_station"]
     excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
@@ -60,11 +60,6 @@ DATA_REFINEMENT_VARIABLES:
     minimum_building_size_residential: '54'
     census_minimum_number_new_buildings: '1'
     average_gross_living_area: '50'
-    chains_discount_supermarket: ["Aldi","Penny","Lidl","Netto","Norma"]
-    chains_hypermarket: ["Hit","Real","Kaufland","V-Markt","Marktkauf"]
-    chains_health_food: ["Vitalia","Reformhaus"]
-    no_end_consumer_store: ["Hamberger","Metro"]
-    operators_bicycle_rental: ["Münchner Verkehrs gesellschaft","Münchner Verkehrsgesellschaft","MVG"]
     wheelchair:
       smoothness_no: ["very_bad","horrible","very_horrible","impassable"]
       smoothness_limited: ['bad']
@@ -91,7 +86,6 @@ DATA_REFINEMENT_VARIABLES:
       sand: '0.4'
       grass: '0.25'
       mud: '0.4'
-
     cycling_smoothness:
       intermediate: '0.05'
       bad: '0.1'
@@ -99,5 +93,86 @@ DATA_REFINEMENT_VARIABLES:
       horrible: '0.3'
       very_horrible: '0.5'
     dem_resolution: '30'
+    ##-------------------------------------Radius definition for POIS fusion------------------------------------##
+    ##  Duplicated lookup radius: Sensibility factor, entities for the same branch and amenity type into this radius will be considered as duplicated; it is applied for OSM and Custom POIS databases (meters).
+    ##  Tag new radius: Radius search for tag opening hours from Custom POIS to OSM POIS (meters).
+    ##  Duplicated kindergarten lookup radius: the estimated distance between centroids of two polygons that represent the same kindergarten
+    duplicated_lookup_radius: '100' 
+    tag_new_radius: '130'
+    duplicated_kindergarden_lookup_radius: '40'
+    ##----------------------------------------------------------------------------------------------------------##
+    ##-----------Definition of amenity parameters for POIS preparation and data fusion of new sources------------##
+    ##----------------------------------------------------------------------------------------------------------##
+    ##  Data structure:       Amenity type -> brand name -> different brand name variables
+    ##  Amenity type:         According to the types defined for GOAT
+    ##  Brand name:           Business/element generic name, this name will be implemented in the data fusion
+    ##  Brand name variable:  Array that includes the brand names variances, for increase the lookup radius by name
+    ##                        Possible names are mandatory for the new POIS to include (with a .geojson file)
+    pois_search_conditions:
+      chemist:
+        dm: ['%dm%']
+        rossmann: ['rossmann%']
+      supermarket:
+        edeka: ['e center%', '%edeka%']
+        rewe: ['%rewe', '%rewe city%']
+      discount_supermarket:
+        aldi: []
+        lidl: ['%lidl%']
+        penny: []
+        netto: []
+        norma: []
+      hypermarket:
+        hit: []
+        real: []
+        kaufland: []
+        v-markt: []
+        marktkauf: []
+      no_end_consumer_store:
+        hamberger: []
+        metro: []
+      health_food:
+        vitalia: []
+        reformhaus: []
+      operators_bicycle_rental: 
+        münchner verkehrs gesellschaft: []
+        münchner verkehrsgesellschaft: []
+        mvg: []
+      bank: 
+        sparkasse: ['%kreissparkasse%','%sparkasse%','%stadtsparkasse%']   
+        hypovereinsbank: ['%hypo vereinsbank%', '%hypovereinsbank%']
+        raiffeisenbank: ['%raiffeisenbank%', '%vr bank%', '%vr-bank%', '%volksbank%','%volks%', '%Münchner%']
+      fast_food:
+        mcdonalds: ['%mcdonald%']
+      restaurant:   
+        vapiano: ['%vapiano%']
+      nursery:
+        kinderkrippe: []
+    ##----------------------------------------------------------------------------------------------------------##
+    ##-----------------------Amenity parameters for POIS preparation leisure and schools------------------------##
+    ##----------------------------------------------------------------------------------------------------------##
+    ##  Data structure:   Amenity type -> add/discard -> different parameters definition
+    ##  Amenity type:     Fixed parameter, do not change it
+    ##  Add/discard:      Fixed parameter, do not change it
+    ##  Add:              Amenity names to include into the specific category
+    ##  Discard:          Amenity names to exclude to the specific category
+
+    amenity_config:
+      leisure:
+        add: ['sports_hall', 'fitness_center', 'sport_center', 'track, pitch']
+        discard: ['fitness_station']
+      sport:
+        discard: ['table_tennis']
+      primary_school:
+        add: ['%grund-%', '%grund %', '%grundsch%' ]
+        discard: ['%grund-schule%']
+      secondary_school:
+        add: ['%haupt-%', '%haupt %', '%hauptsch%', '%mittel-%', '%mittel %', '%mittelsch%', '%real-%', 'real %', '%realsch%', '%förder-%', '%förder %', '%fördersch%',
+        '%gesamt-%', '%gesamt %', '%gesamtsch%', '%-gymnasium%', '%gymnasium-%', '% gymnasium%','%gymnasium %', '%fachobersch%']
+        discard: ['%haupt-schule%', '%mittel-schule%', '%real-schule%', '%förder-schule%', '%gesamt-schule%']
+      kindergarten: ['kindergarten']
+      
+
+
+
 
       

@@ -112,7 +112,8 @@ buildings_translation = {}
 print(xml_to_sql(response.content,'buildings',buildings_translation))
 psycopg_execute(xml_to_sql(response.content,'buildings',buildings_translation),cursor,con)
 
-file = open("/opt/data/overpass_update.txt","a")
+open('/opt/data/overpass_update.txt', 'w').close()
+file = open('/opt/data/overpass_update.txt','a')
 file.write(diff_time+'\n')
 file.close()
 

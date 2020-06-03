@@ -9,6 +9,7 @@ from argparse import RawTextHelpFormatter
 from scripts.db_functions import DB_connection
 from scripts.db_functions import ReadYAML
 from scripts.db_functions import restore_db
+from scripts.db_functions import create_variable_container
 #Define command line options
 help_text_type = '''You can define the update type. 
              1. -t new_setup             Do a completely fresh setup and drop your old database.

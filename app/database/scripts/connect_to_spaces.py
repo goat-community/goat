@@ -1,21 +1,28 @@
 import boto3
 import yaml 
+import sys 
+import os.path
+from os import path
 
+def load_spaces_yaml():
+    if path.exists("/opt/config/spaces.yaml") == True:
+        #Load key_id and secret_access_key from spaces.yaml
+        with open("/opt/config/spaces.yaml", 'r') as stream:
+            conf = yaml.load(stream, Loader=yaml.FullLoader)
 
-#now = date.today 
-
-#os.system('pg_dump -U postgres -d goat > goat.sql')
-
-#Load key_id and secret_access_key from spaces.yaml
-with open("/opt/config/spaces.yaml", 'r') as stream:
-    conf = yaml.load(stream, Loader=yaml.FullLoader)
-
-key_id = conf["key_id"]
-secret_access_key = conf["secret_access_key"]
- 
-region_name = 'fra1'
+        key_id = conf["key_id"]
+        secret_access_key = conf["secret_access_key"]
+        return key_id,secret_access_key
+    else:
+        print('You have no spaces.yaml file in your config folder. You need the credentials in this file to interact with DigitalOcean Spaces.')
+        sys.exit()
+    
 
 def space_connect(region_name):
+    
+    key_id = load_spaces_yaml()[0]
+    secret_access_key = load_spaces_yaml()[1]
+
     session = boto3.session.Session()
     client = session.client('s3',
                             region_name=str(region_name),

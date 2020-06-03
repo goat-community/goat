@@ -205,6 +205,20 @@
       },
       {
         "type": "WMS",
+        "name": "streetCrossings",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:street_crossings",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "wheelchairUsability",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
