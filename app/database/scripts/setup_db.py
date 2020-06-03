@@ -14,7 +14,7 @@ def setup_db(setup_type):
     from scripts.db_functions import update_functions
     from scripts.db_functions import geojson_to_sql
 
-    download_link,osm_data_recency,buffer,extract_bbox,source_population,additional_walkability_layers = ReadYAML().data_source()
+    download_link,osm_data_recency,buffer,extract_bbox,source_population,additional_walkability_layers,osm_mapping_feature = ReadYAML().data_source()
     db_name,user,host,port,password = ReadYAML().db_credentials()
     db_name_temp = db_name+'temp'
 
@@ -152,7 +152,8 @@ def setup_db(setup_type):
         db_temp.execute_script_psql('../data_preparation/SQL/network_preparation.sql')
         if (additional_walkability_layers == 'yes'):
             db_temp.execute_script_psql('../data_preparation/SQL/layer_preparation.sql')
-
+        if (osm_mapping_feature == 'yes'):
+            db_temp.execute_script_psql('../data_preparation/SQL/create_tables_mapping.sql')
 
     if (setup_type == 'new_setup'):    
         #Create pgpass for goat-database
@@ -165,6 +166,7 @@ def setup_db(setup_type):
                
         #Creates DB_functions
         update_functions()
+
         #os.system(f'psql --U {user} -d {db_name} -f /opt/database_functions/libs/plv8_js_modules.sql')
         #os.system(f'psql -U {user} -d {db_name} -c "ALTER DATABASE {db_name} SET plv8.start_proc TO plv8_require')
 
