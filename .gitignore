@@ -3,7 +3,7 @@ ubuntu-bionic-18.04-cloudimg-console.log
 /app/data/*
 !/app/data/.gitkeep
 /app/geoserver/geoserver_data/logs/geoserver.log
-/app/config/spaces.yaml
+/app/config/db/spaces.yaml
 /app/node/node_modules
 /app/database/data
 /app/database/backups
