@@ -5,9 +5,9 @@ import os.path
 from os import path
 
 def load_spaces_yaml():
-    if path.exists("/opt/config/spaces.yaml") == True:
+    if path.exists("/opt/config/db/spaces.yaml") == True:
         #Load key_id and secret_access_key from spaces.yaml
-        with open("/opt/config/spaces.yaml", 'r') as stream:
+        with open("/opt/config/db/spaces.yaml", 'r') as stream:
             conf = yaml.load(stream, Loader=yaml.FullLoader)
 
         key_id = conf["key_id"]
