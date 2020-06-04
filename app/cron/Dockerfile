@@ -11,7 +11,7 @@ COPY ./config $APP_PATH/config
 RUN apt-get -y update && apt-get -y upgrade
 # PYTHON AND DB DEPENDECIES
 RUN apt-get install -y cron postgresql-client \
-    && pip3 install psycopg2-binary pyshp pyyaml requests
+    && pip3 install psycopg2-binary pyshp pyyaml requests boto3
 
 RUN touch /var/log/cron.log
 COPY ./cron/crontab /etc/cron.d/cjob
