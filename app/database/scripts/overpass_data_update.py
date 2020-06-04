@@ -13,7 +13,7 @@ db_name,user,host,port,password = ReadYAML().db_credentials()
 #Get buffer for study_area
 buffer = ReadYAML().data_source()[2]
 #Connect to database
-db = DB_connection(db_name,user,'db',port,password)
+db = DB_connection(db_name,user,host,port,password)
 con,cursor = db.con_psycopg()
 #Get bounding box for study area
 cursor.execute('''SELECT ST_YMIN(ST_EXTENT(geom)),ST_XMIN(ST_EXTENT(geom)),ST_YMAX(ST_EXTENT(geom)),ST_XMAX(ST_EXTENT(geom))  
