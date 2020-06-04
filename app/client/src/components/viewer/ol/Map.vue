@@ -233,6 +233,9 @@ export default {
         return interaction !== stopedInteraction;
       });
     });
+    EventBus.$on("close-popup", () => {
+      me.closePopup();
+    });
   },
 
   methods: {
