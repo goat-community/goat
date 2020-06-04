@@ -173,10 +173,9 @@ def setup_db(setup_type):
     else:
         #Create pgpass for goat-database
         ReadYAML().create_pgpass('')
-        con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s'" % (
-        db_name_temp, user, port, host, password))
 
-        cursor = con.cursor()
+        con,cursor = db_temp.con_psycopg()
+
         #Select all tables that have changed
         sql_select_not_empty_tables = '''
         SELECT c.relname
@@ -187,6 +186,7 @@ def setup_db(setup_type):
         '''
         cursor.execute(sql_select_not_empty_tables)
         tables_to_update = cursor.fetchall()
+        con.close()
         #Refresh all tables that have changed
         for table in tables_to_update:  
             table = table[0]

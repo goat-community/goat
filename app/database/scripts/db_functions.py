@@ -3,7 +3,8 @@
 
 import yaml, os, psycopg2, glob
 class ReadYAML:
-
+    with open("/opt/config/db/db.yaml", 'r') as stream:
+        db_conf = yaml.load(stream, Loader=yaml.FullLoader)
   
     with open("/opt/config/goat_config.yaml", 'r') as stream:
         goat_conf = yaml.load(stream, Loader=yaml.FullLoader)
@@ -11,7 +12,6 @@ class ReadYAML:
     with open("/opt/config/osm_mapping_config.yaml", 'r') as stream:
         osm_mapping_conf = yaml.load(stream, Loader=yaml.FullLoader)
 
-    db_conf = goat_conf["DATABASE"]
     source_conf = goat_conf["DATA_SOURCE"]
     refinement_conf = goat_conf["DATA_REFINEMENT_VARIABLES"]
 
