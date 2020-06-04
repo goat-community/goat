@@ -43,6 +43,13 @@ spec:
           envFrom:
             - configMapRef:
                 name: cron-config
+          volumeMounts:
+            - mountPath: /opt/config/db
+              name: goat-config
+      volumes:
+        - name: goat-config
+          configMap:
+            name: goat-config
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -50,10 +57,13 @@ metadata:
   name: goat-config
   namespace: ${NAMESPACE}
 data:
-  goat_config.yaml: |
+  db.yaml: |
     DATABASE:
       HOST: \"postgres.${NAMESPACE}.svc.cluster.local\"
       PORT: 5432
       DB_NAME: \"${POSTGRES_DB}\"
       USER: \"${POSTGRES_USER}\"
       PASSWORD: \"${POSTGRES_PASSWORD}\"
+  spaces.yaml: |
+    key_id: \"${SPACES_KEY_ID}\"
+    secret_access_key: \"${SPACES_SECRET_KEY}\"
