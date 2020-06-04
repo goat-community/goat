@@ -573,7 +573,8 @@
         "zIndex": 33,
         "serverType": "geoserver",
         "otherProps": {
-          "icon": "fas fa-building"
+          "icon": "fas fa-building",
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:building"
         }
       }
     ],

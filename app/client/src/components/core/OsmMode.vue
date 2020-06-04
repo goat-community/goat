@@ -85,6 +85,18 @@
         <div class="red--text mx-3 pt-3">
           <i>{{ getNoteMessage(activeLayer.get("name")) }}</i>
         </div>
+        <v-divider class="mx-4 mt-2 pt-0"></v-divider>
+        <div class="mx-3 pt-3 text-right">
+          <a
+            v-if="activeLayer.get('otherProps').wikiUrl"
+            style="text-decoration:none;"
+            :href="activeLayer.get('otherProps').wikiUrl"
+            target="_blank"
+            title=""
+          >
+            <i class="fas fa-passport"></i> OSM Wiki</a
+          >
+        </div>
       </div>
     </vue-scroll>
     <v-layout align-end>
@@ -113,6 +125,7 @@ import { mapGetters, mapMutations, mapActions } from "vuex";
 import { groupBy } from "../../utils/Helpers";
 import { LayerFactory } from "../../factory/layer.js";
 import { Group as LayerGroup } from "ol/layer.js";
+import { EventBus } from "../../EventBus";
 import axios from "axios";
 
 export default {
@@ -149,6 +162,8 @@ export default {
       osmLayerKeys.forEach(layerKey => {
         this.osmMappingLayers[layerKey].setVisible(false);
       });
+      // Close popup
+      EventBus.$emit("close-popup");
       if (layer) {
         layer.setVisible(true);
       }
