@@ -216,6 +216,8 @@
       "walking_elderly": "Elderly",
       "walking_safe_night": "Safe night",
       "walking_wheelchair": "Wheelchair",
+      "walking_wheelchair_standard": "Standard",
+      "walking_wheelchair_electric": "Electric",
       "cycling_standard": "Standard",
       "cycling_pedelec": "Pedelec"
     },
