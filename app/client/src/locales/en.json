@@ -445,16 +445,16 @@
       "zoomOut": "Zoom Out"
     },
     "osmMode": {
-      "tasks": "OSM Mode Tasks",
+      "tasks": "OSM Mapping Tasks",
       "steps": "Steps",
       "info": "Info",
 
       "stepsDesc": {
-        "clickFeatureInMap": "Click a feature in the map",
-        "clickEditWithOsm": "Click <b>'Edit with OSM'</b> link",
-        "fillInOSMiD": "Fill out missing {missingVar} in OSM iD"
+        "clickFeatureInMap": "Click on a object in the map.",
+        "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
+        "fillInOSMiD": "Add the missing {missingVar} in the OSM editor according to the guidelines of the OSM wiki [LINK]. To retrieve the missing information, for example the mapillary images can be used. "
       },
-      "note": "Note: {layerNameVar} layer is updated every 5 minutes",
+      "note": "Note: the {layerNameVar} layer is updated every 5 minutes",
       "shortDesc": "Complete the missing {missingVar}",
       "longDesc": "Check out {layerNameVar} for missing {missingVar}.",
       "layers": {
@@ -463,7 +463,7 @@
           "layerName": "POIs"
         },
         "osm-mapping-ways-speed": {
-          "missingKeyWord": "Way Speed",
+          "missingKeyWord": "Speed",
           "layerName": "Ways"
         },
         "osm-mapping-ways-surface": {
@@ -471,7 +471,7 @@
           "layerName": "Ways"
         },
         "osm-mapping-ways-wheelchair": {
-          "missingKeyWord": "Wheelchair Ways",
+          "missingKeyWord": "Wheelchair Usability",
           "layerName": "Ways"
         },
         "osm-mapping-buildings-type": {
@@ -481,8 +481,8 @@
       },
 
       "dialogMessage": {
-        "title": "OSM Mode",
-        "body": "This mode lets you improve GOAT data and at the same time contribute to OSM. We have set up different tasks for layers with missing informations which can be filled using Id editor."
+        "title": "OSM Mapping Mode",
+        "body": "Welcome to the OSM mapping mode! In this mode you can improve GOAT data by contributing to OpenStreetMap (OSM). We have set up different tasks for objects with missing information, which can be completed using the iD-Editor or other OSM editors such as JOSM. Please familiarize yourself with the general mapping rules and the corresponding content of the OSM wiki for the objects you want to edit. Furthermore, you can find a tutorial on mapping in OSM on the GOAT website [LINK]. Thanks for contributing to the world of open data!"
       }
     }
   },
