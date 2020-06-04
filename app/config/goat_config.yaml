@@ -72,7 +72,7 @@ DATA_REFINEMENT_VARIABLES:
       highway_no: ['track']
       surface_no: ['ground','gravel','unpaved','grass']
     walking_speed_elderly: '0.83333'
-    walking_speed_wheelchair: '1.38889'
+    #walking_speed_wheelchair: '1.38889'
     cycling_surface:
       paving_stones: '0.2'
       sett: '0.3'

@@ -1217,8 +1217,17 @@
           ]
         },
         "walking_wheelchair": {
-          "speed": 5,
-          "options": []
+          "default": "standard",
+          "options": [
+            {
+              "value": "standard",
+              "speed": 3
+            },
+            {
+              "value": "electric",
+              "speed": 6
+            }
+          ]
         }
       }
     },
