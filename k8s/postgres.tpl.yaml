@@ -63,7 +63,7 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgredb
-            - mountPath: /opt/config/
+            - mountPath: /opt/config/db
               name: goat-config
             - mountPath: /opt/data
               name: postgredb
@@ -86,9 +86,9 @@ metadata:
 spec:
   type: NodePort
   ports:
-   - port: 5432
+    - port: 5432
   selector:
-   app: postgres
+    app: postgres
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -103,3 +103,6 @@ data:
       DB_NAME: \"${POSTGRES_DB}\"
       USER: \"${POSTGRES_USER}\"
       PASSWORD: \"${POSTGRES_PASSWORD}\"
+  spaces.yaml: |
+    key_id: \"${SPACES_KEY_ID}\"
+    secret_access_key: \"${SPACES_SECRET_KEY}\"
