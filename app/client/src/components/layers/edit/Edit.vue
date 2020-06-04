@@ -30,7 +30,7 @@
           colored-border
           class="mb-2 mt-0 mx-0 elevation-2"
           icon="info"
-          color="green"
+          :color="activeColor.primary"
           dense
           v-if="
             selectedLayer &&
@@ -198,7 +198,7 @@
               "
               class="elevation-2"
               type="info"
-              color="green"
+              :color="activeColor.primary"
               border="left"
               colored-border
               dense
@@ -326,7 +326,7 @@
           class="white--text"
           :loading="isUploadBusy"
           :disabled="isDeleteAllBusy"
-          color="green"
+          :color="activeColor.primary"
           @click="uploadFeatures"
         >
           <v-icon left>cloud_upload</v-icon>{{ $t("appBar.edit.uploadBtn") }}
@@ -424,6 +424,7 @@
     </overlay-popup>
     <!-- Opening hours -->
     <opening-hours
+      :color="activeColor.primary"
       :visible="showOpeningHours"
       @close="showOpeningHours = false"
     />
@@ -1131,7 +1132,7 @@ export default {
         .open(
           this.$t("appBar.edit.deleteAllTitle"),
           this.$t("appBar.edit.deleteAllMessage"),
-          { color: "green" }
+          { color: this.activeColor.primary }
         )
         .then(confirm => {
           if (confirm) {
@@ -1408,6 +1409,9 @@ export default {
     },
     ...mapGetters("user", { userId: "userId" }),
     ...mapGetters("isochrones", { options: "options" }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    }),
     ...mapFields("isochrones", {
       scenarioDataTable: "scenarioDataTable"
     })

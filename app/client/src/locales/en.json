@@ -170,7 +170,8 @@
       "moreInfo": "More Info"
     },
     "documentation": {
-      "title": "Documentation"
+      "title": "Documentation",
+      "openInNewTab": "Open in new tab"
     }
   },
   "isochrones": {
@@ -290,26 +291,6 @@
     "title": "Layers",
     "settings": {
       "transparency": "Transparency"
-    },
-    "osmMode": {
-      "tasks": "OSM Mode Tasks",
-      "steps": "Steps",
-      "info": "Info",
-      "tasksList": {
-        "missingHours": "Check POIs for missing opening hours"
-      },
-      "missingHours": {
-        "title": "Opening Hours",
-        "shortDesc": "Fill out missing opening hours",
-        "longDesc": "Check out POIs for missing opening hours.",
-        "stepsDesc": {
-          "enablePoisLayer": "Turn on POIs in Thematic Data panel",
-          "clickPoisInMap": "Click a POIs in the map",
-          "clickEditWithOsm": "Click <b>'Edit with OSM'</b> link",
-          "fillOhInOSMiD": "Fill out opening hours in OSM iD"
-        },
-        "note": "Note: POIs are updated every 30 minutes"
-      }
     }
   },
   "map": {
@@ -462,6 +443,47 @@
       "deleteIsochrone": "Delete Isochrone",
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out"
+    },
+    "osmMode": {
+      "tasks": "OSM Mode Tasks",
+      "steps": "Steps",
+      "info": "Info",
+
+      "stepsDesc": {
+        "clickFeatureInMap": "Click a feature in the map",
+        "clickEditWithOsm": "Click <b>'Edit with OSM'</b> link",
+        "fillInOSMiD": "Fill out missing {missingVar} in OSM iD"
+      },
+      "note": "Note: {layerNameVar} layer is updated every 5 minutes",
+      "shortDesc": "Complete the missing {missingVar}",
+      "longDesc": "Check out {layerNameVar} for missing {missingVar}.",
+      "layers": {
+        "osm-mapping-pois": {
+          "missingKeyWord": "Opening Hours",
+          "layerName": "POIs"
+        },
+        "osm-mapping-ways-speed": {
+          "missingKeyWord": "Way Speed",
+          "layerName": "Ways"
+        },
+        "osm-mapping-ways-surface": {
+          "missingKeyWord": "Surface Type",
+          "layerName": "Ways"
+        },
+        "osm-mapping-ways-wheelchair": {
+          "missingKeyWord": "Wheelchair Ways",
+          "layerName": "Ways"
+        },
+        "osm-mapping-buildings-type": {
+          "missingKeyWord": "Building Type",
+          "layerName": "Buildings"
+        }
+      },
+
+      "dialogMessage": {
+        "title": "OSM Mode",
+        "body": "This mode lets you improve GOAT data and at the same time contribute to OSM. We have set up different tasks for layers with missing informations which can be filled using Id editor."
+      }
     }
   },
   "pois": {

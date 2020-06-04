@@ -9,7 +9,7 @@
           fab
           dark
           small
-          color="green"
+          :color="activeColor.primary"
           @click="showMiniViewer"
           v-on="on"
         >
@@ -62,6 +62,7 @@
 import appMap from "./ol/Map";
 import appMapillary from "./mapillary/Mapillary";
 import IsochronThematicData from "./others/IsochroneThematicData";
+import { mapGetters } from "vuex";
 
 export default {
   name: "app-viewer",
@@ -75,6 +76,11 @@ export default {
       miniViewerVisible: false,
       miniViewOlMap: false
     };
+  },
+  computed: {
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
   },
   methods: {
     showMiniViewer() {

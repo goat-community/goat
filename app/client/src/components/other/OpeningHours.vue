@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" scrollable max-width="355px">
     <v-card>
-      <v-app-bar color="green" height="50" dark>
+      <v-app-bar :color="color" height="50" dark>
         <v-app-bar-nav-icon><v-icon>query_builder</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title>Opening Hours</v-toolbar-title>
         <v-spacer></v-spacer>
@@ -27,7 +27,7 @@
               v-show="activeTab === 0"
               v-model="editTimeSelector.opens"
               format="24hr"
-              color="green"
+              :color="color"
               full-width
               class="elevation-0"
             ></v-time-picker>
@@ -36,7 +36,7 @@
               v-show="activeTab === 1"
               v-model="editTimeSelector.closes"
               format="24hr"
-              color="green"
+              :color="color"
               full-width
               class="elevation-0"
             ></v-time-picker>
@@ -135,6 +135,7 @@
 export default {
   props: {
     visible: { type: Boolean, required: true },
+    color: { type: String, default: "#4CAF50" },
     osmHours: {
       type: String,
       required: false,

@@ -1,10 +1,15 @@
 <template>
   <v-dialog v-model="show" v-if="item" scrollable max-width="815px">
     <v-card>
-      <v-app-bar color="green" dark>
-        <v-app-bar-nav-icon
-          ><v-icon>fas fa-question-circle</v-icon></v-app-bar-nav-icon
-        >
+      <v-app-bar :color="color" dark>
+        <v-tooltip top>
+          <template v-slot:activator="{ on }">
+            <v-app-bar-nav-icon v-on="on" @click="openDocInNetTab"
+              ><v-icon>fas fa-external-link-alt</v-icon></v-app-bar-nav-icon
+            >
+          </template>
+          <span>{{ $t(`appBar.documentation.openInNewTab`) }}</span>
+        </v-tooltip>
         <v-toolbar-title>{{
           $t("appBar.documentation.title")
         }}</v-toolbar-title>
@@ -17,7 +22,7 @@
         v-show="isLoading === true"
         indeterminate
         height="5"
-        color="green"
+        :color="color"
       ></v-progress-linear>
 
       <vue-scroll>
@@ -41,7 +46,8 @@
 export default {
   props: {
     visible: { type: Boolean, required: true },
-    item: { type: Object, required: false }
+    item: { type: Object, required: false },
+    color: { type: String, default: "#4CAF50" }
   },
   data: () => ({
     isLoading: true
@@ -55,6 +61,15 @@ export default {
         if (!value) {
           this.$emit("close");
         }
+      }
+    }
+  },
+  methods: {
+    openDocInNetTab() {
+      if (!this.item) return;
+      const url = this.item.mapLayer.get("docUrl");
+      if (url) {
+        window.open(url, "_blank");
       }
     }
   }

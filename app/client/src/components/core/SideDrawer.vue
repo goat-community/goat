@@ -38,7 +38,7 @@
       permanent
       right
       hide-overlay
-      class="green"
+      :color="activeColor.primary"
       :class="{ 'left-shadow': container === false }"
       width="50"
     >
@@ -56,8 +56,8 @@
                   active-class="red--text"
                   :style="[
                     activeUpComponent === item.componentToShow
-                      ? { backgroundColor: '#99D19B' }
-                      : { backgroundColor: '#4CAF50' }
+                      ? { backgroundColor: activeColor.secondary }
+                      : { backgroundColor: activeColor.primary }
                   ]"
                 >
                   <v-list-item-action>
@@ -90,8 +90,8 @@
                 @click="toggleOsmMapMode()"
                 :style="
                   osmMode === true
-                    ? 'background-color: #99D19B;'
-                    : 'background-color: #4CAF50'
+                    ? `background-color: ${activeColor.secondary};`
+                    : `background-color: ${activeColor.primary};`
                 "
                 class="mb-1"
               >
@@ -120,7 +120,7 @@
                 target="_blank"
                 class="elevation-0 ma-0 py-1"
                 v-on="on"
-                color="#4CAF50"
+                :color="activeColor.primary"
               >
                 <v-icon color="white" large light>home</v-icon>
               </v-btn>
@@ -131,6 +131,7 @@
         </v-list>
       </v-layout>
     </v-navigation-drawer>
+    <confirm ref="confirm"></confirm>
 
     <!-- <component
       :visible="showDialog"
@@ -155,6 +156,7 @@ import Edit from "../layers/edit/Edit";
 import Language from "./Language";
 import { mapMutations, mapGetters } from "vuex";
 import { EventBus } from "../../EventBus";
+import { mapFields } from "vuex-map-fields";
 
 export default {
   name: "app-sidebar",
@@ -204,6 +206,9 @@ export default {
     },
     ...mapGetters("map", {
       osmMode: "osmMode"
+    }),
+    ...mapFields("app", {
+      activeColor: "activeColor"
     })
   },
   methods: {
@@ -227,6 +232,20 @@ export default {
         EventBus.$emit("ol-interaction-activated", "osm-map-mode");
         EventBus.$emit("ol-interaction-stoped", "osm-map-mode");
         this.toggleComponent("map-filter");
+        this.activeColor = this.$appConfig.osmMappingColor;
+        this.$refs.confirm.open(
+          this.$t("map.osmMode.dialogMessage.title"),
+          this.$t("map.osmMode.dialogMessage.body"),
+          {
+            color: this.activeColor.primary,
+            icon: "info",
+            width: 320,
+            showNo: false,
+            yesText: this.$t("buttonLabels.ok")
+          }
+        );
+      } else {
+        this.activeColor = this.$appConfig.baseColor;
       }
     },
     hide() {
