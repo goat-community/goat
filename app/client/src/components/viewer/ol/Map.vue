@@ -233,6 +233,9 @@ export default {
         return interaction !== stopedInteraction;
       });
     });
+    EventBus.$on("close-popup", () => {
+      me.closePopup();
+    });
   },
 
   methods: {
@@ -629,10 +632,17 @@ export default {
       let link = ``;
       if (this.currentInfoFeature && this.currentInfoFeature.get("osm_id")) {
         const feature = this.currentInfoFeature;
-        const originGeometry = feature.getProperties()["orgin_geometry"];
+        const originGeometry =
+          feature.getProperties()["orgin_geometry"] ||
+          feature
+            .getGeometry()
+            .getType()
+            .toLowerCase();
         let type;
         switch (originGeometry) {
           case "polygon":
+          case "multipolygon":
+          case "linestring":
             type = "way";
             break;
           case "point":
