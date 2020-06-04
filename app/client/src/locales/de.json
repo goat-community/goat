@@ -55,6 +55,8 @@
           "walking_elderly": "Senior",
           "walking_safe_night": "Safe night",
           "walking_wheelchair": "Rollstuhl",
+          "walking_wheelchair_standard": "Standard",
+          "walking_wheelchair_electric": "Elektrisch",
           "cycling_standard": "Standard",
           "cycling_pedelec": "Pedelec"
         },
@@ -355,7 +357,7 @@
       "speed": "Geschwindigkeitsbegrenzungen",
       "streetCategory": "Straßenkategorien - detailliert",
       "streetCategorysAggregated": "Straßenkategorien",
-      "streetCrossings": "Straßenquerungsmöglichkeiten",
+      "streetCrossings": "Querungsmöglichkeiten",
       "streetFurniture": "Straßenmöbelierung",
       "streetFurnitureBicycles": "Fahrradständer",
       "surface": "Oberfläche",
