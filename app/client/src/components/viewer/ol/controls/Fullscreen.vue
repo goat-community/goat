@@ -8,7 +8,7 @@
           fab
           dark
           x-small
-          color="green"
+          :color="color"
           @click="toggleFullScreen"
           v-on="on"
         >
@@ -29,6 +29,9 @@ import screenfull from "../../../../utils/ScreenFull";
 
 export default {
   name: "full-screen",
+  props: {
+    color: { type: String, default: "#4CAF50" }
+  },
   data: () => ({
     isFullscreen: false
   }),

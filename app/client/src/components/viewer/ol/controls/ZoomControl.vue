@@ -8,7 +8,7 @@
           fab
           dark
           x-small
-          color="green"
+          :color="color"
           @click="zoom(1)"
           v-on="on"
         >
@@ -25,7 +25,7 @@
           fab
           dark
           x-small
-          color="green"
+          :color="color"
           @click="zoom(-1)"
           v-on="on"
         >
@@ -41,9 +41,9 @@ import { easeOut } from "ol/easing";
 
 export default {
   props: {
-    map: { type: Object, required: true }
+    map: { type: Object, required: true },
+    color: { type: String, default: "#4CAF50" }
   },
-
   name: "zoom-control",
   methods: {
     zoom(delta) {

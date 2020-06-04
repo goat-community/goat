@@ -82,6 +82,7 @@ export const LayerFactory = {
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       displayInLegend: lConf.displayInLegend,
+      group: lConf.group,
       visible: lConf.visible,
       opacity: lConf.opacity,
       queryable: lConf.queryable,
@@ -119,6 +120,7 @@ export const LayerFactory = {
       displayInLayerList: lConf.displayInLayerList,
       extent: lConf.extent,
       visible: lConf.visible,
+      group: lConf.group,
       opacity: lConf.opacity,
       preload: lConf.preload ? parseFloat(lConf.preload) : 0, //Parse float is used because it's not possible to add values like Infinity in json config
       zIndex: lConf.zIndex,
@@ -150,6 +152,7 @@ export const LayerFactory = {
       lid: lConf.lid,
       cascadePrint: lConf.cascadePrint,
       displayInLayerList: lConf.displayInLayerList,
+      group: lConf.group,
       visible: lConf.visible,
       opacity: lConf.opacity,
       source: new XyzSource({
