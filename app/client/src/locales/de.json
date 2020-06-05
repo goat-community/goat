@@ -455,7 +455,7 @@
       "stepsDesc": {
         "clickFeatureInMap": "Wählen Sie ein Objekt aus der Karte.",
         "clickEditWithOsm": "Durch Klicken auf den <b>'In OSM bearbeiten'</b> Link werden Sie zum OSM iD-Editor weitergeleitet.",
-        "fillInOSMiD": "Fügen Sie den fehlenden {missingVar} im OSM Editor hinzu. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki [LINK]. Um die fehlenden Informationen zu erlangen können z.B. Mapillary-Aufnahmen verwendet werden. "
+        "fillInOSMiD": "Fügen Sie den fehlenden {missingVar} im OSM Editor hinzu. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki. Um die fehlenden Informationen zu erlangen können z.B. Mapillary-Aufnahmen verwendet werden. "
       },
       "note": "Hinweis: der {layerNameVar} Layer wird alle 10 Minuten aktualisiert",
       "shortDesc": "Vervollständigung der fehlenden {missingVar}",
@@ -466,7 +466,7 @@
           "layerName": "POIs"
         },
         "osm-mapping-ways-speed": {
-          "missingKeyWord": "Geschwindigkeiten",
+          "missingKeyWord": "Höchstgeschwindigkeiten",
           "layerName": "Wege"
         },
         "osm-mapping-ways-surface": {
@@ -479,13 +479,13 @@
         },
         "osm-mapping-buildings-type": {
           "missingKeyWord": "Gebäudetypen",
-          "layerName": "Wege"
+          "layerName": "Gebäude"
         }
       },
 
       "dialogMessage": {
         "title": "OSM Mapping Modus",
-        "body": "Willkommen im OSM-Mapping-Modus! In diesem Modus können Sie die GOAT-Daten verbessern, indem Sie zu OpenStreetMap (OSM) beitragen. Wir haben verschiedene Aufgaben für Objekte mit fehlenden Informationen erstellt, die mit dem iD-Editor oder einem anderen OSM-Editor (z.B. JOSM) bearbeitet werden können. Bitte machen Sie sich dafür mit den allgemeinen Mapping-Regeln und den entsprechenden Inhalten des OSM-Wikis vertraut. Auf der GOAT-Webseite steht außerdem ein Tutorial zum Mapping in OSM bereit [LINK]. Vielen Dank für Ihren wertvollen Beitrag zur Open-Data-Welt!"
+        "body": "Willkommen im OSM-Mapping-Modus! In diesem Modus können Sie die GOAT-Daten verbessern, indem Sie zu OpenStreetMap (OSM) beitragen. Wir haben verschiedene Aufgaben für Objekte mit fehlenden Informationen erstellt, die mit dem iD-Editor oder einem anderen OSM-Editor (z.B. JOSM) bearbeitet werden können. <b> Bitte machen Sie sich dafür mit den allgemeinen Mapping-Regeln und den entsprechenden Inhalten des OSM-Wikis vertraut. </b> Auf der GOAT-Webseite steht außerdem ein Tutorial zum Mapping in OSM bereit. Vielen Dank für Ihren wertvollen Beitrag zur Open-Data-Welt!"
       }
     }
   },
