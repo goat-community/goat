@@ -623,7 +623,7 @@
         "name": "osm-mapping-ways-surface",
         "url": "/geoserver/wms",
         "group": "osmMappingLayers",
-        "layers": "cite:mapping_way_surface",
+        "layers": "cite:mapping_ways_surface",
         "opacity": 1,
         "queryable": true,
         "visible": false,
