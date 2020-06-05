@@ -597,7 +597,8 @@
         "zIndex": 30,
         "serverType": "geoserver",
         "otherProps": {
-          "icon": "fas fa-clock"
+          "icon": "fas fa-clock",
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:opening_hours"
         }
       },
       {
@@ -615,7 +616,8 @@
         "zIndex": 31,
         "serverType": "geoserver",
         "otherProps": {
-          "icon": "fas fa-tachometer-alt"
+          "icon": "fas fa-tachometer-alt",
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Speed_limits"
         }
       },
       {
@@ -633,26 +635,8 @@
         "zIndex": 32,
         "serverType": "geoserver",
         "otherProps": {
-          "icon": "fas fa-road"
-        }
-      },
-
-      {
-        "type": "WMS",
-        "name": "osm-mapping-ways-wheelchair",
-        "url": "/geoserver/wms",
-        "group": "osmMappingLayers",
-        "layers": "cite:mapping_ways_wheelchair",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "displayInLayerList": false,
-        "displayInLegend": false,
-        "requiresPois": true,
-        "zIndex": 33,
-        "serverType": "geoserver",
-        "otherProps": {
-          "icon": "fas fa-wheelchair"
+          "icon": "fas fa-road",
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:surface"
         }
       },
       {
