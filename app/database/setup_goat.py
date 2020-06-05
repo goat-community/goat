@@ -5,6 +5,7 @@ from scripts import setup_db
 from scripts import db_functions
 import argparse
 import sys
+import os
 from argparse import RawTextHelpFormatter
 from scripts.db_functions import DB_connection
 from scripts.db_functions import ReadYAML
@@ -27,10 +28,16 @@ setup_types = ['new_setup','all','population','pois','network','functions','vari
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 
 parser.add_argument('-t',help=help_text_type)
-parser.add_argument('-n',help='Please define a namespace (e.g. muenchen) otherwise no backup can be done.')
+parser.add_argument('-n',help='Please define a namespace (e.g. muenchen) otherwise you can not restore the dump.')
+#parser.add_argument('-d',help='Please define if you would like to download a backup from DigitalOcean spaces.',action='store_true')
+parser.add_argument('-p',help='Please define if you would like to precalculate the heatmap automatically.',action='store_true')
+
 
 setup_type = parser.parse_args().t
 namespace = parser.parse_args().n
+#download_mode = parser.parse_args().d
+heatmap_mode = parser.parse_args().p 
+
 print('You decided to do the following setup-type: %s' % setup_type)
 
 
@@ -45,8 +52,10 @@ elif (setup_type == 'variable_container'):
     db_con = DB_connection(db_name,user,host,port,password)
     db_con.execute_text_psql(db_functions.create_variable_container())
 elif (setup_type == 'restore_dump' and namespace != None):
+    #os.system('python3 /opt/scripts/manage_dump.py -d -n development')
     restore_db(namespace)
 else:
     setup_db.setup_db(setup_type)
 
-
+if (heatmap_mode == True):
+    os.system('python3 /opt/scripts/precalculate_heatmap.py')

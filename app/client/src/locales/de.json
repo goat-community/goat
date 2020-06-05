@@ -55,6 +55,8 @@
           "walking_elderly": "Senior",
           "walking_safe_night": "Safe night",
           "walking_wheelchair": "Rollstuhl",
+          "walking_wheelchair_standard": "Standard",
+          "walking_wheelchair_electric": "Elektrisch",
           "cycling_standard": "Standard",
           "cycling_pedelec": "Pedelec"
         },
@@ -355,7 +357,7 @@
       "speed": "Geschwindigkeitsbegrenzungen",
       "streetCategory": "Straßenkategorien - detailliert",
       "streetCategorysAggregated": "Straßenkategorien",
-      "streetCrossings": "Straßenquerungsmöglichkeiten",
+      "streetCrossings": "Querungsmöglichkeiten",
       "streetFurniture": "Straßenmöbelierung",
       "streetFurnitureBicycles": "Fahrradständer",
       "surface": "Oberfläche",
@@ -455,7 +457,7 @@
         "clickEditWithOsm": "Durch Klicken auf den <b>'In OSM bearbeiten'</b> Link werden Sie zum OSM iD-Editor weitergeleitet.",
         "fillInOSMiD": "Fügen Sie den fehlenden {missingVar} im OSM Editor hinzu. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki [LINK]. Um die fehlenden Informationen zu erlangen können z.B. Mapillary-Aufnahmen verwendet werden. "
       },
-      "note": "Hinweis: der {layerNameVar} Layer wird alle 5 Minuten aktualisiert",
+      "note": "Hinweis: der {layerNameVar} Layer wird alle 10 Minuten aktualisiert",
       "shortDesc": "Vervollständigung der fehlenden {missingVar}",
       "longDesc": "Check out {layerNameVar} for missing {missingVar}.",
       "layers": {

@@ -216,6 +216,8 @@
       "walking_elderly": "Elderly",
       "walking_safe_night": "Safe night",
       "walking_wheelchair": "Wheelchair",
+      "walking_wheelchair_standard": "Standard",
+      "walking_wheelchair_electric": "Electric",
       "cycling_standard": "Standard",
       "cycling_pedelec": "Pedelec"
     },
@@ -454,7 +456,7 @@
         "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
         "fillInOSMiD": "Add the missing {missingVar} in the OSM editor according to the guidelines of the OSM wiki [LINK]. To retrieve the missing information, for example the mapillary images can be used. "
       },
-      "note": "Note: the {layerNameVar} layer is updated every 5 minutes",
+      "note": "Note: the {layerNameVar} layer is updated every 10 minutes",
       "shortDesc": "Complete the missing {missingVar}",
       "longDesc": "Check out {layerNameVar} for missing {missingVar}.",
       "layers": {

@@ -1,6 +1,5 @@
-DATABASE:
-  HOST: "localhost"
-  PORT: 5432
-  DB_NAME: "goat"
-  USER: "goat"
-  PASSWORD: "earlmanigault"
+HOST: "localhost"
+PORT: 5432
+DB_NAME: "goat"
+USER: "goat"
+PASSWORD: "earlmanigault"
