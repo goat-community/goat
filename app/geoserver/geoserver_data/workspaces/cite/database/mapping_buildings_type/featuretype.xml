@@ -41,7 +41,7 @@
       <virtualTable>
         <name>mapping_buildings_type</name>
         <sql>SELECT b.osm_id, b.building, b.geom&#xd;
-FROM buildings_mapping b, landuse l&#xd;
+FROM buildings_mapping b , landuse l&#xd;
 WHERE b.residential_status = &apos;with_residents&apos;&#xd;
 AND b.building = &apos;yes&apos;&#xd;
 AND ST_Intersects(b.geom,l.geom)&#xd;
