@@ -1,10 +1,3 @@
-DATABASE:
-  HOST: "localhost"
-  PORT: 5432
-  DB_NAME: "goat"
-  USER: "goat"
-  PASSWORD: "earlmanigault"
-
 DATA_SOURCE:  
   #"no_download" if you don't want to download OSM data automatically. Make sure that the file is called raw-osm.osm.pbf.
   OSM_DOWNLOAD_LINK: "https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf" 
