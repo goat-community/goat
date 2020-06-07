@@ -1,5 +1,5 @@
-FROM python:3
-
+#FROM python:3
+FROM goatcommunity/database:12-3-2.6.3-2.3.14
 
 ENV APP_PATH /opt
 WORKDIR ${APP_PATH}
@@ -10,8 +10,9 @@ COPY ./config $APP_PATH/config
 
 RUN apt-get -y update && apt-get -y upgrade
 # PYTHON AND DB DEPENDECIES
-RUN apt-get install -y cron postgresql-client \
-    && pip3 install psycopg2-binary pyshp pyyaml requests boto3
+#RUN apt-get install -y cron postgresql-client \
+#    && pip3 install psycopg2-binary pyshp pyyaml requests boto3
+RUN pip3 install requests boto3
 
 RUN touch /var/log/cron.log
 COPY ./cron/crontab /etc/cron.d/cjob
