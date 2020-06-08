@@ -1,17 +1,17 @@
 <layer>
-  <name>landuse_atkis</name>
-  <id>LayerInfoImpl-6eed1f5b:1719ca112ea:-7ffc</id>
+  <name>landuse_bog</name>
+  <id>LayerInfoImpl--63c355ec:172845386aa:-7ff8</id>
   <type>VECTOR</type>
   <defaultStyle>
-    <id>StyleInfoImpl-6eed1f5b:1719ca112ea:-7fed</id>
+    <id>StyleInfoImpl--63c355ec:172845386aa:-7ff4</id>
   </defaultStyle>
   <styles class="linked-hash-set">
     <style>
-      <id>StyleInfoImpl-6eed1f5b:1719ca112ea:-7fed</id>
+      <id>StyleInfoImpl--63c355ec:172845386aa:-7ff4</id>
     </style>
   </styles>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl-6eed1f5b:1719ca112ea:-7ffd</id>
+    <id>FeatureTypeInfoImpl--63c355ec:172845386aa:-7ff9</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>
