@@ -43,7 +43,7 @@
         <sql>SELECT w.osm_id,w.geom, w.highway&#xd;
 FROM ways_mapping w, study_area s&#xd;
 WHERE surface IS NULL&#xd;
-AND highway NOT IN (&apos;secondary&apos;,&apos;primary&apos;,&apos;primary_link&apos;,&apos;secondary_link&apos;,&apos;service&apos;,&apos;residential&apos;)&#xd;
+AND highway IN (&apos;cycleway&apos;,&apos;residential&apos;,&apos;path&apos;)&#xd;
 AND ST_Intersects(s.geom,w.geom)
 </sql>
         <escapeSql>false</escapeSql>

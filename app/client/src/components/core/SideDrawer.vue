@@ -239,7 +239,7 @@ export default {
           {
             color: this.activeColor.primary,
             icon: "info",
-            width: 320,
+            width: 420,
             showNo: false,
             yesText: this.$t("buttonLabels.ok")
           }
