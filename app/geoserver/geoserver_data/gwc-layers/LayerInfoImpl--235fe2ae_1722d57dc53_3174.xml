@@ -25,8 +25,10 @@
     <styleParameterFilter>
       <key>STYLES</key>
       <defaultValue></defaultValue>
-      <availableStyles class="sorted-set"/>
-      <defaultStyle>generic</defaultStyle>
+      <availableStyles class="sorted-set">
+        <string>cite:style_mapping_ways</string>
+      </availableStyles>
+      <defaultStyle>cite:style_mapping_ways</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>
   <gutter>0</gutter>
