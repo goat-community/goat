@@ -88,7 +88,7 @@
         "name": "landuse",
         "url": "/geoserver/wms",
         "group": "buildings_landuse",
-        "layers": "cite:landuse_atkis",
+        "layers": "cite:landuse_bog",
         "opacity": 1,
         "queryable": true,
         "visible": false,
@@ -537,13 +537,6 @@
           "name": "Food and Drink",
           "categoryValue": "foodAndDrink",
           "children": [
-            {
-              "name": "Bar",
-              "value": "bar",
-              "icon": "bar",
-              "weight": 1,
-              "sensitivity": 300000
-            },
             {
               "name": "Biergarten",
               "value": "biergarten",
