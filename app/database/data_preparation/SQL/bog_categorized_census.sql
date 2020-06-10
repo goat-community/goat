@@ -38,7 +38,8 @@ SELECT pc.cod_mz, ARRAY["0 to 9", "10 to 19", "20 to 29", "30 to 64", "65 and mo
 WHERE pc.cod_mz = pg.cod_mzn;
 
 SELECT * FROM pop_age_array;
--- 4. Join to blocks database in population
+
+-- 5. Join to blocks database in population
 
 DROP TABLE IF EXISTS population_classificated_array;
 SELECT p.cod_dane, max(p.main_strat), sum(p.pop) AS total_pop, p.geom AS geom, pag.pop_age_groups, pag.pop_gender_array, p.count_bloc INTO population_classificated_array
