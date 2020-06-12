@@ -342,6 +342,13 @@ wheelchair_classified  = w.wheelchair_classified
 FROM ways_attributes w
 WHERE v.id = w.id;
 
+-- Mark dedicated lanes as foot = 'no'
+
+UPDATE ways 
+SET foot = 'no' 
+WHERE osm_id = ANY (SELECT osm_id FROM planet_osm_line WHERE highway = 'service' AND (tags->'psv' IS NOT NULL OR tags->'bus' = 'yes'));
+--
+
 
 ALTER TABLE ways ADD COLUMN slope_profile jsonb[];
 ALTER TABLE ways ADD COLUMN s_imp NUMERIC;
