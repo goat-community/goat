@@ -597,7 +597,12 @@
         "zIndex": 30,
         "serverType": "geoserver",
         "otherProps": {
-          "icon": "fas fa-clock"
+          "icon": "fas fa-clock",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ]
         }
       },
       {
