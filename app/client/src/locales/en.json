@@ -466,7 +466,7 @@
       "stepsDesc": {
         "clickFeatureInMap": "Click on a object in the map.",
         "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
-        "fillInOSMiD": "Add the missing {missingVar} in the OSM editor according to the guidelines of the OSM wiki [LINK]. To retrieve the missing information, for example the mapillary images can be used. "
+        "fillInOSMiD": "Add the missing {missingVar} in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example the mapillary images can be used. "
       },
       "note": "Note: the {layerNameVar} layer is updated every 10 minutes",
       "shortDesc": "Complete the missing {missingVar}",
@@ -478,7 +478,7 @@
           "stepsDesc": {}
         },
         "osm-mapping-ways-speed": {
-          "missingKeyWord": "Speed",
+          "missingKeyWord": "Maxspeed",
           "layerName": "Ways"
         },
         "osm-mapping-ways-surface": {
@@ -497,7 +497,7 @@
 
       "dialogMessage": {
         "title": "OSM Mapping Mode",
-        "body": "Welcome to the OSM mapping mode! In this mode you can improve GOAT data by contributing to OpenStreetMap (OSM). We have set up different tasks for objects with missing information, which can be completed using the iD-Editor or other OSM editors such as JOSM. Please familiarize yourself with the general mapping rules and the corresponding content of the OSM wiki for the objects you want to edit. Furthermore, you can find a tutorial on mapping in OSM on the GOAT website [LINK]. Thanks for contributing to the world of open data!"
+        "body": "Welcome to the OSM mapping mode! In this mode, you can improve GOAT data by contributing to OpenStreetMap (OSM). We have set up different tasks for objects with missing information, which can be completed using the iD-Editor or other OSM editors such as JOSM. <b> Please familiarize yourself with the general mapping rules and the corresponding content of the OSM wiki for the objects you want to edit. </b> Furthermore, you can find a tutorial on mapping in OSM on the GOAT website. Thanks for contributing to the world of open data!"
       }
     }
   },
