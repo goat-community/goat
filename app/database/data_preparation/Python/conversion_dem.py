@@ -4,6 +4,9 @@
 Created on Fri Jun 12 09:30:26 2020
 
 @author: Elias Pajares
+
+This scripts is simplifying DEMs on high resolution to a lower resolution.
+It was tested with a DEM 1m x 1m to DEM 5m x 5m, 10m x 10m, 20m x 20m.
 """
 
 import math
@@ -17,7 +20,7 @@ from db_functions import ReadYAML
 
 aggregation_level = 10
 
-thresholds_levels = {5:[(3/5),3000], 10:[0.5,5000]}
+thresholds_levels = {5:[(3/5),3000], 10:[0.5,5000], 20:[(0.5),10000]}
 column_threshold, row_threshold = thresholds_levels[aggregation_level]
 
 try:
@@ -47,7 +50,7 @@ def file_length(path_name):
 def conversion(path_name, write_path_name,w_width,f_length):
 
     f_read =  open(path_name)
-    f_write =  open(write_path_name,'w')
+    f_write =  open(write_path_name,'a')
     
     first_coordinate = f_read.readline().split(' ')[0:2]
     cnt = 0
@@ -71,11 +74,32 @@ def bulk_conversion():
         path_name = '/opt/data/dem/'+i
         write_path_name = '/opt/data/dem_agg/'+i
     
-        conversion(path_name,write_path_name,dgm_width(path_name),file_length(path_name))
-
+        try:
+            conversion(path_name,write_path_name,dgm_width(path_name),file_length(path_name))
+        except:
+            print('Something went wrong with file:' + path_name)
 bulk_conversion()
 
+os.system('raster2pgsql -s 25832 -I -c -C -M /opt/data/dem_agg/*.txt -F -t 100x100 public.dem > dem.sql')
 
+def import_as_points():
+    db_name,user,host,port,password = ReadYAML().db_credentials()
+    db = DB_connection(db_name,user,host,port,password)
+    con,cursor = db.con_psycopg()
+
+    sql_create_table = '''DROP TABLE IF EXISTS dem_points; 
+    CREATE TABLE dem_points (x integer,y integer,z NUMERIC, geom geometry);'''
+
+    cursor.execute(sql_create_table)
+
+    for i in os.listdir('/opt/data/dem_agg'):
+        sql_import = f'''COPY dem_points(x,y,z) 
+        FROM '/opt/data/dem_agg/{i}' DELIMITER ' ';'''
+        cursor.execute(sql_import)
+
+    cursor.execute('UPDATE dem_points SET geom = ST_Transform(ST_setsrid(st_makepoint(x,y),25832),4326);')
+
+    con.commit()
 
 
 
