@@ -310,6 +310,10 @@ FROM close_entrances c
 WHERE p.geom = c.geom
 AND amenity = 'subway_entrance';
 
+-- Clean duplicates and integrate custom pois
+
+SELECT pois_fusion();
+
 --CREATE copy of pois for scenarios
 
 CREATE TABLE pois_userinput (like pois INCLUDING ALL);
@@ -325,7 +329,5 @@ ALTER TABLE pois_userinput
 ADD CONSTRAINT pois_userinput_id_fkey FOREIGN KEY (pois_modified_id) 
 REFERENCES pois_modified(id) ON DELETE CASCADE;
 
--- Clean duplicates and integrate custom pois
 
-SELECT pois_fusion();
 
