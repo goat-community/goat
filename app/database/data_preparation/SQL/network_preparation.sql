@@ -344,9 +344,8 @@ WHERE v.id = w.id;
 
 -- Mark dedicated lanes as foot = 'no'
 
-UPDATE ways 
-SET foot = 'no' 
-WHERE osm_id = ANY (SELECT osm_id FROM planet_osm_line WHERE highway = 'service' AND (tags->'psv' IS NOT NULL OR tags->'bus' = 'yes'));
+UPDATE ways w
+SET foot = 'no'  FROM ( SELECT osm_id FROM planet_osm_line WHERE highway = 'service' AND (tags->'psv' IS NOT NULL OR tags->'bus' = 'yes') ) x WHERE w.osm_id = x.osm_id;
 --
 
 
