@@ -598,6 +598,11 @@
         "serverType": "geoserver",
         "otherProps": {
           "icon": "fas fa-clock",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
           "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:opening_hours"
         }
       },

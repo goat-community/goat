@@ -108,6 +108,7 @@
       "selectOnMap": "Select features on map",
       "editTools": "Edit Tools",
       "drawFeatureTooltip": "Draw Feature",
+      "addPopulation": "Add Population",
       "modifyFeatureTooltip": "Modify Geometry",
       "deleteFeature": "Delete Feature",
       "moveFeature": "Move Feature",
@@ -383,6 +384,8 @@
       "clickToPlacePoint": "Click to place the point",
       "changeDefaultColorPalette": "Change color (default)",
       "changeScenarioColorPalette": "Change color (scenario)",
+      "clickToAddPopulation": "Click building to add population",
+      "clickToAddPopulationNotAllowed": "Can't add a population here. Click on a building.",
       "openDocumentation": "Open Documentation",
       "routingProfiles": {
         "walking": {
@@ -417,7 +420,16 @@
         },
         "walking_wheelchair": {
           "title": "Wheelchair",
-          "tooltip": "Routing excluding paths and points-of-interest that are not barrier-free"
+          "options": {
+            "standard": {
+              "title": "Standard",
+              "tooltip": "Default Routing"
+            },
+            "electric": {
+              "title": "Electric",
+              "tooltip": "Electric"
+            }
+          }
         }
       },
       "zoomToFeature": "Zoom to feature",
@@ -462,7 +474,8 @@
       "layers": {
         "osm-mapping-pois": {
           "missingKeyWord": "Opening Hours",
-          "layerName": "POIs"
+          "layerName": "POIs",
+          "stepsDesc": {}
         },
         "osm-mapping-ways-speed": {
           "missingKeyWord": "Maxspeed",
