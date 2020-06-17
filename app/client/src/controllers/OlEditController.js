@@ -1,4 +1,8 @@
-import { getEditStyle, getFeatureHighlightStyle } from "../style/OlStyleDefs";
+import {
+  getEditStyle,
+  getFeatureHighlightStyle,
+  populationPointsStyle
+} from "../style/OlStyleDefs";
 import OlBaseController from "./OlBaseController";
 import { Modify, Draw, Snap, Translate } from "ol/interaction";
 import SnapGuides from "ol-ext/interaction/SnapGuides";
@@ -51,6 +55,33 @@ export default class OlEditController extends OlBaseController {
   }
 
   /**
+   * Creates the population vector layer and add it to the
+   * map.
+   */
+  createPopulationEditLayer() {
+    const me = this;
+
+    // create a vector layer
+    const source = new VectorSource({
+      wrapX: false
+    });
+    const options = Object.assign(
+      {},
+      {
+        name: "Population Edit Layer",
+        displayInLayerList: false,
+        zIndex: 100,
+        source: source,
+        queryable: false,
+        style: populationPointsStyle
+      }
+    );
+    const vector = new VectorLayer(options);
+    me.map.addLayer(vector);
+    me.populationEditLayer = vector;
+  }
+
+  /**
    * Creates the edit interaction and adds it to the map.
    */
   addInteraction(editType, startCb, endCb) {
@@ -90,6 +121,17 @@ export default class OlEditController extends OlBaseController {
         me.snap = new Snap({ source: me.source });
         me.currentInteraction = "modify";
         me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
+        break;
+      }
+      case "addPopulation": {
+        me.edit = new Draw({
+          type: "Point"
+        });
+        me.edit.on("drawstart", startCb);
+        me.edit.on("drawend", endCb);
+        me.snap = new Snap({ source: me.source });
+        me.helpMessage = i18n.t("map.tooltips.clickToAddPopulation");
+        me.currentInteraction = "addPopulation";
         break;
       }
       case "modifyAttributes": {
@@ -158,6 +200,23 @@ export default class OlEditController extends OlBaseController {
     const coordinate = evt.coordinate;
     me.helpTooltipElement.innerHTML = me.helpMessage;
     me.helpTooltip.setPosition(coordinate);
+    if (
+      editLayerHelper.selectedLayer.get("name") === "buildings" &&
+      this.currentInteraction === "addPopulation"
+    ) {
+      const featureAtCoord = this.source.getFeaturesAtCoordinate(
+        evt.coordinate
+      );
+      if (featureAtCoord.length === 0) {
+        me.map.getTarget().style.cursor = "not-allowed";
+        me.edit.setActive(false);
+        me.helpMessage = i18n.t("map.tooltips.clickToAddPopulationNotAllowed");
+      } else {
+        me.helpMessage = i18n.t("map.tooltips.clickToAddPopulation");
+        me.map.getTarget().style.cursor = "pointer";
+        me.edit.setActive(true);
+      }
+    }
   }
 
   /**
@@ -271,7 +330,7 @@ export default class OlEditController extends OlBaseController {
       .getParams()
       .LAYERS.split(":")[1];
     const formatGML = {
-      featureNS: "muc",
+      featureNS: "cite",
       featureType: `${layerName}_modified`,
       srsName: "urn:x-ogc:def:crs:EPSG:4326"
     };
@@ -476,6 +535,9 @@ export default class OlEditController extends OlBaseController {
     }
     if (this.removeInteraction) {
       this.removeInteraction();
+    }
+    if (this.populationEditLayer) {
+      this.populationEditLayer.getSource().clear();
     }
     super.clearOverlays();
     this.source.getFeatures().forEach(f => {

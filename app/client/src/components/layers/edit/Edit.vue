@@ -76,13 +76,35 @@
                 <span>{{ $t("appBar.edit.drawFeatureTooltip") }}</span>
               </v-tooltip>
 
-              <v-tooltip top>
+              <v-tooltip
+                v-show="selectedLayer.get('canModifyGeom') !== false"
+                top
+              >
                 <template v-slot:activator="{ on }">
-                  <v-btn :value="2" v-on="on" text>
+                  <v-btn
+                    v-show="selectedLayer.get('canModifyGeom') !== false"
+                    :value="2"
+                    v-on="on"
+                    text
+                  >
                     <v-icon>far fa-edit</v-icon>
                   </v-btn>
                 </template>
                 <span>{{ $t("appBar.edit.modifyFeatureTooltip") }}</span>
+              </v-tooltip>
+
+              <v-tooltip v-if="selectedLayer.get('name') === 'buildings'" top>
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    v-if="selectedLayer.get('name') === 'buildings'"
+                    :value="2"
+                    v-on="on"
+                    text
+                  >
+                    <v-icon>fas fa-users</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.addPopulation") }}</span>
               </v-tooltip>
 
               <v-tooltip top>
@@ -441,15 +463,14 @@ import { mapFields } from "vuex-map-fields";
 import {
   getAllChildLayers,
   getPoisListValues,
-  wfsTransactionParser
+  wfsTransactionParser,
+  mapFeatureTypeProps,
+  readTransactionResponse
 } from "../../../utils/Layer";
 import OlEditController from "../../../controllers/OlEditController";
 import OlSelectController from "../../../controllers/OlSelectController";
 import editLayerHelper from "../../../controllers/OlEditLayerHelper";
-import {
-  mapFeatureTypeProps,
-  readTransactionResponse
-} from "../../../utils/Layer";
+
 import OverlayPopup from "../../viewer/ol/controls/Overlay";
 import http from "axios";
 import VJsonschemaForm from "../../other/dynamicForms/index";
@@ -458,6 +479,8 @@ import OpeningHours from "../../other/OpeningHours";
 import { geojsonToFeature } from "../../../utils/MapUtils";
 import { mapGetters, mapMutations } from "vuex";
 import { debounce } from "../../../utils/Helpers";
+import Feature from "ol/Feature";
+import Point from "ol/geom/Point";
 
 export default {
   components: {
@@ -524,6 +547,7 @@ export default {
       select: "pointer",
       move: "auto",
       modifyAttributes: "pointer",
+      addPopulation: "pointer",
       drawHole: "crosshair"
     },
     //Data table
@@ -587,7 +611,9 @@ export default {
         this.onFeatureChange,
         this.onEditSourceChange
       );
+      me.olEditCtrl.createPopulationEditLayer();
     },
+
     /**
      * Parse user input file and transform features if valid.
      */
@@ -680,7 +706,7 @@ export default {
      */
     uploadUserFeaturesToDB(featuresToUpload) {
       const formatGML = {
-        featureNS: "muc",
+        featureNS: "cite",
         featureType: `${this.layerName}_modified`,
         srsName: "urn:x-ogc:def:crs:EPSG:4326"
       };
@@ -771,9 +797,15 @@ export default {
           endCb = this.onDrawEnd;
           break;
         case 2:
-          editType = "modify";
-          startCb = this.onModifyStart;
-          endCb = this.onModifyEnd;
+          if (this.selectedLayer.get("name") === "buildings") {
+            editType = "addPopulation";
+            startCb = this.onPopulationDrawStart;
+            endCb = this.onPopulationDrawEnd;
+          } else {
+            editType = "modify";
+            startCb = this.onModifyStart;
+            endCb = this.onModifyEnd;
+          }
           break;
         case 3:
           editType = "modifyAttributes";
@@ -839,8 +871,13 @@ export default {
     onSelectionEnd(response) {
       const me = this;
       me.toggleSelection = undefined;
+      console.log(response);
       if (response.second) {
-        editLayerHelper.filterResults(response, me.olEditCtrl.getLayerSource());
+        editLayerHelper.filterResults(
+          response,
+          me.olEditCtrl.getLayerSource(),
+          me.olEditCtrl.populationEditLayer
+        );
       }
     },
 
@@ -927,6 +964,110 @@ export default {
       this.olEditCtrl.popup.isVisible = true;
       //update cache
       this.updateFileInputFeatureCache();
+    },
+    onPopulationDrawStart(evt) {
+      console.log(evt);
+    },
+    onPopulationDrawEnd(evt) {
+      const coordinate = evt.feature.getGeometry().getCoordinates();
+      const buildingFeatureAtCoord = this.olEditCtrl.source.getClosestFeatureToCoordinate(
+        coordinate
+      );
+      if (!buildingFeatureAtCoord || !buildingFeatureAtCoord.get("gid")) return;
+      const hasPopulationFeature = this.olEditCtrl.populationEditLayer
+        .getSource()
+        .getFeatures()
+        .filter(
+          f => f.get("building_gid") === buildingFeatureAtCoord.get("gid")
+        );
+      if (
+        hasPopulationFeature &&
+        hasPopulationFeature[0] &&
+        !hasPopulationFeature[0].getId()
+      ) {
+        return;
+      }
+      let populationCoordinate;
+      if (
+        buildingFeatureAtCoord.getGeometry().intersectsCoordinate(coordinate)
+      ) {
+        populationCoordinate = coordinate;
+      } else {
+        const closestPoint = buildingFeatureAtCoord
+          .getGeometry()
+          .getClosestPoint(coordinate);
+        populationCoordinate = closestPoint;
+      }
+      let payload;
+      let populationFeature;
+      const formatGML = {
+        featureNS: "cite",
+        featureType: `population_modified`,
+        srsName: "urn:x-ogc:def:crs:EPSG:4326"
+      };
+      if (hasPopulationFeature && hasPopulationFeature.length > 0) {
+        // Update the existing population feature
+        populationFeature = hasPopulationFeature[0];
+        populationFeature.setGeometry(new Point(populationCoordinate));
+
+        // Clone feature and transform for transaction.
+        const {
+          // eslint-disable-next-line no-unused-vars
+          geometry,
+          // eslint-disable-next-line no-unused-vars
+          geom,
+          ...propsWithNoGeometry
+        } = populationFeature.getProperties();
+        const clonedFeature = new Feature({
+          geom: populationFeature.getGeometry().clone(),
+          ...propsWithNoGeometry
+        });
+        clonedFeature.setGeometryName("geom");
+        clonedFeature.getGeometry().transform("EPSG:3857", "EPSG:4326");
+        clonedFeature.setId(populationFeature.getId());
+        payload = wfsTransactionParser(null, [clonedFeature], null, formatGML);
+      } else {
+        // Add new feature
+        populationFeature = new Feature({
+          geometry: new Point(populationCoordinate),
+          building_gid: buildingFeatureAtCoord.get("gid"),
+          userid: this.userId
+        });
+        this.olEditCtrl.populationEditLayer
+          .getSource()
+          .addFeature(populationFeature);
+
+        // Clone feature and transform for transaction.
+        const {
+          // eslint-disable-next-line no-unused-vars
+          geometry,
+          // eslint-disable-next-line no-unused-vars
+          geom,
+          ...propsWithNoGeometry
+        } = populationFeature.getProperties();
+        const clonedFeature = new Feature({
+          geom: new Point(populationCoordinate),
+          ...propsWithNoGeometry
+        });
+        clonedFeature.setGeometryName("geom");
+        clonedFeature.getGeometry().transform("EPSG:3857", "EPSG:4326");
+
+        payload = wfsTransactionParser([clonedFeature], null, null, formatGML);
+      }
+      const serializedPayload = new XMLSerializer().serializeToString(payload);
+      http
+        .post("geoserver/wfs", serializedPayload, {
+          headers: { "Content-Type": "text/xml" }
+        })
+        .then(response => {
+          const result = readTransactionResponse(response.data);
+          const FIDs = result.insertIds;
+          if (FIDs != undefined && FIDs[0] != "none") {
+            console.log(FIDs);
+            const id = parseInt(FIDs[0].split(".")[1]);
+            populationFeature.setId(id);
+          }
+        });
     },
     /**
      * Feature change event handler

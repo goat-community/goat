@@ -13,7 +13,6 @@
         class="pa-0"
       >
         <app-viewer />
-
         <snackbar />
       </v-container>
     </v-content>
