@@ -612,6 +612,7 @@ export default {
         this.onEditSourceChange
       );
       me.olEditCtrl.createPopulationEditLayer(this.onPopulationFeatureChange);
+      this.setUpCtxMenu();
     },
 
     /**
@@ -870,7 +871,6 @@ export default {
     onSelectionEnd(response) {
       const me = this;
       me.toggleSelection = undefined;
-      console.log(response);
       if (response.second) {
         editLayerHelper.filterResults(
           response,
@@ -1000,7 +1000,6 @@ export default {
         buildingFeatureAtCoord = this.olEditCtrl.source.getClosestFeatureToCoordinate(
           coordinate
         );
-        console.log(buildingFeatureAtCoord);
       }
 
       if (
@@ -1106,6 +1105,43 @@ export default {
       if (evt.feature) {
         // Used on modifyEnd event.
         this.tempPopulationFeature = evt.feature;
+      }
+    },
+
+    /**
+     * Configure right-click for Edit.
+     */
+    setUpCtxMenu() {
+      if (this.contextmenu) {
+        this.olEditCtrl.contextmenu = this.contextmenu;
+        this.contextmenu.on("beforeopen", evt => {
+          // Close helptoltip
+          if (this.olEditCtrl.helpTooltip) {
+            this.olEditCtrl.helpTooltip.setPosition(undefined);
+          }
+          const features = this.map.getFeaturesAtPixel(evt.pixel, {
+            layerFilter: candidate => {
+              if (candidate.get("name") === "Population Edit Layer") {
+                return true;
+              }
+              return false;
+            }
+          });
+          if (features.length > 0) {
+            this.contextmenu.extend([
+              "-", // this is a separator
+              {
+                text: `<i class="fa fa-trash fa-1x" aria-hidden="true"></i>&nbsp;&nbsp${this.$t(
+                  "map.contextMenu.deletePopulationPoint"
+                )}`,
+                label: "deletePopulationPoint",
+                callback: () => {
+                  this.olEditCtrl.deletePopulationFeatures(features);
+                }
+              }
+            ]);
+          }
+        });
       }
     },
 
@@ -1592,6 +1628,9 @@ export default {
     ...mapGetters("isochrones", { options: "options" }),
     ...mapGetters("app", {
       activeColor: "activeColor"
+    }),
+    ...mapGetters("map", {
+      contextmenu: "contextmenu"
     }),
     ...mapFields("isochrones", {
       scenarioDataTable: "scenarioDataTable"

@@ -384,7 +384,7 @@
       "clickToPlacePoint": "Click to place the point",
       "changeDefaultColorPalette": "Change color (default)",
       "changeScenarioColorPalette": "Change color (scenario)",
-      "clickToAddPopulation": "Click building to add population <br> Click and drag to modify",
+      "clickToAddPopulation": "Click building to add population <br>Click and drag to modify <br>Right-click on feature to delete",
       "clickToAddPopulationNotAllowed": "Can't add a population here. Click on a building.",
       "openDocumentation": "Open Documentation",
       "routingProfiles": {
@@ -456,7 +456,8 @@
     "contextMenu": {
       "deleteIsochrone": "Delete Isochrone",
       "zoomIn": "Zoom In",
-      "zoomOut": "Zoom Out"
+      "zoomOut": "Zoom Out",
+      "deletePopulationPoint": "Delete Population"
     },
     "osmMode": {
       "tasks": "OSM Mapping Tasks",

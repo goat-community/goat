@@ -360,10 +360,10 @@ export function populationPointsStyle() {
       }),
       stroke: new OlStroke({
         color: "#800080",
-        width: 6
+        width: 8
       }),
       image: new OlCircle({
-        radius: 6,
+        radius: 8,
         fill: new OlFill({
           color: "#800080"
         })

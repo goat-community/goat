@@ -127,7 +127,15 @@ export default class OlEditController extends OlBaseController {
       }
       case "addPopulation": {
         me.edit = new Draw({
-          type: "Point"
+          type: "Point",
+          condition: function(evt) {
+            // when the point's button is 1(leftclick), allows drawing
+            if (evt.pointerEvent.buttons === 1) {
+              return true;
+            } else {
+              return false;
+            }
+          }
         });
         me.edit.on("drawend", endCb);
         me.modify = new Modify({ source: me.populationEditLayer.getSource() });
@@ -203,6 +211,11 @@ export default class OlEditController extends OlBaseController {
       me.helpTooltip.setPosition(undefined);
       return;
     }
+    if (me.contextmenu && me.contextmenu.isOpen()) {
+      me.helpTooltip.setPosition(undefined);
+      return;
+    }
+
     const coordinate = evt.coordinate;
     me.helpTooltipElement.innerHTML = me.helpMessage;
     me.helpTooltip.setPosition(coordinate);
@@ -266,6 +279,30 @@ export default class OlEditController extends OlBaseController {
    */
   deleteFeature() {
     const me = this;
+
+    // If layers selected is building get also all population features of the building and commit a delete request
+    if (
+      editLayerHelper.selectedLayer.get("name") === "buildings" &&
+      this.populationEditLayer &&
+      this.selectedFeature
+    ) {
+      const buildingId =
+        this.selectedFeature.get("gid") || this.selectedFeature.getId();
+      const populationFeaturesToDelete = this.populationEditLayer
+        .getSource()
+        .getFeatures()
+        .filter(
+          f =>
+            this.selectedFeature
+              .getGeometry()
+              .intersectsCoordinate(f.getGeometry().getCoordinates()) &&
+            f.get("building_gid") === buildingId
+        );
+      if (populationFeaturesToDelete.length > 0) {
+        this.deletePopulationFeatures(populationFeaturesToDelete);
+      }
+    }
+
     //Check if feature is from file input (if so, just delete from edit layer)
     if (me.selectedFeature.get("user_uploaded")) {
       me.source.removeFeature(me.selectedFeature);
@@ -278,6 +315,27 @@ export default class OlEditController extends OlBaseController {
     }
 
     me.closePopup();
+  }
+
+  /**
+   * Delete Population Feature
+   */
+  deletePopulationFeatures(features) {
+    if (Array.isArray(features)) {
+      const formatGML = {
+        featureNS: "cite",
+        featureType: `population_modified`,
+        srsName: "urn:x-ogc:def:crs:EPSG:4326"
+      };
+      const payload = wfsTransactionParser(null, null, features, formatGML);
+      const serializedPayload = new XMLSerializer().serializeToString(payload);
+      http.post("geoserver/wfs", serializedPayload, {
+        headers: { "Content-Type": "text/xml" }
+      });
+      features.forEach(feature => {
+        this.populationEditLayer.getSource().removeFeature(feature);
+      });
+    }
   }
 
   /**
