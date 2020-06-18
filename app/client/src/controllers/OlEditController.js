@@ -58,13 +58,15 @@ export default class OlEditController extends OlBaseController {
    * Creates the population vector layer and add it to the
    * map.
    */
-  createPopulationEditLayer() {
+  createPopulationEditLayer(onFeatureChangeCb) {
     const me = this;
 
     // create a vector layer
     const source = new VectorSource({
       wrapX: false
     });
+    source.on("changefeature", onFeatureChangeCb);
+
     const options = Object.assign(
       {},
       {
@@ -127,9 +129,10 @@ export default class OlEditController extends OlBaseController {
         me.edit = new Draw({
           type: "Point"
         });
-        me.edit.on("drawstart", startCb);
         me.edit.on("drawend", endCb);
-        me.snap = new Snap({ source: me.source });
+        me.modify = new Modify({ source: me.populationEditLayer.getSource() });
+        me.modify.on("modifyend", endCb);
+        me.snap = new Snap({ source: me.source, pixelTolerance: 4 });
         me.helpMessage = i18n.t("map.tooltips.clickToAddPopulation");
         me.currentInteraction = "addPopulation";
         break;
@@ -177,6 +180,9 @@ export default class OlEditController extends OlBaseController {
     }
     if (me.snap) {
       me.map.addInteraction(me.snap);
+    }
+    if (me.modify) {
+      me.map.addInteraction(me.modify);
     }
   }
 
@@ -473,6 +479,10 @@ export default class OlEditController extends OlBaseController {
     if (me.snap) {
       me.map.removeInteraction(me.snap);
       me.snap = null;
+    }
+    if (me.modify) {
+      me.map.removeInteraction(me.modify);
+      me.modify = null;
     }
     if (me.deleteFeatureListener) {
       unByKey(me.deleteFeatureListener);

@@ -384,7 +384,7 @@
       "clickToPlacePoint": "Click to place the point",
       "changeDefaultColorPalette": "Change color (default)",
       "changeScenarioColorPalette": "Change color (scenario)",
-      "clickToAddPopulation": "Click building to add population",
+      "clickToAddPopulation": "Click building to add population <br> Click and drag to modify",
       "clickToAddPopulationNotAllowed": "Can't add a population here. Click on a building.",
       "openDocumentation": "Open Documentation",
       "routingProfiles": {

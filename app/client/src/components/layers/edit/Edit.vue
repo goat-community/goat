@@ -611,7 +611,7 @@ export default {
         this.onFeatureChange,
         this.onEditSourceChange
       );
-      me.olEditCtrl.createPopulationEditLayer();
+      me.olEditCtrl.createPopulationEditLayer(this.onPopulationFeatureChange);
     },
 
     /**
@@ -799,8 +799,7 @@ export default {
         case 2:
           if (this.selectedLayer.get("name") === "buildings") {
             editType = "addPopulation";
-            startCb = this.onPopulationDrawStart;
-            endCb = this.onPopulationDrawEnd;
+            endCb = this.onPopulationInteractionEnd;
           } else {
             editType = "modify";
             startCb = this.onModifyStart;
@@ -965,28 +964,52 @@ export default {
       //update cache
       this.updateFileInputFeatureCache();
     },
-    onPopulationDrawStart(evt) {
-      console.log(evt);
-    },
-    onPopulationDrawEnd(evt) {
-      const coordinate = evt.feature.getGeometry().getCoordinates();
-      const buildingFeatureAtCoord = this.olEditCtrl.source.getClosestFeatureToCoordinate(
-        coordinate
-      );
-      if (!buildingFeatureAtCoord || !buildingFeatureAtCoord.get("gid")) return;
-      const hasPopulationFeature = this.olEditCtrl.populationEditLayer
-        .getSource()
-        .getFeatures()
-        .filter(
-          f => f.get("building_gid") === buildingFeatureAtCoord.get("gid")
-        );
-      if (
-        hasPopulationFeature &&
-        hasPopulationFeature[0] &&
-        !hasPopulationFeature[0].getId()
-      ) {
-        return;
+
+    /**
+     * Population interaction end.
+     */
+    onPopulationInteractionEnd(evt) {
+      let coordinate;
+      if (evt.type === "modifyend") {
+        if (!this.tempPopulationFeature) return;
+        coordinate = this.tempPopulationFeature.getGeometry().getCoordinates();
+      } else {
+        coordinate = evt.feature.getGeometry().getCoordinates();
       }
+
+      let buildingFeatureAtCoord;
+      if (evt.type === "modifyend") {
+        buildingFeatureAtCoord = this.olEditCtrl.source.getClosestFeatureToCoordinate(
+          coordinate,
+          candidate => {
+            if (
+              ((candidate.get("gid") || candidate.getId()) &&
+                this.tempPopulationFeature &&
+                this.tempPopulationFeature.get("building_gid") ===
+                  candidate.get("gid")) ||
+              this.tempPopulationFeature.get("building_gid") ===
+                candidate.getId()
+            ) {
+              return true;
+            } else {
+              return false;
+            }
+          }
+        );
+      } else {
+        buildingFeatureAtCoord = this.olEditCtrl.source.getClosestFeatureToCoordinate(
+          coordinate
+        );
+        console.log(buildingFeatureAtCoord);
+      }
+
+      if (
+        !buildingFeatureAtCoord &&
+        !buildingFeatureAtCoord.get("gid") &&
+        !buildingFeatureAtCoord.getId()
+      )
+        return;
+
       let populationCoordinate;
       if (
         buildingFeatureAtCoord.getGeometry().intersectsCoordinate(coordinate)
@@ -997,7 +1020,13 @@ export default {
           .getGeometry()
           .getClosestPoint(coordinate);
         populationCoordinate = closestPoint;
+        if (this.tempPopulationFeature && evt.type === "modifyend") {
+          this.tempPopulationFeature.setGeometry(
+            new Point(populationCoordinate)
+          );
+        }
       }
+
       let payload;
       let populationFeature;
       const formatGML = {
@@ -1005,11 +1034,9 @@ export default {
         featureType: `population_modified`,
         srsName: "urn:x-ogc:def:crs:EPSG:4326"
       };
-      if (hasPopulationFeature && hasPopulationFeature.length > 0) {
+      if (evt.type === "modifyend") {
         // Update the existing population feature
-        populationFeature = hasPopulationFeature[0];
-        populationFeature.setGeometry(new Point(populationCoordinate));
-
+        populationFeature = this.tempPopulationFeature;
         // Clone feature and transform for transaction.
         const {
           // eslint-disable-next-line no-unused-vars
@@ -1030,7 +1057,8 @@ export default {
         // Add new feature
         populationFeature = new Feature({
           geometry: new Point(populationCoordinate),
-          building_gid: buildingFeatureAtCoord.get("gid"),
+          building_gid:
+            buildingFeatureAtCoord.get("gid") || buildingFeatureAtCoord.getId(),
           userid: this.userId
         });
         this.olEditCtrl.populationEditLayer
@@ -1063,14 +1091,26 @@ export default {
           const result = readTransactionResponse(response.data);
           const FIDs = result.insertIds;
           if (FIDs != undefined && FIDs[0] != "none") {
-            console.log(FIDs);
             const id = parseInt(FIDs[0].split(".")[1]);
             populationFeature.setId(id);
           }
         });
+      setTimeout(() => {
+        this.tempPopulationFeature = null;
+      }, 100);
     },
     /**
-     * Feature change event handler
+     * Feature change event handler for population edit layer
+     */
+    onPopulationFeatureChange(evt) {
+      if (evt.feature) {
+        // Used on modifyEnd event.
+        this.tempPopulationFeature = evt.feature;
+      }
+    },
+
+    /**
+     * Feature change event handler for edit layer
      */
     onFeatureChange(evt) {
       const me = this;
