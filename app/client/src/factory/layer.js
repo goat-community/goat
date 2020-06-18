@@ -183,6 +183,7 @@ export const LayerFactory = {
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
       opacity: lConf.opacity,
+      group: lConf.group,
       source: new OsmSource({
         url: lConf.url,
         maxZoom: lConf.maxZoom
@@ -212,6 +213,7 @@ export const LayerFactory = {
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
       opacity: lConf.opacity,
+      group: lConf.group,
       source: bingMaps
     });
 
