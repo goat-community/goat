@@ -467,7 +467,12 @@
     "university": "University",
     "hospital": "Hospital",
     "playground": "Playground",
-    "population": "Population"
+    "population": "Population",
+    "sports": "Sports",
+    "sports_center": "Sports Centers",
+    "waterpark": "Water Park",
+    "fitness_center": "Fitness Center",
+    "yoga":"yoga"
   },
   "$vuetify": {
     "close": "Close",

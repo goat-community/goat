@@ -677,6 +677,40 @@
               "sensitivity": 300000
             }
           ]
+        },
+        {
+          "name": "Sports",
+          "categoryValue": "sports",
+          "children": [
+            {
+              "name": "Sports center",
+              "value": "sports_center",
+              "icon": "sports_center",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Waterpark",
+              "value": "waterpark",
+              "icon": "waterpark",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Fitness Center",
+              "value": "fitness_center",
+              "icon": "fitness_center",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Yoga",
+              "value": "yoga",
+              "icon": "yoga",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
         }
       ],
       "filters": {
