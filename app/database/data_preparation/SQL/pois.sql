@@ -310,9 +310,23 @@ FROM close_entrances c
 WHERE p.geom = c.geom
 AND amenity = 'subway_entrance';
 
--- Clean duplicates and integrate custom pois
+-- If custom_pois exists, run pois fusion 
 
-SELECT pois_fusion();
+DO $$                  
+    BEGIN 
+        IF EXISTS
+            ( SELECT 1
+              FROM   information_schema.tables 
+              WHERE  table_schema = 'public'
+              AND    table_name = 'custom_pois'
+            )
+        THEN
+			--Run pois_fusion
+			SELECT pois_fusion();
+        END IF ;
+    END
+$$ ;
+
 
 --CREATE copy of pois for scenarios
 
