@@ -5,7 +5,7 @@
 -- INPUTS
 -- Database joins from Establecimientos and 2.4, as schools_input 
 -- Add amenity column
-
+SELECT * FROM schools_input WHERE ngenombre LIKE 'esap'
 ALTER TABLE schools_input
 ADD COLUMN amenity TEXT;
 
@@ -13,7 +13,7 @@ ADD COLUMN amenity TEXT;
 
 UPDATE schools_input 
 SET amenity = 'university' WHERE "09_estab_1" IS NULL AND 
-"ngenombre" LIKE ANY (ARRAY['%Universidad%','SENA','Politécnico%','%Universitaria%','Corporación%','%Tecnológica%','%Educación Superior%'])
+"ngenombre" LIKE ANY (ARRAY['%Universidad%','SENA','Politécnico%','%Universitaria%','Corporación%','%Tecnológica%','%Educación Superior%','Escuela Superior de Administración Pública'])
 
 -- Filter kindergartens when join is null
 
@@ -36,37 +36,46 @@ SELECT * FROM schools_input;
 DROP TABLE IF EXISTS pois_full_replacement;
 CREATE TABLE pois_full_replacement (origin_geometry TEXT, amenity TEXT,"name" TEXT,opening_hours TEXT,geom geometry, wheelchair text);
 
--- ADD new schools
+-- ADD new educative 
+
 
 INSERT INTO pois_full_replacement(
 
 -- 1. Extract Kindergardens
 
-SELECT 'point' AS origin_geometry, 'kindergarten' AS amenity, "NGeNombre" AS "name",NULL AS opening_hours, geom, NULL AS wheelchair FROM new_amenities
-WHERE "NGeFuente" = 'Secretaria Distrital de Educación  SDE' AND "NGeNombre" LIKE ANY (ARRAY ['%Jardín Infantil%','%Preescolar%','Psicopedagogico%','%Jardin Infantil%','%Infantil%'])
+SELECT 'point' AS origin_geometry, 'kindergarten' AS amenity, ngenombre AS "name", NULL AS opening_hours, geom, NULL AS wheelchair FROM schools_input
+WHERE "09_estab_3" IS NULL AND (ngefuente = 'Secretaria Distrital de Educación  SDE' AND ngenombre LIKE ANY (ARRAY ['%Jardín Infantil%','%Preescolar%','Psicopedagogico%','%Jardin Infantil%','%Infantil%']))
+--6
+UNION ALL 
 
+SELECT 'point' AS origin_geometry, 'kindergarten' AS amenity, ngenombre AS "name", NULL AS opening_hours, geom, NULL AS wheelchair FROM schools_input
+WHERE lower("09_estab15") LIKE '%preescolar%'
+--1890
 UNION ALL 
 
 -- 2. Extract Schools
-
-SELECT 'point' AS origin_geometry, 'school' AS amenity, "NGeNombre" AS "name",NULL AS opening_hours, geom, NULL AS wheelchair FROM new_amenities 
-WHERE "NGeFuente" = 'Secretaria Distrital de Educación  SDE' AND "NGeNombre" LIKE 
+		-- Schools = 2261 original
+		-- filter no matches = 529
+		-- extra filter = 1718
+SELECT 'point' AS origin_geometry, 'school' AS amenity, ngenombre AS "name",NULL AS opening_hours, geom, NULL AS wheelchair FROM schools_input
+WHERE "09_estab_3" IS NULL AND (ngefuente = 'Secretaria Distrital de Educación  SDE' AND ngenombre LIKE 
 ANY (ARRAY ['Academia%','Colegio%,¿Fundacion Colegio%','Fundación Colegio%','Colegio %','Colegio %','Escuela %','%Gimnasio %','Instituto %','Liceo %','Externado %','Centro Comercial%','Institucion Educativa%',
-	'Nuevo Colegio%','Nuevo Liceo %','Centro Educativo %'])
+	'Nuevo Colegio%','Nuevo Liceo %','Centro Educativo %']))
 EXCEPT 
-SELECT 'point' AS origin_geometry, 'school' AS amenity, "NGeNombre" AS "name",NULL AS opening_hours, geom, NULL AS wheelchair FROM new_amenities
-WHERE "NGeFuente" = 'Secretaria Distrital de Educación  SDE' AND "NGeNombre" LIKE ANY (ARRAY['Escuela Colombiana%','Escuela Mediatica','Escuela Superior%','Escuela de Inteligencia%','Escuela de Logística','Escuela de Salvamento%'])
+SELECT 'point' AS origin_geometry, 'school' AS amenity, ngenombre AS "name",NULL AS opening_hours, geom, NULL AS wheelchair FROM schools_input
+WHERE "09_estab_3" IS NULL AND (ngefuente = 'Secretaria Distrital de Educación  SDE' AND ngenombre LIKE ANY (ARRAY['Escuela Colombiana%','Escuela Mediatica','Escuela Superior%','Escuela de Inteligencia%','Escuela de Logística','Escuela de Salvamento%']))
+
+UNION ALL
+
+SELECT 'point' AS origin_geometry, 'school' AS amenity, ngenombre AS "name",NULL AS opening_hours, geom, NULL AS wheelchair FROM schools_input
+WHERE lower("09_estab15") LIKE ANY (ARRAY['%básica primaria%','%básica secundaria%','%media%']) 
 
 -- 3. Extract Universities
 
 UNION ALL
 
-SELECT 'point' AS origin_geometry, 'university' AS amenity, "NGeNombre" AS "name",NULL AS opening_hours, geom, NULL AS wheelchair FROM new_amenities 
-WHERE "NGeFuente" = 'Secretaria Distrital de Educación  SDE' AND "NGeNombre" LIKE ANY (ARRAY['%Universidad%','SENA','Politécnico%','%Universitaria%'])
-EXCEPT 
-SELECT 'point' AS origin_geometry, 'university' AS amenity, "NGeNombre" AS "name", NULL AS opening_hours, geom, NULL AS wheelchair FROM new_amenities
-WHERE 
-"NGeFuente" = 'Secretaria Distrital de Educación  SDE' AND "NGeNombre" LIKE ANY (ARRAY['Colegio%','Jardin%','Liceo'])
+SELECT 'point' AS origin_geometry, 'university' AS amenity, ngenombre AS "name",NULL AS opening_hours, geom, NULL AS wheelchair FROM schools_input 
+WHERE amenity = 'university'
 );
 
 -- ADD SITP (Conventional bus service) stations
@@ -86,12 +95,12 @@ SELECT 'polygon' AS origin_geometry, 'transmilenio' AS amenity, etrnombre AS "na
 
 UNION ALL
 -- Notary 
-SELECT 'point' AS origin_geometry, 'notary' AS amenity, ngenombre AS "name", NULL, geom, NULL FROM extra pois WHERE lower(ngenombre) LIKE '%notaría%'
+SELECT 'point' AS origin_geometry, 'notary' AS amenity, ngenombre AS "name", NULL, geom, NULL FROM extra_pois WHERE lower(ngenombre) LIKE '%notaría%'
 
 UNION ALL
 
 -- Cade
-SELECT 'point' AS origin_geometry, 'cade' AS amenity, ngenombre AS "name", NULL, geom, NULL FROM extra pois WHERE lower(ngenombre) LIKE '%cade%' AND ngeclasifi = 'FUN-PUB'
+SELECT 'point' AS origin_geometry, 'cade' AS amenity, ngenombre AS "name", NULL, geom, NULL FROM extra_pois WHERE lower(ngenombre) LIKE '%cade%' AND ngeclasifi = 'FUN-PUB'
 
 );
 
