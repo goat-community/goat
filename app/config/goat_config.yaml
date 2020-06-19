@@ -24,13 +24,13 @@ DATA_REFINEMENT_VARIABLES:
   ADDITIONAL_WALKABILITY_LAYERS: "yes" 
   variable_container:
     heatmap_auto_refresh: "'yes'"
-    pois_one_entrance: ["kindergarten","nursery","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
-      "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
+    pois_one_entrance: ["kindergarten","school","university","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
+      "bus_station","tram_station","subway_station","railway_station","taxi","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
       "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
       "hypermarket","international_supermarket","chemist","organic","marketplace",
-      "hotel","museum","hostel","guest_house","viewpoint","gallery"
+      "hotel","museum","hostel","guest_house","viewpoint","gallery","transmilenio","transmicable", "park", "notary","cade","police"
     ]
-    pois_more_entrances: ["bus_stop","tram_stop","subway_entrance","rail_station"]
+    pois_more_entrances: ["bus_stop","sitp"]
     excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,801]
     categories_no_foot: ["use_sidepath","no"]
     excluded_class_id_cycling: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
