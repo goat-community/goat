@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS pois;
+DROP TABLE IF EXISTS pois CASCADE;
 CREATE TABLE pois as (
 
 
@@ -65,6 +65,7 @@ WHERE tourism IS NOT NULL
 UNION ALL
 
 -- all sports (sport stuff is usually not tagged with amenity, but with leisure=* and sport=*)
+
 SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'sport' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
@@ -88,6 +89,46 @@ AND leisure !=(SELECT (jsonb_array_elements_text((select_from_variable_container
 AND sport !=(SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'sport'->'discard')::jsonb)))
 
 UNION ALL
+
+-- Add sport facilities
+
+SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, 'sports_center' AS amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, ST_centroid(way) as geom,
+tags -> 'wheelchair' as wheelchair  
+FROM planet_osm_polygon WHERE (leisure = 'sports_centre'  OR name LIKE '%Bezirkssportanlage%') AND amenity IS null
+
+UNION ALL 
+
+-- Add water parks
+
+SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, 'waterpark' AS amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, ST_centroid(way) as geom,
+tags -> 'wheelchair' as wheelchair  
+FROM planet_osm_polygon WHERE leisure = 'water_park' AND amenity IS NULL
+
+UNION ALL 
+
+-- Add fitness centers
+
+SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'fitness_center' AS amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
+tags -> 'wheelchair' as wheelchair  
+FROM planet_osm_polygon WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE 'yoga'
+
+UNION ALL
+
+-- Add Yoga centers
+
+SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'yoga' AS amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
+tags -> 'wheelchair' as wheelchair
+FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND (sport = 'yoga' OR lower(name) LIKE 'yoga')
+
+UNION ALL 
 
 -------------------------------------------------------------------
 --------------------School polygons--------------------------------
@@ -322,14 +363,14 @@ DO $$
             )
         THEN
 			--Run pois_fusion
-			SELECT pois_fusion();
+			PERFORM pois_fusion();
         END IF ;
     END
 $$ ;
 
 
 --CREATE copy of pois for scenarios
-
+DROP TABLE IF EXISTS pois_userinput;
 CREATE TABLE pois_userinput (like pois INCLUDING ALL);
 INSERT INTO pois_userinput
 SELECT * FROM pois;
@@ -342,6 +383,5 @@ ALTER TABLE pois_userinput ADD COLUMN pois_modified_id integer;
 ALTER TABLE pois_userinput
 ADD CONSTRAINT pois_userinput_id_fkey FOREIGN KEY (pois_modified_id) 
 REFERENCES pois_modified(id) ON DELETE CASCADE;
-
 
 
