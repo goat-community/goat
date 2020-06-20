@@ -76,6 +76,7 @@ export const LayerFactory = {
       name: lConf.name,
       title: lConf.title,
       canEdit: lConf.canEdit,
+      canModifyGeom: lConf.canModifyGeom,
       editDataType: lConf.editDataType,
       editGeometry: lConf.editGeometry,
       modifyAttributes: lConf.modifyAttributes,
@@ -182,6 +183,7 @@ export const LayerFactory = {
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
       opacity: lConf.opacity,
+      group: lConf.group,
       source: new OsmSource({
         url: lConf.url,
         maxZoom: lConf.maxZoom
@@ -211,6 +213,7 @@ export const LayerFactory = {
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
       opacity: lConf.opacity,
+      group: lConf.group,
       source: bingMaps
     });
 
