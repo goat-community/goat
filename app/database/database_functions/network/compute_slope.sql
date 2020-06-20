@@ -59,7 +59,7 @@ BEGIN
 END;
 $function$;
 
---SELECT compute_ways_slope(5787,'ways',30);
+--SELECT compute_ways_slope(5787,'ways');
 
 -- batch version with loop over 1000(default) ways per iteration
 
