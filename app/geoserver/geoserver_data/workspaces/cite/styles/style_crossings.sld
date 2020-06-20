@@ -17,7 +17,7 @@
             <Graphic>
               <ExternalGraphic>
              
-                <OnlineResource xlink:type="simple" xlink:href="street_crossings/${strToLowerCase(visualization)}.png" />
+                <OnlineResource xlink:type="simple" xlink:href="street_crossings/${strToLowerCase(crossing)}.png" />
                 <Format>image/png</Format>
               </ExternalGraphic>
             <Size>
