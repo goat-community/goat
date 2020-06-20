@@ -55,7 +55,10 @@ BEGIN
 END;
 $function$;
 
-/*select fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)),1,1,'walking_standard');
+/*select fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.001)),1,1,1.33,'walking_standard');
+CREATE TABLE test AS 
+select *, COST-reverse_cost FROM fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.25196,48.18172),0.03)),1,1,1.33,'cycling_standard');
+
 */
 
 DROP FUNCTION IF EXISTS get_reached_network;
