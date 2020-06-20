@@ -622,6 +622,11 @@
         "serverType": "geoserver",
         "otherProps": {
           "icon": "fas fa-tachometer-alt",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
           "wikiUrl": "https://wiki.openstreetmap.org/wiki/Speed_limits"
         }
       },
@@ -641,6 +646,11 @@
         "serverType": "geoserver",
         "otherProps": {
           "icon": "fas fa-road",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
           "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:surface"
         }
       },
@@ -660,6 +670,11 @@
         "serverType": "geoserver",
         "otherProps": {
           "icon": "fas fa-building",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
           "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:building"
         }
       }
