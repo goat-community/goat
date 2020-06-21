@@ -101,10 +101,10 @@
                     v-on="on"
                     text
                   >
-                    <v-icon>fas fa-users</v-icon>
+                    <v-icon>far fa-building</v-icon>
                   </v-btn>
                 </template>
-                <span>{{ $t("appBar.edit.addPopulation") }}</span>
+                <span>{{ $t("appBar.edit.addBldEntrance") }}</span>
               </v-tooltip>
 
               <v-tooltip top>
@@ -547,7 +547,7 @@ export default {
       select: "pointer",
       move: "auto",
       modifyAttributes: "pointer",
-      addPopulation: "pointer",
+      addBldEntrance: "pointer",
       drawHole: "crosshair"
     },
     //Data table
@@ -611,7 +611,7 @@ export default {
         this.onFeatureChange,
         this.onEditSourceChange
       );
-      me.olEditCtrl.createPopulationEditLayer(this.onPopulationFeatureChange);
+      me.olEditCtrl.createBldEntranceLayer(this.onBldEntranceFeatureChange);
       this.setUpCtxMenu();
     },
 
@@ -799,8 +799,8 @@ export default {
           break;
         case 2:
           if (this.selectedLayer.get("name") === "buildings") {
-            editType = "addPopulation";
-            endCb = this.onPopulationInteractionEnd;
+            editType = "addBldEntrance";
+            endCb = this.onBldEntranceInteractionEnd;
           } else {
             editType = "modify";
             startCb = this.onModifyStart;
@@ -875,7 +875,7 @@ export default {
         editLayerHelper.filterResults(
           response,
           me.olEditCtrl.getLayerSource(),
-          me.olEditCtrl.populationEditLayer
+          me.olEditCtrl.bldEntranceLayer
         );
       }
     },
@@ -966,13 +966,13 @@ export default {
     },
 
     /**
-     * Population interaction end.
+     * Building Entrance interaction end.
      */
-    onPopulationInteractionEnd(evt) {
+    onBldEntranceInteractionEnd(evt) {
       let coordinate;
       if (evt.type === "modifyend") {
-        if (!this.tempPopulationFeature) return;
-        coordinate = this.tempPopulationFeature.getGeometry().getCoordinates();
+        if (!this.tempBldEntranceFeature) return;
+        coordinate = this.tempBldEntranceFeature.getGeometry().getCoordinates();
       } else {
         coordinate = evt.feature.getGeometry().getCoordinates();
       }
@@ -984,10 +984,10 @@ export default {
           candidate => {
             if (
               ((candidate.get("gid") || candidate.getId()) &&
-                this.tempPopulationFeature &&
-                this.tempPopulationFeature.get("building_gid") ===
+                this.tempBldEntranceFeature &&
+                this.tempBldEntranceFeature.get("building_gid") ===
                   candidate.get("gid")) ||
-              this.tempPopulationFeature.get("building_gid") ===
+              this.tempBldEntranceFeature.get("building_gid") ===
                 candidate.getId()
             ) {
               return true;
@@ -1002,67 +1002,45 @@ export default {
         );
       }
 
-      if (
-        !buildingFeatureAtCoord &&
-        !buildingFeatureAtCoord.get("gid") &&
-        !buildingFeatureAtCoord.getId()
-      )
-        return;
+      if (!buildingFeatureAtCoord && !buildingFeatureAtCoord.getId()) return;
 
-      let populationCoordinate;
+      // This line restricts drawing entrance feature only in new drawn buildings (original_id is used as an identifier)
+      if (
+        !buildingFeatureAtCoord.getProperties().hasOwnProperty("original_id")
+      ) {
+        return;
+      }
+
+      let bldEntranceCoordinate;
       if (
         buildingFeatureAtCoord.getGeometry().intersectsCoordinate(coordinate)
       ) {
-        populationCoordinate = coordinate;
+        bldEntranceCoordinate = coordinate;
       } else {
         const closestPoint = buildingFeatureAtCoord
           .getGeometry()
           .getClosestPoint(coordinate);
-        populationCoordinate = closestPoint;
-        if (this.tempPopulationFeature && evt.type === "modifyend") {
-          this.tempPopulationFeature.setGeometry(
-            new Point(populationCoordinate)
+        bldEntranceCoordinate = closestPoint;
+        if (this.tempBldEntranceFeature && evt.type === "modifyend") {
+          this.tempBldEntranceFeature.setGeometry(
+            new Point(bldEntranceCoordinate)
           );
         }
       }
 
       let payload;
-      let populationFeature;
+      let bldEntranceFeature;
       const formatGML = {
         featureNS: "cite",
         featureType: `population_modified`,
         srsName: "urn:x-ogc:def:crs:EPSG:4326"
       };
       if (evt.type === "modifyend") {
-        // Update the existing population feature
-        populationFeature = this.tempPopulationFeature;
-        // Clone feature and transform for transaction.
-        const {
-          // eslint-disable-next-line no-unused-vars
-          geometry,
-          // eslint-disable-next-line no-unused-vars
-          geom,
-          ...propsWithNoGeometry
-        } = populationFeature.getProperties();
-        const clonedFeature = new Feature({
-          geom: populationFeature.getGeometry().clone(),
-          ...propsWithNoGeometry
-        });
-        clonedFeature.setGeometryName("geom");
-        clonedFeature.getGeometry().transform("EPSG:3857", "EPSG:4326");
-        clonedFeature.setId(populationFeature.getId());
-        payload = wfsTransactionParser(null, [clonedFeature], null, formatGML);
-      } else {
-        // Add new feature
-        populationFeature = new Feature({
-          geometry: new Point(populationCoordinate),
-          building_gid:
-            buildingFeatureAtCoord.get("gid") || buildingFeatureAtCoord.getId(),
-          userid: this.userId
-        });
-        this.olEditCtrl.populationEditLayer
-          .getSource()
-          .addFeature(populationFeature);
+        // Update the existing building entrance feature
+        bldEntranceFeature = this.tempBldEntranceFeature;
+
+        // Can't update the feature if id isn't available
+        if (!bldEntranceFeature.getId()) return;
 
         // Clone feature and transform for transaction.
         const {
@@ -1071,9 +1049,37 @@ export default {
           // eslint-disable-next-line no-unused-vars
           geom,
           ...propsWithNoGeometry
-        } = populationFeature.getProperties();
+        } = bldEntranceFeature.getProperties();
         const clonedFeature = new Feature({
-          geom: new Point(populationCoordinate),
+          geom: bldEntranceFeature.getGeometry().clone(),
+          ...propsWithNoGeometry
+        });
+        clonedFeature.setGeometryName("geom");
+        clonedFeature.getGeometry().transform("EPSG:3857", "EPSG:4326");
+        clonedFeature.setId(bldEntranceFeature.getId());
+        payload = wfsTransactionParser(null, [clonedFeature], null, formatGML);
+      } else {
+        // Add new feature
+        bldEntranceFeature = new Feature({
+          geometry: new Point(bldEntranceCoordinate),
+          building_gid:
+            buildingFeatureAtCoord.get("gid") || buildingFeatureAtCoord.getId(),
+          userid: this.userId
+        });
+        this.olEditCtrl.bldEntranceLayer
+          .getSource()
+          .addFeature(bldEntranceFeature);
+
+        // Clone feature and transform for transaction.
+        const {
+          // eslint-disable-next-line no-unused-vars
+          geometry,
+          // eslint-disable-next-line no-unused-vars
+          geom,
+          ...propsWithNoGeometry
+        } = bldEntranceFeature.getProperties();
+        const clonedFeature = new Feature({
+          geom: new Point(bldEntranceCoordinate),
           ...propsWithNoGeometry
         });
         clonedFeature.setGeometryName("geom");
@@ -1091,20 +1097,20 @@ export default {
           const FIDs = result.insertIds;
           if (FIDs != undefined && FIDs[0] != "none") {
             const id = parseInt(FIDs[0].split(".")[1]);
-            populationFeature.setId(id);
+            bldEntranceFeature.setId(id);
           }
         });
       setTimeout(() => {
-        this.tempPopulationFeature = null;
+        this.tempBldEntranceFeature = null;
       }, 100);
     },
     /**
-     * Feature change event handler for population edit layer
+     * Feature change event handler for building entrance edit layer
      */
-    onPopulationFeatureChange(evt) {
+    onBldEntranceFeatureChange(evt) {
       if (evt.feature) {
         // Used on modifyEnd event.
-        this.tempPopulationFeature = evt.feature;
+        this.tempBldEntranceFeature = evt.feature;
       }
     },
 
@@ -1121,7 +1127,7 @@ export default {
           }
           const features = this.map.getFeaturesAtPixel(evt.pixel, {
             layerFilter: candidate => {
-              if (candidate.get("name") === "Population Edit Layer") {
+              if (candidate.get("name") === "Building Entrance Edit Layer") {
                 return true;
               }
               return false;
@@ -1132,11 +1138,11 @@ export default {
               "-", // this is a separator
               {
                 text: `<i class="fa fa-trash fa-1x" aria-hidden="true"></i>&nbsp;&nbsp${this.$t(
-                  "map.contextMenu.deletePopulationPoint"
+                  "map.contextMenu.deleteBldEntrancePoint"
                 )}`,
-                label: "deletePopulationPoint",
+                label: "deleteBldEntrancePoint",
                 callback: () => {
-                  this.olEditCtrl.deletePopulationFeatures(features);
+                  this.olEditCtrl.deleteBldEntranceFeatures(features);
                 }
               }
             ]);
@@ -1166,8 +1172,18 @@ export default {
           me.olEditCtrl.featuresToCommit[index] = evt.feature;
         }
       }
-      if (["pois", "buildings"].includes(evt.feature.get("layerName"))) {
+
+      /** For pois layer features are uploaded automatically */
+      if (["pois"].includes(evt.feature.get("layerName"))) {
         evt.feature.set("status", 1);
+      }
+
+      if (
+        this.selectedLayer.get("name") === "buildings" &&
+        this.olEditCtrl.currentInteraction === "draw"
+      ) {
+        console.log("activate entrance interaction");
+        this.toggleEdit = 2;
       }
     },
     /**

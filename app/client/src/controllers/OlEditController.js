@@ -1,7 +1,7 @@
 import {
   getEditStyle,
   getFeatureHighlightStyle,
-  populationPointsStyle
+  bldEntrancePointsStyle
 } from "../style/OlStyleDefs";
 import OlBaseController from "./OlBaseController";
 import { Modify, Draw, Snap, Translate } from "ol/interaction";
@@ -37,7 +37,7 @@ export default class OlEditController extends OlBaseController {
     const me = this;
     const style = getEditStyle();
     super.createLayer("Edit Layer", style, {
-      queryable: true
+      queryable: false
     });
     me.source.on("changefeature", onFeatureChangeCb);
     me.source.on("change", onSourceChangeCb);
@@ -58,7 +58,7 @@ export default class OlEditController extends OlBaseController {
    * Creates the population vector layer and add it to the
    * map.
    */
-  createPopulationEditLayer(onFeatureChangeCb) {
+  createBldEntranceLayer(onFeatureChangeCb) {
     const me = this;
 
     // create a vector layer
@@ -70,17 +70,17 @@ export default class OlEditController extends OlBaseController {
     const options = Object.assign(
       {},
       {
-        name: "Population Edit Layer",
+        name: "Building Entrance Edit Layer",
         displayInLayerList: false,
         zIndex: 100,
         source: source,
         queryable: false,
-        style: populationPointsStyle
+        style: bldEntrancePointsStyle
       }
     );
     const vector = new VectorLayer(options);
     me.map.addLayer(vector);
-    me.populationEditLayer = vector;
+    me.bldEntranceLayer = vector;
   }
 
   /**
@@ -125,7 +125,7 @@ export default class OlEditController extends OlBaseController {
         me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
         break;
       }
-      case "addPopulation": {
+      case "addBldEntrance": {
         me.edit = new Draw({
           type: "Point",
           condition: function(evt) {
@@ -138,11 +138,16 @@ export default class OlEditController extends OlBaseController {
           }
         });
         me.edit.on("drawend", endCb);
-        me.modify = new Modify({ source: me.populationEditLayer.getSource() });
+        me.modify = new Modify({
+          source: me.bldEntranceLayer.getSource()
+        });
         me.modify.on("modifyend", endCb);
-        me.snap = new Snap({ source: me.source, pixelTolerance: 4 });
-        me.helpMessage = i18n.t("map.tooltips.clickToAddPopulation");
-        me.currentInteraction = "addPopulation";
+        me.snap = new Snap({
+          source: me.source,
+          pixelTolerance: 4
+        });
+        me.helpMessage = i18n.t("map.tooltips.clickToBldEntrance");
+        me.currentInteraction = "addBldEntrance";
         break;
       }
       case "modifyAttributes": {
@@ -221,17 +226,23 @@ export default class OlEditController extends OlBaseController {
     me.helpTooltip.setPosition(coordinate);
     if (
       editLayerHelper.selectedLayer.get("name") === "buildings" &&
-      this.currentInteraction === "addPopulation"
+      ["addBldEntrance"].includes(this.currentInteraction)
     ) {
       const featureAtCoord = this.source.getFeaturesAtCoordinate(
         evt.coordinate
       );
-      if (featureAtCoord.length === 0) {
+      if (
+        featureAtCoord.length === 0 ||
+        (featureAtCoord.length > 0 &&
+          !featureAtCoord[0].getProperties().hasOwnProperty("original_id"))
+      ) {
         me.map.getTarget().style.cursor = "not-allowed";
         me.edit.setActive(false);
-        me.helpMessage = i18n.t("map.tooltips.clickToAddPopulationNotAllowed");
+        if (this.currentInteraction === "addBldEntrance") {
+          me.helpMessage = i18n.t("map.tooltips.clickToBldEntranceNotAllowed");
+        }
       } else {
-        me.helpMessage = i18n.t("map.tooltips.clickToAddPopulation");
+        me.helpMessage = i18n.t("map.tooltips.clickToBldEntrance");
         me.map.getTarget().style.cursor = "pointer";
         me.edit.setActive(true);
       }
@@ -280,15 +291,15 @@ export default class OlEditController extends OlBaseController {
   deleteFeature() {
     const me = this;
 
-    // If layers selected is building get also all population features of the building and commit a delete request
+    // If layers selected is building get also all building entrance features of the building and commit a delete request
     if (
       editLayerHelper.selectedLayer.get("name") === "buildings" &&
-      this.populationEditLayer &&
+      this.bldEntranceLayer &&
       this.selectedFeature
     ) {
       const buildingId =
         this.selectedFeature.get("gid") || this.selectedFeature.getId();
-      const populationFeaturesToDelete = this.populationEditLayer
+      const bldEntranceFeaturesToDelete = this.bldEntranceLayer
         .getSource()
         .getFeatures()
         .filter(
@@ -298,8 +309,8 @@ export default class OlEditController extends OlBaseController {
               .intersectsCoordinate(f.getGeometry().getCoordinates()) &&
             f.get("building_gid") === buildingId
         );
-      if (populationFeaturesToDelete.length > 0) {
-        this.deletePopulationFeatures(populationFeaturesToDelete);
+      if (bldEntranceFeaturesToDelete.length > 0) {
+        this.deleteBldEntranceFeatures(bldEntranceFeaturesToDelete);
       }
     }
 
@@ -318,9 +329,9 @@ export default class OlEditController extends OlBaseController {
   }
 
   /**
-   * Delete Population Feature
+   * Delete Building Entrance Features
    */
-  deletePopulationFeatures(features) {
+  deleteBldEntranceFeatures(features) {
     if (Array.isArray(features)) {
       const formatGML = {
         featureNS: "cite",
@@ -333,7 +344,7 @@ export default class OlEditController extends OlBaseController {
         headers: { "Content-Type": "text/xml" }
       });
       features.forEach(feature => {
-        this.populationEditLayer.getSource().removeFeature(feature);
+        this.bldEntranceLayer.getSource().removeFeature(feature);
       });
     }
   }
@@ -604,8 +615,8 @@ export default class OlEditController extends OlBaseController {
     if (this.removeInteraction) {
       this.removeInteraction();
     }
-    if (this.populationEditLayer) {
-      this.populationEditLayer.getSource().clear();
+    if (this.bldEntranceLayer) {
+      this.bldEntranceLayer.getSource().clear();
     }
     super.clearOverlays();
     this.source.getFeatures().forEach(f => {
