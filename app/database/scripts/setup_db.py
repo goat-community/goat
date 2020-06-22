@@ -113,6 +113,8 @@ def setup_db(setup_type):
     db_temp.execute_script_psql('/opt/database_functions/network/split_long_way.sql')
     db_temp.execute_script_psql('/opt/database_functions/network/compute_slope.sql')
     db_temp.execute_script_psql('/opt/database_functions/network/slope_impedance.sql')
+    db_temp.execute_script_psql('/opt/data_preparation/SQL/pois_full_replacement.sql')
+
 
     if (setup_type in ['new_setup','all','population','pois','network']):
         os.system('PGPASSFILE=/.pgpass osm2pgsql -d %s -H %s -U %s --hstore -E 4326 study_area.osm' % (db_name_temp,host,user)) 
