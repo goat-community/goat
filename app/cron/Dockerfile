@@ -14,8 +14,9 @@ RUN apt-get -y update && apt-get -y upgrade
 #    && pip3 install psycopg2-binary pyshp pyyaml requests boto3
 RUN pip3 install requests boto3
 
+RUN apt-get install cron
 RUN touch /var/log/cron.log
 COPY ./cron/crontab /etc/cron.d/cjob
 RUN chmod 0644 /etc/cron.d/cjob
 ENV PYTHONUNBUFFERED 1
-CMD cron -f
+ENTRYPOINT /usr/sbin/cron -f
