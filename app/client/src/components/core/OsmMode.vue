@@ -68,17 +68,23 @@
         <v-divider class="mx-4 mt-0 pt-0"></v-divider>
 
         <ul class="ml-3 mt-2" id="steps">
-          <li
-            v-for="(value, key, index) in $t(`map.osmMode.stepsDesc`)"
-            :key="index"
-            v-html="
-              $t(`map.osmMode.stepsDesc.${key}`, {
-                missingVar: $t(
-                  `map.osmMode.layers.${activeLayer.get('name')}.missingKeyWord`
-                )
-              })
-            "
-          ></li>
+          <!-- FOR LAYER THAT DON'T HAVE SPECIFIC STEPS DEFINED -->
+          <template v-if="!activeLayer.get('otherProps').stepsOrdersKeys">
+            <li
+              v-for="(value, key, index) in $t(`map.osmMode.stepsDesc`)"
+              :key="index"
+              v-html="getTranslatedDesc(value)"
+            ></li>
+          </template>
+          <!-- IT OVERWRITES THE DEFAULT STEPS -->
+          <template v-else>
+            <li
+              v-for="(value, key, index) in activeLayer.get('otherProps')
+                .stepsOrdersKeys"
+              :key="index"
+              v-html="getTranslatedDesc(value)"
+            ></li>
+          </template>
         </ul>
 
         <v-divider class="mx-4 mt-2 pt-0"></v-divider>
@@ -325,6 +331,22 @@ export default {
       this.poisLayer.getSource().updateParams({
         viewparams: params
       });
+    },
+    getTranslatedDesc(descKey) {
+      const layerName = this.activeLayer.get("name");
+      const layerTranslateDescKey = `map.osmMode.layers.${layerName}.stepsDesc.${descKey}`;
+      const defaultTranslateDescKey = `map.osmMode.stepsDesc.${descKey}`;
+      if (this.$te(layerTranslateDescKey)) {
+        return this.$t(layerTranslateDescKey, {
+          missingVar: this.$t(`map.osmMode.layers.${layerName}.missingKeyWord`)
+        });
+      } else if (this.$te(defaultTranslateDescKey)) {
+        return this.$t(defaultTranslateDescKey, {
+          missingVar: this.$t(`map.osmMode.layers.${layerName}.missingKeyWord`)
+        });
+      } else {
+        return descKey;
+      }
     },
     ...mapMutations("map", {
       setOsmMappingLayer: "SET_OSM_MAPPING_LAYER",

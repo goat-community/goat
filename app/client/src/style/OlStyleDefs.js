@@ -352,6 +352,26 @@ export function getFeatureHighlightStyle() {
   ];
 }
 
+export function populationPointsStyle() {
+  return [
+    new OlStyle({
+      fill: new OlFill({
+        color: "#800080"
+      }),
+      stroke: new OlStroke({
+        color: "#800080",
+        width: 8
+      }),
+      image: new OlCircle({
+        radius: 8,
+        fill: new OlFill({
+          color: "#800080"
+        })
+      })
+    })
+  ];
+}
+
 export const baseStyleDefs = {
   boundaryStyle: () => {
     return new OlStyle({
