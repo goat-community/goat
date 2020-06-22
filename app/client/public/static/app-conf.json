@@ -15,6 +15,7 @@
     "maxZoom": 21,
     "zoom": 13,
     "resolutions": [
+      313086.08,
       156543.03,
       78271.52,
       39135.76,
@@ -92,20 +93,6 @@
         "opacity": 1,
         "queryable": true,
         "visible": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "serverType": "geoserver"
-      },
-      {
-        "type": "WMS",
-        "name": "landuse_osm",
-        "url": "/geoserver/wms",
-        "group": "buildings_landuse",
-        "layers": "cite:landuse_osm",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver"
@@ -212,88 +199,17 @@
       },
       {
         "type": "WMS",
-        "name": "protectedLandscape",
-        "url": "https://www.lfu.bayern.de/gdi/wms/natur/schutzgebiete?",
-        "group": "environmentalQualityLayers",
-        "layers": "landschaftsschutzgebiet",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
-      },
-      {
-        "type": "WMS",
-        "name": "noiseMainTrafficRoads",
-        "url": "https://www.lfu.bayern.de/gdi/wms/laerm/hauptverkehrsstrassen",
-        "group": "environmentalQualityLayers",
-        "layers": "mroadbylden",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
-      },
-      {
-        "type": "WMS",
-        "name": "natureReserves",
-        "url": "https://www.lfu.bayern.de/gdi/wms/natur/schutzgebiete?",
-        "group": "environmentalQualityLayers",
-        "layers": "naturschutzgebiet",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
-      },
-      {
-        "type": "WMS",
-        "name": "ffh-area",
-        "url": "https://www.lfu.bayern.de/gdi/wms/natur/schutzgebiete?",
-        "group": "environmentalQualityLayers",
-        "layers": "fauna_flora_habitat_gebiet",
-        "style": "cite:ffh",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
-      },
-      {
-        "type": "WMS",
-        "name": "biotops",
-        "url": "https://www.lfu.bayern.de/gdi/wms/natur/biotopkartierung?",
-        "group": "environmentalQualityLayers",
-        "layers": "bio_fbk,bio_sbk,bio_abk",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
-      },
-      {
-        "type": "WMS",
-        "name": "accidents_pedestrian_2018",
-        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "name": "Land Value",
+        "url": "https://serviciosgis.catastrobogota.gov.co/arcgis/services/estadisticas/Valor_de_Referencia/MapServer/WMSServer?request=GetCapabilities&service=WMS",
         "group": "additionalDataLayers",
-        "layers": "Beteiligung_Fussgaenger_250_2018",
+        "layers": "Valor de Referencia 2019",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+        "attributions": "© <a href='https://www.ideca.gov.co/'>Ideca Portal </a>"
       },
       {
         "type": "WMS",
@@ -493,14 +409,6 @@
           "id": 1,
           "children": [
             {
-              "name": "Nursery",
-              "value": "nursery",
-              "icon": "nursery",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
-            },
-            {
               "name": "Kindergarten",
               "value": "kindergarten",
               "icon": "kindergarten",
@@ -509,17 +417,17 @@
               "locked": false
             },
             {
-              "name": "Primary school",
-              "value": "primary_school",
+              "name": "School",
+              "value": "school",
               "icon": "primary_school",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
             },
             {
-              "name": "Secondary school",
-              "value": "secondary_school",
-              "icon": "secondary_school",
+              "name": "University",
+              "value": "university",
+              "icon": "university",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
@@ -538,13 +446,6 @@
           "categoryValue": "foodAndDrink",
           "children": [
             {
-              "name": "Biergarten",
-              "value": "biergarten",
-              "icon": "biergarten",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
               "name": "Café",
               "value": "cafe",
               "icon": "cafe",
@@ -552,37 +453,9 @@
               "sensitivity": 300000
             },
             {
-              "name": "Pub",
-              "value": "pub",
-              "icon": "pub",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Fast food",
-              "value": "fast_food",
-              "icon": "fast_food",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Ice cream",
-              "value": "ice_cream",
-              "icon": "ice_cream",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
               "name": "Restaurant",
               "value": "restaurant",
               "icon": "restaurant",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Night-Club",
-              "value": "nightclub",
-              "icon": "nightclub",
               "weight": 1,
               "sensitivity": 300000
             }
@@ -594,59 +467,23 @@
           "locked": false,
           "children": [
             {
-              "name": "Bicycle rental",
-              "value": "bicycle_rental",
-              "icon": "bicycle_rental",
+              "name": "SITP",
+              "value": "sitp",
+              "icon": "sitp",
               "weight": 1,
               "sensitivity": 300000
             },
             {
-              "name": "Car sharing",
-              "value": "car_sharing",
-              "icon": "car_sharing",
+              "name": "Transmilenio",
+              "value": "transmilenio",
+              "icon": "transmilenio",
               "weight": 1,
               "sensitivity": 300000
             },
             {
-              "name": "Charging station",
-              "value": "charging_station",
-              "icon": "charging_station",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
-            },
-            {
-              "name": "Bus",
-              "value": "bus_stop",
-              "icon": "bus_stop",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Tram Stop",
-              "value": "tram_stop",
-              "icon": "tram_stop",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "U-Bahn station",
-              "value": "subway_entrance",
-              "icon": "subway_entrance",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Rail Station",
-              "value": "rail_station",
-              "icon": "rail_station",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Taxi",
-              "value": "taxi",
-              "icon": "taxi",
+              "name": "Transmicable",
+              "value": "transmicable",
+              "icon": "transmicable",
               "weight": 1,
               "sensitivity": 300000
             }
@@ -662,14 +499,6 @@
               "icon": "hairdresser",
               "weight": 1,
               "sensitivity": 300000
-            },
-            {
-              "name": "ATM",
-              "value": "atm",
-              "icon": "atm",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
             },
             {
               "name": "Bank",
@@ -700,26 +529,11 @@
               "sensitivity": 300000
             },
             {
-              "name": "Post box",
-              "value": "post_box",
-              "icon": "post_box",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
               "name": "Fuel",
               "value": "fuel",
               "icon": "fuel",
               "weight": 1,
               "sensitivity": 300000
-            },
-            {
-              "name": "Recycling",
-              "value": "recycling",
-              "icon": "recycling",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
             }
           ]
         },
@@ -763,13 +577,6 @@
               "sensitivity": 300000
             },
             {
-              "name": "Kiosk",
-              "value": "kiosk",
-              "icon": "kiosk",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
               "name": "Mall",
               "value": "mall",
               "icon": "mall",
@@ -791,37 +598,9 @@
               "sensitivity": 300000
             },
             {
-              "name": "Discount Supermarket",
-              "value": "discount_supermarket",
-              "icon": "discount_supermarket",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "International Supermarket",
-              "value": "international_supermarket",
-              "icon": "international_supermarket",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Hypermarket",
-              "value": "hypermarket",
-              "icon": "hypermarket",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
               "name": "Chemist",
               "value": "chemist",
               "icon": "chemist",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Organic Food",
-              "value": "organic",
-              "icon": "organic",
               "weight": 1,
               "sensitivity": 300000
             },
@@ -891,6 +670,40 @@
               "name": "Playground",
               "value": "playground",
               "icon": "playground",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Park",
+              "value": "park",
+              "icon": "park",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "Government and Security",
+          "categoryValue": "governmentandsec",
+          "children":[
+            {
+              "name": "Notary",
+              "value": "notary",
+              "icon": "notary",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "CADE",
+              "value": "cade",
+              "icon": "cade",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Police",
+              "value": "police",
+              "icon": "police",
               "weight": 1,
               "sensitivity": 300000
             }
