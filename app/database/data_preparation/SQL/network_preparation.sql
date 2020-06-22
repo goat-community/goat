@@ -140,6 +140,17 @@ UPDATE ways w SET crossing = c.crossing, one_link_crossing = c.one_link_crossing
 FROM ways_crossed c
 WHERE w.id = c.id;
 
+ALTER TABLE ways ADD COLUMN crossing_delay_category SMALLINT; 
+UPDATE ways 
+SET crossing_delay_category = 1
+WHERE crossing = 'traffic_signals' 
+AND one_link_crossing IS FALSE;
+
+UPDATE ways 
+SET crossing_delay_category = 2
+WHERE crossing = 'traffic_signals' 
+AND one_link_crossing IS TRUE;
+
 DROP TYPE IF EXISTS temp_composite CASCADE;
 DROP TABLE IF EXISTS ways_crossed;
 --Create columns for further way attributes
