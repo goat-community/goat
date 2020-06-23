@@ -116,7 +116,7 @@ SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumb
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
 tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_polygon WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE 'yoga'
+FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE 'yoga'
 
 UNION ALL
 
