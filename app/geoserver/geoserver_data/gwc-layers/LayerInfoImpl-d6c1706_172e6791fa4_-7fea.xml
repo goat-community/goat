@@ -1,32 +1,32 @@
 <GeoServerTileLayer>
-  <id>LayerInfoImpl--3717634a:169f75d2f85:-7471</id>
+  <id>LayerInfoImpl-d6c1706:172e6791fa4:-7fea</id>
   <enabled>true</enabled>
   <inMemoryCached>true</inMemoryCached>
-  <name>cite:heatmap_population</name>
+  <name>cite:population_modified</name>
   <mimeFormats>
     <string>image/png</string>
     <string>image/jpeg</string>
   </mimeFormats>
   <gridSubsets>
     <gridSubset>
-      <gridSetName>EPSG:4326</gridSetName>
+      <gridSetName>EPSG:900913</gridSetName>
       <extent>
         <coords>
-          <double>11.536865234375</double>
-          <double>48.0759506225586</double>
-          <double>11.6905097961426</double>
-          <double>48.1599159240723</double>
+          <double>-1.0</double>
+          <double>-1.0</double>
+          <double>0.0</double>
+          <double>0.0</double>
         </coords>
       </extent>
     </gridSubset>
     <gridSubset>
-      <gridSetName>EPSG:900913</gridSetName>
+      <gridSetName>EPSG:4326</gridSetName>
       <extent>
         <coords>
-          <double>1284277.9632412456</double>
-          <double>6119499.626163229</double>
-          <double>1301381.5976203706</double>
-          <double>6133500.500526646</double>
+          <double>-1.0</double>
+          <double>-1.0</double>
+          <double>0.0</double>
+          <double>0.0</double>
         </coords>
       </extent>
     </gridSubset>
@@ -42,7 +42,7 @@
       <key>STYLES</key>
       <defaultValue></defaultValue>
       <availableStyles class="sorted-set"/>
-      <defaultStyle>cite:style_heatmap_population</defaultStyle>
+      <defaultStyle>generic</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>
   <gutter>0</gutter>

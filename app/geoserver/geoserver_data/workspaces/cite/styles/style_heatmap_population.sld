@@ -27,7 +27,7 @@
           </sld:PolygonSymbolizer>
         </sld:Rule>
         <sld:Rule>
-          <sld:Name>Very low population</sld:Name>
+          <sld:Name>1 - 20 inhabitants</sld:Name>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThanOrEqualTo>
@@ -48,7 +48,7 @@
           </sld:PolygonSymbolizer>
         </sld:Rule>
         <sld:Rule>
-          <sld:Name>Low population</sld:Name>
+          <sld:Name>21 - 80 inhabitants</sld:Name>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -69,7 +69,7 @@
           </sld:PolygonSymbolizer>
         </sld:Rule>
         <sld:Rule>
-          <sld:Name>Average population</sld:Name>
+          <sld:Name>80 - 200 inhabitants</sld:Name>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -90,7 +90,7 @@
           </sld:PolygonSymbolizer>
         </sld:Rule>
         <sld:Rule>
-          <sld:Name>High population</sld:Name>
+          <sld:Name>201 - 400 inhabitants</sld:Name>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -111,7 +111,7 @@
           </sld:PolygonSymbolizer>
         </sld:Rule>
         <sld:Rule>
-          <sld:Name>Very high population</sld:Name>
+          <sld:Name>+400 inhabitants</sld:Name>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
