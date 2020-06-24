@@ -1,4 +1,8 @@
-import { getEditStyle, getFeatureHighlightStyle } from "../style/OlStyleDefs";
+import {
+  getEditStyle,
+  getFeatureHighlightStyle,
+  bldEntrancePointsStyle
+} from "../style/OlStyleDefs";
 import OlBaseController from "./OlBaseController";
 import { Modify, Draw, Snap, Translate } from "ol/interaction";
 import SnapGuides from "ol-ext/interaction/SnapGuides";
@@ -33,7 +37,7 @@ export default class OlEditController extends OlBaseController {
     const me = this;
     const style = getEditStyle();
     super.createLayer("Edit Layer", style, {
-      queryable: true
+      queryable: false
     });
     me.source.on("changefeature", onFeatureChangeCb);
     me.source.on("change", onSourceChangeCb);
@@ -48,6 +52,35 @@ export default class OlEditController extends OlBaseController {
     });
     me.map.addLayer(highlightLayer);
     me.highlightSource = highlightSource;
+  }
+
+  /**
+   * Creates the population vector layer and add it to the
+   * map.
+   */
+  createBldEntranceLayer(onFeatureChangeCb) {
+    const me = this;
+
+    // create a vector layer
+    const source = new VectorSource({
+      wrapX: false
+    });
+    source.on("changefeature", onFeatureChangeCb);
+
+    const options = Object.assign(
+      {},
+      {
+        name: "Building Entrance Edit Layer",
+        displayInLayerList: false,
+        zIndex: 100,
+        source: source,
+        queryable: false,
+        style: bldEntrancePointsStyle
+      }
+    );
+    const vector = new VectorLayer(options);
+    me.map.addLayer(vector);
+    me.bldEntranceLayer = vector;
   }
 
   /**
@@ -90,6 +123,31 @@ export default class OlEditController extends OlBaseController {
         me.snap = new Snap({ source: me.source });
         me.currentInteraction = "modify";
         me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
+        break;
+      }
+      case "addBldEntrance": {
+        me.edit = new Draw({
+          type: "Point",
+          condition: function(evt) {
+            // when the point's button is 1(leftclick), allows drawing
+            if (evt.pointerEvent.buttons === 1) {
+              return true;
+            } else {
+              return false;
+            }
+          }
+        });
+        me.edit.on("drawend", endCb);
+        me.modify = new Modify({
+          source: me.bldEntranceLayer.getSource()
+        });
+        me.modify.on("modifyend", endCb);
+        me.snap = new Snap({
+          source: me.source,
+          pixelTolerance: 4
+        });
+        me.helpMessage = i18n.t("map.tooltips.clickToBldEntrance");
+        me.currentInteraction = "addBldEntrance";
         break;
       }
       case "modifyAttributes": {
@@ -136,6 +194,9 @@ export default class OlEditController extends OlBaseController {
     if (me.snap) {
       me.map.addInteraction(me.snap);
     }
+    if (me.modify) {
+      me.map.addInteraction(me.modify);
+    }
   }
 
   /**
@@ -155,9 +216,37 @@ export default class OlEditController extends OlBaseController {
       me.helpTooltip.setPosition(undefined);
       return;
     }
+    if (me.contextmenu && me.contextmenu.isOpen()) {
+      me.helpTooltip.setPosition(undefined);
+      return;
+    }
+
     const coordinate = evt.coordinate;
     me.helpTooltipElement.innerHTML = me.helpMessage;
     me.helpTooltip.setPosition(coordinate);
+    if (
+      editLayerHelper.selectedLayer.get("name") === "buildings" &&
+      ["addBldEntrance"].includes(this.currentInteraction)
+    ) {
+      const featureAtCoord = this.source.getFeaturesAtCoordinate(
+        evt.coordinate
+      );
+      if (
+        featureAtCoord.length === 0 ||
+        (featureAtCoord.length > 0 &&
+          !featureAtCoord[0].getProperties().hasOwnProperty("original_id"))
+      ) {
+        me.map.getTarget().style.cursor = "not-allowed";
+        me.edit.setActive(false);
+        if (this.currentInteraction === "addBldEntrance") {
+          me.helpMessage = i18n.t("map.tooltips.clickToBldEntranceNotAllowed");
+        }
+      } else {
+        me.helpMessage = i18n.t("map.tooltips.clickToBldEntrance");
+        me.map.getTarget().style.cursor = "pointer";
+        me.edit.setActive(true);
+      }
+    }
   }
 
   /**
@@ -201,6 +290,30 @@ export default class OlEditController extends OlBaseController {
    */
   deleteFeature() {
     const me = this;
+
+    // If layers selected is building get also all building entrance features of the building and commit a delete request
+    if (
+      editLayerHelper.selectedLayer.get("name") === "buildings" &&
+      this.bldEntranceLayer &&
+      this.selectedFeature
+    ) {
+      const buildingId =
+        this.selectedFeature.get("gid") || this.selectedFeature.getId();
+      const bldEntranceFeaturesToDelete = this.bldEntranceLayer
+        .getSource()
+        .getFeatures()
+        .filter(
+          f =>
+            this.selectedFeature
+              .getGeometry()
+              .intersectsCoordinate(f.getGeometry().getCoordinates()) &&
+            f.get("building_gid") === buildingId
+        );
+      if (bldEntranceFeaturesToDelete.length > 0) {
+        this.deleteBldEntranceFeatures(bldEntranceFeaturesToDelete);
+      }
+    }
+
     //Check if feature is from file input (if so, just delete from edit layer)
     if (me.selectedFeature.get("user_uploaded")) {
       me.source.removeFeature(me.selectedFeature);
@@ -213,6 +326,27 @@ export default class OlEditController extends OlBaseController {
     }
 
     me.closePopup();
+  }
+
+  /**
+   * Delete Building Entrance Features
+   */
+  deleteBldEntranceFeatures(features) {
+    if (Array.isArray(features)) {
+      const formatGML = {
+        featureNS: "cite",
+        featureType: `population_modified`,
+        srsName: "urn:x-ogc:def:crs:EPSG:4326"
+      };
+      const payload = wfsTransactionParser(null, null, features, formatGML);
+      const serializedPayload = new XMLSerializer().serializeToString(payload);
+      http.post("geoserver/wfs", serializedPayload, {
+        headers: { "Content-Type": "text/xml" }
+      });
+      features.forEach(feature => {
+        this.bldEntranceLayer.getSource().removeFeature(feature);
+      });
+    }
   }
 
   /**
@@ -271,7 +405,7 @@ export default class OlEditController extends OlBaseController {
       .getParams()
       .LAYERS.split(":")[1];
     const formatGML = {
-      featureNS: "muc",
+      featureNS: "cite",
       featureType: `${layerName}_modified`,
       srsName: "urn:x-ogc:def:crs:EPSG:4326"
     };
@@ -415,6 +549,10 @@ export default class OlEditController extends OlBaseController {
       me.map.removeInteraction(me.snap);
       me.snap = null;
     }
+    if (me.modify) {
+      me.map.removeInteraction(me.modify);
+      me.modify = null;
+    }
     if (me.deleteFeatureListener) {
       unByKey(me.deleteFeatureListener);
     }
@@ -476,6 +614,9 @@ export default class OlEditController extends OlBaseController {
     }
     if (this.removeInteraction) {
       this.removeInteraction();
+    }
+    if (this.bldEntranceLayer) {
+      this.bldEntranceLayer.getSource().clear();
     }
     super.clearOverlays();
     this.source.getFeatures().forEach(f => {

@@ -127,6 +127,7 @@
         "queryable": true,
         "visible": false,
         "canEdit": true,
+        "canModifyGeom": false,
         "editDataType": "GeoJSON",
         "editGeometry": "MultiPolygon",
         "displayInLayerList": true,
