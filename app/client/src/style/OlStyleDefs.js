@@ -352,7 +352,7 @@ export function getFeatureHighlightStyle() {
   ];
 }
 
-export function populationPointsStyle() {
+export function bldEntrancePointsStyle() {
   return [
     new OlStyle({
       fill: new OlFill({

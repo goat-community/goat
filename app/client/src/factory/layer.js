@@ -91,6 +91,7 @@ export const LayerFactory = {
       ratio: lConf.ratio ? lConf.ratio : 1.5,
       zIndex: lConf.zIndex,
       docUrl: lConf.docUrl,
+      viewparamsDynamicKeys: lConf.viewparamsDynamicKeys,
       source: new ImageWMS({
         url: lConf.url,
         params: {

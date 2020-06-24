@@ -108,7 +108,7 @@
       "selectOnMap": "Select features on map",
       "editTools": "Edit Tools",
       "drawFeatureTooltip": "Draw Feature",
-      "addPopulation": "Add Population",
+      "addBldEntrance": "Add Building Entrance",
       "modifyFeatureTooltip": "Modify Geometry",
       "deleteFeature": "Delete Feature",
       "moveFeature": "Move Feature",
@@ -378,14 +378,15 @@
       "clickOnFeatureToDelete": "Click on feature to delete it",
       "clickOnFeatureToMove": "Click and drag the feature to move",
       "drawHoleOnPolygon": "Draw over the polygon to create a hole",
+      "drawHoleOnPolygonNotAllowed": "Draw hole over a new drawn building",
       "clickAndDragToModify": "Click and drag the features to modify geometry",
       "clickToModifyAttributes": "Click to modify attributes",
       "clickToRemove": "Click to remove it",
       "clickToPlacePoint": "Click to place the point",
       "changeDefaultColorPalette": "Change color (default)",
       "changeScenarioColorPalette": "Change color (scenario)",
-      "clickToAddPopulation": "Click building to add population <br>Click and drag to modify <br>Right-click on feature to delete",
-      "clickToAddPopulationNotAllowed": "Can't add a population here. Click on a building.",
+      "clickToBldEntrance": "Click building to add entrance <br>Click and drag to modify <br>Right-click on feature to delete",
+      "clickToBldEntranceNotAllowed": "Can't add an entrance here. Click on a new drawn building.",
       "openDocumentation": "Open Documentation",
       "routingProfiles": {
         "walking": {
@@ -457,7 +458,7 @@
       "deleteIsochrone": "Delete Isochrone",
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
-      "deletePopulationPoint": "Delete Population"
+      "deleteBldEntrancePoint": "Delete Population"
     },
     "osmMode": {
       "tasks": "OSM Mapping Tasks",
@@ -476,15 +477,28 @@
         "osm-mapping-pois": {
           "missingKeyWord": "Opening Hours",
           "layerName": "POIs",
-          "stepsDesc": {}
+          "stepsDesc": {
+            "clickFeatureInMap": "The displayed icons in the map are the challenges. Select one of them.",
+            "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
+            "fillInOSMiD": "Add the missing tag 'opening_hours' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, the website of the amenity can be viewed or an on-site visit can be made."
+          }
         },
         "osm-mapping-ways-speed": {
           "missingKeyWord": "Maxspeed",
-          "layerName": "Ways"
+          "layerName": "Ways",
+          "stepsDesc": {
+            "clickFeatureInMap": "The red lines in the map are the challenges. Select one of them.",
+            "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
+            "fillInOSMiD": "Add the missing tag 'maxspeed' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
+          }
         },
         "osm-mapping-ways-surface": {
           "missingKeyWord": "Surface Type",
-          "layerName": "Ways"
+          "layerName": "Ways",
+          "stepsDesc": {
+            "clickFeatureInMap": "The red lines in the map are the challenges. Select one of them.",
+            "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
+            "fillInOSMiD": "Add the missing tag 'surface' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "}
         },
         "osm-mapping-ways-wheelchair": {
           "missingKeyWord": "Wheelchair Usability",
@@ -492,13 +506,17 @@
         },
         "osm-mapping-buildings-type": {
           "missingKeyWord": "Building Type",
-          "layerName": "Buildings"
+          "layerName": "Buildings",
+          "stepsDesc": {
+            "clickFeatureInMap": "The red polygons in the map are the challenges. Select one of them.",
+            "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
+            "fillInOSMiD": "Edit the tag 'building' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary and aerial images can be used or an on-site visit can be made. "}
         }
       },
 
       "dialogMessage": {
         "title": "OSM Mapping Mode",
-        "body": "Welcome to the OSM mapping mode! In this mode, you can improve GOAT data by contributing to OpenStreetMap (OSM). We have set up different tasks for objects with missing information, which can be completed using the iD-Editor or other OSM editors such as JOSM. <b> Please familiarize yourself with the general mapping rules and the corresponding content of the OSM wiki for the objects you want to edit. </b> Furthermore, you can find a tutorial on mapping in OSM on the GOAT website. Thanks for contributing to the world of open data!"
+        "body": "Welcome to the OSM mapping mode! In this mode, you can improve GOAT data by contributing to OpenStreetMap (OSM). We have set up different tasks for objects with missing information, which can be completed using the iD-Editor or other OSM editors such as JOSM. Please familiarize yourself with the general mapping rules and the corresponding content of the OSM wiki for the objects you want to edit. Furthermore, you can find a tutorial on mapping in OSM on the GOAT website. Thanks for contributing to the world of open data!"
       }
     }
   },
