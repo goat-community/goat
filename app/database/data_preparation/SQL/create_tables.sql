@@ -173,7 +173,7 @@ CREATE TABLE buildings_modified
 	building_levels_residential integer,
 	building_new_levels integer,
 	population numeric,
-	geom geometry,
+	geom geometry(POLYGON, 4326) NULL,
 	userid integer,
 	original_id integer,
 	CONSTRAINT buildings_modified_gid_pkey PRIMARY KEY(gid)
@@ -186,7 +186,7 @@ CREATE TABLE population_modified
 	gid serial,
 	building_gid integer,
 	population numeric,
-	geom geometry,
+	geom geometry(POINT, 4326) NULL,
 	userid integer,
 	CONSTRAINT population_modified_gid_pkey PRIMARY KEY(gid)
 );
