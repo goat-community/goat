@@ -76,13 +76,35 @@
                 <span>{{ $t("appBar.edit.drawFeatureTooltip") }}</span>
               </v-tooltip>
 
-              <v-tooltip top>
+              <v-tooltip
+                v-show="selectedLayer.get('canModifyGeom') !== false"
+                top
+              >
                 <template v-slot:activator="{ on }">
-                  <v-btn :value="2" v-on="on" text>
+                  <v-btn
+                    v-show="selectedLayer.get('canModifyGeom') !== false"
+                    :value="2"
+                    v-on="on"
+                    text
+                  >
                     <v-icon>far fa-edit</v-icon>
                   </v-btn>
                 </template>
                 <span>{{ $t("appBar.edit.modifyFeatureTooltip") }}</span>
+              </v-tooltip>
+
+              <v-tooltip v-if="selectedLayer.get('name') === 'buildings'" top>
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    v-if="selectedLayer.get('name') === 'buildings'"
+                    :value="2"
+                    v-on="on"
+                    text
+                  >
+                    <v-icon>far fa-building</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.addBldEntrance") }}</span>
               </v-tooltip>
 
               <v-tooltip top>
@@ -441,15 +463,14 @@ import { mapFields } from "vuex-map-fields";
 import {
   getAllChildLayers,
   getPoisListValues,
-  wfsTransactionParser
+  wfsTransactionParser,
+  mapFeatureTypeProps,
+  readTransactionResponse
 } from "../../../utils/Layer";
 import OlEditController from "../../../controllers/OlEditController";
 import OlSelectController from "../../../controllers/OlSelectController";
 import editLayerHelper from "../../../controllers/OlEditLayerHelper";
-import {
-  mapFeatureTypeProps,
-  readTransactionResponse
-} from "../../../utils/Layer";
+
 import OverlayPopup from "../../viewer/ol/controls/Overlay";
 import http from "axios";
 import VJsonschemaForm from "../../other/dynamicForms/index";
@@ -458,6 +479,8 @@ import OpeningHours from "../../other/OpeningHours";
 import { geojsonToFeature } from "../../../utils/MapUtils";
 import { mapGetters, mapMutations } from "vuex";
 import { debounce } from "../../../utils/Helpers";
+import Feature from "ol/Feature";
+import Point from "ol/geom/Point";
 
 export default {
   components: {
@@ -524,6 +547,7 @@ export default {
       select: "pointer",
       move: "auto",
       modifyAttributes: "pointer",
+      addBldEntrance: "pointer",
       drawHole: "crosshair"
     },
     //Data table
@@ -587,7 +611,10 @@ export default {
         this.onFeatureChange,
         this.onEditSourceChange
       );
+      me.olEditCtrl.createBldEntranceLayer(this.onBldEntranceFeatureChange);
+      this.setUpCtxMenu();
     },
+
     /**
      * Parse user input file and transform features if valid.
      */
@@ -680,7 +707,7 @@ export default {
      */
     uploadUserFeaturesToDB(featuresToUpload) {
       const formatGML = {
-        featureNS: "muc",
+        featureNS: "cite",
         featureType: `${this.layerName}_modified`,
         srsName: "urn:x-ogc:def:crs:EPSG:4326"
       };
@@ -771,9 +798,14 @@ export default {
           endCb = this.onDrawEnd;
           break;
         case 2:
-          editType = "modify";
-          startCb = this.onModifyStart;
-          endCb = this.onModifyEnd;
+          if (this.selectedLayer.get("name") === "buildings") {
+            editType = "addBldEntrance";
+            endCb = this.onBldEntranceInteractionEnd;
+          } else {
+            editType = "modify";
+            startCb = this.onModifyStart;
+            endCb = this.onModifyEnd;
+          }
           break;
         case 3:
           editType = "modifyAttributes";
@@ -840,7 +872,11 @@ export default {
       const me = this;
       me.toggleSelection = undefined;
       if (response.second) {
-        editLayerHelper.filterResults(response, me.olEditCtrl.getLayerSource());
+        editLayerHelper.filterResults(
+          response,
+          me.olEditCtrl.getLayerSource(),
+          me.olEditCtrl.bldEntranceLayer
+        );
       }
     },
 
@@ -928,8 +964,195 @@ export default {
       //update cache
       this.updateFileInputFeatureCache();
     },
+
     /**
-     * Feature change event handler
+     * Building Entrance interaction end.
+     */
+    onBldEntranceInteractionEnd(evt) {
+      let coordinate;
+      if (evt.type === "modifyend") {
+        if (!this.tempBldEntranceFeature) return;
+        coordinate = this.tempBldEntranceFeature.getGeometry().getCoordinates();
+      } else {
+        coordinate = evt.feature.getGeometry().getCoordinates();
+      }
+
+      let buildingFeatureAtCoord;
+      if (evt.type === "modifyend") {
+        buildingFeatureAtCoord = this.olEditCtrl.source.getClosestFeatureToCoordinate(
+          coordinate,
+          candidate => {
+            if (
+              ((candidate.get("gid") || candidate.getId()) &&
+                this.tempBldEntranceFeature &&
+                this.tempBldEntranceFeature.get("building_gid") ===
+                  candidate.get("gid")) ||
+              this.tempBldEntranceFeature.get("building_gid") ===
+                candidate.getId()
+            ) {
+              return true;
+            } else {
+              return false;
+            }
+          }
+        );
+      } else {
+        buildingFeatureAtCoord = this.olEditCtrl.source.getClosestFeatureToCoordinate(
+          coordinate
+        );
+      }
+
+      if (!buildingFeatureAtCoord && !buildingFeatureAtCoord.getId()) return;
+
+      // This line restricts drawing entrance feature only in new drawn buildings (original_id is used as an identifier)
+      if (
+        !buildingFeatureAtCoord.getProperties().hasOwnProperty("original_id")
+      ) {
+        return;
+      }
+
+      let bldEntranceCoordinate;
+      if (
+        buildingFeatureAtCoord.getGeometry().intersectsCoordinate(coordinate)
+      ) {
+        bldEntranceCoordinate = coordinate;
+      } else {
+        const closestPoint = buildingFeatureAtCoord
+          .getGeometry()
+          .getClosestPoint(coordinate);
+        bldEntranceCoordinate = closestPoint;
+        if (this.tempBldEntranceFeature && evt.type === "modifyend") {
+          this.tempBldEntranceFeature.setGeometry(
+            new Point(bldEntranceCoordinate)
+          );
+        }
+      }
+
+      let payload;
+      let bldEntranceFeature;
+      const formatGML = {
+        featureNS: "cite",
+        featureType: `population_modified`,
+        srsName: "urn:x-ogc:def:crs:EPSG:4326"
+      };
+      if (evt.type === "modifyend") {
+        // Update the existing building entrance feature
+        bldEntranceFeature = this.tempBldEntranceFeature;
+
+        // Can't update the feature if id isn't available
+        if (!bldEntranceFeature.getId()) return;
+
+        // Clone feature and transform for transaction.
+        const {
+          // eslint-disable-next-line no-unused-vars
+          geometry,
+          // eslint-disable-next-line no-unused-vars
+          geom,
+          ...propsWithNoGeometry
+        } = bldEntranceFeature.getProperties();
+        const clonedFeature = new Feature({
+          geom: bldEntranceFeature.getGeometry().clone(),
+          ...propsWithNoGeometry
+        });
+        clonedFeature.setGeometryName("geom");
+        clonedFeature.getGeometry().transform("EPSG:3857", "EPSG:4326");
+        clonedFeature.setId(bldEntranceFeature.getId());
+        payload = wfsTransactionParser(null, [clonedFeature], null, formatGML);
+      } else {
+        // Add new feature
+        bldEntranceFeature = new Feature({
+          geometry: new Point(bldEntranceCoordinate),
+          building_gid:
+            buildingFeatureAtCoord.get("gid") || buildingFeatureAtCoord.getId(),
+          userid: this.userId
+        });
+        this.olEditCtrl.bldEntranceLayer
+          .getSource()
+          .addFeature(bldEntranceFeature);
+
+        // Clone feature and transform for transaction.
+        const {
+          // eslint-disable-next-line no-unused-vars
+          geometry,
+          // eslint-disable-next-line no-unused-vars
+          geom,
+          ...propsWithNoGeometry
+        } = bldEntranceFeature.getProperties();
+        const clonedFeature = new Feature({
+          geom: new Point(bldEntranceCoordinate),
+          ...propsWithNoGeometry
+        });
+        clonedFeature.setGeometryName("geom");
+        clonedFeature.getGeometry().transform("EPSG:3857", "EPSG:4326");
+
+        payload = wfsTransactionParser([clonedFeature], null, null, formatGML);
+      }
+      const serializedPayload = new XMLSerializer().serializeToString(payload);
+      http
+        .post("geoserver/wfs", serializedPayload, {
+          headers: { "Content-Type": "text/xml" }
+        })
+        .then(response => {
+          const result = readTransactionResponse(response.data);
+          const FIDs = result.insertIds;
+          if (FIDs != undefined && FIDs[0] != "none") {
+            const id = parseInt(FIDs[0].split(".")[1]);
+            bldEntranceFeature.setId(id);
+          }
+        });
+      setTimeout(() => {
+        this.tempBldEntranceFeature = null;
+      }, 100);
+    },
+    /**
+     * Feature change event handler for building entrance edit layer
+     */
+    onBldEntranceFeatureChange(evt) {
+      if (evt.feature) {
+        // Used on modifyEnd event.
+        this.tempBldEntranceFeature = evt.feature;
+      }
+    },
+
+    /**
+     * Configure right-click for Edit.
+     */
+    setUpCtxMenu() {
+      if (this.contextmenu) {
+        this.olEditCtrl.contextmenu = this.contextmenu;
+        this.contextmenu.on("beforeopen", evt => {
+          // Close helptoltip
+          if (this.olEditCtrl.helpTooltip) {
+            this.olEditCtrl.helpTooltip.setPosition(undefined);
+          }
+          const features = this.map.getFeaturesAtPixel(evt.pixel, {
+            layerFilter: candidate => {
+              if (candidate.get("name") === "Building Entrance Edit Layer") {
+                return true;
+              }
+              return false;
+            }
+          });
+          if (features.length > 0) {
+            this.contextmenu.extend([
+              "-", // this is a separator
+              {
+                text: `<i class="fa fa-trash fa-1x" aria-hidden="true"></i>&nbsp;&nbsp${this.$t(
+                  "map.contextMenu.deleteBldEntrancePoint"
+                )}`,
+                label: "deleteBldEntrancePoint",
+                callback: () => {
+                  this.olEditCtrl.deleteBldEntranceFeatures(features);
+                }
+              }
+            ]);
+          }
+        });
+      }
+    },
+
+    /**
+     * Feature change event handler for edit layer
      */
     onFeatureChange(evt) {
       const me = this;
@@ -949,8 +1172,18 @@ export default {
           me.olEditCtrl.featuresToCommit[index] = evt.feature;
         }
       }
-      if (["pois", "buildings"].includes(evt.feature.get("layerName"))) {
+
+      /** For pois layer features are uploaded automatically */
+      if (["pois"].includes(evt.feature.get("layerName"))) {
         evt.feature.set("status", 1);
+      }
+
+      if (
+        this.selectedLayer.get("name") === "buildings" &&
+        this.olEditCtrl.currentInteraction === "draw"
+      ) {
+        console.log("activate entrance interaction");
+        this.toggleEdit = 2;
       }
     },
     /**
@@ -1411,6 +1644,9 @@ export default {
     ...mapGetters("isochrones", { options: "options" }),
     ...mapGetters("app", {
       activeColor: "activeColor"
+    }),
+    ...mapGetters("map", {
+      contextmenu: "contextmenu"
     }),
     ...mapFields("isochrones", {
       scenarioDataTable: "scenarioDataTable"

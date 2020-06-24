@@ -9,7 +9,7 @@ const editLayerHelper = {
   deletedFeatures: [],
   selectedLayer: null,
   selectedWayType: "road",
-  filterResults(response, source) {
+  filterResults(response, source, bldEntranceLayer) {
     const editFeatures = new GeoJSON().readFeatures(response.first.data);
     const editFeaturesModified = new GeoJSON().readFeatures(
       response.second.data
@@ -29,6 +29,12 @@ const editLayerHelper = {
         userInputFeaturesNoOriginId.push(feature);
       }
     });
+
+    if (response.third) {
+      bldEntranceLayer
+        .getSource()
+        .addFeatures(new GeoJSON().readFeatures(response.third.data));
+    }
 
     editFeatures.forEach(feature => {
       let originId;

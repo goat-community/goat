@@ -417,6 +417,7 @@
     },
     "contextMenu": {
       "deleteIsochrone": "Delete Isochrone",
+      "deleteBldEntrancePoint": "Delete Population",
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out"
     }

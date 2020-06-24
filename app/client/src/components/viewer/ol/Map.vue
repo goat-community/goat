@@ -697,13 +697,17 @@ export default {
       helpTooltip: "helpTooltip",
       currentMessage: "currentMessage",
       osmMode: "osmMode",
-      osmMappingLayers: "osmMappingLayers"
+      osmMappingLayers: "osmMappingLayers",
+      layers: "layers"
     }),
     ...mapGetters("app", {
       activeColor: "activeColor"
     }),
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer"
+    }),
+    ...mapGetters("user", {
+      userId: "userId"
     }),
     ...mapGetters("loader", { isNetworkBusy: "isNetworkBusy" }),
     currentInfo() {
@@ -746,6 +750,34 @@ export default {
     },
     activeColor() {
       this.setOlButtonColor();
+    },
+    userId(value) {
+      setTimeout(() => {
+        const layers = Object.keys(this.layers);
+        layers.forEach(key => {
+          if (
+            this.layers[key].get("viewparamsDynamicKeys") &&
+            this.layers[key].get("viewparamsDynamicKeys").includes("userId")
+          ) {
+            if (this.layers[key].getSource().getParams()) {
+              console.log();
+              let viewparams = this.layers[key].getSource().getParams()
+                .viewparams;
+              if (!viewparams) {
+                viewparams = ``;
+              }
+              if (!viewparams.includes("userid")) {
+                // Insert userId if it doesn't exist.
+                viewparams += `userid:${value};`;
+                this.layers[key].getSource().updateParams({
+                  viewparams
+                });
+                console.log(viewparams);
+              }
+            }
+          }
+        });
+      }, 500);
     }
   }
 };
