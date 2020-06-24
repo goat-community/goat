@@ -64,11 +64,14 @@ def setup_db(setup_type):
         file.close()
 
         #Import DEM
-        if os.path.isfile('dem.tif'):
+        if os.path.isfile('dem_vec.sql'):
+            db_temp.execute_script_psql('dem_vec.sql')
+        elif os.path.isfile('dem.tif'):
             #os.system('gdalwarp -dstnodata -999.0 -r near -ot Float32 -of GTiff -te %f %f %f %f dem.tif dem_cut.tif' % (left,top,right,bottom))
             os.system('raster2pgsql -c -C -s 4326 -f rast -F -I -M -t 100x100 dem.tif public.dem > dem.sql')
             db_temp.execute_script_psql('dem.sql')
             db_temp.execute_script_psql('/opt/data_preparation/SQL/prepare_dem.sql')
+
         #Import shapefiles into database
         for file in glob.glob("*.shp"):
             print(file)

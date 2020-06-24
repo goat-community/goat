@@ -1,14 +1,14 @@
 <featureType>
-  <id>FeatureTypeInfoImpl-2bc1acf7:16e74d5475e:-281d</id>
-  <name>street_crossings</name>
-  <nativeName>street_crossings</nativeName>
+  <id>FeatureTypeInfoImpl--e6c71a9:1729e4d4d68:-7fe8</id>
+  <name>offset_line</name>
+  <nativeName>offset_line</nativeName>
   <namespace>
     <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
   </namespace>
-  <title>street_crossings</title>
+  <title>offset_line</title>
   <keywords>
     <string>features</string>
-    <string>street_crossings</string>
+    <string>offset_line</string>
   </keywords>
   <nativeCRS>GEOGCS[&quot;WGS 84&quot;, 
   DATUM[&quot;World Geodetic System 1984&quot;, 
@@ -21,16 +21,17 @@
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>11.2294662</minx>
-    <maxx>11.2637399</maxx>
-    <miny>48.1670261</miny>
-    <maxy>48.1904083</maxy>
+    <minx>11.2362734</minx>
+    <maxx>11.2697901</maxx>
+    <miny>48.1710862</miny>
+    <maxy>48.1927919</maxy>
+    <crs>EPSG:4326</crs>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>11.2294662</minx>
-    <maxx>11.2637399</maxx>
-    <miny>48.1670261</miny>
-    <maxy>48.1904083</maxy>
+    <minx>11.2362734</minx>
+    <maxx>11.2697901</maxx>
+    <miny>48.1710862</miny>
+    <maxy>48.1927919</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
@@ -38,10 +39,9 @@
   <metadata>
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
-        <name>street_crossings</name>
-        <sql>SELECT c.osm_id, c.geom, c.crossing, c.crossing_ref, c.traffic_signals, c.kerb, c.segregated, c.supervised, c.tactile_paving, c.wheelchair&#xd;
-FROM street_crossings c, study_area s&#xd;
-WHERE ST_Intersects(s.geom,c.geom) AND crossing IN (&apos;zebra&apos;,&apos;traffic_signals&apos;)
+        <name>offset_line</name>
+        <sql>select geom&#xd;
+FROM fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.2538,48.1815)::geography,1000)),4,9600308,1.33,&apos;cycling_standard&apos;)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
