@@ -21,10 +21,10 @@ class ReadYAML:
         return self.source_conf["OSM_DOWNLOAD_LINK"],self.source_conf["OSM_DATA_RECENCY"],self.source_conf["BUFFER_BOUNDING_BOX"],self.source_conf["EXTRACT_BBOX"],self.refinement_conf["POPULATION"],self.refinement_conf["ADDITIONAL_WALKABILITY_LAYERS"],self.refinement_conf["OSM_MAPPING_FEATURE"]
     def data_refinement(self):
         return self.refinement_conf
-    def create_pgpass(self,db_prefix):
-        db_name = self.db_conf["DB_NAME"]+db_prefix
-        os.system('echo '+':'.join([self.db_conf["HOST"],str(self.db_conf["PORT"]),db_name,self.db_conf["USER"],self.db_conf["PASSWORD"]])+' > /.pgpass')
-        os.system("chmod 600 /.pgpass")
+    def create_pgpass(self,db_prefix,user):
+        db_name = self.db_conf["DB_NAME"] + db_prefix
+        os.system('echo '+':'.join([self.db_conf["HOST"],str(self.db_conf["PORT"]),db_name,user,self.db_conf["PASSWORD"]])+f' > ~/.pgpass_{db_name}')
+        os.system(f'chmod 600  ~/.pgpass_{db_name}')
     def mapping_conf(self):
         return self.osm_mapping_conf
 
@@ -37,9 +37,9 @@ class DB_connection:
         self.password = password
 
     def execute_script_psql(self,script):
-        os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (self.db_name,self.user,self.host,script))
+        os.system(f'PGPASSFILE=~/.pgpass_{self.db_name} psql -d {self.db_name} -U {self.user} -h {self.host} -f {script}')
     def execute_text_psql(self,script):
-        os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -c "%s"' % (self.db_name,self.user,self.host,script))
+        os.system(f'PGPASSFILE=~/.pgpass_{self.db_name} psql -d {self.db_name} -U {self.user} -h {self.host} -c "{script}"')
     def con_psycopg(self):
         con = psycopg2.connect("dbname='%s' user='%s' host='%s' port = '%s' password='%s'" % (
         self.db_name,self.user,self.host,self.port,self.password))
