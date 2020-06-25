@@ -322,7 +322,9 @@
       "uploadScenarioError": "Leider ist beim Hochladen der Objekte in die Datenbank ein Fehler aufgetreten.",
       "notAllScnearioFeaturesUploaded": "Bei der Berechnung der Szenarien-Isochrone werden nur hochgeladene Objekte berücksichtigt.",
       "cantDeleteAllScenarioFeatures": "Die Szenarien-Daten können aktuell leider nicht gelöscht werden.",
-      "allScenarioFeaturesDelete": "Alle Szenarien-Daten wurden gelöscht"
+      "allScenarioFeaturesDelete": "Alle Szenarien-Daten wurden gelöscht",
+      "noScenarioFeatureChangeAvailable": "Ändern Sie zuerst das Netzwerk oder die Landnutzung.",
+      "cantPrintBaseLayer": "Diese Basiskarte kann nicht gedruckt werden."
     },
     "layerGroup": {
       "poisLayers": "POIs",
