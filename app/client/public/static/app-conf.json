@@ -526,7 +526,8 @@
         "visible": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "viewparamsDynamicKeys": ["userId"]
       },
       {
         "type": "WMS",

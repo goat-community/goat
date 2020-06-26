@@ -168,18 +168,29 @@ CREATE INDEX ON pois_modified USING gist(geom);
 CREATE TABLE buildings_modified
 (
 	gid serial,
-	building text,
-	building_levels integer,
-	building_levels_residential integer,
-	new_levels_levels integer,
+	building TEXT NOT NULL,
+	building_levels integer NOT NULL,
+	building_levels_residential integer NOT NULL,
 	population numeric,
-	geom geometry,
-	userid integer,
+	geom geometry NULL,
+	userid integer NOT NULL,
 	original_id integer,
 	CONSTRAINT buildings_modified_gid_pkey PRIMARY KEY(gid)
 );
 
 CREATE INDEX ON buildings_modified USING GIST(geom);
+
+CREATE TABLE population_modified
+(
+	gid serial,
+	building_gid integer,
+	population numeric,
+	geom geometry(POINT, 4326) NULL,
+	userid integer,
+	CONSTRAINT population_modified_gid_pkey PRIMARY KEY(gid)
+);
+
+CREATE INDEX ON population_modified USING GIST(geom);
 
 DROP SEQUENCE IF EXISTS user_data_id_seq;
 CREATE SEQUENCE user_data_id_seq;

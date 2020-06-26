@@ -23,9 +23,11 @@ WITH yy AS (
 		FROM
 		(	
 			SELECT p.population,i.gid 
-	     	FROM population p, isochrones i
+	     	FROM population_userinput p, isochrones i
 	     	WHERE objectid = input_objectid 
 	     	AND st_intersects(i.geom,p.geom)
+	     	AND (p.userid = userid_input OR p.userid IS NULL) 
+	     	AND p.building_gid NOT IN (SELECT UNNEST(deleted_feature_ids) FROM user_data u WHERE u.userid = userid_input)	
 	     ) 
 	     a
 	     GROUP BY a.gid

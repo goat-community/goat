@@ -1,4 +1,4 @@
-HOST: "localhost"
+HOST: "db"
 PORT: 5432
 DB_NAME: "goat"
 USER: "goat"
