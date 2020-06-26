@@ -168,13 +168,12 @@ CREATE INDEX ON pois_modified USING gist(geom);
 CREATE TABLE buildings_modified
 (
 	gid serial,
-	building text,
-	building_levels integer,
-	building_levels_residential integer,
-	building_new_levels integer,
+	building TEXT NOT NULL,
+	building_levels integer NOT NULL,
+	building_levels_residential integer NOT NULL,
 	population numeric,
 	geom geometry NULL,
-	userid integer,
+	userid integer NOT NULL,
 	original_id integer,
 	CONSTRAINT buildings_modified_gid_pkey PRIMARY KEY(gid)
 );
