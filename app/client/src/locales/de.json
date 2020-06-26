@@ -350,6 +350,7 @@
       "noiseMainTrafficRoads": "Lärm von Hauptverkehrsstraßen",
       "waterProtectionArea": "Trinkwasserschutzgebiete",
       "floodingAreasHQ100": "Hochwassergefahrenflächen HQ100",
+      "dikes": "Deiche",
       "protectedLandscape": "Landschaftsschutzgebiete",
       "landuse": "Flächennutzung (ATKIS)",
       "landuse_osm": "Flächennutzung (OSM)",

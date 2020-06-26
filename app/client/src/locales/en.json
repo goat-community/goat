@@ -336,6 +336,7 @@
       "noiseMainTrafficRoads": "Noise levels - main roads",
       "waterProtectionArea": "Drinking Water Protection Areas",
       "floodingAreasHQ100": "Flooding Areas (100-year flood)",
+      "dikes": "Dikes",
       "protectedLandscape": "Protected Landscape Areas",
       "landuse": "Landuse (ATKIS)",
       "landuse_osm": "Landuse (OSM)",
