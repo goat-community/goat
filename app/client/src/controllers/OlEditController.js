@@ -115,7 +115,6 @@ export default class OlEditController extends OlBaseController {
         );
 
         if (!["Point", "LineString"].some(r => geometryType.includes(r))) {
-          console.log("true");
           me.isSnapGuideActive = 1;
         }
         break;
@@ -261,6 +260,9 @@ export default class OlEditController extends OlBaseController {
             "map.tooltips.modifyExistingBuildingNotAllowed"
           );
         }
+        if (this.currentInteraction === "drawHole") {
+          me.helpMessage = i18n.t("map.tooltips.drawHoleOnPolygonNotAllowed");
+        }
       } else {
         if (this.currentInteraction === "addBldEntrance") {
           me.helpMessage = i18n.t("map.tooltips.clickToBldEntrance");
@@ -270,6 +272,9 @@ export default class OlEditController extends OlBaseController {
         }
         if (this.currentInteraction === "modify") {
           me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
+        }
+        if (this.currentInteraction === "drawHole") {
+          me.helpMessage = i18n.t("map.tooltips.drawHoleOnPolygon");
         }
         me.map.getTarget().style.cursor = "pointer";
         me.edit.setActive(true);

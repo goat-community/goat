@@ -1675,7 +1675,6 @@ export default {
           }
         }
       });
-      console.log(isEnabled);
       this.isUploadBtnEnabled = isEnabled;
     }, 500),
     isRestoreBtnVisible(item) {
