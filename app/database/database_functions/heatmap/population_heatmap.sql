@@ -1,24 +1,37 @@
-
-/*
-WITH modified_population AS 
-(
-	SELECT geom, -population AS population
-	FROM population_userinput 
-	WHERE building_gid IN (SELECT UNNEST(deleted_feature_ids) FROM user_data WHERE layer_name = 'buildings' AND userid = 5680566)
+CREATE OR REPLACE FUNCTION public.population_heatmap(userid_input integer)
+RETURNS TABLE(grid_id integer, population float, percentile_population integer, geom geometry)
+LANGUAGE plpgsql
+AS $function$
+BEGIN 
+	RETURN query
+	WITH modified_population AS 
+	(
+		SELECT p.geom, -p.population AS population
+		FROM population_userinput p 
+		WHERE building_gid IN (SELECT UNNEST(deleted_feature_ids) FROM user_data WHERE layer_name = 'buildings' AND userid = userid_input)
+		UNION ALL 
+		SELECT p.geom, p.population 
+		FROM population_userinput p 
+		WHERE p.userid = userid_input
+	),
+	sum_pop AS (
+		SELECT g.grid_id, sum(p.population) + g.population population, 
+		CASE WHEN sum(p.population) + g.population BETWEEN 1 AND 20 THEN 1 
+		WHEN sum(p.population) + g.population  BETWEEN 20 AND 80 THEN 2
+		WHEN sum(p.population) + g.population  BETWEEN 80 AND 200 THEN 3 
+		WHEN sum(p.population) + g.population  BETWEEN 200 AND 400 THEN 4 
+		WHEN sum(p.population) + g.population  > 400 THEN 5 END AS percentile_population, g.geom
+		FROM grid_500 g, modified_population p
+		WHERE ST_Intersects(g.geom,p.geom)
+		GROUP BY g.grid_id, g.geom
+	) 
+	SELECT * FROM sum_pop
 	UNION ALL 
-	SELECT geom, population 
-	FROM population_userinput 
-	WHERE userid = 5680566
-)
-SELECT g.grid_id, sum(p.population) 
-FROM grid_500 g, modified_population p
-WHERE ST_Intersects(g.geom,p.geom)
-GROUP BY grid_id;
+	SELECT g.grid_id, g.population, g.percentile_population, g.geom
+	FROM grid_500 g
+	LEFT JOIN sum_pop s
+	ON g.grid_id = s.grid_id 
+	WHERE s.grid_id IS NULL; 
 
-
-(CASE WHEN population BETWEEN 1 AND 20 THEN 1 
-WHEN population BETWEEN 20 AND 80 THEN 2
-WHEN population BETWEEN 80 AND 200 THEN 3 
-WHEN population BETWEEN 200 AND 400 THEN 4 
-WHEN population > 400 THEN 5 END)
-WHERE population IS NOT NULL; */
+END
+$function$;
