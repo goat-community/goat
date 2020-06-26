@@ -25,6 +25,7 @@ import i18n from "../../src/plugins/i18n";
 export default class OlEditController extends OlBaseController {
   featuresToCommit = [];
   isSnapGuideActive = 0;
+  isInteractionOnProgress = false;
   constructor(map) {
     super(map);
   }
@@ -58,7 +59,7 @@ export default class OlEditController extends OlBaseController {
    * Creates the population vector layer and add it to the
    * map.
    */
-  createBldEntranceLayer(onFeatureChangeCb) {
+  createBldEntranceLayer(onFeatureChangeCb, onSourceChangeCb) {
     const me = this;
 
     // create a vector layer
@@ -66,6 +67,7 @@ export default class OlEditController extends OlBaseController {
       wrapX: false
     });
     source.on("changefeature", onFeatureChangeCb);
+    source.on("change", onSourceChangeCb);
 
     const options = Object.assign(
       {},
@@ -99,7 +101,7 @@ export default class OlEditController extends OlBaseController {
         let geometryType = editLayerHelper.selectedLayer.get("editGeometry");
         me.edit = new Draw({
           source: me.source,
-          type: geometryType
+          type: geometryType[0]
         });
         me.edit.on("drawstart", startCb);
         me.edit.on("drawend", endCb);
@@ -107,11 +109,13 @@ export default class OlEditController extends OlBaseController {
         me.currentInteraction = "draw";
 
         me.helpMessage = i18n.t(
-          geometryType === "Point"
+          ["Point"].some(r => geometryType.includes(r))
             ? "map.tooltips.clickToPlacePoint"
             : "map.tooltips.clickToStartDrawing"
         );
-        if (!["Point", "LineString"].includes(geometryType)) {
+
+        if (!["Point", "LineString"].some(r => geometryType.includes(r))) {
+          console.log("true");
           me.isSnapGuideActive = 1;
         }
         break;
@@ -226,7 +230,9 @@ export default class OlEditController extends OlBaseController {
     me.helpTooltip.setPosition(coordinate);
     if (
       editLayerHelper.selectedLayer.get("name") === "buildings" &&
-      ["addBldEntrance"].includes(this.currentInteraction)
+      ["addBldEntrance", "move", "modify", "drawHole"].includes(
+        this.currentInteraction
+      )
     ) {
       const featureAtCoord = this.source.getFeaturesAtCoordinate(
         evt.coordinate
@@ -237,12 +243,34 @@ export default class OlEditController extends OlBaseController {
           !featureAtCoord[0].getProperties().hasOwnProperty("original_id"))
       ) {
         me.map.getTarget().style.cursor = "not-allowed";
-        me.edit.setActive(false);
+        if (me.isInteractionOnProgress === false) {
+          me.edit.setActive(false);
+        } else {
+          return;
+        }
         if (this.currentInteraction === "addBldEntrance") {
           me.helpMessage = i18n.t("map.tooltips.clickToBldEntranceNotAllowed");
         }
+        if (this.currentInteraction === "move") {
+          me.helpMessage = i18n.t(
+            "map.tooltips.moveExistingBuildingNotAllowed"
+          );
+        }
+        if (this.currentInteraction === "modify") {
+          me.helpMessage = i18n.t(
+            "map.tooltips.modifyExistingBuildingNotAllowed"
+          );
+        }
       } else {
-        me.helpMessage = i18n.t("map.tooltips.clickToBldEntrance");
+        if (this.currentInteraction === "addBldEntrance") {
+          me.helpMessage = i18n.t("map.tooltips.clickToBldEntrance");
+        }
+        if (this.currentInteraction === "move") {
+          me.helpMessage = i18n.t("map.tooltips.clickOnFeatureToMove");
+        }
+        if (this.currentInteraction === "modify") {
+          me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
+        }
         me.map.getTarget().style.cursor = "pointer";
         me.edit.setActive(true);
       }
@@ -315,15 +343,14 @@ export default class OlEditController extends OlBaseController {
     }
 
     //Check if feature is from file input (if so, just delete from edit layer)
-    if (me.selectedFeature.get("user_uploaded")) {
-      me.source.removeFeature(me.selectedFeature);
-    } else {
-      editLayerHelper.deleteFeature(
-        me.selectedFeature,
-        me.source,
-        store.state.userId
-      );
-    }
+    // if (me.selectedFeature.get("user_uploaded")) {
+    //   me.source.removeFeature(me.selectedFeature);
+    // } else {
+    editLayerHelper.deleteFeature(
+      me.selectedFeature,
+      me.source,
+      store.state.userId
+    );
 
     me.closePopup();
   }
@@ -504,6 +531,7 @@ export default class OlEditController extends OlBaseController {
             const id = parseInt(FIDs[i].split(".")[1]);
             me.source.removeFeature(featuresToRemove[i]);
             featuresToAdd[i].setId(id);
+            featuresToAdd[i].set("gid", id);
             featuresToAdd[i].getGeometry().transform("EPSG:4326", "EPSG:3857");
 
             me.source.addFeature(featuresToAdd[i]);
@@ -587,7 +615,11 @@ export default class OlEditController extends OlBaseController {
       if (this.edit instanceof Draw) {
         snapi.setDrawInteraction(this.edit);
       } else {
-        if (editLayerHelper.selectedLayer.get("editGeometry") === "Polygon") {
+        if (
+          ["Polygon"].some(r =>
+            editLayerHelper.selectedLayer.get("editGeometry").includes(r)
+          )
+        ) {
           snapi.setModifyInteraction(this.edit);
         }
       }
@@ -615,9 +647,7 @@ export default class OlEditController extends OlBaseController {
     if (this.removeInteraction) {
       this.removeInteraction();
     }
-    if (this.bldEntranceLayer) {
-      this.bldEntranceLayer.getSource().clear();
-    }
+
     super.clearOverlays();
     this.source.getFeatures().forEach(f => {
       const props = f.getProperties();
@@ -645,5 +675,8 @@ export default class OlEditController extends OlBaseController {
     //Reset ids of deleted features..
     editLayerHelper.featuresIDsToDelete = [];
     editLayerHelper.deletedFeatures = [];
+    if (this.bldEntranceLayer) {
+      this.bldEntranceLayer.getSource().clear();
+    }
   }
 }

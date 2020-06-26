@@ -10,7 +10,7 @@
       value="true"
       right
       :permanent="container === true"
-      width="300"
+      width="350"
       hide-overlay
       class="white left-shadow"
     >
