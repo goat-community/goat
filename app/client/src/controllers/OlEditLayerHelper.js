@@ -195,17 +195,20 @@ const editLayerHelper = {
               }
             }
           );
-          console.log(editLayerHelper.deletedFeatures);
 
           //Update Feature Line type
           source.getFeatures().forEach(feature => {
             const prop = feature.getProperties();
-            if (prop.hasOwnProperty("status")) {
+            if (
+              prop.hasOwnProperty("status") ||
+              prop.hasOwnProperty("original_id")
+            ) {
               feature.setProperties({
                 status: 1
               });
             }
           });
+          console.log(source.getFeatures());
           onUploadCb("success");
         }
       })

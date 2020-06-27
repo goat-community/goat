@@ -179,3 +179,14 @@ export function flyTo(destination, map, done) {
     callback
   );
 }
+
+export function checkFeaturesEquality(feature1, feature2) {
+  var formatWKT = new WKT();
+  var feature1WKT = formatWKT.writeGeometry(feature1.getGeometry());
+  var feature2WKT = formatWKT.writeGeometry(feature2.getGeometry());
+  if (feature1WKT === feature2WKT) {
+    return true;
+  } else {
+    return false;
+  }
+}

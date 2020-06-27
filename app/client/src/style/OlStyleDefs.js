@@ -303,9 +303,6 @@ export function waysNewBridgeStyle(feature) {
 export function editStyleFn() {
   const styleFunction = feature => {
     const props = feature.getProperties();
-    if (feature.get("user_uploaded")) {
-      return uploadedFeaturesStyle();
-    }
     // Polygon (ex. building) style
     if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
       return defaultStyle(feature);

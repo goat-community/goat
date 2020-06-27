@@ -1,6 +1,6 @@
 <div align="center">
     <a href="https://www.open-accessibility.org/">
-        <img src="http://www.open-accessibility.org/img/logo.png" width="175">
+        <img src="https://www.open-accessibility.org/img/Homepage/logo.png" width="175">
     </a>
 </div>
 
@@ -22,7 +22,7 @@ For more information:
 
 [GOAT Website and Docs](https://open-accessibility.org)
 
-[GOAT demo](https://goat.open-accessibility.org/)
+[GOAT demo](https://muenchen.open-accessibility.org/)
 
 [Join GOAT User Group on Telegram](https://t.me/joinchat/EpAk7BYbIF72q7D3OTUCZQ)
 

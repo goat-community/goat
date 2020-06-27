@@ -66,7 +66,7 @@
         "visible": false,
         "canEdit": true,
         "editDataType": "GeoJSON",
-        "editGeometry": "LineString",
+        "editGeometry": ["LineString"],
         "displayInLayerList": false,
         "zIndex": 2,
         "serverType": "geoserver"
@@ -83,7 +83,7 @@
         "visible": false,
         "canEdit": true,
         "editDataType": "GeoJSON",
-        "editGeometry": "Point",
+        "editGeometry": ["Point"],
         "displayInLayerList": true,
         "displayInLegend": false,
         "requiresPois": true,
@@ -96,6 +96,7 @@
         "url": "/geoserver/wms",
         "group": "buildings_landuse",
         "layers": "cite:landuse_atkis",
+        "viewparamsDynamicKeys": ["userId"],
         "opacity": 1,
         "queryable": true,
         "visible": false,
@@ -127,9 +128,10 @@
         "queryable": true,
         "visible": false,
         "canEdit": true,
-        "canModifyGeom": false,
+        "canModifyGeom": true,
         "editDataType": "GeoJSON",
-        "editGeometry": "MultiPolygon",
+        "editGeometry": ["Polygon", "MultiPolygon"],
+        "modifyAttributes": true,
         "displayInLayerList": true,
         "zIndex": 3,
         "serverType": "geoserver"
@@ -1446,7 +1448,7 @@
           "values": ["residential", "commercial", "public"]
         }
       },
-      "enableFileUpload": false,
+      "enableFileUpload": true,
       "hiddenProps": [
         "gid",
         "userid",
