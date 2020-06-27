@@ -38,7 +38,7 @@ export default class OlEditController extends OlBaseController {
     const me = this;
     const style = getEditStyle();
     super.createLayer("Edit Layer", style, {
-      queryable: false
+      queryable: true
     });
     me.source.on("changefeature", onFeatureChangeCb);
     me.source.on("change", onSourceChangeCb);

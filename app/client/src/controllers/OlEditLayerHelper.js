@@ -137,7 +137,6 @@ const editLayerHelper = {
       .getSource()
       .getParams()
       .LAYERS.split(":")[1];
-
     fetch("/api/userdata", {
       method: "POST",
       body: JSON.stringify({
@@ -168,6 +167,14 @@ const editLayerHelper = {
   },
 
   uploadFeatures(userId, source, onUploadCb) {
+    /*const translationFunctions = {
+      buildings:"population_modification", 
+      ways:"network_modification"
+    };
+    const layerName = this.selectedLayer
+      .getSource()
+      .getParams()
+      .LAYERS.split(":")[1];*/
     http
       .get("./geoserver/wfs", {
         params: {
@@ -175,7 +182,7 @@ const editLayerHelper = {
           version: " 1.1.0",
           request: "GetFeature",
           viewparams: `userid:${userId}`,
-          typeNames: "cite:network_modification"
+          typeNames: `cite:${"network_modification"}`
         }
       })
       .then(function(response) {
