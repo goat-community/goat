@@ -15,7 +15,8 @@ const state = {
     currentMessage: ""
   },
   contextmenu: null,
-  osmMode: false
+  osmMode: false,
+  reqFields: null
 };
 
 const getters = {
@@ -26,7 +27,8 @@ const getters = {
   helpTooltip: state => state.helpTooltip,
   messages: state => state.messages,
   contextmenu: state => state.contextmenu,
-  snackbar: state => state.messages.snackbar
+  snackbar: state => state.messages.snackbar,
+  reqFields: state => state.reqFields
 };
 
 const actions = {};
@@ -63,6 +65,9 @@ const mutations = {
   },
   SET_OSM_MODE(state) {
     state.osmMode = !state.osmMode;
+  },
+  UPDATE_REQ_FIELDS(state, reqFields) {
+    state.reqFields = reqFields;
   }
 };
 
