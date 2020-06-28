@@ -760,7 +760,6 @@ export default {
             this.layers[key].get("viewparamsDynamicKeys").includes("userId")
           ) {
             if (this.layers[key].getSource().getParams()) {
-              console.log();
               let viewparams = this.layers[key].getSource().getParams()
                 .viewparams;
               if (!viewparams) {
@@ -772,7 +771,6 @@ export default {
                 this.layers[key].getSource().updateParams({
                   viewparams
                 });
-                console.log(viewparams);
               }
             }
           }

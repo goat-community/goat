@@ -373,8 +373,10 @@
           :loading="isUploadBusy"
           :disabled="
             isDeleteAllBusy ||
-              isUploadBtnEnabled === false ||
-              olEditCtrl.source.getFeatures().length === 0
+              (isUploadBtnEnabled === false &&
+                selectedLayer &&
+                selectedLayer.get('name') === 'buildings' &&
+                olEditCtrl.source.getFeatures().length > 0)
           "
           :color="activeColor.primary"
           @click="uploadFeatures"
@@ -600,6 +602,7 @@ export default {
       } else {
         this.isUploadBtnEnabled = true;
       }
+      this.updateUploadBtnState();
     },
     toggleSelection: {
       handler(state) {
@@ -801,9 +804,13 @@ export default {
         formatGML
       );
       http
-        .post("geoserver/wfs", new XMLSerializer().serializeToString(payload), {
-          headers: { "Content-Type": "text/xml" }
-        })
+        .post(
+          "geoserver/cite/wfs",
+          new XMLSerializer().serializeToString(payload),
+          {
+            headers: { "Content-Type": "text/xml" }
+          }
+        )
         .then(response => {
           const result = readTransactionResponse(response.data);
           const totalInserted = result.transactionSummary.totalInserted;
@@ -939,10 +946,10 @@ export default {
     toggleSnapGuideInteraction(state) {
       if (state === 0) {
         this.olEditCtrl.addSnapGuideInteraction();
-        this.olEditCtrl.isSnapGuideActive = true;
+        this.olEditCtrl.isSnapGuideActive = 1;
       } else {
         this.olEditCtrl.removeSnapGuideInteraction();
-        this.olEditCtrl.isSnapGuideActive = false;
+        this.olEditCtrl.isSnapGuideActive = 0;
       }
     },
 
@@ -1019,6 +1026,10 @@ export default {
         props[key] = null;
       });
       this.olEditCtrl.transact(props);
+
+      this.olEditCtrl.featuresToCommit.forEach(feature => {
+        feature.set("status", null);
+      });
       //update cache
       this.updateFileInputFeatureCache();
     },
@@ -1120,6 +1131,11 @@ export default {
         }
       }
 
+      // Update Building upload state
+      if (buildingFeatureAtCoord) {
+        buildingFeatureAtCoord.set("status", null);
+      }
+
       let payload;
       let bldEntranceFeature;
       const formatGML = {
@@ -1181,7 +1197,7 @@ export default {
       }
       const serializedPayload = new XMLSerializer().serializeToString(payload);
       http
-        .post("geoserver/wfs", serializedPayload, {
+        .post("geoserver/cite/wfs", serializedPayload, {
           headers: { "Content-Type": "text/xml" }
         })
         .then(response => {
@@ -1462,12 +1478,14 @@ export default {
      * Delete all user scenario features in db.
      */
     deleteAll() {
+      const layerNames = [this.selectedLayer.get("name")];
       this.$refs.confirm
         .open(
           this.$t("appBar.edit.deleteAllTitle"),
           this.$t("appBar.edit.deleteAllMessage"),
           { color: this.activeColor.primary }
         )
+
         .then(confirm => {
           if (confirm) {
             //1- Call api to delete all features.
@@ -1477,7 +1495,7 @@ export default {
             http
               .post("api/deleteAllScenarioData", {
                 user_id: userId,
-                layer_names: ["ways", "pois", "buildings", "population"]
+                layer_names: layerNames
               })
               .then(response => {
                 this.isDeleteAllBusy = false;
@@ -1538,6 +1556,16 @@ export default {
     ok(type) {
       if (["add", "modifyAttributes"].includes(type)) {
         this.olEditCtrl.transact(this.dataObject);
+        if (type === "modifyAttributes") {
+          var propKeys = Object.keys(this.dataObject);
+          propKeys.forEach(key => {
+            const propValue = this.dataObject[key];
+            if (propValue) {
+              this.olEditCtrl.featuresToCommit[0].set(key, propValue);
+            }
+            this.olEditCtrl.featuresToCommit[0].set("status", null);
+          });
+        }
         this.olEditCtrl.closePopup();
       } else {
         //Delete feature
