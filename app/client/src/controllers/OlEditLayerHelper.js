@@ -167,14 +167,14 @@ const editLayerHelper = {
   },
 
   uploadFeatures(userId, source, onUploadCb) {
-    /*const translationFunctions = {
-      buildings:"population_modification", 
-      ways:"network_modification"
+    const translationFunctions = {
+      buildings: "population_modification",
+      ways: "network_modification"
     };
     const layerName = this.selectedLayer
       .getSource()
       .getParams()
-      .LAYERS.split(":")[1];*/
+      .LAYERS.split(":")[1];
     http
       .get("./geoserver/wfs", {
         params: {
@@ -182,7 +182,7 @@ const editLayerHelper = {
           version: " 1.1.0",
           request: "GetFeature",
           viewparams: `userid:${userId}`,
-          typeNames: `cite:${"network_modification"}`
+          typeNames: `cite:${translationFunctions[layerName]}`
         }
       })
       .then(function(response) {
@@ -190,6 +190,9 @@ const editLayerHelper = {
           //Set status of delete features as well
           editLayerHelper.deletedFeatures = editLayerHelper.deletedFeatures.filter(
             feature => {
+              if (feature.get("layerName") !== layerName) {
+                return false;
+              }
               feature.setProperties({
                 status: 1
               });
@@ -205,6 +208,9 @@ const editLayerHelper = {
 
           //Update Feature Line type
           source.getFeatures().forEach(feature => {
+            if (feature.get("layerName") !== layerName) {
+              return;
+            }
             const prop = feature.getProperties();
             if (
               prop.hasOwnProperty("status") ||
@@ -215,7 +221,6 @@ const editLayerHelper = {
               });
             }
           });
-          console.log(source.getFeatures());
           onUploadCb("success");
         }
       })

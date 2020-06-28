@@ -116,6 +116,8 @@ export default class OlEditController extends OlBaseController {
 
         if (!["Point", "LineString"].some(r => geometryType.includes(r))) {
           me.isSnapGuideActive = 1;
+        } else {
+          me.isSnapGuideActive = 0;
         }
         break;
       }
@@ -372,7 +374,7 @@ export default class OlEditController extends OlBaseController {
       };
       const payload = wfsTransactionParser(null, null, features, formatGML);
       const serializedPayload = new XMLSerializer().serializeToString(payload);
-      http.post("geoserver/wfs", serializedPayload, {
+      http.post("geoserver/cite/wfs", serializedPayload, {
         headers: { "Content-Type": "text/xml" }
       });
       features.forEach(feature => {
@@ -523,7 +525,7 @@ export default class OlEditController extends OlBaseController {
     }
     payload = new XMLSerializer().serializeToString(payload);
     http
-      .post("geoserver/wfs", payload, {
+      .post("geoserver/cite/wfs", payload, {
         headers: { "Content-Type": "text/xml" }
       })
       .then(function(response) {
@@ -676,12 +678,23 @@ export default class OlEditController extends OlBaseController {
 
   deleteAll() {
     this.clear();
-    super.clear();
     //Reset ids of deleted features..
     editLayerHelper.featuresIDsToDelete = [];
     editLayerHelper.deletedFeatures = [];
-    if (this.bldEntranceLayer) {
-      this.bldEntranceLayer.getSource().clear();
+    this.source.getFeatures().forEach(feature => {
+      if (
+        feature.get("layerName") === editLayerHelper.selectedLayer.get("name")
+      ) {
+        this.source.removeFeature(feature);
+      }
+    });
+    if (
+      editLayerHelper.selectedLayer.get("name") === "buildings" &&
+      this.bldEntranceLayer
+    ) {
+      if (this.bldEntranceLayer) {
+        this.bldEntranceLayer.getSource().clear();
+      }
     }
   }
 }
