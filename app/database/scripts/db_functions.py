@@ -62,7 +62,6 @@ def create_variable_container(db_name,user,port,host,password):
 	CONSTRAINT variable_container_pkey PRIMARY KEY (identifier)
     );'''
     
-    
     variable_object = {**ReadYAML().data_refinement()['variable_container'],**ReadYAML().mapping_conf()}
 
     sql_simple = "INSERT INTO variable_container(identifier,variable_simple) VALUES('%s',%s);"
