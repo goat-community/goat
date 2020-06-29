@@ -1330,6 +1330,7 @@ export default {
       this.loadingLayerInfo = true;
       if (this.schema[this.layerName]) {
         this.loadingLayerInfo = false;
+        this.updateReqFields(this.reqFields);
         return;
       }
       http
@@ -1346,6 +1347,7 @@ export default {
           );
           this.schema[this.layerName] = jsonSchema;
           this.loadingLayerInfo = false;
+          this.updateReqFields(this.reqFields);
           this.$forceUpdate();
         });
     },
@@ -1724,7 +1726,8 @@ export default {
       }
     },
     ...mapMutations("map", {
-      toggleSnackbar: "TOGGLE_SNACKBAR"
+      toggleSnackbar: "TOGGLE_SNACKBAR",
+      updateReqFields: "UPDATE_REQ_FIELDS"
     })
   },
   computed: {
