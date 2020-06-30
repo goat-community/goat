@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS population_modification;
 CREATE OR REPLACE FUNCTION public.population_modification(userid_input integer)
 RETURNS SETOF void
 LANGUAGE plpgsql
