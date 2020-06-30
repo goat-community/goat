@@ -522,7 +522,7 @@
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
         "layers": "cite:heatmap_population",
-        "opacity": 1,
+        "opacity": 0.4,
         "visible": false,
         "displayInLayerList": true,
         "zIndex": 1,
