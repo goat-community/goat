@@ -165,6 +165,7 @@ def setup_db(setup_type):
             elif(source_population == 'distribution'):
                 db_temp.execute_script_psql('../data_preparation/SQL/population_distribution.sql')
 
+            db_temp.execute_script_psql('../data_preparation/SQL/create_population_userinput.sql')
     if (setup_type in ['new_setup','all','network']):
         os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} osm2pgrouting --dbname {db_name_temp} --host {host} --username {user} --file "study_area.osm" --conf ../mapconfig.xml --clean') 
         db_temp.execute_script_psql('../data_preparation/SQL/network_preparation.sql')
