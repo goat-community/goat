@@ -697,9 +697,16 @@
               "sensitivity": 300000
             },
             {
-              "name": "Fitness Center",
-              "value": "fitness_center",
-              "icon": "fitness_center",
+              "name": "low_cost_gym",
+              "value": "low_cost_gym",
+              "icon": "low_cost_gym",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "gym",
+              "value": "gym",
+              "icon": "gym",
               "weight": 1,
               "sensitivity": 300000
             },
