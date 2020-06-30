@@ -84,9 +84,9 @@ const IsochroneUtils = {
   getIsochroneAliasFromKey: function getIsochroneAliasFromKey(key) {
     let isochroneMapping = {
       "1": "Default",
-      "2": "Input",
+      "2": "Scenario",
       "3": "Default",
-      "4": "Input"
+      "4": "Scenario"
     };
     let alias = isochroneMapping[key] ? isochroneMapping[key] : key;
     return alias;

@@ -25,9 +25,9 @@
           ></v-checkbox>
           <v-checkbox
             class="mt-2"
-            :input-value="_getState('Input') && calculation.isVisible"
-            @change="_toggleRoadNetwork($event, 'Input')"
-            v-show="groupedCalculationData.hasOwnProperty('Input')"
+            :input-value="_getState('Scenario') && calculation.isVisible"
+            @change="_toggleRoadNetwork($event, 'Scenario')"
+            v-show="groupedCalculationData.hasOwnProperty('Scenario')"
             :label="$t('isochrones.additionalLayers.inputNetwork')"
           ></v-checkbox>
         </v-flex>

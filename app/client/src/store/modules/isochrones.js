@@ -216,7 +216,7 @@ const actions = {
 
       //Remove coordinates property (multi-isochrones not printing, probably a bug. )
       feature.unset("coordinates");
-      // If the modus is 1 it is a default isochrone, otherwise is a input or double calculation
+      // If the modus is 1 it is a default isochrone, otherwise is a scenario or double calculation
       if (modus === 1 || modus === 3) {
         color = IsochroneUtils.getInterpolatedColor(
           1,
