@@ -103,7 +103,7 @@ export default {
 
       // Update network color
       const selectedModeHumanize =
-        this.selectedMode === "default" ? "Default" : "Scenario";
+        this.selectedMode === "default" ? "Default" : "Input";
       if (!this.calculation.additionalData[selectedModeHumanize]) return;
       this.calculation.additionalData[selectedModeHumanize].features.forEach(
         feature => {

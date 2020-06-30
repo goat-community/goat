@@ -212,7 +212,7 @@ export default {
                 let obj = {
                   pois: amenity ? this.$t(`pois.${amenity}`) : amenity
                 };
-                //Default or scenario calculation
+                //Default or input calculation
                 obj[keys[0]] = sumPois[amenity];
                 //Double calculation
                 if (pois[keys[1]]) {

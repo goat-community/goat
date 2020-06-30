@@ -190,7 +190,7 @@ export function getIsochroneStyle(styleData, addStyleInCache) {
           });
           let payload = {
             style: style,
-            isochroneType: "scenario",
+            isochroneType: "input",
             styleName: level
           };
           addStyleInCache(payload);
