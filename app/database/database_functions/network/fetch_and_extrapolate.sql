@@ -28,7 +28,6 @@ BEGIN
   	IF transport_mode IN ('cycling','ebike') THEN
   		time_loss_intersections = select_from_variable_container_o('cycling_crossings_delay');
   	END IF;
-	RAISE NOTICE '%', transport_mode;
 	
 	IF routing_profile = 'cycling_pedelec' THEN 
 		cost_function = 'ebike';
@@ -65,8 +64,7 @@ BEGIN
 		sql_routing_profile = 'AND ((wheelchair_classified = ''yes'') OR wheelchair_classified = ''limited''
 		OR wheelchair_classified = ''unclassified'')';
 	END IF;
-	
-	RAISE NOTICE '%',category;
+
 	sql_select_ways = 
 		'SELECT id::integer, source, target,'||sql_cost||',slope_profile,death_end,geom 
 		FROM '||quote_ident(table_name)||
@@ -74,7 +72,6 @@ BEGIN
     	AND (NOT '||quote_ident(category)||' = ANY('''||filter_categories||''') 
 		OR '||quote_ident(category)||' IS NULL)
 		'||sql_geom||sql_userid||sql_ways_ids||sql_routing_profile;
-	RAISE NOTICE '%', sql_select_ways;
 	return query execute sql_select_ways;
 END;
 $function$;
