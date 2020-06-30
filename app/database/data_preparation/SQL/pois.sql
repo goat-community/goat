@@ -88,35 +88,23 @@ OR leisure = any (SELECT (jsonb_array_elements_text((select_from_variable_contai
 AND leisure !=(SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'leisure'->'discard')::jsonb)))
 AND sport !=(SELECT (jsonb_array_elements_text((select_from_variable_container_o('amenity_config')->'sport'->'discard')::jsonb)))
 
-UNION ALL
-
--- Add sport facilities
-
-SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, 'sports_center' AS amenity, shop, 
-tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, ST_centroid(way) as geom,
-tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_polygon WHERE (leisure = 'sports_centre'  OR name LIKE '%Bezirkssportanlage%') AND amenity IS null
-
-UNION ALL 
-
--- Add water parks
-
-SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, 'waterpark' AS amenity, shop, 
-tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, ST_centroid(way) as geom,
-tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_polygon WHERE leisure = 'water_park' AND amenity IS NULL
-
 UNION ALL 
 
 -- Add fitness centers
 
-SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'fitness_center' AS amenity, shop, 
+SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'low_cost_gym' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
 tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE 'yoga'
+FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE 'yoga' AND lower(name) LIKE ANY (ARRAY ['%fit-star%','%mcfit%','%fitx%','%star%'])
+
+UNION ALL 
+
+SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'gym' AS amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
+tags -> 'wheelchair' as wheelchair  
+FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE 'yoga' AND lower(name) NOT LIKE ANY (ARRAY ['%fit-star%','%mcfit%','%fitx%','%star%'])
 
 UNION ALL
 
@@ -350,6 +338,21 @@ UPDATE pois p set name = c.name
 FROM close_entrances c
 WHERE p.geom = c.geom
 AND amenity = 'subway_entrance';
+
+-- Multipoint for Sports center and waterparks
+
+DROP TABLE IF EXISTS sports_center;
+DROP TABLE IF EXISTS waterpark;
+CREATE TABLE sports_center (LIKE planet_osm_polygon INCLUDING ALL);
+INSERT INTO sports_center
+SELECT * FROM planet_osm_polygon WHERE (leisure = 'sports_centre'  OR name LIKE '%Bezirkssportanlage%') AND amenity IS NULL;
+SELECT pois_dissagregate_polygons('sports_center','sports_center');
+
+CREATE TABLE waterpark (LIKE planet_osm_polygon INCLUDING ALL);
+INSERT INTO waterpark
+SELECT * FROM planet_osm_polygon WHERE leisure = 'water_park' AND amenity IS NULL;
+SELECT pois_dissagregate_polygons('waterpark','waterpark');
+
 
 -- If custom_pois exists, run pois fusion 
 

@@ -13,7 +13,7 @@ AS $function$
 BEGIN 
 	-- Create dummy subset to avoid dynamic sql 
 	DROP TABLE IF EXISTS polygon_subset;
-	CREATE TEMP TABLE polygon_subset (LIKE planet_osm_polygon INCLUDING all);
+	CREATE TABLE polygon_subset (LIKE planet_osm_polygon INCLUDING all);
 	EXECUTE 'INSERT INTO polygon_subset
 	SELECT * FROM '||quote_ident(subset);
 	
@@ -41,7 +41,7 @@ BEGIN
 	SELECT t.osm_id, t.way, count(ap.osm_id) AS no_doors FROM polygon_subset t
 	LEFT JOIN access_points ap
 	ON t.osm_id = ap.osm_id GROUP BY t.osm_id, t.way;
-		
+
 	-- Calculate intersection points between polygons with access_points = 0 and road network (footway, path, service)
 	
 	INSERT INTO access_points
@@ -51,7 +51,7 @@ BEGIN
 	(SELECT t.* FROM polygon_subset t
 		LEFT JOIN no_of_doors n
 		ON t.osm_id = n.osm_id
-		WHERE no_doors = 0) AS pol
+		WHERE n.no_doors = 0) AS pol
 	WHERE
 	st_intersects(l.way, pol.way) ;
 
@@ -62,8 +62,8 @@ BEGIN
 	ALTER TABLE no_of_intersections ADD COLUMN no_of_intersections int;
 
 	INSERT INTO no_of_intersections		
-	SELECT d.*, count(ai.access_point) FROM no_of_doors d
-	LEFT JOIN access_intersections ai 
+	SELECT d.*, count(ai.osm_id) FROM no_of_doors d
+	LEFT JOIN access_points ai 
 	ON d.osm_id = ai.osm_id
 	GROUP BY d.osm_id, d.way, d.no_doors;
 
@@ -71,7 +71,7 @@ BEGIN
 	INSERT INTO pois
 	SELECT osm_id, 'polygon dissagregated' AS origin_geometry, ACCESS, "addr:housenumber" AS housenumber, amenity AS amenity,
 	tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-	operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, ST_centroid(way) as geom,
+	operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, gates as geom,
 	tags -> 'wheelchair' as wheelchair
 	FROM access_points;	
 
@@ -83,9 +83,10 @@ BEGIN
 	operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, ST_centroid(t.way) as geom,
 	tags -> 'wheelchair' as wheelchair
 	FROM polygon_subset t, no_of_intersections ni WHERE (ni.no_doors + ni.no_of_intersections ) = 0 AND t.osm_id = ni.osm_id;
-
+--SELECT * FROM no_of_intersections ni WHERE (ni.no_doors + ni.no_of_intersections ) = 0;
 END;
 $function$
 
+--SELECT * FROM access_points;
 -- Example, test is the subset that has the same structure than planet_osm_polygon
 --SELECT pois_dissagregate_polygons('test','mynewamenity')
