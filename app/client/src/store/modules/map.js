@@ -16,7 +16,8 @@ const state = {
   },
   contextmenu: null,
   osmMode: false,
-  reqFields: null
+  reqFields: null,
+  bldEntranceLayer: null
 };
 
 const getters = {
@@ -28,7 +29,8 @@ const getters = {
   messages: state => state.messages,
   contextmenu: state => state.contextmenu,
   snackbar: state => state.messages.snackbar,
-  reqFields: state => state.reqFields
+  reqFields: state => state.reqFields,
+  bldEntranceLayer: state => state.bldEntranceLayer
 };
 
 const actions = {};
@@ -68,6 +70,9 @@ const mutations = {
   },
   UPDATE_REQ_FIELDS(state, reqFields) {
     state.reqFields = reqFields;
+  },
+  SET_BLD_ENTRANCE_LAYER(state, entranceLayer) {
+    state.bldEntranceLayer = entranceLayer;
   }
 };
 

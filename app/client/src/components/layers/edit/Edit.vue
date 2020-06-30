@@ -654,6 +654,7 @@ export default {
         this.onBldEntranceFeatureChange,
         this.onBldEntranceSourceChange
       );
+      me.setBldEntranceLayer(me.olEditCtrl.bldEntranceLayer);
       this.setUpCtxMenu();
     },
 
@@ -1727,7 +1728,8 @@ export default {
     },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR",
-      updateReqFields: "UPDATE_REQ_FIELDS"
+      updateReqFields: "UPDATE_REQ_FIELDS",
+      setBldEntranceLayer: "SET_BLD_ENTRANCE_LAYER"
     })
   },
   computed: {
