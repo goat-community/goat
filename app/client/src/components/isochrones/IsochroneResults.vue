@@ -390,7 +390,7 @@ export default {
       //Check if road netowrk is visible. Is so remove all features from map.
       const roadNetworkData = calculation.additionalData;
       for (let type in roadNetworkData) {
-        // type can be 'Deafult' or 'Input'
+        // type can be 'Deafult' or 'Scenario'
         const state = roadNetworkData[type].state;
         const roadNetworkSource = this.isochroneRoadNetworkLayer.getSource();
         const features = roadNetworkData[type].features;

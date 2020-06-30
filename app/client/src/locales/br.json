@@ -260,7 +260,7 @@
     },
     "additionalLayers": {
       "defaultNetwork": "Default Road Network",
-      "inputNetwork": "Input Road Network"
+      "inputNetwork": "Scenario Road Network"
     },
     "pickColor": {
       "title": "Isochrone Color"
