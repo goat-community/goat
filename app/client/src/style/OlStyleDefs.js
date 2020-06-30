@@ -233,6 +233,7 @@ export function defaultStyle(feature) {
     strokeOpt.width = 4;
 
     let isCompleted = true;
+    let hasEntranceFeature = false;
     if (store.state.reqFields) {
       store.state.reqFields.forEach(field => {
         if (!properties[field]) {
@@ -240,7 +241,27 @@ export function defaultStyle(feature) {
         }
       });
     }
-    if (isCompleted === true) {
+    if (store.state.bldEntranceLayer) {
+      const extent = feature.getGeometry().getExtent();
+      const entrancesInExtent = store.state.bldEntranceLayer
+        .getSource()
+        .getFeaturesInExtent(extent);
+
+      let countEntrances = 0;
+      entrancesInExtent.forEach(entrance => {
+        const hasEntrance = feature
+          .getGeometry()
+          .intersectsCoordinate(entrance.getGeometry().getCoordinates());
+        if (hasEntrance === true) {
+          countEntrances += 1;
+        }
+      });
+      countEntrances === 0
+        ? (hasEntranceFeature = false)
+        : (hasEntranceFeature = true);
+    }
+
+    if (isCompleted === true && hasEntranceFeature === true) {
       strokeOpt.color = "rgb(0,128,0, 0.7)";
       fillOpt.color = "rgb(0,128,0, 0.7)";
     }
