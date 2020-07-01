@@ -140,7 +140,6 @@ export default class OlSelectController extends OlBaseController {
 
           // Request only for population when building layer is active.
           if (selectedLayer.get("name") === "buildings") {
-            console.log("buildings layer...");
             const populationReq = wfsRequestParser(
               "EPSG:3857",
               layerParams[0],

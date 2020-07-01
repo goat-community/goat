@@ -117,6 +117,7 @@
       "snapGuide": "Snap Guide",
       "clearBtn": "Revert All",
       "uploadBtn": "Upload",
+      "addEntrancesForBuildings": "Add entrances for all buildings to activate <b>UPLOAD</b>",
       "popup": {
         "deleteFeatureMsg": "Are you sure you want to delete the selected feature ?",
         "selectWayType": "Select way type: ",
@@ -148,7 +149,7 @@
       "missingFields": "Missing Fields",
       "fileCorrupted": "Geojson file is corrupted",
       "noFile": "No file",
-      "allFeaturesUploaded": "All Features Uploaded",
+      "allFeaturesUploaded": "All Features Inserted",
       "notAllUploaded": "Not all features uploaded",
       "errorHappened": "An error happened",
       "scenarioFeatures": "Scenario Features",
@@ -309,7 +310,8 @@
       "cantDeleteAllScenarioFeatures": "Sorry. Scenario data can't be deleted at the moment.",
       "allScenarioFeaturesDelete": "All Scenario Data is deleted",
       "noScenarioFeatureChangeAvailable": "Please do network or land-use change first",
-      "cantPrintBaseLayer": "This baselayer can't be printed"
+      "cantPrintBaseLayer": "This baselayer can't be printed",
+      "featuresAlreadyUploaded": "Features already exists"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
@@ -390,6 +392,8 @@
       "changeScenarioColorPalette": "Change color (scenario)",
       "clickToBldEntrance": "Click building to add entrance <br>Click and drag to modify <br>Right-click on feature to delete",
       "clickToBldEntranceNotAllowed": "Can't add an entrance here. Click on a new drawn building.",
+      "moveExistingBuildingNotAllowed": "Hover on a new drawn building to move activate move function",
+      "modifyExistingBuildingNotAllowed": "Hover on a new drawn building to move activate modify function",
       "openDocumentation": "Open Documentation",
       "routingProfiles": {
         "walking": {
@@ -501,7 +505,8 @@
           "stepsDesc": {
             "clickFeatureInMap": "The red lines in the map are the challenges. Select one of them.",
             "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
-            "fillInOSMiD": "Add the missing tag 'surface' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "}
+            "fillInOSMiD": "Add the missing tag 'surface' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
+          }
         },
         "osm-mapping-ways-wheelchair": {
           "missingKeyWord": "Wheelchair Usability",
@@ -513,7 +518,8 @@
           "stepsDesc": {
             "clickFeatureInMap": "The red polygons in the map are the challenges. Select one of them.",
             "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
-            "fillInOSMiD": "Edit the tag 'building' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary and aerial images can be used or an on-site visit can be made. "}
+            "fillInOSMiD": "Edit the tag 'building' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary and aerial images can be used or an on-site visit can be made. "
+          }
         }
       },
 

@@ -327,5 +327,5 @@ REFERENCES pois_modified(id) ON DELETE CASCADE;
 
 -- Clean duplicates and integrate custom pois
 
-SELECT pois_fusion();
+--SELECT pois_fusion();
 

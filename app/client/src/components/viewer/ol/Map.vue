@@ -571,7 +571,7 @@ export default {
               });
               if (selectedFeatures !== null && selectedFeatures.length > 0) {
                 //TODO: If there are more then 2 features selected get the closest one to coordinate rather than the first element
-                const clonedFeature = selectedFeatures[0];
+                const clonedFeature = selectedFeatures[0].clone();
                 clonedFeature.set("layerName", layer.get("name"));
                 me.getInfoResult.push(clonedFeature);
               }
@@ -760,7 +760,6 @@ export default {
             this.layers[key].get("viewparamsDynamicKeys").includes("userId")
           ) {
             if (this.layers[key].getSource().getParams()) {
-              console.log();
               let viewparams = this.layers[key].getSource().getParams()
                 .viewparams;
               if (!viewparams) {
@@ -772,7 +771,6 @@ export default {
                 this.layers[key].getSource().updateParams({
                   viewparams
                 });
-                console.log(viewparams);
               }
             }
           }
