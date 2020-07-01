@@ -985,6 +985,7 @@ export default {
       const features = this.olEditCtrl.source.getFeaturesAtCoordinate(
         evt.coordinate
       );
+      this.olEditCtrl.featuresToCommit = [];
       this.olEditCtrl.highlightSource.clear();
       if (features.length > 0) {
         const feature = features[0];
@@ -1683,8 +1684,7 @@ export default {
     }, 900),
     updateUploadBtnState: debounce(function() {
       const features = this.olEditCtrl.source.getFeatures();
-      let isEnabled = true;
-
+      let featuresWithoutEntrances = 0;
       features.forEach(f => {
         if (f.get("layerName") && f.get("layerName") === "buildings") {
           // Check if there is a entrance point. If not disable upload
@@ -1692,21 +1692,22 @@ export default {
           const entrancesInExtent = this.olEditCtrl.bldEntranceLayer
             .getSource()
             .getFeaturesInExtent(extent);
-
+          let entrances = 0;
           entrancesInExtent.forEach(entrance => {
             const hasEntrance = f
               .getGeometry()
               .intersectsCoordinate(entrance.getGeometry().getCoordinates());
-            if (hasEntrance === false && isEnabled === true) {
-              isEnabled = hasEntrance;
+
+            if (hasEntrance) {
+              entrances += 1;
             }
           });
-          if (entrancesInExtent.length === 0 && isEnabled === true) {
-            isEnabled = false;
+          if (entrances === 0) {
+            featuresWithoutEntrances += 1;
           }
         }
       });
-      this.isUploadBtnEnabled = isEnabled;
+      this.isUploadBtnEnabled = featuresWithoutEntrances === 0 ? true : false;
     }, 500),
     isRestoreBtnVisible(item) {
       if (item.source !== "original") {
