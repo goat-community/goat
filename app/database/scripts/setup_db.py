@@ -96,7 +96,7 @@ def setup_db(setup_type):
         if glob.glob('custom_pois/*.geojson'):
             geojson_to_sql(db_name_temp,user,host,port,password)
             db_temp.execute_text_psql(f'DELETE FROM custom_pois WHERE NOT ST_INTERSECTS(geom,ST_MAKEENVELOPE({left},{bottom},{right},{top}, 4326))')
-
+            
     #Use OSM-Update-Tool in order to fetch the most recent data
     if (osm_data_recency == 'most_recent'):
         #Take last timestamp
