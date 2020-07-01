@@ -293,6 +293,21 @@ INSERT INTO pois (osm_id,origin_geometry,amenity,name,wheelchair,geom)
 SELECT osm_id,'point',public_transport_stop,name,wheelchair,geom 
 FROM pt;
 
+DO $$                  
+    BEGIN 
+        IF EXISTS
+            ( SELECT 1
+              FROM   information_schema.tables 
+              WHERE  table_schema = 'public'
+              AND    table_name = 'pois_insert_no_fusion'
+            )
+        THEN
+			INSERT INTO pois (origin_geometry,amenity,name,geom)
+			SELECT 'point', amenity, name, geom 
+			FROM pois_insert_no_fusion;
+		END IF;
+    END
+$$ ;
 
 WITH x AS (
 	SELECT 'subway' as public_transport,name,way as geom  FROM planet_osm_point 
