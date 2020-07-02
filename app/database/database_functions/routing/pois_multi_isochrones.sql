@@ -1,4 +1,3 @@
-DROP FUNCTION IF EXISTS pois_multi_isochrones;
 CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, minutes integer, speed_input numeric, 
 	n integer, routing_profile_input text, alphashape_parameter_input NUMERIC, modus_input integer,region_type text, 
 	region text[], amenities text[])
@@ -70,7 +69,8 @@ DECLARE
 				AND s.name IN (SELECT _key FROM elements)
 				GROUP BY s.name
 			)
-			SELECT array_to_json(array_agg(jsonb_build_object(e._key,floor((elem -> e._key)::integer + COALESCE(p.population::integer,0)/5)*5))) 
+			SELECT array_to_json(array_agg(jsonb_build_object(e._key,(floor(((elem -> e._key)::integer + COALESCE(p.population::integer,0))
+			/5)*5)))) 
 			INTO population_mask
 			FROM elements e
 			LEFT JOIN population_change p
@@ -171,6 +171,7 @@ DECLARE
 	WHERE objectid = objectid_multi_isochrone;
 	END;
 $function$ LANGUAGE plpgsql;
+
 
 /*
 SELECT *
