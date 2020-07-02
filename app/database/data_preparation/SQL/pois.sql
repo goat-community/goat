@@ -100,11 +100,17 @@ FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'
 
 UNION ALL 
 
+(SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'gym' AS amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
+tags -> 'wheelchair' as wheelchair  
+FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE 'yoga'
+EXCEPT 
 SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'gym' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
 tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE 'yoga' AND lower(name) NOT LIKE ANY (ARRAY ['%fit-star%','%mcfit%','%fitx%','%star%'])
+FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE 'yoga' AND lower(name) LIKE ANY (ARRAY ['%fit-star%','%mcfit%','%fitx%','%star%']))
 
 UNION ALL
 
@@ -114,7 +120,7 @@ SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumb
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
 tags -> 'wheelchair' as wheelchair
-FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND (sport = 'yoga' OR lower(name) LIKE 'yoga')
+FROM planet_osm_point WHERE sport = 'yoga' OR lower(name) LIKE '%yoga%'
 
 UNION ALL 
 
