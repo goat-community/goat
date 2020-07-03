@@ -219,14 +219,17 @@ FROM kindergartens_polygons kp;
 /*Please review this here. We should maybe limit this to amenity = 'kindergarten' only. Furthermore we can directly update the table without the need of the subquery*/
 
 SELECT pois_reclassification_array('name','kindergarten','amenity','nursery','left');
+UPDATE pois p SET amenity = 'nursery'
+WHERE amenity = 'kindergarten'	
+AND (tags -> 'max_age') = '3';
 
 /*End*/
 ------------------------------------------end kindergarten-------------------------------------------
 
 --For Munich grocery == convencience
 
-SELECT pois_reclassification('shop','grocery','shop','convenience','singlevalue');
-SELECT pois_reclassification('shop','fashion','shop','clothes','singlevalue');
+SELECT pois_reclassification('shop','grocery','amenity','convenience','singlevalue');
+SELECT pois_reclassification('shop','fashion','amenity','clothes','singlevalue');
 
 /*End*/
 
