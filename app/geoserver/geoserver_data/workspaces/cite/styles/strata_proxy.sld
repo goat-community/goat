@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<StyledLayerDescriptor xmlns="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc" xmlns:se="http://www.opengis.net/se" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/StyledLayerDescriptor.xsd">
+<StyledLayerDescriptor xmlns="http://www.opengis.net/sld" xmlns:se="http://www.opengis.net/se" version="1.1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ogc="http://www.opengis.net/ogc" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/StyledLayerDescriptor.xsd">
   <NamedLayer>
     <se:Name>Strata Proxy</se:Name>
     <UserStyle>
@@ -18,8 +18,7 @@
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
-              <se:SvgParameter name="fill">#d73027</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.9</se:SvgParameter>
+              <se:SvgParameter name="fill">#b35806</se:SvgParameter>
             </se:Fill>
             <se:Stroke>
               <se:SvgParameter name="stroke">#d73027</se:SvgParameter>
@@ -42,8 +41,7 @@
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
-              <se:SvgParameter name="fill">#fc8d59</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.9</se:SvgParameter>
+              <se:SvgParameter name="fill">#f1a340</se:SvgParameter>
             </se:Fill>
             <se:Stroke>
               <se:SvgParameter name="stroke">#fc8d59</se:SvgParameter>
@@ -66,8 +64,7 @@
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
-              <se:SvgParameter name="fill">#fee090</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.9</se:SvgParameter>
+              <se:SvgParameter name="fill">#fee0b6</se:SvgParameter>
             </se:Fill>
             <se:Stroke>
               <se:SvgParameter name="stroke">#232323</se:SvgParameter>
@@ -90,8 +87,7 @@
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
-              <se:SvgParameter name="fill">#e0f3f8</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.9</se:SvgParameter>
+              <se:SvgParameter name="fill">#d8daeb</se:SvgParameter>
             </se:Fill>
             <se:Stroke>
               <se:SvgParameter name="stroke">#232323</se:SvgParameter>
@@ -114,8 +110,7 @@
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
-              <se:SvgParameter name="fill">#91bfdb</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.9</se:SvgParameter>
+              <se:SvgParameter name="fill">#998ec3</se:SvgParameter>
             </se:Fill>
             <se:Stroke>
               <se:SvgParameter name="stroke">#232323</se:SvgParameter>
@@ -138,8 +133,7 @@
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
-              <se:SvgParameter name="fill">#4575b4</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.9</se:SvgParameter>
+              <se:SvgParameter name="fill">#542788</se:SvgParameter>
             </se:Fill>
             <se:Stroke>
               <se:SvgParameter name="stroke">#232323</se:SvgParameter>

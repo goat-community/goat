@@ -1,0 +1,15 @@
+<layer>
+  <name>Cycling Share</name>
+  <id>LayerInfoImpl--41f97721:1731e1637df:6938</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--41f97721:1731e1637df:692c</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--41f97721:1731e1637df:6937</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>
