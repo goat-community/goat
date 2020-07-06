@@ -56,7 +56,9 @@ const state = {
   studyAreaLayer: null,
 
   // Edit
-  scenarioDataTable: []
+  scenarioDataTable: [],
+  // Cancel Request
+  cancelReq: undefined
 };
 
 const getters = {
@@ -95,6 +97,7 @@ const getters = {
     return calculation ? groupBy(calculation.data, "type") : {};
   },
   scenarioDataTable: state => state.scenarioDataTable,
+  cancelReq: state => state.cancelReq,
   getField
 };
 
@@ -166,21 +169,41 @@ const actions = {
     }
 
     commit("SET_IS_BUSY", true);
+
+    const CancelToken = axios.CancelToken;
     const isochronesResponse = await http
       .post(`/api/${isochroneEndpoint}`, params, {
-        timeout: 120000
+        timeout: 30000,
+        cancelToken: new CancelToken(function executor(c) {
+          // An executor function receives a cancel function as a parameter
+          commit("SET_CANCEL_FUNCTION", c);
+        })
       })
-      .catch(() => {
+      .catch(e => {
         //Show error message
-        commit(
-          "map/TOGGLE_SNACKBAR",
-          {
-            type: "error",
-            message: "calculateIsochroneError",
-            state: true
-          },
-          { root: true }
-        );
+        if (e.message === "cancelled") {
+          commit(
+            "map/TOGGLE_SNACKBAR",
+            {
+              type: "error",
+              message: "calculateIsochroneCancelled",
+              state: true,
+              timeout: 2000
+            },
+            { root: true }
+          );
+        } else {
+          commit(
+            "map/TOGGLE_SNACKBAR",
+            {
+              type: "error",
+              message: "calculateIsochroneError",
+              state: true
+            },
+            { root: true }
+          );
+        }
+
         if (iconMarkerFeature) {
           commit("REMOVE_ISOCHRONE_FEATURE", iconMarkerFeature);
         }
@@ -698,6 +721,9 @@ const mutations = {
   },
   ADD_STUDY_AREA_LAYER(state, studyAreaLayer) {
     state.studyAreaLayer = studyAreaLayer;
+  },
+  SET_CANCEL_FUNCTION(state, cancelReqFn) {
+    state.cancelReq = cancelReqFn;
   }
 };
 
