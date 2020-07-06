@@ -5,7 +5,8 @@
     "cancel": "Cancel",
     "save": "Save",
     "ok": "Ok",
-    "remove": "Remove"
+    "remove": "Remove",
+    "stop": "Stop"
   },
   "appBar": {
     "buttons": {
@@ -180,6 +181,7 @@
     "title": "Isochrones",
     "calculation": "Calculation",
     "calculationTitle": "Isochrone Calculation",
+    "stopIsochroneCalc": "Stop Calculation",
     "single": {
       "title": "Starting Point",
       "type": "Single",
@@ -304,6 +306,7 @@
     "snackbarMessages": {
       "selectAmenities": "You must select at least one point of interest",
       "calculateIsochroneError": "Sorry but here no calculation is possible",
+      "calculateIsochroneCancelled": "Isochrone Calculation Cancelled",
       "uploadScenarioSuccess": "Features uploads successfully.",
       "uploadScenarioError": "Sorry, an error happened while uploading the features in database.",
       "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features.",
