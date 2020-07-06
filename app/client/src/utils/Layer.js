@@ -396,7 +396,8 @@ export function getWMSLegendURL(
 export function mapFeatureTypeProps(props, layerName, layerConf) {
   const mapping = {
     string: "string",
-    int: "integer"
+    int: "integer",
+    number: "number"
   };
   let obj = {
     $id: "https://example.com/person.schema.json",
