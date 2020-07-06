@@ -139,8 +139,13 @@
       "selectOnMap": "Objekte auf Karte auswählen",
       "editTools": "Bearbeitungstools",
       "drawFeatureTooltip": "Objekt zeichnen",
+      "addBldEntrance": "Gebäudeeingang hinzufügen",
       "modifyFeatureTooltip": "Objekt ändern",
       "deleteFeature": "Objekt löschen",
+      "moveFeature": "Objekt verschieben",
+      "modifyAttributes": "Eigenschaften bearbeiten",
+      "drawPolygonHole": "Polygonausparung hinzufügen",
+      "snapGuide": "Zeichenhilfe",
       "clearBtn": "Reset",
       "uploadBtn": "Hochladen",
       "popup": {
