@@ -99,7 +99,7 @@ DATA_REFINEMENT_VARIABLES:
     tag_new_radius: '130'
     duplicated_kindergarden_lookup_radius: '40'
     ##----------------------------------------------------------------------------------------------------------##
-    ##-----------Definition of amenity parameters for POIS prearation and data fusion of new sources------------##
+    ##-----------Definition of amenity parameters for POIS preparation and data fusion of new sources------------##
     ##----------------------------------------------------------------------------------------------------------##
     ##  Data structure:       Amenity type -> brand name -> different brand name variables
     ##  Amenity type:         According to the types defined for GOAT
@@ -145,6 +145,11 @@ DATA_REFINEMENT_VARIABLES:
         vapiano: ['%vapiano%']
       nursery:
         kinderkrippe: []
+      low_cost_gym:
+        star: ['%fit-star%','star']
+        mcfit: []
+        fitx: []
+
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------------------Amenity parameters for POIS preparation leisure and schools------------------------##
     ##----------------------------------------------------------------------------------------------------------##
