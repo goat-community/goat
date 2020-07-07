@@ -92,35 +92,20 @@ UNION ALL
 
 -- Add fitness centers
 
-SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'low_cost_gym' AS amenity, shop, 
-tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
-tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE 'yoga' AND lower(name) LIKE ANY (ARRAY ['%fit-star%','%mcfit%','%fitx%','%star%'])
-
-UNION ALL 
-
-(SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'gym' AS amenity, shop, 
-tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
-tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE 'yoga'
-EXCEPT 
 SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'gym' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
 tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE 'yoga' AND lower(name) LIKE ANY (ARRAY ['%fit-star%','%mcfit%','%fitx%','%star%']))
+FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE 'yoga'
 
-UNION ALL
-
+UNION ALL 
 -- Add Yoga centers
 
 SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'yoga' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
 tags -> 'wheelchair' as wheelchair
-FROM planet_osm_point WHERE sport = 'yoga' OR lower(name) LIKE '%yoga%'
+FROM planet_osm_point WHERE (sport = 'yoga' OR lower(name) LIKE '%yoga%') AND shop IS NULL
 
 UNION ALL 
 
@@ -251,8 +236,6 @@ FROM kindergartens_polygons kp;
 /*End*/
 
 --Distinguish kindergarten - nursery
-/*Please review this here. We should maybe limit this to amenity = 'kindergarten' only. Furthermore we can directly update the table without the need of the subquery*/
-
 SELECT pois_reclassification_array('name','kindergarten','amenity','nursery','left');
 
 /*End*/
@@ -280,6 +263,9 @@ SELECT pois_reclassification_array('name','supermarket','amenity','discount_supe
 SELECT pois_reclassification_array('name','supermarket','amenity','hypermarket','any');
 SELECT pois_reclassification_array('name','supermarket','amenity','no_end_consumer_store','any');
 SELECT pois_reclassification_array('name','supermarket','amenity','health_food','any');
+
+--Refinement low cost GYMs
+SELECT pois_reclassification_array('name','gym','amenity','low_cost_gym','any');
 
 UPDATE pois SET amenity = 'organic'
 WHERE organic = 'only'
@@ -349,16 +335,17 @@ AND amenity = 'subway_entrance';
 
 DROP TABLE IF EXISTS sports_center;
 DROP TABLE IF EXISTS waterpark;
-CREATE TABLE sports_center (LIKE planet_osm_polygon INCLUDING ALL);
+CREATE TABLE sports_center (LIKE planet_osm_polygon INCLUDING INDEXES);
 INSERT INTO sports_center
 SELECT * FROM planet_osm_polygon WHERE (leisure = 'sports_centre'  OR name LIKE '%Bezirkssportanlage%') AND amenity IS NULL;
-SELECT pois_dissagregate_polygons('sports_center','sports_center');
+SELECT derive_access_from_polygons('sports_center','sports_center');
+DROP TABLE IF EXISTS sports_center;
 
-CREATE TABLE waterpark (LIKE planet_osm_polygon INCLUDING ALL);
+CREATE TABLE waterpark (LIKE planet_osm_polygon INCLUDING INDEXES);
 INSERT INTO waterpark
 SELECT * FROM planet_osm_polygon WHERE leisure = 'water_park' AND amenity IS NULL;
-SELECT pois_dissagregate_polygons('waterpark','waterpark');
-
+SELECT derive_access_from_polygons('waterpark','waterpark');
+DROP TABLE IF EXISTS waterpark;
 
 -- If custom_pois exists, run pois fusion 
 
