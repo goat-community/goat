@@ -1559,9 +1559,9 @@ export default {
      */
     ok(type) {
       if (["add", "modifyAttributes"].includes(type)) {
-        this.olEditCtrl.transact(this.dataObject);
         if (type === "modifyAttributes") {
           var propKeys = Object.keys(this.dataObject);
+          console.log(this.dataObject);
           propKeys.forEach(key => {
             const propValue = this.dataObject[key];
             if (propValue) {
@@ -1570,6 +1570,7 @@ export default {
             this.olEditCtrl.featuresToCommit[0].set("status", null);
           });
         }
+        this.olEditCtrl.transact(this.dataObject);
         this.olEditCtrl.closePopup();
       } else {
         //Delete feature
