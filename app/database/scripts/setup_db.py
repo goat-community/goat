@@ -120,7 +120,7 @@ def setup_db(setup_type):
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/clean_duplicated_pois.sql')
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_reclassification_array.sql')
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_classification.sql')
-    db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_dissagregate_polygons.sql')
+    db_temp.execute_script_psql('/opt/database_functions/data_preparation/derive_access_from_polygons.sql')
 
 
 
