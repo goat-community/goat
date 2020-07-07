@@ -1561,7 +1561,6 @@ export default {
       if (["add", "modifyAttributes"].includes(type)) {
         if (type === "modifyAttributes") {
           var propKeys = Object.keys(this.dataObject);
-          console.log(this.dataObject);
           propKeys.forEach(key => {
             const propValue = this.dataObject[key];
             if (propValue) {
