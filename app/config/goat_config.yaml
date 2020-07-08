@@ -1,6 +1,6 @@
 DATA_SOURCE:  
   #"no_download" if you don't want to download OSM data automatically. Make sure that the file is called raw-osm.osm.pbf.
-  OSM_DOWNLOAD_LINK: "https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf" 
+  OSM_DOWNLOAD_LINK: "no_download" #"https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf" 
   #"most_recent" if the data from the OSM-Download-Link has not the recency you need. 
   OSM_DATA_RECENCY: "standard"
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
@@ -12,7 +12,7 @@ DATA_REFINEMENT_VARIABLES:
   #disaggregation ==> landuse.shp needed as input + high-resolution population input data + building data
   #distribution ==> landuse.sho need as input + high-resolution population input data 
   #custom_population ==> population.shp custom population data needed  
-  POPULATION: "extrapolation"
+  POPULATION: "disaggregation" #"extrapolation"
   #"yes" if you want to add these layers 
   ADDITIONAL_WALKABILITY_LAYERS: "yes" 
   OSM_MAPPING_FEATURE: "yes"
@@ -39,7 +39,7 @@ DATA_REFINEMENT_VARIABLES:
       "AX_IndustrieUndGewerbeflaeche"
     ]
     custom_landuse_with_residents_name: ["%seniorenheim%"]
-    osm_landuse_no_residents: ["farmyard","quarry","industrial","retail","commercial","military","cemetery","landfill","allotments","recreation ground","railway"]
+    osm_landuse_no_residents: ["farmyard","farmland","quarry","industrial","retail","commercial","forest","military","cemetery","landfill","allotments","recreation ground","railway"]
     #All buildings that can be potentially residential
     building_types_potentially_residential: ["yes"]
     #All buildings that are definitely residential
@@ -143,7 +143,7 @@ DATA_REFINEMENT_VARIABLES:
       restaurant:   
         vapiano: ['%vapiano%']
       nursery:
-        kinderkrippe: []
+        kinderkrippe: ['%krippe%','%kindergrippe%']
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------------------Amenity parameters for POIS preparation leisure and schools------------------------##
     ##----------------------------------------------------------------------------------------------------------##
