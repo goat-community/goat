@@ -1442,11 +1442,11 @@
           "default": "standard",
           "options": [
             {
-              "value": "",
+              "value": "standard",
               "speed": 3
             },
             {
-              "value": "",
+              "value": "electric",
               "speed": 6
             }
           ]
