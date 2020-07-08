@@ -663,8 +663,10 @@
         "opening_hours": "Opening Hours (Optional)"
       },
       "buildings": {
+        "building": "Building Type",
         "building_levels": "Building Levels",
-        "building_type": "Building Type"
+        "building_levels_residential": "Building levels residential",
+        "population": "Number residents (optional)"
       }
     },
     "listValues": {
@@ -679,6 +681,12 @@
         "unpaved": "Unpaved",
         "yes": "Yes",
         "no": "No"
+      },
+      "buildings": {
+        "residential": "Residential",
+        "commercial": "Commercial",
+        "public": "Public"
+  
       }
     }
   },

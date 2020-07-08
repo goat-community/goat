@@ -642,6 +642,12 @@
         "amenity": "Einrichtung",
         "name": "Name (Optional)",
         "opening_hours": "Öffnungszeiten (Optional)"
+      },
+      "buildings":{
+      "building": "Gebäudetyp",
+      "building_levels": "Anzahl Geschosse",
+      "building_levels_residential": "Anzahl Geschosse Wohnen",
+      "population": "Einwohneranzahl (optional)"
       }
     },
     "listValues": {
@@ -656,6 +662,12 @@
         "unpaved": "Unbefestigt",
         "yes": "Ja",
         "no": "Nein"
+      },
+      "buildings": {
+        "residential": "Wohnen",
+        "commercial": "Gewerbe",
+        "public": "Öffentliche Einrichtung"
+  
       }
     }
   }
