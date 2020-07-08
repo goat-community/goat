@@ -309,11 +309,20 @@ AND ST_Intersects(b.geom,w.geom);
 --Mark network islands in the network
 INSERT INTO osm_way_classes(class_id,name) values(701,'network_island');
 
+DROP TABLE IF EXISTS network_islands; 
+CREATE TABLE network_islands AS 
 WITH RECURSIVE ways_no_islands AS (
-	SELECT id,geom
-	FROM ways
-	WHERE id = 1
-	UNION
+	SELECT id,geom FROM 
+	(SELECT id,geom
+	FROM ways w
+	WHERE w.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'excluded_class_id_walking')
+	AND w.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'excluded_class_id_cycling')
+	AND (
+	(w.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') OR foot IS NULL)
+	OR
+	(w.bicycle NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'categories_no_bicycle') OR bicycle IS NULL))
+	LIMIT 1) x
+	UNION 
 	SELECT w.id,w.geom
 	FROM ways w, ways_no_islands n
 	WHERE ST_Intersects(n.geom,w.geom)
@@ -325,22 +334,28 @@ WITH RECURSIVE ways_no_islands AS (
 	(w.bicycle NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'categories_no_bicycle') OR bicycle IS NULL)
 )  
 ) 
-UPDATE ways SET class_id = 701 
+SELECT w.id  
 FROM (
 	SELECT w.id
 	FROM ways w
 	LEFT JOIN ways_no_islands n
 	ON w.id = n.id
 	WHERE n.id IS null
-) x
-WHERE ways.id = x.id
-AND ways.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'excluded_class_id_walking')
-AND ways.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'excluded_class_id_cycling')
+) x, ways w
+WHERE w.id = x.id
+AND w.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'excluded_class_id_walking')
+AND w.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'excluded_class_id_cycling')
 AND (
- 	(ways.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') OR foot IS NULL)
+ 	(w.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') OR foot IS NULL)
 	OR
-	(ways.bicycle NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'categories_no_bicycle') OR bicycle IS NULL)
+	(w.bicycle NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'categories_no_bicycle') OR bicycle IS NULL)
 ); 
+
+ALTER TABLE network_island ADD PRIMARY KEY(id);
+UPDATE ways w SET class_id = 701
+FROM network_islands n
+WHERE w.id = n.id; 
+
 
 ALTER TABLE ways_vertices_pgr ADD COLUMN class_ids int[];
 ALTER TABLE ways_vertices_pgr ADD COLUMN foot text[];

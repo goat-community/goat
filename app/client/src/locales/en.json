@@ -541,6 +541,7 @@
     "education": "Education",
     "foodAndDrink": "Food and Drink",
     "transport": "Transport",
+    "mobilitystations": "Mobility Stations",
     "services": "Services",
     "shop": "Shop",
     "tourismAndLeisure": "Tourism & Leisure",
@@ -565,6 +566,15 @@
     "subway_entrance": "U-Bahn station",
     "rail_station": "Rail Station",
     "taxi": "Taxi",
+    "bikesharing_ffb": "Bikesharing-Stations",
+    "carsharing_ffb": "Carsharing-Stations",
+    "charging_station_marker_ffb": "E-Charging Station privat",
+    "charging_station_other_ffb": "E-Charging Station privat (under construction)",
+    "charging_station_public_ffb": "E-Charging Station public",
+    "e_parking_ffb": "E-Parking",
+    "l-station_ffb": "L-Station",
+    "s-station_prio1_ffb": "S-Station Prio 1",
+    "s-station_prio2_ffb": "S-Station Prio 2",
     "hairdresser": "Hairdresser",
     "atm": "ATM",
     "bank": "Bank",
@@ -653,8 +663,10 @@
         "opening_hours": "Opening Hours (Optional)"
       },
       "buildings": {
+        "building": "Building Type",
         "building_levels": "Building Levels",
-        "building_type": "Building Type"
+        "building_levels_residential": "Building levels residential",
+        "population": "Number residents (optional)"
       }
     },
     "listValues": {
@@ -669,6 +681,12 @@
         "unpaved": "Unpaved",
         "yes": "Yes",
         "no": "No"
+      },
+      "buildings": {
+        "residential": "Residential",
+        "commercial": "Commercial",
+        "public": "Public"
+  
       }
     }
   },

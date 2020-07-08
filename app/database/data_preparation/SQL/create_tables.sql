@@ -169,9 +169,9 @@ CREATE TABLE buildings_modified
 (
 	gid serial,
 	building TEXT NOT NULL,
-	building_levels integer NOT NULL,
-	building_levels_residential integer NOT NULL,
-	population numeric,
+	building_levels numeric NOT NULL,
+	building_levels_residential numeric NOT NULL,
+	population NUMERIC,
 	geom geometry NULL,
 	userid integer NOT NULL,
 	original_id integer,

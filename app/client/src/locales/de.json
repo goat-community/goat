@@ -139,8 +139,13 @@
       "selectOnMap": "Objekte auf Karte auswählen",
       "editTools": "Bearbeitungstools",
       "drawFeatureTooltip": "Objekt zeichnen",
+      "addBldEntrance": "Gebäudeeingang hinzufügen",
       "modifyFeatureTooltip": "Objekt ändern",
       "deleteFeature": "Objekt löschen",
+      "moveFeature": "Objekt verschieben",
+      "modifyAttributes": "Eigenschaften bearbeiten",
+      "drawPolygonHole": "Polygonausparung hinzufügen",
+      "snapGuide": "Zeichenhilfe",
       "clearBtn": "Reset",
       "uploadBtn": "Hochladen",
       "popup": {
@@ -527,6 +532,7 @@
     "education": "Bildung",
     "foodAndDrink": "Essen und Trinken",
     "transport": "Transport",
+    "mobilitystations": "Mobilitätsstationen",
     "services": "Dienstleistungen",
     "shop": "Einkaufen",
     "tourismAndLeisure": "Tourismus & Freizeit",
@@ -551,6 +557,15 @@
     "subway_entrance": "U-Bahn-Station",
     "rail_station": "Bahnhof",
     "taxi": "Taxi",
+    "bikesharing_ffb": "Radlverleih-Stationen",
+    "carsharing_ffb": "Carsharing-Stationen",
+    "charging_station_marker_ffb": "E-Ladesäulen privat",
+    "charging_station_other_ffb": "E-Ladesäulen privat (im Bau)",
+    "charging_station_public_ffb": "E-Ladesäulen öffentlich",
+    "e_parking_ffb": "E-Stellplätze",
+    "l-station_ffb": "L-Station",
+    "s-station_prio1_ffb": "S-Station Prio 1",
+    "s-station_prio2_ffb": "S-Station Prio 2",
     "hairdresser": "Friseur",
     "atm": "Geldautomat",
     "bank": "Bank",
@@ -637,6 +652,12 @@
         "amenity": "Einrichtung",
         "name": "Name (Optional)",
         "opening_hours": "Öffnungszeiten (Optional)"
+      },
+      "buildings":{
+      "building": "Gebäudetyp",
+      "building_levels": "Anzahl Geschosse",
+      "building_levels_residential": "Anzahl Geschosse Wohnen",
+      "population": "Einwohneranzahl (optional)"
       }
     },
     "listValues": {
@@ -651,6 +672,12 @@
         "unpaved": "Unbefestigt",
         "yes": "Ja",
         "no": "Nein"
+      },
+      "buildings": {
+        "residential": "Wohnen",
+        "commercial": "Gewerbe",
+        "public": "Öffentliche Einrichtung"
+  
       }
     }
   }

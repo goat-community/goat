@@ -1,4 +1,6 @@
 --CREATE copy of population for scenarios
+SELECT setval('buildings_modified_gid_seq', (SELECT MAX(gid) FROM buildings));
+
 DROP TABLE IF EXISTS population_userinput;
 CREATE TABLE population_userinput (like population INCLUDING ALL);
 INSERT INTO population_userinput

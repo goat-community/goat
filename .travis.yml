@@ -9,6 +9,7 @@ branches:
     - matosinhos
     - hasenbergl
     - muenchen
+    - freising
     - test_travis
 
 before_install:

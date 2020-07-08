@@ -22,7 +22,7 @@ BEGIN
 	->'||quote_literal(new_name)||'), '||'''%'''||'))
  	AND
 	amenity = '|| quote_literal(old_name)||'';
-	ELSIF restriction = 'rigth' THEN 
+	ELSEIF restriction = 'rigth' THEN 
 	
 	EXECUTE 'UPDATE pois 
 	SET '|| quote_ident(new_col) ||' = '|| quote_literal(new_name) ||'

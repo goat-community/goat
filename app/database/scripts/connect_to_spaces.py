@@ -114,3 +114,10 @@ def download_file(space_name, region_name, file_name, local_path):
     #USAGE: download_file('space_name', 'nyc3', 'file_in_space.txt', 'file.txt')
 
 #upload_file('goat','fra1','setup_db.py','setup_db.py')
+
+def download_raw_data(space_name, region_name, dir):
+    fnames = list_files(space_name,region_name, dir)
+    for i in fnames[1:]:
+        download_file(space_name,region_name, i , '/opt/data/'+i.split('/')[-1])
+
+#download_raw_data('goat', 'fra1','raw_data/'+'ffb')

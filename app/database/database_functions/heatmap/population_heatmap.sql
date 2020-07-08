@@ -25,7 +25,8 @@ BEGIN
 		WHERE ST_Intersects(g.geom,p.geom)
 		GROUP BY g.grid_id, g.population, g.geom
 	) 
-	SELECT * FROM sum_pop
+	SELECT s.grid_id, s.population::float, s.percentile_population, s.geom 
+	FROM sum_pop s
 	UNION ALL 
 	SELECT g.grid_id, g.population, g.percentile_population, g.geom
 	FROM grid_500 g

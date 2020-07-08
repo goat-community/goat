@@ -96,7 +96,7 @@ def setup_db(setup_type):
         if glob.glob('custom_pois/*.geojson'):
             geojson_to_sql(db_name_temp,user,host,port,password)
             db_temp.execute_text_psql(f'DELETE FROM custom_pois WHERE NOT ST_INTERSECTS(geom,ST_MAKEENVELOPE({left},{bottom},{right},{top}, 4326))')
-
+            
     #Use OSM-Update-Tool in order to fetch the most recent data
     if (osm_data_recency == 'most_recent'):
         #Take last timestamp
@@ -165,6 +165,7 @@ def setup_db(setup_type):
             elif(source_population == 'distribution'):
                 db_temp.execute_script_psql('../data_preparation/SQL/population_distribution.sql')
 
+            db_temp.execute_script_psql('../data_preparation/SQL/create_population_userinput.sql')
     if (setup_type in ['new_setup','all','network']):
         os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} osm2pgrouting --dbname {db_name_temp} --host {host} --username {user} --file "study_area.osm" --conf ../mapconfig.xml --clean') 
         db_temp.execute_script_psql('../data_preparation/SQL/network_preparation.sql')
