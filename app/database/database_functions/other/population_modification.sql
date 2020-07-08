@@ -8,14 +8,14 @@ DECLARE
 BEGIN 
 	DELETE FROM population_userinput WHERE userid = userid_input;
 
-	INSERT INTO population_userinput (building_levels, building_levels_residential, area, geom, population, building_gid, userid)
+	INSERT INTO population_userinput (geom, population, building_gid, userid)
 	WITH count_pop AS (
 		SELECT count(*) AS count_points, building_gid
 		FROM population_modified 
 		WHERE userid = userid_input
 		GROUP BY building_gid 
 	)
-	SELECT b.building_levels, building_levels_residential, ST_AREA(b.geom::geography)::integer, p.geom,
+	SELECT p.geom,
 	CASE WHEN b.population IS NULL THEN (b.building_levels_residential * ST_AREA(b.geom::geography)/average_gross_living_area)/c.count_points ELSE b.population/c.count_points END AS population, 
 	b.gid, userid_input
 	FROM buildings_modified b, population_modified p, count_pop c  
@@ -27,4 +27,3 @@ BEGIN
 	AND b.building = 'residential';
 END
 $function$;
-
