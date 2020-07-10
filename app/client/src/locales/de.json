@@ -148,6 +148,7 @@
       "snapGuide": "Zeichenhilfe",
       "clearBtn": "Reset",
       "uploadBtn": "Hochladen",
+      "addEntrancesForBuildings": "Um den <b>Hochladen</b> Button zu aktivieren, müssen zu allen Gebäuden Eingänge hinzugefügt werden",
       "popup": {
         "deleteFeatureMsg": "Möchten Sie das ausgewählte Feature wirklich löschen?",
         "selectWayType": "Art des Weges auswählen: ",
@@ -403,6 +404,11 @@
       "clickToPlacePoint": "Klicken, um den Punkt zu platzieren",
       "changeDefaultColorPalette": "Farbe ändern (Standard)",
       "changeScenarioColorPalette": "Farbe ändern (Szenario)",
+      "clickToBldEntrance": "Auf das Gebäude klicken, um Eingang hinzuzufügen <br>Klicken und ziehen, um das Gebäude zu modifizieren <br>Rechtsklick, um das Objekt zu löschen",
+      "clickToBldEntranceNotAllowed": "Hier kann kein Eingang hinzugefügt werden. Klicken Sie auf ein neu hinzugefügtes Gebäude.",
+      "moveExistingBuildingNotAllowed": "Klicken Sie auf ein neu hinzugefügtes Gebäude, um dieses zu verschieben.",
+      "modifyExistingBuildingNotAllowed": "Klicken Sie auf ein neu hinzugefügtes Gebäude, um dieses zu modifizieren.",
+      "openDocumentation": "Dokumentation öffnen",
       "routingProfiles": {
         "walking": {
           "title": "Fußgänger",
