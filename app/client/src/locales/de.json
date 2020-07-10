@@ -321,7 +321,7 @@
       "title": "Legende Layer"
     },
     "snackbarMessages": {
-      "selectAmenities": "Mind. ein Ziel auswählen",
+      "selectAmenities": "Mind. ein Point-of-Interest (Thematische Daten) auswählen",
       "calculateIsochroneError": "Hier ist leider keine Berechnung möglich.",
       "uploadScenarioSuccess": "Objekte wurden erfolgreich hochgeladen.",
       "uploadScenarioError": "Leider ist beim Hochladen der Objekte in die Datenbank ein Fehler aufgetreten.",
@@ -401,6 +401,8 @@
       "clickAndDragToModify": "Objekt anklicken und ziehen, um es zu verändern",
       "clickToRemove": "Zum Entfernen klicken",
       "clickToPlacePoint": "Klicken, um den Punkt zu platzieren",
+      "changeDefaultColorPalette": "Farbe ändern (Standard)",
+      "changeScenarioColorPalette": "Farbe ändern (Szenario)",
       "routingProfiles": {
         "walking": {
           "title": "Fußgänger",
