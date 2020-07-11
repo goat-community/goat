@@ -282,7 +282,7 @@
     },
     "isochrones": "Isochronen",
     "deleteTitle": "Löschen",
-    "deleteMessage": "Soll Berechnung wirklich gelöscht werden?",
+    "deleteMessage": "Soll Berechnung wirklich gelöscht werden",
     "download": {
       "title": "Isochronen herunterladen",
       "fileName": "Dateiname",
