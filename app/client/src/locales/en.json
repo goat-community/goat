@@ -400,8 +400,8 @@
       "changeScenarioColorPalette": "Change color (scenario)",
       "clickToBldEntrance": "Click building to add entrance <br>Click and drag to modify <br>Right-click on feature to delete",
       "clickToBldEntranceNotAllowed": "Can't add an entrance here. Click on a new drawn building.",
-      "moveExistingBuildingNotAllowed": "Hover on a new drawn building to move activate move function",
-      "modifyExistingBuildingNotAllowed": "Hover on a new drawn building to move activate modify function",
+      "moveExistingBuildingNotAllowed": "Hover on a new drawn building to activate move function",
+      "modifyExistingBuildingNotAllowed": "Hover on a new drawn building to activate modify function",
       "openDocumentation": "Open Documentation",
       "routingProfiles": {
         "walking": {
