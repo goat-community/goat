@@ -171,6 +171,7 @@ CREATE TABLE buildings_modified
 	building TEXT NOT NULL,
 	building_levels numeric NOT NULL,
 	building_levels_residential numeric NOT NULL,
+	gross_floor_area integer,
 	population NUMERIC,
 	geom geometry NULL,
 	userid integer NOT NULL,
