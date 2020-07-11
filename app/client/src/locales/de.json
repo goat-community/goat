@@ -347,8 +347,8 @@
       "administrativeUnits": "Administrative Grenzen",
       "accidents_pedestrian_2018": "Unfälle mit Fußgängern (2018)",
       "accidents_pedestrian_2017": "Unfälle mit Fußgängern (2017)",
-      "accidents_bike_2018":"Unfälle mit Radfahrern (2018)",
-      "accidents_bike_2017":"Unfälle mit Radfahrern (2017)",
+      "accidents_bike_2018": "Unfälle mit Radfahrern (2018)",
+      "accidents_bike_2017": "Unfälle mit Radfahrern (2017)",
       "biotops": "Biotope",
       "ffh-area": "FFH-Gebiete",
       "natureReserves": "Naturschutzgebiete",
@@ -433,8 +433,17 @@
           }
         },
         "walking_wheelchair": {
-          "title": "Rollstuhl",
-          "tooltip": "Routing berücksichtigt nur barrierefreie Wege und Ziele"
+          "title": "Routing berücksichtigt nur barrierefreie Wege und Ziele",
+          "options": {
+            "standard": {
+              "title": "Standard",
+              "tooltip": "Default Routing"
+            },
+            "electric": {
+              "title": "Electric",
+              "tooltip": "Electric"
+            }
+          }
         }
       },
       "zoomToFeature": "Zum Objekt zoomen",
@@ -508,7 +517,8 @@
           "stepsDesc": {
             "clickFeatureInMap": "Die roten Polygone in der Karte zeigen die Mapping-Aufgaben. Wählen Sie eine davon aus.",
             "clickEditWithOsm": "Durch Klicken auf den <b>'In OSM bearbeiten'</b> Link werden Sie zum OSM iD-Editor weitergeleitet.",
-            "fillInOSMiD": "Editieren Sie das Attribut 'building' im OSM Editor. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki. Die fehlenden Informationen können z.B. anhand von Mapillary-Aufnahmen und Luftbildern oder durch einen Vor-Ort Besuch ermittelt werden."}
+            "fillInOSMiD": "Editieren Sie das Attribut 'building' im OSM Editor. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki. Die fehlenden Informationen können z.B. anhand von Mapillary-Aufnahmen und Luftbildern oder durch einen Vor-Ort Besuch ermittelt werden."
+          }
         }
       },
 
