@@ -145,7 +145,7 @@
         "Uploaded": "Uploaded",
         "NotUploaded": "Not Uploaded"
       },
-      "activateLayerToDrawScenario": "Plese activate the layer to be able to select features",
+      "activateLayerToDrawScenario": "Please activate the layer to be able to select features",
       "dataTypeInfo": "Data type should be",
       "geometryTypeInfo": "Geometry type should be",
       "requiredFields": "Required Fields",
@@ -350,6 +350,7 @@
       "protectedLandscape": "Protected Landscape Areas",
       "landuse": "Landuse (ATKIS)",
       "landuse_osm": "Landuse (OSM)",
+      "zoningPlan": "Zoning Plan",
       "footpathWidth": "Footpath Width",
       "illuminance": "Illuminance",
       "lanes": "Lanes",
