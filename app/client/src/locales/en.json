@@ -666,7 +666,8 @@
         "building": "Building Type",
         "building_levels": "Building Levels",
         "building_levels_residential": "Building levels residential",
-        "population": "Number residents (optional)"
+        "population": "Number residents (optional)",
+        "gross_floor_area": "Gross Flor Area (optional)"
       }
     },
     "listValues": {
@@ -686,7 +687,6 @@
         "residential": "Residential",
         "commercial": "Commercial",
         "public": "Public"
-  
       }
     }
   },

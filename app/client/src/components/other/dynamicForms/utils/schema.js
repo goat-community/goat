@@ -98,7 +98,7 @@ schemaUtils.getRules = (fullSchema, required, options, data) => {
       ) {
         const key =
           layerConfig.fieldsConfig[fullSchema.key].linkedValidationWith;
-        if (data[key]) {
+        if (data[key] || val) {
           return true;
         } else {
           return options.requiredMessage;
@@ -123,8 +123,12 @@ schemaUtils.getRules = (fullSchema, required, options, data) => {
       ) {
         const key =
           layerConfig.fieldsConfig[fullSchema.key].linkedValidationWith;
-        if (data[key]) {
-          return true;
+        if (data[key] || val) {
+          if (0 <= val < 0.01) {
+            return i18n.t("textFieldRules.greaterThanZero");
+          } else {
+            return true;
+          }
         } else {
           return i18n.t("textFieldRules.greaterThanZero");
         }
