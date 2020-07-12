@@ -251,11 +251,11 @@ SELECT pois_reclassification_array('name','supermarket','amenity','health_food',
 
 UPDATE pois SET amenity = 'organic'
 WHERE organic = 'only'
-AND amenity = 'supermarket';
+AND (amenity = 'supermarket' OR amenity = 'convenience');
 
 UPDATE pois SET amenity = 'international_supermarket'
 WHERE origin is not null
-AND amenity = 'supermarket';
+AND (amenity = 'supermarket' OR amenity = 'convenience');
 
 /*End*/
 
