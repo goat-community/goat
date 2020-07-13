@@ -12,7 +12,7 @@ grid_size = 500
 
 grid = 'grid_'+str(500)
 
-sensitivities = [150000,200000,250000,300000,350000,400000,450000]
+sensitivities = [150000,200000,250000,300000,350000,400000,450000,550000,750000,800000,900000,950000,1000000]
 
 start = time.time()
 with open("/opt/config/goat_config.yaml", 'r') as stream:
