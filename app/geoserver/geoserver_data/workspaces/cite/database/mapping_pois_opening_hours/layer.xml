@@ -1,0 +1,15 @@
+<layer>
+  <name>mapping_pois_opening_hours</name>
+  <id>LayerInfoImpl--235fe2ae:1722d62e2d4:15da</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-314e65dc:168e2ce74d0:-d65</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--235fe2ae:1722d62e2d4:15d9</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

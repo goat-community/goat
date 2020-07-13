@@ -1,0 +1,20 @@
+<layer>
+  <name>landuse_osm</name>
+  <id>LayerInfoImpl-6eed1f5b:1719ca112ea:-3e97</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-6eed1f5b:1719ca112ea:-1ddb</id>
+  </defaultStyle>
+  <styles class="linked-hash-set">
+    <style>
+      <id>StyleInfoImpl-6eed1f5b:1719ca112ea:-1ddb</id>
+    </style>
+  </styles>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-6eed1f5b:1719ca112ea:-3e98</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

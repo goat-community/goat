@@ -10,18 +10,18 @@
     <string>features</string>
     <string>buildings_modified</string>
   </keywords>
-  <srs>EPSG:404000</srs>
+  <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>-1.0</minx>
-    <maxx>0.0</maxx>
-    <miny>-1.0</miny>
-    <maxy>0.0</maxy>
+    <minx>48.150691986084</minx>
+    <maxx>48.163387298584</maxx>
+    <miny>11.5890588760376</miny>
+    <maxy>11.631760597229</maxy>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>-1.0</minx>
-    <maxx>0.0</maxx>
-    <miny>-1.0</miny>
-    <maxy>0.0</maxy>
+    <minx>48.150691986084</minx>
+    <maxx>48.163387298584</maxx>
+    <miny>11.5890588760376</miny>
+    <maxy>11.631760597229</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>

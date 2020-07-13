@@ -1,0 +1,20 @@
+<layer>
+  <name>landuse_atkis</name>
+  <id>LayerInfoImpl-6eed1f5b:1719ca112ea:-7ffc</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-6eed1f5b:1719ca112ea:-7fed</id>
+  </defaultStyle>
+  <styles class="linked-hash-set">
+    <style>
+      <id>StyleInfoImpl-6eed1f5b:1719ca112ea:-7fed</id>
+    </style>
+  </styles>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-6eed1f5b:1719ca112ea:-7ffd</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

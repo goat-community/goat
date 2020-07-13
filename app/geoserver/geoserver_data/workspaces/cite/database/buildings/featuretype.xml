@@ -1,5 +1,5 @@
 <featureType>
-  <id>FeatureTypeInfoImpl-673d21bb:1710d5f9b10:-7ff9</id>
+  <id>FeatureTypeInfoImpl--54bec574:171da587f1f:-7ffb</id>
   <name>buildings</name>
   <nativeName>buildings</nativeName>
   <namespace>
@@ -36,6 +36,9 @@
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
   <enabled>true</enabled>
+  <metadata>
+    <entry key="cachingEnabled">false</entry>
+  </metadata>
   <store class="dataStore">
     <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
   </store>

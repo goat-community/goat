@@ -138,11 +138,13 @@ FROM
 CREATE TABLE public.ways_modified
 (
     id bigint NOT NULL,
-    class_id integer,
     geom geometry(LineString,4326),
+    way_type text,
+	surface text,
+	wheelchair text,
+	street_category text,
     userid integer,
     original_id integer,
-	type varchar(20),
 	status bigint,
     CONSTRAINT ways_modified_id_pkey PRIMARY KEY (id)
 );
@@ -166,15 +168,30 @@ CREATE INDEX ON pois_modified USING gist(geom);
 CREATE TABLE buildings_modified
 (
 	gid serial,
-	building_levels integer,
-	building_type text,
-	geom geometry,
-	userid integer,
+	building TEXT NOT NULL,
+	building_levels numeric NOT NULL,
+	building_levels_residential numeric NOT NULL,
+	gross_floor_area integer,
+	population NUMERIC,
+	geom geometry NULL,
+	userid integer NOT NULL,
 	original_id integer,
 	CONSTRAINT buildings_modified_gid_pkey PRIMARY KEY(gid)
 );
 
 CREATE INDEX ON buildings_modified USING GIST(geom);
+
+CREATE TABLE population_modified
+(
+	gid serial,
+	building_gid integer,
+	population numeric,
+	geom geometry(POINT, 4326) NULL,
+	userid integer,
+	CONSTRAINT population_modified_gid_pkey PRIMARY KEY(gid)
+);
+
+CREATE INDEX ON population_modified USING GIST(geom);
 
 DROP SEQUENCE IF EXISTS user_data_id_seq;
 CREATE SEQUENCE user_data_id_seq;

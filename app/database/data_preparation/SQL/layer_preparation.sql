@@ -1,51 +1,4 @@
 --THIS FILE NEEDS TO BE EXECUTED TO CREATE ALL NECESSARY TABLES FOR THE STREET LEVEL QUALITY LAYERS
---Creation of a table that stores all street crossings
-
-ALTER TABLE planet_osm_point 
-	ADD COLUMN crossing text, ADD COLUMN traffic_signals text;
-
-UPDATE planet_osm_point p
-SET crossing = l.crossing, traffic_signals = l.traffic_signals
-FROM (select osm_id, (tags -> 'crossing') AS crossing, 
-	(tags -> 'traffic_signals') AS traffic_signals
-	from planet_osm_point p) l
-WHERE p.osm_id = l.osm_id;
-
-DROP TABLE IF EXISTS crossings;
-CREATE TABLE crossings AS
-(SELECT osm_id, highway, way, traffic_signals, crossing FROM planet_osm_point WHERE highway = 'crossing' 
-	OR (highway = 'traffic_signals' AND traffic_signals = 'pedestrian_crossing'));
-
-ALTER TABLE planet_osm_point 
-	ADD COLUMN crossing text, ADD COLUMN traffic_signals text;
-
-UPDATE planet_osm_point p
-SET crossing = l.crossing, traffic_signals = l.traffic_signals
-FROM (select osm_id, (tags -> 'crossing') AS crossing, 
-	(tags -> 'traffic_signals') AS traffic_signals
-	from planet_osm_point p) l
-WHERE p.osm_id = l.osm_id;
-
-DROP TABLE IF EXISTS crossings;
-CREATE TABLE crossings AS
-(SELECT osm_id, highway, way, traffic_signals, crossing FROM planet_osm_point WHERE highway = 'crossing' 
-	OR (highway = 'traffic_signals' AND traffic_signals = 'pedestrian_crossing'));
-
-ALTER TABLE crossings 
-	ADD COLUMN crossing_ref text, 
-	ADD COLUMN kerb text, ADD COLUMN segregated text, 
-	ADD COLUMN supervised text, ADD COLUMN tactile_paving text,
-	ADD COLUMN wheelchair text;
-	 
-UPDATE crossings 
-SET crossing_ref = l.crossing_ref, kerb = l.kerb, segregated = l.segregated, supervised = l.supervised, 
-	tactile_paving = l.tactile_paving, wheelchair = l.wheelchair
-FROM (select osm_id, (tags -> 'crossing') AS crossing, 
-	(tags -> 'crossing_ref') AS crossing_ref, (tags -> 'kerb') AS kerb, 
-	(tags -> 'segregated') AS segregated, (tags -> 'supervised') AS supervised, 
-	(tags -> 'tactile_paving') AS tactile_paving, (tags -> 'wheelchair') AS wheelchair
-	FROM planet_osm_point p) l
-WHERE crossings.osm_id = l.osm_id;
 
 --Creation of a table that stores all sidewalk geometries
 DROP TABLE IF EXISTS ways_offset_sidewalk;
@@ -71,8 +24,8 @@ CREATE TABLE footpaths_union AS
 	END AS width, highway
 	FROM ways w, ways_offset_sidewalk o
 	WHERE w.id=o.id AND (o.sidewalk = 'both' OR o.sidewalk = 'left' OR o.sidewalk IS NULL)
-		AND w.class_id::text NOT IN (SELECT unnest(variable_array) from variable_container WHERE identifier = 'excluded_class_id_walking')
-		AND (w.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') 
+		AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
+		AND (w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
 		OR w.foot IS NULL)
 UNION
 	SELECT o.geom_right AS geom, o.sidewalk,
@@ -84,8 +37,8 @@ UNION
 	END AS width, highway
 	FROM ways w, ways_offset_sidewalk o
 	WHERE w.id=o.id AND (o.sidewalk = 'both' OR o.sidewalk = 'right' OR o.sidewalk IS NULL)
-		AND w.class_id::text NOT IN (SELECT unnest(variable_array) from variable_container WHERE identifier = 'excluded_class_id_walking')
-		AND (w.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') 
+		AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
+		AND (w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
 		OR w.foot IS NULL)
 UNION
 	SELECT geom, sidewalk, width, highway FROM ways
