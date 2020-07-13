@@ -1,7 +1,7 @@
 <featureType>
   <id>FeatureTypeInfoImpl-22fef441:16876478b09:-7fff</id>
   <name>heatmap_luptai</name>
-  <nativeName>heatmap_population</nativeName>
+  <nativeName>heatmap_luptai</nativeName>
   <namespace>
     <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
   </namespace>
@@ -39,10 +39,12 @@
   <metadata>
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
-        <name>heatmap_population</name>
-        <sql>SELECT grid_id, percentile_accessibility AS accessibility_index, percentile_population, &#xd;
-(percentile_population-percentile_accessibility) AS population_accessibility, geom  &#xd;
-FROM heatmap_geoserver(%userid%,convert_from(decode(%amenities%,&apos;base64&apos;), &apos;UTF-8&apos;)::jsonb,2)
+        <name>heatmap_luptai</name>
+        <sql>SELECT h.grid_id, h.percentile_accessibility AS accessibility_index, p.percentile_population, &#xd;
+(p.percentile_population-h.percentile_accessibility) AS population_accessibility, h.geom  &#xd;
+FROM heatmap_geoserver(%userid%, convert_from(decode(%amenities%,&apos;base64&apos;), &apos;UTF-8&apos;)::jsonb,2) h, &#xd;
+population_heatmap(%userid%) p &#xd;
+WHERE p.grid_id = h.grid_id
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>

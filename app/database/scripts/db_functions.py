@@ -3,38 +3,48 @@
 
 import yaml, os, psycopg2, glob
 class ReadYAML:
+    with open("/opt/config/db/db.yaml", 'r') as stream:
+        db_conf = yaml.load(stream, Loader=yaml.FullLoader)
+  
     with open("/opt/config/goat_config.yaml", 'r') as stream:
-        conf = yaml.load(stream, Loader=yaml.FullLoader)
-   
-    db_conf = conf["DATABASE"]
-    source_conf = conf["DATA_SOURCE"]
-    refinement_conf = conf["DATA_REFINEMENT_VARIABLES"]
+        goat_conf = yaml.load(stream, Loader=yaml.FullLoader)
+    
+    with open("/opt/config/osm_mapping_config.yaml", 'r') as stream:
+        osm_mapping_conf = yaml.load(stream, Loader=yaml.FullLoader)
+
+    source_conf = goat_conf["DATA_SOURCE"]
+    refinement_conf = goat_conf["DATA_REFINEMENT_VARIABLES"]
 
     def db_credentials(self):
         return self.db_conf["DB_NAME"],self.db_conf["USER"],self.db_conf["HOST"],self.db_conf["PORT"],self.db_conf["PASSWORD"]
     def data_source(self):
-        return self.source_conf["OSM_DOWNLOAD_LINK"],self.source_conf["OSM_DATA_RECENCY"],self.source_conf["BUFFER_BOUNDING_BOX"],self.source_conf["EXTRACT_BBOX"],self.refinement_conf["POPULATION"],self.refinement_conf["ADDITIONAL_WALKABILITY_LAYERS"]
+        return self.source_conf["OSM_DOWNLOAD_LINK"],self.source_conf["OSM_DATA_RECENCY"],self.source_conf["BUFFER_BOUNDING_BOX"],self.source_conf["EXTRACT_BBOX"],self.refinement_conf["POPULATION"],self.refinement_conf["ADDITIONAL_WALKABILITY_LAYERS"],self.refinement_conf["OSM_MAPPING_FEATURE"]
     def data_refinement(self):
         return self.refinement_conf
-    def create_pgpass(self,db_prefix):
-        db_name = self.db_conf["DB_NAME"]+db_prefix
-        os.system('echo '+':'.join([self.db_conf["HOST"],str(self.db_conf["PORT"]),db_name,self.db_conf["USER"],self.db_conf["PASSWORD"]])+' > /.pgpass')
-        os.system("chmod 600 /.pgpass")
-    
+    def create_pgpass(self,db_prefix,user):
+        db_name = self.db_conf["DB_NAME"] + db_prefix
+        os.system('echo '+':'.join([self.db_conf["HOST"],str(self.db_conf["PORT"]),db_name,user,self.db_conf["PASSWORD"]])+f' > ~/.pgpass_{db_name}')
+        os.system(f'chmod 600  ~/.pgpass_{db_name}')
+    def mapping_conf(self):
+        return self.osm_mapping_conf
+
 class DB_connection:
-    def __init__(self, db_name, user, host):
+    def __init__(self, db_name, user, host,port,password):
         self.db_name = db_name
         self.user = user
         self.host = host
+        self.port = port 
+        self.password = password
 
     def execute_script_psql(self,script):
-        os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (self.db_name,self.user,self.host,script))
+        os.system(f'PGPASSFILE=~/.pgpass_{self.db_name} psql -d {self.db_name} -U {self.user} -h {self.host} -f {script}')
     def execute_text_psql(self,script):
-        os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -c "%s"' % (self.db_name,self.user,self.host,script))
-    def con_psycopg(self,port,password):
+        os.system(f'PGPASSFILE=~/.pgpass_{self.db_name} psql -d {self.db_name} -U {self.user} -h {self.host} -c "{script}"')
+    def con_psycopg(self):
         con = psycopg2.connect("dbname='%s' user='%s' host='%s' port = '%s' password='%s'" % (
-        self.db_name,self.user,port,self.host,password))
-        return con.cursor()
+        self.db_name,self.user,self.host,self.port,self.password))
+        return con, con.cursor()
+
 
 def create_variable_container(db_name,user,port,host,password):
     import json 
@@ -51,9 +61,12 @@ def create_variable_container(db_name,user,port,host,password):
 	variable_object jsonb NULL,
 	CONSTRAINT variable_container_pkey PRIMARY KEY (identifier)
     );'''
-    variable_object = ReadYAML().data_refinement()['variable_container']
-    sql_simple = "INSERT INTO variable_container(identifier,variable_simple) VALUES('%s',%s);\n"
-    sql_array = "INSERT INTO variable_container(identifier,variable_array) VALUES('%s',ARRAY%s);\n"
+    
+    variable_object = {**ReadYAML().data_refinement()['variable_container'],**ReadYAML().mapping_conf()}
+
+    sql_simple = "INSERT INTO variable_container(identifier,variable_simple) VALUES('%s',%s);"
+    sql_array = "INSERT INTO variable_container(identifier,variable_array) VALUES('%s',ARRAY%s);"
+    sql_object = "INSERT INTO  variable_container(identifier,variable_object) SELECT '%s', jsonb_build_object(%s);"
     sql_insert=''
 
     cursor.execute(sql_create_table)
@@ -72,8 +85,8 @@ def create_variable_container(db_name,user,port,host,password):
 def update_functions():
     from pathlib import Path
     import glob
-    db_name,user,host = ReadYAML().db_credentials()[:3]
-    db = DB_connection(db_name,user,host)
+    db_name,user,host,port,password = ReadYAML().db_credentials()
+    db = DB_connection(db_name,user,host,port,password)
     db.execute_script_psql('/opt/data_preparation/SQL/types.sql')
     for p in ['/opt/database_functions/other','/opt/database_functions/network','/opt/database_functions/routing','/opt/database_functions/heatmap','/opt/database_functions/data_preparation']:
         for file in Path(p).glob('*.sql'):
@@ -159,3 +172,11 @@ def restore_db(namespace):
     os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'temp'))
     os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name+'temp',db_name))
 
+def load_js_lib():
+    import os 
+    db_name,user = ReadYAML().db_credentials()[:2]
+    os.system(f'psql -U {user} -d {db_name} -c "DROP TABLE IF EXISTS plv8_js_modules;"')
+    os.system(f'psql -U {user} -d {db_name} -f /opt/database_functions/libs/plv8_js_modules.sql')
+    os.system(f'psql -U {user} -d {db_name} -c "ALTER DATABASE {db_name} SET plv8.start_proc TO plv8_require"')
+
+#load_js_lib()

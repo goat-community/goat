@@ -1,0 +1,15 @@
+<layer>
+  <name>dem_vec</name>
+  <id>LayerInfoImpl-630c3314:172b28fb4bb:-7ffe</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-630c3314:172b28fb4bb:-7ffd</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-630c3314:172b28fb4bb:-7fff</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

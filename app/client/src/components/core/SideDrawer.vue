@@ -10,7 +10,7 @@
       value="true"
       right
       :permanent="container === true"
-      width="300"
+      width="350"
       hide-overlay
       class="white left-shadow"
     >
@@ -38,7 +38,7 @@
       permanent
       right
       hide-overlay
-      class="green"
+      :color="activeColor.primary"
       :class="{ 'left-shadow': container === false }"
       width="50"
     >
@@ -50,12 +50,15 @@
                 <v-list-item
                   @click="toggleComponent(item.componentToShow)"
                   v-on="on"
-                  active-class="red--text"
-                  :style="
-                    activeUpComponent === item.componentToShow
-                      ? 'background-color: #99D19B;'
-                      : 'background-color: #4CAF50'
+                  v-show="
+                    !(osmMode === true && item.componentToShow !== 'map-filter')
                   "
+                  active-class="red--text"
+                  :style="[
+                    activeUpComponent === item.componentToShow
+                      ? { backgroundColor: activeColor.secondary }
+                      : { backgroundColor: activeColor.primary }
+                  ]"
                 >
                   <v-list-item-action>
                     <v-icon
@@ -75,7 +78,39 @@
           </template>
         </v-list>
         <v-list justify-end>
+          <!-- CHANGE LANGUAGE -->
           <language></language>
+
+          <!-- OSM MAP MODE -->
+          <v-tooltip left>
+            <template v-slot:activator="{ on }">
+              <v-list-item
+                v-on="on"
+                style="padding: 0 8px;"
+                @click="toggleOsmMapMode()"
+                :style="
+                  osmMode === true
+                    ? `background-color: ${activeColor.secondary};`
+                    : `background-color: ${activeColor.primary};`
+                "
+                class="mb-1"
+              >
+                <v-list-item-action style="min-width:35px;">
+                  <v-img
+                    :src="require(`../../assets/img/others/osm_icon.png`)"
+                    height="35"
+                    class="white--text"
+                  ></v-img>
+                </v-list-item-action>
+                <v-list-item-content>
+                  <v-list-item-title></v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </template>
+            <span>{{ $t("appBar.buttons.osmMapMode") }}</span>
+          </v-tooltip>
+
+          <!-- HOMEPAGE LINK -->
           <v-tooltip left>
             <template v-slot:activator="{ on }">
               <v-btn
@@ -85,7 +120,7 @@
                 target="_blank"
                 class="elevation-0 ma-0 py-1"
                 v-on="on"
-                color="#4CAF50"
+                :color="activeColor.primary"
               >
                 <v-icon color="white" large light>home</v-icon>
               </v-btn>
@@ -93,29 +128,10 @@
 
             <span>{{ $t("appBar.buttons.info") }}</span>
           </v-tooltip>
-
-          <!-- <template v-for="(item, index) in bottomItems">
-            <v-tooltip left :key="index">
-              <template v-slot:activator="{ on }">
-                <v-list-item
-                  href="http://open-accessibility.org"
-                  target="_blank"
-                  v-on="on"
-                >
-                  <v-list-item-action>
-                    <v-icon color="white" light v-html="item.icon"></v-icon>
-                  </v-list-item-action>
-                  <v-list-item-content>
-                    <v-list-item-title v-html="item.text"></v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item>
-              </template>
-              <span>{{ item.text }}</span>
-            </v-tooltip>
-          </template> -->
         </v-list>
       </v-layout>
     </v-navigation-drawer>
+    <confirm ref="confirm"></confirm>
 
     <!-- <component
       :visible="showDialog"
@@ -138,6 +154,9 @@ import DrawAndMeasure from "../drawAndMeasure/DrawAndMeasure";
 import Filter from "../layers/filter/Filter";
 import Edit from "../layers/edit/Edit";
 import Language from "./Language";
+import { mapMutations, mapGetters } from "vuex";
+import { EventBus } from "../../EventBus";
+import { mapFields } from "vuex-map-fields";
 
 export default {
   name: "app-sidebar",
@@ -184,7 +203,13 @@ export default {
     },
     bottomItems() {
       return [];
-    }
+    },
+    ...mapGetters("map", {
+      osmMode: "osmMode"
+    }),
+    ...mapFields("app", {
+      activeColor: "activeColor"
+    })
   },
   methods: {
     toggleComponent(component) {
@@ -199,12 +224,39 @@ export default {
       this.activeBottomComponent = component;
       this.showDialog = true;
     },
+    toggleOsmMapMode() {
+      this.hide();
+      this.setOsmMode();
+      if (this.osmMode === true) {
+        // Stop other interactions.
+        EventBus.$emit("ol-interaction-activated", "osm-map-mode");
+        EventBus.$emit("ol-interaction-stoped", "osm-map-mode");
+        this.toggleComponent("map-filter");
+        this.activeColor = this.$appConfig.osmMappingColor;
+        this.$refs.confirm.open(
+          this.$t("map.osmMode.dialogMessage.title"),
+          this.$t("map.osmMode.dialogMessage.body"),
+          {
+            color: this.activeColor.primary,
+            icon: "info",
+            width: 420,
+            showNo: false,
+            yesText: this.$t("buttonLabels.ok")
+          }
+        );
+      } else {
+        this.activeColor = this.$appConfig.baseColor;
+      }
+    },
     hide() {
       this.container = false;
       this.activeUpComponent = "";
       this.activeBottomComponent = "";
       this.showDialog = false;
-    }
+    },
+    ...mapMutations("map", {
+      setOsmMode: "SET_OSM_MODE"
+    })
   }
 };
 </script>

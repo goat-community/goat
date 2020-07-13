@@ -354,7 +354,9 @@
 
       <!-- Simple text field -->
       <v-text-field
-        v-else-if="fullSchema.type === 'string'"
+        v-else-if="
+          fullSchema.type === 'string' && fullSchema.key !== 'opening_hours'
+        "
         v-model="modelWrapper[modelKey]"
         :name="fullKey"
         :label="translateField(label)"
@@ -371,6 +373,26 @@
         />
       </v-text-field>
 
+      <!-- Opening Hours-->
+      <v-text-field
+        v-else-if="fullSchema.key === 'opening_hours'"
+        v-model="modelWrapper[modelKey]"
+        :name="fullKey"
+        :label="translateField(label)"
+        :disabled="disabled"
+        :required="required"
+        :rules="rules"
+        @change="change"
+        @input="input"
+        @click="openDialog('open_dialog')"
+        prepend-icon="query_builder"
+      >
+        <tooltip
+          slot="append-outer"
+          :options="options"
+          :html-description="htmlDescription"
+        />
+      </v-text-field>
       <!-- Number fields displayed in slider -->
       <v-slider
         v-else-if="
@@ -904,6 +926,9 @@ export default {
     }
   },
   methods: {
+    openDialog(e) {
+      this.$emit("input", e);
+    },
     translateField(field) {
       const layerName = this.schema.layerName;
       const canTranslate = this.$te(

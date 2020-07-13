@@ -1,0 +1,96 @@
+<featureType>
+  <id>FeatureTypeInfoImpl-6eed1f5b:1719ca112ea:-3e98</id>
+  <name>landuse_osm</name>
+  <nativeName>landuse_osm</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
+  </namespace>
+  <title>landuse_osm</title>
+  <keywords>
+    <string>features</string>
+    <string>landuse_osm</string>
+  </keywords>
+  <nativeCRS>GEOGCS[&quot;WGS 84&quot;, 
+  DATUM[&quot;World Geodetic System 1984&quot;, 
+    SPHEROID[&quot;WGS 84&quot;, 6378137.0, 298.257223563, AUTHORITY[&quot;EPSG&quot;,&quot;7030&quot;]], 
+    AUTHORITY[&quot;EPSG&quot;,&quot;6326&quot;]], 
+  PRIMEM[&quot;Greenwich&quot;, 0.0, AUTHORITY[&quot;EPSG&quot;,&quot;8901&quot;]], 
+  UNIT[&quot;degree&quot;, 0.017453292519943295], 
+  AXIS[&quot;Geodetic longitude&quot;, EAST], 
+  AXIS[&quot;Geodetic latitude&quot;, NORTH], 
+  AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>11.1272704</minx>
+    <maxx>11.3299823</maxx>
+    <miny>48.1010497</miny>
+    <maxy>48.2485811</maxy>
+    <crs>EPSG:4326</crs>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>11.1272704</minx>
+    <maxx>11.3299823</maxx>
+    <miny>48.1010497</miny>
+    <maxy>48.2485811</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>landuse_osm</name>
+        <sql>select &#xd;
+case &#xd;
+when l.landuse in (&apos;basin&apos;,&apos;reservoir&apos;,&apos;salt_pond&apos;,&apos;waters&apos;) then &apos;water&apos; &#xd;
+when l.landuse in (&apos;allotments&apos;,&apos;aquaculture&apos;,&apos;fallow&apos;,&apos;farmland&apos;,&apos;farmyard&apos;,&apos;greenhouse_horticulture&apos;,&apos;orchard&apos;,&apos;pasture&apos;,&apos;plant_nursery&apos;,&apos;plantation&apos;,&apos;vineyard&apos;) then &apos;agriculture&apos; &#xd;
+when l.landuse in (&apos;forest&apos;,&apos;grass&apos;,&apos;meadow&apos;,&apos;green_area&apos;) then &apos;nature&apos; &#xd;
+when l.landuse in (&apos;garden&apos;,&apos;national_park&apos;,&apos;nature_reserve&apos;,&apos;park&apos;,&apos;village_green&apos;,&apos;recreation_ground&apos;,&apos;leisure&apos;) then &apos;leisure&apos; &#xd;
+when l.landuse in (&apos;cemetery&apos;,&apos;grave_yard&apos;) then &apos;cemetery&apos; &#xd;
+when l.landuse in (&apos;residential&apos;,&apos;garages&apos;) then &apos;residential&apos; &#xd;
+when l.landuse in (&apos;commercial&apos;,&apos;retail&apos;) then &apos;commercial&apos; &#xd;
+when l.landuse in (&apos;school&apos;,&apos;university&apos;,&apos;hospital&apos;,&apos;college&apos;,&apos;churchyard&apos;,&apos;religious&apos;,&apos;community&apos;) then &apos;community&apos; &#xd;
+when l.landuse in (&apos;industrial&apos;,&apos;landfill&apos;,&apos;quarry&apos;) then &apos;industrial&apos; &#xd;
+when l.landuse in (&apos;highway&apos;,&apos;parking&apos;,&apos;railway&apos;) then &apos;transportation&apos; &#xd;
+when l.landuse in (&apos;military&apos;) then &apos;military&apos; &#xd;
+else null end as landuse, &#xd;
+l.landuse as landuse_detailed, null as amenity, null as leisure, l.name, ST_Intersection(l.geom,s.geom) as geom  from landuse_osm l, study_area s&#xd;
+where ST_Intersects(s.geom,l.geom)&#xd;
+union&#xd;
+SELECT &apos;community&apos; as landuse, null as landuse_detailed, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) as geom FROM planet_osm_polygon p, study_area s&#xd;
+where (amenity = &apos;hospital&apos; or amenity = &apos;school&apos;) and ST_Intersects(s.geom,p.way)&#xd;
+union&#xd;
+SELECT &apos;waters&apos; as landuse ,null as landuse_detailed,  p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) as geom FROM planet_osm_polygon p , study_area s&#xd;
+where leisure = &apos;swimming_pool&apos; and ST_Intersects(s.geom,p.way)&#xd;
+union&#xd;
+SELECT &apos;leisure&apos; as landuse ,null as landuse_detailed,  p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) as geom FROM planet_osm_polygon p , study_area s&#xd;
+where leisure is not null and leisure not in (&apos;swimming_pool&apos;) and ST_Intersects(s.geom,p.way)&#xd;
+union&#xd;
+SELECT &apos;water&apos; as landuse ,null as landuse_detailed,  p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) as geom FROM planet_osm_polygon p , study_area s&#xd;
+where &quot;natural&quot;=&apos;water&apos; and ST_Intersects(s.geom,p.way)&#xd;
+union&#xd;
+SELECT  &apos;nature&apos; as landuse ,null as landuse_detailed, p.amenity, p.leisure, p.name,ST_Intersection(p.way,s.geom) as geom FROM planet_osm_polygon p , study_area s&#xd;
+where &quot;natural&quot; in (&apos;scrub&apos;,&apos;wood&apos;,&apos;wetland&apos;,&apos;grassland&apos;,&apos;heath&apos;) and ST_Intersects(s.geom,p.way)
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>-1</srid>
+        </geometry>
+      </virtualTable>
+    </entry>
+    <entry key="cachingEnabled">false</entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>
