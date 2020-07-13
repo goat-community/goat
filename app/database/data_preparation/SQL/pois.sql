@@ -96,7 +96,7 @@ SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumb
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
 tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE 'yoga'
+FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE '%yoga%'
 
 UNION ALL 
 -- Add Yoga centers
@@ -337,7 +337,7 @@ DROP TABLE IF EXISTS sports_center;
 DROP TABLE IF EXISTS waterpark;
 CREATE TABLE sports_center (LIKE planet_osm_polygon INCLUDING INDEXES);
 INSERT INTO sports_center
-SELECT * FROM planet_osm_polygon WHERE (leisure = 'sports_centre'  OR name LIKE '%Bezirkssportanlage%') AND amenity IS NULL;
+SELECT * FROM planet_osm_polygon WHERE (leisure = 'sports_centre'  OR lower(name) LIKE ANY (ARRAY['%bezirkssportanlage%','%sportcenter%','%sportzentrum%']) ) AND amenity IS NULL AND NOT (building IS NOT NULL AND sport IS null);
 SELECT derive_access_from_polygons('sports_center','sports_center');
 DROP TABLE IF EXISTS sports_center;
 
