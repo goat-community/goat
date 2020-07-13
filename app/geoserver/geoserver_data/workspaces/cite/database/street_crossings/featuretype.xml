@@ -10,18 +10,27 @@
     <string>features</string>
     <string>street_crossings</string>
   </keywords>
+  <nativeCRS>GEOGCS[&quot;WGS 84&quot;, 
+  DATUM[&quot;World Geodetic System 1984&quot;, 
+    SPHEROID[&quot;WGS 84&quot;, 6378137.0, 298.257223563, AUTHORITY[&quot;EPSG&quot;,&quot;7030&quot;]], 
+    AUTHORITY[&quot;EPSG&quot;,&quot;6326&quot;]], 
+  PRIMEM[&quot;Greenwich&quot;, 0.0, AUTHORITY[&quot;EPSG&quot;,&quot;8901&quot;]], 
+  UNIT[&quot;degree&quot;, 0.017453292519943295], 
+  AXIS[&quot;Geodetic longitude&quot;, EAST], 
+  AXIS[&quot;Geodetic latitude&quot;, NORTH], 
+  AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>11.5130408</minx>
-    <maxx>11.5653851</maxx>
-    <miny>48.190506</miny>
-    <maxy>48.221261</maxy>
+    <minx>11.2294662</minx>
+    <maxx>11.2637399</maxx>
+    <miny>48.1670261</miny>
+    <maxy>48.1904083</maxy>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>11.5130408</minx>
-    <maxx>11.5653851</maxx>
-    <miny>48.190506</miny>
-    <maxy>48.221261</maxy>
+    <minx>11.2294662</minx>
+    <maxx>11.2637399</maxx>
+    <miny>48.1670261</miny>
+    <maxy>48.1904083</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
@@ -30,15 +39,15 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>street_crossings</name>
-        <sql>SELECT c.way, c.crossing, c.crossing_ref, c.kerb, c.segregated, c.supervised, c.tactile_paving, c.wheelchair&#xd;
-FROM crossings c, study_area s&#xd;
-WHERE ST_Intersects(s.geom,c.way) AND (crossing = &apos;zebra&apos; OR crossing = &apos;traffic_signals&apos; OR crossing = &apos;marked&apos; OR (highway = &apos;traffic_signals&apos;AND traffic_signals = &apos;pedestrian_crossing&apos;))
+        <sql>SELECT c.osm_id, c.geom, c.crossing, c.crossing_ref, c.traffic_signals, c.kerb, c.segregated, c.supervised, c.tactile_paving, c.wheelchair&#xd;
+FROM street_crossings c, study_area s&#xd;
+WHERE ST_Intersects(s.geom,c.geom) AND crossing IN (&apos;zebra&apos;,&apos;traffic_signals&apos;)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
-          <name>way</name>
+          <name>geom</name>
           <type>Geometry</type>
-          <srid>-1</srid>
+          <srid>4326</srid>
         </geometry>
       </virtualTable>
     </entry>

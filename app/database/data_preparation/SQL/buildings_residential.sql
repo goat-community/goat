@@ -1,5 +1,4 @@
 
-
 DROP TABLE IF EXISTS buildings;
 DROP TABLE IF EXISTS buildings_pop;
 DROP TABLE IF EXISTS osm_area_no_residents;
@@ -54,8 +53,8 @@ DO $$
 			FROM landuse l
 			WHERE ST_Contains(l.geom,b.geom)
 			AND b.residential_status = 'potential_residents'
-			AND l.landuse IN(SELECT UNNEST(select_from_variable_container('custom_landuse_no_residents')))
-			AND NOT lower(name) ~~ ANY (SELECT UNNEST(select_from_variable_container('custom_landuse_with_residents_name')));
+			AND (l.landuse IN(SELECT UNNEST(select_from_variable_container('custom_landuse_no_residents')))
+			OR NOT lower(name) ~~ ANY (SELECT UNNEST(select_from_variable_container('custom_landuse_with_residents_name'))));
 		
 			UPDATE buildings b
 			SET residential_status = 'no_residents'

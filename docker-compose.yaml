@@ -114,3 +114,17 @@ services:
     networks:
       proxy:
 
+  #This container is used for running cron jobs. It is mainly for production purposes.
+  # cron:
+  #   build:
+  #     dockerfile: ./cron/Dockerfile
+  #     context: ./app
+  #   image: goat-cron
+  #   volumes:
+  #     - ./app/database:/opt
+  #     - ./app/config:/opt/config
+  #   container_name: goat-cron
+  #   env_file:
+  #     - ./app/config/docker-env/db.env
+  #   networks:
+  #     proxy:

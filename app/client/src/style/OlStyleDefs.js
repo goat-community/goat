@@ -4,6 +4,7 @@ import OlFill from "ol/style/Fill";
 import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
+import store from "../store/modules/map";
 
 export function getMeasureStyle(measureConf) {
   return new OlStyle({
@@ -215,18 +216,59 @@ export function getIsochroneStyle(styleData, addStyleInCache) {
 
 export function defaultStyle(feature) {
   const geomType = feature.getGeometry().getType();
+  const strokeOpt = {
+    color: ["MultiPolygon", "Polygon"].includes(geomType)
+      ? "#FF0000"
+      : "#707070",
+    width: 3
+  };
+  const fillOpt = {
+    color: ["MultiPolygon", "Polygon"].includes(geomType)
+      ? "rgba(255, 0, 0, 0.7)"
+      : [0, 0, 0, 0]
+  };
+  if (feature.get("layerName") === "buildings") {
+    const properties = feature.getProperties();
+    strokeOpt.lineDash = properties["status"] == 1 ? [0, 0] : [10, 10];
+    strokeOpt.width = 4;
+
+    let isCompleted = true;
+    let hasEntranceFeature = false;
+    if (store.state.reqFields) {
+      store.state.reqFields.forEach(field => {
+        if (!properties[field]) {
+          isCompleted = false;
+        }
+      });
+    }
+    if (store.state.bldEntranceLayer) {
+      const extent = feature.getGeometry().getExtent();
+      const entrancesInExtent = store.state.bldEntranceLayer
+        .getSource()
+        .getFeaturesInExtent(extent);
+
+      let countEntrances = 0;
+      entrancesInExtent.forEach(entrance => {
+        const hasEntrance = feature
+          .getGeometry()
+          .intersectsCoordinate(entrance.getGeometry().getCoordinates());
+        if (hasEntrance === true) {
+          countEntrances += 1;
+        }
+      });
+      countEntrances === 0
+        ? (hasEntranceFeature = false)
+        : (hasEntranceFeature = true);
+    }
+
+    if (isCompleted === true && hasEntranceFeature === true) {
+      strokeOpt.color = "rgb(0,128,0, 0.7)";
+      fillOpt.color = "rgb(0,128,0, 0.7)";
+    }
+  }
   const style = new OlStyle({
-    fill: new OlFill({
-      color: ["MultiPolygon", "Polygon"].includes(geomType)
-        ? "rgba(255, 0, 0, 0.7)"
-        : [0, 0, 0, 0]
-    }),
-    stroke: new OlStroke({
-      color: ["MultiPolygon", "Polygon"].includes(geomType)
-        ? "#FF0000"
-        : "#707070",
-      width: 3
-    }),
+    fill: new OlFill(fillOpt),
+    stroke: new OlStroke(strokeOpt),
     image: new OlCircle({
       radius: 7,
       fill: new OlFill({
@@ -303,9 +345,6 @@ export function waysNewBridgeStyle(feature) {
 export function editStyleFn() {
   const styleFunction = feature => {
     const props = feature.getProperties();
-    if (feature.get("user_uploaded")) {
-      return uploadedFeaturesStyle();
-    }
     // Polygon (ex. building) style
     if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
       return defaultStyle(feature);
@@ -346,6 +385,26 @@ export function getFeatureHighlightStyle() {
         radius: 10,
         fill: new OlFill({
           color: "#FF0000"
+        })
+      })
+    })
+  ];
+}
+
+export function bldEntrancePointsStyle() {
+  return [
+    new OlStyle({
+      fill: new OlFill({
+        color: "#800080"
+      }),
+      stroke: new OlStroke({
+        color: "#800080",
+        width: 8
+      }),
+      image: new OlCircle({
+        radius: 8,
+        fill: new OlFill({
+          color: "#800080"
         })
       })
     })

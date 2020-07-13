@@ -1,6 +1,13 @@
 {
   "tittle": "GOAT - Geo Open Accessibility Tool",
-  "baseColor": "red darken-3",
+  "baseColor": {
+    "primary": "#4CAF50",
+    "secondary": "#99D19B"
+  },
+  "osmMappingColor": {
+    "primary": "#6A8972",
+    "secondary": "#94AC9A"
+  },
   "controlsColor": "#26AE3F",
   "logo": "./src/assets/img/logo.png",
   "map": {
@@ -60,7 +67,7 @@
         "visible": false,
         "canEdit": true,
         "editDataType": "GeoJSON",
-        "editGeometry": "LineString",
+        "editGeometry": ["LineString"],
         "displayInLayerList": false,
         "zIndex": 2,
         "serverType": "geoserver"
@@ -77,7 +84,7 @@
         "visible": false,
         "canEdit": true,
         "editDataType": "GeoJSON",
-        "editGeometry": "Point",
+        "editGeometry": ["Point"],
         "displayInLayerList": true,
         "displayInLegend": false,
         "requiresPois": true,
@@ -119,6 +126,11 @@
         "opacity": 0.6,
         "queryable": true,
         "visible": false,
+        "canEdit": true,
+        "canModifyGeom": true,
+        "editDataType": "GeoJSON",
+        "editGeometry": ["Polygon", "MultiPolygon"],
+        "modifyAttributes": true,
         "displayInLayerList": true,
         "zIndex": 4,
         "serverType": "geoserver"
@@ -138,7 +150,90 @@
       },
       {
         "type": "WMS",
-        "name": "walking_share",
+        "name": "extentStudyarea",
+        "url": "/geoserver/wms",
+        "group": "buildings_landuse",
+        "layers": "cite:crop_study_area",
+        "opacity": 0.5,
+        "queryable": false,
+        "visible": true,
+        "displayInLayerList": false,
+        "zIndex": 4,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "footpathWidth",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:footpath_width",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "illuminance",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_lit",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "lanes",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_lanes",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "parking",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_parking",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "streetCategory",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:ways_category",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "streetCategorysAggregated",
         "url": "/geoserver/wms",
         "group": "mobility_patterns",
         "layers": "cite:Walking Share",
@@ -281,11 +376,12 @@
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
         "layers": "cite:heatmap_population",
-        "opacity": 1,
+        "opacity": 0.4,
         "visible": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "viewparamsDynamicKeys": ["userId"]
       },
       {
         "type": "WMS",
@@ -382,6 +478,105 @@
         "visible": false,
         "displayInLayerList": true,
         "attributions": "© Microsoft Coorporation © Digital Globe ©CNES Distribution Airbus DS <a href='https://www.microsoft.com/en-us/maps/product'>Terms of use</a> "
+      }
+    ],
+    "osmMappingLayers": [
+      {
+        "type": "WMS",
+        "name": "osm-mapping-pois",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_pois_opening_hours",
+        "viewparams": "amenities:'cG9wdWxhdGlvbg=='",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 30,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-clock",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:opening_hours"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "osm-mapping-ways-speed",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_ways_speed",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 31,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-tachometer-alt",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Speed_limits"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "osm-mapping-ways-surface",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_ways_surface",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 32,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-road",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:surface"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "osm-mapping-buildings-type",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_buildings_type",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 33,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-building",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:building"
+        }
       }
     ],
     "controls": [
@@ -490,6 +685,76 @@
               "name": "Transmicable",
               "value": "transmicable",
               "icon": "transmicable",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "mobilitystations",
+          "categoryValue": "mobilitystations",
+          "locked": false,
+          "children": [
+            {
+              "name": "Bikesharing FFB",
+              "value": "bikesharing_ffb",
+              "icon": "bikesharing",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Carsharing FFB",
+              "value": "carsharing_ffb",
+              "icon": "carsharing",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station FFB",
+              "value": "charging_station_marker_ffb",
+              "icon": "charging_station_marker",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station Other FFB",
+              "value": "charging_station_other_ffb",
+              "icon": "charging_station_other",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station Public FFB",
+              "value": "charging_station_public_ffb",
+              "icon": "charging_station_public",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "E-Parking FFB",
+              "value": "e_parking_ffb",
+              "icon": "e_parking",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "L-Station FFB",
+              "value": "l-station_ffb",
+              "icon": "l-station",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "S-Station Prio 1 FFB",
+              "value": "s-station_prio1_ffb",
+              "icon": "s-station_prio1",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "S-Station Prio 2 FFB",
+              "value": "s-station_prio2_ffb",
+              "icon": "s-station_prio2",
               "weight": 1,
               "sensitivity": 300000
             }
@@ -918,8 +1183,17 @@
           ]
         },
         "walking_wheelchair": {
-          "speed": 5,
-          "options": []
+          "default": "standard",
+          "options": [
+            {
+              "value": "standard",
+              "speed": 3
+            },
+            {
+              "value": "electric",
+              "speed": 6
+            }
+          ]
         }
       }
     },
@@ -988,7 +1262,7 @@
           "values": ["residential", "commercial", "public"]
         }
       },
-      "enableFileUpload": false,
+      "enableFileUpload": true,
       "hiddenProps": [
         "gid",
         "userid",

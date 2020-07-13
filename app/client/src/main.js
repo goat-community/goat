@@ -63,7 +63,7 @@ axios.all([getAppConf(), getStudyAreaBbox()]).then(
       //Buffer study area extent to not be very strict.
       const bufferedExtent = buffer(originalExtent, 8000);
       //Make extent available in $appConf so the map can use it.
-
+      Vue.prototype.$appConfig.map.originalExtent = originalExtent;
       Vue.prototype.$appConfig.map.extent = bufferedExtent;
 
       if (!Vue.prototype.$appConfig.map.center) {

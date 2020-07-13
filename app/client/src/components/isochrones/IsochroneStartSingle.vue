@@ -46,26 +46,52 @@
           ></v-autocomplete>
         </v-flex>
         <v-flex xs3>
-          <v-tooltip top>
-            <template v-slot:activator="{ on }">
-              <v-btn
-                outlined
-                fab
-                v-on="on"
-                class="ml-4"
-                depressed
-                :loading="isBusy"
-                text
-                @click="registerMapClick"
-              >
-                <v-icon color="#30C2FF">fas fa-map-marker-alt</v-icon>
-              </v-btn>
-            </template>
-            <span>{{ $t("isochrones.single.startTooltip") }}</span>
-          </v-tooltip>
+          <span v-if="!isBusy">
+            <v-tooltip top>
+              <template v-slot:activator="{ on }">
+                <v-btn
+                  outlined
+                  fab
+                  v-on="on"
+                  class="ml-4"
+                  depressed
+                  text
+                  @click="registerMapClick"
+                >
+                  <v-icon color="#30C2FF">fas fa-map-marker-alt</v-icon>
+                </v-btn>
+              </template>
+              <span>{{ $t("isochrones.single.startTooltip") }}</span>
+            </v-tooltip>
+          </span>
+
+          <span v-if="isBusy">
+            <v-tooltip top>
+              <template v-slot:activator="{ on }">
+                <v-btn
+                  fab
+                  dark
+                  v-on="on"
+                  class="ml-4 elevation-0"
+                  color="red"
+                  @click="stopIsochroneCalc"
+                >
+                  <v-icon color="white">close</v-icon>
+                </v-btn>
+              </template>
+              <span>{{ $t("isochrones.stopIsochroneCalc") }}</span>
+            </v-tooltip>
+          </span>
         </v-flex>
       </v-layout>
     </v-card-text>
+    <v-progress-linear
+      v-if="isBusy"
+      indeterminate
+      height="1"
+      class="mx-0 pb-0"
+      color="green"
+    ></v-progress-linear>
   </v-flex>
 </template>
 <script>
@@ -103,7 +129,8 @@ export default {
       messages: "messages"
     }),
     ...mapGetters("isochrones", {
-      isBusy: "isBusy"
+      isBusy: "isBusy",
+      cancelReq: "cancelReq"
     }),
     fields() {
       if (!this.model) return [];
@@ -201,6 +228,11 @@ export default {
     stop() {
       const me = this;
       me.clear();
+    },
+    stopIsochroneCalc() {
+      if (this.cancelReq instanceof Function) {
+        this.cancelReq("cancelled");
+      }
     },
     clearSearch() {
       this.entries = [];

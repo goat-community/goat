@@ -41,6 +41,26 @@
           {{ $t(`isochrones.multiple.${item.name}`) }}
         </template>
       </v-select>
+      <!-- STOP CALC -->
+      <v-card-actions v-if="isBusy">
+        <v-spacer></v-spacer>
+        <v-tooltip v-if="isBusy" top>
+          <template v-if="isBusy" v-slot:activator="{ on }">
+            <v-btn
+              v-show="isBusy"
+              v-on="on"
+              small
+              @click.stop="stopIsochroneCalc"
+              class="white--text"
+              color="error"
+            >
+              <v-icon color="white">close</v-icon>{{ $t("buttonLabels.stop") }}
+            </v-btn>
+          </template>
+          <span>{{ $t("isochrones.stopIsochroneCalc") }}</span>
+        </v-tooltip>
+      </v-card-actions>
+
       <template v-if="this.activeMultiIsochroneMethod !== null">
         <v-alert
           border="left"
@@ -70,6 +90,13 @@
         </v-card-actions>
       </template>
     </v-flex>
+    <v-progress-linear
+      v-if="isBusy"
+      indeterminate
+      height="1"
+      class="mx-0 pb-0"
+      color="green"
+    ></v-progress-linear>
   </v-flex>
 </template>
 <script>
@@ -95,7 +122,8 @@ export default {
     ...mapGetters("isochrones", {
       multiIsochroneCalculationMethods: "multiIsochroneCalculationMethods",
       countPois: "countPois",
-      isBusy: "isBusy"
+      isBusy: "isBusy",
+      cancelReq: "cancelReq"
     }),
     ...mapFields("isochrones", {
       activeMultiIsochroneMethod: "multiIsochroneCalculationMethods.active"
@@ -153,6 +181,11 @@ export default {
     calcuateBtn() {
       this.calculateIsochrone();
       this.clear();
+    },
+    stopIsochroneCalc() {
+      if (this.cancelReq instanceof Function) {
+        this.cancelReq("cancelled");
+      }
     },
     clear() {
       if (this.olIsochroneCtrl.mapClickListenerKey) {

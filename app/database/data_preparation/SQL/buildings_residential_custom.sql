@@ -52,11 +52,6 @@ UPDATE buildings
 SET building_levels_residential = building_levels
 WHERE building_levels_residential IS NULL;
 
-/*Temporary fix*/
-UPDATE buildings 
-SET residential_status = 'with_residents'
-WHERE residential_status = 'potential_residential';
-
 CREATE TABLE landuse_osm AS 
 SELECT ROW_NUMBER() OVER() AS gid, landuse, tourism, amenity, name, tags, way AS geom 
 FROM planet_osm_polygon 
@@ -64,3 +59,16 @@ WHERE landuse IS NOT NULL;
 
 CREATE INDEX ON landuse_osm USING GIST(geom);
 ALTER TABLE landuse_osm ADD PRIMARY key(gid);
+
+UPDATE buildings b SET residential_status = 'no_residents'
+FROM landuse_osm l
+WHERE l.landuse IN (SELECT UNNEST(select_from_variable_container('osm_landuse_no_residents')))
+AND ST_INTERSECTS(l.geom,b.geom)
+AND b.residential_status = 'potential_residential';
+
+/*Temporary fix*/
+UPDATE buildings 
+SET residential_status = 'with_residents'
+WHERE residential_status = 'potential_residential';
+
+
