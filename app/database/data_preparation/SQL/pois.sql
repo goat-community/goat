@@ -233,6 +233,57 @@ SELECT kp.osm_id, kp.origin_geometry, kp.ACCESS, kp.housenumber, kp.amenity, kp.
 kp.OPERATOR, kp.public_transport, kp.railway, kp.religion, kp.opening_hours, kp.REF, kp.tags, kp.centroid AS geom, kp.wheelchair
 FROM kindergartens_polygons kp;
 
+-- Insert outdoor fitness stations
+
+DROP TABLE IF EXISTS containing_polygons;
+CREATE TEMP TABLE containing_polygons (geom geometry);
+
+INSERT INTO containing_polygons
+WITH merged_geom AS (
+SELECT (ST_Dump(way)).geom AS geom
+		FROM (
+			SELECT ST_Union(way) AS way		
+			FROM planet_osm_polygon
+			WHERE leisure = 'fitness_station') x)
+	SELECT m.geom FROM planet_osm_polygon pop, merged_geom m GROUP BY m.geom;
+
+-- Paste zones attributes in containing polygons
+DROP TABLE IF EXISTS grouping_polygons;
+CREATE TEMP TABLE grouping_polygons  (LIKE planet_osm_polygon INCLUDING INDEXES);
+
+INSERT INTO grouping_polygons
+SELECT pop.* FROM containing_polygons
+LEFT JOIN planet_osm_polygon pop 
+ON ST_Contains(pop.way, geom)
+WHERE pop.leisure = 'fitness_station';
+
+-- Build pois database
+DROP TABLE IF EXISTS pois_2;
+CREATE TABLE pois_2 (LIKE pois INCLUDING all);
+
+INSERT INTO pois(
+
+SELECT pop.osm_id, 'polygon' AS origin_geometry, pop.ACCESS AS ACCESS, pop."addr:housenumber" AS "addr:housenumber",
+'outdoor_fitness_station' AS amenity, pop.shop AS store, pop.tags->'origin' AS origin, pop.tags->'organic' AS organic, pop.denomination AS denomination,
+pop.brand AS brand, gp.name AS name, pop.OPERATOR AS operator, pop.public_transport AS public_transport, pop.railway AS railway,
+pop.religion AS religion, pop.tags->'opening_hours' AS opening_hours, pop.ref AS ref, (pop.tags||hstore('sport', pop.sport)||hstore('leisure', pop.leisure))::hstore  AS tags, ST_Centroid(pop.way) AS geom, pop.tags ->'wheelchair' AS wheelchair
+FROM planet_osm_polygon pop
+LEFT JOIN grouping_polygons gp
+ON ST_intersects(pop.way, gp.way)
+WHERE pop.leisure = 'fitness_station' AND NOT ST_contains(pop.way, gp.way)
+
+UNION ALL 
+
+SELECT pop.osm_id, 'point' AS origin_geometry, pop.ACCESS AS ACCESS, pop."addr:housenumber" AS "addr:housenumber",
+'outdoor_fitness_station' AS amenity, pop.shop AS store, pop.tags->'origin' AS origin, pop.tags->'organic' AS organic, pop.denomination AS denomination,
+pop.brand AS brand, gp.name AS name, pop.OPERATOR AS operator, pop.public_transport AS public_transport, pop.railway AS railway,
+pop.religion AS religion, pop.tags->'opening_hours' AS opening_hours, pop.ref AS ref, (pop.tags||hstore('sport', pop.sport)||hstore('leisure', pop.leisure))::hstore, pop.way AS geom, pop.tags ->'wheelchair' AS wheelchair
+FROM planet_osm_point pop
+LEFT JOIN grouping_polygons gp
+ON ST_intersects(pop.way, gp.way)
+WHERE pop.leisure = 'fitness_station' AND NOT ST_contains(pop.way, gp.way)
+);
+
 /*End*/
 
 --Distinguish kindergarten - nursery
