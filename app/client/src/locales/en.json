@@ -329,7 +329,7 @@
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
-      "buildings_landuse": "Buildings and Landuse",
+      "buildings_landuse": "Buildings and Land Use",
       "administrativeLayers": "Administrative boundaries",
       "streetlevelqualityLayers": "Street Level Quality",
       "environmentalQualityLayers": "Environmental data",
@@ -337,7 +337,8 @@
       "additionalDataLayers": "Additional data",
       "accessbilityBasemaps": "Accessibility",
       "backgroundLayers": "Background Layers",
-      "buildings": "Buildings"
+      "buildings": "Buildings",
+      "mobility_patterns":"Mobility Patterns"
     },
     "layerName": {
       "pois": "Point of Interest",
@@ -378,7 +379,12 @@
       "osmDark": "OSM Dark",
       "mapboxStreets": "Mapbox",
       "publicTransport": "Public Transport",
-      "bingAerial": "Bing Aerial"
+      "bingAerial": "Bing Aerial",
+      "walking_trip_rate":"Walking trips per person",
+      "walking_share":"Share of walking trips",
+      "cycling_share":"Share of cycling trips",
+      "bicycle_rate":"Bicycle ownership",
+      "motorization_rate":"Motorized vehicles ownership"
     },
     "tooltips": {
       "clickForCalculation": "Click for Calculation. Press ESC to exit",
