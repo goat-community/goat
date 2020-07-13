@@ -156,6 +156,20 @@
       },
       {
         "type": "WMS",
+        "name": "streetCrossings",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:street_crossings",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "speed",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
@@ -209,6 +223,34 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "waterProtectionArea",
+        "url": "https://www.lfu.bayern.de/gdi/wms/wasser/wsg?",
+        "group": "environmentalQualityLayers",
+        "layers": "twsg",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+      },
+      {
+        "type": "WMS",
+        "name": "floodingAreasHQ100",
+        "url": "https://www.lfu.bayern.de/gdi/wms/wasser/ueberschwemmungsgebiete?",
+        "group": "environmentalQualityLayers",
+        "layers": "hwgf_hq100",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
       },
       {
         "type": "WMS",
@@ -653,6 +695,76 @@
               "name": "Taxi",
               "value": "taxi",
               "icon": "taxi",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "mobilitystations",
+          "categoryValue": "mobilitystations",
+          "locked": false,
+          "children": [
+            {
+              "name": "Bikesharing FFB",
+              "value": "bikesharing_ffb",
+              "icon": "bikesharing",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Carsharing FFB",
+              "value": "carsharing_ffb",
+              "icon": "carsharing",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station FFB",
+              "value": "charging_station_marker_ffb",
+              "icon": "charging_station_marker",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station Other FFB",
+              "value": "charging_station_other_ffb",
+              "icon": "charging_station_other",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station Public FFB",
+              "value": "charging_station_public_ffb",
+              "icon": "charging_station_public",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "E-Parking FFB",
+              "value": "e_parking_ffb",
+              "icon": "e_parking",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "L-Station FFB",
+              "value": "l-station_ffb",
+              "icon": "l-station",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "S-Station Prio 1 FFB",
+              "value": "s-station_prio1_ffb",
+              "icon": "s-station_prio1",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "S-Station Prio 2 FFB",
+              "value": "s-station_prio2_ffb",
+              "icon": "s-station_prio2",
               "weight": 1,
               "sensitivity": 300000
             }

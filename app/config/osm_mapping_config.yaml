@@ -1,0 +1,8 @@
+#All amenity categories to map
+amenity: ["bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","cinema","library","night_club",
+      "hairdresser","atm","bank","dentist","doctors","pharmacy","fuel","museum","gallery","marketplace"]
+#All shop categories defined in GOAT to map
+shop: ["bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
+      "hypermarket","international_supermarket","chemist","organic"]
+#All OSM-shop categories to map
+shop_osm: ["bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","chemist"]

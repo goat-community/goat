@@ -37,15 +37,37 @@ export default {
   components: {
     "mapillary-image-preview": MapillaryImagePreview
   },
+  props: {
+    clientId: {
+      type: String,
+      required: false,
+      default: "V1Qtd0JKNGhhb1J1cktMbmhFSi1iQTo5ODMxOWU3NmZlMjEyYTA3"
+    },
+    startImageKey: {
+      type: String,
+      required: false,
+      default: "rrKZdmgdvup_KYJKTESq0Q"
+    },
+    organization_key: {
+      type: String,
+      required: false,
+      default: "RmTboeISWnkEaYaSdtVRHp"
+    },
+    startSequenceKey: {
+      type: String,
+      required: false,
+      default: "k09tczrhxcsphcmlbo0dt2"
+    },
+    baseLayerExtent: {
+      type: Array,
+      required: false
+    }
+  },
   data() {
     return {
       // Keys
-      cliendId: "V1Qtd0JKNGhhb1J1cktMbmhFSi1iQTo5ODMxOWU3NmZlMjEyYTA3",
-      key: "rrKZdmgdvup_KYJKTESq0Q",
-      organizationKey: "RmTboeISWnkEaYaSdtVRHp",
       baseOverlayUrl:
         "https://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt",
-      startSequenceKey: "k09tczrhxcsphcmlbo0dt2",
       // Preview Image url
       previewImageUrl: "",
       // Mapillary viewer
@@ -68,8 +90,8 @@ export default {
   mounted() {
     this.mapillary = new Viewer(
       "mapillary-container",
-      this.cliendId,
-      this.key,
+      this.clientId,
+      this.startImageKey,
       {
         component: { cover: false }
       }
@@ -142,7 +164,6 @@ export default {
      * Overlay layer (sequences, images)
      */
     createBaseOverlayLayer() {
-      const me = this;
       this.baseOverlayerLayer = new OlVectorTileLayer({
         name: "mapillaryBaseOverlay",
         source: new OlVectorTileSource({
@@ -161,11 +182,6 @@ export default {
                     extent: extent,
                     featureProjection: projection
                   });
-                  features = features.filter(f => {
-                    return (
-                      f.getProperties().organization_key === me.organizationKey
-                    );
-                  });
                   tile.setFeatures(features);
                 });
               });
@@ -174,6 +190,9 @@ export default {
         }),
         style: mapillaryStyleDefs.baseOverlayStyle(this.map)
       });
+      if (this.baseLayerExtent) {
+        this.baseOverlayerLayer.setExtent(this.baseLayerExtent);
+      }
       this.map.addLayer(this.baseOverlayerLayer);
     },
 

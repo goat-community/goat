@@ -4,8 +4,8 @@
     dark
     style="position:absolute;bottom:35px;right:10px;maxWidth: 200px;"
   >
-    <v-expansion-panel style="background-color: white;">
-      <v-expansion-panel-header
+    <v-expansion-panel :style="`background-color: white;`">
+      <v-expansion-panel-header :style="`background-color: ${color};`"
         >{{ $t("map.layerLegend.title") }}
         <template v-slot:actions>
           <v-icon small>$vuetify.icons.expand</v-icon>
@@ -56,6 +56,9 @@ import { getAllChildLayers, getWMSLegendURL } from "../../../../utils/Layer";
 export default {
   mixins: [Mapable],
   name: "map-legend",
+  props: {
+    color: { type: String, default: "#4CAF50" }
+  },
   data: () => ({
     layers: []
   }),
@@ -100,7 +103,6 @@ export default {
 .v-expansion-panel-header {
   min-height: 30px;
   padding: 5px;
-  background-color: #4caf50;
 }
 
 .v-expansion-panel-content >>> .v-expansion-panel-content__wrap {

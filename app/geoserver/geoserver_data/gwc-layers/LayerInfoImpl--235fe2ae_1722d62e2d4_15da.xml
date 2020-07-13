@@ -1,8 +1,8 @@
 <GeoServerTileLayer>
-  <id>LayerInfoImpl--3717634a:169f75d2f85:-7471</id>
+  <id>LayerInfoImpl--235fe2ae:1722d62e2d4:15da</id>
   <enabled>true</enabled>
   <inMemoryCached>true</inMemoryCached>
-  <name>cite:heatmap_population</name>
+  <name>cite:mapping_pois_opening_hours</name>
   <mimeFormats>
     <string>image/png</string>
     <string>image/jpeg</string>
@@ -26,7 +26,7 @@
       <key>STYLES</key>
       <defaultValue></defaultValue>
       <availableStyles class="sorted-set"/>
-      <defaultStyle>cite:style_heatmap_population</defaultStyle>
+      <defaultStyle>cite:pois</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>
   <gutter>0</gutter>

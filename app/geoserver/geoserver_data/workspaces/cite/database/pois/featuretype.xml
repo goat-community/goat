@@ -65,18 +65,22 @@ FROM pois_visualization(%userid%,(SELECT amenity FROM am), %routing_profile%, %d
         <parameter>
           <name>d</name>
           <defaultValue>9999</defaultValue>
+          <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
         <parameter>
           <name>h</name>
           <defaultValue>9999</defaultValue>
+          <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
         <parameter>
           <name>userid</name>
           <defaultValue>1</defaultValue>
+          <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
         <parameter>
           <name>m</name>
           <defaultValue>9999</defaultValue>
+          <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
         <parameter>
           <name>routing_profile</name>

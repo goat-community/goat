@@ -1,4 +1,3 @@
-DROP FUNCTION IF EXISTS pois_multi_isochrones;
 CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, minutes integer, speed_input numeric, 
 	n integer, routing_profile_input text, alphashape_parameter_input NUMERIC, modus_input integer,region_type text, 
 	region text[], amenities text[])
@@ -20,34 +19,12 @@ DECLARE
 	max_length_links numeric;
 	calc_modus integer;
 	excluded_pois_id integer[];
+	excluded_buildings_gid integer[];
 	BEGIN
 
 	/*Scenario building has to be implemented*/
 	buffer = (minutes::numeric/60::numeric)*speed_input*1000;
- 
- 	IF region_type = 'study_area' THEN
- 		--Logic to intersect the amenities with a study area defined by name
-		SELECT ST_Union(geom) AS geom, array_to_json(array_agg(jsonb_build_object(name,round(sum_pop,-1)))) 
-		INTO mask, population_mask
-		FROM study_area
-		WHERE name IN (SELECT UNNEST(region));
-		buffer_mask = ST_buffer(mask::geography,buffer)::geometry;
- 	 
- 	ELSE 
-		boundary_envelope = region::numeric[];
-		
-		mask = ST_MakeEnvelope(boundary_envelope[1],boundary_envelope[2],boundary_envelope[3],boundary_envelope[4],4326);
-	
-		SELECT jsonb_build_object('bounding_box',round(sum(population)::integer,-1)) AS sum_pop
-		INTO population_mask
-		FROM population p 
-		WHERE ST_Intersects(p.geom,mask);		
-	
- 		SELECT ST_Buffer(mask::geography,buffer)::geometry 
- 		INTO buffer_mask;
-	
- 	END IF;
-
+ 	
 	-- Exclude POIs that are not accessible by wheelchair if routing_profile_input = wheelchair
 	IF routing_profile_input = 'walking_wheelchair' THEN 
 		wheelchair_condition = ARRAY['no','No'];
@@ -55,27 +32,71 @@ DECLARE
 		wheelchair_condition = NULL;
 	END IF;
 
-	-- Exclude POIs that are not accessible due to opening_hours if provided by the user
-	/*IF d <> 9999 AND h <> 9999 AND m <> 9999 THEN 
-			DROP TABLE IF EXISTS pois_closed;
-            CREATE TEMP TABLE pois_closed AS 
-			SELECT gid  
-            FROM pois_userinput p
-            WHERE p.amenity IN(SELECT unnest(amenities))
-			AND check_open(opening_hours,array[d,h,m]) = 'False' 
-            AND opening_hours IS NOT NULL;
-	ELSE 
-		DROP TABLE IF EXISTS pois_closed;
-		CREATE TABLE pois_closed (no_entry integer);
-	END IF;
-*/
-
 	IF modus_input IN(2,4) THEN
 		excluded_pois_id = ids_modified_features(userid_input,'pois');
+		excluded_buildings_gid = (SELECT deleted_feature_ids FROM user_data u WHERE u.userid = userid_input AND layer_name = 'buildings');
 	ELSE 
 		excluded_pois_id = ARRAY[]::integer[];
 		userid_input = 1;
 	END IF;
+
+ 	IF region_type = 'study_area' THEN
+ 		--Logic to intersect the amenities with a study area defined by name
+		SELECT ST_Union(geom) AS geom, array_to_json(array_agg(jsonb_build_object(name,floor(sum_pop/5)*5))) 
+		INTO mask, population_mask
+		FROM study_area
+		WHERE name IN (SELECT UNNEST(region));
+		buffer_mask = ST_buffer(mask::geography,buffer)::geometry;
+	
+		IF modus_input IN (2,4) THEN
+			WITH elements AS 
+			(
+				SELECT jsonb_object_keys(value) AS _key, value AS elem
+				FROM jsonb_array_elements(population_mask)
+			),
+			population_change AS (
+				SELECT s.name, sum(population) AS population
+				FROM ( 
+					SELECT population, p.geom 
+					FROM population_userinput p
+					WHERE p.userid = userid_input
+					UNION ALL 
+					SELECT -population, p.geom 
+					FROM population_userinput p
+					WHERE p.building_gid IN (SELECT UNNEST(excluded_buildings_gid))
+				) x, study_area s
+				WHERE ST_Intersects(x.geom,s.geom)
+				AND s.name IN (SELECT _key FROM elements)
+				GROUP BY s.name
+			)
+			SELECT array_to_json(array_agg(jsonb_build_object(e._key,(floor(((elem -> e._key)::integer + COALESCE(p.population::integer,0))
+			/5)*5)))) 
+			INTO population_mask
+			FROM elements e
+			LEFT JOIN population_change p
+			ON p.name = e._key; 
+		
+	 	END IF;
+ 	 
+ 	ELSE 
+		boundary_envelope = region::numeric[];
+		
+		mask = ST_MakeEnvelope(boundary_envelope[1],boundary_envelope[2],boundary_envelope[3],boundary_envelope[4],4326);
+		
+	
+		SELECT jsonb_build_object('bounding_box',floor(sum(population)::integer/5)*5) AS sum_pop
+		INTO population_mask
+		FROM population_userinput p
+		WHERE (userid = userid_input OR userid IS NULL)
+		AND p.building_gid NOT IN (SELECT UNNEST(excluded_buildings_gid))
+		AND ST_Intersects(p.geom,mask);	
+	
+ 		SELECT ST_Buffer(mask::geography,buffer)::geometry 
+ 		INTO buffer_mask;
+	
+ 	END IF;
+ 	 	
+
 
 
 	SELECT DISTINCT p_array
@@ -111,9 +132,11 @@ DECLARE
 			AND m.objectid = objectid_multi_isochrone
 		),
 		reached_population AS (
-			SELECT i.gid, i.name, jsonb_build_object(concat(i.name,'_reached'),round(sum(p.population)::integer,-1)) reached_population
-			FROM iso_intersection i, population p  
+			SELECT i.gid, i.name, jsonb_build_object(concat(i.name,'_reached'), floor(sum(p.population)::integer/5)*5) reached_population
+			FROM iso_intersection i, population_userinput p  
 			WHERE ST_intersects(i.geom, p.geom)
+			AND p.building_gid NOT IN (SELECT UNNEST(excluded_buildings_gid))
+			AND (p.userid = userid_input OR p.userid IS NULL)
 			GROUP BY i.gid, i.name
 		)
 		UPDATE multi_isochrones m
@@ -132,10 +155,12 @@ DECLARE
 		UPDATE multi_isochrones 
 		SET population = population_mask || x.reached_population
 		FROM (
-			SELECT m.gid, jsonb_build_object('bounding_box_reached',round(sum(p.population)::integer,-1)) AS reached_population
-			FROM population p, multi_isochrones m 
+			SELECT m.gid, jsonb_build_object('bounding_box_reached',floor(COALESCE(sum(p.population)::integer,0)/5)*5) AS reached_population
+			FROM population_userinput p, multi_isochrones m 
 			WHERE ST_Intersects(p.geom,ST_Intersection(mask,ST_SetSrid(m.geom,4326)))
 			AND m.objectid = objectid_multi_isochrone
+			AND p.building_gid NOT IN (SELECT UNNEST(excluded_buildings_gid))
+			AND (p.userid = userid_input OR p.userid IS NULL)
 			GROUP BY m.gid
 		) x
 		WHERE multi_isochrones.gid = x.gid;
@@ -146,6 +171,7 @@ DECLARE
 	WHERE objectid = objectid_multi_isochrone;
 	END;
 $function$ LANGUAGE plpgsql;
+
 
 /*
 SELECT *

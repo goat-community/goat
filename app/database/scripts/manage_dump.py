@@ -16,6 +16,10 @@ parser.add_argument('-b', help='Backup your GOAT-Database before uploading.',act
 args = parser.parse_args()
 namespace = args.n
 
+if namespace is None:
+    print('Error: Please select a namespace.')
+    sys.exit()
+
 today = str(date.today())
 
 fname = namespace+'_dump'+today+'.sql'
@@ -35,8 +39,9 @@ def interaction(namespace,fname, args):
         newest_file = sorted(fnames)[-1]
         download_file('goat', 'fra1', newest_file , '/opt/backups/'+newest_file.split('/')[1])
 
-if (namespace == None):
-    print('Please select a namespace!')
-else: 
-    interaction(namespace,fname,args)
+    if (args.b == False | args.u | False | args.d == False): 
+        print('Error: Please select an argument that indicates your desired action.')
+
+
+interaction(namespace,fname,args)
 
