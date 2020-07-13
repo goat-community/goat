@@ -616,7 +616,8 @@
     "waterpark": "Water Park",
     "low_cost_gym": "Low cost Gym",
     "gym": "Gym",
-    "yoga":"Yoga"
+    "yoga":"Yoga",
+    "outdoor_fitness_station":"Outdoor fitness station"
   },
   "$vuetify": {
     "close": "Close",

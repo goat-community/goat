@@ -1255,6 +1255,13 @@
               "sensitivity": 300000
             },
             {
+              "name": "outdoor_fitness_station",
+              "value": "outdoor_fitness_station",
+              "icon": "outdoor_fitness_station",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
               "name": "low_cost_gym",
               "value": "low_cost_gym",
               "icon": "low_cost_gym",

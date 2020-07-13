@@ -22,7 +22,7 @@ DATA_REFINEMENT_VARIABLES:
       "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi","bikesharing_ffb","carsharing_ffb","charging_station_marker_ffb","charging_station_other_ffb","charging_station_public_ffb","e_parking_ffb",
       "l-station_ffb","s-station_prio1_ffb","s-station_prio2_ffb","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
       "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
-      "hypermarket","international_supermarket","chemist","organic","marketplace","hotel","museum","hostel","guest_house","viewpoint","gallery","playground","low_cost_gym","gym","yoga"
+      "hypermarket","international_supermarket","chemist","organic","marketplace","hotel","museum","hostel","guest_house","viewpoint","gallery","playground","low_cost_gym","gym","yoga","outdoor_fitness_station"
     ]
     pois_more_entrances: ["bus_stop","tram_stop","subway_entrance","rail_station","sports_center","waterpark"]
     excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
