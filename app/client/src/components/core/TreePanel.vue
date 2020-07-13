@@ -12,12 +12,7 @@
     width="350"
     class="right-shadow"
   >
-    <v-layout
-      :style="`background-color:${getColor};`"
-      justify-space-between
-      column
-      fill-height
-    >
+    <v-layout v-bind:class="getColor" justify-space-between column fill-height>
       <template v-if="mini">
         <v-btn
           class="ml-3 mt-2"
@@ -31,12 +26,7 @@
         </v-btn>
       </template>
       <template v-if="!mini">
-        <v-app-bar
-          flat
-          class="toolbar"
-          :color="activeColor.primary"
-          height="50"
-        >
+        <v-app-bar flat class="toolbar green" height="50">
           <img :src="logo" width="35px" />
           <img :src="logoText" class="pt-1" width="95px" />
           <v-spacer></v-spacer>
@@ -44,10 +34,9 @@
             <v-icon color="white">fas fa-chevron-left</v-icon>
           </v-btn>
         </v-app-bar>
-        <routing-toolbar v-show="!osmMode"></routing-toolbar>
-        <vue-scroll v-show="!osmMode" ref="vs">
+        <routing-toolbar></routing-toolbar>
+        <vue-scroll ref="vs">
           <v-layout
-            v-show="!osmMode"
             justify-space-between
             column
             fill-height
@@ -59,9 +48,9 @@
           </v-layout>
         </vue-scroll>
 
-        <v-layout v-show="!osmMode" align-end>
+        <v-layout align-end>
           <v-bottom-navigation
-            :background-color="activeColor.primary"
+            background-color="green"
             flat
             horizontal
             dark
@@ -84,9 +73,6 @@
             </v-btn>
           </v-bottom-navigation>
         </v-layout>
-
-        <!-- OSM MODE TASKS -->
-        <osm-mode v-if="osmMode"></osm-mode>
       </template>
     </v-layout>
   </v-navigation-drawer>
@@ -97,15 +83,13 @@
 import Isochrones from "../isochrones/Isochrones";
 import LayerTree from "../layers/layerTree/LayerTree";
 import RoutingToolbar from "./RoutingToolbar";
-import OsmMode from "./OsmMode";
 import { mapGetters } from "vuex";
 
 export default {
   components: {
     "map-isochrones": Isochrones,
     "map-layertree": LayerTree,
-    "routing-toolbar": RoutingToolbar,
-    "osm-mode": OsmMode
+    "routing-toolbar": RoutingToolbar
   },
   name: "tree-panel",
   data: () => ({
@@ -118,37 +102,23 @@ export default {
   }),
   computed: {
     getColor() {
-      return this.mini === true ? this.activeColor.primary : "";
+      return this.mini === true ? "green" : "";
     },
     ...mapGetters("isochrones", {
-      selectedThematicData: "selectedThematicData",
       calculations: "calculations"
-    }),
-    ...mapGetters("map", {
-      osmMode: "osmMode"
-    }),
-    ...mapGetters("app", {
-      activeColor: "activeColor"
     })
   },
   mounted() {},
   beforeDestroy() {},
   methods: {},
   watch: {
-    selectedThematicData(calculation) {
-      if (calculation) {
-        this.calculations.forEach(value => {
-          if (value.id !== calculation.calculationId) {
-            value.isExpanded = false;
-          } else {
-            value.isExpanded = true;
-          }
-        });
-        const scrollEl = this.$refs["vs"];
-        setTimeout(() => {
-          scrollEl.scrollIntoView(`#result-${calculation.calculationId}`, 300);
-        }, 100);
-      }
+    calculations(newValue, oldValue) {
+      const scrollEl = this.$refs["vs"];
+      setTimeout(() => {
+        if (oldValue.length === newValue.length) {
+          scrollEl.scrollIntoView("#isochroneResultsEl", 300);
+        }
+      }, 100);
     }
   }
 };

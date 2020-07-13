@@ -11,7 +11,7 @@
 
       <FeatureTypeStyle>
         <Rule>
-          <Title>visualization</Title>
+          <Title>CROSSING</Title>
           <MaxScaleDenominator>80000</MaxScaleDenominator>
           <PointSymbolizer>
             <Graphic>

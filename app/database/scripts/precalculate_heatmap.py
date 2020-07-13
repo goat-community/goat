@@ -2,8 +2,6 @@ import psycopg2
 import time
 import math
 from variables_precalculate import *
-from db_functions import ReadYAML
-from db_functions import DB_connection
 from pathlib import Path
 import yaml
 
@@ -17,11 +15,20 @@ grid = 'grid_'+str(500)
 sensitivities = [150000,200000,250000,300000,350000,400000,450000]
 
 start = time.time()
+with open("/opt/config/goat_config.yaml", 'r') as stream:
+    config = yaml.load(stream, Loader=yaml.FullLoader)
+secrets = config["DATABASE"]
+host = secrets["HOST"]
+port = str(secrets["PORT"])
+db_name = secrets["DB_NAME"]
+user = secrets["USER"]
+password = secrets["PASSWORD"]
 
-db_name,user,host,port,password = ReadYAML().db_credentials()
-db = DB_connection(db_name,user,host,port,password)
 
-con,cursor = db.con_psycopg()
+con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s'" % (
+    db_name, user, port, host, password))
+cursor = con.cursor()
+
 
 cursor.execute(prepare_tables.replace('grid_size', str(grid_size)))
 
@@ -140,8 +147,6 @@ for s in sensitivities:
     cursor.execute('CREATE INDEX ON %s USING GIN(%s);' % (grid,new_column))           
     con.commit()
 cursor.execute(sql_grid_population.replace('grid_size', str(grid_size)))
-
-cursor.execute('DELETE FROM edges;')
 
 con.commit()
 con.close()

@@ -1,4 +1,4 @@
-FROM goatcommunity/database:12-3-2.6.3-2.3.14
+FROM eliaspajares/goat-database:stable
 
 ENV APP_PATH /opt
 WORKDIR ${APP_PATH}

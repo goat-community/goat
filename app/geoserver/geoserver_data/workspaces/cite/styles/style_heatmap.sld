@@ -7,11 +7,6 @@
         <sld:Name>name</sld:Name>
                 <sld:Rule>
           <sld:Name>Very low accessibility</sld:Name>
-             <Title>
-              Very low accessibility
-                <Localized lang="de">Sehr niedrige Erreichbarkeit</Localized>
-            	<Localized lang="en">Very low accessibility</Localized>
-              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -40,11 +35,6 @@
         </sld:Rule>
         <sld:Rule>
           <sld:Name>Low accessibility</sld:Name>
-              <Title>
-              Low accessibility
-                <Localized lang="de">Niedrige Erreichbarkeit</Localized>
-            	<Localized lang="en">Low accessibility</Localized>
-              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThanOrEqualTo>
@@ -73,11 +63,6 @@
         </sld:Rule>
         <sld:Rule>
           <sld:Name>Rather low accessibility</sld:Name>
-          <Title>
-              Rather low accessibility
-                <Localized lang="de">Eher niedrige Erreichbarkeit</Localized>
-            	<Localized lang="en">Rather low accessibility</Localized>
-              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -106,11 +91,6 @@
         </sld:Rule>
         <sld:Rule>
           <sld:Name>Medium accessibility</sld:Name>
-                <Title>
-              Medium accessibility
-                <Localized lang="de">Mittlere Erreichbarkeit</Localized>
-            	<Localized lang="en">Medium accessibility</Localized>
-              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -139,11 +119,6 @@
         </sld:Rule>
         <sld:Rule>
           <sld:Name>Rather high accessibility</sld:Name>
-                       <Title>
-              Rather high accessibility
-                <Localized lang="de">Eher hohe Erreichbarkeit</Localized>
-            	<Localized lang="en">Rather high accessibility</Localized>
-              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -172,11 +147,6 @@
         </sld:Rule>
         <sld:Rule>
           <sld:Name>High accessibility</sld:Name>
-                       <Title>
-              High accessibility
-                <Localized lang="de">Hohe Erreichbarkeit</Localized>
-            	<Localized lang="en">High accessibility</Localized>
-              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>

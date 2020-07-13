@@ -2,7 +2,7 @@
   <v-speed-dial
     v-model="fab"
     direction="top"
-    class="mb-2"
+    class="mb-4"
     transition="slide-y-reverse-transition"
   >
     <template v-slot:activator>
@@ -13,7 +13,7 @@
             v-on="on"
             small
             class="elevation-0 ma-0 pa-0"
-            :color="activeColor.primary"
+            color="#4CAF50"
           >
             <country-flag
               :country="activeLanguage[0].flag || $i18n.locale"
@@ -25,7 +25,7 @@
       </v-tooltip>
     </template>
 
-    <div :style="`background-color:${activeColor.secondary};`">
+    <div style="background-color:#A1D5A3;">
       <v-btn
         class="ma-0 pa-0"
         text
@@ -72,9 +72,6 @@ export default {
   computed: {
     ...mapGetters("map", {
       contextmenu: "contextmenu"
-    }),
-    ...mapGetters("app", {
-      activeColor: "activeColor"
     }),
     notActiveLanguages() {
       const notActiveLanguages = this.languages.filter(value => {

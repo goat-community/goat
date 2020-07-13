@@ -138,30 +138,14 @@ export default class OlSelectController extends OlBaseController {
             })
           );
 
-          // Request only for population when building layer is active.
-          if (selectedLayer.get("name") === "buildings") {
-            const populationReq = wfsRequestParser(
-              "EPSG:3857",
-              layerParams[0],
-              "population_modified",
-              combinedFilter
-            );
-            requests.push(
-              http.post("geoserver/cite/wfs", populationReq, {
-                headers: { "Content-Type": "text/xml" }
-              })
-            );
-          }
-
           axios
             .all(requests)
             .then(
-              axios.spread((first, second, third) => {
+              axios.spread((first, second) => {
                 me.source.clear();
                 onSelectionEnd({
-                  first,
-                  second,
-                  third
+                  first: first,
+                  second: second
                 });
               })
             )

@@ -4,8 +4,8 @@
     dark
     style="position:absolute;bottom:35px;right:10px;maxWidth: 200px;"
   >
-    <v-expansion-panel :style="`background-color: white;`">
-      <v-expansion-panel-header :style="`background-color: ${color};`"
+    <v-expansion-panel style="background-color: white;">
+      <v-expansion-panel-header
         >{{ $t("map.layerLegend.title") }}
         <template v-slot:actions>
           <v-icon small>$vuetify.icons.expand</v-icon>
@@ -27,22 +27,11 @@
                 }}
               </p>
               <v-divider></v-divider>
-              <!-- Parent layer can have multiple child layers, so we need to loop through -->
-              <template
-                v-for="(layerName, index2) in item
-                  .getSource()
-                  .getParams()
-                  .LAYERS.split(',')"
-              >
-                <div :key="index2">
-                  <img
-                    style="max-width: 100%;"
-                    :src="getWMSLegendImageUrl(item, layerName)"
-                    class="white--text mt-0 pt-0"
-                  />
-                  <br />
-                </div>
-              </template>
+              <img
+                style="max-width: 100%;"
+                :src="getImageUrl(item)"
+                class="white--text mt-0 pt-0"
+              />
             </div>
           </template>
         </vue-scroll>
@@ -52,13 +41,11 @@
 </template>
 <script>
 import { Mapable } from "../../../../mixins/Mapable";
-import { getAllChildLayers, getWMSLegendURL } from "../../../../utils/Layer";
+import { getAllChildLayers } from "../../../../utils/Layer";
+
 export default {
   mixins: [Mapable],
   name: "map-legend",
-  props: {
-    color: { type: String, default: "#4CAF50" }
-  },
   data: () => ({
     layers: []
   }),
@@ -75,26 +62,12 @@ export default {
           layer.get("displayInLegend") !== false
       );
     },
-    getWMSLegendImageUrl(item, layerName) {
-      let layerUrl = item.getSource().getUrl();
-      if (layerUrl.startsWith("/")) {
-        layerUrl = window.location.origin + layerUrl;
-      }
-      const legedUrl = getWMSLegendURL(
-        layerUrl,
-        layerName,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        item.getSource().serverType_,
-        120,
-        undefined,
-        undefined,
-        undefined,
-        this.$i18n.locale
-      );
-      return legedUrl;
+    getImageUrl(item) {
+      const baseUrl = window.location.origin;
+      const url = `${baseUrl}/geoserver/ows?service=WMS&request=GetLegendGraphic&format=image/png&layer=${
+        item.getSource().getParams().LAYERS
+      }&LANGUAGE=${this.$i18n.locale}`;
+      return url;
     }
   }
 };
@@ -103,6 +76,7 @@ export default {
 .v-expansion-panel-header {
   min-height: 30px;
   padding: 5px;
+  background-color: #4caf50;
 }
 
 .v-expansion-panel-content >>> .v-expansion-panel-content__wrap {

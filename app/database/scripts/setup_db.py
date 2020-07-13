@@ -1,58 +1,41 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 def setup_db(setup_type):
     #Read Configuration
     import shapefile
     import os, glob, os.path
     import datetime,psycopg2
     from datetime import timedelta
-    import sys
-    import subprocess
+
     from scripts.db_functions import ReadYAML
     from scripts.db_functions import DB_connection
     from scripts.db_functions import create_variable_container
     from scripts.db_functions import update_functions
     from scripts.db_functions import geojson_to_sql
 
-    download_link,osm_data_recency,buffer,extract_bbox,source_population,additional_walkability_layers,osm_mapping_feature = ReadYAML().data_source()
+    download_link,osm_data_recency,buffer,extract_bbox,source_population,additional_walkability_layers = ReadYAML().data_source()
     db_name,user,host,port,password = ReadYAML().db_credentials()
     db_name_temp = db_name+'temp'
 
-    db_temp = DB_connection(db_name_temp,user,host,port,password)
+    db_temp = DB_connection(db_name_temp,user,host)
 
-    #Create pgpass-file for normal and temporary DB
-    ReadYAML().create_pgpass('',user)
-    ReadYAML().create_pgpass('temp',user)
-    ReadYAML().create_pgpass('empty',user+'empty')
-
-    #Create seperate user if not exists for renaming DBs afterwards
-    cmd = f'''PGPASSFILE=~/.pgpass_{db_name} psql -U {user} -h {host} -c "SELECT 1 FROM pg_roles WHERE rolname='{user+'empty'}';"'''
-    cmd_return = subprocess.check_output(cmd,shell=True)
-    
-    if ('0 row' in str(cmd_return)): 
-        print(cmd_return)
-        os.system(f'''PGPASSFILE=~/.pgpass_{db_name} psql -U {user} -h {host} -c "CREATE USER goatempty WITH password '{password}'; ALTER USER goatempty SUPERUSER;"''')
-   
-    os.system(f'''PGPASSFILE=~/.pgpass_{db_name} psql -U {user} -h {host} -c "DROP DATABASE IF EXISTS goatempty;"''')
-    os.system(f'''PGPASSFILE=~/.pgpass_{db_name} psql -U {user} -h {host} -c "CREATE DATABASE goatempty;"''')
-    
     #Create temporary database
-    os.system(f'''PGPASSFILE=~/.pgpass_{db_name} psql -U {user} -h {host} -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='{db_name_temp}';"''')
-    os.system(f'PGPASSFILE=~/.pgpass_{db_name} psql -U {user} -h {host} -c "DROP DATABASE IF EXISTS {db_name_temp};"')
-    os.system(f'PGPASSFILE=~/.pgpass_{db_name} psql -U {user} -h {host} -c "CREATE DATABASE {db_name_temp};"')
-   
+    os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name_temp)
+    os.system('psql -U postgres -c "DROP DATABASE IF EXISTS %s;"' % db_name_temp)
+    os.system('psql -U postgres -c "CREATE DATABASE %s;"' % db_name_temp)
+    #Create pgpass-file for temporary database
+    ReadYAML().create_pgpass('temp')
     #Create extensions
-    os.system(F'PGPASSFILE=~/.pgpass_{db_name_temp} psql -U {user} -h {host} -d {db_name_temp} -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION intarray;CREATE EXTENSION plpython3u;"')
+    os.system('psql -U postgres -d %s -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION intarray;CREATE EXTENSION plpython3u;"' % db_name_temp)
 
     #These extensions are needed when using the new DB-image
-    os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} psql -U {user} -h {host} -d {db_name_temp} -c "CREATE EXTENSION postgis_raster;"')
-    os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} psql -U {user} -h {host} -d {db_name_temp} -c "CREATE EXTENSION plv8;"')
-
+    #os.system('psql -U postgres -d %s -c "CREATE EXTENSION postgis_raster;"' % db_name_temp)
+    #os.system('psql -U postgres -d %s -c "CREATE EXTENSION plv8;"' % db_name_temp)
     os.chdir('/opt/data')
 
+
     if (download_link != 'no_download' and setup_type == 'new_setup'):
-        os.system(f'wget --no-check-certificate --output-document="raw-osm.osm.pbf" {download_link}')
+        os.system('wget --no-check-certificate --output-document="raw-osm.osm.pbf" %s' % download_link)
      
     #Define bounding box, the boundingbox is buffered by approx. 3 km
     bbox = shapefile.Reader("study_area.shp").bbox
@@ -63,9 +46,9 @@ def setup_db(setup_type):
 
     if (setup_type == 'new_setup'):  
         if (extract_bbox == 'yes'):
-            bounding_box = f'--bounding-box top={top} left={left} bottom={bottom} right={right}'
+            bounding_box = '--bounding-box top=%f left=%f bottom=%f right=%f' % (top,left,bottom,right)
             print('Your bounding box is: ' + bounding_box)
-            os.system(f'osmosis --read-pbf file="raw-osm.osm.pbf" {bounding_box} --write-xml file="study_area.osm"')
+            os.system('osmosis --read-pbf file="raw-osm.osm.pbf" %s --write-xml file="study_area.osm"' % bounding_box)
 
         #Create timestamps
         os.system('rm timestamps.txt')
@@ -79,24 +62,20 @@ def setup_db(setup_type):
         file.close()
 
         #Import DEM
-        if os.path.isfile('dem_vec.sql'):
-            db_temp.execute_script_psql('dem_vec.sql')
-        elif os.path.isfile('dem.tif'):
+        if os.path.isfile('dem.tif'):
             #os.system('gdalwarp -dstnodata -999.0 -r near -ot Float32 -of GTiff -te %f %f %f %f dem.tif dem_cut.tif' % (left,top,right,bottom))
             os.system('raster2pgsql -c -C -s 4326 -f rast -F -I -M -t 100x100 dem.tif public.dem > dem.sql')
             db_temp.execute_script_psql('dem.sql')
             db_temp.execute_script_psql('/opt/data_preparation/SQL/prepare_dem.sql')
-
         #Import shapefiles into database
         for file in glob.glob("*.shp"):
             print(file)
-            os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} shp2pgsql -I -s 4326  %s public.%s | PGPASSFILE=~/.pgpass_{db_name_temp} psql -d %s -U %s -h %s -q' % (file,file.split('.')[0],db_name_temp,user,host))
-         
+            os.system('PGPASSFILE=/.pgpass shp2pgsql -I -s 4326  %s public.%s | PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -q' % (file,file.split('.')[0],db_name_temp,user,host))
         #Import custom pois
         if glob.glob('custom_pois/*.geojson'):
             geojson_to_sql(db_name_temp,user,host,port,password)
-            db_temp.execute_text_psql(f'DELETE FROM custom_pois WHERE NOT ST_INTERSECTS(geom,ST_MAKEENVELOPE({left},{bottom},{right},{top}, 4326))')
-            
+            db_temp.execute_text_psql('DELETE FROM custom_pois WHERE NOT ST_INTERSECTS(geom,ST_MAKEENVELOPE(%f,%f,%f,%f, 4326))' % (left,bottom,right,top))
+
     #Use OSM-Update-Tool in order to fetch the most recent data
     if (osm_data_recency == 'most_recent'):
         #Take last timestamp
@@ -105,7 +84,7 @@ def setup_db(setup_type):
             pass
         timestamp=str(line.replace('\n',''))
         print('You are fetching the most recent changes from OSM.')
-        os.system(f'osmupdate study_area.osm {timestamp} study_area_update.osm -b={left},{bottom},{right},{top}')
+        os.system('osmupdate study_area.osm %s study_area_update.osm -b=%f,%f,%f,%f' % (timestamp,left,bottom,right,top))
 
         #Add new timestamp
         currentDT = datetime.datetime.now()
@@ -125,15 +104,15 @@ def setup_db(setup_type):
     if (setup_type in ['all','population','pois','network']):
         for file in glob.glob("*.shp"):
             table_name = file.split('.')[0]
-            os.system(f'PGPASSFILE=~/.pgpass_{db_name} pg_dump -U {user} -d {db_name} -h {host} -t {table_name} | PGPASSFILE=~/.pgpass_{db_name_temp} psql -d {db_name_temp} -U {user} -h {host}')
+            os.system('pg_dump -U %s -d %s -t %s | psql -d %s -U %s' % (user,db_name,table_name,db_name_temp,user))
+
 
     #Create tables and types
     db_temp.execute_script_psql('/opt/data_preparation/SQL/create_tables.sql')
     create_variable_container(db_name_temp,user,str(port),host,password)
     db_temp.execute_script_psql('/opt/data_preparation/SQL/types.sql')
     #Create functions that are needed for data_preparation
-    
-    db_temp.execute_script_psql('/opt/database_functions/data_preparation/select_from_variable_container.sql')
+    db_temp.execute_script_psql('/opt/database_functions/other/select_from_variable_container.sql')
     db_temp.execute_script_psql('/opt/database_functions/network/split_long_way.sql')
     db_temp.execute_script_psql('/opt/database_functions/network/compute_slope.sql')
     db_temp.execute_script_psql('/opt/database_functions/network/slope_impedance.sql')
@@ -146,11 +125,11 @@ def setup_db(setup_type):
 
 
     if (setup_type in ['new_setup','all','population','pois','network']):
-        os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} osm2pgsql -d {db_name_temp} -H {host} -U {user} --hstore -E 4326 study_area.osm') 
+        os.system('PGPASSFILE=/.pgpass osm2pgsql -d %s -H %s -U %s --hstore -E 4326 study_area.osm' % (db_name_temp,host,user)) 
         
 
     if (setup_type in ['new_setup','population','pois']):    
-        os.system(f"PGPASSFILE=~/.pgpass_{db_name_temp} psql -d {db_name_temp} -h {host} -U {user} -f {'../data_preparation/SQL/pois.sql'}")
+        os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -f %s' % (db_name_temp,user,host,'../data_preparation/SQL/pois.sql'))
         if (setup_type in ['new_setup','population']):
             print ('It was chosen to use population from: ', source_population)
             if os.path.isfile('buildings.shp'):
@@ -167,33 +146,32 @@ def setup_db(setup_type):
             elif(source_population == 'distribution'):
                 db_temp.execute_script_psql('../data_preparation/SQL/population_distribution.sql')
 
-            db_temp.execute_script_psql('../data_preparation/SQL/create_population_userinput.sql')
     if (setup_type in ['new_setup','all','network']):
-        os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} osm2pgrouting --dbname {db_name_temp} --host {host} --username {user} --file "study_area.osm" --conf ../mapconfig.xml --clean') 
+        os.system('PGPASSFILE=/.pgpass osm2pgrouting --dbname %s --host %s --username %s --file "study_area.osm" --conf ../mapconfig.xml --clean' % (db_name_temp,host,user)) 
         db_temp.execute_script_psql('../data_preparation/SQL/network_preparation.sql')
         if (additional_walkability_layers == 'yes'):
             db_temp.execute_script_psql('../data_preparation/SQL/layer_preparation.sql')
-        if (osm_mapping_feature == 'yes'):
-            db_temp.execute_script_psql('../data_preparation/SQL/create_tables_mapping.sql')
+
 
     if (setup_type == 'new_setup'):    
-        os.system(f'''PGPASSFILE=~/.pgpass_{db_name} psql -U {user} -h {host} -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='{db_name+'old'}';"''')
-        os.system(f'PGPASSFILE=~/.pgpass_{db_name} psql -U {user} -h {host} -c "DROP DATABASE {db_name}old;"')
-        os.system(f'''PGPASSFILE=~/.pgpass_{db_name}empty psql -U {user}empty -h {host} -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='{db_name}';"''')
-        
-     
-        os.system(f'PGPASSFILE=~/.pgpass_{db_name}empty psql -U {user}empty -h {host} -c "ALTER DATABASE {db_name} RENAME TO {db_name}old;"')
-        os.system(f'PGPASSFILE=~/.pgpass_{db_name}empty psql -U {user}empty -h {host} -c "ALTER DATABASE {db_name_temp} RENAME TO {db_name};"')
+        #Create pgpass for goat-database
+        ReadYAML().create_pgpass('')  
+        os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'old'))
+        os.system('psql -U postgres -c "DROP DATABASE %s;"' % (db_name+'old'))
+        os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name)
+        os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name,db_name+'old'))
+        os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name_temp, db_name))
                
         #Creates DB_functions
         update_functions()
 
-        #os.system(f'psql --U {user} -d {db_name} -f /opt/database_functions/libs/plv8_js_modules.sql')
-        #os.system(f'psql -U {user} -d {db_name} -c "ALTER DATABASE {db_name} SET plv8.start_proc TO plv8_require')
-
     else:
-        con,cursor = db_temp.con_psycopg()
+        #Create pgpass for goat-database
+        ReadYAML().create_pgpass('')
+        con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s'" % (
+        db_name_temp, user, port, host, password))
 
+        cursor = con.cursor()
         #Select all tables that have changed
         sql_select_not_empty_tables = '''
         SELECT c.relname
@@ -204,13 +182,14 @@ def setup_db(setup_type):
         '''
         cursor.execute(sql_select_not_empty_tables)
         tables_to_update = cursor.fetchall()
-        con.close()
         #Refresh all tables that have changed
         for table in tables_to_update:  
             table = table[0]
             if (table !=  'spatial_ref_sys'):
-                os.system(f'PGPASSFILE=~/.pgpass_{db_name} psql -d {db_name} -U {user} -h {host} -c "DROP TABLE {table} CASCADE;"')
-                os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} pg_dump -U {user} -d {db_name_temp} -h {host} -t {table} | PGPASSFILE=~/.pgpass_{db_name} psql -d {db_name} -U {user} -h {host}')
-        
-        os.system(f'''PGPASSFILE=~/.pgpass_{db_name} psql -U {user} -h {host} -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='{db_name_temp}';"''')
-        os.system(f'PGPASSFILE=~/.pgpass_{db_name} psql -U {user} -h {host} -c "DROP DATABASE {db_name_temp};"')
+                os.system('PGPASSFILE=/.pgpass psql -d %s -U %s -h %s -c "DROP TABLE %s CASCADE;"' % (db_name,user,host,table))
+                os.system('pg_dump -U %s -d %s -t %s | psql -d %s -U %s' % (user,db_name_temp,table,db_name,user))
+
+        os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name_temp)
+        os.system('psql -U postgres -c "DROP DATABASE %s;"' % db_name_temp)
+    
+

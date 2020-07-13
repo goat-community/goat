@@ -17,8 +17,5 @@ Vue.prototype.$vuescrollConfig = {
     background: "#cecece",
     onlyShowBarOnScroll: false,
     keepShow: true
-  },
-  rail: {
-    gutterOfSide: "0px"
   }
 };

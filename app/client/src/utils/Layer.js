@@ -331,8 +331,7 @@ export function getWMSLegendURL(
   opt_dpi,
   opt_bbox,
   opt_srs,
-  opt_additionalQueryString,
-  opt_language
+  opt_additionalQueryString
 ) {
   if (!url) {
     return undefined;
@@ -348,9 +347,6 @@ export function getWMSLegendURL(
   };
   if (opt_scale !== undefined) {
     queryString.SCALE = opt_scale;
-  }
-  if (opt_language) {
-    queryString.LANGUAGE = opt_language;
   }
   if (opt_legendRule !== undefined) {
     queryString.RULE = opt_legendRule;
@@ -396,8 +392,7 @@ export function getWMSLegendURL(
 export function mapFeatureTypeProps(props, layerName, layerConf) {
   const mapping = {
     string: "string",
-    int: "integer",
-    number: "number"
+    int: "integer"
   };
   let obj = {
     $id: "https://example.com/person.schema.json",

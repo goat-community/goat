@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" scrollable max-width="500px">
     <v-card class="">
-      <v-app-bar :color="color" dark>
+      <v-app-bar color="green" dark>
         <v-app-bar-nav-icon
           ><v-icon>fas fa-chart-line</v-icon></v-app-bar-nav-icon
         >
@@ -67,8 +67,7 @@ export default {
 
   props: {
     visible: { type: Boolean, required: false, default: false },
-    selectedAmenity: { type: Object },
-    color: { type: String, default: "#4CAF50" }
+    selectedAmenity: { type: Object }
   },
   methods: {
     updateHeatmap() {

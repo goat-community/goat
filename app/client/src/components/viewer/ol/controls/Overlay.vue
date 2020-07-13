@@ -1,6 +1,6 @@
 <template>
   <v-card ref="popup" max-width="344" width="250" class="ol-popup mx-auto">
-    <v-toolbar :color="color" flat height="50" dark>
+    <v-toolbar color="green" flat height="50" dark>
       <v-toolbar-title>{{
         title ? $t(`map.popup.${title}`) : ""
       }}</v-toolbar-title>
@@ -20,8 +20,7 @@
 export default {
   name: "overlay-popup",
   props: {
-    title: { type: String, required: false },
-    color: { type: String, default: "#4CAF50" }
+    title: { type: String, required: false }
   }
 };
 </script>
