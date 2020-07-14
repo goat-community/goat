@@ -34,6 +34,8 @@ begin
   --For now only the speed differs
   IF routing_profile = 'walking_elderly' THEN 
     routing_profile = 'walking_standard';
+  ELSIF routing_profile = 'walking_wheelchair_electric' OR routing_profile = 'walking_wheelchair_standard' THEN 
+    routing_profile = 'walking_wheelchair';
   END IF;
 
   SELECT ST_AsText(ST_Buffer(start_point::geography,distance)::geometry)  

@@ -1,0 +1,15 @@
+<layer>
+  <name>mapping_ways_speed</name>
+  <id>LayerInfoImpl-7d99018b:17250915a82:5c8c</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-361d8c01:1728373ba1a:-3470</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-7d99018b:17250915a82:5c8b</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

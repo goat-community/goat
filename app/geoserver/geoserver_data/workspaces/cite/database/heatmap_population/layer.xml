@@ -1,12 +1,12 @@
 <layer>
   <name>heatmap_population</name>
-  <id>LayerInfoImpl--3717634a:169f75d2f85:-7471</id>
+  <id>LayerInfoImpl--3ff85cb2:172f0b762c2:-7ffe</id>
   <type>VECTOR</type>
   <defaultStyle>
     <id>StyleInfoImpl-22fef441:16876478b09:-4a7a</id>
   </defaultStyle>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl--3717634a:169f75d2f85:-7472</id>
+    <id>FeatureTypeInfoImpl--3ff85cb2:172f0b762c2:-7fff</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>

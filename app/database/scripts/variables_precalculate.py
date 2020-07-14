@@ -41,16 +41,14 @@ UPDATE grid_grid_size SET population=s.population
 FROM sum_pop s 
 WHERE grid_grid_size.grid_id = s.grid_id;
 
-
-WITH p AS (
-	SELECT grid_id,ntile(5) over 
-	(order by population) AS percentile
-	FROM grid_grid_size where population <> 0
-	ORDER BY grid_id
-)
-UPDATE grid_grid_size SET percentile_population = p.percentile
-FROM p
-WHERE grid_grid_size.grid_id = p.grid_id;
+UPDATE grid_grid_size 
+SET percentile_population = 
+(CASE WHEN population BETWEEN 1 AND 20 THEN 1 
+WHEN population BETWEEN 20 AND 80 THEN 2
+WHEN population BETWEEN 80 AND 200 THEN 3 
+WHEN population BETWEEN 200 AND 400 THEN 4 
+WHEN population > 400 THEN 5 END)
+WHERE population IS NOT NULL; 
 
 UPDATE grid_grid_size SET percentile_population = 0
 WHERE percentile_population IS NULL;

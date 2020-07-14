@@ -1,13 +1,18 @@
 <template>
   <div id="ol-map-container">
     <!-- Map Controls -->
-    <zoom-control v-show="!miniViewOlMap" :map="map" />
-    <full-screen v-show="!miniViewOlMap" />
+    <zoom-control
+      v-show="!miniViewOlMap"
+      :map="map"
+      :color="activeColor.primary"
+    />
+    <full-screen v-show="!miniViewOlMap" :color="activeColor.primary" />
     <progress-status :isNetworkBusy="isNetworkBusy" />
     <background-switcher v-show="!miniViewOlMap" />
-    <map-legend v-show="!miniViewOlMap" />
+    <map-legend v-show="!miniViewOlMap" :color="activeColor.primary" />
     <!-- Popup overlay  -->
     <overlay-popup
+      :color="activeColor.primary"
       :title="popup.title"
       v-show="popup.isVisible && miniViewOlMap === false"
       ref="popup"
@@ -40,25 +45,21 @@
       </template>
       <template v-slot:body>
         <div class="subtitle-2 mb-4 font-weight-bold">
-          {{
-            getInfoResult[popup.currentLayerIndex]
-              ? $te(
-                  `map.layerName.${getInfoResult[popup.currentLayerIndex].get(
-                    "layerName"
-                  )}`
-                )
-                ? $t(
-                    `map.layerName.${getInfoResult[popup.currentLayerIndex].get(
-                      "layerName"
-                    )}`
-                  )
-                : getInfoResult[popup.currentLayerIndex].get("layerName")
-              : ""
-          }}
+          {{ getPopupTitle() }}
         </div>
 
+        <a
+          v-if="currentInfoFeature && currentInfoFeature.get('osm_id')"
+          style="text-decoration:none;"
+          :href="getOsmHrefLink()"
+          target="_blank"
+          title=""
+        >
+          <i class="fa fa-edit"></i> {{ $t("map.popup.editWithOsm") }}</a
+        >
+
         <v-divider></v-divider>
-        <span v-html="popup.rawHtml"></span>
+
         <div style="height:190px;">
           <vue-scroll>
             <v-simple-table dense class="pr-2">
@@ -232,6 +233,9 @@ export default {
         return interaction !== stopedInteraction;
       });
     });
+    EventBus.$on("close-popup", () => {
+      me.closePopup();
+    });
   },
 
   methods: {
@@ -241,6 +245,7 @@ export default {
      */
     createLayers() {
       let layers = [];
+      const me = this;
       const layersConfigGrouped = groupBy(this.$appConfig.map.layers, "group");
       for (var group in layersConfigGrouped) {
         if (!layersConfigGrouped.hasOwnProperty(group)) {
@@ -250,6 +255,9 @@ export default {
         layersConfigGrouped[group].reverse().forEach(function(lConf) {
           const layer = LayerFactory.getInstance(lConf);
           mapLayers.push(layer);
+          if (layer.get("name")) {
+            me.setLayer(layer);
+          }
         });
         let layerGroup = new LayerGroup({
           name: group !== undefined ? group.toString() : "Other Layers",
@@ -271,7 +279,7 @@ export default {
       const vector = new VectorLayer({
         name: "Get Info Layer",
         displayInLayerList: false,
-        zIndex: 20,
+        zIndex: 100,
         source: source,
         style: getInfoStyle()
       });
@@ -350,7 +358,7 @@ export default {
     setOlButtonColor() {
       var me = this;
 
-      if (isCssColor(me.color)) {
+      if (isCssColor(me.activeColor.primary)) {
         // directly apply the given CSS color
         const rotateEl = document.querySelector(".ol-rotate");
         if (rotateEl) {
@@ -359,7 +367,7 @@ export default {
           const rotateElStyle = document.querySelector(
             ".ol-rotate .ol-rotate-reset"
           ).style;
-          rotateElStyle.backgroundColor = me.color;
+          rotateElStyle.backgroundColor = me.activeColor.primary;
           rotateElStyle.borderRadius = "40px";
         }
         const attrEl = document.querySelector(".ol-attribution");
@@ -368,13 +376,13 @@ export default {
           const elStyle = document.querySelector(
             ".ol-attribution button[type='button']"
           ).style;
-          elStyle.backgroundColor = me.color;
+          elStyle.backgroundColor = me.activeColor.primary;
           elStyle.borderRadius = "40px";
         }
       } else {
         // apply vuetify color by transforming the color to the corresponding
         // CSS class (see https://vuetifyjs.com/en/framework/colors)
-        const [colorName, colorModifier] = me.color
+        const [colorName, colorModifier] = me.activeColor.primary
           .toString()
           .trim()
           .split(" ", 2);
@@ -563,7 +571,7 @@ export default {
               });
               if (selectedFeatures !== null && selectedFeatures.length > 0) {
                 //TODO: If there are more then 2 features selected get the closest one to coordinate rather than the first element
-                const clonedFeature = selectedFeatures[0];
+                const clonedFeature = selectedFeatures[0].clone();
                 clonedFeature.set("layerName", layer.get("name"));
                 me.getInfoResult.push(clonedFeature);
               }
@@ -620,9 +628,65 @@ export default {
       this.popup.currentLayerIndex += 1;
       this.showPopup();
     },
+    getOsmHrefLink() {
+      let link = ``;
+      if (this.currentInfoFeature && this.currentInfoFeature.get("osm_id")) {
+        const feature = this.currentInfoFeature;
+        const originGeometry =
+          feature.getProperties()["orgin_geometry"] ||
+          feature
+            .getGeometry()
+            .getType()
+            .toLowerCase();
+        let type;
+        switch (originGeometry) {
+          case "polygon":
+          case "multipolygon":
+          case "linestring":
+            type = "way";
+            break;
+          case "point":
+            type = "node";
+            break;
+          default:
+            type = null;
+            break;
+        }
+        link =
+          `https://www.openstreetmap.org/edit?editor=id&` +
+          `${type}` +
+          `=${feature.get("osm_id")}`;
+      }
+      return link;
+    },
+    getPopupTitle() {
+      if (this.getInfoResult[this.popup.currentLayerIndex]) {
+        const layer = this.getInfoResult[this.popup.currentLayerIndex];
+        const canTranslate = this.$te(
+          `map.layerName.${layer.get("layerName")}`
+        );
+        if (canTranslate) {
+          return this.$t(`map.layerName.${layer.get("layerName")}`);
+        } else if (
+          this.osmMode === true &&
+          this.osmMappingLayers[layer.get("layerName")] &&
+          this.$te(`map.osmMode.layers.${layer.get("layerName")}.layerName`)
+        ) {
+          const path = `map.osmMode.layers.${layer.get("layerName")}`;
+          return (
+            this.$t(`${path}.layerName`) +
+            " - " +
+            this.$t(`${path}.missingKeyWord`)
+          );
+        } else {
+          return layer.get("layerName");
+        }
+      }
+    },
     ...mapMutations("map", {
       setMap: "SET_MAP",
-      setContextMenu: "SET_CONTEXTMENU"
+      setContextMenu: "SET_CONTEXTMENU",
+      setLayer: "SET_LAYER"
     }),
     ...mapActions("isochrones", {
       showIsochroneWindow: "showIsochroneWindow"
@@ -631,10 +695,19 @@ export default {
   computed: {
     ...mapGetters("map", {
       helpTooltip: "helpTooltip",
-      currentMessage: "currentMessage"
+      currentMessage: "currentMessage",
+      osmMode: "osmMode",
+      osmMappingLayers: "osmMappingLayers",
+      layers: "layers"
+    }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
     }),
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer"
+    }),
+    ...mapGetters("user", {
+      userId: "userId"
     }),
     ...mapGetters("loader", { isNetworkBusy: "isNetworkBusy" }),
     currentInfo() {
@@ -661,6 +734,9 @@ export default {
       });
 
       return transformed;
+    },
+    currentInfoFeature() {
+      return this.getInfoResult[this.popup.currentLayerIndex];
     }
   },
   watch: {
@@ -671,6 +747,35 @@ export default {
       } else {
         this.dblClickZoomInteraction.setActive(true);
       }
+    },
+    activeColor() {
+      this.setOlButtonColor();
+    },
+    userId(value) {
+      setTimeout(() => {
+        const layers = Object.keys(this.layers);
+        layers.forEach(key => {
+          if (
+            this.layers[key].get("viewparamsDynamicKeys") &&
+            this.layers[key].get("viewparamsDynamicKeys").includes("userId")
+          ) {
+            if (this.layers[key].getSource().getParams()) {
+              let viewparams = this.layers[key].getSource().getParams()
+                .viewparams;
+              if (!viewparams) {
+                viewparams = ``;
+              }
+              if (!viewparams.includes("userid")) {
+                // Insert userId if it doesn't exist.
+                viewparams += `userid:${value};`;
+                this.layers[key].getSource().updateParams({
+                  viewparams
+                });
+              }
+            }
+          }
+        });
+      }, 500);
     }
   }
 };

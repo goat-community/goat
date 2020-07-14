@@ -1,6 +1,6 @@
 ------------------------------------------------
 ----- Pois reclassification array function------
--- Look for elements that is any list value in the old_col  and then tag it a  "new_name" in "new_col"
+-- Look for elements that is any list value in the old_col and then tag it a  "new_name" in "new_col"
 -- Input values
 -- 	old_col	: Column to look up
 --	old name: Values to look, in this case correspond to a name in the variable container -> pois_search_conditions.
@@ -22,7 +22,7 @@ BEGIN
 	->'||quote_literal(new_name)||'), '||'''%'''||'))
  	AND
 	amenity = '|| quote_literal(old_name)||'';
-	ELSIF restriction = 'rigth' THEN 
+	ELSEIF restriction = 'rigth' THEN 
 	
 	EXECUTE 'UPDATE pois 
 	SET '|| quote_ident(new_col) ||' = '|| quote_literal(new_name) ||'

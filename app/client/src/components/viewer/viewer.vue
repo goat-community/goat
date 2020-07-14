@@ -1,17 +1,25 @@
 <template>
   <div>
     <!-- TOGGLE STREET VIEW -->
-    <v-btn
-      v-if="!miniViewerVisible"
-      class="mx-2 miniviewer-button"
-      fab
-      dark
-      small
-      color="green"
-      @click="showMiniViewer"
-    >
-      <v-icon dark>streetview</v-icon>
-    </v-btn>
+    <v-tooltip right>
+      <template v-slot:activator="{ on }">
+        <v-btn
+          v-show="!miniViewerVisible"
+          v-if="isMapillaryButtonActive"
+          class="mx-2 miniviewer-button"
+          fab
+          dark
+          small
+          :color="activeColor.primary"
+          @click="showMiniViewer"
+          :loading="isMapillaryBtnDisabled"
+          v-on="on"
+        >
+          <v-icon dark>streetview</v-icon>
+        </v-btn>
+      </template>
+      <span>{{ $t(`map.tooltips.toggleStreetView`) }}</span>
+    </v-tooltip>
 
     <!-- ISOCHRONES-THEMATIC-DATA -->
     <isochrone-thematic-data v-show="!miniViewOlMap" />
@@ -32,6 +40,11 @@
         ref="mapillary"
         class="fullscreen"
         v-if="miniViewerVisible"
+        :startImageKey="mapillaryStartImageKey"
+        :startSequenceKey="mapillarySequenceKey"
+        :organization_key="mapillaryOrganizationKey"
+        :clientId="mapillaryClientId"
+        :baseLayerExtent="mapillaryTileBaseLayerExtent"
       ></app-mapillary>
     </div>
 
@@ -56,6 +69,10 @@
 import appMap from "./ol/Map";
 import appMapillary from "./mapillary/Mapillary";
 import IsochronThematicData from "./others/IsochroneThematicData";
+import { toLonLat } from "ol/proj";
+import { mapGetters } from "vuex";
+import axios from "axios";
+import { getCenter } from "ol/extent";
 
 export default {
   name: "app-viewer",
@@ -67,8 +84,46 @@ export default {
   data() {
     return {
       miniViewerVisible: false,
-      miniViewOlMap: false
+      miniViewOlMap: false,
+      // Mapillary Keys
+      mapillaryClientId: "V1Qtd0JKNGhhb1J1cktMbmhFSi1iQTo5ODMxOWU3NmZlMjEyYTA3",
+      mapillaryOrganizationKey: "RmTboeISWnkEaYaSdtVRHp",
+      mapillaryImgAPI: "https://a.mapillary.com/v3/images",
+      mapillaryTileBaseLayerExtent: this.$appConfig.map.originalExtent,
+      mapillaryStartImageKey: null,
+      mapillarySequenceKey: null,
+      isMapillaryBtnDisabled: true,
+      isMapillaryButtonActive: true
     };
+  },
+  computed: {
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
+  },
+  mounted() {
+    if (this.$appConfig.map.center) {
+      const coordinates = toLonLat(getCenter(this.$appConfig.map.extent));
+      axios
+        .get(this.mapillaryImgAPI, {
+          params: {
+            client_id: this.mapillaryClientId,
+            closeto: [coordinates[0], coordinates[1]].toString(),
+            radius: 150
+          }
+        })
+        .then(response => {
+          if (response.data) {
+            this.isMapillaryBtnDisabled = false;
+            const closestFeature = response.data.features[0];
+            this.mapillaryStartImageKey = closestFeature.properties.key;
+            this.mapillarySequenceKey = closestFeature.properties.sequence_key;
+          }
+        })
+        .catch(() => {
+          this.isMapillaryButtonActive = false;
+        });
+    }
   },
   methods: {
     showMiniViewer() {
