@@ -2,7 +2,7 @@ DATA_SOURCE:
   #"no_download" if you don't want to download OSM data automatically. Make sure that the file is called raw-osm.osm.pbf.
   OSM_DOWNLOAD_LINK: "https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf" 
   #"most_recent" if the data from the OSM-Download-Link has not the recency you need. 
-  OSM_DATA_RECENCY: "standard"
+  OSM_DATA_RECENCY: "most_recent" #"standard"
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
   EXTRACT_BBOX: "yes"
   
@@ -107,14 +107,14 @@ DATA_REFINEMENT_VARIABLES:
     ##                        Possible names are mandatory for the new POIS to include (with a .geojson file)
     pois_search_conditions:
       chemist:
-        dm: ['%dm%']
-        rossmann: ['rossmann%']
+        dm: ['dm']
+        rossmann: ['rossmann']
       supermarket:
-        edeka: ['e center%', '%edeka%']
-        rewe: ['%rewe', '%rewe city%']
+        edeka: ['e center', 'edeka']
+        rewe: ['rewe', 'rewe city']
       discount_supermarket:
         aldi: []
-        lidl: ['%lidl%']
+        lidl: ['lidl']
         penny: []
         netto: []
         norma: []
@@ -135,19 +135,23 @@ DATA_REFINEMENT_VARIABLES:
         münchner verkehrsgesellschaft: []
         mvg: []
       bank: 
-        sparkasse: ['%kreissparkasse%','%sparkasse%','%stadtsparkasse%']   
-        hypovereinsbank: ['%hypo vereinsbank%', '%hypovereinsbank%']
-        raiffeisenbank: ['%raiffeisenbank%', '%vr bank%', '%vr-bank%', '%volksbank%','%volks%', '%Münchner%']
+        sparkasse: ['kreissparkasse','sparkasse','stadtsparkasse']   
+        hypovereinsbank: ['hypo vereinsbank', 'hypovereinsbank']
+        raiffeisenbank: ['raiffeisenbank', 'vr bank', 'vr-bank', 'volksbank','volks', 'Münchner']
       fast_food:
-        mcdonalds: ['%mcdonald%']
+        mcdonalds: ['mcdonald']
       restaurant:   
-        vapiano: ['%vapiano%']
+        vapiano: ['vapiano']
       nursery:
-        kinderkrippe: ['%krippe%','%kindergrippe%']
-      low_cost_gym:
-        star: ['%fit-star%','star']
+        kinderkrippe: ['krippe','kindergrippe']
+      discount_gym:
+        fitstar: ['fit-star','fit star']
         mcfit: []
         fitx: []
+        cleverfit: ['clever fit','cleverfit']
+        jumpersfitness: ['jumpers fitness']
+      
+      community_sport_centre: ['bezirkssportanlage']
 
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------------------Amenity parameters for POIS preparation leisure and schools------------------------##
