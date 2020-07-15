@@ -121,3 +121,26 @@ def download_raw_data(space_name, region_name, dir):
         download_file(space_name,region_name, i , '/opt/data/'+i.split('/')[-1])
 
 #download_raw_data('goat', 'fra1','raw_data/'+'ffb')
+
+
+def spaces_interaction(namespace, args):
+    from datetime import date 
+    today = str(date.today())
+    fname = namespace+'_dump'+today+'.sql'
+
+    if (args.b == True):
+        print('Database dump will be generated and saved in /app/database/backups. Depending on the size this can take a while...')
+        os.system('pg_dump -U postgres -d goat > /opt/backups/'+fname)
+
+    if (args.u == True):
+        print('File will be uploaded. Depending on the size this can take a while...')
+        upload_file('goat','fra1','/opt/backups/'+fname,namespace+'/'+fname)
+
+    if (args.db == True ):
+        fnames = list_files('goat','fra1',namespace+'/')
+        newest_file = sorted(fnames)[-1]
+        download_file('goat', 'fra1', newest_file , '/opt/backups/'+newest_file.split('/')[1])
+
+    if (args.b == False | args.u | False | args.db == False): 
+        print('Error: Please select an argument that indicates your desired action.')
+
