@@ -610,14 +610,14 @@
     "university": "University",
     "hospital": "Hospital",
     "playground": "Playground",
-    "population": "Population",
     "sports": "Sports",
-    "sports_center": "Sports Center",
+    "community_sports_center": "Community Sports Center",
     "waterpark": "Water Park",
-    "low_cost_gym": "Low cost Gym",
+    "discount_gym": "Discount Gym",
     "gym": "Gym",
     "yoga":"Yoga",
-    "outdoor_fitness_station":"Outdoor fitness station"
+    "outdoor_fitness_station":"Outdoor fitness station",
+    "population": "Population"
   },
   "$vuetify": {
     "close": "Close",

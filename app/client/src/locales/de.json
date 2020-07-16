@@ -609,6 +609,13 @@
     "university": "Universität",
     "hospital": "Krankenhaus",
     "playground": "Spielplatz",
+    "sports": "Sports",
+    "community_sports_center": "Bezirkssportanlagen",
+    "waterpark": "Schwimmbad",
+    "discount_gym": "Discount Fitnessstudio",
+    "gym": "Fitnessstudio",
+    "yoga":"Yoga",
+    "outdoor_fitness_station":"Outdoor Fitness",
     "population": "Bevölkerung"
   },
   "$vuetify": {
