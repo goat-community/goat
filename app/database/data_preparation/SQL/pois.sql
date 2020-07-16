@@ -97,7 +97,8 @@ operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_ho
 tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_point 
 WHERE (leisure = 'fitness_centre' OR (leisure = 'sports_centre' AND sport = 'fitness'))
-AND NOT (lower(name) LIKE '%yoga%' OR sport = 'yoga')
+AND (sport IN('multi','fitness') OR sport IS NULL)
+AND NOT (lower(name) LIKE '%yoga%')
 
 UNION ALL 
 -- Add Yoga centers
@@ -400,23 +401,25 @@ AND amenity = 'subway_entrance';
 
 -- Multipoint for Sports center and waterparks
 
-DROP TABLE IF EXISTS sports_center;
+DROP TABLE IF EXISTS community_sports_center;
 DROP TABLE IF EXISTS waterpark;
-CREATE TABLE sports_center (LIKE planet_osm_polygon INCLUDING INDEXES);
-INSERT INTO sports_center
+CREATE TABLE community_sports_center (LIKE planet_osm_polygon INCLUDING INDEXES);
+INSERT INTO community_sports_center
 SELECT * 
 FROM planet_osm_polygon 
 WHERE 
 (
-	(leisure = 'sports_centre' AND lower(name) LIKE ANY (ARRAY['%bezirkssportanlage%','%sportcenter%','%sportzentrum%','sportanlage']))
+	(leisure = 'sports_centre' AND 
+	lower(name) ~~ ANY (ARRAY(SELECT '%'||jsonb_array_elements_text(select_from_variable_container_o('pois_search_conditions') -> 'community_sport_centre') || '%')))
 	OR 
-	(landuse = 'recreation_ground' AND lower(name) LIKE ANY (ARRAY['%bezirkssportanlage%','%sportcenter%','%sportzentrum%','sportanlage']))
+	(landuse = 'recreation_ground' AND lower(name) ~~ ANY (ARRAY(SELECT '%'||jsonb_array_elements_text(select_from_variable_container_o('pois_search_conditions') -> 'community_sport_centre') || '%')
+))
 )
 AND amenity IS NULL 
 AND NOT (building IS NOT NULL AND sport IS null);
 
-SELECT derive_access_from_polygons('sports_center','sports_center');
-DROP TABLE IF EXISTS sports_center;
+SELECT derive_access_from_polygons('community_sports_center','community_sports_center');
+DROP TABLE IF EXISTS community_sports_center;
 
 CREATE TABLE waterpark (LIKE planet_osm_polygon INCLUDING INDEXES);
 INSERT INTO waterpark
