@@ -1566,7 +1566,7 @@
         "id",
         "original_id",
         "status",
-        "class_id"
+        "gross_floor_area"
       ]
     }
   }

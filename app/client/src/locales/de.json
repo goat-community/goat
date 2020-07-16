@@ -673,7 +673,8 @@
       "building": "Gebäudetyp",
       "building_levels": "Anzahl Geschosse",
       "building_levels_residential": "Anzahl Geschosse Wohnen",
-      "population": "Einwohneranzahl (optional)"
+      "population": "Einwohneranzahl (optional)",
+      "gross_floor_area": "Geschossfläche"
       }
     },
     "listValues": {
