@@ -222,12 +222,16 @@ INSERT INTO pois
 SELECT DISTINCT p.osm_id,'point' as origin_geometry, p.access, "addr:housenumber" AS housenumber, p.amenity, p.shop, --p."addr:housenumber" doesn't work
 p.tags -> 'origin' AS origin, p.tags -> 'organic' AS organic, p.denomination,p.brand,p.name,
 p.operator,p.public_transport,p.railway,p.religion,p.tags -> 'opening_hours' as opening_hours, p.ref, p.tags::hstore AS tags, p.way as geom,
-p.tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_point p, kindergartens_polygons kp 
-WHERE p.amenity = 'kindergarten' EXCEPT 
-SELECT DISTINCT kp.osm_id, kp.origin_geometry, kp.ACCESS, kp.housenumber, kp.amenity, kp.shop, kp.origin, kp.organic, kp.denomination, kp.brand, kp.name, 
-kp.OPERATOR, kp.public_transport, kp.railway, kp.religion, kp.opening_hours, kp.REF, kp.tags, kp.geom, kp.wheelchair
-FROM kindergartens_polygons kp, planet_osm_point p WHERE st_within(p.way, kp.geom) AND p.amenity = 'kindergarten'
+p.tags -> 'wheelchair' as wheelchair 
+FROM planet_osm_point p
+WHERE p.amenity = 'kindergarten'
+EXCEPT
+SELECT DISTINCT p.osm_id,'point' as origin_geometry, p.access, "addr:housenumber" AS housenumber, p.amenity, p.shop, --p."addr:housenumber" doesn't work
+p.tags -> 'origin' AS origin, p.tags -> 'organic' AS organic, p.denomination,p.brand,p.name,
+p.operator,p.public_transport,p.railway,p.religion,p.tags -> 'opening_hours' as opening_hours, p.ref, p.tags::hstore AS tags, p.way as geom,
+p.tags -> 'wheelchair' as wheelchair 
+FROM planet_osm_point p, kindergartens_polygons kp
+WHERE p.amenity = 'kindergarten' AND ST_Intersects(p.way, kp.geom)
 
 UNION ALL 
 
