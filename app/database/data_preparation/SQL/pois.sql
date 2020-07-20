@@ -101,6 +101,17 @@ AND (sport IN('multi','fitness') OR sport IS NULL)
 AND NOT (lower(name) LIKE '%yoga%')
 
 UNION ALL 
+
+SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, 'gym' AS amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, ST_Centroid(way) as geom,
+tags -> 'wheelchair' as wheelchair  
+FROM planet_osm_polygon
+WHERE (leisure = 'fitness_centre' OR (leisure = 'sports_centre' AND sport = 'fitness'))
+AND (sport IN('multi','fitness') OR sport IS NULL)
+AND NOT (lower(name) LIKE '%yoga%')
+
+UNION ALL 
 -- Add Yoga centers
 
 SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'yoga' AS amenity, shop, 
