@@ -1241,9 +1241,9 @@
           "categoryValue": "sports",
           "children": [
             {
-              "name": "Sports center",
-              "value": "sports_center",
-              "icon": "sports_center",
+              "name": "Community Sport Center",
+              "value": "community_sports_center",
+              "icon": "community_sports_center",
               "weight": 1,
               "sensitivity": 300000
             },
@@ -1255,16 +1255,9 @@
               "sensitivity": 300000
             },
             {
-              "name": "outdoor_fitness_station",
-              "value": "outdoor_fitness_station",
-              "icon": "outdoor_fitness_station",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "low_cost_gym",
-              "value": "low_cost_gym",
-              "icon": "low_cost_gym",
+              "name": "Discount Gym",
+              "value": "discount_gym",
+              "icon": "discount_gym",
               "weight": 1,
               "sensitivity": 300000
             },
@@ -1573,7 +1566,7 @@
         "id",
         "original_id",
         "status",
-        "class_id"
+        "gross_floor_area"
       ]
     }
   }

@@ -8,38 +8,51 @@
 -- 	new name: Value to put in the new column
 -- 	restriction: Lookup values, left means fixed to the left (begining to the text) , rigth: fixed to the rigth (end of text), anything else, any position
 
-
 CREATE OR REPLACE FUNCTION pois_reclassification_array(old_col TEXT, old_name TEXT, new_col TEXT, new_name TEXT, restriction text )
-	RETURNS void
+	RETURNS SETOF void
 	LANGUAGE plpgsql
 AS $function$
+DECLARE 
+	pois_conditions TEXT[];
 BEGIN
-	IF restriction = 'left' THEN 
-	EXECUTE 'UPDATE pois 
-	SET '|| quote_ident(new_col) ||' = '|| quote_literal(new_name) ||'
-	WHERE lower('|| lower(quote_ident(old_col)) ||') ~~ 
-    ANY (SELECT concat(jsonb_object_keys(select_from_variable_container_o('||quote_literal('pois_search_conditions')||')
-	->'||quote_literal(new_name)||'), '||'''%'''||'))
- 	AND
-	amenity = '|| quote_literal(old_name)||'';
-	ELSEIF restriction = 'rigth' THEN 
+	
+	WITH obj AS (
+		SELECT (select_from_variable_container_o('pois_search_conditions') -> new_name) AS obj
+	),
+	keys AS (
+		SELECT jsonb_object_keys(obj.obj) as k
+		FROM obj
+	),
+	array_elements AS 
+	(
+		SELECT jsonb_array_elements_text((obj -> k)) elem
+		FROM keys, obj
+	),
+	merge_elements AS 
+	(
+		SELECT elem 
+		FROM array_elements
+		UNION ALL 
+		SELECT k FROM keys 
+	)
+	SELECT array_agg(elem)
+	INTO pois_conditions
+	FROM 
+	(
+		SELECT 
+		CASE WHEN restriction = 'left' THEN '%'||elem  
+		WHEN restriction = 'right' THEN elem || '%'
+		WHEN restriction = 'any' THEN '%'||elem||'%'
+		END AS elem 
+		FROM merge_elements
+	) x; 
 	
 	EXECUTE 'UPDATE pois 
 	SET '|| quote_ident(new_col) ||' = '|| quote_literal(new_name) ||'
 	WHERE lower('|| lower(quote_ident(old_col)) ||') ~~ 
-    ANY (SELECT concat('||'''%'''||', jsonb_object_keys(select_from_variable_container_o('||quote_literal('pois_search_conditions')||')
-	->'||quote_literal(new_name)||')))
+    ANY ('||quote_literal(pois_conditions)||')
  	AND
 	amenity = '|| quote_literal(old_name)||'';
-		
-	ELSE 
-	EXECUTE 'UPDATE pois 
-	SET '|| quote_ident(new_col) ||' = '|| quote_literal(new_name) ||'
-	WHERE lower('|| lower(quote_ident(old_col)) ||') ~~ 
-    ANY (SELECT concat('||'''%'''||', jsonb_object_keys(select_from_variable_container_o('||quote_literal('pois_search_conditions')||')
-	->'||quote_literal(new_name)||'), '||'''%'''||'))
- 	AND
-	amenity = '|| quote_literal(old_name)||'';
-	END IF;
+
 END;
 $function$;

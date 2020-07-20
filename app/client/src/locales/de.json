@@ -609,6 +609,13 @@
     "university": "Universität",
     "hospital": "Krankenhaus",
     "playground": "Spielplatz",
+    "sports": "Sports",
+    "community_sports_center": "Bezirkssportanlagen",
+    "waterpark": "Schwimmbad",
+    "discount_gym": "Discount Fitnessstudio",
+    "gym": "Fitnessstudio",
+    "yoga":"Yoga",
+    "outdoor_fitness_station":"Outdoor Fitness",
     "population": "Bevölkerung"
   },
   "$vuetify": {
@@ -666,7 +673,8 @@
       "building": "Gebäudetyp",
       "building_levels": "Anzahl Geschosse",
       "building_levels_residential": "Anzahl Geschosse Wohnen",
-      "population": "Einwohneranzahl (optional)"
+      "population": "Einwohneranzahl (optional)",
+      "gross_floor_area": "Geschossfläche"
       }
     },
     "listValues": {
