@@ -204,7 +204,7 @@ FROM (
 	SELECT o.*, ST_Distance(o.centroid,p.centroid) AS distance
 	FROM kindergartens_polygons o
 	JOIN kindergartens_polygons p
-	ON ST_DWithin( o.centroid::geography, p.centroid::geography, select_from_variable_container_s('duplicated_kindergarden_lookup_radius')::float)
+	ON ST_DWithin( o.centroid::geography, p.centroid::geography, select_from_variable_container_s('duplicated_kindergarten_lookup_radius')::float)
 	AND NOT ST_DWithin(o.centroid, p.centroid, 0)
 	) AS duplicates) ;
 
@@ -231,7 +231,7 @@ p.tags -> 'origin' AS origin, p.tags -> 'organic' AS organic, p.denomination,p.b
 p.operator,p.public_transport,p.railway,p.religion,p.tags -> 'opening_hours' as opening_hours, p.ref, p.tags::hstore AS tags, p.way as geom,
 p.tags -> 'wheelchair' as wheelchair 
 FROM planet_osm_point p, kindergartens_polygons kp
-WHERE p.amenity = 'kindergarten' AND ST_Intersects(p.way, kp.geom)
+WHERE p.amenity = 'kindergarten' AND ST_Intersects(ST_Buffer(p.way::geography,select_from_variable_container_s('duplicated_kindergarten_lookup_radius')::float ), kp.geom)
 
 UNION ALL 
 
