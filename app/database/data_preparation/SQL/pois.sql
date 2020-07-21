@@ -251,7 +251,6 @@ kp.OPERATOR, kp.public_transport, kp.railway, kp.religion, kp.opening_hours, kp.
 FROM kindergartens_polygons kp;
 
 -- Insert outdoor fitness stations
-/*
 DROP TABLE IF EXISTS containing_polygons;
 CREATE TEMP TABLE containing_polygons (geom geometry);
 
@@ -261,7 +260,7 @@ SELECT (ST_Dump(way)).geom AS geom
 FROM (
 	SELECT ST_Union(way) AS way		
 	FROM planet_osm_polygon
-	WHERE leisure = 'fitness_station') x)
+	WHERE leisure = 'fitness_station' OR("leisure" = 'pitch' and "sport" = 'fitness'))x)
 SELECT m.geom FROM planet_osm_polygon pop, merged_geom m GROUP BY m.geom;
 
 -- Paste zones attributes in containing polygons
@@ -272,8 +271,20 @@ INSERT INTO grouping_polygons
 SELECT pop.* FROM containing_polygons
 LEFT JOIN planet_osm_polygon pop 
 ON ST_Contains(pop.way, geom)
-WHERE pop.leisure = 'fitness_station';
+WHERE pop.leisure = 'fitness_station' OR("leisure" = 'pitch' and "sport" = 'fitness');
 
+-- Select points that are into polygons
+
+DROP TABLE IF EXISTS fitness_points;
+CREATE TEMP TABLE fitness_points (LIKE planet_osm_point INCLUDING ALL);
+INSERT INTO fitness_points(
+SELECT DISTINCT pop.* FROM planet_osm_point pop
+LEFT JOIN grouping_polygons gp
+ON ST_intersects(pop.way, gp.way)
+WHERE pop.leisure = 'fitness_station' AND ST_contains(gp.way,pop.way)
+);
+
+--- ADD to pois
 
 INSERT INTO pois(
 
@@ -284,21 +295,33 @@ pop.religion AS religion, pop.tags->'opening_hours' AS opening_hours, pop.ref AS
 FROM planet_osm_polygon pop
 LEFT JOIN grouping_polygons gp
 ON ST_intersects(pop.way, gp.way)
-WHERE pop.leisure = 'fitness_station' AND NOT ST_contains(pop.way, gp.way)
+WHERE pop.leisure = 'fitness_station'  OR(pop.leisure = 'pitch' and pop.sport = 'fitness')
+--WHERE pop.leisure = 'fitness_station' AND NOT ST_contains(pop.way, gp.way)
 
 UNION ALL 
 
+SELECT osm_id, 'point' AS origin_geometry, ACCESS AS ACCESS, "addr:housenumber" AS "addr:housenumber",
+'outdoor_fitness_station' AS amenity, shop AS store, tags->'origin' AS origin, tags->'organic' AS organic, denomination AS denomination,
+brand AS brand, name AS name, OPERATOR AS operator, public_transport AS public_transport, railway AS railway,
+religion AS religion, tags->'opening_hours' AS opening_hours, ref AS ref, (tags||hstore('sport', sport)||hstore('leisure', leisure))::hstore, way AS geom, tags ->'wheelchair' AS wheelchair
+FROM fitness_points
+
+UNION ALL
+
 SELECT pop.osm_id, 'point' AS origin_geometry, pop.ACCESS AS ACCESS, pop."addr:housenumber" AS "addr:housenumber",
 'outdoor_fitness_station' AS amenity, pop.shop AS store, pop.tags->'origin' AS origin, pop.tags->'organic' AS organic, pop.denomination AS denomination,
-pop.brand AS brand, gp.name AS name, pop.OPERATOR AS operator, pop.public_transport AS public_transport, pop.railway AS railway,
+pop.brand AS brand, pop.name AS name, pop.OPERATOR AS operator, pop.public_transport AS public_transport, pop.railway AS railway,
 pop.religion AS religion, pop.tags->'opening_hours' AS opening_hours, pop.ref AS ref, (pop.tags||hstore('sport', pop.sport)||hstore('leisure', pop.leisure))::hstore, pop.way AS geom, pop.tags ->'wheelchair' AS wheelchair
-FROM planet_osm_point pop
-LEFT JOIN grouping_polygons gp
-ON ST_intersects(pop.way, gp.way)
-WHERE pop.leisure = 'fitness_station' AND NOT ST_contains(pop.way, gp.way)
+FROM planet_osm_point pop, fitness_points fp
+WHERE pop.leisure = 'fitness_station' EXCEPT 
+SELECT pop.osm_id, 'point' AS origin_geometry, pop.ACCESS AS ACCESS, pop."addr:housenumber" AS "addr:housenumber",
+'outdoor_fitness_station' AS amenity, pop.shop AS store, pop.tags->'origin' AS origin, pop.tags->'organic' AS organic, pop.denomination AS denomination,
+pop.brand AS brand, pop.name AS name, pop.OPERATOR AS operator, pop.public_transport AS public_transport, pop.railway AS railway,
+pop.religion AS religion, pop.tags->'opening_hours' AS opening_hours, pop.ref AS ref, (pop.tags||hstore('sport', pop.sport)||hstore('leisure', pop.leisure))::hstore, pop.way AS geom, pop.tags ->'wheelchair' AS wheelchair
+FROM planet_osm_point pop, fitness_points fp
+WHERE pop.leisure = 'fitness_station' AND ST_contains(pop.way, fp.way)
+  
 );
-
-*/
 
 --Distinguish kindergarten - nursery
 SELECT pois_reclassification_array('name','kindergarten','amenity','nursery','left');
