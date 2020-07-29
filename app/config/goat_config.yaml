@@ -96,7 +96,7 @@ DATA_REFINEMENT_VARIABLES:
     ##  Duplicated kindergarten lookup radius: the estimated distance between centroids of two polygons that represent the same kindergarten
     duplicated_lookup_radius: '100' 
     tag_new_radius: '130'
-    duplicated_kindergarden_lookup_radius: '40'
+    duplicated_kindergarten_lookup_radius: '40'
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------Definition of amenity parameters for POIS preparation and data fusion of new sources------------##
     ##----------------------------------------------------------------------------------------------------------##
