@@ -91,12 +91,25 @@ AND sport !=(SELECT (jsonb_array_elements_text((select_from_variable_container_o
 UNION ALL 
 
 -- Add fitness centers
-
 SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'gym' AS amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
 tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_point WHERE leisure = ANY(ARRAY['fitness_centre','sports_centre'] )AND sport IS NULL AND NOT lower(name) LIKE '%yoga%'
+FROM planet_osm_point 
+WHERE (leisure = 'fitness_centre' OR (leisure = 'sports_centre' AND sport = 'fitness'))
+AND (sport IN('multi','fitness') OR sport IS NULL)
+AND NOT (lower(name) LIKE '%yoga%')
+
+UNION ALL 
+
+SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, 'gym' AS amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, ST_Centroid(way) as geom,
+tags -> 'wheelchair' as wheelchair  
+FROM planet_osm_polygon
+WHERE (leisure = 'fitness_centre' OR (leisure = 'sports_centre' AND sport = 'fitness'))
+AND (sport IN('multi','fitness') OR sport IS NULL)
+AND NOT (lower(name) LIKE '%yoga%')
 
 UNION ALL 
 -- Add Yoga centers
@@ -202,7 +215,7 @@ FROM (
 	SELECT o.*, ST_Distance(o.centroid,p.centroid) AS distance
 	FROM kindergartens_polygons o
 	JOIN kindergartens_polygons p
-	ON ST_DWithin( o.centroid::geography, p.centroid::geography, select_from_variable_container_s('duplicated_kindergarden_lookup_radius')::float)
+	ON ST_DWithin( o.centroid::geography, p.centroid::geography, select_from_variable_container_s('duplicated_kindergarten_lookup_radius')::float)
 	AND NOT ST_DWithin(o.centroid, p.centroid, 0)
 	) AS duplicates) ;
 
@@ -220,12 +233,16 @@ INSERT INTO pois
 SELECT DISTINCT p.osm_id,'point' as origin_geometry, p.access, "addr:housenumber" AS housenumber, p.amenity, p.shop, --p."addr:housenumber" doesn't work
 p.tags -> 'origin' AS origin, p.tags -> 'organic' AS organic, p.denomination,p.brand,p.name,
 p.operator,p.public_transport,p.railway,p.religion,p.tags -> 'opening_hours' as opening_hours, p.ref, p.tags::hstore AS tags, p.way as geom,
-p.tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_point p, kindergartens_polygons kp 
-WHERE p.amenity = 'kindergarten' EXCEPT 
-SELECT DISTINCT kp.osm_id, kp.origin_geometry, kp.ACCESS, kp.housenumber, kp.amenity, kp.shop, kp.origin, kp.organic, kp.denomination, kp.brand, kp.name, 
-kp.OPERATOR, kp.public_transport, kp.railway, kp.religion, kp.opening_hours, kp.REF, kp.tags, kp.geom, kp.wheelchair
-FROM kindergartens_polygons kp, planet_osm_point p WHERE st_within(p.way, kp.geom) AND p.amenity = 'kindergarten'
+p.tags -> 'wheelchair' as wheelchair 
+FROM planet_osm_point p
+WHERE p.amenity = 'kindergarten'
+EXCEPT
+SELECT DISTINCT p.osm_id,'point' as origin_geometry, p.access, "addr:housenumber" AS housenumber, p.amenity, p.shop, --p."addr:housenumber" doesn't work
+p.tags -> 'origin' AS origin, p.tags -> 'organic' AS organic, p.denomination,p.brand,p.name,
+p.operator,p.public_transport,p.railway,p.religion,p.tags -> 'opening_hours' as opening_hours, p.ref, p.tags::hstore AS tags, p.way as geom,
+p.tags -> 'wheelchair' as wheelchair 
+FROM planet_osm_point p, kindergartens_polygons kp
+WHERE p.amenity = 'kindergarten' AND ST_Intersects(ST_Buffer(p.way::geography,select_from_variable_container_s('duplicated_kindergarten_lookup_radius')::float ), kp.geom)
 
 UNION ALL 
 
@@ -234,18 +251,17 @@ kp.OPERATOR, kp.public_transport, kp.railway, kp.religion, kp.opening_hours, kp.
 FROM kindergartens_polygons kp;
 
 -- Insert outdoor fitness stations
-
 DROP TABLE IF EXISTS containing_polygons;
 CREATE TEMP TABLE containing_polygons (geom geometry);
 
 INSERT INTO containing_polygons
 WITH merged_geom AS (
 SELECT (ST_Dump(way)).geom AS geom
-		FROM (
-			SELECT ST_Union(way) AS way		
-			FROM planet_osm_polygon
-			WHERE leisure = 'fitness_station') x)
-	SELECT m.geom FROM planet_osm_polygon pop, merged_geom m GROUP BY m.geom;
+FROM (
+	SELECT ST_Union(way) AS way		
+	FROM planet_osm_polygon
+	WHERE leisure = 'fitness_station' OR("leisure" = 'pitch' and "sport" = 'fitness'))x)
+SELECT m.geom FROM planet_osm_polygon pop, merged_geom m GROUP BY m.geom;
 
 -- Paste zones attributes in containing polygons
 DROP TABLE IF EXISTS grouping_polygons;
@@ -255,11 +271,20 @@ INSERT INTO grouping_polygons
 SELECT pop.* FROM containing_polygons
 LEFT JOIN planet_osm_polygon pop 
 ON ST_Contains(pop.way, geom)
-WHERE pop.leisure = 'fitness_station';
+WHERE pop.leisure = 'fitness_station' OR("leisure" = 'pitch' and "sport" = 'fitness');
 
--- Build pois database
-DROP TABLE IF EXISTS pois_2;
-CREATE TABLE pois_2 (LIKE pois INCLUDING all);
+-- Select points that are into polygons
+
+DROP TABLE IF EXISTS fitness_points;
+CREATE TEMP TABLE fitness_points (LIKE planet_osm_point INCLUDING ALL);
+INSERT INTO fitness_points(
+SELECT DISTINCT pop.* FROM planet_osm_point pop
+LEFT JOIN grouping_polygons gp
+ON ST_intersects(pop.way, gp.way)
+WHERE pop.leisure = 'fitness_station' AND ST_contains(gp.way,pop.way)
+);
+
+--- ADD to pois
 
 INSERT INTO pois(
 
@@ -270,21 +295,33 @@ pop.religion AS religion, pop.tags->'opening_hours' AS opening_hours, pop.ref AS
 FROM planet_osm_polygon pop
 LEFT JOIN grouping_polygons gp
 ON ST_intersects(pop.way, gp.way)
-WHERE pop.leisure = 'fitness_station' AND NOT ST_contains(pop.way, gp.way)
+WHERE pop.leisure = 'fitness_station'  OR(pop.leisure = 'pitch' and pop.sport = 'fitness')
+--WHERE pop.leisure = 'fitness_station' AND NOT ST_contains(pop.way, gp.way)
 
 UNION ALL 
 
+SELECT osm_id, 'point' AS origin_geometry, ACCESS AS ACCESS, "addr:housenumber" AS "addr:housenumber",
+'outdoor_fitness_station' AS amenity, shop AS store, tags->'origin' AS origin, tags->'organic' AS organic, denomination AS denomination,
+brand AS brand, name AS name, OPERATOR AS operator, public_transport AS public_transport, railway AS railway,
+religion AS religion, tags->'opening_hours' AS opening_hours, ref AS ref, (tags||hstore('sport', sport)||hstore('leisure', leisure))::hstore, way AS geom, tags ->'wheelchair' AS wheelchair
+FROM fitness_points
+
+UNION ALL
+
 SELECT pop.osm_id, 'point' AS origin_geometry, pop.ACCESS AS ACCESS, pop."addr:housenumber" AS "addr:housenumber",
 'outdoor_fitness_station' AS amenity, pop.shop AS store, pop.tags->'origin' AS origin, pop.tags->'organic' AS organic, pop.denomination AS denomination,
-pop.brand AS brand, gp.name AS name, pop.OPERATOR AS operator, pop.public_transport AS public_transport, pop.railway AS railway,
+pop.brand AS brand, pop.name AS name, pop.OPERATOR AS operator, pop.public_transport AS public_transport, pop.railway AS railway,
 pop.religion AS religion, pop.tags->'opening_hours' AS opening_hours, pop.ref AS ref, (pop.tags||hstore('sport', pop.sport)||hstore('leisure', pop.leisure))::hstore, pop.way AS geom, pop.tags ->'wheelchair' AS wheelchair
-FROM planet_osm_point pop
-LEFT JOIN grouping_polygons gp
-ON ST_intersects(pop.way, gp.way)
-WHERE pop.leisure = 'fitness_station' AND NOT ST_contains(pop.way, gp.way)
+FROM planet_osm_point pop, fitness_points fp
+WHERE pop.leisure = 'fitness_station' EXCEPT 
+SELECT pop.osm_id, 'point' AS origin_geometry, pop.ACCESS AS ACCESS, pop."addr:housenumber" AS "addr:housenumber",
+'outdoor_fitness_station' AS amenity, pop.shop AS store, pop.tags->'origin' AS origin, pop.tags->'organic' AS organic, pop.denomination AS denomination,
+pop.brand AS brand, pop.name AS name, pop.OPERATOR AS operator, pop.public_transport AS public_transport, pop.railway AS railway,
+pop.religion AS religion, pop.tags->'opening_hours' AS opening_hours, pop.ref AS ref, (pop.tags||hstore('sport', pop.sport)||hstore('leisure', pop.leisure))::hstore, pop.way AS geom, pop.tags ->'wheelchair' AS wheelchair
+FROM planet_osm_point pop, fitness_points fp
+WHERE pop.leisure = 'fitness_station' AND ST_contains(pop.way, fp.way)
+  
 );
-
-/*End*/
 
 --Distinguish kindergarten - nursery
 SELECT pois_reclassification_array('name','kindergarten','amenity','nursery','left');
@@ -318,8 +355,8 @@ SELECT pois_reclassification_array('name','supermarket','amenity','hypermarket',
 SELECT pois_reclassification_array('name','supermarket','amenity','no_end_consumer_store','any');
 SELECT pois_reclassification_array('name','supermarket','amenity','health_food','any');
 
---Refinement low cost GYMs
-SELECT pois_reclassification_array('name','gym','amenity','low_cost_gym','any');
+--Refinement Discount Gyms
+SELECT pois_reclassification_array('name','gym','amenity','discount_gym','any');
 
 UPDATE pois SET amenity = 'organic'
 WHERE organic = 'only'
@@ -402,17 +439,30 @@ AND amenity = 'subway_entrance';
 
 -- Multipoint for Sports center and waterparks
 
-DROP TABLE IF EXISTS sports_center;
+DROP TABLE IF EXISTS community_sports_center;
 DROP TABLE IF EXISTS waterpark;
-CREATE TABLE sports_center (LIKE planet_osm_polygon INCLUDING INDEXES);
-INSERT INTO sports_center
-SELECT * FROM planet_osm_polygon WHERE (leisure = 'sports_centre'  OR lower(name) LIKE ANY (ARRAY['%bezirkssportanlage%','%sportcenter%','%sportzentrum%']) ) AND amenity IS NULL AND NOT (building IS NOT NULL AND sport IS null);
-SELECT derive_access_from_polygons('sports_center','sports_center');
-DROP TABLE IF EXISTS sports_center;
+CREATE TABLE community_sports_center (LIKE planet_osm_polygon INCLUDING INDEXES);
+INSERT INTO community_sports_center
+SELECT * 
+FROM planet_osm_polygon 
+WHERE 
+(
+	(leisure = 'sports_centre' AND 
+	lower(name) ~~ ANY (ARRAY(SELECT '%'||jsonb_array_elements_text(select_from_variable_container_o('pois_search_conditions') -> 'community_sport_centre') || '%')))
+	OR 
+	(landuse = 'recreation_ground' AND lower(name) ~~ ANY (ARRAY(SELECT '%'||jsonb_array_elements_text(select_from_variable_container_o('pois_search_conditions') -> 'community_sport_centre') || '%')
+))
+)
+AND amenity IS NULL 
+AND NOT (building IS NOT NULL AND sport IS null);
+
+SELECT derive_access_from_polygons('community_sports_center','community_sports_center');
+DROP TABLE IF EXISTS community_sports_center;
 
 CREATE TABLE waterpark (LIKE planet_osm_polygon INCLUDING INDEXES);
 INSERT INTO waterpark
-SELECT * FROM planet_osm_polygon WHERE leisure = 'water_park' AND amenity IS NULL;
+SELECT * 
+FROM planet_osm_polygon WHERE leisure = 'water_park' AND amenity IS NULL;
 SELECT derive_access_from_polygons('waterpark','waterpark');
 DROP TABLE IF EXISTS waterpark;
 
@@ -448,5 +498,3 @@ ALTER TABLE pois_userinput ADD COLUMN pois_modified_id integer;
 ALTER TABLE pois_userinput
 ADD CONSTRAINT pois_userinput_id_fkey FOREIGN KEY (pois_modified_id) 
 REFERENCES pois_modified(id) ON DELETE CASCADE;
-
-

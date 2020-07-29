@@ -429,7 +429,7 @@
             ['add', 'modifyAttributes'].includes(popup.selectedInteraction)
           "
         >
-          <v-form v-model="formValid">
+          <v-form ref="edit-form" v-model="formValid">
             <v-jsonschema-form
               v-if="schema[layerName]"
               :schema="schema[layerName]"
@@ -624,6 +624,16 @@ export default {
     },
     "options.calculationModes.active": function(value) {
       this.canCalculateScenario(value);
+    },
+    dataObject: {
+      immediate: true,
+      async handler() {
+        await this.$nextTick();
+        if (this.$refs["edit-form"]) {
+          this.$refs["edit-form"].validate();
+        }
+      },
+      deep: true
     }
   },
   mounted() {

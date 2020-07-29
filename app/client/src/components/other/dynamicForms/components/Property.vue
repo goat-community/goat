@@ -793,7 +793,12 @@ export default {
       );
     },
     rules() {
-      return schemaUtils.getRules(this.fullSchema, this.required, this.options);
+      return schemaUtils.getRules(
+        this.fullSchema,
+        this.required,
+        this.options,
+        this.modelWrapper
+      );
     },
     fromUrl() {
       return !!(

@@ -22,9 +22,9 @@ DATA_REFINEMENT_VARIABLES:
       "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi","bikesharing_ffb","carsharing_ffb","charging_station_marker_ffb","charging_station_other_ffb","charging_station_public_ffb","e_parking_ffb",
       "l-station_ffb","s-station_prio1_ffb","s-station_prio2_ffb","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
       "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
-      "hypermarket","international_supermarket","chemist","organic","marketplace","hotel","museum","hostel","guest_house","viewpoint","gallery","playground","low_cost_gym","gym","yoga","outdoor_fitness_station"
+      "hypermarket","international_supermarket","chemist","organic","marketplace","hotel","museum","hostel","guest_house","viewpoint","gallery","playground","discount_gym","gym","yoga","outdoor_fitness_station"
     ]
-    pois_more_entrances: ["bus_stop","tram_stop","subway_entrance","rail_station","sports_center","waterpark"]
+    pois_more_entrances: ["bus_stop","tram_stop","subway_entrance","rail_station","community_sports_center","waterpark"]
     excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
     categories_no_foot: ["use_sidepath","no"]
     excluded_class_id_cycling: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
@@ -96,7 +96,7 @@ DATA_REFINEMENT_VARIABLES:
     ##  Duplicated kindergarten lookup radius: the estimated distance between centroids of two polygons that represent the same kindergarten
     duplicated_lookup_radius: '100' 
     tag_new_radius: '130'
-    duplicated_kindergarden_lookup_radius: '40'
+    duplicated_kindergarten_lookup_radius: '40'
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------Definition of amenity parameters for POIS preparation and data fusion of new sources------------##
     ##----------------------------------------------------------------------------------------------------------##
@@ -107,14 +107,14 @@ DATA_REFINEMENT_VARIABLES:
     ##                        Possible names are mandatory for the new POIS to include (with a .geojson file)
     pois_search_conditions:
       chemist:
-        dm: ['%dm%']
-        rossmann: ['rossmann%']
+        dm: ['dm']
+        rossmann: ['rossmann']
       supermarket:
-        edeka: ['e center%', '%edeka%']
-        rewe: ['%rewe', '%rewe city%']
+        edeka: ['e center', 'edeka']
+        rewe: ['rewe', 'rewe city']
       discount_supermarket:
         aldi: []
-        lidl: ['%lidl%']
+        lidl: ['lidl']
         penny: []
         netto: []
         norma: []
@@ -135,19 +135,23 @@ DATA_REFINEMENT_VARIABLES:
         münchner verkehrsgesellschaft: []
         mvg: []
       bank: 
-        sparkasse: ['%kreissparkasse%','%sparkasse%','%stadtsparkasse%']   
-        hypovereinsbank: ['%hypo vereinsbank%', '%hypovereinsbank%']
-        raiffeisenbank: ['%raiffeisenbank%', '%vr bank%', '%vr-bank%', '%volksbank%','%volks%', '%Münchner%']
+        sparkasse: ['kreissparkasse','sparkasse','stadtsparkasse']   
+        hypovereinsbank: ['hypo vereinsbank', 'hypovereinsbank']
+        raiffeisenbank: ['raiffeisenbank', 'vr bank', 'vr-bank', 'volksbank','volks', 'Münchner']
       fast_food:
-        mcdonalds: ['%mcdonald%']
+        mcdonalds: ['mcdonald']
       restaurant:   
-        vapiano: ['%vapiano%']
+        vapiano: ['vapiano']
       nursery:
-        kinderkrippe: ['%krippe%','%kindergrippe%']
-      low_cost_gym:
-        star: ['%fit-star%','star']
+        kinderkrippe: ['krippe','kindergrippe']
+      discount_gym:
+        fitstar: ['fit-star','fit star']
         mcfit: []
         fitx: []
+        cleverfit: ['clever fit','cleverfit']
+        jumpersfitness: ['jumpers fitness']
+      
+      community_sport_centre: ['bezirkssportanlage']
 
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------------------Amenity parameters for POIS preparation leisure and schools------------------------##
