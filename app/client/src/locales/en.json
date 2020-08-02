@@ -474,7 +474,8 @@
       "deleteIsochrone": "Delete Isochrone",
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
-      "deleteBldEntrancePoint": "Delete Population"
+      "deleteBldEntrancePoint": "Delete Population",
+      "redoCalculation": "Redo Calculation"
     },
     "osmMode": {
       "tasks": "OSM Mapping Tasks",
@@ -615,8 +616,8 @@
     "waterpark": "Water Park",
     "discount_gym": "Discount Gym",
     "gym": "Gym",
-    "yoga":"Yoga",
-    "outdoor_fitness_station":"Outdoor fitness station",
+    "yoga": "Yoga",
+    "outdoor_fitness_station": "Outdoor fitness station",
     "population": "Population"
   },
   "$vuetify": {
