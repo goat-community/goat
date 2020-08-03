@@ -121,6 +121,7 @@
       "modifyAttributes": "Modify Attributes",
       "drawPolygonHole": "Draw Polygon Hole",
       "snapGuide": "Snap Guide",
+      "featureLabels": "Feature Labels",
       "clearBtn": "Revert All",
       "uploadBtn": "Upload",
       "addEntrancesForBuildings": "Add entrances for all buildings to activate <b>UPLOAD</b>",

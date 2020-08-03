@@ -5,6 +5,8 @@ import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
 import store from "../store/modules/map";
+import { LineString } from "ol/geom.js";
+import { getArea, getLength } from "ol/sphere.js";
 
 export function getMeasureStyle(measureConf) {
   return new OlStyle({
@@ -214,7 +216,8 @@ export function getIsochroneStyle(styleData, addStyleInCache) {
   return styleFunction;
 }
 
-export function defaultStyle(feature) {
+export function defaultStyle(feature, resolution) {
+  const styles = [];
   const geomType = feature.getGeometry().getType();
   const strokeOpt = {
     color: ["MultiPolygon", "Polygon"].includes(geomType)
@@ -265,6 +268,42 @@ export function defaultStyle(feature) {
       strokeOpt.color = "rgb(0,128,0, 0.7)";
       fillOpt.color = "rgb(0,128,0, 0.7)";
     }
+    const area = getArea(feature.getGeometry());
+    const length = getLength(
+      new LineString(
+        feature
+          .getGeometry()
+          .getLinearRing(0)
+          .getCoordinates()
+      )
+    );
+
+    // Add area and length label for building.
+    let fontSize = 12;
+
+    if (
+      resolution < 1.2 &&
+      store.state.editLayer &&
+      store.state.editLayer.get("showLabels") === 0
+    ) {
+      const style = new OlStyle({
+        text: new OlText({
+          text: `Area: ${area.toFixed(0)} ㎡ \n Perimeter: ${length.toFixed(
+            0
+          )} m`,
+          overflow: true,
+          font: `${fontSize}px Calibri, sans-serif`,
+          fill: new OlFill({
+            color: "black"
+          }),
+          backgroundFill: new OlFill({
+            color: "orange"
+          }),
+          padding: [1, 1, 1, 1]
+        })
+      });
+      styles.push(style);
+    }
   }
   const style = new OlStyle({
     fill: new OlFill(fillOpt),
@@ -276,7 +315,8 @@ export function defaultStyle(feature) {
       })
     })
   });
-  return [style];
+  styles.push(style);
+  return styles;
 }
 
 export function uploadedFeaturesStyle() {
@@ -343,11 +383,11 @@ export function waysNewBridgeStyle(feature) {
   return [style];
 }
 export function editStyleFn() {
-  const styleFunction = feature => {
+  const styleFunction = (feature, resolution) => {
     const props = feature.getProperties();
     // Polygon (ex. building) style
     if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
-      return defaultStyle(feature);
+      return defaultStyle(feature, resolution);
     }
 
     // Linestring (ex. ways ) style
@@ -364,7 +404,7 @@ export function editStyleFn() {
     } else if (props.hasOwnProperty("way_type")) {
       return waysModifiedStyle(feature); //Feature are modified
     } else {
-      return defaultStyle(feature); //Features are from original table
+      return defaultStyle(feature, resolution); //Features are from original table
     }
   };
 
@@ -392,23 +432,31 @@ export function getFeatureHighlightStyle() {
 }
 
 export function bldEntrancePointsStyle() {
-  return [
-    new OlStyle({
-      fill: new OlFill({
-        color: "#800080"
-      }),
-      stroke: new OlStroke({
-        color: "#800080",
-        width: 8
-      }),
-      image: new OlCircle({
-        radius: 8,
+  return (feature, resolution) => {
+    let radius = 8;
+    if (resolution > 4) {
+      return [];
+    }
+    const styles = [];
+    styles.push(
+      new OlStyle({
         fill: new OlFill({
           color: "#800080"
+        }),
+        stroke: new OlStroke({
+          color: "#800080",
+          width: radius
+        }),
+        image: new OlCircle({
+          radius: radius,
+          fill: new OlFill({
+            color: "#800080"
+          })
         })
       })
-    })
-  ];
+    );
+    return styles;
+  };
 }
 
 export const baseStyleDefs = {

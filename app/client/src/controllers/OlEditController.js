@@ -77,7 +77,7 @@ export default class OlEditController extends OlBaseController {
         zIndex: 100,
         source: source,
         queryable: false,
-        style: bldEntrancePointsStyle
+        style: bldEntrancePointsStyle()
       }
     );
     const vector = new VectorLayer(options);
