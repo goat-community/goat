@@ -146,6 +146,20 @@ export default {
                     this.deleteCalculation(calculation[0]);
                   }
                 }
+              }, // this is a separator
+              {
+                text: `<i class="fas fa-redo fa-1x" aria-hidden="true"></i>&nbsp;&nbsp${this.$t(
+                  "map.contextMenu.redoCalculation"
+                )}`,
+                label: "redoCalculation",
+                callback: () => {
+                  const calculation = this.calculations.filter(
+                    calculation =>
+                      calculation.id === features[0].get("calculationNumber")
+                  );
+                  console.log(calculation);
+                  console.log("redo calculation");
+                }
               }
             ]);
           }
