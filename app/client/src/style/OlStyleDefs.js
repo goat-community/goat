@@ -474,7 +474,7 @@ export const baseStyleDefs = {
 };
 
 /**
- * Mapillary styles
+ * Mapillary styles -
  */
 
 export const mapillaryStyleDefs = {
