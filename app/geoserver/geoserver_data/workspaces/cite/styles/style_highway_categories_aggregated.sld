@@ -17,6 +17,14 @@
             <ogc:Or>
               <ogc:PropertyIsEqualTo>
                 <ogc:PropertyName>highway</ogc:PropertyName>
+                <ogc:Literal>motorway</ogc:Literal>
+              </ogc:PropertyIsEqualTo>
+              <ogc:PropertyIsEqualTo>
+                <ogc:PropertyName>highway</ogc:PropertyName>
+                <ogc:Literal>motorway_link</ogc:Literal>
+              </ogc:PropertyIsEqualTo>
+              <ogc:PropertyIsEqualTo>
+                <ogc:PropertyName>highway</ogc:PropertyName>
                 <ogc:Literal>trunk</ogc:Literal>
               </ogc:PropertyIsEqualTo>
               <ogc:PropertyIsEqualTo>
