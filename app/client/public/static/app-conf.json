@@ -446,6 +446,20 @@
       },
       {
         "type": "WMS",
+        "name": "street_trees",
+        "url": "https://image.discomap.eea.europa.eu/arcgis/services/UrbanAtlas/STL/MapServer/WmsServer",
+        "group": "environmentalQualityLayers",
+        "layers": "STL Vector",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='https://land.copernicus.eu/'>Copernicus Land Monitoring Service</a>"
+      },
+      {
+        "type": "WMS",
         "name": "accidents_pedestrian_2018",
         "url": "http://www.wms.nrw.de/wms/unfallatlas?",
         "group": "additionalDataLayers",
