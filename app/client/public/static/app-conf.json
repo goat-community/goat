@@ -516,6 +516,20 @@
       },
       {
         "type": "WMS",
+        "name": "radzaehlstellen",
+        "url": "/geoserver/wms",
+        "group": "additionalDataLayers",
+        "layers": "cite:radzaehlstellen",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "walkability",
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
