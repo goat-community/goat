@@ -431,6 +431,26 @@ export function getFeatureHighlightStyle() {
   ];
 }
 
+export function studyAreaASelectStyle() {
+  return [
+    new OlStyle({
+      fill: new OlFill({
+        color: "rgba(255, 0, 0, 0.5)"
+      }),
+      stroke: new OlStroke({
+        color: "#FF0000",
+        width: 10
+      }),
+      image: new OlCircle({
+        radius: 10,
+        fill: new OlFill({
+          color: "#FF0000"
+        })
+      })
+    })
+  ];
+}
+
 export function bldEntrancePointsStyle() {
   return (feature, resolution) => {
     let radius = 8;
