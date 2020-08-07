@@ -441,7 +441,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributions": "© <a href='https://www.stmwi.bayern.de/'>Bayerisches Staatsministerium für Wirtschaft, Landesentwicklung und Energie</a>"
       },
       {
         "type": "WMS",
@@ -558,17 +558,18 @@
       },
       {
         "type": "WMS",
-        "name": "radzaehlstellen",
+        "name": "bicycle_counting_stations",
         "url": "/geoserver/wms",
         "group": "additionalDataLayers",
-        "layers": "cite:radzaehlstellen",
+        "layers": "cite:bicycle_counting_stations",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "attributions": "© <a href='https://www.opengov-muenchen.de/pages/raddauerzaehlstellen'>Open Data Portal München</a>"
       },
       {
         "type": "WMS",
