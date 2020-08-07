@@ -1,0 +1,71 @@
+DROP TYPE type_reached_edges CASCADE; 
+CREATE TYPE type_reached_edges AS
+(
+	start_vertex bigint, 
+	edge bigint,
+	COST float, 
+	start_cost float, 
+	end_cost float, 
+	geom geometry,
+	objectid integer
+);
+DROP FUNCTION IF EXISTS pgrouting_edges_new;
+CREATE OR REPLACE FUNCTION public.pgrouting_edges_new(cutoffs float[], startpoints float[][], speed numeric, userid_input integer, objectid_input integer, modus_input integer, routing_profile text)
+ RETURNS SETOF type_reached_edges
+ LANGUAGE plpgsql
+AS $function$
+DECLARE 
+	buffer text;
+	distance numeric;
+	number_calculation_input integer;
+	vids bigint[];
+BEGIN
+	
+	SELECT *
+	INTO vids
+	FROM pgrouting_edges_preparation(cutoffs, startpoints, speed, userid_input, modus_input, routing_profile);
+
+	IF modus_input <> 3 AND array_length(startpoints,1) = 1 THEN 
+		SELECT count(objectid) + 1 
+    	INTO number_calculation_input
+		FROM starting_point_isochrones
+		WHERE userid = userid_input; 
+		INSERT INTO starting_point_isochrones(userid,geom,objectid,number_calculation)
+		SELECT userid_input, closest_point, objectid_input, number_calculation_input
+		FROM start_vertices; 
+	END IF; 
+
+	DROP TABLE IF EXISTS reached_edges; 
+
+	CREATE TEMP TABLE reached_edges AS 
+	SELECT p.from_v, p.edge, p.start_perc, p.end_perc, greatest(start_cost,end_cost) AS COST, start_cost, end_cost, w.geom
+	FROM pgr_isochrones(
+		'SELECT * FROM temp_fetched_ways WHERE id NOT IN(SELECT wid FROM start_vertices)', 
+		vids, cutoffs,TRUE
+	) p, temp_fetched_ways w
+	WHERE p.edge = w.id;
+
+	RETURN query 
+	WITH full_edges AS 
+	(	
+		SELECT * 
+		FROM reached_edges 
+		WHERE (start_perc = 0 
+		AND end_perc = 1)
+	)
+	SELECT r.from_v, r.edge, r.cost, r.start_cost, r.end_cost, ST_LineSubstring(r.geom, r.start_perc, r.end_perc), objectid_input   
+	FROM reached_edges r
+	LEFT JOIN full_edges f
+	ON r.edge = f.edge 
+	WHERE (r.start_perc <> 0 OR r.end_perc <> 1) 
+	AND f.edge IS NULL
+	UNION ALL 
+	SELECT from_v, edge, COST, start_cost, end_cost, geom, objectid_input 
+	FROM full_edges; 
+	
+END;
+$function$;
+
+
+--SELECT * 
+--FROM public.pgrouting_edges_new(ARRAY[300.,600.,900.], ARRAY[[11.2666, 48.1648]],4.1, 1, 15, 1, 'cycling_standard')
