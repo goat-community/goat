@@ -25,7 +25,7 @@ BEGIN
 		SELECT v_geom AS geom, cost
    		FROM edges_multi_extrapolated
     	WHERE objectid = 100
-    	AND cost = 900 
+    	AND cost = 1200 
     	UNION ALL
     	SELECT v_geom AS geom, greatest(COALESCE((node_cost_1 -> '1')::float,0),
     	COALESCE((node_cost_2 -> '1')::float,0)) AS cost
@@ -33,7 +33,7 @@ BEGIN
     	WHERE objectid = 100
     	AND	((node_cost_1 -> '1') IS NOT NULL OR (node_cost_2 -> '1') IS NOT NULL)
 		AND greatest(COALESCE((node_cost_1 -> '1')::float,0),
-    		COALESCE((node_cost_1 -> '1')::float,0)) < 900;
+    		COALESCE((node_cost_1 -> '1')::float,0)) < 1200;
     	
     	CREATE INDEX ON temp_extrapolated_reached_vertices USING gist(geom);
     	ALTER TABLE temp_extrapolated_reached_vertices ADD COLUMN id serial;
