@@ -43,11 +43,11 @@ WHERE grid_grid_size.grid_id = s.grid_id;
 
 UPDATE grid_grid_size 
 SET percentile_population = 
-(CASE WHEN population BETWEEN 1 AND 20 THEN 1 
-WHEN population BETWEEN 20 AND 80 THEN 2
-WHEN population BETWEEN 80 AND 200 THEN 3 
-WHEN population BETWEEN 200 AND 400 THEN 4 
-WHEN population > 400 THEN 5 END)
+(CASE WHEN population BETWEEN 1 AND 750 THEN 1 
+WHEN population BETWEEN 751 AND 1995 THEN 2
+WHEN population BETWEEN 1996 AND 3394 THEN 3 
+WHEN population BETWEEN 3395 AND 5099 THEN 4 
+WHEN population > 5099 THEN 5 END)
 WHERE population IS NOT NULL; 
 
 UPDATE grid_grid_size SET percentile_population = 0
