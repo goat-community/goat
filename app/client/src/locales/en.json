@@ -310,7 +310,7 @@
       "title": "Layers Legend"
     },
     "snackbarMessages": {
-      "selectAmenities": "You must select at least one point of interest",
+      "selectAmenities": "You must select at least one point of interest (Thematic Data)",
       "calculateIsochroneError": "Sorry but here no calculation is possible",
       "calculateIsochroneCancelled": "Isochrone Calculation Cancelled",
       "uploadScenarioSuccess": "Features uploads successfully.",
@@ -575,7 +575,7 @@
     "charging_station_other_ffb": "E-Charging Station privat (under construction)",
     "charging_station_public_ffb": "E-Charging Station public",
     "e_parking_ffb": "E-Parking",
-    "l-station_ffb": "L-Station",
+    "l-station_ffb": "L-Station Prio 1",
     "s-station_prio1_ffb": "S-Station Prio 1",
     "s-station_prio2_ffb": "S-Station Prio 2",
     "hairdresser": "Hairdresser",
