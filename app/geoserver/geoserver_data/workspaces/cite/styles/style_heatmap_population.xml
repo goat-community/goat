@@ -6,7 +6,7 @@
   </workspace>
   <format>sld</format>
   <languageVersion>
-    <version>1.1.0</version>
+    <version>1.0.0</version>
   </languageVersion>
   <filename>style_heatmap_population.sld</filename>
 </style>
