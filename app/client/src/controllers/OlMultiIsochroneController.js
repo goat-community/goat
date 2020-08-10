@@ -1,5 +1,5 @@
 import OlBaseController from "./OlBaseController";
-import { getFeatureHighlightStyle } from "../style/OlStyleDefs";
+import { studyAreaASelectStyle } from "../style/OlStyleDefs";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import DrawInteraction, { createBox } from "ol/interaction/Draw";
@@ -27,7 +27,7 @@ export default class OlMultiIsochroneController extends OlBaseController {
       displayInLayerList: false,
       zIndex: 5,
       source: selectionSource,
-      style: getFeatureHighlightStyle()
+      style: studyAreaASelectStyle()
     });
     me.map.addLayer(selectionLayer);
     me.selectionSource = selectionSource;
