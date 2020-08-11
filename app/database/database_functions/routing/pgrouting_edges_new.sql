@@ -11,7 +11,7 @@ CREATE TYPE type_reached_edges AS
 );
 DROP FUNCTION IF EXISTS pgrouting_edges_new;
 CREATE OR REPLACE FUNCTION public.pgrouting_edges_new(cutoffs float[], startpoints float[][], speed numeric, userid_input integer, objectid_input integer, modus_input integer, routing_profile text)
- RETURNS SETOF type_reached_edges
+ RETURNS SETOF void
  LANGUAGE plpgsql
 AS $function$
 DECLARE 
@@ -40,12 +40,24 @@ BEGIN
 	CREATE TEMP TABLE reached_edges AS 
 	SELECT p.from_v, p.edge, p.start_perc, p.end_perc, greatest(start_cost,end_cost) AS COST, start_cost, end_cost, w.geom
 	FROM pgr_isochrones(
-		'SELECT * FROM temp_fetched_ways WHERE id NOT IN(SELECT wid FROM start_vertices)', 
+		'SELECT * FROM temp_fetched_ways', 
 		vids, cutoffs,TRUE
 	) p, temp_fetched_ways w
 	WHERE p.edge = w.id;
 
-	RETURN query 
+	CREATE INDEX ON reached_edges (edge);
+	DELETE FROM reached_edges WHERE edge IN (SELECT id FROM artificial_edges);
+	
+	INSERT INTO reached_edges
+	SELECT a.source, a.id, 0, 1, a.COST, 0, a.COST, a.geom 
+	FROM artificial_edges a, start_vertices v
+	WHERE a.SOURCE = v.vid 
+	UNION ALL 
+	SELECT a.target, a.id, 0, 1, a.reverse_cost, a.reverse_cost, 0, a.geom 
+	FROM artificial_edges a, start_vertices v
+	WHERE a.target = v.vid; 
+
+	INSERT INTO edges (edge,COST, start_cost, end_cost, geom, objectid)
 	WITH full_edges AS 
 	(	
 		SELECT * 
@@ -53,19 +65,18 @@ BEGIN
 		WHERE (start_perc = 0 
 		AND end_perc = 1)
 	)
-	SELECT r.from_v, r.edge, r.cost, r.start_cost, r.end_cost, ST_LineSubstring(r.geom, r.start_perc, r.end_perc), objectid_input   
+	SELECT r.edge, r.cost, r.start_cost, r.end_cost, ST_LineSubstring(r.geom, r.start_perc, r.end_perc), objectid_input   
 	FROM reached_edges r
 	LEFT JOIN full_edges f
 	ON r.edge = f.edge 
 	WHERE (r.start_perc <> 0 OR r.end_perc <> 1) 
 	AND f.edge IS NULL
 	UNION ALL 
-	SELECT from_v, edge, COST, start_cost, end_cost, geom, objectid_input 
+	SELECT edge, COST, start_cost, end_cost, geom, objectid_input 
 	FROM full_edges; 
 	
 END;
 $function$;
-
 
 --SELECT * 
 --FROM public.pgrouting_edges_new(ARRAY[300.,600.,900.], ARRAY[[11.2666, 48.1648]],4.1, 1, 15, 1, 'cycling_standard')
