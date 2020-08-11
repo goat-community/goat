@@ -121,6 +121,7 @@
       "modifyAttributes": "Modify Attributes",
       "drawPolygonHole": "Draw Polygon Hole",
       "snapGuide": "Snap Guide",
+      "featureLabels": "Feature Labels",
       "clearBtn": "Revert All",
       "uploadBtn": "Upload",
       "addEntrancesForBuildings": "Add entrances for all buildings to activate <b>UPLOAD</b>",
@@ -309,7 +310,7 @@
       "title": "Layers Legend"
     },
     "snackbarMessages": {
-      "selectAmenities": "You must select at least one point of interest",
+      "selectAmenities": "You must select at least one point of interest (Thematic Data)",
       "calculateIsochroneError": "Sorry but here no calculation is possible",
       "calculateIsochroneCancelled": "Isochrone Calculation Cancelled",
       "uploadScenarioSuccess": "Features uploads successfully.",
@@ -479,7 +480,8 @@
       "deleteIsochrone": "Delete Isochrone",
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
-      "deleteBldEntrancePoint": "Delete Population"
+      "deleteBldEntrancePoint": "Delete Population",
+      "redoCalculation": "Redo Calculation"
     },
     "osmMode": {
       "tasks": "OSM Mapping Tasks",
@@ -578,7 +580,7 @@
     "charging_station_other_ffb": "E-Charging Station privat (under construction)",
     "charging_station_public_ffb": "E-Charging Station public",
     "e_parking_ffb": "E-Parking",
-    "l-station_ffb": "L-Station",
+    "l-station_ffb": "L-Station Prio 1",
     "s-station_prio1_ffb": "S-Station Prio 1",
     "s-station_prio2_ffb": "S-Station Prio 2",
     "hairdresser": "Hairdresser",
@@ -620,8 +622,8 @@
     "waterpark": "Water Park",
     "discount_gym": "Discount Gym",
     "gym": "Gym",
-    "yoga":"Yoga",
-    "outdoor_fitness_station":"Outdoor fitness station",
+    "yoga": "Yoga",
+    "outdoor_fitness_station": "Outdoor fitness station",
     "population": "Population"
   },
   "$vuetify": {

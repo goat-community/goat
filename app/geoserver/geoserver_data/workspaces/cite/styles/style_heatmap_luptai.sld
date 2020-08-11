@@ -7,6 +7,11 @@
         <sld:Name>name</sld:Name>
                 <sld:Rule>
           <sld:Name>High accessibility surplus</sld:Name>
+			<Title>
+              High accessibility surplus
+                <Localized lang="de">Hoher Erreichbarkeitsüberschuss</Localized>
+            	<Localized lang="en">High accessibility surplus</Localized>
+              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThanOrEqualTo>
@@ -28,6 +33,11 @@
         </sld:Rule>
         <sld:Rule>
           <sld:Name>Rather high accessibility surplus</sld:Name>
+          			<Title>
+              Rather high accessibility surplus
+                <Localized lang="de">Leichter Erreichbarkeitsüberschuss</Localized>
+            	<Localized lang="en">Rather high accessibility surplus</Localized>
+              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThanOrEqualTo>
@@ -49,6 +59,11 @@
         </sld:Rule>
         <sld:Rule>
           <sld:Name>Balanced</sld:Name>
+          <Title>
+              Balanced
+                <Localized lang="de">Gleichgewicht</Localized>
+            	<Localized lang="en">Balanced</Localized>
+              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -70,6 +85,11 @@
         </sld:Rule>
         <sld:Rule>
           <sld:Name>Rather high density surplus</sld:Name>
+          <Title>
+              Rather high density surplus
+                <Localized lang="de">Leichter Dichteüberschuss</Localized>
+            	<Localized lang="en">Rather high density surplus</Localized>
+              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -91,6 +111,11 @@
         </sld:Rule>
         <sld:Rule>
           <sld:Name>High density surplus</sld:Name>
+          <Title>
+              High density surplus
+                <Localized lang="de">Hoher Dichteüberschuss</Localized>
+            	<Localized lang="en">High density surplus</Localized>
+              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
