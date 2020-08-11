@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.pgrouting_edges_preparation(cutoffs float[], startpoints float[][], speed numeric, userid_input integer, modus_input integer, routing_profile text)
+CREATE OR REPLACE FUNCTION public.pgrouting_edges_preparation(cutoffs float[], startpoints float[][], speed numeric, userid_input integer, modus_input integer, routing_profile text, count_grids integer default 0)
  RETURNS BIGINT[] 
  LANGUAGE plpgsql
 AS $function$
@@ -46,7 +46,7 @@ BEGIN
 	
   	DROP TABLE IF EXISTS start_vertices;
 	CREATE TEMP TABLE start_vertices AS 
-  	SELECT c.closest_point, c.fraction, c.wid, 999999999 - (ROW_NUMBER() over()) AS vid
+  	SELECT c.closest_point, c.fraction, c.wid, 999999999 - count_grids - (ROW_NUMBER() over()) AS vid
   	FROM (
   		SELECT geom 
 		FROM start_geoms
@@ -57,20 +57,23 @@ BEGIN
 	FROM start_vertices;
 
 	IF (SELECT vid FROM start_vertices LIMIT 1) IS NOT NULL THEN 
-		INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
-		SELECT 99999998-(ROW_NUMBER() OVER())*2, cost*fraction,reverse_cost*fraction,SOURCE,vid,ST_LINESUBSTRING(geom,0,fraction)
+		DROP TABLE IF EXISTS artificial_edges;
+		CREATE TEMP TABLE artificial_edges AS 
+		SELECT 99999998-1-(ROW_NUMBER() OVER())*2 AS id, cost*fraction AS cost,reverse_cost*fraction AS reverse_cost,SOURCE,vid target,ST_LINESUBSTRING(geom,0,fraction) geom
 		FROM temp_fetched_ways, start_vertices  
 		WHERE id = wid
 		UNION ALL 
-		SELECT 99999999-(ROW_NUMBER() OVER())*2, cost*(1-fraction),reverse_cost*(1-fraction),vid,target,ST_LINESUBSTRING(geom,fraction,1)
+		SELECT 99999999-1-(ROW_NUMBER() OVER())*2 AS id, cost*(1-fraction) AS cost,reverse_cost*(1-fraction) AS reverse_cost,vid source,target,ST_LINESUBSTRING(geom,fraction,1) geom
 		FROM temp_fetched_ways, start_vertices 
 		WHERE id = wid;
+		INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
+		SELECT * FROM artificial_edges;
 	END IF;
-	
+
     DELETE FROM temp_fetched_ways 
    	USING start_vertices v
     WHERE id = v.wid;
-   	
+
    	RETURN vids;
 END;
 $function$;
