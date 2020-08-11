@@ -43,13 +43,20 @@ CREATE INDEX ON multi_isochrones USING btree(objectid,parent_id);
 CREATE UNLOGGED TABLE public.edges (
 	edge integer NULL,
 	node integer NULL,
-	cost numeric NULL,
+	cost float NULL,
+	start_cost float NULL,
+	end_cost float NULL,
 	geom geometry NULL,
-	v_geom geometry NULL,
 	objectid int4 NULL,
 	id serial NOT NULL,
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
 );
+--CREATE INDEX index_edges ON edges USING gist(geom);
+CREATE INDEX ON edges USING btree(objectid,cost);
+
+--CREATE INDEX index_edges ON edges USING gist(geom);
+CREATE INDEX ON edges USING btree(objectid,cost);
+
 --CREATE INDEX index_edges ON edges USING gist(geom);
 CREATE INDEX ON edges USING btree(objectid,cost);
 
