@@ -1,3 +1,4 @@
+DROP FUNCTION pgrouting_edges_preparation;
 CREATE OR REPLACE FUNCTION public.pgrouting_edges_preparation(cutoffs float[], startpoints float[][], speed numeric, userid_input integer, modus_input integer, routing_profile text, count_grids integer default 0)
  RETURNS BIGINT[] 
  LANGUAGE plpgsql
@@ -59,11 +60,11 @@ BEGIN
 	IF (SELECT vid FROM start_vertices LIMIT 1) IS NOT NULL THEN 
 		DROP TABLE IF EXISTS artificial_edges;
 		CREATE TEMP TABLE artificial_edges AS 
-		SELECT 99999998-1-(ROW_NUMBER() OVER())*2 AS id, cost*fraction AS cost,reverse_cost*fraction AS reverse_cost,SOURCE,vid target,ST_LINESUBSTRING(geom,0,fraction) geom
+		SELECT 99999998-1-count_grids-(ROW_NUMBER() OVER())*2 AS id, cost*fraction AS cost,reverse_cost*fraction AS reverse_cost,SOURCE,vid target,ST_LINESUBSTRING(geom,0,fraction) geom
 		FROM temp_fetched_ways, start_vertices  
 		WHERE id = wid
 		UNION ALL 
-		SELECT 99999999-1-(ROW_NUMBER() OVER())*2 AS id, cost*(1-fraction) AS cost,reverse_cost*(1-fraction) AS reverse_cost,vid source,target,ST_LINESUBSTRING(geom,fraction,1) geom
+		SELECT 99999999-1-count_grids-(ROW_NUMBER() OVER())*2 AS id, cost*(1-fraction) AS cost,reverse_cost*(1-fraction) AS reverse_cost,vid source,target,ST_LINESUBSTRING(geom,fraction,1) geom
 		FROM temp_fetched_ways, start_vertices 
 		WHERE id = wid;
 		INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
