@@ -54,11 +54,10 @@ BEGIN
 		INSERT INTO reached_edges_heatmap
 		SELECT f.*
 		FROM full_edges f
-		LEFT JOIN reached_edges_heatmap r 
+		LEFT JOIN (SELECT edge FROM reached_edges_heatmap WHERE partial_edge = FALSE) r 
 		ON f.edge = r.edge
-		WHERE r.edge IS NULL
-		AND r.partial_edge = FALSE;
-		
+		WHERE r.edge IS NULL;
+	
 	END IF;
 	
 	INSERT INTO reached_edges_heatmap(edge,gridids,start_cost,end_cost,userid,scenario_id,geom, partial_edge)
