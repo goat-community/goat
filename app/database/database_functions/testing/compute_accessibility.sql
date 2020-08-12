@@ -1,57 +1,37 @@
+
+
+--CREATE INDEX ON reached_pois_heatmap USING gin (accessibility_indices gin__int_ops)
+
 EXPLAIN ANALYZE 
-WITH p AS 
+WITH x AS 
 (
-	SELECT p.amenity, p.name, p.geom, e.edge, e.fraction, e.start_cost, e.end_cost
-	FROM pois_userinput p
-	CROSS JOIN LATERAL
-	(
-		SELECT f.edge, ST_LineLocatePoint(f.geom,p.geom) AS fraction, f.start_cost, f.end_cost 
-		FROM reached_full_heatmap f
-		WHERE f.geom && ST_Buffer(p.geom,0.0018)
-		ORDER BY ST_CLOSESTPOINT(f.geom,p.geom) <-> p.geom
-		LIMIT 1
-	) AS e
-	WHERE p.amenity IN (SELECT UNNEST(select_from_variable_container('pois_one_entrance')))
-)
-SELECT p.*, c.*
-FROM p, compute_accessibility_index(fraction,start_cost,end_cost,ARRAY[200000, 250000, 300000, 350000, 400000, 450000]) c
+	SELECT gridids, accessibility_indices[1][1:]
+	FROM reached_pois_heatmap 
+	WHERE amenity IN ('kindergarten','nursery','primary_school','secondary_school','bar','biergarten','cafe','pub','fast_food','ice_cream','restaurant','theatre','sum_population','cinema','library','night_club','recycling',
+	      'car_sharing','bicycle_rental','charging_station','bus_station','tram_station','subway_station','railway_station','taxi','bikesharing_ffb','carsharing_ffb','charging_station_marker_ffb','charging_station_other_ffb','charging_station_public_ffb','e_parking_ffb',
+	      'l-station_ffb','s-station_prio1_ffb','s-station_prio2_ffb','hairdresser','atm','bank','dentist','doctors','pharmacy','post_box','post_office','fuel',
+	      'bakery','butcher','clothes','convenience','general','fashion','florist','greengrocer','kiosk','mall','shoes','sports','supermarket','health_food','discount_supermarket',
+	      'hypermarket','international_supermarket','chemist','organic','marketplace','hotel','museum','hostel','guest_house','viewpoint','gallery','playground','discount_gym','gym','yoga','outdoor_fitness_station'
+	)
+) 
+SELECT grid_id,sum(accessibility_index) 
+FROM x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index)
+GROUP BY grid_id; 
 
 
 
-CREATE OR REPLACE FUNCTION public.compute_accessibility_index(fraction float, arr_start_cost smallint[], arr_end_cost smallint[], sensitivities integer[])
-RETURNS TABLE (arr_true_cost smallint[], accessibility_indices smallint[][]) 
-AS $function$
-DECLARE 
-	cnt smallint := 0;
-	start_cost smallint;
-	end_cost smallint;
-	true_cost smallint;
-	arr_true_cost smallint[] := ARRAY[]::smallint[];
-	sensitivity integer;
-	accessibility_indices_helper SMALLINT[];
-	accessibility_indices SMALLINT[][];
-BEGIN 
-
-	FOREACH start_cost IN ARRAY arr_start_cost
-  	LOOP
-  		cnt = cnt + 1;
-  		end_cost = arr_end_cost[cnt];
-  		IF start_cost < end_cost THEN
-  			true_cost = (start_cost + (fraction * (end_cost-start_cost)))::smallint;
-  		ELSE 
-  			true_cost = (end_cost + ((1-fraction) * (start_cost - end_cost)))::smallint;
-  		END IF;
-  	
-  		accessibility_indices_helper = ARRAY[]::float[];
-		FOREACH sensitivity IN ARRAY sensitivities
-		LOOP 
-			accessibility_indices_helper = accessibility_indices_helper || ((EXP(-(true_cost^2)/sensitivity)::float) * 10000)::smallint; 
-		END LOOP;
-		accessibility_indices = accessibility_indices || ARRAY[accessibility_indices_helper];
-		arr_true_cost = arr_true_cost | true_cost;
-  	END LOOP;
-  	
-	RETURN query SELECT arr_true_cost, accessibility_indices; 
-END;
-$function$ LANGUAGE plpgsql immutable;
 --SELECT * FROM compute_accessibility_index(0.3, ARRAY[100,200,300,400,500,600,700]::SMALLINT[], ARRAY[300,400,500,700,800,1000,1300]::SMALLINT[], ARRAY[200000,250000, 300000, 350000, 400000, 450000])
+
+DROP TABLE IF EXISTS test_edges;
+CREATE TABLE test_edges AS 
+SELECT start_cost[gridids # 233], end_cost[gridids # 233], GREATEST(start_cost[gridids # 233],end_cost[gridids # 233]), geom      
+FROM reached_edges_heatmap reh  
+WHERE gridids && ARRAY[233]
+
+DROP TABLE IF EXISTS test_pois;
+CREATE TABLE test_pois AS 
+SELECT gridids # 233, r.gid, r.amenity, r.name, true_cost[gridids # 233], p.geom      
+FROM reached_pois_heatmap r, pois p  
+WHERE gridids && ARRAY[233]
+AND r.gid = p.gid; 
+
