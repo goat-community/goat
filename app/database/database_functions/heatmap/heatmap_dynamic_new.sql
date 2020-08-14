@@ -1,5 +1,6 @@
-CREATE OR REPLACE FUNCTION public.heatmap_dynamic_new(userid_input integer, amenities_json jsonb, modus integer, scenario_id integer DEFAULT 1)
- RETURNS TABLE(grid_id integer, accessibility_index integer)
+DROP FUNCTION IF EXISTS heatmap_dynamic_new;
+CREATE OR REPLACE FUNCTION public.heatmap_dynamic_new(amenities_json jsonb, modus integer DEFAULT 1, userid_input integer DEFAULT 1, scenario_id integer DEFAULT 1)
+ RETURNS TABLE(grid_id integer, accessibility_index bigint)
  LANGUAGE plpgsql
 AS $function$
 DECLARE
@@ -21,27 +22,52 @@ BEGIN
 
 	IF modus = 1 THEN 
 		RETURN query 
-		SELECT u.grid_id, u.accessibility_index --* (amenities_json -> x.amenity ->> 'weight')::SMALLINT  
-		FROM (
-			SELECT gridids, amenity, accessibility_indices[(translation_sensitivities ->> amenity)::integer][1:]
-			FROM reached_pois_heatmap 
-			WHERE amenity IN (SELECT UNNEST(pois_one_entrance))
-			AND amenity IN (SELECT UNNEST(array_amenities))
-		)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index);
-		/*UNION ALL 
-		SELECT grid_id,(amenities_json -> amenity)::SMALLINT * max(accessibility_index) AS accessibility_indices 
-		FROM (
-			SELECT gridids, amenity, name, accessibility_indices[translation_sensitivities -> amenity][1:]
-			WHERE amenity IN (SELECT UNNEST(pois_more_entrances))
-			AND amenity IN (SELECT UNNEST(array_amenities))
-		)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index)
-		GROUP BY grid_id, amenity, name; 	*/
+		SELECT s.grid_id, sum(s.accessibility_index) AS accessibility_index 
+		FROM 
+		(
+			SELECT u.grid_id, u.accessibility_index * (amenities_json -> x.amenity ->> 'weight')::SMALLINT AS accessibility_index  
+			FROM (
+				SELECT gridids, amenity, accessibility_indices[(translation_sensitivities ->> amenity)::integer:(translation_sensitivities ->> amenity)::integer][1:]
+				FROM reached_pois_heatmap 
+				WHERE amenity IN (SELECT UNNEST(pois_one_entrance))
+				AND amenity IN (SELECT UNNEST(array_amenities))
+			)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index)
+			UNION ALL 
+			SELECT u.grid_id, max(u.accessibility_index) * (amenities_json -> x.amenity ->> 'weight')::SMALLINT AS accessibility_index
+			FROM (
+				SELECT gridids, amenity, name,  accessibility_indices[(translation_sensitivities ->> amenity)::integer:(translation_sensitivities ->> amenity)::integer][1:]
+				FROM reached_pois_heatmap
+				WHERE amenity IN (SELECT UNNEST(pois_more_entrances))
+				AND amenity IN (SELECT UNNEST(array_amenities))
+			)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index)
+			GROUP BY u.grid_id, x.amenity, x.name
+		) s
+		GROUP BY s.grid_id;
 	ELSE 
 	
 	END IF;
 END;
 $function$;
 
+DROP TABLE test 
+
+
+SELECT u.grid_id, u.accessibility_index --* (amenities_json -> x.amenity ->> 'weight')::SMALLINT  
+FROM (
+	SELECT gridids, amenity, accessibility_indices[3:3][1:]
+	FROM reached_pois_heatmap 
+	WHERE amenity IN (SELECT UNNEST(ARRAY['kindergarten']))
+	AND amenity IN (SELECT UNNEST(ARRAY['kindergarten','bus_stop']))
+)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index)
+UNION ALL 
+SELECT u.grid_id, max(u.accessibility_index) --* (amenities_json -> x.amenity ->> 'weight')::SMALLINT
+FROM (
+	SELECT gridids, amenity, name,  accessibility_indices[1][1:]
+	FROM reached_pois_heatmap
+	WHERE amenity IN (SELECT UNNEST(ARRAY['bus_stop']))
+	AND amenity IN (SELECT UNNEST(ARRAY['kindergarten','bus_stop']))
+)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index)
+GROUP BY u.grid_id, x.amenity, x.name; 	
 
 
 SELECT select_from_variable_container('heatmap_sensitivities')
@@ -61,5 +87,10 @@ jsonb_agg
 gridids # 233
 
 EXPLAIN ANALYZE 
+
 SELECT * 
 FROM heatmap_dynamic_new(1, '{"kindergarten":{"sensitivity":250000,"weight":1},"bus_stop":{"sensitivity":250000,"weight":1}}'::jsonb,1)
+
+SELECT * FROM test 
+
+GROUP BY grid_id 
