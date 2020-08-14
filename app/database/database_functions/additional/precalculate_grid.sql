@@ -8,7 +8,7 @@ DECLARE
 
 	--new
 	number_isochrones integer := 1;	
-	calc_step integer := 900;	
+	calc_step integer := 1200;	
 
 BEGIN 
 
