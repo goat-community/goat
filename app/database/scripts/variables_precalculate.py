@@ -20,7 +20,7 @@ prepare_tables = '''select * from hexagrid(grid_size);
 sql_new_grid= '''DROP TABLE IF EXISTS grid;
 select distinct grid_id, geom into grid from grid_grid_size;
 ALTER TABLE grid add primary key (grid_id);
---drop table grid_grid_size  '''
+'''
 
 
 
@@ -52,7 +52,7 @@ WHERE population IS NOT NULL;
 
 UPDATE grid_grid_size SET percentile_population = 0
 WHERE percentile_population IS NULL;
-
+/*
 UPDATE grid_grid_size SET iso_geom = i.geom
 FROM isochrones i 
 WHERE grid_id = i.objectid;
@@ -68,4 +68,5 @@ FROM (
 WHERE grid_grid_size.grid_id = x.grid_id;
 
 UPDATE grid_grid_size SET percentile_area_isochrone = 0 WHERE percentile_area_isochrone IS NULL; 
+*/
 '''

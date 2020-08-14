@@ -4,7 +4,6 @@ import math
 from variables_precalculate import *
 from db_functions import ReadYAML
 from db_functions import DB_connection
-from pathlib import Path
 import yaml
 
 #Step defined the bulk size of the heatmap calculation
@@ -13,8 +12,6 @@ step = 150
 grid_size = 500
 
 grid = 'grid_'+str(500)
-
-sensitivities = [150000,200000,250000,300000,350000,400000,450000]
 
 start = time.time()
 
@@ -58,6 +55,18 @@ CREATE TABLE reached_edges_heatmap
 	geom geometry,
 	partial_edge boolean
 );
+DROP TABLE IF EXISTS reached_pois_heatmap;
+CREATE TABLE reached_pois_heatmap (
+	gid integer,
+	amenity text,
+	name text,
+	gridids integer[],
+	fraction float8,
+	start_cost smallint[],
+	end_cost smallint[],
+	arr_true_cost smallint[],
+	accessibility_indices integer[]
+);
 '''
 
 cursor.execute(sql_edges_heatmap)
@@ -73,18 +82,31 @@ while lower_limit < count_grids:
     		FROM grid_ordered 
     		WHERE id BETWEEN %i AND %i
     	)
-		SELECT pgrouting_edges_heatmap(ARRAY[900.], x.array_starting_points, 1.33, 1, 0, x.grid_ids,%i, 1, 'walking_standard')
+		SELECT pgrouting_edges_heatmap(ARRAY[900.], x.array_starting_points, 1.33, 1, 0, x.grid_ids, 1, 'walking_standard',%i)
 		FROM x;'''
     cursor.execute(sql_bulk_calculation % (lower_limit, lower_limit+step-1, lower_limit-1))
     con.commit()
     lower_limit = lower_limit + step
 
+time_routing = time.time()-start
+print('Routing calculation has finished after: %s s' % (time_routing))
+
 sql_indices = '''
 ALTER TABLE reached_edges_heatmap ADD COLUMN id serial;
 ALTER TABLE reached_edges_heatmap ADD PRIMARY KEY(id);
 CREATE INDEX ON reached_edges_heatmap USING gist(geom);
+SELECT * FROM reached_pois_heatmap();
+
+ALTER TABLE reached_pois_heatmap ADD COLUMN id serial;
+ALTER TABLE reached_pois_heatmap ADD PRIMARY key(id);
+CREATE INDEX ON reached_pois_heatmap (amenity);
 '''
 cursor.execute(sql_indices)
+
+print('Closest POIs calculation has finished after: %s s' % (time.time()-start-time_routing))
+
+cursor.execute(sql_grid_population.replace('grid_size', str(grid_size)))
+
 con.commit()
 con.close()
 end = time.time()
