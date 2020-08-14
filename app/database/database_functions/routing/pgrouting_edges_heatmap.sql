@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS pgrouting_edges_heatmap;
-CREATE OR REPLACE FUNCTION public.pgrouting_edges_heatmap(cutoffs float[], startpoints float[][], speed numeric, userid_input integer, scenario_id_input integer, gridid_input integer[], count_grids integer, modus_input integer, routing_profile text)
+CREATE OR REPLACE FUNCTION public.pgrouting_edges_heatmap(cutoffs float[], startpoints float[][], speed numeric, userid_input integer, scenario_id_input integer, gridid_input integer[], modus_input integer, routing_profile text, count_grids integer DEFAULT 0)
  RETURNS SETOF void
  LANGUAGE plpgsql
 AS $function$
@@ -17,7 +17,7 @@ BEGIN
 	DROP TABLE IF EXISTS reached_edges; 
 
 	CREATE TEMP TABLE reached_edges AS 
-	SELECT gridid_input[999999999-count_grids-p.from_v], p.edge, p.start_perc, p.end_perc, start_cost::SMALLINT, end_cost::SMALLINT 
+	SELECT gridid_input[999999999-count_grids-p.from_v], p.from_v, p.edge, p.start_perc, p.end_perc, start_cost::SMALLINT, end_cost::SMALLINT 
 	FROM pgr_isochrones(
 		'SELECT * FROM temp_fetched_ways WHERE id NOT IN(SELECT wid FROM start_vertices)', 
 		vids, cutoffs,TRUE
@@ -88,4 +88,11 @@ CREATE TABLE test AS
 SELECT objectids # 311,GREATEST(start_cost[objectids # 311],end_cost[objectids # 311]), geom      
 FROM union_edges  
 WHERE objectids && ARRAY[311]
+*/
+/*
+1. Update with latest routing function
+2. Add artificial edges
+3. Allow scenario building 
+4. Compute isochrones
+5. Improve multi-point-closest-vertex calculation
 */

@@ -47,9 +47,9 @@ BEGIN
 	
   	DROP TABLE IF EXISTS start_vertices;
 	CREATE TEMP TABLE start_vertices AS 
-  	SELECT c.closest_point, c.fraction, c.wid, 999999999 - count_grids - (ROW_NUMBER() over()) AS vid
+  	SELECT c.closest_point, c.fraction, c.wid, 999999999 - count_grids - p.id AS vid
   	FROM (
-  		SELECT geom 
+  		SELECT (ROW_NUMBER() over()) AS id, geom 
 		FROM start_geoms
 	) p, closest_point_network_geom(p.geom) c; 
 	
@@ -60,11 +60,11 @@ BEGIN
 	IF (SELECT vid FROM start_vertices LIMIT 1) IS NOT NULL THEN 
 		DROP TABLE IF EXISTS artificial_edges;
 		CREATE TEMP TABLE artificial_edges AS 
-		SELECT 99999998-1-count_grids-(ROW_NUMBER() OVER())*2 AS id, cost*fraction AS cost,reverse_cost*fraction AS reverse_cost,SOURCE,vid target,ST_LINESUBSTRING(geom,0,fraction) geom
+		SELECT 999999998-1-count_grids-(ROW_NUMBER() OVER())*2 AS id, cost*fraction AS cost,reverse_cost*fraction AS reverse_cost,SOURCE,vid target,ST_LINESUBSTRING(geom,0,fraction) geom
 		FROM temp_fetched_ways, start_vertices  
 		WHERE id = wid
 		UNION ALL 
-		SELECT 99999999-1-count_grids-(ROW_NUMBER() OVER())*2 AS id, cost*(1-fraction) AS cost,reverse_cost*(1-fraction) AS reverse_cost,vid source,target,ST_LINESUBSTRING(geom,fraction,1) geom
+		SELECT 999999999-1-count_grids-(ROW_NUMBER() OVER())*2 AS id, cost*(1-fraction) AS cost,reverse_cost*(1-fraction) AS reverse_cost,vid source,target,ST_LINESUBSTRING(geom,fraction,1) geom
 		FROM temp_fetched_ways, start_vertices 
 		WHERE id = wid;
 		INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
