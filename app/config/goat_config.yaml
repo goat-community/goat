@@ -22,9 +22,9 @@ DATA_REFINEMENT_VARIABLES:
       "bus_station","tram_station","subway_station","railway_station","taxi","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
       "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
       "hypermarket","international_supermarket","chemist","organic","marketplace",
-      "hotel","museum","hostel","guest_house","viewpoint","gallery","transmilenio","transmicable", "park", "notary","cade","police"
+      "hotel","museum","hostel","guest_house","viewpoint","gallery","transmicable", "park", "notary","cade","police"
     ]
-    pois_more_entrances: ["bus_stop","sitp"]
+    pois_more_entrances: ["bus_stop","sitp","transmilenio"]
     excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,801]
     categories_no_foot: ["use_sidepath","no"]
     excluded_class_id_cycling: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
@@ -167,6 +167,7 @@ DATA_REFINEMENT_VARIABLES:
         '%gesamt-%', '%gesamt %', '%gesamtsch%', '%-gymnasium%', '%gymnasium-%', '% gymnasium%','%gymnasium %', '%fachobersch%']
         discard: ['%haupt-schule%', '%mittel-schule%', '%real-schule%', '%förder-schule%', '%gesamt-schule%']
       kindergarten: ['kindergarten']
+      nursery: ['krippe']
       
 
 
