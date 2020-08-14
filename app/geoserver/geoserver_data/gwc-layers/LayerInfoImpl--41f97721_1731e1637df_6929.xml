@@ -4,8 +4,8 @@
   <inMemoryCached>true</inMemoryCached>
   <name>cite:utams_Bicycle_rate</name>
   <mimeFormats>
-    <string>image/png</string>
     <string>image/jpeg</string>
+    <string>image/png</string>
   </mimeFormats>
   <gridSubsets>
     <gridSubset>
@@ -41,7 +41,9 @@
     <styleParameterFilter>
       <key>STYLES</key>
       <defaultValue></defaultValue>
-      <availableStyles class="sorted-set"/>
+      <availableStyles class="sorted-set">
+        <string>cite:BOG_Bicycle_rate</string>
+      </availableStyles>
       <defaultStyle>cite:BOG_Bicycle_rate</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>
