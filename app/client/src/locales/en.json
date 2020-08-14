@@ -349,7 +349,7 @@
       "floodingAreasHQ100": "Flooding Areas (100-year flood)",
       "dikes": "Dikes",
       "protectedLandscape": "Protected Landscape Areas",
-      "landuse": "Landuse (BOG)",
+      "landuse": "Landuse",
       "landuse_osm": "Landuse (OSM)",
       "zoningPlan": "Zoning Plan",
       "footpathWidth": "Footpath Width",
@@ -379,10 +379,12 @@
       "publicTransport": "Public Transport",
       "bingAerial": "Bing Aerial",
       "walking_trip_rate":"Walking trips per person",
-      "walking_share":"Share of walking trips",
-      "cycling_share":"Share of cycling trips",
+      "walkingShare":"Share of walking trips",
+      "cyclingShare":"Share of cycling trips",
       "bicycle_rate":"Bicycle ownership",
-      "motorization_rate":"Motorized vehicles ownership"
+      "motorization_rate":"Motorized vehicles ownership",
+      "population_strata":"Population per strata"
+
     },
     "tooltips": {
       "clickForCalculation": "Click for Calculation. Press ESC to exit",
