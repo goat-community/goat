@@ -117,14 +117,15 @@ CREATE TABLE public.starting_point_isochrones (
 CREATE INDEX ON starting_point_isochrones USING gist(geom);
 
 CREATE TABLE addresses_residential(
-osm_id bigint,
-street varchar(200),
-housenumber varchar(100),
-geom geometry,
-origin varchar(20),
-area float,
-population integer,
-distance float);
+	osm_id bigint,
+	street varchar(200),
+	housenumber varchar(100),
+	geom geometry,
+	origin varchar(20),
+	area float,
+	population integer,
+	distance float
+);
 
 ALTER TABLE addresses_residential add column gid serial;
 ALTER TABLE addresses_residential add primary key (gid);
