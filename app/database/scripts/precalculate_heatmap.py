@@ -58,7 +58,7 @@ while lower_limit < count_grids:
     		FROM grid_ordered 
     		WHERE id BETWEEN %i AND %i
     	)
-    		SELECT precalculate_grid(1,'%s',15, x.array_starting_points,5,x.grid_ids,1,'walking_standard') 
+    		SELECT precalculate_grid(1,'%s',20, x.array_starting_points,5,x.grid_ids,1,'walking_standard') 
     		FROM x;'''
     cursor.execute(sql_bulk_calculation % (lower_limit, lower_limit+step-1, grid))
     con.commit()
