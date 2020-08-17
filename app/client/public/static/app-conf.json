@@ -369,6 +369,21 @@
       },
       {
         "type": "WMS",
+        "name": "bicycle_counting_stations",
+        "url": "/geoserver/wms",
+        "group": "additionalDataLayers",
+        "layers": "cite:bicycle_counting_stations",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver",
+        "attributions": "© <a href='https://www.opengov-muenchen.de/pages/raddauerzaehlstellen'>Open Data Portal München</a>"
+      },
+      {
+        "type": "WMS",
         "name": "walkability",
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
@@ -922,6 +937,47 @@
               "sensitivity": 300000
             }
           ]
+        },
+        {
+          "name": "Sports",
+          "categoryValue": "sports",
+          "children": [
+            {
+              "name": "Community Sport Center",
+              "value": "community_sports_center",
+              "icon": "community_sports_center",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Waterpark",
+              "value": "waterpark",
+              "icon": "waterpark",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Discount Gym",
+              "value": "discount_gym",
+              "icon": "discount_gym",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "gym",
+              "value": "gym",
+              "icon": "gym",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Yoga",
+              "value": "yoga",
+              "icon": "yoga",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
         }
       ],
       "filters": {
@@ -1212,7 +1268,7 @@
         "id",
         "original_id",
         "status",
-        "class_id"
+        "gross_floor_area"
       ]
     }
   }

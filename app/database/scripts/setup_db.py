@@ -141,6 +141,8 @@ def setup_db(setup_type):
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_reclassification_array.sql')
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_classification.sql')
     db_temp.execute_script_psql('/opt/data_preparation/SQL/pois_full_replacement.sql')
+    db_temp.execute_script_psql('/opt/database_functions/data_preparation/derive_access_from_polygons.sql')
+
 
 
     if (setup_type in ['new_setup','all','population','pois','network']):

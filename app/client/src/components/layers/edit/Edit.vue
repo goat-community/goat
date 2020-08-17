@@ -195,6 +195,24 @@
                 <span>{{ $t("appBar.edit.snapGuide") }}</span>
               </v-tooltip>
             </v-btn-toggle>
+
+            <v-btn-toggle v-model="toggleFeatureLabels">
+              <v-tooltip
+                top
+                v-if="
+                  ['Polygon', 'MultiPolygon'].some(r =>
+                    selectedLayer.get('editGeometry').includes(r)
+                  )
+                "
+              >
+                <template v-slot:activator="{ on }">
+                  <v-btn class="ml-2 mt-2" v-on="on" text>
+                    <v-icon>fas fa-font</v-icon>
+                  </v-btn>
+                </template>
+                <span>{{ $t("appBar.edit.featureLabels") }}</span>
+              </v-tooltip>
+            </v-btn-toggle>
           </v-flex>
           <v-flex
             v-if="
@@ -429,7 +447,7 @@
             ['add', 'modifyAttributes'].includes(popup.selectedInteraction)
           "
         >
-          <v-form v-model="formValid">
+          <v-form ref="edit-form" v-model="formValid">
             <v-jsonschema-form
               v-if="schema[layerName]"
               :schema="schema[layerName]"
@@ -530,6 +548,7 @@ export default {
     toggleSelection: undefined,
     toggleEdit: undefined,
     toggleSnapGuide: 0, // Used for snap and other functionalities (Active by default).
+    toggleFeatureLabels: 0,
     loadingLayerInfo: false,
     isUploadBusy: false,
     isDeleteAllBusy: false,
@@ -619,11 +638,24 @@ export default {
     toggleSnapGuide(value) {
       this.toggleSnapGuideInteraction(value);
     },
+    toggleFeatureLabels(value) {
+      this.toggleFeatureLabelsInteraction(value);
+    },
     scenarioDataTable() {
       this.canCalculateScenario(this.options.calculationModes.active);
     },
     "options.calculationModes.active": function(value) {
       this.canCalculateScenario(value);
+    },
+    dataObject: {
+      immediate: true,
+      async handler() {
+        await this.$nextTick();
+        if (this.$refs["edit-form"]) {
+          this.$refs["edit-form"].validate();
+        }
+      },
+      deep: true
     }
   },
   mounted() {
@@ -655,7 +687,9 @@ export default {
         this.onBldEntranceSourceChange
       );
       me.setBldEntranceLayer(me.olEditCtrl.bldEntranceLayer);
+      me.setEditLayer(me.olEditCtrl.layer);
       this.setUpCtxMenu();
+      this.toggleFeatureLabelsInteraction(this.toggleFeatureLabels);
     },
 
     /**
@@ -952,6 +986,15 @@ export default {
         this.olEditCtrl.removeSnapGuideInteraction();
         this.olEditCtrl.isSnapGuideActive = 0;
       }
+    },
+
+    /**
+     * Toggle Feature labels
+     */
+
+    toggleFeatureLabelsInteraction(state) {
+      this.olEditCtrl.layer.set("showLabels", state);
+      this.olEditCtrl.layer.getSource().changed();
     },
 
     /**
@@ -1730,7 +1773,8 @@ export default {
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR",
       updateReqFields: "UPDATE_REQ_FIELDS",
-      setBldEntranceLayer: "SET_BLD_ENTRANCE_LAYER"
+      setBldEntranceLayer: "SET_BLD_ENTRANCE_LAYER",
+      setEditLayer: "SET_EDIT_LAYER"
     })
   },
   computed: {

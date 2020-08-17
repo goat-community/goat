@@ -96,7 +96,7 @@ DATA_REFINEMENT_VARIABLES:
     ##  Duplicated kindergarten lookup radius: the estimated distance between centroids of two polygons that represent the same kindergarten
     duplicated_lookup_radius: '100' 
     tag_new_radius: '130'
-    duplicated_kindergarden_lookup_radius: '40'
+    duplicated_kindergarten_lookup_radius: '40'
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------Definition of amenity parameters for POIS preparation and data fusion of new sources------------##
     ##----------------------------------------------------------------------------------------------------------##
@@ -107,14 +107,14 @@ DATA_REFINEMENT_VARIABLES:
     ##                        Possible names are mandatory for the new POIS to include (with a .geojson file)
     pois_search_conditions:
       chemist:
-        dm: ['%dm%']
-        rossmann: ['rossmann%']
+        dm: ['dm']
+        rossmann: ['rossmann']
       supermarket:
-        edeka: ['e center%', '%edeka%']
-        rewe: ['%rewe', '%rewe city%']
+        edeka: ['e center', 'edeka']
+        rewe: ['rewe', 'rewe city']
       discount_supermarket:
         aldi: []
-        lidl: ['%lidl%']
+        lidl: ['lidl']
         penny: []
         netto: []
         norma: []
@@ -135,15 +135,24 @@ DATA_REFINEMENT_VARIABLES:
         münchner verkehrsgesellschaft: []
         mvg: []
       bank: 
-        sparkasse: ['%kreissparkasse%','%sparkasse%','%stadtsparkasse%']   
-        hypovereinsbank: ['%hypo vereinsbank%', '%hypovereinsbank%']
-        raiffeisenbank: ['%raiffeisenbank%', '%vr bank%', '%vr-bank%', '%volksbank%','%volks%', '%Münchner%']
+        sparkasse: ['kreissparkasse','sparkasse','stadtsparkasse']   
+        hypovereinsbank: ['hypo vereinsbank', 'hypovereinsbank']
+        raiffeisenbank: ['raiffeisenbank', 'vr bank', 'vr-bank', 'volksbank','volks', 'Münchner']
       fast_food:
-        mcdonalds: ['%mcdonald%']
+        mcdonalds: ['mcdonald']
       restaurant:   
-        vapiano: ['%vapiano%']
+        vapiano: ['vapiano']
       nursery:
-        kinderkrippe: ['%krippe%','%kindergrippe%']
+        kinderkrippe: ['krippe','kindergrippe']
+      discount_gym:
+        fitstar: ['fit-star','fit star']
+        mcfit: []
+        fitx: []
+        cleverfit: ['clever fit','cleverfit']
+        jumpersfitness: ['jumpers fitness']
+      
+      community_sport_centre: ['bezirkssportanlage']
+
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------------------Amenity parameters for POIS preparation leisure and schools------------------------##
     ##----------------------------------------------------------------------------------------------------------##
