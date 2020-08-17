@@ -102,9 +102,11 @@ const getters = {
 };
 
 const actions = {
-  async calculateIsochrone({ dispatch, commit, rootState }) {
+  async calculateIsochrone({ dispatch, commit, rootState }, payload) {
     //Selected isochrone calculation type. single | multiple
-    const calculationType = rootState.isochrones.options.calculationType;
+    const calculationType = payload
+      ? payload.calculationType
+      : rootState.isochrones.options.calculationType;
     const sharedParams = {
       user_id: rootState.user.userId,
       minutes: state.options.minutes,
@@ -118,6 +120,10 @@ const actions = {
     //Marker Feature for single isochrone calculation;
     let iconMarkerFeature;
 
+    // Multi isochrone regions
+    let region;
+    let regionType;
+    //
     if (calculationType === "single") {
       iconMarkerFeature = new Feature({
         geometry: new Point(
@@ -135,9 +141,9 @@ const actions = {
       });
       isochroneEndpoint = "isochrone";
     } else {
-      const regionType = state.multiIsochroneCalculationMethods.active;
+      regionType = state.multiIsochroneCalculationMethods.active;
       const regionFeatures = state.selectionLayer.getSource().getFeatures();
-      const region = regionFeatures
+      region = regionFeatures
         .map(feature => {
           if (regionType === "draw") {
             return feature
@@ -155,8 +161,8 @@ const actions = {
 
       params = Object.assign(sharedParams, {
         alphashape_parameter: "0.00003",
-        region_type: `'${regionType}'`,
-        region: region,
+        region_type: payload ? payload.region_type : `'${regionType}'`,
+        region: payload ? payload.region : region,
         routing_profile: `'${state.activeRoutingProfile}'`,
         amenities: rootState.pois.selectedPois
           .map(item => {
@@ -337,6 +343,8 @@ const actions = {
     } else {
       commit("RESET_MULTIISOCHRONE_START");
       transformedData.position = "multiIsochroneCalculation";
+      transformedData.region = region;
+      transformedData.region_type = `'${regionType}'`;
     }
 
     commit("CALCULATE_ISOCHRONE", transformedData);

@@ -350,6 +350,8 @@
       "accidents_pedestrian_2017": "Unfälle mit Fußgängern (2017)",
       "accidents_bike_2018": "Unfälle mit Radfahrern (2018)",
       "accidents_bike_2017": "Unfälle mit Radfahrern (2017)",
+      "bicycle_counting_stations": "Raddauerzählstellen (2019)",
+      "street_trees": "Straßenbäume",
       "biotops": "Biotope",
       "ffh-area": "FFH-Gebiete",
       "natureReserves": "Naturschutzgebiete",
@@ -364,6 +366,9 @@
       "footpathWidth": "Fußwegbreite",
       "illuminance": "Beleuchtung",
       "lanes": "Anzahl der Fahrspuren",
+      "noiseAircraftLDEN": "Fluglärm - Pegelraster LDEN",
+      "noiseAircraftLNight": "Fluglärm - Pegelraster LNight",
+      "noiseProtectionBauleitplanung": "Lärmschutzbereich zur Lenkung der Bauleitplanung",
       "parking": "Parkplätze am Straßenrand",
       "smoothness": "Qualität Oberfläche",
       "speed": "Geschwindigkeitsbegrenzungen",
@@ -572,7 +577,7 @@
     "charging_station_other_ffb": "E-Ladesäulen privat (im Bau)",
     "charging_station_public_ffb": "E-Ladesäulen öffentlich",
     "e_parking_ffb": "E-Stellplätze",
-    "l-station_ffb": "L-Station",
+    "l-station_ffb": "L-Station Prio 1",
     "s-station_prio1_ffb": "S-Station Prio 1",
     "s-station_prio2_ffb": "S-Station Prio 2",
     "hairdresser": "Friseur",
@@ -609,6 +614,13 @@
     "university": "Universität",
     "hospital": "Krankenhaus",
     "playground": "Spielplatz",
+    "sports": "Sports",
+    "community_sports_center": "Bezirkssportanlagen",
+    "waterpark": "Schwimmbad",
+    "discount_gym": "Discount Fitnessstudio",
+    "gym": "Fitnessstudio",
+    "yoga":"Yoga",
+    "outdoor_fitness_station":"Outdoor Fitness",
     "population": "Bevölkerung"
   },
   "$vuetify": {
@@ -666,7 +678,8 @@
       "building": "Gebäudetyp",
       "building_levels": "Anzahl Geschosse",
       "building_levels_residential": "Anzahl Geschosse Wohnen",
-      "population": "Einwohneranzahl (optional)"
+      "population": "Einwohneranzahl (optional)",
+      "gross_floor_area": "Geschossfläche"
       }
     },
     "listValues": {

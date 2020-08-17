@@ -2,17 +2,14 @@ ubuntu-bionic-18.04-cloudimg-console.log
 .vagrant
 /app/data/*
 !/app/data/.gitkeep
-/app/geoserver/geoserver_data/logs/geoserver.log
+/app/geoserver/geoserver_data/logs/*
 /app/config/db/spaces.yaml
 /app/node/node_modules
 /app/database/data
 /app/database/backups
-/_site
-/.sass-cache
 /app/database/data_preparation/Python/__pycache__
 /app/database/scripts/__pycache__
 node_modules
-dist
 .env
 /.vscode
 app/database/data/census.cpg
@@ -32,3 +29,4 @@ app/database/data/study_area.prj
 app/database/data/study_area.qpj
 app/database/data/study_area.shp
 app/database/data/study_area.shx
+
