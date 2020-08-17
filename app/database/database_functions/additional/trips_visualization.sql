@@ -38,8 +38,7 @@ BEGIN
 			ON m.'||quote_ident(zone_map)||' = t.zat
 			WHERE m.'||quote_ident(zone_map)||' = '||zone_id||' GROUP BY m.'||quote_ident(zone_group)||', '||quote_ident(trans_mode)||', t.geom';
 	
-	---- Noise compression ---
---	SELECT * FROM temp_od_table;
+	---- Noise compression, discard trips to zones farther than a radius of 2500m ---
 
 	DROP TABLE IF EXISTS od_table_cleaned;
 	CREATE TABLE od_table_cleaned (LIKE temp_od_table INCLUDING ALL);
@@ -51,9 +50,7 @@ BEGIN
 	SELECT t.zone, t.transport_mode, t.trips, ft.geom, t.category FROM temp_od_table t
 	INNER JOIN filtered_taz ft
 	ON t.ZONE = ft.zat';			
-	
-	----
-
+	---- Calculate % of trips from/to surrounding areas
 
 	SELECT sum(trips) into total_trips FROM od_table_cleaned;
 
@@ -65,7 +62,7 @@ BEGIN
 	SELECT z.zat, '||quote_literal(trans_mode)||'::varchar, COALESCE (trips::NUMERIC,0), COALESCE(round(t.category,6)::NUMERIC,0), z.geom FROM od_table_cleaned t
 	RIGHT JOIN taz z
 	ON t.zone = z.zat';
-	--t.geom FROM temp_od_table t;
+
 END;
 $function$
 
@@ -79,12 +76,14 @@ $function$
 -- Test table for create visualization style
 
 
-/*DROP TABLE IF EXISTS visualization;
+/*
+DROP TABLE IF EXISTS visualization;
 CREATE TABLE visualization (zone_number NUMERIC, transport_mode varchar,number_of_trips numeric, category numeric,geom geometry);
 
 INSERT INTO visualization
-SELECT * FROM trips_visualization(1, 'origin_zone', 27, 'walking_trips') ORDER BY category desc;
+SELECT * FROM trips_visualization(1, 'origin_zone', 88, 'walking_trips') ORDER BY category desc;
 
+ */
 
 
 
