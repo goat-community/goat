@@ -103,6 +103,34 @@
             </Stroke>
           </LineSymbolizer>
         </Rule>
+                <Rule>
+          <Name>motorway</Name>
+            <Title>
+              motorway
+              		<Localized lang="de">Autobahn</Localized>
+            		<Localized lang="en">motorway</Localized>
+          </Title>
+          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:Or>
+              <ogc:PropertyIsEqualTo>
+                <ogc:PropertyName>highway</ogc:PropertyName>
+                <ogc:Literal>motorway</ogc:Literal>
+              </ogc:PropertyIsEqualTo>
+              <ogc:PropertyIsEqualTo>
+                <ogc:PropertyName>highway</ogc:PropertyName>
+                <ogc:Literal>motorway_link</ogc:Literal>
+              </ogc:PropertyIsEqualTo>
+            </ogc:Or>
+          </ogc:Filter>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#e547a1</CssParameter>
+              <CssParameter name="stroke-width">3.5</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
         <Rule>
           <Name>trunk</Name>
             <Title>

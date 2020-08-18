@@ -1,6 +1,6 @@
 <div align="center">
     <a href="https://www.open-accessibility.org/">
-        <img src="https://www.open-accessibility.org/img/Homepage/logo.png" width="175">
+        <img src="https://www.open-accessibility.org/uploads/homepage/logo.png" width="175">
     </a>
 </div>
 
