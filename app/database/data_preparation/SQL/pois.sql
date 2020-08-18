@@ -1,7 +1,6 @@
 DROP TABLE IF EXISTS pois CASCADE;
 CREATE TABLE pois as (
 
-
 -- all amenities, excluding shops, schools and kindergartens
 SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
@@ -140,7 +139,6 @@ OR tags -> 'isced:level' LIKE '%1%'
 
 UNION ALL
 
-
 --------------secondary_school; Haupt-/Mittel-/Realschule/Gymnasium (über Name, wenn kein isced:level)----------------
 
 SELECT osm_id, 'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, 'secondary_school' AS amenity, shop, 
@@ -216,7 +214,7 @@ FROM (
 	FROM kindergartens_polygons o
 	JOIN kindergartens_polygons p
 	ON ST_DWithin( o.centroid::geography, p.centroid::geography, select_from_variable_container_s('duplicated_kindergarten_lookup_radius')::float)
-	AND NOT ST_DWithin(o.centroid, p.centroid, 0)
+	AND NOT ST_Equals(o.centroid, p.centroid)
 	) AS duplicates) ;
 
 DELETE FROM kindergartens_polygons WHERE osm_id = ANY (SELECT osm_id FROM kindergarten_duplicates);
@@ -237,12 +235,14 @@ p.tags -> 'wheelchair' as wheelchair
 FROM planet_osm_point p
 WHERE p.amenity = 'kindergarten'
 EXCEPT
+
 SELECT DISTINCT p.osm_id,'point' as origin_geometry, p.access, "addr:housenumber" AS housenumber, p.amenity, p.shop, --p."addr:housenumber" doesn't work
 p.tags -> 'origin' AS origin, p.tags -> 'organic' AS organic, p.denomination,p.brand,p.name,
 p.operator,p.public_transport,p.railway,p.religion,p.tags -> 'opening_hours' as opening_hours, p.ref, p.tags::hstore AS tags, p.way as geom,
 p.tags -> 'wheelchair' as wheelchair 
 FROM planet_osm_point p, kindergartens_polygons kp
-WHERE p.amenity = 'kindergarten' AND ST_Intersects(ST_Buffer(p.way::geography,select_from_variable_container_s('duplicated_kindergarten_lookup_radius')::float ), kp.geom)
+--WHERE p.amenity = 'kindergarten' AND ST_Intersects(ST_Buffer(p.way::geography,select_from_variable_container_s('duplicated_kindergarten_lookup_radius')::float ), kp.geom)
+WHERE p.amenity = 'kindergarten' AND ST_Intersects(p.way, kp.geom)
 
 UNION ALL 
 
@@ -250,7 +250,7 @@ SELECT kp.osm_id, kp.origin_geometry, kp.ACCESS, kp.housenumber, kp.amenity, kp.
 kp.OPERATOR, kp.public_transport, kp.railway, kp.religion, kp.opening_hours, kp.REF, kp.tags, kp.centroid AS geom, kp.wheelchair
 FROM kindergartens_polygons kp;
 
--- Insert outdoor fitness stations
+-- Insert outdoor fitness stations --
 DROP TABLE IF EXISTS containing_polygons;
 CREATE TEMP TABLE containing_polygons (geom geometry);
 
@@ -273,7 +273,7 @@ LEFT JOIN planet_osm_polygon pop
 ON ST_Contains(pop.way, geom)
 WHERE pop.leisure = 'fitness_station' OR("leisure" = 'pitch' and "sport" = 'fitness');
 
--- Select points that are into polygons
+-- Select points located into polygons 
 
 DROP TABLE IF EXISTS fitness_points;
 CREATE TEMP TABLE fitness_points (LIKE planet_osm_point INCLUDING ALL);
@@ -324,7 +324,7 @@ WHERE pop.leisure = 'fitness_station' AND ST_contains(pop.way, fp.way)
 );
 
 --Distinguish kindergarten - nursery
-SELECT pois_reclassification_array('name','kindergarten','amenity','nursery','left');
+SELECT pois_reclassification_array('name','kindergarten','amenity','nursery','any');
 UPDATE pois p SET amenity = 'nursery'
 WHERE amenity = 'kindergarten'	
 AND (tags -> 'max_age') = '3';
@@ -465,6 +465,20 @@ SELECT *
 FROM planet_osm_polygon WHERE leisure = 'water_park' AND amenity IS NULL;
 SELECT derive_access_from_polygons('waterpark','waterpark');
 DROP TABLE IF EXISTS waterpark;
+
+--- Create areas of interest ---
+
+DROP TABLE IF EXISTS aois;
+CREATE TABLE aois (LIKE pois INCLUDING ALL );
+INSERT INTO aois 
+SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, 'park' AS amenity,  
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom, tags -> 'wheelchair' as wheelchair  
+FROM planet_osm_polygon
+WHERE leisure = 'park' AND (ACCESS IS NULL OR ACCESS='public') AND ST_AREA(way::geography) >= select_from_variable_container_s('parks_area_limit')::float;
+
+--------------------------------
+
 
 -- If custom_pois exists, run pois fusion 
 
