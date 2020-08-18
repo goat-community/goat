@@ -90,8 +90,6 @@ DATA_REFINEMENT_VARIABLES:
       delay_1: 15
       delay_2: 30
     dem_resolution: '10'
-    ##------------------------------------------ Area filter threshold -----------------------------------------##
-    parks_area_limit: '300000'
 
     ##-------------------------------------Radius definition for POIS fusion------------------------------------##
     ##  Duplicated lookup radius: Sensibility factor, entities for the same branch and amenity type into this radius will be considered as duplicated; it is applied for OSM and Custom POIS databases (meters).
