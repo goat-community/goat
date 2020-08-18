@@ -786,7 +786,7 @@
         "zIndex": 31,
         "serverType": "geoserver",
         "otherProps": {
-          "icon": "fas fa-tachometer-alt",
+          "icon": "fas fa-biking",
           "stepsOrdersKeys": [
             "clickFeatureInMap",
             "clickEditWithOsm",
@@ -810,7 +810,7 @@
         "zIndex": 31,
         "serverType": "geoserver",
         "otherProps": {
-          "icon": "fas fa-tachometer-alt",
+          "icon": "fas fa-walking",
           "stepsOrdersKeys": [
             "clickFeatureInMap",
             "clickEditWithOsm",
