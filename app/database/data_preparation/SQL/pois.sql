@@ -471,11 +471,10 @@ DROP TABLE IF EXISTS waterpark;
 DROP TABLE IF EXISTS aois;
 CREATE TABLE aois (LIKE pois INCLUDING ALL );
 INSERT INTO aois 
-SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, 'park' AS amenity,  
-tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom, tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_polygon
-WHERE leisure = 'park' AND (ACCESS IS NULL OR ACCESS='public') AND ST_AREA(way::geography) >= select_from_variable_container_s('parks_area_limit')::float;
+WITH parks AS (SELECT * FROM planet_osm_polygon WHERE leisure IN ('park','nature_reserve','garden')OR landuse IN ('village_green','grass')AND (access is NULL OR access not in ('private','customers', 'permissive','no')))
+SELECT max(osm_id),'polygon', max(ACCESS), '', 'park' AS amenity, max(tags->'origin') , max(tags ->'organic'), max(denomination), max(brand), max(name),
+max(OPERATOR), max(public_transport), max(railway), max(religion), max(tags->'opening_hours'), max(REF), '', (ST_dump(ST_Union(way))).geom AS geom, max(tags ->'wheelchair')
+FROM parks;
 
 --------------------------------
 
