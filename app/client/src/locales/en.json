@@ -335,6 +335,7 @@
     },
     "layerName": {
       "pois": "Point of Interest",
+      "aois":"Area of Interest",
       "administrativeUnits": "Administrative Units",
       "accidents_pedestrian_2018": "Accidents with pedestrians (2018)",
       "accidents_pedestrian_2017": "Accidents with pedestrians (2017)",

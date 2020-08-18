@@ -92,6 +92,22 @@
       },
       {
         "type": "WMS",
+        "name": "aois",
+        "url": "/geoserver/wms",
+        "group": "poisLayers",
+        "layers": "cite:aois",
+        "viewparams": "amenities:'cGFyaw=='",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": true,
+        "displayInLegend": true,
+        "requiresPois": false,
+        "zIndex": 7,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "landuse",
         "url": "/geoserver/wms",
         "group": "buildings_landuse",
