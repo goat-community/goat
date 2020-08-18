@@ -1,0 +1,15 @@
+<layer>
+  <name>aois</name>
+  <id>LayerInfoImpl-10f094b5:173ed403ad6:-7ba0</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-7fbbf792:17400fe0fde:7802</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-10f094b5:173ed403ad6:-7ba1</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>
