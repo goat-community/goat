@@ -685,6 +685,30 @@
         "attributions": "© <a href='https://www.memomaps.de/'>Memomaps</a>"
       },
       {
+        "type": "XYZ",
+        "name": "mapboxHillshade2",
+        "group": "backgroundLayers",
+        "url": "mapbox://styles/ujehle/ckdkaiwv10yt41jmst7kh2hwn/{z}/{x}/{y}",
+        "accessToken": "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
+        "maxZoom": 19,
+        "queryable": false,
+        "visible": true,
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.mapbox.com/map-feedback/'>Mapbox</a> © <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap contributors</a>"
+      },
+      {
+        "type": "XYZ",
+        "name": "mapboxHillshades",
+        "group": "backgroundLayers",
+        "url": "mapbox://styles/ujehle/ckdkaiwv10yt41jmst7kh2hwn/256/{z}/{x}/{y}",
+        "accessToken": "pk.eyJ1IjoidWplaGxlIiwiYSI6ImNrZGthZzVtNzBtdWMydG50ZGc1a3QzY3QifQ.yrsuVtwMM4JlhizlchvoEQ",
+        "maxZoom": 19,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.mapbox.com/map-feedback/'>Mapbox</a> © <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap contributors</a>"
+      },
+      {
         "type": "BING",
         "name": "bingAerial",
         "group": "backgroundLayers",
@@ -745,6 +769,54 @@
             "fillInOSMiD"
           ],
           "wikiUrl": "https://wiki.openstreetmap.org/wiki/Speed_limits"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "osm-mapping-cycleways-width",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_cycleways_width",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 31,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-tachometer-alt",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:width"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "osm-mapping-cycleways-segregated",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_cycleways_segregated",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 31,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-tachometer-alt",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:segregated"
         }
       },
       {
