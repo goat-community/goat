@@ -9,8 +9,9 @@ CREATE TYPE type_reached_edges AS
 	geom geometry,
 	objectid integer
 );
+
 DROP FUNCTION IF EXISTS pgrouting_edges_new;
-CREATE OR REPLACE FUNCTION public.pgrouting_edges_new(cutoffs float[], startpoints float[][], speed numeric, userid_input integer, objectid_input integer, modus_input integer, routing_profile text)
+CREATE OR REPLACE FUNCTION public.pgrouting_edges_new(cutoffs float[], startpoints float[][], speed numeric, userid_input integer, scenario_id_input integer, objectid_input integer, modus_input integer, routing_profile text)
  RETURNS SETOF void
  LANGUAGE plpgsql
 AS $function$
@@ -23,7 +24,7 @@ BEGIN
 	
 	SELECT *
 	INTO vids
-	FROM pgrouting_edges_preparation(cutoffs, startpoints, speed, userid_input, modus_input, routing_profile);
+	FROM pgrouting_edges_preparation(cutoffs, startpoints, speed, modus_input, routing_profile, userid_input, scenario_id_input);
 
 	IF modus_input <> 3 AND array_length(startpoints,1) = 1 THEN 
 		SELECT count(objectid) + 1 
@@ -78,5 +79,13 @@ BEGIN
 END;
 $function$;
 
+
 --SELECT * 
 --FROM public.pgrouting_edges_new(ARRAY[300.,600.,900.], ARRAY[[11.2666, 48.1648]],4.1, 1, 15, 1, 'cycling_standard')
+
+
+/*
+SELECT * 
+FROM public.pgrouting_edges_new(ARRAY[300.,500.,600.,900.], ARRAY[[11.73970,48.38750]],4.1, 1, 15, 1, 'cycling_standard');
+
+*/
