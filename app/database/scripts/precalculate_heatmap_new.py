@@ -7,11 +7,9 @@ from db_functions import DB_connection
 import yaml
 
 #Step defined the bulk size of the heatmap calculation
-step = 150
+step = 200
 #Grid size defines the size of each grid
 grid_size = 500
-
-grid = 'grid_'+str(500)
 
 start = time.time()
 
@@ -20,20 +18,21 @@ db = DB_connection(db_name,user,host,port,password)
 
 con,cursor = db.con_psycopg()
 
-cursor.execute(prepare_tables.replace('grid_size', str(grid_size)))
+
+cursor.execute(prepare_tables % grid_size)
 
 sql_ordered_grid = '''DROP TABLE IF EXISTS grid_ordered;
 CREATE temp TABLE grid_ordered AS 
 SELECT starting_points, grid_id
 FROM (
     SELECT ARRAY[ST_X(st_centroid(geom))::numeric,ST_Y(ST_Centroid(geom))::numeric] starting_points, grid_id 
-    FROM %s 
+    FROM grid_heatmap
     ORDER BY st_centroid(geom)
 ) x;
 ALTER TABLE grid_ordered ADD COLUMN id serial;
 ALTER TABLE grid_ordered ADD PRIMARY key(id);'''
 
-cursor.execute(sql_ordered_grid % grid)
+cursor.execute(sql_ordered_grid)
 con.commit()
 
 cursor.execute('SELECT count(*) FROM grid_ordered;')
@@ -55,22 +54,40 @@ CREATE TABLE reached_edges_heatmap
 	geom geometry,
 	partial_edge boolean
 );
+
+CREATE INDEX ON reached_edges_heatmap (userid);
+CREATE INDEX ON reached_edges_heatmap (scenario_id);
+
 DROP TABLE IF EXISTS reached_pois_heatmap;
 CREATE TABLE reached_pois_heatmap (
+	id serial,
 	gid integer,
 	amenity text,
 	name text,
 	gridids integer[],
-	fraction float8,
-	start_cost smallint[],
-	end_cost smallint[],
-	arr_true_cost smallint[],
-	accessibility_indices integer[]
+	arr_cost integer[],
+	accessibility_indices integer[],
+	CONSTRAINT reached_pois_heatmap_pkey PRIMARY KEY (id)
+);
+
+CREATE INDEX ON reached_pois_heatmap USING gin (gridids gin__int_ops);
+CREATE INDEX ON reached_pois_heatmap USING gin (arr_cost gin__int_ops);
+
+DROP TABLE IF EXISTS all_artificial_edges;
+CREATE TEMP TABLE all_artificial_edges
+(
+	wid integer,
+	id integer, 
+	COST float, 
+	reverse_cost float, 
+	SOURCE integer, 
+	target integer, 
+	geom geometry,
+	CONSTRAINT all_artificial_edges_pkey PRIMARY KEY (id)
 );
 '''
 
 cursor.execute(sql_edges_heatmap)
-
 lower_limit = 1
 while lower_limit < count_grids:
     print(lower_limit)
@@ -82,8 +99,9 @@ while lower_limit < count_grids:
     		FROM grid_ordered 
     		WHERE id BETWEEN %i AND %i
     	)
-		SELECT pgrouting_edges_heatmap(ARRAY[900.], x.array_starting_points, 1.33, 1, 0, x.grid_ids, 1, 'walking_standard',%i)
+		SELECT pgrouting_edges_heatmap(ARRAY[900.], x.array_starting_points, 1.33, x.grid_ids, 1, 'walking_standard',0,0,%i)
 		FROM x;'''
+
     cursor.execute(sql_bulk_calculation % (lower_limit, lower_limit+step-1, lower_limit-1))
     con.commit()
     lower_limit = lower_limit + step
@@ -97,15 +115,13 @@ ALTER TABLE reached_edges_heatmap ADD PRIMARY KEY(id);
 CREATE INDEX ON reached_edges_heatmap USING gist(geom);
 SELECT * FROM reached_pois_heatmap();
 
-ALTER TABLE reached_pois_heatmap ADD COLUMN id serial;
-ALTER TABLE reached_pois_heatmap ADD PRIMARY key(id);
 CREATE INDEX ON reached_pois_heatmap (amenity);
 '''
 cursor.execute(sql_indices)
 
 print('Closest POIs calculation has finished after: %s s' % (time.time()-start-time_routing))
 
-cursor.execute(sql_grid_population.replace('grid_size', str(grid_size)))
+cursor.execute(sql_grid_population)
 
 con.commit()
 con.close()
