@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS pgrouting_edges_heatmap;
-CREATE OR REPLACE FUNCTION public.pgrouting_edges_heatmap(cutoffs float[], startpoints float[][], speed numeric, userid_input integer, scenario_id_input integer, gridid_input integer[], modus_input integer, routing_profile text, count_grids integer DEFAULT 0)
+CREATE OR REPLACE FUNCTION public.pgrouting_edges_heatmap(cutoffs double precision[], startpoints double precision[], speed numeric, gridid_input integer[], modus_input integer, routing_profile text, count_grids integer DEFAULT 0, userid_input integer DEFAULT 0, scenario_id_input integer DEFAULT 0)
  RETURNS SETOF void
  LANGUAGE plpgsql
 AS $function$
@@ -12,16 +12,30 @@ BEGIN
 	
 	SELECT *
 	INTO vids
-	FROM pgrouting_edges_preparation(cutoffs, startpoints, speed, userid_input, modus_input, routing_profile, count_grids);
-
+	FROM pgrouting_edges_preparation(cutoffs, startpoints, speed, modus_input, routing_profile,userid_input,scenario_id_input,count_grids);
+	/*Perform routing with multiple starting points*/
 	DROP TABLE IF EXISTS reached_edges; 
-
 	CREATE TEMP TABLE reached_edges AS 
 	SELECT gridid_input[999999999-count_grids-p.from_v], p.from_v, p.edge, p.start_perc, p.end_perc, start_cost::SMALLINT, end_cost::SMALLINT 
 	FROM pgr_isochrones(
 		'SELECT * FROM temp_fetched_ways WHERE id NOT IN(SELECT wid FROM start_vertices)', 
-		vids, cutoffs,TRUE
+		vids, cutoffs
 	) p;
+	/*Cleaning artificial edges*/
+	CREATE INDEX ON reached_edges (edge);
+	DELETE FROM reached_edges r
+	USING artificial_edges a 
+	WHERE edge = a.id
+	AND (r.from_v = a.SOURCE OR r.from_v = a.target);
+
+	INSERT INTO reached_edges
+	SELECT gridid_input[999999999-count_grids-source],source, a.id, 0, 1, 0, a.COST
+	FROM artificial_edges a, start_vertices v
+	WHERE a.SOURCE = v.vid 
+	UNION ALL 
+	SELECT gridid_input[999999999-count_grids-target],target, a.id, 0, 1, a.reverse_cost, 0
+	FROM artificial_edges a, start_vertices v
+	WHERE a.target = v.vid; 	
 	
 	DROP TABLE IF EXISTS grouped_edges;
 	CREATE TEMP TABLE grouped_edges AS 
@@ -39,12 +53,13 @@ BEGIN
 	WHERE g.edge = w.id;
 
 	ALTER TABLE full_edges ADD PRIMARY KEY(edge);
-
+	
 	IF (SELECT count(*) FROM reached_edges_heatmap LIMIT 1) = 0 THEN 
 		INSERT INTO reached_edges_heatmap(edge, gridids, start_cost, end_cost, userid, scenario_id, geom, partial_edge)
 		SELECT f.edge, f.gridids, f.start_cost, f.end_cost, f.userid_input, f.scenario_id, f.geom, f.partial_edge 
 		FROM full_edges f;
 	ELSE 	
+		/*Add full edges from other batch calculation if same edge_id*/
 		UPDATE reached_edges_heatmap r 
 		SET gridids = r.gridids || f.gridids, start_cost = r.start_cost || f.start_cost, end_cost = r.end_cost || f.end_cost
 		FROM full_edges f
@@ -57,9 +72,8 @@ BEGIN
 		LEFT JOIN (SELECT edge FROM reached_edges_heatmap WHERE partial_edge = FALSE) r 
 		ON f.edge = r.edge
 		WHERE r.edge IS NULL;
-	
 	END IF;
-	
+	/*Create partially reached edges and add to table*/
 	INSERT INTO reached_edges_heatmap(edge,gridids,start_cost,end_cost,userid,scenario_id,geom, partial_edge)
 	SELECT p.edge, array[p.gridids], array[p.start_cost], array[p.end_cost],userid_input, scenario_id_input, geom, TRUE 
 	FROM
@@ -75,11 +89,12 @@ BEGIN
 
 END;
 $function$;
+
+
 /*
 SELECT public.pgrouting_edges_heatmap(ARRAY[1200.], array_agg(starting_points) , 
-1.33, 1, 2000, array_agg(grid_id)::integer[], 1, 'walking_standard')
-FROM (SELECT * FROM grid_ordered 
-LIMIT 5) g
+1.33, array_agg(grid_id)::integer[], 1, 'walking_standard',0,0, 200)
+FROM (SELECT * FROM grid_ordered WHERE id BETWEEN 201 AND 400) g
 
 
 DROP TABLE test 
@@ -90,8 +105,8 @@ FROM union_edges
 WHERE objectids && ARRAY[311]
 */
 /*
-1. Update with latest routing function
-2. Add artificial edges
+1. Check routing results for nursery 
+2. Double check network islands at pedestrian zone
 3. Allow scenario building 
 4. Compute isochrones
 5. Improve multi-point-closest-vertex calculation
