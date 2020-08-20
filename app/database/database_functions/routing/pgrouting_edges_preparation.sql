@@ -1,5 +1,5 @@
 DROP FUNCTION pgrouting_edges_preparation;
-CREATE OR REPLACE FUNCTION public.pgrouting_edges_preparation(cutoffs float[], startpoints float[][], speed numeric, userid_input integer, modus_input integer, routing_profile text, count_grids integer default 0)
+CREATE OR REPLACE FUNCTION public.pgrouting_edges_preparation(cutoffs float[], startpoints float[][], speed numeric, modus_input integer, routing_profile text, userid_input integer DEFAULT 0, scenario_id integer DEFAULT 0, count_grids integer default 0)
  RETURNS BIGINT[] 
  LANGUAGE plpgsql
 AS $function$
@@ -60,21 +60,56 @@ BEGIN
 	IF (SELECT vid FROM start_vertices LIMIT 1) IS NOT NULL THEN 
 		DROP TABLE IF EXISTS artificial_edges;
 		CREATE TEMP TABLE artificial_edges AS 
-		SELECT 999999998-1-count_grids-(ROW_NUMBER() OVER())*2 AS id, cost*fraction AS cost,reverse_cost*fraction AS reverse_cost,SOURCE,vid target,ST_LINESUBSTRING(geom,0,fraction) geom
-		FROM temp_fetched_ways, start_vertices  
-		WHERE id = wid
+		SELECT wid, 999999998-(1+count_grids+ROW_NUMBER() OVER())*2 AS id, cost*fraction AS cost,reverse_cost*fraction AS reverse_cost,SOURCE,vid target,ST_LINESUBSTRING(geom,0,fraction) geom
+		FROM temp_fetched_ways w, start_vertices v 
+		WHERE w.id = v.wid
 		UNION ALL 
-		SELECT 999999999-1-count_grids-(ROW_NUMBER() OVER())*2 AS id, cost*(1-fraction) AS cost,reverse_cost*(1-fraction) AS reverse_cost,vid source,target,ST_LINESUBSTRING(geom,fraction,1) geom
-		FROM temp_fetched_ways, start_vertices 
-		WHERE id = wid;
-		INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
-		SELECT * FROM artificial_edges;
+		SELECT wid, 999999999-(1+count_grids+ROW_NUMBER() OVER())*2 AS id, cost*(1-fraction) AS cost,reverse_cost*(1-fraction) AS reverse_cost,vid source,target,ST_LINESUBSTRING(geom,fraction,1) geom
+		FROM temp_fetched_ways w, start_vertices v 
+		WHERE w.id = v.wid;
+		ALTER TABLE artificial_edges ADD PRIMARY KEY(id);
+		/*Inject artifical edges */
+		IF (count_grids = 0) THEN 
+			INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
+			SELECT a.id, a.cost, a.reverse_cost, a.source, a.target, a.geom 
+			FROM artificial_edges a;
+		ELSE 
+			/*For bulk calculation artifical edges need to be added to all calculation to ensure consistent network*/
+			INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
+			SELECT a.id, a.cost, a.reverse_cost, a.source, a.target, a.geom 
+			FROM all_artificial_edges a, temp_fetched_ways w 
+			WHERE a.wid = w.id; 
+			
+			INSERT INTO all_artificial_edges 
+			SELECT a.wid, a.id, a.cost, a.reverse_cost, a.source, a.target, a.geom 
+			FROM artificial_edges a;
+		
+			INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
+			SELECT a.id, a.cost, a.reverse_cost, a.source, a.target, a.geom 
+			FROM artificial_edges a;
+			
+			DELETE FROM temp_fetched_ways t
+		   	USING all_artificial_edges a
+		    WHERE t.id = a.wid;
+		END IF; 
 	END IF;
 
-    DELETE FROM temp_fetched_ways 
-   	USING start_vertices v
-    WHERE id = v.wid;
+	DELETE FROM temp_fetched_ways t
+   	USING artificial_edges a
+    WHERE t.id = a.wid;
 
    	RETURN vids;
 END;
 $function$;
+
+/*Batch calculation
+SELECT pgrouting_edges_preparation(ARRAY[1200.], array_agg(starting_points) , 
+1.33, 1, 1, 'walking_standard',0, 0, 150)
+FROM (SELECT * FROM grid_ordered WHERE id BETWEEN 151 AND 300) g
+*/
+
+/*Batch calculation
+SELECT pgrouting_edges_preparation(ARRAY[1200.], array_agg(starting_points) , 
+1.33, 1, 1, 'walking_standard',0, 0, 150)
+FROM (SELECT * FROM grid_ordered WHERE id BETWEEN 151 AND 300) g
+*/
