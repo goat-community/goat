@@ -1,0 +1,15 @@
+<layer>
+  <name>BOG_mob_pt_trips_person</name>
+  <id>LayerInfoImpl-2501a695:17402994a20:-67bf</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-2501a695:17402994a20:-67c4</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-2501a695:17402994a20:-67c0</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

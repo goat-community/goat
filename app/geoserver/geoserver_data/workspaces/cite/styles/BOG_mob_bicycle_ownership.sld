@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<StyledLayerDescriptor xmlns="http://www.opengis.net/sld" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/StyledLayerDescriptor.xsd" xmlns:se="http://www.opengis.net/se" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1.0" xmlns:ogc="http://www.opengis.net/ogc">
+<StyledLayerDescriptor xmlns="http://www.opengis.net/sld" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/StyledLayerDescriptor.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:se="http://www.opengis.net/se" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1.0">
   <NamedLayer>
-    <se:Name>utams_trips</se:Name>
+    <se:Name>trips_persons_PT</se:Name>
     <UserStyle>
-      <se:Name>utams_trips</se:Name>
+      <se:Name>trips_persons_PT</se:Name>
       <se:FeatureTypeStyle>
         <se:Rule>
           <se:Name>&lt;=193 bycicles/1000 pers</se:Name>
@@ -11,16 +11,10 @@
             <se:Title>&lt;=193 bycicles/1000 pers</se:Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:And>
-              <ogc:PropertyIsGreaterThanOrEqualTo>
-                <ogc:PropertyName>bicycles_per_1000_hab</ogc:PropertyName>
-                <ogc:Literal>101.90999999999999659</ogc:Literal>
-              </ogc:PropertyIsGreaterThanOrEqualTo>
-              <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>bicycles_per_1000_hab</ogc:PropertyName>
-                <ogc:Literal>193.34200000000001296</ogc:Literal>
-              </ogc:PropertyIsLessThanOrEqualTo>
-            </ogc:And>
+            <ogc:PropertyIsLessThanOrEqualTo>
+              <ogc:PropertyName>bicycles_per_1000_hab</ogc:PropertyName>
+              <ogc:Literal>193.34200000000001296</ogc:Literal>
+            </ogc:PropertyIsLessThanOrEqualTo>
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
@@ -151,16 +145,10 @@
             <se:Title>559 - 650 bycicles/1000 pers</se:Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:And>
-              <ogc:PropertyIsGreaterThan>
-                <ogc:PropertyName>bicycles_per_1000_hab</ogc:PropertyName>
-                <ogc:Literal>559.07000000000005002</ogc:Literal>
-              </ogc:PropertyIsGreaterThan>
-              <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>bicycles_per_1000_hab</ogc:PropertyName>
-                <ogc:Literal>651</ogc:Literal>
-              </ogc:PropertyIsLessThanOrEqualTo>
-            </ogc:And>
+            <ogc:PropertyIsGreaterThan>
+              <ogc:PropertyName>bicycles_per_1000_hab</ogc:PropertyName>
+              <ogc:Literal>559.07000000000005002</ogc:Literal>
+            </ogc:PropertyIsGreaterThan>
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>

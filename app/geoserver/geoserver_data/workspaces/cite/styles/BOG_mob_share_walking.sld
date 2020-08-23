@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<StyledLayerDescriptor xmlns="http://www.opengis.net/sld" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/StyledLayerDescriptor.xsd" xmlns:ogc="http://www.opengis.net/ogc" version="1.1.0" xmlns:se="http://www.opengis.net/se" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink">
+<StyledLayerDescriptor xmlns="http://www.opengis.net/sld" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/StyledLayerDescriptor.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:se="http://www.opengis.net/se" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1.0">
   <NamedLayer>
     <se:Name>utams_trips</se:Name>
     <UserStyle>
@@ -11,16 +11,10 @@
             <se:Title>&lt;= 10%</se:Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:And>
-              <ogc:PropertyIsGreaterThanOrEqualTo>
-                <ogc:PropertyName>share_walking</ogc:PropertyName>
-                <ogc:Literal>0.0799044</ogc:Literal>
-              </ogc:PropertyIsGreaterThanOrEqualTo>
-              <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>share_walking</ogc:PropertyName>
-                <ogc:Literal>0.10000000000000001</ogc:Literal>
-              </ogc:PropertyIsLessThanOrEqualTo>
-            </ogc:And>
+            <ogc:PropertyIsLessThanOrEqualTo>
+              <ogc:PropertyName>share_walking</ogc:PropertyName>
+              <ogc:Literal>0.10000000000000001</ogc:Literal>
+            </ogc:PropertyIsLessThanOrEqualTo>
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
@@ -151,16 +145,10 @@
             <se:Title>50% - 55%</se:Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:And>
-              <ogc:PropertyIsGreaterThan>
-                <ogc:PropertyName>share_walking</ogc:PropertyName>
-                <ogc:Literal>0.5</ogc:Literal>
-              </ogc:PropertyIsGreaterThan>
-              <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>share_walking</ogc:PropertyName>
-                <ogc:Literal>0.55000000000000004</ogc:Literal>
-              </ogc:PropertyIsLessThanOrEqualTo>
-            </ogc:And>
+            <ogc:PropertyIsGreaterThan>
+              <ogc:PropertyName>share_walking</ogc:PropertyName>
+              <ogc:Literal>0.5</ogc:Literal>
+            </ogc:PropertyIsGreaterThan>
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
