@@ -389,8 +389,11 @@
       "cyclingShare":"Share of cycling trips",
       "bicycle_rate":"Bicycle ownership",
       "motorization_rate":"Motorized vehicles ownership",
-      "population_strata":"Population per strata"
-
+      "population_strata":"Population per strata",
+      "transmilenioShare":"Share of Transmilenio trips",
+      "sitpShare":"Share of SITP trips",
+      "cycling_trips_rate":"Cycling trips per person",
+      "pt_trips_rate":"Public transport trips per person"
     },
     "tooltips": {
       "clickForCalculation": "Click for Calculation. Press ESC to exit",

@@ -18,7 +18,7 @@
         "projection": "+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
       }
     ],
-    "minZoom": 10,
+    "minZoom": 6,
     "maxZoom": 21,
     "zoom": 13,
     "resolutions": [
@@ -44,6 +44,7 @@
       0.5972
     ],
     "center": [1289645.541227, 6129485.298188],
+    "rotation": 3.14159, 
     "layers": [
       {
         "type": "VECTOR",
@@ -106,6 +107,19 @@
       },
       {
         "type": "WMS",
+        "name": "strata",
+        "url": "/geoserver/wms",
+        "group": "buildings_landuse",
+        "layers": "cite:BOG_str_strata",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "motorization_rate",
         "url": "/geoserver/wms",
         "group": "mobility_patterns",
@@ -141,6 +155,32 @@
         "url": "/geoserver/wms",
         "group": "mobility_patterns",
         "layers": "cite:BOG_mob_bicycle_ownership",
+        "opacity": 0.6,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "pt_trips_rate",
+        "url": "/geoserver/wms",
+        "group": "mobility_patterns",
+        "layers": "cite:BOG_mob_pt_trips_person",
+        "opacity": 0.6,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "cycling_trips_rate",
+        "url": "/geoserver/wms",
+        "group": "mobility_patterns",
+        "layers": "BOG_mob_cycling_trips_per_person",
         "opacity": 0.6,
         "queryable": true,
         "visible": false,
@@ -242,6 +282,32 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "sitpShare",
+        "url": "/geoserver/wms",
+        "group": "mobility_patterns",
+        "layers": "cite:BOG_mob_share_sitp ",
+        "opacity": 0.6,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
+        "name": "transmilenioShare",
+        "url": "/geoserver/wms",
+        "group": "mobility_patterns",
+        "layers": "cite:BOG_mob_share_transmilenio ",
+        "opacity": 0.6,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": true,
+        "zIndex": 2,
         "serverType": "geoserver"
       },
       {
@@ -366,21 +432,6 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver"
-      },
-      {
-        "type": "WMS",
-        "name": "bicycle_counting_stations",
-        "url": "/geoserver/wms",
-        "group": "additionalDataLayers",
-        "layers": "cite:bicycle_counting_stations",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "serverType": "geoserver",
-        "attributions": "© <a href='https://www.opengov-muenchen.de/pages/raddauerzaehlstellen'>Open Data Portal München</a>"
       },
       {
         "type": "WMS",
@@ -642,7 +693,7 @@
               "value": "kindergarten",
               "icon": "kindergarten",
               "weight": 1,
-              "sensitivity": 300000,
+              "sensitivity": 350000,
               "locked": false
             },
             {
@@ -650,7 +701,7 @@
               "value": "school",
               "icon": "primary_school",
               "weight": 1,
-              "sensitivity": 300000,
+              "sensitivity": 350000,
               "locked": false
             },
             {
@@ -658,7 +709,7 @@
               "value": "university",
               "icon": "university",
               "weight": 1,
-              "sensitivity": 300000,
+              "sensitivity": 350000,
               "locked": false
             },
             {
@@ -666,7 +717,7 @@
               "value": "library",
               "icon": "library",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             }
           ]
         },
@@ -679,14 +730,14 @@
               "value": "cafe",
               "icon": "cafe",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Restaurant",
               "value": "restaurant",
               "icon": "restaurant",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             }
           ]
         },
@@ -700,21 +751,21 @@
               "value": "sitp",
               "icon": "sitp",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Transmilenio",
               "value": "transmilenio",
               "icon": "transmilenio",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Transmicable",
               "value": "transmicable",
               "icon": "transmicable",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             }
           ]
         },
@@ -727,42 +778,42 @@
               "value": "hairdresser",
               "icon": "hairdresser",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Bank",
               "value": "bank",
               "icon": "bank",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Dentist",
               "value": "dentist",
               "icon": "dentist",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Doctor",
               "value": "doctors",
               "icon": "doctors",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Pharmacy",
               "value": "pharmacy",
               "icon": "pharmacy",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Fuel",
               "value": "fuel",
               "icon": "fuel",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             }
           ]
         },
@@ -775,70 +826,70 @@
               "value": "bakery",
               "icon": "bakery",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Butcher",
               "value": "butcher",
               "icon": "butcher",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Clothing store",
               "value": "clothes",
               "icon": "clothes",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Convenience store",
               "value": "convenience",
               "icon": "convenience",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Greengrocer",
               "value": "greengrocer",
               "icon": "greengrocer",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Mall",
               "value": "mall",
               "icon": "mall",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Shoes",
               "value": "shoes",
               "icon": "shoes",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Supermarket",
               "value": "supermarket",
               "icon": "supermarket",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Chemist",
               "value": "chemist",
               "icon": "chemist",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Marketplace",
               "value": "marketplace",
               "icon": "marketplace",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             }
           ]
         },
@@ -851,63 +902,63 @@
               "value": "cinema",
               "icon": "cinema",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Theatre",
               "value": "theatre",
               "icon": "theatre",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Museum",
               "value": "museum",
               "icon": "museum",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Hotel",
               "value": "hotel",
               "icon": "hotel",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Hostel",
               "value": "hostel",
               "icon": "hostel",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Guest house",
               "value": "guest_house",
               "icon": "guest_house",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Gallery",
               "value": "gallery",
               "icon": "gallery",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Playground",
               "value": "playground",
               "icon": "playground",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Park",
               "value": "park",
               "icon": "park",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             }
           ]
         },
@@ -920,21 +971,21 @@
               "value": "notary",
               "icon": "notary",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "CADE",
               "value": "cade",
               "icon": "cade",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Police",
               "value": "police",
               "icon": "police",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             }
           ]
         },
@@ -947,35 +998,35 @@
               "value": "community_sports_center",
               "icon": "community_sports_center",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Waterpark",
               "value": "waterpark",
               "icon": "waterpark",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Discount Gym",
               "value": "discount_gym",
               "icon": "discount_gym",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "gym",
               "value": "gym",
               "icon": "gym",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             },
             {
               "name": "Yoga",
               "value": "yoga",
               "icon": "yoga",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 350000
             }
           ]
         }
