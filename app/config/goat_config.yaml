@@ -18,13 +18,13 @@ DATA_REFINEMENT_VARIABLES:
   OSM_MAPPING_FEATURE: "yes"
   variable_container:
     heatmap_auto_refresh: "'yes'"
-    pois_one_entrance: ["kindergarten","school","university","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
-      "bus_station","tram_station","subway_station","railway_station","taxi","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
-      "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
-      "hypermarket","international_supermarket","chemist","organic","marketplace",
+    pois_one_entrance: ["kindergarten","school","university","cafe","restaurant","theatre","sum_population","cinema","library",
+      "hairdresser","atm","bank","dentist","doctors","pharmacy","fuel",
+      "bakery","butcher","clothes","supermarket","greengrocer","mall","shoes","sports",
+      "chemist","marketplace",
       "hotel","museum","hostel","guest_house","viewpoint","gallery","transmicable", "park", "notary","cade","police"
     ]
-    pois_more_entrances: ["bus_stop","sitp","transmilenio"]
+    pois_more_entrances: ["sitp","transmilenio"]
     excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,801]
     categories_no_foot: ["use_sidepath","no"]
     excluded_class_id_cycling: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
