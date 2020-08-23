@@ -1,0 +1,15 @@
+<layer>
+  <name>mapping_ways_wheelchair</name>
+  <id>LayerInfoImpl--235fe2ae:1722d40b410:-7c5b</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-361d8c01:1728373ba1a:-3470</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--235fe2ae:1722d40b410:-7c5c</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

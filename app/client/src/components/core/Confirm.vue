@@ -7,20 +7,32 @@
   >
     <v-card>
       <v-app-bar dark :color="options.color" dense flat>
-        <v-app-bar-nav-icon><v-icon>delete</v-icon></v-app-bar-nav-icon>
+        <v-app-bar-nav-icon
+          ><v-icon>{{ options.icon }}</v-icon></v-app-bar-nav-icon
+        >
         <v-toolbar-title class="white--text">{{ title }}</v-toolbar-title>
       </v-app-bar>
-      <v-card-title class="body-1" v-show="!!message">{{
-        message
-      }}</v-card-title>
+      <v-card-text
+        class="body-1 font-weight-medium mt-3 mb-0 pb-0"
+        v-show="!!message"
+        >{{ message }}</v-card-text
+      >
       <v-card-actions class="pt-0">
         <v-spacer></v-spacer>
-        <v-btn color="primary darken-1" text @click.native="agree">{{
-          $t("buttonLabels.yes")
-        }}</v-btn>
-        <v-btn color="grey" text @click.native="cancel">{{
-          $t("buttonLabels.cancel")
-        }}</v-btn>
+        <v-btn
+          v-show="options.showYes"
+          color="primary darken-1"
+          text
+          @click.native="agree"
+          >{{ options.yesText || $t("buttonLabels.yes") }}</v-btn
+        >
+        <v-btn
+          v-show="options.showNo"
+          color="grey"
+          text
+          @click.native="cancel"
+          >{{ options.noText || $t("buttonLabels.cancel") }}</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -37,7 +49,12 @@ export default {
     options: {
       color: "primary",
       width: 290,
-      zIndex: 200
+      zIndex: 200,
+      icon: "delete",
+      showYes: true,
+      showNo: true,
+      yesText: "", // The value will be overwritted
+      noText: "" // The value will be overwritted
     }
   }),
   methods: {

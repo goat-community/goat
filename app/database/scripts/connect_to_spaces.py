@@ -1,21 +1,28 @@
 import boto3
 import yaml 
+import sys 
+import os.path
+from os import path
 
+def load_spaces_yaml():
+    if path.exists("/opt/config/db/spaces.yaml") == True:
+        #Load key_id and secret_access_key from spaces.yaml
+        with open("/opt/config/db/spaces.yaml", 'r') as stream:
+            conf = yaml.load(stream, Loader=yaml.FullLoader)
 
-#now = date.today 
-
-#os.system('pg_dump -U postgres -d goat > goat.sql')
-
-#Load key_id and secret_access_key from spaces.yaml
-with open("/opt/config/spaces.yaml", 'r') as stream:
-    conf = yaml.load(stream, Loader=yaml.FullLoader)
-
-key_id = conf["key_id"]
-secret_access_key = conf["secret_access_key"]
- 
-region_name = 'fra1'
+        key_id = conf["key_id"]
+        secret_access_key = conf["secret_access_key"]
+        return key_id,secret_access_key
+    else:
+        print('You have no spaces.yaml file in your config folder. You need the credentials in this file to interact with DigitalOcean Spaces.')
+        sys.exit()
+    
 
 def space_connect(region_name):
+    
+    key_id = load_spaces_yaml()[0]
+    secret_access_key = load_spaces_yaml()[1]
+
     session = boto3.session.Session()
     client = session.client('s3',
                             region_name=str(region_name),
@@ -107,3 +114,33 @@ def download_file(space_name, region_name, file_name, local_path):
     #USAGE: download_file('space_name', 'nyc3', 'file_in_space.txt', 'file.txt')
 
 #upload_file('goat','fra1','setup_db.py','setup_db.py')
+
+def download_raw_data(space_name, region_name, dir):
+    fnames = list_files(space_name,region_name, dir)
+    for i in fnames[1:]:
+        download_file(space_name,region_name, i , '/opt/data/'+i.split('/')[-1])
+
+#download_raw_data('goat', 'fra1','raw_data/'+'ffb')
+
+
+def spaces_interaction(namespace, args):
+    from datetime import date 
+    today = str(date.today())
+    fname = namespace+'_dump'+today+'.sql'
+
+    if (args.b == True):
+        print('Database dump will be generated and saved in /app/database/backups. Depending on the size this can take a while...')
+        os.system('pg_dump -U postgres -d goat > /opt/backups/'+fname)
+
+    if (args.u == True):
+        print('File will be uploaded. Depending on the size this can take a while...')
+        upload_file('goat','fra1','/opt/backups/'+fname,namespace+'/'+fname)
+
+    if (args.db == True ):
+        fnames = list_files('goat','fra1',namespace+'/')
+        newest_file = sorted(fnames)[-1]
+        download_file('goat', 'fra1', newest_file , '/opt/backups/'+newest_file.split('/')[1])
+
+    if (args.b == False | args.u | False | args.db == False): 
+        print('Error: Please select an argument that indicates your desired action.')
+

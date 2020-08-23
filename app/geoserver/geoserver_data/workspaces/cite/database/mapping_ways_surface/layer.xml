@@ -1,0 +1,20 @@
+<layer>
+  <name>mapping_ways_surface</name>
+  <id>LayerInfoImpl--235fe2ae:1722d57dc53:3174</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-361d8c01:1728373ba1a:-3470</id>
+  </defaultStyle>
+  <styles class="linked-hash-set">
+    <style>
+      <id>StyleInfoImpl-361d8c01:1728373ba1a:-3470</id>
+    </style>
+  </styles>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--235fe2ae:1722d57dc53:3173</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

@@ -4,26 +4,10 @@ import OlFill from "ol/style/Fill";
 import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
+import store from "../store/modules/map";
+import { LineString } from "ol/geom.js";
+import { getArea, getLength } from "ol/sphere.js";
 
-const colorDiffDefault = [6.1, 13.42, 11.789];
-const color1Default = [255, 255, 224];
-const colorDiffInput = [1.789, 10.578, -9.631];
-const color1Input = [34, 211, 41];
-
-function setNetworkColor(time, colorDiff, color1) {
-  let color;
-  if (time < 1) {
-    color = color1;
-  } else {
-    let diffTime = time - 1;
-    color = [
-      color1[0] - colorDiff[0] * diffTime,
-      color1[1] - colorDiff[1] * diffTime,
-      color1[2] - colorDiff[2] * diffTime
-    ];
-  }
-  return color;
-}
 export function getMeasureStyle(measureConf) {
   return new OlStyle({
     fill: new OlFill({
@@ -100,26 +84,13 @@ export function getEditStyle() {
 
 export function getIsochroneNetworkStyle() {
   const styleFunction = feature => {
-    const modus = feature.get("modus");
-    const level = feature.get("cost");
-    let speed = feature.get("speed") * 16.6666667;
-    let color;
-    if (modus == 1 || modus == 3) {
-      color = setNetworkColor(level / speed, colorDiffDefault, color1Default);
-    } //If the parent_id is not one it is a input isochrone
-    else {
-      color = setNetworkColor(level / speed, colorDiffInput, color1Input);
-    }
-
+    const color = feature.get("color");
     const style = new OlStyle({
       stroke: new OlStroke({
-        color: `rgb(${Math.round(color[0])},${Math.round(
-          color[1]
-        )},${Math.round(color[2])})`,
+        color: color,
         width: 3
       })
     });
-
     return [style];
   };
   return styleFunction;
@@ -245,20 +216,98 @@ export function getIsochroneStyle(styleData, addStyleInCache) {
   return styleFunction;
 }
 
-export function defaultStyle(feature) {
+export function defaultStyle(feature, resolution) {
+  const styles = [];
   const geomType = feature.getGeometry().getType();
+  const strokeOpt = {
+    color: ["MultiPolygon", "Polygon"].includes(geomType)
+      ? "#FF0000"
+      : "#707070",
+    width: 3
+  };
+  const fillOpt = {
+    color: ["MultiPolygon", "Polygon"].includes(geomType)
+      ? "rgba(255, 0, 0, 0.7)"
+      : [0, 0, 0, 0]
+  };
+  if (feature.get("layerName") === "buildings") {
+    const properties = feature.getProperties();
+    strokeOpt.lineDash = properties["status"] == 1 ? [0, 0] : [10, 10];
+    strokeOpt.width = 4;
+
+    let isCompleted = true;
+    let hasEntranceFeature = false;
+    if (store.state.reqFields) {
+      store.state.reqFields.forEach(field => {
+        if (!properties[field]) {
+          isCompleted = false;
+        }
+      });
+    }
+    if (store.state.bldEntranceLayer) {
+      const extent = feature.getGeometry().getExtent();
+      const entrancesInExtent = store.state.bldEntranceLayer
+        .getSource()
+        .getFeaturesInExtent(extent);
+
+      let countEntrances = 0;
+      entrancesInExtent.forEach(entrance => {
+        const hasEntrance = feature
+          .getGeometry()
+          .intersectsCoordinate(entrance.getGeometry().getCoordinates());
+        if (hasEntrance === true) {
+          countEntrances += 1;
+        }
+      });
+      countEntrances === 0
+        ? (hasEntranceFeature = false)
+        : (hasEntranceFeature = true);
+    }
+
+    if (isCompleted === true && hasEntranceFeature === true) {
+      strokeOpt.color = "rgb(0,128,0, 0.7)";
+      fillOpt.color = "rgb(0,128,0, 0.7)";
+    }
+    const area = getArea(feature.getGeometry());
+    const length = getLength(
+      new LineString(
+        feature
+          .getGeometry()
+          .getLinearRing(0)
+          .getCoordinates()
+      )
+    );
+
+    // Add area and length label for building.
+    let fontSize = 12;
+
+    if (
+      resolution < 1.2 &&
+      store.state.editLayer &&
+      store.state.editLayer.get("showLabels") === 0
+    ) {
+      const style = new OlStyle({
+        text: new OlText({
+          text: `Area: ${area.toFixed(0)} ㎡ \n Perimeter: ${length.toFixed(
+            0
+          )} m`,
+          overflow: true,
+          font: `${fontSize}px Calibri, sans-serif`,
+          fill: new OlFill({
+            color: "black"
+          }),
+          backgroundFill: new OlFill({
+            color: "orange"
+          }),
+          padding: [1, 1, 1, 1]
+        })
+      });
+      styles.push(style);
+    }
+  }
   const style = new OlStyle({
-    fill: new OlFill({
-      color: ["MultiPolygon", "Polygon"].includes(geomType)
-        ? "rgba(255, 0, 0, 0.7)"
-        : [0, 0, 0, 0]
-    }),
-    stroke: new OlStroke({
-      color: ["MultiPolygon", "Polygon"].includes(geomType)
-        ? "#FF0000"
-        : "#707070",
-      width: 3
-    }),
+    fill: new OlFill(fillOpt),
+    stroke: new OlStroke(strokeOpt),
     image: new OlCircle({
       radius: 7,
       fill: new OlFill({
@@ -266,7 +315,8 @@ export function defaultStyle(feature) {
       })
     })
   });
-  return [style];
+  styles.push(style);
+  return styles;
 }
 
 export function uploadedFeaturesStyle() {
@@ -333,31 +383,28 @@ export function waysNewBridgeStyle(feature) {
   return [style];
 }
 export function editStyleFn() {
-  const styleFunction = feature => {
+  const styleFunction = (feature, resolution) => {
     const props = feature.getProperties();
-    if (feature.get("user_uploaded")) {
-      return uploadedFeaturesStyle();
-    }
     // Polygon (ex. building) style
     if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
-      return defaultStyle(feature);
+      return defaultStyle(feature, resolution);
     }
 
     // Linestring (ex. ways ) style
     if (
-      (props.hasOwnProperty("type") && props["original_id"] == null) ||
+      (props.hasOwnProperty("way_type") && props["original_id"] == null) ||
       Object.keys(props).length == 1
     ) {
       //Distinguish Roads from Bridge features
-      if (props.type == "bridge") {
+      if (props.way_type == "bridge") {
         return waysNewBridgeStyle(feature);
       } else {
         return waysNewRoadStyle(feature);
       }
-    } else if (props.hasOwnProperty("type")) {
+    } else if (props.hasOwnProperty("way_type")) {
       return waysModifiedStyle(feature); //Feature are modified
     } else {
-      return defaultStyle(feature); //Features are from original table
+      return defaultStyle(feature, resolution); //Features are from original table
     }
   };
 
@@ -384,6 +431,54 @@ export function getFeatureHighlightStyle() {
   ];
 }
 
+export function studyAreaASelectStyle() {
+  return [
+    new OlStyle({
+      fill: new OlFill({
+        color: "rgba(255, 0, 0, 0.5)"
+      }),
+      stroke: new OlStroke({
+        color: "#FF0000",
+        width: 10
+      }),
+      image: new OlCircle({
+        radius: 10,
+        fill: new OlFill({
+          color: "#FF0000"
+        })
+      })
+    })
+  ];
+}
+
+export function bldEntrancePointsStyle() {
+  return (feature, resolution) => {
+    let radius = 8;
+    if (resolution > 4) {
+      return [];
+    }
+    const styles = [];
+    styles.push(
+      new OlStyle({
+        fill: new OlFill({
+          color: "#800080"
+        }),
+        stroke: new OlStroke({
+          color: "#800080",
+          width: radius
+        }),
+        image: new OlCircle({
+          radius: radius,
+          fill: new OlFill({
+            color: "#800080"
+          })
+        })
+      })
+    );
+    return styles;
+  };
+}
+
 export const baseStyleDefs = {
   boundaryStyle: () => {
     return new OlStyle({
@@ -399,7 +494,7 @@ export const baseStyleDefs = {
 };
 
 /**
- * Mapillary styles
+ * Mapillary styles -
  */
 
 export const mapillaryStyleDefs = {
