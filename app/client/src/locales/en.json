@@ -336,8 +336,8 @@
     },
     "layerName": {
       "pois": "Point of Interest",
-      "aois_20k":"Area of Interest 2 ha",
-      "aois_300k":"Area of Interest 30 ha",
+      "aois_small":"Areas of Interest (detailed)",
+      "aois_large":"Areas of Interest ",
       "administrativeUnits": "Administrative Units",
       "accidents_pedestrian_2018": "Accidents with pedestrians (2018)",
       "accidents_pedestrian_2017": "Accidents with pedestrians (2017)",
