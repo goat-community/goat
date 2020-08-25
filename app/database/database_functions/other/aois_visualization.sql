@@ -3,18 +3,23 @@
 ---------------------------------------
 
 DROP FUNCTION IF EXISTS aois_visualization;
-CREATE OR REPLACE FUNCTION public.aois_visualization(userid_input INTEGER, amenities_input TEXT[], area_limit NUMERIC)
+CREATE OR REPLACE FUNCTION public.aois_visualization(userid_input INTEGER, amenities_input TEXT[], zone_size_type TEXT)
 RETURNS SETOF pois_visualization
 LANGUAGE plpgsql
 AS $function$
 DECLARE 
-excluded_pois_id integer [] := ids_modified_features(userid_input,'pois');
+
+extra_parameter TEXT;
 BEGIN 
+	IF zone_size_type = 'small' THEN 
+		extra_parameter = '';
+	ELSE 
+		extra_parameter = ' AND zone_size = '||quote_ident(zone_size_type)||'';
 	RETURN query
 
-	SELECT a.gid, a.amenity, a.name, a.osm_id, a.opening_hours, a.origin_geometry, a.geom, 'accessible', a.wheelchair FROM aois a
-	WHERE a.amenity IN(SELECT UNNEST (amenities_input)) AND ST_AREA(a.geom::geography) >= area_limit;
-
+	EXECUTE 
+	'SELECT a.gid, a.amenity, a.name, a.osm_id, a.opening_hours, a.origin_geometry, a.geom, '||quote_literal('accessible')||', a.wheelchair FROM aois a
+	WHERE a.amenity IN(SELECT UNNEST (amenities_input))'||quote_ident(extra_parameter)||'';
 END;
 $function$
 
@@ -24,5 +29,8 @@ WITH am AS (
 	FROM convert_from(decode('cGFyaw==','base64'),'UTF-8') AS amenity
 )
 SELECT *,concat(amenity,'_',status) AS amenity_icon
-FROM aois_visualization(1,(SELECT amenity FROM am), 300000)
+FROM aois_visualization(1,(SELECT amenity FROM am))
 */
+
+
+SELECT * FROM aois;
