@@ -20,12 +20,12 @@ templates:
       map: 
         !map &map
         maxDpi: 254
-        dpiSuggestions: [254]
+        dpiSuggestions: [254, 200, 120, 72]
         zoomLevels:
           !zoomLevels
           scales: [100, 250, 500, 2500, 5000, 10000, 25000, 50000, 100000, 500000]
-        width: 540
-        height: 650  
+        width: 555
+        height: 620  
       northArrow: 
         !northArrow &northArrow
         size: 50
@@ -44,7 +44,7 @@ templates:
     - !reportBuilder  # compile all reports in current directory
       directory: '.'
     - !prepareLegend
-      maxWidth: 138
+      maxWidth: 210
       dpi: 80
       template: legend.jrxml
     - !createMap
@@ -62,8 +62,8 @@ templates:
       legend: *legend
       map: !map
         <<: *map
-        width: 780
-        height: 451
+        width: 580 
+        height: 555
       northArrow: *northArrow
       scalebar: *scalebar
     processors: *processors
@@ -77,8 +77,8 @@ templates:
       legend: *legend
       map: !map
         <<: *map
-        width: 770
-        height: 980
+        width: 800
+        height: 880
       northArrow: *northArrow
       scalebar: !scalebar
         <<: *scalebar
@@ -98,8 +98,8 @@ templates:
       legend: *legend
       map: !map
         <<: *map
-        width: 1128
-        height: 639
+        width: 900
+        height: 800
       northArrow: *northArrow
       scalebar: !scalebar
         <<: *scalebar

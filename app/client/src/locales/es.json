@@ -182,6 +182,7 @@
             "routingProfile": "Perfiles de usuario para  ruteo",
             "walking_standard": "Usuario estándar",
             "walking_elderly": "Adulto mayor (tercera edad)",
+            "walking_safe_night": "Safe night",
             "walking_wheelchair": "Usuario en silla de ruedas"
         },
         "results": {

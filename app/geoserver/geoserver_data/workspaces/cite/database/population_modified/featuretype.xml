@@ -1,0 +1,41 @@
+<featureType>
+  <id>FeatureTypeInfoImpl-d6c1706:172e6791fa4:-7feb</id>
+  <name>population_modified</name>
+  <nativeName>population_modified</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
+  </namespace>
+  <title>population_modified</title>
+  <keywords>
+    <string>features</string>
+    <string>population_modified</string>
+  </keywords>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>11.220796585083</minx>
+    <maxx>11.272910118103</maxx>
+    <miny>48.1606483459473</miny>
+    <maxy>48.1757965087891</maxy>
+    <crs>EPSG:4326</crs>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>11.220796585083</minx>
+    <maxx>11.272910118103</maxx>
+    <miny>48.1606483459473</miny>
+    <maxy>48.1757965087891</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

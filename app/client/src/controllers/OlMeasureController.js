@@ -2,7 +2,11 @@ import DrawInteraction from "ol/interaction/Draw";
 import { unByKey } from "ol/Observable.js";
 import { getArea, getLength } from "ol/sphere.js";
 import { LineString, Polygon } from "ol/geom.js";
-import OlStyleDefs from "../style/OlStyleDefs";
+import {
+  getMeasureStyle,
+  getMeasureInteractionStyle
+} from "../style/OlStyleDefs";
+
 import OlBaseController from "./OlBaseController";
 import i18n from "../../src/plugins/i18n";
 
@@ -21,7 +25,7 @@ export default class OlMeasureController extends OlBaseController {
    */
   createMeasureLayer() {
     const me = this;
-    const style = OlStyleDefs.getMeasureStyle(me.measureConf);
+    const style = getMeasureStyle(me.measureConf);
     super.createLayer("Measure Layer", style);
   }
 
@@ -38,7 +42,7 @@ export default class OlMeasureController extends OlBaseController {
     let draw = new DrawInteraction({
       source: me.source,
       type: type,
-      style: OlStyleDefs.getMeasureInteractionStyle(me.measureConf)
+      style: getMeasureInteractionStyle(me.measureConf)
     });
     me.map.addInteraction(draw);
 

@@ -7,6 +7,11 @@
         <sld:Name>name</sld:Name>
                 <sld:Rule>
           <sld:Name>No catchment area</sld:Name>
+                  <Title>
+              No catchment area
+                <Localized lang="de">Kein Einzugsbereich</Localized>
+            	<Localized lang="en">No catchment area</Localized>
+              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -28,6 +33,11 @@
         </sld:Rule>
         <sld:Rule>
           <sld:Name>Very small catchment area</sld:Name>
+          <Title>
+             Very small catchment area
+                <Localized lang="de">Sehr kleiner Einzugsbereich</Localized>
+            	<Localized lang="en">Very small catchment area</Localized>
+              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThanOrEqualTo>
@@ -49,6 +59,11 @@
         </sld:Rule>
         <sld:Rule>
           <sld:Name>Small catchment area</sld:Name>
+          <Title>
+              Small catchment area
+                <Localized lang="de">Kleiner Einzugsbereich</Localized>
+            	<Localized lang="en">Small catchment area</Localized>
+              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -70,6 +85,11 @@
         </sld:Rule>
         <sld:Rule>
           <sld:Name>Mid-size catchment area</sld:Name>
+          <Title>
+              Mid-size catchment area
+                <Localized lang="de">Mittelgroßer Einzugsbereich</Localized>
+            	<Localized lang="en">Mid-size catchment area</Localized>
+              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -91,6 +111,11 @@
         </sld:Rule>
         <sld:Rule>
           <sld:Name>Large catchment area</sld:Name>
+          <Title>
+              Large catchment area
+                <Localized lang="de">Großer Einzugsbereich</Localized>
+            	<Localized lang="en">Large catchment area</Localized>
+              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
@@ -112,6 +137,11 @@
         </sld:Rule>
         <sld:Rule>
           <sld:Name>Very large catchment area</sld:Name>
+          <Title>
+              Very large catchment area
+                <Localized lang="de">Sehr großer Einzugsbereich</Localized>
+            	<Localized lang="en">Very large catchment area</Localized>
+              </Title>
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>

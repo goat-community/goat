@@ -30,7 +30,14 @@
     <v-layout>
       <v-flex xs12 class="mx-3" v-show="isResultsElVisible">
         <template v-for="calculation in calculations">
-          <v-card class="mb-3 " :key="calculation.id">
+          <v-card
+            class="mb-3 "
+            :id="`result-${calculation.id}`"
+            :key="calculation.id"
+            :class="{
+              'elevation-5': isCalculationActive(calculation)
+            }"
+          >
             <!-- Isochrone Nr -->
             <v-chip
               x-small
@@ -93,6 +100,7 @@
                     <template v-slot:activator="{ on }">
                       <v-icon
                         small
+                        v-if="calculation.calculationType === 'single'"
                         v-on="on"
                         @click="showAdditionalLayerDialog(calculation)"
                         class="result-icons mr-2"
@@ -129,7 +137,7 @@
                         @click="toggleDownloadDialog(calculation)"
                         small
                         v-on="on"
-                        class="result-icons mr-2"
+                        class="result-icons mr-1"
                         >fas fa-download</v-icon
                       >
                     </template>
@@ -156,21 +164,71 @@
               <v-card-text class="pr-0 pl-0 pt-0 pb-0">
                 <v-divider></v-divider>
 
-                <v-chip small class="my-1 mr-1">
-                  <v-avatar left>
-                    <v-icon small class="text-xs-center">fas fa-clock</v-icon>
-                  </v-avatar>
-                  {{ calculation.time }}
-                </v-chip>
+                <v-layout class="ml-0" row>
+                  <v-chip small class="my-1 mr-1">
+                    <v-avatar left>
+                      <v-icon small class="text-xs-center">fas fa-clock</v-icon>
+                    </v-avatar>
+                    {{ calculation.time }}
+                  </v-chip>
 
-                <v-chip small class="my-1 ">
-                  <v-avatar left>
-                    <v-icon small class="text-xs-center"
-                      >fas fa-tachometer-alt</v-icon
-                    >
-                  </v-avatar>
-                  {{ calculation.speed }}
-                </v-chip>
+                  <v-chip small class="my-1 ">
+                    <v-avatar left>
+                      <v-icon small class="text-xs-center"
+                        >fas fa-tachometer-alt</v-icon
+                      >
+                    </v-avatar>
+                    {{ calculation.speed }}
+                  </v-chip>
+                  <v-spacer></v-spacer>
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <div
+                        v-if="
+                          calculation.calculationMode === 'scenario' ||
+                            calculation.calculationMode === 'comparison'
+                        "
+                        v-on="on"
+                        @click="
+                          toggleColorPickerDialog(calculation, 'scenario')
+                        "
+                        class="my-1 ml-1 mr-2 colorPalettePicker"
+                        :style="{
+                          backgroundImage: `linear-gradient(to right, ${getPaletteColor(
+                            calculation,
+                            'scenario'
+                          )})`
+                        }"
+                      ></div>
+                    </template>
+                    <span>{{
+                      $t(`map.tooltips.changeScenarioColorPalette`)
+                    }}</span>
+                  </v-tooltip>
+
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <div
+                        v-if="
+                          calculation.calculationMode === 'default' ||
+                            calculation.calculationMode === 'comparison'
+                        "
+                        @click="toggleColorPickerDialog(calculation, 'default')"
+                        v-on="on"
+                        class="my-1 mr-2 colorPalettePicker"
+                        :style="{
+                          backgroundImage: `linear-gradient(to right, ${getPaletteColor(
+                            calculation,
+                            'default'
+                          )})`
+                        }"
+                      ></div>
+                    </template>
+                    <span>{{
+                      $t(`map.tooltips.changeDefaultColorPalette`)
+                    }}</span>
+                  </v-tooltip>
+                </v-layout>
               </v-card-text>
             </v-card-title>
             <v-subheader
@@ -227,19 +285,10 @@
                   ></v-switch>
                 </template>
                 <template v-slot:item.legend="{ item }">
-                  <v-tooltip top>
-                    <template v-slot:activator="{ on }">
-                      <div
-                        class="legend"
-                        @click="toggleColorPickerDialog(item)"
-                        v-on="on"
-                        :style="{ backgroundColor: item.color }"
-                      ></div
-                    ></template>
-                    <span>
-                      {{ $t("isochrones.results.changeColorTooltip") }}
-                    </span>
-                  </v-tooltip>
+                  <div
+                    class="legend"
+                    :style="{ backgroundColor: item.color }"
+                  ></div>
                 </template>
               </v-data-table>
             </v-card-text>
@@ -260,7 +309,8 @@
       ></additional-layers>
       <isochrone-color-picker
         :visible="isochroneColorPickerState"
-        :isochroneItem="isochroneItem"
+        :calculation="activeCalculation"
+        :selectedMode="activeCalculationMode"
         @close="isochroneColorPickerState = false"
       ></isochrone-color-picker>
     </v-layout>
@@ -268,14 +318,14 @@
 </template>
 <script>
 import { mapGetters, mapActions, mapMutations } from "vuex";
-import Confirm from "../core/Confirm";
 import Download from "./IsochronesDownload";
 import AdditionalLayers from "./IsochronesAdditionalLayers";
 import IsochroneColorPicker from "./IsochroneColorPicker";
+import { Isochrones } from "../../mixins/Isochrones";
 
 export default {
+  mixins: [Isochrones],
   components: {
-    confirm: Confirm,
     download: Download,
     additionalLayers: AdditionalLayers,
     IsochroneColorPicker
@@ -284,9 +334,10 @@ export default {
     return {
       downloadDialogState: false,
       additionalLayersDialogState: false,
-      isochroneColorPickerState: false,
       selectedCalculation: null,
-      isochroneItem: null,
+      isochroneColorPickerState: false,
+      activeCalculation: null, // for color palette selection
+      activeCalculationMode: null, // for color palette selection
       isResultsElVisible: true
     };
   },
@@ -331,26 +382,9 @@ export default {
         calculation.isVisible = true;
       }
     },
-    deleteCalculation(calculation) {
-      this.$refs.confirm
-        .open(
-          this.$t("isochrones.deleteTitle"),
-          this.$t("isochrones.deleteMessage") + " " + calculation.id + " ?",
-          { color: "green" }
-        )
-        .then(confirm => {
-          if (confirm) {
-            this.removeCalculation(calculation);
-          }
-        });
-    },
     toggleDownloadDialog(calculation) {
       this.downloadDialogState = true;
       this.selectedCalculation = calculation;
-    },
-    toggleColorPickerDialog(item) {
-      this.isochroneColorPickerState = true;
-      this.isochroneItem = item;
     },
     showHideNetworkData(calculation) {
       //Check if road netowrk is visible. Is so remove all features from map.
@@ -435,6 +469,15 @@ export default {
             });
           }
         });
+    },
+    getPaletteColor(calculation, mode) {
+      const colorKey = `${mode}ColorPalette`;
+      return Object.values(this.colors[calculation[colorKey]]).toString();
+    },
+    toggleColorPickerDialog(calculation, mode) {
+      this.isochroneColorPickerState = true;
+      this.activeCalculation = calculation;
+      this.activeCalculationMode = mode;
     }
   },
   computed: {
@@ -444,7 +487,8 @@ export default {
       isochroneLayer: "isochroneLayer",
       isochroneRoadNetworkLayer: "isochroneRoadNetworkLayer",
       selectedThematicData: "selectedThematicData",
-      isThematicDataVisible: "isThematicDataVisible"
+      isThematicDataVisible: "isThematicDataVisible",
+      colors: "colors"
     }),
     headers() {
       return [
@@ -505,8 +549,15 @@ export default {
 .legend {
   height: 24px;
   border-radius: 7px;
+}
+
+.colorPalettePicker {
+  height: 24px;
+  border-radius: 7px;
+  width: 50px;
   cursor: pointer;
 }
+
 .activeIcon {
   color: #30c2ff;
 }

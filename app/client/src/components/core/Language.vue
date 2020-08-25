@@ -2,7 +2,7 @@
   <v-speed-dial
     v-model="fab"
     direction="top"
-    class="mb-4"
+    class="mb-2"
     transition="slide-y-reverse-transition"
   >
     <template v-slot:activator>
@@ -13,7 +13,7 @@
             v-on="on"
             small
             class="elevation-0 ma-0 pa-0"
-            color="#4CAF50"
+            :color="activeColor.primary"
           >
             <country-flag
               :country="activeLanguage[0].flag || $i18n.locale"
@@ -25,7 +25,7 @@
       </v-tooltip>
     </template>
 
-    <div style="background-color:#A1D5A3;">
+    <div :style="`background-color:${activeColor.secondary};`">
       <v-btn
         class="ma-0 pa-0"
         text
@@ -41,8 +41,11 @@
 <script>
 import i18n from "@/plugins/i18n";
 import { EventBus } from "../../EventBus";
+import { mapGetters } from "vuex";
+
 export default {
   props: ["visible"],
+
   data() {
     return {
       fab: false,
@@ -60,9 +63,19 @@ export default {
       i18n.locale = locale;
       //Close other interactions.
       EventBus.$emit("ol-interaction-activated", this.interactionType);
+      if (this.contextmenu) {
+        this.contextmenu.close();
+      }
+      EventBus.$emit("ol-interaction-stoped", this.interactionType);
     }
   },
   computed: {
+    ...mapGetters("map", {
+      contextmenu: "contextmenu"
+    }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    }),
     notActiveLanguages() {
       const notActiveLanguages = this.languages.filter(value => {
         return value.language !== this.$i18n.locale;
