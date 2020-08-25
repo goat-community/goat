@@ -1,8 +1,8 @@
 <GeoServerTileLayer>
-  <id>LayerInfoImpl-7fbbf792:174011d2a70:-2123</id>
+  <id>LayerInfoImpl-3e4fea9:1742491e9cb:-7bdb</id>
   <enabled>true</enabled>
   <inMemoryCached>true</inMemoryCached>
-  <name>cite:aois_300k</name>
+  <name>cite:aois_small</name>
   <mimeFormats>
     <string>image/png</string>
     <string>image/jpeg</string>

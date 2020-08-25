@@ -1,14 +1,14 @@
 <featureType>
-  <id>FeatureTypeInfoImpl-7fbbf792:174011d2a70:-2233</id>
-  <name>aois_20k</name>
-  <nativeName>aois_20k</nativeName>
+  <id>FeatureTypeInfoImpl-3e4fea9:1742491e9cb:-7bdc</id>
+  <name>aois_small</name>
+  <nativeName>aois_small</nativeName>
   <namespace>
     <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
   </namespace>
-  <title>aois_20k</title>
+  <title>aois_small</title>
   <keywords>
     <string>features</string>
-    <string>aois_20k</string>
+    <string>aois_small</string>
   </keywords>
   <nativeCRS>GEOGCS[&quot;WGS 84&quot;, 
   DATUM[&quot;World Geodetic System 1984&quot;, 
@@ -21,14 +21,14 @@
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>11.3216953</minx>
+    <minx>11.3223075</minx>
     <maxx>11.7548484</maxx>
     <miny>48.0167894</miny>
     <maxy>48.2928864</maxy>
     <crs>EPSG:4326</crs>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>11.3216953</minx>
+    <minx>11.3223075</minx>
     <maxx>11.7548484</maxx>
     <miny>48.0167894</miny>
     <maxy>48.2928864</maxy>
@@ -39,13 +39,13 @@
   <metadata>
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
-        <name>aois_20k</name>
+        <name>aois_small</name>
         <sql>WITH am AS (&#xd;
 	SELECT string_to_array(amenity::text,&apos;,&apos;) AS amenity&#xd;
 	FROM convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;) AS amenity&#xd;
 )&#xd;
 SELECT *,concat(amenity,&apos;_&apos;,status) AS amenity_icon&#xd;
-FROM aois_visualization(%userid%,(SELECT amenity FROM am),%area_limit%)
+FROM aois_visualization(%userid%,(SELECT amenity FROM am),%area_size_type%)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
@@ -58,8 +58,8 @@ FROM aois_visualization(%userid%,(SELECT amenity FROM am),%area_limit%)
           <defaultValue>&apos;cGFyaw==&apos;</defaultValue>
         </parameter>
         <parameter>
-          <name>area_limit</name>
-          <defaultValue>20000</defaultValue>
+          <name>area_size_type</name>
+          <defaultValue>&apos;small&apos;</defaultValue>
           <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
         <parameter>

@@ -1,12 +1,12 @@
 <layer>
-  <name>aois_300k</name>
-  <id>LayerInfoImpl-7fbbf792:174011d2a70:-2123</id>
+  <name>aois_large</name>
+  <id>LayerInfoImpl-3e4fea9:1742491e9cb:-7bd8</id>
   <type>VECTOR</type>
   <defaultStyle>
     <id>StyleInfoImpl-7fbbf792:17400fe0fde:7802</id>
   </defaultStyle>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl-7fbbf792:174011d2a70:-2124</id>
+    <id>FeatureTypeInfoImpl-3e4fea9:1742491e9cb:-7bd9</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>
