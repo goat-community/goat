@@ -393,7 +393,8 @@
       "transmilenioShare":"Share of Transmilenio trips",
       "sitpShare":"Share of SITP trips",
       "cycling_trips_rate":"Cycling trips per person",
-      "pt_trips_rate":"Public transport trips per person"
+      "pt_trips_rate":"Public transport trips per person",
+      "strata": "Strata"
     },
     "tooltips": {
       "clickForCalculation": "Click for Calculation. Press ESC to exit",

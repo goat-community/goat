@@ -162,7 +162,7 @@
             "scenarioFeatures": "Entidades del escenario",
             "uploadYourData": "Suba su archivo ",
             "deleteAllTitle": "Borrar todo",
-            "deleteAllMessage": "¿Está seguro que quiere borrar toda la información de su <b> escenario?."
+            "deleteAllMessage": "¿Está seguro de que quiere borrar toda la información del escenario?."
         },
         "settings": {
             "title": "Configuración",
@@ -307,7 +307,7 @@
     },
     "map": {
         "layerLegend": {
-            "title": "Capas Leyenda"
+            "title": "Convenciones"
         },
         "snackbarMessages": {
         "selectAmenities": "Debe seleccionar al menos una amenidad.",
@@ -393,7 +393,8 @@
             "transmilenioShare":"Proporción de viajes en TransMilenio",
             "sitpShare":"Proporción de viajes en SITP",
             "cycling_trips_rate":"Viajes en bicicleta por persona",
-            "pt_trips_rate":"Viajes en transporte público por persona"
+            "pt_trips_rate":"Viajes en transporte público por persona",
+            "strata": "Estrato socioeconómico"
         },
         "tooltips": {
             "clickForCalculation": "Haga clic para calcular, oprima ESC para salir",
@@ -406,14 +407,14 @@
             "clickToStartDrawingBoundary": "Haga clic para comenzar a dibujar, , <br> oprima ESC para salir",
             "clickToStartDrawingCircle": "Haga clic para comenzar a dibujar el círculo (Radio máximo 1000 m) <br> oprima ESC para salir",
             "clickToFinishDrawingPolygon": "Haga doble clic o haga clic en el punto de partida para finalizar",
-            "clickOnFeatureToDelete": "Haga clic en el objeto para eliminarla.",
+            "clickOnFeatureToDelete": "Haga clic en el objeto para eliminarlo.",
             "clickOnFeatureToMove": "De clic en la entidad y arrastre para mover",
             "drawHoleOnPolygon": "Dibuje sobre el polígono para crear el hoyo",
             "drawHoleOnPolygonNotAllowed": "Dibuje el hoyo sobre otro edificio dibujado",
             "clickAndDragToModify": "Haga clic y arrastre el objeto para modificar",
             "clickToModifyAttributes": "Haga clic para modificar los atributos",
             "clickToRemove": "Haga clic para eliminar",
-            "clickToPlacePoint": "Haga clic ",
+            "clickToPlacePoint": "Haga clic para fijar punto de interés ",
             "changeDefaultColorPalette": "Cambiar color (base)",
             "changeScenarioColorPalette": "Cambiar color (escenario)",
             "clickToBldEntrance": "De clic en el edificio para añadir entrada <br>Clic y arrastre para modificar <br>Click derecho en la entidad para borrar",
@@ -634,7 +635,7 @@
         "playground": "Zona de juegos infantiles",
         "population": "Población",
         "park": "Parques",
-        "governmentandsec": "Govierno y seguridad",
+        "governmentandsec": "Gobierno y seguridad",
         "notary": "Notaría",
         "cade": "CADE",
         "police": "Estación de policía",
