@@ -20,9 +20,9 @@ DATA_REFINEMENT_VARIABLES:
     heatmap_auto_refresh: "'yes'"
     pois_one_entrance: ["kindergarten","school","university","cafe","restaurant","theatre","sum_population","cinema","library",
       "hairdresser","atm","bank","dentist","doctors","pharmacy","fuel",
-      "bakery","butcher","clothes","supermarket","greengrocer","mall","shoes","sports",
+      "bakery","butcher","clothes","supermarket","convenience","playground","greengrocer","mall","shoes","sports",
       "chemist","marketplace",
-      "hotel","museum","hostel","guest_house","viewpoint","gallery","transmicable", "park", "notary","cade","police"
+      "hotel","museum","hostel","guest_house","viewpoint","gallery","transmicable", "park", "notary","cade","police","gym"
     ]
     pois_more_entrances: ["sitp","transmilenio"]
     excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,801]
