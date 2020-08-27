@@ -34,8 +34,21 @@
               <v-expansion-panel-header
                 expand-icon=""
                 @click="toggleLayerVisibility(item, layerGroup)"
+                :style="item.mapLayer.get('docUrl') ? 'overflow:hidden;' : ''"
                 v-slot="{}"
               >
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <div
+                      v-on="on"
+                      v-if="item.mapLayer.get('docUrl')"
+                      class="documentation elevation-1"
+                      @click.stop="openDocumentation(item)"
+                    ></div>
+                  </template>
+                  <span>{{ $t(`map.tooltips.openDocumentation`) }}</span>
+                </v-tooltip>
+
                 <v-layout row class="pl-2" wrap align-center>
                   <v-flex xs2>
                     <v-icon
@@ -47,7 +60,7 @@
                       >done</v-icon
                     >
                   </v-flex>
-                  <v-flex xs98>
+                  <v-flex xs9>
                     <span>{{ translate("layerName", item.name) }}</span>
                   </v-flex>
                   <v-flex xs1>
@@ -93,6 +106,12 @@
         </v-expansion-panel-content>
       </v-expansion-panel>
     </v-expansion-panels>
+    <documentation-dialog
+      :color="activeColor.primary"
+      :visible="showDocumentationDialog"
+      :item="selectedDocumentationItem"
+      @close="showDocumentationDialog = false"
+    ></documentation-dialog>
   </v-flex>
 </template>
 
@@ -100,16 +119,24 @@
 import { Mapable } from "../../../mixins/Mapable";
 import { Group, Vector } from "ol/layer.js";
 import { mapGetters, mapMutations } from "vuex";
+import DocumentationDialog from "../../other/DocumentationDialog";
 
 export default {
   mixins: [Mapable],
   data: () => ({
-    layers: []
+    layers: [],
+    showDocumentationDialog: false,
+    selectedDocumentationItem: null
   }),
-  components: {},
+  components: {
+    DocumentationDialog
+  },
   computed: {
     ...mapGetters("pois", {
       selectedPois: "selectedPois"
+    }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
     })
   },
   methods: {
@@ -216,6 +243,10 @@ export default {
         clickedLayer.showOptions = false;
       }
     },
+    openDocumentation(item) {
+      this.showDocumentationDialog = true;
+      this.selectedDocumentationItem = item;
+    },
     toggleLayerOptions(item) {
       item.showOptions = !item.showOptions;
     },
@@ -257,5 +288,19 @@ export default {
 
 .v-expansion-panel-content >>> .v-input__slot {
   margin-bottom: 0px;
+}
+
+.documentation {
+  content: "";
+  position: absolute;
+  top: -5px;
+  right: -30px;
+  height: 30px;
+  width: 60px;
+  opacity: 0.8;
+  background: #4caf50;
+  transform: rotate(45deg);
+  z-index: 20;
+  cursor: pointer;
 }
 </style>

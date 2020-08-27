@@ -51,10 +51,14 @@ const state = {
   isochroneLayer: null,
   selectionLayer: null,
   isochroneRoadNetworkLayer: null,
-
   isThematicDataVisible: false,
   selectedThematicData: null,
-  studyAreaLayer: null
+  studyAreaLayer: null,
+
+  // Edit
+  scenarioDataTable: [],
+  // Cancel Request
+  cancelReq: undefined
 };
 
 const getters = {
@@ -63,6 +67,7 @@ const getters = {
   routeIcons: state => state.routeIcons,
   calculations: state => state.calculations,
   options: state => state.options,
+  colors: state => state.colors,
   isochroneLayer: state => state.isochroneLayer,
   studyAreaLayer: state => state.studyAreaLayer,
   isochroneRoadNetworkLayer: state => state.isochroneRoadNetworkLayer,
@@ -70,7 +75,6 @@ const getters = {
   styleData: state => state.styleData,
   isThematicDataVisible: state => state.isThematicDataVisible,
   selectedThematicData: state => state.selectedThematicData,
-  alphaShapeParameter: state => state.alphaShapeParameter,
   multiIsochroneCalculationMethods: state =>
     state.multiIsochroneCalculationMethods,
   countPois: state => {
@@ -92,13 +96,17 @@ const getters = {
     );
     return calculation ? groupBy(calculation.data, "type") : {};
   },
+  scenarioDataTable: state => state.scenarioDataTable,
+  cancelReq: state => state.cancelReq,
   getField
 };
 
 const actions = {
-  async calculateIsochrone({ dispatch, commit, rootState }) {
+  async calculateIsochrone({ dispatch, commit, rootState }, payload) {
     //Selected isochrone calculation type. single | multiple
-    const calculationType = rootState.isochrones.options.calculationType;
+    const calculationType = payload
+      ? payload.calculationType
+      : rootState.isochrones.options.calculationType;
     const sharedParams = {
       user_id: rootState.user.userId,
       minutes: state.options.minutes,
@@ -112,6 +120,10 @@ const actions = {
     //Marker Feature for single isochrone calculation;
     let iconMarkerFeature;
 
+    // Multi isochrone regions
+    let region;
+    let regionType;
+    //
     if (calculationType === "single") {
       iconMarkerFeature = new Feature({
         geometry: new Point(
@@ -124,14 +136,14 @@ const actions = {
       params = Object.assign(sharedParams, {
         x: state.position.coordinate[0],
         y: state.position.coordinate[1],
-        concavity: state.options.concavityIsochrones.active,
+        concavity: "0.00003",
         routing_profile: state.activeRoutingProfile
       });
       isochroneEndpoint = "isochrone";
     } else {
-      const regionType = state.multiIsochroneCalculationMethods.active;
+      regionType = state.multiIsochroneCalculationMethods.active;
       const regionFeatures = state.selectionLayer.getSource().getFeatures();
-      const region = regionFeatures
+      region = regionFeatures
         .map(feature => {
           if (regionType === "draw") {
             return feature
@@ -148,11 +160,9 @@ const actions = {
         .toString();
 
       params = Object.assign(sharedParams, {
-        alphashape_parameter: parseFloat(
-          state.options.alphaShapeParameter.active
-        ),
-        region_type: `'${regionType}'`,
-        region: region,
+        alphashape_parameter: "0.00003",
+        region_type: payload ? payload.region_type : `'${regionType}'`,
+        region: payload ? payload.region : region,
         routing_profile: `'${state.activeRoutingProfile}'`,
         amenities: rootState.pois.selectedPois
           .map(item => {
@@ -165,21 +175,41 @@ const actions = {
     }
 
     commit("SET_IS_BUSY", true);
+
+    const CancelToken = axios.CancelToken;
     const isochronesResponse = await http
       .post(`/api/${isochroneEndpoint}`, params, {
-        timeout: 120000
+        timeout: 30000,
+        cancelToken: new CancelToken(function executor(c) {
+          // An executor function receives a cancel function as a parameter
+          commit("SET_CANCEL_FUNCTION", c);
+        })
       })
-      .catch(() => {
+      .catch(e => {
         //Show error message
-        commit(
-          "map/TOGGLE_SNACKBAR",
-          {
-            type: "error",
-            message: "calculateIsochroneError",
-            state: true
-          },
-          { root: true }
-        );
+        if (e.message === "cancelled") {
+          commit(
+            "map/TOGGLE_SNACKBAR",
+            {
+              type: "error",
+              message: "calculateIsochroneCancelled",
+              state: true,
+              timeout: 2000
+            },
+            { root: true }
+          );
+        } else {
+          commit(
+            "map/TOGGLE_SNACKBAR",
+            {
+              type: "error",
+              message: "calculateIsochroneError",
+              state: true
+            },
+            { root: true }
+          );
+        }
+
         if (iconMarkerFeature) {
           commit("REMOVE_ISOCHRONE_FEATURE", iconMarkerFeature);
         }
@@ -217,9 +247,19 @@ const actions = {
       feature.unset("coordinates");
       // If the modus is 1 it is a default isochrone, otherwise is a input or double calculation
       if (modus === 1 || modus === 3) {
-        color = state.styleData.defaultIsochroneColors[level];
+        color = IsochroneUtils.getInterpolatedColor(
+          1,
+          20,
+          level,
+          state.colors[state.defaultIsochroneColor]
+        );
       } else {
-        color = state.styleData.inputIsochroneColors[level];
+        color = IsochroneUtils.getInterpolatedColor(
+          1,
+          20,
+          level,
+          state.colors[state.scenarioIsochroneColor]
+        );
       }
       let obj = {
         id: feature.getId(),
@@ -245,6 +285,7 @@ const actions = {
     let transformedData = {
       id: calculationNumber,
       calculationType: calculationType,
+      calculationMode: sharedParams.modus.replace(/'/g, ""), // remove extra apostrophe in multi-isochrone
       time: state.options.minutes + " min",
       speed: state.options.speed + " km/h",
       routing_profile: state.activeRoutingProfile,
@@ -253,6 +294,16 @@ const actions = {
       data: calculationData,
       additionalData: {}
     };
+
+    // Add default calculation color palette.
+    if (transformedData.calculationMode === "default") {
+      transformedData[`defaultColorPalette`] = state.defaultIsochroneColor;
+    } else if (transformedData.calculationMode === "scenario") {
+      transformedData[`scenarioColorPalette`] = state.scenarioIsochroneColor;
+    } else if (transformedData.calculationMode === "comparison") {
+      transformedData[`defaultColorPalette`] = state.defaultIsochroneColor;
+      transformedData[`scenarioColorPalette`] = state.scenarioIsochroneColor;
+    }
 
     if (calculationType === "single") {
       const isochroneStartingPoint = wktToFeature(
@@ -292,6 +343,8 @@ const actions = {
     } else {
       commit("RESET_MULTIISOCHRONE_START");
       transformedData.position = "multiIsochroneCalculation";
+      transformedData.region = region;
+      transformedData.region_type = `'${regionType}'`;
     }
 
     commit("CALCULATE_ISOCHRONE", transformedData);
@@ -435,7 +488,29 @@ const actions = {
             calculation.additionalData[payload.type]["features"] = [
               ...olFeatures
             ];
+            // Set isochrone calculation speed property for styling purpose
+            const speed = parseFloat(calculation.speed.split(" ")[0]);
+            const lowestCostValue = 0; // TODO: Find lowest and highest based on response data
+            const highestCostValue = 1200;
+            olFeatures.forEach(feature => {
+              feature.set("speed", speed);
+              const cost = feature.get("cost");
+              const modus = feature.get("modus");
+              let color;
+              if (modus === 1 || modus === 3) {
+                color = state.colors[calculation.defaultColorPalette];
+              } else {
+                color = state.colors[calculation.scenarioColorPalette];
+              }
 
+              const interpolatedColor = IsochroneUtils.getInterpolatedColor(
+                lowestCostValue,
+                highestCostValue,
+                cost,
+                color
+              );
+              feature.set("color", interpolatedColor);
+            });
             if (
               payload.state === true &&
               rootState.isochrones.isochroneRoadNetworkLayer !== null
@@ -654,6 +729,9 @@ const mutations = {
   },
   ADD_STUDY_AREA_LAYER(state, studyAreaLayer) {
     state.studyAreaLayer = studyAreaLayer;
+  },
+  SET_CANCEL_FUNCTION(state, cancelReqFn) {
+    state.cancelReq = cancelReqFn;
   }
 };
 

@@ -1,0 +1,59 @@
+<featureType>
+  <id>FeatureTypeInfoImpl--67ef8e3f:170863a1976:-1faf</id>
+  <name>ways_smoothness</name>
+  <nativeName>ways_smoothness</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
+  </namespace>
+  <title>ways_smoothness</title>
+  <keywords>
+    <string>features</string>
+    <string>ways_smoothness</string>
+  </keywords>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>11.5042826706177</minx>
+    <maxx>11.5665668</maxx>
+    <miny>48.1880097</miny>
+    <maxy>48.2245022</maxy>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>11.5042826706177</minx>
+    <maxx>11.5665668</maxx>
+    <miny>48.1880097</miny>
+    <maxy>48.2245022</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>ways_smoothness</name>
+        <sql>SELECT w.geom, w.highway, w.smoothness&#xd;
+FROM ways w, study_area s&#xd;
+WHERE highway IS NOT NULL&#xd;
+AND ST_Intersects(s.geom,w.geom)
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>-1</srid>
+        </geometry>
+      </virtualTable>
+    </entry>
+    <entry key="cachingEnabled">false</entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

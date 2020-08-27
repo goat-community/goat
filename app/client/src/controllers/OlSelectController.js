@@ -10,7 +10,7 @@ import {
 import http from "../services/http";
 import axios from "axios";
 
-import OlStyleDefs from "../style/OlStyleDefs";
+import { getSelectStyle } from "../style/OlStyleDefs";
 import { wfsRequestParser } from "../utils/Layer";
 
 import store from "../store/modules/user";
@@ -30,7 +30,7 @@ export default class OlSelectController extends OlBaseController {
    * map.
    */
   createSelectionLayer() {
-    const style = OlStyleDefs.getSelectStyle();
+    const style = getSelectStyle();
     super.createLayer("Select Layer", style);
   }
 
@@ -138,14 +138,30 @@ export default class OlSelectController extends OlBaseController {
             })
           );
 
+          // Request only for population when building layer is active.
+          if (selectedLayer.get("name") === "buildings") {
+            const populationReq = wfsRequestParser(
+              "EPSG:3857",
+              layerParams[0],
+              "population_modified",
+              combinedFilter
+            );
+            requests.push(
+              http.post("geoserver/cite/wfs", populationReq, {
+                headers: { "Content-Type": "text/xml" }
+              })
+            );
+          }
+
           axios
             .all(requests)
             .then(
-              axios.spread((first, second) => {
+              axios.spread((first, second, third) => {
                 me.source.clear();
                 onSelectionEnd({
-                  first: first,
-                  second: second
+                  first,
+                  second,
+                  third
                 });
               })
             )

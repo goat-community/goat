@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${NAMESPACE}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cron-config
+  namespace: ${NAMESPACE}
+  labels:
+    app: cron
+data:
+  POSTGRES_DBNAME: ${POSTGRES_DB}
+  POSTGRES_USER: ${POSTGRES_USER}
+  POSTGRES_PASS: ${POSTGRES_PASSWORD}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goat-cron
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goat-cron
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 50%
+  minReadySeconds: 15
+  template:
+    metadata:
+      labels:
+        app: goat-cron
+    spec:
+      containers:
+        - image: ${DOCKER_IMAGE}
+          imagePullPolicy: IfNotPresent
+          name: goat-cron
+          envFrom:
+            - configMapRef:
+                name: cron-config
+          volumeMounts:
+            - mountPath: /opt/config/db
+              name: goat-config
+      volumes:
+        - name: goat-config
+          configMap:
+            name: goat-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: goat-config
+  namespace: ${NAMESPACE}
+data:
+  db.yaml: |
+    HOST: \"postgres.${NAMESPACE}.svc.cluster.local\"
+    PORT: 5432
+    DB_NAME: \"${POSTGRES_DB}\"
+    USER: \"${POSTGRES_USER}\"
+    PASSWORD: \"${POSTGRES_PASSWORD}\"
+  spaces.yaml: |
+    key_id: \"${SPACES_KEY_ID}\"
+    secret_access_key: \"${SPACES_SECRET_KEY}\"

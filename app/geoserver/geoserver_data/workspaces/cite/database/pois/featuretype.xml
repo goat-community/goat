@@ -21,17 +21,17 @@
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>11.1288733</minx>
-    <maxx>11.3291714</maxx>
-    <miny>48.1034136</miny>
-    <maxy>48.2476698</maxy>
+    <minx>11.5953565</minx>
+    <maxx>11.8368425</maxx>
+    <miny>48.2906312</miny>
+    <maxy>48.4895665</maxy>
     <crs>EPSG:4326</crs>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>11.1288733</minx>
-    <maxx>11.3291714</maxx>
-    <miny>48.1034136</miny>
-    <maxy>48.2476698</maxy>
+    <minx>11.5953565</minx>
+    <maxx>11.8368425</maxx>
+    <miny>48.2906312</miny>
+    <maxy>48.4895665</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
@@ -60,18 +60,22 @@ FROM pois_visualization(%userid%,(SELECT amenity FROM am), %routing_profile%, %d
         <parameter>
           <name>d</name>
           <defaultValue>9999</defaultValue>
+          <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
         <parameter>
           <name>h</name>
           <defaultValue>9999</defaultValue>
+          <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
         <parameter>
           <name>userid</name>
           <defaultValue>1</defaultValue>
+          <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
         <parameter>
           <name>m</name>
           <defaultValue>9999</defaultValue>
+          <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
         <parameter>
           <name>routing_profile</name>

@@ -1,0 +1,15 @@
+<layer>
+  <name>mapping_buildings_type</name>
+  <id>LayerInfoImpl-7d99018b:17252cbce76:37bd</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-361d8c01:1728373ba1a:6430</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-7d99018b:17252cbce76:37bc</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

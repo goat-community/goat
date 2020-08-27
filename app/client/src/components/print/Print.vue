@@ -93,6 +93,17 @@
               required
             ></v-select>
 
+            <v-select
+              v-model="selectedFormat"
+              :items="outputFormats"
+              prepend-icon="description"
+              item-text="display"
+              item-value="value"
+              :label="$t('appBar.printMap.form.outputFormat.label')"
+              :rules="rules.required"
+              required
+            ></v-select>
+
             <v-layout row class="ml-0">
               <v-flex xs9 class="pr-3">
                 <v-slider
@@ -199,6 +210,7 @@ import {
 
 import { humanize, numberWithCommas } from "../../utils/Helpers";
 import axios from "axios";
+import { mapMutations } from "vuex";
 import * as olEvents from "ol/events.js";
 import * as olMath from "ol/math.js";
 import olLayerImage from "ol/layer/Image.js";
@@ -206,6 +218,8 @@ import olLayerTile from "ol/layer/Tile.js";
 import olLayerGroup from "ol/layer/Group.js";
 import olMap from "ol/Map.js";
 import ImageWMS from "ol/source/ImageWMS.js";
+import olSourceXYZ from "ol/source/XYZ";
+
 var FileSaver = require("file-saver");
 import { getCurrentDate, getCurrentTime } from "../../utils/Helpers";
 
@@ -226,11 +240,16 @@ export default {
     printState: "capabilitiesNotLoaded",
     crs: [{ display: "Web Mercator", value: "EPSG:3857" }],
     selectedCrs: "EPSG:3857",
+    outputFormats: [
+      { display: "PDF", value: "pdf" },
+      { display: "PNG", value: "png" }
+    ],
+    selectedFormat: "pdf",
     rotation: 0,
-    showGrid: true,
+    showGrid: false,
     layoutInfo: {
       attributes: [],
-      dpi: 254,
+      dpi: 120,
       dpis: [],
       layout: "",
       layouts: [],
@@ -260,11 +279,9 @@ export default {
     pointerDragListenerKey_: null,
     mapViewResolutionChangeKey_: null,
     onDragPreviousMousePosition_: null,
-    rotationTimeoutPromise_: null
+    rotationTimeoutPromise_: null,
+    notPrintableTileSources: []
   }),
-  components: {},
-  computed: {},
-
   methods: {
     humanize,
     numberWithCommas,
@@ -282,11 +299,7 @@ export default {
       }
       this.printUtils_ = new PrintUtils();
       this.maskLayer_ = new MaskLayer();
-      this.printService = new PrintService(
-        this.baseUrl,
-        process.env.VUE_APP_MAPPROXY_URL
-      );
-
+      this.printService = new PrintService(this.baseUrl);
       olEvents.listen(this.map.getView(), "change:rotation", event => {
         this.updateRotation_(
           Math.round(olMath.toDegrees(event.target.getRotation()))
@@ -449,6 +462,10 @@ export default {
           }
         });
 
+        // Specify output format
+        this.tempFormatValue = this.selectedFormat;
+        spec.format = this.selectedFormat;
+
         this.printService
           .createReport(spec)
           .then(response => {
@@ -501,7 +518,9 @@ export default {
           if (response.status === 200) {
             FileSaver.saveAs(
               response.data,
-              `goat_print_${this.getCurrentDate()}_${this.getCurrentTime()}.pdf`
+              `goat_print_${this.getCurrentDate()}_${this.getCurrentTime()}.${
+                this.tempFormatValue
+              }`
             );
           }
         })
@@ -547,7 +566,7 @@ export default {
       const data = resp["data"];
       this.formats_ = data["formats"] || [];
       this.layouts_ = data["layouts"];
-      this.layout_ = data["layouts"][0];
+      this.layout_ = data["layouts"][1];
 
       this.layoutInfo.layouts = [];
       this.layouts_.forEach(layout => {
@@ -880,6 +899,12 @@ export default {
               const layerNames = /** @type {string} */ source
                 .getParams()
                 .LAYERS.split(",");
+              const _layerLegend = {
+                name: this.$te(`map.layerName.${layer.get("name")}`)
+                  ? this.$t(`map.layerName.${layer.get("name")}`)
+                  : layer.get("name"),
+                icons: []
+              };
               layerNames.forEach(name => {
                 if (!this.map) {
                   throw new Error("Missing map");
@@ -887,60 +912,35 @@ export default {
                 if (!source.serverType_) {
                   throw new Error("Missing source.serverType_");
                 }
-                const type = icon_dpi ? "image" : source.serverType_;
-                if (!icon_dpi) {
-                  let layerUrl = source.getUrl();
-                  if (layerUrl.startsWith("/")) {
-                    layerUrl = window.location.origin + layerUrl;
-                  }
-                  const url = getWMSLegendURL(
-                    layerUrl,
-                    name,
-                    scale,
-                    undefined,
-                    undefined,
-                    undefined,
-                    source.serverType_,
-                    dpi,
-                    this.legendOptions.useBbox ? bbox : undefined,
-                    this.map
-                      .getView()
-                      .getProjection()
-                      .getCode(),
-                    this.legendOptions.params[source.serverType_]
-                  );
-                  if (!url) {
-                    throw new Error("Missing url");
-                  }
-                  icon_dpi = {
-                    url: url,
-                    dpi: 72
-                  };
+
+                let layerUrl = source.getUrl();
+                if (layerUrl.startsWith("/")) {
+                  layerUrl = window.location.origin + layerUrl;
                 }
 
-                // Don't add classes without legend url or from layers without any
-                // active name.
-                if (icon_dpi && name.length !== 0) {
-                  classes.push(
-                    Object.assign(
-                      {
-                        name:
-                          this.legendOptions.label[type] === false
-                            ? ""
-                            : this.$te(`map.layerName.${layer.get("name")}`)
-                            ? this.$t(`map.layerName.${layer.get("name")}`)
-                            : name,
-                        icons: [icon_dpi.url]
-                      },
-                      icon_dpi.dpi != 72
-                        ? {
-                            dpi: icon_dpi.dpi
-                          }
-                        : {}
-                    )
-                  );
+                const url = getWMSLegendURL(
+                  layerUrl,
+                  name,
+                  scale,
+                  undefined,
+                  undefined,
+                  undefined,
+                  source.serverType_,
+                  dpi,
+                  this.legendOptions.useBbox ? bbox : undefined,
+                  this.map
+                    .getView()
+                    .getProjection()
+                    .getCode(),
+                  this.legendOptions.params[source.serverType_],
+                  this.$i18n.locale
+                );
+                if (!url) {
+                  throw new Error("Missing url");
                 }
+                _layerLegend.icons.push(url);
               });
+              classes.push(_layerLegend);
             }
           }
         }
@@ -1017,9 +1017,24 @@ export default {
      */
     isState(stateEnumKey) {
       return this.printState === this.printStateEnum[stateEnumKey];
-    }
-  },
+    },
 
+    /**
+     * Toggle alert message
+     * @param {evt} Evt
+     */
+    toggleMessage(evt) {
+      this.toggleSnackbar({
+        type: "error",
+        message: "cantPrintBaseLayer",
+        timeout: 60000,
+        state: !evt.oldValue
+      });
+    },
+    ...mapMutations("map", {
+      toggleSnackbar: "TOGGLE_SNACKBAR"
+    })
+  },
   activated: function() {
     this.active = true;
     if (!this.capabilities) {
@@ -1059,6 +1074,26 @@ export default {
           }
         );
         this.map.render();
+
+        const ol_layers = getFlatLayers(this.map.getLayerGroup());
+
+        ol_layers.forEach(layer => {
+          if (
+            layer instanceof olLayerTile &&
+            !(layer.getSource() instanceof olSourceXYZ)
+          ) {
+            layer.on("change:visible", this.toggleMessage);
+            this.notPrintableTileSources.push(layer);
+            if (layer.getVisible() === true) {
+              this.toggleSnackbar({
+                type: "error",
+                message: "cantPrintBaseLayer",
+                timeout: 60000,
+                state: true
+              });
+            }
+          }
+        });
       },
       () => {
         // Get capabilities - On error
@@ -1073,7 +1108,6 @@ export default {
       throw new Error("Missing map");
     }
     this.map.removeLayer(this.maskLayer_);
-
     if (this.pointerDragListenerKey_) {
       olEvents.unlistenByKey(this.pointerDragListenerKey_);
     }
@@ -1083,6 +1117,17 @@ export default {
     this.setRotation(0);
     this.map.render(); // Redraw (remove) post compose mask;
     this.abort();
+
+    this.notPrintableTileSources.forEach(layer => {
+      layer.un("change:visible", this.toggleMessage);
+    });
+    this.notPrintableTileSources = [];
+    this.toggleSnackbar({
+      type: "error",
+      message: "cantPrintBaseLayer",
+      timeout: 60000,
+      state: false
+    });
   }
 };
 </script>

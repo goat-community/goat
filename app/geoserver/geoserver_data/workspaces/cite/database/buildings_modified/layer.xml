@@ -1,0 +1,15 @@
+<layer>
+  <name>buildings_modified</name>
+  <id>LayerInfoImpl-c3cb1e7:171090bf5ee:-7ff5</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--167589b6:15c77205b7f:-7ffb</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-c3cb1e7:171090bf5ee:-7ff6</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>
