@@ -54,10 +54,6 @@ export default {
     return {
       weightListValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
       sensitivityListValues: [
-        150000,
-        200000,
-        250000,
-        300000,
         350000,
         400000,
         450000,
