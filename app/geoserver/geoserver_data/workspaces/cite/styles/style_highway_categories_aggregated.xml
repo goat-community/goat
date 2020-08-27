@@ -1,6 +1,6 @@
 <style>
-  <id>StyleInfoImpl-22fef441:16876478b09:-4a7a</id>
-  <name>style_heatmap_population</name>
+  <id>StyleInfoImpl-561b9704:170c56a150d:28be</id>
+  <name>style_highway_categories_aggregated</name>
   <workspace>
     <id>WorkspaceInfoImpl--570ae188:124761b8d78:-7ff3</id>
   </workspace>
@@ -8,5 +8,5 @@
   <languageVersion>
     <version>1.0.0</version>
   </languageVersion>
-  <filename>style_heatmap_population.sld</filename>
+  <filename>style_highway_categories_aggregated.sld</filename>
 </style>

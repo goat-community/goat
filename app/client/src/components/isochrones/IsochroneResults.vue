@@ -432,8 +432,8 @@ export default {
     getRouteProfileIcon(route) {
       const routingName = route.split("_")[0];
       //Edge-case
-      if (route === "walking_wheelchair") {
-        return this.routeIcons[route];
+      if (route.includes("walking_wheelchair")) {
+        return this.routeIcons["walking_wheelchair"];
       }
       return this.routeIcons[routingName];
     },
