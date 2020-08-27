@@ -12,14 +12,16 @@ DECLARE
 extra_parameter TEXT;
 BEGIN 
 	IF zone_size_type = 'small' THEN 
-		extra_parameter = '';
+		RETURN query
+			SELECT a.gid, a.amenity, a.name, a.osm_id, a.opening_hours, a.origin_geometry, a.geom, 'accessible', a.wheelchair FROM aois a
+			WHERE a.amenity IN(SELECT UNNEST (amenities_input));
 	ELSE 
-		extra_parameter = ' AND zone_size = '||quote_ident(zone_size_type)||'';
-	RETURN query
-
-	EXECUTE 
-	'SELECT a.gid, a.amenity, a.name, a.osm_id, a.opening_hours, a.origin_geometry, a.geom, '||quote_literal('accessible')||', a.wheelchair FROM aois a
-	WHERE a.amenity IN(SELECT UNNEST (amenities_input))'||quote_ident(extra_parameter)||'';
+		RETURN query
+			SELECT a.gid, a.amenity, a.name, a.osm_id, a.opening_hours, a.origin_geometry, a.geom, 'accessible', a.wheelchair FROM aois a
+			WHERE a.amenity IN(SELECT UNNEST (amenities_input)) AND zone_size = 'large_zone';
+	
+	END IF;
+	
 END;
 $function$
 
@@ -29,8 +31,5 @@ WITH am AS (
 	FROM convert_from(decode('cGFyaw==','base64'),'UTF-8') AS amenity
 )
 SELECT *,concat(amenity,'_',status) AS amenity_icon
-FROM aois_visualization(1,(SELECT amenity FROM am))
+FROM aois_visualization(1,(SELECT amenity FROM am), 'large')
 */
-
-
-SELECT * FROM aois;
