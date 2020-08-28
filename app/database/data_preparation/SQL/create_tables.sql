@@ -150,6 +150,7 @@ CREATE TABLE public.pois_modified (
 	opening_hours text NULL,
 	geom geometry(POINT, 4326) NULL,
 	userid int4 NULL,
+	scenario_id int4 DEFAULT 0,
 	original_id int4 NULL,
 	wheelchair text,
 	CONSTRAINT pois_modified_id_pkey PRIMARY KEY (id)
@@ -185,23 +186,15 @@ CREATE TABLE population_modified
 
 CREATE INDEX ON population_modified USING GIST(geom);
 
-DROP SEQUENCE IF EXISTS user_data_id_seq;
-CREATE SEQUENCE user_data_id_seq;
-
 CREATE TABLE public.user_data
 (
     id bigint NOT NULL DEFAULT nextval('user_data_id_seq'::regclass),
-    name character varying COLLATE pg_catalog."default",
-    surname character varying COLLATE pg_catalog."default",
     deleted_feature_ids bigint[],
-	userid bigint,
+	userid integer,
+	scenario_id integer default 0, 
 	layer_name varchar(100),
     CONSTRAINT user_data_pkey PRIMARY KEY (id)
-)
-WITH (
-    OIDS = FALSE
-)
-TABLESPACE pg_default;
+);
 
-ALTER TABLE public.user_data
-    OWNER to goat;
+CREATE INDEX ON user_data(userid);
+CREATE INDEX ON user_data(scenario_id);
