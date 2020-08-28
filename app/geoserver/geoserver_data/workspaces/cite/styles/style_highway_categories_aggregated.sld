@@ -10,21 +10,7 @@
           <Name>primary</Name>
             <Title>
               primary
-              		<Localized lang="de">Hauptverkehrsstraße</Localized>
-            		<Localized lang="en">primary</Localized>
-          </Title>
-         <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:Or>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>highway</ogc:PropertyName>
-                <ogc:Literal>motorway</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>highway</ogc:PropertyName>
-                <ogc:Literal>motorway_link</ogc:Literal>
-              </ogc:PropertyIsEqualTo>
-              <ogc:PropertyIsEqualTo>
-                <ogc:PropertyName>highway</ogc:PropertyName>
+              		<Localized lang="de">Hauptverkehrsstraße</Localized> 
                 <ogc:Literal>trunk</ogc:Literal>
               </ogc:PropertyIsEqualTo>
               <ogc:PropertyIsEqualTo>
