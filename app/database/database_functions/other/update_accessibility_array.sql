@@ -14,12 +14,12 @@ LANGUAGE sql immutable;
 CREATE OR REPLACE FUNCTION append_accessibility_array(arr_to_update int[][], arr_to_append int[][])
 RETURNS SETOF integer[][] AS
 $$
-	SELECT array_agg(arr + new_value)
+	SELECT ARRAY_AGG(arr1 || arr2)
 	FROM 
 	(
-		SELECT unnest_2d_1d(arr_to_update) arr, UNNEST(arr_to_append ) new_value
-	) x
+		SELECT unnest_2d_1d(arr_to_update) arr1, unnest_2d_1d(arr_to_append) arr2
+	) x; 
 $$
 LANGUAGE sql immutable;
 
---SELECT append_accessibility_array(array[[1,2,3],[4,5,6]], ARRAY[[1],[2]])
+--SELECT append_accessibility_array(ARRAY[[1,2],[3,4]],ARRAY[[5,6],[7,8]] )
