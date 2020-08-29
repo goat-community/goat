@@ -1,12 +1,12 @@
 <layer>
   <name>heatmap_area_isochrone</name>
-  <id>LayerInfoImpl-43681859:169f6f20a03:-3396</id>
+  <id>LayerInfoImpl--610cb9c6:1743a76ca4d:-6388</id>
   <type>VECTOR</type>
   <defaultStyle>
     <id>StyleInfoImpl-45434b41:169f70b8dae:-7fff</id>
   </defaultStyle>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl-43681859:169f6f20a03:-3397</id>
+    <id>FeatureTypeInfoImpl--610cb9c6:1743a76ca4d:-6389</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>
