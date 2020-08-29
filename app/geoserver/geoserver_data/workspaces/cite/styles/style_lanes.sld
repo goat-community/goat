@@ -140,7 +140,7 @@
             	<Localized lang="cn">unclassified (chinese)</Localized>
 				<Localized lang="de">keine Daten</Localized>
             	<Localized lang="en">no data</Localized>
-				<Localized lang="es">ningún dato</Localized>
+				<Localized lang="es">ningún datos</Localized>
             	<Localized lang="fr">pas de données</Localized>
           	</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">

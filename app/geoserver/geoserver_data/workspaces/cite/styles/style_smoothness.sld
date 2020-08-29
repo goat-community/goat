@@ -11,7 +11,7 @@
               no data
 				<Localized lang="de">keine Daten</Localized>
             	<Localized lang="en">no data</Localized>
-				<Localized lang="es">ningún dato</Localized>
+				<Localized lang="es">ningún datos</Localized>
             	<Localized lang="fr">pas de données</Localized>
           	</Title>
           <LineSymbolizer>
