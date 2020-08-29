@@ -12,39 +12,40 @@ DECLARE
  	cutoffs float[];
 begin
 	--If the modus is input the routing tables for the network with userinput have to be choosen
-  speed = speed/3.6;
+  	speed = speed/3.6;
 
-  DROP TABLE IF EXISTS isos;
-  CREATE temp TABLE isos OF type_isochrone;
-
+  	DROP TABLE IF EXISTS isos;
+  	CREATE temp TABLE isos OF type_isochrone;
+	
 	SELECT array_agg(x.border) 
 	INTO cutoffs
 	FROM (SELECT generate_series(step_isochrone,(minutes*60),step_isochrone)::float border) x; 
 
-	PERFORM pgrouting_edges_new(cutoffs, ARRAY[[x,y]],speed, userid_input, objectid_input, modus, routing_profile) p;
-
+	PERFORM pgrouting_edges(cutoffs, ARRAY[[x,y]],speed, userid_input, 1, objectid_input, modus, routing_profile) p;
 	
+	DROP TABLE IF EXISTS iso_vertices;
+	CREATE TEMP TABLE iso_vertices(geom geometry);
+
+	PERFORM plv8_require();
 	FOR i IN SELECT unnest(cutoffs)
 	LOOP
 	counter = counter + 1;
 	IF (SELECT count(*) FROM edges WHERE objectid=objectid_input AND cost BETWEEN 0 AND i LIMIT 4) > 3 THEN 
-		sql_vertices = format('
-		SELECT ROW_NUMBER() over()::integer AS id, x, y 
-		FROM (
-			 SELECT  ST_X(ST_STARTPOINT(geom))::float x, ST_Y(ST_STARTPOINT(geom))::float y 
-			 FROM edges WHERE objectid=%s AND cost = start_cost AND cost BETWEEN 0 AND %s
-			 UNION ALL 
-			 SELECT  ST_X(ST_ENDPOINT(geom))::float x, ST_Y(ST_ENDPOINT(geom))::float y 
-			 FROM edges WHERE objectid=%s AND cost = end_cost AND cost BETWEEN 0 AND %s
-		) v',objectid_input, i, objectid_input, i
-		);
-    INSERT INTO isos 
-    SELECT userid_input,counter,i/60, 
-    ST_SETSRID(pgr_pointsaspolygon (sql_vertices,shape_precision),4326);      
+		TRUNCATE iso_vertices;
+		INSERT INTO iso_vertices 
+		SELECT CASE WHEN start_cost > end_cost THEN st_startpoint(geom) ELSE st_endpoint(geom) END AS geom
+		FROM edges
+		WHERE COST <= i
+		AND objectid = objectid_input; 
+		
+	  	INSERT INTO isos 
+	  	SELECT userid_input, counter, i/60, ST_SETSRID(st_geomfromtext('POLYGON(('||REPLACE(plv8_concavehull(),',4',' 4')||'))'),4326) AS geom;
+	  	
 	END IF;
 	END LOOP;  
-  RETURN query SELECT * FROM isos;
+
+  	RETURN query SELECT * FROM isos;
   
 END;
 $function$
---SELECT * FROM isochrones_alphashape(111,7,11.543274,48.195524,2,5,0.00003,1,1,1,'walking_wheelchair')
+--SELECT * FROM isochrones_alphashape(111,10,11.2493, 48.1804,2,5,0.00003,1,1,1,'walking_standard')

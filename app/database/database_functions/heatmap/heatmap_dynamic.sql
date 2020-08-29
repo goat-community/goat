@@ -105,10 +105,10 @@ WHERE h.grid_id = g.grid_id
 
 /*
 Next steps:
-
+- Other population - walkability
+- Isochrone calculation heatmap
 - Test pgrouting_edges_heatmap with ways scenario
 - Implement heatmap scenario, comparison
-- Isochrone calculation heatmap
 - Testing
 */
 
