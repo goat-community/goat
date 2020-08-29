@@ -42,7 +42,6 @@ CREATE INDEX ON multi_isochrones USING btree(objectid,parent_id);
 
 CREATE UNLOGGED TABLE public.edges (
 	edge integer NULL,
-	node integer NULL,
 	cost float NULL,
 	start_cost float NULL,
 	end_cost float NULL,
@@ -51,13 +50,7 @@ CREATE UNLOGGED TABLE public.edges (
 	id serial NOT NULL,
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
 );
---CREATE INDEX index_edges ON edges USING gist(geom);
-CREATE INDEX ON edges USING btree(objectid,cost);
 
---CREATE INDEX index_edges ON edges USING gist(geom);
-CREATE INDEX ON edges USING btree(objectid,cost);
-
---CREATE INDEX index_edges ON edges USING gist(geom);
 CREATE INDEX ON edges USING btree(objectid,cost);
 
 CREATE UNLOGGED TABLE public.edges_multi (
@@ -188,7 +181,7 @@ CREATE INDEX ON population_modified USING GIST(geom);
 
 CREATE TABLE public.user_data
 (
-    id bigint NOT NULL DEFAULT nextval('user_data_id_seq'::regclass),
+    id bigserial,
     deleted_feature_ids bigint[],
 	userid integer,
 	scenario_id integer default 1, 
