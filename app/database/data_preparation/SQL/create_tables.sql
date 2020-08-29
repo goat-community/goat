@@ -191,7 +191,7 @@ CREATE TABLE public.user_data
     id bigint NOT NULL DEFAULT nextval('user_data_id_seq'::regclass),
     deleted_feature_ids bigint[],
 	userid integer,
-	scenario_id integer default 0, 
+	scenario_id integer default 1, 
 	layer_name varchar(100),
     CONSTRAINT user_data_pkey PRIMARY KEY (id)
 );
