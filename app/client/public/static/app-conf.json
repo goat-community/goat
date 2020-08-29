@@ -1544,6 +1544,7 @@
       "enableFileUpload": false,
       "hiddenProps": [
         "userid",
+        "scenario_id",
         "id",
         "original_id",
         "status",
