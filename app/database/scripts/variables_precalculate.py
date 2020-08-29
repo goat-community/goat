@@ -15,8 +15,8 @@ prepare_tables = '''
 
 
 	ALTER TABLE grid_heatmap add column grid_id serial;
-    ALTER TABLE grid_heatmap ADD COLUMN pois jsonb;
-	ALTER TABLE grid_heatmap ADD COLUMN iso_geom geometry; 
+	ALTER TABLE grid_heatmap ADD COLUMN area_isochrone float;
+	ALTER TABLE grid_heatmap ADD COLUMN percentile_area_isochrone smallint; 
 	'''
 
 
@@ -55,21 +55,15 @@ WHERE population IS NOT NULL;
 
 UPDATE grid_heatmap SET percentile_population = 0
 WHERE percentile_population IS NULL;
-/*
-UPDATE grid_heatmap SET iso_geom = i.geom
-FROM isochrones i 
-WHERE grid_id = i.objectid;
 
-ALTER TABLE grid_heatmap ADD COLUMN percentile_area_isochrone smallint;
 UPDATE grid_heatmap SET percentile_area_isochrone = x.percentile 
 FROM (
 	SELECT grid_id,ntile(5) over 
-	(order by ST_AREA(iso_geom) ) AS percentile
+	(order by area_isochrone) AS percentile
 	FROM grid_heatmap
-	WHERE iso_geom IS NOT NULL 
+	WHERE area_isochrone IS NOT NULL 
 ) x
 WHERE grid_heatmap.grid_id = x.grid_id;
 
 UPDATE grid_heatmap SET percentile_area_isochrone = 0 WHERE percentile_area_isochrone IS NULL; 
-*/
 '''
