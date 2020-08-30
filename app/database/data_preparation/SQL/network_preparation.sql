@@ -387,6 +387,15 @@ wheelchair_classified  = w.wheelchair_classified
 FROM ways_attributes w
 WHERE v.id = w.id;
 
+-- Mark dedicated lanes as foot = 'no'
+
+UPDATE ways w
+SET foot = 'no'  FROM ( SELECT osm_id FROM planet_osm_line WHERE highway = 'service' AND (tags->'psv' IS NOT NULL OR tags->'bus' = 'yes') ) x WHERE w.osm_id = x.osm_id;
+
+-- Mark underground cycle lanes as foot = 'no' this is for the specific case of BOG
+
+--
+
 
 ALTER TABLE ways ADD COLUMN slope_profile jsonb[];
 ALTER TABLE ways ADD COLUMN s_imp NUMERIC;
