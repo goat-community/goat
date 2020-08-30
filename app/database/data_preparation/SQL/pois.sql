@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS pois cascade;
+DROP TABLE IF EXISTS pois CASCADE;
 CREATE TABLE pois as (
 
 
@@ -436,24 +436,7 @@ UPDATE pois p set name = c.name
 FROM close_entrances c
 WHERE p.geom = c.geom
 AND amenity = 'subway_entrance';
--- Insert TransmiCable
 
-INSERT INTO pois
-SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'transmicable' AS amenity,  
-tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom, tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_point
-WHERE aerialway ='station' AND public_transport = 'station';
-
--- Insert Parks
-
-INSERT INTO pois
-SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, 'park' AS amenity,  
-tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
-operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, ST_Centroid(way) as geom, tags -> 'wheelchair' as wheelchair  
-FROM planet_osm_polygon
-WHERE leisure = 'park' AND (ACCESS IS NULL OR ACCESS='public');
--- Implement new points where pois_full_replacement exists
 -- Multipoint for Sports center and waterparks
 
 DROP TABLE IF EXISTS community_sports_center;
@@ -491,27 +474,7 @@ DO $$
             ( SELECT 1
               FROM   information_schema.tables 
               WHERE  table_schema = 'public'
-              AND    table_name = 'pois_full_replacement'
-            )
-        THEN
-			--Run replacements
-			PERFORM (SELECT pois_full_replacement('pois_full_replacement','kindergarten','kindergarten'));
-			PERFORM (SELECT pois_full_replacement('pois_full_replacement','school','school'));
-			PERFORM (SELECT pois_full_replacement('pois_full_replacement','university','university'));
-			PERFORM (SELECT pois_full_replacement('pois_full_replacement','sitp','sitp'));
-			PERFORM (SELECT pois_full_replacement('pois_full_replacement','transmilenio','transmilenio'));
-			PERFORM (SELECT pois_full_replacement('pois_full_replacement','cade','cade'));
-			PERFORM (SELECT pois_full_replacement('pois_full_replacement','notary','notary'));
-		        END IF;
-    END
-$$ ;
-DO $$                  
-    BEGIN 
-        IF EXISTS
-            ( SELECT 1
-              FROM   information_schema.tables 
-              WHERE  table_schema = 'public'
-			  AND    table_name = 'custom_pois'
+              AND    table_name = 'custom_pois'
             )
         THEN
 			--Run pois_fusion
@@ -520,8 +483,6 @@ DO $$
     END
 $$ ;
 
---CREATE copy of pois for scenarios
-DROP TABLE IF EXISTS pois_userinput CASCADE;
 
 --CREATE copy of pois for scenarios
 DROP TABLE IF EXISTS pois_userinput;
@@ -531,7 +492,8 @@ SELECT * FROM pois;
 
 ALTER TABLE pois_userinput ADD COLUMN userid integer;
 CREATE INDEX ON pois_userinput(userid);
-
+ALTER TABLE pois_userinput ADD COLUMN scenario_id integer;
+CREATE INDEX ON pois_userinput(scenario_id);
 --Add Foreign Key to pois_userinput 
 ALTER TABLE pois_userinput ADD COLUMN pois_modified_id integer; 
 ALTER TABLE pois_userinput

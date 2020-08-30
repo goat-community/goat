@@ -16,12 +16,12 @@ BEGIN
 	),
 	sum_pop AS (
 		SELECT g.grid_id, sum(p.population) + COALESCE(g.population,0) population, 
-		CASE WHEN sum(p.population) + COALESCE(g.population,0) BETWEEN 1 AND 750 THEN 1 
-		WHEN sum(p.population) + COALESCE(g.population,0)  BETWEEN 751 AND 1995 THEN 2
-		WHEN sum(p.population) + COALESCE(g.population,0)  BETWEEN 1996 AND 3394 THEN 3 
-		WHEN sum(p.population) + COALESCE(g.population,0)  BETWEEN 3395 AND 5099 THEN 4 
-		WHEN sum(p.population) + COALESCE(g.population,0)  > 5099 THEN 5 END AS percentile_population, g.geom
-		FROM grid_500 g, modified_population p
+		CASE WHEN sum(p.population) + COALESCE(g.population,0) BETWEEN 1 AND 20 THEN 1 
+		WHEN sum(p.population) + COALESCE(g.population,0)  BETWEEN 20 AND 80 THEN 2
+		WHEN sum(p.population) + COALESCE(g.population,0)  BETWEEN 80 AND 200 THEN 3 
+		WHEN sum(p.population) + COALESCE(g.population,0)  BETWEEN 200 AND 400 THEN 4 
+		WHEN sum(p.population) + COALESCE(g.population,0)  > 400 THEN 5 END AS percentile_population, g.geom
+		FROM grid_heatmap g, modified_population p
 		WHERE ST_Intersects(g.geom,p.geom)
 		GROUP BY g.grid_id, g.population, g.geom
 	) 
@@ -29,7 +29,7 @@ BEGIN
 	FROM sum_pop s
 	UNION ALL 
 	SELECT g.grid_id, g.population, g.percentile_population, g.geom
-	FROM grid_500 g
+	FROM grid_heatmap g
 	LEFT JOIN sum_pop s
 	ON g.grid_id = s.grid_id 
 	WHERE s.grid_id IS NULL; 

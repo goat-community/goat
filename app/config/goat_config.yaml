@@ -1,6 +1,6 @@
 DATA_SOURCE:  
   #"no_download" if you don't want to download OSM data automatically. Make sure that the file is called raw-osm.osm.pbf.
-  OSM_DOWNLOAD_LINK: "https://download.geofabrik.de/south-america/colombia-latest.osm.pbf" 
+  OSM_DOWNLOAD_LINK: "https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf" 
   #"most_recent" if the data from the OSM-Download-Link has not the recency you need. 
   OSM_DATA_RECENCY: "standard"
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
@@ -12,20 +12,21 @@ DATA_REFINEMENT_VARIABLES:
   #disaggregation ==> landuse.shp needed as input + high-resolution population input data + building data
   #distribution ==> landuse.sho need as input + high-resolution population input data 
   #custom_population ==> population.shp custom population data needed  
-  POPULATION: "custom_population"
+  POPULATION: "extrapolation"
   #"yes" if you want to add these layers 
   ADDITIONAL_WALKABILITY_LAYERS: "yes" 
   OSM_MAPPING_FEATURE: "yes"
   variable_container:
     heatmap_auto_refresh: "'yes'"
-    pois_one_entrance: ["kindergarten","school","university","cafe","restaurant","theatre","sum_population","cinema","library",
-      "hairdresser","atm","bank","dentist","doctors","pharmacy","fuel",
-      "bakery","butcher","clothes","supermarket","convenience","playground","greengrocer","mall","shoes","sports",
-      "chemist","marketplace",
-      "hotel","museum","hostel","guest_house","viewpoint","gallery","transmicable", "park", "notary","cade","police","gym"
+    heatmap_sensitivities: [150000,200000,250000,300000,350000,400000,450000]
+    pois_one_entrance: ["kindergarten","nursery","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
+      "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi","bikesharing_ffb","carsharing_ffb","charging_station_marker_ffb","charging_station_other_ffb","charging_station_public_ffb","e_parking_ffb",
+      "l-station_ffb","s-station_prio1_ffb","s-station_prio2_ffb","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
+      "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
+      "hypermarket","international_supermarket","chemist","organic","marketplace","hotel","museum","hostel","guest_house","viewpoint","gallery","playground","discount_gym","gym","yoga","outdoor_fitness_station"
     ]
-    pois_more_entrances: ["sitp","transmilenio"]
-    excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,801]
+    pois_more_entrances: ["bus_stop","tram_stop","subway_entrance","rail_station","community_sports_center","waterpark"]
+    excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
     categories_no_foot: ["use_sidepath","no"]
     excluded_class_id_cycling: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
     categories_no_bicycle: ["use_sidepath","no"]
@@ -176,7 +177,6 @@ DATA_REFINEMENT_VARIABLES:
         '%gesamt-%', '%gesamt %', '%gesamtsch%', '%-gymnasium%', '%gymnasium-%', '% gymnasium%','%gymnasium %', '%fachobersch%']
         discard: ['%haupt-schule%', '%mittel-schule%', '%real-schule%', '%förder-schule%', '%gesamt-schule%']
       kindergarten: ['kindergarten']
-      nursery: ['krippe']
       
 
 
