@@ -40,16 +40,11 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>show_network</name>
-        <sql>select edge, node, cost, geom, id , %modus% as modus&#xd;
+        <sql>select edge, cost, geom, id , %modus% as modus&#xd;
 from edges &#xd;
 where objectid = %objectid%
 </sql>
         <escapeSql>false</escapeSql>
-        <geometry>
-          <name>geom</name>
-          <type>Geometry</type>
-          <srid>4326</srid>
-        </geometry>
         <parameter>
           <name>modus</name>
           <defaultValue>1</defaultValue>
