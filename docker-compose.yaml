@@ -69,6 +69,7 @@ services:
     image: goatcommunity/geoserver:latest
     volumes:
       - ./app/geoserver/geoserver_data:/var/local/geoserver
+      - ./app/geoserver/additional_libs:/var/local/geoserver-exts
     container_name: goat-geoserver
     restart: on-failure
     depends_on:
