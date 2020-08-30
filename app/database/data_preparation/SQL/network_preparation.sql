@@ -393,8 +393,8 @@ UPDATE ways w
 SET foot = 'no'  FROM ( SELECT osm_id FROM planet_osm_line WHERE highway = 'service' AND (tags->'psv' IS NOT NULL OR tags->'bus' = 'yes') ) x WHERE w.osm_id = x.osm_id;
 
 -- Mark underground cycle lanes as foot = 'no' this is for the specific case of BOG
-UPDATE ways
-SET foot = 'yes' WHERE bicycle != 'no'AND foot = 'no';
+--UPDATE ways
+--SET foot = 'yes' WHERE bicycle != 'no'AND foot = 'no';
 --
 
 
