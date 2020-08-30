@@ -1,0 +1,19 @@
+<style>
+  <id>StyleInfoImpl-7a940a60:173bef66569:-1895</id>
+  <name>style_mode_share</name>
+  <workspace>
+    <id>WorkspaceInfoImpl--570ae188:124761b8d78:-7ff3</id>
+  </workspace>
+  <format>sld</format>
+  <languageVersion>
+    <version>1.0.0</version>
+  </languageVersion>
+  <filename>style_mode_share.sld</filename>
+  <legend>
+    <width>200</width>
+    <height>106</height>
+    <format>image/png;charset=UTF-8</format>
+    <onlineResource>http://localhost:8080/geoserver/www/legend_mode_share.PNG</onlineResource>
+  </legend>
+  <dateModified>2020-08-14 13:50:54.620 UTC</dateModified>
+</style>

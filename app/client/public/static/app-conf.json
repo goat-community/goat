@@ -573,6 +573,20 @@
       },
       {
         "type": "WMS",
+        "name": "modeshare",
+        "url": "/geoserver/wms",
+        "group": "additionalDataLayers",
+        "layers": "cite:mode_share ",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "walkability",
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
@@ -1663,6 +1677,7 @@
       "enableFileUpload": false,
       "hiddenProps": [
         "userid",
+        "scenario_id",
         "id",
         "original_id",
         "status",

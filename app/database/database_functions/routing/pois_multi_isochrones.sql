@@ -33,7 +33,7 @@ DECLARE
 	END IF;
 
 	IF modus_input IN(2,4) THEN
-		excluded_pois_id = ids_modified_features(userid_input,'pois');
+		excluded_pois_id = ids_modified_features(userid_input,1,'pois');
 		excluded_buildings_gid = (SELECT deleted_feature_ids FROM user_data u WHERE u.userid = userid_input AND layer_name = 'buildings');
 	ELSE 
 		excluded_pois_id = ARRAY[]::integer[];
@@ -96,9 +96,6 @@ DECLARE
 	
  	END IF;
  	 	
-
-
-
 	SELECT DISTINCT p_array
 	INTO points_array
 	FROM (

@@ -1,14 +1,14 @@
 <featureType>
-  <id>FeatureTypeInfoImpl--4d0757f:161e6cb86ce:-5a36</id>
-  <name>heatmap</name>
-  <nativeName>heatmap</nativeName>
+  <id>FeatureTypeInfoImpl-7a940a60:173bef66569:-1890</id>
+  <name>mode_share</name>
+  <nativeName>mode_share</nativeName>
   <namespace>
     <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
   </namespace>
-  <title>heatmap</title>
+  <title>mode_share</title>
   <keywords>
     <string>features</string>
-    <string>heatmap</string>
+    <string>mode_share</string>
   </keywords>
   <nativeCRS>GEOGCS[&quot;WGS 84&quot;, 
   DATUM[&quot;World Geodetic System 1984&quot;, 
@@ -21,17 +21,16 @@
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>11.3603382590879</minx>
-    <maxx>11.7231010881753</maxx>
-    <miny>48.0673908892548</miny>
-    <maxy>48.249056348695</maxy>
-    <crs>EPSG:4326</crs>
+    <minx>11.3607783527826</minx>
+    <maxx>11.7229093346483</maxx>
+    <miny>48.0616245916612</miny>
+    <maxy>48.2481185984649</maxy>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>11.3603382590879</minx>
-    <maxx>11.7231010881753</maxx>
-    <miny>48.0673908892548</miny>
-    <maxy>48.249056348695</maxy>
+    <minx>11.3607783527826</minx>
+    <maxx>11.7229093346483</maxx>
+    <miny>48.0616245916612</miny>
+    <maxy>48.2481185984649</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
@@ -39,9 +38,8 @@
   <metadata>
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
-        <name>heatmap</name>
-        <sql>SELECT * &#xd;
-FROM heatmap_geoserver(convert_from(decode(%amenities%,&apos;base64&apos;), &apos;UTF-8&apos;)::jsonb,2,%userid%,1)
+        <name>mode_share</name>
+        <sql>select name, share_foot, share_bike,share_mivd, share_mivp, share_put, geom from modeshare
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
@@ -49,14 +47,6 @@ FROM heatmap_geoserver(convert_from(decode(%amenities%,&apos;base64&apos;), &apo
           <type>Geometry</type>
           <srid>-1</srid>
         </geometry>
-        <parameter>
-          <name>amenities</name>
-          <defaultValue>&apos;W3siJ2J1c19zdG9wJyI6Mn0seyIndHJhbV9zdG9wJyI6M31d&apos;</defaultValue>
-        </parameter>
-        <parameter>
-          <name>userid</name>
-          <defaultValue>1</defaultValue>
-        </parameter>
       </virtualTable>
     </entry>
     <entry key="cachingEnabled">false</entry>

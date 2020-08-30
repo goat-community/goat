@@ -1,11 +1,3 @@
-create extension plv8;
-
-create table plv8_js_modules (
-    module text unique primary key,
-    autoload bool default true,
-    source text
-);
-
 create or replace function plv8_require()
 returns void as $$
     moduleCache = {};

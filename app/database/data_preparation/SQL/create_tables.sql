@@ -42,33 +42,17 @@ CREATE INDEX ON multi_isochrones USING btree(objectid,parent_id);
 
 CREATE UNLOGGED TABLE public.edges (
 	edge integer NULL,
-	node integer NULL,
-	cost numeric NULL,
+	cost float NULL,
+	start_cost float NULL,
+	end_cost float NULL,
 	geom geometry NULL,
-	v_geom geometry NULL,
 	objectid int4 NULL,
 	id serial NOT NULL,
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
 );
---CREATE INDEX index_edges ON edges USING gist(geom);
+
 CREATE INDEX ON edges USING btree(objectid,cost);
 
-/*
-CREATE UNLOGGED TABLE public.edges_multi (
-	edge integer NULL,
-	node integer NULL,
-	min_cost numeric NULL,
-	geom geometry NULL,
-	v_geom geometry NULL,
-	objectid int4 NULL,
-	node_cost_1 jsonb,
-	node_cost_2 jsonb,
-	id serial NOT NULL,
-	CONSTRAINT edges_multi_pkey PRIMARY KEY (id)
-);
---CREATE INDEX index_edges ON edges USING gist(geom);
-CREATE INDEX ON edges_multi USING btree(objectid,min_cost);
-*/
 CREATE UNLOGGED TABLE public.edges_multi (
 	edge integer NULL,
 	node integer NULL,
@@ -110,14 +94,15 @@ CREATE TABLE public.starting_point_isochrones (
 CREATE INDEX ON starting_point_isochrones USING gist(geom);
 
 CREATE TABLE addresses_residential(
-osm_id bigint,
-street varchar(200),
-housenumber varchar(100),
-geom geometry,
-origin varchar(20),
-area float,
-population integer,
-distance float);
+	osm_id bigint,
+	street varchar(200),
+	housenumber varchar(100),
+	geom geometry,
+	origin varchar(20),
+	area float,
+	population integer,
+	distance float
+);
 
 ALTER TABLE addresses_residential add column gid serial;
 ALTER TABLE addresses_residential add primary key (gid);
@@ -158,6 +143,7 @@ CREATE TABLE public.pois_modified (
 	opening_hours text NULL,
 	geom geometry(POINT, 4326) NULL,
 	userid int4 NULL,
+	scenario_id int4 DEFAULT 0,
 	original_id int4 NULL,
 	wheelchair text,
 	CONSTRAINT pois_modified_id_pkey PRIMARY KEY (id)
@@ -193,23 +179,15 @@ CREATE TABLE population_modified
 
 CREATE INDEX ON population_modified USING GIST(geom);
 
-DROP SEQUENCE IF EXISTS user_data_id_seq;
-CREATE SEQUENCE user_data_id_seq;
-
 CREATE TABLE public.user_data
 (
-    id bigint NOT NULL DEFAULT nextval('user_data_id_seq'::regclass),
-    name character varying COLLATE pg_catalog."default",
-    surname character varying COLLATE pg_catalog."default",
+    id bigserial,
     deleted_feature_ids bigint[],
-	userid bigint,
+	userid integer,
+	scenario_id integer default 1, 
 	layer_name varchar(100),
     CONSTRAINT user_data_pkey PRIMARY KEY (id)
-)
-WITH (
-    OIDS = FALSE
-)
-TABLESPACE pg_default;
+);
 
-ALTER TABLE public.user_data
-    OWNER to goat;
+CREATE INDEX ON user_data(userid);
+CREATE INDEX ON user_data(scenario_id);

@@ -11,7 +11,7 @@ BEGIN
 
 
 IF modus IN(2,4) THEN
-	excluded_pois_id = ids_modified_features(userid_input,'pois');
+	excluded_pois_id = ids_modified_features(userid_input,1,'pois');
 ELSE 
 	excluded_pois_id = ARRAY[]::integer[];
 	userid_input = 1;
