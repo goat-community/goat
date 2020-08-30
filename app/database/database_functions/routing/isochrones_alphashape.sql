@@ -39,7 +39,7 @@ begin
 		AND objectid = objectid_input; 
 		
 	  	INSERT INTO isos 
-	  	SELECT userid_input, counter, i/60, ST_SETSRID(st_geomfromtext('POLYGON(('||REPLACE(plv8_concavehull(),',4',' 4')||'))'),4326) AS geom;
+	  	SELECT userid_input, counter, i/60, ST_SETSRID(st_geomfromtext('POLYGON(('||REPLACE(plv8_concaveman(),',4',' 4')||'))'),4326) AS geom;
 	  	
 	END IF;
 	END LOOP;  
