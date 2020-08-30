@@ -1,6 +1,6 @@
 ubuntu-bionic-18.04-cloudimg-console.log
 .vagrant
-/app/data/*
+/app/database/data/*
 !/app/data/.gitkeep
 /app/geoserver/geoserver_data/logs/*
 /app/config/db/spaces.yaml
@@ -11,6 +11,3 @@ ubuntu-bionic-18.04-cloudimg-console.log
 node_modules
 .env
 /.vscode
-
-app/database/data/raw-osm.osm.pbf
-app/database/data/study_area.osm
