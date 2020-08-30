@@ -69,16 +69,24 @@ SELECT * FROM grid_500;
 
 DROP TABLE IF EXISTS temporal_strata;
 WITH strata_def AS (SELECT g.grid_id, p.main_strat, sum(p.population) AS pop_strata, row_number() OVER (PARTITION BY grid_id ORDER BY grid_id, sum(p.population) DESC )FROM population p
-JOIN grid_500 g
+RIGHT JOIN grid_500 g
 ON ST_Intersects(g.geom, p.geom)
 GROUP BY p.gid, grid_id 
 ) SELECT * INTO temporal_strata FROM strata_def sd WHERE ROW_NUMBER = 1;
 
 SELECT * FROM temporal_strata;
+SELECT count(grid_id) FROM temporal_strata;
+SELECT count(grid_id) FROM grid_500;
+
+DROP TABLE IF EXISTS grid_500_strata;
+SELECT g.*, ts.main_strat INTO grid_500_strata FROM grid_500 g, temporal_strata ts WHERE ts.grid_id = g.grid_id;
+
+
+SELECT * FROM grid_500;
 
 -- Group by 
 -- Test with taz
-
+SELECT * FROM taz;
 
 SELECT * FROM population;
 
@@ -111,4 +119,7 @@ SELECT * FROM taz;
 
 
 
+SELECT * FROM desire_lines;
 
+
+SELECT * FROM grid_500_age_gender;
