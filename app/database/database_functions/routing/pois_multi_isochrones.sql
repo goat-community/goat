@@ -113,7 +113,7 @@ DECLARE
  	---------------------------------------------------------------------------------
  		
 	objectid_multi_isochrone = random_between(1,999999999);
-	PERFORM multi_isochrones_based_on_single(userid_input, objectid_multi_isochrone, minutes,n,routing_profile_input,speed_input,alphashape_parameter_input,modus_input,1,points_array);
+	PERFORM multi_isochrones(userid_input, objectid_multi_isochrone, minutes,n,routing_profile_input,speed_input,alphashape_parameter_input,modus_input,1,points_array);
 		
 	IF region_type = 'study_area' THEN
 	 	WITH expand_population AS 

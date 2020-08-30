@@ -71,5 +71,5 @@ $function$;
 
 /*
 SELECT * 
-FROM public.pgrouting_edges_new(ARRAY[300.,600.,900.], ARRAY[[11.2493, 48.1804]],4.1, 1, 1, 15, 1, 'cycling_standard')
+FROM public.pgrouting_edges(ARRAY[300.,600.,900.], ARRAY[[11.2493, 48.1804]],4.1, 1, 1, 15, 1, 'cycling_standard')
 */

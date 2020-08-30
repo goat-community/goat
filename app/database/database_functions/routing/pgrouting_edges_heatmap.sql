@@ -3,9 +3,6 @@ CREATE OR REPLACE FUNCTION public.pgrouting_edges_heatmap(cutoffs double precisi
  LANGUAGE plpgsql
 AS $function$
 DECLARE 
-	buffer text;
-	distance numeric;
-	number_calculation_input integer;
 	vids bigint[];
 BEGIN
 	
