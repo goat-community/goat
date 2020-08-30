@@ -1,6 +1,10 @@
 --CREATE copy of population for scenarios
 SELECT setval('buildings_modified_gid_seq', (SELECT MAX(gid) FROM buildings));
 
+--ADD Column population_gid when does not exists
+ALTER TABLE population
+ADD COLUMN IF NOT EXISTS building_gid int;
+
 DROP TABLE IF EXISTS population_userinput;
 CREATE TABLE population_userinput (like population INCLUDING ALL);
 INSERT INTO population_userinput

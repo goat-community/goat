@@ -30,7 +30,7 @@ services:
 
   client:
     build:
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
       context: ./app/client
     image: goat-client
     volumes:

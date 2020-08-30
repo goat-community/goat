@@ -1,0 +1,15 @@
+<layer>
+  <name>BOG_heatmap_population</name>
+  <id>LayerInfoImpl-1fd33a32:1735d8edc6e:-698e</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-1fd33a32:1735ce05479:77f0</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-1fd33a32:1735d8edc6e:-698f</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

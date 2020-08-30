@@ -5,7 +5,6 @@ ubuntu-bionic-18.04-cloudimg-console.log
 /app/geoserver/geoserver_data/logs/*
 /app/config/db/spaces.yaml
 /app/node/node_modules
-/app/database/data
 /app/database/backups
 /app/database/data_preparation/Python/__pycache__
 /app/database/scripts/__pycache__
@@ -13,3 +12,5 @@ node_modules
 .env
 /.vscode
 
+app/database/data/raw-osm.osm.pbf
+app/database/data/study_area.osm

@@ -1,0 +1,15 @@
+<layer>
+  <name>BOG_mob_share_transmilenio</name>
+  <id>LayerInfoImpl-2501a695:17402994a20:-7e80</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-2501a695:17402994a20:-7e7f</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-2501a695:17402994a20:-7e81</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>
