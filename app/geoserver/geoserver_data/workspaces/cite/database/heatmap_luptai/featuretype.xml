@@ -40,9 +40,9 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>heatmap_luptai</name>
-        <sql>SELECT h.grid_id, h.percentile_accessibility AS accessibility_index, p.percentile_population, &#xd;
+        <sql>SELECT h.grid_id, h.accessibility_index, h.percentile_accessibility, p.percentile_population, &#xd;
 (p.percentile_population-h.percentile_accessibility) AS population_accessibility, h.geom  &#xd;
-FROM heatmap_geoserver(%userid%, convert_from(decode(%amenities%,&apos;base64&apos;), &apos;UTF-8&apos;)::jsonb,2) h, &#xd;
+FROM heatmap_geoserver(convert_from(decode(%amenities%,&apos;base64&apos;), &apos;UTF-8&apos;)::jsonb,2,%userid%,1) h, &#xd;
 population_heatmap(%userid%) p &#xd;
 WHERE p.grid_id = h.grid_id
 </sql>

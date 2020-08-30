@@ -540,7 +540,11 @@ SELECT * FROM ways_vertices_pgr;
 
 ALTER TABLE ways_userinput add column userid int4;
 ALTER TABLE ways_userinput_vertices_pgr add column userid int4;
+ALTER TABLE ways_userinput add column scenario_id int4;
+ALTER TABLE ways_userinput_vertices_pgr add column scenario_id int4;
 ALTER TABLE ways_userinput ADD COLUMN original_id BIGINT;
 CREATE INDEX ON ways_userinput USING btree (userid);
 CREATE INDEX ON ways_userinput_vertices_pgr USING btree (userid);
+CREATE INDEX ON ways_userinput USING btree (scenario_id);
+CREATE INDEX ON ways_userinput_vertices_pgr USING btree (scenario_id);
 CREATE INDEX ON ways_userinput (original_id);
