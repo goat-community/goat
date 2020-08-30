@@ -1,0 +1,15 @@
+<layer>
+  <name>Walking trips</name>
+  <id>LayerInfoImpl--41f97721:1731e1637df:6930</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--41f97721:1731e1637df:692a</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--41f97721:1731e1637df:692f</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

@@ -81,7 +81,7 @@ DROP TABLE IF EXISTS visualization;
 CREATE TABLE visualization (zone_number NUMERIC, transport_mode varchar,number_of_trips numeric, category numeric,geom geometry);
 
 INSERT INTO visualization
-SELECT * FROM trips_visualization(1, 'origin_zone', 88, 'walking_trips') ORDER BY category desc;
+SELECT * FROM trips_visualization(1, 'origin_zone', 336, 'walking_trips') ORDER BY category desc;
 
  */
 

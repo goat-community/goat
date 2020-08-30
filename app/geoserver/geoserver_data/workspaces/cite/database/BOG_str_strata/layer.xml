@@ -1,0 +1,15 @@
+<layer>
+  <name>BOG_str_strata</name>
+  <id>LayerInfoImpl-2cd46ac8:173fd79c23a:-56d7</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--41f97721:1731e1637df:6915</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-2cd46ac8:173fd79c23a:-56d8</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>
