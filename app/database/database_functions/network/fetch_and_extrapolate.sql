@@ -52,10 +52,10 @@ BEGIN
   	RAISE NOTICE '%', sql_cost;
   	IF modus_input <> 1 THEN 
 		table_name = 'ways_userinput';
-		excluded_ways_id = ids_modified_features(userid_input,'ways');
+		excluded_ways_id = ids_modified_features(userid_input,1,'ways');
 
 		sql_userid = ' AND( userid IS NULL OR userid='||userid_input||')';
-		sql_ways_ids = ' AND NOT id::int4 = any('''|| ids_modified_features(userid_input,'ways')::text ||''') ';
+		sql_ways_ids = ' AND NOT id::int4 = any('''|| ids_modified_features(userid_input,1,'ways')::text ||''') ';
 	END IF;
 
 	IF  routing_profile = 'walking_safe_night' THEN
@@ -81,64 +81,3 @@ CREATE TABLE test AS
 select *, COST-reverse_cost FROM fetch_ways_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.25196,48.18172),0.03)),1,1,1.33,'cycling_standard');
 
 */
-
-DROP FUNCTION IF EXISTS get_reached_network;
-CREATE OR REPLACE FUNCTION public.get_reached_network(objectid_input integer,max_cost NUMERIC, number_isochrones integer, edges_to_exclude bigint[])
-RETURNS void AS
-$$
-DECLARE
-	i NUMERIC;
-	step_isochrone NUMERIC := max_cost/number_isochrones;
-BEGIN
-	INSERT INTO edges(edge,node,cost,geom,v_geom,objectid) 
-	SELECT w.id,s.node,CASE WHEN s.cost > f.cost THEN s.cost ELSE f.cost END AS cost,w.geom,s.geom AS v_geom,objectid_input
-	FROM temp_reached_vertices f, temp_reached_vertices s, temp_fetched_ways w 
-	WHERE f.node = w.source 
-	AND s.node = w.target;
-	
-	
-	FOR i IN SELECT generate_series(step_isochrone,max_cost,step_isochrone)
-	LOOP
-		INSERT INTO edges 
-		SELECT x.id AS edge, x.node, i AS cost, ST_LINESUBSTRING(x.geom,1-((i-x.agg_cost)/x.cost),1) AS geom,
-		ST_STARTPOINT(ST_LINESUBSTRING(x.geom,1-((i-x.agg_cost)/x.cost),1)) AS v_geom, objectid_input 
-		FROM 
-		(
-			SELECT w.id, v.node, v.cost agg_cost, w.cost, w.geom
-			FROM temp_reached_vertices v, temp_fetched_ways w
-			WHERE v.node = w.target
-			AND w.death_end IS NULL 
-			AND v.cost < i
-		) x
-		LEFT JOIN (SELECT edge FROM edges e WHERE e.objectid = objectid_input AND cost < i) e
-		ON x.id = e.edge 
-		WHERE e.edge IS NULL
-		AND x.id NOT IN(SELECT UNNEST(edges_to_exclude))
-		UNION ALL 
-		SELECT x.id AS edge, x.node, i AS cost, ST_LINESUBSTRING(x.geom,0,((i-x.agg_cost)/x.cost)) AS geom,
-		ST_ENDPOINT(ST_LINESUBSTRING(x.geom,0,(i-x.agg_cost)/x.cost)) AS v_geom, objectid_input 
-		FROM 
-		(
-			SELECT w.id, v.node, v.cost agg_cost, w.cost, w.geom 
-			FROM temp_reached_vertices v, temp_fetched_ways w
-			WHERE v.node = w.source
-			AND w.death_end IS NULL 
-			AND v.cost < i
-		) x
-		LEFT JOIN (SELECT edge FROM edges e WHERE e.objectid = objectid_input AND cost < i) e
-		ON x.id = e.edge 
-		WHERE e.edge IS NULL
-		AND x.id NOT IN(SELECT UNNEST(edges_to_exclude));
-	
-	END LOOP;
-	
-	INSERT INTO edges	
-	SELECT w.id AS edge,v.node,CASE WHEN w.SOURCE = v.node THEN v.cost + w.cost ELSE v.cost + w.reverse_cost END AS cost, 
-	w.geom,CASE WHEN w.source = v.node THEN ST_ENDPOINT(w.geom) ELSE ST_STARTPOINT(w.geom) END AS v_geom,objectid_input
-	FROM temp_reached_vertices v, temp_fetched_ways w 
-	WHERE v.death_end = TRUE 
-	AND v.node = w.death_end
-	AND w.cost < (max_cost-v.cost);
-	
-END;
-$$ LANGUAGE plpgsql;

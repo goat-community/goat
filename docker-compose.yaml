@@ -82,8 +82,8 @@ services:
     networks:
       proxy:
 
-  db:
-    image: goatcommunity/database:12-3-2.6.3-2.3.14
+  db: 
+    image: goatcommunity/database:12-3-2.6.11-custom-2.3.14
     container_name: goat-database
     restart: on-failure
     volumes:
