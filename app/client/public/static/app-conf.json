@@ -426,7 +426,7 @@
           "name": "population",
           "url": "/geoserver/wms",
           "group": "accessbilityBasemaps",
-          "layers": "cite:BOG_heatmap_population",
+          "layers": "cite:heatmap_population",
           "opacity": 0.4,
           "visible": false,
           "displayInLayerList": true,
