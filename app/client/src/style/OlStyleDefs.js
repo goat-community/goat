@@ -237,7 +237,10 @@ export function defaultStyle(feature, resolution) {
 
     let isCompleted = true;
     let hasEntranceFeature = false;
-    if (store.state.reqFields) {
+    if (
+      store.state.reqFields &&
+      store.state.selectedEditLayer.get("name") === "buildings"
+    ) {
       store.state.reqFields.forEach(field => {
         if (!properties[field]) {
           isCompleted = false;
