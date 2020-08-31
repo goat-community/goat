@@ -17,7 +17,7 @@ DATA_REFINEMENT_VARIABLES:
   ADDITIONAL_WALKABILITY_LAYERS: "no" #"yes" 
   OSM_MAPPING_FEATURE: "yes"
   variable_container:
-    city : "Bogota"
+    city : "'Bogota'"
     heatmap_auto_refresh: "'yes'"
     heatmap_sensitivities: [150000,200000,250000,300000,350000,400000,450000,550000,750000,800000,900000,950000,1000000]
     pois_one_entrance: ["kindergarten","school","university","cafe","restaurant","theatre","sum_population","cinema","library",

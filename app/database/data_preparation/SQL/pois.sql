@@ -483,6 +483,16 @@ DO $$
     END
 $$ ;
 
+-- Run regional settings based on functions
+
+DO $$
+	BEGIN 
+		IF (SELECT select_from_variable_container_s('city') = 'Bogota') THEN
+		-- Call a new local function to load local conditions
+			PERFORM (SELECT bogota_custom_pois());
+		END IF;
+	END
+$$;
 
 --CREATE copy of pois for scenarios
 DROP TABLE IF EXISTS pois_userinput;
