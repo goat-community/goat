@@ -16,11 +16,11 @@ BEGIN
 	),
 	sum_pop AS (
 		SELECT g.grid_id, sum(p.population) + COALESCE(g.population,0) population, 
-		CASE WHEN sum(p.population) + COALESCE(g.population,0) BETWEEN 1 AND 20 THEN 1 
-		WHEN sum(p.population) + COALESCE(g.population,0)  BETWEEN 20 AND 80 THEN 2
-		WHEN sum(p.population) + COALESCE(g.population,0)  BETWEEN 80 AND 200 THEN 3 
-		WHEN sum(p.population) + COALESCE(g.population,0)  BETWEEN 200 AND 400 THEN 4 
-		WHEN sum(p.population) + COALESCE(g.population,0)  > 400 THEN 5 END AS percentile_population, g.geom
+		CASE WHEN sum(p.population) + COALESCE(g.population,0) BETWEEN 1 AND (SELECT (select_from_variable_container('population_quintiles'))[1])::numeric THEN 1 
+		WHEN sum(p.population) + COALESCE(g.population,0)  BETWEEN (SELECT (select_from_variable_container('population_quintiles'))[1])::numeric AND (SELECT (select_from_variable_container('population_quintiles'))[2])::numeric THEN 2
+		WHEN sum(p.population) + COALESCE(g.population,0)  BETWEEN (SELECT (select_from_variable_container('population_quintiles'))[2])::numeric AND (SELECT (select_from_variable_container('population_quintiles'))[3])::numeric THEN 3 
+		WHEN sum(p.population) + COALESCE(g.population,0)  BETWEEN (SELECT (select_from_variable_container('population_quintiles'))[3])::numeric AND (SELECT (select_from_variable_container('population_quintiles'))[4])::numeric THEN 4 
+		WHEN sum(p.population) + COALESCE(g.population,0)  > (SELECT (select_from_variable_container('population_quintiles'))[4])::numeric THEN 5 END AS percentile_population, g.geom
 		FROM grid_heatmap g, modified_population p
 		WHERE ST_Intersects(g.geom,p.geom)
 		GROUP BY g.grid_id, g.population, g.geom
