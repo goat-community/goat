@@ -1,0 +1,15 @@
+<layer>
+  <name>BOG_mob_heatmap_population</name>
+  <id>LayerInfoImpl--48e4bd91:17443ffd45f:-7ff7</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-1fd33a32:1735ce05479:77f0</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--48e4bd91:17443ffd45f:-7ff8</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>
