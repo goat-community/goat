@@ -208,7 +208,6 @@ const editLayerHelper = {
           const bldFeatureIds = [];
           //Update Feature Line type
           source.getFeatures().forEach(feature => {
-            console.log(feature);
             if (feature.get("layerName") === "buildings") {
               bldFeatureIds.push(feature.getId());
             }
@@ -239,7 +238,6 @@ const editLayerHelper = {
               }
             })
             .then(response => {
-              console.log(response);
               if (response.data && response.data.features) {
                 response.data.features.forEach(feature => {
                   const id = parseInt(feature.id.split(".")[1]);
