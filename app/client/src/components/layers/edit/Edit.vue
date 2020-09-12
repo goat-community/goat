@@ -542,7 +542,6 @@ export default {
   mixins: [InteractionsToggle, Mapable, KeyShortcuts, Isochrones],
   data: () => ({
     interactionType: "edit-interaction",
-    selectedLayer: null,
     selectedFeatures: [],
     editableLayers: [],
     toggleSelection: undefined,
@@ -1859,6 +1858,9 @@ export default {
     }),
     ...mapFields("isochrones", {
       scenarioDataTable: "scenarioDataTable"
+    }),
+    ...mapFields("map", {
+      selectedLayer: "selectedEditLayer"
     })
   },
   created() {
