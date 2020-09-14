@@ -5,6 +5,7 @@ import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
 import store from "../store/modules/map";
+import isochronesStore from "../store/modules/isochrones";
 import { LineString } from "ol/geom.js";
 import { getArea, getLength } from "ol/sphere.js";
 
@@ -387,6 +388,12 @@ export function waysNewBridgeStyle(feature) {
 }
 export function editStyleFn() {
   const styleFunction = (feature, resolution) => {
+    if (
+      isochronesStore.state.activeScenario &&
+      feature.get("scenario_id") !== isochronesStore.state.activeScenario
+    ) {
+      return [];
+    }
     const props = feature.getProperties();
     // Polygon (ex. building) style
     if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {

@@ -58,7 +58,10 @@ const state = {
   // Edit
   scenarioDataTable: [],
   // Cancel Request
-  cancelReq: undefined
+  cancelReq: undefined,
+  //Scenarios
+  scenarios: {},
+  activeScenario: null
 };
 
 const getters = {

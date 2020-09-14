@@ -1603,7 +1603,8 @@
         "id",
         "original_id",
         "status",
-        "street_category"
+        "street_category",
+        "scenario_id"
       ]
     },
     "pois": {
@@ -1621,7 +1622,8 @@
         "wheelchair",
         "status",
         "amenity_icon",
-        "opening_hours"
+        "opening_hours",
+        "scenario_id"
       ]
     },
     "buildings": {
@@ -1637,7 +1639,8 @@
         "id",
         "original_id",
         "status",
-        "gross_floor_area"
+        "gross_floor_area",
+        "scenario_id"
       ]
     }
   }
