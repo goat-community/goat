@@ -5,8 +5,7 @@ import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
 import store from "../store/modules/map";
-import { LineString } from "ol/geom.js";
-import { getArea, getLength } from "ol/sphere.js";
+import { getArea } from "ol/sphere.js";
 
 export function getMeasureStyle(measureConf) {
   return new OlStyle({
@@ -272,16 +271,9 @@ export function defaultStyle(feature, resolution) {
       fillOpt.color = "rgb(0,128,0, 0.7)";
     }
     const area = getArea(feature.getGeometry());
-    const length = getLength(
-      new LineString(
-        feature
-          .getGeometry()
-          .getLinearRing(0)
-          .getCoordinates()
-      )
-    );
-
-    // Add area and length label for building.
+    const building_levels = feature.get("building_levels");
+    const population = feature.get("population");
+    // Add label for building.
     let fontSize = 12;
 
     if (
@@ -291,9 +283,12 @@ export function defaultStyle(feature, resolution) {
     ) {
       const style = new OlStyle({
         text: new OlText({
-          text: `Area: ${area.toFixed(0)} ㎡ \n Perimeter: ${length.toFixed(
+          text: `Area: ${area.toFixed(
             0
-          )} m`,
+          )} ㎡\nBuilding levels: ${building_levels.toFixed(
+            0
+          )}\nPopulation: ${parseInt(population || 0)}
+          `,
           overflow: true,
           font: `${fontSize}px Calibri, sans-serif`,
           fill: new OlFill({
