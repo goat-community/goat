@@ -722,7 +722,13 @@
         "building_levels": "Building Levels",
         "building_levels_residential": "Building levels residential",
         "population": "Number residents (optional)",
-        "gross_floor_area": "Gross Flor Area (optional)"
+        "gross_floor_area": "Gross Floor Area (optional)",
+        "labels": {
+            "area": "Area",
+            "building_levels": "Building levels",
+            "gross_floor_area":"Gross Floor Area",
+            "population": "Population"
+        }
       }
     },
     "listValues": {

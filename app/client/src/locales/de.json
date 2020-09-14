@@ -697,7 +697,13 @@
       "building_levels": "Anzahl Geschosse",
       "building_levels_residential": "Anzahl Geschosse Wohnen",
       "population": "Einwohneranzahl (optional)",
-      "gross_floor_area": "Geschossfläche"
+      "gross_floor_area": "Geschossfläche",
+      "labels": {
+          "area": "Fläche",
+          "building_levels": "Anzahl Geschosse",
+          "gross_floor_area":"Geschossfläche",
+          "population": "Einwohner"
+      }
       }
     },
     "listValues": {
@@ -717,7 +723,6 @@
         "residential": "Wohnen",
         "commercial": "Gewerbe",
         "public": "Öffentliche Einrichtung"
-  
       }
     }
   }

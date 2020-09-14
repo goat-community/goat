@@ -6,6 +6,7 @@ import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
 import store from "../store/modules/map";
 import { getArea } from "ol/sphere.js";
+import i18n from "../../src/plugins/i18n";
 
 export function getMeasureStyle(measureConf) {
   return new OlStyle({
@@ -273,6 +274,16 @@ export function defaultStyle(feature, resolution) {
     const area = getArea(feature.getGeometry());
     const building_levels = feature.get("building_levels");
     const population = feature.get("population");
+    const area_label = i18n.t("dynamicFields.attributes.buildings.labels.area");
+    const building_levels_label = i18n.t(
+      "dynamicFields.attributes.buildings.labels.building_levels"
+    );
+    const population_label = i18n.t(
+      "dynamicFields.attributes.buildings.labels.population"
+    );
+    const floor_area_label = i18n.t(
+      "dynamicFields.attributes.buildings.labels.gross_floor_area"
+    );
     // Add label for building.
     let fontSize = 12;
 
@@ -283,12 +294,12 @@ export function defaultStyle(feature, resolution) {
     ) {
       const style = new OlStyle({
         text: new OlText({
-          text: `Area: ${area.toFixed(
+          text: `${area_label}: ${area.toFixed(
             0
-          )} ㎡\nBuilding levels: ${building_levels.toFixed(
+          )} ㎡\n${building_levels_label}: ${building_levels.toFixed(
             0
-          )}\nPopulation: ${parseInt(population || 0)}
-          `,
+          )}\n${floor_area_label}: ${parseInt(area * building_levels)} ㎡
+          ${population_label}: ${parseInt(population || 0)}`,
           overflow: true,
           font: `${fontSize}px Calibri, sans-serif`,
           fill: new OlFill({
