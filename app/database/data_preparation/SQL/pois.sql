@@ -492,7 +492,8 @@ SELECT * FROM pois;
 
 ALTER TABLE pois_userinput ADD COLUMN userid integer;
 CREATE INDEX ON pois_userinput(userid);
-
+ALTER TABLE pois_userinput ADD COLUMN scenario_id integer;
+CREATE INDEX ON pois_userinput(scenario_id);
 --Add Foreign Key to pois_userinput 
 ALTER TABLE pois_userinput ADD COLUMN pois_modified_id integer; 
 ALTER TABLE pois_userinput

@@ -1,57 +1,31 @@
 DROP FUNCTION IF EXISTS heatmap_geoserver;
-CREATE OR REPLACE FUNCTION public.heatmap_geoserver(userid_input integer, amenities jsonb, modus_input int4)
-  RETURNS SETOF type_heatmap
+CREATE OR REPLACE FUNCTION public.heatmap_geoserver(amenities_json jsonb, modus_input integer DEFAULT 1, userid_input integer DEFAULT 0, scenario_id_input integer DEFAULT 0)
+ RETURNS TABLE(grid_id integer, percentile_accessibility integer, accessibility_index bigint, geom geometry)
  LANGUAGE plpgsql
 AS $function$
-BEGIN 
-	IF modus_input = 1 THEN 
-		RETURN query
-		SELECT g.grid_id, h.accessibility_index, COALESCE(percentile_accessibility,0)::smallint, g.percentile_population, g.geom
-		FROM grid_500 g
-		LEFT JOIN 
-		(
-			SELECT grid_id, accessibility_index, CASE WHEN accessibility_index <> 0 THEN ntile(5) over 
-			(order by accessibility_index) ELSE 0 END AS percentile_accessibility 
-			FROM heatmap(amenities)
-		) h 
-		ON g.grid_id = h.grid_id;
-	
-	ELSEIF modus_input = 2 THEN  
-		RETURN query
-		WITH hs AS(
-			SELECT grid_id, accessibility_index 
-			FROM heatmap(amenities)
-		),
-		hd AS (
-			SELECT * 
-		    FROM heatmap_dynamic(userid_input,amenities,2)
-		), 
-		joined AS (
-			SELECT hs.grid_id,hs.accessibility_index
-			FROM hs 
-			LEFT JOIN hd 
-			ON hs.grid_id = hd.grid_id
-			WHERE hd.grid_id IS NULL 
-			UNION ALL 
-			SELECT hd.grid_id, accessibility_index FROM hd 
-		),
-		percentiles AS (
-			SELECT grid_id, accessibility_index, CASE WHEN accessibility_index <> 0 THEN ntile(5) over 
-			(order by accessibility_index) ELSE 0 END AS percentile_accessibility
-			FROM joined 		
-		)
-		SELECT g.grid_id, p.accessibility_index, COALESCE(p.percentile_accessibility,0)::smallint AS percentile_accessibility, 
-		g.percentile_population, g.geom
-		FROM grid_500 g
-		LEFT JOIN percentiles p
-		ON g.grid_id = p.grid_id;
+
+BEGIN
+	IF amenities_json::TEXT <> '{}' THEN  
+		RETURN query 
+		SELECT g.grid_id, COALESCE(h.percentile_accessibility,0) AS percentile_accessibility, h.accessibility_index, g.geom  
+		FROM grid_heatmap g
+		LEFT JOIN (
+			SELECT h.grid_id, ntile(5) over (order by h.accessibility_index) AS percentile_accessibility,
+			h.accessibility_index
+			FROM heatmap_dynamic(amenities_json,2,userid_input,1) h
+		) h
+		ON g.grid_id = h.grid_id;	
 	ELSE 
-		RAISE NOTICE 'Please insert a valid modus.';
+		RETURN query 
+		SELECT 0,0, 0::bigint,g.geom 
+		FROM grid_heatmap g
+		LIMIT 1;
 	END IF; 
 END;
-$function$
+$function$;
+
 
 /*
-SELECT * 
-FROM heatmap_geoserver(7833128, '{"kindergarten":{"sensitivity":250000,"weight":1},"bus_stop":{"sensitivity":250000,"weight":1}}'::jsonb,2)
+SELECT *
+FROM heatmap_geoserver('{"kindergarten":{"sensitivity":250000,"weight":1}}'::jsonb,2,1,1) 
 */

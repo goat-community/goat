@@ -6,8 +6,8 @@ import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
 import store from "../store/modules/map";
 import isochronesStore from "../store/modules/isochrones";
-import { LineString } from "ol/geom.js";
-import { getArea, getLength } from "ol/sphere.js";
+import { getArea } from "ol/sphere.js";
+import i18n from "../../src/plugins/i18n";
 
 export function getMeasureStyle(measureConf) {
   return new OlStyle({
@@ -273,16 +273,19 @@ export function defaultStyle(feature, resolution) {
       fillOpt.color = "rgb(0,128,0, 0.7)";
     }
     const area = getArea(feature.getGeometry());
-    const length = getLength(
-      new LineString(
-        feature
-          .getGeometry()
-          .getLinearRing(0)
-          .getCoordinates()
-      )
+    const building_levels = feature.get("building_levels");
+    const population = feature.get("population");
+    const area_label = i18n.t("dynamicFields.attributes.buildings.labels.area");
+    const building_levels_label = i18n.t(
+      "dynamicFields.attributes.buildings.labels.building_levels"
     );
-
-    // Add area and length label for building.
+    const population_label = i18n.t(
+      "dynamicFields.attributes.buildings.labels.population"
+    );
+    const floor_area_label = i18n.t(
+      "dynamicFields.attributes.buildings.labels.gross_floor_area"
+    );
+    // Add label for building.
     let fontSize = 12;
 
     if (
@@ -292,9 +295,12 @@ export function defaultStyle(feature, resolution) {
     ) {
       const style = new OlStyle({
         text: new OlText({
-          text: `Area: ${area.toFixed(0)} ㎡ \n Perimeter: ${length.toFixed(
+          text: `${area_label}: ${area.toFixed(
             0
-          )} m`,
+          )} ㎡\n${building_levels_label}: ${building_levels.toFixed(
+            0
+          )}\n${floor_area_label}: ${parseInt(area * building_levels)} ㎡
+          ${population_label}: ${parseInt(population || 0)}`,
           overflow: true,
           font: `${fontSize}px Calibri, sans-serif`,
           fill: new OlFill({

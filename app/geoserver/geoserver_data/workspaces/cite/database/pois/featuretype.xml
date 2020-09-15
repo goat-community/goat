@@ -21,22 +21,27 @@
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>11.5953565</minx>
-    <maxx>11.8368425</maxx>
-    <miny>48.2906312</miny>
-    <maxy>48.4895665</maxy>
+    <minx>-74.2651280116144</minx>
+    <maxx>-73.94231735</maxx>
+    <miny>4.2342617</miny>
+    <maxy>4.8811612</maxy>
     <crs>EPSG:4326</crs>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>11.5953565</minx>
-    <maxx>11.8368425</maxx>
-    <miny>48.2906312</miny>
-    <maxy>48.4895665</maxy>
+    <minx>-74.2651280116144</minx>
+    <maxx>-73.94231735</maxx>
+    <miny>4.2342617</miny>
+    <maxy>4.8811612</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
   <enabled>true</enabled>
   <metadata>
+    <entry key="elevation">
+      <dimensionInfo>
+        <enabled>false</enabled>
+      </dimensionInfo>
+    </entry>
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>pois_test</name>
@@ -82,6 +87,11 @@ FROM pois_visualization(%userid%,(SELECT amenity FROM am), %routing_profile%, %d
           <defaultValue>&apos;walking_standard&apos;</defaultValue>
         </parameter>
       </virtualTable>
+    </entry>
+    <entry key="time">
+      <dimensionInfo>
+        <enabled>false</enabled>
+      </dimensionInfo>
     </entry>
     <entry key="cachingEnabled">false</entry>
   </metadata>

@@ -1,118 +1,69 @@
-DROP FUNCTION IF EXISTS pgrouting_edges_multi;
-CREATE OR REPLACE FUNCTION public.pgrouting_edges_multi(userid_input integer, minutes integer,array_starting_points NUMERIC[][],speed NUMERIC, number_isochrones integer, ids_calc int[], objectid_input integer, modus_input integer,routing_profile text)
- RETURNS void --SETOF type_catchment_vertices_multi
+CREATE OR REPLACE FUNCTION public.pgrouting_edges_multi(cutoffs double precision[], startpoints double precision[], speed numeric, modus_input integer, routing_profile text, userid_input integer DEFAULT 1, scenario_id_input integer DEFAULT 1)
+ RETURNS SETOF void
  LANGUAGE plpgsql
 AS $function$
-DECLARE
-	distance integer;
-	array_starting_ids bigint[] := array[]::bigint[];
-  array_starting_geom geometry[] :=array[]::geometry[]; 
-  array_original_wid bigint[] := array[]::bigint[];
-  array_new_wid bigint[] := array[]::bigint[];
-	excluded_class_id text;
-	categories_no_foot text;
-	buffer text;
-  userid_vertex integer;
-  counter integer := 1;
-  new_vid bigint := 999999999;
-  wid bigint;
-  new_wid1 bigint := 999999999;
-  new_wid2 bigint := 999999998;
-  closest_point geometry;
-  fraction float;
-  single_id integer;
-  x numeric;
-  y numeric;
+DECLARE 
+	vids bigint[];
 BEGIN
-  
-  IF modus_input IN(1,3)  THEN
-		userid_vertex = 1;
-		userid_input = 1;
-  ELSEIF modus_input = 2 THEN
-    userid_vertex = userid_input;
-	ELSEIF modus_input = 4 THEN  	 
-		userid_vertex = 1;
-	END IF;
-  raise notice '%',modus_input;
-  DROP TABLE IF EXISTS closest_vertices;
+	
+	PERFORM pgrouting_edges_preparation(cutoffs, startpoints, speed, modus_input, routing_profile,userid_input,scenario_id_input);
+	
+	SELECT ARRAY_AGG(vid)
+	INTO vids
+	FROM start_vertices s;
 
-  distance = (60*minutes)*speed;
-  
-  SELECT ST_AsText(ST_Buffer(ST_Union(ST_POINT(c.lat_lon[1],c.lat_lon[2]))::geography,distance)::geometry)  
-  INTO buffer
-  FROM (SELECT unnest_2d_1d(array_starting_points) lat_lon) c;
+	/*Perform routing with multiple starting points*/
+	DROP TABLE IF EXISTS reached_edges; 
+	CREATE TEMP TABLE reached_edges AS 
+	SELECT p.from_v, p.edge, p.start_perc, p.end_perc, greatest(start_cost,end_cost)::smallint AS COST, start_cost::smallint, end_cost::SMALLINT 
+	FROM pgr_isochrones(
+		'SELECT * FROM temp_fetched_ways', 
+		vids, cutoffs, TRUE
+	) p;
 
-  DROP TABLE IF EXISTS temp_fetched_ways;
-  CREATE TEMP TABLE temp_fetched_ways AS 
-  SELECT * FROM fetch_ways_routing(buffer,modus_input,userid_input,routing_profile);
+	CREATE INDEX ON reached_edges (edge);
+	DELETE FROM reached_edges WHERE edge IN (SELECT id FROM artificial_edges);
+	
+	INSERT INTO reached_edges
+	SELECT a.source, a.id, 0, 1, a.COST, 0, a.COST
+	FROM artificial_edges a, start_vertices v
+	WHERE a.SOURCE = v.vid 
+	UNION ALL 
+	SELECT a.target, a.id, 0, 1, a.reverse_cost, a.reverse_cost, 0
+	FROM artificial_edges a, start_vertices v
+	WHERE a.target = v.vid; 
 
-  ALTER TABLE temp_fetched_ways ADD PRIMARY KEY(id);
-  CREATE INDEX ON temp_fetched_ways (target);
-  CREATE INDEX ON temp_fetched_ways (source);
-  CREATE INDEX ON temp_fetched_ways (death_end);
+	DROP TABLE IF EXISTS multi_edges;
+	CREATE TEMP TABLE multi_edges AS 
+	WITH full_edges AS 
+	(	
+		SELECT r.*, w.geom 
+		FROM reached_edges r, temp_fetched_ways w 
+		WHERE (r.start_perc = 0 
+		AND r.end_perc = 1)
+		AND r.edge = w.id
+	)
+	SELECT r.from_v, r.edge, r.cost, r.start_cost, r.end_cost, ST_LineSubstring(r.geom, r.start_perc, r.end_perc) AS geom
+	FROM (
+		SELECT e.*, w.geom
+		FROM reached_edges e, temp_fetched_ways w 
+		WHERE e.edge = w.id
+		AND (e.start_perc <> 0 OR e.end_perc <> 1) 
+	) r
+	LEFT JOIN full_edges f
+	ON r.edge = f.edge 
+	WHERE f.edge IS NULL
+	UNION ALL 
+	SELECT from_v, edge, COST, start_cost, end_cost, geom
+	FROM full_edges; 
 
-  FOREACH single_id IN ARRAY ids_calc
-	LOOP
-    new_wid1 = new_wid1 - 1;
-    new_wid2 = new_wid1 - 1;
-    
-
-    new_vid = new_vid - 1;
-    raise notice '%',new_vid;
-    x = array_starting_points[counter][1];
-    y = array_starting_points[counter][2];
-
-    SELECT c.closest_point, c.fraction, c.wid
-    INTO closest_point, fraction, wid
-    FROM closest_point_network(x,y) c;
-
-    INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
-    SELECT new_wid1, cost*fraction,reverse_cost*fraction,SOURCE,new_vid,ST_LINESUBSTRING(geom,0,fraction)
-    FROM temp_fetched_ways 
-    WHERE id = wid
-    UNION ALL 
-    SELECT new_wid2, cost*(1-fraction),reverse_cost*(1-fraction),new_vid,target,ST_LINESUBSTRING(geom,fraction,1)
-    FROM temp_fetched_ways 
-    WHERE id = wid;   
-
-    array_starting_ids = array_starting_ids || new_vid;
-    array_starting_geom = array_starting_geom || closest_point;
-    array_original_wid = array_original_wid || wid;
-    array_new_wid = array_new_wid || new_wid1 || new_wid2;
-
-    counter = counter + 1;
-    new_wid1 = new_wid1 - 1;
-
-  END LOOP;
-
-  DROP TABLE IF EXISTS starting_vertices;
-  CREATE temp TABLE starting_vertices AS 
-  SELECT UNNEST(array_starting_ids) vid,UNNEST(ids_calc) id_calc;
-
-  DROP TABLE IF EXISTS temp_reached_vertices;
-
-  CREATE TEMP TABLE temp_reached_vertices AS
-  SELECT array_agg(agg_cost/speed) costs,array_agg(s.id_calc) ids_calc,
-  --jsonb_object_agg(s.id_calc,agg_cost/speed) AS node_cost,sort(array_agg(s.id_calc)) ids_calc,
-  x.node::int, min((x.agg_cost/speed)::numeric) AS min_cost, v.geom, v.death_end
-  FROM 
-  (SELECT from_v, node, edge, agg_cost FROM pgr_drivingDistance(
-  'SELECT * FROM temp_fetched_ways WHERE NOT id = ANY('''||array_original_wid::text||''')'
-  ,array_starting_ids, distance,FALSE,FALSE)
-  ) x, ways_userinput_vertices_pgr v, starting_vertices s  
-  WHERE v.id = x.node AND s.vid = x.from_v
-  GROUP BY x.node, v.geom, v.death_end;
-
-  ALTER TABLE temp_reached_vertices ADD PRIMARY KEY(node);
-  CREATE INDEX ON temp_reached_vertices (death_end);
-  PERFORM get_reached_network_multi_array(ids_calc,minutes*60, number_isochrones, array_new_wid, objectid_input);
-
-END ;
+	ALTER TABLE multi_edges ADD COLUMN id serial;
+	ALTER TABLE multi_edges ADD PRIMARY key(id);
+	CREATE INDEX ON multi_edges(cost);
+END;
 $function$;
-
 
 /*
 SELECT * 
-FROM public.pgrouting_edges_multi(100,20, ARRAY[[11.2570,48.1841],[11.2314,48.1736],[11.2503,48.1928],[11.2487,48.1718]], 
-1.33, 1, ARRAY[1,2,3,4], 12,20, 'walking_wheelchair');
+FROM public.pgrouting_edges_multi(ARRAY[300.,600.,900.], ARRAY[[11.2493, 48.1804],[11.2315,48.1778]],1.33, 1,'walking_standard',1,1)
 */

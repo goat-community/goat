@@ -387,6 +387,16 @@ wheelchair_classified  = w.wheelchair_classified
 FROM ways_attributes w
 WHERE v.id = w.id;
 
+-- Mark dedicated lanes as foot = 'no'
+
+UPDATE ways w
+SET foot = 'no'  FROM ( SELECT osm_id FROM planet_osm_line WHERE highway = 'service' AND (tags->'psv' IS NOT NULL OR tags->'bus' = 'yes') ) x WHERE w.osm_id = x.osm_id;
+
+-- Mark underground cycle lanes as foot = 'no' this is for the specific case of BOG
+--UPDATE ways
+--SET foot = 'yes' WHERE bicycle != 'no'AND foot = 'no';
+--
+
 
 ALTER TABLE ways ADD COLUMN slope_profile jsonb[];
 ALTER TABLE ways ADD COLUMN s_imp NUMERIC;
@@ -530,7 +540,11 @@ SELECT * FROM ways_vertices_pgr;
 
 ALTER TABLE ways_userinput add column userid int4;
 ALTER TABLE ways_userinput_vertices_pgr add column userid int4;
+ALTER TABLE ways_userinput add column scenario_id int4;
+ALTER TABLE ways_userinput_vertices_pgr add column scenario_id int4;
 ALTER TABLE ways_userinput ADD COLUMN original_id BIGINT;
 CREATE INDEX ON ways_userinput USING btree (userid);
 CREATE INDEX ON ways_userinput_vertices_pgr USING btree (userid);
+CREATE INDEX ON ways_userinput USING btree (scenario_id);
+CREATE INDEX ON ways_userinput_vertices_pgr USING btree (scenario_id);
 CREATE INDEX ON ways_userinput (original_id);

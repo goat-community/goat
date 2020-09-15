@@ -1,0 +1,21 @@
+<layer>
+  <name>landuse_bog</name>
+  <id>LayerInfoImpl--63c355ec:172845386aa:-7ff8</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--55ca986e:172fa64b5a9:1412</id>
+  </defaultStyle>
+  <styles class="linked-hash-set">
+    <style>
+      <id>StyleInfoImpl--63c355ec:172845386aa:-7ff4</id>
+    </style>
+  </styles>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--63c355ec:172845386aa:-7ff9</id>
+  </resource>
+  <queryable>false</queryable>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

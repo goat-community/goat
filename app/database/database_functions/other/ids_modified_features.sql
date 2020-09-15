@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS ids_modified_features;
-CREATE OR REPLACE FUNCTION public.ids_modified_features(userid_input integer,table_input text)
+CREATE OR REPLACE FUNCTION public.ids_modified_features(userid_input integer, scenario_id_input integer, table_input text)
  RETURNS SETOF INTEGER[]
  LANGUAGE plpgsql
 AS $function$
@@ -19,15 +19,15 @@ BEGIN
 			SELECT Unnest(deleted_feature_ids)::integer id 
 			FROM user_data
 			WHERE userid = $1 
-			AND layer_name = $2
+			AND scenario_id = $2
+			AND layer_name = $3
 			UNION ALL
 			SELECT original_id::integer modified
 			FROM '|| quote_ident(t_name)||' 
-			WHERE userid = $3 AND original_id IS NOT NULL
+			WHERE userid = $4 AND original_id IS NOT NULL
 		) x'
-		USING userid_input, table_input, userid_input;
+		USING userid_input, scenario_id_input, table_input, userid_input;
 END;
 $function$
 
---SELECT ids_modified_features(1,'ways')
- 
+--SELECT ids_modified_features(1,0,'ways')
