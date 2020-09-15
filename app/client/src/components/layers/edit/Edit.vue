@@ -14,7 +14,6 @@
               <v-select
                 v-model="activeScenario"
                 :items="scenarioArray"
-                @change="onEditSourceChange"
                 item-text="display"
                 item-value="value"
                 label="Select scenario"
@@ -685,6 +684,11 @@ export default {
         this.isUploadBtnEnabled = true;
       }
       this.updateUploadBtnState();
+    },
+    activeScenario() {
+      this.onEditSourceChange();
+      this.olEditCtrl.source.changed();
+      this.olEditCtrl.bldEntranceLayer.getSource().changed();
     },
     toggleSelection: {
       handler(state) {

@@ -240,6 +240,14 @@ export default class OlEditController extends OlBaseController {
         evt.coordinate
       );
       if (
+        featureAtCoord.length > 0 &&
+        isochronesStore.state.activeScenario &&
+        featureAtCoord[0].get("scenario_id") !==
+          isochronesStore.state.activeScenario
+      ) {
+        return;
+      }
+      if (
         featureAtCoord.length === 0 ||
         (featureAtCoord.length > 0 &&
           !featureAtCoord[0].getProperties().hasOwnProperty("original_id"))

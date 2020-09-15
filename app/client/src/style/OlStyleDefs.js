@@ -389,6 +389,7 @@ export function waysNewBridgeStyle(feature) {
 export function editStyleFn() {
   const styleFunction = (feature, resolution) => {
     if (
+      feature.get("scenario_id") &&
       isochronesStore.state.activeScenario &&
       feature.get("scenario_id") !== isochronesStore.state.activeScenario
     ) {
@@ -463,6 +464,13 @@ export function studyAreaASelectStyle() {
 
 export function bldEntrancePointsStyle() {
   return (feature, resolution) => {
+    if (
+      feature.get("scenario_id") &&
+      isochronesStore.state.activeScenario &&
+      feature.get("scenario_id") !== isochronesStore.state.activeScenario
+    ) {
+      return [];
+    }
     let radius = 8;
     if (resolution > 4) {
       return [];
