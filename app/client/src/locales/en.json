@@ -515,7 +515,7 @@
           "stepsDesc": {
             "clickFeatureInMap": "The displayed icons in the map are the challenges. Select one of them.",
             "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
-            "fillInOSMiD": "Add the missing tag 'opening_hours' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, the website of the amenity can be viewed or an on-site visit can be made."
+            "fillInOSMiD": "Add to the POIs the missing tag 'opening_hours' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, the website of the amenity can be viewed or an on-site visit can be made."
           }
         },
         "osm-mapping-ways-speed": {
@@ -524,7 +524,7 @@
           "stepsDesc": {
             "clickFeatureInMap": "The red lines in the map are the challenges. Select one of them.",
             "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
-            "fillInOSMiD": "Add the missing tag 'maxspeed' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
+            "fillInOSMiD": "Add to the ways the missing tag 'maxspeed' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
           }
         },
         "osm-mapping-ways-surface": {
@@ -533,7 +533,7 @@
           "stepsDesc": {
             "clickFeatureInMap": "The red lines in the map are the challenges. Select one of them.",
             "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
-            "fillInOSMiD": "Add the missing tag 'surface' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
+            "fillInOSMiD": "Add to the ways the missing tag 'surface' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
           }
         },
         "osm-mapping-cycleways-width": {
@@ -542,7 +542,7 @@
           "stepsDesc": {
             "clickFeatureInMap": "The red lines in the map are the challenges. Select one of them.",
             "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
-            "fillInOSMiD": "Add the missing tag 'width' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
+            "fillInOSMiD": "Add to the ways the missing tag 'width' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
           }
         },
         "osm-mapping-cycleways-segregated": {

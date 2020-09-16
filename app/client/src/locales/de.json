@@ -527,7 +527,7 @@
           "stepsDesc": {
             "clickFeatureInMap": "Die roten Linien in der Karte zeigen die Mapping-Aufgaben. Wählen Sie eine davon aus.",
             "clickEditWithOsm": "Durch Klicken auf den <b>'In OSM bearbeiten'</b> Link werden Sie zum OSM iD-Editor weitergeleitet.",
-            "fillInOSMiD": "Fügen Sie das fehlende Attribut 'width' im OSM Editor hinzu. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki. Die fehlenden Informationen können z.B. anhand von Mapillary-Aufnahmen oder durch einen Vor-Ort Besuch ermittelt werden."
+            "fillInOSMiD": "Fügen Sie den Wegen das fehlende Attribut 'width' im OSM Editor hinzu. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki. Die fehlenden Informationen können z.B. anhand von Mapillary-Aufnahmen oder durch einen Vor-Ort Besuch ermittelt werden."
           }
         },
         "osm-mapping-cycleways-segregated": {
@@ -536,7 +536,7 @@
           "stepsDesc": {
             "clickFeatureInMap": "Die roten Linien in der Karte zeigen die Mapping-Aufgaben. Wählen Sie eine davon aus.",
             "clickEditWithOsm": "Durch Klicken auf den <b>'In OSM bearbeiten'</b> Link werden Sie zum OSM iD-Editor weitergeleitet.",
-            "fillInOSMiD": "Fügen Sie das fehlende Attribut 'segregated' im OSM Editor hinzu. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki. Die fehlenden Informationen können z.B. anhand von Mapillary-Aufnahmen oder durch einen Vor-Ort Besuch ermittelt werden."
+            "fillInOSMiD": "Fügen Sie den Wegen das fehlende Attribut 'segregated' im OSM Editor hinzu. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki. Die fehlenden Informationen können z.B. anhand von Mapillary-Aufnahmen oder durch einen Vor-Ort Besuch ermittelt werden."
           }
         },
         "osm-mapping-ways-wheelchair": {
