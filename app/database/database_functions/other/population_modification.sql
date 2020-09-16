@@ -36,7 +36,8 @@ BEGIN
 	UPDATE buildings_modified 
 	SET population = u.population 
 	FROM to_update u 
-	WHERE gid = u.building_gid; 
+	WHERE gid = u.building_gid
+	AND userid = userid_input; 
 
 END
 $function$;
