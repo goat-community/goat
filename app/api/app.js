@@ -31,54 +31,68 @@ app.post("/api/userdata", jsonParser, (request, response) => {
   function returnResult(err, res) {
     if (err) return console.log(err);
     response.send(res.rows);
+  };
+  /*sample body: {"mode":"insert"}*/
+  if (mode == "insert") { 
+
+    pool.query(
+      "INSERT INTO user_data (username, pw) VALUES ('','') RETURNING userid",
+      returnResult
+    );
   }
-  if (mode == "read") {
-    //read is used to fill tha array of delete features ids on the application startup
+  /*sample body: {"mode":"delete", "userid":1}*/ 
+  else if (mode == "delete") { 
+
     pool.query(
-      "SELECT * FROM user_data where userid = ($1) AND layer_name = ($2)",
-      [request.body.user_id, request.body.layer_name],
-      returnResult
-    );
-  } else if (mode == "update") {
-    //update is used to fill the array with features that are not drawn by the user
-    pool.query(
-      "UPDATE user_data SET deleted_feature_ids=($2) WHERE userid=($1) AND  layer_name=($3)",
-      [
-        request.body.user_id,
-        request.body.deleted_feature_ids,
-        request.body.layer_name
-      ],
-      returnResult
-    );
-  } else if (mode == "delete") {
-    //delete is used to delete the feature from modified table if the user has drawn that feature by himself
-    pool.query(
-      `DELETE FROM ${request.body.layer_name}_modified WHERE userid=($1) AND original_id = ANY(($2));`,
-      [
-        request.body.user_id,
-        request.body.deleted_feature_ids,
-      ]
-    );
-    pool.query(
-      `DELETE FROM ${request.body.layer_name}_modified WHERE id=($1)`,
-      [
-        request.body.drawned_fid
-      ],
-      returnResult
-    );
-    //*later we can require guid (unique id) for security here, for the user to be able to delete the feature and use a nodejs library to prevent sql incjection attacks*//
-  } else if (mode == "insert") {
-    pool.query(
-      "INSERT INTO user_data (userid, layer_name) VALUES ($1,$2)",
-      [request.body.user_id, request.body.layer_name],
-      returnResult
+      "DELETE FROM user_data WHERE userid = $1::bigint",
+      [request.body.userid]
     );
   }
 });
 
+app.post("/api/scenarios", jsonParser, (request, response) => {
+  var mode = request.body.mode;
+
+  function returnResult(err, res) {
+    if (err) return console.log(err);
+    response.send(res.rows);
+  };
+
+  /*sample body: {"mode":"add_deleted_feature","table_name":"pois","feature_id":2,"scenario_id":1}*/
+  if (mode == "add_deleted_feature"){
+    const translation_layers = {"ways":"deleted_ways","pois":"deleted_pois","buildings":"deleted_buildings"};
+    const column_name = translation_layers[request.body.table_name];
+
+    pool.query(
+      `UPDATE scenarios SET ${column_name} = ${column_name} || $1::bigint WHERE scenario_id = $2::bigint`,
+      [request.body.feature_id,request.body.scenario_id],
+      returnResult
+    );
+  } 
+  /*sample body: {mode:"insert","userid":1}*/
+  else if (mode == "insert") {
+    pool.query(
+      "INSERT INTO scenarios (userid) VALUES ($1) RETURNING scenario_id",
+      [request.body.userid],
+      returnResult
+    );
+  } 
+  /*sample body: {mode:"delete","scenario_id":1}*/
+  else if (mode == "delete") {
+    
+    pool.query(
+      "DELETE FROM scenarios WHERE scenario_id = $1::bigint",
+      [request.body.scenario_id],
+      returnResult
+    );
+  };
+});
+
+
 /**
  * Deletes all the rows of the user from "_modified" and "user_data" table
  */
+/*
 app.post(
   "/api/deleteAllScenarioData",
   jsonParser,
@@ -110,7 +124,7 @@ app.post(
     }
   }
 );
-
+*/
 app.post("/api/isochrone", jsonParser, (request, response) => {
   let requiredParams = [
     "user_id",
