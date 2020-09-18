@@ -8,7 +8,6 @@ import store from "../store/modules/map";
 import isochronesStore from "../store/modules/isochrones";
 import { getArea } from "ol/sphere.js";
 import i18n from "../../src/plugins/i18n";
-import { buffer } from "ol/extent";
 
 export function getMeasureStyle(measureConf) {
   return new OlStyle({
@@ -250,8 +249,7 @@ export function defaultStyle(feature, resolution) {
       });
     }
     if (store.state.bldEntranceLayer) {
-      let extent = feature.getGeometry().getExtent();
-      extent = buffer(extent, 1);
+      const extent = feature.getGeometry().getExtent();
       const entrancesInExtent = store.state.bldEntranceLayer
         .getSource()
         .getFeaturesInExtent(extent);
