@@ -476,11 +476,15 @@ SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_bounda
 ),
 joined_parks AS (
 	SELECT (ST_dump(ST_union(way))).geom AS geom FROM planet_osm_polygon
-	WHERE (leisure IN ('park','nature_reserve','garden') OR landuse IN ('village_green','grass')) AND (access is NULL OR access not in ('private','customers', 'permissive','no')) AND ST_area(way::geography) >= (SELECT * FROM area_limit)
+	WHERE (leisure IN ('park','nature_reserve','garden') 
+	OR landuse IN ('village_green','grass')) 
+	AND (access is NULL OR access not in ('private','customers', 'permissive','no')) 
+	AND ST_area(way::geography) >= (SELECT * FROM area_limit)
 ), all_parks AS (
 	SELECT osm_id, 'polygon' AS origin_geometry, ACCESS AS ACCESS, '' AS housenumber, 'park' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
-	OPERATOR, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair FROM planet_osm_polygon
-	WHERE (leisure IN ('park','nature_reserve','garden') OR landuse IN ('village_green','grass')) AND (access is NULL OR access not in ('private','customers', 'permissive','no')) AND ST_area(way::geography) >= (SELECT * FROM area_limit)
+	operator, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair FROM planet_osm_polygon
+	WHERE (leisure IN ('park','nature_reserve','garden') OR landuse IN ('village_green','grass')) 
+	AND (access is NULL OR access not in ('private','customers', 'permissive','no')) AND ST_area(way::geography) >= (SELECT * FROM area_limit)
 ), parks_id AS (
 SELECT ap.*, jp.geom AS agg_geom, ST_Area(ap.geom::geography), row_number() over(PARTITION BY jp.geom ORDER BY ST_Area(ap.geom::geography) desc) AS row_no FROM all_parks ap
 JOIN joined_parks jp
@@ -488,23 +492,10 @@ ON ST_Intersects(ST_centroid(ap.geom), jp.geom)
 ORDER BY jp.geom DESC, st_area DESC)
 SELECT osm_id, origin_geometry, ACCESS, housenumber, amenity, origin, organic, denomination, brand, name, OPERATOR, public_transport, railway, religion, opening_hours, REF, tags,agg_geom AS geom, wheelchair FROM parks_id WHERE row_no = 1;
 
----SELECT * FROM pois;
-SELECT * FROM aois_draft;
-
 --- Size classification
 ALTER TABLE aois ADD COLUMN zone_size varchar;
-UPDATE aois SET zone_size = 'small_zone' WHERE ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'parks'->'small')::jsonb)::DOUBLE PRECISION);
-UPDATE aois SET zone_size = 'large_zone' WHERE ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'parks'->'large')::jsonb)::DOUBLE PRECISION);
-
-/*SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'parks'->'small')::jsonb)
-
-::numeric
-->'small'
-SELECT * FROM variable_container;
-SELECT jsonb_array_elements_text((select_from_variable_container_o('pois_search_conditions')->rowrec.amenity->rowrec.name)::jsonb)
---------------------------------
-
-*/
+UPDATE aois SET zone_size = 'small_zone' WHERE ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'parks'->'small')::jsonb)::float);
+UPDATE aois SET zone_size = 'large_zone' WHERE ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'parks'->'large')::jsonb)::float);
 
 -- If custom_pois exists, run pois fusion 
 
