@@ -8,6 +8,7 @@ import store from "../store/modules/map";
 import isochronesStore from "../store/modules/isochrones";
 import { getArea } from "ol/sphere.js";
 import i18n from "../../src/plugins/i18n";
+import { buffer } from "ol/extent";
 
 export function getMeasureStyle(measureConf) {
   return new OlStyle({
@@ -249,17 +250,16 @@ export function defaultStyle(feature, resolution) {
       });
     }
     if (store.state.bldEntranceLayer) {
-      const extent = feature.getGeometry().getExtent();
+      let extent = feature.getGeometry().getExtent();
+      extent = buffer(extent, 1);
       const entrancesInExtent = store.state.bldEntranceLayer
         .getSource()
         .getFeaturesInExtent(extent);
 
       let countEntrances = 0;
       entrancesInExtent.forEach(entrance => {
-        const hasEntrance = feature
-          .getGeometry()
-          .intersectsCoordinate(entrance.getGeometry().getCoordinates());
-        if (hasEntrance === true) {
+        const buildingId = feature.get("gid") || feature.getId();
+        if (entrance.get("building_gid") === buildingId) {
           countEntrances += 1;
         }
       });
