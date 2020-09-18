@@ -7,23 +7,77 @@
       <v-card-text class="pr-16 pl-16 pt-0 pb-0">
         <v-divider></v-divider>
 
-        <v-select
-          class="mt-4"
-          :items="editableLayers"
-          v-model="selectedLayer"
-          item-value="values_.name"
-          return-object
-          :loading="loadingLayerInfo"
-          solo
-          :label="$t('appBar.edit.selectLayer')"
-        >
-          <template slot="selection" slot-scope="{ item }">
-            {{ translate("layerName", item.get("name")) }}
-          </template>
-          <template slot="item" slot-scope="{ item }">
-            {{ translate("layerName", item.get("name")) }}
-          </template>
-        </v-select>
+        <!-- CREATE SCENARIO  -->
+        <div v-if="Object.keys(scenarios).length > 0">
+          <v-row class="mt-4" no-gutters>
+            <v-col class="text-center" :cols="10">
+              <v-select
+                v-model="activeScenario"
+                :items="scenarioArray"
+                item-text="display"
+                item-value="value"
+                label="Select scenario"
+                solo
+              ></v-select>
+            </v-col>
+            <v-col class="text-center">
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    v-on="on"
+                    class="mt-1 ml-3"
+                    :color="activeColor.primary"
+                    fab
+                    dark
+                    small
+                    @click="showScenarioDialog = true"
+                  >
+                    <v-icon dark>add</v-icon>
+                  </v-btn>
+                </template>
+                <span>Create new scenario</span></v-tooltip
+              >
+            </v-col>
+          </v-row>
+        </div>
+        <div v-if="Object.keys(scenarios).length === 0">
+          <v-row align="center">
+            <v-col class="text-center">
+              <v-btn
+                width="100%"
+                class="text-xs-center white--text"
+                dark
+                :color="activeColor.primary"
+                @click="showScenarioDialog = true"
+              >
+                <v-icon left dark>add</v-icon>
+                Create Scenario
+              </v-btn>
+            </v-col></v-row
+          >
+        </div>
+
+        <div v-if="Object.keys(scenarios).length > 0">
+          <v-divider></v-divider>
+          <p class="mb-1 mt-1">Select Layer</p>
+          <v-select
+            class="mt-4"
+            :items="editableLayers"
+            v-model="selectedLayer"
+            item-value="values_.name"
+            return-object
+            :loading="loadingLayerInfo"
+            solo
+            :label="$t('appBar.edit.selectLayer')"
+          >
+            <template slot="selection" slot-scope="{ item }">
+              {{ translate("layerName", item.get("name")) }}
+            </template>
+            <template slot="item" slot-scope="{ item }">
+              {{ translate("layerName", item.get("name")) }}
+            </template>
+          </v-select>
+        </div>
 
         <v-alert
           border="left"
@@ -414,6 +468,11 @@
       </v-card-actions>
     </v-card>
 
+    <!-- Scenario dialog -->
+    <scenario-dialog
+      :visible="showScenarioDialog"
+      @close="showScenarioDialog = false"
+    ></scenario-dialog>
     <!-- Confirm Delete all  -->
     <confirm ref="confirm"></confirm>
     <!-- Popup overlay  -->
@@ -520,6 +579,7 @@ import OlSelectController from "../../../controllers/OlSelectController";
 import editLayerHelper from "../../../controllers/OlEditLayerHelper";
 
 import OverlayPopup from "../../viewer/ol/controls/Overlay";
+import ScenarioDialog from "../../core/ScenarioDialog";
 import http from "axios";
 import VJsonschemaForm from "../../other/dynamicForms/index";
 import OpeningHours from "../../other/OpeningHours";
@@ -537,6 +597,7 @@ export default {
   components: {
     "overlay-popup": OverlayPopup,
     "opening-hours": OpeningHours,
+    "scenario-dialog": ScenarioDialog,
     VJsonschemaForm
   },
   mixins: [InteractionsToggle, Mapable, KeyShortcuts, Isochrones],
@@ -604,7 +665,9 @@ export default {
     isTableLoading: false,
     //Opening Hours
     showOpeningHours: false,
-    isUploadBtnEnabled: true
+    isUploadBtnEnabled: true,
+    //Scenario Dialog
+    showScenarioDialog: false
   }),
   watch: {
     selectedLayer(newValue) {
@@ -621,6 +684,11 @@ export default {
         this.isUploadBtnEnabled = true;
       }
       this.updateUploadBtnState();
+    },
+    activeScenario() {
+      this.onEditSourceChange();
+      this.olEditCtrl.source.changed();
+      this.olEditCtrl.bldEntranceLayer.getSource().changed();
     },
     toggleSelection: {
       handler(state) {
@@ -741,6 +809,8 @@ export default {
           features.forEach(feature => {
             //Set current userid
             feature.set("userid", this.userId);
+            // Set active scenario id
+            feature.set("scenario_id", this.activeScenario);
             //Clone geometry and change name to 'geom' (should be the same as geoserver layer geometry name)
             feature.set("geom", feature.getGeometry().clone());
             feature.setGeometryName("geom");
@@ -1216,7 +1286,8 @@ export default {
           geometry: new Point(bldEntranceCoordinate),
           building_gid:
             buildingFeatureAtCoord.get("gid") || buildingFeatureAtCoord.getId(),
-          userid: this.userId
+          userid: this.userId,
+          scenario_id: this.activeScenario
         });
         this.olEditCtrl.bldEntranceLayer
           .getSource()
@@ -1497,7 +1568,8 @@ export default {
         editLayerHelper.commitDelete(
           "update",
           this.userId,
-          editLayerHelper.featuresIDsToDelete
+          editLayerHelper.featuresIDsToDelete,
+          this.activeScenario
         );
       }
     },
@@ -1541,7 +1613,8 @@ export default {
             http
               .post("api/deleteAllScenarioData", {
                 user_id: userId,
-                layer_names: layerNames
+                layer_names: layerNames,
+                scenario_id: this.activeScenario
               })
               .then(response => {
                 this.isDeleteAllBusy = false;
@@ -1646,40 +1719,42 @@ export default {
 
       editLayerFeatures.forEach(f => {
         const prop = f.getProperties();
-        if (
-          prop.hasOwnProperty("original_id") ||
-          (prop.hasOwnProperty("deletedId") && prop.status !== 1)
-        ) {
-          //Assign layerName to feature property if doesn't exist
-          if (!prop.layerName) {
-            f.set("layerName", this.layerName.split(":")[1]);
-          }
-          const fid = f.getId();
-          const layerName = f.get("layerName");
-          const isDeleted = false;
-          const status = prop.status ? "Uploaded" : "NotUploaded";
-          const originalId = f.get("original_id");
-          let type = "";
+        if (this.activeScenario === f.get("scenario_id")) {
           if (
-            prop.hasOwnProperty("original_id") &&
-            f.get("original_id") === null
+            prop.hasOwnProperty("original_id") ||
+            (prop.hasOwnProperty("deletedId") && prop.status !== 1)
           ) {
-            type = "New";
-          } else if (prop.hasOwnProperty("deletedId")) {
-            type = "Restored"; //Not uploaded (if feature is uploaded it will not be visible in the list)
-          } else {
-            type = "Modified";
-          }
+            //Assign layerName to feature property if doesn't exist
+            if (!prop.layerName) {
+              f.set("layerName", this.layerName.split(":")[1]);
+            }
+            const fid = f.getId();
+            const layerName = f.get("layerName");
+            const isDeleted = false;
+            const status = prop.status ? "Uploaded" : "NotUploaded";
+            const originalId = f.get("original_id");
+            let type = "";
+            if (
+              prop.hasOwnProperty("original_id") &&
+              f.get("original_id") === null
+            ) {
+              type = "New";
+            } else if (prop.hasOwnProperty("deletedId")) {
+              type = "Restored"; //Not uploaded (if feature is uploaded it will not be visible in the list)
+            } else {
+              type = "Modified";
+            }
 
-          const obj = {
-            fid,
-            layerName,
-            isDeleted,
-            originalId,
-            status,
-            type
-          };
-          scenarioDataTable.push(obj);
+            const obj = {
+              fid,
+              layerName,
+              isDeleted,
+              originalId,
+              status,
+              type
+            };
+            scenarioDataTable.push(obj);
+          }
         }
       });
 
@@ -1809,6 +1884,16 @@ export default {
         }
       ];
     },
+    scenarioArray() {
+      const scenarioArray = [];
+      Object.keys(this.scenarios).forEach(key => {
+        scenarioArray.push({
+          display: this.scenarios[key].title,
+          value: parseInt(key)
+        });
+      });
+      return scenarioArray;
+    },
     layerName() {
       return this.selectedLayer.getSource().getParams().LAYERS;
     },
@@ -1817,7 +1902,7 @@ export default {
       const layerFieldsKeys = Object.keys(layerSchema.properties);
       return layerFieldsKeys.filter(
         el =>
-          !["original_id", "id", "gid", "userid"].includes(el) &&
+          !["original_id", "id", "gid", "userid", "scenario_id"].includes(el) &&
           layerSchema.required.includes(el)
       );
     },
@@ -1857,7 +1942,9 @@ export default {
       contextmenu: "contextmenu"
     }),
     ...mapFields("isochrones", {
-      scenarioDataTable: "scenarioDataTable"
+      scenarioDataTable: "scenarioDataTable",
+      scenarios: "scenarios",
+      activeScenario: "activeScenario"
     }),
     ...mapFields("map", {
       selectedLayer: "selectedEditLayer"

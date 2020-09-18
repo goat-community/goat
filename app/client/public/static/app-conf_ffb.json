@@ -1257,7 +1257,8 @@
         "id",
         "original_id",
         "status",
-        "street_category"
+        "street_category",
+        "scenario_id"
       ]
     },
     "pois": {
@@ -1275,14 +1276,15 @@
         "wheelchair",
         "status",
         "amenity_icon",
-        "opening_hours"
+        "opening_hours",
+        "scenario_id"
       ]
     },
     "buildings": {
       "listValues": {
-          "building": {
-            "values":["residential","commercial","public"]
-          }
+        "building": {
+          "values": ["residential", "commercial", "public"]
+        }
       },
       "enableFileUpload": false,
       "hiddenProps": [
@@ -1291,7 +1293,8 @@
         "id",
         "original_id",
         "status",
-        "class_id"
+        "class_id",
+        "scenario_id"
       ]
     }
   }

@@ -12,6 +12,7 @@ import VectorLayer from "ol/layer/Vector";
 import VectorImageLayer from "ol/layer/VectorImage";
 import Overlay from "ol/Overlay.js";
 import store from "../store/modules/user";
+import isochronesStore from "../store/modules/isochrones";
 import Feature from "ol/Feature";
 import { wfsTransactionParser, readTransactionResponse } from "../utils/Layer";
 import http from "../services/http";
@@ -239,6 +240,14 @@ export default class OlEditController extends OlBaseController {
         evt.coordinate
       );
       if (
+        featureAtCoord.length > 0 &&
+        isochronesStore.state.activeScenario &&
+        featureAtCoord[0].get("scenario_id") !==
+          isochronesStore.state.activeScenario
+      ) {
+        return;
+      }
+      if (
         featureAtCoord.length === 0 ||
         (featureAtCoord.length > 0 &&
           !featureAtCoord[0].getProperties().hasOwnProperty("original_id"))
@@ -432,6 +441,7 @@ export default class OlEditController extends OlBaseController {
 
     const clonedProperties = Object.assign({}, properties);
     clonedProperties.userid = store.state.userId;
+    clonedProperties.scenario_id = isochronesStore.state.activeScenario;
     delete clonedProperties["id"];
 
     const layerName = editLayerHelper.selectedLayer
