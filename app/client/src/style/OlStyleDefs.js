@@ -256,10 +256,8 @@ export function defaultStyle(feature, resolution) {
 
       let countEntrances = 0;
       entrancesInExtent.forEach(entrance => {
-        const hasEntrance = feature
-          .getGeometry()
-          .intersectsCoordinate(entrance.getGeometry().getCoordinates());
-        if (hasEntrance === true) {
+        const buildingId = feature.get("gid") || feature.getId();
+        if (entrance.get("building_gid") === buildingId) {
           countEntrances += 1;
         }
       });

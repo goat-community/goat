@@ -1811,11 +1811,8 @@ export default {
             .getFeaturesInExtent(extent);
           let entrances = 0;
           entrancesInExtent.forEach(entrance => {
-            const hasEntrance = f
-              .getGeometry()
-              .intersectsCoordinate(entrance.getGeometry().getCoordinates());
-
-            if (hasEntrance) {
+            const buildingId = f.get("gid") || f.getId();
+            if (entrance.get("building_gid") === buildingId) {
               entrances += 1;
             }
           });
