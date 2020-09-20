@@ -6,7 +6,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 // use it before all route definitions
 app.use(cors({ origin: "*" }));
-app.use(function(request, response, next) {
+app.use(function (request, response, next) {
   response.header("Access-Control-Allow-Origin", "*");
   response.header(
     "Access-Control-Allow-Methods",
@@ -31,22 +31,18 @@ app.post("/api/userdata", jsonParser, (request, response) => {
   function returnResult(err, res) {
     if (err) return console.log(err);
     response.send(res.rows);
-  };
+  }
   /*sample body: {"mode":"insert"}*/
-  if (mode == "insert") { 
-
+  if (mode == "insert") {
     pool.query(
       "INSERT INTO user_data (username, pw) VALUES ('','') RETURNING userid",
       returnResult
     );
-  }
-  /*sample body: {"mode":"delete", "userid":1}*/ 
-  else if (mode == "delete") { 
-
-    pool.query(
-      "DELETE FROM user_data WHERE userid = $1::bigint",
-      [request.body.userid]
-    );
+  } else if (mode == "delete") {
+    /*sample body: {"mode":"delete", "userid":1}*/
+    pool.query("DELETE FROM user_data WHERE userid = $1::bigint", [
+      request.body.userid,
+    ]);
   }
 });
 
@@ -56,38 +52,58 @@ app.post("/api/scenarios", jsonParser, (request, response) => {
   function returnResult(err, res) {
     if (err) return console.log(err);
     response.send(res.rows);
+  }
+  const translation_layers = {
+    ways: "deleted_ways",
+    pois: "deleted_pois",
+    buildings: "deleted_buildings",
   };
 
-  /*sample body: {"mode":"add_deleted_feature","table_name":"pois","feature_id":2,"scenario_id":1}*/
-  if (mode == "add_deleted_feature"){
-    const translation_layers = {"ways":"deleted_ways","pois":"deleted_pois","buildings":"deleted_buildings"};
-    const column_name = translation_layers[request.body.table_name];
-
+  if (mode == "read_deleted_features") {
+    /*sample body: {"mode":"read_deleted_feature","table_name":"pois" ,"scenario_id":"1" */
     pool.query(
-      `UPDATE scenarios SET ${column_name} = ${column_name} || $1::bigint WHERE scenario_id = $2::bigint`,
-      [request.body.feature_id,request.body.scenario_id],
+      `SELECT ${
+        translation_layers[request.body.table_name]
+      } AS deleted_feature_ids FROM scenarios WHERE scenario_id = $1::bigint`,
+      [request.body.scenario_id],
       returnResult
     );
-  } 
-  /*sample body: {mode:"insert","userid":1}*/
-  else if (mode == "insert") {
+  } else if (mode === "update_deleted_features") {
+    /*sample body: {"mode":"update_deleted_feature","deleted_feature_ids":[2,3,4],"table_name":"pois" ,"scenario_id":"1" */
     pool.query(
-      "INSERT INTO scenarios (userid) VALUES ($1) RETURNING scenario_id",
-      [request.body.userid],
+      `UPDATE scenarios SET ${
+        translation_layers[request.body.table_name]
+      } = $1::bigint[] WHERE scenario_id = $2::bigint`,
+      [request.body.deleted_feature_ids, request.body.scenario_id],
       returnResult
     );
-  } 
-  /*sample body: {mode:"delete","scenario_id":1}*/
-  else if (mode == "delete") {
-    
+  } else if (mode === "delete_feature") {
+    //delete is used to delete the feature from modified table if the user has drawn that feature by himself
+    pool.query(
+      `DELETE FROM ${request.body.table_name}_modified WHERE scenario_id = $1::bigint AND original_id = ANY(($2));`,
+      [request.body.scenario_id, request.body.deleted_feature_ids]
+    );
+    pool.query(
+      `DELETE FROM ${request.body.table_name}_modified WHERE gid=($1)`,
+      [request.body.drawned_fid],
+      returnResult
+    );
+  } else if (mode == "insert") {
+    /*sample body: {mode:"insert","userid":1}*/
+    pool.query(
+      "INSERT INTO scenarios (userid, scenario_name) VALUES ($1, $2) RETURNING scenario_id",
+      [request.body.userid, request.body.scenario_name],
+      returnResult
+    );
+  } else if (mode == "delete") {
+    /*sample body: {mode:"delete","scenario_id":1}*/
     pool.query(
       "DELETE FROM scenarios WHERE scenario_id = $1::bigint",
       [request.body.scenario_id],
       returnResult
     );
-  };
+  }
 });
-
 
 /**
  * Deletes all the rows of the user from "_modified" and "user_data" table
@@ -135,11 +151,11 @@ app.post("/api/isochrone", jsonParser, (request, response) => {
     "speed",
     "concavity",
     "modus",
-    "routing_profile"
+    "routing_profile",
   ];
   let queryValues = [];
 
-  requiredParams.forEach(key => {
+  requiredParams.forEach((key) => {
     let value = request.body[key];
     if (!value) {
       response.send("An error happened");
@@ -185,11 +201,11 @@ app.post("/api/pois_multi_isochrones", jsonParser, (request, response) => {
     "modus",
     "region_type",
     "region",
-    "amenities"
+    "amenities",
   ];
   let queryValues = [];
 
-  requiredParams.forEach(key => {
+  requiredParams.forEach((key) => {
     let value = request.body[key];
     console.log(value);
     if (!value) {
@@ -233,10 +249,10 @@ app.post(
       "speed",
       "region_type",
       "region",
-      "amenities"
+      "amenities",
     ];
     let queryValues = [];
-    requiredParams.forEach(key => {
+    requiredParams.forEach((key) => {
       let value = request.body[key];
       console.log(value);
       if (!value) {
@@ -266,7 +282,7 @@ app.post(
 );
 
 // respond with "pong" when a GET request is made to /ping (HEALTHCHECK)
-app.get("/ping", function(_req, res) {
+app.get("/ping", function (_req, res) {
   res.send("pong");
 });
 

@@ -1,5 +1,6 @@
 import { GeoJSON } from "ol/format";
 import http from "../services/http";
+import store from "../store/modules/isochrones";
 
 /**
  * Util class for OL Edit layers.
@@ -77,35 +78,24 @@ const editLayerHelper = {
       ...userInputFeaturesNoOriginId
     ]);
   },
-  deleteFeature(feature, source, userid) {
+  deleteFeature(feature, source) {
     const props = feature.getProperties();
     const beforeStatus = feature.get("status");
     feature.set("status", null);
+    feature.set("scenario_id", store.state.activeScenario);
     if (props.hasOwnProperty("original_id")) {
       if (props.original_id !== null) {
         const fid = feature.getProperties().original_id.toString();
         editLayerHelper.featuresIDsToDelete.push(fid);
         editLayerHelper.deletedFeatures.push(feature);
-        editLayerHelper.commitDelete(
-          "delete",
-          userid,
-          editLayerHelper.featuresIDsToDelete,
-          props.id
-        );
-        editLayerHelper.commitDelete(
-          "update",
-          userid,
-          editLayerHelper.featuresIDsToDelete
-        );
+        editLayerHelper.commitDelete("delete_feature", props.id);
+        editLayerHelper.commitDelete("update_deleted_features");
       } else {
         if (beforeStatus !== null) {
           editLayerHelper.deletedFeatures.push(feature);
         }
-
         editLayerHelper.commitDelete(
-          "delete",
-          userid,
-          editLayerHelper.featuresIDsToDelete,
+          "delete_feature",
           props.id || feature.getId()
         );
       }
@@ -113,38 +103,29 @@ const editLayerHelper = {
       let fid;
       if (!props.hasOwnProperty("original_id") && !props.hasOwnProperty("id")) {
         fid = feature.getId().toString();
-        editLayerHelper.commitDelete(
-          "delete",
-          userid,
-          editLayerHelper.featuresIDsToDelete,
-          fid
-        );
+        editLayerHelper.commitDelete("delete_feature", fid);
       } else {
         fid = feature.getProperties().id.toString();
         editLayerHelper.featuresIDsToDelete.push(fid);
         editLayerHelper.deletedFeatures.push(feature);
-        editLayerHelper.commitDelete(
-          "update",
-          userid,
-          editLayerHelper.featuresIDsToDelete
-        );
+        editLayerHelper.commitDelete("update_deleted_features");
       }
     }
     source.removeFeature(feature);
   },
-  commitDelete(mode, user_id, deleted_feature_ids, drawn_fid) {
+  commitDelete(mode, drawn_fid) {
     const layerName = this.selectedLayer
       .getSource()
       .getParams()
       .LAYERS.split(":")[1];
-    fetch("/api/userdata", {
+    fetch("/api/scenarios", {
       method: "POST",
       body: JSON.stringify({
         mode: mode,
-        user_id: user_id,
-        deleted_feature_ids: deleted_feature_ids,
-        drawned_fid: drawn_fid,
-        layer_name: layerName
+        scenario_id: store.state.activeScenario,
+        table_name: layerName,
+        deleted_feature_ids: editLayerHelper.featuresIDsToDelete,
+        drawned_fid: drawn_fid
       }),
       headers: {
         "Content-Type": "application/json",
@@ -155,14 +136,11 @@ const editLayerHelper = {
         return data.json();
       })
       .then(function(json) {
-        if (mode == "read") {
+        if (mode == "read_deleted_features") {
           editLayerHelper.featuresIDsToDelete = json[0].deleted_feature_ids
             ? json[0].deleted_feature_ids
             : [];
         }
-      })
-      .catch(function() {
-        editLayerHelper.insertUserInDb("insert", user_id);
       });
   },
 
@@ -259,26 +237,6 @@ const editLayerHelper = {
       .catch(() => {
         onUploadCb("error");
       });
-  },
-  insertUserInDb(mode, generatedId) {
-    const layerName = this.selectedLayer
-      .getSource()
-      .getParams()
-      .LAYERS.split(":")[1];
-    fetch("/api/userdata", {
-      method: "POST",
-      body: JSON.stringify({
-        mode: mode,
-        user_id: generatedId,
-        layer_name: layerName
-      }),
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json"
-      }
-    }).then(function(data) {
-      return data.json;
-    });
   }
 };
 

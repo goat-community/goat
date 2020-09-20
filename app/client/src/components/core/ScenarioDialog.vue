@@ -42,6 +42,8 @@
 
 <script>
 import { mapFields } from "vuex-map-fields";
+import { mapGetters } from "vuex";
+import http from "../../services/http";
 
 export default {
   props: ["visible"],
@@ -67,32 +69,38 @@ export default {
     ...mapFields("isochrones", {
       scenarios: "scenarios",
       activeScenario: "activeScenario"
-    })
+    }),
+    ...mapGetters("user", { userId: "userId" })
   },
   methods: {
     createScenario() {
-      console.log(this.scenarioName);
-      let currentScenarioId = null;
-      let previousScenarioId = parseInt(Object.keys(this.scenarios).pop());
-      if (previousScenarioId) {
-        currentScenarioId = previousScenarioId + 1;
-      } else {
-        currentScenarioId = 1;
-      }
-      this.$set(this.scenarios, currentScenarioId, {
-        title: this.scenarioName
-      });
-      this.activeScenario = currentScenarioId;
-      console.log(this.activeScenario);
-      console.log(this.scenarios);
+      const scenarioName = this.scenarioName;
+      http
+        .post("./api/scenarios", {
+          mode: "insert",
+          userid: this.userId,
+          scenario_name: this.scenarioName
+        })
+        .then(response => {
+          if (response.status === 200) {
+            let scenarioId = response.data[0].scenario_id;
+            scenarioId = parseInt(scenarioId);
+            this.$set(this.scenarios, scenarioId, {
+              title: scenarioName
+            });
+            this.activeScenario = scenarioId;
+          }
+        })
+        .catch(function(error) {
+          throw new Error(error);
+        });
     }
   },
   watch: {
     show() {
       if (this.show === true) {
-        let id = parseInt(Object.keys(this.scenarios).pop());
-        console.log(id);
-        if (id) {
+        let id = Object.keys(this.scenarios).length;
+        if (id > 0) {
           id += 1;
           this.scenarioName = "Scenario " + id;
         } else {

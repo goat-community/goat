@@ -231,7 +231,6 @@ export default class OlEditController extends OlBaseController {
     me.helpTooltipElement.innerHTML = me.helpMessage;
     me.helpTooltip.setPosition(coordinate);
     if (
-      editLayerHelper.selectedLayer.get("name") === "buildings" &&
       ["addBldEntrance", "move", "modify", "drawHole"].includes(
         this.currentInteraction
       )
@@ -239,6 +238,7 @@ export default class OlEditController extends OlBaseController {
       const featureAtCoord = this.source.getFeaturesAtCoordinate(
         evt.coordinate
       );
+
       if (
         featureAtCoord.length > 0 &&
         isochronesStore.state.activeScenario &&
@@ -247,48 +247,52 @@ export default class OlEditController extends OlBaseController {
       ) {
         return;
       }
-      if (
-        featureAtCoord.length === 0 ||
-        (featureAtCoord.length > 0 &&
-          !featureAtCoord[0].getProperties().hasOwnProperty("original_id"))
-      ) {
-        me.map.getTarget().style.cursor = "not-allowed";
-        if (me.isInteractionOnProgress === false) {
-          me.edit.setActive(false);
+      if (editLayerHelper.selectedLayer.get("name") === "buildings") {
+        if (
+          featureAtCoord.length === 0 ||
+          (featureAtCoord.length > 0 &&
+            !featureAtCoord[0].getProperties().hasOwnProperty("original_id"))
+        ) {
+          me.map.getTarget().style.cursor = "not-allowed";
+          if (me.isInteractionOnProgress === false) {
+            me.edit.setActive(false);
+          } else {
+            return;
+          }
+          if (this.currentInteraction === "addBldEntrance") {
+            me.helpMessage = i18n.t(
+              "map.tooltips.clickToBldEntranceNotAllowed"
+            );
+          }
+          if (this.currentInteraction === "move") {
+            me.helpMessage = i18n.t(
+              "map.tooltips.moveExistingBuildingNotAllowed"
+            );
+          }
+          if (this.currentInteraction === "modify") {
+            me.helpMessage = i18n.t(
+              "map.tooltips.modifyExistingBuildingNotAllowed"
+            );
+          }
+          if (this.currentInteraction === "drawHole") {
+            me.helpMessage = i18n.t("map.tooltips.drawHoleOnPolygonNotAllowed");
+          }
         } else {
-          return;
+          if (this.currentInteraction === "addBldEntrance") {
+            me.helpMessage = i18n.t("map.tooltips.clickToBldEntrance");
+          }
+          if (this.currentInteraction === "move") {
+            me.helpMessage = i18n.t("map.tooltips.clickOnFeatureToMove");
+          }
+          if (this.currentInteraction === "modify") {
+            me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
+          }
+          if (this.currentInteraction === "drawHole") {
+            me.helpMessage = i18n.t("map.tooltips.drawHoleOnPolygon");
+          }
+          me.map.getTarget().style.cursor = "pointer";
+          me.edit.setActive(true);
         }
-        if (this.currentInteraction === "addBldEntrance") {
-          me.helpMessage = i18n.t("map.tooltips.clickToBldEntranceNotAllowed");
-        }
-        if (this.currentInteraction === "move") {
-          me.helpMessage = i18n.t(
-            "map.tooltips.moveExistingBuildingNotAllowed"
-          );
-        }
-        if (this.currentInteraction === "modify") {
-          me.helpMessage = i18n.t(
-            "map.tooltips.modifyExistingBuildingNotAllowed"
-          );
-        }
-        if (this.currentInteraction === "drawHole") {
-          me.helpMessage = i18n.t("map.tooltips.drawHoleOnPolygonNotAllowed");
-        }
-      } else {
-        if (this.currentInteraction === "addBldEntrance") {
-          me.helpMessage = i18n.t("map.tooltips.clickToBldEntrance");
-        }
-        if (this.currentInteraction === "move") {
-          me.helpMessage = i18n.t("map.tooltips.clickOnFeatureToMove");
-        }
-        if (this.currentInteraction === "modify") {
-          me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
-        }
-        if (this.currentInteraction === "drawHole") {
-          me.helpMessage = i18n.t("map.tooltips.drawHoleOnPolygon");
-        }
-        me.map.getTarget().style.cursor = "pointer";
-        me.edit.setActive(true);
       }
     }
   }
@@ -362,11 +366,7 @@ export default class OlEditController extends OlBaseController {
     // if (me.selectedFeature.get("user_uploaded")) {
     //   me.source.removeFeature(me.selectedFeature);
     // } else {
-    editLayerHelper.deleteFeature(
-      me.selectedFeature,
-      me.source,
-      store.state.userId
-    );
+    editLayerHelper.deleteFeature(me.selectedFeature, me.source);
 
     me.closePopup();
   }
@@ -404,7 +404,7 @@ export default class OlEditController extends OlBaseController {
    * Read or insert deleted feature of the user.
    */
   readOrInsertDeletedFeatures() {
-    editLayerHelper.commitDelete("read", store.state.userId);
+    editLayerHelper.commitDelete("read_deleted_features");
   }
 
   /**
