@@ -1,8 +1,8 @@
 <GeoServerTileLayer>
-  <id>LayerInfoImpl-7d99018b:17250915a82:5c8c</id>
+  <id>LayerInfoImpl-1578fecd:174a75e7c3c:1eb1</id>
   <enabled>true</enabled>
   <inMemoryCached>true</inMemoryCached>
-  <name>cite:mapping_ways_speed</name>
+  <name>cite:mapping_parking_lane</name>
   <mimeFormats>
     <string>image/png</string>
     <string>image/jpeg</string>
