@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION public.pois_visualization(userid_input integer, ameni
  LANGUAGE plpgsql
 AS $function$
 DECLARE 	
-	excluded_pois_id integer[] := ids_modified_features(userid_input,'pois');
+	excluded_pois_id integer[] := ids_modified_features(userid_input,1,'pois');
     
 BEGIN
 

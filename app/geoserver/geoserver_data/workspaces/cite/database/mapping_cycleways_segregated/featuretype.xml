@@ -1,0 +1,70 @@
+<featureType>
+  <id>FeatureTypeInfoImpl--5b0853f2:17400e48de4:-419d</id>
+  <name>mapping_cycleways_segregated</name>
+  <nativeName>mapping_cycleways_segregated</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
+  </namespace>
+  <title>mapping_cycleways_segregated</title>
+  <keywords>
+    <string>features</string>
+    <string>mapping_cycleways_segregated</string>
+  </keywords>
+  <nativeCRS>GEOGCS[&quot;WGS 84&quot;, 
+  DATUM[&quot;World Geodetic System 1984&quot;, 
+    SPHEROID[&quot;WGS 84&quot;, 6378137.0, 298.257223563, AUTHORITY[&quot;EPSG&quot;,&quot;7030&quot;]], 
+    AUTHORITY[&quot;EPSG&quot;,&quot;6326&quot;]], 
+  PRIMEM[&quot;Greenwich&quot;, 0.0, AUTHORITY[&quot;EPSG&quot;,&quot;8901&quot;]], 
+  UNIT[&quot;degree&quot;, 0.017453292519943295], 
+  AXIS[&quot;Geodetic longitude&quot;, EAST], 
+  AXIS[&quot;Geodetic latitude&quot;, NORTH], 
+  AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>11.3663995</minx>
+    <maxx>11.7187725</maxx>
+    <miny>48.0610956</miny>
+    <maxy>48.2446793</maxy>
+    <crs>EPSG:4326</crs>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>11.3663995</minx>
+    <maxx>11.7187725</maxx>
+    <miny>48.0610956</miny>
+    <maxy>48.2446793</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>mapping_cycleways_segregated</name>
+        <sql>select w.osm_id,w.geom, w.highway from ways_mapping w, study_area s where (bicycle = &apos;designated&apos; OR (highway IN (&apos;cycleway&apos;) and (bicycle NOT IN (&apos;no&apos;,&apos;use_sidepath&apos;) OR bicycle IS NULL)) &#xd;
+OR (highway = &apos;path&apos; AND bicycle IN (&apos;designated&apos;,&apos;yes&apos;)))&#xd;
+AND w.foot IN (&apos;yes&apos;,&apos;designated&apos;)&#xd;
+AND w.segregated IS NULL&#xd;
+AND ST_Intersects(s.geom,w.geom)
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>4326</srid>
+        </geometry>
+      </virtualTable>
+    </entry>
+    <entry key="cachingEnabled">false</entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

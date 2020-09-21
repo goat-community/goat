@@ -1,0 +1,16 @@
+<layer>
+  <name>mode_share</name>
+  <id>LayerInfoImpl-7a940a60:173bef66569:-188f</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-7a940a60:173bef66569:-1895</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-7a940a60:173bef66569:-1890</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+  <dateModified>2020-08-14 14:00:18.835 UTC</dateModified>
+</layer>

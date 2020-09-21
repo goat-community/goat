@@ -1,0 +1,15 @@
+<layer>
+  <name>BOG_mob_share_cycling</name>
+  <id>LayerInfoImpl-30f421b9:173ce2cf04b:-6a45</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-30f421b9:173ce2cf04b:-6a48</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-30f421b9:173ce2cf04b:-6a46</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

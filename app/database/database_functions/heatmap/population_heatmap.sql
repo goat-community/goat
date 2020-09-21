@@ -21,7 +21,7 @@ BEGIN
 		WHEN sum(p.population) + COALESCE(g.population,0)  BETWEEN 80 AND 200 THEN 3 
 		WHEN sum(p.population) + COALESCE(g.population,0)  BETWEEN 200 AND 400 THEN 4 
 		WHEN sum(p.population) + COALESCE(g.population,0)  > 400 THEN 5 END AS percentile_population, g.geom
-		FROM grid_500 g, modified_population p
+		FROM grid_heatmap g, modified_population p
 		WHERE ST_Intersects(g.geom,p.geom)
 		GROUP BY g.grid_id, g.population, g.geom
 	) 
@@ -29,7 +29,7 @@ BEGIN
 	FROM sum_pop s
 	UNION ALL 
 	SELECT g.grid_id, g.population, g.percentile_population, g.geom
-	FROM grid_500 g
+	FROM grid_heatmap g
 	LEFT JOIN sum_pop s
 	ON g.grid_id = s.grid_id 
 	WHERE s.grid_id IS NULL; 

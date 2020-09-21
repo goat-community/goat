@@ -1,0 +1,15 @@
+<layer>
+  <name>BOG_mob_walking_trips_per_person</name>
+  <id>LayerInfoImpl-58415aa4:173d413b974:-7ff9</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-30f421b9:173d3b8085d:47cc</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-58415aa4:173d413b974:-7ffa</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

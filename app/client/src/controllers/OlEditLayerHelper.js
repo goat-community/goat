@@ -205,9 +205,12 @@ const editLayerHelper = {
               }
             }
           );
-
+          const bldFeatureIds = [];
           //Update Feature Line type
           source.getFeatures().forEach(feature => {
+            if (feature.get("layerName") === "buildings") {
+              bldFeatureIds.push(feature.getId());
+            }
             if (feature.get("layerName") !== layerName) {
               return;
             }
@@ -221,6 +224,35 @@ const editLayerHelper = {
               });
             }
           });
+
+          // Refetch building features  to update the properties (used for population)...
+          http
+            .get("./geoserver/wfs", {
+              params: {
+                service: "WFS",
+                version: " 2.0.0",
+                request: "GetFeature",
+                featureId: bldFeatureIds.toString(),
+                typeNames: `cite:buildings_modified`,
+                outputFormat: "json"
+              }
+            })
+            .then(response => {
+              if (response.data && response.data.features) {
+                response.data.features.forEach(feature => {
+                  const id = parseInt(feature.id.split(".")[1]);
+                  const editFeature = source.getFeatureById(id);
+                  var keys = Object.keys(feature.properties);
+                  keys.forEach(key => {
+                    const value = feature.properties[key];
+                    if (value) {
+                      editFeature.set(key, value);
+                    }
+                  });
+                });
+              }
+            });
+
           onUploadCb("success");
         }
       })

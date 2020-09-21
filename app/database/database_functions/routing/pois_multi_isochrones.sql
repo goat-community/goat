@@ -33,7 +33,7 @@ DECLARE
 	END IF;
 
 	IF modus_input IN(2,4) THEN
-		excluded_pois_id = ids_modified_features(userid_input,'pois');
+		excluded_pois_id = ids_modified_features(userid_input,1,'pois');
 		excluded_buildings_gid = (SELECT deleted_feature_ids FROM user_data u WHERE u.userid = userid_input AND layer_name = 'buildings');
 	ELSE 
 		excluded_pois_id = ARRAY[]::integer[];
@@ -96,9 +96,6 @@ DECLARE
 	
  	END IF;
  	 	
-
-
-
 	SELECT DISTINCT p_array
 	INTO points_array
 	FROM (
@@ -116,7 +113,7 @@ DECLARE
  	---------------------------------------------------------------------------------
  		
 	objectid_multi_isochrone = random_between(1,999999999);
-	PERFORM multi_isochrones_based_on_single(userid_input, objectid_multi_isochrone, minutes,n,routing_profile_input,speed_input,alphashape_parameter_input,modus_input,1,points_array);
+	PERFORM multi_isochrones(userid_input, objectid_multi_isochrone, minutes,n,routing_profile_input,speed_input,alphashape_parameter_input,modus_input,1,points_array);
 		
 	IF region_type = 'study_area' THEN
 	 	WITH expand_population AS 

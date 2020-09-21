@@ -1,0 +1,21 @@
+<layer>
+  <name>mapping_cycleways_segregated</name>
+  <id>LayerInfoImpl--5b0853f2:17400e48de4:-419c</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-361d8c01:1728373ba1a:-3470</id>
+  </defaultStyle>
+  <styles class="linked-hash-set">
+    <style>
+      <id>StyleInfoImpl-361d8c01:1728373ba1a:-3470</id>
+    </style>
+  </styles>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--5b0853f2:17400e48de4:-419d</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+  <dateCreated>2020-08-18 15:15:18.270 UTC</dateCreated>
+</layer>

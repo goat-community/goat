@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><sld:StyledLayerDescriptor xmlns="http://www.opengis.net/sld" xmlns:sld="http://www.opengis.net/sld" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" version="1.0.0">
   <sld:NamedLayer>
-    <sld:Name>grid_100</sld:Name>
+    <sld:Name>walkability_heatmap</sld:Name>
     <sld:UserStyle>
-      <sld:Name>grid_100</sld:Name>
+      <sld:Name>walkability_heatmap</sld:Name>
       <sld:FeatureTypeStyle>
         <sld:Name>name</sld:Name>
                 <sld:Rule>
@@ -15,11 +15,11 @@
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
-                <ogc:PropertyName>accessibility_index</ogc:PropertyName>
+                <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
                 <ogc:Literal>-1</ogc:Literal>
               </ogc:PropertyIsGreaterThan>
               <ogc:PropertyIsLessThan>
-                <ogc:PropertyName>accessibility_index</ogc:PropertyName>
+                <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
                 <ogc:Literal>1</ogc:Literal>
               </ogc:PropertyIsLessThan>
             </ogc:And>
@@ -48,11 +48,11 @@
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThanOrEqualTo>
-                <ogc:PropertyName>accessibility_index</ogc:PropertyName>
+                <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
                 <ogc:Literal>0</ogc:Literal>
               </ogc:PropertyIsGreaterThanOrEqualTo>
               <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>accessibility_index</ogc:PropertyName>
+                <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
                 <ogc:Literal>1</ogc:Literal>
               </ogc:PropertyIsLessThanOrEqualTo>
             </ogc:And>
@@ -81,11 +81,11 @@
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
-                <ogc:PropertyName>accessibility_index</ogc:PropertyName>
+                <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
                 <ogc:Literal>1</ogc:Literal>
               </ogc:PropertyIsGreaterThan>
               <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>accessibility_index</ogc:PropertyName>
+                <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
                 <ogc:Literal>2</ogc:Literal>
               </ogc:PropertyIsLessThanOrEqualTo>
             </ogc:And>
@@ -114,11 +114,11 @@
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
-                <ogc:PropertyName>accessibility_index</ogc:PropertyName>
+                <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
                 <ogc:Literal>2</ogc:Literal>
               </ogc:PropertyIsGreaterThan>
               <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>accessibility_index</ogc:PropertyName>
+                <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
                 <ogc:Literal>3</ogc:Literal>
               </ogc:PropertyIsLessThanOrEqualTo>
             </ogc:And>
@@ -147,11 +147,11 @@
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
-                <ogc:PropertyName>accessibility_index</ogc:PropertyName>
+                <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
                 <ogc:Literal>3</ogc:Literal>
               </ogc:PropertyIsGreaterThan>
               <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>accessibility_index</ogc:PropertyName>
+                <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
                 <ogc:Literal>4</ogc:Literal>
               </ogc:PropertyIsLessThanOrEqualTo>
             </ogc:And>
@@ -180,11 +180,11 @@
           <ogc:Filter>
             <ogc:And>
               <ogc:PropertyIsGreaterThan>
-                <ogc:PropertyName>accessibility_index</ogc:PropertyName>
+                <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
                 <ogc:Literal>4</ogc:Literal>
               </ogc:PropertyIsGreaterThan>
               <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>accessibility_index</ogc:PropertyName>
+                <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
                 <ogc:Literal>5</ogc:Literal>
               </ogc:PropertyIsLessThanOrEqualTo>
             </ogc:And>

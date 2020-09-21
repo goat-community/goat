@@ -324,7 +324,7 @@
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
-      "buildings_landuse": "Buildings and Landuse",
+      "buildings_landuse": "Buildings and Land Use",
       "administrativeLayers": "Administrative boundaries",
       "streetlevelqualityLayers": "Street Level Quality",
       "environmentalQualityLayers": "Environmental data",
@@ -332,7 +332,8 @@
       "additionalDataLayers": "Additional data",
       "accessbilityBasemaps": "Accessibility",
       "backgroundLayers": "Background Layers",
-      "buildings": "Buildings"
+      "buildings": "Buildings",
+      "mobility_patterns":"Mobility Patterns"
     },
     "layerName": {
       "pois": "Point of Interest",
@@ -353,7 +354,7 @@
       "floodingAreasHQ100": "Flooding Areas (100-year flood)",
       "dikes": "Dikes",
       "protectedLandscape": "Protected Landscape Areas",
-      "landuse": "Landuse (ATKIS)",
+      "landuse": "Landuse",
       "landuse_osm": "Landuse (OSM)",
       "zoningPlan": "Zoning Plan",
       "footpathWidth": "Footpath Width",
@@ -384,7 +385,18 @@
       "osmDark": "OSM Dark",
       "mapboxStreets": "Mapbox",
       "publicTransport": "Public Transport",
-      "bingAerial": "Bing Aerial"
+      "bingAerial": "Bing Aerial",
+      "walking_trip_rate":"Walking trips per person",
+      "walkingShare":"Share of walking trips",
+      "cyclingShare":"Share of cycling trips",
+      "bicycle_rate":"Bicycle ownership",
+      "motorization_rate":"Motorized vehicles ownership",
+      "population_strata":"Population per strata",
+      "transmilenioShare":"Share of Transmilenio trips",
+      "sitpShare":"Share of SITP trips",
+      "cycling_trips_rate":"Cycling trips per person",
+      "pt_trips_rate":"Public transport trips per person",
+      "strata": "Strata"
     },
     "tooltips": {
       "clickForCalculation": "Click for Calculation. Press ESC to exit",
@@ -505,25 +517,43 @@
           "stepsDesc": {
             "clickFeatureInMap": "The displayed icons in the map are the challenges. Select one of them.",
             "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
-            "fillInOSMiD": "Add the missing tag 'opening_hours' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, the website of the amenity can be viewed or an on-site visit can be made."
+            "fillInOSMiD": "Add to the POIs the missing tag 'opening_hours' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, the website of the amenity can be viewed or an on-site visit can be made."
           }
         },
         "osm-mapping-ways-speed": {
           "missingKeyWord": "Maxspeed",
           "layerName": "Ways",
           "stepsDesc": {
-            "clickFeatureInMap": "The red lines in the map are the challenges. Select one of them.",
+            "clickFeatureInMap": "The blue lines on the map are the challenges. Select one of them.",
             "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
-            "fillInOSMiD": "Add the missing tag 'maxspeed' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
+            "fillInOSMiD": "Add to the ways the missing tag 'maxspeed' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
           }
         },
         "osm-mapping-ways-surface": {
           "missingKeyWord": "Surface Type",
           "layerName": "Ways",
           "stepsDesc": {
-            "clickFeatureInMap": "The red lines in the map are the challenges. Select one of them.",
+            "clickFeatureInMap": "The blue lines on the map are the challenges. Select one of them.",
             "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
-            "fillInOSMiD": "Add the missing tag 'surface' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
+            "fillInOSMiD": "Add to the ways the missing tag 'surface' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
+          }
+        },
+        "osm-mapping-cycleways-width": {
+          "missingKeyWord": "Cycleway Width",
+          "layerName": "Ways",
+          "stepsDesc": {
+            "clickFeatureInMap": "The blue lines on the map are the challenges. Select one of them.",
+            "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
+            "fillInOSMiD": "Add to the ways the missing tag 'width' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
+          }
+        },
+        "osm-mapping-cycleways-segregated": {
+          "missingKeyWord": "Cycleway Segregated",
+          "layerName": "Ways",
+          "stepsDesc": {
+            "clickFeatureInMap": "The blue lines on the map are the challenges. Select one of them.",
+            "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
+            "fillInOSMiD": "Add the missing tag 'segregated' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
           }
         },
         "osm-mapping-ways-wheelchair": {
@@ -534,9 +564,18 @@
           "missingKeyWord": "Building Type",
           "layerName": "Buildings",
           "stepsDesc": {
-            "clickFeatureInMap": "The red polygons in the map are the challenges. Select one of them.",
+            "clickFeatureInMap": "The blue lines on the map are the challenges. Select one of them.",
             "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
             "fillInOSMiD": "Edit the tag 'building' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary and aerial images can be used or an on-site visit can be made. "
+          }
+        },
+        "osm-mapping-parking-lane": {
+          "missingKeyWord": "Parking lane",
+          "layerName": "Parking lanes",
+          "stepsDesc": {
+            "clickFeatureInMap": "The blue lines on the map are the challenges. Select one of them.",
+            "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
+            "fillInOSMiD": "Add the tag 'parking:lane:both' or 'parking:lane:left' and/or 'parking:lane:right' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary and aerial images can be used or an on-site visit can be made. "
           }
         }
       },
@@ -559,6 +598,7 @@
     "kindergarten": "Kindergarten",
     "primary_school": "Primary school",
     "secondary_school": "Secondary school",
+    "school": "School",
     "library": "Library",
     "bar": "Bar",
     "biergarten": "Biergarten",
@@ -573,7 +613,10 @@
     "charging_station": "Charging station",
     "bus_stop": "Bus",
     "tram_stop": "Tram Stop",
+    "transmicable": "Transmicable",
     "subway_entrance": "U-Bahn station",
+    "sitp": "SITP",
+    "transmilenio": "Transmilenio",
     "rail_station": "Rail Station",
     "taxi": "Taxi",
     "bikesharing_ffb": "Bikesharing-Stations",
@@ -619,6 +662,12 @@
     "university": "University",
     "hospital": "Hospital",
     "playground": "Playground",
+    "population": "Population",
+    "park": "Park",
+    "governmentandsec": "Gov. and Security",
+    "notary": "Notary",
+    "cade": "CADE",
+    "police": "Police",
     "sports": "Sports",
     "community_sports_center": "Community Sports Center",
     "waterpark": "Water Park",
@@ -684,7 +733,13 @@
         "building_levels": "Building Levels",
         "building_levels_residential": "Building levels residential",
         "population": "Number residents (optional)",
-        "gross_floor_area": "Gross Flor Area (optional)"
+        "gross_floor_area": "Gross Floor Area (optional)",
+        "labels": {
+            "area": "Area",
+            "building_levels": "Building levels",
+            "gross_floor_area":"Gross Floor Area",
+            "population": "Population"
+        }
       }
     },
     "listValues": {
