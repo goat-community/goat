@@ -507,7 +507,7 @@
           "missingKeyWord": "Höchstgeschwindigkeiten",
           "layerName": "Wege",
           "stepsDesc": {
-            "clickFeatureInMap": "Die roten Linien in der Karte zeigen die Mapping-Aufgaben. Wählen Sie eine davon aus.",
+            "clickFeatureInMap": "Die blauen Linien in der Karte zeigen die Mapping-Aufgaben. Wählen Sie eine davon aus.",
             "clickEditWithOsm": "Durch Klicken auf den <b>'In OSM bearbeiten'</b> Link werden Sie zum OSM iD-Editor weitergeleitet.",
             "fillInOSMiD": "Fügen Sie das fehlende Attribut 'maxspeed' im OSM Editor hinzu. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki. Die fehlenden Informationen können z.B. anhand von Mapillary-Aufnahmen oder durch einen Vor-Ort Besuch ermittelt werden."
           }
@@ -516,9 +516,27 @@
           "missingKeyWord": "Oberflächen",
           "layerName": "Wege",
           "stepsDesc": {
-            "clickFeatureInMap": "Die roten Linien in der Karte zeigen die Mapping-Aufgaben. Wählen Sie eine davon aus.",
+            "clickFeatureInMap": "Die blauen Linien in der Karte zeigen die Mapping-Aufgaben. Wählen Sie eine davon aus.",
             "clickEditWithOsm": "Durch Klicken auf den <b>'In OSM bearbeiten'</b> Link werden Sie zum OSM iD-Editor weitergeleitet.",
             "fillInOSMiD": "Fügen Sie das fehlende Attribut 'surface' im OSM Editor hinzu. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki. Die fehlenden Informationen können z.B. anhand von Mapillary-Aufnahmen oder durch einen Vor-Ort Besuch ermittelt werden."
+          }
+        },
+        "osm-mapping-cycleways-width": {
+          "missingKeyWord": "Radwegebreite",
+          "layerName": "Wege",
+          "stepsDesc": {
+            "clickFeatureInMap": "Die blauen Linien in der Karte zeigen die Mapping-Aufgaben. Wählen Sie eine davon aus.",
+            "clickEditWithOsm": "Durch Klicken auf den <b>'In OSM bearbeiten'</b> Link werden Sie zum OSM iD-Editor weitergeleitet.",
+            "fillInOSMiD": "Fügen Sie den Wegen das fehlende Attribut 'width' im OSM Editor hinzu. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki. Die fehlenden Informationen können z.B. anhand von Mapillary-Aufnahmen oder durch einen Vor-Ort Besuch ermittelt werden."
+          }
+        },
+        "osm-mapping-cycleways-segregated": {
+          "missingKeyWord": "Trennung zwischen Fuß- und Radverkehr",
+          "layerName": "Wege",
+          "stepsDesc": {
+            "clickFeatureInMap": "Die blauen Linien in der Karte zeigen die Mapping-Aufgaben. Wählen Sie eine davon aus.",
+            "clickEditWithOsm": "Durch Klicken auf den <b>'In OSM bearbeiten'</b> Link werden Sie zum OSM iD-Editor weitergeleitet.",
+            "fillInOSMiD": "Fügen Sie den Wegen das fehlende Attribut 'segregated' im OSM Editor hinzu. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki. Die fehlenden Informationen können z.B. anhand von Mapillary-Aufnahmen oder durch einen Vor-Ort Besuch ermittelt werden."
           }
         },
         "osm-mapping-ways-wheelchair": {
@@ -529,9 +547,18 @@
           "missingKeyWord": "Gebäudetypen",
           "layerName": "Gebäude",
           "stepsDesc": {
-            "clickFeatureInMap": "Die roten Polygone in der Karte zeigen die Mapping-Aufgaben. Wählen Sie eine davon aus.",
+            "clickFeatureInMap": "Die blauen Polygone in der Karte zeigen die Mapping-Aufgaben. Wählen Sie eine davon aus.",
             "clickEditWithOsm": "Durch Klicken auf den <b>'In OSM bearbeiten'</b> Link werden Sie zum OSM iD-Editor weitergeleitet.",
             "fillInOSMiD": "Editieren Sie das Attribut 'building' im OSM Editor. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki. Die fehlenden Informationen können z.B. anhand von Mapillary-Aufnahmen und Luftbildern oder durch einen Vor-Ort Besuch ermittelt werden."
+          }
+        },
+        "osm-mapping-parking-lane": {
+          "missingKeyWord": "Parkspuren",
+          "layerName": "Parken",
+          "stepsDesc": {
+            "clickFeatureInMap": "Die blauen Linien in der Karte zeigen die Mapping-Aufgaben. Wählen Sie eine davon aus.",
+            "clickEditWithOsm": "Durch Klicken auf den <b>'In OSM bearbeiten'</b> Link werden Sie zum OSM iD-Editor weitergeleitet.",
+            "fillInOSMiD": "Fügen Sie das fehlende Attribut 'parking:lane:both' bzw. 'parking:lane:left' bzw. 'parking:lane:right' im OSM Editor hinzu. Beachten Sie hierzu die entsprechenden Richtlinien aus dem OSM-Wiki. Die fehlenden Informationen können Mapillary-Aufnahmen, Luftbilder oder durch einen Vor-Ort Besuch ermittelt werden."
           }
         }
       },
@@ -667,7 +694,7 @@
       "ways": {
         "way_type": "Wegetyp",
         "surface": "Oberfläche",
-        "wheelchair": "Rohlstuhl"
+        "wheelchair": "Rollstuhl"
       },
       "pois": {
         "amenity": "Einrichtung",
@@ -679,7 +706,13 @@
       "building_levels": "Anzahl Geschosse",
       "building_levels_residential": "Anzahl Geschosse Wohnen",
       "population": "Einwohneranzahl (optional)",
-      "gross_floor_area": "Geschossfläche"
+      "gross_floor_area": "Geschossfläche",
+      "labels": {
+          "area": "Fläche",
+          "building_levels": "Anzahl Geschosse",
+          "gross_floor_area":"Geschossfläche",
+          "population": "Einwohner"
+      }
       }
     },
     "listValues": {
@@ -699,7 +732,6 @@
         "residential": "Wohnen",
         "commercial": "Gewerbe",
         "public": "Öffentliche Einrichtung"
-  
       }
     }
   }

@@ -13,7 +13,6 @@ def setup_db(setup_type):
     from scripts.db_functions import DB_connection
     from scripts.db_functions import create_variable_container
     from scripts.db_functions import update_functions
-    from scripts.db_functions import geojson_to_sql
 
     download_link,osm_data_recency,buffer,extract_bbox,source_population,additional_walkability_layers,osm_mapping_feature = ReadYAML().data_source()
     db_name,user,host,port,password = ReadYAML().db_credentials()
@@ -141,6 +140,7 @@ def setup_db(setup_type):
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/clean_duplicated_pois.sql')
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_reclassification_array.sql')
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_classification.sql')
+    db_temp.execute_script_psql('/opt/data_preparation/SQL/pois_full_replacement.sql')
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/derive_access_from_polygons.sql')
 
 
@@ -187,8 +187,8 @@ def setup_db(setup_type):
                
         #Creates DB_functions
         update_functions()
+        os.system(f'PGPASSFILE=~/.pgpass_{db_name} psql -U {user} -h {host} -d {db_name} -f /opt/database_functions/libs/plv8_js_modules.sql')
 
-        #os.system(f'psql --U {user} -d {db_name} -f /opt/database_functions/libs/plv8_js_modules.sql')
         #os.system(f'psql -U {user} -d {db_name} -c "ALTER DATABASE {db_name} SET plv8.start_proc TO plv8_require')
 
     else:

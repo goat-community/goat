@@ -3,8 +3,16 @@
     "buttonLabels": {
         "yes": "Sí",
         "cancel": "Cancelar",
-        "save": "Guardar"
+        "save": "Guardar",
+        "ok": "Ok",
+        "remove": "Retirar",
+        "stop": "Parar"
     },
+    "textFieldRules": {
+        "greaterThanZero": "El valor debe ser mayor que cero",
+        "smallerThanThousand": "El valor debe ser menor que 1000",
+        "onlyTwoDecimalPlaces": "Solo se aceptan números con dos decimales"
+      },
     "appBar": {
         "buttons": {
             "login": "Login",
@@ -13,7 +21,8 @@
             "filter": "Filtrar datos temáticos",
             "edit": "Crear escenario",
             "settings": "Idioma",
-            "info": "Información"
+            "info": "Información",
+            "osmMapMode": "Modo de mapeo en OSM"
         },
         "login": {
             "title": "Login",
@@ -54,6 +63,10 @@
                     "label": "Sistema de coordenadas",
                     "rule": "Dato requerido"
                 },
+                "outputFormat": {
+                    "label": "Formato de salida",
+                    "rule": "Dato requerido"
+                  },
                 "submit": "Impresión",
                 "abort": "Cancelar",
                 "legend": "Leyenda",
@@ -101,16 +114,40 @@
             "selectOnMap": "Seleccione objetos en el mapa",
             "editTools": "Herramientas de edición",
             "drawFeatureTooltip": "Dibujar entidad",
+            "addBldEntrance": "Add Building Entrance",
             "modifyFeatureTooltip": "Modificar entidad",
             "deleteFeature": "Eliminar entidad",
+            "moveFeature": "Mover entidad",
+            "modifyAttributes": "Modificar atributos",
+            "drawPolygonHole": "Dibujar vacío en el polígono ",
+            "snapGuide": "Guía de cuadrícula",
+            "featureLabels": "Etiquetas de la entidad",
             "clearBtn": "Borrar",
             "uploadBtn": "Subir",
+            "addEntrancesForBuildings": "Add entrances for all buildings to activate <b>UPLOAD</b>",
             "popup": {
                 "deleteFeatureMsg": "¿Está seguro de que desea eliminar la entidad seleccionada?",
                 "selectWayType": "Seleccione el tipo de vía: ",
                 "wayType": "Tipo de vía"
             },
+            "table": {
+                "layer": "Capa",
+                "status": "Estado",
+                "type": "Tipo",
+                "actions": "Acción"
+              },
+              "type": {
+                "New": "Nueva",
+                "Modified": "Modificada",
+                "Restored": "Restaurada",
+                "Deleted": "Borrada"
+              },
+              "status": {
+                "Uploaded": "Uploaded",
+                "NotUploaded": "Not Uploaded"
+              },
             "activateLayerToDrawScenario": "Por favor active una capa para poder seleccionar las entidades",
+            "dataTypeInfo": "El archivo debe ser de tipo",
             "geometryTypeInfo": "La geometría debe ser tipo",
             "requiredFields": "Campo obligatorio",
             "referenceSystemInfo": "El sistema de coordenadas debe estar configurado como",
@@ -125,7 +162,7 @@
             "scenarioFeatures": "Entidades del escenario",
             "uploadYourData": "Suba su archivo ",
             "deleteAllTitle": "Borrar todo",
-            "deleteAllMessage": "¿Está seguro que quiere borrar toda la información de su <b> escenario?."
+            "deleteAllMessage": "¿Está seguro de que quiere borrar toda la información del escenario?."
         },
         "settings": {
             "title": "Configuración",
@@ -140,12 +177,17 @@
             "title": "Sobre GOAT",
             "content": "es la sigla en inglés de Geo Open Accessibility Tool. GOAT ha sido concebida como una herramienta flexible, interactiva y de código abierto que puede ser usada para la planificación basada en la accesibilidad. GOAT se encuentra en desarrollo en la TUM ( Chair of Urban Structure and Transport Planning).....",
             "moreInfo": "Más información"
-        }
+        },
+        "documentation": {
+            "title": "Documentación",
+            "openInNewTab": "Abrir en una nueva pestaña"
+          }
     },
     "isochrones": {
         "title": "Isocronas",
         "calculation": "Cálculo",
         "calculationTitle": "Cálculo de isocronas",
+        "stopIsochroneCalc": "Parar cálculo",
         "single": {
             "title": "Punto de partida",
             "type": "Simple",
@@ -183,18 +225,24 @@
             "walking_standard": "Usuario estándar",
             "walking_elderly": "Adulto mayor (tercera edad)",
             "walking_safe_night": "Safe night",
-            "walking_wheelchair": "Usuario en silla de ruedas"
+            "walking_wheelchair": "Usuario en silla de ruedas",
+            "walking_wheelchair_standard": "Estándar",
+            "walking_wheelchair_electric": "Eléctrica",
+            "cycling_standard": "Estándar",
+            "cycling_pedelec": "Pedelec"
         },
         "results": {
             "title": "Resultados",
             "multiIsochroneHeader": "Cálculo de las isocronas múltiples",
             "additionalLayers": "Capas adicionales",
             "showDataTooltip": "Mostrar datos",
+            "hideDataTooltip": "Ocultar datos",
             "showResultsTooltip": "Mostrar resultados",
             "hideResultsTooltip": "Ocultar resultados",
             "toggleVisibilityTooltip": "Alternar visibilidad",
             "downloadTooltip": "Descargar",
             "deleteCalcTooltip": "Eliminar cálculo",
+            "deleteAll": "Borrar todo",
             "changeColorTooltip": "Click aquí para cambiar el color",
             "table": {
                 "type": "Tipo",
@@ -202,7 +250,8 @@
                 "area": "Área",
                 "visible": "Visible",
                 "legend": "Color"
-            }
+            },
+            "colorMessage": "Menor: <b>0 min</b>, Mayor: <b>20 min</b>"
         },
         "tableData": {
             "timeFilter": "Seleccione límite de tiempo",
@@ -221,6 +270,7 @@
         "isochrones": "Isocronas",
         "deleteTitle": "Eliminar",
         "deleteMessage": "¿Está seguro de que desea eliminar el cálculo?",
+        "deleteAllMessage": "¿Está seguro que desea eliminar todos los cálculos?",
         "download": {
             "title": "Descargar isocronas",
             "fileName": "Nombre del archivo",
@@ -257,45 +307,94 @@
     },
     "map": {
         "layerLegend": {
-            "title": "Capas Leyenda"
+            "title": "Convenciones"
         },
         "snackbarMessages": {
-            "selectAmenities": "Debe seleccionar al menos una amenidad.",
-            "calculateIsochroneError": "Lo sentimos, desde este punto no es posible calcular isocronas.",
-            "uploadScenarioSuccess": "Las entidades han sido cargadas exitosamente.",
+        "selectAmenities": "Debe seleccionar al menos una amenidad.",
+        "calculateIsochroneError": "Lo sentimos, desde este punto no es posible calcular isocronas.",
+        "calculateIsochroneCancelled": "Cálculo de isocrona cancelado",
+        "uploadScenarioSuccess": "Las entidades han sido cargadas exitosamente.",
         "uploadScenarioError": "Lo sentimos, ha ocurrido un error mientras se cargaban las entidades en la base de datos.",
-        "notAllScnearioFeaturesUploaded": " El escenario de isocronas no tendrá en cuenta las entidades subidas."
+        "notAllScnearioFeaturesUploaded": " El escenario de isocronas no tendrá en cuenta las entidades subidas.",
+        "cantDeleteAllScenarioFeatures": "Lo sentimos, la información del escenario no se puede borrar en este momento",
+        "allScenarioFeaturesDelete": "Se borró toda la información del escenario",
+        "noScenarioFeatureChangeAvailable": "Por favor haga un cambio en la red o el uso del suelo antes",
+        "cantPrintBaseLayer": "Esta capa base no puede ser impresa",
+        "featuresAlreadyUploaded": "Las entidades ya existen"
         },
         "layerGroup": {
             "poisLayers": "Puntos de interés",
+            "buildings_landuse": "Edificios y uso del suelo",
             "administrativeLayers": "Límites administrativos",
-            "streetlevelqualityLayers": "Street Level Quality",
+            "streetlevelqualityLayers": "Calidad de las vías",
+            "environmentalQualityLayers": "Información ambiental",
+            "perceivedQuality": "Calidad percibida",
+            "additionalDataLayers": "Additional data",
             "accessbilityBasemaps": "Accesibilidad",
-            "backgroundLayers": "Mapas base"
+            "backgroundLayers": "Mapas base",
+            "buildings": "Construcciones",
+            "mobility_patterns":"Indicadores de movilidad"
         },
         "layerName": {
             "pois": "Puntos de interés",
             "administrativeUnits": "Unidades administrativas",
+            "accidents_pedestrian_2018": "Accdientes con peatones (2018)",
+            "accidents_pedestrian_2017": "Accdientes con peatones (2017)",
+            "accidents_bike_2018": "Accidentes con ciclistas (2018)",
+            "accidents_bike_2017": "Accidentes con ciclistas (2017)",
+            "bicycle_counting_stations": "Conteo de bicicletas (2019)",
+            "street_trees": "Street Trees",
+            "biotops": "Biotopos",
+            "ffh-area": "Área FFH ",
+            "natureReserves": "Reservas naturales",
+            "noiseMainTrafficRoads": "Nivel de ruido - vías principales",
+            "waterProtectionArea": "Zonas de protección hídrica",
+            "floodingAreasHQ100": "Zonas de inundación (100 años)",
+            "dikes": "Dikes",
+            "protectedLandscape": "Areas de paisaje protegido",
+            "landuse": "Uso del suelo",
+            "landuse_osm": "Uso del suelo (OSM)",
+            "zoningPlan": "Plan de zonificación",
             "footpathWidth": "Ancho de acera peatonal",
             "illuminance": "Iluminación",
             "lanes": "Carriles",
+            "noiseAircraftLDEN": "Ruido por aviones - LDEN",
+            "noiseAircraftLNight": "Ruido por aviones - LNight",
+            "noiseProtectionBauleitplanung": "Zona de protección contra ruido para planeación del uso del suelo",
             "parking": "Parqueo en vía",
+            "smoothness": "Smoothness",
             "speed": "Velocidad",
-            "streetCrossings": "Cruces de calle",
+            "streetCategory": "Tipología de vía detallada",
+            "streetCategorysAggregated": "Tipología de vía",
+            "streetCrossings": "Cruces",
+            "streetFurniture": "Mobiliario urbano",
+            "streetFurnitureBicycles": "Bicicletero",
             "surface": "Superficie",
-            "wheelchairUsability": "Habilitado para usuarios en silla de ruedas",
+            "wheelchairUsability": "Idoneidad para usuarios en silla de ruedas",
             "areaIsochrone": "Tamaño Isocrona",
             "walkabilityPopulation": "Población - Walkability",
             "population": "Población",
             "walkability": "Walkability",
             "studyArea": "Área de estudio",
             "ways": "Vías",
+            "buildings": "Edificaciones",
             "osmStandard": "OSM Standard",
             "osmLight": "OSM Light",
             "osmDark": "OSM Dark",
             "mapboxStreets": "Mapbox",
             "publicTransport": "Transporte público",
-            "bingAerial": "Bing Aerial"
+            "bingAerial": "Bing Aerial",
+            "walking_trip_rate":"Viajes a pié por persona",
+            "walkingShare":"Proporción de viajes a pié",
+            "cyclingShare":"Proporción de viajes en bicicleta",
+            "bicycle_rate":"Posesión de bicicletas",
+            "motorization_rate":"Posesión de vehículos motorizados",
+            "population_strata":"Población por estrato",
+            "transmilenioShare":"Proporción de viajes en TransMilenio",
+            "sitpShare":"Proporción de viajes en SITP",
+            "cycling_trips_rate":"Viajes en bicicleta por persona",
+            "pt_trips_rate":"Viajes en transporte público por persona",
+            "strata": "Estrato socioeconómico"
         },
         "tooltips": {
             "clickForCalculation": "Haga clic para calcular, oprima ESC para salir",
@@ -308,41 +407,169 @@
             "clickToStartDrawingBoundary": "Haga clic para comenzar a dibujar, , <br> oprima ESC para salir",
             "clickToStartDrawingCircle": "Haga clic para comenzar a dibujar el círculo (Radio máximo 1000 m) <br> oprima ESC para salir",
             "clickToFinishDrawingPolygon": "Haga doble clic o haga clic en el punto de partida para finalizar",
-            "clickOnFeatureToDelete": "Haga clic en el objeto para eliminarla.",
+            "clickOnFeatureToDelete": "Haga clic en el objeto para eliminarlo.",
+            "clickOnFeatureToMove": "De clic en la entidad y arrastre para mover",
+            "drawHoleOnPolygon": "Dibuje sobre el polígono para crear el hoyo",
+            "drawHoleOnPolygonNotAllowed": "Dibuje el hoyo sobre otro edificio dibujado",
             "clickAndDragToModify": "Haga clic y arrastre el objeto para modificar",
-            "clickToRemove": "Haga clic para eliminarlo",
-            "clickToPlacePoint": "Haga clic ",
+            "clickToModifyAttributes": "Haga clic para modificar los atributos",
+            "clickToRemove": "Haga clic para eliminar",
+            "clickToPlacePoint": "Haga clic para fijar punto de interés ",
+            "changeDefaultColorPalette": "Cambiar color (base)",
+            "changeScenarioColorPalette": "Cambiar color (escenario)",
+            "clickToBldEntrance": "De clic en el edificio para añadir entrada <br>Clic y arrastre para modificar <br>Click derecho en la entidad para borrar",
+            "clickToBldEntranceNotAllowed": " No se puede añadir una entrada aquí.  De clic nuevamente en un edificio dibujado",
+            "moveExistingBuildingNotAllowed": "Desplácese sobre uno de los nuevos edificios dibujados para activar la opción de desplazar",
+            "modifyExistingBuildingNotAllowed": "Desplácese sobre uno de los nuevos edificios dibujados para activar la opción de modificar",
+            "openDocumentation": "Abrir documentación",
             "routingProfiles": {
-                "walking_standard": "Ruteo predeterminado",
-                "walking_elderly": " Ruteo con velocidad de caminata reducida",
-                "walking_wheelchair": "Ruteo excluyendo rutas y puntos de interés que no son sin barreras",
-                "walking_safe_night": "Ruteo excluyendo vías sin iluminación"
+                "walking": {
+                    "title": "Caminata",
+                    "options": {
+                      "standard": {
+                        "title": "Estándar",
+                        "tooltip": "Ruteo predeterminado"
+                      },
+                      "elderly": {
+                        "title": "Tercera edad",
+                        "tooltip": "Ruteo con velocidad de caminata reducida"
+                      },
+                      "safe_night": {
+                        "title": "Seguridad en la noche",
+                        "tooltip": "Ruteo excluyendo vías sin iluminación"
+                      }
+                    }
+                  },
+                  "cycling": {
+                    "title": "Bicicleta",
+                    "options": {
+                      "standard": {
+                        "title": "Estándar",
+                        "tooltip": "Ruteo predeterminado"
+                      },
+                      "pedelec": {
+                        "title": "Pedelec",
+                        "tooltip": "Pedelec"
+                      }
+                    }
+                  },
+                  "walking_wheelchair": {
+                    "title": "Silla de ruedas",
+                    "options": {
+                      "standard": {
+                        "title": "Estándar",
+                        "tooltip": "Ruteo predeterminado"
+                      },
+                      "electric": {
+                        "title": "Eléctrico",
+                        "tooltip": "Eléctrico"
+                      }
+                    }
+                  }
             },
             "zoomToFeature": "Zoom a la entidad",
             "deleteFeature": "Borrar entidad",
-            "uploadFeature": "Actualizar entidad"
+            "uploadFeature": "Actualizar entidad",
+            "restoreFeature": "Restaurar entidad",
+            "zoomIn": "Acercar",
+            "zoomOut": "Alejar",
+            "openFullScreen": "Abrir en pantalla completa",
+            "exitFullScreen": "Salir de pantalla completa",
+            "toggleStreetView": "Abrir Open StreetView"
         },
         "popup": {
             "attributes": "Atributos",
             "info": "Información",
             "editWithOsm": "Editar con OSM",
-            "confirm": "Confirmar"
+            "confirm": "Confirmar",
+            "modifyAttributes": "Modificar atributos"
         },
         "layerListValues": {
             "road": "Carretera",
             "bridge": "Puente"
-        }
+        },
+        "contextMenu": {
+            "deleteIsochrone": "Borrar isocrona",
+            "zoomIn": "Acercar",
+            "zoomOut": "Alejar",
+            "deleteBldEntrancePoint": "Borrar población",
+            "redoCalculation": "Repetir cálculo"
+          },
+          "osmMode": {
+            "tasks": "Tareas de mapeo en OSM",
+            "steps": "Pasos",
+            "info": "Información",
+      
+            "stepsDesc": {
+              "clickFeatureInMap": "De clic en un objeto en el mapa",
+              "clickEditWithOsm": "Al dar clic en el link de <b>'Editar con OSM'</b>, usted será redireccionado al iD-Editor.",
+              "fillInOSMiD": "Agrege la variable  faltante {missingVar} en el editor de OSM de acuerdo con los lineamientos de la wiki de OSM. Puede recuperar la información con fuentes secundarias como Mapillary. "
+            },
+            "note": "Nota: la capa {layerNameVar} se actualiza cada 10 minutos",
+            "shortDesc": "Complete la {missingVar} faltante",
+            "longDesc": "Revise la capa {layerNameVar} para la variable {missingVar} faltante.",
+            "layers": {
+              "osm-mapping-pois": {
+                "missingKeyWord": "Horas de apertura",
+                "layerName": "POIs",
+                "stepsDesc": {
+                  "clickFeatureInMap": "Los íconos en el mapa representan los desafíos. Seleccione uno de ellos.",
+                  "clickEditWithOsm": "Al dar clic en el link de <b>'Editar con OSM'</b>, usted será redireccionado al iD-Editor.",
+                  "fillInOSMiD": "Rellene la etiqueta 'opening_hours' en el editor de OSM de acuerdo con los lineamientos de la wiki de OSM. Se puede encontrar la información en el sitio web de la amenidad o en una visita al sitio."
+                }
+              },
+              "osm-mapping-ways-speed": {
+                "missingKeyWord": "Máxima velocidad",
+                "layerName": "Ways",
+                "stepsDesc": {
+                  "clickFeatureInMap": "Las líneas rojas en el mapa representan los desafíos. Seleccione una de ellos.",
+                  "clickEditWithOsm": "Al dar clic en el link de <b>'Editar con OSM'</b>, usted será redireccionado al iD-Editor.",
+                  "fillInOSMiD": "Rellene la etiqueta 'maxspeed' en el editor de OSM de acuerdo con los lineamientos de la wiki de OSM. Se puede encontrar la información en las imágenes de Mapillary o en una visita al sitio."
+                }
+              },
+              "osm-mapping-ways-surface": {
+                "missingKeyWord": "Tipo de superficie",
+                "layerName": "Ways",
+                "stepsDesc": {
+                  "clickFeatureInMap": "Las líneas rojas en el mapa representan los desafíos. Seleccione una de ellos.",
+                  "clickEditWithOsm": "Al dar clic en el link de <b>'Editar con OSM'</b>, usted será redireccionado al iD-Editor.",
+                  "fillInOSMiD": "Rellene la etiqueta 'surface' en el editor de OSM de acuerdo con los lineamientos de la wiki de OSM. Se puede encontrar la información en las imágenes de Mapillary o en una visita al sitio. "
+                }
+              },
+              "osm-mapping-ways-wheelchair": {
+                "missingKeyWord": "Usabilidad de la silla de ruedas",
+                "layerName": "Ways"
+              },
+              "osm-mapping-buildings-type": {
+                "missingKeyWord": "Tipo de edificación",
+                "layerName": "Buildings",
+                "stepsDesc": {
+                  "clickFeatureInMap": "Los polígonos rojos en el mapa representan los desafíos. Seleccione una de ellos.",
+                  "clickEditWithOsm": "Al dar clic en el link de <b>'Editar con OSM'</b>, usted será redireccionado al iD-Editor.",
+                  "fillInOSMiD": "Rellene la etiqueta 'building' en el editor de OSM de acuerdo con los lineamientos de la wiki de OSM. Se puede encontrar la información en las imágenes satelitales, imágenes de Mapillary o visitas al sitio. "
+                }
+              }
+            },
+      
+            "dialogMessage": {
+              "title": "Modo de mapeo OSM",
+              "body": "¡Bienvenido al modo de mapeo de OSM! En este modo, usted tiene la posibilidad de mejorar GOAT contribuyendo a OpenStreetMap (OSM). Hemos definidio diferentes tareas con la información faltante, que puede ser completada utilizando el iD-Editor u otro editor de OSM, como JOSM. Por favor estudie por su cuenta las reglas básicas de mapeo en OSM y revise la wiki de OSM para los elementos a editar. También podrá encontrar un tutorial de mapeo en OSM en el sitio web de GOAT. ¡Gracias por contribuir al mundo de la información abierta!."
+            }
+          }
     },
     "pois": {
         "education": "Educación",
         "foodAndDrink": "Comida y bebida",
         "transport": "Transporte",
+        "mobilitystations": "Hubs de movilidad",
         "services": "Servicios",
         "shop": "Tienda",
         "tourismAndLeisure": "Turismo y Recreo",
+        "nursery": "Guardería",
         "kindergarten": "Jardín de infancia",
         "primary_school": "Escuela primaria",
         "secondary_school": "Escuela secundaria",
+        "school": "Colegio",
         "library": "Biblioteca",
         "bar": "Bar",
         "biergarten": "Biergarten",
@@ -357,9 +584,21 @@
         "charging_station": "Estación de carga",
         "bus_stop": "Parada de autobús",
         "tram_stop": "Parada de tranvía",
+        "transmicable": "Transmicable",
         "subway_entrance": "Estación de Metro",
+        "sitp": "SITP",
+        "transmilenio": "Transmilenio",
         "rail_station": "Estación de tren",
         "taxi": "Taxi",
+        "bikesharing_ffb": "Estaciones de bicicleta compartida",
+        "carsharing_ffb": "Estaciones de auto compartido",
+        "charging_station_marker_ffb": "Estaciones de carga eléctrica privadas",
+        "charging_station_other_ffb": "Estaciones de carga eléctrica privadas (en construcción)",
+        "charging_station_public_ffb": "estaciones de carga eléctrica públicas",
+        "e_parking_ffb": "E-Parking",
+        "l-station_ffb": "L-Station Prio 1",
+        "s-station_prio1_ffb": "S-Station Prio 1",
+        "s-station_prio2_ffb": "S-Station Prio 2",
         "hairdresser": "Peluquería",
         "atm": "Cajero automático",
         "bank": "Banco",
@@ -393,7 +632,21 @@
         "gallery": "Galería",
         "university": "Universidad",
         "hospital": "Hospital",
-        "population": "Población"
+        "playground": "Zona de juegos infantiles",
+        "population": "Población",
+        "park": "Parques",
+        "governmentandsec": "Gobierno y seguridad",
+        "notary": "Notaría",
+        "cade": "CADE",
+        "police": "Estación de policía",
+        "sports": "Deportes",
+        "community_sports_center": "Centro deportivo comunal",
+        "waterpark": "Parque acuático",
+        "discount_gym": "Gimnasio de descuento",
+        "gym": "Gimnasio",
+        "yoga": "Yoga",
+        "outdoor_fitness_station": "Gimnasio al aire libre",
+        "population": "Population"
     },
     "$vuetify": {
         "close": "Cerrar",
@@ -438,19 +691,53 @@
         "attributes": {
           "ways": {
             "type": "Tipo de vía",
-            "class_id": "ID de clasificación"
+            "surface": "Superficie",
+            "wheelchair": "Silla de ruedas"
           },
           "pois": {
             "amenity": "Amenidad",
             "name": "Nombre (Opcional)",
             "opening_hours": "Horas de atención (Opcional)"
+        },
+        "buildings": {
+            "building": "Tipo de edificación",
+            "building_levels": "Pisos",
+            "building_levels_residential": "Número de pisos residenciales",
+            "population": "Número de residentes (opcional)",
+            "gross_floor_area": "Are construida neta (opcional)"
           }
         },
         "listValues": {
-          "ways": {
-            "road": "Calle",
-            "bridge": "Puente"
-          }
+            "ways": {
+                "road": "Calle",
+                "bridge": "Puente",
+                "asphalt": "Asfalto",
+                "cobblestone": "Guijarro",
+                "fine_gravel": "Gravilla",
+                "gravel": "Grava",
+                "grass": "Pasto",
+                "unpaved": "Sin pavimentar",
+                "yes": "Sí",
+                "no": "No"
+            },
+            "buildings": {
+                "residential": "Residencial",
+                "commercial": "Comercial",
+                "public": "Público"
+            }
         }
-    }
+    },
+    "openingHours": {
+        "openingTime": "Hora de apertura",
+        "closingTime": "Hora de cierre",
+        "default": "Predeterminado",
+        "monday": "Lunes",
+        "tuesday": "Martes",
+        "wednesday": "Miércoles",
+        "thursday": "Jueves",
+        "friday": "Viernes",
+        "saturday": "Sábado",
+        "sunday": "Domingo",
+        "publicHolidays": "Festivos"
+      }
 }

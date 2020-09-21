@@ -12,7 +12,7 @@ BEGIN
         userid_input = 1;
         excluded_pois_id = ARRAY[]::integer[];
     ELSE
-        excluded_pois_id = ids_modified_features(userid_input,'pois');
+        excluded_pois_id = ids_modified_features(userid_input,1,'pois');
     END IF;
 
     IF region_type = 'study_area' THEN

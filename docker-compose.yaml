@@ -30,7 +30,7 @@ services:
 
   client:
     build:
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
       context: ./app/client
     image: goat-client
     volumes:
@@ -69,6 +69,7 @@ services:
     image: goatcommunity/geoserver:latest
     volumes:
       - ./app/geoserver/geoserver_data:/var/local/geoserver
+      - ./app/geoserver/additional_libs:/var/local/geoserver-exts
     container_name: goat-geoserver
     restart: on-failure
     depends_on:
@@ -82,8 +83,8 @@ services:
     networks:
       proxy:
 
-  db:
-    image: goatcommunity/database:12-3-2.6.3-2.3.14
+  db: 
+    image: goatcommunity/database:12-3-2.6.11-custom-2.3.14
     container_name: goat-database
     restart: on-failure
     volumes:

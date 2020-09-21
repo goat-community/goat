@@ -1,116 +1,75 @@
 DROP FUNCTION IF EXISTS pgrouting_edges;
-CREATE OR REPLACE FUNCTION public.pgrouting_edges(minutes integer, x numeric, y numeric, speed numeric, number_isochrones integer, userid_input integer, objectid_input integer, modus_input integer, routing_profile text)
- RETURNS VOID--SETOF type_catchment_vertices_single
+CREATE OR REPLACE FUNCTION public.pgrouting_edges(cutoffs float[], startpoints float[][], speed numeric, userid_input integer, scenario_id_input integer, objectid_input integer, modus_input integer, routing_profile text)
+ RETURNS SETOF void
  LANGUAGE plpgsql
 AS $function$
-DECLARE
-  r type_edges;
-  buffer text;
-  distance numeric;
-  start_point geometry;
-  geom_vertex geometry;
-  number_calculation_input integer;
-  userid_vertex integer;
-  closest_point geometry; 
-  fraction float;
-  vid integer; 
-  wid integer;
-begin
+DECLARE 
+	buffer text;
+	distance numeric;
+	number_calculation_input integer;
+	vids bigint[];
+BEGIN
+	
+	PERFORM pgrouting_edges_preparation(cutoffs, startpoints, speed, modus_input, routing_profile, userid_input, scenario_id_input);
 
-  IF modus_input IN(1,3)  THEN
-		userid_vertex = 1;
-		userid_input = 1;
-  ELSEIF modus_input = 2 THEN
-    userid_vertex = userid_input;
-	ELSEIF modus_input = 4 THEN  	 
-		userid_vertex = 1;
-	END IF;
-/*start_point still has to be tested as it is the point were the user clicked. Worst case could be that we don't fetch the whole network*/  
+	SELECT ARRAY[vid]
+	INTO vids
+	FROM start_vertices; 
 
-  start_point = ST_SETSRID(ST_POINT(x,y),4326);
-  
-  distance = speed*(minutes*60);
-  
-  --For now only the speed differs
-  IF routing_profile = 'walking_elderly' THEN 
-    routing_profile = 'walking_standard';
-  ELSIF routing_profile = 'walking_wheelchair_electric' OR routing_profile = 'walking_wheelchair_standard' THEN 
-    routing_profile = 'walking_wheelchair';
-  END IF;
-
-  SELECT ST_AsText(ST_Buffer(start_point::geography,distance)::geometry)  
-  INTO buffer;
-
-  DROP TABLE IF EXISTS temp_fetched_ways;
-  DROP TABLE IF EXISTS temp_reached_vertices;
-
-  CREATE TEMP TABLE temp_fetched_ways AS 
-  SELECT *
-  FROM fetch_ways_routing(buffer,modus_input,userid_input,speed, routing_profile);
-
-  ALTER TABLE temp_fetched_ways ADD PRIMARY KEY(id);
-  CREATE INDEX ON temp_fetched_ways (target);
-  CREATE INDEX ON temp_fetched_ways (source);
-  CREATE INDEX ON temp_fetched_ways (death_end);
-
-  SELECT c.closest_point, c.fraction, c.wid, c.vid 
-  INTO closest_point, fraction, wid, vid
-  FROM closest_point_network(x,y) c;
-
-  IF modus_input <> 3 THEN 
+	IF modus_input <> 3 AND array_length(startpoints,1) = 1 THEN 
 		SELECT count(objectid) + 1 
-    INTO number_calculation_input
+    	INTO number_calculation_input
 		FROM starting_point_isochrones
 		WHERE userid = userid_input; 
 		INSERT INTO starting_point_isochrones(userid,geom,objectid,number_calculation)
-		SELECT userid_input, closest_point, objectid_input, number_calculation_input;
+		SELECT userid_input, closest_point, objectid_input, number_calculation_input
+		FROM start_vertices; 
 	END IF; 
 
-  IF vid IS NOT NULL THEN 
+	DROP TABLE IF EXISTS reached_edges; 
 
-    INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
-    SELECT 99999998, cost*fraction,reverse_cost*fraction,SOURCE,vid,ST_LINESUBSTRING(geom,0,fraction)
-    FROM temp_fetched_ways 
-    WHERE id = wid
-    UNION ALL 
-    SELECT 99999999, cost*(1-fraction),reverse_cost*(1-fraction),vid,target,ST_LINESUBSTRING(geom,fraction,1)
-    FROM temp_fetched_ways 
-    WHERE id = wid;
-    
-    DELETE FROM temp_fetched_ways WHERE id = wid;
+	CREATE TEMP TABLE reached_edges AS 
+	SELECT p.from_v, p.edge, p.start_perc, p.end_perc, greatest(start_cost,end_cost) AS COST, start_cost, end_cost, w.geom
+	FROM pgr_isochrones(
+		'SELECT * FROM temp_fetched_ways', 
+		vids, cutoffs,TRUE
+	) p, temp_fetched_ways w
+	WHERE p.edge = w.id;
 
-    IF modus_input = 1 THEN 
-      CREATE TEMP TABLE temp_reached_vertices as 
-      SELECT vid AS start_vertex, id1::integer AS node, cost::NUMERIC, v.geom, objectid_input AS objectid, v.death_end 
-      FROM PGR_DrivingDistance( 
-          'SELECT * FROM temp_fetched_ways WHERE id <> '||wid,
-          vid, distance/speed, FALSE, FALSE
-          )p, ways_vertices_pgr v
-      WHERE p.id1 = v.id
-      UNION ALL 
-      SELECT vid, vid, 0, closest_point, objectid_input, NULL;
+	CREATE INDEX ON reached_edges (edge);
+	DELETE FROM reached_edges WHERE edge IN (SELECT id FROM artificial_edges);
+	
+	INSERT INTO reached_edges
+	SELECT a.source, a.id, 0, 1, a.COST, 0, a.COST, a.geom 
+	FROM artificial_edges a, start_vertices v
+	WHERE a.SOURCE = v.vid 
+	UNION ALL 
+	SELECT a.target, a.id, 0, 1, a.reverse_cost, a.reverse_cost, 0, a.geom 
+	FROM artificial_edges a, start_vertices v
+	WHERE a.target = v.vid; 
 
-    ELSE
-      CREATE TEMP TABLE temp_reached_vertices as 
-      SELECT vid AS start_vertex, id1::integer AS node, cost::NUMERIC AS cost, v.geom, objectid_input AS objectid, v.death_end
-      FROM PGR_DrivingDistance(
-        'SELECT * FROM temp_fetched_ways  WHERE id <> '||wid,
-        vid, distance/speed, FALSE, FALSE
-      ) p, ways_userinput_vertices_pgr v
-      WHERE p.id1 = v.id
-      UNION ALL 
-      SELECT vid, vid, 0, closest_point, objectid_input, NULL;
-    END IF;
-  
-    ALTER TABLE temp_reached_vertices ADD PRIMARY KEY(node);
-
-    PERFORM get_reached_network(objectid_input,minutes*60,number_isochrones,ARRAY[99999998,99999999]);
-
-  END IF;
-
-  RETURN;
-END ;
+	INSERT INTO edges (edge,COST, start_cost, end_cost, geom, objectid)
+	WITH full_edges AS 
+	(	
+		SELECT * 
+		FROM reached_edges 
+		WHERE (start_perc = 0 
+		AND end_perc = 1)
+	)
+	SELECT r.edge, r.cost, r.start_cost, r.end_cost, ST_LineSubstring(r.geom, r.start_perc, r.end_perc), objectid_input   
+	FROM reached_edges r
+	LEFT JOIN full_edges f
+	ON r.edge = f.edge 
+	WHERE (r.start_perc <> 0 OR r.end_perc <> 1) 
+	AND f.edge IS NULL
+	UNION ALL 
+	SELECT edge, COST, start_cost, end_cost, geom, objectid_input 
+	FROM full_edges; 
+	
+END;
 $function$;
 
---SELECT * FROM public.pgrouting_edges(7, 11.546394, 48.195533, 1.33, 2, 1, 15, 1, 'walking_safe_night');
---Speed in m/s
+/*
+SELECT * 
+FROM public.pgrouting_edges(ARRAY[300.,600.,900.], ARRAY[[11.2493, 48.1804]],4.1, 1, 1, 15, 1, 'cycling_standard')
+*/

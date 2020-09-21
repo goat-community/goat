@@ -25,5 +25,19 @@ BEGIN
 	AND b.userid = userid_input
 	AND p.userid = userid_input
 	AND b.building = 'residential';
+
+	WITH to_update AS 
+	(
+		SELECT building_gid, sum(population) population
+		FROM population_userinput 
+		WHERE userid = userid_input
+		GROUP BY gid 
+	)
+	UPDATE buildings_modified 
+	SET population = u.population 
+	FROM to_update u 
+	WHERE gid = u.building_gid
+	AND userid = userid_input; 
+
 END
 $function$;
