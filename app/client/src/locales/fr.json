@@ -3,7 +3,9 @@
     "buttonLabels": {
         "yes": "Oui",
         "cancel": "Annuler",
-        "save": "Enregistrer"
+        "save": "Enregistrer",
+        "ok": "valider",
+        "remove": "supprimer"
     },
     "appBar": {
         "buttons": {
@@ -54,7 +56,12 @@
                     "label": "Système de référence",
                     "rule": "Champ obligatoire"
                 },
+                "outputFormat": {
+                    "label": "",
+                    "rule": ""
+                },
                 "submit": "Imprimer",
+                "abort": "",
                 "legend": "Légende",
                 "grid": "Grille"
             }
@@ -102,13 +109,49 @@
             "drawFeatureTooltip": "Dessiner un élément",
             "modifyFeatureTooltip": "Modifier l'élément",
             "deleteFeature": "Supprimer l'élément",
+            "moveFeature": "",
+            "modifyAttributes": "",
+            "snapGuide": "",
             "clearBtn": "Effacer",
             "uploadBtn": "Télécharger",
             "popup": {
                 "deleteFeatureMsg": "Êtes-vous sûr de vouloir supprimer l'élément sélectionné ?",
                 "selectWayType": "Sélectionnez le type de trajet : ",
                 "wayType": "Type de trajet"
-            }
+            },
+            "table": {
+                "layer": "calque",
+                "status": "",
+                "type": "",
+                "actions": ""
+            },
+            "type": {
+                "New": "",
+                "Modified": "",
+                "Restored": "",
+                "Deleted": ""
+            },
+            "status": {
+                "Uploaded": "",
+                "NotUploaded": ""
+            },
+            "activateLayerToDrawScenario": "",
+            "dataTypeInfo": "",
+            "geometryTypeInfo": "",
+            "requiredFields": "",
+            "referenceSystemInfo": "",
+            "featuresNotyetUploaded": "",
+            "differentGeometryType": "",
+            "missingFields": "",
+            "fileCorrupted": "",
+            "noFile": "",
+            "allFeaturesUploaded": "",
+            "notAllUploaded": "",
+            "errorHappened": "",
+            "scenarioFeatures": "",
+            "uploadYourData": "",
+            "deleteAllTitle": "",
+            "deleteAllMessage": ""
         },
         "settings": {
             "title": "Paramètres",
@@ -161,15 +204,28 @@
             "alphaShapeMode": "Niveau de précision",
             "defaultNetwork": "Réseau par défaut",
             "modifiedNetwork": "Réseau modifié",
-            "modifiedNetworkDoubleCalc": "Réseau modifié (double calcul)"
+            "modifiedNetworkDoubleCalc": "Réseau modifié (double calcul)",
+            "routingProfile": "",
+            "walking_standard": "",
+            "walking_elderly": "personnes âgées",
+            "walking_safe_night": "",
+            "walking_wheelchair": "",
+            "cycling_standard": "",
+            "cycling_pedelec": ""
         },
         "results": {
             "title": "Résultats",
             "multiIsochroneHeader": "Calcul multi-isochrone",
+            "additionalLayers": "",
             "showDataTooltip": "Afficher les données",
+            "hideDataTooltip": "",
             "toggleVisibilityTooltip": "Basculer la visibilité",
+            "showResultsTooltip": "",
+            "hideResultsTooltip": "",
             "downloadTooltip": "Télécharger",
             "deleteCalcTooltip": "Supprimer le calcul",
+            "deleteAll": "",
+            "changeColorTooltip": "",
             "table": {
                 "type": "Type",
                 "range": "Temps",
@@ -195,11 +251,33 @@
         "isochrones": "Isochrones",
         "deleteTitle": "Effacer",
         "deleteMessage": "Êtes-vous sûr de vouloir supprimer le calcul",
+        "deleteAllMessage": "",
         "download": {
             "title": "Télécharger les isochrones",
             "fileName": "Nom du fichier",
             "outputFormat": "Choisissez le format de sortie",
             "download": "Télécharger"
+        },
+        "additionalLayers": {
+            "defaultNetwork": "",
+            "inputNetwork": ""
+        },
+        "pickColor": {
+            "title": ""
+        }
+    },
+    "poisFilter": {
+        "showTimeFilter": "",
+        "selectHourLabel": "",
+        "selectDayLabel": "",
+        "daysOfWeek": {
+            "monday": "",
+            "tuesday": "",
+            "wednesday": "",
+            "thursday": "",
+            "friday": "",
+            "saturday": "",
+            "sunday": ""
         }
     },
     "layerTree": {
@@ -213,24 +291,45 @@
             "title": "Légende des couches"
         },
         "snackbarMessages": {
-            "selectAmenities": "Vous devez sélectionner au moins une commodité"
+            "selectAmenities": "Vous devez sélectionner au moins une commodité",
+            "calculateIsochroneError": "",
+            "uploadScenarioSuccess": "",
+            "uploadScenarioError": "",
+            "notAllScnearioFeaturesUploaded": "",
+            "cantDeleteAllScenarioFeatures": "",
+            "allScenarioFeaturesDelete": "",
+            "noScenarioFeatureChangeAvailable": "",
+            "cantPrintBaseLayer": ""
         },
         "layerGroup": {
             "poisLayers": "Couche des Pois",
             "administrativeLayers": "Couches administratives",
             "streetlevelqualityLayers": "Street Level Quality",
+            "environmentalQualityLayers": "",
+            "perceivedQuality": "",
             "accessbilityBasemaps": "Les couches d'accessibilité",
-            "backgroundLayers": "Couches d'arrière-plan"
+            "backgroundLayers": "Couches d'arrière-plan",
+            "buildings": ""
         },
         "layerName": {
             "pois": "Point d'intérêt",
             "administrativeUnits": "Divisions administratives",
+            "biotops": "",
+            "ffh-area": "",
+            "natureReserves": "",
+            "noiseMainTrafficRoads": "",
+            "protectedLandscape": "",
             "footpathWidth": "Footpath Width",
             "illuminance": "Luminosité",
             "lanes": "Lanes",
             "parking": "Parking",
+            "smoothness": "",
             "speed": "Speed",
+            "streetCategory": "",
+            "streetCategorysAggregated": "",
             "streetCrossings": "Street Crossings",
+            "streetFurniture": "",
+            "streetFurnitureBicycles": "",
             "surface": "Surface",
             "wheelchairUsability": "Accessibilité pour personnes avec mobilité reduite",
             "areaIsochrone": "Superficie de l'isochrone",
@@ -239,6 +338,7 @@
             "walkability": "Accessibilité piétonne",
             "studyArea": "Zone d'étude",
             "ways": "Trajets",
+            "buildings": "",
             "osmStandard": "Standard OSM",
             "osmLight": "OSM Light",
             "osmDark": "OSM Dark",
@@ -258,18 +358,67 @@
             "clickToStartDrawingCircle": "Cliquez pour commencer à dessiner le cercle (rayon maximum 1000 m)",
             "clickToFinishDrawingPolygon": "Double-cliquez ou cliquez sur le point de départ pour terminer",
             "clickOnFeatureToDelete": "Cliquez sur l'élément pour le supprimer",
+            "clickOnFeatureToMove": "",
             "clickAndDragToModify": "Cliquez et faites glisser les éléments à modifier",
-            "clickToRemove": "Cliquez pour effacer"
+            "clickToModifyAttributes": "",
+            "clickToRemove": "Cliquez pour effacer",
+            "clickToPlacePoint": "",
+            "routingProfiles": {
+                "walking": {
+                    "title": "",
+                    "options": {
+                        "standard": {
+                            "title": "",
+                            "tooltip": ""
+                        },
+                        "elderly": {
+                            "title": "",
+                            "tooltip": ""
+                        },
+                        "safe_night": {
+                            "title": "",
+                            "tooltip": ""
+                        }
+                    }
+                },
+                "cycling": {
+                    "title": "",
+                    "options": {
+                        "standard": {
+                            "title": "",
+                            "tooltip": ""
+                        },
+                        "pedelec": {
+                            "title": "",
+                            "tooltip": ""
+                        }
+                    }
+                },
+                "walking_wheelchair": {
+                    "title": "",
+                    "tooltip": ""
+                }
+            },
+            "zoomToFeature": "",
+            "deleteFeature": "",
+            "uploadFeature": "",
+            "restoreFeature": ""
         },
         "popup": {
             "attributes": "Les attributes",
             "info": "Info",
             "editWithOsm": "Editer avec OSM",
-            "confirm": "Confirmer"
+            "confirm": "Confirmer",
+            "modifyAttributes": ""
         },
         "layerListValues": {
             "road": "Route",
             "bridge": "Pont"
+        },
+        "contextMenu": {
+            "deleteIsochrone": "",
+            "zoomIn": "",
+            "zoomOut": ""
         }
     },
     "pois": {
@@ -279,6 +428,7 @@
         "services": "Services",
         "shop": "Magasin",
         "tourismAndLeisure": "Tourisme & Loisirs",
+        "nursery": "",
         "kindergarten": "Jardin d'enfants",
         "primary_school": "École primaire",
         "secondary_school": "École secondaire",
@@ -332,6 +482,7 @@
         "gallery": "Galerie",
         "university": "University",
         "hospital": "Hospital",
+        "playground": "",
         "population": "Population"
     },
     "$vuetify": {
@@ -350,6 +501,7 @@
             }
         },
         "dataFooter": {
+            "pageText": "",
             "itemsPerPageText": "Objets par page:",
             "itemsPerPageAll": "Tout",
             "nextPage": "Page suivante",
@@ -368,5 +520,44 @@
         "calendar": {
             "moreEvents": "{0} plus"
         }
+    },
+    "common": {
+        "required": ""
+    },
+    "dynamicFields": {
+        "attributes": {
+            "ways": {
+                "type": "",
+                "class_id": ""
+            },
+            "pois": {
+                "amenity": "",
+                "name": "",
+                "opening_hours": ""
+            },
+            "buildings": {
+                "building_levels": "",
+                "building_type": ""
+            }
+        },
+        "listValues": {
+            "ways": {
+                "road": "",
+                "bridge": ""
+            }
+        }
+    },
+    "openingHours": {
+        "openingTime": "",
+        "closingTime": "",
+        "default": "",
+        "monday": "",
+        "tuesday": "",
+        "wednesday": "",
+        "thursday": "",
+        "friday": "",
+        "saturday": "",
+        "sunday": "",
+        "publicHolidays": ""
     }
 }
