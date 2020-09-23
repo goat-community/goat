@@ -608,11 +608,11 @@
         "group": "accessbilityBasemaps",
         "layers": "cite:heatmap_population",
         "opacity": 0.4,
-        "visible": false,
+        "visible": true,
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "viewparamsDynamicKeys": ["userId"]
+        "viewparamsDynamicKeys": ["userId", "modus"]
       },
       {
         "type": "WMS",

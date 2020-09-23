@@ -108,6 +108,9 @@ export default {
       options: "options",
       scenarioDataTable: "scenarioDataTable"
     }),
+    ...mapGetters("map", {
+      layers: "layers"
+    }),
     ...mapFields("isochrones", {
       minutes: "options.minutes",
       speed: "options.speed",
@@ -120,9 +123,51 @@ export default {
     filterCalcModeValues() {
       return this.options.calculationModes.values;
     },
+    updateCalcModeViewParam() {
+      const value = this.calculationModes;
+      console.log(value);
+      const layers = Object.keys(this.layers);
+      layers.forEach(key => {
+        if (
+          this.layers[key].get("viewparamsDynamicKeys") &&
+          this.layers[key].get("viewparamsDynamicKeys").includes("modus")
+        ) {
+          if (this.layers[key].getSource().getParams()) {
+            let viewparams = this.layers[key].getSource().getParams()
+              .viewparams;
+            if (!viewparams) {
+              viewparams = ``;
+            }
+            if (!viewparams.includes("modus")) {
+              // Insert modus if it doesn't exist.
+              viewparams += `modus:'${value}';`;
+            } else {
+              // Update viewparams if exists
+              viewparams = viewparams.replace(
+                /modus:(.*?)(?=;)/i,
+                `modus:'${value}'`
+              );
+            }
+            this.layers[key].getSource().updateParams({
+              viewparams
+            });
+          }
+        }
+      });
+    },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR"
     })
+  },
+  watch: {
+    calculationModes() {
+      this.updateCalcModeViewParam();
+    }
+  },
+  created() {
+    setTimeout(() => {
+      this.updateCalcModeViewParam();
+    }, 500);
   }
 };
 </script>
