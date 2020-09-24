@@ -671,24 +671,15 @@ export default {
   }),
   watch: {
     selectedLayer(newValue) {
-      const me = this;
-      //Read or Insert deleted features
-      me.clear();
-      editLayerHelper.selectedLayer = newValue;
-      me.getlayerFeatureTypes();
-      me.olEditCtrl.readOrInsertDeletedFeatures();
-      me.olEditCtrl.dataObject = this.dataObject;
-      if (newValue.get("name") === "buildings") {
-        this.isUploadBtnEnabled = false;
-      } else {
-        this.isUploadBtnEnabled = true;
-      }
-      this.updateUploadBtnState();
+      this.updateSelectedLayer(newValue);
     },
     activeScenario() {
       this.onEditSourceChange();
       this.olEditCtrl.source.changed();
       this.olEditCtrl.bldEntranceLayer.getSource().changed();
+      if (editLayerHelper.selectedLayer) {
+        this.updateSelectedLayer(editLayerHelper.selectedLayer);
+      }
     },
     toggleSelection: {
       handler(state) {
@@ -1482,6 +1473,24 @@ export default {
       }
     },
     /**
+     * Method called to update data when layer or scenario is changed.
+     */
+    updateSelectedLayer(newValue) {
+      const me = this;
+      //Read or Insert deleted features
+      me.clear();
+      editLayerHelper.selectedLayer = newValue;
+      me.getlayerFeatureTypes();
+      me.olEditCtrl.readOrInsertDeletedFeatures();
+      me.olEditCtrl.dataObject = this.dataObject;
+      if (newValue.get("name") === "buildings") {
+        this.isUploadBtnEnabled = false;
+      } else {
+        this.isUploadBtnEnabled = true;
+      }
+      this.updateUploadBtnState();
+    },
+    /**
      * Clears all the selection
      */
     clearSelection() {
@@ -1565,12 +1574,7 @@ export default {
         );
         this.olEditCtrl.source.addFeature(clonedFeature);
         //Commit restore changes. ("commitDelete" just updates array of deleted features ids in the database)
-        editLayerHelper.commitDelete(
-          "update",
-          this.userId,
-          editLayerHelper.featuresIDsToDelete,
-          this.activeScenario
-        );
+        editLayerHelper.commitDelete("update_deleted_features");
       }
     },
     /**
@@ -1759,42 +1763,43 @@ export default {
       });
 
       deletedFeatures.forEach(f => {
-        const prop = f.getProperties();
-        const fid = f.getId() || prop.id;
-        if (!f.getId()) {
-          f.setId(prop.id);
-        }
-        if (!prop.layerName) {
-          f.set("layerName", this.layerName.split(":")[1]);
-        }
-        const layerName = f.get("layerName");
-        const isDeleted = fid;
-        const status = prop.status === 1 ? "Uploaded" : "NotUploaded";
-        const type = "Deleted";
-        let source = "";
+        if (this.activeScenario === f.get("scenario_id")) {
+          const prop = f.getProperties();
+          const fid = f.getId() || prop.id;
+          if (!f.getId()) {
+            f.setId(prop.id);
+          }
+          if (!prop.layerName) {
+            f.set("layerName", this.layerName.split(":")[1]);
+          }
+          const layerName = f.get("layerName");
+          const isDeleted = fid;
+          const status = prop.status === 1 ? "Uploaded" : "NotUploaded";
+          const type = "Deleted";
+          let source = "";
+          if (
+            prop.hasOwnProperty("original_id") &&
+            f.get("original_id") === null
+          ) {
+            //Original deleted Features.
+            source = "drawn";
+          } else {
+            //Drawn Delete Feature
+            source = "original";
+          }
+          const originalId = f.get("original_id");
 
-        if (
-          prop.hasOwnProperty("original_id") &&
-          f.get("original_id") === null
-        ) {
-          //Original deleted Features.
-          source = "drawn";
-        } else {
-          //Drawn Delete Feature
-          source = "original";
+          const obj = {
+            fid,
+            layerName,
+            isDeleted,
+            originalId,
+            status,
+            type,
+            source
+          };
+          scenarioDataTable.push(obj);
         }
-        const originalId = f.get("original_id");
-
-        const obj = {
-          fid,
-          layerName,
-          isDeleted,
-          originalId,
-          status,
-          type,
-          source
-        };
-        scenarioDataTable.push(obj);
       });
       this.scenarioDataTable = scenarioDataTable;
       this.isTableLoading = false;
