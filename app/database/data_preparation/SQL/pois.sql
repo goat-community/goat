@@ -482,11 +482,15 @@ SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_bounda
 ),
 joined_parks AS (
 	SELECT (ST_dump(ST_union(way))).geom AS geom FROM planet_osm_polygon
-	WHERE (leisure IN ('park','nature_reserve','garden') OR landuse IN ('village_green','grass')) AND (access is NULL OR access not in ('private','customers', 'permissive','no')) AND ST_area(way::geography) >= (SELECT * FROM area_limit)
+	WHERE (leisure IN ('park','nature_reserve','garden') 
+	OR landuse IN ('village_green','grass')) 
+	AND (access is NULL OR access not in ('private','customers', 'permissive','no')) 
+	AND ST_area(way::geography) >= (SELECT * FROM area_limit)
 ), all_parks AS (
-	SELECT osm_id, 'polygon' AS origin_geometry, ACCESS AS ACCESS, '' AS housenumber, 'small park' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
-	OPERATOR, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair FROM planet_osm_polygon
-	WHERE (leisure IN ('park','nature_reserve','garden') OR landuse IN ('village_green','grass')) AND (access is NULL OR access not in ('private','customers', 'permissive','no')) AND ST_area(way::geography) >= (SELECT * FROM area_limit)
+	SELECT osm_id, 'polygon' AS origin_geometry, ACCESS AS ACCESS, '' AS housenumber, 'park' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
+	operator, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair FROM planet_osm_polygon
+	WHERE (leisure IN ('park','nature_reserve','garden') OR landuse IN ('village_green','grass')) 
+	AND (access is NULL OR access not in ('private','customers', 'permissive','no')) AND ST_area(way::geography) >= (SELECT * FROM area_limit)
 ), parks_id AS (
 SELECT ap.*, jp.geom AS agg_geom, ST_Area(ap.geom::geography), row_number() over(PARTITION BY jp.geom ORDER BY ST_Area(ap.geom::geography) desc) AS row_no FROM all_parks ap
 JOIN joined_parks jp
