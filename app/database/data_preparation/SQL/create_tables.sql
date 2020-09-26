@@ -9,6 +9,7 @@ CREATE TABLE public.user_data
 CREATE TABLE public.scenarios
 (
   	scenario_id bigserial,
+	scenario_name text,
 	userid bigint,
 	deleted_ways bigint[] DEFAULT '{}',
 	deleted_pois bigint[] DEFAULT '{}',
@@ -116,7 +117,10 @@ CREATE TABLE public.ways_modified
     way_type text,
 	surface text,
 	wheelchair text,
+	lit text,
 	street_category text,
+	foot text,
+	bicycle text,
     scenario_id integer,
     original_id integer,
 	status bigint,
