@@ -106,7 +106,8 @@ export default {
   computed: {
     ...mapGetters("isochrones", {
       options: "options",
-      scenarioDataTable: "scenarioDataTable"
+      scenarioDataTable: "scenarioDataTable",
+      activeScenario: "activeScenario"
     }),
     ...mapGetters("map", {
       layers: "layers"
@@ -123,35 +124,49 @@ export default {
     filterCalcModeValues() {
       return this.options.calculationModes.values;
     },
-    updateCalcModeViewParam() {
-      const value = this.calculationModes;
-      console.log(value);
-      const layers = Object.keys(this.layers);
-      layers.forEach(key => {
-        if (
-          this.layers[key].get("viewparamsDynamicKeys") &&
-          this.layers[key].get("viewparamsDynamicKeys").includes("modus")
-        ) {
-          if (this.layers[key].getSource().getParams()) {
-            let viewparams = this.layers[key].getSource().getParams()
-              .viewparams;
-            if (!viewparams) {
-              viewparams = ``;
+    updateLayersViewParam(param) {
+      Object.keys(this.layers).forEach(key => {
+        if (this.layers[key].get("viewparamsDynamicKeys")) {
+          let viewparams = this.layers[key].getSource().getParams().viewparams;
+          if (!viewparams) {
+            viewparams = ``;
+          }
+          if (
+            this.layers[key].get("viewparamsDynamicKeys").includes("modus") &&
+            param === "modus"
+          ) {
+            const value = this.calculationModes;
+            if (this.layers[key].getSource().getParams()) {
+              if (!viewparams.includes("modus")) {
+                viewparams += `modus:'${value}';`;
+              } else {
+                viewparams = viewparams.replace(
+                  /modus:(.*?)(?=;)/i,
+                  `modus:'${value}'`
+                );
+              }
             }
-            if (!viewparams.includes("modus")) {
-              // Insert modus if it doesn't exist.
-              viewparams += `modus:'${value}';`;
+          }
+          if (
+            this.layers[key]
+              .get("viewparamsDynamicKeys")
+              .includes("scenario_id") &&
+            param === "scenario_id" &&
+            this.activeScenario
+          ) {
+            const value = parseInt(this.activeScenario);
+            if (!viewparams.includes("scenario_id")) {
+              viewparams += `scenario_id:${value};`;
             } else {
-              // Update viewparams if exists
               viewparams = viewparams.replace(
-                /modus:(.*?)(?=;)/i,
-                `modus:'${value}'`
+                /scenario_id:(.*?)(?=;)/i,
+                `scenario_id:${value}`
               );
             }
-            this.layers[key].getSource().updateParams({
-              viewparams
-            });
           }
+          this.layers[key].getSource().updateParams({
+            viewparams
+          });
         }
       });
     },
@@ -161,12 +176,15 @@ export default {
   },
   watch: {
     calculationModes() {
-      this.updateCalcModeViewParam();
+      this.updateLayersViewParam("modus");
+    },
+    activeScenario() {
+      this.updateLayersViewParam("scenario_id");
     }
   },
   created() {
     setTimeout(() => {
-      this.updateCalcModeViewParam();
+      this.updateLayersViewParam("modus");
     }, 500);
   }
 };

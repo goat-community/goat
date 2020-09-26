@@ -102,6 +102,7 @@ const getters = {
   },
   scenarioDataTable: state => state.scenarioDataTable,
   cancelReq: state => state.cancelReq,
+  activeScenario: state => state.activeScenario,
   getField
 };
 
