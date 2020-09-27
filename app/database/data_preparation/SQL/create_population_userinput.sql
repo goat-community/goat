@@ -10,8 +10,13 @@ CREATE TABLE population_userinput (like population INCLUDING ALL);
 INSERT INTO population_userinput
 SELECT * FROM population;
 
-ALTER TABLE population_userinput ADD COLUMN userid integer;
-CREATE INDEX ON population_userinput(userid);
+ALTER TABLE population_userinput ADD COLUMN scenario_id integer;
+CREATE INDEX ON population_userinput(scenario_id);
+
+ALTER TABLE population_userinput ADD CONSTRAINT fk_population_scenario_id
+FOREIGN KEY(scenario_id) 
+REFERENCES scenarios(scenario_id) ON DELETE CASCADE;
+
 ALTER TABLE population_userinput ADD COLUMN buildings_modified_id integer;
 CREATE INDEX ON population_userinput(buildings_modified_id);
 
