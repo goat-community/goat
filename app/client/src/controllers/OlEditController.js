@@ -667,6 +667,9 @@ export default class OlEditController extends OlBaseController {
 
     super.clearOverlays();
     this.source.getFeatures().forEach(f => {
+      if (!props.hasOwnProperty("layerName")) {
+        this.source.removeFeature(f);
+      }
       const props = f.getProperties();
       if (
         !props.hasOwnProperty("original_id") &&
