@@ -94,6 +94,7 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import { mapFields } from "vuex-map-fields";
+import { EventBus } from "../../EventBus";
 import { Isochrones } from "../../mixins/Isochrones";
 
 export default {
@@ -107,10 +108,14 @@ export default {
     ...mapGetters("isochrones", {
       options: "options",
       scenarioDataTable: "scenarioDataTable",
-      activeScenario: "activeScenario"
+      activeScenario: "activeScenario",
+      activeRoutingProfile: "activeRoutingProfile"
     }),
     ...mapGetters("map", {
       layers: "layers"
+    }),
+    ...mapGetters("pois", {
+      selectedPois: "selectedPois"
     }),
     ...mapFields("isochrones", {
       minutes: "options.minutes",
@@ -120,20 +125,34 @@ export default {
       alphaShapeParameter: "options.alphaShapeParameter.active"
     })
   },
+  mounted() {
+    EventBus.$on("updateHeatmap", this.updateLayersViewParam("pois"));
+  },
   methods: {
     filterCalcModeValues() {
       return this.options.calculationModes.values;
     },
     updateLayersViewParam(param) {
+      let pois = "";
+      if (param === "pois") {
+        pois = this.selectedPois.reduce((filtered, item) => {
+          const { value, weight, sensitivity } = item;
+          if (value != "undefined" && weight != undefined) {
+            filtered[`${value}`] = { sensitivity, weight };
+          }
+          return filtered;
+        }, {});
+      }
       Object.keys(this.layers).forEach(key => {
         if (this.layers[key].get("viewparamsDynamicKeys")) {
           let viewparams = this.layers[key].getSource().getParams().viewparams;
           if (!viewparams) {
             viewparams = ``;
           }
+          // Add/update modus
           if (
             this.layers[key].get("viewparamsDynamicKeys").includes("modus") &&
-            param === "modus"
+            ["modus", undefined].includes(param)
           ) {
             const value = this.calculationModes;
             if (this.layers[key].getSource().getParams()) {
@@ -147,11 +166,13 @@ export default {
               }
             }
           }
+
+          // Add/update scenario_id
           if (
             this.layers[key]
               .get("viewparamsDynamicKeys")
               .includes("scenario_id") &&
-            param === "scenario_id" &&
+            ["scenario_id", undefined].includes(param) &&
             this.activeScenario
           ) {
             const value = parseInt(this.activeScenario);
@@ -164,9 +185,65 @@ export default {
               );
             }
           }
+
+          // Add/update routing_profile
+          if (
+            this.layers[key]
+              .get("viewparamsDynamicKeys")
+              .includes("routing_profile") &&
+            ["routing_profile", undefined].includes(param)
+          ) {
+            const value = this.activeRoutingProfile;
+            if (!viewparams.includes("routing_profile")) {
+              viewparams += `routing_profile:'${value}';`;
+            } else {
+              viewparams = viewparams.replace(
+                /routing_profile:(.*?)(?=;)/i,
+                `routing_profile:'${value}'`
+              );
+            }
+          }
+
+          // Add/update pois
+          if (
+            this.layers[key].get("viewparamsDynamicKeys").includes("pois") &&
+            ["pois", undefined].includes(param)
+          ) {
+            if (!viewparams.includes("amenities")) {
+              viewparams += `amenities:'${btoa(JSON.stringify(pois))}';`;
+            } else {
+              viewparams = viewparams.replace(
+                /amenities:(.*?)(?=;)/i,
+                `amenities:'${btoa(JSON.stringify(pois))}'`
+              );
+            }
+            if (
+              this.layers[key].getVisible() === true &&
+              viewparams.length === 0
+            ) {
+              this.toggleSnackbar({
+                type: "error",
+                message: "selectAmenities",
+                timeout: 60000,
+                state: true
+              });
+            } else {
+              this.toggleSnackbar({
+                type: "error",
+                message: "selectAmenities",
+                state: false,
+                timeout: 0
+              });
+            }
+          }
+
+          // Update view params
           this.layers[key].getSource().updateParams({
             viewparams
           });
+          if (param === "pois") {
+            this.layers[key].getSource().refresh();
+          }
         }
       });
     },
@@ -180,11 +257,18 @@ export default {
     },
     activeScenario() {
       this.updateLayersViewParam("scenario_id");
+    },
+    selectedPois() {
+      this.updateLayersViewParam("pois");
+    },
+    activeRoutingProfile() {
+      this.updateLayersViewParam("routing_profile");
     }
   },
   created() {
     setTimeout(() => {
-      this.updateLayersViewParam("modus");
+      // Add/update all
+      this.updateLayersViewParam(undefined);
     }, 500);
   }
 };
