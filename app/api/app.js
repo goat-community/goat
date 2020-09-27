@@ -144,6 +144,7 @@ app.post(
 app.post("/api/isochrone", jsonParser, (request, response) => {
   let requiredParams = [
     "user_id",
+    "scenario_id",
     "minutes",
     "x",
     "y",
@@ -180,7 +181,7 @@ app.post("/api/isochrone", jsonParser, (request, response) => {
 		'geometry',   ST_AsGeoJSON(geom)::jsonb,
 		'properties', to_jsonb(inputs) - 'gid' - 'geom'
 	) AS feature 
-	FROM (SELECT * FROM isochrones_api($1,$2,$3,$4,$5,$6,$7,$8,$9,NULL,NULL,NULL)) inputs) features;`,
+	FROM (SELECT * FROM isochrones_api($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,NULL,NULL,NULL)) inputs) features;`,
     queryValues,
     (err, res) => {
       if (err) return console.log(err);
