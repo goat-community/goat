@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS isochrones_api;
-CREATE OR REPLACE FUNCTION public.isochrones_api(userid_input integer, minutes integer, x numeric, y numeric, n integer, speed_input numeric, shape_precision numeric, modus_input text, routing_profile text, d integer, h integer, m integer)
+CREATE OR REPLACE FUNCTION public.isochrones_api(userid_input integer, scenario_id_input integer, minutes integer, x numeric, y numeric, n integer, speed_input numeric, shape_precision numeric, modus_input text, routing_profile text, d integer DEFAULT 9999, h integer DEFAULT 9999, m integer DEFAULT 9999)
  RETURNS SETOF type_isochrones_api
  LANGUAGE plpgsql
 AS $function$
@@ -30,20 +30,20 @@ begin
 		
     /*double calculation - default*/
     objectid_default = random_between(1,900000000);	
-    INSERT INTO isochrones(userid,id,step,geom,speed,concavity,modus,objectid,parent_id) 
+    INSERT INTO isochrones(userid,scenario_id,id,step,geom,speed,concavity,modus,objectid,parent_id) 
     SELECT *,speed_input,shape_precision,3,objectid_default,1
-    FROM isochrones_alphashape(userid_input,minutes,x,y,n,speed_input,shape_precision,3,objectid_default,1,routing_profile);
+    FROM isochrones_alphashape(userid_input,scenario_id_input,minutes,x,y,n,speed_input,shape_precision,3,objectid_default,1,routing_profile);
 
-    PERFORM thematic_data_sum(objectid_default,userid_input,3);
+    PERFORM thematic_data_sum(objectid_default,scenario_id_input,3);
     PERFORM sql_execution;
 
     /*double calculation - scenario*/
     objectid_scenario = random_between(1,900000000);	
-    INSERT INTO isochrones(userid,id,step,geom,speed,concavity,modus,objectid,parent_id) 
+    INSERT INTO isochrones(userid,scenario_id,id,step,geom,speed,concavity,modus,objectid,parent_id) 
     SELECT *,speed_input,shape_precision,4,objectid_scenario,objectid_default
-    FROM isochrones_alphashape(userid_input,minutes,x,y,n,speed_input,shape_precision,4,objectid_scenario,objectid_default,routing_profile);
+    FROM isochrones_alphashape(userid_input,scenario_id_input,minutes,x,y,n,speed_input,shape_precision,4,objectid_scenario,objectid_default,routing_profile);
 
-    PERFORM thematic_data_sum(objectid_scenario,userid_input,4);
+    PERFORM thematic_data_sum(objectid_scenario,scenario_id_input,4);
     PERFORM sql_execution;
 
   ELSE
@@ -55,11 +55,11 @@ begin
     END IF; 
     /*default or scenario*/
   	objectid_default = random_between(1,900000000);
-    INSERT INTO isochrones(userid,id,step,geom,speed,concavity,modus,objectid,parent_id) 
+    INSERT INTO isochrones(userid,scenario_id,id,step,geom,speed,concavity,modus,objectid,parent_id) 
     SELECT *,speed_input,shape_precision,modus,objectid_default,1
-    FROM isochrones_alphashape(userid_input,minutes,x,y,n,speed_input,shape_precision,modus,objectid_default,1,routing_profile);
+    FROM isochrones_alphashape(userid_input,scenario_id_input,minutes,x,y,n,speed_input,shape_precision,modus,objectid_default,1,routing_profile);
 
-    PERFORM thematic_data_sum(objectid_default,userid_input,modus);
+    PERFORM thematic_data_sum(objectid_default,scenario_id_input,modus);
     PERFORM sql_execution;
 	
   END IF ;
@@ -74,15 +74,10 @@ begin
   ) s
   WHERE i.starting_point IS NULL;
   
-  RETURN query SELECT distinct i.gid,i.objectid,ARRAY[x,y] coordinates,i.step,i.speed,
+  RETURN query SELECT DISTINCT i.gid,i.objectid,ARRAY[x,y] coordinates,i.step,i.speed,
   i.concavity AS shape_precision,i.modus::integer,i.parent_id,i.sum_pois::jsonb, i.geom, i.starting_point 
   FROM isochrones i
   WHERE i.objectid IN (objectid_default,objectid_scenario);
 END ;
 $function$
-
-
---SELECT * FROM isochrones_api(32431,15,11.242864,48.176953,3,5,0.00003,'default','walking_standard',21,9,0)
---Options for modus: default,scenario,comparison
-
-
+--SELECT * FROM isochrones_api(32431,NULL,15,11.2234,48.1848,3,5,0.00003,'default','walking_standard')

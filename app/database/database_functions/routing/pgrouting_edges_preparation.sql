@@ -1,5 +1,5 @@
-
-CREATE OR REPLACE FUNCTION public.pgrouting_edges_preparation(cutoffs double precision[], startpoints double precision[], speed numeric, modus_input integer, routing_profile text, userid_input integer DEFAULT 0, scenario_id integer DEFAULT 0, heatmap_bulk_calculation boolean DEFAULT false)
+DROP FUNCTION IF EXISTS pgrouting_edges_preparation;
+CREATE OR REPLACE FUNCTION public.pgrouting_edges_preparation(cutoffs double precision[], startpoints double precision[], speed numeric, modus_input integer, routing_profile text, userid_input integer DEFAULT 0, scenario_id_input integer DEFAULT 0, heatmap_bulk_calculation boolean DEFAULT false)
  RETURNS SETOF void
  LANGUAGE plpgsql
 AS $function$
@@ -10,6 +10,7 @@ DECLARE
 	userid_vertex integer;
 	vids bigint[];
 BEGIN 
+	/*
 	IF modus_input IN(1,3)  THEN
 		userid_vertex = 1;
 		userid_input = 1;
@@ -18,7 +19,7 @@ BEGIN
 	ELSEIF modus_input = 4 THEN  	 
 		userid_vertex = 1;
 	END IF;
-	
+	*/
 	distance = cutoffs[array_upper(cutoffs, 1)] * speed;
 	
 	DROP TABLE IF EXISTS start_geoms;
@@ -39,7 +40,7 @@ BEGIN
 	DROP TABLE IF EXISTS temp_fetched_ways;
 	CREATE TEMP TABLE temp_fetched_ways AS 
 	SELECT *
-	FROM fetch_ways_routing(buffer,modus_input,userid_input,speed,routing_profile);
+	FROM fetch_ways_routing(buffer,modus_input,scenario_id_input,speed,routing_profile);
 
   	ALTER TABLE temp_fetched_ways ADD PRIMARY KEY(id);
   	CREATE INDEX ON temp_fetched_ways (target);
@@ -79,7 +80,7 @@ BEGIN
 			DROP TABLE IF EXISTS fetched_ways_bulk;
 			CREATE TEMP TABLE fetched_ways_bulk AS 
 			SELECT *
-			FROM fetch_ways_routing(buffer_bulk,modus_input,userid_input,speed,routing_profile);
+			FROM fetch_ways_routing(buffer_bulk,modus_input,scenario_id_input,speed,routing_profile);
 			CREATE INDEX ON fetched_ways_bulk USING GIST(geom);
 			PERFORM bulk_closest_edges();
 			raise notice 'bulk';
@@ -103,7 +104,6 @@ BEGIN
 
 END;
 $function$
-
 
 /*
 SELECT pgrouting_edges_preparation(ARRAY[1200.]::FLOAT[], array_agg(starting_points)::FLOAT[], 
