@@ -159,7 +159,7 @@ const editLayerHelper = {
           service: "WFS",
           version: " 1.1.0",
           request: "GetFeature",
-          viewparams: `userid:${userId}`,
+          viewparams: `scenario_id:${store.state.activeScenario}`,
           typeNames: `cite:${translationFunctions[layerName]}`
         }
       })
