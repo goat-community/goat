@@ -608,7 +608,7 @@
         "group": "accessbilityBasemaps",
         "layers": "cite:heatmap_population",
         "opacity": 0.4,
-        "visible": true,
+        "visible": false,
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
@@ -1666,7 +1666,10 @@
         "original_id",
         "status",
         "street_category",
-        "scenario_id"
+        "scenario_id",
+        "foot",
+        "bicycle",
+        "lit"
       ]
     },
     "pois": {
