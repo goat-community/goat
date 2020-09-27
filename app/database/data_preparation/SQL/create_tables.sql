@@ -21,6 +21,7 @@ CREATE TABLE public.scenarios
 
 CREATE TABLE public.isochrones (
 	userid int4 NULL,
+	scenario_id int4 NULL,
 	id int4 NULL,
 	step int4 NULL,
 	geom geometry NULL,

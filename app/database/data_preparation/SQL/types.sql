@@ -12,6 +12,7 @@ DROP TYPE IF EXISTS type_isochrone CASCADE;
 CREATE TYPE public.type_isochrone AS
 (
 	userid integer,
+	scenario_id integer,
 	id integer,
 	step integer,
 	geom geometry
