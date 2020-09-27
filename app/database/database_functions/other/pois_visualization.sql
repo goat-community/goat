@@ -1,11 +1,11 @@
 --THIS FUNCTION CHECKS THE SELECTED ROUTING PROFILE AND IF THE USER INSERTED OPENING HOURS AND EXECUTS THE CORRESPONDING FUNCTION TO CREATE THE GEOSERVER VIEW
 DROP FUNCTION IF EXISTS pois_visualization;
-CREATE OR REPLACE FUNCTION public.pois_visualization(userid_input integer, amenities_input text[], routing_profile_input text, d integer, h integer, m integer)
+CREATE OR REPLACE FUNCTION public.pois_visualization(scenario_id_input integer, amenities_input text[], routing_profile_input text, d integer default 9999, h integer default 9999, m integer default 9999)
  RETURNS SETOF pois_visualization
  LANGUAGE plpgsql
 AS $function$
 DECLARE 	
-	excluded_pois_id integer[] := ids_modified_features(userid_input,1,'pois');
+	excluded_pois_id integer[] := ids_modified_features(scenario_id_input,'pois');
     
 BEGIN
 
@@ -15,9 +15,8 @@ BEGIN
         SELECT p.gid, p.amenity, p.name,p.osm_id,p.opening_hours,p.origin_geometry,p.geom, 'accessible' AS status,p.wheelchair
 		FROM pois_userinput p
         WHERE amenity IN (SELECT UNNEST(amenities_input)) 
-        AND (p.userid = userid_input OR p.userid IS NULL)
-        AND p.gid NOT IN (SELECT UNNEST(excluded_pois_id))
-        ;
+        AND (p.scenario_id = scenario_id_input OR scenario_id IS NULL)
+        AND p.gid NOT IN (SELECT UNNEST(excluded_pois_id));
     --if no opening hours are provided by the user and routing profile is wheelchair
     ELSEIF (d = 9999 OR h = 9999 OR m = 9999) AND routing_profile_input = 'walking_wheelchair' THEN 
         RETURN query
