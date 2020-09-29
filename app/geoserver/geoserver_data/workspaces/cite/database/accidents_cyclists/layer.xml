@@ -1,0 +1,20 @@
+<layer>
+  <name>accidents_cyclists</name>
+  <id>LayerInfoImpl-30ad2589:174d927114c:-719b</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-30ad2589:174d94b5ed0:2956</id>
+  </defaultStyle>
+  <styles class="linked-hash-set">
+    <style>
+      <id>StyleInfoImpl-30ad2589:174d94b5ed0:2956</id>
+    </style>
+  </styles>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-30ad2589:174d927114c:-719c</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

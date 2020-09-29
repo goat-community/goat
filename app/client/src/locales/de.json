@@ -346,8 +346,10 @@
     "layerName": {
       "pois": "Point of Interest",
       "administrativeUnits": "Administrative Grenzen",
+      "accidentsPedestrians": "Unfälle mit Fußgängern",
       "accidents_pedestrian_2018": "Unfälle mit Fußgängern (2018)",
       "accidents_pedestrian_2017": "Unfälle mit Fußgängern (2017)",
+      "accidentsCyclists": "Unfälle mit Radfahrern",
       "accidents_bike_2018": "Unfälle mit Radfahrern (2018)",
       "accidents_bike_2017": "Unfälle mit Radfahrern (2017)",
       "bicycle_counting_stations": "Raddauerzählstellen (2019)",
