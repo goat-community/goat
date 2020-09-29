@@ -193,7 +193,7 @@ OR tags -> 'isced:level' LIKE ANY (ARRAY['%2%', '%3%'])
 )
 );
 --- Re-postitioning duplicated schools
- SELECT pois_displacement(ARRAY['primary_school','secondary_school'], 31468);
+SELECT pois_displacement(ARRAY['primary_school','secondary_school'], (5/(27*3600)::float8));
 -----------------------------------------------------------------
 -------------Insert kindergartens--------------------------------
 -----------------------------------------------------------------
@@ -302,7 +302,6 @@ FROM planet_osm_polygon pop
 LEFT JOIN grouping_polygons gp
 ON ST_intersects(pop.way, gp.way)
 WHERE pop.leisure = 'fitness_station'  OR(pop.leisure = 'pitch' and pop.sport = 'fitness')
---WHERE pop.leisure = 'fitness_station' AND NOT ST_contains(pop.way, gp.way)
 
 UNION ALL 
 
@@ -333,9 +332,9 @@ SELECT pois_reclassification_array('name','kindergarten','amenity','nursery','an
 UPDATE pois p SET amenity = 'nursery'
 WHERE amenity = 'kindergarten'	
 AND (tags -> 'max_age') = '3';
---- Override nurseries to duplicate kindergartens
+--- Replicate nurseries to duplicate kindergartens and displace
 SELECT pois_rewrite('nursery','kindergarten','%kindergarten%');
-SELECT pois_displacement(ARRAY['nursery','kindergarten'], 31468);
+SELECT pois_displacement(ARRAY['nursery','kindergarten'], (5/(27*3600)::float8));
 ------------------------------------------end kindergarten-------------------------------------------
 
 -- Reclassificate shops
