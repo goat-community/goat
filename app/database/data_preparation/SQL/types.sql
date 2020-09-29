@@ -49,7 +49,8 @@ CREATE TYPE type_fetch_ways_routing AS
 (
 	id integer, 
 	SOURCE integer, 
-	target integer, 
+	target integer,
+	length_m float, 
 	cost float,
 	reverse_cost float,
 	slope_profile jsonb[],
