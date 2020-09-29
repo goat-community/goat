@@ -271,7 +271,7 @@
       "searchPois": "Ziele suchen",
       "selectTimeMsg": "Zeit zum Filtern auswählen",
       "noDataMsg": "Keine Daten für ausgewählte Zeit",
-      "selectAmenitiesMsg": "Wählen Sie <b> Ziele </b> und die <b> Reisezeit </b> aus, um die Tabelle zu filtern.",
+      "selectAmenitiesMsg": "Wählen Sie <b> Ziele (Thematische Daten)</b> und die <b> Reisezeit </b> aus, um die Tabelle zu filtern.",
       "table": {
         "pois": "Ziele",
         "isochrone": "Isochrone",
@@ -377,6 +377,7 @@
       "streetCrossings": "Querungsmöglichkeiten",
       "streetFurniture": "Straßenmöbelierung",
       "streetFurnitureBicycles": "Fahrradständer",
+      "cyclewayQuality_munichways": "Radwegequalität (Munichways)",
       "surface": "Oberfläche",
       "wheelchairUsability": "Barrierefreiheit",
       "areaIsochrone": "Isochronengröße",

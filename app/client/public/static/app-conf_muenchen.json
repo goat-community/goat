@@ -142,6 +142,21 @@
       },
       {
         "type": "WMS",
+        "name": "cyclewayQuality_munichways",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:munichways",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "serverType": "geoserver",
+        "attributions": "© <a href='https://www.munichways.com/'>MunichWays</a>"
+      },
+      {
+        "type": "WMS",
         "name": "protectedLandscape",
         "url": "https://www.lfu.bayern.de/gdi/wms/natur/schutzgebiete?",
         "group": "environmentalQualityLayers",
