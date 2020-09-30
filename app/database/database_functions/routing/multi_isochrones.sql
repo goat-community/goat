@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS multi_isochrones;
-CREATE OR REPLACE FUNCTION public.multi_isochrones(userid_input integer, objectid_input integer, minutes integer, number_isochrones integer, routing_profile_input text, speed_input numeric, 
+CREATE OR REPLACE FUNCTION public.multi_isochrones(userid_input integer, scenario_id_input integer, objectid_input integer, minutes integer, number_isochrones integer, routing_profile_input text, speed_input numeric, 
     alphashape_parameter_input NUMERIC, modus_input integer, parent_id_input integer, points_array NUMERIC[][])
     RETURNS void
     AS $function$
@@ -10,11 +10,7 @@ DECLARE
    	cutoffs float[];
    	step_isochrone numeric = (minutes*60)/number_isochrones;
 BEGIN
-/*
-    IF modus_input IN(1,3)  THEN
-		userid_input = 1;
-	END IF;
-*/	
+
 	speed_input = speed_input/3.6;	
 
 	SELECT array_agg(x.border) 
@@ -22,7 +18,7 @@ BEGIN
 	FROM (SELECT generate_series(step_isochrone,(minutes*60),step_isochrone)::float border) x; 
 
   
-	PERFORM pgrouting_edges_multi(cutoffs,points_array,speed_input,modus_input,routing_profile_input,userid_input,1);
+	PERFORM pgrouting_edges_multi(cutoffs,points_array,speed_input,modus_input,routing_profile_input,userid_input,scenario_id_input);
    
 	DROP TABLE IF EXISTS isos;
 	CREATE TEMP TABLE isos(from_v integer, step integer, geom geometry);
