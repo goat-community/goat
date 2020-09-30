@@ -1,3 +1,4 @@
+
 DROP FUNCTION IF EXISTS pgrouting_edges_preparation;
 CREATE OR REPLACE FUNCTION public.pgrouting_edges_preparation(cutoffs double precision[], startpoints double precision[], speed numeric, modus_input integer, routing_profile text, userid_input integer DEFAULT 0, scenario_id_input integer DEFAULT 0, heatmap_bulk_calculation boolean DEFAULT false)
  RETURNS SETOF void
@@ -60,13 +61,15 @@ BEGIN
 		INTO vids
 		FROM start_vertices;
 		IF (SELECT vid FROM start_vertices LIMIT 1) IS NOT NULL THEN 
+			/*Originally fractional cost was computed using the fraction returned from closest_point_network_geom. 
+			Though apparently because of differences of metric and kartesian coordinate system the results where sligthly wrong (1-5%). Therefore the length of the partial link is comuted with ::geography*/
 			DROP TABLE IF EXISTS artificial_edges;
 			CREATE TEMP TABLE artificial_edges AS 
-			SELECT wid, 999999998-(1+ROW_NUMBER() OVER())*2 AS id, cost*fraction AS cost,reverse_cost*fraction AS reverse_cost,SOURCE,vid target,ST_LINESUBSTRING(geom,0,fraction) geom
+			SELECT wid, 999999998-(1+ROW_NUMBER() OVER())*2 AS id, ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m as cost,reverse_cost*ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m AS reverse_cost,SOURCE,vid target,ST_LINESUBSTRING(geom,0,fraction) geom
 			FROM temp_fetched_ways w, start_vertices v 
 			WHERE w.id = v.wid
 			UNION ALL 
-			SELECT wid, 999999999-(1+ROW_NUMBER() OVER())*2 AS id, cost*(1-fraction) AS cost,reverse_cost*(1-fraction) AS reverse_cost,vid source,target,ST_LINESUBSTRING(geom,fraction,1) geom
+			SELECT wid, 999999999-(1+ROW_NUMBER() OVER())*2 AS id, cost*(1-ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m) AS cost,reverse_cost*(1-ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m) AS reverse_cost,vid source,target,ST_LINESUBSTRING(geom,fraction,1) geom
 			FROM temp_fetched_ways w, start_vertices v 
 			WHERE w.id = v.wid;
 			
@@ -100,6 +103,7 @@ BEGIN
 		SELECT a.id, SOURCE, target, a.COST, a.reverse_cost, NULL, NULL, geom  
 		FROM artificial_edges a, ways_to_replace w 
 		WHERE a.wid = w.wid;
+		
 	END IF;
 
 END;
