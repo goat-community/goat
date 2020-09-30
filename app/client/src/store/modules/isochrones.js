@@ -143,7 +143,7 @@ const actions = {
         y: state.position.coordinate[1],
         concavity: "0.00003",
         routing_profile: state.activeRoutingProfile,
-        scenario_id: state.activeScenario
+        scenario_id: (state.activeScenario || 0).toString()
       });
       isochroneEndpoint = "isochrone";
     } else {
@@ -394,6 +394,7 @@ const actions = {
       }
       const params = {
         user_id: rootState.user.userId,
+        scenario_id: (state.activeScenario || 0).toString(),
         modus: "'" + state.options.calculationModes.active + "'",
         minutes: rootState.isochrones.options.minutes,
         speed: rootState.isochrones.options.speed,
