@@ -158,6 +158,7 @@ app.post("/api/isochrone", jsonParser, (request, response) => {
 
   requiredParams.forEach((key) => {
     let value = request.body[key];
+    console.log(value);
     if (!value) {
       response.send("An error happened");
       return;
@@ -165,7 +166,6 @@ app.post("/api/isochrone", jsonParser, (request, response) => {
     queryValues.push(value);
   });
 
-  console.log(queryValues);
   // Make sure to set the correct content type
   response.set("content-type", "application/json");
 
@@ -194,6 +194,7 @@ app.post("/api/isochrone", jsonParser, (request, response) => {
 app.post("/api/pois_multi_isochrones", jsonParser, (request, response) => {
   let requiredParams = [
     "user_id",
+    "scenario_id",
     "minutes",
     "speed",
     "n",
@@ -231,7 +232,7 @@ app.post("/api/pois_multi_isochrones", jsonParser, (request, response) => {
     'geometry',   ST_AsGeoJSON(geom)::jsonb,
     'properties', to_jsonb(inputs) - 'gid' - 'geom'
   ) AS feature 
-  FROM (SELECT * FROM multi_isochrones_api(${queryValues[0]},${queryValues[1]},${queryValues[2]},${queryValues[3]},${queryValues[4]},${queryValues[5]},${queryValues[6]},${queryValues[7]},ARRAY[${queryValues[8]}],ARRAY[${queryValues[9]}])) inputs) features;`;
+  FROM (SELECT * FROM multi_isochrones_api(${queryValues[0]},${queryValues[1]},${queryValues[2]},${queryValues[3]},${queryValues[4]},${queryValues[5]},${queryValues[6]},${queryValues[7]},${queryValues[8]},ARRAY[${queryValues[9]}],ARRAY[${queryValues[10]}])) inputs) features;`;
   console.log(sqlQuery);
   pool.query(sqlQuery, (err, res) => {
     if (err) return console.log(err);
@@ -245,6 +246,7 @@ app.post(
   (request, response) => {
     let requiredParams = [
       "user_id",
+      "scenario_id",
       "modus",
       "minutes",
       "speed",
@@ -255,15 +257,17 @@ app.post(
     let queryValues = [];
     requiredParams.forEach((key) => {
       let value = request.body[key];
-      console.log(value);
+      
       if (!value) {
         response.send("An error happened");
         return;
       }
       queryValues.push(value);
+      console.log(value)
     });
 
-    console.log(queryValues);
+    console.log(queryValues[1]);
+
     // Make sure to set the correct content type
 
     response.set("content-type", "application/json");
@@ -273,7 +277,7 @@ app.post(
     'geometry',   ST_AsGeoJSON(geom)::jsonb,
     'properties', to_jsonb(inputs) - 'geom'
   ) AS feature 
-  FROM (SELECT count_pois,region_name, geom FROM count_pois_multi_isochrones(${queryValues[0]},${queryValues[1]},${queryValues[2]},${queryValues[3]},${queryValues[4]},ARRAY[${queryValues[5]}],ARRAY[${queryValues[6]}])) inputs;`;
+  FROM (SELECT count_pois,region_name, geom FROM count_pois_multi_isochrones(${queryValues[0]},${queryValues[1]},${queryValues[2]},${queryValues[3]},${queryValues[4]},${queryValues[5]},ARRAY[${queryValues[6]}],ARRAY[${queryValues[7]}])) inputs;`;
     pool.query(sqlQuery, (err, res) => {
       if (err) return console.log(err);
       console.log(res);
