@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS heatmap_dynamic;
-CREATE OR REPLACE FUNCTION public.heatmap_dynamic(amenities_json jsonb, modus_input integer DEFAULT 1, scenario_id_input integer DEFAULT 0)
+CREATE OR REPLACE FUNCTION public.heatmap_dynamic(amenities_json jsonb, modus_input text DEFAULT 'default', scenario_id_input integer DEFAULT 0)
  RETURNS TABLE(grid_id integer, accessibility_index bigint)
  LANGUAGE plpgsql
 AS $function$
@@ -20,7 +20,7 @@ BEGIN
 	INTO translation_sensitivities
 	FROM jsonb_each(amenities_json) AS u(k, v);
 
-	IF modus_input = 1 OR modus_input = 3 THEN 
+	IF modus_input = 'default' THEN 
 		RETURN query 
 		SELECT s.grid_id, sum(s.accessibility_index) AS accessibility_index 
 		FROM 
@@ -95,7 +95,7 @@ END;
 $function$;
 /*
 SELECT h.*, g.geom  
-FROM heatmap_dynamic('{"kindergarten":{"sensitivity":250000,"weight":1}}'::jsonb,2,7533184,1) h, grid_heatmap g
+FROM heatmap_dynamic('{"kindergarten":{"sensitivity":250000,"weight":1}}'::jsonb,'default',7533184,1) h, grid_heatmap g
 WHERE h.grid_id = g.grid_id 
 */
 
