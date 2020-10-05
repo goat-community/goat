@@ -143,7 +143,7 @@ const actions = {
         y: state.position.coordinate[1],
         concavity: "0.00003",
         routing_profile: state.activeRoutingProfile,
-        scenario_id: (state.activeScenario || 0).toString()
+        scenario_id: state.activeScenario
       });
       isochroneEndpoint = "isochrone";
     } else {
