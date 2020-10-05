@@ -39,7 +39,7 @@ CREATE OR REPLACE FUNCTION public.delete_pois_userinput()
 RETURNS TRIGGER AS $table_delete_pois$
 
 BEGIN
-	DELETE FROM pois_userinput WHERE pois_modified_id = OLD.id;
+	DELETE FROM pois_userinput WHERE pois_modified_id = NEW.id;
 	RETURN NEW;
 END;
 $table_delete_pois$ LANGUAGE plpgsql;
