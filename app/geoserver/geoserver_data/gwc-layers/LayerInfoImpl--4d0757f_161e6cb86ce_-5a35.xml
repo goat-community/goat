@@ -42,7 +42,7 @@
       <key>STYLES</key>
       <defaultValue></defaultValue>
       <availableStyles class="sorted-set">
-        <string>cite:style_heatmap</string>
+        <string>style_heatmap_comparison</string>
       </availableStyles>
       <defaultStyle>cite:style_heatmap</defaultStyle>
     </styleParameterFilter>

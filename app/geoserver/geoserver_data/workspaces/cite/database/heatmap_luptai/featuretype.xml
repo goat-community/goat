@@ -42,8 +42,8 @@
         <name>heatmap_luptai</name>
         <sql>SELECT h.grid_id, h.accessibility_index, h.percentile_accessibility, p.percentile_population, &#xd;
 (p.percentile_population-h.percentile_accessibility) AS population_accessibility, h.geom  &#xd;
-FROM heatmap_geoserver(convert_from(decode(%amenities%,&apos;base64&apos;), &apos;UTF-8&apos;)::jsonb,2,%userid%,1) h, &#xd;
-population_heatmap(%userid%) p &#xd;
+FROM heatmap_geoserver(convert_from(decode(%amenities%,&apos;base64&apos;), &apos;UTF-8&apos;)::jsonb,2,%scenario_id%) h, &#xd;
+population_heatmap(%scenario_id%) p &#xd;
 WHERE p.grid_id = h.grid_id
 </sql>
         <escapeSql>false</escapeSql>
@@ -57,7 +57,7 @@ WHERE p.grid_id = h.grid_id
           <defaultValue>&apos;W3siJ2J1c19zdG9wJyI6Mn0seyIndHJhbV9zdG9wJyI6M31d&apos;</defaultValue>
         </parameter>
         <parameter>
-          <name>userid</name>
+          <name>scenario_id</name>
           <defaultValue>1</defaultValue>
           <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>

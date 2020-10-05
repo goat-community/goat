@@ -41,7 +41,7 @@
       <virtualTable>
         <name>heatmap</name>
         <sql>SELECT * &#xd;
-FROM heatmap_geoserver(convert_from(decode(%amenities%,&apos;base64&apos;), &apos;UTF-8&apos;)::jsonb,2,%scenario_id%)
+FROM heatmap_geoserver(convert_from(decode(%amenities%,&apos;base64&apos;), &apos;UTF-8&apos;)::jsonb,%modus%,%scenario_id%)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
@@ -52,6 +52,10 @@ FROM heatmap_geoserver(convert_from(decode(%amenities%,&apos;base64&apos;), &apo
         <parameter>
           <name>amenities</name>
           <defaultValue>&apos;W3siJ2J1c19zdG9wJyI6Mn0seyIndHJhbV9zdG9wJyI6M31d&apos;</defaultValue>
+        </parameter>
+        <parameter>
+          <name>modus</name>
+          <defaultValue>&apos;default&apos;</defaultValue>
         </parameter>
         <parameter>
           <name>scenario_id</name>
