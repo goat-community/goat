@@ -159,7 +159,7 @@ app.post("/api/isochrone", jsonParser, (request, response) => {
   requiredParams.forEach((key) => {
     let value = request.body[key];
     console.log(value);
-    if (!value) {
+    if (!request.body.hasOwnProperty(key)) {
       response.send("An error happened");
       return;
     }
