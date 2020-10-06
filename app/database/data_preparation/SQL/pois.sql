@@ -475,7 +475,10 @@ DROP TABLE IF EXISTS waterpark;
 
 DROP TABLE IF EXISTS aois;
 CREATE TABLE aois (LIKE pois INCLUDING ALL );
-INSERT INTO aois 
+ALTER TABLE aois ADD COLUMN sport TEXT;
+INSERT INTO aois (osm_id, origin_geometry, "access", housenumber, amenity, origin, organic, denomination, brand, name, "operator", public_transport, railway, religion, opening_hours, "ref", tags, geom, wheelchair, sport)
+
+--- Insert park polygons
 WITH area_limit AS (
 SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'parks'->'small')::jsonb)::DOUBLE PRECISION
 ),
@@ -486,8 +489,8 @@ joined_parks AS (
 	AND (access is NULL OR access not in ('private','customers', 'permissive','no')) 
 	AND ST_area(way::geography) >= (SELECT * FROM area_limit)
 ), all_parks AS (
-	SELECT osm_id, 'polygon' AS origin_geometry, ACCESS AS ACCESS, '' AS housenumber, 'park' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
-	operator, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair FROM planet_osm_polygon
+	SELECT osm_id, 'polygon' AS origin_geometry, ACCESS AS ACCESS, '' AS housenumber, 'small_park' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
+	operator, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair, sport FROM planet_osm_polygon
 	WHERE (leisure IN ('park','nature_reserve','garden') OR landuse IN ('village_green','grass')) 
 	AND (access is NULL OR access not in ('private','customers', 'permissive','no')) AND ST_area(way::geography) >= (SELECT * FROM area_limit)
 ), parks_id AS (
@@ -495,31 +498,35 @@ SELECT ap.*, jp.geom AS agg_geom, ST_Area(ap.geom::geography), row_number() over
 JOIN joined_parks jp
 ON ST_Intersects(ST_centroid(ap.geom), jp.geom) 
 ORDER BY jp.geom DESC, st_area DESC)
-SELECT osm_id, origin_geometry, ACCESS, housenumber, amenity, origin, organic, denomination, brand, name, OPERATOR, public_transport, railway, religion, opening_hours, REF, tags,agg_geom AS geom, wheelchair FROM parks_id WHERE row_no = 1
+SELECT osm_id, origin_geometry, ACCESS, housenumber, amenity, origin, organic, denomination, brand, name, OPERATOR, public_transport, railway, religion, opening_hours, REF, tags,agg_geom AS geom, wheelchair, sport
+FROM parks_id WHERE row_no = 1
 
 UNION ALL
-
+--- Insert forest polygons
 (WITH area_limit AS (
 SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'forest'->'small')::jsonb)::DOUBLE PRECISION
-) SELECT osm_id, 'polygon' AS origin_geometry, "access" AS ACCESS, '' AS housenumber, 'small forest' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
-	OPERATOR, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair 
+) SELECT osm_id, 'polygon' AS origin_geometry, "access" AS ACCESS, '' AS housenumber, 'small_forest' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
+	OPERATOR, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair, sport
 	FROM planet_osm_polygon pop WHERE ("natural" = 'wood' OR landuse = 'forest') AND ST_area(way::geography) >= (SELECT * FROM area_limit))
-
+--- Insert rivers polygons
 UNION ALL
 
 SELECT osm_id, 'polygon' AS origin_geometry, "access" AS ACCESS, '' AS housenumber, 'river' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
-	OPERATOR, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair 
+	OPERATOR, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair, sport
 	FROM planet_osm_polygon pop WHERE ("natural" = 'water' AND (water = 'river' OR water = 'canal' OR water = 'fish_pass')) OR waterway IS NOT NULL
 
 UNION ALL
-	
+--- Insert lakes polygons	
 SELECT osm_id, 'polygon' AS origin_geometry, "access" AS ACCESS, '' AS housenumber, 'lake' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
-	OPERATOR, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair 
-	FROM planet_osm_polygon pop WHERE ("natural" = 'water' AND (water = 'lake' OR water = 'pond' OR water = 'basin'));
+	OPERATOR, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair, sport
+	FROM planet_osm_polygon pop WHERE (("natural" = 'water' AND (water = 'lake' OR water = 'pond' OR water = 'basin' OR water = 'reservoir')) OR ("natural" = 'water' AND sport = 'swimming'));
 
-UPDATE aois SET amenity = 'big park' WHERE amenity = 'small park' AND ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'parks'->'large')::jsonb)::DOUBLE PRECISION);
-UPDATE aois SET amenity = 'big forest' WHERE amenity = 'small forest' AND ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'forest'->'large')::jsonb)::DOUBLE PRECISION);
-
+UPDATE aois SET amenity = 'big_park' WHERE amenity = 'small_park' AND ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'parks'->'large')::jsonb)::DOUBLE PRECISION);
+UPDATE aois SET amenity = 'big_forest' WHERE amenity = 'small_forest' AND ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'forest'->'large')::jsonb)::DOUBLE PRECISION);
+UPDATE aois SET amenity = 'swimming_lake' WHERE amenity = 'lake' AND sport = 'swimming';
+ALTER TABLE aois DROP COLUMN sport;
+--- Create entries to polygons ---
+SELECT generate_entries_from_polygons(ARRAY['big_park','small_park'],ARRAY['path','footway','cycleway','track','pedestrian','service']);
 -- If custom_pois exists, run pois fusion 
 
 DO $$                  
