@@ -6,8 +6,6 @@ CREATE OR REPLACE FUNCTION generate_entries_from_polygons (amenity_set TEXT[], p
 	LANGUAGE plpgsql
 AS $function$
 BEGIN
-	DROP TABLE IF EXISTS new_entries;
-	CREATE TEMP TABLE new_entries (LIKE aois INCLUDING ALL);
 	INSERT INTO pois
 	WITH aois_type AS (SELECT * FROM aois WHERE amenity = ANY(amenity_set)),
 	ways_footpath AS (SELECT * FROM planet_osm_line WHERE highway = ANY(path_types))
@@ -16,6 +14,10 @@ BEGIN
 		LEFT JOIN aois_type a
 		ON ST_intersects(a.geom, wf.way) WHERE a.amenity IS NOT NULL 
 		AND NOT st_isempty(ST_intersection(ST_Boundary(a.geom),wf.way));
+	--- Assign name = osm_id when name = null
+	UPDATE pois
+	SET name = (CASE WHEN amenity = ANY(amenity_set) AND name IS NULL THEN osm_id::text ELSE name END);
+	
 END
 $function$
 
