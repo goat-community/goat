@@ -201,9 +201,19 @@ export default {
         let keys = Object.keys(pois);
         if (keys.length > 0) {
           let sumPois = pois[keys[0]][selectedTime];
+          let amenityNames = Object.keys(pois[keys[0]][selectedTime]);
+          // Only if double-calculation
+          if (keys.length === 2) {
+            const inputAmenityNames = Object.keys(pois[keys[1]][selectedTime]);
+            if (Array.isArray(inputAmenityNames)) {
+              amenityNames = [
+                ...new Set([...amenityNames, ...inputAmenityNames])
+              ];
+            }
+          }
           if (sumPois) {
             //Loop through  amenities
-            for (const amenity in sumPois) {
+            amenityNames.forEach(amenity => {
               let isAmenitySelected = me.isAmenitySelected(amenity);
               if (amenity === "population") {
                 isAmenitySelected = true;
@@ -213,14 +223,14 @@ export default {
                   pois: amenity ? this.$t(`pois.${amenity}`) : amenity
                 };
                 //Default or input calculation
-                obj[keys[0]] = sumPois[amenity];
+                obj[keys[0]] = sumPois[amenity] || "-";
                 //Double calculation
                 if (pois[keys[1]]) {
-                  obj[keys[1]] = pois[keys[1]][selectedTime][amenity];
+                  obj[keys[1]] = pois[keys[1]][selectedTime][amenity] || "-";
                 }
                 items.push(obj);
               }
-            }
+            });
           }
         }
       } else {
