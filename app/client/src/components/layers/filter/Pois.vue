@@ -146,7 +146,7 @@ export default {
       countStudyAreaPois: "countStudyAreaPois"
     }),
     updateHeatmap() {
-      EventBus.$emit("updateHeatmap");
+      EventBus.$emit("updateHeatmapPois");
     },
     getPoisIconUrl(item) {
       const images = require.context(

@@ -216,11 +216,11 @@
       "time": "min",
       "nr": "Isochrones",
       "calcType": "Level of detail isochrones",
-      "calcModus": "Calculation Modes",
+      "calcModus": "Calculation Mode",
       "alphaShapeMode": "Level of detail isochrones",
-      "defaultNetwork": "Default Network",
-      "modifiedNetwork": "Modified Network",
-      "modifiedNetworkDoubleCalc": "Modified Network (Double Calculation)",
+      "defaultNetwork": "Default",
+      "modifiedNetwork": "Scenario",
+      "modifiedNetworkDoubleCalc": "Comparision",
       "routingProfile": "Routing Profile",
       "walking_standard": "Standard",
       "walking_elderly": "Elderly",
@@ -333,7 +333,7 @@
       "accessbilityBasemaps": "Accessibility",
       "backgroundLayers": "Background Layers",
       "buildings": "Buildings",
-      "mobility_patterns":"Mobility Patterns"
+      "mobility_patterns": "Mobility Patterns"
     },
     "layerName": {
       "pois": "Point of Interest",
@@ -384,16 +384,16 @@
       "mapboxStreets": "Mapbox",
       "publicTransport": "Public Transport",
       "bingAerial": "Bing Aerial",
-      "walking_trip_rate":"Walking trips per person",
-      "walkingShare":"Share of walking trips",
-      "cyclingShare":"Share of cycling trips",
-      "bicycle_rate":"Bicycle ownership",
-      "motorization_rate":"Motorized vehicles ownership",
-      "population_strata":"Population per strata",
-      "transmilenioShare":"Share of Transmilenio trips",
-      "sitpShare":"Share of SITP trips",
-      "cycling_trips_rate":"Cycling trips per person",
-      "pt_trips_rate":"Public transport trips per person",
+      "walking_trip_rate": "Walking trips per person",
+      "walkingShare": "Share of walking trips",
+      "cyclingShare": "Share of cycling trips",
+      "bicycle_rate": "Bicycle ownership",
+      "motorization_rate": "Motorized vehicles ownership",
+      "population_strata": "Population per strata",
+      "transmilenioShare": "Share of Transmilenio trips",
+      "sitpShare": "Share of SITP trips",
+      "cycling_trips_rate": "Cycling trips per person",
+      "pt_trips_rate": "Public transport trips per person",
       "strata": "Strata"
     },
     "tooltips": {
@@ -724,10 +724,10 @@
         "population": "Number residents (optional)",
         "gross_floor_area": "Gross Floor Area (optional)",
         "labels": {
-            "area": "Area",
-            "building_levels": "Building levels",
-            "gross_floor_area":"Gross Floor Area",
-            "population": "Population"
+          "area": "Area",
+          "building_levels": "Building levels",
+          "gross_floor_area": "Gross Floor Area",
+          "population": "Population"
         }
       }
     },

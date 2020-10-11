@@ -70,22 +70,6 @@
             color="#30C2FF"
           >
           </v-slider>
-          <v-select
-            item-value="value"
-            v-model="calculationModes"
-            outlined
-            @change="canCalculateScenario(calculationModes)"
-            :value="calculationModes"
-            :items="filterCalcModeValues()"
-            :label="$t('isochrones.options.calcModus')"
-          >
-            <template slot="selection" slot-scope="{ item }">
-              {{ $t(`isochrones.options.${item.name}`) }}
-            </template>
-            <template slot="item" slot-scope="{ item }">
-              {{ $t(`isochrones.options.${item.name}`) }}
-            </template>
-          </v-select>
         </v-flex>
       </v-expand-transition>
     </div>
@@ -126,7 +110,7 @@ export default {
     })
   },
   mounted() {
-    EventBus.$on("updateHeatmap", this.updateLayersViewParam("pois"));
+    EventBus.$on("updateHeatmapPois", this.updateLayersViewParam("pois"));
   },
   methods: {
     filterCalcModeValues() {
