@@ -70,6 +70,7 @@ app.post("/api/scenarios", jsonParser, (request, response) => {
     );
   } else if (mode === "update_deleted_features") {
     /*sample body: {"mode":"update_deleted_feature","deleted_feature_ids":[2,3,4],"table_name":"pois" ,"scenario_id":"1" */
+
     pool.query(
       `UPDATE scenarios SET ${
         translation_layers[request.body.table_name]
@@ -108,30 +109,21 @@ app.post("/api/scenarios", jsonParser, (request, response) => {
 /**
  * Deletes all the rows of the user from "_modified" and "user_data" table
  */
-/*
+
 app.post(
   "/api/deleteAllScenarioData",
   jsonParser,
   async (request, response) => {
-    const layerNames = request.body.layer_names;
-    const userId = request.body.user_id;
+    const scenarioId = request.body.scenario_id;
     try {
-      //1- Delete from user_data first
+      //1- Delete from scenario first
       await pool.query(
-        `UPDATE user_data SET deleted_feature_ids='{}' WHERE userid=${userId}`,
+        `DELETE FROM scenarios WHERE scenario_id=${scenarioId}`,
         []
       );
 
-      //2- Delete from every layer modified table
-      for (const layerName of layerNames) {
-        await pool.query(
-          `DELETE FROM ${layerName}_modified WHERE userid=${userId};`,
-          []
-        );
-      }
-
-      //3- Rerun upload to reflect the changes.
-      await pool.query(`select * from network_modification(${userId})`);
+      //2- Rerun upload for ways to reflect the changes.
+      await pool.query(`SELECT * FROM network_modification(${scenarioId})`);
 
       response.send("success");
     } catch (err) {
@@ -140,7 +132,7 @@ app.post(
     }
   }
 );
-*/
+
 app.post("/api/isochrone", jsonParser, (request, response) => {
   let requiredParams = [
     "user_id",

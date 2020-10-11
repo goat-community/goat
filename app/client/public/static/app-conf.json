@@ -1660,7 +1660,7 @@
       "enableFileUpload": false,
       "hiddenProps": [
         "userid",
-        "id",
+        "gid",
         "original_id",
         "status",
         "street_category",
@@ -1680,7 +1680,7 @@
       "hiddenProps": [
         "userid",
         "scenario_id",
-        "id",
+        "gid",
         "original_id",
         "status",
         "wheelchair",
@@ -1700,7 +1700,7 @@
       "hiddenProps": [
         "gid",
         "userid",
-        "id",
+        "gid",
         "original_id",
         "status",
         "gross_floor_area",
