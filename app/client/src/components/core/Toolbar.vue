@@ -108,7 +108,10 @@
         :color="calculationModes === item.value ? activeColor.primary : ''"
         @click="selectModus(item.value)"
         :key="index"
-        class="subtitle-2 ma-2"
+        :class="{
+          'subtitle-2 ma-2': true,
+          'white--text': calculationModes === item.value
+        }"
       >
         {{ $t(`isochrones.options.${item.name}`) }}
       </v-chip>
