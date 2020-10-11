@@ -440,7 +440,6 @@ export default class OlEditController extends OlBaseController {
     const featuresToRemove = [];
 
     const clonedProperties = Object.assign({}, properties);
-    clonedProperties.userid = store.state.userId;
     clonedProperties.scenario_id = isochronesStore.state.activeScenario;
     delete clonedProperties["id"];
 
