@@ -45,7 +45,7 @@ FROM ways_mapping w, study_area s &#xd;
 WHERE w.highway IN (&apos;motorway&apos;,&apos;trunk&apos;,&apos;primary&apos;,&apos;secondary&apos;,&apos;tertiary&apos;,&apos;residential&apos;,&apos;motorway_link&apos;,&apos;trunk_link&apos;,&apos;primary_link&apos;,&apos;secondary_link&apos;,&apos;tertiary_link&apos;,&#xd;
 &apos;living_street&apos;, &apos;unclassified&apos;)&#xd;
 AND ST_Intersects(s.geom,w.geom)&#xd;
-AND (tags -&gt; &apos;maxspeed&apos;) IS NULL
+AND maxspeed IS NULL
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>

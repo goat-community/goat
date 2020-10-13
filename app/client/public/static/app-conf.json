@@ -318,6 +318,21 @@
       },
       {
         "type": "WMS",
+        "name": "cyclewayQuality_munichways",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:munichways",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "serverType": "geoserver",
+        "attributions": "© <a href='https://www.munichways.com/'>MunichWays</a>"
+      },
+      {
+        "type": "WMS",
         "name": "wheelchairUsability",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
@@ -498,6 +513,36 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "attributions": "© <a href='https://land.copernicus.eu/'>Copernicus Land Monitoring Service</a>"
+      },
+      {
+        "type": "WMS",
+        "name": "accidentsPedestrians",
+        "url": "/geoserver/wms",
+        "group": "additionalDataLayers",
+        "layers": "cite:accidents_pedestrians",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver",
+        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+      },
+            {
+        "type": "WMS",
+        "name": "accidentsCyclists",
+        "url": "/geoserver/wms",
+        "group": "additionalDataLayers",
+        "layers": "cite:accidents_cyclists",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver",
+        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
       },
       {
         "type": "WMS",
@@ -757,6 +802,30 @@
             "fillInOSMiD"
           ],
           "wikiUrl": "https://wiki.openstreetmap.org/wiki/Speed_limits"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "osm-mapping-parking-lane",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_parking_lane",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 31,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-car",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:parking:lane"
         }
       },
       {
