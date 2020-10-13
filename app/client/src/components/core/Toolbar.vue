@@ -100,26 +100,56 @@
         </v-row>
       </v-item-group>
     </v-toolbar>
+    <v-divider> </v-divider>
+    <div class="text-center">
+      <v-chip
+        v-for="(item, index) in calculationModesOptions"
+        style="cursor:pointer;width:100px;justify-content:center;"
+        :color="calculationModes === item.value ? activeColor.primary : ''"
+        @click="selectModus(item.value)"
+        :key="index"
+        :class="{
+          'subtitle-2 ma-2': true,
+          'white--text': calculationModes === item.value
+        }"
+      >
+        {{ $t(`isochrones.options.${item.name}`) }}
+      </v-chip>
+    </div>
   </div>
 </template>
 
 <script>
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
+import { Isochrones } from "../../mixins/Isochrones";
 
 export default {
+  mixins: [Isochrones],
   data: () => ({
     route: null,
     routingData: null
   }),
   computed: {
-    ...mapGetters("isochrones", { icons: "routeIcons" }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    }),
+    ...mapGetters("isochrones", { icons: "routeIcons", options: "options" }),
     ...mapFields("isochrones", {
       activeRoutingProfile: "activeRoutingProfile",
+      calculationModesOptions: "options.calculationModes.values",
+      calculationModes: "options.calculationModes.active",
       speed: "options.speed"
     })
   },
   methods: {
+    selectModus(item) {
+      this.calculationModes = item;
+      this.canCalculateScenario(this.calculationModes);
+    },
+    filterCalcModeValues() {
+      return this.options.calculationModes.values;
+    },
     onRouteProfileSelected(index, r) {
       this.route = index;
       if (r.speed) {
