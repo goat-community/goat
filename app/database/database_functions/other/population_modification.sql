@@ -30,13 +30,8 @@ BEGIN
 	(
 		SELECT building_gid, sum(population) population
 		FROM population_userinput 
-<<<<<<< HEAD
 		WHERE scenario_id = scenario_id_input
 		GROUP BY building_gid
-=======
-		WHERE userid = userid_input
-		GROUP BY gid 
->>>>>>> fe3bc02011f9153f8af12b2af20f2ab018ddf628
 	)
 	UPDATE buildings_modified 
 	SET population = u.population 
