@@ -1,0 +1,15 @@
+<layer>
+  <name>munichways</name>
+  <id>LayerInfoImpl--5abcfdea:174d8ee1909:-7fe3</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--18252805:173f17b5319:-7fff</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--5abcfdea:174d8ee1909:-7fe4</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

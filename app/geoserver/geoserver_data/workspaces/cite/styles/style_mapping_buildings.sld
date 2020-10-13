@@ -9,7 +9,7 @@
           <Name>symbol</Name>
           <PolygonSymbolizer>
             <Fill>
-              <CssParameter name="fill">#b5422b</CssParameter>
+              <CssParameter name="fill">#3349FF</CssParameter>
             </Fill>
             <Stroke>
               <CssParameter name="stroke">#232323</CssParameter>
