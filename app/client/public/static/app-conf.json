@@ -86,7 +86,7 @@
         "displayInLayerList": true,
         "displayInLegend": false,
         "requiresPois": true,
-        "zIndex": 7,
+        "zIndex": 100,
         "serverType": "geoserver"
       },
       {
