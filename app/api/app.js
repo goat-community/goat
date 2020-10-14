@@ -278,6 +278,14 @@ app.post(
   }
 );
 
+app.post("/api/export_scenario", jsonParser, (request, response) => {
+  var scenarioId = request.body.scenario_id;
+  pool.query(`SELECT * FROM export_changeset_scenario(${scenarioId})`, (err, res) => {
+    if (err) return console.log(err);
+    response.send(res);
+  });
+});
+
 // respond with "pong" when a GET request is made to /ping (HEALTHCHECK)
 app.get("/ping", function (_req, res) {
   res.send("pong");
