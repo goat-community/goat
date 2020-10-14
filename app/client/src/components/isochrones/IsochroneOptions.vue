@@ -110,13 +110,13 @@ export default {
     })
   },
   mounted() {
-    EventBus.$on("updateHeatmapPois", this.updateLayersViewParam("pois"));
+    EventBus.$on("updateHeatmapPois", this.updateLayersParam("pois"));
   },
   methods: {
     filterCalcModeValues() {
       return this.options.calculationModes.values;
     },
-    updateLayersViewParam(param) {
+    updateLayersParam(param) {
       let pois = "";
       if (param === "pois") {
         pois = this.selectedPois.reduce((filtered, item) => {
@@ -128,11 +128,23 @@ export default {
         }, {});
       }
       Object.keys(this.layers).forEach(key => {
+        // Change style
+        const stylesRefs = this.layers[key].get("styles");
+        if (stylesRefs && stylesRefs[this.calculationModes]) {
+          const STYLES = stylesRefs[this.calculationModes];
+          this.layers[key].getSource().updateParams({
+            STYLES
+          });
+          this.layers[key].getSource().refresh();
+        }
+        // Change view params
         if (this.layers[key].get("viewparamsDynamicKeys")) {
-          let viewparams = this.layers[key].getSource().getParams().viewparams;
+          const layerParams = this.layers[key].getSource().getParams();
+          let viewparams = layerParams.viewparams;
           if (!viewparams) {
             viewparams = ``;
           }
+
           // Add/update modus
           if (
             this.layers[key].get("viewparamsDynamicKeys").includes("modus") &&
@@ -237,22 +249,22 @@ export default {
   },
   watch: {
     calculationModes() {
-      this.updateLayersViewParam("modus");
+      this.updateLayersParam("modus");
     },
     activeScenario() {
-      this.updateLayersViewParam("scenario_id");
+      this.updateLayersParam("scenario_id");
     },
     selectedPois() {
-      this.updateLayersViewParam("pois");
+      this.updateLayersParam("pois");
     },
     activeRoutingProfile() {
-      this.updateLayersViewParam("routing_profile");
+      this.updateLayersParam("routing_profile");
     }
   },
   created() {
     setTimeout(() => {
       // Add/update all
-      this.updateLayersViewParam(undefined);
+      this.updateLayersParam(undefined);
     }, 500);
   }
 };
