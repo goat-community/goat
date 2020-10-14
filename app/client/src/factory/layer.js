@@ -91,12 +91,15 @@ export const LayerFactory = {
       ratio: lConf.ratio ? lConf.ratio : 1.5,
       zIndex: lConf.zIndex,
       docUrl: lConf.docUrl,
+      styles: lConf.styles,
       viewparamsDynamicKeys: lConf.viewparamsDynamicKeys,
       source: new ImageWMS({
         url: lConf.url,
         params: {
           LAYERS: lConf.layers,
-          viewparams: lConf.viewparams
+          viewparams: lConf.viewparams,
+          STYLES:
+            lConf.styles && lConf.styles.default ? lConf.styles.default : ""
         },
         serverType: lConf.serverType ? lConf.serverType : "geoserver",
         ratio: lConf.ratio,
