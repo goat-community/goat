@@ -798,8 +798,6 @@ export default {
           }
           //- Transform features
           features.forEach(feature => {
-            //Set current userid
-            feature.set("userid", this.userId);
             // Set active scenario id
             feature.set("scenario_id", this.activeScenario);
             //Clone geometry and change name to 'geom' (should be the same as geoserver layer geometry name)
@@ -1277,7 +1275,6 @@ export default {
           geometry: new Point(bldEntranceCoordinate),
           building_gid:
             buildingFeatureAtCoord.get("gid") || buildingFeatureAtCoord.getId(),
-          userid: this.userId,
           scenario_id: this.activeScenario
         });
         this.olEditCtrl.bldEntranceLayer
@@ -1904,7 +1901,7 @@ export default {
       const layerFieldsKeys = Object.keys(layerSchema.properties);
       return layerFieldsKeys.filter(
         el =>
-          !["original_id", "id", "gid", "userid", "scenario_id"].includes(el) &&
+          !["original_id", "id", "gid", "scenario_id"].includes(el) &&
           layerSchema.required.includes(el)
       );
     },

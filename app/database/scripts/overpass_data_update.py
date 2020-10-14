@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 from db_functions import ReadYAML
 from db_functions import DB_connection
 
-diff_time = (datetime.utcnow() - timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+diff_time = (datetime.utcnow() - timedelta(minutes=15)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 #Get DB credentials
 db_name,user,host,port,password = ReadYAML().db_credentials()

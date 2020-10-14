@@ -99,8 +99,8 @@ BEGIN
 		USING ways_to_replace w 
 		WHERE t.id = w.wid;
 		
-		INSERT INTO temp_fetched_ways 
-		SELECT a.id, SOURCE, target, a.COST, a.reverse_cost, NULL, NULL, geom  
+		INSERT INTO temp_fetched_ways(id,source,target,cost,reverse_cost,geom)
+		SELECT a.id, SOURCE, target, a.COST, a.reverse_cost, geom  
 		FROM artificial_edges a, ways_to_replace w 
 		WHERE a.wid = w.wid;
 		

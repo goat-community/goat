@@ -17,7 +17,7 @@ DROP TABLE IF EXISTS drawn_features, existing_network, intersection_existing_net
 UPDATE ways_modified SET status = 1 WHERE scenario_id = scenario_id_input;
 
 CREATE TEMP TABLE drawn_features as
-SELECT id, extend_line(geom, 0.00001) AS geom, way_type, surface, wheelchair, lit, street_category, foot, bicycle, scenario_id, original_id 
+SELECT gid, extend_line(geom, 0.00001) AS geom, way_type, surface, wheelchair, lit, street_category, foot, bicycle, scenario_id, original_id 
 FROM ways_modified
 WHERE scenario_id = scenario_id_input;
 
@@ -50,7 +50,7 @@ IF cnt = 1 THEN
 	FROM drawn_features;
 ELSE 
 	CREATE TEMP TABLE split_drawn_features AS
-	SELECT split_by_drawn_lines(id::integer,geom) AS geom, way_type, surface, wheelchair, lit, street_category, foot, bicycle, scenario_id, original_id  
+	SELECT split_by_drawn_lines(gid::integer,geom) AS geom, way_type, surface, wheelchair, lit, street_category, foot, bicycle, scenario_id, original_id  
 	FROM drawn_features;
 	--WHERE way_type <> 'bridge';
 END IF;

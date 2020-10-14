@@ -15,6 +15,10 @@ ELSE
 	excluded_pois_id = ARRAY[]::integer[];
 END IF;
 
+IF modus IN(1,3) THEN 
+	scenario_id_input = 0;
+END IF; 
+
 WITH yy AS (
 	WITH xx AS (
 		SELECT a.gid,sum(a.population)::integer+(5-(sum(a.population)::integer%5)) as sum_pop 

@@ -1,0 +1,20 @@
+<layer>
+  <name>accidents_pedestrians</name>
+  <id>LayerInfoImpl-2e4d1311:174d8af2748:-7fc8</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--5abcfdea:174d8ee1909:20ff</id>
+  </defaultStyle>
+  <styles class="linked-hash-set">
+    <style>
+      <id>StyleInfoImpl--5abcfdea:174d8ee1909:20ff</id>
+    </style>
+  </styles>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-2e4d1311:174d8af2748:-7fc9</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

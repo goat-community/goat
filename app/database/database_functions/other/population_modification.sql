@@ -1,4 +1,3 @@
-
 DROP FUNCTION IF EXISTS population_modification;
 CREATE OR REPLACE FUNCTION public.population_modification(scenario_id_input integer)
 RETURNS SETOF void

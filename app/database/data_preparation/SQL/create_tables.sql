@@ -113,7 +113,7 @@ FROM
 
 CREATE TABLE public.ways_modified
 (
-    id bigint NOT NULL,
+    gid bigint NOT NULL,
     geom geometry(LineString,4326),
     way_type text,
 	surface text,
@@ -125,7 +125,7 @@ CREATE TABLE public.ways_modified
     scenario_id integer,
     original_id integer,
 	status bigint,
-    CONSTRAINT ways_modified_id_pkey PRIMARY KEY (id),
+    CONSTRAINT ways_modified_id_pkey PRIMARY KEY (gid),
     CONSTRAINT ways_modified_fkey FOREIGN KEY (scenario_id)
     REFERENCES scenarios(scenario_id) ON DELETE CASCADE
 );
@@ -133,7 +133,7 @@ CREATE TABLE public.ways_modified
 CREATE INDEX ways_modified_index ON public.ways_modified USING gist(geom);
 
 CREATE TABLE public.pois_modified (
-	id serial,
+	gid serial,
 	name text NULL,
 	amenity text NOT NULL,
 	opening_hours text NULL,
@@ -141,7 +141,7 @@ CREATE TABLE public.pois_modified (
 	scenario_id int4,
 	original_id int4 NULL,
 	wheelchair text,
-	CONSTRAINT pois_modified_id_pkey PRIMARY KEY (id),
+	CONSTRAINT pois_modified_id_pkey PRIMARY KEY (gid),
     CONSTRAINT pois_modified_fkey FOREIGN KEY (scenario_id)
     REFERENCES scenarios(scenario_id) ON DELETE CASCADE
 );
