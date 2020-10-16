@@ -113,7 +113,7 @@ FROM
 
 CREATE TABLE public.ways_modified
 (
-    gid bigint NOT NULL,
+    gid bigserial,
     geom geometry(LineString,4326),
     way_type text,
 	surface text,
