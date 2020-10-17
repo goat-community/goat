@@ -77,6 +77,7 @@
         "url": "/geoserver/wms",
         "group": "poisLayers",
         "layers": "cite:pois",
+        "viewparamsDynamicKeys": ["modus"],
         "opacity": 1,
         "queryable": true,
         "visible": false,
@@ -86,7 +87,7 @@
         "displayInLayerList": true,
         "displayInLegend": false,
         "requiresPois": true,
-        "zIndex": 100,
+        "zIndex": 7,
         "serverType": "geoserver"
       },
       {
@@ -643,7 +644,8 @@
         "zIndex": 1,
         "serverType": "geoserver",
         "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
-        "viewparamsDynamicKeys": ["scenario_id", "modus", "pois"]
+        "viewparamsDynamicKeys": ["scenario_id", "modus", "pois"],
+        "styles": {"default": "cite:style_heatmap", "scenario": "cite:style_heatmap", "comparison": "cite:style_heatmap_comparison"}
       },
       {
         "type": "WMS",
@@ -671,7 +673,8 @@
         "requiresPois": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "viewparamsDynamicKeys": ["scenario_id", "modus", "pois"]
+        "viewparamsDynamicKeys": ["scenario_id", "modus", "pois"],
+        "styles": {"default": "cite:style_heatmap_luptai","scenario": "cite:style_heatmap_luptai", "comparison": "cite:style_heatmap_luptai_comparison"}
       },
       {
         "type": "WMS",
