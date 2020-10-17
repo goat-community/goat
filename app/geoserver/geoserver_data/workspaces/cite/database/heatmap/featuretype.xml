@@ -59,7 +59,7 @@ FROM heatmap_geoserver(convert_from(decode(%amenities%,&apos;base64&apos;), &apo
         </parameter>
         <parameter>
           <name>scenario_id</name>
-          <defaultValue>1</defaultValue>
+          <defaultValue>0</defaultValue>
           <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
       </virtualTable>
