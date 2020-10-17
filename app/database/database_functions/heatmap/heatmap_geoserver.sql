@@ -3,13 +3,47 @@ CREATE OR REPLACE FUNCTION public.heatmap_geoserver(amenities_json jsonb, modus_
  RETURNS TABLE(grid_id integer, percentile_accessibility integer, accessibility_index bigint, geom geometry)
  LANGUAGE plpgsql
 AS $function$
-
+DECLARE
+	borders_quintiles bigint[]; 
 BEGIN
-	
-
-	IF amenities_json::TEXT <> '{}' AND modus_input <> 'comparison' THEN  
+	IF amenities_json::TEXT <> '{}' AND modus_input = 'default' THEN  
 		RETURN query 
 		SELECT g.grid_id, COALESCE(h.percentile_accessibility,0) AS percentile_accessibility, h.accessibility_index, g.geom  
+		FROM grid_heatmap g
+		LEFT JOIN (
+			SELECT h.grid_id, ntile(5) over (order by h.accessibility_index) AS percentile_accessibility,
+			h.accessibility_index
+			FROM heatmap_dynamic(amenities_json,'default',scenario_id_input) h
+		) h
+		ON g.grid_id = h.grid_id;	
+	
+	ELSEIF amenities_json::TEXT <> '{}' AND modus_input = 'scenario' THEN  
+		SELECT array_agg(border)
+		INTO borders_quintiles
+		FROM 
+		(
+			SELECT min(x.accessibility_index) border
+			FROM 
+			(
+				SELECT ntile(5) over (order by h.accessibility_index) AS percentile_accessibility,
+				h.accessibility_index
+				FROM heatmap_dynamic(amenities_json,'default',scenario_id_input) h
+			) x 
+			GROUP BY x.percentile_accessibility 
+			ORDER BY x.percentile_accessibility
+		) b;
+	
+		RAISE NOTICE '%', borders_quintiles;
+	
+		RETURN query 
+		SELECT g.grid_id, 
+		CASE WHEN COALESCE(h.accessibility_index,0) = 0 THEN 0
+		WHEN COALESCE(h.accessibility_index,0) >= borders_quintiles[1] AND COALESCE(h.accessibility_index,0) < borders_quintiles[2] THEN 1
+		WHEN COALESCE(h.accessibility_index,0) >= borders_quintiles[2] AND COALESCE(h.accessibility_index,0) < borders_quintiles[3] THEN 2
+		WHEN COALESCE(h.accessibility_index,0) >= borders_quintiles[3] AND COALESCE(h.accessibility_index,0) < borders_quintiles[4] THEN 3
+		WHEN COALESCE(h.accessibility_index,0) >= borders_quintiles[4] AND COALESCE(h.accessibility_index,0) < borders_quintiles[5] THEN 4
+		WHEN COALESCE(h.accessibility_index,0) >= borders_quintiles[5] THEN 5
+		END AS percentile_accessibility, h.accessibility_index, g.geom  
 		FROM grid_heatmap g
 		LEFT JOIN (
 			SELECT h.grid_id, ntile(5) over (order by h.accessibility_index) AS percentile_accessibility,
