@@ -50,7 +50,7 @@
 	FROM convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;) AS amenity&#xd;
 )&#xd;
 SELECT *,concat(amenity,&apos;_&apos;,status) AS amenity_icon&#xd;
-FROM pois_visualization(%scenario_id%,(SELECT amenity FROM am), %routing_profile%,%d%,%h%,%m%)
+FROM pois_visualization(%scenario_id%,(SELECT amenity FROM am), %routing_profile%,%modus_input%,%d%,%h%,%m%)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
@@ -77,13 +77,17 @@ FROM pois_visualization(%scenario_id%,(SELECT amenity FROM am), %routing_profile
           <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
         <parameter>
+          <name>modus_input</name>
+          <defaultValue>&apos;default&apos;</defaultValue>
+        </parameter>
+        <parameter>
           <name>m</name>
           <defaultValue>9999</defaultValue>
           <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
         <parameter>
           <name>scenario_id</name>
-          <defaultValue>1</defaultValue>
+          <defaultValue>0</defaultValue>
           <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
       </virtualTable>
