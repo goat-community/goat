@@ -249,13 +249,13 @@ app.post(
     let queryValues = [];
     requiredParams.forEach((key) => {
       let value = request.body[key];
-      
+
       if (!value) {
         response.send("An error happened");
         return;
       }
       queryValues.push(value);
-      console.log(value)
+      console.log(value);
     });
 
     console.log(queryValues[1]);
@@ -279,8 +279,42 @@ app.post(
 );
 
 app.post("/api/export_scenario", jsonParser, (request, response) => {
-  var scenarioId = request.body.scenario_id;
-  pool.query(`SELECT * FROM export_changeset_scenario(${scenarioId})`, (err, res) => {
+  const scenarioId = request.body.scenario_id;
+  pool.query(
+    `SELECT * FROM export_changeset_scenario(${scenarioId})`,
+    (err, res) => {
+      if (err) return console.log(err);
+      const zipCompresser = new require("node-zip")();
+      if (res.rows.length > 0 && res.rows[0].export_changeset_scenario) {
+        const scenarioChangeset = res.rows[0].export_changeset_scenario;
+        for (const layer in scenarioChangeset) {
+          zipCompresser.file(
+            `${layer}.geojson`,
+            JSON.stringify(scenarioChangeset[layer])
+          );
+        }
+      }
+      const data = zipCompresser.generate({
+        base64: false,
+        compression: "DEFLATE",
+      });
+      response.type("zip");
+      response.send(new Buffer.from(data, "binary"));
+    }
+  );
+});
+
+app.post("/api/import_scenario", jsonParser, (request, response) => {
+  const { user_id, scenario_id, payload, layerName } = request.body;
+  if (!user_id || !scenario_id || !payload || !layerName) {
+    response.send(`An error happened. Missing parameters`);
+  }
+  console.log(payload);
+  const sql = `SELECT import_changeset_scenario(${scenario_id}, ${user_id},jsonb_build_object('${layerName}',$$${JSON.stringify(
+    payload
+  )}$$::jsonb))`;
+  console.log(sql);
+  pool.query(sql, (err, res) => {
     if (err) return console.log(err);
     response.send(res);
   });

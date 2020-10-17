@@ -330,7 +330,8 @@
       "cantDeleteAllScenarioFeatures": "Die Szenarien-Daten können aktuell leider nicht gelöscht werden.",
       "allScenarioFeaturesDelete": "Alle Szenarien-Daten wurden gelöscht",
       "noScenarioFeatureChangeAvailable": "Ändern Sie zuerst das Netzwerk oder die Landnutzung.",
-      "cantPrintBaseLayer": "Diese Basiskarte kann nicht gedruckt werden."
+      "cantPrintBaseLayer": "Diese Basiskarte kann nicht gedruckt werden.",
+      "cantExportScenario": "Ein Fehler ist aufgetreten. Szenario kann nicht exportiert werden!"
     },
     "layerGroup": {
       "poisLayers": "POIs",
