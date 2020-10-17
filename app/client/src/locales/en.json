@@ -320,7 +320,8 @@
       "allScenarioFeaturesDelete": "All Scenario Data is deleted",
       "noScenarioFeatureChangeAvailable": "Please do network or land-use change first",
       "cantPrintBaseLayer": "This baselayer can't be printed",
-      "featuresAlreadyUploaded": "Features already exists"
+      "featuresAlreadyUploaded": "Features already exists",
+      "cantExportScenario": "An error happened. Scenario can't be exported!"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
