@@ -249,13 +249,13 @@ app.post(
     let queryValues = [];
     requiredParams.forEach((key) => {
       let value = request.body[key];
-      
+
       if (!value) {
         response.send("An error happened");
         return;
       }
       queryValues.push(value);
-      console.log(value)
+      console.log(value);
     });
 
     console.log(queryValues[1]);
@@ -279,11 +279,29 @@ app.post(
 );
 
 app.post("/api/export_scenario", jsonParser, (request, response) => {
-  var scenarioId = request.body.scenario_id;
-  pool.query(`SELECT * FROM export_changeset_scenario(${scenarioId})`, (err, res) => {
-    if (err) return console.log(err);
-    response.send(res);
-  });
+  const scenarioId = request.body.scenario_id;
+  pool.query(
+    `SELECT * FROM export_changeset_scenario(${scenarioId})`,
+    (err, res) => {
+      if (err) return console.log(err);
+      const zipCompresser = new require("node-zip")();
+      if (res.rows.length > 0 && res.rows[0].export_changeset_scenario) {
+        const scenarioChangeset = res.rows[0].export_changeset_scenario;
+        for (const layer in scenarioChangeset) {
+          zipCompresser.file(
+            `${layer}.geojson`,
+            JSON.stringify(scenarioChangeset[layer])
+          );
+        }
+      }
+      const data = zipCompresser.generate({
+        base64: false,
+        compression: "DEFLATE",
+      });
+      response.type("zip");
+      response.send(new Buffer.from(data, "binary"));
+    }
+  );
 });
 
 // respond with "pong" when a GET request is made to /ping (HEALTHCHECK)
