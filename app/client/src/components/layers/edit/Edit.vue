@@ -59,7 +59,12 @@
 
         <div v-if="Object.keys(scenarios).length > 0">
           <v-divider></v-divider>
-          <p class="mb-1 mt-1">Select Layer</p>
+          <v-subheader class="ml-0 pl-0 mb-0 pb-0">
+            <v-icon style="color:#30c2ff;" small class="mr-2"
+              >fas fa-layer-group</v-icon
+            >
+            <h3>Select Layer</h3>
+          </v-subheader>
           <v-select
             class="mt-4"
             :items="editableLayers"
@@ -97,323 +102,404 @@
         </v-alert>
         <template v-if="selectedLayer && schema[layerName]">
           <v-divider></v-divider>
-          <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
-            <p class="mb-1">{{ $t("appBar.edit.selectFeatures") }}</p>
-            <v-btn-toggle v-model="toggleSelection">
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <v-btn v-on="on" text>
-                    <v-icon>far fa-dot-circle</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.drawCircle") }}</span>
-              </v-tooltip>
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <v-btn v-on="on" text v-show="false">
-                    <v-icon>far fa-hand-pointer</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.selectOnMap") }}</span>
-              </v-tooltip>
-            </v-btn-toggle>
-          </v-flex>
-          <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
-            <v-divider class="mb-1"></v-divider>
-            <p class="mb-1">{{ $t("appBar.edit.editTools") }}</p>
-            <v-btn-toggle v-model="toggleEdit">
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <v-btn :value="1" v-on="on" text>
-                    <v-icon medium>add</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.drawFeatureTooltip") }}</span>
-              </v-tooltip>
+          <!-- ==== <EDIT> ====-->
 
-              <v-tooltip
-                v-show="selectedLayer.get('canModifyGeom') !== false"
-                top
-              >
-                <template v-slot:activator="{ on }">
-                  <v-btn
-                    v-show="selectedLayer.get('canModifyGeom') !== false"
-                    :value="2"
-                    v-on="on"
-                    text
-                  >
-                    <v-icon>far fa-edit</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.modifyFeatureTooltip") }}</span>
-              </v-tooltip>
-
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <v-btn
-                    :value="3"
-                    v-show="selectedLayer.get('modifyAttributes') === true"
-                    v-on="on"
-                    text
-                  >
-                    <v-icon>far fa-list-alt</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.modifyAttributes") }}</span>
-              </v-tooltip>
-
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <v-btn :value="4" v-on="on" text>
-                    <v-icon>far fa-trash-alt</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.deleteFeature") }}</span>
-              </v-tooltip>
-
-              <v-tooltip
-                top
-                v-show="
-                  !['Point'].some(r =>
-                    selectedLayer.get('editGeometry').includes(r)
-                  )
-                "
-              >
-                <template v-slot:activator="{ on }">
-                  <v-btn
-                    v-show="
-                      !['Point', 'LineString'].some(r =>
-                        selectedLayer.get('editGeometry').includes(r)
-                      )
-                    "
-                    :value="5"
-                    v-on="on"
-                    text
-                  >
-                    <v-icon>far fa-clone</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.moveFeature") }}</span>
-              </v-tooltip>
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <v-btn
-                    :value="6"
-                    v-show="
-                      !['Point', 'LineString'].some(r =>
-                        selectedLayer.get('editGeometry').includes(r)
-                      )
-                    "
-                    v-on="on"
-                    text
-                  >
-                    <v-icon>far fa-object-group</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.drawPolygonHole") }}</span>
-              </v-tooltip>
-            </v-btn-toggle>
-            <br />
-
-            <v-btn-toggle v-model="toggleEdit">
-              <v-tooltip v-if="selectedLayer.get('name') === 'buildings'" top>
-                <template v-slot:activator="{ on }">
-                  <v-btn
-                    class="ml-0 mr-2 mt-2"
-                    v-if="selectedLayer.get('name') === 'buildings'"
-                    :value="7"
-                    v-on="on"
-                    text
-                  >
-                    <v-icon>far fa-building</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.addBldEntrance") }}</span>
-              </v-tooltip>
-            </v-btn-toggle>
-
-            <v-btn-toggle v-model="toggleSnapGuide">
-              <v-tooltip
-                top
-                v-if="
-                  ['Polygon', 'MultiPolygon'].some(r =>
-                    selectedLayer.get('editGeometry').includes(r)
-                  )
-                "
-              >
-                <template v-slot:activator="{ on }">
-                  <v-btn class="ml-0 mt-2" v-on="on" text>
-                    <v-icon>fas fa-border-all</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.snapGuide") }}</span>
-              </v-tooltip>
-            </v-btn-toggle>
-
-            <v-btn-toggle v-model="toggleFeatureLabels">
-              <v-tooltip
-                top
-                v-if="
-                  ['Polygon', 'MultiPolygon'].some(r =>
-                    selectedLayer.get('editGeometry').includes(r)
-                  )
-                "
-              >
-                <template v-slot:activator="{ on }">
-                  <v-btn class="ml-2 mt-2" v-on="on" text>
-                    <v-icon>fas fa-font</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.featureLabels") }}</span>
-              </v-tooltip>
-            </v-btn-toggle>
-          </v-flex>
-          <v-flex
-            v-if="
-              layerConf[layerName.split(':')[1]] &&
-                layerConf[layerName.split(':')[1]].enableFileUpload === true
-            "
-            xs12
-            v-show="selectedLayer != null"
-            class="mt-1 pt-0 mb-0"
+          <v-subheader
+            v-show="selectedLayer !== null"
+            class="clickable ml-0 pl-0"
+            @click="editElVisible = !editElVisible"
           >
-            <v-divider class="mb-1"></v-divider>
-            <p class="mb-1">{{ $t("appBar.edit.uploadYourData") }}</p>
-            <v-file-input
-              :rules="uploadRules"
-              @change="readFile"
-              @click:clear="clearFile"
-              accept=".json,.geojson"
-              clearable
-              v-model="file"
-              label="File input"
-            ></v-file-input>
-
-            <!-- LAYER FIELD INFO ALERT  -->
-            <v-alert
-              v-if="
-                fileInputFeaturesCache.length === 0 &&
-                  fileInputValidationMessage === 'fileValidOrNoFile' &&
-                  schema[layerName]
-              "
-              class="elevation-2"
-              type="info"
-              :color="activeColor.primary"
-              border="left"
-              colored-border
-              dense
+            <v-icon
+              :style="editElVisible === true ? { color: '#30c2ff' } : {}"
+              small
+              class="mr-2"
+              >fas fa-edit</v-icon
             >
-              <span
-                >&#9679; {{ $t("appBar.edit.dataTypeInfo") }}:
-                <b>{{ selectedLayer.get("editDataType") }}</b>
-              </span>
-              <br />
-              <span
-                >&#9679; {{ $t("appBar.edit.geometryTypeInfo") }}:
-                <b>{{ selectedLayer.get("editGeometry").toString() }}</b>
-              </span>
-              <br />
-              <span
-                >&#9679; {{ $t("appBar.edit.referenceSystemInfo") }}
-                <b>EPSG:4326</b>
-              </span>
-              <br />
-              <span v-html="getFields"> </span>
-            </v-alert>
-
-            <!-- FILE INPUT VALIDATION MESSAGE ALERTS -->
-            <v-alert
-              v-if="fileInputValidationMessage !== 'fileValidOrNoFile'"
-              class="elevation-2"
-              :type="fileInputValidationTypeEnum[fileInputValidationMessage]"
-              dense
+            <h3>{{ $t("appBar.edit.editTools") }}</h3>
+          </v-subheader>
+          <div class="ml-2" v-if="editElVisible">
+            <span
+              v-show="selectedLayer != null"
+              class="py-1 mb-0 mt-3 pl-0 ml-0"
             >
-              <span v-html="getValidationMessage"></span>
-            </v-alert>
+              <h4>{{ $t("appBar.edit.selectFeatures") }}</h4>
+            </span>
 
-            <!-- FEATURES NOT YET UPLOADED ALERT -->
-            <v-alert
-              class="elevation-2"
-              v-if="fileInputFeaturesCache.length > 0"
-              dense
-              type="info"
+            <v-flex
+              xs12
+              v-show="selectedLayer != null && selectFeaturesVisible"
+              class="mt-1 pt-0 mb-4"
             >
-              {{ $t("appBar.edit.featuresNotyetUploaded") }}
-            </v-alert>
-          </v-flex>
+              <v-btn-toggle v-model="toggleSelection">
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <v-btn v-on="on" text>
+                      <v-icon>far fa-dot-circle</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.drawCircle") }}</span>
+                </v-tooltip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <v-btn v-on="on" text v-show="false">
+                      <v-icon>far fa-hand-pointer</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.selectOnMap") }}</span>
+                </v-tooltip>
+              </v-btn-toggle>
+            </v-flex>
 
-          <!-- DATA TABLE FOR DRAWN/MODIFIED/DELETED FEATURES OF THE USER  -->
+            <span v-show="selectedLayer != null" class="py-1 mb-0 pl-0 ml-0">
+              <h4>{{ $t("appBar.edit.editTools") }}</h4>
+            </span>
 
-          <v-flex v-if="selectedLayer !== null" xs12 class="mt-1 pt-0 mb-0">
-            <v-divider class="mb-1"></v-divider>
-            <p class="mb-1">{{ $t("appBar.edit.scenarioFeatures") }}</p>
-            <v-data-table
-              :headers="headers"
-              :loading="isTableLoading"
-              :items="scenarioDataTable"
-              :items-per-page="15"
-              class="elevation-0"
+            <v-flex
+              xs12
+              v-show="selectEditVisible && selectedLayer != null"
+              class="mt-1 pt-0 mb-3"
             >
-              <template v-slot:item.status="{ item }">
-                <v-chip
-                  small
-                  :color="item.status === 'Uploaded' ? 'success' : 'error'"
-                  dark
-                  class="mx-0 px-1"
-                  >{{ $t(`appBar.edit.status.${item.status}`) }}</v-chip
+              <v-btn-toggle v-model="toggleEdit">
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <v-btn :value="1" v-on="on" text>
+                      <v-icon medium>add</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.drawFeatureTooltip") }}</span>
+                </v-tooltip>
+
+                <v-tooltip
+                  v-show="selectedLayer.get('canModifyGeom') !== false"
+                  top
                 >
-              </template>
-              <template v-slot:item.type="{ item }">
-                <span>{{ $t(`appBar.edit.type.${item.type}`) }}</span>
-              </template>
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      v-show="selectedLayer.get('canModifyGeom') !== false"
+                      :value="2"
+                      v-on="on"
+                      text
+                    >
+                      <v-icon>far fa-edit</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.modifyFeatureTooltip") }}</span>
+                </v-tooltip>
 
-              <template v-slot:item.action="{ item }">
-                <!-- zoom to scenario feature -->
                 <v-tooltip top>
                   <template v-slot:activator="{ on }">
-                    <v-icon
+                    <v-btn
+                      :value="3"
+                      v-show="selectedLayer.get('modifyAttributes') === true"
                       v-on="on"
-                      :disabled="isUploadBusy"
-                      class="scenario-icon"
-                      @click="scenarioActionBtnHandler(item, 'zoom')"
+                      text
                     >
-                      zoom_out_map
-                    </v-icon>
+                      <v-icon>far fa-list-alt</v-icon>
+                    </v-btn>
                   </template>
-                  <span>{{ $t(`map.tooltips.zoomToFeature`) }}</span>
+                  <span>{{ $t("appBar.edit.modifyAttributes") }}</span>
                 </v-tooltip>
-                <!-- delete scenario feature -->
+
                 <v-tooltip top>
                   <template v-slot:activator="{ on }">
-                    <v-icon
-                      v-show="isDeleteBtnVisible(item)"
-                      class="scenario-icon-delete"
-                      :disabled="isUploadBusy"
-                      v-on="on"
-                      @click="scenarioActionBtnHandler(item, 'delete')"
-                    >
-                      delete
-                    </v-icon>
+                    <v-btn :value="4" v-on="on" text>
+                      <v-icon>far fa-trash-alt</v-icon>
+                    </v-btn>
                   </template>
-                  <span>{{ $t(`map.tooltips.deleteFeature`) }}</span>
+                  <span>{{ $t("appBar.edit.deleteFeature") }}</span>
+                </v-tooltip>
+
+                <v-tooltip
+                  top
+                  v-show="
+                    !['Point'].some(r =>
+                      selectedLayer.get('editGeometry').includes(r)
+                    )
+                  "
+                >
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      v-show="
+                        !['Point', 'LineString'].some(r =>
+                          selectedLayer.get('editGeometry').includes(r)
+                        )
+                      "
+                      :value="5"
+                      v-on="on"
+                      text
+                    >
+                      <v-icon>far fa-clone</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.moveFeature") }}</span>
                 </v-tooltip>
                 <v-tooltip top>
                   <template v-slot:activator="{ on }">
-                    <v-icon
-                      v-show="isRestoreBtnVisible(item)"
-                      class="scenario-icon"
-                      :disabled="isUploadBusy"
+                    <v-btn
+                      :value="6"
+                      v-show="
+                        !['Point', 'LineString'].some(r =>
+                          selectedLayer.get('editGeometry').includes(r)
+                        )
+                      "
                       v-on="on"
-                      @click="scenarioActionBtnHandler(item, 'restore')"
+                      text
                     >
-                      restore_from_trash
-                    </v-icon>
+                      <v-icon>far fa-object-group</v-icon>
+                    </v-btn>
                   </template>
-                  <span>{{ $t(`map.tooltips.restoreFeature`) }}</span>
+                  <span>{{ $t("appBar.edit.drawPolygonHole") }}</span>
                 </v-tooltip>
-              </template>
-            </v-data-table>
-          </v-flex>
+              </v-btn-toggle>
+              <br />
+
+              <v-btn-toggle v-model="toggleEdit">
+                <v-tooltip v-if="selectedLayer.get('name') === 'buildings'" top>
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      class="ml-0 mr-2 mt-2"
+                      v-if="selectedLayer.get('name') === 'buildings'"
+                      :value="7"
+                      v-on="on"
+                      text
+                    >
+                      <v-icon>far fa-building</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.addBldEntrance") }}</span>
+                </v-tooltip>
+              </v-btn-toggle>
+
+              <v-btn-toggle v-model="toggleSnapGuide">
+                <v-tooltip
+                  top
+                  v-if="
+                    ['Polygon', 'MultiPolygon'].some(r =>
+                      selectedLayer.get('editGeometry').includes(r)
+                    )
+                  "
+                >
+                  <template v-slot:activator="{ on }">
+                    <v-btn class="ml-0 mt-2" v-on="on" text>
+                      <v-icon>fas fa-border-all</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.snapGuide") }}</span>
+                </v-tooltip>
+              </v-btn-toggle>
+
+              <v-btn-toggle v-model="toggleFeatureLabels">
+                <v-tooltip
+                  top
+                  v-if="
+                    ['Polygon', 'MultiPolygon'].some(r =>
+                      selectedLayer.get('editGeometry').includes(r)
+                    )
+                  "
+                >
+                  <template v-slot:activator="{ on }">
+                    <v-btn class="ml-2 mt-2" v-on="on" text>
+                      <v-icon>fas fa-font</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.featureLabels") }}</span>
+                </v-tooltip>
+              </v-btn-toggle>
+            </v-flex>
+          </div>
+          <v-divider></v-divider>
+          <!-- ==== </EDIT> ==== -->
+
+          <!-- ==== <SCENARIO MANAGE> ====-->
+          <v-subheader
+            class="clickable ml-0 pl-0"
+            @click="dataManageElVisible = !dataManageElVisible"
+          >
+            <v-icon
+              :style="dataManageElVisible === true ? { color: '#30c2ff' } : {}"
+              small
+              class="mr-2"
+              >fas fa-database</v-icon
+            >
+            <h3>Scenario Import/Export</h3>
+          </v-subheader>
+          <div class="ml-2" v-if="dataManageElVisible">
+            <v-flex
+              v-if="layerConf[layerName.split(':')[1]]"
+              xs12
+              v-show="selectedLayer != null && dataManageElVisible === true"
+              class="mt-1 pt-0 mb-0"
+            >
+              <v-file-input
+                :rules="uploadRules"
+                @change="readFile"
+                @click:clear="clearFile"
+                accept=".json,.geojson"
+                clearable
+                v-model="file"
+                label="Import"
+              ></v-file-input>
+
+              <!-- LAYER FIELD INFO ALERT  -->
+              <v-alert
+                v-if="
+                  fileInputFeaturesCache.length === 0 &&
+                    fileInputValidationMessage === 'fileValidOrNoFile' &&
+                    schema[layerName]
+                "
+                class="elevation-2"
+                type="info"
+                :color="activeColor.primary"
+                border="left"
+                colored-border
+                dense
+              >
+                <span
+                  >&#9679; {{ $t("appBar.edit.dataTypeInfo") }}:
+                  <b>{{ selectedLayer.get("editDataType") }}</b>
+                </span>
+                <br />
+                <span
+                  >&#9679; {{ $t("appBar.edit.geometryTypeInfo") }}:
+                  <b>{{ selectedLayer.get("editGeometry").toString() }}</b>
+                </span>
+                <br />
+                <span
+                  >&#9679; {{ $t("appBar.edit.referenceSystemInfo") }}
+                  <b>EPSG:4326</b>
+                </span>
+                <br />
+                <span v-html="getFields"> </span>
+              </v-alert>
+
+              <!-- FILE INPUT VALIDATION MESSAGE ALERTS -->
+              <v-alert
+                v-if="fileInputValidationMessage !== 'fileValidOrNoFile'"
+                class="elevation-2"
+                :type="fileInputValidationTypeEnum[fileInputValidationMessage]"
+                dense
+              >
+                <span v-html="getValidationMessage"></span>
+              </v-alert>
+
+              <!-- FEATURES NOT YET UPLOADED ALERT -->
+              <v-alert
+                class="elevation-2"
+                v-if="fileInputFeaturesCache.length > 0"
+                dense
+                type="info"
+              >
+                {{ $t("appBar.edit.featuresNotyetUploaded") }}
+              </v-alert>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                  :disabled="scenarioDataTable.length === 0"
+                  :loading="isExportScenarioBusy"
+                  class="white--text"
+                  :color="activeColor.primary"
+                  @click="exportScenario"
+                >
+                  <v-icon left>fas fa-download</v-icon>Export
+                </v-btn>
+              </v-card-actions>
+            </v-flex>
+          </div>
+          <v-divider></v-divider>
+
+          <!-- ==== </SCENARIO MANAGE> ====-->
+
+          <!-- ==== <DATA TABLE> ====-->
+          <v-subheader
+            v-show="selectedLayer !== null"
+            class="clickable ml-0 pl-0"
+            @click="dataTableElVisible = !dataTableElVisible"
+          >
+            <v-icon
+              :style="dataTableElVisible === true ? { color: '#30c2ff' } : {}"
+              small
+              class="mr-2"
+              >far fa-list-alt</v-icon
+            >
+            <h3>Scenario Features</h3>
+          </v-subheader>
+          <div class="ml-2" v-if="dataTableElVisible">
+            <v-expand-transition>
+              <v-flex
+                v-if="dataTableElVisible && selectedLayer !== null"
+                xs12
+                class="mt-1 pt-0 mb-0"
+              >
+                <v-data-table
+                  :headers="headers"
+                  :loading="isTableLoading"
+                  :items="scenarioDataTable"
+                  :items-per-page="15"
+                  class="elevation-0"
+                >
+                  <template v-slot:item.status="{ item }">
+                    <v-chip
+                      small
+                      :color="item.status === 'Uploaded' ? 'success' : 'error'"
+                      dark
+                      class="mx-0 px-1"
+                      >{{ $t(`appBar.edit.status.${item.status}`) }}</v-chip
+                    >
+                  </template>
+                  <template v-slot:item.type="{ item }">
+                    <span>{{ $t(`appBar.edit.type.${item.type}`) }}</span>
+                  </template>
+
+                  <template v-slot:item.action="{ item }">
+                    <!-- zoom to scenario feature -->
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on }">
+                        <v-icon
+                          v-on="on"
+                          :disabled="isUploadBusy"
+                          class="scenario-icon"
+                          @click="scenarioActionBtnHandler(item, 'zoom')"
+                        >
+                          zoom_out_map
+                        </v-icon>
+                      </template>
+                      <span>{{ $t(`map.tooltips.zoomToFeature`) }}</span>
+                    </v-tooltip>
+                    <!-- delete scenario feature -->
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on }">
+                        <v-icon
+                          v-show="isDeleteBtnVisible(item)"
+                          class="scenario-icon-delete"
+                          :disabled="isUploadBusy"
+                          v-on="on"
+                          @click="scenarioActionBtnHandler(item, 'delete')"
+                        >
+                          delete
+                        </v-icon>
+                      </template>
+                      <span>{{ $t(`map.tooltips.deleteFeature`) }}</span>
+                    </v-tooltip>
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on }">
+                        <v-icon
+                          v-show="isRestoreBtnVisible(item)"
+                          class="scenario-icon"
+                          :disabled="isUploadBusy"
+                          v-on="on"
+                          @click="scenarioActionBtnHandler(item, 'restore')"
+                        >
+                          restore_from_trash
+                        </v-icon>
+                      </template>
+                      <span>{{ $t(`map.tooltips.restoreFeature`) }}</span>
+                    </v-tooltip>
+                  </template>
+                </v-data-table>
+              </v-flex>
+            </v-expand-transition>
+          </div>
+          <!-- ==== < /DATA TABLE> ====-->
         </template>
       </v-card-text>
 
@@ -593,6 +679,8 @@ import { debounce } from "../../../utils/Helpers";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 
+import { saveAs } from "file-saver";
+
 export default {
   components: {
     "overlay-popup": OverlayPopup,
@@ -612,6 +700,7 @@ export default {
     loadingLayerInfo: false,
     isUploadBusy: false,
     isDeleteAllBusy: false,
+    isExportScenarioBusy: false,
     //Popup configuration
     popup: {
       title: "",
@@ -667,7 +756,14 @@ export default {
     showOpeningHours: false,
     isUploadBtnEnabled: true,
     //Scenario Dialog
-    showScenarioDialog: false
+    showScenarioDialog: false,
+
+    editElVisible: true,
+    dataManageElVisible: true,
+    scenarioImpExpVisible: false,
+    selectEditVisible: true,
+    selectFeaturesVisible: true,
+    dataTableElVisible: true
   }),
   watch: {
     selectedLayer(newValue) {
@@ -750,6 +846,42 @@ export default {
       this.toggleFeatureLabelsInteraction(this.toggleFeatureLabels);
     },
 
+    /**
+     * Use scenario id to export files.
+     */
+    exportScenario() {
+      this.isExportScenarioBusy = true;
+      http
+        .post(
+          "/api/export_scenario",
+          {
+            scenario_id: this.activeScenario
+          },
+          {
+            responseType: "blob"
+          }
+        )
+        .then(response => {
+          console.log(response);
+          this.isExportScenarioBusy = false;
+          if (response.data) {
+            saveAs(
+              response.data,
+              `${this.scenarios[this.activeScenario].title}.zip`
+            );
+          }
+        })
+        .catch(error => {
+          console.log(error);
+          this.toggleSnackbar({
+            type: "error", //success or error
+            message: "cantExportScenario",
+            state: true,
+            timeout: 2500
+          });
+          this.isExportScenarioBusy = false;
+        });
+    },
     /**
      * Parse user input file and transform features if valid.
      */
