@@ -19,12 +19,8 @@
           <se:PolygonSymbolizer>
             <se:Fill>
               <se:SvgParameter name="fill">#d7191c</se:SvgParameter>
+              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#232323</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-            </se:Stroke>
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
@@ -41,12 +37,8 @@
           <se:PolygonSymbolizer>
             <se:Fill>
               <se:SvgParameter name="fill">#ed6e43</se:SvgParameter>
+              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#232323</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-            </se:Stroke>
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
@@ -63,12 +55,8 @@
           <se:PolygonSymbolizer>
             <se:Fill>
               <se:SvgParameter name="fill">#feba6e</se:SvgParameter>
+              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#232323</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-            </se:Stroke>
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
@@ -85,12 +73,8 @@
           <se:PolygonSymbolizer>
             <se:Fill>
               <se:SvgParameter name="fill">#ffe8a4</se:SvgParameter>
+              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#232323</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-            </se:Stroke>
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
@@ -107,12 +91,8 @@
           <se:PolygonSymbolizer>
             <se:Fill>
               <se:SvgParameter name="fill">#e7f6b8</se:SvgParameter>
+              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#232323</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-            </se:Stroke>
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
@@ -129,12 +109,8 @@
           <se:PolygonSymbolizer>
             <se:Fill>
               <se:SvgParameter name="fill">#b7e2a8</se:SvgParameter>
+              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#232323</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-            </se:Stroke>
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
@@ -151,12 +127,8 @@
           <se:PolygonSymbolizer>
             <se:Fill>
               <se:SvgParameter name="fill">#74b7ae</se:SvgParameter>
+              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
-            <se:Stroke>
-              <se:SvgParameter name="stroke">#232323</se:SvgParameter>
-              <se:SvgParameter name="stroke-width">1</se:SvgParameter>
-              <se:SvgParameter name="stroke-linejoin">bevel</se:SvgParameter>
-            </se:Stroke>
           </se:PolygonSymbolizer>
         </se:Rule>
       </se:FeatureTypeStyle>
