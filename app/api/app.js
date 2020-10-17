@@ -304,6 +304,22 @@ app.post("/api/export_scenario", jsonParser, (request, response) => {
   );
 });
 
+app.post("/api/import_scenario", jsonParser, (request, response) => {
+  const { user_id, scenario_id, payload, layerName } = request.body;
+  if (!user_id || !scenario_id || !payload || !layerName) {
+    response.send(`An error happened. Missing parameters`);
+  }
+  console.log(payload);
+  const sql = `SELECT import_changeset_scenario(${scenario_id}, ${user_id},jsonb_build_object('${layerName}',$$${JSON.stringify(
+    payload
+  )}$$::jsonb))`;
+  console.log(sql);
+  pool.query(sql, (err, res) => {
+    if (err) return console.log(err);
+    response.send(res);
+  });
+});
+
 // respond with "pong" when a GET request is made to /ping (HEALTHCHECK)
 app.get("/ping", function (_req, res) {
   res.send("pong");

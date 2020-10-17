@@ -933,7 +933,8 @@ export default {
                     .getProjection()
                     .getCode(),
                   this.legendOptions.params[source.serverType_],
-                  this.$i18n.locale
+                  this.$i18n.locale,
+                  source.getParams().STYLES
                 );
                 if (!url) {
                   throw new Error("Missing url");
