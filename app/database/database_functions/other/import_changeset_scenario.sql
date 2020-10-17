@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS import_changeset_scenario;
-CREATE OR REPLACE FUNCTION public.import_changeset_scenario(scenario_id_input integer, scenario_name text, userid_input integer, import_object jsonb)
+CREATE OR REPLACE FUNCTION public.import_changeset_scenario(scenario_id_input integer, userid_input integer, import_object jsonb)
  RETURNS jsonb
  LANGUAGE plpgsql
 AS $function$
@@ -24,7 +24,7 @@ DECLARE
 BEGIN 
 	
 	IF (SELECT scenario_id FROM scenarios WHERE scenario_id = scenario_id_input) IS NULL THEN 
-		INSERT INTO scenarios(scenario_id,scenario_name,userid) VALUES (scenario_id_input,scenario_name,userid_input);
+		INSERT INTO scenarios(scenario_id,userid) VALUES (scenario_id_input,userid_input);
 	END IF;
 	
 
