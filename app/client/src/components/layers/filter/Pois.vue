@@ -184,7 +184,7 @@ export default {
           viewParams.toString()
         )}';routing_profile:'${me.activeRoutingProfile}';scenario_id:${
           me.scenarioId
-        };`;
+        };modus:'${me.options.calculationModes.active}';`;
 
         if (this.timeBasedCalculations === "yes") {
           params += `d:${me.getSelectedDay};h:${me.getSelectedHour};m:${me.getSelectedMinutes};`;
@@ -254,6 +254,9 @@ export default {
     })
   },
   watch: {
+    "options.calculationModes.active": function() {
+      this.updatePoisLayerViewParams(this.selectedPois);
+    },
     scenarioId() {
       this.updatePoisLayerViewParams(this.selectedPois);
     },
