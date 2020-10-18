@@ -50,12 +50,12 @@ BEGIN
 	FROM 
 	(
 
-		SELECT building, building_levels, building_levels_residential, gross_floor_area, population, geom, 'new' AS edit_type 
+		SELECT building, building_levels, building_levels_residential, gross_floor_area, population, geom, 'new' AS edit_type, original_id 
 		FROM buildings_modified
 		WHERE scenario_id = scenario_id_input
 		UNION ALL 
 		SELECT b.building, b.building_levels, b.building_levels_residential, b.area*b.building_levels_residential AS gross_floor_area, 
-		sum(p.population) AS population, b.geom, 'deleted' AS edit_type
+		sum(p.population) AS population, b.geom, 'deleted' AS edit_type, b.gid AS original_id 
 		FROM buildings b, population_userinput p  
 		WHERE scenario_id IS NULL 
 		AND ST_Intersects(b.geom,p.geom)

@@ -123,22 +123,37 @@ BEGIN
 		) u
 		WHERE i.original_id = u.original_id
 		AND i.edit_type IN ('deleted'); 
-		
-		INSERT INTO buildings_modified(building, population,building_levels,gross_floor_area,building_levels_residential,geom,scenario_id, original_id) 
-		SELECT building, population::numeric,building_levels::numeric,gross_floor_area::numeric,building_levels_residential::numeric, geom, scenario_id_input, new_original_id::integer  
-		FROM import_buildings
-		WHERE edit_type IN ('new','new_modified');
 	
+		DROP TABLE IF EXISTS buildings_gid;
+		CREATE TEMP TABLE buildings_gid AS 
+		WITH with_gid AS 
+		(
+			INSERT INTO buildings_modified(building, population,building_levels,gross_floor_area,building_levels_residential,geom,scenario_id, original_id) 
+			SELECT building, population::numeric,building_levels::numeric,gross_floor_area::numeric,building_levels_residential::numeric, geom, i.scenario_id, new_original_id::integer  
+			FROM import_buildings i
+			WHERE edit_type IN ('new','new_modified')
+			RETURNING gid, building, population, building_levels, gross_floor_area, building_levels_residential, geom, scenario_id, original_id
+		) 
+		SELECT * FROM with_gid; 
+		
 		SELECT create_geojson(array_agg(to_jsonb(x) - 'geom'), array_agg(geom))
 		INTO buildings_json
 		FROM 
 		(
-			SELECT population, building_levels, gross_floor_area, building_levels_residential, original_id, edit_type, geom, scenario_id,
-			CASE WHEN COALESCE(original_id::integer,0) = COALESCE(new_original_id::integer,0) THEN 'successful' ELSE 'not_successful' END AS upload_status 
-			FROM import_buildings
+			SELECT g.gid::integer, 
+			i.population, i.building_levels, i.gross_floor_area, i.building_levels_residential, i.original_id, i.edit_type, i.geom, i.scenario_id,
+			CASE WHEN COALESCE(i.original_id::integer,0) = COALESCE(i.new_original_id::integer,0) THEN 'successful' ELSE 'not_successful' END AS upload_status 
+			FROM import_buildings i, buildings_gid g 
+			WHERE i.geom = g.geom  
+			AND i.edit_type <> 'deleted'	
+			UNION ALL 
+			SELECT new_original_id::integer AS gid, i.population, i.building_levels, i.gross_floor_area, i.building_levels_residential, i.original_id, i.edit_type, i.geom, i.scenario_id,
+			CASE WHEN COALESCE(i.original_id::integer,0) = COALESCE(i.new_original_id::integer,0) THEN 'successful' ELSE 'not_successful' END AS upload_status 
+			FROM import_buildings i
+			WHERE i.edit_type = 'deleted'			
 		) x;
 		all_layers_json = append_geojson(all_layers_json, buildings_json, 'buildings');
-	
+		
 	ELSEIF layer = 'buildings_entrances' THEN  
 		/*Inject Buildings entrances*/
 		INSERT INTO population_modified(population,geom,scenario_id) 
@@ -183,5 +198,5 @@ BEGIN
 END;
 $function$
 /*
-SELECT jsonb_object_keys(jsonb_build_object('pois',export_changeset_scenario(20) -> 'pois'))::TEXT
+SELECT import_changeset_scenario(19,42, jsonb_build_object('buildings',export_changeset_scenario(18) -> 'buildings'))
 */
