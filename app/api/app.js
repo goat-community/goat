@@ -316,7 +316,14 @@ app.post("/api/import_scenario", jsonParser, (request, response) => {
   console.log(sql);
   pool.query(sql, (err, res) => {
     if (err) return console.log(err);
-    response.send(res);
+    if (
+      res.rows.length > 0 &&
+      res.rows[0].import_changeset_scenario[layerName]
+    ) {
+      response.send(res.rows[0].import_changeset_scenario[layerName]);
+    } else {
+      response.send(0);
+    }
   });
 });
 
