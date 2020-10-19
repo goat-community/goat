@@ -670,14 +670,12 @@ import http from "axios";
 import VJsonschemaForm from "../../other/dynamicForms/index";
 import OpeningHours from "../../other/OpeningHours";
 
-import {
-  geojsonToFeature,
-  checkFeaturesEquality
-} from "../../../utils/MapUtils";
+import { geojsonToFeature } from "../../../utils/MapUtils";
 import { mapGetters, mapMutations } from "vuex";
 import { debounce } from "../../../utils/Helpers";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
+import { featuresToGeojson } from "../../../utils/MapUtils";
 
 import { saveAs } from "file-saver";
 
@@ -732,6 +730,7 @@ export default {
       missingFields: "error",
       fileCorrupted: "error"
     },
+
     fileInputValidationMessage: "fileValidOrNoFile",
     missingFieldsNames: "",
     //Edit form
@@ -899,6 +898,8 @@ export default {
           });
           if (!features || features.length === 0) return;
           //- Check geometry type
+          //- For buildings point geometry is allowed in order to upload building entrance layer
+
           if (
             ![features[0].getGeometry().getType()].some(r =>
               this.selectedLayer.get("editGeometry").includes(r)
@@ -910,77 +911,43 @@ export default {
           }
 
           //- Check field names
-          const props = features[0].getProperties();
-          const propKeys = Object.keys(props);
-          const intersected = propKeys.filter(
-            value => !this.reqFields.includes(value)
+          if (
+            !this.selectedLayer.get("name") === "buildings" &&
+            !features[0].getGeometry().getType() === "Point"
+          ) {
+            const props = features[0].getProperties();
+            const propKeys = Object.keys(props);
+            const intersected = propKeys.filter(
+              value => !this.reqFields.includes(value)
+            );
+            if (
+              propKeys.length !==
+              intersected.length + this.reqFields.length
+            ) {
+              //Geojson not valid.
+              this.fileInputValidationMessage = this.fileInputValidationMessageEnum.MISSING_FIELDS;
+              const missing = this.reqFields.filter(
+                value => !propKeys.includes(value)
+              );
+              if (missing.length > 0) {
+                this.missingFieldsNames = missing.join(", ");
+              }
+              return;
+            } else {
+              this.fileInputValidationMessage = this.fileInputValidationMessageEnum.FILE_VALID_OR_NO_FILE;
+            }
+          }
+
+          //5- Import scenario features
+          this.importScenario(
+            this.userId,
+            this.activeScenario,
+            this.selectedLayer.get("name") === "buildings" &&
+              features[0].getGeometry().getType() === "Point"
+              ? "buildings_entrances"
+              : this.selectedLayer.get("name"),
+            features
           );
-          if (propKeys.length !== intersected.length + this.reqFields.length) {
-            //Geojson not valid.
-            this.fileInputValidationMessage = this.fileInputValidationMessageEnum.MISSING_FIELDS;
-            const missing = this.reqFields.filter(
-              value => !propKeys.includes(value)
-            );
-            if (missing.length > 0) {
-              this.missingFieldsNames = missing.join(", ");
-            }
-            return;
-          } else {
-            this.fileInputValidationMessage = this.fileInputValidationMessageEnum.FILE_VALID_OR_NO_FILE;
-          }
-          //- Transform features
-          features.forEach(feature => {
-            // Set active scenario id
-            feature.set("scenario_id", this.activeScenario);
-            //Clone geometry and change name to 'geom' (should be the same as geoserver layer geometry name)
-            feature.set("geom", feature.getGeometry().clone());
-            feature.setGeometryName("geom");
-            //Add an extra attribute to distinguish between local features from file upload and those that are laoded from the DB.
-            // feature.set("user_uploaded", true);
-            //Remove previously geometry object
-            feature.unset("geometry");
-          });
-
-          //Check if feature exist in the map
-          const featuresToAdd = [];
-          features.forEach(newFeature => {
-            const extent = newFeature.getGeometry().getExtent();
-            const featuresInExtent = this.olEditCtrl.source.getFeaturesInExtent(
-              extent
-            );
-            let isExistingFeature = false;
-            if (featuresInExtent.length > 0) {
-              featuresInExtent.forEach(existingFeature => {
-                if (
-                  checkFeaturesEquality(newFeature, existingFeature) === true
-                ) {
-                  isExistingFeature = true;
-                }
-              });
-            }
-            if (!isExistingFeature) {
-              featuresToAdd.push(newFeature);
-            }
-          });
-
-          if (featuresToAdd.length === 0 && features.length > 0) {
-            // All feature are already uploaded.
-            this.toggleSnackbar({
-              type: "error", //success or error
-              message: "featuresAlreadyUploaded",
-              state: true,
-              timeout: 4500
-            });
-            return;
-          }
-          //Add features to the edit layer to let the user interact
-          if (this.olEditCtrl.source) {
-            this.olEditCtrl.source.addFeatures(featuresToAdd);
-            this.map.getView().fit(this.olEditCtrl.source.getExtent());
-            this.fileInputFeaturesCache = [...featuresToAdd];
-          }
-          //5- Upload features to DB
-          this.uploadUserFeaturesToDB(featuresToAdd);
         };
         reader.onerror = () => {
           console.log(reader.error);
@@ -994,11 +961,6 @@ export default {
     clearFile() {
       const editLayerSource = this.olEditCtrl.source;
       if (!editLayerSource) return;
-      // editLayerSource.getFeatures().forEach(feature => {
-      //   if (feature.get("user_uploaded")) {
-      //     editLayerSource.removeFeature(feature);
-      //   }
-      // });
       this.fileInputFeaturesCache = [];
       this.fileInputValidationMessage = this.fileInputValidationMessageEnum.FILE_VALID_OR_NO_FILE;
       this.file = null;
@@ -1007,63 +969,107 @@ export default {
     /**
      * Upload user uploaded features to DB using a wfs-t
      */
-    uploadUserFeaturesToDB(features) {
-      const formatGML = {
-        featureNS: "cite",
-        featureType: `${this.layerName}_modified`,
-        srsName: "urn:x-ogc:def:crs:EPSG:4326"
-      };
-      const featuresToUpload = [];
-      features.forEach(feature => {
-        feature.set("original_id", null);
-        featuresToUpload.push(feature.clone());
-      });
-      //Features should be reprojected in 4326 again
-      featuresToUpload.forEach(feature => {
-        feature.getGeometry().transform("EPSG:3857", "EPSG:4326");
-      });
-      const payload = wfsTransactionParser(
-        featuresToUpload,
-        null,
-        null,
-        formatGML
-      );
+    importScenario(user_id, scenario_id, layerName, features) {
+      const payload = featuresToGeojson(features, "EPSG:3857", "EPSG:4326");
+      console.log(payload);
       http
         .post(
-          "geoserver/cite/wfs",
-          new XMLSerializer().serializeToString(payload),
+          "api/import_scenario",
           {
-            headers: { "Content-Type": "text/xml" }
+            user_id,
+            scenario_id,
+            layerName,
+            payload: JSON.parse(payload)
+          },
+          {
+            headers: { "Content-Type": "application/json" }
           }
         )
         .then(response => {
-          const result = readTransactionResponse(response.data);
-          const totalInserted = result.transactionSummary.totalInserted;
-          const total = this.fileInputFeaturesCache.length;
+          console.log(response);
+          if (response.data) {
+            //Add features to the edit layer to let the user interact
+            const features = geojsonToFeature(response.data, {
+              dataProjection: "EPSG:4326",
+              featureProjection: "EPSG:3857"
+            });
+            let areAllUploaded = 1;
+            //- Transform features
+            const visibleFeatures = [];
+            features.forEach(feature => {
+              if (layerName !== "pois") {
+                feature.set("status", null);
+              }
+              feature.set("scenario_id", this.activeScenario);
+              //Clone geometry and change name to 'geom' (should be the same as geoserver layer geometry name)
+              feature.set("geom", feature.getGeometry().clone());
+              feature.setGeometryName("geom");
+              //Add an extra attribute to distinguish between local features from file upload and those that are laoded from the DB.
+              // feature.set("user_uploaded", true);
+              //Remove previously geometry object
+              feature.unset("geometry");
 
-          this.fileInputFeaturesCache = [];
-          this.file = null;
-          if (totalInserted === total) {
-            this.fileInputValidationMessage = this.fileInputValidationMessageEnum.ALL_FEATURES_UPLOADED;
-          } else if (totalInserted > 0 && totalInserted < total) {
-            this.fileInputValidationMessage = this.fileInputValidationMessageEnum.NOT_ALL_UPLOADED;
+              if (feature.get("upload_status") !== "successful") {
+                areAllUploaded = 0;
+              }
+
+              // Manage delete features.
+              if (
+                feature.get("edit_type") !== "deleted" &&
+                feature.get("upload_status") === "successful"
+              ) {
+                visibleFeatures.push(feature);
+              }
+              if (
+                feature.get("edit_type") === "deleted" &&
+                feature.get("upload_status") === "successful"
+              ) {
+                if (
+                  layerName !== "buildings_entrances" &&
+                  feature.get("edit_type") === "deleted"
+                ) {
+                  // Push to deleted
+                  const fid =
+                    feature.getProperties().original_id ||
+                    feature.getProperties().id ||
+                    feature.getProperties().gid;
+                  if (fid) {
+                    editLayerHelper.featuresIDsToDelete.push(fid.toString());
+                  }
+                  editLayerHelper.deletedFeatures.push(feature);
+                }
+                if (!feature.getProperties().hasOwnProperty("original_id")) {
+                  feature.set("original_id", null);
+                }
+              }
+            });
+
+            if (areAllUploaded) {
+              this.fileInputValidationMessage = this.fileInputValidationMessageEnum.ALL_FEATURES_UPLOADED;
+            } else {
+              this.fileInputValidationMessage = this.fileInputValidationMessageEnum.NOT_ALL_UPLOADED;
+            }
+            if (layerName === "buildings_entrances") {
+              this.olEditCtrl.bldEntranceLayer
+                .getSource()
+                .addFeatures(visibleFeatures);
+              this.olEditCtrl.bldEntranceLayer.getSource().changed();
+              this.map
+                .getView()
+                .fit(this.olEditCtrl.bldEntranceLayer.getSource().getExtent());
+            } else {
+              this.olEditCtrl.source.addFeatures(visibleFeatures);
+              this.map.getView().fit(this.olEditCtrl.source.getExtent());
+              this.fileInputFeaturesCache = [...visibleFeatures];
+              this.olEditCtrl.source.changed();
+            }
           } else {
             this.fileInputValidationMessage = this.fileInputValidationMessageEnum.ERROR_HAPPENED;
           }
-          const FIDs = result.insertIds;
-          if (FIDs != undefined && FIDs[0] != "none") {
-            let i;
-            for (i = 0; i < FIDs.length; i++) {
-              if (features[i]) {
-                features[i].set("gid", FIDs[i].split(".")[1]);
-                features[i].setId(FIDs[i].split(".")[1]);
-              }
-            }
-          }
+
           setTimeout(() => {
             this.fileInputValidationMessage = this.fileInputValidationMessageEnum.FILE_VALID_OR_NO_FILE;
           }, 3000);
-          this.olEditCtrl.source.changed();
         });
     },
     /**
@@ -1321,10 +1327,14 @@ export default {
           coordinate,
           candidate => {
             if (
-              ((candidate.get("gid") || candidate.getId()) &&
+              ((candidate.get("gid") ||
+                candidate.get("id") ||
+                candidate.getId()) &&
                 this.tempBldEntranceFeature &&
                 this.tempBldEntranceFeature.get("building_gid") ===
                   candidate.get("gid")) ||
+              this.tempBldEntranceFeature.get("building_gid") ===
+                candidate.get("id") ||
               this.tempBldEntranceFeature.get("building_gid") ===
                 candidate.getId()
             ) {
@@ -1406,7 +1416,9 @@ export default {
         bldEntranceFeature = new Feature({
           geometry: new Point(bldEntranceCoordinate),
           building_gid:
-            buildingFeatureAtCoord.get("gid") || buildingFeatureAtCoord.getId(),
+            buildingFeatureAtCoord.get("gid") ||
+            buildingFeatureAtCoord.get("id") ||
+            buildingFeatureAtCoord.getId(),
           scenario_id: this.activeScenario
         });
         this.olEditCtrl.bldEntranceLayer
@@ -1632,9 +1644,6 @@ export default {
      */
     uploadFeatures() {
       //If there are file input feature commit those in db as well.
-      if (this.fileInputFeaturesCache.length > 0) {
-        this.uploadUserFeaturesToDB(this.fileInputFeaturesCache);
-      }
       this.isUploadBusy = true;
       this.olEditCtrl.uploadFeatures(state => {
         this.isUploadBusy = false;
@@ -1655,7 +1664,7 @@ export default {
       if (!fid) return;
       let feature;
 
-      if (item.type === "Deleted") {
+      if (item.type === "deleted") {
         feature = editLayerHelper.deletedFeatures.filter(
           f => f.getId() === fid
         );
@@ -1904,7 +1913,7 @@ export default {
           const layerName = f.get("layerName");
           const isDeleted = fid;
           const status = prop.status === 1 ? "Uploaded" : "NotUploaded";
-          const type = "Deleted";
+          const type = "deleted";
           let source = "";
           if (
             prop.hasOwnProperty("original_id") &&
@@ -1945,7 +1954,7 @@ export default {
             .getFeaturesInExtent(extent);
           let entrances = 0;
           entrancesInExtent.forEach(entrance => {
-            const buildingId = f.get("gid") || f.getId();
+            const buildingId = f.get("gid") || f.get("id") || f.getId();
             if (entrance.get("building_gid") === buildingId) {
               entrances += 1;
             }

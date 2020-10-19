@@ -530,7 +530,7 @@
         "serverType": "geoserver",
         "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
       },
-            {
+      {
         "type": "WMS",
         "name": "accidentsCyclists",
         "url": "/geoserver/wms",
@@ -645,7 +645,11 @@
         "serverType": "geoserver",
         "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
         "viewparamsDynamicKeys": ["scenario_id", "modus", "pois"],
-        "styles": {"default": "cite:style_heatmap", "scenario": "cite:style_heatmap", "comparison": "cite:style_heatmap_comparison"}
+        "styles": {
+          "default": "cite:style_heatmap",
+          "scenario": "cite:style_heatmap",
+          "comparison": "cite:style_heatmap_comparison"
+        }
       },
       {
         "type": "WMS",
@@ -674,7 +678,11 @@
         "zIndex": 1,
         "serverType": "geoserver",
         "viewparamsDynamicKeys": ["scenario_id", "modus", "pois"],
-        "styles": {"default": "cite:style_heatmap_luptai","scenario": "cite:style_heatmap_luptai", "comparison": "cite:style_heatmap_luptai_comparison"}
+        "styles": {
+          "default": "cite:style_heatmap_luptai",
+          "scenario": "cite:style_heatmap_luptai",
+          "comparison": "cite:style_heatmap_luptai_comparison"
+        }
       },
       {
         "type": "WMS",
