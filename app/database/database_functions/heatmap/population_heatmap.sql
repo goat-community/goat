@@ -1,9 +1,13 @@
-DROP FUNCTION IF EXISTS population_heatmap;
-CREATE OR REPLACE FUNCTION public.population_heatmap(scenario_id_input integer)
+CREATE OR REPLACE FUNCTION public.population_heatmap(scenario_id_input integer, modus_input text DEFAULT 'default')
 RETURNS TABLE(grid_id integer, population float, percentile_population integer, geom geometry)
 LANGUAGE plpgsql
 AS $function$
 BEGIN 
+	
+	IF modus_input = 'default' THEN 
+		scenario_id_input = 0;
+	END IF;
+	
 	RETURN query
 	WITH modified_population AS 
 	(
