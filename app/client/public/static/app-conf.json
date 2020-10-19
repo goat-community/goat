@@ -657,12 +657,16 @@
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
         "layers": "cite:heatmap_population",
-        "opacity": 0.4,
         "visible": false,
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "viewparamsDynamicKeys": ["scenario_id", "modus", "pois"]
+        "viewparamsDynamicKeys": ["scenario_id", "modus"],
+        "styles": {
+          "default": "cite:style_heatmap_population",
+          "scenario": "cite:style_heatmap_population",
+          "comparison": "cite:style_heatmap_population_comparison"
+        }
       },
       {
         "type": "WMS",
