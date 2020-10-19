@@ -164,7 +164,7 @@
         "New": "Neu",
         "Modified": "Geändert",
         "Restored": "restauriert",
-        "Deleted": "Gelöscht"
+        "deleted": "Gelöscht"
       },
       "status": {
         "Uploaded": "hochgeladen",

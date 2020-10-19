@@ -256,7 +256,8 @@ export function defaultStyle(feature, resolution) {
 
       let countEntrances = 0;
       entrancesInExtent.forEach(entrance => {
-        const buildingId = feature.get("gid") || feature.getId();
+        const buildingId =
+          feature.get("gid") || feature.get("id") || feature.getId();
         if (entrance.get("building_gid") === buildingId) {
           countEntrances += 1;
         }

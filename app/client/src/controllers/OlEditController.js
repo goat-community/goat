@@ -336,23 +336,25 @@ export default class OlEditController extends OlBaseController {
   /**
    * Delete the feature if user selects yes
    */
-  deleteFeature() {
+  deleteFeature(f) {
     const me = this;
-
+    const selectedFeature = f || me.selectedFeature;
     // If layers selected is building get also all building entrance features of the building and commit a delete request
     if (
       editLayerHelper.selectedLayer.get("name") === "buildings" &&
       this.bldEntranceLayer &&
-      this.selectedFeature
+      selectedFeature
     ) {
       const buildingId =
-        this.selectedFeature.get("gid") || this.selectedFeature.getId();
+        selectedFeature.get("gid") ||
+        selectedFeature.get("id") ||
+        selectedFeature.getId();
       const bldEntranceFeaturesToDelete = this.bldEntranceLayer
         .getSource()
         .getFeatures()
         .filter(
           f =>
-            this.selectedFeature
+            selectedFeature
               .getGeometry()
               .intersectsCoordinate(f.getGeometry().getCoordinates()) &&
             f.get("building_gid") === buildingId
@@ -366,7 +368,7 @@ export default class OlEditController extends OlBaseController {
     // if (me.selectedFeature.get("user_uploaded")) {
     //   me.source.removeFeature(me.selectedFeature);
     // } else {
-    editLayerHelper.deleteFeature(me.selectedFeature, me.source);
+    editLayerHelper.deleteFeature(selectedFeature, me.source);
 
     me.closePopup();
   }

@@ -140,7 +140,7 @@
         "New": "New",
         "Modified": "Modified",
         "Restored": "Restored",
-        "Deleted": "Deleted"
+        "deleted": "Deleted"
       },
       "status": {
         "Uploaded": "Uploaded",
