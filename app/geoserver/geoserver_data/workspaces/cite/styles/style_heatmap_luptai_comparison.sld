@@ -24,7 +24,8 @@
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
-              <se:SvgParameter name="fill">#e3e4ec</se:SvgParameter>
+              <se:SvgParameter name="fill">#d7191c</se:SvgParameter>
+              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
           </se:PolygonSymbolizer>
         </se:Rule>
@@ -47,7 +48,8 @@
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
-              <se:SvgParameter name="fill">#c7c9d8</se:SvgParameter>
+              <se:SvgParameter name="fill">#e56652</se:SvgParameter>
+              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
           </se:PolygonSymbolizer>
         </se:Rule>
@@ -70,7 +72,8 @@
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
-              <se:SvgParameter name="fill">#abadc5</se:SvgParameter>
+              <se:SvgParameter name="fill">#f2b389</se:SvgParameter>
+              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
           </se:PolygonSymbolizer>
         </se:Rule>
@@ -80,20 +83,15 @@
             <se:Title>0 - 0</se:Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:And>
-              <ogc:PropertyIsGreaterThan>
-                <ogc:PropertyName>population_accessibility</ogc:PropertyName>
-                <ogc:Literal>0</ogc:Literal>
-              </ogc:PropertyIsGreaterThan>
-              <ogc:PropertyIsLessThanOrEqualTo>
-                <ogc:PropertyName>population_accessibility</ogc:PropertyName>
-                <ogc:Literal>0</ogc:Literal>
-              </ogc:PropertyIsLessThanOrEqualTo>
-            </ogc:And>
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>population_accessibility</ogc:PropertyName>
+              <ogc:Literal>0</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
-              <se:SvgParameter name="fill">#8f92b1</se:SvgParameter>
+              <se:SvgParameter name="fill">#ffffbf</se:SvgParameter>
+              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
           </se:PolygonSymbolizer>
         </se:Rule>
@@ -117,6 +115,7 @@
           <se:PolygonSymbolizer>
             <se:Fill>
               <se:SvgParameter name="fill">#b3dc95</se:SvgParameter>
+              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
           </se:PolygonSymbolizer>
         </se:Rule>
@@ -140,6 +139,7 @@
           <se:PolygonSymbolizer>
             <se:Fill>
               <se:SvgParameter name="fill">#66b96b</se:SvgParameter>
+              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
           </se:PolygonSymbolizer>
         </se:Rule>
@@ -163,6 +163,7 @@
           <se:PolygonSymbolizer>
             <se:Fill>
               <se:SvgParameter name="fill">#1a9641</se:SvgParameter>
+              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
           </se:PolygonSymbolizer>
         </se:Rule>
