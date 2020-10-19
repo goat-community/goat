@@ -6,8 +6,17 @@ AS $function$
 DECLARE
 	borders_quintiles bigint[]; 
 BEGIN
-	IF amenities_json::TEXT <> '{}' AND modus_input = 'default' THEN  
+	IF amenities_json::TEXT = '{}' OR modus_input NOT IN ('default','scenario','comparison') THEN 
 		RETURN query 
+		SELECT 0,0, 0::bigint,g.geom 
+		FROM grid_heatmap g
+		LIMIT 0;
+		RETURN;
+	END IF; 
+
+	IF modus_input IN ('default','comparison') THEN   
+		DROP TABLE IF EXISTS grids_default; 
+		CREATE TEMP TABLE grids_default AS 
 		SELECT g.grid_id, COALESCE(h.percentile_accessibility,0) AS percentile_accessibility, h.accessibility_index, g.geom  
 		FROM grid_heatmap g
 		LEFT JOIN (
@@ -16,8 +25,9 @@ BEGIN
 			FROM heatmap_dynamic(amenities_json,'default',scenario_id_input) h
 		) h
 		ON g.grid_id = h.grid_id;	
+	END IF; 
 	
-	ELSEIF amenities_json::TEXT <> '{}' AND modus_input = 'scenario' THEN  
+	IF modus_input IN ('scenario','comparison') THEN  
 		SELECT array_agg(border)
 		INTO borders_quintiles
 		FROM 
@@ -33,9 +43,8 @@ BEGIN
 			ORDER BY x.percentile_accessibility
 		) b;
 	
-		RAISE NOTICE '%', borders_quintiles;
-	
-		RETURN query 
+		DROP TABLE IF EXISTS grids_scenario;
+		CREATE TEMP TABLE grids_scenario AS 
 		SELECT g.grid_id, 
 		CASE WHEN COALESCE(h.accessibility_index,0) = 0 THEN 0
 		WHEN COALESCE(h.accessibility_index,0) >= borders_quintiles[1] AND COALESCE(h.accessibility_index,0) < borders_quintiles[2] THEN 1
@@ -52,52 +61,31 @@ BEGIN
 		) h
 		ON g.grid_id = h.grid_id;	
 	
-	ELSEIF amenities_json::TEXT <> '{}' AND modus_input = 'comparison' THEN 
-		DROP TABLE IF EXISTS grids_default; 
-		CREATE TEMP TABLE grids_default AS 
-		SELECT * FROM 
-		heatmap_dynamic(amenities_json,'default',scenario_id_input);
+	END IF;
+	
+	IF modus_input = 'comparison' THEN 
+
 		ALTER TABLE grids_default ADD PRIMARY KEY(grid_id);
-		
-		DROP TABLE IF EXISTS grids_scenario;
-		CREATE TEMP TABLE grids_scenario AS 
-		SELECT * FROM 
-		heatmap_dynamic(amenities_json,'scenario',scenario_id_input);
 		ALTER TABLE grids_scenario ADD PRIMARY KEY(grid_id);
 		
 		DROP TABLE IF EXISTS grids_comparison;
 		CREATE TEMP TABLE grids_comparison AS 
-		SELECT d.grid_id, COALESCE(s.accessibility_index,0) - d.accessibility_index AS difference
-		FROM grids_default d
-		LEFT JOIN grids_scenario s
-		ON d.grid_id = s.grid_id
-		UNION ALL 
-		SELECT s.grid_id, s.accessibility_index AS difference
-		FROM grids_scenario s
-		LEFT JOIN grids_default d
-		ON d.grid_id = s.grid_id
-		WHERE d.grid_id IS NULL; 
-		ALTER TABLE grids_comparison ADD PRIMARY KEY(grid_id);	
+		SELECT d.grid_id, (s.percentile_accessibility - d.percentile_accessibility ) AS percentile_accessibility, 
+		COALESCE(s.accessibility_index - d.accessibility_index,0) AS accessibility_index, d.geom
+		FROM grids_default d, grids_scenario s 
+		WHERE d.grid_id = s.grid_id;
 	
-		RETURN query
-		SELECT g.grid_id, 
-		CASE WHEN h.accessibility_index < 0 AND h.accessibility_index IS NOT NULL 
-		THEN -h.percentile_accessibility 
-		WHEN h.accessibility_index > 0 AND h.accessibility_index IS NOT NULL 
-		THEN h.percentile_accessibility 
-		ELSE 0 END AS percentile_accessibility, h.accessibility_index, g.geom  
-		FROM grid_heatmap g
-		LEFT JOIN (
-			SELECT c.grid_id, ntile(3) over (order by abs(c.difference)) AS percentile_accessibility, c.difference AS accessibility_index
-			FROM grids_comparison c
-			WHERE difference <> 0
-		) h
-		ON g.grid_id = h.grid_id;			
-	ELSE 
+	END IF;
+	
+	IF modus_input = 'default' THEN 
 		RETURN query 
-		SELECT 0,0, 0::bigint,g.geom 
-		FROM grid_heatmap g
-		LIMIT 1;
+		SELECT * FROM grids_default;
+	ELSEIF modus_input = 'scenario' THEN 
+		RETURN query 
+		SELECT * FROM grids_scenario;
+	ELSEIF modus_input = 'comparison' THEN 
+		RETURN query 
+		SELECT * FROM grids_comparison;
 	END IF; 
 END
 $function$;
@@ -117,6 +105,4 @@ DROP TABLE IF EXISTS test_comparison;
 CREATE TABLE test_comparison AS 
 SELECT *
 FROM heatmap_geoserver('{"nursery":{"sensitivity":250000,"weight":1}}'::jsonb,'comparison',47) 
-
-
 */
