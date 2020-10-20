@@ -334,7 +334,7 @@ WHERE amenity = 'kindergarten'
 AND (tags -> 'max_age') = '3';
 --- Replicate nurseries to duplicate kindergartens and displace
 SELECT pois_rewrite('nursery','kindergarten','%kindergarten%');
-SELECT pois_displacement(ARRAY['nursery','kindergarten'], (5/(27*3600)::float8));
+SELECT pois_displacement(ARRAY['nursery','kindergarten'], (3/(27*3600)::float8));
 ------------------------------------------end kindergarten-------------------------------------------
 
 -- Reclassificate shops
