@@ -676,6 +676,7 @@ import { debounce } from "../../../utils/Helpers";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import { featuresToGeojson } from "../../../utils/MapUtils";
+import VectorSource from "ol/source/Vector";
 
 import { saveAs } from "file-saver";
 
@@ -861,7 +862,6 @@ export default {
           }
         )
         .then(response => {
-          console.log(response);
           this.isExportScenarioBusy = false;
           if (response.data) {
             saveAs(
@@ -971,7 +971,6 @@ export default {
      */
     importScenario(user_id, scenario_id, layerName, features) {
       const payload = featuresToGeojson(features, "EPSG:3857", "EPSG:4326");
-      console.log(payload);
       http
         .post(
           "api/import_scenario",
@@ -1013,6 +1012,10 @@ export default {
                 areAllUploaded = 0;
               }
 
+              if (feature.get("gid")) {
+                feature.setId(feature.get("gid"));
+              }
+
               // Manage delete features.
               if (
                 feature.get("edit_type") !== "deleted" &&
@@ -1049,17 +1052,18 @@ export default {
             } else {
               this.fileInputValidationMessage = this.fileInputValidationMessageEnum.NOT_ALL_UPLOADED;
             }
+            const tempSource = new VectorSource();
+            tempSource.addFeatures(visibleFeatures);
+            const featuresExtent = tempSource.getExtent();
             if (layerName === "buildings_entrances") {
               this.olEditCtrl.bldEntranceLayer
                 .getSource()
                 .addFeatures(visibleFeatures);
               this.olEditCtrl.bldEntranceLayer.getSource().changed();
-              this.map
-                .getView()
-                .fit(this.olEditCtrl.bldEntranceLayer.getSource().getExtent());
+              this.map.getView().fit(featuresExtent);
             } else {
               this.olEditCtrl.source.addFeatures(visibleFeatures);
-              this.map.getView().fit(this.olEditCtrl.source.getExtent());
+              this.map.getView().fit(featuresExtent);
               this.fileInputFeaturesCache = [...visibleFeatures];
               this.olEditCtrl.source.changed();
             }
