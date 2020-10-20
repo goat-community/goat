@@ -220,7 +220,7 @@
       "alphaShapeMode": "Level of detail isochrones",
       "defaultNetwork": "Default",
       "modifiedNetwork": "Scenario",
-      "modifiedNetworkDoubleCalc": "Comparision",
+      "modifiedNetworkDoubleCalc": "Comparison",
       "routingProfile": "Routing Profile",
       "walking_standard": "Standard",
       "walking_elderly": "Elderly",
