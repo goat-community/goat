@@ -5,6 +5,7 @@ import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
 import store from "../store/modules/map";
+import isochronesStore from "../store/modules/isochrones";
 import { getArea } from "ol/sphere.js";
 import i18n from "../../src/plugins/i18n";
 
@@ -255,10 +256,9 @@ export function defaultStyle(feature, resolution) {
 
       let countEntrances = 0;
       entrancesInExtent.forEach(entrance => {
-        const hasEntrance = feature
-          .getGeometry()
-          .intersectsCoordinate(entrance.getGeometry().getCoordinates());
-        if (hasEntrance === true) {
+        const buildingId =
+          feature.get("gid") || feature.get("id") || feature.getId();
+        if (entrance.get("building_gid") === buildingId) {
           countEntrances += 1;
         }
       });
@@ -392,6 +392,13 @@ export function waysNewBridgeStyle(feature) {
 }
 export function editStyleFn() {
   const styleFunction = (feature, resolution) => {
+    if (
+      feature.get("scenario_id") &&
+      isochronesStore.state.activeScenario &&
+      feature.get("scenario_id") !== isochronesStore.state.activeScenario
+    ) {
+      return [];
+    }
     const props = feature.getProperties();
     // Polygon (ex. building) style
     if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
@@ -461,6 +468,13 @@ export function studyAreaASelectStyle() {
 
 export function bldEntrancePointsStyle() {
   return (feature, resolution) => {
+    if (
+      feature.get("scenario_id") &&
+      isochronesStore.state.activeScenario &&
+      feature.get("scenario_id") !== isochronesStore.state.activeScenario
+    ) {
+      return [];
+    }
     let radius = 8;
     if (resolution > 4) {
       return [];

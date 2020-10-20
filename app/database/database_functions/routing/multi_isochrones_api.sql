@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS multi_isochrones_api;
-CREATE OR REPLACE FUNCTION public.multi_isochrones_api(userid_input integer, minutes integer, speed_input numeric, 
+CREATE OR REPLACE FUNCTION public.multi_isochrones_api(userid_input integer, scenario_id_input integer, minutes integer, speed_input numeric, 
 	n integer, routing_profile_input text, alphashape_parameter_input NUMERIC, modus_input text,region_type text, region text[], amenities text[])
 
 RETURNS SETOF type_pois_multi_isochrones
@@ -20,17 +20,16 @@ BEGIN
 		
     /*double calculation*/
 
-       
         /*default*/
         CREATE TEMP TABLE IF NOT EXISTS x OF type_pois_multi_isochrones;
         TRUNCATE x;
         INSERT INTO x 
-        SELECT * FROM pois_multi_isochrones(userid_input,minutes,speed_input,n,routing_profile_input,alphashape_parameter_input,3,region_type,region,amenities);
+        SELECT * FROM pois_multi_isochrones(userid_input,scenario_id_input,minutes,speed_input,n,routing_profile_input,alphashape_parameter_input,3,region_type,region,amenities);
        
         SELECT objectid INTO iso_parent_id FROM x;   
         /*scenario*/
         INSERT INTO x 
-        SELECT * FROM pois_multi_isochrones(userid_input,minutes,speed_input,n,routing_profile_input,alphashape_parameter_input,4,region_type,region,amenities);
+        SELECT * FROM pois_multi_isochrones(userid_input,scenario_id_input,minutes,speed_input,n,routing_profile_input,alphashape_parameter_input,4,region_type,region,amenities);
        
         SELECT gid INTO iso_gid FROM x WHERE x.modus = 4;    
         UPDATE x SET parent_id = iso_parent_id WHERE x.modus = 4;
@@ -49,16 +48,14 @@ BEGIN
         END IF; 
         /*default or scenario*/
         RETURN query 
-        SELECT * FROM pois_multi_isochrones(userid_input,minutes,speed_input,n,routing_profile_input,alphashape_parameter_input,modus,region_type,region,amenities);
+        SELECT * FROM pois_multi_isochrones(userid_input,scenario_id_input,minutes,speed_input,n,routing_profile_input,alphashape_parameter_input,modus,region_type,region,amenities);
 	
   END IF;
 
 END;
 $function$ LANGUAGE plpgsql;
 
-
-
 /*
 SELECT *
-FROM multi_isochrones_api(1,15,5.0,3,'walking_wheelchair',0.00003,'scenario','study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) ;
+FROM multi_isochrones_api(1,NULL,15,5.0,3,'walking_wheelchair',0.00003,'scenario','study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) ;
 */

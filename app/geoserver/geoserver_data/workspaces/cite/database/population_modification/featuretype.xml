@@ -30,11 +30,11 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>population_modification</name>
-        <sql>SELECT * FROM population_modification(%userid%)
+        <sql>SELECT * FROM population_modification(%scenario_id%)
 </sql>
         <escapeSql>false</escapeSql>
         <parameter>
-          <name>userid</name>
+          <name>scenario_id</name>
           <defaultValue>1</defaultValue>
           <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>

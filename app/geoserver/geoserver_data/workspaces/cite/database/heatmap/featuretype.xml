@@ -41,21 +41,26 @@
       <virtualTable>
         <name>heatmap</name>
         <sql>SELECT * &#xd;
-FROM heatmap_geoserver(convert_from(decode(%amenities%,&apos;base64&apos;), &apos;UTF-8&apos;)::jsonb,2,%userid%,1)
+FROM heatmap_geoserver(convert_from(decode(%amenities%,&apos;base64&apos;), &apos;UTF-8&apos;)::jsonb,%modus%,%scenario_id%)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
           <name>geom</name>
           <type>Geometry</type>
-          <srid>-1</srid>
+          <srid>4326</srid>
         </geometry>
         <parameter>
           <name>amenities</name>
           <defaultValue>&apos;W3siJ2J1c19zdG9wJyI6Mn0seyIndHJhbV9zdG9wJyI6M31d&apos;</defaultValue>
         </parameter>
         <parameter>
-          <name>userid</name>
-          <defaultValue>1</defaultValue>
+          <name>modus</name>
+          <defaultValue>&apos;default&apos;</defaultValue>
+        </parameter>
+        <parameter>
+          <name>scenario_id</name>
+          <defaultValue>0</defaultValue>
+          <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
       </virtualTable>
     </entry>

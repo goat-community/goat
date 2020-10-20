@@ -13,7 +13,7 @@ import axios from "axios";
 import { getSelectStyle } from "../style/OlStyleDefs";
 import { wfsRequestParser } from "../utils/Layer";
 
-import store from "../store/modules/user";
+import store from "../store/modules/isochrones";
 import OlBaseController from "./OlBaseController";
 import i18n from "../../src/plugins/i18n";
 
@@ -119,8 +119,8 @@ export default class OlSelectController extends OlBaseController {
           ];
 
           const filterUserInputTable = equalToFilter(
-            "userid",
-            store.state.userId
+            "scenario_id",
+            store.state.activeScenario
           );
           const combinedFilter = andFilter(
             filterUserInputTable,

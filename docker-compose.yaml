@@ -41,7 +41,7 @@ services:
       - "traefik.backend=client"
       - "traefik.frontend.entryPoints=https,http"
       - "traefik.frontend.rule=Host:localhost;"
-      - "traefik.port=5000"
+      - "traefik.port=80"
       - "traefik.enable=true"
     networks:
       proxy:
@@ -66,7 +66,7 @@ services:
       proxy:
 
   geoserver:
-    image: goatcommunity/geoserver:latest
+    image: goatcommunity/geoserver-base:2.17.2
     volumes:
       - ./app/geoserver/geoserver_data:/var/local/geoserver
       - ./app/geoserver/additional_libs:/var/local/geoserver-exts

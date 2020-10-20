@@ -8,6 +8,7 @@ ALTER TABLE buildings ADD COLUMN IF NOT EXISTS roof_levels integer;
 ALTER TABLE buildings ADD COLUMN IF NOT EXISTS building_levels_residential integer;
 ALTER TABLE buildings ADD COLUMN IF NOT EXISTS area numeric;
 ALTER TABLE buildings ADD COLUMN IF NOT EXISTS residential_status text;
+ALTER TABLE buildings ADD COLUMN IF NOT EXISTS building text;
 
 
 UPDATE buildings 

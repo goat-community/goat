@@ -5,6 +5,14 @@
   <defaultStyle>
     <id>StyleInfoImpl-22fef441:16876478b09:-4a7a</id>
   </defaultStyle>
+  <styles class="linked-hash-set">
+    <style>
+      <id>StyleInfoImpl-73e7849c:175414ace86:-6cec</id>
+    </style>
+    <style>
+      <id>StyleInfoImpl-22fef441:16876478b09:-4a7a</id>
+    </style>
+  </styles>
   <resource class="featureType">
     <id>FeatureTypeInfoImpl--3ff85cb2:172f0b762c2:-7fff</id>
   </resource>
@@ -12,4 +20,5 @@
     <logoWidth>0</logoWidth>
     <logoHeight>0</logoHeight>
   </attribution>
+  <dateModified>2020-10-19 19:45:05.836 UTC</dateModified>
 </layer>

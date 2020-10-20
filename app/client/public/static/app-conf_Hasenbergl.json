@@ -970,7 +970,14 @@
         }
       },
       "enableFileUpload": false,
-      "hiddenProps": ["userid", "id", "original_id", "status", "class_id"]
+      "hiddenProps": [
+        "userid",
+        "id",
+        "original_id",
+        "status",
+        "class_id",
+        "scenario_id"
+      ]
     },
     "pois": {
       "listValues": {
@@ -985,7 +992,8 @@
         "original_id",
         "status",
         "wheelchair",
-        "opening_hours"
+        "opening_hours",
+        "scenario_id"
       ]
     }
   }

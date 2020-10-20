@@ -22,10 +22,13 @@ import { fromLonLat } from "ol/proj";
 import OlFeature from "ol/Feature";
 import MVT from "ol/format/MVT";
 import { unByKey } from "ol/Observable";
+import { toLonLat } from "ol/proj";
+import axios from "axios";
 
 //Style and map object import
 import { mapillaryStyleDefs } from "../../../style/OlStyleDefs";
 import { Mapable } from "../../../mixins/Mapable";
+import { mapFields } from "vuex-map-fields";
 
 // Image preview component import (enabled on hover)
 import MapillaryImagePreview from "./controls/MapillaryImagePreview";
@@ -43,20 +46,10 @@ export default {
       required: false,
       default: "V1Qtd0JKNGhhb1J1cktMbmhFSi1iQTo5ODMxOWU3NmZlMjEyYTA3"
     },
-    startImageKey: {
-      type: String,
-      required: false,
-      default: "rrKZdmgdvup_KYJKTESq0Q"
-    },
     organization_key: {
       type: String,
       required: false,
       default: "RmTboeISWnkEaYaSdtVRHp"
-    },
-    startSequenceKey: {
-      type: String,
-      required: false,
-      default: "k09tczrhxcsphcmlbo0dt2"
     },
     baseLayerExtent: {
       type: Array,
@@ -68,6 +61,10 @@ export default {
       // Keys
       baseOverlayUrl:
         "https://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt",
+      // Image api
+      mapillaryImgAPI: "https://a.mapillary.com/v3/images",
+      startImageKey: "rrKZdmgdvup_KYJKTESq0Q",
+      startSequenceKey: "k09tczrhxcsphcmlbo0dt2",
       // Preview Image url
       previewImageUrl: "",
       // Mapillary viewer
@@ -88,25 +85,49 @@ export default {
   },
   mixins: [Mapable],
   mounted() {
-    this.mapillary = new Viewer(
-      "mapillary-container",
-      this.clientId,
-      this.startImageKey,
-      {
-        component: { cover: false }
-      }
-    );
+    const coordinates = toLonLat(this.map.getView().getCenter());
+    axios
+      .get(this.mapillaryImgAPI, {
+        params: {
+          client_id: this.clientId,
+          closeto: [coordinates[0], coordinates[1]].toString(),
+          radius: 2500
+        }
+      })
+      .then(response => {
+        this.isMapillaryBtnDisabled = false;
 
-    window.addEventListener("resize", this.resize());
-    this.createFeatureOverlay();
-    this.createImagePreviewOverlay();
-    this.createMovePointLayer();
-    this.createBaseOverlayLayer();
-    this.createHoverHighlightLayer();
-    this.addInteractions();
-    this.mapClickListenerKey = this.map.on("click", this.onClick);
-    this.mapillary.on(Viewer.nodechanged, this.mapillaryChanged);
-    mapillaryStyleDefs.activeSequence = this.startSequenceKey;
+        if (response.data) {
+          this.isMapillaryBtnDisabled = false;
+          const closestFeature = response.data.features[0];
+          this.startImageKey = closestFeature.properties.key;
+          this.startSequenceKey = closestFeature.properties.sequence_key;
+          this.mapillary = new Viewer(
+            "mapillary-container",
+            this.clientId,
+            this.startImageKey,
+            {
+              component: { cover: false }
+            }
+          );
+          window.addEventListener("resize", this.resize());
+          this.createFeatureOverlay();
+          this.createImagePreviewOverlay();
+          this.createMovePointLayer();
+          this.createBaseOverlayLayer();
+          this.createHoverHighlightLayer();
+          this.addInteractions();
+          this.mapClickListenerKey = this.map.on("click", this.onClick);
+          this.mapillary.on(Viewer.nodechanged, this.mapillaryChanged);
+          mapillaryStyleDefs.activeSequence = this.startSequenceKey;
+          setTimeout(() => {
+            this.resize();
+          }, 500);
+        }
+      })
+      .catch(() => {
+        this.isMapillaryBtnDisabled = false;
+      });
   },
   methods: {
     /**
@@ -313,6 +334,12 @@ export default {
     resize() {
       this.mapillary.resize();
     }
+  },
+  computed: {
+    ...mapFields("map", {
+      isMapillaryBtnDisabled: "isMapillaryBtnDisabled",
+      isMapillaryButtonActive: "isMapillaryButtonActive"
+    })
   },
   destroyed() {
     unByKey(this.mapClickListenerKey);

@@ -80,6 +80,7 @@ export default {
       if (layerUrl.startsWith("/")) {
         layerUrl = window.location.origin + layerUrl;
       }
+      const style = item.getSource().getParams().STYLES;
       const legedUrl = getWMSLegendURL(
         layerUrl,
         layerName,
@@ -92,7 +93,8 @@ export default {
         undefined,
         undefined,
         undefined,
-        this.$i18n.locale
+        this.$i18n.locale,
+        style
       );
       return legedUrl;
     }

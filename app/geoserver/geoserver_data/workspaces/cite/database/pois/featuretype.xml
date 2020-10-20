@@ -50,7 +50,7 @@
 	FROM convert_from(decode(%amenities%,&apos;base64&apos;),&apos;UTF-8&apos;) AS amenity&#xd;
 )&#xd;
 SELECT *,concat(amenity,&apos;_&apos;,status) AS amenity_icon&#xd;
-FROM pois_visualization(%userid%,(SELECT amenity FROM am), %routing_profile%, %d%,%h%,%m%)
+FROM pois_visualization(%scenario_id%,(SELECT amenity FROM am), %routing_profile%,%modus%,%d%,%h%,%m%)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
@@ -63,6 +63,14 @@ FROM pois_visualization(%userid%,(SELECT amenity FROM am), %routing_profile%, %d
           <defaultValue>&apos;cmVzdGF1cmFudCxzdXBlcm1hcmtldA==&apos;</defaultValue>
         </parameter>
         <parameter>
+          <name>modus</name>
+          <defaultValue>&apos;default&apos;</defaultValue>
+        </parameter>
+        <parameter>
+          <name>routing_profile</name>
+          <defaultValue>&apos;walking_standard&apos;</defaultValue>
+        </parameter>
+        <parameter>
           <name>d</name>
           <defaultValue>9999</defaultValue>
           <regexpValidator>^[\w\d\s]+$</regexpValidator>
@@ -73,18 +81,14 @@ FROM pois_visualization(%userid%,(SELECT amenity FROM am), %routing_profile%, %d
           <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
         <parameter>
-          <name>userid</name>
-          <defaultValue>1</defaultValue>
-          <regexpValidator>^[\w\d\s]+$</regexpValidator>
-        </parameter>
-        <parameter>
           <name>m</name>
           <defaultValue>9999</defaultValue>
           <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
         <parameter>
-          <name>routing_profile</name>
-          <defaultValue>&apos;walking_standard&apos;</defaultValue>
+          <name>scenario_id</name>
+          <defaultValue>0</defaultValue>
+          <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
       </virtualTable>
     </entry>
