@@ -88,7 +88,7 @@
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
-              <se:SvgParameter name="fill">#9a9db9</se:SvgParameter>
+              <se:SvgParameter name="fill">#ef956e</se:SvgParameter>
               <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
           </se:PolygonSymbolizer>
@@ -110,7 +110,7 @@
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
-              <se:SvgParameter name="fill">#cdcedc</se:SvgParameter>
+              <se:SvgParameter name="fill">#f7bf89</se:SvgParameter>
               <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
           </se:PolygonSymbolizer>
