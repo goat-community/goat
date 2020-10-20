@@ -1,4 +1,3 @@
-
 DROP TABLE IF EXISTS buildings;
 DROP TABLE IF EXISTS buildings_pop;
 DROP TABLE IF EXISTS osm_area_no_residents;
@@ -66,6 +65,25 @@ DO $$
 			AND l.landuse IN(SELECT UNNEST(select_from_variable_container('custom_landuse_no_residents')))
 			AND NOT lower(name) ~~ ANY (SELECT UNNEST(select_from_variable_container('custom_landuse_with_residents_name')));
 		
+			WITH aois_buildings AS 
+			(
+				SELECT b.gid, b.geom 
+				FROM buildings b, aois a
+				WHERE ST_Intersects(b.geom, a.geom)
+				AND b.residential_status = 'with_residents'
+				AND a.amenity IN (SELECT UNNEST(select_from_variable_container('aois_no_residents')))
+			),
+			no_residents AS 
+			(
+				SELECT b.gid
+				FROM aois_buildings b, landuse l 
+				WHERE ST_Intersects(b.geom, l.geom) 
+				AND l.landuse IN (SELECT UNNEST(select_from_variable_container('custom_landuse_no_residents'))) 
+			)
+			UPDATE buildings b SET residential_status = 'no_residents'
+			FROM no_residents n
+			WHERE b.gid = n.gid; 
+
         END IF ;
     END
 $$ ;
