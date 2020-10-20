@@ -6,9 +6,13 @@
       <se:Name>census</se:Name>
       <se:FeatureTypeStyle>
         <se:Rule>
-          <se:Name>-5 - -3</se:Name>
+          <se:Name>Significantly less balanced</se:Name>
           <se:Description>
-            <se:Title>-5 - -3</se:Title>
+            <Title>
+            Significantly less balanced
+            <Localized lang="de">Deutlich weniger ausgeglichen</Localized>
+            <Localized lang="en">Significantly less balanced</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:And>
@@ -30,9 +34,13 @@
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>-3 - -2</se:Name>
+          <se:Name>Less balanced</se:Name>
           <se:Description>
-            <se:Title>-3 - -2</se:Title>
+            <Title>
+            Less balanced
+            <Localized lang="de">Weniger ausgeglichen</Localized>
+            <Localized lang="en">Less balanced</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:And>
@@ -54,9 +62,13 @@
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>-2 - 0</se:Name>
+          <se:Name>Little less balanced</se:Name>
           <se:Description>
-            <se:Title>-2 - 0</se:Title>
+            <Title>
+            Little less balanced
+            <Localized lang="de">Etwas weniger ausgeglichen</Localized>
+            <Localized lang="en">Little less balanced</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:And>
@@ -78,9 +90,13 @@
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>0 - 0</se:Name>
+          <se:Name>No or marginal change</se:Name>
           <se:Description>
-            <se:Title>0 - 0</se:Title>
+            <Title>
+            No or marginal change
+            <Localized lang="de">Keine oder vernachlässigbare Änderung</Localized>
+            <Localized lang="en">No or marginal change</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
@@ -96,9 +112,13 @@
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>0 - 2</se:Name>
+          <se:Name>Little more balanced</se:Name>
           <se:Description>
-            <se:Title>0 - 2</se:Title>
+            <Title>
+            Little more balanced
+            <Localized lang="de">Etwas stärker ausgeglichen</Localized>
+            <Localized lang="en">Little more balanced</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:And>
@@ -120,9 +140,13 @@
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>2 - 3</se:Name>
+          <se:Name>More balanced</se:Name>
           <se:Description>
-            <se:Title>2 - 3</se:Title>
+            <Title>
+            More balanced
+            <Localized lang="de">Stärker ausgeglichen</Localized>
+            <Localized lang="en">More balanced</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:And>
@@ -144,9 +168,13 @@
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>3 - 5</se:Name>
+          <se:Name>Significantly more balanced</se:Name>
           <se:Description>
-            <se:Title>3 - 5</se:Title>
+            <Title>
+            Significantly more balanced
+            <Localized lang="de">Deutlich stärker ausgeglichen</Localized>
+            <Localized lang="en">Significantly more balanced</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:And>
