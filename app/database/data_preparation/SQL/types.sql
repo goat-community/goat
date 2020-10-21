@@ -98,6 +98,7 @@ CREATE TYPE type_pois_multi_isochrones AS
 	objectid integer,
 	coordinates NUMERIC[][],
 	userid integer,
+	scenario_id integer,
 	step integer, 
 	routing_profile text,
 	speed NUMERIC, 

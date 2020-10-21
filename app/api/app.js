@@ -198,11 +198,10 @@ app.post("/api/pois_multi_isochrones", jsonParser, (request, response) => {
     "amenities",
   ];
   let queryValues = [];
-
   requiredParams.forEach((key) => {
     let value = request.body[key];
     console.log(value);
-    if (!value) {
+    if (!request.body.hasOwnProperty(key)) {
       response.send("An error happened");
       return;
     }
