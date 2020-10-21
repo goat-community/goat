@@ -13,9 +13,16 @@ ALTER TABLE ways alter column source type int4;
 
 ALTER TABLE ways 
 ADD COLUMN bicycle text, ADD COLUMN foot TEXT; 
+
 UPDATE ways 
-SET foot = p.foot, bicycle = p.bicycle
-from planet_osm_line p
+SET foot = p.foot
+FROM planet_osm_line p
+WHERE ways.osm_id = p.osm_id
+AND p.highway NOT IN('bridleway','cycleway','footway');
+
+UPDATE ways 
+SET bicycle = p.bicycle
+FROM planet_osm_line p
 WHERE ways.osm_id = p.osm_id;
 
 --	ADD COLUMN crossing TEXT, ADD COLUMN one_link_crossing boolean;
