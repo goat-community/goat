@@ -144,31 +144,17 @@ const editLayerHelper = {
       });
   },
 
-  uploadFeatures(userId, source, onUploadCb) {
-    const translationFunctions = {
-      buildings: "population_modification",
-      ways: "network_modification"
-    };
-    const layerName = this.selectedLayer
-      .getSource()
-      .getParams()
-      .LAYERS.split(":")[1];
+  uploadFeatures(source, onUploadCb) {
     http
-      .get("./geoserver/wfs", {
-        params: {
-          service: "WFS",
-          version: " 1.1.0",
-          request: "GetFeature",
-          viewparams: `scenario_id:${store.state.activeScenario}`,
-          typeNames: `cite:${translationFunctions[layerName]}`
-        }
+      .post("./api/upload_all_scenarios", {
+        scenario_id: parseInt(store.state.activeScenario)
       })
       .then(function(response) {
-        if (response.status === 200) {
+        if (response.status === 200 && response.data === "success") {
           //Set status of delete features as well
           editLayerHelper.deletedFeatures = editLayerHelper.deletedFeatures.filter(
             feature => {
-              if (feature.get("layerName") !== layerName) {
+              if (feature.get("scenario_id") !== store.state.activeScenario) {
                 return false;
               }
               feature.setProperties({
@@ -186,11 +172,13 @@ const editLayerHelper = {
           const bldFeatureIds = [];
           //Update Feature Line type
           source.getFeatures().forEach(feature => {
+            console.log(feature.get("scenario_id"), store.state.activeScenario);
+
+            if (feature.get("scenario_id") !== store.state.activeScenario) {
+              return;
+            }
             if (feature.get("layerName") === "buildings") {
               bldFeatureIds.push(feature.getId());
-            }
-            if (feature.get("layerName") !== layerName) {
-              return;
             }
             const prop = feature.getProperties();
             if (

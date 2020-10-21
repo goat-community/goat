@@ -11,7 +11,15 @@
         <v-toolbar-title>Create scenario</v-toolbar-title>
       </v-app-bar>
       <v-card-text class="mt-5">
-        <v-form v-model="valid" lazy-validation>
+        <v-form
+          v-model="valid"
+          @keyup.native.enter="
+            createScenario();
+            show = false;
+          "
+          @submit.prevent="show = false"
+          lazy-validation
+        >
           <v-text-field
             :rules="[rules.required, rules.counter]"
             v-model="scenarioName"
