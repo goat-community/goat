@@ -369,6 +369,7 @@
       "footpathWidth": "Fußwegbreite",
       "illuminance": "Beleuchtung",
       "lanes": "Anzahl der Fahrspuren",
+      "modeshare": "Modal Split",
       "noiseAircraftLDEN": "Fluglärm - Pegelraster LDEN",
       "noiseAircraftLNight": "Fluglärm - Pegelraster LNight",
       "noiseProtectionBauleitplanung": "Lärmschutzbereich zur Lenkung der Bauleitplanung",

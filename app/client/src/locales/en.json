@@ -363,6 +363,7 @@
       "footpathWidth": "Footpath Width",
       "illuminance": "Illuminance",
       "lanes": "Lanes",
+      "modeshare": "Mode share",
       "noiseAircraftLDEN": "Aircraft noise - Level LDEN",
       "noiseAircraftLNight": "Aircraft noise - Level LNight",
       "noiseProtectionBauleitplanung": "Noise protection area for urban land use planning",
