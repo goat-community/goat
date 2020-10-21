@@ -80,11 +80,7 @@ def list_files(space_name,region_name, dir):
             date, time = str(file['LastModified']).split(" ")
             print("     Last Modified: ")
             print("             Date: " + date)
-            # later make function that determines from 2018-09-29 09:00:17.235000+00:00
-            # to detect date, time, and timezone - GMT, etc.
-            # time, date - done already
-            timeh, useless = time.split(".")
-            print("             Time: " + timeh)
+
             fnames.append(file['Key'])
         return fnames
 
