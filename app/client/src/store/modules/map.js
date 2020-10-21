@@ -21,7 +21,8 @@ const state = {
   reqFields: null,
   bldEntranceLayer: null,
   editLayer: null,
-  selectedEditLayer: null
+  selectedEditLayer: null,
+  isMapillaryBtnDisabled: false
 };
 
 const getters = {
@@ -37,6 +38,7 @@ const getters = {
   bldEntranceLayer: state => state.bldEntranceLayer,
   editLayer: state => state.editLayer,
   selectedEditLayer: state => state.selectedEditLayer,
+  isMapillaryBtnDisabled: state => state.isMapillaryBtnDisabled,
   getField
 };
 

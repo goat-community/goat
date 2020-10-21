@@ -9,10 +9,10 @@
   </mimeFormats>
   <gridSubsets>
     <gridSubset>
-      <gridSetName>EPSG:900913</gridSetName>
+      <gridSetName>EPSG:4326</gridSetName>
     </gridSubset>
     <gridSubset>
-      <gridSetName>EPSG:4326</gridSetName>
+      <gridSetName>EPSG:900913</gridSetName>
     </gridSubset>
   </gridSubsets>
   <metaWidthHeight>
@@ -25,7 +25,10 @@
     <styleParameterFilter>
       <key>STYLES</key>
       <defaultValue></defaultValue>
-      <availableStyles class="sorted-set"/>
+      <availableStyles class="sorted-set">
+        <string>cite:style_heatmap_population</string>
+        <string>cite:style_heatmap_population_comparison</string>
+      </availableStyles>
       <defaultStyle>cite:style_heatmap_population</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>

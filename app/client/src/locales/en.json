@@ -140,7 +140,7 @@
         "New": "New",
         "Modified": "Modified",
         "Restored": "Restored",
-        "Deleted": "Deleted"
+        "deleted": "Deleted"
       },
       "status": {
         "Uploaded": "Uploaded",
@@ -216,11 +216,11 @@
       "time": "min",
       "nr": "Isochrones",
       "calcType": "Level of detail isochrones",
-      "calcModus": "Calculation Modes",
+      "calcModus": "Calculation Mode",
       "alphaShapeMode": "Level of detail isochrones",
-      "defaultNetwork": "Default Network",
-      "modifiedNetwork": "Modified Network",
-      "modifiedNetworkDoubleCalc": "Modified Network (Double Calculation)",
+      "defaultNetwork": "Default",
+      "modifiedNetwork": "Scenario",
+      "modifiedNetworkDoubleCalc": "Comparison",
       "routingProfile": "Routing Profile",
       "walking_standard": "Standard",
       "walking_elderly": "Elderly",
@@ -320,7 +320,8 @@
       "allScenarioFeaturesDelete": "All Scenario Data is deleted",
       "noScenarioFeatureChangeAvailable": "Please do network or land-use change first",
       "cantPrintBaseLayer": "This baselayer can't be printed",
-      "featuresAlreadyUploaded": "Features already exists"
+      "featuresAlreadyUploaded": "Features already exists",
+      "cantExportScenario": "An error happened. Scenario can't be exported!"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
@@ -333,13 +334,17 @@
       "accessbilityBasemaps": "Accessibility",
       "backgroundLayers": "Background Layers",
       "buildings": "Buildings",
-      "mobility_patterns":"Mobility Patterns"
+      "mobility_patterns": "Mobility Patterns"
     },
     "layerName": {
       "pois": "Point of Interest",
+      "aois_small":"Areas of Interest (detailed)",
+      "aois_large":"Areas of Interest ",
       "administrativeUnits": "Administrative Units",
+      "accidentsPedestrians": "Accidents with pedestrians",
       "accidents_pedestrian_2018": "Accidents with pedestrians (2018)",
       "accidents_pedestrian_2017": "Accidents with pedestrians (2017)",
+      "accidentsCyclists": "Accidents with cyclists",
       "accidents_bike_2018": "Accidents with cyclists (2018)",
       "accidents_bike_2017": "Accidents with cyclists (2017)",
       "bicycle_counting_stations": "Bike Counting (2019)",
@@ -358,6 +363,7 @@
       "footpathWidth": "Footpath Width",
       "illuminance": "Illuminance",
       "lanes": "Lanes",
+      "modeshare": "Mode share",
       "noiseAircraftLDEN": "Aircraft noise - Level LDEN",
       "noiseAircraftLNight": "Aircraft noise - Level LNight",
       "noiseProtectionBauleitplanung": "Noise protection area for urban land use planning",
@@ -369,6 +375,7 @@
       "streetCrossings": "Street Crossings",
       "streetFurniture": "Street Furniture",
       "streetFurnitureBicycles": "Bicycle Ranks",
+      "cyclewayQuality_munichways": "Cycleway Quality (Munichways)",
       "surface": "Surface",
       "wheelchairUsability": "Wheelchair Usability",
       "areaIsochrone": "Area Isochrone",
@@ -384,16 +391,16 @@
       "mapboxStreets": "Mapbox",
       "publicTransport": "Public Transport",
       "bingAerial": "Bing Aerial",
-      "walking_trip_rate":"Walking trips per person",
-      "walkingShare":"Share of walking trips",
-      "cyclingShare":"Share of cycling trips",
-      "bicycle_rate":"Bicycle ownership",
-      "motorization_rate":"Motorized vehicles ownership",
-      "population_strata":"Population per strata",
-      "transmilenioShare":"Share of Transmilenio trips",
-      "sitpShare":"Share of SITP trips",
-      "cycling_trips_rate":"Cycling trips per person",
-      "pt_trips_rate":"Public transport trips per person",
+      "walking_trip_rate": "Walking trips per person",
+      "walkingShare": "Share of walking trips",
+      "cyclingShare": "Share of cycling trips",
+      "bicycle_rate": "Bicycle ownership",
+      "motorization_rate": "Motorized vehicles ownership",
+      "population_strata": "Population per strata",
+      "transmilenioShare": "Share of Transmilenio trips",
+      "sitpShare": "Share of SITP trips",
+      "cycling_trips_rate": "Cycling trips per person",
+      "pt_trips_rate": "Public transport trips per person",
       "strata": "Strata"
     },
     "tooltips": {
@@ -733,10 +740,10 @@
         "population": "Number residents (optional)",
         "gross_floor_area": "Gross Floor Area (optional)",
         "labels": {
-            "area": "Area",
-            "building_levels": "Building levels",
-            "gross_floor_area":"Gross Floor Area",
-            "population": "Population"
+          "area": "Area",
+          "building_levels": "Building levels",
+          "gross_floor_area": "Gross Floor Area",
+          "population": "Population"
         }
       }
     },

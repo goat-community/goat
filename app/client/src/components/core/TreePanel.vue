@@ -44,7 +44,7 @@
             <v-icon color="white">fas fa-chevron-left</v-icon>
           </v-btn>
         </v-app-bar>
-        <routing-toolbar v-show="!osmMode"></routing-toolbar>
+        <toolbar v-show="!osmMode"></toolbar>
         <vue-scroll v-show="!osmMode" ref="vs">
           <v-layout
             v-show="!osmMode"
@@ -94,19 +94,21 @@
 
 <script>
 // Utilities
-import Isochrones from "../isochrones/Isochrones";
+import IsochronesComponent from "../isochrones/Isochrones";
 import LayerTree from "../layers/layerTree/LayerTree";
-import RoutingToolbar from "./RoutingToolbar";
+import Toolbar from "./Toolbar";
 import OsmMode from "./OsmMode";
-import { mapGetters } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
+import { Isochrones } from "../../mixins/Isochrones";
 
 export default {
   components: {
-    "map-isochrones": Isochrones,
+    "map-isochrones": IsochronesComponent,
     "map-layertree": LayerTree,
-    "routing-toolbar": RoutingToolbar,
+    toolbar: Toolbar,
     "osm-mode": OsmMode
   },
+  mixins: [Isochrones],
   name: "tree-panel",
   data: () => ({
     activeComponent: "map-isochrones",
@@ -133,7 +135,11 @@ export default {
   },
   mounted() {},
   beforeDestroy() {},
-  methods: {},
+  methods: {
+    ...mapMutations("isochrones", {
+      init: "INIT"
+    })
+  },
   watch: {
     selectedThematicData(calculation) {
       if (calculation) {
@@ -150,6 +156,9 @@ export default {
         }, 100);
       }
     }
+  },
+  created() {
+    this.init(this.$appConfig.componentData.isochrones);
   }
 };
 </script>

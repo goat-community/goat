@@ -200,7 +200,7 @@
       "time": "min",
       "nr": "Isochrones",
       "calcType": "Level of detail isochrones",
-      "calcModus": "Calculation Modes",
+      "calcModus": "Calculation Mode",
       "alphaShapeMode": "Level of detail isochrones",
       "defaultNetwork": "Default Network",
       "modifiedNetwork": "Modified Network",

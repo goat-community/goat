@@ -12,6 +12,7 @@ DROP TYPE IF EXISTS type_isochrone CASCADE;
 CREATE TYPE public.type_isochrone AS
 (
 	userid integer,
+	scenario_id integer,
 	id integer,
 	step integer,
 	geom geometry
@@ -48,7 +49,8 @@ CREATE TYPE type_fetch_ways_routing AS
 (
 	id integer, 
 	SOURCE integer, 
-	target integer, 
+	target integer,
+	length_m float, 
 	cost float,
 	reverse_cost float,
 	slope_profile jsonb[],
@@ -96,6 +98,7 @@ CREATE TYPE type_pois_multi_isochrones AS
 	objectid integer,
 	coordinates NUMERIC[][],
 	userid integer,
+	scenario_id integer,
 	step integer, 
 	routing_profile text,
 	speed NUMERIC, 

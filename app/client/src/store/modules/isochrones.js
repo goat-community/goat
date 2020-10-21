@@ -58,7 +58,10 @@ const state = {
   // Edit
   scenarioDataTable: [],
   // Cancel Request
-  cancelReq: undefined
+  cancelReq: undefined,
+  //Scenarios
+  scenarios: {},
+  activeScenario: null
 };
 
 const getters = {
@@ -67,6 +70,7 @@ const getters = {
   routeIcons: state => state.routeIcons,
   calculations: state => state.calculations,
   options: state => state.options,
+  scenarios: state => state.scenarios,
   colors: state => state.colors,
   isochroneLayer: state => state.isochroneLayer,
   studyAreaLayer: state => state.studyAreaLayer,
@@ -98,6 +102,7 @@ const getters = {
   },
   scenarioDataTable: state => state.scenarioDataTable,
   cancelReq: state => state.cancelReq,
+  activeScenario: state => state.activeScenario,
   getField
 };
 
@@ -137,7 +142,8 @@ const actions = {
         x: state.position.coordinate[0],
         y: state.position.coordinate[1],
         concavity: "0.00003",
-        routing_profile: state.activeRoutingProfile
+        routing_profile: state.activeRoutingProfile,
+        scenario_id: state.activeScenario
       });
       isochroneEndpoint = "isochrone";
     } else {
@@ -164,6 +170,7 @@ const actions = {
         region_type: payload ? payload.region_type : `'${regionType}'`,
         region: payload ? payload.region : region,
         routing_profile: `'${state.activeRoutingProfile}'`,
+        scenario_id: state.activeScenario,
         amenities: rootState.pois.selectedPois
           .map(item => {
             return "'" + item.value + "'";
@@ -289,6 +296,7 @@ const actions = {
       time: state.options.minutes + " min",
       speed: state.options.speed + " km/h",
       routing_profile: state.activeRoutingProfile,
+      scenario_id: state.activeScenario,
       isExpanded: true,
       isVisible: true,
       data: calculationData,
@@ -386,6 +394,7 @@ const actions = {
       }
       const params = {
         user_id: rootState.user.userId,
+        scenario_id: (state.activeScenario || 0).toString(),
         modus: "'" + state.options.calculationModes.active + "'",
         minutes: rootState.isochrones.options.minutes,
         speed: rootState.isochrones.options.speed,

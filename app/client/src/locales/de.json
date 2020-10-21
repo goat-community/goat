@@ -48,8 +48,8 @@
           "calcModus": "Berechnungsmodus",
           "alphaShapeMode": "Detaillierungsgrad Isochronen",
           "defaultNetwork": "Standard",
-          "modifiedNetwork": "Scenario",
-          "modifiedNetworkDoubleCalc": "Standard und Scenario",
+          "modifiedNetwork": "Szenario",
+          "modifiedNetworkDoubleCalc": "Vergleich",
           "routingProfile": "Routing Profil",
           "walking_standard": "Standard",
           "walking_elderly": "Senior",
@@ -164,7 +164,7 @@
         "New": "Neu",
         "Modified": "Geändert",
         "Restored": "restauriert",
-        "Deleted": "Gelöscht"
+        "deleted": "Gelöscht"
       },
       "status": {
         "Uploaded": "hochgeladen",
@@ -238,8 +238,8 @@
       "calcModus": "Berechnungsmodus",
       "alphaShapeMode": "Detaillierungsgrad Isochronen",
       "defaultNetwork": "Standard",
-      "modifiedNetwork": "Scenario",
-      "modifiedNetworkDoubleCalc": "Standard und Scenario",
+      "modifiedNetwork": "Szenario",
+      "modifiedNetworkDoubleCalc": "Vergleich",
       "routingProfile": "Routing Profil",
       "walking_standard": "Standard",
       "walking_elderly": "Senior",
@@ -271,7 +271,7 @@
       "searchPois": "Ziele suchen",
       "selectTimeMsg": "Zeit zum Filtern auswählen",
       "noDataMsg": "Keine Daten für ausgewählte Zeit",
-      "selectAmenitiesMsg": "Wählen Sie <b> Ziele </b> und die <b> Reisezeit </b> aus, um die Tabelle zu filtern.",
+      "selectAmenitiesMsg": "Wählen Sie <b> Ziele (Thematische Daten)</b> und die <b> Reisezeit </b> aus, um die Tabelle zu filtern.",
       "table": {
         "pois": "Ziele",
         "isochrone": "Isochrone",
@@ -330,7 +330,8 @@
       "cantDeleteAllScenarioFeatures": "Die Szenarien-Daten können aktuell leider nicht gelöscht werden.",
       "allScenarioFeaturesDelete": "Alle Szenarien-Daten wurden gelöscht",
       "noScenarioFeatureChangeAvailable": "Ändern Sie zuerst das Netzwerk oder die Landnutzung.",
-      "cantPrintBaseLayer": "Diese Basiskarte kann nicht gedruckt werden."
+      "cantPrintBaseLayer": "Diese Basiskarte kann nicht gedruckt werden.",
+      "cantExportScenario": "Ein Fehler ist aufgetreten. Szenario kann nicht exportiert werden!"
     },
     "layerGroup": {
       "poisLayers": "POIs",
@@ -346,8 +347,10 @@
     "layerName": {
       "pois": "Point of Interest",
       "administrativeUnits": "Administrative Grenzen",
+      "accidentsPedestrians": "Unfälle mit Fußgängern",
       "accidents_pedestrian_2018": "Unfälle mit Fußgängern (2018)",
       "accidents_pedestrian_2017": "Unfälle mit Fußgängern (2017)",
+      "accidentsCyclists": "Unfälle mit Radfahrern",
       "accidents_bike_2018": "Unfälle mit Radfahrern (2018)",
       "accidents_bike_2017": "Unfälle mit Radfahrern (2017)",
       "bicycle_counting_stations": "Raddauerzählstellen (2019)",
@@ -366,6 +369,7 @@
       "footpathWidth": "Fußwegbreite",
       "illuminance": "Beleuchtung",
       "lanes": "Anzahl der Fahrspuren",
+      "modeshare": "Modal Split",
       "noiseAircraftLDEN": "Fluglärm - Pegelraster LDEN",
       "noiseAircraftLNight": "Fluglärm - Pegelraster LNight",
       "noiseProtectionBauleitplanung": "Lärmschutzbereich zur Lenkung der Bauleitplanung",
@@ -377,6 +381,7 @@
       "streetCrossings": "Querungsmöglichkeiten",
       "streetFurniture": "Straßenmöbelierung",
       "streetFurnitureBicycles": "Fahrradständer",
+      "cyclewayQuality_munichways": "Radwegequalität (Munichways)",
       "surface": "Oberfläche",
       "wheelchairUsability": "Barrierefreiheit",
       "areaIsochrone": "Isochronengröße",
@@ -646,8 +651,8 @@
     "waterpark": "Schwimmbad",
     "discount_gym": "Discount Fitnessstudio",
     "gym": "Fitnessstudio",
-    "yoga":"Yoga",
-    "outdoor_fitness_station":"Outdoor Fitness",
+    "yoga": "Yoga",
+    "outdoor_fitness_station": "Outdoor Fitness",
     "population": "Bevölkerung"
   },
   "$vuetify": {
@@ -701,18 +706,18 @@
         "name": "Name (Optional)",
         "opening_hours": "Öffnungszeiten (Optional)"
       },
-      "buildings":{
-      "building": "Gebäudetyp",
-      "building_levels": "Anzahl Geschosse",
-      "building_levels_residential": "Anzahl Geschosse Wohnen",
-      "population": "Einwohneranzahl (optional)",
-      "gross_floor_area": "Geschossfläche",
-      "labels": {
+      "buildings": {
+        "building": "Gebäudetyp",
+        "building_levels": "Anzahl Geschosse",
+        "building_levels_residential": "Anzahl Geschosse Wohnen",
+        "population": "Einwohneranzahl (optional)",
+        "gross_floor_area": "Geschossfläche",
+        "labels": {
           "area": "Fläche",
           "building_levels": "Anzahl Geschosse",
-          "gross_floor_area":"Geschossfläche",
+          "gross_floor_area": "Geschossfläche",
           "population": "Einwohner"
-      }
+        }
       }
     },
     "listValues": {

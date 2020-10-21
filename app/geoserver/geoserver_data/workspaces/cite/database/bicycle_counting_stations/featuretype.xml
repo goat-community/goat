@@ -30,7 +30,7 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>radzaehlstellen</name>
-        <sql>select name, averag_day as cyclists_per_day, note, geom from bicycle_counting_stations
+        <sql>select name, averag_day as Radfahrer_pro_Tag, note, geom from bicycle_counting_stations
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
