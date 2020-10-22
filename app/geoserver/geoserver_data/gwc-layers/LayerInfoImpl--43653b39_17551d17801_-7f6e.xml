@@ -1,5 +1,5 @@
 <GeoServerTileLayer>
-  <id>LayerInfoImpl-1e67e07:171a6fbbc9e:379b</id>
+  <id>LayerInfoImpl--43653b39:17551d17801:-7f6e</id>
   <enabled>true</enabled>
   <inMemoryCached>true</inMemoryCached>
   <name>cite:landuse</name>
@@ -9,10 +9,10 @@
   </mimeFormats>
   <gridSubsets>
     <gridSubset>
-      <gridSetName>EPSG:900913</gridSetName>
+      <gridSetName>EPSG:4326</gridSetName>
     </gridSubset>
     <gridSubset>
-      <gridSetName>EPSG:4326</gridSetName>
+      <gridSetName>EPSG:900913</gridSetName>
     </gridSubset>
   </gridSubsets>
   <metaWidthHeight>
