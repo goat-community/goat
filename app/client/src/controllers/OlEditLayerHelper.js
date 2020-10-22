@@ -10,7 +10,7 @@ const editLayerHelper = {
   deletedFeatures: [],
   selectedLayer: null,
   selectedWayType: "road",
-  filterResults(response, source, bldEntranceLayer) {
+  filterResults(response, source, bldEntranceLayer, storageSource) {
     const editFeatures = new GeoJSON().readFeatures(response.first.data);
     const editFeaturesModified = new GeoJSON().readFeatures(
       response.second.data
@@ -70,6 +70,9 @@ const editLayerHelper = {
           editLayerHelper.deletedFeatures.push(feature.clone());
         }
         source.removeFeature(feature);
+        if (this.storageSource.hasFeature(feature)) {
+          storageSource.removeFeature(feature);
+        }
       }
     });
 
@@ -78,7 +81,7 @@ const editLayerHelper = {
       ...userInputFeaturesNoOriginId
     ]);
   },
-  deleteFeature(feature, source) {
+  deleteFeature(feature, source, storageSource) {
     const props = feature.getProperties();
     const beforeStatus = feature.get("status");
     feature.set("status", null);
@@ -112,6 +115,9 @@ const editLayerHelper = {
       }
     }
     source.removeFeature(feature);
+    if (this.storageSource.hasFeature(feature)) {
+      storageSource.removeFeature(feature);
+    }
   },
   commitDelete(mode, drawn_fid) {
     const layerName = this.selectedLayer

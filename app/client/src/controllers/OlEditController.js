@@ -53,6 +53,22 @@ export default class OlEditController extends OlBaseController {
     });
     me.map.addLayer(highlightLayer);
     me.highlightSource = highlightSource;
+
+    // Layer for storing building entrance features from other scenarios.
+    const storageSource = new VectorSource({
+      wrapX: false
+    });
+    const storageOptions = Object.assign(
+      {},
+      {
+        name: "storage_layer",
+        displayInLayerList: false,
+        source: storageSource,
+        queryable: false
+      }
+    );
+    const storageLayer = new VectorLayer(storageOptions);
+    me.storageLayer = storageLayer;
   }
 
   /**
@@ -83,6 +99,22 @@ export default class OlEditController extends OlBaseController {
     const vector = new VectorLayer(options);
     me.map.addLayer(vector);
     me.bldEntranceLayer = vector;
+
+    // Layer for storing building entrance features from other scenarios.
+    const storageSource = new VectorSource({
+      wrapX: false
+    });
+    const storageOptions = Object.assign(
+      {},
+      {
+        name: "bld_entrance_storage_layer",
+        displayInLayerList: false,
+        source: storageSource,
+        queryable: false
+      }
+    );
+    const storageLayer = new VectorLayer(storageOptions);
+    me.bldEntranceStorageLayer = storageLayer;
   }
 
   /**
@@ -367,7 +399,11 @@ export default class OlEditController extends OlBaseController {
     // if (me.selectedFeature.get("user_uploaded")) {
     //   me.source.removeFeature(me.selectedFeature);
     // } else {
-    editLayerHelper.deleteFeature(selectedFeature, me.source);
+    editLayerHelper.deleteFeature(
+      selectedFeature,
+      me.source,
+      me.storageLayer.getSource()
+    );
 
     me.closePopup();
   }
@@ -389,6 +425,9 @@ export default class OlEditController extends OlBaseController {
       });
       features.forEach(feature => {
         this.bldEntranceLayer.getSource().removeFeature(feature);
+        if (this.bldEntranceStorageLayer.getSource().hasFeature(feature)) {
+          this.bldEntranceStorageLayer.getSource().removeFeature(feature);
+        }
       });
     }
   }
@@ -547,6 +586,9 @@ export default class OlEditController extends OlBaseController {
           for (i = 0; i < FIDs.length; i++) {
             const id = parseInt(FIDs[i].split(".")[1]);
             me.source.removeFeature(featuresToRemove[i]);
+            if (me.storageLayer.getSource().hasFeature(featuresToRemove[i])) {
+              me.storageLayer.getSource().removeFeature(featuresToRemove[i]);
+            }
             featuresToAdd[i].setId(id);
             featuresToAdd[i].set("gid", id);
             featuresToAdd[i].getGeometry().transform("EPSG:4326", "EPSG:3857");
@@ -671,6 +713,9 @@ export default class OlEditController extends OlBaseController {
       const props = f.getProperties();
       if (!props.hasOwnProperty("layerName")) {
         this.source.removeFeature(f);
+        if (this.storageLayer.getSource().hasFeature(f)) {
+          this.storageLayer.getSource().removeFeature(f);
+        }
       }
       if (
         this.source.hasFeature(f) &&
@@ -678,6 +723,9 @@ export default class OlEditController extends OlBaseController {
         !props.hasOwnProperty("status")
       ) {
         this.source.removeFeature(f);
+        if (this.storageLayer.getSource().hasFeature(f)) {
+          this.storageLayer.getSource().removeFeature(f);
+        }
       }
 
       //For uploaded restored features.
@@ -687,6 +735,9 @@ export default class OlEditController extends OlBaseController {
         !props.hasOwnProperty("original_id")
       ) {
         this.source.removeFeature(f);
+        if (this.storageLayer.getSource().hasFeature(f)) {
+          this.storageLayer.getSource().removeFeature(f);
+        }
       }
     });
   }
@@ -705,6 +756,9 @@ export default class OlEditController extends OlBaseController {
         feature.get("layerName") === editLayerHelper.selectedLayer.get("name")
       ) {
         this.source.removeFeature(feature);
+        if (this.storageLayer.getSource().hasFeature(feature)) {
+          this.storageLayer.getSource().removeFeature(feature);
+        }
       }
     });
     if (
