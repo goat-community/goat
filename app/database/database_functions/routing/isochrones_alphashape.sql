@@ -44,7 +44,7 @@ begin
 
 	  	INSERT INTO isos 
 	  	SELECT userid_input, scenario_id_input, counter, i/60, 
-		CASE WHEN old_iso_geom IS NOT NULL THEN ST_UNION(new_iso_geom, old_iso_geom) ELSE new_iso_geom AS geom;
+		CASE WHEN old_iso_geom IS NOT NULL THEN ST_UNION(new_iso_geom, old_iso_geom) ELSE new_iso_geom END AS geom;
 	  	
 		old_iso_geom = new_iso_geom;
 		
