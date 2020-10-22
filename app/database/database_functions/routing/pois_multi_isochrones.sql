@@ -22,6 +22,8 @@ DECLARE
 	excluded_buildings_gid integer[];
 	BEGIN
 
+	scenario_id_input = COALESCE(scenario_id_input,0);
+	
 	/*Scenario building has to be implemented*/
 	buffer = (minutes::numeric/60::numeric)*speed_input*1000;
  	

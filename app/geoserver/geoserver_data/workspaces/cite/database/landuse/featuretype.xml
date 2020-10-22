@@ -1,5 +1,5 @@
 <featureType>
-  <id>FeatureTypeInfoImpl--63c355ec:172845386aa:-7ffb</id>
+  <id>FeatureTypeInfoImpl--43653b39:17551d17801:-7f6f</id>
   <name>landuse</name>
   <nativeName>landuse</nativeName>
   <namespace>
@@ -21,21 +21,39 @@
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>-74.364631652832</minx>
-    <maxx>-74.0068817138672</maxx>
-    <miny>3.98459792137146</miny>
-    <maxy>4.83300685882568</maxy>
+    <minx>11.3682140863449</minx>
+    <maxx>11.7229160408607</maxx>
+    <miny>48.061594450132</miny>
+    <maxy>48.252357026641</maxy>
     <crs>EPSG:4326</crs>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>-74.364631652832</minx>
-    <maxx>-74.0068817138672</maxx>
-    <miny>3.98459792137146</miny>
-    <maxy>4.83300685882568</maxy>
+    <minx>11.3682140863449</minx>
+    <maxx>11.7229160408607</maxx>
+    <miny>48.061594450132</miny>
+    <maxy>48.252357026641</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
   <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>landuse</name>
+        <sql>SELECT l.* &#xd;
+FROM landuse l, study_area s &#xd;
+WHERE ST_Intersects(l.geom,s.geom)
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>4326</srid>
+        </geometry>
+      </virtualTable>
+    </entry>
+    <entry key="cachingEnabled">false</entry>
+  </metadata>
   <store class="dataStore">
     <id>DataStoreInfoImpl-2e5aa5e1:15bf8a8db86:-7fff</id>
   </store>

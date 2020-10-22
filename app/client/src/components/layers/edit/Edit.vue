@@ -763,13 +763,60 @@ export default {
     scenarioImpExpVisible: false,
     selectEditVisible: true,
     selectFeaturesVisible: true,
-    dataTableElVisible: true
+    dataTableElVisible: true,
+    // Feature storage layers.
+    editLayerStorageLayer: [],
+    bldEntranceStorageLayer: []
   }),
   watch: {
     selectedLayer(newValue) {
       this.updateSelectedLayer(newValue);
     },
     activeScenario() {
+      /** For edit layer */
+      //1- Store the features in the storage layer. ()
+      this.olEditCtrl.source.getFeatures().forEach(feature => {
+        if (!this.olEditCtrl.storageLayer.getSource().hasFeature(feature)) {
+          this.olEditCtrl.storageLayer.getSource().addFeature(feature);
+        }
+      });
+      //2- Clear edit layer
+      this.olEditCtrl.source.clear();
+      //3- Copy the active scenario features in source;
+      const editFeaturesInActiveScenario = this.olEditCtrl.storageLayer
+        .getSource()
+        .getFeatures()
+        .filter(f => f.get("scenario_id") === this.activeScenario);
+      this.olEditCtrl.source.addFeatures(editFeaturesInActiveScenario);
+
+      /** For building entrance layer */
+      //1- Store the features in the storage layer. ()
+      this.olEditCtrl.bldEntranceLayer
+        .getSource()
+        .getFeatures()
+        .forEach(feature => {
+          if (
+            !this.olEditCtrl.bldEntranceStorageLayer
+              .getSource()
+              .hasFeature(feature)
+          ) {
+            this.olEditCtrl.bldEntranceStorageLayer
+              .getSource()
+              .addFeature(feature);
+          }
+        });
+      //2- Clear bld entrance layer
+      this.olEditCtrl.bldEntranceLayer.getSource().clear();
+      //3- Copy active scenario features in bld entrance layer;
+      const bldEntranceFeaturesInActiveScenario = this.olEditCtrl.bldEntranceStorageLayer
+        .getSource()
+        .getFeatures()
+        .filter(f => f.get("scenario_id") === this.activeScenario);
+      this.olEditCtrl.bldEntranceLayer
+        .getSource()
+        .addFeatures(bldEntranceFeaturesInActiveScenario);
+
+      //**//
       this.onEditSourceChange();
       this.olEditCtrl.source.changed();
       this.olEditCtrl.bldEntranceLayer.getSource().changed();
@@ -921,11 +968,12 @@ export default {
           //- Check geometry type
           //- For buildings point geometry is allowed in order to upload building entrance layer
 
-          const editGeometryTypes = this.selectedLayer.get("editGeometry");
+          let editGeometryTypes = this.selectedLayer.get("editGeometry");
           if (
             this.selectedLayer.get("name") === "buildings" &&
             features[0].getGeometry().getType() === "Point" // User is upload building entrance features..
           ) {
+            editGeometryTypes = [...editGeometryTypes];
             editGeometryTypes.push("Point");
           }
           if (
@@ -1069,7 +1117,9 @@ export default {
 
               // Manage delete features.
               if (
-                feature.get("edit_type") !== "deleted" &&
+                !["deleted", "old_modified"].includes(
+                  feature.get("edit_type")
+                ) &&
                 feature.get("upload_status") === "successful"
               ) {
                 visibleFeatures.push(feature);
@@ -1266,7 +1316,8 @@ export default {
         editLayerHelper.filterResults(
           response,
           me.olEditCtrl.getLayerSource(),
-          me.olEditCtrl.bldEntranceLayer
+          me.olEditCtrl.bldEntranceLayer,
+          me.olEditCtrl.storageLayer.getSource()
         );
       }
     },
@@ -1894,6 +1945,9 @@ export default {
       if (this.olEditCtrl.featuresToCommit.length > 0) {
         this.olEditCtrl.featuresToCommit.forEach(feature => {
           this.olEditCtrl.source.removeFeature(feature);
+          if (this.olEditCtrl.storageLayer.getSource().hasFeature(feature)) {
+            this.olEditCtrl.storageLayer.getSource().removeFeature(feature);
+          }
         });
       }
       this.olEditCtrl.closePopup();
