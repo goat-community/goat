@@ -9,7 +9,7 @@ BEGIN
 	
 	union_geom := (SELECT ST_UNION(geom) AS geom 
 	FROM drawn_features 
-	WHERE id <> id_input
+	WHERE gid <> id_input
 	AND ST_Intersects(geom,input_geom));
 
 	IF union_geom IS NOT NULL THEN
