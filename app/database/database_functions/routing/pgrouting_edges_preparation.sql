@@ -110,8 +110,5 @@ END;
 $function$
 
 /*
-SELECT pgrouting_edges_preparation(ARRAY[1200.]::FLOAT[], array_agg(starting_points)::FLOAT[], 
-1.33, 1, 'walking_standard',0, 0, true)
-FROM (SELECT * FROM grid_ordered WHERE id BETWEEN 151 AND 300) g
-
+SELECT pgrouting_edges_preparation(ARRAY[1200.]::FLOAT[], ARRAY[[11.5707,48.1252]],1.33, 2, 'walking_standard',10, 5, FALSE)
 */

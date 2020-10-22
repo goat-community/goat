@@ -1,3 +1,4 @@
+
 DROP FUNCTION IF EXISTS network_modification;
 CREATE OR REPLACE FUNCTION public.network_modification(scenario_id_input integer)
  RETURNS SETOF integer
@@ -27,11 +28,12 @@ DROP TABLE IF EXISTS pre_intersection_points;
 CREATE TEMP TABLE pre_intersection_points AS 
 SELECT st_intersection(d.geom,w.geom) AS geom, d.geom AS d_geom
 FROM drawn_features d, ways_userinput w 
-WHERE ST_INtersects(d.geom,w.geom);
+WHERE ST_INtersects(d.geom,w.geom)
+AND w.scenario_id IS NULL;
 
 DROP TABLE IF EXISTS intersection_existing_network;
 CREATE TEMP TABLE intersection_existing_network AS 
-SELECT (SELECT max(id) FROM ways_userinput_vertices_pgr) + row_number() over() as vertex_id, 2 scenario_id, geom, d_geom 
+SELECT (SELECT max(id) FROM ways_userinput_vertices_pgr) + row_number() over() as vertex_id, scenario_id_input AS scenario_id, geom, d_geom 
 FROM (SELECT DISTINCT (ST_DUMPpoints(geom)).geom AS geom, d_geom FROM pre_intersection_points) x;
 
 ALTER TABLE intersection_existing_network ADD COLUMN gid serial;

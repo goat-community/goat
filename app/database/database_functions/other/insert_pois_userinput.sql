@@ -27,7 +27,7 @@ BEGIN
 
 	INSERT INTO pois_userinput(name,amenity,opening_hours,geom,scenario_id,wheelchair,pois_modified_id)	
 	VALUES(NEW.name, NEW.amenity, NEW.opening_hours,NEW.geom,NEW.scenario_id,NEW.wheelchair,NEW.gid);
-
+	DELETE FROM reached_pois_heatmap WHERE gid = NEW.gid;
 	PERFORM reached_pois_heatmap(ST_BUFFER(NEW.geom,0.0014),0.0014,1,NEW.scenario_id) ;
 	
 	RETURN NEW;

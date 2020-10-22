@@ -11,7 +11,6 @@ import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import VectorImageLayer from "ol/layer/VectorImage";
 import Overlay from "ol/Overlay.js";
-import store from "../store/modules/user";
 import isochronesStore from "../store/modules/isochrones";
 import Feature from "ol/Feature";
 import { wfsTransactionParser, readTransactionResponse } from "../utils/Layer";
@@ -399,7 +398,7 @@ export default class OlEditController extends OlBaseController {
    * @param {requestCallback} onUploadCb - The callback that handles the response.
    */
   uploadFeatures(onUploadCb) {
-    editLayerHelper.uploadFeatures(store.state.userId, this.source, onUploadCb);
+    editLayerHelper.uploadFeatures(this.source, onUploadCb);
   }
 
   /**

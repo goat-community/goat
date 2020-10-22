@@ -88,8 +88,8 @@
           border="left"
           colored-border
           class="mb-2 mt-0 mx-0 elevation-2"
-          icon="info"
-          :color="activeColor.primary"
+          icon="warning"
+          color="warning"
           dense
           v-if="
             selectedLayer &&
@@ -383,14 +383,14 @@
               </v-alert>
 
               <!-- FEATURES NOT YET UPLOADED ALERT -->
-              <v-alert
+              <!-- <v-alert
                 class="elevation-2"
                 v-if="fileInputFeaturesCache.length > 0"
                 dense
                 type="info"
               >
                 {{ $t("appBar.edit.featuresNotyetUploaded") }}
-              </v-alert>
+              </v-alert> -->
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn
@@ -892,17 +892,45 @@ export default {
           //- Check for size and other validations
           const result = reader.result;
           //- Parse geojson data
-          const features = geojsonToFeature(result, {
+          let features = geojsonToFeature(result, {
             dataProjection: "EPSG:4326",
             featureProjection: "EPSG:3857"
           });
           if (!features || features.length === 0) return;
+
+          if (
+            this.selectedLayer.get("name") === "buildings" &&
+            features[0].getGeometry().getType() === "Point"
+          ) {
+            features.forEach(feature => {
+              const point = feature.getGeometry().getCoordinates();
+              // Check if there is a building under the uploaded features.
+              const featuresAtCoord = this.olEditCtrl.source
+                .getFeaturesAtCoordinate(point)
+                .filter(f => f.get("layerName") === "buildings");
+              if (featuresAtCoord[0]) {
+                feature.set(
+                  "building_gid",
+                  featuresAtCoord[0].get("gid") ||
+                    featuresAtCoord[0].get("id") ||
+                    featuresAtCoord[0].getId()
+                );
+              }
+            });
+          }
           //- Check geometry type
           //- For buildings point geometry is allowed in order to upload building entrance layer
 
+          const editGeometryTypes = this.selectedLayer.get("editGeometry");
+          if (
+            this.selectedLayer.get("name") === "buildings" &&
+            features[0].getGeometry().getType() === "Point" // User is upload building entrance features..
+          ) {
+            editGeometryTypes.push("Point");
+          }
           if (
             ![features[0].getGeometry().getType()].some(r =>
-              this.selectedLayer.get("editGeometry").includes(r)
+              editGeometryTypes.includes(r)
             )
           ) {
             //Geojson not valid
@@ -995,7 +1023,30 @@ export default {
             let areAllUploaded = 1;
             //- Transform features
             const visibleFeatures = [];
+
+            //- Filter out building features that dont intersect.
+
             features.forEach(feature => {
+              //- Fiilter out building features that dont intersect.
+              if (
+                this.selectedLayer.get("name") === "buildings" &&
+                feature.getGeometry().getType() === "Point"
+              ) {
+                const point = feature.getGeometry().getCoordinates();
+                // Check if there is a building under the uploaded features.
+                const featuresAtCoord = this.olEditCtrl.source
+                  .getFeaturesAtCoordinate(point)
+                  .filter(f => f.get("layerName") === "buildings");
+                if (featuresAtCoord[0]) {
+                  feature.set(
+                    "building_gid",
+                    featuresAtCoord[0].get("gid") ||
+                      featuresAtCoord[0].get("id") ||
+                      featuresAtCoord[0].getId()
+                  );
+                }
+              }
+
               if (layerName !== "pois") {
                 feature.set("status", null);
               }
@@ -1070,7 +1121,6 @@ export default {
           } else {
             this.fileInputValidationMessage = this.fileInputValidationMessageEnum.ERROR_HAPPENED;
           }
-
           setTimeout(() => {
             this.fileInputValidationMessage = this.fileInputValidationMessageEnum.FILE_VALID_OR_NO_FILE;
           }, 3000);

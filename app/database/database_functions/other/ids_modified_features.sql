@@ -5,12 +5,14 @@ CREATE OR REPLACE FUNCTION public.ids_modified_features(scenario_id_input intege
 AS $function$
 DECLARE 
 	t_name text;
+	sql_ways_modified TEXT := '';
 BEGIN 
 
 	IF table_input = 'pois' THEN 
 		t_name = 'pois_modified';
 	ELSEIF table_input = 'ways' THEN
 		t_name = 'ways_userinput';
+		sql_ways_modified = format(' UNION ALL SELECT original_id FROM ways_modified WHERE original_id IS NOT NULL AND scenario_id =%s',scenario_id_input);
 	END IF;
 
 	RETURN query EXECUTE'
@@ -23,8 +25,8 @@ BEGIN
 			SELECT original_id::integer modified
 			FROM '|| quote_ident(t_name)||' 
 			WHERE scenario_id = $2 
-			AND original_id IS NOT NULL
-		) x'
+			AND original_id IS NOT NULL'||sql_ways_modified||
+		') x'
 		USING scenario_id_input, scenario_id_input;
 END;
 $function$

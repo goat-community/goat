@@ -53,7 +53,7 @@ BEGIN
 		table_name = 'ways_userinput';
 		excluded_ways_id = ids_modified_features(scenario_id_input,'ways');
 
-		sql_scenario_id = ' AND(scenario_id IS NULL OR scenario_id='||scenario_id_input||')';
+		sql_scenario_id = ' AND (scenario_id IS NULL OR scenario_id='||scenario_id_input||')';
 		sql_ways_ids = ' AND NOT id::int4 = any('''|| ids_modified_features(scenario_id_input,'ways')::text ||''') ';
 	END IF;
 
