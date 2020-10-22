@@ -10,6 +10,8 @@ DECLARE
   	i numeric;
  	sql_vertices TEXT;
  	cutoffs float[];
+	new_iso_geom geometry;
+	old_iso_geom geometry;
 begin
 	--If the modus is input the routing tables for the network with userinput have to be choosen
   	speed = speed/3.6;
@@ -38,9 +40,14 @@ begin
 		WHERE COST <= i
 		AND objectid = objectid_input; 
 		
+		new_iso_geom = ST_SETSRID(st_geomfromtext('POLYGON(('||REPLACE(plv8_concaveman(),',4',' 4')||'))'),4326);
+
 	  	INSERT INTO isos 
-	  	SELECT userid_input, scenario_id_input, counter, i/60, ST_SETSRID(st_geomfromtext('POLYGON(('||REPLACE(plv8_concaveman(),',4',' 4')||'))'),4326) AS geom;
+	  	SELECT userid_input, scenario_id_input, counter, i/60, 
+		CASE WHEN old_iso_geom IS NOT NULL THEN ST_UNION(new_iso_geom, old_iso_geom) ELSE new_iso_geom AS geom;
 	  	
+		old_iso_geom = new_iso_geom;
+		
 	END IF;
 	END LOOP;  
 
