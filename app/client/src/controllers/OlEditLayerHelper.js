@@ -70,7 +70,7 @@ const editLayerHelper = {
           editLayerHelper.deletedFeatures.push(feature.clone());
         }
         source.removeFeature(feature);
-        if (this.storageSource.hasFeature(feature)) {
+        if (storageSource.hasFeature(feature)) {
           storageSource.removeFeature(feature);
         }
       }
@@ -115,7 +115,7 @@ const editLayerHelper = {
       }
     }
     source.removeFeature(feature);
-    if (this.storageSource.hasFeature(feature)) {
+    if (storageSource.hasFeature(feature)) {
       storageSource.removeFeature(feature);
     }
   },
