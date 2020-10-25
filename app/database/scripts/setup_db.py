@@ -142,7 +142,10 @@ def setup_db(setup_type):
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_classification.sql')
     db_temp.execute_script_psql('/opt/data_preparation/SQL/pois_full_replacement.sql')
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/derive_access_from_polygons.sql')
+    # Custom functions bogota
     db_temp.execute_script_psql('/opt/data_preparation/custom_functions/bogota_custom_pois.sql')
+    db_temp.execute_script_psql('/opt/data_preparation/custom_functions/assign_population_categories.sql')
+    
 
 
     if (setup_type in ['new_setup','all','population','pois','network']):

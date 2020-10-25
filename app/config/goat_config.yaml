@@ -29,7 +29,7 @@ DATA_REFINEMENT_VARIABLES:
     pois_more_entrances: ["sitp","transmilenio"]
     excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,801]
     categories_no_foot: ["use_sidepath","no"]
-    excluded_class_id_cycling: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
+    excluded_class_id_cycling: [0,101,102,103,104,105,106,107,501,502,503,504,801]
     categories_no_bicycle: ["use_sidepath","no"]
     categories_sidewalk_no_foot: ["separate"] #Used for visualization purpose only
     max_length_links: '300'
