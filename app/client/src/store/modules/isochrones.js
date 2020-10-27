@@ -114,7 +114,7 @@ const actions = {
       : rootState.isochrones.options.calculationType;
     const sharedParams = {
       user_id: rootState.user.userId,
-      minutes: state.options.minutes,
+      minutes: state.options.minutes.active,
       speed: state.options.speed,
       n: state.options.steps,
       modus: state.options.calculationModes.active
@@ -293,7 +293,7 @@ const actions = {
       id: calculationNumber,
       calculationType: calculationType,
       calculationMode: sharedParams.modus.replace(/'/g, ""), // remove extra apostrophe in multi-isochrone
-      time: state.options.minutes + " min",
+      time: state.options.minutes.active + " min",
       speed: state.options.speed + " km/h",
       routing_profile: state.activeRoutingProfile,
       scenario_id: state.activeScenario,
@@ -396,7 +396,7 @@ const actions = {
         user_id: rootState.user.userId,
         scenario_id: (state.activeScenario || 0).toString(),
         modus: "'" + state.options.calculationModes.active + "'",
-        minutes: rootState.isochrones.options.minutes,
+        minutes: rootState.isochrones.options.minutes.active,
         speed: rootState.isochrones.options.speed,
         amenities: amenities
       };

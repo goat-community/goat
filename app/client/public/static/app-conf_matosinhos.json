@@ -254,7 +254,7 @@
           "name": "Education",
           "categoryValue": "education",
           "id": 1,
-          "children": [            
+          "children": [
             {
               "name": "Primary school",
               "value": "primary_school",
@@ -279,7 +279,7 @@
               "sensitivity": -0.003
             }
           ]
-        },        
+        },
         {
           "name": "Transport",
           "categoryValue": "transport",
@@ -375,7 +375,13 @@
           }
         },
         "calculationType": "single",
-        "minutes": "10",
+        "minutes": {
+          "active": "10",
+          "values": {
+            "single": "10",
+            "multiple": "15"
+          }
+        },
         "speed": "5",
         "steps": "2",
         "concavityIsochrones": {

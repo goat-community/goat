@@ -699,7 +699,7 @@
               "display": "Wheelchair",
               "value": "walking_wheelchair",
               "defaultSpeed": 5
-            } 
+            }
           ],
           "active": {
             "display": "Standard",
@@ -708,7 +708,13 @@
           }
         },
         "calculationType": "single",
-        "minutes": "10",
+        "minutes": {
+          "active": "10",
+          "values": {
+            "single": "10",
+            "multiple": "15"
+          }
+        },
         "speed": "5",
         "steps": "2",
         "concavityIsochrones": {

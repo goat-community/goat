@@ -1526,7 +1526,13 @@
     "isochrones": {
       "options": {
         "calculationType": "single",
-        "minutes": "10",
+        "minutes": {
+          "active": "10",
+          "values": {
+            "single": "10",
+            "multiple": "15"
+          }
+        },
         "speed": "5",
         "steps": "2",
         "concavityIsochrones": {

@@ -48,12 +48,16 @@ export default {
   computed: {
     ...mapGetters("isochrones", { options: "options" }),
     ...mapFields("isochrones", {
+      minutes: "options.minutes",
       calculationType: "options.calculationType",
       calculationModes: "options.calculationModes.active"
     })
   },
   methods: {
     changedType(type) {
+      if (this.minutes.values[type]) {
+        this.minutes.active = this.minutes.values[type];
+      }
       if (type === "multiple") {
         this.calculationModes = "default";
       }
