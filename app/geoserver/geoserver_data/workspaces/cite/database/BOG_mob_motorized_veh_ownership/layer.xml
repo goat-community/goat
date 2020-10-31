@@ -1,0 +1,15 @@
+<layer>
+  <name>BOG_mob_motorized_veh_ownership</name>
+  <id>LayerInfoImpl-58415aa4:173d413b974:5910</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-58415aa4:173d413b974:5901</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-58415aa4:173d413b974:590f</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

@@ -1,3 +1,5 @@
+import { getField, updateField } from "vuex-map-fields";
+
 const state = {
   map: null,
   messages: {
@@ -17,7 +19,10 @@ const state = {
   contextmenu: null,
   osmMode: false,
   reqFields: null,
-  bldEntranceLayer: null
+  bldEntranceLayer: null,
+  editLayer: null,
+  selectedEditLayer: null,
+  isMapillaryBtnDisabled: false
 };
 
 const getters = {
@@ -30,7 +35,11 @@ const getters = {
   contextmenu: state => state.contextmenu,
   snackbar: state => state.messages.snackbar,
   reqFields: state => state.reqFields,
-  bldEntranceLayer: state => state.bldEntranceLayer
+  bldEntranceLayer: state => state.bldEntranceLayer,
+  editLayer: state => state.editLayer,
+  selectedEditLayer: state => state.selectedEditLayer,
+  isMapillaryBtnDisabled: state => state.isMapillaryBtnDisabled,
+  getField
 };
 
 const actions = {};
@@ -73,7 +82,11 @@ const mutations = {
   },
   SET_BLD_ENTRANCE_LAYER(state, entranceLayer) {
     state.bldEntranceLayer = entranceLayer;
-  }
+  },
+  SET_EDIT_LAYER(state, editLayer) {
+    state.editLayer = editLayer;
+  },
+  updateField
 };
 
 export default {

@@ -73,8 +73,12 @@ export function geojsonToFeature(obj, options) {
   return vectorSource.getFeatures();
 }
 
-export function featuresToGeojson(features, sourceProjection) {
-  const format = new GeoJSON({ featureProjection: sourceProjection });
+export function featuresToGeojson(features, featureProjection, dataProjection) {
+  const options = { featureProjection };
+  if (dataProjection) {
+    options.dataProjection = dataProjection;
+  }
+  const format = new GeoJSON(options);
   const json = format.writeFeatures(features);
   return json;
 }

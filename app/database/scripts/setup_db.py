@@ -141,6 +141,10 @@ def setup_db(setup_type):
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/clean_duplicated_pois.sql')
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_reclassification_array.sql')
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_classification.sql')
+    db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_rewrite.sql')
+    db_temp.execute_script_psql('/opt/database_functions/data_preparation/generate_entries_from_polygons.sql')
+    db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_displacement.sql')
+    db_temp.execute_script_psql('/opt/data_preparation/SQL/pois_full_replacement.sql')
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/derive_access_from_polygons.sql')
 
 
@@ -187,8 +191,8 @@ def setup_db(setup_type):
                
         #Creates DB_functions
         update_functions()
+        os.system(f'PGPASSFILE=~/.pgpass_{db_name} psql -U {user} -h {host} -d {db_name} -f /opt/database_functions/libs/plv8_js_modules.sql')
 
-        #os.system(f'psql --U {user} -d {db_name} -f /opt/database_functions/libs/plv8_js_modules.sql')
         #os.system(f'psql -U {user} -d {db_name} -c "ALTER DATABASE {db_name} SET plv8.start_proc TO plv8_require')
 
     else:

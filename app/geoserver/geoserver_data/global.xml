@@ -16,6 +16,8 @@
     <verbose>false</verbose>
     <verboseExceptions>false</verboseExceptions>
     <localWorkspaceIncludesPrefix>false</localWorkspaceIncludesPrefix>
+    <showCreatedTimeColumnsInAdminList>false</showCreatedTimeColumnsInAdminList>
+    <showModifiedTimeColumnsInAdminList>false</showModifiedTimeColumnsInAdminList>
   </settings>
   <jai>
     <allowInterpolation>false</allowInterpolation>
@@ -63,7 +65,7 @@
     <queueType>UNBOUNDED</queueType>
     <imageIOCacheThreshold>10240</imageIOCacheThreshold>
   </coverageAccess>
-  <updateSequence>671</updateSequence>
+  <updateSequence>935</updateSequence>
   <featureTypeCacheSize>0</featureTypeCacheSize>
   <globalServices>true</globalServices>
   <xmlPostRequestLogBufferSize>1024</xmlPostRequestLogBufferSize>

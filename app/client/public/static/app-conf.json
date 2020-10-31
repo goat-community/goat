@@ -77,7 +77,7 @@
         "url": "/geoserver/wms",
         "group": "poisLayers",
         "layers": "cite:pois",
-        "viewparams": "amenities:'cG9wdWxhdGlvbg=='",
+        "viewparamsDynamicKeys": ["modus"],
         "opacity": 1,
         "queryable": true,
         "visible": false,
@@ -95,7 +95,7 @@
         "name": "landuse",
         "url": "/geoserver/wms",
         "group": "buildings_landuse",
-        "layers": "cite:landuse_atkis",
+        "layers": "cite:landuse",
         "viewparamsDynamicKeys": ["userId"],
         "opacity": 1,
         "queryable": true,
@@ -158,7 +158,7 @@
         "layers": "cite:crop_study_area",
         "opacity": 0.5,
         "queryable": false,
-        "visible": true,
+        "visible": false,
         "displayInLayerList": false,
         "zIndex": 4,
         "serverType": "geoserver"
@@ -319,6 +319,21 @@
       },
       {
         "type": "WMS",
+        "name": "cyclewayQuality_munichways",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:munichways",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "serverType": "geoserver",
+        "attributions": "© <a href='https://www.munichways.com/'>MunichWays</a>"
+      },
+      {
+        "type": "WMS",
         "name": "wheelchairUsability",
         "url": "/geoserver/wms",
         "group": "streetlevelqualityLayers",
@@ -403,6 +418,48 @@
       },
       {
         "type": "WMS",
+        "name": "noiseAircraftLDEN",
+        "url": "https://www.lfu.bayern.de/gdi/wms/laerm/flughaefen?",
+        "group": "environmentalQualityLayers",
+        "layers": "mairlden",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+      },
+      {
+        "type": "WMS",
+        "name": "noiseAircraftLNight",
+        "url": "https://www.lfu.bayern.de/gdi/wms/laerm/flughaefen?",
+        "group": "environmentalQualityLayers",
+        "layers": "mairln",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+      },
+      {
+        "type": "WMS",
+        "name": "noiseProtectionBauleitplanung",
+        "url": "http://risby.bayern.de/RisGate/servlet/Regionalplanung",
+        "group": "environmentalQualityLayers",
+        "layers": "R16SLXF",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='https://www.stmwi.bayern.de/'>Bayerisches Staatsministerium für Wirtschaft, Landesentwicklung und Energie</a>"
+      },
+      {
+        "type": "WMS",
         "name": "natureReserves",
         "url": "https://www.lfu.bayern.de/gdi/wms/natur/schutzgebiete?",
         "group": "environmentalQualityLayers",
@@ -443,6 +500,50 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+      },
+      {
+        "type": "WMS",
+        "name": "street_trees",
+        "url": "https://image.discomap.eea.europa.eu/arcgis/services/UrbanAtlas/STL/MapServer/WmsServer",
+        "group": "environmentalQualityLayers",
+        "layers": "STL Vector",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='https://land.copernicus.eu/'>Copernicus Land Monitoring Service</a>"
+      },
+      {
+        "type": "WMS",
+        "name": "accidentsPedestrians",
+        "url": "/geoserver/wms",
+        "group": "additionalDataLayers",
+        "layers": "cite:accidents_pedestrians",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver",
+        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+      },
+      {
+        "type": "WMS",
+        "name": "accidentsCyclists",
+        "url": "/geoserver/wms",
+        "group": "additionalDataLayers",
+        "layers": "cite:accidents_cyclists",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver",
+        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
       },
       {
         "type": "WMS",
@@ -502,11 +603,39 @@
       },
       {
         "type": "WMS",
+        "name": "bicycle_counting_stations",
+        "url": "/geoserver/wms",
+        "group": "additionalDataLayers",
+        "layers": "cite:bicycle_counting_stations",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver",
+        "attributions": "© <a href='https://www.opengov-muenchen.de/pages/raddauerzaehlstellen'>Open Data Portal München</a>"
+      },
+      {
+        "type": "WMS",
+        "name": "modeshare",
+        "url": "/geoserver/wms",
+        "group": "additionalDataLayers",
+        "layers": "cite:mode_share ",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
+      },
+      {
+        "type": "WMS",
         "name": "walkability",
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
         "layers": "cite:heatmap",
-        "viewparams": "amenities:'W10='",
         "opacity": 1,
         "queryable": false,
         "visible": false,
@@ -514,7 +643,13 @@
         "requiresPois": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "docUrl": "https://www.open-accessibility.org/docs/heatmap/"
+        "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
+        "viewparamsDynamicKeys": ["scenario_id", "modus", "pois"],
+        "styles": {
+          "default": "cite:style_heatmap",
+          "scenario": "cite:style_heatmap",
+          "comparison": "cite:style_heatmap_comparison"
+        }
       },
       {
         "type": "WMS",
@@ -522,12 +657,16 @@
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
         "layers": "cite:heatmap_population",
-        "opacity": 0.4,
         "visible": false,
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "viewparamsDynamicKeys": ["userId"]
+        "viewparamsDynamicKeys": ["scenario_id", "modus"],
+        "styles": {
+          "default": "cite:style_heatmap_population",
+          "scenario": "cite:style_heatmap_population",
+          "comparison": "cite:style_heatmap_population_comparison"
+        }
       },
       {
         "type": "WMS",
@@ -535,14 +674,19 @@
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
         "layers": "cite:heatmap_luptai",
-        "viewparams": "amenities:W10=",
         "opacity": 1,
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
         "requiresPois": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "viewparamsDynamicKeys": ["scenario_id", "modus", "pois"],
+        "styles": {
+          "default": "cite:style_heatmap_luptai",
+          "scenario": "cite:style_heatmap_luptai",
+          "comparison": "cite:style_heatmap_luptai_comparison"
+        }
       },
       {
         "type": "WMS",
@@ -633,7 +777,6 @@
         "url": "/geoserver/wms",
         "group": "osmMappingLayers",
         "layers": "cite:mapping_pois_opening_hours",
-        "viewparams": "amenities:'cG9wdWxhdGlvbg=='",
         "opacity": 1,
         "queryable": true,
         "visible": false,
@@ -674,6 +817,78 @@
             "fillInOSMiD"
           ],
           "wikiUrl": "https://wiki.openstreetmap.org/wiki/Speed_limits"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "osm-mapping-parking-lane",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_parking_lane",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 31,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-car",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:parking:lane"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "osm-mapping-cycleways-width",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_cycleways_width",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 31,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-biking",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:width"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "osm-mapping-cycleways-segregated",
+        "url": "/geoserver/wms",
+        "group": "osmMappingLayers",
+        "layers": "cite:mapping_cycleways_segregated",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "requiresPois": true,
+        "zIndex": 31,
+        "serverType": "geoserver",
+        "otherProps": {
+          "icon": "fas fa-walking",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:segregated"
         }
       },
       {
@@ -1529,10 +1744,14 @@
       "enableFileUpload": false,
       "hiddenProps": [
         "userid",
-        "id",
+        "gid",
         "original_id",
         "status",
-        "street_category"
+        "street_category",
+        "scenario_id",
+        "foot",
+        "bicycle",
+        "lit"
       ]
     },
     "pois": {
@@ -1544,13 +1763,15 @@
       "enableFileUpload": false,
       "hiddenProps": [
         "userid",
-        "id",
+        "scenario_id",
+        "gid",
         "original_id",
         "status",
         "wheelchair",
         "status",
         "amenity_icon",
-        "opening_hours"
+        "opening_hours",
+        "scenario_id"
       ]
     },
     "buildings": {
@@ -1563,10 +1784,11 @@
       "hiddenProps": [
         "gid",
         "userid",
-        "id",
+        "gid",
         "original_id",
         "status",
-        "gross_floor_area"
+        "gross_floor_area",
+        "scenario_id"
       ]
     }
   }

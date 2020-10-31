@@ -11,7 +11,7 @@ import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import VectorImageLayer from "ol/layer/VectorImage";
 import Overlay from "ol/Overlay.js";
-import store from "../store/modules/user";
+import isochronesStore from "../store/modules/isochrones";
 import Feature from "ol/Feature";
 import { wfsTransactionParser, readTransactionResponse } from "../utils/Layer";
 import http from "../services/http";
@@ -53,6 +53,22 @@ export default class OlEditController extends OlBaseController {
     });
     me.map.addLayer(highlightLayer);
     me.highlightSource = highlightSource;
+
+    // Layer for storing building entrance features from other scenarios.
+    const storageSource = new VectorSource({
+      wrapX: false
+    });
+    const storageOptions = Object.assign(
+      {},
+      {
+        name: "storage_layer",
+        displayInLayerList: false,
+        source: storageSource,
+        queryable: false
+      }
+    );
+    const storageLayer = new VectorLayer(storageOptions);
+    me.storageLayer = storageLayer;
   }
 
   /**
@@ -77,12 +93,28 @@ export default class OlEditController extends OlBaseController {
         zIndex: 100,
         source: source,
         queryable: false,
-        style: bldEntrancePointsStyle
+        style: bldEntrancePointsStyle()
       }
     );
     const vector = new VectorLayer(options);
     me.map.addLayer(vector);
     me.bldEntranceLayer = vector;
+
+    // Layer for storing building entrance features from other scenarios.
+    const storageSource = new VectorSource({
+      wrapX: false
+    });
+    const storageOptions = Object.assign(
+      {},
+      {
+        name: "bld_entrance_storage_layer",
+        displayInLayerList: false,
+        source: storageSource,
+        queryable: false
+      }
+    );
+    const storageLayer = new VectorLayer(storageOptions);
+    me.bldEntranceStorageLayer = storageLayer;
   }
 
   /**
@@ -230,7 +262,6 @@ export default class OlEditController extends OlBaseController {
     me.helpTooltipElement.innerHTML = me.helpMessage;
     me.helpTooltip.setPosition(coordinate);
     if (
-      editLayerHelper.selectedLayer.get("name") === "buildings" &&
       ["addBldEntrance", "move", "modify", "drawHole"].includes(
         this.currentInteraction
       )
@@ -238,48 +269,61 @@ export default class OlEditController extends OlBaseController {
       const featureAtCoord = this.source.getFeaturesAtCoordinate(
         evt.coordinate
       );
+
       if (
-        featureAtCoord.length === 0 ||
-        (featureAtCoord.length > 0 &&
-          !featureAtCoord[0].getProperties().hasOwnProperty("original_id"))
+        featureAtCoord.length > 0 &&
+        isochronesStore.state.activeScenario &&
+        featureAtCoord[0].get("scenario_id") !==
+          isochronesStore.state.activeScenario
       ) {
-        me.map.getTarget().style.cursor = "not-allowed";
-        if (me.isInteractionOnProgress === false) {
-          me.edit.setActive(false);
+        return;
+      }
+      if (editLayerHelper.selectedLayer.get("name") === "buildings") {
+        if (
+          featureAtCoord.length === 0 ||
+          (featureAtCoord.length > 0 &&
+            !featureAtCoord[0].getProperties().hasOwnProperty("original_id"))
+        ) {
+          me.map.getTarget().style.cursor = "not-allowed";
+          if (me.isInteractionOnProgress === false) {
+            me.edit.setActive(false);
+          } else {
+            return;
+          }
+          if (this.currentInteraction === "addBldEntrance") {
+            me.helpMessage = i18n.t(
+              "map.tooltips.clickToBldEntranceNotAllowed"
+            );
+          }
+          if (this.currentInteraction === "move") {
+            me.helpMessage = i18n.t(
+              "map.tooltips.moveExistingBuildingNotAllowed"
+            );
+          }
+          if (this.currentInteraction === "modify") {
+            me.helpMessage = i18n.t(
+              "map.tooltips.modifyExistingBuildingNotAllowed"
+            );
+          }
+          if (this.currentInteraction === "drawHole") {
+            me.helpMessage = i18n.t("map.tooltips.drawHoleOnPolygonNotAllowed");
+          }
         } else {
-          return;
+          if (this.currentInteraction === "addBldEntrance") {
+            me.helpMessage = i18n.t("map.tooltips.clickToBldEntrance");
+          }
+          if (this.currentInteraction === "move") {
+            me.helpMessage = i18n.t("map.tooltips.clickOnFeatureToMove");
+          }
+          if (this.currentInteraction === "modify") {
+            me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
+          }
+          if (this.currentInteraction === "drawHole") {
+            me.helpMessage = i18n.t("map.tooltips.drawHoleOnPolygon");
+          }
+          me.map.getTarget().style.cursor = "pointer";
+          me.edit.setActive(true);
         }
-        if (this.currentInteraction === "addBldEntrance") {
-          me.helpMessage = i18n.t("map.tooltips.clickToBldEntranceNotAllowed");
-        }
-        if (this.currentInteraction === "move") {
-          me.helpMessage = i18n.t(
-            "map.tooltips.moveExistingBuildingNotAllowed"
-          );
-        }
-        if (this.currentInteraction === "modify") {
-          me.helpMessage = i18n.t(
-            "map.tooltips.modifyExistingBuildingNotAllowed"
-          );
-        }
-        if (this.currentInteraction === "drawHole") {
-          me.helpMessage = i18n.t("map.tooltips.drawHoleOnPolygonNotAllowed");
-        }
-      } else {
-        if (this.currentInteraction === "addBldEntrance") {
-          me.helpMessage = i18n.t("map.tooltips.clickToBldEntrance");
-        }
-        if (this.currentInteraction === "move") {
-          me.helpMessage = i18n.t("map.tooltips.clickOnFeatureToMove");
-        }
-        if (this.currentInteraction === "modify") {
-          me.helpMessage = i18n.t("map.tooltips.clickAndDragToModify");
-        }
-        if (this.currentInteraction === "drawHole") {
-          me.helpMessage = i18n.t("map.tooltips.drawHoleOnPolygon");
-        }
-        me.map.getTarget().style.cursor = "pointer";
-        me.edit.setActive(true);
       }
     }
   }
@@ -323,23 +367,25 @@ export default class OlEditController extends OlBaseController {
   /**
    * Delete the feature if user selects yes
    */
-  deleteFeature() {
+  deleteFeature(f) {
     const me = this;
-
+    const selectedFeature = f || me.selectedFeature;
     // If layers selected is building get also all building entrance features of the building and commit a delete request
     if (
       editLayerHelper.selectedLayer.get("name") === "buildings" &&
       this.bldEntranceLayer &&
-      this.selectedFeature
+      selectedFeature
     ) {
       const buildingId =
-        this.selectedFeature.get("gid") || this.selectedFeature.getId();
+        selectedFeature.get("gid") ||
+        selectedFeature.get("id") ||
+        selectedFeature.getId();
       const bldEntranceFeaturesToDelete = this.bldEntranceLayer
         .getSource()
         .getFeatures()
         .filter(
           f =>
-            this.selectedFeature
+            selectedFeature
               .getGeometry()
               .intersectsCoordinate(f.getGeometry().getCoordinates()) &&
             f.get("building_gid") === buildingId
@@ -354,9 +400,9 @@ export default class OlEditController extends OlBaseController {
     //   me.source.removeFeature(me.selectedFeature);
     // } else {
     editLayerHelper.deleteFeature(
-      me.selectedFeature,
+      selectedFeature,
       me.source,
-      store.state.userId
+      me.storageLayer.getSource()
     );
 
     me.closePopup();
@@ -379,6 +425,9 @@ export default class OlEditController extends OlBaseController {
       });
       features.forEach(feature => {
         this.bldEntranceLayer.getSource().removeFeature(feature);
+        if (this.bldEntranceStorageLayer.getSource().hasFeature(feature)) {
+          this.bldEntranceStorageLayer.getSource().removeFeature(feature);
+        }
       });
     }
   }
@@ -388,14 +437,14 @@ export default class OlEditController extends OlBaseController {
    * @param {requestCallback} onUploadCb - The callback that handles the response.
    */
   uploadFeatures(onUploadCb) {
-    editLayerHelper.uploadFeatures(store.state.userId, this.source, onUploadCb);
+    editLayerHelper.uploadFeatures(this.source, onUploadCb);
   }
 
   /**
    * Read or insert deleted feature of the user.
    */
   readOrInsertDeletedFeatures() {
-    editLayerHelper.commitDelete("read", store.state.userId);
+    editLayerHelper.commitDelete("read_deleted_features");
   }
 
   /**
@@ -431,7 +480,7 @@ export default class OlEditController extends OlBaseController {
     const featuresToRemove = [];
 
     const clonedProperties = Object.assign({}, properties);
-    clonedProperties.userid = store.state.userId;
+    clonedProperties.scenario_id = isochronesStore.state.activeScenario;
     delete clonedProperties["id"];
 
     const layerName = editLayerHelper.selectedLayer
@@ -537,6 +586,9 @@ export default class OlEditController extends OlBaseController {
           for (i = 0; i < FIDs.length; i++) {
             const id = parseInt(FIDs[i].split(".")[1]);
             me.source.removeFeature(featuresToRemove[i]);
+            if (me.storageLayer.getSource().hasFeature(featuresToRemove[i])) {
+              me.storageLayer.getSource().removeFeature(featuresToRemove[i]);
+            }
             featuresToAdd[i].setId(id);
             featuresToAdd[i].set("gid", id);
             featuresToAdd[i].getGeometry().transform("EPSG:4326", "EPSG:3857");
@@ -656,18 +708,36 @@ export default class OlEditController extends OlBaseController {
     }
 
     super.clearOverlays();
+
     this.source.getFeatures().forEach(f => {
       const props = f.getProperties();
+      if (!props.hasOwnProperty("layerName")) {
+        this.source.removeFeature(f);
+        if (this.storageLayer.getSource().hasFeature(f)) {
+          this.storageLayer.getSource().removeFeature(f);
+        }
+      }
       if (
+        this.source.hasFeature(f) &&
         !props.hasOwnProperty("original_id") &&
         !props.hasOwnProperty("status")
       ) {
         this.source.removeFeature(f);
+        if (this.storageLayer.getSource().hasFeature(f)) {
+          this.storageLayer.getSource().removeFeature(f);
+        }
       }
 
       //For uploaded restored features.
-      if (props.status === 1 && !props.hasOwnProperty("original_id")) {
+      if (
+        this.source.hasFeature(f) &&
+        props.status === 1 &&
+        !props.hasOwnProperty("original_id")
+      ) {
         this.source.removeFeature(f);
+        if (this.storageLayer.getSource().hasFeature(f)) {
+          this.storageLayer.getSource().removeFeature(f);
+        }
       }
     });
   }
@@ -686,6 +756,9 @@ export default class OlEditController extends OlBaseController {
         feature.get("layerName") === editLayerHelper.selectedLayer.get("name")
       ) {
         this.source.removeFeature(feature);
+        if (this.storageLayer.getSource().hasFeature(feature)) {
+          this.storageLayer.getSource().removeFeature(feature);
+        }
       }
     });
     if (

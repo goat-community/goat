@@ -1,12 +1,11 @@
 --Forked FROM https://gist.github.com/dbauszus/1ba78db34da0140e02c03d99303812ea
 DROP FUNCTION IF EXISTS hexagrid;
 CREATE OR REPLACE FUNCTION public.hexagrid(_height numeric)
- RETURNS void 
+ RETURNS SETOF geometry
  LANGUAGE plpgsql
 AS $function$
 
-DECLARE
-_table  text  := 'grid_' || _height::text;   
+DECLARE 
 _curs   CURSor For SELECT st_transform(geom,3857) FROM study_area_union;
 _srid   integer  := 3857;
 _width  numeric  := _height * 0.866;
@@ -63,17 +62,8 @@ BEGIN
   CLOSE _curs;
 
   CREATE INDEX sidx_hx_tmp_geom ON hx_tmp USING GIST (geom);
-  EXECUTE 'DROP TABLE IF EXISTS '|| _table;
-  EXECUTE 'CREATE TABLE '|| _table ||' (geom GEOMETRY(POLYGON, '|| _srid ||'))';
-  EXECUTE 'INSERT INTO '|| _table ||' SELECT * FROM hx_tmp GROUP BY geom';
-  EXECUTE 'CREATE INDEX sidx_'|| _table ||'_geom ON '|| _table ||' USING GIST (geom)';
-  EXECUTE 'ALTER TABLE ' ||_table||' 
-       ALTER COLUMN geom TYPE geometry(Polygon,4326) 
-           USING ST_Transform(geom,4326)';
+  RETURN query EXECUTE 'SELECT ST_Transform(geom::geometry,4326) FROM hx_tmp GROUP BY geom';
   DROP TABLE IF EXISTS hx_tmp;
   
 END
 $function$
-
-
-

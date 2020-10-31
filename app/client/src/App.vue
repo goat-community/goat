@@ -29,7 +29,7 @@ import appSidebar from "./components/core/SideDrawer";
 import treePanel from "./components/core/TreePanel";
 import Snackbar from "./components/other/Snackbar";
 import Viewer from "./components/viewer/viewer";
-import { mapMutations } from "vuex";
+import { mapActions } from "vuex";
 import { mapFields } from "vuex-map-fields";
 
 import "@/globalComponents";
@@ -71,13 +71,11 @@ export default {
     // components are available
     EventBus.$emit("app-mounted");
 
-    //Generate UserId
-    const userid = Math.floor(Math.random() * 10000000);
-    this.setUserId(userid);
+    this.setUserId();
   },
   methods: {
-    ...mapMutations("user", {
-      setUserId: "SET_USER_ID"
+    ...mapActions("user", {
+      setUserId: "setUserId"
     })
   }
 };

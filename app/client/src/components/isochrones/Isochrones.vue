@@ -41,6 +41,9 @@ import { mapGetters, mapMutations, mapActions } from "vuex";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import VectorImageLayer from "ol/layer/VectorImage";
+import { wktToFeature } from "../../utils/MapUtils";
+import { getDistance } from "ol/sphere";
+import { toLonLat } from "ol/proj";
 
 export default {
   mixins: [Mapable, Isochrones],
@@ -62,11 +65,12 @@ export default {
     })
   },
   methods: {
+    ...mapActions("isochrones", { calculateIsochrone: "calculateIsochrone" }),
     ...mapMutations("isochrones", {
-      init: "INIT",
       addStyleInCache: "ADD_STYLE_IN_CACHE",
       addIsochroneLayer: "ADD_ISOCHRONE_LAYER",
-      addIsochroneNetworkLayer: "ADD_ISOCHRONE_ROAD_NETWORK_LAYER"
+      addIsochroneNetworkLayer: "ADD_ISOCHRONE_ROAD_NETWORK_LAYER",
+      updatePosition: "UPDATE_POSITION"
     }),
     ...mapActions("isochrones", {
       removeCalculation: "removeCalculation"
@@ -129,6 +133,27 @@ export default {
               return false;
             }
           });
+          let closestFeature;
+          let closestDistance;
+          const clickedCoord = toLonLat(evt.coordinate);
+
+          features.forEach(f => {
+            if (f.get("calculationType") === "single") {
+              let startingPoint = wktToFeature(f.get("starting_point"));
+              const distance = getDistance(
+                clickedCoord,
+                startingPoint.getGeometry().getCoordinates()
+              );
+              if (!closestDistance || closestDistance > distance) {
+                closestDistance = distance;
+                closestFeature = f;
+              }
+            }
+          });
+
+          if (!closestFeature) {
+            closestFeature = features[0];
+          }
           if (features.length > 0) {
             this.contextmenu.extend([
               "-", // this is a separator
@@ -140,10 +165,36 @@ export default {
                 callback: () => {
                   const calculation = this.calculations.filter(
                     calculation =>
-                      calculation.id === features[0].get("calculationNumber")
+                      calculation.id === closestFeature.get("calculationNumber")
                   );
                   if (calculation[0]) {
                     this.deleteCalculation(calculation[0]);
+                  }
+                }
+              }, // this is a separator
+              {
+                text: `<i class="fas fa-redo fa-1x" aria-hidden="true"></i>&nbsp;&nbsp${this.$t(
+                  "map.contextMenu.redoCalculation"
+                )}`,
+                label: "redoCalculation",
+                callback: () => {
+                  const calculation = this.calculations.filter(
+                    calculation =>
+                      calculation.id === closestFeature.get("calculationNumber")
+                  );
+                  if (calculation[0]) {
+                    this.removeCalculation(calculation[0]);
+                    if (calculation[0].calculationType === "single") {
+                      this.updatePosition({
+                        coordinate: wktToFeature(
+                          closestFeature.get("starting_point")
+                        )
+                          .getGeometry()
+                          .getCoordinates(),
+                        placeName: ""
+                      });
+                    }
+                    this.calculateIsochrone(calculation[0]);
                   }
                 }
               }
@@ -152,9 +203,6 @@ export default {
         });
       }
     }
-  },
-  created() {
-    this.init(this.$appConfig.componentData.isochrones);
   }
 };
 </script>
