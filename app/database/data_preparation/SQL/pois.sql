@@ -331,8 +331,8 @@ CREATE INDEX ON pois(amenity);
 ---------------------------------------- Refine and move POIS ---------------------------------------
 -------------------------------------- Displace overlapped POIS -------------------------------------
 
-SELECT pois_displacement(ARRAY['nursery','kindergarten'], (5/(27*3600)::float8));
-SELECT pois_displacement(ARRAY['primary_school','secondary_school'], (5/(27*3600)::float8));
+SELECT pois_displacement(ARRAY['nursery','kindergarten'], 5::float8, 50::float8, 30::float8);
+SELECT pois_displacement(ARRAY['primary_school','secondary_school'], 5::float8, 50::float8, 30::float8);
 
 ----------------------------------- Refine POIS based on categories ----------------------------------
 SELECT pois_reclassification('shop','grocery','amenity','convenience','singlevalue');
