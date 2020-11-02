@@ -2,11 +2,13 @@
 -------------------------------------
 /*
  * Inputs: amenity_set (array text), set of amenities to compare
- * delta: (float8) degrees to be used to move points, if you have meters, you can put the next expression to convert to degrees = (distance(m)/(27*3600))
+ * radius: (float8) degrees to be used to move points, if you have meters, you can put the next expression to convert to degrees = (distance(m)/(27*3600))
+ * building_radius (int) (meters)
+ * building_tag_radius (int) (meters)
  * Result: Modified pois with the pois displaced the amount of distance defined, if the point comes from a polygon, and it is outside the polygon, the point is translated to the polygon boundary)
  * 
  */
-CREATE OR REPLACE FUNCTION public.pois_displacement(amenity_set text[], radius double precision)
+CREATE OR REPLACE FUNCTION public.pois_displacement(amenity_set text[], radius double PRECISION, building_radius double PRECISION, building_tag_radius double PRECISION)
 	RETURNS void
 	LANGUAGE plpgsql
 AS $function$
@@ -18,9 +20,6 @@ BEGIN
 	
 	INSERT INTO pois_duplicated
 	WITH pois_filtered AS (SELECT * FROM pois WHERE amenity = ANY( amenity_set))
-	/*
-	WITH pois_filtered AS (SELECT * FROM pois WHERE amenity = ANY(ARRAY['nursery','kindergarten']))
-	*/
 	SELECT p.*, row_number() over(PARTITION BY p.geom ORDER BY p.amenity desc) AS row_no FROM pois_filtered p 
 	LEFT JOIN pois_filtered p2
 	ON p.osm_id = p2.osm_id
@@ -44,14 +43,10 @@ BEGIN
 	ALTER TABLE pois_duplicated ADD COLUMN x_delta float8;
 	ALTER TABLE pois_duplicated ADD COLUMN y_delta float8;
 	
-	UPDATE pois_duplicated SET x_delta = radius*cos(angle);
-	UPDATE pois_duplicated SET y_delta = radius*sin(angle);
-/*
-	UPDATE pois_duplicated SET x_delta = (10/(27*3600)::float8)*cos(angle);
-	UPDATE pois_duplicated SET y_delta = (10/(27*3600)::float8)*sin(angle);
-*/
+	UPDATE pois_duplicated SET x_delta = (radius/(27*3600)::float8)*cos(angle);
+	UPDATE pois_duplicated SET y_delta = (radius/(27*3600)::float8)*sin(angle);
+
 	-- Select buildings nearby duplicated pois
--- Add the radius parameter as input variable in the function
 
 	DROP TABLE IF EXISTS closer_buildings;
 	CREATE TABLE closer_buildings(LIKE buildings );
@@ -60,7 +55,7 @@ BEGIN
 	INSERT INTO closer_buildings
 	SELECT DISTINCT b.*
 	FROM buildings b, pois_duplicated pd 
-	WHERE ST_within(b.geom,ST_Buffer(pd.geom::geography,50)::geometry);
+	WHERE ST_within(b.geom,ST_Buffer(pd.geom::geography,building_radius)::geometry);
 		
 	--- Move pois based on the x_delta and y_delta
 	UPDATE pois_duplicated SET geom = st_translate(geom, x_delta, y_delta);
@@ -82,10 +77,8 @@ BEGIN
 	
 	DELETE FROM distance_to_buildings
 	WHERE row_order != 1;
-	--Select only correct distances
--- add maximum tag distance to the building, here, it will be 30 m
 	DELETE FROM distance_to_buildings
-	WHERE distance = 0 OR distance >= (30::float8/(27::float8*3600::float8));
+	WHERE distance = 0 OR distance >= (building_tag_radius::float8/(27::float8*3600::float8));
 	
 	--distance_to_buldings now contains points outside polygon and the respective ID, now snap to the polygon.
 	--translate distance_to_buildings to the polygons in a new table
@@ -117,5 +110,5 @@ UPDATE pois
 END
 $function$
 /* 
-SELECT pois_displacement(ARRAY['primary_school','secondary_school'], (20/(27*3600)::float8))
+SELECT pois_displacement(ARRAY['primary_school','secondary_school'], 20::float8, 50:float8, 30::float8)
  */
