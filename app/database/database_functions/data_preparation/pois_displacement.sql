@@ -15,7 +15,7 @@ AS $function$
 BEGIN
 	--- Identify duplicated geometries and extract them in pois_duplicated
 	DROP TABLE IF EXISTS pois_duplicated;
-	CREATE TABLE pois_duplicated (LIKE pois);
+	CREATE TEMP TABLE pois_duplicated (LIKE pois);
 	ALTER TABLE pois_duplicated ADD COLUMN row_no int8;
 	
 	INSERT INTO pois_duplicated
@@ -49,7 +49,7 @@ BEGIN
 	-- Select buildings nearby duplicated pois
 
 	DROP TABLE IF EXISTS closer_buildings;
-	CREATE TABLE closer_buildings(LIKE buildings );
+	CREATE TEMP TABLE closer_buildings(LIKE buildings );
 	
 	
 	INSERT INTO closer_buildings
@@ -63,7 +63,7 @@ BEGIN
 	-- Calculate distance from each point to buildings
 	
 	DROP TABLE IF EXISTS distance_to_buildings;
-	CREATE TABLE distance_to_buildings (LIKE pois_duplicated);
+	CREATE TEMP TABLE distance_to_buildings (LIKE pois_duplicated);
 	ALTER TABLE distance_to_buildings ADD COLUMN building_gid int8, ADD COLUMN distance float8, ADD COLUMN row_order int8;
 	
 	--- All points will be tagged
@@ -84,7 +84,7 @@ BEGIN
 	--translate distance_to_buildings to the polygons in a new table
 	
 	DROP TABLE IF EXISTS pois_out_boundary;
-	CREATE TABLE pois_out_boundary (gid int4, geom geometry);
+	CREATE TEMP TABLE pois_out_boundary (gid int4, geom geometry);
 	
 	INSERT INTO pois_out_boundary
 	WITH building AS (SELECT * FROM closer_buildings WHERE gid = ANY (SELECT building_gid FROM distance_to_buildings))
