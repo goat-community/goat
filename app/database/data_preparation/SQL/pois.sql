@@ -468,23 +468,28 @@ WITH area_limit AS (
 SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'parks'->'small')::jsonb)::DOUBLE PRECISION
 ),
 joined_parks AS (
-	SELECT (ST_dump(ST_union(way))).geom AS geom FROM planet_osm_polygon
+	SELECT (ST_dump(ST_union(way))).geom AS geom 
+	FROM planet_osm_polygon
 	WHERE (leisure IN ('park','nature_reserve','garden') 
-	OR landuse IN ('village_green','grass')) 
+	OR landuse IN ('village_green','grass')
+	OR (landuse = 'recreation_ground' AND surface = 'grass')) 
 	AND (access is NULL OR access not in ('private','customers', 'permissive','no')) 
-	AND ST_area(way::geography) >= (SELECT * FROM area_limit)
 ), all_parks AS (
 	SELECT osm_id, 'polygon' AS origin_geometry, ACCESS AS ACCESS, '' AS housenumber, 'small_park' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
 	operator, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair, sport FROM planet_osm_polygon
-	WHERE (leisure IN ('park','nature_reserve','garden') OR landuse IN ('village_green','grass')) 
-	AND (access is NULL OR access not in ('private','customers', 'permissive','no')) AND ST_area(way::geography) >= (SELECT * FROM area_limit)
+	WHERE (leisure IN ('park','nature_reserve','garden') 
+	OR landuse IN ('village_green','grass')
+	OR (landuse = 'recreation_ground' AND surface = 'grass')) 
+	AND (access is NULL OR access not in ('private','customers', 'permissive','no')) 
 ), parks_id AS (
 SELECT ap.*, jp.geom AS agg_geom, ST_Area(ap.geom::geography), row_number() over(PARTITION BY jp.geom ORDER BY ST_Area(ap.geom::geography) desc) AS row_no FROM all_parks ap
 JOIN joined_parks jp
 ON ST_Intersects(ST_centroid(ap.geom), jp.geom) 
 ORDER BY jp.geom DESC, st_area DESC)
 SELECT osm_id, origin_geometry, ACCESS, housenumber, amenity, origin, organic, denomination, brand, name, OPERATOR, public_transport, railway, religion, opening_hours, REF, tags,agg_geom AS geom, wheelchair, sport
-FROM parks_id WHERE row_no = 1
+FROM parks_id 
+WHERE row_no = 1 
+AND ST_area(agg_geom::geography) >= (SELECT * FROM area_limit)
 
 UNION ALL
 --- Insert forest polygons
@@ -504,16 +509,43 @@ UNION ALL
 --- Insert lakes polygons	
 SELECT osm_id, 'polygon' AS origin_geometry, "access" AS ACCESS, '' AS housenumber, 'lake' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
 	OPERATOR, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair, sport
-	FROM planet_osm_polygon pop WHERE (("natural" = 'water' AND (water = 'lake' OR water = 'pond' OR water = 'basin' OR water = 'reservoir')) OR ("natural" = 'water' AND sport = 'swimming'));
+	FROM planet_osm_polygon pop WHERE (("natural" = 'water' AND (water = 'lake' OR water = 'pond' OR water = 'basin' OR water = 'reservoir')) OR ("natural" = 'water' AND sport = 'swimming'))
 
+UNION ALL 
+-- Insert heath and scrubs
+(WITH area_limit AS(
+	SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'heath'->'small')::jsonb)::DOUBLE PRECISION),
+heath_scrub AS(
+	SELECT (ST_dump(ST_union(way))).geom AS geom
+	FROM planet_osm_polygon
+	WHERE ("natural" = 'scrub' OR "natural"='heath')),
+all_heath AS (
+	SELECT osm_id, 'polygon' AS origin_geometry, ACCESS AS ACCESS, '' AS housenumber, 'small_heath_scrub' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
+	operator, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair, sport FROM planet_osm_polygon
+	WHERE ("natural" = 'scrub' OR "natural"='heath')),
+heath_id AS (
+	SELECT ah.*, hs.geom AS agg_geom, row_number() over(PARTITION BY hs.geom ORDER BY ST_Area(ah.geom::geography)DESC) AS row_no FROM all_heath ah
+	JOIN heath_scrub hs
+	ON ST_Intersects(ST_Centroid(ah.geom), hs.geom))	
+SELECT osm_id, origin_geometry, ACCESS, housenumber, amenity, origin, organic, denomination, brand, name, OPERATOR, public_transport, railway, religion, opening_hours, REF, tags,agg_geom AS geom, wheelchair, sport
+FROM heath_id 
+WHERE row_no = 1 
+AND ST_area(agg_geom::geography) >= (SELECT * FROM area_limit));
+
+-- Classificate areas by size
+
+UPDATE aois SET amenity = 'big_heath_scrub' WHERE amenity = 'small_heath_scrub' AND ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'heath'->'large')::jsonb)::DOUBLE PRECISION);
 UPDATE aois SET amenity = 'big_park' WHERE amenity = 'small_park' AND ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'parks'->'large')::jsonb)::DOUBLE PRECISION);
 UPDATE aois SET amenity = 'big_forest' WHERE amenity = 'small_forest' AND ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'forest'->'large')::jsonb)::DOUBLE PRECISION);
 UPDATE aois SET amenity = 'swimming_lake' WHERE amenity = 'lake' AND sport = 'swimming';
 ALTER TABLE aois DROP COLUMN sport;
-
 --- Create entries to polygons ---
-SELECT generate_entries_from_polygons(ARRAY['big_park','small_park'],ARRAY['path','footway','cycleway','track','pedestrian','service']);
 
+SELECT generate_entries_from_polygons(ARRAY['big_park','small_park'],ARRAY['path','footway','cycleway','track','pedestrian','service']);
+SELECT generate_entries_from_polygons(ARRAY['big_heath_scrub','small_heath_scrub'],ARRAY['path','footway','cycleway','track','pedestrian','service']);
+EXPLAIN ANALYZE 
+SELECT generate_entries_from_polygons(ARRAY['small_forest','big_forest'],ARRAY['path','footway','cycleway','track','pedestrian','service']);
+--- END areas of interest----
 -- If custom_pois exists, run pois fusion 
 DO $$                  
     BEGIN 
