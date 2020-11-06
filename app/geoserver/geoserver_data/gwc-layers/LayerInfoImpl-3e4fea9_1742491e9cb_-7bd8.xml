@@ -1,8 +1,8 @@
 <GeoServerTileLayer>
-  <id>LayerInfoImpl-1e67e07:171a6fbbc9e:379b</id>
+  <id>LayerInfoImpl-3e4fea9:1742491e9cb:-7bd8</id>
   <enabled>true</enabled>
   <inMemoryCached>true</inMemoryCached>
-  <name>cite:landuse</name>
+  <name>cite:aois_large</name>
   <mimeFormats>
     <string>image/png</string>
     <string>image/jpeg</string>
@@ -26,7 +26,7 @@
       <key>STYLES</key>
       <defaultValue></defaultValue>
       <availableStyles class="sorted-set"/>
-      <defaultStyle>cite:style_atkis_landuse</defaultStyle>
+      <defaultStyle>cite:muc_parks</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>
   <gutter>0</gutter>

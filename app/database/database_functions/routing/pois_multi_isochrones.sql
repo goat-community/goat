@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, minutes integer, speed_input numeric, 
+CREATE OR REPLACE FUNCTION public.pois_multi_isochrones(userid_input integer, scenario_id_input integer, minutes integer, speed_input numeric, 
 	n integer, routing_profile_input text, alphashape_parameter_input NUMERIC, modus_input integer,region_type text, 
 	region text[], amenities text[])
 RETURNS SETOF type_pois_multi_isochrones
@@ -22,6 +22,8 @@ DECLARE
 	excluded_buildings_gid integer[];
 	BEGIN
 
+	scenario_id_input = COALESCE(scenario_id_input,0);
+	
 	/*Scenario building has to be implemented*/
 	buffer = (minutes::numeric/60::numeric)*speed_input*1000;
  	
@@ -33,11 +35,11 @@ DECLARE
 	END IF;
 
 	IF modus_input IN(2,4) THEN
-		excluded_pois_id = ids_modified_features(userid_input,1,'pois');
-		excluded_buildings_gid = (SELECT deleted_feature_ids FROM user_data u WHERE u.userid = userid_input AND layer_name = 'buildings');
+		excluded_pois_id = ids_modified_features(scenario_id_input,'pois');
+		excluded_buildings_gid = (SELECT deleted_buildings FROM scenarios WHERE scenario_id = scenario_id_input);
 	ELSE 
 		excluded_pois_id = ARRAY[]::integer[];
-		userid_input = 1;
+		scenario_id_input = 0;
 	END IF;
 
  	IF region_type = 'study_area' THEN
@@ -59,7 +61,7 @@ DECLARE
 				FROM ( 
 					SELECT population, p.geom 
 					FROM population_userinput p
-					WHERE p.userid = userid_input
+					WHERE p.scenario_id = scenario_id_input
 					UNION ALL 
 					SELECT -population, p.geom 
 					FROM population_userinput p
@@ -87,7 +89,7 @@ DECLARE
 		SELECT jsonb_build_object('bounding_box',floor(sum(population)::integer/5)*5) AS sum_pop
 		INTO population_mask
 		FROM population_userinput p
-		WHERE (userid = userid_input OR userid IS NULL)
+		WHERE (scenario_id = scenario_id_input OR scenario_id IS NULL)
 		AND p.building_gid NOT IN (SELECT UNNEST(excluded_buildings_gid))
 		AND ST_Intersects(p.geom,mask);	
 	
@@ -103,7 +105,7 @@ DECLARE
 		FROM pois_userinput p
 		WHERE p.amenity IN (SELECT UNNEST(amenities))
 		--AND p.gid NOT IN (select gid from pois_closed)
-		AND (p.userid = userid_input OR p.userid IS NULL)
+		AND (p.scenario_id = scenario_id_input OR p.scenario_id IS NULL)
         AND p.gid NOT IN (SELECT UNNEST(excluded_pois_id))
 		AND (p.wheelchair NOT IN (SELECT UNNEST(wheelchair_condition)) OR p.wheelchair IS NULL)
 		AND ST_intersects(p.geom, buffer_mask)
@@ -113,7 +115,7 @@ DECLARE
  	---------------------------------------------------------------------------------
  		
 	objectid_multi_isochrone = random_between(1,999999999);
-	PERFORM multi_isochrones(userid_input, objectid_multi_isochrone, minutes,n,routing_profile_input,speed_input,alphashape_parameter_input,modus_input,1,points_array);
+	PERFORM multi_isochrones(userid_input, scenario_id_input, objectid_multi_isochrone, minutes,n,routing_profile_input,speed_input,alphashape_parameter_input,modus_input,1,points_array);
 		
 	IF region_type = 'study_area' THEN
 	 	WITH expand_population AS 
@@ -133,7 +135,7 @@ DECLARE
 			FROM iso_intersection i, population_userinput p  
 			WHERE ST_intersects(i.geom, p.geom)
 			AND p.building_gid NOT IN (SELECT UNNEST(excluded_buildings_gid))
-			AND (p.userid = userid_input OR p.userid IS NULL)
+			AND (p.scenario_id = scenario_id_input OR p.scenario_id IS NULL)
 			GROUP BY i.gid, i.name
 		)
 		UPDATE multi_isochrones m
@@ -157,17 +159,18 @@ DECLARE
 			WHERE ST_Intersects(p.geom,ST_Intersection(mask,ST_SetSrid(m.geom,4326)))
 			AND m.objectid = objectid_multi_isochrone
 			AND p.building_gid NOT IN (SELECT UNNEST(excluded_buildings_gid))
-			AND (p.userid = userid_input OR p.userid IS NULL)
+			AND (p.scenario_id = scenario_id_input OR p.scenario_id IS NULL)
 			GROUP BY m.gid
 		) x
 		WHERE multi_isochrones.gid = x.gid;
 	END IF; 
 	RETURN query 
-	SELECT gid,objectid, coordinates, userid,step, routing_profile, speed,alphashape_parameter,modus, parent_id, population, geom geometry 
+	SELECT gid,objectid, coordinates, userid, scenario_id_input, step, routing_profile, speed, alphashape_parameter,modus, parent_id, population, geom geometry 
 	FROM multi_isochrones
 	WHERE objectid = objectid_multi_isochrone;
 	END;
 $function$ LANGUAGE plpgsql;
+
 
 
 /*

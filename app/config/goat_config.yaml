@@ -41,6 +41,7 @@ DATA_REFINEMENT_VARIABLES:
     ]
     custom_landuse_with_residents_name: ["%seniorenheim%"]
     osm_landuse_no_residents: ["farmyard","farmland","quarry","industrial","retail","commercial","forest","military","cemetery","landfill","allotments","recreation ground","railway"]
+    aois_no_residents: ["big_forest","big_park","lake","river","small_forest","small_park","swimming_lake"]
     #All buildings that can be potentially residential
     building_types_potentially_residential: ["yes"]
     #All buildings that are definitely residential
@@ -91,6 +92,15 @@ DATA_REFINEMENT_VARIABLES:
       delay_1: 15
       delay_2: 30
     dem_resolution: '10'
+    ##-------------------------------------Size limits for areas of interest------------------------------------##
+    ## Limits the area to be displayed for certain amenities (like parks). The limits should be defined in square meters
+    areas_boundaries:
+      parks:
+        small: [20000]
+        large: [300000]
+      forest:
+        small: [20000]
+        large: [300000]
     ##-------------------------------------Radius definition for POIS fusion------------------------------------##
     ##  Duplicated lookup radius: Sensibility factor, entities for the same branch and amenity type into this radius will be considered as duplicated; it is applied for OSM and Custom POIS databases (meters).
     ##  Tag new radius: Radius search for tag opening hours from Custom POIS to OSM POIS (meters).
@@ -99,7 +109,7 @@ DATA_REFINEMENT_VARIABLES:
     tag_new_radius: '130'
     duplicated_kindergarten_lookup_radius: '40'
     ##----------------------------------------------------------------------------------------------------------##
-    ##-----------Definition of amenity parameters for POIS preparation and data fusion of new sources------------##
+    ##-----------Definition of amenity parameters for POIS preparation and data fusion of new sources-----------##
     ##----------------------------------------------------------------------------------------------------------##
     ##  Data structure:       Amenity type -> brand name -> different brand name variables
     ##  Amenity type:         According to the types defined for GOAT
@@ -144,7 +154,7 @@ DATA_REFINEMENT_VARIABLES:
       restaurant:   
         vapiano: ['vapiano']
       nursery:
-        kinderkrippe: ['krippe','kindergrippe']
+        kinderkrippe: ['krippe','kinderkrippe']
       discount_gym:
         fitstar: ['fit-star','fit star']
         mcfit: []

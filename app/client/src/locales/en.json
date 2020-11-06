@@ -338,6 +338,8 @@
     },
     "layerName": {
       "pois": "Point of Interest",
+      "aois_small":"Areas of Interest (detailed)",
+      "aois_large":"Areas of Interest ",
       "administrativeUnits": "Administrative Units",
       "accidentsPedestrians": "Accidents with pedestrians",
       "accidents_pedestrian_2018": "Accidents with pedestrians (2018)",
@@ -361,6 +363,7 @@
       "footpathWidth": "Footpath Width",
       "illuminance": "Illuminance",
       "lanes": "Lanes",
+      "modeshare": "Mode share",
       "noiseAircraftLDEN": "Aircraft noise - Level LDEN",
       "noiseAircraftLNight": "Aircraft noise - Level LNight",
       "noiseProtectionBauleitplanung": "Noise protection area for urban land use planning",

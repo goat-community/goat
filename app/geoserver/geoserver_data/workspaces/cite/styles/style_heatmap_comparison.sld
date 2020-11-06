@@ -6,9 +6,13 @@
       <se:Name>style_heatmap_comparison</se:Name>
       <se:FeatureTypeStyle>
         <se:Rule>
-          <se:Name>-5</se:Name>
+          <se:Name>Very strong decrease</se:Name>
           <se:Description>
-            <se:Title>-5</se:Title>
+            <Title>
+            Very strong decrease
+            <Localized lang="de">Sehr hohe Abnahme</Localized>
+            <Localized lang="en">Very strong decrease</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
@@ -24,9 +28,13 @@
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>-4</se:Name>
+          <se:Name>Strong decrease</se:Name>
           <se:Description>
-            <se:Title>-4</se:Title>
+            <Title>
+            Strong decrease
+            <Localized lang="de">Hohe Abnahme</Localized>
+            <Localized lang="en">Strong decrease</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
@@ -42,9 +50,13 @@
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>-3</se:Name>
+          <se:Name>Mean decrease</se:Name>
           <se:Description>
-            <se:Title>-3</se:Title>
+            <Title>
+            Mean decrease
+            <Localized lang="de">Mittlere Abnahme</Localized>
+            <Localized lang="en">Mean decrease</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
@@ -60,9 +72,13 @@
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>-2</se:Name>
+          <se:Name>Low decrease</se:Name>
           <se:Description>
-            <se:Title>-2</se:Title>
+            <Title>
+            Low decrease
+            <Localized lang="de">Geringe Abnahme</Localized>
+            <Localized lang="en">Low decrease</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
@@ -72,15 +88,19 @@
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
-              <se:SvgParameter name="fill">#9a9db9</se:SvgParameter>
+              <se:SvgParameter name="fill">#ef956e</se:SvgParameter>
               <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>-1</se:Name>
+          <se:Name>Very low decrease</se:Name>
           <se:Description>
-            <se:Title>-1</se:Title>
+            <Title>
+            Very low decrease
+            <Localized lang="de">Sehr geringe Abnahme</Localized>
+            <Localized lang="en">Very low decrease</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
@@ -90,15 +110,19 @@
           </ogc:Filter>
           <se:PolygonSymbolizer>
             <se:Fill>
-              <se:SvgParameter name="fill">#cdcedc</se:SvgParameter>
+              <se:SvgParameter name="fill">#f7bf89</se:SvgParameter>
               <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
             </se:Fill>
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>0</se:Name>
+          <se:Name>No or marginal change</se:Name>
           <se:Description>
-            <se:Title>0</se:Title>
+            <Title>
+            No or marginal change
+            <Localized lang="de">Keine oder vernachlässigbare Änderung</Localized>
+            <Localized lang="en">No or marginal change</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
@@ -114,9 +138,13 @@
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>1</se:Name>
+          <se:Name>Very small increase</se:Name>
           <se:Description>
-            <se:Title>1</se:Title>
+            <Title>
+            Very small increase
+            <Localized lang="de">Sehr leichte Zunahme</Localized>
+            <Localized lang="en">Very small increase</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
@@ -132,9 +160,13 @@
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>2</se:Name>
+          <se:Name>Small increase</se:Name>
           <se:Description>
-            <se:Title>2</se:Title>
+            <Title>
+            Small increase
+            <Localized lang="de">Leichte Zunahme</Localized>
+            <Localized lang="en">Small increase</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
@@ -150,9 +182,13 @@
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>3</se:Name>
+          <se:Name>Mean increase</se:Name>
           <se:Description>
-            <se:Title>3</se:Title>
+            <Title>
+            Mean increase
+            <Localized lang="de">Mittlere Zunahme</Localized>
+            <Localized lang="en">Mean increase</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
@@ -168,9 +204,13 @@
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>4</se:Name>
+          <se:Name>High increase</se:Name>
           <se:Description>
-            <se:Title>4</se:Title>
+            <Title>
+            High increase
+            <Localized lang="de">Hohe Zunahme</Localized>
+            <Localized lang="en">High increase</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
@@ -186,9 +226,13 @@
           </se:PolygonSymbolizer>
         </se:Rule>
         <se:Rule>
-          <se:Name>5</se:Name>
+          <se:Name>Very high increase</se:Name>
           <se:Description>
-            <se:Title>5</se:Title>
+            <Title>
+            Very high increase
+            <Localized lang="de">Sehr hohe Zunahme</Localized>
+            <Localized lang="en">Very high increase</Localized>
+            </Title>
           </se:Description>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
