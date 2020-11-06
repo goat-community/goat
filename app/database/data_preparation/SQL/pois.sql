@@ -543,7 +543,6 @@ ALTER TABLE aois DROP COLUMN sport;
 
 SELECT generate_entries_from_polygons(ARRAY['big_park','small_park'],ARRAY['path','footway','cycleway','track','pedestrian','service']);
 SELECT generate_entries_from_polygons(ARRAY['big_heath_scrub','small_heath_scrub'],ARRAY['path','footway','cycleway','track','pedestrian','service']);
-EXPLAIN ANALYZE 
 SELECT generate_entries_from_polygons(ARRAY['small_forest','big_forest'],ARRAY['path','footway','cycleway','track','pedestrian','service']);
 --- END areas of interest----
 -- If custom_pois exists, run pois fusion 
