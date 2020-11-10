@@ -174,7 +174,7 @@
       "dataTypeInfo": "Benötigter Datei Typ",
       "geometryTypeInfo": "Benötigter Geometrie Typ",
       "requiredFields": "Erforderliche Attribute",
-      "referenceSystemInfo": "Referenzsystem sollte sein",
+      "referenceSystemInfo": "Erforderliches Referenzsystem",
       "featuresNotyetUploaded": "Objekte noch nicht hochgeladen. Klicken Sie auf Hochladen, um die Änderungen zu übernehmen.",
       "differentGeometryType": "Falscher Geometrie-Typ",
       "missingFields": "Fehlende Felder",
