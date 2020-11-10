@@ -42,9 +42,9 @@
             min="1"
             max="20"
             inverse-label
-            v-model="minutes.active"
+            v-model="minutes"
             prepend-icon="fas fa-clock"
-            :label="minutes.active + ' min'"
+            :label="minutes + ' min'"
             color="#30C2FF"
           >
           </v-slider>
@@ -103,7 +103,6 @@ export default {
     }),
     ...mapFields("isochrones", {
       minutes: "options.minutes",
-      calculationType: "options.calculationType",
       speed: "options.speed",
       steps: "options.steps",
       calculationModes: "options.calculationModes.active",
