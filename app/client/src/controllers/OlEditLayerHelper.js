@@ -86,6 +86,9 @@ const editLayerHelper = {
     const beforeStatus = feature.get("status");
     feature.set("status", null);
     feature.set("scenario_id", store.state.activeScenario);
+    if (feature.get("layerName") === "pois") {
+      feature.set("status", 1);
+    }
     if (props.hasOwnProperty("original_id")) {
       if (props.original_id !== null) {
         const fid = feature.getProperties().original_id.toString();

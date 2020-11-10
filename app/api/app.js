@@ -103,6 +103,12 @@ app.post("/api/scenarios", jsonParser, (request, response) => {
       [request.body.scenario_id],
       returnResult
     );
+  } else if (mode === "update_scenario") {
+    pool.query(
+      "UPDATE scenarios SET scenario_name = $1 WHERE scenario_id = $2::bigint",
+      [request.body.scenario_name, request.body.scenario_id],
+      returnResult
+    );
   }
 });
 
@@ -326,28 +332,21 @@ app.post("/api/import_scenario", jsonParser, (request, response) => {
   });
 });
 
-app.post(
-  "/api/upload_all_scenarios",
-  jsonParser,
-  async (request, response) => {
-    const scenarioId = request.body.scenario_id;
-    try {
-      //1- Delete from scenario first
-      await pool.query(
-        `SELECT * FROM network_modification(${scenarioId});`,
-        []
-      );
+app.post("/api/upload_all_scenarios", jsonParser, async (request, response) => {
+  const scenarioId = request.body.scenario_id;
+  try {
+    //1- Delete from scenario first
+    await pool.query(`SELECT * FROM network_modification(${scenarioId});`, []);
 
-      //2- Rerun upload for ways to reflect the changes.
-      await pool.query(`SELECT * FROM population_modification(${scenarioId});`);
+    //2- Rerun upload for ways to reflect the changes.
+    await pool.query(`SELECT * FROM population_modification(${scenarioId});`);
 
-      response.send("success");
-    } catch (err) {
-      console.log(err.stack);
-      response.send("error");
-    }
+    response.send("success");
+  } catch (err) {
+    console.log(err.stack);
+    response.send("error");
   }
-);
+});
 
 // respond with "pong" when a GET request is made to /ping (HEALTHCHECK)
 app.get("/ping", function (_req, res) {
