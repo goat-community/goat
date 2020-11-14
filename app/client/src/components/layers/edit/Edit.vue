@@ -2062,6 +2062,9 @@ export default {
           const layerName = f.get("layerName");
           const isDeleted = fid;
           let status = prop.status === 1 ? "Uploaded" : "NotUploaded";
+          if (f.get("layerName") === "pois") {
+            status = "Uploaded";
+          }
           const type = "deleted";
           let source = "";
           if (
