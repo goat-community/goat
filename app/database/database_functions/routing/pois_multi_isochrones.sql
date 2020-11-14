@@ -81,11 +81,7 @@ DECLARE
 	 	END IF;
  	 
  	ELSE 
-		boundary_envelope = region::numeric[];
-		
-		mask = ST_MakeEnvelope(boundary_envelope[1],boundary_envelope[2],boundary_envelope[3],boundary_envelope[4],4326);
-		
-	
+		mask = st_setsrid(ST_GeomFromText(region[1]), 4326);
 		SELECT jsonb_build_object('bounding_box',floor(sum(population)::integer/5)*5) AS sum_pop
 		INTO population_mask
 		FROM population_userinput p

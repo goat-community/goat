@@ -187,10 +187,10 @@
       "clear": "Clear",
       "calculate": "Calculate",
       "studyAreaInfoLabel": "Select <b>study area</b> on the map and <b>points of interest</b> from the thematic data filter to enable calculation.",
-      "drawBoundary": "Draw Boundary",
+      "drawPolygon": "Draw Polygon",
       "amenityCount": "Amenity Count",
       "limit": "Limit",
-      "drawBoundaryInfoLabel": "Draw <b>boundary</b> on the map and select <b>points of interest</b> from the thematic data filter to enable calculation.",
+      "drawPolygonInfoLabel": "Draw <b>polygon</b> on the map and select <b>points of interest</b> from the thematic data filter to enable calculation.",
       "tableDataTitle": "Multi-Isochrone Data"
     },
     "options": {

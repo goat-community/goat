@@ -203,10 +203,10 @@
       "clear": "Borrar",
       "calculate": "Calcular",
       "studyAreaInfoLabel": "Seleccione un <b> área de estudio </b> y los <b> servicios </b> para habilitar el cálculo.",
-      "drawBoundary": "Dibujar área",
+      "drawPolygon": "Dibujar área",
       "amenityCount": "Número de servicios",
       "limit": "Máximo",
-      "drawBoundaryInfoLabel": "Dibuje <b> un área </b> y seleccione los <b> servicios </b> para habilitar el cálculo.",
+      "drawPolygonInfoLabel": "Dibuje <b> un área </b> y seleccione los <b> servicios </b> para habilitar el cálculo.",
       "tableDataTitle": "Datos de las isocronas múltiples"
     },
     "options": {

@@ -274,7 +274,7 @@ app.post(
     'geometry',   ST_AsGeoJSON(geom)::jsonb,
     'properties', to_jsonb(inputs) - 'geom'
   ) AS feature 
-  FROM (SELECT count_pois,region_name, geom FROM count_pois_multi_isochrones(${queryValues[0]},${queryValues[1]},${queryValues[2]},${queryValues[3]},${queryValues[4]},${queryValues[5]},ARRAY[${queryValues[6]}],ARRAY[${queryValues[7]}])) inputs;`;
+  FROM (SELECT count_pois,region_name, geom FROM count_pois_multi_isochrones(${queryValues[0]},${queryValues[1]},${queryValues[2]},${queryValues[3]},${queryValues[4]},${queryValues[5]},'${queryValues[6]}',ARRAY[${queryValues[7]}])) inputs;`;
     pool.query(sqlQuery, (err, res) => {
       if (err) return console.log(err);
       console.log(res);
