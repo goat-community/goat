@@ -83,6 +83,16 @@ export function featuresToGeojson(features, featureProjection, dataProjection) {
   return json;
 }
 
+export function geometryToWKT(geometry, featureProjection, dataProjection) {
+  const options = { featureProjection };
+  if (dataProjection) {
+    options.dataProjection = dataProjection;
+  }
+  const format = new WKT(options);
+  const wktGeom = format.writeGeometry(geometry);
+  return wktGeom;
+}
+
 export function wktToFeature(wkt, srsName) {
   const format = new WKT();
   const feature = format.readFeature(wkt, {

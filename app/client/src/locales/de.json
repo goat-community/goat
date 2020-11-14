@@ -222,10 +222,10 @@
       "clear": "Löschen",
       "calculate": "Berechnen",
       "studyAreaInfoLabel": "Wählen Sie <b> Orte </b> auf der Karte aus und <b> Ziele </b> im Filter Thematische Daten aus, um die Berechnung zu ermöglichen.",
-      "drawBoundary": "Grenze zeichnen",
+      "drawPolygon": "Grenze zeichnen",
       "amenityCount": "Anzahl Einrichtungen",
       "limit": "Grenze",
-      "drawBoundaryInfoLabel": "Zeichnen Sie eine <b> Grenze</b> auf der Karte ein und wählen Sie <b> Ziele </b> im Filter Thematische Daten aus aus, um die Berechnung zu ermöglichen.",
+      "drawPolygonInfoLabel": "Zeichnen Sie eine <b> Grenze</b> auf der Karte ein und wählen Sie <b> Ziele </b> im Filter Thematische Daten aus aus, um die Berechnung zu ermöglichen.",
       "tableDataTitle": "Daten Multi-Isochrone"
     },
     "options": {
