@@ -1367,13 +1367,12 @@ export default {
      * Open modify attribute popup
      */
     openModifyAttributePopup(evt) {
-      const features = this.olEditCtrl.source.getFeaturesAtCoordinate(
+      const feature = this.olEditCtrl.source.getClosestFeatureToCoordinate(
         evt.coordinate
       );
       this.olEditCtrl.featuresToCommit = [];
       this.olEditCtrl.highlightSource.clear();
-      if (features.length > 0) {
-        const feature = features[0];
+      if (feature) {
         const props = feature.getProperties();
         for (const attr in this.dataObject) {
           this.dataObject[attr] = attr in props ? props[attr] : null;
