@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS count_pois_multi_isochrones;
-CREATE OR REPLACE FUNCTION public.count_pois_multi_isochrones (userid_input integer, modus_input text, minutes integer, speed_input numeric, region_type text, region NUMERIC[], amenities text[])
+CREATE OR REPLACE FUNCTION public.count_pois_multi_isochrones (userid_input integer, scenario_id_input integer, modus_input text, minutes integer, speed_input numeric, region_type text, region text, amenities text[])
     RETURNS TABLE (region_name text, count_pois integer, geom geometry, buffer_geom geometry)
     AS $function$
 DECLARE
@@ -9,19 +9,19 @@ DECLARE
     excluded_pois_id integer[];
 BEGIN
     IF modus_input = 'default' THEN
-        userid_input = 1;
+        scenario_id_input = 0;
         excluded_pois_id = ARRAY[]::integer[];
     ELSE
-        excluded_pois_id = ids_modified_features(userid_input,1,'pois');
+        excluded_pois_id = ids_modified_features(scenario_id_input,'pois');
     END IF;
 
     IF region_type = 'study_area' THEN
         SELECT s.geom, name  
         INTO region_geom, region_name
         FROM study_area s
-        WHERE ST_Intersects (s.geom, ST_SetSrid (ST_POINT (region[1], region[2]), 4326));
+        WHERE ST_Intersects (st_setsrid(s.geom,4326), ST_SetSrid (ST_GeomFromText(region), 4326));
     ELSE
-        SELECT st_MAKEEnvelope (region[1],region[2],region[3],region[4]) INTO region_geom;
+        SELECT ST_GeomFromText(region) INTO region_geom;
         region_name = 'envelope';
     END IF;
     buffer_geom = ST_Buffer (region_geom::geography, (speed_input / 3.6) * 60 * minutes)::geometry;
@@ -30,7 +30,7 @@ BEGIN
             SELECT count(*) AS count_pois
             FROM pois_userinput p
             WHERE ST_Intersects (p.geom,buffer_geom)
-            AND (p.userid = userid_input OR p.userid IS NULL)
+            AND (p.scenario_id = scenario_id_input OR p.scenario_id IS NULL)
             AND p.gid NOT IN (SELECT UNNEST(excluded_pois_id))
             AND amenity IN (SELECT UNNEST(amenities))
         )

@@ -641,6 +641,7 @@ export default {
         let type;
         switch (originGeometry) {
           case "polygon":
+          case "polygon dissagregated":
           case "multipolygon":
           case "linestring":
             type = "way";

@@ -41,8 +41,8 @@ const state = {
         value: "study_area"
       },
       {
-        display: "Draw Boundary",
-        name: "drawBoundary",
+        display: "Draw Polygon",
+        name: "drawPolygon",
         value: "draw"
       }
     ],
@@ -58,7 +58,10 @@ const state = {
   // Edit
   scenarioDataTable: [],
   // Cancel Request
-  cancelReq: undefined
+  cancelReq: undefined,
+  //Scenarios
+  scenarios: {},
+  activeScenario: null
 };
 
 const getters = {
@@ -67,6 +70,7 @@ const getters = {
   routeIcons: state => state.routeIcons,
   calculations: state => state.calculations,
   options: state => state.options,
+  scenarios: state => state.scenarios,
   colors: state => state.colors,
   isochroneLayer: state => state.isochroneLayer,
   studyAreaLayer: state => state.studyAreaLayer,
@@ -98,6 +102,7 @@ const getters = {
   },
   scenarioDataTable: state => state.scenarioDataTable,
   cancelReq: state => state.cancelReq,
+  activeScenario: state => state.activeScenario,
   getField
 };
 
@@ -137,7 +142,8 @@ const actions = {
         x: state.position.coordinate[0],
         y: state.position.coordinate[1],
         concavity: "0.00003",
-        routing_profile: state.activeRoutingProfile
+        routing_profile: state.activeRoutingProfile,
+        scenario_id: state.activeScenario
       });
       isochroneEndpoint = "isochrone";
     } else {
@@ -146,13 +152,7 @@ const actions = {
       region = regionFeatures
         .map(feature => {
           if (regionType === "draw") {
-            return feature
-              .get("regionEnvelope")
-              .split(",")
-              .map(coord => {
-                return `'${coord}'`;
-              })
-              .toString();
+            return `'${feature.get("regionPolygon").toString()}'`;
           } else {
             return `'${feature.get("region_name")}'`;
           }
@@ -164,6 +164,7 @@ const actions = {
         region_type: payload ? payload.region_type : `'${regionType}'`,
         region: payload ? payload.region : region,
         routing_profile: `'${state.activeRoutingProfile}'`,
+        scenario_id: state.activeScenario,
         amenities: rootState.pois.selectedPois
           .map(item => {
             return "'" + item.value + "'";
@@ -289,6 +290,7 @@ const actions = {
       time: state.options.minutes + " min",
       speed: state.options.speed + " km/h",
       routing_profile: state.activeRoutingProfile,
+      scenario_id: state.activeScenario,
       isExpanded: true,
       isVisible: true,
       data: calculationData,
@@ -386,6 +388,7 @@ const actions = {
       }
       const params = {
         user_id: rootState.user.userId,
+        scenario_id: (state.activeScenario || 0).toString(),
         modus: "'" + state.options.calculationModes.active + "'",
         minutes: rootState.isochrones.options.minutes,
         speed: rootState.isochrones.options.speed,
@@ -436,7 +439,7 @@ const actions = {
               feature.set("region", configData.region);
 
               if (configData.region_type === "'draw'") {
-                feature.set("regionEnvelope", configData.region);
+                feature.set("regionPolygon", configData.region);
               }
             });
             commit("ADD_STUDYAREA_FEATURES", olFeatures);

@@ -1,18 +1,23 @@
-CREATE OR REPLACE FUNCTION public.population_heatmap(userid_input integer)
+CREATE OR REPLACE FUNCTION public.population_heatmap(scenario_id_input integer, modus_input text DEFAULT 'default')
 RETURNS TABLE(grid_id integer, population float, percentile_population integer, geom geometry)
 LANGUAGE plpgsql
 AS $function$
 BEGIN 
+	
+	IF modus_input = 'default' THEN 
+		scenario_id_input = 0;
+	END IF;
+	
 	RETURN query
 	WITH modified_population AS 
 	(
 		SELECT p.geom, -p.population AS population
 		FROM population_userinput p 
-		WHERE building_gid IN (SELECT UNNEST(deleted_feature_ids) FROM user_data WHERE layer_name = 'buildings' AND userid = userid_input)
+		WHERE building_gid IN (SELECT UNNEST(deleted_buildings) FROM scenarios WHERE scenario_id = scenario_id_input)
 		UNION ALL 
 		SELECT p.geom, p.population 
 		FROM population_userinput p 
-		WHERE p.userid = userid_input
+		WHERE p.scenario_id = scenario_id_input
 	),
 	sum_pop AS (
 		SELECT g.grid_id, sum(p.population) + COALESCE(g.population,0) population, 

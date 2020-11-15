@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS heatmap_dynamic;
-CREATE OR REPLACE FUNCTION public.heatmap_dynamic(amenities_json jsonb, modus_input integer DEFAULT 1, userid_input integer DEFAULT 0, scenario_id_input integer DEFAULT 0)
+CREATE OR REPLACE FUNCTION public.heatmap_dynamic(amenities_json jsonb, modus_input text DEFAULT 'default', scenario_id_input integer DEFAULT 0)
  RETURNS TABLE(grid_id integer, accessibility_index bigint)
  LANGUAGE plpgsql
 AS $function$
@@ -20,7 +20,7 @@ BEGIN
 	INTO translation_sensitivities
 	FROM jsonb_each(amenities_json) AS u(k, v);
 
-	IF modus_input = 1 OR modus_input = 3 THEN 
+	IF modus_input = 'default' THEN 
 		RETURN query 
 		SELECT s.grid_id, sum(s.accessibility_index) AS accessibility_index 
 		FROM 
@@ -31,7 +31,6 @@ BEGIN
 				FROM reached_pois_heatmap 
 				WHERE amenity IN (SELECT UNNEST(pois_one_entrance))
 				AND amenity IN (SELECT UNNEST(array_amenities))
-				AND userid = 0
 				AND scenario_id = 0
 			)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index)
 			UNION ALL 
@@ -41,14 +40,13 @@ BEGIN
 				FROM reached_pois_heatmap
 				WHERE amenity IN (SELECT UNNEST(pois_more_entrances))
 				AND amenity IN (SELECT UNNEST(array_amenities))
-				AND userid = 0
 				AND scenario_id = 0
 			)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index)
 			GROUP BY u.grid_id, x.amenity, x.name
 		) s
 		GROUP BY s.grid_id;
 	ELSE
-		excluded_pois_id = ids_modified_features(userid_input,scenario_id_input,'pois');
+		excluded_pois_id = ids_modified_features(scenario_id_input,'pois');
 		RETURN query 
 		WITH null_grids AS 
 		(
@@ -67,7 +65,6 @@ BEGIN
 					FROM reached_pois_heatmap 
 					WHERE amenity IN (SELECT UNNEST(pois_one_entrance))
 					AND amenity IN (SELECT UNNEST(array_amenities))
-					AND userid IN(userid_input,0)
 					AND scenario_id IN(scenario_id_input,0)
 					AND gid NOT IN (SELECT UNNEST(excluded_pois_id))
 				)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index)
@@ -78,7 +75,6 @@ BEGIN
 					FROM reached_pois_heatmap
 					WHERE amenity IN (SELECT UNNEST(pois_more_entrances))
 					AND amenity IN (SELECT UNNEST(array_amenities))
-					AND userid IN(userid_input,0)
 					AND scenario_id IN(scenario_id_input,0)
 					AND gid NOT IN (SELECT UNNEST(excluded_pois_id))
 				)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index)
@@ -99,7 +95,7 @@ END;
 $function$;
 /*
 SELECT h.*, g.geom  
-FROM heatmap_dynamic('{"kindergarten":{"sensitivity":250000,"weight":1}}'::jsonb,2,7533184,1) h, grid_heatmap g
+FROM heatmap_dynamic('{"kindergarten":{"sensitivity":250000,"weight":1}}'::jsonb,'default',7533184,1) h, grid_heatmap g
 WHERE h.grid_id = g.grid_id 
 */
 
@@ -111,4 +107,3 @@ Next steps:
 - Implement heatmap scenario, comparison
 - Testing
 */
-

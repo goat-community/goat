@@ -1,373 +1,373 @@
 {
-    "appTitle": "GOAT",
-    "buttonLabels": {
-        "yes": "Po",
-        "cancel": "Jo",
-        "save": "Ruaj"
+  "appTitle": "GOAT",
+  "buttonLabels": {
+    "yes": "Po",
+    "cancel": "Jo",
+    "save": "Ruaj"
+  },
+  "appBar": {
+    "buttons": {
+      "login": "Hyr",
+      "print": "Print",
+      "drawAndMeasure": "Vizato dhe dhe mat",
+      "filter": "Filtër",
+      "edit": "Edito",
+      "settings": "Cilësime",
+      "info": "Info"
     },
-    "appBar": {
-        "buttons": {
-            "login": "Hyr",
-            "print": "Print",
-            "drawAndMeasure": "Vizato dhe dhe mat",
-            "filter": "Filtër",
-            "edit": "Edito",
-            "settings": "Cilësime",
-            "info": "Info"
+    "login": {
+      "title": "Hyrje",
+      "form": {
+        "username": {
+          "label": "Emri i përdoruesit",
+          "rule": "Emri i përdoruesit është i detyrueshmëm"
         },
-        "login": {
-            "title": "Hyrje",
-            "form": {
-                "username": {
-                    "label": "Emri i përdoruesit",
-                    "rule": "Emri i përdoruesit është i detyrueshmëm"
-                },
-                "password": {
-                    "label": "Fjalëkalimi",
-                    "rule": "Fjalëkalimi është i detyrueshmëm"
-                },
-                "submit": "Hyr"
-            }
+        "password": {
+          "label": "Fjalëkalimi",
+          "rule": "Fjalëkalimi është i detyrueshmëm"
         },
-        "printMap": {
-            "title": "Printo Hartën",
-            "connectionMsg": "Duke u lidhur me serverin e printimit, ju lutem prisni...",
-            "unavailableMsg": "Serveri i printimit i padisponueshëm. Ju lutem, provojeni më vonë...",
-            "form": {
-                "title": {
-                    "label": "Titulli",
-                    "rule": "Fusha është e detyrueshme"
-                },
-                "layout": {
-                    "label": "Formati",
-                    "rule": "Fusha është e detyrueshme"
-                },
-                "scale": {
-                    "label": "Shkalla",
-                    "rule": "Fusha është e detyrueshme"
-                },
-                "resolution": {
-                    "label": "Rezolucioni",
-                    "rule": "Fusha është e detyrueshme"
-                },
-                "crs": {
-                    "label": "Sistemi referencë",
-                    "rule": "Fusha është e detyrueshme"
-                },
-                "submit": "Printo",
-                "legend": "Legjenda",
-                "grid": "Rrjeti"
-            }
+        "submit": "Hyr"
+      }
+    },
+    "printMap": {
+      "title": "Printo Hartën",
+      "connectionMsg": "Duke u lidhur me serverin e printimit, ju lutem prisni...",
+      "unavailableMsg": "Serveri i printimit i padisponueshëm. Ju lutem, provojeni më vonë...",
+      "form": {
+        "title": {
+          "label": "Titulli",
+          "rule": "Fusha është e detyrueshme"
         },
-        "drawAndMeasure": {
-            "title": "Matje",
-            "measure": {
-                "header": "Mat",
-                "length": "Gjatësi",
-                "area": "Sipërfaqje"
-            },
-            "draw": {
-                "header": "Vizato",
-                "point": "Pikë",
-                "pointWithCoord": "Pikë me koordinata",
-                "line": "Vijë",
-                "polygon": "Poligon",
-                "label": "Etiketë",
-                "color": "Ngjyra",
-                "transparency": "Transparanca"
-            },
-            "clear": "Pastro"
+        "layout": {
+          "label": "Formati",
+          "rule": "Fusha është e detyrueshme"
         },
-        "filter": {
-            "title": "Filtro",
-            "poisSettings": {
-                "buttonTooltip": "Pesha dhe cilësimet e ndjeshmërisë",
-                "title": "Harta nxehtësie",
-                "selectWeight": "Zgjidh peshën",
-                "sensitivityIndex": "Indeksi i ndjeshmërisë",
-                "sensitivityGraph": {
-                    "title": "Aksesi",
-                    "gravity": "Graviteti i aksesit (%)",
-                    "travelTime": "Koha e udhëtimit (minuta)"
-                }
-            }
+        "scale": {
+          "label": "Shkalla",
+          "rule": "Fusha është e detyrueshme"
         },
-        "edit": {
-            "title": "Edito",
-            "selectLayer": "Shtresa për editim",
-            "selectFeatures": "Zgjidh objektet",
-            "drawCircle": "Vizato një rreth për të zgjedhur objektet",
-            "selectOnMap": "Zgjidh objektet duke klikuar në hartë",
-            "editTools": "Mjetet e editimit",
-            "drawFeatureTooltip": "Vizato objekt",
-            "modifyFeatureTooltip": "Modifiko objekt",
-            "deleteFeature": "Fshi objekt",
-            "clearBtn": "Pastro",
-            "uploadBtn": "Ngarko",
-            "popup": {
-                "deleteFeatureMsg": "Jeni i sigurt që doni ta fshini objektin e zgjedhur ?",
-                "selectWayType": "Zgjidh tipin e rrugës: ",
-                "wayType": "Tipi i rrugës"
-            }
+        "resolution": {
+          "label": "Rezolucioni",
+          "rule": "Fusha është e detyrueshme"
         },
-        "settings": {
-            "title": "Cilësime",
-            "language": "Gjuha",
-            "units": {
-                "header": "Njesitë",
-                "km": "Kilometër",
-                "miles": "Milje"
-            }
+        "crs": {
+          "label": "Sistemi referencë",
+          "rule": "Fusha është e detyrueshme"
         },
-        "about": {
-            "title": "Rreth GOAT",
-            "content": "qendron për 'Geo Open Accessibility Tool'. Ky mjet është menduar të jetë open-source, interaktiv, fleksibël dhe i përdorshëm për planifikimet e aksesit. Është në zhvillim në departamentin e Strukturës dhe Planifikimit të Transportit Urban në TUM.....",
-            "moreInfo": "Më shumë Info"
+        "submit": "Printo",
+        "legend": "Legjenda",
+        "grid": "Rrjeti"
+      }
+    },
+    "drawAndMeasure": {
+      "title": "Matje",
+      "measure": {
+        "header": "Mat",
+        "length": "Gjatësi",
+        "area": "Sipërfaqje"
+      },
+      "draw": {
+        "header": "Vizato",
+        "point": "Pikë",
+        "pointWithCoord": "Pikë me koordinata",
+        "line": "Vijë",
+        "polygon": "Poligon",
+        "label": "Etiketë",
+        "color": "Ngjyra",
+        "transparency": "Transparanca"
+      },
+      "clear": "Pastro"
+    },
+    "filter": {
+      "title": "Filtro",
+      "poisSettings": {
+        "buttonTooltip": "Pesha dhe cilësimet e ndjeshmërisë",
+        "title": "Harta nxehtësie",
+        "selectWeight": "Zgjidh peshën",
+        "sensitivityIndex": "Indeksi i ndjeshmërisë",
+        "sensitivityGraph": {
+          "title": "Aksesi",
+          "gravity": "Graviteti i aksesit (%)",
+          "travelTime": "Koha e udhëtimit (minuta)"
         }
+      }
     },
-    "isochrones": {
-        "title": "Izokrone",
-        "calculation": "Llogaritja",
-        "calculationTitle": "Llogaritja e izokronit",
-        "single": {
-            "title": "Pika e fillimit",
-            "type": "I vetëm",
-            "searchBox": "Kërko pikën e fillimit",
-            "startTooltip": "Kliko në hartë të fillosh llogaritjen e izokronit",
-            "tableDataTitle": "Të dhëna tematike"
-        },
-        "multiple": {
-            "title": "Fillo",
-            "type": "I shumëfishtë",
-            "selectMethod": "Zgjidh metodën",
-            "studyArea": "Zona e studimit",
-            "clear": "Pastro",
-            "calculate": "Llogarit",
-            "studyAreaInfoLabel": "Zgjidh <b>zonat e studimit</b> dhe <b>pikat e interesit</b> të aktivizosh llogaritjen.",
-            "drawBoundary": "Vizato kufirin",
-            "amenityCount": "Nr. Pikave të interesit",
-            "limit": "Limiti",
-            "drawBoundaryInfoLabel": "Vizato <b>kufirin</b> dhe zgjidh <b>pikat e interesit</b> të aktivizosh llogaritjen.",
-            "tableDataTitle": "Të dhëna për Izokronet e shumëfishta"
-        },
-        "options": {
-            "title": "Opsione",
-            "subOptions": "Cilësimet e izokroneve",
-            "speed": "km/h",
-            "time": "min",
-            "nr": "Izokrone",
-            "calcType": "Izokrone të lugëta",
-            "calcModus": "Tipet e llogaritjen",
-            "alphaShapeMode": "Parameti 'Alpha-shape'",
-            "defaultNetwork": "Rrjeti i përcaktuar",
-            "modifiedNetwork": "Rrjeti i modifikuar",
-            "modifiedNetworkDoubleCalc": "Rrjeti i përcaktuar (Llog. dyfishe)"
-        },
-        "results": {
-            "title": "Rezultati",
-            "multiIsochroneHeader": "Llogaritje e shumëfishtë izokronesh",
-            "showDataTooltip": "Shfaq të dhënat",
-            "toggleVisibilityTooltip": "Dukshmëria",
-            "downloadTooltip": "Shkarko",
-            "deleteCalcTooltip": "Fshi llogaritjen",
-            "table": {
-                "type": "Tipi",
-                "range": "Koha",
-                "area": "Siperfaqe",
-                "visible": "Dukshmëria",
-                "legend": "Legjenda"
-            }
-        },
-        "tableData": {
-            "timeFilter": "Filtro kohën",
-            "searchPois": "Kërko pikat e interesit",
-            "selectTimeMsg": "Zgjidh kohën për filtrim",
-            "noDataMsg": "Nuk ka të dhëna për kohën e zgjedhur",
-            "selectAmenitiesMsg": "Zgjidh <b>Pikat e interesit</b> dhe <b>Kohën</b> për të filtruar tabelën.",
-            "table": {
-                "pois": "Pikat e interesit",
-                "isochrone": "Izokrone",
-                "studyArea": "Zona e studimit",
-                "population": "Popullsia",
-                "reachedPopulation": "Popullsia e arritur"
-            }
-        },
-        "isochrones": "Izokrone",
-        "deleteTitle": "Fshi",
-        "deleteMessage": "Jeni i sigurt që doni ta fshini llogaritjen",
-        "download": {
-            "title": "Shkarko Izokronet",
-            "fileName": "Emri i skedarit",
-            "outputFormat": "Zgjidh formatin",
-            "download": "Shkarko"
-        }
+    "edit": {
+      "title": "Edito",
+      "selectLayer": "Shtresa për editim",
+      "selectFeatures": "Zgjidh objektet",
+      "drawCircle": "Vizato një rreth për të zgjedhur objektet",
+      "selectOnMap": "Zgjidh objektet duke klikuar në hartë",
+      "editTools": "Mjetet e editimit",
+      "drawFeatureTooltip": "Vizato objekt",
+      "modifyFeatureTooltip": "Modifiko objekt",
+      "deleteFeature": "Fshi objekt",
+      "clearBtn": "Pastro",
+      "uploadBtn": "Ngarko",
+      "popup": {
+        "deleteFeatureMsg": "Jeni i sigurt që doni ta fshini objektin e zgjedhur ?",
+        "selectWayType": "Zgjidh tipin e rrugës: ",
+        "wayType": "Tipi i rrugës"
+      }
     },
-    "layerTree": {
-        "title": "Shtresat",
-        "settings": {
-            "transparency": "Transparanca"
-        }
+    "settings": {
+      "title": "Cilësime",
+      "language": "Gjuha",
+      "units": {
+        "header": "Njesitë",
+        "km": "Kilometër",
+        "miles": "Milje"
+      }
     },
-    "map": {
-        "layerLegend": {
-            "title": "Legjenda e shtresave"
-        },
-        "snackbarMessages": {
-            "selectAmenities": "Ju duhet të zgjidhni të paktën një pikë interesi"
-        },
-        "layerGroup": {
-            "poisLayers": "Shtresa e pikave të interesit",
-            "administrativeLayers": "Shtresat administrative",
-            "streetlevelqualityLayers": "Street Level Quality",
-            "accessbilityBasemaps": "Basemap i arritshmërisë",
-            "backgroundLayers": "Shtresat bazë"
-        },
-        "layerName": {
-            "pois": "Pikat e interesit",
-            "administrativeUnits": "Njesitë administrative",
-            "footpathWidth": "Footpath Width",
-            "illuminance": "Illuminance",
-            "lanes": "Lanes",
-            "parking": "Parking",
-            "speed": "Speed",
-            "streetCrossings": "Street Crossings",
-            "streetFurniture": "Street Furniture",
-            "surface": "Surface",
-            "wheelchairUsability": "Wheelchair Usability",
-            "areaIsochrone": "Area Isochrone",
-            "walkabilityPopulation": "Walkability Population",
-            "population": "Population",
-            "walkability": "Walkability",
-            "studyArea": "Zona e studimit",
-            "ways": "Rrugët",
-            "osmStandard": "OSM Standard",
-            "osmLight": "OSM Light",
-            "osmDark": "OSM Dark",
-            "mapboxStreets": "Mapbox",
-            "publicTransport": "Transporti Publik",
-            "bingAerial": "Imazh Bing"
-        },
-        "tooltips": {
-            "clickForCalculation": "Kliko për llogaritje",
-            "clickToSelectStudyArea": "Kliko për të zgjedhur zonën e studimit",
-            "maxCircleRadius": "Rrezja maksimale është 1000 m",
-            "clickToStartMeasure": "Kliko të fillosh matjen",
-            "clickToStartDrawing": "Kliko të fillosh vizatimin",
-            "clickToContinueDrawing": "Kliko të vazhdosh vizatimin",
-            "clickToFinishDrawing": "Kliko të përfundosh vizatimin",
-            "clickToStartDrawingBoundary": "Kliko të fillosh të vizatosh kufirin",
-            "clickToStartDrawingCircle": "Kliko të fillosh vizatimin e rrethit (Rrezja max 1000 m)",
-            "clickToFinishDrawingPolygon": "Dopjo-klik ose klik pikën e fillimit për të përfunduar",
-            "clickOnFeatureToDelete": "Kliko objektin për ta fshirë",
-            "clickAndDragToModify": "Kliko dhe tërhiq objektin për ta modifikuar",
-            "clickToRemove": "Kliko për ta fshirë"
-        },
-        "popup": {
-            "attributes": "Atributet",
-            "info": "Info",
-            "editWithOsm": "Modifiko në OSM",
-            "confirm": "Konfirmo"
-        },
-        "layerListValues": {
-            "road": "Rrugë",
-            "bridge": "Urë"
-        }
-    },
-    "pois": {
-        "education": "Edukim",
-        "foodAndDrink": "Ushqim dhe Pije",
-        "transport": "Transporti",
-        "services": "Shërbimi",
-        "shop": "Dyqane",
-        "tourismAndLeisure": "Turizëm & koha e lirë",
-        "kindergarten": "Kopsht fëmijësh",
-        "primary_school": "Shkolla fillore",
-        "secondary_school": "Shkolla e mesme",
-        "library": "Librari",
-        "bar": "Bar",
-        "biergarten": "Birrari",
-        "cafe": "Kafe",
-        "pub": "Pub",
-        "fast_food": "Fast Food",
-        "ice_cream": "Akullore",
-        "restaurant": "Restorant",
-        "nightclub": "Klub Nate",
-        "bicycle_rental": "Biçikleta me qera",
-        "car_sharing": "Makina me qera",
-        "charging_station": "Stacion karikimi",
-        "bus_stop": "Autobuz",
-        "tram_stop": "Stacioni Tramvaj",
-        "subway_entrance": "Stacion Metroje",
-        "rail_station": "Stacion Hekurudhor",
-        "taxi": "Taksi",
-        "hairdresser": "Parukeri",
-        "atm": "ATM",
-        "bank": "Bank",
-        "dentist": "Dentist",
-        "doctors": "Doktor",
-        "pharmacy": "Farmaci",
-        "post_box": "Kuti postare",
-        "fuel": "Karburant",
-        "recycling": "Riciklim",
-        "bakery": "Furrë buke",
-        "butcher": "Kasap",
-        "clothes": "Dyqan rrobash",
-        "convenience": "Dyqan",
-        "greengrocer": "Dyqan fruta perime",
-        "kiosk": "Kiosk",
-        "mall": "Qendër tregtare",
-        "shoes": "Këpucë",
-        "supermarket": "Supermarket",
-        "discount_supermarket": "Supermarket me ulje",
-        "international_supermarket": "Supermarket i huaj",
-        "hypermarket": "Hipermarket",
-        "chemist": "Kimist",
-        "organic": "Ushqim organik",
-        "marketplace": "Pazar",
-        "cinema": "Kinema",
-        "theatre": "Teatër",
-        "museum": "Muze",
-        "hotel": "Hotel",
-        "hostel": "Hostel",
-        "guest_house": "Shtëpi për mysafirë",
-        "gallery": "Galeri",
-        "university": "University",
-        "hospital": "Hospital",
-        "population": "Popullsi"
-    },
-    "$vuetify": {
-        "close": "Mbyll",
-        "dataIterator": {
-            "pageText": "{0}-{1} nga {2}",
-            "noResultsText": "Asnjë rezultat nuk e gjet",
-            "loadingText": "Duke ngarkuar..."
-        },
-        "dataTable": {
-            "itemsPerPageText": "Rrjeshta për faqe:",
-            "ariaLabel": {
-                "sortDescending": ": Të renditura në zbritje. Aktivizoni për të hequr klasifikimin",
-                "sortAscending": ": Renditur në ngjitje. Aktivizoni për të renditur zbritjen.",
-                "sortNone": ": Jo të renditura. Aktivizoni për të renditur ngjitjen."
-            }
-        },
-        "dataFooter": {
-            "itemsPerPageText": "Artikuj për faqe:",
-            "itemsPerPageAll": "Të gjitha",
-            "nextPage": "Faqe tjetër",
-            "prevPage": "Faqe e mëparshme",
-            "firstPage": "Faqa e parë",
-            "lastPage": "Faqe e fundit"
-        },
-        "datePicker": {
-            "itemsSelected": "{0} zgjedhur"
-        },
-        "noDataText": "Nuk ka të dhëna në dispozicion",
-        "carousel": {
-            "prev": "Vizuale e mëparshme",
-            "next": "Vizuale tjetër"
-        },
-        "calendar": {
-            "moreEvents": "{0} më shumë"
-        }
+    "about": {
+      "title": "Rreth GOAT",
+      "content": "qendron për 'Geo Open Accessibility Tool'. Ky mjet është menduar të jetë open-source, interaktiv, fleksibël dhe i përdorshëm për planifikimet e aksesit. Është në zhvillim në departamentin e Strukturës dhe Planifikimit të Transportit Urban në TUM.....",
+      "moreInfo": "Më shumë Info"
     }
+  },
+  "isochrones": {
+    "title": "Izokrone",
+    "calculation": "Llogaritja",
+    "calculationTitle": "Llogaritja e izokronit",
+    "single": {
+      "title": "Pika e fillimit",
+      "type": "I vetëm",
+      "searchBox": "Kërko pikën e fillimit",
+      "startTooltip": "Kliko në hartë të fillosh llogaritjen e izokronit",
+      "tableDataTitle": "Të dhëna tematike"
+    },
+    "multiple": {
+      "title": "Fillo",
+      "type": "I shumëfishtë",
+      "selectMethod": "Zgjidh metodën",
+      "studyArea": "Zona e studimit",
+      "clear": "Pastro",
+      "calculate": "Llogarit",
+      "studyAreaInfoLabel": "Zgjidh <b>zonat e studimit</b> dhe <b>pikat e interesit</b> të aktivizosh llogaritjen.",
+      "drawPolygon": "Vizato kufirin",
+      "amenityCount": "Nr. Pikave të interesit",
+      "limit": "Limiti",
+      "drawPolygonInfoLabel": "Vizato <b>kufirin</b> dhe zgjidh <b>pikat e interesit</b> të aktivizosh llogaritjen.",
+      "tableDataTitle": "Të dhëna për Izokronet e shumëfishta"
+    },
+    "options": {
+      "title": "Opsione",
+      "subOptions": "Cilësimet e izokroneve",
+      "speed": "km/h",
+      "time": "min",
+      "nr": "Izokrone",
+      "calcType": "Izokrone të lugëta",
+      "calcModus": "Tipet e llogaritjen",
+      "alphaShapeMode": "Parameti 'Alpha-shape'",
+      "defaultNetwork": "Rrjeti i përcaktuar",
+      "modifiedNetwork": "Rrjeti i modifikuar",
+      "modifiedNetworkDoubleCalc": "Rrjeti i përcaktuar (Llog. dyfishe)"
+    },
+    "results": {
+      "title": "Rezultati",
+      "multiIsochroneHeader": "Llogaritje e shumëfishtë izokronesh",
+      "showDataTooltip": "Shfaq të dhënat",
+      "toggleVisibilityTooltip": "Dukshmëria",
+      "downloadTooltip": "Shkarko",
+      "deleteCalcTooltip": "Fshi llogaritjen",
+      "table": {
+        "type": "Tipi",
+        "range": "Koha",
+        "area": "Siperfaqe",
+        "visible": "Dukshmëria",
+        "legend": "Legjenda"
+      }
+    },
+    "tableData": {
+      "timeFilter": "Filtro kohën",
+      "searchPois": "Kërko pikat e interesit",
+      "selectTimeMsg": "Zgjidh kohën për filtrim",
+      "noDataMsg": "Nuk ka të dhëna për kohën e zgjedhur",
+      "selectAmenitiesMsg": "Zgjidh <b>Pikat e interesit</b> dhe <b>Kohën</b> për të filtruar tabelën.",
+      "table": {
+        "pois": "Pikat e interesit",
+        "isochrone": "Izokrone",
+        "studyArea": "Zona e studimit",
+        "population": "Popullsia",
+        "reachedPopulation": "Popullsia e arritur"
+      }
+    },
+    "isochrones": "Izokrone",
+    "deleteTitle": "Fshi",
+    "deleteMessage": "Jeni i sigurt që doni ta fshini llogaritjen",
+    "download": {
+      "title": "Shkarko Izokronet",
+      "fileName": "Emri i skedarit",
+      "outputFormat": "Zgjidh formatin",
+      "download": "Shkarko"
+    }
+  },
+  "layerTree": {
+    "title": "Shtresat",
+    "settings": {
+      "transparency": "Transparanca"
+    }
+  },
+  "map": {
+    "layerLegend": {
+      "title": "Legjenda e shtresave"
+    },
+    "snackbarMessages": {
+      "selectAmenities": "Ju duhet të zgjidhni të paktën një pikë interesi"
+    },
+    "layerGroup": {
+      "poisLayers": "Shtresa e pikave të interesit",
+      "administrativeLayers": "Shtresat administrative",
+      "streetlevelqualityLayers": "Street Level Quality",
+      "accessbilityBasemaps": "Basemap i arritshmërisë",
+      "backgroundLayers": "Shtresat bazë"
+    },
+    "layerName": {
+      "pois": "Pikat e interesit",
+      "administrativeUnits": "Njesitë administrative",
+      "footpathWidth": "Footpath Width",
+      "illuminance": "Illuminance",
+      "lanes": "Lanes",
+      "parking": "Parking",
+      "speed": "Speed",
+      "streetCrossings": "Street Crossings",
+      "streetFurniture": "Street Furniture",
+      "surface": "Surface",
+      "wheelchairUsability": "Wheelchair Usability",
+      "areaIsochrone": "Area Isochrone",
+      "walkabilityPopulation": "Walkability Population",
+      "population": "Population",
+      "walkability": "Walkability",
+      "studyArea": "Zona e studimit",
+      "ways": "Rrugët",
+      "osmStandard": "OSM Standard",
+      "osmLight": "OSM Light",
+      "osmDark": "OSM Dark",
+      "mapboxStreets": "Mapbox",
+      "publicTransport": "Transporti Publik",
+      "bingAerial": "Imazh Bing"
+    },
+    "tooltips": {
+      "clickForCalculation": "Kliko për llogaritje",
+      "clickToSelectStudyArea": "Kliko për të zgjedhur zonën e studimit",
+      "maxCircleRadius": "Rrezja maksimale është 1000 m",
+      "clickToStartMeasure": "Kliko të fillosh matjen",
+      "clickToStartDrawing": "Kliko të fillosh vizatimin",
+      "clickToContinueDrawing": "Kliko të vazhdosh vizatimin",
+      "clickToFinishDrawing": "Kliko të përfundosh vizatimin",
+      "clickToStartDrawingBoundary": "Kliko të fillosh të vizatosh kufirin",
+      "clickToStartDrawingCircle": "Kliko të fillosh vizatimin e rrethit (Rrezja max 1000 m)",
+      "clickToFinishDrawingPolygon": "Dopjo-klik ose klik pikën e fillimit për të përfunduar",
+      "clickOnFeatureToDelete": "Kliko objektin për ta fshirë",
+      "clickAndDragToModify": "Kliko dhe tërhiq objektin për ta modifikuar",
+      "clickToRemove": "Kliko për ta fshirë"
+    },
+    "popup": {
+      "attributes": "Atributet",
+      "info": "Info",
+      "editWithOsm": "Modifiko në OSM",
+      "confirm": "Konfirmo"
+    },
+    "layerListValues": {
+      "road": "Rrugë",
+      "bridge": "Urë"
+    }
+  },
+  "pois": {
+    "education": "Edukim",
+    "foodAndDrink": "Ushqim dhe Pije",
+    "transport": "Transporti",
+    "services": "Shërbimi",
+    "shop": "Dyqane",
+    "tourismAndLeisure": "Turizëm & koha e lirë",
+    "kindergarten": "Kopsht fëmijësh",
+    "primary_school": "Shkolla fillore",
+    "secondary_school": "Shkolla e mesme",
+    "library": "Librari",
+    "bar": "Bar",
+    "biergarten": "Birrari",
+    "cafe": "Kafe",
+    "pub": "Pub",
+    "fast_food": "Fast Food",
+    "ice_cream": "Akullore",
+    "restaurant": "Restorant",
+    "nightclub": "Klub Nate",
+    "bicycle_rental": "Biçikleta me qera",
+    "car_sharing": "Makina me qera",
+    "charging_station": "Stacion karikimi",
+    "bus_stop": "Autobuz",
+    "tram_stop": "Stacioni Tramvaj",
+    "subway_entrance": "Stacion Metroje",
+    "rail_station": "Stacion Hekurudhor",
+    "taxi": "Taksi",
+    "hairdresser": "Parukeri",
+    "atm": "ATM",
+    "bank": "Bank",
+    "dentist": "Dentist",
+    "doctors": "Doktor",
+    "pharmacy": "Farmaci",
+    "post_box": "Kuti postare",
+    "fuel": "Karburant",
+    "recycling": "Riciklim",
+    "bakery": "Furrë buke",
+    "butcher": "Kasap",
+    "clothes": "Dyqan rrobash",
+    "convenience": "Dyqan",
+    "greengrocer": "Dyqan fruta perime",
+    "kiosk": "Kiosk",
+    "mall": "Qendër tregtare",
+    "shoes": "Këpucë",
+    "supermarket": "Supermarket",
+    "discount_supermarket": "Supermarket me ulje",
+    "international_supermarket": "Supermarket i huaj",
+    "hypermarket": "Hipermarket",
+    "chemist": "Kimist",
+    "organic": "Ushqim organik",
+    "marketplace": "Pazar",
+    "cinema": "Kinema",
+    "theatre": "Teatër",
+    "museum": "Muze",
+    "hotel": "Hotel",
+    "hostel": "Hostel",
+    "guest_house": "Shtëpi për mysafirë",
+    "gallery": "Galeri",
+    "university": "University",
+    "hospital": "Hospital",
+    "population": "Popullsi"
+  },
+  "$vuetify": {
+    "close": "Mbyll",
+    "dataIterator": {
+      "pageText": "{0}-{1} nga {2}",
+      "noResultsText": "Asnjë rezultat nuk e gjet",
+      "loadingText": "Duke ngarkuar..."
+    },
+    "dataTable": {
+      "itemsPerPageText": "Rrjeshta për faqe:",
+      "ariaLabel": {
+        "sortDescending": ": Të renditura në zbritje. Aktivizoni për të hequr klasifikimin",
+        "sortAscending": ": Renditur në ngjitje. Aktivizoni për të renditur zbritjen.",
+        "sortNone": ": Jo të renditura. Aktivizoni për të renditur ngjitjen."
+      }
+    },
+    "dataFooter": {
+      "itemsPerPageText": "Artikuj për faqe:",
+      "itemsPerPageAll": "Të gjitha",
+      "nextPage": "Faqe tjetër",
+      "prevPage": "Faqe e mëparshme",
+      "firstPage": "Faqa e parë",
+      "lastPage": "Faqe e fundit"
+    },
+    "datePicker": {
+      "itemsSelected": "{0} zgjedhur"
+    },
+    "noDataText": "Nuk ka të dhëna në dispozicion",
+    "carousel": {
+      "prev": "Vizuale e mëparshme",
+      "next": "Vizuale tjetër"
+    },
+    "calendar": {
+      "moreEvents": "{0} më shumë"
+    }
+  }
 }

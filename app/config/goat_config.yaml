@@ -41,6 +41,7 @@ DATA_REFINEMENT_VARIABLES:
     ]
     custom_landuse_with_residents_name: ["%seniorenheim%"]
     osm_landuse_no_residents: ["farmyard","farmland","quarry","industrial","retail","commercial","forest","military","cemetery","landfill","allotments","recreation ground","railway"]
+    aois_no_residents: ["big_forest","big_park","lake","river","small_forest","small_park","swimming_lake"]
     #All buildings that can be potentially residential
     building_types_potentially_residential: ["yes"]
     #All buildings that are definitely residential

@@ -142,6 +142,21 @@
       },
       {
         "type": "WMS",
+        "name": "cyclewayQuality_munichways",
+        "url": "/geoserver/wms",
+        "group": "streetlevelqualityLayers",
+        "layers": "cite:munichways",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "serverType": "geoserver",
+        "attributions": "© <a href='https://www.munichways.com/'>MunichWays</a>"
+      },
+      {
+        "type": "WMS",
         "name": "protectedLandscape",
         "url": "https://www.lfu.bayern.de/gdi/wms/natur/schutzgebiete?",
         "group": "environmentalQualityLayers",
@@ -213,58 +228,32 @@
       },
       {
         "type": "WMS",
-        "name": "accidents_pedestrian_2018",
-        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "name": "accidentsPedestrians",
+        "url": "/geoserver/wms",
         "group": "additionalDataLayers",
-        "layers": "Beteiligung_Fussgaenger_250_2018",
+        "layers": "cite:accidents_pedestrians",
         "opacity": 1,
-        "queryable": true,
         "visible": false,
         "canEdit": false,
+        "queryable": true,
         "displayInLayerList": true,
         "zIndex": 1,
+        "serverType": "geoserver",
         "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
       },
       {
         "type": "WMS",
-        "name": "accidents_pedestrian_2017",
-        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "name": "accidentsCyclists",
+        "url": "/geoserver/wms",
         "group": "additionalDataLayers",
-        "layers": "Beteiligung_Fussgaenger_250_2017",
+        "layers": "cite:accidents_cyclists",
         "opacity": 1,
-        "queryable": true,
         "visible": false,
         "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
-      },
-      {
-        "type": "WMS",
-        "name": "accidents_bike_2018",
-        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
-        "group": "additionalDataLayers",
-        "layers": "Beteiligung_Fahrrad_250_2018",
-        "opacity": 1,
         "queryable": true,
-        "visible": false,
-        "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
-      },
-      {
-        "type": "WMS",
-        "name": "accidents_bike_2017",
-        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
-        "group": "additionalDataLayers",
-        "layers": "Beteiligung_Fahrrad_250_2017",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
+        "serverType": "geoserver",
         "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
       },
       {
@@ -1075,7 +1064,8 @@
         "id",
         "original_id",
         "status",
-        "street_category"
+        "street_category",
+        "scenario_id"
       ]
     },
     "pois": {
@@ -1093,14 +1083,15 @@
         "wheelchair",
         "status",
         "amenity_icon",
-        "opening_hours"
+        "opening_hours",
+        "scenario_id"
       ]
     },
     "buildings": {
       "listValues": {
-          "building": {
-            "values":["residential","commercial","public"]
-          }
+        "building": {
+          "values": ["residential", "commercial", "public"]
+        }
       },
       "enableFileUpload": false,
       "hiddenProps": [
@@ -1109,7 +1100,8 @@
         "id",
         "original_id",
         "status",
-        "class_id"
+        "class_id",
+        "scenario_id"
       ]
     }
   }

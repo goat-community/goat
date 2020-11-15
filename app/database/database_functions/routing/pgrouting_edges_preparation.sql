@@ -1,5 +1,6 @@
 
-CREATE OR REPLACE FUNCTION public.pgrouting_edges_preparation(cutoffs double precision[], startpoints double precision[], speed numeric, modus_input integer, routing_profile text, userid_input integer DEFAULT 0, scenario_id integer DEFAULT 0, heatmap_bulk_calculation boolean DEFAULT false)
+DROP FUNCTION IF EXISTS pgrouting_edges_preparation;
+CREATE OR REPLACE FUNCTION public.pgrouting_edges_preparation(cutoffs double precision[], startpoints double precision[], speed numeric, modus_input integer, routing_profile text, userid_input integer DEFAULT 0, scenario_id_input integer DEFAULT 0, heatmap_bulk_calculation boolean DEFAULT false)
  RETURNS SETOF void
  LANGUAGE plpgsql
 AS $function$
@@ -10,6 +11,7 @@ DECLARE
 	userid_vertex integer;
 	vids bigint[];
 BEGIN 
+	/*
 	IF modus_input IN(1,3)  THEN
 		userid_vertex = 1;
 		userid_input = 1;
@@ -18,7 +20,7 @@ BEGIN
 	ELSEIF modus_input = 4 THEN  	 
 		userid_vertex = 1;
 	END IF;
-	
+	*/
 	distance = cutoffs[array_upper(cutoffs, 1)] * speed;
 	
 	DROP TABLE IF EXISTS start_geoms;
@@ -39,7 +41,7 @@ BEGIN
 	DROP TABLE IF EXISTS temp_fetched_ways;
 	CREATE TEMP TABLE temp_fetched_ways AS 
 	SELECT *
-	FROM fetch_ways_routing(buffer,modus_input,userid_input,speed,routing_profile);
+	FROM fetch_ways_routing(buffer,modus_input,scenario_id_input,speed,routing_profile);
 
   	ALTER TABLE temp_fetched_ways ADD PRIMARY KEY(id);
   	CREATE INDEX ON temp_fetched_ways (target);
@@ -59,13 +61,15 @@ BEGIN
 		INTO vids
 		FROM start_vertices;
 		IF (SELECT vid FROM start_vertices LIMIT 1) IS NOT NULL THEN 
+			/*Originally fractional cost was computed using the fraction returned from closest_point_network_geom. 
+			Though apparently because of differences of metric and kartesian coordinate system the results where sligthly wrong (1-5%). Therefore the length of the partial link is comuted with ::geography*/
 			DROP TABLE IF EXISTS artificial_edges;
 			CREATE TEMP TABLE artificial_edges AS 
-			SELECT wid, 999999998-(1+ROW_NUMBER() OVER())*2 AS id, cost*fraction AS cost,reverse_cost*fraction AS reverse_cost,SOURCE,vid target,ST_LINESUBSTRING(geom,0,fraction) geom
+			SELECT wid, 999999998-(1+ROW_NUMBER() OVER())*2 AS id, ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m as cost,reverse_cost*ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m AS reverse_cost,SOURCE,vid target,ST_LINESUBSTRING(geom,0,fraction) geom
 			FROM temp_fetched_ways w, start_vertices v 
 			WHERE w.id = v.wid
 			UNION ALL 
-			SELECT wid, 999999999-(1+ROW_NUMBER() OVER())*2 AS id, cost*(1-fraction) AS cost,reverse_cost*(1-fraction) AS reverse_cost,vid source,target,ST_LINESUBSTRING(geom,fraction,1) geom
+			SELECT wid, 999999999-(1+ROW_NUMBER() OVER())*2 AS id, cost*(1-ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m) AS cost,reverse_cost*(1-ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m) AS reverse_cost,vid source,target,ST_LINESUBSTRING(geom,fraction,1) geom
 			FROM temp_fetched_ways w, start_vertices v 
 			WHERE w.id = v.wid;
 			
@@ -79,7 +83,7 @@ BEGIN
 			DROP TABLE IF EXISTS fetched_ways_bulk;
 			CREATE TEMP TABLE fetched_ways_bulk AS 
 			SELECT *
-			FROM fetch_ways_routing(buffer_bulk,modus_input,userid_input,speed,routing_profile);
+			FROM fetch_ways_routing(buffer_bulk,modus_input,scenario_id_input,speed,routing_profile);
 			CREATE INDEX ON fetched_ways_bulk USING GIST(geom);
 			PERFORM bulk_closest_edges();
 			raise notice 'bulk';
@@ -95,19 +99,16 @@ BEGIN
 		USING ways_to_replace w 
 		WHERE t.id = w.wid;
 		
-		INSERT INTO temp_fetched_ways 
-		SELECT a.id, SOURCE, target, a.COST, a.reverse_cost, NULL, NULL, geom  
+		INSERT INTO temp_fetched_ways(id,source,target,cost,reverse_cost,geom)
+		SELECT a.id, SOURCE, target, a.COST, a.reverse_cost, geom  
 		FROM artificial_edges a, ways_to_replace w 
 		WHERE a.wid = w.wid;
+		
 	END IF;
 
 END;
 $function$
 
-
 /*
-SELECT pgrouting_edges_preparation(ARRAY[1200.]::FLOAT[], array_agg(starting_points)::FLOAT[], 
-1.33, 1, 'walking_standard',0, 0, true)
-FROM (SELECT * FROM grid_ordered WHERE id BETWEEN 151 AND 300) g
-
+SELECT pgrouting_edges_preparation(ARRAY[1200.]::FLOAT[], ARRAY[[11.5707,48.1252]],1.33, 2, 'walking_standard',10, 5, FALSE)
 */

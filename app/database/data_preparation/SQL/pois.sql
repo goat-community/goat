@@ -322,6 +322,22 @@ FROM planet_osm_point pop, fitness_points fp
 WHERE pop.leisure = 'fitness_station' AND ST_contains(pop.way, fp.way)
 );
 
+--Distinguish kindergarten - nursery
+SELECT pois_reclassification_array('name','kindergarten','amenity','nursery','any');
+
+UPDATE pois p SET amenity = 'nursery'
+WHERE amenity = 'kindergarten'	
+AND (tags -> 'max_age') = '3';
+--- Replicate nurseries to duplicate kindergartens and displace
+SELECT pois_rewrite('nursery','kindergarten','%kindergarten%');
+SELECT pois_displacement(ARRAY['nursery','kindergarten'], (3/(27*3600)::float8));
+------------------------------------------end kindergarten-------------------------------------------
+
+-- Reclassificate shops
+
+SELECT pois_reclassification('shop','grocery','amenity','convenience','singlevalue');
+SELECT pois_reclassification('shop','fashion','amenity','clothes','singlevalue');
+
 --------------------------------------------- Create GID --------------------------------------------
 ALTER TABLE pois add column gid serial;
 ALTER TABLE pois add primary key(gid); 
