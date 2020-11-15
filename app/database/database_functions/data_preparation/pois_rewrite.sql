@@ -26,5 +26,5 @@ END
 $function$;
 
 
-/*SELECT pois_override('nursery','kindergarten','%kindergarten%')
+/*SELECT pois_rewrite('nursery','kindergarten','%kindergarten%')
  */
