@@ -23,6 +23,7 @@ BEGIN
 			SELECT h.grid_id, ntile(5) over (order by h.accessibility_index) AS percentile_accessibility,
 			h.accessibility_index
 			FROM heatmap_dynamic(amenities_json,'default',scenario_id_input) h
+			WHERE h.accessibility_index IS NOT NULL 
 		) h
 		ON g.grid_id = h.grid_id;	
 	END IF; 
@@ -38,6 +39,7 @@ BEGIN
 				SELECT ntile(5) over (order by h.accessibility_index) AS percentile_accessibility,
 				h.accessibility_index
 				FROM heatmap_dynamic(amenities_json,'default',scenario_id_input) h
+				WHERE h.accessibility_index IS NOT NULL
 			) x 
 			GROUP BY x.percentile_accessibility 
 			ORDER BY x.percentile_accessibility
@@ -58,6 +60,7 @@ BEGIN
 			SELECT h.grid_id, ntile(5) over (order by h.accessibility_index) AS percentile_accessibility,
 			h.accessibility_index
 			FROM heatmap_dynamic(amenities_json,modus_input,scenario_id_input) h
+			WHERE h.accessibility_index IS NOT NULL
 		) h
 		ON g.grid_id = h.grid_id;	
 	
