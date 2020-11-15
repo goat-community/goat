@@ -53,7 +53,6 @@ CREATE TYPE type_fetch_ways_routing AS
 	length_m float, 
 	cost float,
 	reverse_cost float,
-	slope_profile jsonb[],
 	death_end bigint,
 	geom geometry
 );
