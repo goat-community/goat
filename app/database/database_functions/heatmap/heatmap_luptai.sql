@@ -10,34 +10,35 @@ BEGIN
 		SELECT h.grid_id, h.accessibility_index, h.percentile_accessibility, p.percentile_population, 
 		(p.percentile_population-h.percentile_accessibility) AS population_accessibility, h.geom  
 		FROM heatmap_geoserver(amenities_json,modus_input,scenario_id_input) h, 
-		population_heatmap(scenario_id_input) p 
+		population_heatmap(scenario_id_input, modus_input) p 
 		WHERE p.grid_id = h.grid_id;
 	
 	ELSEIF amenities_json::TEXT <> '{}' AND modus_input = 'comparison' THEN 
-		DROP TABLE IF EXISTS grids_default; 
-		CREATE TEMP TABLE grids_default AS 
+		RAISE NOTICE '%', 'comparison';
+		DROP TABLE IF EXISTS luptai_default; 
+		CREATE TEMP TABLE luptai_default AS 
 		SELECT h.grid_id, h.accessibility_index, h.percentile_accessibility, p.percentile_population, 
 		(p.percentile_population-h.percentile_accessibility) AS population_accessibility, h.geom  
 		FROM heatmap_geoserver(amenities_json,'default',scenario_id_input) h, 
-		population_heatmap(scenario_id_input) p 
+		population_heatmap(scenario_id_input, 'default') p 
 		WHERE p.grid_id = h.grid_id;
-		ALTER TABLE grids_default ADD PRIMARY KEY(grid_id);
+		ALTER TABLE luptai_default ADD PRIMARY KEY(grid_id);
 		
-		DROP TABLE IF EXISTS grids_scenario;
-		CREATE TEMP TABLE grids_scenario AS 
+		DROP TABLE IF EXISTS luptai_scenario;
+		CREATE TEMP TABLE luptai_scenario AS 
 		SELECT h.grid_id, h.accessibility_index, h.percentile_accessibility, p.percentile_population, 
 		(p.percentile_population-h.percentile_accessibility) AS population_accessibility, h.geom  
 		FROM heatmap_geoserver(amenities_json,'scenario',scenario_id_input) h, 
-		population_heatmap(scenario_id_input) p 
+		population_heatmap(scenario_id_input,'scenario') p 
 		WHERE p.grid_id = h.grid_id;
-		ALTER TABLE grids_scenario ADD PRIMARY KEY(grid_id);
+		ALTER TABLE luptai_scenario ADD PRIMARY KEY(grid_id);
 	
 		RETURN query
 		SELECT d.grid_id, NULL::bigint AS accessibility_index, NULL::integer AS percentile_accessibility, NULL::integer AS percentile_population, 
 		CASE WHEN d.population_accessibility <> s.population_accessibility 
 		THEN abs(d.population_accessibility) - abs(s.population_accessibility)  
 		ELSE 0 END AS population_accessibility, d.geom
-		FROM grids_default d, grids_scenario s
+		FROM luptai_default d, luptai_scenario s
 		WHERE d.grid_id = s.grid_id;
 	
 	END IF; 

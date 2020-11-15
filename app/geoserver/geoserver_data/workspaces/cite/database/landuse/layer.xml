@@ -1,15 +1,17 @@
 <layer>
   <name>landuse</name>
-  <id>LayerInfoImpl--63c355ec:172845386aa:-7ffa</id>
+  <id>LayerInfoImpl--43653b39:17551d17801:-7f6e</id>
   <type>VECTOR</type>
   <defaultStyle>
-    <id>StyleInfoImpl--167589b6:15c77205b7f:-7ffd</id>
+    <id>StyleInfoImpl-6eed1f5b:1719ca112ea:-7fed</id>
   </defaultStyle>
   <resource class="featureType">
-    <id>FeatureTypeInfoImpl--63c355ec:172845386aa:-7ffb</id>
+    <id>FeatureTypeInfoImpl--43653b39:17551d17801:-7f6f</id>
   </resource>
   <attribution>
     <logoWidth>0</logoWidth>
     <logoHeight>0</logoHeight>
   </attribution>
+  <dateCreated>2020-10-22 19:41:02.617 UTC</dateCreated>
+  <dateModified>2020-10-22 19:42:00.362 UTC</dateModified>
 </layer>

@@ -41,8 +41,8 @@ const state = {
         value: "study_area"
       },
       {
-        display: "Draw Boundary",
-        name: "drawBoundary",
+        display: "Draw Polygon",
+        name: "drawPolygon",
         value: "draw"
       }
     ],
@@ -152,13 +152,7 @@ const actions = {
       region = regionFeatures
         .map(feature => {
           if (regionType === "draw") {
-            return feature
-              .get("regionEnvelope")
-              .split(",")
-              .map(coord => {
-                return `'${coord}'`;
-              })
-              .toString();
+            return `'${feature.get("regionPolygon").toString()}'`;
           } else {
             return `'${feature.get("region_name")}'`;
           }
@@ -445,7 +439,7 @@ const actions = {
               feature.set("region", configData.region);
 
               if (configData.region_type === "'draw'") {
-                feature.set("regionEnvelope", configData.region);
+                feature.set("regionPolygon", configData.region);
               }
             });
             commit("ADD_STUDYAREA_FEATURES", olFeatures);

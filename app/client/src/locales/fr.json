@@ -1,563 +1,563 @@
 {
-    "appTitle": "GOAT",
-    "buttonLabels": {
-        "yes": "Oui",
-        "cancel": "Annuler",
-        "save": "Enregistrer",
-        "ok": "valider",
-        "remove": "supprimer"
+  "appTitle": "GOAT",
+  "buttonLabels": {
+    "yes": "Oui",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "ok": "valider",
+    "remove": "supprimer"
+  },
+  "appBar": {
+    "buttons": {
+      "login": "Login",
+      "print": "Imprimer",
+      "drawAndMeasure": "Dessiner et mesurer",
+      "filter": "Filtre",
+      "edit": "Modifier",
+      "settings": "Paramètres",
+      "info": "Info"
     },
-    "appBar": {
-        "buttons": {
-            "login": "Login",
-            "print": "Imprimer",
-            "drawAndMeasure": "Dessiner et mesurer",
-            "filter": "Filtre",
-            "edit": "Modifier",
-            "settings": "Paramètres",
-            "info": "Info"
+    "login": {
+      "title": "Login",
+      "form": {
+        "username": {
+          "label": "Nom d'utilisateur",
+          "rule": "Nom d'utilisateur est obligatoire"
         },
-        "login": {
-            "title": "Login",
-            "form": {
-                "username": {
-                    "label": "Nom d'utilisateur",
-                    "rule": "Nom d'utilisateur est obligatoire"
-                },
-                "password": {
-                    "label": "Mot de passe",
-                    "rule": "Mot de passe obligatoire"
-                },
-                "submit": "Login"
-            }
+        "password": {
+          "label": "Mot de passe",
+          "rule": "Mot de passe obligatoire"
         },
-        "printMap": {
-            "title": "Imprimer la carte",
-            "connectionMsg": "Connexion au serveur d'impression, veuillez patienter ...",
-            "unavailableMsg": "Le serveur d'impression n'est pas disponible. Merci d'essayer plus tard....",
-            "form": {
-                "title": {
-                    "label": "Titre",
-                    "rule": "Champ obligatoire"
-                },
-                "layout": {
-                    "label": "Mise en page",
-                    "rule": "Champ obligatoire"
-                },
-                "scale": {
-                    "label": "Échelle",
-                    "rule": "Champ obligatoire"
-                },
-                "resolution": {
-                    "label": "Résolution",
-                    "rule": "Champ obligatoire"
-                },
-                "crs": {
-                    "label": "Système de référence",
-                    "rule": "Champ obligatoire"
-                },
-                "outputFormat": {
-                    "label": "",
-                    "rule": ""
-                },
-                "submit": "Imprimer",
-                "abort": "",
-                "legend": "Légende",
-                "grid": "Grille"
-            }
+        "submit": "Login"
+      }
+    },
+    "printMap": {
+      "title": "Imprimer la carte",
+      "connectionMsg": "Connexion au serveur d'impression, veuillez patienter ...",
+      "unavailableMsg": "Le serveur d'impression n'est pas disponible. Merci d'essayer plus tard....",
+      "form": {
+        "title": {
+          "label": "Titre",
+          "rule": "Champ obligatoire"
         },
-        "drawAndMeasure": {
-            "title": "Mesurer",
-            "measure": {
-                "header": "Mesurer",
-                "length": "Longueur",
-                "area": "Zone"
-            },
-            "draw": {
-                "header": "Dessiner",
-                "point": "Point",
-                "pointWithCoord": "Point avec coordonnées",
-                "line": "Ligne",
-                "polygon": "Polygone",
-                "label": "Étiquette",
-                "color": "Couleur",
-                "transparency": "Transparence"
-            },
-            "clear": "Effacer"
+        "layout": {
+          "label": "Mise en page",
+          "rule": "Champ obligatoire"
         },
-        "filter": {
-            "title": "Filtre",
-            "poisSettings": {
-                "buttonTooltip": "Paramètres d'importance et de sensibilité",
-                "title": "Heat map",
-                "selectWeight": "Sélectionnez l'importance",
-                "sensitivityIndex": "Indice de sensibilité",
-                "sensitivityGraph": {
-                    "title": "Accessibilité",
-                    "gravity": "Accessibilité Gravité (%)",
-                    "travelTime": "Durée du trajet (minutes)"
-                }
-            }
+        "scale": {
+          "label": "Échelle",
+          "rule": "Champ obligatoire"
         },
-        "edit": {
-            "title": "Modifier",
-            "selectLayer": "Couche à éditer",
-            "selectFeatures": "Sélectionner des éléments",
-            "drawCircle": "Cliquez ici pour tracer un cercle",
-            "selectOnMap": "Sélectionner des éléments sur la carte",
-            "editTools": "Outils d'édition",
-            "drawFeatureTooltip": "Dessiner un élément",
-            "modifyFeatureTooltip": "Modifier l'élément",
-            "deleteFeature": "Supprimer l'élément",
-            "moveFeature": "",
-            "modifyAttributes": "",
-            "snapGuide": "",
-            "clearBtn": "Effacer",
-            "uploadBtn": "Télécharger",
-            "popup": {
-                "deleteFeatureMsg": "Êtes-vous sûr de vouloir supprimer l'élément sélectionné ?",
-                "selectWayType": "Sélectionnez le type de trajet : ",
-                "wayType": "Type de trajet"
-            },
-            "table": {
-                "layer": "calque",
-                "status": "",
-                "type": "",
-                "actions": ""
-            },
-            "type": {
-                "New": "",
-                "Modified": "",
-                "Restored": "",
-                "Deleted": ""
-            },
-            "status": {
-                "Uploaded": "",
-                "NotUploaded": ""
-            },
-            "activateLayerToDrawScenario": "",
-            "dataTypeInfo": "",
-            "geometryTypeInfo": "",
-            "requiredFields": "",
-            "referenceSystemInfo": "",
-            "featuresNotyetUploaded": "",
-            "differentGeometryType": "",
-            "missingFields": "",
-            "fileCorrupted": "",
-            "noFile": "",
-            "allFeaturesUploaded": "",
-            "notAllUploaded": "",
-            "errorHappened": "",
-            "scenarioFeatures": "",
-            "uploadYourData": "",
-            "deleteAllTitle": "",
-            "deleteAllMessage": ""
+        "resolution": {
+          "label": "Résolution",
+          "rule": "Champ obligatoire"
         },
-        "settings": {
-            "title": "Paramètres",
-            "language": "Langue",
-            "units": {
-                "header": "Unités",
-                "km": "Kilomètres",
-                "miles": "Miles"
-            }
+        "crs": {
+          "label": "Système de référence",
+          "rule": "Champ obligatoire"
         },
-        "about": {
-            "title": "À propos de GOAT",
-            "content": "est l'abréviation de Geo Open Accessibility Tool. Cet outil Web est censé être open source, interactif, flexible et utile pour la planification de l'accessibilité urbaine. Il est en cours de développement au Chair of Urban Structure and Transport Planning de l'Université Technique de Munich .....",
-            "moreInfo": "Plus d'informations"
+        "outputFormat": {
+          "label": "",
+          "rule": ""
+        },
+        "submit": "Imprimer",
+        "abort": "",
+        "legend": "Légende",
+        "grid": "Grille"
+      }
+    },
+    "drawAndMeasure": {
+      "title": "Mesurer",
+      "measure": {
+        "header": "Mesurer",
+        "length": "Longueur",
+        "area": "Zone"
+      },
+      "draw": {
+        "header": "Dessiner",
+        "point": "Point",
+        "pointWithCoord": "Point avec coordonnées",
+        "line": "Ligne",
+        "polygon": "Polygone",
+        "label": "Étiquette",
+        "color": "Couleur",
+        "transparency": "Transparence"
+      },
+      "clear": "Effacer"
+    },
+    "filter": {
+      "title": "Filtre",
+      "poisSettings": {
+        "buttonTooltip": "Paramètres d'importance et de sensibilité",
+        "title": "Heat map",
+        "selectWeight": "Sélectionnez l'importance",
+        "sensitivityIndex": "Indice de sensibilité",
+        "sensitivityGraph": {
+          "title": "Accessibilité",
+          "gravity": "Accessibilité Gravité (%)",
+          "travelTime": "Durée du trajet (minutes)"
         }
+      }
     },
-    "isochrones": {
-        "title": "Isochrones",
-        "calculation": "Calcul",
-        "calculationTitle": "Calcul d'isochrone",
-        "single": {
-            "title": "Point de départ",
-            "type": "Un seul",
-            "searchBox": "Rechercher un départ",
-            "startTooltip": "Cliquez sur le bouton pour commencer le calcul des isochrones",
-            "tableDataTitle": "Données thématiques"
-        },
-        "multiple": {
-            "title": "Début",
-            "type": "Plusieurs",
-            "selectMethod": "Sélectionnez la méthode",
-            "studyArea": "Zone d'étude",
-            "clear": "Effacer",
-            "calculate": "Calculer",
-            "studyAreaInfoLabel": "Sélectionnez <b> zones d'étude </ b> et <b> commodités </ b> pour activer le calcul.",
-            "drawBoundary": "Tracer une limite",
-            "amenityCount": "Compte des commodités",
-            "limit": "Limite",
-            "drawBoundaryInfoLabel": "Dessinez <b> limite </ b> et sélectionnez <b> commodités </ b> pour activer le calcul.",
-            "tableDataTitle": "Données multi-isochrone"
-        },
-        "options": {
-            "title": "Options",
-            "subOptions": "Paramètres des isochrones",
-            "speed": "km/h",
-            "time": "min",
-            "nr": "Isochrones",
-            "calcType": "Niveau de précision",
-            "calcModus": "Modes de calcul",
-            "alphaShapeMode": "Niveau de précision",
-            "defaultNetwork": "Réseau par défaut",
-            "modifiedNetwork": "Réseau modifié",
-            "modifiedNetworkDoubleCalc": "Réseau modifié (double calcul)",
-            "routingProfile": "",
-            "walking_standard": "",
-            "walking_elderly": "personnes âgées",
-            "walking_safe_night": "",
-            "walking_wheelchair": "",
-            "cycling_standard": "",
-            "cycling_pedelec": ""
-        },
-        "results": {
-            "title": "Résultats",
-            "multiIsochroneHeader": "Calcul multi-isochrone",
-            "additionalLayers": "",
-            "showDataTooltip": "Afficher les données",
-            "hideDataTooltip": "",
-            "toggleVisibilityTooltip": "Basculer la visibilité",
-            "showResultsTooltip": "",
-            "hideResultsTooltip": "",
-            "downloadTooltip": "Télécharger",
-            "deleteCalcTooltip": "Supprimer le calcul",
-            "deleteAll": "",
-            "changeColorTooltip": "",
-            "table": {
-                "type": "Type",
-                "range": "Temps",
-                "area": "Zone",
-                "visible": "Visible",
-                "legend": "Légende"
-            }
-        },
-        "tableData": {
-            "timeFilter": "Filtre temporel",
-            "searchPois": "Rechercher un point d'intérêt",
-            "selectTimeMsg": "Sélectionnez l'heure pour filtrer",
-            "noDataMsg": "Aucune donnée pour l'heure sélectionnée",
-            "selectAmenitiesMsg": "Sélectionnez <b> Équipements </ b> et <b> Heure </ b> pour filtrer le tableau.",
-            "table": {
-                "pois": "Point d'intérêt",
-                "isochrone": "Isochrone",
-                "studyArea": "Zone d'étude",
-                "population": "Population",
-                "reachedPopulation": "Population atteinte"
-            }
-        },
-        "isochrones": "Isochrones",
-        "deleteTitle": "Effacer",
-        "deleteMessage": "Êtes-vous sûr de vouloir supprimer le calcul",
-        "deleteAllMessage": "",
-        "download": {
-            "title": "Télécharger les isochrones",
-            "fileName": "Nom du fichier",
-            "outputFormat": "Choisissez le format de sortie",
-            "download": "Télécharger"
-        },
-        "additionalLayers": {
-            "defaultNetwork": "",
-            "inputNetwork": ""
-        },
-        "pickColor": {
-            "title": ""
-        }
+    "edit": {
+      "title": "Modifier",
+      "selectLayer": "Couche à éditer",
+      "selectFeatures": "Sélectionner des éléments",
+      "drawCircle": "Cliquez ici pour tracer un cercle",
+      "selectOnMap": "Sélectionner des éléments sur la carte",
+      "editTools": "Outils d'édition",
+      "drawFeatureTooltip": "Dessiner un élément",
+      "modifyFeatureTooltip": "Modifier l'élément",
+      "deleteFeature": "Supprimer l'élément",
+      "moveFeature": "",
+      "modifyAttributes": "",
+      "snapGuide": "",
+      "clearBtn": "Effacer",
+      "uploadBtn": "Télécharger",
+      "popup": {
+        "deleteFeatureMsg": "Êtes-vous sûr de vouloir supprimer l'élément sélectionné ?",
+        "selectWayType": "Sélectionnez le type de trajet : ",
+        "wayType": "Type de trajet"
+      },
+      "table": {
+        "layer": "calque",
+        "status": "",
+        "type": "",
+        "actions": ""
+      },
+      "type": {
+        "New": "",
+        "Modified": "",
+        "Restored": "",
+        "Deleted": ""
+      },
+      "status": {
+        "Uploaded": "",
+        "NotUploaded": ""
+      },
+      "activateLayerToDrawScenario": "",
+      "dataTypeInfo": "",
+      "geometryTypeInfo": "",
+      "requiredFields": "",
+      "referenceSystemInfo": "",
+      "featuresNotyetUploaded": "",
+      "differentGeometryType": "",
+      "missingFields": "",
+      "fileCorrupted": "",
+      "noFile": "",
+      "allFeaturesUploaded": "",
+      "notAllUploaded": "",
+      "errorHappened": "",
+      "scenarioFeatures": "",
+      "uploadYourData": "",
+      "deleteAllTitle": "",
+      "deleteAllMessage": ""
     },
-    "poisFilter": {
-        "showTimeFilter": "",
-        "selectHourLabel": "",
-        "selectDayLabel": "",
-        "daysOfWeek": {
-            "monday": "",
-            "tuesday": "",
-            "wednesday": "",
-            "thursday": "",
-            "friday": "",
-            "saturday": "",
-            "sunday": ""
-        }
+    "settings": {
+      "title": "Paramètres",
+      "language": "Langue",
+      "units": {
+        "header": "Unités",
+        "km": "Kilomètres",
+        "miles": "Miles"
+      }
     },
-    "layerTree": {
-        "title": "Couches",
-        "settings": {
-            "transparency": "Transparence"
-        }
-    },
-    "map": {
-        "layerLegend": {
-            "title": "Légende des couches"
-        },
-        "snackbarMessages": {
-            "selectAmenities": "Vous devez sélectionner au moins une commodité",
-            "calculateIsochroneError": "",
-            "uploadScenarioSuccess": "",
-            "uploadScenarioError": "",
-            "notAllScnearioFeaturesUploaded": "",
-            "cantDeleteAllScenarioFeatures": "",
-            "allScenarioFeaturesDelete": "",
-            "noScenarioFeatureChangeAvailable": "",
-            "cantPrintBaseLayer": ""
-        },
-        "layerGroup": {
-            "poisLayers": "Couche des Pois",
-            "administrativeLayers": "Couches administratives",
-            "streetlevelqualityLayers": "Street Level Quality",
-            "environmentalQualityLayers": "",
-            "perceivedQuality": "",
-            "accessbilityBasemaps": "Les couches d'accessibilité",
-            "backgroundLayers": "Couches d'arrière-plan",
-            "buildings": ""
-        },
-        "layerName": {
-            "pois": "Point d'intérêt",
-            "administrativeUnits": "Divisions administratives",
-            "biotops": "",
-            "ffh-area": "",
-            "natureReserves": "",
-            "noiseMainTrafficRoads": "",
-            "protectedLandscape": "",
-            "footpathWidth": "Footpath Width",
-            "illuminance": "Luminosité",
-            "lanes": "Lanes",
-            "parking": "Parking",
-            "smoothness": "",
-            "speed": "Speed",
-            "streetCategory": "",
-            "streetCategorysAggregated": "",
-            "streetCrossings": "Street Crossings",
-            "streetFurniture": "",
-            "streetFurnitureBicycles": "",
-            "surface": "Surface",
-            "wheelchairUsability": "Accessibilité pour personnes avec mobilité reduite",
-            "areaIsochrone": "Superficie de l'isochrone",
-            "walkabilityPopulation": "Population piétonnière",
-            "population": "Population",
-            "walkability": "Accessibilité piétonne",
-            "studyArea": "Zone d'étude",
-            "ways": "Trajets",
-            "buildings": "",
-            "osmStandard": "Standard OSM",
-            "osmLight": "OSM Light",
-            "osmDark": "OSM Dark",
-            "mapboxStreets": "Mapbox",
-            "publicTransport": "Transport public",
-            "bingAerial": "Bing Aerial"
-        },
-        "tooltips": {
-            "clickForCalculation": "Cliquez sur la carte pour calculer",
-            "clickToSelectStudyArea": "Cliquez pour sélectionner la zone d'étude",
-            "maxCircleRadius": "Le rayon maximum du cercle est de 1000 m",
-            "clickToStartMeasure": "Cliquez pour commencer à mesurer",
-            "clickToStartDrawing": "Cliquez pour commencer à dessiner",
-            "clickToContinueDrawing": "Cliquez pour continuer à dessiner",
-            "clickToFinishDrawing": "Cliquez pour terminer le dessin",
-            "clickToStartDrawingBoundary": "Cliquez pour commencer à dessiner la limite",
-            "clickToStartDrawingCircle": "Cliquez pour commencer à dessiner le cercle (rayon maximum 1000 m)",
-            "clickToFinishDrawingPolygon": "Double-cliquez ou cliquez sur le point de départ pour terminer",
-            "clickOnFeatureToDelete": "Cliquez sur l'élément pour le supprimer",
-            "clickOnFeatureToMove": "",
-            "clickAndDragToModify": "Cliquez et faites glisser les éléments à modifier",
-            "clickToModifyAttributes": "",
-            "clickToRemove": "Cliquez pour effacer",
-            "clickToPlacePoint": "",
-            "routingProfiles": {
-                "walking": {
-                    "title": "",
-                    "options": {
-                        "standard": {
-                            "title": "",
-                            "tooltip": ""
-                        },
-                        "elderly": {
-                            "title": "",
-                            "tooltip": ""
-                        },
-                        "safe_night": {
-                            "title": "",
-                            "tooltip": ""
-                        }
-                    }
-                },
-                "cycling": {
-                    "title": "",
-                    "options": {
-                        "standard": {
-                            "title": "",
-                            "tooltip": ""
-                        },
-                        "pedelec": {
-                            "title": "",
-                            "tooltip": ""
-                        }
-                    }
-                },
-                "walking_wheelchair": {
-                    "title": "",
-                    "tooltip": ""
-                }
-            },
-            "zoomToFeature": "",
-            "deleteFeature": "",
-            "uploadFeature": "",
-            "restoreFeature": ""
-        },
-        "popup": {
-            "attributes": "Les attributes",
-            "info": "Info",
-            "editWithOsm": "Editer avec OSM",
-            "confirm": "Confirmer",
-            "modifyAttributes": ""
-        },
-        "layerListValues": {
-            "road": "Route",
-            "bridge": "Pont"
-        },
-        "contextMenu": {
-            "deleteIsochrone": "",
-            "zoomIn": "",
-            "zoomOut": ""
-        }
-    },
-    "pois": {
-        "education": "Éducation",
-        "foodAndDrink": "Manger et boire",
-        "transport": "Transport",
-        "services": "Services",
-        "shop": "Magasin",
-        "tourismAndLeisure": "Tourisme & Loisirs",
-        "nursery": "",
-        "kindergarten": "Jardin d'enfants",
-        "primary_school": "École primaire",
-        "secondary_school": "École secondaire",
-        "library": "Bibliothèque",
-        "bar": "Bar",
-        "biergarten": "Biergarten",
-        "cafe": "Café",
-        "pub": "Pub",
-        "fast_food": "Fast food",
-        "ice_cream": "Glacier",
-        "restaurant": "Restaurant",
-        "nightclub": "Boîte de nuit",
-        "bicycle_rental": "Location de vélos",
-        "car_sharing": "Service d'autopartage",
-        "charging_station": "Station de charge",
-        "bus_stop": "Autobus",
-        "tram_stop": "Station de tram",
-        "subway_entrance": "Station de métro",
-        "rail_station": "Gare ferroviaire",
-        "taxi": "Taxi",
-        "hairdresser": "Coiffeur",
-        "atm": "GAB",
-        "bank": "Banque",
-        "dentist": "Dentiste",
-        "doctors": "Médecin",
-        "pharmacy": "Pharmacie",
-        "post_box": "Boîte aux lettres",
-        "fuel": "Carburant",
-        "recycling": "Recyclage",
-        "bakery": "Boulangerie",
-        "butcher": "Boucher",
-        "clothes": "Magasin de vêtements",
-        "convenience": "Épicerie",
-        "greengrocer": "Marchand de légumes",
-        "kiosk": "Kiosque",
-        "mall": "Centre commercial",
-        "shoes": "Chaussures",
-        "supermarket": "Supermarché",
-        "discount_supermarket": "Supermarché discount",
-        "international_supermarket": "Supermarché international",
-        "hypermarket": "Hypermarché",
-        "chemist": "Droguerie",
-        "organic": "Alimentation biologique",
-        "marketplace": "Marché",
-        "cinema": "Cinéma",
-        "theatre": "Théâtre",
-        "museum": "Musée",
-        "hotel": "Hôtel",
-        "hostel": "Auberge",
-        "guest_house": "Maison d'hôtes ",
-        "gallery": "Galerie",
-        "university": "University",
-        "hospital": "Hospital",
-        "playground": "",
-        "population": "Population"
-    },
-    "$vuetify": {
-        "close": "Fermer",
-        "dataIterator": {
-            "pageText": "{0} - {1} sur {2}",
-            "noResultsText": "Aucun enregistrement correspondant trouvé",
-            "loadingText": "Chargement des articles ..."
-        },
-        "dataTable": {
-            "itemsPerPageText": "Lignes par page:",
-            "ariaLabel": {
-                "sortDescending": ": Triés par ordre décroissant. Activer pour supprimer le tri.",
-                "sortAscending": ": Triés par ordre croissant. Activer pour trier par ordre décroissant.",
-                "sortNone": ": Pas triés. Activer pour trier par ordre croissant."
-            }
-        },
-        "dataFooter": {
-            "pageText": "",
-            "itemsPerPageText": "Objets par page:",
-            "itemsPerPageAll": "Tout",
-            "nextPage": "Page suivante",
-            "prevPage": "Page précédente",
-            "firstPage": "Première page",
-            "lastPage": "Dernière page"
-        },
-        "datePicker": {
-            "itemsSelected": "{0} sélectionné"
-        },
-        "noDataText": "Pas de données disponibles",
-        "carousel": {
-            "prev": "Visuel précédent",
-            "next": "Visuel suivant"
-        },
-        "calendar": {
-            "moreEvents": "{0} plus"
-        }
-    },
-    "common": {
-        "required": ""
-    },
-    "dynamicFields": {
-        "attributes": {
-            "ways": {
-                "type": "",
-                "class_id": ""
-            },
-            "pois": {
-                "amenity": "",
-                "name": "",
-                "opening_hours": ""
-            },
-            "buildings": {
-                "building_levels": "",
-                "building_type": ""
-            }
-        },
-        "listValues": {
-            "ways": {
-                "road": "",
-                "bridge": ""
-            }
-        }
-    },
-    "openingHours": {
-        "openingTime": "",
-        "closingTime": "",
-        "default": "",
-        "monday": "",
-        "tuesday": "",
-        "wednesday": "",
-        "thursday": "",
-        "friday": "",
-        "saturday": "",
-        "sunday": "",
-        "publicHolidays": ""
+    "about": {
+      "title": "À propos de GOAT",
+      "content": "est l'abréviation de Geo Open Accessibility Tool. Cet outil Web est censé être open source, interactif, flexible et utile pour la planification de l'accessibilité urbaine. Il est en cours de développement au Chair of Urban Structure and Transport Planning de l'Université Technique de Munich .....",
+      "moreInfo": "Plus d'informations"
     }
+  },
+  "isochrones": {
+    "title": "Isochrones",
+    "calculation": "Calcul",
+    "calculationTitle": "Calcul d'isochrone",
+    "single": {
+      "title": "Point de départ",
+      "type": "Un seul",
+      "searchBox": "Rechercher un départ",
+      "startTooltip": "Cliquez sur le bouton pour commencer le calcul des isochrones",
+      "tableDataTitle": "Données thématiques"
+    },
+    "multiple": {
+      "title": "Début",
+      "type": "Plusieurs",
+      "selectMethod": "Sélectionnez la méthode",
+      "studyArea": "Zone d'étude",
+      "clear": "Effacer",
+      "calculate": "Calculer",
+      "studyAreaInfoLabel": "Sélectionnez <b> zones d'étude </ b> et <b> commodités </ b> pour activer le calcul.",
+      "drawPolygon": "Tracer une limite",
+      "amenityCount": "Compte des commodités",
+      "limit": "Limite",
+      "drawPolygonInfoLabel": "Dessinez <b> limite </ b> et sélectionnez <b> commodités </ b> pour activer le calcul.",
+      "tableDataTitle": "Données multi-isochrone"
+    },
+    "options": {
+      "title": "Options",
+      "subOptions": "Paramètres des isochrones",
+      "speed": "km/h",
+      "time": "min",
+      "nr": "Isochrones",
+      "calcType": "Niveau de précision",
+      "calcModus": "Modes de calcul",
+      "alphaShapeMode": "Niveau de précision",
+      "defaultNetwork": "Réseau par défaut",
+      "modifiedNetwork": "Réseau modifié",
+      "modifiedNetworkDoubleCalc": "Réseau modifié (double calcul)",
+      "routingProfile": "",
+      "walking_standard": "",
+      "walking_elderly": "personnes âgées",
+      "walking_safe_night": "",
+      "walking_wheelchair": "",
+      "cycling_standard": "",
+      "cycling_pedelec": ""
+    },
+    "results": {
+      "title": "Résultats",
+      "multiIsochroneHeader": "Calcul multi-isochrone",
+      "additionalLayers": "",
+      "showDataTooltip": "Afficher les données",
+      "hideDataTooltip": "",
+      "toggleVisibilityTooltip": "Basculer la visibilité",
+      "showResultsTooltip": "",
+      "hideResultsTooltip": "",
+      "downloadTooltip": "Télécharger",
+      "deleteCalcTooltip": "Supprimer le calcul",
+      "deleteAll": "",
+      "changeColorTooltip": "",
+      "table": {
+        "type": "Type",
+        "range": "Temps",
+        "area": "Zone",
+        "visible": "Visible",
+        "legend": "Légende"
+      }
+    },
+    "tableData": {
+      "timeFilter": "Filtre temporel",
+      "searchPois": "Rechercher un point d'intérêt",
+      "selectTimeMsg": "Sélectionnez l'heure pour filtrer",
+      "noDataMsg": "Aucune donnée pour l'heure sélectionnée",
+      "selectAmenitiesMsg": "Sélectionnez <b> Équipements </ b> et <b> Heure </ b> pour filtrer le tableau.",
+      "table": {
+        "pois": "Point d'intérêt",
+        "isochrone": "Isochrone",
+        "studyArea": "Zone d'étude",
+        "population": "Population",
+        "reachedPopulation": "Population atteinte"
+      }
+    },
+    "isochrones": "Isochrones",
+    "deleteTitle": "Effacer",
+    "deleteMessage": "Êtes-vous sûr de vouloir supprimer le calcul",
+    "deleteAllMessage": "",
+    "download": {
+      "title": "Télécharger les isochrones",
+      "fileName": "Nom du fichier",
+      "outputFormat": "Choisissez le format de sortie",
+      "download": "Télécharger"
+    },
+    "additionalLayers": {
+      "defaultNetwork": "",
+      "inputNetwork": ""
+    },
+    "pickColor": {
+      "title": ""
+    }
+  },
+  "poisFilter": {
+    "showTimeFilter": "",
+    "selectHourLabel": "",
+    "selectDayLabel": "",
+    "daysOfWeek": {
+      "monday": "",
+      "tuesday": "",
+      "wednesday": "",
+      "thursday": "",
+      "friday": "",
+      "saturday": "",
+      "sunday": ""
+    }
+  },
+  "layerTree": {
+    "title": "Couches",
+    "settings": {
+      "transparency": "Transparence"
+    }
+  },
+  "map": {
+    "layerLegend": {
+      "title": "Légende des couches"
+    },
+    "snackbarMessages": {
+      "selectAmenities": "Vous devez sélectionner au moins une commodité",
+      "calculateIsochroneError": "",
+      "uploadScenarioSuccess": "",
+      "uploadScenarioError": "",
+      "notAllScnearioFeaturesUploaded": "",
+      "cantDeleteAllScenarioFeatures": "",
+      "allScenarioFeaturesDelete": "",
+      "noScenarioFeatureChangeAvailable": "",
+      "cantPrintBaseLayer": ""
+    },
+    "layerGroup": {
+      "poisLayers": "Couche des Pois",
+      "administrativeLayers": "Couches administratives",
+      "streetlevelqualityLayers": "Street Level Quality",
+      "environmentalQualityLayers": "",
+      "perceivedQuality": "",
+      "accessbilityBasemaps": "Les couches d'accessibilité",
+      "backgroundLayers": "Couches d'arrière-plan",
+      "buildings": ""
+    },
+    "layerName": {
+      "pois": "Point d'intérêt",
+      "administrativeUnits": "Divisions administratives",
+      "biotops": "",
+      "ffh-area": "",
+      "natureReserves": "",
+      "noiseMainTrafficRoads": "",
+      "protectedLandscape": "",
+      "footpathWidth": "Footpath Width",
+      "illuminance": "Luminosité",
+      "lanes": "Lanes",
+      "parking": "Parking",
+      "smoothness": "",
+      "speed": "Speed",
+      "streetCategory": "",
+      "streetCategorysAggregated": "",
+      "streetCrossings": "Street Crossings",
+      "streetFurniture": "",
+      "streetFurnitureBicycles": "",
+      "surface": "Surface",
+      "wheelchairUsability": "Accessibilité pour personnes avec mobilité reduite",
+      "areaIsochrone": "Superficie de l'isochrone",
+      "walkabilityPopulation": "Population piétonnière",
+      "population": "Population",
+      "walkability": "Accessibilité piétonne",
+      "studyArea": "Zone d'étude",
+      "ways": "Trajets",
+      "buildings": "",
+      "osmStandard": "Standard OSM",
+      "osmLight": "OSM Light",
+      "osmDark": "OSM Dark",
+      "mapboxStreets": "Mapbox",
+      "publicTransport": "Transport public",
+      "bingAerial": "Bing Aerial"
+    },
+    "tooltips": {
+      "clickForCalculation": "Cliquez sur la carte pour calculer",
+      "clickToSelectStudyArea": "Cliquez pour sélectionner la zone d'étude",
+      "maxCircleRadius": "Le rayon maximum du cercle est de 1000 m",
+      "clickToStartMeasure": "Cliquez pour commencer à mesurer",
+      "clickToStartDrawing": "Cliquez pour commencer à dessiner",
+      "clickToContinueDrawing": "Cliquez pour continuer à dessiner",
+      "clickToFinishDrawing": "Cliquez pour terminer le dessin",
+      "clickToStartDrawingBoundary": "Cliquez pour commencer à dessiner la limite",
+      "clickToStartDrawingCircle": "Cliquez pour commencer à dessiner le cercle (rayon maximum 1000 m)",
+      "clickToFinishDrawingPolygon": "Double-cliquez ou cliquez sur le point de départ pour terminer",
+      "clickOnFeatureToDelete": "Cliquez sur l'élément pour le supprimer",
+      "clickOnFeatureToMove": "",
+      "clickAndDragToModify": "Cliquez et faites glisser les éléments à modifier",
+      "clickToModifyAttributes": "",
+      "clickToRemove": "Cliquez pour effacer",
+      "clickToPlacePoint": "",
+      "routingProfiles": {
+        "walking": {
+          "title": "",
+          "options": {
+            "standard": {
+              "title": "",
+              "tooltip": ""
+            },
+            "elderly": {
+              "title": "",
+              "tooltip": ""
+            },
+            "safe_night": {
+              "title": "",
+              "tooltip": ""
+            }
+          }
+        },
+        "cycling": {
+          "title": "",
+          "options": {
+            "standard": {
+              "title": "",
+              "tooltip": ""
+            },
+            "pedelec": {
+              "title": "",
+              "tooltip": ""
+            }
+          }
+        },
+        "walking_wheelchair": {
+          "title": "",
+          "tooltip": ""
+        }
+      },
+      "zoomToFeature": "",
+      "deleteFeature": "",
+      "uploadFeature": "",
+      "restoreFeature": ""
+    },
+    "popup": {
+      "attributes": "Les attributes",
+      "info": "Info",
+      "editWithOsm": "Editer avec OSM",
+      "confirm": "Confirmer",
+      "modifyAttributes": ""
+    },
+    "layerListValues": {
+      "road": "Route",
+      "bridge": "Pont"
+    },
+    "contextMenu": {
+      "deleteIsochrone": "",
+      "zoomIn": "",
+      "zoomOut": ""
+    }
+  },
+  "pois": {
+    "education": "Éducation",
+    "foodAndDrink": "Manger et boire",
+    "transport": "Transport",
+    "services": "Services",
+    "shop": "Magasin",
+    "tourismAndLeisure": "Tourisme & Loisirs",
+    "nursery": "",
+    "kindergarten": "Jardin d'enfants",
+    "primary_school": "École primaire",
+    "secondary_school": "École secondaire",
+    "library": "Bibliothèque",
+    "bar": "Bar",
+    "biergarten": "Biergarten",
+    "cafe": "Café",
+    "pub": "Pub",
+    "fast_food": "Fast food",
+    "ice_cream": "Glacier",
+    "restaurant": "Restaurant",
+    "nightclub": "Boîte de nuit",
+    "bicycle_rental": "Location de vélos",
+    "car_sharing": "Service d'autopartage",
+    "charging_station": "Station de charge",
+    "bus_stop": "Autobus",
+    "tram_stop": "Station de tram",
+    "subway_entrance": "Station de métro",
+    "rail_station": "Gare ferroviaire",
+    "taxi": "Taxi",
+    "hairdresser": "Coiffeur",
+    "atm": "GAB",
+    "bank": "Banque",
+    "dentist": "Dentiste",
+    "doctors": "Médecin",
+    "pharmacy": "Pharmacie",
+    "post_box": "Boîte aux lettres",
+    "fuel": "Carburant",
+    "recycling": "Recyclage",
+    "bakery": "Boulangerie",
+    "butcher": "Boucher",
+    "clothes": "Magasin de vêtements",
+    "convenience": "Épicerie",
+    "greengrocer": "Marchand de légumes",
+    "kiosk": "Kiosque",
+    "mall": "Centre commercial",
+    "shoes": "Chaussures",
+    "supermarket": "Supermarché",
+    "discount_supermarket": "Supermarché discount",
+    "international_supermarket": "Supermarché international",
+    "hypermarket": "Hypermarché",
+    "chemist": "Droguerie",
+    "organic": "Alimentation biologique",
+    "marketplace": "Marché",
+    "cinema": "Cinéma",
+    "theatre": "Théâtre",
+    "museum": "Musée",
+    "hotel": "Hôtel",
+    "hostel": "Auberge",
+    "guest_house": "Maison d'hôtes ",
+    "gallery": "Galerie",
+    "university": "University",
+    "hospital": "Hospital",
+    "playground": "",
+    "population": "Population"
+  },
+  "$vuetify": {
+    "close": "Fermer",
+    "dataIterator": {
+      "pageText": "{0} - {1} sur {2}",
+      "noResultsText": "Aucun enregistrement correspondant trouvé",
+      "loadingText": "Chargement des articles ..."
+    },
+    "dataTable": {
+      "itemsPerPageText": "Lignes par page:",
+      "ariaLabel": {
+        "sortDescending": ": Triés par ordre décroissant. Activer pour supprimer le tri.",
+        "sortAscending": ": Triés par ordre croissant. Activer pour trier par ordre décroissant.",
+        "sortNone": ": Pas triés. Activer pour trier par ordre croissant."
+      }
+    },
+    "dataFooter": {
+      "pageText": "",
+      "itemsPerPageText": "Objets par page:",
+      "itemsPerPageAll": "Tout",
+      "nextPage": "Page suivante",
+      "prevPage": "Page précédente",
+      "firstPage": "Première page",
+      "lastPage": "Dernière page"
+    },
+    "datePicker": {
+      "itemsSelected": "{0} sélectionné"
+    },
+    "noDataText": "Pas de données disponibles",
+    "carousel": {
+      "prev": "Visuel précédent",
+      "next": "Visuel suivant"
+    },
+    "calendar": {
+      "moreEvents": "{0} plus"
+    }
+  },
+  "common": {
+    "required": ""
+  },
+  "dynamicFields": {
+    "attributes": {
+      "ways": {
+        "type": "",
+        "class_id": ""
+      },
+      "pois": {
+        "amenity": "",
+        "name": "",
+        "opening_hours": ""
+      },
+      "buildings": {
+        "building_levels": "",
+        "building_type": ""
+      }
+    },
+    "listValues": {
+      "ways": {
+        "road": "",
+        "bridge": ""
+      }
+    }
+  },
+  "openingHours": {
+    "openingTime": "",
+    "closingTime": "",
+    "default": "",
+    "monday": "",
+    "tuesday": "",
+    "wednesday": "",
+    "thursday": "",
+    "friday": "",
+    "saturday": "",
+    "sunday": "",
+    "publicHolidays": ""
+  }
 }

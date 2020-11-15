@@ -10,7 +10,7 @@
         <!-- CREATE SCENARIO  -->
         <div v-if="Object.keys(scenarios).length > 0">
           <v-row class="mt-4" no-gutters>
-            <v-col class="text-center" :cols="10">
+            <v-col class="text-center" :cols="8">
               <v-select
                 v-model="activeScenario"
                 :items="scenarioArray"
@@ -18,14 +18,29 @@
                 item-value="value"
                 label="Select scenario"
                 solo
-              ></v-select>
+              >
+                <template
+                  class="create-scenario-text"
+                  slot="selection"
+                  slot-scope="{ item }"
+                >
+                  {{ item.display }}
+                </template>
+                <template
+                  class="create-scenario-text"
+                  slot="item"
+                  slot-scope="{ item }"
+                >
+                  {{ item.display }}
+                </template>
+              </v-select>
             </v-col>
-            <v-col class="text-center">
+            <v-col class="text-center ml-0 pl-0">
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
                   <v-btn
                     v-on="on"
-                    class="mt-1 ml-3"
+                    class="mt-1 ml-2"
                     :color="activeColor.primary"
                     fab
                     dark
@@ -36,6 +51,27 @@
                   </v-btn>
                 </template>
                 <span>Create new scenario</span></v-tooltip
+              >
+            </v-col>
+            <v-col v-if="activeScenario" class="text-center">
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    v-on="on"
+                    class="mt-1 ml-1"
+                    :color="activeColor.primary"
+                    fab
+                    dark
+                    small
+                    @click="
+                      showScenarioDialog = true;
+                      activeScenarioId = activeScenario;
+                    "
+                  >
+                    <v-icon dark>edit</v-icon>
+                  </v-btn>
+                </template>
+                <span>Edit Scenario Name</span></v-tooltip
               >
             </v-col>
           </v-row>
@@ -88,8 +124,8 @@
           border="left"
           colored-border
           class="mb-2 mt-0 mx-0 elevation-2"
-          icon="info"
-          :color="activeColor.primary"
+          icon="warning"
+          color="warning"
           dense
           v-if="
             selectedLayer &&
@@ -383,14 +419,14 @@
               </v-alert>
 
               <!-- FEATURES NOT YET UPLOADED ALERT -->
-              <v-alert
+              <!-- <v-alert
                 class="elevation-2"
                 v-if="fileInputFeaturesCache.length > 0"
                 dense
                 type="info"
               >
                 {{ $t("appBar.edit.featuresNotyetUploaded") }}
-              </v-alert>
+              </v-alert> -->
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn
@@ -557,7 +593,11 @@
     <!-- Scenario dialog -->
     <scenario-dialog
       :visible="showScenarioDialog"
-      @close="showScenarioDialog = false"
+      :scenarioId="activeScenarioId"
+      @close="
+        showScenarioDialog = false;
+        activeScenarioId = null;
+      "
     ></scenario-dialog>
     <!-- Confirm Delete all  -->
     <confirm ref="confirm"></confirm>
@@ -757,19 +797,67 @@ export default {
     isUploadBtnEnabled: true,
     //Scenario Dialog
     showScenarioDialog: false,
+    activeScenarioId: null,
 
     editElVisible: true,
     dataManageElVisible: true,
     scenarioImpExpVisible: false,
     selectEditVisible: true,
     selectFeaturesVisible: true,
-    dataTableElVisible: true
+    dataTableElVisible: true,
+    // Feature storage layers.
+    editLayerStorageLayer: [],
+    bldEntranceStorageLayer: []
   }),
   watch: {
     selectedLayer(newValue) {
       this.updateSelectedLayer(newValue);
     },
     activeScenario() {
+      /** For edit layer */
+      //1- Store the features in the storage layer. ()
+      this.olEditCtrl.source.getFeatures().forEach(feature => {
+        if (!this.olEditCtrl.storageLayer.getSource().hasFeature(feature)) {
+          this.olEditCtrl.storageLayer.getSource().addFeature(feature);
+        }
+      });
+      //2- Clear edit layer
+      this.olEditCtrl.source.clear();
+      //3- Copy the active scenario features in source;
+      const editFeaturesInActiveScenario = this.olEditCtrl.storageLayer
+        .getSource()
+        .getFeatures()
+        .filter(f => f.get("scenario_id") === this.activeScenario);
+      this.olEditCtrl.source.addFeatures(editFeaturesInActiveScenario);
+
+      /** For building entrance layer */
+      //1- Store the features in the storage layer. ()
+      this.olEditCtrl.bldEntranceLayer
+        .getSource()
+        .getFeatures()
+        .forEach(feature => {
+          if (
+            !this.olEditCtrl.bldEntranceStorageLayer
+              .getSource()
+              .hasFeature(feature)
+          ) {
+            this.olEditCtrl.bldEntranceStorageLayer
+              .getSource()
+              .addFeature(feature);
+          }
+        });
+      //2- Clear bld entrance layer
+      this.olEditCtrl.bldEntranceLayer.getSource().clear();
+      //3- Copy active scenario features in bld entrance layer;
+      const bldEntranceFeaturesInActiveScenario = this.olEditCtrl.bldEntranceStorageLayer
+        .getSource()
+        .getFeatures()
+        .filter(f => f.get("scenario_id") === this.activeScenario);
+      this.olEditCtrl.bldEntranceLayer
+        .getSource()
+        .addFeatures(bldEntranceFeaturesInActiveScenario);
+
+      //**//
       this.onEditSourceChange();
       this.olEditCtrl.source.changed();
       this.olEditCtrl.bldEntranceLayer.getSource().changed();
@@ -892,17 +980,46 @@ export default {
           //- Check for size and other validations
           const result = reader.result;
           //- Parse geojson data
-          const features = geojsonToFeature(result, {
+          let features = geojsonToFeature(result, {
             dataProjection: "EPSG:4326",
             featureProjection: "EPSG:3857"
           });
           if (!features || features.length === 0) return;
+
+          if (
+            this.selectedLayer.get("name") === "buildings" &&
+            features[0].getGeometry().getType() === "Point"
+          ) {
+            features.forEach(feature => {
+              const point = feature.getGeometry().getCoordinates();
+              // Check if there is a building under the uploaded features.
+              const featuresAtCoord = this.olEditCtrl.source
+                .getFeaturesAtCoordinate(point)
+                .filter(f => f.get("layerName") === "buildings");
+              if (featuresAtCoord[0]) {
+                feature.set(
+                  "building_gid",
+                  featuresAtCoord[0].get("gid") ||
+                    featuresAtCoord[0].get("id") ||
+                    featuresAtCoord[0].getId()
+                );
+              }
+            });
+          }
           //- Check geometry type
           //- For buildings point geometry is allowed in order to upload building entrance layer
 
+          let editGeometryTypes = this.selectedLayer.get("editGeometry");
+          if (
+            this.selectedLayer.get("name") === "buildings" &&
+            features[0].getGeometry().getType() === "Point" // User is upload building entrance features..
+          ) {
+            editGeometryTypes = [...editGeometryTypes];
+            editGeometryTypes.push("Point");
+          }
           if (
             ![features[0].getGeometry().getType()].some(r =>
-              this.selectedLayer.get("editGeometry").includes(r)
+              editGeometryTypes.includes(r)
             )
           ) {
             //Geojson not valid
@@ -995,7 +1112,30 @@ export default {
             let areAllUploaded = 1;
             //- Transform features
             const visibleFeatures = [];
+
+            //- Filter out building features that dont intersect.
+
             features.forEach(feature => {
+              //- Fiilter out building features that dont intersect.
+              if (
+                this.selectedLayer.get("name") === "buildings" &&
+                feature.getGeometry().getType() === "Point"
+              ) {
+                const point = feature.getGeometry().getCoordinates();
+                // Check if there is a building under the uploaded features.
+                const featuresAtCoord = this.olEditCtrl.source
+                  .getFeaturesAtCoordinate(point)
+                  .filter(f => f.get("layerName") === "buildings");
+                if (featuresAtCoord[0]) {
+                  feature.set(
+                    "building_gid",
+                    featuresAtCoord[0].get("gid") ||
+                      featuresAtCoord[0].get("id") ||
+                      featuresAtCoord[0].getId()
+                  );
+                }
+              }
+
               if (layerName !== "pois") {
                 feature.set("status", null);
               }
@@ -1018,7 +1158,9 @@ export default {
 
               // Manage delete features.
               if (
-                feature.get("edit_type") !== "deleted" &&
+                !["deleted", "old_modified"].includes(
+                  feature.get("edit_type")
+                ) &&
                 feature.get("upload_status") === "successful"
               ) {
                 visibleFeatures.push(feature);
@@ -1070,7 +1212,6 @@ export default {
           } else {
             this.fileInputValidationMessage = this.fileInputValidationMessageEnum.ERROR_HAPPENED;
           }
-
           setTimeout(() => {
             this.fileInputValidationMessage = this.fileInputValidationMessageEnum.FILE_VALID_OR_NO_FILE;
           }, 3000);
@@ -1216,7 +1357,8 @@ export default {
         editLayerHelper.filterResults(
           response,
           me.olEditCtrl.getLayerSource(),
-          me.olEditCtrl.bldEntranceLayer
+          me.olEditCtrl.bldEntranceLayer,
+          me.olEditCtrl.storageLayer.getSource()
         );
       }
     },
@@ -1844,6 +1986,9 @@ export default {
       if (this.olEditCtrl.featuresToCommit.length > 0) {
         this.olEditCtrl.featuresToCommit.forEach(feature => {
           this.olEditCtrl.source.removeFeature(feature);
+          if (this.olEditCtrl.storageLayer.getSource().hasFeature(feature)) {
+            this.olEditCtrl.storageLayer.getSource().removeFeature(feature);
+          }
         });
       }
       this.olEditCtrl.closePopup();
@@ -1877,7 +2022,7 @@ export default {
             const fid = f.getId();
             const layerName = f.get("layerName");
             const isDeleted = false;
-            const status = prop.status ? "Uploaded" : "NotUploaded";
+            let status = prop.status ? "Uploaded" : "NotUploaded";
             const originalId = f.get("original_id");
             let type = "";
             if (
@@ -1916,7 +2061,10 @@ export default {
           }
           const layerName = f.get("layerName");
           const isDeleted = fid;
-          const status = prop.status === 1 ? "Uploaded" : "NotUploaded";
+          let status = prop.status === 1 ? "Uploaded" : "NotUploaded";
+          if (f.get("layerName") === "pois") {
+            status = "Uploaded";
+          }
           const type = "deleted";
           let source = "";
           if (
@@ -2117,5 +2265,14 @@ export default {
 .scenario-icon-delete:hover {
   cursor: pointer;
   color: red;
+}
+
+.create-scenario-text {
+  display: block;
+  width: 150px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

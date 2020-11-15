@@ -1,253 +1,228 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<StyledLayerDescriptor xmlns="http://www.opengis.net/sld" version="1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/StyledLayerDescriptor.xsd" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:se="http://www.opengis.net/se">
-  <NamedLayer>
-    <se:Name>style_heatmap_comparison</se:Name>
-    <UserStyle>
-      <se:Name>style_heatmap_comparison</se:Name>
-      <se:FeatureTypeStyle>
-        <se:Rule>
-          <se:Name>Very strong decrease</se:Name>
-          <se:Description>
-            <Title>
-            Very strong decrease
-            <Localized lang="de">Sehr hohe Abnahme</Localized>
-            <Localized lang="en">Very strong decrease</Localized>
-            </Title>
-          </se:Description>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+<?xml version="1.0" encoding="UTF-8"?><sld:StyledLayerDescriptor xmlns="http://www.opengis.net/sld" xmlns:sld="http://www.opengis.net/sld" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" version="1.0.0">  <sld:NamedLayer>
+    <sld:Name>QueryLayer</sld:Name>
+    <sld:UserStyle>
+      <sld:Name>QueryLayer</sld:Name>
+      <sld:FeatureTypeStyle>
+         <sld:Rule>
+          <sld:Name>+400 inhabitants less</sld:Name>
+              <Title>
+              +400 inhabitants less
+                <Localized lang="de">+400 Einwohner weniger</Localized>
+            	<Localized lang="en">+400 inhabitants less</Localized>
+              </Title>
+          <ogc:Filter>
             <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
+              <ogc:PropertyName>percentile_population</ogc:PropertyName>
               <ogc:Literal>-5</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
-          <se:PolygonSymbolizer>
-            <se:Fill>
-              <se:SvgParameter name="fill">#d7191c</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
-            </se:Fill>
-          </se:PolygonSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>Strong decrease</se:Name>
-          <se:Description>
-            <Title>
-            Strong decrease
-            <Localized lang="de">Hohe Abnahme</Localized>
-            <Localized lang="en">Strong decrease</Localized>
-            </Title>
-          </se:Description>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+          <sld:PolygonSymbolizer>
+            <sld:Fill>
+              <sld:CssParameter name="fill">#020950</sld:CssParameter>
+              <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
+            </sld:Fill>
+          </sld:PolygonSymbolizer>
+        </sld:Rule>
+        <sld:Rule>
+          <sld:Name>201 - 400 inhabitants less</sld:Name>
+             <Title>
+              201 - 400 inhabitants less
+                <Localized lang="de">201 - 400 Einwohner weniger</Localized>
+            	<Localized lang="en">201 - 400 inhabitants less</Localized>
+              </Title>
+          <ogc:Filter>
             <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
-              <ogc:Literal>-4</ogc:Literal>
-            </ogc:PropertyIsEqualTo>
-          </ogc:Filter>
-          <se:PolygonSymbolizer>
-            <se:Fill>
-              <se:SvgParameter name="fill">#df3e33</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
-            </se:Fill>
-          </se:PolygonSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>Mean decrease</se:Name>
-          <se:Description>
-            <Title>
-            Mean decrease
-            <Localized lang="de">Mittlere Abnahme</Localized>
-            <Localized lang="en">Mean decrease</Localized>
-            </Title>
-          </se:Description>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
-              <ogc:Literal>-3</ogc:Literal>
-            </ogc:PropertyIsEqualTo>
-          </ogc:Filter>
-          <se:PolygonSymbolizer>
-            <se:Fill>
-              <se:SvgParameter name="fill">#e6634b</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
-            </se:Fill>
-          </se:PolygonSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>Low decrease</se:Name>
-          <se:Description>
-            <Title>
-            Low decrease
-            <Localized lang="de">Geringe Abnahme</Localized>
-            <Localized lang="en">Low decrease</Localized>
-            </Title>
-          </se:Description>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
-              <ogc:Literal>-2</ogc:Literal>
-            </ogc:PropertyIsEqualTo>
-          </ogc:Filter>
-          <se:PolygonSymbolizer>
-            <se:Fill>
-              <se:SvgParameter name="fill">#9a9db9</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
-            </se:Fill>
-          </se:PolygonSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>Very low decrease</se:Name>
-          <se:Description>
-            <Title>
-            Very low decrease
-            <Localized lang="de">Sehr geringe Abnahme</Localized>
-            <Localized lang="en">Very low decrease</Localized>
-            </Title>
-          </se:Description>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
-              <ogc:Literal>-1</ogc:Literal>
-            </ogc:PropertyIsEqualTo>
-          </ogc:Filter>
-          <se:PolygonSymbolizer>
-            <se:Fill>
-              <se:SvgParameter name="fill">#cdcedc</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
-            </se:Fill>
-          </se:PolygonSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>No or marginal change</se:Name>
-          <se:Description>
-            <Title>
-            No or marginal change
-            <Localized lang="de">Keine oder vernachlässigbare Änderung</Localized>
-            <Localized lang="en">No or marginal change</Localized>
-            </Title>
-          </se:Description>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
-              <ogc:Literal>0</ogc:Literal>
-            </ogc:PropertyIsEqualTo>
-          </ogc:Filter>
-          <se:PolygonSymbolizer>
-            <se:Fill>
-              <se:SvgParameter name="fill">#ffe8a4</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
-            </se:Fill>
-          </se:PolygonSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>Very small increase</se:Name>
-          <se:Description>
-            <Title>
-            Very small increase
-            <Localized lang="de">Sehr leichte Zunahme</Localized>
-            <Localized lang="en">Very small increase</Localized>
-            </Title>
-          </se:Description>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
-              <ogc:Literal>1</ogc:Literal>
-            </ogc:PropertyIsEqualTo>
-          </ogc:Filter>
-          <se:PolygonSymbolizer>
-            <se:Fill>
-              <se:SvgParameter name="fill">#dcf09e</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
-            </se:Fill>
-          </se:PolygonSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>Small increase</se:Name>
-          <se:Description>
-            <Title>
-            Small increase
-            <Localized lang="de">Leichte Zunahme</Localized>
-            <Localized lang="en">Small increase</Localized>
-            </Title>
-          </se:Description>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
-              <ogc:Literal>2</ogc:Literal>
-            </ogc:PropertyIsEqualTo>
-          </ogc:Filter>
-          <se:PolygonSymbolizer>
-            <se:Fill>
-              <se:SvgParameter name="fill">#acda87</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
-            </se:Fill>
-          </se:PolygonSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>Mean increase</se:Name>
-          <se:Description>
-            <Title>
-            Mean increase
-            <Localized lang="de">Mittlere Zunahme</Localized>
-            <Localized lang="en">Mean increase</Localized>
-            </Title>
-          </se:Description>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
-              <ogc:Literal>3</ogc:Literal>
-            </ogc:PropertyIsEqualTo>
-          </ogc:Filter>
-          <se:PolygonSymbolizer>
-            <se:Fill>
-              <se:SvgParameter name="fill">#7bc36f</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
-            </se:Fill>
-          </se:PolygonSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>High increase</se:Name>
-          <se:Description>
-            <Title>
-            High increase
-            <Localized lang="de">Hohe Zunahme</Localized>
-            <Localized lang="en">High increase</Localized>
-            </Title>
-          </se:Description>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
-            <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
+              <ogc:PropertyName>percentile_population</ogc:PropertyName>
               <ogc:Literal>4</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
-          <se:PolygonSymbolizer>
-            <se:Fill>
-              <se:SvgParameter name="fill">#4aad58</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
-            </se:Fill>
-          </se:PolygonSymbolizer>
-        </se:Rule>
-        <se:Rule>
-          <se:Name>Very high increase</se:Name>
-          <se:Description>
-            <Title>
-            Very high increase
-            <Localized lang="de">Sehr hohe Zunahme</Localized>
-            <Localized lang="en">Very high increase</Localized>
-            </Title>
-          </se:Description>
-          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+          <sld:PolygonSymbolizer>
+            <sld:Fill>
+              <sld:CssParameter name="fill">#343a73</sld:CssParameter>
+              <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
+            </sld:Fill>
+          </sld:PolygonSymbolizer>
+        </sld:Rule>
+        <sld:Rule>
+          <sld:Name>81 - 200 inhabitants less</sld:Name>
+             <Title>
+              81 - 200 inhabitants less
+                <Localized lang="de">81 - 200 Einwohner weniger</Localized>
+            	<Localized lang="en">81 - 200 inhabitants less</Localized>
+              </Title>
+          <ogc:Filter>
             <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>percentile_accessibility</ogc:PropertyName>
+              <ogc:PropertyName>percentile_population</ogc:PropertyName>
+              <ogc:Literal>-3</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
+          </ogc:Filter>
+          <sld:PolygonSymbolizer>
+            <sld:Fill>
+              <sld:CssParameter name="fill">#676b96</sld:CssParameter>
+              <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
+            </sld:Fill>
+          </sld:PolygonSymbolizer>
+        </sld:Rule>
+        <sld:Rule>
+          <sld:Name>21 - 80 inhabitants less</sld:Name>
+             <Title>
+              21 - 80 inhabitants less
+                <Localized lang="de">21 - 80 Einwohner weniger</Localized>
+            	<Localized lang="en">21 - 80 inhabitants less</Localized>
+              </Title>
+          <ogc:Filter>
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>percentile_population</ogc:PropertyName>
+              <ogc:Literal>-2</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
+          </ogc:Filter>
+          <sld:PolygonSymbolizer>
+            <sld:Fill>
+              <sld:CssParameter name="fill">#9a9db9</sld:CssParameter>
+              <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
+            </sld:Fill>
+          </sld:PolygonSymbolizer>
+        </sld:Rule>
+        <sld:Rule>
+          <sld:Name>1 - 20 inhabitants less</sld:Name>
+             <Title>
+              1 - 20 inhabitants less
+                <Localized lang="de">1 - 20 Einwohner weniger</Localized>
+            	<Localized lang="en">1 - 20 inhabitants less</Localized>
+              </Title>
+          <ogc:Filter>
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>percentile_population</ogc:PropertyName>
+              <ogc:Literal>-1</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
+          </ogc:Filter>
+          <sld:PolygonSymbolizer>
+            <sld:Fill>
+              <sld:CssParameter name="fill">#cdcedc</sld:CssParameter>
+            </sld:Fill>
+          </sld:PolygonSymbolizer>
+        </sld:Rule>
+        <sld:Rule>
+          <sld:Name>No or very small change</sld:Name>
+             <Title>
+              No or very small change
+                <Localized lang="de">keine oder sehr kleine Änderung</Localized>
+            	<Localized lang="en">No or very small changes</Localized>
+              </Title>
+          <ogc:Filter>
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>percentile_population</ogc:PropertyName>
+              <ogc:Literal>0</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
+          </ogc:Filter>
+          <sld:PolygonSymbolizer>
+            <sld:Fill>
+              <sld:CssParameter name="fill">#ffffff</sld:CssParameter>
+              <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
+            </sld:Fill>
+          </sld:PolygonSymbolizer>
+        </sld:Rule>
+        <sld:Rule>
+          <sld:Name>1 - 20 inhabitants more</sld:Name>
+             <Title>
+              1 - 20 inhabitants more
+                <Localized lang="de">1 - 20 Einwohner mehr</Localized>
+            	<Localized lang="en">1 - 20 inhabitants more</Localized>
+              </Title>
+          <ogc:Filter>
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>percentile_population</ogc:PropertyName>
+              <ogc:Literal>1</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
+          </ogc:Filter>
+          <sld:PolygonSymbolizer>
+            <sld:Fill>
+              <sld:CssParameter name="fill">#fdccb8</sld:CssParameter>
+              <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
+            </sld:Fill>
+          </sld:PolygonSymbolizer>
+        </sld:Rule>
+        <sld:Rule>
+          <sld:Name>21 - 80 inhabitants more</sld:Name>
+             <Title>
+              21 - 80 inhabitants more
+                <Localized lang="de">21 - 80 Einwohner mehr</Localized>
+            	<Localized lang="en">21 - 80 inhabitants more</Localized>
+              </Title>
+          <ogc:Filter>
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>percentile_population</ogc:PropertyName>
+              <ogc:Literal>2</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
+          </ogc:Filter>
+          <sld:PolygonSymbolizer>
+            <sld:Fill>
+              <sld:CssParameter name="fill">#fc8f6f</sld:CssParameter>
+              <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
+            </sld:Fill>
+          </sld:PolygonSymbolizer>
+        </sld:Rule>
+        <sld:Rule>
+          <sld:Name>81 - 200 inhabitants</sld:Name>
+             <Title>
+              81 - 200 inhabitants
+                <Localized lang="de">81 - 200 Einwohner mehr</Localized>
+            	<Localized lang="en">81 - 200 inhabitants more</Localized>
+              </Title>
+          <ogc:Filter>
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>percentile_population</ogc:PropertyName>
+              <ogc:Literal>3</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
+          </ogc:Filter>
+          <sld:PolygonSymbolizer>
+            <sld:Fill>
+              <sld:CssParameter name="fill">#f44d37</sld:CssParameter>
+              <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
+            </sld:Fill>
+          </sld:PolygonSymbolizer>
+        </sld:Rule>
+        <sld:Rule>
+          <sld:Name>201 - 400 inhabitants</sld:Name>
+             <Title>
+              201 - 400 inhabitants
+                <Localized lang="de">201 - 400 Einwohner mehr</Localized>
+            	<Localized lang="en">201 - 400 inhabitants more</Localized>
+              </Title>
+          <ogc:Filter>
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>percentile_population</ogc:PropertyName>
+              <ogc:Literal>4</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
+          </ogc:Filter>
+          <sld:PolygonSymbolizer>
+            <sld:Fill>
+              <sld:CssParameter name="fill">#c5161b</sld:CssParameter>
+              <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
+            </sld:Fill>
+          </sld:PolygonSymbolizer>
+        </sld:Rule>
+        <sld:Rule>
+          <sld:Name>+400 inhabitants</sld:Name>
+              <Title>
+              +400 inhabitants
+                <Localized lang="de">+400 Einwohner mehr</Localized>
+            	<Localized lang="en">+400 inhabitants more</Localized>
+              </Title>
+          <ogc:Filter>
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>percentile_population</ogc:PropertyName>
               <ogc:Literal>5</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
-          <se:PolygonSymbolizer>
-            <se:Fill>
-              <se:SvgParameter name="fill">#1a9641</se:SvgParameter>
-              <se:SvgParameter name="fill-opacity">0.4</se:SvgParameter>
-            </se:Fill>
-          </se:PolygonSymbolizer>
-        </se:Rule>
-      </se:FeatureTypeStyle>
-    </UserStyle>
-  </NamedLayer>
-</StyledLayerDescriptor>
+          <sld:PolygonSymbolizer>
+            <sld:Fill>
+              <sld:CssParameter name="fill">#67000d</sld:CssParameter>
+              <sld:CssParameter name="fill-opacity">0.4</sld:CssParameter>
+            </sld:Fill>
+          </sld:PolygonSymbolizer>
+        </sld:Rule>
+      </sld:FeatureTypeStyle>
+    </sld:UserStyle>
+  </sld:NamedLayer>
+</sld:StyledLayerDescriptor>
