@@ -46,7 +46,8 @@ BEGIN
 	UPDATE pois_duplicated SET x_delta = (radius/(27*3600)::float8)*cos(angle);
 	UPDATE pois_duplicated SET y_delta = (radius/(27*3600)::float8)*sin(angle);
 
-	-- Select buildings nearby duplicated pois
+	-- Select buildings nearby duplicated pois (cancelled for now)
+	/*
 
 	DROP TABLE IF EXISTS closer_buildings;
 	CREATE TEMP TABLE closer_buildings(LIKE buildings );
@@ -57,9 +58,9 @@ BEGIN
 	FROM buildings b, pois_duplicated pd 
 	WHERE ST_within(b.geom,ST_Buffer(pd.geom::geography,building_radius)::geometry);
 		
-	--- Move pois based on the x_delta and y_delta
+	--- Move pois based on the x_delta and y_delta*/
 	UPDATE pois_duplicated SET geom = st_translate(geom, x_delta, y_delta);
-	
+	/*
 	-- Calculate distance from each point to buildings
 	
 	DROP TABLE IF EXISTS distance_to_buildings;
@@ -98,6 +99,7 @@ BEGIN
 	FROM (
 		SELECT * FROM pois_out_boundary)AS subquery
 	WHERE pois_duplicated.gid = subquery.gid ;
+	*/
 
 	--- Load adjusted pois out of boundary to duplicated
 		
