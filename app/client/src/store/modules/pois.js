@@ -153,6 +153,7 @@ const getters = {
   disabledPoisOnTimeFilter: state => state.filters.disabledPoisOnTimeFilter,
   disabledPoisOnRoutingProfile: state =>
     state.filters.disabledPoisOnRoutingProfile,
+  disabledPoisOnMappingMode: state => state.filters.disabledPoisOnMappingMode,
   dynamicHeatmapTravelTimes: state => state.dynamicHeatmapTravelTimes,
   timeFilter: state => state.timeFilter,
   getField
