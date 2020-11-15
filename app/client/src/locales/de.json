@@ -174,7 +174,7 @@
       "dataTypeInfo": "Benötigter Datei Typ",
       "geometryTypeInfo": "Benötigter Geometrie Typ",
       "requiredFields": "Erforderliche Attribute",
-      "referenceSystemInfo": "Referenzsystem sollte sein",
+      "referenceSystemInfo": "Erforderliches Referenzsystem",
       "featuresNotyetUploaded": "Objekte noch nicht hochgeladen. Klicken Sie auf Hochladen, um die Änderungen zu übernehmen.",
       "differentGeometryType": "Falscher Geometrie-Typ",
       "missingFields": "Fehlende Felder",
@@ -483,7 +483,8 @@
     "contextMenu": {
       "deleteIsochrone": "Isochrone löschen",
       "zoomIn": "Zoom In",
-      "zoomOut": "Zoom Out"
+      "zoomOut": "Zoom Out",
+      "redoCalculation": "Erneut berechnen"
     },
     "osmMode": {
       "tasks": "OSM Mapping Aufgaben",
