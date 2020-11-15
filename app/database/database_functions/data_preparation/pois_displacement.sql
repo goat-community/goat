@@ -101,7 +101,7 @@ BEGIN
 
 	--- Load adjusted pois out of boundary to duplicated
 		
-UPDATE pois
+	UPDATE pois
 	SET geom = (CASE WHEN pois.osm_id = ANY (SELECT DISTINCT osm_id FROM pois_duplicated) THEN subquery.geom
 	ELSE pois.geom END)
 	FROM (SELECT * FROM pois_duplicated) AS subquery
