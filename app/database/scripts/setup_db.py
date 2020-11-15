@@ -17,6 +17,8 @@ def setup_db(setup_type):
     from scripts.db_functions import bulk_compute_slope
 
     download_link,osm_data_recency,buffer,extract_bbox,source_population,additional_walkability_layers,osm_mapping_feature = ReadYAML().data_source()
+    compute_slope_impedance = ReadYAML().data_refinement()["variable_container"]["compute_slope_impedance"]
+
     db_name,user,host,port,password = ReadYAML().db_credentials()
     db_name_temp = db_name+'temp'
 
@@ -130,6 +132,7 @@ def setup_db(setup_type):
 
     #Create tables and types
     db_temp.execute_script_psql('/opt/data_preparation/SQL/create_tables.sql')
+    
     create_variable_container(db_name_temp,user,str(port),host,password)
     db_temp.execute_script_psql('/opt/data_preparation/SQL/types.sql')
     
@@ -164,7 +167,8 @@ def setup_db(setup_type):
         os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} osm2pgrouting --dbname {db_name_temp} --host {host} --username {user} --file "study_area.osm" --conf ../mapconfig.xml --clean') 
         
         db_temp.execute_script_psql('../data_preparation/SQL/network_preparation1.sql')
-        bulk_compute_slope(db_name_temp,user,port,host,password)
+        if compute_slope_impedance == 'yes':
+            bulk_compute_slope(db_name_temp,user,port,host,password)
         db_temp.execute_script_psql('../data_preparation/SQL/network_preparation2.sql')
 
         if (additional_walkability_layers == 'yes'):
