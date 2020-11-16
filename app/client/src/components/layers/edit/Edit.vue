@@ -564,7 +564,7 @@
         <v-btn
           v-show="selectedLayer != null"
           class="white--text"
-          :loading="isUploadBusy"
+          v-if="!isUploadBusy"
           :disabled="
             isDeleteAllBusy ||
               (isUploadBtnEnabled === false &&
@@ -577,12 +577,22 @@
         >
           <v-icon left>cloud_upload</v-icon>{{ $t("appBar.edit.uploadBtn") }}
         </v-btn>
+
+        <v-btn
+          v-else
+          class="white--text"
+          @click.stop="stopUpload"
+          color="error"
+        >
+          <v-icon color="white">close</v-icon>Stop Upload
+        </v-btn>
+
         <v-btn
           v-show="selectedLayer != null"
           class="white--text"
           color="error"
           :loading="isDeleteAllBusy"
-          :disabled="scenarioDataTable.length === 0"
+          :disabled="scenarioDataTable.length === 0 || isUploadBusy"
           @click="deleteAll"
         >
           <v-icon left>delete</v-icon>{{ $t("appBar.edit.clearBtn") }}
@@ -1367,13 +1377,12 @@ export default {
      * Open modify attribute popup
      */
     openModifyAttributePopup(evt) {
-      const features = this.olEditCtrl.source.getFeaturesAtCoordinate(
+      const feature = this.olEditCtrl.source.getClosestFeatureToCoordinate(
         evt.coordinate
       );
       this.olEditCtrl.featuresToCommit = [];
       this.olEditCtrl.highlightSource.clear();
-      if (features.length > 0) {
-        const feature = features[0];
+      if (feature) {
         const props = feature.getProperties();
         for (const attr in this.dataObject) {
           this.dataObject[attr] = attr in props ? props[attr] : null;
@@ -1859,6 +1868,14 @@ export default {
         this.olEditCtrl.source.addFeature(clonedFeature);
         //Commit restore changes. ("commitDelete" just updates array of deleted features ids in the database)
         editLayerHelper.commitDelete("update_deleted_features");
+      }
+    },
+    /**
+     * Stop Upload button
+     */
+    stopUpload() {
+      if (editLayerHelper.cancelReq instanceof Function) {
+        editLayerHelper.cancelReq("cancelled");
       }
     },
     /**
