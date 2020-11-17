@@ -560,10 +560,8 @@ UPDATE aois SET amenity = 'big_forest' WHERE amenity = 'small_forest' AND ST_are
 UPDATE aois SET amenity = 'swimming_lake' WHERE amenity = 'lake' AND sport = 'swimming';
 ALTER TABLE aois DROP COLUMN sport;
 --- Create entries to polygons ---
+SELECT generate_entries_from_polygons(ARRAY['big_park','small_park','big_heath_scrub','small_heath_scrub','small_forest','big_forest'],ARRAY['path','footway','cycleway','track','pedestrian','service']);
 
-SELECT generate_entries_from_polygons(ARRAY['big_park','small_park'],ARRAY['path','footway','cycleway','track','pedestrian','service']);
-SELECT generate_entries_from_polygons(ARRAY['big_heath_scrub','small_heath_scrub'],ARRAY['path','footway','cycleway','track','pedestrian','service']);
-SELECT generate_entries_from_polygons(ARRAY['small_forest','big_forest'],ARRAY['path','footway','cycleway','track','pedestrian','service']);
 --- END areas of interest----
 -- If custom_pois exists, run pois fusion 
 DO $$                  
