@@ -26,5 +26,3 @@ $function$;
 
 -- Example
 -- SELECT pois_full_replacement('pois_full_replacement','kindergarten','kindergarten');
-
-SELECT * FROM pois_userinput;
