@@ -1,6 +1,6 @@
 DATA_SOURCE:  
   #"no_download" if you don't want to download OSM data automatically. Make sure that the file is called raw-osm.osm.pbf.
-  OSM_DOWNLOAD_LINK: "no_download" #"https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf" 
+  OSM_DOWNLOAD_LINK: "https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf" 
   #"most_recent" if the data from the OSM-Download-Link has not the recency you need. 
   OSM_DATA_RECENCY: "standard"
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
@@ -91,7 +91,7 @@ DATA_REFINEMENT_VARIABLES:
     cycling_crossings_delay:
       delay_1: 15
       delay_2: 30
-    compute_slope_impedance: "'no'"
+    compute_slope_impedance: "'yes'"
     ##-------------------------------------Size limits for areas of interest------------------------------------##
     ## Limits the area to be displayed for certain amenities (like parks). The limits should be defined in square meters
     areas_boundaries:
