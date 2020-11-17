@@ -318,7 +318,6 @@ export default {
     }
   },
   created() {
-    this.init(this.$appConfig.componentData.pois);
     this.toggleRoutingFilter(this.activeRoutingProfile, null);
   }
 };
