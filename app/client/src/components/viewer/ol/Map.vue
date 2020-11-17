@@ -236,6 +236,7 @@ export default {
     EventBus.$on("close-popup", () => {
       me.closePopup();
     });
+    this.init(this.$appConfig.componentData.pois);
   },
 
   methods: {
@@ -688,6 +689,9 @@ export default {
       setMap: "SET_MAP",
       setContextMenu: "SET_CONTEXTMENU",
       setLayer: "SET_LAYER"
+    }),
+    ...mapMutations("pois", {
+      init: "INIT"
     }),
     ...mapActions("isochrones", {
       showIsochroneWindow: "showIsochroneWindow"
