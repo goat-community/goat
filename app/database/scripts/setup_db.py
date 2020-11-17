@@ -146,6 +146,7 @@ def setup_db(setup_type):
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_displacement.sql')
     db_temp.execute_script_psql('/opt/data_preparation/SQL/pois_full_replacement.sql')
     db_temp.execute_script_psql('/opt/database_functions/data_preparation/derive_access_from_polygons.sql')
+    db_temp.execute_script_psql('/opt/database_functions/data_preparation/clean_duplicated_amenities_in_pois.sql')
 
 
 

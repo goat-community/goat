@@ -345,6 +345,10 @@ CREATE INDEX index_pois ON pois USING GIST (geom);
 CREATE INDEX ON pois(amenity);
 
 ---------------------------------------- Refine and move POIS ---------------------------------------
+----------------------------------- Clean duplicates in amenities -----------------------------------
+SELECT clean_duplicated_amenities_in_pois('primary_school', select_from_variable_container_s('duplicated_primary_school_lookup_radius')::NUMERIC);
+SELECT clean_duplicated_amenities_in_pois('secondary_school', select_from_variable_container_s('duplicated_secondary_school_lookup_radius')::NUMERIC);
+
 -------------------------------------- Displace overlapped POIS -------------------------------------
 
 SELECT pois_displacement(ARRAY['nursery','kindergarten'], 5::float8, 50::float8, 30::float8);
