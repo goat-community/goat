@@ -144,9 +144,17 @@ export default {
       this.createOsmMappingLayers();
       this.updateAllProgress();
     }
+    this.toggleNodeState({
+      excluded: this.disabledPoisOnMappingMode,
+      nodeState: "activate"
+    });
   },
   beforeDestroy() {
     this.setActiveLayer(null);
+    this.toggleNodeState({
+      excluded: this.disabledPoisOnMappingMode,
+      nodeState: "deactivate"
+    });
   },
   computed: {
     ...mapGetters("map", {
@@ -155,7 +163,8 @@ export default {
       map: "map"
     }),
     ...mapGetters("pois", {
-      selectedPois: "selectedPois"
+      selectedPois: "selectedPois",
+      disabledPoisOnMappingMode: "disabledPoisOnMappingMode"
     }),
     ...mapGetters("app", {
       activeColor: "activeColor"
@@ -351,6 +360,9 @@ export default {
     ...mapMutations("map", {
       setOsmMappingLayer: "SET_OSM_MAPPING_LAYER",
       toggleSnackbar: "TOGGLE_SNACKBAR"
+    }),
+    ...mapMutations("pois", {
+      toggleNodeState: "TOGGLE_NODE_STATE"
     }),
     ...mapActions("pois", {
       updateSelectedPoisForThematicData: "updateSelectedPoisForThematicData"

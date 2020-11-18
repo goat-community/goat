@@ -46,15 +46,25 @@ BEGIN
 	-- Calculate intersection points between polygons with access_points = 0 and road network (footway, path, service)
 	
 	INSERT INTO access_points
-	SELECT pol.*, (ST_Dump(ST_Intersection(l.way, ST_boundary(pol.way)))).geom AS geom 
-	FROM 
-	(SELECT * FROM planet_osm_line WHERE highway = ANY (ARRAY ['footway','path','service','services'])) AS l, 
-	(SELECT t.* FROM polygon_subset t
-		LEFT JOIN no_of_doors n
-		ON t.osm_id = n.osm_id
-		WHERE n.no_doors = 0) AS pol
-	WHERE
-	st_intersects(l.way, pol.way) ;
+	SELECT * 
+	FROM
+	(
+		SELECT pol.*, (ST_Dump(ST_Intersection(l.way, ST_boundary(pol.way)))).geom AS geom 
+		FROM 
+		(
+			SELECT * 
+			FROM planet_osm_line 
+			WHERE highway = ANY (ARRAY ['footway','path','service','services'])
+		) AS l, 
+		(
+			SELECT t.* FROM polygon_subset t
+			LEFT JOIN no_of_doors n
+			ON t.osm_id = n.osm_id
+			WHERE n.no_doors = 0
+		) AS pol
+		WHERE st_intersects(l.way, pol.way)
+	) p 
+	WHERE ST_GeometryType(geom) IN ('ST_MultiPoint','ST_Point');
 
 	-- Select polygons without gates and intersections
 

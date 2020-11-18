@@ -125,6 +125,7 @@ CREATE TABLE public.ways_modified
     scenario_id integer,
     original_id integer,
 	status bigint,
+	edit_type text,
     CONSTRAINT ways_modified_id_pkey PRIMARY KEY (gid),
     CONSTRAINT ways_modified_fkey FOREIGN KEY (scenario_id)
     REFERENCES scenarios(scenario_id) ON DELETE CASCADE

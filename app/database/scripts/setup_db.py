@@ -14,8 +14,11 @@ def setup_db(setup_type):
     from scripts.db_functions import create_variable_container
     from scripts.db_functions import update_functions
     from scripts.db_functions import geojson_to_sql
+    from scripts.db_functions import bulk_compute_slope
 
     download_link,osm_data_recency,buffer,extract_bbox,source_population,additional_walkability_layers,osm_mapping_feature = ReadYAML().data_source()
+    compute_slope_impedance = ReadYAML().data_refinement()["variable_container"]["compute_slope_impedance"]
+
     db_name,user,host,port,password = ReadYAML().db_credentials()
     db_name_temp = db_name+'temp'
 
@@ -129,25 +132,13 @@ def setup_db(setup_type):
 
     #Create tables and types
     db_temp.execute_script_psql('/opt/data_preparation/SQL/create_tables.sql')
+    
     create_variable_container(db_name_temp,user,str(port),host,password)
     db_temp.execute_script_psql('/opt/data_preparation/SQL/types.sql')
-    #Create functions that are needed for data_preparation
     
-    db_temp.execute_script_psql('/opt/database_functions/data_preparation/select_from_variable_container.sql')
-    db_temp.execute_script_psql('/opt/database_functions/network/split_long_way.sql')
-    db_temp.execute_script_psql('/opt/database_functions/network/compute_slope.sql')
-    db_temp.execute_script_psql('/opt/database_functions/network/slope_impedance.sql')
-    db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_fusion.sql')
-    db_temp.execute_script_psql('/opt/database_functions/data_preparation/clean_duplicated_pois.sql')
-    db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_reclassification_array.sql')
-    db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_classification.sql')
-    db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_rewrite.sql')
-    db_temp.execute_script_psql('/opt/database_functions/data_preparation/generate_entries_from_polygons.sql')
-    db_temp.execute_script_psql('/opt/database_functions/data_preparation/pois_displacement.sql')
-    db_temp.execute_script_psql('/opt/data_preparation/SQL/pois_full_replacement.sql')
-    db_temp.execute_script_psql('/opt/database_functions/data_preparation/derive_access_from_polygons.sql')
-
-
+    #Create functions that are needed for data_preparation
+    for file in glob.glob('/opt/database_functions/data_preparation/*'):
+        db_temp.execute_script_psql(file)
 
     if (setup_type in ['new_setup','all','population','pois','network']):
         os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} osm2pgsql -d {db_name_temp} -H {host} -U {user} --hstore -E 4326 study_area.osm') 
@@ -174,7 +165,12 @@ def setup_db(setup_type):
             db_temp.execute_script_psql('../data_preparation/SQL/create_population_userinput.sql')
     if (setup_type in ['new_setup','all','network']):
         os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} osm2pgrouting --dbname {db_name_temp} --host {host} --username {user} --file "study_area.osm" --conf ../mapconfig.xml --clean') 
-        db_temp.execute_script_psql('../data_preparation/SQL/network_preparation.sql')
+        
+        db_temp.execute_script_psql('../data_preparation/SQL/network_preparation1.sql')
+        if compute_slope_impedance == 'yes':
+            bulk_compute_slope(db_name_temp,user,port,host,password)
+        db_temp.execute_script_psql('../data_preparation/SQL/network_preparation2.sql')
+
         if (additional_walkability_layers == 'yes'):
             db_temp.execute_script_psql('../data_preparation/SQL/layer_preparation.sql')
         if (osm_mapping_feature == 'yes'):

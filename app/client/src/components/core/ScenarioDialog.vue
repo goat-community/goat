@@ -8,13 +8,15 @@
     <v-card>
       <v-app-bar flat color="green" dark height="50">
         <v-icon class="mr-3">fas fa-bullseye</v-icon>
-        <v-toolbar-title>Create scenario</v-toolbar-title>
+        <v-toolbar-title>{{
+          scenarioId ? "Update Scenario Name" : "Create scenario"
+        }}</v-toolbar-title>
       </v-app-bar>
       <v-card-text class="mt-5">
         <v-form
           v-model="valid"
           @keyup.native.enter="
-            createScenario();
+            updateInsertScenario();
             show = false;
           "
           @submit.prevent="show = false"
@@ -24,7 +26,7 @@
             :rules="[rules.required, rules.counter]"
             v-model="scenarioName"
             label="Scenario Name"
-            maxlength="30"
+            maxlength="50"
             lazy-validation
           ></v-text-field>
         </v-form>
@@ -37,7 +39,7 @@
           text
           :disabled="!valid"
           @click.native="
-            createScenario();
+            updateInsertScenario();
             show = false;
           "
           >Ok</v-btn
@@ -54,13 +56,13 @@ import { mapGetters } from "vuex";
 import http from "../../services/http";
 
 export default {
-  props: ["visible"],
+  props: ["visible", "scenarioId"],
   data: () => ({
     valid: false,
     scenarioName: "",
     rules: {
       required: value => !!value || "Required.",
-      counter: value => value.length <= 20 || "Max 20 characters"
+      counter: value => value.length < 50 || "Max 50 characters"
     }
   }),
   computed: {
@@ -81,17 +83,19 @@ export default {
     ...mapGetters("user", { userId: "userId" })
   },
   methods: {
-    createScenario() {
+    updateInsertScenario() {
       const scenarioName = this.scenarioName;
+      const activeScenarioId = this.scenarioId;
       http
         .post("./api/scenarios", {
-          mode: "insert",
+          mode: activeScenarioId ? "update_scenario" : "insert",
           userid: this.userId,
-          scenario_name: this.scenarioName
+          scenario_name: this.scenarioName,
+          scenario_id: this.scenarioId
         })
         .then(response => {
           if (response.status === 200) {
-            let scenarioId = response.data[0].scenario_id;
+            let scenarioId = activeScenarioId || response.data[0].scenario_id;
             scenarioId = parseInt(scenarioId);
             this.$set(this.scenarios, scenarioId, {
               title: scenarioName
@@ -107,12 +111,16 @@ export default {
   watch: {
     show() {
       if (this.show === true) {
-        let id = Object.keys(this.scenarios).length;
-        if (id > 0) {
-          id += 1;
-          this.scenarioName = "Scenario " + id;
+        if (this.scenarioId) {
+          this.scenarioName = this.scenarios[this.scenarioId].title;
         } else {
-          this.scenarioName = "Scenario 1";
+          let id = Object.keys(this.scenarios).length;
+          if (id > 0) {
+            id += 1;
+            this.scenarioName = "Scenario " + id;
+          } else {
+            this.scenarioName = "Scenario 1";
+          }
         }
       }
     }

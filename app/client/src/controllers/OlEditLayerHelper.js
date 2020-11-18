@@ -1,11 +1,15 @@
 import { GeoJSON } from "ol/format";
 import http from "../services/http";
+import axios from "axios";
 import store from "../store/modules/isochrones";
 
 /**
  * Util class for OL Edit layers.
  */
+const CancelToken = axios.CancelToken;
 const editLayerHelper = {
+  // Cancel Request
+  cancelReq: undefined,
   featuresIDsToDelete: [],
   deletedFeatures: [],
   selectedLayer: null,
@@ -86,6 +90,9 @@ const editLayerHelper = {
     const beforeStatus = feature.get("status");
     feature.set("status", null);
     feature.set("scenario_id", store.state.activeScenario);
+    if (feature.get("layerName") === "pois") {
+      feature.set("status", 1);
+    }
     if (props.hasOwnProperty("original_id")) {
       if (props.original_id !== null) {
         const fid = feature.getProperties().original_id.toString();
@@ -152,9 +159,18 @@ const editLayerHelper = {
 
   uploadFeatures(source, onUploadCb) {
     http
-      .post("./api/upload_all_scenarios", {
-        scenario_id: parseInt(store.state.activeScenario)
-      })
+      .post(
+        "./api/upload_all_scenarios",
+        {
+          scenario_id: parseInt(store.state.activeScenario)
+        },
+        {
+          cancelToken: new CancelToken(function executor(c) {
+            // An executor function receives a cancel function as a parameter
+            editLayerHelper.cancelReq = c;
+          })
+        }
+      )
       .then(function(response) {
         if (response.status === 200 && response.data === "success") {
           //Set status of delete features as well

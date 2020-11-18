@@ -203,10 +203,10 @@
       "clear": "Clear",
       "calculate": "Calculate",
       "studyAreaInfoLabel": "Select <b>study area</b> on the map and <b>points of interest</b> from the thematic data filter to enable calculation.",
-      "drawBoundary": "Draw Boundary",
+      "drawPolygon": "Draw Polygon",
       "amenityCount": "Amenity Count",
       "limit": "Limit",
-      "drawBoundaryInfoLabel": "Draw <b>boundary</b> on the map and select <b>points of interest</b> from the thematic data filter to enable calculation.",
+      "drawPolygonInfoLabel": "Draw <b>polygon</b> on the map and select <b>points of interest</b> from the thematic data filter to enable calculation.",
       "tableDataTitle": "Multi-Isochrone Data"
     },
     "options": {
@@ -338,8 +338,8 @@
     },
     "layerName": {
       "pois": "Point of Interest",
-      "aois_small":"Areas of Interest (detailed)",
-      "aois_large":"Areas of Interest ",
+      "aois_small": "Areas of Interest (detailed)",
+      "aois_large": "Areas of Interest ",
       "administrativeUnits": "Administrative Units",
       "accidentsPedestrians": "Accidents with pedestrians",
       "accidents_pedestrian_2018": "Accidents with pedestrians (2018)",
@@ -413,6 +413,7 @@
       "clickToFinishDrawing": "Click to finish drawing",
       "clickToStartDrawingBoundary": "Click to start drawing the boundary. <br> Press ESC to exit",
       "clickToStartDrawingCircle": "Click to start drawing the circle (Max Radius 1000 m). <br> Press ESC to exit",
+      "clickToStartDrawingPolygon": "Click to start drawing polygon.",
       "clickToFinishDrawingPolygon": "Double-click or click starting point to finish.",
       "clickOnFeatureToDelete": "Click on feature to delete it",
       "clickOnFeatureToMove": "Click and drag the feature to move",

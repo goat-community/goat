@@ -67,6 +67,7 @@
         "canEdit": true,
         "editDataType": "GeoJSON",
         "editGeometry": ["LineString"],
+        "modifyAttributes": true,
         "displayInLayerList": false,
         "zIndex": 2,
         "serverType": "geoserver"
@@ -1520,7 +1521,29 @@
               "poisFiltered": ["charging_station"]
             }
           ]
-        }
+        },
+        "disabledPoisOnMappingMode": [
+          {
+            "categoryValue": "transport",
+            "poisFiltered": ["*"]
+          },
+          {
+            "categoryValue": "mobilitystations",
+            "poisFiltered": ["*"]
+          },
+          {
+            "categoryValue": "tourismAndLeisure",
+            "poisFiltered": ["hotel","hostel","guest_house","playground"]
+          },
+          {
+            "categoryValue": "services",
+            "poisFiltered": ["recycling","post_box"]
+          },
+          {
+            "categoryValue": "education",
+            "poisFiltered": ["primary_school","secondary_school"]
+          }
+        ]
       }
     },
     "isochrones": {

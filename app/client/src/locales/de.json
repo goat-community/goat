@@ -174,7 +174,7 @@
       "dataTypeInfo": "Benötigter Datei Typ",
       "geometryTypeInfo": "Benötigter Geometrie Typ",
       "requiredFields": "Erforderliche Attribute",
-      "referenceSystemInfo": "Referenzsystem sollte sein",
+      "referenceSystemInfo": "Erforderliches Referenzsystem",
       "featuresNotyetUploaded": "Objekte noch nicht hochgeladen. Klicken Sie auf Hochladen, um die Änderungen zu übernehmen.",
       "differentGeometryType": "Falscher Geometrie-Typ",
       "missingFields": "Fehlende Felder",
@@ -222,10 +222,10 @@
       "clear": "Löschen",
       "calculate": "Berechnen",
       "studyAreaInfoLabel": "Wählen Sie <b> Orte </b> auf der Karte aus und <b> Ziele </b> im Filter Thematische Daten aus, um die Berechnung zu ermöglichen.",
-      "drawBoundary": "Grenze zeichnen",
+      "drawPolygon": "Grenze zeichnen",
       "amenityCount": "Anzahl Einrichtungen",
       "limit": "Grenze",
-      "drawBoundaryInfoLabel": "Zeichnen Sie eine <b> Grenze</b> auf der Karte ein und wählen Sie <b> Ziele </b> im Filter Thematische Daten aus aus, um die Berechnung zu ermöglichen.",
+      "drawPolygonInfoLabel": "Zeichnen Sie eine <b> Grenze</b> auf der Karte ein und wählen Sie <b> Ziele </b> im Filter Thematische Daten aus aus, um die Berechnung zu ermöglichen.",
       "tableDataTitle": "Daten Multi-Isochrone"
     },
     "options": {
@@ -483,7 +483,8 @@
     "contextMenu": {
       "deleteIsochrone": "Isochrone löschen",
       "zoomIn": "Zoom In",
-      "zoomOut": "Zoom Out"
+      "zoomOut": "Zoom Out",
+      "redoCalculation": "Erneut berechnen"
     },
     "osmMode": {
       "tasks": "OSM Mapping Aufgaben",

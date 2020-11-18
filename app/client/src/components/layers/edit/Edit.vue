@@ -10,7 +10,7 @@
         <!-- CREATE SCENARIO  -->
         <div v-if="Object.keys(scenarios).length > 0">
           <v-row class="mt-4" no-gutters>
-            <v-col class="text-center" :cols="10">
+            <v-col class="text-center" :cols="8">
               <v-select
                 v-model="activeScenario"
                 :items="scenarioArray"
@@ -18,14 +18,29 @@
                 item-value="value"
                 label="Select scenario"
                 solo
-              ></v-select>
+              >
+                <template
+                  class="create-scenario-text"
+                  slot="selection"
+                  slot-scope="{ item }"
+                >
+                  {{ item.display }}
+                </template>
+                <template
+                  class="create-scenario-text"
+                  slot="item"
+                  slot-scope="{ item }"
+                >
+                  {{ item.display }}
+                </template>
+              </v-select>
             </v-col>
-            <v-col class="text-center">
+            <v-col class="text-center ml-0 pl-0">
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
                   <v-btn
                     v-on="on"
-                    class="mt-1 ml-3"
+                    class="mt-1 ml-2"
                     :color="activeColor.primary"
                     fab
                     dark
@@ -36,6 +51,27 @@
                   </v-btn>
                 </template>
                 <span>Create new scenario</span></v-tooltip
+              >
+            </v-col>
+            <v-col v-if="activeScenario" class="text-center">
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    v-on="on"
+                    class="mt-1 ml-1"
+                    :color="activeColor.primary"
+                    fab
+                    dark
+                    small
+                    @click="
+                      showScenarioDialog = true;
+                      activeScenarioId = activeScenario;
+                    "
+                  >
+                    <v-icon dark>edit</v-icon>
+                  </v-btn>
+                </template>
+                <span>Edit Scenario Name</span></v-tooltip
               >
             </v-col>
           </v-row>
@@ -528,7 +564,7 @@
         <v-btn
           v-show="selectedLayer != null"
           class="white--text"
-          :loading="isUploadBusy"
+          v-if="!isUploadBusy"
           :disabled="
             isDeleteAllBusy ||
               (isUploadBtnEnabled === false &&
@@ -541,12 +577,22 @@
         >
           <v-icon left>cloud_upload</v-icon>{{ $t("appBar.edit.uploadBtn") }}
         </v-btn>
+
+        <v-btn
+          v-else
+          class="white--text"
+          @click.stop="stopUpload"
+          color="error"
+        >
+          <v-icon color="white">close</v-icon>Stop Upload
+        </v-btn>
+
         <v-btn
           v-show="selectedLayer != null"
           class="white--text"
           color="error"
           :loading="isDeleteAllBusy"
-          :disabled="scenarioDataTable.length === 0"
+          :disabled="scenarioDataTable.length === 0 || isUploadBusy"
           @click="deleteAll"
         >
           <v-icon left>delete</v-icon>{{ $t("appBar.edit.clearBtn") }}
@@ -557,7 +603,11 @@
     <!-- Scenario dialog -->
     <scenario-dialog
       :visible="showScenarioDialog"
-      @close="showScenarioDialog = false"
+      :scenarioId="activeScenarioId"
+      @close="
+        showScenarioDialog = false;
+        activeScenarioId = null;
+      "
     ></scenario-dialog>
     <!-- Confirm Delete all  -->
     <confirm ref="confirm"></confirm>
@@ -757,6 +807,7 @@ export default {
     isUploadBtnEnabled: true,
     //Scenario Dialog
     showScenarioDialog: false,
+    activeScenarioId: null,
 
     editElVisible: true,
     dataManageElVisible: true,
@@ -1326,13 +1377,12 @@ export default {
      * Open modify attribute popup
      */
     openModifyAttributePopup(evt) {
-      const features = this.olEditCtrl.source.getFeaturesAtCoordinate(
+      const feature = this.olEditCtrl.source.getClosestFeatureToCoordinate(
         evt.coordinate
       );
       this.olEditCtrl.featuresToCommit = [];
       this.olEditCtrl.highlightSource.clear();
-      if (features.length > 0) {
-        const feature = features[0];
+      if (feature) {
         const props = feature.getProperties();
         for (const attr in this.dataObject) {
           this.dataObject[attr] = attr in props ? props[attr] : null;
@@ -1821,6 +1871,14 @@ export default {
       }
     },
     /**
+     * Stop Upload button
+     */
+    stopUpload() {
+      if (editLayerHelper.cancelReq instanceof Function) {
+        editLayerHelper.cancelReq("cancelled");
+      }
+    },
+    /**
      * Clears  edit interaction
      */
     clearEdit() {
@@ -1981,7 +2039,7 @@ export default {
             const fid = f.getId();
             const layerName = f.get("layerName");
             const isDeleted = false;
-            const status = prop.status ? "Uploaded" : "NotUploaded";
+            let status = prop.status ? "Uploaded" : "NotUploaded";
             const originalId = f.get("original_id");
             let type = "";
             if (
@@ -2020,7 +2078,10 @@ export default {
           }
           const layerName = f.get("layerName");
           const isDeleted = fid;
-          const status = prop.status === 1 ? "Uploaded" : "NotUploaded";
+          let status = prop.status === 1 ? "Uploaded" : "NotUploaded";
+          if (f.get("layerName") === "pois") {
+            status = "Uploaded";
+          }
           const type = "deleted";
           let source = "";
           if (
@@ -2221,5 +2282,14 @@ export default {
 .scenario-icon-delete:hover {
   cursor: pointer;
   color: red;
+}
+
+.create-scenario-text {
+  display: block;
+  width: 150px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

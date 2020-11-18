@@ -91,7 +91,7 @@ DATA_REFINEMENT_VARIABLES:
     cycling_crossings_delay:
       delay_1: 15
       delay_2: 30
-    dem_resolution: '10'
+    compute_slope_impedance: "'yes'"
     ##-------------------------------------Size limits for areas of interest------------------------------------##
     ## Limits the area to be displayed for certain amenities (like parks). The limits should be defined in square meters
     areas_boundaries:
@@ -101,13 +101,19 @@ DATA_REFINEMENT_VARIABLES:
       forest:
         small: [20000]
         large: [300000]
+      heath:
+        small: [20000]
+        large: [300000]
+
     ##-------------------------------------Radius definition for POIS fusion------------------------------------##
     ##  Duplicated lookup radius: Sensibility factor, entities for the same branch and amenity type into this radius will be considered as duplicated; it is applied for OSM and Custom POIS databases (meters).
     ##  Tag new radius: Radius search for tag opening hours from Custom POIS to OSM POIS (meters).
     ##  Duplicated kindergarten lookup radius: the estimated distance between centroids of two polygons that represent the same kindergarten
     duplicated_lookup_radius: '100' 
     tag_new_radius: '130'
-    duplicated_kindergarten_lookup_radius: '40'
+    duplicated_kindergarten_lookup_radius: '50'
+    duplicated_primary_school_lookup_radius: '40'
+    duplicated_secondary_school_lookup_radius: '40'
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------Definition of amenity parameters for POIS preparation and data fusion of new sources-----------##
     ##----------------------------------------------------------------------------------------------------------##

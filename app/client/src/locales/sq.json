@@ -153,10 +153,10 @@
       "clear": "Pastro",
       "calculate": "Llogarit",
       "studyAreaInfoLabel": "Zgjidh <b>zonat e studimit</b> dhe <b>pikat e interesit</b> të aktivizosh llogaritjen.",
-      "drawBoundary": "Vizato kufirin",
+      "drawPolygon": "Vizato kufirin",
       "amenityCount": "Nr. Pikave të interesit",
       "limit": "Limiti",
-      "drawBoundaryInfoLabel": "Vizato <b>kufirin</b> dhe zgjidh <b>pikat e interesit</b> të aktivizosh llogaritjen.",
+      "drawPolygonInfoLabel": "Vizato <b>kufirin</b> dhe zgjidh <b>pikat e interesit</b> të aktivizosh llogaritjen.",
       "tableDataTitle": "Të dhëna për Izokronet e shumëfishta"
     },
     "options": {

@@ -147,7 +147,7 @@ export default {
         this.countPois === 0 &&
         this.activeMultiIsochroneMethod === "draw"
       ) {
-        text = this.$t("isochrones.multiple.drawBoundaryInfoLabel");
+        text = this.$t("isochrones.multiple.drawPolygonInfoLabel");
       } else {
         text = `${this.$t("isochrones.multiple.amenityCount")}: ${
           this.countPois

@@ -65,7 +65,7 @@ BEGIN
 	END IF;
 
 	sql_select_ways = 
-		'SELECT id::integer, source, target,length_m,'||sql_cost||',slope_profile,death_end,geom 
+		'SELECT id::integer, source, target,length_m,'||sql_cost||',death_end,geom 
 		FROM '||quote_ident(table_name)||
 		' WHERE NOT class_id = ANY('''||excluded_class_id||''')
     	AND (NOT '||quote_ident(category)||' = ANY('''||filter_categories||''') 
