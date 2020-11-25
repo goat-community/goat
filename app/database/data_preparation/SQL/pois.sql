@@ -243,16 +243,16 @@ SELECT kp.osm_id, kp.origin_geometry, kp.ACCESS, kp.housenumber, kp.amenity, kp.
 kp.OPERATOR, kp.public_transport, kp.railway, kp.religion, kp.opening_hours, kp.REF, kp.tags, kp.centroid AS geom, kp.wheelchair
 FROM kindergartens_polygons kp;
 
+
 --Distinguish kindergarten - nursery
 SELECT pois_reclassification_array('name','kindergarten','amenity','nursery','any');
-
+--- Replicate nurseries to duplicate kindergartens and displace later
+SELECT pois_rewrite('nursery','kindergarten','%kindergarten%');
+--Distinguish kindergarten - nursery
 UPDATE pois p SET amenity = 'nursery'
 WHERE amenity = 'kindergarten'	
 AND (tags -> 'max_age') = '3';
---- Replicate nurseries to duplicate kindergartens and displace
-SELECT pois_rewrite('nursery','kindergarten','%kindergarten%');
 
-------------------------------------------end kindergarten-------------------------------------------
 ---------------------------------- Insert outdoor fitness stations ----------------------------------
 
 DROP TABLE IF EXISTS containing_polygons;
@@ -322,17 +322,6 @@ FROM planet_osm_point pop, fitness_points fp
 WHERE pop.leisure = 'fitness_station' AND ST_contains(pop.way, fp.way)
 );
 
---Distinguish kindergarten - nursery
-SELECT pois_reclassification_array('name','kindergarten','amenity','nursery','any');
-
-UPDATE pois p SET amenity = 'nursery'
-WHERE amenity = 'kindergarten'	
-AND (tags -> 'max_age') = '3';
---- Replicate nurseries to duplicate kindergartens and displace
---SELECT pois_rewrite('nursery','kindergarten','%kindergarten%');
---SELECT pois_displacement(ARRAY['nursery','kindergarten'], (3/(27*3600)::float8));
-------------------------------------------end kindergarten-------------------------------------------
-
 -- Reclassificate shops
 
 SELECT pois_reclassification('shop','grocery','amenity','convenience','singlevalue');
@@ -350,9 +339,8 @@ SELECT clean_duplicated_amenities_in_pois('primary_school', select_from_variable
 SELECT clean_duplicated_amenities_in_pois('secondary_school', select_from_variable_container_s('duplicated_secondary_school_lookup_radius')::NUMERIC);
 
 -------------------------------------- Displace overlapped POIS -------------------------------------
-
---SELECT pois_displacement(ARRAY['nursery','kindergarten'], 5::float8, 50::float8, 30::float8);
---SELECT pois_displacement(ARRAY['primary_school','secondary_school'], 5::float8, 50::float8, 30::float8);
+SELECT pois_displacement(ARRAY['nursery','kindergarten'], 5::float, 50::float, 30::float);
+SELECT pois_displacement(ARRAY['primary_school','secondary_school'], 5::float8, 50::float8, 30::float8);
 
 ----------------------------------- Refine POIS based on categories ----------------------------------
 SELECT pois_reclassification('shop','grocery','amenity','convenience','singlevalue');
@@ -384,11 +372,10 @@ DELETE FROM pois
 WHERE (NOT lower(operator) ~~ 
 ANY
 (
-	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'operators_bicycle_rental'),'%')
+	SELECT concat('%',jsonb_array_elements_text(select_from_variable_container_o('pois_search_conditions')->'operators_bicycle_rental'),'%')
 )  
 OR operator IS NULL) 
 AND amenity = 'bicycle_rental';
-
 
 --INSERT public_transport_stops
 WITH pt AS (
