@@ -117,21 +117,20 @@ DATA_REFINEMENT_VARIABLES:
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------Definition of amenity parameters for POIS preparation and data fusion of new sources-----------##
     ##----------------------------------------------------------------------------------------------------------##
-    ##  Data structure:       Amenity type -> brand name -> different brand name variables
-    ##  Amenity type:         According to the types defined for GOAT
-    ##  Brand name:           Business/element generic name, this name will be implemented in the data fusion
-    ##  Brand name variable:  Array that includes the brand names variances, for increase the lookup radius by name
-    ##                        Possible names are mandatory for the new POIS to include (with a .geojson file)
+    ##  Data structure: Amenity type -> Sub category -> Name variables or Amenity type -> Name variables
+    ##  Amenity type: According to the types defined for GOAT
+    ##  Sub category: Business/element generic name, this name will be implemented in the data fusion
+    ##  Name variables: Array that includes the name variances to increase number of the matching POIs.
     pois_search_conditions:
       chemist:
-        dm: ['dm']
-        rossmann: ['rossmann']
+        dm: []
+        rossmann: []
       supermarket:
         edeka: ['e center', 'edeka']
         rewe: ['rewe', 'rewe city']
       discount_supermarket:
         aldi: []
-        lidl: ['lidl']
+        lidl: []
         penny: []
         netto: []
         norma: []
@@ -147,10 +146,7 @@ DATA_REFINEMENT_VARIABLES:
       health_food:
         vitalia: []
         reformhaus: []
-      operators_bicycle_rental: 
-        münchner verkehrs gesellschaft: []
-        münchner verkehrsgesellschaft: []
-        mvg: []
+      operators_bicycle_rental: ['münchner verkehrs gesellschaft','münchner verkehrsgesellschaft','mvg']
       bank: 
         sparkasse: ['kreissparkasse','sparkasse','stadtsparkasse']   
         hypovereinsbank: ['hypo vereinsbank', 'hypovereinsbank']
@@ -159,15 +155,13 @@ DATA_REFINEMENT_VARIABLES:
         mcdonalds: ['mcdonald']
       restaurant:   
         vapiano: ['vapiano']
-      nursery:
-        kinderkrippe: ['krippe','kinderkrippe']
+      nursery: ['krippe','kinderkrippe','kita']
       discount_gym:
         fitstar: ['fit-star','fit star']
         mcfit: []
         fitx: []
         cleverfit: ['clever fit','cleverfit']
         jumpersfitness: ['jumpers fitness']
-      
       community_sport_centre: ['bezirkssportanlage']
 
     ##----------------------------------------------------------------------------------------------------------##
