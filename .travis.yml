@@ -4,9 +4,8 @@ services:
   - docker
 branches:
   only:
-    - development
     - ffb
-    - matosinhos
+    - bogota
     - hasenbergl
     - muenchen
     - freising

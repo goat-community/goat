@@ -140,7 +140,7 @@
         "New": "New",
         "Modified": "Modified",
         "Restored": "Restored",
-        "Deleted": "Deleted"
+        "deleted": "Deleted"
       },
       "status": {
         "Uploaded": "Uploaded",
@@ -203,10 +203,10 @@
       "clear": "Clear",
       "calculate": "Calculate",
       "studyAreaInfoLabel": "Select <b>study area</b> on the map and <b>points of interest</b> from the thematic data filter to enable calculation.",
-      "drawBoundary": "Draw Boundary",
+      "drawPolygon": "Draw Polygon",
       "amenityCount": "Amenity Count",
       "limit": "Limit",
-      "drawBoundaryInfoLabel": "Draw <b>boundary</b> on the map and select <b>points of interest</b> from the thematic data filter to enable calculation.",
+      "drawPolygonInfoLabel": "Draw <b>polygon</b> on the map and select <b>points of interest</b> from the thematic data filter to enable calculation.",
       "tableDataTitle": "Multi-Isochrone Data"
     },
     "options": {
@@ -216,11 +216,11 @@
       "time": "min",
       "nr": "Isochrones",
       "calcType": "Level of detail isochrones",
-      "calcModus": "Calculation Modes",
+      "calcModus": "Calculation Mode",
       "alphaShapeMode": "Level of detail isochrones",
-      "defaultNetwork": "Default Network",
-      "modifiedNetwork": "Modified Network",
-      "modifiedNetworkDoubleCalc": "Modified Network (Double Calculation)",
+      "defaultNetwork": "Default",
+      "modifiedNetwork": "Scenario",
+      "modifiedNetworkDoubleCalc": "Comparison",
       "routingProfile": "Routing Profile",
       "walking_standard": "Standard",
       "walking_elderly": "Elderly",
@@ -320,11 +320,12 @@
       "allScenarioFeaturesDelete": "All Scenario Data is deleted",
       "noScenarioFeatureChangeAvailable": "Please do network or land-use change first",
       "cantPrintBaseLayer": "This baselayer can't be printed",
-      "featuresAlreadyUploaded": "Features already exists"
+      "featuresAlreadyUploaded": "Features already exists",
+      "cantExportScenario": "An error happened. Scenario can't be exported!"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
-      "buildings_landuse": "Buildings and Landuse",
+      "buildings_landuse": "Buildings and Land Use",
       "administrativeLayers": "Administrative boundaries",
       "streetlevelqualityLayers": "Street Level Quality",
       "environmentalQualityLayers": "Environmental data",
@@ -332,13 +333,18 @@
       "additionalDataLayers": "Additional data",
       "accessbilityBasemaps": "Accessibility",
       "backgroundLayers": "Background Layers",
-      "buildings": "Buildings"
+      "buildings": "Buildings",
+      "mobility_patterns": "Mobility Patterns"
     },
     "layerName": {
       "pois": "Point of Interest",
+      "aois_small": "Areas of Interest (detailed)",
+      "aois_large": "Areas of Interest ",
       "administrativeUnits": "Administrative Units",
+      "accidentsPedestrians": "Accidents with pedestrians",
       "accidents_pedestrian_2018": "Accidents with pedestrians (2018)",
       "accidents_pedestrian_2017": "Accidents with pedestrians (2017)",
+      "accidentsCyclists": "Accidents with cyclists",
       "accidents_bike_2018": "Accidents with cyclists (2018)",
       "accidents_bike_2017": "Accidents with cyclists (2017)",
       "bicycle_counting_stations": "Bike Counting (2019)",
@@ -351,12 +357,13 @@
       "floodingAreasHQ100": "Flooding Areas (100-year flood)",
       "dikes": "Dikes",
       "protectedLandscape": "Protected Landscape Areas",
-      "landuse": "Landuse (ATKIS)",
+      "landuse": "Landuse",
       "landuse_osm": "Landuse (OSM)",
       "zoningPlan": "Zoning Plan",
       "footpathWidth": "Footpath Width",
       "illuminance": "Illuminance",
       "lanes": "Lanes",
+      "modeshare": "Mode share",
       "noiseAircraftLDEN": "Aircraft noise - Level LDEN",
       "noiseAircraftLNight": "Aircraft noise - Level LNight",
       "noiseProtectionBauleitplanung": "Noise protection area for urban land use planning",
@@ -368,6 +375,7 @@
       "streetCrossings": "Street Crossings",
       "streetFurniture": "Street Furniture",
       "streetFurnitureBicycles": "Bicycle Ranks",
+      "cyclewayQuality_munichways": "Cycleway Quality (Munichways)",
       "surface": "Surface",
       "wheelchairUsability": "Wheelchair Usability",
       "areaIsochrone": "Area Isochrone",
@@ -382,7 +390,18 @@
       "osmDark": "OSM Dark",
       "mapboxStreets": "Mapbox",
       "publicTransport": "Public Transport",
-      "bingAerial": "Bing Aerial"
+      "bingAerial": "Bing Aerial",
+      "walking_trip_rate": "Walking trips per person",
+      "walkingShare": "Share of walking trips",
+      "cyclingShare": "Share of cycling trips",
+      "bicycle_rate": "Bicycle ownership",
+      "motorization_rate": "Motorized vehicles ownership",
+      "population_strata": "Population per strata",
+      "transmilenioShare": "Share of Transmilenio trips",
+      "sitpShare": "Share of SITP trips",
+      "cycling_trips_rate": "Cycling trips per person",
+      "pt_trips_rate": "Public transport trips per person",
+      "strata": "Strata"
     },
     "tooltips": {
       "clickForCalculation": "Click for Calculation. Press ESC to exit",
@@ -394,6 +413,7 @@
       "clickToFinishDrawing": "Click to finish drawing",
       "clickToStartDrawingBoundary": "Click to start drawing the boundary. <br> Press ESC to exit",
       "clickToStartDrawingCircle": "Click to start drawing the circle (Max Radius 1000 m). <br> Press ESC to exit",
+      "clickToStartDrawingPolygon": "Click to start drawing polygon.",
       "clickToFinishDrawingPolygon": "Double-click or click starting point to finish.",
       "clickOnFeatureToDelete": "Click on feature to delete it",
       "clickOnFeatureToMove": "Click and drag the feature to move",
@@ -503,25 +523,43 @@
           "stepsDesc": {
             "clickFeatureInMap": "The displayed icons in the map are the challenges. Select one of them.",
             "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
-            "fillInOSMiD": "Add the missing tag 'opening_hours' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, the website of the amenity can be viewed or an on-site visit can be made."
+            "fillInOSMiD": "Add to the POIs the missing tag 'opening_hours' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, the website of the amenity can be viewed or an on-site visit can be made."
           }
         },
         "osm-mapping-ways-speed": {
           "missingKeyWord": "Maxspeed",
           "layerName": "Ways",
           "stepsDesc": {
-            "clickFeatureInMap": "The red lines in the map are the challenges. Select one of them.",
+            "clickFeatureInMap": "The blue lines on the map are the challenges. Select one of them.",
             "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
-            "fillInOSMiD": "Add the missing tag 'maxspeed' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
+            "fillInOSMiD": "Add to the ways the missing tag 'maxspeed' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
           }
         },
         "osm-mapping-ways-surface": {
           "missingKeyWord": "Surface Type",
           "layerName": "Ways",
           "stepsDesc": {
-            "clickFeatureInMap": "The red lines in the map are the challenges. Select one of them.",
+            "clickFeatureInMap": "The blue lines on the map are the challenges. Select one of them.",
             "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
-            "fillInOSMiD": "Add the missing tag 'surface' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
+            "fillInOSMiD": "Add to the ways the missing tag 'surface' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
+          }
+        },
+        "osm-mapping-cycleways-width": {
+          "missingKeyWord": "Cycleway Width",
+          "layerName": "Ways",
+          "stepsDesc": {
+            "clickFeatureInMap": "The blue lines on the map are the challenges. Select one of them.",
+            "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
+            "fillInOSMiD": "Add to the ways the missing tag 'width' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
+          }
+        },
+        "osm-mapping-cycleways-segregated": {
+          "missingKeyWord": "Cycleway Segregated",
+          "layerName": "Ways",
+          "stepsDesc": {
+            "clickFeatureInMap": "The blue lines on the map are the challenges. Select one of them.",
+            "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
+            "fillInOSMiD": "Add the missing tag 'segregated' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary images can be used or an on-site visit can be made. "
           }
         },
         "osm-mapping-ways-wheelchair": {
@@ -532,9 +570,18 @@
           "missingKeyWord": "Building Type",
           "layerName": "Buildings",
           "stepsDesc": {
-            "clickFeatureInMap": "The red polygons in the map are the challenges. Select one of them.",
+            "clickFeatureInMap": "The blue lines on the map are the challenges. Select one of them.",
             "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
             "fillInOSMiD": "Edit the tag 'building' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary and aerial images can be used or an on-site visit can be made. "
+          }
+        },
+        "osm-mapping-parking-lane": {
+          "missingKeyWord": "Parking lane",
+          "layerName": "Parking lanes",
+          "stepsDesc": {
+            "clickFeatureInMap": "The blue lines on the map are the challenges. Select one of them.",
+            "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
+            "fillInOSMiD": "Add the tag 'parking:lane:both' or 'parking:lane:left' and/or 'parking:lane:right' in the OSM editor according to the guidelines of the OSM wiki. To retrieve the missing information, for example, mapillary and aerial images can be used or an on-site visit can be made. "
           }
         }
       },
@@ -557,6 +604,7 @@
     "kindergarten": "Kindergarten",
     "primary_school": "Primary school",
     "secondary_school": "Secondary school",
+    "school": "School",
     "library": "Library",
     "bar": "Bar",
     "biergarten": "Biergarten",
@@ -571,7 +619,10 @@
     "charging_station": "Charging station",
     "bus_stop": "Bus",
     "tram_stop": "Tram Stop",
+    "transmicable": "Transmicable",
     "subway_entrance": "U-Bahn station",
+    "sitp": "SITP",
+    "transmilenio": "Transmilenio",
     "rail_station": "Rail Station",
     "taxi": "Taxi",
     "bikesharing_ffb": "Bikesharing-Stations",
@@ -617,6 +668,12 @@
     "university": "University",
     "hospital": "Hospital",
     "playground": "Playground",
+    "population": "Population",
+    "park": "Park",
+    "governmentandsec": "Gov. and Security",
+    "notary": "Notary",
+    "cade": "CADE",
+    "police": "Police",
     "sports": "Sports",
     "community_sports_center": "Community Sports Center",
     "waterpark": "Water Park",
@@ -682,7 +739,13 @@
         "building_levels": "Building Levels",
         "building_levels_residential": "Building levels residential",
         "population": "Number residents (optional)",
-        "gross_floor_area": "Gross Flor Area (optional)"
+        "gross_floor_area": "Gross Floor Area (optional)",
+        "labels": {
+          "area": "Area",
+          "building_levels": "Building levels",
+          "gross_floor_area": "Gross Floor Area",
+          "population": "Population"
+        }
       }
     },
     "listValues": {

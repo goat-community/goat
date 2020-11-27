@@ -5,8 +5,9 @@ import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
 import store from "../store/modules/map";
-import { LineString } from "ol/geom.js";
-import { getArea, getLength } from "ol/sphere.js";
+import isochronesStore from "../store/modules/isochrones";
+import { getArea } from "ol/sphere.js";
+import i18n from "../../src/plugins/i18n";
 
 export function getMeasureStyle(measureConf) {
   return new OlStyle({
@@ -237,7 +238,10 @@ export function defaultStyle(feature, resolution) {
 
     let isCompleted = true;
     let hasEntranceFeature = false;
-    if (store.state.reqFields) {
+    if (
+      store.state.reqFields &&
+      store.state.selectedEditLayer.get("name") === "buildings"
+    ) {
       store.state.reqFields.forEach(field => {
         if (!properties[field]) {
           isCompleted = false;
@@ -252,10 +256,9 @@ export function defaultStyle(feature, resolution) {
 
       let countEntrances = 0;
       entrancesInExtent.forEach(entrance => {
-        const hasEntrance = feature
-          .getGeometry()
-          .intersectsCoordinate(entrance.getGeometry().getCoordinates());
-        if (hasEntrance === true) {
+        const buildingId =
+          feature.get("gid") || feature.get("id") || feature.getId();
+        if (entrance.get("building_gid") === buildingId) {
           countEntrances += 1;
         }
       });
@@ -269,28 +272,33 @@ export function defaultStyle(feature, resolution) {
       fillOpt.color = "rgb(0,128,0, 0.7)";
     }
     const area = getArea(feature.getGeometry());
-    const length = getLength(
-      new LineString(
-        feature
-          .getGeometry()
-          .getLinearRing(0)
-          .getCoordinates()
-      )
+    const building_levels = feature.get("building_levels") || 0;
+    const population = feature.get("population");
+    const area_label = i18n.t("dynamicFields.attributes.buildings.labels.area");
+    const building_levels_label = i18n.t(
+      "dynamicFields.attributes.buildings.labels.building_levels"
     );
-
-    // Add area and length label for building.
-    let fontSize = 12;
+    const population_label = i18n.t(
+      "dynamicFields.attributes.buildings.labels.population"
+    );
+    const floor_area_label = i18n.t(
+      "dynamicFields.attributes.buildings.labels.gross_floor_area"
+    );
+    // Add label for building.
+    let fontSize = 11;
 
     if (
-      resolution < 1.2 &&
+      resolution < 0.4 &&
       store.state.editLayer &&
       store.state.editLayer.get("showLabels") === 0
     ) {
       const style = new OlStyle({
         text: new OlText({
-          text: `Area: ${area.toFixed(0)} ㎡ \n Perimeter: ${length.toFixed(
+          text: `${area_label}: ${area.toFixed(
             0
-          )} m`,
+          )} ㎡\n${building_levels_label}: ${building_levels}
+          ${floor_area_label}: ${parseInt(area * building_levels)} ㎡
+          ${population_label}: ${parseInt(population || 0)}`,
           overflow: true,
           font: `${fontSize}px Calibri, sans-serif`,
           fill: new OlFill({
@@ -384,6 +392,13 @@ export function waysNewBridgeStyle(feature) {
 }
 export function editStyleFn() {
   const styleFunction = (feature, resolution) => {
+    if (
+      feature.get("scenario_id") &&
+      isochronesStore.state.activeScenario &&
+      feature.get("scenario_id") !== isochronesStore.state.activeScenario
+    ) {
+      return [];
+    }
     const props = feature.getProperties();
     // Polygon (ex. building) style
     if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
@@ -453,6 +468,13 @@ export function studyAreaASelectStyle() {
 
 export function bldEntrancePointsStyle() {
   return (feature, resolution) => {
+    if (
+      feature.get("scenario_id") &&
+      isochronesStore.state.activeScenario &&
+      feature.get("scenario_id") !== isochronesStore.state.activeScenario
+    ) {
+      return [];
+    }
     let radius = 8;
     if (resolution > 4) {
       return [];

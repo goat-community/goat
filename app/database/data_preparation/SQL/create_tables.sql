@@ -1,5 +1,27 @@
+CREATE TABLE public.user_data
+(
+  	userid bigserial,
+	username TEXT,
+	pw TEXT, 
+    CONSTRAINT user_data_pkey PRIMARY KEY (userid)
+);
+
+CREATE TABLE public.scenarios
+(
+  	scenario_id bigserial,
+	scenario_name text,
+	userid bigint,
+	deleted_ways bigint[] DEFAULT '{}',
+	deleted_pois bigint[] DEFAULT '{}',
+	deleted_buildings bigint[] DEFAULT '{}',
+    CONSTRAINT scenarios_pkey PRIMARY KEY (scenario_id),
+    CONSTRAINT scenario_fkey FOREIGN KEY (userid)
+    REFERENCES user_data(userid) ON DELETE CASCADE
+);
+
 CREATE TABLE public.isochrones (
 	userid int4 NULL,
+	scenario_id int4 NULL,
 	id int4 NULL,
 	step int4 NULL,
 	geom geometry NULL,
@@ -36,68 +58,21 @@ CREATE TABLE public.multi_isochrones (
 	CONSTRAINT multi_isochrones_pkey PRIMARY KEY (gid)
 );
 
-
 CREATE INDEX ON multi_isochrones USING gist (geom);
 CREATE INDEX ON multi_isochrones USING btree(objectid,parent_id);
 
 CREATE UNLOGGED TABLE public.edges (
 	edge integer NULL,
-	node integer NULL,
-	cost numeric NULL,
+	cost float NULL,
+	start_cost float NULL,
+	end_cost float NULL,
 	geom geometry NULL,
-	v_geom geometry NULL,
 	objectid int4 NULL,
 	id serial NOT NULL,
 	CONSTRAINT edges_pkey PRIMARY KEY (id)
 );
---CREATE INDEX index_edges ON edges USING gist(geom);
+
 CREATE INDEX ON edges USING btree(objectid,cost);
-
-/*
-CREATE UNLOGGED TABLE public.edges_multi (
-	edge integer NULL,
-	node integer NULL,
-	min_cost numeric NULL,
-	geom geometry NULL,
-	v_geom geometry NULL,
-	objectid int4 NULL,
-	node_cost_1 jsonb,
-	node_cost_2 jsonb,
-	id serial NOT NULL,
-	CONSTRAINT edges_multi_pkey PRIMARY KEY (id)
-);
---CREATE INDEX index_edges ON edges USING gist(geom);
-CREATE INDEX ON edges_multi USING btree(objectid,min_cost);
-*/
-CREATE UNLOGGED TABLE public.edges_multi (
-	edge integer NULL,
-	node integer NULL,
-	min_cost numeric NULL,
-	geom geometry NULL,
-	v_geom geometry NULL,
-	objectid integer NULL,
-	duplicates integer[],
-	combi_ids integer[],
-	combi_costs float[],
-	id serial NOT NULL,
-	CONSTRAINT edges_multi_pkey PRIMARY KEY (id)
-);
---CREATE INDEX index_edges ON edges USING gist(geom);
-CREATE INDEX ON edges_multi USING btree(objectid,min_cost);
-CREATE INDEX ON edges_multi USING GIN(duplicates);
-
-CREATE UNLOGGED TABLE edges_multi_extrapolated(
-	edge integer,
-	node integer,
-	cost numeric,
-	geom geometry,
-	v_geom geometry,
-	id_calc integer, 
-	objectid integer,
-	id serial,
-	CONSTRAINT edges_multi_extrapolated_pkey PRIMARY KEY(id)
-);
-CREATE INDEX ON edges_multi_extrapolated USING btree(objectid,id_calc,cost);
 
 CREATE TABLE public.starting_point_isochrones (
 	gid serial,
@@ -110,14 +85,15 @@ CREATE TABLE public.starting_point_isochrones (
 CREATE INDEX ON starting_point_isochrones USING gist(geom);
 
 CREATE TABLE addresses_residential(
-osm_id bigint,
-street varchar(200),
-housenumber varchar(100),
-geom geometry,
-origin varchar(20),
-area float,
-population integer,
-distance float);
+	osm_id bigint,
+	street varchar(200),
+	housenumber varchar(100),
+	geom geometry,
+	origin varchar(20),
+	area float,
+	population integer,
+	distance float
+);
 
 ALTER TABLE addresses_residential add column gid serial;
 ALTER TABLE addresses_residential add primary key (gid);
@@ -137,30 +113,38 @@ FROM
 
 CREATE TABLE public.ways_modified
 (
-    id bigint NOT NULL,
+    gid bigserial,
     geom geometry(LineString,4326),
     way_type text,
 	surface text,
 	wheelchair text,
+	lit text,
 	street_category text,
-    userid integer,
+	foot text,
+	bicycle text,
+    scenario_id integer,
     original_id integer,
 	status bigint,
-    CONSTRAINT ways_modified_id_pkey PRIMARY KEY (id)
+	edit_type text,
+    CONSTRAINT ways_modified_id_pkey PRIMARY KEY (gid),
+    CONSTRAINT ways_modified_fkey FOREIGN KEY (scenario_id)
+    REFERENCES scenarios(scenario_id) ON DELETE CASCADE
 );
 
 CREATE INDEX ways_modified_index ON public.ways_modified USING gist(geom);
 
 CREATE TABLE public.pois_modified (
-	id serial,
+	gid serial,
 	name text NULL,
 	amenity text NOT NULL,
 	opening_hours text NULL,
 	geom geometry(POINT, 4326) NULL,
-	userid int4 NULL,
+	scenario_id int4,
 	original_id int4 NULL,
 	wheelchair text,
-	CONSTRAINT pois_modified_id_pkey PRIMARY KEY (id)
+	CONSTRAINT pois_modified_id_pkey PRIMARY KEY (gid),
+    CONSTRAINT pois_modified_fkey FOREIGN KEY (scenario_id)
+    REFERENCES scenarios(scenario_id) ON DELETE CASCADE
 );
 
 CREATE INDEX ON pois_modified USING gist(geom);
@@ -174,9 +158,11 @@ CREATE TABLE buildings_modified
 	gross_floor_area integer,
 	population NUMERIC,
 	geom geometry NULL,
-	userid integer NOT NULL,
+	scenario_id integer NOT NULL,
 	original_id integer,
-	CONSTRAINT buildings_modified_gid_pkey PRIMARY KEY(gid)
+	CONSTRAINT buildings_modified_gid_pkey PRIMARY KEY(gid),
+    CONSTRAINT buildings_modified_fkey FOREIGN KEY (scenario_id)
+    REFERENCES scenarios(scenario_id) ON DELETE CASCADE
 );
 
 CREATE INDEX ON buildings_modified USING GIST(geom);
@@ -187,29 +173,10 @@ CREATE TABLE population_modified
 	building_gid integer,
 	population numeric,
 	geom geometry(POINT, 4326) NULL,
-	userid integer,
-	CONSTRAINT population_modified_gid_pkey PRIMARY KEY(gid)
+	scenario_id integer,
+	CONSTRAINT population_modified_gid_pkey PRIMARY KEY(gid),
+    CONSTRAINT population_modified_fkey FOREIGN KEY (scenario_id)
+    REFERENCES scenarios(scenario_id) ON DELETE CASCADE
 );
 
 CREATE INDEX ON population_modified USING GIST(geom);
-
-DROP SEQUENCE IF EXISTS user_data_id_seq;
-CREATE SEQUENCE user_data_id_seq;
-
-CREATE TABLE public.user_data
-(
-    id bigint NOT NULL DEFAULT nextval('user_data_id_seq'::regclass),
-    name character varying COLLATE pg_catalog."default",
-    surname character varying COLLATE pg_catalog."default",
-    deleted_feature_ids bigint[],
-	userid bigint,
-	layer_name varchar(100),
-    CONSTRAINT user_data_pkey PRIMARY KEY (id)
-)
-WITH (
-    OIDS = FALSE
-)
-TABLESPACE pg_default;
-
-ALTER TABLE public.user_data
-    OWNER to goat;

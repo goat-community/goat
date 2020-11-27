@@ -236,6 +236,7 @@ export default {
     EventBus.$on("close-popup", () => {
       me.closePopup();
     });
+    this.init(this.$appConfig.componentData.pois);
   },
 
   methods: {
@@ -641,6 +642,7 @@ export default {
         let type;
         switch (originGeometry) {
           case "polygon":
+          case "polygon dissagregated":
           case "multipolygon":
           case "linestring":
             type = "way";
@@ -687,6 +689,9 @@ export default {
       setMap: "SET_MAP",
       setContextMenu: "SET_CONTEXTMENU",
       setLayer: "SET_LAYER"
+    }),
+    ...mapMutations("pois", {
+      init: "INIT"
     }),
     ...mapActions("isochrones", {
       showIsochroneWindow: "showIsochroneWindow"

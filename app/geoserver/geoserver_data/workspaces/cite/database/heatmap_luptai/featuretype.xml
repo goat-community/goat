@@ -40,11 +40,8 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>heatmap_luptai</name>
-        <sql>SELECT h.grid_id, h.percentile_accessibility AS accessibility_index, p.percentile_population, &#xd;
-(p.percentile_population-h.percentile_accessibility) AS population_accessibility, h.geom  &#xd;
-FROM heatmap_geoserver(%userid%, convert_from(decode(%amenities%,&apos;base64&apos;), &apos;UTF-8&apos;)::jsonb,2) h, &#xd;
-population_heatmap(%userid%) p &#xd;
-WHERE p.grid_id = h.grid_id
+        <sql>SELECT * &#xd;
+FROM heatmap_luptai(convert_from(decode(%amenities%,&apos;base64&apos;), &apos;UTF-8&apos;)::jsonb,%modus%,%scenario_id%)
 </sql>
         <escapeSql>false</escapeSql>
         <geometry>
@@ -57,8 +54,12 @@ WHERE p.grid_id = h.grid_id
           <defaultValue>&apos;W3siJ2J1c19zdG9wJyI6Mn0seyIndHJhbV9zdG9wJyI6M31d&apos;</defaultValue>
         </parameter>
         <parameter>
-          <name>userid</name>
-          <defaultValue>1</defaultValue>
+          <name>modus</name>
+          <defaultValue>&apos;default&apos;</defaultValue>
+        </parameter>
+        <parameter>
+          <name>scenario_id</name>
+          <defaultValue>0</defaultValue>
           <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
       </virtualTable>

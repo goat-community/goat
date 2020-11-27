@@ -1,0 +1,4 @@
+The Chart Plugin was inserted as Geoserver Extension.
+
+Website: http://geoserver.org/release/stable/
+GitHub: https://github.com/geoserver/geoserver

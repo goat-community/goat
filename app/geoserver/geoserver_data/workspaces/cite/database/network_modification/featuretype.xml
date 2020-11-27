@@ -30,12 +30,13 @@
     <entry key="JDBC_VIRTUAL_TABLE">
       <virtualTable>
         <name>network_modification</name>
-        <sql>select * from network_modification(%userid%)
+        <sql>select * from network_modification(%scenario_id%)
 </sql>
         <escapeSql>false</escapeSql>
         <parameter>
-          <name>userid</name>
-          <defaultValue>9159246</defaultValue>
+          <name>scenario_id</name>
+          <defaultValue>1</defaultValue>
+          <regexpValidator>^[\w\d\s]+$</regexpValidator>
         </parameter>
       </virtualTable>
     </entry>

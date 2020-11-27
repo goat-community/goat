@@ -1,0 +1,15 @@
+<layer>
+  <name>population_pol</name>
+  <id>LayerInfoImpl--55ca986e:172fa64b5a9:140b</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--55ca986e:172fa64b5a9:1413</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--55ca986e:172fa64b5a9:140a</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

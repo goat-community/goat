@@ -1,0 +1,15 @@
+<layer>
+  <name>mapping_parking_lane</name>
+  <id>LayerInfoImpl-1578fecd:174a75e7c3c:1eb1</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-361d8c01:1728373ba1a:-3470</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-1578fecd:174a75e7c3c:1eb0</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

@@ -7,30 +7,125 @@
       <v-card-text class="pr-16 pl-16 pt-0 pb-0">
         <v-divider></v-divider>
 
-        <v-select
-          class="mt-4"
-          :items="editableLayers"
-          v-model="selectedLayer"
-          item-value="values_.name"
-          return-object
-          :loading="loadingLayerInfo"
-          solo
-          :label="$t('appBar.edit.selectLayer')"
-        >
-          <template slot="selection" slot-scope="{ item }">
-            {{ translate("layerName", item.get("name")) }}
-          </template>
-          <template slot="item" slot-scope="{ item }">
-            {{ translate("layerName", item.get("name")) }}
-          </template>
-        </v-select>
+        <!-- CREATE SCENARIO  -->
+        <div v-if="Object.keys(scenarios).length > 0">
+          <v-row class="mt-4" no-gutters>
+            <v-col class="text-center" :cols="8">
+              <v-select
+                v-model="activeScenario"
+                :items="scenarioArray"
+                item-text="display"
+                item-value="value"
+                label="Select scenario"
+                solo
+              >
+                <template
+                  class="create-scenario-text"
+                  slot="selection"
+                  slot-scope="{ item }"
+                >
+                  {{ item.display }}
+                </template>
+                <template
+                  class="create-scenario-text"
+                  slot="item"
+                  slot-scope="{ item }"
+                >
+                  {{ item.display }}
+                </template>
+              </v-select>
+            </v-col>
+            <v-col class="text-center ml-0 pl-0">
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    v-on="on"
+                    class="mt-1 ml-2"
+                    :color="activeColor.primary"
+                    fab
+                    dark
+                    small
+                    @click="showScenarioDialog = true"
+                  >
+                    <v-icon dark>add</v-icon>
+                  </v-btn>
+                </template>
+                <span>Create new scenario</span></v-tooltip
+              >
+            </v-col>
+            <v-col v-if="activeScenario" class="text-center">
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    v-on="on"
+                    class="mt-1 ml-1"
+                    :color="activeColor.primary"
+                    fab
+                    dark
+                    small
+                    @click="
+                      showScenarioDialog = true;
+                      activeScenarioId = activeScenario;
+                    "
+                  >
+                    <v-icon dark>edit</v-icon>
+                  </v-btn>
+                </template>
+                <span>Edit Scenario Name</span></v-tooltip
+              >
+            </v-col>
+          </v-row>
+        </div>
+        <div v-if="Object.keys(scenarios).length === 0">
+          <v-row align="center">
+            <v-col class="text-center">
+              <v-btn
+                width="100%"
+                class="text-xs-center white--text"
+                dark
+                :color="activeColor.primary"
+                @click="showScenarioDialog = true"
+              >
+                <v-icon left dark>add</v-icon>
+                Create Scenario
+              </v-btn>
+            </v-col></v-row
+          >
+        </div>
+
+        <div v-if="Object.keys(scenarios).length > 0">
+          <v-divider></v-divider>
+          <v-subheader class="ml-0 pl-0 mb-0 pb-0">
+            <v-icon style="color:#30c2ff;" small class="mr-2"
+              >fas fa-layer-group</v-icon
+            >
+            <h3>Select Layer</h3>
+          </v-subheader>
+          <v-select
+            class="mt-4"
+            :items="editableLayers"
+            v-model="selectedLayer"
+            item-value="values_.name"
+            return-object
+            :loading="loadingLayerInfo"
+            solo
+            :label="$t('appBar.edit.selectLayer')"
+          >
+            <template slot="selection" slot-scope="{ item }">
+              {{ translate("layerName", item.get("name")) }}
+            </template>
+            <template slot="item" slot-scope="{ item }">
+              {{ translate("layerName", item.get("name")) }}
+            </template>
+          </v-select>
+        </div>
 
         <v-alert
           border="left"
           colored-border
           class="mb-2 mt-0 mx-0 elevation-2"
-          icon="info"
-          :color="activeColor.primary"
+          icon="warning"
+          color="warning"
           dense
           v-if="
             selectedLayer &&
@@ -43,323 +138,404 @@
         </v-alert>
         <template v-if="selectedLayer && schema[layerName]">
           <v-divider></v-divider>
-          <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
-            <p class="mb-1">{{ $t("appBar.edit.selectFeatures") }}</p>
-            <v-btn-toggle v-model="toggleSelection">
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <v-btn v-on="on" text>
-                    <v-icon>far fa-dot-circle</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.drawCircle") }}</span>
-              </v-tooltip>
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <v-btn v-on="on" text v-show="false">
-                    <v-icon>far fa-hand-pointer</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.selectOnMap") }}</span>
-              </v-tooltip>
-            </v-btn-toggle>
-          </v-flex>
-          <v-flex xs12 v-show="selectedLayer != null" class="mt-1 pt-0 mb-4">
-            <v-divider class="mb-1"></v-divider>
-            <p class="mb-1">{{ $t("appBar.edit.editTools") }}</p>
-            <v-btn-toggle v-model="toggleEdit">
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <v-btn :value="1" v-on="on" text>
-                    <v-icon medium>add</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.drawFeatureTooltip") }}</span>
-              </v-tooltip>
+          <!-- ==== <EDIT> ====-->
 
-              <v-tooltip
-                v-show="selectedLayer.get('canModifyGeom') !== false"
-                top
-              >
-                <template v-slot:activator="{ on }">
-                  <v-btn
-                    v-show="selectedLayer.get('canModifyGeom') !== false"
-                    :value="2"
-                    v-on="on"
-                    text
-                  >
-                    <v-icon>far fa-edit</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.modifyFeatureTooltip") }}</span>
-              </v-tooltip>
-
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <v-btn
-                    :value="3"
-                    v-show="selectedLayer.get('modifyAttributes') === true"
-                    v-on="on"
-                    text
-                  >
-                    <v-icon>far fa-list-alt</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.modifyAttributes") }}</span>
-              </v-tooltip>
-
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <v-btn :value="4" v-on="on" text>
-                    <v-icon>far fa-trash-alt</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.deleteFeature") }}</span>
-              </v-tooltip>
-
-              <v-tooltip
-                top
-                v-show="
-                  !['Point'].some(r =>
-                    selectedLayer.get('editGeometry').includes(r)
-                  )
-                "
-              >
-                <template v-slot:activator="{ on }">
-                  <v-btn
-                    v-show="
-                      !['Point', 'LineString'].some(r =>
-                        selectedLayer.get('editGeometry').includes(r)
-                      )
-                    "
-                    :value="5"
-                    v-on="on"
-                    text
-                  >
-                    <v-icon>far fa-clone</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.moveFeature") }}</span>
-              </v-tooltip>
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <v-btn
-                    :value="6"
-                    v-show="
-                      !['Point', 'LineString'].some(r =>
-                        selectedLayer.get('editGeometry').includes(r)
-                      )
-                    "
-                    v-on="on"
-                    text
-                  >
-                    <v-icon>far fa-object-group</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.drawPolygonHole") }}</span>
-              </v-tooltip>
-            </v-btn-toggle>
-            <br />
-
-            <v-btn-toggle v-model="toggleEdit">
-              <v-tooltip v-if="selectedLayer.get('name') === 'buildings'" top>
-                <template v-slot:activator="{ on }">
-                  <v-btn
-                    class="ml-0 mr-2 mt-2"
-                    v-if="selectedLayer.get('name') === 'buildings'"
-                    :value="7"
-                    v-on="on"
-                    text
-                  >
-                    <v-icon>far fa-building</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.addBldEntrance") }}</span>
-              </v-tooltip>
-            </v-btn-toggle>
-
-            <v-btn-toggle v-model="toggleSnapGuide">
-              <v-tooltip
-                top
-                v-if="
-                  ['Polygon', 'MultiPolygon'].some(r =>
-                    selectedLayer.get('editGeometry').includes(r)
-                  )
-                "
-              >
-                <template v-slot:activator="{ on }">
-                  <v-btn class="ml-0 mt-2" v-on="on" text>
-                    <v-icon>fas fa-border-all</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.snapGuide") }}</span>
-              </v-tooltip>
-            </v-btn-toggle>
-
-            <v-btn-toggle v-model="toggleFeatureLabels">
-              <v-tooltip
-                top
-                v-if="
-                  ['Polygon', 'MultiPolygon'].some(r =>
-                    selectedLayer.get('editGeometry').includes(r)
-                  )
-                "
-              >
-                <template v-slot:activator="{ on }">
-                  <v-btn class="ml-2 mt-2" v-on="on" text>
-                    <v-icon>fas fa-font</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.featureLabels") }}</span>
-              </v-tooltip>
-            </v-btn-toggle>
-          </v-flex>
-          <v-flex
-            v-if="
-              layerConf[layerName.split(':')[1]] &&
-                layerConf[layerName.split(':')[1]].enableFileUpload === true
-            "
-            xs12
-            v-show="selectedLayer != null"
-            class="mt-1 pt-0 mb-0"
+          <v-subheader
+            v-show="selectedLayer !== null"
+            class="clickable ml-0 pl-0"
+            @click="editElVisible = !editElVisible"
           >
-            <v-divider class="mb-1"></v-divider>
-            <p class="mb-1">{{ $t("appBar.edit.uploadYourData") }}</p>
-            <v-file-input
-              :rules="uploadRules"
-              @change="readFile"
-              @click:clear="clearFile"
-              accept=".json,.geojson"
-              clearable
-              v-model="file"
-              label="File input"
-            ></v-file-input>
-
-            <!-- LAYER FIELD INFO ALERT  -->
-            <v-alert
-              v-if="
-                fileInputFeaturesCache.length === 0 &&
-                  fileInputValidationMessage === 'fileValidOrNoFile' &&
-                  schema[layerName]
-              "
-              class="elevation-2"
-              type="info"
-              :color="activeColor.primary"
-              border="left"
-              colored-border
-              dense
+            <v-icon
+              :style="editElVisible === true ? { color: '#30c2ff' } : {}"
+              small
+              class="mr-2"
+              >fas fa-edit</v-icon
             >
-              <span
-                >&#9679; {{ $t("appBar.edit.dataTypeInfo") }}:
-                <b>{{ selectedLayer.get("editDataType") }}</b>
-              </span>
-              <br />
-              <span
-                >&#9679; {{ $t("appBar.edit.geometryTypeInfo") }}:
-                <b>{{ selectedLayer.get("editGeometry").toString() }}</b>
-              </span>
-              <br />
-              <span
-                >&#9679; {{ $t("appBar.edit.referenceSystemInfo") }}
-                <b>EPSG:4326</b>
-              </span>
-              <br />
-              <span v-html="getFields"> </span>
-            </v-alert>
-
-            <!-- FILE INPUT VALIDATION MESSAGE ALERTS -->
-            <v-alert
-              v-if="fileInputValidationMessage !== 'fileValidOrNoFile'"
-              class="elevation-2"
-              :type="fileInputValidationTypeEnum[fileInputValidationMessage]"
-              dense
+            <h3>{{ $t("appBar.edit.editTools") }}</h3>
+          </v-subheader>
+          <div class="ml-2" v-if="editElVisible">
+            <span
+              v-show="selectedLayer != null"
+              class="py-1 mb-0 mt-3 pl-0 ml-0"
             >
-              <span v-html="getValidationMessage"></span>
-            </v-alert>
+              <h4>{{ $t("appBar.edit.selectFeatures") }}</h4>
+            </span>
 
-            <!-- FEATURES NOT YET UPLOADED ALERT -->
-            <v-alert
-              class="elevation-2"
-              v-if="fileInputFeaturesCache.length > 0"
-              dense
-              type="info"
+            <v-flex
+              xs12
+              v-show="selectedLayer != null && selectFeaturesVisible"
+              class="mt-1 pt-0 mb-4"
             >
-              {{ $t("appBar.edit.featuresNotyetUploaded") }}
-            </v-alert>
-          </v-flex>
+              <v-btn-toggle v-model="toggleSelection">
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <v-btn v-on="on" text>
+                      <v-icon>far fa-dot-circle</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.drawCircle") }}</span>
+                </v-tooltip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <v-btn v-on="on" text v-show="false">
+                      <v-icon>far fa-hand-pointer</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.selectOnMap") }}</span>
+                </v-tooltip>
+              </v-btn-toggle>
+            </v-flex>
 
-          <!-- DATA TABLE FOR DRAWN/MODIFIED/DELETED FEATURES OF THE USER  -->
+            <span v-show="selectedLayer != null" class="py-1 mb-0 pl-0 ml-0">
+              <h4>{{ $t("appBar.edit.editTools") }}</h4>
+            </span>
 
-          <v-flex v-if="selectedLayer !== null" xs12 class="mt-1 pt-0 mb-0">
-            <v-divider class="mb-1"></v-divider>
-            <p class="mb-1">{{ $t("appBar.edit.scenarioFeatures") }}</p>
-            <v-data-table
-              :headers="headers"
-              :loading="isTableLoading"
-              :items="scenarioDataTable"
-              :items-per-page="15"
-              class="elevation-0"
+            <v-flex
+              xs12
+              v-show="selectEditVisible && selectedLayer != null"
+              class="mt-1 pt-0 mb-3"
             >
-              <template v-slot:item.status="{ item }">
-                <v-chip
-                  small
-                  :color="item.status === 'Uploaded' ? 'success' : 'error'"
-                  dark
-                  class="mx-0 px-1"
-                  >{{ $t(`appBar.edit.status.${item.status}`) }}</v-chip
+              <v-btn-toggle v-model="toggleEdit">
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <v-btn :value="1" v-on="on" text>
+                      <v-icon medium>add</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.drawFeatureTooltip") }}</span>
+                </v-tooltip>
+
+                <v-tooltip
+                  v-show="selectedLayer.get('canModifyGeom') !== false"
+                  top
                 >
-              </template>
-              <template v-slot:item.type="{ item }">
-                <span>{{ $t(`appBar.edit.type.${item.type}`) }}</span>
-              </template>
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      v-show="selectedLayer.get('canModifyGeom') !== false"
+                      :value="2"
+                      v-on="on"
+                      text
+                    >
+                      <v-icon>far fa-edit</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.modifyFeatureTooltip") }}</span>
+                </v-tooltip>
 
-              <template v-slot:item.action="{ item }">
-                <!-- zoom to scenario feature -->
                 <v-tooltip top>
                   <template v-slot:activator="{ on }">
-                    <v-icon
+                    <v-btn
+                      :value="3"
+                      v-show="selectedLayer.get('modifyAttributes') === true"
                       v-on="on"
-                      :disabled="isUploadBusy"
-                      class="scenario-icon"
-                      @click="scenarioActionBtnHandler(item, 'zoom')"
+                      text
                     >
-                      zoom_out_map
-                    </v-icon>
+                      <v-icon>far fa-list-alt</v-icon>
+                    </v-btn>
                   </template>
-                  <span>{{ $t(`map.tooltips.zoomToFeature`) }}</span>
+                  <span>{{ $t("appBar.edit.modifyAttributes") }}</span>
                 </v-tooltip>
-                <!-- delete scenario feature -->
+
                 <v-tooltip top>
                   <template v-slot:activator="{ on }">
-                    <v-icon
-                      v-show="isDeleteBtnVisible(item)"
-                      class="scenario-icon-delete"
-                      :disabled="isUploadBusy"
-                      v-on="on"
-                      @click="scenarioActionBtnHandler(item, 'delete')"
-                    >
-                      delete
-                    </v-icon>
+                    <v-btn :value="4" v-on="on" text>
+                      <v-icon>far fa-trash-alt</v-icon>
+                    </v-btn>
                   </template>
-                  <span>{{ $t(`map.tooltips.deleteFeature`) }}</span>
+                  <span>{{ $t("appBar.edit.deleteFeature") }}</span>
+                </v-tooltip>
+
+                <v-tooltip
+                  top
+                  v-show="
+                    !['Point'].some(r =>
+                      selectedLayer.get('editGeometry').includes(r)
+                    )
+                  "
+                >
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      v-show="
+                        !['Point', 'LineString'].some(r =>
+                          selectedLayer.get('editGeometry').includes(r)
+                        )
+                      "
+                      :value="5"
+                      v-on="on"
+                      text
+                    >
+                      <v-icon>far fa-clone</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.moveFeature") }}</span>
                 </v-tooltip>
                 <v-tooltip top>
                   <template v-slot:activator="{ on }">
-                    <v-icon
-                      v-show="isRestoreBtnVisible(item)"
-                      class="scenario-icon"
-                      :disabled="isUploadBusy"
+                    <v-btn
+                      :value="6"
+                      v-show="
+                        !['Point', 'LineString'].some(r =>
+                          selectedLayer.get('editGeometry').includes(r)
+                        )
+                      "
                       v-on="on"
-                      @click="scenarioActionBtnHandler(item, 'restore')"
+                      text
                     >
-                      restore_from_trash
-                    </v-icon>
+                      <v-icon>far fa-object-group</v-icon>
+                    </v-btn>
                   </template>
-                  <span>{{ $t(`map.tooltips.restoreFeature`) }}</span>
+                  <span>{{ $t("appBar.edit.drawPolygonHole") }}</span>
                 </v-tooltip>
-              </template>
-            </v-data-table>
-          </v-flex>
+              </v-btn-toggle>
+              <br />
+
+              <v-btn-toggle v-model="toggleEdit">
+                <v-tooltip v-if="selectedLayer.get('name') === 'buildings'" top>
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      class="ml-0 mr-2 mt-2"
+                      v-if="selectedLayer.get('name') === 'buildings'"
+                      :value="7"
+                      v-on="on"
+                      text
+                    >
+                      <v-icon>far fa-building</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.addBldEntrance") }}</span>
+                </v-tooltip>
+              </v-btn-toggle>
+
+              <v-btn-toggle v-model="toggleSnapGuide">
+                <v-tooltip
+                  top
+                  v-if="
+                    ['Polygon', 'MultiPolygon'].some(r =>
+                      selectedLayer.get('editGeometry').includes(r)
+                    )
+                  "
+                >
+                  <template v-slot:activator="{ on }">
+                    <v-btn class="ml-0 mt-2" v-on="on" text>
+                      <v-icon>fas fa-border-all</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.snapGuide") }}</span>
+                </v-tooltip>
+              </v-btn-toggle>
+
+              <v-btn-toggle v-model="toggleFeatureLabels">
+                <v-tooltip
+                  top
+                  v-if="
+                    ['Polygon', 'MultiPolygon'].some(r =>
+                      selectedLayer.get('editGeometry').includes(r)
+                    )
+                  "
+                >
+                  <template v-slot:activator="{ on }">
+                    <v-btn class="ml-2 mt-2" v-on="on" text>
+                      <v-icon>fas fa-font</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.featureLabels") }}</span>
+                </v-tooltip>
+              </v-btn-toggle>
+            </v-flex>
+          </div>
+          <v-divider></v-divider>
+          <!-- ==== </EDIT> ==== -->
+
+          <!-- ==== <SCENARIO MANAGE> ====-->
+          <v-subheader
+            class="clickable ml-0 pl-0"
+            @click="dataManageElVisible = !dataManageElVisible"
+          >
+            <v-icon
+              :style="dataManageElVisible === true ? { color: '#30c2ff' } : {}"
+              small
+              class="mr-2"
+              >fas fa-database</v-icon
+            >
+            <h3>Scenario Import/Export</h3>
+          </v-subheader>
+          <div class="ml-2" v-if="dataManageElVisible">
+            <v-flex
+              v-if="layerConf[layerName.split(':')[1]]"
+              xs12
+              v-show="selectedLayer != null && dataManageElVisible === true"
+              class="mt-1 pt-0 mb-0"
+            >
+              <v-file-input
+                :rules="uploadRules"
+                @change="readFile"
+                @click:clear="clearFile"
+                accept=".json,.geojson"
+                clearable
+                v-model="file"
+                label="Import"
+              ></v-file-input>
+
+              <!-- LAYER FIELD INFO ALERT  -->
+              <v-alert
+                v-if="
+                  fileInputFeaturesCache.length === 0 &&
+                    fileInputValidationMessage === 'fileValidOrNoFile' &&
+                    schema[layerName]
+                "
+                class="elevation-2"
+                type="info"
+                :color="activeColor.primary"
+                border="left"
+                colored-border
+                dense
+              >
+                <span
+                  >&#9679; {{ $t("appBar.edit.dataTypeInfo") }}:
+                  <b>{{ selectedLayer.get("editDataType") }}</b>
+                </span>
+                <br />
+                <span
+                  >&#9679; {{ $t("appBar.edit.geometryTypeInfo") }}:
+                  <b>{{ selectedLayer.get("editGeometry").toString() }}</b>
+                </span>
+                <br />
+                <span
+                  >&#9679; {{ $t("appBar.edit.referenceSystemInfo") }}
+                  <b>EPSG:4326</b>
+                </span>
+                <br />
+                <span v-html="getFields"> </span>
+              </v-alert>
+
+              <!-- FILE INPUT VALIDATION MESSAGE ALERTS -->
+              <v-alert
+                v-if="fileInputValidationMessage !== 'fileValidOrNoFile'"
+                class="elevation-2"
+                :type="fileInputValidationTypeEnum[fileInputValidationMessage]"
+                dense
+              >
+                <span v-html="getValidationMessage"></span>
+              </v-alert>
+
+              <!-- FEATURES NOT YET UPLOADED ALERT -->
+              <!-- <v-alert
+                class="elevation-2"
+                v-if="fileInputFeaturesCache.length > 0"
+                dense
+                type="info"
+              >
+                {{ $t("appBar.edit.featuresNotyetUploaded") }}
+              </v-alert> -->
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                  :disabled="scenarioDataTable.length === 0"
+                  :loading="isExportScenarioBusy"
+                  class="white--text"
+                  :color="activeColor.primary"
+                  @click="exportScenario"
+                >
+                  <v-icon left>fas fa-download</v-icon>Export
+                </v-btn>
+              </v-card-actions>
+            </v-flex>
+          </div>
+          <v-divider></v-divider>
+
+          <!-- ==== </SCENARIO MANAGE> ====-->
+
+          <!-- ==== <DATA TABLE> ====-->
+          <v-subheader
+            v-show="selectedLayer !== null"
+            class="clickable ml-0 pl-0"
+            @click="dataTableElVisible = !dataTableElVisible"
+          >
+            <v-icon
+              :style="dataTableElVisible === true ? { color: '#30c2ff' } : {}"
+              small
+              class="mr-2"
+              >far fa-list-alt</v-icon
+            >
+            <h3>Scenario Features</h3>
+          </v-subheader>
+          <div class="ml-2" v-if="dataTableElVisible">
+            <v-expand-transition>
+              <v-flex
+                v-if="dataTableElVisible && selectedLayer !== null"
+                xs12
+                class="mt-1 pt-0 mb-0"
+              >
+                <v-data-table
+                  :headers="headers"
+                  :loading="isTableLoading"
+                  :items="scenarioDataTable"
+                  :items-per-page="15"
+                  class="elevation-0"
+                >
+                  <template v-slot:item.status="{ item }">
+                    <v-chip
+                      small
+                      :color="item.status === 'Uploaded' ? 'success' : 'error'"
+                      dark
+                      class="mx-0 px-1"
+                      >{{ $t(`appBar.edit.status.${item.status}`) }}</v-chip
+                    >
+                  </template>
+                  <template v-slot:item.type="{ item }">
+                    <span>{{ $t(`appBar.edit.type.${item.type}`) }}</span>
+                  </template>
+
+                  <template v-slot:item.action="{ item }">
+                    <!-- zoom to scenario feature -->
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on }">
+                        <v-icon
+                          v-on="on"
+                          :disabled="isUploadBusy"
+                          class="scenario-icon"
+                          @click="scenarioActionBtnHandler(item, 'zoom')"
+                        >
+                          zoom_out_map
+                        </v-icon>
+                      </template>
+                      <span>{{ $t(`map.tooltips.zoomToFeature`) }}</span>
+                    </v-tooltip>
+                    <!-- delete scenario feature -->
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on }">
+                        <v-icon
+                          v-show="isDeleteBtnVisible(item)"
+                          class="scenario-icon-delete"
+                          :disabled="isUploadBusy"
+                          v-on="on"
+                          @click="scenarioActionBtnHandler(item, 'delete')"
+                        >
+                          delete
+                        </v-icon>
+                      </template>
+                      <span>{{ $t(`map.tooltips.deleteFeature`) }}</span>
+                    </v-tooltip>
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on }">
+                        <v-icon
+                          v-show="isRestoreBtnVisible(item)"
+                          class="scenario-icon"
+                          :disabled="isUploadBusy"
+                          v-on="on"
+                          @click="scenarioActionBtnHandler(item, 'restore')"
+                        >
+                          restore_from_trash
+                        </v-icon>
+                      </template>
+                      <span>{{ $t(`map.tooltips.restoreFeature`) }}</span>
+                    </v-tooltip>
+                  </template>
+                </v-data-table>
+              </v-flex>
+            </v-expand-transition>
+          </div>
+          <!-- ==== < /DATA TABLE> ====-->
         </template>
       </v-card-text>
 
@@ -388,7 +564,7 @@
         <v-btn
           v-show="selectedLayer != null"
           class="white--text"
-          :loading="isUploadBusy"
+          v-if="!isUploadBusy"
           :disabled="
             isDeleteAllBusy ||
               (isUploadBtnEnabled === false &&
@@ -401,12 +577,22 @@
         >
           <v-icon left>cloud_upload</v-icon>{{ $t("appBar.edit.uploadBtn") }}
         </v-btn>
+
+        <v-btn
+          v-else
+          class="white--text"
+          @click.stop="stopUpload"
+          color="error"
+        >
+          <v-icon color="white">close</v-icon>Stop Upload
+        </v-btn>
+
         <v-btn
           v-show="selectedLayer != null"
           class="white--text"
           color="error"
           :loading="isDeleteAllBusy"
-          :disabled="scenarioDataTable.length === 0"
+          :disabled="scenarioDataTable.length === 0 || isUploadBusy"
           @click="deleteAll"
         >
           <v-icon left>delete</v-icon>{{ $t("appBar.edit.clearBtn") }}
@@ -414,6 +600,15 @@
       </v-card-actions>
     </v-card>
 
+    <!-- Scenario dialog -->
+    <scenario-dialog
+      :visible="showScenarioDialog"
+      :scenarioId="activeScenarioId"
+      @close="
+        showScenarioDialog = false;
+        activeScenarioId = null;
+      "
+    ></scenario-dialog>
     <!-- Confirm Delete all  -->
     <confirm ref="confirm"></confirm>
     <!-- Popup overlay  -->
@@ -520,29 +715,31 @@ import OlSelectController from "../../../controllers/OlSelectController";
 import editLayerHelper from "../../../controllers/OlEditLayerHelper";
 
 import OverlayPopup from "../../viewer/ol/controls/Overlay";
+import ScenarioDialog from "../../core/ScenarioDialog";
 import http from "axios";
 import VJsonschemaForm from "../../other/dynamicForms/index";
 import OpeningHours from "../../other/OpeningHours";
 
-import {
-  geojsonToFeature,
-  checkFeaturesEquality
-} from "../../../utils/MapUtils";
+import { geojsonToFeature } from "../../../utils/MapUtils";
 import { mapGetters, mapMutations } from "vuex";
 import { debounce } from "../../../utils/Helpers";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
+import { featuresToGeojson } from "../../../utils/MapUtils";
+import VectorSource from "ol/source/Vector";
+
+import { saveAs } from "file-saver";
 
 export default {
   components: {
     "overlay-popup": OverlayPopup,
     "opening-hours": OpeningHours,
+    "scenario-dialog": ScenarioDialog,
     VJsonschemaForm
   },
   mixins: [InteractionsToggle, Mapable, KeyShortcuts, Isochrones],
   data: () => ({
     interactionType: "edit-interaction",
-    selectedLayer: null,
     selectedFeatures: [],
     editableLayers: [],
     toggleSelection: undefined,
@@ -552,6 +749,7 @@ export default {
     loadingLayerInfo: false,
     isUploadBusy: false,
     isDeleteAllBusy: false,
+    isExportScenarioBusy: false,
     //Popup configuration
     popup: {
       title: "",
@@ -583,6 +781,7 @@ export default {
       missingFields: "error",
       fileCorrupted: "error"
     },
+
     fileInputValidationMessage: "fileValidOrNoFile",
     missingFieldsNames: "",
     //Edit form
@@ -605,23 +804,76 @@ export default {
     isTableLoading: false,
     //Opening Hours
     showOpeningHours: false,
-    isUploadBtnEnabled: true
+    isUploadBtnEnabled: true,
+    //Scenario Dialog
+    showScenarioDialog: false,
+    activeScenarioId: null,
+
+    editElVisible: true,
+    dataManageElVisible: true,
+    scenarioImpExpVisible: false,
+    selectEditVisible: true,
+    selectFeaturesVisible: true,
+    dataTableElVisible: true,
+    // Feature storage layers.
+    editLayerStorageLayer: [],
+    bldEntranceStorageLayer: []
   }),
   watch: {
     selectedLayer(newValue) {
-      const me = this;
-      //Read or Insert deleted features
-      me.clear();
-      editLayerHelper.selectedLayer = newValue;
-      me.getlayerFeatureTypes();
-      me.olEditCtrl.readOrInsertDeletedFeatures();
-      me.olEditCtrl.dataObject = this.dataObject;
-      if (newValue.get("name") === "buildings") {
-        this.isUploadBtnEnabled = false;
-      } else {
-        this.isUploadBtnEnabled = true;
+      this.updateSelectedLayer(newValue);
+    },
+    activeScenario() {
+      /** For edit layer */
+      //1- Store the features in the storage layer. ()
+      this.olEditCtrl.source.getFeatures().forEach(feature => {
+        if (!this.olEditCtrl.storageLayer.getSource().hasFeature(feature)) {
+          this.olEditCtrl.storageLayer.getSource().addFeature(feature);
+        }
+      });
+      //2- Clear edit layer
+      this.olEditCtrl.source.clear();
+      //3- Copy the active scenario features in source;
+      const editFeaturesInActiveScenario = this.olEditCtrl.storageLayer
+        .getSource()
+        .getFeatures()
+        .filter(f => f.get("scenario_id") === this.activeScenario);
+      this.olEditCtrl.source.addFeatures(editFeaturesInActiveScenario);
+
+      /** For building entrance layer */
+      //1- Store the features in the storage layer. ()
+      this.olEditCtrl.bldEntranceLayer
+        .getSource()
+        .getFeatures()
+        .forEach(feature => {
+          if (
+            !this.olEditCtrl.bldEntranceStorageLayer
+              .getSource()
+              .hasFeature(feature)
+          ) {
+            this.olEditCtrl.bldEntranceStorageLayer
+              .getSource()
+              .addFeature(feature);
+          }
+        });
+      //2- Clear bld entrance layer
+      this.olEditCtrl.bldEntranceLayer.getSource().clear();
+      //3- Copy active scenario features in bld entrance layer;
+      const bldEntranceFeaturesInActiveScenario = this.olEditCtrl.bldEntranceStorageLayer
+        .getSource()
+        .getFeatures()
+        .filter(f => f.get("scenario_id") === this.activeScenario);
+      this.olEditCtrl.bldEntranceLayer
+        .getSource()
+        .addFeatures(bldEntranceFeaturesInActiveScenario);
+
+      //**//
+      this.onEditSourceChange();
+      this.olEditCtrl.source.changed();
+      this.olEditCtrl.bldEntranceLayer.getSource().changed();
+      if (editLayerHelper.selectedLayer) {
+        this.updateSelectedLayer(editLayerHelper.selectedLayer);
       }
-      this.updateUploadBtnState();
     },
     toggleSelection: {
       handler(state) {
@@ -693,6 +945,41 @@ export default {
     },
 
     /**
+     * Use scenario id to export files.
+     */
+    exportScenario() {
+      this.isExportScenarioBusy = true;
+      http
+        .post(
+          "/api/export_scenario",
+          {
+            scenario_id: this.activeScenario
+          },
+          {
+            responseType: "blob"
+          }
+        )
+        .then(response => {
+          this.isExportScenarioBusy = false;
+          if (response.data) {
+            saveAs(
+              response.data,
+              `${this.scenarios[this.activeScenario].title}.zip`
+            );
+          }
+        })
+        .catch(error => {
+          console.log(error);
+          this.toggleSnackbar({
+            type: "error", //success or error
+            message: "cantExportScenario",
+            state: true,
+            timeout: 2500
+          });
+          this.isExportScenarioBusy = false;
+        });
+    },
+    /**
      * Parse user input file and transform features if valid.
      */
     readFile(file) {
@@ -703,15 +990,46 @@ export default {
           //- Check for size and other validations
           const result = reader.result;
           //- Parse geojson data
-          const features = geojsonToFeature(result, {
+          let features = geojsonToFeature(result, {
             dataProjection: "EPSG:4326",
             featureProjection: "EPSG:3857"
           });
           if (!features || features.length === 0) return;
+
+          if (
+            this.selectedLayer.get("name") === "buildings" &&
+            features[0].getGeometry().getType() === "Point"
+          ) {
+            features.forEach(feature => {
+              const point = feature.getGeometry().getCoordinates();
+              // Check if there is a building under the uploaded features.
+              const featuresAtCoord = this.olEditCtrl.source
+                .getFeaturesAtCoordinate(point)
+                .filter(f => f.get("layerName") === "buildings");
+              if (featuresAtCoord[0]) {
+                feature.set(
+                  "building_gid",
+                  featuresAtCoord[0].get("gid") ||
+                    featuresAtCoord[0].get("id") ||
+                    featuresAtCoord[0].getId()
+                );
+              }
+            });
+          }
           //- Check geometry type
+          //- For buildings point geometry is allowed in order to upload building entrance layer
+
+          let editGeometryTypes = this.selectedLayer.get("editGeometry");
+          if (
+            this.selectedLayer.get("name") === "buildings" &&
+            features[0].getGeometry().getType() === "Point" // User is upload building entrance features..
+          ) {
+            editGeometryTypes = [...editGeometryTypes];
+            editGeometryTypes.push("Point");
+          }
           if (
             ![features[0].getGeometry().getType()].some(r =>
-              this.selectedLayer.get("editGeometry").includes(r)
+              editGeometryTypes.includes(r)
             )
           ) {
             //Geojson not valid
@@ -720,77 +1038,43 @@ export default {
           }
 
           //- Check field names
-          const props = features[0].getProperties();
-          const propKeys = Object.keys(props);
-          const intersected = propKeys.filter(
-            value => !this.reqFields.includes(value)
+          if (
+            !this.selectedLayer.get("name") === "buildings" &&
+            !features[0].getGeometry().getType() === "Point"
+          ) {
+            const props = features[0].getProperties();
+            const propKeys = Object.keys(props);
+            const intersected = propKeys.filter(
+              value => !this.reqFields.includes(value)
+            );
+            if (
+              propKeys.length !==
+              intersected.length + this.reqFields.length
+            ) {
+              //Geojson not valid.
+              this.fileInputValidationMessage = this.fileInputValidationMessageEnum.MISSING_FIELDS;
+              const missing = this.reqFields.filter(
+                value => !propKeys.includes(value)
+              );
+              if (missing.length > 0) {
+                this.missingFieldsNames = missing.join(", ");
+              }
+              return;
+            } else {
+              this.fileInputValidationMessage = this.fileInputValidationMessageEnum.FILE_VALID_OR_NO_FILE;
+            }
+          }
+
+          //5- Import scenario features
+          this.importScenario(
+            this.userId,
+            this.activeScenario,
+            this.selectedLayer.get("name") === "buildings" &&
+              features[0].getGeometry().getType() === "Point"
+              ? "buildings_entrances"
+              : this.selectedLayer.get("name"),
+            features
           );
-          if (propKeys.length !== intersected.length + this.reqFields.length) {
-            //Geojson not valid.
-            this.fileInputValidationMessage = this.fileInputValidationMessageEnum.MISSING_FIELDS;
-            const missing = this.reqFields.filter(
-              value => !propKeys.includes(value)
-            );
-            if (missing.length > 0) {
-              this.missingFieldsNames = missing.join(", ");
-            }
-            return;
-          } else {
-            this.fileInputValidationMessage = this.fileInputValidationMessageEnum.FILE_VALID_OR_NO_FILE;
-          }
-          //- Transform features
-          features.forEach(feature => {
-            //Set current userid
-            feature.set("userid", this.userId);
-            //Clone geometry and change name to 'geom' (should be the same as geoserver layer geometry name)
-            feature.set("geom", feature.getGeometry().clone());
-            feature.setGeometryName("geom");
-            //Add an extra attribute to distinguish between local features from file upload and those that are laoded from the DB.
-            // feature.set("user_uploaded", true);
-            //Remove previously geometry object
-            feature.unset("geometry");
-          });
-
-          //Check if feature exist in the map
-          const featuresToAdd = [];
-          features.forEach(newFeature => {
-            const extent = newFeature.getGeometry().getExtent();
-            const featuresInExtent = this.olEditCtrl.source.getFeaturesInExtent(
-              extent
-            );
-            let isExistingFeature = false;
-            if (featuresInExtent.length > 0) {
-              featuresInExtent.forEach(existingFeature => {
-                if (
-                  checkFeaturesEquality(newFeature, existingFeature) === true
-                ) {
-                  isExistingFeature = true;
-                }
-              });
-            }
-            if (!isExistingFeature) {
-              featuresToAdd.push(newFeature);
-            }
-          });
-
-          if (featuresToAdd.length === 0 && features.length > 0) {
-            // All feature are already uploaded.
-            this.toggleSnackbar({
-              type: "error", //success or error
-              message: "featuresAlreadyUploaded",
-              state: true,
-              timeout: 4500
-            });
-            return;
-          }
-          //Add features to the edit layer to let the user interact
-          if (this.olEditCtrl.source) {
-            this.olEditCtrl.source.addFeatures(featuresToAdd);
-            this.map.getView().fit(this.olEditCtrl.source.getExtent());
-            this.fileInputFeaturesCache = [...featuresToAdd];
-          }
-          //5- Upload features to DB
-          this.uploadUserFeaturesToDB(featuresToAdd);
         };
         reader.onerror = () => {
           console.log(reader.error);
@@ -804,11 +1088,6 @@ export default {
     clearFile() {
       const editLayerSource = this.olEditCtrl.source;
       if (!editLayerSource) return;
-      // editLayerSource.getFeatures().forEach(feature => {
-      //   if (feature.get("user_uploaded")) {
-      //     editLayerSource.removeFeature(feature);
-      //   }
-      // });
       this.fileInputFeaturesCache = [];
       this.fileInputValidationMessage = this.fileInputValidationMessageEnum.FILE_VALID_OR_NO_FILE;
       this.file = null;
@@ -817,63 +1096,135 @@ export default {
     /**
      * Upload user uploaded features to DB using a wfs-t
      */
-    uploadUserFeaturesToDB(features) {
-      const formatGML = {
-        featureNS: "cite",
-        featureType: `${this.layerName}_modified`,
-        srsName: "urn:x-ogc:def:crs:EPSG:4326"
-      };
-      const featuresToUpload = [];
-      features.forEach(feature => {
-        feature.set("original_id", null);
-        featuresToUpload.push(feature.clone());
-      });
-      //Features should be reprojected in 4326 again
-      featuresToUpload.forEach(feature => {
-        feature.getGeometry().transform("EPSG:3857", "EPSG:4326");
-      });
-      const payload = wfsTransactionParser(
-        featuresToUpload,
-        null,
-        null,
-        formatGML
-      );
+    importScenario(user_id, scenario_id, layerName, features) {
+      const payload = featuresToGeojson(features, "EPSG:3857", "EPSG:4326");
       http
         .post(
-          "geoserver/cite/wfs",
-          new XMLSerializer().serializeToString(payload),
+          "api/import_scenario",
           {
-            headers: { "Content-Type": "text/xml" }
+            user_id,
+            scenario_id,
+            layerName,
+            payload: JSON.parse(payload)
+          },
+          {
+            headers: { "Content-Type": "application/json" }
           }
         )
         .then(response => {
-          const result = readTransactionResponse(response.data);
-          const totalInserted = result.transactionSummary.totalInserted;
-          const total = this.fileInputFeaturesCache.length;
+          console.log(response);
+          if (response.data) {
+            //Add features to the edit layer to let the user interact
+            const features = geojsonToFeature(response.data, {
+              dataProjection: "EPSG:4326",
+              featureProjection: "EPSG:3857"
+            });
+            let areAllUploaded = 1;
+            //- Transform features
+            const visibleFeatures = [];
 
-          this.fileInputFeaturesCache = [];
-          this.file = null;
-          if (totalInserted === total) {
-            this.fileInputValidationMessage = this.fileInputValidationMessageEnum.ALL_FEATURES_UPLOADED;
-          } else if (totalInserted > 0 && totalInserted < total) {
-            this.fileInputValidationMessage = this.fileInputValidationMessageEnum.NOT_ALL_UPLOADED;
+            //- Filter out building features that dont intersect.
+
+            features.forEach(feature => {
+              //- Fiilter out building features that dont intersect.
+              if (
+                this.selectedLayer.get("name") === "buildings" &&
+                feature.getGeometry().getType() === "Point"
+              ) {
+                const point = feature.getGeometry().getCoordinates();
+                // Check if there is a building under the uploaded features.
+                const featuresAtCoord = this.olEditCtrl.source
+                  .getFeaturesAtCoordinate(point)
+                  .filter(f => f.get("layerName") === "buildings");
+                if (featuresAtCoord[0]) {
+                  feature.set(
+                    "building_gid",
+                    featuresAtCoord[0].get("gid") ||
+                      featuresAtCoord[0].get("id") ||
+                      featuresAtCoord[0].getId()
+                  );
+                }
+              }
+
+              if (layerName !== "pois") {
+                feature.set("status", null);
+              }
+              feature.set("scenario_id", this.activeScenario);
+              //Clone geometry and change name to 'geom' (should be the same as geoserver layer geometry name)
+              feature.set("geom", feature.getGeometry().clone());
+              feature.setGeometryName("geom");
+              //Add an extra attribute to distinguish between local features from file upload and those that are laoded from the DB.
+              // feature.set("user_uploaded", true);
+              //Remove previously geometry object
+              feature.unset("geometry");
+
+              if (feature.get("upload_status") !== "successful") {
+                areAllUploaded = 0;
+              }
+
+              if (feature.get("gid")) {
+                feature.setId(feature.get("gid"));
+              }
+
+              // Manage delete features.
+              if (
+                !["deleted", "old_modified"].includes(
+                  feature.get("edit_type")
+                ) &&
+                feature.get("upload_status") === "successful"
+              ) {
+                visibleFeatures.push(feature);
+              }
+              if (
+                feature.get("edit_type") === "deleted" &&
+                feature.get("upload_status") === "successful"
+              ) {
+                if (
+                  layerName !== "buildings_entrances" &&
+                  feature.get("edit_type") === "deleted"
+                ) {
+                  // Push to deleted
+                  const fid =
+                    feature.getProperties().original_id ||
+                    feature.getProperties().id ||
+                    feature.getProperties().gid;
+                  if (fid) {
+                    editLayerHelper.featuresIDsToDelete.push(fid.toString());
+                  }
+                  editLayerHelper.deletedFeatures.push(feature);
+                }
+                if (!feature.getProperties().hasOwnProperty("original_id")) {
+                  feature.set("original_id", null);
+                }
+              }
+            });
+
+            if (areAllUploaded) {
+              this.fileInputValidationMessage = this.fileInputValidationMessageEnum.ALL_FEATURES_UPLOADED;
+            } else {
+              this.fileInputValidationMessage = this.fileInputValidationMessageEnum.NOT_ALL_UPLOADED;
+            }
+            const tempSource = new VectorSource();
+            tempSource.addFeatures(visibleFeatures);
+            const featuresExtent = tempSource.getExtent();
+            if (layerName === "buildings_entrances") {
+              this.olEditCtrl.bldEntranceLayer
+                .getSource()
+                .addFeatures(visibleFeatures);
+              this.olEditCtrl.bldEntranceLayer.getSource().changed();
+              this.map.getView().fit(featuresExtent);
+            } else {
+              this.olEditCtrl.source.addFeatures(visibleFeatures);
+              this.map.getView().fit(featuresExtent);
+              this.fileInputFeaturesCache = [...visibleFeatures];
+              this.olEditCtrl.source.changed();
+            }
           } else {
             this.fileInputValidationMessage = this.fileInputValidationMessageEnum.ERROR_HAPPENED;
-          }
-          const FIDs = result.insertIds;
-          if (FIDs != undefined && FIDs[0] != "none") {
-            let i;
-            for (i = 0; i < FIDs.length; i++) {
-              if (features[i]) {
-                features[i].set("gid", FIDs[i].split(".")[1]);
-                features[i].setId(FIDs[i].split(".")[1]);
-              }
-            }
           }
           setTimeout(() => {
             this.fileInputValidationMessage = this.fileInputValidationMessageEnum.FILE_VALID_OR_NO_FILE;
           }, 3000);
-          this.olEditCtrl.source.changed();
         });
     },
     /**
@@ -1016,7 +1367,8 @@ export default {
         editLayerHelper.filterResults(
           response,
           me.olEditCtrl.getLayerSource(),
-          me.olEditCtrl.bldEntranceLayer
+          me.olEditCtrl.bldEntranceLayer,
+          me.olEditCtrl.storageLayer.getSource()
         );
       }
     },
@@ -1025,13 +1377,12 @@ export default {
      * Open modify attribute popup
      */
     openModifyAttributePopup(evt) {
-      const features = this.olEditCtrl.source.getFeaturesAtCoordinate(
+      const feature = this.olEditCtrl.source.getClosestFeatureToCoordinate(
         evt.coordinate
       );
       this.olEditCtrl.featuresToCommit = [];
       this.olEditCtrl.highlightSource.clear();
-      if (features.length > 0) {
-        const feature = features[0];
+      if (feature) {
         const props = feature.getProperties();
         for (const attr in this.dataObject) {
           this.dataObject[attr] = attr in props ? props[attr] : null;
@@ -1131,10 +1482,14 @@ export default {
           coordinate,
           candidate => {
             if (
-              ((candidate.get("gid") || candidate.getId()) &&
+              ((candidate.get("gid") ||
+                candidate.get("id") ||
+                candidate.getId()) &&
                 this.tempBldEntranceFeature &&
                 this.tempBldEntranceFeature.get("building_gid") ===
                   candidate.get("gid")) ||
+              this.tempBldEntranceFeature.get("building_gid") ===
+                candidate.get("id") ||
               this.tempBldEntranceFeature.get("building_gid") ===
                 candidate.getId()
             ) {
@@ -1216,8 +1571,10 @@ export default {
         bldEntranceFeature = new Feature({
           geometry: new Point(bldEntranceCoordinate),
           building_gid:
-            buildingFeatureAtCoord.get("gid") || buildingFeatureAtCoord.getId(),
-          userid: this.userId
+            buildingFeatureAtCoord.get("gid") ||
+            buildingFeatureAtCoord.get("id") ||
+            buildingFeatureAtCoord.getId(),
+          scenario_id: this.activeScenario
         });
         this.olEditCtrl.bldEntranceLayer
           .getSource()
@@ -1412,6 +1769,24 @@ export default {
       }
     },
     /**
+     * Method called to update data when layer or scenario is changed.
+     */
+    updateSelectedLayer(newValue) {
+      const me = this;
+      //Read or Insert deleted features
+      me.clear();
+      editLayerHelper.selectedLayer = newValue;
+      me.getlayerFeatureTypes();
+      me.olEditCtrl.readOrInsertDeletedFeatures();
+      me.olEditCtrl.dataObject = this.dataObject;
+      if (newValue.get("name") === "buildings") {
+        this.isUploadBtnEnabled = false;
+      } else {
+        this.isUploadBtnEnabled = true;
+      }
+      this.updateUploadBtnState();
+    },
+    /**
      * Clears all the selection
      */
     clearSelection() {
@@ -1424,9 +1799,6 @@ export default {
      */
     uploadFeatures() {
       //If there are file input feature commit those in db as well.
-      if (this.fileInputFeaturesCache.length > 0) {
-        this.uploadUserFeaturesToDB(this.fileInputFeaturesCache);
-      }
       this.isUploadBusy = true;
       this.olEditCtrl.uploadFeatures(state => {
         this.isUploadBusy = false;
@@ -1447,7 +1819,7 @@ export default {
       if (!fid) return;
       let feature;
 
-      if (item.type === "Deleted") {
+      if (item.type === "deleted") {
         feature = editLayerHelper.deletedFeatures.filter(
           f => f.getId() === fid
         );
@@ -1495,11 +1867,15 @@ export default {
         );
         this.olEditCtrl.source.addFeature(clonedFeature);
         //Commit restore changes. ("commitDelete" just updates array of deleted features ids in the database)
-        editLayerHelper.commitDelete(
-          "update",
-          this.userId,
-          editLayerHelper.featuresIDsToDelete
-        );
+        editLayerHelper.commitDelete("update_deleted_features");
+      }
+    },
+    /**
+     * Stop Upload button
+     */
+    stopUpload() {
+      if (editLayerHelper.cancelReq instanceof Function) {
+        editLayerHelper.cancelReq("cancelled");
       }
     },
     /**
@@ -1542,7 +1918,8 @@ export default {
             http
               .post("api/deleteAllScenarioData", {
                 user_id: userId,
-                layer_names: layerNames
+                layer_names: layerNames,
+                scenario_id: this.activeScenario
               })
               .then(response => {
                 this.isDeleteAllBusy = false;
@@ -1626,6 +2003,9 @@ export default {
       if (this.olEditCtrl.featuresToCommit.length > 0) {
         this.olEditCtrl.featuresToCommit.forEach(feature => {
           this.olEditCtrl.source.removeFeature(feature);
+          if (this.olEditCtrl.storageLayer.getSource().hasFeature(feature)) {
+            this.olEditCtrl.storageLayer.getSource().removeFeature(feature);
+          }
         });
       }
       this.olEditCtrl.closePopup();
@@ -1647,30 +2027,74 @@ export default {
 
       editLayerFeatures.forEach(f => {
         const prop = f.getProperties();
-        if (
-          prop.hasOwnProperty("original_id") ||
-          (prop.hasOwnProperty("deletedId") && prop.status !== 1)
-        ) {
-          //Assign layerName to feature property if doesn't exist
+        if (this.activeScenario === f.get("scenario_id")) {
+          if (
+            prop.hasOwnProperty("original_id") ||
+            (prop.hasOwnProperty("deletedId") && prop.status !== 1)
+          ) {
+            //Assign layerName to feature property if doesn't exist
+            if (!prop.layerName) {
+              f.set("layerName", this.layerName.split(":")[1]);
+            }
+            const fid = f.getId();
+            const layerName = f.get("layerName");
+            const isDeleted = false;
+            let status = prop.status ? "Uploaded" : "NotUploaded";
+            const originalId = f.get("original_id");
+            let type = "";
+            if (
+              prop.hasOwnProperty("original_id") &&
+              f.get("original_id") === null
+            ) {
+              type = "New";
+            } else if (prop.hasOwnProperty("deletedId")) {
+              type = "Restored"; //Not uploaded (if feature is uploaded it will not be visible in the list)
+            } else {
+              type = "Modified";
+            }
+
+            const obj = {
+              fid,
+              layerName,
+              isDeleted,
+              originalId,
+              status,
+              type
+            };
+            scenarioDataTable.push(obj);
+          }
+        }
+      });
+
+      deletedFeatures.forEach(f => {
+        if (this.activeScenario === f.get("scenario_id")) {
+          const prop = f.getProperties();
+          const fid = f.getId() || prop.id;
+          if (!f.getId()) {
+            f.setId(prop.id);
+          }
           if (!prop.layerName) {
             f.set("layerName", this.layerName.split(":")[1]);
           }
-          const fid = f.getId();
           const layerName = f.get("layerName");
-          const isDeleted = false;
-          const status = prop.status ? "Uploaded" : "NotUploaded";
-          const originalId = f.get("original_id");
-          let type = "";
+          const isDeleted = fid;
+          let status = prop.status === 1 ? "Uploaded" : "NotUploaded";
+          if (f.get("layerName") === "pois") {
+            status = "Uploaded";
+          }
+          const type = "deleted";
+          let source = "";
           if (
             prop.hasOwnProperty("original_id") &&
             f.get("original_id") === null
           ) {
-            type = "New";
-          } else if (prop.hasOwnProperty("deletedId")) {
-            type = "Restored"; //Not uploaded (if feature is uploaded it will not be visible in the list)
+            //Original deleted Features.
+            source = "drawn";
           } else {
-            type = "Modified";
+            //Drawn Delete Feature
+            source = "original";
           }
+          const originalId = f.get("original_id");
 
           const obj = {
             fid,
@@ -1678,49 +2102,11 @@ export default {
             isDeleted,
             originalId,
             status,
-            type
+            type,
+            source
           };
           scenarioDataTable.push(obj);
         }
-      });
-
-      deletedFeatures.forEach(f => {
-        const prop = f.getProperties();
-        const fid = f.getId() || prop.id;
-        if (!f.getId()) {
-          f.setId(prop.id);
-        }
-        if (!prop.layerName) {
-          f.set("layerName", this.layerName.split(":")[1]);
-        }
-        const layerName = f.get("layerName");
-        const isDeleted = fid;
-        const status = prop.status === 1 ? "Uploaded" : "NotUploaded";
-        const type = "Deleted";
-        let source = "";
-
-        if (
-          prop.hasOwnProperty("original_id") &&
-          f.get("original_id") === null
-        ) {
-          //Original deleted Features.
-          source = "drawn";
-        } else {
-          //Drawn Delete Feature
-          source = "original";
-        }
-        const originalId = f.get("original_id");
-
-        const obj = {
-          fid,
-          layerName,
-          isDeleted,
-          originalId,
-          status,
-          type,
-          source
-        };
-        scenarioDataTable.push(obj);
       });
       this.scenarioDataTable = scenarioDataTable;
       this.isTableLoading = false;
@@ -1737,11 +2123,8 @@ export default {
             .getFeaturesInExtent(extent);
           let entrances = 0;
           entrancesInExtent.forEach(entrance => {
-            const hasEntrance = f
-              .getGeometry()
-              .intersectsCoordinate(entrance.getGeometry().getCoordinates());
-
-            if (hasEntrance) {
+            const buildingId = f.get("gid") || f.get("id") || f.getId();
+            if (entrance.get("building_gid") === buildingId) {
               entrances += 1;
             }
           });
@@ -1810,6 +2193,16 @@ export default {
         }
       ];
     },
+    scenarioArray() {
+      const scenarioArray = [];
+      Object.keys(this.scenarios).forEach(key => {
+        scenarioArray.push({
+          display: this.scenarios[key].title,
+          value: parseInt(key)
+        });
+      });
+      return scenarioArray;
+    },
     layerName() {
       return this.selectedLayer.getSource().getParams().LAYERS;
     },
@@ -1818,7 +2211,7 @@ export default {
       const layerFieldsKeys = Object.keys(layerSchema.properties);
       return layerFieldsKeys.filter(
         el =>
-          !["original_id", "id", "gid", "userid"].includes(el) &&
+          !["original_id", "id", "gid", "scenario_id"].includes(el) &&
           layerSchema.required.includes(el)
       );
     },
@@ -1858,7 +2251,12 @@ export default {
       contextmenu: "contextmenu"
     }),
     ...mapFields("isochrones", {
-      scenarioDataTable: "scenarioDataTable"
+      scenarioDataTable: "scenarioDataTable",
+      scenarios: "scenarios",
+      activeScenario: "activeScenario"
+    }),
+    ...mapFields("map", {
+      selectedLayer: "selectedEditLayer"
     })
   },
   created() {
@@ -1884,5 +2282,14 @@ export default {
 .scenario-icon-delete:hover {
   cursor: pointer;
   color: red;
+}
+
+.create-scenario-text {
+  display: block;
+  width: 150px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

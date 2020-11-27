@@ -105,7 +105,7 @@
       :color="activeColor.primary"
       :visible="showHeatmapOptionsDialog"
       :selectedAmenity="selectedAmenity"
-      @updated="updateHeatmapLayerViewParams"
+      @updated="updateHeatmap"
       @close="showHeatmapOptionsDialog = false"
     />
   </div>
@@ -118,6 +118,7 @@ import { mapGetters, mapActions } from "vuex";
 import { mapFields } from "vuex-map-fields";
 import { mapMutations } from "vuex";
 import HeatmapOptions from "./HeatmapOptions";
+import { EventBus } from "../../../EventBus";
 
 export default {
   mixins: [Mapable],
@@ -131,7 +132,6 @@ export default {
       timeSelectMenu: false,
       showTimeFilters: false,
       open: [],
-      heatmapLayers: [],
       poisLayer: null,
       showHeatmapOptionsDialog: false,
       selectedAmenity: {}
@@ -145,6 +145,9 @@ export default {
     ...mapActions("isochrones", {
       countStudyAreaPois: "countStudyAreaPois"
     }),
+    updateHeatmap() {
+      EventBus.$emit("updateHeatmapPois");
+    },
     getPoisIconUrl(item) {
       const images = require.context(
         "../../../assets/img/pois/",
@@ -157,53 +160,13 @@ export default {
     onMapBound() {
       const me = this;
       const map = me.map;
-      const heatmapLayerNames = ["walkability", "walkabilityPopulation"];
       const poisLayerName = "pois";
-
       const allLayers = getAllChildLayers(map);
       allLayers.forEach(layer => {
         const layerName = layer.get("name");
-        if (heatmapLayerNames.includes(layerName)) {
-          me.heatmapLayers.push(layer);
-        }
         if (layerName === poisLayerName) {
           me.poisLayer = layer;
         }
-      });
-    },
-    updateHeatmapLayerViewParams() {
-      const me = this;
-      const selectedPois = me.selectedPois;
-      const heatmapViewParams = selectedPois.reduce((filtered, item) => {
-        const { value, weight, sensitivity } = item;
-        if (value != "undefined" && weight != undefined) {
-          filtered[`${value}`] = { sensitivity, weight };
-        }
-        return filtered;
-      }, {});
-
-      me.heatmapLayers.forEach(layer => {
-        const viewparams = JSON.stringify(heatmapViewParams);
-        layer.getSource().updateParams({
-          viewparams: `amenities:'${btoa(viewparams)}';userid:${me.userId};`
-        });
-        if (layer.getVisible() === true && heatmapViewParams.length === 0) {
-          this.toggleSnackbar({
-            type: "error",
-            message: "selectAmenities",
-            timeout: 60000,
-            state: true
-          });
-        } else {
-          this.toggleSnackbar({
-            type: "error",
-            message: "selectAmenities",
-            state: false,
-            timeout: 0
-          });
-        }
-
-        layer.getSource().refresh();
       });
     },
     updatePoisLayerViewParams(selectedPois) {
@@ -219,7 +182,9 @@ export default {
 
         let params = `amenities:'${btoa(
           viewParams.toString()
-        )}';routing_profile:'${me.activeRoutingProfile}';userid:${me.userId};`;
+        )}';routing_profile:'${me.activeRoutingProfile}';scenario_id:${
+          me.scenarioId
+        };modus:'${me.options.calculationModes.active}';`;
 
         if (this.timeBasedCalculations === "yes") {
           params += `d:${me.getSelectedDay};h:${me.getSelectedHour};m:${me.getSelectedMinutes};`;
@@ -289,6 +254,12 @@ export default {
     })
   },
   watch: {
+    "options.calculationModes.active": function() {
+      this.updatePoisLayerViewParams(this.selectedPois);
+    },
+    scenarioId() {
+      this.updatePoisLayerViewParams(this.selectedPois);
+    },
     selectedPois: function() {
       const me = this;
       if (me.osmMode === true) return;
@@ -296,7 +267,6 @@ export default {
         me.poisLayer.setVisible(true);
       }
       me.updateSelectedPoisForThematicData(me.selectedPois);
-      me.updateHeatmapLayerViewParams();
       me.updatePoisLayerViewParams(me.selectedPois);
       me.countStudyAreaPois();
     },
@@ -322,6 +292,7 @@ export default {
     }),
     ...mapGetters("isochrones", {
       options: "options",
+      scenarioId: "activeScenario",
       activeRoutingProfile: "activeRoutingProfile"
     }),
     ...mapGetters("user", { userId: "userId" }),
@@ -347,7 +318,6 @@ export default {
     }
   },
   created() {
-    this.init(this.$appConfig.componentData.pois);
     this.toggleRoutingFilter(this.activeRoutingProfile, null);
   }
 };

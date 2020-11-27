@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS thematic_data_sum;
-CREATE OR REPLACE FUNCTION public.thematic_data_sum(input_objectid integer, userid_input integer, modus integer)
+CREATE OR REPLACE FUNCTION public.thematic_data_sum(input_objectid integer, scenario_id_input integer, modus integer)
  RETURNS TABLE(gid_isochrone integer, pois_isochrones jsonb)
  LANGUAGE plpgsql
 AS $function$
@@ -9,13 +9,15 @@ DECLARE
 	excluded_pois_id integer[];
 BEGIN 
 
-
 IF modus IN(2,4) THEN
-	excluded_pois_id = ids_modified_features(userid_input,'pois');
+	excluded_pois_id = ids_modified_features(scenario_id_input,'pois');
 ELSE 
 	excluded_pois_id = ARRAY[]::integer[];
-	userid_input = 1;
 END IF;
+
+IF modus IN(1,3) THEN 
+	scenario_id_input = 0;
+END IF; 
 
 WITH yy AS (
 	WITH xx AS (
@@ -26,8 +28,8 @@ WITH yy AS (
 	     	FROM population_userinput p, isochrones i
 	     	WHERE objectid = input_objectid 
 	     	AND st_intersects(i.geom,p.geom)
-	     	AND (p.userid = userid_input OR p.userid IS NULL) 
-	     	AND p.building_gid NOT IN (SELECT UNNEST(deleted_feature_ids) FROM user_data u WHERE u.userid = userid_input)	
+	     	AND (p.scenario_id = scenario_id_input OR p.scenario_id IS NULL) 
+	     	AND p.building_gid NOT IN (SELECT UNNEST(deleted_buildings) FROM scenarios WHERE scenario_id = scenario_id_input)	
 	     ) 
 	     a
 	     GROUP BY a.gid
@@ -39,7 +41,7 @@ WITH yy AS (
 	WHERE st_intersects(i.geom,p.geom) 
 	AND amenity IN (SELECT UNNEST(pois_one_entrance))
 	AND objectid=input_objectid
-	AND (p.userid = userid_input OR p.userid IS NULL)
+	AND (p.scenario_id = scenario_id_input OR p.scenario_id IS NULL)
 	AND p.gid NOT IN (SELECT UNNEST(excluded_pois_id))
 	GROUP BY i.gid,amenity
 	UNION ALL
@@ -50,7 +52,7 @@ WITH yy AS (
 		WHERE st_intersects(i.geom,p.geom)
 		AND amenity IN (SELECT UNNEST(pois_more_entrances))
 		AND i.objectid = input_objectid
-		AND (p.userid = userid_input OR p.userid IS NULL)
+		AND (p.scenario_id = scenario_id_input OR p.scenario_id IS NULL)
 		AND p.gid NOT IN (SELECT UNNEST(excluded_pois_id))
 		GROUP BY i.gid,amenity,p.name) p
 	GROUP BY gid,amenity

@@ -55,7 +55,7 @@
               <v-layout row wrap>
                 <v-layout align-start justify-start>
                   <v-card-text class="pa-0 ma-0 ml-3">
-                    <v-chip small class="mr-2 my-1">
+                    <v-chip small class="mr-1 my-1">
                       <v-avatar left>
                         <v-icon small class="text-xs-center">{{
                           getRouteProfileIcon(calculation.routing_profile)
@@ -68,6 +68,21 @@
                             )
                           : calculation.routing_profile
                       }}
+                    </v-chip>
+                    <v-chip
+                      v-if="calculation.scenario_id"
+                      small
+                      class="mr-0 my-1"
+                    >
+                      <v-tooltip top>
+                        <template v-slot:activator="{ on }">
+                          <span v-on="on" class="chip-label-custom">
+                            {{ scenarios[calculation.scenario_id].title }}
+                          </span> </template
+                        ><span>{{
+                          scenarios[calculation.scenario_id].title
+                        }}</span></v-tooltip
+                      >
                     </v-chip>
                   </v-card-text>
                 </v-layout>
@@ -85,7 +100,7 @@
                             ? '#30C2FF'
                             : '#676767'
                         "
-                        class="result-icons mr-2"
+                        class="result-icons mr-1"
                         >fas fa-table</v-icon
                       >
                     </template>
@@ -103,7 +118,7 @@
                         v-if="calculation.calculationType === 'single'"
                         v-on="on"
                         @click="showAdditionalLayerDialog(calculation)"
-                        class="result-icons mr-2"
+                        class="result-icons mr-1"
                         >fas fa-layer-group</v-icon
                       >
                     </template>
@@ -116,7 +131,7 @@
                         @click="showHideCalculation(calculation)"
                         small
                         v-on="on"
-                        class="result-icons mr-2"
+                        class="result-icons mr-1"
                         v-html="
                           calculation.isVisible
                             ? 'fas fa-eye-slash'
@@ -483,6 +498,7 @@ export default {
   computed: {
     ...mapGetters("isochrones", {
       calculations: "calculations",
+      scenarios: "scenarios",
       routeIcons: "routeIcons",
       isochroneLayer: "isochroneLayer",
       isochroneRoadNetworkLayer: "isochroneRoadNetworkLayer",
@@ -579,6 +595,15 @@ export default {
   width: 265px;
 
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip-label-custom {
+  display: block;
+  width: 66px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
   overflow: hidden;
   text-overflow: ellipsis;
 }
