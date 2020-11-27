@@ -14,5 +14,8 @@ ALTER TABLE footpaths_union ADD COLUMN IF NOT EXISTS walkability numeric;
 ------------------------
 
 --sidewalk quality
+UPDATE footpaths_union f SET sidewalk = 'yes' where sidewalk is null and highway in ('footway', 'path', 'cycleway', 'living_street', 'steps', 'pedestrian');
+UPDATE footpaths_union f SET sidewalk = 'no' where sidewalk is null;
 
+UPDATE footpaths_union f SET sidewalk_quality = select_weight_walkability('sidewalk',sidewalk) + select_weight_walkability('smoothness',smoothness);
 
