@@ -194,6 +194,67 @@ DATA_REFINEMENT_VARIABLES:
         discard: ['%haupt-schule%', '%mittel-schule%', '%real-schule%', '%förder-schule%', '%gesamt-schule%']
       kindergarten: ['kindergarten']
       
+    ##----------------------------------------------------------------------------------------------------------##
+    ##-----------------------Walkability------------------------------------------------------------------------##
+    ##----------------------------------------------------------------------------------------------------------##
+  walkability:
+    sidewalk:
+      yes: '1'
+      no: '0'
+    width: 
+      higher_3: '1'
+      less_than_3: '0.5'
+      less_than_1.5: '0.2'
+    smoothness:
+      excellent: '1' 
+      good: '0.9'
+      intermediate: '0.5'
+      bad: '0.2'
+      very bad: '0.1'
+      horrible: '0.1'
+      very_horrible: '0.1'
+      impassable: '0'  
+    surface: 
+      paved: '1'
+      asphalt: '1'
+      concrete: '1'
+      paving_stones: '1'
+      sett: '0.8'
+      unhewn_cobblestone: '0.8'
+      cobblestone: '0.8'
+      unpaved: '0.5'
+      compacted: '0.5'
+      fine_gravel: '0.3'
+      gravel: '0.3'
+      pebblestone: '0.3'
+      ground: '0.3'
+      dirt: '0.3'
+      earth: '0.3'
+      grass: '0.2'
+      grass_paver: '0.2'
+      mud: '0.2'
+      sand: '0.2'
+    wheelchair: 
+      yes: '1.0' 
+      limited: '0.5' 
+      no: '0'
+    lanes: 
+      0-2: '1'
+      3-4: '0.5'
+      more_than_4: '0'
+    one_way:
+      yes: '1'
+      no: '0'
+    maxspeed:
+      less_than_40: '1'
+      40-60: '0.5'
+      higher_60: '0'
+    parking:
+      lane: '1'
+      no: '0'
+    lit_classified:
+      yes: '1'
+      no: '0'
 
 
 
