@@ -1,5 +1,7 @@
 <script>
 import { HorizontalBar } from "vue-chartjs";
+import { EventBus } from "../../EventBus";
+
 import {
   LinearColorInterpolator,
   ColorObj,
@@ -10,8 +12,6 @@ import {
 export default {
   extends: HorizontalBar,
   props: {
-    chartdata: { type: Object },
-    options: { type: Object },
     feature: { type: Object }
   },
   data() {
@@ -19,36 +19,96 @@ export default {
       exludedProps: ["id", "geom", "geometry", "layerName"],
       colors: {
         very_bad: {
-          lower: "#b64a4c",
-          upper: "#ff8688"
+          lower: "#c10707",
+          upper: "#be987f"
         },
         bad: {
-          lower: "#ff8688",
-          upper: "#ffe70e"
+          lower: "#ed8137",
+          upper: "#ed8137"
         },
         medium: {
-          lower: "#ff8688",
-          upper: "#ffe70e"
+          lower: "#fec107",
+          upper: "#9fbe36"
         },
         good: {
-          lower: "#ffe70e",
-          upper: "#45b64f"
+          lower: "#a0bf3c",
+          upper: "#61953d"
         },
         very_good: {
-          lower: "#45b64f",
-          upper: "#3f8437"
+          lower: "#659843",
+          upper: "#385723"
         },
         default: {
           lower: "#000000",
           upper: "#000000"
         }
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: {
+          display: false
+        },
+        scales: {
+          yAxes: [
+            {
+              ticks: {
+                beginAtZero: true
+              }
+            }
+          ],
+          xAxes: [
+            {
+              ticks: {
+                beginAtZero: true
+              },
+              scaleLabel: {
+                display: true,
+                labelString:
+                  "(" + this.$t("charts.indicators.scale_label_index") + ")"
+              }
+            }
+          ]
+        }
       }
     };
   },
   mounted() {
-    this.renderBarChart();
+    this.init();
+    EventBus.$on("ol-interaction-activated", interaction => {
+      if (interaction === "languageChange") {
+        this.init();
+      }
+    });
   },
   methods: {
+    init() {
+      // this.addPlugin([
+      //   {
+      //     id: "bold-last-label",
+      //     beforeDraw: this.boldLabel
+      //   }
+      // ]);
+      this.renderBarChart();
+    },
+
+    // boldLabel: function({ chart }) {
+    //   chart.boxes
+    //     .find(box => box.id === "x-axis-0")
+    //     ._ticks.find(tick => tick.label === "Blue").major = true;
+    // },
+    // formatLabels: function(chart) {
+    //   chart.data.labels.forEach(function(value, index, array) {
+    //     var a = [];
+    //     a.push(value.slice(0, 5));
+    //     var i = 1;
+    //     while (value.length > i * 5) {
+    //       a.push(value.slice(i * 5, (i + 1) * 5));
+    //       i++;
+    //     }
+    //     array[index] = a;
+    //   });
+    // },
     renderBarChart: function() {
       this.renderChart(
         {
@@ -60,51 +120,14 @@ export default {
             }
           ]
         },
-        {
-          options: {
-            tooltips: {
-              enabled: false
-            },
-            legend: {
-              position: "bottom",
-              display: true,
-              labels: { usePointStyle: true }
-            },
-            scales: {
-              yAxes: [
-                {
-                  gridLines: {
-                    offsetGridLines: true
-                  },
-                  ticks: {
-                    beginAtZero: true,
-                    min: 0
-                  },
-                  barPercentage: 1,
-                  categoryPercentage: 1
-                }
-              ],
-              xAxes: [
-                {
-                  gridLines: {
-                    offsetGridLines: true
-                  },
-                  ticks: {
-                    beginAtZero: true,
-                    min: 0
-                  }
-                }
-              ]
-            }
-          }
-        }
+        this.options
       );
     }
   },
   watch: {
     feature: {
       handler: function() {
-        this.renderBarChart();
+        this.init();
       },
       deep: true
     }

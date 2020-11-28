@@ -55,7 +55,7 @@
         >
 
         <div
-          style="height:190px;"
+          style="max-height:800px;overflow:hidden;"
           v-if="getInfoResult[popup.currentLayerIndex]"
         >
           <vue-scroll>
@@ -78,6 +78,7 @@
             </v-simple-table>
             <div v-else>
               <indicators-chart
+                class="mr-4"
                 :feature="getInfoResult[popup.currentLayerIndex]"
               ></indicators-chart>
             </div>

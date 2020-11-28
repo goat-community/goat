@@ -790,7 +790,9 @@
       "vegetation": "Vegetation",
       "walking_environment": "Walking environment",
       "comfort": "Comfort",
-      "sum_total": "Sum Total"
+      "sum_total": "Sum Total",
+      "scale_label_indicators": "Indicators",
+      "scale_label_index": "Index"
     }
   }
 }
