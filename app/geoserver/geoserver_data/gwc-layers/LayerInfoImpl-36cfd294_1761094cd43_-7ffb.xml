@@ -1,5 +1,5 @@
 <GeoServerTileLayer>
-  <id>LayerInfoImpl--20319aa1:17610606722:-7ffe</id>
+  <id>LayerInfoImpl-36cfd294:1761094cd43:-7ffb</id>
   <enabled>true</enabled>
   <inMemoryCached>true</inMemoryCached>
   <name>cite:indicators</name>
@@ -25,7 +25,9 @@
     <styleParameterFilter>
       <key>STYLES</key>
       <defaultValue></defaultValue>
-      <availableStyles class="sorted-set"/>
+      <availableStyles class="sorted-set">
+        <string>indicators_style</string>
+      </availableStyles>
       <defaultStyle>indicators_style</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>
