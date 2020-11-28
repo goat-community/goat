@@ -1,7 +1,6 @@
 --THIS FILE NEEDS TO BE EXECUTED TO COMPUTE THE WALKBILITY INDICES
 -- Load walkability table 
 DROP TABLE IF EXISTS walkability;
-
 CREATE TABLE walkability(
 	category varchar,
 	criteria varchar,
@@ -85,6 +84,36 @@ UPDATE footpaths_union f SET traffic_protection =
 	+ select_weight_walkability('parking',parking)
 )
 *(100/0.14);
+--- Green index indicator
+
+--- Attractiveness indicators
+--Landuse
+DROP TABLE IF EXISTS buffer_test;
+CREATE TEMP TABLE buffer_test (id serial, geom geography);
+INSERT INTO buffer_test
+SELECT id, st_buffer(geom::geography, 8) AS geom FROM footpaths_union;
+
+DROP TABLE IF EXISTS lu_score;
+CREATE TABLE lu_score (id serial, score numeric);
+INSERT INTO lu_score
+WITH landuses AS (SELECT * FROM landuse_osm lo WHERE landuse = ANY (SELECT sring_condition FROM walkability WHERE attribute = 'land_use')),
+unique_landuse AS (SELECT DISTINCT b.id, l.landuse AS landuse
+	FROM buffer_test b
+	LEFT JOIN landuses l ON st_intersects(b.geom::geometry, l.geom)),
+lu_link AS (SELECT id, count(id) FROM unique_landuse GROUP BY id),
+max_landuses AS (SELECT max(count) AS max_lu FROM lu_link)
+SELECT id, count::numeric/(SELECT* FROM max_landuses)::numeric AS score FROM lu_link;
+
+ALTER TABLE footpaths_union ADD COLUMN landuse_score NUMERIC;
+UPDATE footpaths_union SET landuse_score = score
+FROM lu_score
+WHERE lu_score.id = footpaths_union.id;
+
+UPDATE footpaths_union f 
+SET walking_environment = landuse_score*0.14
+ALTER TABLE footpaths_union DROP COLUMN IF EXISTS landuse_score;
+-- POIS along the route
+-- Pop density
 --- Comfort indicators
 -- Benches
 
