@@ -51,6 +51,7 @@ const state = {
   isochroneLayer: null,
   selectionLayer: null,
   isochroneRoadNetworkLayer: null,
+  ppfLayer: null,
   isThematicDataVisible: false,
   selectedThematicData: null,
   studyAreaLayer: null,
@@ -621,6 +622,9 @@ const mutations = {
   },
   ADD_ISOCHRONE_ROAD_NETWORK_LAYER(state, layer) {
     state.isochroneRoadNetworkLayer = layer;
+  },
+  ADD_PPF_LAYER(state, layer) {
+    state.ppfLayer = layer;
   },
   ADD_SELECTION_LAYER(state, layer) {
     state.selectionLayer = layer;
