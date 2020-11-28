@@ -1,7 +1,6 @@
 --THIS FILE NEEDS TO BE EXECUTED TO COMPUTE THE WALKBILITY INDICES
 -- Load walkability table 
 DROP TABLE IF EXISTS walkability;
-
 CREATE TABLE walkability(
 	category varchar,
 	criteria varchar,
@@ -93,6 +92,70 @@ UPDATE footpaths_union f SET security =
 *(100/0.14);
 
 
+--- Green index indicator
+DROP TABLE IF EXISTS buffer_test;
+CREATE TABLE buffer_test (id serial, geom geography);
+INSERT INTO buffer_test
+SELECT id, st_buffer(geom::geography, 8) AS geom FROM footpaths_union;
+
+DROP TABLE IF EXISTS trees;
+CREATE TABLE trees (id serial, trees numeric);
+
+INSERT INTO trees
+WITH trees AS (SELECT way FROM planet_osm_point WHERE "natural" = 'tree')
+SELECT b.id, count(t.way) AS trees
+FROM buffer_test b
+LEFT JOIN trees t ON st_contains(b.geom::geometry, t.way)
+GROUP BY b.id;
+
+--- Alter table
+ALTER TABLE footpaths_union DROP COLUMN IF EXISTS trees;
+ALTER TABLE footpaths_union ADD COLUMN trees varchar; 
+UPDATE footpaths_union 
+SET trees = 'yes' 
+FROM trees t
+WHERE t.id = footpaths_union.id AND t.trees >= 1;
+UPDATE footpaths_union 
+SET trees = 'no'
+FROM trees t
+WHERE t.id = footpaths_union.id AND t.trees = 0;
+SELECT * FROM footpaths_union fu;
+
+UPDATE footpaths_union f SET vegetation = 
+(
+    select_weight_walkability('vegetation',trees)::numeric
+)
+*(100/0.14);
+--- Attractiveness indicators
+--Landuse
+DROP TABLE IF EXISTS buffer_test;
+CREATE TEMP TABLE buffer_test (id serial, geom geography);
+INSERT INTO buffer_test
+SELECT id, st_buffer(geom::geography, 8) AS geom FROM footpaths_union;
+
+DROP TABLE IF EXISTS lu_score;
+CREATE TABLE lu_score (id serial, score numeric);
+INSERT INTO lu_score
+WITH landuses AS (SELECT * FROM landuse_osm lo WHERE landuse = ANY (SELECT sring_condition FROM walkability WHERE attribute = 'land_use')),
+unique_landuse AS (SELECT DISTINCT b.id, l.landuse AS landuse
+	FROM buffer_test b
+	LEFT JOIN landuses l ON st_intersects(b.geom::geometry, l.geom)),
+lu_link AS (SELECT id, count(id) FROM unique_landuse GROUP BY id),
+max_landuses AS (SELECT max(count) AS max_lu FROM lu_link)
+SELECT id, ((count::numeric/(SELECT* FROM max_landuses)::NUMERIC)*0.14) AS score FROM lu_link;
+
+ALTER TABLE footpaths_union DROP COLUMN IF EXISTS landuse_score;
+ALTER TABLE footpaths_union ADD COLUMN landuse_score NUMERIC;
+UPDATE footpaths_union SET landuse_score = score
+FROM lu_score
+WHERE lu_score.id = footpaths_union.id;
+
+UPDATE footpaths_union f 
+SET walking_environment = landuse_score*(100/0.14);
+
+ALTER TABLE footpaths_union DROP COLUMN IF EXISTS landuse_score;
+-- POIS along the route
+-- Pop density
 --- Comfort indicators
 -- Benches
 
@@ -230,11 +293,12 @@ UPDATE footpaths_union f SET comfort =
     select_weight_walkability('cross_mark',marking) +
     select_weight_walkability_range('slope', incline_percent)
 )
-*(100/0.29);
+*(100/0.14);
 
 ALTER TABLE footpaths_union DROP COLUMN IF EXISTS bench;
 ALTER TABLE footpaths_union DROP COLUMN IF EXISTS furniture;
 ALTER TABLE footpaths_union DROP COLUMN IF EXISTS toilet;
 ALTER TABLE footpaths_union DROP COLUMN IF EXISTS drinking;
 ALTER TABLE footpaths_union DROP COLUMN IF EXISTS marking;
+ALTER TABLE footpaths_union DROP COLUMN IF EXISTS trees;
 
