@@ -63,9 +63,7 @@ export default {
                 beginAtZero: true
               },
               scaleLabel: {
-                display: true,
-                labelString:
-                  "(" + this.$t("charts.indicators.scale_label_index") + ")"
+                display: true
               }
             }
           ]

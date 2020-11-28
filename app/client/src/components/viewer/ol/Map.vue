@@ -84,8 +84,6 @@
             </div>
           </vue-scroll>
         </div>
-
-        <v-divider></v-divider>
       </template>
     </overlay-popup>
   </div>
@@ -448,7 +446,7 @@ export default {
     /**
      * Show getInfo popup.
      */
-    showPopup() {
+    showPopup(clickedCoordinate) {
       // Clear highligh feature
       this.getInfoLayerSource.clear();
       let position = this.getInfoResult[this.popup.currentLayerIndex]
@@ -458,17 +456,20 @@ export default {
       this.getInfoLayerSource.addFeature(
         this.getInfoResult[this.popup.currentLayerIndex]
       );
-      while (position && Array.isArray(position[0])) {
-        position = position[0];
+
+      let closestPoint;
+      if (position) {
+        closestPoint = this.getInfoResult[this.popup.currentLayerIndex]
+          .getGeometry()
+          .getClosestPoint(clickedCoordinate || position[0]);
       }
       this.map.getView().animate({
-        center: position,
+        center: closestPoint,
         duration: 400
       });
-      this.popupOverlay.setPosition(position);
+      this.popupOverlay.setPosition(closestPoint);
       this.popup.isVisible = true;
       this.popup.title = `info`;
-      console.log(this.getInfoResult);
     },
 
     /**
@@ -545,6 +546,7 @@ export default {
 
         //Check for isochrone features
         const features = me.map.getFeaturesAtPixel(evt.pixel, {
+          hitTolerance: 10,
           layerFilter: candidate => {
             if (candidate.get("name") === "Isochrone Layer") {
               return true;
@@ -624,13 +626,13 @@ export default {
             });
 
             if (me.getInfoResult.length > 0) {
-              me.showPopup();
+              me.showPopup(coordinate);
             }
           });
         } else {
           //Only for WFS layer
           if (me.getInfoResult.length > 0) {
-            me.showPopup();
+            me.showPopup(coordinate);
           }
         }
       });
