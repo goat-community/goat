@@ -66,10 +66,7 @@ services:
       proxy:
 
   geoserver:
-    image: goatcommunity/geoserver-base:2.17.2
-    volumes:
-      - ./app/geoserver/geoserver_data:/var/local/geoserver
-      - ./app/geoserver/additional_libs:/var/local/geoserver-exts
+    image: goatcommunity/geoserver:3b79909e555b89c5083f273b9b21ed361edcfec6
     container_name: goat-geoserver
     restart: on-failure
     depends_on:
@@ -83,7 +80,7 @@ services:
     networks:
       proxy:
 
-  db: 
+  db:
     image: goatcommunity/database:12-3-2.6.11-custom-2.3.14
     container_name: goat-database
     restart: on-failure
@@ -114,7 +111,6 @@ services:
       - "traefik.enable=true"
     networks:
       proxy:
-
   #This container is used for running cron jobs. It is mainly for production purposes.
   # cron:
   #   build:
