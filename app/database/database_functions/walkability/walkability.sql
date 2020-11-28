@@ -18,9 +18,13 @@ UPDATE footpaths_union f SET sidewalk = 'yes' where sidewalk is null and highway
 UPDATE footpaths_union f SET sidewalk = 'no' where sidewalk is null;
 UPDATE footpaths_union f SET smoothness = 'average' where smoothness is null;
 
-UPDATE footpaths_union f SET sidewalk_quality = select_weight_walkability('sidewalk',sidewalk) 
+UPDATE footpaths_union f SET sidewalk_quality = 
+(
+    select_weight_walkability('sidewalk',sidewalk) 
 	+ select_weight_walkability('smoothness',smoothness) 
 	+ select_weight_walkability('surface',surface)
 	+ select_weight_walkability('wheelchair',wheelchair)
-	+ select_weight_walkability_range('width', width); 
+	+ select_weight_walkability_range('width', width)
+)
+*(100/0.29);
 
