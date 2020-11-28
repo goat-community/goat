@@ -114,8 +114,9 @@ export default {
       //TODO: Create a style for PPF
       const vector = new VectorLayer({
         name: "PPF Layer",
-        zIndex: 7,
+        zIndex: 20,
         source: new VectorSource(),
+        queryable: true,
         style: ppfNetworkStyle
       });
       me.map.addLayer(vector);

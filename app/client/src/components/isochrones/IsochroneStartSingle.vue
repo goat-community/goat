@@ -133,6 +133,9 @@ import { debounce } from "../../utils/Helpers";
 import { transform, transformExtent } from "ol/proj.js";
 
 import { geojsonToFeature } from "../../utils/MapUtils";
+import Feature from "ol/Feature";
+import Point from "ol/geom/Point";
+import { fromLonLat } from "ol/proj";
 
 export default {
   mixins: [InteractionsToggle, Mapable, KeyShortcuts],
@@ -153,7 +156,8 @@ export default {
   }),
   computed: {
     ...mapGetters("map", {
-      messages: "messages"
+      messages: "messages",
+      contextmenu: "contextmenu"
     }),
     ...mapGetters("isochrones", {
       isBusy: "isBusy",
@@ -183,12 +187,21 @@ export default {
   },
   methods: {
     ...mapActions("isochrones", { calculateIsochrone: "calculateIsochrone" }),
-    ...mapMutations("isochrones", { updatePosition: "UPDATE_POSITION" }),
+    ...mapMutations("isochrones", {
+      updatePosition: "UPDATE_POSITION",
+      setActivePPFCalc: "SET_ACTIVE_PPF_CALC"
+    }),
     ...mapMutations("map", {
       startHelpTooltip: "START_HELP_TOOLTIP",
       stopHelpTooltip: "STOP_HELP_TOOLTIP",
       toggleSnackbar: "TOGGLE_SNACKBAR"
     }),
+    /**
+     * This function is executed, after the map is bound (see mixins/Mapable)
+     */
+    onMapBound() {
+      this.setUpCtxMenu();
+    },
     registerMapClick(calcType) {
       const me = this;
       this.calcType = calcType;
@@ -274,12 +287,19 @@ export default {
         .then(response => {
           this.isCalculatingPPF = false;
           this.clear();
+          this.ppfCurrentCalNumber += 1;
           if (response.data.features) {
             const olFeatures = geojsonToFeature(response.data, {});
-            // olFeatures.forEach(feature => {
-            //   // Set a id for each feature here so we can delete the calculation.
-            // });
+            olFeatures.forEach(feature => {
+              // Set a id for each feature here so we can delete the calculation.
+              feature.set("calcNumber", this.ppfCurrentCalNumber);
+            });
             this.ppfLayer.getSource().addFeatures(olFeatures);
+            var startingPointFeature = new Feature({
+              geometry: new Point(fromLonLat(startingPoint)),
+              calcNumber: this.ppfCurrentCalNumber
+            });
+            this.ppfLayer.getSource().addFeature(startingPointFeature);
           }
         })
         .catch(e => {
@@ -325,6 +345,63 @@ export default {
     clearSearch() {
       this.entries = [];
       this.count = 0;
+    },
+    deletePPFNetwork(features) {
+      const deletedCalcNumber = features[0].get("calcNumber");
+      if (features) {
+        features.forEach(feature => {
+          this.ppfLayer.getSource().removeFeature(feature);
+        });
+      }
+      this.ppfLayer
+        .getSource()
+        .getFeatures()
+        .forEach(feature => {
+          if (feature.get("calcNumber") > deletedCalcNumber) {
+            feature.set("calcNumber", feature.get("calcNumber") - 1);
+          }
+        });
+      this.ppfCurrentCalNumber = this.ppfCurrentCalNumber - 1;
+    },
+    setUpCtxMenu() {
+      if (this.contextmenu) {
+        this.contextmenu.on("beforeopen", evt => {
+          const features = this.map.getFeaturesAtPixel(evt.pixel, {
+            layerFilter: candidate => {
+              if (candidate.get("name") === "PPF Layer") {
+                return true;
+              }
+              return false;
+            }
+          });
+
+          if (features.length > 0) {
+            const calcNumber = features[0].get("calcNumber");
+            this.setActivePPFCalc(calcNumber);
+            this.ppfLayer.getSource().changed();
+            const filteredFeatures = this.ppfLayer
+              .getSource()
+              .getFeatures()
+              .filter(f => f.get("calcNumber") === calcNumber);
+            this.contextmenu.extend([
+              "-", // this is a separator
+              {
+                text: `<i class="fa fa-trash fa-1x" aria-hidden="true"></i>&nbsp;&nbsp${this.$t(
+                  "map.contextMenu.deletePPFNetwork"
+                )}`,
+                label: "deletePPFNetwork",
+                callback: () => {
+                  this.deletePPFNetwork(filteredFeatures);
+                }
+              }
+            ]);
+          }
+        });
+        this.contextmenu.on("close", () => {
+          this.setActivePPFCalc(null);
+          this.ppfLayer.getSource().changed();
+        });
+      }
     }
   },
   watch: {

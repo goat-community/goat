@@ -52,6 +52,7 @@ const state = {
   selectionLayer: null,
   isochroneRoadNetworkLayer: null,
   ppfLayer: null,
+  activePPFCalc: null,
   isThematicDataVisible: false,
   selectedThematicData: null,
   studyAreaLayer: null,
@@ -740,6 +741,9 @@ const mutations = {
   },
   SET_CANCEL_FUNCTION(state, cancelReqFn) {
     state.cancelReq = cancelReqFn;
+  },
+  SET_ACTIVE_PPF_CALC(state, calcNumber) {
+    state.activePPFCalc = calcNumber;
   }
 };
 

@@ -488,7 +488,9 @@
       "deleteIsochrone": "Isochrone löschen",
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
-      "redoCalculation": "Erneut berechnen"
+      "redoCalculation": "Erneut berechnen",
+      "deleteBldEntrancePoint": "Delete Population",
+      "deletePPFNetwork": "Delete"
     },
     "osmMode": {
       "tasks": "OSM Mapping Aufgaben",

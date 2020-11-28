@@ -400,9 +400,18 @@ export function ppfNetworkStyle(feature) {
   } else if (persons > 30000 && persons <= 30877) {
     width = 24;
   }
+  let path = `img/markers/marker-${feature.get("calcNumber")}.png`;
   const style = new OlStyle({
+    image: new OlIcon({
+      anchor: [0.5, 0.96],
+      src: path,
+      scale: 0.5
+    }),
     stroke: new OlStroke({
-      color: "#e15989",
+      color:
+        isochronesStore.state.activePPFCalc === feature.get("calcNumber")
+          ? "#FF0000"
+          : "#e15989",
       width: width
     })
   });

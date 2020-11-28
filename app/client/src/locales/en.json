@@ -504,6 +504,7 @@
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
       "deleteBldEntrancePoint": "Delete Population",
+      "deletePPFNetwork": "Delete",
       "redoCalculation": "Redo Calculation"
     },
     "osmMode": {
