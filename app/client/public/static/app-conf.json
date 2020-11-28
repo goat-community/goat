@@ -56,6 +56,22 @@
         "zIndex": 4,
         "styleRef": "boundaryStyle"
       },
+
+      {
+        "type": "WMS",
+        "name": "indicators",
+        "url": "/geoserver/wms",
+        "group": "Indicators",
+        "layers": "cite:indicators",
+        "opacity": 1,
+        "queryable": true,
+        "visible": true,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 20,
+        "serverType": "geoserver"
+      },
+
       {
         "type": "WMS",
         "name": "ways",
@@ -1533,15 +1549,15 @@
           },
           {
             "categoryValue": "tourismAndLeisure",
-            "poisFiltered": ["hotel","hostel","guest_house","playground"]
+            "poisFiltered": ["hotel", "hostel", "guest_house", "playground"]
           },
           {
             "categoryValue": "services",
-            "poisFiltered": ["recycling","post_box"]
+            "poisFiltered": ["recycling", "post_box"]
           },
           {
             "categoryValue": "education",
-            "poisFiltered": ["primary_school","secondary_school"]
+            "poisFiltered": ["primary_school", "secondary_school"]
           }
         ]
       }
