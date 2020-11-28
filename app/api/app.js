@@ -189,6 +189,35 @@ app.post("/api/isochrone", jsonParser, (request, response) => {
   );
 });
 
+app.post("/api/ppf", jsonParser, (request, response) => {
+  if (!request.body.coordinate) {
+    response.send("An error happened");
+    return;
+  } else {
+    // Make sure to set the correct content type
+    response.set("content-type", "application/json");
+    pool.query(
+      `SELECT jsonb_build_object(
+		'type',     'FeatureCollection',
+		'features', jsonb_agg(features.feature)
+	  )
+      FROM (
+      SELECT jsonb_build_object(
+        'type',       'Feature',
+        'geometry',   ST_AsGeoJSON(geom)::jsonb,
+        'properties', to_jsonb(inputs) - 'geom'
+      ) AS feature 
+      FROM (SELECT * FROM sample_flows) inputs) features;`,
+      [],
+      (err, res) => {
+        if (err) return console.log(err);
+        console.log(res);
+        response.send(res.rows[0].jsonb_build_object);
+      }
+    );
+  }
+});
+
 app.post("/api/pois_multi_isochrones", jsonParser, (request, response) => {
   let requiredParams = [
     "user_id",

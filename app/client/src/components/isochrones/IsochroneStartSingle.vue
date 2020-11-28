@@ -124,12 +124,15 @@ import { mapGetters, mapActions, mapMutations } from "vuex";
 
 import { unByKey } from "ol/Observable";
 import axios from "axios";
+import http from "../../services/http";
 
 //Other imports
 import { debounce } from "../../utils/Helpers";
 
 //Ol imports
 import { transform, transformExtent } from "ol/proj.js";
+
+import { geojsonToFeature } from "../../utils/MapUtils";
 
 export default {
   mixins: [InteractionsToggle, Mapable, KeyShortcuts],
@@ -143,7 +146,10 @@ export default {
     isLoading: false,
     mapClickListener: null,
     isIsochroneStartElVisible: true,
-    isCalculatingPPF: false
+    isCalculatingPPF: false,
+    // Cancel Request
+    cancelPPFReq: undefined,
+    ppfCurrentCalNumber: 0
   }),
   computed: {
     ...mapGetters("map", {
@@ -151,7 +157,8 @@ export default {
     }),
     ...mapGetters("isochrones", {
       isBusy: "isBusy",
-      cancelReq: "cancelReq"
+      cancelReq: "cancelReq",
+      ppfLayer: "ppfLayer"
     }),
     fields() {
       if (!this.model) return [];
@@ -179,7 +186,8 @@ export default {
     ...mapMutations("isochrones", { updatePosition: "UPDATE_POSITION" }),
     ...mapMutations("map", {
       startHelpTooltip: "START_HELP_TOOLTIP",
-      stopHelpTooltip: "STOP_HELP_TOOLTIP"
+      stopHelpTooltip: "STOP_HELP_TOOLTIP",
+      toggleSnackbar: "TOGGLE_SNACKBAR"
     }),
     registerMapClick(calcType) {
       const me = this;
@@ -247,13 +255,47 @@ export default {
       }
     },
     calculatePPF(startingPoint) {
-      console.log(startingPoint);
       this.isCalculatingPPF = true;
-      setTimeout(() => {
-        this.isCalculatingPPF = false;
-        console.log("calculation ended.");
-        this.clear();
-      }, 3000);
+      const CancelToken = axios.CancelToken;
+      http
+        .post(
+          `/api/ppf`,
+          {
+            coordinate: startingPoint
+          },
+          {
+            timeout: 30000,
+            cancelToken: new CancelToken(c => {
+              // An executor function receives a cancel function as a parameter
+              this.cancelPPFReq = c;
+            })
+          }
+        )
+        .then(response => {
+          this.isCalculatingPPF = false;
+          this.clear();
+          console.log(response);
+          if (response.data.features) {
+            const olFeatures = geojsonToFeature(response.data, {});
+            // olFeatures.forEach(feature => {
+            //   // Set a id for each feature here so we can delete the calculation.
+            // });
+            this.ppfLayer.getSource().addFeatures(olFeatures);
+          }
+          console.log(this.ppfLayer.getSource().getFeatures());
+        })
+        .catch(e => {
+          //Show error message
+          if (e.message === "cancelled") {
+            this.toggleSnackbar({
+              type: "error",
+              message: "calculateIsochroneCancelled",
+              timeout: 2000,
+              state: true
+            });
+          }
+          this.clear();
+        });
     },
     clear() {
       const me = this;
@@ -278,7 +320,9 @@ export default {
       }
     },
     stopPPFCalc() {
-      console.log("cancel request...");
+      if (this.cancelPPFReq instanceof Function) {
+        this.cancelPPFReq("cancelled");
+      }
     },
     clearSearch() {
       this.entries = [];
