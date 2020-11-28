@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS select_weight_walkability_range;
 CREATE OR REPLACE FUNCTION select_weight_walkability_range(attribute_input text, condition_input numeric)
 RETURNS numeric AS
 $$
