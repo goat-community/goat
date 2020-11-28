@@ -1,5 +1,5 @@
 <featureType>
-  <id>FeatureTypeInfoImpl--20319aa1:17610606722:-7fff</id>
+  <id>FeatureTypeInfoImpl-36cfd294:1761094cd43:-7ffc</id>
   <name>indicators</name>
   <nativeName>indicators</nativeName>
   <namespace>
@@ -21,22 +21,36 @@
   AUTHORITY[&quot;EPSG&quot;,&quot;4326&quot;]]</nativeCRS>
   <srs>EPSG:4326</srs>
   <nativeBoundingBox>
-    <minx>11.5140917363764</minx>
-    <maxx>11.5773582856092</maxx>
-    <miny>48.1449035160067</miny>
-    <maxy>48.1893104807959</maxy>
+    <minx>11.5042826</minx>
+    <maxx>11.5665668</maxx>
+    <miny>48.1880097</miny>
+    <maxy>48.2245022</maxy>
     <crs>EPSG:4326</crs>
   </nativeBoundingBox>
   <latLonBoundingBox>
-    <minx>11.5140917363764</minx>
-    <maxx>11.5773582856092</maxx>
-    <miny>48.1449035160067</miny>
-    <maxy>48.1893104807959</maxy>
+    <minx>11.5042826</minx>
+    <maxx>11.5665668</maxx>
+    <miny>48.1880097</miny>
+    <maxy>48.2245022</maxy>
     <crs>EPSG:4326</crs>
   </latLonBoundingBox>
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
   <enabled>true</enabled>
   <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>indicators</name>
+        <sql>SELECT f.sidewalk_quality, f.traffic_protection, f.security, f.vegetation, f. walking_environment, f.comfort, f.walkability as sum_total, f.geom FROM footpaths_union f, study_area s&#xd;
+WHERE ST_Intersects(s.geom,f.geom)
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>-1</srid>
+        </geometry>
+      </virtualTable>
+    </entry>
     <entry key="cachingEnabled">false</entry>
   </metadata>
   <store class="dataStore">
