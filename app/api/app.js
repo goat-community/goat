@@ -207,11 +207,14 @@ app.post("/api/ppf", jsonParser, (request, response) => {
         'geometry',   ST_AsGeoJSON(geom)::jsonb,
         'properties', to_jsonb(inputs) - 'geom'
       ) AS feature 
-      FROM (SELECT * FROM sample_flows) inputs) features;`,
+      FROM (SELECT ST_Transform(geom_out, 3857) as geom, edge_out as edge, persons_out as persons FROM potential_pedestrian_flows(${
+        request.body.coordinate[0]
+      }, ${request.body.coordinate[1]}, ${
+        request.body.user_id || 1
+      },1)) inputs) features;`,
       [],
       (err, res) => {
         if (err) return console.log(err);
-        console.log(res);
         response.send(res.rows[0].jsonb_build_object);
       }
     );

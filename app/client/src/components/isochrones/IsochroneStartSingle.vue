@@ -274,7 +274,6 @@ export default {
         .then(response => {
           this.isCalculatingPPF = false;
           this.clear();
-          console.log(response);
           if (response.data.features) {
             const olFeatures = geojsonToFeature(response.data, {});
             // olFeatures.forEach(feature => {
@@ -282,7 +281,6 @@ export default {
             // });
             this.ppfLayer.getSource().addFeatures(olFeatures);
           }
-          console.log(this.ppfLayer.getSource().getFeatures());
         })
         .catch(e => {
           //Show error message

@@ -31,7 +31,8 @@ import IsochroneStartMultiple from "./IsochroneStartMultiple";
 
 import {
   getIsochroneStyle,
-  getIsochroneNetworkStyle
+  getIsochroneNetworkStyle,
+  ppfNetworkStyle
 } from "../../style/OlStyleDefs";
 
 //Store imports
@@ -114,7 +115,8 @@ export default {
       const vector = new VectorLayer({
         name: "PPF Layer",
         zIndex: 7,
-        source: new VectorSource()
+        source: new VectorSource(),
+        style: ppfNetworkStyle
       });
       me.map.addLayer(vector);
       this.addPPFLayer(vector);
