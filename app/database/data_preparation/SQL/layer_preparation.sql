@@ -21,7 +21,7 @@ CREATE TABLE footpaths_union AS
 	WHEN w.sidewalk_both_width IS NOT NULL 
 		THEN w.sidewalk_both_width
 	ELSE NULL
-	END AS width, highway, length_m, one_way, maxspeed_forward, maxspeed_backward, crossing, incline, 
+	END AS width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 		incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified 
 	FROM ways w, ways_offset_sidewalk o
 	WHERE w.id=o.id AND (o.sidewalk = 'both' OR o.sidewalk = 'left' OR o.sidewalk IS NULL)
@@ -35,7 +35,7 @@ UNION
 	WHEN w.sidewalk_both_width IS NOT NULL 
 		THEN w.sidewalk_both_width
 	ELSE NULL
-	END AS width, highway, length_m, one_way, maxspeed_forward, maxspeed_backward, crossing, incline, 
+	END AS width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 		incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified 
 	FROM ways w, ways_offset_sidewalk o
 	WHERE w.id=o.id AND (o.sidewalk = 'both' OR o.sidewalk = 'right' OR o.sidewalk IS NULL)
@@ -43,12 +43,12 @@ UNION
 		AND (w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
 		OR w.foot IS NULL)
 UNION
-	SELECT geom, sidewalk, width, highway, length_m, one_way, maxspeed_forward, maxspeed_backward, crossing, incline, 
+	SELECT geom, sidewalk, width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 		incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified 
 	FROM ways
 	WHERE sidewalk = 'no'
 UNION
-	SELECT geom, sidewalk, width, highway, length_m, one_way, maxspeed_forward, maxspeed_backward, crossing, incline, 
+	SELECT geom, sidewalk, width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 		incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified  
 	FROM ways
 	WHERE highway = 'living_street'
@@ -57,12 +57,12 @@ UNION
 	CASE WHEN segregated = 'yes'
 		THEN width/2 
 	ELSE width
-	END AS width, highway, length_m, one_way, maxspeed_forward, maxspeed_backward, crossing, incline, 
+	END AS width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 		incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified 
 	FROM ways
 	WHERE highway ='cycleway' OR (foot = 'designated' AND bicycle = 'designated')
 UNION
-	SELECT geom, sidewalk, width, highway, length_m, one_way, maxspeed_forward, maxspeed_backward, crossing, incline, 
+	SELECT geom, sidewalk, width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 		incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified  
 	FROM ways
 	WHERE sidewalk IS NULL AND highway IN ('path','track','footway','steps','service','pedestrian');
