@@ -400,7 +400,8 @@
       "indicators": "Indikatoren"
     },
     "tooltips": {
-      "clickForCalculation": "Für Berechnung klicken",
+      "clickForIsochroneCalculation": "Für Berechnung klicken",
+      "clickForPPFCalculation": "Für PPF Berechnung klicken",
       "clickToSelectStudyArea": "Klicken für Auswahl des Untersuchungsbereichs",
       "maxCircleRadius": "Maximaler Kreisradius ist 1000m",
       "clickToStartMeasure": "Klicken, um Messung zu starten",
@@ -745,12 +746,14 @@
   "charts": {
     "indicators": {
       "sidewalk_quality": "Bürgersteig Qualität",
-      "traffic_protection": "Verkehrsschutz",
+      "traffic_protection": ["Schutz vor", "Verkehrsstörungen"],
       "security": "Sicherheit",
       "vegetation": "Vegetation",
       "walking_environment": "Gehumgebung",
       "comfort": "Komfort",
-      "sum_total": "Gesamtsumme"
+      "sum_total": ["TOTAL WALKABILITY", "SCORE"],
+      "scale_label_indicators": "Indicators",
+      "scale_label_index": "Index"
     }
   }
 }

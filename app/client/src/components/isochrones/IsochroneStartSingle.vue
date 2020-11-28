@@ -20,13 +20,13 @@
     </v-subheader>
     <v-card-text v-show="isIsochroneStartElVisible" class="pt-0 pb-1 mt-0 mb-1">
       <v-layout row>
-        <v-flex xs9>
+        <v-flex xs7>
           <v-autocomplete
             solo
             v-model="model"
             :items="items"
             :loading="isLoading"
-            :disabled="isBusy"
+            :disabled="isBusy || isCalculatingPPF || !calcType"
             :label="$t('isochrones.single.searchBox')"
             :search-input.sync="search"
             item-text="DisplayName"
@@ -45,7 +45,7 @@
             :menu-props="{ maxHeight: 600 }"
           ></v-autocomplete>
         </v-flex>
-        <v-flex xs3>
+        <v-flex xs2>
           <span v-if="!isBusy">
             <v-tooltip top>
               <template v-slot:activator="{ on }">
@@ -53,10 +53,10 @@
                   outlined
                   fab
                   v-on="on"
-                  class="ml-4"
+                  class="ml-2"
                   depressed
                   text
-                  @click="registerMapClick"
+                  @click="registerMapClick('isochrone')"
                 >
                   <v-icon color="#30C2FF">fas fa-map-marker-alt</v-icon>
                 </v-btn>
@@ -64,7 +64,6 @@
               <span>{{ $t("isochrones.single.startTooltip") }}</span>
             </v-tooltip>
           </span>
-
           <span v-if="isBusy">
             <v-tooltip top>
               <template v-slot:activator="{ on }">
@@ -72,7 +71,7 @@
                   fab
                   dark
                   v-on="on"
-                  class="ml-4 elevation-0"
+                  class="ml-2 elevation-0"
                   color="red"
                   @click="stopIsochroneCalc"
                 >
@@ -80,6 +79,26 @@
                 </v-btn>
               </template>
               <span>{{ $t("isochrones.stopIsochroneCalc") }}</span>
+            </v-tooltip>
+          </span>
+        </v-flex>
+        <v-flex xs2>
+          <span v-if="!isBusy">
+            <v-tooltip top>
+              <template v-slot:activator="{ on }">
+                <v-btn
+                  outlined
+                  fab
+                  v-on="on"
+                  class="ml-3"
+                  depressed
+                  text
+                  @click="registerMapClick('ppf')"
+                >
+                  <v-icon color="#30C2FF">insights</v-icon>
+                </v-btn>
+              </template>
+              <span>PPF Calculation</span>
             </v-tooltip>
           </span>
         </v-flex>
@@ -116,13 +135,15 @@ export default {
   mixins: [InteractionsToggle, Mapable, KeyShortcuts],
   data: () => ({
     interactionType: "isochrone-single-interaction",
+    calcType: "",
     descriptionLimit: 30,
     entries: [],
     model: null,
     search: null,
     isLoading: false,
     mapClickListener: null,
-    isIsochroneStartElVisible: true
+    isIsochroneStartElVisible: true,
+    isCalculatingPPF: false
   }),
   computed: {
     ...mapGetters("map", {
@@ -160,13 +181,19 @@ export default {
       startHelpTooltip: "START_HELP_TOOLTIP",
       stopHelpTooltip: "STOP_HELP_TOOLTIP"
     }),
-    registerMapClick() {
+    registerMapClick(calcType) {
       const me = this;
+      this.calcType = calcType;
       //Close other interactions.
       EventBus.$emit("ol-interaction-activated", me.interactionType);
-
       me.mapClickListener = me.map.once("singleclick", me.onMapClick);
-      me.startHelpTooltip(this.$t("map.tooltips.clickForCalculation"));
+      if (this.calcType === "isochrone") {
+        me.startHelpTooltip(
+          this.$t("map.tooltips.clickForIsochroneCalculation")
+        );
+      } else if (this.calcType === "ppf") {
+        me.startHelpTooltip(this.$t("map.tooltips.clickForPPFCalculation"));
+      }
       me.map.getTarget().style.cursor = "pointer";
       if (this.addKeyupListener) {
         this.addKeyupListener();
@@ -191,12 +218,17 @@ export default {
         "EPSG:4326"
       );
 
-      me.updatePosition({
-        coordinate: coordinateWgs84,
-        placeName: ""
-      });
-      //Start Isochrone Calculation
-      me.calculateIsochrone();
+      if (this.calcType === "isochrone") {
+        me.updatePosition({
+          coordinate: coordinateWgs84,
+          placeName: ""
+        });
+        //Start Isochrone Calculation
+        me.calculateIsochrone();
+      } else if (this.calcType === "ppf") {
+        //Start PPF Calculation
+        me.calculatePPF(coordinateWgs84);
+      }
       me.clear();
     },
     selectSearchStartingPoint() {
@@ -204,23 +236,34 @@ export default {
       if (!this.search || !this.model) return;
       const lat = parseFloat(this.model.lat);
       const lon = parseFloat(this.model.lon);
-
-      me.updatePosition({
-        coordinate: [lon, lat],
-        placeName: this.model.DisplayName
-      });
-      me.calculateIsochrone();
+      if (this.calcType === "isochrone") {
+        me.updatePosition({
+          coordinate: [lon, lat],
+          placeName: this.model.DisplayName
+        });
+        me.calculateIsochrone();
+      } else {
+        me.calculatePPF([lon, lat]);
+      }
     },
-
+    calculatePPF(startingPoint) {
+      console.log(startingPoint);
+      this.isCalculatingPPF = true;
+      setTimeout(() => {
+        this.isCalculatingPPF = false;
+        console.log("calculation ended.");
+        this.clear();
+      }, 3000);
+    },
     clear() {
       const me = this;
       if (me.mapClickListener) {
         unByKey(me.mapClickListener);
       }
-
       me.stopHelpTooltip();
       me.map.getTarget().style.cursor = "";
       EventBus.$emit("ol-interaction-stoped", me.interactionType);
+      this.calcType = "";
     },
     /**
      * stops single isochrone interaction
@@ -233,6 +276,9 @@ export default {
       if (this.cancelReq instanceof Function) {
         this.cancelReq("cancelled");
       }
+    },
+    stopPPFCalc() {
+      console.log("cancel request...");
     },
     clearSearch() {
       this.entries = [];
