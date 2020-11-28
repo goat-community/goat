@@ -4,8 +4,8 @@ $$
 	SELECT (w.value*w.weight)
 	FROM walkability w
 	WHERE w.attribute = attribute_input
-		AND w.min_value > condition_input 
-		AND (w.max_value < condition_input or w.max_value is NULL) 
+		AND (w.min_value > condition_input or w.min_value IS NULL)
+		AND (w.max_value <= condition_input or w.max_value IS NULL) 
 $$
 LANGUAGE sql immutable;
 
