@@ -12,7 +12,7 @@ ALTER TABLE ways alter column target type int4;
 ALTER TABLE ways alter column source type int4;
 
 ALTER TABLE ways 
-ADD COLUMN bicycle text, ADD COLUMN foot TEXT; 
+ADD COLUMN bicycle text, ADD COLUMN foot TEXT, ADD COLUMN oneway TEXT; 
 
 UPDATE ways 
 SET foot = p.foot
@@ -22,6 +22,11 @@ AND p.highway NOT IN('bridleway','cycleway','footway');
 
 UPDATE ways 
 SET bicycle = p.bicycle
+FROM planet_osm_line p
+WHERE ways.osm_id = p.osm_id;
+
+UPDATE ways 
+SET oneway = p.oneway
 FROM planet_osm_line p
 WHERE ways.osm_id = p.osm_id;
 
