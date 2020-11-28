@@ -396,7 +396,8 @@
       "osmDark": "OSM Dark",
       "mapboxStreets": "Mapbox",
       "publicTransport": "Öffentlicher Verkehr",
-      "bingAerial": "Bing Aerial"
+      "bingAerial": "Bing Aerial",
+      "indicators": "Indikatoren"
     },
     "tooltips": {
       "clickForCalculation": "Für Berechnung klicken",
@@ -739,6 +740,17 @@
         "commercial": "Gewerbe",
         "public": "Öffentliche Einrichtung"
       }
+    }
+  },
+  "charts": {
+    "indicators": {
+      "sidewalk_quality": "Bürgersteig Qualität",
+      "traffic_protection": "Verkehrsschutz",
+      "security": "Sicherheit",
+      "vegetation": "Vegetation",
+      "walking_environment": "Gehumgebung",
+      "comfort": "Komfort",
+      "sum_total": "Gesamtsumme"
     }
   }
 }

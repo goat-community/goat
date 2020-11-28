@@ -59,12 +59,18 @@ UPDATE footpaths_union f SET parking = h.parking
 FROM highway_buffer h
 WHERE ST_Within(f.geom,h.geom) and h.parking is not null;
 
-
 --calculate score
 UPDATE footpaths_union f SET traffic_protection = 
 (
     select_weight_walkability_range('lanes',lanes) 
 	+ select_weight_walkability_range('maxspeed',maxspeed_forward)
 	+ select_weight_walkability('parking',parking)
+)
+*(100/0.14);
+
+--security--
+UPDATE footpaths_union f SET security = 
+(
+    select_weight_walkability('lit_classified',lit_classified) 
 )
 *(100/0.14);

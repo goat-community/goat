@@ -401,7 +401,8 @@
       "sitpShare": "Share of SITP trips",
       "cycling_trips_rate": "Cycling trips per person",
       "pt_trips_rate": "Public transport trips per person",
-      "strata": "Strata"
+      "strata": "Strata",
+      "indicators": "Indicators"
     },
     "tooltips": {
       "clickForCalculation": "Click for Calculation. Press ESC to exit",
@@ -668,7 +669,6 @@
     "university": "University",
     "hospital": "Hospital",
     "playground": "Playground",
-    "population": "Population",
     "park": "Park",
     "governmentandsec": "Gov. and Security",
     "notary": "Notary",
@@ -780,5 +780,18 @@
     "saturday": "Saturday",
     "sunday": "Sunday",
     "publicHolidays": "Public Holidays"
+  },
+  "charts": {
+    "indicators": {
+      "sidewalk_quality": "Sidewalk Quality",
+      "traffic_protection": "Traffic Protection",
+      "security": "Security",
+      "vegetation": "Vegetation",
+      "walking_environment": "Walking environment",
+      "comfort": "Comfort",
+      "sum_total": "Sum Total",
+      "scale_label_indicators": "Indicators",
+      "scale_label_index": "Index"
+    }
   }
 }
