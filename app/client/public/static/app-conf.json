@@ -67,6 +67,7 @@
         "queryable": true,
         "visible": true,
         "canEdit": false,
+        "displayInLegend": true,
         "displayInLayerList": true,
         "zIndex": 20,
         "serverType": "geoserver"

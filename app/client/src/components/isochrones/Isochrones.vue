@@ -117,7 +117,9 @@ export default {
         zIndex: 20,
         source: new VectorSource(),
         queryable: true,
-        style: ppfNetworkStyle
+        style: ppfNetworkStyle,
+        legendUrl: "img/ppf_legend.png",
+        displayInLegend: false
       });
       me.map.addLayer(vector);
       this.addPPFLayer(vector);
