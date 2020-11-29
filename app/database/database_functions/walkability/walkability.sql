@@ -90,7 +90,7 @@ UPDATE footpaths_union f SET security =
     select_weight_walkability('lit_classified',lit_classified) 
 )
 *(100/0.14);
-
+UPDATE footpaths_union f SET security = 50 WHERE security IS NULL;
 
 --- Green index indicator
 DROP TABLE IF EXISTS buffer_test;
@@ -121,9 +121,33 @@ FROM trees t
 WHERE t.id = footpaths_union.id AND t.trees = 0;
 SELECT * FROM footpaths_union fu;
 
+DROP TABLE IF EXISTS green_landuse;
+CREATE TABLE green_landuse (id serial, score numeric);
+INSERT INTO green_landuse
+WITH landuses AS (
+	SELECT * FROM landuse_osm lo WHERE landuse = ANY (array['greenfield','farmland','green','grass','park','forest','meadow'])),
+touching_landuse AS (
+SELECT b.id, l.landuse AS landuse
+FROM buffer_test b
+LEFT JOIN landuses l ON st_intersects(b.geom::geometry, l.geom)
+GROUP BY b.id, l.landuse)
+SELECT id, count(landuse) FROM touching_landuse GROUP BY id ORDER BY id;
+
+ALTER TABLE footpaths_union DROP COLUMN IF EXISTS green_landuse ;
+ALTER TABLE footpaths_union ADD COLUMN green_landuse varchar;
+UPDATE footpaths_union 
+SET green_landuse = 'yes' 
+FROM green_landuse gl
+WHERE gl.id = footpaths_union.id AND gl.score >= 1;
+UPDATE footpaths_union 
+SET green_landuse = 'no'
+FROM green_landuse gl
+WHERE gl.id = footpaths_union.id AND gl.score = 0;
+
 UPDATE footpaths_union f SET vegetation = 
 (
-    select_weight_walkability('vegetation',trees)::numeric
+    (select_weight_walkability('vegetation',trees)::NUMERIC)*0.3 +
+    (select_weight_walkability('vegetation',green_landuse)::NUMERIC)*0.7
 )
 *(100/0.14);
 --- Attractiveness indicators
@@ -301,4 +325,9 @@ ALTER TABLE footpaths_union DROP COLUMN IF EXISTS toilet;
 ALTER TABLE footpaths_union DROP COLUMN IF EXISTS drinking;
 ALTER TABLE footpaths_union DROP COLUMN IF EXISTS marking;
 ALTER TABLE footpaths_union DROP COLUMN IF EXISTS trees;
+ALTER TABLE footpaths_union DROP COLUMN IF EXISTS green_landuse;
+
+--overall walkability---
+UPDATE footpaths_union f SET walkability = 
+(comfort*0.14) + (vegetation*0.28) + (security*0.14) + (traffic_protection*0.14) + (sidewalk_quality*0.29);
 
