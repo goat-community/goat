@@ -90,7 +90,7 @@ UPDATE footpaths_union f SET security =
     select_weight_walkability('lit_classified',lit_classified) 
 )
 *(100/0.14);
-
+UPDATE footpaths_union f SET security = 50 WHERE security IS NULL;
 
 --- Green index indicator
 DROP TABLE IF EXISTS buffer_test;
@@ -326,3 +326,7 @@ ALTER TABLE footpaths_union DROP COLUMN IF EXISTS drinking;
 ALTER TABLE footpaths_union DROP COLUMN IF EXISTS marking;
 ALTER TABLE footpaths_union DROP COLUMN IF EXISTS trees;
 ALTER TABLE footpaths_union DROP COLUMN IF EXISTS green_landuse;
+
+--overall walkability---
+UPDATE footpaths_union f SET walkability = 
+(comfort*0.14) + (walking_environment*0.14) + (vegetation*0.14) + (security*0.14) + (traffic_protection*0.14) + (sidewalk_quality*0.29);
