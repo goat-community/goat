@@ -397,7 +397,7 @@
       "strata": "Estrato socioeconómico"
     },
     "tooltips": {
-      "clickForCalculation": "Haga clic para calcular, oprima ESC para salir",
+      "clickForIsochroneCalculation": "Haga clic para calcular, oprima ESC para salir",
       "clickToSelectStudyArea": "Haga clic para seleccionar el área de estudio, oprima ESC para salir.",
       "maxCircleRadius": "El radio máximo del círculo es de 1000 m.",
       "clickToStartMeasure": "Haga clic para comenzar a medir, oprima ESC para salir",

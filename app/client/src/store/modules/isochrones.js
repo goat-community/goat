@@ -51,6 +51,8 @@ const state = {
   isochroneLayer: null,
   selectionLayer: null,
   isochroneRoadNetworkLayer: null,
+  ppfLayer: null,
+  activePPFCalc: null,
   isThematicDataVisible: false,
   selectedThematicData: null,
   studyAreaLayer: null,
@@ -75,6 +77,7 @@ const getters = {
   isochroneLayer: state => state.isochroneLayer,
   studyAreaLayer: state => state.studyAreaLayer,
   isochroneRoadNetworkLayer: state => state.isochroneRoadNetworkLayer,
+  ppfLayer: state => state.ppfLayer,
   selectionLayer: state => state.selectionLayer,
   styleData: state => state.styleData,
   isThematicDataVisible: state => state.isThematicDataVisible,
@@ -622,6 +625,9 @@ const mutations = {
   ADD_ISOCHRONE_ROAD_NETWORK_LAYER(state, layer) {
     state.isochroneRoadNetworkLayer = layer;
   },
+  ADD_PPF_LAYER(state, layer) {
+    state.ppfLayer = layer;
+  },
   ADD_SELECTION_LAYER(state, layer) {
     state.selectionLayer = layer;
   },
@@ -735,6 +741,9 @@ const mutations = {
   },
   SET_CANCEL_FUNCTION(state, cancelReqFn) {
     state.cancelReq = cancelReqFn;
+  },
+  SET_ACTIVE_PPF_CALC(state, calcNumber) {
+    state.activePPFCalc = calcNumber;
   }
 };
 

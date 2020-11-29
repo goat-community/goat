@@ -31,7 +31,8 @@ import IsochroneStartMultiple from "./IsochroneStartMultiple";
 
 import {
   getIsochroneStyle,
-  getIsochroneNetworkStyle
+  getIsochroneNetworkStyle,
+  ppfNetworkStyle
 } from "../../style/OlStyleDefs";
 
 //Store imports
@@ -70,6 +71,7 @@ export default {
       addStyleInCache: "ADD_STYLE_IN_CACHE",
       addIsochroneLayer: "ADD_ISOCHRONE_LAYER",
       addIsochroneNetworkLayer: "ADD_ISOCHRONE_ROAD_NETWORK_LAYER",
+      addPPFLayer: "ADD_PPF_LAYER",
       updatePosition: "UPDATE_POSITION"
     }),
     ...mapActions("isochrones", {
@@ -82,6 +84,7 @@ export default {
     onMapBound() {
       this.createIsochroneLayer();
       this.createIsochroneRoadNetworkLayer();
+      this.createPPFLayer();
       this.setUpCtxMenu();
     },
 
@@ -100,6 +103,24 @@ export default {
       });
       me.map.addLayer(vector);
       this.addIsochroneLayer(vector);
+    },
+
+    /**
+     * Creates layer for storing the vector features of PPF calculation
+     * map and store. (Similar to road network). Will not display in isoochrone result calcution.
+     */
+    createPPFLayer() {
+      const me = this;
+      //TODO: Create a style for PPF
+      const vector = new VectorLayer({
+        name: "PPF Layer",
+        zIndex: 20,
+        source: new VectorSource(),
+        queryable: true,
+        style: ppfNetworkStyle
+      });
+      me.map.addLayer(vector);
+      this.addPPFLayer(vector);
     },
 
     /**

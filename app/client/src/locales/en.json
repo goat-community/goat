@@ -313,6 +313,7 @@
       "selectAmenities": "You must select at least one point of interest (Thematic Data)",
       "calculateIsochroneError": "Sorry but here no calculation is possible",
       "calculateIsochroneCancelled": "Isochrone Calculation Cancelled",
+      "calculatePPFCancelled": "PPF Calculation Cancelled",
       "uploadScenarioSuccess": "Features uploads successfully.",
       "uploadScenarioError": "Sorry, an error happened while uploading the features in database.",
       "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features.",
@@ -405,7 +406,8 @@
       "indicators": "Indicators"
     },
     "tooltips": {
-      "clickForCalculation": "Click for Calculation. Press ESC to exit",
+      "clickForIsochroneCalculation": "Click for isochrone calculation. Press ESC to exit",
+      "clickForPPFCalculation": "Click for PPF calculation. Press ESC to exit",
       "clickToSelectStudyArea": "Click to select the study area. Press ESC to exit",
       "maxCircleRadius": "Maximum circle radius is 1000 m",
       "clickToStartMeasure": "Click to start measuring. Press ESC to exit",
@@ -502,6 +504,7 @@
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
       "deleteBldEntrancePoint": "Delete Population",
+      "deletePPFNetwork": "Delete",
       "redoCalculation": "Redo Calculation"
     },
     "osmMode": {
@@ -784,12 +787,12 @@
   "charts": {
     "indicators": {
       "sidewalk_quality": "Sidewalk Quality",
-      "traffic_protection": "Traffic Protection",
+      "traffic_protection": ["Protection from", "traffic impacts"],
       "security": "Security",
       "vegetation": "Vegetation",
       "walking_environment": "Walking environment",
       "comfort": "Comfort",
-      "sum_total": "Sum Total",
+      "sum_total": ["TOTAL WALKABILITY", "SCORE"],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index"
     }
