@@ -150,7 +150,7 @@ export default {
     mapClickListener: null,
     isIsochroneStartElVisible: true,
     isCalculatingPPF: false,
-    // Cancel Request
+    // Cancel PPF Request
     cancelPPFReq: undefined,
     ppfCurrentCalNumber: 0
   }),
