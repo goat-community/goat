@@ -423,7 +423,14 @@ export default {
         .catch(() => {
           this.isLoading = false;
         });
-    }, 600)
+    }, 600),
+    ppfCurrentCalNumber() {
+      if (this.ppfCurrentCalNumber === 0) {
+        this.ppfLayer.set("displayInLegend", false);
+      } else {
+        this.ppfLayer.set("displayInLegend", true);
+      }
+    }
   },
   mounted() {
     const me = this;
