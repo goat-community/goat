@@ -329,4 +329,5 @@ ALTER TABLE footpaths_union DROP COLUMN IF EXISTS green_landuse;
 
 --overall walkability---
 UPDATE footpaths_union f SET walkability = 
-(comfort*0.14) + (walking_environment*0.14) + (vegetation*0.14) + (security*0.14) + (traffic_protection*0.14) + (sidewalk_quality*0.29);
+(comfort*0.14) + (vegetation*0.28) + (security*0.14) + (traffic_protection*0.14) + (sidewalk_quality*0.29);
+
