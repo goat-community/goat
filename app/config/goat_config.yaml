@@ -96,13 +96,13 @@ DATA_REFINEMENT_VARIABLES:
     ## Limits the area to be displayed for certain amenities (like parks). The limits should be defined in square meters
     areas_boundaries:
       parks:
-        small: [20000]
+        small: [1000]
         large: [300000]
       forest:
-        small: [20000]
+        small: [1000]
         large: [300000]
       heath:
-        small: [20000]
+        small: [1000]
         large: [300000]
 
     ##-------------------------------------Radius definition for POIS fusion------------------------------------##
