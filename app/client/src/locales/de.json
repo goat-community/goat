@@ -212,6 +212,7 @@
       "type": "Single",
       "searchBox": "Startpunkt suchen",
       "startTooltip": "Klicke auf den Button, um die Isochronenberechnung zu starten",
+      "ppfTooltip": "Klicke auf den Button, um die PPF-Berechnung zu starten",
       "tableDataTitle": "Thematische Daten"
     },
     "multiple": {

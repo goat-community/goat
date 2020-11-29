@@ -98,7 +98,7 @@
                   <v-icon color="#30C2FF">insights</v-icon>
                 </v-btn>
               </template>
-              <span>PPF Calculation</span>
+              <span>{{ $t("isochrones.single.ppfTooltip") }}</span>
             </v-tooltip>
           </span>
         </v-flex>

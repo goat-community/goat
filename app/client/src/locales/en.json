@@ -192,7 +192,8 @@
       "title": "Starting Point",
       "type": "Single",
       "searchBox": "Search Starting Point",
-      "startTooltip": "Click on button to start calculation.",
+      "startTooltip": "Click on button to start Isochrone calculation.",
+      "ppfTooltip": "Click on button to start PPF calculation.",
       "tableDataTitle": "Thematic Data"
     },
     "multiple": {

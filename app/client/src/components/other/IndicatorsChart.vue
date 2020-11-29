@@ -81,32 +81,8 @@ export default {
   },
   methods: {
     init() {
-      // this.addPlugin([
-      //   {
-      //     id: "bold-last-label",
-      //     beforeDraw: this.boldLabel
-      //   }
-      // ]);
       this.renderBarChart();
     },
-
-    // boldLabel: function({ chart }) {
-    //   chart.boxes
-    //     .find(box => box.id === "x-axis-0")
-    //     ._ticks.find(tick => tick.label === "Blue").major = true;
-    // },
-    // formatLabels: function(chart) {
-    //   chart.data.labels.forEach(function(value, index, array) {
-    //     var a = [];
-    //     a.push(value.slice(0, 5));
-    //     var i = 1;
-    //     while (value.length > i * 5) {
-    //       a.push(value.slice(i * 5, (i + 1) * 5));
-    //       i++;
-    //     }
-    //     array[index] = a;
-    //   });
-    // },
     renderBarChart: function() {
       this.renderChart(
         {
@@ -144,21 +120,21 @@ export default {
           // Find the correct color based on value
           let color;
           let colorPercentage;
-          if (value <= 20 && value >= 0) {
+          if (value >= 0 && value <= 20) {
             color = this.colors["very_bad"];
-            colorPercentage = ((value - 0) / (20 - 0)) * 100;
-          } else if (value <= 40 && value >= 21) {
+            colorPercentage = ((value - 0) / 20) * 100;
+          } else if (value > 20 && value <= 40) {
             color = this.colors["bad"];
-            colorPercentage = ((value - 21) / (40 - 21)) * 100;
-          } else if (value <= 60 && value >= 41) {
+            colorPercentage = ((value - 20) / 20) * 100;
+          } else if (value > 40 && value <= 60) {
             color = this.colors["medium"];
-            colorPercentage = ((value - 41) / (60 - 41)) * 100;
-          } else if (value <= 80 && value >= 61) {
+            colorPercentage = ((value - 40) / 20) * 100;
+          } else if (value > 60 && value <= 80) {
             color = this.colors["good"];
-            colorPercentage = ((value - 61) / (80 - 61)) * 100;
-          } else if (value <= 100 && value >= 81) {
+            colorPercentage = ((value - 60) / 20) * 100;
+          } else if (value > 80 && value <= 100) {
             color = this.colors["very_good"];
-            colorPercentage = ((value - 81) / (100 - 81)) * 100;
+            colorPercentage = ((value - 80) / 20) * 100;
           } else {
             // Fallback if there is not in range
             color = this.colors["default"];
