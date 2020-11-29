@@ -15,6 +15,9 @@ CREATE INDEX ON ways_offset_sidewalk USING gist(geom_right);
 --Table for visualization of the footpath width
 DROP TABLE IF EXISTS footpaths_union;
 CREATE TABLE footpaths_union AS
+SELECT x.* 
+FROM 
+(
 	SELECT o.geom_left AS geom, o.sidewalk,
 	CASE WHEN w.sidewalk_left_width IS NOT NULL 
 		THEN w.sidewalk_left_width
@@ -65,7 +68,10 @@ UNION
 	SELECT geom, sidewalk, width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 		incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified  
 	FROM ways
-	WHERE sidewalk IS NULL AND highway IN ('path','track','footway','steps','service','pedestrian');
+	WHERE sidewalk IS NULL AND highway IN ('path','track','footway','steps','service','pedestrian')
+) x, study_area s 
+WHERE ST_intersects(x.geom,s.geom);
+
 
 CREATE INDEX ON footpaths_union USING gist(geom);
 ALTER TABLE footpaths_union ADD COLUMN id serial;
