@@ -117,7 +117,7 @@ DROP TABLE IF EXISTS green_landuse;
 CREATE TABLE green_landuse (id serial, score numeric);
 INSERT INTO green_landuse
 WITH landuses AS (
-	SELECT * FROM landuse_osm lo WHERE landuse = ANY (array['greenfield','farmland','green','grass'])),
+	SELECT * FROM landuse_osm lo WHERE landuse = ANY (array['greenfield','farmland','green','grass','park','forest','meadow'])),
 touching_landuse AS (
 SELECT b.id, l.landuse AS landuse
 FROM buffer_test b
