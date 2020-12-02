@@ -1,4 +1,4 @@
---Returns all grids that are affected by a network change
+-- Returns all cell ids that are within a specified radius of the input geometry
 DROP FUNCTION IF EXISTS find_changed_grids;
 CREATE FUNCTION find_changed_grids(scenario_id_input integer, influencing_radius numeric) 
 RETURNS TABLE (starting_points float[][],gridids integer[]) AS 
@@ -43,9 +43,10 @@ BEGIN
 	CREATE INDEX ON buffer USING GIST(geom);
 
 	RETURN query
-	SELECT DISTINCT ARRAY_AGG(ARRAY[ST_X(st_centroid(g.geom))::float,ST_Y(ST_Centroid(g.geom))::float]) starting_points, array_agg(g.grid_id) AS grid_ids
+	SELECT ARRAY_AGG(ARRAY[ST_X(st_centroid(g.geom))::float,ST_Y(ST_Centroid(g.geom))::float]) starting_points, ARRAY_AGG(g.grid_id) AS grid_ids
 	FROM buffer b, grid_heatmap g
-	WHERE ST_Intersects(b.geom,ST_Centroid(g.geom));
+	WHERE ST_Intersects(b.geom,ST_Centroid(g.geom))
+	GROUP BY b.geom;
 
 END;
 $BODY$ LANGUAGE plpgsql;
