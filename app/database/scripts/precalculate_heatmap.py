@@ -149,23 +149,7 @@ gridids = cursor.fetchall()
 
 for i in gridids:
 	i = i[0]
-	cursor.execute(f'''UPDATE grid_heatmap SET area_isochrone = a.area_isochrone
-	FROM 
-	(
-		SELECT DISTINCT ST_AREA(ST_CONVEXHULL(ST_COLLECT(geom))::geography) AS area_isochrone
-		FROM 
-		(
-			SELECT st_startpoint(geom) geom  
-			FROM reached_edges_heatmap 
-			WHERE gridids && ARRAY[{i}]
-			UNION ALL 
-			SELECT st_endpoint(geom) geom  
-			FROM reached_edges_heatmap 
-			WHERE gridids && ARRAY[{i}]
-		) x
-	) a 
-	WHERE grid_id = {i};
-	'''	)	
+	cursor.execute(f'''SELECT compute_area_isochrone({i},0);''')	
 	con.commit()
 
 cursor.execute(sql_grid_population)
