@@ -14,6 +14,7 @@ CREATE TABLE public.scenarios
 	deleted_ways bigint[] DEFAULT '{}',
 	deleted_pois bigint[] DEFAULT '{}',
 	deleted_buildings bigint[] DEFAULT '{}',
+	ways_heatmap_computed boolean DEFAULT FALSE,
     CONSTRAINT scenarios_pkey PRIMARY KEY (scenario_id),
     CONSTRAINT scenario_fkey FOREIGN KEY (userid)
     REFERENCES user_data(userid) ON DELETE CASCADE
@@ -180,3 +181,14 @@ CREATE TABLE population_modified
 );
 
 CREATE INDEX ON population_modified USING GIST(geom);
+
+CREATE TABLE area_isochrones_scenario
+(
+	gid serial,
+	grid_id integer, 
+	area_isochrone NUMERIC, 
+	scenario_id integer,
+	CONSTRAINT area_isochrones_scenario_pkey PRIMARY KEY (gid),
+    CONSTRAINT area_isochrones_scenario_fkey FOREIGN KEY (scenario_id)
+    REFERENCES scenarios(scenario_id) ON DELETE CASCADE
+);
