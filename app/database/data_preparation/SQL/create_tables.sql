@@ -14,7 +14,7 @@ CREATE TABLE public.scenarios
 	deleted_ways bigint[] DEFAULT '{}',
 	deleted_pois bigint[] DEFAULT '{}',
 	deleted_buildings bigint[] DEFAULT '{}',
-	ways_heatmap_computed boolean DEFAULT FALSE,
+	ways_heatmap_computed boolean,
     CONSTRAINT scenarios_pkey PRIMARY KEY (scenario_id),
     CONSTRAINT scenario_fkey FOREIGN KEY (userid)
     REFERENCES user_data(userid) ON DELETE CASCADE
