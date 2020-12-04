@@ -1,10 +1,11 @@
 DROP FUNCTION IF EXISTS recompute_heatmap;
-CREATE OR REPLACE FUNCTION recompute_heatmap(userid_input integer, scenario_id_input integer)
+CREATE OR REPLACE FUNCTION recompute_heatmap(scenario_id_input integer)
   RETURNS SETOF VOID AS
 $func$
 DECLARE 
 	speed NUMERIC := 1.33;
 	max_cost NUMERIC := 1200.;
+	userid_input integer := (SELECT userid FROM scenarios WHERE scenario_id = scenario_id_input);
 BEGIN 
 	
 	DELETE FROM reached_edges_heatmap 
@@ -23,8 +24,11 @@ BEGIN
 	PERFORM compute_area_isochrone(UNNEST(gridids),scenario_id_input)
 	FROM changed_grids;
 	
+	UPDATE scenarios 
+	SET ways_heatmap_computed = TRUE 
+	WHERE scenario_id = scenario_id_input;
 	
 END 	
 $func$  LANGUAGE plpgsql;
 
-/*SELECT recompute_heatmap(2,2)*/
+/*SELECT recompute_heatmap(2)*/

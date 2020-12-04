@@ -1,13 +1,15 @@
-
 DROP FUNCTION IF EXISTS heatmap_connectivity;
 CREATE OR REPLACE FUNCTION public.heatmap_connectivity(modus_input text DEFAULT 'default', scenario_id_input integer DEFAULT 0)
  RETURNS TABLE(grid_id integer, percentile_area_isochrone integer, area_isochrone float, geom geometry)
  LANGUAGE plpgsql
 AS $function$
 DECLARE
-	borders_quintiles bigint[]; 
+	borders_quintiles numeric[]; 
 BEGIN
-
+	
+	IF (SELECT ways_heatmap_computed FROM scenarios WHERE scenario_id = scenario_id_input) = FALSE THEN 
+		PERFORM recompute_heatmap(scenario_id_input);
+	END IF; 
 	IF modus_input IN ('default','comparison') THEN   
 		DROP TABLE IF EXISTS grids_default; 
 		CREATE TEMP TABLE grids_default AS 
@@ -29,7 +31,7 @@ BEGIN
 			GROUP BY x.percentile_area_isochrone
 			ORDER BY x.percentile_area_isochrone
 		) b;
-	
+		
 		DROP TABLE IF EXISTS grids_scenario;
 		CREATE TEMP TABLE grids_scenario AS 
 		WITH grids_to_classify AS 
@@ -43,7 +45,8 @@ BEGIN
 			WHEN COALESCE(a.area_isochrone,0) >= borders_quintiles[5] THEN 5
 			END AS percentile_area_isochrone, a.area_isochrone
 			FROM area_isochrones_scenario a
-		) 
+			WHERE scenario_id = scenario_id_input
+		)
 		SELECT g.grid_id, 
 		CASE WHEN c.percentile_area_isochrone IS NULL THEN g.percentile_area_isochrone ELSE c.percentile_area_isochrone END AS percentile_area_isochrone, 
 		CASE WHEN c.area_isochrone IS NULL THEN g.area_isochrone ELSE c.area_isochrone END AS area_isochrone, g.geom
