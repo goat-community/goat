@@ -504,20 +504,6 @@
       },
       {
         "type": "WMS",
-        "name": "street_trees",
-        "url": "https://image.discomap.eea.europa.eu/arcgis/services/UrbanAtlas/STL/MapServer/WmsServer",
-        "group": "environmentalQualityLayers",
-        "layers": "STL Vector",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributions": "© <a href='https://land.copernicus.eu/'>Copernicus Land Monitoring Service</a>"
-      },
-      {
-        "type": "WMS",
         "name": "accidentsPedestrians",
         "url": "/geoserver/wms",
         "group": "additionalDataLayers",
