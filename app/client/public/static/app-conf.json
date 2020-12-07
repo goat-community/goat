@@ -694,13 +694,14 @@
         "name": "areaIsochrone",
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
-        "layers": "cite:heatmap_area_isochrone",
+        "layers": "cite:heatmap_connectivity",
         "opacity": 1,
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "viewparamsDynamicKeys": ["modus","scenario_id"]
       },
       {
         "type": "OSM",
