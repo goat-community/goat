@@ -75,13 +75,35 @@
           <Name>black</Name>
             <Title>
               black
+				<Localized lang="de">sehr stressig</Localized>
+            	<Localized lang="en">very stressful</Localized>
+          	</Title>
+          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>farbe</ogc:PropertyName>
+              <ogc:Literal>schwarz</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
+          </ogc:Filter>
+          <LineSymbolizer>
+            <Stroke>
+              <CssParameter name="stroke">#000000</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+              <CssParameter name="stroke-linecap">square</CssParameter>
+            </Stroke>
+          </LineSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>grey</Name>
+            <Title>
+              grey
 				<Localized lang="de">Lücke im Radnetz</Localized>
             	<Localized lang="en">Gap in the cycling network</Localized>
           	</Title>
           <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
             <ogc:PropertyIsEqualTo>
               <ogc:PropertyName>farbe</ogc:PropertyName>
-              <ogc:Literal>schwarz</ogc:Literal>
+              <ogc:Literal>grau</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
           <LineSymbolizer>
