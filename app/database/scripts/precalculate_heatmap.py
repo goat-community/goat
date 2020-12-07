@@ -143,6 +143,9 @@ for i in section_ids:
 
 print('Closest POIs calculation has finished after: %s s' % (time.time()-start-time_routing))
 
+#Compute Accessibility Values
+cursor.execute('SELECT compute_accessibility(0)')
+con.commit()
 #Loop for isochrone area calculation
 cursor.execute('select grid_id FROM grid_heatmap;')
 gridids = cursor.fetchall()
