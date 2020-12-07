@@ -504,24 +504,10 @@
       },
       {
         "type": "WMS",
-        "name": "street_trees",
-        "url": "https://image.discomap.eea.europa.eu/arcgis/services/UrbanAtlas/STL/MapServer/WmsServer",
-        "group": "environmentalQualityLayers",
-        "layers": "STL Vector",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributions": "© <a href='https://land.copernicus.eu/'>Copernicus Land Monitoring Service</a>"
-      },
-      {
-        "type": "WMS",
-        "name": "accidentsPedestrians",
+        "name": "accidentsPointsCyclists",
         "url": "/geoserver/wms",
         "group": "additionalDataLayers",
-        "layers": "cite:accidents_pedestrians",
+        "layers": "cite:accidents_cyclists",
         "opacity": 1,
         "visible": false,
         "canEdit": false,
@@ -533,10 +519,38 @@
       },
       {
         "type": "WMS",
-        "name": "accidentsCyclists",
+        "name": "accidents_bike_2018",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fahrrad_250_2018",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_bike_2017",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fahrrad_250_2017",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+      },
+      {
+        "type": "WMS",
+        "name": "accidentsPointsPedestrians",
         "url": "/geoserver/wms",
         "group": "additionalDataLayers",
-        "layers": "cite:accidents_cyclists",
+        "layers": "cite:accidents_pedestrians",
         "opacity": 1,
         "visible": false,
         "canEdit": false,
@@ -576,34 +590,6 @@
       },
       {
         "type": "WMS",
-        "name": "accidents_bike_2018",
-        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
-        "group": "additionalDataLayers",
-        "layers": "Beteiligung_Fahrrad_250_2018",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
-      },
-      {
-        "type": "WMS",
-        "name": "accidents_bike_2017",
-        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
-        "group": "additionalDataLayers",
-        "layers": "Beteiligung_Fahrrad_250_2017",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
-      },
-      {
-        "type": "WMS",
         "name": "bicycle_counting_stations",
         "url": "/geoserver/wms",
         "group": "additionalDataLayers",
@@ -633,10 +619,10 @@
       },
       {
         "type": "WMS",
-        "name": "walkability",
+        "name": "accessibilityPopulation",
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
-        "layers": "cite:heatmap",
+        "layers": "cite:heatmap_luptai",
         "opacity": 1,
         "queryable": false,
         "visible": false,
@@ -644,12 +630,12 @@
         "requiresPois": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
+        "docUrl": "https://www.open-accessibility.org/docs/walkability%20population%20heatmap/",
         "viewparamsDynamicKeys": ["scenario_id", "modus", "pois"],
         "styles": {
-          "default": "cite:style_heatmap",
-          "scenario": "cite:style_heatmap",
-          "comparison": "cite:style_heatmap_comparison"
+          "default": "cite:style_heatmap_luptai",
+          "scenario": "cite:style_heatmap_luptai",
+          "comparison": "cite:style_heatmap_luptai_comparison"
         }
       },
       {
@@ -671,10 +657,10 @@
       },
       {
         "type": "WMS",
-        "name": "walkabilityPopulation",
+        "name": "accessibility",
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
-        "layers": "cite:heatmap_luptai",
+        "layers": "cite:heatmap",
         "opacity": 1,
         "queryable": false,
         "visible": false,
@@ -682,16 +668,17 @@
         "requiresPois": true,
         "zIndex": 1,
         "serverType": "geoserver",
+        "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
         "viewparamsDynamicKeys": ["scenario_id", "modus", "pois"],
         "styles": {
-          "default": "cite:style_heatmap_luptai",
-          "scenario": "cite:style_heatmap_luptai",
-          "comparison": "cite:style_heatmap_luptai_comparison"
+          "default": "cite:style_heatmap",
+          "scenario": "cite:style_heatmap",
+          "comparison": "cite:style_heatmap_comparison"
         }
       },
       {
         "type": "WMS",
-        "name": "areaIsochrone",
+        "name": "connectivity",
         "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
         "layers": "cite:heatmap_connectivity",
@@ -735,6 +722,17 @@
         "visible": false,
         "displayInLayerList": true,
         "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
+      },
+      {
+        "type": "OSM", 
+        "name": "openTopoMap",
+        "url": "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png",
+        "group": "backgroundLayers",
+        "maxZoom": 19,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true,
+        "attributions": "Mapdata: © <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors, Basemap Visualization: © <a href='https://opentopomap.org/'> OpenTopoMap </a>"
       },
       {
         "type": "XYZ",
