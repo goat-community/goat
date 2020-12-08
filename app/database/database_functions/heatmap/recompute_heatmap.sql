@@ -1,3 +1,4 @@
+
 DROP FUNCTION IF EXISTS recompute_heatmap;
 CREATE OR REPLACE FUNCTION recompute_heatmap(scenario_id_input integer)
   RETURNS SETOF VOID AS
@@ -17,8 +18,8 @@ BEGIN
 	DROP TABLE IF EXISTS changed_grids;
 	CREATE TEMP TABLE changed_grids AS 
 	SELECT * FROM find_changed_grids(scenario_id_input,speed*max_cost);
-	
-	PERFORM public.pgrouting_edges_heatmap(ARRAY[max_cost], f.starting_points, speed, f.gridids, 2, 'walking_standard',userid_input, scenario_id_input,0)
+
+	PERFORM public.pgrouting_edges_heatmap(ARRAY[max_cost], f.starting_points, speed, f.gridids, 2, 'walking_standard',userid_input, scenario_id_input, section_id)
 	FROM changed_grids f;
 	
 	PERFORM compute_area_isochrone(UNNEST(gridids),scenario_id_input)

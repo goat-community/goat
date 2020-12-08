@@ -11,16 +11,7 @@ DECLARE
 	userid_vertex integer;
 	vids bigint[];
 BEGIN 
-	/*
-	IF modus_input IN(1,3)  THEN
-		userid_vertex = 1;
-		userid_input = 1;
-	ELSEIF modus_input = 2 THEN
-		userid_vertex = userid_input;
-	ELSEIF modus_input = 4 THEN  	 
-		userid_vertex = 1;
-	END IF;
-	*/
+
 	distance = cutoffs[array_upper(cutoffs, 1)] * speed;
 	
 	DROP TABLE IF EXISTS start_geoms;
@@ -72,28 +63,47 @@ BEGIN
 			Though apparently because of differences of metric and kartesian coordinate system the results where sligthly wrong (1-5%). Therefore the length of the partial link is comuted with ::geography*/
 			DROP TABLE IF EXISTS artificial_edges;
 			CREATE TEMP TABLE artificial_edges AS 
-			SELECT wid, 999999998-(1+ROW_NUMBER() OVER())*2 AS id, ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m as cost,reverse_cost*ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m AS reverse_cost,SOURCE,vid target,ST_LINESUBSTRING(geom,0,fraction) geom
+			SELECT wid, 999999998-(1+ROW_NUMBER() OVER())*2 AS id, cost*ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m as cost,reverse_cost*ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m AS reverse_cost,SOURCE,vid target,ST_LINESUBSTRING(geom,0,fraction) geom
 			FROM temp_fetched_ways w, start_vertices v 
 			WHERE w.id = v.wid
 			UNION ALL 
 			SELECT wid, 999999999-(1+ROW_NUMBER() OVER())*2 AS id, cost*(1-ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m) AS cost,reverse_cost*(1-ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m) AS reverse_cost,vid source,target,ST_LINESUBSTRING(geom,fraction,1) geom
 			FROM temp_fetched_ways w, start_vertices v 
-			WHERE w.id = v.wid;
-			
-			INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
-			SELECT a.id, a.cost, a.reverse_cost, a.source, a.target, a.geom 
-			FROM artificial_edges a;
+			WHERE w.id = v.wid;	
 		END IF;
+	END IF;
+	
+	IF heatmap_bulk_calculation = TRUE AND (SELECT count(*) FROM (SELECT * FROM reached_edges_heatmap LIMIT 1) x) IS NOT NULL THEN 
+		IF scenario_id_input = 0 THEN 
+			buffer_bulk = (SELECT ST_UNION(geom) FROM grid_heatmap);
+		ELSE
+			WITH grids_recompute AS 
+			(
+				SELECT UNNEST(gridids) grid_id
+				FROM changed_grids
+			)
+			SELECT ST_UNION(g.geom)
+			INTO buffer_bulk
+			FROM grid_heatmap g, grids_recompute r 
+			WHERE g.grid_id = r.grid_id;
+		END IF;
+	
+		DROP TABLE IF EXISTS fetched_ways_bulk;
+		CREATE TEMP TABLE fetched_ways_bulk AS 
+		SELECT *
+		FROM fetch_ways_routing(ST_ASTEXT(buffer_bulk),modus_input,scenario_id_input,speed,routing_profile);
+		CREATE INDEX ON fetched_ways_bulk USING GIST(geom);
+		PERFORM bulk_closest_edges(buffer_bulk);
+	END IF;
+	
+/*Handle artificial edges for single and multi-calculation*/
+	IF (SELECT count(*) FROM (SELECT vid FROM start_vertices LIMIT 2) v) = 1 THEN
+	/*Single*/
+		INSERT INTO temp_fetched_ways(id,cost,reverse_cost,source,target,geom)
+		SELECT a.id, a.cost, a.reverse_cost, a.source, a.target, a.geom 
+		FROM artificial_edges a;
 	ELSE 
-		IF (SELECT count(*) FROM (SELECT * FROM reached_edges_heatmap LIMIT 1) x) IS NOT NULL THEN 
-			buffer_bulk = (SELECT ST_ASTEXT(ST_UNION(geom)) FROM grid_heatmap);
-			DROP TABLE IF EXISTS fetched_ways_bulk;
-			CREATE TEMP TABLE fetched_ways_bulk AS 
-			SELECT *
-			FROM fetch_ways_routing(buffer_bulk,modus_input,scenario_id_input,speed,routing_profile);
-			CREATE INDEX ON fetched_ways_bulk USING GIST(geom);
-			PERFORM bulk_closest_edges();
-		END IF;
+	/*Multi*/
 		DROP TABLE IF EXISTS ways_to_replace;
 		CREATE TABLE ways_to_replace AS 
 		SELECT DISTINCT a.wid  
@@ -109,7 +119,6 @@ BEGIN
 		SELECT a.id, SOURCE, target, a.COST, a.reverse_cost, geom  
 		FROM artificial_edges a, ways_to_replace w 
 		WHERE a.wid = w.wid;
-		
 	END IF;
 
 END;
