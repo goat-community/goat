@@ -23,7 +23,7 @@ cursor.execute(prepare_tables % grid_size)
 
 sql_ordered_grid = '''
 DROP TABLE IF EXISTS compute_sections; 
-CREATE TEMP TABLE compute_sections AS
+CREATE TABLE compute_sections AS
 WITH b AS 
 (
 	SELECT ST_BUFFER(geom::geography, 1600)::geometry AS geom 
@@ -41,7 +41,7 @@ WHERE ST_Intersects(b.geom,g.geom);
 CREATE INDEX ON compute_sections USING GIST(geom);
 
 DROP TABLE IF EXISTS grid_ordered;
-CREATE TEMP TABLE grid_ordered AS 
+CREATE TABLE grid_ordered AS 
 SELECT starting_points, centroid, geom, grid_id, section_id, ROW_NUMBER() over() AS id 
 FROM (
     SELECT ARRAY[ST_X(st_centroid(g.geom))::numeric,ST_Y(ST_Centroid(g.geom))::numeric] starting_points, st_centroid(g.geom) centroid, g.geom, g.grid_id, c.section_id 
