@@ -7,6 +7,7 @@ DECLARE
 	pois_one_entrance text[] := select_from_variable_container('pois_one_entrance');
 	pois_more_entrances text[] := select_from_variable_container('pois_more_entrances');
 	excluded_pois_id integer[];
+	json_aois jsonb;
 BEGIN 
 
 IF modus IN(2,4) THEN
@@ -19,6 +20,19 @@ IF modus IN(1,3) THEN
 	scenario_id_input = 0;
 END IF; 
 
+--Calculate aoi areas
+WITH zz AS (
+	SELECT i.gid, count(*) as count, sum(ST_Area(st_intersection(i.geom,a.geom)::geography)::integer) as area, amenity
+	FROM isochrones i, aois a 
+	WHERE st_intersects(i.geom,a.geom)
+	GROUP BY i.gid, amenity 
+	)
+select gid, jsonb_build_object(amenity,jsonb_build_object('cnt',count::text,'area',area::text)), amenity 
+into json_aois
+from zz
+group by gid, count, area, amenity;
+
+--Calculate population and pois
 WITH yy AS (
 	WITH xx AS (
 		SELECT a.gid,sum(a.population)::integer+(5-(sum(a.population)::integer%5)) as sum_pop 
@@ -57,10 +71,10 @@ WITH yy AS (
 		GROUP BY i.gid,amenity,p.name) p
 	GROUP BY gid,amenity
 )
-UPDATE isochrones SET sum_pois = jsonb_object::text 
+UPDATE isochrones SET sum_pois = sum_output::text 
 FROM (
-SELECT gid,jsonb_object(array_agg(pois_type),array_agg(count::text)) FROM yy
-GROUP BY gid) x 
+SELECT yy.gid,jsonb_object(array_agg(yy.pois_type),array_agg(yy.count::text))||j.jsonb_build_object as sum_output FROM yy, json_aois j
+GROUP BY yy.gid,j.jsonb_build_object) x 
 WHERE isochrones.gid = x.gid;
 --Fill population column
 UPDATE isochrones 
