@@ -44,7 +44,9 @@
                       v-if="item.mapLayer.get('docUrl')"
                       class="documentation elevation-1"
                       @click.stop="openDocumentation(item)"
-                    ></div>
+                    >
+                      <i class="info-icon fas fa-info fa-sm"></i>
+                    </div>
                   </template>
                   <span>{{ $t(`map.tooltips.openDocumentation`) }}</span>
                 </v-tooltip>
@@ -302,5 +304,16 @@ export default {
   transform: rotate(45deg);
   z-index: 20;
   cursor: pointer;
+}
+.info-icon {
+  position: absolute;
+  top: 16px;
+  left: 18px;
+  color: white;
+  -webkit-transform: rotate(-45deg);
+  -moz-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+  -o-transform: rotate(-45deg);
+  transform: rotate(-45deg);
 }
 </style>

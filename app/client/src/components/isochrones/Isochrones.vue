@@ -31,7 +31,8 @@ import IsochroneStartMultiple from "./IsochroneStartMultiple";
 
 import {
   getIsochroneStyle,
-  getIsochroneNetworkStyle
+  getIsochroneNetworkStyle,
+  isochroneOverlayStyle
 } from "../../style/OlStyleDefs";
 
 //Store imports
@@ -70,6 +71,7 @@ export default {
       addStyleInCache: "ADD_STYLE_IN_CACHE",
       addIsochroneLayer: "ADD_ISOCHRONE_LAYER",
       addIsochroneNetworkLayer: "ADD_ISOCHRONE_ROAD_NETWORK_LAYER",
+      addIsochroneOverlayLayer: "ADD_ISOCHRONE_OVERLAY_LAYER",
       updatePosition: "UPDATE_POSITION"
     }),
     ...mapActions("isochrones", {
@@ -82,6 +84,7 @@ export default {
     onMapBound() {
       this.createIsochroneLayer();
       this.createIsochroneRoadNetworkLayer();
+      this.createIsochroneOverlayLayer();
       this.setUpCtxMenu();
     },
 
@@ -94,7 +97,7 @@ export default {
       const style = getIsochroneStyle(me.styleData, me.addStyleInCache);
       const vector = new VectorLayer({
         name: "Isochrone Layer",
-        zIndex: 7,
+        zIndex: 8,
         source: new VectorSource(),
         style: style
       });
@@ -111,12 +114,28 @@ export default {
       const style = getIsochroneNetworkStyle();
       const vector = new VectorImageLayer({
         name: "isochroneRoadNetworkLayer",
-        zIndex: 6,
+        zIndex: 7,
         source: new VectorSource(),
         style: style
       });
       me.map.addLayer(vector);
       this.addIsochroneNetworkLayer(vector);
+    },
+
+    /**
+     * Creates a vector layer for the isochrone calculations results and adds it to the
+     * map and store.
+     */
+    createIsochroneOverlayLayer() {
+      const me = this;
+      const vector = new VectorImageLayer({
+        name: "isochroneOverlayLayer",
+        zIndex: 7,
+        source: new VectorSource(),
+        style: isochroneOverlayStyle
+      });
+      me.map.addLayer(vector);
+      this.addIsochroneOverlayLayer(vector);
     },
 
     /**
