@@ -1,6 +1,9 @@
 #Code based on https://github.com/hackersandslackers/psycopg2-tutorial/blob/master/psycopg2_tutorial/db.py
 import psycopg2
 from log import LOGGER
+from postgis import Point, LineString, Polygon
+from postgis.psycopg import register
+
 
 class Database:
     """PostgreSQL Database class."""
@@ -68,4 +71,8 @@ class Database:
         cur.close()
         return result
         
-        
+    def cursor(self):
+        """This will return the query as string for testing"""
+        self.connect()
+        self.conn.cursor()
+        return self.conn.cursor()
