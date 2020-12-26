@@ -1,6 +1,37 @@
-#https://github.com/pramsey/minimal-mvt/blob/master/minimal-mvt.py
+# https://github.com/pramsey/minimal-mvt/blob/master/minimal-mvt.py
+import http.server
+import socketserver
+import re
+import psycopg2
+import json
+from urllib import parse
+from config import DATABASE
+
+# Table to query for MVT data, and columns to
+# include in the tiles.
+TABLE = {
+    'table':       'ways',
+    'srid':        '4326',
+    'geomColumn':  'geom',
+    'attrColumns': 'id, source'
+}
+
+TABLES = {
+    'heatmap_population': {
+        'srid': '4326',
+        'table': '''SELECT * FROM population_heatmap_geoserver(1,'default')''',
+        'geomColumn':  'geom',
+        'attrColumns': '*'
+    }
+}
+
+# HTTP server information
+HOST = 'localhost'
+PORT = 8080
+
 
 ########################################################################
+
 
 class TileRequestHandler(http.server.BaseHTTPRequestHandler):
 
@@ -10,30 +41,30 @@ class TileRequestHandler(http.server.BaseHTTPRequestHandler):
     def pathToTile(self, path):
         m = re.search(r'^\/(\d+)\/(\d+)\/(\d+)\.(\w+)', path)
         if (m):
-            return {'zoom':   int(m.group(1)), 
-                    'x':      int(m.group(2)), 
-                    'y':      int(m.group(3)), 
+            return {'zoom':   int(m.group(1)),
+                    'x':      int(m.group(2)),
+                    'y':      int(m.group(3)),
                     'format': m.group(4)}
         else:
             return None
 
-
-    # Do we have all keys we need? 
+    # Do we have all keys we need?
     # Do the tile x/y coordinates make sense at this zoom level?
+
     def tileIsValid(self, tile):
         if not ('x' in tile and 'y' in tile and 'zoom' in tile):
             return False
         if 'format' not in tile or tile['format'] not in ['pbf', 'mvt']:
             return False
-        size = 2 ** tile['zoom'];
+        size = 2 ** tile['zoom']
         if tile['x'] >= size or tile['y'] >= size:
             return False
         if tile['x'] < 0 or tile['y'] < 0:
             return False
         return True
 
-
     # Calculate envelope in "Spherical Mercator" (https://epsg.io/3857)
+
     def tileToEnvelope(self, tile):
         # Width of world in EPSG:3857
         worldMercMax = 20037508.3427892
@@ -53,27 +84,30 @@ class TileRequestHandler(http.server.BaseHTTPRequestHandler):
         env['ymax'] = worldMercMax - tileMercSize * (tile['y'])
         return env
 
-
     # Generate SQL to materialize a query envelope in EPSG:3857.
     # Densify the edges a little so the envelope can be
     # safely converted to other coordinate systems.
+
     def envelopeToBoundsSQL(self, env):
         DENSIFY_FACTOR = 4
         env['segSize'] = (env['xmax'] - env['xmin'])/DENSIFY_FACTOR
         sql_tmpl = 'ST_Segmentize(ST_MakeEnvelope({xmin}, {ymin}, {xmax}, {ymax}, 3857),{segSize})'
         return sql_tmpl.format(**env)
 
-
     # Generate a SQL query to pull a tile worth of MVT data
-    # from the table of interest.        
+    # from the table of interest.
+
     def envelopeToSQL(self, env):
-        tbl = TABLE.copy()
+        tbl = TABLES['heatmap_population'].copy()
         tbl['env'] = self.envelopeToBoundsSQL(env)
         # Materialize the bounds
         # Select the relevant geometry and clip to MVT bounds
         # Convert to MVT format
         sql_tmpl = """
             WITH 
+            layer_table as (
+             {table}
+            ),
             bounds AS (
                 SELECT {env} AS geom, 
                        {env}::box2d AS b2d
@@ -81,15 +115,15 @@ class TileRequestHandler(http.server.BaseHTTPRequestHandler):
             mvtgeom AS (
                 SELECT ST_AsMVTGeom(ST_Transform(t.{geomColumn}, 3857), bounds.b2d) AS geom, 
                        {attrColumns}
-                FROM {table} t, bounds
+                FROM layer_table t, bounds
                 WHERE ST_Intersects(t.{geomColumn}, ST_Transform(bounds.geom, {srid}))
             ) 
             SELECT ST_AsMVT(mvtgeom.*) FROM mvtgeom
         """
         return sql_tmpl.format(**tbl)
 
-
     # Run tile query SQL and return error on failure conditions
+
     def sqlToPbf(self, sql):
         # Make and hold connection to database
         if not self.DATABASE_CONNECTION:
@@ -106,25 +140,30 @@ class TileRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_error(404, "sql query failed: %s" % (sql))
                 return None
             return cur.fetchone()[0]
-        
+
         return None
 
-
     # Handle HTTP GET requests
-    def do_GET(self):
 
+    def do_GET(self):
+        path = self.path
+        # query_components = parse.parse_qsl(parse.urlsplit(path).query)
+        # layer_type = 'heatmap_population'
         tile = self.pathToTile(self.path)
+
         if not (tile and self.tileIsValid(tile)):
             self.send_error(400, "invalid tile path: %s" % (self.path))
             return
 
         env = self.tileToEnvelope(tile)
         sql = self.envelopeToSQL(env)
+        print(sql)
         pbf = self.sqlToPbf(sql)
 
-        self.log_message("path: %s\ntile: %s\n env: %s" % (self.path, tile, env))
+        self.log_message("path: %s\ntile: %s\n env: %s" %
+                         (self.path, tile, env))
         self.log_message("sql: %s" % (sql))
-        
+
         self.send_response(200)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Content-type", "application/vnd.mapbox-vector-tile")
@@ -132,8 +171,7 @@ class TileRequestHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(pbf)
 
 
-
-########################################################################
+#######################################################################
 
 
 with http.server.HTTPServer((HOST, PORT), TileRequestHandler) as server:
