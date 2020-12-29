@@ -47,6 +47,7 @@ def setup_db(setup_type):
    
     #Create extensions
     os.system(F'PGPASSFILE=~/.pgpass_{db_name_temp} psql -U {user} -h {host} -d {db_name_temp} -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION intarray;CREATE EXTENSION plpython3u;"')
+    os.system(F'PGPASSFILE=~/.pgpass_{db_name_temp} psql -U {user} -h {host} -d {db_name_temp} -c "CREATE EXTENSION arraymath;CREATE EXTENSION floatvec;"')
 
     #These extensions are needed when using the new DB-image
     os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} psql -U {user} -h {host} -d {db_name_temp} -c "CREATE EXTENSION postgis_raster;"')
@@ -119,6 +120,9 @@ def setup_db(setup_type):
         file.close()
         os.system('mv study_area_update.osm study_area.osm')
 
+    #Write timestamp in Variable container
+    db_temp.execute_text_psql(f"INSERT INTO variable_container(identifier, variable_simple) VALUES ('data_recency','{timestamp}')")
+    
     #Reduce files-size OSM-file
     os.system('osmconvert study_area.osm --drop-author --drop-version --out-osm -o=study_area_reduced.osm')
     os.system('rm study_area.osm | mv study_area_reduced.osm study_area.osm')
