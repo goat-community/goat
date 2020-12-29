@@ -156,11 +156,12 @@
         "name": "extentStudyarea",
         "url": "/geoserver/wms",
         "group": "buildings_landuse",
-        "layers": "cite:crop_study_area",
+        "layers": "cite:study_area_crop",
         "opacity": 0.5,
         "queryable": false,
         "visible": false,
         "displayInLayerList": false,
+        "displayInLegend": false,
         "zIndex": 4,
         "serverType": "geoserver"
       },
