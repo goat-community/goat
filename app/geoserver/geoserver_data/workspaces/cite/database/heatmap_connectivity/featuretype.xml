@@ -1,14 +1,14 @@
 <featureType>
-  <id>FeatureTypeInfoImpl--3f65a015:16fa49762dc:-7f66</id>
-  <name>crop_study_area</name>
-  <nativeName>crop_study_area</nativeName>
+  <id>FeatureTypeInfoImpl-5fbb33b3:17628dcf932:-7ffb</id>
+  <name>heatmap_connectivity</name>
+  <nativeName>heatmap_connectivity</nativeName>
   <namespace>
     <id>NamespaceInfoImpl--570ae188:124761b8d78:-7ff4</id>
   </namespace>
-  <title>crop_study_area</title>
+  <title>heatmap_connectivity</title>
   <keywords>
     <string>features</string>
-    <string>crop_study_area</string>
+    <string>heatmap_connectivity</string>
   </keywords>
   <nativeCRS>GEOGCS[&quot;WGS 84&quot;, 
   DATUM[&quot;World Geodetic System 1984&quot;, 
@@ -37,15 +37,27 @@
   <projectionPolicy>FORCE_DECLARED</projectionPolicy>
   <enabled>true</enabled>
   <metadata>
-    <entry key="elevation">
-      <dimensionInfo>
-        <enabled>false</enabled>
-      </dimensionInfo>
-    </entry>
-    <entry key="time">
-      <dimensionInfo>
-        <enabled>false</enabled>
-      </dimensionInfo>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>heatmap_connectivity</name>
+        <sql>SELECT * &#xd;
+FROM heatmap_connectivity(%modus%,%scenario_id%)
+</sql>
+        <escapeSql>false</escapeSql>
+        <geometry>
+          <name>geom</name>
+          <type>Geometry</type>
+          <srid>4326</srid>
+        </geometry>
+        <parameter>
+          <name>modus</name>
+          <defaultValue>&apos;default&apos;</defaultValue>
+        </parameter>
+        <parameter>
+          <name>scenario_id</name>
+          <defaultValue>0</defaultValue>
+        </parameter>
+      </virtualTable>
     </entry>
     <entry key="cachingEnabled">false</entry>
   </metadata>
