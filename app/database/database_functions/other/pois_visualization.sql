@@ -52,6 +52,9 @@ BEGIN
 END ;
 $function$
 
+COMMENT ON FUNCTION pois_visualization(scenario_id_input integer, amenities_input text[], routing_profile_input text, modus_input TEXT, d integer, h integer, m integer)
+IS '**FOR-API** RETURNS col_names[gid,amenity,name,osm_id,opening_hours,orgin_geometry,geom,status,wheelchair] **FOR-API**';
+
 /* SELECT * FROM 
 	(SELECT * FROM regexp_split_to_table(convert_from(decode('cmVzdGF1cmFudCxzdXBlcm1hcmtldA==','base64'),'UTF-8'), ',') AS amenity) x,
 	pois_visualization(x.amenity,'walking_wheelchair', 'comparison', 20, 15, 0);
