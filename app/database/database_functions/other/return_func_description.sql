@@ -9,6 +9,6 @@ $$
 	WHERE p.proname = func_name
 $$
 /*
-SELECT return_func_description('unnest_2d_1d')
-SELECT REPLACE(substring(return_func_description('heatmap_geoserver'),'\[(.*?)\]'),', geom','')
+    SELECT return_func_description('heatmap_geoserver')
+    SELECT REPLACE(substring(return_func_description('heatmap_geoserver'),'\[(.*?)\]'),', geom','')
 */
