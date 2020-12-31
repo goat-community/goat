@@ -120,9 +120,6 @@ def setup_db(setup_type):
         file.close()
         os.system('mv study_area_update.osm study_area.osm')
 
-    #Write timestamp in Variable container
-    db_temp.execute_text_psql(f"INSERT INTO variable_container(identifier, variable_simple) VALUES ('data_recency','{timestamp}')")
-    
     #Reduce files-size OSM-file
     os.system('osmconvert study_area.osm --drop-author --drop-version --out-osm -o=study_area_reduced.osm')
     os.system('rm study_area.osm | mv study_area_reduced.osm study_area.osm')
@@ -138,6 +135,10 @@ def setup_db(setup_type):
     db_temp.execute_script_psql('/opt/data_preparation/SQL/create_tables.sql')
     
     create_variable_container(db_name_temp,user,str(port),host,password)
+    
+    #Write timestamp in Variable container
+    db_temp.execute_text_psql(f"INSERT INTO variable_container(identifier, variable_simple) VALUES ('data_recency','{timestamp}')")
+    
     db_temp.execute_script_psql('/opt/data_preparation/SQL/types.sql')
     
     #Create functions that are needed for data_preparation
