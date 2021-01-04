@@ -9,25 +9,10 @@ from config import DATABASE
 
 # Table to query for MVT data, and columns to
 # include in the tiles.
-TABLE = {
-    'table':       'ways',
-    'srid':        '4326',
-    'geomColumn':  'geom',
-    'attrColumns': 'id, source'
-}
-
-TABLES = {
-    'heatmap_population': {
-        'srid': '4326',
-        'table': '''SELECT * FROM population_heatmap_geoserver(1,'default')''',
-        'geomColumn':  'geom',
-        'attrColumns': '*'
-    }
-}
 
 # HTTP server information
-HOST = 'localhost'
-PORT = 8080
+HOST = "localhost"
+PORT = 8082
 
 
 ########################################################################
@@ -39,12 +24,14 @@ class TileRequestHandler(http.server.BaseHTTPRequestHandler):
 
     # Search REQUEST_PATH for /{z}/{x}/{y}.{format} patterns
     def pathToTile(self, path):
-        m = re.search(r'^\/(\d+)\/(\d+)\/(\d+)\.(\w+)', path)
-        if (m):
-            return {'zoom':   int(m.group(1)),
-                    'x':      int(m.group(2)),
-                    'y':      int(m.group(3)),
-                    'format': m.group(4)}
+        m = re.search(r"^\/(\d+)\/(\d+)\/(\d+)\.(\w+)", path)
+        if m:
+            return {
+                "zoom": int(m.group(1)),
+                "x": int(m.group(2)),
+                "y": int(m.group(3)),
+                "format": m.group(4),
+            }
         else:
             return None
 
@@ -52,14 +39,14 @@ class TileRequestHandler(http.server.BaseHTTPRequestHandler):
     # Do the tile x/y coordinates make sense at this zoom level?
 
     def tileIsValid(self, tile):
-        if not ('x' in tile and 'y' in tile and 'zoom' in tile):
+        if not ("x" in tile and "y" in tile and "zoom" in tile):
             return False
-        if 'format' not in tile or tile['format'] not in ['pbf', 'mvt']:
+        if "format" not in tile or tile["format"] not in ["pbf", "mvt"]:
             return False
-        size = 2 ** tile['zoom']
-        if tile['x'] >= size or tile['y'] >= size:
+        size = 2 ** tile["zoom"]
+        if tile["x"] >= size or tile["y"] >= size:
             return False
-        if tile['x'] < 0 or tile['y'] < 0:
+        if tile["x"] < 0 or tile["y"] < 0:
             return False
         return True
 
@@ -71,17 +58,17 @@ class TileRequestHandler(http.server.BaseHTTPRequestHandler):
         worldMercMin = -1 * worldMercMax
         worldMercSize = worldMercMax - worldMercMin
         # Width in tiles
-        worldTileSize = 2 ** tile['zoom']
+        worldTileSize = 2 ** tile["zoom"]
         # Tile width in EPSG:3857
         tileMercSize = worldMercSize / worldTileSize
         # Calculate geographic bounds from tile coordinates
         # XYZ tile coordinates are in "image space" so origin is
         # top-left, not bottom right
         env = dict()
-        env['xmin'] = worldMercMin + tileMercSize * tile['x']
-        env['xmax'] = worldMercMin + tileMercSize * (tile['x'] + 1)
-        env['ymin'] = worldMercMax - tileMercSize * (tile['y'] + 1)
-        env['ymax'] = worldMercMax - tileMercSize * (tile['y'])
+        env["xmin"] = worldMercMin + tileMercSize * tile["x"]
+        env["xmax"] = worldMercMin + tileMercSize * (tile["x"] + 1)
+        env["ymin"] = worldMercMax - tileMercSize * (tile["y"] + 1)
+        env["ymax"] = worldMercMax - tileMercSize * (tile["y"])
         return env
 
     # Generate SQL to materialize a query envelope in EPSG:3857.
@@ -90,16 +77,16 @@ class TileRequestHandler(http.server.BaseHTTPRequestHandler):
 
     def envelopeToBoundsSQL(self, env):
         DENSIFY_FACTOR = 4
-        env['segSize'] = (env['xmax'] - env['xmin'])/DENSIFY_FACTOR
-        sql_tmpl = 'ST_Segmentize(ST_MakeEnvelope({xmin}, {ymin}, {xmax}, {ymax}, 3857),{segSize})'
+        env["segSize"] = (env["xmax"] - env["xmin"]) / DENSIFY_FACTOR
+        sql_tmpl = "ST_Segmentize(ST_MakeEnvelope({xmin}, {ymin}, {xmax}, {ymax}, 3857),{segSize})"
         return sql_tmpl.format(**env)
 
     # Generate a SQL query to pull a tile worth of MVT data
     # from the table of interest.
 
     def envelopeToSQL(self, env):
-        tbl = TABLES['heatmap_population'].copy()
-        tbl['env'] = self.envelopeToBoundsSQL(env)
+        tbl = self.metadata.copy()
+        tbl["env"] = self.envelopeToBoundsSQL(env)
         # Materialize the bounds
         # Select the relevant geometry and clip to MVT bounds
         # Convert to MVT format
@@ -124,7 +111,7 @@ class TileRequestHandler(http.server.BaseHTTPRequestHandler):
 
     # Run tile query SQL and return error on failure conditions
 
-    def sqlToPbf(self, sql):
+    def queryDb(self, sql):
         # Make and hold connection to database
         if not self.DATABASE_CONNECTION:
             try:
@@ -140,17 +127,14 @@ class TileRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_error(404, "sql query failed: %s" % (sql))
                 return None
             return cur.fetchone()[0]
-
         return None
-
-    # Handle HTTP GET requests
 
     def do_GET(self):
         path = self.path
+
         # query_components = parse.parse_qsl(parse.urlsplit(path).query)
         # layer_type = 'heatmap_population'
         tile = self.pathToTile(self.path)
-
         if not (tile and self.tileIsValid(tile)):
             self.send_error(400, "invalid tile path: %s" % (self.path))
             return
@@ -158,10 +142,9 @@ class TileRequestHandler(http.server.BaseHTTPRequestHandler):
         env = self.tileToEnvelope(tile)
         sql = self.envelopeToSQL(env)
         print(sql)
-        pbf = self.sqlToPbf(sql)
+        pbf = self.queryDb(sql)
 
-        self.log_message("path: %s\ntile: %s\n env: %s" %
-                         (self.path, tile, env))
+        self.log_message("path: %s\ntile: %s\n env: %s" % (self.path, tile, env))
         self.log_message("sql: %s" % (sql))
 
         self.send_response(200)
@@ -178,8 +161,12 @@ with http.server.HTTPServer((HOST, PORT), TileRequestHandler) as server:
     try:
         print("serving at port", PORT)
         server.serve_forever()
+        metadata = self.queryDb("""SELECT * FROM layer_metadata""")
+        if metadata:
+            self.metadata = metadata
+            print(metadata["buildings"]["columns"])
     except KeyboardInterrupt:
         if self.DATABASE_CONNECTION:
             self.DATABASE_CONNECTION.close()
-        print('^C received, shutting down server')
+        print("^C received, shutting down server")
         server.socket.close()
