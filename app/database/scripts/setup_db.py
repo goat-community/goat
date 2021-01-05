@@ -17,8 +17,7 @@ def setup_db(setup_type):
     from scripts.db_functions import bulk_compute_slope
 
     download_link,osm_data_recency,buffer,extract_bbox,source_population,additional_walkability_layers,osm_mapping_feature = ReadYAML().data_source()
-    compute_slope_impedance = ReadYAML().data_refinement()["variable_container"]["compute_slope_impedance"]
-
+    compute_slope_impedance = ReadYAML().data_refinement()["variable_container"]["compute_slope_impedance"][1:-1]
     db_name,user,host,port,password = ReadYAML().db_credentials()
     db_name_temp = db_name+'temp'
 
