@@ -6,7 +6,7 @@
     class="thematic-data elevation-4"
     id="isochroneWindowId"
     :style="[isExpanded ? { height: '400px' } : { height: '50px' }]"
-    style="position:fixed;top:10px;left:360px;z-index:2;max-width:370px;min-width:370px;height:450px;overflow:hidden;"
+    style="position:fixed;top:10px;left:360px;z-index:2;max-width:440px;min-width:370px;height:450px;overflow:hidden;"
   >
     <v-layout justify-space-between column fill-height>
       <v-app-bar
@@ -168,25 +168,31 @@ export default {
             text: this.$t("isochrones.tableData.table.isochrone"),
             value: "isochrone",
             sortable: false,
-            width: "32%"
+            width: "25%"
           },
           {
             text: this.$t("isochrones.tableData.table.studyArea"),
             value: "studyArea",
             sortable: false,
-            width: "18%"
+            width: "15%"
           },
           {
             text: this.$t("isochrones.tableData.table.population"),
             value: "population",
             sortable: false,
-            width: "25%"
+            width: "20%"
           },
           {
             text: this.$t("isochrones.tableData.table.reachedPopulation"),
             value: "reachPopulation",
             sortable: false,
-            width: "25%"
+            width: "20%"
+          },
+          {
+            text: this.$t("isochrones.tableData.table.shared"),
+            value: "shared",
+            sortable: false,
+            width: "20%"
           }
         ];
       }

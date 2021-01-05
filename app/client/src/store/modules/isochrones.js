@@ -4,6 +4,7 @@ import axios from "axios";
 import { getField, updateField } from "vuex-map-fields";
 import { toStringHDMS } from "ol/coordinate";
 import { transform } from "ol/proj.js";
+import { fromLonLat } from "ol/proj";
 
 import {
   geojsonToFeature,
@@ -51,6 +52,7 @@ const state = {
   isochroneLayer: null,
   selectionLayer: null,
   isochroneRoadNetworkLayer: null,
+  isochroneOverlayLayer: null, // For multi-isochrone study area display and starting points.
   isThematicDataVisible: false,
   selectedThematicData: null,
   studyAreaLayer: null,
@@ -75,6 +77,7 @@ const getters = {
   isochroneLayer: state => state.isochroneLayer,
   studyAreaLayer: state => state.studyAreaLayer,
   isochroneRoadNetworkLayer: state => state.isochroneRoadNetworkLayer,
+  isochroneOverlayLayer: state => state.isochroneOverlayLayer,
   selectionLayer: state => state.selectionLayer,
   styleData: state => state.styleData,
   isThematicDataVisible: state => state.isThematicDataVisible,
@@ -128,6 +131,7 @@ const actions = {
     // Multi isochrone regions
     let region;
     let regionType;
+    let selectedRegions = [];
     //
     if (calculationType === "single") {
       iconMarkerFeature = new Feature({
@@ -149,6 +153,11 @@ const actions = {
     } else {
       regionType = state.multiIsochroneCalculationMethods.active;
       const regionFeatures = state.selectionLayer.getSource().getFeatures();
+      regionFeatures.forEach(f => {
+        const clonedFeature = f.clone();
+        clonedFeature.set("calculationNumber", state.calculations.length + 1);
+        selectedRegions.push(clonedFeature);
+      });
       region = regionFeatures
         .map(feature => {
           if (regionType === "draw") {
@@ -347,6 +356,19 @@ const actions = {
       transformedData.position = "multiIsochroneCalculation";
       transformedData.region = region;
       transformedData.region_type = `'${regionType}'`;
+      // Add region and starting points to isochrone overlay layer.
+      isochrones.features.forEach(feature => {
+        if (feature.properties.coordinates) {
+          feature.properties.coordinates.forEach(coordinate => {
+            const feature = new Feature({
+              geometry: new Point(fromLonLat(coordinate)),
+              calculationNumber
+            });
+            state.isochroneOverlayLayer.getSource().addFeature(feature);
+          });
+        }
+      });
+      state.isochroneOverlayLayer.getSource().addFeatures(selectedRegions);
     }
 
     commit("CALCULATE_ISOCHRONE", transformedData);
@@ -622,6 +644,9 @@ const mutations = {
   ADD_ISOCHRONE_ROAD_NETWORK_LAYER(state, layer) {
     state.isochroneRoadNetworkLayer = layer;
   },
+  ADD_ISOCHRONE_OVERLAY_LAYER(state, layer) {
+    state.isochroneOverlayLayer = layer;
+  },
   ADD_SELECTION_LAYER(state, layer) {
     state.selectionLayer = layer;
   },
@@ -671,6 +696,18 @@ const mutations = {
         });
       }
     });
+    // Remove and update isochrone overlay features
+    const isochroneOverlayerLayerSource = state.isochroneOverlayLayer.getSource();
+    isochroneOverlayerLayerSource.getFeatures().forEach(feature => {
+      if (feature.get("calculationNumber") === id) {
+        isochroneOverlayerLayerSource.removeFeature(feature);
+      } else {
+        if (feature.get("calculationNumber") > id) {
+          feature.set("calculationNumber", id - 1);
+        }
+      }
+    });
+    state.isochroneOverlayLayer.changed();
   },
   ADD_ISOCHRONE_FEATURES(state, features) {
     if (state.isochroneLayer) {
