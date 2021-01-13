@@ -1,28 +1,28 @@
-CREATE
-OR REPLACE VIEW layer_metadata AS WITH metadata AS (
-      SELECT
-            p.proname,
-            regexp_replace(
-                  d.description,
-                  '\*\*FOR\-API\*\*|\]|\[|RETURNS col_names|geom,|geom|geometry,|geometry|origin_geometry,|origin_geometry|\s',
-                  '',
-                  'g'
-            ) as "columns",
-            'function' AS layer_type,
-            'geom' AS geom_columns,
-            '4326' AS srid
-      FROM
-            pg_proc p
-            LEFT JOIN pg_description d ON d.objoid = p.oid
-      WHERE
-            description LIKE '%**FOR-API**%'
-      UNION
+CREATE OR REPLACE VIEW layer_metadata AS
+WITH metadata AS (
+        SELECT
+                p.proname,
+                regexp_replace(
+                      d.description,
+                      '\*\*FOR\-API\*\*|\]|\[|RETURNS col_names|geom,|geom|geometry,|geometry|origin_geometry,|origin_geometry|\s',
+                      '',
+                      'g'
+                ) as "columns",
+                'function' AS layer_type,
+                'geom' AS geom_columns,
+                '4326' AS srid,
+                string_to_array(regexp_replace(regexp_replace(pg_catalog.pg_get_function_identity_arguments(p.oid),' [^,]+, ', ',','g'),'| [^, [^,]+', '','g'), ',') AS args
+          FROM pg_proc p
+          LEFT JOIN pg_description d ON d.objoid = p.oid
+          WHERE description LIKE '%**FOR-API**%'
+      UNION ALL
       SELECT
             t.table_name AS "proname",
-            string_agg(c2.column_name, ',') AS "columns",
+            string_agg(quote_nullable(c2.column_name), ',') AS "columns",
             'table' AS layer_type,
             'geom' AS geom_columns,
-            '4326' AS srid
+            '4326' AS srid,
+            NULL
       FROM
             information_schema.tables t
             JOIN information_schema.columns c ON c.table_name = t.table_name
@@ -40,7 +40,7 @@ OR REPLACE VIEW layer_metadata AS WITH metadata AS (
 json_rows AS (
       SELECT
             proname,
-            json_build_object(
+            jsonb_build_object(
                   'columns',
                   "columns",
                   'layer_type',
@@ -48,12 +48,15 @@ json_rows AS (
                   'geom',
                   geom_columns,
                   'srid',
-                  srid
+                  srid,
+                  'args',
+                  args
             ) AS json_data
       FROM
             metadata
 )
-SELECT
-      json_object_agg(proname, json_data)
-FROM
-      json_rows
+SELECT jsonb_object_agg(proname, json_data) metadata
+FROM json_rows
+
+
+SELECT * FROM layer_metadata lm 

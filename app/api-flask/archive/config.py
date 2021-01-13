@@ -6,11 +6,11 @@ with open(os.path.dirname(__file__) + "/../../config/db/db_dev.yaml", 'r') as st
 
 
 # Config Database
-DATABASE_HOST = db_conf["HOST"]
-DATABASE_USERNAME = db_conf["USER"]
-DATABASE_PASSWORD = db_conf["PASSWORD"]
-DATABASE_PORT = db_conf["PORT"]
-DATABASE_NAME = db_conf["DB_NAME"]
+DATABASE_HOST = os.getenv('HOST', default=db_conf["HOST"])
+DATABASE_USERNAME = os.getenv('USER', default=db_conf["USER"])
+DATABASE_PASSWORD = os.getenv('PASSWORD', default=db_conf["PASSWORD"])
+DATABASE_PORT = os.getenv('PORT', default=db_conf["PORT"])
+DATABASE_NAME = os.getenv('DB_NAME', default=db_conf["DB_NAME"])
 
 DATABASE = {
     'user':     db_conf["USER"],
