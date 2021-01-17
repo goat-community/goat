@@ -21,16 +21,25 @@ IF modus IN(1,3) THEN
 END IF; 
 
 --Calculate aoi areas
-WITH zz AS (
-	SELECT i.gid, count(*) as count, sum(ST_Area(st_intersection(i.geom,a.geom)::geography)::integer) as area, amenity
-	FROM isochrones i, aois a 
-	WHERE st_intersects(i.geom,a.geom)
-	GROUP BY i.gid, amenity 
-	)
-select gid, jsonb_build_object(amenity,jsonb_build_object('cnt',count::text,'area',area::text)), amenity 
-into json_aois
-from zz
-group by gid, count, area, amenity;
+DROP TABLE IF EXISTS aois_json;
+CREATE TABLE aois_json AS 
+WITH area_cnt AS 
+(
+	SELECT i.gid, amenity, count(*) as cnt, intersec.area 
+	FROM isochrones i, aois a, LATERAL (SELECT ST_Area(st_intersection(i.geom,a.geom)::geography)::integer area) AS intersec  
+	WHERE objectid = input_objectid
+	AND st_intersects(i.geom,a.geom)
+	GROUP BY i.gid, amenity, name, intersec.area
+),
+json_area_cnt AS
+(
+	SELECT p.gid, jsonb_build_object(p.amenity,jsonb_build_object('cnt',sum(cnt),'area',sum(area))) AS aois_json
+	FROM area_cnt p 
+	GROUP BY p.gid, p.amenity
+)
+SELECT gid, jsonb_agg(aois_json) aois_json_agg
+FROM json_area_cnt
+GROUP BY gid; 
 
 --Calculate population and pois
 WITH yy AS (
@@ -70,12 +79,22 @@ WITH yy AS (
 		AND p.gid NOT IN (SELECT UNNEST(excluded_pois_id))
 		GROUP BY i.gid,amenity,p.name) p
 	GROUP BY gid,amenity
+),
+json_amenities AS 
+(
+	SELECT yy.gid,jsonb_object(array_agg(yy.pois_type),array_agg(yy.count::text)) 
+	FROM yy
+	GROUP by yy.gid
 )
-UPDATE isochrones SET sum_pois = sum_output::text 
+UPDATE isochrones i 
+SET sum_pois = m.sum_output::text
 FROM (
-SELECT yy.gid,jsonb_object(array_agg(yy.pois_type),array_agg(yy.count::text))||j.jsonb_build_object as sum_output FROM yy, json_aois j
-GROUP BY yy.gid,j.jsonb_build_object) x 
-WHERE isochrones.gid = x.gid;
+	SELECT t.gid, (t.jsonb_object || a.aois_json_agg) AS sum_output
+	FROM json_amenities t, aois_json a 
+	WHERE t.gid = a.gid 
+) m
+WHERE m.gid = i.gid;
+
 --Fill population column
 UPDATE isochrones 
 SET population = (sum_pois::jsonb->>'population')::integer 
