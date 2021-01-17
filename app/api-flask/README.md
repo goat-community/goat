@@ -1,0 +1,1 @@
+flask\Scripts\pip install -r requirements.txt

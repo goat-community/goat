@@ -1,8 +1,12 @@
+import os
 from db import Database
 from log import LOGGER
+from psycopg2 import sql
+
 
 # Create database class
 db = Database()
+
 
 def recompute_heatmap(scenario_id):
     """Function to recompute heatmap when network is changed."""
@@ -11,11 +15,12 @@ def recompute_heatmap(scenario_id):
 
     speed = 1.33
     max_cost = 1200
-    
-    """Get userid for particular scenario_id"""
-    userid = db.select('''SELECT userid FROM scenarios WHERE scenario_id = %(scenario_id)s''',{"scenario_id": scenario_id})[0][0]
-            
-    """Clean tables and define changed grids"""
+
+    # """Get userid for particular scenario_id"""
+    userid = db.select('''SELECT userid FROM scenarios WHERE scenario_id = %(scenario_id)s''', {
+                       "scenario_id": scenario_id})[0][0]
+
+    # """Clean tables and define changed grids"""
     db.perform('''DELETE FROM reached_edges_heatmap 
 	WHERE scenario_id = %(scenario_id)s;
 
@@ -24,19 +29,20 @@ def recompute_heatmap(scenario_id):
 	
 	DROP TABLE IF EXISTS changed_grids;
 	CREATE TEMP TABLE changed_grids AS 
-	SELECT * FROM find_changed_grids(%(scenario_id)s,%(speed)s*%(max_cost)s);''',{"scenario_id": scenario_id,"speed": speed,"max_cost": max_cost})
-    
-    """Select changed grids"""
-    changed_grids = db.select('SELECT starting_points, gridids, section_id FROM changed_grids;')
-    
-    """Loop throuch section and recompute grids"""
+	SELECT * FROM find_changed_grids(%(scenario_id)s,%(speed)s*%(max_cost)s);''', {"scenario_id": scenario_id, "speed": speed, "max_cost": max_cost})
+
+    # """Select changed grids"""
+    changed_grids = db.select(
+        'SELECT starting_points, gridids, section_id FROM changed_grids;')
+
+    # """Loop throuch section and recompute grids"""
     for i in changed_grids:
         print(i[2])
-        
+
         db.perform('''SELECT pgrouting_edges_heatmap(%(max_cost)s, 
         %(starting_points)s, %(speed)s, %(gridids)s, 2, 
         'walking_standard',%(userid)s, %(scenario_id)s, %(section_id)s)''',
-        {"max_cost": [max_cost], "starting_points": i[0], "speed": speed, "gridids": i[1], "userid": userid, "scenario_id": scenario_id, "section_id": i[2]})
+                   {"max_cost": [max_cost], "starting_points": i[0], "speed": speed, "gridids": i[1], "userid": userid, "scenario_id": scenario_id, "section_id": i[2]})
 
     gridids = db.select("""SELECT UNNEST(gridids) FROM changed_grids""")
     
