@@ -1,3 +1,4 @@
+
 DROP FUNCTION IF EXISTS isochrones_alphashape;
 CREATE OR REPLACE FUNCTION public.isochrones_alphashape(userid_input integer, scenario_id_input integer, minutes integer, x numeric, y numeric, n integer, speed numeric, shape_precision numeric, modus integer, objectid_input integer, parent_id_input integer, routing_profile text)
  RETURNS SETOF type_isochrone
@@ -40,7 +41,7 @@ begin
 		WHERE COST <= i
 		AND objectid = objectid_input; 
 		
-		new_iso_geom = ST_SETSRID(st_geomfromtext('POLYGON(('||REPLACE(plv8_concaveman(),',4',' 4')||'))'),4326);
+		new_iso_geom = ST_SETSRID(st_geomfromtext('POLYGON((' || regexp_replace(plv8_concaveman(),',(.*?(?:,|$))',' \1','g') || '))'),4326);
 
 	  	INSERT INTO isos 
 	  	SELECT userid_input, scenario_id_input, counter, i/60, 
