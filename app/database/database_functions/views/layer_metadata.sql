@@ -18,7 +18,7 @@ WITH metadata AS (
       UNION ALL
       SELECT
             t.table_name AS "proname",
-            string_agg(quote_nullable(c2.column_name), ',') AS "columns",
+            string_agg(concat('"',c2.column_name,'"'), ',') AS "columns",
             'table' AS layer_type,
             'geom' AS geom_columns,
             '4326' AS srid,
@@ -57,6 +57,3 @@ json_rows AS (
 )
 SELECT jsonb_object_agg(proname, json_data) metadata
 FROM json_rows
-
-
-SELECT * FROM layer_metadata lm 
