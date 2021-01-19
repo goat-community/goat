@@ -1,10 +1,11 @@
+
 CREATE OR REPLACE VIEW layer_metadata AS
 WITH metadata AS (
         SELECT
                 p.proname,
                 regexp_replace(
                       d.description,
-                      '\*\*FOR\-API\*\*|\]|\[|RETURNS col_names|geom,|geom|geometry,|geometry|origin_geometry,|origin_geometry|\s',
+                      '\*\*FOR\-API\-FUNCTION\*\*|\]|\[|RETURNS col_names|geom,|,geom|geom|geometry,|,geometry|geometry|origin_geometry,|origin_geometry|\s',
                       '',
                       'g'
                 ) as "columns",
@@ -14,7 +15,7 @@ WITH metadata AS (
                 string_to_array(regexp_replace(regexp_replace(pg_catalog.pg_get_function_identity_arguments(p.oid),' [^,]+, ', ',','g'),'| [^, [^,]+', '','g'), ',') AS args
           FROM pg_proc p
           LEFT JOIN pg_description d ON d.objoid = p.oid
-          WHERE description LIKE '%**FOR-API**%'
+          WHERE description LIKE '%**FOR-API-FUNCTION**%'
       UNION ALL
       SELECT
             t.table_name AS "proname",
@@ -57,3 +58,7 @@ json_rows AS (
 )
 SELECT jsonb_object_agg(proname, json_data) metadata
 FROM json_rows
+
+
+
+SELECT * FROM layer_metadata lm 
