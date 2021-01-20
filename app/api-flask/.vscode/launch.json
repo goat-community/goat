@@ -11,7 +11,7 @@
             "pathMappings": [
                 {
                     "localRoot": "${workspaceFolder}",
-                    "remoteRoot": "${workspaceFolder}/app.py"
+                    "remoteRoot": "/usr/src/app"
                 }
             ],
             "port": 3000,
@@ -19,12 +19,12 @@
             "internalConsoleOptions": "neverOpen"
         },
         {
-            "name": "Python: Flask",
+            "name": "Python: Flask (Local)",
             "type": "python",
             "request": "launch",
             "module": "flask",
             "env": {
-                "FLASK_APP": "${workspaceFolder}/app.py"
+                "FLASK_APP": "${workspaceFolder}/src/app.py"
             },
             "args": [
                 "run",
