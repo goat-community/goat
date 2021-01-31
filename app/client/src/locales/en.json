@@ -17,12 +17,13 @@
     "buttons": {
       "login": "Login",
       "print": "Print",
-      "drawAndMeasure": "Draw and Measure",
+      "drawAndMeasure": "Measure",
       "filter": "Thematic Data Filter",
       "edit": "Draw scenario",
       "settings": "Language",
       "info": "Visit GOAT Homepage",
-      "osmMapMode": "OSM Map Mode"
+      "osmMapMode": "OSM Map Mode",
+      "about": "About"
     },
     "login": {
       "title": "Login",
@@ -175,8 +176,15 @@
     },
     "about": {
       "title": "About GOAT",
-      "content": "stands for Geo Open Accessibility Tool. This web-tool is meant to be open source, interactive, flexible and useful for accessibility planning. It is under development at the Chair for Urban Structure and Transport Planning at TUM.....",
-      "moreInfo": "More Info"
+      "whatIs": "<span><strong>What is GOAT?</strong></span>\n<p>Geo Open Accessibility Tool, or simply GOAT, is an open-source web tool that is interactive, flexible, and practical for accessibility planning. Currently under development at the&nbsp;<a href=\"https://www.bgu.tum.de/sv/startseite/\">Chair for Urban Structure and Transport Planning at TUM</a>, GOAT is capable of modeling walking and cycling accessibility. Frequent enhancements are made to improve its performance and add additional functionality.</p>",
+      "usedData": "<span><strong>Used Data</strong></span><p>GOAT uses mainly Open Data. The following data sets are either displayed in the different layers or used in the background to perform the analysis:&nbsp;</p>",
+      "license": "<span><strong>Licence</strong></span>\n<p>GOAT is licensed under GPL-3.0<br /><span>If you use GOAT for your analysis, please cite them as:&nbsp;</span><br /><span><strong>Geo Open Accessibility Tool - GOAT (Version 0.8) [Webtool]. Retrieved from&nbsp;<a  href=\"https://muenchen.open-accessibility.org/\" rel=\"nofollow\">https://muenchen.open-accessibility.org/</a></strong></span></p>\n",
+      "moreInfo": "More Info",
+      "layerAttributeTable": {
+        "data": "Layers",
+        "source": "Source",
+        "yearTimestamp": "Year / Timestamp"
+      }
     },
     "documentation": {
       "title": "Documentation",
@@ -264,7 +272,8 @@
         "isochrone": "Isochrone",
         "studyArea": "Study Area",
         "population": "Population",
-        "reachedPopulation": "Reached Population"
+        "reachedPopulation": "Reached Population",
+        "shared": "Shared"
       }
     },
     "isochrones": "Isochrones",
@@ -279,7 +288,9 @@
     },
     "additionalLayers": {
       "defaultNetwork": "Default Road Network",
-      "inputNetwork": "Input Road Network"
+      "inputNetwork": "Input Road Network",
+      "studyArea": "Study Area",
+      "startingPoints": "Starting Points"
     },
     "pickColor": {
       "title": "Isochrone Color"

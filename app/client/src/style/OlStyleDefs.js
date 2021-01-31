@@ -446,6 +446,30 @@ export function getFeatureHighlightStyle() {
   ];
 }
 
+export function isochroneOverlayStyle(feature) {
+  if (feature.get("isVisible") === false) {
+    return [];
+  } else {
+    return [
+      new OlStyle({
+        fill: new OlFill({
+          color: "rgba(255, 0, 0, 0.3)"
+        }),
+        stroke: new OlStroke({
+          color: "#FF0000",
+          width: 3
+        }),
+        image: new OlCircle({
+          radius: 5,
+          fill: new OlFill({
+            color: "#FF0000"
+          })
+        })
+      })
+    ];
+  }
+}
+
 export function studyAreaASelectStyle() {
   return [
     new OlStyle({
@@ -454,7 +478,8 @@ export function studyAreaASelectStyle() {
       }),
       stroke: new OlStroke({
         color: "#FF0000",
-        width: 10
+        width: 5,
+        lineDash: [10, 10]
       }),
       image: new OlCircle({
         radius: 10,

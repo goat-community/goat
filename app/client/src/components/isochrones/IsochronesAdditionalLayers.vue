@@ -15,7 +15,7 @@
       </v-app-bar>
 
       <v-card-title primary-title v-if="calculation">
-        <v-flex xs12>
+        <v-flex v-if="calculation.calculationType === 'single'" xs12>
           <v-checkbox
             class="mt-2"
             :input-value="_getState('Default') && calculation.isVisible"
@@ -29,6 +29,34 @@
             @change="_toggleRoadNetwork($event, 'Input')"
             v-show="groupedCalculationData.hasOwnProperty('Input')"
             :label="$t('isochrones.additionalLayers.inputNetwork')"
+          ></v-checkbox>
+        </v-flex>
+        <v-flex v-else-if="calculation.calculationType === 'multiple'">
+          <v-checkbox
+            class="mt-2"
+            :input-value="
+              isochroneOverlayFeatures.studyAreaFeatures.length > 0 &&
+                calculation.isVisible
+            "
+            :label="$t('isochrones.additionalLayers.studyArea')"
+            @change="
+              _toggleMultiIsochroneOverlayFeatures(
+                isochroneOverlayFeatures.studyAreaFeatures
+              )
+            "
+          ></v-checkbox>
+          <v-checkbox
+            class="mt-2"
+            :label="$t('isochrones.additionalLayers.startingPoints')"
+            :input-value="
+              isochroneOverlayFeatures.startingPointFeatures.length > 0 &&
+                calculation.isVisible
+            "
+            @change="
+              _toggleMultiIsochroneOverlayFeatures(
+                isochroneOverlayFeatures.startingPointFeatures
+              )
+            "
           ></v-checkbox>
         </v-flex>
       </v-card-title>
@@ -47,7 +75,8 @@ export default {
   },
   computed: {
     ...mapGetters("isochrones", {
-      getGroupedCalculationData: "getGroupedCalculationData"
+      getGroupedCalculationData: "getGroupedCalculationData",
+      isochroneOverlayLayer: "isochroneOverlayLayer"
     }),
     show: {
       get() {
@@ -63,6 +92,29 @@ export default {
       get() {
         return this.getGroupedCalculationData(this.calculation.id);
       }
+    },
+    isochroneOverlayFeatures() {
+      const features = {
+        studyAreaFeatures: [],
+        startingPointFeatures: []
+      };
+      console.log("executed...");
+      this.isochroneOverlayLayer
+        .getSource()
+        .getFeatures()
+        .forEach(feature => {
+          if (
+            feature.get("calculationNumber") === this.calculation.id &&
+            feature.get("isVisible") !== false
+          ) {
+            if (feature.getGeometry().getType() === "Point") {
+              features.startingPointFeatures.push(feature);
+            } else {
+              features.studyAreaFeatures.push(feature);
+            }
+          }
+        });
+      return features;
     }
   },
   methods: {
@@ -102,7 +154,16 @@ export default {
           this.calculation.isVisible = false;
         }
       }
-    } //
+    }, //
+    _toggleMultiIsochroneOverlayFeatures(features) {
+      features.forEach(feature => {
+        const isVisible =
+          feature.get("isVisible") === undefined
+            ? true
+            : feature.get("isVisible");
+        feature.set("isVisible", !isVisible);
+      });
+    }
   }
 };
 </script>
