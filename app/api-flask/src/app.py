@@ -7,7 +7,7 @@ from flask_restful import Api, Resource
 from flask_cors import CORS
 from utils import response
 
-from resources.test_recompute import recompute_heatmap
+from resources.recompute_heatmap import recompute_heatmap
 from utils.geo.mvt import MVT
 from db.db import Database
 import config
@@ -20,7 +20,7 @@ api = Api(app)
 PORT = os.getenv('APP_PORT', default=app.config['PORT'])
 
 custom_methods_metadata = {
-    'heatmap_geoserver': {
+    'heatmap_gravity': {
         'methodToCall': 'recomputed_heatmap',
         'methodArgs': ["scenario_id"]
     }
@@ -64,7 +64,7 @@ class Layer(Resource):
         # we should run it first. A metadata object will contain methodToCall and methodArgs
         # needed for the method call.
         request_args = request.args.to_dict()
-        if (layer_config['methodToCall']):
+        if ('methodToCall' in layer_config):
             method_args = []
             for index, method_arg in enumerate(layer_config['methodArgs']):
                 if not method_arg in request_args:
@@ -76,7 +76,7 @@ class Layer(Resource):
                 recompute_heatmap(*method_args)
 
         table = layer
-        if layer_config['layer_type'] == "function" and layer_config['args']:
+        if layer_config['layer_type'] == "function" and layer_config['args'] is not None:
             args = ""
             for index, arg in enumerate(layer_config['args']):
                 if not arg in request_args:
