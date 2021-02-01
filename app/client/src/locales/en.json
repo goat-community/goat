@@ -680,7 +680,12 @@
     "hospital": "Hospital",
     "playground": "Playground",
     "population": "Population",
+    "recreationAreas": "Recreation Areas",
     "park": "Park",
+    "forest": "Forest",
+    "heath_scrub": "Heath and Scrub",
+    "lake": "Lake",
+    "river": "River",
     "governmentandsec": "Gov. and Security",
     "notary": "Notary",
     "cade": "CADE",
@@ -691,8 +696,7 @@
     "discount_gym": "Discount Gym",
     "gym": "Gym",
     "yoga": "Yoga",
-    "outdoor_fitness_station": "Outdoor fitness station",
-    "population": "Population"
+    "outdoor_fitness_station": "Outdoor fitness station"
   },
   "$vuetify": {
     "close": "Close",

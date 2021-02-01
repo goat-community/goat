@@ -7,9 +7,6 @@ DECLARE
 	borders_quintiles numeric[]; 
 BEGIN
 	
-	IF (SELECT ways_heatmap_computed FROM scenarios WHERE scenario_id = scenario_id_input) = FALSE THEN 
-		PERFORM recompute_heatmap(scenario_id_input);
-	END IF; 
 	IF modus_input IN ('default','comparison') THEN   
 		DROP TABLE IF EXISTS grids_default; 
 		CREATE TEMP TABLE grids_default AS 

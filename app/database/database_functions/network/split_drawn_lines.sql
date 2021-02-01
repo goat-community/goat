@@ -10,7 +10,9 @@ BEGIN
 	union_geom := (SELECT ST_UNION(geom) AS geom 
 	FROM drawn_features 
 	WHERE gid <> id_input
-	AND ST_Intersects(geom,input_geom));
+	AND ST_Intersects(geom,input_geom)
+	AND (way_type IS NULL OR way_type <> 'bridge') 
+	);
 
 	IF union_geom IS NOT NULL THEN
 		RETURN query
