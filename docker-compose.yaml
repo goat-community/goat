@@ -65,6 +65,24 @@ services:
     networks:
       proxy:
 
+  api-flask:
+    build:
+      context: ./app/api-flask
+    ports:
+      - 3000:3000
+    env_file:
+      - ./app/config/docker-env/api.env
+    volumes:
+      - ./app/api-flask:/usr/src/app
+    labels:
+      - "traefik.backend=api-flask"
+      - "traefik.frontend.entryPoints=https,http"
+      - "traefik.frontend.rule=Host:localhost;PathPrefix:/v2"
+      - "traefik.port=3000"
+      - "traefik.enable=true"
+    networks:
+      proxy:
+
   geoserver:
     image: goatcommunity/geoserver-base:2.17.2
     volumes:
@@ -84,7 +102,7 @@ services:
       proxy:
 
   db: 
-    image: goatcommunity/database:12-3-2.6.11-custom-2.3.14
+    image: goatcommunity/database:12-3.1-2.6.11-custom-2.3.14
     container_name: goat-database
     restart: on-failure
     volumes:

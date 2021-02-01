@@ -93,6 +93,9 @@ BEGIN
 END
 $function$;
 
+COMMENT ON FUNCTION heatmap_geoserver(amenities_json jsonb, modus_input text, scenario_id_input integer) 
+IS '**FOR-API** RETURNS col_names[grid_id,percentile_accessibility,accessibility_index,geom] **FOR-API**';
+
 /*
 DROP TABLE test_default; 
 CREATE TABLE test_default AS 

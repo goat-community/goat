@@ -1,0 +1,16 @@
+<layer>
+  <name>compute_sections</name>
+  <id>LayerInfoImpl--e3ce6d4:176845ed440:-7ffb</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--167589b6:15c77205b7f:-7ffd</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--e3ce6d4:176845ed440:-7ffc</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+  <dateCreated>2020-12-21 10:43:36.369 UTC</dateCreated>
+</layer>

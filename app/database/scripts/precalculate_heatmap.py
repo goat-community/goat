@@ -135,7 +135,7 @@ print('Routing calculation has finished after: %s s' % (time_routing))
 #Loop for closest POIs calculation (needs to be executed after routing is completed)
 for i in section_ids: 
 	print('Compute reached pois section: %s' % str(i))
-	cursor.execute('''SELECT reached_pois_heatmap(geom,0.0014) 
+	cursor.execute('''SELECT reached_pois_heatmap(geom,0.0014,'default',0) 
 	FROM compute_sections 
 	WHERE section_id = %s
 	''' % str(i))

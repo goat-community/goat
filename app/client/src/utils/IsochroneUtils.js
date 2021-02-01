@@ -60,22 +60,29 @@ const IsochroneUtils = {
         obj.studyArea = "-- (Draw)";
         obj.population = populationObj.bounding_box;
         obj.reachPopulation = populationObj.bounding_box_reached;
+        if (obj.population && obj.reachPopulation) {
+          obj.shared = `${(
+            (obj.reachPopulation / obj.population) *
+            100
+          ).toFixed(1)}%`;
+        }
         multiIsochroneTableData.push(obj);
       } else {
         //Multi-isochrone is created from study-area
 
         populationObj.forEach(currentStudyArea => {
-          multiIsochroneTableData.push(
-            Object.assign(
-              {
-                studyArea: Object.keys(currentStudyArea)[0],
-                population: currentStudyArea[Object.keys(currentStudyArea)[0]],
-                reachPopulation:
-                  currentStudyArea[Object.keys(currentStudyArea)[1]]
-              },
-              obj
-            )
-          );
+          const _obj = {
+            studyArea: Object.keys(currentStudyArea)[0],
+            population: currentStudyArea[Object.keys(currentStudyArea)[0]],
+            reachPopulation: currentStudyArea[Object.keys(currentStudyArea)[1]]
+          };
+          if (_obj.population && _obj.reachPopulation) {
+            _obj.shared = `${(
+              (_obj.reachPopulation / _obj.population) *
+              100
+            ).toFixed(1)}%`;
+          }
+          multiIsochroneTableData.push(Object.assign(_obj, obj));
         });
       }
     });

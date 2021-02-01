@@ -70,7 +70,11 @@
         "modifyAttributes": true,
         "displayInLayerList": false,
         "zIndex": 2,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "25-11-2020"
+        }
       },
       {
         "type": "WMS",
@@ -89,7 +93,11 @@
         "displayInLegend": false,
         "requiresPois": true,
         "zIndex": 7,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "25-11-2020"
+        }
       },
       {
         "type": "WMS",
@@ -135,7 +143,11 @@
         "modifyAttributes": true,
         "displayInLayerList": true,
         "zIndex": 3,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "25-11-2020"
+        }
       },
       {
         "type": "WMS",
@@ -149,20 +161,29 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "25-12-2020"
+        }
       },
       {
         "type": "WMS",
         "name": "extentStudyarea",
         "url": "/geoserver/wms",
         "group": "buildings_landuse",
-        "layers": "cite:crop_study_area",
+        "layers": "cite:study_area_crop",
         "opacity": 0.5,
         "queryable": false,
         "visible": false,
         "displayInLayerList": false,
+        "displayInLegend": false,
         "zIndex": 4,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "attributes": {
+          "source": "openStreetMap1",
+          "date": "25-12-2020"
+        }
       },
       {
         "type": "WMS",
@@ -1532,15 +1553,15 @@
           },
           {
             "categoryValue": "tourismAndLeisure",
-            "poisFiltered": ["hotel","hostel","guest_house","playground"]
+            "poisFiltered": ["hotel", "hostel", "guest_house", "playground"]
           },
           {
             "categoryValue": "services",
-            "poisFiltered": ["recycling","post_box"]
+            "poisFiltered": ["recycling", "post_box"]
           },
           {
             "categoryValue": "education",
-            "poisFiltered": ["primary_school","secondary_school"]
+            "poisFiltered": ["primary_school", "secondary_school"]
           }
         ]
       }

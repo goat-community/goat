@@ -1,248 +1,313 @@
-
 DROP FUNCTION IF EXISTS network_modification;
 CREATE OR REPLACE FUNCTION public.network_modification(scenario_id_input integer)
  RETURNS SETOF integer
  LANGUAGE plpgsql
 AS $function$
 DECLARE
-   i text;
    cnt integer;
-   count_bridges integer;
 BEGIN
-
+	/*Assumption Translation Meters and Degree: 1m = 0.000009 degree */
 	DELETE FROM ways_userinput WHERE scenario_id = scenario_id_input;
 	DELETE FROM ways_userinput_vertices_pgr WHERE scenario_id = scenario_id_input; 
 	DROP TABLE IF EXISTS drawn_features, existing_network, intersection_existing_network, drawn_features_union, new_network, delete_extended_part, vertices_to_assign; 
 	
-	--Update ways_modified status column "1 == added"
+	UPDATE ways_modified m
+	SET edit_type = 'attributes_only'
+	FROM ways_userinput w
+	WHERE m.original_id = w.id 
+	AND m.scenario_id = scenario_id_input
+	AND ST_EQUALS(ST_ASTEXT(ST_QuantizeCoordinates(m.geom,6)),ST_ASTEXT(ST_QuantizeCoordinates(w.geom,6)));
+
 	UPDATE ways_modified SET status = 1 WHERE scenario_id = scenario_id_input;
 	
+	DROP TABLE IF EXISTS modified_attributes_only;
+	CREATE TEMP TABLE modified_attributes_only AS 
+	SELECT * 
+	FROM ways_modified 
+	WHERE edit_type = 'attributes_only'
+	AND scenario_id = scenario_id_input;
+	CREATE INDEX ON modified_attributes_only USING GIST(geom);
+
 	CREATE TEMP TABLE drawn_features as
-	SELECT gid, extend_line(geom, 0.00001) AS geom, way_type, surface, wheelchair, lit, street_category, foot, bicycle, scenario_id, original_id 
-	FROM ways_modified
-	WHERE scenario_id = scenario_id_input;
-	
-	/*Intersects with the existing network and creates a table with new vertices.*/
-	
+	SELECT gid, CASE WHEN way_type = 'bridge' THEN w.geom ELSE el.geom END AS geom, 
+	way_type, surface, wheelchair, lit, street_category, foot, bicycle, scenario_id, original_id 
+	FROM ways_modified w, LATERAL (SELECT extend_line(geom, 0.0000001) geom) AS el
+	WHERE scenario_id = scenario_id_input
+	AND (edit_type IS NULL OR edit_type <> 'attributes_only');
+	CREATE INDEX ON drawn_features USING GIST(geom);
+
+	/*Intersect drawn ways with existing ways*/
 	DROP TABLE IF EXISTS pre_intersection_points;
 	CREATE TEMP TABLE pre_intersection_points AS 
-	SELECT st_intersection(d.geom,w.geom) AS geom, d.geom AS d_geom
+	SELECT ST_Intersection(d.geom,extend_line(w.geom, 0.0000001)) AS geom
 	FROM drawn_features d, ways_userinput w 
-	WHERE ST_INtersects(d.geom,w.geom)
-	AND w.scenario_id IS NULL;
-	
+	WHERE ST_Intersects(ST_BUFFER(d.geom, 0.0000001), w.geom)
+	AND w.scenario_id IS NULL
+	AND (way_type IS NULL OR way_type = 'road');
+
 	DROP TABLE IF EXISTS intersection_existing_network;
-	CREATE TEMP TABLE intersection_existing_network AS 
-	SELECT (SELECT max(id) FROM ways_userinput_vertices_pgr) + row_number() over() as vertex_id, scenario_id_input AS scenario_id, geom, d_geom 
-	FROM (SELECT DISTINCT (ST_DUMPpoints(geom)).geom AS geom, d_geom FROM pre_intersection_points) x;
+	CREATE TABLE intersection_existing_network AS 
+	SELECT scenario_id_input AS scenario_id, st_snaptogrid(geom,0.0000001) AS geom
+	FROM (
+		SELECT DISTINCT (ST_Dumppoints(geom)).geom AS geom
+		FROM pre_intersection_points
+	) x;
 	
+	/*Intersects drawn bridges*/
+	DROP TABLE IF EXISTS start_end_bridges;
+	CREATE TEMP TABLE start_end_bridges AS 
+	SELECT st_startpoint(geom) AS geom 
+	FROM drawn_features
+	WHERE way_type = 'bridge'
+	UNION 
+	SELECT ST_endpoint(geom) 
+	FROM drawn_features
+	WHERE way_type = 'bridge';
+	CREATE INDEX ON start_end_bridges USING GIST(geom);
+
+	INSERT INTO intersection_existing_network
+	SELECT scenario_id_input AS scenario_id, st_snaptogrid(x.closest_point,0.0000001)
+	FROM start_end_bridges s 
+	CROSS JOIN LATERAL 
+	(
+		SELECT ST_CLOSESTPOINT(w.geom,s.geom) AS closest_point,ST_LineLocatePoint(w.geom,s.geom) AS fraction
+		FROM ways_userinput w 
+		WHERE w.scenario_id IS NULL 
+		AND ST_Intersects(St_buffer(s.geom,0.0000001), w.geom)
+		ORDER BY ST_CLOSESTPOINT(geom,s.geom) <-> s.geom
+	  	LIMIT 1
+	) x;
+
+	/*Merge very close intersection points*/
+	DROP TABLE IF EXISTS harmonized_intersection_existing_network;
+	CREATE TEMP TABLE harmonized_intersection_existing_network AS 
+	SELECT DISTINCT geom 
+	FROM intersection_existing_network;
+	DROP TABLE IF EXISTS intersection_existing_network;
+
+	/*Snap new points back to existing network links*/
+	CREATE TEMP TABLE intersection_existing_network AS 
+	SELECT scenario_id_input AS scenario_id, x.closest_point AS geom 
+	FROM harmonized_intersection_existing_network s
+	CROSS JOIN LATERAL 
+	(
+		SELECT ST_CLOSESTPOINT(w.geom,s.geom) AS closest_point,ST_LineLocatePoint(w.geom,s.geom) AS fraction
+		FROM ways_userinput w 
+		WHERE w.scenario_id IS NULL 
+		AND ST_Intersects(ST_Buffer(s.geom,0.0000001), w.geom)
+		ORDER BY ST_CLOSESTPOINT(geom,s.geom) <-> s.geom
+	  	LIMIT 1
+	) x;
+
 	ALTER TABLE intersection_existing_network ADD COLUMN gid serial;
 	ALTER TABLE intersection_existing_network ADD PRIMARY key(gid);
-	
+	CREATE INDEX ON intersection_existing_network USING GIST(geom);
+
 	DROP TABLE IF EXISTS split_drawn_features;
 	
 	/*Split network with itself*/
-	SELECT count(*) INTO cnt
+	SELECT count(*) 
+	INTO cnt
 	FROM drawn_features
+	WHERE (way_type IS NULL OR way_type <> 'bridge')
 	LIMIT 2;
 	
-	IF cnt = 1 THEN
+	IF cnt <= 1 THEN
 	    CREATE TEMP TABLE split_drawn_features as
 	    SELECT geom, way_type, surface, wheelchair, lit, street_category, foot, bicycle, scenario_id, original_id  
 		FROM drawn_features;
 	ELSE 
-		CREATE TEMP TABLE split_drawn_features AS
+		CREATE TEMP TABLE split_drawn_features as
 		SELECT split_by_drawn_lines(gid::integer,geom) AS geom, way_type, surface, wheelchair, lit, street_category, foot, bicycle, scenario_id, original_id  
-		FROM drawn_features;
-		--WHERE way_type <> 'bridge';
+		FROM drawn_features
+		WHERE (way_type IS NULL OR way_type <> 'bridge')
+		UNION ALL 
+		SELECT geom, way_type, surface, wheelchair, lit, street_category, foot, bicycle, scenario_id, original_id  
+		FROM drawn_features
+		WHERE way_type = 'bridge';
 	END IF;
-	
+	CREATE INDEX ON split_drawn_features USING GIST(geom);
+
+	/*Create perpendicular lines to split new network*/
+	DROP TABLE IF EXISTS perpendicular_split_lines;
+	CREATE TEMP TABLE perpendicular_split_lines AS 
+	SELECT p.geom AS geom 
+	FROM intersection_existing_network i, split_drawn_features s, LATERAL (SELECT create_perpendicular_line(s.geom, i.geom, 0.0000001) geom) p 
+	WHERE ST_Intersects(ST_Buffer(i.geom,0.0000001), s.geom)
+	UNION ALL 
+	SELECT create_perpendicular_line(x.geom, x.closest_point, 0.0000001) AS geom  
+	FROM start_end_bridges s 
+	CROSS JOIN LATERAL 
+	(
+		SELECT ST_CLOSESTPOINT(w.geom,s.geom) AS closest_point, w.geom
+		FROM split_drawn_features w
+		WHERE ST_Intersects(St_buffer(s.geom,0.0000001), w.geom)
+		AND (w.way_type IS NULL OR w.way_type <> 'bridge')
+		ORDER BY ST_CLOSESTPOINT(geom,s.geom) <-> s.geom
+	  	LIMIT 1
+	) x;	
+
 	/*Split new network with existing network*/
 	DROP TABLE IF EXISTS new_network;
 	CREATE TEMP TABLE new_network AS
-	WITH union_existing_network AS 
-	(
-		SELECT ST_UNION(w.geom) AS geom 	
-		FROM ways_userinput w, split_drawn_features d 
-		WHERE ST_INtersects(d.geom,w.geom)
-		AND w.scenario_id IS NULL
-	),
-	dump AS (
-		SELECT ST_DUMP(ST_CollectionExtract(ST_SPLIT(d.geom,w.geom),2)) AS geom,  
-		way_type, surface, wheelchair, lit, street_category, foot, bicycle, scenario_id, original_id  
-		FROM split_drawn_features d, union_existing_network w
-	) 
-	SELECT (geom).geom, way_type, surface, wheelchair, lit, street_category, foot, bicycle, scenario_id, original_id
-	FROM dump; 
+	SELECT (dp.geom).geom,	way_type, surface, wheelchair, lit, street_category, foot, bicycle, scenario_id, original_id  
+	FROM split_drawn_features d, 
+	(SELECT ST_UNION(geom) AS geom FROM perpendicular_split_lines) w, 
+	LATERAL (SELECT ST_DUMP(ST_CollectionExtract(ST_SPLIT(d.geom,w.geom),2)) AS geom) dp
+	WHERE (d.way_type IS NULL OR d.way_type <> 'bridge');
+	
+	CREATE INDEX ON new_network USING GIST(geom);
+
+	/*Delete extended part*/
+	DELETE FROM new_network
+	WHERE st_length(geom) < 0.00000011;
+
+	/*Inject drawn bridges*/
+	INSERT INTO new_network(geom, way_type, surface, wheelchair, lit, street_category, foot, bicycle, scenario_id, original_id) 
+	SELECT geom, way_type, surface, wheelchair, lit, street_category, foot, bicycle, scenario_id, original_id
+	FROM drawn_features 
+	WHERE way_type = 'bridge';
+
+	UPDATE new_network d
+	SET geom = st_setpoint(d.geom, st_npoints(d.geom)-1, i.geom) 
+	FROM intersection_existing_network i 
+	WHERE ST_Intersects(ST_Buffer(ST_ENDPOINT(d.geom),0.000001), i.geom);
+
+	UPDATE new_network d
+	SET geom = st_setpoint(d.geom, 0, i.geom) 
+	FROM intersection_existing_network i 
+	WHERE ST_Intersects(ST_Buffer(ST_STARTPOINT(d.geom),0.000001), i.geom);
 	
 	ALTER TABLE new_network ADD COLUMN gid serial;
-	
-	/*It deletes all parts that are smaller then once centimeter*/
-	DELETE FROM new_network
-	WHERE st_length(geom) < 0.000001;
-	/*
-	INSERT INTO new_network 
-	SELECT geom, way_type, surface, wheelchair, street_category, scenario_id, original_id 
-	FROM drawn_features
-	WHERE way_type = 'bridge';
-	*/
 	ALTER TABLE new_network ADD COLUMN source integer;
 	ALTER TABLE new_network ADD COLUMN target integer;
-	
-	/*Snaps network to unique intersection points in case of multiple very close intersections*/
-	DROP TABLE IF EXISTS x_y;
-	CREATE TEMP TABLE x_y AS
-	SELECT round(st_x(geom)::numeric,7) x,round(st_y(geom)::numeric,7) y, vertex_id,geom 
-	FROM intersection_existing_network;
-	
-	DROP TABLE IF EXISTS vertices_to_snap;
-	CREATE TEMP TABLE vertices_to_snap as
-	SELECT DISTINCT x.vertex_id, concat(x::varchar,' ',y::varchar), i.geom
-	FROM  x_y x, intersection_existing_network i
-	WHERE x.vertex_id <> i.vertex_id
-	AND round(st_x(i.geom)::numeric,7) = x.x
-	AND round(st_y(i.geom)::numeric,7) = x.y;
-	
-	DROP TABLE IF EXISTS vertices_to_keep;
-	CREATE TEMP TABLE vertices_to_keep AS
-	SELECT DISTINCT ON (concat) concat, vertex_id, geom 
-	FROM vertices_to_snap; 
-	
-	UPDATE new_network SET geom = x.geom from
-	(
-		SELECT t.gid, st_setpoint(t.geom,0,s.geom) geom
-		FROM vertices_to_snap v, new_network t, vertices_to_keep s
-		WHERE concat(round(substring(st_astext(t.geom), '[0-9. ]+ ')::numeric,7)::varchar,' ',
-		round(substring(st_astext(t.geom), ' [0-9. ]+')::numeric,7)::varchar)
-		= v.concat
-		AND 
-		concat(round(substring(st_astext(t.geom), '[0-9. ]+ ')::numeric,7)::varchar,' ',
-		round(substring(st_astext(t.geom), ' [0-9. ]+')::numeric,7)::varchar)
-		= s.concat
-	) x
-	WHERE new_network.gid = x.gid;
-	UPDATE new_network SET geom = x.geom FROM (
-	SELECT DISTINCT t.gid,st_setpoint(t.geom, st_npoints(t.geom)-1, s.geom) geom
-		FROM vertices_to_snap v, new_network t, vertices_to_keep s
-		WHERE concat(round(substring(substring(st_astext(t.geom), '[ 0-9.]+\)'),'[0-9.]+ ')::numeric,7)::varchar,' ',
-		round(substring(substring(st_astext(t.geom), '[ 0-9.]+\)'),' [0-9.]+')::numeric,7)::varchar)
-		= v.concat
-		AND 
-		concat(round(substring(substring(st_astext(t.geom), '[ 0-9.]+\)'),'[0-9.]+ ')::numeric,7)::varchar,' ',
-		round(substring(substring(st_astext(t.geom), '[ 0-9.]+\)'),' [0-9.]+')::numeric,7)::varchar)
-		= s.concat
-	) x
-	WHERE new_network.gid = x.gid;
-	
-	/*Delete all intersection points that are not needed anymore*/
-	DELETE FROM intersection_existing_network
-	WHERE vertex_id IN (SELECT vertex_id FROM vertices_to_snap);
-	INSERT INTO intersection_existing_network
-	SELECT vertex_id, scenario_id_input, geom 
-	FROM vertices_to_keep;
-	
-	DELETE FROM intersection_existing_network 
-	WHERE vertex_id IN
-	(SELECT vertex_id
-	FROM intersection_existing_network i, ways_userinput_vertices_pgr v
-	WHERE v.scenario_id is null AND ST_AsText(i.geom) = ST_AsText(v.geom));
-	
-	/*Update vertex_ids*/
-	CREATE TEMP TABLE placeholder_intersection_existing_network AS
-	SELECT (SELECT max(id) FROM ways_userinput_vertices_pgr) + row_number() over() as vertex_id, scenario_id, geom
-	FROM intersection_existing_network;
-	DROP TABLE IF EXISTS intersection_existing_network;
-	ALTER TABLE placeholder_intersection_existing_network RENAME TO intersection_existing_network; 
+
+
 	--------------------------------EXISTING NETWORK----------------------------------------------------------
 	
-	--All the lines FROM the existing network which intersect with the draw network are split, this
-	--is done as a new node now is added. This here has to be refactored as the code above!	
+	/*All the lines FROM the existing network which intersect with the draw network are split*/
+
+	/*Perpendicular lines are generated for each intersection point*/
+	DROP TABLE IF EXISTS perpendicular_split_lines;
+	CREATE TEMP TABLE perpendicular_split_lines AS 
+	SELECT create_perpendicular_line(w.geom, i.geom, 0.0000001) AS geom 
+	FROM intersection_existing_network i, ways_userinput w
+	WHERE ST_Intersects(ST_Buffer(i.geom,0.0000001), w.geom)
+	AND w.scenario_id IS NULL
+	AND NOT ST_EQUALS(ST_STARTPOINT(w.geom),i.geom) 
+	AND NOT ST_EQUALS(ST_ENDPOINT(w.geom),i.geom);
+	
+	/*Existing network is split using perpendicular lines*/
 	DROP TABLE IF EXISTS existing_network;
 	CREATE TEMP TABLE existing_network as 
-	WITH p_n as ( 
-		SELECT DISTINCT w.id,w.class_id, w.surface, w.foot, w.bicycle, w.source,w.target,w.geom, lit_classified, wheelchair_classified, impedance_surface
-		FROM ways_userinput w, drawn_features i
-		WHERE st_intersects(w.geom,i.geom)
-		AND w.scenario_id IS NULL
-		AND w.id NOT IN (SELECT DISTINCT original_id FROM drawn_features where original_id is not null)
-	),
-	dump AS (
-		SELECT a.id AS original_id, a.class_id, a.surface, a.foot, a.bicycle, ST_Dump(ST_Split(a.geom, b.geom)) as dump, source,target,
-		lit_classified, wheelchair_classified, impedance_surface
-		FROM 
-		p_n a, (SELECT ST_Union(geom) geom from drawn_features) b
-		WHERE ST_DWithin(b.geom, a.geom, 0.00001)
-	)
-	SELECT original_id, class_id, surface, foot, bicycle, (dump).geom, source,target, lit_classified, wheelchair_classified, impedance_surface
-	FROM dump;
+	SELECT w.id AS original_id, w.class_id, w.surface, w.foot, w.bicycle, (dp.geom).geom, w.source, w.target, w.lit_classified, w.wheelchair_classified, w.impedance_surface
+	FROM ways_userinput w, 
+	(SELECT ST_UNION(geom) AS geom FROM perpendicular_split_lines) p, 
+	LATERAL (SELECT ST_DUMP(ST_CollectionExtract(ST_SPLIT(w.geom,p.geom),2)) AS geom) dp
+	WHERE ST_Intersects(w.geom, p.geom)
+	AND w.scenario_id IS NULL
+	AND w.id NOT IN (SELECT original_id FROM modified_attributes_only);
 	
-	/*Set source and target of existing network*/
-	UPDATE existing_network set source = x.id 
-	FROM (
+	CREATE INDEX ON existing_network USING GIST(geom);
 	
-		SELECT v.id,v.geom 
-		FROM ways_userinput_vertices_pgr v, existing_network i
-		WHERE v.geom && ST_Buffer(i.geom::geography,0.001)::geometry
-		AND v.scenario_id IS NULL
-		UNION ALL
-		SELECT vertex_id,geom FROM intersection_existing_network
-		) x
-	WHERE st_startpoint(existing_network.geom) = x.geom;
+	/*Ways with only changed attributes are split in case they intersect with drawn network*/
+	ALTER TABLE new_network ADD COLUMN edit_type TEXT;
+	INSERT INTO new_network(original_id, surface, foot, bicycle, geom, lit, wheelchair, edit_type)
+	SELECT m.original_id, m.surface, m.foot, m.bicycle, (dp.geom).geom, m.lit, m.wheelchair, 'attributes_only' 
+	FROM modified_attributes_only m,
+	(SELECT ST_UNION(geom) AS geom FROM perpendicular_split_lines) p, 
+	LATERAL (SELECT ST_DUMP(ST_CollectionExtract(ST_SPLIT(m.geom,p.geom),2)) AS geom) dp
+	WHERE ST_Intersects(m.geom, p.geom);
 	
-	UPDATE existing_network set target = x.id 
-	FROM (
-		SELECT v.id,v.geom 
-		FROM ways_userinput_vertices_pgr v, existing_network i
-		WHERE v.geom && ST_Buffer(i.geom::geography,0.001)::geometry
-		AND v.scenario_id IS NULL
-		UNION ALL
-		SELECT vertex_id,geom FROM intersection_existing_network
-	) x
-	WHERE st_endpoint(existing_network.geom) = x.geom;
+	/*All ways with only changed attributes that are not touching the drawn network are injected without splitting*/
+	INSERT INTO new_network(original_id, surface, foot, bicycle, geom, lit, wheelchair, edit_type)
+	SELECT m.original_id, m.surface, m.foot, m.bicycle, m.geom, m.lit, m.wheelchair, 'attributes_only' 
+	FROM modified_attributes_only m
+	LEFT JOIN new_network e 
+	ON m.original_id = e.original_id  
+	WHERE e.original_id IS NULL;
 	
-	/*Set source and target of new network*/
-	CREATE TEMP TABLE vertices_to_assign as
-	WITH start_end AS (
-		SELECT ST_StartPoint(geom) geom
-		FROM new_network
-		UNION ALL
-		SELECT ST_EndPoint(geom) geom
-		FROM new_network
-	),
-	v as (
+	/*Add vertex_id which is in line with vertices-table*/	
+	ALTER TABLE intersection_existing_network ADD COLUMN vertex_id integer;
+	UPDATE intersection_existing_network 
+	SET vertex_id = (SELECT max(id) FROM ways_userinput_vertices_pgr v) + gid;
+	
+	DROP TABLE IF EXISTS vertices_existing;
+	CREATE TEMP TABLE vertices_existing AS 
+	WITH e AS 
+	(
 		SELECT v.id,v.geom 
 		FROM ways_userinput_vertices_pgr v, new_network i
-		WHERE v.geom && ST_Buffer(i.geom::geography,0.001)::geometry
+		WHERE ST_Intersects(v.geom, ST_Buffer(i.geom::geography,0.000001)::geometry)
 		AND v.scenario_id IS NULL
-		UNION ALL
-		SELECT vertex_id,geom FROM intersection_existing_network
-	),
-	vertices_to_remove as
-	(
-		SELECT s.geom 
-		FROM start_end s, v 
-		WHERE v.geom && ST_Buffer(s.geom::geography,0.001)::geometry
 	)
-	SELECT * FROM v 
-	UNION ALL 
-	SELECT (SELECT max(id) FROM v) + row_number() over() as id,geom 
-	FROM start_end 
-	WHERE geom NOT IN (SELECT geom FROM vertices_to_remove); 
+	SELECT e.*
+	FROM e 
+	LEFT JOIN intersection_existing_network i
+	ON ST_INTERSECTS(e.geom,ST_BUFFER(i.geom,0.000001))
+	WHERE i.geom IS NULL 
+	UNION ALL
+	SELECT vertex_id,geom FROM intersection_existing_network;
+	CREATE INDEX ON vertices_existing USING GIST(geom);	
+
+	/*Set source and target of existing network*/
+	UPDATE existing_network set source = e.id 
+	FROM vertices_existing e
+	WHERE ST_Intersects(st_startpoint(existing_network.geom), ST_Buffer(e.geom::geography,0.000001)::geometry);
 	
+	UPDATE existing_network set target = e.id 
+	FROM vertices_existing e
+	WHERE ST_Intersects(st_endpoint(existing_network.geom), ST_Buffer(e.geom::geography,0.000001)::geometry);
+	
+	/*Set source and target of new network*/	
+	DROP TABLE IF EXISTS start_end_new_network;
+	CREATE TEMP TABLE start_end_new_network AS 
+	WITH snap AS 
+	(
+		SELECT ST_StartPoint(geom) geom, st_snaptogrid(ST_StartPoint(geom),0.0000001) snap
+		FROM new_network
+		WHERE (edit_type IS NULL OR edit_type <> 'attributes_only') 
+		UNION ALL
+		SELECT ST_EndPoint(geom) geom, st_snaptogrid(ST_EndPoint(geom),0.0000001)
+		FROM new_network
+		WHERE (edit_type IS NULL OR edit_type <> 'attributes_only')
+	)
+	SELECT DISTINCT ON(snap) snap, geom 
+	FROM snap;
+	
+	DROP TABLE IF EXISTS vertices_to_remove;
+	CREATE TEMP TABLE vertices_to_remove AS 
+	SELECT s.geom 
+	FROM start_end_new_network s, vertices_existing v
+	WHERE v.geom && ST_Buffer(s.geom::geography,0.0001)::geometry;
+	CREATE INDEX ON vertices_to_remove USING GIST(geom);	
+
+	DROP TABLE IF EXISTS vertices_to_assign;
+	CREATE TEMP TABLE vertices_to_assign AS
+	SELECT * FROM vertices_existing 
+	UNION ALL 
+	SELECT (SELECT max(id) FROM vertices_existing) + row_number() over() as id, s.geom 
+	FROM start_end_new_network s 
+	LEFT JOIN vertices_to_remove v
+	ON s.geom = v.geom 
+	WHERE v.geom IS NULL;
+	
+	CREATE INDEX ON vertices_to_assign USING GIST(geom);
+
 	UPDATE new_network set source = v.id 
 	FROM vertices_to_assign v
-	WHERE ST_Buffer(ST_StartPoint(new_network.geom)::geography,0.001)::geometry && v.geom;
+	WHERE ST_Intersects(ST_Buffer(ST_StartPoint(new_network.geom)::geography,0.000001)::geometry,v.geom);
 	
 	UPDATE new_network set target = v.id 
 	FROM vertices_to_assign v
-	WHERE ST_Buffer(ST_EndPoint(new_network.geom)::geography,0.001)::geometry && v.geom;
+	WHERE ST_Intersects(ST_Buffer(ST_EndPoint(new_network.geom)::geography,0.000001)::geometry,v.geom);
 	
 	DROP TABLE IF EXISTS network_to_add;
 	CREATE TEMP TABLE network_to_add AS 
 	SELECT * FROM existing_network  
 	UNION ALL 
 	SELECT NULL, 100, surface, foot, bicycle, geom, SOURCE, target, lit, wheelchair, NULL 
-	FROM new_network; 
+	FROM new_network;
 	
 	CREATE INDEX ON network_to_add USING GIST(geom);
 	
@@ -257,13 +322,14 @@ BEGIN
 	vv.geom
 	FROM vertices_to_assign vv
 	LEFT JOIN
-	(	SELECT v.id, w.class_id, w.foot, w.bicycle, w.lit_classified, w.wheelchair_classified 
+	(	
+		SELECT v.id, w.class_id, w.foot, w.bicycle, w.lit_classified, w.wheelchair_classified 
 		FROM vertices_to_assign v, network_to_add w 
-		WHERE st_intersects(v.geom,w.geom)
+		WHERE st_intersects(ST_BUFFER(v.geom,0.00000001),w.geom)
 	) x
 	ON vv.id = x.id
 	GROUP BY vv.id, vv.geom;
-	
+
 	---------------------------------------------------------------------------------------------------------------------
 	--INSERT NEW VERTICES AND WAYS INTO THE EXISTING TABLES
 	----------------------------------------------------------------------------------------------------------------------
@@ -279,10 +345,31 @@ BEGIN
 	UPDATE ways_userinput 
 	SET length_m = st_length(geom::geography)
 	WHERE length_m IS NULL;
-
+	
+	/*Set impedances for existing but now split network*/
+	UPDATE ways_userinput ww
+	SET s_imp = w.s_imp, rs_imp = w.rs_imp
+	FROM ways_userinput w
+	WHERE ww.original_id = w.id 
+	AND ww.scenario_id = 1
+	AND w.scenario_id IS NULL; 
+	
+	/*Compute impendances for newly drawn ways*/
+	WITH impedances AS 
+	(
+		SELECT w.id, ci.imp, ci.rs_imp
+		FROM ways_userinput w,
+		LATERAL get_slope_profile(w.id, 10, 'ways_userinput') sp, LATERAL compute_impedances(sp.elevs, sp.linkLength, 10) ci
+		WHERE scenario_id = scenario_id_input 
+		AND original_id IS NULL 
+	)
+	UPDATE ways_userinput w
+	SET s_imp = i.imp, rs_imp = i.rs_imp 
+	FROM impedances i 
+	WHERE w.id = i.id;
+			
 	UPDATE scenarios 
 	SET ways_heatmap_computed = FALSE 
 	WHERE scenario_id = scenario_id_input;
-		
 END
 $function$

@@ -17,8 +17,7 @@ def setup_db(setup_type):
     from scripts.db_functions import bulk_compute_slope
 
     download_link,osm_data_recency,buffer,extract_bbox,source_population,additional_walkability_layers,osm_mapping_feature = ReadYAML().data_source()
-    compute_slope_impedance = ReadYAML().data_refinement()["variable_container"]["compute_slope_impedance"]
-
+    compute_slope_impedance = ReadYAML().data_refinement()["variable_container"]["compute_slope_impedance"][1:-1]
     db_name,user,host,port,password = ReadYAML().db_credentials()
     db_name_temp = db_name+'temp'
 
@@ -47,6 +46,7 @@ def setup_db(setup_type):
    
     #Create extensions
     os.system(F'PGPASSFILE=~/.pgpass_{db_name_temp} psql -U {user} -h {host} -d {db_name_temp} -c "CREATE EXTENSION postgis;CREATE EXTENSION pgrouting;CREATE EXTENSION hstore;CREATE EXTENSION intarray;CREATE EXTENSION plpython3u;"')
+    os.system(F'PGPASSFILE=~/.pgpass_{db_name_temp} psql -U {user} -h {host} -d {db_name_temp} -c "CREATE EXTENSION arraymath;CREATE EXTENSION floatvec;"')
 
     #These extensions are needed when using the new DB-image
     os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} psql -U {user} -h {host} -d {db_name_temp} -c "CREATE EXTENSION postgis_raster;"')
@@ -134,6 +134,10 @@ def setup_db(setup_type):
     db_temp.execute_script_psql('/opt/data_preparation/SQL/create_tables.sql')
     
     create_variable_container(db_name_temp,user,str(port),host,password)
+    
+    #Write timestamp in Variable container
+    db_temp.execute_text_psql(f"INSERT INTO variable_container(identifier, variable_simple) VALUES ('data_recency','{timestamp}')")
+    
     db_temp.execute_script_psql('/opt/data_preparation/SQL/types.sql')
     
     #Create functions that are needed for data_preparation

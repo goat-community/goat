@@ -1,0 +1,24 @@
+FROM python:3.9-alpine
+
+WORKDIR /usr/src/app
+
+RUN apt-get update \
+    && apt-get install -y git
+
+RUN apk update && apk add postgresql-dev gcc python3-dev musl-dev
+
+COPY requirements.txt ./
+COPY *-requires.txt ./
+RUN pip install --upgrade pip setuptools \
+    && pip install --user --no-cache-dir --no-warn-script-location -r dev-requires.txt
+
+ENV PYTHONUNBUFFERED 1
+ENV PATH $PATH:/root/.local/bin
+ENV FLASK_APP src/app.py
+ENV FLASK_ENV development
+
+COPY ./ ./
+
+EXPOSE 5000
+
+CMD python src/app.py

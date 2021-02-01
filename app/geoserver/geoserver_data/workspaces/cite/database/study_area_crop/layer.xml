@@ -1,0 +1,16 @@
+<layer>
+  <name>study_area_crop</name>
+  <id>LayerInfoImpl-376578a6:1769ecf54dc:-7ff8</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--3f65a015:16fa49762dc:-7f64</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl-376578a6:1769ecf54dc:-7ff9</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+  <dateCreated>2020-12-29 09:10:24.13 UTC</dateCreated>
+</layer>
