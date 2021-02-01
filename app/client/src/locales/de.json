@@ -674,7 +674,12 @@
     "hospital": "Krankenhaus",
     "playground": "Spielplatz",
     "population": "Bevölkerung",
+    "recreationAreas": "Erholungsflächen",
     "park": "Park",
+    "forest": "Wald",
+    "heath_scrub": "Heide und Buschwerk",
+    "lake": "See",
+    "river": "Fluss",
     "governmentandsec": "Regierung und Sicherheit",
     "notary": "Notar",
     "cade": "Nachbarschaftszentrum (CADE)",
@@ -685,8 +690,7 @@
     "discount_gym": "Discount Fitnessstudio",
     "gym": "Fitnessstudio",
     "yoga": "Yoga",
-    "outdoor_fitness_station": "Outdoor Fitness",
-    "population": "Bevölkerung"
+    "outdoor_fitness_station": "Outdoor Fitness"
   },
   "$vuetify": {
     "close": "Schließen",
