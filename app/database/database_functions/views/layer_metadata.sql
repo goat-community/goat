@@ -12,7 +12,7 @@ WITH metadata AS (
                 'function' AS layer_type,
                 'geom' AS geom_columns,
                 '4326' AS srid,
-                string_to_array(regexp_replace(regexp_replace(pg_catalog.pg_get_function_identity_arguments(p.oid),' [^,]+, ', ',','g'),'| [^, [^,]+', '','g'), ',') AS args
+                string_to_array(regexp_replace(regexp_replace(pg_catalog.pg_get_function_identity_arguments(p.oid),' [^,]+, ', ',','g'),'| [^, [^,]+|\[\]', '','g'), ',') AS args
           FROM pg_proc p
           LEFT JOIN pg_description d ON d.objoid = p.oid
           WHERE description LIKE '%**FOR-API-FUNCTION**%'
