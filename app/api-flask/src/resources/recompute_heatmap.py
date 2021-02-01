@@ -18,6 +18,15 @@ def recompute_heatmap(scenario_id):
     import time
     start = time.time()
 
+    scenario_id = int(scenario_id)
+
+    status_precomputed = db.select('''SELECT ways_heatmap_computed 
+                FROM scenarios 
+                WHERE scenario_id = %(scenario_id)s''', {"scenario_id": scenario_id})[0][0]
+
+    if status_precomputed == True:
+        return 'Scenario was already precomputed.'
+
     speed = 1.33
     max_cost = 1200
 
@@ -60,21 +69,16 @@ def recompute_heatmap(scenario_id):
     WHERE scenario_id = %(scenario_id)s""", {"scenario_id": scenario_id})
 
     buffer_geom = buffer_geom[0][0]
-
     db.perform("""DELETE FROM reached_pois_heatmap r
     USING pois_userinput p
-    WHERE ST_Intersects(p.geom,ST_GeomFromText(%(buffer_geom)s))
+    WHERE ST_Intersects(p.geom,ST_SETSRID(ST_GeomFromText(%(buffer_geom)s), 4326))
     AND r.gid = p.gid
-    AND r.scenario_id = %(scenario_id)s""", {"buffer_geom": buffer_geom, "scenario_id": scenario_id})
+    AND r.scenario_id = %(scenario_id)s;""", {"buffer_geom": buffer_geom, "scenario_id": scenario_id})
+    
+    db.perform('''SELECT reached_pois_heatmap(ST_SETSRID(ST_GeomFromText(%(buffer_geom)s), 4326), 0.0014, 'scenario', %(scenario_id)s);''',{"buffer_geom": buffer_geom, "scenario_id": scenario_id})
+    
+    db.perform('''UPDATE scenarios 
+                SET ways_heatmap_computed = TRUE 
+                WHERE scenario_id = %(scenario_id)s''', {"scenario_id": scenario_id})
 
-    return buffer_geom
-
-
-'''
-
-PERFORM reached_pois_heatmap(buffer_geom, 0.0014, 'scenario', scenario_id_input);
-
-UPDATE scenarios 
-SET ways_heatmap_computed = TRUE 
-WHERE scenario_id = scenario_id_input;
-'''
+    return
