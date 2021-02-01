@@ -25,7 +25,7 @@ DATA_REFINEMENT_VARIABLES:
       "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
       "hypermarket","international_supermarket","chemist","organic","marketplace","hotel","museum","hostel","guest_house","viewpoint","gallery","playground","discount_gym","gym","yoga","outdoor_fitness_station"
     ]
-    pois_more_entrances: ["bus_stop","tram_stop","subway_entrance","rail_station","community_sports_center","waterpark"]
+    pois_more_entrances: ["bus_stop","tram_stop","subway_entrance","rail_station","community_sports_center","waterpark","park","forest","heath_scrub","lake","river"]
     excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
     categories_no_foot: ["use_sidepath","no"]
     excluded_class_id_cycling: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
@@ -41,7 +41,7 @@ DATA_REFINEMENT_VARIABLES:
     ]
     custom_landuse_with_residents_name: ["%seniorenheim%"]
     osm_landuse_no_residents: ["farmyard","farmland","quarry","industrial","retail","commercial","forest","military","cemetery","landfill","allotments","recreation ground","railway"]
-    aois_no_residents: ["big_forest","big_park","lake","river","small_forest","small_park","swimming_lake"]
+    aois_no_residents: ["forest","park","lake","river","forest","park","swimming_lake"]
     #All buildings that can be potentially residential
     building_types_potentially_residential: ["yes"]
     #All buildings that are definitely residential
@@ -97,13 +97,13 @@ DATA_REFINEMENT_VARIABLES:
     areas_boundaries:
       parks:
         small: [20000]
-        large: [300000]
+        ##large: [300000]
       forest:
         small: [20000]
-        large: [300000]
+        ##large: [300000]
       heath:
         small: [20000]
-        large: [300000]
+        ##large: [300000]
 
     ##-------------------------------------Radius definition for POIS fusion------------------------------------##
     ##  Duplicated lookup radius: Sensibility factor, entities for the same branch and amenity type into this radius will be considered as duplicated; it is applied for OSM and Custom POIS databases (meters).
