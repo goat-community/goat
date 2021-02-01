@@ -57,8 +57,4 @@ json_rows AS (
             metadata
 )
 SELECT jsonb_object_agg(proname, json_data) metadata
-FROM json_rows
-
-
-
-SELECT * FROM layer_metadata lm 
+FROM json_rows;

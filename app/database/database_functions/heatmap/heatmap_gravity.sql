@@ -1,5 +1,5 @@
-DROP FUNCTION IF EXISTS heatmap_geoserver;
-CREATE OR REPLACE FUNCTION public.heatmap_geoserver(amenities_json jsonb, modus_input text DEFAULT 'default', scenario_id_input integer DEFAULT 0)
+DROP FUNCTION IF EXISTS heatmap_gravity;
+CREATE OR REPLACE FUNCTION public.heatmap_gravity(amenities_json jsonb, modus_input text DEFAULT 'default', scenario_id_input integer DEFAULT 0)
  RETURNS TABLE(grid_id integer, percentile_accessibility integer, accessibility_index bigint, geom geometry)
  LANGUAGE plpgsql
 AS $function$
@@ -93,22 +93,23 @@ BEGIN
 END
 $function$;
 
-COMMENT ON FUNCTION heatmap_geoserver(amenities_json jsonb, modus_input text, scenario_id_input integer) 
-IS '**FOR-API** RETURNS col_names[grid_id,percentile_accessibility,accessibility_index,geom] **FOR-API**';
+COMMENT ON FUNCTION heatmap_gravity(amenities_json jsonb, modus_input text, scenario_id_input integer) 
+IS '**FOR-API-FUNCTION** RETURNS col_names[grid_id,percentile_accessibility,accessibility_index,geom] **FOR-API-FUNCTION**';
+
 
 /*
 DROP TABLE test_default; 
 CREATE TABLE test_default AS 
 SELECT *
-FROM heatmap_geoserver('{"nursery":{"sensitivity":250000,"weight":1}}'::jsonb,'default',47) 
+FROM heatmap_gravity('{"nursery":{"sensitivity":250000,"weight":1}}'::jsonb,'default',47) 
 
 DROP TABLE IF EXISTS test_scenario;
 CREATE TABLE test_scenario AS 
 SELECT *
-FROM heatmap_geoserver('{"nursery":{"sensitivity":250000,"weight":1}}'::jsonb,'scenario',47) 
+FROM heatmap_gravity('{"nursery":{"sensitivity":250000,"weight":1}}'::jsonb,'scenario',47) 
 
 DROP TABLE IF EXISTS test_comparison;
 CREATE TABLE test_comparison AS 
 SELECT *
-FROM heatmap_geoserver('{"nursery":{"sensitivity":250000,"weight":1}}'::jsonb,'comparison',47) 
+FROM heatmap_gravity('{"nursery":{"sensitivity":250000,"weight":1}}'::jsonb,'comparison',47) 
 */
