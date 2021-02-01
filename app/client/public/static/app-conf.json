@@ -1521,6 +1521,47 @@
               "sensitivity": 300000
             }
           ]
+        },
+        {
+          "name": "Recreation Areas",
+          "categoryValue": "recreationAreas",
+          "children": [
+            {
+              "name": "Park",
+              "value": "park",
+              "icon": "park",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Forest",
+              "value": "forest",
+              "icon": "forest",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Heath and Scrub",
+              "value": "heath_scrub",
+              "icon": "heath_scrub",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Lake",
+              "value": "lake",
+              "icon": "lake",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "River",
+              "value": "river",
+              "icon": "river",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
         }
       ],
       "filters": {
