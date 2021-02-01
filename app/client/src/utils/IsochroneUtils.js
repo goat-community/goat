@@ -55,17 +55,21 @@ const IsochroneUtils = {
         )} - ${feature.get("step")} min`
       };
       const populationObj = feature.get("population");
-      if (feature.get("population").bounding_box) {
+      if (
+        feature.get("population").bounding_box ||
+        feature.get("population").bounding_box == 0 ||
+        feature.get("population").bounding_box_reached == 0
+      ) {
         //Multi-isochrone is created using draw
         obj.studyArea = "-- (Draw)";
         obj.population = populationObj.bounding_box;
         obj.reachPopulation = populationObj.bounding_box_reached;
-        if (obj.population && obj.reachPopulation) {
-          obj.shared = `${(
-            (obj.reachPopulation / obj.population) *
-            100
-          ).toFixed(1)}%`;
-        }
+
+        obj.shared =
+          obj.population == 0 || obj.reachPopulation == 0
+            ? "-"
+            : `${((obj.reachPopulation / obj.population) * 100).toFixed(1)}%`;
+
         multiIsochroneTableData.push(obj);
       } else {
         //Multi-isochrone is created from study-area
