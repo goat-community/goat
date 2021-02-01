@@ -709,7 +709,7 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "viewparamsDynamicKeys": ["modus","scenario_id"]
+        "viewparamsDynamicKeys": ["modus", "scenario_id"]
       },
       {
         "type": "OSM",
@@ -745,7 +745,7 @@
         "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
       },
       {
-        "type": "OSM", 
+        "type": "OSM",
         "name": "openTopoMap",
         "url": "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png",
         "group": "backgroundLayers",
@@ -958,6 +958,15 @@
             "fillInOSMiD"
           ],
           "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:building"
+        }
+      }
+    ],
+    "otherAttributeLayers": [
+      {
+        "name": "sensors",
+        "attributes": {
+          "source": "Source",
+          "date": "25-11-2020"
         }
       }
     ],

@@ -159,7 +159,11 @@ export default {
         .getArray()
         .forEach((layer, index) => {
           let obj = me.getMapLayerObj(layer, index);
-          if (layer instanceof Group && layer.get("name") != "undefined") {
+          if (
+            layer instanceof Group &&
+            layer.get("name") != "undefined" &&
+            layer.get("name") != "osmMappingLayers"
+          ) {
             me.layers.push(obj);
           } else if (
             layer instanceof Vector &&

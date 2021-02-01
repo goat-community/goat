@@ -109,7 +109,11 @@ export default {
     },
     layerAttributes() {
       let a = {};
-      this.$appConfig.map.layers.forEach(layer => {
+      const attributeLayers = [
+        ...this.$appConfig.map.layers,
+        ...this.$appConfig.map.otherAttributeLayers
+      ];
+      attributeLayers.forEach(layer => {
         if (
           layer.attributes &&
           layer.attributes.source &&
