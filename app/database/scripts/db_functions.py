@@ -206,4 +206,16 @@ def load_js_lib():
     os.system(f'psql -U {user} -d {db_name} -f /opt/database_functions/libs/plv8_js_modules.sql')
     os.system(f'psql -U {user} -d {db_name} -c "ALTER DATABASE {db_name} SET plv8.start_proc TO plv8_require"')
 
+
+def import_rawdata(directory,db_temp,db_name_temp,user,host):
+    #Import rawdata into database
+    for filename in glob.glob("%s/*.shp" % directory):
+        print("The following shapefile is imported: %s" % filename)
+        os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} shp2pgsql -I -s 4326  %s public.%s | PGPASSFILE=~/.pgpass_{db_name_temp} psql -d %s -U %s -h %s -q' % (filename,filename.split('.')[0],db_name_temp,user,host))
+        
+    for filename in glob.glob("%s/*.sql" % directory):
+        print("The following sql_dump is imported: %s" % filename)
+        db_temp.execute_script_psql(filename)
+
+
 #load_js_lib()
