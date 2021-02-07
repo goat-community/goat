@@ -709,7 +709,7 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "viewparamsDynamicKeys": ["modus","scenario_id"]
+        "viewparamsDynamicKeys": ["modus", "scenario_id"]
       },
       {
         "type": "OSM",
@@ -745,7 +745,7 @@
         "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
       },
       {
-        "type": "OSM", 
+        "type": "OSM",
         "name": "openTopoMap",
         "url": "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png",
         "group": "backgroundLayers",
@@ -958,6 +958,15 @@
             "fillInOSMiD"
           ],
           "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:building"
+        }
+      }
+    ],
+    "otherAttributeLayers": [
+      {
+        "name": "sensors",
+        "attributes": {
+          "source": "Source",
+          "date": "25-11-2020"
         }
       }
     ],
@@ -1508,6 +1517,47 @@
               "name": "Yoga",
               "value": "yoga",
               "icon": "yoga",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "Recreation Areas",
+          "categoryValue": "recreationAreas",
+          "children": [
+            {
+              "name": "Park",
+              "value": "park",
+              "icon": "park",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Forest",
+              "value": "forest",
+              "icon": "forest",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Heath and Scrub",
+              "value": "heath_scrub",
+              "icon": "heath_scrub",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Lake",
+              "value": "lake",
+              "icon": "lake",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "River",
+              "value": "river",
+              "icon": "river",
               "weight": 1,
               "sensitivity": 300000
             }
