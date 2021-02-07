@@ -388,8 +388,8 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "heatmap_geoserver",
-        "url": "/v2/map/heatmap_geoserver/{z}/{x}/{y}",
+        "name": "heatmap_gravity",
+        "url": "/v2/map/heatmap_gravity/{z}/{x}/{y}",
         "group": "accessbilityBasemaps",
         "visible": false,
         "canEdit": false,
