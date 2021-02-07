@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-02-07T17:07:06.265Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" etag="qWP8myUjd2z6KdBIYyVm" version="14.2.9" type="github">
+<mxfile host="app.diagrams.net" modified="2021-02-07T17:23:45.823Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" etag="ttvRoJHCViPudoCwav6d" version="14.2.9" type="github">
   <diagram id="gSiPfwgvA54Z1C3vehDS" name="Page-1">
     <mxGraphModel dx="1126" dy="622" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -188,6 +188,18 @@
         </mxCell>
         <mxCell id="Ia5hEZytAEmgdlomByLA-50" value="&lt;font style=&quot;font-size: 10px&quot;&gt;Table:&lt;br&gt;study_area&lt;br&gt;&lt;/font&gt;" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;strokeColor=#23445d;fillColor=#CADAE6;" vertex="1" parent="1">
           <mxGeometry x="980" y="1220" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="Ia5hEZytAEmgdlomByLA-51" value="Define difference of&amp;nbsp; census population and study area population per study area" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="840" y="1210" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="Ia5hEZytAEmgdlomByLA-52" value="Identify residential buildings built after year of census count" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="520" y="1210" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="Ia5hEZytAEmgdlomByLA-53" value="Calculate number of residents for new buildings using residential buildings levels and average gross floor area" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="520" y="1330" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="Ia5hEZytAEmgdlomByLA-54" value="Difference per study area smaller sum new&amp;nbsp;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.decision;whiteSpace=wrap;rounded=1;fontSize=10;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="650" y="1270" width="100" height="100" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
