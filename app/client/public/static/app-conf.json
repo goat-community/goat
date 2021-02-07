@@ -85,13 +85,13 @@
         "viewparamsDynamicKeys": ["modus"],
         "opacity": 1,
         "queryable": true,
+        "requiresPois": true,
         "visible": false,
         "canEdit": true,
         "editDataType": "GeoJSON",
         "editGeometry": ["Point"],
         "displayInLayerList": true,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 7,
         "serverType": "geoserver",
         "attributes": {
@@ -367,6 +367,40 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver"
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "aois_visualization",
+        "url": "/v2/map/aois_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "queryParams": ["userid_input", "aois_input"],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/aois_visualization.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "heatmap_geoserver",
+        "url": "/v2/map/heatmap_geoserver/{z}/{x}/{y}",
+        "group": "accessbilityBasemaps",
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "queryParams": ["scenario_id_input", "modus_input", "amenities_json"],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/heatmap_gravity.json"
+        }
       },
       {
         "type": "WMS",
@@ -648,7 +682,6 @@
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
-        "requiresPois": true,
         "zIndex": 1,
         "serverType": "geoserver",
         "docUrl": "https://www.open-accessibility.org/docs/walkability%20population%20heatmap/",
@@ -686,7 +719,6 @@
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
-        "requiresPois": true,
         "zIndex": 1,
         "serverType": "geoserver",
         "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
@@ -803,7 +835,6 @@
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 30,
         "serverType": "geoserver",
         "otherProps": {
@@ -827,7 +858,6 @@
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 31,
         "serverType": "geoserver",
         "otherProps": {
@@ -851,7 +881,6 @@
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 31,
         "serverType": "geoserver",
         "otherProps": {
@@ -875,7 +904,6 @@
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 31,
         "serverType": "geoserver",
         "otherProps": {
@@ -899,7 +927,6 @@
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 31,
         "serverType": "geoserver",
         "otherProps": {
@@ -923,7 +950,6 @@
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 32,
         "serverType": "geoserver",
         "otherProps": {
@@ -947,7 +973,6 @@
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 33,
         "serverType": "geoserver",
         "otherProps": {

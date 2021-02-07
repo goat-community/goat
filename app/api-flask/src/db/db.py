@@ -64,7 +64,10 @@ class Database:
             if not cur:
                 self.send_error(404, "sql query failed: %s" % (query))
                 return None
-            return cur.fetchone()[0]
+            else:
+                result = cur.fetchone()[0];
+        cur.close()
+        return result
         
     def cursor(self):
         """This will return the query as string for testing"""

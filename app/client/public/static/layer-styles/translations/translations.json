@@ -1,0 +1,20 @@
+{
+  "aois_visualization": {
+    "forest": {
+      "en": "Forest"
+    },
+    "park": {
+      "en": "Park"
+    },
+    "heathAndScrub": {
+      "en": "Heath and scrub"
+    },
+    "lake": {
+      "en": "Lake"
+    },
+    "river": {
+      "en": "River"
+    }
+  },
+  "ways_wheelchair": {}
+}

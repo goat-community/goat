@@ -100,8 +100,13 @@ import { EventBus } from "../../../EventBus";
 
 // utils imports
 import { LayerFactory } from "../../../factory/layer.js";
+import { OlStyleFactory } from "../../../factory/OlStyle";
 import { groupBy, humanize, isCssColor } from "../../../utils/Helpers";
-import { getAllChildLayers, getLayerType } from "../../../utils/Layer";
+import {
+  getAllChildLayers,
+  getLayerType,
+  updateLayerUrlQueryParam
+} from "../../../utils/Layer";
 import { geojsonToFeature } from "../../../utils/MapUtils";
 import { Group as LayerGroup } from "ol/layer.js";
 import http from "../../../services/http";
@@ -236,6 +241,7 @@ export default {
     EventBus.$on("close-popup", () => {
       me.closePopup();
     });
+    EventBus.$on("inject-styles", this.injectStyles);
     this.init(this.$appConfig.componentData.pois);
   },
 
@@ -268,6 +274,28 @@ export default {
       }
 
       return layers;
+    },
+
+    /**
+     * Inject styles to map vector layers.
+     */
+    injectStyles(stylesObj) {
+      console.log(stylesObj);
+      const flatLayers = getAllChildLayers(this.map);
+      flatLayers.forEach(layer => {
+        const layerName = layer.get("name");
+        const styleObj = stylesObj[layerName];
+        if (styleObj) {
+          const olStyle = OlStyleFactory.getOlStyle(styleObj);
+          if (olStyle) {
+            olStyle
+              .then(style => {
+                layer.setStyle(style);
+              })
+              .catch(error => console.log(error));
+          }
+        }
+      });
     },
 
     /**
@@ -761,23 +789,13 @@ export default {
         const layers = Object.keys(this.layers);
         layers.forEach(key => {
           if (
-            this.layers[key].get("viewparamsDynamicKeys") &&
-            this.layers[key].get("viewparamsDynamicKeys").includes("userId")
+            this.layers[key].get("queryParams") &&
+            this.layers[key].get("queryParams").includes("userid_input")
           ) {
-            if (this.layers[key].getSource().getParams()) {
-              let viewparams = this.layers[key].getSource().getParams()
-                .viewparams;
-              if (!viewparams) {
-                viewparams = ``;
-              }
-              if (!viewparams.includes("userid")) {
-                // Insert userId if it doesn't exist.
-                viewparams += `userid:${value};`;
-                this.layers[key].getSource().updateParams({
-                  viewparams
-                });
-              }
-            }
+            const layer = this.layers[key];
+            updateLayerUrlQueryParam(layer, {
+              userid_input: value
+            });
           }
         });
       }, 500);
