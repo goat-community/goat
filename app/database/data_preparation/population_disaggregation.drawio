@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2021-02-07T16:04:09.901Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" etag="39tMkkssweV2RDuc8bP_" version="14.2.9" type="github">
+<mxfile host="app.diagrams.net" modified="2021-02-07T16:06:23.508Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" etag="kbEUX0Wdwwdy-41Id0Mi" version="14.2.9" type="github">
   <diagram id="gSiPfwgvA54Z1C3vehDS" name="Page-1">
-    <mxGraphModel dx="2252" dy="1243" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1589" dy="878" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -116,13 +116,13 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="79B8dK87wqLwpo8yn6WV-40" value="Label buildings with smaller a defined size as not residential" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
-          <mxGeometry x="780" y="655" width="100" height="100" as="geometry" />
+          <mxGeometry x="790" y="655" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="Ia5hEZytAEmgdlomByLA-31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="79B8dK87wqLwpo8yn6WV-42" target="Ia5hEZytAEmgdlomByLA-30">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="79B8dK87wqLwpo8yn6WV-42" value="Reduce residential building levels if intersection with POIs" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
-          <mxGeometry x="630" y="655" width="100" height="100" as="geometry" />
+          <mxGeometry x="640" y="655" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="Ia5hEZytAEmgdlomByLA-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Ia5hEZytAEmgdlomByLA-1" target="Ia5hEZytAEmgdlomByLA-23">
           <mxGeometry relative="1" as="geometry">
@@ -148,7 +148,19 @@
           <mxGeometry x="130" y="485" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="Ia5hEZytAEmgdlomByLA-30" value="&lt;font style=&quot;font-size: 10px&quot;&gt;End&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="450" y="675" width="120" height="60" as="geometry" />
+          <mxGeometry x="480" y="675" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Ia5hEZytAEmgdlomByLA-32" value="Yes" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="620" y="510" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="Ia5hEZytAEmgdlomByLA-34" value="No" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="670" y="585" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="Ia5hEZytAEmgdlomByLA-35" value="No" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="890" y="585" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="Ia5hEZytAEmgdlomByLA-36" value="Yes" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="890" y="510" width="40" height="20" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
