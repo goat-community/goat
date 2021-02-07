@@ -9,7 +9,7 @@ import yaml
 #Step defined the bulk size of the heatmap calculation
 step = 200
 #Grid size defines the size of each grid
-grid_size = 500
+grid_size = 150
 
 start = time.time()
 
