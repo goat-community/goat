@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2021-02-07T15:57:32.252Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" etag="laz-xn3ARSxHTbHgcHRb" version="14.2.9" type="github">
+<mxfile host="app.diagrams.net" modified="2021-02-07T16:04:09.901Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" etag="39tMkkssweV2RDuc8bP_" version="14.2.9" type="github">
   <diagram id="gSiPfwgvA54Z1C3vehDS" name="Page-1">
-    <mxGraphModel dx="1126" dy="622" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2252" dy="1243" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -13,24 +13,22 @@
         <mxCell id="79B8dK87wqLwpo8yn6WV-3" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;Start&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=10;" parent="1" vertex="1">
           <mxGeometry x="350" y="200" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="79B8dK87wqLwpo8yn6WV-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="79B8dK87wqLwpo8yn6WV-5" target="79B8dK87wqLwpo8yn6WV-12" edge="1">
+        <mxCell id="Ia5hEZytAEmgdlomByLA-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="79B8dK87wqLwpo8yn6WV-5" target="Ia5hEZytAEmgdlomByLA-23">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="400" y="399.9999999999999" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="260" y="430" />
-              <mxPoint x="310" y="430" />
+              <mxPoint x="260" y="420" />
+              <mxPoint x="180" y="420" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="79B8dK87wqLwpo8yn6WV-5" value="&lt;font style=&quot;font-size: 10px&quot;&gt;Table:&lt;br&gt;planet_osm_polygon&lt;/font&gt;" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;strokeColor=#23445d;fillColor=#CADAE6;" parent="1" vertex="1">
           <mxGeometry x="190" y="300" width="140" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="79B8dK87wqLwpo8yn6WV-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="79B8dK87wqLwpo8yn6WV-6" target="79B8dK87wqLwpo8yn6WV-12" edge="1">
+        <mxCell id="Ia5hEZytAEmgdlomByLA-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="79B8dK87wqLwpo8yn6WV-6" target="79B8dK87wqLwpo8yn6WV-12">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="400" y="399.9999999999999" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="550" y="430" />
-              <mxPoint x="310" y="430" />
+              <mxPoint x="560" y="440" />
+              <mxPoint x="310" y="440" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -40,7 +38,7 @@
         <mxCell id="79B8dK87wqLwpo8yn6WV-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="79B8dK87wqLwpo8yn6WV-12" target="79B8dK87wqLwpo8yn6WV-13" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="79B8dK87wqLwpo8yn6WV-12" value="Select all buildings lying in the study area" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="79B8dK87wqLwpo8yn6WV-12" value="Assign default buildings levels for study area if no building levels" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="260" y="485" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="79B8dK87wqLwpo8yn6WV-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=-0.03;entryY=0.495;entryDx=0;entryDy=0;entryPerimeter=0;fontSize=10;" parent="1" source="79B8dK87wqLwpo8yn6WV-13" target="79B8dK87wqLwpo8yn6WV-35" edge="1">
@@ -76,7 +74,7 @@
         <mxCell id="Ia5hEZytAEmgdlomByLA-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="79B8dK87wqLwpo8yn6WV-25" target="79B8dK87wqLwpo8yn6WV-38">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="79B8dK87wqLwpo8yn6WV-25" value="Label buildings as not residential if lying on landuse category not for residents" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="79B8dK87wqLwpo8yn6WV-25" value="Label buildings as not residential if lying on not residential landuse category" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="660" y="485" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="Ia5hEZytAEmgdlomByLA-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="79B8dK87wqLwpo8yn6WV-30" target="79B8dK87wqLwpo8yn6WV-31">
@@ -88,7 +86,7 @@
         <mxCell id="Ia5hEZytAEmgdlomByLA-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="79B8dK87wqLwpo8yn6WV-31" target="Ia5hEZytAEmgdlomByLA-10">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="79B8dK87wqLwpo8yn6WV-31" value="Label buildings as not residential if lying on landuse category not for residents" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="79B8dK87wqLwpo8yn6WV-31" value="Label buildings as not residential if lying on not residential landuse category" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="930" y="485" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="Ia5hEZytAEmgdlomByLA-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="79B8dK87wqLwpo8yn6WV-35" target="79B8dK87wqLwpo8yn6WV-25">
@@ -114,26 +112,23 @@
         <mxCell id="79B8dK87wqLwpo8yn6WV-38" value="Table landuse_additional&amp;nbsp;&lt;br&gt;exists" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.decision;whiteSpace=wrap;rounded=1;fontSize=10;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
           <mxGeometry x="790" y="485" width="100" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="79B8dK87wqLwpo8yn6WV-39" value="Label buildings as not residential if lying on no landuse at all" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
-          <mxGeometry x="470" y="655" width="100" height="100" as="geometry" />
-        </mxCell>
         <mxCell id="Ia5hEZytAEmgdlomByLA-22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="79B8dK87wqLwpo8yn6WV-40" target="79B8dK87wqLwpo8yn6WV-42">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="79B8dK87wqLwpo8yn6WV-40" value="Label buildings with smaller a defined size as not residential" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="780" y="655" width="100" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="79B8dK87wqLwpo8yn6WV-41" value="Apply default building levels and residential building levels" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;" parent="1" vertex="1">
-          <mxGeometry x="110" y="755" width="100" height="100" as="geometry" />
+        <mxCell id="Ia5hEZytAEmgdlomByLA-31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="79B8dK87wqLwpo8yn6WV-42" target="Ia5hEZytAEmgdlomByLA-30">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="79B8dK87wqLwpo8yn6WV-42" value="Reduce residential building levels if intersection with POIs" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="630" y="655" width="100" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="Ia5hEZytAEmgdlomByLA-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="Ia5hEZytAEmgdlomByLA-1" target="79B8dK87wqLwpo8yn6WV-12">
+        <mxCell id="Ia5hEZytAEmgdlomByLA-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Ia5hEZytAEmgdlomByLA-1" target="Ia5hEZytAEmgdlomByLA-23">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="410" y="430" />
-              <mxPoint x="310" y="430" />
+              <mxPoint x="410" y="420" />
+              <mxPoint x="180" y="420" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -143,8 +138,17 @@
         <mxCell id="Ia5hEZytAEmgdlomByLA-19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Ia5hEZytAEmgdlomByLA-10" target="79B8dK87wqLwpo8yn6WV-40">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="Ia5hEZytAEmgdlomByLA-10" value="Label buildings as not residential if lying on landuse category not for residents" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+        <mxCell id="Ia5hEZytAEmgdlomByLA-10" value="Label buildings as not residential if lying on not residential landuse category" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
           <mxGeometry x="930" y="655" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="Ia5hEZytAEmgdlomByLA-27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Ia5hEZytAEmgdlomByLA-23" target="79B8dK87wqLwpo8yn6WV-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Ia5hEZytAEmgdlomByLA-23" value="Fusion OSM buildings and custom buildings" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="130" y="485" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="Ia5hEZytAEmgdlomByLA-30" value="&lt;font style=&quot;font-size: 10px&quot;&gt;End&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="450" y="675" width="120" height="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
