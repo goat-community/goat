@@ -1,7 +1,15 @@
 prepare_tables = '''
 	DROP TABLE IF EXISTS grid_heatmap;
 	CREATE TABLE grid_heatmap AS 
-	SELECT hexagrid AS geom FROM hexagrid(%s); 
+	SELECT ST_TRANSFORM(hx.geom, 4326) AS geom
+	FROM (SELECT ST_TRANSFORM(geom, 3857) geom FROM study_area_union) s, 
+	LATERAL ST_HexagonGrid(return_meter_srid_3857() * %s, s.geom) hx
+	WHERE ST_Within(hx.geom, s.geom)
+	OR (
+		ST_Intersects(hx.geom, st_boundary(s.geom))
+		AND 
+		ST_AREA(ST_Intersection(hx.geom, s.geom)) / ST_AREA(hx.geom) > 0.5
+	);
 
 	with w as(
 		select way as geom from planet_osm_polygon 
