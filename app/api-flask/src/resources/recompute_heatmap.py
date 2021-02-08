@@ -4,14 +4,6 @@ from db.db import Database
 # Create database class
 db = Database()
 
-# metadata = {
-#     'heatmap_geoserver': {
-#         'methodToCall': 'recomputed_heatmap',
-#         'methodArgs': 'scenario_id'
-#     }
-# }
-
-
 
 def recompute_heatmap(scenario_id):
     """Function to recompute heatmap when network is changed."""

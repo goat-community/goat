@@ -18,6 +18,7 @@ import axios from "axios";
 import { geojsonToFeature } from "./utils/MapUtils";
 import { buffer } from "ol/extent";
 import { getCenter } from "ol/extent";
+import { EventBus } from "./EventBus";
 
 require("../node_modules/ol/ol.css");
 require("./assets/scss/app.scss");
@@ -48,11 +49,15 @@ function getStudyAreaBbox() {
   );
 }
 
-axios.all([getAppConf(), getStudyAreaBbox()]).then(
-  axios.spread(function(config, studyArea) {
-    //1- Make app config accessible for all components
-    Vue.prototype.$appConfig = config.data;
+function getLayerStyleTranslation() {
+  return axios.get("static/layer-styles/translations/translations.json");
+}
 
+axios.all([getAppConf(), getStudyAreaBbox(), getLayerStyleTranslation()]).then(
+  axios.spread(function(config, studyArea, layerStyleTranslations) {
+    //1- Make app config accessible for all components
+    console.log(layerStyleTranslations);
+    Vue.prototype.$appConfig = config.data;
     //2- Get study area bbox
     if (studyArea.data.features.length > 0) {
       const f = geojsonToFeature(studyArea.data, {
@@ -70,6 +75,37 @@ axios.all([getAppConf(), getStudyAreaBbox()]).then(
         Vue.prototype.$appConfig.map.center = getCenter(originalExtent);
       }
       Vue.prototype.$appConfig.map.studyAreaFeature = f;
+    }
+
+    //3- Fetch all layer styles here.
+
+    let promiseArray = [];
+    const layers = config.data.map.layers;
+    layers.forEach(layer => {
+      const layerName = layer.name;
+
+      if (layer.style && layer.style.url && layer.style.format) {
+        promiseArray.push(
+          axios.get(layer.style.url, {
+            data: { layerName, styleFormat: layer.style.format }
+          })
+        );
+      }
+    });
+    if (promiseArray.length > 0) {
+      axios.all(promiseArray).then(function(results) {
+        const stylesObj = {};
+        results.forEach(response => {
+          const data = JSON.parse(response.config.data);
+          const { layerName, styleFormat } = data;
+          stylesObj[layerName] = {
+            styleFormat,
+            style: response.data,
+            translation: layerStyleTranslations.data[layerName]
+          };
+        });
+        EventBus.$emit("inject-styles", stylesObj);
+      });
     }
 
     /* eslint-disable no-new */

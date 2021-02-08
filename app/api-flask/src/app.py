@@ -33,7 +33,7 @@ class Layer(Resource):
         self.mvt = MVT()
         # Attach the custom logic method names and argumets to the existing metada
         for attr, value in custom_methods_metadata.items():
-            if (self.metadata[attr]):
+            if (attr in self.metadata):
                 self.metadata[attr].update(value)
 
     def get(self, layer, z, x, y):
