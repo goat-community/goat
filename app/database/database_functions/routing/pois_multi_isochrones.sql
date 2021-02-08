@@ -82,7 +82,7 @@ DECLARE
  	 
  	ELSE 
 		mask = st_setsrid(ST_GeomFromText(region[1]), 4326);
-		SELECT jsonb_build_object('bounding_box',floor(sum(population)::integer/5)*5) AS sum_pop
+		SELECT jsonb_build_object('bounding_box',COALESCE(floor(sum(population)::integer/5)*5,0)) AS sum_pop
 		INTO population_mask
 		FROM population_userinput p
 		WHERE (scenario_id = scenario_id_input OR scenario_id IS NULL)
@@ -146,9 +146,8 @@ DECLARE
 		WHERE m.gid = x.gid;
 	
 	ELSE 
-
 		UPDATE multi_isochrones 
-		SET population = population_mask || x.reached_population
+		SET population = population_mask || reached_population 
 		FROM (
 			SELECT m.gid, jsonb_build_object('bounding_box_reached',floor(COALESCE(sum(p.population)::integer,0)/5)*5) AS reached_population
 			FROM population_userinput p, multi_isochrones m 
@@ -159,6 +158,12 @@ DECLARE
 			GROUP BY m.gid
 		) x
 		WHERE multi_isochrones.gid = x.gid;
+	
+		UPDATE multi_isochrones 
+		SET population = population_mask || jsonb_build_object('bounding_box_reached',0)
+		WHERE population IS NULL
+		AND objectid = objectid_multi_isochrone;
+	
 	END IF; 
 	RETURN query 
 	SELECT gid,objectid, coordinates, userid, scenario_id_input, step, routing_profile, speed, alphashape_parameter,modus, parent_id, population, geom geometry 
@@ -166,8 +171,6 @@ DECLARE
 	WHERE objectid = objectid_multi_isochrone;
 	END;
 $function$ LANGUAGE plpgsql;
-
-
 
 /*
 SELECT *
