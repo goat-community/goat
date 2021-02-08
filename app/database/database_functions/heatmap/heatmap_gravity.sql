@@ -54,7 +54,7 @@ BEGIN
 		WHEN COALESCE(h.accessibility_index,0) >= borders_quintiles[3] AND COALESCE(h.accessibility_index,0) < borders_quintiles[4] THEN 3
 		WHEN COALESCE(h.accessibility_index,0) >= borders_quintiles[4] AND COALESCE(h.accessibility_index,0) < borders_quintiles[5] THEN 4
 		WHEN COALESCE(h.accessibility_index,0) >= borders_quintiles[5] THEN 5
-		END AS percentile_accessibility, h.accessibility_index, g.geom  
+		END AS percentile_accessibility, h.accessibility_index, modus_input AS modus,  g.geom  
 		FROM grid_heatmap g
 		LEFT JOIN (
 			SELECT h.grid_id, ntile(5) over (order by h.accessibility_index) AS percentile_accessibility,
@@ -74,7 +74,7 @@ BEGIN
 		DROP TABLE IF EXISTS grids_comparison;
 		CREATE TEMP TABLE grids_comparison AS 
 		SELECT d.grid_id, (s.percentile_accessibility - d.percentile_accessibility ) AS percentile_accessibility, 
-		COALESCE(s.accessibility_index - d.accessibility_index,0) AS accessibility_index, d.geom
+		COALESCE(s.accessibility_index - d.accessibility_index,0) AS accessibility_index, modus_input AS modus, d.geom
 		FROM grids_default d, grids_scenario s 
 		WHERE d.grid_id = s.grid_id;
 	
@@ -94,7 +94,7 @@ END
 $function$;
 
 COMMENT ON FUNCTION heatmap_gravity(amenities_json jsonb, modus_input text, scenario_id_input integer) 
-IS '**FOR-API-FUNCTION** RETURNS col_names[grid_id,percentile_accessibility,accessibility_index,geom] **FOR-API-FUNCTION**';
+IS '**FOR-API-FUNCTION** RETURNS col_names[grid_id,percentile_accessibility,accessibility_index,modus,geom] **FOR-API-FUNCTION**';
 
 
 /*
