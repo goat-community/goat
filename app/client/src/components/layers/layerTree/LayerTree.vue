@@ -122,6 +122,7 @@ import { Mapable } from "../../../mixins/Mapable";
 import { Group, Vector } from "ol/layer.js";
 import { mapGetters, mapMutations } from "vuex";
 import DocumentationDialog from "../../other/DocumentationDialog";
+import { EventBus } from "../../../EventBus";
 
 export default {
   mixins: [Mapable],
@@ -248,6 +249,7 @@ export default {
       if (clickedLayer.mapLayer.getVisible() === false) {
         clickedLayer.showOptions = false;
       }
+      EventBus.$emit("toggleLayerVisiblity", clickedLayer.mapLayer);
     },
     openDocumentation(item) {
       this.showDocumentationDialog = true;

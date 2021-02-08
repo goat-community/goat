@@ -41,9 +41,7 @@
     <styleParameterFilter>
       <key>STYLES</key>
       <defaultValue></defaultValue>
-      <availableStyles class="sorted-set">
-        <string>cite:style_atkis_landuse</string>
-      </availableStyles>
+      <availableStyles class="sorted-set"/>
       <defaultStyle>cite:style_atkis_landuse</defaultStyle>
     </styleParameterFilter>
   </parameterFilters>

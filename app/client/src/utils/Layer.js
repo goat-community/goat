@@ -5,6 +5,7 @@ import olLayerImage from "ol/layer/Image.js";
 import olLayerVector from "ol/layer/Vector.js";
 import olSourceImageWMS from "ol/source/ImageWMS.js";
 import { appendParams as olUriAppendParams } from "ol/uri.js";
+import UrlUtil from "./Url";
 
 const ServerType = "geoserver";
 
@@ -458,4 +459,23 @@ export function getPoisListValues(pois) {
     });
   });
   return poisListValues;
+}
+
+/**
+ * Update vector layers query params
+ * @param {layer} object map layer
+ * @param {key} String Url Key to update
+ * @param {value} String
+ */
+export function updateLayerUrlQueryParam(layer, queryParams) {
+  const layerSource = layer.getSource();
+  let layerUrl = layerSource.getUrls
+    ? layerSource.getUrls()[0]
+    : layerSource.getUrl();
+  const keys = Object.keys(queryParams);
+  keys.forEach(key => {
+    const value = queryParams[key];
+    layerUrl = UrlUtil.updateQueryStringParameter(layerUrl, key, value);
+  });
+  layerSource.setUrl(layerUrl);
 }
