@@ -171,24 +171,19 @@ export default {
       }
 
       // Add/update scenario_id
-      if (queryParams.includes("scenario_id_input") && this.activeScenario) {
-        const value = parseInt(this.activeScenario);
-        newQueryParams["scenario_id_input"] = value;
-        if (!this.activeScenario) {
-          isValid = false;
-        }
+      if (queryParams.includes("scenario_id_input")) {
+        newQueryParams["scenario_id_input"] =
+          this.activeScenario == null ? 0 : parseInt(this.activeScenario);
       }
 
       // Add/update modus
       if (queryParams.includes("modus_input")) {
-        const value = `'${this.calculationModes}'`;
-        newQueryParams["modus_input"] = value;
+        newQueryParams["modus_input"] = `'${this.calculationModes}'`;
       }
 
       // Add/update routing profile.
       if (queryParams.includes("routing_profile")) {
-        const value = `'${this.activeRoutingProfile}'`;
-        newQueryParams["routing_profile"] = value;
+        newQueryParams["routing_profile"] = `'${this.activeRoutingProfile}'`;
       }
 
       // *UPDATE URL AND REFRESH LAYER*
