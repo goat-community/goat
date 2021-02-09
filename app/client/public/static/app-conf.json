@@ -111,7 +111,11 @@
         "visible": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "attributes": {
+          "source": "Datenbestände des ATKIS Basis-DLM der Länder",
+          "date": "2019"
+        }
       },
       {
         "type": "WMS",
@@ -125,7 +129,11 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "25-11-2020"
+        }
       },
       {
         "type": "WMS",
@@ -163,8 +171,8 @@
         "zIndex": 1,
         "serverType": "geoserver",
         "attributes": {
-          "source": "openStreetMap",
-          "date": "25-12-2020"
+          "source": "Landeshauptstadt München",
+          "date": "2020"
         }
       },
       {
@@ -179,11 +187,7 @@
         "displayInLayerList": false,
         "displayInLegend": false,
         "zIndex": 4,
-        "serverType": "geoserver",
-        "attributes": {
-          "source": "openStreetMap1",
-          "date": "25-12-2020"
-        }
+        "serverType": "geoserver"
       },
       {
         "type": "WMS",
@@ -323,7 +327,11 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "25-11-2020"
+        }
       },
       {
         "type": "WMS",
@@ -337,7 +345,11 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "25-11-2020"
+        }
       },
       {
         "type": "WMS",
@@ -352,7 +364,10 @@
         "displayInLayerList": true,
         "zIndex": 2,
         "serverType": "geoserver",
-        "attributions": "© <a href='https://www.munichways.com/'>MunichWays</a>"
+        "attributes": {
+          "source": "munichWays",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -380,7 +395,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributes": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2021"
+        }
       },
       {
         "type": "WMS",
@@ -394,7 +412,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributions": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -408,7 +429,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributions": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2021"
+        }
       },
       {
         "type": "WMS",
@@ -422,7 +446,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributions": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -436,7 +463,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributions": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2018"
+        }
       },
       {
         "type": "WMS",
@@ -450,7 +480,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributions": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -464,7 +497,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributions": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -478,7 +514,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.stmwi.bayern.de/'>Bayerisches Staatsministerium für Wirtschaft, Landesentwicklung und Energie</a>"
+        "attributions": {
+          "source": "Bayerisches Staatsministerium für Wirtschaft, Landesentwicklung und Energie",
+          "date": "2016"
+        }
       },
       {
         "type": "WMS",
@@ -492,7 +531,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributions": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -507,7 +549,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributions": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -521,7 +566,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributions": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -536,7 +584,10 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+        "attributions": {
+          "source": "Statistikportal",
+          "date": "2016, 2017, 2018, 2019"
+        }
       },
       {
         "type": "WMS",
@@ -550,7 +601,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+        "attributions": {
+          "source": "Statistikportal",
+          "date": "2018"
+        }
       },
       {
         "type": "WMS",
@@ -564,7 +618,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+        "attributions": {
+          "source": "Statistikportal",
+          "date": "2017"
+        }
       },
       {
         "type": "WMS",
@@ -579,7 +636,10 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+        "attributions": {
+          "source": "Statistikportal",
+          "date": "2016, 2017, 2018, 2019"
+        }
       },
       {
         "type": "WMS",
@@ -593,7 +653,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+        "attributions": {
+          "source": "Statistikportal",
+          "date": "2018"
+        }
       },
       {
         "type": "WMS",
@@ -607,7 +670,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+        "attributions": {
+          "source": "Statistikportal",
+          "date": "2017"
+        }
       },
       {
         "type": "WMS",
@@ -622,7 +688,10 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "attributions": "© <a href='https://www.opengov-muenchen.de/pages/raddauerzaehlstellen'>Open Data Portal München</a>"
+        "attributions": {
+          "source": "Open Data Portal Landeshauptstadt München",
+          "date": "2019"
+        }
       },
       {
         "type": "WMS",
@@ -636,7 +705,11 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "attributions": {
+          "source": "Mobilität in Deutschland - infas",
+          "date": "2018"
+        }
       },
       {
         "type": "WMS",
@@ -674,6 +747,10 @@
           "default": "cite:style_heatmap_population",
           "scenario": "cite:style_heatmap_population",
           "comparison": "cite:style_heatmap_population_comparison"
+        },
+        "attributions": {
+          "source": "Zensus - Statistische Ämter des Bundes und der Länder",
+          "date": "2011"
         }
       },
       {
