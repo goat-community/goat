@@ -1,0 +1,27 @@
+{
+  "name": "heatmap_population_api",
+  "rules": [
+    {
+      "name": "Rule 1",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#ffffff"
+        }
+      ],
+      "filter": [
+        "&&",
+        [
+          "==",
+          "percentile_population",
+          0
+        ],
+        [
+          "!=",
+          "modus",
+          "comparison"
+        ]
+      ]
+    }
+  ]
+}
