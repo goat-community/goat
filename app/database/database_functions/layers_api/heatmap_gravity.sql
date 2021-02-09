@@ -1,6 +1,6 @@
 DROP FUNCTION IF EXISTS heatmap_gravity;
-CREATE OR REPLACE FUNCTION public.heatmap_gravity(amenities_json jsonb, modus_input text DEFAULT 'default', scenario_id_input integer DEFAULT 0)
- RETURNS TABLE(grid_id integer, percentile_accessibility integer, accessibility_index bigint, geom geometry)
+CREATE OR REPLACE FUNCTION public.heatmap_gravity(amenities_json jsonb, modus_input text, scenario_id_input integer)
+ RETURNS TABLE(grid_id integer, percentile_accessibility integer, accessibility_index bigint, modus integer, geom geometry)
  LANGUAGE plpgsql
 AS $function$
 DECLARE
@@ -17,7 +17,7 @@ BEGIN
 	IF modus_input IN ('default','comparison') THEN   
 		DROP TABLE IF EXISTS grids_default; 
 		CREATE TEMP TABLE grids_default AS 
-		SELECT g.grid_id, COALESCE(h.percentile_accessibility,0) AS percentile_accessibility, h.accessibility_index, g.geom  
+		SELECT g.grid_id, COALESCE(h.percentile_accessibility,0) AS percentile_accessibility, h.accessibility_index, modus_input AS modus, g.geom  
 		FROM grid_heatmap g
 		LEFT JOIN (
 			SELECT h.grid_id, ntile(5) over (order by h.accessibility_index) AS percentile_accessibility,
