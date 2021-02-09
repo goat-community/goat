@@ -8,7 +8,7 @@ prepare_tables = '''
 	OR (
 		ST_Intersects(hx.geom, st_boundary(s.geom))
 		AND 
-		ST_AREA(ST_Intersection(hx.geom, s.geom)) / ST_AREA(hx.geom) > 0.5
+		ST_AREA(ST_Intersection(hx.geom, s.geom)) / ST_AREA(hx.geom) > 0.3
 	);
 
 	with w as(
