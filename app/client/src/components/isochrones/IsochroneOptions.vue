@@ -171,8 +171,8 @@ export default {
       }
 
       // Add/update scenario_id
-      if (queryParams.includes("scenario_id_input") && this.activeScenario) {
-        const value = parseInt(this.activeScenario);
+      if (queryParams.includes("scenario_id_input")) {
+        const value = this.activeScenario ? 0 : parseInt(this.activeScenario);
         newQueryParams["scenario_id_input"] = value;
         if (!this.activeScenario) {
           isValid = false;
