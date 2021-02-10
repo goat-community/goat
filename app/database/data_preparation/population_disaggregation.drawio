@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2021-02-10T13:17:28.265Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" etag="Mf2uphhCOj0WHYHK_Zn2" version="14.3.0" type="github">
+<mxfile host="app.diagrams.net" modified="2021-02-10T13:24:54.386Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36" etag="rFN9Jba8Xv1TDbEXUONM" version="14.3.0" type="github">
   <diagram id="gSiPfwgvA54Z1C3vehDS" name="Page-1">
-    <mxGraphModel dx="1351" dy="746" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1126" dy="622" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -227,14 +227,6 @@
         <mxCell id="wJF8mjxWtDOm_poNGh10-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="zYgc90g8Zmz4CVXkP-po-9" target="wJF8mjxWtDOm_poNGh10-4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="wJF8mjxWtDOm_poNGh10-58" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="zYgc90g8Zmz4CVXkP-po-9" target="wJF8mjxWtDOm_poNGh10-39">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="1050" y="1190" />
-              <mxPoint x="660" y="1190" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
         <mxCell id="zYgc90g8Zmz4CVXkP-po-9" value="Inject fixed population points" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="1000" y="1069" width="100" height="100" as="geometry" />
         </mxCell>
@@ -242,13 +234,18 @@
           <mxGeometry x="1320" y="879" width="180" height="190" as="geometry" />
         </mxCell>
         <mxCell id="zYgc90g8Zmz4CVXkP-po-18" value="Collect building levels for all buildings in OSM that intersect census_new_dev&amp;nbsp;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
-          <mxGeometry x="1160" y="1230" width="100" height="100" as="geometry" />
+          <mxGeometry x="1290" y="1410" width="100" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="wJF8mjxWtDOm_poNGh10-1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="zYgc90g8Zmz4CVXkP-po-19" target="zYgc90g8Zmz4CVXkP-po-18">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="wJF8mjxWtDOm_poNGh10-68" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="zYgc90g8Zmz4CVXkP-po-19" target="wJF8mjxWtDOm_poNGh10-42">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1150" y="1250" />
+              <mxPoint x="1150" y="1300" />
+            </Array>
+          </mxGeometry>
         </mxCell>
         <mxCell id="zYgc90g8Zmz4CVXkP-po-19" value="&lt;font style=&quot;font-size: 10px&quot;&gt;Table:&amp;nbsp;&lt;br&gt;buildings_to_map&lt;/font&gt;" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;strokeColor=#23445d;fillColor=#CADAE6;" parent="1" vertex="1">
-          <mxGeometry x="950" y="1245" width="140" height="70" as="geometry" />
+          <mxGeometry x="970" y="1215" width="140" height="70" as="geometry" />
         </mxCell>
         <mxCell id="zYgc90g8Zmz4CVXkP-po-21" value="&lt;font style=&quot;font-size: 10px&quot;&gt;Table:&lt;br&gt;buildings&lt;br&gt;&lt;/font&gt;" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;strokeColor=#23445d;fillColor=#CADAE6;" parent="1" vertex="1">
           <mxGeometry x="300" y="670" width="140" height="70" as="geometry" />
@@ -256,14 +253,30 @@
         <mxCell id="zYgc90g8Zmz4CVXkP-po-24" value="&lt;h1&gt;&lt;span&gt;Legend tables&lt;/span&gt;&lt;/h1&gt;&lt;h1 style=&quot;font-size: 13px&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;buildings: &lt;span style=&quot;font-weight: normal&quot;&gt;Classified buildings in population yes/no&amp;nbsp;&lt;/span&gt;&lt;/font&gt;&lt;/h1&gt;&lt;h1 style=&quot;font-size: 13px&quot;&gt;buildings_custom:&lt;span style=&quot;font-weight: normal&quot;&gt; Building footprints provided by the user.&lt;/span&gt;&lt;/h1&gt;&lt;div style=&quot;font-size: 13px&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;&lt;b&gt;census: &lt;/b&gt;Census tracts with number of population.&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 13px&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;&lt;br&gt;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 13px&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;&lt;b&gt;census_new_dev: &lt;/b&gt;Census tracts that had no population at census count but have entrance to building with population now.&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 13px&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 13px&quot;&gt;&lt;b&gt;fixed_population: &lt;/b&gt;address points with pre-defined number of population&lt;/div&gt;&lt;div style=&quot;font-size: 13px&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 13px&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;&lt;b&gt;landuse: &lt;/b&gt;Landuse data provided by the user.&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 13px&quot;&gt;&lt;span style=&quot;font-weight: normal&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;&lt;br&gt;&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 13px&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;&lt;b&gt;landuse_additional:&lt;/b&gt; If several landuse files or classifications are existing the user can provide them.&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 13px&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;&lt;br&gt;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 13px&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;&lt;b&gt;landuse_osm: &lt;/b&gt;All OSM data tagged with landuse.&amp;nbsp;&lt;/font&gt;&lt;/div&gt;&lt;h1 style=&quot;font-size: 13px&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;planet_osm_polygon:&lt;span style=&quot;font-weight: normal&quot;&gt; All OSM data modelled as Polygon&lt;/span&gt;&lt;/font&gt;&lt;/h1&gt;&lt;div&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;&lt;h1 style=&quot;font-size: 13px&quot;&gt;planet_osm_point:&lt;span style=&quot;font-weight: normal&quot;&gt;&amp;nbsp;All OSM data modelled as Point&lt;/span&gt;&lt;/h1&gt;&lt;div&gt;&lt;span style=&quot;font-weight: normal&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-weight: normal&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 13px&quot;&gt;&lt;span style=&quot;font-weight: normal&quot;&gt;&lt;font style=&quot;font-size: 13px&quot;&gt;&lt;br&gt;&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 13px&quot;&gt;&lt;span style=&quot;font-weight: normal&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-weight: normal&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-weight: normal&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-weight: normal&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="1300" y="180" width="190" height="480" as="geometry" />
         </mxCell>
+        <mxCell id="wJF8mjxWtDOm_poNGh10-66" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="wJF8mjxWtDOm_poNGh10-4" target="wJF8mjxWtDOm_poNGh10-39">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1200" y="1180" />
+              <mxPoint x="660" y="1180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
         <mxCell id="wJF8mjxWtDOm_poNGh10-4" value="&lt;font style=&quot;font-size: 10px&quot;&gt;Table:&amp;nbsp;&lt;br&gt;building_points&lt;/font&gt;" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;strokeColor=#23445d;fillColor=#CADAE6;" vertex="1" parent="1">
           <mxGeometry x="1130" y="1084" width="140" height="70" as="geometry" />
         </mxCell>
         <mxCell id="wJF8mjxWtDOm_poNGh10-6" value="&lt;font style=&quot;font-size: 10px&quot;&gt;Table:&amp;nbsp;&lt;br&gt;building_points&lt;/font&gt;" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;strokeColor=#23445d;fillColor=#CADAE6;" vertex="1" parent="1">
           <mxGeometry x="290" y="1540" width="140" height="70" as="geometry" />
         </mxCell>
+        <mxCell id="wJF8mjxWtDOm_poNGh10-69" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="wJF8mjxWtDOm_poNGh10-8" target="wJF8mjxWtDOm_poNGh10-42">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1150" y="1370" />
+              <mxPoint x="1150" y="1300" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
         <mxCell id="wJF8mjxWtDOm_poNGh10-8" value="&lt;font style=&quot;font-size: 10px&quot;&gt;Table:&lt;br&gt;census_new_dev&lt;br&gt;&lt;/font&gt;" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;strokeColor=#23445d;fillColor=#CADAE6;" vertex="1" parent="1">
-          <mxGeometry x="940" y="1345" width="140" height="70" as="geometry" />
+          <mxGeometry x="960" y="1335" width="140" height="70" as="geometry" />
         </mxCell>
         <mxCell id="wJF8mjxWtDOm_poNGh10-11" value="&lt;font style=&quot;font-size: 10px&quot;&gt;Table:&lt;br&gt;census_new_dev&lt;br&gt;&lt;/font&gt;" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;strokeColor=#23445d;fillColor=#CADAE6;" vertex="1" parent="1">
           <mxGeometry x="274" y="1630" width="140" height="70" as="geometry" />
@@ -335,11 +348,17 @@
         <mxCell id="wJF8mjxWtDOm_poNGh10-38" value="&lt;b&gt;Population has sprawled&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="930" y="1480" width="180" height="20" as="geometry" />
         </mxCell>
+        <mxCell id="wJF8mjxWtDOm_poNGh10-61" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="wJF8mjxWtDOm_poNGh10-39" target="wJF8mjxWtDOm_poNGh10-60">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wJF8mjxWtDOm_poNGh10-71" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="wJF8mjxWtDOm_poNGh10-39" target="wJF8mjxWtDOm_poNGh10-70">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="wJF8mjxWtDOm_poNGh10-39" value="Intersection census tracts pop = 0 and building_points" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.decision;whiteSpace=wrap;rounded=1;fontSize=10;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
           <mxGeometry x="610" y="1230" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="wJF8mjxWtDOm_poNGh10-42" value="&lt;font style=&quot;font-size: 10px&quot;&gt;End&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="1320" y="1400" width="120" height="60" as="geometry" />
+          <mxGeometry x="1200" y="1270" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="wJF8mjxWtDOm_poNGh10-57" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="wJF8mjxWtDOm_poNGh10-43" target="wJF8mjxWtDOm_poNGh10-39">
           <mxGeometry relative="1" as="geometry" />
@@ -386,8 +405,34 @@
         <mxCell id="wJF8mjxWtDOm_poNGh10-56" value="Row 3" style="shape=partialRectangle;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" vertex="1" parent="wJF8mjxWtDOm_poNGh10-54">
           <mxGeometry x="30" width="150" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="wJF8mjxWtDOm_poNGh10-60" value="Collect building levels for all buildings in OSM that intersect census_new_dev&amp;nbsp;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
-          <mxGeometry x="780" y="1240" width="100" height="100" as="geometry" />
+        <mxCell id="wJF8mjxWtDOm_poNGh10-65" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="wJF8mjxWtDOm_poNGh10-60" target="zYgc90g8Zmz4CVXkP-po-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wJF8mjxWtDOm_poNGh10-60" value="Collect intersecting buildings" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="810" y="1200" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="wJF8mjxWtDOm_poNGh10-64" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="wJF8mjxWtDOm_poNGh10-62" target="wJF8mjxWtDOm_poNGh10-63">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="760" y="1280" />
+              <mxPoint x="760" y="1370" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wJF8mjxWtDOm_poNGh10-62" value="True" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="710" y="1260" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="wJF8mjxWtDOm_poNGh10-67" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="wJF8mjxWtDOm_poNGh10-63" target="wJF8mjxWtDOm_poNGh10-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wJF8mjxWtDOm_poNGh10-63" value="Collect intersecting census tracts" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="810" y="1320" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="wJF8mjxWtDOm_poNGh10-70" value="&lt;font style=&quot;font-size: 10px&quot;&gt;End&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="600" y="1370" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="wJF8mjxWtDOm_poNGh10-72" value="False" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="660" y="1335" width="40" height="20" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
