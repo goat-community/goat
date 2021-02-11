@@ -1,16 +1,53 @@
 from db.db import Database
-
+from psycopg2 import sql
 
 # Create database class
 db = Database()
 
 
+sql_geojson = '''SELECT jsonb_build_object(
+		'type',     'FeatureCollection',
+		'features', jsonb_agg(features.feature)
+)::text
+FROM (
+SELECT jsonb_build_object(
+	'type',       'Feature',
+	'geometry',   ST_AsGeoJSON(geom,5)::jsonb,
+	'properties', to_jsonb(inputs) - 'geom'
+) AS feature 
+FROM (SELECT * FROM heatmap_temp) inputs) features;'''
+
+
+
+def heatmap_gravity(amenities_json,modus_input,scenario_id_input):
+    db.perform('DROP TABLE IF EXISTS heatmap_temp;')
+
+    db.perform('''CREATE TEMP TABLE heatmap_temp AS 
+    SELECT percentile_accessibility AS score, geom 
+    FROM heatmap_gravity(%(amenities_json)s::jsonb,%(modus_input)s,%(scenario_id_input)s);''',
+    {"amenities_json": amenities_json, "modus_input": modus_input, "scenario_id_input": scenario_id_input})
+    
+    return db.select(sql_geojson)[0][0]
+
+def heatmap_population(scenario_id_input, modus_input):
+    db.perform('DROP TABLE IF EXISTS heatmap_temp;')
+
+    db.perform('''CREATE TEMP TABLE heatmap_temp AS 
+    SELECT percentile_population AS score, geom 
+    FROM heatmap_population_api(%(scenario_id_input)s,%(modus_input)s);''',
+    {"scenario_id_input": scenario_id_input,"modus_input": modus_input})    
+    return db.select(sql_geojson)[0][0]
+
+with open('somefile.geojson', 'a') as f:
+    f.write(heatmap_population(0,'default'))
+
+
+
 def recompute_heatmap(scenario_id):
     """Function to recompute heatmap when network is changed."""
-    import time
-    start = time.time()
-
-    scenario_id = int(scenario_id)
+    
+    if scenario_id == '0':
+        return 'No scenario existing.'
 
     status_precomputed = db.select('''SELECT ways_heatmap_computed 
                 FROM scenarios 
