@@ -1,0 +1,269 @@
+{
+  "name": "landuse_api",
+  "rules": [
+    {
+      "name": "\n              AX_SportFreizeitUndErholungsflaeche\n          ",
+      "filter": [
+        "==",
+        "landuse",
+        "AX_SportFreizeitUndErholungsflaeche"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#32932b",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              AX_Friedhof\n          ",
+      "filter": [
+        "==",
+        "landuse",
+        "AX_Friedhof"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#e2ce30",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              AX_Wohnbauflaeche\n          ",
+      "filter": [
+        "==",
+        "landuse",
+        "AX_Wohnbauflaeche"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#e9a029",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              AX_FlaecheGemischterNutzung\n          ",
+      "filter": [
+        "==",
+        "landuse",
+        "AX_FlaecheGemischterNutzung"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#b4381f",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              AX_FlaecheBesondererFunktionalerPraegung\n            ",
+      "filter": [
+        "==",
+        "landuse",
+        "AX_FlaecheBesondererFunktionalerPraegung"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#4881c2",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              AX_IndustrieUndGewerbeflaeche\n          ",
+      "filter": [
+        "||",
+        [
+          "||",
+          [
+            "==",
+            "landuse",
+            "AX_IndustrieUndGewerbeflaeche"
+          ],
+          [
+            "==",
+            "landuse",
+            "AX_Halde"
+          ]
+        ],
+        [
+          "==",
+          "landuse",
+          "AX_TagebauGrubeSteinbruch"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#b6b6b6",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              AX_Landwirtschaft\n          ",
+      "filter": [
+        "==",
+        "landuse",
+        "AX_Landwirtschaft"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#c1ce44",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              AX_Wald\n          ",
+      "filter": [
+        "==",
+        "landuse",
+        "AX_Wald"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#146614",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              AX_Gewaesser\n          ",
+      "filter": [
+        "||",
+        [
+          "||",
+          [
+            "==",
+            "landuse",
+            "AX_Fließgewaesser"
+          ],
+          [
+            "==",
+            "landuse",
+            "AX_Hafenbecken"
+          ]
+        ],
+        [
+          "==",
+          "landuse",
+          "AX_StehendesGewaesser"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#4fa7e1",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              AX_Natur\n          ",
+      "filter": [
+        "||",
+        [
+          "||",
+          [
+            "||",
+            [
+              "||",
+              [
+                "==",
+                "landuse",
+                "AX_Gehoelz"
+              ],
+              [
+                "==",
+                "landuse",
+                "AX_Heide"
+              ]
+            ],
+            [
+              "==",
+              "landuse",
+              "AX_Moor"
+            ]
+          ],
+          [
+            "==",
+            "landuse",
+            "AX_Sumpf"
+          ]
+        ],
+        [
+          "==",
+          "landuse",
+          "AX_UnlandVegetationsloseFlaeche"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#8dc05c",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              AX_Verkehrsflaechen\n          ",
+      "filter": [
+        "||",
+        [
+          "||",
+          [
+            "||",
+            [
+              "==",
+              "landuse",
+              "AX_Bahnverkehr"
+            ],
+            [
+              "==",
+              "landuse",
+              "AX_Platz"
+            ]
+          ],
+          [
+            "==",
+            "landuse",
+            "AX_Strassenverkehr"
+          ]
+        ],
+        [
+          "==",
+          "landuse",
+          "AX_Flugverkehr"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#707070",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    }
+  ]
+}
