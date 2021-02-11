@@ -45,13 +45,13 @@ BEGIN
 		
 	IF modus_input = 'default' THEN 
 		RETURN query 
-		SELECT grid_id, population, percentile_population, modus_input AS modus, geom FROM population_default;
+		SELECT p.grid_id, p.population, p.percentile_population, modus_input AS modus, p.geom FROM population_default p;
 	ELSEIF modus_input = 'scenario' THEN 
 		RETURN query 
-		SELECT grid_id, population, percentile_population, modus_input AS modus, geom FROM population_scenario;
+		SELECT p.grid_id, p.population, p.percentile_population, modus_input AS modus, p.geom FROM population_scenario p;
 	ELSEIF modus_input = 'comparison' THEN 
 		RETURN query 
-		SELECT grid_id, population, percentile_population, modus_input AS modus, geom FROM population_comparison;
+		SELECT p.grid_id, p.population, p.percentile_population, modus_input AS modus, p.geom FROM population_comparison p;
 	END IF; 
 
 END
@@ -59,3 +59,6 @@ $function$;
 
 COMMENT ON FUNCTION heatmap_population_api(scenario_id_input integer, modus_input text) 
 IS '**FOR-API-FUNCTION** RETURNS col_names[grid_id,population,percentile_population,modus,geom] **FOR-API-FUNCTION**';
+
+
+/*SELECT heatmap_population_api(1,'default')*/

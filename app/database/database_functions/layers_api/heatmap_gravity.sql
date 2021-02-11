@@ -1,6 +1,6 @@
 DROP FUNCTION IF EXISTS heatmap_gravity;
 CREATE OR REPLACE FUNCTION public.heatmap_gravity(amenities_json jsonb, modus_input text, scenario_id_input integer)
- RETURNS TABLE(grid_id integer, percentile_accessibility integer, accessibility_index bigint, modus integer, geom geometry)
+ RETURNS TABLE(grid_id integer, percentile_accessibility integer, accessibility_index bigint, modus text, geom geometry)
  LANGUAGE plpgsql
 AS $function$
 DECLARE

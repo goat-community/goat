@@ -10,7 +10,7 @@ AS $function$
 
 BEGIN 
 
-RETURN query
+	RETURN query
 	SELECT a.gid, a.geom, a.amenity, a.name, a.osm_id, a.opening_hours, a.wheelchair 
 	FROM aois a
 	WHERE a.amenity IN(SELECT UNNEST (aois_input));
