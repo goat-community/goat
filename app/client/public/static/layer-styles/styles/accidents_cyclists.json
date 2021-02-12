@@ -1,12 +1,12 @@
 {
-  "name": "accidents pedestrians",
+  "name": "accidents_cyclists",
   "rules": [
     {
-      "name": "accidents pedestrians",
+      "name": "accidents_cyclists",
       "symbolizers": [
         {
           "kind": "Mark",
-          "color": "#ff9900",
+          "color": "#0099ff",
           "radius": 3,
           "wellKnownName": "Square"
         }
