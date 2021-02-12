@@ -100,36 +100,42 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "landuse",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/landuse_api/{z}/{x}/{y}",
         "group": "buildings_landuse",
-        "layers": "cite:landuse",
-        "viewparamsDynamicKeys": ["userId"],
-        "opacity": 1,
-        "queryable": true,
         "visible": false,
+        "canEdit": false,
+        "queryable": true,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver",
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/landuse_api.json"
+        },
         "attributes": {
           "source": "Datenbestände des ATKIS Basis-DLM der Länder",
           "date": "2019"
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "landuse_osm",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/landuse_osm_api/{z}/{x}/{y}",
         "group": "buildings_landuse",
-        "layers": "cite:landuse_osm",
-        "opacity": 1,
-        "queryable": true,
         "visible": false,
         "canEdit": false,
+        "queryable": true,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver",
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/landuse_osm_api.json"
+        },
         "attributes": {
           "source": "openStreetMap",
           "date": "25-11-2020"
@@ -170,6 +176,27 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
+        "attributes": {
+          "source": "Landeshauptstadt München",
+          "date": "2020"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "study_area",
+        "url": "/v2/map/study_area/{z}/{x}/{y}",
+        "group": "buildings_landuse",
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/study_area.json"
+        },
         "attributes": {
           "source": "Landeshauptstadt München",
           "date": "2020"
@@ -658,18 +685,21 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "accidentsPointsPedestrians",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/accidents_pedestrians/{z}/{x}/{y}",
         "group": "additionalDataLayers",
-        "layers": "cite:accidents_pedestrians",
-        "opacity": 1,
         "visible": false,
         "canEdit": false,
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver",
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/accidents_pedestrians.json"
+        },
         "attributions": {
           "source": "Statistikportal",
           "date": "2016, 2017, 2018, 2019"

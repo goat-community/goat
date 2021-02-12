@@ -1,0 +1,16 @@
+{
+  "name": "accidents pedestrians",
+  "rules": [
+    {
+      "name": "accidents pedestrians",
+      "symbolizers": [
+        {
+          "kind": "Mark",
+          "color": "#ff9900",
+          "radius": 3,
+          "wellKnownName": "Square"
+        }
+      ]
+    }
+  ]
+}
