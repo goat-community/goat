@@ -38,8 +38,8 @@ def heatmap_population(scenario_id_input, modus_input):
     {"scenario_id_input": scenario_id_input,"modus_input": modus_input})    
     return db.select(sql_geojson)[0][0]
 
-with open('somefile.geojson', 'a') as f:
-    f.write(heatmap_population(0,'default'))
+#with open('somefile.geojson', 'a') as f:
+  #  f.write(heatmap_population(0,'default'))
 
 
 
