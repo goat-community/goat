@@ -86,9 +86,11 @@ axios.all([getAppConf(), getStudyAreaBbox(), getLayerStyleTranslation()]).then(
 
       if (layer.style && layer.style.url && layer.style.format) {
         promiseArray.push(
-          axios.get(layer.style.url, {
-            data: { layerName, styleFormat: layer.style.format }
-          })
+          axios
+            .get(layer.style.url, {
+              data: { layerName, styleFormat: layer.style.format }
+            })
+            .catch(() => null)
         );
       }
     });
