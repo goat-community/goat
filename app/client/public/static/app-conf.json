@@ -488,7 +488,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": {
+        "attributes": {
           "source": "Bayerisches Landesamt für Umwelt",
           "date": "2020"
         }
@@ -522,7 +522,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": {
+        "attributes": {
           "source": "Bayerisches Landesamt für Umwelt",
           "date": "2020"
         }
@@ -539,7 +539,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": {
+        "attributes": {
           "source": "Bayerisches Landesamt für Umwelt",
           "date": "2018"
         }
@@ -556,7 +556,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": {
+        "attributes": {
           "source": "Bayerisches Landesamt für Umwelt",
           "date": "2020"
         }
@@ -573,7 +573,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": {
+        "attributes": {
           "source": "Bayerisches Landesamt für Umwelt",
           "date": "2020"
         }
@@ -590,7 +590,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": {
+        "attributes": {
           "source": "Bayerisches Staatsministerium für Wirtschaft, Landesentwicklung und Energie",
           "date": "2016"
         }
@@ -607,7 +607,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": {
+        "attributes": {
           "source": "Bayerisches Landesamt für Umwelt",
           "date": "2020"
         }
@@ -625,7 +625,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": {
+        "attributes": {
           "source": "Bayerisches Landesamt für Umwelt",
           "date": "2020"
         }
@@ -642,7 +642,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": {
+        "attributes": {
           "source": "Bayerisches Landesamt für Umwelt",
           "date": "2020"
         }
@@ -660,7 +660,7 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "attributions": {
+        "attributes": {
           "source": "Statistikportal",
           "date": "2016, 2017, 2018, 2019"
         }
@@ -677,7 +677,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": {
+        "attributes": {
           "source": "Statistikportal",
           "date": "2018"
         }
@@ -694,7 +694,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": {
+        "attributes": {
           "source": "Statistikportal",
           "date": "2017"
         }
@@ -715,7 +715,7 @@
           "format": "geostyler",
           "url": "./static/layer-styles/styles/accidents_pedestrians.json"
         },
-        "attributions": {
+        "attributes": {
           "source": "Statistikportal",
           "date": "2016, 2017, 2018, 2019"
         }
@@ -732,7 +732,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": {
+        "attributes": {
           "source": "Statistikportal",
           "date": "2018"
         }
@@ -749,7 +749,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": {
+        "attributes": {
           "source": "Statistikportal",
           "date": "2017"
         }
@@ -767,7 +767,7 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "attributions": {
+        "attributes": {
           "source": "Open Data Portal Landeshauptstadt München",
           "date": "2019"
         }
@@ -785,7 +785,7 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "attributions": {
+        "attributes": {
           "source": "Mobilität in Deutschland - infas",
           "date": "2018"
         }
@@ -825,10 +825,6 @@
           "default": "cite:style_heatmap_population",
           "scenario": "cite:style_heatmap_population",
           "comparison": "cite:style_heatmap_population_comparison"
-        },
-        "attributions": {
-          "source": "Zensus - Statistische Ämter des Bundes und der Länder",
-          "date": "2011"
         }
       },
       {
@@ -1110,10 +1106,10 @@
     ],
     "otherAttributeLayers": [
       {
-        "name": "sensors",
+        "name": "Zensus",
         "attributes": {
-          "source": "Source",
-          "date": "25-11-2020"
+          "source": "Statistische Ämter des Bundes und der Länder",
+          "date": "2011"
         }
       }
     ],
