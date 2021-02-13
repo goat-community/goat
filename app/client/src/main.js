@@ -98,13 +98,15 @@ axios.all([getAppConf(), getStudyAreaBbox(), getLayerStyleTranslation()]).then(
       axios.all(promiseArray).then(function(results) {
         const stylesObj = {};
         results.forEach(response => {
-          const data = JSON.parse(response.config.data);
-          const { layerName, styleFormat } = data;
-          stylesObj[layerName] = {
-            styleFormat,
-            style: response.data,
-            translation: layerStyleTranslations.data[layerName]
-          };
+          if (response && response.config) {
+            const data = JSON.parse(response.config.data);
+            const { layerName, styleFormat } = data;
+            stylesObj[layerName] = {
+              styleFormat,
+              style: response.data,
+              translation: layerStyleTranslations.data[layerName]
+            };
+          }
         });
         EventBus.$emit("inject-styles", stylesObj);
       });
