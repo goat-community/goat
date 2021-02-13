@@ -7,7 +7,7 @@ $$
 $$
 LANGUAGE sql;
 
-COMMENT ON FUNCTION landuse_api() 
+COMMENT ON FUNCTION accidents_pedestrians() 
 IS '**FOR-API-FUNCTION** RETURNS col_names[year,month,hours,bicycle,car,pedestrians,motorbike,geom] **FOR-API-FUNCTION**';
 
 
