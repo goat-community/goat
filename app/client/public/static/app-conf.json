@@ -57,21 +57,6 @@
         "styleRef": "boundaryStyle"
       },
       {
-        "type": "VECTOR",
-        "lid": "study-area",
-        "name": "studyArea",
-        "url": "/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:study_area_union&srsname=EPSG:4326&outputFormat=json",
-        "formatConfig": {},
-        "format": "GeoJSON",
-        "displayInLayerList": false,
-        "visible": true,
-        "zIndex": 4,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/study_area_test.json"
-        }
-      },
-      {
         "type": "WMS",
         "name": "ways",
         "url": "/geoserver/wms",
@@ -134,6 +119,20 @@
           "source": "Datenbestände des ATKIS Basis-DLM der Länder",
           "date": "2019"
         }
+      },
+      {
+        "type": "WMS",
+        "name": "landuse",
+        "url": "/geoserver/wms",
+        "group": "buildings_landuse",
+        "layers": "cite:landuse",
+        "viewparamsDynamicKeys": ["userId"],
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver"
       },
       {
         "type": "VECTORTILE",
