@@ -9,3 +9,4 @@ marshmallow
 webargs
 pyyaml
 geobuf
+geojson
