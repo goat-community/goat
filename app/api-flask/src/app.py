@@ -2,12 +2,12 @@ import io
 import os
 
 
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, jsonify
 from flask_restful import Api, Resource
 from flask_cors import CORS
 from utils import response
 
-from resources.recompute_heatmap import recompute_heatmap
+from resources.recompute_heatmap import heatmap_connectivity, heatmap_population
 from utils.geo.mvt import MVT
 from db.db import Database
 import config
@@ -105,6 +105,38 @@ class Layer(Resource):
         pbf = db.fetch_one(vtSql)
         bytes = io.BytesIO(pbf)
         return send_file(bytes, mimetype='application/vnd.mapbox-vector-tile')
+
+
+def prepare_func_args(request_args, func_varnames):
+    func_args = []
+    for i in func_varnames:
+        func_args.append(request_args[i].replace("'",""))
+    
+    return func_args
+
+class Heatmap(Resource):
+    def get(self, heatmap_type):
+        request_args = request.args.to_dict()
+
+        request_args_keys = list(request_args.keys())
+        request_val = list(request_args.values())
+        func_varnames = list(globals()[heatmap_type].__code__.co_varnames)
+
+        if sorted(request_args_keys) != sorted(func_varnames):
+            return response.failure({
+                'errors': {
+                    'message': "Not all arguments available. "
+                }
+        })
+        else:
+            func_args = prepare_func_args(request_args, func_varnames)
+            result = globals()[heatmap_type](*func_args)
+
+        return result
+
+api.add_resource(Heatmap,
+                 '/v2/map/heatmap/<string:heatmap_type>'
+                 )
 
 
 api.add_resource(Layer,
