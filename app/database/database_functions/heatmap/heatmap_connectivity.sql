@@ -1,6 +1,6 @@
 DROP FUNCTION IF EXISTS heatmap_connectivity;
 CREATE OR REPLACE FUNCTION public.heatmap_connectivity(modus_input text DEFAULT 'default', scenario_id_input integer DEFAULT 0)
- RETURNS TABLE(grid_id integer, percentile_area_isochrone integer, area_isochrone float, geom geometry)
+ RETURNS TABLE(grid_id integer, percentile_area_isochrone smallint, area_isochrone float, geom geometry)
  LANGUAGE plpgsql
 AS $function$
 DECLARE
@@ -10,7 +10,7 @@ BEGIN
 	IF modus_input IN ('default','comparison') THEN   
 		DROP TABLE IF EXISTS grids_default; 
 		CREATE TEMP TABLE grids_default AS 
-		SELECT g.grid_id, g.area_isochrone, g.percentile_area_isochrone, g.geom  
+		SELECT g.grid_id, g.percentile_area_isochrone, g.area_isochrone, g.geom  
 		FROM grid_heatmap g;	
 	END IF; 
 
@@ -45,7 +45,8 @@ BEGIN
 			WHERE scenario_id = scenario_id_input
 		)
 		SELECT g.grid_id, 
-		CASE WHEN c.percentile_area_isochrone IS NULL THEN g.percentile_area_isochrone ELSE c.percentile_area_isochrone END AS percentile_area_isochrone, 
+		CASE WHEN c.percentile_area_isochrone IS NULL THEN g.percentile_area_isochrone::SMALLINT ELSE c.percentile_area_isochrone::SMALLINT 
+		END AS percentile_area_isochrone, 
 		CASE WHEN c.area_isochrone IS NULL THEN g.area_isochrone ELSE c.area_isochrone END AS area_isochrone, g.geom
 		FROM grid_heatmap g
 		LEFT JOIN grids_to_classify c
@@ -80,3 +81,4 @@ END
 $function$;
 
 /*SELECT * FROM heatmap_connectivity('scenario',2)*/
+

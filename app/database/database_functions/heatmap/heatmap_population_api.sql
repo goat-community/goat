@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS heatmap_population_api;
-CREATE OR REPLACE FUNCTION public.heatmap_population_api(scenario_id_input integer, modus_input text DEFAULT 'default')
+CREATE OR REPLACE FUNCTION public.heatmap_population_api(modus_input text, scenario_id_input integer)
 RETURNS TABLE(grid_id integer, population float, percentile_population integer, modus text, geom geometry)
 LANGUAGE plpgsql
 AS $function$
@@ -57,8 +57,4 @@ BEGIN
 END
 $function$;
 
-COMMENT ON FUNCTION heatmap_population_api(scenario_id_input integer, modus_input text) 
-IS '**FOR-API-FUNCTION** RETURNS col_names[grid_id,population,percentile_population,modus,geom] **FOR-API-FUNCTION**';
-
-
-/*SELECT heatmap_population_api(1,'default')*/
+/*SELECT heatmap_population_api('default',1)*/
