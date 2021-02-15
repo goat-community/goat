@@ -1,0 +1,56 @@
+{
+  "name": "lit",
+  "rules": [
+    {
+      "name": "yes",
+      "filter": [
+        "==",
+        "lit_classified",
+        "yes"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#e9b742",
+          "width": 2,
+          "join": "round",
+          "cap": "round"
+        }
+      ]
+    },
+    {
+      "name": "no",
+      "filter": [
+        "==",
+        "lit_classified",
+        "no"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#000000",
+          "width": 2,
+          "join": "round",
+          "cap": "round"
+        }
+      ]
+    },
+    {
+      "name": "no data",
+      "filter": [
+        "==",
+        "lit_classified",
+        "unclassified"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#aeb8b8",
+          "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    }
+  ]
+}

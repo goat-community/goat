@@ -1,0 +1,16 @@
+{
+  "name": "Mapping_buildings",
+  "rules": [
+    {
+      "name": "symbol",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#3349FF",
+          "outlineColor": "#232323",
+          "outlineWidth": 0.5
+        }
+      ]
+    }
+  ]
+}

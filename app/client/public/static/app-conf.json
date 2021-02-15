@@ -235,7 +235,6 @@
         "name": "footpathWidth",
         "url": "/v2/map/footpath_width/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
-        "layers": "cite:footpath_width",
         "opacity": 1,
         "queryable": true,
         "visible": false,
@@ -250,128 +249,166 @@
       {
         "type": "WMS",
         "name": "illuminance",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/ways_lit/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
-        "layers": "cite:ways_lit",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_lit.json"
+          } 	
       },
       {
         "type": "WMS",
         "name": "lanes",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/ways_lanes/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
-        "layers": "cite:ways_lanes",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_lanes.json"
+          } 	
       },
       {
         "type": "WMS",
         "name": "parking",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/ways_parking/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
-        "layers": "cite:ways_parking",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_parking.json"
+          } 
       },
       {
         "type": "WMS",
         "name": "streetCategory",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/ways_category/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
-        "layers": "cite:ways_category",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_category.json"
+          } 
       },
       {
         "type": "WMS",
         "name": "streetCategorysAggregated",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/ways_category_aggregated/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
-        "layers": "cite:ways_category_aggregated",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_category_aggregated.json"
+          } 
       },
       {
         "type": "WMS",
         "name": "speed",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/ways_speed/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
-        "layers": "cite:ways_speed",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_speed.json"
+          } 
       },
       {
         "type": "WMS",
         "name": "surface",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/ways_surface/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
-        "layers": "cite:ways_surface",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_surface.json"
+          } 
       },
       {
         "type": "WMS",
         "name": "smoothness",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/ways_smoothness/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
-        "layers": "cite:ways_smoothness",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_smoothness.json"
+          } 
       },
       {
         "type": "WMS",
         "name": "streetCrossings",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/street_crossings_visualization/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
-        "layers": "cite:street_crossings",
         "opacity": 1,
         "visible": false,
         "canEdit": false,
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "serverType": "geoserver",
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/street_crossings.json"
+          }, 	
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "25-11-2020"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "streetFurniture",
+        "url": "/v2/map/street_furniture/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/street_furniture.json"
+          }, 	
         "attributes": {
           "source": "openStreetMap",
           "date": "25-11-2020"
@@ -380,16 +417,18 @@
       {
         "type": "WMS",
         "name": "streetFurnitureBicycles",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/street_furniture_bicycles/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
-        "layers": "cite:street_furniture_bicycles",
         "opacity": 1,
         "visible": false,
         "canEdit": false,
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "serverType": "geoserver",
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/street_furniture_bicycles.json"
+          }, 	
         "attributes": {
           "source": "openStreetMap",
           "date": "25-11-2020"
@@ -398,16 +437,18 @@
       {
         "type": "WMS",
         "name": "cyclewayQuality_munichways",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/munichways/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
-        "layers": "cite:munichways",
         "opacity": 1,
         "visible": false,
         "canEdit": false,
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "serverType": "geoserver",
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/munichways.json"
+          }, 
         "attributes": {
           "source": "munichWays",
           "date": "2020"
@@ -416,16 +457,18 @@
       {
         "type": "WMS",
         "name": "wheelchairUsability",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/ways_wheelchair/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
-        "layers": "cite:ways_wheelchair",
         "opacity": 1,
         "visible": false,
         "canEdit": false,
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_wheelchair.json"
+          }
       },
       {
         "type": "VECTORTILE",
@@ -763,16 +806,18 @@
       {
         "type": "WMS",
         "name": "bicycle_counting_stations",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/bicycle_counting_stations/{z}/{x}/{y}",
         "group": "additionalDataLayers",
-        "layers": "cite:bicycle_counting_stations",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver",
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/bicycle_counting_stations.json"
+          }, 
         "attributes": {
           "source": "Open Data Portal Landeshauptstadt München",
           "date": "2019"
@@ -951,16 +996,14 @@
       {
         "type": "WMS",
         "name": "osm-mapping-pois",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/mapping_pois_opening_hours/{z}/{x}/{y}",
         "group": "osmMappingLayers",
-        "layers": "cite:mapping_pois_opening_hours",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
         "zIndex": 30,
-        "serverType": "geoserver",
         "otherProps": {
           "icon": "fas fa-clock",
           "stepsOrdersKeys": [
@@ -974,16 +1017,18 @@
       {
         "type": "WMS",
         "name": "osm-mapping-ways-speed",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/mapping_ways_speed/{z}/{x}/{y}",
         "group": "osmMappingLayers",
-        "layers": "cite:mapping_ways_speed",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
         "zIndex": 31,
-        "serverType": "geoserver",
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/mapping_ways.json"
+          },	
         "otherProps": {
           "icon": "fas fa-tachometer-alt",
           "stepsOrdersKeys": [
@@ -997,16 +1042,18 @@
       {
         "type": "WMS",
         "name": "osm-mapping-parking-lane",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/mapping_parking_lane/{z}/{x}/{y}",
         "group": "osmMappingLayers",
-        "layers": "cite:mapping_parking_lane",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
         "zIndex": 31,
-        "serverType": "geoserver",
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/mapping_ways.json"
+          },
         "otherProps": {
           "icon": "fas fa-car",
           "stepsOrdersKeys": [
@@ -1020,16 +1067,18 @@
       {
         "type": "WMS",
         "name": "osm-mapping-cycleways-width",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/mapping_cycleways_width/{z}/{x}/{y}",
         "group": "osmMappingLayers",
-        "layers": "cite:mapping_cycleways_width",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
         "zIndex": 31,
-        "serverType": "geoserver",
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/mapping_ways.json"
+          },
         "otherProps": {
           "icon": "fas fa-biking",
           "stepsOrdersKeys": [
@@ -1043,16 +1092,18 @@
       {
         "type": "WMS",
         "name": "osm-mapping-cycleways-segregated",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/mapping_cycleways_segregated/{z}/{x}/{y}",
         "group": "osmMappingLayers",
-        "layers": "cite:mapping_cycleways_segregated",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
         "zIndex": 31,
-        "serverType": "geoserver",
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/mapping_ways.json"
+          },
         "otherProps": {
           "icon": "fas fa-walking",
           "stepsOrdersKeys": [
@@ -1066,16 +1117,18 @@
       {
         "type": "WMS",
         "name": "osm-mapping-ways-surface",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/mapping_ways_surface/{z}/{x}/{y}",
         "group": "osmMappingLayers",
-        "layers": "cite:mapping_ways_surface",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
         "zIndex": 32,
-        "serverType": "geoserver",
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/mapping_ways.json"
+          },
         "otherProps": {
           "icon": "fas fa-road",
           "stepsOrdersKeys": [
@@ -1089,16 +1142,18 @@
       {
         "type": "WMS",
         "name": "osm-mapping-buildings-type",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/mappings_building_type/{z}/{x}/{y}",
         "group": "osmMappingLayers",
-        "layers": "cite:mapping_buildings_type",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
         "zIndex": 33,
-        "serverType": "geoserver",
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/mapping_buildings.json"
+          },
         "otherProps": {
           "icon": "fas fa-building",
           "stepsOrdersKeys": [
