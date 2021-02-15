@@ -1,0 +1,17 @@
+{
+    "name": "Style Crossings",
+    "rules": [
+      {
+        "name": "visualization",
+        "scaleDenominator": {
+          "max": 80000
+        },
+        "symbolizers": [
+          {
+            "kind": "Icon",
+            "image": "street_crossings/${strToLowerCase(crossing)}.png"
+          }
+        ]
+      }
+    ]
+  }

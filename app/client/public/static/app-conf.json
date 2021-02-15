@@ -233,7 +233,7 @@
       {
         "type": "WMS",
         "name": "footpathWidth",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/footpath_width/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "layers": "cite:footpath_width",
         "opacity": 1,
@@ -242,7 +242,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/footpath_width.json"
+        }
       },
       {
         "type": "WMS",
@@ -659,6 +662,10 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/accidents_cyclists.json"
+        },
         "attributes": {
           "source": "Statistikportal",
           "date": "2016, 2017, 2018, 2019"
