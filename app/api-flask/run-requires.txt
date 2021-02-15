@@ -8,3 +8,5 @@ flask_cors
 marshmallow
 webargs
 pyyaml
+asyncio
+geojson
