@@ -231,7 +231,8 @@
         "serverType": "geoserver"
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "footpathWidth",
         "url": "/v2/map/footpath_width/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -247,7 +248,8 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "illuminance",
         "url": "/v2/map/ways_lit/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -263,7 +265,8 @@
           } 	
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "lanes",
         "url": "/v2/map/ways_lanes/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -279,7 +282,8 @@
           } 	
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "parking",
         "url": "/v2/map/ways_parking/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -295,7 +299,8 @@
           } 
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "streetCategory",
         "url": "/v2/map/ways_category/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -311,7 +316,8 @@
           } 
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "streetCategorysAggregated",
         "url": "/v2/map/ways_category_aggregated/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -327,7 +333,8 @@
           } 
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "speed",
         "url": "/v2/map/ways_speed/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -343,7 +350,8 @@
           } 
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "surface",
         "url": "/v2/map/ways_surface/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -359,7 +367,8 @@
           } 
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "smoothness",
         "url": "/v2/map/ways_smoothness/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -375,7 +384,8 @@
           } 
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "streetCrossings",
         "url": "/v2/map/street_crossings_visualization/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -395,7 +405,8 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "streetFurniture",
         "url": "/v2/map/street_furniture/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -415,7 +426,8 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "streetFurnitureBicycles",
         "url": "/v2/map/street_furniture_bicycles/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -435,7 +447,8 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "cyclewayQuality_munichways",
         "url": "/v2/map/munichways/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -455,7 +468,8 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "wheelchairUsability",
         "url": "/v2/map/ways_wheelchair/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -804,7 +818,8 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "bicycle_counting_stations",
         "url": "/v2/map/bicycle_counting_stations/{z}/{x}/{y}",
         "group": "additionalDataLayers",
@@ -994,7 +1009,8 @@
     ],
     "osmMappingLayers": [
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "osm-mapping-pois",
         "url": "/v2/map/mapping_pois_opening_hours/{z}/{x}/{y}",
         "group": "osmMappingLayers",
@@ -1004,6 +1020,10 @@
         "displayInLayerList": false,
         "displayInLegend": false,
         "zIndex": 30,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/mapping_ways.json"
+          },	
         "otherProps": {
           "icon": "fas fa-clock",
           "stepsOrdersKeys": [
@@ -1015,7 +1035,8 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "osm-mapping-ways-speed",
         "url": "/v2/map/mapping_ways_speed/{z}/{x}/{y}",
         "group": "osmMappingLayers",
@@ -1040,7 +1061,8 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "osm-mapping-parking-lane",
         "url": "/v2/map/mapping_parking_lane/{z}/{x}/{y}",
         "group": "osmMappingLayers",
@@ -1065,7 +1087,8 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "osm-mapping-cycleways-width",
         "url": "/v2/map/mapping_cycleways_width/{z}/{x}/{y}",
         "group": "osmMappingLayers",
@@ -1090,7 +1113,8 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "osm-mapping-cycleways-segregated",
         "url": "/v2/map/mapping_cycleways_segregated/{z}/{x}/{y}",
         "group": "osmMappingLayers",
@@ -1115,7 +1139,8 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "osm-mapping-ways-surface",
         "url": "/v2/map/mapping_ways_surface/{z}/{x}/{y}",
         "group": "osmMappingLayers",
@@ -1140,7 +1165,8 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "osm-mapping-buildings-type",
         "url": "/v2/map/mappings_building_type/{z}/{x}/{y}",
         "group": "osmMappingLayers",
