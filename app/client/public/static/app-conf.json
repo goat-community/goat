@@ -46,9 +46,24 @@
     "layers": [
       {
         "type": "VECTOR",
+        "name": "heatmap_population_api",
+        "group": "poisLayers",
+        "url": "/v2/map/heatmap/heatmap_population",
+        "format": "GeoJSON",
+        "displayInLayerList": true,
+        "visible": false,
+        "zIndex": 4,
+        "queryParams": ["scenario_id_input", "modus_input"],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/heatmap_population_api.json"
+        }
+      },
+      {
+        "type": "VECTOR",
         "lid": "study-area",
         "name": "studyArea",
-        "url": "/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:study_area_union&srsname=EPSG:4326&outputFormat=json",
+        "url": "",
         "formatConfig": {},
         "format": "GeoJSON",
         "displayInLayerList": false,
@@ -85,13 +100,13 @@
         "viewparamsDynamicKeys": ["modus"],
         "opacity": 1,
         "queryable": true,
+        "requiresPois": true,
         "visible": false,
         "canEdit": true,
         "editDataType": "GeoJSON",
         "editGeometry": ["Point"],
         "displayInLayerList": true,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 7,
         "serverType": "geoserver",
         "attributes": {
@@ -100,32 +115,46 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "landuse",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/landuse_api/{z}/{x}/{y}",
         "group": "buildings_landuse",
-        "layers": "cite:landuse",
-        "viewparamsDynamicKeys": ["userId"],
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "serverType": "geoserver"
-      },
-      {
-        "type": "WMS",
-        "name": "landuse_osm",
-        "url": "/geoserver/wms",
-        "group": "buildings_landuse",
-        "layers": "cite:landuse_osm",
-        "opacity": 1,
-        "queryable": true,
         "visible": false,
         "canEdit": false,
+        "queryable": true,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/landuse_api.json"
+        },
+        "attributes": {
+          "source": "Datenbestände des ATKIS Basis-DLM der Länder",
+          "date": "2019"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "landuse_osm",
+        "url": "/v2/map/landuse_osm_api/{z}/{x}/{y}",
+        "group": "buildings_landuse",
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/landuse_osm_api.json"
+        },
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "25-11-2020"
+        }
       },
       {
         "type": "WMS",
@@ -163,8 +192,29 @@
         "zIndex": 1,
         "serverType": "geoserver",
         "attributes": {
-          "source": "openStreetMap",
-          "date": "25-12-2020"
+          "source": "Landeshauptstadt München",
+          "date": "2020"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "study_area",
+        "url": "/v2/map/study_area/{z}/{x}/{y}",
+        "group": "buildings_landuse",
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/study_area.json"
+        },
+        "attributes": {
+          "source": "Landeshauptstadt München",
+          "date": "2020"
         }
       },
       {
@@ -179,11 +229,7 @@
         "displayInLayerList": false,
         "displayInLegend": false,
         "zIndex": 4,
-        "serverType": "geoserver",
-        "attributes": {
-          "source": "openStreetMap1",
-          "date": "25-12-2020"
-        }
+        "serverType": "geoserver"
       },
       {
         "type": "WMS",
@@ -323,7 +369,11 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "25-11-2020"
+        }
       },
       {
         "type": "WMS",
@@ -337,7 +387,11 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "25-11-2020"
+        }
       },
       {
         "type": "WMS",
@@ -352,7 +406,10 @@
         "displayInLayerList": true,
         "zIndex": 2,
         "serverType": "geoserver",
-        "attributions": "© <a href='https://www.munichways.com/'>MunichWays</a>"
+        "attributes": {
+          "source": "munichWays",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -369,6 +426,23 @@
         "serverType": "geoserver"
       },
       {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "aois_visualization",
+        "url": "/v2/map/aois_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "queryParams": ["userid_input", "aois_input"],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/aois_visualization.json"
+        }
+      },
+      {
         "type": "WMS",
         "name": "waterProtectionArea",
         "url": "https://www.lfu.bayern.de/gdi/wms/wasser/wsg?",
@@ -380,7 +454,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributes": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2021"
+        }
       },
       {
         "type": "WMS",
@@ -394,7 +471,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributes": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -408,7 +488,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributions": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2021"
+        }
       },
       {
         "type": "WMS",
@@ -422,7 +505,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributes": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -436,7 +522,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributes": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2018"
+        }
       },
       {
         "type": "WMS",
@@ -450,7 +539,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributes": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -464,7 +556,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributes": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -478,7 +573,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.stmwi.bayern.de/'>Bayerisches Staatsministerium für Wirtschaft, Landesentwicklung und Energie</a>"
+        "attributes": {
+          "source": "Bayerisches Staatsministerium für Wirtschaft, Landesentwicklung und Energie",
+          "date": "2016"
+        }
       },
       {
         "type": "WMS",
@@ -492,7 +590,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributes": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -507,7 +608,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributes": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -521,7 +625,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='https://www.lfu.bayern.de'>Bayerisches Landesamt für Umwelt</a>"
+        "attributes": {
+          "source": "Bayerisches Landesamt für Umwelt",
+          "date": "2020"
+        }
       },
       {
         "type": "WMS",
@@ -536,7 +643,10 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2016, 2017, 2018, 2019"
+        }
       },
       {
         "type": "WMS",
@@ -550,7 +660,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2018"
+        }
       },
       {
         "type": "WMS",
@@ -564,22 +677,31 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2017"
+        }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "accidentsPointsPedestrians",
-        "url": "/geoserver/wms",
+        "url": "/v2/map/accidents_pedestrians/{z}/{x}/{y}",
         "group": "additionalDataLayers",
-        "layers": "cite:accidents_pedestrians",
-        "opacity": 1,
         "visible": false,
         "canEdit": false,
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver",
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/accidents_pedestrians.json"
+        },
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2016, 2017, 2018, 2019"
+        }
       },
       {
         "type": "WMS",
@@ -593,7 +715,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2018"
+        }
       },
       {
         "type": "WMS",
@@ -607,7 +732,10 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "attributions": "© <a href='http://www.statistikportal.de/de'>Statistikportal </a>"
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2017"
+        }
       },
       {
         "type": "WMS",
@@ -622,7 +750,10 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "attributions": "© <a href='https://www.opengov-muenchen.de/pages/raddauerzaehlstellen'>Open Data Portal München</a>"
+        "attributes": {
+          "source": "Open Data Portal Landeshauptstadt München",
+          "date": "2019"
+        }
       },
       {
         "type": "WMS",
@@ -636,7 +767,11 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver"
+        "serverType": "geoserver",
+        "attributes": {
+          "source": "Mobilität in Deutschland - infas",
+          "date": "2018"
+        }
       },
       {
         "type": "WMS",
@@ -648,7 +783,6 @@
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
-        "requiresPois": true,
         "zIndex": 1,
         "serverType": "geoserver",
         "docUrl": "https://www.open-accessibility.org/docs/walkability%20population%20heatmap/",
@@ -686,7 +820,6 @@
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
-        "requiresPois": true,
         "zIndex": 1,
         "serverType": "geoserver",
         "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
@@ -709,7 +842,7 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "serverType": "geoserver",
-        "viewparamsDynamicKeys": ["modus","scenario_id"]
+        "viewparamsDynamicKeys": ["modus", "scenario_id"]
       },
       {
         "type": "OSM",
@@ -745,7 +878,7 @@
         "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
       },
       {
-        "type": "OSM", 
+        "type": "OSM",
         "name": "openTopoMap",
         "url": "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png",
         "group": "backgroundLayers",
@@ -803,7 +936,6 @@
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 30,
         "serverType": "geoserver",
         "otherProps": {
@@ -827,7 +959,6 @@
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 31,
         "serverType": "geoserver",
         "otherProps": {
@@ -851,7 +982,6 @@
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 31,
         "serverType": "geoserver",
         "otherProps": {
@@ -875,7 +1005,6 @@
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 31,
         "serverType": "geoserver",
         "otherProps": {
@@ -899,7 +1028,6 @@
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 31,
         "serverType": "geoserver",
         "otherProps": {
@@ -923,7 +1051,6 @@
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 32,
         "serverType": "geoserver",
         "otherProps": {
@@ -947,7 +1074,6 @@
         "visible": false,
         "displayInLayerList": false,
         "displayInLegend": false,
-        "requiresPois": true,
         "zIndex": 33,
         "serverType": "geoserver",
         "otherProps": {
@@ -958,6 +1084,15 @@
             "fillInOSMiD"
           ],
           "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:building"
+        }
+      }
+    ],
+    "otherAttributeLayers": [
+      {
+        "name": "Zensus",
+        "attributes": {
+          "source": "Statistische Ämter des Bundes und der Länder",
+          "date": "2011"
         }
       }
     ],

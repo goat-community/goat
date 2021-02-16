@@ -1,6 +1,6 @@
-DROP FUNCTION IF EXISTS population_heatmap_geoserver;
-CREATE OR REPLACE FUNCTION public.population_heatmap_geoserver(scenario_id_input integer, modus_input text DEFAULT 'default')
-RETURNS TABLE(grid_id integer, population float, percentile_population integer, geom geometry)
+DROP FUNCTION IF EXISTS heatmap_population_api;
+CREATE OR REPLACE FUNCTION public.heatmap_population_api(modus_input text, scenario_id_input integer)
+RETURNS TABLE(grid_id integer, population float, percentile_population integer, modus text, geom geometry)
 LANGUAGE plpgsql
 AS $function$
 BEGIN 
@@ -45,14 +45,16 @@ BEGIN
 		
 	IF modus_input = 'default' THEN 
 		RETURN query 
-		SELECT * FROM population_default;
+		SELECT p.grid_id, p.population, p.percentile_population, modus_input AS modus, p.geom FROM population_default p;
 	ELSEIF modus_input = 'scenario' THEN 
 		RETURN query 
-		SELECT * FROM population_scenario;
+		SELECT p.grid_id, p.population, p.percentile_population, modus_input AS modus, p.geom FROM population_scenario p;
 	ELSEIF modus_input = 'comparison' THEN 
 		RETURN query 
-		SELECT * FROM population_comparison;
+		SELECT p.grid_id, p.population, p.percentile_population, modus_input AS modus, p.geom FROM population_comparison p;
 	END IF; 
 
 END
 $function$;
+
+/*SELECT heatmap_population_api('default',1)*/

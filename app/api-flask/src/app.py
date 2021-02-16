@@ -2,13 +2,13 @@ import io
 import os
 
 
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, jsonify
 from flask_restful import Api, Resource
 from flask_cors import CORS
 from utils import response
 from utils.async_function import *
 
-from resources.recompute_heatmap import recompute_heatmap
+from resources.recompute_heatmap import heatmap_connectivity, heatmap_population
 from utils.geo.mvt import MVT
 from db.db import Database
 import config
@@ -35,6 +35,17 @@ custom_methods_metadata = {
 }
 
 
+def check_args_complete(request_args, query_values):
+    request_args_keys = list(request_args.keys())
+
+    if sorted(request_args_keys) != sorted(query_values):
+        return response.failure({
+            'errors': {
+                'message': "Not all arguments available. "
+            }
+    })
+    else:
+        return request_args 
 
 
 def async_action(f):
@@ -54,83 +65,70 @@ class Scenarios(Resource):
             }
         if mode == "read_deleted_features" :
             #sample body: {"mode":"read_deleted_features","table_name":"pois" ,"scenario_id":"1"} 
-            self.record = db.fetch_one(
-            f"""SELECT {
-                translation_layers[body.get('table_name')]
-            } AS deleted_feature_ids FROM scenarios WHERE scenario_id = {body.get('scenario_id')}::bigint"""
-            )
-            records = self.record
+            
+            records = db.select_with_identifiers('''SELECT {} AS deleted_feature_ids 
+            FROM scenarios 
+            WHERE scenario_id = %(scenario_id)s::bigint''', 
+            [translation_layers[body.get('table_name')]], {"scenario_id": body.get('scenario_id')})[0][0]
+      
             return records
         elif mode == "update_deleted_features" :
             #sample body: {"mode":"update_deleted_features","deleted_feature_ids":[8,3,4],"table_name":"pois" ,"scenario_id":"2"} */
-
-            db.perform(
-            f"""UPDATE scenarios SET {translation_layers[body.get('table_name')]} = array{body.get('deleted_feature_ids')}::bigint[] WHERE scenario_id = {body.get('scenario_id')}::bigint""")
+            deleted_features_ids = body.get('deleted_feature_ids')
+            
+            db.perform_with_identifiers("""UPDATE scenarios 
+            SET {} = %(deleted_feature_ids)s::bigint[] 
+            WHERE scenario_id = %(scenario_id)s::bigint""", 
+            [translation_layers[body.get('table_name')]], {"scenario_id": body.get('scenario_id'), "deleted_feature_ids": body.get('deleted_feature_ids')})
+            
             return{
                 "update_succes":True
             }
         elif mode == "delete_feature" :
             #delete is used to delete the feature from modified table if the user has drawn that feature by himself
             #sample body: {"mode":"delete_feature","table_name":"pois","scenario_id":"8","deleted_feature_ids":[2,3,4],"drawned_fid":"14"} */
-            db.perform(
-            f"""DELETE FROM {body.get('table_name')}_modified WHERE scenario_id = {body.get('scenario_id')}::bigint AND original_id = ANY((array{body.get('deleted_feature_ids')}))
-            """)
-            db.perform(
-            f"""DELETE FROM {body.get('table_name')}_modified WHERE gid=({body.get('drawned_fid')});"""
-            )
+            table_name = body.get('table_name') + '_modified' 
+
+            db.perform_with_identifiers("""DELETE FROM {}
+            WHERE scenario_id = {%(scenario_id)s::bigint 
+            AND original_id = ANY((array{%(deleted_feature_ids)s}))""", 
+            [table_name], {"scenario_id": body.get('scenario_id'), "deleted_feature_ids": body.get('deleted_feature_ids')})
+            
+            db.perform("DELETE FROM {} WHERE gid=%(gid)s;", [table_name], {"gid": body.get('drawned_fid')})
+
             return{
                 'delete_success':True
-                    }
+            }
         elif mode == "insert" :
         #/*sample body: {mode:"insert","userid":1,"scenario_name":"scenario1"}*/
-            record = db.perform_with_result(f"""
-            INSERT INTO scenarios (userid, scenario_name) VALUES ({body.get('userid')},'{body.get('scenario_name')}') RETURNING scenario_id
-            """)
+            scenario_id = db.select("""INSERT INTO scenarios (userid, scenario_name) VALUES (%(userid)s,%(scenario_name)s) RETURNING scenario_id""", 
+                {"userid": body.get('userid'), "scenario_name": body.get('scenario_name')})[0][0]
             return {
-                "scenario_id":f"{record}"
-                    }
+                "scenario_id":f"{scenario_id}"
+                }
         elif mode == "delete": 
         #/*sample body: {mode:"delete","scenario_id":97}*/
-            db.perform(
-            f"""DELETE FROM scenarios WHERE scenario_id = {body.get('scenario_id')}::bigint"""
-            )
+            db.perform("""DELETE FROM scenarios WHERE scenario_id = %(scenario_id)s::bigint""",{"scenario_name": body.get('scenario_name')})
             return{
                 "delete_success":True
             }
         elif mode == "update_scenario" :
         #/*sample body: {mode:"update_scenario","scenario_id":2,"scenario_name":"new_name2"}*/
-            db.perform(
-        f"""UPDATE scenarios SET scenario_name = '{body.get('scenario_name')}' WHERE scenario_id = {body.get('scenario_id')}::bigint
-        """
-        )
+            db.perform("""UPDATE scenarios SET scenario_name = %(scenario_name)s 
+            WHERE scenario_id = %(scenario_id)s::bigint""", {"scenario_name": body.get('scenario_name'), "scenario_id": body.get('scenario_id')})
             return{
                 "update_success":True
             }
 
 class Isochrone(Resource):
     def post(self):
-        body=request.get_json()
-        requiredParams = [
-            "user_id",
-            "scenario_id",
-            "minutes",
-            "x",
-            "y",
-            "n",
-            "speed",
-            "concavity",
-            "modus",
-            "routing_profile"
-        ]
-        queryValues = []
-        for key in  requiredParams :
-            value = body[key]
-            if key not in body.keys(): 
-                print('key error')
-                return 'key error'
-            queryValues.append(value)
+        args=request.get_json()
         
-        query=f"""SELECT jsonb_build_object(
+        requiredParams = ["user_id","scenario_id","minutes","x","y","n","speed","concavity","modus","routing_profile"]
+        
+        args = check_args_complete(args, requiredParams)
+      
+        query="""SELECT jsonb_build_object(
 		'type',     'FeatureCollection',
 		'features', jsonb_agg(features.feature)
         )
@@ -141,24 +139,36 @@ class Isochrone(Resource):
 		'geometry',   ST_AsGeoJSON(geom)::jsonb,
 		'properties', to_jsonb(inputs) - 'gid' - 'geom'
         ) AS feature 
-	    FROM (SELECT * FROM isochrones_api ({queryValues[0]},{queryValues[1]},{queryValues[2]},{queryValues[3]},{queryValues[4]},{queryValues[5]},{queryValues[6]},'{queryValues[7]}','{queryValues[8]}','{queryValues[9]}',NULL,NULL,NULL)) inputs) features;"""
+	    FROM (
+                SELECT * 
+                FROM isochrones_api (%(user_id)s,%(scenario_id)s,%(minutes)s,%(x)s,%(y)s,%(n)s,%(speed)s,%(concavity)s,%(modus)s,%(routing_profile)s,NULL,NULL,NULL)
+            ) inputs
+        ) features;"""
         
-        result=db.fetch_one(query)
+        result=db.select(query, 
+        {
+            "user_id": args["user_id"],"scenario_id": args["scenario_id"],"minutes": args["minutes"], "x": args["x"],"y": args["y"],"n": args["n"],
+            "speed": args["speed"], "concavity": args["concavity"],"modus": args["modus"],"routing_profile": args["routing_profile"]
+            }
+        )[0][0]
+ 
         return result
 
 class ManageUser(Resource):
     def post(self):
         body=request.get_json()
+        print(body)
         mode=body.get('mode')
         if mode == "insert":
             #/*sample body: {"mode":"insert"}*/
-            record = db.perform_with_result("INSERT INTO user_data (username, pw) VALUES ('','') RETURNING userid")
+            userid = db.select("INSERT INTO user_data (username, pw) VALUES ('','') RETURNING userid")[0][0]
             return {
-                    'userid':f'{record}'
-                    }
+                    'userid':f'{userid}'
+                }
         elif mode == "delete":
             #/*sample body: {"mode":"delete", "userid":1}*/
-                db.perform(f"""DELETE FROM user_data WHERE userid = {body.get('userid')}::bigint""")
+                userid = mode=body.get('userid')
+                db.perform("DELETE FROM user_data WHERE userid = %(userid)s::bigint", {"userid": userid})
                 return{
                     'delete_success':True
                 }
@@ -170,7 +180,7 @@ class PingPONG(Resource):
 class ExportScenario(Resource):       
     def post(self):
         body=request.get_json() 
-        dicts=db.fetch_one(f"""SELECT * FROM export_changeset_scenario({body.get('scenario_id')})""")
+        dicts=db.select('SELECT * FROM export_changeset_scenario(%(scenario_id)s)', {"scenario_id": body.get('scenario_id')})[0][0]
         file_buffer = StringIO()
         my_zip = zipfile.ZipFile('scenarios.zip','w')
         for key in dicts.keys():
@@ -291,6 +301,8 @@ class DeleteAllScenarioData(Resource):
                 'population_modification':population_modification_record
         }
 
+
+
 class Layer(Resource):
     def __init__(self):
         self.metadata = db.select('''SELECT * FROM layer_metadata''')[0][0]
@@ -370,6 +382,31 @@ class Layer(Resource):
         bytes = io.BytesIO(pbf)
         return send_file(bytes, mimetype='application/vnd.mapbox-vector-tile')
 
+
+def prepare_func_args(request_args, func_varnames):
+    func_args = []
+    for i in func_varnames:
+        func_args.append(request_args[i].replace("'",""))
+    
+    return func_args
+
+
+class Heatmap(Resource):
+    def get(self, heatmap_type):
+        request_args = request.args.to_dict()
+
+        request_args_keys = list(request_args.keys())
+        request_val = list(request_args.values())
+        func_varnames = list(globals()[heatmap_type].__code__.co_varnames)
+
+        check_args_complete(request_args, func_varnames)
+
+        func_args = prepare_func_args(request_args, func_varnames)
+        result = globals()[heatmap_type](*func_args)
+
+        return result
+
+api.add_resource(Heatmap,'/v2/map/heatmap/<string:heatmap_type>')
 
 api.add_resource(Layer,'/v2/map/<string:layer>/<int:z>/<int:x>/<int:y>')
 

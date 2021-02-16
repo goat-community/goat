@@ -95,7 +95,7 @@ export default {
         })
         .then(response => {
           if (response.status === 200) {
-            let scenarioId = activeScenarioId || response.data[0].scenario_id;
+            let scenarioId = activeScenarioId || response.data.scenario_id;
             scenarioId = parseInt(scenarioId);
             this.$set(this.scenarios, scenarioId, {
               title: scenarioName

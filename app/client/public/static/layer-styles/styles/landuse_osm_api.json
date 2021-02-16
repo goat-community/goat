@@ -1,0 +1,181 @@
+{
+  "name": "osm_landuse",
+  "rules": [
+    {
+      "name": "\n              water\n          \t",
+      "filter": [
+        "==",
+        "landuse",
+        "water"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#4fa7e1",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              agriculture\n          ",
+      "filter": [
+        "==",
+        "landuse",
+        "agriculture"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#c1ce44",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              nature\n          ",
+      "filter": [
+        "==",
+        "landuse",
+        "nature"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#8dc05c",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              leisure\n          \t",
+      "filter": [
+        "==",
+        "landuse",
+        "leisure"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#32932b",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              cemetery\n         \t",
+      "filter": [
+        "==",
+        "landuse",
+        "cemetery"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#ebd100",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              residential\n          \t",
+      "filter": [
+        "==",
+        "landuse",
+        "residential"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#e7993a",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              commercial\n          \t",
+      "filter": [
+        "==",
+        "landuse",
+        "commercial"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#d35153",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              community\n          \t",
+      "filter": [
+        "==",
+        "landuse",
+        "community"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#4877d5",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              industrial\n          \t",
+      "filter": [
+        "==",
+        "landuse",
+        "industrial"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#aab1b5",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              transportation\n          \t",
+      "filter": [
+        "==",
+        "landuse",
+        "transportation"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#707070",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    },
+    {
+      "name": "\n              military\n          \t",
+      "filter": [
+        "==",
+        "landuse",
+        "military"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#8bffc3",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
+    }
+  ]
+}

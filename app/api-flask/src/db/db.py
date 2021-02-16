@@ -2,7 +2,7 @@
 import logging as LOGGER
 import psycopg2
 from db.config import DATABASE
-
+from psycopg2 import sql
 
 
 class Database:
@@ -22,7 +22,8 @@ class Database:
                 raise e
             finally:
                 LOGGER.info('Connection opened successfully.')
-
+        return self.conn 
+        
     def select(self, query, params=None):
         """Run a SQL query to select rows from table."""
         self.connect()
@@ -32,6 +33,8 @@ class Database:
             else:
                 cur.execute(query, params)
             records = cur.fetchall()
+        
+        self.conn.commit()
         cur.close()
         return records
 
@@ -46,17 +49,33 @@ class Database:
         self.conn.commit()
         cur.close()
 
-    def perform_with_result(self, query, params=None):
+    def select_with_identifiers(self, query, identifiers, params=None):
         """Run a SQL query that does not return anything"""
         self.connect()
         with self.conn.cursor() as cur:
-            if params is None:
-                cur.execute(query)
+            prepared_query = sql.SQL(query).format(*map(sql.Identifier, identifiers))
+            
+            if params is None:               
+                cur.execute(prepared_query)
             else:
-                cur.execute(query, params)
-            record = cur.fetchone()[0]
-            self.conn.commit()
-            return record
+                cur.execute(prepared_query, params)
+            records = cur.fetchall()
+        self.conn.commit()
+        cur.close()
+        return records 
+    
+    def perform_with_identifiers(self, query, identifiers, params=None):
+        """Run a SQL query that does not return anything"""
+        self.connect()
+        with self.conn.cursor() as cur:
+            prepared_query = sql.SQL(query).format(*map(sql.Identifier, identifiers))
+            
+            if params is None:               
+                cur.execute(prepared_query)
+            else:
+                cur.execute(prepared_query, params)
+        self.conn.commit()
+        cur.close()
 
     def mogrify_query(self, query, params=None):
         """This will return the query as string for testing"""
@@ -76,7 +95,10 @@ class Database:
             if not cur:
                 self.send_error(404, "sql query failed: %s" % (query))
                 return None
-            return cur.fetchone()[0]
+            else:
+                result = cur.fetchone()[0];
+        cur.close()
+        return result
         
     def cursor(self):
         """This will return the query as string for testing"""

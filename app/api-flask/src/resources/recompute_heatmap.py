@@ -1,32 +1,44 @@
 from db.db import Database
-
-
+from psycopg2 import sql
+import geojson
+import geobuf
+import json  
 # Create database class
 db = Database()
 
-# metadata = {
-#     'heatmap_geoserver': {
-#         'methodToCall': 'recomputed_heatmap',
-#         'methodArgs': 'scenario_id'
-#     }
-# }
+sql_geojson = '''SELECT jsonb_build_object(
+		'type',     'FeatureCollection',
+		'features', jsonb_agg(features.feature)
+)
+FROM (
+SELECT jsonb_build_object(
+	'type',       'Feature',
+	'geometry',   ST_AsGeoJSON(geom,5)::jsonb,
+	'properties', to_jsonb(inputs) - 'geom'
+) AS feature 
+FROM (SELECT * FROM heatmap_temp) inputs) features;'''
 
 
 
 def recompute_heatmap(scenario_id):
     """Function to recompute heatmap when network is changed."""
-    import time
-    start = time.time()
+    import datetime
+    begin_time = datetime.datetime.now()
 
-    scenario_id = int(scenario_id)
+
+    if scenario_id == 0:
+        return 'Scenario is 0 which stands for no scenario.'
 
     status_precomputed = db.select('''SELECT ways_heatmap_computed 
                 FROM scenarios 
-                WHERE scenario_id = %(scenario_id)s''', {"scenario_id": scenario_id})[0][0]
+                WHERE scenario_id = %(scenario_id)s''', {"scenario_id": str(scenario_id)})
 
-    if status_precomputed == True:
+    if status_precomputed == []:
+        return 'Scenario_id is not existing.'
+
+    if status_precomputed[0][0] == True:
         return 'Scenario was already precomputed.'
-
+    
     speed = 1.33
     max_cost = 1200
 
@@ -64,11 +76,12 @@ def recompute_heatmap(scenario_id):
         db.perform("""SELECT compute_area_isochrone(%(grid_id)s,%(scenario_id)s)""", {
                 "grid_id": g[0], "scenario_id": scenario_id})
 
-    buffer_geom = db.select("""SELECT ST_AsText(ST_BUFFER(ST_UNION(geom),0.0014)) 
-    FROM area_isochrones_scenario 
-    WHERE scenario_id = %(scenario_id)s""", {"scenario_id": scenario_id})
+    #buffer_geom = db.select("""SELECT ST_AsText(ST_BUFFER(ST_UNION(geom),0.0014)) 
+    #FROM area_isochrones_scenario 
+    #WHERE scenario_id = %(scenario_id)s""", {"scenario_id": scenario_id})
 
-    buffer_geom = buffer_geom[0][0]
+    buffer_geom = db.select("""SELECT DISTINCT ST_AsText(ST_UNION(geom)) FROM changed_grids""")[0][0]
+
     db.perform("""DELETE FROM reached_pois_heatmap r
     USING pois_userinput p
     WHERE ST_Intersects(p.geom,ST_SETSRID(ST_GeomFromText(%(buffer_geom)s), 4326))
@@ -81,4 +94,55 @@ def recompute_heatmap(scenario_id):
                 SET ways_heatmap_computed = TRUE 
                 WHERE scenario_id = %(scenario_id)s''', {"scenario_id": scenario_id})
 
+    print('Successful calculated')
+    print(datetime.datetime.now()-begin_time)
     return
+
+def jsonb_to_geojson(jsonb_dict):
+    json_string = json.dumps(jsonb_dict)
+    return geojson.loads(json_string)
+
+
+def heatmap_gravity(amenities_json, modus_input, scenario_id_input):
+    recompute_heatmap(scenario_id_input)
+    db.perform('DROP TABLE IF EXISTS heatmap_temp;')
+
+    db.perform('''CREATE TEMP TABLE heatmap_temp AS 
+    SELECT percentile_accessibility AS score, geom 
+    FROM heatmap_gravity(%(amenities_json)s::jsonb,%(modus_input)s,%(scenario_id_input)s);''',
+    {"amenities_json": amenities_json, "modus_input": modus_input, "scenario_id_input": scenario_id_input})
+    
+    return jsonb_to_geojson(db.select(sql_geojson)[0][0])
+
+def heatmap_population(modus_input, scenario_id_input):
+    db.perform('DROP TABLE IF EXISTS heatmap_temp;')
+
+    db.perform('''CREATE TEMP TABLE heatmap_temp AS 
+    SELECT percentile_population AS score, geom 
+    FROM heatmap_population_api(%(modus_input)s,%(scenario_id_input)s);''',
+    {"scenario_id_input": scenario_id_input,"modus_input": modus_input})    
+    return jsonb_to_geojson(db.select(sql_geojson)[0][0])
+
+def heatmap_connectivity(modus_input, scenario_id_input):
+    recompute_heatmap(scenario_id_input)
+    db.perform('DROP TABLE IF EXISTS heatmap_temp;')
+
+    db.perform('''CREATE TEMP TABLE heatmap_temp AS 
+    SELECT percentile_area_isochrone AS score, geom
+    FROM heatmap_connectivity(%(modus_input)s,%(scenario_id_input)s);''',
+    {"scenario_id_input": scenario_id_input,"modus_input": modus_input})    
+    return jsonb_to_geojson(db.select(sql_geojson)[0][0])
+
+
+def convert_geobuf(layer_geojson):
+    pbf = geobuf.encode(layer_geojson)
+    return pbf
+
+
+
+#x = heatmap_connectivity('default',0)
+#convert_geobuf(heatmap_connectivity('default',0))
+
+#with open('somefile.geojson', 'a') as f:
+#    f.write(heatmap_connectivity('scenario',9))
+

@@ -1,0 +1,95 @@
+{
+  "name": "heatmap_population_api",
+  "rules": [
+    {
+      "name": "Standard",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#ffffff",
+          "opacity": 0.4
+        }
+      ],
+      "filter": [
+        "==",
+        "score",
+        0
+      ]
+    },
+    {
+      "name": "rule_487",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#fdccb8",
+          "opacity": 0.4
+        }
+      ],
+      "filter": [
+        "==",
+        "score",
+        1
+      ]
+    },
+    {
+      "name": "rule_3974",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#fc8f6f",
+          "opacity": 0.4
+        }
+      ],
+      "filter": [
+        "==",
+        "score",
+        2
+      ]
+    },
+    {
+      "name": "rule_3174",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#f44d37",
+          "opacity": 0.4
+        }
+      ],
+      "filter": [
+        "==",
+        "score",
+        3
+      ]
+    },
+    {
+      "name": "rule_5328",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#c5161b",
+          "opacity": 0.4
+        }
+      ],
+      "filter": [
+        "==",
+        "score",
+        4
+      ]
+    },
+    {
+      "name": "rule_6697",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#c5161b",
+          "opacity": 0.4
+        }
+      ],
+      "filter": [
+        "==",
+        "score",
+        5
+      ]
+    }
+  ]
+}

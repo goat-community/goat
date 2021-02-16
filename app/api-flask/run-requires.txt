@@ -8,5 +8,7 @@ flask_cors
 marshmallow
 webargs
 pyyaml
+geobuf
+geojson
 asyncio
 geojson

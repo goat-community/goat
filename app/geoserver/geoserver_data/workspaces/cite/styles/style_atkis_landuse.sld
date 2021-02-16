@@ -161,8 +161,180 @@
             </Stroke>
           </PolygonSymbolizer>
         </Rule>
-        
-        
+        <Rule>
+          <Name>AX_Landwirtschaft</Name>
+            <Title>
+              AX_Landwirtschaft
+                <Localized lang="de">Landwirtschaft</Localized>
+            	<Localized lang="en">Agriculture</Localized>
+          </Title>
+          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>landuse</ogc:PropertyName>
+              <ogc:Literal>AX_Landwirtschaft</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
+          </ogc:Filter>
+          <PolygonSymbolizer>
+            <Fill>
+              <CssParameter name="fill">#c1ce44</CssParameter>
+            </Fill>
+            <Stroke>
+              <CssParameter name="stroke">#232323</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+            </Stroke>
+          </PolygonSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>AX_Wald</Name>
+            <Title>
+              AX_Wald
+                <Localized lang="de">Wald</Localized>
+            	<Localized lang="en">Forest</Localized>
+          </Title>
+          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:PropertyIsEqualTo>
+              <ogc:PropertyName>landuse</ogc:PropertyName>
+              <ogc:Literal>AX_Wald</ogc:Literal>
+            </ogc:PropertyIsEqualTo>
+          </ogc:Filter>
+          <PolygonSymbolizer>
+            <Fill>
+              <CssParameter name="fill">#146614</CssParameter>
+            </Fill>
+            <Stroke>
+              <CssParameter name="stroke">#232323</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+            </Stroke>
+          </PolygonSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>AX_Gewaesser</Name>
+            <Title>
+              AX_Gewaesser
+                <Localized lang="de">Gewässer</Localized>
+            	<Localized lang="en">Waters</Localized>
+          </Title>
+          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:Or>
+              <ogc:Or>
+                <ogc:PropertyIsEqualTo>
+                  <ogc:PropertyName>landuse</ogc:PropertyName>
+                  <ogc:Literal>AX_Fließgewaesser</ogc:Literal>
+                </ogc:PropertyIsEqualTo>
+                <ogc:PropertyIsEqualTo>
+                  <ogc:PropertyName>landuse</ogc:PropertyName>
+                  <ogc:Literal>AX_Hafenbecken</ogc:Literal>
+                </ogc:PropertyIsEqualTo>
+              </ogc:Or>
+              <ogc:PropertyIsEqualTo>
+                <ogc:PropertyName>landuse</ogc:PropertyName>
+                <ogc:Literal>AX_StehendesGewaesser</ogc:Literal>
+              </ogc:PropertyIsEqualTo>
+            </ogc:Or>
+          </ogc:Filter>
+          <PolygonSymbolizer>
+            <Fill>
+              <CssParameter name="fill">#4fa7e1</CssParameter>
+            </Fill>
+            <Stroke>
+              <CssParameter name="stroke">#232323</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+            </Stroke>
+          </PolygonSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>AX_Natur</Name>
+            <Title>
+              AX_Natur
+                <Localized lang="de">Natur</Localized>
+            	<Localized lang="en">Nature</Localized>
+          </Title>
+          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:Or>
+              <ogc:Or>
+                <ogc:Or>
+                  <ogc:Or>
+                <ogc:PropertyIsEqualTo>
+                  <ogc:PropertyName>landuse</ogc:PropertyName>
+                  <ogc:Literal>AX_Gehoelz</ogc:Literal>
+                </ogc:PropertyIsEqualTo>
+                <ogc:PropertyIsEqualTo>
+                  <ogc:PropertyName>landuse</ogc:PropertyName>
+                  <ogc:Literal>AX_Heide</ogc:Literal>
+                </ogc:PropertyIsEqualTo>
+              </ogc:Or>
+              <ogc:PropertyIsEqualTo>
+                <ogc:PropertyName>landuse</ogc:PropertyName>
+                <ogc:Literal>AX_Moor</ogc:Literal>
+              </ogc:PropertyIsEqualTo>
+            </ogc:Or>
+              <ogc:PropertyIsEqualTo>
+                <ogc:PropertyName>landuse</ogc:PropertyName>
+                <ogc:Literal>AX_Sumpf</ogc:Literal>
+              </ogc:PropertyIsEqualTo>
+            </ogc:Or>
+              <ogc:PropertyIsEqualTo>
+                <ogc:PropertyName>landuse</ogc:PropertyName>
+                <ogc:Literal>AX_UnlandVegetationsloseFlaeche</ogc:Literal>
+              </ogc:PropertyIsEqualTo>
+            </ogc:Or>
+          </ogc:Filter>
+          <PolygonSymbolizer>
+            <Fill>
+              <CssParameter name="fill">#8dc05c</CssParameter>
+            </Fill>
+            <Stroke>
+              <CssParameter name="stroke">#232323</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+            </Stroke>
+          </PolygonSymbolizer>
+        </Rule>
+        <Rule>
+          <Name>AX_Verkehrsflaechen</Name>
+            <Title>
+              AX_Verkehrsflaechen
+                <Localized lang="de">Verkehrsflächen</Localized>
+            	<Localized lang="en">Traffic areas</Localized>
+          </Title>
+          <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+            <ogc:Or>
+              <ogc:Or>
+                <ogc:Or>
+                <ogc:PropertyIsEqualTo>
+                  <ogc:PropertyName>landuse</ogc:PropertyName>
+                  <ogc:Literal>AX_Bahnverkehr</ogc:Literal>
+                </ogc:PropertyIsEqualTo>
+                <ogc:PropertyIsEqualTo>
+                  <ogc:PropertyName>landuse</ogc:PropertyName>
+                  <ogc:Literal>AX_Platz</ogc:Literal>
+                </ogc:PropertyIsEqualTo>
+              </ogc:Or>
+              <ogc:PropertyIsEqualTo>
+                <ogc:PropertyName>landuse</ogc:PropertyName>
+                <ogc:Literal>AX_Strassenverkehr</ogc:Literal>
+              </ogc:PropertyIsEqualTo>
+            </ogc:Or>
+              <ogc:PropertyIsEqualTo>
+                <ogc:PropertyName>landuse</ogc:PropertyName>
+                <ogc:Literal>AX_Flugverkehr</ogc:Literal>
+              </ogc:PropertyIsEqualTo>
+            </ogc:Or>
+          </ogc:Filter>
+          <PolygonSymbolizer>
+            <Fill>
+              <CssParameter name="fill">#707070</CssParameter>
+            </Fill>
+            <Stroke>
+              <CssParameter name="stroke">#232323</CssParameter>
+              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke-linejoin">bevel</CssParameter>
+            </Stroke>
+          </PolygonSymbolizer>
+        </Rule>
       </FeatureTypeStyle>
     </UserStyle>
   </NamedLayer>

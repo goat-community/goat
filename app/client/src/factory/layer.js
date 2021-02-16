@@ -160,6 +160,7 @@ export const LayerFactory = {
       group: lConf.group,
       visible: lConf.visible,
       opacity: lConf.opacity,
+      zIndex: lConf.zIndex,
       source: new XyzSource({
         url: lConf.hasOwnProperty("accessToken")
           ? lConf.url + "?access_token=" + lConf.accessToken
@@ -241,6 +242,7 @@ export const LayerFactory = {
       visible: lConf.visible,
       opacity: lConf.opacity,
       zIndex: lConf.zIndex,
+      queryParams: lConf.queryParams,
       source: new VectorSource({
         url: lConf.url,
         format: new this.formatMapping[lConf.format](lConf.formatConfig),
@@ -271,14 +273,13 @@ export const LayerFactory = {
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
       opacity: lConf.opacity,
+      queryParams: lConf.queryParams,
+      zIndex: lConf.zIndex,
       source: new VectorTileSource({
         url: lConf.url,
         format: new this.formatMapping[lConf.format](),
         attributions: lConf.attributions
       }),
-      style:
-        OlStyleFactory.getInstance(lConf.style) ||
-        baseStyleDefs[lConf.styleRef],
       hoverable: lConf.hoverable,
       hoverAttribute: lConf.hoverAttribute
     });

@@ -133,25 +133,6 @@ services:
     networks:
       proxy:
 
-
-    api-python:
-    build:
-    context: ./app/nodejs_to_flask
-    container_name: goat-api-python
-    ports:
-      - "3001:3001"
-    env_file:
-      - ./app/config/docker-env/api.env
-    labels:
-      - "traefik.backend=api"
-      - "traefik.frontend.entryPoints=https,http"
-      - "traefik.frontend.rule=Host:localhost;PathPrefix:/api"
-      - "traefik.port=3001"
-      - "traefik.enable=true"
-
-    networks:
-      proxy:
-
   #This container is used for running cron jobs. It is mainly for production purposes.
   # cron:
   #   build:
