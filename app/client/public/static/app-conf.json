@@ -46,9 +46,24 @@
     "layers": [
       {
         "type": "VECTOR",
+        "name": "heatmap_population_api",
+        "group": "poisLayers",
+        "url": "/v2/map/heatmap/heatmap_population",
+        "format": "GeoJSON",
+        "displayInLayerList": true,
+        "visible": false,
+        "zIndex": 4,
+        "queryParams": ["scenario_id_input", "modus_input"],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/heatmap_population_api.json"
+        }
+      },
+      {
+        "type": "VECTOR",
         "lid": "study-area",
         "name": "studyArea",
-        "url": "/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:study_area_union&srsname=EPSG:4326&outputFormat=json",
+        "url": "",
         "formatConfig": {},
         "format": "GeoJSON",
         "displayInLayerList": false,
@@ -119,20 +134,6 @@
           "source": "Datenbestände des ATKIS Basis-DLM der Länder",
           "date": "2019"
         }
-      },
-      {
-        "type": "WMS",
-        "name": "landuse",
-        "url": "/geoserver/wms",
-        "group": "buildings_landuse",
-        "layers": "cite:landuse",
-        "viewparamsDynamicKeys": ["userId"],
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "serverType": "geoserver"
       },
       {
         "type": "VECTORTILE",
@@ -439,23 +440,6 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/aois_visualization.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "heatmap_gravity",
-        "url": "/v2/map/heatmap_gravity/{z}/{x}/{y}",
-        "group": "accessbilityBasemaps",
-        "visible": false,
-        "canEdit": false,
-        "queryable": true,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "queryParams": ["scenario_id_input", "modus_input", "amenities_json"],
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/heatmap_gravity.json"
         }
       },
       {
