@@ -47,6 +47,18 @@ class Database:
         self.conn.commit()
         cur.close()
 
+    def perform_with_result(self, query, params=None):
+        """Run a SQL query that does not return anything"""
+        self.connect()
+        with self.conn.cursor() as cur:
+            if params is None:
+                cur.execute(query)
+            else:
+                cur.execute(query, params)
+            record = cur.fetchone()[0]
+            self.conn.commit()
+            return record
+
     def mogrify_query(self, query, params=None):
         """This will return the query as string for testing"""
         self.connect()

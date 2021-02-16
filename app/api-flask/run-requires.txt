@@ -10,3 +10,5 @@ webargs
 pyyaml
 geobuf
 geojson
+asyncio
+geojson
