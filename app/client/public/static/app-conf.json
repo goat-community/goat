@@ -46,24 +46,9 @@
     "layers": [
       {
         "type": "VECTOR",
-        "name": "heatmap_population_api",
-        "group": "poisLayers",
-        "url": "/v2/map/heatmap/heatmap_population",
-        "format": "GeoJSON",
-        "displayInLayerList": true,
-        "visible": false,
-        "zIndex": 4,
-        "queryParams": ["scenario_id_input", "modus_input"],
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/heatmap_population_api.json"
-        }
-      },
-      {
-        "type": "VECTOR",
         "lid": "study-area",
         "name": "studyArea",
-        "url": "",
+        "url": "/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:study_area_union&srsname=EPSG:4326&outputFormat=json",
         "formatConfig": {},
         "format": "GeoJSON",
         "displayInLayerList": false,
@@ -774,76 +759,67 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTOR",
         "name": "accessibilityPopulation",
-        "url": "/geoserver/wms",
         "group": "accessbilityBasemaps",
-        "layers": "cite:heatmap_luptai",
-        "opacity": 1,
-        "queryable": false,
-        "visible": false,
+        "url": "/v2/map/heatmap/heatmap_luptai",
+        "format": "GeoJSON",
         "displayInLayerList": true,
-        "zIndex": 1,
-        "serverType": "geoserver",
-        "docUrl": "https://www.open-accessibility.org/docs/walkability%20population%20heatmap/",
-        "viewparamsDynamicKeys": ["scenario_id", "modus", "pois"],
-        "styles": {
-          "default": "cite:style_heatmap_luptai",
-          "scenario": "cite:style_heatmap_luptai",
-          "comparison": "cite:style_heatmap_luptai_comparison"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "population",
-        "url": "/geoserver/wms",
-        "group": "accessbilityBasemaps",
-        "layers": "cite:heatmap_population",
         "visible": false,
-        "displayInLayerList": true,
         "zIndex": 1,
-        "serverType": "geoserver",
-        "viewparamsDynamicKeys": ["scenario_id", "modus"],
-        "styles": {
-          "default": "cite:style_heatmap_population",
-          "scenario": "cite:style_heatmap_population",
-          "comparison": "cite:style_heatmap_population_comparison"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "accessibility",
-        "url": "/geoserver/wms",
-        "group": "accessbilityBasemaps",
-        "layers": "cite:heatmap",
-        "opacity": 1,
-        "queryable": false,
-        "visible": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "serverType": "geoserver",
         "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
-        "viewparamsDynamicKeys": ["scenario_id", "modus", "pois"],
-        "styles": {
-          "default": "cite:style_heatmap",
-          "scenario": "cite:style_heatmap",
-          "comparison": "cite:style_heatmap_comparison"
+        "queryParams": ["scenario_id_input", "modus_input", "pois"],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/heatmap_luptai.json"
         }
       },
       {
-        "type": "WMS",
-        "name": "connectivity",
-        "url": "/geoserver/wms",
+        "type": "VECTOR",
+        "name": "population",
         "group": "accessbilityBasemaps",
-        "layers": "cite:heatmap_connectivity",
-        "opacity": 1,
-        "queryable": false,
-        "visible": false,
+        "url": "/v2/map/heatmap/heatmap_population",
+        "format": "GeoJSON",
         "displayInLayerList": true,
+        "visible": false,
         "zIndex": 1,
-        "serverType": "geoserver",
-        "viewparamsDynamicKeys": ["modus", "scenario_id"]
-      },
+        "queryParams": ["scenario_id_input", "modus_input"],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/heatmap_population_api.json"
+        }
+      },      
+      {
+        "type": "VECTOR",
+        "name": "accessibility",
+        "group": "accessbilityBasemaps",
+        "url": "/v2/map/heatmap/heatmap_gravity",
+        "format": "GeoJSON",
+        "displayInLayerList": true,
+        "visible": false,
+        "zIndex": 1,
+        "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
+        "queryParams": ["scenario_id_input", "modus_input", "pois"],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/heatmap_gravity.json"
+        }
+      },     
+      {
+        "type": "VECTOR",
+        "name": "connectivity",
+        "group": "accessbilityBasemaps",
+        "url": "/v2/map/heatmap/heatmap_connectivity",
+        "format": "GeoJSON",
+        "displayInLayerList": true,
+        "visible": false,
+        "zIndex": 1,
+        "queryParams": ["scenario_id_input", "modus_input"],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/heatmap_connectivity.json"
+        }
+      }, 
       {
         "type": "OSM",
         "name": "osmStandard",
