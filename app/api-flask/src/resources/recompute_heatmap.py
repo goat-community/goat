@@ -1,5 +1,6 @@
 from db.db import Database
 from psycopg2 import sql
+from psycopg2.extras import RealDictCursor
 import geojson
 import geobuf
 import json  
@@ -9,7 +10,7 @@ db = Database()
 sql_geojson = '''SELECT jsonb_build_object(
 		'type',     'FeatureCollection',
 		'features', jsonb_agg(features.feature)
-)
+)::text
 FROM (
 SELECT jsonb_build_object(
 	'type',       'Feature',
@@ -82,13 +83,13 @@ def recompute_heatmap(scenario_id):
 
     buffer_geom = db.select("""SELECT DISTINCT ST_AsText(ST_UNION(geom)) FROM changed_grids""")[0][0]
 
-    db.perform("""DELETE FROM reached_pois_heatmap r
-    USING pois_userinput p
-    WHERE ST_Intersects(p.geom,ST_SETSRID(ST_GeomFromText(%(buffer_geom)s), 4326))
-    AND r.gid = p.gid
-    AND r.scenario_id = %(scenario_id)s;""", {"buffer_geom": buffer_geom, "scenario_id": scenario_id})
+    #db.perform("""DELETE FROM reached_pois_heatmap r
+    #USING pois_userinput p
+    #WHERE ST_Intersects(p.geom,ST_SETSRID(ST_GeomFromText(%(buffer_geom)s), 4326))
+    #AND r.gid = p.gid
+    #AND r.scenario_id = %(scenario_id)s;""", {"buffer_geom": buffer_geom, "scenario_id": scenario_id})
     
-    db.perform('''SELECT reached_pois_heatmap(ST_SETSRID(ST_GeomFromText(%(buffer_geom)s), 4326), 0.0014, 'scenario', %(scenario_id)s);''',{"buffer_geom": buffer_geom, "scenario_id": scenario_id})
+    #db.perform('''SELECT reached_pois_heatmap(ST_SETSRID(ST_GeomFromText(%(buffer_geom)s), 4326), 0.0014, 'scenario', %(scenario_id)s);''',{"buffer_geom": buffer_geom, "scenario_id": scenario_id})
     
     db.perform('''UPDATE scenarios 
                 SET ways_heatmap_computed = TRUE 
@@ -99,18 +100,18 @@ def recompute_heatmap(scenario_id):
     return
 
 def jsonb_to_geojson(jsonb_dict):
-    json_string = json.dumps(jsonb_dict)
-    return geojson.loads(json_string)
+    json_string = json.loads(jsonb_dict)
+    return json_string
 
 
-def heatmap_gravity(amenities_json, modus_input, scenario_id_input):
+def heatmap_gravity(pois, modus_input, scenario_id_input):
     recompute_heatmap(scenario_id_input)
     db.perform('DROP TABLE IF EXISTS heatmap_temp;')
 
     db.perform('''CREATE TEMP TABLE heatmap_temp AS 
-    SELECT percentile_accessibility AS score, geom 
-    FROM heatmap_gravity(%(amenities_json)s::jsonb,%(modus_input)s,%(scenario_id_input)s);''',
-    {"amenities_json": amenities_json, "modus_input": modus_input, "scenario_id_input": scenario_id_input})
+    SELECT percentile_accessibility AS score, %(modus_input)s AS modus, geom 
+    FROM heatmap_gravity(%(pois)s::jsonb,%(modus_input)s,%(scenario_id_input)s);''',
+    {"pois": pois, "modus_input": modus_input, "scenario_id_input": scenario_id_input})
     
     return jsonb_to_geojson(db.select(sql_geojson)[0][0])
 
@@ -118,17 +119,30 @@ def heatmap_population(modus_input, scenario_id_input):
     db.perform('DROP TABLE IF EXISTS heatmap_temp;')
 
     db.perform('''CREATE TEMP TABLE heatmap_temp AS 
-    SELECT percentile_population AS score, geom 
+    SELECT percentile_population AS score,%(modus_input)s AS modus, geom 
     FROM heatmap_population_api(%(modus_input)s,%(scenario_id_input)s);''',
-    {"scenario_id_input": scenario_id_input,"modus_input": modus_input})    
+    {"scenario_id_input": scenario_id_input,"modus_input": modus_input})   
+
     return jsonb_to_geojson(db.select(sql_geojson)[0][0])
+
+def heatmap_luptai(pois, modus_input, scenario_id_input):
+    recompute_heatmap(scenario_id_input)
+    db.perform('DROP TABLE IF EXISTS heatmap_temp;')
+
+    db.perform('''CREATE TEMP TABLE heatmap_temp AS 
+    SELECT population_accessibility AS score, %(modus_input)s AS modus, geom 
+    FROM heatmap_luptai(%(pois)s::jsonb,%(modus_input)s,%(scenario_id_input)s);''',
+    {"pois": pois, "modus_input": modus_input, "scenario_id_input": scenario_id_input})
+    
+    return jsonb_to_geojson(db.select(sql_geojson)[0][0])
+
 
 def heatmap_connectivity(modus_input, scenario_id_input):
     recompute_heatmap(scenario_id_input)
     db.perform('DROP TABLE IF EXISTS heatmap_temp;')
 
     db.perform('''CREATE TEMP TABLE heatmap_temp AS 
-    SELECT percentile_area_isochrone AS score, geom
+    SELECT percentile_area_isochrone AS score, %(modus_input)s AS modus, geom
     FROM heatmap_connectivity(%(modus_input)s,%(scenario_id_input)s);''',
     {"scenario_id_input": scenario_id_input,"modus_input": modus_input})    
     return jsonb_to_geojson(db.select(sql_geojson)[0][0])

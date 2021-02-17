@@ -1,5 +1,6 @@
 import io
 import os
+import inspect
 
 
 from flask import Flask, request, send_file, jsonify
@@ -8,7 +9,7 @@ from flask_cors import CORS
 from utils import response
 from utils.async_function import *
 
-from resources.recompute_heatmap import heatmap_connectivity, heatmap_population
+from resources.recompute_heatmap import heatmap_connectivity, heatmap_population, heatmap_gravity, heatmap_luptai
 from utils.geo.mvt import MVT
 from db.db import Database
 import config
@@ -394,10 +395,9 @@ def prepare_func_args(request_args, func_varnames):
 class Heatmap(Resource):
     def get(self, heatmap_type):
         request_args = request.args.to_dict()
-
         request_args_keys = list(request_args.keys())
         request_val = list(request_args.values())
-        func_varnames = list(globals()[heatmap_type].__code__.co_varnames)
+        func_varnames = inspect.getargspec(globals()[heatmap_type]).args
 
         check_args_complete(request_args, func_varnames)
 
