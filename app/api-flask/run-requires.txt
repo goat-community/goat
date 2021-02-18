@@ -11,5 +11,5 @@ pyyaml
 geobuf
 geojson
 asyncio
-geojson
 zipstream
+geopandas
