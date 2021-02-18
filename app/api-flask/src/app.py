@@ -21,6 +21,10 @@ from geojson import dump
 import tempfile
 import geojson
 import zipstream
+import geopandas as gpd
+
+import psycopg2
+from psycopg2 import sql
 
 db = Database()
 app = Flask(__name__)
@@ -305,28 +309,77 @@ class LayerController(Resource):
         table_name = body.get('table_name') + '_modified'
         if mode == "read":
             #{"mode":"read","table_name":"pois","scenario_id":"2"}
-            records = db.select_with_identifiers('''SELECT * FROM {} WHERE scenario_id = %(scenario_id)s::bigint''', 
-            [table_name], {"scenario_id": body.get('scenario_id')})[0]
+            prepared_query = '''SELECT * FROM {} WHERE scenario_id = %(scenario_id)s::bigint'''
+
+            records = db.select_with_identifiers(
+                prepared_query, identifiers=[table_name], params={"scenario_id": body.get('scenario_id')}, return_type='geojson'
+            )
+
             return records
         if mode == "insert":
             #{"mode":"insert","table_name":"pois","scenario_id":"1","name":"Test","geom":"POINT(11.4543 48.1232)",amenity:'club'}
-            db.perform_with_identifiers("INSERT INTO {} (name,amenity,geom,scenario_id) VALUES (%(name)s, %(amenity)s,ST_GEOMFROMTEXT(%(geom)s),%(scenario_id)s)", 
-            [table_name], {"name":body.get('name'),"amenity":body.get('amenity'),"geom":body.get('geom'),"scenario_id": body.get('scenario_id')})
-            return{
-                "insert_success": True
-                }
+
+            dfs = gpd.GeoDataFrame()
+            for f in body['features']:
+                columns = list(f.keys())
+                if 'geom' in f.keys():
+                    raw_query = "INSERT INTO {}({}, geom) VALUES ({}, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326)) RETURNING {}, geom"
+                    columns.remove('geom')
+                else:
+                    raw_query = "INSERT INTO ({}) VALUES ({}) RETURNING {}"
+
+                prepared_query = sql.SQL(raw_query).format(
+                    sql.Identifier(table_name),
+                    sql.SQL(', ').join(map(sql.Identifier, columns)),
+                    sql.SQL(', ').join(map(sql.Placeholder, columns)),
+                    sql.SQL(', ').join(map(sql.Identifier, columns))
+                )   
+
+                df = db.select_with_identifiers(prepared_query, params=f, return_type='geodataframe')
+
+                if dfs.empty: 
+                    dfs = df 
+                else:
+                    dfs = dfs.append(df)
+            return json.loads(dfs.to_json())
             
         if mode == "update":
             #{"mode":"update","table_name":"pois","scenario_id":"8","gid":"1","name":"Test","geom":"POINT(11.4543 48.1232)"}
-            db.perform_with_identifiers("UPDATE {} SET geom = ST_GEOMFROMTEXT(%(geom)s) WHERE gid = %(gid)s AND scenario_id = %(scenario_id)s", 
-            [table_name], {"geom":body.get('geom'),"gid":body.get('gid'),"geom":body.get('geom'),"scenario_id": body.get('scenario_id')})
+            for f in body['features']:
+                columns = list(f.keys())
+
+                if 'geom' in f.keys():
+                    raw_query = "UPDATE {} SET geom=ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326), {}={},"
+                    columns.remove('geom')
+                else:
+                    raw_query = "UPDATE {} SET {}={},"
+
+                where_condition = sql.SQL("WHERE scenario_id = %(scenario_id)s AND gid = %(gid)s")
+
+                columns_sql = []
+                for i in columns[1:]:      
+                    columns_sql.append(sql.SQL('{}={}').format(sql.Identifier(i), sql.Placeholder(i)))
+                
+                columns_sql = sql.SQL(', ').join(columns_sql)
+
+                update_sql = [
+                    sql.SQL(raw_query).format(sql.Identifier(table_name),sql.Identifier(columns[0]),sql.Placeholder(columns[0])),
+                    columns_sql,
+                    where_condition
+                ] 
+                sql_update = sql.SQL(' ').join(update_sql)
+                db.perform(sql_update, f)
+
             return{
                 "update_success": True
                 }
+
         if mode == "delete":
             #{"mode":"delete","table_name":"pois","gid": "26","scenario_id":"4"}
-            db.perform_with_identifiers("DELETE FROM {} WHERE gid = %(gid)s and scenario_id = %(scenario_id)s", 
-            [table_name], {"gid":body.get('gid'),"scenario_id": body.get('scenario_id')})
+            for f in body['features']:
+                db.perform_with_identifiers("DELETE FROM {} WHERE gid = %(gid)s and scenario_id = %(scenario_id)s", 
+                [table_name], {"gid":f["gid"],"scenario_id": f["scenario_id"]})
+            
             return{
                 "delete_success": True
                 }

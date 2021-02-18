@@ -3,7 +3,8 @@ import logging as LOGGER
 import psycopg2
 from db.config import DATABASE
 from psycopg2 import sql
-
+import geopandas as gpd
+import json
 
 class Database:
     """PostgreSQL Database class."""
@@ -49,21 +50,43 @@ class Database:
         self.conn.commit()
         cur.close()
 
-    def select_with_identifiers(self, query, identifiers, params=None):
-        """Run a SQL query that does not return anything"""
+    def select_with_identifiers(self, query, identifiers=None, params=None, return_type='raw'):
+        """Run a SQL query and pass identifiers/params"""
         self.connect()
         with self.conn.cursor() as cur:
-            prepared_query = sql.SQL(query).format(*map(sql.Identifier, identifiers))
+
+            if identifiers is not None:
+                query = sql.SQL(query).format(*map(sql.Identifier, identifiers))
             
-            if params is None:               
-                cur.execute(prepared_query)
-            else:
-                cur.execute(prepared_query, params)
-            records = cur.fetchall()
+            if return_type == 'raw':
+                if params is None:             
+                    cur.execute(query)
+                else:
+                    cur.execute(query, params)
+                records = cur.fetchall()
+        
+            if return_type in ['geodataframe', 'geojson']:
+                if params is None:             
+                    records = gpd.GeoDataFrame.from_postgis(query, self.conn, geom_col='geom')
+                else:
+                    records = gpd.GeoDataFrame.from_postgis(query, self.conn, geom_col='geom', params=params)
+                
+            if return_type == 'geojson':
+                records = json.loads(records.to_json())
+
         self.conn.commit()
         cur.close()
         return records 
     
+    def export_layer_geojson(self, sql_query, params=None):
+        df = gpd.GeoDataFrame.from_postgis(sql_query, self.connect(), geom_col='geom', params=params)
+        return json.loads(df.to_json())
+
+    def export_layer_df(self, sql_query, params=None):
+        df = gpd.GeoDataFrame.from_postgis(sql_query, self.connect(), geom_col='geom', params=params)
+        self.conn.commit()
+        return df
+
     def perform_with_identifiers(self, query, identifiers, params=None):
         """Run a SQL query that does not return anything"""
         self.connect()
