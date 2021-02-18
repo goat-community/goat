@@ -161,26 +161,24 @@ const actions = {
       region = regionFeatures
         .map(feature => {
           if (regionType === "draw") {
-            return `'${feature.get("regionPolygon").toString()}'`;
+            return feature.get("regionPolygon").toString();
           } else {
-            return `'${feature.get("region_name")}'`;
+            return feature.get("region_name");
           }
         })
         .toString();
 
       params = Object.assign(sharedParams, {
         alphashape_parameter: "0.00003",
-        region_type: payload ? payload.region_type : `'${regionType}'`,
+        region_type: payload ? payload.region_type : regionType,
         region: payload ? payload.region : region,
-        routing_profile: `'${state.activeRoutingProfile}'`,
+        routing_profile: state.activeRoutingProfile,
         scenario_id: state.activeScenario || 0,
-        amenities: rootState.pois.selectedPois
-          .map(item => {
-            return "'" + item.value + "'";
-          })
-          .toString()
+        amenities: rootState.pois.selectedPois.map(item => {
+          return item.value;
+        })
       });
-      params.modus = `'${state.options.calculationModes.active}'`;
+      params.modus = state.options.calculationModes.active;
       isochroneEndpoint = "pois_multi_isochrones";
     }
 
@@ -227,7 +225,7 @@ const actions = {
 
     if (
       calculationType === "multiple" &&
-      params.region_type === "'study_area'" &&
+      params.region_type === "study_area" &&
       rootState.isochrones.studyAreaLayer.length > 0
     ) {
       //Turn off studyArea layer
@@ -355,7 +353,7 @@ const actions = {
       commit("RESET_MULTIISOCHRONE_START");
       transformedData.position = "multiIsochroneCalculation";
       transformedData.region = region;
-      transformedData.region_type = `'${regionType}'`;
+      transformedData.region_type = regionType;
       // Add region and starting points to isochrone overlay layer.
       isochrones.features.forEach(feature => {
         if (feature.properties.coordinates) {
@@ -387,12 +385,11 @@ const actions = {
       .getSource()
       .getFeatures();
     if (selectedFeatures.length > 0 || options) {
-      const amenities = rootState.pois.selectedPois
-        .map(item => {
-          return "'" + item.value + "'";
-        })
-        .toString();
-      if (amenities === "") {
+      const amenities = rootState.pois.selectedPois.map(item => {
+        return item.value;
+      });
+      console.log(amenities);
+      if (amenities.length === 0) {
         commit(
           "map/TOGGLE_SNACKBAR",
           {
@@ -411,7 +408,7 @@ const actions = {
       const params = {
         user_id: rootState.user.userId,
         scenario_id: (state.activeScenario || 0).toString(),
-        modus: "'" + state.options.calculationModes.active + "'",
+        modus: state.options.calculationModes.active,
         minutes: rootState.isochrones.options.minutes,
         speed: rootState.isochrones.options.speed,
         amenities: amenities
@@ -423,7 +420,7 @@ const actions = {
             "/api/count_pois_multi_isochrones",
             Object.assign(
               {
-                region_type: options.regionType,
+                region_type: options.regionType.replaceAll("'", ""),
                 region: options.region
               },
               params
@@ -436,7 +433,7 @@ const actions = {
             "/api/count_pois_multi_isochrones",
             Object.assign(
               {
-                region_type: feature.get("region_type"),
+                region_type: feature.get("region_type").replaceAll("'", ""),
                 region: feature.get("region")
               },
               params
@@ -460,7 +457,7 @@ const actions = {
               feature.set("region_type", configData.region_type);
               feature.set("region", configData.region);
 
-              if (configData.region_type === "'draw'") {
+              if (configData.region_type === "draw") {
                 feature.set("regionPolygon", configData.region);
               }
             });
