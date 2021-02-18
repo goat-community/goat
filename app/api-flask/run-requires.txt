@@ -10,3 +10,4 @@ webargs
 pyyaml
 asyncio
 geojson
+zipstream
