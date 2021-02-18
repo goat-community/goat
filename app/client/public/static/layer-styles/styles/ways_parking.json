@@ -1,0 +1,144 @@
+{
+    "name": "parking",
+    "rules": [
+      {
+        "name": "no data",
+        "symbolizers": [
+          {
+            "kind": "Line",
+            "color": "#999999",
+            "width": 1,
+            "join": "bevel",
+            "cap": "square"
+          }
+        ]
+      },
+      {
+        "name": "diagonal",
+        "filter": [
+          "==",
+          "parking_lane",
+          "diagonal"
+        ],
+        "symbolizers": [
+          {
+            "kind": "Line",
+            "color": "#00c1ce",
+            "width": 1,
+            "join": "bevel",
+            "cap": "square"
+          }
+        ]
+      },
+      {
+        "name": "perpendicular",
+        "filter": [
+          "==",
+          "parking_lane",
+          "perpendicular"
+        ],
+        "symbolizers": [
+          {
+            "kind": "Line",
+            "color": "#009224",
+            "width": 1,
+            "join": "bevel",
+            "cap": "square"
+          }
+        ]
+      },
+      {
+        "name": "parallel",
+        "filter": [
+          "==",
+          "parking_lane",
+          "parallel"
+        ],
+        "symbolizers": [
+          {
+            "kind": "Line",
+            "color": "#4fd234",
+            "width": 1,
+            "join": "bevel",
+            "cap": "square"
+          }
+        ]
+      },
+      {
+        "name": "marked",
+        "filter": [
+          "==",
+          "parking_lane",
+          "marked"
+        ],
+        "symbolizers": [
+          {
+            "kind": "Line",
+            "color": "#f3ff0a",
+            "width": 1,
+            "join": "bevel",
+            "cap": "square"
+          }
+        ]
+      },
+      {
+        "name": "no_parking",
+        "filter": [
+          "||",
+          [
+            "==",
+            "parking_lane",
+            "no_parking"
+          ],
+          [
+            "==",
+            "parking_lane",
+            "no"
+          ]
+        ],
+        "symbolizers": [
+          {
+            "kind": "Line",
+            "color": "#ed605b",
+            "width": 1,
+            "join": "bevel",
+            "cap": "square"
+          }
+        ]
+      },
+      {
+        "name": "no_stopping",
+        "filter": [
+          "==",
+          "parking_lane",
+          "no_stopping"
+        ],
+        "symbolizers": [
+          {
+            "kind": "Line",
+            "color": "#ff0901",
+            "width": 1,
+            "join": "bevel",
+            "cap": "square"
+          }
+        ]
+      },
+      {
+        "name": "fire_lane",
+        "filter": [
+          "==",
+          "parking_lane",
+          "fire_lane"
+        ],
+        "symbolizers": [
+          {
+            "kind": "Line",
+            "color": "#d901ff",
+            "width": 1,
+            "join": "bevel",
+            "cap": "square"
+          }
+        ]
+      }
+    ]
+  }

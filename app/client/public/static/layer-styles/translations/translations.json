@@ -1,20 +1,59 @@
 {
-  "aois_visualization": {
-    "forest": {
-      "en": "Forest"
-    },
-    "park": {
-      "en": "Park"
-    },
-    "heathAndScrub": {
-      "en": "Heath and scrub"
-    },
-    "lake": {
-      "en": "Lake"
-    },
-    "river": {
-      "en": "River"
+  "accidents_cyclists": {
+    "accident_point": {
+      "en": "Crash site",
+      "de": "Unfallstelle"
     }
   },
+  "accidents_pedestrians": {
+    "accident_point": {
+      "en": "Crash site",
+      "de": "Unfallstelle"
+    }
+  },
+  "aois_visualization": {
+    "forest": {
+      "en": "Forest",
+      "de": "Wald"
+    },
+    "park": {
+      "en": "Park",
+      "de": "Park"
+    },
+    "heathAndScrub": {
+      "en": "Heath and scrub",
+      "de": "Buschwerk und Heide"
+    },
+    "lake": {
+      "en": "Lake",
+      "de": "See"
+    },
+    "river": {
+      "en": "River",
+      "de": "Fluss"
+    }
+  },
+  "bicycle_counting_stations": {
+    "bicycle_counting_stations": {
+      "en": "Bicycle Counting Station",
+      "de": "Radzählstelle"
+    }
+  },
+  "footpath_width": {},
+  "heatmap_gravity": {},
+  "heatmap_population_api": {},
+  "landuse_api": {},
+  "landuse_atkis": {},
+  "landuse_osm": {},
+  "munichways": {},
+  "street_furniture": {},
+  "ways_category_aggregated": {},
+  "ways_category": {},
+  "ways_lanes": {},
+  "ways_lit": {},
+  "ways_parking": {},
+  "ways_smoothness": {},
+  "ways_speed": {},
+  "ways_surface": {},
   "ways_wheelchair": {}
 }
