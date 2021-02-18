@@ -159,6 +159,25 @@ class Isochrone(Resource):
  
         return result
 
+class RectoredIsochrone(Resource):
+    def post(self):
+        args=request.get_json()
+        
+        requiredParams = ["user_id","scenario_id","minutes","x","y","n","speed","concavity","modus","routing_profile"]
+        
+        args = check_args_complete(args, requiredParams)
+    
+        prepared_query = """SELECT gid, objectid, coordinates, step, speed::integer, modus, parent_id, sum_pois, geom 
+        FROM isochrones_api(%(user_id)s,%(scenario_id)s,%(minutes)s,%(x)s,%(y)s,%(n)s,%(speed)s,%(concavity)s,%(modus)s,%(routing_profile)s,NULL,NULL,NULL)"""
+        
+        args_vals =  {
+            "user_id": args["user_id"],"scenario_id": args["scenario_id"],"minutes": args["minutes"], "x": args["x"],"y": args["y"],"n": args["n"],
+            "speed": args["speed"], "concavity": args["concavity"],"modus": args["modus"],"routing_profile": args["routing_profile"]
+        }
+        record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
+
+        return record
+
 class ManageUser(Resource):
     def post(self):
         body=request.get_json()
@@ -224,25 +243,18 @@ class PoisMultiIsochrones(Resource):
 
         args = check_args_complete(args, requiredParams)
         #// Make sure to set the correct content type
-        sqlQuery = """SELECT jsonb_build_object(
-        'type',     'FeatureCollection',
-        'features', jsonb_agg(features.feature)
-        )
-        FROM (
-        SELECT jsonb_build_object(
-        'type',       'Feature',
-        'id',         gid,
-        'geometry',   ST_AsGeoJSON(geom)::jsonb,
-        'properties', to_jsonb(inputs) - 'gid' - 'geom'
-        ) AS feature 
-        FROM (SELECT * FROM multi_isochrones_api(%(user_id)s,%(scenario_id)s,%(minutes)s,%(speed)s,%(n)s,%(routing_profile)s,%(alphashape_parameter)s,%(modus)s,%(region_type)s,ARRAY[%(region)s],ARRAY[%(amenities)s])) inputs) features;"""
-        result=db.select(sqlQuery,
-            {
+   
+        prepared_query = """SELECT count_pois, region_name, geom 
+        FROM multi_isochrones_api(%(user_id)s,%(scenario_id)s,%(minutes)s,%(speed)s,%(n)s,%(routing_profile)s,%(alphashape_parameter)s,%(modus)s,%(region_type)s,ARRAY[%(region)s],ARRAY[%(amenities)s])) inputs) features;"""
+        
+        args_vals =  {
             "user_id": args["user_id"],"scenario_id": args["scenario_id"],"minutes": args["minutes"], "speed": args["speed"],"n": args["n"],"routing_profile": args["routing_profile"],
             "alphashape_parameter": args["alphashape_parameter"], "modus": args["modus"],"region_type": args["region_type"],"region": args["region"],"amenities": args["amenities"]
-            }
-        )
-        return result
+        }
+
+        record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
+    
+        return record
         
 class CountPoisMultiIsochrones(Resource):
     def post(self):
@@ -259,56 +271,87 @@ class CountPoisMultiIsochrones(Resource):
         ]
         args = check_args_complete(args, requiredParams)
         # // Make sure to set the correct content type
-        sqlQuery = """SELECT jsonb_build_object(
-        'type',       'Feature',
-        'geometry',   ST_AsGeoJSON(geom)::jsonb,
-        'properties', to_jsonb(inputs) - 'geom'
-    ) AS feature 
-    FROM (SELECT count_pois,region_name, geom FROM count_pois_multi_isochrones(%(user_id)s,%(scenario_id)s,%(modus)s,%(minutes)s,%(speed)s,%(region_type)s,%(region)s,array[%(amenities)s])) inputs;"""
-        record = db.select(sqlQuery,
-            {
-            "user_id": args["user_id"],"scenario_id": args["scenario_id"],"modus": args["modus"],"minutes": args["minutes"], "speed": args["speed"],
-            "region_type": args["region_type"],"region": args["region"],"amenities": args["amenities"]
-            }
-        )[0][0]
+
+        prepared_query = """SELECT count_pois, region_name, geom 
+        FROM count_pois_multi_isochrones(%(user_id)s,%(scenario_id)s,%(modus)s,%(minutes)s,%(speed)s,%(region_type)s,%(region)s,array[%(amenities)s]);"""
+        
+        args_vals = {
+            "user_id": args["user_id"],"scenario_id": args["scenario_id"],"modus": args["modus"],"minutes": args["minutes"],
+             "speed": args["speed"],"region_type": args["region_type"],"region": args["region"],"amenities": args["amenities"]
+        }
+
+        record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
+        
         return record
 
 class UploadAllScenariosResource(Resource):
-    @async_action
-    async def post(self):
-        body=request.get_json()
-        scenarioId = body.get('scenario_id')
-        task1 = asyncio.create_task(fun_task1(db,scenarioId))
-        task2 = asyncio.create_task(fun_task2(db,scenarioId))
-        await task1
-        await task2
-        self.network_modification_record= fun_task1(db,scenarioId)
-        network_modification = self.network_modification_record
+    def post(self):
+        body = request.get_json()
+        scenario_id = body.get('scenario_id')
+        
+        db.perform('SELECT * FROM network_modification(%(scenario_id)s);', {"scenario_id": scenario_id})
+        db.perform('SELECT * FROM population_modification(%(scenario_id)s);', {"scenario_id": scenario_id})
+        
         return {
-                'population_modification':network_modification
+            "response": "Scenarios are reflected."
         }
 
 class DeleteAllScenarioData(Resource):
-    @async_action
-    async def post(self):
-        body=request.get_json()
-        scenarioId = body.get('scenario_id')
-        task1 = asyncio.create_task(delete_task(db,scenarioId))
-        task2 = asyncio.create_task(select_task(db,scenarioId))
-        await task1
-        await task2
-        population_modification_record=cur.fetchall()
-        return {'network_modification':network_modification_record,
-                'population_modification':population_modification_record
+    def post(self):
+        body = request.get_json()
+        scenario_id = body.get('scenario_id')
+        db.perform('DELETE FROM scenarios WHERE scenario_id = %(scenario_id)s', {"scenario_id": scenario_id})
+        db.perform('SELECT network_modification(%(scenario_id)s)', {"scenario_id": scenario_id})
+
+        return {
+            "response": "All changes are reverted."
         }
+   
+class ReadRawDataScenario(Resource):
+    def post(self):
+     
+        body = request.get_json()
+        table_name = body.get('table_name') 
+
+        if table_name == 'pois':
+            prepared_query = '''SELECT * FROM pois_visualization(%(scenario_id)s,%(amenities)s,%(routing_profile)s,%(modus)s) 
+            WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326));'''
+        elif table_name == 'ways':
+            prepared_query = '''SELECT * FROM ways
+            WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))
+            AND class_id NOT IN (0,101,102,103,104,105,106,107,501,502,503,504,701,801);'''
+        elif table_name == 'buildings': 
+            prepared_query = '''SELECT * FROM buildings
+            WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326));
+            '''
+        else:
+            return {
+                "Error": "No valid table was selected."
+            }
+
+        records = db.select_with_identifiers(prepared_query, params=body, return_type='geojson')
+        return records 
 
 class LayerController(Resource):
     def post(self):
         body=request.get_json()
         mode=body.get('mode')
-        table_name = body.get('table_name') + '_modified'
+
+        translation_layers = {
+            "ways": "ways_modified",
+            "pois": "pois_modified",
+            "buildings": "buildings_modified",
+            "population": "population_modified"
+        }
+
+        if body.get('table_name') not in translation_layers.keys():
+            return {
+                "Error": "No valid table was selected."
+            }
+
+        table_name = translation_layers[body.get('table_name')]
+
         if mode == "read":
-            #{"mode":"read","table_name":"pois","scenario_id":"2"}
             prepared_query = '''SELECT * FROM {} WHERE scenario_id = %(scenario_id)s::bigint'''
 
             records = db.select_with_identifiers(
@@ -317,8 +360,6 @@ class LayerController(Resource):
 
             return records
         if mode == "insert":
-            #{"mode":"insert","table_name":"pois","scenario_id":"1","name":"Test","geom":"POINT(11.4543 48.1232)",amenity:'club'}
-
             dfs = gpd.GeoDataFrame()
             for f in body['features']:
                 columns = list(f.keys())
@@ -344,7 +385,6 @@ class LayerController(Resource):
             return json.loads(dfs.to_json())
             
         if mode == "update":
-            #{"mode":"update","table_name":"pois","scenario_id":"8","gid":"1","name":"Test","geom":"POINT(11.4543 48.1232)"}
             for f in body['features']:
                 columns = list(f.keys())
 
@@ -371,18 +411,17 @@ class LayerController(Resource):
                 db.perform(sql_update, f)
 
             return{
-                "update_success": True
+                "Response": "Update success"
                 }
 
         if mode == "delete":
-            #{"mode":"delete","table_name":"pois","gid": "26","scenario_id":"4"}
             for f in body['features']:
                 db.perform_with_identifiers("DELETE FROM {} WHERE gid = %(gid)s and scenario_id = %(scenario_id)s", 
                 [table_name], {"gid":f["gid"],"scenario_id": f["scenario_id"]})
             
-            return{
-                "delete_success": True
-                }
+        return{
+            "Response":  "Delete success"
+            }
 
 
 class Layer(Resource):
@@ -490,6 +529,8 @@ class Heatmap(Resource):
 api.add_resource(Heatmap,'/v2/map/heatmap/<string:heatmap_type>')
 
 api.add_resource(Layer,'/v2/map/<string:layer>/<int:z>/<int:x>/<int:y>')
+
+api.add_resource(ReadRawDataScenario,'/api/raw_data_scenario')
 
 api.add_resource(LayerController,'/api/layer_controller')
 
