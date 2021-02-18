@@ -1,8 +1,8 @@
 {
-  "name": "osm_landuse",
+  "name": "landuse_osm",
   "rules": [
     {
-      "name": "\n              water\n          \t",
+      "name": "water",
       "filter": [
         "==",
         "landuse",
@@ -18,7 +18,7 @@
       ]
     },
     {
-      "name": "\n              agriculture\n          ",
+      "name": "agriculture",
       "filter": [
         "==",
         "landuse",
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "name": "\n              nature\n          ",
+      "name": "nature",
       "filter": [
         "==",
         "landuse",
@@ -50,7 +50,7 @@
       ]
     },
     {
-      "name": "\n              leisure\n          \t",
+      "name": "leisure",
       "filter": [
         "==",
         "landuse",
@@ -66,7 +66,7 @@
       ]
     },
     {
-      "name": "\n              cemetery\n         \t",
+      "name": "cemetery",
       "filter": [
         "==",
         "landuse",
@@ -82,7 +82,7 @@
       ]
     },
     {
-      "name": "\n              residential\n          \t",
+      "name": "residential",
       "filter": [
         "==",
         "landuse",
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "name": "\n              commercial\n          \t",
+      "name": "commercial",
       "filter": [
         "==",
         "landuse",
@@ -114,7 +114,7 @@
       ]
     },
     {
-      "name": "\n              community\n          \t",
+      "name": "community",
       "filter": [
         "==",
         "landuse",
@@ -130,7 +130,7 @@
       ]
     },
     {
-      "name": "\n              industrial\n          \t",
+      "name": "industrial",
       "filter": [
         "==",
         "landuse",
@@ -146,7 +146,7 @@
       ]
     },
     {
-      "name": "\n              transportation\n          \t",
+      "name": "transportation",
       "filter": [
         "==",
         "landuse",
@@ -162,7 +162,7 @@
       ]
     },
     {
-      "name": "\n              military\n          \t",
+      "name": "military",
       "filter": [
         "==",
         "landuse",

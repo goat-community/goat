@@ -2,7 +2,7 @@
   "name": "accidents_pedestrians",
   "rules": [
     {
-      "name": "accidents_pedestrians",
+      "name": "accident_point",
       "symbolizers": [
         {
           "kind": "Mark",
