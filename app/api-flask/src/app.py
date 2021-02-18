@@ -3,7 +3,7 @@ import os
 import inspect
 
 
-from flask import Flask, request, send_file, jsonify
+from flask import Flask, request, send_file,Response, jsonify
 from flask_restful import Api, Resource
 from flask_cors import CORS
 from utils import response
@@ -18,8 +18,9 @@ from functools import wraps
 import asyncio
 import json
 from geojson import dump
-import zipfile
-from io import StringIO
+import tempfile
+import geojson
+import zipstream
 
 db = Database()
 app = Flask(__name__)
@@ -66,11 +67,10 @@ class Scenarios(Resource):
             }
         if mode == "read_deleted_features" :
             #sample body: {"mode":"read_deleted_features","table_name":"pois" ,"scenario_id":"1"} 
-            
             records = db.select_with_identifiers('''SELECT {} AS deleted_feature_ids 
             FROM scenarios 
             WHERE scenario_id = %(scenario_id)s::bigint''', 
-            [translation_layers[body.get('table_name')]], {"scenario_id": body.get('scenario_id')})[0][0]
+            [translation_layers[body.get('table_name')]], {"scenario_id": body.get('scenario_id')})
       
             return records
         elif mode == "update_deleted_features" :
@@ -91,30 +91,30 @@ class Scenarios(Resource):
             table_name = body.get('table_name') + '_modified' 
 
             db.perform_with_identifiers("""DELETE FROM {}
-            WHERE scenario_id = {%(scenario_id)s::bigint 
-            AND original_id = ANY((array{%(deleted_feature_ids)s}))""", 
+            WHERE scenario_id = %(scenario_id)s::bigint 
+            AND original_id = ANY((%(deleted_feature_ids)s))""", 
             [table_name], {"scenario_id": body.get('scenario_id'), "deleted_feature_ids": body.get('deleted_feature_ids')})
             
-            db.perform("DELETE FROM {} WHERE gid=%(gid)s;", [table_name], {"gid": body.get('drawned_fid')})
+            db.perform_with_identifiers("DELETE FROM {} WHERE gid=%(gid)s", [table_name], {"gid": body.get('drawned_fid')})
 
             return{
                 'delete_success':True
             }
         elif mode == "insert" :
-        #/*sample body: {mode:"insert","userid":1,"scenario_name":"scenario1"}*/
+            #/*sample body: {mode:"insert","userid":1,"scenario_name":"scenario1"}*/
             scenario_id = db.select("""INSERT INTO scenarios (userid, scenario_name) VALUES (%(userid)s,%(scenario_name)s) RETURNING scenario_id""", 
                 {"userid": body.get('userid'), "scenario_name": body.get('scenario_name')})[0][0]
             return {
                 "scenario_id":f"{scenario_id}"
                 }
         elif mode == "delete": 
-        #/*sample body: {mode:"delete","scenario_id":97}*/
-            db.perform("""DELETE FROM scenarios WHERE scenario_id = %(scenario_id)s::bigint""",{"scenario_name": body.get('scenario_name')})
+            #/*sample body: {mode:"delete","scenario_id":97}*/
+            db.perform("""DELETE FROM scenarios WHERE scenario_id = %(scenario_id)s::bigint""",{"scenario_id": body.get('scenario_id')})
             return{
                 "delete_success":True
             }
         elif mode == "update_scenario" :
-        #/*sample body: {mode:"update_scenario","scenario_id":2,"scenario_name":"new_name2"}*/
+            #/*sample body: {mode:"update_scenario","scenario_id":2,"scenario_name":"new_name2"}*/
             db.perform("""UPDATE scenarios SET scenario_name = %(scenario_name)s 
             WHERE scenario_id = %(scenario_id)s::bigint""", {"scenario_name": body.get('scenario_name'), "scenario_id": body.get('scenario_id')})
             return{
@@ -182,31 +182,28 @@ class ExportScenario(Resource):
     def post(self):
         body=request.get_json() 
         dicts=db.select('SELECT * FROM export_changeset_scenario(%(scenario_id)s)', {"scenario_id": body.get('scenario_id')})[0][0]
-        file_buffer = StringIO()
-        my_zip = zipfile.ZipFile('scenarios.zip','w')
+        my_zip = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
         for key in dicts.keys():
-            with open(f'{key}.geojson', 'w') as f:
-                dump(dicts[key], f)
-            my_zip.write(f'{key}.geojson')
-            os.remove(f'{key}.geojson')
-        my_zip.close()
-        file_buffer.seek(0)
-        return Response(
-        file_buffer,
-        mimetype="application/zip",
-        headers={"Content-disposition":
-                    "attachment; filename=scenarios.zip"})
+            tmp_file = tempfile.mkstemp(prefix=f"{key}",suffix='.geojson')
+            
+            with open(tmp_file[1], 'w') as f:
+                geojson.dump(dicts[key],f)
+            my_zip.write(f.name,arcname= f"{key}.geojson")
+        response = Response(my_zip, mimetype='application/zip')
+        response.headers['Content-Disposition'] = 'attachment; filename={}'.format('files.zip')
+        return response
 
 class ImportScenario(Resource):
     def post(self):
         body=request.get_json()
         payload =  json.dumps(body.get('payload'), separators=(',', ':'))
-        result=db.fetch_one(f"SELECT import_changeset_scenario({body.get('scenario_id')}, {body.get('user_id')},jsonb_build_object('{body.get('layerName')}','{payload}'::jsonb))")
+        result=db.select("SELECT import_changeset_scenario(%(scenario_id)s, %(user_id)s,jsonb_build_object(%(layerName)s,%(payload)s::jsonb))"
+        , {"scenario_id": body.get('scenario_id'),"user_id":body.get('user_id'),"layerName":body.get('layerName'),"payload":payload})
         return result
 
 class PoisMultiIsochrones(Resource):
     def post(self):
-        body=request.get_json() 
+        args=request.get_json() 
         requiredParams = [
         "user_id",
         "scenario_id",
@@ -220,15 +217,10 @@ class PoisMultiIsochrones(Resource):
         "region",
         "amenities"
         ]
-        queryValues = []
-        for key in requiredParams :
-            value = body[key]
-            if not value :
-                return {"success" :False , "error":"An error happened"}
-            queryValues.append(value)
 
+        args = check_args_complete(args, requiredParams)
         #// Make sure to set the correct content type
-        sqlQuery = f"""SELECT jsonb_build_object(
+        sqlQuery = """SELECT jsonb_build_object(
         'type',     'FeatureCollection',
         'features', jsonb_agg(features.feature)
         )
@@ -239,13 +231,18 @@ class PoisMultiIsochrones(Resource):
         'geometry',   ST_AsGeoJSON(geom)::jsonb,
         'properties', to_jsonb(inputs) - 'gid' - 'geom'
         ) AS feature 
-        FROM (SELECT * FROM multi_isochrones_api({queryValues[0]},{queryValues[1]},{queryValues[2]},{queryValues[3]},{queryValues[4]},{queryValues[5]},{queryValues[6]},{queryValues[7]},{queryValues[8]},ARRAY[{queryValues[9]}],ARRAY[{queryValues[10]}])) inputs) features;"""
-        result=db.fetch_one(sqlQuery)
+        FROM (SELECT * FROM multi_isochrones_api(%(user_id)s,%(scenario_id)s,%(minutes)s,%(speed)s,%(n)s,%(routing_profile)s,%(alphashape_parameter)s,%(modus)s,%(region_type)s,ARRAY[%(region)s],ARRAY[%(amenities)s])) inputs) features;"""
+        result=db.select(sqlQuery,
+            {
+            "user_id": args["user_id"],"scenario_id": args["scenario_id"],"minutes": args["minutes"], "speed": args["speed"],"n": args["n"],"routing_profile": args["routing_profile"],
+            "alphashape_parameter": args["alphashape_parameter"], "modus": args["modus"],"region_type": args["region_type"],"region": args["region"],"amenities": args["amenities"]
+            }
+        )
         return result
-
+        
 class CountPoisMultiIsochrones(Resource):
     def post(self):
-        body=request.get_json()
+        args=request.get_json()
         requiredParams = [
         "user_id",
         "scenario_id",
@@ -256,21 +253,20 @@ class CountPoisMultiIsochrones(Resource):
         "region",
         "amenities"
         ]
-        queryValues = []
-        for key in requiredParams :
-            value = body[key]
-
-            if not value :
-                return {"success" :False , "error":"An error happened"}
-            queryValues.append(value)
+        args = check_args_complete(args, requiredParams)
         # // Make sure to set the correct content type
-        sqlQuery = f"""SELECT jsonb_build_object(
+        sqlQuery = """SELECT jsonb_build_object(
         'type',       'Feature',
         'geometry',   ST_AsGeoJSON(geom)::jsonb,
         'properties', to_jsonb(inputs) - 'geom'
     ) AS feature 
-    FROM (SELECT count_pois,region_name, geom FROM count_pois_multi_isochrones({queryValues[0]},{queryValues[1]},{queryValues[2]},{queryValues[3]},{queryValues[4]},{queryValues[5]},'{queryValues[6]}',array[{queryValues[7]}])) inputs;"""
-        record = db.fetch_one(sqlQuery)
+    FROM (SELECT count_pois,region_name, geom FROM count_pois_multi_isochrones(%(user_id)s,%(scenario_id)s,%(modus)s,%(minutes)s,%(speed)s,%(region_type)s,%(region)s,array[%(amenities)s])) inputs;"""
+        record = db.select(sqlQuery,
+            {
+            "user_id": args["user_id"],"scenario_id": args["scenario_id"],"modus": args["modus"],"minutes": args["minutes"], "speed": args["speed"],
+            "region_type": args["region_type"],"region": args["region"],"amenities": args["amenities"]
+            }
+        )[0][0]
         return record
 
 class UploadAllScenariosResource(Resource):
@@ -302,6 +298,38 @@ class DeleteAllScenarioData(Resource):
                 'population_modification':population_modification_record
         }
 
+class LayerController(Resource):
+    def post(self):
+        body=request.get_json()
+        mode=body.get('mode')
+        table_name = body.get('table_name') + '_modified'
+        if mode == "read":
+            #{"mode":"read","table_name":"pois","scenario_id":"2"}
+            records = db.select_with_identifiers('''SELECT * FROM {} WHERE scenario_id = %(scenario_id)s::bigint''', 
+            [table_name], {"scenario_id": body.get('scenario_id')})[0]
+            return records
+        if mode == "insert":
+            #{"mode":"insert","table_name":"pois","scenario_id":"1","name":"Test","geom":"POINT(11.4543 48.1232)",amenity:'club'}
+            db.perform_with_identifiers("INSERT INTO {} (name,amenity,geom,scenario_id) VALUES (%(name)s, %(amenity)s,ST_GEOMFROMTEXT(%(geom)s),%(scenario_id)s)", 
+            [table_name], {"name":body.get('name'),"amenity":body.get('amenity'),"geom":body.get('geom'),"scenario_id": body.get('scenario_id')})
+            return{
+                "insert_success": True
+                }
+            
+        if mode == "update":
+            #{"mode":"update","table_name":"pois","scenario_id":"8","gid":"1","name":"Test","geom":"POINT(11.4543 48.1232)"}
+            db.perform_with_identifiers("UPDATE {} SET geom = ST_GEOMFROMTEXT(%(geom)s) WHERE gid = %(gid)s AND scenario_id = %(scenario_id)s", 
+            [table_name], {"geom":body.get('geom'),"gid":body.get('gid'),"geom":body.get('geom'),"scenario_id": body.get('scenario_id')})
+            return{
+                "update_success": True
+                }
+        if mode == "delete":
+            #{"mode":"delete","table_name":"pois","gid": "26","scenario_id":"4"}
+            db.perform_with_identifiers("DELETE FROM {} WHERE gid = %(gid)s and scenario_id = %(scenario_id)s", 
+            [table_name], {"gid":body.get('gid'),"scenario_id": body.get('scenario_id')})
+            return{
+                "delete_success": True
+                }
 
 
 class Layer(Resource):
@@ -409,6 +437,8 @@ class Heatmap(Resource):
 api.add_resource(Heatmap,'/v2/map/heatmap/<string:heatmap_type>')
 
 api.add_resource(Layer,'/v2/map/<string:layer>/<int:z>/<int:x>/<int:y>')
+
+api.add_resource(LayerController,'/api/layer_controller')
 
 api.add_resource(CountPoisMultiIsochrones,'/api/count_pois_multi_isochrones')
 

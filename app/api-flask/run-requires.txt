@@ -12,3 +12,4 @@ geobuf
 geojson
 asyncio
 geojson
+zipstream
