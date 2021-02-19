@@ -2,7 +2,7 @@
   "name": "heatmap_population_api",
   "rules": [
     {
-      "name": "Standard",
+      "name": "noPopulation",
       "symbolizers": [
         {
           "kind": "Fill",
@@ -17,7 +17,7 @@
       ]
     },
     {
-      "name": "rule_487",
+      "name": "score1",
       "symbolizers": [
         {
           "kind": "Fill",
@@ -32,7 +32,7 @@
       ]
     },
     {
-      "name": "rule_3974",
+      "name": "score2",
       "symbolizers": [
         {
           "kind": "Fill",
@@ -47,7 +47,7 @@
       ]
     },
     {
-      "name": "rule_3174",
+      "name": "score3",
       "symbolizers": [
         {
           "kind": "Fill",
@@ -62,7 +62,7 @@
       ]
     },
     {
-      "name": "rule_5328",
+      "name": "score4",
       "symbolizers": [
         {
           "kind": "Fill",
@@ -77,7 +77,7 @@
       ]
     },
     {
-      "name": "rule_6697",
+      "name": "score5",
       "symbolizers": [
         {
           "kind": "Fill",

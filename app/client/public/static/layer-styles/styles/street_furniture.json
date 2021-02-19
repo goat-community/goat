@@ -1,77 +1,77 @@
 {
-    "name": "street_furniture",
-    "rules": [
-      {
-        "name": "bench",
-        "filter": [
-          "==",
-          "amenity",
-          "bench"
-        ],
-        "symbolizers": [
-          {
-            "kind": "Mark",
-            "color": "#83d739",
-            "radius": 3.5,
-            "wellKnownName": "Circle",
-            "strokeColor": "#232323",
-            "strokeWidth": 0.5
-          }
-        ]
-      },
-      {
-        "name": "toilets",
-        "filter": [
-          "==",
-          "amenity",
-          "toilets"
-        ],
-        "symbolizers": [
-          {
-            "kind": "Mark",
-            "color": "#ffd000",
-            "radius": 3.5,
-            "wellKnownName": "Circle",
-            "strokeColor": "#232323",
-            "strokeWidth": 0.5
-          }
-        ]
-      },
-      {
-        "name": "fountain",
-        "filter": [
-          "==",
-          "amenity",
-          "fountain"
-        ],
-        "symbolizers": [
-          {
-            "kind": "Mark",
-            "color": "#30d0e6",
-            "radius": 3.5,
-            "wellKnownName": "Circle",
-            "strokeColor": "#232323",
-            "strokeWidth": 0.5
-          }
-        ]
-      },
-      {
-        "name": "waste_basket",
-        "filter": [
-          "==",
-          "amenity",
-          "waste_basket"
-        ],
-        "symbolizers": [
-          {
-            "kind": "Mark",
-            "color": "#f03f3f",
-            "radius": 3.5,
-            "wellKnownName": "Circle",
-            "strokeColor": "#232323",
-            "strokeWidth": 0.5
-          }
-        ]
+  "name": "street_furniture",
+  "rules": [
+    {
+      "name": "bench",
+      "filter": [
+        "==",
+        "amenity",
+        "bench"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Icon",
+          "image": "static/layer-styles/assets/icons/street_furniture/bench.png",
+          "size": 0.9
+        }
+      ],
+      "scaleDenominator": {
+        "max": 25000
       }
-    ]
-  }
+    },
+    {
+      "name": "toilets",
+      "filter": [
+        "==",
+        "amenity",
+        "toilets"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Icon",
+          "image": "static/layer-styles/assets/icons/street_furniture/toilets.png",
+          "size": 0.9
+        }
+      ],
+      "scaleDenominator": {
+        "max": 25000
+      }
+    },
+    {
+      "name": "fountain",
+      "filter": [
+        "==",
+        "amenity",
+        "fountain"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Icon",
+          "image": "static/layer-styles/assets/icons/street_furniture/fountain.png",
+          "size": 0.9
+        }
+      ],
+      "scaleDenominator": {
+        "max": 25000
+      }
+    },
+    {
+      "name": "wasteBasket",
+      "filter": [
+        "==",
+        "amenity",
+        "waste_basket"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Icon",
+          "image": "static/layer-styles/assets/icons/street_furniture/waste_basket.png",
+          "size": 0.7
+        }
+      ],
+      "scaleDenominator": {
+        "max": 25000
+      }
+    }
+  ]
+}
