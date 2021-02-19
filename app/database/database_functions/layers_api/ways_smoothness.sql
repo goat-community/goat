@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION ways_smoothness()
-RETURNS TABLE (highway text, smoothenss text, geom geometry) AS
+RETURNS TABLE (highway text, smoothness text, geom geometry) AS
 $$
     SELECT w.highway, w.smoothness, w.geom
     FROM ways w, study_area s
