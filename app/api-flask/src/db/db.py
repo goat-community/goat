@@ -3,7 +3,7 @@ import logging as LOGGER
 import psycopg2
 from db.config import DATABASE
 from psycopg2 import sql
-import geopandas as gpd
+import geobuf
 import json
 
 class Database:
@@ -60,7 +60,7 @@ class Database:
             else: 
                 query = sql.SQL(query)
 
-            if return_type == 'geobuf':
+            if return_type in ['geobuf','geojson']:
                 sql_geobuf = [
                     sql.SQL("SELECT ST_AsGeobuf(l, 'geom') FROM ("),
                     query,
@@ -68,34 +68,20 @@ class Database:
                 ] 
                 query = sql.SQL(' ').join(sql_geobuf)
 
-            if return_type in ['raw','geobuf']:
+            if return_type in ['raw','geobuf','geojson']:
                 if params is None:             
                     cur.execute(query)
                 else:
                     cur.execute(query, params)
                 records = cur.fetchall()
-        
-            if return_type in ['geodataframe', 'geojson']:
-                if params is None:             
-                    records = gpd.GeoDataFrame.from_postgis(query, self.conn, geom_col='geom')
-                else:
-                    records = gpd.GeoDataFrame.from_postgis(query, self.conn, geom_col='geom', params=params)
-                
+          
             if return_type == 'geojson':
-                records = json.loads(records.to_json())
+                records = json.dumps(geobuf.decode(bytes(records[0][0]))) 
 
         self.conn.commit()
         cur.close()
         return records 
     
-    def export_layer_geojson(self, sql_query, params=None):
-        df = gpd.GeoDataFrame.from_postgis(sql_query, self.connect(), geom_col='geom', params=params)
-        return json.loads(df.to_json())
-
-    def export_layer_df(self, sql_query, params=None):
-        df = gpd.GeoDataFrame.from_postgis(sql_query, self.connect(), geom_col='geom', params=params)
-        self.conn.commit()
-        return df
 
     def perform_with_identifiers(self, query, identifiers, params=None):
         """Run a SQL query that does not return anything"""

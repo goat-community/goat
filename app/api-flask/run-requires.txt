@@ -12,4 +12,3 @@ geobuf
 geojson
 asyncio
 zipstream
-geopandas

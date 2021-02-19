@@ -21,7 +21,6 @@ from geojson import dump
 import tempfile
 import geojson
 import zipstream
-import geopandas as gpd
 
 import psycopg2
 from psycopg2 import sql
@@ -148,7 +147,7 @@ class Isochrone(Resource):
                 SELECT * 
                 FROM isochrones_api (%(user_id)s,%(scenario_id)s,%(minutes)s,%(x)s,%(y)s,%(n)s,%(speed)s,%(concavity)s,%(modus)s,%(routing_profile)s,NULL,NULL,NULL)
             ) inputs
-        ) features;"""
+        ) features"""
         
         result=db.select(query, 
         {
@@ -244,8 +243,8 @@ class PoisMultiIsochrones(Resource):
         args = check_args_complete(args, requiredParams)
         #// Make sure to set the correct content type
    
-        prepared_query = """SELECT count_pois, region_name, geom 
-        FROM multi_isochrones_api(%(user_id)s,%(scenario_id)s,%(minutes)s,%(speed)s,%(n)s,%(routing_profile)s,%(alphashape_parameter)s,%(modus)s,%(region_type)s,ARRAY[%(region)s],ARRAY[%(amenities)s])) inputs) features;"""
+        prepared_query = """SELECT geom 
+        FROM multi_isochrones_api(%(user_id)s,%(scenario_id)s,%(minutes)s,%(speed)s,%(n)s,%(routing_profile)s,%(alphashape_parameter)s,%(modus)s,%(region_type)s,%(region)s,%(amenities)s)"""
         
         args_vals =  {
             "user_id": args["user_id"],"scenario_id": args["scenario_id"],"minutes": args["minutes"], "speed": args["speed"],"n": args["n"],"routing_profile": args["routing_profile"],
@@ -273,7 +272,7 @@ class CountPoisMultiIsochrones(Resource):
         # // Make sure to set the correct content type
 
         prepared_query = """SELECT count_pois, region_name, geom 
-        FROM count_pois_multi_isochrones(%(user_id)s,%(scenario_id)s,%(modus)s,%(minutes)s,%(speed)s,%(region_type)s,%(region)s,array[%(amenities)s]);"""
+        FROM count_pois_multi_isochrones(%(user_id)s,%(scenario_id)s,%(modus)s,%(minutes)s,%(speed)s,%(region_type)s,%(region)s,array[%(amenities)s])"""
         
         args_vals = {
             "user_id": args["user_id"],"scenario_id": args["scenario_id"],"modus": args["modus"],"minutes": args["minutes"],
@@ -289,8 +288,8 @@ class UploadAllScenariosResource(Resource):
         body = request.get_json()
         scenario_id = body.get('scenario_id')
         
-        db.perform('SELECT * FROM network_modification(%(scenario_id)s);', {"scenario_id": scenario_id})
-        db.perform('SELECT * FROM population_modification(%(scenario_id)s);', {"scenario_id": scenario_id})
+        db.perform('SELECT * FROM network_modification(%(scenario_id)s)', {"scenario_id": scenario_id})
+        db.perform('SELECT * FROM population_modification(%(scenario_id)s)', {"scenario_id": scenario_id})
         
         return {
             "response": "Scenarios are reflected."
@@ -315,14 +314,14 @@ class ReadRawDataScenario(Resource):
 
         if table_name == 'pois':
             prepared_query = '''SELECT * FROM pois_visualization(%(scenario_id)s,%(amenities)s,%(routing_profile)s,%(modus)s) 
-            WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326));'''
+            WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))'''
         elif table_name == 'ways':
             prepared_query = '''SELECT * FROM ways
             WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))
-            AND class_id NOT IN (0,101,102,103,104,105,106,107,501,502,503,504,701,801);'''
+            AND class_id NOT IN (0,101,102,103,104,105,106,107,501,502,503,504,701,801)'''
         elif table_name == 'buildings': 
             prepared_query = '''SELECT * FROM buildings
-            WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326));
+            WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))
             '''
         else:
             return {
