@@ -124,41 +124,9 @@ class Scenarios(Resource):
                 "update_success":True
             }
 
+
+
 class Isochrone(Resource):
-    def post(self):
-        args=request.get_json()
-        
-        requiredParams = ["user_id","scenario_id","minutes","x","y","n","speed","concavity","modus","routing_profile"]
-        
-        args = check_args_complete(args, requiredParams)
-      
-        query="""SELECT jsonb_build_object(
-		'type',     'FeatureCollection',
-		'features', jsonb_agg(features.feature)
-        )
-        FROM (
-        SELECT jsonb_build_object(
-		'type',       'Feature',
-		'id',         gid,
-		'geometry',   ST_AsGeoJSON(geom)::jsonb,
-		'properties', to_jsonb(inputs) - 'gid' - 'geom'
-        ) AS feature 
-	    FROM (
-                SELECT * 
-                FROM isochrones_api (%(user_id)s,%(scenario_id)s,%(minutes)s,%(x)s,%(y)s,%(n)s,%(speed)s,%(concavity)s,%(modus)s,%(routing_profile)s,NULL,NULL,NULL)
-            ) inputs
-        ) features"""
-        
-        result=db.select(query, 
-        {
-            "user_id": args["user_id"],"scenario_id": args["scenario_id"],"minutes": args["minutes"], "x": args["x"],"y": args["y"],"n": args["n"],
-            "speed": args["speed"], "concavity": args["concavity"],"modus": args["modus"],"routing_profile": args["routing_profile"]
-            }
-        )[0][0]
-
-        return result
-
-class RectoredIsochrone(Resource):
     def post(self):
         args=request.get_json()
         
@@ -175,7 +143,7 @@ class RectoredIsochrone(Resource):
         }
         record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
 
-        return record
+        return record[0][0]
 
 class ManageUser(Resource):
     def post(self):
@@ -243,7 +211,7 @@ class PoisMultiIsochrones(Resource):
         args = check_args_complete(args, requiredParams)
         #// Make sure to set the correct content type
    
-        prepared_query = """SELECT geom 
+        prepared_query = """SELECT *
         FROM multi_isochrones_api(%(user_id)s,%(scenario_id)s,%(minutes)s,%(speed)s,%(n)s,%(routing_profile)s,%(alphashape_parameter)s,%(modus)s,%(region_type)s,%(region)s,%(amenities)s)"""
         
         args_vals =  {
@@ -253,7 +221,7 @@ class PoisMultiIsochrones(Resource):
 
         record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
     
-        return record
+        return record[0][0]
         
 class CountPoisMultiIsochrones(Resource):
     def post(self):
