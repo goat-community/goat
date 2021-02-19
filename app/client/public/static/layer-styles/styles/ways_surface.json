@@ -1,203 +1,221 @@
 {
-    "name": "surface",
-    "rules": [
-      {
-        "name": "no data",
-        "symbolizers": [
-          {
-            "kind": "Line",
-            "color": "#999999",
-            "width": 1,
-            "join": "bevel",
-            "cap": "square"
-          }
-        ]
-      },
-      {
-        "name": "asphalt",
-        "filter": [
-          "||",
-          [
-            "==",
-            "surface",
-            "asphalt"
-          ],
-          [
-            "==",
-            "surface",
-            "paved"
-          ]
-        ],
-        "symbolizers": [
-          {
-            "kind": "Line",
-            "color": "#000000",
-            "width": 1,
-            "join": "bevel",
-            "cap": "square"
-          }
-        ]
-      },
-      {
-        "name": "concrete",
-        "filter": [
-          "||",
-          [
-            "==",
-            "surface",
-            "concrete"
-          ],
-          [
-            "==",
-            "surface",
-            "concrete:plates"
-          ]
-        ],
-        "symbolizers": [
-          {
-            "kind": "Line",
-            "color": "#266bca",
-            "width": 1,
-            "join": "bevel",
-            "cap": "square"
-          }
-        ]
-      },
-      {
-        "name": "ground or gravel",
-        "filter": [
-          "||",
-          [
-            "||",
-            [
-              "==",
-              "surface",
-              "dirt"
-            ],
-            [
-              "==",
-              "surface",
-              "earth"
-            ]
-          ],
-          [
-            "==",
-            "surface",
-            "ground"
-          ],
-          [
-            "==",
-            "surface",
-            "mud"
-          ],
-          [
-            "==",
-            "surface",
-            "unpaved"
-          ],
-          [
-            "==",
-            "surface",
-            "sand"
-          ],
-          [
-            "==",
-            "surface",
-            "fine_gravel"
-          ],
-          [
-            "==",
-            "surface",
-            "gravel"
-          ],
-          [
-            "==",
-            "surface",
-            "compacted"
-          ],
-          [
-            "==",
-            "surface",
-            "pebblestone"
-          ]
-        ],
-        "symbolizers": [
-          {
-            "kind": "Line",
-            "color": "#ad7940",
-            "width": 1,
-            "join": "bevel",
-            "cap": "square"
-          }
-        ]
-      },
-      {
-        "name": "grass or grass paver",
-        "filter": [
-          "||",
-          [
-            "==",
-            "surface",
-            "grass"
-          ],
-          [
-            "==",
-            "surface",
-            "grass_paver"
-          ]
-        ],
-        "symbolizers": [
-          {
-            "kind": "Line",
-            "color": "#0cae3f",
-            "width": 1,
-            "join": "bevel",
-            "cap": "square"
-          }
-        ]
-      },
-      {
-        "name": "paving stones",
-        "filter": [
-          "||",
-          [
-            "||",
-            [
-              "==",
-              "surface",
-              "paving_stones"
-            ],
-            [
-              "==",
-              "surface",
-              "paving_stones:30"
-            ],
-            [
-              "==",
-              "surface",
-              "cobblestone"
-            ],
-            [
-              "==",
-              "surface",
-              "cobblestone:flattened"
-            ]
-          ],
-          [
-            "==",
-            "surface",
-            "sett"
-          ]
-        ],
-        "symbolizers": [
-          {
-            "kind": "Line",
-            "color": "#32c9ea",
-            "width": 1,
-            "join": "bevel",
-            "cap": "square"
-          }
-        ]
+  "name": "surface",
+  "rules": [
+    {
+      "name": "no data",
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#999999",
+          "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
       }
-    ]
-  }
+    },
+    {
+      "name": "asphalt",
+      "filter": [
+        "||",
+        [
+          "==",
+          "surface",
+          "asphalt"
+        ],
+        [
+          "==",
+          "surface",
+          "paved"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#000000",
+          "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
+    },
+    {
+      "name": "concrete",
+      "filter": [
+        "||",
+        [
+          "==",
+          "surface",
+          "concrete"
+        ],
+        [
+          "==",
+          "surface",
+          "concrete:plates"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#266bca",
+          "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
+    },
+    {
+      "name": "ground or gravel",
+      "filter": [
+        "||",
+        [
+          "||",
+          [
+            "==",
+            "surface",
+            "dirt"
+          ],
+          [
+            "==",
+            "surface",
+            "earth"
+          ]
+        ],
+        [
+          "==",
+          "surface",
+          "ground"
+        ],
+        [
+          "==",
+          "surface",
+          "mud"
+        ],
+        [
+          "==",
+          "surface",
+          "unpaved"
+        ],
+        [
+          "==",
+          "surface",
+          "sand"
+        ],
+        [
+          "==",
+          "surface",
+          "fine_gravel"
+        ],
+        [
+          "==",
+          "surface",
+          "gravel"
+        ],
+        [
+          "==",
+          "surface",
+          "compacted"
+        ],
+        [
+          "==",
+          "surface",
+          "pebblestone"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#ad7940",
+          "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
+    },
+    {
+      "name": "grass or grass paver",
+      "filter": [
+        "||",
+        [
+          "==",
+          "surface",
+          "grass"
+        ],
+        [
+          "==",
+          "surface",
+          "grass_paver"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#0cae3f",
+          "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
+    },
+    {
+      "name": "paving stones",
+      "filter": [
+        "||",
+        [
+          "||",
+          [
+            "==",
+            "surface",
+            "paving_stones"
+          ],
+          [
+            "==",
+            "surface",
+            "paving_stones:30"
+          ],
+          [
+            "==",
+            "surface",
+            "cobblestone"
+          ],
+          [
+            "==",
+            "surface",
+            "cobblestone:flattened"
+          ]
+        ],
+        [
+          "==",
+          "surface",
+          "sett"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#32c9ea",
+          "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
+    }
+  ]
+}

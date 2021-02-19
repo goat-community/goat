@@ -4,12 +4,13 @@
       {
         "name": "bicycle_parking",
         "scaleDenominator": {
-          "max": 80000
+          "max": 75000
         },
         "symbolizers": [
           {
             "kind": "Icon",
-            "image": "street_furniture_bicycle/${strToLowerCase(amenity)}.png"
+            "image": "static/layer-styles/assets/icons/street_furniture_bicycle/bicycle_parking.png",
+            "size": 0.5
           }
         ]
       }
