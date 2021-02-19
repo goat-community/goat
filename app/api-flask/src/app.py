@@ -40,17 +40,17 @@ custom_methods_metadata = {
 }
 
 
-def check_args_complete(request_args, query_values):
-    request_args_keys = list(request_args.keys())
+def check_args_complete(body, query_values):
+    body_keys = list(body.keys())
 
-    if sorted(request_args_keys) != sorted(query_values):
+    if sorted(body_keys) != sorted(query_values):
         return response.failure({
             'errors': {
                 'message': "Not all arguments available. "
             }
     })
     else:
-        return request_args 
+        return body 
 
 
 def async_action(f):
@@ -124,41 +124,9 @@ class Scenarios(Resource):
                 "update_success":True
             }
 
+
+
 class Isochrone(Resource):
-    def post(self):
-        args=request.get_json()
-        
-        requiredParams = ["user_id","scenario_id","minutes","x","y","n","speed","concavity","modus","routing_profile"]
-        
-        args = check_args_complete(args, requiredParams)
-      
-        query="""SELECT jsonb_build_object(
-		'type',     'FeatureCollection',
-		'features', jsonb_agg(features.feature)
-        )
-        FROM (
-        SELECT jsonb_build_object(
-		'type',       'Feature',
-		'id',         gid,
-		'geometry',   ST_AsGeoJSON(geom)::jsonb,
-		'properties', to_jsonb(inputs) - 'gid' - 'geom'
-        ) AS feature 
-	    FROM (
-                SELECT * 
-                FROM isochrones_api (%(user_id)s,%(scenario_id)s,%(minutes)s,%(x)s,%(y)s,%(n)s,%(speed)s,%(concavity)s,%(modus)s,%(routing_profile)s,NULL,NULL,NULL)
-            ) inputs
-        ) features"""
-        
-        result=db.select(query, 
-        {
-            "user_id": args["user_id"],"scenario_id": args["scenario_id"],"minutes": args["minutes"], "x": args["x"],"y": args["y"],"n": args["n"],
-            "speed": args["speed"], "concavity": args["concavity"],"modus": args["modus"],"routing_profile": args["routing_profile"]
-            }
-        )[0][0]
-
-        return result
-
-class RectoredIsochrone(Resource):
     def post(self):
         args=request.get_json()
         
@@ -175,7 +143,7 @@ class RectoredIsochrone(Resource):
         }
         record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
 
-        return record
+        return record[0][0]
 
 class ManageUser(Resource):
     def post(self):
@@ -243,7 +211,7 @@ class PoisMultiIsochrones(Resource):
         args = check_args_complete(args, requiredParams)
         #// Make sure to set the correct content type
    
-        prepared_query = """SELECT geom 
+        prepared_query = """SELECT *
         FROM multi_isochrones_api(%(user_id)s,%(scenario_id)s,%(minutes)s,%(speed)s,%(n)s,%(routing_profile)s,%(alphashape_parameter)s,%(modus)s,%(region_type)s,%(region)s,%(amenities)s)"""
         
         args_vals =  {
@@ -253,7 +221,7 @@ class PoisMultiIsochrones(Resource):
 
         record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
     
-        return record
+        return record[0][0]
         
 class CountPoisMultiIsochrones(Resource):
     def post(self):
@@ -467,14 +435,14 @@ class Layer(Resource):
         # Find table/function name. If there is a custom python logic to be executed before,
         # we should run it first. A metadata object will contain methodToCall and methodArgs
         # needed for the method call.
-        request_args = request.args.to_dict()
+        body = request.args.to_dict()
         if ('methodToCall' in layer_config):
             method_args = []
             for index, method_arg in enumerate(layer_config['methodArgs']):
-                if not method_arg in request_args:
+                if not method_arg in body:
                     method_args = []
                     break
-                method_args.append(request_args[method_arg])
+                method_args.append(body[method_arg])
             print(method_args)
             if len(method_args) > 0:
                 recompute_heatmap(*method_args)
@@ -483,16 +451,16 @@ class Layer(Resource):
         if layer_config['layer_type'] == "function" and layer_config['args'] is not None:
             args = ""
             for index, arg in enumerate(layer_config['args']):
-                if not arg in request_args:
+                if not arg in body:
                     return response.failure({
                         'errors': {
                             'message': "Not all arguments available. "
                         }
                     })
                 if index < len(layer_config['args']) - 1:
-                    args += request_args[arg] + ","
+                    args += body[arg] + ","
                 else:
-                    args += request_args[arg]
+                    args += body[arg]
             table = '''(SELECT * FROM {layer}({args}))'''.format(
                 layer=layer, args=args)
         # Create the table object to pass in sql template string
@@ -511,27 +479,28 @@ class Layer(Resource):
         return send_file(result_bytes, mimetype='application/vnd.mapbox-vector-tile')
 
 
-def prepare_func_args(request_args, func_varnames):
+def prepare_func_args(body, func_varnames):
     func_args = []
     for i in func_varnames:
-        func_args.append(request_args[i].replace("'",""))
+        func_args.append(body[i])
     
     return func_args
 
 
 class Heatmap(Resource):
-    def get(self, heatmap_type):
-        request_args = request.args.to_dict()
-        request_args_keys = list(request_args.keys())
-        request_val = list(request_args.values())
+    def post(self, heatmap_type):
+
+        body = request.get_json()
+        body_keys = list(body.keys())
+        request_val = list(body.values())
         func_varnames = inspect.getargspec(globals()[heatmap_type]).args
 
-        check_args_complete(request_args, func_varnames)
+        check_args_complete(body, func_varnames)
 
-        func_args = prepare_func_args(request_args, func_varnames)
+        func_args = prepare_func_args(body, func_varnames)
         result = globals()[heatmap_type](*func_args)
 
-        if request_args["return_type"] == 'geobuf':
+        if body.get('return_type') == 'geobuf':
             result_bytes = io.BytesIO(result[0][0])
             return send_file(result_bytes, mimetype='application/geobuf.pbf')
         else:

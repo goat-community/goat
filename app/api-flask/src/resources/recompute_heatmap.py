@@ -7,17 +7,6 @@ import json
 # Create database class
 db = Database()
 
-sql_geojson = '''SELECT jsonb_build_object(
-		'type',     'FeatureCollection',
-		'features', jsonb_agg(features.feature)
-)::text
-FROM (
-SELECT jsonb_build_object(
-	'type',       'Feature',
-	'geometry',   ST_AsGeoJSON(geom,5)::jsonb,
-	'properties', to_jsonb(inputs) - 'geom'
-) AS feature 
-FROM (SELECT * FROM heatmap_temp) inputs) features;'''
 
 def recompute_heatmap(scenario_id):
     """Function to recompute heatmap when network is changed."""

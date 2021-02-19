@@ -61,7 +61,26 @@ class Database:
             else: 
                 query = sql.SQL(query)
 
-            if return_type in ['geobuf','geojson']:
+            if return_type == 'geojson':
+                
+                sql_geojson =  [
+                    sql.SQL('''SELECT jsonb_build_object(
+                    'type',     'FeatureCollection',
+                    'features', jsonb_agg(features.feature)
+                    )
+                    FROM (
+                    SELECT jsonb_build_object(
+                    'type',       'Feature',
+                    'geometry',   ST_AsGeoJSON(geom)::jsonb,
+                    'properties', to_jsonb(inputs) - 'geom'
+                    ) AS feature 
+                    FROM ('''),
+                    query,
+                    sql.SQL('''    ) inputs ) features''')
+                ]
+                query = sql.SQL(' ').join(sql_geojson)
+
+            if return_type in ['geobuf']:
                 sql_geobuf = [
                     sql.SQL("SELECT ST_AsGeobuf(l, 'geom') FROM ("),
                     query,
@@ -75,9 +94,6 @@ class Database:
                 else:
                     cur.execute(query, params)
                 records = cur.fetchall()
-          
-            if return_type == 'geojson':
-                records = geojson.loads(json.dumps(geobuf.decode(bytes(records[0][0]))))
 
         self.conn.commit()
         cur.close()

@@ -26,13 +26,51 @@ AND ST_Intersects(s.geom,p.way);
 CREATE INDEX ON buildings USING GIST(geom);
 ALTER TABLE buildings ADD PRIMARY key(gid);
 
-CREATE TABLE landuse_osm AS 
-SELECT ROW_NUMBER() OVER() AS gid, landuse, tourism, amenity, name, tags, way AS geom 
-FROM planet_osm_polygon 
-WHERE landuse IS NOT NULL;
 
-CREATE INDEX ON landuse_osm USING GIST(geom);
-ALTER TABLE landuse_osm ADD PRIMARY key(gid);
+CREATE TABLE landuse_osm AS 
+SELECT CASE 
+	WHEN p.landuse in ('basin','reservoir','salt_pond','waters') then 'water' 
+	WHEN p.landuse in ('allotments','aquaculture','fallow','farmland','farmyard','greenhouse_horticulture','orchard','pasture','plant_nursery','plantation','vineyard') then 'agriculture' 
+	WHEN p.landuse in ('forest','grass','meadow','green_area') then 'nature' 
+	WHEN p.landuse in ('garden','national_park','nature_reserve','park','village_green','recreation_ground','leisure') then 'leisure' 
+	WHEN p.landuse in ('cemetery','grave_yard') then 'cemetery' 
+	WHEN p.landuse in ('residential','garages') then 'residential' 
+	WHEN p.landuse in ('commercial','retail') then 'commercial' 
+	WHEN p.landuse in ('school','university','hospital','college','churchyard','religious','community') then 'community' 
+	WHEN p.landuse in ('industrial','landfill','quarry') then 'industrial' 
+	WHEN p.landuse in ('highway','parking','railway') then 'transportation' 
+	WHEN p.landuse in ('military') then 'military' 
+ELSE NULL END AS landuse_simplified, landuse, p.tourism, p.amenity, p.name, ST_Intersection(p.way,s.geom) AS geom 
+FROM planet_osm_polygon p, study_area s
+WHERE landuse IS NOT NULL
+AND ST_Intersects(p.way,s.geom)
+UNION ALL 
+SELECT 'community' AS landuse_simplified, NULL AS landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) AS geom 
+FROM planet_osm_polygon p, study_area s
+WHERE (amenity = 'hospital' OR amenity = 'school') AND ST_Intersects(s.geom,p.way)
+UNION ALL 
+SELECT 'waters' AS landuse_simplified, NULL AS landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) AS geom 
+FROM planet_osm_polygon p , study_area s
+WHERE leisure = 'swimming_pool' AND ST_Intersects(s.geom,p.way)
+UNION ALL
+SELECT 'leisure' AS landuse_simplified, NULL AS landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) as geom 
+FROM planet_osm_polygon p , study_area s
+WHERE leisure IS NOT NULL
+AND leisure <> 'swimming_pool'
+AND ST_Intersects(s.geom,p.way)
+UNION ALL
+SELECT 'water' AS landuse_simplified, NULL AS landuse,  p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) as geom 
+FROM planet_osm_polygon p , study_area s
+WHERE "natural"='water' and ST_Intersects(s.geom,p.way)
+UNION ALL
+SELECT  'nature' AS landuse_simplified, NULL AS landuse, p.amenity, p.leisure, p.name,ST_Intersection(p.way,s.geom) as geom 
+FROM planet_osm_polygon p , study_area s
+WHERE "natural" IN ('scrub','wood','wetland','grassland','heath') 
+AND ST_Intersects(s.geom,p.way);
+
+ALTER TABLE landuse_osm ADD gid serial;
+ALTER TABLE landuse_osm ADD PRIMARY KEY(gid);
+CREATE INDEX ON landuse_osm USING gist(geom);
 
 DO $$                  
     BEGIN 
