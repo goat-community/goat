@@ -2,7 +2,7 @@
   "name": "heatmap_population_api",
   "rules": [
     {
-      "name": "noPopulation",
+      "name": "NoPopulation",
       "symbolizers": [
         {
           "kind": "Fill",
@@ -17,7 +17,7 @@
       ]
     },
     {
-      "name": "score1",
+      "name": "1to20Inhabitants",
       "symbolizers": [
         {
           "kind": "Fill",
@@ -32,7 +32,7 @@
       ]
     },
     {
-      "name": "score2",
+      "name": "21to80Inhabitants",
       "symbolizers": [
         {
           "kind": "Fill",
@@ -47,7 +47,7 @@
       ]
     },
     {
-      "name": "score3",
+      "name": "81to200Inhabitants",
       "symbolizers": [
         {
           "kind": "Fill",
@@ -62,7 +62,7 @@
       ]
     },
     {
-      "name": "score4",
+      "name": "201to400Inhabitants",
       "symbolizers": [
         {
           "kind": "Fill",
@@ -77,7 +77,7 @@
       ]
     },
     {
-      "name": "score5",
+      "name": "More400Inhabitants",
       "symbolizers": [
         {
           "kind": "Fill",

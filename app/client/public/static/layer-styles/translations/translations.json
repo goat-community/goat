@@ -77,29 +77,69 @@
     }
   },
   "heatmap_population_api": {
-    "noPopulation": {
+    "NoPopulation": {
       "en": "no population",
       "de": "keine Bevölkerung"
     },
-    "score1": {
+    "1to20Inhabitants": {
       "en": "1 - 20 inhabitants",
       "de": "1 - 20 Einwohner"
     },
-    "score2": {
+    "21to80Inhabitants": {
       "en": "21 - 80 inhabitants",
       "de": "21 - 80 Einwohner"
     },
-    "score3": {
+    "81to200Inhabitants": {
       "en": "81 - 200 inhabitants",
       "de": "81 - 200 Einwohner"
     },
-    "score4": {
+    "201to400Inhabitants": {
       "en": "201 - 400 inhabitants",
       "de": "201 - 400 Einwohner"
     },
-    "score5": {
+    "More400Inhabitants": {
       "en": "+400 inhabitants",
       "de": "+400 Einwohner"
+    },
+    "More400InhabitantsLess": {
+      "en": "+400 inhabitants less",
+      "de": "+400 Einwohner weniger"
+    },
+    "201to400InhabitantsLess": {
+      "en": "201 - 400 inhabitants less",
+      "de": "201 - 400 Einwohner weniger"
+    },
+    "81to200InhabitantsLess":{
+      "en": "81 - 200 inhabitants less",
+      "de": "81 - 200 Einwohner weniger"
+    },
+    "21to80InhabitantsLess":{
+      "en": "21 - 80 inhabitants less",
+      "de": "21 - 80 Einwohner weniger"
+    },
+    "1to20InhabitantsLess":{
+      "en": "1 - 20 inhabitants less",
+      "de": "1 - 20 Einwohner weniger"
+    },
+    "NoOrVerySmallChange":{
+      "en": "no or very small changes",
+      "de": "keine oder sehr kleine Änderung"
+    },
+    "1to20InhabitantsMore":{
+      "en": "1 - 20 inhabitants more",
+      "de": "1 - 20 Einwohner mehr"
+    },
+    "21to80InhabitantsMore":{
+      "en": "21 - 80 inhabitants more",
+      "de": "21 - 80 Einwohner mehr"
+    },
+    "81to200InhabitantsMore":{
+      "en": "81 - 200 inhabitants more",
+      "de": "81 - 200 Einwohner mehr"
+    },
+    "More400InhabitantsMore":{
+      "en": "201 - 400 inhabitants more",
+      "de": "201 - 400 Einwohner mehr"
     }
   },
   "landuse_atkis": {
