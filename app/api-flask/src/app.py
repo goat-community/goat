@@ -40,17 +40,17 @@ custom_methods_metadata = {
 }
 
 
-def check_args_complete(request_args, query_values):
-    request_args_keys = list(request_args.keys())
+def check_args_complete(body, query_values):
+    body_keys = list(body.keys())
 
-    if sorted(request_args_keys) != sorted(query_values):
+    if sorted(body_keys) != sorted(query_values):
         return response.failure({
             'errors': {
                 'message': "Not all arguments available. "
             }
     })
     else:
-        return request_args 
+        return body 
 
 
 def async_action(f):
@@ -435,14 +435,14 @@ class Layer(Resource):
         # Find table/function name. If there is a custom python logic to be executed before,
         # we should run it first. A metadata object will contain methodToCall and methodArgs
         # needed for the method call.
-        request_args = request.args.to_dict()
+        body = request.args.to_dict()
         if ('methodToCall' in layer_config):
             method_args = []
             for index, method_arg in enumerate(layer_config['methodArgs']):
-                if not method_arg in request_args:
+                if not method_arg in body:
                     method_args = []
                     break
-                method_args.append(request_args[method_arg])
+                method_args.append(body[method_arg])
             print(method_args)
             if len(method_args) > 0:
                 recompute_heatmap(*method_args)
@@ -451,16 +451,16 @@ class Layer(Resource):
         if layer_config['layer_type'] == "function" and layer_config['args'] is not None:
             args = ""
             for index, arg in enumerate(layer_config['args']):
-                if not arg in request_args:
+                if not arg in body:
                     return response.failure({
                         'errors': {
                             'message': "Not all arguments available. "
                         }
                     })
                 if index < len(layer_config['args']) - 1:
-                    args += request_args[arg] + ","
+                    args += body[arg] + ","
                 else:
-                    args += request_args[arg]
+                    args += body[arg]
             table = '''(SELECT * FROM {layer}({args}))'''.format(
                 layer=layer, args=args)
         # Create the table object to pass in sql template string
@@ -479,27 +479,28 @@ class Layer(Resource):
         return send_file(result_bytes, mimetype='application/vnd.mapbox-vector-tile')
 
 
-def prepare_func_args(request_args, func_varnames):
+def prepare_func_args(body, func_varnames):
     func_args = []
     for i in func_varnames:
-        func_args.append(request_args[i].replace("'",""))
+        func_args.append(body[i])
     
     return func_args
 
 
 class Heatmap(Resource):
-    def get(self, heatmap_type):
-        request_args = request.args.to_dict()
-        request_args_keys = list(request_args.keys())
-        request_val = list(request_args.values())
+    def post(self, heatmap_type):
+
+        body = request.get_json()
+        body_keys = list(body.keys())
+        request_val = list(body.values())
         func_varnames = inspect.getargspec(globals()[heatmap_type]).args
 
-        check_args_complete(request_args, func_varnames)
+        check_args_complete(body, func_varnames)
 
-        func_args = prepare_func_args(request_args, func_varnames)
+        func_args = prepare_func_args(body, func_varnames)
         result = globals()[heatmap_type](*func_args)
 
-        if request_args["return_type"] == 'geobuf':
+        if body.get('return_type') == 'geobuf':
             result_bytes = io.BytesIO(result[0][0])
             return send_file(result_bytes, mimetype='application/geobuf.pbf')
         else:
