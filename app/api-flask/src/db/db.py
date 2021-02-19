@@ -57,8 +57,18 @@ class Database:
 
             if identifiers is not None:
                 query = sql.SQL(query).format(*map(sql.Identifier, identifiers))
-            
-            if return_type == 'raw':
+            else: 
+                query = sql.SQL(query)
+
+            if return_type == 'geobuf':
+                sql_geobuf = [
+                    sql.SQL("SELECT ST_AsGeobuf(l, 'geom') FROM ("),
+                    query,
+                    sql.SQL(") l;")
+                ] 
+                query = sql.SQL(' ').join(sql_geobuf)
+
+            if return_type in ['raw','geobuf']:
                 if params is None:             
                     cur.execute(query)
                 else:

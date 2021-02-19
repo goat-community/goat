@@ -19,8 +19,6 @@ SELECT jsonb_build_object(
 ) AS feature 
 FROM (SELECT * FROM heatmap_temp) inputs) features;'''
 
-
-
 def recompute_heatmap(scenario_id):
     """Function to recompute heatmap when network is changed."""
     import datetime
@@ -104,16 +102,15 @@ def jsonb_to_geojson(jsonb_dict):
     return json_string
 
 
-def heatmap_gravity(pois, modus_input, scenario_id_input):
+def heatmap_gravity(pois, modus_input, scenario_id_input, return_type):
     recompute_heatmap(scenario_id_input)
-    db.perform('DROP TABLE IF EXISTS heatmap_temp;')
 
-    db.perform('''CREATE TEMP TABLE heatmap_temp AS 
-    SELECT percentile_accessibility AS score, %(modus_input)s AS modus, geom 
-    FROM heatmap_gravity(%(pois)s::jsonb,%(modus_input)s,%(scenario_id_input)s);''',
-    {"pois": pois, "modus_input": modus_input, "scenario_id_input": scenario_id_input})
-    
-    return jsonb_to_geojson(db.select(sql_geojson)[0][0])
+    result = db.select_with_identifiers('''SELECT percentile_accessibility AS score, %(modus_input)s AS modus, geom 
+        FROM heatmap_gravity(%(pois)s::jsonb,%(modus_input)s,%(scenario_id_input)s)''', 
+        params = {"pois": pois, "modus_input": modus_input, "scenario_id_input": scenario_id_input}, return_type=return_type)
+
+    return result
+
 
 def heatmap_population(modus_input, scenario_id_input):
     db.perform('DROP TABLE IF EXISTS heatmap_temp;')

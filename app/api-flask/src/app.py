@@ -156,7 +156,7 @@ class Isochrone(Resource):
             "speed": args["speed"], "concavity": args["concavity"],"modus": args["modus"],"routing_profile": args["routing_profile"]
             }
         )[0][0]
- 
+
         return result
 
 class RectoredIsochrone(Resource):
@@ -500,8 +500,8 @@ class Layer(Resource):
         vtSql = self.mvt.toSQL(tbl)
         # Execute sql and send pbf back
         pbf = db.fetch_one(vtSql)
-        bytes = io.BytesIO(pbf)
-        return send_file(bytes, mimetype='application/vnd.mapbox-vector-tile')
+        result_bytes = io.BytesIO(pbf)
+        return send_file(result_bytes, mimetype='application/vnd.mapbox-vector-tile')
 
 
 def prepare_func_args(request_args, func_varnames):
@@ -524,7 +524,12 @@ class Heatmap(Resource):
         func_args = prepare_func_args(request_args, func_varnames)
         result = globals()[heatmap_type](*func_args)
 
-        return result
+        if request_args["return_type"] == 'geobuf':
+            result_bytes = io.BytesIO(result[0][0])
+            return send_file(result_bytes, mimetype='application/geobuf.pbf')
+        else:
+            return result  
+   
 
 api.add_resource(Heatmap,'/v2/map/heatmap/<string:heatmap_type>')
 
