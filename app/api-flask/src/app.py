@@ -311,8 +311,11 @@ class ReadRawDataScenario(Resource):
      
         body = request.get_json()
         table_name = body.get('table_name') 
+        return_type = body.get('return_type') 
 
-        if table_name == 'pois':
+        if table_name == 'pois' and "geom" not in body:
+            prepared_query = '''SELECT * FROM pois_visualization(%(scenario_id)s,%(amenities)s,%(routing_profile)s,%(modus)s)'''
+        elif table_name == 'pois':
             prepared_query = '''SELECT * FROM pois_visualization(%(scenario_id)s,%(amenities)s,%(routing_profile)s,%(modus)s) 
             WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))'''
         elif table_name == 'ways':
@@ -328,8 +331,13 @@ class ReadRawDataScenario(Resource):
                 "Error": "No valid table was selected."
             }
 
-        records = db.select_with_identifiers(prepared_query, params=body, return_type='geojson')
-        return records 
+        result = db.select_with_identifiers(prepared_query, params=body, return_type=return_type)
+        if body["return_type"] == 'geobuf':
+            result_bytes = io.BytesIO(result[0][0])
+            return send_file(result_bytes, mimetype='application/geobuf.pbf')
+        else:
+            return result  
+
 
 class LayerController(Resource):
     def post(self):

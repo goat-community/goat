@@ -4,6 +4,7 @@ import psycopg2
 from db.config import DATABASE
 from psycopg2 import sql
 import geobuf
+import geojson
 import json
 
 class Database:
@@ -76,7 +77,7 @@ class Database:
                 records = cur.fetchall()
           
             if return_type == 'geojson':
-                records = json.dumps(geobuf.decode(bytes(records[0][0]))) 
+                records = geojson.loads(json.dumps(geobuf.decode(bytes(records[0][0]))))
 
         self.conn.commit()
         cur.close()
