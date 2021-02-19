@@ -3,7 +3,11 @@
   "rules": [
     {
       "name": "yes",
-      "filter": ["==", "wheelchair_classified", "yes"],
+      "filter": [
+        "==",
+        "wheelchair_classified",
+        "yes"
+      ],
       "symbolizers": [
         {
           "kind": "Line",
@@ -12,11 +16,18 @@
           "join": "bevel",
           "cap": "square"
         }
-      ]
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
     },
     {
       "name": "limited",
-      "filter": ["==", "wheelchair_classified", "limited"],
+      "filter": [
+        "==",
+        "wheelchair_classified",
+        "limited"
+      ],
       "symbolizers": [
         {
           "kind": "Line",
@@ -25,11 +36,18 @@
           "join": "bevel",
           "cap": "square"
         }
-      ]
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
     },
     {
       "name": "no",
-      "filter": ["==", "wheelchair_classified", "no"],
+      "filter": [
+        "==",
+        "wheelchair_classified",
+        "no"
+      ],
       "symbolizers": [
         {
           "kind": "Line",
@@ -38,11 +56,18 @@
           "join": "bevel",
           "cap": "square"
         }
-      ]
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
     },
     {
       "name": "unclassified",
-      "filter": ["==", "wheelchair_classified", "unclassified"],
+      "filter": [
+        "==",
+        "wheelchair_classified",
+        "unclassified"
+      ],
       "symbolizers": [
         {
           "kind": "Line",
@@ -51,7 +76,10 @@
           "join": "bevel",
           "cap": "square"
         }
-      ]
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
     }
   ]
 }
