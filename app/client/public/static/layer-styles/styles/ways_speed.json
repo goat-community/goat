@@ -2,7 +2,7 @@
   "name": "speed",
   "rules": [
     {
-      "name": "no data",
+      "name": "noData",
       "symbolizers": [
         {
           "kind": "Line",

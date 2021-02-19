@@ -83,7 +83,7 @@
       }
     },
     {
-      "name": "living_street",
+      "name": "livingStreet",
       "filter": [
         "==",
         "highway",

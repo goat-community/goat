@@ -2,7 +2,7 @@
     "name": "Style Bicycle Parking",
     "rules": [
       {
-        "name": "bicycle_parking",
+        "name": "bicycleParking",
         "scaleDenominator": {
           "max": 75000
         },

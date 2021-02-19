@@ -2,7 +2,7 @@
   "name": "highway",
   "rules": [
     {
-      "name": "living_street",
+      "name": "livingStreet",
       "symbolizers": [
         {
           "kind": "Line",

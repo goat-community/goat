@@ -2,7 +2,7 @@
   "name": "surface",
   "rules": [
     {
-      "name": "no data",
+      "name": "noData",
       "symbolizers": [
         {
           "kind": "Line",
@@ -73,7 +73,7 @@
       }
     },
     {
-      "name": "ground or gravel",
+      "name": "groundOrGravel",
       "filter": [
         "||",
         [
@@ -144,7 +144,7 @@
       }
     },
     {
-      "name": "grass or grass paver",
+      "name": "grassOrGrassPaver",
       "filter": [
         "||",
         [
@@ -172,7 +172,7 @@
       }
     },
     {
-      "name": "paving stones",
+      "name": "pavingStones",
       "filter": [
         "||",
         [

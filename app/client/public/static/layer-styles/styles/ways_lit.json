@@ -42,7 +42,7 @@
       }
     },
     {
-      "name": "no data",
+      "name": "noData",
       "filter": [
         "==",
         "lit_classified",

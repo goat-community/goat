@@ -2,7 +2,7 @@
   "name": "parking",
   "rules": [
     {
-      "name": "no data",
+      "name": "noData",
       "symbolizers": [
         {
           "kind": "Line",
@@ -97,7 +97,7 @@
       }
     },
     {
-      "name": "no_parking",
+      "name": "noParking",
       "filter": [
         "||",
         [
@@ -125,7 +125,7 @@
       }
     },
     {
-      "name": "no_stopping",
+      "name": "noStopping",
       "filter": [
         "==",
         "parking_lane",
@@ -145,7 +145,7 @@
       }
     },
     {
-      "name": "fire_lane",
+      "name": "fireLane",
       "filter": [
         "==",
         "parking_lane",

@@ -56,7 +56,7 @@
       }
     },
     {
-      "name": "waste_basket",
+      "name": "wasteBasket",
       "filter": [
         "==",
         "amenity",

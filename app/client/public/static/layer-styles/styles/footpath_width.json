@@ -2,7 +2,7 @@
   "name": "footpath_width",
   "rules": [
     {
-      "name": "no data",
+      "name": "noData",
       "symbolizers": [
         {
           "kind": "Line",
@@ -157,7 +157,7 @@
       }
     },
     {
-      "name": "living street",
+      "name": "livingStreet",
       "filter": [
         "==",
         "highway",
@@ -177,7 +177,7 @@
       }
     },
     {
-      "name": "no sidewalk",
+      "name": "noSidewalk",
       "filter": [
         "==",
         "sidewalk",

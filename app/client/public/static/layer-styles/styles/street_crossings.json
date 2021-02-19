@@ -20,7 +20,7 @@
         ]
       },
       {
-        "name": "traffic_signals",
+        "name": "trafficSignals",
         "filter": [
           "==",
           "crossing",
