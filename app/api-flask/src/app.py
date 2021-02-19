@@ -542,7 +542,7 @@ api.add_resource(Heatmap,'/v2/map/heatmap/<string:heatmap_type>')
 
 api.add_resource(Layer,'/v2/map/<string:layer>/<int:z>/<int:x>/<int:y>')
 
-api.add_resource(ReadRawDataScenario,'/api/raw_data_scenario')
+api.add_resource(ReadRawDataScenario,'/api/layer_read')
 
 api.add_resource(LayerController,'/api/layer_controller')
 
