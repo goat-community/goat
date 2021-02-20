@@ -80,7 +80,10 @@ import { mapGetters, mapMutations } from "vuex";
 import { mapFields } from "vuex-map-fields";
 import { EventBus } from "../../EventBus";
 import { Isochrones } from "../../mixins/Isochrones";
-import { updateLayerUrlQueryParam } from "../../utils/Layer";
+import {
+  updateLayerUrlQueryParam,
+  fetchLayerFeatures
+} from "../../utils/Layer";
 export default {
   name: "isochrone-options",
   mixins: [Isochrones],
@@ -138,63 +141,97 @@ export default {
       const queryParams = layer.get("queryParams");
       // Add/update aois_input
       // TODO: Remove hardcoded values.
-      if (queryParams.includes("aois_input")) {
-        newQueryParams["aois_input"] = `'{"park","river"}'`;
-      }
-
-      // Add/update amenities query params
-      if (
-        queryParams.includes("amenities_json") ||
-        queryParams.includes("pois")
-      ) {
-        if (Object.keys(pois).length === 0) {
-          this.toggleSnackbar({
-            type: "error",
-            message: "selectAmenities",
-            timeout: 60000,
-            state: true
-          });
-          isValid = false;
-        } else {
-          this.toggleSnackbar({
-            type: "error",
-            message: "selectAmenities",
-            state: false,
-            timeout: 0
-          });
+      const noUrl = layer.getUrl && !layer.getUrl();
+      if (noUrl === undefined) {
+        const payload = {
+          table_name: layer.get("name"),
+          return_type: "geobuf"
+        };
+        if (queryParams.includes("scenario_id_input")) {
+          payload["scenario_id_input"] =
+            this.activeScenario == null ? 0 : parseInt(this.activeScenario);
         }
-        const value = `'${JSON.stringify(pois)}'`;
-        //TODO: Make this consistent (remove pois or amenities_json accross all layers.)
-        queryParams.includes("amenities_json")
-          ? (newQueryParams["amenities_json"] = value)
-          : (newQueryParams["pois"] = value);
-      }
+        if (queryParams.includes("scenario_id")) {
+          payload["scenario_id"] =
+            this.activeScenario == null ? 0 : parseInt(this.activeScenario);
+        }
+        if (queryParams.includes("pois")) {
+          payload["pois"] = Object.keys(pois);
+        }
+        if (queryParams.includes("modus")) {
+          payload["modus"] = this.calculationModes;
+        }
+        if (queryParams.includes("modus_input")) {
+          payload["modus_input"] = this.calculationModes;
+        }
+        if (queryParams.includes("amenities")) {
+          payload["amenities"] = Object.keys(pois);
+        }
+        if (queryParams.includes("routing_profile")) {
+          payload["routing_profile"] = `${this.activeRoutingProfile}`;
+        }
+        fetchLayerFeatures(layer, payload);
+      } else {
+        if (queryParams.includes("aois_input")) {
+          newQueryParams["aois_input"] = `'{"park","river"}'`;
+        }
+        // Add/update amenities query params
+        if (
+          queryParams.includes("amenities_json") ||
+          queryParams.includes("pois")
+        ) {
+          if (Object.keys(pois).length === 0) {
+            this.toggleSnackbar({
+              type: "error",
+              message: "selectAmenities",
+              timeout: 60000,
+              state: true
+            });
+            isValid = false;
+          } else {
+            this.toggleSnackbar({
+              type: "error",
+              message: "selectAmenities",
+              state: false,
+              timeout: 0
+            });
+          }
+          const value = `'${JSON.stringify(pois)}'`;
+          //TODO: Make this consistent (remove pois or amenities_json accross all layers.)
+          queryParams.includes("amenities_json")
+            ? (newQueryParams["amenities_json"] = value)
+            : (newQueryParams["pois"] = value);
+        }
+        if (queryParams.includes("amenities")) {
+          newQueryParams["amenities"] = Object.keys(pois);
+        }
 
-      // Add/update scenario_id
-      if (queryParams.includes("scenario_id_input")) {
-        newQueryParams["scenario_id_input"] =
-          this.activeScenario == null ? 0 : parseInt(this.activeScenario);
-      }
+        // Add/update scenario_id
+        if (
+          queryParams.includes("scenario_id_input") ||
+          queryParams.includes("scenario_id")
+        ) {
+          const scenario_id =
+            this.activeScenario == null ? 0 : parseInt(this.activeScenario);
+          newQueryParams["scenario_id_input"] = scenario_id;
+          newQueryParams["scenario"] = scenario_id;
+        }
 
-      // Add/update modus
-      if (queryParams.includes("modus_input")) {
-        newQueryParams["modus_input"] = `'${this.calculationModes}'`;
-      }
+        // Add/update modus
+        if (queryParams.includes("modus_input")) {
+          newQueryParams["modus_input"] = `'${this.calculationModes}'`;
+        }
 
-      // Add/update routing profile.
-      if (queryParams.includes("routing_profile")) {
-        newQueryParams["routing_profile"] = `'${this.activeRoutingProfile}'`;
-      }
+        // Add/update routing profile.
+        if (queryParams.includes("routing_profile")) {
+          newQueryParams["routing_profile"] = `'${this.activeRoutingProfile}'`;
+        }
 
-      // *UPDATE URL AND REFRESH LAYER*
-      if (layer.getVisible() === true && isValid) {
-        updateLayerUrlQueryParam(layer, newQueryParams);
-        layer.getSource().refresh();
-        console.log(
-          layer.getSource().getUrls
-            ? layer.getSource().getUrls()
-            : layer.getSource().getUrl()
-        );
+        // *UPDATE URL AND REFRESH LAYER*
+        if (layer.getVisible() === true && isValid) {
+          updateLayerUrlQueryParam(layer, newQueryParams);
+          layer.getSource().refresh();
+        }
       }
     },
     updateLayersParam() {

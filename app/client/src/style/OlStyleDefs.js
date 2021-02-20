@@ -652,3 +652,20 @@ export const mapillaryStyleDefs = {
     return [liveBearing, mapillaryStyleDefs.circleSolidStyle];
   }
 };
+
+function poisStyle() {
+  return [
+    new OlStyle({
+      image: new OlIcon({
+        anchor: [0.5, 46],
+        anchorXUnits: "fraction",
+        anchorYUnits: "pixels",
+        src: "https://openlayers.org/en/latest/examples/data/icon.png"
+      })
+    })
+  ];
+}
+
+export const stylesRef = {
+  pois: poisStyle
+};

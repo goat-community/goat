@@ -4,9 +4,12 @@ import { WFS } from "ol/format";
 import olLayerImage from "ol/layer/Image.js";
 import olLayerVector from "ol/layer/Vector.js";
 import olSourceImageWMS from "ol/source/ImageWMS.js";
+import GeoJSON from "ol/format/GeoJSON.js";
+
 import { appendParams as olUriAppendParams } from "ol/uri.js";
 import UrlUtil from "./Url";
-
+const geobuf = require("geobuf");
+const Pbf = require("pbf");
 const ServerType = "geoserver";
 
 /**
@@ -473,9 +476,36 @@ export function updateLayerUrlQueryParam(layer, queryParams) {
     ? layerSource.getUrls()[0]
     : layerSource.getUrl();
   const keys = Object.keys(queryParams);
-  keys.forEach(key => {
-    const value = queryParams[key];
-    layerUrl = UrlUtil.updateQueryStringParameter(layerUrl, key, value);
-  });
-  layerSource.setUrl(layerUrl);
+  if (layerUrl) {
+    keys.forEach(key => {
+      const value = queryParams[key];
+      layerUrl = UrlUtil.updateQueryStringParameter(layerUrl, key, value);
+    });
+    layerSource.setUrl(layerUrl);
+  }
+}
+
+/** Refetch layer feaetures if there is no url */
+export function fetchLayerFeatures(layer, payload) {
+  fetch("/api/layer_read", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  })
+    .then(resp => resp.arrayBuffer())
+    .then(data => {
+      var geojson = geobuf.decode(new Pbf(data));
+      layer.getSource().clear();
+      if (geojson) {
+        const features = new GeoJSON().readFeatures(geojson, {
+          featureProjection: "EPSG:3857"
+        });
+        layer.getSource().addFeatures(features);
+      }
+    })
+    .catch(error => {
+      console.error("Error:", error);
+    });
 }

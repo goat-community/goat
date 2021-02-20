@@ -538,9 +538,9 @@ class Heatmap(Resource):
             return result  
    
 
-api.add_resource(Heatmap,'/v2/map/heatmap/<string:heatmap_type>')
+api.add_resource(Heatmap,'/api/layer/heatmap/<string:heatmap_type>')
 
-api.add_resource(Layer,'/v2/map/<string:layer>/<int:z>/<int:x>/<int:y>')
+api.add_resource(Layer,'/api/layer/<string:layer>/<int:z>/<int:x>/<int:y>')
 
 api.add_resource(ReadRawDataScenario,'/api/layer_read')
 

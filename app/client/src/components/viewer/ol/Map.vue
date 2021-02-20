@@ -286,7 +286,7 @@ export default {
         const layerName = layer.get("name");
         const styleObj = stylesObj[layerName];
         if (styleObj) {
-          const olStyle = OlStyleFactory.getOlStyle(styleObj);
+          const olStyle = OlStyleFactory.getOlStyle(styleObj, layerName);
           if (olStyle) {
             olStyle
               .then(style => {

@@ -84,7 +84,7 @@ axios.all([getAppConf(), getStudyAreaBbox(), getLayerStyleTranslation()]).then(
     layers.forEach(layer => {
       const layerName = layer.name;
 
-      if (layer.style && layer.style.url && layer.style.format) {
+      if (layer.style && layer.style.format) {
         promiseArray.push(
           axios
             .get(layer.style.url, {
