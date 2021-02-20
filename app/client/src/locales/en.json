@@ -349,8 +349,7 @@
     },
     "layerName": {
       "pois": "Point of Interest",
-      "aois_small": "Areas of Interest (detailed)",
-      "aois_large": "Areas of Interest ",
+      "aois_visualization": "Areas of Interest",
       "administrativeUnits": "Administrative Units",
       "accidentsPointsPedestrians": "Pedestrians - Accident Points (2016-2019)",
       "accidents_pedestrian_2018": "Pedestrians - Accidents Frequencies (2018)",

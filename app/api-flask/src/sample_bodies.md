@@ -124,3 +124,14 @@ Delete
 
 }
 ```
+
+#### Heatmap
+http://localhost:5000/v2/map/heatmap/heatmap_population
+```json
+{
+    "scenario_id_input": "1",
+    "modus_input": "default",
+    "return_type": "geojson"
+
+}
+```

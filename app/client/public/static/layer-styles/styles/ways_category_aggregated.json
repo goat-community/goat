@@ -1,198 +1,222 @@
 {
-    "name": "highway",
-    "rules": [
-      {
-        "name": "primary",
-        "filter": [
-          "||",
-          [
-            "==",
-            "highway",
-            "motorway"
-          ],
-          [
-            "==",
-            "highway",
-            "motorway_link"
-          ],
-          [
-            "==",
-            "highway",
-            "trunk"
-          ],
-          [
-            "==",
-            "highway",
-            "primary"
-          ],
-          [
-            "==",
-            "highway",
-            "primary_link"
-          ],
-          [
-            "==",
-            "highway",
-            "secondary"
-          ],
-          [
-            "==",
-            "highway",
-            "tertiary"
-          ]
-        ],
-        "symbolizers": [
-          {
-            "kind": "Line",
-            "color": "#ef47ea",
-            "width": 2,
-            "join": "bevel",
-            "cap": "square"
-          }
-        ]
-      },
-      {
-        "name": "residential",
-        "filter": [
-          "||",
-          [
-            "==",
-            "highway",
-            "residential"
-          ],
-          [
-            "==",
-            "highway",
-            "unclassified"
-          ]
-        ],
-        "symbolizers": [
-          {
-            "kind": "Line",
-            "color": "#4890d9",
-            "width": 1,
-            "join": "bevel",
-            "cap": "square"
-          }
-        ]
-      },
-      {
-        "name": "living_street",
-        "filter": [
+  "name": "highway",
+  "rules": [
+    {
+      "name": "primary",
+      "filter": [
+        "||",
+        [
           "==",
           "highway",
-          "living_street"
+          "motorway"
         ],
-        "symbolizers": [
-          {
-            "kind": "Line",
-            "color": "#48d7d9",
-            "width": 1,
-            "join": "bevel",
-            "cap": "square"
-          }
-        ]
-      },
-      {
-        "name": "footway",
-        "filter": [
-          "||",
-          [
-            "==",
-            "highway",
-            "footway"
-          ],
-          [
-            "==",
-            "highway",
-            "pedestrian"
-          ]
-        ],
-        "symbolizers": [
-          {
-            "kind": "Line",
-            "color": "#00be45",
-            "width": 1,
-            "join": "bevel",
-            "cap": "square"
-          }
-        ]
-      },
-      {
-        "name": "cycleway",
-        "filter": [
+        [
           "==",
           "highway",
-          "cycleway"
+          "motorway_link"
         ],
-        "symbolizers": [
-          {
-            "kind": "Line",
-            "color": "#67d948",
-            "width": 1,
-            "join": "bevel",
-            "cap": "square"
-          }
-        ]
-      },
-      {
-        "name": "steps",
-        "filter": [
+        [
           "==",
           "highway",
-          "steps"
+          "trunk"
         ],
-        "symbolizers": [
-          {
-            "kind": "Line",
-            "color": "#e12c23",
-            "width": 1,
-            "join": "bevel",
-            "cap": "square"
-          }
-        ]
-      },
-      {
-        "name": "track",
-        "filter": [
+        [
           "==",
           "highway",
-          "track"
+          "primary"
         ],
-        "symbolizers": [
-          {
-            "kind": "Line",
-            "color": "#db9855",
-            "width": 1,
-            "join": "bevel",
-            "cap": "square"
-          }
-        ]
-      },
-      {
-        "name": "path",
-        "filter": [
-          "||",
-          [
-            "==",
-            "highway",
-            "path"
-          ],
-          [
-            "==",
-            "highway",
-            "service"
-          ]
+        [
+          "==",
+          "highway",
+          "primary_link"
         ],
-        "symbolizers": [
-          {
-            "kind": "Line",
-            "color": "#aeadad",
-            "width": 0.5,
-            "join": "bevel",
-            "cap": "square"
-          }
+        [
+          "==",
+          "highway",
+          "secondary"
+        ],
+        [
+          "==",
+          "highway",
+          "tertiary"
         ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#ef47ea",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
       }
-    ]
-  }
+    },
+    {
+      "name": "residential",
+      "filter": [
+        "||",
+        [
+          "==",
+          "highway",
+          "residential"
+        ],
+        [
+          "==",
+          "highway",
+          "unclassified"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#4890d9",
+          "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
+    },
+    {
+      "name": "livingStreet",
+      "filter": [
+        "==",
+        "highway",
+        "living_street"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#48d7d9",
+          "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
+    },
+    {
+      "name": "footway",
+      "filter": [
+        "||",
+        [
+          "==",
+          "highway",
+          "footway"
+        ],
+        [
+          "==",
+          "highway",
+          "pedestrian"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#00be45",
+          "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
+    },
+    {
+      "name": "cycleway",
+      "filter": [
+        "==",
+        "highway",
+        "cycleway"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#67d948",
+          "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
+    },
+    {
+      "name": "steps",
+      "filter": [
+        "==",
+        "highway",
+        "steps"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#e12c23",
+          "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
+    },
+    {
+      "name": "track",
+      "filter": [
+        "==",
+        "highway",
+        "track"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#db9855",
+          "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
+    },
+    {
+      "name": "path",
+      "filter": [
+        "||",
+        [
+          "==",
+          "highway",
+          "path"
+        ],
+        [
+          "==",
+          "highway",
+          "service"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#aeadad",
+          "width": 0.5,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
+    }
+  ]
+}

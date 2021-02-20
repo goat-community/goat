@@ -9,7 +9,7 @@
           "zebra"
         ],
         "scaleDenominator": {
-          "max": 80000
+          "max": 50000
         },
         "symbolizers": [
           {
@@ -20,14 +20,14 @@
         ]
       },
       {
-        "name": "traffic_signals",
+        "name": "trafficSignals",
         "filter": [
           "==",
           "crossing",
           "traffic_signals"
         ],
         "scaleDenominator": {
-            "max": 80000
+            "max": 50000
           },
         "symbolizers": [
           {

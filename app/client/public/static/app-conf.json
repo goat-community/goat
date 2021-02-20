@@ -1,12 +1,12 @@
 {
   "tittle": "GOAT - Geo Open Accessibility Tool",
   "baseColor": {
-    "primary": "#4CAF50",
-    "secondary": "#99D19B"
+    "primary": "#2BB381",
+    "secondary": "#249c70"
   },
   "osmMappingColor": {
-    "primary": "#6A8972",
-    "secondary": "#94AC9A"
+    "primary": "#283648",
+    "secondary": "#3a4d66"
   },
   "controlsColor": "#26AE3F",
   "logo": "./src/assets/img/logo.png",
@@ -135,7 +135,7 @@
         "queryParams": [],
         "style": {
           "format": "geostyler",
-          "url": "./static/layer-styles/styles/landuse_osm_api.json"
+          "url": "./static/layer-styles/styles/landuse_osm.json"
         },
         "attributes": {
           "source": "openStreetMap",
