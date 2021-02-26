@@ -243,6 +243,17 @@ class DeleteAllScenarioData(Resource):
             "response": "All changes are reverted."
         }
    
+
+class LayerSchema(Resource):
+    def get(self):
+
+        table_name = request.args.to_dict()['table_name']
+        result = db.select('''SELECT jsonb_agg(jsonb_build_object('column_name', column_name, 'data_type', data_type, 'is_nullable', is_nullable))
+        FROM information_schema.columns
+        WHERE table_name = %(table_name)s''', params={"table_name": table_name})[0][0]
+
+        return result 
+
 class LayerRead(Resource):
     def post(self):
      
@@ -468,6 +479,8 @@ class Heatmap(Resource):
 api.add_resource(Heatmap,'/v2/map/heatmap/<string:heatmap_type>')
 
 api.add_resource(Layer,'/v2/map/<string:layer>/<int:z>/<int:x>/<int:y>')
+
+api.add_resource(LayerSchema,'/api/layer_schema')
 
 api.add_resource(LayerRead,'/api/layer_read')
 
