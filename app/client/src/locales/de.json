@@ -359,6 +359,7 @@
     },
     "layerName": {
       "pois": "Point of Interest",
+      "aois": "Area of Interest",
       "administrativeUnits": "Administrative Grenzen",
       "accidentsPointsPedestrians": "Fußgänger - Unfallpunkte (2016-2019)",
       "accidents_pedestrian_2018": "Fußgänger - Unfallhäufigkeiten (2018)",

@@ -9,7 +9,7 @@
     "secondary": "#3a4d66"
   },
   "controlsColor": "#26AE3F",
-  "logo": "./src/assets/img/logo.png",
+  "logo": "./src/assets/img/logo_text.png",
   "map": {
     "projectionCode": "EPSG:3857",
     "proj4Defs": [
@@ -99,6 +99,22 @@
           "date": "25-11-2020"
         }
       },
+      {
+        "type": "VECTOR",
+        "name": "aois",
+        "group": "poisLayers",
+        "url": "/api/layer_read",
+        "format": "GeoJSON",
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/aois.json"
+        }
+      }, 
       {
         "type": "VECTORTILE",
         "format": "MVT",
@@ -469,23 +485,6 @@
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_wheelchair.json"
           }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "aois_visualization",
-        "url": "/v2/map/aois_visualization/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "visible": false,
-        "canEdit": false,
-        "queryable": true,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "queryParams": ["userid_input", "aois_input"],
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/aois_visualization.json"
-        }
       },
       {
         "type": "WMS",
