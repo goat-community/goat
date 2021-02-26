@@ -49,35 +49,21 @@ def recompute_heatmap(scenario_id):
     changed_grids = db.select(
         'SELECT starting_points, gridids, section_id FROM changed_grids;')
 
-    # """Loop throuch section and recompute grids"""
+    # """Loop through section and recompute grids"""
     for i in changed_grids:
         print(i[2])
-
         db.perform('''SELECT pgrouting_edges_heatmap(%(max_cost)s, 
         %(starting_points)s, %(speed)s, %(gridids)s, 2, 
         'walking_standard',%(userid)s, %(scenario_id)s, %(section_id)s)''',
-                {"max_cost": [max_cost], "starting_points": i[0], "speed": speed, "gridids": i[1], "userid": userid, "scenario_id": scenario_id, "section_id": i[2]})
+        {"max_cost": [max_cost], "starting_points": i[0], "speed": speed, "gridids": i[1], "userid": userid, "scenario_id": scenario_id, "section_id": i[2]})
 
     gridids = db.select("""SELECT UNNEST(gridids) FROM changed_grids""")
 
     for g in gridids:
-        db.perform("""SELECT compute_area_isochrone(%(grid_id)s,%(scenario_id)s)""", {
-                "grid_id": g[0], "scenario_id": scenario_id})
-
-    #buffer_geom = db.select("""SELECT ST_AsText(ST_BUFFER(ST_UNION(geom),0.0014)) 
-    #FROM area_isochrones_scenario 
-    #WHERE scenario_id = %(scenario_id)s""", {"scenario_id": scenario_id})
-
+        db.perform("""SELECT compute_area_isochrone(%(grid_id)s,%(scenario_id)s,2,%(userid)s)""", 
+        {"grid_id": g[0], "scenario_id": scenario_id, "userid": userid})
+   
     buffer_geom = db.select("""SELECT DISTINCT ST_AsText(ST_UNION(geom)) FROM changed_grids""")[0][0]
-
-    #db.perform("""DELETE FROM reached_pois_heatmap r
-    #USING pois_userinput p
-    #WHERE ST_Intersects(p.geom,ST_SETSRID(ST_GeomFromText(%(buffer_geom)s), 4326))
-    #AND r.gid = p.gid
-    #AND r.scenario_id = %(scenario_id)s;""", {"buffer_geom": buffer_geom, "scenario_id": scenario_id})
-    
-    #db.perform('''SELECT reached_pois_heatmap(ST_SETSRID(ST_GeomFromText(%(buffer_geom)s), 4326), 0.0014, 'scenario', %(scenario_id)s);''',{"buffer_geom": buffer_geom, "scenario_id": scenario_id})
-    
     db.perform('''UPDATE scenarios 
                 SET ways_heatmap_computed = TRUE 
                 WHERE scenario_id = %(scenario_id)s''', {"scenario_id": scenario_id})
@@ -85,6 +71,7 @@ def recompute_heatmap(scenario_id):
     print('Successful calculated')
     print(datetime.datetime.now()-begin_time)
     return
+
 
 def jsonb_to_geojson(jsonb_dict):
     json_string = json.loads(jsonb_dict)
@@ -125,10 +112,3 @@ def heatmap_connectivity(modus_input, scenario_id_input, return_type):
     params={"scenario_id_input": scenario_id_input,"modus_input": modus_input}, return_type=return_type)   
     
     return result 
-
-#x = heatmap_connectivity('default',0)
-#convert_geobuf(heatmap_connectivity('default',0))
-
-#with open('somefile.geojson', 'a') as f:
-#    f.write(heatmap_connectivity('scenario',9))
-
