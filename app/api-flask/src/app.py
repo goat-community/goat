@@ -3,13 +3,13 @@ import os
 import inspect
 
 
-from flask import Flask, request, send_file,Response, jsonify
+from flask import Flask, request, send_file, Response, jsonify
 from flask_restful import Api, Resource
 from flask_cors import CORS
 from utils import response
 from utils.async_function import *
 
-from resources.recompute_heatmap import heatmap_connectivity, heatmap_population, heatmap_gravity, heatmap_luptai
+from resources.heatmap import heatmap_connectivity, heatmap_population, heatmap_gravity, heatmap_luptai
 from utils.geo.mvt import MVT
 from db.db import Database
 import config
@@ -32,13 +32,6 @@ cors = CORS(app, resources={r"/v2/*": {"origins": "*"}})
 api = Api(app)
 PORT = os.getenv('APP_PORT', default=app.config['PORT'])
 
-custom_methods_metadata = {
-    'heatmap_gravity': {
-        'methodToCall': 'recomputed_heatmap',
-        'methodArgs': ["scenario_id"]
-    }
-}
-
 
 def check_args_complete(body, query_values):
     body_keys = list(body.keys())
@@ -51,7 +44,6 @@ def check_args_complete(body, query_values):
     })
     else:
         return body 
-
 
 def async_action(f):
     @wraps(f)
@@ -124,8 +116,6 @@ class Scenarios(Resource):
                 "update_success":True
             }
 
-
-
 class Isochrone(Resource):
     def post(self):
         args=request.get_json()
@@ -194,19 +184,7 @@ class ImportScenario(Resource):
 class PoisMultiIsochrones(Resource):
     def post(self):
         args=request.get_json() 
-        requiredParams = [
-        "user_id",
-        "scenario_id",
-        "minutes",
-        "speed",
-        "n",
-        "routing_profile",
-        "alphashape_parameter",
-        "modus",
-        "region_type",
-        "region",
-        "amenities"
-        ]
+        requiredParams = ["user_id","scenario_id","minutes","speed","n","routing_profile","alphashape_parameter","modus","region_type","region","amenities"]
 
         args = check_args_complete(args, requiredParams)
         #// Make sure to set the correct content type
@@ -226,16 +204,7 @@ class PoisMultiIsochrones(Resource):
 class CountPoisMultiIsochrones(Resource):
     def post(self):
         args=request.get_json()
-        requiredParams = [
-        "user_id",
-        "scenario_id",
-        "modus",
-        "minutes",
-        "speed",
-        "region_type",
-        "region",
-        "amenities"
-        ]
+        requiredParams = ["user_id","scenario_id","modus","minutes","speed","region_type","region","amenities"]
         args = check_args_complete(args, requiredParams)
         # // Make sure to set the correct content type
 
@@ -274,7 +243,18 @@ class DeleteAllScenarioData(Resource):
             "response": "All changes are reverted."
         }
    
-class ReadRawDataScenario(Resource):
+
+class LayerSchema(Resource):
+    def get(self):
+
+        table_name = request.args.to_dict()['table_name']
+        result = db.select('''SELECT jsonb_agg(jsonb_build_object('column_name', column_name, 'data_type', data_type, 'is_nullable', is_nullable))
+        FROM information_schema.columns
+        WHERE table_name = %(table_name)s''', params={"table_name": table_name})[0][0]
+
+        return result 
+
+class LayerRead(Resource):
     def post(self):
      
         body = request.get_json()
@@ -283,6 +263,10 @@ class ReadRawDataScenario(Resource):
 
         if table_name == 'pois' and "geom" not in body:
             prepared_query = '''SELECT * FROM pois_visualization(%(scenario_id)s,%(amenities)s,%(routing_profile)s,%(modus)s)'''
+        elif table_name == 'aois':
+            prepared_query = '''SELECT a.amenity, a.name, a.geom
+            FROM aois a
+            WHERE a.amenity IN(SELECT UNNEST(%(amenities)s))'''
         elif table_name == 'pois':
             prepared_query = '''SELECT * FROM pois_visualization(%(scenario_id)s,%(amenities)s,%(routing_profile)s,%(modus)s) 
             WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))'''
@@ -403,11 +387,7 @@ class Layer(Resource):
     def __init__(self):
         self.metadata = db.select('''SELECT * FROM layer_metadata''')[0][0]
         self.mvt = MVT()
-        # Attach the custom logic method names and argumets to the existing metada
-        for attr, value in custom_methods_metadata.items():
-            if (attr in self.metadata):
-                self.metadata[attr].update(value)
-
+        
     def get(self, layer, z, x, y):
         tile = {
             'zoom': z,
@@ -432,20 +412,9 @@ class Layer(Resource):
             }, 400)
 
         env = self.mvt.tileToEnvelope(tile)
-        # Find table/function name. If there is a custom python logic to be executed before,
-        # we should run it first. A metadata object will contain methodToCall and methodArgs
-        # needed for the method call.
+
+        # Find table/function name.
         body = request.args.to_dict()
-        if ('methodToCall' in layer_config):
-            method_args = []
-            for index, method_arg in enumerate(layer_config['methodArgs']):
-                if not method_arg in body:
-                    method_args = []
-                    break
-                method_args.append(body[method_arg])
-            print(method_args)
-            if len(method_args) > 0:
-                recompute_heatmap(*method_args)
 
         table = layer
         if layer_config['layer_type'] == "function" and layer_config['args'] is not None:
@@ -511,7 +480,9 @@ api.add_resource(Heatmap,'/api/layer/heatmap/<string:heatmap_type>')
 
 api.add_resource(Layer,'/api/layer/<string:layer>/<int:z>/<int:x>/<int:y>')
 
-api.add_resource(ReadRawDataScenario,'/api/layer_read')
+api.add_resource(LayerSchema,'/api/layer_schema')
+
+api.add_resource(LayerRead,'/api/layer_read')
 
 api.add_resource(LayerController,'/api/layer_controller')
 
