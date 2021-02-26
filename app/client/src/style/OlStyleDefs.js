@@ -652,18 +652,25 @@ export const mapillaryStyleDefs = {
     return [liveBearing, mapillaryStyleDefs.circleSolidStyle];
   }
 };
-
-function poisStyle() {
-  return [
-    new OlStyle({
+/**
+ * POIS layer style -
+ */
+const poisStyleCache = {};
+function poisStyle(feature) {
+  const name = `${feature.get("amenity")}_${feature.get("status")}`;
+  if (!poisStyleCache[name]) {
+    let path = `img/pois-map/${name}.png`;
+    poisStyleCache[name] = new OlStyle({
       image: new OlIcon({
         anchor: [0.5, 46],
         anchorXUnits: "fraction",
         anchorYUnits: "pixels",
-        src: "https://openlayers.org/en/latest/examples/data/icon.png"
+        src: path
       })
-    })
-  ];
+    });
+    console.log("created style");
+  }
+  return [poisStyleCache[name]];
 }
 
 export const stylesRef = {

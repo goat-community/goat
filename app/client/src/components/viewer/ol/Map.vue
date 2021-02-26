@@ -284,15 +284,32 @@ export default {
       const flatLayers = getAllChildLayers(this.map);
       flatLayers.forEach(layer => {
         const layerName = layer.get("name");
-        const styleObj = stylesObj[layerName];
+        let styleObj;
+        if (
+          layer.get("styleConf") &&
+          layer.get("styleConf").format === "custom-logic"
+        ) {
+          // Custom-styles
+          styleObj = layer.get("styleConf");
+        } else {
+          // Style from style config object (geostyler)
+          styleObj = stylesObj[layerName];
+        }
+        if (layerName === "pois") {
+          console.log(layer);
+        }
         if (styleObj) {
           const olStyle = OlStyleFactory.getOlStyle(styleObj, layerName);
           if (olStyle) {
-            olStyle
-              .then(style => {
-                layer.setStyle(style);
-              })
-              .catch(error => console.log(error));
+            if (olStyle instanceof Promise) {
+              olStyle
+                .then(style => {
+                  layer.setStyle(style);
+                })
+                .catch(error => console.log(error));
+            } else {
+              layer.setStyle(olStyle);
+            }
           }
         }
       });

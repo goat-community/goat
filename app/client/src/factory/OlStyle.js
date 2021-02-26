@@ -96,7 +96,7 @@ export const OlStyleFactory = {
    * @return {Style}             OL Style instance
    */
   getOlStyle(styleObj, layerName) {
-    const styleFormat = styleObj.styleFormat;
+    const styleFormat = styleObj.format;
     const styleConf = styleObj.style;
     let olStyle;
     switch (styleFormat) {

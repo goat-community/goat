@@ -483,10 +483,7 @@ export default class OlEditController extends OlBaseController {
     clonedProperties.scenario_id = isochronesStore.state.activeScenario;
     delete clonedProperties["id"];
 
-    const layerName = editLayerHelper.selectedLayer
-      .getSource()
-      .getParams()
-      .LAYERS.split(":")[1];
+    const layerName = editLayerHelper.selectedLayer.getSource().get("name");
     const formatGML = {
       featureNS: "cite",
       featureType: `${layerName}_modified`,

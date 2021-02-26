@@ -255,6 +255,7 @@ export const LayerFactory = {
       opacity: lConf.opacity,
       zIndex: lConf.zIndex,
       queryParams: lConf.queryParams,
+      styleConf: lConf.style,
       source: new VectorSource(sourceOpts),
       format: lConf.format,
       style:
@@ -283,6 +284,7 @@ export const LayerFactory = {
       visible: lConf.visible,
       opacity: lConf.opacity,
       queryParams: lConf.queryParams,
+      styleConf: lConf.style,
       zIndex: lConf.zIndex,
       source: new VectorTileSource({
         url: lConf.url,

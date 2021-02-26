@@ -127,10 +127,7 @@ const editLayerHelper = {
     }
   },
   commitDelete(mode, drawn_fid) {
-    const layerName = this.selectedLayer
-      .getSource()
-      .getParams()
-      .LAYERS.split(":")[1];
+    const layerName = this.selectedLayer.getSource().get("name");
     fetch("/api/scenarios", {
       method: "POST",
       body: JSON.stringify({

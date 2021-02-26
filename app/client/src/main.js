@@ -88,7 +88,7 @@ axios.all([getAppConf(), getStudyAreaBbox(), getLayerStyleTranslation()]).then(
         promiseArray.push(
           axios
             .get(layer.style.url, {
-              data: { layerName, styleFormat: layer.style.format }
+              data: { layerName, format: layer.style.format }
             })
             .catch(() => null)
         );
@@ -100,9 +100,9 @@ axios.all([getAppConf(), getStudyAreaBbox(), getLayerStyleTranslation()]).then(
         results.forEach(response => {
           if (response && response.config) {
             const data = JSON.parse(response.config.data);
-            const { layerName, styleFormat } = data;
+            const { layerName, format } = data;
             stylesObj[layerName] = {
-              styleFormat,
+              format,
               style: response.data,
               translation: layerStyleTranslations.data[layerName]
             };

@@ -2204,7 +2204,7 @@ export default {
       return scenarioArray;
     },
     layerName() {
-      return this.selectedLayer.getSource().getParams().LAYERS;
+      return this.selectedLayer.getSource().get("name");
     },
     reqFields() {
       const layerSchema = this.schema[this.layerName];
