@@ -104,7 +104,9 @@ class Scenarios(Resource):
                 }
         elif mode == "delete": 
             #/*sample body: {mode:"delete","scenario_id":97}*/
-            db.perform("""DELETE FROM scenarios WHERE scenario_id = %(scenario_id)s::bigint""",{"scenario_id": body.get('scenario_id')})
+            db.perform("""DELETE FROM scenarios WHERE scenario_SELECT * 
+FROM isochrones_alphashape(111,0,20,11.5980, 48.1514,4,5,0.00003,1,1,1,'walking_standard')
+id = %(scenario_id)s::bigint""",{"scenario_id": body.get('scenario_id')})
             return{
                 "delete_success":True
             }
@@ -246,7 +248,6 @@ class DeleteAllScenarioData(Resource):
 
 class LayerSchema(Resource):
     def get(self):
-
         table_name = request.args.to_dict()['table_name']
         result = db.select('''SELECT jsonb_agg(jsonb_build_object('column_name', column_name, 'data_type', data_type, 'is_nullable', is_nullable))
         FROM information_schema.columns
@@ -267,6 +268,10 @@ class LayerRead(Resource):
             prepared_query = '''SELECT a.amenity, a.name, a.geom
             FROM aois a
             WHERE a.amenity IN(SELECT UNNEST(%(amenities)s))'''
+        elif table_name == 'edges':
+            prepared_query = '''SELECT %(modus_input)s AS modus, geom
+            FROM edges 
+            WHERE objectid = %(objectid)s'''
         elif table_name == 'pois':
             prepared_query = '''SELECT * FROM pois_visualization(%(scenario_id)s,%(amenities)s,%(routing_profile)s,%(modus)s) 
             WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))'''
@@ -276,8 +281,7 @@ class LayerRead(Resource):
             AND class_id NOT IN (0,101,102,103,104,105,106,107,501,502,503,504,701,801)'''
         elif table_name == 'buildings': 
             prepared_query = '''SELECT * FROM buildings
-            WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))
-            '''
+            WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))'''
         else:
             return {
                 "Error": "No valid table was selected."
@@ -457,11 +461,16 @@ def prepare_func_args(body, func_varnames):
 
 
 class Heatmap(Resource):
-    def post(self, heatmap_type):
+    def post(self):
 
         body = request.get_json()
         body_keys = list(body.keys())
         request_val = list(body.values())
+
+        heatmap_type = body.get('heatmap_type')
+
+        del body['heatmap_type']
+
         func_varnames = inspect.getargspec(globals()[heatmap_type]).args
 
         check_args_complete(body, func_varnames)
@@ -476,7 +485,7 @@ class Heatmap(Resource):
             return result  
    
 
-api.add_resource(Heatmap,'/api/layer/heatmap/<string:heatmap_type>')
+api.add_resource(Heatmap,'/api/map/heatmap')
 
 api.add_resource(Layer,'/api/layer/<string:layer>/<int:z>/<int:x>/<int:y>')
 

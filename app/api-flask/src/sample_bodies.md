@@ -103,7 +103,13 @@ Delete
     "return_type": "geobuf"
 }
 
+{
+    "table_name": "edges",
+    "objectid": 629281940,
+    "modus_input": "default", 
+    "return_type": "geobuf"
 
+}
 
 ```
 
@@ -132,6 +138,16 @@ http://localhost:5000/v2/map/heatmap/heatmap_population
 
     "scenario_id_input": "1",
     "modus_input": "default",
+    "return_type": "geojson"
+}
+```
+http://localhost:5000/api/map/heatmap
+```json
+{
+    "heatmap_type": "heatmap_gravity",
+    "scenario_id_input": 0,
+    "modus_input": "default", 
+    "pois": {"nursery":{"sensitivity":250000,"weight":1}},
     "return_type": "geojson"
 }
 ```
