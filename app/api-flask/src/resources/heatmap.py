@@ -81,8 +81,8 @@ def jsonb_to_geojson(jsonb_dict):
 def heatmap_gravity(pois, modus_input, scenario_id_input, return_type):
     #recompute_heatmap(scenario_id_input)
     result = db.select_with_identifiers('''SELECT percentile_accessibility AS score, %(modus_input)s AS modus, geom 
-        FROM heatmap_gravity(%(pois)s::jsonb,%(modus_input)s,%(scenario_id_input)s)''', 
-        params={"pois": pois, "modus_input": modus_input, "scenario_id_input": scenario_id_input}, return_type=return_type)
+        FROM heatmap_gravity(%(pois)s,%(modus_input)s,%(scenario_id_input)s)''', 
+        params={"pois": json.dumps(pois), "modus_input": modus_input, "scenario_id_input": scenario_id_input}, return_type=return_type)
 
     return result
 
