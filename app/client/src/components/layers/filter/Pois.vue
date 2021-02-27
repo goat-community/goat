@@ -161,34 +161,28 @@ export default {
       const me = this;
       const map = me.map;
       const poisLayerName = "pois";
+      const aoisLayerName = "aois";
       const allLayers = getAllChildLayers(map);
       allLayers.forEach(layer => {
         const layerName = layer.get("name");
         if (layerName === poisLayerName) {
           me.poisLayer = layer;
         }
+        if (layerName === aoisLayerName) {
+          me.aoisLayer = layer;
+        }
       });
     },
     updatePois(selectedPois) {
       const me = this;
       if (me.poisLayer) {
-        const pois = selectedPois.reduce((filtered, item) => {
+        selectedPois.reduce((filtered, item) => {
           const { value } = item;
           if (value != "undefined") {
             filtered.push(value);
           }
           return filtered;
         }, []);
-        console.log(pois);
-        // let params = `amenities:'${btoa(
-        //   viewParams.toString()
-        // )}';routing_profile:'${me.activeRoutingProfile}';scenario_id:${
-        //   me.scenarioId
-        // };modus:'${me.options.calculationModes.active}';`;
-
-        // if (this.timeBasedCalculations === "yes") {
-        //   params += `d:${me.getSelectedDay};h:${me.getSelectedHour};m:${me.getSelectedMinutes};`;
-        // }
       }
     },
     toggleHeatmapDialog(amenity) {
@@ -243,7 +237,9 @@ export default {
       }
     },
     treeViewChanged() {
-      this.selectedPois = this.selectedPois.filter(x => x.locked != true);
+      this.selectedPois = this.selectedPois.filter(x => {
+        return x.locked != true;
+      });
     },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR"
@@ -262,7 +258,9 @@ export default {
       if (me.selectedPois.length > 0 && me.poisLayer.getVisible() === false) {
         me.poisLayer.setVisible(true);
       }
-      me.updateSelectedPoisForThematicData(me.selectedPois);
+
+      if (me.selectedPois.length > 0 && me.p)
+        me.updateSelectedPoisForThematicData(me.selectedPois);
       me.updatePois(me.selectedPois);
       me.countStudyAreaPois();
     },
@@ -303,6 +301,19 @@ export default {
       hourFilter: "timeFilter.hour",
       selectedPois: "selectedPois"
     }),
+    aois() {
+      const _aois = [];
+      const aois = this.allPois.filter(
+        i => i.categoryValue == "recreationAreas"
+      );
+
+      if (aois.length > 0) {
+        aois[0].children.forEach(child => {
+          _aois.push(child);
+        });
+      }
+      return _aois;
+    },
     getSelectedDay() {
       return this.dayFilter ? this.dayFilter : 9999;
     },

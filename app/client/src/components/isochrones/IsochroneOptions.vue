@@ -258,7 +258,9 @@ export default {
       this.updateLayersParam();
     },
     selectedPois() {
-      this.updateLayersParam();
+      setTimeout(() => {
+        this.updateLayersParam();
+      }, 50);
     },
     activeRoutingProfile() {
       this.updateLayersParam();

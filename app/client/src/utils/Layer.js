@@ -406,8 +406,10 @@ export function mapFeatureTypeProps(props, layerName, layerConf) {
     string: "string",
     text: "string",
     int: "integer",
+    integer: "integer",
     bigint: "integer",
-    number: "number"
+    number: "number",
+    numeric: "number"
   };
   let obj = {
     $id: "https://example.com/person.schema.json",
@@ -508,6 +510,7 @@ export function fetchLayerFeatures(layer, payload) {
       }
     })
     .catch(error => {
+      layer.getSource().clear();
       console.error("Error:", error);
     });
 }

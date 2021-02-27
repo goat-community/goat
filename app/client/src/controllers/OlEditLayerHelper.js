@@ -1,8 +1,7 @@
-import { GeoJSON } from "ol/format";
 import http from "../services/http";
 import axios from "axios";
 import store from "../store/modules/isochrones";
-
+import { geojsonToFeature } from "../utils/MapUtils";
 /**
  * Util class for OL Edit layers.
  */
@@ -15,10 +14,15 @@ const editLayerHelper = {
   selectedLayer: null,
   selectedWayType: "road",
   filterResults(response, source, bldEntranceLayer, storageSource) {
-    const editFeatures = new GeoJSON().readFeatures(response.first.data);
-    const editFeaturesModified = new GeoJSON().readFeatures(
-      response.second.data
-    );
+    console.log(response);
+    const editFeatures = geojsonToFeature(response.first.data, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857"
+    });
+    const editFeaturesModified = geojsonToFeature(response.second.data, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857"
+    });
     source.addFeatures(editFeatures);
     const userInputFeaturesWithOriginId = [];
     const originIdsArr = [];
@@ -36,9 +40,12 @@ const editLayerHelper = {
     });
 
     if (response.third) {
-      bldEntranceLayer
-        .getSource()
-        .addFeatures(new GeoJSON().readFeatures(response.third.data));
+      bldEntranceLayer.getSource().addFeatures(
+        geojsonToFeature(response.third.data, {
+          dataProjection: "EPSG:4326",
+          featureProjection: "EPSG:3857"
+        })
+      );
     }
 
     editFeatures.forEach(feature => {
@@ -188,8 +195,6 @@ const editLayerHelper = {
           const bldFeatureIds = [];
           //Update Feature Line type
           source.getFeatures().forEach(feature => {
-            console.log(feature.get("scenario_id"), store.state.activeScenario);
-
             if (feature.get("scenario_id") !== store.state.activeScenario) {
               return;
             }
@@ -208,6 +213,19 @@ const editLayerHelper = {
           });
 
           // Refetch building features  to update the properties (used for population)...
+
+          // const buildingsModifiedPayload = {
+          //   mode: "read",
+          //   table_name: `buildings_modified`,
+          //   scenario_id: store.state.activeScenario
+          // };
+
+          // http
+          //   .post("/api/map/layer_controller", buildingsModifiedPayload)
+          //   .then(response => {
+          //     console.log(response);
+          //   });
+
           http
             .get("./geoserver/wfs", {
               params: {
