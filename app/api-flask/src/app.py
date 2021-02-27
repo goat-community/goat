@@ -189,7 +189,7 @@ class CountPoisMultiIsochrones(Resource):
         args = check_args_complete(args, requiredParams)
         # // Make sure to set the correct content type
 
-        prepared_query = """SELECT count_pois, region_name, geom 
+        prepared_query = """SELECT row_number() over() AS gid, count_pois, region_name, geom 
         FROM count_pois_multi_isochrones(%(user_id)s,%(scenario_id)s,%(modus)s,%(minutes)s,%(speed)s,%(region_type)s,%(region)s,array[%(amenities)s])"""
         
         args_vals = {
