@@ -152,7 +152,7 @@ gridids = cursor.fetchall()
 
 for i in gridids:
 	i = i[0]
-	cursor.execute(f'''SELECT compute_area_isochrone({i},0);''')	
+	cursor.execute(f'''SELECT compute_area_isochrone({i},0,1,0);''')	
 	con.commit()
 
 cursor.execute(sql_grid_population)
