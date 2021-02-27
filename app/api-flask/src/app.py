@@ -136,7 +136,8 @@ class Isochrone(Resource):
         requiredParams = ["user_id","scenario_id","minutes","x","y","n","speed","concavity","modus","routing_profile"]
         args = check_args_complete(args, requiredParams)
             
-        prepared_query = """SELECT gid, objectid, coordinates, step, speed::integer, modus, parent_id, sum_pois, geom 
+        prepared_query = """SELECT gid, objectid, coordinates, ST_ASTEXT(ST_MAKEPOINT(coordinates[1], coordinates[2])) AS starting_point,
+        step, speed::integer, modus, parent_id, sum_pois, geom 
         FROM isochrones_api(%(user_id)s,%(scenario_id)s,%(minutes)s,%(x)s,%(y)s,%(n)s,%(speed)s,%(concavity)s,%(modus)s,%(routing_profile)s,NULL,NULL,NULL)"""
         
         args_vals =  {
@@ -272,7 +273,15 @@ class DeleteAllScenarioData(Resource):
             "response": "All changes are reverted."
         }
    
+class OsmTimestamp(Resource):
+    def get(self):
+        result = db.select_with_identifiers(
+        "SELECT split_part(variable_simple,'T',1) FROM variable_container vc WHERE identifier = 'data_recency'", 
+        return_type='raw')[0][0]
 
+        return {
+            "osm_timestamp" : result 
+        }
 class LayerSchema(Resource):
     def get(self, table_name):
         result = db.select('''SELECT jsonb_agg(jsonb_build_object('column_name', column_name, 'data_type', data_type, 'is_nullable', is_nullable))
@@ -529,6 +538,8 @@ api.add_resource(ExportScenario,'/api/map/export_scenario')
 api.add_resource(PingPONG,'/ping')
             
 api.add_resource(ManageUser,'/api/userdata')
+
+api.add_resource(OsmTimestamp,'/api/osm_timestamp')
 
 api.add_resource(Isochrone,'/api/map/isochrone')
 

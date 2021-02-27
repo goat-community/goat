@@ -134,6 +134,14 @@ Delete
     "amenities": ["bar"]
 
 }
+
+Export isochrones as shapefile
+{
+    "return_type":"shapefile",
+    "objectid": 667339822
+
+
+}
 ```
 
 #### Heatmap
@@ -156,3 +164,6 @@ http://localhost:5000/api/map/heatmap
     "return_type": "geojson"
 }
 ```
+
+#### OSM timestamps
+GET: http://localhost:5000/api/osm_timestamp

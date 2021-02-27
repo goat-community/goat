@@ -61,7 +61,10 @@ class Database:
 
     def cur_execute(self, conn, cur, query, params=None):
         try:
-            cur.execute(query, params)
+            if params is None:             
+                cur.execute(query)
+            else:
+                cur.execute(query, params)
         except Exception:
             conn.rollback()
             return 'Query was rolled back.'
@@ -109,10 +112,7 @@ class Database:
                 query = sql.SQL(' ').join(sql_geobuf)
 
             if return_type in ['raw','geobuf','geojson']:
-                if params is None:             
-                    records = self.cur_execute(self.conn, cur, query)
-                else:
-                    records = self.cur_execute(self.conn, cur, query, params=params)
+                records = self.cur_execute(self.conn, cur, query, params=params)
                 
             if return_type == 'geodataframe':
                 records = gpd.GeoDataFrame.from_postgis(query, self.conn, geom_col='geom', params=params)
