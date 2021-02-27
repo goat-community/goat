@@ -1,4 +1,4 @@
-FROM goat-community/flask-api-base:latest
+FROM goatcommunity/flask-api-base
 
 WORKDIR /usr/src/app
 COPY requirements.txt ./
