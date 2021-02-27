@@ -186,7 +186,7 @@ const actions = {
 
     const CancelToken = axios.CancelToken;
     const isochronesResponse = await http
-      .post(`/api/${isochroneEndpoint}`, params, {
+      .post(`/api/map/${isochroneEndpoint}`, params, {
         timeout: 30000,
         cancelToken: new CancelToken(function executor(c) {
           // An executor function receives a cancel function as a parameter
@@ -417,7 +417,7 @@ const actions = {
       if (options) {
         promiseArray.push(
           http.post(
-            "/api/count_pois_multi_isochrones",
+            "/api/map/count_pois_multi_isochrones",
             Object.assign(
               {
                 region_type: options.regionType.replaceAll("'", ""),
@@ -430,7 +430,7 @@ const actions = {
       } else {
         const promises = selectedFeatures.map(feature => {
           return http.post(
-            "/api/count_pois_multi_isochrones",
+            "/api/map/count_pois_multi_isochrones",
             Object.assign(
               {
                 region_type: feature.get("region_type").replaceAll("'", ""),

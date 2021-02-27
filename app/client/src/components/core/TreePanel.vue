@@ -37,7 +37,6 @@
           :color="activeColor.primary"
           height="50"
         >
-          <img :src="logo" width="35px" />
           <img :src="logoText" class="pt-1" width="95px" />
           <v-spacer></v-spacer>
           <v-btn text icon light @click.stop="mini = !mini">

@@ -270,8 +270,7 @@ class DeleteAllScenarioData(Resource):
    
 
 class LayerSchema(Resource):
-    def get(self):
-        table_name = request.args.to_dict()['table_name']
+    def get(self, table_name):
         result = db.select('''SELECT jsonb_agg(jsonb_build_object('column_name', column_name, 'data_type', data_type, 'is_nullable', is_nullable))
         FROM information_schema.columns
         WHERE table_name = %(table_name)s''', params={"table_name": table_name})[0][0]
@@ -507,33 +506,33 @@ class Heatmap(Resource):
 
 api.add_resource(Heatmap,'/api/map/heatmap')
 
-api.add_resource(Layer,'/v2/map/<string:layer>/<int:z>/<int:x>/<int:y>')
+api.add_resource(Layer,'/api/map/layer/<string:layer>/<int:z>/<int:x>/<int:y>')
 
-api.add_resource(LayerSchema,'/api/layer_schema')
+api.add_resource(LayerSchema,'/api/map/layer_schema/<string:table_name>')
 
-api.add_resource(LayerRead,'/api/layer_read')
+api.add_resource(LayerRead,'/api/map/layer_read')
 
-api.add_resource(LayerController,'/api/layer_controller')
+api.add_resource(LayerController,'/api/map/layer_controller')
 
-api.add_resource(CountPoisMultiIsochrones,'/api/count_pois_multi_isochrones')
+api.add_resource(CountPoisMultiIsochrones,'/api/map/count_pois_multi_isochrones')
 
-api.add_resource(PoisMultiIsochrones,'/api/pois_multi_isochrones')
+api.add_resource(PoisMultiIsochrones,'/api/map/pois_multi_isochrones')
 
-api.add_resource(ImportScenario,'/api/import_scenario')
+api.add_resource(ImportScenario,'/api/map/import_scenario')
 
-api.add_resource(ExportScenario,'/api/export_scenario')
+api.add_resource(ExportScenario,'/api/map/export_scenario')
 
 api.add_resource(PingPONG,'/ping')
             
 api.add_resource(ManageUser,'/api/userdata')
 
-api.add_resource(Isochrone,'/api/isochrone')
+api.add_resource(Isochrone,'/api/map/isochrone')
 
-api.add_resource(Scenarios, '/api/scenarios')
+api.add_resource(Scenarios, '/api/map/scenarios')
 
-api.add_resource(DeleteAllScenarioData,'/api/deleteAllScenarioData')
+api.add_resource(DeleteAllScenarioData,'/api/map/deleteAllScenarioData')
 
-api.add_resource(UploadAllScenariosResource,'/api/upload_all_scenarios')
+api.add_resource(UploadAllScenariosResource,'/api/map/upload_all_scenarios')
 
 
 # SERVER CONFIG

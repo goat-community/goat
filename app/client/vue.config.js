@@ -10,10 +10,6 @@ module.exports = {
         target: process.env.API_BASEURL,
         changeOrigin: true
       },
-      "/v2": {
-        target: process.env.API_BASEURL,
-        changeOrigin: true
-      },
       "/geoserver": {
         target: process.env.GEOSERVER_BASEURL,
         changeOrigin: true

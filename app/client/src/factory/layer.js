@@ -8,8 +8,9 @@ import MvtFormat from "ol/format/MVT";
 import GeoJsonFormat from "ol/format/GeoJSON";
 import TopoJsonFormat from "ol/format/TopoJSON";
 import KmlFormat from "ol/format/KML";
-import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
+import VectorImageLayer from "ol/layer/VectorImage";
+
 import ImageWMS from "ol/source/ImageWMS.js";
 import { Image as ImageLayer } from "ol/layer.js";
 import XyzSource from "ol/source/XYZ";
@@ -58,6 +59,8 @@ export const LayerFactory = {
       return this.createBingLayer(lConf);
     } else if (lConf.type === "VECTOR") {
       return this.createVectorLayer(lConf);
+    } else if (lConf.type === "VECTORIMAGE") {
+      return this.createVectorImageLayer(lConf);
     } else if (lConf.type === "VECTORTILE") {
       return this.createVectorTileLayer(lConf);
     } else {
@@ -232,7 +235,16 @@ export const LayerFactory = {
    * @return {ol.layer.Vector} OL vector layer instance
    */
   createVectorLayer(lConf) {
-    const vectorLayer = new VectorLayer({
+    const sourceOpts = {
+      format: this.formatMapping[lConf.format]
+        ? new this.formatMapping[lConf.format](lConf.formatConfig)
+        : GeoJsonFormat(),
+      attributions: lConf.attributions
+    };
+
+    lConf.url ? (sourceOpts.url = lConf.url) : lConf.url;
+    console.log(sourceOpts);
+    const vectorLayer = new VectorImageLayer({
       name: lConf.name,
       title: lConf.title,
       canEdit: lConf.canEdit,
@@ -243,11 +255,10 @@ export const LayerFactory = {
       opacity: lConf.opacity,
       zIndex: lConf.zIndex,
       queryParams: lConf.queryParams,
-      source: new VectorSource({
-        url: lConf.url,
-        format: new this.formatMapping[lConf.format](lConf.formatConfig),
-        attributions: lConf.attributions
-      }),
+      styleConf: lConf.style,
+      source: new VectorSource(sourceOpts),
+      format: lConf.format,
+      url: lConf.url,
       style:
         OlStyleFactory.getInstance(lConf.style) ||
         baseStyleDefs[lConf.styleRef],
@@ -274,7 +285,9 @@ export const LayerFactory = {
       visible: lConf.visible,
       opacity: lConf.opacity,
       queryParams: lConf.queryParams,
+      styleConf: lConf.style,
       zIndex: lConf.zIndex,
+      url: lConf.url,
       source: new VectorTileSource({
         url: lConf.url,
         format: new this.formatMapping[lConf.format](),
