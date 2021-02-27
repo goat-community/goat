@@ -1,11 +1,8 @@
-FROM python:3.9-alpine
+FROM goatcommunity/flask-api-base
 
 WORKDIR /usr/src/app
-
 COPY requirements.txt ./
 COPY *-requires.txt ./
-
-RUN apk update && apk add postgresql-dev gcc python3-dev musl-dev
 
 RUN pip install --upgrade pip setuptools \
     && pip install --user --no-cache-dir --no-warn-script-location -r requirements.txt
