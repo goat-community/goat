@@ -96,7 +96,7 @@ class Database:
                     'type',       'Feature',
                     'id',         gid,
                     'geometry',   ST_AsGeoJSON(geom)::jsonb,
-                    'properties', to_jsonb(inputs) - 'geom' - 'gid'
+                    'properties', to_jsonb(inputs) - 'geom' 
                     ) AS feature 
                     FROM ('''),
                     query,
