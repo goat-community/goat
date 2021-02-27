@@ -6,6 +6,14 @@ from psycopg2 import sql
 import geobuf
 import geojson
 import json
+import geopandas as gpd
+import shutil
+import zipfile
+from zipfile import ZipFile
+import random
+import os 
+import io
+from io import BytesIO
 
 class Database:
     """PostgreSQL Database class."""
@@ -55,8 +63,9 @@ class Database:
         """Run a SQL query and pass identifiers/params"""
         self.connect()
         with self.conn.cursor() as cur:
-
-            if identifiers is not None:
+            if isinstance(query, str) == False:
+                query = query
+            elif identifiers is not None:
                 query = sql.SQL(query).format(*map(sql.Identifier, identifiers))
             else: 
                 query = sql.SQL(query)
@@ -94,6 +103,31 @@ class Database:
                 else:
                     cur.execute(query, params)
                 records = cur.fetchall()
+
+            if return_type == 'geodataframe':
+                records = gpd.GeoDataFrame.from_postgis(query, self.conn, geom_col='geom', params=params)
+
+            if return_type in ['shapefile']:
+                df = gpd.GeoDataFrame.from_postgis(query, self.conn, geom_col='geom', params=params)
+                
+                #my_zip = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
+                rand_number = str(random.randint(1,100000))
+                dir_name = '/tmp/'+rand_number+'/'
+                os.makedirs(dir_name)
+                df.to_file(dir_name+'export.shp')
+
+                #shutil.make_archive('export_'+rand_number, 'zip', dir_name)
+                #records = ZipFile('export_'+rand_number+'.zip')
+                #shutil.rmtree(dir_name)
+                #os.remove('export_'+rand_number+'.zip')
+
+                files = [dir_name+x for x in os.listdir(dir_name)]
+                memory_file = BytesIO()
+                with zipfile.ZipFile(memory_file, 'w') as zf:
+                    for f in files:
+                        zf.write(f)
+                memory_file.seek(0)
+                records = memory_file
 
         self.conn.commit()
         cur.close()

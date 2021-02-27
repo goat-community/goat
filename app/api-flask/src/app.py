@@ -21,6 +21,7 @@ from geojson import dump
 import tempfile
 import geojson
 import zipstream
+import geopandas as gpd
 
 import psycopg2
 from psycopg2 import sql
@@ -104,9 +105,7 @@ class Scenarios(Resource):
                 }
         elif mode == "delete": 
             #/*sample body: {mode:"delete","scenario_id":97}*/
-            db.perform("""DELETE FROM scenarios WHERE scenario_SELECT * 
-FROM isochrones_alphashape(111,0,20,11.5980, 48.1514,4,5,0.00003,1,1,1,'walking_standard')
-id = %(scenario_id)s::bigint""",{"scenario_id": body.get('scenario_id')})
+            db.perform("""DELETE FROM scenarios WHERE scenario_id = %(scenario_id)s""",{"scenario_id": body.get('scenario_id')})
             return{
                 "delete_success":True
             }
@@ -326,7 +325,7 @@ class LayerController(Resource):
             for f in body['features']:
                 columns = list(f.keys())
                 if 'geom' in f.keys():
-                    raw_query = "INSERT INTO {}({}, geom) VALUES ({}, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326)) RETURNING {}, geom"
+                    raw_query = "INSERT INTO {}({}, geom) VALUES ({}, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326)) RETURNING gid, {}, geom"
                     columns.remove('geom')
                 else:
                     raw_query = "INSERT INTO ({}) VALUES ({}) RETURNING {}"
@@ -480,6 +479,8 @@ class Heatmap(Resource):
         if body.get('return_type') == 'geobuf':
             result_bytes = io.BytesIO(result[0][0])
             return send_file(result_bytes, mimetype='application/geobuf.pbf')
+        elif body.get('return_type') == 'shapefile':
+            return send_file(result, attachment_filename='capsule.zip', as_attachment=True)
         else:
             return result  
    
