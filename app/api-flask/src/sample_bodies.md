@@ -1,3 +1,10 @@
+#### Export Scenarios
+'/api/export_scenario'
+
+
+
+
+
 #### Layer Controller
 
 Read
@@ -19,15 +26,13 @@ Insert
             "name": "Test1",
             "amenity": "tram_stop",
             "geom": "POINT(11.4043 48.1232)",
-            "scenario_id": 10,
-            "gid": 81781
+            "scenario_id": 10
         },
         {
             "name": "Test2",
             "amenity": "bus_stop",
             "geom": "POINT(11.4743 48.1332)",
-            "scenario_id": 10,
-            "gid": 81782
+            "scenario_id": 10
         }                
     ]
 
@@ -38,7 +43,7 @@ Insert
 Update
 ```json
 {
-    "table_name": "pois",
+    "table_name": "pois_modified",
     "mode": "update",
     "features": [
 

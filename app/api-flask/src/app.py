@@ -121,10 +121,21 @@ class Isochrone(Resource):
     def post(self):
         args=request.get_json()
         
+        if 'return_type' in args: 
+            return_type = args['return_type']
+            del args['return_type']
+
+        if 'objectid' in args and return_type == "shapefile":
+            prepared_query = '''SELECT gid, objectid, step, modus, parent_id, population, sum_pois::text, geom 
+            FROM isochrones WHERE objectid = %(objectid)s'''
+            result = db.select_with_identifiers(prepared_query, params={"objectid": args["objectid"]}, return_type='shapefile')
+            result = Response(result, mimetype='application/zip')
+            result.headers['Content-Disposition'] = 'attachment; filename={}'.format('isochrones.zip')
+            return result
+
         requiredParams = ["user_id","scenario_id","minutes","x","y","n","speed","concavity","modus","routing_profile"]
-        
         args = check_args_complete(args, requiredParams)
-    
+            
         prepared_query = """SELECT gid, objectid, coordinates, step, speed::integer, modus, parent_id, sum_pois, geom 
         FROM isochrones_api(%(user_id)s,%(scenario_id)s,%(minutes)s,%(x)s,%(y)s,%(n)s,%(speed)s,%(concavity)s,%(modus)s,%(routing_profile)s,NULL,NULL,NULL)"""
         
@@ -185,6 +196,19 @@ class ImportScenario(Resource):
 class PoisMultiIsochrones(Resource):
     def post(self):
         args=request.get_json() 
+
+        if 'return_type' in args: 
+            return_type = args['return_type']
+            del args['return_type']
+
+        if 'objectid' in args and return_type == "shapefile":
+            prepared_query = '''SELECT gid, objectid, step, modus, parent_id, population, sum_pois::text, geom 
+            FROM multi_isochrones WHERE objectid = %(objectid)s'''
+            result = db.select_with_identifiers(prepared_query, params={"objectid": args["objectid"]}, return_type='shapefile')
+            result = Response(result, mimetype='application/zip')
+            result.headers['Content-Disposition'] = 'attachment; filename={}'.format('isochrones.zip')
+            return result
+
         requiredParams = ["user_id","scenario_id","minutes","speed","n","routing_profile","alphashape_parameter","modus","region_type","region","amenities"]
 
         args = check_args_complete(args, requiredParams)
@@ -299,19 +323,12 @@ class LayerController(Resource):
         body=request.get_json()
         mode=body.get('mode')
 
-        translation_layers = {
-            "ways": "ways_modified",
-            "pois": "pois_modified",
-            "buildings": "buildings_modified",
-            "population": "population_modified"
-        }
+        table_name = body.get('table_name') 
 
-        if body.get('table_name') not in translation_layers.keys():
+        if body.get('table_name') not in ["ways_modified","pois_modified","buildings_modified","population_modified"]:
             return {
                 "Error": "No valid table was selected."
             }
-
-        table_name = translation_layers[body.get('table_name')]
 
         if mode == "read":
             prepared_query = '''SELECT * FROM {} WHERE scenario_id = %(scenario_id)s::bigint'''
@@ -481,7 +498,9 @@ class Heatmap(Resource):
             result_bytes = io.BytesIO(result[0][0])
             return send_file(result_bytes, mimetype='application/geobuf.pbf')
         elif body.get('return_type') == 'shapefile':
-            return send_file(result, attachment_filename='capsule.zip', as_attachment=True)
+            response = Response(result, mimetype='application/zip')
+            response.headers['Content-Disposition'] = 'attachment; filename={}'.format('files.zip')
+            return response
         else:
             return result  
    
