@@ -147,6 +147,62 @@ class Isochrone(Resource):
 
         return record[0][0]
 
+class PoisMultiIsochrones(Resource):
+    def post(self):
+        args=request.get_json() 
+
+        if 'return_type' in args: 
+            return_type = args['return_type']
+            del args['return_type']
+
+        if 'objectid' in args and return_type == "shapefile":
+            prepared_query = '''SELECT gid, userid, step, speed, modus, parent_id, routing_profile, population::TEXT, geom 
+            FROM multi_isochrones 
+            WHERE objectid = %(objectid)s'''
+            result = db.select_with_identifiers(prepared_query, params={"objectid": args["objectid"]}, return_type='shapefile')
+            result = Response(result, mimetype='application/zip')
+            result.headers['Content-Disposition'] = 'attachment; filename={}'.format('isochrones.zip')
+            return result
+
+        requiredParams = ["user_id","scenario_id","minutes","speed","n","routing_profile","alphashape_parameter","modus","region_type","region","amenities"]
+
+        args = check_args_complete(args, requiredParams)
+        #// Make sure to set the correct content type
+   
+        prepared_query = """SELECT *
+        FROM multi_isochrones_api(%(user_id)s,%(scenario_id)s,%(minutes)s,%(speed)s,%(n)s,%(routing_profile)s,%(alphashape_parameter)s,%(modus)s,%(region_type)s,%(region)s,%(amenities)s)"""
+        
+        args_vals =  {
+            "user_id": args["user_id"],"scenario_id": args["scenario_id"],"minutes": args["minutes"], "speed": args["speed"],"n": args["n"],"routing_profile": args["routing_profile"],
+            "alphashape_parameter": args["alphashape_parameter"], "modus": args["modus"],"region_type": args["region_type"],"region": args["region"],"amenities": args["amenities"]
+        }
+
+        record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
+    
+        return record[0][0]
+        
+class CountPoisMultiIsochrones(Resource):
+    def post(self):
+        args=request.get_json()
+        requiredParams = ["user_id","scenario_id","modus","minutes","speed","region_type","region","amenities"]
+        args = check_args_complete(args, requiredParams)
+        # // Make sure to set the correct content type
+
+        prepared_query = """SELECT count_pois, region_name, geom 
+        FROM count_pois_multi_isochrones(%(user_id)s,%(scenario_id)s,%(modus)s,%(minutes)s,%(speed)s,%(region_type)s,%(region)s,array[%(amenities)s])"""
+        
+        args_vals = {
+            "user_id": args["user_id"],"scenario_id": args["scenario_id"],"modus": args["modus"],"minutes": args["minutes"],
+             "speed": args["speed"],"region_type": args["region_type"],"region": args["region"],"amenities": args["amenities"]
+        }
+
+        record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
+        
+        return record
+
+
+
+
 class ManageUser(Resource):
     def post(self):
         body=request.get_json()
@@ -192,58 +248,6 @@ class ImportScenario(Resource):
         result=db.select("SELECT import_changeset_scenario(%(scenario_id)s, %(user_id)s,jsonb_build_object(%(layerName)s,%(payload)s::jsonb))"
         , {"scenario_id": body.get('scenario_id'),"user_id":body.get('user_id'),"layerName":body.get('layerName'),"payload":payload})
         return result
-
-class PoisMultiIsochrones(Resource):
-    def post(self):
-        args=request.get_json() 
-
-        if 'return_type' in args: 
-            return_type = args['return_type']
-            del args['return_type']
-
-        if 'objectid' in args and return_type == "shapefile":
-            prepared_query = '''SELECT gid, objectid, step, modus, parent_id, population, sum_pois::text, geom 
-            FROM multi_isochrones WHERE objectid = %(objectid)s'''
-            result = db.select_with_identifiers(prepared_query, params={"objectid": args["objectid"]}, return_type='shapefile')
-            result = Response(result, mimetype='application/zip')
-            result.headers['Content-Disposition'] = 'attachment; filename={}'.format('isochrones.zip')
-            return result
-
-        requiredParams = ["user_id","scenario_id","minutes","speed","n","routing_profile","alphashape_parameter","modus","region_type","region","amenities"]
-
-        args = check_args_complete(args, requiredParams)
-        #// Make sure to set the correct content type
-   
-        prepared_query = """SELECT *
-        FROM multi_isochrones_api(%(user_id)s,%(scenario_id)s,%(minutes)s,%(speed)s,%(n)s,%(routing_profile)s,%(alphashape_parameter)s,%(modus)s,%(region_type)s,%(region)s,%(amenities)s)"""
-        
-        args_vals =  {
-            "user_id": args["user_id"],"scenario_id": args["scenario_id"],"minutes": args["minutes"], "speed": args["speed"],"n": args["n"],"routing_profile": args["routing_profile"],
-            "alphashape_parameter": args["alphashape_parameter"], "modus": args["modus"],"region_type": args["region_type"],"region": args["region"],"amenities": args["amenities"]
-        }
-
-        record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
-    
-        return record[0][0]
-        
-class CountPoisMultiIsochrones(Resource):
-    def post(self):
-        args=request.get_json()
-        requiredParams = ["user_id","scenario_id","modus","minutes","speed","region_type","region","amenities"]
-        args = check_args_complete(args, requiredParams)
-        # // Make sure to set the correct content type
-
-        prepared_query = """SELECT count_pois, region_name, geom 
-        FROM count_pois_multi_isochrones(%(user_id)s,%(scenario_id)s,%(modus)s,%(minutes)s,%(speed)s,%(region_type)s,%(region)s,array[%(amenities)s])"""
-        
-        args_vals = {
-            "user_id": args["user_id"],"scenario_id": args["scenario_id"],"modus": args["modus"],"minutes": args["minutes"],
-             "speed": args["speed"],"region_type": args["region_type"],"region": args["region"],"amenities": args["amenities"]
-        }
-
-        record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
-        
-        return record
 
 class UploadAllScenariosResource(Resource):
     def post(self):
