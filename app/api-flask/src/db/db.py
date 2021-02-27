@@ -59,6 +59,17 @@ class Database:
         self.conn.commit()
         cur.close()
 
+    def cur_execute(self, conn, cur, query, params=None):
+        try:
+            cur.execute(query, params)
+        except Exception:
+            conn.rollback()
+            return 'Query was rolled back.'
+        else:
+            conn.commit()
+            return cur.fetchall()
+
+
     def select_with_identifiers(self, query, identifiers=None, params=None, return_type='raw'):
         """Run a SQL query and pass identifiers/params"""
         self.connect()
@@ -93,17 +104,16 @@ class Database:
                 sql_geobuf = [
                     sql.SQL("SELECT ST_AsGeobuf(l, 'geom') FROM ("),
                     query,
-                    sql.SQL(") l;")
+                    sql.SQL(") l")
                 ] 
                 query = sql.SQL(' ').join(sql_geobuf)
 
             if return_type in ['raw','geobuf','geojson']:
                 if params is None:             
-                    cur.execute(query)
+                    records = self.cur_execute(self.conn, cur, query)
                 else:
-                    cur.execute(query, params)
-                records = cur.fetchall()
-
+                    records = self.cur_execute(self.conn, cur, query, params=params)
+                
             if return_type == 'geodataframe':
                 records = gpd.GeoDataFrame.from_postgis(query, self.conn, geom_col='geom', params=params)
 
