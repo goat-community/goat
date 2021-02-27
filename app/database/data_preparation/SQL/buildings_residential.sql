@@ -12,7 +12,7 @@ UPDATE study_area SET area = st_area(geom::geography);
 CREATE TABLE buildings as 
 SELECT ROW_NUMBER() OVER() AS gid, p.osm_id,p.building, 
 CASE 
-WHEN p.building = 'yes' THEN 'potential_residents' 
+WHEN p.building = 'yes' AND amenity IS NULL THEN 'potential_residents' 
 WHEN p.building IN (SELECT UNNEST(select_from_variable_container('building_types_residential'))) THEN 'with_residents'
 ELSE 'no_residents' END AS residential_status,
 "addr:housenumber",p.tags,ST_Area(p.way::geography)::integer as area, 

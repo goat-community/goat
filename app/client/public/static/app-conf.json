@@ -173,22 +173,21 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "buildings",
+        "url": "/api/map/layer/buildings/{z}/{x}/{y}",
         "group": "buildings_landuse",
-        "url": "/geoserver/wms",
-        "layers": "cite:buildings",
-        "opacity": 1,
-        "queryable": true,
         "visible": false,
-        "canEdit": true,
-        "canModifyGeom": true,
-        "editDataType": "GeoJSON",
-        "editGeometry": ["Polygon", "MultiPolygon"],
-        "modifyAttributes": true,
+        "canEdit": false,
+        "queryable": true,
         "displayInLayerList": true,
-        "zIndex": 3,
-        "serverType": "geoserver",
+        "zIndex": 1,
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/buildings.json"
+        },
         "attributes": {
           "source": "openStreetMap",
           "date": "25-11-2020"
@@ -690,9 +689,10 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "accidentsPointsCyclists",
-        "url": "/geoserver/wms",
+        "url": "/api/map/layer/accidents_cyclists/{z}/{x}/{y}",
         "group": "additionalDataLayers",
         "layers": "cite:accidents_cyclists",
         "opacity": 1,
