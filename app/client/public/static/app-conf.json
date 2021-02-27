@@ -129,7 +129,7 @@
         "queryParams": [],
         "style": {
           "format": "geostyler",
-          "url": "./static/layer-styles/styles/landuse_api.json"
+          "url": "./static/layer-styles/styles/landuse_atkis.json"
         },
         "attributes": {
           "source": "Datenbestände des ATKIS Basis-DLM der Länder",
