@@ -258,6 +258,7 @@ export const LayerFactory = {
       styleConf: lConf.style,
       source: new VectorSource(sourceOpts),
       format: lConf.format,
+      url: lConf.url,
       style:
         OlStyleFactory.getInstance(lConf.style) ||
         baseStyleDefs[lConf.styleRef],
@@ -286,6 +287,7 @@ export const LayerFactory = {
       queryParams: lConf.queryParams,
       styleConf: lConf.style,
       zIndex: lConf.zIndex,
+      url: lConf.url,
       source: new VectorTileSource({
         url: lConf.url,
         format: new this.formatMapping[lConf.format](),

@@ -361,7 +361,7 @@
           </v-subheader>
           <div class="ml-2" v-if="dataManageElVisible">
             <v-flex
-              v-if="layerConf[layerName.split(':')[1]]"
+              v-if="layerConf[layerName]"
               xs12
               v-show="selectedLayer != null && dataManageElVisible === true"
               class="mt-1 pt-0 mb-0"
@@ -951,7 +951,7 @@ export default {
       this.isExportScenarioBusy = true;
       http
         .post(
-          "/api/export_scenario",
+          "/api/map/export_scenario",
           {
             scenario_id: this.activeScenario
           },
@@ -1735,13 +1735,10 @@ export default {
         this.updateReqFields(this.reqFields);
         return;
       }
-      http
-        .get(
-          `geoserver/wfs?request=describeFeatureType&typename=${this.layerName}_modified&outputFormat=application/json`
-        )
-        .then(response => {
-          const props = response.data.featureTypes[0].properties;
-          const layerName = this.layerName.split(":")[1];
+      http.get(`/api/map/layer_schema/${this.layerName}`).then(response => {
+        if (response.data) {
+          const props = response.data;
+          const layerName = this.layerName;
           const jsonSchema = mapFeatureTypeProps(
             props,
             layerName,
@@ -1751,7 +1748,8 @@ export default {
           this.loadingLayerInfo = false;
           this.updateReqFields(this.reqFields);
           this.$forceUpdate();
-        });
+        }
+      });
     },
     /**
      * Method used only on drawend or modifyend to update fileinput feature cache
@@ -2034,7 +2032,7 @@ export default {
           ) {
             //Assign layerName to feature property if doesn't exist
             if (!prop.layerName) {
-              f.set("layerName", this.layerName.split(":")[1]);
+              f.set("layerName", this.layerName);
             }
             const fid = f.getId();
             const layerName = f.get("layerName");
@@ -2074,7 +2072,7 @@ export default {
             f.setId(prop.id);
           }
           if (!prop.layerName) {
-            f.set("layerName", this.layerName.split(":")[1]);
+            f.set("layerName", this.layerName);
           }
           const layerName = f.get("layerName");
           const isDeleted = fid;
@@ -2204,7 +2202,9 @@ export default {
       return scenarioArray;
     },
     layerName() {
-      return this.selectedLayer.getSource().get("name");
+      const value = this.selectedLayer.get("name");
+      console.log(value);
+      return value;
     },
     reqFields() {
       const layerSchema = this.schema[this.layerName];

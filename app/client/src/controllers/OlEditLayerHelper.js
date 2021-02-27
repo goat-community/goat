@@ -65,10 +65,7 @@ const editLayerHelper = {
           ).length === 0
         ) {
           const clonedFeature = feature.clone();
-          const layerName = this.selectedLayer
-            .getSource()
-            .getParams()
-            .LAYERS.split(":")[1];
+          const layerName = this.selectedLayer.get("name");
           clonedFeature.set("layerName", layerName);
           clonedFeature.set("deletedId", originId);
           editLayerHelper.deletedFeatures.push(feature.clone());
@@ -127,8 +124,8 @@ const editLayerHelper = {
     }
   },
   commitDelete(mode, drawn_fid) {
-    const layerName = this.selectedLayer.getSource().get("name");
-    fetch("/api/scenarios", {
+    const layerName = this.selectedLayer.get("name");
+    fetch("/api/map/scenarios", {
       method: "POST",
       body: JSON.stringify({
         mode: mode,
@@ -157,7 +154,7 @@ const editLayerHelper = {
   uploadFeatures(source, onUploadCb) {
     http
       .post(
-        "./api/upload_all_scenarios",
+        "./api/map/upload_all_scenarios",
         {
           scenario_id: parseInt(store.state.activeScenario)
         },

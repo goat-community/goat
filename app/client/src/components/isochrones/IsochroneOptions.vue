@@ -144,7 +144,6 @@ export default {
       const noUrl = layer.getUrl && !layer.getUrl();
       if (noUrl === undefined) {
         const payload = {
-          table_name: layer.get("name"),
           return_type: "geobuf"
         };
         if (queryParams.includes("scenario_id_input")) {
@@ -156,7 +155,13 @@ export default {
             this.activeScenario == null ? 0 : parseInt(this.activeScenario);
         }
         if (queryParams.includes("pois")) {
-          payload["pois"] = Object.keys(pois);
+          payload["pois"] = pois;
+        }
+        if (queryParams.includes("heatmap_type")) {
+          payload["heatmap_type"] = layer.get("name");
+        }
+        if (queryParams.includes("table_name")) {
+          payload["table_name"] = layer.get("name");
         }
         if (queryParams.includes("modus")) {
           payload["modus"] = this.calculationModes;

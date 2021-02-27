@@ -46,7 +46,7 @@ app.post("/api/userdata", jsonParser, (request, response) => {
   }
 });
 
-app.post("/api/scenarios", jsonParser, (request, response) => {
+app.post("/api/map/scenarios", jsonParser, (request, response) => {
   var mode = request.body.mode;
 
   function returnResult(err, res) {
@@ -117,7 +117,7 @@ app.post("/api/scenarios", jsonParser, (request, response) => {
  */
 
 app.post(
-  "/api/deleteAllScenarioData",
+  "/api/map/deleteAllScenarioData",
   jsonParser,
   async (request, response) => {
     const scenarioId = request.body.scenario_id;
@@ -139,7 +139,7 @@ app.post(
   }
 );
 
-app.post("/api/isochrone", jsonParser, (request, response) => {
+app.post("/api/map/isochrone", jsonParser, (request, response) => {
   let requiredParams = [
     "user_id",
     "scenario_id",
@@ -189,7 +189,7 @@ app.post("/api/isochrone", jsonParser, (request, response) => {
   );
 });
 
-app.post("/api/pois_multi_isochrones", jsonParser, (request, response) => {
+app.post("/api/map/pois_multi_isochrones", jsonParser, (request, response) => {
   let requiredParams = [
     "user_id",
     "scenario_id",
@@ -238,7 +238,7 @@ app.post("/api/pois_multi_isochrones", jsonParser, (request, response) => {
 });
 
 app.post(
-  "/api/count_pois_multi_isochrones",
+  "/api/map/count_pois_multi_isochrones",
   jsonParser,
   (request, response) => {
     let requiredParams = [
@@ -283,7 +283,7 @@ app.post(
   }
 );
 
-app.post("/api/export_scenario", jsonParser, (request, response) => {
+app.post("/api/map/export_scenario", jsonParser, (request, response) => {
   const scenarioId = request.body.scenario_id;
   pool.query(
     `SELECT * FROM export_changeset_scenario(${scenarioId})`,
@@ -309,7 +309,7 @@ app.post("/api/export_scenario", jsonParser, (request, response) => {
   );
 });
 
-app.post("/api/import_scenario", jsonParser, (request, response) => {
+app.post("/api/map/import_scenario", jsonParser, (request, response) => {
   const { user_id, scenario_id, payload, layerName } = request.body;
   if (!user_id || !scenario_id || !payload || !layerName) {
     response.send(`An error happened. Missing parameters`);
@@ -332,7 +332,7 @@ app.post("/api/import_scenario", jsonParser, (request, response) => {
   });
 });
 
-app.post("/api/upload_all_scenarios", jsonParser, async (request, response) => {
+app.post("/api/map/upload_all_scenarios", jsonParser, async (request, response) => {
   const scenarioId = request.body.scenario_id;
   try {
     //1- Delete from scenario first

@@ -404,7 +404,9 @@ export function getWMSLegendURL(
 export function mapFeatureTypeProps(props, layerName, layerConf) {
   const mapping = {
     string: "string",
+    text: "string",
     int: "integer",
+    bigint: "integer",
     number: "number"
   };
   let obj = {
@@ -416,31 +418,31 @@ export function mapFeatureTypeProps(props, layerName, layerConf) {
   };
 
   props.forEach(prop => {
-    let type = mapping[prop.localType];
+    let type = mapping[prop.data_type];
     if (type) {
-      obj.properties[prop.name] = {
+      obj.properties[prop.column_name] = {
         type,
         layerName
       };
-      if (prop.nillable === false) {
-        obj.required.push(prop.name);
+      if (prop.is_nullable === "NO") {
+        obj.required.push(prop.column_name);
       }
       if (!layerConf) return;
       if (
         layerConf["hiddenProps"] &&
-        layerConf["hiddenProps"].includes(prop.name)
+        layerConf["hiddenProps"].includes(prop.column_name)
       ) {
-        obj.properties[prop.name]["x-display"] = "hidden";
+        obj.properties[prop.column_name]["x-display"] = "hidden";
       }
       if (
         layerConf["listValues"] &&
-        layerConf["listValues"][prop.name] &&
-        Array.isArray(layerConf["listValues"][prop.name].values)
+        layerConf["listValues"][prop.column_name] &&
+        Array.isArray(layerConf["listValues"][prop.column_name].values)
       ) {
-        obj.properties[prop.name]["enum"] =
-          layerConf["listValues"][prop.name].values;
+        obj.properties[prop.column_name]["enum"] =
+          layerConf["listValues"][prop.column_name].values;
         //Show as autocomplete
-        obj.properties[prop.name]["isAutocomplete"] = true;
+        obj.properties[prop.column_name]["isAutocomplete"] = true;
       }
     }
   });
@@ -485,9 +487,9 @@ export function updateLayerUrlQueryParam(layer, queryParams) {
   }
 }
 
-/** Refetch layer feaetures if there is no url */
+/** Refetch layer features if there is no url */
 export function fetchLayerFeatures(layer, payload) {
-  fetch("/api/layer_read", {
+  fetch(layer.get("url"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

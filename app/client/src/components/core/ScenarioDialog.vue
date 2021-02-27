@@ -87,7 +87,7 @@ export default {
       const scenarioName = this.scenarioName;
       const activeScenarioId = this.scenarioId;
       http
-        .post("./api/scenarios", {
+        .post("./api/map/scenarios", {
           mode: activeScenarioId ? "update_scenario" : "insert",
           userid: this.userId,
           scenario_name: this.scenarioName,

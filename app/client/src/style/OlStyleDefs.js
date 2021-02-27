@@ -668,7 +668,6 @@ function poisStyle(feature) {
         src: path
       })
     });
-    console.log("created style");
   }
   return [poisStyleCache[name]];
 }
