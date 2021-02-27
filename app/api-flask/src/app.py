@@ -367,6 +367,7 @@ class LayerController(Resource):
             return json.loads(dfs.to_json())
             
         if mode == "update":
+            dfs = gpd.GeoDataFrame()
             for f in body['features']:
                 columns = list(f.keys())
 
@@ -376,7 +377,7 @@ class LayerController(Resource):
                 else:
                     raw_query = "UPDATE {} SET {}={},"
 
-                where_condition = sql.SQL("WHERE scenario_id = %(scenario_id)s AND gid = %(gid)s")
+                where_condition = sql.SQL("WHERE scenario_id = %(scenario_id)s AND gid = %(gid)s RETURNING geom,")
 
                 columns_sql = []
                 for i in columns[1:]:      
@@ -387,14 +388,18 @@ class LayerController(Resource):
                 update_sql = [
                     sql.SQL(raw_query).format(sql.Identifier(table_name),sql.Identifier(columns[0]),sql.Placeholder(columns[0])),
                     columns_sql,
-                    where_condition
+                    where_condition,
+                    sql.SQL(', ').join(map(sql.Identifier, columns))
                 ] 
-                sql_update = sql.SQL(' ').join(update_sql)
-                db.perform(sql_update, f)
+                prepared_query = sql.SQL(' ').join(update_sql)
 
-            return{
-                "Response": "Update success"
-                }
+                df = db.select_with_identifiers(prepared_query, params=f, return_type='geodataframe')
+
+                if dfs.empty: 
+                    dfs = df 
+                else:
+                    dfs = dfs.append(df)
+            return json.loads(dfs.to_json())
 
         if mode == "delete":
             for f in body['features']:
@@ -471,14 +476,6 @@ class Layer(Resource):
         return send_file(result_bytes, mimetype='application/vnd.mapbox-vector-tile')
 
 
-def prepare_func_args(body, func_varnames):
-    func_args = []
-    for i in func_varnames:
-        func_args.append(body[i])
-    
-    return func_args
-
-
 class Heatmap(Resource):
     def post(self):
 
@@ -494,7 +491,10 @@ class Heatmap(Resource):
 
         check_args_complete(body, func_varnames)
 
-        func_args = prepare_func_args(body, func_varnames)
+        func_args = []
+        for i in func_varnames:
+            func_args.append(body[i])
+
         result = globals()[heatmap_type](*func_args)
 
         if body.get('return_type') == 'geobuf':
