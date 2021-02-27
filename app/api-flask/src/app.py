@@ -272,7 +272,15 @@ class DeleteAllScenarioData(Resource):
             "response": "All changes are reverted."
         }
    
+class OsmTimestamp(Resource):
+    def get(self):
+        result = db.select_with_identifiers(
+        "SELECT split_part(variable_simple,'T',1) FROM variable_container vc WHERE identifier = 'data_recency'", 
+        return_type='raw')[0][0]
 
+        return {
+            "osm_timestamp" : result 
+        }
 class LayerSchema(Resource):
     def get(self, table_name):
         result = db.select('''SELECT jsonb_agg(jsonb_build_object('column_name', column_name, 'data_type', data_type, 'is_nullable', is_nullable))
@@ -529,6 +537,8 @@ api.add_resource(ExportScenario,'/api/map/export_scenario')
 api.add_resource(PingPONG,'/ping')
             
 api.add_resource(ManageUser,'/api/userdata')
+
+api.add_resource(OsmTimestamp,'/api/osm_timestamp')
 
 api.add_resource(Isochrone,'/api/map/isochrone')
 
