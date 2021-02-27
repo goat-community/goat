@@ -98,8 +98,8 @@ def heatmap_population(modus_input, scenario_id_input, return_type):
 def heatmap_luptai(pois, modus_input, scenario_id_input, return_type):
 
     result = db.select_with_identifiers('''SELECT population_accessibility AS score, %(modus_input)s AS modus, geom 
-    FROM heatmap_luptai(%(pois)s::jsonb,%(modus_input)s,%(scenario_id_input)s)''',
-    params={"pois": pois, "modus_input": modus_input, "scenario_id_input": scenario_id_input}, return_type=return_type)
+    FROM heatmap_luptai(%(pois)s,%(modus_input)s,%(scenario_id_input)s)''',
+    params={"pois": json.dumps(pois), "modus_input": modus_input, "scenario_id_input": scenario_id_input}, return_type=return_type)
     
     return result
 

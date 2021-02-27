@@ -136,7 +136,8 @@ class Isochrone(Resource):
         requiredParams = ["user_id","scenario_id","minutes","x","y","n","speed","concavity","modus","routing_profile"]
         args = check_args_complete(args, requiredParams)
             
-        prepared_query = """SELECT gid, objectid, coordinates, step, speed::integer, modus, parent_id, sum_pois, geom 
+        prepared_query = """SELECT gid, objectid, coordinates, ST_ASTEXT(ST_MAKEPOINT(coordinates[1], coordinates[2])) AS starting_point,
+        step, speed::integer, modus, parent_id, sum_pois, geom 
         FROM isochrones_api(%(user_id)s,%(scenario_id)s,%(minutes)s,%(x)s,%(y)s,%(n)s,%(speed)s,%(concavity)s,%(modus)s,%(routing_profile)s,NULL,NULL,NULL)"""
         
         args_vals =  {
