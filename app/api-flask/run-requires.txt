@@ -1,3 +1,5 @@
+geopandas
+rtree
 psycopg2-binary
 loguru
 postgis
