@@ -1,4 +1,0 @@
-flask
-psycopg2
-asyncio
-geojson

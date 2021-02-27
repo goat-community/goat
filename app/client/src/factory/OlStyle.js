@@ -1,6 +1,6 @@
 import { Circle as CircleStyle, Fill, Stroke, Style } from "ol/style";
 import OlStyleParser from "geostyler-openlayers-parser";
-
+import { stylesRef } from "../style/OlStyleDefs";
 export const OlStyleFactory = {
   /**
    * Returns an OpenLayers Style instance due to given config.
@@ -91,11 +91,12 @@ export const OlStyleFactory = {
   /**
    * Main function for rendering styles using geostyler parser.
    *
-   * @param  {Object} styleObj Style config object
+   * @param  {Object} styleObj Style config
+   * @param  {String} layerName Layer name
    * @return {Style}             OL Style instance
    */
-  getOlStyle(styleObj) {
-    const styleFormat = styleObj.styleFormat;
+  getOlStyle(styleObj, layerName) {
+    const styleFormat = styleObj.format;
     const styleConf = styleObj.style;
     let olStyle;
     switch (styleFormat) {
@@ -105,6 +106,7 @@ export const OlStyleFactory = {
         break;
       }
       case "custom-logic": {
+        olStyle = stylesRef[layerName];
         break;
       }
       default:

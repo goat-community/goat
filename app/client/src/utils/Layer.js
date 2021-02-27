@@ -4,9 +4,12 @@ import { WFS } from "ol/format";
 import olLayerImage from "ol/layer/Image.js";
 import olLayerVector from "ol/layer/Vector.js";
 import olSourceImageWMS from "ol/source/ImageWMS.js";
+import GeoJSON from "ol/format/GeoJSON.js";
+
 import { appendParams as olUriAppendParams } from "ol/uri.js";
 import UrlUtil from "./Url";
-
+const geobuf = require("geobuf");
+const Pbf = require("pbf");
 const ServerType = "geoserver";
 
 /**
@@ -401,7 +404,9 @@ export function getWMSLegendURL(
 export function mapFeatureTypeProps(props, layerName, layerConf) {
   const mapping = {
     string: "string",
+    text: "string",
     int: "integer",
+    bigint: "integer",
     number: "number"
   };
   let obj = {
@@ -413,31 +418,31 @@ export function mapFeatureTypeProps(props, layerName, layerConf) {
   };
 
   props.forEach(prop => {
-    let type = mapping[prop.localType];
+    let type = mapping[prop.data_type];
     if (type) {
-      obj.properties[prop.name] = {
+      obj.properties[prop.column_name] = {
         type,
         layerName
       };
-      if (prop.nillable === false) {
-        obj.required.push(prop.name);
+      if (prop.is_nullable === "NO") {
+        obj.required.push(prop.column_name);
       }
       if (!layerConf) return;
       if (
         layerConf["hiddenProps"] &&
-        layerConf["hiddenProps"].includes(prop.name)
+        layerConf["hiddenProps"].includes(prop.column_name)
       ) {
-        obj.properties[prop.name]["x-display"] = "hidden";
+        obj.properties[prop.column_name]["x-display"] = "hidden";
       }
       if (
         layerConf["listValues"] &&
-        layerConf["listValues"][prop.name] &&
-        Array.isArray(layerConf["listValues"][prop.name].values)
+        layerConf["listValues"][prop.column_name] &&
+        Array.isArray(layerConf["listValues"][prop.column_name].values)
       ) {
-        obj.properties[prop.name]["enum"] =
-          layerConf["listValues"][prop.name].values;
+        obj.properties[prop.column_name]["enum"] =
+          layerConf["listValues"][prop.column_name].values;
         //Show as autocomplete
-        obj.properties[prop.name]["isAutocomplete"] = true;
+        obj.properties[prop.column_name]["isAutocomplete"] = true;
       }
     }
   });
@@ -473,9 +478,36 @@ export function updateLayerUrlQueryParam(layer, queryParams) {
     ? layerSource.getUrls()[0]
     : layerSource.getUrl();
   const keys = Object.keys(queryParams);
-  keys.forEach(key => {
-    const value = queryParams[key];
-    layerUrl = UrlUtil.updateQueryStringParameter(layerUrl, key, value);
-  });
-  layerSource.setUrl(layerUrl);
+  if (layerUrl) {
+    keys.forEach(key => {
+      const value = queryParams[key];
+      layerUrl = UrlUtil.updateQueryStringParameter(layerUrl, key, value);
+    });
+    layerSource.setUrl(layerUrl);
+  }
+}
+
+/** Refetch layer features if there is no url */
+export function fetchLayerFeatures(layer, payload) {
+  fetch(layer.get("url"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  })
+    .then(resp => resp.arrayBuffer())
+    .then(data => {
+      var geojson = geobuf.decode(new Pbf(data));
+      layer.getSource().clear();
+      if (geojson) {
+        const features = new GeoJSON().readFeatures(geojson, {
+          featureProjection: "EPSG:3857"
+        });
+        layer.getSource().addFeatures(features);
+      }
+    })
+    .catch(error => {
+      console.error("Error:", error);
+    });
 }
