@@ -199,7 +199,7 @@ class CountPoisMultiIsochrones(Resource):
 
         record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
         
-        return record
+        return record[0][0]
 
 
 
