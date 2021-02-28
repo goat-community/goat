@@ -1,11 +1,10 @@
 <div align="center">
     <a href="https://www.open-accessibility.org/">
-        <img src="app/client/public/img/logo_text.png" width="175">
+        <img src="app/client/public/img/logo_green.png" width="300">
     </a>
 </div>
 
-<h1 align="center">Geo Open Accessibility Tool (GOAT)</h1>
-
+<br/>
 <div align="center">
 
 [![Build Status](https://travis-ci.org/goat-community/goat.png?branch=master)](https://travis-ci.org/goat-community/goat/tree/master)
