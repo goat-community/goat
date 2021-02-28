@@ -286,7 +286,7 @@ export default {
 }
 
 .expansion-panel__container--active {
-  background-color: #4caf50 !important;
+  background-color: #2bb381 !important;
   color: white !important;
 }
 
@@ -306,7 +306,7 @@ export default {
   height: 30px;
   width: 60px;
   opacity: 0.8;
-  background: #4caf50;
+  background: #2bb381;
   transform: rotate(45deg);
   z-index: 20;
   cursor: pointer;

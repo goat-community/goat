@@ -30,7 +30,7 @@ import screenfull from "../../../../utils/ScreenFull";
 export default {
   name: "full-screen",
   props: {
-    color: { type: String, default: "#4CAF50" }
+    color: { type: String, default: "#2BB381" }
   },
   data: () => ({
     isFullscreen: false

@@ -68,7 +68,7 @@ export default {
   props: {
     visible: { type: Boolean, required: false, default: false },
     selectedAmenity: { type: Object },
-    color: { type: String, default: "#4CAF50" }
+    color: { type: String, default: "#2BB381" }
   },
   methods: {
     updateHeatmap() {

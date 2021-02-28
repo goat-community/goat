@@ -42,7 +42,7 @@ import { easeOut } from "ol/easing";
 export default {
   props: {
     map: { type: Object, required: true },
-    color: { type: String, default: "#4CAF50" }
+    color: { type: String, default: "#2BB381" }
   },
   name: "zoom-control",
   methods: {

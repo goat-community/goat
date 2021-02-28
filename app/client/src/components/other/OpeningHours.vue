@@ -135,7 +135,7 @@
 export default {
   props: {
     visible: { type: Boolean, required: true },
-    color: { type: String, default: "#4CAF50" },
+    color: { type: String, default: "#2BB381" },
     osmHours: {
       type: String,
       required: false,
