@@ -14,7 +14,7 @@
 
 ## About
 
-This homebase of Geo Open Accessibility Tool (GOAT). GOAT is meant to be an open source, interactive,
+This is the homebase of Geo Open Accessibility Tool (GOAT). GOAT is meant to be an open source, interactive,
 flexible and useful web-tool for accessibility planning.
 
 For more information:
