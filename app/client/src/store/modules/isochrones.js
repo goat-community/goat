@@ -158,15 +158,13 @@ const actions = {
         clonedFeature.set("calculationNumber", state.calculations.length + 1);
         selectedRegions.push(clonedFeature);
       });
-      region = regionFeatures
-        .map(feature => {
-          if (regionType === "draw") {
-            return feature.get("regionPolygon").toString();
-          } else {
-            return feature.get("region_name");
-          }
-        })
-        .toString();
+      region = regionFeatures.map(feature => {
+        if (regionType === "draw") {
+          return feature.get("regionPolygon").toString();
+        } else {
+          return feature.get("region_name");
+        }
+      });
 
       params = Object.assign(sharedParams, {
         alphashape_parameter: "0.00003",
@@ -450,13 +448,12 @@ const actions = {
 
         results.map(response => {
           const configData = JSON.parse(response.config.data);
-          if (response.data.feature) {
-            const olFeatures = geojsonToFeature(response.data.feature, {});
+          if (response.data) {
+            const olFeatures = geojsonToFeature(response.data, {});
             olFeatures.forEach(feature => {
               feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
               feature.set("region_type", configData.region_type);
               feature.set("region", configData.region);
-
               if (configData.region_type === "draw") {
                 feature.set("regionPolygon", configData.region);
               }

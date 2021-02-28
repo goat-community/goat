@@ -6,7 +6,7 @@
     @keydown.esc="scenarioDialog = false"
   >
     <v-card>
-      <v-app-bar flat color="green" dark height="50">
+      <v-app-bar flat :color="activeColor.primary" dark height="50">
         <v-icon class="mr-3">fas fa-bullseye</v-icon>
         <v-toolbar-title>{{
           scenarioId ? "Update Scenario Name" : "Create scenario"
@@ -80,7 +80,10 @@ export default {
       scenarios: "scenarios",
       activeScenario: "activeScenario"
     }),
-    ...mapGetters("user", { userId: "userId" })
+    ...mapGetters("user", { userId: "userId" }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
   },
   methods: {
     updateInsertScenario() {
