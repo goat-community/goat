@@ -300,18 +300,18 @@ class LayerRead(Resource):
         if table_name == 'pois' and "geom" not in body:
             prepared_query = '''SELECT * FROM pois_visualization(%(scenario_id)s,%(amenities)s,%(routing_profile)s,%(modus)s)'''
         elif table_name == 'aois':
-            prepared_query = '''SELECT a.amenity, a.name, a.geom
+            prepared_query = '''SELECT gid, a.amenity, a.name, a.geom
             FROM aois a
             WHERE a.amenity IN(SELECT UNNEST(%(amenities)s))'''
         elif table_name == 'edges':
-            prepared_query = '''SELECT %(modus_input)s AS modus, geom
+            prepared_query = '''SELECT id AS gid, %(modus_input)s AS modus, geom
             FROM edges 
             WHERE objectid = %(objectid)s'''
         elif table_name == 'pois':
             prepared_query = '''SELECT * FROM pois_visualization(%(scenario_id)s,%(amenities)s,%(routing_profile)s,%(modus)s) 
             WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))'''
         elif table_name == 'ways':
-            prepared_query = '''SELECT * FROM ways
+            prepared_query = '''SELECT id as gid, * FROM ways
             WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))
             AND class_id NOT IN (0,101,102,103,104,105,106,107,501,502,503,504,701,801)'''
         elif table_name == 'buildings': 
