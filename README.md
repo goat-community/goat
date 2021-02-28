@@ -1,6 +1,6 @@
 <div align="center">
     <a href="https://www.open-accessibility.org/">
-        <img src="https://www.open-accessibility.org/uploads/homepage/logo.png" width="175">
+        <img src="app/client/public/img/logo_text.png" width="175">
     </a>
 </div>
 
@@ -15,21 +15,17 @@
 
 ## About
 
-This is the experimental release of Geo Open Accessibility Tool (GOAT). GOAT is meant to be an open source, interactive,
+This homebase of Geo Open Accessibility Tool (GOAT). GOAT is meant to be an open source, interactive,
 flexible and useful web-tool for accessibility planning.
 
 For more information:
 
 [GOAT Website and Docs](https://open-accessibility.org)
 
-[GOAT demo](https://muenchen.open-accessibility.org/)
+[GOAT demo](https://open-accessibility.org/versions)
 
 [Join GOAT User Group on Telegram](https://t.me/joinchat/EpAk7BYbIF72q7D3OTUCZQ)
 
 [Follow GOAT on LinkedIn](https://www.linkedin.com/company/goat-geo-open-accessibility-tool/)
 
 [Follow GOAT on Twitter](https://twitter.com/GoatTool)
-
-If you want to help us translating the GOAT userinterface, you are very welcome to help us. Just check the following POEditor-Link:
-
-[Click here](https://poeditor.com/join/project/yH6FuzIYHC)
