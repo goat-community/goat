@@ -165,7 +165,7 @@
           >
           <v-btn
             class="white--text"
-            color="green"
+            :color="activeColor.primary"
             :disabled="isState('PRINTING')"
             @click="print('pdf')"
           >
@@ -210,7 +210,7 @@ import {
 
 import { humanize, numberWithCommas } from "../../utils/Helpers";
 import axios from "axios";
-import { mapMutations } from "vuex";
+import { mapMutations, mapGetters } from "vuex";
 import * as olEvents from "ol/events.js";
 import * as olMath from "ol/math.js";
 import olLayerImage from "ol/layer/Image.js";
@@ -1129,6 +1129,11 @@ export default {
       timeout: 60000,
       state: false
     });
+  },
+  computed: {
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
   }
 };
 </script>

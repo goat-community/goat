@@ -128,10 +128,58 @@ export default {
   mounted() {
     EventBus.$on("toggleLayerVisiblity", this.updateLayer);
     EventBus.$on("updateHeatmapPois", this.updateLayersParam);
+    EventBus.$on("getLayerPayload", obj => {
+      let payload;
+      if (obj.layer) {
+        payload = this.getLayerPayload(obj.layer);
+      }
+      if (obj.cb) {
+        obj.cb(payload);
+      }
+    });
+    EventBus.$on("updateLayer", layer => {
+      this.updateLayer(layer);
+    });
+    EventBus.$on("updateAllLayers", this.updateLayersParam);
   },
   methods: {
     filterCalcModeValues() {
       return this.options.calculationModes.values;
+    },
+    getLayerPayload(layer) {
+      const payload = {};
+      const queryParams = layer.get("queryParams");
+      const pois = this.getPois;
+      if (queryParams.includes("scenario_id_input")) {
+        payload["scenario_id_input"] =
+          this.activeScenario == null ? 0 : parseInt(this.activeScenario);
+      }
+      if (queryParams.includes("scenario_id")) {
+        payload["scenario_id"] =
+          this.activeScenario == null ? 0 : parseInt(this.activeScenario);
+      }
+      if (queryParams.includes("pois")) {
+        payload["pois"] = pois;
+      }
+      if (queryParams.includes("heatmap_type")) {
+        payload["heatmap_type"] = layer.get("name");
+      }
+      if (queryParams.includes("table_name")) {
+        payload["table_name"] = layer.get("name");
+      }
+      if (queryParams.includes("modus")) {
+        payload["modus"] = this.calculationModes;
+      }
+      if (queryParams.includes("modus_input")) {
+        payload["modus_input"] = this.calculationModes;
+      }
+      if (queryParams.includes("amenities")) {
+        payload["amenities"] = Object.keys(pois);
+      }
+      if (queryParams.includes("routing_profile")) {
+        payload["routing_profile"] = `${this.activeRoutingProfile}`;
+      }
+      return payload;
     },
     updateLayer(layer) {
       if (!layer.getVisible()) return;
@@ -143,38 +191,9 @@ export default {
       // TODO: Remove hardcoded values.
       const noUrl = layer.getUrl && !layer.getUrl();
       if (noUrl === undefined) {
-        const payload = {
-          return_type: "geobuf"
-        };
-        if (queryParams.includes("scenario_id_input")) {
-          payload["scenario_id_input"] =
-            this.activeScenario == null ? 0 : parseInt(this.activeScenario);
-        }
-        if (queryParams.includes("scenario_id")) {
-          payload["scenario_id"] =
-            this.activeScenario == null ? 0 : parseInt(this.activeScenario);
-        }
-        if (queryParams.includes("pois")) {
-          payload["pois"] = pois;
-        }
-        if (queryParams.includes("heatmap_type")) {
-          payload["heatmap_type"] = layer.get("name");
-        }
-        if (queryParams.includes("table_name")) {
-          payload["table_name"] = layer.get("name");
-        }
-        if (queryParams.includes("modus")) {
-          payload["modus"] = this.calculationModes;
-        }
-        if (queryParams.includes("modus_input")) {
-          payload["modus_input"] = this.calculationModes;
-        }
-        if (queryParams.includes("amenities")) {
-          payload["amenities"] = Object.keys(pois);
-        }
-        if (queryParams.includes("routing_profile")) {
-          payload["routing_profile"] = `${this.activeRoutingProfile}`;
-        }
+        const payload = this.getLayerPayload(layer);
+        payload.return_type = "geobuf";
+
         fetchLayerFeatures(layer, payload);
       } else {
         if (queryParams.includes("aois_input")) {
@@ -258,7 +277,9 @@ export default {
       this.updateLayersParam();
     },
     selectedPois() {
-      this.updateLayersParam();
+      setTimeout(() => {
+        this.updateLayersParam();
+      }, 50);
     },
     activeRoutingProfile() {
       this.updateLayersParam();

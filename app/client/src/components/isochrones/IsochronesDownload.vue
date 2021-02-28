@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" scrollable max-width="350px">
     <v-card>
-      <v-app-bar color="green" dark>
+      <v-app-bar :color="activeColor.primary" dark>
         <v-app-bar-nav-icon
           ><v-icon>fas fa-file-download</v-icon></v-app-bar-nav-icon
         >
@@ -29,7 +29,10 @@
       </vue-scroll>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn class="white--text" @click="download()" color="green"
+        <v-btn
+          class="white--text"
+          @click="download()"
+          :color="activeColor.primary"
           ><v-icon left>fas fa-download</v-icon
           >{{ $t("isochrones.download.download") }}</v-btn
         >
@@ -100,6 +103,9 @@ export default {
   },
   computed: {
     ...mapGetters("isochrones", { isochroneLayer: "isochroneLayer" }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    }),
     show: {
       get() {
         return this.visible;

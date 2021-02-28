@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" scrollable max-width="650px">
     <v-card>
-      <v-app-bar color="green" dark>
+      <v-app-bar :color="activeColor.primary" dark>
         <v-app-bar-nav-icon><v-icon>info</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title>{{ $t("appBar.about.title") }}</v-toolbar-title>
         <v-spacer></v-spacer>
@@ -93,7 +93,7 @@
 
 <script>
 import { humanize } from "../../utils/Helpers";
-
+import { mapGetters } from "vuex";
 export default {
   props: ["visible"],
   computed: {
@@ -131,7 +131,10 @@ export default {
         }
       });
       return a;
-    }
+    },
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
   },
   methods: {
     humanize

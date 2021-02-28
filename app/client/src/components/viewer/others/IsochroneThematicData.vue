@@ -11,7 +11,7 @@
     <v-layout justify-space-between column fill-height>
       <v-app-bar
         :ref="handleId"
-        color="green"
+        :color="activeColor.primary"
         height="50"
         style="cursor:grab;"
         dark
@@ -40,7 +40,7 @@
                 colored-border
                 class="mb-1 mt-2 elevation-2"
                 icon="info"
-                color="green"
+                :color="activeColor.primary"
                 dense
               >
                 <span
@@ -268,6 +268,9 @@ export default {
 
     ...mapGetters("pois", {
       getPoisItems: "selectedPois"
+    }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
     })
   },
   watch: {

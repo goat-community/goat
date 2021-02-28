@@ -3,17 +3,23 @@
     :indeterminate="true"
     :size="70"
     :width="7"
-    color="green"
+    :color="activeColor.primary"
     class="ma-0 pa-0 maploading-status"
     v-show="isNetworkBusy"
   ></v-progress-circular>
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 export default {
   name: "progress-status",
   props: {
     isNetworkBusy: { type: Boolean, required: true }
+  },
+  computed: {
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
   }
 };
 </script>

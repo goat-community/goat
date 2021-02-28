@@ -42,7 +42,7 @@
       <v-card-text> </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn class="white--text" color="green" @click="clear">
+        <v-btn class="white--text" :color="activeColor.primary" @click="clear">
           <v-icon left>delete</v-icon
           >{{ $t("appBar.drawAndMeasure.clear") }}</v-btn
         >
@@ -58,7 +58,7 @@ import { KeyShortcuts } from "../../mixins/KeyShortcuts";
 import { InteractionsToggle } from "../../mixins/InteractionsToggle";
 
 import OlMeasureController from "../../controllers/OlMeasureController";
-
+import { mapGetters } from "vuex";
 export default {
   mixins: [InteractionsToggle, Mapable, KeyShortcuts],
   data: () => ({
@@ -181,7 +181,12 @@ export default {
     colorChange() {},
     transparencyChange() {}
   },
-  mounted() {}
+  mounted() {},
+  computed: {
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
+  }
 };
 </script>
 <style lang="css" scoped>

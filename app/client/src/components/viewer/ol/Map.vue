@@ -88,6 +88,7 @@ import View from "ol/View";
 
 // ol imports
 import Overlay from "ol/Overlay";
+import Feature from "ol/Feature";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import Mask from "ol-ext/filter/Mask";
@@ -104,7 +105,6 @@ import { OlStyleFactory } from "../../../factory/OlStyle";
 import { groupBy, humanize, isCssColor } from "../../../utils/Helpers";
 import {
   getAllChildLayers,
-  getLayerType,
   updateLayerUrlQueryParam
 } from "../../../utils/Layer";
 import { geojsonToFeature } from "../../../utils/MapUtils";
@@ -479,12 +479,13 @@ export default {
     /**
      * Show getInfo popup.
      */
-    showPopup() {
+    showPopup(coordinate) {
       // Clear highligh feature
       this.getInfoLayerSource.clear();
-      let position = this.getInfoResult[this.popup.currentLayerIndex]
-        .getGeometry()
-        .getCoordinates();
+      const infoFeature = this.getInfoResult[this.popup.currentLayerIndex];
+      let position = infoFeature.getGeometry()
+        ? infoFeature.getGeometry().getCoordinates()
+        : coordinate;
       // Add highlight feature
       this.getInfoLayerSource.addFeature(
         this.getInfoResult[this.popup.currentLayerIndex]
@@ -606,9 +607,11 @@ export default {
         //WMS Requests
         let promiseArray = [];
         me.queryableLayers.forEach(layer => {
-          const layerType = getLayerType(layer);
+          const layerType = layer.get("type");
           switch (layerType) {
-            case "WFS": {
+            case "WFS":
+            case "VECTOR":
+            case "VECTORTILE": {
               let selectedFeatures = me.map.getFeaturesAtPixel(evt.pixel, {
                 hitTolerance: 4,
                 layerFilter: layerCandidate => {
@@ -617,8 +620,21 @@ export default {
               });
               if (selectedFeatures !== null && selectedFeatures.length > 0) {
                 //TODO: If there are more then 2 features selected get the closest one to coordinate rather than the first element
-                const clonedFeature = selectedFeatures[0].clone();
-                clonedFeature.set("layerName", layer.get("name"));
+                let clonedFeature;
+
+                if (!selectedFeatures[0].clone) {
+                  // !!! Workaround for vector tile features.
+                  const vtProps = {
+                    layerName: layer.get("name"),
+                    osm_type: selectedFeatures[0].getType()
+                  };
+
+                  Object.assign(vtProps, selectedFeatures[0].getProperties());
+                  clonedFeature = new Feature(vtProps);
+                } else {
+                  clonedFeature = selectedFeatures[0].clone();
+                  clonedFeature.set("layerName", layer.get("name"));
+                }
                 me.getInfoResult.push(clonedFeature);
               }
               break;
@@ -655,13 +671,13 @@ export default {
             });
 
             if (me.getInfoResult.length > 0) {
-              me.showPopup();
+              me.showPopup(evt.coordinate);
             }
           });
         } else {
           //Only for WFS layer
           if (me.getInfoResult.length > 0) {
-            me.showPopup();
+            me.showPopup(evt.coordinate);
           }
         }
       });
@@ -679,6 +695,7 @@ export default {
       if (this.currentInfoFeature && this.currentInfoFeature.get("osm_id")) {
         const feature = this.currentInfoFeature;
         const originGeometry =
+          feature.get("osm_type") || // for features created from vt render features
           feature.getProperties()["orgin_geometry"] ||
           feature
             .getGeometry()
