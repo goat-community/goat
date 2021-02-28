@@ -280,35 +280,6 @@ export default {
         layerNameVar: this.$t(`map.osmMode.layers.${layerName}.layerName`)
       });
     },
-    // updateAllProgress() {
-    //   let promiseArray = [];
-    //   this.$appConfig.map.osmMappingLayers.forEach(lConf => {
-    //     promiseArray.push(
-    //       axios.get(
-    //         `./geoserver/wfs?request=GetFeature&typeName=${lConf.layers}&version=1.1.0&resultType=hits`,
-    //         {
-    //           data: { layerName: lConf.name }
-    //         }
-    //       )
-    //     );
-    //   });
-
-    //   axios.all(promiseArray).then(results => {
-    //     results.forEach(response => {
-    //       const numberOfFeatures = new window.DOMParser()
-    //         .parseFromString(response.data, "text/xml")
-    //         .documentElement.getAttribute("numberOfFeatures");
-    //       if (numberOfFeatures) {
-    //         const layerName = JSON.parse(response.config.data).layerName;
-    //         this.osmMappingLayers[layerName].set(
-    //           "currentNumberOfFeatures",
-    //           numberOfFeatures,
-    //           false
-    //         );
-    //       }
-    //     });
-    //   });
-    // },
     getProgresPercentage(layer) {
       const currentNumberOfFeatures = layer.get("currentNumberOfFeatures");
       const initialNumberOfFeatures =
