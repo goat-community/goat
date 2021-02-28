@@ -96,13 +96,13 @@ export default class OlSelectController extends OlBaseController {
           // Request from origin table.
           const originTablePayload = {
             geom: circleWkt,
-            return_type: "geojson"
+            return_type: "geojson",
+            table_name: selectedLayer.get("name")
           };
 
           EventBus.$emit("getLayerPayload", {
             cb: function(payload) {
               Object.assign(originTablePayload, payload);
-              originTablePayload.table_name = selectedLayer.get("name");
             },
             layer: selectedLayer
           });
