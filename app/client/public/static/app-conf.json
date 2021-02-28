@@ -46,15 +46,17 @@
     "layers": [
       {
         "type": "VECTOR",
-        "lid": "study-area",
-        "name": "study_area",
-        "url": "/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:study_area_union&srsname=EPSG:4326&outputFormat=json",
-        "formatConfig": {},
         "format": "GeoJSON",
+        "group": "buildings_landuse",
+        "name": "study_area_crop",
+        "url": "/api/map/layer_read",
+        "formatConfig": {},
         "displayInLayerList": false,
         "visible": true,
         "zIndex": 4,
-        "styleRef": "boundaryStyle"
+        "style": {
+          "format": "custom-logic"
+        }
       },
       {
         "type": "WMS",

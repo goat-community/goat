@@ -82,11 +82,9 @@ export function geojsonToFeature(obj, options) {
   return vectorSource.getFeatures();
 }
 
-export function geobufToFeatures(obj) {
+export function geobufToFeatures(obj, config) {
   const geojson = geobuf.decode(new Pbf(obj));
-  return new GeoJSON().readFeatures(geojson, {
-    featureProjection: "EPSG:3857"
-  });
+  return geojsonToFeature(geojson, config);
 }
 
 export function featuresToGeojson(features, featureProjection, dataProjection) {

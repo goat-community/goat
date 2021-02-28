@@ -304,7 +304,7 @@ class LayerRead(Resource):
             FROM aois a
             WHERE a.amenity IN(SELECT UNNEST(%(amenities)s))'''
         elif table_name == 'edges':
-            prepared_query = '''SELECT id AS gid, %(modus_input)s AS modus, geom
+            prepared_query = '''SELECT id AS gid, %(modus_input)s AS modus, cost, geom
             FROM edges 
             WHERE objectid = %(objectid)s'''
         elif table_name == 'pois':
@@ -317,6 +317,8 @@ class LayerRead(Resource):
         elif table_name == 'buildings': 
             prepared_query = '''SELECT * FROM buildings
             WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))'''
+        elif table_name == 'study_area_crop':
+            prepared_query = '''SELECT * FROM study_area_crop'''
         else:
             return {
                 "Error": "No valid table was selected."

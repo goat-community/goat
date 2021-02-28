@@ -214,41 +214,29 @@ const editLayerHelper = {
 
           // Refetch building features  to update the properties (used for population)...
 
-          // const buildingsModifiedPayload = {
-          //   mode: "read",
-          //   table_name: `buildings_modified`,
-          //   scenario_id: store.state.activeScenario
-          // };
-
-          // http
-          //   .post("/api/map/layer_controller", buildingsModifiedPayload)
-          //   .then(response => {
-          //     console.log(response);
-          //   });
-
+          const buildingsModifiedPayload = {
+            mode: "read",
+            table_name: `buildings_modified`,
+            return_type: "geojson",
+            scenario_id: store.state.activeScenario
+          };
           http
-            .get("./geoserver/wfs", {
-              params: {
-                service: "WFS",
-                version: " 2.0.0",
-                request: "GetFeature",
-                featureId: bldFeatureIds.toString(),
-                typeNames: `cite:buildings_modified`,
-                outputFormat: "json"
-              }
-            })
+            .post("/api/map/layer_controller", buildingsModifiedPayload)
             .then(response => {
-              if (response.data && response.data.features) {
-                response.data.features.forEach(feature => {
-                  const id = parseInt(feature.id.split(".")[1]);
-                  const editFeature = source.getFeatureById(id);
-                  var keys = Object.keys(feature.properties);
-                  keys.forEach(key => {
-                    const value = feature.properties[key];
-                    if (value) {
-                      editFeature.set(key, value);
-                    }
-                  });
+              if (response.data) {
+                const olFeatures = geojsonToFeature(response.data);
+                olFeatures.forEach(feature => {
+                  if (feature.get("gid")) {
+                    const id = parseInt(feature.get("gid"));
+                    const editFeature = source.getFeatureById(id);
+                    var keys = Object.keys(feature.properties);
+                    keys.forEach(key => {
+                      const value = feature.properties[key];
+                      if (value) {
+                        editFeature.set(key, value);
+                      }
+                    });
+                  }
                 });
               }
             });
