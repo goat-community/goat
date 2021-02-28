@@ -319,6 +319,11 @@ class LayerRead(Resource):
             WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))'''
         elif table_name == 'study_area_crop':
             prepared_query = '''SELECT * FROM study_area_crop'''
+        elif table_name == 'study_area_union':
+            prepared_query = '''SELECT * FROM study_area_union'''
+        elif table_name == 'study_area':
+            prepared_query = '''SELECT * FROM study_area'''
+
         else:
             return {
                 "Error": "No valid table was selected."

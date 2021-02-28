@@ -4,10 +4,10 @@ import { WFS } from "ol/format";
 import olLayerImage from "ol/layer/Image.js";
 import olLayerVector from "ol/layer/Vector.js";
 import olSourceImageWMS from "ol/source/ImageWMS.js";
-import GeoJSON from "ol/format/GeoJSON.js";
 
 import { appendParams as olUriAppendParams } from "ol/uri.js";
 import UrlUtil from "./Url";
+import { geojsonToFeature } from "./MapUtils";
 const geobuf = require("geobuf");
 const Pbf = require("pbf");
 const ServerType = "geoserver";
@@ -503,7 +503,8 @@ export function fetchLayerFeatures(layer, payload) {
       var geojson = geobuf.decode(new Pbf(data));
       layer.getSource().clear();
       if (geojson) {
-        const features = new GeoJSON().readFeatures(geojson, {
+        const features = geojsonToFeature(geojson, {
+          dataProjection: "EPSG:4326",
           featureProjection: "EPSG:3857"
         });
         layer.getSource().addFeatures(features);
