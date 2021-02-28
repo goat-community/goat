@@ -15,7 +15,7 @@ import App from "./App";
 import UrlUtil from "./utils/Url";
 import store from "./store/index";
 import axios from "axios";
-import { geojsonToFeature } from "./utils/MapUtils";
+import { geobufToFeatures } from "./utils/MapUtils";
 import { buffer } from "ol/extent";
 import { getCenter } from "ol/extent";
 import { EventBus } from "./EventBus";
@@ -44,8 +44,15 @@ function getAppConf() {
 }
 
 function getStudyAreaBbox() {
-  return axios.get(
-    "/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:study_area_union&srsname=EPSG:4326&outputFormat=json"
+  return axios.post(
+    "/api/map/layer_read",
+    {
+      table_name: "study_area_union",
+      return_type: "geobuf"
+    },
+    {
+      responseType: "arraybuffer"
+    }
   );
 }
 
@@ -59,8 +66,8 @@ axios.all([getAppConf(), getStudyAreaBbox(), getLayerStyleTranslation()]).then(
     console.log(layerStyleTranslations);
     Vue.prototype.$appConfig = config.data;
     //2- Get study area bbox
-    if (studyArea.data.features.length > 0) {
-      const f = geojsonToFeature(studyArea.data, {
+    if (studyArea.data) {
+      const f = geobufToFeatures(studyArea.data, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857"
       });

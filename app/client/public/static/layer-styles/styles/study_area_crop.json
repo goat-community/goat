@@ -6,11 +6,11 @@
       "symbolizers": [
         {
           "kind": "Fill",
-          "color": "#7F7FBF",
+          "color": "#7c7c7d",
           "fillOpacity": 0.3,
-          "outlineColor": "#7F7FBF",
-          "outlineWidth": 2,
-          "opacity": 0.4
+          "outlineColor": "#7c7c7d",
+          "outlineWidth": 5,
+          "opacity": 0.6
         }
       ]
     }

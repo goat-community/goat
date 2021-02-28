@@ -10,6 +10,7 @@ import {
   geojsonToFeature,
   getPolygonArea,
   wktToFeature,
+  geobufToFeatures,
   flyTo
 } from "../../utils/MapUtils";
 import Feature from "ol/Feature";
@@ -487,20 +488,22 @@ const actions = {
 
       addProps(calculation.additionalData, `${payload.type}.features`, []);
 
-      http
-        .get("./geoserver/wfs", {
-          params: {
-            service: "WFS",
-            version: " 1.1.0",
-            request: "GetFeature",
-            viewparams: `objectid:${objectId};modus:${modus}`,
-            outputFormat: "application/json",
-            typeNames: "cite:show_network"
-          }
+      fetch("/api/map/layer_read", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          return_type: "geobuf",
+          table_name: "edges",
+          objectid: objectId,
+          modus_input: modus
         })
-        .then(function(response) {
-          if (response.status === 200) {
-            let olFeatures = geojsonToFeature(response.data, {
+      })
+        .then(resp => resp.arrayBuffer())
+        .then(data => {
+          if (data) {
+            let olFeatures = geobufToFeatures(data, {
               dataProjection: "EPSG:4326",
               featureProjection: "EPSG:3857"
             });

@@ -673,5 +673,6 @@ function poisStyle(feature) {
 }
 
 export const stylesRef = {
-  pois: poisStyle
+  pois: poisStyle,
+  study_area_crop: baseStyleDefs.boundaryStyle
 };

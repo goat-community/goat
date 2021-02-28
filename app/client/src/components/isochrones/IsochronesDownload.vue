@@ -83,18 +83,14 @@ export default {
       } else if (me.selected === "Shapefile") {
         const objectId = me.calculation.data[0].objectId;
         http
-          .get("./geoserver/wfs", {
-            params: {
-              service: "WFS",
-              version: " 1.1.0",
-              request: "GetFeature",
-              viewparams: `objectid:${objectId}`,
-              outputFormat: "shape-zip",
-              typeNames: "cite:download_isochrones",
-              srsname: "EPSG:4326"
+          .post(
+            "/api/map/isochrone",
+            {
+              return_type: "shapefile",
+              objectid: objectId
             },
-            responseType: "blob"
-          })
+            { responseType: "blob" }
+          )
           .then(response => {
             saveAs(response.data, `${exportName}.zip`);
           });

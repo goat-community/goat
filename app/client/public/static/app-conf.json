@@ -46,15 +46,20 @@
     "layers": [
       {
         "type": "VECTOR",
-        "lid": "study-area",
-        "name": "study_area",
-        "url": "/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:study_area_union&srsname=EPSG:4326&outputFormat=json",
-        "formatConfig": {},
+        "name": "study_area_crop",
+        "group": "buildings_landuse",
+        "url": "/api/map/layer_read",
         "format": "GeoJSON",
-        "displayInLayerList": false,
         "visible": true,
-        "zIndex": 4,
-        "styleRef": "boundaryStyle"
+        "canEdit": false,
+        "queryable": false,
+        "displayInLayerList": false,
+        "zIndex": 1,
+        "queryParams": ["table_name"],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/study_area_crop.json"
+        }
       },
       {
         "type": "WMS",
@@ -199,35 +204,17 @@
         }
       },
       {
-        "type": "WMS",
-        "name": "administrativeUnits",
-        "url": "/geoserver/wms",
-        "group": "buildings_landuse",
-        "layers": "cite:study_area",
-        "opacity": 1,
-        "queryable": false,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "serverType": "geoserver",
-        "attributes": {
-          "source": "Landeshauptstadt München",
-          "date": "2020"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
+        "type": "VECTOR",
+        "format": "GeoJSON",
         "name": "study_area",
-        "url": "/api/map/layer/study_area/{z}/{x}/{y}",
+        "url": "/api/map/layer_read",
         "group": "buildings_landuse",
         "visible": false,
         "canEdit": false,
-        "queryable": true,
+        "queryable": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "queryParams": [],
+        "queryParams": ["table_name"],
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/study_area.json"
@@ -236,20 +223,6 @@
           "source": "Landeshauptstadt München",
           "date": "2020"
         }
-      },
-      {
-        "type": "WMS",
-        "name": "extentStudyarea",
-        "url": "/geoserver/wms",
-        "group": "buildings_landuse",
-        "layers": "cite:study_area_crop",
-        "opacity": 0.5,
-        "queryable": false,
-        "visible": false,
-        "displayInLayerList": false,
-        "displayInLegend": false,
-        "zIndex": 4,
-        "serverType": "geoserver"
       },
       {
         "type": "VECTORTILE",
