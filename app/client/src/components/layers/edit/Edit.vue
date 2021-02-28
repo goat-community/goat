@@ -819,6 +819,7 @@ export default {
   }),
   watch: {
     selectedLayer(newValue) {
+      console.log(newValue);
       this.updateSelectedLayer(newValue);
     },
     activeScenario() {

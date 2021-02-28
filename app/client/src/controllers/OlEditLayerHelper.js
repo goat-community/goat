@@ -173,7 +173,7 @@ const editLayerHelper = {
         }
       )
       .then(function(response) {
-        if (response.status === 200 && response.data === "success") {
+        if (response.status === 200) {
           //Set status of delete features as well
           editLayerHelper.deletedFeatures = editLayerHelper.deletedFeatures.filter(
             feature => {

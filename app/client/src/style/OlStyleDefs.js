@@ -662,7 +662,7 @@ function poisStyle(feature) {
     let path = `img/pois-map/${name}.png`;
     poisStyleCache[name] = new OlStyle({
       image: new OlIcon({
-        anchor: [0.5, 46],
+        anchor: [0.5, 35],
         anchorXUnits: "fraction",
         anchorYUnits: "pixels",
         src: path

@@ -16,7 +16,7 @@ import Feature from "ol/Feature";
 import { geojsonToFeature, geometryToWKT } from "../utils/MapUtils";
 import http from "../services/http";
 import axios from "axios";
-
+import { EventBus } from "../EventBus";
 import { unByKey } from "ol/Observable";
 import editLayerHelper from "./OlEditLayerHelper";
 import i18n from "../../src/plugins/i18n";
@@ -642,7 +642,7 @@ export default class OlEditController extends OlBaseController {
         if (me.currentInteraction == "draw") {
           me.featuresToCommit = [];
         }
-        console.log(response);
+        EventBus.$emit("updateAllLayers");
       });
     });
   }

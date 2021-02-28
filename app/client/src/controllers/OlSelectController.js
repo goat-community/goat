@@ -9,9 +9,10 @@ import { getSelectStyle } from "../style/OlStyleDefs";
 import { geometryToWKT } from "../utils/MapUtils";
 
 import store from "../store/modules/isochrones";
+import poisStore from "../store/modules/pois";
 import OlBaseController from "./OlBaseController";
 import i18n from "../../src/plugins/i18n";
-
+import { EventBus } from "../EventBus";
 /**
  * Class holding the OpenLayers related logic for the select tool.
  */
@@ -94,10 +95,24 @@ export default class OlSelectController extends OlBaseController {
           const circleWkt = geometryToWKT(circleAsPolygon);
           // Request from origin table.
           const originTablePayload = {
-            table_name: selectedLayer.get("name"),
             geom: circleWkt,
             return_type: "geojson"
           };
+
+          EventBus.$emit("getLayerPayload", {
+            cb: function(payload) {
+              Object.assign(originTablePayload, payload);
+              originTablePayload.table_name = selectedLayer.get("name");
+            },
+            layer: selectedLayer
+          });
+
+          originTablePayload.scenario_id = 0;
+          if (poisStore.state.selectedPois) {
+            const poisArray = poisStore.state.selectedPois.map(p => p.value);
+            originTablePayload.amenities = poisArray;
+          }
+
           const requests = [
             http.post("/api/map/layer_read", originTablePayload)
           ];
