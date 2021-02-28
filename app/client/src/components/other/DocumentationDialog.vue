@@ -47,7 +47,7 @@ export default {
   props: {
     visible: { type: Boolean, required: true },
     item: { type: Object, required: false },
-    color: { type: String, default: "#4CAF50" }
+    color: { type: String, default: "#2BB381" }
   },
   data: () => ({
     isLoading: true

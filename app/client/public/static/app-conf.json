@@ -9,7 +9,7 @@
     "secondary": "#3a4d66"
   },
   "controlsColor": "#26AE3F",
-  "logo": "./src/assets/img/logo_text.png",
+  "logo": "./src/assets/img/logo_white.png",
   "map": {
     "projectionCode": "EPSG:3857",
     "proj4Defs": [

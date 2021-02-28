@@ -159,7 +159,7 @@ export default {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
 }
 .styled-table thead tr {
-  background-color: #4caf50;
+  background-color: #2bb381;
   color: #ffffff;
   text-align: left;
 }
@@ -175,10 +175,10 @@ export default {
 }
 
 .styled-table tbody tr:last-of-type {
-  border-bottom: 2px solid #4caf50;
+  border-bottom: 2px solid #2bb381;
 }
 .styled-table tbody tr.active-row {
   font-weight: bold;
-  color: #4caf50;
+  color: #2bb381;
 }
 </style>

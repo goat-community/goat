@@ -112,7 +112,7 @@ export default {
   data: () => ({
     activeComponent: "map-isochrones",
     logo: "img/logo.png",
-    logoText: "img/logo_text.png",
+    logoText: "img/logo_white.png",
     drawer: true,
     mini: false,
     responsive: false

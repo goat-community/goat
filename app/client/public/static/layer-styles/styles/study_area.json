@@ -1,0 +1,15 @@
+{
+    "name": "study_area",
+    "rules": [
+      {
+        "name": "standard",
+        "symbolizers": [
+          {
+            "kind": "Fill",
+            "color": "#1e24d5",
+            "opacity": 0.4
+          }
+        ]
+      }
+    ]
+  }

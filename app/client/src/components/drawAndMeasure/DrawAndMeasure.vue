@@ -196,7 +196,7 @@ export default {
   color: white;
 }
 .expansion-panel__container--active {
-  background-color: #4caf50 !important;
+  background-color: #2bb381 !important;
   color: white !important;
   font-weight: bold !important;
 }
