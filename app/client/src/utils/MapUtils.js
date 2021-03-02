@@ -73,7 +73,9 @@ export function geojsonToFeature(obj, options) {
   while (Array.isArray(featureObj)) {
     featureObj = featureObj[0];
   }
-  if (!featureObj.features) {
+  if (typeof obj === "string") {
+    featureObj = JSON.parse(obj);
+  } else if (!featureObj.features) {
     featureObj.features = [];
   }
   const vectorSource = new Vector({

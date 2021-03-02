@@ -259,8 +259,7 @@ export default {
         me.poisLayer.setVisible(true);
       }
 
-      if (me.selectedPois.length > 0 && me.p)
-        me.updateSelectedPoisForThematicData(me.selectedPois);
+      me.updateSelectedPoisForThematicData(me.selectedPois);
       me.updatePois(me.selectedPois);
       me.countStudyAreaPois();
     },
