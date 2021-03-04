@@ -819,7 +819,6 @@ export default {
   }),
   watch: {
     selectedLayer(newValue) {
-      console.log(newValue);
       this.updateSelectedLayer(newValue);
     },
     activeScenario() {
@@ -1111,7 +1110,6 @@ export default {
           }
         )
         .then(response => {
-          console.log(response);
           if (response.data) {
             //Add features to the edit layer to let the user interact
             let featureObj = response.data;
@@ -1631,8 +1629,6 @@ export default {
       }
 
       http.post("/api/map/layer_controller", payload).then(response => {
-        const result = response.data;
-        console.log(result);
         if (response.data) {
           const feature = geojsonToFeature(response.data);
           if (feature[0] && feature[0].get("gid")) {
@@ -2235,7 +2231,6 @@ export default {
     },
     layerName() {
       const value = this.selectedLayer.get("name");
-      console.log(value);
       return value;
     },
     reqFields() {

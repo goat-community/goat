@@ -9,7 +9,7 @@ import { create as createTransform } from "ol/transform";
 
 import OlStyleParser from "geostyler-openlayers-parser";
 
-const iconSize = [45, 30];
+const iconSize = [40, 30];
 
 /**
  * A class that can be used to render svg legends.
@@ -34,12 +34,23 @@ class LegendRenderer {
       items: [],
       title: ""
     };
-    if (style.name) {
-      config.title = style.name;
-    }
+    // if (style.name) {
+    //   config.title = style.name;
+    // }
+    console.log(this.config);
+    const translation = this.config.translation.styleTranslation;
+    const currentLocale = this.config.translation.currentLocale;
     style.rules.forEach(rule => {
+      let title = rule.name;
+      if (
+        translation &&
+        translation[title] &&
+        translation[title][currentLocale]
+      ) {
+        title = translation[title][currentLocale];
+      }
       config.items.push({
-        title: rule.name,
+        title,
         rule
       });
     });

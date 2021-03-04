@@ -14,7 +14,6 @@ const editLayerHelper = {
   selectedLayer: null,
   selectedWayType: "road",
   filterResults(response, source, bldEntranceLayer, storageSource) {
-    console.log(response);
     const editFeatures = geojsonToFeature(response.first.data, {
       dataProjection: "EPSG:4326",
       featureProjection: "EPSG:3857"

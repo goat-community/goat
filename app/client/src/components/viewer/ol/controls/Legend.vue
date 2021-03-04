@@ -16,43 +16,57 @@
           <template v-for="(item, index) in layers">
             <div
               :key="index"
-              v-if="item.getVisible() === true"
+              v-if="
+                item.getVisible() === true &&
+                  item.get('displayInLegend') !== false &&
+                  item.get('group') !== 'backgroundLayers'
+              "
               style="padding-right:10px;"
             >
               <v-divider></v-divider>
-              <!-- Parent layer can have multiple child layers, so we need to loop through -->
+              <!-- LAYER TITLE -->
+              <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
+                {{
+                  $te(`map.layerName.${item.get("name")}`)
+                    ? $t(`map.layerName.${item.get("name")}`)
+                    : item.get("name")
+                }}
+              </p>
               <!-- WMS LEGEND -->
-              <div v-if="item.get('type') === 'WMS'">
-                <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
-                  {{
-                    $te(`map.layerName.${item.get("name")}`)
-                      ? $t(`map.layerName.${item.get("name")}`)
-                      : item.get("name")
-                  }}
-                </p>
-                <template
-                  v-for="(layerName, index2) in item
-                    .getSource()
-                    .getParams()
-                    .LAYERS.split(',')"
-                >
-                  <div :key="index2">
-                    <img
-                      style="max-width:
+              <div v-if="item.get('legendGraphicUrl')">
+                <img
+                  style="max-width:
                   100%;"
-                      :src="getWMSLegendImageUrl(item, layerName)"
-                      class="white--text mt-0 pt-0"
-                    />
-                    <br />
-                  </div>
-                </template>
+                  :src="item.get('legendGraphicUrl')"
+                  class="white--text mt-0 pt-0"
+                />
               </div>
-              <!-- VECTOR LEGEND -->
-              <div v-if="['VECTORTILE', 'VECTOR'].includes(item.get('type'))">
-                <span
-                  :ref="`legend-vector-${index}`"
-                  v-html="renderLegend(item, index)"
-                ></span>
+              <div v-else>
+                <div v-if="item.get('type') === 'WMS'">
+                  <template
+                    v-for="(layerName, index2) in item
+                      .getSource()
+                      .getParams()
+                      .LAYERS.split(',')"
+                  >
+                    <div :key="index2">
+                      <img
+                        style="max-width:
+                  100%;"
+                        :src="getWMSLegendImageUrl(item, layerName)"
+                        class="white--text mt-0 pt-0"
+                      />
+                      <br />
+                    </div>
+                  </template>
+                </div>
+                <!-- VECTOR LEGEND -->
+                <div v-if="['VECTORTILE', 'VECTOR'].includes(item.get('type'))">
+                  <span
+                    :ref="`legend-vector-${index}`"
+                    v-html="renderLegend(item, index)"
+                  ></span>
+                </div>
               </div>
             </div>
           </template>
@@ -114,6 +128,8 @@ export default {
         console.log(this.$appConfig.stylesObj);
         const styleObj = this.$appConfig.stylesObj;
         const name = item.get("name");
+        let styleTranslation = this.$appConfig.stylesObj[name].translation;
+        const currentLocale = this.$i18n.locale;
         if (styleObj[name] && styleObj[name].format === "geostyler") {
           let el = this.$refs[`legend-vector-${index}`];
           if (Array.isArray(el) && el.length > 0) {
@@ -124,12 +140,16 @@ export default {
             maxColumnWidth: 200,
             overflow: "auto",
             styles: [style],
-            size: [200, 300]
+            size: [200, 300],
+            translation: { styleTranslation, currentLocale }
           });
           renderer.render(el);
         }
-      }, 100);
+      }, 200);
     }
+  },
+  mounted() {
+    console.log("legend mounted!");
   }
 };
 </script>

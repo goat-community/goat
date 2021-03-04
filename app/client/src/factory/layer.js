@@ -87,6 +87,7 @@ export const LayerFactory = {
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       displayInLegend: lConf.displayInLegend,
+      legendGraphicUrl: lConf.legendGraphicUrl,
       group: lConf.group,
       visible: lConf.visible,
       opacity: lConf.opacity,
@@ -244,7 +245,6 @@ export const LayerFactory = {
     };
 
     lConf.url ? (sourceOpts.url = lConf.url) : lConf.url;
-    console.log(sourceOpts);
     const vectorLayer = new VectorImageLayer({
       name: lConf.name,
       title: lConf.title,
@@ -256,6 +256,8 @@ export const LayerFactory = {
       modifyAttributes: lConf.modifyAttributes,
       requiresPois: lConf.requiresPois,
       queryable: lConf.queryable,
+      displayInLegend: lConf.displayInLegend,
+      legendGraphicUrl: lConf.legendGraphicUrl,
       docUrl: lConf.docUrl,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
@@ -298,6 +300,8 @@ export const LayerFactory = {
       requiresPois: lConf.requiresPois,
       docUrl: lConf.docUrl,
       lid: lConf.lid,
+      displayInLegend: lConf.displayInLegend,
+      legendGraphicUrl: lConf.legendGraphicUrl,
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
       opacity: lConf.opacity,

@@ -813,6 +813,7 @@
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
+        "legendGraphicUrl": "./img/legend-graphics/legend_mode_share.png",
         "queryParams": ["table_name"],
         "zIndex": 1,
         "style": {
