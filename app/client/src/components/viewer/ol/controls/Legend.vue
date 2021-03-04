@@ -19,7 +19,8 @@
               v-if="
                 item.getVisible() === true &&
                   item.get('displayInLegend') !== false &&
-                  item.get('group') !== 'backgroundLayers'
+                  item.get('group') !== 'backgroundLayers' &&
+                  isMapMounted === true
               "
               style="padding-right:10px;"
             >
@@ -87,7 +88,8 @@ export default {
     color: { type: String, default: "#2BB381" }
   },
   data: () => ({
-    layers: []
+    layers: [],
+    isMapMounted: false
   }),
   methods: {
     /**
@@ -99,6 +101,7 @@ export default {
       me.layers = allLayers.filter(
         layer => layer.get("displayInLegend") !== false
       );
+      this.isMapMounted = true;
     },
     getWMSLegendImageUrl(item, layerName) {
       let layerUrl = item.getSource().getUrl();
