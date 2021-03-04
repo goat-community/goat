@@ -1,5 +1,6 @@
-import { select } from "d3-selection";
+/** https://github.com/geostyler/geostyler-legend */
 
+import { select } from "d3-selection";
 import { boundingExtent } from "ol/extent";
 import OlGeomPoint from "ol/geom/Point";
 import OlGeomPolygon from "ol/geom/Polygon";
@@ -69,7 +70,7 @@ class LegendRenderer {
     if (item.rule) {
       container = container
         .append("g")
-        .attr("class", "legend-item")
+        .attr("class", "legend-item body-2")
         .attr("title", item.title);
       const img = this.getRuleIcon(item.rule);
       return img.then(uri => {
@@ -81,7 +82,7 @@ class LegendRenderer {
             .attr("width", iconSize[0])
             .attr("height", iconSize[1])
             .style("fill-opacity", 0)
-            .style("stroke", "black");
+            .style("stroke", "gray");
         }
         container
           .append("image")
