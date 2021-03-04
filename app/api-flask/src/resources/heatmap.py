@@ -105,7 +105,8 @@ def heatmap_luptai(pois, modus_input, scenario_id_input, return_type):
 
 
 def heatmap_connectivity(modus_input, scenario_id_input, return_type):
-    recompute_heatmap(scenario_id_input)
+    if modus_input in ('scenario','comparison'):
+        recompute_heatmap(scenario_id_input)
 
     result = db.select_with_identifiers('''SELECT percentile_area_isochrone AS score, %(modus_input)s AS modus, geom
     FROM heatmap_connectivity(%(modus_input)s,%(scenario_id_input)s)''',
