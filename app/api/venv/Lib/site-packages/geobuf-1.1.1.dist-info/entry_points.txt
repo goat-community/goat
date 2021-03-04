@@ -1,0 +1,4 @@
+
+      [console_scripts]
+      geobuf=geobuf.scripts.cli:cli
+      

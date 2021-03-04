@@ -678,7 +678,6 @@ function poisStyle(feature) {
  */
 const modeShareStyleCache = {};
 function modeShareStyle(feature) {
-  console.log(feature);
   const gid = feature.get("gid") || feature.get("objectid");
   if (!modeShareStyleCache[gid]) {
     const boundaryStyle = new OlStyle({
@@ -710,7 +709,6 @@ function modeShareStyle(feature) {
         const interiorPointsMltPoint = feature
           .getGeometry()
           .getInteriorPoints();
-
         return interiorPointsMltPoint;
       }
     });

@@ -62,10 +62,10 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTORTILE",
         "name": "ways",
-        "url": "/geoserver/wms",
-        "layers": "cite:ways",
+        "format": "MVT",
+        "url": "/api/map/layer/ways/{z}/{x}/{y}",
         "opacity": 1,
         "queryable": false,
         "visible": false,
@@ -79,6 +79,10 @@
         "attributes": {
           "source": "openStreetMap",
           "date": "25-11-2020"
+        },
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_lit.json"
         }
       },
       {
@@ -672,7 +676,6 @@
         "name": "accidentsPointsCyclists",
         "url": "/api/map/layer/accidents_cyclists/{z}/{x}/{y}",
         "group": "additionalDataLayers",
-        "layers": "cite:accidents_cyclists",
         "opacity": 1,
         "visible": false,
         "canEdit": false,

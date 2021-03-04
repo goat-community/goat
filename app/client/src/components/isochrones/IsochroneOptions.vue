@@ -150,6 +150,7 @@ export default {
       const payload = {};
       const queryParams = layer.get("queryParams");
       const pois = this.getPois;
+      if (!queryParams) return null;
       if (queryParams.includes("scenario_id_input")) {
         payload["scenario_id_input"] =
           this.activeScenario == null ? 0 : parseInt(this.activeScenario);
@@ -192,6 +193,7 @@ export default {
       const noUrl = layer.getUrl && !layer.getUrl();
       if (noUrl === undefined) {
         const payload = this.getLayerPayload(layer);
+        if (!payload) return;
         payload.return_type = "geobuf";
 
         fetchLayerFeatures(layer, payload);

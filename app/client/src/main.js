@@ -116,6 +116,7 @@ axios.all([getAppConf(), getStudyAreaBbox(), getLayerStyleTranslation()]).then(
           }
         });
         EventBus.$emit("inject-styles", stylesObj);
+        Vue.prototype.$appConfig.stylesObj = stylesObj;
       });
     }
 

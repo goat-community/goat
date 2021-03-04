@@ -2,7 +2,7 @@
   <v-expansion-panels
     class="elevation-3"
     dark
-    style="position:absolute;bottom:35px;right:10px;maxWidth: 200px;"
+    style="position:absolute;bottom:35px;right:10px;maxWidth: 250px;"
   >
     <v-expansion-panel :style="`background-color: white;`">
       <v-expansion-panel-header :style="`background-color: ${color};`"
@@ -19,30 +19,41 @@
               v-if="item.getVisible() === true"
               style="padding-right:10px;"
             >
-              <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
-                {{
-                  $te(`map.layerName.${item.get("name")}`)
-                    ? $t(`map.layerName.${item.get("name")}`)
-                    : item.get("name")
-                }}
-              </p>
               <v-divider></v-divider>
               <!-- Parent layer can have multiple child layers, so we need to loop through -->
-              <template
-                v-for="(layerName, index2) in item
-                  .getSource()
-                  .getParams()
-                  .LAYERS.split(',')"
-              >
-                <div :key="index2">
-                  <img
-                    style="max-width: 100%;"
-                    :src="getWMSLegendImageUrl(item, layerName)"
-                    class="white--text mt-0 pt-0"
-                  />
-                  <br />
-                </div>
-              </template>
+              <!-- WMS LEGEND -->
+              <div v-if="item.get('type') === 'WMS'">
+                <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
+                  {{
+                    $te(`map.layerName.${item.get("name")}`)
+                      ? $t(`map.layerName.${item.get("name")}`)
+                      : item.get("name")
+                  }}
+                </p>
+                <template
+                  v-for="(layerName, index2) in item
+                    .getSource()
+                    .getParams()
+                    .LAYERS.split(',')"
+                >
+                  <div :key="index2">
+                    <img
+                      style="max-width:
+                  100%;"
+                      :src="getWMSLegendImageUrl(item, layerName)"
+                      class="white--text mt-0 pt-0"
+                    />
+                    <br />
+                  </div>
+                </template>
+              </div>
+              <!-- VECTOR LEGEND -->
+              <div v-if="['VECTORTILE', 'VECTOR'].includes(item.get('type'))">
+                <span
+                  :ref="`legend-vector-${index}`"
+                  v-html="renderLegend(item, index)"
+                ></span>
+              </div>
             </div>
           </template>
         </vue-scroll>
@@ -53,6 +64,8 @@
 <script>
 import { Mapable } from "../../../../mixins/Mapable";
 import { getAllChildLayers, getWMSLegendURL } from "../../../../utils/Layer";
+import LegendRenderer from "../../../../utils/LegendRenderer";
+
 export default {
   mixins: [Mapable],
   name: "map-legend",
@@ -70,9 +83,7 @@ export default {
       const me = this;
       const allLayers = getAllChildLayers(me.map);
       me.layers = allLayers.filter(
-        layer =>
-          layer.getSource().serverType_ === "geoserver" &&
-          layer.get("displayInLegend") !== false
+        layer => layer.get("displayInLegend") !== false
       );
     },
     getWMSLegendImageUrl(item, layerName) {
@@ -97,6 +108,27 @@ export default {
         style
       );
       return legedUrl;
+    },
+    renderLegend(item, index) {
+      setTimeout(() => {
+        console.log(this.$appConfig.stylesObj);
+        const styleObj = this.$appConfig.stylesObj;
+        const name = item.get("name");
+        if (styleObj[name] && styleObj[name].format === "geostyler") {
+          let el = this.$refs[`legend-vector-${index}`];
+          if (Array.isArray(el) && el.length > 0) {
+            el = el[0];
+          }
+          const style = styleObj[name].style;
+          const renderer = new LegendRenderer({
+            maxColumnWidth: 200,
+            overflow: "auto",
+            styles: [style],
+            size: [200, 300]
+          });
+          renderer.render(el);
+        }
+      }, 100);
     }
   }
 };

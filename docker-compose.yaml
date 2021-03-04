@@ -46,34 +46,15 @@ services:
     networks:
       proxy:
 
-  # api:
-  #   build:
-  #     context: ./app/api
-  #   image: eliaspajares/goat-api:dev
-  #   volumes:
-  #     - /app/node_modules
-  #     - ./app/api:/app
-  #   container_name: goat-api
-  #   env_file:
-  #     - ./app/config/docker-env/api.env
-  #   labels:
-  #     - "traefik.backend=api"
-  #     - "traefik.frontend.entryPoints=https,http"
-  #     - "traefik.frontend.rule=Host:localhost;PathPrefix:/api"
-  #     - "traefik.port=3000"
-  #     - "traefik.enable=true"
-  #   networks:
-  #     proxy:
-
-  api-flask:
+  api:
     build:
-      context: ./app/api-flask
+      context: ./app/api
     ports:
       - 3000:3000
     env_file:
       - ./app/config/docker-env/api.env
     volumes:
-      - ./app/api-flask:/usr/src/app
+      - ./app/api:/usr/src/app
     labels:
       - "traefik.backend=api-flask"
       - "traefik.frontend.entryPoints=https,http"
@@ -83,23 +64,6 @@ services:
     networks:
       proxy:
 
-  geoserver:
-    image: goatcommunity/geoserver-base:2.17.2
-    volumes:
-      - ./app/geoserver/geoserver_data:/var/local/geoserver
-      - ./app/geoserver/additional_libs:/var/local/geoserver-exts
-    container_name: goat-geoserver
-    restart: on-failure
-    depends_on:
-      - db
-    labels:
-      - "traefik.backend=geoserver"
-      - "traefik.frontend.entryPoints=https,http"
-      - "traefik.frontend.rule=Host:localhost;PathPrefix:/geoserver"
-      - "traefik.port=8080"
-      - "traefik.enable=true"
-    networks:
-      proxy:
 
   db: 
     image: goatcommunity/database:12-3.1-2.6.11-custom-2.3.14

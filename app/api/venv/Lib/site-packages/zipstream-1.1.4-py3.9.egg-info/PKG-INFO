@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: zipstream
+Version: 1.1.4
+Summary: Zipfile generator
+Home-page: https://github.com/allanlei/python-zipstream
+Author: Allan Lei
+Author-email: allanlei@helveticode.com
+License: UNKNOWN
+Description: UNKNOWN
+Keywords: zip streaming
+Platform: UNKNOWN
