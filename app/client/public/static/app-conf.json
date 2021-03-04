@@ -164,7 +164,7 @@
         "type": "VECTORTILE",
         "format": "MVT",
         "name": "landuse_osm",
-        "url": "/api/map/layer/landuse_osm_api/{z}/{x}/{y}",
+        "url": "/api/map/layer/landuse_osm/{z}/{x}/{y}",
         "group": "buildings_landuse",
         "visible": false,
         "canEdit": false,
