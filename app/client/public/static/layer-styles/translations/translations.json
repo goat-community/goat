@@ -76,7 +76,7 @@
       "de": "Hohe Erreichbarkeit"
     }
   },
-  "heatmap_population_api": {
+  "heatmap_population": {
     "NoPopulation": {
       "en": "no population",
       "de": "keine Bevölkerung"

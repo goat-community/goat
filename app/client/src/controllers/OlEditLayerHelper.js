@@ -14,7 +14,6 @@ const editLayerHelper = {
   selectedLayer: null,
   selectedWayType: "road",
   filterResults(response, source, bldEntranceLayer, storageSource) {
-    console.log(response);
     const editFeatures = geojsonToFeature(response.first.data, {
       dataProjection: "EPSG:4326",
       featureProjection: "EPSG:3857"
@@ -229,11 +228,14 @@ const editLayerHelper = {
                   if (feature.get("gid")) {
                     const id = parseInt(feature.get("gid"));
                     const editFeature = source.getFeatureById(id);
-                    var keys = Object.keys(feature.properties);
+                    var keys = Object.keys(feature.getProperties());
+                    const properties = feature.getProperties();
                     keys.forEach(key => {
-                      const value = feature.properties[key];
-                      if (value) {
-                        editFeature.set(key, value);
+                      if (!["geom", "geometry"].includes(key)) {
+                        const value = properties[key];
+                        if (value) {
+                          editFeature.set(key, value);
+                        }
                       }
                     });
                   }

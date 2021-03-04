@@ -63,7 +63,6 @@ function getLayerStyleTranslation() {
 axios.all([getAppConf(), getStudyAreaBbox(), getLayerStyleTranslation()]).then(
   axios.spread(function(config, studyArea, layerStyleTranslations) {
     //1- Make app config accessible for all components
-    console.log(layerStyleTranslations);
     Vue.prototype.$appConfig = config.data;
     //2- Get study area bbox
     if (studyArea.data) {
@@ -116,6 +115,7 @@ axios.all([getAppConf(), getStudyAreaBbox(), getLayerStyleTranslation()]).then(
           }
         });
         EventBus.$emit("inject-styles", stylesObj);
+        Vue.prototype.$appConfig.stylesObj = stylesObj;
       });
     }
 

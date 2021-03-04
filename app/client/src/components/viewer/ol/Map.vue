@@ -277,7 +277,6 @@ export default {
      * Inject styles to map vector layers.
      */
     injectStyles(stylesObj) {
-      console.log(stylesObj);
       const flatLayers = getAllChildLayers(this.map);
       flatLayers.forEach(layer => {
         const layerName = layer.get("name");
@@ -291,9 +290,6 @@ export default {
         } else {
           // Style from style config object (geostyler)
           styleObj = stylesObj[layerName];
-        }
-        if (layerName === "pois") {
-          console.log(layer);
         }
         if (styleObj) {
           const olStyle = OlStyleFactory.getOlStyle(styleObj, layerName);
@@ -322,6 +318,7 @@ export default {
       const vector = new VectorLayer({
         name: "Get Info Layer",
         displayInLayerList: false,
+        displayInLegend: false,
         zIndex: 100,
         source: source,
         style: getInfoStyle()
