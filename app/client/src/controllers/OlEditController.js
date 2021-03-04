@@ -562,7 +562,6 @@ export default class OlEditController extends OlBaseController {
     // Add features
     featuresToAdd.forEach(feature => {
       const props = feature.getProperties();
-      console.log(props);
       if (props.hasOwnProperty("geom")) {
         delete props.geom;
       }
@@ -582,7 +581,6 @@ export default class OlEditController extends OlBaseController {
     });
     // Update features
     featuresToUpdate.forEach(feature => {
-      console.log(feature);
       const props = feature.getProperties();
       if (props.hasOwnProperty("geom")) {
         delete props.geom;
@@ -612,7 +610,6 @@ export default class OlEditController extends OlBaseController {
           mode,
           features: payloads.modes[mode]
         };
-        console.log(payload);
         promiseArray.push(http.post("/api/map/layer_controller", payload));
       }
     });

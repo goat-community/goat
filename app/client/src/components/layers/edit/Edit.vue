@@ -819,7 +819,6 @@ export default {
   }),
   watch: {
     selectedLayer(newValue) {
-      console.log(newValue);
       this.updateSelectedLayer(newValue);
     },
     activeScenario() {
@@ -1099,7 +1098,7 @@ export default {
       const payload = featuresToGeojson(features, "EPSG:3857", "EPSG:4326");
       http
         .post(
-          "api/import_scenario",
+          "/api/map/import_scenario",
           {
             user_id,
             scenario_id,
@@ -1111,10 +1110,18 @@ export default {
           }
         )
         .then(response => {
-          console.log(response);
           if (response.data) {
             //Add features to the edit layer to let the user interact
-            const features = geojsonToFeature(response.data, {
+            let featureObj = response.data;
+            while (Array.isArray(featureObj)) {
+              featureObj = featureObj[0];
+            }
+            if (featureObj[layerName]) {
+              featureObj = featureObj[layerName];
+            } else {
+              return;
+            }
+            const features = geojsonToFeature(featureObj, {
               dataProjection: "EPSG:4326",
               featureProjection: "EPSG:3857"
             });
@@ -1622,8 +1629,6 @@ export default {
       }
 
       http.post("/api/map/layer_controller", payload).then(response => {
-        const result = response.data;
-        console.log(result);
         if (response.data) {
           const feature = geojsonToFeature(response.data);
           if (feature[0] && feature[0].get("gid")) {
@@ -2226,7 +2231,6 @@ export default {
     },
     layerName() {
       const value = this.selectedLayer.get("name");
-      console.log(value);
       return value;
     },
     reqFields() {

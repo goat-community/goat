@@ -387,7 +387,6 @@ const actions = {
       const amenities = rootState.pois.selectedPois.map(item => {
         return item.value;
       });
-      console.log(amenities);
       if (amenities.length === 0) {
         commit(
           "map/TOGGLE_SNACKBAR",

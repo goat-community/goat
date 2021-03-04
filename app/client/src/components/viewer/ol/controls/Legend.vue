@@ -2,7 +2,7 @@
   <v-expansion-panels
     class="elevation-3"
     dark
-    style="position:absolute;bottom:35px;right:10px;maxWidth: 200px;"
+    style="position:absolute;bottom:35px;right:10px;maxWidth: 250px;"
   >
     <v-expansion-panel :style="`background-color: white;`">
       <v-expansion-panel-header :style="`background-color: ${color};`"
@@ -16,9 +16,16 @@
           <template v-for="(item, index) in layers">
             <div
               :key="index"
-              v-if="item.getVisible() === true"
+              v-if="
+                item.getVisible() === true &&
+                  item.get('displayInLegend') !== false &&
+                  item.get('group') !== 'backgroundLayers' &&
+                  isMapMounted === true
+              "
               style="padding-right:10px;"
             >
+              <v-divider></v-divider>
+              <!-- LAYER TITLE -->
               <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
                 {{
                   $te(`map.layerName.${item.get("name")}`)
@@ -26,23 +33,42 @@
                     : item.get("name")
                 }}
               </p>
-              <v-divider></v-divider>
-              <!-- Parent layer can have multiple child layers, so we need to loop through -->
-              <template
-                v-for="(layerName, index2) in item
-                  .getSource()
-                  .getParams()
-                  .LAYERS.split(',')"
-              >
-                <div :key="index2">
-                  <img
-                    style="max-width: 100%;"
-                    :src="getWMSLegendImageUrl(item, layerName)"
-                    class="white--text mt-0 pt-0"
-                  />
-                  <br />
+              <!-- WMS LEGEND -->
+              <div v-if="item.get('legendGraphicUrl')">
+                <img
+                  style="max-width:
+                  100%;"
+                  :src="item.get('legendGraphicUrl')"
+                  class="white--text mt-0 pt-0"
+                />
+              </div>
+              <div v-else>
+                <div v-if="item.get('type') === 'WMS'">
+                  <template
+                    v-for="(layerName, index2) in item
+                      .getSource()
+                      .getParams()
+                      .LAYERS.split(',')"
+                  >
+                    <div :key="index2">
+                      <img
+                        style="max-width:
+                  100%;"
+                        :src="getWMSLegendImageUrl(item, layerName)"
+                        class="white--text mt-0 pt-0"
+                      />
+                      <br />
+                    </div>
+                  </template>
                 </div>
-              </template>
+                <!-- VECTOR LEGEND -->
+                <div v-if="['VECTORTILE', 'VECTOR'].includes(item.get('type'))">
+                  <span
+                    :ref="`legend-vector-${index}`"
+                    v-html="renderLegend(item, index)"
+                  ></span>
+                </div>
+              </div>
             </div>
           </template>
         </vue-scroll>
@@ -53,6 +79,8 @@
 <script>
 import { Mapable } from "../../../../mixins/Mapable";
 import { getAllChildLayers, getWMSLegendURL } from "../../../../utils/Layer";
+import LegendRenderer from "../../../../utils/LegendRenderer";
+
 export default {
   mixins: [Mapable],
   name: "map-legend",
@@ -60,7 +88,8 @@ export default {
     color: { type: String, default: "#2BB381" }
   },
   data: () => ({
-    layers: []
+    layers: [],
+    isMapMounted: false
   }),
   methods: {
     /**
@@ -70,10 +99,9 @@ export default {
       const me = this;
       const allLayers = getAllChildLayers(me.map);
       me.layers = allLayers.filter(
-        layer =>
-          layer.getSource().serverType_ === "geoserver" &&
-          layer.get("displayInLegend") !== false
+        layer => layer.get("displayInLegend") !== false
       );
+      this.isMapMounted = true;
     },
     getWMSLegendImageUrl(item, layerName) {
       let layerUrl = item.getSource().getUrl();
@@ -97,7 +125,34 @@ export default {
         style
       );
       return legedUrl;
+    },
+    renderLegend(item, index) {
+      setTimeout(() => {
+        console.log(this.$appConfig.stylesObj);
+        const styleObj = this.$appConfig.stylesObj;
+        const name = item.get("name");
+        let styleTranslation = this.$appConfig.stylesObj[name].translation;
+        const currentLocale = this.$i18n.locale;
+        if (styleObj[name] && styleObj[name].format === "geostyler") {
+          let el = this.$refs[`legend-vector-${index}`];
+          if (Array.isArray(el) && el.length > 0) {
+            el = el[0];
+          }
+          const style = styleObj[name].style;
+          const renderer = new LegendRenderer({
+            maxColumnWidth: 200,
+            overflow: "auto",
+            styles: [style],
+            size: [200, 300],
+            translation: { styleTranslation, currentLocale }
+          });
+          renderer.render(el);
+        }
+      }, 200);
     }
+  },
+  mounted() {
+    console.log("legend mounted!");
   }
 };
 </script>

@@ -97,6 +97,7 @@ export default {
       const style = getIsochroneStyle(me.styleData, me.addStyleInCache);
       const vector = new VectorLayer({
         name: "Isochrone Layer",
+        displayInLegend: false,
         zIndex: 8,
         source: new VectorSource(),
         style: style
@@ -114,6 +115,7 @@ export default {
       const style = getIsochroneNetworkStyle();
       const vector = new VectorImageLayer({
         name: "isochroneRoadNetworkLayer",
+        displayInLegend: false,
         zIndex: 7,
         source: new VectorSource(),
         style: style
@@ -130,6 +132,7 @@ export default {
       const me = this;
       const vector = new VectorImageLayer({
         name: "isochroneOverlayLayer",
+        displayInLegend: false,
         zIndex: 7,
         source: new VectorSource(),
         style: isochroneOverlayStyle

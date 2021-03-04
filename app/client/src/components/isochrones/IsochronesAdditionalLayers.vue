@@ -101,7 +101,7 @@ export default {
         studyAreaFeatures: [],
         startingPointFeatures: []
       };
-      console.log("executed...");
+
       this.isochroneOverlayLayer
         .getSource()
         .getFeatures()
