@@ -292,9 +292,6 @@ export default {
           // Style from style config object (geostyler)
           styleObj = stylesObj[layerName];
         }
-        if (layerName === "pois") {
-          console.log(layer);
-        }
         if (styleObj) {
           const olStyle = OlStyleFactory.getOlStyle(styleObj, layerName);
           if (olStyle) {

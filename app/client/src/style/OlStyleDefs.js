@@ -4,6 +4,7 @@ import OlFill from "ol/style/Fill";
 import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
+import OlChart from "ol-ext/style/Chart";
 import store from "../store/modules/map";
 import isochronesStore from "../store/modules/isochrones";
 import { getArea } from "ol/sphere.js";
@@ -672,7 +673,55 @@ function poisStyle(feature) {
   return [poisStyleCache[name]];
 }
 
+/**
+ * Mode share style
+ */
+const modeShareStyleCache = {};
+function modeShareStyle(feature) {
+  console.log(feature);
+  const gid = feature.get("gid") || feature.get("objectid");
+  if (!modeShareStyleCache[gid]) {
+    const boundaryStyle = new OlStyle({
+      stroke: new OlStroke({
+        color: "#707070",
+        width: 1
+      })
+    });
+    const radius = 25;
+    const share_foot = feature.get("share_foot") || 0;
+    const share_bike = feature.get("share_bike") || 0;
+    const share_mivd = feature.get("share_mivd") || 0;
+    const share_mivp = feature.get("share_mivp") || 0;
+    const share_put = feature.get("share_put") || 0;
+    const chartStyle = new OlStyle({
+      image: new OlChart({
+        type: "pie3D",
+        radius: radius,
+        data: [share_foot, share_bike, share_mivd, share_mivp, share_put],
+        colors: ["#00a6ff", "#20a849", "#c43114", "#f29305", "#1455e0"],
+        rotateWithView: true,
+        stroke: new OlStroke({
+          color: "#fff",
+          width: 2
+        })
+      }),
+      geometry: function(feature) {
+        // Return the center of extent.
+        const interiorPointsMltPoint = feature
+          .getGeometry()
+          .getInteriorPoints();
+
+        return interiorPointsMltPoint;
+      }
+    });
+    modeShareStyleCache[gid] = [boundaryStyle, chartStyle];
+  }
+
+  return modeShareStyleCache[gid];
+}
+
 export const stylesRef = {
   pois: poisStyle,
-  study_area_crop: baseStyleDefs.boundaryStyle
+  study_area_crop: baseStyleDefs.boundaryStyle,
+  modeshare: modeShareStyle
 };

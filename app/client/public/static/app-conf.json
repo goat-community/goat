@@ -800,18 +800,21 @@
         }
       },
       {
-        "type": "WMS",
+        "type": "VECTOR",
+        "format": "GeoJSON",
         "name": "modeshare",
-        "url": "/geoserver/wms",
+        "url": "/api/map/layer_read",
         "group": "additionalDataLayers",
-        "layers": "cite:mode_share ",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
+        "queryParams": ["table_name"],
         "zIndex": 1,
-        "serverType": "geoserver",
+        "style": {
+          "format": "custom-logic"
+        },
         "attributes": {
           "source": "Mobilität in Deutschland - infas",
           "date": "2018"
