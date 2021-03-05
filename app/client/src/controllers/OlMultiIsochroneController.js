@@ -9,7 +9,7 @@ import store from "../store/index.js";
 import i18n from "../plugins/i18n";
 import { geometryToWKT } from "../utils/MapUtils";
 import Point from "ol/geom/Point";
-
+import { EventBus } from "../EventBus";
 export default class OlMultiIsochroneController extends OlBaseController {
   constructor(map) {
     super(map);
@@ -52,12 +52,13 @@ export default class OlMultiIsochroneController extends OlBaseController {
       //Study are method
       if (!me.studyAreaLayer) {
         me.studyAreaLayer = getAllChildLayers(me.map).filter(
-          layer => layer.get("name") === "administrativeUnits"
+          layer => layer.get("name") === "study_area"
         );
         store.commit("isochrones/ADD_STUDY_AREA_LAYER", me.studyAreaLayer);
       }
       if (me.studyAreaLayer.length > 0) {
         me.studyAreaLayer[0].setVisible(true);
+        EventBus.$emit("updateLayer", me.studyAreaLayer[0]);
       }
       me.setupMapClick();
       me.multiIsoCalcMethod = "study_area";
@@ -99,7 +100,7 @@ export default class OlMultiIsochroneController extends OlBaseController {
         "EPSG:4326"
       );
       const region = geometryToWKT(geom);
-      const regionType = "'study_area'";
+      const regionType = "study_area";
       store.dispatch("isochrones/countStudyAreaPois", {
         regionType,
         region
