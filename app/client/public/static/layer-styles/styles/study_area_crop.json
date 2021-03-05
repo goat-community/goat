@@ -6,9 +6,9 @@
       "symbolizers": [
         {
           "kind": "Fill",
-          "color": "#7c7c7d",
+          "color": "#606062",
           "fillOpacity": 0.3,
-          "outlineColor": "#7c7c7d",
+          "outlineColor": "#606062",
           "outlineWidth": 5,
           "opacity": 0.6
         }

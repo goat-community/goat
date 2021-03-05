@@ -374,11 +374,10 @@ BEGIN
 		SET s_imp = i.imp, rs_imp = i.rs_imp 
 		FROM impedances i 
 		WHERE w.id = i.id;
-				
-		UPDATE scenarios 
-		SET ways_heatmap_computed = FALSE 
-		WHERE scenario_id = scenario_id_input;
-		
+					
 	END IF;
+	UPDATE scenarios 
+	SET ways_heatmap_computed = FALSE 
+	WHERE scenario_id = scenario_id_input;
 END
 $function$

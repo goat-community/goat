@@ -832,6 +832,7 @@
         "format": "GeoJSON",
         "displayInLayerList": true,
         "visible": false,
+        "requiresPois": true,
         "zIndex": 1,
         "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
         "queryParams": [
@@ -868,6 +869,7 @@
         "format": "GeoJSON",
         "displayInLayerList": true,
         "visible": false,
+        "requiresPois": true,
         "zIndex": 1,
         "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
         "queryParams": [
