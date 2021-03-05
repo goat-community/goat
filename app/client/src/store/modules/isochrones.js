@@ -457,6 +457,10 @@ const actions = {
               if (configData.region_type === "draw") {
                 feature.set("regionPolygon", configData.region);
               }
+              const region_number = feature.get("region_name");
+              if (region_number) {
+                feature.setId(parseFloat(region_number) * 1000);
+              }
             });
             commit("ADD_STUDYAREA_FEATURES", olFeatures);
           }
