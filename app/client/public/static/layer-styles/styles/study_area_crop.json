@@ -2,7 +2,7 @@
   "name": "Default Polygon",
   "rules": [
     {
-      "name": "Study Area",
+      "name": "StudyAreaCrop",
       "symbolizers": [
         {
           "kind": "Fill",

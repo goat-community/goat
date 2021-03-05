@@ -160,7 +160,7 @@
       "filter": [
         "&&",
         ["==", "score", -3],
-        ["!=", "modus", "comparison"]
+        ["==", "modus", "comparison"]
       ]
     },
     {
@@ -204,7 +204,7 @@
       "symbolizers": [
         {
           "kind": "Fill",
-          "color": "#ffe8a4",
+          "color": "#FFFFFF",
           "opacity": 0.4,
           "outlineColor": "rgba(0, 0, 255, 0.0)",
           "outlineWidth": 0,

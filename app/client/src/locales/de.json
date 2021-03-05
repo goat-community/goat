@@ -422,7 +422,9 @@
       "sitpShare": "Anteil der mit dem SITP zurückgelegten Wege",
       "cycling_trips_rate": "Mit dem Rad zurückgelegte Wege pro Person",
       "pt_trips_rate": "Mit dem ÖV zurückgelegte Wege pro Person",
-      "strata": "sozio-ökonomische Schichten"
+      "strata": "sozio-ökonomische Schichten",
+      "study_area_crop": "Untersuchungsgebiet",
+      "study_area": "Ortsteile"
     },
     "tooltips": {
       "clickForCalculation": "Für Berechnung klicken",

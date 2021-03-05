@@ -290,6 +290,12 @@
       "de": "Fahrradständer"
     }
   },
+  "study_area_crop": {
+    "StudyAreaCrop": {
+      "en": "Study area", 
+      "de": "Untersuchungsgebiet"
+    }
+  },
   "ways_category_aggregated": {
     "primary": {
       "en": "primary",
