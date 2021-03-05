@@ -4,7 +4,10 @@
     dark
     style="position:absolute;bottom:35px;right:10px;maxWidth: 250px;"
   >
-    <v-expansion-panel :style="`background-color: white;`">
+    <v-expansion-panel
+      @click="onExpansionPanelClick"
+      :style="`background-color: white;`"
+    >
       <v-expansion-panel-header :style="`background-color: ${color};`"
         >{{ $t("map.layerLegend.title") }}
         <template v-slot:actions>
@@ -20,7 +23,8 @@
                 item.getVisible() === true &&
                   item.get('displayInLegend') !== false &&
                   item.get('group') !== 'backgroundLayers' &&
-                  isMapMounted === true
+                  isMapMounted === true &&
+                  $appConfig.stylesObj
               "
               style="padding-right:10px;"
             >
@@ -77,6 +81,7 @@
   </v-expansion-panels>
 </template>
 <script>
+import { mapGetters } from "vuex";
 import { Mapable } from "../../../../mixins/Mapable";
 import { getAllChildLayers, getWMSLegendURL } from "../../../../utils/Layer";
 import LegendRenderer from "../../../../utils/LegendRenderer";
@@ -89,7 +94,8 @@ export default {
   },
   data: () => ({
     layers: [],
-    isMapMounted: false
+    isMapMounted: false,
+    isRendered: false
   }),
   methods: {
     /**
@@ -128,7 +134,6 @@ export default {
     },
     renderLegend(item, index) {
       setTimeout(() => {
-        console.log(this.$appConfig.stylesObj);
         const styleObj = this.$appConfig.stylesObj;
         const name = item.get("name");
         let styleTranslation = this.$appConfig.stylesObj[name].translation;
@@ -138,21 +143,74 @@ export default {
           if (Array.isArray(el) && el.length > 0) {
             el = el[0];
           }
+          // Remove existing svg elements on update (Workaround)
+          if (el && el.childNodes.length > 0) {
+            el.removeChild(el.childNodes[0]);
+          }
           const style = styleObj[name].style;
+          const filteredStyle = this.filterStylesOnActiveMode(style);
+
           const renderer = new LegendRenderer({
-            maxColumnWidth: 200,
+            maxColumnWidth: 240,
             overflow: "auto",
-            styles: [style],
-            size: [200, 300],
+            styles: [filteredStyle || style],
+            size: [230, 300],
             translation: { styleTranslation, currentLocale }
           });
           renderer.render(el);
         }
-      }, 200);
+      }, 100);
+    },
+    filterStylesOnActiveMode(style) {
+      const styleRules = style.rules;
+      const filteredRules = [];
+      const activeMode = this.calculationOptions.calculationModes.active;
+      let newStyle = { ...style };
+      if (Array.isArray(styleRules)) {
+        styleRules.forEach(rule => {
+          if (Array.isArray(rule.filter)) {
+            let showInLegend = true;
+            rule.filter.forEach(filter => {
+              /** FILTER CURRENT MODES. */
+              if (Array.isArray(filter) && filter.includes("modus")) {
+                showInLegend = false;
+                const operator = filter[0];
+                const value = filter[2];
+                if (value === activeMode && operator === "==") {
+                  showInLegend = true;
+                } else if (value !== activeMode && operator === "!=") {
+                  showInLegend = true;
+                }
+              }
+            });
+            if (showInLegend) filteredRules.push(rule);
+            // Add all other rules in the legend
+          } else {
+            filteredRules.push(rule);
+          }
+        });
+        if (Array.isArray(filteredRules)) {
+          newStyle.rules = filteredRules;
+        }
+        return newStyle;
+      }
+    },
+    onExpansionPanelClick() {
+      if (!this.isRendered) {
+        this.$forceUpdate();
+        this.isRendered = true;
+      }
     }
   },
-  mounted() {
-    console.log("legend mounted!");
+  computed: {
+    ...mapGetters("isochrones", {
+      calculationOptions: "options"
+    })
+  },
+  watch: {
+    "calculationOptions.calculationModes.active": function() {
+      this.$forceUpdate();
+    }
   }
 };
 </script>
