@@ -66,20 +66,19 @@
           border="left"
           colored-border
           class="mb-0 mt-2 mx-1 elevation-2"
-          icon="info"
-          :color="activeColor.primary"
+          :icon="countPois > 150 ? 'warning' : 'info'"
+          :color="countPois > 150 ? 'warning' : activeColor.primary"
           dense
         >
           <span v-html="getInfoLabelText"></span>
         </v-alert>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn outlined class="white--text" color="red" @click="clear">
+          <v-btn class="white--text" color="error" @click="clear">
             {{ $t("isochrones.multiple.clear") }}
           </v-btn>
           <v-btn
             :disabled="isCalculationDisabled"
-            outlined
             class="white--text mr-1"
             :color="activeColor.primary"
             :loading="isBusy"
