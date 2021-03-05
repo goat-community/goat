@@ -38,7 +38,6 @@ class LegendRenderer {
     // if (style.name) {
     //   config.title = style.name;
     // }
-    console.log(this.config);
     const translation = this.config.translation.styleTranslation;
     const currentLocale = this.config.translation.currentLocale;
     style.rules.forEach(rule => {
