@@ -286,7 +286,7 @@
         "studyArea": "Ort",
         "population": "Bevölkerung",
         "reachedPopulation": "Erreichbare Bevölkerung",
-        "shared": "Geteilt"
+        "shared": "Anteil"
       }
     },
     "isochrones": "Isochronen",
