@@ -125,7 +125,7 @@
         "canEdit": false,
         "queryable": true,
         "displayInLayerList": true,
-        "zIndex": 1,
+        "zIndex": 0.5,
         "queryParams": [
           "table_name",
           "modus",
