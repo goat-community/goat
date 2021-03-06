@@ -171,7 +171,8 @@ export const LayerFactory = {
           ? lConf.url + "?access_token=" + lConf.accessToken
           : lConf.url,
         maxZoom: lConf.maxZoom,
-        attributions: lConf.attributions
+        attributions: lConf.attributions,
+        crossOrigin: "Anonymous"
       })
     });
 
@@ -196,7 +197,8 @@ export const LayerFactory = {
       group: lConf.group,
       source: new OsmSource({
         url: lConf.url,
-        maxZoom: lConf.maxZoom
+        maxZoom: lConf.maxZoom,
+        crossOrigin: "Anonymous"
       })
     });
 
@@ -312,7 +314,8 @@ export const LayerFactory = {
       source: new VectorTileSource({
         url: lConf.url,
         format: new this.formatMapping[lConf.format](),
-        attributions: lConf.attributions
+        attributions: lConf.attributions,
+        crossOrigin: "Anonymous"
       }),
       hoverable: lConf.hoverable,
       hoverAttribute: lConf.hoverAttribute

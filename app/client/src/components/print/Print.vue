@@ -8,51 +8,24 @@
       <v-card-text class="pr-16 pl-16 pt-0 pb-0">
         <v-divider></v-divider>
       </v-card-text>
-      <template
-        v-if="
-          isState('CAPABILITIES_NOT_LOADED') !== true &&
-            isState('ERROR_ON_GETCAPABILITIES') !== true
-        "
-      >
+      <template>
         <v-card-text>
           <v-form ref="form" lazy-validation>
-            <template v-for="(item, index) in layoutInfo.simpleAttributes">
-              <span :key="index">
-                <v-text-field
-                  v-if="
-                    item.type === 'text' &&
-                      item.name != 'crsDescription' &&
-                      item.name != 'attributions'
-                  "
-                  v-model="item.value"
-                  :label="$t(`appBar.printMap.form.${item.name}.label`)"
-                  type="text"
-                  required
-                ></v-text-field>
-                <v-textarea
-                  v-if="item.type === 'textarea'"
-                  v-model="item.value"
-                  rows="2"
-                  auto-grow
-                  :label="humanize(item.name)"
-                ></v-textarea>
-              </span>
-            </template>
-
             <v-select
-              v-model="layoutInfo.layout"
-              :items="layoutInfo.layouts"
+              v-model="layout"
+              :items="layouts"
               item-text="name"
               item-value="name"
               prepend-icon="map"
               :label="$t('appBar.printMap.form.layout.label')"
               :rules="rules.required"
               @change="setLayout"
+              return-object
               required
             ></v-select>
             <v-select
-              v-model="layoutInfo.scale"
-              :items="layoutInfo.scales"
+              v-model="scale"
+              :items="scales"
               prepend-icon="fas fa-ruler-horizontal"
               :label="$t('appBar.printMap.form.scale.label')"
               :rules="rules.required"
@@ -67,8 +40,8 @@
               </template>
             </v-select>
             <v-select
-              v-model="layoutInfo.dpi"
-              :items="layoutInfo.dpis"
+              v-model="dpi"
+              :items="dpis"
               prepend-icon="aspect_ratio"
               :label="$t('appBar.printMap.form.resolution.label')"
               :rules="rules.required"
@@ -132,7 +105,7 @@
               <v-flex xs6>
                 <v-checkbox
                   class="ml-1"
-                  v-model="layoutInfo.legend"
+                  v-model="legend"
                   :label="$t('appBar.printMap.form.legend')"
                 ></v-checkbox>
               </v-flex>
@@ -148,25 +121,9 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-progress-circular
-            indeterminate
-            color="#30C2FF"
-            class="mr-2"
-            v-if="isState('PRINTING')"
-          ></v-progress-circular>
-          <v-btn
-            class="white--text"
-            v-if="isState('PRINTING')"
-            color="error"
-            @click="abort()"
-          >
-            <v-icon left>clear</v-icon
-            >{{ $t("appBar.printMap.form.abort") }}</v-btn
-          >
           <v-btn
             class="white--text"
             :color="activeColor.primary"
-            :disabled="isState('PRINTING')"
             @click="print('pdf')"
           >
             <v-icon left>print</v-icon
@@ -174,20 +131,6 @@
           >
         </v-card-actions>
       </template>
-      <v-card-text
-        class="pr-16 pl-16 pt-2 pb-0"
-        v-if="isState('CAPABILITIES_NOT_LOADED')"
-      >
-        <p class="subtitle-2">{{ $t("appBar.printMap.connectionMsg") }}</p>
-      </v-card-text>
-      <v-card-text
-        class="pr-16 pl-16 pt-2 pb-0"
-        v-if="isState('ERROR_ON_GETCAPABILITIES')"
-      >
-        <p class="subtitle-2">
-          {{ $t("appBar.printMap.unavailableMsg") }}
-        </p>
-      </v-card-text>
     </v-card>
   </v-flex>
 </template>
@@ -195,34 +138,20 @@
 <script>
 import { Mapable } from "../../mixins/Mapable";
 import MaskLayer from "../../utils/PrintMask";
-
-import PrintUtils, {
-  INCHES_PER_METER,
-  DOTS_PER_INCH
-} from "../../utils/PrintUtils";
-import PrintService from "../../controls/print/Service";
-import {
-  getFlatLayers,
-  getWMTSLegendURL,
-  getWMSLegendURL,
-  getActiveBaseLayer
-} from "../../utils/Layer";
-
-import { humanize, numberWithCommas } from "../../utils/Helpers";
-import axios from "axios";
-import { mapMutations, mapGetters } from "vuex";
+import Graticule from "ol/layer/Graticule";
+import { ScaleLine } from "ol/control";
+import Stroke from "ol/style/Stroke";
 import * as olEvents from "ol/events.js";
 import * as olMath from "ol/math.js";
-import olLayerImage from "ol/layer/Image.js";
-import olLayerTile from "ol/layer/Tile.js";
-import olLayerGroup from "ol/layer/Group.js";
-import olMap from "ol/Map.js";
-import ImageWMS from "ol/source/ImageWMS.js";
-import olSourceXYZ from "ol/source/XYZ";
-
-var FileSaver = require("file-saver");
+import { getPointResolution } from "ol/proj";
+import PrintUtils from "../../utils/PrintUtils";
+import { humanize, numberWithCommas } from "../../utils/Helpers";
+import { mapGetters, mapMutations } from "vuex";
 import { getCurrentDate, getCurrentTime } from "../../utils/Helpers";
-
+import PrintService from "../../controls/print/Service";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
+import { EventBus } from "../../EventBus";
 export default {
   mixins: [Mapable],
   data: () => ({
@@ -230,48 +159,40 @@ export default {
     rules: {
       required: [v => !!v || "Field is required"]
     },
-    printStateEnum: {
-      NOT_IN_USE: "notInUse",
-      PRINTING: "printing",
-      ERROR_ON_REPORT: "errorOnReport",
-      CAPABILITIES_NOT_LOADED: "capabilitiesNotLoaded",
-      ERROR_ON_GETCAPABILITIES: "errorOnGetCapabilities"
-    },
-    printState: "capabilitiesNotLoaded",
     crs: [{ display: "Web Mercator", value: "EPSG:3857" }],
     selectedCrs: "EPSG:3857",
-    outputFormats: [
-      { display: "PDF", value: "pdf" },
-      { display: "PNG", value: "png" }
-    ],
+    outputFormats: [{ display: "PDF", value: "pdf" }],
     selectedFormat: "pdf",
     rotation: 0,
     showGrid: false,
-    layoutInfo: {
-      attributes: [],
-      dpi: 120,
-      dpis: [],
-      layout: "",
-      layouts: [],
-      legend: true,
-      scale: null,
-      scales: [],
-      simpleAttributes: []
+    gridLayer: undefined,
+    dpi: 120,
+    dpis: [254, 200, 120, 72],
+    layout: {
+      name: "A4 portrait",
+      format: "a4",
+      orientation: "portrait",
+      size: [210, 297] // Get the size dynamically
     },
+    layouts: [
+      {
+        name: "A4 portrait",
+        format: "a4",
+        orientation: "portrait",
+        size: [210, 297]
+      },
+      {
+        name: "A4 landscape",
+        format: "a4",
+        orientation: "landscape",
+        size: [297, 210]
+      }
+    ],
+    legend: true,
+    scale: null,
+    scales: [500000, 100000, 50000, 25000, 10000, 5000, 2500, 500, 250, 100],
     maskLayer_: null,
-    capabilities: null,
-    currentJob: null,
-    formats_: [],
-    layouts_: [],
-    layout_: null,
-    fieldValues: {},
-    paperSize_: [],
     rotateMask: false,
-    legendOptions: {
-      useBbox: true,
-      label: {},
-      params: {}
-    },
     baseUrl: "./print",
     /**
      * Events
@@ -279,8 +200,7 @@ export default {
     pointerDragListenerKey_: null,
     mapViewResolutionChangeKey_: null,
     onDragPreviousMousePosition_: null,
-    rotationTimeoutPromise_: null,
-    notPrintableTileSources: []
+    rotationTimeoutPromise_: null
   }),
   methods: {
     humanize,
@@ -300,13 +220,14 @@ export default {
       this.printUtils_ = new PrintUtils();
       this.maskLayer_ = new MaskLayer();
       this.printService = new PrintService(this.baseUrl);
+
       olEvents.listen(this.map.getView(), "change:rotation", event => {
         this.updateRotation_(
           Math.round(olMath.toDegrees(event.target.getRotation()))
         );
       });
 
-      const getSizeFn = () => this.paperSize_;
+      const getSizeFn = () => this.layout.size;
       let getRotationFn;
       if (this.rotateMask) {
         /**
@@ -318,6 +239,7 @@ export default {
       this.maskLayer_.getSize = getSizeFn;
       this.maskLayer_.getScale = this.getScaleFn.bind(this);
       this.maskLayer_.getRotation = getRotationFn;
+      this.updateFields_();
     },
 
     /**
@@ -325,255 +247,120 @@ export default {
      * @param {string} format An output format corresponding to one format in the
      *     capabilities document ('pdf', 'png', etc).
      */
-    print(format) {
+    print() {
       if (this.$refs.form.validate()) {
         if (!this.map) {
           throw new Error("Missing map");
         }
-
-        // Do not print if a print task is already processing.
-        if (this.printState === this.printStateEnum.PRINTING) {
-          return;
+        if (this.legend) {
+          EventBus.$emit("openLegend");
         }
-        this.printState = this.printStateEnum.PRINTING;
-
-        const mapSize = this.map.getSize();
-        const viewResolution = this.map.getView().getResolution() || 0;
+        const map = this.map;
+        const layout = this.layout;
+        const dpi = this.dpi;
         const scale =
-          this.layoutInfo.scale ||
-          this.getOptimalScale_(mapSize, viewResolution);
-        const datasource = [];
-        /** @type {Object<string, *>} */
-        const customAttributes = {};
-        if (this.layoutInfo.attributes.includes("datasource")) {
-          customAttributes.datasource = datasource;
-        }
-        if (this.layoutInfo.simpleAttributes) {
-          this.layoutInfo.simpleAttributes.forEach(field => {
-            customAttributes[field.name] = field.value;
-          });
-        }
+          this.scale || this.getOptimalScale_(mapSize, viewResolution);
+        const mapView = map.getView();
+        const format = layout.format;
+        const orientation = layout.orientation;
+        const paperSize = layout.size;
+        const mapProjection = mapView.getProjection();
+        const mapSize = map.getSize();
+        const currZoom = mapView.getZoom();
+        const viewResolution = map.getView().getResolution();
+        const viewCenter = mapView.getCenter();
 
-        if (this.layoutInfo.legend) {
-          const center = this.map.getView().getCenter();
-          if (!center) {
-            throw new Error("Missing center");
-          }
-          const deltaX =
-            (this.paperSize_[0] * scale) / 2 / INCHES_PER_METER / DOTS_PER_INCH;
-          const deltaY =
-            (this.paperSize_[1] * scale) / 2 / INCHES_PER_METER / DOTS_PER_INCH;
-          const bbox = [
-            center[0] - deltaX,
-            center[1] - deltaY,
-            center[0] + deltaX,
-            center[1] + deltaY
-          ];
-          const legend = this.getLegend_(scale, this.layoutInfo.dpi, bbox);
-          if (legend !== null) {
-            customAttributes.legend = legend;
-          }
-        }
-        if (typeof this.layoutInfo.dpi != "number") {
-          throw new Error("Wrong layoutInfo.dpi type");
-        }
-        if (typeof this.layoutInfo.layout != "string") {
-          throw new Error("Wrong layoutInfo.layout type");
-        }
-
-        //Add crs description
-        customAttributes.crsDescription = this.selectedCrs;
-
-        //Get Baselayer description\
-        let attributions = "";
-        const activeBaselayer = getActiveBaseLayer(this.map);
-        if (activeBaselayer.length > 0) {
-          const activeBaseLayerName = activeBaselayer[0].get("name");
-          attributions = this.$appConfig.map.layers.filter(
-            layerConf => layerConf.name === activeBaseLayerName
-          )[0].attributions;
-        }
-
-        customAttributes.attributions = attributions;
-
-        // convert the WMTS layers to WMS
-        const map = new olMap({});
-        map.setView(this.map.getView());
-        const ol_layers = getFlatLayers(this.map.getLayerGroup());
-        const new_ol_layers = [];
-        let print_native_angle = true;
-        for (let i = 0, ii = ol_layers.length; i < ii; i++) {
-          let layer = ol_layers[i];
-
-          // Get the print native angle parameter for WMS layers when set to not use default value
-          // Is applied only once when the value is overridden with a metadata from administration
-          if (
-            layer instanceof olLayerImage &&
-            layer.get("printNativeAngle") === false
-          ) {
-            print_native_angle = false;
-          }
-
-          new_ol_layers.push(layer);
-        }
-        const group = new olLayerGroup({
-          layers: new_ol_layers
-        });
-        group.set("printNativeAngle", print_native_angle);
-        map.setLayerGroup(group);
-
-        const email =
-          this.smtpSupported && this.smtpEmail && this.smtpEnabled
-            ? this.smtpEmail
-            : undefined;
-
-        const spec = this.printService.createSpec(
-          map,
-          scale,
-          this.layoutInfo.dpi,
-          this.layoutInfo.layout,
-          format,
-          customAttributes,
-          email
+        const mapPointResolution = getPointResolution(
+          mapProjection,
+          viewResolution,
+          viewCenter
         );
+        var mapResolutionFactor = viewResolution / mapPointResolution;
 
-        if (this.showGrid === true) {
-          spec.attributes.map.layers.unshift(this.printService.getGridLayer());
-        }
-
-        // Add feature overlay layer to print spec.
-        /** @type {import('print/mapfish-print-v3.js').MapFishPrintLayer[]} */
-        const layers = [];
-        this.printService.encodeLayer(
-          layers,
-          this.featureOverlayLayer_,
-          viewResolution
-        );
-        if (layers.length > 0) {
-          spec.attributes.map.layers.unshift(layers[0]);
-        }
-
-        //Print Overlays (for measure label)
-        this.map.getOverlays().forEach(overlay => {
-          // spec.attributes.map.layers.unshift(this.printService.encodeOverlay(overlay));
-          const encodedOverlay = this.printService.encodeOverlay(overlay);
-          if (encodedOverlay) {
-            spec.attributes.map.layers.unshift(encodedOverlay);
-          }
-        });
-
-        // Specify output format
-        this.tempFormatValue = this.selectedFormat;
-        spec.format = this.selectedFormat;
-
-        this.printService
-          .createReport(spec)
-          .then(response => {
-            if (response.status === 200) {
-              this.currentJob = response.data;
-              //Starts a interval timer every 1 second to check for the print job status
-              this.getJobStatus();
+        const width = Math.round((paperSize[0] * dpi) / 25.4); // in px
+        const height = Math.round((paperSize[1] * dpi) / 25.4); // in px
+        console.log(format, orientation, width, height);
+        map.once("rendercomplete", async event => {
+          console.log(event);
+          var mapCanvas = document.createElement("canvas");
+          mapCanvas.width = width;
+          mapCanvas.height = height;
+          var mapContext = mapCanvas.getContext("2d");
+          Array.prototype.forEach.call(
+            document.querySelectorAll(".ol-layer canvas"),
+            function(canvas) {
+              if (canvas.width > 0) {
+                var opacity = canvas.parentNode.style.opacity;
+                mapContext.globalAlpha = opacity === "" ? 1 : Number(opacity);
+                var transform = canvas.style.transform;
+                // Get the transform parameters from the style's transform matrix
+                var matrix = transform
+                  .match(/^matrix\(([^\(]*)\)$/)[1]
+                  .split(",")
+                  .map(Number);
+                // Apply the transform to the export map context
+                CanvasRenderingContext2D.prototype.setTransform.apply(
+                  mapContext,
+                  matrix
+                );
+                mapContext.drawImage(canvas, 0, 0);
+              }
             }
-          })
-          .catch(() => {
-            this.printState = this.printStateEnum.NOT_IN_USE;
-            this.currentJob = null;
-            throw new Error("A server eror happened ");
-          });
+          );
+          var pdf = new jsPDF(orientation, undefined, format);
+          pdf.addImage(mapCanvas, "JPEG", 0, 0, paperSize[0], paperSize[1]);
 
-        // remove temporary map
-        map.setTarget("");
-      }
-    },
+          // Reset size.
+          map.setSize(mapSize);
+          mapView.setZoom(currZoom);
 
-    /**
-     * Aborts the ongoing print job..
-     * @private
-     */
-    abort() {
-      const me = this;
-      if (me.currentJob) {
-        const refId = me.currentJob.ref;
-        this.printService.cancelReportJob(refId);
-        this.printState = this.printStateEnum.NOT_IN_USE;
-      }
-
-      if (me.polling) {
-        clearInterval(me.polling);
-      }
-
-      me.currentJob = null;
-    },
-
-    /**
-     * Download the report using reference id.
-     * @param {string} refId The report reference id
-     * @private
-     */
-    download(refId) {
-      this.printService
-        .downloadReport(refId)
-        .then(response => {
-          this.printState = this.printStateEnum.NOT_IN_USE;
-          if (response.status === 200) {
-            FileSaver.saveAs(
-              response.data,
-              `goat_print_${this.getCurrentDate()}_${this.getCurrentTime()}.${
-                this.tempFormatValue
-              }`
+          // Legend
+          if (this.legend) {
+            const legendEl = document.getElementById("legend");
+            legendEl.style.paddingLeft = "10px";
+            await this.timeout(300);
+            const legendCanvas = await html2canvas(
+              document.getElementById("legend"),
+              { allowTaint: true }
+            );
+            legendEl.style.paddingLeft = "0px";
+            const legendWidth = this.printUtils_.pix2mm(
+              legendCanvas.width,
+              dpi
+            );
+            const legendHeight = this.printUtils_.pix2mm(
+              legendCanvas.height,
+              dpi
+            );
+            pdf.addImage(
+              legendCanvas,
+              "JPEG",
+              paperSize[0] - legendWidth,
+              paperSize[1] - legendHeight,
+              legendWidth,
+              legendHeight
             );
           }
-        })
-        .catch(() => {
-          this.printState = this.printStateEnum.NOT_IN_USE;
-          throw new Error("A server eror happened ");
+
+          // Save map
+          const fileName = `goat_print_${this.getCurrentDate()}_${this.getCurrentTime()}.${
+            this.selectedFormat
+          }`;
+          pdf.save(fileName);
+
+          // Reset original map size
+          map.setSize(mapSize);
+          map.getView().setResolution(viewResolution);
         });
-    },
 
-    getJobStatus() {
-      const me = this;
-      const jobRef = this.currentJob.ref;
-      if (!jobRef) return;
-      me.polling = setInterval(() => {
-        if (me.currentJob) {
-          me.printService.getStatus(jobRef).then(response => {
-            const status = response.data.status;
-            if (status === "finished" && me.currentJob) {
-              clearInterval(me.polling);
-              me.currentJob = null;
-              me.download(jobRef);
-            }
-          });
-        }
-      }, 1500);
-    },
+        var printPointResolution = (scale * 25.4) / (dpi * 1000); // edit1: corrected
+        var printResolutionAtEquator =
+          mapResolutionFactor * printPointResolution;
+        var printZoom = mapView.getZoomForResolution(printResolutionAtEquator);
 
-    /**
-     * Gets the print capabilities.
-     * @param {string} roleId The roles ids.
-     * @private
-     */
-    getCapabilities() {
-      this.capabilities = axios.get(`${this.baseUrl}/goat/capabilities.json`);
-    },
-
-    /**
-     * Create the list of layouts, get the formats, get the first layout in
-     * gmf print v3 capabilities and then update the print panel layout information.
-     * @param {axios} resp Response.
-     */
-    parseCapabilities_(resp) {
-      const data = resp["data"];
-      this.formats_ = data["formats"] || [];
-      this.layouts_ = data["layouts"];
-      this.layout_ = data["layouts"][1];
-
-      this.layoutInfo.layouts = [];
-      this.layouts_.forEach(layout => {
-        this.layoutInfo.layouts.push(layout.name);
-      });
-
-      this.updateFields_();
+        map.setSize([width, height]);
+        mapView.setZoom(printZoom);
+      }
     },
 
     /**
@@ -588,146 +375,15 @@ export default {
         throw new Error("Missing map");
       }
 
-      if (!this.layout_) {
-        throw new Error("Missing layout");
-      }
-      this.layoutInfo.layout = this.layout_.name;
-
-      const mapInfo = this.isAttributeInCurrentLayout_("map");
-      if (!mapInfo) {
-        throw new Error("Missing mapInfo");
-      }
-      const clientInfo = mapInfo.clientInfo;
-      if (!clientInfo) {
-        throw new Error("Missing clientInfo");
-      }
-      this.paperSize_ = [clientInfo.width, clientInfo.height];
-
-      this.updateCustomFields_();
-
-      const hasLegend = this.layoutInfo.attributes.includes("legend");
-      if (hasLegend) {
-        this.fieldValues.legend = this.fieldValues.legend;
-      } else {
-        delete this.fieldValues.legend;
-      }
-      this.layoutInfo.scales = clientInfo.scales || [];
-      this.layoutInfo.dpis = clientInfo.dpiSuggestions || [];
-
       const mapSize = this.map.getSize();
       const viewResolution = this.map.getView().getResolution();
-      this.layoutInfo.scale = this.getOptimalScale_(mapSize, viewResolution);
+      this.scale = this.getOptimalScale_(mapSize, viewResolution);
 
-      this.layoutInfo.dpi =
-        this.layoutInfo.dpi &&
-        this.layoutInfo.dpis.indexOf(this.layoutInfo.dpi) > 0
-          ? this.layoutInfo.dpi
-          : this.layoutInfo.dpis[0];
-
-      this.layoutInfo.formats = {};
-      this.formats_.forEach(format => {
-        this.layoutInfo.formats[format] = true;
-      });
-
-      this.attributesOut = this.layoutInfo.simpleAttributes;
+      this.dpi =
+        this.dpi && this.dpis.indexOf(this.dpi) > 0 ? this.dpi : this.dpis[0];
 
       // Force the update of the mask
       this.map.render();
-    },
-
-    /**
-     * Update simple attributes information with Customfield to be able to generate a form
-     * from a custom GMF print v3 configuration.
-     * @private
-     */
-    updateCustomFields_() {
-      if (!this.layout_) {
-        throw new Error("Missing layout");
-      }
-      if (!this.layoutInfo.simpleAttributes) {
-        this.layoutInfo.simpleAttributes = [];
-      }
-      this.layoutInfo.attributes = [];
-
-      const simpleAttributes = this.layoutInfo.simpleAttributes;
-      const previousAttributes = simpleAttributes.splice(
-        0,
-        simpleAttributes.length
-      );
-
-      // The attributes without 'clientParams' are the custom layout information (defined by end user).
-      this.layout_.attributes.forEach(attribute => {
-        this.layoutInfo.attributes.push(attribute.name);
-        if (!attribute.clientParams) {
-          const name = `${attribute.name}`;
-          const defaultValue = attribute.default;
-          /** @type {string} */
-          let value =
-            defaultValue !== undefined && defaultValue !== ""
-              ? `${defaultValue}`
-              : name in this.fieldValues
-              ? `${this.fieldValues[name]}`
-              : "";
-
-          // Try to use existing form field type
-          const rawType = `${attribute.type}`;
-          /** @type {string} */
-          let type;
-          switch (rawType) {
-            case "String": {
-              type = name === "comments" ? "textarea" : "text";
-              break;
-            }
-            case "Boolean": {
-              type = "checkbox";
-              break;
-            }
-            case "Number": {
-              type = "number";
-              const numberValue = parseFloat(value);
-              value = isNaN(numberValue) ? "0" : `${value}`;
-              break;
-            }
-            default: {
-              type = rawType;
-            }
-          }
-
-          // If it exists use the value of previous same field.
-          previousAttributes.forEach(c => {
-            if (c.name === name && c.type === type) {
-              value = c.value;
-              return value;
-            }
-          });
-
-          this.layoutInfo.simpleAttributes.push({
-            name,
-            type,
-            value: value
-          });
-        }
-      });
-    },
-
-    /**
-     * Return a capabilities 'attribute' object corresponding to the given name.
-     * @param {string} name Name of the attribute to get.
-     * @return {?Object} corresponding attribute or null.
-     * @private
-     */
-    isAttributeInCurrentLayout_(name) {
-      if (!this.layout_) {
-        throw new Error("Missing layout");
-      }
-      let attr = null;
-      this.layout_.attributes.forEach(attribute => {
-        if (attribute.name === name) {
-          attr = attribute;
-          return attribute;
-        }
-      });
-      return attr;
     },
 
     /**
@@ -782,16 +438,16 @@ export default {
      * @private
      */
     getOptimalScale_(mapSize, viewResolution) {
-      const scales = this.layoutInfo.scales.slice();
+      const scales = this.scales.slice();
       if (mapSize !== undefined && viewResolution !== undefined) {
         return this.printUtils_.getOptimalScale(
           mapSize,
           viewResolution,
-          this.paperSize_,
+          this.layout.size,
           scales.reverse()
         );
       }
-      return this.layoutInfo.scales[0];
+      return this.scales[0];
     },
     /**
      * @param {import('ol/PluggableMap.js').FrameState} frameState Frame state.
@@ -800,22 +456,21 @@ export default {
     getScaleFn(frameState) {
       // Don't compute an optimal scale if the user manually choose a value not in
       // the pre-defined scales. (`scaleInput` in `gmfPrintOptions`).
-      if (this.layoutInfo.scale === undefined) {
-        throw new Error("Missing layoutInfo.scale");
+      if (this.scale === undefined) {
+        throw new Error("Missing scale");
       }
-      if (!this.layoutInfo.scales) {
-        throw new Error("Missing layoutInfo.scales");
+      if (!this.scales) {
+        throw new Error("Missing scales");
       }
       if (
         !this.scaleManuallySelected_ &&
-        (this.layoutInfo.scale === -1 ||
-          this.layoutInfo.scales.includes(this.layoutInfo.scale))
+        (this.scale === -1 || this.scales.includes(this.scale))
       ) {
         const mapSize = frameState.size;
         const viewResolution = frameState.viewState.resolution;
-        this.layoutInfo.scale = this.getOptimalScale_(mapSize, viewResolution);
+        this.scale = this.getOptimalScale_(mapSize, viewResolution);
       }
-      return this.layoutInfo.scale;
+      return this.scale;
     },
 
     /**
@@ -845,132 +500,12 @@ export default {
     },
 
     /**
-     * @param {number} scale The scale to get the legend (for wms layers only).
-     * @param {number} dpi The DPI.
-     * @param {number[]} bbox The bbox.
-     * @return {Object?} Legend object for print report or null.
-     * @private
-     */
-    getLegend_(scale, dpi, bbox) {
-      if (!this.map) {
-        throw new Error("Missing map");
-      }
-      /** @type {import('print/mapfish-print-v3').MapFishPrintLegend} */
-      const legend = { classes: [] };
-
-      // Get layers from layertree only.
-      // const dataLayerGroup = getGroupFromMap(this.map, "group");
-      const layers = getFlatLayers(this.map.getLayerGroup());
-
-      // For each visible layer in reverse order, get the legend url.
-      layers.reverse().forEach(layer => {
-        if (!this.map) {
-          throw new Error("Missing map");
-        }
-        /** @type {import('print/mapfish-print-v3').MapFishPrintLegendClass[]} */
-        const classes = [];
-        if (layer.getVisible() && layer.getSource()) {
-          let icon_dpi;
-          // For WMTS layers.
-          if (layer instanceof olLayerTile) {
-            const layerName = `${layer.get("layerNodeName")}`;
-
-            const url = getWMTSLegendURL(layer);
-            if (url) {
-              icon_dpi = {
-                url: url,
-                dpi: 72
-              };
-            }
-
-            // Don't add classes without legend url.
-            if (icon_dpi) {
-              classes.push({
-                name: this.$te(`map.layerName.${layerName}`)
-                  ? this.$t(`map.layerName.${layerName}`)
-                  : layerName,
-                icons: [icon_dpi.url]
-              });
-            }
-          } else {
-            const source = layer.getSource();
-            if (source instanceof ImageWMS) {
-              // For each name in a WMS layer.
-              const layerNames = /** @type {string} */ source
-                .getParams()
-                .LAYERS.split(",");
-              const _layerLegend = {
-                name: this.$te(`map.layerName.${layer.get("name")}`)
-                  ? this.$t(`map.layerName.${layer.get("name")}`)
-                  : layer.get("name"),
-                icons: []
-              };
-              layerNames.forEach(name => {
-                if (!this.map) {
-                  throw new Error("Missing map");
-                }
-                if (!source.serverType_) {
-                  throw new Error("Missing source.serverType_");
-                }
-
-                let layerUrl = source.getUrl();
-                if (layerUrl.startsWith("/")) {
-                  layerUrl = window.location.origin + layerUrl;
-                }
-
-                const url = getWMSLegendURL(
-                  layerUrl,
-                  name,
-                  scale,
-                  undefined,
-                  undefined,
-                  undefined,
-                  source.serverType_,
-                  dpi,
-                  this.legendOptions.useBbox ? bbox : undefined,
-                  this.map
-                    .getView()
-                    .getProjection()
-                    .getCode(),
-                  this.legendOptions.params[source.serverType_],
-                  this.$i18n.locale,
-                  source.getParams().STYLES
-                );
-                if (!url) {
-                  throw new Error("Missing url");
-                }
-                _layerLegend.icons.push(url);
-              });
-              classes.push(_layerLegend);
-            }
-          }
-        }
-
-        // Add classes object only if it contains something.
-        if (classes.length > 0) {
-          legend.classes = legend.classes.concat(classes);
-        }
-      });
-
-      return legend.classes.length > 0 ? legend : null;
-    },
-
-    /**
      * Set the current layout and update all layout information with this new layout parameters.
      * @param {string} layoutName A layout name as existing in the list of
      *     existing layouts.
      */
     setLayout(layoutName) {
-      /** @type {?import('print/mapfish-print-v3').MapFishPrintCapabilitiesLayout} */
-      let layout = null;
-      this.layouts_.forEach(l => {
-        if (l.name === layoutName) {
-          layout = l;
-          return true; // break;
-        }
-      });
-      this.layout_ = layout;
-      this.updateFields_();
+      console.log(layoutName);
     },
 
     /**
@@ -984,10 +519,10 @@ export default {
           throw new Error("Missing map");
         }
         const mapSize = this.map.getSize() || [0, 0];
-        this.layoutInfo.scale = opt_scale;
+        this.scale = opt_scale;
         const res = this.printUtils_.getOptimalResolution(
           mapSize,
-          this.paperSize_,
+          this.layout.size,
           opt_scale
         );
 
@@ -999,7 +534,7 @@ export default {
         this.map.render();
         this.scaleManuallySelected_ = true;
       }
-      return this.layoutInfo.scale;
+      return this.scale;
     },
 
     /**
@@ -1007,108 +542,53 @@ export default {
      * @param {number} dpi A dpi value as existing in the dpis list field.
      */
     setDpi(dpi) {
-      this.layoutInfo.dpi = dpi;
+      this.dpi = dpi;
     },
-
-    /**
-     * Check the current state of the print.
-     * @param {string} stateEnumKey An enum key
-     * @return {boolean} True if the given state matches with the current print
-     *     state. False otherwise.
-     */
-    isState(stateEnumKey) {
-      return this.printState === this.printStateEnum[stateEnumKey];
-    },
-
-    /**
-     * Toggle alert message
-     * @param {evt} Evt
-     */
-    toggleMessage(evt) {
-      this.toggleSnackbar({
-        type: "error",
-        message: "cantPrintBaseLayer",
-        timeout: 60000,
-        state: !evt.oldValue
-      });
+    timeout(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
     },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR"
     })
   },
+  created() {
+    this.gridLayer = new Graticule({
+      // the style to use for the lines, optional.
+      strokeStyle: new Stroke({
+        color: "rgba(255,120,0,0.9)",
+        width: 2,
+        lineDash: [0.5, 4]
+      }),
+      showLabels: true,
+      wrapX: false
+    });
+    this.scaleLine = new ScaleLine({ bar: true, text: true, minWidth: 125 });
+  },
   activated: function() {
     this.active = true;
-    if (!this.capabilities) {
-      this.getCapabilities();
-    }
-    if (!this.capabilities) {
-      throw new Error("Missing capabilities");
-    }
-
-    this.capabilities.then(
-      resp => {
-        if (!this.map) {
-          throw new Error("Missing map");
-        }
-
-        // make sure the panel is still open
-        if (!this.active) {
-          return;
-        }
-
-        // Get capabilities - On success
-        this.printState = this.printStateEnum.NOT_IN_USE;
-        this.parseCapabilities_(resp);
-        this.map.addLayer(this.maskLayer_);
-
-        this.pointerDragListenerKey_ = olEvents.listen(
-          this.map,
-          "pointerdrag",
-          this.onPointerDrag_,
-          this
-        );
-        this.mapViewResolutionChangeKey_ = olEvents.listen(
-          this.map.getView(),
-          "change:resolution",
-          () => {
-            this.scaleManuallySelected_ = false;
-          }
-        );
-        this.map.render();
-
-        const ol_layers = getFlatLayers(this.map.getLayerGroup());
-
-        ol_layers.forEach(layer => {
-          if (
-            layer instanceof olLayerTile &&
-            !(layer.getSource() instanceof olSourceXYZ)
-          ) {
-            layer.on("change:visible", this.toggleMessage);
-            this.notPrintableTileSources.push(layer);
-            if (layer.getVisible() === true) {
-              this.toggleSnackbar({
-                type: "error",
-                message: "cantPrintBaseLayer",
-                timeout: 60000,
-                state: true
-              });
-            }
-          }
-        });
-      },
+    // this.map.addLayer(this.maskLayer_);
+    this.pointerDragListenerKey_ = olEvents.listen(
+      this.map,
+      "pointerdrag",
+      this.onPointerDrag_,
+      this
+    );
+    this.mapViewResolutionChangeKey_ = olEvents.listen(
+      this.map.getView(),
+      "change:resolution",
       () => {
-        // Get capabilities - On error
-        this.printState = this.printStateEnum.ERROR_ON_GETCAPABILITIES;
-        this.capabilities_ = null;
+        this.scaleManuallySelected_ = false;
       }
     );
+    // this.map.addControl(this.scaleLine);
+    this.map.render();
   },
   deactivated: function() {
     this.active = false;
     if (!this.map) {
       throw new Error("Missing map");
     }
-    this.map.removeLayer(this.maskLayer_);
+    // this.map.removeLayer(this.maskLayer_);
     if (this.pointerDragListenerKey_) {
       olEvents.unlistenByKey(this.pointerDragListenerKey_);
     }
@@ -1116,24 +596,23 @@ export default {
       olEvents.unlistenByKey(this.mapViewResolutionChangeKey_);
     }
     this.setRotation(0);
+    // this.map.removeControl(this.scaleLine);
     this.map.render(); // Redraw (remove) post compose mask;
-    this.abort();
-
-    this.notPrintableTileSources.forEach(layer => {
-      layer.un("change:visible", this.toggleMessage);
-    });
-    this.notPrintableTileSources = [];
-    this.toggleSnackbar({
-      type: "error",
-      message: "cantPrintBaseLayer",
-      timeout: 60000,
-      state: false
-    });
   },
   computed: {
     ...mapGetters("app", {
       activeColor: "activeColor"
     })
+  },
+  watch: {
+    showGrid(value) {
+      if (value && this.gridLayer) {
+        this.map.addLayer(this.gridLayer);
+      }
+      if (!value && this.gridLayer) {
+        this.removeLayer(this.gridLayer);
+      }
+    }
   }
 };
 </script>
