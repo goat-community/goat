@@ -301,8 +301,8 @@
     "additionalLayers": {
       "defaultNetwork": "Standard Straßennetzwerk",
       "inputNetwork": "Modifiziertes Straßennetzwerk",
-      "studyArea": "Study Area",
-      "startingPoints": "Starting Points"
+      "studyArea": "Ausgewähltes Gebiet",
+      "startingPoints": "Startpunkte"
     },
     "pickColor": {
       "title": "Farbe der Isochrone"
@@ -484,11 +484,11 @@
           "options": {
             "standard": {
               "title": "Standard",
-              "tooltip": "Default Routing"
+              "tooltip": "Standard Routing"
             },
             "electric": {
               "title": "Electric",
-              "tooltip": "Electric"
+              "tooltip": "Elektrisch"
             }
           }
         }
