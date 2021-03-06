@@ -286,7 +286,7 @@
         "studyArea": "Ort",
         "population": "Bevölkerung",
         "reachedPopulation": "Erreichbare Bevölkerung",
-        "shared": "Geteilt"
+        "shared": "Anteil"
       }
     },
     "isochrones": "Isochronen",
@@ -301,8 +301,8 @@
     "additionalLayers": {
       "defaultNetwork": "Standard Straßennetzwerk",
       "inputNetwork": "Modifiziertes Straßennetzwerk",
-      "studyArea": "Study Area",
-      "startingPoints": "Starting Points"
+      "studyArea": "Ausgewähltes Gebiet",
+      "startingPoints": "Startpunkte"
     },
     "pickColor": {
       "title": "Farbe der Isochrone"
@@ -422,7 +422,9 @@
       "sitpShare": "Anteil der mit dem SITP zurückgelegten Wege",
       "cycling_trips_rate": "Mit dem Rad zurückgelegte Wege pro Person",
       "pt_trips_rate": "Mit dem ÖV zurückgelegte Wege pro Person",
-      "strata": "sozio-ökonomische Schichten"
+      "strata": "sozio-ökonomische Schichten",
+      "study_area_crop": "Untersuchungsgebiet",
+      "study_area": "Ortsteile"
     },
     "tooltips": {
       "clickForCalculation": "Für Berechnung klicken",
@@ -482,11 +484,11 @@
           "options": {
             "standard": {
               "title": "Standard",
-              "tooltip": "Default Routing"
+              "tooltip": "Standard Routing"
             },
             "electric": {
               "title": "Electric",
-              "tooltip": "Electric"
+              "tooltip": "Elektrisch"
             }
           }
         }

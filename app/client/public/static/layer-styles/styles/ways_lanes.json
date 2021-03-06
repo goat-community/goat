@@ -2,6 +2,21 @@
   "name": "lanes",
   "rules": [
     {
+      "name": "noData",
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#999999",
+          "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
+    },
+    {
       "name": "1",
       "filter": [
         "==",
@@ -132,26 +147,6 @@
         {
           "kind": "Line",
           "color": "#b612df",
-          "width": 1,
-          "join": "bevel",
-          "cap": "square"
-        }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
-    },
-    {
-      "name": "noData",
-      "filter": [
-        "==",
-        "lanes",
-        null
-      ],
-      "symbolizers": [
-        {
-          "kind": "Line",
-          "color": "#999999",
           "width": 1,
           "join": "bevel",
           "cap": "square"

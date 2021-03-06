@@ -1,5 +1,5 @@
 {
-  "name": "heatmap_gravity",
+  "name": "heatmap_luptai",
   "rules": [
     {
       "name": "HighAccessibilitySurplus",
@@ -275,7 +275,7 @@
       "symbolizers": [
         {
           "kind": "Fill",
-          "color": "#ffffbf",
+          "color": "#FFFFFF",
           "opacity": 0.4,
           "outlineColor": "rgba(0, 0, 255, 0.0)",
           "outlineWidth": 0,

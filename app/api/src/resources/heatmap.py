@@ -19,7 +19,7 @@ def recompute_heatmap(scenario_id):
 
     status_precomputed = db.select('''SELECT ways_heatmap_computed 
                 FROM scenarios 
-                WHERE scenario_id = %(scenario_id)s''', {"scenario_id": str(scenario_id)})
+                WHERE scenario_id = %(scenario_id)s''', params={"scenario_id": str(scenario_id)}, return_type='raw')
 
     if status_precomputed == []:
         return 'Scenario_id is not existing.'
@@ -31,8 +31,8 @@ def recompute_heatmap(scenario_id):
     max_cost = 1200
 
     # """Get userid for particular scenario_id"""
-    userid = db.select('''SELECT userid FROM scenarios WHERE scenario_id = %(scenario_id)s''', {
-                    "scenario_id": scenario_id})[0][0]
+    userid = db.select('''SELECT userid FROM scenarios WHERE scenario_id = %(scenario_id)s''', 
+        params={"scenario_id": scenario_id}, return_type='raw')[0][0]
 
     # """Clean tables and define changed grids"""
     db.perform('''DELETE FROM reached_edges_heatmap 
@@ -46,8 +46,7 @@ def recompute_heatmap(scenario_id):
     SELECT * FROM find_changed_grids(%(scenario_id)s,%(speed)s*%(max_cost)s);''', {"scenario_id": scenario_id, "speed": speed, "max_cost": max_cost})
 
     # """Select changed grids"""
-    changed_grids = db.select(
-        'SELECT starting_points, gridids, section_id FROM changed_grids;')
+    changed_grids = db.select('SELECT starting_points, gridids, section_id FROM changed_grids;')
 
     # """Loop through section and recompute grids"""
     for i in changed_grids:
@@ -80,16 +79,15 @@ def jsonb_to_geojson(jsonb_dict):
 
 def heatmap_gravity(pois, modus_input, scenario_id_input, return_type):
     #recompute_heatmap(scenario_id_input)
-    result = db.select_with_identifiers('''SELECT percentile_accessibility AS score, %(modus_input)s AS modus, geom 
+    result = db.select('''SELECT percentile_accessibility AS score, %(modus_input)s AS modus, geom 
         FROM heatmap_gravity(%(pois)s,%(modus_input)s,%(scenario_id_input)s)''', 
         params={"pois": json.dumps(pois), "modus_input": modus_input, "scenario_id_input": scenario_id_input}, return_type=return_type)
 
     return result
 
-
 def heatmap_population(modus_input, scenario_id_input, return_type):
 
-    result = db.select_with_identifiers('''SELECT percentile_population AS score,%(modus_input)s AS modus, geom 
+    result = db.select('''SELECT percentile_population AS score,%(modus_input)s AS modus, geom 
     FROM heatmap_population_api(%(modus_input)s,%(scenario_id_input)s)''',
     params={"scenario_id_input": scenario_id_input,"modus_input": modus_input}, return_type=return_type)
 
@@ -97,7 +95,7 @@ def heatmap_population(modus_input, scenario_id_input, return_type):
 
 def heatmap_luptai(pois, modus_input, scenario_id_input, return_type):
 
-    result = db.select_with_identifiers('''SELECT population_accessibility AS score, %(modus_input)s AS modus, geom 
+    result = db.select('''SELECT population_accessibility AS score, %(modus_input)s AS modus, geom 
     FROM heatmap_luptai(%(pois)s,%(modus_input)s,%(scenario_id_input)s)''',
     params={"pois": json.dumps(pois), "modus_input": modus_input, "scenario_id_input": scenario_id_input}, return_type=return_type)
     
@@ -108,7 +106,7 @@ def heatmap_connectivity(modus_input, scenario_id_input, return_type):
     if modus_input in ('scenario','comparison'):
         recompute_heatmap(scenario_id_input)
 
-    result = db.select_with_identifiers('''SELECT percentile_area_isochrone AS score, %(modus_input)s AS modus, geom
+    result = db.select('''SELECT percentile_area_isochrone AS score, %(modus_input)s AS modus, geom
     FROM heatmap_connectivity(%(modus_input)s,%(scenario_id_input)s)''',
     params={"scenario_id_input": scenario_id_input,"modus_input": modus_input}, return_type=return_type)   
     

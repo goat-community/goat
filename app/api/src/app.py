@@ -63,7 +63,7 @@ class Scenarios(Resource):
             }
         if mode == "read_deleted_features" :
             #sample body: {"mode":"read_deleted_features","table_name":"pois" ,"scenario_id":"1"} 
-            records = db.select_with_identifiers('''SELECT {} AS deleted_feature_ids 
+            records = db.select('''SELECT {} AS deleted_feature_ids 
             FROM scenarios 
             WHERE scenario_id = %(scenario_id)s::bigint''', 
             [translation_layers[body.get('table_name')]], {"scenario_id": body.get('scenario_id')})
@@ -99,7 +99,7 @@ class Scenarios(Resource):
         elif mode == "insert" :
             #/*sample body: {mode:"insert","userid":1,"scenario_name":"scenario1"}*/
             scenario_id = db.select("""INSERT INTO scenarios (userid, scenario_name) VALUES (%(userid)s,%(scenario_name)s) RETURNING scenario_id""", 
-                {"userid": body.get('userid'), "scenario_name": body.get('scenario_name')})[0][0]
+                params={"userid": body.get('userid'), "scenario_name": body.get('scenario_name')}, return_type='raw')[0][0]
             return {
                 "scenario_id":f"{scenario_id}"
                 }
@@ -128,7 +128,7 @@ class Isochrone(Resource):
         if 'objectid' in args and return_type == "shapefile":
             prepared_query = '''SELECT gid, objectid, step, modus, parent_id, population, sum_pois::text, geom 
             FROM isochrones WHERE objectid = %(objectid)s'''
-            result = db.select_with_identifiers(prepared_query, params={"objectid": args["objectid"]}, return_type='shapefile')
+            result = db.select(prepared_query, params={"objectid": args["objectid"]}, return_type='shapefile')
             result = Response(result, mimetype='application/zip')
             result.headers['Content-Disposition'] = 'attachment; filename={}'.format('isochrones.zip')
             return result
@@ -144,7 +144,7 @@ class Isochrone(Resource):
             "user_id": args["user_id"],"scenario_id": args["scenario_id"],"minutes": args["minutes"], "x": args["x"],"y": args["y"],"n": args["n"],
             "speed": args["speed"], "concavity": args["concavity"],"modus": args["modus"],"routing_profile": args["routing_profile"]
         }
-        record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
+        record = db.select(prepared_query, params=args_vals, return_type='geojson')
 
         return record[0][0]
 
@@ -160,7 +160,7 @@ class PoisMultiIsochrones(Resource):
             prepared_query = '''SELECT gid, userid, step, speed, modus, parent_id, routing_profile, population::TEXT, geom 
             FROM multi_isochrones 
             WHERE objectid = %(objectid)s'''
-            result = db.select_with_identifiers(prepared_query, params={"objectid": args["objectid"]}, return_type='shapefile')
+            result = db.select(prepared_query, params={"objectid": args["objectid"]}, return_type='shapefile')
             result = Response(result, mimetype='application/zip')
             result.headers['Content-Disposition'] = 'attachment; filename={}'.format('isochrones.zip')
             return result
@@ -178,7 +178,7 @@ class PoisMultiIsochrones(Resource):
             "alphashape_parameter": args["alphashape_parameter"], "modus": args["modus"],"region_type": args["region_type"],"region": args["region"],"amenities": args["amenities"]
         }
 
-        record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
+        record = db.select(prepared_query, params=args_vals, return_type='geojson')
     
         return record[0][0]
         
@@ -197,7 +197,7 @@ class CountPoisMultiIsochrones(Resource):
              "speed": args["speed"],"region_type": args["region_type"],"region": args["region"],"amenities": args["amenities"]
         }
 
-        record = db.select_with_identifiers(prepared_query, params=args_vals, return_type='geojson')
+        record = db.select(prepared_query, params=args_vals, return_type='geojson')
         
         return record[0][0]
 
@@ -211,7 +211,7 @@ class ManageUser(Resource):
         mode=body.get('mode')
         if mode == "insert":
             #/*sample body: {"mode":"insert"}*/
-            userid = db.select("INSERT INTO user_data (username, pw) VALUES ('','') RETURNING userid")[0][0]
+            userid = db.select("INSERT INTO user_data (username, pw) VALUES ('','') RETURNING userid", return_type='raw')[0][0]
             return {
                     'userid':f'{userid}'
                 }
@@ -230,7 +230,8 @@ class PingPONG(Resource):
 class ExportScenario(Resource):       
     def post(self):
         body=request.get_json() 
-        dicts=db.select('SELECT * FROM export_changeset_scenario(%(scenario_id)s)', {"scenario_id": body.get('scenario_id')})[0][0]
+        dicts=db.select('SELECT * FROM export_changeset_scenario(%(scenario_id)s)', 
+        params={"scenario_id": body.get('scenario_id')}, return_type='raw')[0][0]
         my_zip = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
         for key in dicts.keys():
             tmp_file = tempfile.mkstemp(prefix=f"{key}",suffix='.geojson')
@@ -247,7 +248,7 @@ class ImportScenario(Resource):
         body=request.get_json()
         payload =  json.dumps(body.get('payload'), separators=(',', ':'))
         result=db.select("SELECT import_changeset_scenario(%(scenario_id)s, %(user_id)s,jsonb_build_object(%(layerName)s,%(payload)s::jsonb))"
-        , {"scenario_id": body.get('scenario_id'),"user_id":body.get('user_id'),"layerName":body.get('layerName'),"payload":payload})
+        , params={"scenario_id": body.get('scenario_id'),"user_id":body.get('user_id'),"layerName":body.get('layerName'),"payload":payload}, return_type='raw')
         return result
 
 class UploadAllScenariosResource(Resource):
@@ -275,7 +276,7 @@ class DeleteAllScenarioData(Resource):
    
 class OsmTimestamp(Resource):
     def get(self):
-        result = db.select_with_identifiers(
+        result = db.select(
         "SELECT split_part(variable_simple,'T',1) FROM variable_container vc WHERE identifier = 'data_recency'", 
         return_type='raw')[0][0]
 
@@ -286,7 +287,7 @@ class LayerSchema(Resource):
     def get(self, table_name):
         result = db.select('''SELECT jsonb_agg(jsonb_build_object('column_name', column_name, 'data_type', data_type, 'is_nullable', is_nullable))
         FROM information_schema.columns
-        WHERE table_name = %(table_name)s''', params={"table_name": table_name})[0][0]
+        WHERE table_name = %(table_name)s''', params={"table_name": table_name}, return_type='raw')[0][0]
 
         return result 
 
@@ -331,7 +332,7 @@ class LayerRead(Resource):
                 "Error": "No valid table was selected."
             }
 
-        result = db.select_with_identifiers(prepared_query, params=body, return_type=return_type)
+        result = db.select(prepared_query, params=body, return_type=return_type)
         if body["return_type"] == 'geobuf':
             result_bytes = io.BytesIO(result[0][0])
             return send_file(result_bytes, mimetype='application/geobuf.pbf')
@@ -354,7 +355,7 @@ class LayerController(Resource):
         if mode == "read":
             prepared_query = '''SELECT * FROM {} WHERE scenario_id = %(scenario_id)s::bigint'''
 
-            records = db.select_with_identifiers(
+            records = db.select(
                 prepared_query, identifiers=[table_name], params={"scenario_id": body.get('scenario_id')}, return_type='geojson'
             )
 
@@ -376,7 +377,7 @@ class LayerController(Resource):
                     sql.SQL(', ').join(map(sql.Identifier, columns))
                 )   
 
-                df = db.select_with_identifiers(prepared_query, params=f, return_type='geodataframe')
+                df = db.select(prepared_query, params=f, return_type='geodataframe')
 
                 if dfs.empty: 
                     dfs = df 
@@ -411,7 +412,7 @@ class LayerController(Resource):
                 ] 
                 prepared_query = sql.SQL(' ').join(update_sql)
 
-                df = db.select_with_identifiers(prepared_query, params=f, return_type='geodataframe')
+                df = db.select(prepared_query, params=f, return_type='geodataframe')
 
                 if dfs.empty: 
                     dfs = df 
@@ -431,7 +432,7 @@ class LayerController(Resource):
 
 class Layer(Resource):
     def __init__(self):
-        self.metadata = db.select('''SELECT * FROM layer_metadata''')[0][0]
+        self.metadata = db.select('''SELECT * FROM layer_metadata''', return_type='raw')[0][0]
         self.mvt = MVT()
         
     def get(self, layer, z, x, y):

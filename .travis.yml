@@ -9,6 +9,7 @@ branches:
     - hasenbergl
     - muenchen
     - freising
+    - development
     - test_travis
 
 before_install:
@@ -76,7 +77,7 @@ jobs:
           make deploy -e COMPONENT=api -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/print" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
           make deploy -e COMPONENT=print -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
-        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/cron" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
+        - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/database" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
           make deploy -e COMPONENT=cron -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
         - if app/scripts/build-condition.sh $TRAVIS_COMMIT_RANGE "app/database" || [[ $TRAVIS_COMMIT_MESSAGE == *"trigger build"* ]]; then
           make deploy-postgres-server -e NAMESPACE=$NAMESPACE -e DOMAIN=$DOMAIN; else echo "NO CHANGES SINCE LAST COMMIT"; fi
