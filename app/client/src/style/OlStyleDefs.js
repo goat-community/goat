@@ -657,13 +657,17 @@ export const mapillaryStyleDefs = {
  * POIS layer style -
  */
 const poisStyleCache = {};
-function poisStyle(feature) {
+function poisStyle(feature, resolution) {
+  if (resolution > 25) {
+    return [];
+  }
   const name = `${feature.get("amenity")}_${feature.get("status")}`;
   if (!poisStyleCache[name]) {
     let path = `img/pois-map/${name}.png`;
     poisStyleCache[name] = new OlStyle({
       image: new OlIcon({
         anchor: [0.5, 35],
+        scale: 0.85,
         anchorXUnits: "fraction",
         anchorYUnits: "pixels",
         src: path
