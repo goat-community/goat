@@ -114,9 +114,10 @@ DECLARE
 	PERFORM multi_isochrones(userid_input, scenario_id_input, objectid_multi_isochrone, minutes,n,routing_profile_input,speed_input,alphashape_parameter_input,modus_input,1,points_array);
 		
 	IF region_type = 'study_area' THEN
+
 	 	WITH expand_population AS 
 		(
-			SELECT m.gid,jsonb_array_elements(population_mask) AS population  
+			SELECT m.gid,jsonb_object_keys(jsonb_array_elements(population_mask)) AS name, jsonb_array_elements(population_mask) AS population  
 			FROM multi_isochrones m
 			WHERE m.objectid = objectid_multi_isochrone 
 		),
@@ -133,18 +134,25 @@ DECLARE
 			AND p.building_gid NOT IN (SELECT UNNEST(excluded_buildings_gid))
 			AND (p.scenario_id = scenario_id_input OR p.scenario_id IS NULL)
 			GROUP BY i.gid, i.name
+		),
+		merge_reached AS 
+		(
+			SELECT e.gid, e.population, 
+			CASE WHEN r.reached_population IS NULL THEN jsonb_build_object(concat(e.name,'_reached'),0) 
+			ELSE r.reached_population END AS reached_population 
+			FROM expand_population e
+			LEFT JOIN reached_population r  
+			ON e.gid = r.gid
+			AND e.name = r.name
 		)
 		UPDATE multi_isochrones m
 		SET population = x.new_population
 		FROM (
-			SELECT e.gid, array_to_json(array_agg(e.population|| r.reached_population)) new_population
-			FROM expand_population e, reached_population r
-			WHERE e.population::jsonb ? r.name
-			AND e.gid = r.gid
-			GROUP BY e.gid
+			SELECT m.gid, array_to_json(array_agg(m.population || m.reached_population)) new_population
+			FROM merge_reached m
+			GROUP BY m.gid
 		) x 
 		WHERE m.gid = x.gid;
-	
 	ELSE 
 		UPDATE multi_isochrones 
 		SET population = population_mask || reached_population 
@@ -174,10 +182,10 @@ $function$ LANGUAGE plpgsql;
 
 /*
 SELECT *
-FROM pois_multi_isochrones(1,15,5.0,3,'walking_wheelchair',0.00003,1,'study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) ;
+FROM pois_multi_isochrones(1,0,15,5.0,3,'walking_wheelchair',0.00003,1,'study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) ;
 
 SELECT *
-FROM pois_multi_isochrones(1,10,5.0,2,'walking_standard',0.00003,1,'envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 
+FROM pois_multi_isochrones(1,0,10,5.0,2,'walking_standard',0.00003,1,'envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 
 --alphashape_parameter NUMERIC = 0.00003;
 --region_type 'envelope' or study_area
 */
