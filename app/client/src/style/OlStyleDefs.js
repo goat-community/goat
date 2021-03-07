@@ -687,11 +687,11 @@ function modeShareStyle(feature) {
       })
     });
     const radius = 25;
-    const share_foot = feature.get("share_foot") || 0;
-    const share_bike = feature.get("share_bike") || 0;
-    const share_mivd = feature.get("share_mivd") || 0;
-    const share_mivp = feature.get("share_mivp") || 0;
-    const share_put = feature.get("share_put") || 0;
+    const share_foot = parseFloat(feature.get("share_foot")) || 0;
+    const share_bike = parseFloat(feature.get("share_bike")) || 0;
+    const share_mivd = parseFloat(feature.get("share_mivd")) || 0;
+    const share_mivp = parseFloat(feature.get("share_mivp")) || 0;
+    const share_put = parseFloat(feature.get("share_put")) || 0;
     const chartStyle = new OlStyle({
       image: new OlChart({
         type: "pie3D",
