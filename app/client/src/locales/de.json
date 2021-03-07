@@ -342,7 +342,8 @@
       "allScenarioFeaturesDelete": "Alle Szenarien-Daten wurden gelöscht",
       "noScenarioFeatureChangeAvailable": "Ändern Sie zuerst das Netzwerk oder die Landnutzung.",
       "cantPrintBaseLayer": "Diese Basiskarte kann nicht gedruckt werden.",
-      "cantExportScenario": "Ein Fehler ist aufgetreten. Szenario kann nicht exportiert werden!"
+      "cantExportScenario": "Ein Fehler ist aufgetreten. Szenario kann nicht exportiert werden!",
+      "zoomInToShowFeatures": "Vergrößern Sie, um die Funktionen für anzuzeigen:"
     },
     "layerGroup": {
       "poisLayers": "POIs",

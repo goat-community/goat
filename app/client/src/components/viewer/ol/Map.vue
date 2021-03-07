@@ -78,6 +78,21 @@
         <v-divider></v-divider>
       </template>
     </overlay-popup>
+    <!-- Info Snackbar for not visible layers. -->
+    <v-snackbar
+      :color="activeColor.primary"
+      top
+      :timeout="layerSnackbar.timeout"
+      v-model="layerSnackbar.state"
+    >
+      <v-icon color="white" class="mr-3">
+        info
+      </v-icon>
+      <span v-html="layerSnackbar.message"></span>
+      <v-btn text @click="layerSnackbar.state = false">
+        <v-icon>close</v-icon>
+      </v-btn>
+    </v-snackbar>
   </div>
 </template>
 
@@ -125,6 +140,7 @@ import DoubleClickZoom from "ol/interaction/DoubleClickZoom";
 import { defaults as defaultControls, Attribution } from "ol/control";
 import { defaults as defaultInteractions } from "ol/interaction";
 
+import { debounce } from "../../../utils/Helpers";
 // Context menu
 import ContextMenu from "ol-contextmenu/dist/ol-contextmenu";
 import "ol-contextmenu/dist/ol-contextmenu.min.css";
@@ -159,7 +175,13 @@ export default {
         isVisible: false,
         currentLayerIndex: 0
       },
-      getInfoResult: []
+      getInfoResult: [],
+      limitedVisibilityLayers: [],
+      layerSnackbar: {
+        state: false,
+        message: "",
+        timeout: 8000
+      }
     };
   },
   mounted() {
@@ -185,6 +207,7 @@ export default {
       me.setupMapClick();
       me.setupMapPointerMove();
       me.createPopupOverlay();
+      EventBus.$on("toggleLayerVisiblity", this.showNonVisibleLayersInfo);
     }, 200);
   },
   created() {
@@ -256,8 +279,11 @@ export default {
           continue;
         }
         const mapLayers = [];
-        layersConfigGrouped[group].reverse().forEach(function(lConf) {
+        layersConfigGrouped[group].reverse().forEach(lConf => {
           const layer = LayerFactory.getInstance(lConf);
+          if (![Infinity, undefined, null].includes(layer.getMaxResolution())) {
+            this.limitedVisibilityLayers.push(layer);
+          }
           mapLayers.push(layer);
           if (layer.get("name")) {
             me.setLayer(layer);
@@ -363,6 +389,8 @@ export default {
           }
         }
       });
+      // Show snackbar info when layers aren't visible in the current resolution
+      map.getView().on("change:resolution", this.showNonVisibleLayersInfo);
     },
 
     /**
@@ -657,6 +685,39 @@ export default {
       this.popup.currentLayerIndex += 1;
       this.showPopup();
     },
+
+    showNonVisibleLayersInfo: debounce(function() {
+      const currentResolution = this.map.getView().getResolution();
+      const notVisibleLayers = [];
+      this.limitedVisibilityLayers.forEach(layer => {
+        if (
+          layer.getMaxResolution() &&
+          layer.getMaxResolution() < currentResolution &&
+          layer.getVisible()
+        ) {
+          const layerName = this.$te(`map.layerName.${layer.get("name")}`)
+            ? this.$t(`map.layerName.${layer.get("name")}`)
+            : layerName;
+          notVisibleLayers.push(layerName);
+        }
+      });
+
+      if (notVisibleLayers.length > 0) {
+        this.layerSnackbar = {
+          state: true,
+          message: `${this.$t(
+            `map.snackbarMessages.zoomInToShowFeatures`
+          )}: <b>${notVisibleLayers.toString()}</b>`,
+          timeout: 80000
+        };
+      } else {
+        this.layerSnackbar = {
+          state: false,
+          message: ``,
+          timeout: 0
+        };
+      }
+    }, 200),
     getOsmHrefLink() {
       let link = ``;
       if (this.currentInfoFeature && this.currentInfoFeature.get("osm_id")) {
@@ -697,7 +758,8 @@ export default {
     ...mapMutations("map", {
       setMap: "SET_MAP",
       setContextMenu: "SET_CONTEXTMENU",
-      setLayer: "SET_LAYER"
+      setLayer: "SET_LAYER",
+      toggleSnackbar: "TOGGLE_SNACKBAR"
     }),
     ...mapMutations("pois", {
       init: "INIT"

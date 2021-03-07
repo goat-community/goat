@@ -110,7 +110,11 @@ export const LayerFactory = {
         ratio: lConf.ratio,
         attributions: lConf.attributions,
         crossOrigin: "Anonymous"
-      })
+      }),
+      minResolution: lConf.minResolution,
+      maxResolution: lConf.maxResolution,
+      minZoom: lConf.minZoom,
+      maxZoom: lConf.maxZoom
     });
 
     return layer;
@@ -145,7 +149,11 @@ export const LayerFactory = {
         serverType: lConf.serverType ? lConf.serverType : "geoserver",
         attributions: lConf.attributions,
         crossOrigin: "Anonymous"
-      })
+      }),
+      minResolution: lConf.minResolution,
+      maxResolution: lConf.maxResolution,
+      minZoom: lConf.minZoom,
+      maxZoom: lConf.maxZoom
     });
 
     return layer;
@@ -280,7 +288,11 @@ export const LayerFactory = {
         OlStyleFactory.getInstance(lConf.style) ||
         baseStyleDefs[lConf.styleRef],
       hoverable: lConf.hoverable,
-      hoverAttribute: lConf.hoverAttribute
+      hoverAttribute: lConf.hoverAttribute,
+      minResolution: lConf.minResolution,
+      maxResolution: lConf.maxResolution,
+      minZoom: lConf.minZoom,
+      maxZoom: lConf.maxZoom
     });
 
     return vectorLayer;
@@ -322,7 +334,11 @@ export const LayerFactory = {
         crossOrigin: "Anonymous"
       }),
       hoverable: lConf.hoverable,
-      hoverAttribute: lConf.hoverAttribute
+      hoverAttribute: lConf.hoverAttribute,
+      minResolution: lConf.minResolution,
+      maxResolution: lConf.maxResolution,
+      minZoom: lConf.minZoom,
+      maxZoom: lConf.maxZoom
     });
 
     return vtLayer;
