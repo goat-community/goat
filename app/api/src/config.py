@@ -1,5 +1,5 @@
 class Config(object):
-    PORT = 5000
+    PORT = 3000
     DEBUG = False
     TESTING = False
     REMOTE_DEBUGGING = False
