@@ -48,6 +48,10 @@
     "livingStreet": {
       "en": "living Street",
       "de": "Spielstraße"
+    },
+    "noSidewalk": {
+      "en": "no sidewalk",
+      "de": "kein Gehweg"
     }
   },
   "heatmap_gravity": {
@@ -444,8 +448,8 @@
       "de": "Springbrunnen"
     },
     "wasteBasket": {
-      "en": "comfortable",
-      "de": "komfortabel"
+      "en": "waste basket",
+      "de": "Mülleimer"
     }
   },
   "street_furniture_bicycles": {

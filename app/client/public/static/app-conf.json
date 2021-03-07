@@ -230,7 +230,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "footpathWidth",
+        "name": "footpath_width",
         "url": "/api/map/layer/footpath_width/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
@@ -247,7 +247,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "illuminance",
+        "name": "ways_lit",
         "url": "/api/map/layer/ways_lit/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
@@ -264,7 +264,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "lanes",
+        "name": "ways_lanes",
         "url": "/api/map/layer/ways_lanes/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
@@ -281,7 +281,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "parking",
+        "name": "ways_parking",
         "url": "/api/map/layer/ways_parking/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
@@ -298,7 +298,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "streetCategory",
+        "name": "ways_category",
         "url": "/api/map/layer/ways_category/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
@@ -315,7 +315,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "streetCategorysAggregated",
+        "name": "ways_category_aggregated",
         "url": "/api/map/layer/ways_category_aggregated/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
@@ -332,7 +332,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "speed",
+        "name": "ways_speed",
         "url": "/api/map/layer/ways_speed/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
@@ -349,7 +349,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "surface",
+        "name": "ways_surface",
         "url": "/api/map/layer/ways_surface/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
@@ -366,7 +366,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "smoothness",
+        "name": "ways_smoothness",
         "url": "/api/map/layer/ways_smoothness/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
@@ -383,8 +383,8 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "streetCrossings",
-        "url": "/api/map/layer/street_crossings_visualization/{z}/{x}/{y}",
+        "name": "street_crossings",
+        "url": "/api/map/layer/street_crossings/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
         "visible": false,
@@ -404,7 +404,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "streetFurniture",
+        "name": "street_furniture",
         "url": "/api/map/layer/street_furniture/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
@@ -425,7 +425,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "streetFurnitureBicycles",
+        "name": "street_furniture_bicycles",
         "url": "/api/map/layer/street_furniture_bicycles/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
@@ -446,7 +446,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "cyclewayQuality_munichways",
+        "name": "munichways",
         "url": "/api/map/layer/munichways/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
@@ -467,7 +467,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "wheelchairUsability",
+        "name": "ways_wheelchair",
         "url": "/api/map/layer/ways_wheelchair/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
@@ -672,7 +672,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "accidentsPointsCyclists",
+        "name": "accidents_cyclists",
         "url": "/api/map/layer/accidents_cyclists/{z}/{x}/{y}",
         "group": "additionalDataLayers",
         "opacity": 1,
@@ -728,7 +728,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "accidentsPointsPedestrians",
+        "name": "accidents_pedestrians",
         "url": "/api/map/layer/accidents_pedestrians/{z}/{x}/{y}",
         "group": "additionalDataLayers",
         "visible": false,

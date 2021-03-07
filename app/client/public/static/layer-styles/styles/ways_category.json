@@ -1,5 +1,5 @@
 {
-  "name": "highway",
+  "name": "ways_category",
   "rules": [
     {
       "name": "livingStreet",
@@ -73,26 +73,6 @@
           "kind": "Line",
           "color": "#c1f112",
           "width": 1,
-          "join": "bevel",
-          "cap": "square"
-        }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
-    },
-    {
-      "name": "path",
-      "filter": [
-        "==",
-        "highway",
-        "path"
-      ],
-      "symbolizers": [
-        {
-          "kind": "Line",
-          "color": "#aeadad",
-          "width": 0.5,
           "join": "bevel",
           "cap": "square"
         }
@@ -317,6 +297,26 @@
           "kind": "Line",
           "color": "#db9855",
           "width": 1,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ],
+      "scaleDenominator": {
+        "max": 50000
+      }
+    },
+    {
+      "name": "path",
+      "filter": [
+        "==",
+        "highway",
+        "path"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#aeadad",
+          "width": 0.5,
           "join": "bevel",
           "cap": "square"
         }
