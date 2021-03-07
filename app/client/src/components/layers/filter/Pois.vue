@@ -234,6 +234,7 @@ export default {
           excluded: newFilter,
           nodeState: "activate"
         });
+        4;
       }
     },
     treeViewChanged() {
@@ -255,8 +256,25 @@ export default {
     selectedPois: function() {
       const me = this;
       if (me.osmMode === true) return;
+      if (me.selectedPois.length > 0) {
+        me.toggleSnackbar({
+          type: "error",
+          message: "selectAmenities",
+          state: false,
+          timeout: 0
+        });
+      }
+      if (me.selectedPois.length === 0 && me.poisLayer.getVisible() === true) {
+        this.toggleSnackbar({
+          type: "error",
+          message: "selectAmenities",
+          state: true,
+          timeout: 60000
+        });
+      }
       if (me.selectedPois.length > 0 && me.poisLayer.getVisible() === false) {
         me.poisLayer.setVisible(true);
+        EventBus.$emit("toggleLayerVisiblity", me.poisLayer);
       }
 
       me.updateSelectedPoisForThematicData(me.selectedPois);

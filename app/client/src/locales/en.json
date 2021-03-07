@@ -332,7 +332,8 @@
       "noScenarioFeatureChangeAvailable": "Please do network or land-use change first",
       "cantPrintBaseLayer": "This baselayer can't be printed",
       "featuresAlreadyUploaded": "Features already exists",
-      "cantExportScenario": "An error happened. Scenario can't be exported!"
+      "cantExportScenario": "An error happened. Scenario can't be exported!",
+      "zoomInToShowFeatures": "Zoom in to show features for"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",

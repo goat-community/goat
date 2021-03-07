@@ -97,6 +97,7 @@
           "scenario_id",
           "routing_profile"
         ],
+        "maxResolution": 5,
         "opacity": 1,
         "queryable": true,
         "requiresPois": true,
@@ -149,6 +150,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 1,
+        "maxResolution": 10,
         "queryParams": [],
         "style": {
           "format": "geostyler",
@@ -196,6 +198,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 1,
+        "maxResolution": 10,
         "queryParams": [],
         "style": {
           "format": "geostyler",
