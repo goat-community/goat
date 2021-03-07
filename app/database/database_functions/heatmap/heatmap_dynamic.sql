@@ -66,7 +66,7 @@ BEGIN
 					LEFT JOIN 
 					(	
 						SELECT gid FROM reached_pois_heatmap 
-						WHERE scenario_id = 13 
+						WHERE scenario_id = scenario_id_input 
 						AND amenity IN (SELECT UNNEST(pois_one_entrance))
 						AND amenity IN (SELECT UNNEST(array_amenities))
 					) s

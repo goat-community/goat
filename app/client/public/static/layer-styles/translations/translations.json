@@ -11,7 +11,7 @@
       "de": "Unfallstelle"
     }
   },
-  "aois_visualization": {
+  "aois": {
     "forest": {
       "en": "forest",
       "de": "Wald"
@@ -52,11 +52,11 @@
   },
   "heatmap_gravity": {
     "VeryLowAccessibility": {
-      "en": "very low accessibility",
+      "en": "Very low accessibility",
       "de": "Sehr niedrige Erreichbarkeit"
     },
     "LowAccessibility": {
-      "en": "low accessibility",
+      "en": "Low accessibility",
       "de": "Niedrige Erreichbarkeit"
     },
     "RatherLowAccessibility": {
@@ -74,6 +74,170 @@
     "HighAccessibility": {
       "en": "High accessibility",
       "de": "Hohe Erreichbarkeit"
+    },
+    "VeryStrongDecrease": {
+      "en": "Very strong decrease",
+      "de": "Sehr starke Abnahme"
+    },
+    "StrongDecrease": {
+      "en": "Very decrease",
+      "de": "Starke Abnahme"
+    },
+    "MeanDecrease": {
+      "en": "Mean decrease",
+      "de": "Mittlere Abnahme"
+    },
+    "LowDecrease": {
+      "en": "Low decrease",
+      "de": "Geringe Abnahme"
+    },
+    "VeryLowDecrease": {
+      "en": "Very low decrease",
+      "de": "Sehr geringe Abnahme"
+    },
+    "NoOrMarginalChange": {
+      "en": "No or marginal change",
+      "de": "Keine oder vernachlässigbare Änderung"
+    },
+    "VerySmallIncrease": {
+      "en": "Very small increase",
+      "de": "Sehr leichte Zunahme"
+    },
+    "SmallIncrease": {
+      "en": "Small increase",
+      "de": "Leichte Zunahme"
+    },
+    "MeanIncrease": {
+      "en": "Mean increase",
+      "de": "Mittlere Zunahme"
+    },
+    "HighIncrease": {
+      "en": "High increase",
+      "de": "Hohe Zunahme"
+    },
+    "VeryHighIncrease": {
+      "en": "Very high increase",
+      "de": "Sehr hohe Zunahme"
+    }
+  }, 
+  "heatmap_luptai": {
+    "HighAccessibilitySurplus": {
+      "en": "High accessibility surplus",
+      "de": "Hoher Erreichbarkeitsüberschuss"
+    },
+    "RatherHighAccessibilitySurplus": {
+      "en": "Rather high accessibility surplus",
+      "de": "Leichter Erreichbarkeitsüberschuss"
+    },
+    "Balanced": {
+      "en": "Balanced",
+      "de": "Gleichgewicht"
+    },
+    "RatherHighDensitySurplus": {
+      "en": "Rather high density surplus",
+      "de": "Leichter Dichteüberschuss"
+    },
+    "HighDensitySurplus": {
+      "en": "High density surplus",
+      "de": "Hoher Dichteüberschuss"
+    },
+    "SignificantlyLessBalanced": {
+      "en": "Significantly less balanced",
+      "de": "Deutlich weniger ausgeglichen"
+    },
+    "LessBalanced": {
+      "en": "Less balanced",
+      "de": "Weniger ausgeglichen"
+    },
+    "LittleLessBalanced": {
+      "en": "Little less balanced",
+      "de": "Etwas weniger ausgeglichen"
+    },
+    "NoOrMarginalChange": {
+      "en": "No or marginal change",
+      "de": "Keine oder vernachlässigbare Änderung"
+    },
+    "LittleMoreBalanced": {
+      "en": "Little more balanced",
+      "de": "Etwas stärker ausgeglichen"
+    },
+    "MoreBalanced": {
+      "en": "More balanced",
+      "de": "Stärker ausgeglichen"
+    },
+    "SignificantlyMoreBalanced": {
+      "en": "Significantly more balanced",
+      "de": "Deutlich stärker ausgeglichen"
+    }
+  }, 
+  "heatmap_connectivity": {
+    "VeryLowConnectivity": {
+      "en": "Very low connectivity",
+      "de": "Sehr niedrige Konnektivität"
+    },
+    "LowConnectivity": {
+      "en": "Low connectivity",
+      "de": "Niedrige Konnektivität"
+    },
+    "RatherLowConnectivity": {
+      "en": "Rather low connectivity",
+      "de": "Eher niedrige Konnektivität"
+    },
+    "MediumConnectivity": {
+      "en": "Medium connectivity",
+      "de": "Mittlere Konnektivität"
+    },
+    "RatherHighConnectivity": {
+      "en": "Rather high connectivity",
+      "de": "Eher hohe Konnektivität"
+    },
+    "HighConnectivity": {
+      "en": "High connectivity",
+      "de": "Hohe Konnektivität"
+    },
+    "VeryStrongDecrease": {
+      "en": "Very strong decrease",
+      "de": "Sehr starke Abnahme"
+    },
+    "StrongDecrease": {
+      "en": "Very decrease",
+      "de": "Starke Abnahme"
+    },
+    "MeanDecrease": {
+      "en": "Mean decrease",
+      "de": "Mittlere Abnahme"
+    },
+    "LowDecrease": {
+      "en": "Low decrease",
+      "de": "Geringe Abnahme"
+    },
+    "VeryLowDecrease": {
+      "en": "Very low decrease",
+      "de": "Sehr geringe Abnahme"
+    },
+    "NoOrMarginalChange": {
+      "en": "No or marginal change",
+      "de": "Keine oder vernachlässigbare Änderung"
+    },
+    "VerySmallIncrease": {
+      "en": "Very small increase",
+      "de": "Sehr leichte Zunahme"
+    },
+    "SmallIncrease": {
+      "en": "Small increase",
+      "de": "Leichte Zunahme"
+    },
+    "MeanIncrease": {
+      "en": "Mean increase",
+      "de": "Mittlere Zunahme"
+    },
+    "HighIncrease": {
+      "en": "High increase",
+      "de": "Hohe Zunahme"
+    },
+    "VeryHighIncrease": {
+      "en": "Very high increase",
+      "de": "Sehr hohe Zunahme"
     }
   },
   "heatmap_population": {
@@ -288,6 +452,12 @@
     "bicycleParking": {
       "en": "bicycle parking",
       "de": "Fahrradständer"
+    }
+  },
+  "study_area_crop": {
+    "StudyAreaCrop": {
+      "en": "Study area", 
+      "de": "Untersuchungsgebiet"
     }
   },
   "ways_category_aggregated": {

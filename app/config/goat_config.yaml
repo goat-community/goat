@@ -106,18 +106,18 @@ DATA_REFINEMENT_VARIABLES:
     cycling_crossings_delay:
       delay_1: 15
       delay_2: 30
-    compute_slope_impedance: "'yes'"
+    compute_slope_impedance: "'no'"
     ##-------------------------------------Size limits for areas of interest------------------------------------##
     ## Limits the area to be displayed for certain amenities (like parks). The limits should be defined in square meters
     areas_boundaries:
       parks:
-        small: [20000]
+        small: [2000]
         ##large: [300000]
       forest:
-        small: [20000]
+        small: [2000]
         ##large: [300000]
       heath:
-        small: [20000]
+        small: [0]
         ##large: [300000]
 
     ##-------------------------------------Radius definition for POIS fusion------------------------------------##

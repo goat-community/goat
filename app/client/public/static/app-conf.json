@@ -42,7 +42,6 @@
       1.1943,
       0.5972
     ],
-    "center": [1289645.541227, 6129485.298188],
     "layers": [
       {
         "type": "VECTOR",
@@ -126,7 +125,7 @@
         "canEdit": false,
         "queryable": true,
         "displayInLayerList": true,
-        "zIndex": 1,
+        "zIndex": 0.5,
         "queryParams": [
           "table_name",
           "modus",
@@ -164,7 +163,7 @@
         "type": "VECTORTILE",
         "format": "MVT",
         "name": "landuse_osm",
-        "url": "/api/map/layer/landuse_osm_api/{z}/{x}/{y}",
+        "url": "/api/map/layer/landuse_osm/{z}/{x}/{y}",
         "group": "buildings_landuse",
         "visible": false,
         "canEdit": false,

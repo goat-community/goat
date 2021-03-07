@@ -1,5 +1,7 @@
 <template>
   <v-expansion-panels
+    multiple
+    v-model="panel"
     class="elevation-3"
     dark
     style="position:absolute;bottom:35px;right:10px;maxWidth: 250px;"
@@ -16,65 +18,69 @@
       </v-expansion-panel-header>
       <v-expansion-panel-content style="max-height:400px;">
         <vue-scroll>
-          <template v-for="(item, index) in layers">
-            <div
-              :key="index"
-              v-if="
-                item.getVisible() === true &&
-                  item.get('displayInLegend') !== false &&
-                  item.get('group') !== 'backgroundLayers' &&
-                  isMapMounted === true &&
-                  $appConfig.stylesObj
-              "
-              style="padding-right:10px;"
-            >
-              <v-divider></v-divider>
-              <!-- LAYER TITLE -->
-              <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
-                {{
-                  $te(`map.layerName.${item.get("name")}`)
-                    ? $t(`map.layerName.${item.get("name")}`)
-                    : item.get("name")
-                }}
-              </p>
-              <!-- WMS LEGEND -->
-              <div v-if="item.get('legendGraphicUrl')">
-                <img
-                  style="max-width:
+          <div id="legend">
+            <template v-for="(item, index) in layers">
+              <div
+                :key="index"
+                v-if="
+                  item.getVisible() === true &&
+                    item.get('displayInLegend') !== false &&
+                    item.get('group') !== 'backgroundLayers' &&
+                    isMapMounted === true &&
+                    $appConfig.stylesObj
+                "
+                style="padding-right:10px;"
+              >
+                <v-divider></v-divider>
+                <!-- LAYER TITLE -->
+                <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
+                  {{
+                    $te(`map.layerName.${item.get("name")}`)
+                      ? $t(`map.layerName.${item.get("name")}`)
+                      : item.get("name")
+                  }}
+                </p>
+                <!-- WMS LEGEND -->
+                <div v-if="item.get('legendGraphicUrl')">
+                  <img
+                    style="max-width:
                   100%;"
-                  :src="item.get('legendGraphicUrl')"
-                  class="white--text mt-0 pt-0"
-                />
-              </div>
-              <div v-else>
-                <div v-if="item.get('type') === 'WMS'">
-                  <template
-                    v-for="(layerName, index2) in item
-                      .getSource()
-                      .getParams()
-                      .LAYERS.split(',')"
+                    :src="item.get('legendGraphicUrl')"
+                    class="white--text mt-0 pt-0"
+                  />
+                </div>
+                <div v-else>
+                  <div v-if="item.get('type') === 'WMS'">
+                    <template
+                      v-for="(layerName, index2) in item
+                        .getSource()
+                        .getParams()
+                        .LAYERS.split(',')"
+                    >
+                      <div :key="index2">
+                        <img
+                          style="max-width:
+                  100%;"
+                          :src="getWMSLegendImageUrl(item, layerName)"
+                          class="white--text mt-0 pt-0"
+                        />
+                        <br />
+                      </div>
+                    </template>
+                  </div>
+                  <!-- VECTOR LEGEND -->
+                  <div
+                    v-if="['VECTORTILE', 'VECTOR'].includes(item.get('type'))"
                   >
-                    <div :key="index2">
-                      <img
-                        style="max-width:
-                  100%;"
-                        :src="getWMSLegendImageUrl(item, layerName)"
-                        class="white--text mt-0 pt-0"
-                      />
-                      <br />
-                    </div>
-                  </template>
-                </div>
-                <!-- VECTOR LEGEND -->
-                <div v-if="['VECTORTILE', 'VECTOR'].includes(item.get('type'))">
-                  <span
-                    :ref="`legend-vector-${index}`"
-                    v-html="renderLegend(item, index)"
-                  ></span>
+                    <span
+                      :ref="`legend-vector-${index}`"
+                      v-html="renderLegend(item, index)"
+                    ></span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </template>
+            </template>
+          </div>
         </vue-scroll>
       </v-expansion-panel-content>
     </v-expansion-panel>
@@ -82,6 +88,7 @@
 </template>
 <script>
 import { mapGetters } from "vuex";
+import { EventBus } from "../../../../EventBus";
 import { Mapable } from "../../../../mixins/Mapable";
 import { getAllChildLayers, getWMSLegendURL } from "../../../../utils/Layer";
 import LegendRenderer from "../../../../utils/LegendRenderer";
@@ -94,6 +101,7 @@ export default {
   },
   data: () => ({
     layers: [],
+    panel: [],
     isMapMounted: false,
     isRendered: false
   }),
@@ -108,6 +116,8 @@ export default {
         layer => layer.get("displayInLegend") !== false
       );
       this.isMapMounted = true;
+      EventBus.$on("openLegend", () => this.panel.push(0));
+      EventBus.$on("closeLegend", () => (this.panel = []));
     },
     getWMSLegendImageUrl(item, layerName) {
       let layerUrl = item.getSource().getUrl();
@@ -202,6 +212,7 @@ export default {
       }
     }
   },
+
   computed: {
     ...mapGetters("isochrones", {
       calculationOptions: "options"

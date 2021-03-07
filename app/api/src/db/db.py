@@ -34,46 +34,30 @@ class Database:
                 LOGGER.info('Connection opened successfully.')
         return self.conn 
         
-    def select(self, query, params=None):
-        """Run a SQL query to select rows from table."""
-        self.connect()
-        with self.conn.cursor() as cur:
-            if params is None:
-                cur.execute(query)
-            else:
-                cur.execute(query, params)
-            records = cur.fetchall()
-        
-        self.conn.commit()
-        cur.close()
-        return records
-
-    def perform(self, query, params=None):
-        """Run a SQL query that does not return anything"""
-        self.connect()
-        with self.conn.cursor() as cur:
-            if params is None:
-                cur.execute(query)
-            else:
-                cur.execute(query, params)
-        self.conn.commit()
-        cur.close()
-
-    def cur_execute(self, conn, cur, query, params=None):
+    def cur_execute(self, conn, cur, query, params=None, response=True):
         try:
             if params is None:             
                 cur.execute(query)
             else:
                 cur.execute(query, params)
-        except Exception:
+        except Exception as e:
             conn.rollback()
-            return 'Query was rolled back.'
+            return type(e).__name__ #'Query was rolled back.'
         else:
             conn.commit()
-            return cur.fetchall()
+            if response == True:
+                return cur.fetchall()
 
+    def perform(self, query, params=None):
+        """Run a SQL query that does not return anything"""
+        self.connect()
+        with self.conn.cursor() as cur:            
+            records = self.cur_execute(self.conn, cur, query, params=params,response=False)
 
-    def select_with_identifiers(self, query, identifiers=None, params=None, return_type='raw'):
+        self.conn.commit()
+        cur.close()
+
+    def select(self, query, identifiers=None, params=None, return_type='raw'):
         """Run a SQL query and pass identifiers/params"""
         self.connect()
         with self.conn.cursor() as cur:
@@ -142,13 +126,18 @@ class Database:
     def perform_with_identifiers(self, query, identifiers, params=None):
         """Run a SQL query that does not return anything"""
         self.connect()
+
+        if isinstance(query, str) == False:
+            query = query
+        elif identifiers is not None:
+            query = sql.SQL(query).format(*map(sql.Identifier, identifiers))
+        else: 
+            query = sql.SQL(query)
+
         with self.conn.cursor() as cur:
-            prepared_query = sql.SQL(query).format(*map(sql.Identifier, identifiers))
-            
-            if params is None:               
-                cur.execute(prepared_query)
-            else:
-                cur.execute(prepared_query, params)
+            #prepared_query = sql.SQL(query).format(*map(sql.Identifier, identifiers))
+            self.cur_execute(self.conn, cur, query, params=params)
+
         self.conn.commit()
         cur.close()
 
@@ -166,10 +155,11 @@ class Database:
     def fetch_one(self, query, params=None):
         self.connect()
         with self.conn.cursor() as cur:
-            cur.execute(query)
-            if not cur:
-                self.send_error(404, "sql query failed: %s" % (query))
-                return None
+            try: 
+                cur.execute(query)
+            except Exception as e:
+                conn.rollback()
+                return type(e).__name__ 
             else:
                 result = cur.fetchone()[0];
         cur.close()

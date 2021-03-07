@@ -130,25 +130,6 @@
               <span>{{ item.text }}</span>
             </v-tooltip>
           </template>
-
-          <!-- HOMEPAGE LINK -->
-          <!-- <v-tooltip left>
-            <template v-slot:activator="{ on }">
-              <v-btn
-                dark
-                small
-                href="http://open-accessibility.org"
-                target="_blank"
-                class="elevation-0 ma-0 py-1"
-                v-on="on"
-                :color="activeColor.primary"
-              >
-                <v-icon color="white" light>home</v-icon>
-              </v-btn>
-            </template>
-
-            <span>{{ $t("appBar.buttons.info") }}</span>
-          </v-tooltip> -->
         </v-list>
       </v-layout>
     </v-navigation-drawer>
@@ -165,11 +146,9 @@
 
 <script>
 // Utilities
-import {} from "vuex";
 
 import Settings from "./Settings";
 import About from "./About";
-
 import Print from "../print/Print";
 import DrawAndMeasure from "../drawAndMeasure/DrawAndMeasure";
 import Filter from "../layers/filter/Filter";
