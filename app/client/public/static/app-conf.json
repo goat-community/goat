@@ -979,20 +979,24 @@
     ],
     "osmMappingLayers": [
       {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "osm-mapping-pois",
-        "url": "/api/map/layer/mapping_pois_opening_hours/{z}/{x}/{y}",
+        "type": "VECTOR",
+        "format": "GeoJSON",
+        "name": "mapping_pois_opening_hours",
+        "url": "/api/map/layer_read",
         "group": "osmMappingLayers",
+        "queryParams": [
+          "table_name",
+          "amenities"
+        ],
         "opacity": 1,
         "queryable": true,
         "visible": false,
+        "requiresPois": true,
         "displayInLayerList": false,
         "displayInLegend": false,
         "zIndex": 30,
         "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/mapping_ways.json"
+          "format": "custom-logic"
         },
         "otherProps": {
           "icon": "fas fa-clock",
@@ -1138,7 +1142,7 @@
         "type": "VECTORTILE",
         "format": "MVT",
         "name": "osm-mapping-buildings-type",
-        "url": "/api/map/layer/mappings_building_type/{z}/{x}/{y}",
+        "url": "/api/map/layer/mapping_buildings_type/{z}/{x}/{y}",
         "group": "osmMappingLayers",
         "opacity": 1,
         "queryable": true,

@@ -311,6 +311,12 @@ class LayerRead(Resource):
         elif table_name == 'pois':
             prepared_query = '''SELECT * FROM pois_visualization(%(scenario_id)s,%(amenities)s,%(routing_profile)s,%(modus)s) 
             WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))'''
+        elif table_name == 'mapping_pois_opening_hours':
+            prepared_query = '''SELECT osm_id, amenity, amenity || '_accessible' as amenity_icon, name, 
+            CASE WHEN origin_geometry = 'point' THEN 'node' ELSE 'way' END as osm_type, geom
+            FROM pois_mapping
+            WHERE opening_hours IS NULL
+            AND amenity IN (SELECT UNNEST(%(amenities)s))'''
         elif table_name == 'ways':
             prepared_query = '''SELECT id as gid, * FROM ways
             WHERE ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(%(geom)s), 4326))

@@ -661,28 +661,8 @@ export default {
       let link = ``;
       if (this.currentInfoFeature && this.currentInfoFeature.get("osm_id")) {
         const feature = this.currentInfoFeature;
-        const originGeometry =
-          feature.get("osm_type") || // for features created from vt render features
-          feature.getProperties()["orgin_geometry"] ||
-          feature
-            .getGeometry()
-            .getType()
-            .toLowerCase();
-        let type;
-        switch (originGeometry) {
-          case "polygon":
-          case "polygon dissagregated":
-          case "multipolygon":
-          case "linestring":
-            type = "way";
-            break;
-          case "point":
-            type = "node";
-            break;
-          default:
-            type = null;
-            break;
-        }
+
+        let type = feature.get("osm_type");
         link =
           `https://www.openstreetmap.org/edit?editor=id&` +
           `${type}` +

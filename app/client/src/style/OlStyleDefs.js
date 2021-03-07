@@ -720,6 +720,7 @@ function modeShareStyle(feature) {
 
 export const stylesRef = {
   pois: poisStyle,
+  mapping_pois_opening_hours: poisStyle,
   study_area_crop: baseStyleDefs.boundaryStyle,
   modeshare: modeShareStyle
 };
