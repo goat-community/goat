@@ -1,5 +1,5 @@
 {
-  "name": "parking",
+  "name": "ways_parking",
   "rules": [
     {
       "name": "noData",
