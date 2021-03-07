@@ -9,7 +9,6 @@ branches:
     - hasenbergl
     - muenchen
     - freising
-    - development
     - test_travis
 
 before_install:
