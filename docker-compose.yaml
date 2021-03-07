@@ -83,19 +83,19 @@ services:
     networks:
       proxy:
 
-  print:
-    image: camptocamp/mapfish_print:3.16
-    volumes:
-      - ./app/print/templates:/usr/local/tomcat/webapps/ROOT/print-apps
-    container_name: goat-print
-    labels:
-      - "traefik.backend=print"
-      - "traefik.frontend.entryPoints=https,http"
-      - "traefik.frontend.rule=Host:localhost;PathPrefix:/print"
-      - "traefik.port=8080"
-      - "traefik.enable=true"
-    networks:
-      proxy:
+  # print:
+  #   image: camptocamp/mapfish_print:3.16
+  #   volumes:
+  #     - ./app/print/templates:/usr/local/tomcat/webapps/ROOT/print-apps
+  #   container_name: goat-print
+  #   labels:
+  #     - "traefik.backend=print"
+  #     - "traefik.frontend.entryPoints=https,http"
+  #     - "traefik.frontend.rule=Host:localhost;PathPrefix:/print"
+  #     - "traefik.port=8080"
+  #     - "traefik.enable=true"
+  #   networks:
+  #     proxy:
 
   #This container is used for running cron jobs. It is mainly for production purposes.
   # cron:
