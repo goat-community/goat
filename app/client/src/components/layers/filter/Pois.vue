@@ -276,6 +276,10 @@ export default {
         me.poisLayer.setVisible(true);
         EventBus.$emit("toggleLayerVisiblity", me.poisLayer);
       }
+      if (me.selectedPois.length > 0 && me.aoisLayer.getVisible() === false) {
+        me.aoisLayer.setVisible(true);
+        EventBus.$emit("toggleLayerVisiblity", me.poisLayer);
+      }
 
       me.updateSelectedPoisForThematicData(me.selectedPois);
       me.updatePois(me.selectedPois);
