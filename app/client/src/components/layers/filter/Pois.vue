@@ -84,7 +84,7 @@
         <div class="tree-label-custom">{{ getDisplayName(item) }}</div>
       </template>
       <template v-slot:append="{ item }">
-        <template v-if="item.icon">
+        <template v-if="isSensitivityEnabled(item) && item.icon">
           <v-tooltip top>
             <template v-slot:activator="{ on }">
               <v-icon
@@ -242,6 +242,16 @@ export default {
         return x.locked != true;
       });
     },
+    isSensitivityEnabled(item) {
+      // Disable sensitivity for aois.
+      let isEnabled = true;
+      this.aois.forEach(aoi => {
+        if (item.value === aoi.value) {
+          isEnabled = false;
+        }
+      });
+      return isEnabled;
+    },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR"
     })
@@ -346,6 +356,7 @@ export default {
     }
   },
   created() {
+    console.log(this.aois);
     this.toggleRoutingFilter(this.activeRoutingProfile, null);
   }
 };
