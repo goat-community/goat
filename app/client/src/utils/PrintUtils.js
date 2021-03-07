@@ -139,3 +139,24 @@ PrintUtils.prototype.getUpRightCorner = function(mapCenter) {
     mapCenter[1] + this.extentHalfVerticalDistance_
   ];
 };
+
+/**
+ * Converts milimeter to pixel using dpi
+ * @param mm
+ * @param dpi
+ * @returns Pixels
+ */
+PrintUtils.prototype.mmToPx = function(mm, dpi) {
+  let dotsPerMilimeter = dpi / 25.4;
+  return Math.ceil(mm * dotsPerMilimeter);
+};
+
+/**
+ * Converts pixel to mm using dpi
+ * @param mm
+ * @param dpi
+ * @returns Pixels
+ */
+PrintUtils.prototype.pix2mm = function(val, dpi) {
+  return val / 0.0393701 / dpi;
+};
