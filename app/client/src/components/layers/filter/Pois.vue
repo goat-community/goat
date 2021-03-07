@@ -356,7 +356,6 @@ export default {
     }
   },
   created() {
-    console.log(this.aois);
     this.toggleRoutingFilter(this.activeRoutingProfile, null);
   }
 };
