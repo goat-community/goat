@@ -11,10 +11,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "0m - 1m",
@@ -39,10 +36,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "1m - 2m",
@@ -67,10 +61,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "2m - 3m",
@@ -95,10 +86,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "3m - 4m",
@@ -123,10 +111,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "> 4m",
@@ -151,10 +136,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "livingStreet",
@@ -171,10 +153,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "noSidewalk",
@@ -191,10 +170,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     }
   ]
 }

@@ -3,9 +3,6 @@
     "rules": [
       {
         "name": "bicycleParking",
-        "scaleDenominator": {
-          "max": 75000
-        },
         "symbolizers": [
           {
             "kind": "Icon",

@@ -11,10 +11,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "excellent",
@@ -31,10 +28,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "good",
@@ -51,10 +45,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "intermediate",
@@ -71,10 +62,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "bad",
@@ -99,10 +87,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "horrible",
@@ -127,10 +112,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "impassable",
@@ -147,10 +129,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     }
   ]
 }

@@ -77,7 +77,7 @@
         "serverType": "geoserver",
         "attributes": {
           "source": "openStreetMap",
-          "date": "25-11-2020"
+          "date": "07-03-2021"
         },
         "style": {
           "format": "geostyler",
@@ -110,7 +110,7 @@
         "zIndex": 7,
         "attributes": {
           "source": "openStreetMap",
-          "date": "25-11-2020"
+          "date": "07-03-2021"
         },
         "style": {
           "format": "custom-logic"
@@ -179,7 +179,7 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "25-11-2020"
+          "date": "07-03-2021"
         }
       },
       {
@@ -198,7 +198,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 10,
+        "maxResolution": 6,
         "queryParams": [],
         "style": {
           "format": "geostyler",
@@ -206,7 +206,7 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "25-11-2020"
+          "date": "07-03-2021"
         }
       },
       {
@@ -242,6 +242,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/footpath_width.json"
@@ -259,6 +260,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lit.json"
@@ -276,6 +278,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lanes.json"
@@ -293,6 +296,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_parking.json"
@@ -310,6 +314,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_category.json"
@@ -327,6 +332,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_category_aggregated.json"
@@ -344,6 +350,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_speed.json"
@@ -361,6 +368,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_surface.json"
@@ -378,6 +386,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_smoothness.json"
@@ -395,13 +404,14 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/street_crossings.json"
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "25-11-2020"
+          "date": "07-03-2021"
         }
       },
       {
@@ -416,13 +426,14 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/street_furniture.json"
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "25-11-2020"
+          "date": "07-03-2021"
         }
       },
       {
@@ -437,13 +448,14 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/street_furniture_bicycles.json"
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "25-11-2020"
+          "date": "07-03-2021"
         }
       },
       {
@@ -479,6 +491,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 1,
+        "maxResolution": 10,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_wheelchair.json"

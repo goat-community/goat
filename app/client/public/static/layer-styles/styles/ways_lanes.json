@@ -11,10 +11,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "1",
@@ -31,10 +28,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "1.5",
@@ -51,10 +45,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "2",
@@ -71,10 +62,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "3",
@@ -91,10 +79,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "4",
@@ -111,10 +96,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "5",
@@ -131,10 +113,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "6",
@@ -151,10 +130,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     }
   ]
 }

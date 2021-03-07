@@ -14,10 +14,7 @@
           "image": "static/layer-styles/assets/icons/street_furniture/bench.png",
           "size": 0.9
         }
-      ],
-      "scaleDenominator": {
-        "max": 25000
-      }
+      ]
     },
     {
       "name": "toilets",
@@ -32,10 +29,7 @@
           "image": "static/layer-styles/assets/icons/street_furniture/toilets.png",
           "size": 0.9
         }
-      ],
-      "scaleDenominator": {
-        "max": 25000
-      }
+      ]
     },
     {
       "name": "fountain",
@@ -50,10 +44,7 @@
           "image": "static/layer-styles/assets/icons/street_furniture/fountain.png",
           "size": 0.9
         }
-      ],
-      "scaleDenominator": {
-        "max": 25000
-      }
+      ]
     },
     {
       "name": "wasteBasket",
@@ -68,10 +59,7 @@
           "image": "static/layer-styles/assets/icons/street_furniture/waste_basket.png",
           "size": 0.7
         }
-      ],
-      "scaleDenominator": {
-        "max": 25000
-      }
+      ]
     }
   ]
 }

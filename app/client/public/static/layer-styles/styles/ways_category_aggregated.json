@@ -49,10 +49,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "residential",
@@ -77,10 +74,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "livingStreet",
@@ -97,10 +91,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "footway",
@@ -125,10 +116,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "cycleway",
@@ -145,10 +133,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "steps",
@@ -165,10 +150,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "track",
@@ -185,10 +167,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "path",
@@ -213,10 +192,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     }
   ]
 }

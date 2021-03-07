@@ -8,9 +8,6 @@
           "crossing",
           "zebra"
         ],
-        "scaleDenominator": {
-          "max": 50000
-        },
         "symbolizers": [
           {
             "kind": "Icon",
@@ -26,9 +23,6 @@
           "crossing",
           "traffic_signals"
         ],
-        "scaleDenominator": {
-            "max": 50000
-          },
         "symbolizers": [
           {
             "kind": "Icon",

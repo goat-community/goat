@@ -11,10 +11,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "diagonal",
@@ -31,10 +28,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "perpendicular",
@@ -51,10 +45,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "parallel",
@@ -71,10 +62,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "marked",
@@ -91,10 +79,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "noParking",
@@ -119,10 +104,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "noStopping",
@@ -139,10 +121,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "fireLane",
@@ -159,10 +138,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     }
   ]
 }

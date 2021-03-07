@@ -343,7 +343,7 @@
       "noScenarioFeatureChangeAvailable": "Ändern Sie zuerst das Netzwerk oder die Landnutzung.",
       "cantPrintBaseLayer": "Diese Basiskarte kann nicht gedruckt werden.",
       "cantExportScenario": "Ein Fehler ist aufgetreten. Szenario kann nicht exportiert werden!",
-      "zoomInToShowFeatures": "Vergrößern Sie, um die Funktionen für anzuzeigen:"
+      "zoomInToShowFeatures": "Zoome um Objekte der folgenden Layer zu sehen"
     },
     "layerGroup": {
       "poisLayers": "POIs",

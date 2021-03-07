@@ -15,10 +15,7 @@
           "outlineColor": "#525252",
           "outlineWidth": 1
         }
-      ],
-      "scaleDenominator": {
-        "max": 25000
-      }
+      ]
     },
     {
       "name": "with_residents",
@@ -34,10 +31,7 @@
           "outlineColor": "#232323",
           "outlineWidth": 1
         }
-      ],
-      "scaleDenominator": {
-        "max": 25000
-      }
+      ]
     }
   ]
 }

@@ -16,10 +16,7 @@
           "join": "round",
           "cap": "round"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "no",
@@ -36,10 +33,7 @@
           "join": "round",
           "cap": "round"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     },
     {
       "name": "noData",
@@ -56,10 +50,7 @@
           "join": "bevel",
           "cap": "square"
         }
-      ],
-      "scaleDenominator": {
-        "max": 50000
-      }
+      ]
     }
   ]
 }
