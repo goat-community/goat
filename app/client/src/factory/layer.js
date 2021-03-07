@@ -108,7 +108,8 @@ export const LayerFactory = {
         },
         serverType: lConf.serverType ? lConf.serverType : "geoserver",
         ratio: lConf.ratio,
-        attributions: lConf.attributions
+        attributions: lConf.attributions,
+        crossOrigin: "Anonymous"
       })
     });
 
@@ -142,7 +143,8 @@ export const LayerFactory = {
           viewparams: lConf.viewparams
         },
         serverType: lConf.serverType ? lConf.serverType : "geoserver",
-        attributions: lConf.attributions
+        attributions: lConf.attributions,
+        crossOrigin: "Anonymous"
       })
     });
 
@@ -215,7 +217,8 @@ export const LayerFactory = {
     const bingMaps = new BingMaps({
       key: lConf.accessToken,
       imagerySet: lConf.imagerySet,
-      maxZoom: lConf.maxZoom
+      maxZoom: lConf.maxZoom,
+      crossOrigin: "Anonymous"
     });
     const layer = new TileLayer({
       name: lConf.name,
@@ -243,7 +246,8 @@ export const LayerFactory = {
       format: this.formatMapping[lConf.format]
         ? new this.formatMapping[lConf.format](lConf.formatConfig)
         : GeoJsonFormat(),
-      attributions: lConf.attributions
+      attributions: lConf.attributions,
+      crossOrigin: "Anonymous"
     };
 
     lConf.url ? (sourceOpts.url = lConf.url) : lConf.url;

@@ -37,7 +37,7 @@
           :color="activeColor.primary"
           height="50"
         >
-          <img :src="logoText" width="120px" />
+          <img id="app-logo" :src="logoText" width="120px" />
           <v-spacer></v-spacer>
           <v-btn text icon light @click.stop="mini = !mini">
             <v-icon color="white">fas fa-chevron-left</v-icon>

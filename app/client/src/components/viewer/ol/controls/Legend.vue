@@ -43,8 +43,8 @@
                 <!-- WMS LEGEND -->
                 <div v-if="item.get('legendGraphicUrl')">
                   <img
-                    style="max-width:
-                  100%;"
+                    crossorigin="anonymous"
+                    style="max-width:100%;"
                     :src="item.get('legendGraphicUrl')"
                     class="white--text mt-0 pt-0"
                   />
@@ -59,8 +59,8 @@
                     >
                       <div :key="index2">
                         <img
-                          style="max-width:
-                  100%;"
+                          crossorigin="anonymous"
+                          style="max-width:100%;"
                           :src="getWMSLegendImageUrl(item, layerName)"
                           class="white--text mt-0 pt-0"
                         />
