@@ -234,168 +234,6 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "footpath_width",
-        "url": "/api/map/layer/footpath_width/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/footpath_width.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_lit",
-        "url": "/api/map/layer/ways_lit/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_lit.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_lanes",
-        "url": "/api/map/layer/ways_lanes/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_lanes.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_parking",
-        "url": "/api/map/layer/ways_parking/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_parking.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_category",
-        "url": "/api/map/layer/ways_category/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_category.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_category_aggregated",
-        "url": "/api/map/layer/ways_category_aggregated/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_category_aggregated.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_speed",
-        "url": "/api/map/layer/ways_speed/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_speed.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_surface",
-        "url": "/api/map/layer/ways_surface/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_surface.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_smoothness",
-        "url": "/api/map/layer/ways_smoothness/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_smoothness.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
         "name": "street_crossings",
         "url": "/api/map/layer/street_crossings/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -409,50 +247,6 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/street_crossings.json"
-        },
-        "attributes": {
-          "source": "openStreetMap",
-          "date": "07-03-2021"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "street_furniture",
-        "url": "/api/map/layer/street_furniture/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "visible": false,
-        "canEdit": false,
-        "queryable": true,
-        "displayInLayerList": true,
-        "zIndex": 2,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/street_furniture.json"
-        },
-        "attributes": {
-          "source": "openStreetMap",
-          "date": "07-03-2021"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "street_furniture_bicycles",
-        "url": "/api/map/layer/street_furniture_bicycles/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "visible": false,
-        "canEdit": false,
-        "queryable": true,
-        "displayInLayerList": true,
-        "zIndex": 2,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/street_furniture_bicycles.json"
         },
         "attributes": {
           "source": "openStreetMap",
@@ -478,24 +272,6 @@
         "attributes": {
           "source": "munichWays",
           "date": "2020"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_wheelchair",
-        "url": "/api/map/layer/ways_wheelchair/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "visible": false,
-        "canEdit": false,
-        "queryable": true,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 10,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_wheelchair.json"
         }
       },
       {
@@ -534,23 +310,6 @@
       },
       {
         "type": "WMS",
-        "name": "dikes",
-        "url": "https://www.lfu.bayern.de/gdi/wms/wasser/hwsa?",
-        "group": "environmentalQualityLayers",
-        "layers": "deich",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributions": {
-          "source": "Bayerisches Landesamt für Umwelt",
-          "date": "2021"
-        }
-      },
-      {
-        "type": "WMS",
         "name": "protectedLandscape",
         "url": "https://www.lfu.bayern.de/gdi/wms/natur/schutzgebiete?",
         "group": "environmentalQualityLayers",
@@ -581,57 +340,6 @@
         "attributes": {
           "source": "Bayerisches Landesamt für Umwelt",
           "date": "2018"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "noiseAircraftLDEN",
-        "url": "https://www.lfu.bayern.de/gdi/wms/laerm/flughaefen?",
-        "group": "environmentalQualityLayers",
-        "layers": "mairlden",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributes": {
-          "source": "Bayerisches Landesamt für Umwelt",
-          "date": "2020"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "noiseAircraftLNight",
-        "url": "https://www.lfu.bayern.de/gdi/wms/laerm/flughaefen?",
-        "group": "environmentalQualityLayers",
-        "layers": "mairln",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributes": {
-          "source": "Bayerisches Landesamt für Umwelt",
-          "date": "2020"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "noiseProtectionBauleitplanung",
-        "url": "http://risby.bayern.de/RisGate/servlet/Regionalplanung",
-        "group": "environmentalQualityLayers",
-        "layers": "R16SLXF",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributes": {
-          "source": "Bayerisches Staatsministerium für Wirtschaft, Landesentwicklung und Energie",
-          "date": "2016"
         }
       },
       {
@@ -1222,14 +930,6 @@
           "id": 1,
           "children": [
             {
-              "name": "Nursery",
-              "value": "nursery",
-              "icon": "nursery",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
-            },
-            {
               "name": "Kindergarten",
               "value": "kindergarten",
               "icon": "kindergarten",
@@ -1389,76 +1089,6 @@
           ]
         },
         {
-          "name": "mobilitystations",
-          "categoryValue": "mobilitystations",
-          "locked": false,
-          "children": [
-            {
-              "name": "Bikesharing FFB",
-              "value": "bikesharing_ffb",
-              "icon": "bikesharing",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Carsharing FFB",
-              "value": "carsharing_ffb",
-              "icon": "carsharing",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Charging Station FFB",
-              "value": "charging_station_marker_ffb",
-              "icon": "charging_station_marker",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Charging Station Other FFB",
-              "value": "charging_station_other_ffb",
-              "icon": "charging_station_other",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Charging Station Public FFB",
-              "value": "charging_station_public_ffb",
-              "icon": "charging_station_public",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "E-Parking FFB",
-              "value": "e_parking_ffb",
-              "icon": "e_parking",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "L-Station FFB",
-              "value": "l-station_ffb",
-              "icon": "l-station",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "S-Station Prio 1 FFB",
-              "value": "s-station_prio1_ffb",
-              "icon": "s-station_prio1",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "S-Station Prio 2 FFB",
-              "value": "s-station_prio2_ffb",
-              "icon": "s-station_prio2",
-              "weight": 1,
-              "sensitivity": 300000
-            }
-          ]
-        },
-        {
           "name": "Services",
           "categoryValue": "services",
           "children": [
@@ -1481,20 +1111,6 @@
               "name": "Bank",
               "value": "bank",
               "icon": "bank",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Dentist",
-              "value": "dentist",
-              "icon": "dentist",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Doctor",
-              "value": "doctors",
-              "icon": "doctors",
               "weight": 1,
               "sensitivity": 300000
             },
@@ -1765,20 +1381,6 @@
               "name": "Heath and Scrub",
               "value": "heath_scrub",
               "icon": "heath_scrub",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Lake",
-              "value": "lake",
-              "icon": "lake",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "River",
-              "value": "river",
-              "icon": "river",
               "weight": 1,
               "sensitivity": 300000
             }

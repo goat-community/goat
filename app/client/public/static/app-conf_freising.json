@@ -234,168 +234,6 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "footpath_width",
-        "url": "/api/map/layer/footpath_width/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/footpath_width.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_lit",
-        "url": "/api/map/layer/ways_lit/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_lit.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_lanes",
-        "url": "/api/map/layer/ways_lanes/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_lanes.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_parking",
-        "url": "/api/map/layer/ways_parking/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_parking.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_category",
-        "url": "/api/map/layer/ways_category/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_category.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_category_aggregated",
-        "url": "/api/map/layer/ways_category_aggregated/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_category_aggregated.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_speed",
-        "url": "/api/map/layer/ways_speed/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_speed.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_surface",
-        "url": "/api/map/layer/ways_surface/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_surface.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_smoothness",
-        "url": "/api/map/layer/ways_smoothness/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_smoothness.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
         "name": "street_crossings",
         "url": "/api/map/layer/street_crossings/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -413,89 +251,6 @@
         "attributes": {
           "source": "openStreetMap",
           "date": "07-03-2021"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "street_furniture",
-        "url": "/api/map/layer/street_furniture/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "visible": false,
-        "canEdit": false,
-        "queryable": true,
-        "displayInLayerList": true,
-        "zIndex": 2,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/street_furniture.json"
-        },
-        "attributes": {
-          "source": "openStreetMap",
-          "date": "07-03-2021"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "street_furniture_bicycles",
-        "url": "/api/map/layer/street_furniture_bicycles/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "visible": false,
-        "canEdit": false,
-        "queryable": true,
-        "displayInLayerList": true,
-        "zIndex": 2,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/street_furniture_bicycles.json"
-        },
-        "attributes": {
-          "source": "openStreetMap",
-          "date": "07-03-2021"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "munichways",
-        "url": "/api/map/layer/munichways/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "visible": false,
-        "canEdit": false,
-        "queryable": true,
-        "displayInLayerList": true,
-        "zIndex": 2,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/munichways.json"
-        },
-        "attributes": {
-          "source": "munichWays",
-          "date": "2020"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_wheelchair",
-        "url": "/api/map/layer/ways_wheelchair/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "visible": false,
-        "canEdit": false,
-        "queryable": true,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 10,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_wheelchair.json"
         }
       },
       {
@@ -795,49 +550,6 @@
         "attributes": {
           "source": "Statistikportal",
           "date": "2017"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "bicycle_counting_stations",
-        "url": "/api/map/layer/bicycle_counting_stations/{z}/{x}/{y}",
-        "group": "additionalDataLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/bicycle_counting_stations.json"
-        },
-        "attributes": {
-          "source": "Open Data Portal Landeshauptstadt München",
-          "date": "2019"
-        }
-      },
-      {
-        "type": "VECTOR",
-        "format": "GeoJSON",
-        "name": "modeshare",
-        "url": "/api/map/layer_read",
-        "group": "additionalDataLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "legendGraphicUrl": "./img/legend-graphics/legend_mode_share.png",
-        "queryParams": ["table_name"],
-        "zIndex": 1,
-        "style": {
-          "format": "custom-logic"
-        },
-        "attributes": {
-          "source": "Mobilität in Deutschland - infas",
-          "date": "2018"
         }
       },
       {
@@ -1222,14 +934,6 @@
           "id": 1,
           "children": [
             {
-              "name": "Nursery",
-              "value": "nursery",
-              "icon": "nursery",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
-            },
-            {
               "name": "Kindergarten",
               "value": "kindergarten",
               "icon": "kindergarten",
@@ -1314,14 +1018,7 @@
               "icon": "restaurant",
               "weight": 1,
               "sensitivity": 300000
-            },
-            {
-              "name": "Night-Club",
-              "value": "nightclub",
-              "icon": "nightclub",
-              "weight": 1,
-              "sensitivity": 300000
-            }
+            }            
           ]
         },
         {
@@ -1329,13 +1026,6 @@
           "categoryValue": "transport",
           "locked": false,
           "children": [
-            {
-              "name": "Bicycle rental",
-              "value": "bicycle_rental",
-              "icon": "bicycle_rental",
-              "weight": 1,
-              "sensitivity": 300000
-            },
             {
               "name": "Car sharing",
               "value": "car_sharing",
@@ -1359,100 +1049,9 @@
               "sensitivity": 300000
             },
             {
-              "name": "Tram Stop",
-              "value": "tram_stop",
-              "icon": "tram_stop",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "U-Bahn station",
-              "value": "subway_entrance",
-              "icon": "subway_entrance",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
               "name": "Rail Station",
               "value": "rail_station",
               "icon": "rail_station",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Taxi",
-              "value": "taxi",
-              "icon": "taxi",
-              "weight": 1,
-              "sensitivity": 300000
-            }
-          ]
-        },
-        {
-          "name": "mobilitystations",
-          "categoryValue": "mobilitystations",
-          "locked": false,
-          "children": [
-            {
-              "name": "Bikesharing FFB",
-              "value": "bikesharing_ffb",
-              "icon": "bikesharing",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Carsharing FFB",
-              "value": "carsharing_ffb",
-              "icon": "carsharing",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Charging Station FFB",
-              "value": "charging_station_marker_ffb",
-              "icon": "charging_station_marker",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Charging Station Other FFB",
-              "value": "charging_station_other_ffb",
-              "icon": "charging_station_other",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Charging Station Public FFB",
-              "value": "charging_station_public_ffb",
-              "icon": "charging_station_public",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "E-Parking FFB",
-              "value": "e_parking_ffb",
-              "icon": "e_parking",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "L-Station FFB",
-              "value": "l-station_ffb",
-              "icon": "l-station",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "S-Station Prio 1 FFB",
-              "value": "s-station_prio1_ffb",
-              "icon": "s-station_prio1",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "S-Station Prio 2 FFB",
-              "value": "s-station_prio2_ffb",
-              "icon": "s-station_prio2",
               "weight": 1,
               "sensitivity": 300000
             }
@@ -1481,20 +1080,6 @@
               "name": "Bank",
               "value": "bank",
               "icon": "bank",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Dentist",
-              "value": "dentist",
-              "icon": "dentist",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Doctor",
-              "value": "doctors",
-              "icon": "doctors",
               "weight": 1,
               "sensitivity": 300000
             },
@@ -1576,20 +1161,6 @@
               "sensitivity": 300000
             },
             {
-              "name": "Mall",
-              "value": "mall",
-              "icon": "mall",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Shoes",
-              "value": "shoes",
-              "icon": "shoes",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
               "name": "Supermarket",
               "value": "supermarket",
               "icon": "supermarket",
@@ -1630,14 +1201,7 @@
               "icon": "organic",
               "weight": 1,
               "sensitivity": 300000
-            },
-            {
-              "name": "Marketplace",
-              "value": "marketplace",
-              "icon": "marketplace",
-              "weight": 1,
-              "sensitivity": 300000
-            }
+            }            
           ]
         },
         {
@@ -1652,20 +1216,6 @@
               "sensitivity": 300000
             },
             {
-              "name": "Theatre",
-              "value": "theatre",
-              "icon": "theatre",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Museum",
-              "value": "museum",
-              "icon": "museum",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
               "name": "Hotel",
               "value": "hotel",
               "icon": "hotel",
@@ -1673,23 +1223,9 @@
               "sensitivity": 300000
             },
             {
-              "name": "Hostel",
-              "value": "hostel",
-              "icon": "hostel",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
               "name": "Guest house",
               "value": "guest_house",
               "icon": "guest_house",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Gallery",
-              "value": "gallery",
-              "icon": "gallery",
               "weight": 1,
               "sensitivity": 300000
             },
@@ -1707,20 +1243,6 @@
           "categoryValue": "sports",
           "children": [
             {
-              "name": "Community Sport Center",
-              "value": "community_sports_center",
-              "icon": "community_sports_center",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Waterpark",
-              "value": "waterpark",
-              "icon": "waterpark",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
               "name": "Discount Gym",
               "value": "discount_gym",
               "icon": "discount_gym",
@@ -1733,14 +1255,7 @@
               "icon": "gym",
               "weight": 1,
               "sensitivity": 300000
-            },
-            {
-              "name": "Yoga",
-              "value": "yoga",
-              "icon": "yoga",
-              "weight": 1,
-              "sensitivity": 300000
-            }
+            }            
           ]
         },
         {
@@ -1767,21 +1282,7 @@
               "icon": "heath_scrub",
               "weight": 1,
               "sensitivity": 300000
-            },
-            {
-              "name": "Lake",
-              "value": "lake",
-              "icon": "lake",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "River",
-              "value": "river",
-              "icon": "river",
-              "weight": 1,
-              "sensitivity": 300000
-            }
+            }           
           ]
         }
       ],

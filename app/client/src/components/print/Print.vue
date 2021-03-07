@@ -169,10 +169,10 @@ export default {
     dpi: 120,
     dpis: [254, 200, 120, 72],
     layout: {
-      name: "A4 portrait",
+      name: "A4 landscape",
       format: "a4",
-      orientation: "portrait",
-      size: [210, 297] // Get the size dynamically
+      orientation: "landscape",
+      size: [297, 210]
     },
     layouts: [
       {
