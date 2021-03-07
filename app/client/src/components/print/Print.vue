@@ -321,7 +321,7 @@ export default {
             await this.timeout(300);
             const legendCanvas = await html2canvas(
               document.getElementById("legend"),
-              { allowTaint: true }
+              { allowTaint: true, useCORS: true }
             );
             legendEl.style.paddingLeft = "0px";
             const legendWidth = this.printUtils_.pix2mm(
@@ -610,7 +610,7 @@ export default {
         this.map.addLayer(this.gridLayer);
       }
       if (!value && this.gridLayer) {
-        this.removeLayer(this.gridLayer);
+        this.map.removeLayer(this.gridLayer);
       }
     }
   }

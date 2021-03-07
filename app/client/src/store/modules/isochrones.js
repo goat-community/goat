@@ -450,6 +450,7 @@ const actions = {
           const configData = JSON.parse(response.config.data);
           if (response.data) {
             const olFeatures = geojsonToFeature(response.data, {});
+
             olFeatures.forEach(feature => {
               feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
               feature.set("region_type", configData.region_type);
@@ -457,10 +458,8 @@ const actions = {
               if (configData.region_type === "draw") {
                 feature.set("regionPolygon", configData.region);
               }
-              const region_number = feature.get("region_name");
-              if (region_number) {
-                feature.setId(parseFloat(region_number) * 1000);
-              }
+
+              feature.setId(undefined);
             });
             commit("ADD_STUDYAREA_FEATURES", olFeatures);
           }
