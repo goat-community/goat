@@ -273,7 +273,14 @@ export default {
     createLayers() {
       let layers = [];
       const me = this;
-      const layersConfigGrouped = groupBy(this.$appConfig.map.layers, "group");
+
+      const layersConfigGrouped = groupBy(
+        [
+          ...this.$appConfig.map.layers,
+          ...this.$appConfig.map.osmMappingLayers
+        ],
+        "group"
+      );
       for (var group in layersConfigGrouped) {
         if (!layersConfigGrouped.hasOwnProperty(group)) {
           continue;
@@ -741,7 +748,6 @@ export default {
           return this.$t(`map.layerName.${layer.get("layerName")}`);
         } else if (
           this.osmMode === true &&
-          this.osmMappingLayers[layer.get("layerName")] &&
           this.$te(`map.osmMode.layers.${layer.get("layerName")}.layerName`)
         ) {
           const path = `map.osmMode.layers.${layer.get("layerName")}`;
@@ -773,7 +779,6 @@ export default {
       helpTooltip: "helpTooltip",
       currentMessage: "currentMessage",
       osmMode: "osmMode",
-      osmMappingLayers: "osmMappingLayers",
       layers: "layers"
     }),
     ...mapGetters("app", {
