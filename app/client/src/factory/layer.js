@@ -114,7 +114,8 @@ export const LayerFactory = {
       minResolution: lConf.minResolution,
       maxResolution: lConf.maxResolution,
       minZoom: lConf.minZoom,
-      maxZoom: lConf.maxZoom
+      maxZoom: lConf.maxZoom,
+      otherProps: lConf.otherProps
     });
 
     return layer;
@@ -284,6 +285,7 @@ export const LayerFactory = {
       source: new VectorSource(sourceOpts),
       format: lConf.format,
       url: lConf.url,
+      group: lConf.group,
       style:
         OlStyleFactory.getInstance(lConf.style) ||
         baseStyleDefs[lConf.styleRef],
@@ -292,7 +294,8 @@ export const LayerFactory = {
       minResolution: lConf.minResolution,
       maxResolution: lConf.maxResolution,
       minZoom: lConf.minZoom,
-      maxZoom: lConf.maxZoom
+      maxZoom: lConf.maxZoom,
+      otherProps: lConf.otherProps
     });
 
     return vectorLayer;
@@ -327,6 +330,7 @@ export const LayerFactory = {
       styleConf: lConf.style,
       zIndex: lConf.zIndex,
       url: lConf.url,
+      group: lConf.group,
       source: new VectorTileSource({
         url: lConf.url,
         format: new this.formatMapping[lConf.format](),
@@ -338,7 +342,8 @@ export const LayerFactory = {
       minResolution: lConf.minResolution,
       maxResolution: lConf.maxResolution,
       minZoom: lConf.minZoom,
-      maxZoom: lConf.maxZoom
+      maxZoom: lConf.maxZoom,
+      otherProps: lConf.otherProps
     });
 
     return vtLayer;

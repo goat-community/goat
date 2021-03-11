@@ -86,7 +86,9 @@ axios.all([getAppConf(), getStudyAreaBbox(), getLayerStyleTranslation()]).then(
     //3- Fetch all layer styles here.
 
     let promiseArray = [];
-    const layers = config.data.map.layers;
+    const mapLayers = config.data.map.layers;
+    const osmLayer = config.data.map.osmMappingLayers;
+    const layers = [...mapLayers, ...osmLayer];
     layers.forEach(layer => {
       const layerName = layer.name;
 

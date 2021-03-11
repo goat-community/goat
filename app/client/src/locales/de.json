@@ -529,7 +529,7 @@
       "shortDesc": "Vervollständigung der fehlenden {missingVar}",
       "longDesc": "Check out {layerNameVar} for missing {missingVar}.",
       "layers": {
-        "osm-mapping-pois": {
+        "mapping_pois_opening_hours": {
           "missingKeyWord": "Öffnungszeiten",
           "layerName": "POIs",
           "stepsDesc": {

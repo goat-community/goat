@@ -1035,7 +1035,6 @@
         "queryable": true,
         "visible": false,
         "displayInLayerList": false,
-        "displayInLegend": false,
         "zIndex": 31,
         "style": {
           "format": "geostyler",
@@ -1061,7 +1060,6 @@
         "queryable": true,
         "visible": false,
         "displayInLayerList": false,
-        "displayInLegend": false,
         "zIndex": 31,
         "style": {
           "format": "geostyler",
@@ -1087,7 +1085,6 @@
         "queryable": true,
         "visible": false,
         "displayInLayerList": false,
-        "displayInLegend": false,
         "zIndex": 31,
         "style": {
           "format": "geostyler",
@@ -1113,7 +1110,6 @@
         "queryable": true,
         "visible": false,
         "displayInLayerList": false,
-        "displayInLegend": false,
         "zIndex": 31,
         "style": {
           "format": "geostyler",
@@ -1139,7 +1135,6 @@
         "queryable": true,
         "visible": false,
         "displayInLayerList": false,
-        "displayInLegend": false,
         "zIndex": 32,
         "style": {
           "format": "geostyler",
@@ -1165,7 +1160,6 @@
         "queryable": true,
         "visible": false,
         "displayInLayerList": false,
-        "displayInLegend": false,
         "zIndex": 33,
         "style": {
           "format": "geostyler",

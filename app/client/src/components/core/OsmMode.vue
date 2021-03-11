@@ -128,21 +128,15 @@
 
 <script>
 import { mapGetters, mapMutations, mapActions } from "vuex";
-import { groupBy } from "../../utils/Helpers";
-import { LayerFactory } from "../../factory/layer.js";
-import { Group as LayerGroup } from "ol/layer.js";
 import { EventBus } from "../../EventBus";
 
 export default {
   data: () => ({
-    activeLayer: null
+    activeLayer: null,
+    osmMappingLayers: {}
   }),
   created() {
     this.osmMapMode = this.$appConfig.componentData.osmMapMode;
-    if (Object.keys(this.osmMappingLayers).length === 0) {
-      this.createOsmMappingLayers();
-      // this.updateAllProgress();
-    }
     this.toggleNodeState({
       excluded: this.disabledPoisOnMappingMode,
       nodeState: "activate"
@@ -158,7 +152,6 @@ export default {
   computed: {
     ...mapGetters("map", {
       layers: "layers",
-      osmMappingLayers: "osmMappingLayers",
       map: "map"
     }),
     ...mapGetters("pois", {
@@ -201,36 +194,6 @@ export default {
           state: false,
           timeout: 0
         });
-      }
-    },
-    createOsmMappingLayers() {
-      const config = this.$appConfig.map.osmMappingLayers;
-      const layersConfigGrouped = groupBy(config, "group");
-      for (var group in layersConfigGrouped) {
-        if (!layersConfigGrouped.hasOwnProperty(group)) {
-          continue;
-        }
-
-        const mapLayers = [];
-        layersConfigGrouped[group].reverse().forEach(lConf => {
-          const layer = LayerFactory.getInstance(lConf);
-          mapLayers.push(layer);
-          if (layer.get("name")) {
-            this.setOsmMappingLayer(layer);
-            layer.set("currentNumberOfFeatures", undefined, false);
-            layer.set("initialNumberOfFeatures", undefined, false);
-            if (lConf.otherProps) {
-              layer.set("otherProps", lConf.otherProps, false);
-            }
-          }
-        });
-        let layerGroup = new LayerGroup({
-          name: group !== undefined ? group.toString() : "Other Layers",
-          layers: mapLayers
-        });
-        if (this.map) {
-          this.map.addLayer(layerGroup);
-        }
       }
     },
     getTitle(layerName) {
@@ -290,7 +253,7 @@ export default {
         100;
       return value;
     },
-    updatePoisViewParams() {
+    updatePoisQueryParams() {
       if (this.selectedPois.length > 0) {
         this.toggleSnackbar({
           type: "error",
@@ -299,17 +262,7 @@ export default {
           timeout: 0
         });
       }
-      const viewParams = this.selectedPois.reduce((filtered, item) => {
-        const { value } = item;
-        if (value != "undefined") {
-          filtered.push(value);
-        }
-        return filtered;
-      }, []);
-      let params = `amenities:'${btoa(viewParams.toString())}';`;
-      this.poisLayer.getSource().updateParams({
-        viewparams: params
-      });
+      EventBus.$emit("updateLayer", this.poisLayer);
     },
     getTranslatedDesc(descKey) {
       const layerName = this.activeLayer.get("name");
@@ -328,7 +281,6 @@ export default {
       }
     },
     ...mapMutations("map", {
-      setOsmMappingLayer: "SET_OSM_MAPPING_LAYER",
       toggleSnackbar: "TOGGLE_SNACKBAR"
     }),
     ...mapMutations("pois", {
@@ -340,7 +292,7 @@ export default {
   },
   watch: {
     selectedPois() {
-      this.updatePoisViewParams();
+      this.updatePoisQueryParams();
     },
     activeLayer() {}
   },
@@ -355,13 +307,18 @@ export default {
       ) {
         layer.setVisible(false);
       }
+      if (layer.get("group") === "osmMappingLayers") {
+        this.osmMappingLayers[layer.get("name")] = layer;
+      }
     });
 
     // Update pois layer params.
-    if (this.osmMappingLayers["osm-mapping-pois"]) {
-      this.poisLayer = this.osmMappingLayers["osm-mapping-pois"];
-      this.updatePoisViewParams();
+    if (this.osmMappingLayers["mapping_pois_opening_hours"]) {
+      this.poisLayer = this.osmMappingLayers["mapping_pois_opening_hours"];
+      // Update query params
+      this.updatePoisQueryParams();
     }
+    this.$forceUpdate();
   },
   destroyed() {
     // Turn off all other layers.
