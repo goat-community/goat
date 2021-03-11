@@ -308,10 +308,12 @@ FROM
     ) x
 WHERE w.id = x.id;
 
+WITH union_b AS (SELECT ST_UNION(bl.geom) FROM buffer_lamps bl)
 UPDATE ways w SET lit_classified = 'yes'
-FROM buffer_lamps b
+FROM buffer_lamps b, union_b ub
 WHERE (lit IS NULL OR lit = '')
-AND ST_Intersects(b.geom,w.geom);
+AND ST_Intersects(b.geom,w.geom)
+AND ST_Length(ST_Intersection(ub.st_union, w.geom))/ST_Length(w.geom) > 0.3;
 
 --Mark network islands in the network
 INSERT INTO osm_way_classes(class_id,name) values(701,'network_island');
