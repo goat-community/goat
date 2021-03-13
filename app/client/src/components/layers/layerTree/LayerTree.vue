@@ -27,6 +27,7 @@
             <v-expansion-panel
               v-for="(item, i) in layerGroup.children"
               :key="i"
+              :disabled="isLayerBusy(item.mapLayer)"
               :class="{
                 'expansion-panel__container--active': item.showOptions === true
               }"
@@ -140,6 +141,9 @@ export default {
     }),
     ...mapGetters("app", {
       activeColor: "activeColor"
+    }),
+    ...mapGetters("map", {
+      busyLayers: "busyLayers"
     })
   },
   methods: {
@@ -147,6 +151,15 @@ export default {
      * This function is executed, after the map is bound (see mixins/Mapable)
      * and registers the current map layers.
      */
+    isLayerBusy(treeLayer) {
+      let isBusy = false;
+      this.busyLayers.forEach(bl => {
+        if (bl.get("name") === treeLayer.get("name")) {
+          isBusy = true;
+        }
+      });
+      return isBusy;
+    },
     onMapBound() {
       const me = this;
       const localVectorLayers = {

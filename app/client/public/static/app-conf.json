@@ -908,6 +908,7 @@
         "displayInLayerList": true,
         "visible": false,
         "zIndex": 1,
+        "concurrentRequests": false,
         "queryParams": ["heatmap_type", "scenario_id_input", "modus_input"],
         "style": {
           "format": "geostyler",

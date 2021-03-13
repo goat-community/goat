@@ -661,7 +661,9 @@ function poisStyle(feature, resolution) {
   if (resolution > 25) {
     return [];
   }
-  const name = `${feature.get("amenity")}_${feature.get("status")}`;
+
+  const name = `${feature.get("amenity")}_${feature.get("status") ||
+    "accessible"}`;
   if (!poisStyleCache[name]) {
     let path = `img/pois-map/${name}.png`;
     poisStyleCache[name] = new OlStyle({

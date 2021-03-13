@@ -343,7 +343,8 @@
       "noScenarioFeatureChangeAvailable": "Ändern Sie zuerst das Netzwerk oder die Landnutzung.",
       "cantPrintBaseLayer": "Diese Basiskarte kann nicht gedruckt werden.",
       "cantExportScenario": "Ein Fehler ist aufgetreten. Szenario kann nicht exportiert werden!",
-      "zoomInToShowFeatures": "Zoome um Objekte der folgenden Layer zu sehen"
+      "zoomInToShowFeatures": "Zoome um Objekte der folgenden Layer zu sehen",
+      "heatmapIsBusy": "Recomputing for heatmap layer might take some time. Please be patient!"
     },
     "layerGroup": {
       "poisLayers": "POIs",
