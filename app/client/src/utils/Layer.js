@@ -8,6 +8,9 @@ import olSourceImageWMS from "ol/source/ImageWMS.js";
 import { appendParams as olUriAppendParams } from "ol/uri.js";
 import UrlUtil from "./Url";
 import { geojsonToFeature } from "./MapUtils";
+import http from "../services/http";
+import store from "../store/index";
+
 const geobuf = require("geobuf");
 const Pbf = require("pbf");
 const ServerType = "geoserver";
@@ -491,16 +494,19 @@ export function updateLayerUrlQueryParam(layer, queryParams) {
 
 /** Refetch layer features if there is no url */
 export function fetchLayerFeatures(layer, payload) {
-  fetch(layer.get("url"), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  })
-    .then(resp => resp.arrayBuffer())
-    .then(data => {
-      var geojson = geobuf.decode(new Pbf(data));
+  // Prevent layer to trigger concurrentRequests
+  if (layer.get("concurrentRequests") === false) {
+    layer.set("isBusy", true);
+    store.commit("map/INSERT_BUSY_LAYER", layer);
+  }
+
+  http
+    .post(layer.get("url"), payload, {
+      responseType: "arraybuffer"
+    })
+    .then(response => {
+      const data = response.data;
+      const geojson = geobuf.decode(new Pbf(data));
       layer.getSource().clear();
       if (geojson) {
         const features = geojsonToFeature(geojson, {
@@ -509,8 +515,18 @@ export function fetchLayerFeatures(layer, payload) {
         });
         layer.getSource().addFeatures(features);
       }
+      if (layer.get("isBusy")) {
+        setTimeout(() => {
+          layer.set("isBusy", false);
+          store.commit("map/REMOVE_BUSY_LAYER", layer);
+        }, 200);
+      }
     })
     .catch(error => {
+      if (layer.get("isBusy")) {
+        layer.set("isBusy", false);
+        store.commit("map/REMOVE_BUSY_LAYER", layer);
+      }
       layer.getSource().clear();
       console.error("Error:", error);
     });

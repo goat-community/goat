@@ -333,7 +333,8 @@
       "cantPrintBaseLayer": "This baselayer can't be printed",
       "featuresAlreadyUploaded": "Features already exists",
       "cantExportScenario": "An error happened. Scenario can't be exported!",
-      "zoomInToShowFeatures": "Zoom in to show features for"
+      "zoomInToShowFeatures": "Zoom in to show features for",
+      "heatmapIsBusy": "Recomputing for heatmap layer might take some time. Please be patient!"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",

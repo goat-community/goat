@@ -21,7 +21,8 @@ const state = {
   bldEntranceLayer: null,
   editLayer: null,
   selectedEditLayer: null,
-  isMapillaryBtnDisabled: false
+  isMapillaryBtnDisabled: false,
+  busyLayers: []
 };
 
 const getters = {
@@ -37,6 +38,7 @@ const getters = {
   editLayer: state => state.editLayer,
   selectedEditLayer: state => state.selectedEditLayer,
   isMapillaryBtnDisabled: state => state.isMapillaryBtnDisabled,
+  busyLayers: state => state.busyLayers,
   getField
 };
 
@@ -78,6 +80,14 @@ const mutations = {
   },
   SET_EDIT_LAYER(state, editLayer) {
     state.editLayer = editLayer;
+  },
+  INSERT_BUSY_LAYER(state, layer) {
+    state.busyLayers.push(layer);
+  },
+  REMOVE_BUSY_LAYER(state, layer) {
+    state.busyLayers = state.busyLayers.filter(
+      l => l.get("name") !== layer.get("name")
+    );
   },
   updateField
 };

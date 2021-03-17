@@ -82,14 +82,29 @@
     <v-snackbar
       :color="activeColor.primary"
       top
-      :timeout="layerSnackbar.timeout"
-      v-model="layerSnackbar.state"
+      :timeout="visibilityLayerSnackbar.timeout"
+      v-model="visibilityLayerSnackbar.state"
     >
       <v-icon color="white" class="mr-3">
         info
       </v-icon>
-      <span v-html="layerSnackbar.message"></span>
-      <v-btn text @click="layerSnackbar.state = false">
+      <span v-html="visibilityLayerSnackbar.message"></span>
+      <v-btn text @click="visibilityLayerSnackbar.state = false">
+        <v-icon>close</v-icon>
+      </v-btn>
+    </v-snackbar>
+    <!-- Info Snackbar for layers that have a long computation time (ex. heatmaps) -->
+    <v-snackbar
+      :color="activeColor.primary"
+      top
+      :timeout="80000"
+      v-model="busyLayerSnackbar.state"
+    >
+      <v-icon color="white" class="mr-3">
+        info
+      </v-icon>
+      <span v-html="busyLayerSnackbar.message"></span>
+      <v-btn text @click="busyLayerSnackbar.state = false">
         <v-icon>close</v-icon>
       </v-btn>
     </v-snackbar>
@@ -177,10 +192,15 @@ export default {
       },
       getInfoResult: [],
       limitedVisibilityLayers: [],
-      layerSnackbar: {
+      visibilityLayerSnackbar: {
         state: false,
         message: "",
         timeout: 8000
+      },
+      busyLayerSnackbar: {
+        state: false,
+        message: "",
+        timeout: 100000
       }
     };
   },
@@ -710,7 +730,7 @@ export default {
       });
 
       if (notVisibleLayers.length > 0) {
-        this.layerSnackbar = {
+        this.visibilityLayerSnackbar = {
           state: true,
           message: `${this.$t(
             `map.snackbarMessages.zoomInToShowFeatures`
@@ -718,7 +738,7 @@ export default {
           timeout: 80000
         };
       } else {
-        this.layerSnackbar = {
+        this.visibilityLayerSnackbar = {
           state: false,
           message: ``,
           timeout: 0
@@ -779,13 +799,15 @@ export default {
       helpTooltip: "helpTooltip",
       currentMessage: "currentMessage",
       osmMode: "osmMode",
-      layers: "layers"
+      layers: "layers",
+      busyLayers: "busyLayers"
     }),
     ...mapGetters("app", {
       activeColor: "activeColor"
     }),
     ...mapGetters("isochrones", {
-      isochroneLayer: "isochroneLayer"
+      isochroneLayer: "isochroneLayer",
+      options: "options"
     }),
     ...mapGetters("user", {
       userId: "userId"
@@ -847,6 +869,24 @@ export default {
           }
         });
       }, 500);
+    },
+    busyLayers(layers) {
+      if (
+        layers.length > 0 &&
+        ["scenario", "comparison"].includes(
+          this.options.calculationModes.active
+        )
+      ) {
+        this.busyLayerSnackbar = {
+          state: true,
+          timeout: 100000,
+          message: this.$t("map.snackbarMessages.heatmapIsBusy")
+        };
+      } else {
+        this.busyLayerSnackbar = {
+          state: false
+        };
+      }
     }
   }
 };

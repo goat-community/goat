@@ -193,9 +193,8 @@ export default {
       const noUrl = layer.getUrl && !layer.getUrl();
       if (noUrl === undefined) {
         const payload = this.getLayerPayload(layer);
-        if (!payload) return;
+        if (!payload || layer.get("isBusy") === true) return;
         payload.return_type = "geobuf";
-
         fetchLayerFeatures(layer, payload);
       } else {
         if (queryParams.includes("aois_input")) {

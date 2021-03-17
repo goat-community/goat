@@ -5,7 +5,7 @@
     :width="7"
     :color="activeColor.primary"
     class="ma-0 pa-0 maploading-status"
-    v-show="isNetworkBusy"
+    v-show="isNetworkBusy || busyLayers.length > 0"
   ></v-progress-circular>
 </template>
 
@@ -19,6 +19,9 @@ export default {
   computed: {
     ...mapGetters("app", {
       activeColor: "activeColor"
+    }),
+    ...mapGetters("map", {
+      busyLayers: "busyLayers"
     })
   }
 };

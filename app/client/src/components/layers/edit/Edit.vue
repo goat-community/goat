@@ -566,7 +566,8 @@
           class="white--text"
           v-if="!isUploadBusy"
           :disabled="
-            isDeleteAllBusy ||
+            this.busyLayers.length > 0 ||
+              isDeleteAllBusy ||
               (isUploadBtnEnabled === false &&
                 selectedLayer &&
                 selectedLayer.get('name') === 'buildings' &&
@@ -1827,6 +1828,9 @@ export default {
       //If there are file input feature commit those in db as well.
       this.isUploadBusy = true;
       this.olEditCtrl.uploadFeatures(state => {
+        if (state === "success") {
+          EventBus.$emit("updateAllLayers");
+        }
         this.isUploadBusy = false;
         this.toggleSnackbar({
           type: state, //success or error
@@ -2275,7 +2279,8 @@ export default {
       activeColor: "activeColor"
     }),
     ...mapGetters("map", {
-      contextmenu: "contextmenu"
+      contextmenu: "contextmenu",
+      layers: "layers"
     }),
     ...mapFields("isochrones", {
       scenarioDataTable: "scenarioDataTable",
@@ -2283,7 +2288,8 @@ export default {
       activeScenario: "activeScenario"
     }),
     ...mapFields("map", {
-      selectedLayer: "selectedEditLayer"
+      selectedLayer: "selectedEditLayer",
+      busyLayers: "busyLayers"
     })
   },
   created() {
