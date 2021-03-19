@@ -207,9 +207,30 @@ class LegendRenderer {
       styleParser
         .writeStyle(style)
         .then(olStyle => {
-          renderer.setStyle(olStyle);
-          geoms.forEach(geom => renderer.drawGeometry(geom));
-          resolve(canvas.toDataURL("image/png"));
+          const resolveCanvas = function() {
+            renderer.setStyle(olStyle);
+            geoms.forEach(geom => renderer.drawGeometry(geom));
+            resolve(canvas.toDataURL("image/png"));
+          };
+
+          if (olStyle.getImage()) {
+            //Work around for loading image icon if image not available
+            if (!olStyle.getImage().getSize()) {
+              let src = style.rules[0].symbolizers[0].image;
+              olStyle.getImage().getImage().src = src;
+              olStyle.getImage().getImage().onload = () => {
+                let height = olStyle.getImage().getImage().height;
+                let width = olStyle.getImage().getImage().width;
+                olStyle.getImage().iconImage_.size_ = [height, width];
+                resolveCanvas();
+                olStyle.getImage().getImage().onload = null;
+              };
+            } else {
+              resolveCanvas();
+            }
+          } else {
+            resolveCanvas();
+          }
         })
         .catch(() => {
           reject();

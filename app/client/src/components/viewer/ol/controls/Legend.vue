@@ -22,13 +22,7 @@
             <template v-for="(item, index) in layers">
               <div
                 :key="index"
-                v-if="
-                  item.getVisible() === true &&
-                    item.get('displayInLegend') !== false &&
-                    item.get('group') !== 'backgroundLayers' &&
-                    isMapMounted === true &&
-                    $appConfig.stylesObj
-                "
+                v-if="layerVisibility(item)"
                 style="padding-right:10px;"
               >
                 <v-divider></v-divider>
@@ -150,24 +144,27 @@ export default {
         const currentLocale = this.$i18n.locale;
         if (styleObj[name] && styleObj[name].format === "geostyler") {
           let el = this.$refs[`legend-vector-${index}`];
-          if (Array.isArray(el) && el.length > 0) {
-            el = el[0];
-          }
-          // Remove existing svg elements on update (Workaround)
-          if (el && el.childNodes.length > 0) {
-            el.removeChild(el.childNodes[0]);
-          }
-          const style = styleObj[name].style;
-          const filteredStyle = this.filterStylesOnActiveMode(style);
+          el = el ? el : [];
+          if (el.length) {
+            if (Array.isArray(el) && el.length > 0) {
+              el = el[0];
+            }
+            // Remove existing svg elements on update (Workaround)
+            if (el && el.childNodes.length > 0) {
+              el.removeChild(el.childNodes[0]);
+            }
+            const style = styleObj[name].style;
+            const filteredStyle = this.filterStylesOnActiveMode(style);
 
-          const renderer = new LegendRenderer({
-            maxColumnWidth: 240,
-            overflow: "auto",
-            styles: [filteredStyle || style],
-            size: [230, 300],
-            translation: { styleTranslation, currentLocale }
-          });
-          renderer.render(el);
+            const renderer = new LegendRenderer({
+              maxColumnWidth: 240,
+              overflow: "auto",
+              styles: [filteredStyle || style],
+              size: [230, 300],
+              translation: { styleTranslation, currentLocale }
+            });
+            renderer.render(el);
+          }
         }
       }, 100);
     },
@@ -210,6 +207,19 @@ export default {
         this.$forceUpdate();
         this.isRendered = true;
       }
+    },
+    layerVisibility(item) {
+      if (
+        this.map.getView().getResolution() <= item.get("maxResolution") &&
+        item.getVisible() === true &&
+        item.get("displayInLegend") !== false &&
+        item.get("group") !== "backgroundLayers" &&
+        this.isMapMounted === true &&
+        this.$appConfig.stylesObj
+      ) {
+        return true;
+      }
+      return false;
     }
   },
 
