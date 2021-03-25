@@ -272,17 +272,6 @@ FROM
     ) x
 WHERE w.id = x.id;
 
-
---Precalculation of visualized features for lit
-DROP TABLE IF EXISTS buffer_lamps;
-CREATE TEMP TABLE buffer_lamps as
-SELECT ST_BUFFER(way,0.00015,'quad_segs=8') AS geom 
-FROM planet_osm_point 
-WHERE highway = 'street_lamp';
-
-CREATE INDEX ON buffer_lamps USING gist(geom);
-
-
 WITH variables AS 
 (
     SELECT select_from_variable_container_o('lit') AS lit
@@ -308,13 +297,27 @@ FROM
     ) x
 WHERE w.id = x.id;
 
-WITH union_b AS (SELECT ST_UNION(bl.geom) FROM buffer_lamps bl)
+--Precalculation of visualized features for lit
+DROP TABLE IF EXISTS buffer_lamps;
+CREATE TEMP TABLE buffer_lamps as
+SELECT ST_BUFFER(way,0.00015,'quad_segs=8') AS geom 
+FROM planet_osm_point 
+WHERE highway = 'street_lamp';
+
+CREATE INDEX ON buffer_lamps USING gist(geom);
+
+/*
+WITH union_b AS 
+(
+	SELECT ST_UNION(bl.geom) 
+	FROM buffer_lamps bl
+)
 UPDATE ways w SET lit_classified = 'yes'
 FROM buffer_lamps b, union_b ub
 WHERE (lit IS NULL OR lit = '')
 AND ST_Intersects(b.geom,w.geom)
 AND ST_Length(ST_Intersection(ub.st_union, w.geom))/ST_Length(w.geom) > 0.3;
-
+*/
 --Mark network islands in the network
 INSERT INTO osm_way_classes(class_id,name) values(701,'network_island');
 
