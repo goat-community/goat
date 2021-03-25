@@ -18,7 +18,7 @@ goat=# insert into plv8_js_modules values ('opening_hours',true,:'opening_hours'
 
 */
 
-drop function check_open_js(text, integer[],text);
+DROP FUNCTION IF EXISTS check_open_js(text, integer[],text);
 create or replace function check_open_js(opening_hour text, ref_time integer[], country_code text default null, state text default null)
 returns text as $$
     var opening_hours = require('opening_hours');

@@ -46,6 +46,33 @@ class DB_connection:
         return con, con.cursor()
 
 
+def bulk_compute_slope(db_name,user,port,host,password):
+    import psycopg2
+
+    con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s'" % (db_name,user,str(port),host,password))
+    cursor = con.cursor()
+
+    cursor.execute('SELECT count(*) FROM ways;')
+    cnt_ways = cursor.fetchall()[0][0]
+
+    sql_way_ids = '''SELECT id
+    FROM ways 
+    WHERE class_id::text NOT IN(SELECT UNNEST(select_from_variable_container('excluded_class_id_cycling')));'''
+    cursor.execute(sql_way_ids)
+    way_ids = cursor.fetchall()
+
+    cnt = 0
+    for i in way_ids:
+    
+        cnt = cnt + 1 
+        if (cnt/1000).is_integer():
+            print('Impedance for %s out of %s ways' % (cnt,cnt_ways)) 
+            con.commit()
+
+        sql_compute_slope = 'SELECT update_impedance(%s::integer)' % (i[0])
+        cursor.execute(sql_compute_slope)
+#bulk_compute_slope('goat','goat','5432','localhost','earlmanigault')
+
 def create_variable_container(db_name,user,port,host,password):
     import json 
     import psycopg2
@@ -88,7 +115,7 @@ def update_functions():
     db_name,user,host,port,password = ReadYAML().db_credentials()
     db = DB_connection(db_name,user,host,port,password)
     db.execute_script_psql('/opt/data_preparation/SQL/types.sql')
-    for p in ['/opt/database_functions/other','/opt/database_functions/network','/opt/database_functions/routing','/opt/database_functions/heatmap','/opt/database_functions/data_preparation']:
+    for p in ['/opt/database_functions/other','/opt/database_functions/network','/opt/database_functions/routing','/opt/database_functions/heatmap','/opt/database_functions/data_preparation', '/opt/database_functions/layers_api']:
         for file in Path(p).glob('*.sql'):
             db.execute_script_psql(file)
 

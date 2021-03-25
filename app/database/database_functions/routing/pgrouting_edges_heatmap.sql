@@ -1,3 +1,4 @@
+DROP FUNCTION IF EXISTS pgrouting_edges_heatmap;
 CREATE OR REPLACE FUNCTION public.pgrouting_edges_heatmap(cutoffs double precision[], startpoints double precision[], speed numeric, gridid_input integer[], modus_input integer, routing_profile text, userid_input integer DEFAULT 0, scenario_id_input integer DEFAULT 0, section_id_input integer DEFAULT 0)
  RETURNS SETOF void
  LANGUAGE plpgsql
@@ -6,7 +7,8 @@ DECLARE
 	vids bigint[];
 BEGIN
 	
-	PERFORM pgrouting_edges_preparation(cutoffs, startpoints, speed, modus_input, routing_profile,userid_input,scenario_id_input,TRUE);
+
+	PERFORM pgrouting_edges_preparation(cutoffs, startpoints, speed, modus_input, routing_profile, userid_input, scenario_id_input, TRUE);
 
 	SELECT ARRAY_AGG(vid)
 	INTO vids
@@ -59,7 +61,8 @@ BEGIN
 
 	ALTER TABLE full_edges ADD PRIMARY KEY(edge);
 	
-	IF (SELECT count(*) FROM reached_edges_heatmap LIMIT 1) = 0 THEN 
+	IF (SELECT count(*) FROM (SELECT * FROM reached_edges_heatmap WHERE scenario_id = scenario_id_input LIMIT 1) x) = 0
+	THEN 
 		INSERT INTO reached_edges_heatmap(edge, gridids, start_cost, end_cost, userid, scenario_id, geom, partial_edge)
 		SELECT f.edge, f.gridids, f.start_cost, f.end_cost, f.userid, f.scenario_id, f.geom, f.partial_edge 
 		FROM full_edges f;
@@ -107,4 +110,3 @@ SELECT public.pgrouting_edges_heatmap(ARRAY[1200.], array_agg(starting_points) ,
 1.33, array_agg(grid_id)::integer[], 1, 'walking_standard',0,0, 200)
 FROM (SELECT * FROM grid_ordered WHERE id BETWEEN 201 AND 400) g
 */
-

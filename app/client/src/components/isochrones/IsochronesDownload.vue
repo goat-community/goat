@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" scrollable max-width="350px">
     <v-card>
-      <v-app-bar color="green" dark>
+      <v-app-bar :color="activeColor.primary" dark>
         <v-app-bar-nav-icon
           ><v-icon>fas fa-file-download</v-icon></v-app-bar-nav-icon
         >
@@ -29,7 +29,10 @@
       </vue-scroll>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn class="white--text" @click="download()" color="green"
+        <v-btn
+          class="white--text"
+          @click="download()"
+          :color="activeColor.primary"
           ><v-icon left>fas fa-download</v-icon
           >{{ $t("isochrones.download.download") }}</v-btn
         >
@@ -80,18 +83,14 @@ export default {
       } else if (me.selected === "Shapefile") {
         const objectId = me.calculation.data[0].objectId;
         http
-          .get("./geoserver/wfs", {
-            params: {
-              service: "WFS",
-              version: " 1.1.0",
-              request: "GetFeature",
-              viewparams: `objectid:${objectId}`,
-              outputFormat: "shape-zip",
-              typeNames: "cite:download_isochrones",
-              srsname: "EPSG:4326"
+          .post(
+            "/api/map/isochrone",
+            {
+              return_type: "shapefile",
+              objectid: objectId
             },
-            responseType: "blob"
-          })
+            { responseType: "blob" }
+          )
           .then(response => {
             saveAs(response.data, `${exportName}.zip`);
           });
@@ -100,6 +99,9 @@ export default {
   },
   computed: {
     ...mapGetters("isochrones", { isochroneLayer: "isochroneLayer" }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    }),
     show: {
       get() {
         return this.visible;

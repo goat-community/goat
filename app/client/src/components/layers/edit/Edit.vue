@@ -10,7 +10,7 @@
         <!-- CREATE SCENARIO  -->
         <div v-if="Object.keys(scenarios).length > 0">
           <v-row class="mt-4" no-gutters>
-            <v-col class="text-center" :cols="10">
+            <v-col class="text-center" :cols="8">
               <v-select
                 v-model="activeScenario"
                 :items="scenarioArray"
@@ -18,14 +18,29 @@
                 item-value="value"
                 label="Select scenario"
                 solo
-              ></v-select>
+              >
+                <template
+                  class="create-scenario-text"
+                  slot="selection"
+                  slot-scope="{ item }"
+                >
+                  {{ item.display }}
+                </template>
+                <template
+                  class="create-scenario-text"
+                  slot="item"
+                  slot-scope="{ item }"
+                >
+                  {{ item.display }}
+                </template>
+              </v-select>
             </v-col>
-            <v-col class="text-center">
+            <v-col class="text-center ml-0 pl-0">
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
                   <v-btn
                     v-on="on"
-                    class="mt-1 ml-3"
+                    class="mt-1 ml-2"
                     :color="activeColor.primary"
                     fab
                     dark
@@ -36,6 +51,27 @@
                   </v-btn>
                 </template>
                 <span>Create new scenario</span></v-tooltip
+              >
+            </v-col>
+            <v-col v-if="activeScenario" class="text-center">
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    v-on="on"
+                    class="mt-1 ml-1"
+                    :color="activeColor.primary"
+                    fab
+                    dark
+                    small
+                    @click="
+                      showScenarioDialog = true;
+                      activeScenarioId = activeScenario;
+                    "
+                  >
+                    <v-icon dark>edit</v-icon>
+                  </v-btn>
+                </template>
+                <span>Edit Scenario Name</span></v-tooltip
               >
             </v-col>
           </v-row>
@@ -325,7 +361,7 @@
           </v-subheader>
           <div class="ml-2" v-if="dataManageElVisible">
             <v-flex
-              v-if="layerConf[layerName.split(':')[1]]"
+              v-if="layerConf[layerName]"
               xs12
               v-show="selectedLayer != null && dataManageElVisible === true"
               class="mt-1 pt-0 mb-0"
@@ -528,9 +564,10 @@
         <v-btn
           v-show="selectedLayer != null"
           class="white--text"
-          :loading="isUploadBusy"
+          v-if="!isUploadBusy"
           :disabled="
-            isDeleteAllBusy ||
+            this.busyLayers.length > 0 ||
+              isDeleteAllBusy ||
               (isUploadBtnEnabled === false &&
                 selectedLayer &&
                 selectedLayer.get('name') === 'buildings' &&
@@ -541,12 +578,22 @@
         >
           <v-icon left>cloud_upload</v-icon>{{ $t("appBar.edit.uploadBtn") }}
         </v-btn>
+
+        <v-btn
+          v-else
+          class="white--text"
+          @click.stop="stopUpload"
+          color="error"
+        >
+          <v-icon color="white">close</v-icon>Stop Upload
+        </v-btn>
+
         <v-btn
           v-show="selectedLayer != null"
           class="white--text"
           color="error"
           :loading="isDeleteAllBusy"
-          :disabled="scenarioDataTable.length === 0"
+          :disabled="scenarioDataTable.length === 0 || isUploadBusy"
           @click="deleteAll"
         >
           <v-icon left>delete</v-icon>{{ $t("appBar.edit.clearBtn") }}
@@ -557,7 +604,11 @@
     <!-- Scenario dialog -->
     <scenario-dialog
       :visible="showScenarioDialog"
-      @close="showScenarioDialog = false"
+      :scenarioId="activeScenarioId"
+      @close="
+        showScenarioDialog = false;
+        activeScenarioId = null;
+      "
     ></scenario-dialog>
     <!-- Confirm Delete all  -->
     <confirm ref="confirm"></confirm>
@@ -656,9 +707,7 @@ import { mapFields } from "vuex-map-fields";
 import {
   getAllChildLayers,
   getPoisListValues,
-  wfsTransactionParser,
-  mapFeatureTypeProps,
-  readTransactionResponse
+  mapFeatureTypeProps
 } from "../../../utils/Layer";
 import OlEditController from "../../../controllers/OlEditController";
 import OlSelectController from "../../../controllers/OlSelectController";
@@ -670,7 +719,7 @@ import http from "axios";
 import VJsonschemaForm from "../../other/dynamicForms/index";
 import OpeningHours from "../../other/OpeningHours";
 
-import { geojsonToFeature } from "../../../utils/MapUtils";
+import { geojsonToFeature, geometryToWKT } from "../../../utils/MapUtils";
 import { mapGetters, mapMutations } from "vuex";
 import { debounce } from "../../../utils/Helpers";
 import Feature from "ol/Feature";
@@ -757,6 +806,7 @@ export default {
     isUploadBtnEnabled: true,
     //Scenario Dialog
     showScenarioDialog: false,
+    activeScenarioId: null,
 
     editElVisible: true,
     dataManageElVisible: true,
@@ -900,7 +950,7 @@ export default {
       this.isExportScenarioBusy = true;
       http
         .post(
-          "/api/export_scenario",
+          "/api/map/export_scenario",
           {
             scenario_id: this.activeScenario
           },
@@ -1043,13 +1093,13 @@ export default {
       this.missingFieldsNames = "";
     },
     /**
-     * Upload user uploaded features to DB using a wfs-t
+     * Upload user uploaded features to DB
      */
     importScenario(user_id, scenario_id, layerName, features) {
       const payload = featuresToGeojson(features, "EPSG:3857", "EPSG:4326");
       http
         .post(
-          "api/import_scenario",
+          "/api/map/import_scenario",
           {
             user_id,
             scenario_id,
@@ -1061,10 +1111,18 @@ export default {
           }
         )
         .then(response => {
-          console.log(response);
           if (response.data) {
             //Add features to the edit layer to let the user interact
-            const features = geojsonToFeature(response.data, {
+            let featureObj = response.data;
+            while (Array.isArray(featureObj)) {
+              featureObj = featureObj[0];
+            }
+            if (featureObj[layerName]) {
+              featureObj = featureObj[layerName];
+            } else {
+              return;
+            }
+            const features = geojsonToFeature(featureObj, {
               dataProjection: "EPSG:4326",
               featureProjection: "EPSG:3857"
             });
@@ -1326,13 +1384,12 @@ export default {
      * Open modify attribute popup
      */
     openModifyAttributePopup(evt) {
-      const features = this.olEditCtrl.source.getFeaturesAtCoordinate(
+      const feature = this.olEditCtrl.source.getClosestFeatureToCoordinate(
         evt.coordinate
       );
       this.olEditCtrl.featuresToCommit = [];
       this.olEditCtrl.highlightSource.clear();
-      if (features.length > 0) {
-        const feature = features[0];
+      if (feature) {
         const props = feature.getProperties();
         for (const attr in this.dataObject) {
           this.dataObject[attr] = attr in props ? props[attr] : null;
@@ -1486,13 +1543,11 @@ export default {
         buildingFeatureAtCoord.set("status", null);
       }
 
-      let payload;
-      let bldEntranceFeature;
-      const formatGML = {
-        featureNS: "cite",
-        featureType: `population_modified`,
-        srsName: "urn:x-ogc:def:crs:EPSG:4326"
+      let payload = {
+        table_name: "population_modified",
+        features: []
       };
+      let bldEntranceFeature;
       if (evt.type === "modifyend") {
         // Update the existing building entrance feature
         bldEntranceFeature = this.tempBldEntranceFeature;
@@ -1515,7 +1570,19 @@ export default {
         clonedFeature.setGeometryName("geom");
         clonedFeature.getGeometry().transform("EPSG:3857", "EPSG:4326");
         clonedFeature.setId(bldEntranceFeature.getId());
-        payload = wfsTransactionParser(null, [clonedFeature], null, formatGML);
+        // Prepare payload for update
+        const props = clonedFeature.getProperties();
+        if (props.hasOwnProperty("geom")) {
+          delete props.geom;
+        }
+        const wktGeom = geometryToWKT(clonedFeature.getGeometry());
+        props.geom = wktGeom;
+        props.gid =
+          clonedFeature.getId() ||
+          clonedFeature.get("gid") ||
+          clonedFeature.get("id");
+        payload.mode = "update";
+        payload.features = [props];
       } else {
         // Add new feature
         bldEntranceFeature = new Feature({
@@ -1545,21 +1612,31 @@ export default {
         clonedFeature.setGeometryName("geom");
         clonedFeature.getGeometry().transform("EPSG:3857", "EPSG:4326");
 
-        payload = wfsTransactionParser([clonedFeature], null, null, formatGML);
+        // Prepare payload for insert
+        payload.mode = "insert";
+        const props = clonedFeature.getProperties();
+        if (props.hasOwnProperty("geom")) {
+          delete props.geom;
+        }
+        if (props.hasOwnProperty("gid")) {
+          delete props.gid;
+        }
+        if (props.hasOwnProperty("id")) {
+          delete props.id;
+        }
+        const wktGeom = geometryToWKT(clonedFeature.getGeometry());
+        props.geom = wktGeom;
+        payload.features = [props];
       }
-      const serializedPayload = new XMLSerializer().serializeToString(payload);
-      http
-        .post("geoserver/cite/wfs", serializedPayload, {
-          headers: { "Content-Type": "text/xml" }
-        })
-        .then(response => {
-          const result = readTransactionResponse(response.data);
-          const FIDs = result.insertIds;
-          if (FIDs != undefined && FIDs[0] != "none") {
-            const id = parseInt(FIDs[0].split(".")[1]);
-            bldEntranceFeature.setId(id);
+
+      http.post("/api/map/layer_controller", payload).then(response => {
+        if (response.data) {
+          const feature = geojsonToFeature(response.data);
+          if (feature[0] && feature[0].get("gid")) {
+            bldEntranceFeature.setId(feature[0].get("gid"));
           }
-        });
+        }
+      });
       setTimeout(() => {
         this.tempBldEntranceFeature = null;
       }, 100);
@@ -1686,21 +1763,21 @@ export default {
         return;
       }
       http
-        .get(
-          `geoserver/wfs?request=describeFeatureType&typename=${this.layerName}_modified&outputFormat=application/json`
-        )
+        .get(`/api/map/layer_schema/${this.layerName}_modified`)
         .then(response => {
-          const props = response.data.featureTypes[0].properties;
-          const layerName = this.layerName.split(":")[1];
-          const jsonSchema = mapFeatureTypeProps(
-            props,
-            layerName,
-            this.layerConf[layerName]
-          );
-          this.schema[this.layerName] = jsonSchema;
-          this.loadingLayerInfo = false;
-          this.updateReqFields(this.reqFields);
-          this.$forceUpdate();
+          if (response.data) {
+            const props = response.data;
+            const layerName = this.layerName;
+            const jsonSchema = mapFeatureTypeProps(
+              props,
+              layerName,
+              this.layerConf[layerName]
+            );
+            this.schema[this.layerName] = jsonSchema;
+            this.loadingLayerInfo = false;
+            this.updateReqFields(this.reqFields);
+            this.$forceUpdate();
+          }
         });
     },
     /**
@@ -1751,6 +1828,9 @@ export default {
       //If there are file input feature commit those in db as well.
       this.isUploadBusy = true;
       this.olEditCtrl.uploadFeatures(state => {
+        if (state === "success") {
+          EventBus.$emit("updateAllLayers");
+        }
         this.isUploadBusy = false;
         this.toggleSnackbar({
           type: state, //success or error
@@ -1818,6 +1898,14 @@ export default {
         this.olEditCtrl.source.addFeature(clonedFeature);
         //Commit restore changes. ("commitDelete" just updates array of deleted features ids in the database)
         editLayerHelper.commitDelete("update_deleted_features");
+      }
+    },
+    /**
+     * Stop Upload button
+     */
+    stopUpload() {
+      if (editLayerHelper.cancelReq instanceof Function) {
+        editLayerHelper.cancelReq("cancelled");
       }
     },
     /**
@@ -1976,12 +2064,12 @@ export default {
           ) {
             //Assign layerName to feature property if doesn't exist
             if (!prop.layerName) {
-              f.set("layerName", this.layerName.split(":")[1]);
+              f.set("layerName", this.layerName);
             }
             const fid = f.getId();
             const layerName = f.get("layerName");
             const isDeleted = false;
-            const status = prop.status ? "Uploaded" : "NotUploaded";
+            let status = prop.status ? "Uploaded" : "NotUploaded";
             const originalId = f.get("original_id");
             let type = "";
             if (
@@ -2016,11 +2104,14 @@ export default {
             f.setId(prop.id);
           }
           if (!prop.layerName) {
-            f.set("layerName", this.layerName.split(":")[1]);
+            f.set("layerName", this.layerName);
           }
           const layerName = f.get("layerName");
           const isDeleted = fid;
-          const status = prop.status === 1 ? "Uploaded" : "NotUploaded";
+          let status = prop.status === 1 ? "Uploaded" : "NotUploaded";
+          if (f.get("layerName") === "pois") {
+            status = "Uploaded";
+          }
           const type = "deleted";
           let source = "";
           if (
@@ -2143,7 +2234,8 @@ export default {
       return scenarioArray;
     },
     layerName() {
-      return this.selectedLayer.getSource().getParams().LAYERS;
+      const value = this.selectedLayer.get("name");
+      return value;
     },
     reqFields() {
       const layerSchema = this.schema[this.layerName];
@@ -2187,7 +2279,8 @@ export default {
       activeColor: "activeColor"
     }),
     ...mapGetters("map", {
-      contextmenu: "contextmenu"
+      contextmenu: "contextmenu",
+      layers: "layers"
     }),
     ...mapFields("isochrones", {
       scenarioDataTable: "scenarioDataTable",
@@ -2195,7 +2288,8 @@ export default {
       activeScenario: "activeScenario"
     }),
     ...mapFields("map", {
-      selectedLayer: "selectedEditLayer"
+      selectedLayer: "selectedEditLayer",
+      busyLayers: "busyLayers"
     })
   },
   created() {
@@ -2221,5 +2315,14 @@ export default {
 .scenario-icon-delete:hover {
   cursor: pointer;
   color: red;
+}
+
+.create-scenario-text {
+  display: block;
+  width: 150px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

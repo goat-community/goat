@@ -1,4 +1,5 @@
-CREATE OR REPLACE FUNCTION public.bulk_closest_edges()
+DROP FUNCTION IF EXISTS bulk_closest_edges;
+CREATE OR REPLACE FUNCTION public.bulk_closest_edges(buffer_geom geometry)
  RETURNS SETOF void
  LANGUAGE plpgsql
 AS $function$
@@ -17,7 +18,8 @@ BEGIN
 	    WHERE w.geom && ST_Buffer(g.centroid,0.0018)
 	    ORDER BY ST_CLOSESTPOINT(w.geom,g.centroid) <-> g.centroid
 	    LIMIT 1
-	) AS c;
+	) AS c
+	WHERE ST_Intersects(g.geom,buffer_geom);
 	
     ALTER TABLE start_vertices ADD PRIMARY KEY(grid_id);
 

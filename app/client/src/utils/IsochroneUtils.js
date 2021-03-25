@@ -55,27 +55,38 @@ const IsochroneUtils = {
         )} - ${feature.get("step")} min`
       };
       const populationObj = feature.get("population");
-      if (feature.get("population").bounding_box) {
+      if (
+        feature.get("population").bounding_box ||
+        feature.get("population").bounding_box == 0 ||
+        feature.get("population").bounding_box_reached == 0
+      ) {
         //Multi-isochrone is created using draw
         obj.studyArea = "-- (Draw)";
         obj.population = populationObj.bounding_box;
         obj.reachPopulation = populationObj.bounding_box_reached;
+
+        obj.shared =
+          obj.population == 0 || obj.reachPopulation == 0
+            ? "-"
+            : `${((obj.reachPopulation / obj.population) * 100).toFixed(1)}%`;
+
         multiIsochroneTableData.push(obj);
       } else {
         //Multi-isochrone is created from study-area
 
         populationObj.forEach(currentStudyArea => {
-          multiIsochroneTableData.push(
-            Object.assign(
-              {
-                studyArea: Object.keys(currentStudyArea)[0],
-                population: currentStudyArea[Object.keys(currentStudyArea)[0]],
-                reachPopulation:
-                  currentStudyArea[Object.keys(currentStudyArea)[1]]
-              },
-              obj
-            )
-          );
+          const _obj = {
+            studyArea: Object.keys(currentStudyArea)[0],
+            population: currentStudyArea[Object.keys(currentStudyArea)[0]],
+            reachPopulation: currentStudyArea[Object.keys(currentStudyArea)[1]]
+          };
+          if (_obj.population && _obj.reachPopulation) {
+            _obj.shared = `${(
+              (_obj.reachPopulation / _obj.population) *
+              100
+            ).toFixed(1)}%`;
+          }
+          multiIsochroneTableData.push(Object.assign(_obj, obj));
         });
       }
     });

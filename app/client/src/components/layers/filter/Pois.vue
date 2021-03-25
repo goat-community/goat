@@ -84,7 +84,7 @@
         <div class="tree-label-custom">{{ getDisplayName(item) }}</div>
       </template>
       <template v-slot:append="{ item }">
-        <template v-if="item.icon">
+        <template v-if="isSensitivityEnabled(item) && item.icon">
           <v-tooltip top>
             <template v-slot:activator="{ on }">
               <v-icon
@@ -161,38 +161,28 @@ export default {
       const me = this;
       const map = me.map;
       const poisLayerName = "pois";
+      const aoisLayerName = "aois";
       const allLayers = getAllChildLayers(map);
       allLayers.forEach(layer => {
         const layerName = layer.get("name");
         if (layerName === poisLayerName) {
           me.poisLayer = layer;
         }
+        if (layerName === aoisLayerName) {
+          me.aoisLayer = layer;
+        }
       });
     },
-    updatePoisLayerViewParams(selectedPois) {
+    updatePois(selectedPois) {
       const me = this;
       if (me.poisLayer) {
-        const viewParams = selectedPois.reduce((filtered, item) => {
+        selectedPois.reduce((filtered, item) => {
           const { value } = item;
           if (value != "undefined") {
             filtered.push(value);
           }
           return filtered;
         }, []);
-
-        let params = `amenities:'${btoa(
-          viewParams.toString()
-        )}';routing_profile:'${me.activeRoutingProfile}';scenario_id:${
-          me.scenarioId
-        };modus:'${me.options.calculationModes.active}';`;
-
-        if (this.timeBasedCalculations === "yes") {
-          params += `d:${me.getSelectedDay};h:${me.getSelectedHour};m:${me.getSelectedMinutes};`;
-        }
-
-        me.poisLayer.getSource().updateParams({
-          viewparams: params
-        });
       }
     },
     toggleHeatmapDialog(amenity) {
@@ -244,10 +234,23 @@ export default {
           excluded: newFilter,
           nodeState: "activate"
         });
+        4;
       }
     },
     treeViewChanged() {
-      this.selectedPois = this.selectedPois.filter(x => x.locked != true);
+      this.selectedPois = this.selectedPois.filter(x => {
+        return x.locked != true;
+      });
+    },
+    isSensitivityEnabled(item) {
+      // Disable sensitivity for aois.
+      let isEnabled = true;
+      this.aois.forEach(aoi => {
+        if (item.value === aoi.value) {
+          isEnabled = false;
+        }
+      });
+      return isEnabled;
     },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR"
@@ -255,32 +258,54 @@ export default {
   },
   watch: {
     "options.calculationModes.active": function() {
-      this.updatePoisLayerViewParams(this.selectedPois);
+      this.updatePois(this.selectedPois);
     },
     scenarioId() {
-      this.updatePoisLayerViewParams(this.selectedPois);
+      this.updatePois(this.selectedPois);
     },
     selectedPois: function() {
       const me = this;
       if (me.osmMode === true) return;
+      if (me.selectedPois.length > 0) {
+        me.toggleSnackbar({
+          type: "error",
+          message: "selectAmenities",
+          state: false,
+          timeout: 0
+        });
+      }
+      if (me.selectedPois.length === 0 && me.poisLayer.getVisible() === true) {
+        this.toggleSnackbar({
+          type: "error",
+          message: "selectAmenities",
+          state: true,
+          timeout: 60000
+        });
+      }
       if (me.selectedPois.length > 0 && me.poisLayer.getVisible() === false) {
         me.poisLayer.setVisible(true);
+        EventBus.$emit("toggleLayerVisiblity", me.poisLayer);
       }
+      if (me.selectedPois.length > 0 && me.aoisLayer.getVisible() === false) {
+        me.aoisLayer.setVisible(true);
+        EventBus.$emit("toggleLayerVisiblity", me.poisLayer);
+      }
+
       me.updateSelectedPoisForThematicData(me.selectedPois);
-      me.updatePoisLayerViewParams(me.selectedPois);
+      me.updatePois(me.selectedPois);
       me.countStudyAreaPois();
     },
     activeRoutingProfile: function(newValue, oldValue) {
       if (this.timeBasedCalculations === "yes") {
         this.toggleRoutingFilter(newValue, oldValue);
       }
-      this.updatePoisLayerViewParams(this.selectedPois);
+      this.updatePois(this.selectedPois);
     },
     dayFilter: function() {
-      this.updatePoisLayerViewParams(this.selectedPois);
+      this.updatePois(this.selectedPois);
     },
     hourFilter: function() {
-      this.updatePoisLayerViewParams(this.selectedPois);
+      this.updatePois(this.selectedPois);
     }
   },
   computed: {
@@ -307,6 +332,19 @@ export default {
       hourFilter: "timeFilter.hour",
       selectedPois: "selectedPois"
     }),
+    aois() {
+      const _aois = [];
+      const aois = this.allPois.filter(
+        i => i.categoryValue == "recreationAreas"
+      );
+
+      if (aois.length > 0) {
+        aois[0].children.forEach(child => {
+          _aois.push(child);
+        });
+      }
+      return _aois;
+    },
     getSelectedDay() {
       return this.dayFilter ? this.dayFilter : 9999;
     },
@@ -318,7 +356,6 @@ export default {
     }
   },
   created() {
-    this.init(this.$appConfig.componentData.pois);
     this.toggleRoutingFilter(this.activeRoutingProfile, null);
   }
 };

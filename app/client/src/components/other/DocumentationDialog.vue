@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="show" v-if="item" scrollable max-width="815px">
+  <v-dialog v-model="show" v-if="item" scrollable max-width="830px">
     <v-card>
       <v-app-bar :color="color" dark>
         <v-tooltip top>
@@ -47,7 +47,7 @@ export default {
   props: {
     visible: { type: Boolean, required: true },
     item: { type: Object, required: false },
-    color: { type: String, default: "#4CAF50" }
+    color: { type: String, default: "#2BB381" }
   },
   data: () => ({
     isLoading: true
@@ -82,14 +82,14 @@ export default {
   margin: 10px;
   overflow: hidden;
   margin: 15px auto;
-  max-width: 780px;
+  max-width: 800px;
 }
 
 iframe {
   border: 0px none;
-  margin-left: -500px;
-  height: 1200px;
-  margin-bottom: -520px;
+  margin-left: -510px;
+  height: 1500px;
+  margin-bottom: -820px;
   margin-top: -120px;
   width: 1400px;
 }

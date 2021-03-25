@@ -19,12 +19,12 @@ BEGIN
 	UPDATE pois_temp
 	SET amenity = new_amenity;
 
-INSERT INTO pois
+	INSERT INTO pois
 	SELECT * FROM pois_temp;
 	
 END
 $function$;
 
 
-/*SELECT pois_override('nursery','kindergarten','%kindergarten%')
+/*SELECT pois_rewrite('nursery','kindergarten','%kindergarten%')
  */

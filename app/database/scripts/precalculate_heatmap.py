@@ -9,7 +9,7 @@ import yaml
 #Step defined the bulk size of the heatmap calculation
 step = 200
 #Grid size defines the size of each grid
-grid_size = 500
+grid_size = 150
 
 start = time.time()
 
@@ -23,7 +23,7 @@ cursor.execute(prepare_tables % grid_size)
 
 sql_ordered_grid = '''
 DROP TABLE IF EXISTS compute_sections; 
-CREATE TEMP TABLE compute_sections AS
+CREATE TABLE compute_sections AS
 WITH b AS 
 (
 	SELECT ST_BUFFER(geom::geography, 1600)::geometry AS geom 
@@ -41,7 +41,7 @@ WHERE ST_Intersects(b.geom,g.geom);
 CREATE INDEX ON compute_sections USING GIST(geom);
 
 DROP TABLE IF EXISTS grid_ordered;
-CREATE TEMP TABLE grid_ordered AS 
+CREATE TABLE grid_ordered AS 
 SELECT starting_points, centroid, geom, grid_id, section_id, ROW_NUMBER() over() AS id 
 FROM (
     SELECT ARRAY[ST_X(st_centroid(g.geom))::numeric,ST_Y(ST_Centroid(g.geom))::numeric] starting_points, st_centroid(g.geom) centroid, g.geom, g.grid_id, c.section_id 
@@ -135,7 +135,7 @@ print('Routing calculation has finished after: %s s' % (time_routing))
 #Loop for closest POIs calculation (needs to be executed after routing is completed)
 for i in section_ids: 
 	print('Compute reached pois section: %s' % str(i))
-	cursor.execute('''SELECT reached_pois_heatmap(geom,0.0014) 
+	cursor.execute('''SELECT reached_pois_heatmap(geom,0.0014,'default',0) 
 	FROM compute_sections 
 	WHERE section_id = %s
 	''' % str(i))
@@ -143,29 +143,16 @@ for i in section_ids:
 
 print('Closest POIs calculation has finished after: %s s' % (time.time()-start-time_routing))
 
+#Compute Accessibility Values
+cursor.execute('SELECT compute_accessibility(0)')
+con.commit()
 #Loop for isochrone area calculation
-cursor.execute('select grid_id FROM grid_heatmap;')
+cursor.execute('SELECT grid_id FROM grid_heatmap;')
 gridids = cursor.fetchall()
 
 for i in gridids:
 	i = i[0]
-	cursor.execute(f'''UPDATE grid_heatmap SET area_isochrone = a.area_isochrone
-	FROM 
-	(
-		SELECT DISTINCT ST_AREA(ST_CONVEXHULL(ST_COLLECT(geom))::geography) AS area_isochrone
-		FROM 
-		(
-			SELECT st_startpoint(geom) geom  
-			FROM reached_edges_heatmap 
-			WHERE gridids && ARRAY[{i}]
-			UNION ALL 
-			SELECT st_endpoint(geom) geom  
-			FROM reached_edges_heatmap 
-			WHERE gridids && ARRAY[{i}]
-		) x
-	) a 
-	WHERE grid_id = {i};
-	'''	)	
+	cursor.execute(f'''SELECT compute_area_isochrone({i},0,1,0);''')	
 	con.commit()
 
 cursor.execute(sql_grid_population)

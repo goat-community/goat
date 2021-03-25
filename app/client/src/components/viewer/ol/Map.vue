@@ -78,6 +78,36 @@
         <v-divider></v-divider>
       </template>
     </overlay-popup>
+    <!-- Info Snackbar for not visible layers. -->
+    <v-snackbar
+      :color="activeColor.primary"
+      top
+      :timeout="visibilityLayerSnackbar.timeout"
+      v-model="visibilityLayerSnackbar.state"
+    >
+      <v-icon color="white" class="mr-3">
+        info
+      </v-icon>
+      <span v-html="visibilityLayerSnackbar.message"></span>
+      <v-btn text @click="visibilityLayerSnackbar.state = false">
+        <v-icon>close</v-icon>
+      </v-btn>
+    </v-snackbar>
+    <!-- Info Snackbar for layers that have a long computation time (ex. heatmaps) -->
+    <v-snackbar
+      :color="activeColor.primary"
+      top
+      :timeout="80000"
+      v-model="busyLayerSnackbar.state"
+    >
+      <v-icon color="white" class="mr-3">
+        info
+      </v-icon>
+      <span v-html="busyLayerSnackbar.message"></span>
+      <v-btn text @click="busyLayerSnackbar.state = false">
+        <v-icon>close</v-icon>
+      </v-btn>
+    </v-snackbar>
   </div>
 </template>
 
@@ -88,10 +118,9 @@ import View from "ol/View";
 
 // ol imports
 import Overlay from "ol/Overlay";
+import Feature from "ol/Feature";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
-import Mask from "ol-ext/filter/Mask";
-import OlFill from "ol/style/Fill";
 
 // style imports
 import { getInfoStyle } from "../../../style/OlStyleDefs";
@@ -100,8 +129,12 @@ import { EventBus } from "../../../EventBus";
 
 // utils imports
 import { LayerFactory } from "../../../factory/layer.js";
+import { OlStyleFactory } from "../../../factory/OlStyle";
 import { groupBy, humanize, isCssColor } from "../../../utils/Helpers";
-import { getAllChildLayers, getLayerType } from "../../../utils/Layer";
+import {
+  getAllChildLayers,
+  updateLayerUrlQueryParam
+} from "../../../utils/Layer";
 import { geojsonToFeature } from "../../../utils/MapUtils";
 import { Group as LayerGroup } from "ol/layer.js";
 import http from "../../../services/http";
@@ -122,6 +155,7 @@ import DoubleClickZoom from "ol/interaction/DoubleClickZoom";
 import { defaults as defaultControls, Attribution } from "ol/control";
 import { defaults as defaultInteractions } from "ol/interaction";
 
+import { debounce } from "../../../utils/Helpers";
 // Context menu
 import ContextMenu from "ol-contextmenu/dist/ol-contextmenu";
 import "ol-contextmenu/dist/ol-contextmenu.min.css";
@@ -156,7 +190,18 @@ export default {
         isVisible: false,
         currentLayerIndex: 0
       },
-      getInfoResult: []
+      getInfoResult: [],
+      limitedVisibilityLayers: [],
+      visibilityLayerSnackbar: {
+        state: false,
+        message: "",
+        timeout: 8000
+      },
+      busyLayerSnackbar: {
+        state: false,
+        message: "",
+        timeout: 100000
+      }
     };
   },
   mounted() {
@@ -182,6 +227,7 @@ export default {
       me.setupMapClick();
       me.setupMapPointerMove();
       me.createPopupOverlay();
+      EventBus.$on("toggleLayerVisiblity", this.showNonVisibleLayersInfo);
     }, 200);
   },
   created() {
@@ -217,7 +263,6 @@ export default {
     // Create layers from config and add them to map
     const layers = me.createLayers();
     me.map.getLayers().extend(layers);
-    me.createMaskFilters(layers);
     me.createGetInfoLayer();
 
     // Setup context menu (right-click)
@@ -236,6 +281,8 @@ export default {
     EventBus.$on("close-popup", () => {
       me.closePopup();
     });
+    EventBus.$on("inject-styles", this.injectStyles);
+    this.init(this.$appConfig.componentData.pois);
   },
 
   methods: {
@@ -246,14 +293,24 @@ export default {
     createLayers() {
       let layers = [];
       const me = this;
-      const layersConfigGrouped = groupBy(this.$appConfig.map.layers, "group");
+
+      const layersConfigGrouped = groupBy(
+        [
+          ...this.$appConfig.map.layers,
+          ...this.$appConfig.map.osmMappingLayers
+        ],
+        "group"
+      );
       for (var group in layersConfigGrouped) {
         if (!layersConfigGrouped.hasOwnProperty(group)) {
           continue;
         }
         const mapLayers = [];
-        layersConfigGrouped[group].reverse().forEach(function(lConf) {
+        layersConfigGrouped[group].reverse().forEach(lConf => {
           const layer = LayerFactory.getInstance(lConf);
+          if (![Infinity, undefined, null].includes(layer.getMaxResolution())) {
+            this.limitedVisibilityLayers.push(layer);
+          }
           mapLayers.push(layer);
           if (layer.get("name")) {
             me.setLayer(layer);
@@ -270,6 +327,41 @@ export default {
     },
 
     /**
+     * Inject styles to map vector layers.
+     */
+    injectStyles(stylesObj) {
+      const flatLayers = getAllChildLayers(this.map);
+      flatLayers.forEach(layer => {
+        const layerName = layer.get("name");
+        let styleObj;
+        if (
+          layer.get("styleConf") &&
+          layer.get("styleConf").format === "custom-logic"
+        ) {
+          // Custom-styles
+          styleObj = layer.get("styleConf");
+        } else {
+          // Style from style config object (geostyler)
+          styleObj = stylesObj[layerName];
+        }
+        if (styleObj) {
+          const olStyle = OlStyleFactory.getOlStyle(styleObj, layerName);
+          if (olStyle) {
+            if (olStyle instanceof Promise) {
+              olStyle
+                .then(style => {
+                  layer.setStyle(style);
+                })
+                .catch(error => console.log(error));
+            } else {
+              layer.setStyle(olStyle);
+            }
+          }
+        }
+      });
+    },
+
+    /**
      * Creates a layer to visualize selected GetInfo features.
      */
     createGetInfoLayer() {
@@ -279,6 +371,7 @@ export default {
       const vector = new VectorLayer({
         name: "Get Info Layer",
         displayInLayerList: false,
+        displayInLegend: false,
         zIndex: 100,
         source: source,
         style: getInfoStyle()
@@ -323,33 +416,8 @@ export default {
           }
         }
       });
-    },
-
-    /**
-     * Creates a filter mask of the city using ol mask extension.
-     * Hides other municipalities and states.
-     */
-    createMaskFilters(mapLayers) {
-      //Filter background layers
-      const backgroundLayers = [];
-      mapLayers.forEach(layer => {
-        if (layer.get("name") === "backgroundLayers") {
-          backgroundLayers.push(...layer.getLayers().getArray());
-        }
-      });
-
-      //Create masks
-      const feature = this.$appConfig.map.studyAreaFeature;
-
-      if (!feature[0]) return;
-      const mask = new Mask({
-        feature: feature[0],
-        inner: false,
-        fill: new OlFill({ color: [169, 169, 169, 0.8] })
-      });
-      for (const i of backgroundLayers) {
-        i.addFilter(mask);
-      }
+      // Show snackbar info when layers aren't visible in the current resolution
+      map.getView().on("change:resolution", this.showNonVisibleLayersInfo);
     },
 
     /**
@@ -433,12 +501,13 @@ export default {
     /**
      * Show getInfo popup.
      */
-    showPopup() {
+    showPopup(coordinate) {
       // Clear highligh feature
       this.getInfoLayerSource.clear();
-      let position = this.getInfoResult[this.popup.currentLayerIndex]
-        .getGeometry()
-        .getCoordinates();
+      const infoFeature = this.getInfoResult[this.popup.currentLayerIndex];
+      let position = infoFeature.getGeometry()
+        ? infoFeature.getGeometry().getCoordinates()
+        : coordinate;
       // Add highlight feature
       this.getInfoLayerSource.addFeature(
         this.getInfoResult[this.popup.currentLayerIndex]
@@ -560,9 +629,11 @@ export default {
         //WMS Requests
         let promiseArray = [];
         me.queryableLayers.forEach(layer => {
-          const layerType = getLayerType(layer);
+          const layerType = layer.get("type");
           switch (layerType) {
-            case "WFS": {
+            case "WFS":
+            case "VECTOR":
+            case "VECTORTILE": {
               let selectedFeatures = me.map.getFeaturesAtPixel(evt.pixel, {
                 hitTolerance: 4,
                 layerFilter: layerCandidate => {
@@ -571,8 +642,21 @@ export default {
               });
               if (selectedFeatures !== null && selectedFeatures.length > 0) {
                 //TODO: If there are more then 2 features selected get the closest one to coordinate rather than the first element
-                const clonedFeature = selectedFeatures[0].clone();
-                clonedFeature.set("layerName", layer.get("name"));
+                let clonedFeature;
+
+                if (!selectedFeatures[0].clone) {
+                  // !!! Workaround for vector tile features.
+                  const vtProps = {
+                    layerName: layer.get("name"),
+                    osm_type: selectedFeatures[0].getType()
+                  };
+
+                  Object.assign(vtProps, selectedFeatures[0].getProperties());
+                  clonedFeature = new Feature(vtProps);
+                } else {
+                  clonedFeature = selectedFeatures[0].clone();
+                  clonedFeature.set("layerName", layer.get("name"));
+                }
                 me.getInfoResult.push(clonedFeature);
               }
               break;
@@ -609,13 +693,13 @@ export default {
             });
 
             if (me.getInfoResult.length > 0) {
-              me.showPopup();
+              me.showPopup(evt.coordinate);
             }
           });
         } else {
           //Only for WFS layer
           if (me.getInfoResult.length > 0) {
-            me.showPopup();
+            me.showPopup(evt.coordinate);
           }
         }
       });
@@ -628,30 +712,45 @@ export default {
       this.popup.currentLayerIndex += 1;
       this.showPopup();
     },
+
+    showNonVisibleLayersInfo: debounce(function() {
+      const currentResolution = this.map.getView().getResolution();
+      const notVisibleLayers = [];
+      this.limitedVisibilityLayers.forEach(layer => {
+        if (
+          layer.getMaxResolution() &&
+          layer.getMaxResolution() < currentResolution &&
+          layer.getVisible()
+        ) {
+          const layerName = this.$te(`map.layerName.${layer.get("name")}`)
+            ? this.$t(`map.layerName.${layer.get("name")}`)
+            : layerName;
+          notVisibleLayers.push(layerName);
+        }
+      });
+
+      if (notVisibleLayers.length > 0) {
+        this.visibilityLayerSnackbar = {
+          state: true,
+          message: `${this.$t(
+            `map.snackbarMessages.zoomInToShowFeatures`
+          )}: <b>${notVisibleLayers.toString()}</b>`,
+          timeout: 80000
+        };
+      } else {
+        this.visibilityLayerSnackbar = {
+          state: false,
+          message: ``,
+          timeout: 0
+        };
+      }
+    }, 200),
     getOsmHrefLink() {
       let link = ``;
       if (this.currentInfoFeature && this.currentInfoFeature.get("osm_id")) {
         const feature = this.currentInfoFeature;
-        const originGeometry =
-          feature.getProperties()["orgin_geometry"] ||
-          feature
-            .getGeometry()
-            .getType()
-            .toLowerCase();
-        let type;
-        switch (originGeometry) {
-          case "polygon":
-          case "multipolygon":
-          case "linestring":
-            type = "way";
-            break;
-          case "point":
-            type = "node";
-            break;
-          default:
-            type = null;
-            break;
-        }
+
+        let type = feature.get("osm_type");
         link =
           `https://www.openstreetmap.org/edit?editor=id&` +
           `${type}` +
@@ -669,7 +768,6 @@ export default {
           return this.$t(`map.layerName.${layer.get("layerName")}`);
         } else if (
           this.osmMode === true &&
-          this.osmMappingLayers[layer.get("layerName")] &&
           this.$te(`map.osmMode.layers.${layer.get("layerName")}.layerName`)
         ) {
           const path = `map.osmMode.layers.${layer.get("layerName")}`;
@@ -686,7 +784,11 @@ export default {
     ...mapMutations("map", {
       setMap: "SET_MAP",
       setContextMenu: "SET_CONTEXTMENU",
-      setLayer: "SET_LAYER"
+      setLayer: "SET_LAYER",
+      toggleSnackbar: "TOGGLE_SNACKBAR"
+    }),
+    ...mapMutations("pois", {
+      init: "INIT"
     }),
     ...mapActions("isochrones", {
       showIsochroneWindow: "showIsochroneWindow"
@@ -697,14 +799,15 @@ export default {
       helpTooltip: "helpTooltip",
       currentMessage: "currentMessage",
       osmMode: "osmMode",
-      osmMappingLayers: "osmMappingLayers",
-      layers: "layers"
+      layers: "layers",
+      busyLayers: "busyLayers"
     }),
     ...mapGetters("app", {
       activeColor: "activeColor"
     }),
     ...mapGetters("isochrones", {
-      isochroneLayer: "isochroneLayer"
+      isochroneLayer: "isochroneLayer",
+      options: "options"
     }),
     ...mapGetters("user", {
       userId: "userId"
@@ -756,26 +859,34 @@ export default {
         const layers = Object.keys(this.layers);
         layers.forEach(key => {
           if (
-            this.layers[key].get("viewparamsDynamicKeys") &&
-            this.layers[key].get("viewparamsDynamicKeys").includes("userId")
+            this.layers[key].get("queryParams") &&
+            this.layers[key].get("queryParams").includes("userid_input")
           ) {
-            if (this.layers[key].getSource().getParams()) {
-              let viewparams = this.layers[key].getSource().getParams()
-                .viewparams;
-              if (!viewparams) {
-                viewparams = ``;
-              }
-              if (!viewparams.includes("userid")) {
-                // Insert userId if it doesn't exist.
-                viewparams += `userid:${value};`;
-                this.layers[key].getSource().updateParams({
-                  viewparams
-                });
-              }
-            }
+            const layer = this.layers[key];
+            updateLayerUrlQueryParam(layer, {
+              userid_input: value
+            });
           }
         });
       }, 500);
+    },
+    busyLayers(layers) {
+      if (
+        layers.length > 0 &&
+        ["scenario", "comparison"].includes(
+          this.options.calculationModes.active
+        )
+      ) {
+        this.busyLayerSnackbar = {
+          state: true,
+          timeout: 100000,
+          message: this.$t("map.snackbarMessages.heatmapIsBusy")
+        };
+      } else {
+        this.busyLayerSnackbar = {
+          state: false
+        };
+      }
     }
   }
 };

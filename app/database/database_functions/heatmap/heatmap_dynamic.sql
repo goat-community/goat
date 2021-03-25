@@ -61,25 +61,55 @@ BEGIN
 			(
 				SELECT u.grid_id, u.accessibility_index * (amenities_json -> x.amenity ->> 'weight')::SMALLINT AS accessibility_index  
 				FROM (
+					SELECT r.gridids, r.amenity, accessibility_indices[(translation_sensitivities ->> amenity)::integer:(translation_sensitivities ->> amenity)::integer][1:]
+					FROM reached_pois_heatmap r
+					LEFT JOIN 
+					(	
+						SELECT gid FROM reached_pois_heatmap 
+						WHERE scenario_id = scenario_id_input 
+						AND amenity IN (SELECT UNNEST(pois_one_entrance))
+						AND amenity IN (SELECT UNNEST(array_amenities))
+					) s
+					ON r.gid = s.gid 
+					WHERE s.gid IS NULL 
+					AND r.scenario_id = 0
+					AND amenity IN (SELECT UNNEST(pois_one_entrance))
+					AND amenity IN (SELECT UNNEST(array_amenities))
+					AND r.gid NOT IN (SELECT UNNEST(excluded_pois_id))
+					UNION ALL 				
 					SELECT gridids, amenity, accessibility_indices[(translation_sensitivities ->> amenity)::integer:(translation_sensitivities ->> amenity)::integer][1:]
 					FROM reached_pois_heatmap 
 					WHERE amenity IN (SELECT UNNEST(pois_one_entrance))
 					AND amenity IN (SELECT UNNEST(array_amenities))
-					AND scenario_id IN(scenario_id_input,0)
-					AND gid NOT IN (SELECT UNNEST(excluded_pois_id))
+					AND scenario_id = scenario_id_input 
 				)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index)
 				UNION ALL 
 				SELECT u.grid_id, max(u.accessibility_index) * (amenities_json -> x.amenity ->> 'weight')::SMALLINT AS accessibility_index
 				FROM (
-					SELECT gridids, amenity, name,  accessibility_indices[(translation_sensitivities ->> amenity)::integer:(translation_sensitivities ->> amenity)::integer][1:]
-					FROM reached_pois_heatmap
+					SELECT gridids, amenity, name, accessibility_indices[(translation_sensitivities ->> amenity)::integer:(translation_sensitivities ->> amenity)::integer][1:]
+					FROM reached_pois_heatmap r
+					LEFT JOIN 
+					(
+						SELECT gid 
+						FROM reached_pois_heatmap 
+						WHERE scenario_id = scenario_id_input
+						AND amenity IN (SELECT UNNEST(pois_more_entrances))
+						AND amenity IN (SELECT UNNEST(array_amenities))
+					) s
+					ON r.gid = s.gid 
+					WHERE s.gid IS NULL
+					AND r.scenario_id = 0
+					AND amenity IN (SELECT UNNEST(array_amenities))
+					AND amenity IN (SELECT UNNEST(pois_more_entrances))
+					AND r.gid NOT IN (SELECT UNNEST(excluded_pois_id))
+					UNION ALL 				
+					SELECT gridids, amenity, name, accessibility_indices[(translation_sensitivities ->> amenity)::integer:(translation_sensitivities ->> amenity)::integer][1:]
+					FROM reached_pois_heatmap 
 					WHERE amenity IN (SELECT UNNEST(pois_more_entrances))
 					AND amenity IN (SELECT UNNEST(array_amenities))
-					AND scenario_id IN(scenario_id_input,0)
-					AND gid NOT IN (SELECT UNNEST(excluded_pois_id))
+					AND scenario_id = scenario_id_input
 				)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index)
-				GROUP BY u.grid_id, x.amenity, x.name
-				
+				GROUP BY u.grid_id, x.amenity, x.name	
 			) s
 			GROUP BY s.grid_id
 		)
@@ -94,16 +124,15 @@ BEGIN
 END;
 $function$;
 /*
+DROP TABLE scenario;
+CREATE TABLE scenario AS 
 SELECT h.*, g.geom  
-FROM heatmap_dynamic('{"kindergarten":{"sensitivity":250000,"weight":1}}'::jsonb,'default',7533184,1) h, grid_heatmap g
-WHERE h.grid_id = g.grid_id 
-*/
+FROM heatmap_dynamic('{"kindergarten":{"sensitivity":250000,"weight":1}}'::jsonb,'scenario',13) h, grid_heatmap g
+WHERE h.grid_id = g.grid_id; 
 
-/*
-Next steps:
-- Other population - walkability
-- Isochrone calculation heatmap
-- Test pgrouting_edges_heatmap with ways scenario
-- Implement heatmap scenario, comparison
-- Testing
+DROP TABLE default_;
+CREATE TABLE default_ AS 
+SELECT h.*, g.geom  
+FROM heatmap_dynamic('{"kindergarten":{"sensitivity":250000,"weight":1}}'::jsonb,'default',13) h, grid_heatmap g
+WHERE h.grid_id = g.grid_id; 
 */

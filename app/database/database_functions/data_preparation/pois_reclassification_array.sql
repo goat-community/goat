@@ -15,42 +15,10 @@ AS $function$
 DECLARE 
 	pois_conditions TEXT[];
 BEGIN
-	
-	WITH obj AS (
-		SELECT (select_from_variable_container_o('pois_search_conditions') -> new_name) AS obj
-	),
-	keys AS (
-		SELECT jsonb_object_keys(obj.obj) as k
-		FROM obj
-	),
-	array_elements AS 
-	(
-		SELECT jsonb_array_elements_text((obj -> k)) elem
-		FROM keys, obj
-	),
-	merge_elements AS 
-	(
-		SELECT elem 
-		FROM array_elements
-		UNION ALL 
-		SELECT k FROM keys 
-	)
-	SELECT array_agg(elem)
-	INTO pois_conditions
-	FROM 
-	(
-		SELECT 
-		CASE WHEN restriction = 'left' THEN '%'||elem  
-		WHEN restriction = 'right' THEN elem || '%'
-		WHEN restriction = 'any' THEN '%'||elem||'%'
-		END AS elem 
-		FROM merge_elements
-	) x; 
-	
 	EXECUTE 'UPDATE pois 
 	SET '|| quote_ident(new_col) ||' = '|| quote_literal(new_name) ||'
 	WHERE lower('|| lower(quote_ident(old_col)) ||') ~~ 
-    ANY ('||quote_literal(pois_conditions)||')
+    ANY ('||quote_literal(pois_return_search_conditions(new_name,'any'))||')
  	AND
 	amenity = '|| quote_literal(old_name)||'';
 

@@ -110,45 +110,45 @@
             <span>{{ $t("appBar.buttons.osmMapMode") }}</span>
           </v-tooltip>
 
-          <!-- HOMEPAGE LINK -->
-          <v-tooltip left>
-            <template v-slot:activator="{ on }">
-              <v-btn
-                dark
-                small
-                href="http://open-accessibility.org"
-                target="_blank"
-                class="elevation-0 ma-0 py-1"
-                v-on="on"
-                :color="activeColor.primary"
-              >
-                <v-icon color="white" large light>home</v-icon>
-              </v-btn>
-            </template>
-
-            <span>{{ $t("appBar.buttons.info") }}</span>
-          </v-tooltip>
+          <!-- BOTTOM ITEMS -->
+          <template v-for="(item, index) in bottomItems">
+            <v-tooltip left :key="index">
+              <template v-slot:activator="{ on }">
+                <v-list-item
+                  style="padding: 0 12px;"
+                  @click="toggleDialog(item.componentToShow)"
+                  v-on="on"
+                >
+                  <v-list-item-action>
+                    <v-icon color="white" light v-html="item.icon"></v-icon>
+                  </v-list-item-action>
+                  <v-list-item-content>
+                    <v-list-item-title v-html="item.text"></v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </template>
+              <span>{{ item.text }}</span>
+            </v-tooltip>
+          </template>
         </v-list>
       </v-layout>
     </v-navigation-drawer>
     <confirm ref="confirm"></confirm>
 
-    <!-- <component
+    <component
       :visible="showDialog"
       @close="showDialog = false"
       v-bind:is="activeBottomComponent"
-    ></component> -->
+    ></component>
     <!-- <app-about :visible="showDialog" @close="showDialog = false" /> -->
   </div>
 </template>
 
 <script>
 // Utilities
-import {} from "vuex";
 
 import Settings from "./Settings";
 import About from "./About";
-
 import Print from "../print/Print";
 import DrawAndMeasure from "../drawAndMeasure/DrawAndMeasure";
 import Filter from "../layers/filter/Filter";
@@ -195,14 +195,20 @@ export default {
           componentToShow: "map-print"
         },
         {
-          icon: "fas fa-paint-brush",
+          icon: "fas fa-ruler-combined",
           text: this.$t("appBar.buttons.drawAndMeasure"),
           componentToShow: "map-draw-measure"
         }
       ];
     },
     bottomItems() {
-      return [];
+      return [
+        {
+          icon: "fas fa-info-circle",
+          text: this.$t("appBar.buttons.about"),
+          componentToShow: "app-about"
+        }
+      ];
     },
     ...mapGetters("map", {
       osmMode: "osmMode"

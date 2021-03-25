@@ -7,6 +7,8 @@ import GeoJSON from "ol/format/GeoJSON";
 import { getTopLeft, getBottomLeft } from "ol/extent";
 import WKT from "ol/format/WKT";
 import { getArea } from "ol/sphere";
+const geobuf = require("geobuf");
+const Pbf = require("pbf");
 
 export function isWithinVisibleScales(scale, maxScale, minScale) {
   if (maxScale || minScale) {
@@ -67,10 +69,24 @@ export function createPointFeature(coordinate, style) {
 }
 
 export function geojsonToFeature(obj, options) {
+  let featureObj = obj;
+  while (Array.isArray(featureObj)) {
+    featureObj = featureObj[0];
+  }
+  if (typeof obj === "string") {
+    featureObj = JSON.parse(obj);
+  } else if (!featureObj.features) {
+    featureObj.features = [];
+  }
   const vectorSource = new Vector({
-    features: new GeoJSON().readFeatures(obj, options)
+    features: new GeoJSON().readFeatures(featureObj, options)
   });
   return vectorSource.getFeatures();
+}
+
+export function geobufToFeatures(obj, config) {
+  const geojson = geobuf.decode(new Pbf(obj));
+  return geojsonToFeature(geojson, config);
 }
 
 export function featuresToGeojson(features, featureProjection, dataProjection) {
@@ -81,6 +97,16 @@ export function featuresToGeojson(features, featureProjection, dataProjection) {
   const format = new GeoJSON(options);
   const json = format.writeFeatures(features);
   return json;
+}
+
+export function geometryToWKT(geometry, featureProjection, dataProjection) {
+  const options = { featureProjection };
+  if (dataProjection) {
+    options.dataProjection = dataProjection;
+  }
+  const format = new WKT(options);
+  const wktGeom = format.writeGeometry(geometry);
+  return wktGeom;
 }
 
 export function wktToFeature(wkt, srsName) {

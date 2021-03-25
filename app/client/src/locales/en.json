@@ -17,12 +17,13 @@
     "buttons": {
       "login": "Login",
       "print": "Print",
-      "drawAndMeasure": "Draw and Measure",
+      "drawAndMeasure": "Measure",
       "filter": "Thematic Data Filter",
       "edit": "Draw scenario",
       "settings": "Language",
       "info": "Visit GOAT Homepage",
-      "osmMapMode": "OSM Map Mode"
+      "osmMapMode": "OSM Map Mode",
+      "about": "About"
     },
     "login": {
       "title": "Login",
@@ -175,8 +176,15 @@
     },
     "about": {
       "title": "About GOAT",
-      "content": "stands for Geo Open Accessibility Tool. This web-tool is meant to be open source, interactive, flexible and useful for accessibility planning. It is under development at the Chair for Urban Structure and Transport Planning at TUM.....",
-      "moreInfo": "More Info"
+      "whatIs": "<span><strong>What is GOAT?</strong></span>\n<p>Geo Open Accessibility Tool, or simply GOAT, is an open-source web tool that is interactive, flexible, and practical for accessibility planning. Currently under development at the&nbsp;<a href=\"https://www.bgu.tum.de/sv/startseite/\">Chair for Urban Structure and Transport Planning at TUM</a>, GOAT is capable of modeling walking and cycling accessibility. Frequent enhancements are made to improve its performance and add additional functionality.</p>",
+      "usedData": "<span><strong>Used Data</strong></span><p>GOAT uses mainly Open Data. The following data sets are either displayed in the different layers or used in the background to perform the analysis:&nbsp;</p>",
+      "license": "<span><strong>Licence</strong></span>\n<p>GOAT is licensed under GPL-3.0<br /><span>If you use GOAT for your analysis, please cite them as:&nbsp;</span><br /><span><strong>Geo Open Accessibility Tool - GOAT(Version 1.0) [Webtool]. Retrieved from&nbsp;<a  href=\"https://open-accessibility.org\" rel=\"nofollow\">https://open-accessibility.org</a></strong></span></p>\n",
+      "moreInfo": "More Info",
+      "layerAttributeTable": {
+        "data": "Layers",
+        "source": "Source",
+        "yearTimestamp": "Year / Timestamp"
+      }
     },
     "documentation": {
       "title": "Documentation",
@@ -203,10 +211,10 @@
       "clear": "Clear",
       "calculate": "Calculate",
       "studyAreaInfoLabel": "Select <b>study area</b> on the map and <b>points of interest</b> from the thematic data filter to enable calculation.",
-      "drawBoundary": "Draw Boundary",
+      "drawPolygon": "Draw Polygon",
       "amenityCount": "Amenity Count",
       "limit": "Limit",
-      "drawBoundaryInfoLabel": "Draw <b>boundary</b> on the map and select <b>points of interest</b> from the thematic data filter to enable calculation.",
+      "drawPolygonInfoLabel": "Draw <b>polygon</b> on the map and select <b>points of interest</b> from the thematic data filter to enable calculation.",
       "tableDataTitle": "Multi-Isochrone Data"
     },
     "options": {
@@ -264,7 +272,8 @@
         "isochrone": "Isochrone",
         "studyArea": "Study Area",
         "population": "Population",
-        "reachedPopulation": "Reached Population"
+        "reachedPopulation": "Reached Population",
+        "shared": "Share"
       }
     },
     "isochrones": "Isochrones",
@@ -279,7 +288,9 @@
     },
     "additionalLayers": {
       "defaultNetwork": "Default Road Network",
-      "inputNetwork": "Input Road Network"
+      "inputNetwork": "Input Road Network",
+      "studyArea": "Study Area",
+      "startingPoints": "Starting Points"
     },
     "pickColor": {
       "title": "Isochrone Color"
@@ -321,7 +332,9 @@
       "noScenarioFeatureChangeAvailable": "Please do network or land-use change first",
       "cantPrintBaseLayer": "This baselayer can't be printed",
       "featuresAlreadyUploaded": "Features already exists",
-      "cantExportScenario": "An error happened. Scenario can't be exported!"
+      "cantExportScenario": "An error happened. Scenario can't be exported!",
+      "zoomInToShowFeatures": "Zoom in to show features for",
+      "heatmapIsBusy": "Recomputing for heatmap layer might take some time. Please be patient!"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",
@@ -331,24 +344,22 @@
       "environmentalQualityLayers": "Environmental data",
       "perceivedQuality": "Perceived Quality",
       "additionalDataLayers": "Additional data",
-      "accessbilityBasemaps": "Accessibility",
+      "accessbilityBasemaps": "Heatmaps",
       "backgroundLayers": "Background Layers",
       "buildings": "Buildings",
       "mobility_patterns": "Mobility Patterns"
     },
     "layerName": {
       "pois": "Point of Interest",
-      "aois_small":"Areas of Interest (detailed)",
-      "aois_large":"Areas of Interest ",
+      "aois": "Areas of Interest",
       "administrativeUnits": "Administrative Units",
-      "accidentsPedestrians": "Accidents with pedestrians",
-      "accidents_pedestrian_2018": "Accidents with pedestrians (2018)",
-      "accidents_pedestrian_2017": "Accidents with pedestrians (2017)",
-      "accidentsCyclists": "Accidents with cyclists",
-      "accidents_bike_2018": "Accidents with cyclists (2018)",
-      "accidents_bike_2017": "Accidents with cyclists (2017)",
+      "accidents_pedestrians": "Pedestrians - Accident Points (2016-2019)",
+      "accidents_pedestrian_2018": "Pedestrians - Accidents Frequencies (2018)",
+      "accidents_pedestrian_2017": "Pedestrians - Accidents Frequencies (2017)",
+      "accidents_cyclists": "Cyclists - Accident Points (2016-2019)",
+      "accidents_bike_2018": "Cyclists - Accidents Frequencies (2018)",
+      "accidents_bike_2017": "Cyclists - Accidents Frequencies (2017)",
       "bicycle_counting_stations": "Bike Counting (2019)",
-      "street_trees": "Street Trees",
       "biotops": "Biotops",
       "ffh-area": "FFH Area",
       "natureReserves": "Nature Reserves",
@@ -360,34 +371,35 @@
       "landuse": "Landuse",
       "landuse_osm": "Landuse (OSM)",
       "zoningPlan": "Zoning Plan",
-      "footpathWidth": "Footpath Width",
-      "illuminance": "Illuminance",
-      "lanes": "Lanes",
+      "footpath_width": "Footpath Width",
+      "ways_lit": "Illuminance",
+      "ways_lanes": "Lanes",
       "modeshare": "Mode share",
       "noiseAircraftLDEN": "Aircraft noise - Level LDEN",
       "noiseAircraftLNight": "Aircraft noise - Level LNight",
       "noiseProtectionBauleitplanung": "Noise protection area for urban land use planning",
-      "parking": "Parking",
-      "smoothness": "Smoothness",
-      "speed": "Speed",
-      "streetCategory": "Street Categories Detailed",
-      "streetCategorysAggregated": "Street Categories",
-      "streetCrossings": "Street Crossings",
-      "streetFurniture": "Street Furniture",
-      "streetFurnitureBicycles": "Bicycle Ranks",
-      "cyclewayQuality_munichways": "Cycleway Quality (Munichways)",
-      "surface": "Surface",
-      "wheelchairUsability": "Wheelchair Usability",
-      "areaIsochrone": "Area Isochrone",
-      "walkabilityPopulation": "Walkability Population Index",
-      "population": "Population",
-      "walkability": "Walkability",
+      "ways_parking": "Parking",
+      "ways_smoothness": "Smoothness",
+      "ways_speed": "Speed",
+      "ways_category": "Street Categories Detailed",
+      "ways_category_aggregated": "Street Categories",
+      "street_crossings": "Street Crossings",
+      "street_furniture": "Street Furniture",
+      "street_furniture_bicycles": "Bicycle Ranks",
+      "munichways": "Cycleway Quality (Munichways)",
+      "ways_surface": "Surface",
+      "ways_wheelchair": "Wheelchair Usability",
+      "heatmap_connectivity": "Connectivity",
+      "heatmap_luptai": "Comparison of Accessibility and Population Density",
+      "heatmap_population": "Population Density",
+      "heatmap_gravity": "Local Accessibility",
       "studyArea": "Study Area",
       "ways": "Ways",
       "buildings": "Buildings",
       "osmStandard": "OSM Standard",
       "osmLight": "OSM Light",
       "osmDark": "OSM Dark",
+      "openTopoMap": "Open Topo Map",
       "mapboxStreets": "Mapbox",
       "publicTransport": "Public Transport",
       "bingAerial": "Bing Aerial",
@@ -401,7 +413,9 @@
       "sitpShare": "Share of SITP trips",
       "cycling_trips_rate": "Cycling trips per person",
       "pt_trips_rate": "Public transport trips per person",
-      "strata": "Strata"
+      "strata": "Strata",
+      "study_area_crop": "Study area",
+      "study_area": "Districts"
     },
     "tooltips": {
       "clickForCalculation": "Click for Calculation. Press ESC to exit",
@@ -413,6 +427,7 @@
       "clickToFinishDrawing": "Click to finish drawing",
       "clickToStartDrawingBoundary": "Click to start drawing the boundary. <br> Press ESC to exit",
       "clickToStartDrawingCircle": "Click to start drawing the circle (Max Radius 1000 m). <br> Press ESC to exit",
+      "clickToStartDrawingPolygon": "Click to start drawing polygon.",
       "clickToFinishDrawingPolygon": "Double-click or click starting point to finish.",
       "clickOnFeatureToDelete": "Click on feature to delete it",
       "clickOnFeatureToMove": "Click and drag the feature to move",
@@ -516,7 +531,7 @@
       "shortDesc": "Complete the missing {missingVar}",
       "longDesc": "Check out {layerNameVar} for missing {missingVar}.",
       "layers": {
-        "osm-mapping-pois": {
+        "mapping_pois_opening_hours": {
           "missingKeyWord": "Opening Hours",
           "layerName": "POIs",
           "stepsDesc": {
@@ -668,7 +683,12 @@
     "hospital": "Hospital",
     "playground": "Playground",
     "population": "Population",
+    "recreationAreas": "Recreation Areas",
     "park": "Park",
+    "forest": "Forest",
+    "heath_scrub": "Heath and Scrub",
+    "lake": "Lake",
+    "river": "River",
     "governmentandsec": "Gov. and Security",
     "notary": "Notary",
     "cade": "CADE",
@@ -679,8 +699,7 @@
     "discount_gym": "Discount Gym",
     "gym": "Gym",
     "yoga": "Yoga",
-    "outdoor_fitness_station": "Outdoor fitness station",
-    "population": "Population"
+    "outdoor_fitness_station": "Outdoor fitness station"
   },
   "$vuetify": {
     "close": "Close",

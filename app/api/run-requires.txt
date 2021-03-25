@@ -1,0 +1,16 @@
+geopandas
+rtree
+psycopg2-binary
+loguru
+postgis
+ptvsd
+Flask
+flask_restful
+flask_cors
+marshmallow
+webargs
+pyyaml
+geobuf
+geojson
+asyncio
+zipstream

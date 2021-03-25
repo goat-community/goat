@@ -66,22 +66,21 @@
           border="left"
           colored-border
           class="mb-0 mt-2 mx-1 elevation-2"
-          icon="info"
-          color="green"
+          :icon="countPois > 150 ? 'warning' : 'info'"
+          :color="countPois > 150 ? 'warning' : activeColor.primary"
           dense
         >
           <span v-html="getInfoLabelText"></span>
         </v-alert>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn outlined class="white--text" color="red" @click="clear">
+          <v-btn class="white--text" color="error" @click="clear">
             {{ $t("isochrones.multiple.clear") }}
           </v-btn>
           <v-btn
             :disabled="isCalculationDisabled"
-            outlined
             class="white--text mr-1"
-            color="green"
+            :color="activeColor.primary"
             :loading="isBusy"
             @click="calcuateBtn"
           >
@@ -95,7 +94,7 @@
       indeterminate
       height="1"
       class="mx-0 pb-0"
-      color="green"
+      :color="activeColor.primary"
     ></v-progress-linear>
   </v-flex>
 </template>
@@ -125,6 +124,9 @@ export default {
       isBusy: "isBusy",
       cancelReq: "cancelReq"
     }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    }),
     ...mapFields("isochrones", {
       activeMultiIsochroneMethod: "multiIsochroneCalculationMethods.active"
     }),
@@ -147,7 +149,7 @@ export default {
         this.countPois === 0 &&
         this.activeMultiIsochroneMethod === "draw"
       ) {
-        text = this.$t("isochrones.multiple.drawBoundaryInfoLabel");
+        text = this.$t("isochrones.multiple.drawPolygonInfoLabel");
       } else {
         text = `${this.$t("isochrones.multiple.amenityCount")}: ${
           this.countPois
