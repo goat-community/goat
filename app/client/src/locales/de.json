@@ -134,7 +134,12 @@
     },
     "edit": {
       "title": "Szenarien entwickeln",
-      "selectLayer": "Layer zum Bearbeiten",
+      "createScenario": "Szenario erstellen",
+      "editScenarioName": "Szenarioname bearbeiten",
+      "scenario": "Szenario",
+      "scenarioImportExport": "Szenario Import/Export",
+      "selectLayer": "Layer auswählen",
+      "layerToEdit": "Layer zum Bearbeiten",
       "selectFeatures": "Objekte auswählen",
       "drawCircle": "Kreis zeichnen, um Objekte auszuwählen",
       "selectOnMap": "Objekte auf Karte auswählen",

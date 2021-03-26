@@ -1325,7 +1325,7 @@
           "locked": false,
           "children": [
             {
-              "name": "Bicycle rental",
+              "name": "Bike sharing",
               "value": "bicycle_rental",
               "icon": "bicycle_rental",
               "weight": 1,
