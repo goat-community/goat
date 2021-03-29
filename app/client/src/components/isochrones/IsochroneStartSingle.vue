@@ -109,7 +109,7 @@
       indeterminate
       height="1"
       class="mx-0 pb-0"
-      color="green"
+      :color="activeColor.primary"
     ></v-progress-linear>
   </v-flex>
 </template>
@@ -163,6 +163,9 @@ export default {
       isBusy: "isBusy",
       cancelReq: "cancelReq",
       ppfLayer: "ppfLayer"
+    }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
     }),
     fields() {
       if (!this.model) return [];

@@ -37,7 +37,7 @@ BEGIN
 	    LOOP
 	    	
 	        IF j > 9 THEN 
-	        	imp = 2;
+	        	imp = 3;
 	        ELSEIF j < 12 AND j > 0 THEN
 	        	imp = 1+j*0.0430815;
 	        ELSEIF j < 0 AND j > -9 THEN 

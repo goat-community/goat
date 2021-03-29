@@ -115,7 +115,6 @@
                     <template v-slot:activator="{ on }">
                       <v-icon
                         small
-                        v-if="calculation.calculationType === 'single'"
                         v-on="on"
                         @click="showAdditionalLayerDialog(calculation)"
                         class="result-icons mr-1"
@@ -422,10 +421,23 @@ export default {
         }
       }
     },
+    showHideIsochroneOverlayFeatures(calculation) {
+      const id = calculation.id;
+      const isVisible = !calculation.isVisible;
+      this.isochroneOverlayLayer
+        .getSource()
+        .getFeatures()
+        .forEach(feature => {
+          if (feature.get("calculationNumber") === id) {
+            feature.set("isVisible", isVisible);
+          }
+        });
+    },
     showHideCalculation(calculation) {
       const me = this;
 
       me.showHideNetworkData(calculation);
+      me.showHideIsochroneOverlayFeatures(calculation);
       me.toggleIsochroneCalculationVisibility(calculation);
     },
     showAdditionalLayerDialog(calculation) {
@@ -502,6 +514,7 @@ export default {
       routeIcons: "routeIcons",
       isochroneLayer: "isochroneLayer",
       isochroneRoadNetworkLayer: "isochroneRoadNetworkLayer",
+      isochroneOverlayLayer: "isochroneOverlayLayer",
       selectedThematicData: "selectedThematicData",
       isThematicDataVisible: "isThematicDataVisible",
       colors: "colors"

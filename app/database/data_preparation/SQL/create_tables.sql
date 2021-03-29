@@ -14,6 +14,7 @@ CREATE TABLE public.scenarios
 	deleted_ways bigint[] DEFAULT '{}',
 	deleted_pois bigint[] DEFAULT '{}',
 	deleted_buildings bigint[] DEFAULT '{}',
+	ways_heatmap_computed boolean,
     CONSTRAINT scenarios_pkey PRIMARY KEY (scenario_id),
     CONSTRAINT scenario_fkey FOREIGN KEY (userid)
     REFERENCES user_data(userid) ON DELETE CASCADE
@@ -107,6 +108,10 @@ FROM
    FROM study_area
 ) s;
 
+CREATE TABLE study_area_crop AS 
+SELECT ST_DIFFERENCE(ST_SETSRID(st_makeenvelope(-180, 85, 180, -85), 4326), geom) AS geom
+FROM study_area_union; 
+
 -- Table: public.ways_modified
 
 -- DROP TABLE public.ways_modified;
@@ -197,3 +202,16 @@ CREATE TABLE edges_potential_flows
 
 CREATE INDEX ON edges_potential_flows USING GIST(geom);
 ALTER TABLE edges_potential_flows ADD PRIMARY KEY(id);
+CREATE TABLE area_isochrones_scenario
+(
+	gid serial,
+	grid_id integer, 
+	area_isochrone NUMERIC, 
+	geom geometry, 
+	scenario_id integer,
+	CONSTRAINT area_isochrones_scenario_pkey PRIMARY KEY (gid),
+    CONSTRAINT area_isochrones_scenario_fkey FOREIGN KEY (scenario_id)
+    REFERENCES scenarios(scenario_id) ON DELETE CASCADE
+);
+
+CREATE INDEX ON area_isochrones_scenario USING GIST(geom);

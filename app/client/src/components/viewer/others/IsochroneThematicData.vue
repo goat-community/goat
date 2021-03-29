@@ -6,12 +6,12 @@
     class="thematic-data elevation-4"
     id="isochroneWindowId"
     :style="[isExpanded ? { height: '400px' } : { height: '50px' }]"
-    style="position:fixed;top:10px;left:360px;z-index:2;max-width:370px;min-width:370px;height:450px;overflow:hidden;"
+    style="position:fixed;top:10px;left:360px;z-index:2;max-width:440px;min-width:370px;height:450px;overflow:hidden;"
   >
     <v-layout justify-space-between column fill-height>
       <v-app-bar
         :ref="handleId"
-        color="green"
+        :color="activeColor.primary"
         height="50"
         style="cursor:grab;"
         dark
@@ -40,7 +40,7 @@
                 colored-border
                 class="mb-1 mt-2 elevation-2"
                 icon="info"
-                color="green"
+                :color="activeColor.primary"
                 dense
               >
                 <span
@@ -136,6 +136,16 @@ export default {
         });
       this.toggleThematicDataVisibility(false);
     },
+    getString(val) {
+      let string = "";
+      if (typeof val === "object" && val.cnt && val.area) {
+        const value = `${val.cnt} (${val.area} m2)`;
+        string = value;
+      } else {
+        string = val;
+      }
+      return string;
+    },
     ...mapMutations("isochrones", {
       toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY"
     })
@@ -168,25 +178,31 @@ export default {
             text: this.$t("isochrones.tableData.table.isochrone"),
             value: "isochrone",
             sortable: false,
-            width: "32%"
+            width: "25%"
           },
           {
             text: this.$t("isochrones.tableData.table.studyArea"),
             value: "studyArea",
             sortable: false,
-            width: "18%"
+            width: "15%"
           },
           {
             text: this.$t("isochrones.tableData.table.population"),
             value: "population",
             sortable: false,
-            width: "25%"
+            width: "20%"
           },
           {
             text: this.$t("isochrones.tableData.table.reachedPopulation"),
             value: "reachPopulation",
             sortable: false,
-            width: "25%"
+            width: "20%"
+          },
+          {
+            text: this.$t("isochrones.tableData.table.shared"),
+            value: "shared",
+            sortable: false,
+            width: "20%"
           }
         ];
       }
@@ -223,11 +239,17 @@ export default {
                   pois: amenity ? this.$t(`pois.${amenity}`) : amenity
                 };
                 //Default or input calculation
-                obj[keys[0]] = sumPois[amenity] || "-";
+                let valueDefault = this.getString(sumPois[amenity]);
+
+                obj[keys[0]] = valueDefault || "-";
                 //Double calculation
                 if (pois[keys[1]]) {
-                  obj[keys[1]] = pois[keys[1]][selectedTime][amenity] || "-";
+                  let valueDouble = this.getString(
+                    pois[keys[1]][selectedTime][amenity]
+                  );
+                  obj[keys[1]] = valueDouble || "-";
                 }
+                console.log(obj);
                 items.push(obj);
               }
             });
@@ -262,6 +284,9 @@ export default {
 
     ...mapGetters("pois", {
       getPoisItems: "selectedPois"
+    }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
     })
   },
   watch: {

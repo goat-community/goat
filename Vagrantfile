@@ -27,6 +27,6 @@ Vagrant.configure("2") do |config|
 
   config.vm.synced_folder "./app", "/home/vagrant/app"
 
-  config.vm.provision :shell, inline: "python3 app/installation/install_docker.py"
+  config.vm.provision :shell, inline: "python3 app/scripts/install_docker.py"
   config.vm.provision :shell, inline: "docker-compose up -d", run: 'always'
 end

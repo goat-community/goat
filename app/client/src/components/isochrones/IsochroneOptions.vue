@@ -80,7 +80,10 @@ import { mapGetters, mapMutations } from "vuex";
 import { mapFields } from "vuex-map-fields";
 import { EventBus } from "../../EventBus";
 import { Isochrones } from "../../mixins/Isochrones";
-
+import {
+  updateLayerUrlQueryParam,
+  fetchLayerFeatures
+} from "../../utils/Layer";
 export default {
   name: "isochrone-options",
   mixins: [Isochrones],
@@ -107,139 +110,159 @@ export default {
       steps: "options.steps",
       calculationModes: "options.calculationModes.active",
       alphaShapeParameter: "options.alphaShapeParameter.active"
-    })
+    }),
+    getPois() {
+      let pois = "";
+
+      pois = this.selectedPois.reduce((filtered, item) => {
+        const { value, weight, sensitivity } = item;
+        if (value != "undefined" && weight != undefined) {
+          filtered[`${value}`] = { sensitivity, weight };
+        }
+        return filtered;
+      }, {});
+
+      return pois;
+    }
   },
   mounted() {
-    EventBus.$on("updateHeatmapPois", this.updateLayersParam("pois"));
+    EventBus.$on("toggleLayerVisiblity", this.updateLayer);
+    EventBus.$on("updateHeatmapPois", this.updateLayersParam);
+    EventBus.$on("getLayerPayload", obj => {
+      let payload;
+      if (obj.layer) {
+        payload = this.getLayerPayload(obj.layer);
+      }
+      if (obj.cb) {
+        obj.cb(payload);
+      }
+    });
+    EventBus.$on("updateLayer", layer => {
+      this.updateLayer(layer);
+    });
+    EventBus.$on("updateAllLayers", this.updateLayersParam);
   },
   methods: {
     filterCalcModeValues() {
       return this.options.calculationModes.values;
     },
-    updateLayersParam(param) {
-      let pois = "";
-      if (param === "pois") {
-        pois = this.selectedPois.reduce((filtered, item) => {
-          const { value, weight, sensitivity } = item;
-          if (value != "undefined" && weight != undefined) {
-            filtered[`${value}`] = { sensitivity, weight };
-          }
-          return filtered;
-        }, {});
+    getLayerPayload(layer) {
+      const payload = {};
+      const queryParams = layer.get("queryParams");
+      const pois = this.getPois;
+      if (!queryParams) return null;
+      if (queryParams.includes("scenario_id_input")) {
+        payload["scenario_id_input"] =
+          this.activeScenario == null ? 0 : parseInt(this.activeScenario);
       }
-      Object.keys(this.layers).forEach(key => {
-        // Change style
-        const stylesRefs = this.layers[key].get("styles");
-        if (stylesRefs && stylesRefs[this.calculationModes]) {
-          const STYLES = stylesRefs[this.calculationModes];
-          this.layers[key].getSource().updateParams({
-            STYLES
-          });
-          this.layers[key].getSource().refresh();
+      if (queryParams.includes("scenario_id")) {
+        payload["scenario_id"] =
+          this.activeScenario == null ? 0 : parseInt(this.activeScenario);
+      }
+      if (queryParams.includes("pois")) {
+        payload["pois"] = pois;
+      }
+      if (queryParams.includes("heatmap_type")) {
+        payload["heatmap_type"] = layer.get("name");
+      }
+      if (queryParams.includes("table_name")) {
+        payload["table_name"] = layer.get("name");
+      }
+      if (queryParams.includes("modus")) {
+        payload["modus"] = this.calculationModes;
+      }
+      if (queryParams.includes("modus_input")) {
+        payload["modus_input"] = this.calculationModes;
+      }
+      if (queryParams.includes("amenities")) {
+        payload["amenities"] = Object.keys(pois);
+      }
+      if (queryParams.includes("routing_profile")) {
+        payload["routing_profile"] = `${this.activeRoutingProfile}`;
+      }
+      return payload;
+    },
+    updateLayer(layer) {
+      if (!layer.getVisible()) return;
+      const newQueryParams = {};
+      let isValid = true;
+      const pois = this.getPois;
+      const queryParams = layer.get("queryParams");
+      // Add/update aois_input
+      // TODO: Remove hardcoded values.
+      const noUrl = layer.getUrl && !layer.getUrl();
+      if (noUrl === undefined) {
+        const payload = this.getLayerPayload(layer);
+        if (!payload || layer.get("isBusy") === true) return;
+        payload.return_type = "geobuf";
+        fetchLayerFeatures(layer, payload);
+      } else {
+        if (queryParams.includes("aois_input")) {
+          newQueryParams["aois_input"] = `'{"park","river"}'`;
         }
-        // Change view params
-        if (this.layers[key].get("viewparamsDynamicKeys")) {
-          const layerParams = this.layers[key].getSource().getParams();
-          let viewparams = layerParams.viewparams;
-          if (!viewparams) {
-            viewparams = ``;
+        // Add/update amenities query params
+        if (
+          queryParams.includes("amenities_json") ||
+          queryParams.includes("pois")
+        ) {
+          if (Object.keys(pois).length === 0) {
+            this.toggleSnackbar({
+              type: "error",
+              message: "selectAmenities",
+              timeout: 60000,
+              state: true
+            });
+            isValid = false;
+          } else {
+            this.toggleSnackbar({
+              type: "error",
+              message: "selectAmenities",
+              state: false,
+              timeout: 0
+            });
           }
+          const value = `'${JSON.stringify(pois)}'`;
+          //TODO: Make this consistent (remove pois or amenities_json accross all layers.)
+          queryParams.includes("amenities_json")
+            ? (newQueryParams["amenities_json"] = value)
+            : (newQueryParams["pois"] = value);
+        }
+        if (queryParams.includes("amenities")) {
+          newQueryParams["amenities"] = Object.keys(pois);
+        }
 
-          // Add/update modus
-          if (
-            this.layers[key].get("viewparamsDynamicKeys").includes("modus") &&
-            ["modus", undefined].includes(param)
-          ) {
-            const value = this.calculationModes;
-            if (this.layers[key].getSource().getParams()) {
-              if (!viewparams.includes("modus")) {
-                viewparams += `modus:'${value}';`;
-              } else {
-                viewparams = viewparams.replace(
-                  /modus:(.*?)(?=;)/i,
-                  `modus:'${value}'`
-                );
-              }
-            }
-          }
+        // Add/update scenario_id
+        if (
+          queryParams.includes("scenario_id_input") ||
+          queryParams.includes("scenario_id")
+        ) {
+          const scenario_id =
+            this.activeScenario == null ? 0 : parseInt(this.activeScenario);
+          newQueryParams["scenario_id_input"] = scenario_id;
+          newQueryParams["scenario"] = scenario_id;
+        }
 
-          // Add/update scenario_id
-          if (
-            this.layers[key]
-              .get("viewparamsDynamicKeys")
-              .includes("scenario_id") &&
-            ["scenario_id", undefined].includes(param) &&
-            this.activeScenario
-          ) {
-            const value = parseInt(this.activeScenario);
-            if (!viewparams.includes("scenario_id")) {
-              viewparams += `scenario_id:${value};`;
-            } else {
-              viewparams = viewparams.replace(
-                /scenario_id:(.*?)(?=;)/i,
-                `scenario_id:${value}`
-              );
-            }
-          }
+        // Add/update modus
+        if (queryParams.includes("modus_input")) {
+          newQueryParams["modus_input"] = `'${this.calculationModes}'`;
+        }
 
-          // Add/update routing_profile
-          if (
-            this.layers[key]
-              .get("viewparamsDynamicKeys")
-              .includes("routing_profile") &&
-            ["routing_profile", undefined].includes(param)
-          ) {
-            const value = this.activeRoutingProfile;
-            if (!viewparams.includes("routing_profile")) {
-              viewparams += `routing_profile:'${value}';`;
-            } else {
-              viewparams = viewparams.replace(
-                /routing_profile:(.*?)(?=;)/i,
-                `routing_profile:'${value}'`
-              );
-            }
-          }
+        // Add/update routing profile.
+        if (queryParams.includes("routing_profile")) {
+          newQueryParams["routing_profile"] = `'${this.activeRoutingProfile}'`;
+        }
 
-          // Add/update pois
-          if (
-            this.layers[key].get("viewparamsDynamicKeys").includes("pois") &&
-            ["pois", undefined].includes(param)
-          ) {
-            if (!viewparams.includes("amenities")) {
-              viewparams += `amenities:'${btoa(JSON.stringify(pois))}';`;
-            } else {
-              viewparams = viewparams.replace(
-                /amenities:(.*?)(?=;)/i,
-                `amenities:'${btoa(JSON.stringify(pois))}'`
-              );
-            }
-            if (
-              this.layers[key].getVisible() === true &&
-              viewparams.length === 0
-            ) {
-              this.toggleSnackbar({
-                type: "error",
-                message: "selectAmenities",
-                timeout: 60000,
-                state: true
-              });
-            } else {
-              this.toggleSnackbar({
-                type: "error",
-                message: "selectAmenities",
-                state: false,
-                timeout: 0
-              });
-            }
-          }
-
-          // Update view params
-          this.layers[key].getSource().updateParams({
-            viewparams
-          });
-          if (param === "pois") {
-            this.layers[key].getSource().refresh();
-          }
+        // *UPDATE URL AND REFRESH LAYER*
+        if (layer.getVisible() === true && isValid) {
+          updateLayerUrlQueryParam(layer, newQueryParams);
+          layer.getSource().refresh();
+        }
+      }
+    },
+    updateLayersParam() {
+      Object.keys(this.layers).forEach(key => {
+        if (this.layers[key].get("queryParams")) {
+          this.updateLayer(this.layers[key]);
         }
       });
     },
@@ -249,16 +272,18 @@ export default {
   },
   watch: {
     calculationModes() {
-      this.updateLayersParam("modus");
+      this.updateLayersParam();
     },
     activeScenario() {
-      this.updateLayersParam("scenario_id");
+      this.updateLayersParam();
     },
     selectedPois() {
-      this.updateLayersParam("pois");
+      setTimeout(() => {
+        this.updateLayersParam();
+      }, 50);
     },
     activeRoutingProfile() {
-      this.updateLayersParam("routing_profile");
+      this.updateLayersParam();
     }
   },
   created() {

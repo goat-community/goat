@@ -243,16 +243,16 @@ SELECT kp.osm_id, kp.origin_geometry, kp.ACCESS, kp.housenumber, kp.amenity, kp.
 kp.OPERATOR, kp.public_transport, kp.railway, kp.religion, kp.opening_hours, kp.REF, kp.tags, kp.centroid AS geom, kp.wheelchair
 FROM kindergartens_polygons kp;
 
+
 --Distinguish kindergarten - nursery
 SELECT pois_reclassification_array('name','kindergarten','amenity','nursery','any');
-
+--- Replicate nurseries to duplicate kindergartens and displace later
+SELECT pois_rewrite('nursery','kindergarten','%kindergarten%');
+--Distinguish kindergarten - nursery
 UPDATE pois p SET amenity = 'nursery'
 WHERE amenity = 'kindergarten'	
 AND (tags -> 'max_age') = '3';
---- Replicate nurseries to duplicate kindergartens and displace
-SELECT pois_rewrite('nursery','kindergarten','%kindergarten%');
 
-------------------------------------------end kindergarten-------------------------------------------
 ---------------------------------- Insert outdoor fitness stations ----------------------------------
 
 DROP TABLE IF EXISTS containing_polygons;
@@ -322,17 +322,6 @@ FROM planet_osm_point pop, fitness_points fp
 WHERE pop.leisure = 'fitness_station' AND ST_contains(pop.way, fp.way)
 );
 
---Distinguish kindergarten - nursery
-SELECT pois_reclassification_array('name','kindergarten','amenity','nursery','any');
-
-UPDATE pois p SET amenity = 'nursery'
-WHERE amenity = 'kindergarten'	
-AND (tags -> 'max_age') = '3';
---- Replicate nurseries to duplicate kindergartens and displace
---SELECT pois_rewrite('nursery','kindergarten','%kindergarten%');
---SELECT pois_displacement(ARRAY['nursery','kindergarten'], (3/(27*3600)::float8));
-------------------------------------------end kindergarten-------------------------------------------
-
 -- Reclassificate shops
 
 SELECT pois_reclassification('shop','grocery','amenity','convenience','singlevalue');
@@ -350,9 +339,8 @@ SELECT clean_duplicated_amenities_in_pois('primary_school', select_from_variable
 SELECT clean_duplicated_amenities_in_pois('secondary_school', select_from_variable_container_s('duplicated_secondary_school_lookup_radius')::NUMERIC);
 
 -------------------------------------- Displace overlapped POIS -------------------------------------
-
---SELECT pois_displacement(ARRAY['nursery','kindergarten'], 5::float8, 50::float8, 30::float8);
---SELECT pois_displacement(ARRAY['primary_school','secondary_school'], 5::float8, 50::float8, 30::float8);
+SELECT pois_displacement(ARRAY['nursery','kindergarten'], 5::float, 50::float, 30::float);
+SELECT pois_displacement(ARRAY['primary_school','secondary_school'], 5::float8, 50::float8, 30::float8);
 
 ----------------------------------- Refine POIS based on categories ----------------------------------
 SELECT pois_reclassification('shop','grocery','amenity','convenience','singlevalue');
@@ -384,11 +372,10 @@ DELETE FROM pois
 WHERE (NOT lower(operator) ~~ 
 ANY
 (
-	SELECT concat('%',jsonb_object_keys(select_from_variable_container_o('pois_search_conditions')->'operators_bicycle_rental'),'%')
+	SELECT concat('%',jsonb_array_elements_text(select_from_variable_container_o('pois_search_conditions')->'operators_bicycle_rental'),'%')
 )  
 OR operator IS NULL) 
 AND amenity = 'bicycle_rental';
-
 
 --INSERT public_transport_stops
 WITH pt AS (
@@ -495,7 +482,7 @@ joined_parks AS (
 	OR (landuse = 'recreation_ground' AND surface = 'grass')) 
 	AND (access is NULL OR access not in ('private','customers', 'permissive','no')) 
 ), all_parks AS (
-	SELECT osm_id, 'polygon' AS origin_geometry, ACCESS AS ACCESS, '' AS housenumber, 'small_park' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
+	SELECT osm_id, 'polygon' AS origin_geometry, ACCESS AS ACCESS, '' AS housenumber, 'park' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
 	operator, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair, sport FROM planet_osm_polygon
 	WHERE (leisure IN ('park','nature_reserve','garden') 
 	OR landuse IN ('village_green','grass')
@@ -515,21 +502,29 @@ UNION ALL
 --- Insert forest polygons
 (WITH area_limit AS (
 SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'forest'->'small')::jsonb)::DOUBLE PRECISION
-) SELECT osm_id, 'polygon' AS origin_geometry, "access" AS ACCESS, '' AS housenumber, 'small_forest' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
+) SELECT osm_id, 'polygon' AS origin_geometry, "access" AS ACCESS, '' AS housenumber, 'forest' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
 	OPERATOR, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair, sport
-	FROM planet_osm_polygon pop WHERE ("natural" = 'wood' OR landuse = 'forest') AND ST_area(way::geography) >= (SELECT * FROM area_limit))
---- Insert rivers polygons
-UNION ALL
+	FROM planet_osm_polygon pop 
+	WHERE ("natural" = 'wood' OR landuse = 'forest') AND ST_area(way::geography) >= (SELECT * FROM area_limit)
+	AND (access is NULL OR access not in ('private','customers', 'permissive','no')) 
+	)
 
+UNION ALL
+--- Insert rivers polygons
 SELECT osm_id, 'polygon' AS origin_geometry, "access" AS ACCESS, '' AS housenumber, 'river' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
 	OPERATOR, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair, sport
-	FROM planet_osm_polygon pop WHERE ("natural" = 'water' AND (water = 'river' OR water = 'canal' OR water = 'fish_pass')) OR waterway IS NOT NULL
+	FROM planet_osm_polygon pop 
+	WHERE (("natural" = 'water' AND (water = 'river' OR water = 'canal' OR water = 'fish_pass')) OR waterway IS NOT NULL) 
+	AND (access is NULL OR access not in ('private','customers', 'permissive','no')) 
 
 UNION ALL
 --- Insert lakes polygons	
 SELECT osm_id, 'polygon' AS origin_geometry, "access" AS ACCESS, '' AS housenumber, 'lake' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
 	OPERATOR, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair, sport
-	FROM planet_osm_polygon pop WHERE (("natural" = 'water' AND (water = 'lake' OR water = 'pond' OR water = 'basin' OR water = 'reservoir')) OR ("natural" = 'water' AND sport = 'swimming'))
+	FROM planet_osm_polygon pop 
+	WHERE (("natural" = 'water' AND (water = 'lake' OR water = 'pond' OR water = 'basin' OR water = 'reservoir')) OR ("natural" = 'water' AND sport = 'swimming') 
+	AND (access is NULL OR access not in ('private','customers', 'permissive','no')) 
+	)
 
 UNION ALL 
 -- Insert heath and scrubs
@@ -538,11 +533,11 @@ UNION ALL
 heath_scrub AS(
 	SELECT (ST_dump(ST_union(way))).geom AS geom
 	FROM planet_osm_polygon
-	WHERE ("natural" = 'scrub' OR "natural"='heath')),
+	WHERE ("natural" = 'scrub' OR "natural"='heath') AND (ACCESS != 'private' OR ACCESS IS NULL)),
 all_heath AS (
-	SELECT osm_id, 'polygon' AS origin_geometry, ACCESS AS ACCESS, '' AS housenumber, 'small_heath_scrub' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
+	SELECT osm_id, 'polygon' AS origin_geometry, ACCESS AS ACCESS, '' AS housenumber, 'heath_scrub' AS amenity, tags->'origin' AS origin , tags->'organic' AS organic, denomination, brand, name,
 	operator, public_transport, railway, religion, tags->'opening_hours' AS opening_hours, REF,tags,way AS geom, tags->'wheelchair' AS wheelchair, sport FROM planet_osm_polygon
-	WHERE ("natural" = 'scrub' OR "natural"='heath')),
+	WHERE ("natural" = 'scrub' OR "natural"='heath') AND (ACCESS != 'private' OR ACCESS IS NULL)),
 heath_id AS (
 	SELECT ah.*, hs.geom AS agg_geom, row_number() over(PARTITION BY hs.geom ORDER BY ST_Area(ah.geom::geography)DESC) AS row_no FROM all_heath ah
 	JOIN heath_scrub hs
@@ -550,17 +545,20 @@ heath_id AS (
 SELECT osm_id, origin_geometry, ACCESS, housenumber, amenity, origin, organic, denomination, brand, name, OPERATOR, public_transport, railway, religion, opening_hours, REF, tags,agg_geom AS geom, wheelchair, sport
 FROM heath_id 
 WHERE row_no = 1 
-AND ST_area(agg_geom::geography) >= (SELECT * FROM area_limit));
+AND ST_area(agg_geom::geography) >= (SELECT * FROM area_limit)
+AND (access is NULL OR access not in ('private','customers', 'permissive','no')) 
+);
 
 -- Classificate areas by size
 
-UPDATE aois SET amenity = 'big_heath_scrub' WHERE amenity = 'small_heath_scrub' AND ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'heath'->'large')::jsonb)::DOUBLE PRECISION);
-UPDATE aois SET amenity = 'big_park' WHERE amenity = 'small_park' AND ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'parks'->'large')::jsonb)::DOUBLE PRECISION);
-UPDATE aois SET amenity = 'big_forest' WHERE amenity = 'small_forest' AND ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'forest'->'large')::jsonb)::DOUBLE PRECISION);
-UPDATE aois SET amenity = 'swimming_lake' WHERE amenity = 'lake' AND sport = 'swimming';
-ALTER TABLE aois DROP COLUMN sport;
+-- UPDATE aois SET amenity = 'big_heath_scrub' WHERE amenity = 'small_heath_scrub' AND ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'heath'->'large')::jsonb)::DOUBLE PRECISION);
+-- UPDATE aois SET amenity = 'big_park' WHERE amenity = 'small_park' AND ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'parks'->'large')::jsonb)::DOUBLE PRECISION);
+-- UPDATE aois SET amenity = 'big_forest' WHERE amenity = 'small_forest' AND ST_area(geom::geography)>= (SELECT jsonb_array_elements_text((select_from_variable_container_o('areas_boundaries')->'forest'->'large')::jsonb)::DOUBLE PRECISION);
+-- UPDATE aois SET amenity = 'swimming_lake' WHERE amenity = 'lake' AND sport = 'swimming';
+-- ALTER TABLE aois DROP COLUMN sport;
+
 --- Create entries to polygons ---
-SELECT generate_entries_from_polygons(ARRAY['big_park','small_park','big_heath_scrub','small_heath_scrub','small_forest','big_forest'],ARRAY['path','footway','cycleway','track','pedestrian','service']);
+--SELECT generate_entries_from_polygons(ARRAY['big_park','small_park','big_heath_scrub','small_heath_scrub','small_forest','big_forest'],ARRAY['path','footway','cycleway','track','pedestrian','service']);
 
 --- END areas of interest----
 -- If custom_pois exists, run pois fusion 

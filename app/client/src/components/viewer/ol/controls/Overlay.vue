@@ -19,7 +19,7 @@ export default {
   name: "overlay-popup",
   props: {
     title: { type: String, required: false },
-    color: { type: String, default: "#4CAF50" }
+    color: { type: String, default: "#2BB381" }
   }
 };
 </script>

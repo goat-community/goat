@@ -4,11 +4,13 @@ import axios from "axios";
 import { getField, updateField } from "vuex-map-fields";
 import { toStringHDMS } from "ol/coordinate";
 import { transform } from "ol/proj.js";
+import { fromLonLat } from "ol/proj";
 
 import {
   geojsonToFeature,
   getPolygonArea,
   wktToFeature,
+  geobufToFeatures,
   flyTo
 } from "../../utils/MapUtils";
 import Feature from "ol/Feature";
@@ -53,6 +55,7 @@ const state = {
   isochroneRoadNetworkLayer: null,
   ppfLayer: null,
   activePPFCalc: null,
+  isochroneOverlayLayer: null, // For multi-isochrone study area display and starting points.
   isThematicDataVisible: false,
   selectedThematicData: null,
   studyAreaLayer: null,
@@ -78,6 +81,7 @@ const getters = {
   studyAreaLayer: state => state.studyAreaLayer,
   isochroneRoadNetworkLayer: state => state.isochroneRoadNetworkLayer,
   ppfLayer: state => state.ppfLayer,
+  isochroneOverlayLayer: state => state.isochroneOverlayLayer,
   selectionLayer: state => state.selectionLayer,
   styleData: state => state.styleData,
   isThematicDataVisible: state => state.isThematicDataVisible,
@@ -131,6 +135,7 @@ const actions = {
     // Multi isochrone regions
     let region;
     let regionType;
+    let selectedRegions = [];
     //
     if (calculationType === "single") {
       iconMarkerFeature = new Feature({
@@ -146,35 +151,36 @@ const actions = {
         y: state.position.coordinate[1],
         concavity: "0.00003",
         routing_profile: state.activeRoutingProfile,
-        scenario_id: state.activeScenario
+        scenario_id: state.activeScenario || 0
       });
       isochroneEndpoint = "isochrone";
     } else {
       regionType = state.multiIsochroneCalculationMethods.active;
       const regionFeatures = state.selectionLayer.getSource().getFeatures();
-      region = regionFeatures
-        .map(feature => {
-          if (regionType === "draw") {
-            return `'${feature.get("regionPolygon").toString()}'`;
-          } else {
-            return `'${feature.get("region_name")}'`;
-          }
-        })
-        .toString();
+      regionFeatures.forEach(f => {
+        const clonedFeature = f.clone();
+        clonedFeature.set("calculationNumber", state.calculations.length + 1);
+        selectedRegions.push(clonedFeature);
+      });
+      region = regionFeatures.map(feature => {
+        if (regionType === "draw") {
+          return feature.get("regionPolygon").toString();
+        } else {
+          return feature.get("region_name");
+        }
+      });
 
       params = Object.assign(sharedParams, {
         alphashape_parameter: "0.00003",
-        region_type: payload ? payload.region_type : `'${regionType}'`,
+        region_type: payload ? payload.region_type : regionType,
         region: payload ? payload.region : region,
-        routing_profile: `'${state.activeRoutingProfile}'`,
-        scenario_id: state.activeScenario,
-        amenities: rootState.pois.selectedPois
-          .map(item => {
-            return "'" + item.value + "'";
-          })
-          .toString()
+        routing_profile: state.activeRoutingProfile,
+        scenario_id: state.activeScenario || 0,
+        amenities: rootState.pois.selectedPois.map(item => {
+          return item.value;
+        })
       });
-      params.modus = `'${state.options.calculationModes.active}'`;
+      params.modus = state.options.calculationModes.active;
       isochroneEndpoint = "pois_multi_isochrones";
     }
 
@@ -182,7 +188,7 @@ const actions = {
 
     const CancelToken = axios.CancelToken;
     const isochronesResponse = await http
-      .post(`/api/${isochroneEndpoint}`, params, {
+      .post(`/api/map/${isochroneEndpoint}`, params, {
         timeout: 30000,
         cancelToken: new CancelToken(function executor(c) {
           // An executor function receives a cancel function as a parameter
@@ -221,7 +227,7 @@ const actions = {
 
     if (
       calculationType === "multiple" &&
-      params.region_type === "'study_area'" &&
+      params.region_type === "study_area" &&
       rootState.isochrones.studyAreaLayer.length > 0
     ) {
       //Turn off studyArea layer
@@ -293,7 +299,7 @@ const actions = {
       time: state.options.minutes + " min",
       speed: state.options.speed + " km/h",
       routing_profile: state.activeRoutingProfile,
-      scenario_id: state.activeScenario,
+      scenario_id: state.activeScenario || 0,
       isExpanded: true,
       isVisible: true,
       data: calculationData,
@@ -349,7 +355,20 @@ const actions = {
       commit("RESET_MULTIISOCHRONE_START");
       transformedData.position = "multiIsochroneCalculation";
       transformedData.region = region;
-      transformedData.region_type = `'${regionType}'`;
+      transformedData.region_type = regionType;
+      // Add region and starting points to isochrone overlay layer.
+      isochrones.features.forEach(feature => {
+        if (feature.properties.coordinates) {
+          feature.properties.coordinates.forEach(coordinate => {
+            const feature = new Feature({
+              geometry: new Point(fromLonLat(coordinate)),
+              calculationNumber
+            });
+            state.isochroneOverlayLayer.getSource().addFeature(feature);
+          });
+        }
+      });
+      state.isochroneOverlayLayer.getSource().addFeatures(selectedRegions);
     }
 
     commit("CALCULATE_ISOCHRONE", transformedData);
@@ -368,12 +387,10 @@ const actions = {
       .getSource()
       .getFeatures();
     if (selectedFeatures.length > 0 || options) {
-      const amenities = rootState.pois.selectedPois
-        .map(item => {
-          return "'" + item.value + "'";
-        })
-        .toString();
-      if (amenities === "") {
+      const amenities = rootState.pois.selectedPois.map(item => {
+        return item.value;
+      });
+      if (amenities.length === 0) {
         commit(
           "map/TOGGLE_SNACKBAR",
           {
@@ -392,7 +409,7 @@ const actions = {
       const params = {
         user_id: rootState.user.userId,
         scenario_id: (state.activeScenario || 0).toString(),
-        modus: "'" + state.options.calculationModes.active + "'",
+        modus: state.options.calculationModes.active,
         minutes: rootState.isochrones.options.minutes,
         speed: rootState.isochrones.options.speed,
         amenities: amenities
@@ -401,10 +418,10 @@ const actions = {
       if (options) {
         promiseArray.push(
           http.post(
-            "/api/count_pois_multi_isochrones",
+            "/api/map/count_pois_multi_isochrones",
             Object.assign(
               {
-                region_type: options.regionType,
+                region_type: options.regionType.replaceAll("'", ""),
                 region: options.region
               },
               params
@@ -414,10 +431,10 @@ const actions = {
       } else {
         const promises = selectedFeatures.map(feature => {
           return http.post(
-            "/api/count_pois_multi_isochrones",
+            "/api/map/count_pois_multi_isochrones",
             Object.assign(
               {
-                region_type: feature.get("region_type"),
+                region_type: feature.get("region_type").replaceAll("'", ""),
                 region: feature.get("region")
               },
               params
@@ -434,16 +451,18 @@ const actions = {
 
         results.map(response => {
           const configData = JSON.parse(response.config.data);
-          if (response.data.feature) {
-            const olFeatures = geojsonToFeature(response.data.feature, {});
+          if (response.data) {
+            const olFeatures = geojsonToFeature(response.data, {});
+
             olFeatures.forEach(feature => {
               feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
               feature.set("region_type", configData.region_type);
               feature.set("region", configData.region);
-
-              if (configData.region_type === "'draw'") {
+              if (configData.region_type === "draw") {
                 feature.set("regionPolygon", configData.region);
               }
+
+              feature.setId(undefined);
             });
             commit("ADD_STUDYAREA_FEATURES", olFeatures);
           }
@@ -474,20 +493,22 @@ const actions = {
 
       addProps(calculation.additionalData, `${payload.type}.features`, []);
 
-      http
-        .get("./geoserver/wfs", {
-          params: {
-            service: "WFS",
-            version: " 1.1.0",
-            request: "GetFeature",
-            viewparams: `objectid:${objectId};modus:${modus}`,
-            outputFormat: "application/json",
-            typeNames: "cite:show_network"
-          }
+      fetch("/api/map/layer_read", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          return_type: "geobuf",
+          table_name: "edges",
+          objectid: objectId,
+          modus_input: modus
         })
-        .then(function(response) {
-          if (response.status === 200) {
-            let olFeatures = geojsonToFeature(response.data, {
+      })
+        .then(resp => resp.arrayBuffer())
+        .then(data => {
+          if (data) {
+            let olFeatures = geobufToFeatures(data, {
               dataProjection: "EPSG:4326",
               featureProjection: "EPSG:3857"
             });
@@ -628,6 +649,9 @@ const mutations = {
   ADD_PPF_LAYER(state, layer) {
     state.ppfLayer = layer;
   },
+  ADD_ISOCHRONE_OVERLAY_LAYER(state, layer) {
+    state.isochroneOverlayLayer = layer;
+  },
   ADD_SELECTION_LAYER(state, layer) {
     state.selectionLayer = layer;
   },
@@ -677,6 +701,18 @@ const mutations = {
         });
       }
     });
+    // Remove and update isochrone overlay features
+    const isochroneOverlayerLayerSource = state.isochroneOverlayLayer.getSource();
+    isochroneOverlayerLayerSource.getFeatures().forEach(feature => {
+      if (feature.get("calculationNumber") === id) {
+        isochroneOverlayerLayerSource.removeFeature(feature);
+      } else {
+        if (feature.get("calculationNumber") > id) {
+          feature.set("calculationNumber", id - 1);
+        }
+      }
+    });
+    state.isochroneOverlayLayer.changed();
   },
   ADD_ISOCHRONE_FEATURES(state, features) {
     if (state.isochroneLayer) {

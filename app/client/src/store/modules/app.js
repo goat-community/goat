@@ -2,8 +2,8 @@ import { getField, updateField } from "vuex-map-fields";
 
 const state = {
   activeColor: {
-    primary: "#4CAF50",
-    secondary: "#4CAF50"
+    primary: "#2BB381",
+    secondary: "#2BB381"
   } // Default
 };
 

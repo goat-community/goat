@@ -19,7 +19,7 @@ BEGIN
 	UPDATE pois_temp
 	SET amenity = new_amenity;
 
-INSERT INTO pois
+	INSERT INTO pois
 	SELECT * FROM pois_temp;
 	
 END

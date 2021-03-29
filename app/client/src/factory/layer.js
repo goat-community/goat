@@ -8,8 +8,9 @@ import MvtFormat from "ol/format/MVT";
 import GeoJsonFormat from "ol/format/GeoJSON";
 import TopoJsonFormat from "ol/format/TopoJSON";
 import KmlFormat from "ol/format/KML";
-import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
+import VectorImageLayer from "ol/layer/VectorImage";
+
 import ImageWMS from "ol/source/ImageWMS.js";
 import { Image as ImageLayer } from "ol/layer.js";
 import XyzSource from "ol/source/XYZ";
@@ -58,6 +59,8 @@ export const LayerFactory = {
       return this.createBingLayer(lConf);
     } else if (lConf.type === "VECTOR") {
       return this.createVectorLayer(lConf);
+    } else if (lConf.type === "VECTORIMAGE") {
+      return this.createVectorImageLayer(lConf);
     } else if (lConf.type === "VECTORTILE") {
       return this.createVectorTileLayer(lConf);
     } else {
@@ -74,6 +77,7 @@ export const LayerFactory = {
   createWmsLayer(lConf) {
     const layer = new ImageLayer({
       name: lConf.name,
+      type: lConf.type,
       title: lConf.title,
       canEdit: lConf.canEdit,
       canModifyGeom: lConf.canModifyGeom,
@@ -83,6 +87,7 @@ export const LayerFactory = {
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       displayInLegend: lConf.displayInLegend,
+      legendGraphicUrl: lConf.legendGraphicUrl,
       group: lConf.group,
       visible: lConf.visible,
       opacity: lConf.opacity,
@@ -103,8 +108,14 @@ export const LayerFactory = {
         },
         serverType: lConf.serverType ? lConf.serverType : "geoserver",
         ratio: lConf.ratio,
-        attributions: lConf.attributions
-      })
+        attributions: lConf.attributions,
+        crossOrigin: "Anonymous"
+      }),
+      minResolution: lConf.minResolution,
+      maxResolution: lConf.maxResolution,
+      minZoom: lConf.minZoom,
+      maxZoom: lConf.maxZoom,
+      otherProps: lConf.otherProps
     });
 
     return layer;
@@ -137,8 +148,13 @@ export const LayerFactory = {
           viewparams: lConf.viewparams
         },
         serverType: lConf.serverType ? lConf.serverType : "geoserver",
-        attributions: lConf.attributions
-      })
+        attributions: lConf.attributions,
+        crossOrigin: "Anonymous"
+      }),
+      minResolution: lConf.minResolution,
+      maxResolution: lConf.maxResolution,
+      minZoom: lConf.minZoom,
+      maxZoom: lConf.maxZoom
     });
 
     return layer;
@@ -160,12 +176,14 @@ export const LayerFactory = {
       group: lConf.group,
       visible: lConf.visible,
       opacity: lConf.opacity,
+      zIndex: lConf.zIndex,
       source: new XyzSource({
         url: lConf.hasOwnProperty("accessToken")
           ? lConf.url + "?access_token=" + lConf.accessToken
           : lConf.url,
         maxZoom: lConf.maxZoom,
-        attributions: lConf.attributions
+        attributions: lConf.attributions,
+        crossOrigin: "Anonymous"
       })
     });
 
@@ -190,7 +208,8 @@ export const LayerFactory = {
       group: lConf.group,
       source: new OsmSource({
         url: lConf.url,
-        maxZoom: lConf.maxZoom
+        maxZoom: lConf.maxZoom,
+        crossOrigin: "Anonymous"
       })
     });
 
@@ -207,7 +226,8 @@ export const LayerFactory = {
     const bingMaps = new BingMaps({
       key: lConf.accessToken,
       imagerySet: lConf.imagerySet,
-      maxZoom: lConf.maxZoom
+      maxZoom: lConf.maxZoom,
+      crossOrigin: "Anonymous"
     });
     const layer = new TileLayer({
       name: lConf.name,
@@ -231,26 +251,52 @@ export const LayerFactory = {
    * @return {ol.layer.Vector} OL vector layer instance
    */
   createVectorLayer(lConf) {
-    const vectorLayer = new VectorLayer({
+    const sourceOpts = {
+      format: this.formatMapping[lConf.format]
+        ? new this.formatMapping[lConf.format](lConf.formatConfig)
+        : GeoJsonFormat(),
+      attributions: lConf.attributions,
+      crossOrigin: "Anonymous"
+    };
+
+    lConf.url ? (sourceOpts.url = lConf.url) : lConf.url;
+    const vectorLayer = new VectorImageLayer({
       name: lConf.name,
       title: lConf.title,
+      type: lConf.type,
       canEdit: lConf.canEdit,
+      canModifyGeom: lConf.canModifyGeom,
+      editDataType: lConf.editDataType,
+      editGeometry: lConf.editGeometry,
+      modifyAttributes: lConf.modifyAttributes,
+      requiresPois: lConf.requiresPois,
+      queryable: lConf.queryable,
+      displayInLegend: lConf.displayInLegend,
+      legendGraphicUrl: lConf.legendGraphicUrl,
+      docUrl: lConf.docUrl,
       lid: lConf.lid,
       displayInLayerList: lConf.displayInLayerList,
       extent: lConf.extent,
       visible: lConf.visible,
       opacity: lConf.opacity,
       zIndex: lConf.zIndex,
-      source: new VectorSource({
-        url: lConf.url,
-        format: new this.formatMapping[lConf.format](lConf.formatConfig),
-        attributions: lConf.attributions
-      }),
+      queryParams: lConf.queryParams,
+      styleConf: lConf.style,
+      source: new VectorSource(sourceOpts),
+      format: lConf.format,
+      url: lConf.url,
+      group: lConf.group,
+      concurrentRequests: lConf.concurrentRequests,
       style:
         OlStyleFactory.getInstance(lConf.style) ||
         baseStyleDefs[lConf.styleRef],
       hoverable: lConf.hoverable,
-      hoverAttribute: lConf.hoverAttribute
+      hoverAttribute: lConf.hoverAttribute,
+      minResolution: lConf.minResolution,
+      maxResolution: lConf.maxResolution,
+      minZoom: lConf.minZoom,
+      maxZoom: lConf.maxZoom,
+      otherProps: lConf.otherProps
     });
 
     return vectorLayer;
@@ -266,21 +312,40 @@ export const LayerFactory = {
     const vtLayer = new VectorTileLayer({
       name: lConf.name,
       title: lConf.title,
+      type: lConf.type,
       canEdit: lConf.canEdit,
+      canModifyGeom: lConf.canModifyGeom,
+      editDataType: lConf.editDataType,
+      editGeometry: lConf.editGeometry,
+      modifyAttributes: lConf.modifyAttributes,
+      queryable: lConf.queryable,
+      requiresPois: lConf.requiresPois,
+      docUrl: lConf.docUrl,
       lid: lConf.lid,
+      displayInLegend: lConf.displayInLegend,
+      legendGraphicUrl: lConf.legendGraphicUrl,
       displayInLayerList: lConf.displayInLayerList,
       visible: lConf.visible,
       opacity: lConf.opacity,
+      queryParams: lConf.queryParams,
+      styleConf: lConf.style,
+      zIndex: lConf.zIndex,
+      url: lConf.url,
+      group: lConf.group,
+      concurrentRequests: lConf.concurrentRequests,
       source: new VectorTileSource({
         url: lConf.url,
         format: new this.formatMapping[lConf.format](),
-        attributions: lConf.attributions
+        attributions: lConf.attributions,
+        crossOrigin: "Anonymous"
       }),
-      style:
-        OlStyleFactory.getInstance(lConf.style) ||
-        baseStyleDefs[lConf.styleRef],
       hoverable: lConf.hoverable,
-      hoverAttribute: lConf.hoverAttribute
+      hoverAttribute: lConf.hoverAttribute,
+      minResolution: lConf.minResolution,
+      maxResolution: lConf.maxResolution,
+      minZoom: lConf.minZoom,
+      maxZoom: lConf.maxZoom,
+      otherProps: lConf.otherProps
     });
 
     return vtLayer;

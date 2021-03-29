@@ -32,7 +32,8 @@ import IsochroneStartMultiple from "./IsochroneStartMultiple";
 import {
   getIsochroneStyle,
   getIsochroneNetworkStyle,
-  ppfNetworkStyle
+  ppfNetworkStyle,
+  isochroneOverlayStyle
 } from "../../style/OlStyleDefs";
 
 //Store imports
@@ -72,6 +73,7 @@ export default {
       addIsochroneLayer: "ADD_ISOCHRONE_LAYER",
       addIsochroneNetworkLayer: "ADD_ISOCHRONE_ROAD_NETWORK_LAYER",
       addPPFLayer: "ADD_PPF_LAYER",
+      addIsochroneOverlayLayer: "ADD_ISOCHRONE_OVERLAY_LAYER",
       updatePosition: "UPDATE_POSITION"
     }),
     ...mapActions("isochrones", {
@@ -85,6 +87,7 @@ export default {
       this.createIsochroneLayer();
       this.createIsochroneRoadNetworkLayer();
       this.createPPFLayer();
+      this.createIsochroneOverlayLayer();
       this.setUpCtxMenu();
     },
 
@@ -97,7 +100,8 @@ export default {
       const style = getIsochroneStyle(me.styleData, me.addStyleInCache);
       const vector = new VectorLayer({
         name: "Isochrone Layer",
-        zIndex: 7,
+        displayInLegend: false,
+        zIndex: 8,
         source: new VectorSource(),
         style: style
       });
@@ -134,12 +138,30 @@ export default {
       const style = getIsochroneNetworkStyle();
       const vector = new VectorImageLayer({
         name: "isochroneRoadNetworkLayer",
-        zIndex: 6,
+        displayInLegend: false,
+        zIndex: 7,
         source: new VectorSource(),
         style: style
       });
       me.map.addLayer(vector);
       this.addIsochroneNetworkLayer(vector);
+    },
+
+    /**
+     * Creates a vector layer for the isochrone calculations results and adds it to the
+     * map and store.
+     */
+    createIsochroneOverlayLayer() {
+      const me = this;
+      const vector = new VectorImageLayer({
+        name: "isochroneOverlayLayer",
+        displayInLegend: false,
+        zIndex: 7,
+        source: new VectorSource(),
+        style: isochroneOverlayStyle
+      });
+      me.map.addLayer(vector);
+      this.addIsochroneOverlayLayer(vector);
     },
 
     /**

@@ -11,7 +11,7 @@
     "buttons": {
       "login": "Login",
       "print": "Print",
-      "drawAndMeasure": "Draw and Measure",
+      "drawAndMeasure": "Measure",
       "filter": "Thematic Data Filter",
       "edit": "Draw scenario",
       "settings": "Language",

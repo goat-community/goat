@@ -19,13 +19,13 @@ DATA_REFINEMENT_VARIABLES:
   variable_container:
     heatmap_auto_refresh: "'yes'"
     heatmap_sensitivities: [150000,200000,250000,300000,350000,400000,450000]
-    pois_one_entrance: ["kindergarten","nursery","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","night_club","recycling",
+    pois_one_entrance: ["kindergarten","nursery","primary_school","secondary_school","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","nightclub","recycling",
       "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi","bikesharing_ffb","carsharing_ffb","charging_station_marker_ffb","charging_station_other_ffb","charging_station_public_ffb","e_parking_ffb",
       "l-station_ffb","s-station_prio1_ffb","s-station_prio2_ffb","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
       "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
       "hypermarket","international_supermarket","chemist","organic","marketplace","hotel","museum","hostel","guest_house","viewpoint","gallery","playground","discount_gym","gym","yoga","outdoor_fitness_station"
     ]
-    pois_more_entrances: ["bus_stop","tram_stop","subway_entrance","rail_station","community_sports_center","waterpark"]
+    pois_more_entrances: ["bus_stop","tram_stop","subway_entrance","rail_station","community_sports_center","waterpark","park","forest","heath_scrub","lake","river"]
     excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
     categories_no_foot: ["use_sidepath","no"]
     excluded_class_id_cycling: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
@@ -37,11 +37,26 @@ DATA_REFINEMENT_VARIABLES:
       "AX_FlaecheBesondererFunktionalerPraegung",
       "AX_Halde",
       "AX_Friedhof",
-      "AX_IndustrieUndGewerbeflaeche"
+      "AX_IndustrieUndGewerbeflaeche",
+      "AX_Landwirtschaft",
+      "AX_Wald",
+      "AX_Gehoelz",
+      "AX_Heide",
+      "AX_Moor",
+      "AX_Sumpf",
+      "AX_UnlandVegetationsloseFlaeche",
+      "AX_Vegetationsmerkmal",
+      "AX_Bahnverkehr",
+      "AX_Platz",
+      "AX_Strassenverkehr",
+      "AX_Flugverkehr",
+      "AX_Fließgewaesser",
+      "AX_Hafenbecken",
+      "AX_StehendesGewaesser"
     ]
     custom_landuse_with_residents_name: ["%seniorenheim%"]
     osm_landuse_no_residents: ["farmyard","farmland","quarry","industrial","retail","commercial","forest","military","cemetery","landfill","allotments","recreation ground","railway"]
-    aois_no_residents: ["big_forest","big_park","lake","river","small_forest","small_park","swimming_lake"]
+    aois_no_residents: ["forest","park","lake","river","forest","park","swimming_lake"]
     #All buildings that can be potentially residential
     building_types_potentially_residential: ["yes"]
     #All buildings that are definitely residential
@@ -91,19 +106,19 @@ DATA_REFINEMENT_VARIABLES:
     cycling_crossings_delay:
       delay_1: 15
       delay_2: 30
-    compute_slope_impedance: "'yes'"
+    compute_slope_impedance: "'no'"
     ##-------------------------------------Size limits for areas of interest------------------------------------##
     ## Limits the area to be displayed for certain amenities (like parks). The limits should be defined in square meters
     areas_boundaries:
       parks:
-        small: [1000]
-        large: [300000]
+        small: [2000]
+        ##large: [300000]
       forest:
-        small: [1000]
-        large: [300000]
+        small: [2000]
+        ##large: [300000]
       heath:
-        small: [1000]
-        large: [300000]
+        small: [0]
+        ##large: [300000]
 
     ##-------------------------------------Radius definition for POIS fusion------------------------------------##
     ##  Duplicated lookup radius: Sensibility factor, entities for the same branch and amenity type into this radius will be considered as duplicated; it is applied for OSM and Custom POIS databases (meters).
@@ -117,21 +132,20 @@ DATA_REFINEMENT_VARIABLES:
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------Definition of amenity parameters for POIS preparation and data fusion of new sources-----------##
     ##----------------------------------------------------------------------------------------------------------##
-    ##  Data structure:       Amenity type -> brand name -> different brand name variables
-    ##  Amenity type:         According to the types defined for GOAT
-    ##  Brand name:           Business/element generic name, this name will be implemented in the data fusion
-    ##  Brand name variable:  Array that includes the brand names variances, for increase the lookup radius by name
-    ##                        Possible names are mandatory for the new POIS to include (with a .geojson file)
+    ##  Data structure: Amenity type -> Sub category -> Name variables or Amenity type -> Name variables
+    ##  Amenity type: According to the types defined for GOAT
+    ##  Sub category: Business/element generic name, this name will be implemented in the data fusion
+    ##  Name variables: Array that includes the name variances to increase number of the matching POIs.
     pois_search_conditions:
       chemist:
-        dm: ['dm']
-        rossmann: ['rossmann']
+        dm: []
+        rossmann: []
       supermarket:
         edeka: ['e center', 'edeka']
         rewe: ['rewe', 'rewe city']
       discount_supermarket:
         aldi: []
-        lidl: ['lidl']
+        lidl: []
         penny: []
         netto: []
         norma: []
@@ -147,10 +161,7 @@ DATA_REFINEMENT_VARIABLES:
       health_food:
         vitalia: []
         reformhaus: []
-      operators_bicycle_rental: 
-        münchner verkehrs gesellschaft: []
-        münchner verkehrsgesellschaft: []
-        mvg: []
+      operators_bicycle_rental: ['münchner verkehrs gesellschaft','münchner verkehrsgesellschaft','mvg']
       bank: 
         sparkasse: ['kreissparkasse','sparkasse','stadtsparkasse']   
         hypovereinsbank: ['hypo vereinsbank', 'hypovereinsbank']
@@ -159,15 +170,13 @@ DATA_REFINEMENT_VARIABLES:
         mcdonalds: ['mcdonald']
       restaurant:   
         vapiano: ['vapiano']
-      nursery:
-        kinderkrippe: ['krippe','kinderkrippe']
+      nursery: ['krippe','kinderkrippe','kita']
       discount_gym:
         fitstar: ['fit-star','fit star']
         mcfit: []
         fitx: []
         cleverfit: ['clever fit','cleverfit']
         jumpersfitness: ['jumpers fitness']
-      
       community_sport_centre: ['bezirkssportanlage']
 
     ##----------------------------------------------------------------------------------------------------------##

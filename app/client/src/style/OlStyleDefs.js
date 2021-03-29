@@ -4,6 +4,7 @@ import OlFill from "ol/style/Fill";
 import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
+import OlChart from "ol-ext/style/Chart";
 import store from "../store/modules/map";
 import isochronesStore from "../store/modules/isochrones";
 import { getArea } from "ol/sphere.js";
@@ -487,6 +488,30 @@ export function getFeatureHighlightStyle() {
   ];
 }
 
+export function isochroneOverlayStyle(feature) {
+  if (feature.get("isVisible") === false) {
+    return [];
+  } else {
+    return [
+      new OlStyle({
+        fill: new OlFill({
+          color: "rgba(255, 0, 0, 0.3)"
+        }),
+        stroke: new OlStroke({
+          color: "#FF0000",
+          width: 3
+        }),
+        image: new OlCircle({
+          radius: 5,
+          fill: new OlFill({
+            color: "#FF0000"
+          })
+        })
+      })
+    ];
+  }
+}
+
 export function studyAreaASelectStyle() {
   return [
     new OlStyle({
@@ -495,7 +520,8 @@ export function studyAreaASelectStyle() {
       }),
       stroke: new OlStroke({
         color: "#FF0000",
-        width: 10
+        width: 5,
+        lineDash: [10, 10]
       }),
       image: new OlCircle({
         radius: 10,
@@ -667,4 +693,81 @@ export const mapillaryStyleDefs = {
     });
     return [liveBearing, mapillaryStyleDefs.circleSolidStyle];
   }
+};
+/**
+ * POIS layer style -
+ */
+const poisStyleCache = {};
+function poisStyle(feature, resolution) {
+  if (resolution > 25) {
+    return [];
+  }
+
+  const name = `${feature.get("amenity")}_${feature.get("status") ||
+    "accessible"}`;
+  if (!poisStyleCache[name]) {
+    let path = `img/pois-map/${name}.png`;
+    poisStyleCache[name] = new OlStyle({
+      image: new OlIcon({
+        anchor: [0.5, 35],
+        scale: 0.85,
+        anchorXUnits: "fraction",
+        anchorYUnits: "pixels",
+        src: path
+      })
+    });
+  }
+  return [poisStyleCache[name]];
+}
+
+/**
+ * Mode share style
+ */
+const modeShareStyleCache = {};
+function modeShareStyle(feature) {
+  const gid = feature.get("gid") || feature.get("objectid");
+  if (!modeShareStyleCache[gid]) {
+    const boundaryStyle = new OlStyle({
+      stroke: new OlStroke({
+        color: "#707070",
+        width: 1
+      })
+    });
+    const radius = 25;
+    const share_foot = parseFloat(feature.get("share_foot")) || 0;
+    const share_bike = parseFloat(feature.get("share_bike")) || 0;
+    const share_mivd = parseFloat(feature.get("share_mivd")) || 0;
+    const share_mivp = parseFloat(feature.get("share_mivp")) || 0;
+    const share_put = parseFloat(feature.get("share_put")) || 0;
+    const chartStyle = new OlStyle({
+      image: new OlChart({
+        type: "pie3D",
+        radius: radius,
+        data: [share_foot, share_bike, share_mivd, share_mivp, share_put],
+        colors: ["#00a6ff", "#20a849", "#c43114", "#f29305", "#1455e0"],
+        rotateWithView: true,
+        stroke: new OlStroke({
+          color: "#fff",
+          width: 2
+        })
+      }),
+      geometry: function(feature) {
+        // Return the center of extent.
+        const interiorPointsMltPoint = feature
+          .getGeometry()
+          .getInteriorPoints();
+        return interiorPointsMltPoint;
+      }
+    });
+    modeShareStyleCache[gid] = [boundaryStyle, chartStyle];
+  }
+
+  return modeShareStyleCache[gid];
+}
+
+export const stylesRef = {
+  pois: poisStyle,
+  mapping_pois_opening_hours: poisStyle,
+  study_area_crop: baseStyleDefs.boundaryStyle,
+  modeshare: modeShareStyle
 };

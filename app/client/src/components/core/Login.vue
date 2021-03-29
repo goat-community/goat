@@ -30,7 +30,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn class="white--text" @click="login" color="green">
+        <v-btn class="white--text" @click="login" :color="activeColor.primary">
           <v-icon left>fas fa-sign-in-alt</v-icon
           >{{ $t("appBar.login.form.submit") }}</v-btn
         >
@@ -40,6 +40,7 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 export default {
   data: () => ({
     rules: {
@@ -48,7 +49,11 @@ export default {
     }
   }),
   components: {},
-  computed: {},
+  computed: {
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
+  },
   methods: {
     login() {}
   },

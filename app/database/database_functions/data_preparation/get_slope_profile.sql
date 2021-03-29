@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION get_slope_profile(ways_id bigint, interval_ float default 10)
+CREATE OR REPLACE FUNCTION get_slope_profile(ways_id bigint, interval_ float default 10, way_table TEXT DEFAULT 'ways')
 	RETURNS TABLE(elevs float[], linkLength float, lengthInterval float)
 	LANGUAGE plpgsql
 AS $function$
@@ -9,10 +9,18 @@ DECLARE
 	translation_m_degree NUMERIC;
 BEGIN
 	
-	SELECT geom, length_m, ST_Length(geom) 
-	INTO way_geom, length_meters, length_degree
-	FROM ways
-	WHERE id = ways_id; 
+	IF way_table = 'ways' THEN 
+		SELECT geom, length_m, ST_Length(geom) 
+		INTO way_geom, length_meters, length_degree
+		FROM ways
+		WHERE id = ways_id; 
+	ELSEIF way_table = 'ways_userinput' THEN 
+		SELECT geom, length_m, ST_Length(geom) 
+		INTO way_geom, length_meters, length_degree
+		FROM ways_userinput 
+		WHERE id = ways_id; 
+	END IF;
+
 
 	translation_m_degree = length_degree/length_meters;
 	DROP TABLE IF EXISTS dump_points;

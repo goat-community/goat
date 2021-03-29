@@ -45,6 +45,25 @@ const UrlUtil = {
     });
 
     return value;
+  },
+
+  /**
+   * Returns a dedicated URL parameter if existing.
+   * If querySearch is not provided it is derived from the current location.
+   *
+   * @param  {String} uri       The URL
+   * @param  {String} key       The URL key
+   * @param  {String} value     The URL value
+   * @return {String}           Value of the given URL param
+   */
+  updateQueryStringParameter(uri, key, value) {
+    var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+    var separator = uri.indexOf("?") !== -1 ? "&" : "?";
+    if (uri.match(re)) {
+      return uri.replace(re, "$1" + key + "=" + value + "$2");
+    } else {
+      return uri + separator + key + "=" + value;
+    }
   }
 };
 

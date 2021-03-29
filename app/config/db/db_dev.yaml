@@ -1,0 +1,5 @@
+HOST: "localhost"
+PORT: 65432
+DB_NAME: "goat"
+USER: "goat"
+PASSWORD: "earlmanigault"

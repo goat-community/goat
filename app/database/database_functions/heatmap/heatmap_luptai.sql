@@ -9,7 +9,7 @@ BEGIN
 		RETURN query 
 		SELECT h.grid_id, h.accessibility_index, h.percentile_accessibility, p.percentile_population, 
 		(p.percentile_population-h.percentile_accessibility) AS population_accessibility, h.geom  
-		FROM heatmap_geoserver(amenities_json,modus_input,scenario_id_input) h, 
+		FROM heatmap_gravity(amenities_json,modus_input,scenario_id_input) h, 
 		population_heatmap(scenario_id_input, modus_input) p 
 		WHERE p.grid_id = h.grid_id;
 	
@@ -19,7 +19,7 @@ BEGIN
 		CREATE TEMP TABLE luptai_default AS 
 		SELECT h.grid_id, h.accessibility_index, h.percentile_accessibility, p.percentile_population, 
 		(p.percentile_population-h.percentile_accessibility) AS population_accessibility, h.geom  
-		FROM heatmap_geoserver(amenities_json,'default',scenario_id_input) h, 
+		FROM heatmap_gravity(amenities_json,'default',scenario_id_input) h, 
 		population_heatmap(scenario_id_input, 'default') p 
 		WHERE p.grid_id = h.grid_id;
 		ALTER TABLE luptai_default ADD PRIMARY KEY(grid_id);
@@ -28,7 +28,7 @@ BEGIN
 		CREATE TEMP TABLE luptai_scenario AS 
 		SELECT h.grid_id, h.accessibility_index, h.percentile_accessibility, p.percentile_population, 
 		(p.percentile_population-h.percentile_accessibility) AS population_accessibility, h.geom  
-		FROM heatmap_geoserver(amenities_json,'scenario',scenario_id_input) h, 
+		FROM heatmap_gravity(amenities_json,'scenario',scenario_id_input) h, 
 		population_heatmap(scenario_id_input,'scenario') p 
 		WHERE p.grid_id = h.grid_id;
 		ALTER TABLE luptai_scenario ADD PRIMARY KEY(grid_id);
