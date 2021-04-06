@@ -15,11 +15,11 @@
 ## About
 
 This is the homebase of Geo Open Accessibility Tool (GOAT). GOAT is meant to be an open source, interactive,
-flexible and useful web-tool for accessibility planning. Currenty the tool is maintained by the Startup Plan4Better and the Technical University of Munich (TUM). 
+flexible and useful web-tool for accessibility planning. Currenty the tool is maintained by the Startup [Plan4Better](https://plan4better.de) and the [Technical University of Munich (TUM)](https://www.bgu.tum.de/en/sv/homepage/). 
 
 For more information:
 
-[GOAT Website and Docs](https://plan4better.org)
+[GOAT Website and Docs](https://plan4better.de/docs/background/)
 
 [GOAT demo](https://plan4better.de/versions)
 
