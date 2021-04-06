@@ -1,5 +1,5 @@
 <div align="center">
-    <a href="https://www.open-accessibility.org/">
+    <a href="https://plan4better.de/">
         <img src="app/client/public/img/logo_green.png" width="300">
     </a>
 </div>
@@ -15,16 +15,16 @@
 ## About
 
 This is the homebase of Geo Open Accessibility Tool (GOAT). GOAT is meant to be an open source, interactive,
-flexible and useful web-tool for accessibility planning.
+flexible and useful web-tool for accessibility planning. Currenty the tool is maintained by the Startup Plan4Better and the Technical University of Munich (TUM). 
 
 For more information:
 
-[GOAT Website and Docs](https://open-accessibility.org)
+[GOAT Website and Docs](https://plan4better.org)
 
-[GOAT demo](https://open-accessibility.org/versions)
+[GOAT demo](https://plan4better.de/versions)
 
 [Join GOAT User Group on Telegram](https://t.me/joinchat/EpAk7BYbIF72q7D3OTUCZQ)
 
-[Follow GOAT on LinkedIn](https://www.linkedin.com/company/goat-geo-open-accessibility-tool/)
+[Follow GOAT on LinkedIn](https://www.linkedin.com/company/plan4better)
 
-[Follow GOAT on Twitter](https://twitter.com/GoatTool)
+[Follow GOAT on Twitter](https://twitter.com/plan4better)
