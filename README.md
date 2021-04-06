@@ -19,9 +19,9 @@ flexible and useful web-tool for accessibility planning. Currenty the tool is ma
 
 For more information:
 
-[GOAT Website and Docs](https://plan4better.de/docs/background/)
+[GOAT Docs](https://plan4better.de/docs/background/)
 
-[GOAT demo](https://plan4better.de/versions)
+[GOAT demo versions](https://plan4better.de/goatlive/)
 
 [Join GOAT User Group on Telegram](https://t.me/joinchat/EpAk7BYbIF72q7D3OTUCZQ)
 
