@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" max-width="350px">
     <v-card>
-      <v-app-bar color="green" dark>
+      <v-app-bar :color="activeColor.primary" dark>
         <v-app-bar-nav-icon
           ><v-icon>fas fa-layer-group</v-icon></v-app-bar-nav-icon
         >
@@ -78,6 +78,9 @@ export default {
       getGroupedCalculationData: "getGroupedCalculationData",
       isochroneOverlayLayer: "isochroneOverlayLayer"
     }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    }),
     show: {
       get() {
         return this.visible;
@@ -98,7 +101,7 @@ export default {
         studyAreaFeatures: [],
         startingPointFeatures: []
       };
-      console.log("executed...");
+
       this.isochroneOverlayLayer
         .getSource()
         .getFeatures()

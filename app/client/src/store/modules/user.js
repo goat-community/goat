@@ -19,9 +19,8 @@ const actions = {
       })
       .then(function(response) {
         if (response.status === 200) {
-          console.log(response);
-          if (response.data[0].userid) {
-            commit("SET_USER_ID", response.data[0].userid);
+          if (response.data.userid) {
+            commit("SET_USER_ID", response.data.userid);
           }
         }
       })

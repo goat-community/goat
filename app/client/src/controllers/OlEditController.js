@@ -13,8 +13,10 @@ import VectorImageLayer from "ol/layer/VectorImage";
 import Overlay from "ol/Overlay.js";
 import isochronesStore from "../store/modules/isochrones";
 import Feature from "ol/Feature";
-import { wfsTransactionParser, readTransactionResponse } from "../utils/Layer";
+import { geojsonToFeature, geometryToWKT } from "../utils/MapUtils";
 import http from "../services/http";
+import axios from "axios";
+import { EventBus } from "../EventBus";
 import { unByKey } from "ol/Observable";
 import editLayerHelper from "./OlEditLayerHelper";
 import i18n from "../../src/plugins/i18n";
@@ -413,16 +415,21 @@ export default class OlEditController extends OlBaseController {
    */
   deleteBldEntranceFeatures(features) {
     if (Array.isArray(features)) {
-      const formatGML = {
-        featureNS: "cite",
-        featureType: `population_modified`,
-        srsName: "urn:x-ogc:def:crs:EPSG:4326"
-      };
-      const payload = wfsTransactionParser(null, null, features, formatGML);
-      const serializedPayload = new XMLSerializer().serializeToString(payload);
-      http.post("geoserver/cite/wfs", serializedPayload, {
-        headers: { "Content-Type": "text/xml" }
+      const deletedBldEntrancePayload = [];
+      features.forEach(feature => {
+        const gid = feature.getId() || feature.get("gid") || feature.get("id");
+        const scenario_id = feature.get("scenario_id");
+        if (gid && scenario_id) {
+          deletedBldEntrancePayload.push({ gid, scenario_id });
+        }
       });
+      const payload = {
+        table_name: "population_modified",
+        mode: "delete",
+        features: deletedBldEntrancePayload
+      };
+
+      http.post("/api/map/layer_controller", payload);
       features.forEach(feature => {
         this.bldEntranceLayer.getSource().removeFeature(feature);
         if (this.bldEntranceStorageLayer.getSource().hasFeature(feature)) {
@@ -471,7 +478,7 @@ export default class OlEditController extends OlBaseController {
   }
 
   /**
-   * Transact features to the database using geoserver wfs-t protocol
+   * Transact features to the database
    */
   transact(properties) {
     const me = this;
@@ -483,15 +490,7 @@ export default class OlEditController extends OlBaseController {
     clonedProperties.scenario_id = isochronesStore.state.activeScenario;
     delete clonedProperties["id"];
 
-    const layerName = editLayerHelper.selectedLayer
-      .getSource()
-      .getParams()
-      .LAYERS.split(":")[1];
-    const formatGML = {
-      featureNS: "cite",
-      featureType: `${layerName}_modified`,
-      srsName: "urn:x-ogc:def:crs:EPSG:4326"
-    };
+    const layerName = `${editLayerHelper.selectedLayer.get("name")}_modified`;
 
     me.featuresToCommit.forEach(feature => {
       const props = feature.getProperties();
@@ -551,55 +550,98 @@ export default class OlEditController extends OlBaseController {
         featuresToUpdate.push(transformed);
       }
     });
+    // ====== PAYLOADS =====
+    const payloads = {
+      table_name: layerName,
+      modes: {
+        insert: [],
+        update: [],
+        delete: []
+      }
+    };
+    // Add features
+    featuresToAdd.forEach(feature => {
+      const props = feature.getProperties();
+      if (props.hasOwnProperty("geom")) {
+        delete props.geom;
+      }
+      if (props.hasOwnProperty("gid")) {
+        delete props.gid;
+      }
+      if (props.hasOwnProperty("id")) {
+        delete props.id;
+      }
+      const wktGeom = geometryToWKT(
+        feature.getGeometry(),
+        "EPSG:3857",
+        "EPSG:4326"
+      );
+      props.geom = wktGeom;
+      payloads.modes.insert.push(props);
+    });
+    // Update features
+    featuresToUpdate.forEach(feature => {
+      const props = feature.getProperties();
+      if (props.hasOwnProperty("geom")) {
+        delete props.geom;
+      }
+      const wktGeom = geometryToWKT(
+        feature.getGeometry(),
+        "EPSG:3857",
+        "EPSG:4326"
+      );
+      props.geom = wktGeom;
+      props.gid = feature.getId() || feature.get("gid") || feature.get("id");
+      payloads.modes.update.push(props);
+    });
+    // Delete feature
+    featuresToRemove.forEach(feature => {
+      const gid = feature.getId() || feature.get("gid") || feature.get("id");
+      const scenario_id = feature.get("scenario_id");
+      if (gid && scenario_id) {
+        payloads.modes.delete.push({ gid, scenario_id });
+      }
+    });
+    const promiseArray = [];
+    Object.keys(payloads.modes).forEach(mode => {
+      if (payloads.modes[mode].length > 0) {
+        const payload = {
+          table_name: payloads.table_name,
+          mode,
+          features: payloads.modes[mode]
+        };
+        promiseArray.push(http.post("/api/map/layer_controller", payload));
+      }
+    });
+    axios.all(promiseArray).then(function(results) {
+      results.forEach(response => {
+        const payload = JSON.parse(response.config.data);
 
-    let payload;
-    switch (me.currentInteraction) {
-      case "draw":
-        payload = wfsTransactionParser(featuresToAdd, null, null, formatGML);
-        break;
-      case "move":
-      case "modifyAttributes":
-      case "modify":
-      case "drawHole":
-        payload = wfsTransactionParser(
-          featuresToAdd,
-          featuresToUpdate,
-          null,
-          formatGML
-        );
-        break;
-      case "delete":
-        payload = wfsTransactionParser(null, null, featuresToRemove, formatGML);
-        break;
-    }
-    payload = new XMLSerializer().serializeToString(payload);
-    http
-      .post("geoserver/cite/wfs", payload, {
-        headers: { "Content-Type": "text/xml" }
-      })
-      .then(function(response) {
-        const result = readTransactionResponse(response.data);
-        const FIDs = result.insertIds;
-
-        if (FIDs != undefined && FIDs[0] != "none") {
-          let i;
-          for (i = 0; i < FIDs.length; i++) {
-            const id = parseInt(FIDs[i].split(".")[1]);
-            me.source.removeFeature(featuresToRemove[i]);
-            if (me.storageLayer.getSource().hasFeature(featuresToRemove[i])) {
-              me.storageLayer.getSource().removeFeature(featuresToRemove[i]);
+        if (payload.mode === "insert") {
+          const features = geojsonToFeature(response.data, {
+            dataProjection: "EPSG:4326",
+            featureProjection: "EPSG:3857"
+          });
+          features.forEach((feature, index) => {
+            me.source.removeFeature(featuresToRemove[index]);
+            if (
+              me.storageLayer.getSource().hasFeature(featuresToRemove[index])
+            ) {
+              me.storageLayer
+                .getSource()
+                .removeFeature(featuresToRemove[index]);
             }
-            featuresToAdd[i].setId(id);
-            featuresToAdd[i].set("gid", id);
-            featuresToAdd[i].getGeometry().transform("EPSG:4326", "EPSG:3857");
-
-            me.source.addFeature(featuresToAdd[i]);
-          }
+            feature.setId(feature.get("gid"));
+            me.source.addFeature(feature);
+          });
         }
+
         if (me.currentInteraction == "draw") {
           me.featuresToCommit = [];
         }
+        EventBus.$emit("updateAllLayers");
       });
+    });
   }
 
   /**

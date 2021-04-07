@@ -6,7 +6,7 @@
     v-bind:style="{ zIndex: options.zIndex }"
   >
     <v-card>
-      <v-app-bar dark :color="options.color" dense flat>
+      <v-app-bar dark :color="activeColor.primary" dense flat>
         <v-app-bar-nav-icon
           ><v-icon>{{ options.icon }}</v-icon></v-app-bar-nav-icon
         >
@@ -39,6 +39,8 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+
 export default {
   data: () => ({
     dialog: false,
@@ -76,6 +78,11 @@ export default {
       this.resolve(false);
       this.dialog = false;
     }
+  },
+  computed: {
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
   }
 };
 /**

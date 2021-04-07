@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" scrollable max-width="650px">
     <v-card>
-      <v-app-bar color="green" dark>
+      <v-app-bar :color="activeColor.primary" dark>
         <v-app-bar-nav-icon><v-icon>info</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title>{{ $t("appBar.about.title") }}</v-toolbar-title>
         <v-spacer></v-spacer>
@@ -93,7 +93,7 @@
 
 <script>
 import { humanize } from "../../utils/Helpers";
-
+import { mapGetters } from "vuex";
 export default {
   props: ["visible"],
   computed: {
@@ -109,7 +109,11 @@ export default {
     },
     layerAttributes() {
       let a = {};
-      this.$appConfig.map.layers.forEach(layer => {
+      const attributeLayers = [
+        ...this.$appConfig.map.layers,
+        ...this.$appConfig.map.otherAttributeLayers
+      ];
+      attributeLayers.forEach(layer => {
         if (
           layer.attributes &&
           layer.attributes.source &&
@@ -127,7 +131,10 @@ export default {
         }
       });
       return a;
-    }
+    },
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
   },
   methods: {
     humanize
@@ -152,7 +159,7 @@ export default {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
 }
 .styled-table thead tr {
-  background-color: #4caf50;
+  background-color: #2bb381;
   color: #ffffff;
   text-align: left;
 }
@@ -168,10 +175,10 @@ export default {
 }
 
 .styled-table tbody tr:last-of-type {
-  border-bottom: 2px solid #4caf50;
+  border-bottom: 2px solid #2bb381;
 }
 .styled-table tbody tr.active-row {
   font-weight: bold;
-  color: #4caf50;
+  color: #2bb381;
 }
 </style>

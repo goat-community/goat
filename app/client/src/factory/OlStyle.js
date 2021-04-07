@@ -1,14 +1,6 @@
 import { Circle as CircleStyle, Fill, Stroke, Style } from "ol/style";
-
-/**
- * Factory, which creates OpenLayers style instances according to a given config
- * object.
- * This only covers a minimal subset of the OpenLayers style capabilities.
- * It allows to create simple styles for points, line and polygons.
- * For advanced styling use a custom style function or
- * GeoStyler<https://github.com/terrestris/geostyler>
- */
-
+import OlStyleParser from "geostyler-openlayers-parser";
+import { stylesRef } from "../style/OlStyleDefs";
 export const OlStyleFactory = {
   /**
    * Returns an OpenLayers Style instance due to given config.
@@ -94,5 +86,32 @@ export const OlStyleFactory = {
     return new Fill({
       color: styleConf.fillColor
     });
+  },
+
+  /**
+   * Main function for rendering styles using geostyler parser.
+   *
+   * @param  {Object} styleObj Style config
+   * @param  {String} layerName Layer name
+   * @return {Style}             OL Style instance
+   */
+  getOlStyle(styleObj, layerName) {
+    const styleFormat = styleObj.format;
+    const styleConf = styleObj.style;
+    let olStyle;
+    switch (styleFormat) {
+      case "geostyler": {
+        const parser = new OlStyleParser();
+        olStyle = parser.writeStyle(styleConf);
+        break;
+      }
+      case "custom-logic": {
+        olStyle = stylesRef[layerName];
+        break;
+      }
+      default:
+        break;
+    }
+    return olStyle;
   }
 };

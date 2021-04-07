@@ -1,19 +1,19 @@
-FROM node:11.1-alpine
+FROM goatcommunity/flask-api-base
 
-# Create app directory
-WORKDIR /app
+WORKDIR /usr/src/app
+COPY requirements.txt ./
+COPY *-requires.txt ./
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-COPY package*.json ./
+RUN pip install --upgrade pip setuptools \
+    && pip install --user --no-cache-dir --no-warn-script-location -r requirements.txt
 
-RUN npm install
-# If you are building your code for production
-# RUN npm ci --only=production
+ENV PYTHONUNBUFFERED 1
+ENV PATH $PATH:/root/.local/bin
+ENV FLASK_APP src/app.py
+ENV FLASK_ENV production
 
-# Bundle app source
-COPY . .
+COPY ./ ./
 
 EXPOSE 3000
-CMD [ "node", "./bin/www" ]
+
+CMD python src/app.py

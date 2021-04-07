@@ -40,7 +40,7 @@ BEGIN
 			AND from_v = vid; 
 			
 		  	INSERT INTO isos 
-		  	SELECT vid AS from_v, cutoff/60, ST_SETSRID(st_geomfromtext('POLYGON(('||REPLACE(plv8_concaveman(),',4',' 4')||'))'),4326) AS geom;
+		  	SELECT vid AS from_v, cutoff/60, ST_SETSRID(st_geomfromtext('POLYGON((' || regexp_replace(plv8_concaveman(),',(.*?(?:,|$))',' \1','g') || '))'),4326) AS geom;
 		  	
 		END IF;
 		END LOOP;  

@@ -1,8 +1,7 @@
-import { GeoJSON } from "ol/format";
 import http from "../services/http";
 import axios from "axios";
 import store from "../store/modules/isochrones";
-
+import { geojsonToFeature } from "../utils/MapUtils";
 /**
  * Util class for OL Edit layers.
  */
@@ -15,10 +14,14 @@ const editLayerHelper = {
   selectedLayer: null,
   selectedWayType: "road",
   filterResults(response, source, bldEntranceLayer, storageSource) {
-    const editFeatures = new GeoJSON().readFeatures(response.first.data);
-    const editFeaturesModified = new GeoJSON().readFeatures(
-      response.second.data
-    );
+    const editFeatures = geojsonToFeature(response.first.data, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857"
+    });
+    const editFeaturesModified = geojsonToFeature(response.second.data, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857"
+    });
     source.addFeatures(editFeatures);
     const userInputFeaturesWithOriginId = [];
     const originIdsArr = [];
@@ -36,9 +39,12 @@ const editLayerHelper = {
     });
 
     if (response.third) {
-      bldEntranceLayer
-        .getSource()
-        .addFeatures(new GeoJSON().readFeatures(response.third.data));
+      bldEntranceLayer.getSource().addFeatures(
+        geojsonToFeature(response.third.data, {
+          dataProjection: "EPSG:4326",
+          featureProjection: "EPSG:3857"
+        })
+      );
     }
 
     editFeatures.forEach(feature => {
@@ -65,10 +71,7 @@ const editLayerHelper = {
           ).length === 0
         ) {
           const clonedFeature = feature.clone();
-          const layerName = this.selectedLayer
-            .getSource()
-            .getParams()
-            .LAYERS.split(":")[1];
+          const layerName = this.selectedLayer.get("name");
           clonedFeature.set("layerName", layerName);
           clonedFeature.set("deletedId", originId);
           editLayerHelper.deletedFeatures.push(feature.clone());
@@ -127,11 +130,8 @@ const editLayerHelper = {
     }
   },
   commitDelete(mode, drawn_fid) {
-    const layerName = this.selectedLayer
-      .getSource()
-      .getParams()
-      .LAYERS.split(":")[1];
-    fetch("/api/scenarios", {
+    const layerName = this.selectedLayer.get("name");
+    fetch("/api/map/scenarios", {
       method: "POST",
       body: JSON.stringify({
         mode: mode,
@@ -160,7 +160,7 @@ const editLayerHelper = {
   uploadFeatures(source, onUploadCb) {
     http
       .post(
-        "./api/upload_all_scenarios",
+        "./api/map/upload_all_scenarios",
         {
           scenario_id: parseInt(store.state.activeScenario)
         },
@@ -172,7 +172,7 @@ const editLayerHelper = {
         }
       )
       .then(function(response) {
-        if (response.status === 200 && response.data === "success") {
+        if (response.status === 200) {
           //Set status of delete features as well
           editLayerHelper.deletedFeatures = editLayerHelper.deletedFeatures.filter(
             feature => {
@@ -194,8 +194,6 @@ const editLayerHelper = {
           const bldFeatureIds = [];
           //Update Feature Line type
           source.getFeatures().forEach(feature => {
-            console.log(feature.get("scenario_id"), store.state.activeScenario);
-
             if (feature.get("scenario_id") !== store.state.activeScenario) {
               return;
             }
@@ -214,29 +212,33 @@ const editLayerHelper = {
           });
 
           // Refetch building features  to update the properties (used for population)...
+
+          const buildingsModifiedPayload = {
+            mode: "read",
+            table_name: `buildings_modified`,
+            return_type: "geojson",
+            scenario_id: store.state.activeScenario
+          };
           http
-            .get("./geoserver/wfs", {
-              params: {
-                service: "WFS",
-                version: " 2.0.0",
-                request: "GetFeature",
-                featureId: bldFeatureIds.toString(),
-                typeNames: `cite:buildings_modified`,
-                outputFormat: "json"
-              }
-            })
+            .post("/api/map/layer_controller", buildingsModifiedPayload)
             .then(response => {
-              if (response.data && response.data.features) {
-                response.data.features.forEach(feature => {
-                  const id = parseInt(feature.id.split(".")[1]);
-                  const editFeature = source.getFeatureById(id);
-                  var keys = Object.keys(feature.properties);
-                  keys.forEach(key => {
-                    const value = feature.properties[key];
-                    if (value) {
-                      editFeature.set(key, value);
-                    }
-                  });
+              if (response.data) {
+                const olFeatures = geojsonToFeature(response.data);
+                olFeatures.forEach(feature => {
+                  if (feature.get("gid")) {
+                    const id = parseInt(feature.get("gid"));
+                    const editFeature = source.getFeatureById(id);
+                    var keys = Object.keys(feature.getProperties());
+                    const properties = feature.getProperties();
+                    keys.forEach(key => {
+                      if (!["geom", "geometry"].includes(key)) {
+                        const value = properties[key];
+                        if (value) {
+                          editFeature.set(key, value);
+                        }
+                      }
+                    });
+                  }
                 });
               }
             });

@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" scrollable max-width="500px">
     <v-card flat>
-      <v-app-bar color="green" dark>
+      <v-app-bar :color="activeColor.primary" dark>
         <v-app-bar-nav-icon><v-icon>fas fa-flag</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title>{{ $t("appBar.settings.title") }}</v-toolbar-title>
         <v-spacer></v-spacer>
@@ -43,6 +43,8 @@
 <script>
 import i18n from "@/plugins/i18n";
 import { EventBus } from "../../EventBus";
+import { mapGetters } from "vuex";
+
 export default {
   props: ["visible"],
   data() {
@@ -74,7 +76,10 @@ export default {
           EventBus.$emit("ol-interaction-stoped", this.interactionType);
         }
       }
-    }
+    },
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
   },
   mounted() {
     const currentLang = this.$i18n.locale;

@@ -27,6 +27,7 @@
             <v-expansion-panel
               v-for="(item, i) in layerGroup.children"
               :key="i"
+              :disabled="isLayerBusy(item.mapLayer)"
               :class="{
                 'expansion-panel__container--active': item.showOptions === true
               }"
@@ -122,6 +123,7 @@ import { Mapable } from "../../../mixins/Mapable";
 import { Group, Vector } from "ol/layer.js";
 import { mapGetters, mapMutations } from "vuex";
 import DocumentationDialog from "../../other/DocumentationDialog";
+import { EventBus } from "../../../EventBus";
 
 export default {
   mixins: [Mapable],
@@ -139,6 +141,9 @@ export default {
     }),
     ...mapGetters("app", {
       activeColor: "activeColor"
+    }),
+    ...mapGetters("map", {
+      busyLayers: "busyLayers"
     })
   },
   methods: {
@@ -146,6 +151,15 @@ export default {
      * This function is executed, after the map is bound (see mixins/Mapable)
      * and registers the current map layers.
      */
+    isLayerBusy(treeLayer) {
+      let isBusy = false;
+      this.busyLayers.forEach(bl => {
+        if (bl.get("name") === treeLayer.get("name")) {
+          isBusy = true;
+        }
+      });
+      return isBusy;
+    },
     onMapBound() {
       const me = this;
       const localVectorLayers = {
@@ -159,7 +173,11 @@ export default {
         .getArray()
         .forEach((layer, index) => {
           let obj = me.getMapLayerObj(layer, index);
-          if (layer instanceof Group && layer.get("name") != "undefined") {
+          if (
+            layer instanceof Group &&
+            layer.get("name") != "undefined" &&
+            layer.get("name") != "osmMappingLayers"
+          ) {
             me.layers.push(obj);
           } else if (
             layer instanceof Vector &&
@@ -244,6 +262,7 @@ export default {
       if (clickedLayer.mapLayer.getVisible() === false) {
         clickedLayer.showOptions = false;
       }
+      EventBus.$emit("toggleLayerVisiblity", clickedLayer.mapLayer);
     },
     openDocumentation(item) {
       this.showDocumentationDialog = true;
@@ -280,7 +299,7 @@ export default {
 }
 
 .expansion-panel__container--active {
-  background-color: #4caf50 !important;
+  background-color: #2bb381 !important;
   color: white !important;
 }
 
@@ -300,7 +319,7 @@ export default {
   height: 30px;
   width: 60px;
   opacity: 0.8;
-  background: #4caf50;
+  background: #2bb381;
   transform: rotate(45deg);
   z-index: 20;
   cursor: pointer;

@@ -9,7 +9,7 @@ import yaml
 #Step defined the bulk size of the heatmap calculation
 step = 200
 #Grid size defines the size of each grid
-grid_size = 500
+grid_size = 150
 
 start = time.time()
 
@@ -147,12 +147,12 @@ print('Closest POIs calculation has finished after: %s s' % (time.time()-start-t
 cursor.execute('SELECT compute_accessibility(0)')
 con.commit()
 #Loop for isochrone area calculation
-cursor.execute('select grid_id FROM grid_heatmap;')
+cursor.execute('SELECT grid_id FROM grid_heatmap;')
 gridids = cursor.fetchall()
 
 for i in gridids:
 	i = i[0]
-	cursor.execute(f'''SELECT compute_area_isochrone({i},0);''')	
+	cursor.execute(f'''SELECT compute_area_isochrone({i},0,1,0);''')	
 	con.commit()
 
 cursor.execute(sql_grid_population)

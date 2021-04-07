@@ -1,22 +1,18 @@
 import DrawInteraction from "ol/interaction/Draw";
 import { unByKey } from "ol/Observable.js";
 import { fromCircle } from "ol/geom/Polygon";
-import {
-  intersects as intersectsFilter,
-  equalTo as equalToFilter,
-  and as andFilter
-} from "ol/format/filter";
 
 import http from "../services/http";
 import axios from "axios";
 
 import { getSelectStyle } from "../style/OlStyleDefs";
-import { wfsRequestParser } from "../utils/Layer";
+import { geometryToWKT } from "../utils/MapUtils";
 
 import store from "../store/modules/isochrones";
+import poisStore from "../store/modules/pois";
 import OlBaseController from "./OlBaseController";
 import i18n from "../../src/plugins/i18n";
-
+import { EventBus } from "../EventBus";
 /**
  * Class holding the OpenLayers related logic for the select tool.
  */
@@ -95,61 +91,51 @@ export default class OlSelectController extends OlBaseController {
           const circle = evt.feature.getGeometry();
           //Create polygon from circle geometry;
           const circleAsPolygon = fromCircle(circle);
-          const filterIntersect = intersectsFilter(
-            "geom",
-            circleAsPolygon,
-            "EPSG:3857"
-          );
+          circleAsPolygon.transform("EPSG:3857", "EPSG:4326");
+          const circleWkt = geometryToWKT(circleAsPolygon);
+          // Request from origin table.
+          const originTablePayload = {
+            geom: circleWkt,
+            return_type: "geojson",
+            table_name: selectedLayer.get("name")
+          };
 
-          const params = selectedLayer.getSource().getParams();
-          const layerParams = params.LAYERS.split(":");
+          EventBus.$emit("getLayerPayload", {
+            cb: function(payload) {
+              Object.assign(originTablePayload, payload);
+            },
+            layer: selectedLayer
+          });
 
-          const xmlRequest = wfsRequestParser(
-            "EPSG:3857",
-            layerParams[0],
-            layerParams[1],
-            filterIntersect,
-            params.viewparams
-          );
+          originTablePayload.scenario_id = 0;
+          if (poisStore.state.selectedPois) {
+            const poisArray = poisStore.state.selectedPois.map(p => p.value);
+            originTablePayload.amenities = poisArray;
+          }
 
           const requests = [
-            http.post("geoserver/cite/wfs", xmlRequest, {
-              headers: { "Content-Type": "text/xml" }
-            })
+            http.post("/api/map/layer_read", originTablePayload)
           ];
-
-          const filterUserInputTable = equalToFilter(
-            "scenario_id",
-            store.state.activeScenario
-          );
-          const combinedFilter = andFilter(
-            filterUserInputTable,
-            filterIntersect
-          );
-          const modifiedReq = wfsRequestParser(
-            "EPSG:3857",
-            layerParams[0],
-            `${layerParams[1]}_modified`,
-            combinedFilter
-          );
+          // Request from modified table (TODO: This request might be eleminated if
+          // scenario features are already in the client)
+          const modifiedTablePayload = {
+            mode: "read",
+            table_name: `${selectedLayer.get("name")}_modified`,
+            scenario_id: store.state.activeScenario
+          };
           requests.push(
-            http.post("geoserver/cite/wfs", modifiedReq, {
-              headers: { "Content-Type": "text/xml" }
-            })
+            http.post("/api/map/layer_controller", modifiedTablePayload)
           );
 
           // Request only for population when building layer is active.
           if (selectedLayer.get("name") === "buildings") {
-            const populationReq = wfsRequestParser(
-              "EPSG:3857",
-              layerParams[0],
-              "population_modified",
-              combinedFilter
-            );
+            const populationTablePayload = {
+              mode: "read",
+              table_name: "population_modified",
+              scenario_id: store.state.activeScenario
+            };
             requests.push(
-              http.post("geoserver/cite/wfs", populationReq, {
-                headers: { "Content-Type": "text/xml" }
-              })
+              http.post("/api/map/layer_controller", populationTablePayload)
             );
           }
 

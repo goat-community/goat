@@ -355,19 +355,27 @@ BEGIN
 	AND w.scenario_id IS NULL; 
 	
 	/*Compute impendances for newly drawn ways*/
-	WITH impedances AS 
-	(
-		SELECT w.id, ci.imp, ci.rs_imp
-		FROM ways_userinput w,
-		LATERAL get_slope_profile(w.id, 10, 'ways_userinput') sp, LATERAL compute_impedances(sp.elevs, sp.linkLength, 10) ci
-		WHERE scenario_id = scenario_id_input 
-		AND original_id IS NULL 
-	)
-	UPDATE ways_userinput w
-	SET s_imp = i.imp, rs_imp = i.rs_imp 
-	FROM impedances i 
-	WHERE w.id = i.id;
-			
+	IF EXISTS
+		( SELECT 1
+			FROM   information_schema.tables 
+			WHERE  table_schema = 'public'
+			AND    table_name = 'dem'
+		)
+	THEN
+		WITH impedances AS 
+		(
+			SELECT w.id, ci.imp, ci.rs_imp
+			FROM ways_userinput w,
+			LATERAL get_slope_profile(w.id, 10, 'ways_userinput') sp, LATERAL compute_impedances(sp.elevs, sp.linkLength, 10) ci
+			WHERE scenario_id = scenario_id_input 
+			AND original_id IS NULL 
+		)
+		UPDATE ways_userinput w
+		SET s_imp = i.imp, rs_imp = i.rs_imp 
+		FROM impedances i 
+		WHERE w.id = i.id;
+					
+	END IF;
 	UPDATE scenarios 
 	SET ways_heatmap_computed = FALSE 
 	WHERE scenario_id = scenario_id_input;

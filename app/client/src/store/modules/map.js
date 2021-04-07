@@ -11,7 +11,6 @@ const state = {
     }
   },
   layers: {}, // Only for operational layers
-  osmMappingLayers: {}, // Only for osm mapping layers
   helpTooltip: {
     isActive: false,
     currentMessage: ""
@@ -22,13 +21,13 @@ const state = {
   bldEntranceLayer: null,
   editLayer: null,
   selectedEditLayer: null,
-  isMapillaryBtnDisabled: false
+  isMapillaryBtnDisabled: false,
+  busyLayers: []
 };
 
 const getters = {
   map: state => state.map,
   layers: state => state.layers,
-  osmMappingLayers: state => state.osmMappingLayers,
   osmMode: state => state.osmMode,
   helpTooltip: state => state.helpTooltip,
   messages: state => state.messages,
@@ -39,6 +38,7 @@ const getters = {
   editLayer: state => state.editLayer,
   selectedEditLayer: state => state.selectedEditLayer,
   isMapillaryBtnDisabled: state => state.isMapillaryBtnDisabled,
+  busyLayers: state => state.busyLayers,
   getField
 };
 
@@ -54,11 +54,6 @@ const mutations = {
   SET_LAYER(state, layer) {
     if (layer.get("name")) {
       state.layers[layer.get("name")] = layer;
-    }
-  },
-  SET_OSM_MAPPING_LAYER(state, layer) {
-    if (layer.get("name")) {
-      state.osmMappingLayers[layer.get("name")] = layer;
     }
   },
   START_HELP_TOOLTIP(state, message) {
@@ -85,6 +80,14 @@ const mutations = {
   },
   SET_EDIT_LAYER(state, editLayer) {
     state.editLayer = editLayer;
+  },
+  INSERT_BUSY_LAYER(state, layer) {
+    state.busyLayers.push(layer);
+  },
+  REMOVE_BUSY_LAYER(state, layer) {
+    state.busyLayers = state.busyLayers.filter(
+      l => l.get("name") !== layer.get("name")
+    );
   },
   updateField
 };

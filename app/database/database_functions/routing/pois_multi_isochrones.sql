@@ -82,7 +82,7 @@ DECLARE
  	 
  	ELSE 
 		mask = st_setsrid(ST_GeomFromText(region[1]), 4326);
-		SELECT jsonb_build_object('bounding_box',floor(sum(population)::integer/5)*5) AS sum_pop
+		SELECT jsonb_build_object('bounding_box',COALESCE(floor(sum(population)::integer/5)*5,0)) AS sum_pop
 		INTO population_mask
 		FROM population_userinput p
 		WHERE (scenario_id = scenario_id_input OR scenario_id IS NULL)
@@ -114,9 +114,10 @@ DECLARE
 	PERFORM multi_isochrones(userid_input, scenario_id_input, objectid_multi_isochrone, minutes,n,routing_profile_input,speed_input,alphashape_parameter_input,modus_input,1,points_array);
 		
 	IF region_type = 'study_area' THEN
+
 	 	WITH expand_population AS 
 		(
-			SELECT m.gid,jsonb_array_elements(population_mask) AS population  
+			SELECT m.gid,jsonb_object_keys(jsonb_array_elements(population_mask)) AS name, jsonb_array_elements(population_mask) AS population  
 			FROM multi_isochrones m
 			WHERE m.objectid = objectid_multi_isochrone 
 		),
@@ -133,22 +134,28 @@ DECLARE
 			AND p.building_gid NOT IN (SELECT UNNEST(excluded_buildings_gid))
 			AND (p.scenario_id = scenario_id_input OR p.scenario_id IS NULL)
 			GROUP BY i.gid, i.name
+		),
+		merge_reached AS 
+		(
+			SELECT e.gid, e.population, 
+			CASE WHEN r.reached_population IS NULL THEN jsonb_build_object(concat(e.name,'_reached'),0) 
+			ELSE r.reached_population END AS reached_population 
+			FROM expand_population e
+			LEFT JOIN reached_population r  
+			ON e.gid = r.gid
+			AND e.name = r.name
 		)
 		UPDATE multi_isochrones m
 		SET population = x.new_population
 		FROM (
-			SELECT e.gid, array_to_json(array_agg(e.population|| r.reached_population)) new_population
-			FROM expand_population e, reached_population r
-			WHERE e.population::jsonb ? r.name
-			AND e.gid = r.gid
-			GROUP BY e.gid
+			SELECT m.gid, array_to_json(array_agg(m.population || m.reached_population)) new_population
+			FROM merge_reached m
+			GROUP BY m.gid
 		) x 
 		WHERE m.gid = x.gid;
-	
 	ELSE 
-
 		UPDATE multi_isochrones 
-		SET population = population_mask || x.reached_population
+		SET population = population_mask || reached_population 
 		FROM (
 			SELECT m.gid, jsonb_build_object('bounding_box_reached',floor(COALESCE(sum(p.population)::integer,0)/5)*5) AS reached_population
 			FROM population_userinput p, multi_isochrones m 
@@ -159,6 +166,12 @@ DECLARE
 			GROUP BY m.gid
 		) x
 		WHERE multi_isochrones.gid = x.gid;
+	
+		UPDATE multi_isochrones 
+		SET population = population_mask || jsonb_build_object('bounding_box_reached',0)
+		WHERE population IS NULL
+		AND objectid = objectid_multi_isochrone;
+	
 	END IF; 
 	RETURN query 
 	SELECT gid,objectid, coordinates, userid, scenario_id_input, step, routing_profile, speed, alphashape_parameter,modus, parent_id, population, geom geometry 
@@ -167,14 +180,12 @@ DECLARE
 	END;
 $function$ LANGUAGE plpgsql;
 
-
-
 /*
 SELECT *
-FROM pois_multi_isochrones(1,15,5.0,3,'walking_wheelchair',0.00003,1,'study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) ;
+FROM pois_multi_isochrones(1,0,15,5.0,3,'walking_wheelchair',0.00003,1,'study_area',ARRAY['16.3','16.4'],ARRAY['supermarket','bar']) ;
 
 SELECT *
-FROM pois_multi_isochrones(1,10,5.0,2,'walking_standard',0.00003,1,'envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 
+FROM pois_multi_isochrones(1,0,10,5.0,2,'walking_standard',0.00003,1,'envelope',array['11.599198','48.130329','11.630676','48.113260'],array['supermarket','discount_supermarket']) 
 --alphashape_parameter NUMERIC = 0.00003;
 --region_type 'envelope' or study_area
 */

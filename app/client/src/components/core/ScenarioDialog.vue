@@ -6,10 +6,12 @@
     @keydown.esc="scenarioDialog = false"
   >
     <v-card>
-      <v-app-bar flat color="green" dark height="50">
+      <v-app-bar flat :color="activeColor.primary" dark height="50">
         <v-icon class="mr-3">fas fa-bullseye</v-icon>
         <v-toolbar-title>{{
-          scenarioId ? "Update Scenario Name" : "Create scenario"
+          scenarioId
+            ? $t("appBar.edit.editScenarioName")
+            : $t("appBar.edit.createScenario")
         }}</v-toolbar-title>
       </v-app-bar>
       <v-card-text class="mt-5">
@@ -80,14 +82,17 @@ export default {
       scenarios: "scenarios",
       activeScenario: "activeScenario"
     }),
-    ...mapGetters("user", { userId: "userId" })
+    ...mapGetters("user", { userId: "userId" }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
   },
   methods: {
     updateInsertScenario() {
       const scenarioName = this.scenarioName;
       const activeScenarioId = this.scenarioId;
       http
-        .post("./api/scenarios", {
+        .post("./api/map/scenarios", {
           mode: activeScenarioId ? "update_scenario" : "insert",
           userid: this.userId,
           scenario_name: this.scenarioName,
@@ -95,7 +100,7 @@ export default {
         })
         .then(response => {
           if (response.status === 200) {
-            let scenarioId = activeScenarioId || response.data[0].scenario_id;
+            let scenarioId = activeScenarioId || response.data.scenario_id;
             scenarioId = parseInt(scenarioId);
             this.$set(this.scenarios, scenarioId, {
               title: scenarioName
@@ -117,9 +122,9 @@ export default {
           let id = Object.keys(this.scenarios).length;
           if (id > 0) {
             id += 1;
-            this.scenarioName = "Scenario " + id;
+            this.scenarioName = this.$t("appBar.edit.scenario") + " " + id;
           } else {
-            this.scenarioName = "Scenario 1";
+            this.scenarioName = this.$t("appBar.edit.scenario") + " 1";
           }
         }
       }

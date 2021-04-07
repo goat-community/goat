@@ -15,9 +15,10 @@ import App from "./App";
 import UrlUtil from "./utils/Url";
 import store from "./store/index";
 import axios from "axios";
-import { geojsonToFeature } from "./utils/MapUtils";
+import { geobufToFeatures } from "./utils/MapUtils";
 import { buffer } from "ol/extent";
 import { getCenter } from "ol/extent";
+import { EventBus } from "./EventBus";
 
 require("../node_modules/ol/ol.css");
 require("./assets/scss/app.scss");
@@ -43,19 +44,29 @@ function getAppConf() {
 }
 
 function getStudyAreaBbox() {
-  return axios.get(
-    "/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cite:study_area_union&srsname=EPSG:4326&outputFormat=json"
+  return axios.post(
+    "/api/map/layer_read",
+    {
+      table_name: "study_area_union",
+      return_type: "geobuf"
+    },
+    {
+      responseType: "arraybuffer"
+    }
   );
 }
 
-axios.all([getAppConf(), getStudyAreaBbox()]).then(
-  axios.spread(function(config, studyArea) {
+function getLayerStyleTranslation() {
+  return axios.get("static/layer-styles/translations/translations.json");
+}
+
+axios.all([getAppConf(), getStudyAreaBbox(), getLayerStyleTranslation()]).then(
+  axios.spread(function(config, studyArea, layerStyleTranslations) {
     //1- Make app config accessible for all components
     Vue.prototype.$appConfig = config.data;
-
     //2- Get study area bbox
-    if (studyArea.data.features.length > 0) {
-      const f = geojsonToFeature(studyArea.data, {
+    if (studyArea.data) {
+      const f = geobufToFeatures(studyArea.data, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857"
       });
@@ -70,6 +81,44 @@ axios.all([getAppConf(), getStudyAreaBbox()]).then(
         Vue.prototype.$appConfig.map.center = getCenter(originalExtent);
       }
       Vue.prototype.$appConfig.map.studyAreaFeature = f;
+    }
+
+    //3- Fetch all layer styles here.
+
+    let promiseArray = [];
+    const mapLayers = config.data.map.layers;
+    const osmLayer = config.data.map.osmMappingLayers;
+    const layers = [...mapLayers, ...osmLayer];
+    layers.forEach(layer => {
+      const layerName = layer.name;
+
+      if (layer.style && layer.style.format) {
+        promiseArray.push(
+          axios
+            .get(layer.style.url, {
+              data: { layerName, format: layer.style.format }
+            })
+            .catch(() => null)
+        );
+      }
+    });
+    if (promiseArray.length > 0) {
+      axios.all(promiseArray).then(function(results) {
+        const stylesObj = {};
+        results.forEach(response => {
+          if (response && response.config) {
+            const data = JSON.parse(response.config.data);
+            const { layerName, format } = data;
+            stylesObj[layerName] = {
+              format,
+              style: response.data,
+              translation: layerStyleTranslations.data[layerName]
+            };
+          }
+        });
+        EventBus.$emit("inject-styles", stylesObj);
+        Vue.prototype.$appConfig.stylesObj = stylesObj;
+      });
     }
 
     /* eslint-disable no-new */

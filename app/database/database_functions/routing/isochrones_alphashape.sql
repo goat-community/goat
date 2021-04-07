@@ -39,15 +39,25 @@ begin
 		FROM edges
 		WHERE COST <= i
 		AND objectid = objectid_input; 
-		
-		new_iso_geom = ST_SETSRID(st_geomfromtext('POLYGON(('||REPLACE(plv8_concaveman(),',4',' 4')||'))'),4326);
+		RAISE NOTICE '%', ST_ASTEXT(new_iso_geom);
+	
+	    BEGIN
+	        new_iso_geom = ST_SETSRID(st_geomfromtext('POLYGON((' || regexp_replace(plv8_concaveman(),',(.*?(?:,|$))',' \1','g') || '))'),4326);
+	    EXCEPTION 
+	    WHEN others THEN    
+	    	new_iso_geom = NULL;
+	        RAISE INFO 'Error when generating concavehull.';
+	    END;
+	
 
-	  	INSERT INTO isos 
-	  	SELECT userid_input, scenario_id_input, counter, i/60, 
-		CASE WHEN old_iso_geom IS NOT NULL THEN ST_UNION(new_iso_geom, old_iso_geom) ELSE new_iso_geom END AS geom;
-	  	
-		old_iso_geom = new_iso_geom;
-		
+		IF ST_IsValid(new_iso_geom) IS TRUE THEN 
+		  	INSERT INTO isos 
+		  	SELECT userid_input, scenario_id_input, counter, i/60, 
+			CASE WHEN old_iso_geom IS NOT NULL AND ST_EQUALS(new_iso_geom, old_iso_geom) <> 't' THEN ST_UNION(new_iso_geom, old_iso_geom) 
+			ELSE new_iso_geom END AS geom;
+			old_iso_geom = new_iso_geom;
+		END IF; 
+	
 	END IF;
 	END LOOP;  
 
