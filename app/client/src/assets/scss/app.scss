@@ -55,6 +55,17 @@ html {
   cursor: pointer;
 }
 
+// map fullscreen class
+.fullscreen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+
 /*Tooltip Styling */
 .tooltip {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;

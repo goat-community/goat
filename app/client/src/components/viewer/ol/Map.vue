@@ -267,7 +267,6 @@ export default {
 
     // Setup context menu (right-click)
     me.setupContentMenu();
-
     // Event bus setup for managing interactions
     EventBus.$on("ol-interaction-activated", startedInteraction => {
       me.activeInteractions.push(startedInteraction);
@@ -544,9 +543,8 @@ export default {
             return false;
           }
         });
-
-        this.map.getTarget().style.cursor =
-          features.length > 0 ? "pointer" : "";
+        const style = this.map.getTarget().style;
+        style && style.cursor == features.length > 0 ? "pointer" : "";
       });
     },
 
