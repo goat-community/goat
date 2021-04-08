@@ -44,7 +44,6 @@
         <!-- TITLE -->
         <div class="title" ref="print-title" :style="getTitleStyle">
           {{ print.title ? print.title.toUpperCase() : "" }}
-          <v-divider v-if="print.title && print.title.length > 0"></v-divider>
         </div>
         <!-- LEGEND -->
         <div v-if="print.legend" :style="getLegendStyle()">
@@ -68,7 +67,12 @@
       </div>
     </v-row>
     <v-row>
-      <v-pagination v-model="page" :length="4" circle></v-pagination>
+      <v-pagination
+        :color="activeColor.primary"
+        v-model="page"
+        :length="2"
+        circle
+      ></v-pagination>
     </v-row>
   </div>
 </template>
@@ -93,6 +97,9 @@ export default {
     ...mapGetters("map", {
       print: "print",
       map: "map"
+    }),
+    ...mapGetters("app", {
+      activeColor: "activeColor"
     }),
     /**
      * Get formated date time as dd/mm/yyyy hh:mm:ss
@@ -156,8 +163,7 @@ export default {
         left = sheetWidth / 2 - 30;
         top = sheetPadding + this.getMapHeight;
       }
-      const style = `z-index: 1;width: 60mm;text-align: center;word-wrap: break-word;
-vertical-align: middle;position:absolute;left:${left}mm;top:${top}mm;`;
+      const style = `z-index: 1;width: 60mm;text-align: center;word-wrap: break-word;vertical-align: middle;position:absolute;left:${left}mm;top:${top}mm;`;
       return style;
     }
   },

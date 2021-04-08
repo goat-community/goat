@@ -245,7 +245,8 @@ export default {
       layers: [],
       interactions: defaultInteractions({
         altShiftDragRotate: me.rotateableMap,
-        doubleClickZoom: false
+        doubleClickZoom: false,
+        mouseWheelZoom: true
       }).extend([this.dblClickZoomInteraction]),
       controls: defaultControls({
         attribution: false,
