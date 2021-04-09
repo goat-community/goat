@@ -12,10 +12,56 @@ CREATE INDEX ON ways_offset_sidewalk USING btree(id);
 CREATE INDEX ON ways_offset_sidewalk USING gist(geom_left);
 CREATE INDEX ON ways_offset_sidewalk USING gist(geom_right);
 
--- TODO: kleine Wege die Dead-ends & highway IN (service, footpath) oder NULL sind rausfiltern -> function "extendline" (IN DREGREE)-> verschneiden mit gebäuden 
--- TODO: Split WAYS 
+/*Split long ways (length_m >= 200)and remove death_end that are house entrance*/
+DROP TABLE IF EXISTS expanded_death_end;
+CREATE TABLE expanded_death_end AS 
+WITH meter_degree AS 
+(
+	SELECT return_meter_srid_4326()	AS meter_degree
+)
+SELECT DISTINCT w.id, class_id, w.geom
+FROM ways w, buildings b
+WHERE death_end IS NOT NULL 
+AND highway NOT IN ('residential','living_street')
+AND ST_DWITHIN(w.geom, b.geom,  3*(SELECT meter_degree FROM meter_degree));
 
+ALTER TABLE expanded_death_end ADD PRIMARY KEY(id);
 
+DROP TABLE ways_cleaned;
+CREATE TABLE ways_cleaned AS 
+SELECT w.id AS wid, w.osm_id, w.name, highway, surface, smoothness, maxspeed_forward, maxspeed_backward, bicycle, foot, oneway, crossing,
+bicycle_road, cycleway, incline, incline_percent, lit, lit_classified, parking, parking_lane_both, parking_lane_left,
+parking_lane_right, segregated, sidewalk, sidewalk_both_width, sidewalk_left_width, sidewalk_right_width, wheelchair_classified, width,
+death_end, split_long_way(w.geom,length_m::numeric,200) AS geom 
+FROM ways w
+LEFT JOIN expanded_death_end e
+ON w.id = e.id
+WHERE e.id IS NULL
+AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
+AND (
+	w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
+	OR w.foot IS NULL 
+)
+AND length_m >= 200
+UNION ALL 
+SELECT w.id AS wid, w.osm_id, w.name, highway, surface, smoothness, maxspeed_forward, maxspeed_backward, bicycle, foot, oneway, crossing,
+bicycle_road, cycleway, incline, incline_percent, lit, lit_classified, parking, parking_lane_both, parking_lane_left,
+parking_lane_right, segregated, sidewalk, sidewalk_both_width, sidewalk_left_width, sidewalk_right_width, wheelchair_classified, width,
+death_end, w.geom
+FROM ways w
+LEFT JOIN expanded_death_end e
+ON w.id = e.id
+WHERE e.id IS NULL
+AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
+AND (
+	w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
+	OR w.foot IS NULL 
+)
+AND length_m < 200;
+
+ALTER TABLE ways_cleaned ADD COLUMN id serial; 
+CREATE INDEX ON ways_cleaned USING GIST(geom);
+ALTER TABLE ways_cleaned ADD PRIMARY KEY(id);
 
 --Table for visualization of the footpath width
 DROP TABLE IF EXISTS footpath_visualization;
