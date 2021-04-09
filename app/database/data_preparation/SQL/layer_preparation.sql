@@ -32,7 +32,7 @@ FROM
 	END AS width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, 
 	parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified,
-	'yes_left' as offset 
+	'yes_left' AS from_offset 
 	FROM ways w, ways_offset_sidewalk o
 	WHERE w.id=o.id 
 	AND (o.sidewalk = 'both' OR o.sidewalk = 'left' OR o.sidewalk IS NULL)
@@ -51,7 +51,7 @@ UNION
 	END AS width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, 
 	parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified,
-	'yes_right' as offset  
+	'yes_right' AS from_offset  
 	FROM ways w, ways_offset_sidewalk o
 	WHERE w.id=o.id AND (o.sidewalk = 'both' OR o.sidewalk = 'right' OR o.sidewalk IS NULL)
 	AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
@@ -61,14 +61,14 @@ UNION
 	SELECT geom, sidewalk, width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, 
 	segregated, smoothness, surface, wheelchair, wheelchair_classified,
-	'no' as offset 
+	'no' AS from_offset 
 	FROM ways
 	WHERE sidewalk = 'no' -- mit nächstem zusammenfassen
 UNION
 	SELECT geom, sidewalk, width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, 
 	segregated, smoothness, surface, wheelchair, wheelchair_classified,
-	'no' as offset   
+	'no' AS from_offset  
 	FROM ways
 	WHERE highway = 'living_street' OR (highway in ('residential','unclassified') AND sidewalk IS NULL)
 UNION
@@ -79,19 +79,18 @@ UNION
 	END AS width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, 
 	parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified,
-	'no' as offset  
+	'no' AS from_offset
 	FROM ways
 	WHERE highway ='cycleway' OR (foot = 'designated' AND bicycle = 'designated')
 UNION
 	SELECT geom, sidewalk, width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, 
 	segregated, smoothness, surface, wheelchair, wheelchair_classified,
-	'no' as offset    
+	'no' AS from_offset  
 	FROM ways
 	WHERE sidewalk IS NULL AND highway IN ('path','track','footway','steps','service','pedestrian')
 ) x, study_area s 
 WHERE ST_intersects(x.geom,s.geom);
-
 
 CREATE INDEX ON footpath_visualization USING gist(geom);
 ALTER TABLE footpath_visualization ADD COLUMN id serial;
