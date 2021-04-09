@@ -12,9 +12,14 @@ CREATE INDEX ON ways_offset_sidewalk USING btree(id);
 CREATE INDEX ON ways_offset_sidewalk USING gist(geom_left);
 CREATE INDEX ON ways_offset_sidewalk USING gist(geom_right);
 
+-- TODO: kleine Wege die Dead-ends & highway IN (service, footpath) oder NULL sind rausfiltern -> function "extendline" (IN DREGREE)-> verschneiden mit gebäuden 
+-- TODO: Split WAYS 
+
+
+
 --Table for visualization of the footpath width
-DROP TABLE IF EXISTS footpaths_union;
-CREATE TABLE footpaths_union AS
+DROP TABLE IF EXISTS footpath_visualization;
+CREATE TABLE footpath_visualization AS
 SELECT x.* 
 FROM 
 (
@@ -25,12 +30,17 @@ FROM
 		THEN w.sidewalk_both_width
 	ELSE NULL
 	END AS width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
-		incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified 
+	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, 
+	parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified,
+	'yes_left' as offset 
 	FROM ways w, ways_offset_sidewalk o
-	WHERE w.id=o.id AND (o.sidewalk = 'both' OR o.sidewalk = 'left' OR o.sidewalk IS NULL)
-		AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
-		AND (w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
-		OR w.foot IS NULL)
+	WHERE w.id=o.id 
+	AND (o.sidewalk = 'both' OR o.sidewalk = 'left' OR o.sidewalk IS NULL)
+	AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
+	AND (
+		w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
+		OR w.foot IS NULL 
+	)
 UNION
 	SELECT o.geom_right AS geom, o.sidewalk,
 	CASE WHEN w.sidewalk_right_width IS NOT NULL 
@@ -39,43 +49,102 @@ UNION
 		THEN w.sidewalk_both_width
 	ELSE NULL
 	END AS width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
-		incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified 
+	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, 
+	parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified,
+	'yes_right' as offset  
 	FROM ways w, ways_offset_sidewalk o
 	WHERE w.id=o.id AND (o.sidewalk = 'both' OR o.sidewalk = 'right' OR o.sidewalk IS NULL)
-		AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
-		AND (w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
-		OR w.foot IS NULL)
+	AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
+	AND (w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
+	OR w.foot IS NULL)
 UNION
 	SELECT geom, sidewalk, width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
-		incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified 
+	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, 
+	segregated, smoothness, surface, wheelchair, wheelchair_classified,
+	'no' as offset 
 	FROM ways
-	WHERE sidewalk = 'no'
+	WHERE sidewalk = 'no' -- mit nächstem zusammenfassen
 UNION
 	SELECT geom, sidewalk, width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
-		incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified  
+	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, 
+	segregated, smoothness, surface, wheelchair, wheelchair_classified,
+	'no' as offset   
 	FROM ways
-	WHERE highway = 'living_street'
+	WHERE highway = 'living_street' OR (highway in ('residential','unclassified') AND sidewalk IS NULL)
 UNION
 	SELECT geom, sidewalk, 
 	CASE WHEN segregated = 'yes'
 		THEN width/2 
 	ELSE width
 	END AS width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
-		incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified 
+	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, 
+	parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified,
+	'no' as offset  
 	FROM ways
 	WHERE highway ='cycleway' OR (foot = 'designated' AND bicycle = 'designated')
 UNION
 	SELECT geom, sidewalk, width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
-		incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified  
+	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, 
+	segregated, smoothness, surface, wheelchair, wheelchair_classified,
+	'no' as offset    
 	FROM ways
 	WHERE sidewalk IS NULL AND highway IN ('path','track','footway','steps','service','pedestrian')
 ) x, study_area s 
 WHERE ST_intersects(x.geom,s.geom);
 
 
-CREATE INDEX ON footpaths_union USING gist(geom);
-ALTER TABLE footpaths_union ADD COLUMN id serial;
-ALTER TABLE footpaths_union ADD PRIMARY KEY(id);
+CREATE INDEX ON footpath_visualization USING gist(geom);
+ALTER TABLE footpath_visualization ADD COLUMN id serial;
+ALTER TABLE footpath_visualization ADD PRIMARY KEY(id);
+
+--Precalculation of visualized features for illuminance
+
+WITH variables AS 
+(
+    SELECT select_from_variable_container_o('lit') AS lit
+)
+UPDATE footpath_visualization f SET lit_classified = x.lit_classified
+FROM
+    (SELECT f.id,
+    CASE WHEN 
+        lit IN ('yes','Yes') 
+        OR (lit IS NULL AND highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_yes')::jsonb) FROM variables)
+			AND maxspeed_forward<80)
+        THEN 'yes' 
+    WHEN
+        lit IN ('no','No')
+        OR (lit IS NULL AND (highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_no')::jsonb) FROM variables) 
+        OR surface IN (SELECT jsonb_array_elements_text((lit ->> 'surface_no')::jsonb) FROM variables)
+		OR maxspeed_forward>=80)
+        )
+        THEN 'no'
+    ELSE 'unclassified'
+    END AS lit_classified 
+    FROM footpath_visualization f
+    ) x
+WHERE f.id = x.id;
+
+--Precalculation of visualized features for lit
+DROP TABLE IF EXISTS buffer_lamps;
+CREATE TEMP TABLE buffer_lamps as
+SELECT ST_BUFFER(way,0.00015,'quad_segs=8') AS geom 
+FROM planet_osm_point 
+WHERE highway = 'street_lamp';
+
+CREATE INDEX ON buffer_lamps USING gist(geom);
+
+/*
+WITH union_b AS 
+(
+	SELECT ST_UNION(bl.geom) 
+	FROM buffer_lamps bl
+)
+UPDATE ways w SET lit_classified = 'yes'
+FROM buffer_lamps b, union_b ub
+WHERE (lit IS NULL OR lit = '')
+AND ST_Intersects(b.geom,w.geom)
+AND ST_Length(ST_Intersection(ub.st_union, w.geom))/ST_Length(w.geom) > 0.3;
+*/
 
 --Creation of a table that stores all parking geometries
 DROP TABLE IF EXISTS ways_offset_parking;
