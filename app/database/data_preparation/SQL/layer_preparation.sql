@@ -1,7 +1,8 @@
 
 
 --THIS FILE NEEDS TO BE EXECUTED TO CREATE ALL NECESSARY TABLES FOR THE STREET LEVEL QUALITY LAYERS
-/*Split long ways (length_m >= 200)and remove death_end that are house entrance*/
+
+/*Collect deathends close to buildings*/
 DROP TABLE IF EXISTS ways_to_remove;
 CREATE TABLE ways_to_remove AS 
 SELECT DISTINCT w.id, class_id, w.SOURCE, w.target, 
@@ -16,6 +17,7 @@ AND (
 	OR w.foot IS NULL 
 );
 
+/*Remove deathends shorter then 20 meters*/
 ALTER TABLE ways_to_remove ADD PRIMARY KEY(id);
 INSERT INTO ways_to_remove
 SELECT DISTINCT w.id, w.class_id, w.SOURCE, w.target, 
@@ -36,6 +38,7 @@ LEFT JOIN ways_to_remove e
 ON w.id = e.id 
 WHERE e.id IS NULL; 
 
+/*Remove neighbor edge of deathend if also new deathend*/
 INSERT INTO ways_to_remove
 SELECT w.id, w.class_id, w.SOURCE, w.target,
 CASE WHEN w.death_end = w.SOURCE THEN w.SOURCE ELSE w.target END AS not_death_end_vertex, w.geom
@@ -58,6 +61,7 @@ AND (
 
 /*TO IMPROVE: Loop through death ends to get new death ends*/
 
+/*Remove linkes that are inside buildings*/
 INSERT INTO ways_to_remove (id)
 SELECT w.id
 FROM (
@@ -69,6 +73,7 @@ LEFT JOIN ways_to_remove e
 ON w.id = e.id 
 WHERE e.id IS NULL; 
 
+/*Create cleaned ways table and split long links*/
 DROP TABLE IF EXISTS ways_cleaned;
 CREATE TABLE ways_cleaned AS 
 SELECT w.id AS wid, w.osm_id, w.name, w.class_id, highway, surface, smoothness, maxspeed_forward, maxspeed_backward, bicycle, foot, oneway, crossing,
