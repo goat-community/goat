@@ -1,16 +1,5 @@
 --THIS FILE NEEDS TO BE EXECUTED TO CREATE ALL NECESSARY TABLES FOR THE STREET LEVEL QUALITY LAYERS
 
---Creation of a table that stores all sidewalk geometries
-DROP TABLE IF EXISTS ways_offset_sidewalk;
-CREATE TABLE ways_offset_sidewalk AS
-SELECT w.id, w.sidewalk,(ST_OffsetCurve(w.geom,  0.00005, 'join=round mitre_limit=2.0')) AS geom_left, 
-	(ST_OffsetCurve(w.geom,  -0.00005, 'join=round mitre_limit=2.0')) AS geom_right
-FROM ways w
-WHERE w.sidewalk = 'both' OR w.sidewalk = 'left' OR w.sidewalk = 'right';
-
-CREATE INDEX ON ways_offset_sidewalk USING btree(id);
-CREATE INDEX ON ways_offset_sidewalk USING gist(geom_left);
-CREATE INDEX ON ways_offset_sidewalk USING gist(geom_right);
 
 /*Split long ways (length_m >= 200)and remove death_end that are house entrance*/
 DROP TABLE IF EXISTS expanded_death_end;
@@ -27,7 +16,7 @@ AND ST_DWITHIN(w.geom, b.geom,  3*(SELECT meter_degree FROM meter_degree));
 
 ALTER TABLE expanded_death_end ADD PRIMARY KEY(id);
 
-DROP TABLE ways_cleaned;
+DROP TABLE IF EXISTS ways_cleaned;
 CREATE TABLE ways_cleaned AS 
 SELECT w.id AS wid, w.osm_id, w.name, highway, surface, smoothness, maxspeed_forward, maxspeed_backward, bicycle, foot, oneway, crossing,
 bicycle_road, cycleway, incline, incline_percent, lit, lit_classified, parking, parking_lane_both, parking_lane_left,
@@ -69,7 +58,7 @@ CREATE TABLE footpath_visualization AS
 SELECT x.* 
 FROM 
 (
-	SELECT o.geom_left AS geom, o.sidewalk,
+	SELECT (ST_OffsetCurve(w.geom,  0.00005, 'join=round mitre_limit=2.0')) AS geom, w.sidewalk,
 	CASE WHEN w.sidewalk_left_width IS NOT NULL 
 		THEN w.sidewalk_left_width
 	WHEN w.sidewalk_both_width IS NOT NULL 
@@ -79,16 +68,15 @@ FROM
 	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, 
 	parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified,
 	'yes_left' AS from_offset 
-	FROM ways w, ways_offset_sidewalk o
-	WHERE w.id=o.id 
-	AND (o.sidewalk = 'both' OR o.sidewalk = 'left' OR o.sidewalk IS NULL)
+	FROM ways_cleaned w
+	WHERE (w.sidewalk = 'both' OR w.sidewalk = 'left' OR (w.sidewalk IS NULL AND highway IN ('secondary','tertiary')))
 	AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
 	AND (
 		w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
 		OR w.foot IS NULL 
 	)
 UNION
-	SELECT o.geom_right AS geom, o.sidewalk,
+	SELECT (ST_OffsetCurve(w.geom,  -0.00005, 'join=round mitre_limit=2.0')) AS geom, w.sidewalk,
 	CASE WHEN w.sidewalk_right_width IS NOT NULL 
 		THEN w.sidewalk_right_width
 	WHEN w.sidewalk_both_width IS NOT NULL 
@@ -98,25 +86,21 @@ UNION
 	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, 
 	parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified,
 	'yes_right' AS from_offset  
-	FROM ways w, ways_offset_sidewalk o
-	WHERE w.id=o.id AND (o.sidewalk = 'both' OR o.sidewalk = 'right' OR o.sidewalk IS NULL)
+	FROM ways_cleaned w
+	WHERE (w.sidewalk = 'both' OR w.sidewalk = 'right' OR (w.sidewalk IS NULL AND highway IN ('secondary','tertiary')))
 	AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
 	AND (w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
-	OR w.foot IS NULL)
+	OR w.foot IS NULL
+	)
 UNION
 	SELECT geom, sidewalk, width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, 
 	segregated, smoothness, surface, wheelchair, wheelchair_classified,
-	'no' AS from_offset 
-	FROM ways
-	WHERE sidewalk = 'no' -- mit nächstem zusammenfassen
-UNION
-	SELECT geom, sidewalk, width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
-	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, 
-	segregated, smoothness, surface, wheelchair, wheelchair_classified,
-	'no' AS from_offset  
-	FROM ways
-	WHERE highway = 'living_street' OR (highway in ('residential','unclassified') AND sidewalk IS NULL)
+	'no' as from_offset 
+	FROM ways_cleaned
+	WHERE sidewalk IN ('no','none')
+	OR highway = 'living_street' 
+	OR (highway in ('residential','unclassified','service') AND sidewalk IS NULL)
 UNION
 	SELECT geom, sidewalk, 
 	CASE WHEN segregated = 'yes'
@@ -126,14 +110,14 @@ UNION
 	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, 
 	parking_lane_right, segregated, smoothness, surface, wheelchair, wheelchair_classified,
 	'no' AS from_offset
-	FROM ways
+	FROM ways_cleaned
 	WHERE highway ='cycleway' OR (foot = 'designated' AND bicycle = 'designated')
 UNION
 	SELECT geom, sidewalk, width, highway, length_m, oneway, maxspeed_forward, maxspeed_backward, crossing, incline, 
 	incline_percent, lanes, lit, lit_classified, parking, parking_lane_both, parking_lane_left, parking_lane_right, 
 	segregated, smoothness, surface, wheelchair, wheelchair_classified,
 	'no' AS from_offset  
-	FROM ways
+	FROM ways_cleaned
 	WHERE sidewalk IS NULL AND highway IN ('path','track','footway','steps','service','pedestrian')
 ) x, study_area s 
 WHERE ST_intersects(x.geom,s.geom);
