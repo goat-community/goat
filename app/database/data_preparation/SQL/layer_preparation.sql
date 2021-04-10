@@ -187,24 +187,10 @@ SET lit_share = l.share_intersection
 FROM lit_share l 
 WHERE f.id = l.id;
 
-DROP TEMP TABLE lit_share;
-
---Creation of a table that stores all parking geometries
-DROP TABLE IF EXISTS ways_offset_parking;
-CREATE TABLE ways_offset_parking AS
-SELECT w.id, w.parking,(ST_OffsetCurve(w.geom,  0.00005, 'join=round mitre_limit=2.0')) AS geom_left, 
-	(ST_OffsetCurve(w.geom,  -0.00005, 'join=round mitre_limit=2.0')) AS geom_right
-FROM ways w
-WHERE w.parking IS NOT NULL OR w.parking_lane_both IS NOT NULL OR w.parking_lane_left IS NOT NULL OR w.parking_lane_right IS NOT NULL;
-
-CREATE INDEX ON ways_offset_parking USING btree(id);
-CREATE INDEX ON ways_offset_parking USING gist(geom_left);
-CREATE INDEX ON ways_offset_parking USING gist(geom_right);
-
 --Table for visualization of parking
 DROP TABLE IF EXISTS parking;
 CREATE TABLE parking AS
-	SELECT o.geom_left AS geom, 
+	SELECT (ST_OffsetCurve(w.geom,  0.00005, 'join=round mitre_limit=2.0')) AS geom, 
 		w.parking,
 			CASE WHEN w.parking_lane_left IS NOT NULL 
 				THEN w.parking_lane_left
@@ -213,10 +199,10 @@ CREATE TABLE parking AS
 			ELSE NULL
 			END AS parking_lane, 
 		highway
-	FROM ways w, ways_offset_parking o
-	WHERE w.id=o.id AND (w.parking_lane_left IS NOT NULL OR w.parking_lane_both IS NOT NULL)
+	FROM ways_cleaned w
+	WHERE (w.parking_lane_left IS NOT NULL OR w.parking_lane_both IS NOT NULL)
 UNION
-	SELECT o.geom_right AS geom, 
+	SELECT (ST_OffsetCurve(w.geom,  -0.00005, 'join=round mitre_limit=2.0')) AS geom, 
 		w.parking,
 			CASE WHEN w.parking_lane_right IS NOT NULL 
 				THEN w.parking_lane_right
@@ -225,19 +211,18 @@ UNION
 			ELSE NULL
 			END AS parking_lane, 
 		highway
-	FROM ways w, ways_offset_parking o
-	WHERE w.id=o.id AND (w.parking_lane_right IS NOT NULL OR w.parking_lane_both IS NOT NULL)
+	FROM ways_cleaned w
+	WHERE (w.parking_lane_right IS NOT NULL OR w.parking_lane_both IS NOT NULL)
 UNION
-	SELECT o.geom_left, w.parking, 'no' AS parking_lane, w.highway FROM ways w, ways_offset_parking o
-	WHERE w.id=o.id AND w.parking = 'no'
+	SELECT (ST_OffsetCurve(w.geom,  0.00005, 'join=round mitre_limit=2.0')), w.parking, 'no' AS parking_lane, w.highway FROM ways_cleaned w
+	WHERE w.parking = 'no'
 UNION
-	SELECT o.geom_right, w.parking, 'no' AS parking_lane, w.highway FROM ways w, ways_offset_parking o
-	WHERE w.id=o.id AND w.parking = 'no'
+	SELECT (ST_OffsetCurve(w.geom,  -0.00005, 'join=round mitre_limit=2.0')), w.parking, 'no' AS parking_lane, w.highway FROM ways_cleaned w
+	WHERE w.parking = 'no'
 UNION
-	SELECT geom, parking, NULL AS parking_lane, highway FROM ways
+	SELECT geom, parking, NULL AS parking_lane, highway FROM ways_cleaned
 	WHERE parking IS NULL AND parking_lane_right IS NULL AND parking_lane_left IS NULL AND parking_lane_both IS NULL
 	AND highway IN ('secondary','tertiary','residential','living_street','service','unclassified');
 
 --Drop tables that are no further needed
-DROP TABLE ways_offset_parking;
-DROP TABLE ways_offset_sidewalk;
+DROP TABLE lit_share;
