@@ -155,25 +155,39 @@ WHERE f.id = x.id;
 
 --Precalculation of visualized features for lit
 DROP TABLE IF EXISTS buffer_lamps;
-CREATE TEMP TABLE buffer_lamps as
-SELECT ST_BUFFER(way,0.00015,'quad_segs=8') AS geom 
+CREATE TABLE buffer_lamps as
+WITH meter_degree AS 
+(
+	SELECT return_meter_srid_4326()	AS meter_degree
+)
+SELECT (ST_DUMP(ST_UNION(ST_BUFFER(way,15*(SELECT meter_degree FROM meter_degree))))).geom AS geom 
 FROM planet_osm_point 
 WHERE highway = 'street_lamp';
 
 CREATE INDEX ON buffer_lamps USING gist(geom);
 
-/*
-WITH union_b AS 
-(
-	SELECT ST_UNION(bl.geom) 
-	FROM buffer_lamps bl
-)
-UPDATE ways w SET lit_classified = 'yes'
-FROM buffer_lamps b, union_b ub
-WHERE (lit IS NULL OR lit = '')
-AND ST_Intersects(b.geom,w.geom)
-AND ST_Length(ST_Intersection(ub.st_union, w.geom))/ST_Length(w.geom) > 0.3;
-*/
+CREATE TEMP TABLE lit_share AS 
+SELECT f.id, SUM(ST_LENGTH(ST_Intersection(b.geom, f.geom)))/ST_LENGTH(f.geom) AS share_intersection, f.geom 
+FROM buffer_lamps b, footpath_visualization f 
+WHERE ST_Intersects(b.geom,f.geom) 
+GROUP BY id; 
+ALTER TABLE lit_share ADD PRIMARY KEY(id);
+
+UPDATE footpath_visualization f 
+SET lit_classified = 'yes'
+FROM lit_share l  
+WHERE (lit IS NULL OR lit = '') 
+AND share_intersection > 0.3
+AND f.id = l.id; 
+
+ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS lit_share numeric;
+
+UPDATE footpath_visualization f  
+SET lit_share = l.share_intersection
+FROM lit_share l 
+WHERE f.id = l.id;
+
+DROP TEMP TABLE lit_share;
 
 --Creation of a table that stores all parking geometries
 DROP TABLE IF EXISTS ways_offset_parking;
