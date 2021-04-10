@@ -1,14 +1,73 @@
+
+
 --THIS FILE NEEDS TO BE EXECUTED TO CREATE ALL NECESSARY TABLES FOR THE STREET LEVEL QUALITY LAYERS
 /*Split long ways (length_m >= 200)and remove death_end that are house entrance*/
-DROP TABLE IF EXISTS expanded_death_end;
-CREATE TABLE expanded_death_end AS 
-SELECT DISTINCT w.id, class_id, w.geom
+DROP TABLE IF EXISTS ways_to_remove;
+CREATE TABLE ways_to_remove AS 
+SELECT DISTINCT w.id, class_id, w.SOURCE, w.target, 
+CASE WHEN death_end = SOURCE THEN SOURCE ELSE target END AS not_death_end_vertex, w.geom
 FROM ways w, buildings b
 WHERE death_end IS NOT NULL 
 AND highway NOT IN ('residential','living_street')
-AND ST_DWITHIN(w.geom, b.geom,  3 * meter_degree());
+AND ST_DWITHIN(w.geom, b.geom,  3 * meter_degree())
+AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
+AND (
+	w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
+	OR w.foot IS NULL 
+);
 
-ALTER TABLE expanded_death_end ADD PRIMARY KEY(id);
+ALTER TABLE ways_to_remove ADD PRIMARY KEY(id);
+INSERT INTO ways_to_remove
+SELECT DISTINCT w.id, w.class_id, w.SOURCE, w.target, 
+CASE WHEN w.death_end = w.SOURCE THEN w.SOURCE ELSE w.target END AS not_death_end_vertex, w.geom
+FROM (
+	SELECT DISTINCT *
+	FROM ways 
+	WHERE death_end IS NOT NULL 
+	AND length_m < 20
+	AND highway NOT IN ('residential','living_street')
+	AND class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
+	AND (
+		foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
+		OR foot IS NULL 
+	)
+) w
+LEFT JOIN ways_to_remove e
+ON w.id = e.id 
+WHERE e.id IS NULL; 
+
+INSERT INTO ways_to_remove
+SELECT w.id, w.class_id, w.SOURCE, w.target,
+CASE WHEN w.death_end = w.SOURCE THEN w.SOURCE ELSE w.target END AS not_death_end_vertex, w.geom
+FROM ways_to_remove e, ways_vertices_pgr v, ways w 
+WHERE e.not_death_end_vertex = v.id 
+AND v.cnt = 2
+AND w.highway NOT IN ('residential','living_street')
+AND
+(
+	w.SOURCE = e.not_death_end_vertex 
+	OR  
+	w.target = e.not_death_end_vertex
+)
+AND e.id <> w.id
+AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
+AND (
+	w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
+	OR w.foot IS NULL 
+);
+
+/*TO IMPROVE: Loop through death ends to get new death ends*/
+
+INSERT INTO ways_to_remove (id)
+SELECT w.id
+FROM (
+	SELECT DISTINCT w.id
+	FROM ways w, buildings b 
+	WHERE ST_Contains(b.geom,w.geom)
+) w
+LEFT JOIN ways_to_remove e
+ON w.id = e.id 
+WHERE e.id IS NULL; 
 
 DROP TABLE IF EXISTS ways_cleaned;
 CREATE TABLE ways_cleaned AS 
@@ -21,7 +80,7 @@ FROM (
 	FROM ways w, study_area s 
 	WHERE ST_Intersects(w.geom, s.geom)
 ) w
-LEFT JOIN expanded_death_end e
+LEFT JOIN ways_to_remove e
 ON w.id = e.id
 WHERE e.id IS NULL
 AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
@@ -41,7 +100,7 @@ FROM (
 	FROM ways w, study_area s 
 	WHERE ST_Intersects(w.geom, s.geom)
 ) w
-LEFT JOIN expanded_death_end e
+LEFT JOIN ways_to_remove e
 ON w.id = e.id
 WHERE e.id IS NULL
 AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
