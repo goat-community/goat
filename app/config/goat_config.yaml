@@ -129,6 +129,7 @@ DATA_REFINEMENT_VARIABLES:
     duplicated_kindergarten_lookup_radius: '50'
     duplicated_primary_school_lookup_radius: '40'
     duplicated_secondary_school_lookup_radius: '40'
+    one_meter_degree: '0.000009'
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------Definition of amenity parameters for POIS preparation and data fusion of new sources-----------##
     ##----------------------------------------------------------------------------------------------------------##
