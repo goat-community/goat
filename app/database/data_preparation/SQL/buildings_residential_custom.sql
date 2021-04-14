@@ -73,3 +73,88 @@ SET residential_status = 'with_residents'
 WHERE residential_status = 'potential_residential';
 
 
+/*ALTER TABLE study_area ADD COLUMN IF NOT EXISTS default_building_levels SMALLINT;
+ALTER TABLE study_area ADD COLUMN IF NOT EXISTS default_roof_levels SMALLINT;
+
+DROP TABLE IF EXISTS buildings;
+CREATE TABLE buildings 
+(
+	gid serial,
+	osm_id integer,
+	building TEXT, 
+	amenity TEXT,
+	residential_status TEXT,
+	housenumber TEXT, 
+	street TEXT,
+	building_levels SMALLINT, 
+	roof_levels SMALLINT,
+	height float,
+	geom geometry,
+	CONSTRAINT building_pkey PRIMARY KEY(gid)
+);
+CREATE INDEX ON buildings USING GIST(geom);
+
+ALTER TABLE buildings_custom ADD COLUMN IF NOT EXISTS building TEXT;
+ALTER TABLE buildings_custom ADD COLUMN IF NOT EXISTS amenity TEXT;
+ALTER TABLE buildings_custom ADD COLUMN IF NOT EXISTS residential_status TEXT; 
+ALTER TABLE buildings_custom ADD COLUMN IF NOT EXISTS housenumber TEXT;
+ALTER TABLE buildings_custom ADD COLUMN IF NOT EXISTS street TEXT;
+ALTER TABLE buildings_custom ADD COLUMN IF NOT EXISTS building_levels SMALLINT; 
+ALTER TABLE buildings_custom ADD COLUMN IF NOT EXISTS roof_Levels SMALLINT;
+ALTER TABLE buildings_custom ADD COLUMN IF NOT EXISTS height float;
+
+DO 
+$$
+	DECLARE
+		all_default_building_levels integer := 4;
+		all_default_roof_levels integer := 1;
+		height_per_level float := 3.5; 
+	BEGIN 
+		
+		
+		IF EXISTS
+            ( SELECT 1
+              FROM   information_schema.tables 
+              WHERE  table_schema = 'public'
+              AND    table_name = 'buildings_custom'
+            )
+        THEN	
+			INSERT INTO buildings(osm_id,building,amenity,residential_status,housenumber,street,building_levels,roof_levels,geom)
+			SELECT o.osm_id,			
+			CASE 
+				WHEN c.building IS NOT NULL THEN c.building ELSE o.building END AS building,
+			CASE 
+				WHEN c.amenity IS NOT NULL THEN c.amenity ELSE o.amenity END AS amenity, 
+			CASE 
+				WHEN c.residential_status IS NOT NULL THEN c.residential_status ELSE o.residential_status END AS residential_status, 
+			CASE 
+				WHEN c.housenumber IS NOT NULL THEN c.housenumber ELSE o.housenumber END AS housenumber,
+			CASE 
+				WHEN c.street IS NOT NULL THEN c.street ELSE c.street END AS street,
+			CASE 
+				WHEN c.building_levels IS NOT NULL THEN c.building_levels
+				WHEN c.height IS NOT NULL THEN (c.height/height_per_level)::smallint 
+				WHEN o.building_levels IS NOT NULL THEN o.building_levels
+				WHEN s.default_building_levels IS NOT NULL THEN s.default_building_levels
+				ELSE all_default_building_levels END AS building_levels, 	
+			CASE 
+				WHEN c.roof_levels IS NOT NULL THEN c.roof_levels 
+				WHEN o.roof_levels IS NOT NULL THEN o.roof_levels 
+				WHEN s.default_building_levels IS NOT NULL THEN s.default_building_levels
+				ELSE all_default_roof_levels END AS roof_levels, 
+			c.geom
+			FROM buildings_custom c
+			LEFT JOIN buildings_osm o 
+			ON ST_Intersects(c.geom, o.geom)
+			LEFT JOIN study_area s 
+			ON ST_Intersects(c.geom,s.geom)
+			WHERE ST_AREA(ST_Intersection(c.geom,o.geom))/ST_AREA(c.geom) > 0.5;
+		ELSE 
+			INSERT INTO buildings
+			SELECT * 
+			FROM buildings_osm;
+		END IF;
+	END
+$$;
+
+*/
