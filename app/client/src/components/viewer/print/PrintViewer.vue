@@ -49,7 +49,7 @@
         <div v-if="print.legend" :style="getLegendStyle()">
           <div class=".subtitle-1">LEGEND</div>
 
-          <print-legend></print-legend>
+          <print-legend v-if="print.active === true"></print-legend>
         </div>
         <!-- GOAT LOGO -->
         <img
@@ -66,14 +66,6 @@
         />
       </div>
     </v-row>
-    <v-row>
-      <v-pagination
-        :color="activeColor.primary"
-        v-model="page"
-        :length="2"
-        circle
-      ></v-pagination>
-    </v-row>
   </div>
 </template>
 <script>
@@ -86,7 +78,6 @@ export default {
   },
   data() {
     return {
-      page: 1,
       mapSideSheetSize: 65, // in mm. The sheet area for legend, title and logos. (right or bottom)
       logoGoat: "img/logo_green.png",
       logoP4B: "img/p4b_logo.png",

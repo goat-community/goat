@@ -29,7 +29,7 @@
               return-object
               required
             ></v-select>
-            <v-select
+            <!-- <v-select
               v-model="print.scale"
               :items="print.scales"
               prepend-icon="fas fa-ruler-horizontal"
@@ -59,7 +59,7 @@
               <template slot="item" slot-scope="{ item }">
                 {{ item }} dpi
               </template>
-            </v-select>
+            </v-select> -->
             <v-select
               v-model="print.selectedCrs"
               :items="print.crs"
@@ -198,14 +198,24 @@ export default {
           useCORS: true
         }
       );
-      var pdf = new jsPDF(orientation, undefined, format);
-      // Add image to pdf
-      pdf.addImage(printCanvas, "JPEG", 0, 0, paperSize[0], paperSize[1]);
-      // Save map
       const fileName = `goat_print_${this.getCurrentDate()}_${this.getCurrentTime()}.${
         this.print.selectedFormat
       }`;
-      pdf.save(fileName);
+      if (this.print.selectedFormat === "png") {
+        var a = document.createElement("a");
+        // toDataURL defaults to png, so we need to request a jpeg, then convert for file download.
+        a.href = printCanvas
+          .toDataURL("image/png")
+          .replace("image/png", "image/octet-stream");
+        a.download = fileName;
+        a.click();
+      } else {
+        var pdf = new jsPDF(orientation, undefined, format);
+        // Add image to pdf
+        pdf.addImage(printCanvas, "JPEG", 0, 0, paperSize[0], paperSize[1]);
+        // Save map
+        pdf.save(fileName);
+      }
     },
     // print() {
     //   if (this.$refs.form.validate()) {
