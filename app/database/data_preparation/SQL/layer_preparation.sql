@@ -250,6 +250,26 @@ WHERE f.id = l.id;
 
 DROP TABLE lit_share;
 
+--Add landuse data
+ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS landuse text;
+
+UPDATE footpath_visualization f  
+SET landuse = l.landuse_simplified
+FROM landuse_osm l
+WHERE ST_WITHIN(f.geom, l.geom);
+
+WITH stat AS (
+    SELECT f.id, MAX(ST_LENGTH(ST_Intersection(l.geom, f.geom))) AS maxprog, l.landuse_simplified AS landuse
+    FROM
+    landuse_osm l, footpath_visualization f
+    WHERE ST_Intersects(f.geom, l.geom) 
+    GROUP BY f.id, l.landuse_simplified
+)   
+UPDATE footpath_visualization f 
+SET landuse = stat.landuse
+FROM stat
+WHERE f.id = stat.id;
+
 --Table for visualization of parking
 DROP TABLE IF EXISTS parking;
 CREATE TABLE parking AS
