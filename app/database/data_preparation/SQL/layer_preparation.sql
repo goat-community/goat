@@ -190,9 +190,46 @@ WHERE sidewalk IS NULL AND highway IN ('path','track','footway','steps','service
 CREATE INDEX ON footpath_visualization USING gist(geom);
 ALTER TABLE footpath_visualization ADD COLUMN id serial;
 ALTER TABLE footpath_visualization ADD PRIMARY KEY(id);
-	
---Precalculation of visualized features for illuminance
 
+----------------------------------
+----Table for street furniture----
+----------------------------------
+DROP TABLE IF EXISTS street_furniture;
+CREATE TABLE street_furniture AS 	
+SELECT p.osm_id, NULL AS mapillary_key, p.amenity, p.geom, 'osm' AS SOURCE, NULL AS accuracy
+FROM pois p, study_area s
+WHERE st_intersects(s.geom,p.geom) 
+AND amenity IN ('bench','waste_basket','toilets','fountain','bicycle_parking','bicycle_repair_station');
+
+CREATE INDEX ON street_furniture USING gist(geom);
+ALTER TABLE street_furniture ADD COLUMN id serial;
+ALTER TABLE street_furniture ADD PRIMARY KEY(id);
+
+--Insert street_lamps
+INSERT INTO street_furniture
+SELECT p.osm_id, NULL AS mapillary_key, p.highway AS amenity, p.way AS geom, 'osm' AS SOURCE, NULL AS accuracy
+FROM planet_osm_point p, study_area s
+WHERE st_intersects(s.geom,p.way) 
+AND highway IN ('street_lamp');
+
+--Insert data from Mapillary 
+INSERT INTO street_furniture
+SELECT NULL AS osm_id, p.KEY, 
+CASE WHEN value = 'object--bench'
+	THEN 'bench' 
+WHEN value = 'object--bike-rack'
+	THEN 'bicycle_parking'
+WHEN value = 'object--trash-can'
+	THEN 'waste_basket'	
+WHEN value = 'object--street-light'
+	THEN 'street_lamp'	
+END AS amenity, p.geom, 'mapillary' AS SOURCE, p.accuracy
+FROM points p --rename to: mapillary_features 
+WHERE value IN ('object--bench','object--bike-rack','object--trash-can','object--street-light');
+	
+----------------------------------------------------------	
+--Precalculation of visualized features for illuminance---
+----------------------------------------------------------
 WITH variables AS 
 (
     SELECT select_from_variable_container_o('lit') AS lit
@@ -201,12 +238,12 @@ UPDATE footpath_visualization f SET lit_classified = x.lit_classified
 FROM
     (SELECT f.id,
     CASE WHEN 
-        lit IN ('yes','Yes') 
+        lit IN ('yes','Yes','automatic','24/7','sunset-sunrise') 
         OR (lit IS NULL AND highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_yes')::jsonb) FROM variables)
 			AND maxspeed_forward<80)
         THEN 'yes' 
     WHEN
-        lit IN ('no','No')
+        lit IN ('no','No','disused')
         OR (lit IS NULL AND (highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_no')::jsonb) FROM variables) 
         OR surface IN (SELECT jsonb_array_elements_text((lit ->> 'surface_no')::jsonb) FROM variables)
 		OR maxspeed_forward>=80)
@@ -237,8 +274,8 @@ ALTER TABLE lit_share ADD PRIMARY KEY(id);
 UPDATE footpath_visualization f 
 SET lit_classified = 'yes'
 FROM lit_share l  
-WHERE (lit IS NULL OR lit = '') 
-AND share_intersection > 0.3
+WHERE (f.lit IS NULL OR f.lit = '') 
+AND l.share_intersection > 0.3
 AND f.id = l.id; 
 
 ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS lit_share numeric;
@@ -249,6 +286,36 @@ FROM lit_share l
 WHERE f.id = l.id;
 
 DROP TABLE lit_share;
+
+--Add landuse data
+ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS landuse text;
+
+UPDATE footpath_visualization f  
+SET landuse = l.landuse_simplified
+FROM landuse_osm l
+WHERE ST_CONTAINS(l.geom,f.geom);
+
+CREATE TABLE footpath_ids_landuse AS 
+WITH i AS 
+(
+    SELECT f.id, f.geom, ST_LENGTH(ST_Intersection(l.geom, f.geom)) len_intersection, l.landuse_simplified AS landuse
+    FROM  landuse_osm l, footpath_visualization f
+    WHERE ST_Intersects(f.geom, l.geom)  
+    AND f.landuse IS NULL
+    AND l.landuse_simplified IS NOT NULL
+)   
+SELECT id, get_attr_for_max_val(array_agg((len_intersection * 1000000000)::integer), array_agg(landuse)) AS landuse 
+FROM i
+GROUP BY id; 
+
+ALTER TABLE footpath_ids_landuse ADD PRIMARY KEY(id); 
+
+UPDATE footpath_visualization f  
+SET landuse = l.landuse 
+FROM footpath_ids_landuse l 
+WHERE f.id = l.id; 
+
+DROP TABLE footpath_ids_landuse;
 
 --Table for visualization of parking
 DROP TABLE IF EXISTS parking;
