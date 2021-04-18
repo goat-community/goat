@@ -293,19 +293,29 @@ ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS landuse text;
 UPDATE footpath_visualization f  
 SET landuse = l.landuse_simplified
 FROM landuse_osm l
-WHERE ST_WITHIN(f.geom, l.geom);
+WHERE ST_CONTAINS(l.geom,f.geom);
 
-WITH stat AS (
-    SELECT f.id, MAX(ST_LENGTH(ST_Intersection(l.geom, f.geom))) AS maxprog, l.landuse_simplified AS landuse
-    FROM
-    landuse_osm l, footpath_visualization f
-    WHERE ST_Intersects(f.geom, l.geom) 
-    GROUP BY f.id, l.landuse_simplified
+CREATE TABLE footpath_ids_landuse AS 
+WITH i AS 
+(
+    SELECT f.id, f.geom, ST_LENGTH(ST_Intersection(l.geom, f.geom)) len_intersection, l.landuse_simplified AS landuse
+    FROM  landuse_osm l, footpath_visualization f
+    WHERE ST_Intersects(f.geom, l.geom)  
+    AND f.landuse IS NULL
+    AND l.landuse_simplified IS NOT NULL
 )   
-UPDATE footpath_visualization f 
-SET landuse = stat.landuse
-FROM stat
-WHERE f.id = stat.id;
+SELECT id, get_attr_for_max_val(array_agg((len_intersection * 1000000000)::integer), array_agg(landuse)) AS landuse 
+FROM i
+GROUP BY id; 
+
+ALTER TABLE footpath_ids_landuse ADD PRIMARY KEY(id); 
+
+UPDATE footpath_visualization f  
+SET landuse = l.landuse 
+FROM footpath_ids_landuse l 
+WHERE f.id = l.id; 
+
+DROP TABLE footpath_ids_landuse;
 
 --Table for visualization of parking
 DROP TABLE IF EXISTS parking;
