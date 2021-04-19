@@ -287,7 +287,26 @@ WHERE f.id = l.id;
 
 DROP TABLE lit_share;
 
---Add landuse data
+----------------------
+---Add landuse data---
+----------------------
+
+--clean landuse ##copy this query to the "buildings_residential.sql" scrit when finished
+CREATE TABLE inner_polygons AS
+SELECT lo.*
+FROM landuse_osm l 
+JOIN landuse_osm lo ON (ST_Contains(l.geom, lo.geom)) WHERE l.gid != lo.gid;
+
+UPDATE landuse_osm l
+SET geom = st_difference(l.geom, i.geom)
+FROM inner_polygons i
+WHERE l.gid=i.gid;
+
+--TODO: insert inner_polygons in landuse_osm
+--TODO: maybe insert a loop (for polygons inside the inner_polygons)
+
+DROP TABLE inner_polygons;
+
 ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS landuse text;
 
 UPDATE footpath_visualization f  
