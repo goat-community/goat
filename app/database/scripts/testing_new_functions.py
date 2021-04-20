@@ -4,10 +4,29 @@ os.environ['POSTGRES_DBNAME'] = 'goattemp'
 from db.db import Database
 from db_functions import ReadYAML
 from psycopg2 import sql
+from urllib.request import urlretrieve
+import subprocess
 
 ReadYAML().create_pgpass('temp','goat')
 
 db = Database()
+
+def prepare_planet_osm(db_conn, download_link, buffer, extract_bbox):
+    os.chdir('/opt/data') 
+    if download_link != 'no_download':     
+        print('Fresh OSM-data will be download from: %s' % download_link)
+        result = subprocess.run(f'wget --no-check-certificate --output-document="raw-osm.osm.pbf" {download_link}', shell=True, check=True)
+
+        if result.returncode != 0:
+            return {"Error": "Download not successful"}
+
+    if extract_bbox == "yes":
+        db_conn.perform(open('/opt/database_functions/data_preparation/create_bbox_study_area.sql', "r").read())
+        bboxes = db_conn.select('SELECT * FROM create_bbox_study_area(%(buffer)s)', {"buffer":buffer})
+        subprocess.run(f'osmosis --read-pbf file="raw-osm.osm.pbf" {bboxes} --write-xml file="study_area.osm"', shell=True, check=True)
+
+    subprocess.run('osmconvert study_area.osm --drop-author --drop-version --out-osm -o=study_area_reduced.osm', shell=True, check=True)
+    subprocess.run('rm study_area.osm | mv study_area_reduced.osm study_area.osm', shell=True, check=True)
 
 def list_files_dir(filepath, ending):
     file_list = []
@@ -45,13 +64,14 @@ def import_raw_layer(filepath,db_conn,db_name,user,host):
     else:
         return 
 
-def produce_population_points(db_conn,source_population):
 
+
+def produce_population_points(db_conn,source_population):
     print ('It was chosen to use population from: ', source_population)
 
     raw_files = list_files_for_import(
         list_files_dir('/opt/data/', ('.shp','.sql')), '.sql',
-        ['buildings','population','study_area','landuse','landuse_additional','pois']
+        ['buildings_custom','population','study_area','landuse','landuse_additional','pois']
     )
 
     for f in raw_files:
@@ -80,6 +100,11 @@ def produce_population_points(db_conn,source_population):
 
     #db_conn.perform('../data_preparation/SQL/create_population_userinput.sql')
 
-produce_population_points(db, 'extrapolation')
-
 #os.environ['POSTGRES_DBNAME'] = 'goat'
+
+
+#prepare_planet_osm(db,"no_download",0.045, "no")
+
+subprocess.run(f'PGPASSFILE=~/.pgpass_goattemp osm2pgsql -d goattemp -H db -U goat --hstore -E 4326 -c /opt/data/study_area.osm', shell=True, check=True) 
+
+produce_population_points(db, 'extrapolation')
