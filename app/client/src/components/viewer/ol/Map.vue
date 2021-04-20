@@ -750,6 +750,27 @@ export default {
         const feature = this.currentInfoFeature;
 
         let type = feature.get("osm_type");
+        if (!type && feature.get("orgin_geometry")) {
+          const originGeometry =
+            feature.getProperties()["orgin_geometry"] ||
+            feature
+              .getGeometry()
+              .getType()
+              .toLowerCase();
+          switch (originGeometry) {
+            case "polygon":
+            case "multipolygon":
+            case "linestring":
+              type = "way";
+              break;
+            case "point":
+              type = "node";
+              break;
+            default:
+              type = null;
+              break;
+          }
+        }
         link =
           `https://www.openstreetmap.org/edit?editor=id&` +
           `${type}` +
