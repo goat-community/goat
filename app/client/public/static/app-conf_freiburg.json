@@ -588,6 +588,23 @@
       },
       {
         "type": "WMS",
+        "name": "Winterdient",
+        "url": "https://geoportal.freiburg.de/wms/gut_winter/gut_winter?",
+        "group": "additionalDataLayers",
+        "layers": "gut_winter",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2013"
+        }
+      },
+      {
+        "type": "WMS",
         "name": "Grundschulbezirke",
         "url": "https://geoportal.freiburg.de/wms/abi_gsb/abi_gsb?",
         "group": "additionalDataLayers",
