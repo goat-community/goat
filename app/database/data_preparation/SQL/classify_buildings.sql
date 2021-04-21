@@ -1,11 +1,3 @@
-DROP TABLE IF EXISTS buildings_pop;
-DROP TABLE IF EXISTS osm_area_no_residents;
-
-ALTER TABLE study_area ALTER COLUMN sum_pop TYPE integer using sum_pop::integer;
-ALTER TABLE study_area DROP COLUMN IF EXISTS area;
-ALTER TABLE study_area ADD COLUMN area numeric;
-UPDATE study_area SET area = st_area(geom::geography);
-
 
 DO $$                  
     BEGIN 
@@ -17,16 +9,28 @@ DO $$
             )
         THEN
 			--Intersect with custom landuse table
-			
         	ALTER TABLE landuse ADD COLUMN IF NOT EXISTS name text;
+      
+        	UPDATE buildings b 
+        	SET residential_status = 'with_residents'
+        	FROM landuse l
+        	WHERE ST_Contains(l.geom,b.geom)
+        	AND lower(name) ~~ ANY (SELECT UNNEST(select_from_variable_container('custom_landuse_with_residents_name')));
+        
+        	UPDATE buildings b 
+        	SET residential_status = 'with_residents'
+        	FROM landuse l
+        	WHERE ST_Contains(l.geom,b.geom) = FALSE 
+        	AND ST_Intersects(l.geom,b.geom)
+			AND ST_Area(ST_Intersection(b.geom, l.geom)) / ST_Area(b.geom) > 0.5
+        	AND lower(name) ~~ ANY (SELECT UNNEST(select_from_variable_container('custom_landuse_with_residents_name')));	
         
         	UPDATE buildings b
 			SET residential_status = 'no_residents'
 			FROM landuse l
 			WHERE ST_Contains(l.geom,b.geom)
 			AND b.residential_status = 'potential_residents'
-			AND (l.landuse IN(SELECT UNNEST(select_from_variable_container('custom_landuse_no_residents')))
-			OR NOT lower(name) ~~ ANY (SELECT UNNEST(select_from_variable_container('custom_landuse_with_residents_name'))));
+			AND l.landuse IN(SELECT UNNEST(select_from_variable_container('custom_landuse_no_residents')));
 		
 			UPDATE buildings b
 			SET residential_status = 'no_residents'
@@ -35,9 +39,9 @@ DO $$
 			AND ST_Intersects(l.geom,b.geom)
 			AND ST_Area(ST_Intersection(b.geom, l.geom)) / ST_Area(b.geom) > 0.5
 			AND b.residential_status = 'potential_residents'
-			AND l.landuse IN(SELECT UNNEST(select_from_variable_container('custom_landuse_no_residents')))
-			AND NOT lower(name) ~~ ANY (SELECT UNNEST(select_from_variable_container('custom_landuse_with_residents_name')));
-		
+			AND l.landuse IN(SELECT UNNEST(select_from_variable_container('custom_landuse_no_residents')));
+			
+			/*
 			WITH aois_buildings AS 
 			(
 				SELECT b.gid, b.geom 
@@ -56,11 +60,31 @@ DO $$
 			UPDATE buildings b SET residential_status = 'no_residents'
 			FROM no_residents n
 			WHERE b.gid = n.gid; 
-
+			*/
         END IF ;
     END
 $$ ;
 
+DO $$                  
+    BEGIN 
+        IF EXISTS
+            ( SELECT 1
+              FROM   information_schema.tables 
+              WHERE  table_schema = 'public'
+              AND    table_name = 'landuse_additional'
+            )
+        THEN
+
+			UPDATE buildings b 
+			SET residential_status = 'no_residents'
+			FROM landuse_additional l
+			WHERE landuse IN (SELECT UNNEST(select_from_variable_container('custom_landuse_additional_no_residents')))
+			AND ST_CONTAINS(l.geom,b.geom)
+			AND b.residential_status = 'potential_residents';
+
+        END IF ;
+    END
+$$ ;
 
 CREATE TABLE osm_area_no_residents AS 
 SELECT way AS geom 
@@ -86,7 +110,6 @@ AND ST_Area(ST_Intersection(b.geom, l.geom)) / ST_Area(b.geom) > 0.5
 AND b.residential_status = 'potential_residents';
 
 DROP TABLE IF EXISTS osm_area_no_residents ;
-
 
 --Label all buildings that are not intersecting the custom land-use
 DO $$                  
@@ -114,15 +137,14 @@ DO $$
     END
 $$ ;
 
+ALTER TABLE buildings ADD COLUMN area integer; 
+UPDATE buildings 
+SET area = ST_AREA(geom::geography);
+
 UPDATE buildings
 SET residential_status = 'no_residents'
 WHERE buildings.area < (SELECT select_from_variable_container_s('minimum_building_size_residential')::integer)
 AND residential_status <> 'with_residents';
-
-UPDATE buildings
-set building_levels = (SELECT select_from_variable_container_s('default_building_levels')::smallint), 
-roof_levels = 1 
-WHERE building_levels IS NULL;
 
 --Substract one level when POI on building (more classification has to be done in the future)
 
@@ -130,7 +152,7 @@ ALTER TABLE buildings
 ADD COLUMN building_levels_residential smallint; 
 
 WITH x AS (
-    SELECT distinct b.gid
+    SELECT DISTINCT b.gid
     FROM buildings b, pois p 
     WHERE st_intersects(b.geom,p.geom)
 )
