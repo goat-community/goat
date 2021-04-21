@@ -460,6 +460,74 @@
       },
       {
         "type": "WMS",
+        "name": "Lärmkarte - Bahn Nacht",
+        "url": "https://geoportal.freiburg.de/wms/gut_laerm/gut_laerm?",
+        "group": "environmentalQualityLayers",
+        "layers": "bahn_nacht",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2010"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "Lärmkarte - Bahn Tag",
+        "url": "https://geoportal.freiburg.de/wms/gut_laerm/gut_laerm?",
+        "group": "environmentalQualityLayers",
+        "layers": "bahn_tag",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2010"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "Lärmkarte - Straße Tag",
+        "url": "https://geoportal.freiburg.de/wms/gut_laerm/gut_laerm?",
+        "group": "environmentalQualityLayers",
+        "layers": "strasse_tag",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2015"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "Lärmkarte - Straße Nacht",
+        "url": "https://geoportal.freiburg.de/wms/gut_laerm/gut_laerm?",
+        "group": "environmentalQualityLayers",
+        "layers": "strasse_nacht",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2015"
+        }
+      },
+      {
+        "type": "WMS",
         "name": "Landschaftsplan",
         "url": "https://geoportal.freiburg.de/wms/stpla_landschaftsplan/stpla_landschaftsplan?",
         "group": "environmentalQualityLayers",
