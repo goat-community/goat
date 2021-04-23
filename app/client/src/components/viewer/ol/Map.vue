@@ -245,7 +245,8 @@ export default {
       layers: [],
       interactions: defaultInteractions({
         altShiftDragRotate: me.rotateableMap,
-        doubleClickZoom: false
+        doubleClickZoom: false,
+        mouseWheelZoom: true
       }).extend([this.dblClickZoomInteraction]),
       controls: defaultControls({
         attribution: false,
@@ -267,7 +268,6 @@ export default {
 
     // Setup context menu (right-click)
     me.setupContentMenu();
-
     // Event bus setup for managing interactions
     EventBus.$on("ol-interaction-activated", startedInteraction => {
       me.activeInteractions.push(startedInteraction);
@@ -544,9 +544,8 @@ export default {
             return false;
           }
         });
-
-        this.map.getTarget().style.cursor =
-          features.length > 0 ? "pointer" : "";
+        const style = this.map.getTarget().style;
+        style && style.cursor == features.length > 0 ? "pointer" : "";
       });
     },
 
@@ -751,6 +750,27 @@ export default {
         const feature = this.currentInfoFeature;
 
         let type = feature.get("osm_type");
+        if (!type && feature.get("orgin_geometry")) {
+          const originGeometry =
+            feature.getProperties()["orgin_geometry"] ||
+            feature
+              .getGeometry()
+              .getType()
+              .toLowerCase();
+          switch (originGeometry) {
+            case "polygon":
+            case "multipolygon":
+            case "linestring":
+              type = "way";
+              break;
+            case "point":
+              type = "node";
+              break;
+            default:
+              type = null;
+              break;
+          }
+        }
         link =
           `https://www.openstreetmap.org/edit?editor=id&` +
           `${type}` +
