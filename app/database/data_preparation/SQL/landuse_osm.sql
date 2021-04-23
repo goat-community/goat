@@ -18,29 +18,36 @@ WHERE landuse IS NOT NULL
 AND ST_Intersects(p.way,s.geom);
 
 INSERT INTO landuse_osm 
-SELECT 'community' AS landuse_simplified, NULL AS landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) AS geom 
+SELECT 'transportation' AS landuse_simplified, p.amenity AS landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) AS geom 
 FROM planet_osm_polygon p, study_area s
-WHERE (amenity = 'hospital' OR amenity = 'school') AND ST_Intersects(s.geom,p.way);
+WHERE amenity = 'parking' 
+AND ST_Intersects(s.geom,p.way);
 
 INSERT INTO landuse_osm 
-SELECT 'waters' AS landuse_simplified, NULL AS landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) AS geom 
+SELECT 'community' AS landuse_simplified, p.amenity AS landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) AS geom 
+FROM planet_osm_polygon p, study_area s
+WHERE (amenity = 'hospital' OR amenity = 'school') 
+AND ST_Intersects(s.geom,p.way);
+
+INSERT INTO landuse_osm 
+SELECT 'waters' AS landuse_simplified, p.leisure AS landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) AS geom 
 FROM planet_osm_polygon p , study_area s
 WHERE leisure = 'swimming_pool' AND ST_Intersects(s.geom,p.way);
 
 INSERT INTO landuse_osm 
-SELECT 'leisure' AS landuse_simplified, NULL AS landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) as geom 
+SELECT 'leisure' AS landuse_simplified, p.leisure AS landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) as geom 
 FROM planet_osm_polygon p , study_area s
 WHERE leisure IS NOT NULL
 AND leisure <> 'swimming_pool'
 AND ST_Intersects(s.geom,p.way);
 
 INSERT INTO landuse_osm 
-SELECT 'water' AS landuse_simplified, NULL AS landuse,  p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) as geom 
+SELECT 'water' AS landuse_simplified, p."natural" AS landuse,  p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) as geom 
 FROM planet_osm_polygon p , study_area s
 WHERE "natural"='water' and ST_Intersects(s.geom,p.way);
 
 INSERT INTO landuse_osm 
-SELECT  'nature' AS landuse_simplified, NULL AS landuse, p.amenity, p.leisure, p.name,ST_Intersection(p.way,s.geom) as geom 
+SELECT  'nature' AS landuse_simplified, p."natural" AS landuse, p.amenity, p.leisure, p.name,ST_Intersection(p.way,s.geom) as geom 
 FROM planet_osm_polygon p , study_area s
 WHERE "natural" IN ('scrub','wood','wetland','grassland','heath') 
 AND ST_Intersects(s.geom,p.way);

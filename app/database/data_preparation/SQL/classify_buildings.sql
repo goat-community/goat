@@ -1,3 +1,9 @@
+/*Performance issues with queries. Ideas for improvement:
+- avoid update but rather write to new table
+- experiment with HOT-Update
+- Check if no residentials landuse from different table can be fused before intersection with buildings
+
+*/
 
 DO $$                  
     BEGIN 
@@ -86,7 +92,7 @@ DO $$
     END
 $$ ;
 
-CREATE TABLE osm_area_no_residents AS 
+CREATE TEMP TABLE osm_area_no_residents AS 
 SELECT way AS geom 
 FROM planet_osm_polygon 
 WHERE landuse IN(SELECT UNNEST(select_from_variable_container('osm_landuse_no_residents')))
@@ -137,7 +143,6 @@ DO $$
     END
 $$ ;
 
-ALTER TABLE buildings ADD COLUMN area integer; 
 UPDATE buildings 
 SET area = ST_AREA(geom::geography);
 
@@ -147,9 +152,6 @@ WHERE buildings.area < (SELECT select_from_variable_container_s('minimum_buildin
 AND residential_status <> 'with_residents';
 
 --Substract one level when POI on building (more classification has to be done in the future)
-
-ALTER TABLE buildings 
-ADD COLUMN building_levels_residential smallint; 
 
 WITH x AS (
     SELECT DISTINCT b.gid
@@ -168,3 +170,8 @@ WHERE building_levels_residential IS NULL;
 UPDATE buildings 
 SET residential_status = 'with_residents'
 WHERE residential_status = 'potential_residents';
+ 
+UPDATE buildings 
+SET gross_floor_area_residential = (building_levels_residential * area) + (roof_levels/2) * area 
+WHERE residential_status = 'with_residents';
+
