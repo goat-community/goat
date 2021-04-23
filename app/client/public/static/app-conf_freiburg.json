@@ -251,24 +251,6 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "footpath_width",
-        "url": "/api/map/layer/footpath_width/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/footpath_width.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
         "name": "ways_lit",
         "url": "/api/map/layer/ways_lit/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -282,42 +264,6 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lit.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_lanes",
-        "url": "/api/map/layer/ways_lanes/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_lanes.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_parking",
-        "url": "/api/map/layer/ways_parking/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_parking.json"
         }
       },
       {
@@ -438,24 +384,6 @@
         "attributes": {
           "source": "openStreetMap",
           "date": "07-03-2021"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_wheelchair",
-        "url": "/api/map/layer/ways_wheelchair/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "visible": false,
-        "canEdit": false,
-        "queryable": true,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 10,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_wheelchair.json"
         }
       },
       {
@@ -1089,9 +1017,33 @@
               "locked": false
             },
             {
-              "name": "Secondary school",
-              "value": "secondary_school",
-              "icon": "secondary_school",
+              "name": "Hauptschule",
+              "value": "Hauptschule",
+              "icon": "hauptschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Werkrealschule",
+              "value": "Werkrealschule",
+              "icon": "werkrealschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Realschule",
+              "value": "Realschule",
+              "icon": "realschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Gymnasium",
+              "value": "Gymnasium",
+              "icon": "gymnasium",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
@@ -1605,7 +1557,7 @@
           },
           {
             "categoryValue": "education",
-            "poisFiltered": ["primary_school", "secondary_school"]
+            "poisFiltered": ["primary_school", "secondary_school","gymnasium","realschule","hauptschule","werkrealschule"]
           }
         ]
       }
