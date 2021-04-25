@@ -1306,13 +1306,6 @@
                 "sensitivity": 300000
               },
               {
-                "name": "Gallery",
-                "value": "gallery",
-                "icon": "gallery",
-                "weight": 1,
-                "sensitivity": 300000
-              },
-              {
                 "name": "Playground",
                 "value": "playground",
                 "icon": "playground",
