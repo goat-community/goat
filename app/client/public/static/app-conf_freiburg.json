@@ -1009,40 +1009,40 @@
               "locked": false
             },
             {
-              "name": "Primary school",
-              "value": "primary_school",
-              "icon": "primary_school",
+              "name": "Grundschule",
+              "value": "grundschule",
+              "icon": "grundschule",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
             },
             {
               "name": "Hauptschule",
-              "value": "Hauptschule",
+              "value": "hauptschule",
               "icon": "hauptschule",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
             },
             {
-              "name": "Werkrealschule",
-              "value": "Werkrealschule",
-              "icon": "werkrealschule",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
-            },
-            {
               "name": "Realschule",
-              "value": "Realschule",
+              "value": "realschule",
               "icon": "realschule",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
             },
             {
+              "name": "Werkrealschule",
+              "value": "werkrealschule",
+              "icon": "werkrealschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
               "name": "Gymnasium",
-              "value": "Gymnasium",
+              "value": "gymnasium",
               "icon": "gymnasium",
               "weight": 1,
               "sensitivity": 300000,

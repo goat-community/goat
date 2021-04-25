@@ -1274,6 +1274,14 @@
               "locked": false
             },
             {
+              "name": "Werkrealschule",
+              "value": "werkrealschule",
+              "icon": "werkrealschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
               "name": "Gymnasium",
               "value": "gymnasium",
               "icon": "gymnasium",
