@@ -1989,7 +1989,8 @@
           "4": "rgb(090, 090, 090)",
           "5": "rgb(000, 000, 000)"
         }
-      }
+      },
+      "isPPFActive": false
     },
     "routing": {
       "default": "walking",
