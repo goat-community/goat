@@ -9,6 +9,7 @@ branches:
     - hasenbergl
     - muenchen
     - freising
+    - freiburg
     - test_travis
 
 before_install:
