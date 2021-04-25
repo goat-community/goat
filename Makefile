@@ -71,10 +71,15 @@ setup-nginx: setup-general-utils
 	$(HELM) install cert-manager --namespace cert-manager jetstack/cert-manager
 	$(KCTL) apply -f k8s/letscrypt.yaml
 
+# target: make docker-pass-setup
+.PHONY: docker-pass-setup
+docker-pass-setup:
+	sops -d docker.sops > docker
+
 # target: make docker-login
 .PHONY: docker-login
-docker-login:
-	$(DOCKER) login -u $(DOCKER_USERNAME) -p $(DOCKER_PASSWORD) $(REGISTRY)
+docker-login: docker-pass-setup
+	cat docker | $(DOCKER) login -u $(DOCKER_USERNAME) --password-stdin $(REGISTRY)
 
 # target: make build-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
 .PHONY: build-docker-image

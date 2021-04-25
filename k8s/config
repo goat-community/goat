@@ -1,18 +1,22 @@
-apiVersion: v1
-clusters:
-- cluster:
-    certificate-authority-data:
-    server:
-  name: "goat"
-contexts:
-- context:
-    cluster: "goat"
-    user: "goat-admin"
-  name: "goat"
-current-context: "goat"
-kind: Config
-users:
-- name: goat-admin
-  user:
-    token:
----
+{
+	"data": "ENC[AES256_GCM,data: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,iv:1Uf28Vhe0D0Nfu11eBZTZ8F8OUvMw2uDcmUrxu/p7zM=,tag:rv40kS0kVDz1q88Sh4ehZA==,type:str]",
+	"sops": {
+		"kms": [
+			{
+				"arn": "arn:aws:kms:us-west-2:085408454859:key/fb032225-ffb7-4c0d-87ef-2255683c423e",
+				"created_at": "2021-04-25T20:11:15Z",
+				"enc": "AQICAHjqPLBcv0Ebs4AY5bLXTacyU4GbG/ruI9706JEXIZhGlAEeQZsG7zFBcJFe60DRSrk/AAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMOwmcNX1PLp07IazXAgEQgDvoAajvDxWjNk4xvbb/8QtTwK8JiRi2tkXCWWYIme1CjHh+jK8yVWAD+neCKvOxw6m29GooEUlTLH4DBA==",
+				"aws_profile": ""
+			}
+		],
+		"gcp_kms": null,
+		"azure_kv": null,
+		"hc_vault": null,
+		"age": null,
+		"lastmodified": "2021-04-25T20:11:17Z",
+		"mac": "ENC[AES256_GCM,data:d4UIx1h3rdcmvFPd3xFuxuRPpXuZeMhBBlG3Xyj0tUKo9KkOgFp2KJHJdWuhC4jMkPARKUHAavQThNkeAJlJdQXoZBTqp/kDJg+lp98SUQA9LXdyf/hBdEKtvH0gEMXjeCkRJ14tWfG9LMDieklFUkjC6xPjddweGhwMJfG95wY=,iv:6PwVlK9DZ+5wy+hj5jGqehB/h+1ee5F8JpcfJJ7w/C0=,tag:8oSIO433rBlU7HY+1L3Mgg==,type:str]",
+		"pgp": null,
+		"unencrypted_suffix": "_unencrypted",
+		"version": "3.7.1"
+	}
+}

@@ -1,21 +1,4 @@
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: ${NAMESPACE}
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: postgres-config
-  namespace: ${NAMESPACE}
-  labels:
-    app: postgres
-data:
-  POSTGRES_DBNAME: ${POSTGRES_DB}
-  POSTGRES_USER: ${POSTGRES_USER}
-  POSTGRES_PASS: ${POSTGRES_PASSWORD}
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pv-claim
@@ -58,13 +41,13 @@ spec:
           ports:
             - containerPort: 5432
           envFrom:
-            - configMapRef:
-                name: postgres-config
+            - secretRef:
+                name: postgres-secrets
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgredb
             - mountPath: /opt/config/db
-              name: goat-config
+              name: postgres-goat-secrets
             - mountPath: /opt/data
               name: postgredb
               subPath: ${NAMESPACE}
@@ -72,9 +55,9 @@ spec:
         - name: postgredb
           persistentVolumeClaim:
             claimName: postgres-pv-claim
-        - name: goat-config
-          configMap:
-            name: goat-config
+        - name: postgres-goat-secrets
+          secret:
+            secretName: postgres-goat-secrets
 ---
 apiVersion: v1
 kind: Service
@@ -89,19 +72,3 @@ spec:
     - port: 5432
   selector:
     app: postgres
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: goat-config
-  namespace: ${NAMESPACE}
-data:
-  db.yaml: |
-    HOST: \"postgres.${NAMESPACE}.svc.cluster.local\"
-    PORT: 5432
-    DB_NAME: \"${POSTGRES_DB}\"
-    USER: \"${POSTGRES_USER}\"
-    PASSWORD: \"${POSTGRES_PASSWORD}\"
-  spaces.yaml: |
-    key_id: \"${SPACES_KEY_ID}\"
-    secret_access_key: \"${SPACES_SECRET_KEY}\"

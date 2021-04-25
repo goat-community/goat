@@ -1,0 +1,43 @@
+name: Push
+
+on:
+  push:
+    branches: [ ffb,bogota,hasenbergl,muenchen,freising,test_travis,github-actions ]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get changed files 
+        id: get_file_changes
+        uses: trilom/file-changes-action@v1.2.4
+        with:
+          output: ' '
+      - name: Install tools
+        run: |
+          wget https://github.com/mozilla/sops/releases/download/v3.7.1/sops_3.7.1_amd64.deb
+          sudo dpkg -i sops_3.7.1_amd64.deb
+          sops -v 
+      - name: Release changed client
+        #Instead of using build-condition.sh script I used github action, defined above. It allow to check for changed files and then parse this list.
+        #Github action doesn’t have TRAVIS_COMMIT_RANGE alternative, so there was two way to resolve this problem: write own script to detect changed files or use gh action from marketplace
+        #As an alternative for TRAVIS_COMMIT_MESSAGE I used "contains(github.event.head_commit.message, 'blabla')"
+        if: contains(steps.get_file_changes.outputs.files, 'app/client') || contains(github.event.head_commit.message, 'blabla')
+        run: make release-docker-image -e COMPONENT=client
+      - name: Release changed api
+        if: contains(steps.get_file_changes.outputs.files, 'app/api') || contains(github.event.head_commit.message, 'blabla')
+        run: make release-docker-image -e COMPONENT=api
+      - name: Release changed cron
+        if: contains(steps.get_file_changes.outputs.files, 'app/cron') || contains(github.event.head_commit.message, 'blabla')
+        run: make release-docker-image-app-context -e COMPONENT=cron 
+      - name: Release changed database
+        if: contains(steps.get_file_changes.outputs.files, 'app/database') || contains(github.event.head_commit.message, 'blabla')
+        run: make release-database-docker-image
+
+      
