@@ -349,7 +349,7 @@
       "cantPrintBaseLayer": "Diese Basiskarte kann nicht gedruckt werden.",
       "cantExportScenario": "Ein Fehler ist aufgetreten. Szenario kann nicht exportiert werden!",
       "zoomInToShowFeatures": "Zoome um Objekte der folgenden Layer zu sehen",
-      "heatmapIsBusy": "Recomputing for heatmap layer might take some time. Please be patient!"
+      "heatmapIsBusy": "Die Neuberechung der Heatmap dauert etwas. Bitte bleiben Sie geduldig!"
     },
     "layerGroup": {
       "poisLayers": "POIs",
@@ -623,10 +623,11 @@
     "kindergarten": "Kindergarten",
     "primary_school": "Grundschule",
     "secondary_school": "Weiterführende Schule",
-    "Gymnasium": "Gymnasium",
-    "Realschule": "Realschule",
-    "Hauptschule": "Hauptschule",
-    "Werkrealschule": "Werkrealschule",
+    "grundschule": "Grundschule",
+    "gymnasium": "Gymnasium",
+    "realschule": "Realschule",
+    "hauptschule": "Hauptschule",
+    "werkrealschule": "Werkrealschule",
     "school": "Schule",
     "library": "Bibliothek",
     "bar": "Bar",
