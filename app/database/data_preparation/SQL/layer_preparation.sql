@@ -212,21 +212,31 @@ FROM planet_osm_point p, study_area s
 WHERE st_intersects(s.geom,p.way) 
 AND highway IN ('street_lamp');
 
+--Remove duplicates from OSM & Mapillary
+--Table of just duplicates
+DROP TABLE IF EXISTS dups;
+CREATE TABLE dups AS
+SELECT p.*, ST_Distance(p.geom, s.geom) AS distance
+FROM points p  --rename to: mapillary_features 
+LEFT JOIN street_furniture s ON ST_DWithin(p.geom, s.geom, 0.0001)
+WHERE p.value = s.amenity AND ST_Distance(p.geom, s.geom)>0;
+
+--Table of no duplicates
+DROP TABLE IF EXISTS no_dups;
+CREATE TABLE no_dups AS SELECT p.*
+FROM points p --rename to: mapillary_features 
+LEFT JOIN dups ON p.id = dups.id
+WHERE dups.id IS NULL;
+
 --Insert data from Mapillary 
 INSERT INTO street_furniture
-SELECT NULL AS osm_id, p.KEY, 
-CASE WHEN value = 'object--bench'
-	THEN 'bench' 
-WHEN value = 'object--bike-rack'
-	THEN 'bicycle_parking'
-WHEN value = 'object--trash-can'
-	THEN 'waste_basket'	
-WHEN value = 'object--street-light'
-	THEN 'street_lamp'	
-END AS amenity, p.geom, 'mapillary' AS SOURCE, p.accuracy
-FROM points p --rename to: mapillary_features 
-WHERE value IN ('object--bench','object--bike-rack','object--trash-can','object--street-light');
-	
+SELECT NULL AS osm_id, p.key AS mapillary_key, value AS amenity, p.geom, 'mapillary' AS SOURCE, p.accuracy
+FROM no_dups p 
+WHERE value IN ('bench','street_lamp');
+
+DROP TABLE dups;
+DROP TABLE no_dups;
+
 ----------------------------------------------------------	
 --Precalculation of visualized features for illuminance---
 ----------------------------------------------------------
@@ -259,8 +269,8 @@ WHERE f.id = x.id;
 DROP TABLE IF EXISTS buffer_lamps;
 CREATE TABLE buffer_lamps as
 SELECT (ST_DUMP(ST_UNION(ST_BUFFER(way,15 * meter_degree())))).geom AS geom 
-FROM planet_osm_point 
-WHERE highway = 'street_lamp';
+FROM street_furniture
+WHERE amenity = 'street_lamp';
 
 CREATE INDEX ON buffer_lamps USING gist(geom);
 
@@ -290,8 +300,8 @@ DROP TABLE lit_share;
 ----------------------
 ---Add landuse data---
 ----------------------
-
---clean landuse ##copy this query to the "buildings_residential.sql" scrit when finished
+--clean landuse ##copy this query to the "buildings_residential.sql" script when finished
+DROP TABLE IF EXISTS inner_polygons;
 CREATE TABLE inner_polygons AS
 SELECT lo.*
 FROM landuse_osm l 
@@ -302,11 +312,13 @@ SET geom = st_difference(l.geom, i.geom)
 FROM inner_polygons i
 WHERE l.gid=i.gid;
 
---TODO: insert inner_polygons in landuse_osm
+INSERT INTO landuse_osm l
+SELECT * FROM inner_polygons; 
 --TODO: maybe insert a loop (for polygons inside the inner_polygons)
 
 DROP TABLE inner_polygons;
 
+--assign info about landuse to footpath_visualization
 ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS landuse text;
 
 UPDATE footpath_visualization f  
@@ -314,7 +326,7 @@ SET landuse = l.landuse_simplified
 FROM landuse_osm l
 WHERE ST_CONTAINS(l.geom,f.geom);
 
-CREATE TABLE footpath_ids_landuse AS 
+CREATE TABLE footpath_ids_landuse AS --TODO: use buffer and intersect with area
 WITH i AS 
 (
     SELECT f.id, f.geom, ST_LENGTH(ST_Intersection(l.geom, f.geom)) len_intersection, l.landuse_simplified AS landuse

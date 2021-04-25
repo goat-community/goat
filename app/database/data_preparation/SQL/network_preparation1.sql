@@ -33,13 +33,12 @@ WHERE ways.osm_id = p.osm_id;
 --	ADD COLUMN crossing TEXT, ADD COLUMN one_link_crossing boolean;
 
 --Create table that stores all street crossings
-
 DROP TABLE IF EXISTS street_crossings;
 CREATE TABLE street_crossings AS 
-SELECT osm_id, highway,(tags -> 'crossing') AS crossing, 
+SELECT osm_id, NULL as key, highway,(tags -> 'crossing') AS crossing, 
 (tags -> 'traffic_signals') AS traffic_signals,(tags -> 'crossing_ref') AS crossing_ref, (tags -> 'kerb') AS kerb, 
 (tags -> 'segregated') AS segregated, (tags -> 'supervised') AS supervised, 
-(tags -> 'tactile_paving') AS tactile_paving, (tags -> 'wheelchair') AS wheelchair, way AS geom
+(tags -> 'tactile_paving') AS tactile_paving, (tags -> 'wheelchair') AS wheelchair, way AS geom, 'osm' as source
 FROM planet_osm_point p
 WHERE (tags -> 'crossing') IS NOT NULL 
 OR highway IN('crossing','traffic_signals')
@@ -61,6 +60,30 @@ WHERE crossing IS NULL AND highway IS NOT NULL;
 ALTER TABLE street_crossings ADD COLUMN gid serial;
 ALTER TABLE street_crossings ADD PRIMARY key(gid);
 CREATE INDEX ON street_crossings USING GIST(geom);
+
+--Remove duplicates from OSM & Mapillary
+--Table of just duplicates
+DROP TABLE IF EXISTS dups;
+CREATE TABLE dups AS
+SELECT p.*, ST_Distance(p.geom, s.geom) AS distance
+FROM points p  --rename to: mapillary_features 
+LEFT JOIN street_crossings s ON ST_DWithin(p.geom, s.geom, 0.0005)
+WHERE p.value = s.crossing AND ST_Distance(p.geom, s.geom)>0;
+
+--Table of no duplicates
+DROP TABLE IF EXISTS no_dups;
+CREATE TABLE no_dups AS SELECT p.*
+FROM points p --rename to: mapillary_features 
+LEFT JOIN dups ON p.id = dups.id
+WHERE dups.id IS NULL;
+
+--Insert data from Mapillary 
+INSERT INTO street_crossings
+SELECT NULL AS osm_id, p.key, NUll as highway, 'zebra' as crossing, NULL AS traffic_signals, 
+NULL AS crossing_ref, NULL AS kerb, NULL AS segregated, NULL AS supervised, NULL AS tactile_paving, NULL AS wheelchair, 
+geom, 'mapillary' AS SOURCE
+FROM no_dups p --rename to: mapillary_features 
+WHERE value IN ('zebra');
 
 --Identify ways that intersect with street crossings
 DROP TABLE IF EXISTS ways_crossed;
