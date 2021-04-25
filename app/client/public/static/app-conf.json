@@ -1233,17 +1233,33 @@
               "locked": false
             },
             {
-              "name": "Primary school",
-              "value": "primary_school",
-              "icon": "primary_school",
+              "name": "Grundschule",
+              "value": "grundschule",
+              "icon": "grundschule",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
             },
             {
-              "name": "Secondary school",
-              "value": "secondary_school",
-              "icon": "secondary_school",
+              "name": "Hauptschule",
+              "value": "hauptschule",
+              "icon": "hauptschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Realschule",
+              "value": "realschule",
+              "icon": "realschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Gymnasium",
+              "value": "gymnasium",
+              "icon": "gymnasium",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
