@@ -20,7 +20,7 @@
     "html2canvas": "^1.0.0-rc.7",
     "jspdf": "^2.3.0",
     "mapillary-js": "^2.20.0",
-    "ol": "^6.1.1",
+    "ol": "^6.5.0",
     "ol-contextmenu": "^4.0.0",
     "ol-ext": "^3.1.8",
     "vue": "^2.6.6",

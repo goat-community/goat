@@ -1,63 +1,69 @@
 <template>
   <div>
-    <!-- TOGGLE STREET VIEW -->
-    <v-tooltip right>
-      <template v-slot:activator="{ on }">
-        <v-btn
-          class="mx-2 miniviewer-button"
-          fab
-          dark
-          small
-          :color="activeColor.primary"
-          @click="showMiniViewer"
-          :loading="isMapillaryBtnDisabled"
-          v-on="on"
-        >
-          <v-icon dark>streetview</v-icon>
-        </v-btn>
-      </template>
-      <span>{{ $t(`map.tooltips.toggleStreetView`) }}</span>
-    </v-tooltip>
+    <div v-show="print.active === false">
+      <!-- toggle-streetview -->
+      <v-tooltip right>
+        <template v-slot:activator="{ on }">
+          <v-btn
+            class="mx-2 miniviewer-button"
+            fab
+            dark
+            small
+            :color="activeColor.primary"
+            @click="showMiniViewer"
+            :loading="isMapillaryBtnDisabled"
+            v-on="on"
+          >
+            <v-icon dark>streetview</v-icon>
+          </v-btn>
+        </template>
+        <span>{{ $t(`map.tooltips.toggleStreetView`) }}</span>
+      </v-tooltip>
 
-    <!-- ISOCHRONES-THEMATIC-DATA -->
-    <isochrone-thematic-data v-show="!miniViewOlMap" />
+      <!-- isochrone-thematic-data -->
+      <isochrone-thematic-data v-show="!miniViewOlMap" />
 
-    <!-- MAPILLARY-->
-    <div
-      v-if="miniViewerVisible"
-      v-show="!isMapillaryBtnDisabled"
-      class="elevation-4"
-      :class="miniViewOlMap ? 'fullscreen' : 'miniview'"
-    >
-      <div v-if="!miniViewOlMap" id="close-miniview" @click="closeMiniView()">
-        <v-icon dark class="close-icon">close</v-icon>
-      </div>
-      <div v-if="!miniViewOlMap" id="switch-triangle" @click="switchViews()">
-        <v-icon large dark class="swap-icon">swap_horiz</v-icon>
-      </div>
-      <app-mapillary
-        ref="mapillary"
-        class="fullscreen"
+      <!-- mapillary-->
+      <div
         v-if="miniViewerVisible"
-        :organization_key="mapillaryOrganizationKey"
-        :clientId="mapillaryClientId"
-        :baseLayerExtent="mapillaryTileBaseLayerExtent"
-      ></app-mapillary>
-    </div>
+        v-show="!isMapillaryBtnDisabled"
+        class="elevation-4"
+        :class="miniViewOlMap ? 'fullscreen' : 'miniview'"
+      >
+        <div v-if="!miniViewOlMap" id="close-miniview" @click="closeMiniView()">
+          <v-icon dark class="close-icon">close</v-icon>
+        </div>
+        <div v-if="!miniViewOlMap" id="switch-triangle" @click="switchViews()">
+          <v-icon large dark class="swap-icon">swap_horiz</v-icon>
+        </div>
+        <app-mapillary
+          ref="mapillary"
+          class="fullscreen"
+          v-if="miniViewerVisible"
+          :organization_key="mapillaryOrganizationKey"
+          :clientId="mapillaryClientId"
+          :baseLayerExtent="mapillaryTileBaseLayerExtent"
+        ></app-mapillary>
+      </div>
 
-    <!-- OL MAP -->
-    <div :class="miniViewOlMap ? 'miniview' : 'fullscreen'">
-      <div v-if="miniViewOlMap" id="close-miniview" @click="closeMiniView()">
-        <v-icon dark class="close-icon">close</v-icon>
+      <!-- ol-map -->
+      <div :class="miniViewOlMap ? 'miniview' : 'fullscreen'">
+        <div v-if="miniViewOlMap" id="close-miniview" @click="closeMiniView()">
+          <v-icon dark class="close-icon">close</v-icon>
+        </div>
+        <div v-if="miniViewOlMap" id="switch-triangle" @click="switchViews()">
+          <v-icon large dark class="swap-icon">swap_horiz</v-icon>
+        </div>
+        <app-ol-map
+          :miniViewOlMap="miniViewOlMap"
+          class="fullscreen"
+          ref="olmap"
+        ></app-ol-map>
       </div>
-      <div v-if="miniViewOlMap" id="switch-triangle" @click="switchViews()">
-        <v-icon large dark class="swap-icon">swap_horiz</v-icon>
-      </div>
-      <app-ol-map
-        :miniViewOlMap="miniViewOlMap"
-        class="fullscreen"
-        ref="olmap"
-      ></app-ol-map>
+    </div>
+    <!-- PRINT VIEW -->
+    <div v-show="print.active === true">
+      <print-viewer></print-viewer>
     </div>
   </div>
 </template>
@@ -66,6 +72,7 @@
 import appMap from "./ol/Map";
 import appMapillary from "./mapillary/Mapillary";
 import IsochronThematicData from "./others/IsochroneThematicData";
+import PrintViewer from "./print/PrintViewer";
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
 
@@ -74,7 +81,8 @@ export default {
   components: {
     "app-ol-map": appMap,
     "app-mapillary": appMapillary,
-    "isochrone-thematic-data": IsochronThematicData
+    "isochrone-thematic-data": IsochronThematicData,
+    "print-viewer": PrintViewer
   },
   data() {
     return {
@@ -89,6 +97,9 @@ export default {
   computed: {
     ...mapGetters("app", {
       activeColor: "activeColor"
+    }),
+    ...mapGetters("map", {
+      print: "print"
     }),
     ...mapFields("map", {
       isMapillaryBtnDisabled: "isMapillaryBtnDisabled"
@@ -136,15 +147,6 @@ export default {
   top: 150px;
   left: 8px;
   z-index: 1;
-}
-
-.fullscreen {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
 }
 
 .miniview {
