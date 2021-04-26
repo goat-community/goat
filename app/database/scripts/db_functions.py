@@ -46,6 +46,51 @@ class DB_connection:
         return con, con.cursor()
 
 
+def bulk_compute_profile(db_name, user, port, host, password, size):
+    import psycopg2
+
+    con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s'" % (db_name,user,str(port),host,password))
+    cursor = con.cursor()
+
+    cursor.execute('SELECT count(*) FROM ways;')
+    cnt_ways = cursor.fetchall()[0][0]
+
+    cursor.execute("""
+        drop table if exists ways_profile;
+        
+        create table ways_profile (
+        way_id bigint NOT NULL,
+        elevation decimal NOT NULL,
+        geom geometry NOT NULL
+        );
+        
+        create index way_id_idx on ways_profile using btree(way_id);
+        create index geom_idx on ways_profile using gist(geom);
+    """)
+
+    con.commit()
+
+    batches = range(int(cnt_ways / size)+1)
+
+    # TODO: Enable threading/parallelism
+    for b in batches:
+        sql = """
+            with segments as (
+                select id from ways limit {0} offset {1}
+            )
+            
+            
+            insert into ways_profile
+            select seg.return_id as way_id, seg.elevs as elevation, seg.return_geom as geom                         
+            from segments s,
+            lateral get_slope_profile_precompute(s.id) seg;        
+        """.format(size, b*size)
+
+        cursor.execute(sql)
+        con.commit()
+
+# bulk_compute_profile('goat','goat','65432','localhost','earlmanigault', 1000)
+
 def bulk_compute_slope(db_name,user,port,host,password):
     import psycopg2
 
