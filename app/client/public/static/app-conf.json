@@ -995,14 +995,6 @@
                 "locked": false
               },
               {
-                "name": "Hauptschule",
-                "value": "hauptschule",
-                "icon": "hauptschule",
-                "weight": 1,
-                "sensitivity": 300000,
-                "locked": false
-              },
-              {
                 "name": "Realschule",
                 "value": "realschule",
                 "icon": "realschule",
