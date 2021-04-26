@@ -56,6 +56,7 @@ setup-general-utils:
 # target: make setup-kube-config
 .PHONY: setup-kube-config
 setup-kube-config:
+	sops -d k8s/config-encrypted > k8s/config
 	mkdir -p ${HOME}/.kube/
 	cp k8s/config ${HOME}/.kube/config
 	$(KCTL) config set "clusters.goat.server" "${KUBE_CLUSTER_SERVER}"
@@ -126,9 +127,13 @@ build-k8s:
 # target: make deploy-postgres-server
 .PHONY: deploy-postgres-server
 deploy-postgres-server: setup-kube-config build-k8s
-	$(KCTL) config use-context goat && $(KCTL) apply -f k8s/postgres.yaml
+	$(KCTL) config use-context goat && $(KCTL) apply -f k8s/postgres-secrets.yaml &&  $(KCTL) apply -f k8s/postgres.yaml
 
 # target: make deploy -e COMPONENT=api|client|geoserver|print|mapproxy
 .PHONY: deploy
 deploy: setup-kube-config build-k8s
-	$(KCTL) config use-context goat && $(KCTL) apply -f k8s/$(COMPONENT).yaml
+	if [[ "$(COMPONENT)" == "api" || "$(COMPONENT)" == "cron" ]]; then \
+	   $(KCTL) config use-context goat && $(KCTL) apply -f k8s/$(COMPONENT)-secrets.yaml && $(KCTL) apply -f k8s/$(COMPONENT).yaml; \
+	else \
+	   $(KCTL) config use-context goat && $(KCTL) apply -f k8s/$(COMPONENT).yaml; \
+	fi

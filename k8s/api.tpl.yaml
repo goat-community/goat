@@ -51,13 +51,22 @@ spec:
           - name: APP_PORT
             value: '3000'
           - name: POSTGRES_USER
-            value: ${POSTGRES_USER}
+            valueFrom:
+              secretKeyRef:
+                name: api-secrets
+                key: POSTGRES_USER
           - name: POSTGRES_HOST
             value: postgres.${NAMESPACE}.svc.cluster.local
           - name: POSTGRES_DBNAME
-            value: ${POSTGRES_DB}
+            valueFrom:
+              secretKeyRef:
+                name: api-secrets
+                key: POSTGRES_DB
           - name: POSTGRES_PASS
-            value: ${POSTGRES_PASSWORD}
+            valueFrom:
+              secretKeyRef:
+                name: api-secrets
+                key: POSTGRES_PASSWORD
           - name: POSTGRES_PORT
             value: '5432'
 ---
