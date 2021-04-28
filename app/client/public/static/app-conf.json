@@ -1311,23 +1311,9 @@
             "categoryValue": "sports",
             "children": [
               {
-                "name": "Community Sport Center",
-                "value": "community_sports_center",
-                "icon": "community_sports_center",
-                "weight": 1,
-                "sensitivity": 300000
-              },
-              {
                 "name": "Waterpark",
                 "value": "waterpark",
                 "icon": "waterpark",
-                "weight": 1,
-                "sensitivity": 300000
-              },
-              {
-                "name": "Discount Gym",
-                "value": "discount_gym",
-                "icon": "discount_gym",
                 "weight": 1,
                 "sensitivity": 300000
               },
