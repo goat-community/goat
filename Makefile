@@ -72,16 +72,6 @@ setup-nginx: setup-general-utils
 	$(HELM) install cert-manager --namespace cert-manager jetstack/cert-manager
 	$(KCTL) apply -f k8s/letscrypt.yaml
 
-# target: make docker-pass-setup
-.PHONY: docker-pass-setup
-docker-pass-setup:
-	sops -d docker.sops > docker
-
-# target: make docker-login
-.PHONY: docker-login
-docker-login: docker-pass-setup
-	cat docker | $(DOCKER) login -u $(DOCKER_USERNAME) --password-stdin $(REGISTRY)
-
 # target: make build-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
 .PHONY: build-docker-image
 build-docker-image: app/$(COMPONENT)/Dockerfile
@@ -89,7 +79,7 @@ build-docker-image: app/$(COMPONENT)/Dockerfile
 
 # target: make release-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
 .PHONY: release-docker-image
-release-docker-image: docker-login build-docker-image
+release-docker-image: build-docker-image
 	$(DOCKER) push $(DOCKER_IMAGE)
 
 # target: make build-docker-image-app-context -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
@@ -99,7 +89,7 @@ build-docker-image-app-context: app/$(COMPONENT)/Dockerfile
 
 # target: make release-docker-image-app-context -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
 .PHONY: release-docker-image-app-context
-release-docker-image-app-context: docker-login build-docker-image-app-context
+release-docker-image-app-context: build-docker-image-app-context
 	$(DOCKER) push $(DOCKER_IMAGE)
 
 # target: make build-database-docker-image -e VERSION=some_git_sha_comit
@@ -109,7 +99,7 @@ build-database-docker-image: app/database/Dockerfile
 
 # target: make release-database-docker-image -e VERSION=some_git_sha_comit
 .PHONY: release-database-docker-image
-release-database-docker-image: docker-login build-database-docker-image
+release-database-docker-image: build-database-docker-image
 	$(DOCKER) push $(POSTGIS_DOCKER_IMAGE)
 
 # target: make after-success
