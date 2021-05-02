@@ -1,7 +1,5 @@
 --THIS FILE NEEDS TO BE EXECUTED TO COMPUTE THE WALKBILITY INDICES
 
-
-
 -- Load walkability table 
 DROP TABLE IF EXISTS walkability;
 CREATE TABLE walkability(
@@ -16,8 +14,8 @@ CREATE TABLE walkability(
 );
 
 COPY walkability
-FROM '/opt/data//walkability.csv'
-DELIMITER ','
+FROM '/opt/data_preparation//walkability.csv'
+DELIMITER ';'
 CSV HEADER;
 
 --Add columns for the walkability criteria
@@ -36,23 +34,29 @@ ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS walkability numeric;
 
 --sidewalk quality--
 --prepara data
-UPDATE footpath_visualization f SET sidewalk = 'yes' where sidewalk is null and highway in ('footway', 'path', 'cycleway', 'living_street', 'steps', 'pedestrian');
-UPDATE footpath_visualization f SET sidewalk = 'no' where sidewalk is null or sidewalk ='none';
-UPDATE footpath_visualization f SET smoothness = 'average' where smoothness is null;
-UPDATE footpath_visualization f SET smoothness = 'excellent' where smoothness = 'very_good';
-UPDATE footpath_visualization f SET surface = 'average' where surface is null;
-UPDATE footpath_visualization f SET width = 2.0 where width is null;
+UPDATE footpath_visualization f SET sidewalk = 'yes' where sidewalk is null and highway in ('footway', 'path', 'cycleway', 'living_street', 'steps', 'pedestrian', 'track');
+UPDATE footpath_visualization f SET surface = 'asphalt' where surface IS NULL AND highway IN ('residential','tertiary','secondary','primary','living_street');
+UPDATE footpath_visualization f SET surface = NULL where surface not in ('paved','asphalt','concrete','concrete:lanes','paving_stones','cobblestone:flattened','stone',
+'sandstone','sett','metal','unhewn_cobblestone','cobblestone','unpaved','compacted','fine_gravel','metal_grid','gravel','pebblestone','rock','wood','ground','dirt','earth','grass','grass_paver','mud','sand');
 
 --calculate score
 UPDATE footpath_visualization f SET sidewalk_quality = 
-(
-    select_weight_walkability('sidewalk',sidewalk) ---change to variable container
-	+ select_weight_walkability('smoothness',smoothness) 
-	+ select_weight_walkability('surface',surface)
-	+ select_weight_walkability('wheelchair',wheelchair_classified)
-	+ select_weight_walkability_range('width', width)
-)
-*(100/0.29);
+100 * group_index(
+	ARRAY[
+		select_weight_walkability('sidewalk',sidewalk), 
+		select_weight_walkability('smoothness',smoothness),
+		select_weight_walkability('surface',surface),
+		select_weight_walkability('wheelchair',wheelchair_classified),
+		select_weight_walkability_range('width', width)
+	],
+	ARRAY[
+		select_full_weight_walkability('sidewalk'),
+		select_full_weight_walkability('smoothness'),
+		select_full_weight_walkability('surface'),
+		select_full_weight_walkability('wheelchair'),
+		select_full_weight_walkability('width')
+	]
+);
 
 --traffic protection--
 --prepara data
@@ -65,7 +69,7 @@ AND ST_Intersects(w.geom,s.geom);
 
 CREATE INDEX ON highway_buffer USING GIST(geom);
 
-UPDATE footpath_visualization f SET lanes = 0 where lanes is null;
+UPDATE footpath_visualization SET maxspeed_forward = NULL WHERE highway IN ('path','track');
 
 UPDATE footpath_visualization f SET lanes = h.lanes, maxspeed_forward = h.maxspeed_forward
 FROM 
@@ -93,17 +97,20 @@ FROM
 ) p 
 WHERE f.id = p.id;
 
-UPDATE footpath_visualization SET parking = 'no'
-WHERE parking IS NULL; 
-
 --calculate score
 UPDATE footpath_visualization f SET traffic_protection = 
-(
-    select_weight_walkability_range('lanes',lanes) 
-	+ select_weight_walkability_range('maxspeed',maxspeed_forward)
-	+ select_weight_walkability('parking',parking)
-)
-*(100/0.14);
+100 * group_index(
+	ARRAY[
+		select_weight_walkability_range('lanes',lanes),
+		select_weight_walkability_range('maxspeed',maxspeed_forward),
+		select_weight_walkability('parking',parking)
+	],
+	ARRAY[
+		select_full_weight_walkability('lanes'),
+		select_full_weight_walkability('maxspeed'),
+		select_full_weight_walkability('parking')
+	]
+);
 
 UPDATE footpath_visualization SET traffic_protection = 100
 WHERE traffic_protection IS NULL; 
@@ -167,32 +174,36 @@ UPDATE footpath_visualization
 SET vegetation = 0 
 WHERE vegetation IS NULL; 
 
---- Attractiveness indicators
+--- Attractiveness of walking environment indicators
 --Landuse
-DROP TABLE IF EXISTS buffer_test;
-CREATE TEMP TABLE buffer_test (id serial, geom geography);
-INSERT INTO buffer_test
-SELECT id, st_buffer(geom::geography, 8) AS geom FROM footpath_visualization;
+-- DROP TABLE IF EXISTS buffer_test;
+-- CREATE TEMP TABLE buffer_test (id serial, geom geography);
+-- INSERT INTO buffer_test
+-- SELECT id, st_buffer(geom::geography, 8) AS geom FROM footpath_visualization;
 
-DROP TABLE IF EXISTS lu_score;
-CREATE TABLE lu_score (id serial, score numeric);
-INSERT INTO lu_score
-WITH landuses AS (SELECT * FROM landuse_osm lo WHERE landuse = ANY (SELECT sring_condition FROM walkability WHERE attribute = 'land_use')),
-unique_landuse AS (SELECT DISTINCT b.id, l.landuse AS landuse
-	FROM buffer_test b
-	LEFT JOIN landuses l ON st_intersects(b.geom::geometry, l.geom)),
-lu_link AS (SELECT id, count(id) FROM unique_landuse GROUP BY id),
-max_landuses AS (SELECT max(count) AS max_lu FROM lu_link)
-SELECT id, ((count::numeric/(SELECT* FROM max_landuses)::NUMERIC)*0.14) AS score FROM lu_link;
+-- DROP TABLE IF EXISTS lu_score;
+-- CREATE TABLE lu_score (id serial, score numeric);
+-- INSERT INTO lu_score
+-- WITH landuses AS (SELECT * FROM landuse_osm lo WHERE landuse = ANY (SELECT sring_condition FROM walkability WHERE attribute = 'land_use')),
+-- unique_landuse AS (SELECT DISTINCT b.id, l.landuse AS landuse
+-- 	FROM buffer_test b
+-- 	LEFT JOIN landuses l ON st_intersects(b.geom::geometry, l.geom)),
+-- lu_link AS (SELECT id, count(id) FROM unique_landuse GROUP BY id),
+-- max_landuses AS (SELECT max(count) AS max_lu FROM lu_link)
+-- SELECT id, ((count::numeric/(SELECT* FROM max_landuses)::NUMERIC)*0.14) AS score FROM lu_link;
 
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS landuse_score;
-ALTER TABLE footpath_visualization ADD COLUMN landuse_score NUMERIC;
-UPDATE footpath_visualization SET landuse_score = score
-FROM lu_score
-WHERE lu_score.id = footpath_visualization.id;
+-- ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS landuse_score;
+-- ALTER TABLE footpath_visualization ADD COLUMN landuse_score NUMERIC;
+-- UPDATE footpath_visualization SET landuse_score = score
+-- FROM lu_score
+-- WHERE lu_score.id = footpath_visualization.id;
+
+UPDATE footpath_visualization f  
+SET landuse = 'null'
+WHERE landuse IS NULL
 
 UPDATE footpath_visualization f 
-SET walking_environment = landuse_score*(100/0.14);
+SET walking_environment = landuse_score*(100/0.05); 
 
 ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS landuse_score;
 -- POIS along the route (issue #986)
