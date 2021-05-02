@@ -413,6 +413,24 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
+        "name": "ways_walkability",
+        "url": "/api/map/layer/ways_walkability/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_walkability.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "street_crossings",
         "url": "/api/map/layer/street_crossings/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
