@@ -15,7 +15,7 @@ BEGIN
 			SELECT UNNEST(arr1) a, UNNEST(arr2) b
 		) x
 	)
-	SELECT sum(a)/sum(b) 
+	SELECT CASE WHEN sum(b) > 0 THEN sum(a)/sum(b) ELSE NULL END AS index
 	INTO grouped_index
 	FROM unnested;	 
 	
