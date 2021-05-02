@@ -117,11 +117,17 @@ WHERE traffic_protection IS NULL;
 
 --security--
 UPDATE footpath_visualization f SET security = 
-(
-    select_weight_walkability('lit_classified',lit_classified) 
-)
-*(100/0.14);
-UPDATE footpath_visualization f SET security = 50 WHERE security IS NULL;
+100 * group_index(
+	ARRAY[
+		select_weight_walkability('lit_classified',lit_classified)
+	],
+	ARRAY[
+		select_full_weight_walkability('lit_classified')
+	]
+);
+
+--UPDATE footpath_visualization f SET security = 50 WHERE security IS NULL;
+
 /*
 --- Green index indicator
 DROP TABLE IF EXISTS buffer_test;
