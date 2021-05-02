@@ -268,7 +268,7 @@ WHERE f.id = x.id;
 --Precalculation of visualized features for lit
 DROP TABLE IF EXISTS buffer_lamps;
 CREATE TABLE buffer_lamps as
-SELECT (ST_DUMP(ST_UNION(ST_BUFFER(way,15 * meter_degree())))).geom AS geom 
+SELECT (ST_DUMP(ST_UNION(ST_BUFFER(geom,15 * meter_degree())))).geom AS geom 
 FROM street_furniture
 WHERE amenity = 'street_lamp';
 
@@ -312,7 +312,7 @@ SET geom = st_difference(l.geom, i.geom)
 FROM inner_polygons i
 WHERE l.gid=i.gid;
 
-INSERT INTO landuse_osm l
+INSERT INTO landuse_osm 
 SELECT * FROM inner_polygons; 
 --TODO: maybe insert a loop (for polygons inside the inner_polygons)
 
@@ -326,7 +326,8 @@ SET landuse = l.landuse_simplified
 FROM landuse_osm l
 WHERE ST_CONTAINS(l.geom,f.geom);
 
-CREATE TABLE footpath_ids_landuse AS --TODO: use buffer and intersect with area
+DROP TABLE IF EXISTS footpath_ids_landuse;
+CREATE TABLE footpath_ids_landuse AS --TODO: use buffer and intersect with area 
 WITH i AS 
 (
     SELECT f.id, f.geom, ST_LENGTH(ST_Intersection(l.geom, f.geom)) len_intersection, l.landuse_simplified AS landuse
@@ -347,6 +348,14 @@ FROM footpath_ids_landuse l
 WHERE f.id = l.id; 
 
 DROP TABLE footpath_ids_landuse;
+
+--assign info about population density
+ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS population text;
+--TODO: assign "high","medium","low","no" accoridng to buffer -> intersection with pop.
+
+-- assign info about POIs
+ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS pois int;
+--TODO: assign "high","medium","low","no" accoridng to buffer -> intersection with pois.
 
 --Table for visualization of parking
 DROP TABLE IF EXISTS parking;
