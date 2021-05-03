@@ -1,3 +1,7 @@
+
+ALTER TABLE study_area ADD COLUMN IF NOT EXISTS default_building_levels SMALLINT; 
+ALTER TABLE study_area ADD COLUMN IF NOT EXISTS default_roof_levels SMALLINT; 
+
 ALTER TABLE study_area ALTER COLUMN sum_pop TYPE integer using sum_pop::integer;
 ALTER TABLE study_area DROP COLUMN IF EXISTS area;
 ALTER TABLE study_area add column area float;
@@ -173,3 +177,15 @@ $$
 		END IF;
 	END
 $$;
+
+
+
+
+
+
+
+
+
+
+
+
