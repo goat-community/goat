@@ -2,21 +2,21 @@
 import copy
 import re
 import geopandas as gpd
-from db.db import Database
+from scripts.db.db import Database
 from shapely.wkt import loads
 
 db = Database()
 
+
 class Profiles():
     def __init__(self):
-        self.batch_size=1000
-        self.output_format='geodataframe'
-        self.out_dir='/opt/data/'
-        self.filename=self.out_dir + 'ways_profile_points.geojson'        
-        self.trim_decimals=False
-        self.decimals=5
+        self.batch_size = 1000
+        self.output_format = 'geodataframe'
+        self.out_dir = '/opt/data/'
+        self.filename = self.out_dir + 'ways_profile_points.geojson'
+        self.trim_decimals = True
+        self.decimals = 5
         self.simpledec = re.compile(r"\d*\.\d+")
-
 
     @staticmethod
     def ways2sql(ways):
@@ -26,14 +26,11 @@ class Profiles():
         lsql = lsql[:-1] + ')'
         return lsql
 
-
     def mround(self, match):        
         return "{:.{}f}".format(float(match.group()), self.decimals)
 
-    
     def trim(self, gdf):
         return gdf.geometry.apply(lambda x: loads(re.sub(self.simpledec, self.mround, x.wkt)))
-
 
     def get_chunks(self, table='ways'):
         r = db.select(query='SELECT count(*) FROM ways;')
@@ -79,8 +76,8 @@ class Profiles():
                 gdf.geometry = self.trim(gdf)
             gdf.to_file(self.filename, driver='GeoJSON')           
 
+# Test...
+# p = Profiles()
 
-p = Profiles()
-
-#p.write_geojson(way_list=[31,47,48,49,9,15,20,11,16,17])
-p.write_geojson()
+# p.write_geojson(way_list=[31,47,48,49,9,15,20,11,16,17])
+# p.write_geojson()
