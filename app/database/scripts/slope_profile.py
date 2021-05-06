@@ -2,8 +2,11 @@
 import copy
 import re
 import geopandas as gpd
+import zipfile
 from db.db import Database
+from geocube.api.core import make_geocube
 from shapely.wkt import loads
+from os import remove
 
 db = Database()
 
@@ -14,11 +17,14 @@ class Profiles():
         self.output_format = 'GeoJSON'
         self.out_dir = '/opt/data/'
         self.filename = self.out_dir + 'ways_profile_points.geojson'
+        self.compress=True
         self.trim_decimals = True
         self.decimals = 5
         self.simpledec = re.compile(r"\d*\.\d+")
         self.check_drivers
         self.enable_driver=False
+        self.raster=False
+        self.bigtiff='YES'                        
 
     def check_drivers(self):
         from fiona import supported_drivers
@@ -61,7 +67,7 @@ class Profiles():
                         SELECT id FROM ways LIMIT {0} OFFSET {1}
                     )                                
                     
-                    SELECT seg.return_id as way_id, seg.elevs as elevation, seg.return_geom as geom                         
+                    SELECT seg.return_id as way_id, seg.elevs as elevation, seg.return_geom as geom
                     FROM segments s,
                     LATERAL get_slope_profile_precompute(s.id) seg;        
                 """.format(self.batch_size, b*self.batch_size)
@@ -81,7 +87,7 @@ class Profiles():
                         SELECT id FROM ways WHERE id IN {0}
                     )                                
                     
-                    SELECT seg.return_id as way_id, seg.elevs as elevation, seg.return_geom as geom                         
+                    SELECT seg.return_id as way_id, seg.elevs as elevation, seg.return_geom as geom
                     FROM segments s,
                     LATERAL get_slope_profile_precompute(s.id) seg;        
                 """.format(ways)
@@ -90,16 +96,42 @@ class Profiles():
                 gdf.geometry = self.trim(gdf)
             return gdf
 
+    def write_zip(self):
+        zout = zipfile.ZipFile(self.filename + '.zip', "w", zipfile.ZIP_DEFLATED)
+        zout.write(self.filename)
+        zout.close()
+        remove(self.filename)
+
     def write_file(self, df):
-        # Enable not default FIONA drivers
-        if self.enable_driver:
-            gpd.io.file.fiona.drvsupport.supported_drivers[self.output_format] = 'rw'
-        df.to_file(self.filename, driver=self.output_format)
+        if not self.raster:
+            # Enable not default FIONA drivers
+            if self.enable_driver:
+                gpd.io.file.fiona.drvsupport.supported_drivers[self.output_format] = 'rw'
+            df.to_file(self.filename, driver=self.output_format)
+        else:
+            self.write_raster(df)
+
+        if self.compress:
+            self.write_zip()
+
+    def write_raster(self, df):
+        # TODO: https://github.com/corteva/geocube/blob/master/geocube/geo_utils/geobox.py#L79
+        df.rename(columns={'geom': 'geometry'}, inplace=True)
+        cube = make_geocube(
+            df,
+            measurements=["elevation"],
+            resolution=(-0.0001, 0.0001)
+        )
+        cube.elevation.rio.to_raster(self.filename, bigtiff=self.bigtiff)
+
+
 
 
 # Test...
 # p = Profiles()
 # df = p.get_slope(way_list=[31,47,48,49,9,15,20,11,16,17])
+# df = p.get_slope()
+# Vector
 # p.output_format='PGDUMP'
 # p.check_drivers()
 # p.filename='/opt/data/ways_profile_test.sql'
@@ -107,4 +139,8 @@ class Profiles():
 # p.output_format='GeoJSON'
 # p.check_drivers()
 # p.filename='/opt/data/ways_profile_test.geojson'
+# p.write_file(df)
+# Raster
+# p.raster=True
+# p.filename='/opt/data/ways_profile_test.tif'
 # p.write_file(df)
