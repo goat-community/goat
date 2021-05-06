@@ -2,7 +2,7 @@
 import copy
 import re
 import geopandas as gpd
-from scripts.db.db import Database
+from db.db import Database
 from shapely.wkt import loads
 
 db = Database()
@@ -11,12 +11,26 @@ db = Database()
 class Profiles():
     def __init__(self):
         self.batch_size = 1000
-        self.output_format = 'geodataframe'
+        self.output_format = 'GeoJSON'
         self.out_dir = '/opt/data/'
         self.filename = self.out_dir + 'ways_profile_points.geojson'
         self.trim_decimals = True
         self.decimals = 5
         self.simpledec = re.compile(r"\d*\.\d+")
+        self.check_drivers
+        self.enable_driver=False
+
+    def check_drivers(self):
+        from fiona import supported_drivers
+        from fiona._env import GDALEnv        
+
+        # Check default Geopandas against FIONA drivers
+        if self.output_format not in supported_drivers:
+            self.enable_driver=True        
+            drv = GDALEnv().drivers()
+            if self.output_format not in drv:
+                print('GDAL Driver {0} not present or misspelled'.format(self.output_format))
+                exit(1)
 
     @staticmethod
     def ways2sql(ways):
@@ -37,7 +51,7 @@ class Profiles():
         chunks = range(int(r[0][0] / self.batch_size)+1)
         return chunks
 
-    def write_geojson(self, way_list=None):
+    def get_slope(self, way_list=None):
         if way_list is None:
             gdf_master = None
             batches = self.get_chunks()
@@ -59,7 +73,7 @@ class Profiles():
                     gdf_master = copy.deepcopy(t)
             if self.trim_decimals:
                 gdf_master.geometry = self.trim(gdf_master)
-            gdf_master.to_file(self.filename, driver='GeoJSON')
+            return gdf_master
         else:
             ways = self.ways2sql(way_list)
             sql = """
@@ -74,10 +88,23 @@ class Profiles():
             gdf = db.select(query=sql, return_type='geodataframe')
             if self.trim_decimals:
                 gdf.geometry = self.trim(gdf)
-            gdf.to_file(self.filename, driver='GeoJSON')           
+            return gdf
+
+    def write_file(self, df):
+        # Enable not default FIONA drivers
+        if self.enable_driver:
+            gpd.io.file.fiona.drvsupport.supported_drivers[self.output_format] = 'rw'
+        df.to_file(self.filename, driver=self.output_format)
+
 
 # Test...
 # p = Profiles()
-
-# p.write_geojson(way_list=[31,47,48,49,9,15,20,11,16,17])
-# p.write_geojson()
+# df = p.get_slope(way_list=[31,47,48,49,9,15,20,11,16,17])
+# p.output_format='PGDUMP'
+# p.check_drivers()
+# p.filename='/opt/data/ways_profile_test.sql'
+# p.write_file(df)
+# p.output_format='GeoJSON'
+# p.check_drivers()
+# p.filename='/opt/data/ways_profile_test.geojson'
+# p.write_file(df)
