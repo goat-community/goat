@@ -169,7 +169,7 @@ export default class OlEditController extends OlBaseController {
           type: "Point",
           condition: function(evt) {
             // when the point's button is 1(leftclick), allows drawing
-            if (evt.pointerEvent.buttons === 1) {
+            if (evt.originalEvent.buttons === 1) {
               return true;
             } else {
               return false;
