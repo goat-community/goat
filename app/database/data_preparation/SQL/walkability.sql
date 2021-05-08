@@ -97,6 +97,10 @@ FROM
 ) p 
 WHERE f.id = p.id;
 
+--TODO: add noise
+--TODO: add oneway ?
+--TODO: add accidents
+
 --calculate score
 UPDATE footpath_visualization f SET traffic_protection = 
 100 * group_index(
