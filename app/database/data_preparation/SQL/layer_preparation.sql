@@ -199,7 +199,7 @@ CREATE TABLE street_furniture AS
 SELECT p.osm_id, NULL AS mapillary_key, p.amenity, p.geom, 'osm' AS SOURCE, NULL AS accuracy
 FROM pois p, study_area s
 WHERE st_intersects(s.geom,p.geom) 
-AND amenity IN ('bench','waste_basket','toilets','fountain','bicycle_parking','bicycle_repair_station');
+AND amenity IN ('bench','waste_basket','toilets','fountain','bicycle_parking','bicycle_repair_station','drinking_water');
 
 CREATE INDEX ON street_furniture USING gist(geom);
 ALTER TABLE street_furniture ADD COLUMN id serial;
@@ -354,8 +354,33 @@ ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS population text;
 --TODO: assign "high","medium","low","no" accoridng to buffer -> intersection with pop.
 
 -- assign info about POIs
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS pois int;
---TODO: assign "high","medium","low","no" accoridng to buffer -> intersection with pois.
+ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS pois text;
+
+-- pois
+-- Create temp table to count pois
+DROP TABLE IF EXISTS pois_buffer;
+CREATE TEMP TABLE pois_buffer (id serial, number_pois int8);
+INSERT INTO pois_buffer
+WITH buffer AS (
+	SELECT id, st_buffer(geom::geography, 60) AS geom FROM footpath_visualization),
+poi AS (SELECT geom FROM pois WHERE amenity NOT IN ('parking','bench','parking_space','waste_basket','fountain','toilets','carging_station','bicycle_parking','parking_entrance','motorcycle_parking','hunting_stand'))
+SELECT b.id, count(poi.geom) AS number_pois
+FROM buffer b
+LEFT JOIN poi ON st_contains(b.geom::geometry, poi.geom)
+GROUP BY b.id;
+
+-- Assign info to footpaths
+UPDATE footpath_visualization 
+SET pois = 'no'
+FROM pois_buffer
+WHERE pois_buffer.id = footpath_visualization.id AND pois_buffer.number_pois = 0;
+
+UPDATE footpath_visualization 
+SET pois = 'low'
+FROM pois_buffer
+WHERE pois_buffer.id = footpath_visualization.id AND pois_buffer.number_pois <= 5 and pois_buffer.number_pois > 0;
+
+DROP TABLE pois_buffer;
 
 --Table for visualization of parking
 DROP TABLE IF EXISTS parking;
