@@ -345,6 +345,17 @@ export default {
           styleObj = stylesObj[layerName];
         }
         if (styleObj) {
+          //Set filer for noData rule
+          if (
+            styleObj.format === "geostyler" &&
+            styleObj.style.rules.length > 1
+          ) {
+            styleObj.style.rules.forEach(rule => {
+              if (rule.name === "noData" && !rule.filter) {
+                rule.filter = ["=="];
+              }
+            });
+          }
           const olStyle = OlStyleFactory.getOlStyle(styleObj, layerName);
           if (olStyle) {
             if (olStyle instanceof Promise) {
