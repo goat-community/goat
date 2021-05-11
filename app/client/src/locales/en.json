@@ -632,7 +632,7 @@
     "gymnasium": "Gymnasium",
     "grundschule": "Grundschule",
     "realschule": "Realschule",
-    "rauptschule": "Hauptschule",
+    "hauptschule_mittelschule": "Haupt-/Mittelschule",
     "werkrealschule": "Werkrealschule",
     "school": "School",
     "library": "Library",

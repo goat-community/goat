@@ -1276,9 +1276,9 @@
               "locked": false
             },
             {
-              "name": "Hauptschule",
-              "value": "hauptschule",
-              "icon": "hauptschule",
+              "name": "Haupt- und Mittelschule",
+              "value": "hauptschule_mittelschule",
+              "icon": "hauptschule_mittelschule",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false

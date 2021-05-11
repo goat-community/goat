@@ -62,11 +62,7 @@
                         }}</v-icon>
                       </v-avatar>
                       {{
-                        $te(`isochrones.options.${calculation.routing_profile}`)
-                          ? $t(
-                              `isochrones.options.${calculation.routing_profile}`
-                            )
-                          : calculation.routing_profile
+                        $t(`isochrones.options.${calculation.routing_profile}`)
                       }}
                     </v-chip>
                     <v-chip
