@@ -19,20 +19,19 @@ DELIMITER ';'
 CSV HEADER;
 
 --Add columns for the walkability criteria
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS sidewalk_quality numeric;
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS traffic_protection numeric;
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS security numeric;
+ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS sidewalk_quality int;
+ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS traffic_protection int;
+ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS security int;
 ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS vegetation numeric;
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS walking_environment numeric;
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS comfort numeric;
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS walkability numeric;
+ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS walking_environment int;
+ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS comfort int;
+ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS walkability int;
 
 ------------------------
 --Calculate the values--
 ------------------------
 
-
---sidewalk quality--
+----sidewalk quality----
 --prepara data
 UPDATE footpath_visualization f SET sidewalk = 'yes' where sidewalk is null and highway in ('footway', 'path', 'cycleway', 'living_street', 'steps', 'pedestrian', 'track');
 UPDATE footpath_visualization f SET surface = 'asphalt' where surface IS NULL AND highway IN ('residential','tertiary','secondary','primary','living_street');
@@ -41,7 +40,7 @@ UPDATE footpath_visualization f SET surface = NULL where surface not in ('paved'
 
 --calculate score
 UPDATE footpath_visualization f SET sidewalk_quality = 
-100 * group_index(
+round(100 * group_index(
 	ARRAY[
 		select_weight_walkability('sidewalk',sidewalk), 
 		select_weight_walkability('smoothness',smoothness),
@@ -56,9 +55,9 @@ UPDATE footpath_visualization f SET sidewalk_quality =
 		select_full_weight_walkability('wheelchair'),
 		select_full_weight_walkability('width')
 	]
-);
+),0);
 
---traffic protection--
+----traffic protection----
 --prepara data
 DROP TABLE IF EXISTS highway_buffer;
 CREATE TABLE highway_buffer as
@@ -70,6 +69,7 @@ AND ST_Intersects(w.geom,s.geom);
 CREATE INDEX ON highway_buffer USING GIST(geom);
 
 UPDATE footpath_visualization SET maxspeed_forward = NULL WHERE highway IN ('path','track');
+UPDATE footpath_visualization SET maxspeed_forward = 5 WHERE highway IN ('footway','pedestrian');
 
 UPDATE footpath_visualization f SET lanes = h.lanes, maxspeed_forward = h.maxspeed_forward
 FROM 
@@ -97,34 +97,65 @@ FROM
 ) p 
 WHERE f.id = p.id;
 
+--street crossings
+-- Create temp table to count street crossings
+DROP TABLE IF EXISTS crossings;
+CREATE TEMP TABLE crossings (id serial, total_crossing int8);
+INSERT INTO crossings
+WITH buffer AS (
+	SELECT id, st_buffer(geom::geography, 30) AS geom FROM footpath_visualization),
+crossing AS (SELECT geom FROM street_crossings WHERE crossing IN ('zebra','traffic_signals'))
+SELECT b.id, count(crossing.geom) AS total_crossing
+FROM buffer b
+LEFT JOIN crossing ON st_contains(b.geom::geometry, crossing.geom)
+GROUP BY b.id;
+
+-- Assign info to footpaths
+ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS crossing;
+ALTER TABLE footpath_visualization ADD COLUMN crossing int; 
+
+UPDATE footpath_visualization 
+SET crossing = -1
+WHERE maxspeed_forward <= 30 OR maxspeed_forward IS NULL OR highway IN ('residential','service');
+
+DROP TABLE crossings;
+
+
+--TODO: add noise data as new column
+--TODO: add accidents data as new column
+
+--TODO: insert score for noise + accidents
+
 --calculate score
 UPDATE footpath_visualization f SET traffic_protection = 
-100 * group_index(
+round(100 * group_index(
 	ARRAY[
 		select_weight_walkability_range('lanes',lanes),
 		select_weight_walkability_range('maxspeed',maxspeed_forward),
+		select_weight_walkability_range('crossing',crossing),
 		select_weight_walkability('parking',parking)
 	],
 	ARRAY[
 		select_full_weight_walkability('lanes'),
 		select_full_weight_walkability('maxspeed'),
+		select_full_weight_walkability('crossing'),
 		select_full_weight_walkability('parking')
 	]
-);
+),0);
 
 UPDATE footpath_visualization SET traffic_protection = 100
 WHERE traffic_protection IS NULL; 
 
---security--
+----security----
 UPDATE footpath_visualization f SET security = 
-100 * group_index(
+round(100 * group_index(
 	ARRAY[
 		select_weight_walkability('lit_classified',lit_classified)
 	],
 	ARRAY[
 		select_full_weight_walkability('lit_classified')
 	]
-);
+),0);
 
 --UPDATE footpath_visualization f SET security = 50 WHERE security IS NULL;
 
@@ -181,194 +212,136 @@ SET vegetation = 0
 WHERE vegetation IS NULL; 
 
 --- Attractiveness of walking environment indicators
---Landuse
--- DROP TABLE IF EXISTS buffer_test;
--- CREATE TEMP TABLE buffer_test (id serial, geom geography);
--- INSERT INTO buffer_test
--- SELECT id, st_buffer(geom::geography, 8) AS geom FROM footpath_visualization;
+-- TODO: Pop density (issue #986) -> in layer_preparation
 
--- DROP TABLE IF EXISTS lu_score;
--- CREATE TABLE lu_score (id serial, score numeric);
--- INSERT INTO lu_score
--- WITH landuses AS (SELECT * FROM landuse_osm lo WHERE landuse = ANY (SELECT sring_condition FROM walkability WHERE attribute = 'land_use')),
--- unique_landuse AS (SELECT DISTINCT b.id, l.landuse AS landuse
--- 	FROM buffer_test b
--- 	LEFT JOIN landuses l ON st_intersects(b.geom::geometry, l.geom)),
--- lu_link AS (SELECT id, count(id) FROM unique_landuse GROUP BY id),
--- max_landuses AS (SELECT max(count) AS max_lu FROM lu_link)
--- SELECT id, ((count::numeric/(SELECT* FROM max_landuses)::NUMERIC)*0.14) AS score FROM lu_link;
 
--- ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS landuse_score;
--- ALTER TABLE footpath_visualization ADD COLUMN landuse_score NUMERIC;
--- UPDATE footpath_visualization SET landuse_score = score
--- FROM lu_score
--- WHERE lu_score.id = footpath_visualization.id;
+UPDATE footpath_visualization f SET walking_environment = 
+round(100 * group_index(
+	ARRAY[
+		select_weight_walkability('landuse',landuse), 
+		select_weight_walkability('population',population),
+		select_weight_walkability('pois',pois)
+	],
+	ARRAY[
+		select_full_weight_walkability('landuse'),
+		select_full_weight_walkability('population'),
+		select_full_weight_walkability('pois')
+	]
+),0);
 
-UPDATE footpath_visualization f  
-SET landuse = 'null'
-WHERE landuse IS NULL
 
-UPDATE footpath_visualization f 
-SET walking_environment = landuse_score*(100/0.05); 
-
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS landuse_score;
--- POIS along the route (issue #986)
--- Pop density (issue #986)
---- Comfort indicators
+----Comfort----
 -- Benches
-
+-- Create temp table to count benches
 DROP TABLE IF EXISTS benches;
 CREATE TEMP TABLE benches (id serial, total_bench int8);
 INSERT INTO benches
 WITH buffer AS (
-	SELECT id, length_m,  st_buffer(geom::geography, 8) AS geom FROM footpath_visualization),
-bench AS (SELECT geom FROM pois WHERE amenity = 'bench')
+	SELECT id, st_buffer(geom::geography, 30) AS geom FROM footpath_visualization),
+bench AS (SELECT geom FROM street_furniture WHERE amenity = 'bench')
 SELECT b.id, count(bench.geom) AS total_bench
 FROM buffer b
 LEFT JOIN bench ON st_contains(b.geom::geometry, bench.geom)
 GROUP BY b.id;
 
--- Tag yes or no for function
+-- Assign info to footpaths
 ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS bench;
-ALTER TABLE footpath_visualization ADD COLUMN bench varchar; 
+ALTER TABLE footpath_visualization ADD COLUMN bench int; 
+
 UPDATE footpath_visualization 
-SET bench = 'yes' 
+SET bench = benches.total_bench
 FROM benches
-WHERE benches.id = footpath_visualization.id AND benches.total_bench >= 1;
-UPDATE footpath_visualization 
-SET bench = 'no'
-FROM benches 
-WHERE benches.id = footpath_visualization.id AND benches.total_bench = 0;
+WHERE benches.id = footpath_visualization.id;
+
+DROP TABLE benches;
 
 -- Slope
 
 UPDATE footpath_visualization 
-SET incline_percent = 0 WHERE incline_percent IS NULL;
+SET incline_percent = 0 WHERE incline_percent IS NULL; --TODO: add slope from DGM
 --SELECT incline_percent, select_weight_walkability_range('slope',incline_percent) FROM footpath_visualization fu ORDER BY incline_percent DESC;
 
---- Furniture
--- Define general buffer for next point-based measures1
-DROP TABLE IF EXISTS buffer_footpaths;
-CREATE TABLE buffer_footpaths (id serial, geom geography);
-
-INSERT INTO buffer_footpaths
-SELECT id, st_buffer(geom::geography, 8) AS geom FROM footpath_visualization;
-
-DROP TABLE IF EXISTS furniture;
-CREATE TEMP TABLE furniture(id serial, total_furniture int8);
-
-INSERT INTO furniture
-WITH furniture AS (SELECT geom FROM pois WHERE amenity = 'waste_basket')
-SELECT b.id, count(f.geom) AS furniture
-FROM buffer_footpaths b
-LEFT JOIN furniture f ON st_contains(b.geom::geometry, f.geom)
+--- Waste-baskets
+-- Create temp table to count waste baskets
+DROP TABLE IF EXISTS waste_baskets;
+CREATE TEMP TABLE waste_baskets (id serial, total_waste_basket int8);
+INSERT INTO waste_baskets
+WITH buffer AS (
+	SELECT id, st_buffer(geom::geography, 20) AS geom FROM footpath_visualization),
+waste_basket AS (SELECT geom FROM street_furniture WHERE amenity = 'waste_basket')
+SELECT b.id, count(waste_basket.geom) AS total_waste_basket
+FROM buffer b
+LEFT JOIN waste_basket ON st_contains(b.geom::geometry, waste_basket.geom)
 GROUP BY b.id;
 
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS furniture;
-ALTER TABLE footpath_visualization ADD COLUMN furniture varchar; 
+-- Assign info to footpaths
+ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS waste_basket;
+ALTER TABLE footpath_visualization ADD COLUMN waste_basket int; 
+
 UPDATE footpath_visualization 
-SET furniture = 'yes' 
-FROM furniture f
-WHERE f.id = footpath_visualization.id AND f.total_furniture >= 1;
+SET waste_basket = waste_baskets.total_waste_basket
+FROM waste_baskets
+WHERE waste_baskets.id = footpath_visualization.id;
+
+DROP TABLE waste_baskets;
+
+--- Fountains
+-- Create temp table to count fountains
+DROP TABLE IF EXISTS fountains;
+CREATE TEMP TABLE fountains (id serial, total_fountains int8);
+INSERT INTO fountains
+WITH buffer AS (
+	SELECT id, st_buffer(geom::geography, 50) AS geom FROM footpath_visualization),
+fountains AS (SELECT geom FROM street_furniture WHERE amenity IN ('fountain','drinking_water'))
+SELECT b.id, count(fountains.geom) AS total_fountains
+FROM buffer b
+LEFT JOIN fountains ON st_contains(b.geom::geometry, fountains.geom)
+GROUP BY b.id;
+
+-- Assign info to footpaths
+ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS fountains;
+ALTER TABLE footpath_visualization ADD COLUMN fountains int; 
+
 UPDATE footpath_visualization 
-SET furniture = 'no'
-FROM furniture f
-WHERE f.id = footpath_visualization.id AND f.total_furniture = 0;
+SET fountains = fountains.total_fountains
+FROM fountains
+WHERE fountains.id = footpath_visualization.id;
+
+DROP TABLE fountains;
 
 --- Bathrooms
-DROP TABLE IF EXISTS toilet;
-CREATE TEMP TABLE toilet(id serial, total_toilet int8);
-
-INSERT INTO toilet
-WITH toilet AS (SELECT geom FROM pois WHERE amenity = 'toilets')
-SELECT b.id, count(t.geom) AS toilet
-FROM buffer_footpaths b
-LEFT JOIN toilet t ON st_contains(b.geom::geometry, t.geom)
+-- Create temp table to count public toilets
+DROP TABLE IF EXISTS toilets;
+CREATE TEMP TABLE toilets (id serial, total_toilets int8);
+INSERT INTO toilets
+WITH buffer AS (
+	SELECT id, st_buffer(geom::geography, 300) AS geom FROM footpath_visualization),
+toilets AS (SELECT geom FROM street_furniture WHERE amenity = 'toilets')
+SELECT b.id, count(toilets.geom) AS total_toilets
+FROM buffer b
+LEFT JOIN toilets ON st_contains(b.geom::geometry, toilets.geom)
 GROUP BY b.id;
 
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS toilet;
-ALTER TABLE footpath_visualization ADD COLUMN toilet varchar; 
-UPDATE footpath_visualization 
-SET toilet = 'yes' 
-FROM toilet t
-WHERE t.id = footpath_visualization.id AND t.total_toilet >= 1;
-UPDATE footpath_visualization 
-SET toilet = 'no'
-FROM toilet t
-WHERE t.id = footpath_visualization.id AND t.total_toilet = 0;
-
---- Drinking fountains
-DROP TABLE IF EXISTS drinking;
-CREATE TEMP TABLE drinking(id serial, total_drinking int8);
-
-INSERT INTO drinking
-WITH drinking AS (SELECT geom FROM pois WHERE amenity = 'drinking_water')
-SELECT b.id, count(d.geom) AS total_drinking
-FROM buffer_footpaths b
-LEFT JOIN drinking d ON st_contains(b.geom::geometry, d.geom)
-GROUP BY b.id;
-
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS drinking;
-ALTER TABLE footpath_visualization ADD COLUMN drinking varchar; 
-UPDATE footpath_visualization 
-SET drinking = 'yes' 
-FROM drinking d
-WHERE d.id = footpath_visualization.id AND d.total_drinking >= 1;
-UPDATE footpath_visualization 
-SET drinking = 'no'
-FROM drinking d
-WHERE d.id = footpath_visualization.id AND d.total_drinking = 0;
-
---- Street marking or traffic light
-DROP TABLE IF EXISTS marking;
-CREATE TEMP TABLE marking(id serial, total_marking int8);
-
-INSERT INTO marking
-WITH marking AS (SELECT geom FROM street_crossings WHERE highway = 'crossing' AND crossing = ANY (ARRAY ['marked','traffic_signals']))
-SELECT b.id, count(m.geom) AS total_marking
-FROM buffer_footpaths b
-LEFT JOIN marking m ON st_contains(b.geom::geometry, m.geom)
-GROUP BY b.id;
-
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS marking;
-ALTER TABLE footpath_visualization ADD COLUMN marking varchar; 
+-- Assign info to footpaths
+ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS toilets;
+ALTER TABLE footpath_visualization ADD COLUMN toilets int; 
 
 UPDATE footpath_visualization 
-SET marking = 'yes' 
-FROM marking m
-WHERE m.id = footpath_visualization.id AND m.total_marking >= 1;
-UPDATE footpath_visualization 
-SET marking = 'no'
-FROM marking m
-WHERE m.id = footpath_visualization.id AND m.total_marking = 0;
+SET toilets = toilets.total_toilets
+FROM toilets
+WHERE toilets.id = footpath_visualization.id;
 
---- Compile in the footpaths union table 
-UPDATE footpath_visualization f SET comfort = 
-(
-    select_weight_walkability('equipment',bench) +
-    select_weight_walkability('toilets',toilet) +
-    select_weight_walkability('drinking_fountain',drinking) +
-    select_weight_walkability('cross_mark',marking) +
-    select_weight_walkability_range('slope', incline_percent)
-)
-*(100/0.14);
+DROP TABLE toilets;
 
-UPDATE footpath_visualization 
-SET vegetation = 0 
-WHERE vegetation IS NULL; 
+--- Street furniture sum
+ALTER TABLE footpath_visualization DROP COLUMN street_furniture;
+ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS street_furniture int;
+UPDATE footpath_visualization f SET comfort = round(10 * (2*bench + 3*waste_basket + 3*toilets + fountains),0);
+UPDATE footpath_visualization f SET comfort = 100 WHERE street_furniture > 100;
 
 
-
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS bench;
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS furniture;
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS toilet;
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS drinking;
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS marking;
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS trees;
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS green_landuse;
-
-
---overall walkability---
+----overall walkability----
 UPDATE footpath_visualization f SET walkability = 
-(comfort*0.14) + (vegetation*0.28) + (security*0.14) + (traffic_protection*0.14) + (sidewalk_quality*0.29);
+round((comfort*0.14) + (vegetation*0.14) + (security*0.14) + (traffic_protection*0.14) + (sidewalk_quality*0.29) + (walking_environment*0.14),0);
+--TODO: enable calculation when one or more values are NULL
 

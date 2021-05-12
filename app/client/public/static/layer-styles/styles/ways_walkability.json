@@ -1,5 +1,5 @@
 {
-    "name": "ways_wheelchair",
+    "name": "walkability",
     "rules": [
         {
             "name": "very_low",
