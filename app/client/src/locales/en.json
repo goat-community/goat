@@ -424,7 +424,8 @@
       "indicators": "Indicators",
       "study_area_crop": "Study area",
       "study_area": "Districts",
-      "ways_Project_Sidewalk": "Project Sidewalk Score"
+      "ways_Project_Sidewalk": "Project Sidewalk Score",
+      "footpath_visualization": "Footpath Visualization"
     },
     "tooltips": {
       "clickForIsochroneCalculation": "Click for isochrone calculation. Press ESC to exit",
@@ -823,7 +824,7 @@
       "vegetation": "Vegetation",
       "walking_environment": "Walking environment",
       "comfort": "Comfort",
-      "sum_total": ["TOTAL WALKABILITY", "SCORE"],
+      "walkability": ["TOTAL WALKABILITY", "SCORE"],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index"
     }

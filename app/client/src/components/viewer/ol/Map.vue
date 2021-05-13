@@ -62,7 +62,7 @@
             <v-simple-table
               v-if="
                 getInfoResult[popup.currentLayerIndex].get('layerName') !==
-                  'indicators'
+                  'footpath_visualization'
               "
               dense
               class="pr-2"
@@ -145,7 +145,6 @@ import {
 } from "../../../utils/Layer";
 import { geojsonToFeature } from "../../../utils/MapUtils";
 import { Group as LayerGroup } from "ol/layer.js";
-import http from "../../../services/http";
 import axios from "axios";
 
 //Store imports
@@ -535,18 +534,14 @@ export default {
       this.getInfoLayerSource.addFeature(
         this.getInfoResult[this.popup.currentLayerIndex]
       );
-
-      let closestPoint;
-      if (position) {
-        closestPoint = this.getInfoResult[this.popup.currentLayerIndex]
-          .getGeometry()
-          .getClosestPoint(coordinate || position[0]);
+      while (position && Array.isArray(position[0])) {
+        position = position[0];
       }
       this.map.getView().animate({
-        center: closestPoint,
+        center: position,
         duration: 400
       });
-      this.popupOverlay.setPosition(closestPoint);
+      this.popupOverlay.setPosition(position);
       this.popup.isVisible = true;
       this.popup.title = `info`;
     },
@@ -624,7 +619,6 @@ export default {
 
         //Check for isochrone features
         const features = me.map.getFeaturesAtPixel(evt.pixel, {
-          hitTolerance: 10,
           layerFilter: candidate => {
             if (candidate.get("name") === "Isochrone Layer") {
               return true;
@@ -695,9 +689,11 @@ export default {
                   INFO_FORMAT: "application/json"
                 });
               promiseArray.push(
-                http.get(url, {
-                  data: { layerName: layer.get("name") }
-                })
+                axios
+                  .get(url, {
+                    data: { layerName: layer.get("name") }
+                  })
+                  .catch(() => null)
               );
               break;
             }
@@ -708,16 +704,18 @@ export default {
         if (promiseArray.length > 0) {
           axios.all(promiseArray).then(function(results) {
             results.forEach(response => {
-              const features = response.data.features;
-              const layerName = JSON.parse(response.config.data).layerName;
-              if (features && features.length === 0) {
-                return;
-              }
-              const olFeatures = geojsonToFeature(response.data, {});
-              olFeatures[0].set("layerName", layerName);
-              me.getInfoResult.push(olFeatures[0]);
-            });
+              if (response && response.data && response.data.features) {
+                const features = response.data.features;
+                const layerName = JSON.parse(response.config.data).layerName;
+                if (features && features.length === 0) {
+                  return;
+                }
+                const olFeatures = geojsonToFeature(response.data, {});
 
+                olFeatures[0].set("layerName", layerName);
+                me.getInfoResult.push(olFeatures[0]);
+              }
+            });
             if (me.getInfoResult.length > 0) {
               me.showPopup(evt.coordinate);
             }

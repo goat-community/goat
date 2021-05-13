@@ -413,8 +413,8 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "ways_walkability",
-        "url": "/api/map/layer/ways_walkability/{z}/{x}/{y}",
+        "name": "footpath_visualization",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
         "queryable": true,
