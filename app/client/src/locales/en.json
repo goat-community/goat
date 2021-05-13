@@ -396,6 +396,7 @@
       "munichways": "Cycleway Quality (Munichways)",
       "ways_surface": "Surface",
       "ways_wheelchair": "Wheelchair Usability",
+      "ways_walkability": "Walkability",
       "heatmap_connectivity": "Connectivity",
       "heatmap_luptai": "Comparison of Accessibility and Population Density",
       "heatmap_population": "Population Density",
