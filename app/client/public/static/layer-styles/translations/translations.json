@@ -400,6 +400,10 @@
     "military": {
       "en": "military area",
       "de": "Militärgebiet"
+    },
+    "construction": {
+      "en": "construction site",
+      "de": "Baustelle"
     }
   },
   "munichways": {

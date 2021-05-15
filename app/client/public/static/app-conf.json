@@ -413,6 +413,24 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
+        "name": "ways_walkability",
+        "url": "/api/map/layer/ways_walkability/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_walkability.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "street_crossings",
         "url": "/api/map/layer/street_crossings/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -1250,17 +1268,41 @@
               "locked": false
             },
             {
-              "name": "Primary school",
-              "value": "primary_school",
-              "icon": "primary_school",
+              "name": "Grundschule",
+              "value": "grundschule",
+              "icon": "grundschule",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
             },
             {
-              "name": "Secondary school",
-              "value": "secondary_school",
-              "icon": "secondary_school",
+              "name": "Hauptschule",
+              "value": "hauptschule",
+              "icon": "hauptschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Realschule",
+              "value": "realschule",
+              "icon": "realschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Werkrealschule",
+              "value": "werkrealschule",
+              "icon": "werkrealschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Gymnasium",
+              "value": "gymnasium",
+              "icon": "gymnasium",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
@@ -1342,7 +1384,7 @@
           "locked": false,
           "children": [
             {
-              "name": "Bicycle rental",
+              "name": "Bike sharing",
               "value": "bicycle_rental",
               "icon": "bicycle_rental",
               "weight": 1,
@@ -1989,7 +2031,8 @@
           "4": "rgb(090, 090, 090)",
           "5": "rgb(000, 000, 000)"
         }
-      }
+      },
+      "isPPFActive": false
     },
     "routing": {
       "default": "walking",
