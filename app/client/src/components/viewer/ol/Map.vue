@@ -356,14 +356,16 @@ export default {
           styleObj = stylesObj[layerName];
         }
         if (styleObj) {
-          //Set filer for noData rule
-          if (
-            styleObj.format === "geostyler" &&
-            styleObj.style.rules.length > 1
-          ) {
+          if (styleObj.format === "geostyler") {
             styleObj.style.rules.forEach(rule => {
-              if (rule.name === "noData" && !rule.filter) {
+              //Set default filer if no filter is found for rule
+              if (!rule.filter) {
                 rule.filter = ["=="];
+              }
+
+              //Change Symbolizers outline color from rgba to hexa
+              if (rule.symbolizers[0].outlineColor === "rgba(0, 0, 255, 0.0)") {
+                rule.symbolizers[0].outlineColor = "#0000FF00";
               }
             });
           }
