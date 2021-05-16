@@ -413,8 +413,8 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "ways_walkability",
-        "url": "/api/map/layer/ways_walkability/{z}/{x}/{y}",
+        "name": "footpath_visualization",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
         "queryable": true,
@@ -1276,9 +1276,9 @@
               "locked": false
             },
             {
-              "name": "Hauptschule",
-              "value": "hauptschule",
-              "icon": "hauptschule",
+              "name": "Haupt- und Mittelschule",
+              "value": "hauptschule_mittelschule",
+              "icon": "hauptschule_mittelschule",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false

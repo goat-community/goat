@@ -179,12 +179,14 @@ export default {
     },
     layerVisibility(item) {
       if (
-        this.map.getView().getResolution() <= item.get("maxResolution") &&
-        item.getVisible() === true &&
-        item.get("displayInLegend") !== false &&
-        item.get("group") !== "backgroundLayers" &&
-        this.isMapMounted === true &&
-        this.$appConfig.stylesObj
+        (this.map.getView().getResolution() <= item.get("maxResolution") &&
+          item.getVisible() === true &&
+          item.get("displayInLayerList") !== false &&
+          item.get("displayInLegend") !== false &&
+          item.get("group") !== "backgroundLayers" &&
+          this.isMapMounted === true &&
+          this.$appConfig.stylesObj) ||
+        item.get("name") == "study_area_crop"
       ) {
         return true;
       }
