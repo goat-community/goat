@@ -592,4 +592,4 @@ CREATE INDEX ON pois_userinput(scenario_id);
 ALTER TABLE pois_userinput ADD COLUMN pois_modified_id integer; 
 ALTER TABLE pois_userinput
 ADD CONSTRAINT pois_userinput_id_fkey FOREIGN KEY (pois_modified_id) 
-REFERENCES pois_modified(id) ON DELETE CASCADE;
+REFERENCES pois_modified(gid) ON DELETE CASCADE;

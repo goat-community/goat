@@ -20,8 +20,6 @@ BEGIN
 
     FOREACH id_calc IN ARRAY ids_calc	
 	LOOP
-		RAISE NOTICE '%',points_array[counter][1];
-	
         INSERT INTO isochrones(geom,step,objectid) 
         SELECT geom, step, id_calc 
         FROM isochrones_alphashape(userid_input,minutes,points_array[counter][1],points_array[counter][2], 

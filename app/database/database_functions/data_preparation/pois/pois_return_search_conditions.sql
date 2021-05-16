@@ -1,4 +1,4 @@
-DROP FUNCTION pois_return_search_conditions;
+DROP FUNCTION IF EXISTS pois_return_search_conditions;
 CREATE OR REPLACE FUNCTION public.pois_return_search_conditions(amenity TEXT, search_restriction TEXT)
 RETURNS text[]
 LANGUAGE plpgsql
