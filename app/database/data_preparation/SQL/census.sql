@@ -323,7 +323,6 @@ DROP TABLE IF EXISTS buildings_residential;
 
 
 
-
 /*Extrapolation census grid*/
 /*There is used the census table, OSM data and (optional) a table with building footprints (they could be also used from OSM)*/
 DROP TABLE IF EXISTS buildings_residential;
@@ -346,61 +345,98 @@ WHERE residential_status = 'with_residents';
 ALTER TABLE buildings_residential ADD PRIMARY KEY(gid);
 CREATE INDEX ON buildings_residential USING gist(geom);
 
-DROP TABLE test 
-
-CREATE TABLE test AS 
-SELECT * 
+DROP TABLE IF EXISTS all_addresses; 
+CREATE TABLE all_addresses AS 
+SELECT osm_id, way AS geom 
 FROM planet_osm_point p
 WHERE (tags -> 'entrance') IS NOT NULL 
 AND (tags -> 'entrance') <> 'emergency'
-UNION ALL 
-SELECT *
-FROM planet_osm_point p
-WHERE p."addr:housenumber" IS NOT NULL
+AND amenity IS NULL 
+AND shop IS NULL;
+
+ALTER TABLE all_addresses ADD PRIMARY KEY (osm_id);
+
+INSERT INTO all_addresses 
+SELECT p.osm_id, p.way AS geom 
+FROM (
+	SELECT osm_id, way 
+	FROM planet_osm_point p 
+	WHERE p."addr:housenumber" IS NOT NULL
+	AND amenity IS NULL 
+	AND shop IS NULL
+) p
+LEFT JOIN all_addresses a
+ON p.osm_id = a.osm_id
+WHERE a.osm_id IS NULL;
+
+CREATE INDEX ON all_addresses USING GIST(geom);
+
+DROP TABLE IF EXISTS residential_addresses;
+CREATE TABLE residential_addresses AS 
+SELECT b.gid AS building_gid, a.osm_id, b.gross_floor_area_residential, a.geom
+FROM all_addresses a, buildings_residential b
+WHERE ST_Intersects(a.geom,b.geom);
+
+ALTER TABLE residential_addresses ADD COLUMN gid serial;
+ALTER TABLE residential_addresses ADD PRIMARY KEY (gid);
 
 
+DO $$
+	DECLARE 
+    	buffer_distance float := 5 * meter_degree(); /*Default buffer at 5 meters*/
+    BEGIN 
+	    INSERT INTO residential_addresses 
+	    WITH not_intersection_addresses AS 
+	    (
+	    	SELECT a.*
+	    	FROM all_addresses a
+	    	LEFT JOIN residential_addresses r 
+	    	ON a.osm_id = r.osm_id 
+	    	WHERE r.osm_id IS NULL 
+	    )
+		SELECT j.gid AS building_gid, a.osm_id, j.gross_floor_area_residential, j.geom
+		FROM not_intersection_addresses a
+		CROSS JOIN LATERAL 
+		(
+			SELECT b.gid, b.gross_floor_area_residential, ST_CLOSESTPOINT(b.geom, a.geom) geom 
+			FROM buildings_residential b 
+			WHERE ST_DWITHIN(b.geom, a.geom, buffer_distance)
+			ORDER BY ST_CLOSESTPOINT(b.geom, a.geom) <-> a.geom
+            LIMIT 1     		
+		) j;
+    END
+$$ ;
+
+CREATE INDEX ON residential_addresses USING GIST(geom);
 
 DROP TABLE IF EXISTS cnt_addresses_buildings;
 CREATE TEMP TABLE cnt_addresses_buildings AS 
-SELECT b.gid AS building_gid, count(p.*) AS cnt_addresses
-FROM planet_osm_point p, buildings_residential b 
-WHERE p."addr:housenumber" IS NOT NULL
-AND ST_Intersects(p.way,b.geom)
-GROUP BY b.gid;
+SELECT count(*) cnt, building_gid 
+FROM residential_addresses
+GROUP BY building_gid
+HAVING count(*) > 1;
+
 ALTER TABLE cnt_addresses_buildings ADD PRIMARY key(building_gid);
 
-DROP TABLE IF EXISTS point_addresses;
-CREATE TABLE point_addresses AS
-SELECT b.building_levels, b.roof_levels, b.building_levels_residential, p.way AS geom, b.gid AS building_gid, b.area/c.cnt_addresses AS area 
-FROM planet_osm_point p, buildings_residential b, cnt_addresses_buildings c  
-WHERE p."addr:housenumber" IS NOT NULL
-AND ST_Intersects(p.way,b.geom)
-AND b.gid = c.building_gid;
+UPDATE residential_addresses a
+SET gross_floor_area_residential = gross_floor_area_residential/ cnt 
+FROM cnt_addresses_buildings c
+WHERE a.building_gid = c.building_gid;
 
-ALTER TABLE point_addresses ADD COLUMN gid serial;
-ALTER TABLE point_addresses ADD PRIMARY key(gid);
-CREATE INDEX ON point_addresses USING GIST(geom);
 
 ---Intersect buildings and grids 
 CREATE TABLE intersection_buildings_grid AS
 WITH buildings_no_address AS (
 	SELECT b.* 
 	FROM buildings_residential b
-	LEFT JOIN point_addresses a 
+	LEFT JOIN residential_addresses a 
 	ON b.gid = a.building_gid
 	WHERE a.building_gid IS NULL 
 )
-SELECT * 
-FROM buildings_no_address
-
-
-
 SELECT ST_intersection (c.geom, b.geom) AS geom, b.building_levels, b.building_levels_residential,  
 b.gid, ST_Area(b.geom::geography) area_complete, b.gid AS building_gid
 FROM buildings_no_address b, census c
 WHERE ST_intersects(c.geom, b.geom)
-AND ST_area(b.geom::geography) > (SELECT variable_simple::integer FROM variable_container WHERE identifier = 'minimum_building_size_residential');
-
 
 ---order by biggest area and allocate grid
 CREATE TABLE buildings_points AS
