@@ -322,7 +322,6 @@ DROP TABLE IF EXISTS buildings_residential;
 
 
 
-
 /*Extrapolation census grid*/
 /*There is used the census table, OSM data and (optional) a table with building footprints (they could be also used from OSM)*/
 DROP TABLE IF EXISTS buildings_residential;
@@ -464,30 +463,9 @@ LEFT JOIN residential_addresses a
 ON b.gid = a.building_gid
 WHERE a.building_gid IS NULL; 
 
----order by biggest area and allocate grid
-CREATE TABLE buildings_points AS
-WITH x AS (
-	SELECT gid, max(st_area(geom)) AS area_part
-	FROM intersection_buildings_grid
-	GROUP BY gid
-	)
-SELECT row_number() over() as gid, u.*
-FROM 
-(
-	SELECT i.building_levels, i.building_levels_residential, 
-	i.area_complete AS area, ST_Centroid(i.geom) geom, i.building_gid 
-	FROM intersection_buildings_grid i, x
-	WHERE x.area_part = st_area(geom) 
-	and x.gid = i.gid
-	UNION ALL 
-	SELECT p.building_levels, p.building_levels_residential, p.area, p.geom, p.building_gid 
-	FROM point_addresses p
-) u;
+CREATE INDEX ON residential_addresses USING GIST(geom);
 
-CREATE INDEX ON buildings_points USING GIST(geom);
-ALTER TABLE buildings_points ADD PRIMARY key(gid);
-
-ALTER TABLE buildings_points ADD COLUMN fixed_population numeric;
+ALTER TABLE residential_addresses ADD COLUMN fixed_population float;
 DO $$                  
     BEGIN 
         IF EXISTS
@@ -502,7 +480,7 @@ DO $$
 				FROM buildings_residential b, fixed_population f
 				WHERE ST_Intersects(f.geom,b.geom)
 			)
-			UPDATE buildings_points b
+			UPDATE residential_addresses b
 			SET fixed_population = f.fixed_population
 			FROM fixed_population f
 			WHERE ST_Intersects(b.geom,f.geom);
@@ -510,24 +488,103 @@ DO $$
     END
 $$ ;
 
+
+ALTER TABLE census ADD COLUMN IF NOT EXISTS gid serial; 
+ALTER TABLE census ADD PRIMARY KEY(gid);
+
+
+
 CREATE TABLE census_split AS 
-WITH built_up_per_grid AS (
-	SELECT c.gid, sum(b.area) AS sum_built_up
-	FROM census c, buildings_points b
-	WHERE ST_Intersects(c.geom,b.geom)
+SELECT c.gid, sum(b.gross_floor_area_residential) AS sum_gross_floor_area
+FROM (SELECT c.* FROM census c, study_area s WHERE ST_CONTAINS(s.geom, c.geom)) c, residential_addresses b
+WHERE ST_Intersects(c.geom,b.geom)
+GROUP BY c.gid;
+
+EXPLAIN ANALYZE 
+
+CREATE TABLE census_split AS 
+
+EXPLAIN ANALYZE 
+SELECT c.gid, sum_gross_floor_area_residential
+FROM study_area s
+CROSS JOIN LATERAL 
+(
+	SELECT c.gid, sum(a.gross_floor_area_residential) sum_gross_floor_area_residential
+	FROM census c, residential_addresses a 
+	WHERE ST_INTERSECTS(s.geom, c.geom)
+	AND ST_INTERSECTS(c.geom, a.geom) 
 	GROUP BY c.gid
-),
+) c;
+
+
+
+2082
+
+EXPLAIN ANALYZE 
+SELECT c.*
+FROM census c, residential_addresses a 
+WHERE ST_Intersects(c.geom, a.geom) 
+
+EXPLAIN ANALYZE 
+
+DROP TABLE IF EXISTS census_split;
+CREATE TABLE census_split AS
+SELECT c.gid, COALESCE(c.pop,0), c.geom 
+FROM study_area s
+INNER JOIN LATERAL 
+(
+	SELECT DISTINCT c.gid, c.pop, c.geom --, sum(a.gross_floor_area_residential) sum_gross_floor_area_residential
+	FROM census c, residential_addresses a 
+	WHERE ST_CONTAINS(s.geom, c.geom)
+	AND ST_Intersects(c.geom, a.geom) 
+) c ON TRUE;
+
+ALTER TABLE census_split ADD PRIMARY KEY (gid);
+
+c AS 
+(
+	EXPLAIN ANALYZE 
+	SELECT row_number() over() as gid, c.gid AS parent_id, c.pop, ST_Intersection(c.geom,s.geom) geom--, c1.*, c2.* 
+	FROM census c, study_area s 
+	CROSS JOIN LATERAL 
+	(
+		SELECT sum(a.gross_floor_area_residential) sum_gross_floor_area_residential
+		FROM residential_addresses a
+		WHERE ST_Intersects(ST_Intersection(c.geom,s.geom),a.geom)
+	) c1
+	, 
+	CROSS JOIN LATERAL 
+	(
+		SELECT s.gid, sum(a.gross_floor_area_residential) sum_gross_floor_area_residential
+		FROM residential_addresses a
+		WHERE ST_Intersects(c.geom,a.geom)
+		GROUP BY s.gid
+	) c2
+	WHERE ST_Intersects(c.geom,s.geom)
+	AND ST_Overlaps(c.geom,s.geom)
+	
+	
+
+)
+
+
 split_grids AS (
 	SELECT row_number() over() as gid, c.gid AS parent_id, c.pop, ST_Intersection(c.geom,s.geom) geom 
 	FROM census c, study_area s 
 	WHERE ST_Intersects(c.geom,s.geom)
 ),
 built_up_part_grid AS (
-	SELECT s.gid, sum(b.area) AS sum_built_up_part
-	FROM split_grids s, buildings_points b
-	WHERE ST_intersects(s.geom,b.geom)
+	SELECT s.gid, sum(a.gross_floor_area_residential) sum_gross_floor_area_residential
+	FROM split_grids s, residential_addresses a
+	WHERE ST_intersects(s.geom,a.geom)
 	GROUP BY s.gid
 )
+SELECT * 
+FROM built_up_part_grid
+
+
+
+
 SELECT s.gid,s.geom, (p.sum_built_up_part/b.sum_built_up) * s.pop AS pop, b.sum_built_up
 FROM built_up_per_grid b, split_grids s, built_up_part_grid p
 WHERE b.gid = s.parent_id 
