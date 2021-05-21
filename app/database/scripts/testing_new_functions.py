@@ -65,6 +65,9 @@ class OsmImport():
     def import_osm2pgsql(self):
         subprocess.run(f'PGPASSFILE=~/.pgpass_{self.db_name} osm2pgsql -d {self.db_name} -H {self.host} -U {self.user} --hstore -E 4326 -c /opt/data/study_area.osm', shell=True, check=True) 
 
+    def import_osm2pgrouting(self):
+        subprocess.run(f'PGPASSFILE=~/.pgpass_{self.db_name} osm2pgrouting --dbname {self.db_name} --host {self.host} --username {self.user} --file "/opt/data/study_area.osm" --conf /opt/config/mapconfig.xml --clean', shell=True, check=True) 
+     
     def import_raw_layer(self, filepath):
         filename = os.path.basename(filepath) 
         data_type = filename.split('.')[1]
@@ -176,7 +179,8 @@ goat_conf = ReadYAML().return_goat_conf()
 
 #CreateDatabase(db_conf).create_fresh_temp_db()
 
-#cls_import = OsmImport(db_conf,goat_conf,True)
+cls_import = OsmImport(db_conf,goat_conf,True)
+cls_import.import_osm2pgrouting()
 #cls_import.prepare_planet_osm()
 #cls_import.import_osm2pgsql()
 
@@ -185,7 +189,7 @@ goat_conf = ReadYAML().return_goat_conf()
 #PrepareDatabase(db_conf,goat_conf,True).update_functions()
 #PrepareDatabase(db_conf,goat_conf,True).data_preparation_table_types_functions()
 
-prepare_db = PrepareDatabase(db_conf,goat_conf,True)
+#prepare_db = PrepareDatabase(db_conf,goat_conf,True)
 
 #PrepareDatabase(db_conf,goat_conf,True).execute_script_psql('/opt/data_preparation/SQL/create_tables.sql')
 
@@ -226,6 +230,6 @@ class Population():
 
         #db_conn.perform('../data_preparation/SQL/create_population_userinput.sql')
 
-Population().produce_population_points('extrapolation')
+#Population().produce_population_points('extrapolation')
 
 os.environ['POSTGRES_DBNAME'] = 'goat'
