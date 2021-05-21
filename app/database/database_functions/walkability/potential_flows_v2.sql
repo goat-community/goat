@@ -1,3 +1,48 @@
+CREATE OR REPLACE FUNCTION public.get_edge_nearest_persons_v2(p_objectid integer, convex geometry)
+ RETURNS TABLE(edge integer, geom geometry, source integer, target integer, start_cost double precision, end_cost double precision, cost double precision, persons double precision, person_geom geometry)
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    rec record;
+    rec2 record;
+    cur refcursor;
+BEGIN
+    OPEN cur FOR 
+    SELECT p.persons, p.geom, p.gid
+    FROM persons p
+    WHERE ST_Intersects(convex,p.geom);
+    
+    LOOP 
+        FETCH cur INTO rec;
+        EXIT WHEN NOT FOUND;
+    
+        SELECT rec.persons, rec.geom person_geom, e.edge, e.geom, e.source, e.target, e.start_cost, e.end_cost, e.cost
+        INTO rec2
+        FROM edges_potential_flows e
+        WHERE 
+            e.objectid = p_objectid
+            AND e.geom && st_buffer(rec.geom,0.0009)
+            ORDER BY rec.geom <-> e.geom
+        LIMIT 1;
+    
+        IF rec2 IS NOT NULL
+        THEN
+            persons = rec2.persons;
+            person_geom = rec2.person_geom;
+            edge = rec2.edge;
+            geom = rec2.geom; 
+            source = rec2.source;
+            target= rec2.target;
+            start_cost= rec2.start_cost;
+            end_cost= rec2.end_cost;
+            cost = rec2.cost ;
+            RETURN NEXT;
+        END IF;
+    
+    END LOOP;
+END;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.potential_pedestrian_flows_v2(x double precision, y double precision, userid_input integer, scenario_id_input integer)
  RETURNS TABLE(edge_out integer, persons_out integer, geom_out geometry)
  LANGUAGE plpgsql
