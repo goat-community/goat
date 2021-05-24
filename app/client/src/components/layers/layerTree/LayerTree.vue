@@ -254,7 +254,8 @@ export default {
     styleRules: null,
     showDocumentationDialog: false,
     selectedDocumentationItem: null,
-    legendRerenderOnActiveMode: 0
+    legendRerenderOnActiveMode: 0,
+    layerOrderKey: 1
   }),
   components: {
     DocumentationDialog,
@@ -319,13 +320,13 @@ export default {
           ) {
             localVectorLayers.children.push(obj);
           }
-          //Deep copying the styleobj
-          me.styleRules = JSON.parse(JSON.stringify(me.$appConfig.stylesObj));
         });
       //Check if there are any vector layers currently in the map
       if (localVectorLayers.children.length > 0) {
         me.layers.push(localVectorLayers);
       }
+      //Deep copying the styleobj
+      me.styleRules = JSON.parse(JSON.stringify(me.$appConfig.stylesObj));
     },
     getMapLayerObj(layer, index) {
       const me = this;
@@ -346,8 +347,14 @@ export default {
                 name: layer.get("name") || "Unnamed layer",
                 showOptions: false,
                 mapLayer: layer,
-                layerTreeKey: 0
+                layerTreeKey: 0,
+                layerOrderKey: this.layerOrderKey
               };
+              layer.setZIndex(this.layerOrderKey);
+              if (layer.get("group") === "backgroundLayers") {
+                layer.setZIndex(-1);
+              }
+              this.layerOrderKey += 1;
               obj.children.push(layerOpt);
             }
           }
