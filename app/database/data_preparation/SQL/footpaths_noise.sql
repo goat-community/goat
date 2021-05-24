@@ -2,7 +2,7 @@
 --FUCTION GREATEST VALUE IN ARRAY------
 CREATE OR REPLACE FUNCTION array_greatest(anyarray)
 RETURNS anyelement
-LANGUAGE SQ
+LANGUAGE SQL
 AS $$
   SELECT max(elements) FROM unnest($1) elements
 $$;
