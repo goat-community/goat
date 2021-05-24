@@ -8,6 +8,28 @@ AS $$
 $$;
 ---------------------------START_DAY_NOISE---------------------------
 
+/*
+DROP TABLE noise_day_street;
+CREATE TABLE noise_day_street AS 
+SELECT ST_SUBDIVIDE((ST_DUMP(geom)).geom, 50) AS geom, noise_level_db  
+FROM noise fn 
+WHERE noise_type = 'day_street';
+
+ALTER TABLE noise_day_street ADD COLUMN gid serial;
+CREATE INDEX ON noise_day_street USING GIST(geom);
+
+Improvements:
+
+- Create noise table using Subdivide
+- Execute new function footpaths_get_polygon_attr.sql
+- Inserts all decibel values into one table
+- Compute aggregated noise using sum function 
+
+*/
+
+
+
+
 DROP TABLE IF EXISTS day_street;
 DROP TABLE IF EXISTS day_tram;
 DROP TABLE IF EXISTS day_railway;
