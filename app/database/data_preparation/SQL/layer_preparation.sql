@@ -141,7 +141,7 @@ AND (
 );
 
 INSERT INTO footpath_visualization
-SELECT (ST_OffsetCurve(w.geom,  4 * meter_degree(), 'join=round mitre_limit=2.0')) AS geom, w.sidewalk,
+SELECT (ST_OffsetCurve(w.geom,  -4 * meter_degree(), 'join=round mitre_limit=2.0')) AS geom, w.sidewalk,
 CASE WHEN w.sidewalk_right_width IS NOT NULL 
 	THEN w.sidewalk_right_width
 WHEN w.sidewalk_both_width IS NOT NULL 
@@ -190,6 +190,33 @@ WHERE sidewalk IS NULL AND highway IN ('path','track','footway','steps','service
 CREATE INDEX ON footpath_visualization USING gist(geom);
 ALTER TABLE footpath_visualization ADD COLUMN id serial;
 ALTER TABLE footpath_visualization ADD PRIMARY KEY(id);
+
+/*Overlaps are removed. A logic is implemented that keeps the large geometry when clipped. This can also cause errors.*/
+DROP TABLE splitted_geoms_to_keep;
+CREATE TEMP TABLE splitted_geoms_to_keep AS 
+SELECT v.id, j.geom
+FROM footpath_visualization v 
+CROSS JOIN LATERAL 
+(
+	SELECT (ST_DUMP(ST_SPLIT(v.geom, x.geom))).geom AS geom 
+	FROM 
+	(
+		SELECT ST_UNION(geom) AS geom 
+		FROM footpath_visualization fv
+		WHERE ST_Intersects(v.geom, fv.geom)
+		AND ST_CROSSES(fv.geom, v.geom)
+	) x
+	WHERE st_geometrytype(ST_Intersection(v.geom,x.geom)) = 'ST_Point' 
+	ORDER BY ST_LENGTH((ST_DUMP(ST_SPLIT(v.geom, x.geom))).geom)
+	DESC
+	LIMIT 1
+) j;
+
+CREATE INDEX ON splitted_geoms_to_keep (id);
+UPDATE footpath_visualization f
+SET geom = g.geom
+FROM splitted_geoms_to_keep  g
+WHERE f.id = g.id;
 
 ----------------------------------
 ----Table for street furniture----
