@@ -15,12 +15,22 @@ class ReadYAML:
     source_conf = goat_conf["DATA_SOURCE"]
     refinement_conf = goat_conf["DATA_REFINEMENT_VARIABLES"]
 
+    #Cleaning later only keep functions with return in name
     def db_credentials(self):
         return self.db_conf["DB_NAME"],self.db_conf["USER"],self.db_conf["HOST"],self.db_conf["PORT"],self.db_conf["PASSWORD"]
     def data_source(self):
         return self.source_conf["OSM_DOWNLOAD_LINK"],self.source_conf["OSM_DATA_RECENCY"],self.source_conf["BUFFER_BOUNDING_BOX"],self.source_conf["EXTRACT_BBOX"],self.refinement_conf["POPULATION"],self.refinement_conf["ADDITIONAL_WALKABILITY_LAYERS"],self.refinement_conf["OSM_MAPPING_FEATURE"]
     def data_refinement(self):
         return self.refinement_conf
+    def return_db_conf(self):
+        return self.db_conf
+    def return_goat_conf(self):
+        return self.goat_conf
+    def return_mapping_conf(self):
+        return self.osm_mapping_conf
+    def return_data_refinement(self):
+        return self.refinement_conf
+
     def create_pgpass(self,db_prefix,user):
         db_name = self.db_conf["DB_NAME"] + db_prefix
         os.system('echo '+':'.join([self.db_conf["HOST"],str(self.db_conf["PORT"]),db_name,user,self.db_conf["PASSWORD"]])+f' > ~/.pgpass_{db_name}')
@@ -73,21 +83,23 @@ def bulk_compute_slope(db_name,user,port,host,password):
         cursor.execute(sql_compute_slope)
 #bulk_compute_slope('goat','goat','5432','localhost','earlmanigault')
 
-def create_variable_container(db_name,user,port,host,password):
-    import json 
-    import psycopg2
+def create_variable_container(db_name):
+    current_env_db_name = os.environ['POSTGRES_DBNAME']
+    os.environ['POSTGRES_DBNAME'] = db_name
+    
+    from db.db import Database
+    import json
 
-    con = psycopg2.connect("dbname='%s' user='%s' port = '%s' host='%s' password='%s'" % (db_name,user,str(port),host,password))
-    cursor = con.cursor()
+    db = Database()
 
-    sql_create_table = '''DROP TABLE IF EXISTS variable_container;
+    db.perform('''DROP TABLE IF EXISTS variable_container;
     CREATE TABLE public.variable_container (
 	identifier varchar(100) NOT NULL,
 	variable_simple text NULL,
 	variable_array text[] NULL,
 	variable_object jsonb NULL,
 	CONSTRAINT variable_container_pkey PRIMARY KEY (identifier)
-    );'''
+    )''')
     
     variable_object = {**ReadYAML().data_refinement()['variable_container'],**ReadYAML().mapping_conf()}
 
@@ -96,8 +108,6 @@ def create_variable_container(db_name,user,port,host,password):
     sql_object = "INSERT INTO  variable_container(identifier,variable_object) SELECT '%s', jsonb_build_object(%s);"
     sql_insert=''
 
-    cursor.execute(sql_create_table)
-    con.commit()
     for i in variable_object.keys():
         v = variable_object[i] 
         if isinstance(v,str):
@@ -106,8 +116,9 @@ def create_variable_container(db_name,user,port,host,password):
             sql_insert = sql_array % (i,v)
         elif isinstance(v,object):
             sql_insert = "INSERT INTO variable_container (identifier,variable_object) VALUES ( '{0}','{1}' );\n".format(i,json.dumps(v).strip())
-        cursor.execute(sql_insert)
-    con.commit()
+        db.perform(sql_insert)
+
+    os.environ['POSTGRES_DBNAME'] = current_env_db_name
 
 def update_functions():
     from pathlib import Path
