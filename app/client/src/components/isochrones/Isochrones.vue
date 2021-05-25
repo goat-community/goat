@@ -98,7 +98,7 @@ export default {
       const vector = new VectorLayer({
         name: "Isochrone Layer",
         displayInLegend: false,
-        zIndex: 8,
+        zIndex: 6,
         source: new VectorSource(),
         style: style
       });
@@ -116,7 +116,7 @@ export default {
       const vector = new VectorImageLayer({
         name: "isochroneRoadNetworkLayer",
         displayInLegend: false,
-        zIndex: 7,
+        zIndex: 5,
         source: new VectorSource(),
         style: style
       });
