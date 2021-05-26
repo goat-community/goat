@@ -169,8 +169,6 @@ class PrepareDatabase():
 
     
         
-
-
 ReadYAML().create_pgpass('','goat')
 ReadYAML().create_pgpass('temp','goat')
 
@@ -179,8 +177,8 @@ goat_conf = ReadYAML().return_goat_conf()
 
 #CreateDatabase(db_conf).create_fresh_temp_db()
 
-cls_import = OsmImport(db_conf,goat_conf,True)
-cls_import.import_osm2pgrouting()
+#cls_import = OsmImport(db_conf,goat_conf,True)
+#cls_import.import_osm2pgrouting()
 #cls_import.prepare_planet_osm()
 #cls_import.import_osm2pgsql()
 
@@ -189,7 +187,7 @@ cls_import.import_osm2pgrouting()
 #PrepareDatabase(db_conf,goat_conf,True).update_functions()
 #PrepareDatabase(db_conf,goat_conf,True).data_preparation_table_types_functions()
 
-#prepare_db = PrepareDatabase(db_conf,goat_conf,True)
+prepare_db = PrepareDatabase(db_conf,goat_conf,True)
 
 #PrepareDatabase(db_conf,goat_conf,True).execute_script_psql('/opt/data_preparation/SQL/create_tables.sql')
 
@@ -205,31 +203,29 @@ class Population():
             cls_import.import_raw_layer('/opt/data/'+f)
 
     def produce_population_points(self, source_population):
-
-        print ('It was chosen to use population from: ', source_population)
+        print ('It was chosen to use population from: ', source_population)  
         prepare_db.execute_script_psql('/opt/data_preparation/SQL/landuse_osm.sql')
-        prepare_db.execute_script_psql('/opt/data_preparation/SQL/data_fusion_buildings.sql')
-        prepare_db.execute_script_psql('/opt/data_preparation/SQL/classify_buildings.sql')
+        prepare_db.execute_script_psql('/opt/data_preparation/SQL/population/data_fusion_buildings.sql')
+        prepare_db.execute_script_psql('/opt/data_preparation/SQL/population/classify_buildings.sql')
+        prepare_db.execute_script_psql('/opt/data_preparation/SQL/population/create_residential_addresses.sql')
 
-        #if db.select("SELECT * FROM to_regclass('public.buildings_custom')")[0][0] != None:
-            #Data fusion of OSM building and custom buildings
-        #    script_buildings = 'buildings_residential_custom.sql'
-        #else:
-        #    script_buildings = 'buildings_residential.sql'
+        if source_population == 'census_standard':
+            prepare_db.execute_script_psql('/opt/data_preparation/SQL/population/prepare_census.sql')
+            prepare_db.execute_script_psql('/opt/data_preparation/SQL/population/population_census.sql')
+        elif source_population == 'census_extrapolation':
+            prepare_db.execute_script_psql('/opt/data_preparation/SQL/population/prepare_census.sql')
+            prepare_db.execute_script_psql('/opt/data_preparation/SQL/population/population_extrapolated_census.sql')
+        elif source_population == 'disaggregation':
+            prepare_db.execute_script_psql('/opt/data_preparation/SQL/population/population_disaggregation.sql')
+        elif source_population == 'custom_population':
+            #Some logic for checking custom population missing
+            print('Custom population will be used.')
+        else: 
+            print('No valid population mode was provided. Therefore the population scripts cannot be executed.')
 
-        #if (source_population == 'extrapolation'):
-        #    db_conn.perform(open('/opt/data_preparation/SQL/'+script_buildings, "r").read())
+        prepare_db.execute_script_psql('/opt/data_preparation/SQL/population/create_population_userinput.sql')
 
-            #db_temp.execute_script_psql('../data_preparation/SQL/'+script_buildings)
-            #db_temp.execute_script_psql('../data_preparation/SQL/census.sql')
-        #elif(source_population == 'disaggregation'):
-        #    db_conn.execute_script_psql('/opt/data_preparation/SQL/'+script_buildings)
-        #    db_conn.execute_script_psql('/opt/data_preparation/SQL/population_disagregation.sql')
-        #elif(source_population == 'distribution'):
-        #    db_conn.execute_script_psql('/opt/data_preparation/SQL/population_distribution.sql')
 
-        #db_conn.perform('../data_preparation/SQL/create_population_userinput.sql')
-
-#Population().produce_population_points('extrapolation')
+Population().produce_population_points('census_extrapolation')
 
 os.environ['POSTGRES_DBNAME'] = 'goat'
