@@ -23,19 +23,26 @@ export default {
           "width",
           "smoothness",
           "surface",
-          "wheelchair"
+          "wheelchair_classified"
         ],
         traffic_protection: [
           "lanes",
           "oneway",
-          "maxspeed_forward",
-          "maxspeed_backward",
-          "parking"
+          "maxspeed",
+          "parking",
+          "cnt_accidents",
+          "noise_day",
+          "noise_night"
         ],
         security: ["lit_classified"],
         vegetation: [],
-        walking_environment: [],
-        comfort: [],
+        walking_environment: ["landuse", "cnt_pois", "cnt_population"],
+        comfort: [
+          "cnt_benches",
+          "cnt_waste_baskets",
+          "cnt_toilets",
+          "cnt_fountains"
+        ],
         walkability: []
       },
       colors: {
