@@ -146,7 +146,7 @@ DROP TABLE crossings;
 -- Noise (done in script footpaths_noise.sql)
 --TODO: add accidents data as new column
 
---TODO: insert score for noise + accidents
+--TODO: insert score for accidents
 
 --calculate score
 UPDATE footpath_visualization f SET traffic_protection = 
@@ -155,13 +155,15 @@ round(100 * group_index(
 		select_weight_walkability_range('lanes',lanes),
 		select_weight_walkability_range('maxspeed',maxspeed_forward),
 		select_weight_walkability_range('crossing',crossing),
-		select_weight_walkability('parking',parking)
+		select_weight_walkability('parking',parking),
+		select_weight_walkability_range('noise',noise)
 	],
 	ARRAY[
 		select_full_weight_walkability('lanes'),
 		select_full_weight_walkability('maxspeed'),
 		select_full_weight_walkability('crossing'),
-		select_full_weight_walkability('parking')
+		select_full_weight_walkability('parking'),
+		select_full_weight_walkability('noise')
 	]
 ),0);
 
