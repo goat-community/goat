@@ -396,7 +396,7 @@
       "munichways": "Cycleway Quality (Munichways)",
       "ways_surface": "Surface",
       "ways_wheelchair": "Wheelchair Usability",
-      "ways_walkability": "Walkability",
+      "footpath_visualization": "Walkability Index",
       "heatmap_connectivity": "Connectivity",
       "heatmap_luptai": "Comparison of Accessibility and Population Density",
       "heatmap_population": "Population Density",
@@ -425,8 +425,7 @@
       "indicators": "Indicators",
       "study_area_crop": "Study area",
       "study_area": "Districts",
-      "ways_Project_Sidewalk": "Project Sidewalk Score",
-      "footpath_visualization": "Footpath Visualization"
+      "ways_Project_Sidewalk": "Project Sidewalk Score"
     },
     "tooltips": {
       "clickForIsochroneCalculation": "Click for isochrone calculation. Press ESC to exit",
