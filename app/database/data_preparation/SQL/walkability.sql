@@ -118,8 +118,8 @@ CREATE TEMP TABLE crossings (id serial, total_crossing int8);
 INSERT INTO crossings
 WITH buffer AS 
 (
-		SELECT id, st_buffer(geom::geography, 30) AS geom 
-		FROM footpath_visualization
+	SELECT id, st_buffer(geom::geography, 30) AS geom 
+	FROM footpath_visualization
 ),
 crossing AS 
 (
@@ -259,8 +259,12 @@ DROP TABLE IF EXISTS benches;
 CREATE TEMP TABLE benches (id serial, total_bench int8);
 INSERT INTO benches
 WITH buffer AS (
-	SELECT id, st_buffer(geom::geography, 30) AS geom FROM footpath_visualization),
-bench AS (SELECT geom FROM street_furniture WHERE amenity = 'bench')
+	SELECT id, st_buffer(geom::geography, 30) AS geom FROM footpath_visualization
+),
+bench AS 
+(
+	SELECT geom FROM street_furniture WHERE amenity = 'bench'
+)
 SELECT b.id, count(bench.geom) AS total_bench
 FROM buffer b
 LEFT JOIN bench ON st_contains(b.geom::geometry, bench.geom)
@@ -280,7 +284,8 @@ DROP TABLE benches;
 -- Slope
 
 UPDATE footpath_visualization 
-SET incline_percent = 0 WHERE incline_percent IS NULL; --TODO: add slope from DGM
+SET incline_percent = 0 
+WHERE incline_percent IS NULL; --TODO: add slope from DGM
 --SELECT incline_percent, select_weight_walkability_range('slope',incline_percent) FROM footpath_visualization fu ORDER BY incline_percent DESC;
 
 --- Waste-baskets
@@ -289,8 +294,14 @@ DROP TABLE IF EXISTS waste_baskets;
 CREATE TEMP TABLE waste_baskets (id serial, total_waste_basket int8);
 INSERT INTO waste_baskets
 WITH buffer AS (
-	SELECT id, st_buffer(geom::geography, 20) AS geom FROM footpath_visualization),
-waste_basket AS (SELECT geom FROM street_furniture WHERE amenity = 'waste_basket')
+	SELECT id, st_buffer(geom::geography, 20) AS geom 
+	FROM footpath_visualization
+),
+waste_basket AS (
+	SELECT geom 
+	FROM street_furniture 
+	WHERE amenity = 'waste_basket'
+)
 SELECT b.id, count(waste_basket.geom) AS total_waste_basket
 FROM buffer b
 LEFT JOIN waste_basket ON st_contains(b.geom::geometry, waste_basket.geom)
@@ -313,8 +324,14 @@ DROP TABLE IF EXISTS fountains;
 CREATE TEMP TABLE fountains (id serial, total_fountains int8);
 INSERT INTO fountains
 WITH buffer AS (
-	SELECT id, st_buffer(geom::geography, 50) AS geom FROM footpath_visualization),
-fountains AS (SELECT geom FROM street_furniture WHERE amenity IN ('fountain','drinking_water'))
+	SELECT id, st_buffer(geom::geography, 50) AS geom 
+	FROM footpath_visualization
+),
+fountains AS (
+	SELECT geom 
+	FROM street_furniture 
+	WHERE amenity IN ('fountain','drinking_water')
+)
 SELECT b.id, count(fountains.geom) AS total_fountains
 FROM buffer b
 LEFT JOIN fountains ON st_contains(b.geom::geometry, fountains.geom)
@@ -337,8 +354,14 @@ DROP TABLE IF EXISTS toilets;
 CREATE TEMP TABLE toilets (id serial, total_toilets int8);
 INSERT INTO toilets
 WITH buffer AS (
-	SELECT id, st_buffer(geom::geography, 300) AS geom FROM footpath_visualization),
-toilets AS (SELECT geom FROM street_furniture WHERE amenity = 'toilets')
+	SELECT id, st_buffer(geom::geography, 300) AS geom 
+	FROM footpath_visualization
+),
+toilets AS (
+	SELECT geom 
+	FROM street_furniture 
+	WHERE amenity = 'toilets'
+)
 SELECT b.id, count(toilets.geom) AS total_toilets
 FROM buffer b
 LEFT JOIN toilets ON st_contains(b.geom::geometry, toilets.geom)
@@ -358,8 +381,12 @@ DROP TABLE toilets;
 --- Street furniture sum
 ALTER TABLE footpath_visualization DROP COLUMN street_furniture;
 ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS street_furniture int;
-UPDATE footpath_visualization f SET comfort = round(10 * (2*bench + 3*waste_basket + 3*toilets + fountains),0);
-UPDATE footpath_visualization f SET comfort = 100 WHERE street_furniture > 100;
+
+UPDATE footpath_visualization f 
+SET comfort = round(10 * (2*bench + 3*waste_basket + 3*toilets + fountains),0);
+
+UPDATE footpath_visualization f 
+SET comfort = 100 WHERE street_furniture > 100;
 
 
 ----overall walkability----
