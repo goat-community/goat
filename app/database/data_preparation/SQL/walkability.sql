@@ -33,10 +33,19 @@ ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS walkability int;
 
 ----sidewalk quality----
 --prepara data
-UPDATE footpath_visualization f SET sidewalk = 'yes' where sidewalk is null and highway in ('footway', 'path', 'cycleway', 'living_street', 'steps', 'pedestrian', 'track');
-UPDATE footpath_visualization f SET surface = 'asphalt' where surface IS NULL AND highway IN ('residential','tertiary','secondary','primary','living_street');
-UPDATE footpath_visualization f SET surface = NULL where surface not in ('paved','asphalt','concrete','concrete:lanes','paving_stones','cobblestone:flattened','stone',
-'sandstone','sett','metal','unhewn_cobblestone','cobblestone','unpaved','compacted','fine_gravel','metal_grid','gravel','pebblestone','rock','wood','ground','dirt','earth','grass','grass_paver','mud','sand');
+UPDATE footpath_visualization f 
+SET sidewalk = 'yes' 
+WHERE sidewalk IS NULL 
+AND highway in ('footway', 'path', 'cycleway', 'living_street', 'steps', 'pedestrian', 'track');
+
+UPDATE footpath_visualization f 
+SET surface = 'asphalt' 
+WHERE surface IS NULL 
+AND highway IN ('residential','tertiary','secondary','primary','living_street');
+
+UPDATE footpath_visualization f 
+SET surface = NULL 
+WHERE surface NOT IN ('paved','asphalt','concrete','concrete:lanes','paving_stones','cobblestone:flattened','stone','sandstone','sett','metal','unhewn_cobblestone','cobblestone','unpaved','compacted','fine_gravel','metal_grid','gravel','pebblestone','rock','wood','ground','dirt','earth','grass','grass_paver','mud','sand');
 
 --calculate score
 UPDATE footpath_visualization f SET sidewalk_quality = 
@@ -68,8 +77,13 @@ AND ST_Intersects(w.geom,s.geom);
 
 CREATE INDEX ON highway_buffer USING GIST(geom);
 
-UPDATE footpath_visualization SET maxspeed_forward = NULL WHERE highway IN ('path','track');
-UPDATE footpath_visualization SET maxspeed_forward = 5 WHERE highway IN ('footway','pedestrian');
+UPDATE footpath_visualization 
+SET maxspeed_forward = NULL 
+WHERE highway IN ('path','track');
+
+UPDATE footpath_visualization 
+SET maxspeed_forward = 5 
+WHERE highway IN ('footway','pedestrian');
 
 UPDATE footpath_visualization f SET lanes = h.lanes, maxspeed_forward = h.maxspeed_forward
 FROM 
@@ -102,9 +116,17 @@ WHERE f.id = p.id;
 DROP TABLE IF EXISTS crossings;
 CREATE TEMP TABLE crossings (id serial, total_crossing int8);
 INSERT INTO crossings
-WITH buffer AS (
-	SELECT id, st_buffer(geom::geography, 30) AS geom FROM footpath_visualization),
-crossing AS (SELECT geom FROM street_crossings WHERE crossing IN ('zebra','traffic_signals'))
+WITH buffer AS 
+(
+		SELECT id, st_buffer(geom::geography, 30) AS geom 
+		FROM footpath_visualization
+),
+crossing AS 
+(
+	SELECT geom 
+	FROM street_crossings 
+	WHERE crossing IN ('zebra','traffic_signals')
+)
 SELECT b.id, count(crossing.geom) AS total_crossing
 FROM buffer b
 LEFT JOIN crossing ON st_contains(b.geom::geometry, crossing.geom)
