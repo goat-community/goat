@@ -40,19 +40,19 @@ CREATE TEMP TABLE day_railway AS (SELECT * FROM freiburg_noise fn WHERE noise_ty
 DROP TABLE IF EXISTS fp_day_street;
 CREATE TEMP TABLE fp_day_street AS 
 SELECT ilp.*
-FROM intersection_lines_polygons('footpaths_visualization', 'id', 'day_street', 'noise_level_db') ilp, footpaths_visualization fu
+FROM intersection_lines_polygons('footpath_visualization', 'id', 'day_street', 'noise_level_db') ilp, footpath_visualization fu
 WHERE fu.id = ilp.id;
 
 DROP TABLE IF EXISTS fp_day_tram;
 CREATE TEMP TABLE fp_day_tram AS 
 SELECT ilp.*
-FROM intersection_lines_polygons('footpaths_visualization', 'id', 'day_tram', 'noise_level_db') ilp, footpaths_visualization fu
+FROM intersection_lines_polygons('footpath_visualization', 'id', 'day_tram', 'noise_level_db') ilp, footpath_visualization fu
 WHERE fu.id = ilp.id;
 
 DROP TABLE IF EXISTS fp_day_railway;
 CREATE TEMP TABLE fp_day_railway AS 
 SELECT ilp.*
-FROM intersection_lines_polygons('footpaths_visualization', 'id', 'day_railway', 'noise_level_db') ilp, footpaths_visualization fu
+FROM intersection_lines_polygons('footpath_visualization', 'id', 'day_railway', 'noise_level_db') ilp, footpath_visualization fu
 WHERE fu.id = ilp.id;
 
 INSERT INTO fp_day_railway (id, arr_polygon_attr, arr_shares)
@@ -96,7 +96,7 @@ UPDATE fp_day_railway
 SET main_level_db = '0'
 WHERE main_level_db = 'outside';
 
-ALTER TABLE footpaths_visualization
+ALTER TABLE footpath_visualization
 ADD COLUMN noise_day float; 
 
 DROP TABLE IF EXISTS noise_d;
@@ -108,7 +108,7 @@ WHERE fds.id = fdt.id AND fds.id = fdr.id
 
 CREATE INDEX ON noise_d(id);								
 								
-UPDATE footpaths_visualization fu --footpath_visalization
+UPDATE footpath_visualization fu --footpath_visalization
 SET noise_day = med_noise
 FROM noise_d nd
 WHERE fu.id = nd.id;
@@ -125,19 +125,19 @@ CREATE TEMP TABLE night_railway AS (SELECT * FROM freiburg_noise fn WHERE noise_
 DROP TABLE IF EXISTS fp_night_street;
 CREATE TEMP TABLE fp_night_street AS 
 SELECT ilp.*
-FROM intersection_lines_polygons('footpaths_visualization', 'id', 'night_street', 'noise_level_db') ilp, footpaths_visualization fu
+FROM intersection_lines_polygons('footpath_visualization', 'id', 'night_street', 'noise_level_db') ilp, footpath_visualization fu
 WHERE fu.id = ilp.id;
 
 DROP TABLE IF EXISTS fp_night_tram;
 CREATE TEMP TABLE fp_night_tram AS 
 SELECT ilp.*
-FROM intersection_lines_polygons('footpaths_visualization', 'id', 'night_tram', 'noise_level_db') ilp, footpaths_visualization fu
+FROM intersection_lines_polygons('footpath_visualization', 'id', 'night_tram', 'noise_level_db') ilp, footpath_visualization fu
 WHERE fu.id = ilp.id;
 
 DROP TABLE IF EXISTS fp_night_railway;
 CREATE TEMP TABLE fp_night_railway AS 
 SELECT ilp.*
-FROM intersection_lines_polygons('footpaths_visualization', 'id', 'night_railway', 'noise_level_db') ilp, footpaths_visualization fu
+FROM intersection_lines_polygons('footpath_visualization', 'id', 'night_railway', 'noise_level_db') ilp, footpath_visualization fu
 WHERE fu.id = ilp.id;
 
 INSERT INTO fp_night_railway (id, arr_polygon_attr, arr_shares)
@@ -180,7 +180,7 @@ UPDATE fp_night_railway
 SET main_level_db = '0'
 WHERE main_level_db = 'outside';
 
-ALTER TABLE footpaths_visualization
+ALTER TABLE footpath_visualization
 ADD COLUMN noise_night float; 
 
 DROP TABLE IF EXISTS noise_n;
@@ -192,7 +192,7 @@ WHERE fns.id = fnt.id AND fns.id = fnr.id
 
 CREATE INDEX ON noise_n(id);								
 								
-UPDATE footpaths_visualization fu --footpath_visalization
+UPDATE footpath_visualization fu --footpath_visalization
 SET noise_night = med_noise
 FROM noise_n nn
 WHERE fu.id = nn.id;

@@ -143,7 +143,7 @@ WHERE maxspeed_forward <= 30 OR maxspeed_forward IS NULL OR highway IN ('residen
 DROP TABLE crossings;
 
 
---TODO: add noise data as new column
+-- Noise (done in script footpaths_noise.sql)
 --TODO: add accidents data as new column
 
 --TODO: insert score for noise + accidents
@@ -365,5 +365,6 @@ UPDATE footpath_visualization f SET comfort = 100 WHERE street_furniture > 100;
 ----overall walkability----
 UPDATE footpath_visualization f SET walkability = 
 round((comfort*0.14) + (vegetation*0.14) + (security*0.14) + (traffic_protection*0.14) + (sidewalk_quality*0.29) + (walking_environment*0.14),0);
---TODO: enable calculation when one or more values are NULL
+--TODO: enable calculation when one or more values are NULL 
+--TODO: store number of columns without data
 
