@@ -18,20 +18,12 @@ FROM '/opt/data_preparation//walkability.csv'
 DELIMITER ';'
 CSV HEADER;
 
---Add columns for the walkability criteria
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS sidewalk_quality int;
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS traffic_protection int;
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS security int;
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS vegetation numeric;
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS walking_environment int;
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS comfort int;
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS walkability int;
+ALTER TABLE walkability ADD COLUMN gid serial;
+ALTER TABLE walkability ADD PRIMARY KEY(gid);
 
-------------------------
---Calculate the values--
-------------------------
-
-----sidewalk quality----
+----##########################################################################################################################----
+----########################################################SIDEWALK QUALITY##################################################----
+----##########################################################################################################################----
 --prepara data
 UPDATE footpath_visualization f 
 SET sidewalk = 'yes' 
@@ -66,7 +58,9 @@ round(100 * group_index(
 	]
 ),0);
 
-----traffic protection----
+----##########################################################################################################################----
+----#######################################################TRAFFIC PROTECTION#################################################----
+----##########################################################################################################################----
 --prepara data
 DROP TABLE IF EXISTS highway_buffer;
 CREATE TABLE highway_buffer as
@@ -78,14 +72,14 @@ AND ST_Intersects(w.geom,s.geom);
 CREATE INDEX ON highway_buffer USING GIST(geom);
 
 UPDATE footpath_visualization 
-SET maxspeed_forward = NULL 
+SET maxspeed = NULL 
 WHERE highway IN ('path','track');
 
 UPDATE footpath_visualization 
-SET maxspeed_forward = 5 
+SET maxspeed = 5 
 WHERE highway IN ('footway','pedestrian');
 
-UPDATE footpath_visualization f SET lanes = h.lanes, maxspeed_forward = h.maxspeed_forward
+UPDATE footpath_visualization f SET lanes = h.lanes, maxspeed = h.maxspeed_forward
 FROM 
 (
 	SELECT f.id, f.geom, h.lanes, h.maxspeed_forward, MAX(ST_LENGTH(ST_INTERSECTION(h.geom, f.geom))/ST_LENGTH(f.geom)) AS share_intersection
@@ -137,20 +131,153 @@ WHERE f.id = c.id;
 /*Label footpaths that are not affected by crossings*/
 UPDATE footpath_visualization 
 SET cnt_crossings = -1
-WHERE maxspeed_forward <= 30 
-OR maxspeed_forward IS NULL OR highway IN ('residential','service');
+WHERE maxspeed <= 30 
+OR maxspeed IS NULL OR highway IN ('residential','service');
+
+/*For each footpath noise levels (day and night) are derived an aggregated for different sound sources*/
+DO $$     
+	DECLARE 
+		noise_key TEXT;
+    BEGIN     
+
+		IF EXISTS ( 	
+			SELECT 1
+            FROM   information_schema.tables 
+            WHERE  table_schema = 'public'
+            AND    table_name = 'noise'
+        ) 
+		THEN 
+		
+			DROP TABLE IF EXISTS noise_levels_footpaths;
+			CREATE TEMP TABLE noise_levels_footpaths 
+			(
+			gid serial, 
+			footpath_id integer, 
+			noise_level_db integer, 
+			noise_type text,
+			CONSTRAINT noise_levels_footpaths_pkey PRIMARY KEY (gid)
+			);
+
+			FOR noise_key IN SELECT DISTINCT noise_type FROM noise  	
+			LOOP
+				RAISE NOTICE 'Following noise type will be calculated: %', noise_key;
+				DROP TABLE IF EXISTS noise_subdivide;
+				CREATE TEMP TABLE noise_subdivide AS 
+				SELECT ST_SUBDIVIDE((ST_DUMP(geom)).geom, 50) AS geom, noise_level_db  
+				FROM noise fn 
+				WHERE noise_type = noise_key;
+				
+				ALTER TABLE noise_subdivide ADD COLUMN gid serial;
+				ALTER TABLE noise_subdivide ADD PRIMARY KEY(gid);
+				CREATE INDEX ON noise_subdivide USING GIST(geom);
+				
+				INSERT INTO noise_levels_footpaths(footpath_id,noise_level_db,noise_type)
+				SELECT id, 
+				COALESCE(arr_polygon_attr[array_position(arr_shares, array_greatest(arr_shares))]::integer, 0) AS val, noise_key
+				FROM footpaths_get_polygon_attr('noise_subdivide','noise_level_db');
+				
+			END LOOP;
+		END IF; 
+    END
+$$ ;
+
+WITH noise_day AS 
+(
+	SELECT footpath_id, (10 * LOG(SUM(power(10,(noise_level_db::float/10))))) AS noise 
+	FROM noise_levels_footpaths
+	WHERE noise_type LIKE '%day%'
+	GROUP BY footpath_id
+)
+UPDATE footpath_visualization f
+SET noise_day = n.noise 
+FROM noise_day n  
+WHERE f.id = n.footpath_id; 
+
+WITH noise_night AS 
+(
+	SELECT footpath_id, (10 * LOG(SUM(power(10,(noise_level_db::float/10))))) AS noise 
+	FROM noise_levels_footpaths
+	WHERE noise_type LIKE '%night%'
+	GROUP BY footpath_id
+)
+UPDATE footpath_visualization f
+SET noise_night = n.noise 
+FROM noise_night n  
+WHERE f.id = n.footpath_id; 
+
+/*Count Accidents*/
+/*Assing number of crossing to footpath_visualization*/
+DROP TABLE IF EXISTS accidents_foot; 
+CREATE TABLE accidents_foot AS 
+SELECT geom 
+FROM accidents 
+WHERE istfuss = '1'; 
+
+CREATE INDEX ON accidents_foot USING GIST(geom);
+
+WITH cnt_table AS 
+(
+	SELECT f.id, COALESCE(points_sum,0) AS points_sum 
+	FROM footpath_visualization f 
+	LEFT JOIN footpaths_get_points_sum('accidents_foot', 30) c
+	ON f.id = c.id 	
+)
+UPDATE footpath_visualization f
+SET cnt_accidents = points_sum 
+FROM cnt_table c
+WHERE f.id = c.id;
+
+----##########################################################################################################################----
+----#############################################################SAFETY#######################################################----
+----##########################################################################################################################----
+WITH variables AS 
+(
+    SELECT select_from_variable_container_o('lit') AS lit
+)
+UPDATE footpath_visualization f SET lit_classified = x.lit_classified
+FROM
+    (SELECT f.id,
+    CASE WHEN 
+        lit IN ('yes','Yes','automatic','24/7','sunset-sunrise') 
+        OR (lit IS NULL AND highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_yes')::jsonb) FROM variables)
+			AND maxspeed_forward<80)
+        THEN 'yes' 
+    WHEN
+        lit IN ('no','No','disused')
+        OR (lit IS NULL AND (highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_no')::jsonb) FROM variables) 
+        OR surface IN (SELECT jsonb_array_elements_text((lit ->> 'surface_no')::jsonb) FROM variables)
+		OR maxspeed_forward>=80)
+        )
+        THEN 'no'
+    ELSE 'unclassified'
+    END AS lit_classified 
+    FROM footpath_visualization f
+    ) x
+WHERE f.id = x.id;
+
+--Precalculation of visualized features for lit
+DROP TABLE IF EXISTS buffer_lamps;
+CREATE TABLE buffer_lamps as
+SELECT ST_SUBDIVIDE((ST_DUMP(ST_UNION(ST_BUFFER(geom,15 * meter_degree())))).geom, 100) AS geom, 'yes' AS lit 
+FROM street_furniture
+WHERE amenity = 'street_lamp';
+
+CREATE INDEX ON buffer_lamps USING gist(geom);
+
+DROP TABLE IF EXISTS footpaths_lit; 
+CREATE TEMP TABLE footpaths_lit AS 
+SELECT DISTINCT id 
+FROM footpaths_get_polygon_attr('buffer_lamps','lit')
+WHERE arr_shares IS NOT NULL 
+AND arr_polygon_attr = ARRAY['yes']
+AND arr_shares[1] > 0.3; 
+
+UPDATE footpath_visualization f  
+SET lit_classified = 'yes'
+FROM footpaths_lit l 
+WHERE f.id = l.id;
 
 
-
-
-
-
--- Noise (done in script footpaths_noise.sql)
---TODO: add accidents data as new column
-
---TODO: insert score for accidents
-
---calculate score
 UPDATE footpath_visualization f SET traffic_protection = 
 round(100 * group_index(
 	ARRAY[
@@ -182,6 +309,9 @@ round(100 * group_index(
 		select_full_weight_walkability('lit_classified')
 	]
 ),0);
+
+
+
 
 --UPDATE footpath_visualization f SET security = 50 WHERE security IS NULL;
 
@@ -240,11 +370,121 @@ WHERE vegetation IS NULL;
 --- Attractiveness of walking environment indicators
 -- TODO: Pop density (issue #986) -> in layer_preparation
 
+----##########################################################################################################################----
+----#####################################################WALKING ENVIRONMENT##################################################----
+----##########################################################################################################################----
+
+----------------------
+---Add landuse data---
+----------------------
+--clean landuse ##copy this query to the "buildings_residential.sql" script when finished
+DROP TABLE IF EXISTS inner_polygons;
+CREATE TABLE inner_polygons AS
+SELECT lo.*
+FROM landuse_osm l 
+JOIN landuse_osm lo ON (ST_Contains(l.geom, lo.geom)) WHERE l.gid != lo.gid;
+
+UPDATE landuse_osm l
+SET geom = st_difference(l.geom, i.geom)
+FROM inner_polygons i
+WHERE l.gid=i.gid;
+
+INSERT INTO landuse_osm 
+SELECT * FROM inner_polygons; 
+--TODO: maybe insert a loop (for polygons inside the inner_polygons)
+
+DROP TABLE inner_polygons;
+
+--assign info about landuse to footpath_visualization
+ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS landuse text;
+
+UPDATE footpath_visualization f  
+SET landuse = ARRAY[l.landuse_simplified]
+FROM landuse_osm l
+WHERE ST_CONTAINS(l.geom,f.geom);
+
+DROP TABLE IF EXISTS footpath_ids_landuse;
+CREATE TABLE footpath_ids_landuse AS --TODO: use buffer and intersect with area 
+WITH i AS 
+(
+    SELECT f.id, f.geom, ST_LENGTH(ST_Intersection(l.geom, f.geom)) len_intersection, l.landuse_simplified AS landuse
+    FROM  landuse_osm l, footpath_visualization f
+    WHERE ST_Intersects(f.geom, l.geom)  
+    AND f.landuse IS NULL
+    AND l.landuse_simplified IS NOT NULL
+)   
+SELECT id, get_attr_for_max_val(array_agg((len_intersection * 1000000000)::integer), array_agg(landuse)) AS landuse 
+FROM i
+GROUP BY id; 
+
+ALTER TABLE footpath_ids_landuse ADD PRIMARY KEY(id); 
+
+UPDATE footpath_visualization f  
+SET landuse = ARRAY[l.landuse] 
+FROM footpath_ids_landuse l 
+WHERE f.id = l.id; 
+DROP TABLE footpath_ids_landuse;
+
+--assign info about population density
+--TODO: assign "high","medium","low","no" accoridng to buffer -> intersection with pop.
+
+--Classify by number of POIs
+CREATE TEMP TABLE pois_to_count AS 
+SELECT geom 
+FROM pois 
+WHERE amenity NOT IN ('parking','bench','information','parking_space','waste_basket','fountain','toilets','carging_station','bicycle_parking','parking_entrance','motorcycle_parking','hunting_stand');
+
+CREATE INDEX ON pois_to_count USING GIST(geom);
+
+WITH cnt_table AS 
+(
+	SELECT f.id, COALESCE(points_sum,0) AS points_sum, f.geom  
+	FROM footpath_visualization f 
+	LEFT JOIN footpaths_get_points_sum('pois_to_count', 50) c
+	ON f.id = c.id 	
+), 
+classify AS 
+(
+	SELECT c.id, sring_condition 
+	FROM walkability w, cnt_table c 
+	WHERE attribute = 'pois'
+	AND (w.min_value < c.points_sum OR w.min_value IS NULL)  
+	AND (w.max_value > c.points_sum OR w.max_value IS NULL)
+)
+UPDATE footpath_visualization f
+SET pois = c.sring_condition 
+FROM classify c
+WHERE f.id = c.id;
+
+--Classify by number of Population
+WITH cnt_table AS 
+(
+	SELECT id, points_sum
+	FROM footpaths_get_points_sum('population', 50, 'population') c
+),
+percentiles AS 
+(
+	SELECT id, points_sum, ntile(4) over (order by points_sum) AS percentile
+	FROM cnt_table 
+	WHERE points_sum <> 0 
+	AND points_sum IS NOT NULL 
+),
+combined AS 
+(
+	SELECT f.id, (COALESCE(p.percentile,0) + 1) AS arr_index 
+	FROM footpath_visualization f 
+	LEFT JOIN percentiles p 
+	ON f.id = p.id 
+)
+UPDATE footpath_visualization f
+SET population = (ARRAY['no','very_low','low','medium','high','very_high'])[arr_index] 
+FROM combined c 
+WHERE f.id = c.id; 
 
 UPDATE footpath_visualization f SET walking_environment = 
 round(100 * group_index(
 	ARRAY[
-		select_weight_walkability('landuse',landuse), 
+		select_weight_walkability('landuse',landuse[1]), 
 		select_weight_walkability('population',population),
 		select_weight_walkability('pois',pois)
 	],
