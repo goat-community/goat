@@ -223,7 +223,7 @@ WHERE f.id = g.id;
 ----------------------------------
 DROP TABLE IF EXISTS street_furniture;
 CREATE TABLE street_furniture AS 	
-SELECT p.osm_id, NULL AS mapillary_key, p.amenity, p.geom, 'osm' AS SOURCE, NULL AS accuracy
+SELECT p.osm_id AS original_key, p.amenity, p.geom, 'osm' AS SOURCE
 FROM pois p, study_area s
 WHERE st_intersects(s.geom,p.geom) 
 AND amenity IN ('bench','waste_basket','toilets','fountain','bicycle_parking','bicycle_repair_station','drinking_water');
@@ -234,7 +234,7 @@ ALTER TABLE street_furniture ADD PRIMARY KEY(id);
 
 --Insert street_lamps
 INSERT INTO street_furniture
-SELECT p.osm_id, NULL AS mapillary_key, p.highway AS amenity, p.way AS geom, 'osm' AS SOURCE, NULL AS accuracy
+SELECT p.osm_id AS original_key, p.highway AS amenity, p.way AS geom, 'osm' AS SOURCE
 FROM planet_osm_point p, study_area s
 WHERE st_intersects(s.geom,p.way) 
 AND highway IN ('street_lamp');
@@ -244,20 +244,20 @@ AND highway IN ('street_lamp');
 DROP TABLE IF EXISTS dups;
 CREATE TABLE dups AS
 SELECT p.*, ST_Distance(p.geom, s.geom) AS distance
-FROM points p  --rename to: mapillary_features 
+FROM street_items p  --rename to: custom_points_walkability 
 LEFT JOIN street_furniture s ON ST_DWithin(p.geom, s.geom, 0.0001)
 WHERE p.value = s.amenity AND ST_Distance(p.geom, s.geom)>0;
 
 --Table of no duplicates
 DROP TABLE IF EXISTS no_dups;
 CREATE TABLE no_dups AS SELECT p.*
-FROM points p --rename to: mapillary_features 
+FROM street_items p --rename to: custom_points_walkability
 LEFT JOIN dups ON p.id = dups.id
 WHERE dups.id IS NULL;
 
 --Insert data from Mapillary 
 INSERT INTO street_furniture
-SELECT NULL AS osm_id, p.key AS mapillary_key, value AS amenity, p.geom, 'mapillary' AS SOURCE, p.accuracy
+SELECT p.original_key, amenity, p.geom, p.data_source
 FROM no_dups p 
 WHERE value IN ('bench','street_lamp');
 
