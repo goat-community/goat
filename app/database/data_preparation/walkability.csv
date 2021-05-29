@@ -63,8 +63,12 @@ Impacts from Road Traffic;Speed limits ;maxspeed;;40;60;0.5;0.06
 Impacts from Road Traffic;Speed limits ;maxspeed;;60;;0.0;0.06
 Impacts from Road Traffic;Parking vehicles on the road or on the sidewalk ;parking;lane;;;1.0;0.03
 Impacts from Road Traffic;Parking vehicles on the road or on the sidewalk ;parking;no;;;0.0;0.03
-Impacts from Road Traffic;Accidents;accidents;;;;;0.03
-Impacts from Road Traffic;Accidents;accidents;;;;;0.03
+Impacts from Road Traffic;Accidents;accidents;;0;0.9;1;0.03
+Impacts from Road Traffic;Accidents;accidents;;1;1.9;0.8;0.03
+Impacts from Road Traffic;Accidents;accidents;;2;3;0.6;0.03
+Impacts from Road Traffic;Accidents;accidents;;3;4;0.4;0.03
+Impacts from Road Traffic;Accidents;accidents;;4;5;0.2;0.03
+Impacts from Road Traffic;Accidents;accidents;;5;;0;0.03
 Impacts from Road Traffic;Noise;noise;;0;30;1;0.03 
 Impacts from Road Traffic;Noise;noise;;30;50;0.9;0.03
 Impacts from Road Traffic;Noise;noise;;50;60;0.8;0.03
@@ -96,8 +100,9 @@ Attractiveness of the walking environment;Population density;population;medium;;
 Attractiveness of the walking environment;Population density;population;low;;;0.5;0.05
 Attractiveness of the walking environment;Population density;population;no;;;0.2;0.05
 Attractiveness of the walking environment;POIs. liveliness ;pois;high;;;1;0.04
-Attractiveness of the walking environment;POIs. liveliness ;pois;medium;;;0.7;0.04
-Attractiveness of the walking environment;POIs. liveliness ;pois;low;;;0.5;0.04
+Attractiveness of the walking environment;POIs. liveliness ;pois;medium;;;0.8;0.04
+Attractiveness of the walking environment;POIs. liveliness ;pois;low;;;0.6;0.04
+Attractiveness of the walking environment;POIs. liveliness ;pois;very_low;;;0.4;0.04
 Attractiveness of the walking environment;POIs. liveliness ;pois;no;;;0.2;0.04
 Comfort;Bench;bench;;;0;0;0.01
 Comfort;Bench;bench;;0;1;0.5;0.01
