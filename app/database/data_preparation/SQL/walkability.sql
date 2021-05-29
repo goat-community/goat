@@ -113,34 +113,36 @@ WHERE f.id = p.id;
 
 --street crossings
 -- Create temp table to count street crossings
-DROP TABLE IF EXISTS crossings;
-CREATE TEMP TABLE crossings (id serial, total_crossing int8);
-INSERT INTO crossings
-WITH buffer AS 
+DROP TABLE IF EXISTS relevant_crossings;
+CREATE TEMP TABLE relevant_crossings AS 
+SELECT geom 
+FROM street_crossings 
+WHERE crossing IN ('zebra','traffic_signals'); 
+
+CREATE INDEX ON relevant_crossings USING GIST(geom);
+
+/*Assing number of crossing to footpath_visualization*/
+ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS cnt_crossings;
+ALTER TABLE footpath_visualization ADD COLUMN cnt_crossings int; 
+WITH cnt_table AS 
 (
-	SELECT id, st_buffer(geom::geography, 30) AS geom 
-	FROM footpath_visualization
-),
-crossing AS 
-(
-	SELECT geom 
-	FROM street_crossings 
-	WHERE crossing IN ('zebra','traffic_signals')
+	SELECT id, COALESCE(points_sum) AS points_sum 
+	FROM footpaths_get_points_sum('pois', 30)
 )
-SELECT b.id, count(crossing.geom) AS total_crossing
-FROM buffer b
-LEFT JOIN crossing ON st_contains(b.geom::geometry, crossing.geom)
-GROUP BY b.id;
+UPDATE footpath_visualization f
+SET cnt_crossings = points_sum 
+FROM cnt_table c
+WHERE f.id = c.id;
 
--- Assign info to footpaths
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS crossing;
-ALTER TABLE footpath_visualization ADD COLUMN crossing int; 
-
+/*Label footpaths that are not affected by crossings*/
 UPDATE footpath_visualization 
-SET crossing = -1
-WHERE maxspeed_forward <= 30 OR maxspeed_forward IS NULL OR highway IN ('residential','service');
+SET cnt_crossings = -1
+WHERE maxspeed_forward <= 30 
+OR maxspeed_forward IS NULL OR highway IN ('residential','service');
 
-DROP TABLE crossings;
+
+
+
 
 
 -- Noise (done in script footpaths_noise.sql)
