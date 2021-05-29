@@ -52,21 +52,30 @@ Sidewalk quality;Freedom from barriers;wheelchair;yes;;;1.0;0.07
 Sidewalk quality;Freedom from barriers;wheelchair;limited;;;0.5;0.07
 Sidewalk quality;Freedom from barriers;wheelchair;no;;;0.0;0.07
 Sidewalk quality;Freedom from barriers;wheelchair;unclassified;;;0.5;0.07
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Number of lanes ;lanes;;0;2;1.0;0.03
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Number of lanes ;lanes;;3;4;0.5;0.03
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Number of lanes ;lanes;;4;;0.0;0.03
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Number of crossings ;crossings;;-1;0;1.0;0.03 
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Number of crossings ;lanes;;0;0.9;0;0.03 
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Number of crossings ;lanes;;1;;1;0.03  
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Noise;noise;;;;;0.03
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Noise;noise;;;;;0.03
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Speed limits ;maxspeed;;0;40;1.0;0.06
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Speed limits ;maxspeed;;40;60;0.5;0.06
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Speed limits ;maxspeed;;60;;0.0;0.06
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Parking vehicles on the road or on the sidewalk ;parking;lane;;;1.0;0.03
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Parking vehicles on the road or on the sidewalk ;parking;no;;;0.0;0.03
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Accidents;accidents;;;;;0.03
-Impacts from Road Traffic (Traffic Safety. Noise. Emission) ;Accidents;accidents;;;;;0.03
+Impacts from Road Traffic;Number of lanes ;lanes;;0;2;1.0;0.03
+Impacts from Road Traffic;Number of lanes ;lanes;;3;4;0.5;0.03
+Impacts from Road Traffic;Number of lanes ;lanes;;4;;0.0;0.03
+Impacts from Road Traffic;Number of crossings ;crossings;;-1;0;1.0;0.03 
+Impacts from Road Traffic;Number of crossings ;lanes;;0;0.9;0;0.03 
+Impacts from Road Traffic;Number of crossings ;lanes;;1;;1;0.03  
+Impacts from Road Traffic;Speed limits ;maxspeed;;0;40;1.0;0.06
+Impacts from Road Traffic;Speed limits ;maxspeed;;40;60;0.5;0.06
+Impacts from Road Traffic;Speed limits ;maxspeed;;60;;0.0;0.06
+Impacts from Road Traffic;Parking vehicles on the road or on the sidewalk ;parking;lane;;;1.0;0.03
+Impacts from Road Traffic;Parking vehicles on the road or on the sidewalk ;parking;no;;;0.0;0.03
+Impacts from Road Traffic;Accidents;accidents;;;;;0.03
+Impacts from Road Traffic;Accidents;accidents;;;;;0.03
+Impacts from Road Traffic;Noise;noise;;0;30;1;0.03 
+Impacts from Road Traffic;Noise;noise;;30;50;0.9;0.03
+Impacts from Road Traffic;Noise;noise;;50;60;0.8;0.03
+Impacts from Road Traffic;Noise;noise;;60;65;0.7;0.03
+Impacts from Road Traffic;Noise;noise;;65;68;0.6;0.03
+Impacts from Road Traffic;Noise;noise;;68;71;0.5;0.03
+Impacts from Road Traffic;Noise;noise;;71;74;0.4;0.03
+Impacts from Road Traffic;Noise;noise;;74;77;0.3;0.03
+Impacts from Road Traffic;Noise;noise;;77;80;0.2;0.03
+Impacts from Road Traffic;Noise;noise;;80;83;0.1;0.03
+Impacts from Road Traffic;Noise;noise;;83;;0;0.03
 Security;Illumination;lit_classified;yes;;;1.0;0.14
 Security;Illumination;lit_classified;no;;;0.0;0.14
 Grünindex (number of tress. etc.);Vegetation ;Presence of trees;yes;;;1;0.14
