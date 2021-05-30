@@ -819,12 +819,12 @@
   "charts": {
     "indicators": {
       "sidewalk_quality": "Sidewalk Quality",
-      "traffic_protection": ["Protection from", "traffic impacts"],
+      "traffic_protection": "Protection from traffic impacts",
       "security": "Security",
       "vegetation": "Vegetation",
       "walking_environment": "Walking environment",
       "comfort": "Comfort",
-      "walkability": ["TOTAL WALKABILITY", "SCORE"],
+      "walkability": ["TOTAL WALKABILITY SCORE"],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index"
     }

@@ -27,7 +27,6 @@ export default {
         ],
         traffic_protection: [
           "lanes",
-          "oneway",
           "maxspeed",
           "parking",
           "cnt_accidents",
