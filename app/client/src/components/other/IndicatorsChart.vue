@@ -40,7 +40,8 @@ export default {
           "cnt_benches",
           "cnt_waste_baskets",
           "cnt_toilets",
-          "cnt_fountains"
+          "cnt_fountains",
+          "slope"
         ],
         walkability: []
       },

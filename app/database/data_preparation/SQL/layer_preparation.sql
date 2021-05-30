@@ -234,7 +234,7 @@ WHERE sidewalk IS NULL AND highway IN ('path','track','footway','steps','service
 CREATE INDEX ON footpath_visualization USING gist(geom);
 
 /*Overlaps are removed. A logic is implemented that keeps the large geometry when clipped. This can also cause errors.*/
-DROP TABLE splitted_geoms_to_keep;
+DROP TABLE IF EXISTS splitted_geoms_to_keep;
 CREATE TEMP TABLE splitted_geoms_to_keep AS 
 SELECT v.id, j.geom
 FROM footpath_visualization v 

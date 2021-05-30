@@ -240,13 +240,13 @@ FROM
     CASE WHEN 
         lit IN ('yes','Yes','automatic','24/7','sunset-sunrise') 
         OR (lit IS NULL AND highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_yes')::jsonb) FROM variables)
-			AND maxspeed_forward<80)
+			AND maxspeed<80)
         THEN 'yes' 
     WHEN
         lit IN ('no','No','disused')
         OR (lit IS NULL AND (highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_no')::jsonb) FROM variables) 
         OR surface IN (SELECT jsonb_array_elements_text((lit ->> 'surface_no')::jsonb) FROM variables)
-		OR maxspeed_forward>=80)
+		OR maxspeed>=80)
         )
         THEN 'no'
     ELSE 'unclassified'
@@ -637,5 +637,8 @@ SET comfort = 100 WHERE street_furniture > 100;
 UPDATE footpath_visualization f SET walkability = 
 round((comfort*0.14) + (vegetation*0.14) + (security*0.14) + (traffic_protection*0.14) + (sidewalk_quality*0.29) + (walking_environment*0.14),0);
 --TODO: enable calculation when one or more values are NULL 
---TODO: store number of columns without data
+
+UPDATE footpath_visualization f SET data_quality = (22-num_nulls(width,maxspeed,incline_percent,lanes,noise_day,noise_night,
+lit_classified,parking,sidewalk,smoothness,surface,wheelchair_classified,cnt_crossings,cnt_accidents,cnt_benches,
+cnt_waste_baskets,cnt_fountains,cnt_toilets,population,pois,landuse,street_furniture))::float/22.0;
 
