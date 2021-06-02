@@ -357,6 +357,27 @@
           "url": "./static/layer-styles/styles/ways_speed.json"
         }
       },
+	    {
+        "type": "VECTORTILE",
+		"format": "MVT",
+        "name": "age_14_under",
+        "url": "/api/map/layer/age_14_under/{z}/{x}/{y}",
+        "group": "populationData",
+		"opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+		"zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/age_14_under.json"
+        },
+        "attributes": {
+          "source": "Landeshauptstadt München",
+          "date": "2021"
+        }
+      },
       {
         "type": "VECTORTILE",
         "format": "MVT",
@@ -913,6 +934,27 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/heatmap_connectivity.json"
+        }
+      },
+	  {
+        "type": "VECTOR",
+        "name": "heatmap_competition",
+        "url": "/api/map/heatmap",
+        "group": "accessbilityBasemaps",
+        "format": "GeoJSON",
+        "displayInLayerList": true,
+        "visible": false,
+        "requiresPois": true,
+        "zIndex": 1,
+        "queryParams": [
+          "heatmap_type",
+          "scenario_id_input",
+          "modus_input",
+          "pois"
+        ],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/heatmap_competition.json"
         }
       },
       {

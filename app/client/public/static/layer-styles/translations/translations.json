@@ -11,6 +11,12 @@
       "de": "Unfallstelle"
     }
   },
+  "age_14_under": {
+    "age_14_under": {
+      "en": "Under 14",
+      "de": "Unter 14"
+    }
+  },
   "aois": {
     "forest": {
       "en": "forest",
@@ -55,6 +61,76 @@
     }
   },
   "heatmap_gravity": {
+    "VeryLowAccessibility": {
+      "en": "Very low accessibility",
+      "de": "Sehr niedrige Erreichbarkeit"
+    },
+    "LowAccessibility": {
+      "en": "Low accessibility",
+      "de": "Niedrige Erreichbarkeit"
+    },
+    "RatherLowAccessibility": {
+      "en": "Rather low accessibility",
+      "de": "Eher niedrige Erreichbarkeit"
+    },
+    "MediumAccessibility": {
+      "en": "Medium accessibility",
+      "de": "Mittlere Erreichbarkeit"
+    },
+    "RatherHighAccessibility": {
+      "en": "Rather high accessibility",
+      "de": "Eher hohe Erreichbarkeit"
+    },
+    "HighAccessibility": {
+      "en": "High accessibility",
+      "de": "Hohe Erreichbarkeit"
+    },
+    "VeryStrongDecrease": {
+      "en": "Very strong decrease",
+      "de": "Sehr starke Abnahme"
+    },
+    "StrongDecrease": {
+      "en": "Very decrease",
+      "de": "Starke Abnahme"
+    },
+    "MeanDecrease": {
+      "en": "Mean decrease",
+      "de": "Mittlere Abnahme"
+    },
+    "LowDecrease": {
+      "en": "Low decrease",
+      "de": "Geringe Abnahme"
+    },
+    "VeryLowDecrease": {
+      "en": "Very low decrease",
+      "de": "Sehr geringe Abnahme"
+    },
+    "NoOrMarginalChange": {
+      "en": "No or marginal change",
+      "de": "Keine oder vernachlässigbare Änderung"
+    },
+    "VerySmallIncrease": {
+      "en": "Very small increase",
+      "de": "Sehr leichte Zunahme"
+    },
+    "SmallIncrease": {
+      "en": "Small increase",
+      "de": "Leichte Zunahme"
+    },
+    "MeanIncrease": {
+      "en": "Mean increase",
+      "de": "Mittlere Zunahme"
+    },
+    "HighIncrease": {
+      "en": "High increase",
+      "de": "Hohe Zunahme"
+    },
+    "VeryHighIncrease": {
+      "en": "Very high increase",
+      "de": "Sehr hohe Zunahme"
+    }
+  }, 
+  "heatmap_competition": {
     "VeryLowAccessibility": {
       "en": "Very low accessibility",
       "de": "Sehr niedrige Erreichbarkeit"

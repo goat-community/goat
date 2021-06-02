@@ -267,6 +267,16 @@ FROM (
 	WHERE leisure = 'fitness_station' OR("leisure" = 'pitch' and "sport" = 'fitness'))x)
 SELECT m.geom FROM planet_osm_polygon pop, merged_geom m GROUP BY m.geom;
 
+---------------------------------- Insert Alten- und Servicezentren ----------------------------------
+SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'Alten- und Servicezentrum' AS amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref, tags||hstore('sport', sport)||hstore('leisure', leisure)  AS tags, way as geom,
+tags -> 'wheelchair' as wheelchair
+FROM planet_osm_point WHERE (amenity='social_facility' and tags->'social_facility:for'='senior' and name like '%Alten- und Ser%' or name like '%ASZ%') AND shop IS NULL
+
+UNION ALL 
+
+
 -- Paste zones attributes in containing polygons
 DROP TABLE IF EXISTS grouping_polygons;
 CREATE TEMP TABLE grouping_polygons  (LIKE planet_osm_polygon INCLUDING INDEXES);

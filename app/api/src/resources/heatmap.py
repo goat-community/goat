@@ -111,3 +111,11 @@ def heatmap_connectivity(modus_input, scenario_id_input, return_type):
     params={"scenario_id_input": scenario_id_input,"modus_input": modus_input}, return_type=return_type)   
     
     return result 
+
+def heatmap_competition(pois, modus_input, scenario_id_input, return_type):
+    #recompute_heatmap(scenario_id_input)
+    result = db.select('''SELECT percentile_ai_pop AS score, %(modus_input)s AS modus, geom 
+        FROM heatmap_competition(%(pois)s,%(modus_input)s,%(scenario_id_input)s)''', 
+        params={"pois": json.dumps(pois), "modus_input": modus_input, "scenario_id_input": scenario_id_input}, return_type=return_type)
+
+    return result

@@ -1,0 +1,47 @@
+create table muenchen_auslaender_age AS 
+with ma as
+(
+	select distinct ma.vi_nummer
+	from muenchen_alter_update_csv ma
+	CROSS JOIN LATERAL
+	(
+	select order by
+	) as 
+)
+select ma.vi_nummer, ma.age_0_2, ma.age_3_5, ma.age_6_14, ma.age_15_64, ma.age_65_74, ma.age_75_over
+from ma;
+
+(select viertel_nummer as vi_nummer,
+(select auslaender from muenchen_alter_update_csv where altersgruppen = '0 bis 2 Jahre' group by viertel_nummer) as age_0_2,
+(select auslaender from muenchen_alter_update_csv where altersgruppen = '3 bis 5 Jahre' group by viertel_nummer) as age_3_5,
+(select auslaender from muenchen_alter_update_csv where altersgruppen = '6 bis 14 Jahre' group by viertel_nummer) as age_6_14,
+(select auslaender from muenchen_alter_update_csv where altersgruppen = '15 bis 64 Jahre' group by viertel_nummer) as age_15_64,
+(select auslaender from muenchen_alter_update_csv where altersgruppen = '65 bis 74 Jahre' group by viertel_nummer) as age_65_74,
+(select auslaender from muenchen_alter_update_csv where altersgruppen like '75 Jahre und%' group by viertel_nummer) as age_75_over,
+from muenchen_alter_update_csv
+group by viertel_nummer);
+
+old_table
+id,category,value
+1,a,v_a
+1,b,v_b
+1,c,v_c
+2,a,v_a
+2,b,v_b
+2,c,v_c
+
+into
+
+new_table
+id,a,b,c
+1,v_a,v_b,v_c
+2,v_a,v_b,v_c
+
+v_a = 
+select value where category = 'a' 
+select value where category = 'b'
+select value where category = 'c'
+LEFT JOIN auslaender a ON ma.id = mx.id
+group by id; 
+
+create new_table

@@ -1,0 +1,311 @@
+{
+  "name": "heatmap_competition",
+  "rules": [
+    {
+      "name": "VeryLowAccessibility",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#d7191c",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", 0],
+        ["!=", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "LowAccessibility",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#f69053",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", 1],
+        ["!=", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "RatherLowAccessibility",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#ffdf9a",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", 2],
+        ["!=", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "MediumAccessibility",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#dcf09e",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", 3],
+        ["!=", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "RatherHighAccessibility",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#8acc62",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", 4],
+        ["!=", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "HighAccessibility",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#1a9641",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", 5],
+        ["!=", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "VeryStrongDecrease",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#d7191c",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", -5],
+        ["==", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "StrongDecrease",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#df3e33",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", -4],
+        ["==", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "MeanDecrease",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#e6634b",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", -3],
+        ["==", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "LowDecrease",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#ef956e",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", -2],
+        ["==", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "VeryLowDecrease",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#f7bf89",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", -1],
+        ["==", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "NoOrMarginalChange",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#FFFFFF",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", 0],
+        ["==", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "VerySmallIncrease",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#dcf09e",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", 1],
+        ["==", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "SmallIncrease",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#acda87",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", 2],
+        ["==", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "MeanIncrease",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#7bc36f",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", 3],
+        ["==", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "HighIncrease",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#4aad58",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", 4],
+        ["==", "modus", "comparison"]
+      ]
+    },
+    {
+      "name": "VeryHighIncrease",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#1a9641",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": [
+        "&&",
+        ["==", "score", 5],
+        ["==", "modus", "comparison"]
+      ]
+    }
+  ]
+}

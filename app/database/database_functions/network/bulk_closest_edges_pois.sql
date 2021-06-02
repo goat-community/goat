@@ -1,6 +1,6 @@
 
-DROP FUNCTION IF EXISTS pgrouting_edges_preparation;
-CREATE OR REPLACE FUNCTION public.pgrouting_edges_preparation(cutoffs double precision[], startpoints double precision[], speed numeric, modus_input integer, routing_profile text, userid_input integer DEFAULT 0, scenario_id_input integer DEFAULT 0, heatmap_bulk_calculation boolean DEFAULT false, gridids_scenario integer[] DEFAULT ARRAY[]::integer[])
+DROP FUNCTION IF EXISTS pgrouting_edges_preparation_pois;
+CREATE OR REPLACE FUNCTION public.pgrouting_edges_preparation_pois(cutoffs double precision[], startpoints double precision[], speed numeric, amenity_input text[], modus_input integer, routing_profile text, userid_input integer DEFAULT 0, scenario_id_input integer DEFAULT 0, heatmap_bulk_calculation boolean DEFAULT false, gids_scenario integer[] DEFAULT ARRAY[]::integer[])
  RETURNS SETOF void
  LANGUAGE plpgsql
 AS $function$
@@ -15,15 +15,16 @@ BEGIN
 	distance = cutoffs[array_upper(cutoffs, 1)] * speed;
 	
 	DROP TABLE IF EXISTS start_geoms;
-	IF gridids_scenario = ARRAY[]::integer[] THEN 
-		CREATE TEMP TABLE start_geoms AS 
+	IF gids_scenario = ARRAY[]::integer[] THEN 
+		CREATE /*TEMP*/ TABLE start_geoms AS 
 		SELECT ST_SETSRID(ST_POINT(point[1], point[2]),4326) AS geom
 		FROM (SELECT unnest_2d_1d(startpoints) point) AS points; 
-		ALTER TABLE start_geoms ADD COLUMN grid_id integer;
+		ALTER TABLE start_geoms ADD COLUMN gid integer;
+		alter table start_geoms add column amenity integer;
 	ELSE 
-		CREATE TEMP TABLE start_geoms AS 
-		SELECT ST_SETSRID(ST_POINT(point[1], point[2]),4326) AS geom, grid_id
-		FROM (SELECT unnest_2d_1d(startpoints) point, unnest(gridids_scenario) grid_id) AS points; 
+		CREATE /*TEMP*/ TABLE start_geoms AS 
+		SELECT ST_SETSRID(ST_POINT(point[1], point[2]),4326) AS geom, amenity, gid
+		FROM (SELECT unnest_2d_1d(startpoints) point, unnest(amenity_input) amenity, unnest(gids_scenario) gid) AS points; 
 	END IF; 
 
 	SELECT ST_ASTEXT(ST_Union(ST_Buffer(geom::geography,distance)::geometry))
@@ -37,7 +38,7 @@ BEGIN
  	END IF;
 	
 	DROP TABLE IF EXISTS temp_fetched_ways;
-	CREATE TEMP TABLE temp_fetched_ways AS 
+	CREATE /*TEMP*/ TABLE temp_fetched_ways AS 
 	SELECT *
 	FROM fetch_ways_routing(buffer,modus_input,scenario_id_input,speed,routing_profile);
 
@@ -48,10 +49,10 @@ BEGIN
   
 	IF heatmap_bulk_calculation = FALSE THEN 
 	  	DROP TABLE IF EXISTS start_vertices;
-		CREATE TEMP TABLE start_vertices AS 
-	  	SELECT c.closest_point, c.fraction, c.wid, 999999999 - p.id AS vid, p.grid_id
+		CREATE /*TEMP*/ TABLE start_vertices AS 
+	  	SELECT c.closest_point, c.fraction, c.wid, 999999999 - p.id AS vid, p.amenity, p.gid
 	  	FROM (
-	  		SELECT (ROW_NUMBER() over()) AS id, geom, grid_id 
+	  		SELECT (ROW_NUMBER() over()) AS id, geom, amenity, gid 
 			FROM start_geoms
 		) p, closest_point_network_geom(p.geom) c; 
 		
@@ -62,7 +63,7 @@ BEGIN
 			/*Originally fractional cost was computed using the fraction returned from closest_point_network_geom. 
 			Though apparently because of differences of metric and kartesian coordinate system the results where sligthly wrong (1-5%). Therefore the length of the partial link is comuted with ::geography*/
 			DROP TABLE IF EXISTS artificial_edges;
-			CREATE TEMP TABLE artificial_edges AS 
+			CREATE /*TEMP*/ TABLE artificial_edges AS 
 			SELECT wid, 999999998-(1+ROW_NUMBER() OVER())*2 AS id, cost*ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m as cost,reverse_cost*ST_LENGTH(ST_LINESUBSTRING(geom,0,fraction)::geography)/length_m AS reverse_cost,SOURCE,vid target,ST_LINESUBSTRING(geom,0,fraction) geom
 			FROM temp_fetched_ways w, start_vertices v 
 			WHERE w.id = v.wid
@@ -72,28 +73,29 @@ BEGIN
 			WHERE w.id = v.wid;	
 		END IF;
 	END IF;
+
 	
-	IF heatmap_bulk_calculation = TRUE AND (SELECT count(*) FROM (SELECT * FROM reached_edges_heatmap LIMIT 1) x) IS NOT NULL THEN 
+	IF heatmap_bulk_calculation = TRUE AND (SELECT count(*) FROM (SELECT * FROM reached_edges_pois LIMIT 1) x) IS NOT NULL THEN 
 		IF scenario_id_input = 0 THEN 
-			buffer_bulk = (SELECT ST_UNION(geom) FROM grid_heatmap);
+			buffer_bulk = (SELECT ST_UNION(geom) FROM pois);
 		ELSE
-			WITH grids_recompute AS 
+			WITH pois_recompute AS 
 			(
-				SELECT UNNEST(gridids) grid_id
-				FROM changed_grids
+				SELECT UNNEST(gids) gid
+				FROM changed_pois
 			)
 			SELECT ST_UNION(g.geom)
 			INTO buffer_bulk
-			FROM grid_heatmap g, grids_recompute r 
-			WHERE g.grid_id = r.grid_id;
+			FROM pois g, pois_recompute r 
+			WHERE g.gid = r.gid;
 		END IF;
 	
 		DROP TABLE IF EXISTS fetched_ways_bulk;
-		CREATE TEMP TABLE fetched_ways_bulk AS 
+		CREATE /*TEMP*/ TABLE fetched_ways_bulk AS 
 		SELECT *
 		FROM fetch_ways_routing(ST_ASTEXT(buffer_bulk),modus_input,scenario_id_input,speed,routing_profile);
 		CREATE INDEX ON fetched_ways_bulk USING GIST(geom);
-		PERFORM bulk_closest_edges(buffer_bulk);
+		PERFORM bulk_closest_edges_pois(buffer_bulk);
 	END IF;
 	
 /*Handle artificial edges for single and multi-calculation*/
@@ -127,5 +129,3 @@ $function$
 /*
 SELECT pgrouting_edges_preparation(ARRAY[1200.]::FLOAT[], ARRAY[[11.5707,48.1252]],1.33, 2, 'walking_standard',10, 5, FALSE)
 */
-
-/

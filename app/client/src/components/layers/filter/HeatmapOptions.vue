@@ -53,7 +53,7 @@ export default {
   data() {
     return {
       weightListValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-      sensitivityListValues: [
+      sensitivityListValues: [        
         150000,
         200000,
         250000,

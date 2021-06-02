@@ -9,7 +9,7 @@ from flask_cors import CORS
 from utils import response
 from utils.async_function import *
 
-from resources.heatmap import heatmap_connectivity, heatmap_population, heatmap_gravity, heatmap_luptai
+from resources.heatmap import heatmap_connectivity, heatmap_population, heatmap_gravity, heatmap_luptai, heatmap_competition
 from utils.geo.mvt import MVT
 from db.db import Database
 import config
