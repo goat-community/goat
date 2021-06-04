@@ -397,6 +397,7 @@
       "ways_surface": "Surface",
       "ways_wheelchair": "Wheelchair Usability",
       "footpath_visualization": "Walkability Index",
+      "ways_liveliness": "Liveliness",
       "heatmap_connectivity": "Connectivity",
       "heatmap_luptai": "Comparison of Accessibility and Population Density",
       "heatmap_population": "Population Density",

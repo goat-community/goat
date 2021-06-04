@@ -408,6 +408,7 @@
       "ways_surface": "Oberfläche",
       "ways_wheelchair": "Barrierefreiheit",
       "footpath_visualization": "Walkability Index (Attraktivität der Fußwege)",
+      "ways_liveliness": "Belebtheit",
       "heatmap_connectivity": "Konnektivität",
       "heatmap_luptai": "Vergleich von Erreichbarkeit und Bevölkerungsdichte",
       "heatmap_population": "Bevölkerungsdichte",

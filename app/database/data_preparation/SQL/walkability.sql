@@ -133,7 +133,7 @@ ALTER TABLE footpath_visualization ADD COLUMN cnt_crossings int;
 WITH cnt_table AS 
 (
 	SELECT id, COALESCE(points_sum) AS points_sum 
-	FROM footpaths_get_points_sum('pois', 30)
+	FROM footpaths_get_points_sum('relevant_crossings', 30)
 )
 UPDATE footpath_visualization f
 SET cnt_crossings = points_sum 
@@ -472,13 +472,15 @@ classify AS
 	SELECT c.id, sring_condition 
 	FROM walkability w, cnt_table c 
 	WHERE attribute = 'pois'
-	AND (w.min_value < c.points_sum OR w.min_value IS NULL)  
+	AND (w.min_value <= c.points_sum OR w.min_value IS NULL)  
 	AND (w.max_value > c.points_sum OR w.max_value IS NULL)
 )
 UPDATE footpath_visualization f
 SET pois = c.sring_condition 
 FROM classify c
 WHERE f.id = c.id;
+
+DROP TABLE pois_to_count;
 
 --Classify by number of Population
 WITH cnt_table AS 
