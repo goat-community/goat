@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS select_weight_walkability_range;
-CREATE OR REPLACE FUNCTION select_weight_walkability_range(attribute_input text, condition_input numeric)
+CREATE OR REPLACE FUNCTION select_weight_walkability_range(attribute_input text, condition_input float)
 RETURNS numeric AS
 $$
 	SELECT (w.value*w.weight)
