@@ -79,6 +79,18 @@ UPDATE footpath_visualization
 SET maxspeed = 5 
 WHERE highway IN ('footway','pedestrian');
 
+UPDATE footpath_visualization 
+SET maxspeed = 0
+WHERE highway IN ('steps');
+
+UPDATE footpath_visualization 
+SET lanes = 0 
+WHERE highway IN ('footway','pedestrian','steps','cycleway');
+
+UPDATE footpath_visualization 
+SET lanes = 1 
+WHERE highway IN ('track','path');
+
 UPDATE footpath_visualization f SET lanes = h.lanes, maxspeed = h.maxspeed_forward
 FROM 
 (
@@ -227,9 +239,41 @@ SET cnt_accidents = points_sum
 FROM cnt_table c
 WHERE f.id = c.id;
 
+--Aggregated score
+UPDATE footpath_visualization f SET traffic_protection = 
+round(100 * group_index(
+	ARRAY[
+		select_weight_walkability_range('lanes',lanes),
+		select_weight_walkability_range('maxspeed',maxspeed),
+		select_weight_walkability_range('crossing',cnt_crossings),
+		select_weight_walkability('parking',parking),
+		select_weight_walkability_range('noise',noise_day)
+	],
+	ARRAY[
+		select_full_weight_walkability('lanes'),
+		select_full_weight_walkability('maxspeed'),
+		select_full_weight_walkability('crossing'),
+		select_full_weight_walkability('parking'),
+		select_full_weight_walkability('noise')
+	]
+),0);
+
+UPDATE footpath_visualization SET traffic_protection = 100
+WHERE traffic_protection IS NULL; 
+
 ----##########################################################################################################################----
-----#############################################################SAFETY#######################################################----
+----#####################################################SECURITY#############################################################----
 ----##########################################################################################################################----
+
+--Underpasses
+UPDATE footpath_visualization f SET covered = p.covered
+FROM planet_osm_line p
+WHERE f.osm_id = p.osm_id;
+
+UPDATE footpath_visualization f SET covered = 'no'
+WHERE covered IS NULL;
+
+--Illuminance
 WITH variables AS 
 (
     SELECT select_from_variable_container_o('lit') AS lit
@@ -278,35 +322,15 @@ FROM footpaths_lit l
 WHERE f.id = l.id;
 
 
-UPDATE footpath_visualization f SET traffic_protection = 
-round(100 * group_index(
-	ARRAY[
-		select_weight_walkability_range('lanes',lanes),
-		select_weight_walkability_range('maxspeed',maxspeed_forward),
-		select_weight_walkability_range('crossing',crossing),
-		select_weight_walkability('parking',parking),
-		select_weight_walkability_range('noise',noise)
-	],
-	ARRAY[
-		select_full_weight_walkability('lanes'),
-		select_full_weight_walkability('maxspeed'),
-		select_full_weight_walkability('crossing'),
-		select_full_weight_walkability('parking'),
-		select_full_weight_walkability('noise')
-	]
-),0);
-
-UPDATE footpath_visualization SET traffic_protection = 100
-WHERE traffic_protection IS NULL; 
-
-----security----
 UPDATE footpath_visualization f SET security = 
 round(100 * group_index(
 	ARRAY[
-		select_weight_walkability('lit_classified',lit_classified)
+		select_weight_walkability('lit_classified',lit_classified),
+		select_weight_walkability('covered',covered)
 	],
 	ARRAY[
-		select_full_weight_walkability('lit_classified')
+		select_full_weight_walkability('lit_classified'),
+		select_full_weight_walkability('covered')
 	]
 ),0);
 

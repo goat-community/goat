@@ -139,6 +139,7 @@ CREATE TABLE footpath_visualization
 	highway text, 
 	oneway text, 
 	surface text, 
+	covered text,
 	wheelchair text, 
 	wheelchair_classified text, 
 	cnt_crossings integer, 
@@ -158,13 +159,15 @@ CREATE TABLE footpath_visualization
 	walking_environment integer,
 	comfort integer,
 	walkability integer, 
+	data_quality float,
 	from_offset text,
 	geom geometry,
+	osm_id integer,
 	CONSTRAINT footpath_visualization_pkey PRIMARY KEY(id)
 );
 
 INSERT INTO footpath_visualization(geom, sidewalk, width, highway, oneway, maxspeed, incline_percent, 
-lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset)
+lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset, osm_id)
 SELECT (ST_OffsetCurve(w.geom,  4 * meter_degree(), 'join=round mitre_limit=2.0')) AS geom, w.sidewalk,
 CASE WHEN w.sidewalk_left_width IS NOT NULL 
 	THEN w.sidewalk_left_width
@@ -173,7 +176,7 @@ WHEN w.sidewalk_both_width IS NOT NULL
 ELSE NULL
 END AS width, highway, oneway, maxspeed_forward, incline_percent, lanes, lit, lit_classified, parking, 
 segregated, smoothness, surface, wheelchair, wheelchair_classified,
-'yes_left' AS from_offset 
+'yes_left' AS from_offset, osm_id
 FROM ways_cleaned w
 WHERE (w.sidewalk = 'both' OR w.sidewalk = 'left' OR (w.sidewalk IS NULL AND highway IN ('secondary','tertiary')))
 AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
@@ -183,7 +186,7 @@ AND (
 );
 
 INSERT INTO footpath_visualization(geom, sidewalk, width, highway, oneway, maxspeed, incline_percent, 
-lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset)
+lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset, osm_id)
 SELECT (ST_OffsetCurve(w.geom,  -4 * meter_degree(), 'join=round mitre_limit=2.0')) AS geom, w.sidewalk,
 CASE WHEN w.sidewalk_right_width IS NOT NULL 
 	THEN w.sidewalk_right_width
@@ -192,7 +195,7 @@ WHEN w.sidewalk_both_width IS NOT NULL
 ELSE NULL
 END AS width, highway, oneway, maxspeed_forward, incline_percent, lanes, lit, lit_classified, parking, 
 segregated, smoothness, surface, wheelchair, wheelchair_classified,
-'yes_right' AS from_offset  
+'yes_right' AS from_offset, osm_id  
 FROM ways_cleaned w
 WHERE (w.sidewalk = 'both' OR w.sidewalk = 'right' OR (w.sidewalk IS NULL AND highway IN ('secondary','tertiary')))
 AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
@@ -200,34 +203,34 @@ AND (w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_
 OR w.foot IS NULL);
 
 INSERT INTO footpath_visualization(geom, sidewalk, width, highway, oneway, maxspeed, incline_percent, 
-lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset)
+lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset, osm_id)
 SELECT geom, sidewalk, width, highway, oneway, maxspeed_forward, 
 incline_percent, lanes, lit, lit_classified, parking, 
 segregated, smoothness, surface, wheelchair, wheelchair_classified,
-'no' as from_offset 
+'no' as from_offset, osm_id
 FROM ways_cleaned
 WHERE sidewalk IN ('no','none')
 OR highway = 'living_street' 
 OR (highway in ('residential','unclassified','service') AND sidewalk IS NULL);
 
 INSERT INTO footpath_visualization(geom, sidewalk, width, highway, oneway, maxspeed, incline_percent, 
-lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset)
+lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset, osm_id)
 SELECT geom, sidewalk, 
 CASE WHEN segregated = 'yes'
 	THEN width/2 
 ELSE width
 END AS width, highway, oneway, maxspeed_forward, incline_percent, lanes, lit, lit_classified, parking,
 segregated, smoothness, surface, wheelchair, wheelchair_classified,
-'no' AS from_offset
+'no' AS from_offset, osm_id
 FROM ways_cleaned
 WHERE highway ='cycleway' OR (foot = 'designated' AND bicycle = 'designated');
 
 INSERT INTO footpath_visualization(geom, sidewalk, width, highway, oneway, maxspeed, incline_percent, 
-lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset)
+lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset, osm_id)
 SELECT geom, sidewalk, width, highway, oneway, maxspeed_forward,
 incline_percent, lanes, lit, lit_classified, parking, 
 segregated, smoothness, surface, wheelchair, wheelchair_classified,
-'no' AS from_offset  
+'no' AS from_offset, osm_id  
 FROM ways_cleaned
 WHERE sidewalk IS NULL AND highway IN ('path','track','footway','steps','service','pedestrian');
 
