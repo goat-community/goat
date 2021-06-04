@@ -195,7 +195,7 @@ $$ ;
 
 WITH noise_day AS 
 (
-	SELECT footpath_id, (10 * LOG(SUM(power(10,(noise_level_db::float/10))))) AS noise 
+	SELECT footpath_id, ROUND((10 * LOG(SUM(power(10,(noise_level_db::numeric/10))))),2) AS noise 
 	FROM noise_levels_footpaths
 	WHERE noise_type LIKE '%day%'
 	GROUP BY footpath_id
@@ -207,7 +207,7 @@ WHERE f.id = n.footpath_id;
 
 WITH noise_night AS 
 (
-	SELECT footpath_id, (10 * LOG(SUM(power(10,(noise_level_db::float/10))))) AS noise 
+	SELECT footpath_id, ROUND((10 * LOG(SUM(power(10,(noise_level_db::numeric/10))))),2) AS noise 
 	FROM noise_levels_footpaths
 	WHERE noise_type LIKE '%night%'
 	GROUP BY footpath_id

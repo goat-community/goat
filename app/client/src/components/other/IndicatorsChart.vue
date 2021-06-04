@@ -33,7 +33,7 @@ export default {
           "noise_day",
           "noise_night"
         ],
-        security: ["lit_classified"],
+        security: ["lit_classified", "covered"],
         vegetation: [],
         walking_environment: ["landuse", "cnt_pois", "cnt_population"],
         comfort: [
