@@ -656,7 +656,7 @@ UPDATE footpath_visualization f
 SET comfort = round(10 * (2*bench + 3*waste_basket + 3*toilets + fountains),0);
 
 UPDATE footpath_visualization f 
-SET comfort = 100 WHERE street_furniture > 100;
+SET comfort = 100 WHERE comfort > 100;
 
 
 ----overall walkability----
