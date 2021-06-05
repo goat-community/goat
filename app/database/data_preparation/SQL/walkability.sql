@@ -33,11 +33,13 @@ AND highway in ('footway', 'path', 'cycleway', 'living_street', 'steps', 'pedest
 UPDATE footpath_visualization f 
 SET surface = 'asphalt' 
 WHERE surface IS NULL 
-AND highway IN ('residential','tertiary','secondary','primary','living_street');
+AND highway IN ('residential','tertiary','secondary','secondary_link','primary','primary_link','living_street');
 
 UPDATE footpath_visualization f 
 SET surface = NULL 
 WHERE surface NOT IN ('paved','asphalt','concrete','concrete:lanes','paving_stones','cobblestone:flattened','stone','sandstone','sett','metal','unhewn_cobblestone','cobblestone','unpaved','compacted','fine_gravel','metal_grid','gravel','pebblestone','rock','wood','ground','dirt','earth','grass','grass_paver','mud','sand');
+
+UPDATE footpath_visualization SET surface = 'unpaved' WHERE highway = 'track' AND surface IS NULL; 
 
 --calculate score
 UPDATE footpath_visualization f SET sidewalk_quality = 
@@ -72,7 +74,7 @@ AND ST_Intersects(w.geom,s.geom);
 CREATE INDEX ON highway_buffer USING GIST(geom);
 
 UPDATE footpath_visualization 
-SET maxspeed = NULL 
+SET maxspeed = 10
 WHERE highway IN ('path','track');
 
 UPDATE footpath_visualization 
@@ -342,8 +344,6 @@ round(group_index(
 	]
 ),0);
 
---UPDATE footpath_visualization f SET security = 50 WHERE security IS NULL;
-
 DROP TABLE green_ndvi_vec; 
 CREATE TABLE green_ndvi_vec AS 
 SELECT (ST_DUMPASPOLYGONS(rast)).geom, (ST_DUMPASPOLYGONS(rast)).val  
@@ -367,25 +367,12 @@ CROSS JOIN LATERAL
 
 ALTER TABLE footpaths_green_ndvi ADD PRIMARY KEY(id);
 
-WITH green_share AS 
-(
-	SELECT f.id, ST_length(ST_Intersection(a.geom, f.geom))/ST_LENGTH(f.geom) AS green_share
-	FROM footpath_visualization f, aois a, study_area s 
-	WHERE ST_Intersects(f.geom, a.geom)
-	AND ST_Intersects(s.geom,a.geom)
-	AND st_geometrytype(ST_Intersection(a.geom, f.geom)) = 'ST_LineString' 
-)
-UPDATE footpath_visualization f SET vegetation = 
-(
-    (select_weight_walkability_range('vegetation',g.green_share::numeric)::NUMERIC)
-)*(100/0.14)
-FROM green_share g
+UPDATE footpath_visualization f 
+SET vegetation = g.avg_green_ndvi 
+FROM footpaths_green_ndvi g
 WHERE f.id = g.id;
 
-UPDATE footpath_visualization 
-SET vegetation = 0 
-WHERE vegetation IS NULL; 
-
+/*
 -----WATER----
 DROP TABLE IF EXISTS buffer_water;
 CREATE TABLE buffer_water as
@@ -408,7 +395,6 @@ GROUP BY waterway;
 
 CREATE INDEX ON buffer_water USING gist(geom);
 
-
 UPDATE footpath_visualization f SET green_blue_index = 
 round(group_index(
 	ARRAY[
@@ -420,7 +406,7 @@ round(group_index(
 		select_full_weight_walkability('water')
 	]
 ),0);
-
+*/
 
 ----##########################################################################################################################----
 ----#####################################################WALKING ENVIRONMENT##################################################----
@@ -448,8 +434,6 @@ SELECT * FROM inner_polygons;
 DROP TABLE inner_polygons;
 
 --assign info about landuse to footpath_visualization
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS landuse text;
-
 UPDATE footpath_visualization f  
 SET landuse = ARRAY[l.landuse_simplified]
 FROM landuse_osm l
@@ -583,7 +567,7 @@ CREATE TEMP TABLE waste_baskets AS
 SELECT geom 
 FROM street_furniture 
 WHERE amenity = 'waste_baskets';
-CREATE INDEX ON waste_basket USING GIST(geom);
+CREATE INDEX ON waste_baskets USING GIST(geom);
 
 WITH cnt_table AS 
 (
@@ -603,7 +587,7 @@ CREATE TEMP TABLE fountains AS
 SELECT geom 
 FROM street_furniture 
 WHERE amenity IN ('fountain','drinking_water');
-CREATE INDEX ON waste_basket USING GIST(geom);
+CREATE INDEX ON fountains USING GIST(geom);
 
 WITH cnt_table AS 
 (
@@ -645,13 +629,28 @@ UPDATE footpath_visualization f
 SET comfort = 100 
 WHERE comfort > 100;
 
+WITH weighting AS
+(
+	SELECT id, CASE WHEN comfort IS NULL THEN 0 ELSE 0.07 END AS comfort_weight,
+	CASE WHEN vegetation IS NULL THEN 0 ELSE 0.14 END AS vegetation_weight,
+	CASE WHEN security IS NULL THEN 0 ELSE 0.14 END AS security_weight,
+	CASE WHEN traffic_protection IS NULL THEN 0 ELSE 0.21 END AS traffic_protection_weight,
+	CASE WHEN sidewalk_quality IS NULL THEN 0 ELSE 0.29 END AS sidewalk_quality_weight,
+	CASE WHEN walking_environment IS NULL THEN 0 ELSE 0.14 END AS walking_environment_weight     
+	FROM footpath_visualization 
+)
+UPDATE footpath_visualization f
+SET walkability  = 
+round(
+	((vegetation*vegetation_weight) + (security*security_weight) 
+	+ (traffic_protection*traffic_protection_weight) + (sidewalk_quality*sidewalk_quality_weight) + (walking_environment*walking_environment_weight))
+	/
+	(vegetation_weight + security_weight + traffic_protection_weight + sidewalk_quality_weight + walking_environment_weight)
+,0) + COALESCE(comfort,0) * comfort_weight 
+FROM weighting w 
+WHERE f.id = w.id; 
 
-----overall walkability----
-UPDATE footpath_visualization f SET walkability = 
-round((comfort*0.14) + (vegetation*0.14) + (security*0.14) + (traffic_protection*0.14) + (sidewalk_quality*0.29) + (walking_environment*0.14),0);
---TODO: enable calculation when one or more values are NULL 
-
-UPDATE footpath_visualization f SET data_quality = (22-num_nulls(width,maxspeed,incline_percent,lanes,noise_day,noise_night,
+UPDATE footpath_visualization f 
+SET data_quality = (22-num_nulls(width,maxspeed,incline_percent,lanes,noise_day,noise_night,
 lit_classified,parking,sidewalk,smoothness,surface,wheelchair_classified,cnt_crossings,cnt_accidents,cnt_benches,
 cnt_waste_baskets,cnt_fountains,cnt_toilets,population,pois,landuse,street_furniture))::float/22.0;
-
