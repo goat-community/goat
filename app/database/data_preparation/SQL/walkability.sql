@@ -344,39 +344,29 @@ round(100 * group_index(
 
 --UPDATE footpath_visualization f SET security = 50 WHERE security IS NULL;
 
-/*
---- Green index indicator
-DROP TABLE IF EXISTS buffer_test;
-CREATE TABLE buffer_test (id serial, geom geography);
-INSERT INTO buffer_test
-SELECT id, st_buffer(geom::geography, 8) AS geom FROM footpath_visualization;
+DROP TABLE green_ndvi_vec; 
+CREATE TABLE green_ndvi_vec AS 
+SELECT (ST_DUMPASPOLYGONS(rast)).geom, (ST_DUMPASPOLYGONS(rast)).val  
+FROM green_ndvi;
 
-DROP TABLE IF EXISTS trees;
-CREATE TABLE trees (id serial, trees numeric);
+ALTER TABLE green_ndvi_vec ADD COLUMN gid serial; 
+ALTER TABLE green_ndvi_vec ADD PRIMARY KEY(gid);
+CREATE INDEX ON green_ndvi_vec USING GIST(geom);
 
-INSERT INTO trees
-WITH trees AS 
+DROP TABLE IF EXISTS footpaths_green_ndvi;
+CREATE TEMP TABLE footpaths_green_ndvi AS  
+SELECT f.id, 
+CASE WHEN j.avg_green_ndvi < 0 THEN 0::integer ELSE COALESCE((j.avg_green_ndvi * 100)::integer,0) END AS avg_green_ndvi
+FROM footpath_visualization f
+CROSS JOIN LATERAL 
 (
-	SELECT way FROM planet_osm_point WHERE "natural" = 'tree'
-)
-SELECT b.id, count(t.way) AS trees
-FROM buffer_test b
-LEFT JOIN trees t ON st_contains(b.geom::geometry, t.way)
-GROUP BY b.id;
+	SELECT AVG(val) AS avg_green_ndvi
+	FROM green_ndvi_vec g
+	WHERE ST_DWITHIN(f.geom, g.geom, meter_degree()*15)
+) j;
 
---- Alter table
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS trees;
-ALTER TABLE footpath_visualization ADD COLUMN trees varchar; 
-UPDATE footpath_visualization 
-SET trees = 'yes' 
-FROM trees t
-WHERE t.id = footpath_visualization.id AND t.trees >= 1;
-UPDATE footpath_visualization 
-SET trees = 'no'
-FROM trees t
-WHERE t.id = footpath_visualization.id AND t.trees = 0;
-SELECT * FROM footpath_visualization fu;
-*/
+ALTER TABLE footpaths_green_ndvi ADD PRIMARY KEY(id);
+
 WITH green_share AS 
 (
 	SELECT f.id, ST_length(ST_Intersection(a.geom, f.geom))/ST_LENGTH(f.geom) AS green_share
