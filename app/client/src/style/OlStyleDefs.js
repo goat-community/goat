@@ -788,6 +788,7 @@ export function footpathVisualizationStyle(feature) {
   color = color + opacity;
 
   const stroke = new OlStroke({
+    width: 5,
     color
   });
   const styles = [
