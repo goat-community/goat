@@ -638,11 +638,6 @@ export default {
 
           return;
         }
-        //
-
-        const coordinate = evt.coordinate;
-        const projection = me.map.getView().getProjection();
-        const resolution = me.map.getView().getResolution();
 
         me.queryableLayers = getAllChildLayers(me.map).filter(
           layer =>
@@ -684,27 +679,14 @@ export default {
               }
               break;
             }
-            case "WMS": {
-              let url = layer
-                .getSource()
-                .getFeatureInfoUrl(coordinate, resolution, projection, {
-                  INFO_FORMAT: "application/json"
-                });
-              promiseArray.push(
-                axios
-                  .get(url, {
-                    data: { layerName: layer.get("name") }
-                  })
-                  .catch(() => null)
-              );
-              break;
-            }
             default:
               break;
           }
         });
         if (promiseArray.length > 0) {
+          console.log(promiseArray);
           axios.all(promiseArray).then(function(results) {
+            console.log(results);
             results.forEach(response => {
               if (response && response.data && response.data.features) {
                 const features = response.data.features;
