@@ -765,9 +765,43 @@ function modeShareStyle(feature) {
   return modeShareStyleCache[gid];
 }
 
+export function footpathVisualizationStyle(feature) {
+  let color = "#3399CC";
+
+  const walkability = feature.get("walkability");
+  if (walkability >= "0") {
+    color = "#b41d0c";
+  } else if (walkability >= "25") {
+    color = "#ff1a01";
+  } else if (walkability >= "50") {
+    color = "#ff9807";
+  } else if (walkability >= "75") {
+    color = "#13bc54";
+  } else if (walkability == "NULL") {
+    color = "#99a29d";
+  }
+  const dataQuality = feature.get("data_quality");
+  let opacity = 0;
+  if (dataQuality) {
+    opacity = opacity + parseInt(dataQuality * 100);
+  }
+  color = color + opacity;
+
+  const stroke = new OlStroke({
+    color
+  });
+  const styles = [
+    new OlStyle({
+      stroke
+    })
+  ];
+  return styles;
+}
+
 export const stylesRef = {
   pois: poisStyle,
   mapping_pois_opening_hours: poisStyle,
   study_area_crop: baseStyleDefs.boundaryStyle,
-  modeshare: modeShareStyle
+  modeshare: modeShareStyle,
+  footpath_visualization: footpathVisualizationStyle
 };

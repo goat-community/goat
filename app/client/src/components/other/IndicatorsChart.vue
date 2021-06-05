@@ -114,7 +114,6 @@ export default {
                 ? this.$t(`charts.indicators.${attr}`)
                 : humanize(attr);
               const value = tooltipItem[0].value;
-              console.log(tooltipItem);
               return `${label}: ${value ? value : "--"}`;
             }.bind(this),
             label: function(tooltipItem) {

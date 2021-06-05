@@ -424,8 +424,7 @@
         "zIndex": 1,
         "maxResolution": 7,
         "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_walkability.json"
+          "format": "custom-logic"
         }
       },
       {
@@ -1055,10 +1054,7 @@
         "name": "mapping_pois_opening_hours",
         "url": "/api/map/layer_read",
         "group": "osmMappingLayers",
-        "queryParams": [
-          "table_name",
-          "amenities"
-        ],
+        "queryParams": ["table_name", "amenities"],
         "opacity": 1,
         "queryable": true,
         "visible": false,

@@ -145,7 +145,7 @@ export function interpolateColor(color1, color2, factor) {
 }
 
 //https://gist.github.com/maxwells/8251275
-export const ColorObj = function(hexOrObject) {
+export const ColorObj = function(hexOrObject, alpha) {
   var obj;
   if (hexOrObject instanceof Object) {
     obj = hexOrObject;
@@ -155,21 +155,31 @@ export const ColorObj = function(hexOrObject) {
   this.r = obj.r;
   this.g = obj.g;
   this.b = obj.b;
+  this.alpha = alpha;
 };
 ColorObj.prototype.asRgbCss = function() {
-  return "rgb(" + this.r + ", " + this.g + ", " + this.b + ")";
+  if (this.alpha) {
+    return (
+      "rgba(" + this.r + ", " + this.g + ", " + this.b + ", " + this.alpha + ")"
+    );
+  } else {
+    return "rgb(" + this.r + ", " + this.g + ", " + this.b + ")";
+  }
 };
 
 export const LinearColorInterpolator = {
   // convert 6-digit hex to rgb components;
   // accepts with or without hash ("335577" or "#335577")
-  convertHexToRgb: function(hex) {
+  convertHexToRgb: function(hex, alpha) {
     const match = hex.replace(/#/, "").match(/.{1,2}/g);
-    return new ColorObj({
-      r: parseInt(match[0], 16),
-      g: parseInt(match[1], 16),
-      b: parseInt(match[2], 16)
-    });
+    return new ColorObj(
+      {
+        r: parseInt(match[0], 16),
+        g: parseInt(match[1], 16),
+        b: parseInt(match[2], 16)
+      },
+      alpha
+    );
   },
   // left and right are colors that you're aiming to find
   // a color between. Percentage (0-100) indicates the ratio
