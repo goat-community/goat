@@ -310,9 +310,6 @@ round(100 * group_index(
 	]
 ),0);
 
-
-
-
 --UPDATE footpath_visualization f SET security = 50 WHERE security IS NULL;
 
 /*
@@ -495,142 +492,104 @@ round(100 * group_index(
 	]
 ),0);
 
+----##########################################################################################################################----
+----###########################################################COMFORT########################################################----
+----##########################################################################################################################----
 
-----Comfort----
 -- Benches
 -- Create temp table to count benches
 DROP TABLE IF EXISTS benches;
-CREATE TEMP TABLE benches (id serial, total_bench int8);
-INSERT INTO benches
-WITH buffer AS (
-	SELECT id, st_buffer(geom::geography, 30) AS geom FROM footpath_visualization
-),
-bench AS 
+CREATE TEMP TABLE benches AS 	
+SELECT geom 
+FROM street_furniture 
+WHERE amenity = 'bench';
+CREATE INDEX ON benches USING GIST(geom);
+
+WITH cnt_table AS 
 (
-	SELECT geom FROM street_furniture WHERE amenity = 'bench'
+	SELECT f.id, COALESCE(points_sum,0) AS points_sum 
+	FROM footpath_visualization f 
+	LEFT JOIN footpaths_get_points_sum('benches', 30) c
+	ON f.id = c.id 	
 )
-SELECT b.id, count(bench.geom) AS total_bench
-FROM buffer b
-LEFT JOIN bench ON st_contains(b.geom::geometry, bench.geom)
-GROUP BY b.id;
-
--- Assign info to footpaths
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS bench;
-ALTER TABLE footpath_visualization ADD COLUMN bench int; 
-
-UPDATE footpath_visualization 
-SET bench = benches.total_bench
-FROM benches
-WHERE benches.id = footpath_visualization.id;
-
-DROP TABLE benches;
+UPDATE footpath_visualization f
+SET cnt_benches = points_sum 
+FROM cnt_table c
+WHERE f.id = c.id;
 
 -- Slope
-
 UPDATE footpath_visualization 
 SET incline_percent = 0 
 WHERE incline_percent IS NULL; --TODO: add slope from DGM
 --SELECT incline_percent, select_weight_walkability_range('slope',incline_percent) FROM footpath_visualization fu ORDER BY incline_percent DESC;
 
 --- Waste-baskets
--- Create temp table to count waste baskets
 DROP TABLE IF EXISTS waste_baskets;
-CREATE TEMP TABLE waste_baskets (id serial, total_waste_basket int8);
-INSERT INTO waste_baskets
-WITH buffer AS (
-	SELECT id, st_buffer(geom::geography, 20) AS geom 
-	FROM footpath_visualization
-),
-waste_basket AS (
-	SELECT geom 
-	FROM street_furniture 
-	WHERE amenity = 'waste_basket'
+CREATE TEMP TABLE waste_baskets AS 
+SELECT geom 
+FROM street_furniture 
+WHERE amenity = 'waste_baskets';
+CREATE INDEX ON waste_basket USING GIST(geom);
+
+WITH cnt_table AS 
+(
+	SELECT f.id, COALESCE(points_sum,0) AS points_sum 
+	FROM footpath_visualization f 
+	LEFT JOIN footpaths_get_points_sum('waste_baskets', 20) c
+	ON f.id = c.id 	
 )
-SELECT b.id, count(waste_basket.geom) AS total_waste_basket
-FROM buffer b
-LEFT JOIN waste_basket ON st_contains(b.geom::geometry, waste_basket.geom)
-GROUP BY b.id;
-
--- Assign info to footpaths
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS waste_basket;
-ALTER TABLE footpath_visualization ADD COLUMN waste_basket int; 
-
-UPDATE footpath_visualization 
-SET waste_basket = waste_baskets.total_waste_basket
-FROM waste_baskets
-WHERE waste_baskets.id = footpath_visualization.id;
-
-DROP TABLE waste_baskets;
+UPDATE footpath_visualization f
+SET cnt_waste_baskets = points_sum 
+FROM cnt_table c
+WHERE f.id = c.id;
 
 --- Fountains
--- Create temp table to count fountains
 DROP TABLE IF EXISTS fountains;
-CREATE TEMP TABLE fountains (id serial, total_fountains int8);
-INSERT INTO fountains
-WITH buffer AS (
-	SELECT id, st_buffer(geom::geography, 50) AS geom 
-	FROM footpath_visualization
-),
-fountains AS (
-	SELECT geom 
-	FROM street_furniture 
-	WHERE amenity IN ('fountain','drinking_water')
+CREATE TEMP TABLE fountains AS 
+SELECT geom 
+FROM street_furniture 
+WHERE amenity IN ('fountain','drinking_water');
+CREATE INDEX ON waste_basket USING GIST(geom);
+
+WITH cnt_table AS 
+(
+	SELECT f.id, COALESCE(points_sum,0) AS points_sum 
+	FROM footpath_visualization f 
+	LEFT JOIN footpaths_get_points_sum('fountains', 50) c
+	ON f.id = c.id 	
 )
-SELECT b.id, count(fountains.geom) AS total_fountains
-FROM buffer b
-LEFT JOIN fountains ON st_contains(b.geom::geometry, fountains.geom)
-GROUP BY b.id;
-
--- Assign info to footpaths
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS fountains;
-ALTER TABLE footpath_visualization ADD COLUMN fountains int; 
-
-UPDATE footpath_visualization 
-SET fountains = fountains.total_fountains
-FROM fountains
-WHERE fountains.id = footpath_visualization.id;
-
-DROP TABLE fountains;
+UPDATE footpath_visualization f
+SET cnt_fountains = points_sum 
+FROM cnt_table c
+WHERE f.id = c.id;
 
 --- Bathrooms
--- Create temp table to count public toilets
 DROP TABLE IF EXISTS toilets;
-CREATE TEMP TABLE toilets (id serial, total_toilets int8);
-INSERT INTO toilets
-WITH buffer AS (
-	SELECT id, st_buffer(geom::geography, 300) AS geom 
-	FROM footpath_visualization
-),
-toilets AS (
-	SELECT geom 
-	FROM street_furniture 
-	WHERE amenity = 'toilets'
+CREATE TEMP TABLE toilets AS 
+SELECT geom 
+FROM street_furniture 
+WHERE amenity IN ('toilets');
+CREATE INDEX ON toilets USING GIST(geom);
+
+WITH cnt_table AS 
+(
+	SELECT f.id, COALESCE(points_sum,0) AS points_sum 
+	FROM footpath_visualization f 
+	LEFT JOIN footpaths_get_points_sum('toilets', 300) c
+	ON f.id = c.id 	
 )
-SELECT b.id, count(toilets.geom) AS total_toilets
-FROM buffer b
-LEFT JOIN toilets ON st_contains(b.geom::geometry, toilets.geom)
-GROUP BY b.id;
-
--- Assign info to footpaths
-ALTER TABLE footpath_visualization DROP COLUMN IF EXISTS toilets;
-ALTER TABLE footpath_visualization ADD COLUMN toilets int; 
-
-UPDATE footpath_visualization 
-SET toilets = toilets.total_toilets
-FROM toilets
-WHERE toilets.id = footpath_visualization.id;
-
-DROP TABLE toilets;
+UPDATE footpath_visualization f
+SET cnt_toilets = points_sum 
+FROM cnt_table c
+WHERE f.id = c.id;
 
 --- Street furniture sum
-ALTER TABLE footpath_visualization DROP COLUMN street_furniture;
-ALTER TABLE footpath_visualization ADD COLUMN IF NOT EXISTS street_furniture int;
+UPDATE footpath_visualization f 
+SET comfort = round(10 * (2*cnt_benches + 3*cnt_waste_baskets + 3*cnt_toilets + cnt_fountains),0); /*TODO: Include slope*/
 
 UPDATE footpath_visualization f 
-SET comfort = round(10 * (2*bench + 3*waste_basket + 3*toilets + fountains),0);
-
-UPDATE footpath_visualization f 
-SET comfort = 100 WHERE street_furniture > 100;
+SET comfort = 100 
+WHERE comfort > 100;
 
 
 ----overall walkability----
