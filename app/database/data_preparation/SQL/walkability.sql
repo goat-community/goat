@@ -396,8 +396,41 @@ UPDATE footpath_visualization
 SET vegetation = 0 
 WHERE vegetation IS NULL; 
 
---- Attractiveness of walking environment indicators
--- TODO: Pop density (issue #986) -> in layer_preparation
+-----WATER----
+DROP TABLE IF EXISTS buffer_water;
+CREATE TABLE buffer_water as
+SELECT ST_SUBDIVIDE(ST_UNION(st_buffer(way::geography, 50)::geometry),100)  AS geom, water 
+FROM planet_osm_polygon 
+WHERE water IS NOT NULL 
+GROUP BY water;
+
+INSERT INTO buffer_water
+SELECT ST_SUBDIVIDE(ST_UNION(st_buffer(way::geography, 50)::geometry),100)  AS geom, "natural"
+FROM planet_osm_polygon 
+WHERE "natural" IN ('water') AND water IS NULL
+GROUP BY "natural" ;
+
+INSERT INTO buffer_water
+SELECT ST_SUBDIVIDE(ST_UNION(st_buffer(way::geography, 20)::geometry),100) AS geom, waterway
+FROM planet_osm_line 
+WHERE waterway IS NOT NULL
+GROUP BY waterway;
+
+CREATE INDEX ON buffer_water USING gist(geom);
+
+
+UPDATE footpath_visualization f SET green_blue_index = 
+round(group_index(
+	ARRAY[
+		select_weight_walkability('vegetation',vegetation),
+		select_weight_walkability('water',water)
+	],
+	ARRAY[
+		select_full_weight_walkability('vegetation'),
+		select_full_weight_walkability('water')
+	]
+),0);
+
 
 ----##########################################################################################################################----
 ----#####################################################WALKING ENVIRONMENT##################################################----
@@ -453,9 +486,6 @@ SET landuse = ARRAY[l.landuse]
 FROM footpath_ids_landuse l 
 WHERE f.id = l.id; 
 DROP TABLE footpath_ids_landuse;
-
---assign info about population density
---TODO: assign "high","medium","low","no" accoridng to buffer -> intersection with pop.
 
 --Classify by number of POIs
 CREATE TEMP TABLE pois_to_count AS 
