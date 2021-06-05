@@ -144,6 +144,7 @@ CREATE TABLE footpath_visualization
 	id serial, 
 	ways_id bigint,
 	osm_id bigint,
+	length_m float,
 	width jsonb,
 	maxspeed integer, 
 	incline_percent float, 
@@ -185,9 +186,9 @@ CREATE TABLE footpath_visualization
 	CONSTRAINT footpath_visualization_pkey PRIMARY KEY(id)
 );
 
-INSERT INTO footpath_visualization(ways_id, osm_id, geom, sidewalk, width, highway, maxspeed, incline_percent, 
+INSERT INTO footpath_visualization(ways_id, osm_id, length_m, geom, sidewalk, width, highway, maxspeed, incline_percent, 
 lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified)
-SELECT id, osm_id, geom, w.sidewalk,
+SELECT id, osm_id, ST_LENGHT(geom::geography), geom, w.sidewalk,
 CASE WHEN w.sidewalk_left_width IS NOT NULL OR w.sidewalk_right_width IS NOT NULL OR w.sidewalk_both_width IS NOT NULL 
 THEN jsonb_build_object('sidewalk_left_width',sidewalk_left_width, 'sidewalk_right_width', sidewalk_right_width, 'sidewalk_both_width', sidewalk_both_width) 
 WHEN w.width IS NOT NULL THEN jsonb_build_object('width', width) 
