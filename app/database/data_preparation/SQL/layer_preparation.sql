@@ -73,6 +73,24 @@ LEFT JOIN ways_to_remove e
 ON w.id = e.id 
 WHERE e.id IS NULL; 
 
+WITH do_not_remove AS 
+(
+	SELECT w.id 
+	FROM planet_osm_line p, ways w 
+	WHERE p.highway IS NOT NULL 
+	AND 
+	(
+		covered <> 'no' 
+		OR tunnel IN ('yes','covered','building_passage')
+		OR bridge IS NOT NULL 
+	) 
+	AND w.osm_id = p.osm_id 
+)
+DELETE 
+FROM ways_to_remove w 
+USING do_not_remove d 
+WHERE w.id = d.id; 
+
 /*Create cleaned ways table and split long links*/
 DROP TABLE IF EXISTS ways_cleaned;
 CREATE TABLE ways_cleaned AS 
@@ -123,8 +141,10 @@ ALTER TABLE ways_cleaned ADD PRIMARY KEY(id);
 DROP TABLE IF EXISTS footpath_visualization;
 CREATE TABLE footpath_visualization 
 (
-	id serial,  
-	width float,
+	id serial, 
+	ways_id bigint,
+	osm_id bigint,
+	width jsonb,
 	maxspeed integer, 
 	incline_percent float, 
 	lanes integer,
@@ -137,7 +157,6 @@ CREATE TABLE footpath_visualization
 	sidewalk TEXT,
 	smoothness text, 
 	highway text, 
-	oneway text, 
 	surface text, 
 	covered text,
 	wheelchair text, 
@@ -160,108 +179,27 @@ CREATE TABLE footpath_visualization
 	comfort integer,
 	walkability integer, 
 	data_quality float,
-	from_offset text,
 	geom geometry,
-	osm_id integer,
 	CONSTRAINT footpath_visualization_pkey PRIMARY KEY(id)
 );
 
-INSERT INTO footpath_visualization(geom, sidewalk, width, highway, oneway, maxspeed, incline_percent, 
-lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset, osm_id)
-SELECT (ST_OffsetCurve(w.geom,  4 * meter_degree(), 'join=round mitre_limit=2.0')) AS geom, w.sidewalk,
-CASE WHEN w.sidewalk_left_width IS NOT NULL 
-	THEN w.sidewalk_left_width
-WHEN w.sidewalk_both_width IS NOT NULL 
-	THEN w.sidewalk_both_width
+INSERT INTO footpath_visualization(ways_id, osm_id, geom, sidewalk, width, highway, maxspeed, incline_percent, 
+lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified)
+SELECT id, osm_id, geom, w.sidewalk,
+CASE WHEN w.sidewalk_left_width IS NOT NULL OR w.sidewalk_right_width IS NOT NULL OR w.sidewalk_both_width IS NOT NULL 
+THEN jsonb_build_object('sidewalk_left_width',sidewalk_left_width, 'sidewalk_right_width', sidewalk_right_width, 'sidewalk_both_width', sidewalk_both_width) 
+WHEN w.width IS NOT NULL THEN jsonb_build_object('width', width) 
 ELSE NULL
-END AS width, highway, oneway, maxspeed_forward, incline_percent, lanes, lit, lit_classified, parking, 
-segregated, smoothness, surface, wheelchair, wheelchair_classified,
-'yes_left' AS from_offset, osm_id
+END AS width, highway, maxspeed_forward, incline_percent, lanes, lit, lit_classified, parking, 
+segregated, smoothness, surface, wheelchair, wheelchair_classified
 FROM ways_cleaned w
-WHERE (w.sidewalk = 'both' OR w.sidewalk = 'left' OR (w.sidewalk IS NULL AND highway IN ('secondary','tertiary')))
-AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
+WHERE w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
 AND (
 	w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
 	OR w.foot IS NULL 
 );
 
-INSERT INTO footpath_visualization(geom, sidewalk, width, highway, oneway, maxspeed, incline_percent, 
-lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset, osm_id)
-SELECT (ST_OffsetCurve(w.geom,  -4 * meter_degree(), 'join=round mitre_limit=2.0')) AS geom, w.sidewalk,
-CASE WHEN w.sidewalk_right_width IS NOT NULL 
-	THEN w.sidewalk_right_width
-WHEN w.sidewalk_both_width IS NOT NULL 
-	THEN w.sidewalk_both_width
-ELSE NULL
-END AS width, highway, oneway, maxspeed_forward, incline_percent, lanes, lit, lit_classified, parking, 
-segregated, smoothness, surface, wheelchair, wheelchair_classified,
-'yes_right' AS from_offset, osm_id  
-FROM ways_cleaned w
-WHERE (w.sidewalk = 'both' OR w.sidewalk = 'right' OR (w.sidewalk IS NULL AND highway IN ('secondary','tertiary')))
-AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
-AND (w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
-OR w.foot IS NULL);
-
-INSERT INTO footpath_visualization(geom, sidewalk, width, highway, oneway, maxspeed, incline_percent, 
-lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset, osm_id)
-SELECT geom, sidewalk, width, highway, oneway, maxspeed_forward, 
-incline_percent, lanes, lit, lit_classified, parking, 
-segregated, smoothness, surface, wheelchair, wheelchair_classified,
-'no' as from_offset, osm_id
-FROM ways_cleaned
-WHERE sidewalk IN ('no','none')
-OR highway = 'living_street' 
-OR (highway in ('residential','unclassified','service') AND sidewalk IS NULL);
-
-INSERT INTO footpath_visualization(geom, sidewalk, width, highway, oneway, maxspeed, incline_percent, 
-lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset, osm_id)
-SELECT geom, sidewalk, 
-CASE WHEN segregated = 'yes'
-	THEN width/2 
-ELSE width
-END AS width, highway, oneway, maxspeed_forward, incline_percent, lanes, lit, lit_classified, parking,
-segregated, smoothness, surface, wheelchair, wheelchair_classified,
-'no' AS from_offset, osm_id
-FROM ways_cleaned
-WHERE highway ='cycleway' OR (foot = 'designated' AND bicycle = 'designated');
-
-INSERT INTO footpath_visualization(geom, sidewalk, width, highway, oneway, maxspeed, incline_percent, 
-lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified, from_offset, osm_id)
-SELECT geom, sidewalk, width, highway, oneway, maxspeed_forward,
-incline_percent, lanes, lit, lit_classified, parking, 
-segregated, smoothness, surface, wheelchair, wheelchair_classified,
-'no' AS from_offset, osm_id  
-FROM ways_cleaned
-WHERE sidewalk IS NULL AND highway IN ('path','track','footway','steps','service','pedestrian');
-
 CREATE INDEX ON footpath_visualization USING gist(geom);
-
-/*Overlaps are removed. A logic is implemented that keeps the large geometry when clipped. This can also cause errors.*/
-DROP TABLE IF EXISTS splitted_geoms_to_keep;
-CREATE TEMP TABLE splitted_geoms_to_keep AS 
-SELECT v.id, j.geom
-FROM footpath_visualization v 
-CROSS JOIN LATERAL 
-(
-	SELECT (ST_DUMP(ST_SPLIT(v.geom, x.geom))).geom AS geom 
-	FROM 
-	(
-		SELECT ST_UNION(geom) AS geom 
-		FROM footpath_visualization fv
-		WHERE ST_Intersects(v.geom, fv.geom)
-		AND ST_CROSSES(fv.geom, v.geom)
-	) x
-	WHERE st_geometrytype(ST_Intersection(v.geom,x.geom)) = 'ST_Point' 
-	ORDER BY ST_LENGTH((ST_DUMP(ST_SPLIT(v.geom, x.geom))).geom)
-	DESC
-	LIMIT 1
-) j;
-
-CREATE INDEX ON splitted_geoms_to_keep (id);
-UPDATE footpath_visualization f
-SET geom = g.geom
-FROM splitted_geoms_to_keep g
-WHERE f.id = g.id;
 
 --Table for visualization of parking
 DROP TABLE IF EXISTS parking;
