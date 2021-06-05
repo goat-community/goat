@@ -100,7 +100,7 @@ parking_lane_right, segregated, sidewalk, sidewalk_both_width, sidewalk_left_wid
 death_end, split_long_way(w.geom,length_m::numeric,200) AS geom 
 FROM (
 	SELECT w.* 
-	FROM ways w, study_area s 
+	FROM ways w, study_area_union s 
 	WHERE ST_Intersects(w.geom, s.geom)
 ) w
 LEFT JOIN ways_to_remove e
@@ -120,7 +120,7 @@ parking_lane_right, segregated, sidewalk, sidewalk_both_width, sidewalk_left_wid
 death_end, w.geom
 FROM (
 	SELECT w.* 
-	FROM ways w, study_area s 
+	FROM ways w, study_area_union s 
 	WHERE ST_Intersects(w.geom, s.geom)
 ) w
 LEFT JOIN ways_to_remove e
