@@ -79,6 +79,18 @@ UPDATE footpath_visualization
 SET maxspeed = 5 
 WHERE highway IN ('footway','pedestrian');
 
+UPDATE footpath_visualization 
+SET maxspeed = 0
+WHERE highway IN ('steps');
+
+UPDATE footpath_visualization 
+SET lanes = 0 
+WHERE highway IN ('footway','pedestrian','steps','cycleway');
+
+UPDATE footpath_visualization 
+SET lanes = 1 
+WHERE highway IN ('track','path');
+
 UPDATE footpath_visualization f SET lanes = h.lanes, maxspeed = h.maxspeed_forward
 FROM 
 (
@@ -121,7 +133,7 @@ ALTER TABLE footpath_visualization ADD COLUMN cnt_crossings int;
 WITH cnt_table AS 
 (
 	SELECT id, COALESCE(points_sum) AS points_sum 
-	FROM footpaths_get_points_sum('pois', 30)
+	FROM footpaths_get_points_sum('relevant_crossings', 30)
 )
 UPDATE footpath_visualization f
 SET cnt_crossings = points_sum 
@@ -183,7 +195,7 @@ $$ ;
 
 WITH noise_day AS 
 (
-	SELECT footpath_id, (10 * LOG(SUM(power(10,(noise_level_db::float/10))))) AS noise 
+	SELECT footpath_id, ROUND((10 * LOG(SUM(power(10,(noise_level_db::numeric/10))))),2) AS noise 
 	FROM noise_levels_footpaths
 	WHERE noise_type LIKE '%day%'
 	GROUP BY footpath_id
@@ -195,7 +207,7 @@ WHERE f.id = n.footpath_id;
 
 WITH noise_night AS 
 (
-	SELECT footpath_id, (10 * LOG(SUM(power(10,(noise_level_db::float/10))))) AS noise 
+	SELECT footpath_id, ROUND((10 * LOG(SUM(power(10,(noise_level_db::numeric/10))))),2) AS noise 
 	FROM noise_levels_footpaths
 	WHERE noise_type LIKE '%night%'
 	GROUP BY footpath_id
@@ -227,9 +239,41 @@ SET cnt_accidents = points_sum
 FROM cnt_table c
 WHERE f.id = c.id;
 
+--Aggregated score
+UPDATE footpath_visualization f SET traffic_protection = 
+round(100 * group_index(
+	ARRAY[
+		select_weight_walkability_range('lanes',lanes),
+		select_weight_walkability_range('maxspeed',maxspeed),
+		select_weight_walkability_range('crossing',cnt_crossings),
+		select_weight_walkability('parking',parking),
+		select_weight_walkability_range('noise',noise_day)
+	],
+	ARRAY[
+		select_full_weight_walkability('lanes'),
+		select_full_weight_walkability('maxspeed'),
+		select_full_weight_walkability('crossing'),
+		select_full_weight_walkability('parking'),
+		select_full_weight_walkability('noise')
+	]
+),0);
+
+UPDATE footpath_visualization SET traffic_protection = 100
+WHERE traffic_protection IS NULL; 
+
 ----##########################################################################################################################----
-----#############################################################SAFETY#######################################################----
+----#####################################################SECURITY#############################################################----
 ----##########################################################################################################################----
+
+--Underpasses
+UPDATE footpath_visualization f SET covered = p.covered
+FROM planet_osm_line p
+WHERE f.osm_id = p.osm_id;
+
+UPDATE footpath_visualization f SET covered = 'no'
+WHERE covered IS NULL;
+
+--Illuminance
 WITH variables AS 
 (
     SELECT select_from_variable_container_o('lit') AS lit
@@ -240,13 +284,13 @@ FROM
     CASE WHEN 
         lit IN ('yes','Yes','automatic','24/7','sunset-sunrise') 
         OR (lit IS NULL AND highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_yes')::jsonb) FROM variables)
-			AND maxspeed_forward<80)
+			AND maxspeed<80)
         THEN 'yes' 
     WHEN
         lit IN ('no','No','disused')
         OR (lit IS NULL AND (highway IN (SELECT jsonb_array_elements_text((lit ->> 'highway_no')::jsonb) FROM variables) 
         OR surface IN (SELECT jsonb_array_elements_text((lit ->> 'surface_no')::jsonb) FROM variables)
-		OR maxspeed_forward>=80)
+		OR maxspeed>=80)
         )
         THEN 'no'
     ELSE 'unclassified'
@@ -278,35 +322,15 @@ FROM footpaths_lit l
 WHERE f.id = l.id;
 
 
-UPDATE footpath_visualization f SET traffic_protection = 
-round(100 * group_index(
-	ARRAY[
-		select_weight_walkability_range('lanes',lanes),
-		select_weight_walkability_range('maxspeed',maxspeed_forward),
-		select_weight_walkability_range('crossing',crossing),
-		select_weight_walkability('parking',parking),
-		select_weight_walkability_range('noise',noise)
-	],
-	ARRAY[
-		select_full_weight_walkability('lanes'),
-		select_full_weight_walkability('maxspeed'),
-		select_full_weight_walkability('crossing'),
-		select_full_weight_walkability('parking'),
-		select_full_weight_walkability('noise')
-	]
-),0);
-
-UPDATE footpath_visualization SET traffic_protection = 100
-WHERE traffic_protection IS NULL; 
-
-----security----
 UPDATE footpath_visualization f SET security = 
 round(100 * group_index(
 	ARRAY[
-		select_weight_walkability('lit_classified',lit_classified)
+		select_weight_walkability('lit_classified',lit_classified),
+		select_weight_walkability('covered',covered)
 	],
 	ARRAY[
-		select_full_weight_walkability('lit_classified')
+		select_full_weight_walkability('lit_classified'),
+		select_full_weight_walkability('covered')
 	]
 ),0);
 
@@ -448,13 +472,15 @@ classify AS
 	SELECT c.id, sring_condition 
 	FROM walkability w, cnt_table c 
 	WHERE attribute = 'pois'
-	AND (w.min_value < c.points_sum OR w.min_value IS NULL)  
+	AND (w.min_value <= c.points_sum OR w.min_value IS NULL)  
 	AND (w.max_value > c.points_sum OR w.max_value IS NULL)
 )
 UPDATE footpath_visualization f
 SET pois = c.sring_condition 
 FROM classify c
 WHERE f.id = c.id;
+
+DROP TABLE pois_to_count;
 
 --Classify by number of Population
 WITH cnt_table AS 
@@ -637,5 +663,8 @@ SET comfort = 100 WHERE street_furniture > 100;
 UPDATE footpath_visualization f SET walkability = 
 round((comfort*0.14) + (vegetation*0.14) + (security*0.14) + (traffic_protection*0.14) + (sidewalk_quality*0.29) + (walking_environment*0.14),0);
 --TODO: enable calculation when one or more values are NULL 
---TODO: store number of columns without data
+
+UPDATE footpath_visualization f SET data_quality = (22-num_nulls(width,maxspeed,incline_percent,lanes,noise_day,noise_night,
+lit_classified,parking,sidewalk,smoothness,surface,wheelchair_classified,cnt_crossings,cnt_accidents,cnt_benches,
+cnt_waste_baskets,cnt_fountains,cnt_toilets,population,pois,landuse,street_furniture))::float/22.0;
 
