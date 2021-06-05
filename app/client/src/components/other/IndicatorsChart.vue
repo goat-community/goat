@@ -27,21 +27,21 @@ export default {
         ],
         traffic_protection: [
           "lanes",
-          "oneway",
           "maxspeed",
           "parking",
           "cnt_accidents",
           "noise_day",
           "noise_night"
         ],
-        security: ["lit_classified"],
+        security: ["lit_classified", "covered"],
         vegetation: [],
         walking_environment: ["landuse", "cnt_pois", "cnt_population"],
         comfort: [
           "cnt_benches",
           "cnt_waste_baskets",
           "cnt_toilets",
-          "cnt_fountains"
+          "cnt_fountains",
+          "slope"
         ],
         walkability: []
       },
@@ -114,7 +114,6 @@ export default {
                 ? this.$t(`charts.indicators.${attr}`)
                 : humanize(attr);
               const value = tooltipItem[0].value;
-              console.log(tooltipItem);
               return `${label}: ${value ? value : "--"}`;
             }.bind(this),
             label: function(tooltipItem) {

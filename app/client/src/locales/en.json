@@ -397,6 +397,7 @@
       "ways_surface": "Surface",
       "ways_wheelchair": "Wheelchair Usability",
       "footpath_visualization": "Walkability Index",
+      "ways_liveliness": "Liveliness",
       "heatmap_connectivity": "Connectivity",
       "heatmap_luptai": "Comparison of Accessibility and Population Density",
       "heatmap_population": "Population Density",
@@ -819,14 +820,35 @@
   "charts": {
     "indicators": {
       "sidewalk_quality": "Sidewalk Quality",
-      "traffic_protection": ["Protection from", "traffic impacts"],
+      "traffic_protection": "Protection from traffic impacts",
       "security": "Security",
       "vegetation": "Vegetation",
       "walking_environment": "Walking environment",
       "comfort": "Comfort",
-      "walkability": ["TOTAL WALKABILITY", "SCORE"],
+      "walkability": ["TOTAL WALKABILITY SCORE"],
       "scale_label_indicators": "Indicators",
-      "scale_label_index": "Index"
+      "scale_label_index": "Index",
+
+      "sidewalk": "Sidewalk",
+      "width": "Width",
+      "smoothness": "Smoothness",
+      "surface": "Surface",
+      "wheelchair_classified": "Wheelchair classified",
+      "lanes": "Lanes",
+      "oneway": "Oneway",
+      "maxspeed": "Maxspeed",
+      "parking": "Parking",
+      "cnt_accidents": "Count Accidents",
+      "noise_day": "Noise day",
+      "noise_night": "Noise night",
+      "lit_classified": "Lit classified",
+      "landuse": "Landuse",
+      "cnt_pois": "Count pois",
+      "cnt_population": "Count population",
+      "cnt_benches": "Count benches",
+      "cnt_waste_baskets": "Count waste baskets",
+      "cnt_toilets": "Count toilets",
+      "cnt_fountains": "Count fountains"
     }
   }
 }

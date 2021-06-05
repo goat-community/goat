@@ -424,8 +424,25 @@
         "zIndex": 1,
         "maxResolution": 7,
         "style": {
+          "format": "custom-logic"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_liveliness",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
           "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_walkability.json"
+          "url": "./static/layer-styles/styles/ways_liveliness.json"
         }
       },
       {
@@ -1037,10 +1054,7 @@
         "name": "mapping_pois_opening_hours",
         "url": "/api/map/layer_read",
         "group": "osmMappingLayers",
-        "queryParams": [
-          "table_name",
-          "amenities"
-        ],
+        "queryParams": ["table_name", "amenities"],
         "opacity": 1,
         "queryable": true,
         "visible": false,
