@@ -41,7 +41,7 @@ WHERE surface NOT IN ('paved','asphalt','concrete','concrete:lanes','paving_ston
 
 --calculate score
 UPDATE footpath_visualization f SET sidewalk_quality = 
-round(100 * group_index(
+round(group_index(
 	ARRAY[
 		select_weight_walkability('sidewalk',sidewalk), 
 		select_weight_walkability('smoothness',smoothness),
@@ -241,7 +241,7 @@ WHERE f.id = c.id;
 
 --Aggregated score
 UPDATE footpath_visualization f SET traffic_protection = 
-round(100 * group_index(
+round(group_index(
 	ARRAY[
 		select_weight_walkability_range('lanes',lanes),
 		select_weight_walkability_range('maxspeed',maxspeed),
@@ -331,7 +331,7 @@ WHERE f.id = l.id;
 
 
 UPDATE footpath_visualization f SET security = 
-round(100 * group_index(
+round(group_index(
 	ARRAY[
 		select_weight_walkability('lit_classified',lit_classified),
 		select_weight_walkability('covered',covered)
@@ -513,7 +513,7 @@ FROM combined c
 WHERE f.id = c.id; 
 
 UPDATE footpath_visualization f SET walking_environment = 
-round(100 * group_index(
+round(group_index(
 	ARRAY[
 		select_weight_walkability('landuse',landuse[1]), 
 		select_weight_walkability('population',population),
