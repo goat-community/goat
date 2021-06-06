@@ -769,13 +769,13 @@ export function footpathVisualizationStyle(feature) {
   let color = "#3399CC";
 
   const walkability = feature.get("walkability");
-  if (walkability >= "0" && walkability < "25") {
-    color = "#b41d0c";
-  } else if (walkability >= "25" && walkability < "50") {
+  if (walkability >= 0 && walkability < 25) {
     color = "#ff1a01";
-  } else if (walkability >= "50" && walkability < "75") {
+  } else if (walkability >= 25 && walkability < 50) {
     color = "#ff9807";
-  } else if (walkability >= "75") {
+  } else if (walkability >= 50 && walkability < 75) {
+    color = "#9ac223";
+  } else if (walkability >= 75) {
     color = "#13bc54";
   } else if (walkability == "NULL" || walkability == undefined) {
     color = "#99a29d";
@@ -785,11 +785,12 @@ export function footpathVisualizationStyle(feature) {
   if (dataQuality) {
     opacity = opacity + parseInt(dataQuality * 100);
   }
-  color = color + opacity;
+  //color = color + opacity;
 
   const stroke = new OlStroke({
     width: 5,
-    color
+    color: color,
+    opacity: opacity
   });
   const styles = [
     new OlStyle({
