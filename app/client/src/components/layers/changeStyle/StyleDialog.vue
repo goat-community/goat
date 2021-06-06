@@ -121,6 +121,7 @@ export default {
     },
     close() {
       EventBus.$emit("updateStyleDialogStatusForLayerTree", false);
+      EventBus.$emit("updateStyleDialogStatusForLayerOrder", false);
       //Refresh the legend
       this.item.layerTreeKey += 1;
     },
