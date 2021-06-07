@@ -58,15 +58,11 @@
 
 <script>
 import { mapGetters } from "vuex";
-import { Draggable } from "draggable-vue-directive";
 import Legend from "../../viewer/ol/controls/Legend";
 
 export default {
   props: ["item", "ruleIndex"],
   mixins: [Legend],
-  directives: {
-    Draggable
-  },
   data: () => ({
     isExpanded: true,
     tab: null,
