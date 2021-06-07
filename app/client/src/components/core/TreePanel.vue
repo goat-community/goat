@@ -81,10 +81,6 @@
               }}</span>
               <v-icon>fas fa-layer-group</v-icon>
             </v-btn>
-            <v-btn text value="map-layerorder">
-              <span style="font-size: 0.85rem;"></span>
-              <v-icon>fas fa-layer-group</v-icon>
-            </v-btn>
           </v-bottom-navigation>
         </v-layout>
 
@@ -99,7 +95,6 @@
 // Utilities
 import IsochronesComponent from "../isochrones/Isochrones";
 import LayerTree from "../layers/layerTree/LayerTree";
-import LayerOrder from "../layers/layerOrder/LayerOrder";
 import Toolbar from "./Toolbar";
 import OsmMode from "./OsmMode";
 import { mapGetters, mapMutations } from "vuex";
@@ -109,7 +104,6 @@ export default {
   components: {
     "map-isochrones": IsochronesComponent,
     "map-layertree": LayerTree,
-    "map-layerorder": LayerOrder,
     toolbar: Toolbar,
     "osm-mode": OsmMode
   },
