@@ -43,7 +43,6 @@ args = parser.parse_args()
 setup_type = args.t
 namespace = args.n
 
-
 print('You decided to do the following setup-type: %s' % setup_type)
 
 if args.dr == True and namespace != None:
@@ -60,8 +59,8 @@ if setup_type or setup_type in(setup_types):
         ReadYAML().create_pgpass('',ReadYAML().db_credentials()[1])
         db_functions.update_functions()
     elif (setup_type == 'variable_container'):
-        db_name,user,host,port,password = ReadYAML().db_credentials()[:5]
-        create_variable_container(db_name,user,str(port),host,password)
+        db_name = ReadYAML().db_credentials()[0]
+        create_variable_container(db_name)
     elif (setup_type == 'restore_dump' and namespace != None):
         restore_db(namespace)
     else:

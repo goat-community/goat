@@ -24,6 +24,9 @@ DATABASE_PASSWORD = os.getenv('POSTGRES_PASS', default=db_conf["PASSWORD"])
 DATABASE_PORT = os.getenv('POSTGRES_PORT', default=db_conf["PORT"])
 DATABASE_NAME = os.getenv('POSTGRES_DBNAME', default=db_conf["DB_NAME"])
 
+if os.getenv('POSTGRES_DBNAME_TEMP') is not None or os.getenv('POSTGRES_DBNAME_TEMP') != '': 
+    DATABASE_NAME = os.getenv('POSTGRES_DBNAME_TEMP')
+    
 DATABASE = {
     'user':     DATABASE_USERNAME,
     'password': DATABASE_PASSWORD,
