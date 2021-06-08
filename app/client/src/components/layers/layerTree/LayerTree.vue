@@ -1,23 +1,9 @@
 <template>
   <v-flex xs12 sm8 md4>
     <v-divider></v-divider>
-    <v-toolbar fixed style="position:sticky;top:0px;">
-      <v-tabs grow v-model="tab">
-        <v-tab :key="1">
-          <v-badge>
-            <b>All Layers</b>
-          </v-badge>
-        </v-tab>
-        <v-tab :key="2">
-          <v-badge>
-            <b>Active Layers</b>
-          </v-badge>
-        </v-tab>
-      </v-tabs>
-    </v-toolbar>
     <vue-scroll>
-      <v-tabs-items v-model="tab" id="tabItems">
-        <v-tab-item :key="1" :eager="true">
+      <v-tabs-items v-model="layerTabIndex">
+        <v-tab-item :eager="true">
           <v-expansion-panels accordion multiple>
             <v-expansion-panel
               v-for="(layerGroup, i) in layers"
@@ -170,7 +156,7 @@
             @close="showDocumentationDialog = false"
           ></documentation-dialog>
         </v-tab-item>
-        <v-tab-item :key="2" :eager="true">
+        <v-tab-item :eager="true">
           <LayerOrder
             :layers="layers"
             :translate="translate"
@@ -208,7 +194,6 @@ import StyleDialog from "../changeStyle/StyleDialog";
 export default {
   mixins: [Mapable, Legend],
   data: () => ({
-    tab: null,
     layers: [],
     showDocumentationDialog: false,
     selectedDocumentationItem: null,
@@ -231,7 +216,8 @@ export default {
       selectedPois: "selectedPois"
     }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      activeColor: "activeColor",
+      layerTabIndex: "layerTabIndex"
     }),
     ...mapGetters("map", {
       busyLayers: "busyLayers"

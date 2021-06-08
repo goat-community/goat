@@ -4,11 +4,13 @@ const state = {
   activeColor: {
     primary: "#2BB381",
     secondary: "#2BB381"
-  } // Default
+  }, // Default
+  layerTabIndex: 0
 };
 
 const getters = {
   activeColor: state => state.activeColor,
+  layerTabIndex: state => state.layerTabIndex,
   getField
 };
 
