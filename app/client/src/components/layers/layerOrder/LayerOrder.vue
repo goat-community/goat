@@ -77,7 +77,13 @@
           >
             <InLegend :item="item"></InLegend>
             <v-layout row style="width:100%;padding-left: 10px;">
-              <v-flex xs2 style="text-align:center;">
+              <v-flex
+                class="xs2"
+                style="text-align:center;"
+                v-if="
+                  ['VECTORTILE', 'VECTOR'].includes(item.mapLayer.get('type'))
+                "
+              >
                 <v-icon
                   v-ripple
                   style="color:#B0B0B0;margin-top:3px;cursor:pointer"
@@ -87,7 +93,15 @@
                   fas fa-cog
                 </v-icon>
               </v-flex>
-              <v-flex xs10>
+              <v-flex
+                :class="{
+                  xs10:
+                    ['VECTORTILE', 'VECTOR'].includes(
+                      item.mapLayer.get('type')
+                    ) == true,
+                  xs12: false
+                }"
+              >
                 <v-slider
                   :value="item.mapLayer.getOpacity()"
                   class="mx-5"
