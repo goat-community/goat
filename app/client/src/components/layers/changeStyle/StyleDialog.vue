@@ -11,6 +11,8 @@
     <v-card
       :style="[isExpanded ? { height: 'auto' } : { height: '50px' }]"
       style="position:fixed;top:10px;left:360px;z-index:2;min-width:350px;max-width:450px;height:450px;overflow:hidden;"
+      v-draggable="draggableValue"
+      ondragstart="return false;"
     >
       <v-layout justify-space-between column fill-height>
         <v-app-bar
@@ -18,6 +20,7 @@
           height="50"
           style="cursor:grab;"
           dark
+          :ref="handleId"
         >
           <v-app-bar-nav-icon>
             <v-icon style="color:#ffffff;">
@@ -90,7 +93,13 @@ export default {
     tab: null,
     dialog: true,
     kind: null,
-    ith: null
+    ith: null,
+    handleId: "handle-id",
+    draggableValue: {
+      handle: undefined,
+      boundingElement: undefined,
+      resetInitialPos: undefined
+    }
   }),
   components: {
     FillVectorStyle,
@@ -131,6 +140,12 @@ export default {
         this.item.mapLayer.get("name")
       ).rules[ith].symbolizers[0].kind;
     }
+  },
+  mounted() {
+    const element = document.getElementById("ol-map-container");
+    this.draggableValue.resetInitialPos = false;
+    this.draggableValue.boundingElement = element;
+    this.draggableValue.handle = this.$refs[this.handleId];
   }
 };
 </script>
