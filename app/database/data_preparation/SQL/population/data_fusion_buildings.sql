@@ -183,8 +183,8 @@ $$
 			ON ST_Intersects(s.geom,b.geom);
 			DROP TABLE IF EXISTS selected_buildings;
 		ELSE 
-			INSERT INTO buildings
-			SELECT * 
+			INSERT INTO buildings(gid,osm_id,building,amenity,residential_status,street,housenumber,area,building_levels,roof_levels,geom)
+			SELECT gid,osm_id,building,amenity,residential_status,street,housenumber,area,building_levels,roof_levels,geom
 			FROM buildings_osm;
 		END IF;
 	END

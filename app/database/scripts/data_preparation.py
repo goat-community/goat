@@ -1,4 +1,4 @@
-import subprocess
+import subprocess, json, os
 class PrepareDatabase():
     def __init__(self, read_yaml_config, is_temp, db_conn):
         self.db_conf = read_yaml_config.return_db_conf()
@@ -9,7 +9,8 @@ class PrepareDatabase():
             self.db_name = self.db_name + 'temp'
 
         self.mapping_conf = read_yaml_config.return_mapping_conf()
-        self.data_refinement = read_yaml_config.return_data_refinement()
+        self.data_refinement = read_yaml_config.return_goat_conf()["DATA_REFINEMENT_VARIABLES"]
+        self.db_conn = db_conn
 
     def create_variable_container(self):
         self.db_conn.perform('''DROP TABLE IF EXISTS variable_container;
@@ -47,7 +48,7 @@ class PrepareDatabase():
                 if name.endswith(".sql"): 
                     self.execute_script_psql(os.path.join(root, name))
 
-    def update_functions(self):
+    def create_functions(self):
         self.db_conn.perform(open('/opt/data_preparation/SQL/types.sql', "r").read())
         for p in ['/opt/database_functions/other','/opt/database_functions/network','/opt/database_functions/routing','/opt/database_functions/heatmap','/opt/database_functions/data_preparation', '/opt/database_functions/layers_api']:
             self.execute_bulk_sql(p)
@@ -58,9 +59,11 @@ class PrepareDatabase():
         self.execute_script_psql('/opt/data_preparation/SQL/types.sql')
         self.execute_bulk_sql('/opt/database_functions/data_preparation')
 
-class Population():
-    def __init__(self, read_yaml_config, prepare_db, is_temp):
+class PrepareLayers():
+    def __init__(self, read_yaml_config, is_temp, prepare_db, db_conn):
+        self.read_yaml_config = read_yaml_config
         self.prepare_db = prepare_db
+        self.db_conn = db_conn
         self.db_conf = read_yaml_config.return_db_conf()
         self.db_name = self.db_conf["DB_NAME"]
         self.user = self.db_conf["USER"]
@@ -68,9 +71,6 @@ class Population():
         if is_temp == True: 
             self.db_name = self.db_name + 'temp'
 
-        self.mapping_conf = read_yaml_config.return_mapping_conf()
-        self.data_refinement = read_yaml_config.return_data_refinement()
-        
     def prepare_data(self, cls_import, cls_helper):
         raw_files = cls_helper.list_files_for_import(
             cls_helper.list_files_dir('/opt/data/', ('.shp','.sql')), '.sql',
@@ -102,3 +102,30 @@ class Population():
             print('No valid population mode was provided. Therefore the population scripts cannot be executed.')
 
         self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/population/create_population_userinput.sql')
+
+    def pois(self):
+        self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/pois.sql')
+    
+    def ways(self):
+        self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/network_preparation1.sql')
+
+        vars_container = self.read_yaml_config.return_goat_conf()["DATA_REFINEMENT_VARIABLES"]["variable_container"]
+
+        if vars_container["compute_slope_impedance"][1:-1] == 'yes':
+            self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/prepare_dem.sql')
+            bulk_compute_slope(db_name_temp,user,port,host,password)
+        
+        self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/network_preparation2.sql')
+
+        if (self.read_yaml_config.return_goat_conf()["DATA_REFINEMENT_VARIABLES"]["ADDITIONAL_WALKABILITY_LAYERS"] == 'yes'):
+            self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/layer_preparation.sql')
+
+    def mapping_tables(self):
+        if (self.read_yaml_config.return_goat_conf()["DATA_REFINEMENT_VARIABLES"]["OSM_MAPPING_FEATURE"] == 'yes'):
+            self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/create_tables_mapping.sql')
+    
+    def insert_osm_timestamp(self):
+        import datetime 
+        from datetime import timedelta
+        #timestamp = datetime.datetime.now()-timedelta(days=1).strftime("%Y-%m-%d")+'T'+currentDT.strftime("%H:%M:%S")+'Z'
+        #self.db_conn.perform('''INSERT INTO variable_container(identifier, variable_simple) VALUES ('data_recency',%(timestamp)s)''', params={"timestamp":timestamp}) 

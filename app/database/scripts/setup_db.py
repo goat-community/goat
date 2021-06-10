@@ -68,12 +68,13 @@ def setup_db(setup_type):
         
         #Define bounding box, the boundingbox is buffered by approx. 3 km
         if (extract_bbox == 'yes'):
+            #<-------change by function....
             db_temp.execute_script_psql('/opt/database_functions/data_preparation/create_bbox_study_area.sql')
             sql_bbox = 'SELECT * FROM create_bbox_study_area(%s)' % buffer
             cursor.execute(sql_bbox)
             bboxes = cursor.fetchall()[0][0]
             os.system(f'osmosis --read-pbf file="raw-osm.osm.pbf" {bboxes} --write-xml file="study_area.osm"')
-
+            #------> 
         #Create timestamps
         os.system('rm timestamps.txt')
         os.system('touch timestamps.txt')
@@ -90,12 +91,7 @@ def setup_db(setup_type):
             os.system('raster2pgsql -c -C -s 4326 -f rast -F -I -M -t 100x100 dem.tif public.dem > dem.sql')
             db_temp.execute_script_psql('dem.sql')
             db_temp.execute_script_psql('/opt/data_preparation/SQL/prepare_dem.sql')
-
-        #Import custom pois
-        if glob.glob('custom_pois/*.geojson'):
-            geojson_to_sql(db_name_temp,user,host,port,password)
-            db_temp.execute_text_psql(f'DELETE FROM custom_pois WHERE NOT ST_INTERSECTS(geom,ST_MAKEENVELOPE({left},{bottom},{right},{top}, 4326))')
-            
+       
     #Use OSM-Update-Tool in order to fetch the most recent data
     if (osm_data_recency == 'most_recent'):
         #Take last timestamp
@@ -126,7 +122,7 @@ def setup_db(setup_type):
 
     #Create tables and types
     db_temp.execute_script_psql('/opt/data_preparation/SQL/create_tables.sql')
-    create_variable_container(db_name_temp,user,str(port),host,password)
+    create_variable_container(db_name_temp)
     
     #Write timestamp in Variable container
     db_temp.execute_text_psql(f"INSERT INTO variable_container(identifier, variable_simple) VALUES ('data_recency','{timestamp}')")

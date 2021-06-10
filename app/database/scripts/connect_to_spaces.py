@@ -116,8 +116,6 @@ def download_raw_data(space_name, region_name, dir):
     for i in fnames[1:]:
         download_file(space_name,region_name, i , '/opt/data/'+i.split('/')[-1])
 
-#download_raw_data('goat', 'fra1','raw_data/'+'ffb')
-
 
 def spaces_interaction(namespace, args):
     from datetime import date 
