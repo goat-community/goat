@@ -1,5 +1,4 @@
-
-ALTER TABLE residential_addresses ADD COLUMN fixed_population float;
+ALTER TABLE residential_addresses ADD COLUMN IF NOT EXISTS fixed_population float;
 DO $$                  
     BEGIN 
         IF EXISTS
@@ -28,7 +27,7 @@ ALTER TABLE census ADD PRIMARY KEY(gid);
 
 /*Compute built up area per census tract*/
 DROP TABLE IF EXISTS census_sum_built_up;
-CREATE TEMP TABLE census_sum_built_up AS 
+CREATE TABLE census_sum_built_up AS 
 SELECT DISTINCT c.gid, COALESCE(c.pop,0) pop, COALESCE(c.sum_gross_floor_area_residential,0) AS sum_gross_floor_area_residential, c.number_buildings_now, c.geom 
 FROM study_area s
 INNER JOIN LATERAL 

@@ -36,7 +36,8 @@ ALTER TABLE census_prepared ADD PRIMARY KEY (gid);
 CREATE INDEX ON census_prepared USING GIST(geom);
 
 INSERT INTO census_prepared(pop, sum_gross_floor_area_residential, number_buildings_now, geom)
-SELECT c.pop * (s.sum_gross_floor_area_residential::float/c.sum_gross_floor_area_residential::float) AS pop, s.sum_gross_floor_area_residential,
+SELECT CASE WHEN c.sum_gross_floor_area_residential <> 0 THEN c.pop * (s.sum_gross_floor_area_residential::float/c.sum_gross_floor_area_residential::float) 
+ELSE 0 END AS pop, s.sum_gross_floor_area_residential,
 s.number_buildings_now, s.geom 
 FROM census_splitted_sum_built_up s, census_sum_built_up c
 WHERE s.gid = c.gid;
@@ -150,9 +151,12 @@ WHERE s.name = r.name
 AND ST_Intersects(s.geom,ST_Centroid(census_prepared.geom))
 AND census_prepared.pop > 0;
 
-DROP TABLE IF EXISTS population; 
+DROP TABLE IF EXISTS population CASCADE; 
 CREATE TABLE population AS 
-SELECT a.gid, a.geom, a.fixed_population, (a.gross_floor_area_residential::float/c.sum_gross_floor_area_residential::float)*new_pop population, a.building_gid 
+SELECT a.gid, a.geom, a.fixed_population, 
+CASE WHEN c.sum_gross_floor_area_residential <> 0 THEN 
+(a.gross_floor_area_residential::float/c.sum_gross_floor_area_residential::float)*new_pop 
+ELSE 0 END AS population, a.building_gid 
 FROM residential_addresses a, census_prepared c 
 WHERE ST_Intersects(a.geom,c.geom)
 AND c.sum_gross_floor_area_residential <> 0;
@@ -181,3 +185,5 @@ CREATE INDEX ON population USING GIST (geom);
 
 DELETE FROM population 
 WHERE population < 0;
+
+DROP TABLE IF EXISTS census_sum_built_up;

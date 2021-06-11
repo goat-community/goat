@@ -1,7 +1,9 @@
 /*Create population points from census without extrapolation*/
 DROP TABLE IF EXISTS population; 
 CREATE TABLE population AS 
-SELECT a.gid, a.geom, NULL AS fixed_population, (a.gross_floor_area_residential::float/c.sum_gross_floor_area_residential::float)*pop population, a.building_gid 
+SELECT a.gid, a.geom, NULL AS fixed_population, CASE WHEN sum_gross_floor_area_residential <> 0 THEN 
+(a.gross_floor_area_residential::float/c.sum_gross_floor_area_residential::float)*pop 
+ELSE 0 END AS population, a.building_gid 
 FROM residential_addresses a, census_sum_built_up c 
 WHERE ST_Intersects(a.geom,c.geom)
 AND c.sum_gross_floor_area_residential <> 0;

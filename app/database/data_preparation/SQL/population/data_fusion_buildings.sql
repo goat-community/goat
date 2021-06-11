@@ -45,9 +45,9 @@ CREATE INDEX ON buildings USING GIST(geom);
 DO 
 $$
 	DECLARE
-		average_building_levels integer := 4;
-		average_roof_levels integer := 1;
-		average_height_per_level float := 3.5; 
+		average_building_levels integer := select_from_variable_container_s('average_building_levels')::integer;
+		average_roof_levels integer := select_from_variable_container_s('average_roof_levels')::integer;
+		average_height_per_level float := select_from_variable_container_s('average_height_per_level')::float;
 		inject_not_duplicated_osm TEXT := 'yes';
 		inject_not_duplicated_custom TEXT := 'no';
 	BEGIN 
@@ -184,8 +184,12 @@ $$
 			DROP TABLE IF EXISTS selected_buildings;
 		ELSE 
 			INSERT INTO buildings(gid,osm_id,building,amenity,residential_status,street,housenumber,area,building_levels,roof_levels,geom)
-			SELECT gid,osm_id,building,amenity,residential_status,street,housenumber,area,building_levels,roof_levels,geom
-			FROM buildings_osm;
+			SELECT b.gid,b.osm_id,b.building,b.amenity,b.residential_status,b.street,b.housenumber,b.area,
+			CASE WHEN b.building_levels IS NOT NULL THEN b.building_levels ELSE average_building_levels END AS building_levels,
+			CASE WHEN b.roof_levels IS NOT NULL THEN b.roof_levels ELSE average_roof_levels END AS roof_levels,b.geom
+			FROM buildings_osm b
+			LEFT JOIN study_area s
+			ON ST_Intersects(s.geom,b.geom);
 		END IF;
 	END
 $$;
