@@ -420,7 +420,8 @@
       "pt_trips_rate": "Public transport trips per person",
       "strata": "Strata",
       "study_area_crop": "Study area",
-      "study_area": "Districts"
+      "study_area": "Districts",
+      "ways_Project_Sidewalk": "Project Sidewalk Score"
     },
     "tooltips": {
       "clickForCalculation": "Click for Calculation. Press ESC to exit",
@@ -502,7 +503,7 @@
       "zoomOut": "Zoom Out",
       "openFullScreen": "Open Fullscreen",
       "exitFullScreen": "Exit Fullscreen",
-      "toggleStreetView": "Open StreetView"
+      "toggleStreetView": "Mapillary Imagery"
     },
     "popup": {
       "attributes": "Attributes",
@@ -623,6 +624,11 @@
     "kindergarten": "Kindergarten",
     "primary_school": "Primary school",
     "secondary_school": "Secondary school",
+    "gymnasium": "Gymnasium",
+    "grundschule": "Grundschule",
+    "realschule": "Realschule",
+    "hauptschule_mittelschule": "Haupt-/Mittelschule",
+    "werkrealschule": "Werkrealschule",
     "school": "School",
     "library": "Library",
     "bar": "Bar",

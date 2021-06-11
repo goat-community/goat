@@ -1,91 +1,66 @@
 <template>
-  <v-expansion-panels
-    multiple
-    v-model="panel"
-    class="elevation-3"
-    dark
-    style="position:absolute;bottom:35px;right:10px;maxWidth: 250px;"
-  >
-    <v-expansion-panel
-      @click="onExpansionPanelClick"
-      :style="`background-color: white;`"
-    >
-      <v-expansion-panel-header :style="`background-color: ${color};`"
-        >{{ $t("map.layerLegend.title") }}
-        <template v-slot:actions>
-          <v-icon small>$vuetify.icons.expand</v-icon>
-        </template>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content style="max-height:400px;">
-        <vue-scroll>
-          <div id="legend">
-            <template v-for="(item, index) in layers">
-              <div
-                :key="index"
-                v-if="layerVisibility(item)"
-                style="padding-right:10px;"
-              >
-                <v-divider></v-divider>
-                <!-- LAYER TITLE -->
-                <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
-                  {{
-                    $te(`map.layerName.${item.get("name")}`)
-                      ? $t(`map.layerName.${item.get("name")}`)
-                      : item.get("name")
-                  }}
-                </p>
-                <!-- WMS LEGEND -->
-                <div v-if="item.get('legendGraphicUrl')">
-                  <img
-                    crossorigin="anonymous"
-                    style="max-width:100%;"
-                    :src="item.get('legendGraphicUrl')"
-                    class="white--text mt-0 pt-0"
-                  />
-                </div>
-                <div v-else>
-                  <div v-if="item.get('type') === 'WMS'">
-                    <template
-                      v-for="(layerName, index2) in item
-                        .getSource()
-                        .getParams()
-                        .LAYERS.split(',')"
-                    >
-                      <div :key="index2">
-                        <img
-                          crossorigin="anonymous"
-                          style="max-width:100%;"
-                          :src="getWMSLegendImageUrl(item, layerName)"
-                          class="white--text mt-0 pt-0"
-                        />
-                        <br />
-                      </div>
-                    </template>
-                  </div>
-                  <!-- VECTOR LEGEND -->
-                  <div
-                    v-if="['VECTORTILE', 'VECTOR'].includes(item.get('type'))"
-                  >
-                    <span
-                      :ref="`legend-vector-${index}`"
-                      v-html="renderLegend(item, index)"
-                    ></span>
-                  </div>
-                </div>
+  <div id="legend">
+    <template v-for="(item, index) in layers">
+      <div
+        :key="index"
+        v-if="layerVisibility(item)"
+        style="padding-right:10px;"
+      >
+        <v-divider></v-divider>
+        <!-- LAYER TITLE -->
+        <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
+          {{
+            $te(`map.layerName.${item.get("name")}`)
+              ? $t(`map.layerName.${item.get("name")}`)
+              : item.get("name")
+          }}
+        </p>
+        <!-- WMS LEGEND -->
+        <div v-if="item.get('legendGraphicUrl')">
+          <img
+            crossorigin="anonymous"
+            style="max-width:100%;"
+            :src="item.get('legendGraphicUrl')"
+            class="white--text mt-0 pt-0"
+          />
+        </div>
+        <div v-else>
+          <div v-if="item.get('type') === 'WMS'">
+            <template
+              v-for="(layerName, index2) in item
+                .getSource()
+                .getParams()
+                .LAYERS.split(',')"
+            >
+              <div :key="index2">
+                <img
+                  crossorigin="anonymous"
+                  style="max-width:100%;"
+                  :src="getWMSLegendImageUrl(item, layerName)"
+                  class="white--text mt-0 pt-0"
+                />
+                <br />
               </div>
             </template>
           </div>
-        </vue-scroll>
-      </v-expansion-panel-content>
-    </v-expansion-panel>
-  </v-expansion-panels>
+          <!-- VECTOR LEGEND -->
+          <div v-if="['VECTORTILE', 'VECTOR'].includes(item.get('type'))">
+            <span
+              :ref="`legend-vector-${index}`"
+              v-html="renderLegend(item, index)"
+            ></span>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
 </template>
 <script>
 import { mapGetters } from "vuex";
-import { EventBus } from "../../../../EventBus";
-import { Mapable } from "../../../../mixins/Mapable";
-import { getAllChildLayers, getWMSLegendURL } from "../../../../utils/Layer";
-import LegendRenderer from "../../../../utils/LegendRenderer";
+import { EventBus } from "../../../EventBus";
+import { Mapable } from "../../../mixins/Mapable";
+import { getAllChildLayers, getWMSLegendURL } from "../../../utils/Layer";
+import LegendRenderer from "../../../utils/LegendRenderer";
 
 export default {
   mixins: [Mapable],
@@ -168,14 +143,7 @@ export default {
         }
       }, 100);
     },
-    filterStylesOnActiveModeByLayerName(name) {
-      //get Filtered style on active mode based on layer name
-      const style = this.$appConfig.stylesObj[name].style;
-      const filteredStyle = this.filterStylesOnActiveMode(style);
-      return filteredStyle || style;
-    },
     filterStylesOnActiveMode(style) {
-      //get Filtered style on active mode based on style object
       const styleRules = style.rules;
       const filteredRules = [];
       const activeMode = this.calculationOptions.calculationModes.active;
@@ -209,20 +177,16 @@ export default {
         return newStyle;
       }
     },
-    onExpansionPanelClick() {
-      if (!this.isRendered) {
-        this.$forceUpdate();
-        this.isRendered = true;
-      }
-    },
     layerVisibility(item) {
       if (
-        this.map.getView().getResolution() <= item.get("maxResolution") &&
-        item.getVisible() === true &&
-        item.get("displayInLegend") !== false &&
-        item.get("group") !== "backgroundLayers" &&
-        this.isMapMounted === true &&
-        this.$appConfig.stylesObj
+        (this.map.getView().getResolution() <= item.get("maxResolution") &&
+          item.getVisible() === true &&
+          item.get("displayInLayerList") !== false &&
+          item.get("displayInLegend") !== false &&
+          item.get("group") !== "backgroundLayers" &&
+          this.isMapMounted === true &&
+          this.$appConfig.stylesObj) ||
+        item.get("name") == "study_area_crop"
       ) {
         return true;
       }

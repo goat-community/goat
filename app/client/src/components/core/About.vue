@@ -23,6 +23,13 @@
                   v-if="$te('appBar.about.usedData')"
                   v-html="$t('appBar.about.usedData')"
                 ></span>
+                <a
+                  :style="`color:${activeColor.primary}`"
+                  class="info-link"
+                  href="https://www.open-accessibility.org/"
+                  target="_blank"
+                  >{{ $t("appBar.about.moreInfo") }}</a
+                >
                 <table class="styled-table">
                   <thead>
                     <tr>
@@ -78,14 +85,6 @@
             </div>
           </div>
         </v-card-text>
-        <v-card-actions>
-          <a
-            class="info-link green--text"
-            href="https://www.open-accessibility.org/"
-            target="_blank"
-            >{{ $t("appBar.about.moreInfo") }}</a
-          >
-        </v-card-actions>
       </vue-scroll>
     </v-card>
   </v-dialog>
