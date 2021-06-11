@@ -1,6 +1,7 @@
 ubuntu-bionic-18.04-cloudimg-console.log
 .vagrant
 /app/database/data/*
+/app/database/scripts/db
 !/app/data/.gitkeep
 /app/geoserver/geoserver_data/logs/*
 /app/config/db/spaces.yaml

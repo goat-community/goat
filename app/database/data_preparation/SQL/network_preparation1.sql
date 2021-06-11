@@ -85,7 +85,7 @@ FROM
 WHERE w.crossing_gid = x.crossing_gid;
 
 --Create a temporary composite type
-DROP TYPE temp_composite CASCADE;
+DROP TYPE IF EXISTS temp_composite CASCADE;
 CREATE TYPE temp_composite 
 AS (
 	new_geom1 geometry,
@@ -355,7 +355,7 @@ AND w.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_contain
 AND w.class_id::text NOT IN (SELECT UNNEST(variable_array) from variable_container WHERE identifier = 'excluded_class_id_cycling')
 AND (w.foot NOT IN (SELECT UNNEST(variable_array) FROM variable_container WHERE identifier = 'categories_no_foot') OR foot IS NULL); 
 
-ALTER TABLE network_island ADD PRIMARY KEY(id);
+ALTER TABLE network_islands ADD PRIMARY KEY(id);
 UPDATE ways w SET class_id = 701
 FROM network_islands n
 WHERE w.id = n.id; 
@@ -392,9 +392,14 @@ FROM ways_attributes w
 WHERE v.id = w.id;
 
 -- Mark dedicated lanes as foot = 'no'
-
 UPDATE ways w
-SET foot = 'no'  FROM ( SELECT osm_id FROM planet_osm_line WHERE highway = 'service' AND (tags->'psv' IS NOT NULL OR tags->'bus' = 'yes') ) x WHERE w.osm_id = x.osm_id;
+SET foot = 'no'  FROM ( 
+	SELECT osm_id 
+	FROM planet_osm_line 
+	WHERE highway = 'service' 
+	AND (tags->'psv' IS NOT NULL OR tags->'bus' = 'yes') 
+) x 
+WHERE w.osm_id = x.osm_id;
 
 -- Mark underground cycle lanes as foot = 'no' this is for the specific case of BOG
 --UPDATE ways

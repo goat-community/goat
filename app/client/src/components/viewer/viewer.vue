@@ -36,6 +36,15 @@
         <div v-if="!miniViewOlMap" id="switch-triangle" @click="switchViews()">
           <v-icon large dark class="swap-icon">swap_horiz</v-icon>
         </div>
+        <div v-if="!miniViewOlMap" id="mapillaryAttribution" @click="open()">
+          <a
+            href="https://www.mapillary.com"
+            target="_blank"
+            class="AttributionIconContainer"
+          >
+            <div class="AttributionMapillaryLogo"></div
+          ></a>
+        </div>
         <app-mapillary
           ref="mapillary"
           class="fullscreen"
@@ -197,6 +206,18 @@ export default {
   height: 24px;
   width: 24px;
   opacity: 0.8;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 20;
+  cursor: pointer;
+}
+
+#mapillaryAttribution {
+  position: absolute;
+  bottom: 0px;
+  padding-right: 4px;
+  left: 0px;
+  border-radius: 0px;
+  opacity: 0.9;
   background: rgba(0, 0, 0, 0.5);
   z-index: 20;
   cursor: pointer;

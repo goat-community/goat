@@ -345,6 +345,19 @@ export default {
           styleObj = stylesObj[layerName];
         }
         if (styleObj) {
+          if (styleObj.format === "geostyler") {
+            styleObj.style.rules.forEach(rule => {
+              //Set default filer if no filter is found for rule
+              if (!rule.filter) {
+                rule.filter = ["=="];
+              }
+
+              //Change Symbolizers outline color from rgba to hexa
+              if (rule.symbolizers[0].outlineColor === "rgba(0, 0, 255, 0.0)") {
+                rule.symbolizers[0].outlineColor = "#0000FF00";
+              }
+            });
+          }
           const olStyle = OlStyleFactory.getOlStyle(styleObj, layerName);
           if (olStyle) {
             if (olStyle instanceof Promise) {
