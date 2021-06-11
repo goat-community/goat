@@ -186,6 +186,22 @@ CREATE TABLE population_modified
 
 CREATE INDEX ON population_modified USING GIST(geom);
 
+
+CREATE TABLE edges_potential_flows
+(
+	edge integer,
+	COST float,
+	start_cost float,
+	end_cost float,
+	SOURCE integer, 
+	target integer, 
+	geom geometry, 
+	objectid integer,
+	id serial
+);
+
+CREATE INDEX ON edges_potential_flows USING GIST(geom);
+ALTER TABLE edges_potential_flows ADD PRIMARY KEY(id);
 CREATE TABLE area_isochrones_scenario
 (
 	gid serial,

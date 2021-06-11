@@ -205,7 +205,8 @@
       "title": "Starting Point",
       "type": "Single",
       "searchBox": "Search Starting Point",
-      "startTooltip": "Click on button to start calculation.",
+      "startTooltip": "Click on button to start Isochrone calculation.",
+      "ppfTooltip": "Click on button to start PPF calculation.",
       "tableDataTitle": "Thematic Data"
     },
     "multiple": {
@@ -329,6 +330,7 @@
       "selectAmenities": "You must select at least one point of interest (Thematic Data)",
       "calculateIsochroneError": "Sorry but here no calculation is possible",
       "calculateIsochroneCancelled": "Isochrone Calculation Cancelled",
+      "calculatePPFCancelled": "PPF Calculation Cancelled",
       "uploadScenarioSuccess": "Features uploads successfully.",
       "uploadScenarioError": "Sorry, an error happened while uploading the features in database.",
       "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features.",
@@ -419,12 +421,14 @@
       "cycling_trips_rate": "Cycling trips per person",
       "pt_trips_rate": "Public transport trips per person",
       "strata": "Strata",
+      "indicators": "Indicators",
       "study_area_crop": "Study area",
       "study_area": "Districts",
       "ways_Project_Sidewalk": "Project Sidewalk Score"
     },
     "tooltips": {
-      "clickForCalculation": "Click for Calculation. Press ESC to exit",
+      "clickForIsochroneCalculation": "Click for isochrone calculation. Press ESC to exit",
+      "clickForPPFCalculation": "Click for PPF calculation. Press ESC to exit",
       "clickToSelectStudyArea": "Click to select the study area. Press ESC to exit",
       "maxCircleRadius": "Maximum circle radius is 1000 m",
       "clickToStartMeasure": "Click to start measuring. Press ESC to exit",
@@ -521,6 +525,7 @@
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
       "deleteBldEntrancePoint": "Delete Population",
+      "deletePPFNetwork": "Delete",
       "redoCalculation": "Redo Calculation"
     },
     "osmMode": {
@@ -809,5 +814,18 @@
     "saturday": "Saturday",
     "sunday": "Sunday",
     "publicHolidays": "Public Holidays"
+  },
+  "charts": {
+    "indicators": {
+      "sidewalk_quality": "Sidewalk Quality",
+      "traffic_protection": ["Protection from", "traffic impacts"],
+      "security": "Security",
+      "vegetation": "Vegetation",
+      "walking_environment": "Walking environment",
+      "comfort": "Comfort",
+      "sum_total": ["TOTAL WALKABILITY", "SCORE"],
+      "scale_label_indicators": "Indicators",
+      "scale_label_index": "Index"
+    }
   }
 }

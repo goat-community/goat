@@ -378,6 +378,47 @@ export function waysNewRoadStyle(feature) {
   });
   return [style];
 }
+
+export function ppfNetworkStyle(feature) {
+  const persons = feature.get("persons");
+  let width = 5;
+  if (persons >= 0 && persons <= 1) {
+    width = 1;
+  } else if (persons > 1 && persons <= 20) {
+    width = 1.5;
+  } else if (persons > 20 && persons <= 100) {
+    width = 3;
+  } else if (persons > 100 && persons <= 500) {
+    width = 4.5;
+  } else if (persons > 500 && persons <= 1000) {
+    width = 6;
+  } else if (persons > 1000 && persons <= 5000) {
+    width = 8;
+  } else if (persons > 5000 && persons <= 15000) {
+    width = 12;
+  } else if (persons > 15000 && persons <= 30000) {
+    width = 18;
+  } else if (persons > 30000 && persons <= 30877) {
+    width = 24;
+  }
+  let path = `img/markers/marker-${feature.get("calcNumber")}.png`;
+  const style = new OlStyle({
+    image: new OlIcon({
+      anchor: [0.5, 0.96],
+      src: path,
+      scale: 0.5
+    }),
+    stroke: new OlStroke({
+      color:
+        isochronesStore.state.activePPFCalc === feature.get("calcNumber")
+          ? "#FF0000"
+          : "#e15989",
+      width: width
+    })
+  });
+  return [style];
+}
+
 export function waysNewBridgeStyle(feature) {
   const style = new OlStyle({
     fill: new OlFill({

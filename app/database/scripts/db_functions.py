@@ -76,7 +76,6 @@ def bulk_compute_slope(db_name,user,port,host,password):
         cursor.execute(sql_compute_slope)
 #bulk_compute_slope('goat','goat','5432','localhost','earlmanigault')
 
-
 def find_newest_dump(namespace):
     import os
     fnames = []

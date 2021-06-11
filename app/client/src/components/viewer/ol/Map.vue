@@ -13,7 +13,7 @@
     <!-- Popup overlay  -->
     <overlay-popup
       :color="activeColor.primary"
-      :title="popup.title"
+      :title="getPopupTitle()"
       v-show="popup.isVisible && miniViewOlMap === false"
       ref="popup"
     >
@@ -44,10 +44,6 @@
         </v-btn>
       </template>
       <template v-slot:body>
-        <div class="subtitle-2 mb-4 font-weight-bold">
-          {{ getPopupTitle() }}
-        </div>
-
         <a
           v-if="currentInfoFeature && currentInfoFeature.get('osm_id')"
           style="text-decoration:none;"
@@ -58,11 +54,19 @@
           <i class="fa fa-edit"></i> {{ $t("map.popup.editWithOsm") }}</a
         >
 
-        <v-divider></v-divider>
-
-        <div style="height:190px;">
+        <div
+          style="max-height:800px;overflow:hidden;"
+          v-if="getInfoResult[popup.currentLayerIndex]"
+        >
           <vue-scroll>
-            <v-simple-table dense class="pr-2">
+            <v-simple-table
+              v-if="
+                getInfoResult[popup.currentLayerIndex].get('layerName') !==
+                  'indicators'
+              "
+              dense
+              class="pr-2"
+            >
               <template v-slot:default>
                 <tbody>
                   <tr v-for="item in currentInfo" :key="item.property">
@@ -72,10 +76,14 @@
                 </tbody>
               </template>
             </v-simple-table>
+            <div v-else>
+              <indicators-chart
+                class="mr-4"
+                :feature="getInfoResult[popup.currentLayerIndex]"
+              ></indicators-chart>
+            </div>
           </vue-scroll>
         </div>
-
-        <v-divider></v-divider>
       </template>
     </overlay-popup>
     <!-- Info Snackbar for not visible layers. -->
@@ -160,6 +168,9 @@ import { debounce } from "../../../utils/Helpers";
 import ContextMenu from "ol-contextmenu/dist/ol-contextmenu";
 import "ol-contextmenu/dist/ol-contextmenu.min.css";
 
+// Indicators Chart
+import IndicatorsChart from "../../other/IndicatorsChart";
+
 export default {
   components: {
     "overlay-popup": OverlayPopup,
@@ -167,7 +178,8 @@ export default {
     "map-legend": Legend,
     "background-switcher": BackgroundSwitcher,
     "zoom-control": ZoomControl,
-    "full-screen": FullScreen
+    "full-screen": FullScreen,
+    "indicators-chart": IndicatorsChart
   },
   name: "app-ol-map",
   props: {
@@ -525,14 +537,18 @@ export default {
       this.getInfoLayerSource.addFeature(
         this.getInfoResult[this.popup.currentLayerIndex]
       );
-      while (position && Array.isArray(position[0])) {
-        position = position[0];
+
+      let closestPoint;
+      if (position) {
+        closestPoint = this.getInfoResult[this.popup.currentLayerIndex]
+          .getGeometry()
+          .getClosestPoint(coordinate || position[0]);
       }
       this.map.getView().animate({
-        center: position,
+        center: closestPoint,
         duration: 400
       });
-      this.popupOverlay.setPosition(position);
+      this.popupOverlay.setPosition(closestPoint);
       this.popup.isVisible = true;
       this.popup.title = `info`;
     },
@@ -610,6 +626,7 @@ export default {
 
         //Check for isochrone features
         const features = me.map.getFeaturesAtPixel(evt.pixel, {
+          hitTolerance: 10,
           layerFilter: candidate => {
             if (candidate.get("name") === "Isochrone Layer") {
               return true;
@@ -699,7 +716,6 @@ export default {
                 return;
               }
               const olFeatures = geojsonToFeature(response.data, {});
-
               olFeatures[0].set("layerName", layerName);
               me.getInfoResult.push(olFeatures[0]);
             });
@@ -812,6 +828,8 @@ export default {
         } else {
           return layer.get("layerName");
         }
+      } else {
+        return "";
       }
     },
     ...mapMutations("map", {

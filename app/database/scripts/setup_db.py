@@ -163,6 +163,7 @@ def setup_db(setup_type):
         if compute_slope_impedance == 'yes':
             bulk_compute_slope(db_name_temp,user,port,host,password)
         db_temp.execute_script_psql('../data_preparation/SQL/network_preparation2.sql')
+        db_temp.execute_script_psql('../data_preparation/SQL/walkability.sql')
 
         if (additional_walkability_layers == 'yes'):
             db_temp.execute_script_psql('../data_preparation/SQL/layer_preparation.sql')

@@ -60,6 +60,23 @@
           "url": "./static/layer-styles/styles/study_area_crop.json"
         }
       },
+
+      {
+        "type": "WMS",
+        "name": "indicators",
+        "url": "/geoserver/wms",
+        "group": "Indicators",
+        "layers": "cite:indicators",
+        "opacity": 1,
+        "queryable": true,
+        "visible": true,
+        "canEdit": false,
+        "displayInLegend": true,
+        "displayInLayerList": true,
+        "zIndex": 20,
+        "serverType": "geoserver"
+      },
+
       {
         "type": "VECTORTILE",
         "name": "ways",
