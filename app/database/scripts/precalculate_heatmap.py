@@ -1,10 +1,9 @@
-import psycopg2
 import time
 import math
 from variables_precalculate import *
-from db_functions import ReadYAML
-from db_functions import DB_connection
-import yaml
+from db.db import Database
+db_conn = Database()
+
 
 #Step defined the bulk size of the heatmap calculation
 step = 200
@@ -13,13 +12,7 @@ grid_size = 150
 
 start = time.time()
 
-db_name,user,host,port,password = ReadYAML().db_credentials()
-db = DB_connection(db_name,user,host,port,password)
-
-con,cursor = db.con_psycopg()
-
-
-cursor.execute(prepare_tables % grid_size)
+db_conn.perform(prepare_tables % grid_size)
 
 sql_ordered_grid = '''
 DROP TABLE IF EXISTS compute_sections; 
@@ -52,8 +45,7 @@ FROM (
 ALTER TABLE grid_ordered ADD PRIMARY key(grid_id);
 CREATE INDEX ON grid_ordered USING GIST(centroid);'''
 
-cursor.execute(sql_ordered_grid)
-con.commit()
+db_conn.perform(sql_ordered_grid)
 
 sql_edges_heatmap = '''
 DROP TABLE IF EXISTS reached_edges_heatmap;
@@ -107,10 +99,10 @@ CREATE INDEX ON reached_pois_heatmap (gid);
 CREATE INDEX ON reached_pois_heatmap (amenity);
 '''
 print('Bulk calculation is starting...')
-cursor.execute(sql_edges_heatmap)
 
-cursor.execute('SELECT array_agg(section_id) FROM (SELECT DISTINCT section_id FROM grid_ordered ORDER BY section_id) x;')
-section_ids = cursor.fetchall()[0][0]
+db_conn.perform(sql_edges_heatmap)
+
+section_ids = db_conn.select('SELECT array_agg(section_id) FROM (SELECT DISTINCT section_id FROM grid_ordered ORDER BY section_id) x;')[0][0]
 
 sql_bulk_calculation = '''WITH x AS 
 (
@@ -125,8 +117,7 @@ FROM x;
 #Loop for routing calculation
 for i in section_ids:
 	print('Compute routing section: %s' % str(i))
-	cursor.execute(sql_bulk_calculation % (i, i))
-	con.commit()
+	db_conn.perform(sql_bulk_calculation % (i, i))
 
 time_routing = time.time()-start
 print('Routing calculation has finished after: %s s' % (time_routing))
@@ -135,30 +126,25 @@ print('Routing calculation has finished after: %s s' % (time_routing))
 #Loop for closest POIs calculation (needs to be executed after routing is completed)
 for i in section_ids: 
 	print('Compute reached pois section: %s' % str(i))
-	cursor.execute('''SELECT reached_pois_heatmap(geom,0.0014,'default',0) 
+	db_conn.perform('''SELECT reached_pois_heatmap(geom,0.0014,'default',0) 
 	FROM compute_sections 
 	WHERE section_id = %s
 	''' % str(i))
-	con.commit()
 
 print('Closest POIs calculation has finished after: %s s' % (time.time()-start-time_routing))
 
 #Compute Accessibility Values
-cursor.execute('SELECT compute_accessibility(0)')
-con.commit()
+db_conn.perform('SELECT compute_accessibility(0)')
+
 #Loop for isochrone area calculation
-cursor.execute('SELECT grid_id FROM grid_heatmap;')
-gridids = cursor.fetchall()
+gridids = db_conn.select('SELECT grid_id FROM grid_heatmap;')
 
 for i in gridids:
 	i = i[0]
-	cursor.execute(f'''SELECT compute_area_isochrone({i},0,1,0);''')	
-	con.commit()
+	db_conn.perform(f'''SELECT compute_area_isochrone({i},0,1,0);''')	
 
-cursor.execute(sql_grid_population)
+db_conn.perform(sql_grid_population)
 
-con.commit()
-con.close()
 end = time.time()
 print('Running the script took:')
 print(end - start)
