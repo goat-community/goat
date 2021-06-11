@@ -30,7 +30,7 @@ WHERE (amenity = 'hospital' OR amenity = 'school')
 AND ST_Intersects(s.geom,p.way);
 
 INSERT INTO landuse_osm 
-SELECT 'waters' AS landuse_simplified, p.leisure AS landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) AS geom 
+SELECT 'water' AS landuse_simplified, p.leisure AS landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) AS geom 
 FROM planet_osm_polygon p , study_area s
 WHERE leisure = 'swimming_pool' AND ST_Intersects(s.geom,p.way);
 
