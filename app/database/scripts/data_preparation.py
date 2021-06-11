@@ -1,5 +1,6 @@
 import subprocess, json, os
 class PrepareDatabase():
+    """A couple of functions that help to prepare the GOAT database."""
     def __init__(self, read_yaml_config, is_temp, db_conn):
         self.db_conf = read_yaml_config.return_db_conf()
         self.db_name = self.db_conf["DB_NAME"]
@@ -57,9 +58,11 @@ class PrepareDatabase():
         self.execute_script_psql('/opt/data_preparation/SQL/create_tables.sql')
         self.create_variable_container()
         self.execute_script_psql('/opt/data_preparation/SQL/types.sql')
+        self.execute_bulk_sql('/opt/database_functions/data_preparation/essential_helpers')
         self.execute_bulk_sql('/opt/database_functions/data_preparation')
 
 class PrepareLayers():
+    """Data layers such as population as prepared with this class."""
     def __init__(self, read_yaml_config, is_temp, prepare_db, db_conn):
         self.read_yaml_config = read_yaml_config
         self.prepare_db = prepare_db
@@ -127,5 +130,5 @@ class PrepareLayers():
     def insert_osm_timestamp(self):
         import datetime 
         from datetime import timedelta
-        #timestamp = datetime.datetime.now()-timedelta(days=1).strftime("%Y-%m-%d")+'T'+currentDT.strftime("%H:%M:%S")+'Z'
-        #self.db_conn.perform('''INSERT INTO variable_container(identifier, variable_simple) VALUES ('data_recency',%(timestamp)s)''', params={"timestamp":timestamp}) 
+        timestamp = str(datetime.datetime.now().date()-timedelta(days=1))
+        self.db_conn.perform('''INSERT INTO variable_container(identifier, variable_simple) VALUES ('data_recency',%(timestamp)s)''', params={"timestamp":timestamp}) 

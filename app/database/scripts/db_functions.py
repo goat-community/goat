@@ -3,23 +3,6 @@
 
 import yaml, os, psycopg2, glob
 
-class DB_connection:
-    def __init__(self, db_name, user, host,port,password):
-        self.db_name = db_name
-        self.user = user
-        self.host = host
-        self.port = port 
-        self.password = password
-
-    def execute_script_psql(self,script):
-        os.system(f'PGPASSFILE=~/.pgpass_{self.db_name} psql -d {self.db_name} -U {self.user} -h {self.host} -f {script}')
-    def execute_text_psql(self,script):
-        os.system(f'PGPASSFILE=~/.pgpass_{self.db_name} psql -d {self.db_name} -U {self.user} -h {self.host} -c "{script}"')
-    def con_psycopg(self):
-        con = psycopg2.connect("dbname='%s' user='%s' host='%s' port = '%s' password='%s'" % (
-        self.db_name,self.user,self.host,self.port,self.password))
-        return con, con.cursor()
-
 
 def bulk_compute_profile(db_name, user, port, host, password, size):
     import psycopg2
@@ -104,23 +87,4 @@ def find_newest_dump(namespace):
 
     return newest_file
 
-def restore_db(namespace):
-    import os
-    
-    newest_file = find_newest_dump(namespace)
 
-    db_name,user = ReadYAML().db_credentials()[:2]
-    #Drop backup db tags as old DB
-    os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'old'))
-    os.system('psql -U postgres -c "DROP DATABASE %s;"' % (db_name+'old'))
-    os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'temp'))
-    os.system('psql -U postgres -c "DROP DATABASE IF EXISTS %s;"' % (db_name+'temp'))
-    #Restore backup as temp db
-    os.system("psql -U postgres -c 'CREATE DATABASE %s;'"% (db_name+'temp'))
-    os.system('psql -U %s -d %s -f /opt/backups/%s' % (user,db_name+'temp',newest_file))
-    #Rename active database into old DB
-    os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % db_name)
-    os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name,db_name+'old'))
-    #Rename temp DB into active db
-    os.system('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (db_name+'temp'))
-    os.system('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (db_name+'temp',db_name))

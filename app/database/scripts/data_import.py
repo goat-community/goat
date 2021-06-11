@@ -4,6 +4,7 @@ from psycopg2 import sql
 import yaml 
 
 class ReadYAML():
+    """Read and return database configuration."""
     def __init__(self):
         with open("/opt/config/db/db.yaml", 'r') as stream:
             self.db_conf = yaml.load(stream, Loader=yaml.FullLoader)
@@ -26,6 +27,7 @@ class ReadYAML():
         os.system(f'chmod 600  ~/.pgpass_{db_name}')
 
 class CreateDatabase():
+    """For creating a database with the required configurations and extensions"""
     def __init__(self, read_yaml_config):
         self.read_yaml_config = read_yaml_config
         self.db_conf = read_yaml_config.return_db_conf()
@@ -59,6 +61,10 @@ class CreateDatabase():
         subprocess.run(f'''PGPASSFILE=~/.pgpass_{self.db_name} psql -U {self.user} -h {self.host} -c "DROP DATABASE IF EXISTS goatempty;"''', shell=True, check=True)
         subprocess.run(f'''PGPASSFILE=~/.pgpass_{self.db_name} psql -U {self.user} -h {self.host} -c "CREATE DATABASE goatempty;"''', shell=True, check=True)
         
+        #Load PLV8 modules inside the database 
+        subprocess.run(f'psql -U {self.user} -d {self.db_name_temp} -c "DROP TABLE IF EXISTS plv8_js_modules;"', shell=True, check=True)
+        subprocess.run(f'psql -U {self.user} -d {self.db_name_temp} -f /opt/database_functions/libs/plv8_js_modules.sql', shell=True, check=True)
+        subprocess.run(f'psql -U {self.user} -d {self.db_name_temp} -c "ALTER DATABASE {self.db_name_temp} SET plv8.start_proc TO plv8_require"', shell=True, check=True)
 
 
     def rename_databases(self):
@@ -67,6 +73,7 @@ class CreateDatabase():
         subprocess.run(f'''PGPASSFILE=~/.pgpass_{self.db_name}empty psql -U {self.user}empty -h {self.host} -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='{self.db_name}';"''', shell=True, check=True)
 
         subprocess.run(f'PGPASSFILE=~/.pgpass_{self.db_name}empty psql -U {self.user}empty -h {self.host} -c "ALTER DATABASE {self.db_name} RENAME TO {self.db_name}old;"', shell=True, check=True)
+        subprocess.run(f'''PGPASSFILE=~/.pgpass_{self.db_name}empty psql -U {self.user}empty -h {self.host} -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='{self.db_name_temp}';"''', shell=True, check=True)
         subprocess.run(f'PGPASSFILE=~/.pgpass_{self.db_name}empty psql -U {self.user}empty -h {self.host} -c "ALTER DATABASE {self.db_name_temp} RENAME TO {self.db_name};"', shell=True, check=True)
          
     def create_pgpass_files(self):
@@ -76,6 +83,7 @@ class CreateDatabase():
 
 
 class FileHelper():
+    """Some helper functions to read through data directories."""
     @staticmethod
     def list_files_dir(filepath, ending):
         file_list = []
@@ -102,6 +110,7 @@ class FileHelper():
         return cleaned_list
 
 class DataImport():
+    """Functions to import data."""
     def __init__(self, read_yaml_config, is_temp, db_conn):
         self.db_conf = read_yaml_config.return_db_conf()
         self.db_name = self.db_conf["DB_NAME"]
@@ -125,11 +134,15 @@ class DataImport():
                 return {"Error": "Download not successful"}
 
         if self.extract_bbox == "yes":
+            print('###########################OSM-Data will be clipped###########################')
             self.db_conn.perform(open('/opt/database_functions/data_preparation/other/create_bbox_study_area.sql', "r").read())
             bboxes = self.db_conn.select('SELECT * FROM create_bbox_study_area(%(buffer)s)', params={"buffer":self.buffer})[0][0]
             subprocess.run(f'osmosis --read-pbf file="raw-osm.osm.pbf" {bboxes} --write-xml file="study_area.osm"', shell=True, check=True)
         elif self.extract_bbox == "no_extract":
+            print('#################All OSM-data from dump will be imported######################')
             subprocess.run(f'osmosis --read-pbf file="raw-osm.osm.pbf" --write-xml file="study_area.osm"', shell=True, check=True)
+        elif self.extract_bbox == "done":
+            print('###################All OSM-data was alread clipped############################')
 
         subprocess.run('osmconvert study_area.osm --drop-author --drop-version --out-osm -o=study_area_reduced.osm', shell=True, check=True)
         subprocess.run('rm study_area.osm | mv study_area_reduced.osm study_area.osm', shell=True, check=True)
@@ -167,8 +180,20 @@ class DataImport():
         for f in cleaned_files:
             self.import_raw_layer(path_data + f)
 
-    def load_js_lib():
-        subprocess.run(f'psql -U {self.user} -d {self.db_name} -c "DROP TABLE IF EXISTS plv8_js_modules;"', shell=True, check=True)
-        subprocess.run(f'psql -U {self.user} -d {self.db_name} -f /opt/database_functions/libs/plv8_js_modules.sql', shell=True, check=True)
-        subprocess.run(f'psql -U {self.user} -d {self.db_name} -c "ALTER DATABASE {self.db_name} SET plv8.start_proc TO plv8_require"', shell=True, check=True)
+    def restore_db(self,filepath):
 
+        #newest_file = find_newest_dump(namespace)
+        #Drop backup db tags as old DB
+        subprocess.run('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (self.db_name+'old'), shell=True, check=True)
+        subprocess.run('psql -U postgres -c "DROP DATABASE %s;"' % (self.db_name+'old'), shell=True, check=True)
+        subprocess.run('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (self.db_name+'temp'), shell=True, check=True)
+        subprocess.run('psql -U postgres -c "DROP DATABASE IF EXISTS %s;"' % (self.db_name+'temp'), shell=True, check=True)
+        #Restore backup as temp db
+        subprocess.run("psql -U postgres -c 'CREATE DATABASE %s;'"% (self.db_name+'temp'), shell=True, check=True)
+        subprocess.run('psql -U %s -d %s -f %s' % (self.user,self.db_name+'temp',filepath), shell=True, check=True)
+        #Rename active database into old DB
+        subprocess.run('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % self.db_name, shell=True, check=True)
+        subprocess.run('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (self.db_name,self.db_name+'old'), shell=True, check=True)
+        #Rename temp DB into active db
+        subprocess.run('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (self.db_name+'temp'), shell=True, check=True)
+        subprocess.run('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (self.db_name+'temp',self.db_name), shell=True, check=True)
