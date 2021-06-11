@@ -1946,7 +1946,7 @@ export default {
             //1- Call api to delete all features.
             this.isDeleteAllBusy = true;
             http
-              .post("api/deleteAllScenarioData", {
+              .post("/api/map/deleteAllScenarioData", {
                 user_id: userId,
                 layer_names: layerNames,
                 scenario_id: this.activeScenario
