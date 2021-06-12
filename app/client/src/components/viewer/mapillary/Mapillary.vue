@@ -187,8 +187,10 @@ export default {
     createBaseOverlayLayer() {
       this.baseOverlayerLayer = new OlVectorTileLayer({
         name: "mapillaryBaseOverlay",
+        renderMode: "image",
         source: new OlVectorTileSource({
-          attributions: "© Mapillary",
+          attributions:
+            "© <a href='https://www.mapillary.com/'> Mapillary </a> ",
           format: new MVT(),
           tileGrid: createXYZ({ maxZoom: 14 }),
           tilePixelRatio: 16,
