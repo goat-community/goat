@@ -101,7 +101,7 @@
     },
     "edit": {
       "title": "Modifier",
-      "selectLayer": "Couche à éditer",
+      "layerToEdit": "Couche à éditer",
       "selectFeatures": "Sélectionner des éléments",
       "drawCircle": "Cliquez ici pour tracer un cercle",
       "selectOnMap": "Sélectionner des éléments sur la carte",

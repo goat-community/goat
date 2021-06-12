@@ -94,7 +94,7 @@
     },
     "edit": {
       "title": "Edito",
-      "selectLayer": "Shtresa për editim",
+      "layerToEdit": "Shtresa për editim",
       "selectFeatures": "Zgjidh objektet",
       "drawCircle": "Vizato një rreth për të zgjedhur objektet",
       "selectOnMap": "Zgjidh objektet duke klikuar në hartë",

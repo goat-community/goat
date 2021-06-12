@@ -17,6 +17,34 @@ export default {
   data() {
     return {
       exludedProps: ["id", "geom", "geometry", "layerName"],
+      attributes: {
+        sidewalk_quality: [
+          "sidewalk",
+          "width",
+          "smoothness",
+          "surface",
+          "wheelchair_classified"
+        ],
+        traffic_protection: [
+          "lanes",
+          "maxspeed",
+          "parking",
+          "cnt_accidents",
+          "noise_day",
+          "noise_night"
+        ],
+        security: ["lit_classified", "covered"],
+        vegetation: [],
+        walking_environment: ["landuse", "cnt_pois", "cnt_population"],
+        comfort: [
+          "cnt_benches",
+          "cnt_waste_baskets",
+          "cnt_toilets",
+          "cnt_fountains",
+          "slope"
+        ],
+        walkability: []
+      },
       colors: {
         very_bad: {
           lower: "#c10707",
@@ -53,7 +81,12 @@ export default {
           yAxes: [
             {
               ticks: {
-                beginAtZero: true
+                beginAtZero: true,
+                callback: value => {
+                  return (
+                    this.$t(`charts.indicators.${value}`) || humanize(value)
+                  );
+                }
               }
             }
           ],
@@ -67,6 +100,41 @@ export default {
               }
             }
           ]
+        },
+        tooltips: {
+          displayColors: false,
+          titleFontSize: 15,
+          bodyFontSize: 12,
+          titleFontStyle: "bold",
+          bodyFontStyle: "bold",
+          callbacks: {
+            title: function(tooltipItem) {
+              const attr = tooltipItem[0].label;
+              const label = this.$te(`charts.indicators.${attr}`)
+                ? this.$t(`charts.indicators.${attr}`)
+                : humanize(attr);
+              const value = tooltipItem[0].value;
+              return `${label}: ${value ? value : "--"}`;
+            }.bind(this),
+            label: function(tooltipItem) {
+              const labels = [];
+              const attrLabel = tooltipItem.label;
+              // const attrValue = tooltipItem.value;
+              const props = this.attributes[attrLabel];
+              if (Array.isArray(props)) {
+                props.forEach(prop => {
+                  const label = this.$te(`charts.indicators.${prop}`)
+                    ? this.$t(`charts.indicators.${prop}`)
+                    : humanize(prop);
+                  const value = this.feature.get(prop);
+                  if (label) {
+                    labels.push(`${label}: ${value ? value : "--"}`);
+                  }
+                });
+              }
+              return labels;
+            }.bind(this)
+          }
         }
       }
     };
@@ -108,14 +176,14 @@ export default {
   },
   computed: {
     indicators() {
-      const properties = Object.keys(this.feature.getProperties());
+      const properties = Object.keys(this.attributes);
       const labels = [];
       const data = [];
       const colorData = [];
       properties.forEach(prop => {
         if (!this.exludedProps.includes(prop)) {
           const value = this.feature.get(prop);
-          labels.push(this.$t(`charts.indicators.${prop}` || humanize(prop)));
+          labels.push(prop);
           data.push(this.feature.get(prop));
           // Find the correct color based on value
           let color;

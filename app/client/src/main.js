@@ -3,7 +3,8 @@
 import Vue from "vue";
 
 import vuetify from "@/plugins/vuetify";
-
+// eslint-disable-next-line no-unused-vars
+import http from "./services/http";
 import "./plugins/vuescroll";
 // Plugins
 import i18n from "./plugins/i18n";

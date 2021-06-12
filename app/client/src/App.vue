@@ -12,8 +12,12 @@
         fill-height
         class="pa-0"
       >
-        <app-viewer />
-        <snackbar />
+        <vue-scroll>
+          <v-row style="width:100%;" justify="center" align="center">
+            <app-viewer />
+            <snackbar />
+          </v-row>
+        </vue-scroll>
       </v-container>
     </v-content>
     <app-sidebar />

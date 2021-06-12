@@ -134,7 +134,12 @@
     },
     "edit": {
       "title": "Szenarien entwickeln",
-      "selectLayer": "Layer zum Bearbeiten",
+      "createScenario": "Szenario erstellen",
+      "editScenarioName": "Szenarioname bearbeiten",
+      "scenario": "Szenario",
+      "scenarioImportExport": "Szenario Import/Export",
+      "selectLayer": "Layer auswählen",
+      "layerToEdit": "Layer zum Bearbeiten",
       "selectFeatures": "Objekte auswählen",
       "drawCircle": "Kreis zeichnen, um Objekte auszuwählen",
       "selectOnMap": "Objekte auf Karte auswählen",
@@ -347,7 +352,7 @@
       "cantPrintBaseLayer": "Diese Basiskarte kann nicht gedruckt werden.",
       "cantExportScenario": "Ein Fehler ist aufgetreten. Szenario kann nicht exportiert werden!",
       "zoomInToShowFeatures": "Zoome um Objekte der folgenden Layer zu sehen",
-      "heatmapIsBusy": "Recomputing for heatmap layer might take some time. Please be patient!"
+      "heatmapIsBusy": "Die Neuberechung der Heatmap dauert etwas. Bitte bleiben Sie geduldig!"
     },
     "layerGroup": {
       "poisLayers": "POIs",
@@ -402,6 +407,8 @@
       "munichways": "Radwegequalität (Munichways)",
       "ways_surface": "Oberfläche",
       "ways_wheelchair": "Barrierefreiheit",
+      "footpath_visualization": "Walkability Index (Attraktivität der Fußwege)",
+      "ways_liveliness": "Belebtheit",
       "heatmap_connectivity": "Konnektivität",
       "heatmap_luptai": "Vergleich von Erreichbarkeit und Bevölkerungsdichte",
       "heatmap_population": "Bevölkerungsdichte",
@@ -429,7 +436,8 @@
       "pt_trips_rate": "Mit dem ÖV zurückgelegte Wege pro Person",
       "strata": "sozio-ökonomische Schichten",
       "study_area_crop": "Untersuchungsgebiet",
-      "study_area": "Ortsteile"
+      "study_area": "Ortsteile",
+      "ways_Project_Sidewalk": "Project Sidewalk Score"
     },
     "tooltips": {
       "clickForIsochroneCalculation": "Für Berechnung klicken",
@@ -623,6 +631,11 @@
     "kindergarten": "Kindergarten",
     "primary_school": "Grundschule",
     "secondary_school": "Weiterführende Schule",
+    "grundschule": "Grundschule",
+    "gymnasium": "Gymnasium",
+    "realschule": "Realschule",
+    "hauptschule_mittelschule": "Haupt-/Mittelschule",
+    "werkrealschule": "Werkrealschule",
     "school": "Schule",
     "library": "Bibliothek",
     "bar": "Bar",
@@ -791,14 +804,36 @@
   "charts": {
     "indicators": {
       "sidewalk_quality": "Bürgersteig Qualität",
-      "traffic_protection": ["Schutz vor", "Verkehrsstörungen"],
+      "traffic_protection": ["Schutz vor Verkehrsstörungen"],
       "security": "Sicherheit",
       "vegetation": "Vegetation",
       "walking_environment": "Gehumgebung",
       "comfort": "Komfort",
-      "sum_total": ["TOTAL WALKABILITY", "SCORE"],
+      "sum_total": ["<b>GESAMT WALKABILITY SCORE</b>"],
       "scale_label_indicators": "Indicators",
-      "scale_label_index": "Index"
+      "scale_label_index": "Index",
+
+      "sidewalk": "Gehwegverfügbarkeit",
+      "width": "Wegebreite",
+      "smoothness": "Ebenheit der Oberfläche",
+      "surface": "Oberflächenbelag",
+      "wheelchair_classified": "Rollstuhltauglichkeit",
+      "lanes": "Anzahl der Fahrspuren",
+      "oneway": "Oneway",
+      "maxspeed": "Erlaubt Maximalgeschwindigkeit",
+      "parking": "Parken am Straßenrand",
+      "cnt_accidents": "Anzahl der Unfälle mit Fußgängern",
+      "noise_day": "Lärmlevel - Tag",
+      "noise_night": "Lärmlevel - Nacht",
+      "lit_classified": "Beleuchtung",
+      "covered": "Tunnel / Überdachung",
+      "landuse": "Flächennutzung",
+      "cnt_pois": "POI Dichte",
+      "cnt_population": "Bevölkerungsdichte",
+      "cnt_benches": "Anzahl der Bänke",
+      "cnt_waste_baskets": "Anzahl der Mülleimer",
+      "cnt_toilets": "Anzahl der Toiletten",
+      "cnt_fountains": "Anzahl der Brunnen"
     }
   }
 }

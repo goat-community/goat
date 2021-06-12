@@ -1,0 +1,18 @@
+// See https://aka.ms/vscode-remote/containers for the
+// documentation about the devcontainer.json format
+{
+    "name": "API DevContainer",
+    "dockerComposeFile": [
+        "../../docker-compose.yaml"
+    ],
+    "service": "api",
+    "workspaceFolder": "/usr/src/app",
+    "shutdownAction": "none",
+    // Add the IDs of extensions you want installed when the container is created.
+    "extensions": [
+        "ms-python.python"
+    ],
+    "settings": {
+        "python.pythonPath": "/usr/bin/python3"
+    }
+}

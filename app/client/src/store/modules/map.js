@@ -22,7 +22,62 @@ const state = {
   editLayer: null,
   selectedEditLayer: null,
   isMapillaryBtnDisabled: false,
-  busyLayers: []
+  busyLayers: [],
+  print: {
+    active: false,
+    title: "",
+    crs: [{ display: "Web Mercator", value: "EPSG:3857" }],
+    selectedCrs: "EPSG:3857",
+    outputFormats: [
+      { display: "PDF", value: "pdf" },
+      { display: "PNG", value: "png" }
+    ],
+    selectedFormat: "pdf",
+    rotation: 0,
+    dpi: 150,
+    dpis: [300, 150, 75],
+    layout: {
+      name: "A4 landscape",
+      format: "a4",
+      orientation: "landscape",
+      size: [297, 210],
+      padding: 5 // in mm.
+    },
+    layouts: [
+      {
+        name: "A4 portrait",
+        format: "a4",
+        orientation: "portrait",
+        size: [210, 297],
+        padding: 5 // in mm.
+      },
+      {
+        name: "A4 landscape",
+        format: "a4",
+        orientation: "landscape",
+        size: [297, 210],
+        padding: 5 // in mm.
+      },
+      {
+        name: "A3 portrait",
+        format: "a3",
+        orientation: "portrait",
+        size: [297, 410],
+        padding: 10 // in mm.
+      },
+      {
+        name: "A3 landscape",
+        format: "a3",
+        orientation: "landscape",
+        size: [410, 297],
+        padding: 10 // in mm.
+      }
+    ],
+    legend: true,
+    grid: false,
+    scale: null,
+    scales: [500000, 100000, 50000, 25000, 10000, 5000, 2500, 500, 250, 100]
+  }
 };
 
 const getters = {
@@ -39,6 +94,7 @@ const getters = {
   selectedEditLayer: state => state.selectedEditLayer,
   isMapillaryBtnDisabled: state => state.isMapillaryBtnDisabled,
   busyLayers: state => state.busyLayers,
+  print: state => state.print,
   getField
 };
 

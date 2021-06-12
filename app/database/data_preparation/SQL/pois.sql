@@ -408,12 +408,12 @@ DO $$
             ( SELECT 1
               FROM   information_schema.tables 
               WHERE  table_schema = 'public'
-              AND    table_name = 'pois_insert_no_fusion'
+              AND    table_name = 'pois_custom_no_fusion'
             )
         THEN
 			INSERT INTO pois (origin_geometry,amenity,name,geom)
 			SELECT 'point', amenity, name, geom 
-			FROM pois_insert_no_fusion;
+			FROM pois_custom_no_fusion;
 		END IF;
     END
 $$ ;

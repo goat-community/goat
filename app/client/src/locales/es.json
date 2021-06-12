@@ -108,7 +108,7 @@
     },
     "edit": {
       "title": "Crear escenario",
-      "selectLayer": "Seleccione capa a editar",
+      "layerToEdit": "Seleccione capa a editar",
       "selectFeatures": "Seleccionar área a editar",
       "drawCircle": "Dibuje un círculo para seleccionar los elementos a editar",
       "selectOnMap": "Seleccione objetos en el mapa",

@@ -101,7 +101,7 @@
     },
     "edit": {
       "title": "Draw scenario",
-      "selectLayer": "Layer to edit",
+      "layerToEdit": "Layer to edit",
       "selectFeatures": "Select features",
       "drawCircle": "Draw a circle to select features",
       "selectOnMap": "Select features on map",

@@ -44,6 +44,25 @@
           </v-btn>
         </v-app-bar>
         <toolbar v-show="!osmMode"></toolbar>
+
+        <v-tabs
+          :color="activeColor.primary"
+          v-show="activeComponent === 'map-layertree'"
+          grow
+          v-model="layerTabIndex"
+        >
+          <v-tab>
+            <v-badge>
+              <b>All Layers</b>
+            </v-badge>
+          </v-tab>
+          <v-tab>
+            <v-badge>
+              <b>Active Layers</b>
+            </v-badge>
+          </v-tab>
+        </v-tabs>
+
         <vue-scroll v-show="!osmMode" ref="vs">
           <v-layout
             v-show="!osmMode"
@@ -98,6 +117,8 @@ import LayerTree from "../layers/layerTree/LayerTree";
 import Toolbar from "./Toolbar";
 import OsmMode from "./OsmMode";
 import { mapGetters, mapMutations } from "vuex";
+import { mapFields } from "vuex-map-fields";
+
 import { Isochrones } from "../../mixins/Isochrones";
 
 export default {
@@ -130,6 +151,9 @@ export default {
     }),
     ...mapGetters("app", {
       activeColor: "activeColor"
+    }),
+    ...mapFields("app", {
+      layerTabIndex: "layerTabIndex"
     })
   },
   mounted() {},

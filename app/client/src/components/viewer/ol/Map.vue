@@ -62,7 +62,7 @@
             <v-simple-table
               v-if="
                 getInfoResult[popup.currentLayerIndex].get('layerName') !==
-                  'indicators'
+                  'footpath_visualization'
               "
               dense
               class="pr-2"
@@ -145,7 +145,6 @@ import {
 } from "../../../utils/Layer";
 import { geojsonToFeature } from "../../../utils/MapUtils";
 import { Group as LayerGroup } from "ol/layer.js";
-import http from "../../../services/http";
 import axios from "axios";
 
 //Store imports
@@ -257,7 +256,8 @@ export default {
       layers: [],
       interactions: defaultInteractions({
         altShiftDragRotate: me.rotateableMap,
-        doubleClickZoom: false
+        doubleClickZoom: false,
+        mouseWheelZoom: true
       }).extend([this.dblClickZoomInteraction]),
       controls: defaultControls({
         attribution: false,
@@ -279,7 +279,6 @@ export default {
 
     // Setup context menu (right-click)
     me.setupContentMenu();
-
     // Event bus setup for managing interactions
     EventBus.$on("ol-interaction-activated", startedInteraction => {
       me.activeInteractions.push(startedInteraction);
@@ -357,6 +356,19 @@ export default {
           styleObj = stylesObj[layerName];
         }
         if (styleObj) {
+          if (styleObj.format === "geostyler") {
+            styleObj.style.rules.forEach(rule => {
+              //Set default filer if no filter is found for rule
+              if (!rule.filter) {
+                rule.filter = ["=="];
+              }
+
+              //Change Symbolizers outline color from rgba to hexa
+              if (rule.symbolizers[0].outlineColor === "rgba(0, 0, 255, 0.0)") {
+                rule.symbolizers[0].outlineColor = "#0000FF00";
+              }
+            });
+          }
           const olStyle = OlStyleFactory.getOlStyle(styleObj, layerName);
           if (olStyle) {
             if (olStyle instanceof Promise) {
@@ -524,18 +536,14 @@ export default {
       this.getInfoLayerSource.addFeature(
         this.getInfoResult[this.popup.currentLayerIndex]
       );
-
-      let closestPoint;
-      if (position) {
-        closestPoint = this.getInfoResult[this.popup.currentLayerIndex]
-          .getGeometry()
-          .getClosestPoint(coordinate || position[0]);
+      while (position && Array.isArray(position[0])) {
+        position = position[0];
       }
       this.map.getView().animate({
-        center: closestPoint,
+        center: position,
         duration: 400
       });
-      this.popupOverlay.setPosition(closestPoint);
+      this.popupOverlay.setPosition(position);
       this.popup.isVisible = true;
       this.popup.title = `info`;
     },
@@ -560,9 +568,8 @@ export default {
             return false;
           }
         });
-
-        this.map.getTarget().style.cursor =
-          features.length > 0 ? "pointer" : "";
+        const style = this.map.getTarget().style;
+        style && style.cursor == features.length > 0 ? "pointer" : "";
       });
     },
 
@@ -614,7 +621,6 @@ export default {
 
         //Check for isochrone features
         const features = me.map.getFeaturesAtPixel(evt.pixel, {
-          hitTolerance: 10,
           layerFilter: candidate => {
             if (candidate.get("name") === "Isochrone Layer") {
               return true;
@@ -632,11 +638,6 @@ export default {
 
           return;
         }
-        //
-
-        const coordinate = evt.coordinate;
-        const projection = me.map.getView().getProjection();
-        const resolution = me.map.getView().getResolution();
 
         me.queryableLayers = getAllChildLayers(me.map).filter(
           layer =>
@@ -678,36 +679,27 @@ export default {
               }
               break;
             }
-            case "WMS": {
-              let url = layer
-                .getSource()
-                .getFeatureInfoUrl(coordinate, resolution, projection, {
-                  INFO_FORMAT: "application/json"
-                });
-              promiseArray.push(
-                http.get(url, {
-                  data: { layerName: layer.get("name") }
-                })
-              );
-              break;
-            }
             default:
               break;
           }
         });
         if (promiseArray.length > 0) {
+          console.log(promiseArray);
           axios.all(promiseArray).then(function(results) {
+            console.log(results);
             results.forEach(response => {
-              const features = response.data.features;
-              const layerName = JSON.parse(response.config.data).layerName;
-              if (features && features.length === 0) {
-                return;
-              }
-              const olFeatures = geojsonToFeature(response.data, {});
-              olFeatures[0].set("layerName", layerName);
-              me.getInfoResult.push(olFeatures[0]);
-            });
+              if (response && response.data && response.data.features) {
+                const features = response.data.features;
+                const layerName = JSON.parse(response.config.data).layerName;
+                if (features && features.length === 0) {
+                  return;
+                }
+                const olFeatures = geojsonToFeature(response.data, {});
 
+                olFeatures[0].set("layerName", layerName);
+                me.getInfoResult.push(olFeatures[0]);
+              }
+            });
             if (me.getInfoResult.length > 0) {
               me.showPopup(evt.coordinate);
             }
@@ -767,6 +759,27 @@ export default {
         const feature = this.currentInfoFeature;
 
         let type = feature.get("osm_type");
+        if (!type && feature.get("orgin_geometry")) {
+          const originGeometry =
+            feature.getProperties()["orgin_geometry"] ||
+            feature
+              .getGeometry()
+              .getType()
+              .toLowerCase();
+          switch (originGeometry) {
+            case "polygon":
+            case "multipolygon":
+            case "linestring":
+              type = "way";
+              break;
+            case "point":
+              type = "node";
+              break;
+            default:
+              type = null;
+              break;
+          }
+        }
         link =
           `https://www.openstreetmap.org/edit?editor=id&` +
           `${type}` +

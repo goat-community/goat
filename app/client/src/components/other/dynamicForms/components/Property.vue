@@ -233,7 +233,7 @@
       <v-autocomplete
         v-else-if="fullSchema.isAutocomplete === true"
         v-model="modelWrapper[modelKey]"
-        :items="selectItems"
+        :items="translatedItems"
         :name="fullKey"
         :label="translateField(label)"
         :no-data-text="options.noDataMessage"
@@ -243,13 +243,9 @@
         :clearable="!required"
         @change="change"
         @input="input"
+        item-text="text"
+        item-value="value"
       >
-        <template slot="selection" slot-scope="{ item }">
-          {{ translateListValues(item) }}
-        </template>
-        <template slot="item" slot-scope="{ item }">
-          {{ translateListValues(item) }}
-        </template>
       </v-autocomplete>
 
       <!-- Select field of objects based on an enum (array or not) -->
@@ -879,6 +875,18 @@ export default {
       return `vjsf-property vjsf-property-${cleanKey} xs12 ${this.fullSchema[
         "x-class"
       ] || ""}`;
+    },
+    translatedItems() {
+      const translatedItems = [];
+      if (Array.isArray(this.selectItems) && this.selectItems.length > 0) {
+        this.selectItems.forEach(item => {
+          translatedItems.push({
+            value: item,
+            text: this.translateListValues(item)
+          });
+        });
+      }
+      return translatedItems;
     }
   },
   watch: {
