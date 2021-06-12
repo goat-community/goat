@@ -1027,12 +1027,12 @@
         "type": "XYZ",
         "name": "publicTransport",
         "group": "backgroundLayers",
-        "url": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
+        "url": "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=402ce1ca8eb54457bdf65e2b261c5132",
         "maxZoom": 18,
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
-        "attributions": "© <a href='https://www.memomaps.de/'>Memomaps</a>"
+        "attributions": "© <a href='https://www.thunderforest.com/'>Thunderforest</a>"
       },
       {
         "type": "BING",
