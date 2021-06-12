@@ -9,7 +9,6 @@
     <full-screen v-show="!miniViewOlMap" :color="activeColor.primary" />
     <progress-status :isNetworkBusy="isNetworkBusy" />
     <background-switcher v-show="!miniViewOlMap" />
-    <map-legend v-show="!miniViewOlMap" :color="activeColor.primary" />
     <!-- Popup overlay  -->
     <overlay-popup
       :color="activeColor.primary"
@@ -146,7 +145,6 @@ import { mapMutations, mapGetters, mapActions } from "vuex";
 //Map Controls
 import OverlayPopup from "./controls/Overlay";
 import MapLoadingProgressStatus from "./controls/MapLoadingProgressStatus";
-import Legend from "./controls/Legend";
 import BackgroundSwitcher from "./controls/BackgroundSwitcher";
 import ZoomControl from "./controls/ZoomControl";
 import FullScreen from "./controls/Fullscreen";
@@ -164,7 +162,6 @@ export default {
   components: {
     "overlay-popup": OverlayPopup,
     "progress-status": MapLoadingProgressStatus,
-    "map-legend": Legend,
     "background-switcher": BackgroundSwitcher,
     "zoom-control": ZoomControl,
     "full-screen": FullScreen

@@ -105,7 +105,7 @@
         "canEdit": true,
         "editDataType": "GeoJSON",
         "editGeometry": ["Point"],
-        "displayInLayerList": true,
+        "displayInLayerList": false,
         "displayInLegend": false,
         "zIndex": 7,
         "attributes": {
@@ -125,7 +125,7 @@
         "visible": false,
         "canEdit": false,
         "queryable": true,
-        "displayInLayerList": true,
+        "displayInLayerList": false,
         "zIndex": 0.5,
         "maxResolution": 20,
         "queryParams": [
