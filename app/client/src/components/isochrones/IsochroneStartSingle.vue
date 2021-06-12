@@ -20,7 +20,11 @@
     </v-subheader>
     <v-card-text v-show="isIsochroneStartElVisible" class="pt-0 pb-1 mt-0 mb-1">
       <v-layout row>
-        <v-flex xs7>
+        <v-flex
+          :class="
+            $appConfig.componentData.isochrones.isPPFActive ? 'xs7' : 'xs9'
+          "
+        >
           <v-autocomplete
             solo
             v-model="model"
@@ -82,7 +86,7 @@
             </v-tooltip>
           </span>
         </v-flex>
-        <v-flex xs2>
+        <v-flex v-if="$appConfig.componentData.isochrones.isPPFActive" xs2>
           <span v-if="!isBusy">
             <v-tooltip top>
               <template v-slot:activator="{ on }">

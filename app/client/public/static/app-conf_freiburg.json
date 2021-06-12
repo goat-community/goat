@@ -60,23 +60,23 @@
           "url": "./static/layer-styles/styles/study_area_crop.json"
         }
       },
-
       {
         "type": "WMS",
-        "name": "indicators",
-        "url": "/geoserver/wms",
-        "group": "Indicators",
-        "layers": "cite:indicators",
+        "name": "Flächennutzungsplan",
+        "url": "https://geoportal.freiburg.de/wms/stpla_fnp/stpla_fnp?",
+        "group": "buildings_landuse",
+        "layers": "stpla_fnp",
         "opacity": 1,
         "queryable": true,
-        "visible": true,
+        "visible": false,
         "canEdit": false,
-        "displayInLegend": true,
         "displayInLayerList": true,
-        "zIndex": 20,
-        "serverType": "geoserver"
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2021"
+        }
       },
-
       {
         "type": "VECTORTILE",
         "name": "ways",
@@ -99,6 +99,42 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lit.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "footpath_visualization",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_walkability.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "footpath_visualization",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_liveliness.json"
         }
       },
       {
@@ -251,24 +287,6 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "footpath_width",
-        "url": "/api/map/layer/footpath_width/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/footpath_width.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
         "name": "ways_lit",
         "url": "/api/map/layer/ways_lit/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -282,60 +300,6 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lit.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_lanes",
-        "url": "/api/map/layer/ways_lanes/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_lanes.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_parking",
-        "url": "/api/map/layer/ways_parking/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_parking.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_category",
-        "url": "/api/map/layer/ways_category/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_category.json"
         }
       },
       {
@@ -390,59 +354,6 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_surface.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_smoothness",
-        "url": "/api/map/layer/ways_smoothness/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_smoothness.json"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "footpath_visualization",
-        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 7,
-        "style": {
-          "format": "custom-logic"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_liveliness",
-        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 20,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_liveliness.json"
         }
       },
       {
@@ -512,50 +423,28 @@
         }
       },
       {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "munichways",
-        "url": "/api/map/layer/munichways/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
+        "type": "WMS",
+        "name": "Lärmkarte - Bahn Nacht",
+        "url": "https://geoportal.freiburg.de/wms/gut_laerm/gut_laerm?",
+        "group": "environmentalQualityLayers",
+        "layers": "bahn_nacht",
         "opacity": 1,
+        "queryable": true,
         "visible": false,
         "canEdit": false,
-        "queryable": true,
-        "displayInLayerList": true,
-        "zIndex": 2,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/munichways.json"
-        },
-        "attributes": {
-          "source": "munichWays",
-          "date": "2020"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "ways_wheelchair",
-        "url": "/api/map/layer/ways_wheelchair/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "visible": false,
-        "canEdit": false,
-        "queryable": true,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 10,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_wheelchair.json"
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2010"
         }
       },
       {
         "type": "WMS",
-        "name": "waterProtectionArea",
-        "url": "https://www.lfu.bayern.de/gdi/wms/wasser/wsg?",
+        "name": "Lärmkarte - Bahn Tag",
+        "url": "https://geoportal.freiburg.de/wms/gut_laerm/gut_laerm?",
         "group": "environmentalQualityLayers",
-        "layers": "twsg",
+        "layers": "bahn_tag",
         "opacity": 1,
         "queryable": true,
         "visible": false,
@@ -563,179 +452,59 @@
         "displayInLayerList": true,
         "zIndex": 1,
         "attributes": {
-          "source": "Bayerisches Landesamt für Umwelt",
+          "source": "FreiGIS",
+          "date": "2010"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "Lärmkarte - Straße Tag",
+        "url": "https://geoportal.freiburg.de/wms/gut_laerm/gut_laerm?",
+        "group": "environmentalQualityLayers",
+        "layers": "strasse_tag",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2015"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "Lärmkarte - Straße Nacht",
+        "url": "https://geoportal.freiburg.de/wms/gut_laerm/gut_laerm?",
+        "group": "environmentalQualityLayers",
+        "layers": "strasse_nacht",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2015"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "Landschaftsplan",
+        "url": "https://geoportal.freiburg.de/wms/stpla_landschaftsplan/stpla_landschaftsplan?",
+        "group": "environmentalQualityLayers",
+        "layers": "stpla_landschaftsplan",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
           "date": "2021"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "floodingAreasHQ100",
-        "url": "https://www.lfu.bayern.de/gdi/wms/wasser/ueberschwemmungsgebiete?",
-        "group": "environmentalQualityLayers",
-        "layers": "hwgf_hq100",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributes": {
-          "source": "Bayerisches Landesamt für Umwelt",
-          "date": "2020"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "dikes",
-        "url": "https://www.lfu.bayern.de/gdi/wms/wasser/hwsa?",
-        "group": "environmentalQualityLayers",
-        "layers": "deich",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributions": {
-          "source": "Bayerisches Landesamt für Umwelt",
-          "date": "2021"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "protectedLandscape",
-        "url": "https://www.lfu.bayern.de/gdi/wms/natur/schutzgebiete?",
-        "group": "environmentalQualityLayers",
-        "layers": "landschaftsschutzgebiet",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributes": {
-          "source": "Bayerisches Landesamt für Umwelt",
-          "date": "2020"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "noiseMainTrafficRoads",
-        "url": "https://www.lfu.bayern.de/gdi/wms/laerm/hauptverkehrsstrassen",
-        "group": "environmentalQualityLayers",
-        "layers": "mroadbylden",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributes": {
-          "source": "Bayerisches Landesamt für Umwelt",
-          "date": "2018"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "noiseAircraftLDEN",
-        "url": "https://www.lfu.bayern.de/gdi/wms/laerm/flughaefen?",
-        "group": "environmentalQualityLayers",
-        "layers": "mairlden",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributes": {
-          "source": "Bayerisches Landesamt für Umwelt",
-          "date": "2020"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "noiseAircraftLNight",
-        "url": "https://www.lfu.bayern.de/gdi/wms/laerm/flughaefen?",
-        "group": "environmentalQualityLayers",
-        "layers": "mairln",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributes": {
-          "source": "Bayerisches Landesamt für Umwelt",
-          "date": "2020"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "noiseProtectionBauleitplanung",
-        "url": "http://risby.bayern.de/RisGate/servlet/Regionalplanung",
-        "group": "environmentalQualityLayers",
-        "layers": "R16SLXF",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributes": {
-          "source": "Bayerisches Staatsministerium für Wirtschaft, Landesentwicklung und Energie",
-          "date": "2016"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "natureReserves",
-        "url": "https://www.lfu.bayern.de/gdi/wms/natur/schutzgebiete?",
-        "group": "environmentalQualityLayers",
-        "layers": "naturschutzgebiet",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributes": {
-          "source": "Bayerisches Landesamt für Umwelt",
-          "date": "2020"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "ffh-area",
-        "url": "https://www.lfu.bayern.de/gdi/wms/natur/schutzgebiete?",
-        "group": "environmentalQualityLayers",
-        "layers": "fauna_flora_habitat_gebiet",
-        "style": "cite:ffh",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributes": {
-          "source": "Bayerisches Landesamt für Umwelt",
-          "date": "2020"
-        }
-      },
-      {
-        "type": "WMS",
-        "name": "biotops",
-        "url": "https://www.lfu.bayern.de/gdi/wms/natur/biotopkartierung?",
-        "group": "environmentalQualityLayers",
-        "layers": "bio_fbk,bio_sbk,bio_abk",
-        "opacity": 1,
-        "queryable": true,
-        "visible": false,
-        "canEdit": false,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "attributes": {
-          "source": "Bayerisches Landesamt für Umwelt",
-          "date": "2020"
         }
       },
       {
@@ -850,46 +619,37 @@
         }
       },
       {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "bicycle_counting_stations",
-        "url": "/api/map/layer/bicycle_counting_stations/{z}/{x}/{y}",
+        "type": "WMS",
+        "name": "Winterdient",
+        "url": "https://geoportal.freiburg.de/wms/gut_winter/gut_winter?",
         "group": "additionalDataLayers",
+        "layers": "gut_winter",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/bicycle_counting_stations.json"
-        },
         "attributes": {
-          "source": "Open Data Portal Landeshauptstadt München",
-          "date": "2019"
+          "source": "FreiGIS",
+          "date": "2013"
         }
       },
       {
-        "type": "VECTOR",
-        "format": "GeoJSON",
-        "name": "modeshare",
-        "url": "/api/map/layer_read",
+        "type": "WMS",
+        "name": "Grundschulbezirke",
+        "url": "https://geoportal.freiburg.de/wms/abi_gsb/abi_gsb?",
         "group": "additionalDataLayers",
+        "layers": "abi_gsb",
         "opacity": 1,
         "queryable": true,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
-        "legendGraphicUrl": "./img/legend-graphics/legend_mode_share.png",
-        "queryParams": ["table_name"],
         "zIndex": 1,
-        "style": {
-          "format": "custom-logic"
-        },
         "attributes": {
-          "source": "Mobilität in Deutschland - infas",
-          "date": "2018"
+          "source": "FreiGIS",
+          "date": "2021"
         }
       },
       {
@@ -902,7 +662,7 @@
         "visible": false,
         "requiresPois": true,
         "zIndex": 1,
-        "docUrl": "https://plan4better.de/docs/walkability_population_heatmap/",
+        "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
         "queryParams": [
           "heatmap_type",
           "scenario_id_input",
@@ -939,7 +699,7 @@
         "visible": false,
         "requiresPois": true,
         "zIndex": 1,
-        "docUrl": "https://plan4better.de/docs/heatmap/",
+        "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
         "queryParams": [
           "heatmap_type",
           "scenario_id_input",
@@ -1054,7 +814,10 @@
         "name": "mapping_pois_opening_hours",
         "url": "/api/map/layer_read",
         "group": "osmMappingLayers",
-        "queryParams": ["table_name", "amenities"],
+        "queryParams": [
+          "table_name",
+          "amenities"
+        ],
         "opacity": 1,
         "queryable": true,
         "visible": false,
@@ -1290,9 +1053,9 @@
               "locked": false
             },
             {
-              "name": "Haupt- und Mittelschule",
-              "value": "hauptschule_mittelschule",
-              "icon": "hauptschule_mittelschule",
+              "name": "Hauptschule",
+              "value": "hauptschule",
+              "icon": "hauptschule",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
@@ -1398,7 +1161,7 @@
           "locked": false,
           "children": [
             {
-              "name": "Bike sharing",
+              "name": "Bicycle rental",
               "value": "bicycle_rental",
               "icon": "bicycle_rental",
               "weight": 1,
@@ -1451,76 +1214,6 @@
               "name": "Taxi",
               "value": "taxi",
               "icon": "taxi",
-              "weight": 1,
-              "sensitivity": 300000
-            }
-          ]
-        },
-        {
-          "name": "mobilitystations",
-          "categoryValue": "mobilitystations",
-          "locked": false,
-          "children": [
-            {
-              "name": "Bikesharing FFB",
-              "value": "bikesharing_ffb",
-              "icon": "bikesharing",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Carsharing FFB",
-              "value": "carsharing_ffb",
-              "icon": "carsharing",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Charging Station FFB",
-              "value": "charging_station_marker_ffb",
-              "icon": "charging_station_marker",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Charging Station Other FFB",
-              "value": "charging_station_other_ffb",
-              "icon": "charging_station_other",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Charging Station Public FFB",
-              "value": "charging_station_public_ffb",
-              "icon": "charging_station_public",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "E-Parking FFB",
-              "value": "e_parking_ffb",
-              "icon": "e_parking",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "L-Station FFB",
-              "value": "l-station_ffb",
-              "icon": "l-station",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "S-Station Prio 1 FFB",
-              "value": "s-station_prio1_ffb",
-              "icon": "s-station_prio1",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "S-Station Prio 2 FFB",
-              "value": "s-station_prio2_ffb",
-              "icon": "s-station_prio2",
               "weight": 1,
               "sensitivity": 300000
             }
@@ -1900,7 +1593,7 @@
           },
           {
             "categoryValue": "education",
-            "poisFiltered": ["primary_school", "secondary_school"]
+            "poisFiltered": ["primary_school", "secondary_school","gymnasium","realschule","hauptschule","werkrealschule"]
           }
         ]
       }
@@ -2045,8 +1738,7 @@
           "4": "rgb(090, 090, 090)",
           "5": "rgb(000, 000, 000)"
         }
-      },
-      "isPPFActive": false
+      }
     },
     "routing": {
       "default": "walking",

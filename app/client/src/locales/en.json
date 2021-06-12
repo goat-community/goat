@@ -396,6 +396,8 @@
       "munichways": "Cycleway Quality (Munichways)",
       "ways_surface": "Surface",
       "ways_wheelchair": "Wheelchair Usability",
+      "footpath_visualization": "Walkability Index",
+      "ways_liveliness": "Liveliness",
       "heatmap_connectivity": "Connectivity",
       "heatmap_luptai": "Comparison of Accessibility and Population Density",
       "heatmap_population": "Population Density",
@@ -818,14 +820,35 @@
   "charts": {
     "indicators": {
       "sidewalk_quality": "Sidewalk Quality",
-      "traffic_protection": ["Protection from", "traffic impacts"],
+      "traffic_protection": "Protection from traffic impacts",
       "security": "Security",
       "vegetation": "Vegetation",
       "walking_environment": "Walking environment",
       "comfort": "Comfort",
-      "sum_total": ["TOTAL WALKABILITY", "SCORE"],
+      "walkability": ["<b>TOTAL WALKABILITY SCORE<b/>"],
       "scale_label_indicators": "Indicators",
-      "scale_label_index": "Index"
+      "scale_label_index": "Index",
+
+      "sidewalk": "Sidewalk availability",
+      "width": "Sidewalk width",
+      "smoothness": "Smoothness",
+      "surface": "Surface",
+      "wheelchair_classified": "Wheelchair suitability",
+      "lanes": "Number of lanes",
+      "oneway": "Oneway",
+      "maxspeed": "Maxspeed",
+      "parking": "Parking",
+      "cnt_accidents": "Number of pedestrian accidents",
+      "noise_day": "Noise level - day",
+      "noise_night": "Noise level - night",
+      "lit_classified": "Illuminance",
+      "landuse": "Landuse",
+      "cnt_pois": "POI density",
+      "cnt_population": "Population density",
+      "cnt_benches": "Number of benches",
+      "cnt_waste_baskets": "Number of waste baskets",
+      "cnt_toilets": "Number of toilets",
+      "cnt_fountains": "Number of fountains"
     }
   }
 }

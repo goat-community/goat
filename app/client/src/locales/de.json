@@ -407,6 +407,8 @@
       "munichways": "Radwegequalität (Munichways)",
       "ways_surface": "Oberfläche",
       "ways_wheelchair": "Barrierefreiheit",
+      "footpath_visualization": "Walkability Index (Attraktivität der Fußwege)",
+      "ways_liveliness": "Belebtheit",
       "heatmap_connectivity": "Konnektivität",
       "heatmap_luptai": "Vergleich von Erreichbarkeit und Bevölkerungsdichte",
       "heatmap_population": "Bevölkerungsdichte",
@@ -802,14 +804,36 @@
   "charts": {
     "indicators": {
       "sidewalk_quality": "Bürgersteig Qualität",
-      "traffic_protection": ["Schutz vor", "Verkehrsstörungen"],
+      "traffic_protection": ["Schutz vor Verkehrsstörungen"],
       "security": "Sicherheit",
       "vegetation": "Vegetation",
       "walking_environment": "Gehumgebung",
       "comfort": "Komfort",
-      "sum_total": ["TOTAL WALKABILITY", "SCORE"],
+      "sum_total": ["<b>GESAMT WALKABILITY SCORE</b>"],
       "scale_label_indicators": "Indicators",
-      "scale_label_index": "Index"
+      "scale_label_index": "Index",
+
+      "sidewalk": "Gehwegverfügbarkeit",
+      "width": "Wegebreite",
+      "smoothness": "Ebenheit der Oberfläche",
+      "surface": "Oberflächenbelag",
+      "wheelchair_classified": "Rollstuhltauglichkeit",
+      "lanes": "Anzahl der Fahrspuren",
+      "oneway": "Oneway",
+      "maxspeed": "Erlaubt Maximalgeschwindigkeit",
+      "parking": "Parken am Straßenrand",
+      "cnt_accidents": "Anzahl der Unfälle mit Fußgängern",
+      "noise_day": "Lärmlevel - Tag",
+      "noise_night": "Lärmlevel - Nacht",
+      "lit_classified": "Beleuchtung",
+      "covered": "Tunnel / Überdachung",
+      "landuse": "Flächennutzung",
+      "cnt_pois": "POI Dichte",
+      "cnt_population": "Bevölkerungsdichte",
+      "cnt_benches": "Anzahl der Bänke",
+      "cnt_waste_baskets": "Anzahl der Mülleimer",
+      "cnt_toilets": "Anzahl der Toiletten",
+      "cnt_fountains": "Anzahl der Brunnen"
     }
   }
 }
