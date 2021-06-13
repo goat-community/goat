@@ -407,7 +407,8 @@
         "zIndex": 1,
         "maxResolution": 7,
         "style": {
-          "format": "custom-logic"
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/footpath_visualization.json"
         }
       },
       {

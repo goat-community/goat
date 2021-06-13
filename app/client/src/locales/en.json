@@ -831,7 +831,7 @@
       "walking_environment": "Walking environment",
       "data_quality": "Data Quality",
       "comfort": "Comfort",
-      "walkability": ["<b>TOTAL WALKABILITY SCORE<b/>"],
+      "walkability": ["TOTAL WALKABILITY SCORE"],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index",
 
