@@ -2085,7 +2085,17 @@
         "timeBasedCalculations": "no"
       }
     },
-    "edit": {}
+    "edit": {},
+    "layerTree": {
+      "groupIcons": {
+        "poisLayers": "fas fa-map-marker",
+        "buildings_landuse": "fas fa-home",
+        "streetlevelqualityLayers": "fas fa-road",
+        "environmentalQualityLayers": "fas fa-leaf",
+        "additionalDataLayers": "more",
+        "accessbilityBasemaps": "./static/layer-styles/assets/icons/_backgroundLayers/hexagon.svg"
+      }
+    }
   },
   "layerConf": {
     "ways": {
