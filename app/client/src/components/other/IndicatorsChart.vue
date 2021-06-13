@@ -43,6 +43,7 @@ export default {
           "cnt_fountains",
           "slope"
         ],
+        data_quality: [],
         walkability: []
       },
       colors: {

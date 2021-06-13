@@ -829,6 +829,7 @@
       "security": "Security",
       "vegetation": "Vegetation",
       "walking_environment": "Walking environment",
+      "data_quality": "Data Quality",
       "comfort": "Comfort",
       "walkability": ["<b>TOTAL WALKABILITY SCORE<b/>"],
       "scale_label_indicators": "Indicators",
