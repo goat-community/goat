@@ -258,7 +258,12 @@ export default {
           if (
             layer instanceof Group &&
             layer.get("name") != "undefined" &&
-            layer.get("name") != "osmMappingLayers"
+            layer.get("name") != "osmMappingLayers" &&
+            layer
+              .getLayers()
+              .getArray()
+              .filter(l => l.get("displayInLayerList") === false).length <
+              layer.getLayers().getArray().length
           ) {
             me.layers.push(obj);
           } else if (
