@@ -43,6 +43,7 @@ export default {
           "cnt_fountains",
           "slope"
         ],
+        data_quality: [],
         walkability: []
       },
       colors: {
@@ -182,9 +183,17 @@ export default {
       const colorData = [];
       properties.forEach(prop => {
         if (!this.exludedProps.includes(prop)) {
-          const value = this.feature.get(prop);
+          let value = this.feature.get(prop);
+
           labels.push(prop);
-          data.push(this.feature.get(prop));
+          // Data quality (edge case) multiple with 100 (REMOVE if value is between 0 and 100)
+          if (prop === "data_quality" && Number.isFinite(value)) {
+            value = value * 100;
+          }
+          if (Number.isFinite(value)) {
+            value = value.toFixed(0);
+          }
+          data.push(value);
           // Find the correct color based on value
           let color;
           let colorPercentage;

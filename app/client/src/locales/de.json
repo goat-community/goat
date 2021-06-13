@@ -808,6 +808,7 @@
       "security": "Sicherheit",
       "vegetation": "Vegetation",
       "walking_environment": "Gehumgebung",
+      "data_quality": "Data Quality",
       "comfort": "Komfort",
       "sum_total": ["<b>GESAMT WALKABILITY SCORE</b>"],
       "scale_label_indicators": "Indicators",
