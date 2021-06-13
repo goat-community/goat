@@ -180,12 +180,21 @@ class DataImport():
         for f in cleaned_files:
             self.import_raw_layer(path_data + f)
 
-    def restore_db(self,filepath):
+    def find_newest_dump(self, namespace):
+        fnames = []
+        backup_path = "/opt/backups"
+        for file in os.listdir(backup_path):
+            if file.endswith(".sql") and namespace == file.split('_')[0]:
+                fnames.append(file)
+        newest_file = sorted(fnames)[-1]
 
+        return os.path.join(backup_path, newest_file)
+
+    def restore_db(self,filepath):
         #newest_file = find_newest_dump(namespace)
         #Drop backup db tags as old DB
         subprocess.run('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (self.db_name+'old'), shell=True, check=True)
-        subprocess.run('psql -U postgres -c "DROP DATABASE %s;"' % (self.db_name+'old'), shell=True, check=True)
+        subprocess.run('psql -U postgres -c "DROP DATABASE IF EXISTS %s;"' % (self.db_name+'old'), shell=True, check=True)
         subprocess.run('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (self.db_name+'temp'), shell=True, check=True)
         subprocess.run('psql -U postgres -c "DROP DATABASE IF EXISTS %s;"' % (self.db_name+'temp'), shell=True, check=True)
         #Restore backup as temp db

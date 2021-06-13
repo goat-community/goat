@@ -1,4 +1,6 @@
 import subprocess, json, os
+
+
 class PrepareDatabase():
     """A couple of functions that help to prepare the GOAT database."""
     def __init__(self, read_yaml_config, is_temp, db_conn):
@@ -71,8 +73,16 @@ class PrepareLayers():
         self.db_name = self.db_conf["DB_NAME"]
         self.user = self.db_conf["USER"]
         self.host = self.db_conf["HOST"]
+        self.db_suffix = ''
         if is_temp == True: 
             self.db_name = self.db_name + 'temp'
+            self.db_suffix = 'temp'
+
+    def check_table_exists(self, table_name):
+        return self.db_conn.select('''SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE  table_schema = 'public'
+            AND    table_name   = %(table_name)s);''', params={"table_name": table_name})[0][0]
 
     def prepare_data(self, cls_import, cls_helper):
         raw_files = cls_helper.list_files_for_import(
@@ -111,17 +121,30 @@ class PrepareLayers():
     
     def ways(self):
         self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/network_preparation1.sql')
-
         vars_container = self.read_yaml_config.return_goat_conf()["DATA_REFINEMENT_VARIABLES"]["variable_container"]
+        if vars_container["compute_ways_slope"][1:-1] == 'yes':
+            from slope_profile import Profiles
+            slope_profiles = Profiles(db_suffix=self.db_suffix, ways_table='ways', filter_ways='''WHERE class_id::text NOT IN(SELECT UNNEST(select_from_variable_container(\'excluded_class_id_cycling\')))''' )
+            if self.check_table_exists('slope_profile_ways') == True: 
+                slope_profiles.update_line_tables()
+            else: 
+                self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/prepare_dem.sql')
+                slope_profiles.elevation_profile()
+                slope_profiles.compute_cycling_impedance()
+                slope_profiles.compute_average_slope()
 
-        if vars_container["compute_slope_impedance"][1:-1] == 'yes':
-            self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/prepare_dem.sql')
-            bulk_compute_slope(db_name_temp,user,port,host,password)
-        
         self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/network_preparation2.sql')
 
+    def walkability(self):   
+        from slope_profile import Profiles
         if (self.read_yaml_config.return_goat_conf()["DATA_REFINEMENT_VARIABLES"]["ADDITIONAL_WALKABILITY_LAYERS"] == 'yes'):
             self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/layer_preparation.sql')
+            self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/street_furniture.sql')
+
+        if (self.read_yaml_config.return_goat_conf()["DATA_REFINEMENT_VARIABLES"]["WALKABILITY_INDEX"] == 'yes'):
+            slope_profiles = Profiles(db_suffix=self.db_suffix, ways_table='footpath_visualization', filter_ways='')
+            slope_profiles.update_line_tables()
+            self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/walkability.sql')
 
     def mapping_tables(self):
         if (self.read_yaml_config.return_goat_conf()["DATA_REFINEMENT_VARIABLES"]["OSM_MAPPING_FEATURE"] == 'yes'):
@@ -131,4 +154,5 @@ class PrepareLayers():
         import datetime 
         from datetime import timedelta
         timestamp = str(datetime.datetime.now().date()-timedelta(days=1))
-        self.db_conn.perform('''INSERT INTO variable_container(identifier, variable_simple) VALUES ('data_recency',%(timestamp)s)''', params={"timestamp":timestamp}) 
+        self.db_conn.perform('''INSERT INTO variable_container(identifier, variable_simple) VALUES ('data_recency',%(timestamp)s)''', params={"timestamp":timestamp})
+
