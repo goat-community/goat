@@ -87,21 +87,8 @@ Security;Illumination;covered;building_passage;;;100;0.04
 Security;Illumination;covered;arcade;;;100;0.04
 Green and Blue index;Vegetation ;vegetation;yes;;;100;0.07
 Green and Blue index;Vegetation ;vegetation;no;;;0;0.07
-Green and Blue index;Vegetation ;water;yes;;;100;0.07
-Green and Blue index;Vegetation ;water;river;;;100;0.07
-Green and Blue index;Vegetation ;water;reservoir;;;100;0.07
-Green and Blue index;Vegetation ;water;lake;;;100;0.07
-Green and Blue index;Vegetation ;water;dam;;;90;0.07
-Green and Blue index;Vegetation ;water;reflecting_pool;;;70;0.07
-Green and Blue index;Vegetation ;water;water;;;60;0.07
-Green and Blue index;Vegetation ;water;canal;;;60;0.07
-Green and Blue index;Vegetation ;water;stream;;;50;0.07
-Green and Blue index;Vegetation ;water;fishpond;;;50;0.07
-Green and Blue index;Vegetation ;water;pond;;;40;0.07
-Green and Blue index;Vegetation ;water;well;;;20;0.07
-Green and Blue index;Vegetation ;water;ditch;;;20;0.07
-Green and Blue index;Vegetation ;water;drain;;;20;0.07
-Green and Blue index;Vegetation ;water;wastewater;;;0;0.07
+Green and Blue index;Vegetation ;water;large;;;100;0.07
+Green and Blue index;Vegetation ;water;small;;;50;0.07
 Attractiveness of the walking environment;Land-use ;landuse;industrial;;;0;0.05
 Attractiveness of the walking environment;Land-use ;landuse;military;;;0;0.05
 Attractiveness of the walking environment;Land-use ;landuse;transportation;;;20;0.05

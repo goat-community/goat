@@ -11,6 +11,8 @@ ALTER TABLE ways_vertices_pgr rename column the_geom to geom;
 ALTER TABLE ways alter column target type int4;
 ALTER TABLE ways alter column source type int4;
 
+CREATE INDEX ON ways USING GIST(geom);
+
 ALTER TABLE ways 
 ADD COLUMN bicycle text, ADD COLUMN foot TEXT, ADD COLUMN oneway TEXT; 
 

@@ -1,21 +1,23 @@
-
-
---THIS FILE NEEDS TO BE EXECUTED TO CREATE ALL NECESSARY TABLES FOR THE STREET LEVEL QUALITY LAYERS
-
 /*Collect deathends close to buildings*/
-DROP TABLE IF EXISTS ways_to_remove;
-CREATE TABLE ways_to_remove AS 
-SELECT DISTINCT w.id, class_id, w.SOURCE, w.target, 
-CASE WHEN death_end = SOURCE THEN SOURCE ELSE target END AS not_death_end_vertex, w.geom
-FROM ways w, buildings b
-WHERE death_end IS NOT NULL 
-AND highway NOT IN ('residential','living_street')
-AND ST_DWITHIN(w.geom, b.geom,  3 * meter_degree())
-AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
-AND (
-	w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
-	OR w.foot IS NULL 
-);
+DO $$
+	DECLARE 
+    	buffer float := meter_degree() * 3;
+    BEGIN 
+		DROP TABLE IF EXISTS ways_to_remove;
+		CREATE TABLE ways_to_remove AS
+		SELECT DISTINCT w.id, class_id, w.SOURCE, w.target, 
+		CASE WHEN death_end = SOURCE THEN SOURCE ELSE target END AS not_death_end_vertex, w.geom
+		FROM ways w, buildings b
+		WHERE death_end IS NOT NULL 
+		AND highway NOT IN ('residential','living_street')
+		AND ST_DWITHIN(w.geom, b.geom, buffer)
+		AND w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('excluded_class_id_walking'))) 
+		AND (
+			w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
+			OR w.foot IS NULL 
+		);
+	END; 
+$$;
 
 /*Remove deathends shorter then 20 meters*/
 ALTER TABLE ways_to_remove ADD PRIMARY KEY(id);
@@ -172,7 +174,7 @@ CREATE TABLE footpath_visualization
 	pois text, 
 	landuse text[],
 	vegetation integer, 
-	water text,
+	water integer,
 	street_furniture integer,  
 	sidewalk_quality integer,
 	traffic_protection integer, 
@@ -188,7 +190,7 @@ CREATE TABLE footpath_visualization
 
 INSERT INTO footpath_visualization(ways_id, osm_id, length_m, geom, sidewalk, width, highway, maxspeed, incline_percent, 
 lanes, lit, lit_classified, parking, segregated, smoothness, surface, wheelchair, wheelchair_classified)
-SELECT id, osm_id, ST_LENGHT(geom::geography), geom, w.sidewalk,
+SELECT id, osm_id, ST_LENGTH(geom::geography), geom, w.sidewalk,
 CASE WHEN w.sidewalk_left_width IS NOT NULL OR w.sidewalk_right_width IS NOT NULL OR w.sidewalk_both_width IS NOT NULL 
 THEN jsonb_build_object('sidewalk_left_width',sidewalk_left_width, 'sidewalk_right_width', sidewalk_right_width, 'sidewalk_both_width', sidewalk_both_width) 
 WHEN w.width IS NOT NULL THEN jsonb_build_object('width', width) 
