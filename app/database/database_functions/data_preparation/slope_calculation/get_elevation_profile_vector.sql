@@ -25,7 +25,7 @@ BEGIN
 	RETURN QUERY 
 	WITH points AS 
 	(
-		SELECT ROW_NUMBER() OVER() cnt, x.geom, len 
+		SELECT ROW_NUMBER() OVER() cnt, x.geom, x.len 
 		FROM (
 			SELECT st_startpoint(way_geom) AS geom, interval_ AS len
 			UNION ALL 
@@ -36,7 +36,7 @@ BEGIN
 	), 
 	elevs AS 
 	(
-		SELECT cnt AS gid, p.geom, SUM(idw.val/(idw.distance/translation_m_degree))/SUM(1/(idw.distance/translation_m_degree))::real AS elev, len
+		SELECT cnt AS gid, p.geom, SUM(idw.val/(idw.distance/translation_m_degree))/SUM(1/(idw.distance/translation_m_degree))::real AS elev, p.len
 		FROM points p
 		CROSS JOIN LATERAL 
 		(

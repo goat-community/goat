@@ -1,14 +1,13 @@
 from db.db import Database
-from shapely.wkt import loads
-from os import remove
-
 class Profiles:
     def __init__(self, db_suffix, ways_table, filter_ways):
         self.db_suffix = db_suffix
+        db = Database(self.db_suffix)
         self.ways_table = ways_table
         self.filter_ways = filter_ways
+        self.batch_size = 200
+        self.elevs_interval = 25
 
-        db = Database(self.db_suffix)
         conn = db.connect()
         cur = conn.cursor()
         
@@ -23,14 +22,6 @@ class Profiles:
         self.ids = [x[0] for x in ids]
 
         conn.close()
-
-        self.batch_size = 200
-        self.output_format = 'GeoJSON'
-        self.out_dir = '/opt/data/'
-        self.filename = self.out_dir + 'ways_profile_points.geojson'
-        self.profile_table = 'ways_profile'
-        self.impedance_table = 'ways_impedance'
-        self.elevs_interval = 25
         
         
     def elevation_profile(self): 
@@ -62,7 +53,7 @@ class Profiles:
             WITH way AS 
             (
                 SELECT id, geom, length_m
-                FROM ways 
+                FROM {0}
                 WHERE id = {1}
             )
             SELECT w.id, s.elevs, {2} elevs_interval, w.length_m
@@ -75,6 +66,13 @@ class Profiles:
             cur.execute(sql_elevs)
 
         conn.commit()
+
+        sql_null_false = '''UPDATE elevs_{0} 
+            SET elevs = NULL 
+            WHERE ARRAY_LENGTH(elevs,1) = 1
+        '''.format(self.ways_table)
+        cur.execute(sql_null_false)
+
         cur.execute('ALTER TABLE elevs_{0} ADD PRIMARY KEY (id);'.format(self.ways_table))
         conn.commit() 
         conn.close()
@@ -169,12 +167,42 @@ class Profiles:
 
         cur.execute(sql_merge_tables)
         cur.execute('ALTER TABLE slope_profile_{0} ADD PRIMARY KEY (id);'.format(self.ways_table))
+        cur.execute('CREATE INDEX ON slope_profile_{0} USING GIST(geom);'.format(self.ways_table))
         conn.commit()
         conn.close()
+    
+    def update_line_tables(self):
+        db = Database(self.db_suffix)
+        conn = db.connect() 
+        cur = conn.cursor()
+        if self.ways_table == 'ways':
+            sql_update = '''
+                UPDATE ways w  
+                SET s_imp = s.s_imp, rs_imp = s.rs_imp 
+                FROM slope_profile_ways s 
+                WHERE ST_EQUALS(w.geom, s.geom) 
+            '''
+        elif self.ways_table == 'footpaths_visualization': 
+            sql_update = '''
+                UPDATE footpath_visualization f
+                SET incline_percent = slope 
+                FROM slope_profile_footpath_visualization s 
+                WHERE ST_EQUALS(f.geom, s.geom) 
+            '''
+        else:
+            return {"Error": 'Please specify a valid table!'}
         
-slope_profiles = Profiles(db_suffix='',ways_table='ways', filter_ways='''WHERE class_id::text NOT IN(SELECT UNNEST(select_from_variable_container(\'excluded_class_id_cycling\')))''' )
+        cur.execute(sql_update)
+        conn.commit()
+        conn.close()
+
+
+#slope_profiles = Profiles(ways_table='ways', db_suffix='', filter_ways='''WHERE class_id::text NOT IN(SELECT UNNEST(select_from_variable_container(\'excluded_class_id_cycling\')))''' )
+#slope_profiles = Profiles(db_suffix='', ways_table='footpath_visualization', filter_ways='')
+
 #slope_profiles = Profiles(db_suffix='',ways_table='ways', filter_ways='''LIMIT 100''')
-slope_profiles.elevation_profile()
-slope_profiles.compute_cycling_impedance()
-slope_profiles.compute_average_slope()
-slope_profiles.create_export_table()
+#slope_profiles.elevation_profile()
+#slope_profiles.compute_cycling_impedance()
+#slope_profiles.compute_average_slope()
+#slope_profiles.create_export_table()
+#slope_profiles.update_line_tables()
