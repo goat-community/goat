@@ -232,7 +232,8 @@ export default {
 
     // Make map rotateable according to property
     const attribution = new Attribution({
-      collapsible: true
+      collapsible: true,
+      collapsed: false
     });
 
     //Need to reference as we should deactive double click zoom when there
