@@ -101,7 +101,7 @@ ALTER TABLE addresses_residential add primary key (gid);
 CREATE INDEX index_addresses_residential ON addresses_residential USING GIST (geom);
 
 CREATE TABLE study_area_union as
-SELECT ST_Collect(ST_MakePolygon(geom)) As geom
+SELECT 1 AS gid, ST_Collect(ST_MakePolygon(geom)) As geom
 FROM 
 (
    SELECT ST_ExteriorRing((ST_Dump(st_union(geom))).geom) As geom
@@ -109,7 +109,7 @@ FROM
 ) s;
 
 CREATE TABLE study_area_crop AS 
-SELECT ST_DIFFERENCE(ST_SETSRID(st_makeenvelope(-180, 85, 180, -85), 4326), geom) AS geom
+SELECT 1 AS gid, ST_DIFFERENCE(ST_SETSRID(st_makeenvelope(-180, 85, 180, -85), 4326), geom) AS geom
 FROM study_area_union; 
 
 -- Table: public.ways_modified

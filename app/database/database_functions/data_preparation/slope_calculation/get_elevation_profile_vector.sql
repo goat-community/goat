@@ -1,7 +1,7 @@
 /*This function get the average slope using an IDW and an elevation dataset as points.*/
-DROP FUNCTION IF EXISTS get_average_slope_vector;
-CREATE OR REPLACE FUNCTION get_average_slope_vector(way_geom geometry, length_meters float, translation_m_degree float, interval_ float default 10)
-	RETURNS SETOF FLOAT 
+DROP FUNCTION IF EXISTS get_elevation_profile_vector;
+CREATE OR REPLACE FUNCTION get_elevation_profile_vector(way_geom geometry, length_meters float, translation_m_degree float, interval_ float default 10)
+	RETURNS TABLE (elev float, len float)
 	LANGUAGE plpgsql
 AS $function$
 DECLARE 
@@ -25,7 +25,7 @@ BEGIN
 	RETURN QUERY 
 	WITH points AS 
 	(
-		SELECT ROW_NUMBER() OVER() cnt, x.geom, len 
+		SELECT ROW_NUMBER() OVER() cnt, x.geom, x.len 
 		FROM (
 			SELECT st_startpoint(way_geom) AS geom, interval_ AS len
 			UNION ALL 
@@ -36,7 +36,7 @@ BEGIN
 	), 
 	elevs AS 
 	(
-		SELECT cnt AS gid, p.geom, SUM(idw.val/(idw.distance/translation_m_degree))/SUM(1/(idw.distance/translation_m_degree))::real AS elev, len
+		SELECT cnt AS gid, p.geom, SUM(idw.val/(idw.distance/translation_m_degree))/SUM(1/(idw.distance/translation_m_degree))::real AS elev, p.len
 		FROM points p
 		CROSS JOIN LATERAL 
 		(
@@ -50,9 +50,8 @@ BEGIN
 		GROUP BY cnt, p.geom, p.len 
 		ORDER BY cnt
 	) 	
-	SELECT SUM(((t2.elev - t1.elev) / t2.len) * (t2.len/length_meters)) AS slope
-	FROM elevs t1, elevs t2 
-	WHERE t1.gid + 1 = t2.gid;
+	SELECT e.elev, e.len
+	FROM elevs e;
 
 END;
 $function$;
@@ -66,5 +65,5 @@ CREATE INDEX ON dem_vec USING GIST(geom);
 DROP TABLE test; 
 CREATE TABLE test AS 
 SELECT x.id, x.geom, abs(slope) * 100 AS slope 
-FROM (SELECT * FROM footpath_visualization f LIMIT 10000) x, get_average_slope_vector(geom, length_m, meter_degree(),10) slope 
+FROM (SELECT * FROM footpath_visualization f LIMIT 10000) x, get_elevation_profile_vector(geom, length_m, meter_degree(),10) slope 
  */
