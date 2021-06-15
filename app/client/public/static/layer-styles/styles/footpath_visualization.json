@@ -110,21 +110,6 @@
         }
       ],
       "filter": [">=", "walkability", "90"]
-    },
-    {
-      "name": "No Data",
-      "symbolizers": [
-        {
-          "kind": "Line",
-          "color": "#9b9b9b",
-          "width": 3
-        }
-      ],
-      "filter": [
-        "||",
-        ["==", "walkability", "NULL"],
-        ["==", "walkability", "undefined"]
-      ]
     }
   ]
 }
