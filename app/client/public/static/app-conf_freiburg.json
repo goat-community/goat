@@ -1198,6 +1198,13 @@
               "sensitivity": 300000
             },
             {
+              "name": "Cargo bike",
+              "value": "cargo_bike",
+              "icon": "cargo_bike",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
               "name": "Car sharing",
               "value": "car_sharing",
               "icon": "car_sharing",
