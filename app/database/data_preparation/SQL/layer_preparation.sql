@@ -206,6 +206,17 @@ AND (
 
 CREATE INDEX ON footpath_visualization USING gist(geom);
 
+WITH clipped_foothpaths AS 
+(
+	SELECT f.id, ST_Intersection(f.geom, s.geom) AS geom 
+	FROM footpath_visualization f, study_area_union s 
+	WHERE ST_Intersects(f.geom, st_boundary(s.geom)) 
+)
+UPDATE footpath_visualization f
+SET geom = c.geom 
+FROM clipped_foothpaths c 
+WHERE f.id = c.id; 
+
 --Table for visualization of parking
 DROP TABLE IF EXISTS parking;
 CREATE TABLE parking AS
