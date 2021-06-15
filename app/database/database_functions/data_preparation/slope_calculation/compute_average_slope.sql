@@ -18,7 +18,7 @@ BEGIN
 		ELSE lengthInterval END AS len, linkLength, elev 
 		FROM LATERAL UNNEST(elevs) elev
 	)
-	SELECT abs(SUM(((t2.elev - t1.elev) / t2.len) * (t2.len/t2.linkLength))) * 100 
+	SELECT SUM(abs(((t2.elev - t1.elev) / t2.len)) * (t2.len/t2.linkLength)) * 100 
 	INTO slope
 	FROM elevs t1, elevs t2 
 	WHERE t1.gid + 1 = t2.gid;
@@ -27,7 +27,6 @@ BEGIN
 
 END ;
 $function$ IMMUTABLE;
-
 /*
 SELECT compute_average_slope(elevs, length_m, elevs_interval ) 
 FROM (SELECT * FROM elevs_ways e LIMIT 1) x 
