@@ -1,5 +1,5 @@
 import subprocess, json, os
-from db.db import Database
+from scripts.db.db import Database
 class PrepareDatabase():
     """A couple of functions that help to prepare the GOAT database."""
     def __init__(self, read_yaml_config, is_temp, db_conn):
