@@ -803,13 +803,13 @@
   },
   "charts": {
     "indicators": {
-      "sidewalk_quality": "Bürgersteig Qualität",
+      "sidewalk_quality": "Gehkomfort",
       "traffic_protection": ["Schutz vor Verkehrsstörungen"],
       "security": "Sicherheit",
-      "vegetation": "Vegetation",
+      "vegetation": "Vegetation und Gewässer",
       "walking_environment": "Gehumgebung",
-      "data_quality": "Data Quality",
-      "comfort": "Komfort",
+      "data_quality": "Daten Qualität",
+      "comfort": "Urbane Austattung",
       "sum_total": ["<b>GESAMT WALKABILITY SCORE</b>"],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index",

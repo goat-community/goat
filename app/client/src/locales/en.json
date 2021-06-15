@@ -824,10 +824,10 @@
   },
   "charts": {
     "indicators": {
-      "sidewalk_quality": "Sidewalk Quality",
+      "sidewalk_quality": "Walking Comfort",
       "traffic_protection": "Protection from traffic impacts",
       "security": "Security",
-      "vegetation": "Vegetation",
+      "vegetation": "Vegetation and Waters",
       "walking_environment": "Walking environment",
       "data_quality": "Data Quality",
       "comfort": "Comfort",
