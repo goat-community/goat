@@ -280,8 +280,8 @@
           "url": "./static/layer-styles/styles/study_area.json"
         },
         "attributes": {
-          "source": "Landeshauptstadt München",
-          "date": "2020"
+          "source": "FreiGIS",
+          "date": "2021"
         }
       },
       {
@@ -300,6 +300,12 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lit.json"
+        },
+        "attributes": {
+          "source": "OpenStreetMap",
+          "date": "07-03-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -318,6 +324,10 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_category_aggregated.json"
+        },
+        "attributes": {
+          "source": "OpenStreetMap",
+          "date": "07-03-2021"
         }
       },
       {
@@ -375,7 +385,9 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "07-03-2021"
+          "date": "07-03-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -396,8 +408,10 @@
           "url": "./static/layer-styles/styles/street_furniture.json"
         },
         "attributes": {
-          "source": "openStreetMap",
-          "date": "07-03-2021"
+          "source": "OpenStreetMap",
+          "date": "07-03-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -419,7 +433,9 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "07-03-2021"
+          "date": "07-03-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
