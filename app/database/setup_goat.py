@@ -51,6 +51,8 @@ db_conn = Database()
 data_import = DataImport(ReadYAML(), False, db_conn)
 prepare_database = PrepareDatabase(ReadYAML(), False, db_conn)
 
+
+
 #Define command line options
 help_text_type = '''Please define the setup type. 
              1. -t new_setup             Do a completely fresh setup and drop your old database.
