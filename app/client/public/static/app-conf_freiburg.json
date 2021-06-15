@@ -1012,6 +1012,20 @@
           "source": "Statistische Ämter des Bundes und der Länder",
           "date": "2011"
         }
+      },
+      {
+        "name": "Bikesharing",
+        "attributes": {
+          "source": "MobiDataBW",
+          "date": "01.09.2020"
+        }
+      },
+      {
+        "name": "Lastenräder",
+        "attributes": {
+          "source": "LastenVelo Freiburg e.V.",
+          "date": "16.03.2021"
+        }
       }
     ],
     "controls": [
