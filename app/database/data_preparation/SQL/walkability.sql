@@ -319,6 +319,7 @@ round(group_index(
 		select_weight_walkability_range('lanes',lanes),
 		select_weight_walkability_range('maxspeed',maxspeed),
 		select_weight_walkability_range('crossings',cnt_crossings),
+		select_weight_walkability_range('accidents',cnt_accidents),
 		select_weight_walkability_range('noise',noise_day::numeric),
 		select_weight_walkability('parking',parking)
 	],
@@ -326,6 +327,7 @@ round(group_index(
 		select_full_weight_walkability('lanes'),
 		select_full_weight_walkability('maxspeed'),
 		select_full_weight_walkability('crossings'),
+		select_full_weight_walkability('accidents'),
 		select_full_weight_walkability('noise'),
 		select_full_weight_walkability('parking')
 	]
@@ -348,7 +350,7 @@ UPDATE footpath_visualization f
 SET covered = p.tunnel
 FROM planet_osm_line p
 WHERE f.osm_id = p.osm_id
-AND f.covered IS NULL;
+AND p.tunnel IS NOT NULL;
 
 UPDATE footpath_visualization f 
 SET covered = 'no'
@@ -413,6 +415,10 @@ round(group_index(
 		select_full_weight_walkability('covered')
 	]
 ),0);
+
+----##########################################################################################################################----
+----#####################################################GREEN & BLUE#############################################################----
+----##########################################################################################################################----
 
 DROP TABLE IF EXISTS green_ndvi_vec; 
 CREATE TABLE green_ndvi_vec AS 
@@ -785,9 +791,9 @@ FROM weighting w
 WHERE f.id = w.id; 
 
 UPDATE footpath_visualization f 
-SET data_quality = (22-num_nulls(maxspeed,incline_percent,lanes,noise_day,noise_night,
-lit_classified,parking,sidewalk,smoothness,surface,wheelchair_classified,cnt_crossings,cnt_accidents,cnt_benches,
-cnt_waste_baskets,cnt_fountains,cnt_toilets,population,pois,landuse,green_blue_index))::float/21.0;
+SET data_quality = (22-num_nulls(sidewalk,incline_percent,surface,highway,lanes,maxspeed,cnt_crossings,parking,
+cnt_accidents,noise_day,noise_night,lit_classified,covered,vegetation,water,population,pois,landuse,
+cnt_benches,cnt_waste_baskets,cnt_fountains,cnt_toilets))::float/22.0;
 
 UPDATE footpath_visualization 
 SET walkability = (walkability - 30) / 0.7;

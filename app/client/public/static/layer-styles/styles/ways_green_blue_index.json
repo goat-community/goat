@@ -20,7 +20,7 @@
         {
           "kind": "Line",
           "color": "#f7fcf5",
-          "width": 1,
+          "width": 3,
           "join": "bevel",
           "cap": "square"
         }
@@ -45,7 +45,7 @@
         {
           "kind": "Line",
           "color": "#caeac3",
-          "width": 1,
+          "width": 3,
           "join": "bevel",
           "cap": "square"
         }
@@ -70,7 +70,7 @@
         {
           "kind": "Line",
           "color": "#7bc87c",
-          "width": 1,
+          "width": 3,
           "join": "bevel",
           "cap": "square"
         }
@@ -95,7 +95,7 @@
         {
           "kind": "Line",
           "color": "#2a924a",
-          "width": 1,
+          "width": 3,
           "join": "bevel",
           "cap": "square"
         }
@@ -120,7 +120,7 @@
         {
           "kind": "Line",
           "color": "#00441b",
-          "width": 1,
+          "width": 3,
           "join": "bevel",
           "cap": "square"
         }

@@ -22,20 +22,20 @@ export default {
         traffic_protection: [
           "lanes",
           "maxspeed",
+          "crossings",
           "parking",
           "cnt_accidents",
           "noise_day",
           "noise_night"
         ],
         security: ["lit_classified", "covered"],
-        vegetation: [],
+        green_blue_index: ["vegetation", "water"],
         liveliness: ["landuse", "pois", "population"],
         comfort: [
           "cnt_benches",
           "cnt_waste_baskets",
           "cnt_toilets",
-          "cnt_fountains",
-          "slope"
+          "cnt_fountains"
         ],
         data_quality: [],
         walkability: []
