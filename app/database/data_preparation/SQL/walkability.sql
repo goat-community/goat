@@ -79,18 +79,6 @@ AND maxspeed_forward IS NOT NULL;
 CREATE INDEX ON maxspeed_buffer USING GIST(geom);
 
 UPDATE footpath_visualization 
-SET maxspeed = 10
-WHERE highway IN ('path','track');
-
-UPDATE footpath_visualization 
-SET maxspeed = 5 
-WHERE highway IN ('footway','pedestrian');
-
-UPDATE footpath_visualization 
-SET maxspeed = 0
-WHERE highway IN ('steps');
-
-UPDATE footpath_visualization 
 SET lanes = 0 
 WHERE highway IN ('footway','pedestrian','steps','cycleway');
 
