@@ -1,5 +1,5 @@
 {
-  "name": "ways_liveliness",
+  "name": "ways_comfort",
   "rules": [
     {
       "name": "very_low",
@@ -7,19 +7,19 @@
         "&&",
         [
           ">=",
-          "liveliness",
+          "comfort",
           "0"
         ],
         [
           "<=",
-          "liveliness",
+          "comfort",
           "20"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#f7fbff",
+          "color": "#fcfbfd",
           "width": 1,
           "join": "bevel",
           "cap": "square"
@@ -32,19 +32,19 @@
         "&&",
         [
           ">",
-          "liveliness",
+          "comfort",
           "20"
         ],
         [
           "<=",
-          "liveliness",
+          "comfort",
           "40"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#c8ddf0",
+          "color": "#dcdcec",
           "width": 1,
           "join": "bevel",
           "cap": "square"
@@ -57,19 +57,19 @@
         "&&",
         [
           ">",
-          "liveliness",
+          "comfort",
           "40"
         ],
         [
           "<=",
-          "liveliness",
+          "comfort",
           "60"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#73b3d8",
+          "color": "#a3a0cb",
           "width": 1,
           "join": "bevel",
           "cap": "square"
@@ -82,19 +82,19 @@
         "&&",
         [
           ">",
-          "liveliness",
+          "comfort",
           "60"
         ],
         [
           "<=",
-          "liveliness",
+          "comfort",
           "80"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#2879b9",
+          "color": "#6a51a3",
           "width": 1,
           "join": "bevel",
           "cap": "square"
@@ -107,19 +107,19 @@
         "&&",
         [
           ">",
-          "liveliness",
+          "comfort",
           "80"
         ],
         [
           "<=",
-          "liveliness",
+          "comfort",
           "100"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#08306b",
+          "color": "#3f007d",
           "width": 1,
           "join": "bevel",
           "cap": "square"
