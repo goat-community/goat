@@ -174,6 +174,42 @@
         }
       },
       {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_security",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_security.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_green_blue_index",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_green_blue_index.json"
+        }
+      },
+      {
         "type": "VECTOR",
         "format": "GeoJSON",
         "url": "/api/map/layer_read",
