@@ -35,7 +35,7 @@ export default {
         ],
         security: ["lit_classified", "covered"],
         vegetation: [],
-        walking_environment: ["landuse", "cnt_pois", "cnt_population"],
+        liveliness: ["landuse", "cnt_pois", "cnt_population"],
         comfort: [
           "cnt_benches",
           "cnt_waste_baskets",

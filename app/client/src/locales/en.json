@@ -829,7 +829,7 @@
       "traffic_protection": "Protection from traffic impacts",
       "security": "Security",
       "vegetation": "Vegetation and Waters",
-      "walking_environment": "Walking environment",
+      "liveliness": "Walking environment",
       "data_quality": "Data Quality",
       "comfort": "Comfort",
       "walkability": ["TOTAL WALKABILITY SCORE"],

@@ -808,7 +808,7 @@
       "traffic_protection": ["Schutz vor Verkehrsstörungen"],
       "security": "Sicherheit",
       "vegetation": "Vegetation und Gewässer",
-      "walking_environment": "Gehumgebung",
+      "liveliness": "Gehumgebung",
       "data_quality": "Daten Qualität",
       "comfort": "Urbane Austattung",
       "sum_total": ["<b>GESAMT WALKABILITY SCORE</b>"],

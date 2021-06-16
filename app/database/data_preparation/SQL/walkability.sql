@@ -20,7 +20,7 @@ WHERE surface NOT IN ('paved','asphalt','concrete','concrete:lanes','paving_ston
 UPDATE footpath_visualization f
 SET incline_percent = slope 
 FROM slope_profile_footpath_visualization s 
-WHERE ST_EQUALS(f.geom, s.geom) 
+WHERE ST_EQUALS(f.geom, s.geom);
 
 UPDATE footpath_visualization 
 SET surface = 'unpaved' 
@@ -520,7 +520,7 @@ DO $$
     	buffer float := meter_degree() * 50;
     BEGIN 
 		
-	    DROP TABLE landuse_arrays; 
+	    DROP TABLE IF EXISTS landuse_arrays; 
 	    CREATE TABLE landuse_arrays AS 
 	    WITH landuse_footpath AS 
 	    (
@@ -601,7 +601,7 @@ WITH landuse_values AS
 	LEFT JOIN penalty_shares p 
 	ON f.id = p.id 	
 )
-UPDATE footpath_visualization f SET walking_environment = 
+UPDATE footpath_visualization f SET liveliness = 
 round(group_index(
 	ARRAY[
 		l.value::NUMERIC, 
@@ -717,16 +717,16 @@ WITH weighting AS
 	CASE WHEN security IS NULL THEN 0 ELSE 0.14 END AS security_weight,
 	CASE WHEN traffic_protection IS NULL THEN 0 ELSE 0.21 END AS traffic_protection_weight,
 	CASE WHEN sidewalk_quality IS NULL THEN 0 ELSE 0.29 END AS sidewalk_quality_weight,
-	CASE WHEN walking_environment IS NULL THEN 0 ELSE 0.14 END AS walking_environment_weight     
+	CASE WHEN liveliness IS NULL THEN 0 ELSE 0.14 END AS liveliness_weight     
 	FROM footpath_visualization 
 )
 UPDATE footpath_visualization f
 SET walkability  = 
 round(
 	((vegetation*vegetation_weight) + (security*security_weight) 
-	+ (traffic_protection*traffic_protection_weight) + (sidewalk_quality*sidewalk_quality_weight) + (walking_environment*walking_environment_weight))
+	+ (traffic_protection*traffic_protection_weight) + (sidewalk_quality*sidewalk_quality_weight) + (liveliness*liveliness_weight))
 	/
-	(vegetation_weight + security_weight + traffic_protection_weight + sidewalk_quality_weight + walking_environment_weight)
+	(vegetation_weight + security_weight + traffic_protection_weight + sidewalk_quality_weight + liveliness_weight)
 ,0) + COALESCE(comfort,0) * comfort_weight 
 FROM weighting w 
 WHERE f.id = w.id; 
