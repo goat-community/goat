@@ -1,5 +1,5 @@
 {
-  "name": "ways_security",
+  "name": "ways_sidewalk_quality",
   "rules": [
     {
       "name": "very_low",
@@ -7,19 +7,19 @@
         "&&",
         [
           ">=",
-          "security",
+          "sidewalk_quality",
           "0"
         ],
         [
           "<=",
-          "security",
+          "sidewalk_quality",
           "20"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#d7191c",
+          "color": "#fcfbfd",
           "width": 3,
           "join": "bevel",
           "cap": "square"
@@ -32,19 +32,19 @@
         "&&",
         [
           ">",
-          "security",
+          "sidewalk_quality",
           "20"
         ],
         [
           "<=",
-          "security",
+          "sidewalk_quality",
           "40"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#fdae61",
+          "color": "#dcdcec",
           "width": 3,
           "join": "bevel",
           "cap": "square"
@@ -57,19 +57,19 @@
         "&&",
         [
           ">",
-          "security",
+          "sidewalk_quality",
           "40"
         ],
         [
           "<=",
-          "security",
+          "sidewalk_quality",
           "60"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#ffffbf",
+          "color": "#a3a0cb",
           "width": 3,
           "join": "bevel",
           "cap": "square"
@@ -82,19 +82,19 @@
         "&&",
         [
           ">",
-          "security",
+          "sidewalk_quality",
           "60"
         ],
         [
           "<=",
-          "security",
+          "sidewalk_quality",
           "80"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#a6d96a",
+          "color": "#6a51a3",
           "width": 3,
           "join": "bevel",
           "cap": "square"
@@ -107,19 +107,19 @@
         "&&",
         [
           ">",
-          "security",
+          "sidewalk_quality",
           "80"
         ],
         [
           "<=",
-          "security",
+          "sidewalk_quality",
           "100"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#1a9641",
+          "color": "#3f007d",
           "width": 3,
           "join": "bevel",
           "cap": "square"
