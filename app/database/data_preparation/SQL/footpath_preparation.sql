@@ -1,3 +1,143 @@
+/*Defines maxspeed based on neighboring links and assumption per highway category.*/
+DROP TABLE IF EXISTS ways_maxspeed; 
+CREATE TEMP TABLE ways_maxspeed AS 
+SELECT w.id, w.highway, w.SOURCE, w.target, w.maxspeed_forward, 
+CASE WHEN (p.tags -> 'maxspeed')~E'^\\d+$' THEN (p.tags -> 'maxspeed')::integer ELSE NULL END AS maxspeed, w.geom   
+FROM ways w, planet_osm_line p 
+WHERE maxspeed_forward IS NOT NULL
+AND w.osm_id = p.osm_id; 
+
+ALTER TABLE ways_maxspeed ADD PRIMARY KEY(id);
+CREATE INDEX ON ways_maxspeed (SOURCE); 
+CREATE INDEX ON ways_maxspeed (target); 
+
+
+DROP TABLE IF EXISTS maxspeed_not_defined;
+CREATE TEMP TABLE maxspeed_not_defined AS 
+SELECT DISTINCT w2.id, w2.highway, w2.SOURCE, w2.target, w2.maxspeed, w2.geom
+FROM ways_maxspeed w2 
+WHERE w2.maxspeed IS NULL 
+AND w2.highway IN ('motorway','motorway_link','primary','primary_link','secondary','secondary_link','trunk','trunk_link','tertiary','tertiary_link','residential','service','unclassified');
+
+ALTER TABLE maxspeed_not_defined ADD PRIMARY KEY(id);
+CREATE INDEX ON maxspeed_not_defined (SOURCE); 
+CREATE INDEX ON maxspeed_not_defined (target); 
+
+DROP TABLE IF EXISTS maxspeed_complemented;
+CREATE TEMP TABLE maxspeed_complemented
+(
+	id integer,
+	highway TEXT,
+	SOURCE integer,
+	target integer, 
+	maxspeed integer,
+	geom geometry
+);
+
+DO $$
+	DECLARE 
+		way_id integer;
+		cnt integer := 0;
+	BEGIN 
+		
+		DROP TABLE IF EXISTS result_recursive;
+		CREATE TABLE result_recursive
+		(
+			id integer,
+			highway TEXT,
+			SOURCE integer,
+			target integer, 
+			maxspeed integer,
+			geom geometry
+		);
+
+		FOR way_id IN 
+		SELECT DISTINCT w1.id
+		FROM ways_maxspeed w1, ways_maxspeed w2 
+		WHERE w1.maxspeed IS NOT NULL 
+		AND w2.maxspeed IS NULL 
+		AND w1.highway IN ('motorway','motorway_link','primary','primary_link','secondary','secondary_link','trunk','trunk_link','tertiary','tertiary_link','residential','service','unclassified')
+		AND w2.highway IN ('motorway','motorway_link','primary','primary_link','secondary','secondary_link','trunk','trunk_link','tertiary','tertiary_link','residential','service','unclassified')
+		AND (
+			(w1.SOURCE = w2.SOURCE OR w1.target = w2.target)
+			OR 
+			(w1.SOURCE = w2.target OR w1.target = w2.source)
+		)		
+		LOOP 
+		
+			cnt = cnt + 1;
+			IF (SELECT count(*) FROM (SELECT * FROM maxspeed_not_defined LIMIT 1) x) = 0 THEN
+				EXIT;
+			END IF; 
+	
+			TRUNCATE result_recursive; 
+			INSERT INTO result_recursive
+			WITH RECURSIVE subordinates AS (
+				SELECT id, highway, SOURCE, target, maxspeed, geom
+				FROM ways_maxspeed 
+				WHERE id = way_id
+				UNION
+				SELECT w.id, w.highway, w.SOURCE, w.target, s.maxspeed, w.geom
+				FROM maxspeed_not_defined w, subordinates s
+				WHERE s.highway = w.highway
+				AND 
+				(
+					(s.SOURCE = w.SOURCE OR s.target = w.target)
+					OR 
+					(s.SOURCE = w.target OR s.target = w.source)
+				)
+			) 
+			SELECT *
+			FROM subordinates;
+				
+			DELETE FROM maxspeed_not_defined n
+			USING result_recursive r
+			WHERE n.id = r.id; 
+		
+			INSERT INTO maxspeed_complemented 
+			SELECT * 
+			FROM result_recursive; 
+		END LOOP; 
+		DROP TABLE result_recursive;
+	END; 
+$$
+
+ALTER TABLE maxspeed_complemented ADD PRIMARY KEY(id);
+
+DO $$
+	DECLARE 
+		backup_speed_classification jsonb := '{
+			"path": 5,
+			"track": 10,
+			"steps": 0,
+			"residential": 30,
+			"motorway": 130,
+			"motorway_link": 80,
+			"trunk": 100,
+			"trunk_link": 80,
+			"footway": 5,
+		    "pedestrian": 5,
+			"living_street": 7
+		}'::jsonb; 
+	BEGIN 
+		DROP TABLE IF EXISTS classified_maxspeed;
+		CREATE TEMP TABLE classified_maxspeed AS 
+		SELECT w.id, w.highway, 
+		CASE WHEN c.maxspeed IS NOT NULL THEN c.maxspeed 
+		WHEN w.maxspeed IS NULL THEN (backup_speed_classification ->> w.highway)::integer
+		ELSE w.maxspeed END AS maxspeed, w.geom  
+		FROM ways_maxspeed w
+		LEFT JOIN maxspeed_complemented c  
+		ON w.id = c.id; 
+		ALTER TABLE classified_maxspeed ADD PRIMARY KEY(id);
+		
+		UPDATE ways w
+		SET maxspeed_forward = c.maxspeed
+		FROM classified_maxspeed c
+		WHERE c.id = w.id; 
+	END; 
+$$;
+
 /*Collect deathends close to buildings*/
 DO $$
 	DECLARE 
@@ -216,6 +356,18 @@ UPDATE footpath_visualization f
 SET geom = c.geom 
 FROM clipped_foothpaths c 
 WHERE f.id = c.id; 
+
+WITH to_delete AS 
+(
+	SELECT id
+	FROM footpath_visualization f
+	LEFT JOIN study_area s 
+	ON ST_Intersects(f.geom, s.geom)
+	WHERE s.name IS NULL 
+)
+DELETE FROM footpath_visualization f 
+USING to_delete d
+WHERE f.id = d.id;
 
 --Table for visualization of parking
 DROP TABLE IF EXISTS parking;

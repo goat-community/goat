@@ -79,18 +79,6 @@ AND maxspeed_forward IS NOT NULL;
 CREATE INDEX ON maxspeed_buffer USING GIST(geom);
 
 UPDATE footpath_visualization 
-SET maxspeed = 10
-WHERE highway IN ('path','track');
-
-UPDATE footpath_visualization 
-SET maxspeed = 5 
-WHERE highway IN ('footway','pedestrian');
-
-UPDATE footpath_visualization 
-SET maxspeed = 0
-WHERE highway IN ('steps');
-
-UPDATE footpath_visualization 
 SET lanes = 0 
 WHERE highway IN ('footway','pedestrian','steps','cycleway');
 
@@ -111,6 +99,85 @@ SELECT id, MAX(COALESCE(arr_polygon_attr[array_position(arr_shares, array_greate
 FROM footpaths_get_polygon_attr('maxspeed_buffer','maxspeed')
 GROUP BY id; 			
 ALTER TABLE footpath_maxspeed ADD PRIMARY KEY(id);
+
+
+DO $$
+	DECLARE 
+    	buffer float := meter_degree() * 15;
+    BEGIN 
+	    WITH footpaths_parking AS 
+	    (
+			SELECT f.id 
+			FROM footpath_visualization f, landuse_osm l 
+			WHERE ST_Intersects(l.geom, f.geom)
+			AND l.landuse = 'parking'
+		)
+		UPDATE footpath_visualization f 
+		SET parking = 'off_street'
+		FROM footpaths_parking p 
+		WHERE f.id = p.id; 
+	END; 
+$$;
+
+
+/*
+DO $$
+	DECLARE 
+    	buffer float := meter_degree() * 10;
+    BEGIN 
+	    DROP TABLE buffer_parking; 
+	    CREATE TABLE buffer_parking AS 
+	    SELECT ST_BUFFER(geom, buffer) AS geom, 'on_street' AS parking 
+		FROM parking 
+		WHERE parking_lane NOT IN ('no','no_parking','no_stopping')
+		OR parking_lane IS NULL; 
+		
+	
+	END; 
+$$;
+
+SELECT count(parking_lane), parking_lane 
+FROM parking 
+GROUP BY parking_lane 
+
+UPDATE footpath_visualization 
+
+WITH footpaths_no_parking AS 
+(
+	SELECT DISTINCT id 
+	FROM ways_cleaned w, 
+	LATERAL (
+		SELECT DISTINCT parking 
+		FROM 
+		(
+			SELECT w.parking 
+			UNION ALL 
+			SELECT w.parking_lane_left
+			UNION ALL 
+			SELECT w.parking_lane_right
+			UNION ALL 
+			SELECT w.parking_lane_both
+		) x
+		WHERE parking IN ('no_stopping','no_parking','no')
+	) p
+)
+UPDATE footpath_visualization f  
+SET parking = 'no'
+FROM footpaths_no_parking n 
+WHERE f.id = n.id;
+
+SELECT * 
+FROM footpaths 
+WHERE highway IN ('secondary','tertiary','residential','living_street','service','unclassified')
+
+
+
+SELECT * FROM test 
+*/
+
+UPDATE footpath_visualization 
+SET parking = 'no' 
+WHERE parking IS NULL;
 
 UPDATE footpath_visualization f
 SET lanes = l.lanes 
@@ -251,16 +318,16 @@ round(group_index(
 	ARRAY[
 		select_weight_walkability_range('lanes',lanes),
 		select_weight_walkability_range('maxspeed',maxspeed),
-		select_weight_walkability_range('crossing',cnt_crossings),
-		select_weight_walkability('parking',parking),
-		select_weight_walkability_range('noise',noise_day::numeric)
+		select_weight_walkability_range('crossings',cnt_crossings),
+		select_weight_walkability_range('noise',noise_day::numeric),
+		select_weight_walkability('parking',parking)
 	],
 	ARRAY[
 		select_full_weight_walkability('lanes'),
 		select_full_weight_walkability('maxspeed'),
-		select_full_weight_walkability('crossing'),
-		select_full_weight_walkability('parking'),
-		select_full_weight_walkability('noise')
+		select_full_weight_walkability('crossings'),
+		select_full_weight_walkability('noise'),
+		select_full_weight_walkability('parking')
 	]
 ),0);
 
@@ -375,7 +442,7 @@ DO $$
 
 		ALTER TABLE footpaths_green_ndvi ADD PRIMARY KEY(id);
 	END; 
-$$
+$$;
 
 UPDATE footpath_visualization f 
 SET vegetation = g.avg_green_ndvi 
@@ -441,20 +508,6 @@ SET green_blue_index = COALESCE(water,0) + (CASE WHEN vegetation > 75 THEN 100 E
 UPDATE footpath_visualization 
 SET green_blue_index = 100 
 WHERE green_blue_index > 100;
-
-/*
-UPDATE footpath_visualization f SET green_blue_index = 
-round(group_index(
-	ARRAY[
-		select_weight_walkability('vegetation',vegetation),
-		select_weight_walkability('water',water)
-	],
-	ARRAY[
-		select_full_weight_walkability('vegetation'),
-		select_full_weight_walkability('water')
-	]
-),0);
-*/
 
 ----##########################################################################################################################----
 ----#####################################################WALKING ENVIRONMENT##################################################----
@@ -555,7 +608,7 @@ DO $$
 		CREATE INDEX ON landuse_penalty USING GIST(geom);
 	
 	END; 
-$$
+$$;
 
 DROP TABLE IF EXISTS penalty_shares; 
 CREATE TABLE penalty_shares AS 
@@ -593,7 +646,6 @@ ON v.id = o.id;
 
 CREATE INDEX ON penalty_shares (id);
 
-
 WITH landuse_values AS 
 (
 	SELECT f.id, COALESCE(p.value, 100) * (SELECT DISTINCT weight FROM walkability WHERE ATTRIBUTE = 'landuse') AS value 
@@ -616,6 +668,7 @@ round(group_index(
 ),0)
 FROM landuse_values l  
 WHERE f.id = l.id;
+
 
 ----##########################################################################################################################----
 ----###########################################################COMFORT########################################################----
@@ -714,9 +767,9 @@ WITH weighting AS
 (
 	SELECT id, CASE WHEN comfort IS NULL THEN 0 ELSE 0.07 END AS comfort_weight,
 	CASE WHEN green_blue_index IS NULL THEN 0 ELSE 0.14 END AS green_blue_index_weight,
-	CASE WHEN security IS NULL THEN 0 ELSE 0.14 END AS security_weight,
+	CASE WHEN security IS NULL THEN 0 ELSE 0.07 END AS security_weight,
 	CASE WHEN traffic_protection IS NULL THEN 0 ELSE 0.21 END AS traffic_protection_weight,
-	CASE WHEN sidewalk_quality IS NULL THEN 0 ELSE 0.29 END AS sidewalk_quality_weight,
+	CASE WHEN sidewalk_quality IS NULL THEN 0 ELSE 0.14 END AS sidewalk_quality_weight,
 	CASE WHEN liveliness IS NULL THEN 0 ELSE 0.14 END AS liveliness_weight     
 	FROM footpath_visualization 
 )
@@ -735,3 +788,6 @@ UPDATE footpath_visualization f
 SET data_quality = (22-num_nulls(maxspeed,incline_percent,lanes,noise_day,noise_night,
 lit_classified,parking,sidewalk,smoothness,surface,wheelchair_classified,cnt_crossings,cnt_accidents,cnt_benches,
 cnt_waste_baskets,cnt_fountains,cnt_toilets,population,pois,landuse,green_blue_index))::float/21.0;
+
+UPDATE footpath_visualization 
+SET walkability = (walkability - 30) / 0.7;
