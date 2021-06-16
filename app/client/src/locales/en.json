@@ -194,12 +194,7 @@
     "documentation": {
       "title": "Documentation",
       "openInNewTab": "Open in new tab"
-    },
-    "stylePanel": {
-      "selectAttribute": "Select Attribute",
-      "fillColor": "Fill Color",
-      "outlineColorAndWidth": "Outline color & width"
-    } 
+    }
   },
   "isochrones": {
     "title": "Isochrones",

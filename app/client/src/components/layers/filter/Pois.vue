@@ -274,8 +274,7 @@ export default {
           timeout: 0
         });
       }
-
-      if (me.selectedPois.length === 0) {
+      if (me.selectedPois.length === 0 && me.poisLayer.getVisible() === true) {
         this.toggleSnackbar({
           type: "error",
           message: "selectAmenities",
@@ -285,27 +284,13 @@ export default {
       }
       if (me.selectedPois.length > 0 && me.poisLayer.getVisible() === false) {
         me.poisLayer.setVisible(true);
+        EventBus.$emit("toggleLayerVisiblity", me.poisLayer);
       }
-      if (me.selectedPois.length === 0) {
-        me.poisLayer.setVisible(false);
-        me.toggleSnackbar({
-          type: "error",
-          message: "selectAmenities",
-          state: false,
-          timeout: 0
-        });
+      if (me.selectedPois.length > 0 && me.aoisLayer.getVisible() === false) {
+        me.aoisLayer.setVisible(true);
+        EventBus.$emit("toggleLayerVisiblity", me.poisLayer);
       }
-      // Count selected aois amenities. If more than 0 turn the aois layer on.
-      const selectedAois = me.selectedPois
-        .map(v => v.value)
-        .filter(e => {
-          return me.aois.map(v => v.value).indexOf(e) > -1;
-        });
-      selectedAois.length > 0
-        ? me.aoisLayer.setVisible(true)
-        : me.aoisLayer.setVisible(false);
 
-      EventBus.$emit("toggleLayerVisiblity", me.poisLayer);
       me.updateSelectedPoisForThematicData(me.selectedPois);
       me.updatePois(me.selectedPois);
       me.countStudyAreaPois();
