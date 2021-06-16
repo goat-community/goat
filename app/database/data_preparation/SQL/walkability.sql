@@ -701,7 +701,7 @@ WHERE comfort > 100;
 WITH weighting AS
 (
 	SELECT id, CASE WHEN comfort IS NULL THEN 0 ELSE 0.07 END AS comfort_weight,
-	CASE WHEN vegetation IS NULL THEN 0 ELSE 0.14 END AS vegetation_weight,
+	CASE WHEN green_blue_index IS NULL THEN 0 ELSE 0.14 END AS green_blue_index_weight,
 	CASE WHEN security IS NULL THEN 0 ELSE 0.14 END AS security_weight,
 	CASE WHEN traffic_protection IS NULL THEN 0 ELSE 0.21 END AS traffic_protection_weight,
 	CASE WHEN sidewalk_quality IS NULL THEN 0 ELSE 0.29 END AS sidewalk_quality_weight,
@@ -711,15 +711,15 @@ WITH weighting AS
 UPDATE footpath_visualization f
 SET walkability  = 
 round(
-	((vegetation*vegetation_weight) + (security*security_weight) 
+	((green_blue_index*green_blue_index_weight) + (security*security_weight) 
 	+ (traffic_protection*traffic_protection_weight) + (sidewalk_quality*sidewalk_quality_weight) + (liveliness*liveliness_weight))
 	/
-	(vegetation_weight + security_weight + traffic_protection_weight + sidewalk_quality_weight + liveliness_weight)
+	(green_blue_index_weight + security_weight + traffic_protection_weight + sidewalk_quality_weight + liveliness_weight)
 ,0) + COALESCE(comfort,0) * comfort_weight 
 FROM weighting w 
 WHERE f.id = w.id; 
 
 UPDATE footpath_visualization f 
-SET data_quality = (22-num_nulls(width,maxspeed,incline_percent,lanes,noise_day,noise_night,
+SET data_quality = (22-num_nulls(maxspeed,incline_percent,lanes,noise_day,noise_night,
 lit_classified,parking,sidewalk,smoothness,surface,wheelchair_classified,cnt_crossings,cnt_accidents,cnt_benches,
-cnt_waste_baskets,cnt_fountains,cnt_toilets,population,pois,landuse,street_furniture))::float/22.0;
+cnt_waste_baskets,cnt_fountains,cnt_toilets,population,pois,landuse,green_blue_index))::float/21.0;
