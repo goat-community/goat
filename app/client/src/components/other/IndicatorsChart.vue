@@ -18,13 +18,7 @@ export default {
     return {
       exludedProps: ["id", "geom", "geometry", "layerName"],
       attributes: {
-        sidewalk_quality: [
-          "sidewalk",
-          "width",
-          "smoothness",
-          "surface",
-          "wheelchair_classified"
-        ],
+        sidewalk_quality: ["sidewalk", "incline_percent", "surface", "highway"],
         traffic_protection: [
           "lanes",
           "maxspeed",
@@ -35,7 +29,7 @@ export default {
         ],
         security: ["lit_classified", "covered"],
         vegetation: [],
-        liveliness: ["landuse", "cnt_pois", "cnt_population"],
+        liveliness: ["landuse", "pois", "population"],
         comfort: [
           "cnt_benches",
           "cnt_waste_baskets",

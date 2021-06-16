@@ -357,6 +357,18 @@ SET geom = c.geom
 FROM clipped_foothpaths c 
 WHERE f.id = c.id; 
 
+WITH to_delete AS 
+(
+	SELECT id
+	FROM footpath_visualization f
+	LEFT JOIN study_area s 
+	ON ST_Intersects(f.geom, s.geom)
+	WHERE s.name IS NULL 
+)
+DELETE FROM footpath_visualization f 
+USING to_delete d
+WHERE f.id = d.id;
+
 --Table for visualization of parking
 DROP TABLE IF EXISTS parking;
 CREATE TABLE parking AS
