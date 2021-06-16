@@ -17,7 +17,19 @@
               >
                 <v-layout row wrap align-center>
                   <v-flex xs1>
-                    <v-icon small>fas fa-layer-group</v-icon>
+                    <v-icon
+                      v-if="
+                        !$appConfig.componentConf.layerTree.groupIcons[
+                          layerGroup.name
+                        ] ||
+                          !$appConfig.componentConf.layerTree.groupIcons[
+                            layerGroup.name
+                          ].startsWith('./')
+                      "
+                      small
+                      >{{ getLayerGroupIcon(layerGroup) }}</v-icon
+                    >
+                    <div v-else v-html="getLayerGroupIcon(layerGroup)"></div>
                   </v-flex>
                   <v-flex xs10>
                     <div>{{ translate("layerGroup", layerGroup.name) }}</div>
@@ -258,7 +270,12 @@ export default {
           if (
             layer instanceof Group &&
             layer.get("name") != "undefined" &&
-            layer.get("name") != "osmMappingLayers"
+            layer.get("name") != "osmMappingLayers" &&
+            layer
+              .getLayers()
+              .getArray()
+              .filter(l => l.get("displayInLayerList") === false).length <
+              layer.getLayers().getArray().length
           ) {
             me.layers.push(obj);
           } else if (
@@ -363,9 +380,12 @@ export default {
           });
         }
       }
+
       clickedLayer.mapLayer.setVisible(!clickedLayer.mapLayer.getVisible());
       if (clickedLayer.mapLayer.getVisible() === false) {
         clickedLayer.showOptions = false;
+      } else {
+        clickedLayer.showOptions = true;
       }
       EventBus.$emit("toggleLayerVisiblity", clickedLayer.mapLayer);
     },
@@ -378,6 +398,16 @@ export default {
     },
     changeLayerOpacity(value, layer) {
       layer.setOpacity(value);
+    },
+    getLayerGroupIcon(layerGroup) {
+      const layerGroupIcon = this.$appConfig.componentConf.layerTree.groupIcons[
+        layerGroup.name
+      ];
+      if (layerGroupIcon && layerGroupIcon.startsWith("./")) {
+        return `<img src="${layerGroupIcon}" width="16px" height="16px" alt="">`;
+      }
+      if (layerGroupIcon) return layerGroupIcon;
+      return "fas fa-layer-group";
     },
     translate(type, key) {
       //type = {layerGroup || layerName}

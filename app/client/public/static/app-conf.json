@@ -1002,10 +1002,7 @@
         "name": "mapping_pois_opening_hours",
         "url": "/api/map/layer_read",
         "group": "osmMappingLayers",
-        "queryParams": [
-          "table_name",
-          "amenities"
-        ],
+        "queryParams": ["table_name", "amenities"],
         "opacity": 1,
         "queryable": true,
         "visible": false,
@@ -2044,7 +2041,17 @@
         "timeBasedCalculations": "no"
       }
     },
-    "edit": {}
+    "edit": {},
+    "layerTree": {
+      "groupIcons": {
+        "poisLayers": "fas fa-map-marker",
+        "buildings_landuse": "fas fa-home",
+        "streetlevelqualityLayers": "fas fa-road",
+        "environmentalQualityLayers": "fas fa-leaf",
+        "additionalDataLayers": "more",
+        "accessbilityBasemaps": "./static/layer-styles/assets/icons/_backgroundLayers/hexagon.svg"
+      }
+    }
   },
   "layerConf": {
     "ways": {
