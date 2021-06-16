@@ -190,7 +190,7 @@ export default {
         renderMode: "image",
         source: new OlVectorTileSource({
           attributions:
-            "© <a href='https://www.mapillary.com/'> <img src='./static/layer-styles/assets/icons/_backgroundLayers/mapillary.svg' width='12px' height='12px'> Mapillary</a>",
+            "© <a href='https://www.mapillary.com/'> Mapillary </a> ",
           format: new MVT(),
           tileGrid: createXYZ({ maxZoom: 14 }),
           tilePixelRatio: 16,

@@ -3,12 +3,12 @@
     <v-tabs grow v-model="tab" style="width: 400px; margin:auto;">
       <v-tab :key="1">
         <v-badge>
-          <b>{{ $t("appBar.stylePanel.fillColor") }}</b>
+          <b>Fill Color</b>
         </v-badge>
       </v-tab>
       <v-tab :key="2">
         <v-badge>
-          <b>{{ $t("appBar.stylePanel.outlineColorAndWidth") }}</b>
+          <b>Outline Color & Width</b>
         </v-badge>
       </v-tab>
     </v-tabs>

@@ -42,7 +42,7 @@
           <v-select
             :items="getItemAttributes"
             @change="onItemAttribueChange($event)"
-            :label="$t('appBar.stylePanel.selectAttribute')"
+            label="Select Attribute"
             outlined
             style="width:400px;margin:auto;padding-top:20px;margin-bottom:-20px"
           ></v-select>
@@ -81,7 +81,6 @@ import FillVectorStyle from "../changeStyle/FillVectorStyle";
 import LineVectorStyle from "../changeStyle/LineVectorStyle";
 import IconVectorStyle from "../changeStyle/IconVectorStyle";
 import { EventBus } from "../../../EventBus";
-import { getNestedProperty } from "../../../utils/Helpers";
 
 export default {
   props: ["item", "translate", "styleDialogStatus"],
@@ -115,25 +114,14 @@ export default {
       return this.item;
     },
     getItemAttributes() {
-      const stylesObj = this.$appConfig.stylesObj;
-      const currentLocale = this.$i18n.locale;
-      const layerName = this.item.mapLayer.get("name");
-      return this.filterStylesOnActiveModeByLayerName(layerName).rules.map(
-        (rule, i) => {
-          return {
-            text: getNestedProperty(
-              stylesObj,
-              `${layerName}.translation.${rule.name}.${currentLocale}`
-            )
-              ? getNestedProperty(
-                  stylesObj,
-                  `${layerName}.translation.${rule.name}.${currentLocale}`
-                )
-              : rule.name,
-            value: i
-          };
-        }
-      );
+      return this.filterStylesOnActiveModeByLayerName(
+        this.item.mapLayer.get("name")
+      ).rules.map((rule, i) => {
+        return {
+          text: rule.name,
+          value: i
+        };
+      });
     }
   },
   methods: {
