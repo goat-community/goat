@@ -281,7 +281,7 @@ UPDATE footpath_visualization f
 SET covered = p.tunnel
 FROM planet_osm_line p
 WHERE f.osm_id = p.osm_id
-AND f.covered IS NULL;
+AND p.tunnel IS NOT NULL;
 
 UPDATE footpath_visualization f 
 SET covered = 'no'
