@@ -102,20 +102,20 @@ Green and Blue index;Vegetation ;vegetation;yes;;;100;0.07
 Green and Blue index;Vegetation ;vegetation;no;;;0;0.07
 Green and Blue index;Vegetation ;water;large;;;100;0.07
 Green and Blue index;Vegetation ;water;small;;;50;0.07
-Attractiveness of the walking environment;Land-use;landuse;industrial;;;0;0.05
-Attractiveness of the walking environment;Land-use;landuse;military;;;0;0.05
-Attractiveness of the walking environment;Land-use;landuse;Airports;;;0;0.05
-Attractiveness of the walking environment;Land-use;landuse;Railways and associated land;;;20;0.05
-Attractiveness of the walking environment;Land-use;landuse;commercial;;;20;0.05
-Attractiveness of the walking environment;Population density;population;high;;;100;0.05
-Attractiveness of the walking environment;Population density;population;medium;;;70;0.05
-Attractiveness of the walking environment;Population density;population;low;;;50;0.05
-Attractiveness of the walking environment;Population density;population;no;;;20;0.05
-Attractiveness of the walking environment;POIs. liveliness ;pois;no;0;1;20;0.04
-Attractiveness of the walking environment;POIs. liveliness ;pois;very_low;1;2;40;0.04
-Attractiveness of the walking environment;POIs. liveliness ;pois;low;2;5;60;0.04
-Attractiveness of the walking environment;POIs. liveliness ;pois;medium;6;8;80;0.04
-Attractiveness of the walking environment;POIs. liveliness ;pois;high;9;;100;0.04
+Liveliness;Land-use;landuse;industrial;;;0;0.05
+Liveliness;Land-use;landuse;military;;;0;0.05
+Liveliness;Land-use;landuse;Airports;;;0;0.05
+Liveliness;Land-use;landuse;Railways and associated land;;;20;0.05
+Liveliness;Land-use;landuse;commercial;;;20;0.05
+Liveliness;Population density;population;high;;;100;0.05
+Liveliness;Population density;population;medium;;;70;0.05
+Liveliness;Population density;population;low;;;50;0.05
+Liveliness;Population density;population;no;;;20;0.05
+Liveliness;POIs;pois;no;0;1;20;0.04
+Liveliness;POIs;pois;very_low;1;2;40;0.04
+Liveliness;POIs;pois;low;2;5;60;0.04
+Liveliness;POIs;pois;medium;6;8;80;0.04
+Liveliness;POIs;pois;high;9;;100;0.04
 Comfort;Bench;bench;;;0;0;0.01
 Comfort;Bench;bench;;0;1;50;0.01
 Comfort;Bench;bench;;1;2;75;0.01

@@ -1,5 +1,5 @@
 {
-  "name": "ways_liveliness",
+  "name": "ways_traffic_protection",
   "rules": [
     {
       "name": "very_low",
@@ -7,19 +7,19 @@
         "&&",
         [
           ">=",
-          "liveliness",
+          "traffic_protection",
           "0"
         ],
         [
           "<=",
-          "liveliness",
+          "traffic_protection",
           "20"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#f7fbff",
+          "color": "#d7191c",
           "width": 1,
           "join": "bevel",
           "cap": "square"
@@ -32,19 +32,19 @@
         "&&",
         [
           ">",
-          "liveliness",
+          "traffic_protection",
           "20"
         ],
         [
           "<=",
-          "liveliness",
+          "traffic_protection",
           "40"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#c8ddf0",
+          "color": "#fdae61",
           "width": 1,
           "join": "bevel",
           "cap": "square"
@@ -57,19 +57,19 @@
         "&&",
         [
           ">",
-          "liveliness",
+          "traffic_protection",
           "40"
         ],
         [
           "<=",
-          "liveliness",
+          "traffic_protection",
           "60"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#73b3d8",
+          "color": "#ffffbf",
           "width": 1,
           "join": "bevel",
           "cap": "square"
@@ -82,19 +82,19 @@
         "&&",
         [
           ">",
-          "liveliness",
+          "traffic_protection",
           "60"
         ],
         [
           "<=",
-          "liveliness",
+          "traffic_protection",
           "80"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#2879b9",
+          "color": "#a6d96a",
           "width": 1,
           "join": "bevel",
           "cap": "square"
@@ -107,19 +107,19 @@
         "&&",
         [
           ">",
-          "liveliness",
+          "traffic_protection",
           "80"
         ],
         [
           "<=",
-          "liveliness",
+          "traffic_protection",
           "100"
         ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#08306b",
+          "color": "#1a9641",
           "width": 1,
           "join": "bevel",
           "cap": "square"

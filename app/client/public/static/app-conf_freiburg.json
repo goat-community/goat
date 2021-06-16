@@ -122,7 +122,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "footpath_visualization",
+        "name": "ways_liveliness",
         "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
@@ -135,6 +135,42 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_liveliness.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_comfort",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_comfort.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_traffic_protection",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_traffic_protection.json"
         }
       },
       {
@@ -280,8 +316,8 @@
           "url": "./static/layer-styles/styles/study_area.json"
         },
         "attributes": {
-          "source": "Landeshauptstadt München",
-          "date": "2020"
+          "source": "FreiGIS",
+          "date": "2021"
         }
       },
       {
@@ -300,6 +336,12 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lit.json"
+        },
+        "attributes": {
+          "source": "OpenStreetMap",
+          "date": "07-03-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -318,6 +360,10 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_category_aggregated.json"
+        },
+        "attributes": {
+          "source": "OpenStreetMap",
+          "date": "07-03-2021"
         }
       },
       {
@@ -375,7 +421,9 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "07-03-2021"
+          "date": "07-03-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -396,8 +444,10 @@
           "url": "./static/layer-styles/styles/street_furniture.json"
         },
         "attributes": {
-          "source": "openStreetMap",
-          "date": "07-03-2021"
+          "source": "OpenStreetMap",
+          "date": "07-03-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -419,7 +469,9 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "07-03-2021"
+          "date": "07-03-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -996,6 +1048,20 @@
           "source": "Statistische Ämter des Bundes und der Länder",
           "date": "2011"
         }
+      },
+      {
+        "name": "Bikesharing",
+        "attributes": {
+          "source": "MobiDataBW",
+          "date": "01.09.2020"
+        }
+      },
+      {
+        "name": "Lastenräder",
+        "attributes": {
+          "source": "LastenVelo Freiburg e.V.",
+          "date": "16.03.2021"
+        }
       }
     ],
     "controls": [
@@ -1164,6 +1230,13 @@
               "name": "Bicycle rental",
               "value": "bicycle_rental",
               "icon": "bicycle_rental",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Cargo bike",
+              "value": "cargo_bike",
+              "icon": "cargo_bike",
               "weight": 1,
               "sensitivity": 300000
             },

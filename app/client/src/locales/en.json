@@ -652,6 +652,7 @@
     "restaurant": "Restaurant",
     "nightclub": "Night-Club",
     "bicycle_rental": "Bike sharing",
+    "cargo_bike": "Cargo bike",
     "car_sharing": "Car sharing",
     "charging_station": "Charging station",
     "bus_stop": "Bus",
@@ -824,11 +825,11 @@
   },
   "charts": {
     "indicators": {
-      "sidewalk_quality": "Sidewalk Quality",
+      "sidewalk_quality": "Walking Comfort",
       "traffic_protection": "Protection from traffic impacts",
       "security": "Security",
-      "vegetation": "Vegetation",
-      "walking_environment": "Walking environment",
+      "vegetation": "Vegetation and Waters",
+      "liveliness": "Walking environment",
       "data_quality": "Data Quality",
       "comfort": "Comfort",
       "walkability": ["TOTAL WALKABILITY SCORE"],

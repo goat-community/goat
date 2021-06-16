@@ -180,7 +180,7 @@ CREATE TABLE footpath_visualization
 	traffic_protection integer, 
 	security integer, 
 	green_blue_index integer,
-	walking_environment integer,
+	liveliness integer,
 	comfort integer,
 	walkability integer, 
 	data_quality float,
