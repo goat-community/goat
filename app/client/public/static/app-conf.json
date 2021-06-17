@@ -276,30 +276,6 @@
         }
       },
       {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "street_furniture_bicycles",
-        "url": "/api/map/layer/street_furniture_bicycles/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "visible": false,
-        "canEdit": false,
-        "queryable": true,
-        "displayInLayerList": true,
-        "zIndex": 2,
-        "maxResolution": 7,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/street_furniture_bicycles.json"
-        },
-        "attributes": {
-          "source": "openStreetMap",
-          "date": "17-06-2021",
-          "source": "Mapillary",
-          "date": "01-06-2021"
-        }
-      },
-      {
         "type": "WMS",
         "name": "Lärmkarte - Bahn Nacht",
         "url": "https://geoportal.freiburg.de/wms/gut_laerm/gut_laerm?",
