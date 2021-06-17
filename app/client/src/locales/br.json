@@ -347,7 +347,7 @@
       "bingAerial": "Bing Aerial"
     },
     "tooltips": {
-      "clickForCalculation": "Click for Calculation. Press ESC to exit",
+      "clickForIsochroneCalculation": "Click for Calculation. Press ESC to exit",
       "clickToSelectStudyArea": "Click to select the study area. Press ESC to exit",
       "maxCircleRadius": "Maximum circle radius is 1000 m",
       "clickToStartMeasure": "Click to start measuring. Press ESC to exit",

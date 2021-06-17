@@ -1,6 +1,6 @@
 DROP FUNCTION IF EXISTS select_from_variable_container;
 CREATE OR REPLACE FUNCTION select_from_variable_container(identifier_input text)
-RETURNS SETOF text[]
+RETURNS text[]
  LANGUAGE sql
 AS $function$
 

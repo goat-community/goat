@@ -46,7 +46,12 @@
           {{ print.title ? print.title.toUpperCase() : "" }}
         </div>
         <!-- LEGEND -->
-        <div v-if="print.legend" :style="getLegendStyle()">
+        <div
+          v-if="print.legend"
+          :style="
+            getLegendStyle() + `max-height:${this.getLegendMaxHeight()}mm;`
+          "
+        >
           <div class=".subtitle-1">LEGEND</div>
 
           <print-legend v-if="print.active === true"></print-legend>
@@ -192,7 +197,7 @@ export default {
       }, 50);
     },
     /**
-     * Get legend style
+     * Legend style
      */
     getLegendStyle() {
       let left;
@@ -214,6 +219,20 @@ export default {
       }
       const style = `z-index:1;position:absolute;top:${top}mm;left:${left}mm;overflow:hidden;`;
       return style;
+    },
+    /**
+     * Legend Height
+     */
+    getLegendMaxHeight() {
+      let maxHeight;
+      const padding = this.print.layout.padding;
+      if (this.print.layout.orientation === "landscape") {
+        maxHeight = this.print.layout.size[1] - 2 * padding - 10;
+      } else {
+        maxHeight =
+          this.print.layout.size[1] - 2 * padding - this.getMapHeight - 5;
+      }
+      return maxHeight;
     }
   }
 };

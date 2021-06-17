@@ -66,7 +66,7 @@ services:
 
 
   db: 
-    image: goatcommunity/database:12-3.1-2.6.11-custom-2.3.14
+    image: goatcommunity/database:test-release
     container_name: goat-database
     restart: on-failure
     volumes:
@@ -75,6 +75,7 @@ services:
       # .........
       - postgres_data:/var/lib/postgresql
       - ./app/database:/opt
+      - ./app/api/src/db:/opt/scripts/db
       - ./app/config:/opt/config
     env_file:
       - ./app/config/docker-env/db.env
@@ -82,21 +83,7 @@ services:
       - "65432:5432"
     networks:
       proxy:
-
-  # print:
-  #   image: camptocamp/mapfish_print:3.16
-  #   volumes:
-  #     - ./app/print/templates:/usr/local/tomcat/webapps/ROOT/print-apps
-  #   container_name: goat-print
-  #   labels:
-  #     - "traefik.backend=print"
-  #     - "traefik.frontend.entryPoints=https,http"
-  #     - "traefik.frontend.rule=Host:localhost;PathPrefix:/print"
-  #     - "traefik.port=8080"
-  #     - "traefik.enable=true"
-  #   networks:
-  #     proxy:
-
+        
   #This container is used for running cron jobs. It is mainly for production purposes.
   # cron:
   #   build:

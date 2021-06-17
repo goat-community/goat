@@ -378,6 +378,47 @@ export function waysNewRoadStyle(feature) {
   });
   return [style];
 }
+
+export function ppfNetworkStyle(feature) {
+  const persons = feature.get("persons");
+  let width = 5;
+  if (persons >= 0 && persons <= 1) {
+    width = 1;
+  } else if (persons > 1 && persons <= 20) {
+    width = 1.5;
+  } else if (persons > 20 && persons <= 100) {
+    width = 3;
+  } else if (persons > 100 && persons <= 500) {
+    width = 4.5;
+  } else if (persons > 500 && persons <= 1000) {
+    width = 6;
+  } else if (persons > 1000 && persons <= 5000) {
+    width = 8;
+  } else if (persons > 5000 && persons <= 15000) {
+    width = 12;
+  } else if (persons > 15000 && persons <= 30000) {
+    width = 18;
+  } else if (persons > 30000 && persons <= 30877) {
+    width = 24;
+  }
+  let path = `img/markers/marker-${feature.get("calcNumber")}.png`;
+  const style = new OlStyle({
+    image: new OlIcon({
+      anchor: [0.5, 0.96],
+      src: path,
+      scale: 0.5
+    }),
+    stroke: new OlStroke({
+      color:
+        isochronesStore.state.activePPFCalc === feature.get("calcNumber")
+          ? "#FF0000"
+          : "#e15989",
+      width: width
+    })
+  });
+  return [style];
+}
+
 export function waysNewBridgeStyle(feature) {
   const style = new OlStyle({
     fill: new OlFill({
@@ -724,9 +765,45 @@ function modeShareStyle(feature) {
   return modeShareStyleCache[gid];
 }
 
+export function footpathVisualizationStyle(feature) {
+  let color = "#3399CC";
+
+  const walkability = feature.get("walkability");
+  if (walkability >= 0 && walkability < 25) {
+    color = "#ff1a01";
+  } else if (walkability >= 25 && walkability < 50) {
+    color = "#ff9807";
+  } else if (walkability >= 50 && walkability < 75) {
+    color = "#9ac223";
+  } else if (walkability >= 75) {
+    color = "#13bc54";
+  } else if (walkability == "NULL" || walkability == undefined) {
+    color = "#99a29d";
+  }
+  const dataQuality = feature.get("data_quality");
+  let opacity = 0;
+  if (dataQuality) {
+    opacity = opacity + parseInt(dataQuality * 100);
+  }
+  //color = color + opacity;
+
+  const stroke = new OlStroke({
+    width: 5,
+    color: color,
+    opacity: opacity
+  });
+  const styles = [
+    new OlStyle({
+      stroke
+    })
+  ];
+  return styles;
+}
+
 export const stylesRef = {
   pois: poisStyle,
   mapping_pois_opening_hours: poisStyle,
   study_area_crop: baseStyleDefs.boundaryStyle,
-  modeshare: modeShareStyle
+  modeshare: modeShareStyle,
+  footpath_visualization: footpathVisualizationStyle
 };

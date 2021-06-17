@@ -1,0 +1,130 @@
+{
+  "name": "ways_liveliness",
+  "rules": [
+    {
+      "name": "very_low",
+      "filter": [
+        "&&",
+        [
+          ">=",
+          "liveliness",
+          "0"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "20"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#f7fbff",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "low",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "20"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "40"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#c8ddf0",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "medium",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "40"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "60"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#73b3d8",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "high",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "60"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "80"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#2879b9",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "very_high",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "80"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "100"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#08306b",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    }
+  ]
+}

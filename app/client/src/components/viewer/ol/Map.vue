@@ -9,11 +9,10 @@
     <full-screen v-show="!miniViewOlMap" :color="activeColor.primary" />
     <progress-status :isNetworkBusy="isNetworkBusy" />
     <background-switcher v-show="!miniViewOlMap" />
-    <map-legend v-show="!miniViewOlMap" :color="activeColor.primary" />
     <!-- Popup overlay  -->
     <overlay-popup
       :color="activeColor.primary"
-      :title="popup.title"
+      :title="getPopupTitle()"
       v-show="popup.isVisible && miniViewOlMap === false"
       ref="popup"
     >
@@ -44,10 +43,6 @@
         </v-btn>
       </template>
       <template v-slot:body>
-        <div class="subtitle-2 mb-4 font-weight-bold">
-          {{ getPopupTitle() }}
-        </div>
-
         <a
           v-if="currentInfoFeature && currentInfoFeature.get('osm_id')"
           style="text-decoration:none;"
@@ -58,11 +53,19 @@
           <i class="fa fa-edit"></i> {{ $t("map.popup.editWithOsm") }}</a
         >
 
-        <v-divider></v-divider>
-
-        <div style="height:190px;">
+        <div
+          style="max-height:800px;overflow:hidden;"
+          v-if="getInfoResult[popup.currentLayerIndex]"
+        >
           <vue-scroll>
-            <v-simple-table dense class="pr-2">
+            <v-simple-table
+              v-if="
+                getInfoResult[popup.currentLayerIndex].get('layerName') !==
+                  'footpath_visualization'
+              "
+              dense
+              class="pr-2"
+            >
               <template v-slot:default>
                 <tbody>
                   <tr v-for="item in currentInfo" :key="item.property">
@@ -72,10 +75,14 @@
                 </tbody>
               </template>
             </v-simple-table>
+            <div v-else>
+              <indicators-chart
+                class="mr-4"
+                :feature="getInfoResult[popup.currentLayerIndex]"
+              ></indicators-chart>
+            </div>
           </vue-scroll>
         </div>
-
-        <v-divider></v-divider>
       </template>
     </overlay-popup>
     <!-- Info Snackbar for not visible layers. -->
@@ -137,7 +144,6 @@ import {
 } from "../../../utils/Layer";
 import { geojsonToFeature } from "../../../utils/MapUtils";
 import { Group as LayerGroup } from "ol/layer.js";
-import http from "../../../services/http";
 import axios from "axios";
 
 //Store imports
@@ -146,7 +152,6 @@ import { mapMutations, mapGetters, mapActions } from "vuex";
 //Map Controls
 import OverlayPopup from "./controls/Overlay";
 import MapLoadingProgressStatus from "./controls/MapLoadingProgressStatus";
-import Legend from "./controls/Legend";
 import BackgroundSwitcher from "./controls/BackgroundSwitcher";
 import ZoomControl from "./controls/ZoomControl";
 import FullScreen from "./controls/Fullscreen";
@@ -160,14 +165,17 @@ import { debounce } from "../../../utils/Helpers";
 import ContextMenu from "ol-contextmenu/dist/ol-contextmenu";
 import "ol-contextmenu/dist/ol-contextmenu.min.css";
 
+// Indicators Chart
+import IndicatorsChart from "../../other/IndicatorsChart";
+
 export default {
   components: {
     "overlay-popup": OverlayPopup,
     "progress-status": MapLoadingProgressStatus,
-    "map-legend": Legend,
     "background-switcher": BackgroundSwitcher,
     "zoom-control": ZoomControl,
-    "full-screen": FullScreen
+    "full-screen": FullScreen,
+    "indicators-chart": IndicatorsChart
   },
   name: "app-ol-map",
   props: {
@@ -235,7 +243,8 @@ export default {
 
     // Make map rotateable according to property
     const attribution = new Attribution({
-      collapsible: true
+      collapsible: true,
+      collapsed: false
     });
 
     //Need to reference as we should deactive double click zoom when there
@@ -345,6 +354,19 @@ export default {
           styleObj = stylesObj[layerName];
         }
         if (styleObj) {
+          if (styleObj.format === "geostyler") {
+            styleObj.style.rules.forEach(rule => {
+              //Set default filer if no filter is found for rule
+              if (!rule.filter) {
+                rule.filter = ["=="];
+              }
+
+              //Change Symbolizers outline color from rgba to hexa
+              if (rule.symbolizers[0].outlineColor === "rgba(0, 0, 255, 0.0)") {
+                rule.symbolizers[0].outlineColor = "#0000FF00";
+              }
+            });
+          }
           const olStyle = OlStyleFactory.getOlStyle(styleObj, layerName);
           if (olStyle) {
             if (olStyle instanceof Promise) {
@@ -614,11 +636,6 @@ export default {
 
           return;
         }
-        //
-
-        const coordinate = evt.coordinate;
-        const projection = me.map.getView().getProjection();
-        const resolution = me.map.getView().getResolution();
 
         me.queryableLayers = getAllChildLayers(me.map).filter(
           layer =>
@@ -660,37 +677,27 @@ export default {
               }
               break;
             }
-            case "WMS": {
-              let url = layer
-                .getSource()
-                .getFeatureInfoUrl(coordinate, resolution, projection, {
-                  INFO_FORMAT: "application/json"
-                });
-              promiseArray.push(
-                http.get(url, {
-                  data: { layerName: layer.get("name") }
-                })
-              );
-              break;
-            }
             default:
               break;
           }
         });
         if (promiseArray.length > 0) {
+          console.log(promiseArray);
           axios.all(promiseArray).then(function(results) {
+            console.log(results);
             results.forEach(response => {
-              const features = response.data.features;
-              const layerName = JSON.parse(response.config.data).layerName;
-              if (features && features.length === 0) {
-                return;
+              if (response && response.data && response.data.features) {
+                const features = response.data.features;
+                const layerName = JSON.parse(response.config.data).layerName;
+                if (features && features.length === 0) {
+                  return;
+                }
+                const olFeatures = geojsonToFeature(response.data, {});
+
+                olFeatures[0].set("layerName", layerName);
+                me.getInfoResult.push(olFeatures[0]);
               }
-              const olFeatures = geojsonToFeature(response.data, {});
-
-              olFeatures[0].set("layerName", layerName);
-              me.getInfoResult.push(olFeatures[0]);
             });
-
             if (me.getInfoResult.length > 0) {
               me.showPopup(evt.coordinate);
             }
@@ -799,6 +806,8 @@ export default {
         } else {
           return layer.get("layerName");
         }
+      } else {
+        return "";
       }
     },
     ...mapMutations("map", {

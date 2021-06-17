@@ -1,0 +1,130 @@
+{
+  "name": "ways_traffic_protection",
+  "rules": [
+    {
+      "name": "very_low",
+      "filter": [
+        "&&",
+        [
+          ">=",
+          "traffic_protection",
+          "0"
+        ],
+        [
+          "<=",
+          "traffic_protection",
+          "20"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#d7191c",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "low",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "traffic_protection",
+          "20"
+        ],
+        [
+          "<=",
+          "traffic_protection",
+          "40"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#fdae61",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "medium",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "traffic_protection",
+          "40"
+        ],
+        [
+          "<=",
+          "traffic_protection",
+          "60"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#ffffbf",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "high",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "traffic_protection",
+          "60"
+        ],
+        [
+          "<=",
+          "traffic_protection",
+          "80"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#a6d96a",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "very_high",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "traffic_protection",
+          "80"
+        ],
+        [
+          "<=",
+          "traffic_protection",
+          "100"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#1a9641",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    }
+  ]
+}

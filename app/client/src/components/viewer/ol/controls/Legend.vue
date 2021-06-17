@@ -168,7 +168,14 @@ export default {
         }
       }, 100);
     },
+    filterStylesOnActiveModeByLayerName(name) {
+      //get Filtered style on active mode based on layer name
+      const style = this.$appConfig.stylesObj[name].style;
+      const filteredStyle = this.filterStylesOnActiveMode(style);
+      return filteredStyle || style;
+    },
     filterStylesOnActiveMode(style) {
+      //get Filtered style on active mode based on style object
       const styleRules = style.rules;
       const filteredRules = [];
       const activeMode = this.calculationOptions.calculationModes.active;

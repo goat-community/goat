@@ -143,3 +143,57 @@ export function interpolateColor(color1, color2, factor) {
   }
   return `rgb(${result.toString()})`;
 }
+
+//https://gist.github.com/maxwells/8251275
+export const ColorObj = function(hexOrObject, alpha) {
+  var obj;
+  if (hexOrObject instanceof Object) {
+    obj = hexOrObject;
+  } else {
+    obj = LinearColorInterpolator.convertHexToRgb(hexOrObject);
+  }
+  this.r = obj.r;
+  this.g = obj.g;
+  this.b = obj.b;
+  this.alpha = alpha;
+};
+ColorObj.prototype.asRgbCss = function() {
+  if (this.alpha) {
+    return (
+      "rgba(" + this.r + ", " + this.g + ", " + this.b + ", " + this.alpha + ")"
+    );
+  } else {
+    return "rgb(" + this.r + ", " + this.g + ", " + this.b + ")";
+  }
+};
+
+export const LinearColorInterpolator = {
+  // convert 6-digit hex to rgb components;
+  // accepts with or without hash ("335577" or "#335577")
+  convertHexToRgb: function(hex, alpha) {
+    const match = hex.replace(/#/, "").match(/.{1,2}/g);
+    return new ColorObj(
+      {
+        r: parseInt(match[0], 16),
+        g: parseInt(match[1], 16),
+        b: parseInt(match[2], 16)
+      },
+      alpha
+    );
+  },
+  // left and right are colors that you're aiming to find
+  // a color between. Percentage (0-100) indicates the ratio
+  // of right to left. Higher percentage means more right,
+  // lower means more left.
+  findColorBetween: function(left, right, percentage) {
+    let newColor = {};
+    let components = ["r", "g", "b"];
+    for (var i = 0; i < components.length; i++) {
+      let c = components[i];
+      newColor[c] = Math.round(
+        left[c] + ((right[c] - left[c]) * percentage) / 100
+      );
+    }
+    return new ColorObj(newColor);
+  }
+};
