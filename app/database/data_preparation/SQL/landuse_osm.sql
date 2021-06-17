@@ -60,7 +60,7 @@ DROP TABLE IF EXISTS buildings_osm;
 CREATE TABLE buildings_osm as 
 SELECT ROW_NUMBER() OVER() AS gid, p.osm_id,p.building, p.amenity,
 CASE 
-WHEN p.building = 'yes' AND amenity IS NULL THEN 'potential_residents' 
+WHEN p.building = 'yes' AND amenity IS NULL AND leisure IS NULL THEN 'potential_residents' 
 WHEN p.building IN (SELECT UNNEST(select_from_variable_container('building_types_residential'))) THEN 'with_residents'
 ELSE 'no_residents' END AS residential_status,
 tags -> 'addr:street' AS street, "addr:housenumber" AS housenumber,

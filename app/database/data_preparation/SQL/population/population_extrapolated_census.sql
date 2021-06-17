@@ -1,3 +1,21 @@
+/*Compute built up area per census tract*/
+DROP TABLE IF EXISTS census_sum_built_up;
+CREATE TABLE census_sum_built_up AS 
+SELECT DISTINCT c.gid, COALESCE(c.pop,0) pop, COALESCE(c.sum_gross_floor_area_residential,0) AS sum_gross_floor_area_residential, c.number_buildings_now, c.geom 
+FROM study_area s
+INNER JOIN LATERAL 
+(
+	SELECT c.gid, sum(a.gross_floor_area_residential) sum_gross_floor_area_residential, count(a.gid) AS number_buildings_now, c.pop, c.geom  
+	FROM census c, residential_addresses a 
+	WHERE ST_Intersects(s.geom, c.geom)
+	AND ST_Intersects(c.geom, a.geom) 
+	GROUP BY c.gid, c.pop, c.geom  
+) c ON TRUE;
+
+ALTER TABLE census_sum_built_up  ADD PRIMARY KEY (gid);
+
+
+
 /*Split up census tracts that are intersecting several study areas.*/
 DROP TABLE IF EXISTS splitted_census; 
 CREATE TEMP TABLE splitted_census AS 
@@ -119,22 +137,28 @@ sum_distributed_pop AS (
 	GROUP BY s.name
 ),
 to_reduce_pop AS (
-	SELECT s.name, c.sum_pop, c.sum_new_pop, -(sum_pop-sum_new_pop) AS difference,s.distributed_pop, c.geom
+	SELECT s.name, c.sum_pop, c.sum_new_pop, -(sum_pop-sum_new_pop) AS difference, s.distributed_pop, c.geom
 	FROM comparison_pop c, sum_distributed_pop s 
 	WHERE s.name = c.name
 	AND sum_new_pop > sum_pop
-),
-substract_exceed_pop AS (
-	UPDATE census_prepared
-	SET new_pop=new_pop-(new_pop::float/cc.distributed_pop::float)::float*cc.difference::float 
-	FROM to_reduce_pop cc
-	WHERE ST_Intersects(ST_Centroid(census_prepared.geom), cc.geom)
-	AND census_prepared.pop < 0 
-	AND census_prepared.number_buildings_now >= select_from_variable_container_s('census_minimum_number_new_buildings')::integer
+)
+UPDATE census_prepared
+SET new_pop=new_pop-(new_pop::float/cc.distributed_pop::float)::float*cc.difference::float 
+FROM to_reduce_pop cc
+WHERE ST_Intersects(ST_Centroid(census_prepared.geom), cc.geom)
+AND number_buildings_now > select_from_variable_container_s('census_minimum_number_new_buildings')::integer
+AND pop < 1; 
+
+WITH new_comparison_pop AS (
+	SELECT s.name, s.sum_pop,sum(c.new_pop) sum_new_pop, s.geom
+	FROM census_prepared c, study_area s
+	WHERE ST_Intersects(ST_Centroid(c.geom),s.geom)
+	AND c.new_pop > 0
+	GROUP BY s.name, s.sum_pop, s.geom
 ),
 remaining_pop AS (
 	SELECT c.name, (sum_pop::numeric-sum_new_pop::numeric)/x.count_grids::numeric to_add
-	FROM comparison_pop c,
+	FROM new_comparison_pop c,
 	(	
 		SELECT s.name,count(*) AS count_grids
 		FROM census_prepared c, study_area s
@@ -150,6 +174,7 @@ FROM study_area s, remaining_pop r
 WHERE s.name = r.name 
 AND ST_Intersects(s.geom,ST_Centroid(census_prepared.geom))
 AND census_prepared.pop > 0;
+
 
 DROP TABLE IF EXISTS population CASCADE; 
 CREATE TABLE population AS 
