@@ -100,7 +100,7 @@ DO $$
 		END LOOP; 
 		DROP TABLE result_recursive;
 	END; 
-$$
+$$;
 
 ALTER TABLE maxspeed_complemented ADD PRIMARY KEY(id);
 
@@ -342,7 +342,8 @@ WHERE w.class_id::text NOT IN (SELECT UNNEST(select_from_variable_container('exc
 AND (
 	w.foot NOT IN (SELECT UNNEST(select_from_variable_container('categories_no_foot'))) 
 	OR w.foot IS NULL 
-);
+)
+AND highway IS NOT NULL;
 
 CREATE INDEX ON footpath_visualization USING gist(geom);
 

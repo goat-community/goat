@@ -320,7 +320,7 @@ class PrepareLayers():
         self.prepare_db.execute_script_psql('/opt/data_preparation/SQL/network_preparation1.sql')
         vars_container = self.read_yaml_config.return_goat_conf()["DATA_REFINEMENT_VARIABLES"]["variable_container"]
 
-        if vars_container["compute_ways_slope"][1:-1] == 'yes':
+        if vars_container["compute_slope_impedance"][1:-1] == 'yes':
             slope_profiles = Profiles(db_suffix=self.db_suffix, ways_table='ways', filter_ways='''WHERE class_id::text NOT IN(SELECT UNNEST(select_from_variable_container(\'excluded_class_id_cycling\')))''' )
             if self.check_table_exists('slope_profile_ways') == True: 
                 slope_profiles.update_line_tables()
