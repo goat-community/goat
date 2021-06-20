@@ -205,8 +205,8 @@
           "url": "./static/layer-styles/styles/study_area.json"
         },
         "attributes": {
-          "source": "Landeshauptstadt München",
-          "date": "2020"
+          "source": "FreiGIS",
+          "date": "2015"
         }
       },
       {
