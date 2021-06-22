@@ -2,6 +2,8 @@ import subprocess
 import os 
 from psycopg2 import sql
 import yaml 
+import json
+import geopandas as gpd
 
 class ReadYAML():
     """Read and return database configuration."""
@@ -116,6 +118,18 @@ class DataImport():
         self.db_name = self.db_conf["DB_NAME"]
         self.user = self.db_conf["USER"]
         self.host = self.db_conf["HOST"]
+        self.folder_shp = FileHelper().list_files_dir("/opt/data", ('.shp'))
+        self.goat_srid = "EPSG:4326" # Consider to use from the YML of JSON.
+        with open('/opt/data/config.json', 'r') as c:
+            shp_config_data = json.load(c)
+            self.mandatory_shp = shp_config_data['shapefiles']['mandatory']
+            self.optional_shp = shp_config_data['shapefiles']['optional']
+            self.not_listed_shp = []
+
+            for shp in self.folder_shp:
+                if (shp not in self.mandatory_shp and shp not in self.optional_shp):
+                    self.not_listed_shp.append(shp)
+
         if is_temp == True: 
             self.db_name = self.db_name + 'temp'
 
@@ -123,6 +137,21 @@ class DataImport():
         self.buffer = float(read_yaml_config.return_goat_conf()["DATA_SOURCE"]["BUFFER_BOUNDING_BOX"])
         self.extract_bbox = read_yaml_config.return_goat_conf()["DATA_SOURCE"]["EXTRACT_BBOX"]
         self.db_conn = db_conn
+    
+    def check_study_area(self):
+        os.chdir('/opt/data') 
+        if (self.mandatory_shp[0] in self.folder_shp):
+            study_area = gpd.read_file(self.mandatory_shp[0])
+            if(str(study_area.crs).split(':')[1] == '4326'):
+                print("{0} detected. Continue.".format(study_area.crs))
+            else:
+                old_srid = str(study_area.crs)
+                study_area = study_area.to_crs(self.goat_srid)
+                study_area.to_file('study_area.shp')
+                print("Converted from {0} => {1}".format(old_srid, self.goat_srid))
+        else:
+            return print(
+                "Study Area Shapefile not found. Please, insert the file in the app/database/data folder.")
 
     def prepare_planet_osm(self):
         os.chdir('/opt/data') 
@@ -180,12 +209,21 @@ class DataImport():
         for f in cleaned_files:
             self.import_raw_layer(path_data + f)
 
-    def restore_db(self,filepath):
+    def find_newest_dump(self, namespace):
+        fnames = []
+        backup_path = "/opt/backups"
+        for file in os.listdir(backup_path):
+            if file.endswith(".sql") and namespace == file.split('_')[0]:
+                fnames.append(file)
+        newest_file = sorted(fnames)[-1]
 
+        return os.path.join(backup_path, newest_file)
+
+    def restore_db(self,filepath):
         #newest_file = find_newest_dump(namespace)
         #Drop backup db tags as old DB
         subprocess.run('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (self.db_name+'old'), shell=True, check=True)
-        subprocess.run('psql -U postgres -c "DROP DATABASE %s;"' % (self.db_name+'old'), shell=True, check=True)
+        subprocess.run('psql -U postgres -c "DROP DATABASE IF EXISTS %s;"' % (self.db_name+'old'), shell=True, check=True)
         subprocess.run('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (self.db_name+'temp'), shell=True, check=True)
         subprocess.run('psql -U postgres -c "DROP DATABASE IF EXISTS %s;"' % (self.db_name+'temp'), shell=True, check=True)
         #Restore backup as temp db
