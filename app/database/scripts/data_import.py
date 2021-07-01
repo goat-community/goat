@@ -235,24 +235,6 @@ class DataImport():
         else: 
             GoatMessages().messages("info", "All optional shapefiles has the right fields structure.")
 
-        
-                
-            # layer = fiona.open(self.study_area_name)
-            # mandatory_fields = []
-            # if (layer.schema['geometry'] == 'Polygon'):
-            #     for (key) in layer.schema['properties']:
-            #         if (key == 'name' and layer.schema[key].split(':')[0] == 'str'):
-            #             mandatory_fields.append({key: layer.schema[key]})
-            #         elif (key == 'sum_pop' and layer.schema[key].split(':')[0] == 'int'):
-            #             mandatory_fields.append({key: layer.schema[key]})
-            # if (len(mandatory_fields) < 2):
-            #     return GoatMessages().messages("error", "Please, check the name from shapefile fields")
-            # if (len(mandatory_fields) >= 2):
-            #     return GoatMessages().messages("info", "Field validation passed.")
-            # else: 
-            #     return GoatMessages().messages("error", "Geometry type: {0}. Please use a shapefile with Polygon geometry type".format(layer.schema['geometry']))
-
-
     def prepare_planet_osm(self):
         os.chdir('/opt/data') 
         if self.download_link != 'no_download':     
