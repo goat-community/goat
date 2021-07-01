@@ -3,7 +3,9 @@ import os
 from psycopg2 import sql
 import yaml 
 import json
+import fiona
 import geopandas as gpd
+import logging
 
 class ReadYAML():
     """Read and return database configuration."""
@@ -114,21 +116,24 @@ class FileHelper():
 class DataImport():
     """Functions to import data."""
     def __init__(self, read_yaml_config, is_temp, db_conn):
+        self.goat_conf = read_yaml_config.return_goat_conf()
         self.db_conf = read_yaml_config.return_db_conf()
         self.db_name = self.db_conf["DB_NAME"]
         self.user = self.db_conf["USER"]
         self.host = self.db_conf["HOST"]
-        self.folder_shp = FileHelper().list_files_dir("/opt/data", ('.shp'))
-        self.goat_srid = "EPSG:4326" # Consider to use from the YML of JSON.
-        with open('/opt/data/config.json', 'r') as c:
-            shp_config_data = json.load(c)
-            self.mandatory_shp = shp_config_data['shapefiles']['mandatory']
-            self.optional_shp = shp_config_data['shapefiles']['optional']
-            self.not_listed_shp = []
+        self.folder_files = FileHelper().list_files_dir("/opt/data", ('.shp','.sql','.tif', 'json'))
+        self.mandatory_data = self.goat_conf['DATA_IMPORT']['MANDATORY']
+        self.optional_data = self.goat_conf['DATA_IMPORT']['OPTIONAL']
+        self.goat_srid = self.goat_conf['DATA_IMPORT']['SRID']
+        self.study_area = ''
+        self.study_area_name = ''
+        self.not_listed_shp = []
 
-            for shp in self.folder_shp:
-                if (shp not in self.mandatory_shp and shp not in self.optional_shp):
-                    self.not_listed_shp.append(shp)
+        for shp in self.folder_files:
+            if (shp not in self.mandatory_data and shp not in self.optional_data):
+                self.not_listed_shp.append(shp)
+            else:
+                pass
 
         if is_temp == True: 
             self.db_name = self.db_name + 'temp'
@@ -137,21 +142,116 @@ class DataImport():
         self.buffer = float(read_yaml_config.return_goat_conf()["DATA_SOURCE"]["BUFFER_BOUNDING_BOX"])
         self.extract_bbox = read_yaml_config.return_goat_conf()["DATA_SOURCE"]["EXTRACT_BBOX"]
         self.db_conn = db_conn
-    
+        
     def check_study_area(self):
-        os.chdir('/opt/data') 
-        if (self.mandatory_shp[0] in self.folder_shp):
-            study_area = gpd.read_file(self.mandatory_shp[0])
-            if(str(study_area.crs).split(':')[1] == '4326'):
-                print("{0} detected. Continue.".format(study_area.crs))
+        os.chdir('/opt/data')
+        study_area_files = []
+        for study_file in self.mandatory_data:
+            if (study_file in self.folder_files):
+                study_area_files.append(study_file)
+        if (len(study_area_files) == 0):
+            return GoatMessages().messages("error", "Study are file not detected. Please, insert a study area in sql, json or shp format")
+        if (len(study_area_files) == 1):
+            self.study_area = study_area_files[0]
+            self.study_area_name = study_area_files[0]
+            if(study_area_files[0] == 'study_area.shp'):
+                self.study_area = gpd.read_file(study_area_files[0])
+                if(str(self.study_area.crs).split(':')[1] == '4326'):
+                    return GoatMessages().messages("info", "{0} detected. Continue.".format(self.study_area.crs)) 
+                else:
+                    old_srid = str(self.study_area.crs)
+                    self.study_area = self.study_area.to_crs(self.goat_srid)
+                    self.study_area.to_file('study_area.shp')
+                    return GoatMessages().messages("Converted from {0} => {1}".format(old_srid, self.goat_srid))
+            if(study_area_files[0] == 'study_area.sql'):
+                    return GoatMessages().messages("info", "SQL File from Study Area Detected.") 
+            if(study_area_files[0] == 'study_area.json'):
+                    return GoatMessages().messages("info", "GeoJSON File from Study Area Detected.") 
+        if (len(study_area_files) > 1):
+            return GoatMessages().messages("error", "You have more than one study area in supported formats. Please, use only one file")
+  
+    def check_study_area_schema(self):
+        os.chdir('/opt/data')
+        if (self.study_area_name.endswith('.shp')):
+            layer = fiona.open(self.study_area_name)
+            mandatory_fields = []
+            if (layer.schema['geometry'] == 'Polygon'):
+                for (key) in layer.schema['properties']:
+                    if (key == 'name' and layer.schema['properties'][key].split(':')[0] == 'str'):
+                        mandatory_fields.append({key: layer.schema[key]})
+                    elif (key == 'sum_pop' and layer.schema['properties'][key].split(':')[0] == 'int'):
+                        mandatory_fields.append({key: layer.schema['properties'][key]})
+            if (len(mandatory_fields) < 2):
+                return GoatMessages().messages("error", "Please, check the name from shapefile fields")
+            elif (len(mandatory_fields) >= 2):
+                return GoatMessages().messages("info", "Field validation passed.")
+            else: 
+                return GoatMessages().messages("error", "Geometry type: {0}. Please use a shapefile with Polygon geometry type".format(layer.schema['geometry']))
+
+    def check_shp_srid(self):
+        os.chdir('/opt/data')
+        optional_files = []
+        for shp in self.optional_data:
+            if (shp in self.folder_files):
+                optional_files.append(shp)
+
+        for optional_shp in optional_files:
+            optional_shp_file = gpd.read_file(optional_shp)
+            if(str(optional_shp_file.crs).split(':')[1] == '4326'):
+                GoatMessages().messages("info", "{0} detected in {1}. Continue.".format(optional_shp_file.crs, optional_shp)) 
             else:
-                old_srid = str(study_area.crs)
-                study_area = study_area.to_crs(self.goat_srid)
-                study_area.to_file('study_area.shp')
-                print("Converted from {0} => {1}".format(old_srid, self.goat_srid))
-        else:
-            return print(
-                "Study Area Shapefile not found. Please, insert the file in the app/database/data folder.")
+                old_srid = str(optional_shp_file.crs)
+                optional_shp_file = optional_shp_file.to_crs(self.goat_srid)
+                optional_shp_file.to_file('{0}.shp'.format(optional_shp))
+                GoatMessages().messages("info", "Converted from {0} => {1}".format(old_srid, self.goat_srid))
+
+    def check_shp_schema(self):
+        os.chdir('/opt/data')
+        optional_files = []
+        census_mandatory_fields = []
+        landuse_mandatory_fields = []
+        for shp in self.optional_data:
+            if (shp in self.folder_files):
+                optional_files.append(shp)
+        for shp in optional_files:
+            layer = fiona.open(shp)
+            if (shp == 'census.shp'):
+                for (key) in layer.schema['properties']:
+                    print(layer.schema['properties']['id'])
+                    if (key == 'id' and layer.schema['properties'][key].split(':')[0] == 'str'):
+                        census_mandatory_fields.append({key: layer.schema['properties'][key]})
+                    if (key == 'demography' and layer.schema['properties'][key].split(':')[0] == 'str'):
+                        census_mandatory_fields.append({key: layer.schema['properties'][key]})
+                    if (key == 'pop' and layer.schema['properties'][key].split(':')[0] == 'int'):
+                        census_mandatory_fields.append({key: layer.schema['properties'][key]})
+            if (shp == 'landuse.shp'):
+                for (key) in layer.schema['properties']:
+                    if (key == 'landuse' and layer.schema['properties'][key].split(':')[0] == 'str'):
+                        landuse_mandatory_fields.append({key: layer.schema['properties'][key]})
+        if (len(census_mandatory_fields) < 3):
+            GoatMessages().messages("warning", "Your census shapefile do not have all mandatory fields.")
+        elif (len(landuse_mandatory_fields) < 1):
+            GoatMessages().messages("warning", "Your land use shapefile do not have all mandatory fields.")
+        else: 
+            GoatMessages().messages("info", "All optional shapefiles has the right fields structure.")
+
+        
+                
+            # layer = fiona.open(self.study_area_name)
+            # mandatory_fields = []
+            # if (layer.schema['geometry'] == 'Polygon'):
+            #     for (key) in layer.schema['properties']:
+            #         if (key == 'name' and layer.schema[key].split(':')[0] == 'str'):
+            #             mandatory_fields.append({key: layer.schema[key]})
+            #         elif (key == 'sum_pop' and layer.schema[key].split(':')[0] == 'int'):
+            #             mandatory_fields.append({key: layer.schema[key]})
+            # if (len(mandatory_fields) < 2):
+            #     return GoatMessages().messages("error", "Please, check the name from shapefile fields")
+            # if (len(mandatory_fields) >= 2):
+            #     return GoatMessages().messages("info", "Field validation passed.")
+            # else: 
+            #     return GoatMessages().messages("error", "Geometry type: {0}. Please use a shapefile with Polygon geometry type".format(layer.schema['geometry']))
+
 
     def prepare_planet_osm(self):
         os.chdir('/opt/data') 
@@ -203,7 +303,7 @@ class DataImport():
             return 
 
     def import_data_folder(self,path_data):
-        all_files = FileHelper().list_files_dir(path_data, ('.shp','.sql','.tif'))
+        all_files = FileHelper().list_files_dir(path_data, ('.shp','.sql','.tif', 'json'))
         cleaned_files = FileHelper().list_files_for_import(all_files,'.sql')
 
         for f in cleaned_files:
@@ -235,3 +335,27 @@ class DataImport():
         #Rename temp DB into active db
         subprocess.run('''psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%s';"''' % (self.db_name+'temp'), shell=True, check=True)
         subprocess.run('psql -U postgres -c "ALTER DATABASE %s RENAME TO %s;"' % (self.db_name+'temp',self.db_name), shell=True, check=True)
+
+class GoatMessages():
+    logging.basicConfig(filename="/opt/data/setup_log.txt",
+                    level=logging.INFO,
+                    format='%(levelname)s: %(asctime)s %(message)s',
+                    datefmt='%m/%d/%Y %I:%M:%S')
+
+    def __init__(self) -> None:
+        pass
+
+    def messages(self, level, message):
+        """
+        Custom function to return messages in the user terminal 
+        and also save in log.txt file inside op/data folder
+        """
+        if (level == 'info'):
+            logging.info("==== GOAT INFO: {0} ====".format(message))
+            print("==== GOAT INFO: {0} ====".format(message))
+        if (level == 'warning'):
+            logging.warning("==== GOAT WARNING: {0} ====".format(message))
+            print("==== GOAT WARNING: {0} ====".format(message))
+        if (level == 'error'):
+            logging.error("==== GOAT ERROR: {0} ====".format(message))
+            print("==== GOAT ERROR: {0} ====".format(message))
