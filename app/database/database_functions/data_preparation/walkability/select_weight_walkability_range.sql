@@ -9,5 +9,3 @@ $$
 	AND (w.max_value >= condition_input or w.max_value IS NULL) 
 $$
 LANGUAGE sql immutable;
-
-		
