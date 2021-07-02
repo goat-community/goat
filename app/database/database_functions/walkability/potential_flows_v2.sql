@@ -19,10 +19,9 @@ BEGIN
         SELECT rec.persons, rec.geom person_geom, e.edge, e.geom, e.source, e.target, e.start_cost, e.end_cost, e.cost
         INTO rec2
         FROM edges_potential_flows e
-        WHERE 
-            e.objectid = p_objectid
-            AND e.geom && st_buffer(rec.geom,0.0009)
-            ORDER BY rec.geom <-> e.geom
+        WHERE e.objectid = p_objectid
+        AND e.geom && st_buffer(rec.geom,0.0009)
+        ORDER BY rec.geom <-> e.geom
         LIMIT 1;
     
         IF rec2 IS NOT NULL
@@ -77,7 +76,7 @@ BEGIN
     FROM edges_potential_flows e
     LEFT JOIN flows f ON e.edge = f.edge 
     WHERE f.edge IS NULL 
-        AND e.objectid = objectid_input
+    AND e.objectid = objectid_input
     UNION ALL 
     SELECT * 
     FROM flows;

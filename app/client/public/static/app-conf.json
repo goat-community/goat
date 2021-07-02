@@ -60,23 +60,6 @@
           "url": "./static/layer-styles/styles/study_area_crop.json"
         }
       },
-
-      {
-        "type": "WMS",
-        "name": "indicators",
-        "url": "/geoserver/wms",
-        "group": "Indicators",
-        "layers": "cite:indicators",
-        "opacity": 1,
-        "queryable": true,
-        "visible": true,
-        "canEdit": false,
-        "displayInLegend": true,
-        "displayInLayerList": true,
-        "zIndex": 20,
-        "serverType": "geoserver"
-      },
-
       {
         "type": "VECTORTILE",
         "name": "ways",
@@ -94,7 +77,7 @@
         "serverType": "geoserver",
         "attributes": {
           "source": "openStreetMap",
-          "date": "07-03-2021"
+          "date": "17-06-2021"
         },
         "style": {
           "format": "geostyler",
@@ -127,7 +110,7 @@
         "zIndex": 7,
         "attributes": {
           "source": "openStreetMap",
-          "date": "07-03-2021"
+          "date": "17-06-2021"
         },
         "style": {
           "format": "custom-logic"
@@ -197,7 +180,7 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "07-03-2021"
+          "date": "17-06-2021"
         }
       },
       {
@@ -224,7 +207,7 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "07-03-2021"
+          "date": "17-06-2021"
         }
       },
       {
@@ -282,6 +265,12 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lit.json"
+        },
+        "attributes": {
+          "source": "OpenStreetMap",
+          "date": "17-06-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -424,7 +413,8 @@
         "zIndex": 1,
         "maxResolution": 7,
         "style": {
-          "format": "custom-logic"
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/footpath_visualization.json"
         }
       },
       {
@@ -448,6 +438,78 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
+        "name": "ways_comfort",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_comfort.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_traffic_protection",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_traffic_protection.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_security",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_security.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_green_blue_index",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_green_blue_index.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "street_crossings",
         "url": "/api/map/layer/street_crossings/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -464,7 +526,9 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "07-03-2021"
+          "date": "17-06-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -486,7 +550,9 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "07-03-2021"
+          "date": "17-06-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -508,7 +574,9 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "07-03-2021"
+          "date": "17-06-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -1027,12 +1095,12 @@
         "type": "XYZ",
         "name": "publicTransport",
         "group": "backgroundLayers",
-        "url": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
+        "url": "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=402ce1ca8eb54457bdf65e2b261c5132",
         "maxZoom": 18,
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
-        "attributions": "© <a href='https://www.memomaps.de/'>Memomaps</a>"
+        "attributions": "© <a href='https://www.thunderforest.com/'>Thunderforest</a>"
       },
       {
         "type": "BING",
@@ -1232,6 +1300,13 @@
         "attributes": {
           "source": "Statistische Ämter des Bundes und der Länder",
           "date": "2011"
+        }
+      },
+      {
+        "name": "Lastenräder",
+        "attributes": {
+          "source": "LastenVelo Freiburg e.V.",
+          "date": "16.03.2021"
         }
       }
     ],
@@ -2102,7 +2177,17 @@
         "timeBasedCalculations": "no"
       }
     },
-    "edit": {}
+    "edit": {},
+    "layerTree": {
+      "groupIcons": {
+        "poisLayers": "fas fa-map-marker",
+        "buildings_landuse": "fas fa-home",
+        "streetlevelqualityLayers": "fas fa-road",
+        "environmentalQualityLayers": "fas fa-leaf",
+        "additionalDataLayers": "more",
+        "accessbilityBasemaps": "./static/layer-styles/assets/icons/_backgroundLayers/hexagon.svg"
+      }
+    }
   },
   "layerConf": {
     "ways": {

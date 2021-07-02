@@ -2,85 +2,125 @@
   "name": "ways_liveliness",
   "rules": [
     {
-      "name": "high",
+      "name": "very_low",
       "filter": [
-        "==",
-        "liveliness",
-        "high"
-      ],
-      "symbolizers": [
-        {
-          "kind": "Line",
-          "color": "#08306b",
-          "width": 1,
-          "join": "bevel",
-          "cap": "square"
-        }
-      ]
-    },
-    {
-      "name": "limited",
-      "filter": [
-        "==",
-        "liveliness",
-        "medium"
-      ],
-      "symbolizers": [
-        {
-          "kind": "Line",
-          "color": "#1c6cb1",
-          "width": 1,
-          "join": "bevel",
-          "cap": "square"
-        }
-      ]
-    },
-    {
-      "name": "no",
-      "filter": [
-        "==",
-        "liveliness",
-        "low"
-      ],
-      "symbolizers": [
-        {
-          "kind": "Line",
-          "color": "#529dcc",
-          "width": 1,
-          "join": "bevel",
-          "cap": "square"
-        }
-      ]
-    },
-    {
-      "name": "unclassified",
-      "filter": [
-        "==",
-        "liveliness",
-        "very_low"
-      ],
-      "symbolizers": [
-        {
-          "kind": "Line",
-          "color": "#9ac8e1",
-          "width": 1,
-          "join": "bevel",
-          "cap": "square"
-        }
-      ]
-    },
-    {
-      "name": "unclassified",
-      "filter": [
-        "==",
-        "liveliness",
-        "no"
+        "&&",
+        [
+          ">=",
+          "liveliness",
+          "0"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "20"
+        ]
       ],
       "symbolizers": [
         {
           "kind": "Line",
           "color": "#f7fbff",
-          "width": 1,
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "low",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "20"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "40"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#c8ddf0",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "medium",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "40"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "60"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#73b3d8",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "high",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "60"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "80"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#2879b9",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "very_high",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "80"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "100"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#08306b",
+          "width": 3,
           "join": "bevel",
           "cap": "square"
         }

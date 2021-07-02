@@ -18,31 +18,26 @@ export default {
     return {
       exludedProps: ["id", "geom", "geometry", "layerName"],
       attributes: {
-        sidewalk_quality: [
-          "sidewalk",
-          "width",
-          "smoothness",
-          "surface",
-          "wheelchair_classified"
-        ],
+        sidewalk_quality: ["sidewalk", "incline_percent", "surface", "highway"],
         traffic_protection: [
           "lanes",
           "maxspeed",
+          "crossings",
           "parking",
           "cnt_accidents",
           "noise_day",
           "noise_night"
         ],
         security: ["lit_classified", "covered"],
-        vegetation: [],
-        walking_environment: ["landuse", "cnt_pois", "cnt_population"],
+        green_blue_index: ["vegetation", "water"],
+        liveliness: ["landuse", "pois", "population"],
         comfort: [
           "cnt_benches",
           "cnt_waste_baskets",
           "cnt_toilets",
-          "cnt_fountains",
-          "slope"
+          "cnt_fountains"
         ],
+        data_quality: [],
         walkability: []
       },
       colors: {
@@ -182,9 +177,17 @@ export default {
       const colorData = [];
       properties.forEach(prop => {
         if (!this.exludedProps.includes(prop)) {
-          const value = this.feature.get(prop);
+          let value = this.feature.get(prop);
+
           labels.push(prop);
-          data.push(this.feature.get(prop));
+          // Data quality (edge case) multiple with 100 (REMOVE if value is between 0 and 100)
+          if (prop === "data_quality" && Number.isFinite(value)) {
+            value = value * 100;
+          }
+          if (Number.isFinite(value)) {
+            value = value.toFixed(0);
+          }
+          data.push(value);
           // Find the correct color based on value
           let color;
           let colorPercentage;

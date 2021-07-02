@@ -1,0 +1,130 @@
+{
+  "name": "ways_sidewalk_quality",
+  "rules": [
+    {
+      "name": "very_low",
+      "filter": [
+        "&&",
+        [
+          ">=",
+          "sidewalk_quality",
+          "0"
+        ],
+        [
+          "<=",
+          "sidewalk_quality",
+          "20"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#fcfbfd",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "low",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "sidewalk_quality",
+          "20"
+        ],
+        [
+          "<=",
+          "sidewalk_quality",
+          "40"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#dcdcec",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "medium",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "sidewalk_quality",
+          "40"
+        ],
+        [
+          "<=",
+          "sidewalk_quality",
+          "60"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#a3a0cb",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "high",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "sidewalk_quality",
+          "60"
+        ],
+        [
+          "<=",
+          "sidewalk_quality",
+          "80"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#6a51a3",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "very_high",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "sidewalk_quality",
+          "80"
+        ],
+        [
+          "<=",
+          "sidewalk_quality",
+          "100"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#3f007d",
+          "width": 3,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    }
+  ]
+}
