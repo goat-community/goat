@@ -1,13 +1,13 @@
-<mxfile host="app.diagrams.net" modified="2021-06-26T08:54:54.235Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36" etag="4QCgyeBDLlHsawu9j7Lg" version="14.8.1" type="github" pages="2">
+<mxfile host="app.diagrams.net" modified="2021-07-04T12:44:14.126Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36" etag="HvXnX_oXWAu3r6nomdUU" version="14.8.1" type="github" pages="2">
   <diagram id="gSiPfwgvA54Z1C3vehDS" name="Page-1">
-    <mxGraphModel dx="2757" dy="2235" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1808" dy="1702" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="zYgc90g8Zmz4CVXkP-po-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="79B8dK87wqLwpo8yn6WV-3" target="Ia5hEZytAEmgdlomByLA-23" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="79B8dK87wqLwpo8yn6WV-3" value="&lt;font style=&quot;font-size: 10px;&quot;&gt;Start&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=10;" parent="1" vertex="1">
+        <mxCell id="79B8dK87wqLwpo8yn6WV-3" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;Start&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=12;" parent="1" vertex="1">
           <mxGeometry x="10" y="300" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="Ia5hEZytAEmgdlomByLA-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="79B8dK87wqLwpo8yn6WV-5" target="Ia5hEZytAEmgdlomByLA-23" edge="1">
@@ -35,13 +35,13 @@
         <mxCell id="79B8dK87wqLwpo8yn6WV-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="79B8dK87wqLwpo8yn6WV-12" target="79B8dK87wqLwpo8yn6WV-13" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="79B8dK87wqLwpo8yn6WV-12" value="Assign default buildings levels for study area if no building levels or height exists" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="79B8dK87wqLwpo8yn6WV-12" value="Assign default buildings levels for study area if no building levels or height exists" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="260" y="485" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="dN0qMM9BU-N8yEWdNGNO-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="79B8dK87wqLwpo8yn6WV-13" target="79B8dK87wqLwpo8yn6WV-25" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="79B8dK87wqLwpo8yn6WV-13" value="Pre-classify buildings based on building attribute" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="79B8dK87wqLwpo8yn6WV-13" value="Pre-classify buildings based on building attribute" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="390" y="485" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="dN0qMM9BU-N8yEWdNGNO-6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="79B8dK87wqLwpo8yn6WV-18" target="79B8dK87wqLwpo8yn6WV-25" edge="1">
@@ -64,19 +64,19 @@
         <mxCell id="dN0qMM9BU-N8yEWdNGNO-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="79B8dK87wqLwpo8yn6WV-25" target="79B8dK87wqLwpo8yn6WV-40" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="79B8dK87wqLwpo8yn6WV-25" value="Label buildings as not residential if lying on not residential landuse category" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="79B8dK87wqLwpo8yn6WV-25" value="Label buildings as not residential if lying on not residential landuse category" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="790" y="485" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="Ia5hEZytAEmgdlomByLA-22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="79B8dK87wqLwpo8yn6WV-40" target="79B8dK87wqLwpo8yn6WV-42" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="79B8dK87wqLwpo8yn6WV-40" value="Label buildings with smaller a defined size as not residential" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="79B8dK87wqLwpo8yn6WV-40" value="Label buildings with smaller a defined size as not residential" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="790" y="655" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="zYgc90g8Zmz4CVXkP-po-23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="79B8dK87wqLwpo8yn6WV-42" target="Ia5hEZytAEmgdlomByLA-44" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="79B8dK87wqLwpo8yn6WV-42" value="Reduce residential building levels if intersection with POIs" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="79B8dK87wqLwpo8yn6WV-42" value="Reduce residential building levels if intersection with POIs" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="640" y="655" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="Ia5hEZytAEmgdlomByLA-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="Ia5hEZytAEmgdlomByLA-1" target="Ia5hEZytAEmgdlomByLA-23" edge="1">
@@ -93,16 +93,16 @@
         <mxCell id="Ia5hEZytAEmgdlomByLA-27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="Ia5hEZytAEmgdlomByLA-23" target="79B8dK87wqLwpo8yn6WV-12" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="Ia5hEZytAEmgdlomByLA-23" value="Fusion OSM buildings and custom buildings" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="Ia5hEZytAEmgdlomByLA-23" value="Fusion OSM buildings and custom buildings" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="130" y="485" width="100" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="Ia5hEZytAEmgdlomByLA-30" value="&lt;font style=&quot;font-size: 10px&quot;&gt;End&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=10;" parent="1" vertex="1">
+        <mxCell id="Ia5hEZytAEmgdlomByLA-30" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;End&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=12;" parent="1" vertex="1">
           <mxGeometry x="130" y="675" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-343" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="Ia5hEZytAEmgdlomByLA-39" target="Ia5hEZytAEmgdlomByLA-43" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="Ia5hEZytAEmgdlomByLA-39" value="&lt;font style=&quot;font-size: 10px&quot;&gt;Start&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=10;" parent="1" vertex="1">
+        <mxCell id="Ia5hEZytAEmgdlomByLA-39" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;Start&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=12;" parent="1" vertex="1">
           <mxGeometry x="26.5" y="993" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-339" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="Ia5hEZytAEmgdlomByLA-40" target="Ia5hEZytAEmgdlomByLA-43" edge="1">
@@ -120,13 +120,13 @@
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-345" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="Ia5hEZytAEmgdlomByLA-43" target="9iY5AjlihuMi9OCF5Ucr-340" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="Ia5hEZytAEmgdlomByLA-43" value="Derive building entrances and distribute gross floor area" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="Ia5hEZytAEmgdlomByLA-43" value="Derive building entrances and distribute gross floor area" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="205" y="973" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="zYgc90g8Zmz4CVXkP-po-22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="Ia5hEZytAEmgdlomByLA-44" target="zYgc90g8Zmz4CVXkP-po-21" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="Ia5hEZytAEmgdlomByLA-44" value="Compute residential gross floor area per building" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="Ia5hEZytAEmgdlomByLA-44" value="Compute residential gross floor area per building" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="500" y="655" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="zYgc90g8Zmz4CVXkP-po-10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="Ia5hEZytAEmgdlomByLA-49" target="9iY5AjlihuMi9OCF5Ucr-340" edge="1">
@@ -146,7 +146,7 @@
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-68" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="zYgc90g8Zmz4CVXkP-po-6" target="9iY5AjlihuMi9OCF5Ucr-65" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="zYgc90g8Zmz4CVXkP-po-6" value="Compute residential gross floor area per census tract" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="zYgc90g8Zmz4CVXkP-po-6" value="Compute residential gross floor area per census tract" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="376.5" y="1119" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="zYgc90g8Zmz4CVXkP-po-17" value="Limitations&lt;br&gt;- there is living a person in every residential building. There are no abonndened buildings&lt;br&gt;- new residents are first assigned to newly developed areas ==&amp;gt; densification might be disregarded&lt;br&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
@@ -164,7 +164,7 @@
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-352" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="2Fmk_maczDosi2yWpNws-43" target="9iY5AjlihuMi9OCF5Ucr-350" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="2Fmk_maczDosi2yWpNws-43" value="&lt;font style=&quot;font-size: 10px&quot;&gt;Start&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=10;" parent="1" vertex="1">
+        <mxCell id="2Fmk_maczDosi2yWpNws-43" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;Start&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=12;" parent="1" vertex="1">
           <mxGeometry x="40" y="1820" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="dN0qMM9BU-N8yEWdNGNO-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="dN0qMM9BU-N8yEWdNGNO-5" target="79B8dK87wqLwpo8yn6WV-25" edge="1">
@@ -190,7 +190,7 @@
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-66" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="9iY5AjlihuMi9OCF5Ucr-65" target="9iY5AjlihuMi9OCF5Ucr-64" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="9iY5AjlihuMi9OCF5Ucr-65" value="Find census tracts with no recorded population but detected gross floor area" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="9iY5AjlihuMi9OCF5Ucr-65" value="Find census tracts with no recorded population but detected gross floor area" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="515" y="1119" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-69" value="&lt;font style=&quot;font-size: 21px&quot;&gt;&lt;b&gt;Fusion buildings &amp;amp; Dasymetric filter&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
@@ -211,13 +211,13 @@
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-77" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="9iY5AjlihuMi9OCF5Ucr-72" target="9iY5AjlihuMi9OCF5Ucr-75" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="9iY5AjlihuMi9OCF5Ucr-72" value="Compute population for census tracts with new development using residential gross floor area" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="9iY5AjlihuMi9OCF5Ucr-72" value="Compute population for census tracts with new development using residential gross floor area" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="151.5" y="1425" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-85" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="9iY5AjlihuMi9OCF5Ucr-75" target="9iY5AjlihuMi9OCF5Ucr-80" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="9iY5AjlihuMi9OCF5Ucr-75" value="Check sum of assigned population and population growth per district in study area" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="9iY5AjlihuMi9OCF5Ucr-75" value="Check sum of assigned population and population growth per district in study area" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="294.5" y="1425" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-88" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="9iY5AjlihuMi9OCF5Ucr-80" target="9iY5AjlihuMi9OCF5Ucr-82" edge="1">
@@ -226,25 +226,25 @@
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-89" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="9iY5AjlihuMi9OCF5Ucr-80" target="9iY5AjlihuMi9OCF5Ucr-86" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="9iY5AjlihuMi9OCF5Ucr-80" value="Sum assigned population &lt;br&gt;&amp;gt; &lt;br&gt;district growth" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.decision;whiteSpace=wrap;rounded=1;fontSize=10;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+        <mxCell id="9iY5AjlihuMi9OCF5Ucr-80" value="Sum assigned &lt;br&gt;population &lt;br style=&quot;font-size: 12px&quot;&gt;&amp;gt; &lt;br style=&quot;font-size: 12px&quot;&gt;district growth" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.decision;whiteSpace=wrap;rounded=1;fontSize=12;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
           <mxGeometry x="436" y="1403" width="143" height="144" as="geometry" />
         </mxCell>
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-94" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="9iY5AjlihuMi9OCF5Ucr-82" target="9iY5AjlihuMi9OCF5Ucr-87" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="9iY5AjlihuMi9OCF5Ucr-82" value="Reduce population of census tracts with new development" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="9iY5AjlihuMi9OCF5Ucr-82" value="Reduce population of census tracts with new development" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="640" y="1311" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-84" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="9iY5AjlihuMi9OCF5Ucr-83" target="9iY5AjlihuMi9OCF5Ucr-72" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="9iY5AjlihuMi9OCF5Ucr-83" value="&lt;font style=&quot;font-size: 10px&quot;&gt;Start&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=10;" parent="1" vertex="1">
+        <mxCell id="9iY5AjlihuMi9OCF5Ucr-83" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;Start&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=12;" parent="1" vertex="1">
           <mxGeometry x="10" y="1445" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-95" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="9iY5AjlihuMi9OCF5Ucr-86" target="9iY5AjlihuMi9OCF5Ucr-87" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="9iY5AjlihuMi9OCF5Ucr-86" value="Distribute remaining population to rest of census tracts in district" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="9iY5AjlihuMi9OCF5Ucr-86" value="Distribute remaining population to rest of census tracts in district" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="640" y="1531" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-97" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="9iY5AjlihuMi9OCF5Ucr-87" target="9iY5AjlihuMi9OCF5Ucr-96" edge="1">
@@ -253,10 +253,10 @@
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-87" value="&lt;font&gt;&lt;font style=&quot;font-size: 12px&quot;&gt;Updated Census &lt;br&gt;Tracts&lt;/font&gt;&lt;br&gt;&lt;/font&gt;" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;strokeColor=#23445d;fillColor=#CADAE6;" parent="1" vertex="1">
           <mxGeometry x="753" y="1435" width="137" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="9iY5AjlihuMi9OCF5Ucr-96" value="&lt;font style=&quot;font-size: 10px&quot;&gt;End&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=10;" parent="1" vertex="1">
+        <mxCell id="9iY5AjlihuMi9OCF5Ucr-96" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;End&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=12;" parent="1" vertex="1">
           <mxGeometry x="920" y="1440" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="9iY5AjlihuMi9OCF5Ucr-98" value="&lt;font style=&quot;font-size: 10px&quot;&gt;End&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=10;" parent="1" vertex="1">
+        <mxCell id="9iY5AjlihuMi9OCF5Ucr-98" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;End&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=12;" parent="1" vertex="1">
           <mxGeometry x="813.5" y="1139" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-111" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;overflow=hidden;" parent="1" vertex="1">
@@ -742,7 +742,7 @@
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-356" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="9iY5AjlihuMi9OCF5Ucr-350" target="9iY5AjlihuMi9OCF5Ucr-355" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="9iY5AjlihuMi9OCF5Ucr-350" value="Distribute New Population to entrances based on assigned residential gross floor area" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+        <mxCell id="9iY5AjlihuMi9OCF5Ucr-350" value="Distribute New Population to entrances based on assigned residential gross floor area" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="230" y="1800" width="100" height="100" as="geometry" />
         </mxCell>
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-358" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="9iY5AjlihuMi9OCF5Ucr-355" target="9iY5AjlihuMi9OCF5Ucr-357" edge="1">
@@ -751,7 +751,7 @@
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-355" value="&lt;font&gt;Population&lt;br&gt;&lt;/font&gt;" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;strokeColor=#23445d;fillColor=#CADAE6;" parent="1" vertex="1">
           <mxGeometry x="410" y="1815" width="140" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="9iY5AjlihuMi9OCF5Ucr-357" value="&lt;font style=&quot;font-size: 10px&quot;&gt;End&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=10;" parent="1" vertex="1">
+        <mxCell id="9iY5AjlihuMi9OCF5Ucr-357" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;End&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=2;fontSize=12;" parent="1" vertex="1">
           <mxGeometry x="580" y="1820" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-359" value="&lt;font style=&quot;font-size: 23px&quot;&gt;&lt;b&gt;Input Data&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
@@ -1034,19 +1034,19 @@
         <mxCell id="9iY5AjlihuMi9OCF5Ucr-482" value="&lt;span style=&quot;font-size: 21px&quot;&gt;&lt;b&gt;Population distribution entrances&lt;/b&gt;&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="-30" y="1650" width="690" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="QQVR7JYSo-BgsvKtGF-i-8" value="&lt;font style=&quot;font-size: 15px&quot;&gt;Data collection &lt;br&gt;&amp;amp;&lt;br&gt;verification&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="QQVR7JYSo-BgsvKtGF-i-8" value="&lt;font style=&quot;font-size: 15px&quot;&gt;Data collection &lt;br&gt;&amp;amp;&lt;br&gt;verification&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="-510" y="520" width="110" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="QQVR7JYSo-BgsvKtGF-i-16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="QQVR7JYSo-BgsvKtGF-i-11" target="QQVR7JYSo-BgsvKtGF-i-12">
+        <mxCell id="QQVR7JYSo-BgsvKtGF-i-16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="QQVR7JYSo-BgsvKtGF-i-11" target="QQVR7JYSo-BgsvKtGF-i-12" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="QQVR7JYSo-BgsvKtGF-i-11" value="&lt;font style=&quot;font-size: 15px&quot;&gt;Fusion Building data&lt;br&gt;&amp;amp;&lt;br&gt;Dasymetric filte&lt;/font&gt;&lt;span style=&quot;font-size: 15px&quot;&gt;r&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+        <mxCell id="QQVR7JYSo-BgsvKtGF-i-11" value="&lt;font style=&quot;font-size: 15px&quot;&gt;Fusion Building data&lt;br&gt;&amp;amp;&lt;br&gt;Dasymetric filte&lt;/font&gt;&lt;span style=&quot;font-size: 15px&quot;&gt;r&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="-770" y="420" width="190" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="QQVR7JYSo-BgsvKtGF-i-17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="QQVR7JYSo-BgsvKtGF-i-12" target="QQVR7JYSo-BgsvKtGF-i-14">
+        <mxCell id="QQVR7JYSo-BgsvKtGF-i-17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="QQVR7JYSo-BgsvKtGF-i-12" target="QQVR7JYSo-BgsvKtGF-i-14" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="QQVR7JYSo-BgsvKtGF-i-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="QQVR7JYSo-BgsvKtGF-i-12" target="QQVR7JYSo-BgsvKtGF-i-11">
+        <mxCell id="QQVR7JYSo-BgsvKtGF-i-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="QQVR7JYSo-BgsvKtGF-i-12" target="QQVR7JYSo-BgsvKtGF-i-11" edge="1">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="-520" y="595" />
@@ -1054,17 +1054,47 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="QQVR7JYSo-BgsvKtGF-i-12" value="&lt;span style=&quot;font-size: 15px&quot;&gt;Detection of building entrances &lt;br&gt;&amp;amp;&lt;/span&gt;&lt;br style=&quot;font-size: 15px&quot;&gt;&lt;span style=&quot;font-size: 15px&quot;&gt;New development areas&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+        <mxCell id="QQVR7JYSo-BgsvKtGF-i-12" value="&lt;span style=&quot;font-size: 15px&quot;&gt;Detection of building entrances &lt;br&gt;&amp;amp;&lt;/span&gt;&lt;br style=&quot;font-size: 15px&quot;&gt;&lt;span style=&quot;font-size: 15px&quot;&gt;New development areas&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="-770" y="550" width="190" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="QQVR7JYSo-BgsvKtGF-i-18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="QQVR7JYSo-BgsvKtGF-i-14" target="QQVR7JYSo-BgsvKtGF-i-15">
+        <mxCell id="QQVR7JYSo-BgsvKtGF-i-18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="QQVR7JYSo-BgsvKtGF-i-14" target="QQVR7JYSo-BgsvKtGF-i-15" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="QQVR7JYSo-BgsvKtGF-i-14" value="&lt;span style=&quot;font-size: 15px&quot;&gt;Update census tracts&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+        <mxCell id="QQVR7JYSo-BgsvKtGF-i-14" value="&lt;span style=&quot;font-size: 15px&quot;&gt;Update census tracts&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="-770" y="680" width="190" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="QQVR7JYSo-BgsvKtGF-i-15" value="&lt;span style=&quot;font-size: 15px&quot;&gt;Population distribution&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+        <mxCell id="QQVR7JYSo-BgsvKtGF-i-15" value="&lt;span style=&quot;font-size: 15px&quot;&gt;Population distribution&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=10;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
           <mxGeometry x="-770" y="810" width="190" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="Kg-68Ng-Nsd2_VSinnGN-1" value="" style="shape=table;html=1;whiteSpace=wrap;startSize=0;container=1;collapsible=0;childLayout=tableLayout;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1290" y="2070" width="270" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="Kg-68Ng-Nsd2_VSinnGN-2" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;top=0;left=0;bottom=0;right=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="Kg-68Ng-Nsd2_VSinnGN-1">
+          <mxGeometry width="270" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Kg-68Ng-Nsd2_VSinnGN-3" value="Table Name Figures" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;overflow=hidden;" vertex="1" parent="Kg-68Ng-Nsd2_VSinnGN-2">
+          <mxGeometry width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Kg-68Ng-Nsd2_VSinnGN-4" value="Table Name&amp;nbsp;" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;overflow=hidden;" vertex="1" parent="Kg-68Ng-Nsd2_VSinnGN-2">
+          <mxGeometry x="120" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Kg-68Ng-Nsd2_VSinnGN-6" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;top=0;left=0;bottom=0;right=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="Kg-68Ng-Nsd2_VSinnGN-1">
+          <mxGeometry y="40" width="270" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Kg-68Ng-Nsd2_VSinnGN-7" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;overflow=hidden;" vertex="1" parent="Kg-68Ng-Nsd2_VSinnGN-6">
+          <mxGeometry width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Kg-68Ng-Nsd2_VSinnGN-8" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;overflow=hidden;" vertex="1" parent="Kg-68Ng-Nsd2_VSinnGN-6">
+          <mxGeometry x="120" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Kg-68Ng-Nsd2_VSinnGN-10" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;top=0;left=0;bottom=0;right=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="Kg-68Ng-Nsd2_VSinnGN-1">
+          <mxGeometry y="80" width="270" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Kg-68Ng-Nsd2_VSinnGN-11" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;overflow=hidden;" vertex="1" parent="Kg-68Ng-Nsd2_VSinnGN-10">
+          <mxGeometry width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Kg-68Ng-Nsd2_VSinnGN-12" value="" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;overflow=hidden;" vertex="1" parent="Kg-68Ng-Nsd2_VSinnGN-10">
+          <mxGeometry x="120" width="150" height="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
