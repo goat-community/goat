@@ -2,7 +2,7 @@ DROP FUNCTION IF EXISTS compute_accessibility;
 CREATE OR REPLACE FUNCTION compute_accessibility(scenario_id_input integer)
   RETURNS SETOF void AS
 $func$
-'''Problem with pre_accessibility --> s.sensitivity=0 (for CUM) will result in Division by zero and thus abbortion of the calculation'''
+
 BEGIN
 	DROP TABLE IF EXISTS computed_accessibility; 
 	CREATE TEMP TABLE computed_accessibility AS  
@@ -27,27 +27,3 @@ END;
 $func$  LANGUAGE plpgsql;
 
 /*SELECT compute_accessibility(0)*/
-
-/*compute cumulative opportunities*/
-/*BEGIN
-	DROP TABLE IF EXISTS computed_cum; 
-	CREATE TEMP TABLE computed_cum AS  
-	WITH x AS 
-	(
-		SELECT gid, 0 AS pre_cum
-		FROM reached_pois_heatmap rph, (SELECT UNNEST(select_from_variable_container('heatmap_sensitivities'))  sensitivity) s 
-		WHERE scenario_id = scenario_id_input
-	)
-	SELECT gid, array_agg(vec_pow(exp(1.0)::real,pre_cum) @* 10000::REAL)::integer[] AS cum_indices 
-	FROM x
-	GROUP BY gid; 
-	
-	ALTER TABLE computed_cum ADD PRIMARY key(gid);
-	
-	UPDATE reached_pois_heatmap r SET cum_indices = t.cum_indices 
-	FROM computed_cum t 
-	WHERE r.gid = t.gid
-	AND r.scenario_id = scenario_id_input;
-END;
-
-$func$  LANGUAGE plpgsql;*/

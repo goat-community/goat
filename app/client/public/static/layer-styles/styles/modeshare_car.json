@@ -1,0 +1,61 @@
+{
+  "name": "modeshare_car",
+  "rules": [
+  	{
+      "name": "11to20",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#fdccb8",
+          "outlineColor": "#67000d",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": 
+        ["==", "score", 1]
+    },
+    {
+      "name": "21to30",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#fc8f6f",
+          "outlineColor": "#67000d",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": 
+		["==", "score", 2]
+    },
+    {
+      "name": "31to40",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#f44d37",
+          "outlineColor": "#67000d",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": 
+		["==", "score", 3]
+    },
+    {
+      "name": "41to50",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#c5161b",
+          "outlineColor": "#67000d",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter":
+		["==", "score", 4]
+    }
+  ]
+}

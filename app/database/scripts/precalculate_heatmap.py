@@ -37,9 +37,7 @@ g AS
 SELECT ROW_NUMBER() OVER() AS section_id, g.geom 
 FROM b, g
 WHERE ST_Intersects(b.geom,g.geom);
-
 CREATE INDEX ON compute_sections USING GIST(geom);
-
 DROP TABLE IF EXISTS grid_ordered;
 CREATE TABLE grid_ordered AS 
 SELECT starting_points, centroid, geom, grid_id, section_id, ROW_NUMBER() over() AS id 
@@ -72,14 +70,11 @@ CREATE TABLE reached_edges_heatmap
 	partial_edge boolean,
 	CONSTRAINT reached_edges_heatmap_pkey PRIMARY KEY (id)
 );
-
 CREATE INDEX ON reached_edges_heatmap (userid);
 CREATE INDEX ON reached_edges_heatmap (edge);
 CREATE INDEX ON reached_edges_heatmap (scenario_id);
 CREATE INDEX ON reached_edges_heatmap USING gist(geom);
-
 CREATE INDEX ON reached_edges_heatmap USING gin (gridids gin__int_ops);
-
 DROP TABLE IF EXISTS reached_pois_heatmap;
 CREATE TABLE reached_pois_heatmap (
 	id serial,
@@ -91,6 +86,7 @@ CREATE TABLE reached_pois_heatmap (
 	edge integer,
 	fraction float,
 	accessibility_indices integer[],
+	accessibility_indices_exp float[],
 	userid integer,
 	scenario_id integer,
 	CONSTRAINT reached_pois_heatmap_pkey PRIMARY KEY (id)
@@ -99,7 +95,6 @@ ALTER TABLE reached_pois_heatmap ADD CONSTRAINT
 reached_pois_heatmap_gid_fkey FOREIGN KEY(gid)
 REFERENCES pois_userinput(gid)
 ON DELETE CASCADE; 
-
 CREATE INDEX ON reached_pois_heatmap USING gin (gridids gin__int_ops);
 CREATE INDEX ON reached_pois_heatmap USING gin (arr_cost gin__int_ops);
 CREATE INDEX ON reached_pois_heatmap (edge);
@@ -118,7 +113,7 @@ sql_bulk_calculation = '''WITH x AS
 	FROM grid_ordered 
 	WHERE section_id = %i
 )
-SELECT pgrouting_edges_heatmap(ARRAY[1200.], x.array_starting_points, 1.33, x.grid_ids, 1, 'walking_standard',0,0,%i)
+SELECT pgrouting_edges_heatmap(ARRAY[600.], x.array_starting_points, 1.33, x.grid_ids, 1, 'walking_standard',0,0,%i)
 FROM x;
 '''
 
@@ -129,13 +124,13 @@ for i in section_ids:
 	con.commit()
 
 time_routing = time.time()-start
-print('Routing calculation has finished after: %s s' % (time_routing))
+#print('Routing calculation has finished after: %s s' % (time_routing))
 
 
 #Loop for closest POIs calculation (needs to be executed after routing is completed)
 for i in section_ids: 
 	print('Compute reached pois section: %s' % str(i))
-	cursor.execute('''SELECT reached_population_pois(geom,0.0014,'default',0) 
+	cursor.execute('''SELECT reached_pois_heatmap(geom,0.0014,'default',0) 
 	FROM compute_sections 
 	WHERE section_id = %s
 	''' % str(i))
@@ -145,6 +140,8 @@ print('Closest POIs calculation has finished after: %s s' % (time.time()-start-t
 
 #Compute Accessibility Values
 cursor.execute('SELECT compute_accessibility(0)')
+con.commit()
+cursor.execute('SELECT compute_accessibility_exp(0)')
 con.commit()
 #Loop for isochrone area calculation
 cursor.execute('SELECT grid_id FROM grid_heatmap;')
@@ -162,4 +159,3 @@ con.close()
 end = time.time()
 print('Running the script took:')
 print(end - start)
-

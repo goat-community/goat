@@ -1,0 +1,89 @@
+{
+  "name": "munich_density",
+  "rules": [
+  	{
+      "name": "0",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#fdccb8",
+          "outlineColor": "#ffffff",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": 
+        ["==", "score", 0]
+    },
+	{
+      "name": "0 to 5000",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#fdccb8",
+          "outlineColor": "#67000d",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": 
+        ["==", "score", 1]
+    },
+    {
+      "name": "5000 to 10000",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#fc8f6f",
+          "outlineColor": "#67000d",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": 
+		["==", "score", 2]
+    },
+    {
+      "name": "10000 to 15000",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#f44d37",
+          "outlineColor": "#67000d",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": 
+		["==", "score", 3]
+    },
+    {
+      "name": "15000 to 20000",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#c5161b",
+          "outlineColor": "#67000d",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter":
+		["==", "score", 4]
+    },
+	{
+      "name": "Over 20000",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#67000d",
+          "outlineColor": "#67000d",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter":
+		["==", "score", 5]
+    }
+  ]
+}

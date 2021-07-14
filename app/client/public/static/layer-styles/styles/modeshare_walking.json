@@ -1,0 +1,61 @@
+{
+  "name": "modeshare_walking",
+  "rules": [
+  	{
+      "name": "16to20",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#D5EDFF",
+          "outlineColor": "#004B83",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": 
+        ["==", "score", 1]
+    },
+    {
+      "name": "21to25",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#96D2FF",
+          "outlineColor": "#004B83",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": 
+		["==", "score", 2]
+    },
+    {
+      "name": "26to30",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#2CA5FF",
+          "outlineColor": "#004B83",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter": 
+		["==", "score", 3]
+    },
+    {
+      "name": "over30",
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#006FC2",
+          "outlineColor": "#004B83",
+          "outlineWidth": 0,
+          "outlineDasharray": []
+        }
+      ],
+      "filter":
+		["==", "score", 4]
+    }
+  ]
+}

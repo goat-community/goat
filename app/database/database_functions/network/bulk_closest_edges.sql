@@ -1,5 +1,5 @@
-DROP FUNCTION IF EXISTS bulk_closest_edges_pois;
-CREATE OR REPLACE FUNCTION public.bulk_closest_edges_pois(buffer_geom geometry)
+DROP FUNCTION IF EXISTS bulk_closest_edges;
+CREATE OR REPLACE FUNCTION public.bulk_closest_edges(buffer_geom geometry)
  RETURNS SETOF void
  LANGUAGE plpgsql
 AS $function$
