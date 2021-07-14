@@ -2,102 +2,79 @@
   "name": "age_14_under",
   "rules": [
     {
-      "name": "Zero",
-      "symbolizers": [
-        {
-          "kind": "Fill",
-          "color": "#ffffff",
-          "outlineColor": "#004B83",
-          "outlineWidth": 0,
-          "outlineDasharray": []
-        }
-      ],
-      "filter": 
-        ["==", "score", 0]
-    },
-	{
-      "name": "under10",
+      "name": "VeryLowShare",
       "symbolizers": [
         {
           "kind": "Fill",
           "color": "#D5EDFF",
-          "outlineColor": "#004B83",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
           "outlineWidth": 0,
           "outlineDasharray": []
         }
       ],
       "filter": 
-        ["==", "score", 1]
+        ["==", "age_14_under", 1]
     },
     {
-      "name": "10to15",
+      "name": "LowShare",
       "symbolizers": [
         {
           "kind": "Fill",
           "color": "#96D2FF",
-          "outlineColor": "#004B83",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
           "outlineWidth": 0,
           "outlineDasharray": []
         }
       ],
       "filter": 
-		["==", "score", 2]
+		["==", "age_14_under", 2]
     },
     {
-      "name": "15to20",
+      "name": "MediumShare",
       "symbolizers": [
         {
           "kind": "Fill",
           "color": "#2CA5FF",
-          "outlineColor": "#004B83",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
           "outlineWidth": 0,
           "outlineDasharray": []
         }
       ],
       "filter": 
-		["==", "score", 3]
+		["==", "age_14_under", 3]
     },
     {
-      "name": "20to25",
+      "name": "HighShare",
       "symbolizers": [
         {
           "kind": "Fill",
           "color": "#006FC2",
-          "outlineColor": "#004B83",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
           "outlineWidth": 0,
           "outlineDasharray": []
         }
       ],
       "filter":
-		["==", "score", 4]
+		["==", "age_14_under", 4]
     },
     {
-      "name": "25over",
+      "name": "VeryHighShare",
       "symbolizers": [
         {
           "kind": "Fill",
           "color": "#004B83",
-          "outlineColor": "#004B83",
+          "opacity": 0.4,
+          "outlineColor": "rgba(0, 0, 255, 0.0)",
           "outlineWidth": 0,
           "outlineDasharray": []
         }
       ],
       "filter": 
-        ["==", "score", 5]
-    },
-	  {
-      "name": "MissingData",
-      "symbolizers": [
-        {
-          "kind": "Fill",
-          "color": "#000000",
-          "outlineColor": "#004B83",
-          "outlineWidth": 0,
-          "outlineDasharray": []
-        }
-      ],
-      "filter": 
-        ["==", "score", "nodata"]
+        ["==", "age_14_under", 5]
     }
   ]
 }

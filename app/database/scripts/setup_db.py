@@ -136,7 +136,7 @@ def setup_db(setup_type):
     create_variable_container(db_name_temp,user,str(port),host,password)
     
     #Write timestamp in Variable container
-    #db_temp.execute_text_psql(f"INSERT INTO variable_container(identifier, variable_simple) VALUES ('data_recency','{timestamp}')")
+    db_temp.execute_text_psql(f"INSERT INTO variable_container(identifier, variable_simple) VALUES ('data_recency','{timestamp}')")
     
     db_temp.execute_script_psql('/opt/data_preparation/SQL/types.sql')
     
@@ -160,14 +160,11 @@ def setup_db(setup_type):
             if (source_population == 'extrapolation'):
                 db_temp.execute_script_psql('../data_preparation/SQL/'+script_buildings)
                 db_temp.execute_script_psql('../data_preparation/SQL/census.sql')
-                db_temp.execute_script_psql('../data_preparation/SQL/census_household.sql')
             elif(source_population == 'disaggregation'):
                 db_temp.execute_script_psql('../data_preparation/SQL/'+script_buildings)
                 db_temp.execute_script_psql('../data_preparation/SQL/population_disagregation.sql')
-                db_temp.execute_script_psql('../data_preparation/SQL/household_disagregation.sql')
             elif(source_population == 'distribution'):
                 db_temp.execute_script_psql('../data_preparation/SQL/population_distribution.sql')
-                db_temp.execute_script_psql('../data_preparation/SQL/household_distribution.sql')
 
             db_temp.execute_script_psql('../data_preparation/SQL/create_population_userinput.sql')
     if (setup_type in ['new_setup','all','network']):

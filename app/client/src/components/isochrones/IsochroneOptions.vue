@@ -115,9 +115,9 @@ export default {
       let pois = "";
 
       pois = this.selectedPois.reduce((filtered, item) => {
-        const { value, weight, sensitivity, userGroup } = item;
+        const { value, weight, sensitivity } = item;
         if (value != "undefined" && weight != undefined) {
-          filtered[`${value}`] = { sensitivity, weight, userGroup };
+          filtered[`${value}`] = { sensitivity, weight };
         }
         return filtered;
       }, {});

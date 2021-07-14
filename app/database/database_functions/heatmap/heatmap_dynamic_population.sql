@@ -10,8 +10,6 @@ DECLARE
 	sensitivities integer[] := select_from_variable_container('heatmap_sensitivities')::integer[];
 	translation_sensitivities jsonb;
 	excluded_pois_id integer[];
-	user_groups text[] := select_from_variable_container('userGroups')::text[];
-	translation_user_groups jsonb;
 BEGIN
   	
 	SELECT array_agg(_keys)
@@ -22,55 +20,25 @@ BEGIN
 	INTO translation_sensitivities
 	FROM jsonb_each(amenities_json) AS u(k, v);
 
-	SELECT jsonb_object_agg(k, array_position(user_groups, (v ->> 'userGroup'))::smallint)
-	INTO translation_user_groups
-	FROM jsonb_each(amenities_json) AS u(k, v);
-
 	/*IF modus_input = 'default' THEN*/
-		if 'nursery' in (select unnest(array_amenities)) and 'Unter 3 Jahren' in (select unnest(user_groups)) then
-			RETURN query
-			select y.grid_id, sum(y.accessibility_index*(1)) as accessibility_index, sum(y.ai_pop*(1)) as accessibility_index_population from
-			(SELECT x.gid, u.grid_id, x.amenity, u.accessibility_index::SMALLINT AS accessibility_index, (u.accessibility_index*x.capacity) / z.ai_pop::FLOAT(16) AS ai_pop  
-				FROM (
-					SELECT h.gid, h.gridids, h.amenity, h.accessibility_indices[(translation_sensitivities ->> h.amenity)::integer:(translation_sensitivities ->> h.amenity)::integer][1:], s.capacity
-					FROM reached_pois_heatmap h, pois s
-					WHERE h.amenity IN (SELECT UNNEST(pois_one_entrance))
-					AND h.amenity IN (SELECT UNNEST(array_amenities))
-					AND h.scenario_id = 0
-					and h.gid = s.gid
-				)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index),
-				(select p.gid, sum(p.accessibility_pop) as ai_pop from (
-					select r.gid, r.gridid, r.accessibility_index*unnest(g.usergroups[(translation_user_groups ->> r.amenity)::integer:(translation_user_groups ->> r.amenity)::integer])*0.6 as accessibility_pop from (
-					select gid, amenity, unnest(gridids) as gridid, unnest(accessibility_indices[(translation_sensitivities ->> m.amenity)::integer:(translation_sensitivities ->> m.amenity)::integer][1:]) as accessibility_index 
-					from reached_pois_heatmap m
-					WHERE m.amenity IN (SELECT UNNEST(pois_one_entrance))
-					AND m.amenity IN (SELECT UNNEST(array_amenities))
-					AND scenario_id = 0) r, 
-					grid_heatmap g, unnest(g.usergroups[(translation_user_groups ->> r.amenity)::integer:(translation_user_groups ->> r.amenity)::integer]) as userGroup where r.gridid = g.grid_id and userGroup > 0) p group by p.gid) z
-				where x.gid = z.gid) y group by y.grid_id;
-		else 
-			RETURN query
-			select y.grid_id, sum(y.accessibility_index*(1)) as accessibility_index, sum(y.ai_pop*(1)) as accessibility_index_population from
-			(SELECT x.gid, u.grid_id, x.amenity, u.accessibility_index::SMALLINT AS accessibility_index, (u.accessibility_index*x.capacity) / z.ai_pop::FLOAT(16) AS ai_pop  
-				FROM (
-					SELECT h.gid, h.gridids, h.amenity, h.accessibility_indices[(translation_sensitivities ->> h.amenity)::integer:(translation_sensitivities ->> h.amenity)::integer][1:], s.capacity
-					FROM reached_pois_heatmap h, pois s
-					WHERE h.amenity IN (SELECT UNNEST(pois_one_entrance))
-					AND h.amenity IN (SELECT UNNEST(array_amenities))
-					AND h.scenario_id = 0
-					and h.gid = s.gid
-				)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index),
-				(select p.gid, sum(p.accessibility_pop) as ai_pop from (
-					select r.gid, r.gridid, r.accessibility_index*unnest(g.usergroups[(translation_user_groups ->> r.amenity)::integer:(translation_user_groups ->> r.amenity)::integer]) as accessibility_pop from (
-					select gid, amenity, unnest(gridids) as gridid, unnest(accessibility_indices[(translation_sensitivities ->> m.amenity)::integer:(translation_sensitivities ->> m.amenity)::integer][1:]) as accessibility_index 
-					from reached_pois_heatmap m
-					WHERE m.amenity IN (SELECT UNNEST(pois_one_entrance))
-					AND m.amenity IN (SELECT UNNEST(array_amenities))
-					AND scenario_id = 0) r, 
-					grid_heatmap g, unnest(g.usergroups[(translation_user_groups ->> r.amenity)::integer:(translation_user_groups ->> r.amenity)::integer]) as userGroup where r.gridid = g.grid_id and userGroup > 0) p group by p.gid) z
-				where x.gid = z.gid) y group by y.grid_id;
-		end if;
-
+		RETURN query 
+		select y.grid_id, sum(y.accessibility_index*(1)) as accessibility_index, sum(y.ai_pop*(1)) as accessibility_index_population from
+		(SELECT x.gid, u.grid_id, x.amenity, u.accessibility_index::SMALLINT AS accessibility_index, u.accessibility_index / z.ai_pop::FLOAT(16) AS ai_pop  
+			FROM (
+				SELECT gid, gridids, amenity, accessibility_indices[(translation_sensitivities ->> amenity)::integer:(translation_sensitivities ->> amenity)::integer][1:]
+				FROM reached_pois_heatmap 
+				WHERE amenity IN (SELECT UNNEST(pois_one_entrance))
+				AND amenity IN (SELECT UNNEST(array_amenities))
+				AND scenario_id = 0
+			)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index),
+			(select p.gid, sum(p.accessibility_pop) as ai_pop from (
+				select r.gid, r.gridid, r.accessibility_index*g.population as accessibility_pop from (
+				select gid, unnest(gridids) as gridid, unnest(accessibility_indices[1:1]) as accessibility_index from reached_pois_heatmap 
+				WHERE amenity IN (SELECT UNNEST(pois_one_entrance))
+				AND amenity IN (SELECT UNNEST(array_amenities))
+				AND scenario_id = 0) r,
+				grid_heatmap g where r.gridid = g.grid_id and g.population > 0) p group by p.gid) z
+		where x.gid = z.gid) y group by y.grid_id;
 		/*SELECT s.grid_id, s.amenity, sum(s.accessibility_index) AS accessibility_index 
 		FROM 
 		(
@@ -93,7 +61,7 @@ BEGIN
 			)x, UNNEST(x.gridids, x.accessibility_indices) AS u(grid_id, accessibility_index)
 			GROUP BY u.grid_id, x.name, x.amenity
 		) s
-		GROUP BY s.grid_id, s.amenity;*/
+		GROUP BY s.grid_id, s.amenity;
 	/*ELSE
 		excluded_pois_id = ids_modified_features(scenario_id_input,'pois');
 		RETURN query 
