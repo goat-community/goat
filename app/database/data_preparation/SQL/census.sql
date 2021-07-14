@@ -208,6 +208,8 @@ WHERE ST_Intersects(b.geom,c.geom)
 AND (b.building_levels) IS NULL; 
  
 --Substract fixed population from study_area
+alter table study_area add column sum_pop integer;
+update study_area set sum_pop = 1562087;
 WITH study_area_to_update AS (
 	SELECT s.gid,sum(fixed_population) AS sum_fixed_pop
 	FROM buildings_fixed_population b, study_area s

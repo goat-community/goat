@@ -97,7 +97,7 @@
           "scenario_id",
           "routing_profile"
         ],
-        "maxResolution": 20,
+        "maxResolution": 50,
         "opacity": 1,
         "queryable": true,
         "requiresPois": true,
@@ -127,7 +127,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 0.5,
-        "maxResolution": 20,
+        "maxResolution": 50,
         "queryParams": [
           "table_name",
           "modus",
@@ -306,6 +306,24 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
+        "name": "bezirke",
+        "url": "/api/map/layer/bezirke/{z}/{x}/{y}",
+        "group": "administrative",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/bezirke.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "ways_category",
         "url": "/api/map/layer/ways_category/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -362,13 +380,13 @@
 		"format": "MVT",
         "name": "age_14_under",
         "url": "/api/map/layer/age_14_under/{z}/{x}/{y}",
-        "group": "populationData",
-		"opacity": 1,
+        "group": "Population Data",
+        "opacity": 1,
         "visible": false,
         "canEdit": false,
         "queryable": true,
         "displayInLayerList": true,
-		"zIndex": 1,
+        "zIndex": 1,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/age_14_under.json"
@@ -376,6 +394,237 @@
         "attributes": {
           "source": "Landeshauptstadt München",
           "date": "2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+		"format": "MVT",
+        "name": "age_15_64",
+        "url": "/api/map/layer/age_15_64/{z}/{x}/{y}",
+        "group": "Population Data",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/age_15_64.json"
+        },
+        "attributes": {
+          "source": "Landeshauptstadt München",
+          "date": "2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+		"format": "MVT",
+        "name": "age_65_over",
+        "url": "/api/map/layer/age_65_over/{z}/{x}/{y}",
+        "group": "Population Data",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+		"zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/age_65_over.json"
+        },
+        "attributes": {
+          "source": "Landeshauptstadt München",
+          "date": "2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "origin_without_migration",
+        "url": "/api/map/layer/origin_without_migration/{z}/{x}/{y}",
+        "group": "Population Data",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/origin_without_migration.json"
+        },
+        "attributes": {
+          "source": "Landeshauptstadt München",
+          "date": "2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "origin_with_migration",
+        "url": "/api/map/layer/origin_with_migration/{z}/{x}/{y}",
+        "group": "Population Data",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/origin_with_migration.json"
+        },
+        "attributes": {
+          "source": "Landeshauptstadt München",
+          "date": "2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "origin_foreigner",
+        "url": "/api/map/layer/origin_foreigner/{z}/{x}/{y}",
+        "group": "Population Data",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/origin_foreigner.json"
+        },
+        "attributes": {
+          "source": "Landeshauptstadt München",
+          "date": "2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "hh_without_children",
+        "url": "/api/map/layer/hh_without_children/{z}/{x}/{y}",
+        "group": "Population Data",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/hh_without_children.json"
+        },
+        "attributes": {
+          "source": "Landeshauptstadt München",
+          "date": "2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "hh_with_children",
+        "url": "/api/map/layer/hh_with_children/{z}/{x}/{y}",
+        "group": "Population Data",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/hh_with_children.json"
+        },
+        "attributes": {
+          "source": "Landeshauptstadt München",
+          "date": "2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "hh_single_parent",
+        "url": "/api/map/layer/hh_single_parent/{z}/{x}/{y}",
+        "group": "Population Data",
+        "opacity": 0.8,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/hh_single_parent.json"
+        },
+        "attributes": {
+          "source": "Landeshauptstadt München",
+          "date": "2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "hh_two_parent",
+        "url": "/api/map/layer/hh_two_parent/{z}/{x}/{y}",
+        "group": "Population Data",
+        "opacity": 0.8,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/hh_two_parent.json"
+        },
+        "attributes": {
+          "source": "Landeshauptstadt München",
+          "date": "2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "munich_zentren",
+        "url": "/api/map/layer/munich_zentren/{z}/{x}/{y}",
+        "group": "administrative",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 10,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/munich_zentren.json"
+        },
+        "attributes": {
+          "source": "Landeshauptstadt München",
+          "date": "2015"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "munich_density",
+        "url": "/api/map/layer/munich_density/{z}/{x}/{y}",
+        "group": "administrative",
+        "opacity": 0.8,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/munich_density.json"
+        },
+        "attributes": {
+          "source": "Landeshauptstadt München",
+          "date": "2020"
         }
       },
       {
@@ -862,6 +1111,111 @@
         }
       },
       {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "modeshare_walking",
+        "url": "/api/map/layer/modeshare_walking/{z}/{x}/{y}",
+        "group": "Modeshare",
+        "opacity": 0.8,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/modeshare_walking.json"
+        },
+        "attributes": {
+          "source": "Mobilität in Deutschland - infas",
+          "date": "2018"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "modeshare_bike",
+        "url": "/api/map/layer/modeshare_bike/{z}/{x}/{y}",
+        "group": "Modeshare",
+        "opacity": 0.8,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/modeshare_bike.json"
+        },
+        "attributes": {
+          "source": "Mobilität in Deutschland - infas",
+          "date": "2018"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "modeshare_put",
+        "url": "/api/map/layer/modeshare_put/{z}/{x}/{y}",
+        "group": "Modeshare",
+        "opacity": 0.8,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/modeshare_put.json"
+        },
+        "attributes": {
+          "source": "Mobilität in Deutschland - infas",
+          "date": "2018"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "modeshare_car",
+        "url": "/api/map/layer/modeshare_car/{z}/{x}/{y}",
+        "group": "Modeshare",
+        "opacity": 0.8,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/modeshare_car.json"
+        },
+        "attributes": {
+          "source": "Mobilität in Deutschland - infas",
+          "date": "2018"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "modeshare_umweltverbund",
+        "url": "/api/map/layer/modeshare_umweltverbund/{z}/{x}/{y}",
+        "group": "Modeshare",
+        "opacity": 0.8,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/modeshare_umweltverbund.json"
+        },
+        "attributes": {
+          "source": "Mobilität in Deutschland - infas",
+          "date": "2018"
+        }
+      },
+      {
         "type": "VECTOR",
         "name": "heatmap_luptai",
         "url": "/api/map/heatmap",
@@ -1263,7 +1617,8 @@
               "value": "nursery",
               "icon": "nursery",
               "weight": 1,
-              "sensitivity": 300000,
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung",
               "locked": false
             },
             {
@@ -1271,7 +1626,17 @@
               "value": "kindergarten",
               "icon": "kindergarten",
               "weight": 1,
-              "sensitivity": 300000,
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung",
+              "locked": false
+            },
+            {
+              "name": "After School",
+              "value": "after_school",
+              "icon": "after_school",
+              "weight": 1,
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung",
               "locked": false
             },
             {
@@ -1279,7 +1644,8 @@
               "value": "grundschule",
               "icon": "grundschule",
               "weight": 1,
-              "sensitivity": 300000,
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung",
               "locked": false
             },
             {
@@ -1287,7 +1653,8 @@
               "value": "hauptschule_mittelschule",
               "icon": "hauptschule_mittelschule",
               "weight": 1,
-              "sensitivity": 300000,
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung",
               "locked": false
             },
             {
@@ -1295,7 +1662,8 @@
               "value": "realschule",
               "icon": "realschule",
               "weight": 1,
-              "sensitivity": 300000,
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung",
               "locked": false
             },
             {
@@ -1304,6 +1672,7 @@
               "icon": "gymnasium",
               "weight": 1,
               "sensitivity": 300000,
+              "userGroup": "Gesamtbevölkerung",
               "locked": false
             },
             {
@@ -1311,7 +1680,8 @@
               "value": "library",
               "icon": "library",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             }
           ]
         },
@@ -1324,56 +1694,64 @@
               "value": "bar",
               "icon": "bar",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Biergarten",
               "value": "biergarten",
               "icon": "biergarten",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Café",
               "value": "cafe",
               "icon": "cafe",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Pub",
               "value": "pub",
               "icon": "pub",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Fast food",
               "value": "fast_food",
               "icon": "fast_food",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Ice cream",
               "value": "ice_cream",
               "icon": "ice_cream",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Restaurant",
               "value": "restaurant",
               "icon": "restaurant",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Night-Club",
               "value": "nightclub",
               "icon": "nightclub",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             }
           ]
         },
@@ -1387,21 +1765,24 @@
               "value": "bicycle_rental",
               "icon": "bicycle_rental",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Car sharing",
               "value": "car_sharing",
               "icon": "car_sharing",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Charging station",
               "value": "charging_station",
               "icon": "charging_station",
               "weight": 1,
-              "sensitivity": 300000,
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung",
               "locked": false
             },
             {
@@ -1409,35 +1790,40 @@
               "value": "bus_stop",
               "icon": "bus_stop",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Tram Stop",
               "value": "tram_stop",
               "icon": "tram_stop",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "U-Bahn station",
               "value": "subway_entrance",
               "icon": "subway_entrance",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Rail Station",
               "value": "rail_station",
               "icon": "rail_station",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Taxi",
               "value": "taxi",
               "icon": "taxi",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             }
           ]
         },
@@ -1451,63 +1837,126 @@
               "value": "bikesharing_ffb",
               "icon": "bikesharing",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Carsharing FFB",
               "value": "carsharing_ffb",
               "icon": "carsharing",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Charging Station FFB",
               "value": "charging_station_marker_ffb",
               "icon": "charging_station_marker",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Charging Station Other FFB",
               "value": "charging_station_other_ffb",
               "icon": "charging_station_other",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Charging Station Public FFB",
               "value": "charging_station_public_ffb",
               "icon": "charging_station_public",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "E-Parking FFB",
               "value": "e_parking_ffb",
               "icon": "e_parking",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "L-Station FFB",
               "value": "l-station_ffb",
               "icon": "l-station",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "S-Station Prio 1 FFB",
               "value": "s-station_prio1_ffb",
               "icon": "s-station_prio1",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "S-Station Prio 2 FFB",
               "value": "s-station_prio2_ffb",
               "icon": "s-station_prio2",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
+            }
+          ]
+        },
+		{
+          "name": "Healthcare",
+          "categoryValue": "healthcare",
+          "children": [
+            {
+              "name": "General Practitioner",
+              "value": "general_practitioner",
+              "icon": "general_practitioner",
+              "weight": 1,
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
+            },
+			{
+              "name": "Gynaecologist",
+              "value": "gynaecologist",
+              "icon": "gynaecologist",
+              "weight": 1,
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
+            },
+			{
+              "name": "Paediatrician",
+              "value": "paediatrician",
+              "icon": "paediatrician",
+              "weight": 1,
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
+            },
+            {
+              "name": "Dentist",
+              "value": "dentist",
+              "icon": "dentist",
+              "weight": 1,
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
+            },
+			{
+              "name": "Psychotherapist",
+              "value": "psychotherapist",
+              "icon": "psychotherapist",
+              "weight": 1,
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
+            },
+            {
+              "name": "Pharmacy",
+              "value": "pharmacy",
+              "icon": "pharmacy",
+              "weight": 1,
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             }
           ]
         },
@@ -1520,14 +1969,16 @@
               "value": "hairdresser",
               "icon": "hairdresser",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "ATM",
               "value": "atm",
               "icon": "atm",
               "weight": 1,
-              "sensitivity": 300000,
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung",
               "locked": false
             },
             {
@@ -1535,42 +1986,24 @@
               "value": "bank",
               "icon": "bank",
               "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Dentist",
-              "value": "dentist",
-              "icon": "dentist",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Doctor",
-              "value": "doctors",
-              "icon": "doctors",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Pharmacy",
-              "value": "pharmacy",
-              "icon": "pharmacy",
-              "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Post box",
               "value": "post_box",
               "icon": "post_box",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Fuel",
               "value": "fuel",
               "icon": "fuel",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Recycling",
@@ -1578,6 +2011,7 @@
               "icon": "recycling",
               "weight": 1,
               "sensitivity": 300000,
+              "userGroup": "Gesamtbevölkerung",
               "locked": false
             }
           ]
@@ -1591,105 +2025,120 @@
               "value": "bakery",
               "icon": "bakery",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Butcher",
               "value": "butcher",
               "icon": "butcher",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Clothing store",
               "value": "clothes",
               "icon": "clothes",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Convenience store",
               "value": "convenience",
               "icon": "convenience",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Greengrocer",
               "value": "greengrocer",
               "icon": "greengrocer",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Kiosk",
               "value": "kiosk",
               "icon": "kiosk",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Mall",
               "value": "mall",
               "icon": "mall",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Shoes",
               "value": "shoes",
               "icon": "shoes",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Supermarket",
               "value": "supermarket",
               "icon": "supermarket",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Discount Supermarket",
               "value": "discount_supermarket",
               "icon": "discount_supermarket",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "International Supermarket",
               "value": "international_supermarket",
               "icon": "international_supermarket",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Hypermarket",
               "value": "hypermarket",
               "icon": "hypermarket",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Chemist",
               "value": "chemist",
               "icon": "chemist",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Organic Food",
               "value": "organic",
               "icon": "organic",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Marketplace",
               "value": "marketplace",
               "icon": "marketplace",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             }
           ]
         },
@@ -1702,56 +2151,64 @@
               "value": "cinema",
               "icon": "cinema",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Theatre",
               "value": "theatre",
               "icon": "theatre",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Museum",
               "value": "museum",
               "icon": "museum",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Hotel",
               "value": "hotel",
               "icon": "hotel",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Hostel",
               "value": "hostel",
               "icon": "hostel",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Guest house",
               "value": "guest_house",
               "icon": "guest_house",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Gallery",
               "value": "gallery",
               "icon": "gallery",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Playground",
               "value": "playground",
               "icon": "playground",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             }
           ]
         },
@@ -1764,35 +2221,40 @@
               "value": "community_sports_center",
               "icon": "community_sports_center",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Waterpark",
               "value": "waterpark",
               "icon": "waterpark",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Discount Gym",
               "value": "discount_gym",
               "icon": "discount_gym",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "gym",
               "value": "gym",
               "icon": "gym",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Yoga",
               "value": "yoga",
               "icon": "yoga",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             }
           ]
         },
@@ -1805,35 +2267,40 @@
               "value": "park",
               "icon": "park",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Forest",
               "value": "forest",
               "icon": "forest",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Heath and Scrub",
               "value": "heath_scrub",
               "icon": "heath_scrub",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "Lake",
               "value": "lake",
               "icon": "lake",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             },
             {
               "name": "River",
               "value": "river",
               "icon": "river",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000, 
+              "userGroup": "Gesamtbevölkerung"
             }
           ]
         }

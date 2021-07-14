@@ -1,4 +1,3 @@
-
 DROP FUNCTION IF EXISTS pgrouting_edges_preparation;
 CREATE OR REPLACE FUNCTION public.pgrouting_edges_preparation(cutoffs double precision[], startpoints double precision[], speed numeric, modus_input integer, routing_profile text, userid_input integer DEFAULT 0, scenario_id_input integer DEFAULT 0, heatmap_bulk_calculation boolean DEFAULT false, gridids_scenario integer[] DEFAULT ARRAY[]::integer[])
  RETURNS SETOF void
@@ -127,5 +126,3 @@ $function$
 /*
 SELECT pgrouting_edges_preparation(ARRAY[1200.]::FLOAT[], ARRAY[[11.5707,48.1252]],1.33, 2, 'walking_standard',10, 5, FALSE)
 */
-
-/

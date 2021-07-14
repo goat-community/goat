@@ -5,6 +5,12 @@
       "de": "Unfallstelle"
     }
   },
+   "munich_density": {
+    "munich_density": {
+      "en": "population density",
+      "de": "Bevölkerungsdichte"
+    }
+  },
   "accidents_pedestrians": {
     "accident_point": {
       "en": "crash site",
@@ -15,6 +21,24 @@
     "age_14_under": {
       "en": "Under 14",
       "de": "Unter 14"
+    }
+  },
+  "hh_single_parent": {
+    "hh_single_parent": {
+      "en": "Single parent households",
+      "de": "Haushalte mit Alleinerziehenden"
+    }
+  },
+   "hh_two_parent": {
+    "hh_two_parent": {
+      "en": "Two parent households",
+      "de": "Haushalte mit zwei Elternteilen"
+    }
+  },
+  "muc_zentren": {
+    "muc_zentren": {
+      "en": "Centres",
+      "de": "Zentren"
     }
   },
   "aois": {

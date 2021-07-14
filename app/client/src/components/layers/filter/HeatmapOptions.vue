@@ -26,6 +26,14 @@
             :label="$t('appBar.filter.poisSettings.selectWeight')"
             outlined
           ></v-select>
+          <v-select
+            v-model="selectedAmenity.userGroup"
+            :items="userGroup"
+            @change="updateHeatmap"
+            class="mx-2 mt-4"
+            :label="$t('appBar.filter.poisSettings.userGroup')"
+            outlined
+          ></v-select>
           <template>
             <v-select
               v-model="selectedAmenity.sensitivity"
@@ -53,14 +61,30 @@ export default {
   data() {
     return {
       weightListValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-      sensitivityListValues: [        
+      sensitivityListValues: [
         150000,
         200000,
         250000,
         300000,
         350000,
         400000,
-        450000
+        450000,
+        500000,
+        550000,
+        600000,
+        650000
+      ],
+      userGroup: [
+        "Gesamtbevölkerung",
+        "Unter 3 Jahren",
+        "3 bis 5 Jahre",
+        "6 bis 14 Jahre",
+        "15 bis 64 Jahre",
+        "65 bis 74 Jahre",
+        "75 Jahre und älter",
+        "Ohne Migrationshintergrund",
+        "Mit Migrationshintergrund",
+        "Ausländer"
       ]
     };
   },

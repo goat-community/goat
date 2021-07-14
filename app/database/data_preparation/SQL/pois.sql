@@ -277,7 +277,7 @@ FROM planet_osm_point WHERE (amenity='social_facility' and tags->'social_facilit
 UNION ALL 
 
 
--- Paste zones attributes in containing polygons
+-- Paste zones attributes in containing polygons--
 DROP TABLE IF EXISTS grouping_polygons;
 CREATE TEMP TABLE grouping_polygons  (LIKE planet_osm_polygon INCLUDING INDEXES);
 
@@ -370,7 +370,8 @@ SELECT pois_reclassification_array('name','gym','amenity','discount_gym','any');
 
 UPDATE pois SET amenity = 'organic'
 WHERE organic = 'only'
-AND (amenity = 'supermarket' OR amenity = 'convenience');
+AND (amenity = 'supermarket' /*OR amenity = 'convenience'*/)
+AND name not like '%ermannsd%' and name not like '%italia%';
 
 UPDATE pois SET amenity = 'international_supermarket'
 WHERE origin is not null
@@ -412,6 +413,24 @@ INSERT INTO pois (osm_id,origin_geometry,amenity,name,wheelchair,geom)
 SELECT osm_id,'point',public_transport_stop,name,wheelchair,geom 
 FROM pt;
 
+--add capacity similar to didn work
+alter table pois
+add capacity integer;
+drop table pois_cap;
+create temp table pois_cap as
+with p as
+	(select gid, amenity, cast(tags->'capacity'as int) as cap from pois 
+	where tags->'capacity' not similar to '%[a-zA-Z +~)(*;:.,_-]%'
+	and tags->'capacity' not like '%<%' and tags->'capacity' not like '%>%')
+	select p.gid, p.amenity, p.cap from p;
+UPDATE pois p SET capacity = c.cap 
+	FROM pois_cap c 
+	WHERE p.gid = c.gid;
+UPDATE pois SET capacity = 1 
+	WHERE capacity is null;
+drop table pois_cap;
+
+--pois_custom_no_fusion
 DO $$                  
     BEGIN 
         IF EXISTS
@@ -421,9 +440,28 @@ DO $$
               AND    table_name = 'pois_custom_no_fusion'
             )
         THEN
-			INSERT INTO pois (origin_geometry,amenity,name,geom)
-			SELECT 'point', amenity, name, geom 
-			FROM pois_custom_no_fusion;
+			DELETE FROM pois p
+			WHERE p.amenity in (select distinct f.amenity_osm from pois_custom_no_fusion f) and st_within(p.geom,(select geom from study_area));
+			Insert into pois(geom, amenity, name, capacity)
+			Select geom, amenity, name, capacity::integer from pois_custom_no_fusion;
+		END IF;
+    END
+$$ ;
+
+--pois_custom_full_fusion
+DO $$                  
+    BEGIN 
+        IF EXISTS
+            ( SELECT 1
+              FROM   information_schema.tables 
+              WHERE  table_schema = 'public'
+              AND    table_name = 'pois_custom_full_fusion'
+            )
+        THEN
+			DELETE FROM pois p
+			WHERE p.amenity in (select distinct f.amenity_os from pois_custom_full_fusion f) and st_within(p.geom,(select geom from study_area_union));
+			Insert into pois(geom, amenity, name, capacity)
+			Select geom, amenity, name, capacity::integer from pois_custom_full_fusion;
 		END IF;
     END
 $$ ;
@@ -602,4 +640,4 @@ CREATE INDEX ON pois_userinput(scenario_id);
 ALTER TABLE pois_userinput ADD COLUMN pois_modified_id integer; 
 ALTER TABLE pois_userinput
 ADD CONSTRAINT pois_userinput_id_fkey FOREIGN KEY (pois_modified_id) 
-REFERENCES pois_modified(id) ON DELETE CASCADE;
+REFERENCES pois_modified(gid) ON DELETE CASCADE;
