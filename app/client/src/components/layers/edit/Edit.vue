@@ -154,6 +154,49 @@
             <h3>{{ $t("appBar.edit.editTools") }}</h3>
           </v-subheader>
           <div class="ml-2" v-if="editElVisible">
+            <!-- Undo Redo Features -->
+            <span
+              v-show="selectedLayer != null"
+              class="py-1 mb-0 mt-3 pl-0 ml-0"
+            >
+              <h4>Undo Redo Features</h4>
+            </span>
+
+            <v-flex
+              xs12
+              v-show="selectedLayer != null && selectFeaturesVisible"
+              class="mt-1 pt-0 mb-4"
+            >
+              <v-btn-toggle>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      v-on="on"
+                      @click="unDoFeature()"
+                      text
+                      :disabled="olEditCtrl.source.getFeatures().length == 0"
+                    >
+                      <v-icon>fas fa-undo</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Undo Feature</span>
+                </v-tooltip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      v-on="on"
+                      @click="reDoFeature()"
+                      text
+                      :disabled="featureUndoRedoStack.length == 0"
+                    >
+                      <v-icon>fas fa-redo</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Redo Feature</span>
+                </v-tooltip>
+              </v-btn-toggle>
+            </v-flex>
+            <!-- Select Features -->
             <span
               v-show="selectedLayer != null"
               class="py-1 mb-0 mt-3 pl-0 ml-0"
@@ -749,6 +792,7 @@ export default {
     isUploadBusy: false,
     isDeleteAllBusy: false,
     isExportScenarioBusy: false,
+    featureUndoRedoStack: [],
     //Popup configuration
     popup: {
       title: "",
@@ -1469,6 +1513,7 @@ export default {
       this.olEditCtrl.popup.isVisible = true;
       //update cache
       this.updateFileInputFeatureCache();
+      this.featureUndoRedoStack = [];
     },
 
     /**
@@ -2188,7 +2233,97 @@ export default {
       updateReqFields: "UPDATE_REQ_FIELDS",
       setBldEntranceLayer: "SET_BLD_ENTRANCE_LAYER",
       setEditLayer: "SET_EDIT_LAYER"
-    })
+    }),
+
+    // Undo Redo Features
+    getBldEntrancePoints(f) {
+      let bld_gid = f.getProperties()["gid"];
+      let bldEntranceLayerFeatures = this.olEditCtrl.bldEntranceLayer
+        .getSource()
+        .getFeatures();
+      return bldEntranceLayerFeatures.filter(feature => {
+        return feature.getProperties()["building_gid"] == bld_gid;
+      });
+    },
+    setDataObjectsProps(feature) {
+      if (feature.source.get("layerName") === "buildings") {
+        //
+        this.selectedLayer = this.editableLayers[0];
+        this.dataObject.building = feature.source.get("building");
+        this.dataObject.building_levels = feature.source.get("building_levels");
+        this.dataObject.building_levels_residential = feature.source.get(
+          "building_levels_residential"
+        );
+        //
+      } else if (feature.source.get("layerName") === "ways") {
+        //
+        this.selectedLayer = this.editableLayers[1];
+        this.dataObject.surface = feature.source.get("surface");
+        this.dataObject.way_type = feature.source.get("way_type");
+        this.dataObject.wheelchair = feature.source.get("wheelchair");
+        //
+      } else if (feature.source.get("layerName") === "pois") {
+        //
+        this.selectedLayer = this.editableLayers[2];
+        this.dataObject.amenity = feature.source.get("amenity");
+        this.dataObject.name = feature.source.get("name");
+        //
+      }
+    },
+    async unDoFeature() {
+      let vectorSource = this.olEditCtrl.source;
+      let vectorSourceSize = vectorSource.getFeatures().length;
+      if (vectorSourceSize > 0) {
+        let feature = vectorSource.getFeatures()[vectorSourceSize - 1];
+
+        feature = {
+          source: feature,
+          bldEntrancePoints: this.getBldEntrancePoints(feature)
+        };
+        this.featureUndoRedoStack.push(feature);
+        await this.setDataObjectsProps(feature);
+        this.olEditCtrl.deleteFeature(feature.source);
+      }
+    },
+    async reDoFeature() {
+      if (this.featureUndoRedoStack.length > 0) {
+        let vectorSource = this.olEditCtrl.source;
+        let feature = this.featureUndoRedoStack[
+          this.featureUndoRedoStack.length - 1
+        ];
+
+        this.featureUndoRedoStack.pop();
+        await this.setDataObjectsProps(feature);
+        vectorSource.addFeature(feature.source);
+
+        feature.source.id_ = undefined;
+        this.olEditCtrl.featuresToCommit = [feature.source];
+
+        Object.keys(feature.source.values_).forEach(key => {
+          if (key !== "geometry") {
+            delete feature.source.values_[key];
+          }
+        });
+
+        this.olEditCtrl.transact(this.dataObject);
+        setTimeout(() => {
+          feature.bldEntrancePoints.forEach(bldEntranceF => {
+            Object.keys(bldEntranceF.values_).forEach(key => {
+              if (key !== "geometry") {
+                delete bldEntranceF.values_[key];
+              }
+              bldEntranceF.id_ = undefined;
+            });
+
+            let evt = {
+              type: "drawend",
+              feature: bldEntranceF
+            };
+            this.onBldEntranceInteractionEnd(evt);
+          });
+        }, 3000);
+      }
+    }
   },
   computed: {
     headers() {
