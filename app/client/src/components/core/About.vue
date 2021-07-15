@@ -114,11 +114,15 @@ export default {
       ];
       attributeLayers.forEach(layer => {
         if (
-          layer.attributes &&
-          layer.attributes.source &&
-          layer.attributes.date
+          (layer.attributes &&
+            layer.attributes.source &&
+            layer.attributes.date) ||
+          (layer.attributes && layer.attributes.source === "openStreetMap")
         ) {
-          const { source, date } = layer.attributes;
+          let { source, date } = layer.attributes;
+          if (source === "openStreetMap") {
+            date = this.$appConfig.osmTimestamp;
+          }
           if (!a[source]) {
             a[source] = {};
           }
