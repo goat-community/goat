@@ -10,7 +10,9 @@
         <v-expansion-panel
           v-for="(item, i) in getVisibleLayers"
           :key="i"
-          :disabled="isLayerBusy(item.mapLayer)"
+          :disabled="
+            isLayerBusy(item.mapLayer) || item.name === 'study_area_crop'
+          "
           :class="{
             'expansion-panel__container--active': item.showOptions === true
           }"
