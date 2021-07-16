@@ -52,8 +52,8 @@
         "visible": true,
         "canEdit": false,
         "queryable": false,
-        "displayInLayerList": false,
-        "zIndex": 1,
+        "displayInLayerList": true,
+        "zIndex": 1000,
         "queryParams": ["table_name"],
         "style": {
           "format": "geostyler",

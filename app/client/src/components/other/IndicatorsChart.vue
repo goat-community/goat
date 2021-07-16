@@ -64,6 +64,10 @@ export default {
         default: {
           lower: "#000000",
           upper: "#000000"
+        },
+        data_quality: {
+          lower: "#808080",
+          upper: "#808080"
         }
       },
       options: {
@@ -188,10 +192,14 @@ export default {
             value = value.toFixed(0);
           }
           data.push(value);
+
           // Find the correct color based on value
           let color;
           let colorPercentage;
-          if (value >= 0 && value <= 20) {
+          if (prop === "data_quality") {
+            color = this.colors["data_quality"];
+            colorPercentage = 100;
+          } else if (value >= 0 && value <= 20) {
             color = this.colors["very_bad"];
             colorPercentage = ((value - 0) / 20) * 100;
           } else if (value > 20 && value <= 40) {
