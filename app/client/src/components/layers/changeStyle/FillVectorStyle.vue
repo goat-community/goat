@@ -53,16 +53,25 @@
         </v-color-picker>
       </v-tab-item>
     </v-tabs-items>
+    <v-btn
+      color="warning"
+      dark
+      @click="resetStyle"
+      style="width:100%;background-color: #2bb381 !important;"
+    >
+      Reset Style
+    </v-btn>
   </vue-scroll>
 </template>
 
 <script>
 import { mapGetters } from "vuex";
 import Legend from "../../viewer/ol/controls/Legend";
+import InLegend from "../../viewer/ol/controls/InLegend";
 
 export default {
   props: ["item", "ruleIndex"],
-  mixins: [Legend],
+  mixins: [Legend, InLegend],
   data: () => ({
     isExpanded: true,
     tab: null,
@@ -104,6 +113,29 @@ export default {
       this.dialogue = false;
       //Refresh the legend
       this.item.layerTreeKey += 1;
+    },
+    resetStyle() {
+      let sourceStyle = this.styleRules[this.item.mapLayer.get("name")].style
+        .rules[this.ruleIndex];
+      let targetStyle = this.$appConfig.stylesObj[
+        this.item.mapLayer.get("name")
+      ].style.rules[this.ruleIndex];
+
+      targetStyle.symbolizers[0].color = sourceStyle.symbolizers[0].color;
+      targetStyle.symbolizers[0].outlineWidth =
+        sourceStyle.symbolizers[0].outlineWidth;
+
+      targetStyle.symbolizers[0].outlineColor =
+        sourceStyle.symbolizers[0].outlineColor;
+
+      this.fillColor = targetStyle.symbolizers[0].color;
+      this.outLineWidth = targetStyle.symbolizers[0].outlineWidth;
+      if (this.outLineWidth == 0) {
+        targetStyle.symbolizers[0].outlineWidth = 0.001;
+      }
+      this.outLineColor = targetStyle.symbolizers[0].outlineColor;
+
+      this.item.mapLayer.getSource().changed();
     },
     onFillColorChange(value) {
       //Change color of polygon fill on inpu change
