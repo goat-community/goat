@@ -37,16 +37,25 @@
         </v-color-picker>
       </v-tab-item>
     </v-tabs-items>
+    <v-btn
+      color="warning"
+      dark
+      @click="resetStyle"
+      style="width:100%;background-color: #2bb381 !important;"
+    >
+      Reset Style
+    </v-btn>
   </vue-scroll>
 </template>
 
 <script>
 import { mapGetters } from "vuex";
 import Legend from "../../viewer/ol/controls/Legend";
+import InLegend from "../../viewer/ol/controls/InLegend";
 
 export default {
   props: ["item", "ruleIndex"],
-  mixins: [Legend],
+  mixins: [Legend, InLegend],
   data: () => ({
     isExpanded: true,
     tab: null,
@@ -76,6 +85,20 @@ export default {
       this.dialogue = false;
       //Refresh the legend
       this.item.layerTreeKey += 1;
+    },
+    resetStyle() {
+      let sourceStyle = this.styleRules[this.item.mapLayer.get("name")].style
+        .rules[this.ruleIndex];
+      let targetStyle = this.$appConfig.stylesObj[
+        this.item.mapLayer.get("name")
+      ].style.rules[this.ruleIndex];
+
+      targetStyle.symbolizers[0].color = sourceStyle.symbolizers[0].color;
+      targetStyle.symbolizers[0].width = sourceStyle.symbolizers[0].width;
+
+      this.widthColor = sourceStyle.symbolizers[0].color;
+      this.width = sourceStyle.symbolizers[0].width;
+      this.item.mapLayer.getSource().changed();
     },
     onWidthColorChange(value) {
       //Change color of line layer on input change
