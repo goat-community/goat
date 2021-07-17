@@ -76,8 +76,7 @@
         "zIndex": 2,
         "serverType": "geoserver",
         "attributes": {
-          "source": "openStreetMap",
-          "date": "17-06-2021"
+          "source": "openStreetMap"
         },
         "style": {
           "format": "geostyler",
@@ -109,8 +108,7 @@
         "displayInLegend": false,
         "zIndex": 7,
         "attributes": {
-          "source": "openStreetMap",
-          "date": "17-06-2021"
+          "source": "openStreetMap"
         },
         "style": {
           "format": "custom-logic"
@@ -179,8 +177,7 @@
           "url": "./static/layer-styles/styles/landuse_osm.json"
         },
         "attributes": {
-          "source": "openStreetMap",
-          "date": "17-06-2021"
+          "source": "openStreetMap"
         }
       },
       {
@@ -206,8 +203,7 @@
           "url": "./static/layer-styles/styles/buildings.json"
         },
         "attributes": {
-          "source": "openStreetMap",
-          "date": "17-06-2021"
+          "source": "openStreetMap"
         }
       },
       {
@@ -268,7 +264,6 @@
         },
         "attributes": {
           "source": "OpenStreetMap",
-          "date": "17-06-2021",
           "source": "Mapillary",
           "date": "01-06-2021"
         }
@@ -526,7 +521,6 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "17-06-2021",
           "source": "Mapillary",
           "date": "01-06-2021"
         }
@@ -550,7 +544,6 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "17-06-2021",
           "source": "Mapillary",
           "date": "01-06-2021"
         }
@@ -574,7 +567,6 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "17-06-2021",
           "source": "Mapillary",
           "date": "01-06-2021"
         }

@@ -14,10 +14,9 @@ DATA_REFINEMENT_VARIABLES:
   #custom_population ==> population.shp custom population data needed  
   POPULATION: "census_extrapolation"
   #"yes" if you want to add these layers 
-  ADDITIONAL_WALKABILITY_LAYERS: "yes" 
-  OSM_MAPPING_FEATURE: "yes"
+  ADDITIONAL_WALKABILITY_LAYERS: "no" 
+  OSM_MAPPING_FEATURE: "no"
   variable_container:
-    heatmap_auto_refresh: "'yes'"
     heatmap_sensitivities: [150000,200000,250000,300000,350000,400000,450000]
     pois_one_entrance: ["kindergarten","nursery","primary_school","secondary_school","grundschule","hauptschule","realschule","werkrealschule","gymnasium","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","nightclub","recycling",
       "car_sharing","bicycle_rental","cargo_bike","charging_station","bus_station","tram_station","subway_station","railway_station","taxi","bikesharing_ffb","carsharing_ffb","charging_station_marker_ffb","charging_station_other_ffb","charging_station_public_ffb","e_parking_ffb",
