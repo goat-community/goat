@@ -425,7 +425,7 @@
         "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
-        "queryable": true,
+        "queryable": false,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
@@ -439,11 +439,11 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "ways_comfort",
+        "name": "ways_urban_equipment",
         "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
-        "queryable": true,
+        "queryable": false,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
@@ -451,7 +451,7 @@
         "maxResolution": 20,
         "style": {
           "format": "geostyler",
-          "url": "./static/layer-styles/styles/ways_comfort.json"
+          "url": "./static/layer-styles/styles/ways_urban_equipment.json"
         }
       },
       {
@@ -461,7 +461,7 @@
         "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
-        "queryable": true,
+        "queryable": false,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
@@ -475,11 +475,29 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
+        "name": "ways_sidewalk_quality",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_sidewalk_quality.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "ways_security",
         "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
-        "queryable": true,
+        "queryable": false,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
@@ -497,7 +515,7 @@
         "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
-        "queryable": true,
+        "queryable": false,
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
@@ -1494,6 +1512,13 @@
               "name": "Bike sharing",
               "value": "bicycle_rental",
               "icon": "bicycle_rental",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Cargo bike",
+              "value": "cargo_bike",
+              "icon": "cargo_bike",
               "weight": 1,
               "sensitivity": 300000
             },
