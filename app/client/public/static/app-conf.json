@@ -405,6 +405,7 @@
         "visible": false,
         "canEdit": false,
         "displayInLayerList": true,
+        "docUrl": "https://plan4better.de/docs/walkability_index/",
         "zIndex": 1,
         "maxResolution": 7,
         "style": {
@@ -590,6 +591,23 @@
         "attributes": {
           "source": "munichWays",
           "date": "2020"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "primary_school_streams",
+        "url": "/api/map/layer/primary_school_streams/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/primary_school_streams.json"
         }
       },
       {
