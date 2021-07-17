@@ -605,7 +605,7 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "munichwayprimary_school_streams",
+        "name": "primary_school_streams",
         "url": "/api/map/layer/primary_school_streams/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
