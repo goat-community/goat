@@ -109,11 +109,15 @@ export default {
     resetStyle() {
       this.urlIcon = null;
       this.localIcon = null;
-      let sourceStyle = this.styleRules[this.item.mapLayer.get("name")].style
-        .rules[this.ruleIndex];
+
+      let sourceStyle = this.$appConfig.stylesObjCopy[
+        this.item.mapLayer.get("name")
+      ].style.rules[this.ruleIndex];
+
       let targetStyle = this.$appConfig.stylesObj[
         this.item.mapLayer.get("name")
       ].style.rules[this.ruleIndex];
+
       targetStyle.symbolizers[0].size = sourceStyle.symbolizers[0].size;
       targetStyle.symbolizers[0].image = sourceStyle.symbolizers[0].image;
       this.iconSize = sourceStyle.symbolizers[0].size;

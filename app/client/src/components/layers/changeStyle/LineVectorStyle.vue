@@ -51,11 +51,10 @@
 <script>
 import { mapGetters } from "vuex";
 import Legend from "../../viewer/ol/controls/Legend";
-import InLegend from "../../viewer/ol/controls/InLegend";
 
 export default {
   props: ["item", "ruleIndex"],
-  mixins: [Legend, InLegend],
+  mixins: [Legend],
   data: () => ({
     isExpanded: true,
     tab: null,
@@ -87,8 +86,10 @@ export default {
       this.item.layerTreeKey += 1;
     },
     resetStyle() {
-      let sourceStyle = this.styleRules[this.item.mapLayer.get("name")].style
-        .rules[this.ruleIndex];
+      let sourceStyle = this.$appConfig.stylesObjCopy[
+        this.item.mapLayer.get("name")
+      ].style.rules[this.ruleIndex];
+
       let targetStyle = this.$appConfig.stylesObj[
         this.item.mapLayer.get("name")
       ].style.rules[this.ruleIndex];
