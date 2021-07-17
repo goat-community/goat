@@ -206,6 +206,10 @@
     "calculation": "Calculation",
     "calculationTitle": "Isochrone Calculation",
     "stopIsochroneCalc": "Stop Calculation",
+    "mode": {
+      "default": "Default",
+      "input": "Input"
+    },
     "single": {
       "title": "Starting Point",
       "type": "Single",
