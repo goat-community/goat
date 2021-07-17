@@ -206,7 +206,6 @@ export default {
         this.currentItem.layerTreeKey >= 0 &&
         this.currentItem.name !== item.name
       ) {
-        console.log(this.currentItem.name);
         this.currentItem.layerTreeKey += 1;
       }
       this.currentItem = item;
