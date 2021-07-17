@@ -70,11 +70,10 @@
 <script>
 import { mapGetters } from "vuex";
 import Legend from "../../viewer/ol/controls/Legend";
-import InLegend from "../../viewer/ol/controls/InLegend";
 
 export default {
   props: ["item", "ruleIndex"],
-  mixins: [Legend, InLegend],
+  mixins: [Legend],
   data: () => ({
     isExpanded: true,
     tab: null,
@@ -107,13 +106,24 @@ export default {
       this.item.layerTreeKey += 1;
     },
     resetStyle() {
+      /*
+        Function to reset the style of layer at attribute level
+      */
+
       this.urlIcon = null;
       this.localIcon = null;
-      let sourceStyle = this.styleRules[this.item.mapLayer.get("name")].style
-        .rules[this.ruleIndex];
+
+      //Get original style for layer attribute
+      let sourceStyle = this.$appConfig.stylesObjCopy[
+        this.item.mapLayer.get("name")
+      ].style.rules[this.ruleIndex];
+
+      //Get present stylefor layer attribute
       let targetStyle = this.$appConfig.stylesObj[
         this.item.mapLayer.get("name")
       ].style.rules[this.ruleIndex];
+
+      //Assign original style to present style to reset
       targetStyle.symbolizers[0].size = sourceStyle.symbolizers[0].size;
       targetStyle.symbolizers[0].image = sourceStyle.symbolizers[0].image;
       this.iconSize = sourceStyle.symbolizers[0].size;
