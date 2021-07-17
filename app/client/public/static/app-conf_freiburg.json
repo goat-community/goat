@@ -89,7 +89,7 @@
         "editDataType": "GeoJSON",
         "editGeometry": ["LineString"],
         "modifyAttributes": true,
-        "displayInLayerList": false,
+        "displayInLayerList": true,
         "zIndex": 2,
         "serverType": "geoserver",
         "attributes": {
@@ -201,7 +201,7 @@
         "queryable": false,
         "visible": false,
         "canEdit": false,
-        "displayInLayerList": true,
+        "displayInLayerList": false,
         "zIndex": 1,
         "maxResolution": 20,
         "style": {
