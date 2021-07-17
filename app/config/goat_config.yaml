@@ -1,12 +1,9 @@
 DATA_SOURCE:  
   #"no_download" if you don't want to download OSM data automatically. Make sure that the file is called raw-osm.osm.pbf.
   OSM_DOWNLOAD_LINK: "https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf" 
-  #"most_recent" if the data from the OSM-Download-Link has not the recency you need. 
-  OSM_DATA_RECENCY: "standard"
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
   EXTRACT_BBOX: "yes" #"yes" ==> Use study area as BBOX,"no_extract" ==> Import whole dump, "done" ==> Extract was already done 
   
-
 DATA_REFINEMENT_VARIABLES:
   #extrapolation ==> census.shp + landuse.shp needed as input
   #disaggregation ==> landuse.shp needed as input + high-resolution population input data + building data
