@@ -48,17 +48,18 @@
               align-center
             >
               <v-flex xs1>
-                <v-checkbox
+                <v-simple-checkbox
                   style="width: 27px;height: 38px;"
+                  :ripple="false"
                   v-if="
                     filterStylesOnActiveModeByLayerName(
                       item.mapLayer.get('name')
                     ).rules.length > 1
                   "
                   :key="item.attributeDisplayStatusKey"
-                  color="success"
-                  :input-value="isLayerAttributeVisible(item, ith)"
-                  @change="
+                  :color="activeColor.primary"
+                  :value="isLayerAttributeVisible(item, ith)"
+                  @input="
                     attributeLevelRendering(
                       $appConfig.stylesObjCopy[item.mapLayer.get('name')].style
                         .rules[ith].filter[0],
@@ -67,7 +68,7 @@
                     )
                   "
                 >
-                </v-checkbox>
+                </v-simple-checkbox>
               </v-flex>
               <v-flex xs11>
                 <span
@@ -89,6 +90,7 @@
 <script>
 import LegendRenderer from "../../../../utils/LegendRenderer";
 import Legend from "../controls/Legend";
+import { mapGetters } from "vuex";
 
 export default {
   props: ["item"],
@@ -165,6 +167,11 @@ export default {
         }
       }, 100);
     }
+  },
+  computed: {
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
   }
 };
 </script>
