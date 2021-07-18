@@ -307,7 +307,9 @@ export default {
       const layersConfigGrouped = groupBy(
         [
           ...this.$appConfig.map.layers,
-          ...this.$appConfig.map.osmMappingLayers
+          ...(this.$appConfig.osmMapping === "on"
+            ? this.$appConfig.map.osmMappingLayers
+            : [])
         ],
         "group"
       );

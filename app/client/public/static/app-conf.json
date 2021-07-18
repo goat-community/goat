@@ -4,6 +4,7 @@
     "primary": "#2BB381",
     "secondary": "#249c70"
   },
+  "osmMapping": "off",
   "osmMappingColor": {
     "primary": "#283648",
     "secondary": "#3a4d66"

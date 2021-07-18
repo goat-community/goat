@@ -82,33 +82,35 @@
           <language></language>
 
           <!-- OSM MAP MODE -->
-          <v-tooltip left>
-            <template v-slot:activator="{ on }">
-              <v-list-item
-                v-on="on"
-                style="padding: 0 8px;"
-                @click="toggleOsmMapMode()"
-                :style="
-                  osmMode === true
-                    ? `background-color: ${activeColor.secondary};`
-                    : `background-color: ${activeColor.primary};`
-                "
-                class="mb-1"
-              >
-                <v-list-item-action style="min-width:35px;">
-                  <v-img
-                    :src="require(`../../assets/img/others/osm_icon.png`)"
-                    height="35"
-                    class="white--text"
-                  ></v-img>
-                </v-list-item-action>
-                <v-list-item-content>
-                  <v-list-item-title></v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
-            </template>
-            <span>{{ $t("appBar.buttons.osmMapMode") }}</span>
-          </v-tooltip>
+          <template v-if="$appConfig.osmMapping === 'on'">
+            <v-tooltip left>
+              <template v-slot:activator="{ on }">
+                <v-list-item
+                  v-on="on"
+                  style="padding: 0 8px;"
+                  @click="toggleOsmMapMode()"
+                  :style="
+                    osmMode === true
+                      ? `background-color: ${activeColor.secondary};`
+                      : `background-color: ${activeColor.primary};`
+                  "
+                  class="mb-1"
+                >
+                  <v-list-item-action style="min-width:35px;">
+                    <v-img
+                      :src="require(`../../assets/img/others/osm_icon.png`)"
+                      height="35"
+                      class="white--text"
+                    ></v-img>
+                  </v-list-item-action>
+                  <v-list-item-content>
+                    <v-list-item-title></v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </template>
+              <span>{{ $t("appBar.buttons.osmMapMode") }}</span>
+            </v-tooltip>
+          </template>
 
           <!-- BOTTOM ITEMS -->
           <template v-for="(item, index) in bottomItems">

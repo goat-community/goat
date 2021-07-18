@@ -10,15 +10,13 @@
         <v-expansion-panel
           v-for="(item, i) in getVisibleLayers"
           :key="i"
-          :disabled="
-            isLayerBusy(item.mapLayer) || item.name === 'study_area_crop'
-          "
+          class="layer-row"
+          :disabled="isLayerBusy(item.mapLayer)"
           :class="{
             'expansion-panel__container--active': item.showOptions === true
           }"
         >
           <v-expansion-panel-header
-            @click="toggleLayerVisibility(item)"
             expand-icon=""
             v-slot="{}"
             :style="item.mapLayer.get('docUrl') ? 'overflow:hidden;' : ''"
@@ -37,23 +35,21 @@
               </template>
               <span>{{ $t(`map.tooltips.openDocumentation`) }}</span>
             </v-tooltip>
-            <v-layout row class="pl-2" wrap align-center>
-              <v-flex xs2>
-                <v-icon
-                  :class="{
-                    'active-icon': item.mapLayer.getVisible() === true,
-                    'expansion-panel__container--active':
-                      item.showOptions === true
-                  }"
-                >
-                  done
-                </v-icon>
+            <v-layout row class="pl-1" wrap align-center>
+              <v-flex class="checkbox" xs2>
+                <v-simple-checkbox
+                  v-if="item.name !== 'study_area_crop'"
+                  :color="activeColor.primary"
+                  :value="item.mapLayer.getVisible()"
+                  @input="toggleLayerVisibility(item)"
+                ></v-simple-checkbox>
               </v-flex>
               <v-flex xs9>
                 <span>{{ translate("layerName", item.name) }}</span>
               </v-flex>
               <v-flex xs1>
                 <v-icon
+                  v-if="item.name !== 'study_area_crop'"
                   v-show="item.mapLayer.getVisible()"
                   small
                   style="width: 30px; height: 30px;"
@@ -140,6 +136,7 @@ import draggable from "vuedraggable";
 import InLegend from "../../viewer/ol/controls/InLegend";
 import StyleDialog from "../changeStyle/StyleDialog.vue";
 import { EventBus } from "../../../EventBus";
+import { mapGetters } from "vuex";
 
 export default {
   // mixins: [LayerTree],
@@ -179,7 +176,10 @@ export default {
         //Sort layers in decreasing order based on zIndex
         this.sortLayerArray(this.allLayers);
       }
-    }
+    },
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
   },
   created() {
     //Get list of all map layers
@@ -269,17 +269,20 @@ export default {
   color: #30c2ff;
 }
 
-.expansion-panel__container--active {
-  background-color: #2bb381 !important;
-  color: white !important;
-}
-
 .v-expansion-panel-content >>> .v-expansion-panel-content__wrap {
   padding: 0px;
 }
 
 .v-expansion-panel-content >>> .v-input__slot {
   margin-bottom: 0px;
+}
+
+.checkbox >>> .v-input__control {
+  height: 25px;
+}
+
+.layer-row >>> .v-expansion-panel-header {
+  cursor: auto;
 }
 
 .documentation {
