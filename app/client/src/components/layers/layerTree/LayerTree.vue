@@ -31,8 +31,10 @@
                     >
                     <div v-else v-html="getLayerGroupIcon(layerGroup)"></div>
                   </v-flex>
-                  <v-flex xs10>
-                    <div>{{ translate("layerGroup", layerGroup.name) }}</div>
+                  <v-flex xs10 class="light-text" style="font-size:medium;">
+                    <div>
+                      <b>{{ translate("layerGroup", layerGroup.name) }}</b>
+                    </div>
                   </v-flex>
                   <v-flex xs1>
                     <v-icon v-html="open ? 'remove' : 'add'"></v-icon>
@@ -74,7 +76,7 @@
                       </v-tooltip>
 
                       <v-layout row class="pl-1" wrap align-center>
-                        <v-flex class="checkbox" xs2>
+                        <v-flex class="checkbox" xs1>
                           <v-simple-checkbox
                             v-if="item.name !== 'study_area_crop'"
                             :color="activeColor.primary"
@@ -82,8 +84,10 @@
                             @input="toggleLayerVisibility(item, layerGroup)"
                           ></v-simple-checkbox>
                         </v-flex>
-                        <v-flex xs9>
-                          <span>{{ translate("layerName", item.name) }}</span>
+                        <v-flex xs10 class="light-text">
+                          <h4 class="pl-2">
+                            {{ translate("layerName", item.name) }}
+                          </h4>
                         </v-flex>
                         <v-flex xs1>
                           <v-icon
@@ -223,7 +227,8 @@ export default {
   },
   computed: {
     ...mapGetters("pois", {
-      selectedPois: "selectedPois"
+      selectedPois: "selectedPois",
+      selectedAois: "selectedAois"
     }),
     ...mapGetters("app", {
       activeColor: "activeColor",
@@ -373,6 +378,19 @@ export default {
           this.toggleSnackbar({
             type: "error",
             message: "selectAmenities",
+            state: true,
+            timeout: 60000
+          });
+        }
+      }
+      if (
+        clickedLayer.mapLayer.get("requiresAois") === true &&
+        this.selectedAois.length === 0
+      ) {
+        if (clickedLayer.mapLayer.getVisible() === false) {
+          this.toggleSnackbar({
+            type: "error",
+            message: "selectAois",
             state: true,
             timeout: 60000
           });
