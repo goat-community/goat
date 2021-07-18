@@ -150,6 +150,25 @@ const state = {
 const getters = {
   selectedPois: state => state.selectedPois,
   allPois: state => state.allPois,
+  selectedAois: state => {
+    const _aois = [];
+    const aois = state.allPois.filter(
+      i => i.categoryValue == "recreationAreas"
+    );
+
+    if (aois.length > 0) {
+      aois[0].children.forEach(child => {
+        _aois.push(child);
+      });
+    }
+    // Count selected aois amenities. If more than 0 turn the aois layer on.
+    const selectedAois = state.selectedPois
+      .map(v => v.value)
+      .filter(e => {
+        return _aois.map(v => v.value).indexOf(e) > -1;
+      });
+    return selectedAois;
+  },
   disabledPoisOnTimeFilter: state => state.filters.disabledPoisOnTimeFilter,
   disabledPoisOnRoutingProfile: state =>
     state.filters.disabledPoisOnRoutingProfile,

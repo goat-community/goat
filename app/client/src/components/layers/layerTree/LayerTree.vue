@@ -227,7 +227,8 @@ export default {
   },
   computed: {
     ...mapGetters("pois", {
-      selectedPois: "selectedPois"
+      selectedPois: "selectedPois",
+      selectedAois: "selectedAois"
     }),
     ...mapGetters("app", {
       activeColor: "activeColor",
@@ -377,6 +378,19 @@ export default {
           this.toggleSnackbar({
             type: "error",
             message: "selectAmenities",
+            state: true,
+            timeout: 60000
+          });
+        }
+      }
+      if (
+        clickedLayer.mapLayer.get("requiresAois") === true &&
+        this.selectedAois.length === 0
+      ) {
+        if (clickedLayer.mapLayer.getVisible() === false) {
+          this.toggleSnackbar({
+            type: "error",
+            message: "selectAois",
             state: true,
             timeout: 60000
           });

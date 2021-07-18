@@ -344,6 +344,7 @@
     },
     "snackbarMessages": {
       "selectAmenities": "Mind. ein Point-of-Interest (Thematische Daten) auswählen",
+      "selectAois": "Mind. ein Area-of-Interest (Thematische Daten) auswählen",
       "calculateIsochroneError": "Hier ist leider keine Berechnung möglich.",
       "calculateIsochroneCancelled": "Isochronenberechnung abgebrochen",
       "calculatePPFCancelled": "PPF-Berechnung abgebrochen",

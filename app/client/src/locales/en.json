@@ -337,6 +337,7 @@
     },
     "snackbarMessages": {
       "selectAmenities": "You must select at least one point of interest (Thematic Data)",
+      "selectAois": "You must select at least one area of interest (Thematic Data)",
       "calculateIsochroneError": "Sorry but here no calculation is possible",
       "calculateIsochroneCancelled": "Isochrone Calculation Cancelled",
       "calculatePPFCancelled": "PPF Calculation Cancelled",

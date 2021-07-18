@@ -124,6 +124,7 @@
         "visible": false,
         "canEdit": false,
         "queryable": true,
+        "requiresAois": true,
         "displayInLayerList": true,
         "zIndex": 0.5,
         "maxResolution": 20,
