@@ -1116,6 +1116,13 @@
           "source": "LastenVelo Freiburg e.V.",
           "date": "16.03.2021"
         }
+      },
+      {
+        "name": "Normalized Difference Vegetation Index (Sentinel 2)",
+        "attributes": {
+          "source": "Sentinel-Hub",
+          "date": "09-2020"
+        }
       }
     ],
     "controls": [
