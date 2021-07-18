@@ -19,8 +19,8 @@
         "symbolizers": [
           {
             "kind": "Line",
-            "color": "#c43c39",
-            "width": 0.5,
+            "color": "#5EC8BD",
+            "width": 1,
             "join": "bevel",
             "cap": "square"
           }
@@ -44,8 +44,8 @@
         "symbolizers": [
           {
             "kind": "Line",
-            "color": "#c43c39",
-            "width": 4,
+            "color": "#5EC8BD",
+            "width": 3,
             "join": "bevel",
             "cap": "square"
           }
@@ -69,8 +69,8 @@
         "symbolizers": [
           {
             "kind": "Line",
-            "color": "#c43c39",
-            "width": 7,
+            "color": "#5EC8BD",
+            "width": 6,
             "join": "bevel",
             "cap": "square"
           }
@@ -94,8 +94,8 @@
         "symbolizers": [
           {
             "kind": "Line",
-            "color": "#c43c39",
-            "width": 11,
+            "color": "5EC8BD",
+            "width": 9,
             "join": "bevel",
             "cap": "square"
           }
@@ -119,8 +119,8 @@
         "symbolizers": [
           {
             "kind": "Line",
-            "color": "#c43c39",
-            "width": 14,
+            "color": "5EC8BD",
+            "width": 12,
             "join": "bevel",
             "cap": "square"
           }
