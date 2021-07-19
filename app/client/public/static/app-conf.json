@@ -427,7 +427,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 20,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_liveliness.json"
@@ -445,7 +445,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 20,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_urban_equipment.json"
@@ -463,7 +463,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 20,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_traffic_protection.json"
@@ -481,7 +481,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 20,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_sidewalk_quality.json"
@@ -499,7 +499,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 20,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_security.json"
@@ -517,7 +517,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 20,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_green_blue_index.json"
