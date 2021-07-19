@@ -126,7 +126,7 @@ class DataImport():
 
     def prepare_planet_osm(self):
         os.chdir('/opt/data') 
-        if self.download_link != 'no_download':     
+        if self.download_link != 'no_download' and self.extract_bbox != "done":     
             print('Fresh OSM-data will be download from: %s' % self.download_link)
             result = subprocess.run(f'wget --no-check-certificate --output-document="raw-osm.osm.pbf" {self.download_link}', shell=True, check=True)
 

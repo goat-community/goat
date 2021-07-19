@@ -29,7 +29,7 @@ SET area = ST_AREA(geom::geography);
 UPDATE buildings
 SET residential_status = 'no_residents'
 WHERE buildings.area < (SELECT select_from_variable_container_s('minimum_building_size_residential')::integer)
-AND residential_status <> 'potential_residential';
+AND residential_status = 'potential_residents';
 
 INSERT INTO buildings_classification 
 SELECT gid 
@@ -51,7 +51,7 @@ DO $$
         	
         	DROP TABLE IF EXISTS landuse_subdivide; 
         	CREATE TABLE landuse_subdivide AS 
-        	SELECT landuse, ST_SUBDIVIDE(geom, 200) AS geom
+        	SELECT landuse::text, ST_SUBDIVIDE(geom, 200) AS geom
         	FROM landuse; 
         
         	ALTER TABLE landuse_subdivide ADD COLUMN gid serial;
@@ -101,7 +101,7 @@ DO $$
         THEN     
         	DROP TABLE IF EXISTS landuse_additional_subdivide ; 
         	CREATE TABLE landuse_additional_subdivide  AS 
-        	SELECT landuse, ST_SUBDIVIDE(geom, 200) AS geom
+        	SELECT landuse::text, ST_SUBDIVIDE(geom, 200) AS geom
         	FROM landuse_additional; 
         
         	ALTER TABLE landuse_additional_subdivide ADD COLUMN gid serial;
@@ -153,7 +153,7 @@ DO $$
 			
 			DROP TABLE IF EXISTS landuse_osm_subdivide ; 
         	CREATE TABLE landuse_osm_subdivide AS 
-			SELECT landuse, ST_SUBDIVIDE(geom, 200) AS geom
+			SELECT landuse::text, ST_SUBDIVIDE(geom, 200) AS geom
 			FROM landuse_osm l
 			WHERE landuse IS NOT NULL;
 	
