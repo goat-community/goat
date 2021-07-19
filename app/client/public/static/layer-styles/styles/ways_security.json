@@ -1,0 +1,130 @@
+{
+  "name": "ways_security",
+  "rules": [
+    {
+      "name": "very_low",
+      "filter": [
+        "&&",
+        [
+          ">=",
+          "security",
+          "0"
+        ],
+        [
+          "<=",
+          "security",
+          "20"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#d7191c",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "low",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "security",
+          "20"
+        ],
+        [
+          "<=",
+          "security",
+          "40"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#fdae61",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "medium",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "security",
+          "40"
+        ],
+        [
+          "<=",
+          "security",
+          "60"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#ffffbf",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "high",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "security",
+          "60"
+        ],
+        [
+          "<=",
+          "security",
+          "80"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#a6d96a",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "very_high",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "security",
+          "80"
+        ],
+        [
+          "<=",
+          "security",
+          "100"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#1a9641",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    }
+  ]
+}

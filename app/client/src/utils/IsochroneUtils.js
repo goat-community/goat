@@ -3,7 +3,7 @@ import {
   getClosest,
   interpolateColor
 } from "../utils/Helpers";
-
+import i18n from "../../src/plugins/i18n";
 /**
  * Util class for Isochrone Calculation
  */
@@ -92,14 +92,16 @@ const IsochroneUtils = {
     });
     return multiIsochroneTableData;
   },
-  getIsochroneAliasFromKey: function getIsochroneAliasFromKey(key) {
+  getIsochroneAliasFromKey(key) {
     let isochroneMapping = {
       "1": "Default",
       "2": "Input",
       "3": "Default",
       "4": "Input"
     };
-    let alias = isochroneMapping[key] ? isochroneMapping[key] : key;
+    let alias = isochroneMapping[key]
+      ? i18n.t(`isochrones.mode.${isochroneMapping[key].toLowerCase()}`)
+      : key;
     return alias;
   },
   getInterpolatedColor(lowestValue, highestValue, value, color) {

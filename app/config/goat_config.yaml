@@ -1,26 +1,22 @@
 DATA_SOURCE:  
   #"no_download" if you don't want to download OSM data automatically. Make sure that the file is called raw-osm.osm.pbf.
   OSM_DOWNLOAD_LINK: "https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf" 
-  #"most_recent" if the data from the OSM-Download-Link has not the recency you need. 
-  OSM_DATA_RECENCY: "standard"
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
-  EXTRACT_BBOX: "yes"
+  EXTRACT_BBOX: "yes" #"yes" ==> Use study area as BBOX,"no_extract" ==> Import whole dump, "done" ==> Extract was already done 
   
-
 DATA_REFINEMENT_VARIABLES:
   #extrapolation ==> census.shp + landuse.shp needed as input
   #disaggregation ==> landuse.shp needed as input + high-resolution population input data + building data
   #distribution ==> landuse.sho need as input + high-resolution population input data 
   #custom_population ==> population.shp custom population data needed  
-  POPULATION: "extrapolation"
+  POPULATION: "census_extrapolation"
   #"yes" if you want to add these layers 
-  ADDITIONAL_WALKABILITY_LAYERS: "yes" 
-  OSM_MAPPING_FEATURE: "yes"
+  ADDITIONAL_WALKABILITY_LAYERS: "no" 
+  OSM_MAPPING_FEATURE: "no"
   variable_container:
-    heatmap_auto_refresh: "'yes'"
     heatmap_sensitivities: [150000,200000,250000,300000,350000,400000,450000]
-    pois_one_entrance: ["kindergarten","nursery","primary_school","secondary_school","grundschule","hauptschule_mittelschule","realschule","gymnasium","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","nightclub","recycling",
-      "car_sharing","bicycle_rental","charging_station","bus_station","tram_station","subway_station","railway_station","taxi","bikesharing_ffb","carsharing_ffb","charging_station_marker_ffb","charging_station_other_ffb","charging_station_public_ffb","e_parking_ffb",
+    pois_one_entrance: ["kindergarten","nursery","primary_school","secondary_school","grundschule","hauptschule","realschule","werkrealschule","gymnasium","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","nightclub","recycling",
+      "car_sharing","bicycle_rental","cargo_bike","charging_station","bus_station","tram_station","subway_station","railway_station","taxi","bikesharing_ffb","carsharing_ffb","charging_station_marker_ffb","charging_station_other_ffb","charging_station_public_ffb","e_parking_ffb",
       "l-station_ffb","s-station_prio1_ffb","s-station_prio2_ffb","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
       "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
       "hypermarket","international_supermarket","chemist","organic","marketplace","hotel","museum","hostel","guest_house","viewpoint","gallery","playground","discount_gym","gym","yoga","outdoor_fitness_station"
@@ -35,6 +31,7 @@ DATA_REFINEMENT_VARIABLES:
     custom_landuse_no_residents: ["AX_TagebauGrubeSteinbruch",
       "AX_SportFreizeitUndErholungsflaeche",
       "AX_FlaecheBesondererFunktionalerPraegung",
+      "AX_BauwerkOderAnlageFuerSportFreizeitUndErholung",
       "AX_Halde",
       "AX_Friedhof",
       "AX_IndustrieUndGewerbeflaeche",
@@ -43,6 +40,7 @@ DATA_REFINEMENT_VARIABLES:
       "AX_Gehoelz",
       "AX_Heide",
       "AX_Moor",
+      "AX_Insel",
       "AX_Sumpf",
       "AX_UnlandVegetationsloseFlaeche",
       "AX_Vegetationsmerkmal",
@@ -55,7 +53,23 @@ DATA_REFINEMENT_VARIABLES:
       "AX_StehendesGewaesser"
     ]
     custom_landuse_with_residents_name: ["%seniorenheim%"]
-    osm_landuse_no_residents: ["farmyard","farmland","quarry","industrial","retail","commercial","forest","military","cemetery","landfill","allotments","recreation ground","railway"]
+    custom_landuse_additional_no_residents: [
+      "Water",
+      "Permanent crops (vineyards, fruit trees, olive groves)",
+      "Railways and associated land",
+      "Herbaceous vegetation associations (natural grassland, moors...)",
+      "Forests",
+      "Sports and leisure facilities",
+      "Other roads and associated land",
+      "Green urban areas",
+      "Arable land (annual crops)",
+      "Fast transit roads and associated land",
+      "Industrial, commercial, public, military and private units",
+      "Mineral extraction and dump sites",
+      "Pastures"
+    ]
+    osm_landuse_no_residents: ["farmyard","construction","farmland","quarry","industrial","retail","commercial","forest","military",
+    "cemetery","landfill","allotments","recreation ground","railway","parking","grass","grassland","green","garages"]
     aois_no_residents: ["forest","park","lake","river","forest","park","swimming_lake"]
     #All buildings that can be potentially residential
     building_types_potentially_residential: ["yes"]
@@ -63,14 +77,13 @@ DATA_REFINEMENT_VARIABLES:
     building_types_residential: ["apartments","bungalow","detached","dormitory","residential","house","terrace","home","semidetached_house"]
     tourism_no_residents: ["zoo"]
     amenity_no_residents: ["hospital","university","community_centre","school","kindergarten","recreation_ground","wood"]
-    amenity_opening_hours: ["atm","art","bakery","bank","bar","beverages","biergarten","books","butcher","cafe","chemist","clothes","coffee",
-      "convenience","dentist","discount_supermarket","doctors","driving_school","fast_food","fuel","hairdresser","hookah_lounge","hypermarket","ice_cream",
-      "international_supermarket","kiosk","library","museum","organic","pharmacy","post_office","pub","restaurant","social_facility","supermarket",
-      "toilets","veterinary"]
     default_building_levels: '3'
-    minimum_building_size_residential: '54'
+    minimum_building_size_residential: '30'
     census_minimum_number_new_buildings: '1'
     average_gross_living_area: '50'
+    average_building_levels: '4'
+    average_roof_levels: '1'
+    average_height_per_level: '3.5'
     wheelchair:
       smoothness_no: ["very_bad","horrible","very_horrible","impassable"]
       smoothness_limited: ['bad']
@@ -129,6 +142,7 @@ DATA_REFINEMENT_VARIABLES:
     duplicated_kindergarten_lookup_radius: '50'
     duplicated_primary_school_lookup_radius: '40'
     duplicated_secondary_school_lookup_radius: '40'
+    one_meter_degree: '0.000009'
     ##----------------------------------------------------------------------------------------------------------##
     ##-----------Definition of amenity parameters for POIS preparation and data fusion of new sources-----------##
     ##----------------------------------------------------------------------------------------------------------##
@@ -203,6 +217,56 @@ DATA_REFINEMENT_VARIABLES:
         discard: ['%haupt-schule%', '%mittel-schule%', '%real-schule%', '%förder-schule%', '%gesamt-schule%']
       kindergarten: ['kindergarten']
       
+
+    ##----------------------------------------------------------------------------------------------------------##
+    ##-----------------------Definition of the weights for the Walkability index -------------------------------##
+    ##----------------------------------------------------------------------------------------------------------##
+
+    walkability:
+      sidewalk_quality: 
+        sidewalk_availability: 1
+        sidewalk_width: 1
+        pavement_quality: 1
+        freedom_of_barriers: 1
+        ##path_type: 0 - does it makes sense to inluce this?
+      impacts_road_traffic:
+        lanes: 1
+        one_way: 1
+        noise: 1 
+        speed_limits: 2
+        parking: 1
+        accidents: 1 
+        ##traffic_load: 0 - can we find information on this?
+        ##share_heavy_load: 0 - can we find information on this?
+        ##spatial_separation: 0 - can we somehow include this?
+        ##number_crossings: 0 - does it makes sence to include this?
+      security:
+        illumination: 1
+        ##social_hotspots: 0 - can we find information on this?
+      green_index:
+        vegetation: 1
+        water: 1
+      environment:
+        landuse: 1
+        pois: 1
+        population: 1 
+        ##weather_protection: 0
+        ##inner_city_aeration: 0
+        ##builtenvironment: 0
+        ##cleanliness: 0
+      comfort:
+        street_furniture: 2
+        slope: 2
+        toilets: 1
+        fountains: 1
+        ##waiting_time_crossing: 0
+        ##width_street_crossing
+        ##marking_street_crossing
+        ##orientation
+
+
+
+
 
 
 

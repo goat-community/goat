@@ -1,7 +1,6 @@
 # Code based on https://github.com/hackersandslackers/psycopg2-tutorial/blob/master/psycopg2_tutorial/db.py
 import logging as LOGGER
 import psycopg2
-from db.config import DATABASE
 from psycopg2 import sql
 import geobuf
 import geojson
@@ -14,18 +13,58 @@ import random
 import os 
 import io
 from io import BytesIO
+import os.path
+import yaml
+
+def database_config(db_suffix = ''):
+       
+    # EXAMPLE DB CONFIG
+    db_conf = {
+        'HOST': "db",
+        'USER': "xxdbuserxx",
+        'PASSWORD': "xxdbpasswordxx",
+        'PORT': 5432,
+        'DB_NAME': 'goat'
+    }
+    # LOAD db dev config if it exists
+    try:
+        with open(os.path.dirname(__file__) + "/../../../config/db/db_dev.yaml", 'r') as stream:
+            db_conf = yaml.load(stream, Loader=yaml.FullLoader)
+    except EnvironmentError:
+        x = "Using env variables."
+        #print("Using env variables.")
+
+    # Config Database from db_dev or env variables. 
+    DATABASE_HOST = os.getenv('POSTGRES_HOST', default=db_conf["HOST"])
+    DATABASE_USERNAME = os.getenv('POSTGRES_USER', default=db_conf["USER"])
+    DATABASE_PASSWORD = os.getenv('POSTGRES_PASS', default=db_conf["PASSWORD"])
+    DATABASE_PORT = os.getenv('POSTGRES_PORT', default=db_conf["PORT"])
+    DATABASE_NAME = os.getenv('POSTGRES_DBNAME', default=db_conf["DB_NAME"]) + db_suffix
+
+  
+    DATABASE = {
+        'user':     DATABASE_USERNAME,
+        'password': DATABASE_PASSWORD,
+        'host':     DATABASE_HOST,
+        'port':     DATABASE_PORT,
+        'dbname': DATABASE_NAME
+    }
+
+    return DATABASE
+
+
 
 class Database:
     """PostgreSQL Database class."""
 
-    def __init__(self):
+    def __init__(self,db_suffix=''):
         self.conn = None
-
+        self.db_suffix = db_suffix
     def connect(self):
         """Connect to a Postgres database."""
         if self.conn is None:
             try:
-                connection_string = " ".join(("{}={}".format(*i) for i in DATABASE.items()))
+                connection_string = " ".join(("{}={}".format(*i) for i in database_config(self.db_suffix).items()))
                 self.conn = psycopg2.connect(connection_string)
             except psycopg2.DatabaseError as e:
                 LOGGER.error(e)
@@ -123,7 +162,7 @@ class Database:
         return records 
     
 
-    def perform_with_identifiers(self, query, identifiers, params=None):
+    def perform_with_identifiers(self, query, identifiers=None, params=None):
         """Run a SQL query that does not return anything"""
         self.connect()
 

@@ -1,3 +1,5 @@
+/*Keeping this for reference but it is legacy*/
+
 CREATE OR REPLACE FUNCTION st_polygrid(geometry, numeric) RETURNS geometry AS
 $$
 SELECT

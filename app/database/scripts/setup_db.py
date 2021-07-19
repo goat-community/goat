@@ -15,6 +15,7 @@ def setup_db(setup_type):
     from scripts.db_functions import update_functions
     from scripts.db_functions import geojson_to_sql
     from scripts.db_functions import bulk_compute_slope
+    from scripts.db_functions import import_rawdata
 
     download_link,osm_data_recency,buffer,extract_bbox,source_population,additional_walkability_layers,osm_mapping_feature = ReadYAML().data_source()
     compute_slope_impedance = ReadYAML().data_refinement()["variable_container"]["compute_slope_impedance"][1:-1]
@@ -57,19 +58,23 @@ def setup_db(setup_type):
     if (download_link != 'no_download' and setup_type == 'new_setup'):
         os.system(f'wget --no-check-certificate --output-document="raw-osm.osm.pbf" {download_link}')
      
-    #Define bounding box, the boundingbox is buffered by approx. 3 km
-    bbox = shapefile.Reader("study_area.shp").bbox
-    top = bbox[3]+buffer
-    left = bbox[0]-buffer
-    bottom = bbox[1]-buffer
-    right = bbox[2]+buffer
+    
+    #Create connection using psycopg
+    con,cursor = db_temp.con_psycopg()
 
     if (setup_type == 'new_setup'):  
+        #Import rawdata
+        import_rawdata(os.getcwd(),db_temp,db_name_temp,user,host)
+        
+        #Define bounding box, the boundingbox is buffered by approx. 3 km
         if (extract_bbox == 'yes'):
-            bounding_box = f'--bounding-box top={top} left={left} bottom={bottom} right={right}'
-            print('Your bounding box is: ' + bounding_box)
-            os.system(f'osmosis --read-pbf file="raw-osm.osm.pbf" {bounding_box} --write-xml file="study_area.osm"')
-
+            #<-------change by function....
+            db_temp.execute_script_psql('/opt/database_functions/data_preparation/create_bbox_study_area.sql')
+            sql_bbox = 'SELECT * FROM create_bbox_study_area(%s)' % buffer
+            cursor.execute(sql_bbox)
+            bboxes = cursor.fetchall()[0][0]
+            os.system(f'osmosis --read-pbf file="raw-osm.osm.pbf" {bboxes} --write-xml file="study_area.osm"')
+            #------> 
         #Create timestamps
         os.system('rm timestamps.txt')
         os.system('touch timestamps.txt')
@@ -81,25 +86,12 @@ def setup_db(setup_type):
         file.write(timestamp+'\n')
         file.close()
 
-        #Import DEM
-        if os.path.isfile('dem_vec.sql'):
-            db_temp.execute_script_psql('dem_vec.sql')
-        elif os.path.isfile('dem.tif'):
+        if os.path.isfile('dem.tif'):
             #os.system('gdalwarp -dstnodata -999.0 -r near -ot Float32 -of GTiff -te %f %f %f %f dem.tif dem_cut.tif' % (left,top,right,bottom))
             os.system('raster2pgsql -c -C -s 4326 -f rast -F -I -M -t 100x100 dem.tif public.dem > dem.sql')
             db_temp.execute_script_psql('dem.sql')
             db_temp.execute_script_psql('/opt/data_preparation/SQL/prepare_dem.sql')
-
-        #Import shapefiles into database
-        for file in glob.glob("*.shp"):
-            print(file)
-            os.system(f'PGPASSFILE=~/.pgpass_{db_name_temp} shp2pgsql -I -s 4326  %s public.%s | PGPASSFILE=~/.pgpass_{db_name_temp} psql -d %s -U %s -h %s -q' % (file,file.split('.')[0],db_name_temp,user,host))
-         
-        #Import custom pois
-        if glob.glob('custom_pois/*.geojson'):
-            geojson_to_sql(db_name_temp,user,host,port,password)
-            db_temp.execute_text_psql(f'DELETE FROM custom_pois WHERE NOT ST_INTERSECTS(geom,ST_MAKEENVELOPE({left},{bottom},{right},{top}, 4326))')
-            
+       
     #Use OSM-Update-Tool in order to fetch the most recent data
     if (osm_data_recency == 'most_recent'):
         #Take last timestamp
@@ -126,14 +118,11 @@ def setup_db(setup_type):
     #Copy custom data into temporary database
 
     if (setup_type in ['all','population','pois','network']):
-        for file in glob.glob("*.shp"):
-            table_name = file.split('.')[0]
-            os.system(f'PGPASSFILE=~/.pgpass_{db_name} pg_dump -U {user} -d {db_name} -h {host} -t {table_name} | PGPASSFILE=~/.pgpass_{db_name_temp} psql -d {db_name_temp} -U {user} -h {host}')
+        import_rawdata(os.getcwd(),db_name_temp,user,host)
 
     #Create tables and types
     db_temp.execute_script_psql('/opt/data_preparation/SQL/create_tables.sql')
-    
-    create_variable_container(db_name_temp,user,str(port),host,password)
+    create_variable_container(db_name_temp)
     
     #Write timestamp in Variable container
     db_temp.execute_text_psql(f"INSERT INTO variable_container(identifier, variable_simple) VALUES ('data_recency','{timestamp}')")
@@ -174,6 +163,7 @@ def setup_db(setup_type):
         if compute_slope_impedance == 'yes':
             bulk_compute_slope(db_name_temp,user,port,host,password)
         db_temp.execute_script_psql('../data_preparation/SQL/network_preparation2.sql')
+        db_temp.execute_script_psql('../data_preparation/SQL/walkability.sql')
 
         if (additional_walkability_layers == 'yes'):
             db_temp.execute_script_psql('../data_preparation/SQL/layer_preparation.sql')
