@@ -1,0 +1,255 @@
+{
+  "name": "liveliness",
+  "rules": [
+    {
+      "name": "0_to_10",
+      "filter": [
+        "&&",
+        [
+          ">=",
+          "liveliness",
+          "0"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "10"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#f7fbff",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "10_to_20",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "10"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "20"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#e2eef9",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "20_to_30",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "20"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "30"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#cde0f2",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "30_to_40",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "30"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "40"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#b0d2e8",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "40_to_50",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "40"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "50"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#89bfdd",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "50_to_60",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "50"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "60"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#60a6d2",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "60_to_70",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "60"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "70"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#3e8ec4",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "70_to_80",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "70"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "80"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#2172b6",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "80_to_90",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "80"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "90"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#0a549e",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "90_to_100",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "liveliness",
+          "90"
+        ],
+        [
+          "<=",
+          "liveliness",
+          "100"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#08306b",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    }
+  ]
+}

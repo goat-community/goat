@@ -205,14 +205,14 @@
     },
     "about": {
       "title": "About GOAT",
-      "whatIs": "<span><strong>What is GOAT?</strong></span>\n<p>Geo Open Accessibility Tool, or simply GOAT, is an open-source web tool that is interactive, flexible, and practical for accessibility planning. Currently under development at the&nbsp;<a href=\"https://www.bgu.tum.de/sv/startseite/\">Chair for Urban Structure and Transport Planning at TUM</a>, GOAT is capable of modeling walking and cycling accessibility. Frequent enhancements are made to improve its performance and add additional functionality.</p>",
-      "usedData": "<span><strong>Used Data</strong></span><p>GOAT uses mainly Open Data. The following data sets are either displayed in the different layers or used in the background to perform the analysis:&nbsp;</p>",
-      "license": "<span><strong>Licence</strong></span>\n<p>GOAT is licensed under GPL-3.0<br /><span>If you use GOAT for your analysis, please cite as:&nbsp;</span><br /><span><strong>Geo Open Accessibility Tool - GOAT (Version 1.0) [Webtool]. Retrieved from&nbsp;<a  href=\"https://open-accessibility.org/\" rel=\"nofollow\">https://open-accessibility.org/</a></strong></span></p>\n",
-      "moreInfo": "More Info",
+      "whatIs": "<span><strong>Was ist GOAT?</strong></span>\n<p>Geo Open Accessibility Tool, oder einfach GOAT, ist ein digitales Planungswerkzeug für die Gestaltung des Fuß- und Radverkehrs. Es zeichnet sich insbesondere durch seine Flexibilität und Interaktivität aus. So können dynamisch Szenarien entwickelt und hinsichtlich ihrer Effekte auf die Erreichbarkeit bewertet werden. </p><p>Das Tool wird als Open-Source-Projekt im Wesentlichen durch das Startup <a href=\"https://plan4better.de\">Plan4Better</a> und der <a href=\"https://www.bgu.tum.de/sv/startseite/\">Technischen Universität München</a> weiterentwickelt. Es werden laufend neue Funktionen implementiert und Datensätze eingespielt. Die vorliegende Version ist eine Demoversion und es wird keinerlei Haftung für die Richtigkeit der Analysen übernommen.</p>",
+      "usedData": "<span><strong>Datensätze</strong></span><p>GOAT basiert im Wesentlichen auf offenen Daten. Die folgenden Datensätze werden entweder visualisiert oder im Hintergrund für die Berechnungen verwendet:&nbsp;</p>",
+      "license": "<span><strong>Licence</strong></span>\n<p>GOAT ist lizensiert unter <a href=\"https://github.com/goat-community/goat/blob/main/LICENSE\">GPL-3.0</a> <br /><span>Falls Sie GOAT für Ihre Analysen verwenden, zitieren Sie Bitte wie folgt:&nbsp;</span><br /><span><strong>Geo Open Accessibility Tool - GOAT (Version 1.0.1) [Webtool]. Retrieved from&nbsp;<a  href=\"https://open-accessibility.org/\" rel=\"nofollow\">https://open-accessibility.org/</a></strong></span></p>\n",
+      "moreInfo": "Weitere Infos",
       "layerAttributeTable": {
-        "data": "Layers",
-        "source": "Source",
-        "yearTimestamp": "Year / Timestamp"
+        "data": "Layer",
+        "source": "Quelle",
+        "yearTimestamp": "Referenzjahr/Zeitstempel"
       }
     }
   },
@@ -220,11 +220,16 @@
     "title": "Isochronen",
     "calculation": "Berechnung",
     "calculationTitle": "Isochronenberechnung",
+    "mode": {
+      "default": "Standard",
+      "input": "Szenario"
+    },
     "single": {
       "title": "Startpunkt",
       "type": "Single",
       "searchBox": "Startpunkt suchen",
       "startTooltip": "Klicke auf den Button, um die Isochronenberechnung zu starten",
+      "ppfTooltip": "Klicke auf den Button, um die PPF-Berechnung zu starten",
       "tableDataTitle": "Thematische Daten"
     },
     "multiple": {
@@ -339,7 +344,10 @@
     },
     "snackbarMessages": {
       "selectAmenities": "Mind. ein Point-of-Interest (Thematische Daten) auswählen",
+      "selectAois": "Mind. ein Area-of-Interest (Thematische Daten) auswählen",
       "calculateIsochroneError": "Hier ist leider keine Berechnung möglich.",
+      "calculateIsochroneCancelled": "Isochronenberechnung abgebrochen",
+      "calculatePPFCancelled": "PPF-Berechnung abgebrochen",
       "uploadScenarioSuccess": "Objekte wurden erfolgreich hochgeladen.",
       "uploadScenarioError": "Leider ist beim Hochladen der Objekte in die Datenbank ein Fehler aufgetreten.",
       "notAllScnearioFeaturesUploaded": "Bei der Berechnung der Szenarien-Isochrone werden nur hochgeladene Objekte berücksichtigt.",
@@ -404,10 +412,18 @@
       "munichways": "Radwegequalität (Munichways)",
       "ways_surface": "Oberfläche",
       "ways_wheelchair": "Barrierefreiheit",
+      "footpath_visualization": "Walkability Index (Attraktivität der Fußwege)",
+      "ways_green_blue_index": "Nähe zu Vegetation & Gewässer",
+      "ways_liveliness": "Gehumgebung & Belebtheit",
+      "ways_urban_equipment": "Urbane Austattung",
+      "ways_traffic_protection": "Schutz vor Verkehrsstörungen",
+      "ways_security": "Beleuchtung / empfundene Sicherheit",
+      "ways_sidewalk_quality": "Gehkomfort",
       "heatmap_connectivity": "Konnektivität",
       "heatmap_luptai": "Vergleich von Erreichbarkeit und Bevölkerungsdichte",
       "heatmap_population": "Bevölkerungsdichte",
       "heatmap_gravity": "Lokale Erreichbarkeit",
+      "primary_school_streams": "Fußgängerpotentialströme zu Grundschulen",
       "studyArea": "Untersuchungsgebiet",
       "ways": "Wege",
       "buildings": "Gebäude",
@@ -435,7 +451,8 @@
       "ways_Project_Sidewalk": "Project Sidewalk Score"
     },
     "tooltips": {
-      "clickForCalculation": "Für Berechnung klicken",
+      "clickForIsochroneCalculation": "Für Berechnung klicken",
+      "clickForPPFCalculation": "Für PPF Berechnung klicken",
       "clickToSelectStudyArea": "Klicken für Auswahl des Untersuchungsbereichs",
       "maxCircleRadius": "Maximaler Kreisradius ist 1000m",
       "clickToStartMeasure": "Klicken, um Messung zu starten",
@@ -520,7 +537,9 @@
       "deleteIsochrone": "Isochrone löschen",
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
-      "redoCalculation": "Erneut berechnen"
+      "redoCalculation": "Erneut berechnen",
+      "deleteBldEntrancePoint": "Delete Population",
+      "deletePPFNetwork": "Delete"
     },
     "osmMode": {
       "tasks": "OSM Mapping Aufgaben",
@@ -639,6 +658,7 @@
     "restaurant": "Restaurant",
     "nightclub": "Nachtclub",
     "bicycle_rental": "Bikesharing",
+    "cargo_bike": "Lastenrad",
     "car_sharing": "Carsharing",
     "charging_station": "Ladestation",
     "bus_stop": "Bushaltestelle",
@@ -791,6 +811,44 @@
         "commercial": "Gewerbe",
         "public": "Öffentliche Einrichtung"
       }
+    }
+  },
+  "charts": {
+    "indicators": {
+      "sidewalk_quality": "Gehkomfort",
+      "traffic_protection": "Schutz vor Verkehrsstörungen",
+      "security": "Beleuchtung / empfundene Sicherheit",
+      "vegetation": "Vegetation",
+      "water": "Gewässer",
+      "green_blue_index": "Vegetation & Gewässer",
+      "liveliness": "Gehumgebung & Belebtheit",
+      "data_quality": "Daten Qualität",
+      "comfort": "Urbane Austattung",
+      "sum_total": ["<b>GESAMT WALKABILITY SCORE</b>"],
+      "scale_label_indicators": "Indicators",
+      "scale_label_index": "Index",
+
+      "sidewalk": "Gehwegverfügbarkeit",
+      "width": "Wegebreite",
+      "smoothness": "Ebenheit der Oberfläche",
+      "surface": "Oberflächenbelag",
+      "wheelchair_classified": "Rollstuhltauglichkeit",
+      "lanes": "Anzahl der Fahrspuren",
+      "oneway": "Oneway",
+      "maxspeed": "Erlaubt Maximalgeschwindigkeit",
+      "parking": "Parkplatz",
+      "cnt_accidents": "Anzahl der Unfälle mit Fußgängern",
+      "noise_day": "Lärmlevel - Tag",
+      "noise_night": "Lärmlevel - Nacht",
+      "lit_classified": "Beleuchtung",
+      "covered": "Tunnel / Überdachung",
+      "landuse": "Flächennutzung",
+      "cnt_pois": "POI Dichte",
+      "cnt_population": "Bevölkerungsdichte",
+      "cnt_benches": "Anzahl der Bänke",
+      "cnt_waste_baskets": "Anzahl der Mülleimer",
+      "cnt_toilets": "Anzahl der Toiletten",
+      "cnt_fountains": "Anzahl der Brunnen"
     }
   }
 }

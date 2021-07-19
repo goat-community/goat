@@ -31,7 +31,8 @@ def database_config(db_suffix = ''):
         with open(os.path.dirname(__file__) + "/../../../config/db/db_dev.yaml", 'r') as stream:
             db_conf = yaml.load(stream, Loader=yaml.FullLoader)
     except EnvironmentError:
-        print("Using env variables.")
+        x = "Using env variables."
+        #print("Using env variables.")
 
     # Config Database from db_dev or env variables. 
     DATABASE_HOST = os.getenv('POSTGRES_HOST', default=db_conf["HOST"])
@@ -161,7 +162,7 @@ class Database:
         return records 
     
 
-    def perform_with_identifiers(self, query, identifiers, params=None):
+    def perform_with_identifiers(self, query, identifiers=None, params=None):
         """Run a SQL query that does not return anything"""
         self.connect()
 

@@ -119,22 +119,28 @@ sum_distributed_pop AS (
 	GROUP BY s.name
 ),
 to_reduce_pop AS (
-	SELECT s.name, c.sum_pop, c.sum_new_pop, -(sum_pop-sum_new_pop) AS difference,s.distributed_pop, c.geom
+	SELECT s.name, c.sum_pop, c.sum_new_pop, -(sum_pop-sum_new_pop) AS difference, s.distributed_pop, c.geom
 	FROM comparison_pop c, sum_distributed_pop s 
 	WHERE s.name = c.name
 	AND sum_new_pop > sum_pop
-),
-substract_exceed_pop AS (
-	UPDATE census_prepared
-	SET new_pop=new_pop-(new_pop::float/cc.distributed_pop::float)::float*cc.difference::float 
-	FROM to_reduce_pop cc
-	WHERE ST_Intersects(ST_Centroid(census_prepared.geom), cc.geom)
-	AND census_prepared.pop < 0 
-	AND census_prepared.number_buildings_now >= select_from_variable_container_s('census_minimum_number_new_buildings')::integer
+)
+UPDATE census_prepared
+SET new_pop=new_pop-(new_pop::float/cc.distributed_pop::float)::float*cc.difference::float 
+FROM to_reduce_pop cc
+WHERE ST_Intersects(ST_Centroid(census_prepared.geom), cc.geom)
+AND number_buildings_now > select_from_variable_container_s('census_minimum_number_new_buildings')::integer
+AND pop < 1; 
+
+WITH new_comparison_pop AS (
+	SELECT s.name, s.sum_pop,sum(c.new_pop) sum_new_pop, s.geom
+	FROM census_prepared c, study_area s
+	WHERE ST_Intersects(ST_Centroid(c.geom),s.geom)
+	AND c.new_pop > 0
+	GROUP BY s.name, s.sum_pop, s.geom
 ),
 remaining_pop AS (
 	SELECT c.name, (sum_pop::numeric-sum_new_pop::numeric)/x.count_grids::numeric to_add
-	FROM comparison_pop c,
+	FROM new_comparison_pop c,
 	(	
 		SELECT s.name,count(*) AS count_grids
 		FROM census_prepared c, study_area s

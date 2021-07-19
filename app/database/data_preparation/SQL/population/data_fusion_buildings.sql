@@ -183,8 +183,8 @@ $$
 			ON ST_Intersects(s.geom,b.geom);
 			DROP TABLE IF EXISTS selected_buildings;
 		ELSE 
-			INSERT INTO buildings(gid,osm_id,building,amenity,residential_status,street,housenumber,area,building_levels,roof_levels,geom)
-			SELECT b.gid,b.osm_id,b.building,b.amenity,b.residential_status,b.street,b.housenumber,b.area,
+			INSERT INTO buildings(osm_id,building,amenity,residential_status,street,housenumber,area,building_levels,roof_levels,geom)
+			SELECT b.osm_id,b.building,b.amenity,b.residential_status,b.street,b.housenumber,b.area,
 			CASE WHEN b.building_levels IS NOT NULL THEN b.building_levels ELSE average_building_levels END AS building_levels,
 			CASE WHEN b.roof_levels IS NOT NULL THEN b.roof_levels ELSE average_roof_levels END AS roof_levels,b.geom
 			FROM buildings_osm b

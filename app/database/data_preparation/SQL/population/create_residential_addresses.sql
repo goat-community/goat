@@ -1,7 +1,4 @@
-
-
-/*Extrapolation census grid*/
-/*There is used the census table, OSM data and (optional) a table with building footprints (they could be also used from OSM)*/
+/*Creating building entrances for the residential buildings*/
 DROP TABLE IF EXISTS buildings_residential;
 CREATE TABLE buildings_residential AS 
 SELECT * 

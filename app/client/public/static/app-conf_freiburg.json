@@ -1,0 +1,2005 @@
+{
+  "tittle": "GOAT - Geo Open Accessibility Tool",
+  "baseColor": {
+    "primary": "#2BB381",
+    "secondary": "#249c70"
+  },
+  "osmMappingColor": {
+    "primary": "#283648",
+    "secondary": "#3a4d66"
+  },
+  "controlsColor": "#26AE3F",
+  "logo": "./src/assets/img/logo_white.png",
+  "map": {
+    "projectionCode": "EPSG:3857",
+    "proj4Defs": [
+      {
+        "code": "EPSG:3006",
+        "projection": "+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+      }
+    ],
+    "minZoom": 10,
+    "maxZoom": 21,
+    "zoom": 13,
+    "resolutions": [
+      156543.03,
+      78271.52,
+      39135.76,
+      19567.88,
+      9783.94,
+      4891.97,
+      2445.98,
+      1222.99,
+      611.5,
+      305.75,
+      152.87,
+      76.437,
+      38.219,
+      19.109,
+      9.5546,
+      4.7773,
+      2.3887,
+      1.1943,
+      0.5972
+    ],
+    "layers": [
+      {
+        "type": "VECTOR",
+        "name": "study_area_crop",
+        "group": "buildings_landuse",
+        "url": "/api/map/layer_read",
+        "format": "GeoJSON",
+        "visible": true,
+        "canEdit": false,
+        "queryable": false,
+        "displayInLayerList": false,
+        "zIndex": 1,
+        "queryParams": ["table_name"],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/study_area_crop.json"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "Flächennutzungsplan",
+        "url": "https://geoportal.freiburg.de/wms/stpla_fnp/stpla_fnp?",
+        "group": "buildings_landuse",
+        "layers": "stpla_fnp",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "name": "ways",
+        "format": "MVT",
+        "url": "/api/map/layer/ways/{z}/{x}/{y}",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": true,
+        "editDataType": "GeoJSON",
+        "editGeometry": ["LineString"],
+        "modifyAttributes": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "serverType": "geoserver",
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "07-03-2021"
+        },
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_lit.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "footpath_visualization",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_walkability.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_liveliness",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_liveliness.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_urban_equipment",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_urban_equipment.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_traffic_protection",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_traffic_protection.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_sidewalk_quality",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_sidewalk_quality.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_security",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": false,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_security.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_green_blue_index",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 20,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_green_blue_index.json"
+        }
+      },
+      {
+        "type": "VECTOR",
+        "format": "GeoJSON",
+        "url": "/api/map/layer_read",
+        "name": "pois",
+        "group": "poisLayers",
+        "queryParams": [
+          "table_name",
+          "modus",
+          "amenities",
+          "scenario_id",
+          "routing_profile"
+        ],
+        "maxResolution": 20,
+        "opacity": 1,
+        "queryable": true,
+        "requiresPois": true,
+        "visible": false,
+        "canEdit": true,
+        "editDataType": "GeoJSON",
+        "editGeometry": ["Point"],
+        "displayInLayerList": true,
+        "displayInLegend": false,
+        "zIndex": 7,
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "07-03-2021"
+        },
+        "style": {
+          "format": "custom-logic"
+        }
+      },
+      {
+        "type": "VECTOR",
+        "name": "aois",
+        "group": "poisLayers",
+        "url": "/api/map/layer_read",
+        "format": "GeoJSON",
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 0.5,
+        "maxResolution": 20,
+        "queryParams": [
+          "table_name",
+          "modus",
+          "amenities",
+          "scenario_id",
+          "routing_profile"
+        ],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/aois.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "landuse",
+        "url": "/api/map/layer/landuse_api/{z}/{x}/{y}",
+        "group": "buildings_landuse",
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 10,
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/landuse_atkis.json"
+        },
+        "attributes": {
+          "source": "Datenbestände des ATKIS Basis-DLM der Länder",
+          "date": "2019"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "landuse_osm",
+        "url": "/api/map/layer/landuse_osm/{z}/{x}/{y}",
+        "group": "buildings_landuse",
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/landuse_osm.json"
+        },
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "07-03-2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "buildings",
+        "url": "/api/map/layer/buildings/{z}/{x}/{y}",
+        "group": "buildings_landuse",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": true,
+        "editDataType": "GeoJSON",
+        "editGeometry": ["Polygon", "MultiPolygon"],
+        "canModifyGeom": true,
+        "modifyAttributes": true,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 6,
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/buildings.json"
+        },
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "07-03-2021"
+        }
+      },
+      {
+        "type": "VECTOR",
+        "format": "GeoJSON",
+        "name": "study_area",
+        "url": "/api/map/layer_read",
+        "group": "buildings_landuse",
+        "visible": false,
+        "canEdit": false,
+        "queryable": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "queryParams": ["table_name"],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/study_area.json"
+        },
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_lit",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_lit.json"
+        },
+        "attributes": {
+          "source": "OpenStreetMap",
+          "date": "07-03-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_category_aggregated",
+        "url": "/api/map/layer/ways_category_aggregated/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_category_aggregated.json"
+        },
+        "attributes": {
+          "source": "OpenStreetMap",
+          "date": "07-03-2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_speed",
+        "url": "/api/map/layer/ways_speed/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_speed.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_surface",
+        "url": "/api/map/layer/ways_surface/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_surface.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "street_crossings",
+        "url": "/api/map/layer/street_crossings/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/street_crossings.json"
+        },
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "07-03-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "street_furniture",
+        "url": "/api/map/layer/street_furniture/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/street_furniture.json"
+        },
+        "attributes": {
+          "source": "OpenStreetMap",
+          "date": "07-03-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "street_furniture_bicycles",
+        "url": "/api/map/layer/street_furniture_bicycles/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/street_furniture_bicycles.json"
+        },
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "07-03-2021",
+          "source": "Mapillary",
+          "date": "01-06-2021"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "Lärmkarte - Bahn Nacht",
+        "url": "https://geoportal.freiburg.de/wms/gut_laerm/gut_laerm?",
+        "group": "environmentalQualityLayers",
+        "layers": "bahn_nacht",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2010"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "Lärmkarte - Bahn Tag",
+        "url": "https://geoportal.freiburg.de/wms/gut_laerm/gut_laerm?",
+        "group": "environmentalQualityLayers",
+        "layers": "bahn_tag",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2010"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "Lärmkarte - Straße Tag",
+        "url": "https://geoportal.freiburg.de/wms/gut_laerm/gut_laerm?",
+        "group": "environmentalQualityLayers",
+        "layers": "strasse_tag",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2015"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "Lärmkarte - Straße Nacht",
+        "url": "https://geoportal.freiburg.de/wms/gut_laerm/gut_laerm?",
+        "group": "environmentalQualityLayers",
+        "layers": "strasse_nacht",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2015"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "Landschaftsplan",
+        "url": "https://geoportal.freiburg.de/wms/stpla_landschaftsplan/stpla_landschaftsplan?",
+        "group": "environmentalQualityLayers",
+        "layers": "stpla_landschaftsplan",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "accidents_cyclists",
+        "url": "/api/map/layer/accidents_cyclists/{z}/{x}/{y}",
+        "group": "additionalDataLayers",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver",
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/accidents_cyclists.json"
+        },
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2016, 2017, 2018, 2019"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_bike_2018",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fahrrad_250_2018",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2018"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_bike_2017",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fahrrad_250_2017",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2017"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "accidents_pedestrians",
+        "url": "/api/map/layer/accidents_pedestrians/{z}/{x}/{y}",
+        "group": "additionalDataLayers",
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/accidents_pedestrians.json"
+        },
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2016, 2017, 2018, 2019"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_pedestrian_2018",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fussgaenger_250_2018",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2018"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_pedestrian_2017",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fussgaenger_250_2017",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2017"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "Winterdient",
+        "url": "https://geoportal.freiburg.de/wms/gut_winter/gut_winter?",
+        "group": "additionalDataLayers",
+        "layers": "gut_winter",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2013"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "Grundschulbezirke",
+        "url": "https://geoportal.freiburg.de/wms/abi_gsb/abi_gsb?",
+        "group": "additionalDataLayers",
+        "layers": "abi_gsb",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "FreiGIS",
+          "date": "2021"
+        }
+      },
+      {
+        "type": "VECTOR",
+        "name": "heatmap_luptai",
+        "url": "/api/map/heatmap",
+        "group": "accessbilityBasemaps",
+        "format": "GeoJSON",
+        "displayInLayerList": true,
+        "visible": false,
+        "requiresPois": true,
+        "zIndex": 1,
+        "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
+        "queryParams": [
+          "heatmap_type",
+          "scenario_id_input",
+          "modus_input",
+          "pois"
+        ],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/heatmap_luptai.json"
+        }
+      },
+      {
+        "type": "VECTOR",
+        "name": "heatmap_population",
+        "url": "/api/map/heatmap",
+        "group": "accessbilityBasemaps",
+        "format": "GeoJSON",
+        "displayInLayerList": true,
+        "visible": false,
+        "zIndex": 1,
+        "queryParams": ["heatmap_type", "scenario_id_input", "modus_input"],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/heatmap_population_api.json"
+        }
+      },
+      {
+        "type": "VECTOR",
+        "name": "heatmap_gravity",
+        "url": "/api/map/heatmap",
+        "group": "accessbilityBasemaps",
+        "format": "GeoJSON",
+        "displayInLayerList": true,
+        "visible": false,
+        "requiresPois": true,
+        "zIndex": 1,
+        "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
+        "queryParams": [
+          "heatmap_type",
+          "scenario_id_input",
+          "modus_input",
+          "pois"
+        ],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/heatmap_gravity.json"
+        }
+      },
+      {
+        "type": "VECTOR",
+        "name": "heatmap_connectivity",
+        "url": "/api/map/heatmap",
+        "group": "accessbilityBasemaps",
+        "format": "GeoJSON",
+        "displayInLayerList": true,
+        "visible": false,
+        "zIndex": 1,
+        "concurrentRequests": false,
+        "queryParams": ["heatmap_type", "scenario_id_input", "modus_input"],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/heatmap_connectivity.json"
+        }
+      },
+      {
+        "type": "OSM",
+        "name": "osmStandard",
+        "url": "http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "group": "backgroundLayers",
+        "maxZoom": 19,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
+      },
+      {
+        "type": "OSM",
+        "name": "osmLight",
+        "url": "http://{a-c}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "group": "backgroundLayers",
+        "maxZoom": 19,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
+      },
+      {
+        "type": "OSM",
+        "name": "osmDark",
+        "url": "http://{a-c}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+        "group": "backgroundLayers",
+        "maxZoom": 19,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors "
+      },
+      {
+        "type": "OSM",
+        "name": "openTopoMap",
+        "url": "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png",
+        "group": "backgroundLayers",
+        "maxZoom": 19,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true,
+        "attributions": "Mapdata: © <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors, Basemap Visualization: © <a href='https://opentopomap.org/'> OpenTopoMap </a>"
+      },
+      {
+        "type": "XYZ",
+        "name": "mapboxStreets",
+        "group": "backgroundLayers",
+        "url": "https://api.mapbox.com/styles/v1/mapbox/streets-v10/tiles/256/{z}/{x}/{y}",
+        "accessToken": "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
+        "maxZoom": 19,
+        "queryable": false,
+        "visible": true,
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.mapbox.com/map-feedback/'>Mapbox</a> © <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap contributors</a>"
+      },
+      {
+        "type": "XYZ",
+        "name": "publicTransport",
+        "group": "backgroundLayers",
+        "url": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
+        "maxZoom": 18,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true,
+        "attributions": "© <a href='https://www.memomaps.de/'>Memomaps</a>"
+      },
+      {
+        "type": "BING",
+        "name": "bingAerial",
+        "group": "backgroundLayers",
+        "accessToken": "Avv4X-3gpZJQ_Ln2eAilMZ8qNI4Y6UtspyNxgIzoCSZC26xi_aXb3AiaXnutPPjH",
+        "imagerySet": "Aerial",
+        "maxZoom": 19,
+        "queryable": false,
+        "visible": false,
+        "displayInLayerList": true,
+        "attributions": "© Microsoft Coorporation © Digital Globe ©CNES Distribution Airbus DS <a href='https://www.microsoft.com/en-us/maps/product'>Terms of use</a> "
+      }
+    ],
+    "osmMappingLayers": [
+      {
+        "type": "VECTOR",
+        "format": "GeoJSON",
+        "name": "mapping_pois_opening_hours",
+        "url": "/api/map/layer_read",
+        "group": "osmMappingLayers",
+        "queryParams": [
+          "table_name",
+          "amenities"
+        ],
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "requiresPois": true,
+        "displayInLayerList": false,
+        "displayInLegend": false,
+        "zIndex": 30,
+        "style": {
+          "format": "custom-logic"
+        },
+        "otherProps": {
+          "icon": "fas fa-clock",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:opening_hours"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "osm-mapping-ways-speed",
+        "url": "/api/map/layer/mapping_ways_speed/{z}/{x}/{y}",
+        "group": "osmMappingLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "zIndex": 31,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/mapping_ways.json"
+        },
+        "otherProps": {
+          "icon": "fas fa-tachometer-alt",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Speed_limits"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "osm-mapping-parking-lane",
+        "url": "/api/map/layer/mapping_parking_lane/{z}/{x}/{y}",
+        "group": "osmMappingLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "zIndex": 31,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/mapping_ways.json"
+        },
+        "otherProps": {
+          "icon": "fas fa-car",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:parking:lane"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "osm-mapping-cycleways-width",
+        "url": "/api/map/layer/mapping_cycleways_width/{z}/{x}/{y}",
+        "group": "osmMappingLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "zIndex": 31,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/mapping_ways.json"
+        },
+        "otherProps": {
+          "icon": "fas fa-biking",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:width"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "osm-mapping-cycleways-segregated",
+        "url": "/api/map/layer/mapping_cycleways_segregated/{z}/{x}/{y}",
+        "group": "osmMappingLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "zIndex": 31,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/mapping_ways.json"
+        },
+        "otherProps": {
+          "icon": "fas fa-walking",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:segregated"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "osm-mapping-ways-surface",
+        "url": "/api/map/layer/mapping_ways_surface/{z}/{x}/{y}",
+        "group": "osmMappingLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "zIndex": 32,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/mapping_ways.json"
+        },
+        "otherProps": {
+          "icon": "fas fa-road",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:surface"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "osm-mapping-buildings-type",
+        "url": "/api/map/layer/mapping_buildings_type/{z}/{x}/{y}",
+        "group": "osmMappingLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "displayInLayerList": false,
+        "zIndex": 33,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/mapping_buildings.json"
+        },
+        "otherProps": {
+          "icon": "fas fa-building",
+          "stepsOrdersKeys": [
+            "clickFeatureInMap",
+            "clickEditWithOsm",
+            "fillInOSMiD"
+          ],
+          "wikiUrl": "https://wiki.openstreetmap.org/wiki/Key:building"
+        }
+      }
+    ],
+    "otherAttributeLayers": [
+      {
+        "name": "Zensus",
+        "attributes": {
+          "source": "Statistische Ämter des Bundes und der Länder",
+          "date": "2011"
+        }
+      },
+      {
+        "name": "Bikesharing",
+        "attributes": {
+          "source": "nextbike GmbH",
+          "date": "14.07.2021"
+        }
+      },
+      {
+        "name": "Lastenräder",
+        "attributes": {
+          "source": "LastenVelo Freiburg e.V.",
+          "date": "16.03.2021"
+        }
+      },
+      {
+        "name": "Normalized Difference Vegetation Index (Sentinel 2)",
+        "attributes": {
+          "source": "Sentinel-Hub",
+          "date": "09-2020"
+        }
+      }
+    ],
+    "controls": [
+      {
+        "name": "home",
+        "options": {
+          "zoomOnStart": true
+        }
+      },
+      {
+        "name": "legend"
+      }
+    ],
+    "modules": {
+      "measuretool": {
+        "strokeColor": "#ffcc33",
+        "fillColor": "rgba(255, 204, 51, 0.2)",
+        "sketchStrokeColor": "rgba(0, 0, 0, 0.5)",
+        "sketchFillColor": "rgba(255, 255, 255, 0.2)",
+        "sketchVertexStrokeColor": "rgba(0, 0, 0, 0.7)",
+        "sketchVertexFillColor": "rgba(255, 255, 255, 0.2)"
+      }
+    }
+  },
+  "componentData": {
+    "pois": {
+      "allPois": [
+        {
+          "name": "Education",
+          "categoryValue": "education",
+          "id": 1,
+          "children": [
+            {
+              "name": "Nursery",
+              "value": "nursery",
+              "icon": "nursery",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Kindergarten",
+              "value": "kindergarten",
+              "icon": "kindergarten",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Grundschule",
+              "value": "grundschule",
+              "icon": "grundschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Hauptschule",
+              "value": "hauptschule",
+              "icon": "hauptschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Realschule",
+              "value": "realschule",
+              "icon": "realschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Werkrealschule",
+              "value": "werkrealschule",
+              "icon": "werkrealschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Gymnasium",
+              "value": "gymnasium",
+              "icon": "gymnasium",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Library",
+              "value": "library",
+              "icon": "library",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "Food and Drink",
+          "categoryValue": "foodAndDrink",
+          "children": [
+            {
+              "name": "Bar",
+              "value": "bar",
+              "icon": "bar",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Biergarten",
+              "value": "biergarten",
+              "icon": "biergarten",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Café",
+              "value": "cafe",
+              "icon": "cafe",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Pub",
+              "value": "pub",
+              "icon": "pub",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Fast food",
+              "value": "fast_food",
+              "icon": "fast_food",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Ice cream",
+              "value": "ice_cream",
+              "icon": "ice_cream",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Restaurant",
+              "value": "restaurant",
+              "icon": "restaurant",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Night-Club",
+              "value": "nightclub",
+              "icon": "nightclub",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "Transport",
+          "categoryValue": "transport",
+          "locked": false,
+          "children": [
+            {
+              "name": "Bicycle rental",
+              "value": "bicycle_rental",
+              "icon": "bicycle_rental",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Cargo bike",
+              "value": "cargo_bike",
+              "icon": "cargo_bike",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Car sharing",
+              "value": "car_sharing",
+              "icon": "car_sharing",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging station",
+              "value": "charging_station",
+              "icon": "charging_station",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Bus",
+              "value": "bus_stop",
+              "icon": "bus_stop",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Tram Stop",
+              "value": "tram_stop",
+              "icon": "tram_stop",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "U-Bahn station",
+              "value": "subway_entrance",
+              "icon": "subway_entrance",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Rail Station",
+              "value": "rail_station",
+              "icon": "rail_station",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Taxi",
+              "value": "taxi",
+              "icon": "taxi",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "Services",
+          "categoryValue": "services",
+          "children": [
+            {
+              "name": "Hairdresser",
+              "value": "hairdresser",
+              "icon": "hairdresser",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "ATM",
+              "value": "atm",
+              "icon": "atm",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Bank",
+              "value": "bank",
+              "icon": "bank",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Dentist",
+              "value": "dentist",
+              "icon": "dentist",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Doctor",
+              "value": "doctors",
+              "icon": "doctors",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Pharmacy",
+              "value": "pharmacy",
+              "icon": "pharmacy",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Post box",
+              "value": "post_box",
+              "icon": "post_box",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Fuel",
+              "value": "fuel",
+              "icon": "fuel",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Recycling",
+              "value": "recycling",
+              "icon": "recycling",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            }
+          ]
+        },
+        {
+          "name": "Shop",
+          "categoryValue": "shop",
+          "children": [
+            {
+              "name": "Bakery",
+              "value": "bakery",
+              "icon": "bakery",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Butcher",
+              "value": "butcher",
+              "icon": "butcher",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Clothing store",
+              "value": "clothes",
+              "icon": "clothes",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Convenience store",
+              "value": "convenience",
+              "icon": "convenience",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Greengrocer",
+              "value": "greengrocer",
+              "icon": "greengrocer",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Kiosk",
+              "value": "kiosk",
+              "icon": "kiosk",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Mall",
+              "value": "mall",
+              "icon": "mall",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Shoes",
+              "value": "shoes",
+              "icon": "shoes",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Supermarket",
+              "value": "supermarket",
+              "icon": "supermarket",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Discount Supermarket",
+              "value": "discount_supermarket",
+              "icon": "discount_supermarket",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "International Supermarket",
+              "value": "international_supermarket",
+              "icon": "international_supermarket",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Hypermarket",
+              "value": "hypermarket",
+              "icon": "hypermarket",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Chemist",
+              "value": "chemist",
+              "icon": "chemist",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Organic Food",
+              "value": "organic",
+              "icon": "organic",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Marketplace",
+              "value": "marketplace",
+              "icon": "marketplace",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "Tourism & Leisure",
+          "categoryValue": "tourismAndLeisure",
+          "children": [
+            {
+              "name": "Cinema",
+              "value": "cinema",
+              "icon": "cinema",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Theatre",
+              "value": "theatre",
+              "icon": "theatre",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Museum",
+              "value": "museum",
+              "icon": "museum",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Hotel",
+              "value": "hotel",
+              "icon": "hotel",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Hostel",
+              "value": "hostel",
+              "icon": "hostel",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Guest house",
+              "value": "guest_house",
+              "icon": "guest_house",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Gallery",
+              "value": "gallery",
+              "icon": "gallery",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Playground",
+              "value": "playground",
+              "icon": "playground",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "Sports",
+          "categoryValue": "sports",
+          "children": [
+            {
+              "name": "Community Sport Center",
+              "value": "community_sports_center",
+              "icon": "community_sports_center",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Waterpark",
+              "value": "waterpark",
+              "icon": "waterpark",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Discount Gym",
+              "value": "discount_gym",
+              "icon": "discount_gym",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "gym",
+              "value": "gym",
+              "icon": "gym",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Yoga",
+              "value": "yoga",
+              "icon": "yoga",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "Recreation Areas",
+          "categoryValue": "recreationAreas",
+          "children": [
+            {
+              "name": "Park",
+              "value": "park",
+              "icon": "park",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Forest",
+              "value": "forest",
+              "icon": "forest",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Heath and Scrub",
+              "value": "heath_scrub",
+              "icon": "heath_scrub",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Lake",
+              "value": "lake",
+              "icon": "lake",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "River",
+              "value": "river",
+              "icon": "river",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        }
+      ],
+      "filters": {
+        "disabledPoisOnTimeFilter": [
+          {
+            "categoryValue": "transport",
+            "poisFiltered": ["*"]
+          },
+          {
+            "categoryValue": "education",
+            "poisFiltered": [
+              "nursery",
+              "kindergarten",
+              "primary_school",
+              "secondary_school"
+            ]
+          }
+        ],
+        "disabledPoisOnRoutingProfile": {
+          "walking_wheelchair": [
+            {
+              "categoryValue": "services",
+              "poisFiltered": ["recycling", "atm"]
+            },
+            {
+              "categoryValue": "transport",
+              "poisFiltered": ["charging_station"]
+            }
+          ]
+        },
+        "disabledPoisOnMappingMode": [
+          {
+            "categoryValue": "transport",
+            "poisFiltered": ["*"]
+          },
+          {
+            "categoryValue": "mobilitystations",
+            "poisFiltered": ["*"]
+          },
+          {
+            "categoryValue": "tourismAndLeisure",
+            "poisFiltered": ["hotel", "hostel", "guest_house", "playground"]
+          },
+          {
+            "categoryValue": "services",
+            "poisFiltered": ["recycling", "post_box"]
+          },
+          {
+            "categoryValue": "education",
+            "poisFiltered": ["primary_school", "secondary_school","gymnasium","realschule","hauptschule","werkrealschule"]
+          }
+        ]
+      }
+    },
+    "isochrones": {
+      "options": {
+        "calculationType": "single",
+        "minutes": "10",
+        "speed": "5",
+        "steps": "2",
+        "concavityIsochrones": {
+          "name": "concavity",
+          "values": [
+            {
+              "display": "Standard",
+              "value": "0.00003"
+            },
+            {
+              "display": "1",
+              "value": "0.000003"
+            },
+            {
+              "display": "2",
+              "value": "0.0000025"
+            },
+            {
+              "display": "3",
+              "value": "0.000002"
+            },
+            {
+              "display": "4",
+              "value": "0.0000017"
+            },
+            {
+              "display": "5",
+              "value": "0.0000015"
+            }
+          ],
+          "active": "0.00003"
+        },
+        "calculationModes": {
+          "name": "modus",
+          "values": [
+            {
+              "display": "Default Network",
+              "name": "defaultNetwork",
+              "value": "default"
+            },
+            {
+              "display": "Modified Network",
+              "name": "modifiedNetwork",
+              "value": "scenario"
+            },
+            {
+              "display": "Modified Network (Double Calculation)",
+              "name": "modifiedNetworkDoubleCalc",
+              "value": "comparison"
+            }
+          ],
+          "active": "default"
+        },
+        "alphaShapeParameter": {
+          "name": "alphashape",
+          "values": [
+            {
+              "display": "0.00003",
+              "value": "0.00003"
+            }
+          ],
+          "active": "0.00003"
+        }
+      },
+      "styleData": {
+        "styleCache": {
+          "default": {},
+          "input": {}
+        }
+      },
+      "defaultIsochroneColor": "b",
+      "scenarioIsochroneColor": "f",
+      "colors": {
+        "a": {
+          "1": "rgb(254, 202, 232)",
+          "2": "rgb(254, 144, 207)",
+          "3": "rgb(239, 002, 140)",
+          "4": "rgb(179, 001, 103)",
+          "5": "rgb(125, 001, 072)"
+        },
+        "b": {
+          "1": "rgb(251, 188, 175)",
+          "2": "rgb(247, 122, 099)",
+          "3": "rgb(234, 049, 012)",
+          "4": "rgb(186, 039, 010)",
+          "5": "rgb(116, 024, 006)"
+        },
+        "c": {
+          "1": "rgb(255, 200, 142)",
+          "2": "rgb(255, 171, 079)",
+          "3": "rgb(238, 125, 000)",
+          "4": "rgb(192, 101, 000)",
+          "5": "rgb(126, 066, 000)"
+        },
+        "d": {
+          "1": "rgb(254, 229, 168)",
+          "2": "rgb(253, 216, 123)",
+          "3": "rgb(252, 193, 044)",
+          "4": "rgb(231, 166, 003)",
+          "5": "rgb(193, 139, 003)"
+        },
+        "e": {
+          "1": "rgb(232, 240, 182)",
+          "2": "rgb(202, 220, 094)",
+          "3": "rgb(182, 206, 044)",
+          "4": "rgb(143, 161, 035)",
+          "5": "rgb(104, 117, 025)"
+        },
+        "f": {
+          "1": "rgb(220, 241, 211)",
+          "2": "rgb(173, 223, 153)",
+          "3": "rgb(097, 190, 060)",
+          "4": "rgb(071, 140, 044)",
+          "5": "rgb(054, 105, 033)"
+        },
+        "g": {
+          "1": "rgb(201, 237, 236)",
+          "2": "rgb(144, 216, 214)",
+          "3": "rgb(066, 190, 187)",
+          "4": "rgb(052, 152, 150)",
+          "5": "rgb(039, 111, 109)"
+        },
+        "h": {
+          "1": "rgb(197, 218, 237)",
+          "2": "rgb(126, 172, 214)",
+          "3": "rgb(066, 133, 194)",
+          "4": "rgb(042, 105, 162)",
+          "5": "rgb(032, 081, 126)"
+        },
+        "i": {
+          "1": "rgb(255, 255, 255)",
+          "2": "rgb(207, 207, 207)",
+          "3": "rgb(159, 159, 159)",
+          "4": "rgb(090, 090, 090)",
+          "5": "rgb(000, 000, 000)"
+        }
+      }
+    },
+    "routing": {
+      "default": "walking",
+      "options": {
+        "walking": {
+          "default": "standard",
+          "options": [
+            {
+              "value": "standard",
+              "speed": 5
+            },
+            {
+              "value": "elderly",
+              "speed": 3
+            }
+          ]
+        },
+        "cycling": {
+          "default": "standard",
+          "options": [
+            {
+              "value": "standard",
+              "speed": 15
+            },
+            {
+              "value": "pedelec",
+              "speed": 23
+            }
+          ]
+        },
+        "walking_wheelchair": {
+          "default": "standard",
+          "options": [
+            {
+              "value": "standard",
+              "speed": 3
+            },
+            {
+              "value": "electric",
+              "speed": 6
+            }
+          ]
+        }
+      }
+    },
+    "osmMapMode": {
+      "tasks": ["missingHours"]
+    }
+  },
+  "componentConf": {
+    "pois": {
+      "filters": {
+        "timeBasedCalculations": "no"
+      }
+    },
+    "edit": {}
+  },
+  "layerConf": {
+    "ways": {
+      "listValues": {
+        "way_type": {
+          "values": ["bridge", "road"]
+        },
+        "surface": {
+          "values": [
+            "asphalt",
+            "cobblestone",
+            "fine_gravel",
+            "gravel",
+            "grass",
+            "unpaved"
+          ]
+        },
+        "wheelchair": {
+          "values": ["yes", "no"]
+        }
+      },
+      "enableFileUpload": false,
+      "hiddenProps": [
+        "userid",
+        "gid",
+        "original_id",
+        "status",
+        "street_category",
+        "scenario_id",
+        "foot",
+        "bicycle",
+        "lit",
+        "edit_type"
+      ]
+    },
+    "pois": {
+      "listValues": {
+        "amenity": {
+          "values": "*"
+        }
+      },
+      "enableFileUpload": false,
+      "hiddenProps": [
+        "userid",
+        "scenario_id",
+        "gid",
+        "original_id",
+        "status",
+        "wheelchair",
+        "status",
+        "amenity_icon",
+        "opening_hours",
+        "scenario_id"
+      ]
+    },
+    "buildings": {
+      "listValues": {
+        "building": {
+          "values": ["residential", "commercial", "public"]
+        }
+      },
+      "enableFileUpload": true,
+      "hiddenProps": [
+        "gid",
+        "userid",
+        "gid",
+        "original_id",
+        "status",
+        "gross_floor_area",
+        "scenario_id"
+      ]
+    }
+  }
+}

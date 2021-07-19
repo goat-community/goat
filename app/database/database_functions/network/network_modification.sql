@@ -132,16 +132,16 @@ BEGIN
 	DROP TABLE IF EXISTS perpendicular_split_lines;
 	CREATE TEMP TABLE perpendicular_split_lines AS 
 	SELECT p.geom AS geom 
-	FROM intersection_existing_network i, split_drawn_features s, LATERAL (SELECT create_perpendicular_line(s.geom, i.geom, 0.0000001) geom) p 
-	WHERE ST_Intersects(ST_Buffer(i.geom,0.0000001), s.geom)
+	FROM intersection_existing_network i, split_drawn_features s, LATERAL (SELECT create_intersection_line(i.geom, 0.000001) geom) p 
+	WHERE ST_Intersects(ST_Buffer(i.geom,0.000001), s.geom)
 	UNION ALL 
-	SELECT create_perpendicular_line(x.geom, x.closest_point, 0.0000001) AS geom  
+	SELECT create_intersection_line(x.closest_point, 0.000001)
 	FROM start_end_bridges s 
 	CROSS JOIN LATERAL 
 	(
 		SELECT ST_CLOSESTPOINT(w.geom,s.geom) AS closest_point, w.geom
 		FROM split_drawn_features w
-		WHERE ST_Intersects(St_buffer(s.geom,0.0000001), w.geom)
+		WHERE ST_Intersects(St_buffer(s.geom,0.000001), w.geom)
 		AND (w.way_type IS NULL OR w.way_type <> 'bridge')
 		ORDER BY ST_CLOSESTPOINT(geom,s.geom) <-> s.geom
 	  	LIMIT 1
@@ -190,7 +190,7 @@ BEGIN
 	/*Perpendicular lines are generated for each intersection point*/
 	DROP TABLE IF EXISTS perpendicular_split_lines;
 	CREATE TEMP TABLE perpendicular_split_lines AS 
-	SELECT create_perpendicular_line(w.geom, i.geom, 0.0000001) AS geom 
+	SELECT create_intersection_line(i.geom, 0.0000001) AS geom 
 	FROM intersection_existing_network i, ways_userinput w
 	WHERE ST_Intersects(ST_Buffer(i.geom,0.0000001), w.geom)
 	AND w.scenario_id IS NULL
@@ -381,3 +381,4 @@ BEGIN
 	WHERE scenario_id = scenario_id_input;
 END
 $function$
+;

@@ -10,6 +10,7 @@ branches:
     - muenchen
     - freising
     - test_travis
+    - hackathon
 
 before_install:
   - chmod ugo+x ./app/scripts/build-condition.sh

@@ -1,0 +1,136 @@
+Category;Criteria;attribute;string_condition;min_value;max_value;value;weight
+Sidewalk quality;Sidewalk availability;sidewalk;yes;;;100;0.07
+Sidewalk quality;Sidewalk availability;sidewalk;no;;;0;0.07
+Sidewalk quality;Sidewalk width ;width;;3;;100;0.07
+Sidewalk quality;Sidewalk width ;width;;3;1.50;50;0.07
+Sidewalk quality;Sidewalk width ;width;;1.50;;20;0.07
+Sidewalk quality;Sidewalk width ;width;;1.50;;20;0.07
+Sidewalk quality;Sidewalk width;width;;1.50;;20;0.07
+Sidewalk quality;Sidewalk width;width;;1.50;;20;0.07
+Sidewalk quality;Sidewalk width;width;;1.50;;20;0.07
+Sidewalk quality;Pavement quality;smoothness;excellent;;;100;0.035
+Sidewalk quality;Pavement quality;smoothness;very_good;;;100;0.035
+Sidewalk quality;Pavement quality;smoothness;good;;;90;0.035
+Sidewalk quality;Pavement quality;smoothness;intermediate;;;50;0.035
+Sidewalk quality;Pavement quality;smoothness;bad;;;20;0.035
+Sidewalk quality;Pavement quality;smoothness;very_bad;;;10;0.035
+Sidewalk quality;Pavement quality;smoothness;horrible;;;10;0.035
+Sidewalk quality;Pavement quality;smoothness;very_horrible;;;10;0.035
+Sidewalk quality;Pavement quality;smoothness;impassable ;;;0;0.035
+Sidewalk quality;Pavement quality;surface;paved;;;100;0.035
+Sidewalk quality;Pavement quality;surface;asphalt;;;100;0.035
+Sidewalk quality;Pavement quality;surface;concrete;;;100;0.035
+Sidewalk quality;Pavement quality;surface;concrete:lanes;;;100;0.035
+Sidewalk quality;Pavement quality;surface;paving_stones;;;100;0.035
+Sidewalk quality;Pavement quality;surface;cobblestone:flattened;;;100;0.035
+Sidewalk quality;Pavement quality;surface;stone;;;80;0.035
+Sidewalk quality;Pavement quality;surface;sandstone;;;80;0.035
+Sidewalk quality;Pavement quality;surface;sett;;;80;0.035
+Sidewalk quality;Pavement quality;surface;metal;;;80;0.035
+Sidewalk quality;Pavement quality;surface;unhewn_cobblestone;;;80;0.035
+Sidewalk quality;Pavement quality;surface;cobblestone;;;80;0.035
+Sidewalk quality;Pavement quality;surface;unpaved;;;50;0.035
+Sidewalk quality;Pavement quality;surface;compacted;;;50;0.035
+Sidewalk quality;Pavement quality;surface;fine_gravel;;;30;0.035
+Sidewalk quality;Pavement quality;surface;metal_grid;;;30;0.035
+Sidewalk quality;Pavement quality;surface;gravel;;;30;0.035
+Sidewalk quality;Pavement quality;surface;pebblestone;;;30;0.035
+Sidewalk quality;Pavement quality;surface;rock;;;30;0.035
+Sidewalk quality;Pavement quality;surface;wood;;;30;0.035
+Sidewalk quality;Pavement quality;surface;ground;;;30;0.035
+Sidewalk quality;Pavement quality;surface;dirt;;;30;0.035
+Sidewalk quality;Pavement quality;surface;earth;;;30;0.035
+Sidewalk quality;Pavement quality;surface;grass;;;20;0.035
+Sidewalk quality;Pavement quality;surface;grass_paver;;;20;0.035
+Sidewalk quality;Pavement quality;surface;mud;;;20;0.035
+Sidewalk quality;Pavement quality;surface;sand;;;20;0.035
+Sidewalk quality;Pavement quality;surface;no_data;;;50;0.035
+Sidewalk quality;Slope;incline_percent;;;1;100;0.035
+Sidewalk quality;Slope;incline_percent;;1;2;90;0.035
+Sidewalk quality;Slope;incline_percent;;2;3;80;0.035
+Sidewalk quality;Slope;incline_percent;;3;4;70;0.035
+Sidewalk quality;Slope;incline_percent;;4;5;60;0.035
+Sidewalk quality;Slope;incline_percent;;5;6;50;0.035
+Sidewalk quality;Slope;incline_percent;;6;7;40;0.035
+Sidewalk quality;Slope;incline_percent;;7;8;30;0.035
+Sidewalk quality;Slope;incline_percent;;8;9;10;0.035
+Sidewalk quality;Slope;incline_percent;;9;;0;0.035
+Sidewalk quality;Category;highway;steps;;;0;0.035
+Sidewalk quality;Category;highway;construction;;;0;0.035
+Sidewalk quality;Category;highway;track;;;20;0.035
+Sidewalk quality;Category;highway;service;;;30;0.035
+Sidewalk quality;Freedom from barriers;wheelchair;yes;;;100;0.07
+Sidewalk quality;Freedom from barriers;wheelchair;limited;;;50;0.07
+Sidewalk quality;Freedom from barriers;wheelchair;no;;;0;0.07
+Sidewalk quality;Freedom from barriers;wheelchair;unclassified;;;50;0.07
+Impacts from Road Traffic;Number of lanes;lanes;;;1;100;0.03
+Impacts from Road Traffic;Number of lanes;lanes;;1;2;70;0.03
+Impacts from Road Traffic;Number of lanes;lanes;;2;4;30;0.03
+Impacts from Road Traffic;Number of lanes;lanes;;4;;0;0.03
+Impacts from Road Traffic;Number of crossings;crossings;;;-1;100;0.03 
+Impacts from Road Traffic;Number of crossings;crossings;;2;;100;0.03  
+Impacts from Road Traffic;Number of crossings;crossings;;1;2;90;0.03  
+Impacts from Road Traffic;Number of crossings;crossings;;0;1;50;0.03 
+Impacts from Road Traffic;Number of crossings;crossings;;0;0;0;0.03
+Impacts from Road Traffic;Speed limits;maxspeed;;;15;100;0.06
+Impacts from Road Traffic;Speed limits;maxspeed;;15;30;80;0.06
+Impacts from Road Traffic;Speed limits;maxspeed;;30;50;65;0.06
+Impacts from Road Traffic;Speed limits;maxspeed;;50;70;50;0.06
+Impacts from Road Traffic;Speed limits;maxspeed;;70;90;20;0.06
+Impacts from Road Traffic;Speed limits;maxspeed;;90;;0;0.06
+Impacts from Road Traffic;Parking vehicles on the road or on the sidewalk;parking;off_street;;;0;0.07
+Impacts from Road Traffic;Parking vehicles on the road or on the sidewalk;parking;no;;;100;0.07
+Impacts from Road Traffic;Accidents;accidents;;0;0.9;100;0.03
+Impacts from Road Traffic;Accidents;accidents;;1;1.9;80;0.03
+Impacts from Road Traffic;Accidents;accidents;;2;3;60;0.03
+Impacts from Road Traffic;Accidents;accidents;;3;4;40;0.03
+Impacts from Road Traffic;Accidents;accidents;;4;5;20;0.03
+Impacts from Road Traffic;Accidents;accidents;;5;;0;0.03
+Impacts from Road Traffic;Noise;noise;;;30;100;0.08 
+Impacts from Road Traffic;Noise;noise;;30;50;90;0.08
+Impacts from Road Traffic;Noise;noise;;50;60;80;0.08
+Impacts from Road Traffic;Noise;noise;;60;65;70;0.08
+Impacts from Road Traffic;Noise;noise;;65;68;60;0.08
+Impacts from Road Traffic;Noise;noise;;68;71;50;0.08
+Impacts from Road Traffic;Noise;noise;;71;74;40;0.08
+Impacts from Road Traffic;Noise;noise;;74;77;30;0.08
+Impacts from Road Traffic;Noise;noise;;77;80;20;0.08
+Impacts from Road Traffic;Noise;noise;;80;83;10;0.08
+Impacts from Road Traffic;Noise;noise;;83;;0;0.08
+Security;Illumination;lit_classified;yes;;;100;0.10
+Security;Illumination;lit_classified;no;;;0;0.10
+Security;Illumination;covered;yes;;;0;0.04
+Security;Illumination;covered;no;;;100;0.04
+Security;Illumination;covered;colonnade;;;100;0.04
+Security;Illumination;covered;building_passage;;;100;0.04
+Security;Illumination;covered;arcade;;;100;0.04
+Green and Blue index;Vegetation ;vegetation;yes;;;100;0.07
+Green and Blue index;Vegetation ;vegetation;no;;;0;0.07
+Green and Blue index;Vegetation ;water;large;;;100;0.07
+Green and Blue index;Vegetation ;water;small;;;50;0.07
+Liveliness;Land-use;landuse;industrial;;;0;0.05
+Liveliness;Land-use;landuse;military;;;0;0.05
+Liveliness;Land-use;landuse;Airports;;;0;0.05
+Liveliness;Land-use;landuse;Railways and associated land;;;20;0.05
+Liveliness;Land-use;landuse;commercial;;;20;0.05
+Liveliness;Population density;population;high;;;100;0.05
+Liveliness;Population density;population;medium;;;70;0.05
+Liveliness;Population density;population;low;;;30;0.05
+Liveliness;Population density;population;no;;;0;0.05
+Liveliness;POIs;pois;no;0;1;0;0.05
+Liveliness;POIs;pois;very_low;1;2;25;0.05
+Liveliness;POIs;pois;low;2;5;50;0.05
+Liveliness;POIs;pois;medium;6;8;75;0.05
+Liveliness;POIs;pois;high;9;;100;0.05
+Comfort;Bench;bench;;;0;0;0.01
+Comfort;Bench;bench;;0;1;50;0.01
+Comfort;Bench;bench;;1;2;75;0.01
+Comfort;Bench;bench;;2;;100;0.01
+Comfort;Waste Basket;waste_basket;;;0;0;0.01
+Comfort;Waste Basket;waste_basket;;0;1;50;0.01
+Comfort;Waste Basket;waste_basket;;1;2;75;0.01
+Comfort;Waste Basket;waste_basket;;2;;100;0.01
+Comfort;Public toilets;toilets;;;0;0;0.01
+Comfort;Public toilets;toilets;;0.9;;100;0.01
+Comfort;Drinking fountains;drinking_fountain;;;0;0;0.01
+Comfort;Drinking fountains;drinking_fountain;;0.9;;100;0.01

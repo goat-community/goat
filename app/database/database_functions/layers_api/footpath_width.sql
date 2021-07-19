@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION footpath_width()
 RETURNS TABLE (sidewalk text, width numeric, highway text, geom geometry) AS
 $$
-	SELECT f.sidewalk, f.width, f.highway, f.geom FROM footpaths_union f, study_area s
+	SELECT f.sidewalk, f.width, f.highway, f.geom FROM footpath_visualization f, study_area s
     WHERE ST_Intersects(s.geom,f.geom);
 $$
 LANGUAGE sql;

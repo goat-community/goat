@@ -1,0 +1,255 @@
+{
+  "name": "equipment",
+  "rules": [
+    {
+      "name": "0_to_10",
+      "filter": [
+        "&&",
+        [
+          ">=",
+          "comfort",
+          "0"
+        ],
+        [
+          "<=",
+          "comfort",
+          "10"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#fcfbfd",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "10_to_20",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "comfort",
+          "10"
+        ],
+        [
+          "<=",
+          "comfort",
+          "20"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#f1eff7",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "20_to_30",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "comfort",
+          "20"
+        ],
+        [
+          "<=",
+          "comfort",
+          "30"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#e0e0ee",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "30_to_40",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "comfort",
+          "30"
+        ],
+        [
+          "<=",
+          "comfort",
+          "40"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#c9cae3",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "40_to_50",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "comfort",
+          "40"
+        ],
+        [
+          "<=",
+          "comfort",
+          "50"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#b0afd4",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "50_to_60",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "comfort",
+          "50"
+        ],
+        [
+          "<=",
+          "comfort",
+          "60"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#9692c4",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "60_to_70",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "comfort",
+          "60"
+        ],
+        [
+          "<=",
+          "comfort",
+          "70"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#7c76b6",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "70_to_80",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "comfort",
+          "70"
+        ],
+        [
+          "<=",
+          "comfort",
+          "80"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#66499f",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "80_to_90",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "comfort",
+          "80"
+        ],
+        [
+          "<=",
+          "comfort",
+          "90"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#552a91",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    },
+    {
+      "name": "90_to_100",
+      "filter": [
+        "&&",
+        [
+          ">",
+          "comfort",
+          "90"
+        ],
+        [
+          "<=",
+          "comfort",
+          "100"
+        ]
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#3f007d",
+          "width": 2,
+          "join": "bevel",
+          "cap": "square"
+        }
+      ]
+    }
+  ]
+}

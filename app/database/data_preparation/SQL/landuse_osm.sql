@@ -30,7 +30,7 @@ WHERE (amenity = 'hospital' OR amenity = 'school')
 AND ST_Intersects(s.geom,p.way);
 
 INSERT INTO landuse_osm 
-SELECT 'waters' AS landuse_simplified, p.leisure AS landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) AS geom 
+SELECT 'water' AS landuse_simplified, p.leisure AS landuse, p.amenity, p.leisure, p.name, ST_Intersection(p.way,s.geom) AS geom 
 FROM planet_osm_polygon p , study_area s
 WHERE leisure = 'swimming_pool' AND ST_Intersects(s.geom,p.way);
 
@@ -60,7 +60,7 @@ DROP TABLE IF EXISTS buildings_osm;
 CREATE TABLE buildings_osm as 
 SELECT ROW_NUMBER() OVER() AS gid, p.osm_id,p.building, p.amenity,
 CASE 
-WHEN p.building = 'yes' AND amenity IS NULL THEN 'potential_residents' 
+WHEN p.building = 'yes' AND amenity IS NULL AND leisure IS NULL THEN 'potential_residents' 
 WHEN p.building IN (SELECT UNNEST(select_from_variable_container('building_types_residential'))) THEN 'with_residents'
 ELSE 'no_residents' END AS residential_status,
 tags -> 'addr:street' AS street, "addr:housenumber" AS housenumber,

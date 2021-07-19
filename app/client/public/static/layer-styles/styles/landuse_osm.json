@@ -176,6 +176,22 @@
           "outlineWidth": 1
         }
       ]
+    },
+    {
+      "name": "construction",
+      "filter": [
+        "==",
+        "landuse_simplified",
+        "construction"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#818281",
+          "outlineColor": "#232323",
+          "outlineWidth": 1
+        }
+      ]
     }
   ]
 }

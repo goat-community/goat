@@ -347,7 +347,7 @@
       "bingAerial": "Bing Aerial"
     },
     "tooltips": {
-      "clickForCalculation": "Cliquez sur la carte pour calculer",
+      "clickForIsochroneCalculation": "Cliquez sur la carte pour calculer",
       "clickToSelectStudyArea": "Cliquez pour sélectionner la zone d'étude",
       "maxCircleRadius": "Le rayon maximum du cercle est de 1000 m",
       "clickToStartMeasure": "Cliquez pour commencer à mesurer",

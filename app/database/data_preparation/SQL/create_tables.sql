@@ -101,7 +101,7 @@ ALTER TABLE addresses_residential add primary key (gid);
 CREATE INDEX index_addresses_residential ON addresses_residential USING GIST (geom);
 
 CREATE TABLE study_area_union as
-SELECT ST_Collect(ST_MakePolygon(geom)) As geom
+SELECT 1 AS gid, ST_Collect(ST_MakePolygon(geom)) As geom
 FROM 
 (
    SELECT ST_ExteriorRing((ST_Dump(st_union(geom))).geom) As geom
@@ -109,7 +109,7 @@ FROM
 ) s;
 
 CREATE TABLE study_area_crop AS 
-SELECT ST_DIFFERENCE(ST_SETSRID(st_makeenvelope(-180, 85, 180, -85), 4326), geom) AS geom
+SELECT 1 AS gid, ST_DIFFERENCE(ST_SETSRID(st_makeenvelope(-180, 85, 180, -85), 4326), geom) AS geom
 FROM study_area_union; 
 
 -- Table: public.ways_modified
@@ -186,6 +186,22 @@ CREATE TABLE population_modified
 
 CREATE INDEX ON population_modified USING GIST(geom);
 
+
+CREATE TABLE edges_potential_flows
+(
+	edge integer,
+	COST float,
+	start_cost float,
+	end_cost float,
+	SOURCE integer, 
+	target integer, 
+	geom geometry, 
+	objectid integer,
+	id serial
+);
+
+CREATE INDEX ON edges_potential_flows USING GIST(geom);
+ALTER TABLE edges_potential_flows ADD PRIMARY KEY(id);
 CREATE TABLE area_isochrones_scenario
 (
 	gid serial,

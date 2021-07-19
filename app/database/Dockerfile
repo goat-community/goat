@@ -1,9 +1,10 @@
-FROM goatcommunity/database:12-3.1-2.6.11-custom-2.3.14
+FROM goatcommunity/database:test-release
 
 ENV APP_PATH /opt
 WORKDIR ${APP_PATH}
 
 COPY ./database $APP_PATH
+COPY ./api/src/db $APP_PATH/scripts/db
 
 RUN mkdir -p ${APP_PATH}/config
 COPY ./config $APP_PATH/config

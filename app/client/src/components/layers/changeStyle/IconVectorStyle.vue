@@ -36,6 +36,7 @@
           append-outer-icon
           outlined
           tile
+          v-model="localIcon"
           label="Local Upload"
           @change="localUpload($event)"
           style="width:300px;margin-left:50px;"
@@ -55,6 +56,14 @@
         </span>
       </v-tab-item>
     </v-tabs-items>
+    <v-btn
+      color="warning"
+      dark
+      @click="resetStyle"
+      style="width:100%;background-color: #2bb381 !important;"
+    >
+      Reset Style
+    </v-btn>
   </vue-scroll>
 </template>
 
@@ -70,7 +79,8 @@ export default {
     tab: null,
     dialogue: false,
     iconSize: null,
-    urlIcon: null
+    urlIcon: null,
+    localIcon: null
   }),
   computed: {
     ...mapGetters("app", {
@@ -94,6 +104,30 @@ export default {
       this.dialogue = false;
       //Refresh the legend
       this.item.layerTreeKey += 1;
+    },
+    resetStyle() {
+      /*
+        Function to reset the style of layer at attribute level
+      */
+
+      this.urlIcon = null;
+      this.localIcon = null;
+
+      //Get original style for layer attribute
+      let sourceStyle = this.$appConfig.stylesObjCopy[
+        this.item.mapLayer.get("name")
+      ].style.rules[this.ruleIndex];
+
+      //Get present stylefor layer attribute
+      let targetStyle = this.$appConfig.stylesObj[
+        this.item.mapLayer.get("name")
+      ].style.rules[this.ruleIndex];
+
+      //Assign original style to present style to reset
+      targetStyle.symbolizers[0].size = sourceStyle.symbolizers[0].size;
+      targetStyle.symbolizers[0].image = sourceStyle.symbolizers[0].image;
+      this.iconSize = sourceStyle.symbolizers[0].size;
+      this.item.mapLayer.getSource().changed();
     },
     onIconSizeChange() {
       //Change icon size on input change event
