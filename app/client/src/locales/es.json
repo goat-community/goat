@@ -108,7 +108,7 @@
     },
     "edit": {
       "title": "Crear escenario",
-      "selectLayer": "Seleccione capa a editar",
+      "layerToEdit": "Seleccione capa a editar",
       "selectFeatures": "Seleccionar área a editar",
       "drawCircle": "Dibuje un círculo para seleccionar los elementos a editar",
       "selectOnMap": "Seleccione objetos en el mapa",
@@ -397,7 +397,7 @@
       "strata": "Estrato socioeconómico"
     },
     "tooltips": {
-      "clickForCalculation": "Haga clic para calcular, oprima ESC para salir",
+      "clickForIsochroneCalculation": "Haga clic para calcular, oprima ESC para salir",
       "clickToSelectStudyArea": "Haga clic para seleccionar el área de estudio, oprima ESC para salir.",
       "maxCircleRadius": "El radio máximo del círculo es de 1000 m.",
       "clickToStartMeasure": "Haga clic para comenzar a medir, oprima ESC para salir",

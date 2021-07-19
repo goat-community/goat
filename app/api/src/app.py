@@ -22,6 +22,8 @@ import tempfile
 import geojson
 import zipstream
 import geopandas as gpd
+import geobuf
+
 
 import psycopg2
 from psycopg2 import sql
@@ -338,9 +340,19 @@ class LayerRead(Resource):
                 "Error": "No valid table was selected."
             }
 
-        result = db.select(prepared_query, params=body, return_type=return_type)
+        _body = body.copy()
+        # Workaround to avoid the the accuracy lose coming from ST_AsGeobuf method bug. 
+        if (return_type == 'geobuf'):
+            sql_return_type = 'geojson'
+            _body["return_type"] = 'geojson'
+        else:
+            sql_return_type = return_type
+
+        result = db.select(prepared_query, params=_body, return_type=sql_return_type)
+        if (return_type == 'geobuf'):
+            result = geobuf.encode(result[0][0]);
         if body["return_type"] == 'geobuf':
-            result_bytes = io.BytesIO(result[0][0])
+            result_bytes = io.BytesIO(result)
             return send_file(result_bytes, mimetype='application/geobuf.pbf')
         else:
             return result  

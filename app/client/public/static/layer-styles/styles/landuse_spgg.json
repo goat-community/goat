@@ -1,0 +1,305 @@
+{
+  "name": "landuse_spgg",
+  "rules": [
+    {
+      "name": "HABITACIONAL UNIFAMILIAR",
+      "filter": [
+        "==",
+        "landuse",
+        "HU"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#e7000e",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "COMERCIO",
+      "filter": [
+        "==",
+        "landuse",
+        "C"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#ea1900",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "SERVICIOS",
+      "filter": [
+        "==",
+        "landuse",
+        "S"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#ee4200",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "HABITACIONAL CON COMERCIO O SERVICIOS",
+      "filter": [
+        "==",
+        "landuse",
+        "M1"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#f16c00",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "INDUSTRIA",
+      "filter": [
+        "==",
+        "landuse",
+        "IND"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#f59300",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "BALDIO URBANO",
+      "filter": [
+        "==",
+        "landuse",
+        "BU"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#f7ab00",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "HABITACIONAL MULTIFAMILIAR",
+      "filter": [
+        "==",
+        "landuse",
+        "HM"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#fac400",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "ESPACIOS ABIERTOS",
+      "filter": [
+        "==",
+        "landuse",
+        "EA"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#fddd00",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "INFRAESTRUCTURA",
+      "filter": [
+        "==",
+        "landuse",
+        "IF"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#dff400",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "EQUIPAMIENTO URBANO",
+      "filter": [
+        "==",
+        "landuse",
+        "EU"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#71d800",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "ABANDONADA",
+      "filter": [
+        "==",
+        "landuse",
+        "A"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#19bb00",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "EQUIPAMIENTO PRIVADO",
+      "filter": [
+        "==",
+        "landuse",
+        "EP"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#009f29",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "EN CONSTRUCCION",
+      "filter": [
+        "==",
+        "landuse",
+        "EC"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#069261",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "COMERCIOS Y SERVICIOS",
+      "filter": [
+        "==",
+        "landuse",
+        "M2"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#0f868e",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "DERECHO DE PASO",
+      "filter": [
+        "==",
+        "landuse",
+        "DP"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#1a5689",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "BALDIO NO URBANO",
+      "filter": [
+        "==",
+        "landuse",
+        "BNU"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#253283",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "PRESERVACION ECOLOGICA",
+      "filter": [
+        "==",
+        "landuse",
+        "PEC"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#2e2582",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "AREA NATURAL PROTEGIDA",
+      "filter": [
+        "==",
+        "landuse",
+        "ANP"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#3e2382",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "DO",
+      "filter": [
+        "==",
+        "landuse",
+        "DO"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#4f2082",
+          "opacity": 0.3
+        }
+      ]
+    },
+    {
+      "name": "RIO",
+      "filter": [
+        "==",
+        "landuse",
+        "RIO"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Fill",
+          "color": "#611e82",
+          "opacity": 0.5
+        }
+      ]
+    }
+  ]
+}

@@ -23,6 +23,13 @@
                   v-if="$te('appBar.about.usedData')"
                   v-html="$t('appBar.about.usedData')"
                 ></span>
+                <a
+                  :style="`color:${activeColor.primary}`"
+                  class="info-link"
+                  href="https://www.open-accessibility.org/"
+                  target="_blank"
+                  >{{ $t("appBar.about.moreInfo") }}</a
+                >
                 <table class="styled-table">
                   <thead>
                     <tr>
@@ -78,14 +85,6 @@
             </div>
           </div>
         </v-card-text>
-        <v-card-actions>
-          <a
-            class="info-link green--text"
-            href="https://www.open-accessibility.org/"
-            target="_blank"
-            >{{ $t("appBar.about.moreInfo") }}</a
-          >
-        </v-card-actions>
       </vue-scroll>
     </v-card>
   </v-dialog>
@@ -115,11 +114,15 @@ export default {
       ];
       attributeLayers.forEach(layer => {
         if (
-          layer.attributes &&
-          layer.attributes.source &&
-          layer.attributes.date
+          (layer.attributes &&
+            layer.attributes.source &&
+            layer.attributes.date) ||
+          (layer.attributes && layer.attributes.source === "openStreetMap")
         ) {
-          const { source, date } = layer.attributes;
+          let { source, date } = layer.attributes;
+          if (source === "openStreetMap") {
+            date = this.$appConfig.osmTimestamp;
+          }
           if (!a[source]) {
             a[source] = {};
           }

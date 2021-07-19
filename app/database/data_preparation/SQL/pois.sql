@@ -402,18 +402,26 @@ INSERT INTO pois (osm_id,origin_geometry,amenity,name,wheelchair,geom)
 SELECT osm_id,'point',public_transport_stop,name,wheelchair,geom 
 FROM pt;
 
-DO $$                  
+DO $$     
+	DECLARE 
+		pois_categories text[]; 
     BEGIN 
         IF EXISTS
             ( SELECT 1
               FROM   information_schema.tables 
               WHERE  table_schema = 'public'
-              AND    table_name = 'pois_insert_no_fusion'
+              AND    table_name = 'pois_custom_no_fusion'
             )
         THEN
+
+			pois_categories = (SELECT ARRAY_AGG(DISTINCT amenity) FROM pois_custom_no_fusion p);
+			DELETE FROM pois 
+			WHERE amenity IN (SELECT UNNEST(pois_categories)) 
+			AND osm_id IS NOT NULL; 
+		
 			INSERT INTO pois (origin_geometry,amenity,name,geom)
 			SELECT 'point', amenity, name, geom 
-			FROM pois_insert_no_fusion;
+			FROM pois_custom_no_fusion;
 		END IF;
     END
 $$ ;
@@ -592,4 +600,4 @@ CREATE INDEX ON pois_userinput(scenario_id);
 ALTER TABLE pois_userinput ADD COLUMN pois_modified_id integer; 
 ALTER TABLE pois_userinput
 ADD CONSTRAINT pois_userinput_id_fkey FOREIGN KEY (pois_modified_id) 
-REFERENCES pois_modified(id) ON DELETE CASCADE;
+REFERENCES pois_modified(gid) ON DELETE CASCADE;
