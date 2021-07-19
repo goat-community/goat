@@ -1,78 +1,242 @@
-DROP FUNCTION IF EXISTS pgrouting_edges_potential_flows;
-CREATE OR REPLACE FUNCTION public.pgrouting_edges_potential_flows(cutoffs float[], startpoints float[][], speed numeric, userid_input integer, scenario_id_input integer, objectid_input integer, modus_input integer, routing_profile text)
- RETURNS SETOF void
+CREATE OR REPLACE FUNCTION public.get_edge_nearest_persons_v2(p_objectid integer, convex geometry, start_point geometry)
+ RETURNS TABLE(edge integer, geom geometry, source integer, target integer, start_cost double precision, end_cost double precision, cost double precision, persons double precision, person_geom geometry)
  LANGUAGE plpgsql
 AS $function$
-DECLARE 
-	buffer text;
-	distance numeric;
-	number_calculation_input integer;
-	vids bigint[];
+DECLARE
+    rec record;
+    rec2 record;
+    cur refcursor;
 BEGIN
-	
-	PERFORM pgrouting_edges_preparation(cutoffs, startpoints, speed, modus_input, routing_profile, userid_input, scenario_id_input);
-
-	SELECT ARRAY[vid]
-	INTO vids
-	FROM start_vertices; 
-
-	IF modus_input <> 3 AND array_length(startpoints,1) = 1 THEN 
-		SELECT count(objectid) + 1 
-    	INTO number_calculation_input
-		FROM starting_point_isochrones
-		WHERE userid = userid_input; 
-		INSERT INTO starting_point_isochrones(userid,geom,objectid,number_calculation)
-		SELECT userid_input, closest_point, objectid_input, number_calculation_input
-		FROM start_vertices; 
-	END IF; 
-
-	DROP TABLE IF EXISTS reached_edges; 
-
-	CREATE TEMP TABLE reached_edges AS 
-	SELECT p.from_v, p.edge, p.start_perc, p.end_perc, greatest(start_cost,end_cost) AS COST, start_cost, end_cost, w.SOURCE, w.target, w.geom
-	FROM pgr_isochrones(
-		'SELECT * FROM temp_fetched_ways', 
-		vids, cutoffs,TRUE
-	) p, temp_fetched_ways w
-	WHERE p.edge = w.id;
-
-	CREATE INDEX ON reached_edges (edge);
-	DELETE FROM reached_edges WHERE edge IN (SELECT id FROM artificial_edges);
-	
-	INSERT INTO reached_edges
-	SELECT a.source, a.id, 0, 1, a.COST, 0, a.COST, a.SOURCE, a.target, a.geom 
-	FROM artificial_edges a, start_vertices v
-	WHERE a.SOURCE = v.vid 
-	UNION ALL 
-	SELECT a.target, a.id, 0, 1, a.reverse_cost, a.reverse_cost, 0, a.SOURCE, a.target, a.geom 
-	FROM artificial_edges a, start_vertices v
-	WHERE a.target = v.vid; 
-
-	INSERT INTO edges_potential_flows (edge,COST, start_cost, end_cost, SOURCE, target, geom, objectid)
-	WITH full_edges AS 
-	(	
-		SELECT * 
-		FROM reached_edges 
-		WHERE (start_perc = 0 
-		AND end_perc = 1)
-	)
-	SELECT r.edge, r.cost, r.start_cost, r.end_cost, 
-	CASE WHEN r.start_perc <> 0 THEN 0 ELSE r.SOURCE END AS SOURCE,
-	CASE WHEN r.end_perc <> 1 THEN 0 ELSE r.target END AS target, 
-	ST_LineSubstring(r.geom, r.start_perc, r.end_perc), objectid_input   
-	FROM reached_edges r
-	LEFT JOIN full_edges f
-	ON r.edge = f.edge 
-	WHERE (r.start_perc <> 0 OR r.end_perc <> 1) 
-	AND f.edge IS NULL
-	UNION ALL 
-	SELECT edge, COST, start_cost, end_cost, SOURCE, target, geom, objectid_input 
-	FROM full_edges; 
-	
+    OPEN cur FOR 
+    SELECT p.population * share_age_6_9 AS persons, p.geom, p.gid
+    FROM population p, school_districts s, study_area a  
+    WHERE ST_Intersects(convex,p.geom)
+   	AND ST_Intersects(s.geom, p.geom)
+   	AND ST_Intersects(s.geom, start_point)
+   	AND ST_Intersects(p.geom, a.geom);
+    
+    LOOP 
+        FETCH cur INTO rec;
+        EXIT WHEN NOT FOUND;
+    
+        SELECT rec.persons, rec.geom person_geom, e.edge, e.geom, e.source, e.target, e.start_cost, e.end_cost, e.cost
+        INTO rec2
+        FROM edges_potential_flows e
+        WHERE e.objectid = p_objectid
+        AND e.geom && st_buffer(rec.geom,0.0009)
+        ORDER BY rec.geom <-> e.geom
+        LIMIT 1;
+    
+        IF rec2 IS NOT NULL
+        THEN
+            persons = rec2.persons;
+            person_geom = rec2.person_geom;
+            edge = rec2.edge;
+            geom = rec2.geom; 
+            source = rec2.source;
+            target= rec2.target;
+            start_cost= rec2.start_cost;
+            end_cost= rec2.end_cost;
+            cost = rec2.cost ;
+            RETURN NEXT;
+        END IF;
+    
+    END LOOP;
 END;
 $function$;
 
+CREATE OR REPLACE FUNCTION public.potential_pedestrian_flows_v2(x double precision, y double precision, userid_input integer, scenario_id_input integer)
+ RETURNS TABLE(edge_out integer, persons_out integer, geom_out geometry)
+ LANGUAGE plpgsql
+AS $function$
+DECLARE 
+    objectid_input integer := random_between(1,900000000);
+    ts timestamptz;
+    v_depth integer;
+    start_point geometry := ST_SETSRID(ST_MAKEPOINT(x,y), 4326); 
+BEGIN 
+    --ts = clock_timestamp();
+    --RAISE NOTICE '% enter', ts;
+    PERFORM public.pgrouting_edges_potential_flows(array[600.], array[[x,y]],1.33, userid_input, scenario_id_input, objectid_input, 1, 'walking_standard');
+    --RAISE NOTICE '% Performed pgrouting_edges_potential_flows, % sec', date_trunc('millisecond', clock_timestamp()), clock_timestamp()-ts;
+
+    --ts = clock_timestamp();
+    DROP TABLE IF EXISTS raw_flows; 
+    CREATE TEMP TABLE raw_flows AS 
+    WITH convex AS 
+    (
+        SELECT ST_CONVEXHULL(ST_COLLECT(e.geom)) AS geom
+        FROM edges_potential_flows e
+        WHERE e.objectid = objectid_input
+    ), 
+    flows AS 
+    (
+        SELECT ed.edge, ed.geom, ed.source, ed.target, ed.start_cost, ed.end_cost, ed.cost,sum(ed.persons) AS persons
+        FROM convex c, get_edge_nearest_persons_v2(objectid_input, c.geom, start_point) ed
+        --where ST_Intersects(ed.person_geom,c.geom)
+        GROUP BY ed.edge, ed.geom, ed.source, ed.target, ed.start_cost, ed.end_cost, ed.cost
+    )
+    SELECT e.edge, e.geom, e.source,e.target,e.start_cost, e.end_cost, e.cost, 0 as persons
+    FROM edges_potential_flows e
+    LEFT JOIN flows f ON e.edge = f.edge 
+    WHERE f.edge IS NULL 
+    AND e.objectid = objectid_input
+    UNION ALL 
+    SELECT * 
+    FROM flows;
+    
+    CREATE INDEX ON raw_flows(edge);
+    CREATE INDEX ON raw_flows using btree (cost);
+    ANALYZE raw_flows;
+    
+    --RAISE NOTICE '% Created raw_flows, % sec', date_trunc('millisecond', clock_timestamp()), clock_timestamp()-ts;
+    --ts = clock_timestamp();
+    
+    -- Compose flow tree.
+    -- Delete excess edge at the center
+    WITH origin AS ( 
+        SELECT rf.source AS center_point 
+        FROM raw_flows rf
+        WHERE start_cost=0
+    ),
+    excess_edge AS (
+        SELECT center_point, rf1.target, rf2.source, rf.edge, rf."source",rf.target
+        from origin o
+        JOIN raw_flows rf1 ON center_point=rf1."source"
+        JOIN raw_flows rf2 ON center_point=rf2.target
+        JOIN raw_flows rf ON 
+            ( rf.source = rf1.target OR rf.source = rf2.source )
+            AND ( rf.target = rf1.target OR rf.target = rf2.source )
+    )
+    DELETE FROM raw_flows rf
+    USING excess_edge e
+    WHERE e.edge = rf.edge;
+    
+
+    -- Tree vertices. One vertex has only one output edge.
+    DROP TABLE IF EXISTS flow_vertices;
+    CREATE TEMP TABLE flow_vertices (
+         id serial primary key,
+         vertex integer, 
+         edge         integer, 
+         next_vertex  integer, 
+         persons      double precision, 
+         depth        integer,
+         cost         double precision,
+         low_cost     double precision
+    );
+    
+    
+    INSERT INTO flow_vertices(vertex,next_vertex,edge,persons,depth,cost,low_cost)
+    WITH RECURSIVE origin AS ( 
+        SELECT rf.source AS center_point 
+        from raw_flows rf
+        where start_cost=0
+    ),
+    vertices AS ( 
+        SELECT 
+            CASE WHEN o.center_point=rf.source
+                THEN rf.target 
+                ELSE rf.source 
+            END AS vertex,
+            o.center_point as next_vertex,
+            edge, persons, 0 as depth,rf.cost,least(start_cost,end_cost) low_cost
+        FROM raw_flows rf, origin o
+        WHERE o.center_point=rf.source or o.center_point=rf.target
+        UNION 
+        SELECT
+            CASE WHEN start_cost>end_cost
+                THEN rf.source 
+                ELSE rf.target
+            END AS vertex, 
+            v.vertex as next_vertex,
+            rf.edge,rf.persons,v.depth+1 as depth,rf.cost, least(rf.start_cost,rf.end_cost) low_cost
+        FROM vertices v
+        JOIN raw_flows rf ON 
+            (v.vertex=rf.source AND start_cost<end_cost)
+            OR (v.vertex=rf.target AND start_cost>end_cost) 
+        WHERE v.cost=least(rf.start_cost,rf.end_cost)
+    )
+    SELECT *
+    FROM vertices;
+    
+    CREATE INDEX ON flow_vertices USING btree(depth);
+    
+    -- Edge table for accumulating persons along flow tree.
+    DROP TABLE IF EXISTS flow_edges;
+    CREATE TEMP TABLE flow_edges (
+         vertex_id integer  primary key, 
+         edge         integer, 
+         persons      double precision,
+         depth     integer
+    );
+    
+    INSERT INTO flow_edges(vertex_id, edge, persons, depth)
+    SELECT id, edge, persons, depth
+    FROM flow_vertices;
+    
+    CREATE INDEX ON flow_edges USING btree(edge);
+
+    -- Get max tree depth. 
+    SELECT max(depth)
+    INTO v_depth
+    FROM flow_vertices fv;
+
+    loop 
+        -- Summarize persons from uplink edges.
+        -- Start from the most distant leaves and move to center.
+        with sub as 
+        (   
+            SELECT v2.id vertex_id,  sum(e.persons) persons
+            FROM flow_vertices v1 
+            JOIN flow_vertices v2 ON v1.next_vertex=v2.vertex
+            JOIN flow_edges e ON e.vertex_id = v1.id
+            WHERE v1.depth=v_depth AND v1.low_cost=v2.cost
+            GROUP BY v2.id
+        )
+        UPDATE flow_edges e 
+        SET persons = e.persons+sub.persons
+        FROM sub
+        WHERE sub.vertex_id=e.vertex_id;
+    
+        -- Step one depth level closer to the center
+        v_depth = v_depth - 1;
+    
+        EXIT WHEN v_depth=0;
+    END LOOP;
+
+    --RAISE NOTICE '% Summarize persons on flow edges, % sec', date_trunc('millisecond', clock_timestamp()), clock_timestamp()-ts;
+
+    RETURN query 
+    SELECT f.edge, (COALESCE(e.persons, f.persons,0))::integer AS persons, f.geom 
+    FROM raw_flows f  
+    JOIN flow_edges e ON e.edge=f.edge ;
+
+END;
+$function$;
+
+
+
+--- Testing
 /*
+drop table potential_pedestrian_flows_v2;
+create table potential_pedestrian_flows_v2 as 
 SELECT * 
-FROM public.pgrouting_edges_potential_flows(ARRAY[600.], ARRAY[[11.5197,48.1929]],4.1, 1, 1, 15, 1, 'walking_standard')
+FROM potential_pedestrian_flows_v2(11.2374, 48.1778, 1, 1); --  Execution Time: 550.723 ms
+
+DROP TABLE IF EXISTS ppf;
+CREATE TABLE ppf AS 
+SELECT p.gid, f.*
+FROM pois p, study_area s, LATERAL potential_pedestrian_flows_v2(ST_X(p.geom), ST_Y(p.geom), 1, 1) f
+WHERE p.amenity = 'grundschule'
+AND ST_Intersects(p.geom, s.geom);
+
+
+DROP TABLE IF EXISTS primary_school_streams;
+CREATE TABLE primary_school_streams AS 
+SELECT sum(persons_out), geom_out AS geom   
+FROM ppf
+GROUP BY geom_out;  
+
 */
+

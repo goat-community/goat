@@ -128,6 +128,7 @@ import Overlay from "ol/Overlay";
 import Feature from "ol/Feature";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
+import LineString from "ol/geom/LineString";
 
 // style imports
 import { getInfoStyle } from "../../../style/OlStyleDefs";
@@ -306,7 +307,9 @@ export default {
       const layersConfigGrouped = groupBy(
         [
           ...this.$appConfig.map.layers,
-          ...this.$appConfig.map.osmMappingLayers
+          ...(this.$appConfig.osmMapping === "on"
+            ? this.$appConfig.map.osmMappingLayers
+            : [])
         ],
         "group"
       );
@@ -668,6 +671,17 @@ export default {
                   };
 
                   Object.assign(vtProps, selectedFeatures[0].getProperties());
+                  const flatCoordinates = selectedFeatures[0].getFlatCoordinates();
+                  if (flatCoordinates && flatCoordinates.length > 0) {
+                    const _coordinates = [];
+                    const _values = Object.values(flatCoordinates);
+                    for (let i = 0; i < _values.length; i += 2) {
+                      _coordinates.push(_values.slice(i, i + 2));
+                    }
+
+                    const geometry = new LineString(_coordinates, "XY");
+                    vtProps.geometry = geometry;
+                  }
                   clonedFeature = new Feature(vtProps);
                 } else {
                   clonedFeature = selectedFeatures[0].clone();

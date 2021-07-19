@@ -1,21 +1,3 @@
-/*Compute built up area per census tract*/
-DROP TABLE IF EXISTS census_sum_built_up;
-CREATE TABLE census_sum_built_up AS 
-SELECT DISTINCT c.gid, COALESCE(c.pop,0) pop, COALESCE(c.sum_gross_floor_area_residential,0) AS sum_gross_floor_area_residential, c.number_buildings_now, c.geom 
-FROM study_area s
-INNER JOIN LATERAL 
-(
-	SELECT c.gid, sum(a.gross_floor_area_residential) sum_gross_floor_area_residential, count(a.gid) AS number_buildings_now, c.pop, c.geom  
-	FROM census c, residential_addresses a 
-	WHERE ST_Intersects(s.geom, c.geom)
-	AND ST_Intersects(c.geom, a.geom) 
-	GROUP BY c.gid, c.pop, c.geom  
-) c ON TRUE;
-
-ALTER TABLE census_sum_built_up  ADD PRIMARY KEY (gid);
-
-
-
 /*Split up census tracts that are intersecting several study areas.*/
 DROP TABLE IF EXISTS splitted_census; 
 CREATE TEMP TABLE splitted_census AS 
@@ -174,7 +156,6 @@ FROM study_area s, remaining_pop r
 WHERE s.name = r.name 
 AND ST_Intersects(s.geom,ST_Centroid(census_prepared.geom))
 AND census_prepared.pop > 0;
-
 
 DROP TABLE IF EXISTS population CASCADE; 
 CREATE TABLE population AS 
