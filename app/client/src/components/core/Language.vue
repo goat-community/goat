@@ -52,8 +52,7 @@ export default {
       units: "kilometers",
       languages: [
         { flag: "gb", language: "en", title: "English" },
-        { flag: "de", language: "de", title: "Deutsch" },
-        { flag: "es", language: "es", title: "Español" }
+        { flag: "de", language: "de", title: "Deutsch" }
       ],
       interactionType: "languageChange"
     };
