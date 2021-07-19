@@ -94,7 +94,7 @@
         "symbolizers": [
           {
             "kind": "Line",
-            "color": "5EC8BD",
+            "color": "#5EC8BD",
             "width": 9,
             "join": "bevel",
             "cap": "square"
@@ -119,7 +119,7 @@
         "symbolizers": [
           {
             "kind": "Line",
-            "color": "5EC8BD",
+            "color": "#5EC8BD",
             "width": 12,
             "join": "bevel",
             "cap": "square"
