@@ -378,7 +378,7 @@
         "type": "VECTORTILE",
         "format": "MVT",
         "name": "ways_lit",
-        "url": "/api/map/layer/ways_lit/{z}/{x}/{y}",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
         "opacity": 1,
         "queryable": true,
