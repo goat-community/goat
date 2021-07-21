@@ -1338,6 +1338,13 @@
           "source": "LastenVelo Freiburg e.V.",
           "date": "16.03.2021"
         }
+      },
+      {
+        "name": "Schulen",
+        "attributes": {
+          "source": "JedeSchule - Open Knowledge Foundation Deutschland e.V.",
+          "date": "2021"
+        }
       }
     ],
     "controls": [
