@@ -172,9 +172,9 @@
                   <template v-slot:activator="{ on }">
                     <v-btn
                       v-on="on"
-                      @click="unDoFeature()"
+                      @click="unDoRedo('undo')"
                       text
-                      :disabled="olEditCtrl.source.getFeatures().length == 0"
+                      :disabled="featureUndoStack.length == 0 || unDoRedoStatus"
                     >
                       <v-icon>fas fa-undo</v-icon>
                     </v-btn>
@@ -185,9 +185,9 @@
                   <template v-slot:activator="{ on }">
                     <v-btn
                       v-on="on"
-                      @click="reDoFeature()"
+                      @click="unDoRedo('redo')"
                       text
-                      :disabled="featureUndoRedoStack.length == 0"
+                      :disabled="featureRedoStack.length == 0 || unDoRedoStatus"
                     >
                       <v-icon>fas fa-redo</v-icon>
                     </v-btn>
@@ -792,7 +792,9 @@ export default {
     isUploadBusy: false,
     isDeleteAllBusy: false,
     isExportScenarioBusy: false,
-    featureUndoRedoStack: [],
+    featureUndoStack: [],
+    featureRedoStack: [],
+    unDoRedoStatus: false,
     //Popup configuration
     popup: {
       title: "",
@@ -1250,6 +1252,14 @@ export default {
               }
             });
 
+            //Managing Undo Redo Functionality
+            this.featureUndoStack.push({
+              type: "delete",
+              features: features
+            });
+            this.featureRedoStack = [];
+            //Managing Undo Redo Functionality
+
             if (areAllUploaded) {
               this.fileInputValidationMessage = this.fileInputValidationMessageEnum.ALL_FEATURES_UPLOADED;
             } else {
@@ -1513,13 +1523,12 @@ export default {
       this.olEditCtrl.popup.isVisible = true;
       //update cache
       this.updateFileInputFeatureCache();
-      this.featureUndoRedoStack = [];
     },
 
     /**
      * Building Entrance interaction end.
      */
-    onBldEntranceInteractionEnd(evt) {
+    onBldEntranceInteractionEnd(evt, featureUndoRedo) {
       let coordinate;
       if (evt.type === "modifyend") {
         if (!this.tempBldEntranceFeature) return;
@@ -1679,6 +1688,26 @@ export default {
           const feature = geojsonToFeature(response.data);
           if (feature[0] && feature[0].get("gid")) {
             bldEntranceFeature.setId(feature[0].get("gid"));
+          }
+          //Check if bldEntranceFeature is saved from UndoRedo functionality. Then ignore
+          if (!featureUndoRedo) {
+            this.featureUndoStack.push({
+              type: "delete",
+              features: [bldEntranceFeature]
+            });
+            this.featureRedoStack = [];
+          } else {
+            // Syncing building entrance feature across undo redo object stack
+            this.syncDeletedBldEntrFeature(
+              this.featureUndoStack,
+              evt.feature,
+              bldEntranceFeature
+            );
+            this.syncDeletedBldEntrFeature(
+              this.featureRedoStack,
+              evt.feature,
+              bldEntranceFeature
+            );
           }
         }
       });
@@ -2064,11 +2093,37 @@ export default {
             this.olEditCtrl.featuresToCommit[0].set("status", null);
           });
         }
-        this.olEditCtrl.transact(this.dataObject);
+        let undoFeatures = [];
+        this.olEditCtrl.transact(this.dataObject, undoFeatures);
         this.olEditCtrl.closePopup();
+
+        // Managing Undo Redo Functionality
+        this.featureUndoStack.push({
+          type: "delete",
+          features: undoFeatures
+        });
+        this.featureRedoStack = [];
       } else {
+        //Manage deleted feature undo fnctionality
+        let features_to_insert = [];
+        let deleteFeature = this.popup.deleteFeature;
+        let bldEntrFeatures = this.getBldEntrancePoints(deleteFeature);
+        features_to_insert.push(deleteFeature);
+        bldEntrFeatures.forEach(f => {
+          features_to_insert.push(f);
+        });
+
+        this.featureUndoStack.push({
+          type: "insert",
+          features: features_to_insert
+        });
+
         //Delete feature
         this.olEditCtrl.deleteFeature();
+
+        //Delete object from popup
+        delete this.popup.deleteFeature;
+        this.featureRedoStack = [];
       }
     },
     /**
@@ -2234,9 +2289,9 @@ export default {
       setBldEntranceLayer: "SET_BLD_ENTRANCE_LAYER",
       setEditLayer: "SET_EDIT_LAYER"
     }),
-
     // Undo Redo Features
     getBldEntrancePoints(f) {
+      //Get building entrance features
       let bld_gid = f.getProperties()["gid"];
       let bldEntranceLayerFeatures = this.olEditCtrl.bldEntranceLayer
         .getSource()
@@ -2245,84 +2300,205 @@ export default {
         return feature.getProperties()["building_gid"] == bld_gid;
       });
     },
+    syncDeletedBldEntrFeature(featureStack, oldFeature, newFeature) {
+      // Syncing building entrance feature across undo redo object stack
+      let flag = false;
+      if (featureStack) {
+        for (let i = 0; i < featureStack.length; i++) {
+          let f = featureStack[i];
+          for (let j = 0; j < f.features.length; j++) {
+            let subF = f.features[j];
+            if (subF.getId() === oldFeature.getId()) {
+              f.features[j] = newFeature;
+              flag = true;
+              break;
+            }
+          }
+          if (flag === true) {
+            break;
+          }
+        }
+      }
+    },
     setDataObjectsProps(feature) {
-      if (feature.source.get("layerName") === "buildings") {
-        //
-        this.selectedLayer = this.editableLayers[0];
-        this.dataObject.building = feature.source.get("building");
-        this.dataObject.building_levels = feature.source.get("building_levels");
-        this.dataObject.building_levels_residential = feature.source.get(
-          "building_levels_residential"
-        );
-        //
-      } else if (feature.source.get("layerName") === "ways") {
-        //
-        this.selectedLayer = this.editableLayers[1];
-        this.dataObject.surface = feature.source.get("surface");
-        this.dataObject.way_type = feature.source.get("way_type");
-        this.dataObject.wheelchair = feature.source.get("wheelchair");
-        //
-      } else if (feature.source.get("layerName") === "pois") {
-        //
-        this.selectedLayer = this.editableLayers[2];
-        this.dataObject.amenity = feature.source.get("amenity");
-        this.dataObject.name = feature.source.get("name");
-        //
-      }
-    },
-    async unDoFeature() {
-      let vectorSource = this.olEditCtrl.source;
-      let vectorSourceSize = vectorSource.getFeatures().length;
-      if (vectorSourceSize > 0) {
-        let feature = vectorSource.getFeatures()[vectorSourceSize - 1];
-
-        feature = {
-          source: feature,
-          bldEntrancePoints: this.getBldEntrancePoints(feature)
+      //Set data object props to save feature for selected layer
+      let dataObjectProps;
+      if (feature.get("layerName") === "buildings") {
+        let buildings_props = {
+          building: null,
+          building_levels: null,
+          building_levels_residential: null,
+          gid: null,
+          gross_floor_area: null,
+          original_id: null,
+          population: null
         };
-        this.featureUndoRedoStack.push(feature);
-        await this.setDataObjectsProps(feature);
-        this.olEditCtrl.deleteFeature(feature.source);
-      }
-    },
-    async reDoFeature() {
-      if (this.featureUndoRedoStack.length > 0) {
-        let vectorSource = this.olEditCtrl.source;
-        let feature = this.featureUndoRedoStack[
-          this.featureUndoRedoStack.length - 1
-        ];
-
-        this.featureUndoRedoStack.pop();
-        await this.setDataObjectsProps(feature);
-        vectorSource.addFeature(feature.source);
-
-        feature.source.id_ = undefined;
-        this.olEditCtrl.featuresToCommit = [feature.source];
-
-        Object.keys(feature.source.values_).forEach(key => {
-          if (key !== "geometry") {
-            delete feature.source.values_[key];
+        Object.keys(buildings_props).forEach(key => {
+          if (key !== "gid") {
+            buildings_props[key] = feature.get(key);
           }
         });
-
-        this.olEditCtrl.transact(this.dataObject);
-        setTimeout(() => {
-          feature.bldEntrancePoints.forEach(bldEntranceF => {
-            Object.keys(bldEntranceF.values_).forEach(key => {
-              if (key !== "geometry") {
-                delete bldEntranceF.values_[key];
-              }
-              bldEntranceF.id_ = undefined;
-            });
-
-            let evt = {
-              type: "drawend",
-              feature: bldEntranceF
-            };
-            this.onBldEntranceInteractionEnd(evt);
-          });
-        }, 3000);
+        dataObjectProps = buildings_props;
+      } else if (feature.get("layerName") === "ways") {
+        let ways_props = {
+          bicycle: null,
+          edit_type: null,
+          foot: null,
+          gid: null,
+          lit: null,
+          original_id: null,
+          status: null,
+          street_category: null,
+          surface: null,
+          way_type: null,
+          wheelchair: null
+        };
+        Object.keys(ways_props).forEach(key => {
+          if (key !== "gid") {
+            ways_props[key] = feature.get(key);
+          }
+        });
+        dataObjectProps = ways_props;
+      } else if (feature.get("layerName") === "pois") {
+        let poi_props = {
+          amenity: null,
+          gid: null,
+          name: null,
+          opening_hours: null,
+          original_id: null,
+          scenario_id: null,
+          wheelchair: null
+        };
+        Object.keys(poi_props).forEach(key => {
+          if (key !== "gid") {
+            poi_props[key] = feature.get(key);
+          }
+        });
+        dataObjectProps = poi_props;
       }
+      return dataObjectProps;
+    },
+    setSelectedLayer(feature) {
+      // set the Select Layer UI part to sync with feature being redone or undone
+      if (feature.get("layerName") === "buildings") {
+        this.selectedLayer = this.editableLayers[0];
+      } else if (feature.get("layerName") === "ways") {
+        this.selectedLayer = this.editableLayers[1];
+      } else if (feature.get("layerName") === "pois") {
+        this.selectedLayer = this.editableLayers[2];
+      }
+    },
+    unDoRedo(unre) {
+      //This function will be called on click of undo/redo button
+      this.unDoRedoStatus = true;
+      this.undoFeatures = [];
+      if (unre === "undo") {
+        let undo_features = this.featureUndoStack.pop();
+        this.featureRedoStack.push(undo_features);
+        if (undo_features.type === "delete") {
+          this.unDo(undo_features.features);
+          undo_features.type = "insert";
+        } else {
+          this.reDo(undo_features.features);
+          undo_features.type = "delete";
+        }
+      } else {
+        let redo_features = this.featureRedoStack.pop();
+        if (redo_features.type === "delete") {
+          this.unDo(redo_features.features);
+          this.featureUndoStack.push({
+            type: "insert",
+            features: redo_features.features
+          });
+        } else {
+          this.reDo(redo_features.features);
+          this.featureUndoStack.push({
+            type: "delete",
+            features: this.undoFeatures
+          });
+        }
+      }
+    },
+    async unDo(features) {
+      //Undoing features
+      for (let i = 0; i < features.length; i++) {
+        let feature = features[i];
+        if (feature.get("building_gid")) {
+          if (
+            this.olEditCtrl.bldEntranceLayer.getSource().hasFeature(feature)
+          ) {
+            this.selectedLayer = this.editableLayers[0];
+            this.olEditCtrl.deleteBldEntranceFeatures([feature]);
+          }
+        } else {
+          this.setSelectedLayer(feature);
+          this.olEditCtrl.deleteFeature(feature);
+        }
+      }
+      this.olEditCtrl.source.changed();
+      setTimeout(() => {
+        this.unDoRedoStatus = false;
+      }, 3000);
+    },
+    async reDo(features) {
+      //Common function for redoing entrance or layers features
+      for (let i = 0; i < features.length; i++) {
+        let feature = features[i];
+        if (feature.get("building_gid")) {
+          await this.reDoBuildingEntrFeatures(feature);
+        } else {
+          await this.reDoFeatures(feature, i);
+        }
+      }
+    },
+    async reDoBuildingEntrFeatures(feature) {
+      //Redo any Building Entrance feature
+      this.selectedLayer = this.editableLayers[0];
+      let evt = {
+        type: "drawend",
+        feature: feature
+      };
+      await this.onBldEntranceInteractionEnd(evt, true);
+      let bldEntranceFeature = this.olEditCtrl.bldEntranceLayer
+        .getSource()
+        .getFeatures();
+      this.undoFeatures.push(bldEntranceFeature[bldEntranceFeature.length - 1]);
+      setTimeout(() => {
+        this.unDoRedoStatus = false;
+      }, 3000);
+    },
+    async reDoFeatures(feature, ith) {
+      //Redo any building,ways or pois feature
+      let vectorSource = this.olEditCtrl.source;
+      await this.setSelectedLayer(feature);
+      let dataObjectProps = this.setDataObjectsProps(feature);
+      this.deleteFeaturesProps(feature);
+      vectorSource.addFeature(feature);
+      this.olEditCtrl.featuresToCommit = [feature];
+      await this.olEditCtrl.transact(
+        dataObjectProps,
+        this.undoFeatures,
+        this.featureUndoStack,
+        this.featureRedoStack,
+        ith
+      );
+      setTimeout(() => {
+        this.unDoRedoStatus = false;
+      }, 3000);
+    },
+    deleteFeaturesProps(feature) {
+      // Deleting feature props in order to prepare them for saving functionality
+      feature.setId(undefined);
+      Object.keys(feature.getProperties()).forEach(key => {
+        if (key !== "geometry" && key !== "geom") {
+          feature.unset(key);
+        }
+        if (key === "geom") {
+          feature.set("geometry", feature.get(key));
+          feature.setGeometryName("geometry");
+          feature.unset(key);
+        }
+      });
     }
   },
   computed: {

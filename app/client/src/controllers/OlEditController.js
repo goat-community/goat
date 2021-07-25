@@ -348,6 +348,7 @@ export default class OlEditController extends OlBaseController {
 
     me.highlightSource.addFeature(feature);
     me.selectedFeature = feature;
+    me.popup.deleteFeature = feature;
     if (feature) {
       const geometry = feature.getGeometry();
       let popupCoordinate = geometry.getCoordinates();
@@ -478,9 +479,32 @@ export default class OlEditController extends OlBaseController {
   }
 
   /**
+   * Sync Deleted features(except building entrance) from transact for Undo Redo functionality
+   */
+  syncDeletedFeature(featureStack, undoFeatures, ith) {
+    let flag = false;
+    if (featureStack) {
+      for (let i = 0; i < featureStack.length; i++) {
+        let f = featureStack[i];
+        for (let j = 0; j < f.features.length; j++) {
+          let subF = f.features[j];
+          if (subF.getId() === undefined) {
+            f.features[j] = undoFeatures[ith];
+            flag = true;
+            break;
+          }
+        }
+        if (flag === true) {
+          break;
+        }
+      }
+    }
+  }
+
+  /**
    * Transact features to the database
    */
-  transact(properties) {
+  transact(properties, undoFeatures, featureUndoStack, featureRedoStack, ith) {
     const me = this;
     const featuresToAdd = [];
     const featuresToUpdate = [];
@@ -613,7 +637,7 @@ export default class OlEditController extends OlBaseController {
         promiseArray.push(http.post("/api/map/layer_controller", payload));
       }
     });
-    axios.all(promiseArray).then(function(results) {
+    let _promise = axios.all(promiseArray).then(function(results) {
       results.forEach(response => {
         const payload = JSON.parse(response.config.data);
 
@@ -632,6 +656,11 @@ export default class OlEditController extends OlBaseController {
                 .removeFeature(featuresToRemove[index]);
             }
             feature.setId(feature.get("gid"));
+            if (undoFeatures) {
+              undoFeatures.push(feature);
+              me.syncDeletedFeature(featureUndoStack, undoFeatures, ith);
+              me.syncDeletedFeature(featureRedoStack, undoFeatures, ith);
+            }
             me.source.addFeature(feature);
           });
         }
@@ -642,6 +671,7 @@ export default class OlEditController extends OlBaseController {
         EventBus.$emit("updateAllLayers");
       });
     });
+    return _promise;
   }
 
   /**
