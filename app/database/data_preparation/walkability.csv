@@ -99,11 +99,11 @@ Impacts from Road Traffic;Noise;noise;;80;83;10;0.08
 Impacts from Road Traffic;Noise;noise;;83;;0;0.08
 Security;Illumination;lit_classified;yes;;;100;0.10
 Security;Illumination;lit_classified;no;;;0;0.10
-Security;Illumination;covered;yes;;;0;0.04
-Security;Illumination;covered;no;;;100;0.04
-Security;Illumination;covered;colonnade;;;100;0.04
-Security;Illumination;covered;building_passage;;;100;0.04
-Security;Illumination;covered;arcade;;;100;0.04
+Security;Coverance;covered;yes;;;0;0.04
+Security;Coverance;covered;no;;;100;0.04
+Security;Coverance;covered;colonnade;;;100;0.04
+Security;Coverance;covered;building_passage;;;100;0.04
+Security;Coverance;covered;arcade;;;100;0.04
 Green and Blue index;Vegetation ;vegetation;yes;;;100;0.07
 Green and Blue index;Vegetation ;vegetation;no;;;0;0.07
 Green and Blue index;Vegetation ;water;large;;;100;0.07
