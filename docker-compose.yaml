@@ -5,7 +5,8 @@ networks:
 
 volumes:
   postgres_data:
-
+    name: ${COMPOSE_PROJECT_NAME}_postgres_data
+  
 services:
   traefik:
     image: "traefik:1.7.2-alpine"
@@ -29,6 +30,7 @@ services:
       proxy:
 
   client:
+    image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:client-${PROJECT_VERSION}
     build:
       dockerfile: Dockerfile
       context: ./app/client
@@ -36,13 +38,15 @@ services:
     volumes:
       - /app/node_modules
       - ./app/client:/app
-    container_name: goat-client
+    container_name: ${COMPOSE_PROJECT_NAME}_client
+    hostname: ${COMPOSE_PROJECT_NAME}_client
     labels:
-      - "traefik.backend=client"
-      - "traefik.frontend.entryPoints=https,http"
-      - "traefik.frontend.rule=Host:localhost;"
-      - "traefik.port=80"
       - "traefik.enable=true"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}_client.loadbalancer.server.port=80"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.entrypoints=websecure"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.tls.certresolver=myhttpchallenge"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.tls=true"
     networks:
       proxy:
 
@@ -65,36 +69,86 @@ services:
       proxy:
 
 
-  db: 
-    image: goatcommunity/database:test-release
-    container_name: goat-database
-    restart: on-failure
+  # api-v2:
+  #   image: goatcommunity/api-v2:latest
+  #   depends_on:
+  #     - db
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - SERVER_NAME=${DOMAIN?Variable not set}
+  #     - SERVER_HOST=https://${DOMAIN?Variable not set}
+  #     # Allow explicit env var override for tests
+  #     - SMTP_HOST=${SMTP_HOST}
+  #   build:
+  #     context: ./backend
+  #     dockerfile: backend.dockerfile
+  #     args:
+  #       INSTALL_DEV: ${INSTALL_DEV-false}
+  #   deploy:
+  #     labels:
+  #       - traefik.enable=true
+  #       - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
+  #       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.rule=PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`)
+  #       - traefik.http.services.${STACK_NAME?Variable not set}-backend.loadbalancer.server.port=80
+
+
+  # db: 
+  #   image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:db-${PROJECT_VERSION}
+  #   container_name: goat-database
+  #   restart: on-failure
+  #   volumes:
+  #     # we are mounting a named volume here instead of a data directory path because of
+  #     # a windows 10 premission issue. See https://github.com/docker-library/postgres/issues/435)
+  #     # .........
+  #     - postgres_data:/var/lib/postgresql
+  #     - ./app/database:/opt
+  #     - ./app/api/src/db:/opt/scripts/db
+  #     - ./app/config:/opt/config
+  #   env_file:
+  #     - ./app/config/docker-env/db.env
+  #   ports:
+  #     - "65432:5432"
+  #   networks:
+  #     proxy:
+
+  db:
+    image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:db-${PROJECT_VERSION}
+    build: ./app/database
+    container_name: ${COMPOSE_PROJECT_NAME}_db
+    hostname: ${COMPOSE_PROJECT_NAME}_db
+    environment:
+      - POSTGRES_PASS=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DBNAME=${COMPOSE_PROJECT_NAME}
+      - DATABASE_URL=postgis://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${COMPOSE_PROJECT_NAME}_db:5432/${COMPOSE_PROJECT_NAME}
     volumes:
-      # we are mounting a named volume here instead of a data directory path because of
-      # a windows 10 premission issue. See https://github.com/docker-library/postgres/issues/435)
-      # .........
-      - postgres_data:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql/data/
       - ./app/database:/opt
       - ./app/api/src/db:/opt/scripts/db
       - ./app/config:/opt/config
-    env_file:
-      - ./app/config/docker-env/db.env
+      # uncomment to enable remote connections to postgres
     ports:
-      - "65432:5432"
+      - "${POSTGRES_OUTER_PORT}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: on-failure
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: ${COMPOSE_PROJECT_NAME}_pgadmin
+    hostname: ${COMPOSE_PROJECT_NAME}_pgadmin
+    environment:
+      - PGADMIN_LISTEN_PORT=${PGADMIN_LISTEN_PORT}
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    depends_on:
+      - db
+    ports:
+      - "5050:5050"
     networks:
       proxy:
         
-  #This container is used for running cron jobs. It is mainly for production purposes.
-  # cron:
-  #   build:
-  #     dockerfile: ./cron/Dockerfile
-  #     context: ./app
-  #   image: goat-cron
-  #   volumes:
-  #     - ./app/database:/opt
-  #     - ./app/config:/opt/config
-  #   container_name: goat-cron
-  #   env_file:
-  #     - ./app/config/docker-env/db.env
-  #   networks:
-  #     proxy:
