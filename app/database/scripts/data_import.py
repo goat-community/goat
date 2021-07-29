@@ -6,6 +6,7 @@ import json
 import fiona
 import geopandas as gpd
 import logging
+import json
 
 class ReadYAML():
     """Read and return database configuration."""
@@ -121,7 +122,7 @@ class DataImport():
         self.db_name = self.db_conf["DB_NAME"]
         self.user = self.db_conf["USER"]
         self.host = self.db_conf["HOST"]
-        self.folder_files = FileHelper().list_files_dir("/opt/data", ('.shp','.sql','.tif', 'json'))
+        self.folder_files = FileHelper().list_files_dir("/opt/data", ('.shp','.sql','.tif', 'json', 'geojson'))
         self.mandatory_data = self.goat_conf['DATA_IMPORT']['MANDATORY']
         self.optional_data = self.goat_conf['DATA_IMPORT']['OPTIONAL']
         self.goat_srid = self.goat_conf['DATA_IMPORT']['SRID']
@@ -154,6 +155,19 @@ class DataImport():
         if (len(study_area_files) == 1):
             self.study_area = study_area_files[0]
             self.study_area_name = study_area_files[0]
+            if(study_area_files[0] == 'study_area.sql'):
+                return GoatMessages().messages("info", "SQL File from Study Area Detected.") 
+            if(study_area_files[0].endswith('geojson') or study_area_files[0].endswith('json')):
+                GoatMessages().messages("info", "GeoJSON File from Study Area Detected.")
+                with open(study_area_files[0]) as g:
+                    geojson = json.load(g)
+                    if not (geojson["features"][0]["properties"]):
+                        return GoatMessages().messages("error", "There is no properties in the file. Please, update your Study Area File and try again.") 
+                    else:
+                        if (("name"  and "sum_pop") in geojson["features"][0]["properties"]):
+                            return GoatMessages().messages("info", "You GeoJSON file has the right attributes. The process will continue.") 
+                        else:
+                            return GoatMessages().messages("error", "Your properties are incomplete. Please, update your Study Area File and try again.") 
             if(study_area_files[0] == 'study_area.shp'):
                 self.study_area = gpd.read_file(study_area_files[0])
                 if(str(self.study_area.crs).split(':')[1] == '4326'):
@@ -163,10 +177,6 @@ class DataImport():
                     self.study_area = self.study_area.to_crs(self.goat_srid)
                     self.study_area.to_file('study_area.shp')
                     return GoatMessages().messages("Converted from {0} => {1}".format(old_srid, self.goat_srid))
-            if(study_area_files[0] == 'study_area.sql'):
-                    return GoatMessages().messages("info", "SQL File from Study Area Detected.") 
-            if(study_area_files[0] == 'study_area.json'):
-                    return GoatMessages().messages("info", "GeoJSON File from Study Area Detected.") 
         if (len(study_area_files) > 1):
             return GoatMessages().messages("error", "You have more than one study area in supported formats. Please, use only one file")
   
@@ -234,6 +244,7 @@ class DataImport():
             GoatMessages().messages("warning", "Your land use shapefile do not have all mandatory fields.")
         else: 
             GoatMessages().messages("info", "All optional shapefiles has the right fields structure.")
+
 
     def prepare_planet_osm(self):
         os.chdir('/opt/data') 
