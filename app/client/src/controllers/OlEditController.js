@@ -345,7 +345,6 @@ export default class OlEditController extends OlBaseController {
       me.createPopupOverlay();
       feature = evt;
     }
-
     me.highlightSource.addFeature(feature);
     me.selectedFeature = feature;
     me.popup.deleteFeature = feature;
@@ -375,7 +374,8 @@ export default class OlEditController extends OlBaseController {
     const selectedFeature = f || me.selectedFeature;
     // If layers selected is building get also all building entrance features of the building and commit a delete request
     if (
-      editLayerHelper.selectedLayer.get("name") === "buildings" &&
+      // editLayerHelper.selectedLayer.get("name") === "buildings" &&
+      selectedFeature.get("layerName") === "buildings" &&
       this.bldEntranceLayer &&
       selectedFeature
     ) {
@@ -402,19 +402,21 @@ export default class OlEditController extends OlBaseController {
     // if (me.selectedFeature.get("user_uploaded")) {
     //   me.source.removeFeature(me.selectedFeature);
     // } else {
-    editLayerHelper.deleteFeature(
+    let _promise = editLayerHelper.deleteFeature(
       selectedFeature,
       me.source,
       me.storageLayer.getSource()
     );
 
     me.closePopup();
+    return _promise;
   }
 
   /**
    * Delete Building Entrance Features
    */
   deleteBldEntranceFeatures(features) {
+    let _promise;
     if (Array.isArray(features)) {
       const deletedBldEntrancePayload = [];
       features.forEach(feature => {
@@ -430,7 +432,9 @@ export default class OlEditController extends OlBaseController {
         features: deletedBldEntrancePayload
       };
 
-      http.post("/api/map/layer_controller", payload);
+      _promise = http.post("/api/map/layer_controller", payload).catch(() => {
+        // console.log("error");
+      });
       features.forEach(feature => {
         this.bldEntranceLayer.getSource().removeFeature(feature);
         if (this.bldEntranceStorageLayer.getSource().hasFeature(feature)) {
@@ -438,6 +442,7 @@ export default class OlEditController extends OlBaseController {
         }
       });
     }
+    return _promise;
   }
 
   /**
@@ -482,7 +487,6 @@ export default class OlEditController extends OlBaseController {
    * Sync Deleted features(except building entrance) from transact for Undo Redo functionality
    */
   syncDeletedFeature(featureStack, undoFeatures, ith) {
-    let flag = false;
     if (featureStack) {
       for (let i = 0; i < featureStack.length; i++) {
         let f = featureStack[i];
@@ -490,12 +494,7 @@ export default class OlEditController extends OlBaseController {
           let subF = f.features[j];
           if (subF.getId() === undefined) {
             f.features[j] = undoFeatures[ith];
-            flag = true;
-            break;
           }
-        }
-        if (flag === true) {
-          break;
         }
       }
     }
@@ -656,6 +655,8 @@ export default class OlEditController extends OlBaseController {
                 .removeFeature(featuresToRemove[index]);
             }
             feature.setId(feature.get("gid"));
+
+            //Syncing features in Undo Redo Stack
             if (undoFeatures) {
               undoFeatures.push(feature);
               me.syncDeletedFeature(featureUndoStack, undoFeatures, ith);

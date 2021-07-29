@@ -89,6 +89,8 @@ const editLayerHelper = {
     ]);
   },
   deleteFeature(feature, source, storageSource) {
+    let _promise;
+    editLayerHelper.featureLayer = feature.get("layerName");
     const props = feature.getProperties();
     const beforeStatus = feature.get("status");
     feature.set("status", null);
@@ -101,13 +103,13 @@ const editLayerHelper = {
         const fid = feature.getProperties().original_id.toString();
         editLayerHelper.featuresIDsToDelete.push(fid);
         editLayerHelper.deletedFeatures.push(feature);
-        editLayerHelper.commitDelete("delete_feature", props.id);
-        editLayerHelper.commitDelete("update_deleted_features");
+        _promise = editLayerHelper.commitDelete("delete_feature", props.id);
+        _promise = editLayerHelper.commitDelete("update_deleted_features");
       } else {
         if (beforeStatus !== null) {
           editLayerHelper.deletedFeatures.push(feature);
         }
-        editLayerHelper.commitDelete(
+        _promise = editLayerHelper.commitDelete(
           "delete_feature",
           props.id || feature.getId()
         );
@@ -116,22 +118,24 @@ const editLayerHelper = {
       let fid;
       if (!props.hasOwnProperty("original_id") && !props.hasOwnProperty("id")) {
         fid = feature.getId().toString();
-        editLayerHelper.commitDelete("delete_feature", fid);
+        _promise = editLayerHelper.commitDelete("delete_feature", fid);
       } else {
         fid = feature.getProperties().id.toString();
         editLayerHelper.featuresIDsToDelete.push(fid);
         editLayerHelper.deletedFeatures.push(feature);
-        editLayerHelper.commitDelete("update_deleted_features");
+        _promise = editLayerHelper.commitDelete("update_deleted_features");
       }
     }
     source.removeFeature(feature);
     if (storageSource.hasFeature(feature)) {
       storageSource.removeFeature(feature);
     }
+    return _promise;
   },
   commitDelete(mode, drawn_fid) {
-    const layerName = this.selectedLayer.get("name");
-    fetch("/api/map/scenarios", {
+    const layerName =
+      editLayerHelper.featureLayer || this.selectedLayer.get("name");
+    return fetch("/api/map/scenarios", {
       method: "POST",
       body: JSON.stringify({
         mode: mode,
