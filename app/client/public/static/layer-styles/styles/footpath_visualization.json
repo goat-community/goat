@@ -1,0 +1,115 @@
+{
+  "name": "Footpath visualization",
+  "rules": [
+    {
+      "name": "0 - 10",
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#d7191c",
+          "width": 3
+        }
+      ],
+      "filter": ["&&", [">=", "walkability", "0"], ["<", "walkability", "10"]]
+    },
+    {
+      "name": "10 - 20",
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#e85b3a",
+          "width": 3
+        }
+      ],
+      "filter": ["&&", [">=", "walkability", "10"], ["<", "walkability", "20"]]
+    },
+    {
+      "name": "20 - 30",
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#f99e59",
+          "width": 3
+        }
+      ],
+      "filter": ["&&", [">=", "walkability", "20"], ["<", "walkability", "30"]]
+    },
+    {
+      "name": "30 - 40",
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#fec981",
+          "width": 3
+        }
+      ],
+      "filter": ["&&", [">=", "walkability", "30"], ["<", "walkability", "40"]]
+    },
+    {
+      "name": "40 - 50",
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#ffedab",
+          "width": 3
+        }
+      ],
+      "filter": ["&&", [">=", "walkability", "40"], ["<", "walkability", "50"]]
+    },
+    {
+      "name": "50 - 60",
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#ecf7ad",
+          "width": 3
+        }
+      ],
+      "filter": ["&&", [">=", "walkability", "50"], ["<", "walkability", "60"]]
+    },
+    {
+      "name": "60 - 70",
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#c4e687",
+          "width": 3
+        }
+      ],
+      "filter": ["&&", [">=", "walkability", "60"], ["<", "walkability", "70"]]
+    },
+    {
+      "name": "70 - 80",
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#97d265",
+          "width": 3
+        }
+      ],
+      "filter": ["&&", [">=", "walkability", "70"], ["<", "walkability", "80"]]
+    },
+    {
+      "name": "80 - 90",
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#58b453",
+          "width": 3
+        }
+      ],
+      "filter": ["&&", [">=", "walkability", "80"], ["<", "walkability", "90"]]
+    },
+    {
+      "name": "> 90",
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#1a9641",
+          "width": 3
+        }
+      ],
+      "filter": [">=", "walkability", "90"]
+    }
+  ]
+}

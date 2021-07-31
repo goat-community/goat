@@ -248,7 +248,7 @@
       "bingAerial": "Imazh Bing"
     },
     "tooltips": {
-      "clickForCalculation": "Kliko për llogaritje",
+      "clickForIsochroneCalculation": "Kliko për llogaritje",
       "clickToSelectStudyArea": "Kliko për të zgjedhur zonën e studimit",
       "maxCircleRadius": "Rrezja maksimale është 1000 m",
       "clickToStartMeasure": "Kliko të fillosh matjen",

@@ -31,12 +31,12 @@
         <div
           v-if="
             ['VECTORTILE', 'VECTOR'].includes(item.mapLayer.get('type')) &&
-              styleRules[item.mapLayer.get('name')]
+              $appConfig.stylesObj[item.mapLayer.get('name')]
           "
           style="text-align: center; padding: 20px;"
           :key="item.layerTreeKey"
         >
-          <div v-if="styleRules[item.mapLayer.get('name')]">
+          <div v-if="$appConfig.stylesObj[item.mapLayer.get('name')]">
             <v-layout
               v-for="(rule, ith) in filterStylesOnActiveModeByLayerName(
                 item.mapLayer.get('name')
@@ -48,26 +48,27 @@
               align-center
             >
               <v-flex xs1>
-                <v-checkbox
+                <v-simple-checkbox
                   style="width: 27px;height: 38px;"
+                  :ripple="false"
                   v-if="
                     filterStylesOnActiveModeByLayerName(
                       item.mapLayer.get('name')
                     ).rules.length > 1
                   "
                   :key="item.attributeDisplayStatusKey"
-                  color="success"
-                  :input-value="isLayerAttributeVisible(item, ith)"
-                  @change="
+                  :color="activeColor.primary"
+                  :value="isLayerAttributeVisible(item, ith)"
+                  @input="
                     attributeLevelRendering(
-                      styleRules[item.mapLayer.get('name')].style.rules[ith]
-                        .filter[0],
+                      $appConfig.stylesObjCopy[item.mapLayer.get('name')].style
+                        .rules[ith].filter[0],
                       item,
                       ith
                     )
                   "
                 >
-                </v-checkbox>
+                </v-simple-checkbox>
               </v-flex>
               <v-flex xs11>
                 <span
@@ -89,12 +90,12 @@
 <script>
 import LegendRenderer from "../../../../utils/LegendRenderer";
 import Legend from "../controls/Legend";
+import { mapGetters } from "vuex";
 
 export default {
   props: ["item"],
   mixins: [Legend],
   data: () => ({
-    styleRules: null,
     legendRerenderOnActiveMode: 0
   }),
   watch: {
@@ -102,9 +103,6 @@ export default {
     "calculationOptions.calculationModes.active": function() {
       this.legendRerenderOnActiveMode += 1;
     }
-  },
-  created() {
-    this.styleRules = JSON.parse(JSON.stringify(this.$appConfig.stylesObj));
   },
   methods: {
     isLayerAttributeVisible(item, ith) {
@@ -169,6 +167,11 @@ export default {
         }
       }, 100);
     }
+  },
+  computed: {
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
   }
 };
 </script>

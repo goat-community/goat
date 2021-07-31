@@ -4,6 +4,7 @@
     "primary": "#2BB381",
     "secondary": "#249c70"
   },
+  "osmMapping": "off",
   "osmMappingColor": {
     "primary": "#283648",
     "secondary": "#3a4d66"
@@ -52,8 +53,8 @@
         "visible": true,
         "canEdit": false,
         "queryable": false,
-        "displayInLayerList": false,
-        "zIndex": 1,
+        "displayInLayerList": true,
+        "zIndex": 1000,
         "queryParams": ["table_name"],
         "style": {
           "format": "geostyler",
@@ -76,8 +77,7 @@
         "zIndex": 2,
         "serverType": "geoserver",
         "attributes": {
-          "source": "openStreetMap",
-          "date": "07-03-2021"
+          "source": "openStreetMap"
         },
         "style": {
           "format": "geostyler",
@@ -109,8 +109,7 @@
         "displayInLegend": false,
         "zIndex": 7,
         "attributes": {
-          "source": "openStreetMap",
-          "date": "07-03-2021"
+          "source": "openStreetMap"
         },
         "style": {
           "format": "custom-logic"
@@ -125,6 +124,7 @@
         "visible": false,
         "canEdit": false,
         "queryable": true,
+        "requiresAois": true,
         "displayInLayerList": true,
         "zIndex": 0.5,
         "maxResolution": 20,
@@ -179,8 +179,7 @@
           "url": "./static/layer-styles/styles/landuse_osm.json"
         },
         "attributes": {
-          "source": "openStreetMap",
-          "date": "07-03-2021"
+          "source": "openStreetMap"
         }
       },
       {
@@ -206,8 +205,7 @@
           "url": "./static/layer-styles/styles/buildings.json"
         },
         "attributes": {
-          "source": "openStreetMap",
-          "date": "07-03-2021"
+          "source": "openStreetMap"
         }
       },
       {
@@ -265,6 +263,11 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lit.json"
+        },
+        "attributes": {
+          "source": "OpenStreetMap",
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -396,6 +399,133 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
+        "name": "footpath_visualization",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "docUrl": "https://plan4better.de/docs/walkability_index/",
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/footpath_visualization.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_liveliness",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_liveliness.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_urban_equipment",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_urban_equipment.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_traffic_protection",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_traffic_protection.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_sidewalk_quality",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_sidewalk_quality.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_security",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_security.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "ways_green_blue_index",
+        "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": false,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_green_blue_index.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "street_crossings",
         "url": "/api/map/layer/street_crossings/{z}/{x}/{y}",
         "group": "streetlevelqualityLayers",
@@ -412,7 +542,8 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "07-03-2021"
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -434,7 +565,8 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "07-03-2021"
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -456,7 +588,8 @@
         },
         "attributes": {
           "source": "openStreetMap",
-          "date": "07-03-2021"
+          "source": "Mapillary",
+          "date": "01-06-2021"
         }
       },
       {
@@ -478,6 +611,23 @@
         "attributes": {
           "source": "munichWays",
           "date": "2020"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "primary_school_streams",
+        "url": "/api/map/layer/primary_school_streams/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/primary_school_streams.json"
         }
       },
       {
@@ -850,7 +1000,7 @@
         "visible": false,
         "requiresPois": true,
         "zIndex": 1,
-        "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
+        "docUrl": "https://plan4better.de/docs/walkability_population_heatmap/",
         "queryParams": [
           "heatmap_type",
           "scenario_id_input",
@@ -887,7 +1037,7 @@
         "visible": false,
         "requiresPois": true,
         "zIndex": 1,
-        "docUrl": "https://www.open-accessibility.org/docs/heatmap/",
+        "docUrl": "https://plan4better.de/docs/heatmap/",
         "queryParams": [
           "heatmap_type",
           "scenario_id_input",
@@ -975,12 +1125,12 @@
         "type": "XYZ",
         "name": "publicTransport",
         "group": "backgroundLayers",
-        "url": "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
+        "url": "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=402ce1ca8eb54457bdf65e2b261c5132",
         "maxZoom": 18,
         "queryable": false,
         "visible": false,
         "displayInLayerList": true,
-        "attributions": "© <a href='https://www.memomaps.de/'>Memomaps</a>"
+        "attributions": "© <a href='https://www.thunderforest.com/'>Thunderforest</a>"
       },
       {
         "type": "BING",
@@ -1002,10 +1152,7 @@
         "name": "mapping_pois_opening_hours",
         "url": "/api/map/layer_read",
         "group": "osmMappingLayers",
-        "queryParams": [
-          "table_name",
-          "amenities"
-        ],
+        "queryParams": ["table_name", "amenities"],
         "opacity": 1,
         "queryable": true,
         "visible": false,
@@ -1184,6 +1331,20 @@
           "source": "Statistische Ämter des Bundes und der Länder",
           "date": "2011"
         }
+      },
+      {
+        "name": "Lastenräder",
+        "attributes": {
+          "source": "LastenVelo Freiburg e.V.",
+          "date": "16.03.2021"
+        }
+      },
+      {
+        "name": "Schulen",
+        "attributes": {
+          "source": "JedeSchule - Open Knowledge Foundation Deutschland e.V.",
+          "date": "2021"
+        }
       }
     ],
     "controls": [
@@ -1252,6 +1413,14 @@
               "name": "Realschule",
               "value": "realschule",
               "icon": "realschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Werkrealschule",
+              "value": "werkrealschule",
+              "icon": "werkrealschule",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
@@ -1344,6 +1513,13 @@
               "name": "Bike sharing",
               "value": "bicycle_rental",
               "icon": "bicycle_rental",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Cargo bike",
+              "value": "cargo_bike",
+              "icon": "cargo_bike",
               "weight": 1,
               "sensitivity": 300000
             },
@@ -1988,7 +2164,8 @@
           "4": "rgb(090, 090, 090)",
           "5": "rgb(000, 000, 000)"
         }
-      }
+      },
+      "isPPFActive": false
     },
     "routing": {
       "default": "walking",
@@ -2044,7 +2221,17 @@
         "timeBasedCalculations": "no"
       }
     },
-    "edit": {}
+    "edit": {},
+    "layerTree": {
+      "groupIcons": {
+        "poisLayers": "fas fa-map-marker",
+        "buildings_landuse": "fas fa-home",
+        "streetlevelqualityLayers": "fas fa-road",
+        "environmentalQualityLayers": "fas fa-leaf",
+        "additionalDataLayers": "more",
+        "accessbilityBasemaps": "./static/layer-styles/assets/icons/_backgroundLayers/hexagon.svg"
+      }
+    }
   },
   "layerConf": {
     "ways": {
