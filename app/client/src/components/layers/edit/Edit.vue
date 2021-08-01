@@ -2122,8 +2122,7 @@ export default {
     /**
      * Method used on popup save (draw)/ok(delete) depending on interaction type
      */
-    async ok(type) {
-      this.unDoRedoStatus = true;
+    ok(type) {
       if (["add", "modifyAttributes"].includes(type)) {
         let prev_attribute = this.setDataObjectsProps(
           this.olEditCtrl.featuresToCommit[0]
@@ -2142,13 +2141,13 @@ export default {
         // Managing Undo Redo Functionality
         if (type === "add") {
           let undoFeatures = [];
-          await this.olEditCtrl.transact(this.dataObject, undoFeatures);
+          this.olEditCtrl.transact(this.dataObject, undoFeatures);
           this.featureUndoStack.push({
             type: "delete",
             features: undoFeatures
           });
         } else {
-          await this.olEditCtrl.transact(this.dataObject);
+          this.olEditCtrl.transact(this.dataObject);
           this.featureUndoStack.push({
             type: "modify_attribute",
             features: [this.modifiedAttributeFeature],
@@ -2173,13 +2172,12 @@ export default {
         });
 
         //Delete feature
-        await this.olEditCtrl.deleteFeature();
+        this.olEditCtrl.deleteFeature();
 
         //Delete object from popup
         delete this.popup.deleteFeature;
         this.featureRedoStack = [];
       }
-      this.unDoRedoStatus = false;
     },
     /**
      * Methods used on popup cancel
