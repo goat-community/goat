@@ -371,45 +371,49 @@ export default class OlEditController extends OlBaseController {
    */
   deleteFeature(f) {
     const me = this;
-    const selectedFeature = f || me.selectedFeature;
-    // If layers selected is building get also all building entrance features of the building and commit a delete request
-    if (
-      // editLayerHelper.selectedLayer.get("name") === "buildings" &&
-      selectedFeature.get("layerName") === "buildings" &&
-      this.bldEntranceLayer &&
-      selectedFeature
-    ) {
-      const buildingId =
-        selectedFeature.get("gid") ||
-        selectedFeature.get("id") ||
-        selectedFeature.getId();
-      const bldEntranceFeaturesToDelete = this.bldEntranceLayer
-        .getSource()
-        .getFeatures()
-        .filter(
-          f =>
-            selectedFeature
-              .getGeometry()
-              .intersectsCoordinate(f.getGeometry().getCoordinates()) &&
-            f.get("building_gid") === buildingId
-        );
-      if (bldEntranceFeaturesToDelete.length > 0) {
-        this.deleteBldEntranceFeatures(bldEntranceFeaturesToDelete);
+    const promiseArray = [];
+    const selectedFeatures = f || [me.selectedFeature];
+    selectedFeatures.forEach(selectedFeature => {
+      // If layers selected is building get also all building entrance features of the building and commit a delete request
+      if (
+        // editLayerHelper.selectedLayer.get("name") === "buildings" &&
+        selectedFeature.get("layerName") === "buildings" &&
+        this.bldEntranceLayer &&
+        selectedFeature
+      ) {
+        const buildingId =
+          selectedFeature.get("gid") ||
+          selectedFeature.get("id") ||
+          selectedFeature.getId();
+        const bldEntranceFeaturesToDelete = this.bldEntranceLayer
+          .getSource()
+          .getFeatures()
+          .filter(
+            f =>
+              selectedFeature
+                .getGeometry()
+                .intersectsCoordinate(f.getGeometry().getCoordinates()) &&
+              f.get("building_gid") === buildingId
+          );
+        if (bldEntranceFeaturesToDelete.length > 0) {
+          this.deleteBldEntranceFeatures(bldEntranceFeaturesToDelete);
+        }
       }
-    }
 
-    //Check if feature is from file input (if so, just delete from edit layer)
-    // if (me.selectedFeature.get("user_uploaded")) {
-    //   me.source.removeFeature(me.selectedFeature);
-    // } else {
-    let _promise = editLayerHelper.deleteFeature(
-      selectedFeature,
-      me.source,
-      me.storageLayer.getSource()
-    );
-
+      //Check if feature is from file input (if so, just delete from edit layer)
+      // if (me.selectedFeature.get("user_uploaded")) {
+      //   me.source.removeFeature(me.selectedFeature);
+      // } else {
+      promiseArray.push(
+        editLayerHelper.deleteFeature(
+          selectedFeature,
+          me.source,
+          me.storageLayer.getSource()
+        )
+      );
+    });
     me.closePopup();
-    return _promise;
+    return axios.all(promiseArray);
   }
 
   /**
@@ -493,7 +497,31 @@ export default class OlEditController extends OlBaseController {
         for (let j = 0; j < f.features.length; j++) {
           let subF = f.features[j];
           if (subF.getId() === undefined) {
-            f.features[j] = undoFeatures[ith];
+            if (subF.getGeometry().getType() === "Point") {
+              let a = subF
+                .getGeometry()
+                .getCoordinates()
+                .reduce((a, b) => a + b);
+              let b = undoFeatures[ith]
+                .getGeometry()
+                .getCoordinates()
+                .reduce((a, b) => a + b);
+              if (parseInt(a) == parseInt(b)) {
+                f.features[j] = undoFeatures[ith];
+              }
+            } else if (subF.getGeometry().getType() === "Polygon") {
+              let a = subF.getGeometry().getArea();
+              let b = undoFeatures[ith].getGeometry().getArea();
+              if (parseInt(a) === parseInt(b)) {
+                f.features[j] = undoFeatures[ith];
+              }
+            } else if (subF.getGeometry().getType() === "LineString") {
+              let a = subF.getGeometry().getLength();
+              let b = undoFeatures[ith].getGeometry().getLength();
+              if (parseInt(a) == parseInt(b)) {
+                f.features[j] = undoFeatures[ith];
+              }
+            }
           }
         }
       }
@@ -503,19 +531,31 @@ export default class OlEditController extends OlBaseController {
   /**
    * Transact features to the database
    */
-  transact(properties, undoFeatures, featureUndoStack, featureRedoStack, ith) {
+  transact(properties, undoFeatures, featureUndoStack, featureRedoStack) {
     const me = this;
     const featuresToAdd = [];
     const featuresToUpdate = [];
     const featuresToRemove = [];
+    const clonedProperties = [];
+    if (Array.isArray(properties)) {
+      properties.forEach((property, i) => {
+        clonedProperties.push(Object.assign({}, property));
+        clonedProperties[i].scenario_id = isochronesStore.state.activeScenario;
+        delete clonedProperties[i]["id"];
+      });
+    } else {
+      clonedProperties.push(Object.assign({}, properties));
+      clonedProperties[0].scenario_id = isochronesStore.state.activeScenario;
+      delete clonedProperties[0]["id"];
+    }
 
-    const clonedProperties = Object.assign({}, properties);
-    clonedProperties.scenario_id = isochronesStore.state.activeScenario;
-    delete clonedProperties["id"];
+    // const clonedProperties = Object.assign({}, properties);
+    // clonedProperties.scenario_id = isochronesStore.state.activeScenario;
+    // delete clonedProperties["id"];
 
     const layerName = `${editLayerHelper.selectedLayer.get("name")}_modified`;
 
-    me.featuresToCommit.forEach(feature => {
+    me.featuresToCommit.forEach((feature, i) => {
       const props = feature.getProperties();
       //Transform the feature
       const geometry = feature.getGeometry().clone();
@@ -524,12 +564,12 @@ export default class OlEditController extends OlBaseController {
         geom: geometry
       });
       //Assign initial attributes
-      Object.keys(clonedProperties).forEach(key => {
+      Object.keys(clonedProperties[i]).forEach(key => {
         let value;
         if (props[key]) {
           value = props[key];
-        } else if (clonedProperties[key]) {
-          value = clonedProperties[key];
+        } else if (clonedProperties[i][key]) {
+          value = clonedProperties[i][key];
         } else {
           value = null;
         }
@@ -538,7 +578,7 @@ export default class OlEditController extends OlBaseController {
       transformed.setGeometryName("geom");
 
       if (me.currentInteraction === "draw") {
-        transformed.setProperties(clonedProperties);
+        transformed.setProperties(clonedProperties[i]);
       }
 
       if (
@@ -641,6 +681,11 @@ export default class OlEditController extends OlBaseController {
         const payload = JSON.parse(response.config.data);
 
         if (payload.mode === "insert") {
+          if (Array.isArray(undoFeatures)) {
+            response.data.features.forEach((feature, i) => {
+              feature.id = i;
+            });
+          }
           const features = geojsonToFeature(response.data, {
             dataProjection: "EPSG:4326",
             featureProjection: "EPSG:3857"
@@ -657,10 +702,10 @@ export default class OlEditController extends OlBaseController {
             feature.setId(feature.get("gid"));
 
             //Syncing features in Undo Redo Stack
-            if (undoFeatures) {
+            if (Array.isArray(undoFeatures)) {
               undoFeatures.push(feature);
-              me.syncDeletedFeature(featureUndoStack, undoFeatures, ith);
-              me.syncDeletedFeature(featureRedoStack, undoFeatures, ith);
+              me.syncDeletedFeature(featureUndoStack, undoFeatures, index);
+              me.syncDeletedFeature(featureRedoStack, undoFeatures, index);
             }
             me.source.addFeature(feature);
           });

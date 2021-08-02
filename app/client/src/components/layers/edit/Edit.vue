@@ -1442,6 +1442,7 @@ export default {
       const feature = this.olEditCtrl.source.getClosestFeatureToCoordinate(
         evt.coordinate
       );
+      this.modifiedAttributeFeature = feature;
       this.olEditCtrl.featuresToCommit = [];
       this.olEditCtrl.highlightSource.clear();
       if (feature) {
@@ -1506,6 +1507,13 @@ export default {
 
       this.olEditCtrl.isInteractionOnProgress = false;
       let props = {};
+      if (modifiedFeature) {
+        await this.setSelectedLayer(modifiedFeature[0]);
+        if (this.olEditCtrl.featuresToCommit.length === 0) {
+          this.olEditCtrl.featuresToCommit = modifiedFeature;
+          this.olEditCtrl.currentInteraction = "modify";
+        }
+      }
       Object.keys(this.schema[this.layerName].properties).forEach(key => {
         props[key] = null;
       });
@@ -2116,6 +2124,9 @@ export default {
      */
     ok(type) {
       if (["add", "modifyAttributes"].includes(type)) {
+        let prev_attribute = this.setDataObjectsProps(
+          this.olEditCtrl.featuresToCommit[0]
+        );
         if (type === "modifyAttributes") {
           var propKeys = Object.keys(this.dataObject);
           propKeys.forEach(key => {
@@ -2126,16 +2137,25 @@ export default {
             this.olEditCtrl.featuresToCommit[0].set("status", null);
           });
         }
-        let undoFeatures = [];
-        this.olEditCtrl.transact(this.dataObject, undoFeatures);
-        this.olEditCtrl.closePopup();
 
         // Managing Undo Redo Functionality
-        this.featureUndoStack.push({
-          type: "delete",
-          features: undoFeatures
-        });
+        if (type === "add") {
+          let undoFeatures = [];
+          this.olEditCtrl.transact(this.dataObject, undoFeatures);
+          this.featureUndoStack.push({
+            type: "delete",
+            features: undoFeatures
+          });
+        } else {
+          this.olEditCtrl.transact(this.dataObject);
+          this.featureUndoStack.push({
+            type: "modify_attribute",
+            features: [this.modifiedAttributeFeature],
+            prev_attribute: prev_attribute
+          });
+        }
         this.featureRedoStack = [];
+        this.olEditCtrl.closePopup();
       } else {
         //Manage deleted feature undo functionality
         let features_to_insert = [];
@@ -2328,12 +2348,17 @@ export default {
     // Undo Redo Features
     getBldEntrancePoints(f) {
       //Get building entrance features
-      let bld_gid = f.getProperties()["gid"];
+      let bld_gid = f.get("gid") || f.get("id") || f.getId();
       let bldEntranceLayerFeatures = this.olEditCtrl.bldEntranceLayer
         .getSource()
         .getFeatures();
       return bldEntranceLayerFeatures.filter(feature => {
-        return feature.getProperties()["building_gid"] == bld_gid;
+        return (
+          f
+            .getGeometry()
+            .intersectsCoordinate(feature.getGeometry().getCoordinates()) &&
+          feature.get("building_gid") === bld_gid
+        );
       });
     },
     syncDeletedBldEntrFeature(featureStack, oldFeature, newFeature) {
@@ -2426,106 +2451,169 @@ export default {
     },
     async unDoRedo(unre) {
       //This function will be called on click of undo/redo button
+      this.olEditCtrl.featuresToCommit = [];
       this.unDoRedoStatus = true;
       this.undoFeatures = [];
       if (unre === "undo") {
         let undo_features = this.featureUndoStack.pop();
         this.featureRedoStack.push(undo_features);
-        if (undo_features.type === "delete") {
-          await this.urRemove(undo_features.features);
-          undo_features.type = "insert";
-          this.unDoRedoStatus = false;
-        } else if (undo_features.type === "insert") {
-          await this.urInsert(undo_features.features);
-          undo_features.type = "delete";
-          this.unDoRedoStatus = false;
-        } else if (undo_features.type === "modify") {
-          await this.setSelectedLayer(undo_features.features[0]);
-          let newGeom = undo_features.prev_geom;
-          undo_features.prev_geom = undo_features.features[0].getGeometry();
-          undo_features.features[0].setGeometry(newGeom);
-          this.olEditCtrl.featuresToCommit = undo_features.features;
-          this.onModifyEnd("modify");
+        let undoType = undo_features.type;
+        switch (undoType) {
+          case "delete": {
+            this.olEditCtrl.currentInteraction = "draw";
+            await this.urRemove(undo_features.features);
+            undo_features.type = "insert";
+            this.unDoRedoStatus = false;
+            break;
+          }
+          case "insert": {
+            this.olEditCtrl.currentInteraction = "draw";
+            await this.urInsert(undo_features.features);
+            undo_features.type = "delete";
+            this.unDoRedoStatus = false;
+            break;
+          }
+          case "modify": {
+            this.olEditCtrl.currentInteraction = "modify";
+            await this.setSelectedLayer(undo_features.features[0]);
+            let newGeom = undo_features.prev_geom;
+            undo_features.prev_geom = undo_features.features[0].getGeometry();
+            undo_features.features[0].setGeometry(newGeom);
+            this.olEditCtrl.featuresToCommit = undo_features.features;
+            this.onModifyEnd("modify");
+            break;
+          }
+          case "modify_attribute": {
+            this.olEditCtrl.currentInteraction = "modifyAttributes";
+            await this.setSelectedLayer(undo_features.features[0]);
+            let newAttribute = undo_features.prev_attribute;
+            undo_features.prev_attribute = this.setDataObjectsProps(
+              undo_features.features[0]
+            );
+            undo_features.features[0].setProperties(newAttribute);
+            this.olEditCtrl.featuresToCommit = undo_features.features;
+            await this.olEditCtrl.transact(newAttribute);
+            this.unDoRedoStatus = false;
+            break;
+          }
+          default:
+            break;
         }
       } else {
         let redo_features = this.featureRedoStack.pop();
-        if (redo_features.type === "delete") {
-          await this.urRemove(redo_features.features);
-          this.featureUndoStack.push({
-            type: "insert",
-            features: redo_features.features
-          });
-          this.unDoRedoStatus = false;
-        } else if (redo_features.type === "insert") {
-          await this.urInsert(redo_features.features);
-          this.featureUndoStack.push({
-            type: "delete",
-            features: this.undoFeatures
-          });
-          this.unDoRedoStatus = false;
-        } else if (redo_features.type === "modify") {
-          await this.setSelectedLayer(redo_features.features[0]);
-          let newGeom = redo_features.prev_geom;
-          redo_features.prev_geom = redo_features.features[0].getGeometry();
-          redo_features.features[0].setGeometry(newGeom);
-          this.olEditCtrl.featuresToCommit = redo_features.features;
-          this.onModifyEnd("modify");
-          this.featureUndoStack.push(redo_features);
+        let redoType = redo_features.type;
+        switch (redoType) {
+          case "delete": {
+            this.olEditCtrl.currentInteraction = "draw";
+            await this.urRemove(redo_features.features);
+            this.featureUndoStack.push({
+              type: "insert",
+              features: redo_features.features
+            });
+            this.unDoRedoStatus = false;
+            break;
+          }
+          case "insert": {
+            this.olEditCtrl.currentInteraction = "draw";
+            await this.urInsert(redo_features.features);
+            this.featureUndoStack.push({
+              type: "delete",
+              features: this.undoFeatures
+            });
+            this.unDoRedoStatus = false;
+            break;
+          }
+          case "modify": {
+            this.olEditCtrl.currentInteraction = "modify";
+            await this.setSelectedLayer(redo_features.features[0]);
+            let newGeom = redo_features.prev_geom;
+            redo_features.prev_geom = redo_features.features[0].getGeometry();
+            redo_features.features[0].setGeometry(newGeom);
+            this.olEditCtrl.featuresToCommit = redo_features.features;
+            this.onModifyEnd("modify");
+            this.featureUndoStack.push(redo_features);
+            break;
+          }
+          case "modify_attribute": {
+            this.olEditCtrl.currentInteraction = "modifyAttributes";
+            await this.setSelectedLayer(redo_features.features[0]);
+            let newAttribute = redo_features.prev_attribute;
+            redo_features.prev_attribute = this.setDataObjectsProps(
+              redo_features.features[0]
+            );
+            redo_features.features[0].setProperties(newAttribute);
+            this.olEditCtrl.featuresToCommit = redo_features.features;
+            await this.olEditCtrl.transact(newAttribute);
+            this.featureUndoStack.push(redo_features);
+            this.unDoRedoStatus = false;
+            break;
+          }
+          default:
+            break;
         }
       }
     },
     async urRemove(features) {
       //Removing features from undo redo
-      for (let i = 0; i < features.length; i++) {
-        let feature = features[i];
-        if (feature.get("building_gid")) {
-          if (
-            this.olEditCtrl.bldEntranceLayer.getSource().hasFeature(feature)
-          ) {
-            this.selectedLayer = this.editableLayers[0];
-            await this.olEditCtrl.deleteBldEntranceFeatures([feature]);
-          }
+      if (features[0].get("building_gid")) {
+        this.selectedLayer = this.editableLayers[0];
+        await this.olEditCtrl.deleteBldEntranceFeatures(features);
+      } else {
+        await this.setSelectedLayer(features[0]);
+        if (features.length > 1 && features[1].get("building_gid")) {
+          await this.olEditCtrl.deleteFeature([features[0]]);
         } else {
-          await this.setSelectedLayer(feature);
-          await this.olEditCtrl.deleteFeature(feature);
+          await this.olEditCtrl.deleteFeature(features);
         }
       }
       this.olEditCtrl.source.changed();
     },
     async urInsert(features) {
       //Common function for Inserting entrance or layers features from undo redo
-      for (let i = 0; i < features.length; i++) {
-        let feature = features[i];
-        if (feature.get("building_gid")) {
-          await this.urInsertBuildingEntrFeatures(feature);
+      if (features[0].get("building_gid")) {
+        await this.urInsertBuildingEntrFeatures(features);
+      } else {
+        if (features.length > 1 && features[1].get("building_gid")) {
+          await this.urInsertFeatures([features[0]]);
+          await this.urInsertBuildingEntrFeatures(features.slice(1));
         } else {
-          await this.urInsertFeatures(feature, i);
+          await this.urInsertFeatures(features);
         }
       }
+      this.olEditCtrl.source.changed();
     },
-    async urInsertBuildingEntrFeatures(feature) {
+    async urInsertBuildingEntrFeatures(features) {
       //Insert any Building Entrance feature from undo redo
+      let promiseArray = [];
       this.selectedLayer = this.editableLayers[0];
-      let evt = {
-        type: "drawend",
-        feature: feature
-      };
-      await this.onBldEntranceInteractionEnd(evt, true, this.undoFeatures);
+      features.forEach(feature => {
+        let evt = {
+          type: "drawend",
+          feature: feature
+        };
+        promiseArray.push(
+          this.onBldEntranceInteractionEnd(evt, true, this.undoFeatures)
+        );
+      });
+      await http.all(promiseArray);
     },
-    async urInsertFeatures(feature, ith) {
+    async urInsertFeatures(features) {
       //Insert any building, ways or pois feature from undo redo
+      await this.setSelectedLayer(features[0]);
       let vectorSource = this.olEditCtrl.source;
-      await this.setSelectedLayer(feature);
-      let dataObjectProps = this.setDataObjectsProps(feature);
-      this.deleteFeaturesProps(feature);
-      vectorSource.addFeature(feature);
-      this.olEditCtrl.featuresToCommit = [feature];
+      let dataObjectProps = [];
+      features.forEach(feature => {
+        dataObjectProps.push(this.setDataObjectsProps(feature));
+        this.deleteFeaturesProps(feature);
+      });
+      vectorSource.addFeatures(features);
+      this.olEditCtrl.featuresToCommit = features;
+
       await this.olEditCtrl.transact(
         dataObjectProps,
         this.undoFeatures,
         this.featureUndoStack,
-        this.featureRedoStack,
-        ith
+        this.featureRedoStack
       );
     },
     deleteFeaturesProps(feature) {
