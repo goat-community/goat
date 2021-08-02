@@ -155,20 +155,18 @@ class DataImport():
         if (len(study_area_files) == 1):
             self.study_area = study_area_files[0]
             self.study_area_name = study_area_files[0]
-            if(study_area_files[0] == 'study_area.sql'):
+            if(study_area_files[0].endswith('sql')):
                 return GoatMessages().messages("info", "SQL File from Study Area Detected.") 
-            if(study_area_files[0].endswith('geojson') or study_area_files[0].endswith('json')):
+            if(study_area_files[0].endswith(('geojson', 'json'))):
                 GoatMessages().messages("info", "GeoJSON File from Study Area Detected.")
                 with open(study_area_files[0]) as g:
-                    geojson = json.load(g)
-                    if not (geojson["features"][0]["properties"]):
-                        return GoatMessages().messages("error", "There is no properties in the file. Please, update your Study Area File and try again.") 
-                    else:
-                        if (("name"  and "sum_pop") in geojson["features"][0]["properties"]):
-                            return GoatMessages().messages("info", "You GeoJSON file has the right attributes. The process will continue.") 
-                        else:
-                            return GoatMessages().messages("error", "Your properties are incomplete. Please, update your Study Area File and try again.") 
-            if(study_area_files[0] == 'study_area.shp'):
+                    try:
+                        geojson = json.load(g)
+                        if not (geojson["features"][0]["properties"]):
+                            return GoatMessages().messages("error", "There is no properties in the file. Please, update your Study Area File and try again.") 
+                    except ValueError as e:
+                        return GoatMessages().messages("error", "Your GeoJSON is not formatted correctly. Please, update your Study Area File and try again.") 
+            if(study_area_files[0].endswith('.shp')):
                 self.study_area = gpd.read_file(study_area_files[0])
                 if(str(self.study_area.crs).split(':')[1] == '4326'):
                     return GoatMessages().messages("info", "{0} detected. Continue.".format(self.study_area.crs)) 
@@ -197,6 +195,14 @@ class DataImport():
                 return GoatMessages().messages("info", "Field validation passed.")
             else: 
                 return GoatMessages().messages("error", "Geometry type: {0}. Please use a shapefile with Polygon geometry type".format(layer.schema['geometry']))
+        if(self.study_area_name.endswith(('.geojson', 'json'))):
+            with open(self.study_area_name) as g:
+                geojson = json.load(g)
+                if (("name"  and "sum_pop") in geojson["features"][0]["properties"]):
+                    if (type(geojson["features"][0]["properties"]["name"]) == str and type(geojson["features"][0]["properties"]["sum_pop"]) == int):
+                        return GoatMessages().messages("info", "You GeoJSON file has the right attributes. The process will continue.") 
+                else:
+                    return GoatMessages().messages("error", "Your properties are incomplete. Please, update your Study Area File and try again.") 
 
     def check_shp_srid(self):
         os.chdir('/opt/data')
