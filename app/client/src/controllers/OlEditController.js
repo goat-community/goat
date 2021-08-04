@@ -506,7 +506,7 @@ export default class OlEditController extends OlBaseController {
                 .getGeometry()
                 .getCoordinates()
                 .reduce((a, b) => a + b);
-              if (parseInt(a) == parseInt(b)) {
+              if (parseInt(a) === parseInt(b)) {
                 f.features[j] = undoFeatures[ith];
               }
             } else if (subF.getGeometry().getType() === "Polygon") {
@@ -518,7 +518,7 @@ export default class OlEditController extends OlBaseController {
             } else if (subF.getGeometry().getType() === "LineString") {
               let a = subF.getGeometry().getLength();
               let b = undoFeatures[ith].getGeometry().getLength();
-              if (parseInt(a) == parseInt(b)) {
+              if (parseInt(a) === parseInt(b)) {
                 f.features[j] = undoFeatures[ith];
               }
             }

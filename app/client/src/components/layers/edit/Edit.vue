@@ -960,6 +960,7 @@ export default {
     const me = this;
     me.popup.el = me.$refs.popup;
     me.olEditCtrl.referencePopupElement(me.popup);
+    document.addEventListener("keyup", this.undoRedoKeyHandler);
   },
   methods: {
     /**
@@ -1439,6 +1440,7 @@ export default {
      * Open modify attribute popup
      */
     openModifyAttributePopup(evt) {
+      this.unDoRedoStatus = true;
       const feature = this.olEditCtrl.source.getClosestFeatureToCoordinate(
         evt.coordinate
       );
@@ -1532,6 +1534,7 @@ export default {
      */
     onDrawStart() {
       this.olEditCtrl.featuresToCommit = [];
+      this.unDoRedoStatus = true;
     },
     /**
      * Draw interaction start event handler
@@ -2178,6 +2181,7 @@ export default {
         delete this.popup.deleteFeature;
         this.featureRedoStack = [];
       }
+      this.unDoRedoStatus = false;
     },
     /**
      * Methods used on popup cancel
@@ -2195,6 +2199,7 @@ export default {
       }
       this.olEditCtrl.featuresToCommit = [];
       this.olEditCtrl.closePopup();
+      this.unDoRedoStatus = false;
     },
     cancelAttributeEdit() {
       this.olEditCtrl.featuresToCommit = [];
@@ -2447,6 +2452,35 @@ export default {
         this.selectedLayer = this.editableLayers[1];
       } else if (feature.get("layerName") === "pois") {
         this.selectedLayer = this.editableLayers[2];
+      }
+    },
+    async undoRedoKeyHandler(e) {
+      // Keyboard shortcut for undoing and redoing (Ctrl+Z and Ctrl+Y)
+      if (!this.unDoRedoStatus) {
+        if (
+          e.code === "KeyZ" &&
+          e.ctrlKey &&
+          this.featureUndoStack.length > 0
+        ) {
+          await this.unDoRedo("undo");
+        } else if (
+          e.code === "KeyY" &&
+          e.ctrlKey &&
+          this.featureRedoStack.length > 0
+        ) {
+          await this.unDoRedo("redo");
+        }
+      }
+      if (
+        (e.key === "Escape" || e.code === "27") &&
+        this.olEditCtrl.currentInteraction === "draw"
+      ) {
+        if (this.olEditCtrl.featuresToCommit.length > 0) {
+          this.olEditCtrl.source.removeFeature(
+            this.olEditCtrl.featuresToCommit[0]
+          );
+        }
+        this.olEditCtrl.featuresToCommit = [];
       }
     },
     async unDoRedo(unre) {
