@@ -176,10 +176,14 @@ export default class OlEditController extends OlBaseController {
             }
           }
         });
+        //Added drawstart event for building entrances
+        me.edit.on("drawstart", startCb);
         me.edit.on("drawend", endCb);
         me.modify = new Modify({
           source: me.bldEntranceLayer.getSource()
         });
+        //Added modifystart event for building entrances
+        me.modify.on("modifystart", startCb);
         me.modify.on("modifyend", endCb);
         me.snap = new Snap({
           source: me.source,
