@@ -6,11 +6,6 @@ DATA_SOURCE:
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
   EXTRACT_BBOX: "yes" #"yes" ==> Use study area as BBOX,"no_extract" ==> Import whole dump, "done" ==> Extract was already done 
 
-DATA_IMPORT:
-  MANDATORY: ["study_area.shp", "study_area.sql", "study_area.json"]
-  OPTIONAL: ["census.shp", "landuse.shp", "landuse_additional.shp", "buildings_custom.shp"] 
-  SRID: "EPSG:4326"
-
 DATA_REFINEMENT_VARIABLES:
   #extrapolation ==> census.shp + landuse.shp needed as input
   #disaggregation ==> landuse.shp needed as input + high-resolution population input data + building data

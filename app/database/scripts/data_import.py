@@ -123,9 +123,9 @@ class DataImport():
         self.user = self.db_conf["USER"]
         self.host = self.db_conf["HOST"]
         self.folder_files = FileHelper().list_files_dir("/opt/data", ('.shp','.sql','.tif', 'json', 'geojson'))
-        self.mandatory_data = self.goat_conf['DATA_IMPORT']['MANDATORY']
-        self.optional_data = self.goat_conf['DATA_IMPORT']['OPTIONAL']
-        self.goat_srid = self.goat_conf['DATA_IMPORT']['SRID']
+        self.mandatory_data = ["study_area.shp", "study_area.sql", "study_area.json", "study_area.geojson"]
+        self.optional_data = ["census.shp", "landuse.shp", "landuse_additional.shp", "buildings_custom.shp"]
+        self.goat_srid = "EPSG:4326"
         self.study_area = ''
         self.study_area_name = ''
         self.not_listed_shp = []
@@ -233,7 +233,6 @@ class DataImport():
             layer = fiona.open(shp)
             if (shp == 'census.shp'):
                 for (key) in layer.schema['properties']:
-                    print(layer.schema['properties']['id'])
                     if (key == 'id' and layer.schema['properties'][key].split(':')[0] == 'str'):
                         census_mandatory_fields.append({key: layer.schema['properties'][key]})
                     if (key == 'demography' and layer.schema['properties'][key].split(':')[0] == 'str'):
@@ -285,6 +284,11 @@ class DataImport():
         filename = os.path.basename(filepath) 
         data_type = filename.split('.')[1]
         table_name = filename.split('.')[0]
+        
+        self.check_study_area
+        self.check_study_area_schema()
+        self.check_shp_srid()
+        self.check_shp_schema()
 
         print("The following file will be imported: %s" % filename)
 
