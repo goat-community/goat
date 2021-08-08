@@ -960,6 +960,7 @@ export default {
     const me = this;
     me.popup.el = me.$refs.popup;
     me.olEditCtrl.referencePopupElement(me.popup);
+    document.addEventListener("keyup", this.undoRedoKeyHandler);
   },
   methods: {
     /**
@@ -1367,6 +1368,7 @@ export default {
           break;
         case 7:
           editType = "addBldEntrance";
+          startCb = this.onBldEntranceInteractionStart;
           endCb = this.onBldEntranceInteractionEnd;
           break;
         default:
@@ -1439,6 +1441,7 @@ export default {
      * Open modify attribute popup
      */
     openModifyAttributePopup(evt) {
+      this.unDoRedoStatus = true;
       const feature = this.olEditCtrl.source.getClosestFeatureToCoordinate(
         evt.coordinate
       );
@@ -1503,6 +1506,7 @@ export default {
           prev_geom: this.beforeModifyFeature
         });
         this.featureRedoStack = [];
+        this.limitUndoRedotoFixedSize();
       }
 
       this.olEditCtrl.isInteractionOnProgress = false;
@@ -1532,6 +1536,7 @@ export default {
      */
     onDrawStart() {
       this.olEditCtrl.featuresToCommit = [];
+      this.unDoRedoStatus = true;
     },
     /**
      * Draw interaction start event handler
@@ -1560,6 +1565,18 @@ export default {
       this.olEditCtrl.popup.isVisible = true;
       //update cache
       this.updateFileInputFeatureCache();
+    },
+
+    /**
+     * Building Entrance interaction start.
+     */
+    onBldEntranceInteractionStart(e) {
+      if (e.features) {
+        this.beforeModifyFeature = e.features
+          .getArray()[0]
+          .getGeometry()
+          .clone();
+      }
     },
 
     /**
@@ -1730,11 +1747,20 @@ export default {
             }
             //Check if bldEntranceFeature is saved from UndoRedo functionality. Then ignore
             if (!featureUndoRedo) {
-              this.featureUndoStack.push({
-                type: "delete",
-                features: [bldEntranceFeature]
-              });
+              if (evt.type === "drawend") {
+                this.featureUndoStack.push({
+                  type: "delete",
+                  features: [bldEntranceFeature]
+                });
+              } else if (evt.type === "modifyend") {
+                this.featureUndoStack.push({
+                  type: "modifyBldEntr",
+                  features: [bldEntranceFeature],
+                  prev_geom: this.beforeModifyFeature
+                });
+              }
               this.featureRedoStack = [];
+              this.limitUndoRedotoFixedSize();
             } else {
               // Syncing building entrance feature across undo redo object stack
               undoFeatures.push(bldEntranceFeature);
@@ -1749,6 +1775,7 @@ export default {
                 bldEntranceFeature
               );
             }
+            this.olEditCtrl.source.changed();
           }
         });
       setTimeout(() => {
@@ -2178,6 +2205,8 @@ export default {
         delete this.popup.deleteFeature;
         this.featureRedoStack = [];
       }
+      this.unDoRedoStatus = false;
+      this.limitUndoRedotoFixedSize();
     },
     /**
      * Methods used on popup cancel
@@ -2195,6 +2224,7 @@ export default {
       }
       this.olEditCtrl.featuresToCommit = [];
       this.olEditCtrl.closePopup();
+      this.unDoRedoStatus = false;
     },
     cancelAttributeEdit() {
       this.olEditCtrl.featuresToCommit = [];
@@ -2363,7 +2393,6 @@ export default {
     },
     syncDeletedBldEntrFeature(featureStack, oldFeature, newFeature) {
       // Syncing building entrance feature across undo redo object stack
-      let flag = false;
       if (featureStack) {
         for (let i = 0; i < featureStack.length; i++) {
           let f = featureStack[i];
@@ -2371,12 +2400,7 @@ export default {
             let subF = f.features[j];
             if (subF.getId() === oldFeature.getId()) {
               f.features[j] = newFeature;
-              flag = true;
-              break;
             }
-          }
-          if (flag === true) {
-            break;
           }
         }
       }
@@ -2449,6 +2473,44 @@ export default {
         this.selectedLayer = this.editableLayers[2];
       }
     },
+    async undoRedoKeyHandler(e) {
+      // Keyboard shortcut for undoing and redoing (Ctrl+Z and Ctrl+Y)
+      if (!this.unDoRedoStatus) {
+        if (
+          e.code === "KeyZ" &&
+          e.ctrlKey &&
+          this.featureUndoStack.length > 0
+        ) {
+          await this.unDoRedo("undo");
+        } else if (
+          e.code === "KeyY" &&
+          e.ctrlKey &&
+          this.featureRedoStack.length > 0
+        ) {
+          await this.unDoRedo("redo");
+        }
+      }
+      if (
+        (e.key === "Escape" || e.code === "27") &&
+        this.olEditCtrl.currentInteraction === "draw"
+      ) {
+        if (this.olEditCtrl.featuresToCommit.length > 0) {
+          this.olEditCtrl.source.removeFeature(
+            this.olEditCtrl.featuresToCommit[0]
+          );
+        }
+        this.olEditCtrl.featuresToCommit = [];
+      }
+    },
+    limitUndoRedotoFixedSize() {
+      // Maintain fixed size undo redo stack
+      if (this.featureUndoStack.length > this.undoRedoMaxLength) {
+        this.featureUndoStack.shift();
+      }
+      if (this.featureRedoStack.length > this.undoRedoMaxLength) {
+        this.featureRedoStack.shift();
+      }
+    },
     async unDoRedo(unre) {
       //This function will be called on click of undo/redo button
       this.olEditCtrl.featuresToCommit = [];
@@ -2493,6 +2555,25 @@ export default {
             undo_features.features[0].setProperties(newAttribute);
             this.olEditCtrl.featuresToCommit = undo_features.features;
             await this.olEditCtrl.transact(newAttribute);
+            this.unDoRedoStatus = false;
+            break;
+          }
+          case "modifyBldEntr": {
+            this.olEditCtrl.currentInteraction = "modify";
+            this.selectedLayer = this.editableLayers[0];
+            let newGeom = undo_features.prev_geom;
+            undo_features.prev_geom = undo_features.features[0].getGeometry();
+            undo_features.features[0].setGeometry(newGeom);
+            // this.olEditCtrl.featuresToCommit = undo_features.features;
+            let evt = {
+              type: "modifyend",
+              feature: undo_features.features[0]
+            };
+            await this.onBldEntranceInteractionEnd(
+              evt,
+              true,
+              this.undoFeatures
+            );
             this.unDoRedoStatus = false;
             break;
           }
@@ -2544,6 +2625,26 @@ export default {
             redo_features.features[0].setProperties(newAttribute);
             this.olEditCtrl.featuresToCommit = redo_features.features;
             await this.olEditCtrl.transact(newAttribute);
+            this.featureUndoStack.push(redo_features);
+            this.unDoRedoStatus = false;
+            break;
+          }
+          case "modifyBldEntr": {
+            this.olEditCtrl.currentInteraction = "modify";
+            this.selectedLayer = this.editableLayers[0];
+            let newGeom = redo_features.prev_geom;
+            redo_features.prev_geom = redo_features.features[0].getGeometry();
+            redo_features.features[0].setGeometry(newGeom);
+            // this.olEditCtrl.featuresToCommit = redo_features.features;
+            let evt = {
+              type: "modifyend",
+              feature: redo_features.features[0]
+            };
+            await this.onBldEntranceInteractionEnd(
+              evt,
+              true,
+              this.undoFeatures
+            );
             this.featureUndoStack.push(redo_features);
             this.unDoRedoStatus = false;
             break;

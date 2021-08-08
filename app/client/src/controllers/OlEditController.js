@@ -176,10 +176,14 @@ export default class OlEditController extends OlBaseController {
             }
           }
         });
+        //Added drawstart event for building entrances
+        me.edit.on("drawstart", startCb);
         me.edit.on("drawend", endCb);
         me.modify = new Modify({
           source: me.bldEntranceLayer.getSource()
         });
+        //Added modifystart event for building entrances
+        me.modify.on("modifystart", startCb);
         me.modify.on("modifyend", endCb);
         me.snap = new Snap({
           source: me.source,
@@ -506,7 +510,7 @@ export default class OlEditController extends OlBaseController {
                 .getGeometry()
                 .getCoordinates()
                 .reduce((a, b) => a + b);
-              if (parseInt(a) == parseInt(b)) {
+              if (parseInt(a) === parseInt(b)) {
                 f.features[j] = undoFeatures[ith];
               }
             } else if (subF.getGeometry().getType() === "Polygon") {
@@ -518,7 +522,7 @@ export default class OlEditController extends OlBaseController {
             } else if (subF.getGeometry().getType() === "LineString") {
               let a = subF.getGeometry().getLength();
               let b = undoFeatures[ith].getGeometry().getLength();
-              if (parseInt(a) == parseInt(b)) {
+              if (parseInt(a) === parseInt(b)) {
                 f.features[j] = undoFeatures[ith];
               }
             }
