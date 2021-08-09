@@ -115,7 +115,11 @@
                       style="background-color: white;"
                       transition="slide-y-reverse-transition"
                     >
-                      <InLegend :item="item"></InLegend>
+                      <InLegend
+                        :layerName="translate('layerName', item.name)"
+                        :item="item"
+                        :openStyleDialog="openStyleDialog"
+                      ></InLegend>
                       <v-layout row style="width:100%;padding-left: 10px;">
                         <v-flex
                           class="xs2"
@@ -123,16 +127,16 @@
                           v-if="
                             ['VECTORTILE', 'VECTOR'].includes(
                               item.mapLayer.get('type')
-                            )
+                            ) && $appConfig.stylesObj[item.mapLayer.get('name')]
                           "
                         >
                           <v-icon
                             v-ripple
-                            style="color:#B0B0B0;margin-top:3px;cursor:pointer"
-                            dark
-                            @click="openStyleDialog(item)"
+                            @click="resetLayerStyle(item)"
+                            class="toolbar-icons mr-2"
+                            style="cursor: pointer"
                           >
-                            fas fa-cog
+                            fas fa-sync-alt
                           </v-icon>
                         </v-flex>
                         <v-flex
@@ -140,7 +144,8 @@
                             xs10:
                               ['VECTORTILE', 'VECTOR'].includes(
                                 item.mapLayer.get('type')
-                              ) == true,
+                              ) == true &&
+                              $appConfig.stylesObj[item.mapLayer.get('name')],
                             xs12: false
                           }"
                         >
@@ -178,6 +183,7 @@
             :toggleLayerOptions="toggleLayerOptions"
             :changeLayerOpacity="changeLayerOpacity"
             :openDocumentation="openDocumentation"
+            :resetLayerStyle="resetLayerStyle"
           ></LayerOrder>
         </v-tab-item>
       </v-tabs-items>
@@ -188,6 +194,7 @@
         :translate="translate"
         :key="styleDialogKey"
         :styleDialogStatus="styleDialogStatus"
+        :ruleIndex="ruleIndex"
       >
       </StyleDialog>
     </span>
@@ -218,7 +225,8 @@ export default {
       name: ""
     },
     styleDialogKey: 0,
-    styleDialogStatus: false
+    styleDialogStatus: false,
+    ruleIndex: undefined
   }),
   components: {
     DocumentationDialog,
@@ -264,6 +272,7 @@ export default {
         isExpanded: [false],
         children: []
       };
+      this.resetZIndex();
       me.map
         .getLayers()
         .getArray()
@@ -308,14 +317,10 @@ export default {
                 showOptions: false,
                 mapLayer: layer,
                 layerTreeKey: 0,
-                layerOrderKey: this.layerOrderKey,
-                attributeDisplayStatusKey: 0
+                layerOrderKey: layer.getZIndex(),
+                attributeDisplayStatusKey: 0,
+                styleComponentResetKey: 0
               };
-              layer.setZIndex(this.layerOrderKey);
-              if (layer.get("group") === "backgroundLayers") {
-                layer.setZIndex(-1);
-              }
-              this.layerOrderKey += 1;
               obj.children.push(layerOpt);
             }
           }
@@ -328,11 +333,78 @@ export default {
       }
       return obj;
     },
+    resetZIndex() {
+      let tempLayers = [];
+      this.map
+        .getLayers()
+        .getArray()
+        .forEach(g => {
+          if (g.getLayers) {
+            g.getLayers()
+              .getArray()
+              .forEach(l => {
+                tempLayers.push(l);
+              });
+          } else {
+            tempLayers.push(g);
+          }
+        });
+      tempLayers.sort((a, b) => (a.getZIndex() < b.getZIndex() ? -1 : 1));
+      tempLayers.forEach(layer => {
+        if (layer.get("group") === "backgroundLayers") {
+          layer.setZIndex(-1);
+        } else {
+          layer.setZIndex(this.layerOrderKey);
+          this.layerOrderKey += 1;
+        }
+      });
+    },
     doNothing() {},
-    openStyleDialog(item) {
+    resetLayerStyle(item) {
+      /*
+        Function to reset the style of layer
+      */
+      //Get original style for layer
+      let source = this.filterStylesOnActiveModeByLayerName(
+        item.mapLayer.get("name"),
+        true
+      ).rules;
+
+      //Get present style for layer
+      let target = this.filterStylesOnActiveModeByLayerName(
+        item.mapLayer.get("name")
+      ).rules;
+      let kind = source[0].symbolizers[0].kind;
+      for (let i = 0; i < source.length; i++) {
+        let sourceStyle = source[i];
+        let targetStyle = target[i];
+        if (kind === "Fill") {
+          //Assign original style to present style to reset
+          targetStyle.symbolizers[0].color = sourceStyle.symbolizers[0].color;
+          targetStyle.symbolizers[0].outlineWidth =
+            sourceStyle.symbolizers[0].outlineWidth;
+          targetStyle.symbolizers[0].outlineColor =
+            sourceStyle.symbolizers[0].outlineColor;
+        } else if (kind === "Line") {
+          //Assign original style to present style to reset
+          targetStyle.symbolizers[0].color = sourceStyle.symbolizers[0].color;
+          targetStyle.symbolizers[0].width = sourceStyle.symbolizers[0].width;
+        } else if (kind === "Icon") {
+          //Assign original style to present style to reset
+          targetStyle.symbolizers[0].size = sourceStyle.symbolizers[0].size;
+          targetStyle.symbolizers[0].image = sourceStyle.symbolizers[0].image;
+        }
+      }
+      item.mapLayer.getSource().changed();
+      item.styleComponentResetKey += 1;
+      item.layerTreeKey += 1;
+    },
+    openStyleDialog(item, ruleIndex) {
       //This function is used for opening Style Setting dialog component for a layer
       EventBus.$emit("updateStyleDialogStatusForLayerOrder", false);
       this.styleDialogStatus = true;
+      this.ruleIndex = ruleIndex;
+      this.currentItem.layerTreeKey += 1;
       if (this.currentItem.name !== item.name) {
         this.styleDialogKey += 1;
       }

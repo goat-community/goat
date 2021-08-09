@@ -119,6 +119,11 @@ axios.all([getAppConf(), getStudyAreaBbox(), getLayerStyleTranslation()]).then(
         });
         EventBus.$emit("inject-styles", stylesObj);
         Vue.prototype.$appConfig.stylesObj = stylesObj;
+
+        //Making deep copy of styleobject for restoring the the original style of layers
+        Vue.prototype.$appConfig.stylesObjCopy = JSON.parse(
+          JSON.stringify(stylesObj)
+        );
       });
     }
 

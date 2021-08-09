@@ -1445,6 +1445,7 @@ export default {
       const feature = this.olEditCtrl.source.getClosestFeatureToCoordinate(
         evt.coordinate
       );
+      this.setSelectedLayer(feature);
       this.modifiedAttributeFeature = feature;
       this.olEditCtrl.featuresToCommit = [];
       this.olEditCtrl.highlightSource.clear();
@@ -1571,6 +1572,9 @@ export default {
      * Building Entrance interaction start.
      */
     onBldEntranceInteractionStart(e) {
+      if (this.unDoRedoStatus && e.type === "drawstart") {
+        e.target.setActive(false);
+      }
       if (e.features) {
         this.beforeModifyFeature = e.features
           .getArray()[0]
@@ -1583,6 +1587,9 @@ export default {
      * Building Entrance interaction end.
      */
     onBldEntranceInteractionEnd(evt, featureUndoRedo, undoFeatures) {
+      if (!featureUndoRedo) {
+        this.unDoRedoStatus = true;
+      }
       let coordinate;
       if (evt.type === "modifyend") {
         if (!this.tempBldEntranceFeature) return;
@@ -1761,6 +1768,7 @@ export default {
               }
               this.featureRedoStack = [];
               this.limitUndoRedotoFixedSize();
+              this.unDoRedoStatus = false;
             } else {
               // Syncing building entrance feature across undo redo object stack
               undoFeatures.push(bldEntranceFeature);

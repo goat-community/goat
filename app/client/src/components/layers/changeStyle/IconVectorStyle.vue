@@ -33,6 +33,7 @@
       </v-tab-item>
       <v-tab-item :key="2" style="padding-top:10px;">
         <v-file-input
+          v-model="fileUpload"
           append-outer-icon
           outlined
           tile
@@ -70,8 +71,19 @@ export default {
     tab: null,
     dialogue: false,
     iconSize: null,
-    urlIcon: null
+    urlIcon: null,
+    fileUpload: null
   }),
+  watch: {
+    "item.styleComponentResetKey": function() {
+      let targetStyle = this.filterStylesOnActiveModeByLayerName(
+        this.item.mapLayer.get("name")
+      ).rules[this.ruleIndex];
+      this.iconSize = targetStyle.symbolizers[0].size;
+      this.urlIcon = null;
+      this.fileUpload = null;
+    }
+  },
   computed: {
     ...mapGetters("app", {
       activeColor: "activeColor"

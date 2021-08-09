@@ -28,9 +28,16 @@
             </v-icon>
           </v-app-bar-nav-icon>
           <v-toolbar-title>
-            <b>{{ translate("layerName", item.name) }}</b>
+            <b>{{ attr_name() }} - {{ translate("layerName", item.name) }}</b>
           </v-toolbar-title>
           <v-spacer></v-spacer>
+          <v-icon
+            @click="resetStyle"
+            class="toolbar-icons mr-2"
+            style="cursor: pointer"
+          >
+            fas fa-sync-alt
+          </v-icon>
           <v-icon @click="expand" class="toolbar-icons mr-2">
             {{ isExpanded ? "fas fa-chevron-up" : "fas fa-chevron-down" }}
           </v-icon>
@@ -39,32 +46,25 @@
           </v-icon>
         </v-app-bar>
         <vue-scroll>
-          <v-select
-            :items="getItemAttributes"
-            @change="onItemAttribueChange($event)"
-            label="Select Attribute"
-            outlined
-            style="width:400px;margin:auto;padding-top:20px;margin-bottom:-20px"
-          ></v-select>
           <span v-if="kind === `Fill`">
             <FillVectorStyle
               :item="item"
-              :ruleIndex="ith"
-              :key="ith"
+              :ruleIndex="ruleIndex"
+              :key="ruleIndex"
             ></FillVectorStyle>
           </span>
           <span v-else-if="kind === `Line`">
             <LineVectorStyle
               :item="item"
-              :ruleIndex="ith"
-              :key="ith"
+              :ruleIndex="ruleIndex"
+              :key="ruleIndex"
             ></LineVectorStyle>
           </span>
           <span v-else-if="kind === `Icon`">
             <IconVectorStyle
               :item="item"
-              :ruleIndex="ith"
-              :key="ith"
+              :ruleIndex="ruleIndex"
+              :key="ruleIndex"
             ></IconVectorStyle>
           </span>
         </vue-scroll>
@@ -83,7 +83,7 @@ import IconVectorStyle from "../changeStyle/IconVectorStyle";
 import { EventBus } from "../../../EventBus";
 
 export default {
-  props: ["item", "translate", "styleDialogStatus"],
+  props: ["item", "translate", "styleDialogStatus", "ruleIndex"],
   mixins: [Legend],
   directives: {
     Draggable
@@ -112,21 +112,24 @@ export default {
     }),
     getItem() {
       return this.item;
-    },
-    getItemAttributes() {
-      return this.filterStylesOnActiveModeByLayerName(
-        this.item.mapLayer.get("name")
-      ).rules.map((rule, i) => {
-        return {
-          text: rule.name,
-          value: i
-        };
-      });
     }
   },
   methods: {
     expand() {
       this.isExpanded = !this.isExpanded;
+    },
+    attr_name() {
+      let curr_style = this.filterStylesOnActiveModeByLayerName(
+        this.item.mapLayer.get("name")
+      ).rules[this.ruleIndex];
+      if (
+        this.$appConfig.stylesObj[this.item.mapLayer.get("name")]
+          .translation === undefined
+      ) {
+        return curr_style.name;
+      }
+      return this.$appConfig.stylesObj[this.item.mapLayer.get("name")]
+        .translation[curr_style.name][this.$i18n.locale];
     },
     close() {
       EventBus.$emit("updateStyleDialogStatusForLayerTree", false);
@@ -134,11 +137,38 @@ export default {
       //Refresh the legend
       this.item.layerTreeKey += 1;
     },
-    onItemAttribueChange(ith) {
-      this.ith = ith;
-      this.kind = this.filterStylesOnActiveModeByLayerName(
+    resetStyle() {
+      /*
+        Function to reset the style of layer at attribute level
+      */
+      //Get original style for layer attribute
+      let sourceStyle = this.filterStylesOnActiveModeByLayerName(
+        this.item.mapLayer.get("name"),
+        true
+      ).rules[this.ruleIndex];
+
+      //Get present style for layer attribute
+      let targetStyle = this.filterStylesOnActiveModeByLayerName(
         this.item.mapLayer.get("name")
-      ).rules[ith].symbolizers[0].kind;
+      ).rules[this.ruleIndex];
+      if (this.kind === "Fill") {
+        //Assign original style to present style to reset
+        targetStyle.symbolizers[0].color = sourceStyle.symbolizers[0].color;
+        targetStyle.symbolizers[0].outlineWidth =
+          sourceStyle.symbolizers[0].outlineWidth;
+        targetStyle.symbolizers[0].outlineColor =
+          sourceStyle.symbolizers[0].outlineColor;
+      } else if (this.kind === "Line") {
+        //Assign original style to present style to reset
+        targetStyle.symbolizers[0].color = sourceStyle.symbolizers[0].color;
+        targetStyle.symbolizers[0].width = sourceStyle.symbolizers[0].width;
+      } else if (this.kind === "Icon") {
+        //Assign original style to present style to reset
+        targetStyle.symbolizers[0].size = sourceStyle.symbolizers[0].size;
+        targetStyle.symbolizers[0].image = sourceStyle.symbolizers[0].image;
+      }
+      this.item.mapLayer.getSource().changed();
+      this.item.styleComponentResetKey += 1;
     }
   },
   mounted() {
@@ -146,6 +176,10 @@ export default {
     this.draggableValue.resetInitialPos = false;
     this.draggableValue.boundingElement = element;
     this.draggableValue.handle = this.$refs[this.handleId];
+    let curr_style = this.filterStylesOnActiveModeByLayerName(
+      this.item.mapLayer.get("name")
+    ).rules[this.ruleIndex];
+    this.kind = curr_style.symbolizers[0].kind;
   }
 };
 </script>
