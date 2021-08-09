@@ -1,5 +1,6 @@
 <template>
   <div>
+    <span style="display:none;">{{ layerName }}</span>
     <div v-if="item.mapLayer.get('legendGraphicUrl')">
       <img
         crossorigin="anonymous"
@@ -31,12 +32,12 @@
         <div
           v-if="
             ['VECTORTILE', 'VECTOR'].includes(item.mapLayer.get('type')) &&
-              styleRules[item.mapLayer.get('name')]
+              $appConfig.stylesObjCopy[item.mapLayer.get('name')]
           "
           style="text-align: center; padding: 20px;"
           :key="item.layerTreeKey"
         >
-          <div v-if="styleRules[item.mapLayer.get('name')]">
+          <div v-if="$appConfig.stylesObjCopy[item.mapLayer.get('name')]">
             <v-layout
               v-for="(rule, ith) in filterStylesOnActiveModeByLayerName(
                 item.mapLayer.get('name')
@@ -60,8 +61,8 @@
                   :input-value="isLayerAttributeVisible(item, ith)"
                   @change="
                     attributeLevelRendering(
-                      styleRules[item.mapLayer.get('name')].style.rules[ith]
-                        .filter[0],
+                      $appConfig.stylesObjCopy[item.mapLayer.get('name')].style
+                        .rules[ith].filter[0],
                       item,
                       ith
                     )
@@ -71,8 +72,9 @@
               </v-flex>
               <v-flex xs11>
                 <span
+                  @click="openStyleDialog(item, ith)"
                   class="justify-start"
-                  style="padding-right: 50px"
+                  style="padding-right: 50px; cursor: pointer;"
                   :ref="`legend-vector-${item.name + ith}`"
                   v-html="renderLegend(item, ith)"
                 >
@@ -91,10 +93,9 @@ import LegendRenderer from "../../../../utils/LegendRenderer";
 import Legend from "../controls/Legend";
 
 export default {
-  props: ["item"],
+  props: ["item", "openStyleDialog", "layerName"],
   mixins: [Legend],
   data: () => ({
-    styleRules: null,
     legendRerenderOnActiveMode: 0
   }),
   watch: {
@@ -102,9 +103,6 @@ export default {
     "calculationOptions.calculationModes.active": function() {
       this.legendRerenderOnActiveMode += 1;
     }
-  },
-  created() {
-    this.styleRules = JSON.parse(JSON.stringify(this.$appConfig.stylesObj));
   },
   methods: {
     isLayerAttributeVisible(item, ith) {

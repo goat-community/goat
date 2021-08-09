@@ -168,9 +168,12 @@ export default {
         }
       }, 100);
     },
-    filterStylesOnActiveModeByLayerName(name) {
+    filterStylesOnActiveModeByLayerName(name, copy) {
       //get Filtered style on active mode based on layer name
-      const style = this.$appConfig.stylesObj[name].style;
+      let style = this.$appConfig.stylesObj[name].style;
+      if (copy) {
+        style = this.$appConfig.stylesObjCopy[name].style;
+      }
       const filteredStyle = this.filterStylesOnActiveMode(style);
       return filteredStyle || style;
     },
