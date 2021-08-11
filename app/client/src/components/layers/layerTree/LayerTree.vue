@@ -1,9 +1,8 @@
 <template>
   <v-flex xs12 sm8 md4>
-    <v-divider></v-divider>
     <vue-scroll>
-      <v-tabs-items v-model="layerTabIndex">
-        <v-tab-item :eager="true">
+      <v-tabs-items v-model="tab" id="tabItems">
+        <v-tab-item :key="1" :eager="true">
           <v-expansion-panels accordion multiple>
             <v-expansion-panel
               v-for="(layerGroup, i) in layers"
@@ -17,24 +16,10 @@
               >
                 <v-layout row wrap align-center>
                   <v-flex xs1>
-                    <v-icon
-                      v-if="
-                        !$appConfig.componentConf.layerTree.groupIcons[
-                          layerGroup.name
-                        ] ||
-                        !$appConfig.componentConf.layerTree.groupIcons[
-                          layerGroup.name
-                        ].startsWith('./')
-                      "
-                      small
-                      >{{ getLayerGroupIcon(layerGroup) }}</v-icon
-                    >
-                    <div v-else v-html="getLayerGroupIcon(layerGroup)"></div>
+                    <v-icon small>fas fa-layer-group</v-icon>
                   </v-flex>
-                  <v-flex xs10 class="light-text" style="font-size: medium">
-                    <div>
-                      <b>{{ translate("layerGroup", layerGroup.name) }}</b>
-                    </div>
+                  <v-flex xs10>
+                    <div>{{ translate("layerGroup", layerGroup.name) }}</div>
                   </v-flex>
                   <v-flex xs1>
                     <v-icon v-html="open ? 'remove' : 'add'"></v-icon>
@@ -48,7 +33,6 @@
                     v-for="(item, i) in layerGroup.children"
                     :key="i"
                     :disabled="isLayerBusy(item.mapLayer)"
-                    class="layer-row"
                     :class="{
                       'expansion-panel__container--active':
                         item.showOptions === true
@@ -56,6 +40,7 @@
                   >
                     <v-expansion-panel-header
                       expand-icon=""
+                      @click="toggleLayerVisibility(item, layerGroup)"
                       :style="
                         item.mapLayer.get('docUrl') ? 'overflow:hidden;' : ''
                       "
@@ -75,23 +60,23 @@
                         <span>{{ $t(`map.tooltips.openDocumentation`) }}</span>
                       </v-tooltip>
 
-                      <v-layout row class="pl-1" wrap align-center>
-                        <v-flex class="checkbox" xs1>
-                          <v-simple-checkbox
-                            v-if="item.name !== 'study_area_crop'"
-                            :color="activeColor.primary"
-                            :value="item.mapLayer.getVisible()"
-                            @input="toggleLayerVisibility(item, layerGroup)"
-                          ></v-simple-checkbox>
+                      <v-layout row class="pl-2" wrap align-center>
+                        <v-flex xs2>
+                          <v-icon
+                            :class="{
+                              'active-icon':
+                                item.mapLayer.getVisible() === true,
+                              'expansion-panel__container--active':
+                                item.showOptions === true
+                            }"
+                            >done</v-icon
+                          >
                         </v-flex>
-                        <v-flex xs10 class="light-text">
-                          <h4 class="pl-2">
-                            {{ translate("layerName", item.name) }}
-                          </h4>
+                        <v-flex xs9>
+                          <span>{{ translate("layerName", item.name) }}</span>
                         </v-flex>
                         <v-flex xs1>
                           <v-icon
-                            v-if="item.name !== 'study_area_crop'"
                             v-show="item.mapLayer.getVisible()"
                             small
                             style="width: 30px; height: 30px"
@@ -175,7 +160,7 @@
             @close="showDocumentationDialog = false"
           ></documentation-dialog>
         </v-tab-item>
-        <v-tab-item :eager="true">
+        <v-tab-item :key="2" :eager="true">
           <LayerOrder
             :layers="layers"
             :translate="translate"
@@ -235,19 +220,18 @@ export default {
   },
   computed: {
     ...mapGetters("pois", {
-      selectedPois: "selectedPois",
-      selectedAois: "selectedAois"
+      selectedPois: "selectedPois"
     }),
     ...mapGetters("app", {
       activeColor: "activeColor",
-      layerTabIndex: "layerTabIndex"
+      tab: "layerTabIndex"
     }),
     ...mapGetters("map", {
       busyLayers: "busyLayers"
     })
   },
   mounted() {
-    EventBus.$on("updateStyleDialogStatusForLayerTree", (value) => {
+    EventBus.$on("updateStyleDialogStatusForLayerTree", value => {
       this.styleDialogStatus = value;
     });
   },
@@ -258,7 +242,7 @@ export default {
      */
     isLayerBusy(treeLayer) {
       let isBusy = false;
-      this.busyLayers.forEach((bl) => {
+      this.busyLayers.forEach(bl => {
         if (bl.get("name") === treeLayer.get("name")) {
           isBusy = true;
         }
@@ -282,12 +266,7 @@ export default {
           if (
             layer instanceof Group &&
             layer.get("name") != "undefined" &&
-            layer.get("name") != "osmMappingLayers" &&
-            layer
-              .getLayers()
-              .getArray()
-              .filter((l) => l.get("displayInLayerList") === false).length <
-              layer.getLayers().getArray().length
+            layer.get("name") != "osmMappingLayers"
           ) {
             me.layers.push(obj);
           } else if (
@@ -344,11 +323,11 @@ export default {
       this.map
         .getLayers()
         .getArray()
-        .forEach((g) => {
+        .forEach(g => {
           if (g.getLayers) {
             g.getLayers()
               .getArray()
-              .forEach((l) => {
+              .forEach(l => {
                 tempLayers.push(l);
               });
           } else {
@@ -356,7 +335,7 @@ export default {
           }
         });
       tempLayers.sort((a, b) => (a.getZIndex() < b.getZIndex() ? -1 : 1));
-      tempLayers.forEach((layer) => {
+      tempLayers.forEach(layer => {
         if (layer.get("group") === "backgroundLayers") {
           layer.setZIndex(-1);
         } else {
@@ -428,7 +407,7 @@ export default {
         layerGroup.name === "backgroundLayers" ||
         layerGroup.name === "accessbilityBasemaps"
       ) {
-        layerGroup.children.forEach((layer) => {
+        layerGroup.children.forEach(layer => {
           if (layer.id === clickedLayer.id) return;
           layer.showOptions = false;
           layer.mapLayer.setVisible(false);
@@ -455,25 +434,9 @@ export default {
           });
         }
       }
-      if (
-        clickedLayer.mapLayer.get("requiresAois") === true &&
-        this.selectedAois.length === 0
-      ) {
-        if (clickedLayer.mapLayer.getVisible() === false) {
-          this.toggleSnackbar({
-            type: "error",
-            message: "selectAois",
-            state: true,
-            timeout: 60000
-          });
-        }
-      }
-
       clickedLayer.mapLayer.setVisible(!clickedLayer.mapLayer.getVisible());
       if (clickedLayer.mapLayer.getVisible() === false) {
         clickedLayer.showOptions = false;
-      } else {
-        clickedLayer.showOptions = true;
       }
       EventBus.$emit("toggleLayerVisiblity", clickedLayer.mapLayer);
     },
@@ -486,15 +449,6 @@ export default {
     },
     changeLayerOpacity(value, layer) {
       layer.setOpacity(value);
-    },
-    getLayerGroupIcon(layerGroup) {
-      const layerGroupIcon =
-        this.$appConfig.componentConf.layerTree.groupIcons[layerGroup.name];
-      if (layerGroupIcon && layerGroupIcon.startsWith("./")) {
-        return `<img src="${layerGroupIcon}" width="16px" height="16px" alt="">`;
-      }
-      if (layerGroupIcon) return layerGroupIcon;
-      return "fas fa-layer-group";
     },
     translate(type, key) {
       //type = {layerGroup || layerName}
@@ -521,11 +475,8 @@ export default {
 }
 
 .expansion-panel__container--active {
-  background-color: white !important;
-}
-
-.checkbox >>> .v-input__control {
-  height: 25px;
+  background-color: #2bb381 !important;
+  color: white !important;
 }
 
 .v-expansion-panel-content >>> .v-expansion-panel-content__wrap {
@@ -534,10 +485,6 @@ export default {
 
 .v-expansion-panel-content >>> .v-input__slot {
   margin-bottom: 0px;
-}
-
-.layer-row >>> .v-expansion-panel-header {
-  cursor: auto;
 }
 
 .documentation {

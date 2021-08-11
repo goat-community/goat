@@ -88,7 +88,6 @@ import FillVectorStyle from "../changeStyle/FillVectorStyle";
 import LineVectorStyle from "../changeStyle/LineVectorStyle";
 import IconVectorStyle from "../changeStyle/IconVectorStyle";
 import { EventBus } from "../../../EventBus";
-import { getNestedProperty } from "../../../utils/Helpers";
 
 export default {
   props: ["item", "translate", "styleDialogStatus", "ruleIndex"],

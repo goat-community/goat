@@ -53,14 +53,6 @@
         </v-color-picker>
       </v-tab-item>
     </v-tabs-items>
-    <v-btn
-      color="warning"
-      dark
-      @click="resetStyle"
-      style="width:100%;background-color: #2bb381 !important;"
-    >
-      Reset Style
-    </v-btn>
   </vue-scroll>
 </template>
 
@@ -125,38 +117,6 @@ export default {
       this.dialogue = false;
       //Refresh the legend
       this.item.layerTreeKey += 1;
-    },
-    resetStyle() {
-      /*
-        Function to reset the style of layer at attribute level
-      */
-
-      //Get original style for layer attribute
-      let sourceStyle = this.$appConfig.stylesObjCopy[
-        this.item.mapLayer.get("name")
-      ].style.rules[this.ruleIndex];
-
-      //Get present style for layer attribute
-      let targetStyle = this.$appConfig.stylesObj[
-        this.item.mapLayer.get("name")
-      ].style.rules[this.ruleIndex];
-
-      //Assign original style to present style to reset
-      targetStyle.symbolizers[0].color = sourceStyle.symbolizers[0].color;
-      targetStyle.symbolizers[0].outlineWidth =
-        sourceStyle.symbolizers[0].outlineWidth;
-
-      targetStyle.symbolizers[0].outlineColor =
-        sourceStyle.symbolizers[0].outlineColor;
-
-      this.fillColor = targetStyle.symbolizers[0].color;
-      this.outLineWidth = targetStyle.symbolizers[0].outlineWidth;
-      if (this.outLineWidth == 0) {
-        targetStyle.symbolizers[0].outlineWidth = 0.001;
-      }
-      this.outLineColor = targetStyle.symbolizers[0].outlineColor;
-
-      this.item.mapLayer.getSource().changed();
     },
     onFillColorChange(value) {
       //Change color of polygon fill on inpu change
