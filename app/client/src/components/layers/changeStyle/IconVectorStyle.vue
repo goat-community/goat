@@ -1,6 +1,6 @@
 <template>
   <vue-scroll>
-    <v-tabs grow v-model="tab" style="width: 400px; margin:auto;">
+    <v-tabs grow v-model="tab" style="width: 400px; margin: auto">
       <v-tab :key="1">
         <v-badge>
           <b>Change Icon Size</b>
@@ -16,7 +16,7 @@
       <v-tab-item :key="1">
         <span
           class="d-flex mb-6"
-          style="width:400px;margin:10px auto 0px auto;"
+          style="width: 400px; margin: 10px auto 0px auto"
         >
           <v-text-field
             type="number"
@@ -26,23 +26,26 @@
             tile
             v-model="iconSize"
             label="Icon Size"
-            style="height:50px;"
+            style="height: 50px"
             @input="onIconSizeChange()"
           ></v-text-field>
         </span>
       </v-tab-item>
-      <v-tab-item :key="2" style="padding-top:10px;">
+      <v-tab-item :key="2" style="padding-top: 10px">
         <v-file-input
+          v-model="fileUpload"
           append-outer-icon
           outlined
           tile
           v-model="localIcon"
           label="Local Upload"
           @change="localUpload($event)"
-          style="width:300px;margin-left:50px;"
+          style="width: 300px; margin-left: 50px"
         ></v-file-input>
-        <span class="d-flex mb-6" style="width:350px;">
-          <v-icon style="padding-left:53px;padding-bottom:30px;font-size:20px;">
+        <span class="d-flex mb-6" style="width: 350px">
+          <v-icon
+            style="padding-left: 53px; padding-bottom: 30px; font-size: 20px"
+          >
             fas fa-link
           </v-icon>
           <v-text-field
@@ -50,7 +53,7 @@
             tile
             v-model="urlIcon"
             label="Url Upload"
-            style="padding-left: 12px;"
+            style="padding-left: 12px"
             @input="urlUpload($event)"
           ></v-text-field>
         </span>
@@ -60,7 +63,7 @@
       color="warning"
       dark
       @click="resetStyle"
-      style="width:100%;background-color: #2bb381 !important;"
+      style="width: 100%; background-color: #2bb381 !important"
     >
       Reset Style
     </v-btn>
@@ -80,8 +83,18 @@ export default {
     dialogue: false,
     iconSize: null,
     urlIcon: null,
-    localIcon: null
+    fileUpload: null
   }),
+  watch: {
+    "item.styleComponentResetKey": function () {
+      let targetStyle = this.filterStylesOnActiveModeByLayerName(
+        this.item.mapLayer.get("name")
+      ).rules[this.ruleIndex];
+      this.iconSize = targetStyle.symbolizers[0].size;
+      this.urlIcon = null;
+      this.fileUpload = null;
+    }
+  },
   computed: {
     ...mapGetters("app", {
       activeColor: "activeColor"
@@ -114,14 +127,15 @@ export default {
       this.localIcon = null;
 
       //Get original style for layer attribute
-      let sourceStyle = this.$appConfig.stylesObjCopy[
-        this.item.mapLayer.get("name")
-      ].style.rules[this.ruleIndex];
+      let sourceStyle =
+        this.$appConfig.stylesObjCopy[this.item.mapLayer.get("name")].style
+          .rules[this.ruleIndex];
 
       //Get present stylefor layer attribute
-      let targetStyle = this.$appConfig.stylesObj[
-        this.item.mapLayer.get("name")
-      ].style.rules[this.ruleIndex];
+      let targetStyle =
+        this.$appConfig.stylesObj[this.item.mapLayer.get("name")].style.rules[
+          this.ruleIndex
+        ];
 
       //Assign original style to present style to reset
       targetStyle.symbolizers[0].size = sourceStyle.symbolizers[0].size;
@@ -144,7 +158,7 @@ export default {
       if (value) {
         const reader = new FileReader();
         reader.readAsDataURL(value);
-        reader.onload = e => {
+        reader.onload = (e) => {
           let icon = e.target.result;
           this.style.symbolizers[0].image = icon;
           this.item.mapLayer.getSource().changed();

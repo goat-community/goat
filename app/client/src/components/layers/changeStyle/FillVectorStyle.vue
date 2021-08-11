@@ -80,6 +80,19 @@ export default {
     outLineWidth: null,
     dialogue: false
   }),
+  watch: {
+    "item.styleComponentResetKey": function() {
+      let targetStyle = this.filterStylesOnActiveModeByLayerName(
+        this.item.mapLayer.get("name")
+      ).rules[this.ruleIndex];
+      this.fillColor = targetStyle.symbolizers[0].color;
+      this.outLineWidth = targetStyle.symbolizers[0].outlineWidth;
+      if (this.outLineWidth == 0) {
+        targetStyle.symbolizers[0].outlineWidth = 0.001;
+      }
+      this.outLineColor = targetStyle.symbolizers[0].outlineColor;
+    }
+  },
   computed: {
     ...mapGetters("app", {
       activeColor: "activeColor"
@@ -90,7 +103,7 @@ export default {
       ).rules[this.ruleIndex];
     }
   },
-  created() {
+  mounted() {
     if (this.dialogue == true) {
       //Refresh the legend
       this.item.layerTreeKey += 1;

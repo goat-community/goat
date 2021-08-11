@@ -62,6 +62,15 @@ export default {
     widthColor: null,
     width: null
   }),
+  watch: {
+    "item.styleComponentResetKey": function() {
+      let targetStyle = this.filterStylesOnActiveModeByLayerName(
+        this.item.mapLayer.get("name")
+      ).rules[this.ruleIndex];
+      this.widthColor = targetStyle.symbolizers[0].color;
+      this.width = targetStyle.symbolizers[0].width;
+    }
+  },
   computed: {
     ...mapGetters("app", {
       activeColor: "activeColor"

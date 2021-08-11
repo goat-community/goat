@@ -22,16 +22,16 @@
                         !$appConfig.componentConf.layerTree.groupIcons[
                           layerGroup.name
                         ] ||
-                          !$appConfig.componentConf.layerTree.groupIcons[
-                            layerGroup.name
-                          ].startsWith('./')
+                        !$appConfig.componentConf.layerTree.groupIcons[
+                          layerGroup.name
+                        ].startsWith('./')
                       "
                       small
                       >{{ getLayerGroupIcon(layerGroup) }}</v-icon
                     >
                     <div v-else v-html="getLayerGroupIcon(layerGroup)"></div>
                   </v-flex>
-                  <v-flex xs10 class="light-text" style="font-size:medium;">
+                  <v-flex xs10 class="light-text" style="font-size: medium">
                     <div>
                       <b>{{ translate("layerGroup", layerGroup.name) }}</b>
                     </div>
@@ -94,7 +94,7 @@
                             v-if="item.name !== 'study_area_crop'"
                             v-show="item.mapLayer.getVisible()"
                             small
-                            style="width: 30px; height: 30px;"
+                            style="width: 30px; height: 30px"
                             v-html="
                               item.showOptions === false
                                 ? 'fas fa-chevron-down'
@@ -112,27 +112,31 @@
                     <v-card
                       class="pt-2"
                       v-show="item.showOptions === true"
-                      style="background-color: white;"
+                      style="background-color: white"
                       transition="slide-y-reverse-transition"
                     >
-                      <InLegend :item="item"></InLegend>
-                      <v-layout row style="width:100%;padding-left: 10px;">
+                      <InLegend
+                        :layerName="translate('layerName', item.name)"
+                        :item="item"
+                        :openStyleDialog="openStyleDialog"
+                      ></InLegend>
+                      <v-layout row style="width: 100%; padding-left: 10px">
                         <v-flex
                           class="xs2"
-                          style="text-align:center;"
+                          style="text-align: center"
                           v-if="
                             ['VECTORTILE', 'VECTOR'].includes(
                               item.mapLayer.get('type')
-                            )
+                            ) && $appConfig.stylesObj[item.mapLayer.get('name')]
                           "
                         >
                           <v-icon
                             v-ripple
-                            style="color:#B0B0B0;margin-top:3px;cursor:pointer"
-                            dark
-                            @click="openStyleDialog(item)"
+                            @click="resetLayerStyle(item)"
+                            class="toolbar-icons mr-2"
+                            style="cursor: pointer"
                           >
-                            fas fa-cog
+                            fas fa-sync-alt
                           </v-icon>
                         </v-flex>
                         <v-flex
@@ -140,7 +144,8 @@
                             xs10:
                               ['VECTORTILE', 'VECTOR'].includes(
                                 item.mapLayer.get('type')
-                              ) == true,
+                              ) == true &&
+                              $appConfig.stylesObj[item.mapLayer.get('name')],
                             xs12: false
                           }"
                         >
@@ -178,6 +183,7 @@
             :toggleLayerOptions="toggleLayerOptions"
             :changeLayerOpacity="changeLayerOpacity"
             :openDocumentation="openDocumentation"
+            :resetLayerStyle="resetLayerStyle"
           ></LayerOrder>
         </v-tab-item>
       </v-tabs-items>
@@ -188,6 +194,7 @@
         :translate="translate"
         :key="styleDialogKey"
         :styleDialogStatus="styleDialogStatus"
+        :ruleIndex="ruleIndex"
       >
       </StyleDialog>
     </span>
@@ -217,7 +224,8 @@ export default {
       name: ""
     },
     styleDialogKey: 0,
-    styleDialogStatus: false
+    styleDialogStatus: false,
+    ruleIndex: undefined
   }),
   components: {
     DocumentationDialog,
@@ -239,7 +247,7 @@ export default {
     })
   },
   mounted() {
-    EventBus.$on("updateStyleDialogStatusForLayerTree", value => {
+    EventBus.$on("updateStyleDialogStatusForLayerTree", (value) => {
       this.styleDialogStatus = value;
     });
   },
@@ -250,7 +258,7 @@ export default {
      */
     isLayerBusy(treeLayer) {
       let isBusy = false;
-      this.busyLayers.forEach(bl => {
+      this.busyLayers.forEach((bl) => {
         if (bl.get("name") === treeLayer.get("name")) {
           isBusy = true;
         }
@@ -265,6 +273,7 @@ export default {
         isExpanded: [false],
         children: []
       };
+      this.resetZIndex();
       me.map
         .getLayers()
         .getArray()
@@ -277,7 +286,7 @@ export default {
             layer
               .getLayers()
               .getArray()
-              .filter(l => l.get("displayInLayerList") === false).length <
+              .filter((l) => l.get("displayInLayerList") === false).length <
               layer.getLayers().getArray().length
           ) {
             me.layers.push(obj);
@@ -314,14 +323,10 @@ export default {
                 showOptions: false,
                 mapLayer: layer,
                 layerTreeKey: 0,
-                layerOrderKey: this.layerOrderKey,
-                attributeDisplayStatusKey: 0
+                layerOrderKey: layer.getZIndex(),
+                attributeDisplayStatusKey: 0,
+                styleComponentResetKey: 0
               };
-              // layer.setZIndex(this.layerOrderKey);
-              // if (layer.get("group") === "backgroundLayers") {
-              //   layer.setZIndex(-1);
-              // }
-              this.layerOrderKey += 1;
               obj.children.push(layerOpt);
             }
           }
@@ -334,11 +339,78 @@ export default {
       }
       return obj;
     },
+    resetZIndex() {
+      let tempLayers = [];
+      this.map
+        .getLayers()
+        .getArray()
+        .forEach((g) => {
+          if (g.getLayers) {
+            g.getLayers()
+              .getArray()
+              .forEach((l) => {
+                tempLayers.push(l);
+              });
+          } else {
+            tempLayers.push(g);
+          }
+        });
+      tempLayers.sort((a, b) => (a.getZIndex() < b.getZIndex() ? -1 : 1));
+      tempLayers.forEach((layer) => {
+        if (layer.get("group") === "backgroundLayers") {
+          layer.setZIndex(-1);
+        } else {
+          layer.setZIndex(this.layerOrderKey);
+          this.layerOrderKey += 1;
+        }
+      });
+    },
     doNothing() {},
-    openStyleDialog(item) {
+    resetLayerStyle(item) {
+      /*
+        Function to reset the style of layer
+      */
+      //Get original style for layer
+      let source = this.filterStylesOnActiveModeByLayerName(
+        item.mapLayer.get("name"),
+        true
+      ).rules;
+
+      //Get present style for layer
+      let target = this.filterStylesOnActiveModeByLayerName(
+        item.mapLayer.get("name")
+      ).rules;
+      let kind = source[0].symbolizers[0].kind;
+      for (let i = 0; i < source.length; i++) {
+        let sourceStyle = source[i];
+        let targetStyle = target[i];
+        if (kind === "Fill") {
+          //Assign original style to present style to reset
+          targetStyle.symbolizers[0].color = sourceStyle.symbolizers[0].color;
+          targetStyle.symbolizers[0].outlineWidth =
+            sourceStyle.symbolizers[0].outlineWidth;
+          targetStyle.symbolizers[0].outlineColor =
+            sourceStyle.symbolizers[0].outlineColor;
+        } else if (kind === "Line") {
+          //Assign original style to present style to reset
+          targetStyle.symbolizers[0].color = sourceStyle.symbolizers[0].color;
+          targetStyle.symbolizers[0].width = sourceStyle.symbolizers[0].width;
+        } else if (kind === "Icon") {
+          //Assign original style to present style to reset
+          targetStyle.symbolizers[0].size = sourceStyle.symbolizers[0].size;
+          targetStyle.symbolizers[0].image = sourceStyle.symbolizers[0].image;
+        }
+      }
+      item.mapLayer.getSource().changed();
+      item.styleComponentResetKey += 1;
+      item.layerTreeKey += 1;
+    },
+    openStyleDialog(item, ruleIndex) {
       //This function is used for opening Style Setting dialog component for a layer
       EventBus.$emit("updateStyleDialogStatusForLayerOrder", false);
       this.styleDialogStatus = true;
+      this.ruleIndex = ruleIndex;
+      this.currentItem.layerTreeKey += 1;
       if (this.currentItem.name !== item.name) {
         this.styleDialogKey += 1;
       }
@@ -356,7 +428,7 @@ export default {
         layerGroup.name === "backgroundLayers" ||
         layerGroup.name === "accessbilityBasemaps"
       ) {
-        layerGroup.children.forEach(layer => {
+        layerGroup.children.forEach((layer) => {
           if (layer.id === clickedLayer.id) return;
           layer.showOptions = false;
           layer.mapLayer.setVisible(false);
@@ -416,9 +488,8 @@ export default {
       layer.setOpacity(value);
     },
     getLayerGroupIcon(layerGroup) {
-      const layerGroupIcon = this.$appConfig.componentConf.layerTree.groupIcons[
-        layerGroup.name
-      ];
+      const layerGroupIcon =
+        this.$appConfig.componentConf.layerTree.groupIcons[layerGroup.name];
       if (layerGroupIcon && layerGroupIcon.startsWith("./")) {
         return `<img src="${layerGroupIcon}" width="16px" height="16px" alt="">`;
       }

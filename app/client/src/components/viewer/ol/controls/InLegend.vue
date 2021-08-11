@@ -1,9 +1,10 @@
 <template>
   <div>
+    <span style="display: none">{{ layerName }}</span>
     <div v-if="item.mapLayer.get('legendGraphicUrl')">
       <img
         crossorigin="anonymous"
-        style="max-width:100%;padding-left:50px"
+        style="max-width: 100%; padding-left: 50px"
         :src="item.mapLayer.get('legendGraphicUrl')"
         class="white--text mt-0 pt-0"
       />
@@ -19,7 +20,7 @@
           <div :key="index2">
             <img
               crossorigin="anonymous"
-              style="max-width:100%; padding-left:50px;"
+              style="max-width: 100%; padding-left: 50px"
               :src="getWMSLegendImageUrl(item.mapLayer, layerName)"
               class="white--text mt-0 pt-0"
             />
@@ -31,12 +32,12 @@
         <div
           v-if="
             ['VECTORTILE', 'VECTOR'].includes(item.mapLayer.get('type')) &&
-              $appConfig.stylesObj[item.mapLayer.get('name')]
+            $appConfig.stylesObjCopy[item.mapLayer.get('name')]
           "
-          style="text-align: center; padding: 20px;"
+          style="text-align: center; padding: 20px"
           :key="item.layerTreeKey"
         >
-          <div v-if="$appConfig.stylesObj[item.mapLayer.get('name')]">
+          <div v-if="$appConfig.stylesObjCopy[item.mapLayer.get('name')]">
             <v-layout
               v-for="(rule, ith) in filterStylesOnActiveModeByLayerName(
                 item.mapLayer.get('name')
@@ -48,18 +49,17 @@
               align-center
             >
               <v-flex xs1>
-                <v-simple-checkbox
-                  style="width: 27px;height: 38px;"
-                  :ripple="false"
+                <v-checkbox
+                  style="width: 27px; height: 38px"
                   v-if="
                     filterStylesOnActiveModeByLayerName(
                       item.mapLayer.get('name')
                     ).rules.length > 1
                   "
                   :key="item.attributeDisplayStatusKey"
-                  :color="activeColor.primary"
-                  :value="isLayerAttributeVisible(item, ith)"
-                  @input="
+                  color="success"
+                  :input-value="isLayerAttributeVisible(item, ith)"
+                  @change="
                     attributeLevelRendering(
                       $appConfig.stylesObjCopy[item.mapLayer.get('name')].style
                         .rules[ith].filter[0],
@@ -68,12 +68,13 @@
                     )
                   "
                 >
-                </v-simple-checkbox>
+                </v-checkbox>
               </v-flex>
               <v-flex xs11>
                 <span
+                  @click="openStyleDialog(item, ith)"
                   class="justify-start"
-                  style="padding-right: 50px"
+                  style="padding-right: 50px; cursor: pointer"
                   :ref="`legend-vector-${item.name + ith}`"
                   v-html="renderLegend(item, ith)"
                 >
@@ -90,17 +91,16 @@
 <script>
 import LegendRenderer from "../../../../utils/LegendRenderer";
 import Legend from "../controls/Legend";
-import { mapGetters } from "vuex";
 
 export default {
-  props: ["item"],
+  props: ["item", "openStyleDialog", "layerName"],
   mixins: [Legend],
   data: () => ({
     legendRerenderOnActiveMode: 0
   }),
   watch: {
     //Rerendering the legend part when calculationModes value changes
-    "calculationOptions.calculationModes.active": function() {
+    "calculationOptions.calculationModes.active": function () {
       this.legendRerenderOnActiveMode += 1;
     }
   },
@@ -108,8 +108,8 @@ export default {
     isLayerAttributeVisible(item, ith) {
       //Checkbox will be checked or unchecked based on layer attribute visibility.
       const name = item.mapLayer.get("name");
-      const attributeStyle = this.filterStylesOnActiveModeByLayerName(name)
-        .rules[ith].filter[0];
+      const attributeStyle =
+        this.filterStylesOnActiveModeByLayerName(name).rules[ith].filter[0];
       if (!attributeStyle) {
         return false;
       }
@@ -118,9 +118,8 @@ export default {
     attributeLevelRendering(filter, item, ith) {
       //Display or hide layer on attribute level.
       const name = item.mapLayer.get("name");
-      const styleFilter = this.filterStylesOnActiveModeByLayerName(name).rules[
-        ith
-      ];
+      const styleFilter =
+        this.filterStylesOnActiveModeByLayerName(name).rules[ith];
       if (styleFilter.filter[0]) {
         styleFilter.filter[0] = "";
       } else {
@@ -167,11 +166,6 @@ export default {
         }
       }, 100);
     }
-  },
-  computed: {
-    ...mapGetters("app", {
-      activeColor: "activeColor"
-    })
   }
 };
 </script>

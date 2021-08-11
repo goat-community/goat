@@ -73,7 +73,7 @@ axios
     getOsmTimestamp()
   ])
   .then(
-    axios.spread(function(
+    axios.spread(function (
       config,
       studyArea,
       layerStyleTranslations,
@@ -118,9 +118,16 @@ axios
               .catch(() => null)
           );
         }
+        EventBus.$emit("inject-styles", stylesObj);
+        Vue.prototype.$appConfig.stylesObj = stylesObj;
+
+        //Making deep copy of styleobject for restoring the the original style of layers
+        Vue.prototype.$appConfig.stylesObjCopy = JSON.parse(
+          JSON.stringify(stylesObj)
+        );
       });
       if (promiseArray.length > 0) {
-        axios.all(promiseArray).then(function(results) {
+        axios.all(promiseArray).then(function (results) {
           const stylesObj = {};
           results.forEach(response => {
             if (response && response.config) {
