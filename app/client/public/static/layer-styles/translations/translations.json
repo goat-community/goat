@@ -11,6 +11,16 @@
       "de": "Unfallstelle"
     }
   },
+  "buildings": {
+    "no_residents": {
+      "en": "no residents",
+      "de": "unbewohnt"
+    },
+    "with_residents": {
+      "en": "with residents",
+      "de": "bewohnt"
+    }
+  },
   "aois": {
     "forest": {
       "en": "forest",

@@ -101,7 +101,7 @@ export default {
       const vector = new VectorLayer({
         name: "Isochrone Layer",
         displayInLegend: false,
-        zIndex: 6,
+        zIndex: 7,
         source: new VectorSource(),
         style: style
       });
@@ -156,7 +156,7 @@ export default {
       const vector = new VectorImageLayer({
         name: "isochroneOverlayLayer",
         displayInLegend: false,
-        zIndex: 7,
+        zIndex: 6,
         source: new VectorSource(),
         style: isochroneOverlayStyle
       });

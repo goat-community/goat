@@ -1,9 +1,10 @@
 <template>
   <div>
+    <span style="display: none">{{ layerName }}</span>
     <div v-if="item.mapLayer.get('legendGraphicUrl')">
       <img
         crossorigin="anonymous"
-        style="max-width:100%;padding-left:50px"
+        style="max-width: 100%; padding-left: 50px"
         :src="item.mapLayer.get('legendGraphicUrl')"
         class="white--text mt-0 pt-0"
       />
@@ -19,7 +20,7 @@
           <div :key="index2">
             <img
               crossorigin="anonymous"
-              style="max-width:100%; padding-left:50px;"
+              style="max-width: 100%; padding-left: 50px"
               :src="getWMSLegendImageUrl(item.mapLayer, layerName)"
               class="white--text mt-0 pt-0"
             />
@@ -31,12 +32,12 @@
         <div
           v-if="
             ['VECTORTILE', 'VECTOR'].includes(item.mapLayer.get('type')) &&
-              $appConfig.stylesObj[item.mapLayer.get('name')]
+              $appConfig.stylesObjCopy[item.mapLayer.get('name')]
           "
-          style="text-align: center; padding: 20px;"
+          style="text-align: center; padding: 20px"
           :key="item.layerTreeKey"
         >
-          <div v-if="$appConfig.stylesObj[item.mapLayer.get('name')]">
+          <div v-if="$appConfig.stylesObjCopy[item.mapLayer.get('name')]">
             <v-layout
               v-for="(rule, ith) in filterStylesOnActiveModeByLayerName(
                 item.mapLayer.get('name')
@@ -49,15 +50,15 @@
             >
               <v-flex xs1>
                 <v-simple-checkbox
-                  style="width: 27px;height: 38px;"
                   :ripple="false"
+                  style="width: 27px; height: 38px"
+                  :color="activeColor.primary"
                   v-if="
                     filterStylesOnActiveModeByLayerName(
                       item.mapLayer.get('name')
                     ).rules.length > 1
                   "
                   :key="item.attributeDisplayStatusKey"
-                  :color="activeColor.primary"
                   :value="isLayerAttributeVisible(item, ith)"
                   @input="
                     attributeLevelRendering(
@@ -72,8 +73,9 @@
               </v-flex>
               <v-flex xs11>
                 <span
+                  @click="openStyleDialog(item, ith)"
                   class="justify-start"
-                  style="padding-right: 50px"
+                  style="padding-right: 50px; cursor: pointer"
                   :ref="`legend-vector-${item.name + ith}`"
                   v-html="renderLegend(item, ith)"
                 >
@@ -93,8 +95,13 @@ import Legend from "../controls/Legend";
 import { mapGetters } from "vuex";
 
 export default {
-  props: ["item"],
+  props: ["item", "openStyleDialog", "layerName"],
   mixins: [Legend],
+  computed: {
+    ...mapGetters("app", {
+      activeColor: "activeColor"
+    })
+  },
   data: () => ({
     legendRerenderOnActiveMode: 0
   }),
@@ -167,11 +174,6 @@ export default {
         }
       }, 100);
     }
-  },
-  computed: {
-    ...mapGetters("app", {
-      activeColor: "activeColor"
-    })
   }
 };
 </script>

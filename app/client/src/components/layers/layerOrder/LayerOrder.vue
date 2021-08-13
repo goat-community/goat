@@ -73,22 +73,28 @@
             style="background-color: white;"
             transition="slide-y-reverse-transition"
           >
-            <InLegend :item="item"></InLegend>
+            <InLegend
+              :layerName="translate('layerName', item.name)"
+              :item="item"
+              :openStyleDialog="openStyleDialog"
+            ></InLegend>
             <v-layout row style="width:100%;padding-left: 10px;">
               <v-flex
                 class="xs2"
                 style="text-align:center;"
                 v-if="
-                  ['VECTORTILE', 'VECTOR'].includes(item.mapLayer.get('type'))
+                  ['VECTORTILE', 'VECTOR'].includes(
+                    item.mapLayer.get('type')
+                  ) && $appConfig.stylesObj[item.mapLayer.get('name')]
                 "
               >
                 <v-icon
                   v-ripple
-                  style="color:#B0B0B0;margin-top:3px;cursor:pointer"
-                  dark
-                  @click="openStyleDialog(item)"
+                  @click="resetLayerStyle(item)"
+                  class="toolbar-icons mr-2"
+                  style="cursor: pointer"
                 >
-                  fas fa-cog
+                  fas fa-sync-alt
                 </v-icon>
               </v-flex>
               <v-flex
@@ -96,7 +102,8 @@
                   xs10:
                     ['VECTORTILE', 'VECTOR'].includes(
                       item.mapLayer.get('type')
-                    ) == true,
+                    ) == true &&
+                    $appConfig.stylesObj[item.mapLayer.get('name')],
                   xs12: false
                 }"
               >
@@ -123,6 +130,7 @@
         :translate="translate"
         :key="styleDialogKey"
         :styleDialogStatus="styleDialogStatus"
+        :ruleIndex="ruleIndex"
         @styleDialogStatus="styleDialogStatus = $event"
       >
       </StyleDialog>
@@ -146,7 +154,8 @@ export default {
     "isLayerBusy",
     "toggleLayerOptions",
     "changeLayerOpacity",
-    "openDocumentation"
+    "openDocumentation",
+    "resetLayerStyle"
   ],
   data: () => ({
     allLayers: [],
@@ -155,7 +164,8 @@ export default {
       name: ""
     },
     styleDialogKey: 0,
-    styleDialogStatus: false
+    styleDialogStatus: false,
+    ruleIndex: undefined
   }),
   components: {
     draggable,
@@ -181,24 +191,25 @@ export default {
       activeColor: "activeColor"
     })
   },
-  created() {
+  mounted() {
+    EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
+      this.styleDialogStatus = value;
+    });
+
     //Get list of all map layers
     for (let i = this.layers.length - 1; i >= 0; i--) {
       for (let j = this.layers[i].children.length - 1; j >= 0; j--) {
         this.allLayers.push(this.layers[i].children[j]);
       }
     }
-  },
-  mounted() {
-    EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
-      this.styleDialogStatus = value;
-    });
+    this.sortLayerArray(this.allLayers);
   },
   methods: {
-    openStyleDialog(item) {
+    openStyleDialog(item, ruleIndex) {
       //This function is used for opening Style Setting dialog component for a layer
       EventBus.$emit("updateStyleDialogStatusForLayerTree", false);
       this.styleDialogStatus = true;
+      this.ruleIndex = ruleIndex;
       if (this.currentItem.name !== item.name) {
         this.styleDialogKey += 1;
       }

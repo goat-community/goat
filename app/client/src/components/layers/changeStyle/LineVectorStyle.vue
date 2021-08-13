@@ -37,14 +37,6 @@
         </v-color-picker>
       </v-tab-item>
     </v-tabs-items>
-    <v-btn
-      color="warning"
-      dark
-      @click="resetStyle"
-      style="width:100%;background-color: #2bb381 !important;"
-    >
-      Reset Style
-    </v-btn>
   </vue-scroll>
 </template>
 
@@ -62,6 +54,15 @@ export default {
     widthColor: null,
     width: null
   }),
+  watch: {
+    "item.styleComponentResetKey": function() {
+      let targetStyle = this.filterStylesOnActiveModeByLayerName(
+        this.item.mapLayer.get("name")
+      ).rules[this.ruleIndex];
+      this.widthColor = targetStyle.symbolizers[0].color;
+      this.width = targetStyle.symbolizers[0].width;
+    }
+  },
   computed: {
     ...mapGetters("app", {
       activeColor: "activeColor"
@@ -84,29 +85,6 @@ export default {
       this.dialogue = false;
       //Refresh the legend
       this.item.layerTreeKey += 1;
-    },
-    resetStyle() {
-      /*
-        Function to reset the style of layer at attribute level
-      */
-
-      //Get original style for layer attribute
-      let sourceStyle = this.$appConfig.stylesObjCopy[
-        this.item.mapLayer.get("name")
-      ].style.rules[this.ruleIndex];
-
-      //Get present style for layer attribute
-      let targetStyle = this.$appConfig.stylesObj[
-        this.item.mapLayer.get("name")
-      ].style.rules[this.ruleIndex];
-
-      //Assign original style to present styleto reset
-      targetStyle.symbolizers[0].color = sourceStyle.symbolizers[0].color;
-      targetStyle.symbolizers[0].width = sourceStyle.symbolizers[0].width;
-
-      this.widthColor = sourceStyle.symbolizers[0].color;
-      this.width = sourceStyle.symbolizers[0].width;
-      this.item.mapLayer.getSource().changed();
     },
     onWidthColorChange(value) {
       //Change color of line layer on input change

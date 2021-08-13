@@ -61,98 +61,79 @@ function getLayerStyleTranslation() {
   return axios.get("static/layer-styles/translations/translations.json");
 }
 
-function getOsmTimestamp() {
-  return axios.get("./api/osm_timestamp");
-}
-
-axios
-  .all([
-    getAppConf(),
-    getStudyAreaBbox(),
-    getLayerStyleTranslation(),
-    getOsmTimestamp()
-  ])
-  .then(
-    axios.spread(function(
-      config,
-      studyArea,
-      layerStyleTranslations,
-      osmTimestamp
-    ) {
-      //1- Make app config accessible for all components
-      Vue.prototype.$appConfig = config.data;
-      //2- Get study area bbox
-      if (studyArea.data) {
-        const f = geobufToFeatures(studyArea.data, {
-          dataProjection: "EPSG:4326",
-          featureProjection: "EPSG:3857"
-        });
-        const originalExtent = f[0].getGeometry().getExtent();
-        //Buffer study area extent to not be very strict.
-        const bufferedExtent = buffer(originalExtent, 8000);
-        //Make extent available in $appConf so the map can use it.
-        Vue.prototype.$appConfig.map.originalExtent = originalExtent;
-        Vue.prototype.$appConfig.map.extent = bufferedExtent;
-
-        if (!Vue.prototype.$appConfig.map.center) {
-          Vue.prototype.$appConfig.map.center = getCenter(originalExtent);
-        }
-        Vue.prototype.$appConfig.map.studyAreaFeature = f;
-      }
-
-      //3- Fetch all layer styles here.
-
-      let promiseArray = [];
-      const mapLayers = config.data.map.layers;
-      const osmLayer = config.data.map.osmMappingLayers;
-      const layers = [...mapLayers, ...osmLayer];
-      layers.forEach(layer => {
-        const layerName = layer.name;
-
-        if (layer.style && layer.style.format) {
-          promiseArray.push(
-            axios
-              .get(layer.style.url, {
-                data: { layerName, format: layer.style.format }
-              })
-              .catch(() => null)
-          );
-        }
+axios.all([getAppConf(), getStudyAreaBbox(), getLayerStyleTranslation()]).then(
+  axios.spread(function(config, studyArea, layerStyleTranslations) {
+    //1- Make app config accessible for all components
+    Vue.prototype.$appConfig = config.data;
+    //2- Get study area bbox
+    if (studyArea.data) {
+      const f = geobufToFeatures(studyArea.data, {
+        dataProjection: "EPSG:4326",
+        featureProjection: "EPSG:3857"
       });
-      if (promiseArray.length > 0) {
-        axios.all(promiseArray).then(function(results) {
-          const stylesObj = {};
-          results.forEach(response => {
-            if (response && response.config) {
-              const data = JSON.parse(response.config.data);
-              const { layerName, format } = data;
-              stylesObj[layerName] = {
-                format,
-                style: response.data,
-                translation: layerStyleTranslations.data[layerName]
-              };
-            }
-          });
-          EventBus.$emit("inject-styles", stylesObj);
-          Vue.prototype.$appConfig.stylesObj = stylesObj;
+      const originalExtent = f[0].getGeometry().getExtent();
+      //Buffer study area extent to not be very strict.
+      const bufferedExtent = buffer(originalExtent, 8000);
+      //Make extent available in $appConf so the map can use it.
+      Vue.prototype.$appConfig.map.originalExtent = originalExtent;
+      Vue.prototype.$appConfig.map.extent = bufferedExtent;
 
-          //Making deep copy of styleobject for restoring the the original style of layers
-          Vue.prototype.$appConfig.stylesObjCopy = JSON.parse(
-            JSON.stringify(stylesObj)
-          );
+      if (!Vue.prototype.$appConfig.map.center) {
+        Vue.prototype.$appConfig.map.center = getCenter(originalExtent);
+      }
+      Vue.prototype.$appConfig.map.studyAreaFeature = f;
+    }
+
+    //3- Fetch all layer styles here.
+
+    let promiseArray = [];
+    const mapLayers = config.data.map.layers;
+    const osmLayer = config.data.map.osmMappingLayers;
+    const layers = [...mapLayers, ...osmLayer];
+    layers.forEach(layer => {
+      const layerName = layer.name;
+
+      if (layer.style && layer.style.format) {
+        promiseArray.push(
+          axios
+            .get(layer.style.url, {
+              data: { layerName, format: layer.style.format }
+            })
+            .catch(() => null)
+        );
+      }
+    });
+    if (promiseArray.length > 0) {
+      axios.all(promiseArray).then(function(results) {
+        const stylesObj = {};
+        results.forEach(response => {
+          if (response && response.config) {
+            const data = JSON.parse(response.config.data);
+            const { layerName, format } = data;
+            stylesObj[layerName] = {
+              format,
+              style: response.data,
+              translation: layerStyleTranslations.data[layerName]
+            };
+          }
         });
-      }
-      if (osmTimestamp.data && osmTimestamp.data.osm_timestamp) {
-        Vue.prototype.$appConfig.osmTimestamp = osmTimestamp.data.osm_timestamp;
-      }
+        EventBus.$emit("inject-styles", stylesObj);
+        Vue.prototype.$appConfig.stylesObj = stylesObj;
 
-      /* eslint-disable no-new */
-      new Vue({
-        el: "#app",
-        i18n,
-        store,
-        vuetify,
-        render: h => h(App)
+        //Making deep copy of styleobject for restoring the the original style of layers
+        Vue.prototype.$appConfig.stylesObjCopy = JSON.parse(
+          JSON.stringify(stylesObj)
+        );
       });
-    })
-  );
+    }
+
+    /* eslint-disable no-new */
+    new Vue({
+      el: "#app",
+      i18n,
+      store,
+      vuetify,
+      render: h => h(App)
+    });
+  })
+);
