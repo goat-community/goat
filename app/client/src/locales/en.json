@@ -463,6 +463,7 @@
       "drawHoleOnPolygonNotAllowed": "Draw hole over a new drawn building",
       "clickAndDragToModify": "Click and drag the features to modify geometry",
       "clickToModifyAttributes": "Click to modify attributes",
+      "modifyingAttributeNotAllowed": "Modifying Attribute not allowed",
       "clickToRemove": "Click to remove it",
       "clickToPlacePoint": "Click to place the point",
       "changeDefaultColorPalette": "Change color (default)",

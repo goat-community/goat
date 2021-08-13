@@ -361,6 +361,7 @@
       "clickOnFeatureToMove": "",
       "clickAndDragToModify": "Cliquez et faites glisser les éléments à modifier",
       "clickToModifyAttributes": "",
+      "modifyingAttributeNotAllowed": "Modifying Attribute not allowed",
       "clickToRemove": "Cliquez pour effacer",
       "clickToPlacePoint": "",
       "routingProfiles": {

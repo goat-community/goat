@@ -413,6 +413,7 @@
       "drawHoleOnPolygonNotAllowed": "Dibuje el hoyo sobre otro edificio dibujado",
       "clickAndDragToModify": "Haga clic y arrastre el objeto para modificar",
       "clickToModifyAttributes": "Haga clic para modificar los atributos",
+      "modifyingAttributeNotAllowed": "Modifying Attribute not allowed",
       "clickToRemove": "Haga clic para eliminar",
       "clickToPlacePoint": "Haga clic para fijar punto de interés ",
       "changeDefaultColorPalette": "Cambiar color (base)",

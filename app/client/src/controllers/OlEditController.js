@@ -122,7 +122,7 @@ export default class OlEditController extends OlBaseController {
   /**
    * Creates the edit interaction and adds it to the map.
    */
-  addInteraction(editType, startCb, endCb) {
+  addInteraction(editType, startCb, endCb, unDoRedoStatus) {
     const me = this;
     // cleanup possible old edit interaction
 
@@ -156,7 +156,12 @@ export default class OlEditController extends OlBaseController {
         break;
       }
       case "modify": {
-        me.edit = new Modify({ source: me.source });
+        me.edit = new Modify({
+          source: me.source,
+          condition: function() {
+            return !unDoRedoStatus.status;
+          }
+        });
         me.edit.on("modifystart", startCb);
         me.edit.on("modifyend", endCb);
         me.snap = new Snap({ source: me.source });
@@ -168,6 +173,9 @@ export default class OlEditController extends OlBaseController {
         me.edit = new Draw({
           type: "Point",
           condition: function(evt) {
+            if (unDoRedoStatus.status) {
+              return false;
+            }
             // when the point's button is 1(leftclick), allows drawing
             if (evt.originalEvent.buttons === 1) {
               return true;
@@ -180,7 +188,10 @@ export default class OlEditController extends OlBaseController {
         me.edit.on("drawstart", startCb);
         me.edit.on("drawend", endCb);
         me.modify = new Modify({
-          source: me.bldEntranceLayer.getSource()
+          source: me.bldEntranceLayer.getSource(),
+          condition: function() {
+            return !unDoRedoStatus.status;
+          }
         });
         //Added modifystart event for building entrances
         me.modify.on("modifystart", startCb);
@@ -210,7 +221,12 @@ export default class OlEditController extends OlBaseController {
       }
       case "move": {
         me.currentInteraction = "move";
-        me.edit = new Translate({ layers: [me.layer] });
+        me.edit = new Translate({
+          layers: [me.layer],
+          condition: function() {
+            return !unDoRedoStatus.status;
+          }
+        });
         me.edit.on("translatestart", startCb);
         me.edit.on("translateend", endCb);
         me.helpMessage = i18n.t("map.tooltips.clickOnFeatureToMove");
@@ -218,7 +234,12 @@ export default class OlEditController extends OlBaseController {
       }
       case "drawHole": {
         me.currentInteraction = "drawHole";
-        me.edit = new DrawHole({ layers: [me.layer] });
+        me.edit = new DrawHole({
+          layers: [me.layer],
+          condition: function() {
+            return !unDoRedoStatus.status;
+          }
+        });
         me.edit.on("modifystart", startCb);
         me.edit.on("modifyend", endCb);
         me.helpMessage = i18n.t("map.tooltips.drawHoleOnPolygon");
@@ -267,7 +288,23 @@ export default class OlEditController extends OlBaseController {
     const coordinate = evt.coordinate;
     me.helpTooltipElement.innerHTML = me.helpMessage;
     me.helpTooltip.setPosition(coordinate);
-    if (
+    if (["modifyAttributes"].includes(this.currentInteraction)) {
+      const featureAtCoord = this.source.getFeaturesAtCoordinate(
+        evt.coordinate
+      );
+      if (featureAtCoord.length) {
+        if (
+          featureAtCoord[0].get("layerName") !==
+          `${editLayerHelper.selectedLayer.get("name")}`
+        ) {
+          me.helpMessage = i18n.t("map.tooltips.modifyingAttributeNotAllowed");
+        } else {
+          me.helpMessage = i18n.t("map.tooltips.clickToModifyAttributes");
+        }
+      } else {
+        me.helpMessage = i18n.t("map.tooltips.clickToModifyAttributes");
+      }
+    } else if (
       ["addBldEntrance", "move", "modify", "drawHole"].includes(
         this.currentInteraction
       )
