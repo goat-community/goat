@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3.9"
 
 networks:
   proxy:
@@ -6,26 +6,17 @@ networks:
 volumes:
   postgres_data:
     name: ${COMPOSE_PROJECT_NAME}_postgres_data
-  
+
 services:
   traefik:
-    image: "traefik:1.7.2-alpine"
+    image: traefik:v2.3.5
     container_name: "traefik"
-    ports:
-      - "80:80" # - Default Port
-      - "443:443" # - SSL Port
-      - "31951:31951" # - Mapproxy
-      - "8000:8000" # - Traefik UI
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./app/config/traefik.toml:/etc/traefik/traefik.toml
-      - ./app/config/ssl:/ssl
-    labels:
-      - "traefik.backend=traefik"
-      - "traefik.frontend.entryPoints=traefik-ui"
-      - "traefik.frontend.rule=Host:localhost;"
-      - "traefik.port=8080"
-      - "traefik.enable=true"
+    ports:
+      - "80:80" # - Default Port
+      - "8080:8080"
     networks:
       proxy:
 
@@ -34,83 +25,53 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./app/client
-    image: goat-client
+    container_name: ${COMPOSE_PROJECT_NAME}_client
+    hostname: ${COMPOSE_PROJECT_NAME}_client
     volumes:
       - /app/node_modules
       - ./app/client:/app
-    container_name: ${COMPOSE_PROJECT_NAME}_client
-    hostname: ${COMPOSE_PROJECT_NAME}_client
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.${COMPOSE_PROJECT_NAME}_client.loadbalancer.server.port=80"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/`)"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.entrypoints=websecure"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.tls.certresolver=myhttpchallenge"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.tls=true"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.entrypoints=web"
     networks:
       proxy:
 
   api:
+    image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:api-${PROJECT_VERSION}
     build:
       context: ./app/api
-    ports:
-      - 3000:3000
+      dockerfile: backend.dockerfile
+      args:
+        INSTALL_DEV: ${INSTALL_DEV-true}
+        INSTALL_JUPYTER: ${INSTALL_JUPYTER-true}
+    container_name: ${COMPOSE_PROJECT_NAME}_api
+    hostname: ${COMPOSE_PROJECT_NAME}_api
+    depends_on:
+      - db
     env_file:
-      - ./app/config/docker-env/api.env
+      - .env
+    environment:
+      - POSTGRES_SERVER=${COMPOSE_PROJECT_NAME}_db
+      - POSTGRES_DB=${COMPOSE_PROJECT_NAME}
+      - PROJECT_NAME=${COMPOSE_PROJECT_NAME}
+      - SERVER_NAME=${DOMAIN_NAME}
+      - SERVER_HOST=http://${DOMAIN_NAME}
+      - JUPYTER=jupyter lab --ip=0.0.0.0 --allow-root --NotebookApp.custom_display_url=http://127.0.0.1:8888
     volumes:
-      - ./app/api:/usr/src/app
+      - ./app/api/app:/app
+    # command: bash -c "while true; do sleep 1; done" # Infinite loop to keep container live doing nothing
     labels:
-      - "traefik.backend=api-flask"
-      - "traefik.frontend.entryPoints=https,http"
-      - "traefik.frontend.rule=Host:localhost;PathPrefix:/api"
-      - "traefik.port=3000"
       - "traefik.enable=true"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_api.rule=PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`)"
+      # The port below is for development only. On production, the port is 80.!
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}_api.loadbalancer.server.port=80"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_api.entrypoints=web"
+    ports:
+      - "8888:8888"
     networks:
       proxy:
-
-
-  # api-v2:
-  #   image: goatcommunity/api-v2:latest
-  #   depends_on:
-  #     - db
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - SERVER_NAME=${DOMAIN?Variable not set}
-  #     - SERVER_HOST=https://${DOMAIN?Variable not set}
-  #     # Allow explicit env var override for tests
-  #     - SMTP_HOST=${SMTP_HOST}
-  #   build:
-  #     context: ./backend
-  #     dockerfile: backend.dockerfile
-  #     args:
-  #       INSTALL_DEV: ${INSTALL_DEV-false}
-  #   deploy:
-  #     labels:
-  #       - traefik.enable=true
-  #       - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
-  #       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.rule=PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`)
-  #       - traefik.http.services.${STACK_NAME?Variable not set}-backend.loadbalancer.server.port=80
-
-
-  # db: 
-  #   image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:db-${PROJECT_VERSION}
-  #   container_name: goat-database
-  #   restart: on-failure
-  #   volumes:
-  #     # we are mounting a named volume here instead of a data directory path because of
-  #     # a windows 10 premission issue. See https://github.com/docker-library/postgres/issues/435)
-  #     # .........
-  #     - postgres_data:/var/lib/postgresql
-  #     - ./app/database:/opt
-  #     - ./app/api/src/db:/opt/scripts/db
-  #     - ./app/config:/opt/config
-  #   env_file:
-  #     - ./app/config/docker-env/db.env
-  #   ports:
-  #     - "65432:5432"
-  #   networks:
-  #     proxy:
 
   db:
     image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:db-${PROJECT_VERSION}
@@ -125,7 +86,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
       - ./app/database:/opt
-      - ./app/api/src/db:/opt/scripts/db
+      # - ./app/api/src/db:/opt/scripts/db
       - ./app/config:/opt/config
       # uncomment to enable remote connections to postgres
     ports:
@@ -136,6 +97,8 @@ services:
       timeout: 5s
       retries: 5
     restart: on-failure
+    networks:
+      proxy:
 
   pgadmin:
     image: dpage/pgadmin4
@@ -147,8 +110,12 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
     depends_on:
       - db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_pgadmin.rule=Host(`pgadmin.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_pgadmin.entrypoints=web"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}_pgadmin.loadbalancer.server.port=5050"
     ports:
       - "5050:5050"
     networks:
       proxy:
-        
