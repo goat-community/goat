@@ -6,8 +6,13 @@ from geoalchemy2 import Geometry
 
 from app.db.base_class import Base
 
+if TYPE_CHECKING:
+    from .scenario import Scenario  # noqa: F401
+    from .user import User  # noqa: F401
+
 
 class Isochrone(Base):
+    __table_name__ = 'isochrone'
     id = Column(Integer, primary_key=True, index=True)
     step = Column(Integer, nullable=False)
     speed = Column(Integer, nullable=False)

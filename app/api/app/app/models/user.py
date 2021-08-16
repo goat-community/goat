@@ -7,8 +7,9 @@ from app.db.base_class import Base
 
 if TYPE_CHECKING:
     from .item import Item  # noqa: F401
-    from .isochrone import Isochrone
-    from .scenario import Scenario
+    from .isochrone import Isochrone  # noqa: F401
+    from .scenario import Scenario  # noqa: F401
+
 
 class User(Base):
     id = Column(Integer, primary_key=True, index=True)
