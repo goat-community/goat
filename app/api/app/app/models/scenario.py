@@ -21,7 +21,7 @@ class Scenario(Base):
     deleted_buildings = Column(ARRAY(BIGINT))
     ways_heatmap_computed = Column(Boolean)
     user_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
-    user = relationship("User", back_populates="scenario")
+    user = relationship("User", back_populates="scenarios")
     poi_modification = relationship("POIModification", back_populates="scenario")
     way_modification = relationship("WayModification", back_populates="scenario")
     building_modification = relationship(

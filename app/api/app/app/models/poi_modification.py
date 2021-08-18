@@ -20,5 +20,5 @@ class POIModification(Base):
     origin_id = Column(Integer, nullable=True)
     scenario_id = Column(Integer, ForeignKey(
         "scenario.id", ondelete="CASCADE"), nullable=False)
-    scenario = relationship("Scenario", back_populates="poi_modifications")
+    scenario = relationship("Scenario", back_populates="poi_modification")
     geom = Column(Geometry(geometry_type='POINT', srid='4326'))
