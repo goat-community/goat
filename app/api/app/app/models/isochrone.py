@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class Isochrone(Base):
-    __table_name__ = 'isochrone'
+    __table_name__ = "isochrone"
     id = Column(Integer, primary_key=True, index=True)
     step = Column(Integer, nullable=False)
     speed = Column(Integer, nullable=False)
@@ -28,4 +28,4 @@ class Isochrone(Base):
     scenario_id = Column(Integer, nullable=False)
     user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
     user = relationship("User", back_populates="isochrones")
-    geom = Column(Geometry(geometry_type='POLYGON', srid='4326'))
+    geom = Column(Geometry(geometry_type="POLYGON", srid="4326"))

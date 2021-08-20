@@ -26,6 +26,8 @@ pytest = "^5.4.1"
 python-jose = {extras = ["cryptography"], version = "^3.1.0"}
 GeoAlchemy2 = "^0.9.3"
 geojson-pydantic = "^0.3.1"
+geojson = "^2.5.0"
+Shapely = "^1.7.1"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.770"

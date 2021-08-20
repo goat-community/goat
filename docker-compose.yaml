@@ -86,7 +86,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
       - ./app/database:/opt
-      # - ./app/api/src/db:/opt/scripts/db
+      - ./app/database/db:/opt/scripts/db
       - ./app/config:/opt/config
       # uncomment to enable remote connections to postgres
     ports:
