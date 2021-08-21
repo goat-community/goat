@@ -28,6 +28,7 @@ GeoAlchemy2 = "^0.9.3"
 geojson-pydantic = "^0.3.1"
 geojson = "^2.5.0"
 Shapely = "^1.7.1"
+geopandas = "^0.9.0"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.770"

@@ -84,6 +84,28 @@ class IsochroneMultiCountPois(BaseModel):
     speed: int
     user_id: int
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "region_type": "study_area",
+                "region": "POINT(7.8383676846236225 48.02455137958364)",
+                "user_id": 120,
+                "scenario_id": "0",
+                "modus": "default",
+                "minutes": 10,
+                "speed": 5,
+                "amenities": [
+                    "nursery",
+                    "kindergarten",
+                    "grundschule",
+                    "realschule",
+                    "werkrealschule",
+                    "gymnasium",
+                    "library",
+                ],
+            }
+        }
+
 
 class IsochroneExport(BaseModel):
     """Isochrone export DTO"""

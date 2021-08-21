@@ -2,7 +2,6 @@ from app.utils import without_keys
 from app.schemas.isochrone import (
     IsochroneMulti,
     IsochroneMultiCountPois,
-    IsochroneMultiCountPoisProperties,
     IsochroneSingle,
 )
 from typing import Any, List
@@ -70,8 +69,8 @@ class CRUDIsochrone:
         sql = text(
             """SELECT row_number() over() AS gid, count_pois, region_name, geom FROM count_pois_multi_isochrones(:user_id,:scenario_id,:modus,:minutes,:speed,:region_type,:region,array[:amenities])"""
         )
-        result = db.execute(sql, obj_in_data).first()
-        return result
+        result = db.execute(sql, obj_in_data)
+        return self.sql_to_geojson(result)
 
     def export_isochrone():
         pass
