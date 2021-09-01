@@ -156,6 +156,7 @@
           <div class="ml-2" v-if="editElVisible">
             <!-- Undo Redo Features -->
             <span
+              v-if="false"
               v-show="selectedLayer != null"
               class="py-1 mb-0 mt-3 pl-0 ml-0"
             >
@@ -164,7 +165,7 @@
 
             <v-flex
               xs12
-              v-show="selectedLayer != null && selectFeaturesVisible"
+              v-show="selectedLayer != null && selectFeaturesVisible && false"
               class="mt-1 pt-0 mb-4"
             >
               <v-btn-toggle>
