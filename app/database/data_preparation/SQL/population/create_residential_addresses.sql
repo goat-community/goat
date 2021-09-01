@@ -107,7 +107,7 @@ DO $$
 			ON b.gid = a.building_gid
 			WHERE a.building_gid IS NULL 
 		)
-		SELECT a.gid AS building_gid, a.gross_floor_area_residential, ST_CLOSESTPOINT(a.geom, j.geom) AS geom
+		SELECT a.gid AS building_gid, a.gross_floor_area_residential, ST_CLOSESTPOINT(ST_BUFFER(a.geom, -0.000001), j.geom) AS geom
 		FROM buildings_no_address a
 		CROSS JOIN LATERAL 
 		(

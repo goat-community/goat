@@ -131,31 +131,20 @@ WHERE ST_Intersects(ST_Centroid(census_prepared.geom), cc.geom)
 AND number_buildings_now > select_from_variable_container_s('census_minimum_number_new_buildings')::integer
 AND pop < 1; 
 
-WITH new_comparison_pop AS (
-	SELECT s.name, s.sum_pop,sum(c.new_pop) sum_new_pop, s.geom
+WITH new_comparison_pop AS 
+(
+	SELECT s.name, sum(c.sum_gross_floor_area_residential) sum_gross_floor_area_residential, s.sum_pop, sum(c.new_pop) sum_new_pop, s.geom
 	FROM census_prepared c, study_area s
 	WHERE ST_Intersects(ST_Centroid(c.geom),s.geom)
-	AND c.new_pop > 0
+	AND c.pop > 0
 	GROUP BY s.name, s.sum_pop, s.geom
-),
-remaining_pop AS (
-	SELECT c.name, (sum_pop::numeric-sum_new_pop::numeric)/x.count_grids::numeric to_add
-	FROM new_comparison_pop c,
-	(	
-		SELECT s.name,count(*) AS count_grids
-		FROM census_prepared c, study_area s
-		WHERE c.pop > 0
-		AND ST_Intersects(ST_Centroid(c.geom),s.geom)
-		GROUP BY s.name
-	) x
-	WHERE sum_new_pop < sum_pop
-	AND c.name = x.name 
 )
-UPDATE census_prepared SET new_pop = new_pop + r.to_add
-FROM study_area s, remaining_pop r 
-WHERE s.name = r.name 
-AND ST_Intersects(s.geom,ST_Centroid(census_prepared.geom))
-AND census_prepared.pop > 0;
+UPDATE census_prepared c
+SET new_pop = new_pop + (n.sum_pop::float - n.sum_new_pop::float) * (c.sum_gross_floor_area_residential::float/n.sum_gross_floor_area_residential::float)
+FROM new_comparison_pop n, study_area s 
+WHERE n.name = s.name 
+AND ST_Intersects(ST_CENTROID(c.geom), s.geom)
+AND c.pop > 0;
 
 DROP TABLE IF EXISTS population CASCADE; 
 CREATE TABLE population AS 
