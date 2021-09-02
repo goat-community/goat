@@ -175,7 +175,7 @@ class Database:
 
         with self.conn.cursor() as cur:
             #prepared_query = sql.SQL(query).format(*map(sql.Identifier, identifiers))
-            self.cur_execute(self.conn, cur, query, params=params)
+            self.cur_execute(self.conn, cur, query, params=params, response=False)
 
         self.conn.commit()
         cur.close()
