@@ -209,6 +209,10 @@
       "en": "High connectivity",
       "de": "Hohe Konnektivität"
     },
+    "VeryHighConnectivity": {
+      "en": "Very high connectivity",
+      "de": "Sehr hohe Konnektivität"
+    },
     "VeryStrongDecrease": {
       "en": "Very strong decrease",
       "de": "Sehr starke Abnahme"
