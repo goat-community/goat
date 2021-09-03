@@ -182,7 +182,7 @@ WHERE e.id IS NULL;
 
 /*Remove neighbor edge of deathend if also new deathend*/
 INSERT INTO ways_to_remove
-SELECT w.id, w.class_id, w.SOURCE, w.target,
+SELECT DISTINCT w.id, w.class_id, w.SOURCE, w.target,
 CASE WHEN w.death_end = w.SOURCE THEN w.SOURCE ELSE w.target END AS not_death_end_vertex, w.geom
 FROM ways_to_remove e, ways_vertices_pgr v, ways w 
 WHERE e.not_death_end_vertex = v.id 
@@ -360,7 +360,7 @@ WHERE f.id = c.id;
 
 WITH to_delete AS 
 (
-	SELECT id
+	SELECT f.id
 	FROM footpath_visualization f
 	LEFT JOIN study_area s 
 	ON ST_Intersects(f.geom, s.geom)

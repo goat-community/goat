@@ -32,7 +32,7 @@
         {
           "kind": "Line",
           "color": "#f2ef24",
-          "width": 1,
+          "width": 3,
           "join": "bevel",
           "cap": "square"
         }
@@ -56,8 +56,8 @@
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#2ed558",
-          "width": 1,
+          "color": "#95d52e",
+          "width": 3,
           "join": "bevel",
           "cap": "square"
         }
@@ -81,8 +81,8 @@
       "symbolizers": [
         {
           "kind": "Line",
-          "color": "#2aaa4a",
-          "width": 1,
+          "color": "#35aa2a",
+          "width": 3,
           "join": "bevel",
           "cap": "square"
         }
@@ -107,7 +107,7 @@
         {
           "kind": "Line",
           "color": "#2a924a",
-          "width": 1,
+          "width": 3,
           "join": "bevel",
           "cap": "square"
         }
@@ -132,7 +132,7 @@
         {
           "kind": "Line",
           "color": "#197836",
-          "width": 1,
+          "width": 3,
           "join": "bevel",
           "cap": "square"
         }
@@ -149,7 +149,7 @@
         {
           "kind": "Line",
           "color": "#27d9d9",
-          "width": 1,
+          "width": 3,
           "join": "bevel",
           "cap": "square"
         }
@@ -166,7 +166,7 @@
         {
           "kind": "Line",
           "color": "#ff0d01",
-          "width": 1,
+          "width": 3,
           "join": "bevel",
           "cap": "square"
         }
