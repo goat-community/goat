@@ -1,11 +1,14 @@
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import emails
 from emails.template import JinjaTemplate
+from geojson import Feature, FeatureCollection
+from geojson import loads as geojsonloads
 from jose import jwt
+from shapely.wkb import loads as wkbloads
 
 from app.core.config import settings
 
@@ -106,6 +109,31 @@ def verify_password_reset_token(token: str) -> Optional[str]:
         return decoded_token["email"]
     except jwt.JWTError:
         return None
+
+
+def sql_to_geojson(
+    sql_result: Any,
+    geometry_name: str = "geom",
+    geometry_type: str = "wkb",  # wkb | geojson (wkb is postgis geometry which is stored as hex)
+    exclude_properties: List = [],
+) -> FeatureCollection:
+    """
+    Generic method to convert sql result to geojson. Geometry field is expected to be in geojson or postgis hex format.
+    """
+    exclude_properties.append(geometry_name)
+    features = []
+    for row in sql_result:
+        dict_row = dict(row)
+        features.append(
+            Feature(
+                id=dict_row.get("gid") or dict_row.get("id") or 0,
+                geometry=geojsonloads(row[geometry_name])
+                if geometry_type == "geojson"
+                else wkbloads(row[geometry_name], hex=True),
+                properties=without_keys(dict_row, exclude_properties),
+            )
+        )
+    return FeatureCollection(features)
 
 
 def without_keys(d, keys):

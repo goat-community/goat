@@ -2,21 +2,20 @@ from typing import Any
 
 from fastapi import APIRouter, Depends
 from fastapi.param_functions import Body
+from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
 from app import crud
 from app.api import deps
 from app.schemas.isochrone import (
     IsochroneExport,
+    IsochroneMulti,
+    IsochroneMultiCollection,
     IsochroneMultiCountPois,
     IsochroneMultiCountPoisCollection,
-    IsochroneSingleCollection,
-    IsochroneMultiCollection,
-    IsochroneMulti,
     IsochroneSingle,
+    IsochroneSingleCollection,
 )
-from fastapi.responses import FileResponse
-
 
 router = APIRouter()
 
@@ -53,18 +52,14 @@ def count_pois_multi_isochrones(
     Count pois under study area.
     """
 
-    feature_collection = crud.isochrone.count_pois_multi_isochrones(
-        db=db, obj_in=isochrone_in
-    )
+    feature_collection = crud.isochrone.count_pois_multi_isochrones(db=db, obj_in=isochrone_in)
     return feature_collection
 
 
-@router.post("/export", response_class=FileResponse)
-def export_isochrones(
-    *, db: Session = Depends(deps.get_db), isochrone_in: IsochroneExport
-) -> Any:
+@router.post("/export", response_class=StreamingResponse)
+def export_isochrones(*, db: Session = Depends(deps.get_db), isochrone_in: IsochroneExport) -> Any:
     """
     Export isochrones.
     """
-
-    crud.isochrone.export_isochrones(db=db, obj_in=isochrone_in)
+    file_response = crud.isochrone.export_isochrone(db=db, obj_in=isochrone_in)
+    return file_response

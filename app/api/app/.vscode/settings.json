@@ -16,6 +16,18 @@
     "titleBar.inactiveBackground": "#1857a499",
     "titleBar.inactiveForeground": "#e7e7e799"
   },
+  "editor.formatOnSave": true,
   "peacock.remoteColor": "#1857a4",
-  "python.formatting.provider": "black"
+  "python.formatting.provider": "black",
+  "python.formatting.blackArgs": [
+      "--line-length=99"
+  ],
+  "python.sortImports.args": [
+      "--profile", "black"
+  ],
+  "[python]": {
+      "editor.codeActionsOnSave": {
+          "source.organizeImports": true
+      }
+  }
 }

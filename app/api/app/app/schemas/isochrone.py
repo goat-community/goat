@@ -1,8 +1,8 @@
 from typing import Dict, List, Union
-from pydantic import BaseModel
+
 from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import MultiPolygon, Polygon
-
+from pydantic import BaseModel
 
 """
 Body of the request

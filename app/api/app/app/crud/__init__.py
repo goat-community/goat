@@ -1,6 +1,7 @@
 from .crud_item import item
 from .crud_user import user
 from .crud_isochrone import isochrone
+from .crud_scenario import scenario
 
 # For a new basic set of CRUD operations you could just do
 

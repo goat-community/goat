@@ -1,43 +1,26 @@
-from app.utils import without_keys
+import io
+import os
+import shutil
+import time
+from typing import Any
+
+import geopandas as gpd
+import pandas as pd
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import StreamingResponse
+from geojson import FeatureCollection
+from sqlalchemy.orm import Session
+from sqlalchemy.sql import text
+
 from app.schemas.isochrone import (
     IsochroneMulti,
     IsochroneMultiCountPois,
     IsochroneSingle,
 )
-from typing import Any, List
-from sqlalchemy.orm import Session
-from sqlalchemy.sql import text
-from fastapi.encoders import jsonable_encoder
-from geojson import Feature, FeatureCollection, loads as geojsonloads
-from shapely.wkb import loads as wkbloads
+from app.utils import sql_to_geojson
 
 
 class CRUDIsochrone:
-    def sql_to_geojson(
-        self,
-        sql_result: Any,
-        geometry_name: str = "geom",
-        geometry_type: str = "wkb",  # wkb | geojson (wkb is postgis geometry which is stored as hex)
-        exclude_properties: List = [],
-    ) -> FeatureCollection:
-        """
-        Generic method to convert sql result to geojson. Geometry field is expected to be in geojson or postgis hex format.
-        """
-        exclude_properties.append(geometry_name)
-        features = []
-        for row in sql_result:
-            dict_row = dict(row)
-            features.append(
-                Feature(
-                    id=dict_row.get("gid") or dict_row.get("id") or 0,
-                    geometry=geojsonloads(row[geometry_name])
-                    if geometry_type == "geojson"
-                    else wkbloads(row[geometry_name], hex=True),
-                    properties=without_keys(dict_row, exclude_properties),
-                )
-            )
-        return FeatureCollection(features)
-
     def calculate_single_isochrone(
         self, db: Session, *, obj_in: IsochroneSingle
     ) -> FeatureCollection:
@@ -50,7 +33,7 @@ class CRUDIsochrone:
          """
         )
         result = db.execute(sql, obj_in_data)
-        return self.sql_to_geojson(result, geometry_type="geojson")
+        return sql_to_geojson(result, geometry_type="geojson")
 
     def calculate_multi_isochrones(
         self, db: Session, *, obj_in: IsochroneMulti
@@ -60,7 +43,7 @@ class CRUDIsochrone:
             """SELECT * FROM multi_isochrones_api(:user_id,:scenario_id,:minutes,:speed,:n,:routing_profile,:alphashape_parameter,:modus,:region_type,:region,:amenities)"""
         )
         result = db.execute(sql, obj_in_data)
-        return self.sql_to_geojson(result)
+        return sql_to_geojson(result)
 
     def count_pois_multi_isochrones(
         self, db: Session, *, obj_in: IsochroneMultiCountPois
@@ -70,10 +53,29 @@ class CRUDIsochrone:
             """SELECT row_number() over() AS gid, count_pois, region_name, geom FROM count_pois_multi_isochrones(:user_id,:scenario_id,:modus,:minutes,:speed,:region_type,:region,array[:amenities])"""
         )
         result = db.execute(sql, obj_in_data)
-        return self.sql_to_geojson(result)
+        return sql_to_geojson(result)
 
-    def export_isochrone():
-        pass
+    def export_isochrone(self, db: Session, *, obj_in: IsochroneSingle) -> Any:
+        obj_in_data = jsonable_encoder(obj_in)
+        sql = text(
+            """SELECT gid, objectid, step, modus, parent_id, population, sum_pois::text, geom FROM isochrones WHERE objectid = :objectid"""
+        )
+        gdf = gpd.GeoDataFrame.from_postgis(
+            sql, db.get_bind(), geom_col="geom", params=obj_in_data
+        )
+        file_name = "isochrone_export"
+        dir_path = "/tmp/exports/{}/".format(time.strftime("%Y%m%d-%H%M%S"))
+        os.makedirs(dir_path)
+        gdf.to_file(dir_path + file_name)
+        shutil.make_archive(file_name, "zip", dir_path)
+        with open(file_name + ".zip", "rb") as f:
+            data = f.read()
+
+        os.remove(file_name + ".zip")
+        shutil.rmtree(dir_path[0 : len(dir_path) - 1])
+        response = StreamingResponse(io.BytesIO(data), media_type="application/zip")
+        response.headers["Content-Disposition"] = "attachment; filename={}.zip".format(file_name)
+        return response
 
 
 isochrone = CRUDIsochrone()
