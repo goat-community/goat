@@ -231,11 +231,11 @@ BEGIN
 		
 		UPDATE population_modified p
 		SET building_gid = b.gid 
-		FROM buildings b 
+		FROM buildings_modified b 
 		WHERE ST_Intersects(b.geom, p.geom)
-		AND scenario_id = scenario_id_input 
-		AND building_gid IS NULL;  
-	
+		AND p.scenario_id = scenario_id_input
+		AND b.scenario_id = scenario_id_input;
+			
 		SELECT create_geojson(array_agg(to_jsonb(x) - 'geom'), array_agg(geom))
 		INTO buildings_entrances_json 
 		FROM 
