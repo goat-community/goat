@@ -9,6 +9,7 @@ import pandas as pd
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from geojson import FeatureCollection
+from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 
@@ -21,8 +22,8 @@ from app.utils import sql_to_geojson
 
 
 class CRUDIsochrone:
-    def calculate_single_isochrone(
-        self, db: Session, *, obj_in: IsochroneSingle
+    async def calculate_single_isochrone(
+        self, db: AsyncSession, *, obj_in: IsochroneSingle
     ) -> FeatureCollection:
         obj_in_data = jsonable_encoder(obj_in)
         sql = text(
@@ -32,32 +33,32 @@ class CRUDIsochrone:
             FROM isochrones_api(:user_id,:scenario_id,:minutes,:x,:y,:n,:speed,:concavity,:modus,:routing_profile,NULL,NULL,NULL)
          """
         )
-        result = db.execute(sql, obj_in_data)
-        db.commit()
+        result = await db.execute(sql, obj_in_data)
+        await db.commit()
         return sql_to_geojson(result, geometry_type="geojson")
 
-    def calculate_multi_isochrones(
-        self, db: Session, *, obj_in: IsochroneMulti
+    async def calculate_multi_isochrones(
+        self, db: AsyncSession, *, obj_in: IsochroneMulti
     ) -> FeatureCollection:
         obj_in_data = jsonable_encoder(obj_in)
         sql = text(
             """SELECT * FROM multi_isochrones_api(:user_id,:scenario_id,:minutes,:speed,:n,:routing_profile,:alphashape_parameter,:modus,:region_type,:region,:amenities)"""
         )
-        result = db.execute(sql, obj_in_data)
-        db.commit()
+        result = await db.execute(sql, obj_in_data)
+        await db.commit()
         return sql_to_geojson(result)
 
-    def count_pois_multi_isochrones(
-        self, db: Session, *, obj_in: IsochroneMultiCountPois
+    async def count_pois_multi_isochrones(
+        self, db: AsyncSession, *, obj_in: IsochroneMultiCountPois
     ) -> FeatureCollection:
         obj_in_data = jsonable_encoder(obj_in)
         sql = text(
             """SELECT row_number() over() AS gid, count_pois, region_name, geom FROM count_pois_multi_isochrones(:user_id,:scenario_id,:modus,:minutes,:speed,:region_type,:region,array[:amenities])"""
         )
-        result = db.execute(sql, obj_in_data)
+        result = await db.execute(sql, obj_in_data)
         return sql_to_geojson(result)
 
-    def export_isochrone(self, db: Session, *, obj_in: IsochroneSingle) -> Any:
+    async def export_isochrone(self, db: AsyncSession, *, obj_in: IsochroneSingle) -> Any:
         obj_in_data = jsonable_encoder(obj_in)
         sql = text(
             """SELECT gid, objectid, step, modus, parent_id, population, sum_pois::text, geom FROM isochrones WHERE objectid = :objectid"""
