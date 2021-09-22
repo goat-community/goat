@@ -1,4 +1,15 @@
 [[package]]
+name = "affine"
+version = "2.3.0"
+description = "Matrices describing affine transformation of the plane."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+test = ["pytest (>=3.0)", "pytest-cov", "pydocstyle", "coveralls"]
+
+[[package]]
 name = "alembic"
 version = "1.6.5"
 description = "A database migration tool for SQLAlchemy."
@@ -651,6 +662,23 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
+name = "morecantile"
+version = "2.1.4"
+description = "Construct and use map tile grids (a.k.a TileMatrixSet / TMS)."
+category = "main"
+optional = false
+python-versions = ">=3"
+
+[package.dependencies]
+pydantic = "*"
+rasterio = ">=1.1.7"
+
+[package.extras]
+dev = ["pytest", "pytest-cov", "pre-commit"]
+docs = ["mkdocs", "mkdocs-material", "pygments"]
+test = ["mercantile", "pytest", "pytest-cov"]
+
+[[package]]
 name = "munch"
 version = "2.5.0"
 description = "A dot-accessible dictionary (a la JavaScript objects)"
@@ -961,6 +989,32 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "rasterio"
+version = "1.2.8"
+description = "Fast and direct raster I/O for use with Numpy and SciPy"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+affine = "*"
+attrs = "*"
+certifi = "*"
+click = ">=4.0"
+click-plugins = "*"
+cligj = ">=0.5"
+numpy = "*"
+snuggs = ">=1.4.1"
+
+[package.extras]
+all = ["sphinx", "ipython (>=2.0)", "packaging", "sphinx-rtd-theme", "numpydoc", "pytest (>=2.8.2)", "shapely", "pytest-cov (>=2.2.0)", "ghp-import", "hypothesis", "boto3 (>=1.2.4)", "matplotlib"]
+docs = ["ghp-import", "numpydoc", "sphinx", "sphinx-rtd-theme"]
+ipython = ["ipython (>=2.0)"]
+plot = ["matplotlib"]
+s3 = ["boto3 (>=1.2.4)"]
+test = ["boto3 (>=1.2.4)", "hypothesis", "packaging", "pytest-cov (>=2.2.0)", "pytest (>=2.8.2)", "shapely"]
+
+[[package]]
 name = "raven"
 version = "6.10.0"
 description = "Raven is a client for Sentry (https://getsentry.com)"
@@ -1029,6 +1083,21 @@ description = "Python 2 and 3 compatibility utilities"
 category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
+
+[[package]]
+name = "snuggs"
+version = "1.4.7"
+description = "Snuggs are s-expressions for Numpy"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+numpy = "*"
+pyparsing = ">=2.1.6"
+
+[package.extras]
+test = ["pytest", "hypothesis"]
 
 [[package]]
 name = "sqlalchemy"
@@ -1214,9 +1283,13 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "ba696d833bc8be65cb9de1b276a116f5fd5771ccdcb39b4d022fd1a68e8db3c0"
+content-hash = "606b6a173daf2d60bd5f4e8b2abba9f22d9b0e90b115d65275d64c62f07a9a23"
 
 [metadata.files]
+affine = [
+    {file = "affine-2.3.0-py2.py3-none-any.whl", hash = "sha256:34b05b070d954c382e56f02c207a372d8a32621a87653cc30cdd31cd7f65799f"},
+    {file = "affine-2.3.0.tar.gz", hash = "sha256:2e045def1aa29e613c42e801a7e10e0b9bacfed1a7c6af0cadf8843530a15102"},
+]
 alembic = [
     {file = "alembic-1.6.5-py2.py3-none-any.whl", hash = "sha256:e78be5b919f5bb184e3e0e2dd1ca986f2362e29a2bc933c446fe89f39dbe4e9c"},
     {file = "alembic-1.6.5.tar.gz", hash = "sha256:a21fedebb3fb8f6bbbba51a11114f08c78709377051384c9c5ead5705ee93a51"},
@@ -1740,6 +1813,9 @@ more-itertools = [
     {file = "more-itertools-8.8.0.tar.gz", hash = "sha256:83f0308e05477c68f56ea3a888172c78ed5d5b3c282addb67508e7ba6c8f813a"},
     {file = "more_itertools-8.8.0-py3-none-any.whl", hash = "sha256:2cf89ec599962f2ddc4d568a05defc40e0a587fbc10d5989713638864c36be4d"},
 ]
+morecantile = [
+    {file = "morecantile-2.1.4.tar.gz", hash = "sha256:bf4b1c336f96f47ab67a5eb451b72149d2fcf23a64cb2bd53382f39c8f5634f1"},
+]
 munch = [
     {file = "munch-2.5.0-py2.py3-none-any.whl", hash = "sha256:6f44af89a2ce4ed04ff8de41f70b226b984db10a91dcc7b9ac2efc1c77022fdd"},
     {file = "munch-2.5.0.tar.gz", hash = "sha256:2d735f6f24d4dba3417fa448cae40c6e896ec1fdab6cdb5e6510999758a4dbd2"},
@@ -1981,6 +2057,17 @@ pytz = [
     {file = "pytz-2021.1-py2.py3-none-any.whl", hash = "sha256:eb10ce3e7736052ed3623d49975ce333bcd712c7bb19a58b9e2089d4057d0798"},
     {file = "pytz-2021.1.tar.gz", hash = "sha256:83a4a90894bf38e243cf052c8b58f381bfe9a7a483f6a9cab140bc7f702ac4da"},
 ]
+rasterio = [
+    {file = "rasterio-1.2.8-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:c1ca9bb81518d369cbeae57aff3608538f61dcf8e12cf4bfe92dd931bc263ade"},
+    {file = "rasterio-1.2.8-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:8b13e5f7c57512885bfede605b021bd025684b507dac7b5ac8aee5430930114c"},
+    {file = "rasterio-1.2.8-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:84cea32a0675f1b22924664169f0da4be406e790072501d505aa771da9662bca"},
+    {file = "rasterio-1.2.8-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:722f76a09091d22fd26200ff5a7820eeb263f1cd22151c77e25a3cc473d5af72"},
+    {file = "rasterio-1.2.8-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:74e80044767f41c84121fef373926f0d3e7411b944982429328d11442a649c0a"},
+    {file = "rasterio-1.2.8-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:c30caf0823811553ec45865697afc5e4a1fc4c6f30f8dada9067061cd8507af6"},
+    {file = "rasterio-1.2.8-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:b2d41b39e41a7011d1dba0cb8983336de69ad68fb17857ccbd11cde0fcfdb2e3"},
+    {file = "rasterio-1.2.8-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:f248a64f57a0db5b12eb50d9ac1ccd45a6085d979c3e73b406f9e6b5a8355080"},
+    {file = "rasterio-1.2.8.tar.gz", hash = "sha256:8196b7a71fea3c1573dd48d9ab0e78955e1d26e81848cce318c4930bd96782fe"},
+]
 raven = [
     {file = "raven-6.10.0-py2.py3-none-any.whl", hash = "sha256:44a13f87670836e153951af9a3c80405d36b43097db869a36e92809673692ce4"},
     {file = "raven-6.10.0.tar.gz", hash = "sha256:3fa6de6efa2493a7c827472e984ce9b020797d0da16f1db67197bcc23c8fae54"},
@@ -2056,6 +2143,10 @@ shapely = [
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
+]
+snuggs = [
+    {file = "snuggs-1.4.7-py3-none-any.whl", hash = "sha256:988dde5d4db88e9d71c99457404773dabcc7a1c45971bfbe81900999942d9f07"},
+    {file = "snuggs-1.4.7.tar.gz", hash = "sha256:501cf113fe3892e14e2fee76da5cd0606b7e149c411c271898e6259ebde2617b"},
 ]
 sqlalchemy = [
     {file = "SQLAlchemy-1.4.22-cp27-cp27m-macosx_10_14_x86_64.whl", hash = "sha256:488608953385d6c127d2dcbc4b11f8d7f2f30b89f6bd27c01b042253d985cc2f"},

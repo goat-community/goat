@@ -33,6 +33,7 @@ class CRUDIsochrone:
          """
         )
         result = db.execute(sql, obj_in_data)
+        db.commit()
         return sql_to_geojson(result, geometry_type="geojson")
 
     def calculate_multi_isochrones(
@@ -43,6 +44,7 @@ class CRUDIsochrone:
             """SELECT * FROM multi_isochrones_api(:user_id,:scenario_id,:minutes,:speed,:n,:routing_profile,:alphashape_parameter,:modus,:region_type,:region,:amenities)"""
         )
         result = db.execute(sql, obj_in_data)
+        db.commit()
         return sql_to_geojson(result)
 
     def count_pois_multi_isochrones(
