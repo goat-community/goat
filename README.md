@@ -34,6 +34,6 @@ For more information:
 If you are interested in scientific publications related to GOAT check out the following: 
 
 Pajares, E.; Büttner, B.; Jehle, U.; Nichols, A.; Wulfhorst, G. Accessibility by proximity: Addressing the lack of interactive
-accessibility instruments for active mobility. J. Transp. Geogr. 2021, 93, 103080, doi:10.1016/j.jtrangeo.2021.103080.
+accessibility instruments for active mobility. J. Transp. Geogr. 2021, 93, 103080, https://doi.org/10.1016/j.jtrangeo.2021.103080.
 
 Pajares, E.; Muñoz Nieto, R.; Meng, L.; Wulfhorst, G. Population Disaggregation on the Building Level Based on Outdated Census Data. ISPRS Int. J. Geo-Inf. 2021, 10, 662. https://doi.org/10.3390/ijgi10100662
