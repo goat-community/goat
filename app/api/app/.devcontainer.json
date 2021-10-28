@@ -11,9 +11,11 @@
     // Add the IDs of extensions you want installed when the container is created.
     "extensions": [
         "ms-python.python",
-        "github.copilot"
+        "github.copilot",
+        "ms-vscode.cpptools"
     ],
     "settings": {
-        "python.pythonPath": "/usr/bin/python3"
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.formatting.provider": "black"
     }
 }

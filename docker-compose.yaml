@@ -46,6 +46,7 @@ services:
       args:
         INSTALL_DEV: ${INSTALL_DEV-true}
         INSTALL_JUPYTER: ${INSTALL_JUPYTER-true}
+        INSTALL_GDB: ${INSTALL_GDB-true}
     container_name: ${COMPOSE_PROJECT_NAME}_api
     hostname: ${COMPOSE_PROJECT_NAME}_api
     depends_on:

@@ -3,7 +3,6 @@ from typing import Any
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy.orm import Session
 
 from app import crud
 from app.api import deps

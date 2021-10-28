@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 
+from app.exts.isochrone import isochrone
 from app.schemas.isochrone import (
     IsochroneMulti,
     IsochroneMultiCountPois,

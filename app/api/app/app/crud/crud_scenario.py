@@ -37,7 +37,9 @@ class CRUDScenario:
         sql = text(
             """INSERT INTO scenarios (userid, scenario_name) VALUES (:user_id, :scenario_name) RETURNING scenario_id;"""
         )
-        result = await db.execute(sql, obj_in_data).fetchone()
+        result = await db.execute(sql, obj_in_data)
+        for row in result:
+            print(row)
         await db.commit()
         return {"scenario_id": result[0]}
 

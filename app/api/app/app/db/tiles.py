@@ -5,8 +5,9 @@ from dataclasses import dataclass, field
 import morecantile
 from buildpg.asyncpg import BuildPgPool
 from morecantile import BoundingBox, TileMatrixSet
-from timvt.models.metadata import TableMetadata
-from timvt.settings import MAX_FEATURES_PER_TILE, TILE_BUFFER, TILE_RESOLUTION
+
+from app.core.config import settings
+from app.schemas.table_metadata import TableMetadata
 
 WEB_MERCATOR_TMS = morecantile.tms.get("WebMercatorQuad")
 
@@ -19,7 +20,7 @@ class VectorTileReader:
     table: TableMetadata
     tms: TileMatrixSet = field(default_factory=lambda: WEB_MERCATOR_TMS)
 
-    def _tile_from_bbox(self, bbox: BoundingBox, columns: str) -> bytes:
+    async def _tile_from_bbox(self, bbox: BoundingBox, columns: str) -> bytes:
         """return a vector tile (bytes) for the input bounds"""
         epsg = self.tms.crs.to_epsg()
         segSize = bbox.right - bbox.left
@@ -37,8 +38,8 @@ class VectorTileReader:
 
         colstring = ", ".join(list(cols))
 
-        limitval = str(int(MAX_FEATURES_PER_TILE))
-        limit = f"LIMIT {limitval}" if MAX_FEATURES_PER_TILE > -1 else ""
+        limitval = str(int(settings.MAX_FEATURES_PER_TILE))
+        limit = f"LIMIT {limitval}" if settings.MAX_FEATURES_PER_TILE > -1 else ""
 
         sql_query = f"""
             WITH
@@ -80,8 +81,8 @@ class VectorTileReader:
                 ymax=bbox.top,
                 epsg=epsg,
                 seg_size=segSize,
-                tile_resolution=TILE_RESOLUTION,
-                tile_buffer=TILE_BUFFER,
+                tile_resolution=settings.TILE_RESOLUTION,
+                tile_buffer=settings.TILE_BUFFER,
             )
 
         return bytes(content)

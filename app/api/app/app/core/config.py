@@ -85,6 +85,13 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
     USERS_OPEN_REGISTRATION: bool = False
+    # Tile / Table config
+    TILE_RESOLUTION: int = 4096
+    TILE_BUFFER: int = 256
+    MAX_FEATURES_PER_TILE: int = 10000
+    DEFAULT_MINZOOM: int = 0
+    DEFAULT_MAXZOOM: int = 22
+
 
     class Config:
         case_sensitive = True
