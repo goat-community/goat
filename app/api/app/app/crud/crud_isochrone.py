@@ -13,13 +13,19 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 
-from app.exts.isochrone import isochrone
+from app.exts.isochrone import calculate
 from app.schemas.isochrone import (
     IsochroneMulti,
     IsochroneMultiCountPois,
     IsochroneSingle,
 )
 from app.utils import sql_to_geojson
+
+# ===============================================================================
+
+# isochrone_result = calculate()
+
+# ===============================================================================
 
 
 class CRUDIsochrone:

@@ -2,8 +2,8 @@
 
 /*PGR-GNU*****************************************************************
 File: isochrone.cpp
-Copyright (c) 2020 Vjeran Crnjak
-vjeran@crnjak.xyz
+Copyright (c) 2021 Majk Shkurti, <majk.shkurti@plan4better.de>
+Copyright (c) 2020 Vjeran Crnjak, <vjeran@crnjak.xyz>
 ------
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -30,8 +30,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #include <cstring>
 #include <exception>
 
+#ifdef DEBUG
+#include <fstream>
+#include <cstring>
+#endif
+
 #ifndef DEBUG
 #include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 namespace py = pybind11;
 #endif
 
@@ -297,59 +303,121 @@ do_many_dijkstras(pgr_edge_t *data_edges, size_t total_edges,
   return results;
 }
 
-void do_pgr_many_to_isochrones(pgr_edge_t *data_edges, size_t total_edges,
-                               int64_t *start_vertex, size_t s_len,
-                               double *distance_cutoffs, size_t d_len,
-                               bool only_minimum_cover,
-                               Isochrones_path_element_t **return_tuples,
-                               size_t *return_count, char **log_msg,
-                               char **notice_msg, char **err_msg)
+#ifdef DEBUG
+//Read file. It should come from python (ONLY FOR DEBUGGING)
+std::vector<pgr_edge_t> read_file(std::string name_file)
 {
-  std::ostringstream log;
-  std::ostringstream err;
-  std::ostringstream notice;
+  std::vector<pgr_edge_t> data_edges;
+  pgr_edge_t edge;
+  std::ifstream myfile;
+  std::string line;
+  myfile.open(name_file, std::ios::in);
 
-  std::vector<int64_t> start_vertices(start_vertex, start_vertex + s_len);
-  std::vector<double> distances(distance_cutoffs, distance_cutoffs + d_len);
-  auto results = do_many_dijkstras(data_edges, total_edges, start_vertices,
-                                   distances, only_minimum_cover);
+  int lineCount = 0;
+  std::getline(myfile, line); // ignore header line
 
-  size_t count(results.size());
-  if (count == 0)
+  while (std::getline(myfile, line) && !line.empty())
   {
-    log << "\nNo return values were found";
-    // *notice_msg = pgr_msg(log.str().c_str());
-    return;
-  }
-  // *return_tuples = pgr_alloc(count, (*return_tuples));
-  *return_count = count;
+    std::vector<std::string> temp; //read line file
+    std::stringstream ss(line);
+    std::string temp_str;
+    while (std::getline(ss, temp_str, ','))
+    { //Split line by ,
+      temp.push_back(temp_str);
+    }
 
-  // Moving results to allocated return_tuples array.
-  for (size_t i = 0; i < count; ++i)
-  {
-    (*return_tuples)[i] = results[i];
+    edge.id = std::stoll(temp[0]);
+    edge.source = std::stoll(temp[1]);
+    edge.target = std::stoll(temp[2]);
+    edge.cost = std::stod(temp[3]);
+    edge.reverse_cost = std::stod(temp[4]);
+
+    data_edges.push_back(edge);
+    lineCount++;
   }
 
-  // *log_msg = log.str().empty() ? *log_msg : log.str().c_str();
-  // *notice_msg =
-  //     notice.str().empty() ? *notice_msg : notice.str().c_str();
+  myfile.close();
+  return data_edges;
 }
 
 int main()
 {
-  std::cout << "Hello World!";
+  std::cout << "Main function...!";
+  // network file location
+
+  std::string network_file = "./data/small_network.csv";
+  std::vector<pgr_edge_t> data_edges_vector = read_file(network_file);
+  static const int64_t total_edges = data_edges_vector.size();
+  pgr_edge_t *data_edges = new pgr_edge_t[total_edges];
+  for (int64_t i = 0; i < total_edges; ++i)
+  {
+    data_edges[i] = data_edges_vector[i];
+  }
+  data_edges_vector.clear();
+  std::vector<double> distance_limits = {100, 200, 300};
+  std::vector<int64_t> start_vertices{78472};
+  bool only_minimum_cover = false;
+  auto results = do_many_dijkstras(data_edges, total_edges, start_vertices,
+                                   distance_limits, only_minimum_cover);
+
   return 0;
 }
+#endif
 
 #ifndef DEBUG
-int square(int x)
+
+py::array_t<Isochrones_path_element_t> isochrone(
+    py::array_t<pgr_edge_t> data_edges_, py::array_t<int64_t> start_vertices_,
+    py::array_t<double> distance_limits_, bool only_minimum_cover_)
 {
-  return x * x;
+  auto data_edges_c = data_edges_.unchecked<1>();
+  auto total_edges = data_edges_.shape(0);
+
+  auto start_vertices_c = start_vertices_.unchecked<1>();
+  auto total_start_vertices = start_vertices_.shape(0);
+
+  auto distance_limits_c = distance_limits_.unchecked<1>();
+  auto total_distance_limits = distance_limits_.shape(0);
+
+  bool only_minimum_cover = only_minimum_cover_;
+
+  pgr_edge_t *data_edges = new pgr_edge_t[total_edges];
+  for (int64_t i = 0; i < total_edges; ++i)
+  {
+    data_edges[i] = data_edges_c[i];
+  }
+
+  std::vector<int64_t> start_vertices(total_start_vertices);
+  for (int64_t i = 0; i < total_start_vertices; ++i)
+  {
+    start_vertices[i] = start_vertices_c[i];
+  }
+
+  std::vector<double> distance_limits(total_distance_limits);
+  for (int64_t i = 0; i < total_distance_limits; ++i)
+  {
+    distance_limits[i] = distance_limits_c[i];
+  }
+
+  auto isochrone_points = do_many_dijkstras(data_edges, total_edges, start_vertices,
+                                            distance_limits, only_minimum_cover);
+
+  py::array_t<Isochrones_path_element_t> result(isochrone_points.size());
+  auto result_ptr = result.mutable_unchecked<1>();
+  for (size_t i = 0; i < isochrone_points.size(); i++)
+  {
+    result_ptr(i) = isochrone_points[i];
+  }
+
+  return result;
 }
 
 PYBIND11_MODULE(isochrone, m)
 {
-  m.def("square", &square);
+  m.doc() = "Isochrone Calculation";
+  m.def("isochrone", &isochrone, "Isochrone Calculation");
+  PYBIND11_NUMPY_DTYPE(Isochrones_path_element_t, start_id, edge, start_perc, end_perc, start_cost, end_cost);
+  PYBIND11_NUMPY_DTYPE(pgr_edge_t, id, source, target, cost, reverse_cost);
 }
 /*
 <%
