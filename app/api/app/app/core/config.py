@@ -8,6 +8,11 @@ class AsyncPostgresDsn(PostgresDsn):
     allowed_schemes = {"postgres+asyncpg", "postgresql+asyncpg"}
 
 
+# For old versions of SQLAlchemy (< 1.4)
+class SyncPostgresDsn(PostgresDsn):
+    allowed_schemes = {"postgresql", "postgresql+psycopg2", "postgresql+pg8000"}
+
+
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)
@@ -41,14 +46,28 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
-    SQLALCHEMY_DATABASE_URI: Optional[AsyncPostgresDsn] = None
+    ASYNC_SQLALCHEMY_DATABASE_URI: Optional[AsyncPostgresDsn] = None
+
+    @validator("ASYNC_SQLALCHEMY_DATABASE_URI", pre=True)
+    def assemble_async_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        if isinstance(v, str):
+            return v
+        return AsyncPostgresDsn.build(
+            scheme="postgresql+asyncpg",
+            user=values.get("POSTGRES_USER"),
+            password=values.get("POSTGRES_PASSWORD"),
+            host=values.get("POSTGRES_SERVER"),
+            path=f"/{values.get('POSTGRES_DB') or ''}",
+        )
+
+    SQLALCHEMY_DATABASE_URI: Optional[SyncPostgresDsn] = None
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         if isinstance(v, str):
             return v
-        return AsyncPostgresDsn.build(
-            scheme="postgresql+asyncpg",
+        return SyncPostgresDsn.build(
+            scheme="postgresql",
             user=values.get("POSTGRES_USER"),
             password=values.get("POSTGRES_PASSWORD"),
             host=values.get("POSTGRES_SERVER"),
@@ -76,9 +95,7 @@ class Settings(BaseSettings):
     @validator("EMAILS_ENABLED", pre=True)
     def get_emails_enabled(cls, v: bool, values: Dict[str, Any]) -> bool:
         return bool(
-            values.get("SMTP_HOST")
-            and values.get("SMTP_PORT")
-            and values.get("EMAILS_FROM_EMAIL")
+            values.get("SMTP_HOST") and values.get("SMTP_PORT") and values.get("EMAILS_FROM_EMAIL")
         )
 
     EMAIL_TEST_USER: EmailStr = "test@example.com"  # type: ignore
@@ -91,7 +108,6 @@ class Settings(BaseSettings):
     MAX_FEATURES_PER_TILE: int = 10000
     DEFAULT_MINZOOM: int = 0
     DEFAULT_MAXZOOM: int = 22
-
 
     class Config:
         case_sensitive = True

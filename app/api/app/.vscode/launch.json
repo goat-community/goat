@@ -9,6 +9,7 @@
             "type": "python",
             "request": "launch",
             "module": "uvicorn",
+            "justMyCode": false,
             "args": [
                 "app.main:app",
                 "--reload",

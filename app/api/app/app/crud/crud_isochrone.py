@@ -2,30 +2,33 @@ import io
 import os
 import shutil
 import time
+from time import time
 from typing import Any
 
-import geopandas as gpd
-import pandas as pd
+import geopandas
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from geojson import FeatureCollection
+from geopandas.io.sql import read_postgis
+from pandas.io.sql import read_sql
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 
+from app.db.session import legacy_engine
 from app.exts.isochrone import calculate
 from app.schemas.isochrone import (
+    IsochroneExport,
     IsochroneMulti,
     IsochroneMultiCountPois,
     IsochroneSingle,
 )
 from app.utils import sql_to_geojson
 
-# ===============================================================================
+# geopandas.options.use_pygeos = True
+# import shapely.speedups
 
-# isochrone_result = calculate()
-
-# ===============================================================================
+# # Let's enable speedups to make queries faster
+# shapely.speedups.enable()
 
 
 class CRUDIsochrone:
@@ -33,6 +36,25 @@ class CRUDIsochrone:
         self, db: AsyncSession, *, obj_in: IsochroneSingle
     ) -> FeatureCollection:
         obj_in_data = jsonable_encoder(obj_in)
+        # =====
+        tic = time()
+        read_network_sql = text(
+            """ 
+        SELECT id, source, target, length_m AS cost, length_m AS reverse_cost
+        FROM ways
+        WHERE ST_BUFFER(ST_SETSRID(ST_MAKEPOINT(:x,:y),4326), 10) && geom
+         """
+        )
+        # gdf_network = geopandas.GeoDataFrame.from_postgis(
+        #     read_network_sql, legacy_engine, geom_col="geom", params=obj_in_data
+        # )
+        print(time() - tic)
+        ways_network = read_sql(read_network_sql, legacy_engine, params=obj_in_data)
+        print(time() - tic)
+        isochrone_shape = calculate(ways_network, [181347], [300, 600, 900])
+        toc = time()
+        # =====
+        print(toc - tic)
         sql = text(
             """
             SELECT gid, objectid, coordinates, ST_ASTEXT(ST_MAKEPOINT(coordinates[1], coordinates[2])) AS starting_point,
@@ -65,14 +87,14 @@ class CRUDIsochrone:
         result = await db.execute(sql, obj_in_data)
         return sql_to_geojson(result)
 
-    async def export_isochrone(self, db: AsyncSession, *, obj_in: IsochroneSingle) -> Any:
+    async def export_isochrone(self, db: AsyncSession, *, obj_in: IsochroneExport) -> Any:
         obj_in_data = jsonable_encoder(obj_in)
         sql = text(
             """SELECT gid, objectid, step, modus, parent_id, population, sum_pois::text, geom FROM isochrones WHERE objectid = :objectid"""
         )
-        gdf = gpd.GeoDataFrame.from_postgis(
-            sql, db.get_bind(), geom_col="geom", params=obj_in_data
-        )
+
+        gdf = read_postgis(sql, legacy_engine, geom_col="geom", params=obj_in_data)
+
         file_name = "isochrone_export"
         dir_path = "/tmp/exports/{}/".format(time.strftime("%Y%m%d-%H%M%S"))
         os.makedirs(dir_path)

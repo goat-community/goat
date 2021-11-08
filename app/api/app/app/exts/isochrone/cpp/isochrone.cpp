@@ -61,8 +61,8 @@ typedef struct
 } Isochrones_path_element_t;
 
 std::vector<std::vector<const pgr_edge_t *>>
-construct_adjacency_matrix(size_t n, const pgr_edge_t *edges,
-                           size_t total_edges)
+construct_adjacency_list(size_t n, const pgr_edge_t *edges,
+                         size_t total_edges)
 {
   std::vector<std::vector<const pgr_edge_t *>> adj(n);
   for (size_t i = 0; i < total_edges; ++i)
@@ -211,7 +211,7 @@ do_many_dijkstras(pgr_edge_t *data_edges, size_t total_edges,
   std::vector<Isochrones_path_element_t> results;
 
   auto adj =
-      construct_adjacency_matrix(mapping.size(), data_edges, total_edges);
+      construct_adjacency_list(mapping.size(), data_edges, total_edges);
   // Storing the result of dijkstra call and reusing the memory for each vertex.
   std::vector<double> distances(nodes_count);
   std::vector<int64_t> predecessors(nodes_count);
@@ -354,7 +354,7 @@ int main()
     data_edges[i] = data_edges_vector[i];
   }
   data_edges_vector.clear();
-  std::vector<double> distance_limits = {100, 200, 300};
+  std::vector<double> distance_limits = {20, 30, 40};
   std::vector<int64_t> start_vertices{78472};
   bool only_minimum_cover = false;
   auto results = do_many_dijkstras(data_edges, total_edges, start_vertices,
