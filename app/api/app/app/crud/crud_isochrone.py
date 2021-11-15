@@ -36,11 +36,10 @@ class CRUDIsochrone:
         self, db: AsyncSession, *, obj_in: IsochroneSingle
     ) -> FeatureCollection:
         obj_in_data = jsonable_encoder(obj_in)
-        # =====
-        tic = time()
+
         read_network_sql = text(
             """ 
-        SELECT id, source, target, length_m AS cost, length_m AS reverse_cost
+        SELECT id, source, target, length_m AS cost, length_m AS reverse_cost, geom
         FROM ways
         WHERE ST_BUFFER(ST_SETSRID(ST_MAKEPOINT(:x,:y),4326), 10) && geom
          """
@@ -48,13 +47,9 @@ class CRUDIsochrone:
         # gdf_network = geopandas.GeoDataFrame.from_postgis(
         #     read_network_sql, legacy_engine, geom_col="geom", params=obj_in_data
         # )
-        print(time() - tic)
         ways_network = read_sql(read_network_sql, legacy_engine, params=obj_in_data)
-        print(time() - tic)
         isochrone_shape = calculate(ways_network, [181347], [300, 600, 900])
-        toc = time()
-        # =====
-        print(toc - tic)
+
         sql = text(
             """
             SELECT gid, objectid, coordinates, ST_ASTEXT(ST_MAKEPOINT(coordinates[1], coordinates[2])) AS starting_point,

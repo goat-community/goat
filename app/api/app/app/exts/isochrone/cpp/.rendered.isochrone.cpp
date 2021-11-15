@@ -41,16 +41,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 namespace py = pybind11;
 #endif
 
-typedef struct
+struct NetworkEdge
 {
   int64_t id;
   int64_t source;
   int64_t target;
   double cost;
   double reverse_cost;
-} pgr_edge_t;
+};
 
-typedef struct
+struct IsochroneEdgeElement
 {
   int64_t start_id;
   int64_t edge;
@@ -58,13 +58,28 @@ typedef struct
   double end_perc;
   double start_cost;
   double end_cost;
-} Isochrones_path_element_t;
+};
 
-std::vector<std::vector<const pgr_edge_t *>>
-construct_adjacency_matrix(size_t n, const pgr_edge_t *edges,
-                           size_t total_edges)
+struct Step
 {
-  std::vector<std::vector<const pgr_edge_t *>> adj(n);
+  int64_t step;
+  std::vector<IsochroneEdgeElement> partial;
+  std::vector<IsochroneEdgeElement> full;
+  std::vector<IsochroneEdgeElement> death_end;
+};
+
+struct Result
+{
+  int64_t start_point;
+  std::vector<Step> steps;
+};
+
+std::vector<std::vector<const NetworkEdge *>>
+construct_adjacency_list(size_t n, const NetworkEdge *edges,
+                         size_t total_edges)
+{
+
+  std::vector<std::vector<const NetworkEdge *>> adj(n);
   for (size_t i = 0; i < total_edges; ++i)
   {
     if (edges[i].cost >= 0.)
@@ -80,7 +95,7 @@ construct_adjacency_matrix(size_t n, const pgr_edge_t *edges,
 }
 
 void dijkstra(int64_t start_vertex, double driving_distance,
-              const std::vector<std::vector<const pgr_edge_t *>> &adj,
+              const std::vector<std::vector<const NetworkEdge *>> &adj,
               std::vector<int64_t> *predecessors,
               std::vector<double> *distances)
 {
@@ -116,14 +131,14 @@ void dijkstra(int64_t start_vertex, double driving_distance,
   }
 }
 
-std::unordered_map<int64_t, int64_t> remap_edges(pgr_edge_t *data_edges,
+std::unordered_map<int64_t, int64_t> remap_edges(NetworkEdge *data_edges,
                                                  size_t total_edges)
 {
   std::unordered_map<int64_t, int64_t> mapping;
   int64_t id = 0;
   for (size_t i = 0; i < total_edges; ++i)
   {
-    pgr_edge_t *e = data_edges + i;
+    NetworkEdge *e = data_edges + i;
     int64_t source_id, target_id;
     auto it = mapping.find(e->source);
     // better with if-initialization-statement
@@ -152,39 +167,60 @@ std::unordered_map<int64_t, int64_t> remap_edges(pgr_edge_t *data_edges,
   return mapping;
 }
 
-void append_edge_result(const double &cost_at_node, const double &edge_cost,
-                        const std::vector<double> &distance_limits,
-                        std::vector<Isochrones_path_element_t> *results)
+void append_edge_result(const int64_t &start_v, const bool &is_target, const double &cost_at_node, const double &edge_cost, const int64_t &edge_id,
+                        const std::vector<double> &distance_limits, Result *results)
 {
+
   double current_cost = cost_at_node;
   double travel_cost = edge_cost;
   double start_perc = 0.;
-  for (auto &dl : distance_limits)
+
+  for (size_t i = 0; i < distance_limits.size(); ++i)
   {
+    auto &dl = distance_limits[i];
+
     if (cost_at_node >= dl)
     {
       continue;
     }
     double cost_at_target = current_cost + travel_cost;
-    Isochrones_path_element_t r;
+    IsochroneEdgeElement r;
     if (cost_at_target < dl)
     {
+      r.start_id = start_v;
+      r.edge = edge_id;
       r.start_perc = start_perc;
       r.end_perc = 1.;
       r.start_cost = current_cost;
       r.end_cost = cost_at_target;
-      results->push_back(r);
+      if (is_target)
+      {
+        double nstart_perc = 1. - r.end_perc;
+        r.end_perc = 1. - r.start_perc;
+        r.start_perc = nstart_perc;
+        std::swap(r.start_cost, r.end_cost); // reversing the cost
+      }
+
+      results->steps[i].full.push_back(r);
       break;
     }
     // cost_at_target is bigger than the limit, partial edge
     travel_cost = cost_at_target - dl; // remaining travel cost
     double partial_travel = dl - current_cost;
+    r.start_id = start_v;
+    r.edge = edge_id;
     r.start_perc = start_perc;
     r.end_perc = start_perc + partial_travel / edge_cost;
     r.start_cost = current_cost;
     r.end_cost = dl;
-    results->push_back(r);
-
+    if (is_target)
+    {
+      double nstart_perc = 1. - r.end_perc;
+      r.end_perc = 1. - r.start_perc;
+      r.start_perc = nstart_perc;
+      std::swap(r.start_cost, r.end_cost); // reversing the cost
+    }
+    results->steps[i].partial.push_back(r);
     start_perc = r.end_perc;
     current_cost = dl;
     // A ---------- B
@@ -192,12 +228,14 @@ void append_edge_result(const double &cost_at_node, const double &edge_cost,
   }
 }
 
-std::vector<Isochrones_path_element_t>
-do_many_dijkstras(pgr_edge_t *data_edges, size_t total_edges,
+std::vector<Result>
+do_many_dijkstras(NetworkEdge *data_edges, size_t total_edges,
                   std::vector<int64_t> start_vertices,
                   std::vector<double> distance_limits,
                   bool only_minimum_cover)
 {
+
+  // -----
   std::sort(distance_limits.begin(), distance_limits.end());
   // Using max distance limit for a single dijkstra call. After that we will
   // postprocess the results and mark the visited edges.
@@ -208,28 +246,30 @@ do_many_dijkstras(pgr_edge_t *data_edges, size_t total_edges,
       // modifying data_edges source/target fields.
       remap_edges(data_edges, total_edges);
   size_t nodes_count = mapping.size();
-  std::vector<Isochrones_path_element_t> results;
+  std::vector<Result> results(start_vertices.size());
 
   auto adj =
-      construct_adjacency_matrix(mapping.size(), data_edges, total_edges);
+      construct_adjacency_list(mapping.size(), data_edges, total_edges);
   // Storing the result of dijkstra call and reusing the memory for each vertex.
   std::vector<double> distances(nodes_count);
   std::vector<int64_t> predecessors(nodes_count);
-  for (int64_t start_v : start_vertices)
+
+  for (size_t sp = 0; sp < start_vertices.size(); ++sp)
   {
+    int64_t start_v = start_vertices[sp];
+
+    results[sp].start_point = start_v;
+    results[sp].steps = std::vector<Step>(distance_limits.size());
+    for (size_t i = 0; i < distance_limits.size(); ++i)
+    {
+      auto &dl = distance_limits[i];
+      results[sp].steps[i].step = dl;
+    }
+
     auto it = mapping.find(start_v);
-    // If start_v did not appear in edges then it has no particular mapping but
-    // pgr_drivingDistance result includes one row for this node.
+    // If start_v did not appear in edges then it has no particular mapping
     if (it == mapping.end())
     {
-      Isochrones_path_element_t r;
-      r.start_id = start_v;
-      // -2 tags the unmapped starting vertex and won't use the reverse_mapping
-      // because mapping does not exist. -2 is changed to -1 later.
-      r.edge = -1;
-      r.start_perc = 0.0;
-      r.end_perc = 0.0;
-      results.push_back(r);
       continue;
     }
     // Calling the dijkstra algorithm and storing the results in predecessors
@@ -240,7 +280,7 @@ do_many_dijkstras(pgr_edge_t *data_edges, size_t total_edges,
     // Appending the row results.
     for (size_t i = 0; i < total_edges; ++i)
     {
-      const pgr_edge_t &e = *(data_edges + i);
+      const NetworkEdge &e = *(data_edges + i);
       double scost = distances[e.source];
       double tcost = distances[e.target];
       bool s_reached = !(std::isinf(scost) || scost > max_dist_cutoff);
@@ -249,7 +289,6 @@ do_many_dijkstras(pgr_edge_t *data_edges, size_t total_edges,
       {
         continue;
       }
-      size_t r_i = results.size();
       bool skip_st = false;
       bool skip_ts = false;
       if (only_minimum_cover)
@@ -263,52 +302,23 @@ do_many_dijkstras(pgr_edge_t *data_edges, size_t total_edges,
       }
       if (!skip_ts && t_reached && predecessors[e.target] != e.source)
       {
-        append_edge_result(tcost, e.reverse_cost, distance_limits, &results);
-        for (size_t rev_i = r_i; rev_i < results.size(); ++rev_i)
-        {
-          // reversing the percentage
-          double nstart_perc = 1. - results[rev_i].end_perc;
-          results[rev_i].end_perc = 1. - results[rev_i].start_perc;
-          results[rev_i].start_perc = nstart_perc;
-          // reversing the cost
-          std::swap(results[rev_i].start_cost, results[rev_i].end_cost);
-          // results[r_i].start_cost  -- filled in append_edge_result
-          // results[r_i].end_cost  -- filled in append_edge_result
-          // results[r_i].start_perc -- filled in append_edge_result
-          // results[r_i].end_perc - filled in append_edge_result
-        }
+        append_edge_result(start_v, true, tcost, e.reverse_cost, e.id, distance_limits, &results[sp]);
       }
       if (!skip_st && s_reached && predecessors[e.source] != e.target)
       {
-        append_edge_result(scost, e.cost, distance_limits, &results);
-      }
-      for (; r_i < results.size(); ++r_i)
-      {
-        results[r_i].edge = e.id;
-        results[r_i].start_id = start_v;
-        // results[r_i].start_cost  -- filled in append_edge_result
-        // results[r_i].end_cost  -- filled in append_edge_result
-        // results[r_i].start_perc -- filled in append_edge_result
-        // results[r_i].end_perc - filled in append_edge_result
+        append_edge_result(start_v, false, scost, e.cost, e.id, distance_limits, &results[sp]);
       }
     }
   }
-  // sorting by cutoffs.
-  std::sort(results.begin(), results.end(),
-            [](Isochrones_path_element_t &a, Isochrones_path_element_t &b)
-            {
-              return std::tie(a.start_id, a.end_cost) <
-                     std::tie(b.start_id, b.end_cost);
-            });
   return results;
 }
 
 #ifdef DEBUG
 //Read file. It should come from python (ONLY FOR DEBUGGING)
-std::vector<pgr_edge_t> read_file(std::string name_file)
+std::vector<NetworkEdge> read_file(std::string name_file)
 {
-  std::vector<pgr_edge_t> data_edges;
-  pgr_edge_t edge;
+  std::vector<NetworkEdge> data_edges;
+  NetworkEdge edge;
   std::ifstream myfile;
   std::string line;
   myfile.open(name_file, std::ios::in);
@@ -346,17 +356,17 @@ int main()
   // network file location
 
   std::string network_file = "./data/small_network.csv";
-  std::vector<pgr_edge_t> data_edges_vector = read_file(network_file);
+  std::vector<NetworkEdge> data_edges_vector = read_file(network_file);
   static const int64_t total_edges = data_edges_vector.size();
-  pgr_edge_t *data_edges = new pgr_edge_t[total_edges];
+  NetworkEdge *data_edges = new NetworkEdge[total_edges];
   for (int64_t i = 0; i < total_edges; ++i)
   {
     data_edges[i] = data_edges_vector[i];
   }
   data_edges_vector.clear();
-  std::vector<double> distance_limits = {100, 200, 300};
-  std::vector<int64_t> start_vertices{78472};
-  bool only_minimum_cover = false;
+  std::vector<double> distance_limits = {20, 30, 40};
+  std::vector<int64_t> start_vertices{22731};
+  bool only_minimum_cover = true;
   auto results = do_many_dijkstras(data_edges, total_edges, start_vertices,
                                    distance_limits, only_minimum_cover);
 
@@ -366,8 +376,8 @@ int main()
 
 #ifndef DEBUG
 
-py::array_t<Isochrones_path_element_t> isochrone(
-    py::array_t<pgr_edge_t> data_edges_, py::array_t<int64_t> start_vertices_,
+py::array_t<IsochroneEdgeElement> isochrone(
+    py::array_t<NetworkEdge> data_edges_, py::array_t<int64_t> start_vertices_,
     py::array_t<double> distance_limits_, bool only_minimum_cover_)
 {
   auto data_edges_c = data_edges_.unchecked<1>();
@@ -381,7 +391,7 @@ py::array_t<Isochrones_path_element_t> isochrone(
 
   bool only_minimum_cover = only_minimum_cover_;
 
-  pgr_edge_t *data_edges = new pgr_edge_t[total_edges];
+  NetworkEdge *data_edges = new NetworkEdge[total_edges];
   for (int64_t i = 0; i < total_edges; ++i)
   {
     data_edges[i] = data_edges_c[i];
@@ -402,7 +412,7 @@ py::array_t<Isochrones_path_element_t> isochrone(
   auto isochrone_points = do_many_dijkstras(data_edges, total_edges, start_vertices,
                                             distance_limits, only_minimum_cover);
 
-  py::array_t<Isochrones_path_element_t> result(isochrone_points.size());
+  py::array_t<Result> result(isochrone_points.size());
   auto result_ptr = result.mutable_unchecked<1>();
   for (size_t i = 0; i < isochrone_points.size(); i++)
   {
@@ -416,8 +426,10 @@ PYBIND11_MODULE(isochrone, m)
 {
   m.doc() = "Isochrone Calculation";
   m.def("isochrone", &isochrone, "Isochrone Calculation");
-  PYBIND11_NUMPY_DTYPE(Isochrones_path_element_t, start_id, edge, start_perc, end_perc, start_cost, end_cost);
-  PYBIND11_NUMPY_DTYPE(pgr_edge_t, id, source, target, cost, reverse_cost);
+
+  PYBIND11_NUMPY_DTYPE(Step, step, partial, full, death_end);
+  PYBIND11_NUMPY_DTYPE(Result, start_point, steps);
+  PYBIND11_NUMPY_DTYPE(NetworkEdge, id, source, target, cost, reverse_cost);
 }
 /*
 
