@@ -25,25 +25,23 @@ def calculate(
 
     Returns
     -------
-    isochrone_element_path : dtype :numpy.array{formats: [i8,i8,D,D,D,D], names: [start_id, edge, start_perc, end_perc, start_cost, end_cost]})
+    isochrone_element_path : dtype :numpy.array{formats: [i8,i8,D,D,D,D], names: [start_id, edge, start_perc, end_perc, start_cost, end_cost, geom]})
         The isochrone path.
     """
 
-    # i8 = int64, D = double
-    # dtype_f = ["i8", "i8", "i8", "D", "D"]
-    # dtype_n = ["id", "source", "target", "cost", "reverse_cost"]
-    # dt = dtype({"names": dtype_n, "formats": dtype_f})
     start_vertices = array(start_vertices).astype(int64)
     distance_limits = array(distance_limits).astype(double)
-    np_network = network.to_records(
-        index=False,
-        column_dtypes={
-            "id": "int64",
-            "source": "int64",
-            "target": "int64",
-            "cost": "complex128",
-            "reverse_cost": "complex128",
-        },
-    ).view(type=numpy.ndarray)
-    # c++ wrapper function
-    return isochrone.isochrone(np_network, start_vertices, distance_limits, only_minimum_cover)
+    isochroneclass = isochrone.Isochrone()
+    # TODO: Find a way to bypass the type conversion (at least for geom). This step is very expensive
+    result = isochroneclass.calculate(
+        network["id"],
+        network["source"],
+        network["target"],
+        network["cost"],
+        network["reverse_cost"],
+        network["geom"],
+        start_vertices,
+        distance_limits,
+        only_minimum_cover,
+    )
+    return result

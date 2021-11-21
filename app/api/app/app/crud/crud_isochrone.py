@@ -15,7 +15,8 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 
 from app.db.session import legacy_engine
-from app.exts.isochrone import calculate
+
+# from app.exts.isochrone import calculate
 from app.schemas.isochrone import (
     IsochroneExport,
     IsochroneMulti,
@@ -36,20 +37,21 @@ class CRUDIsochrone:
         self, db: AsyncSession, *, obj_in: IsochroneSingle
     ) -> FeatureCollection:
         obj_in_data = jsonable_encoder(obj_in)
-
         read_network_sql = text(
             """ 
-        SELECT id, source, target, length_m AS cost, length_m AS reverse_cost, geom
-        FROM ways
-        WHERE ST_BUFFER(ST_SETSRID(ST_MAKEPOINT(:x,:y),4326), 10) && geom
+        SELECT id, source, target, cost, reverse_cost, ST_AsGeoJSON(ST_Transform(geom,3857))::json->'coordinates' as geom FROM fetch_network_routing(ARRAY[:x],ARRAY[:y], 1200., 1.33, 1, 1, :routing_profile)
          """
         )
         # gdf_network = geopandas.GeoDataFrame.from_postgis(
         #     read_network_sql, legacy_engine, geom_col="geom", params=obj_in_data
         # )
+        start_time = time()
+        print("Calculation started: ")
         ways_network = read_sql(read_network_sql, legacy_engine, params=obj_in_data)
-        isochrone_shape = calculate(ways_network, [181347], [300, 600, 900])
-
+        read_end_time = time()
+        print("read_network_sql time: ", read_end_time - start_time)
+        # isochrone_shape = calculate(ways_network, [999999999], [300, 600, 900])
+        print("isochrone_shape time: ", time() - read_end_time)
         sql = text(
             """
             SELECT gid, objectid, coordinates, ST_ASTEXT(ST_MAKEPOINT(coordinates[1], coordinates[2])) AS starting_point,
