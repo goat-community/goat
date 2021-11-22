@@ -15,8 +15,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 
 from app.db.session import legacy_engine
-
-# from app.exts.isochrone import calculate
+from app.exts.cpp.bind import isochrone
 from app.schemas.isochrone import (
     IsochroneExport,
     IsochroneMulti,
@@ -24,12 +23,6 @@ from app.schemas.isochrone import (
     IsochroneSingle,
 )
 from app.utils import sql_to_geojson
-
-# geopandas.options.use_pygeos = True
-# import shapely.speedups
-
-# # Let's enable speedups to make queries faster
-# shapely.speedups.enable()
 
 
 class CRUDIsochrone:

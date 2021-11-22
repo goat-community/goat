@@ -12,7 +12,9 @@
     "extensions": [
         "ms-python.python",
         "github.copilot",
-        "ms-vscode.cpptools"
+        "ms-vscode.cpptools",
+        "twxs.cmake",
+        "ms-vscode.cmake-tools"
     ],
     "settings": {
         "python.defaultInterpreterPath": "/usr/local/bin/python",

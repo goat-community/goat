@@ -17,7 +17,7 @@ RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; els
 
 # Allow installing C++ GDP for debugging
 ARG INSTALL_GDB=false
-RUN bash -c "if [ $INSTALL_GDB == 'true' ] ; then apt-get update && apt-get -y install build-essential gdb ; fi"
+RUN bash -c "if [ $INSTALL_GDB == 'true' ] ; then apt-get update && apt-get -y install build-essential gdb && apt-get -y install cmake; fi"
 
 # For development, Jupyter remote kernel, Hydrogen
 # Using inside the container:

@@ -12,10 +12,6 @@ ubuntu-bionic-18.04-cloudimg-console.log
 node_modules
 .env
 /.vscode
-/app/api/__pycache__
-/app/api/functions/__pycache__
-/app/api/venv
-/app/api/flask/bin 
-/app/api/flask/lib
-/app/api/flask/lib64
+
+/app/api/app/app/exts/cpp/build
 __pycache__
