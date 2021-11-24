@@ -55,6 +55,7 @@ typedef struct
   int64_t target;
   double cost;
   double reverse_cost;
+  double length;
   std::vector<std::array<double, 2>> geometry;
 } pgr_edge_t;
 
@@ -560,7 +561,7 @@ struct Isochrone
   std::vector<Isochrones_path_element_t> calculate(
       py::array_t<int64_t> &edge_ids_, py::array_t<int64_t> &sources_,
       py::array_t<int64_t> &targets_, py::array_t<double> &costs_,
-      py::array_t<double> &reverse_costs_, std::vector<std::vector<std::array<double, 2>>> &geometry,
+      py::array_t<double> &reverse_costs_, py::array_t<double> &length_, std::vector<std::vector<std::array<double, 2>>> &geometry,
       py::array_t<int64_t> start_vertices_,
       py::array_t<double> distance_limits_,
       bool only_minimum_cover_)
@@ -572,6 +573,7 @@ struct Isochrone
     auto targets_c = targets_.unchecked<1>();
     auto costs_c = costs_.unchecked<1>();
     auto reverse_costs_c = reverse_costs_.unchecked<1>();
+    auto length_c = length_.unchecked<1>();
 
     auto start_vertices_c = start_vertices_.unchecked<1>();
     auto total_start_vertices = start_vertices_.shape(0);
@@ -589,6 +591,7 @@ struct Isochrone
       data_edges[i].target = targets_c(i);
       data_edges[i].cost = costs_c(i);
       data_edges[i].reverse_cost = reverse_costs_c(i);
+      data_edges[i].length = length_c(i);
       data_edges[i].geometry = geometry[i];
     }
 

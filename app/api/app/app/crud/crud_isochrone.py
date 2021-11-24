@@ -32,12 +32,9 @@ class CRUDIsochrone:
         obj_in_data = jsonable_encoder(obj_in)
         read_network_sql = text(
             """ 
-        SELECT id, source, target, cost, reverse_cost, ST_AsGeoJSON(ST_Transform(geom,3857))::json->'coordinates' as geom FROM fetch_network_routing(ARRAY[:x],ARRAY[:y], 1200., 1.33, 1, 1, :routing_profile)
+        SELECT id, source, target, cost, reverse_cost, ST_AsGeoJSON(ST_Transform(geom,3857))::json->'coordinates' as geom, st_length(st_transform(geom,3857)) as length FROM fetch_network_routing(ARRAY[:x],ARRAY[:y], 1200., 1.33, 1, 1, :routing_profile)
          """
         )
-        # gdf_network = geopandas.GeoDataFrame.from_postgis(
-        #     read_network_sql, legacy_engine, geom_col="geom", params=obj_in_data
-        # )
         start_time = time()
         print("Calculation started: ")
         ways_network = read_sql(read_network_sql, legacy_engine, params=obj_in_data)

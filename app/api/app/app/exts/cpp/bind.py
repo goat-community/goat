@@ -38,6 +38,7 @@ def isochrone(
         network["target"],
         network["cost"],
         network["reverse_cost"],
+        network["length"],
         network["geom"],
         start_vertices,
         distance_limits,
