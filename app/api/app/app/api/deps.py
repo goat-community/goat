@@ -1,3 +1,4 @@
+import re
 from enum import Enum
 from typing import Generator
 
@@ -14,7 +15,8 @@ from app.core import security
 from app.core.config import settings
 from app.db.session import async_session
 from app.resources import tms as custom_tms
-from app.schemas.table_metadata import TableMetadata
+from app.schemas.functions import registry as FunctionRegistry
+from app.schemas.layer import Layer, Table
 
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/login/access-token")
 
@@ -89,18 +91,24 @@ def TileMatrixSetParams(
     return tms.get(TileMatrixSetId.name)
 
 
-def TableParams(
+def LayerParams(
     request: Request,
-    table: str = Path(..., description="Table Name"),
-) -> TableMetadata:
-    """Table."""
-    table_pattern = re.match(r"^(?P<schema>.+)\.(?P<table>.+)$", table).groupdict()  # type: ignore
+    layer: str = Path(..., description="Layer Name"),
+) -> Layer:
+    """Return Layer Object."""
+    func = FunctionRegistry.get(layer)
+    if func:
+        return func
+    else:
+        table_pattern = re.match(r"^(?P<schema>.+)\.(?P<table>.+)$", layer)  # type: ignore
+        if not table_pattern:
+            raise HTTPException(status_code=404, detail=f"Invalid Table format '{layer}'.")
 
-    assert table_pattern["schema"]
-    assert table_pattern["table"]
+        assert table_pattern.groupdict()["schema"]
+        assert table_pattern.groupdict()["table"]
 
-    for r in request.app.state.Catalog:
-        if r["id"] == table:
-            return TableMetadata(**r)
+        for r in request.app.state.table_catalog:
+            if r["id"] == layer:
+                return Table(**r)
 
-    raise HTTPException(status_code=404, detail=f"Table '{table}' not found.")
+    raise HTTPException(status_code=404, detail=f"Table/Function '{layer}' not found.")

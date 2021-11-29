@@ -4,7 +4,7 @@ from typing import Any, List
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 
-from app.schemas.table_metadata import TableMetadata
+from app.schemas.layer import Table
 
 
 class CRUDLayer:

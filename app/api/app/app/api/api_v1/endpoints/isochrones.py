@@ -19,7 +19,7 @@ from app.schemas.isochrone import (
 router = APIRouter()
 
 
-@router.post("/single", response_model=IsochroneSingleCollection)
+@router.post("/single", response_model=Any)
 async def calculate_single_isochrone(
     *, db: AsyncSession = Depends(deps.get_db), isochrone_in: IsochroneSingle
 ) -> Any:

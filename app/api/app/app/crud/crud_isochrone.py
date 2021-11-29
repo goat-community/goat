@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 
 from app.db.session import legacy_engine
-from app.exts.cpp.bind import isochrone
+from app.exts.cpp.bind import isochrone as isochrone_cpp
 from app.schemas.isochrone import (
     IsochroneExport,
     IsochroneMulti,
@@ -40,7 +40,7 @@ class CRUDIsochrone:
         ways_network = read_sql(read_network_sql, legacy_engine, params=obj_in_data)
         read_end_time = time()
         print("read_network_sql time: ", read_end_time - start_time)
-        # isochrone_shape = calculate(ways_network, [999999999], [300, 600, 900])
+        isochrone_geojson = isochrone_cpp(ways_network, [999999999], [300, 600, 900])
         print("isochrone_shape time: ", time() - read_end_time)
         sql = text(
             """
@@ -51,7 +51,7 @@ class CRUDIsochrone:
         )
         result = await db.execute(sql, obj_in_data)
         await db.commit()
-        return sql_to_geojson(result, geometry_type="geojson")
+        return isochrone_geojson
 
     async def calculate_multi_isochrones(
         self, db: AsyncSession, *, obj_in: IsochroneMulti

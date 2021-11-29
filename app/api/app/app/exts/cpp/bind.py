@@ -44,4 +44,24 @@ def isochrone(
         distance_limits,
         only_minimum_cover,
     )
-    return result
+    isochrone_features = []
+    for isochrone in result.isochrone:
+        isochrone_features.append(
+            {
+                "type": "Feature",
+                "properties": {
+                    "start_v": isochrone.start_id,
+                    "step": isochrone.step,
+                },
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": isochrone.geometry,
+                },
+            }
+        )
+        geojson = {
+            "type": "FeatureCollection",
+            "crs": {"type": "name", "properties": {"name": "EPSG:3857"}},
+            "features": isochrone_features,
+        }
+    return geojson

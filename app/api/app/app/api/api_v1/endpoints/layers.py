@@ -6,7 +6,7 @@ from starlette.responses import JSONResponse, StreamingResponse
 
 from app import crud
 from app.api import deps
+from app.schemas.layer import Table
 from app.schemas.msg import Msg
-from app.schemas.table_metadata import TableMetadata
 
 router = APIRouter()

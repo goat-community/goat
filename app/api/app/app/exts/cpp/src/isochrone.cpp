@@ -45,7 +45,7 @@ namespace py = pybind11;
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------
-// ***************************************** ISOCHRONE CALCULATION ******************************************************
+// ***************************************** ISOCHRONE COMPUTATION *****************************************************
 // ---------------------------------------------------------------------------------------------------------------------
 
 typedef struct
@@ -72,9 +72,18 @@ typedef struct
 
 typedef struct
 {
+  int64_t start_id;
+  int32_t step;
+  std::vector<std::array<double, 2>> geometry;
+} IsochroneShape;
 
+typedef struct
+{
+  std::vector<IsochroneShape> isochrone;
+  std::vector<IsochroneNetworkEdge> network;
 } Result;
 
+// Adjacency list for the isochrone network (for each node, the edges that are connected to it)
 std::vector<std::vector<const Edge *>>
 construct_adjacency_list(size_t n, const Edge *edges,
                          size_t total_edges)
@@ -93,6 +102,8 @@ construct_adjacency_list(size_t n, const Edge *edges,
   }
   return adj;
 }
+
+// Dijkstra's algorithm one-to-all shortest path search
 
 void dijkstra(int64_t start_vertex, double driving_distance,
               const std::vector<std::vector<const Edge *>> &adj,
@@ -165,6 +176,76 @@ std::unordered_map<int64_t, int64_t> remap_edges(Edge *data_edges,
     e->target = target_id;
   }
   return mapping;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// CONVEX HULL ALGORITHM
+// ---------------------------------------------------------------------------------------------------------------------
+// Implementation of Andrew's monotone chain 2D convex hull algorithm.
+// Asymptotic complexity: O(n log n).
+// Practical performance: 0.5-1.0 seconds for n=1000000 on a 1GHz machine.
+struct ConvexhullResult
+{
+  std::vector<std::array<double, 2>> shape;
+  std::vector<int32_t> indices;
+};
+
+struct
+{
+  bool operator()(std::array<double, 2> &pt1, std::array<double, 2> &pt2) const
+  {
+    return pt1[0] < pt2[0] || (pt1[0] == pt2[0] && pt1[1] < pt2[1]);
+  }
+} customLess;
+
+// Returns a positive value, if OAB makes a counter-clockwise turn,
+// negative for clockwise turn, and zero if the points are collinear.
+double cross(const std::array<double, 2> &O, const std::array<double, 2> &A, const std::array<double, 2> &B)
+{
+  return (A[0] - O[0]) * (B[1] - O[1]) - (A[1] - O[1]) * (B[0] - O[0]);
+}
+
+// Returns a list of points on the convex hull in counter-clockwise order.
+// Note: the last point in the returned list is the same as the first one.
+ConvexhullResult convexhull(std::vector<std::array<double, 2>> &P)
+{
+  ConvexhullResult result;
+
+  size_t n = P.size(), k = 0;
+
+  if (n <= 3)
+    throw std::invalid_argument("Number of points must be 3 or more!");
+
+  std::vector<std::array<double, 2>> H(2 * n);
+  std::vector<int32_t> H_indices(2 * n); // of ordered points
+
+  // Sort points lexicographically
+  std::sort(P.begin(), P.end(), customLess);
+
+  // Build lower hull
+  for (size_t i = 0; i < n; ++i)
+  {
+    while (k >= 2 && cross(H[k - 2], H[k - 1], P[i]) <= 0)
+      k--;
+    H[k++] = P[i];
+    H_indices[k - 1] = i;
+  }
+
+  // Build upper hull
+  for (size_t i = n - 1, t = k + 1; i > 0; --i)
+  {
+    while (k >= t && cross(H[k - 2], H[k - 1], P[i - 1]) <= 0)
+      k--;
+    H[k++] = P[i - 1];
+    H_indices[k - 1] = i - 1;
+  }
+
+  H.resize(k - 1);
+  H_indices.resize(k - 1);
+
+  result.shape = H;
+  result.indices = H_indices;
+  return result;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -261,11 +342,12 @@ void reverse_isochrone_path(IsochroneNetworkEdge &isochrone_path)
 
 void append_edge_result(const int64_t &start_v, const int64_t &edge_id, const double &cost_at_node, const double &edge_cost, const double &edge_length, const std::vector<std::array<double, 2>> &geometry,
                         const std::vector<double> &distance_limits,
-                        std::vector<IsochroneNetworkEdge> *results, const bool &is_reverse)
+                        std::vector<IsochroneNetworkEdge> *isochrone_network, std::unordered_map<double, std::vector<std::array<double, 2>>> &coordinates, const bool &is_reverse)
 {
   double current_cost = cost_at_node;
   double travel_cost = edge_cost;
   double start_perc = 0.;
+
   for (auto &dl : distance_limits)
   {
     if (cost_at_node >= dl)
@@ -276,6 +358,7 @@ void append_edge_result(const int64_t &start_v, const int64_t &edge_id, const do
     IsochroneNetworkEdge r;
     r.start_id = start_v;
     r.edge = edge_id;
+    // Full edge
     if (cost_at_target < dl)
     {
 
@@ -288,49 +371,54 @@ void append_edge_result(const int64_t &start_v, const int64_t &edge_id, const do
       {
         reverse_isochrone_path(r);
       }
-      results->push_back(r);
+      isochrone_network->push_back(r);
+      std::copy(r.geometry.begin(), r.geometry.end(), std::back_inserter(coordinates[dl]));
       break;
     }
-    // cost_at_target is bigger than the limit, partial edge
+    // Partial Edge: (cost_at_target is bigger than the limit, partial edge)
     travel_cost = cost_at_target - dl; // remaining travel cost
     double partial_travel = dl - current_cost;
     r.start_perc = start_perc;
     r.end_perc = start_perc + partial_travel / edge_cost;
     r.start_cost = current_cost;
-    r.geometry = line_substring(r.start_perc, r.end_perc, geometry, edge_length);
     r.end_cost = dl;
-
     start_perc = r.end_perc;
     current_cost = dl;
     if (is_reverse)
     {
       reverse_isochrone_path(r);
     }
-    results->push_back(r);
-
+    r.geometry = line_substring(r.start_perc, r.end_perc, geometry, edge_length);
+    isochrone_network->push_back(r);
+    std::copy(r.geometry.begin(), r.geometry.end(), std::back_inserter(coordinates[dl]));
     // A ---------- B
     // 5    7    9  10
   }
 }
 
-std::vector<IsochroneNetworkEdge>
-compute_isochrone(Edge *data_edges, size_t total_edges,
-                  std::vector<int64_t> start_vertices,
-                  std::vector<double> distance_limits,
-                  bool only_minimum_cover)
+Result compute_isochrone(Edge *data_edges, size_t total_edges,
+                         std::vector<int64_t> start_vertices,
+                         std::vector<double> distance_limits,
+                         bool only_minimum_cover)
 {
+  Result result;
   std::sort(distance_limits.begin(), distance_limits.end());
   // Using max distance limit for a single dijkstra call. After that we will
   // postprocess the results and mark the visited edges.
   double max_dist_cutoff = *distance_limits.rbegin();
   // Extracting vertices and mapping the ids from 0 to N-1. Remapping is done
   // so that data structures used can be simpler (arrays instead of maps).
-  std::unordered_map<int64_t, int64_t> mapping =
-      // modifying data_edges source/target fields.
-      remap_edges(data_edges, total_edges);
+  // modifying data_edges source/target fields.
+  std::unordered_map<int64_t, int64_t> mapping = remap_edges(data_edges, total_edges);
+  // coordinates for the network edges for each distance limit to be used in constructing the isochrone shape
+  std::unordered_map<double, std::vector<std::array<double, 2>>> coordinates;
   size_t nodes_count = mapping.size();
-  std::vector<IsochroneNetworkEdge> results;
-
+  std::vector<IsochroneNetworkEdge> isochrone_network;
+  std::vector<IsochroneShape> isochrone_shape;
+  for (auto &dl : distance_limits)
+  {
+    coordinates.emplace(dl, std::vector<std::array<double, 2>>());
+  }
   auto adj =
       construct_adjacency_list(mapping.size(), data_edges, total_edges);
   // Storing the result of dijkstra call and reusing the memory for each vertex.
@@ -339,8 +427,7 @@ compute_isochrone(Edge *data_edges, size_t total_edges,
   for (int64_t start_v : start_vertices)
   {
     auto it = mapping.find(start_v);
-    // If start_v did not appear in edges then it has no particular mapping but
-    // pgr_drivingDistance result includes one row for this node.
+    // If start_v did not appear in edges then it has no particular mapping
     if (it == mapping.end())
     {
       IsochroneNetworkEdge r;
@@ -351,7 +438,7 @@ compute_isochrone(Edge *data_edges, size_t total_edges,
       r.start_perc = 0.0;
       r.end_perc = 0.0;
       r.geometry = {{0, 0}, {0, 0}};
-      results.push_back(r);
+      isochrone_network.push_back(r);
       continue;
     }
     // Calling the dijkstra algorithm and storing the results in predecessors
@@ -371,7 +458,6 @@ compute_isochrone(Edge *data_edges, size_t total_edges,
       {
         continue;
       }
-      size_t r_i = results.size();
       bool skip_st = false;
       bool skip_ts = false;
       if (only_minimum_cover)
@@ -385,95 +471,33 @@ compute_isochrone(Edge *data_edges, size_t total_edges,
       }
       if (!skip_ts && t_reached && predecessors[e.target] != e.source)
       {
-        append_edge_result(start_v, e.id, tcost, e.reverse_cost, e.length, e.geometry, distance_limits, &results, true);
+        append_edge_result(start_v, e.id, tcost, e.reverse_cost, e.length, e.geometry, distance_limits, &isochrone_network, coordinates, true);
       }
       if (!skip_st && s_reached && predecessors[e.source] != e.target)
       {
-        append_edge_result(start_v, e.id, scost, e.cost, e.length, e.geometry, distance_limits, &results, false);
+        append_edge_result(start_v, e.id, scost, e.cost, e.length, e.geometry, distance_limits, &isochrone_network, coordinates, false);
       }
     }
-
-    // Compute convex hull shape
-
-    // Compute concave hull shape
-  }
-  // sorting by cutoffs.
-  std::sort(results.begin(), results.end(),
-            [](IsochroneNetworkEdge &a, IsochroneNetworkEdge &b)
-            {
-              return std::tie(a.start_id, a.end_cost) <
-                     std::tie(b.start_id, b.end_cost);
-            });
-  return results;
-}
-
-// ---------------------------------------------------------------------------------------------------------------------
-// CONVEX HULL ALGORITHM
-// ---------------------------------------------------------------------------------------------------------------------
-// Implementation of Andrew's monotone chain 2D convex hull algorithm.
-// Asymptotic complexity: O(n log n).
-// Practical performance: 0.5-1.0 seconds for n=1000000 on a 1GHz machine.
-struct ConvexhullResult
-{
-  std::vector<std::array<double, 2>> hull_shape;
-  std::vector<int32_t> hull_indices;
-};
-
-struct
-{
-  bool operator()(std::array<double, 2> &pt1, std::array<double, 2> &pt2) const
-  {
-    return pt1[0] < pt2[0] || (pt1[0] == pt2[0] && pt1[1] < pt2[1]);
-  }
-} customLess;
-
-// Returns a positive value, if OAB makes a counter-clockwise turn,
-// negative for clockwise turn, and zero if the points are collinear.
-double cross(const std::array<double, 2> &O, const std::array<double, 2> &A, const std::array<double, 2> &B)
-{
-  return (A[0] - O[0]) * (B[1] - O[1]) - (A[1] - O[1]) * (B[0] - O[0]);
-}
-
-// Returns a list of points on the convex hull in counter-clockwise order.
-// Note: the last point in the returned list is the same as the first one.
-ConvexhullResult convexhull(std::vector<std::array<double, 2>> &P)
-{
-  ConvexhullResult result;
-
-  size_t n = P.size(), k = 0;
-
-  if (n <= 3)
-    throw std::invalid_argument("Number of points must be 3 or more!");
-
-  std::vector<std::array<double, 2>> H(2 * n);
-  std::vector<int32_t> H_indices(2 * n); // of ordered points
-
-  // Sort points lexicographically
-  std::sort(P.begin(), P.end(), customLess);
-
-  // Build lower hull
-  for (size_t i = 0; i < n; ++i)
-  {
-    while (k >= 2 && cross(H[k - 2], H[k - 1], P[i]) <= 0)
-      k--;
-    H[k++] = P[i];
-    H_indices[k - 1] = i;
+    // Calculating the isochrone shape for the current starting vertex.
+    for (auto &dl : distance_limits)
+    {
+      if (coordinates[dl].size() > 1)
+      {
+        auto &points_ = coordinates[dl];
+        ConvexhullResult hull = convexhull(points_);
+        std::vector<std::array<double, 2>> isochrone_path = concaveman<double, 16>(points_, hull.indices);
+        coordinates[dl].clear();
+        IsochroneShape r;
+        r.start_id = start_v;
+        r.step = dl;
+        r.geometry = isochrone_path;
+        isochrone_shape.push_back(r);
+      }
+    }
   }
 
-  // Build upper hull
-  for (size_t i = n - 1, t = k + 1; i > 0; --i)
-  {
-    while (k >= t && cross(H[k - 2], H[k - 1], P[i - 1]) <= 0)
-      k--;
-    H[k++] = P[i - 1];
-    H_indices[k - 1] = i - 1;
-  }
-
-  H.resize(k - 1);
-  H_indices.resize(k - 1);
-
-  result.hull_shape = H;
-  result.hull_indices = H_indices;
+  result.isochrone = isochrone_shape;
+  result.network = isochrone_network;
   return result;
 }
 
@@ -548,7 +572,7 @@ int main()
   }
   data_edges_vector.clear();
   std::vector<double> distance_limits = {40, 80, 120};
-  std::vector<int64_t> start_vertices{81044};
+  std::vector<int64_t> start_vertices{81044, 999999999};
   bool only_minimum_cover = false;
   auto results = compute_isochrone(data_edges, total_edges, start_vertices,
                                    distance_limits, only_minimum_cover);
@@ -565,7 +589,7 @@ int main()
 struct Isochrone
 {
   // Calculate isochrone for a given set of start vertices.
-  std::vector<IsochroneNetworkEdge> calculate(
+  Result calculate(
       py::array_t<int64_t> &edge_ids_, py::array_t<int64_t> &sources_,
       py::array_t<int64_t> &targets_, py::array_t<double> &costs_,
       py::array_t<double> &reverse_costs_, py::array_t<double> &length_, std::vector<std::vector<std::array<double, 2>>> &geometry,
@@ -622,16 +646,16 @@ PYBIND11_MODULE(isochrone, m)
 {
   m.doc() = "Isochrone Calculation";
   // m.def("isochrone", &isochrone, "Isochrone Calculation");
-  py::class_<IsochroneNetworkEdge>(m, "IsochroneNetworkEdge")
-      .def_readwrite("start_id", &IsochroneNetworkEdge::start_id)
-      .def_readwrite("edge", &IsochroneNetworkEdge::edge)
-      .def_readwrite("start_perc", &IsochroneNetworkEdge::start_perc)
-      .def_readwrite("end_perc", &IsochroneNetworkEdge::end_perc)
-      .def_readwrite("start_cost", &IsochroneNetworkEdge::start_cost)
-      .def_readwrite("end_cost", &IsochroneNetworkEdge::end_cost)
-      .def_readwrite("geometry", &IsochroneNetworkEdge::geometry);
+  py::class_<IsochroneShape>(m, "IsochroneShape")
+      .def_readwrite("start_id", &IsochroneShape::start_id)
+      .def_readwrite("step", &IsochroneShape::step)
+      .def_readwrite("geometry", &IsochroneShape::geometry);
 
-  // py::class_<Edge>(m, "Edge");
+  py::class_<IsochroneNetworkEdge>(m, "IsochroneNetworkEdge");
+  py::class_<Result>(m, "Result")
+      .def_readwrite("isochrone", &Result::isochrone)
+      .def_readwrite("network", &Result::network);
+
   // bindings to Isochrone class
   py::class_<Isochrone>(m, "Isochrone")
       .def(py::init<>())
