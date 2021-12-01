@@ -32,9 +32,10 @@
 <body>
   <div id='map'></div>
   <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoibWFqayIsImEiOiJjazkyeWJnM2kwYmZsM25tczV3bjdqbnN2In0.IJ1PxolSiosSbsSioBZ7oQ';
     var map = new mapboxgl.Map({
       container: 'map',
-      style: { version: 8, sources: {}, layers: [] },
+      style: 'mapbox://styles/mapbox/light-v10',
       center: [0, 0],
       zoom: 4
     })
@@ -68,7 +69,7 @@
       map.on('click', 'table', function (e) {
         props = e.features[0].properties;
         t = '<table>';
-        for (var key in props){
+        for (var key in props) {
           t += "<tr><td>" + key + "</td><td>" + props[key] + "</td></tr>";
         }
         t += '</table>';

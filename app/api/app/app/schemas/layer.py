@@ -1,13 +1,35 @@
-"""Metadata models."""
-"""FROM timvt https://github.com/developmentseed/timvt/ """
+# MIT License
+
+# Copyright (c) 2020 Development Seed
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 import abc
 from typing import Any, Dict, List, Optional
 
 import morecantile
+from buildpg import asyncpg
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field
 from pydantic.class_validators import root_validator
 from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlalchemy.sql import text
 
 from app.core.config import settings
 
@@ -33,7 +55,7 @@ class Layer(BaseModel, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     async def get_tile(
         self,
-        db: AsyncSession,
+        pool: asyncpg.BuildPgPool,
         tile: morecantile.Tile,
         tms: morecantile.TileMatrixSet,
         **kwargs: Any,
@@ -41,7 +63,7 @@ class Layer(BaseModel, metaclass=abc.ABCMeta):
         """Return Tile Data.
 
         Args:
-            db AsyncSession.
+            pool asyncpg.BuildPgPool.
             tile (morecantile.Tile): Tile object with X,Y,Z indices.
             tms (morecantile.TileMatrixSet): Tile Matrix Set.
             kwargs (any, optiona): Optional parameters to forward to the SQL function.
@@ -79,7 +101,7 @@ class Table(Layer):
 
     async def get_tile(
         self,
-        db: AsyncSession,
+        pool: asyncpg.BuildPgPool,
         tile: morecantile.Tile,
         tms: morecantile.TileMatrixSet,
         **kwargs: Any,
@@ -99,7 +121,6 @@ class Table(Layer):
         )  # Size of extra data to add for a tile.
 
         limitstr = f"LIMIT {limit}" if int(limit) > -1 else ""
-
         # create list of columns to return
         geometry_column = self.geometry_column
         cols = self.properties
@@ -114,8 +135,7 @@ class Table(Layer):
         colstring = ", ".join(list(cols))
 
         segSize = bbox.right - bbox.left
-
-        async with db.acquire() as conn:
+        async with pool.acquire() as conn:
             sql_query = f"""
                 WITH
                 bounds AS (
@@ -198,7 +218,7 @@ class Function(Layer):
 
     async def get_tile(
         self,
-        db: AsyncSession,
+        pool: asyncpg.BuildPgPool,
         tile: morecantile.Tile,
         tms: morecantile.TileMatrixSet,
         **kwargs: Any,
@@ -206,7 +226,7 @@ class Function(Layer):
         """Get Tile Data."""
         bbox = tms.xy_bounds(tile)
 
-        async with db.acquire() as conn:
+        async with pool.acquire() as conn:
             transaction = conn.transaction()
             await transaction.start()
             await conn.execute(self.sql)
@@ -215,9 +235,9 @@ class Function(Layer):
             if kwargs:
                 params = ", ".join([f"{k} => {v}" for k, v in kwargs.items()])
                 function_params += f", {params}"
-
+            sql_query = text(f"SELECT {self.function_name}({function_params})")
             content = await conn.fetchval_b(
-                f"SELECT {self.function_name}({function_params})",
+                sql_query,
                 xmin=bbox.left,
                 ymin=bbox.bottom,
                 xmax=bbox.right,

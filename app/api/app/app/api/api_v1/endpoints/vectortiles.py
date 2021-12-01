@@ -21,11 +21,13 @@
 # SOFTWARE.
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Type
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Query
 from morecantile import Tile, TileMatrixSet
+from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, Response
 from starlette.routing import NoMatchFound
@@ -38,6 +40,7 @@ from app.api.deps import (
     TileMatrixSetParams,
     TileParams,
 )
+from app.core.config import settings
 from app.resources.enums import MimeTypes
 from app.schemas.functions import registry as FunctionRegistry
 from app.schemas.layer import Function, Layer, Table
@@ -50,14 +53,14 @@ except ImportError:
     # Try backported to PY<39 `importlib_resources`.
     from importlib_resources import files as resources_files  # type: ignore
 
-
-templates = Jinja2Templates(directory=str(resources_files(__package__) / "templates"))  # type: ignore
+templates = Jinja2Templates(directory=Path(settings.LAYER_TEMPLATES_DIR))  # type: ignore
 
 
 TILE_RESPONSE_PARAMS: Dict[str, Any] = {
     "responses": {200: {"content": {"application/x-protobuf": {}}}},
     "response_class": Response,
 }
+
 
 @dataclass
 class VectorTilerFactory:
@@ -78,7 +81,7 @@ class VectorTilerFactory:
 
     # Router Prefix is needed to find the path for routes when prefixed
     # e.g if you mount the route with `/foo` prefix, set router_prefix to foo
-    router_prefix: str = ""
+    router_prefix: str = settings.API_V1_STR
 
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
@@ -115,14 +118,14 @@ class VectorTilerFactory:
             tags=["Tiles"],
         )
         async def tile(
+            *,
             request: Request,
             tile: Tile = Depends(TileParams),
             tms: TileMatrixSet = Depends(self.tms_dependency),
             layer=Depends(self.layer_dependency),
         ):
             """Return vector tile."""
-            db = Depends(deps.get_db)
-
+            pool = request.app.state.pool
             qs_key_to_remove = ["tilematrixsetid"]
             kwargs = dict(
                 [
@@ -132,7 +135,7 @@ class VectorTilerFactory:
                 ]
             )
 
-            content = await layer.get_tile(db, tile, tms, **kwargs)
+            content = await layer.get_tile(pool, tile, tms, **kwargs)
 
             return Response(bytes(content), media_type=MimeTypes.pbf.value)
 
@@ -285,7 +288,7 @@ class VectorTilerFactory:
     def register_viewer(self):
         """Register viewer."""
 
-        @self.router.get("/vt-layers/list", response_class=HTMLResponse,  tags=["Viewer"])
+        @self.router.get("/mvt-list", response_class=HTMLResponse, tags=["Viewer"])
         async def list_layers(request: Request):
             """Display layer list."""
             return templates.TemplateResponse(
@@ -322,7 +325,7 @@ class TMSFactory:
     # Router Prefix is needed to find the path for /tile if the TilerFactory.router is mounted
     # with other router (multiple `.../tile` routes).
     # e.g if you mount the route with `/cog` prefix, set router_prefix to cog and
-    router_prefix: str = ""
+    router_prefix: str = settings.API_V1_STR
 
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
