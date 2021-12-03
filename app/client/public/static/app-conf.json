@@ -63,9 +63,9 @@
       },
       {
         "type": "VECTORTILE",
-        "name": "ways",
+        "name": "ways_lit",
         "format": "MVT",
-        "url": "/api/map/layer/ways/{z}/{x}/{y}",
+        "url": "/api/map/layer/ways_lit/{z}/{x}/{y}",
         "opacity": 1,
         "queryable": false,
         "visible": false,
@@ -75,6 +75,7 @@
         "modifyAttributes": true,
         "displayInLayerList": false,
         "zIndex": 2,
+        "maxResolution": 7,
         "serverType": "geoserver",
         "attributes": {
           "source": "openStreetMap"
@@ -241,7 +242,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 5,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/footpath_width.json"
@@ -399,9 +400,27 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
+        "name": "ways_segregated",
+        "url": "/api/map/layer/ways_segregated/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 10,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/ways_segregated.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "footpath_visualization",
         "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
+        "group": "walkabilityLayers",
         "opacity": 1,
         "queryable": true,
         "visible": false,
@@ -420,7 +439,7 @@
         "format": "MVT",
         "name": "ways_liveliness",
         "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
+        "group": "walkabilityLayers",
         "opacity": 1,
         "queryable": false,
         "visible": false,
@@ -438,7 +457,7 @@
         "format": "MVT",
         "name": "ways_urban_equipment",
         "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
+        "group": "walkabilityLayers",
         "opacity": 1,
         "queryable": false,
         "visible": false,
@@ -456,7 +475,7 @@
         "format": "MVT",
         "name": "ways_traffic_protection",
         "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
+        "group": "walkabilityLayers",
         "opacity": 1,
         "queryable": false,
         "visible": false,
@@ -492,7 +511,7 @@
         "format": "MVT",
         "name": "ways_security",
         "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
+        "group": "walkabilityLayers",
         "opacity": 1,
         "queryable": false,
         "visible": false,
@@ -510,7 +529,7 @@
         "format": "MVT",
         "name": "ways_green_blue_index",
         "url": "/api/map/layer/footpath_visualization/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
+        "group": "walkabilityLayers",
         "opacity": 1,
         "queryable": false,
         "visible": false,
@@ -521,6 +540,28 @@
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_green_blue_index.json"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "trees",
+        "url": "/api/map/layer/trees/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "maxResolution": 7,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/trees.json"
+        },
+        "attributes": {
+          "source": "openStreetMap",
+          "date": "17-06-2021"
         }
       },
       {
@@ -581,7 +622,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "maxResolution": 7,
+        "maxResolution": 5,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/street_furniture_bicycles.json"
@@ -1925,6 +1966,13 @@
               "name": "Yoga",
               "value": "yoga",
               "icon": "yoga",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Playground",
+              "value": "playground",
+              "icon": "playground",
               "weight": 1,
               "sensitivity": 300000
             }
