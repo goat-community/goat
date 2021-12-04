@@ -90,5 +90,10 @@
     "bitset": "cpp",
     "map": "cpp",
     "regex": "cpp"
-  }
+  },
+  "python.testing.pytestArgs": [
+    "app"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }

@@ -135,14 +135,6 @@ python2 = ["typed-ast (>=1.4.2)"]
 uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
-name = "buildpg"
-version = "0.3"
-description = "Query building for the postgresql prepared statements and asyncpg."
-category = "main"
-optional = false
-python-versions = ">=3.6"
-
-[[package]]
 name = "cachetools"
 version = "4.2.2"
 description = "Extensible memoizing collections and decorators"
@@ -1376,7 +1368,7 @@ python-versions = ">=3.6.1"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "32dc3bb13b9b3520b0bd2ebcb2586181f5f0b229759f6ee547651351b376e1b4"
+content-hash = "6a7c1cbdd5f9d4e079c0cd1fd5e73797c09cd90e065e758e8d1c7a61ad09534f"
 
 [metadata.files]
 affine = [
@@ -1437,10 +1429,6 @@ billiard = [
 black = [
     {file = "black-21.7b0-py3-none-any.whl", hash = "sha256:1c7aa6ada8ee864db745b22790a32f94b2795c253a75d6d9b5e439ff10d23116"},
     {file = "black-21.7b0.tar.gz", hash = "sha256:c8373c6491de9362e39271630b65b964607bc5c79c83783547d76c839b3aa219"},
-]
-buildpg = [
-    {file = "buildpg-0.3-py3-none-any.whl", hash = "sha256:1384d4b92f5404da9cdbdd6382b71cae599ec83f4e311783377c4c3c86c1bca9"},
-    {file = "buildpg-0.3.tar.gz", hash = "sha256:1e17caf7de6dbc3dd02447459e8589747a57965c638b6eb0f6855072cc28cc40"},
 ]
 cachetools = [
     {file = "cachetools-4.2.2-py3-none-any.whl", hash = "sha256:2cc0b89715337ab6dbba85b5b50effe2b0c74e035d83ee8ed637cf52f12ae001"},
