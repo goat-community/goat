@@ -73,13 +73,12 @@ typedef struct
 typedef struct
 {
   int64_t start_id;
-  int32_t step;
-  std::vector<std::array<double, 2>> geometry;
-} IsochroneShape;
+  std::unordered_map<int32_t, std::vector<std::array<double, 2>>> shape; // steps, geometry
+} IsochroneStartPoint;
 
 typedef struct
 {
-  std::vector<IsochroneShape> isochrone;
+  std::vector<IsochroneStartPoint> isochrone;
   std::vector<IsochroneNetworkEdge> network;
 } Result;
 
@@ -414,7 +413,7 @@ Result compute_isochrone(Edge *data_edges, size_t total_edges,
   std::unordered_map<double, std::vector<std::array<double, 2>>> coordinates;
   size_t nodes_count = mapping.size();
   std::vector<IsochroneNetworkEdge> isochrone_network;
-  std::vector<IsochroneShape> isochrone_shape;
+  std::vector<IsochroneStartPoint> isochrone_start_point;
   for (auto &dl : distance_limits)
   {
     coordinates.emplace(dl, std::vector<std::array<double, 2>>());
@@ -443,6 +442,7 @@ Result compute_isochrone(Edge *data_edges, size_t total_edges,
     }
     // Calling the dijkstra algorithm and storing the results in predecessors
     // and distances.
+
     dijkstra(it->second,
              /* driving_distance */ max_dist_cutoff, adj, &predecessors,
              &distances);
@@ -479,24 +479,25 @@ Result compute_isochrone(Edge *data_edges, size_t total_edges,
       }
     }
     // Calculating the isochrone shape for the current starting vertex.
+
+    IsochroneStartPoint isp;
+    isp.start_id = start_v;
     for (auto &dl : distance_limits)
     {
+
       if (coordinates[dl].size() > 1)
       {
         auto &points_ = coordinates[dl];
         ConvexhullResult hull = convexhull(points_);
         std::vector<std::array<double, 2>> isochrone_path = concaveman<double, 16>(points_, hull.indices);
         coordinates[dl].clear();
-        IsochroneShape r;
-        r.start_id = start_v;
-        r.step = dl;
-        r.geometry = isochrone_path;
-        isochrone_shape.push_back(r);
+        isp.shape.emplace(dl, isochrone_path);
       }
     }
+    isochrone_start_point.push_back(isp);
   }
 
-  result.isochrone = isochrone_shape;
+  result.isochrone = isochrone_start_point;
   result.network = isochrone_network;
   return result;
 }
@@ -646,10 +647,9 @@ PYBIND11_MODULE(isochrone, m)
 {
   m.doc() = "Isochrone Calculation";
   // m.def("isochrone", &isochrone, "Isochrone Calculation");
-  py::class_<IsochroneShape>(m, "IsochroneShape")
-      .def_readwrite("start_id", &IsochroneShape::start_id)
-      .def_readwrite("step", &IsochroneShape::step)
-      .def_readwrite("geometry", &IsochroneShape::geometry);
+  py::class_<IsochroneStartPoint>(m, "IsochroneShape")
+      .def_readwrite("start_id", &IsochroneStartPoint::start_id)
+      .def_readwrite("shape", &IsochroneStartPoint::shape);
 
   py::class_<IsochroneNetworkEdge>(m, "IsochroneNetworkEdge");
   py::class_<Result>(m, "Result")

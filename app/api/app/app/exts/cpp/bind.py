@@ -1,6 +1,8 @@
 import cppimport
+from geopandas import GeoDataFrame
 from numpy import any, array, double, int32, int64
 from pandas.core.frame import DataFrame
+from shapely.geometry import Polygon
 
 isochrone_cpp = cppimport.imp("app.exts.cpp.src.isochrone")
 
@@ -24,8 +26,8 @@ def isochrone(
 
     Returns
     -------
-    isochrone_element_path : dtype :numpy.array{formats: [i8,i8,D,D,D,D], names: [start_id, edge, start_perc, end_perc, start_cost, end_cost, geom]})
-        The isochrone path.
+    isochrone_gdp : GeoDataFrame
+        The isochrone paths.
     """
 
     start_vertices = array(start_vertices).astype(int64)
@@ -44,24 +46,15 @@ def isochrone(
         distance_limits,
         only_minimum_cover,
     )
-    isochrone_features = []
+    isochrones = {"starting_point": [], "geometry": [], "step": []}
     for isochrone in result.isochrone:
-        isochrone_features.append(
-            {
-                "type": "Feature",
-                "properties": {
-                    "start_v": isochrone.start_id,
-                    "step": isochrone.step,
-                },
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": isochrone.geometry,
-                },
-            }
-        )
-        geojson = {
-            "type": "FeatureCollection",
-            "crs": {"type": "name", "properties": {"name": "EPSG:3857"}},
-            "features": isochrone_features,
-        }
-    return geojson
+        start_point_id = isochrone.start_id
+        for step, shape in isochrone.shape.items():
+            isochrones["geometry"].append(Polygon(shape))
+            isochrones["step"].append(step)
+            isochrones["starting_point"].append(
+                start_point_id
+            )  # TODO:  start point coordinates instead of id
+
+    isochrone_gdf = GeoDataFrame(isochrones, crs="EPSG:3857").to_crs("EPSG:4326")
+    return isochrone_gdf

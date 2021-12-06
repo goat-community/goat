@@ -2,12 +2,14 @@ import io
 import os
 import shutil
 import time
+from json import loads
+from random import randint
 from time import time
 from typing import Any
 
-import geopandas
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
+from geoalchemy2 import Geometry, WKTElement
 from geojson import FeatureCollection
 from geopandas.io.sql import read_postgis
 from pandas.io.sql import read_sql
@@ -32,26 +34,45 @@ class CRUDIsochrone:
         obj_in_data = jsonable_encoder(obj_in)
         read_network_sql = text(
             """ 
-        SELECT id, source, target, cost, reverse_cost, ST_AsGeoJSON(ST_Transform(geom,3857))::json->'coordinates' as geom, st_length(st_transform(geom,3857)) as length FROM fetch_network_routing(ARRAY[:x],ARRAY[:y], 1200., 1.33, 1, 1, :routing_profile)
+        SELECT id, source, target, cost, reverse_cost, ST_AsGeoJSON(ST_Transform(geom,3857))::json->'coordinates' as geom, st_length(st_transform(geom,3857)) as length 
+        FROM fetch_network_routing(ARRAY[:x],ARRAY[:y], :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
          """
         )
-        start_time = time()
-        print("Calculation started: ")
         ways_network = read_sql(read_network_sql, legacy_engine, params=obj_in_data)
-        read_end_time = time()
-        print("read_network_sql time: ", read_end_time - start_time)
-        isochrone_geojson = isochrone_cpp(ways_network, [999999999], [300, 600, 900])
-        print("isochrone_shape time: ", time() - read_end_time)
-        sql = text(
-            """
-            SELECT gid, objectid, coordinates, ST_ASTEXT(ST_MAKEPOINT(coordinates[1], coordinates[2])) AS starting_point,
-            step, speed::integer, modus, parent_id, sum_pois, ST_AsGeoJSON(geom) as geom
-            FROM isochrones_api(:user_id,:scenario_id,:minutes,:x,:y,:n,:speed,:concavity,:modus,:routing_profile,NULL,NULL,NULL)
-         """
+        distance_limits = list(
+            range(
+                obj_in.max_cutoff // obj_in.n, obj_in.max_cutoff + 1, obj_in.max_cutoff // obj_in.n
+            )
         )
-        result = await db.execute(sql, obj_in_data)
-        await db.commit()
-        return isochrone_geojson
+        isochrone_calculation_id = randint(
+            1, 2147483647
+        )  # 2147483647 is the max value for integer in postgres
+        isochrone_gdf = isochrone_cpp(ways_network, [999999999], distance_limits)
+        isochrone_gdf["userid"] = obj_in.user_id
+        isochrone_gdf["scenario_id"] = obj_in.scenario_id
+        isochrone_gdf["speed"] = obj_in.speed * 3.6  # convert back to km/h
+        isochrone_gdf[
+            "starting_point"
+        ] = f"POINT({obj_in.x} {obj_in.y})"  # only for single-isochorne for multi-isochrone starting points are amenity points
+        isochrone_gdf["step"] = isochrone_gdf["step"] // 60  # convert to minutes
+        isochrone_gdf["modus"] = obj_in.modus
+        isochrone_gdf["concavity"] = obj_in.concavity
+        isochrone_gdf["objectid"] = isochrone_calculation_id
+        isochrone_gdf.rename_geometry("geom", inplace=True)
+        isochrone_gdf.to_postgis(
+            "isochrones",
+            legacy_engine,
+            if_exists="append",
+            dtype={"geom": Geometry(geometry_type="POLYGON", spatial_index=True, srid=4326)},
+        )
+
+        # refetch the isochrone to get sum pois
+        # sum_pois_sql = f"""
+        # PERFORM thematic_data_sum({isochrone_calculation_id},{obj_in.scenario_id},{obj_in.modus});
+        # SELECT step, population, sum_pois FROM isochrones WHERE objectid = {isochrone_calculation_id} AND userid = {obj_in.user_id};
+        # """
+        # result = await db.execute(sum_pois_sql)
+        return loads(isochrone_gdf.to_json())
 
     async def calculate_multi_isochrones(
         self, db: AsyncSession, *, obj_in: IsochroneMulti
