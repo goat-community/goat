@@ -1,10 +1,20 @@
+import os
+
+import sentry_sdk
 from fastapi import FastAPI
+from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
 from app import crud
 from app.api.api_v1.api import api_router
 from app.core.config import settings
 from app.db.session import async_session
+
+sentry_sdk.init(
+    dsn=settings.SENTRY_DSN,
+    environment=os.getenv("ENV", "dev"),  # You should read it from environment variable
+)
+
 
 app = FastAPI(title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json")
 
@@ -33,10 +43,23 @@ async def shutdown_event():
     """Application shutdown: de-register the database connection."""
 
 
+try:
+    app.add_middleware(SentryAsgiMiddleware)
+except Exception:
+    # pass silently if the Sentry integration failed
+    pass
+
+
 @app.get("/healthz", description="Health Check", tags=["Health Check"])
 def ping():
     """Health check."""
     return {"ping": "pong!"}
+
+
+# Calling this endpoint to see if the setup works. If yes, an error message will show in Sentry dashboard
+@app.get("/sentry", include_in_schema=False)
+async def sentry():
+    raise Exception("Test sentry integration")
 
 
 app.include_router(api_router, prefix=settings.API_V1_STR)

@@ -1,4 +1,3 @@
-
 import pytest
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,9 +24,7 @@ async def test_authenticate_user(db: AsyncSession) -> None:
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password)
     user = await crud.user.create(db, obj_in=user_in)
-    authenticated_user = await crud.user.authenticate(
-        db, email=email, password=password
-    )
+    authenticated_user = await crud.user.authenticate(db, email=email, password=password)
     assert authenticated_user
     assert user.email == authenticated_user.email
 
@@ -95,6 +92,7 @@ async def test_update_user(db: AsyncSession) -> None:
     user_in_update = UserUpdate(password=new_password, is_superuser=True)
     await crud.user.update(db, db_obj=user, obj_in=user_in_update)
     user_2 = await crud.user.get(db, id=user.id)
+    print("test")
     assert user_2
     assert user.email == user_2.email
     assert verify_password(new_password, user_2.hashed_password)

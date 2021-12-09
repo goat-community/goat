@@ -13,7 +13,9 @@ async def test_create_item(
 ) -> None:
     data = {"title": "Foo", "description": "Fighters"}
     response = await client.post(
-        f"{settings.API_V1_STR}/items/", headers=superuser_token_headers, json=data,
+        f"{settings.API_V1_STR}/items/",
+        headers=superuser_token_headers,
+        json=data,
     )
     assert response.status_code == 200
     content = response.json()
@@ -28,7 +30,8 @@ async def test_read_item(
 ) -> None:
     item = await create_random_item(db)
     response = await client.get(
-        f"{settings.API_V1_STR}/items/{item.id}", headers=superuser_token_headers,
+        f"{settings.API_V1_STR}/items/{item.id}",
+        headers=superuser_token_headers,
     )
     assert response.status_code == 200
     content = response.json()

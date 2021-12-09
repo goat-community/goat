@@ -4,10 +4,16 @@ import asyncio
 import os
 from logging.config import fileConfig
 
+from alembic_utils.replaceable_entity import register_entities
 from sqlalchemy import engine_from_config, pool
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from alembic import context
+from app.db.sql.init_sql import (
+    sql_function_entities,
+    sql_trigger_entities,
+    sql_view_entities,
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -33,12 +39,18 @@ target_metadata = Base.metadata
 # ... etc.
 
 
+# run migration for database custom functions, views, triggers
+sql_entities = sql_function_entities() + sql_view_entities() + sql_trigger_entities()
+register_entities(sql_entities)
+
+
 def include_object(object, name, type_, reflected, compare_to):
-    if (type_ == "column" and
-        not reflected and
-            object.info.get("skip_autogenerate", False)):
-        return False
-    elif type_ == "table" and name == 'spatial_ref_sys':
+    print(type_)
+    if (
+        type_ in ["table", "function", "extension", "trigger", "view"]
+        and reflected
+        and compare_to is None
+    ):
         return False
     else:
         return True
@@ -66,7 +78,11 @@ def run_migrations_offline():
     """
     url = get_url()
     context.configure(
-        url=url, target_metadata=target_metadata, literal_binds=True, compare_type=True, include_object=include_object
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        compare_type=True,
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -75,7 +91,10 @@ def run_migrations_offline():
 
 def do_run_migrations(connection):
     context.configure(
-        connection=connection, target_metadata=target_metadata, compare_type=True, include_object=include_object
+        connection=connection,
+        target_metadata=target_metadata,
+        compare_type=True,
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -93,7 +112,10 @@ async def run_migrations_online():
     configuration["sqlalchemy.url"] = get_url()
     connectable = AsyncEngine(
         engine_from_config(
-            configuration, prefix="sqlalchemy.", poolclass=pool.NullPool, future=True,
+            configuration,
+            prefix="sqlalchemy.",
+            poolclass=pool.NullPool,
+            future=True,
         )
     )
 
