@@ -242,7 +242,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 5,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/footpath_width.json"
@@ -260,7 +260,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lit.json"
@@ -283,7 +283,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lanes.json"
@@ -301,7 +301,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_parking.json"
@@ -319,7 +319,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_category.json"
@@ -337,7 +337,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_category_aggregated.json"
@@ -355,7 +355,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_speed.json"
@@ -373,7 +373,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_surface.json"
@@ -391,7 +391,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_smoothness.json"
@@ -409,7 +409,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 10,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_segregated.json"
@@ -428,7 +428,7 @@
         "displayInLayerList": true,
         "docUrl": "https://plan4better.de/docs/walkability_index/",
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/footpath_visualization.json"
@@ -446,7 +446,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_liveliness.json"
@@ -464,7 +464,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_urban_equipment.json"
@@ -482,7 +482,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_traffic_protection.json"
@@ -500,7 +500,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_sidewalk_quality.json"
@@ -518,7 +518,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_security.json"
@@ -536,7 +536,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_green_blue_index.json"
