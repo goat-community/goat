@@ -431,100 +431,100 @@ round(group_index(
 ----#####################################################GREEN & BLUE#############################################################----
 ----##########################################################################################################################----
 
-DROP TABLE IF EXISTS green_ndvi_vec; 
-CREATE TABLE green_ndvi_vec AS 
-SELECT (ST_DUMPASPOLYGONS(rast)).geom, (ST_DUMPASPOLYGONS(rast)).val  
-FROM green_ndvi;
+-- DROP TABLE IF EXISTS green_ndvi_vec; 
+-- CREATE TABLE green_ndvi_vec AS 
+-- SELECT (ST_DUMPASPOLYGONS(rast)).geom, (ST_DUMPASPOLYGONS(rast)).val  
+-- FROM green_ndvi;
 
-ALTER TABLE green_ndvi_vec ADD COLUMN gid serial; 
-ALTER TABLE green_ndvi_vec ADD PRIMARY KEY(gid);
-CREATE INDEX ON green_ndvi_vec USING GIST(geom);
+-- ALTER TABLE green_ndvi_vec ADD COLUMN gid serial; 
+-- ALTER TABLE green_ndvi_vec ADD PRIMARY KEY(gid);
+-- CREATE INDEX ON green_ndvi_vec USING GIST(geom);
 
-DO $$
-	DECLARE 
-    	buffer float := meter_degree() * 15;
-    BEGIN 
+-- DO $$
+-- 	DECLARE 
+--     	buffer float := meter_degree() * 15;
+--     BEGIN 
 
-		DROP TABLE IF EXISTS footpaths_green_ndvi;
-		CREATE TEMP TABLE footpaths_green_ndvi AS  
-		SELECT f.id, 
-		CASE WHEN j.avg_green_ndvi < 0 THEN 0::integer ELSE COALESCE((j.avg_green_ndvi * 100)::integer,0) END AS avg_green_ndvi
-		FROM footpath_visualization f
-		CROSS JOIN LATERAL 
-		(
-			SELECT AVG(val) AS avg_green_ndvi
-			FROM green_ndvi_vec g
-			WHERE ST_DWITHIN(f.geom, g.geom, buffer)
-		) j;
+-- 		DROP TABLE IF EXISTS footpaths_green_ndvi;
+-- 		CREATE TEMP TABLE footpaths_green_ndvi AS  
+-- 		SELECT f.id, 
+-- 		CASE WHEN j.avg_green_ndvi < 0 THEN 0::integer ELSE COALESCE((j.avg_green_ndvi * 100)::integer,0) END AS avg_green_ndvi
+-- 		FROM footpath_visualization f
+-- 		CROSS JOIN LATERAL 
+-- 		(
+-- 			SELECT AVG(val) AS avg_green_ndvi
+-- 			FROM green_ndvi_vec g
+-- 			WHERE ST_DWITHIN(f.geom, g.geom, buffer)
+-- 		) j;
 
-		ALTER TABLE footpaths_green_ndvi ADD PRIMARY KEY(id);
-	END; 
-$$;
+-- 		ALTER TABLE footpaths_green_ndvi ADD PRIMARY KEY(id);
+-- 	END; 
+-- $$;
 
-UPDATE footpath_visualization f 
-SET vegetation = g.avg_green_ndvi 
-FROM footpaths_green_ndvi g
-WHERE f.id = g.id;
+-- UPDATE footpath_visualization f 
+-- SET vegetation = g.avg_green_ndvi 
+-- FROM footpaths_green_ndvi g
+-- WHERE f.id = g.id;
 
-/*Coputing rank for water. These queries still don't scale for larger study areas.*/
-DROP TABLE IF EXISTS buffer_water_large;
-CREATE TABLE buffer_water_large as
-SELECT ST_SUBDIVIDE(ST_UNION(ST_BUFFER(way::geography, 50)::geometry), 50) AS geom, 'water' AS water 
-FROM planet_osm_polygon 
-WHERE (water IS NOT NULL 
-OR ("natural" = 'water' AND water IS NULL))
-AND ST_AREA(way::geography) > 30000
-AND (water <> 'wastewater' OR water IS NULL);
+-- /*Coputing rank for water. These queries still don't scale for larger study areas.*/
+-- DROP TABLE IF EXISTS buffer_water_large;
+-- CREATE TABLE buffer_water_large as
+-- SELECT ST_SUBDIVIDE(ST_UNION(ST_BUFFER(way::geography, 50)::geometry), 50) AS geom, 'water' AS water 
+-- FROM planet_osm_polygon 
+-- WHERE (water IS NOT NULL 
+-- OR ("natural" = 'water' AND water IS NULL))
+-- AND ST_AREA(way::geography) > 30000
+-- AND (water <> 'wastewater' OR water IS NULL);
 
-CREATE INDEX ON buffer_water_large USING gist(geom);
+-- CREATE INDEX ON buffer_water_large USING gist(geom);
 
-DROP TABLE IF EXISTS buffer_water_small;
-CREATE TABLE buffer_water_small AS
-SELECT ST_SUBDIVIDE(ST_UNION(geom), 50) AS geom, 'water' AS water
-FROM 
-(
-	SELECT ST_UNION(ST_BUFFER(way::geography, 25)::geometry) AS geom 
-	FROM planet_osm_polygon 
-	WHERE (water IS NOT NULL 
-	OR ("natural" = 'water' AND water IS NULL))
-	AND ST_AREA(way::geography) < 30000
-	AND (water <> 'wastewater' OR water IS NULL)
-	UNION ALL 
-	SELECT ST_UNION(ST_BUFFER(way::geography, 25)::geometry) AS geom 
-	FROM planet_osm_line 
-	WHERE waterway IS NOT NULL
-) w;
+-- DROP TABLE IF EXISTS buffer_water_small;
+-- CREATE TABLE buffer_water_small AS
+-- SELECT ST_SUBDIVIDE(ST_UNION(geom), 50) AS geom, 'water' AS water
+-- FROM 
+-- (
+-- 	SELECT ST_UNION(ST_BUFFER(way::geography, 25)::geometry) AS geom 
+-- 	FROM planet_osm_polygon 
+-- 	WHERE (water IS NOT NULL 
+-- 	OR ("natural" = 'water' AND water IS NULL))
+-- 	AND ST_AREA(way::geography) < 30000
+-- 	AND (water <> 'wastewater' OR water IS NULL)
+-- 	UNION ALL 
+-- 	SELECT ST_UNION(ST_BUFFER(way::geography, 25)::geometry) AS geom 
+-- 	FROM planet_osm_line 
+-- 	WHERE waterway IS NOT NULL
+-- ) w;
 
-CREATE INDEX ON buffer_water_small USING gist(geom);
+-- CREATE INDEX ON buffer_water_small USING gist(geom);
 
-DROP TABLE IF EXISTS water_rank;
-CREATE TABLE water_rank AS 
-SELECT id, arr_shares[1] * 100 AS water_rank 
-FROM footpaths_get_polygon_attr('buffer_water_large','water')
-WHERE arr_polygon_attr IS NOT NULL; 
+-- DROP TABLE IF EXISTS water_rank;
+-- CREATE TABLE water_rank AS 
+-- SELECT id, arr_shares[1] * 100 AS water_rank 
+-- FROM footpaths_get_polygon_attr('buffer_water_large','water')
+-- WHERE arr_polygon_attr IS NOT NULL; 
 
-INSERT INTO water_rank 
-SELECT id, arr_shares[1] * 50 AS water_rank 
-FROM footpaths_get_polygon_attr('buffer_water_small','water')
-WHERE arr_polygon_attr IS NOT NULL; 
+-- INSERT INTO water_rank 
+-- SELECT id, arr_shares[1] * 50 AS water_rank 
+-- FROM footpaths_get_polygon_attr('buffer_water_small','water')
+-- WHERE arr_polygon_attr IS NOT NULL; 
 
-WITH grouped_rank AS 
-(
-	SELECT id, CASE WHEN SUM(water_rank) > 100 THEN 100 ELSE sum(water_rank) END AS water_rank  
-	FROM water_rank 
-	GROUP BY id 
-)
-UPDATE footpath_visualization f
-SET water = g.water_rank 
-FROM grouped_rank g
-WHERE g.id = f.id; 
+-- WITH grouped_rank AS 
+-- (
+-- 	SELECT id, CASE WHEN SUM(water_rank) > 100 THEN 100 ELSE sum(water_rank) END AS water_rank  
+-- 	FROM water_rank 
+-- 	GROUP BY id 
+-- )
+-- UPDATE footpath_visualization f
+-- SET water = g.water_rank 
+-- FROM grouped_rank g
+-- WHERE g.id = f.id; 
 
-UPDATE footpath_visualization 
-SET green_blue_index = COALESCE(water,0) + (CASE WHEN vegetation > 75 THEN 100 ELSE vegetation END);
+-- UPDATE footpath_visualization 
+-- SET green_blue_index = COALESCE(water,0) + (CASE WHEN vegetation > 75 THEN 100 ELSE vegetation END);
 
-UPDATE footpath_visualization 
-SET green_blue_index = 100 
-WHERE green_blue_index > 100;
+-- UPDATE footpath_visualization 
+-- SET green_blue_index = 100 
+-- WHERE green_blue_index > 100;
 
 ----##########################################################################################################################----
 ----#####################################################WALKING ENVIRONMENT##################################################----
