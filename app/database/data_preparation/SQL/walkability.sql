@@ -17,10 +17,10 @@ UPDATE footpath_visualization f
 SET surface = NULL 
 WHERE surface NOT IN ('paved','asphalt','concrete','concrete:lanes','paving_stones','cobblestone:flattened','stone','sandstone','sett','metal','unhewn_cobblestone','cobblestone','unpaved','compacted','fine_gravel','metal_grid','gravel','pebblestone','rock','wood','ground','dirt','earth','grass','grass_paver','mud','sand');
 
-UPDATE footpath_visualization f
-SET incline_percent = slope 
-FROM slope_profile_footpath_visualization s 
-WHERE ST_EQUALS(f.geom, s.geom);
+-- UPDATE footpath_visualization f
+-- SET incline_percent = slope 
+-- FROM slope_profile_footpath_visualization s 
+-- WHERE ST_EQUALS(f.geom, s.geom);
 
 UPDATE footpath_visualization 
 SET surface = 'unpaved' 
@@ -28,10 +28,10 @@ WHERE highway = 'track'
 AND surface IS NULL; 
 
 -- Slope is computed using a digital elevation model in a python function
-UPDATE footpath_visualization 
-SET incline_percent = 0 
-WHERE incline_percent IS NULL
-OR length_m < 0.5; 
+-- UPDATE footpath_visualization 
+-- SET incline_percent = 0 
+-- WHERE incline_percent IS NULL
+-- OR length_m < 0.5; 
 
 --calculate score
 UPDATE footpath_visualization f SET sidewalk_quality = 
@@ -224,97 +224,97 @@ OR maxspeed IS NULL OR highway IN ('residential','service');
  
 
 /*For each footpath noise levels (day and night) are derived an aggregated for different sound sources*/
-DO $$     
-	DECLARE 
-		noise_key TEXT;
-    BEGIN     
+-- DO $$     
+-- 	DECLARE 
+-- 		noise_key TEXT;
+--     BEGIN     
 
-		IF EXISTS ( 	
-			SELECT 1
-            FROM   information_schema.tables 
-            WHERE  table_schema = 'public'
-            AND    table_name = 'noise'
-        ) 
-		THEN 
+-- 		IF EXISTS ( 	
+-- 			SELECT 1
+--             FROM   information_schema.tables 
+--             WHERE  table_schema = 'public'
+--             AND    table_name = 'noise'
+--         ) 
+-- 		THEN 
 		
-			DROP TABLE IF EXISTS noise_levels_footpaths;
-			CREATE TEMP TABLE noise_levels_footpaths 
-			(
-				gid serial, 
-				footpath_id integer, 
-				noise_level_db integer, 
-				noise_type text,
-			CONSTRAINT noise_levels_footpaths_pkey PRIMARY KEY (gid)
-			);
+-- 			DROP TABLE IF EXISTS noise_levels_footpaths;
+-- 			CREATE TEMP TABLE noise_levels_footpaths 
+-- 			(
+-- 				gid serial, 
+-- 				footpath_id integer, 
+-- 				noise_level_db integer, 
+-- 				noise_type text,
+-- 			CONSTRAINT noise_levels_footpaths_pkey PRIMARY KEY (gid)
+-- 			);
 
-			FOR noise_key IN SELECT DISTINCT noise_type FROM noise  	
-			LOOP
-				RAISE NOTICE 'Following noise type will be calculated: %', noise_key;
-				DROP TABLE IF EXISTS noise_subdivide;
-				CREATE TEMP TABLE noise_subdivide AS 
-				SELECT ST_SUBDIVIDE((ST_DUMP(geom)).geom, 50) AS geom, noise_level_db  
-				FROM noise fn 
-				WHERE noise_type = noise_key;
+-- 			FOR noise_key IN SELECT DISTINCT noise_type FROM noise  	
+-- 			LOOP
+-- 				RAISE NOTICE 'Following noise type will be calculated: %', noise_key;
+-- 				DROP TABLE IF EXISTS noise_subdivide;
+-- 				CREATE TEMP TABLE noise_subdivide AS 
+-- 				SELECT ST_SUBDIVIDE((ST_DUMP(geom)).geom, 50) AS geom, noise_level_db  
+-- 				FROM noise fn 
+-- 				WHERE noise_type = noise_key;
 				
-				ALTER TABLE noise_subdivide ADD COLUMN gid serial;
-				ALTER TABLE noise_subdivide ADD PRIMARY KEY(gid);
-				CREATE INDEX ON noise_subdivide USING GIST(geom);
+-- 				ALTER TABLE noise_subdivide ADD COLUMN gid serial;
+-- 				ALTER TABLE noise_subdivide ADD PRIMARY KEY(gid);
+-- 				CREATE INDEX ON noise_subdivide USING GIST(geom);
 				
-				INSERT INTO noise_levels_footpaths(footpath_id,noise_level_db,noise_type)
-				SELECT id, 
-				COALESCE(arr_polygon_attr[array_position(arr_shares, array_greatest(arr_shares))]::integer, 0) AS val, noise_key
-				FROM footpaths_get_polygon_attr('noise_subdivide','noise_level_db');
+-- 				INSERT INTO noise_levels_footpaths(footpath_id,noise_level_db,noise_type)
+-- 				SELECT id, 
+-- 				COALESCE(arr_polygon_attr[array_position(arr_shares, array_greatest(arr_shares))]::integer, 0) AS val, noise_key
+-- 				FROM footpaths_get_polygon_attr('noise_subdivide','noise_level_db');
 				
-			END LOOP;
-		END IF; 
-    END
-$$ ;
+-- 			END LOOP;
+-- 		END IF; 
+--     END
+-- $$ ;
 
-WITH noise_day AS 
-(
-	SELECT footpath_id, ROUND((10 * LOG(SUM(power(10,(noise_level_db::numeric/10))))),2) AS noise 
-	FROM noise_levels_footpaths
-	WHERE noise_type LIKE '%day%'
-	GROUP BY footpath_id
-)
-UPDATE footpath_visualization f
-SET noise_day = n.noise 
-FROM noise_day n  
-WHERE f.id = n.footpath_id; 
+-- WITH noise_day AS 
+-- (
+-- 	SELECT footpath_id, ROUND((10 * LOG(SUM(power(10,(noise_level_db::numeric/10))))),2) AS noise 
+-- 	FROM noise_levels_footpaths
+-- 	WHERE noise_type LIKE '%day%'
+-- 	GROUP BY footpath_id
+-- )
+-- UPDATE footpath_visualization f
+-- SET noise_day = n.noise 
+-- FROM noise_day n  
+-- WHERE f.id = n.footpath_id; 
 
-WITH noise_night AS 
-(
-	SELECT footpath_id, ROUND((10 * LOG(SUM(power(10,(noise_level_db::numeric/10))))),2) AS noise 
-	FROM noise_levels_footpaths
-	WHERE noise_type LIKE '%night%'
-	GROUP BY footpath_id
-)
-UPDATE footpath_visualization f
-SET noise_night = n.noise 
-FROM noise_night n  
-WHERE f.id = n.footpath_id; 
+-- WITH noise_night AS 
+-- (
+-- 	SELECT footpath_id, ROUND((10 * LOG(SUM(power(10,(noise_level_db::numeric/10))))),2) AS noise 
+-- 	FROM noise_levels_footpaths
+-- 	WHERE noise_type LIKE '%night%'
+-- 	GROUP BY footpath_id
+-- )
+-- UPDATE footpath_visualization f
+-- SET noise_night = n.noise 
+-- FROM noise_night n  
+-- WHERE f.id = n.footpath_id; 
 
 /*Count Accidents*/
 /*Assing number of crossing to footpath_visualization*/
-DROP TABLE IF EXISTS accidents_foot; 
-CREATE TABLE accidents_foot AS 
-SELECT geom 
-FROM accidents 
-WHERE istfuss = '1'; 
+-- DROP TABLE IF EXISTS accidents_foot; 
+-- CREATE TABLE accidents_foot AS 
+-- SELECT geom 
+-- FROM accidents 
+-- WHERE istfuss = '1'; 
 
-CREATE INDEX ON accidents_foot USING GIST(geom);
+-- CREATE INDEX ON accidents_foot USING GIST(geom);
 
-WITH cnt_table AS 
-(
-	SELECT f.id, COALESCE(points_sum,0) AS points_sum 
-	FROM footpath_visualization f 
-	LEFT JOIN footpaths_get_points_sum('accidents_foot', 30) c
-	ON f.id = c.id 	
-)
-UPDATE footpath_visualization f
-SET cnt_accidents = points_sum 
-FROM cnt_table c
-WHERE f.id = c.id;
+-- WITH cnt_table AS 
+-- (
+-- 	SELECT f.id, COALESCE(points_sum,0) AS points_sum 
+-- 	FROM footpath_visualization f 
+-- 	LEFT JOIN footpaths_get_points_sum('accidents_foot', 30) c
+-- 	ON f.id = c.id 	
+-- )
+-- UPDATE footpath_visualization f
+-- SET cnt_accidents = points_sum 
+-- FROM cnt_table c
+-- WHERE f.id = c.id;
 
 --Aggregated score
 UPDATE footpath_visualization f SET traffic_protection = 
