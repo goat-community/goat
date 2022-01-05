@@ -554,7 +554,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/trees.json"
@@ -576,7 +576,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/street_crossings.json"
@@ -599,7 +599,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "maxResolution": 7,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/street_furniture.json"
@@ -622,7 +622,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "maxResolution": 5,
+        "maxResolution": 30,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/street_furniture_bicycles.json"
@@ -631,27 +631,6 @@
           "source": "openStreetMap",
           "source": "Mapillary",
           "date": "01-06-2021"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
-        "name": "munichways",
-        "url": "/api/map/layer/munichways/{z}/{x}/{y}",
-        "group": "streetlevelqualityLayers",
-        "opacity": 1,
-        "visible": false,
-        "canEdit": false,
-        "queryable": true,
-        "displayInLayerList": true,
-        "zIndex": 2,
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/munichways.json"
-        },
-        "attributes": {
-          "source": "munichWays",
-          "date": "2020"
         }
       },
       {
@@ -2098,6 +2077,10 @@
             {
               "value": "elderly",
               "speed": 3
+            },
+            {
+              "value": "comfort",
+              "speed": 5
             }
           ]
         },
@@ -2111,6 +2094,10 @@
             {
               "value": "pedelec",
               "speed": 23
+            },
+            {
+              "value": "comfort",
+              "speed": 15
             }
           ]
         },
@@ -2124,6 +2111,10 @@
             {
               "value": "electric",
               "speed": 6
+            },
+            {
+              "value": "comfort",
+              "speed": 3
             }
           ]
         }
