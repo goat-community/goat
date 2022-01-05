@@ -1419,6 +1419,14 @@
           "id": 1,
           "children": [
             {
+              "name": "Nursery",
+              "value": "nursery",
+              "icon": "nursery",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
               "name": "Kindergarten",
               "value": "kindergarten",
               "icon": "kindergarten",
@@ -1427,17 +1435,41 @@
               "locked": false
             },
             {
-              "name": "Primary school",
-              "value": "primary_school",
-              "icon": "primary_school",
+              "name": "Grundschule",
+              "value": "grundschule",
+              "icon": "grundschule",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
             },
             {
-              "name": "Secondary school",
-              "value": "secondary_school",
-              "icon": "secondary_school",
+              "name": "Haupt- und Mittelschule",
+              "value": "hauptschule_mittelschule",
+              "icon": "hauptschule_mittelschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Realschule",
+              "value": "realschule",
+              "icon": "realschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Werkrealschule",
+              "value": "werkrealschule",
+              "icon": "werkrealschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Gymnasium",
+              "value": "gymnasium",
+              "icon": "gymnasium",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
@@ -1459,6 +1491,13 @@
               "name": "Bar",
               "value": "bar",
               "icon": "bar",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Biergarten",
+              "value": "biergarten",
+              "icon": "biergarten",
               "weight": 1,
               "sensitivity": 300000
             },
@@ -1519,6 +1558,13 @@
               "sensitivity": 300000
             },
             {
+              "name": "Cargo bike",
+              "value": "cargo_bike",
+              "icon": "cargo_bike",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
               "name": "Car sharing",
               "value": "car_sharing",
               "icon": "car_sharing",
@@ -1565,6 +1611,76 @@
               "name": "Taxi",
               "value": "taxi",
               "icon": "taxi",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "mobilitystations",
+          "categoryValue": "mobilitystations",
+          "locked": false,
+          "children": [
+            {
+              "name": "Bikesharing FFB",
+              "value": "bikesharing_ffb",
+              "icon": "bikesharing",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Carsharing FFB",
+              "value": "carsharing_ffb",
+              "icon": "carsharing",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station FFB",
+              "value": "charging_station_marker_ffb",
+              "icon": "charging_station_marker",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station Other FFB",
+              "value": "charging_station_other_ffb",
+              "icon": "charging_station_other",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station Public FFB",
+              "value": "charging_station_public_ffb",
+              "icon": "charging_station_public",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "E-Parking FFB",
+              "value": "e_parking_ffb",
+              "icon": "e_parking",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "L-Station FFB",
+              "value": "l-station_ffb",
+              "icon": "l-station",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "S-Station Prio 1 FFB",
+              "value": "s-station_prio1_ffb",
+              "icon": "s-station_prio1",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "S-Station Prio 2 FFB",
+              "value": "s-station_prio2_ffb",
+              "icon": "s-station_prio2",
               "weight": 1,
               "sensitivity": 300000
             }
@@ -1804,6 +1920,13 @@
               "icon": "gallery",
               "weight": 1,
               "sensitivity": 300000
+            },
+            {
+              "name": "Playground",
+              "value": "playground",
+              "icon": "playground",
+              "weight": 1,
+              "sensitivity": 300000
             }
           ]
         },
@@ -1811,6 +1934,13 @@
           "name": "Sports",
           "categoryValue": "sports",
           "children": [
+            {
+              "name": "Community Sport Center",
+              "value": "community_sports_center",
+              "icon": "community_sports_center",
+              "weight": 1,
+              "sensitivity": 300000
+            },
             {
               "name": "Waterpark",
               "value": "waterpark",
