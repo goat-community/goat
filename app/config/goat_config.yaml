@@ -1,6 +1,6 @@
 DATA_SOURCE:  
   #"no_download" if you don't want to download OSM data automatically. Make sure that the file is called raw-osm.osm.pbf.
-  OSM_DOWNLOAD_LINK: "https://download.geofabrik.de/europe/germany/bayern/oberbayern-latest.osm.pbf" 
+  OSM_DOWNLOAD_LINK: "https://download.geofabrik.de/europe/italy/nord-ovest-latest.osm.pbf" 
   BUFFER_BOUNDING_BOX: 0.045 #in degree (default: approx. 3km)
   EXTRACT_BBOX: "yes" #"yes" ==> Use study area as BBOX,"no_extract" ==> Import whole dump, "done" ==> Extract was already done 
   
@@ -9,9 +9,9 @@ DATA_REFINEMENT_VARIABLES:
   #disaggregation ==> landuse.shp needed as input + high-resolution population input data + building data
   #distribution ==> landuse.sho need as input + high-resolution population input data 
   #custom_population ==> population.shp custom population data needed  
-  POPULATION: "census_extrapolation"
+  POPULATION: "disaggregation"
   #"yes" if you want to add these layers 
-  ADDITIONAL_WALKABILITY_LAYERS: "no" 
+  ADDITIONAL_WALKABILITY_LAYERS: "yes" 
   OSM_MAPPING_FEATURE: "no"
   variable_container:
     heatmap_sensitivities: [150000,200000,250000,300000,350000,400000,450000]

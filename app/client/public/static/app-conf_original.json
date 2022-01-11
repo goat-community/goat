@@ -242,7 +242,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 5,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/footpath_width.json"
@@ -260,7 +260,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lit.json"
@@ -283,7 +283,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lanes.json"
@@ -301,7 +301,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_parking.json"
@@ -319,7 +319,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_category.json"
@@ -337,7 +337,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_category_aggregated.json"
@@ -355,7 +355,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_speed.json"
@@ -373,7 +373,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_surface.json"
@@ -391,7 +391,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_smoothness.json"
@@ -409,7 +409,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 10,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_segregated.json"
@@ -428,7 +428,7 @@
         "displayInLayerList": true,
         "docUrl": "https://plan4better.de/docs/walkability_index/",
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/footpath_visualization.json"
@@ -446,7 +446,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_liveliness.json"
@@ -464,7 +464,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_urban_equipment.json"
@@ -482,7 +482,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_traffic_protection.json"
@@ -500,7 +500,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_sidewalk_quality.json"
@@ -518,7 +518,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_security.json"
@@ -536,7 +536,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_green_blue_index.json"
@@ -554,7 +554,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/trees.json"
@@ -576,7 +576,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/street_crossings.json"
@@ -599,7 +599,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/street_furniture.json"
@@ -622,7 +622,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "maxResolution": 30,
+        "maxResolution": 5,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/street_furniture_bicycles.json"
@@ -631,6 +631,27 @@
           "source": "openStreetMap",
           "source": "Mapillary",
           "date": "01-06-2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "munichways",
+        "url": "/api/map/layer/munichways/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/munichways.json"
+        },
+        "attributes": {
+          "source": "munichWays",
+          "date": "2020"
         }
       },
       {
@@ -854,6 +875,160 @@
         "attributes": {
           "source": "Bayerisches Landesamt für Umwelt",
           "date": "2020"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "accidents_cyclists",
+        "url": "/api/map/layer/accidents_cyclists/{z}/{x}/{y}",
+        "group": "additionalDataLayers",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver",
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/accidents_cyclists.json"
+        },
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2016, 2017, 2018, 2019"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_bike_2018",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fahrrad_250_2018",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2018"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_bike_2017",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fahrrad_250_2017",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2017"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "accidents_pedestrians",
+        "url": "/api/map/layer/accidents_pedestrians/{z}/{x}/{y}",
+        "group": "additionalDataLayers",
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/accidents_pedestrians.json"
+        },
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2016, 2017, 2018, 2019"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_pedestrian_2018",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fussgaenger_250_2018",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2018"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_pedestrian_2017",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fussgaenger_250_2017",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2017"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "bicycle_counting_stations",
+        "url": "/api/map/layer/bicycle_counting_stations/{z}/{x}/{y}",
+        "group": "additionalDataLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/bicycle_counting_stations.json"
+        },
+        "attributes": {
+          "source": "Open Data Portal Landeshauptstadt München",
+          "date": "2019"
+        }
+      },
+      {
+        "type": "VECTOR",
+        "format": "GeoJSON",
+        "name": "modeshare",
+        "url": "/api/map/layer_read",
+        "group": "additionalDataLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "legendGraphicUrl": "./img/legend-graphics/legend_mode_share.png",
+        "queryParams": ["table_name"],
+        "zIndex": 1,
+        "style": {
+          "format": "custom-logic"
+        },
+        "attributes": {
+          "source": "Mobilität in Deutschland - infas",
+          "date": "2018"
         }
       },
       {
@@ -1244,6 +1419,14 @@
           "id": 1,
           "children": [
             {
+              "name": "Nursery",
+              "value": "nursery",
+              "icon": "nursery",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
               "name": "Kindergarten",
               "value": "kindergarten",
               "icon": "kindergarten",
@@ -1252,17 +1435,41 @@
               "locked": false
             },
             {
-              "name": "Primary school",
-              "value": "primary_school",
-              "icon": "primary_school",
+              "name": "Grundschule",
+              "value": "grundschule",
+              "icon": "grundschule",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
             },
             {
-              "name": "Secondary school",
-              "value": "secondary_school",
-              "icon": "secondary_school",
+              "name": "Haupt- und Mittelschule",
+              "value": "hauptschule_mittelschule",
+              "icon": "hauptschule_mittelschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Realschule",
+              "value": "realschule",
+              "icon": "realschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Werkrealschule",
+              "value": "werkrealschule",
+              "icon": "werkrealschule",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Gymnasium",
+              "value": "gymnasium",
+              "icon": "gymnasium",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
@@ -1284,6 +1491,13 @@
               "name": "Bar",
               "value": "bar",
               "icon": "bar",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Biergarten",
+              "value": "biergarten",
+              "icon": "biergarten",
               "weight": 1,
               "sensitivity": 300000
             },
@@ -1344,6 +1558,13 @@
               "sensitivity": 300000
             },
             {
+              "name": "Cargo bike",
+              "value": "cargo_bike",
+              "icon": "cargo_bike",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
               "name": "Car sharing",
               "value": "car_sharing",
               "icon": "car_sharing",
@@ -1390,6 +1611,76 @@
               "name": "Taxi",
               "value": "taxi",
               "icon": "taxi",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "mobilitystations",
+          "categoryValue": "mobilitystations",
+          "locked": false,
+          "children": [
+            {
+              "name": "Bikesharing FFB",
+              "value": "bikesharing_ffb",
+              "icon": "bikesharing",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Carsharing FFB",
+              "value": "carsharing_ffb",
+              "icon": "carsharing",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station FFB",
+              "value": "charging_station_marker_ffb",
+              "icon": "charging_station_marker",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station Other FFB",
+              "value": "charging_station_other_ffb",
+              "icon": "charging_station_other",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station Public FFB",
+              "value": "charging_station_public_ffb",
+              "icon": "charging_station_public",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "E-Parking FFB",
+              "value": "e_parking_ffb",
+              "icon": "e_parking",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "L-Station FFB",
+              "value": "l-station_ffb",
+              "icon": "l-station",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "S-Station Prio 1 FFB",
+              "value": "s-station_prio1_ffb",
+              "icon": "s-station_prio1",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "S-Station Prio 2 FFB",
+              "value": "s-station_prio2_ffb",
+              "icon": "s-station_prio2",
               "weight": 1,
               "sensitivity": 300000
             }
@@ -1629,6 +1920,13 @@
               "icon": "gallery",
               "weight": 1,
               "sensitivity": 300000
+            },
+            {
+              "name": "Playground",
+              "value": "playground",
+              "icon": "playground",
+              "weight": 1,
+              "sensitivity": 300000
             }
           ]
         },
@@ -1636,6 +1934,13 @@
           "name": "Sports",
           "categoryValue": "sports",
           "children": [
+            {
+              "name": "Community Sport Center",
+              "value": "community_sports_center",
+              "icon": "community_sports_center",
+              "weight": 1,
+              "sensitivity": 300000
+            },
             {
               "name": "Waterpark",
               "value": "waterpark",
@@ -1923,10 +2228,6 @@
             {
               "value": "elderly",
               "speed": 3
-            },
-            {
-              "value": "comfort",
-              "speed": 5
             }
           ]
         },
@@ -1940,10 +2241,6 @@
             {
               "value": "pedelec",
               "speed": 23
-            },
-            {
-              "value": "comfort",
-              "speed": 15
             }
           ]
         },
@@ -1957,10 +2254,6 @@
             {
               "value": "electric",
               "speed": 6
-            },
-            {
-              "value": "comfort",
-              "speed": 3
             }
           ]
         }
