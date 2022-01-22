@@ -1,5 +1,5 @@
 from app.db.models.base_class import Base
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, text
 from sqlalchemy.orm import relationship
 
 class User(Base):
@@ -15,5 +15,6 @@ class User(Base):
     is_active = Column(Boolean)
     is_superuser = Column(Boolean)
     storage = Column(Integer)
+    creation_date = Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
 
     organization = relationship('Organization')

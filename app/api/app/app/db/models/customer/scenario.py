@@ -1,5 +1,5 @@
 from app.db.models.base_class import Base
-from sqlalchemy import ARRAY, BigInteger, Boolean, Column, ForeignKey, Integer, Text, text
+from sqlalchemy import ARRAY, Boolean, Column, DateTime, ForeignKey, Integer, Text, text
 from sqlalchemy.orm import relationship
 
 class Scenario(Base):
@@ -13,5 +13,6 @@ class Scenario(Base):
     deleted_pois = Column(ARRAY(Integer()), server_default=text("'{}'::int[]"))
     deleted_buildings = Column(ARRAY(Integer()), server_default=text("'{}'::int[]"))
     routing_heatmap_computed = Column(Boolean)
+    creation_date = Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
 
     user = relationship('User')

@@ -2,9 +2,25 @@
 # imported by Alembic
 from app.db.models.base_class import Base  
 
+from .customer.aoi_modified import AoiModified
+from .customer.aoi_user import AoiUser
+from .customer.building_modified import BuildingModified
+from .customer.customization import Customization
+from .customer.data_upload import DataUpload
+from .customer.isochrone_calculation import IsochroneCalculation
+from .customer.isochrone_edge import IsochroneEdge
+from .customer.isochrone_feature import IsochroneFeature
 from .customer.organization import Organization
-from .customer.user import User 
+from .customer.poi_modified import PoiModified
+from .customer.poi_user import PoiUser
+from .customer.population_modified import PopulationModified
+from .customer.role import Role
 from .customer.scenario import Scenario
+from .customer.user_customization import UserCustomization
+from .customer.user_study_area import UserStudyArea
+from .customer.user import User 
+from .customer.way_modified import WayModified
+
 from .basic.study_area import StudyArea
 from .basic.grid_visualization import GridVisualization
 from .basic.grid_visualization_parameter import GridVisualizationParameter
