@@ -29,7 +29,7 @@ fileConfig(config.config_file_name)
 # target_metadata = mymodel.Base.metadata
 # target_metadata = None
 
-from app.db.base import Base  # noqa
+from app.db.models.base import Base  # noqa
 
 target_metadata = Base.metadata
 
@@ -95,6 +95,7 @@ def do_run_migrations(connection):
         target_metadata=target_metadata,
         compare_type=True,
         include_object=include_object,
+        include_schemas=True
     )
 
     with context.begin_transaction():
