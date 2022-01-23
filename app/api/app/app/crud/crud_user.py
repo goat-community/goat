@@ -5,20 +5,21 @@ from sqlalchemy.future import select
 
 from app.core.security import get_password_hash, verify_password
 from app.crud.base import CRUDBase
-from app.models.user import User
+from app.db.models.customer.user import User as UserDB
 from app.schemas.user import UserCreate, UserUpdate
 
 
-class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
-    async def get_by_email(self, db: AsyncSession, *, email: str) -> Optional[User]:
-        result = await db.execute(select(User).filter(User.email == email))
+class CRUDUser(CRUDBase[UserDB, UserCreate, UserUpdate]):
+    async def get_by_email(self, db: AsyncSession, *, email: str) -> Optional[UserDB]:
+        result = await db.execute(select(UserDB).filter(UserDB.email == email))
         return result.scalars().first()
 
-    async def create(self, db: AsyncSession, *, obj_in: UserCreate) -> User:
-        db_obj = User(
+    async def create(self, db: AsyncSession, *, obj_in: UserCreate) -> UserDB:
+        db_obj = UserDB(
             email=obj_in.email,
             hashed_password=get_password_hash(obj_in.password),
-            full_name=obj_in.full_name,
+            name=obj_in.name,
+            surname=obj_in.surname,
             is_superuser=obj_in.is_superuser,
         )
         db.add(db_obj)
@@ -30,9 +31,9 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         self,
         db: AsyncSession,
         *,
-        db_obj: User,
+        db_obj: UserDB,
         obj_in: Union[UserUpdate, Dict[str, Any]]
-    ) -> User:
+    ) -> UserDB:
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
@@ -45,7 +46,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 
     async def authenticate(
         self, db: AsyncSession, *, email: str, password: str
-    ) -> Optional[User]:
+    ) -> Optional[UserDB]:
         user = await self.get_by_email(db, email=email)
         if not user:
             return None
@@ -53,11 +54,11 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             return None
         return user
 
-    def is_active(self, user: User) -> bool:
+    def is_active(self, user: UserDB) -> bool:
         return user.is_active
 
-    def is_superuser(self, user: User) -> bool:
+    def is_superuser(self, user: UserDB) -> bool:
         return user.is_superuser
 
 
-user = CRUDUser(User)
+user = CRUDUser(UserDB)

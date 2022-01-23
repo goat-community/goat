@@ -1,5 +1,4 @@
 from .crud_isochrone import isochrone
-from .crud_item import item
 from .crud_layer import layer
 from .crud_scenario import scenario
 from .crud_user import user

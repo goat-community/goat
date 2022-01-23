@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud
 from app.core.config import settings
-from app.models.user import User
+from app.db.models.customer.user import UserDB
 from app.schemas.user import UserCreate, UserUpdate
 from app.tests.utils.utils import random_email, random_lower_string
 
@@ -22,7 +22,7 @@ async def user_authentication_headers(
     return headers
 
 
-async def create_random_user(db: AsyncSession) -> User:
+async def create_random_user(db: AsyncSession) -> UserDB:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(username=email, email=email, password=password)

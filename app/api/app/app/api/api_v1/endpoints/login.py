@@ -5,7 +5,8 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import crud, models, schemas
+from app import crud, schemas
+from app.db.models.customer.user import User as UserDB
 from app.api import deps
 from app.core import security
 from app.core.config import settings
@@ -44,7 +45,7 @@ async def login_access_token(
 
 
 @router.post("/login/test-token", response_model=schemas.User)
-async def test_token(current_user: models.User = Depends(deps.get_current_user)) -> Any:
+async def test_token(current_user: UserDB = Depends(deps.get_current_user)) -> Any:
     """
     Test access token
     """

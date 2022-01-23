@@ -5,7 +5,8 @@ from fastapi.encoders import jsonable_encoder
 from pydantic.networks import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import crud, models, schemas
+from app import crud, schemas
+from app.db.models.customer.user import User as UserDB
 from app.api import deps
 from app.core.config import settings
 from app.utils import send_new_account_email
@@ -18,7 +19,7 @@ async def read_users(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user: models.User = Depends(deps.get_current_active_superuser),
+    current_user: UserDB = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Retrieve users.
@@ -32,7 +33,7 @@ async def create_user(
     *,
     db: AsyncSession = Depends(deps.get_db),
     user_in: schemas.UserCreate,
-    current_user: models.User = Depends(deps.get_current_active_superuser),
+    current_user: UserDB = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Create new user.
@@ -58,7 +59,7 @@ async def update_user_me(
     password: str = Body(None),
     full_name: str = Body(None),
     email: EmailStr = Body(None),
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: UserDB = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Update own user.
@@ -78,7 +79,7 @@ async def update_user_me(
 @router.get("/me", response_model=schemas.User)
 async def read_user_me(
     db: AsyncSession = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: UserDB = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Get current user.
@@ -116,7 +117,7 @@ async def create_user_open(
 @router.get("/{user_id}", response_model=schemas.User)
 async def read_user_by_id(
     user_id: int,
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: UserDB = Depends(deps.get_current_active_user),
     db: AsyncSession = Depends(deps.get_db),
 ) -> Any:
     """
@@ -138,7 +139,7 @@ async def update_user(
     db: AsyncSession = Depends(deps.get_db),
     user_id: int,
     user_in: schemas.UserUpdate,
-    current_user: models.User = Depends(deps.get_current_active_superuser),
+    current_user: UserDB = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Update a user.
