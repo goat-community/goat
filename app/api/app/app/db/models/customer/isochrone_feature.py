@@ -9,7 +9,7 @@ class IsochroneFeature(Base):
     __tablename__ = 'isochrone_feature'
     __table_args__ = {'schema': 'customer'}
 
-    id = Column(Integer, primary_key=True, autoincrement=True))
+    id = Column(Integer, primary_key=True, autoincrement=True)
     isochrone_calculation_id = Column(ForeignKey('customer.isochrone_calculation.id', ondelete='CASCADE'), nullable=False, index=True)
     step = Column(Integer, nullable=False)
     reached_opportunities = Column(JSONB(astext_type=Text()))

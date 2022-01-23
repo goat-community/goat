@@ -9,7 +9,7 @@ class PoiModified(Base):
     __tablename__ = 'poi_modified'
     __table_args__ = {'schema': 'customer'}
 
-    id = Column(ForeignKey('basic.poi.id', ondelete='CASCADE'), primary_key=True, autoincrement=True))
+    id = Column(ForeignKey('basic.poi.id', ondelete='CASCADE'), primary_key=True, autoincrement=True)
     scenario_id = Column(ForeignKey('customer.scenario.id', ondelete='CASCADE'), index=True)
     poi_id = Column(Integer, index=True)
     poi_user_id = Column(ForeignKey('customer.poi_user.id', ondelete='CASCADE'), index=True)

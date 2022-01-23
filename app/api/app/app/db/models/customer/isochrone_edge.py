@@ -6,7 +6,7 @@ class IsochroneEdge(Base):
     __tablename__ = 'isochrone_edge'
     __table_args__ = {'schema': 'customer'}
 
-    id = Column(Integer, primary_key=True, autoincrement=True))
+    id = Column(Integer, primary_key=True, autoincrement=True)
     edge_id = Column(ForeignKey('basic.edge.id'))
     isochrone_calculation_id = Column(ForeignKey('customer.isochrone_calculation.id', ondelete='CASCADE'), index=True)
     cost = Column(Float(53))

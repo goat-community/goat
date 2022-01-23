@@ -8,7 +8,7 @@ class BuildingModified(Base):
     __tablename__ = 'building_modified'
     __table_args__ = {'schema': 'customer'}
 
-    id = Column(Integer, primary_key=True, autoincrement=True))
+    id = Column(Integer, primary_key=True, autoincrement=True)
     scenario_id = Column(ForeignKey('customer.scenario.id', ondelete='CASCADE'), nullable=False, index=True)
     building_id = Column(ForeignKey('basic.building.id', ondelete='CASCADE'))
     building = Column(Text)

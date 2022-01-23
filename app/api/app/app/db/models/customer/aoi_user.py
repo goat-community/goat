@@ -9,7 +9,7 @@ class AoiUser(Base):
     __tablename__ = 'aoi_user'
     __table_args__ = {'schema': 'customer'}
 
-    id = Column(Integer, primary_key=True, autoincrement=True))
+    id = Column(Integer, primary_key=True, autoincrement=True)
     data_upload_id = Column(ForeignKey('customer.data_upload.id', ondelete='CASCADE'), nullable=False, index=True)
     scenario_id = Column(ForeignKey('customer.scenario.id', ondelete='CASCADE'))
     aoi_user_id = Column(Integer)

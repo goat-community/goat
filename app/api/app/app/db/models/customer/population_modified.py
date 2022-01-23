@@ -8,7 +8,7 @@ class PopulationModified(Base):
     __tablename__ = 'population_modified'
     __table_args__ = {'schema': 'customer'}
 
-    id = Column(Integer, primary_key=True, autoincrement=True))
+    id = Column(Integer, primary_key=True, autoincrement=True)
     building_modified_id = Column(ForeignKey('customer.building_modified.id', ondelete='CASCADE'), nullable=False, index=True)
     scenario_id = Column(ForeignKey('customer.scenario.id', ondelete='CASCADE'), nullable=False, index=True)
     population = Column(Float(53))

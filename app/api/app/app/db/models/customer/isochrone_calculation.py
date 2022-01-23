@@ -6,7 +6,7 @@ class IsochroneCalculation(Base):
     __tablename__ = 'isochrone_calculation'
     __table_args__ = {'schema': 'customer'}
 
-    id = Column(ForeignKey('customer.user.id', ondelete='CASCADE'), primary_key=True, autoincrement=True))
+    id = Column(ForeignKey('customer.user.id', ondelete='CASCADE'), primary_key=True, autoincrement=True)
     calculation_type = Column(Text, nullable=False)
     user_id = Column(Integer, nullable=False)
     scenario_id = Column(ForeignKey('customer.scenario.id', ondelete='CASCADE'))

@@ -8,7 +8,7 @@ class WayModified(Base):
     __tablename__ = 'way_modified'
     __table_args__ = {'schema': 'customer'}
 
-    id = Column(Integer, primary_key=True, autoincrement=True))
+    id = Column(Integer, primary_key=True, autoincrement=True)
     scenario_id = Column(ForeignKey('customer.scenario.id', ondelete='CASCADE'))
     edge_id = Column(ForeignKey('basic.edge.id', ondelete='CASCADE'))
     class_id = Column(Integer, nullable=False)

@@ -6,7 +6,7 @@ class DataUpload(Base):
     __tablename__ = 'data_upload'
     __table_args__ = {'schema': 'customer'}
 
-    id = Column(Integer, primary_key=True, autoincrement=True))
+    id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(ForeignKey('customer.user.id', ondelete='CASCADE'), nullable=False)
     data_type = Column(Text, nullable=False)
     upload_type = Column(Text, nullable=False)

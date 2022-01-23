@@ -9,7 +9,7 @@ class AoiModified(Base):
     __tablename__ = 'aoi_modified'
     __table_args__ = {'schema': 'customer'}
 
-    id = Column(ForeignKey('basic.aoi.id', ondelete='CASCADE'), primary_key=True, autoincrement=True))
+    id = Column(ForeignKey('basic.aoi.id', ondelete='CASCADE'), primary_key=True, autoincrement=True)
     scenario_id = Column(ForeignKey('customer.scenario.id', ondelete='CASCADE'), index=True)
     category = Column(Text, nullable=False, index=True)
     name = Column(Text)
