@@ -12,7 +12,6 @@ async def init() -> None:
     async with async_session() as db:
         await init_db(db)
 
-
 def main() -> None:
     logger.info("Creating initial data")
     asyncio.run(init())
