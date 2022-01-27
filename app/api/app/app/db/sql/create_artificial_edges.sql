@@ -1,6 +1,4 @@
-/*This function create two artificial edges at starting point */
-DROP FUNCTION IF EXISTS create_artificial_edges;
-CREATE OR REPLACE FUNCTION basic.create_artificial_edges(sql_network TEXT, point geometry, snap_distance float)
+CREATE OR REPLACE FUNCTION basic.create_artificial_edges(sql_network TEXT, point geometry, snap_distance integer)
 RETURNS TABLE(wid integer, id integer, COST float, reverse_cost float, length_m float, SOURCE integer, target integer, geom geometry)
  LANGUAGE plpgsql
 AS $function$
@@ -51,10 +49,10 @@ BEGIN
 END 
 $function$;
 
-/*
- SELECT * 
-FROM create_artificial_edges(
-	fetch_ways_routing_v2(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.0018)),1,1,1.33,'walking_standard'),
-	ST_SETSRID(ST_POINT(11.543274,48.195524), 4326), 0.0018
+/*This function create two artificial edges at starting point 
+SELECT * 
+FROM basic.create_artificial_edges(
+	basic.query_edges_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.0018)),'default',NULL,1.33,'walking_standard',FALSE),
+	ST_SETSRID(ST_POINT(11.543274,48.195524), 4326), 100
 ); 
  */

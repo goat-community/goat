@@ -1,7 +1,7 @@
 from app.db.models.base_class import Base
 from sqlalchemy import BigInteger, Boolean, Column, Float, ForeignKey, Integer, SmallInteger, Text, text, Index
 from sqlalchemy.orm import relationship
-
+from sqlalchemy.dialects.postgresql import JSON
 from geoalchemy2 import Geometry
 
 class Edge(Base):
@@ -13,6 +13,7 @@ class Edge(Base):
     edge_id = Column(ForeignKey('basic.edge.id'), index=True)
     class_id = Column(Integer, nullable=False)
     length_m = Column(Float(53), nullable=False)
+    length_3857 = Column(Float(53), nullable=False)
     name = Column(Text)
     source = Column(ForeignKey('basic.node.id'), index=True)
     target = Column(ForeignKey('basic.node.id'), index=True)
@@ -53,7 +54,8 @@ class Edge(Base):
     impedance_surface = Column(Float(53))
     death_end = Column(Integer)
     geom = Column(Geometry(geometry_type="Linestring", srid="4326", spatial_index=False), nullable=False)
-    geom_3857 = Column(Geometry(geometry_type="Linestring", srid="3857", spatial_index=False), nullable=False)
+    coordinates_3857 = Column(JSON(astext_type=Text()), nullable=False)
+    
 
     edge = relationship('Edge', remote_side=[id])
     scenario = relationship('Scenario')
