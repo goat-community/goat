@@ -10,22 +10,22 @@ Body of the request
 """
 
 
-class ModusEnum(int, Enum):
-    default = 1
-    scenario = 2
-    comparision = 3
+# class ModusEnum(int, Enum):
+#     default = 1
+#     scenario = 2
+#     comparision = 3
 
-    @classmethod
-    def __get_validators__(cls):
-        cls.lookup = {v: k.value for v, k in cls.__members__.items()}
-        yield cls.validate
+#     @classmethod
+#     def __get_validators__(cls):
+#         cls.lookup = {v: k.value for v, k in cls.__members__.items()}
+#         yield cls.validate
 
-    @classmethod
-    def validate(cls, v):
-        try:
-            return cls.lookup[v]
-        except KeyError:
-            raise ValueError("invalid modus value")
+#     @classmethod
+#     def validate(cls, v):
+#         try:
+#             return cls.lookup[v]
+#         except KeyError:
+#             raise ValueError("invalid modus value")
 
 
 class IsochroneBase(BaseModel):
@@ -33,7 +33,7 @@ class IsochroneBase(BaseModel):
     minutes: int
     speed: float
     n: int
-    modus: ModusEnum
+    modus: str
     routing_profile: str
     max_cutoff: Optional[int] = None
 
@@ -50,22 +50,20 @@ class IsochroneBase(BaseModel):
 class IsochroneSingle(IsochroneBase):
     x: float
     y: float
-    concavity: float
-    scenario_id: int
+    scenario_id: Optional[int] = None
 
     class Config:
         schema_extra = {
             "example": {
-                "user_id": 0,
+                "user_id": 1,
                 "minutes": 10,
                 "speed": 5,
                 "n": 2,
                 "modus": "default",
                 "x": 11.5696284,
                 "y": 48.1502132,
-                "concavity": 0.00003,
                 "routing_profile": "walking_standard",
-                "scenario_id": 0,
+                "scenario_id": None,
             }
         }
 

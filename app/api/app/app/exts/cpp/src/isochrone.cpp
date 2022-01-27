@@ -651,7 +651,14 @@ PYBIND11_MODULE(isochrone, m)
       .def_readwrite("start_id", &IsochroneStartPoint::start_id)
       .def_readwrite("shape", &IsochroneStartPoint::shape);
 
-  py::class_<IsochroneNetworkEdge>(m, "IsochroneNetworkEdge");
+  py::class_<IsochroneNetworkEdge>(m, "IsochroneNetworkEdge")
+      .def_readwrite("start_id", &IsochroneNetworkEdge::start_id)
+      .def_readwrite("edge", &IsochroneNetworkEdge::edge)
+      .def_readwrite("start_perc", &IsochroneNetworkEdge::start_perc)
+      .def_readwrite("end_perc", &IsochroneNetworkEdge::end_perc)
+      .def_readwrite("start_cost", &IsochroneNetworkEdge::start_cost)
+      .def_readwrite("end_cost", &IsochroneNetworkEdge::end_cost);
+
   py::class_<Result>(m, "Result")
       .def_readwrite("isochrone", &Result::isochrone)
       .def_readwrite("network", &Result::network);

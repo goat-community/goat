@@ -46,15 +46,11 @@ def isochrone(
         distance_limits,
         only_minimum_cover,
     )
-    isochrones = {"starting_point": [], "geometry": [], "step": []}
+    isochrones = {"geometry": [], "step": []}
     for isochrone in result.isochrone:
-        start_point_id = isochrone.start_id
         for step, shape in isochrone.shape.items():
             isochrones["geometry"].append(Polygon(shape))
             isochrones["step"].append(step)
-            isochrones["starting_point"].append(
-                start_point_id
-            )  # TODO:  start point coordinates instead of id
 
     isochrone_gdf = GeoDataFrame(isochrones, crs="EPSG:3857").to_crs("EPSG:4326")
     return isochrone_gdf

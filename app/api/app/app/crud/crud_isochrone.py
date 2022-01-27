@@ -5,6 +5,7 @@ import time
 from json import loads
 from random import randint
 from time import time
+from turtle import speed
 from typing import Any
 
 from fastapi.encoders import jsonable_encoder
@@ -15,6 +16,10 @@ from geopandas.io.sql import read_postgis
 from pandas.io.sql import read_sql
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
+from geopandas import GeoDataFrame
+from shapely.geometry import Point
+from app.db.models.customer.isochrone_calculation import IsochroneCalculation as IsochroneCalculationDB
+from app.db.models.customer.isochrone_feature import IsochroneFeature as IsochroneFeatureDB
 
 from app.db.session import legacy_engine
 from app.exts.cpp.bind import isochrone as isochrone_cpp
@@ -26,39 +31,68 @@ from app.schemas.isochrone import (
 )
 from app.utils import sql_to_geojson
 
-
 class CRUDIsochrone:
-    async def calculate_single_isochrone(
+
+    async def compute_isochrone(
         self, db: AsyncSession, *, obj_in: IsochroneSingle
     ) -> FeatureCollection:
         obj_in_data = jsonable_encoder(obj_in)
         read_network_sql = text(
-            """ 
-        SELECT id, source, target, cost, reverse_cost, ST_AsGeoJSON(ST_Transform(geom,3857))::json->'coordinates' as geom, st_length(st_transform(geom,3857)) as length 
-        FROM fetch_network_routing(ARRAY[:x],ARRAY[:y], :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
-         """
+        """ 
+        SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length
+        FROM basic.fetch_network_routing(ARRAY[:x],ARRAY[:y], :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
+        """
         )
-        ways_network = read_sql(read_network_sql, legacy_engine, params=obj_in_data)
+        edges_network = read_sql(read_network_sql, legacy_engine, params=obj_in_data)
         distance_limits = list(
             range(
                 obj_in.max_cutoff // obj_in.n, obj_in.max_cutoff + 1, obj_in.max_cutoff // obj_in.n
             )
         )
-        isochrone_calculation_id = randint(
-            1, 2147483647
-        )  # 2147483647 is the max value for integer in postgres
-        isochrone_gdf = isochrone_cpp(ways_network, [999999999], distance_limits)
-        isochrone_gdf["userid"] = obj_in.user_id
-        isochrone_gdf["scenario_id"] = obj_in.scenario_id
-        isochrone_gdf["speed"] = obj_in.speed * 3.6  # convert back to km/h
-        isochrone_gdf[
-            "starting_point"
-        ] = f"POINT({obj_in.x} {obj_in.y})"  # only for single-isochorne for multi-isochrone starting points are amenity points
+        
+        starting_point_geom = str(GeoDataFrame(
+                {"geometry": Point(edges_network.iloc[-1:]["geom"].values[0][0])}, 
+                crs="EPSG:3857", index=[0]).to_crs("EPSG:4326").to_wkt()["geometry"]
+        )
+
+        obj_starting_point = IsochroneCalculationDB(
+            calculation_type="single_isochrone",
+            user_id=obj_in.user_id,
+            scenario_id=obj_in.scenario_id,
+            starting_point=starting_point_geom,
+            routing_profile=obj_in.routing_profile,
+            speed=obj_in.speed,
+            modus=obj_in.modus,
+            parent_id=None,
+        )
+
+        db.add(obj_starting_point)
+        await db.commit()
+        await db.refresh(obj_starting_point)
+
+        isochrone_gdf = isochrone_cpp(edges_network, [999999999], distance_limits)
+
         isochrone_gdf["step"] = isochrone_gdf["step"] // 60  # convert to minutes
-        isochrone_gdf["modus"] = obj_in.modus
-        isochrone_gdf["concavity"] = obj_in.concavity
-        isochrone_gdf["objectid"] = isochrone_calculation_id
-        isochrone_gdf.rename_geometry("geom", inplace=True)
+
+        #isochrone_gdf.rename_geometry("geom", inplace=True)
+        return isochrone_gdf
+
+
+    async def calculate_single_isochrone(
+        self, db: AsyncSession, *, obj_in: IsochroneSingle
+    ) -> FeatureCollection:
+
+        if obj_in.modus == "default" or obj_in.modus == "scenario":
+            isochrone = await self.compute_isochrone(db, obj_in=obj_in)
+        elif obj_in.modus == "comparison":
+            #Compute default isochrones
+            obj_in_default = obj_in.update(modus="default")
+            isochrones_default = self.compute_isochrone(db, obj_in=obj_in_default)
+
+            #Compute scenario isochrones
+            obj_in_scenario = obj_in.update(modus="scenario")
+            isochrones_scenario = self.compute_isochrone(db, obj_in=obj_in_scenario)
+
         isochrone_gdf.to_postgis(
             "isochrones",
             legacy_engine,
