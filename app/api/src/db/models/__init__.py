@@ -1,2 +1,2 @@
-import app.db.models.basic
-import app.db.models.customer
+import src.db.models.basic
+import src.db.models.customer

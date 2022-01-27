@@ -3,11 +3,11 @@ from typing import Dict
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import crud
-from app.core.config import settings
-from app.db.models.customer.user import UserDB
-from app.schemas.user import UserCreate, UserUpdate
-from app.tests.utils.utils import random_email, random_lower_string
+from src import crud
+from src.core.config import settings
+from src.db.models.customer.user import UserDB
+from src.schemas.user import UserCreate, UserUpdate
+from src.tests.utils.utils import random_email, random_lower_string
 
 
 async def user_authentication_headers(

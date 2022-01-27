@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 from httpx import AsyncClient
 
-from app.core.config import settings
+from src.core.config import settings
 
 pytestmark = pytest.mark.asyncio
-from app.api.api_v1.api import layer_tiles_prefix
+from src.endpoints.v1.api import layer_tiles_prefix
 
 
 # ======VECTOR TILE TESTING=====

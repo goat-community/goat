@@ -1,6 +1,6 @@
 # Import all the models, so that Base has them before being
 # imported by Alembic
-from app.db.models.base_class import Base  
+from src.db.models.base_class import Base  
 
 from .study_area import StudyArea as StudyAreaDB
 from .grid_visualization import GridVisualization as GridVisualizationDB

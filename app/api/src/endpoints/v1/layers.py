@@ -36,19 +36,19 @@ from starlette.responses import HTMLResponse, Response
 from starlette.routing import NoMatchFound
 from starlette.templating import Jinja2Templates
 
-from app.api import deps
-from app.core.config import settings
-from app.crud.crud_layer import layer as crud_layer
-from app.resources import tms as custom_tms
-from app.resources.enums import MimeTypes
-from app.schemas.layer import (
+from src.endpoints import deps
+from src.core.config import settings
+from src.crud.crud_layer import layer as crud_layer
+from src.resources import tms as custom_tms
+from src.resources.enums import MimeTypes
+from src.schemas.layer import (
     TileMatrixSetList,
     VectorTileFunction,
     VectorTileLayer,
     VectorTileTable,
 )
-from app.schemas.layer import registry as FunctionRegistry
-from app.schemas.mapbox import TileJSON
+from src.schemas.layer import registry as FunctionRegistry
+from src.schemas.mapbox import TileJSON
 
 # =====LAYER: VECTOR TILE ENDPOINTS==============================================
 try:

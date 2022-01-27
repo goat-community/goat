@@ -1,4 +1,4 @@
-from app.db.models.base_class import Base
+from src.db.models.base_class import Base
 from sqlalchemy import ARRAY, Boolean, Column, DateTime, ForeignKey, Integer, Text, text
 from sqlalchemy.orm import relationship
 

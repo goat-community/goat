@@ -61,7 +61,7 @@ services:
       - SERVER_HOST=http://${DOMAIN_NAME}
       - JUPYTER=jupyter lab --ip=0.0.0.0 --allow-root --NotebookApp.custom_display_url=http://127.0.0.1:8888
     volumes:
-      - ./app/api/app:/app
+      - ./app/api:/app
     # command: bash -c "while true; do sleep 1; done" # Infinite loop to keep container live doing nothing
     labels:
       - "traefik.enable=true"

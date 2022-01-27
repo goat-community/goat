@@ -1,14 +1,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from app import crud, schemas
-from app.core.config import settings
-from app.db.models import base  # noqa: F401
-from app.db.models.customer.customization import Customization as CustomizationDB
-from app.db.session import staging_session
+from src import crud, schemas
+from src.core.config import settings
+from src.db.models import base  # noqa: F401
+from src.db.models.customer.customization import Customization as CustomizationDB
+from src.db.session import staging_session
 import yaml 
 from rich import print
 from sqlalchemy.future import select
-from app.db.data_import import DataImport
-# make sure all SQL Alchemy models are imported (app.db.base) before initializing DB
+from src.db.data_import import DataImport
+# make sure all SQL Alchemy models are imported (src.db.base) before initializing DB
 # otherwise, SQL Alchemy might fail to initialize relationships properly
 # for more details: https://github.com/tiangolo/full-stack-fastapi-postgresql/issues/28
 

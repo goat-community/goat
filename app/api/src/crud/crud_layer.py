@@ -4,8 +4,8 @@ import morecantile
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 
-from app.core.config import settings
-from app.schemas.layer import VectorTileFunction, VectorTileTable
+from src.core.config import settings
+from src.schemas.layer import VectorTileFunction, VectorTileTable
 
 
 class CRUDLayer:

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.api_v1.endpoints import (
+from src.endpoints.v1 import (
     isochrones,
     layers,
     login,

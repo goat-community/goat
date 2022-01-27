@@ -18,18 +18,18 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 from geopandas import GeoDataFrame
 from shapely.geometry import Point
-from app.db.models.customer.isochrone_calculation import IsochroneCalculation as IsochroneCalculationDB
-from app.db.models.customer.isochrone_feature import IsochroneFeature as IsochroneFeatureDB
+from src.db.models.customer.isochrone_calculation import IsochroneCalculation as IsochroneCalculationDB
+from src.db.models.customer.isochrone_feature import IsochroneFeature as IsochroneFeatureDB
 
-from app.db.session import legacy_engine
-from app.exts.cpp.bind import isochrone as isochrone_cpp
-from app.schemas.isochrone import (
+from src.db.session import legacy_engine
+from src.exts.cpp.bind import isochrone as isochrone_cpp
+from src.schemas.isochrone import (
     IsochroneExport,
     IsochroneMulti,
     IsochroneMultiCountPois,
     IsochroneSingle,
 )
-from app.utils import sql_to_geojson
+from src.utils import sql_to_geojson
 
 class CRUDIsochrone:
 
@@ -69,7 +69,7 @@ class CRUDIsochrone:
         db.add(obj_starting_point)
         await db.commit()
         await db.refresh(obj_starting_point)
-
+        
         isochrone_gdf = isochrone_cpp(edges_network, [999999999], distance_limits)
 
         isochrone_gdf["step"] = isochrone_gdf["step"] // 60  # convert to minutes

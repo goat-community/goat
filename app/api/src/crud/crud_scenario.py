@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 from starlette.responses import JSONResponse
 
-from app.schemas.scenario import (
+from src.schemas.scenario import (
     ScenarioBase,
     ScenarioCreate,
     ScenarioDelete,

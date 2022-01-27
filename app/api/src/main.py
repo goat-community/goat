@@ -5,10 +5,10 @@ from fastapi import FastAPI
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
-from app import crud
-from app.api.api_v1.api import api_router
-from app.core.config import settings
-from app.db.session import async_session
+from src import crud
+from src.endpoints.v1.api import api_router
+from src.core.config import settings
+from src.db.session import async_session
 
 sentry_sdk.init(
     dsn=settings.SENTRY_DSN,

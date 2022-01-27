@@ -9,7 +9,7 @@ from sqlalchemy import engine_from_config, pool
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from alembic import context
-from app.db.sql.init_sql import (
+from src.db.sql.init_sql import (
     sql_function_entities,
     sql_trigger_entities,
     sql_view_entities,
@@ -29,7 +29,7 @@ fileConfig(config.config_file_name)
 # target_metadata = mymodel.Base.metadata
 # target_metadata = None
 
-from app.db.models.base import Base  # noqa
+from src.db.models.base import Base  # noqa
 
 target_metadata = Base.metadata
 

@@ -28,8 +28,8 @@ from pydantic import BaseModel, Field
 from pydantic.class_validators import root_validator
 from pydantic.networks import AnyHttpUrl
 
-from app.core.config import settings
-from app.resources.enums import MimeTypes
+from src.core.config import settings
+from src.resources.enums import MimeTypes
 
 
 # =========================VECTOR TILE SCHEMAS=========================

@@ -4,9 +4,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import select
 
-from app import crud
-from app.db.models.basic import *
-from app.db.session import async_session, staging_session
+from src import crud
+from src.db.models.basic import *
+from src.db.session import async_session, staging_session
 
 class DataImport():
     """"Imports prepared data into GOAT database."""

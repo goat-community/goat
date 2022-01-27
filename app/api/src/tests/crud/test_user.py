@@ -2,10 +2,10 @@ import pytest
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import crud
-from app.core.security import verify_password
-from app.schemas.user import UserCreate, UserUpdate
-from app.tests.utils.utils import random_email, random_lower_string
+from src import crud
+from src.core.security import verify_password
+from src.schemas.user import UserCreate, UserUpdate
+from src.tests.utils.utils import random_email, random_lower_string
 
 pytestmark = pytest.mark.asyncio
 

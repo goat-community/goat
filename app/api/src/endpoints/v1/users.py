@@ -5,11 +5,11 @@ from fastapi.encoders import jsonable_encoder
 from pydantic.networks import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import crud, schemas
-from app.db.models.customer.user import User as UserDB
-from app.api import deps
-from app.core.config import settings
-from app.utils import send_new_account_email
+from src import crud, schemas
+from src.db.models.customer.user import User as UserDB
+from src.endpoints import deps
+from src.core.config import settings
+from src.utils import send_new_account_email
 
 router = APIRouter()
 

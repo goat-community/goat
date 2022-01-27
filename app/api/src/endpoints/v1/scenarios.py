@@ -4,10 +4,10 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.responses import JSONResponse, StreamingResponse
 
-from app import crud
-from app.api import deps
-from app.schemas.msg import Msg
-from app.schemas.scenario import (
+from src import crud
+from src.endpoints import deps
+from src.schemas.msg import Msg
+from src.schemas.scenario import (
     ScenarioBase,
     ScenarioCreate,
     ScenarioDelete,

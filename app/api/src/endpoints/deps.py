@@ -6,11 +6,11 @@ from jose import jwt
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import crud, schemas
-from app.db.models.customer.user import User as UserDB
-from app.core import security
-from app.core.config import settings
-from app.db.session import async_session
+from src import crud, schemas
+from src.db.models.customer.user import User as UserDB
+from src.core import security
+from src.core.config import settings
+from src.db.session import async_session
 
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/login/access-token")
 

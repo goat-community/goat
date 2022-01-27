@@ -1,6 +1,6 @@
 # Import all the models, so that Base has them before being
 # imported by Alembic
-from app.db.models.base_class import Base  
+from src.db.models.base_class import Base  
 
 from .aoi_modified import AoiModified as AoiModifiedDB
 from .aoi_user import AoiUser as AoiUserDB

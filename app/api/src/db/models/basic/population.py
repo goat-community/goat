@@ -1,4 +1,4 @@
-from app.db.models.base_class import Base
+from src.db.models.base_class import Base
 from sqlalchemy import Column, Float, ForeignKey, Integer, Text, text, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB

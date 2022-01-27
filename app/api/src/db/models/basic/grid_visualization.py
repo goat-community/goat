@@ -1,4 +1,4 @@
-from app.db.models.base_class import Base
+from src.db.models.base_class import Base
 from sqlalchemy import BigInteger, Column, Index
 from geoalchemy2 import Geometry
 

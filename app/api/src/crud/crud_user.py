@@ -3,10 +3,10 @@ from typing import Any, Dict, Optional, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.core.security import get_password_hash, verify_password
-from app.crud.base import CRUDBase
-from app.db.models.customer.user import User as UserDB
-from app.schemas.user import UserCreate, UserUpdate
+from src.core.security import get_password_hash, verify_password
+from src.crud.base import CRUDBase
+from src.db.models.customer.user import User as UserDB
+from src.schemas.user import UserCreate, UserUpdate
 
 
 class CRUDUser(CRUDBase[UserDB, UserCreate, UserUpdate]):

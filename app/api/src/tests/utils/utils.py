@@ -4,7 +4,7 @@ from typing import Dict
 
 from httpx import AsyncClient
 
-from app.core.config import settings
+from src.core.config import settings
 
 
 def random_lower_string() -> str:

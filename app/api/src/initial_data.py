@@ -1,8 +1,8 @@
 import asyncio
 import logging
 
-from app.db.init_db import init_db
-from app.db.session import async_session
+from src.db.init_db import init_db
+from src.db.session import async_session
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

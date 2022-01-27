@@ -4,7 +4,7 @@ from numpy import any, array, double, int32, int64
 from pandas.core.frame import DataFrame
 from shapely.geometry import Polygon
 
-isochrone_cpp = cppimport.imp("app.exts.cpp.src.isochrone")
+isochrone_cpp = cppimport.imp("src.exts.cpp.src.isochrone")
 
 
 def isochrone(

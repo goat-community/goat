@@ -3,11 +3,11 @@ from typing import Any
 from fastapi import APIRouter, Depends
 from pydantic.networks import EmailStr
 
-from app import schemas
-from app.db.models.customer.user import User as UserDB
-from app.api import deps
-from app.core.celery_app import celery_app
-from app.utils import send_test_email
+from src import schemas
+from src.db.models.customer.user import User as UserDB
+from src.endpoints import deps
+from src.core.celery_app import celery_app
+from src.utils import send_test_email
 
 router = APIRouter()
 

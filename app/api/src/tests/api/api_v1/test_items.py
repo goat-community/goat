@@ -2,8 +2,8 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
-from app.tests.utils.item import create_random_item
+from src.core.config import settings
+from src.tests.utils.item import create_random_item
 
 pytestmark = pytest.mark.asyncio
 

@@ -11,7 +11,7 @@ from geojson import loads as geojsonloads
 from jose import jwt
 from shapely.wkb import loads as wkbloads
 
-from app.core.config import settings
+from src.core.config import settings
 
 
 def send_email(

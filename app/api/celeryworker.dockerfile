@@ -9,7 +9,7 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-
     poetry config virtualenvs.create false
 
 # Copy poetry.lock* in case it doesn't exist in the repo
-COPY ./app/pyproject.toml ./app/poetry.lock* /app/
+COPY ./pyproject.toml ./poetry.lock* /app/
 
 # Allow installing dev dependencies to run tests
 ARG INSTALL_DEV=false
@@ -23,10 +23,11 @@ RUN bash -c "if [ $INSTALL_JUPYTER == 'true' ] ; then pip install jupyterlab ; f
 
 ENV C_FORCE_ROOT=1
 
-COPY ./app /app
+COPY . /app
 WORKDIR /app
 
 ENV PYTHONPATH=/app
+ENV MODULE_NAME="src.main"
 
 COPY ./app/worker-start.sh /worker-start.sh
 

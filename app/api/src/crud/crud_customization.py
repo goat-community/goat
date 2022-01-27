@@ -3,10 +3,10 @@ from xmlrpc.client import Boolean
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.crud.base import CRUDBase
-from app.db.models.customer.customization import Customization as CustomizationDB
-from app.db.models.customer.role import Role as RoleDB
-from app.schemas.customization import CustomizationCreate, CustomizationUpdate
+from src.crud.base import CRUDBase
+from src.db.models.customer.customization import Customization as CustomizationDB
+from src.db.models.customer.role import Role as RoleDB
+from src.schemas.customization import CustomizationCreate, CustomizationUpdate
 
 
 class CRUDCustomization(CRUDBase[CustomizationDB, CustomizationCreate, CustomizationUpdate]):
