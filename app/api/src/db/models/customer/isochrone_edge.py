@@ -1,6 +1,7 @@
 from src.db.models.base_class import Base
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer
 from sqlalchemy.orm import relationship
+from geoalchemy2 import Geometry
 
 class IsochroneEdge(Base):
     __tablename__ = 'isochrone_edge'
@@ -15,6 +16,7 @@ class IsochroneEdge(Base):
     start_perc = Column(Float(53))
     end_perc = Column(Float(53))
     partial_edge = Column(Boolean)
+    geom = Column(Geometry(geometry_type="Linestring", srid="3857", spatial_index=False), nullable=True)
 
     edge = relationship('Edge')
     isochrone_calculation = relationship('IsochroneCalculation')

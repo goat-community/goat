@@ -1,12 +1,10 @@
 import cppimport
-from geopandas import GeoDataFrame
 from numpy import any, array, double, int32, int64
 from pandas.core.frame import DataFrame
-from shapely.geometry import Polygon
 
 isochrone_cpp = cppimport.imp("src.exts.cpp.src.isochrone")
 
-
+import time 
 def isochrone(
     network: DataFrame, start_vertices: array, distance_limits: array, only_minimum_cover=True
 ) -> array:
@@ -46,11 +44,5 @@ def isochrone(
         distance_limits,
         only_minimum_cover,
     )
-    isochrones = {"geometry": [], "step": []}
-    for isochrone in result.isochrone:
-        for step, shape in isochrone.shape.items():
-            isochrones["geometry"].append(Polygon(shape))
-            isochrones["step"].append(step)
 
-    isochrone_gdf = GeoDataFrame(isochrones, crs="EPSG:3857").to_crs("EPSG:4326")
-    return isochrone_gdf
+    return result

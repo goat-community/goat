@@ -2,6 +2,7 @@ import io
 import os
 import shutil
 import time
+import re
 from json import loads
 from random import randint
 from time import time
@@ -17,9 +18,11 @@ from pandas.io.sql import read_sql
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 from geopandas import GeoDataFrame
-from shapely.geometry import Point
+from shapely.geometry import Point, LineString, Polygon, MultiPolygon
+from datetime import datetime
 from src.db.models.customer.isochrone_calculation import IsochroneCalculation as IsochroneCalculationDB
 from src.db.models.customer.isochrone_feature import IsochroneFeature as IsochroneFeatureDB
+from src.db.models.customer.isochrone_edge import IsochroneEdge as IsochroneEdgeDB
 
 from src.db.session import legacy_engine
 from src.exts.cpp.bind import isochrone as isochrone_cpp
@@ -70,12 +73,57 @@ class CRUDIsochrone:
         await db.commit()
         await db.refresh(obj_starting_point)
         
-        isochrone_gdf = isochrone_cpp(edges_network, [999999999], distance_limits)
+        result = isochrone_cpp(edges_network, [999999999], distance_limits)
+        
+        isochrones = {"isochrone_calculation_id": [],"geometry": [], "step": []}
 
-        isochrone_gdf["step"] = isochrone_gdf["step"] // 60  # convert to minutes
+        
+        for isochrone_result in result.isochrone:
+            isochrones["isochrone_calculation_id"] = [obj_starting_point.id] * isochrone_result.shape.__len__()
+            for step, shape in isochrone_result.shape.items():
+                isochrones["geometry"].append(MultiPolygon([Polygon(shape)]))
+                isochrones["step"].append(step)
+        isochrone_gdf = GeoDataFrame(isochrones, crs="EPSG:3857").to_crs("EPSG:4326")
+        isochrone_gdf.rename_geometry("geom", inplace=True)
+        isochrone_gdf.to_postgis(name='isochrone_feature', con=legacy_engine, schema='customer', if_exists='append')
+
+
+        before = datetime.now()
+        full_edge_objs = []
+        partial_edge_objs = []
+        for edge in result.network:
+            edge_obj = {
+                "edge_id": edge.edge,
+                "isochrone_calculation_id": obj_starting_point.id,
+                "cost": max(edge.start_cost,edge.end_cost),
+                "start_cost": edge.start_cost,
+                "end_cost": edge.end_cost,
+                "start_perc": edge.start_perc,
+                "end_perc": edge.end_perc,
+            }
+            full_edge_objs.append(edge_obj)
+
+            if edge.start_perc not in [0.0, 1.0] or edge.end_perc not in [0.0, 1.0] or edge.edge in [999999999,999999998]:
+                edge_obj["partial_edge"] = True
+                edge_obj["geom"] = 'Linestring(%s)' % re.sub(',([^,]*,?)', r'\1', str(edge.shape)).replace('[', '').replace(']', '')
+                partial_edge_objs.append(edge_obj)
+
+        await db.execute(IsochroneEdgeDB.__table__.insert(), full_edge_objs)
+        await db.execute(IsochroneEdgeDB.__table__.insert(), partial_edge_objs)
+        await db.commit()
+        print('Calculation took: %s' % (datetime.now() - before).total_seconds())
+        x=0
+        #for edge in result.network:
+            
+
+
+        #
+
+
+        #isochrone_gdf["step"] = isochrone_gdf["step"] // 60  # convert to minutes
 
         #isochrone_gdf.rename_geometry("geom", inplace=True)
-        return isochrone_gdf
+        #return isochrone_gdf
 
 
     async def calculate_single_isochrone(

@@ -20,7 +20,7 @@ async def init_db(db: AsyncSession) -> None:
     if customization["Success"] == True:
         print('INFO: There is no default customization. The default customization will be loaded.')
 
-        with open("/app/config/customization.yaml", 'r') as stream:
+        with open("/app/customization.yaml", 'r') as stream:
             default_settings = yaml.load(stream, Loader=yaml.FullLoader)
         
         for role in default_settings:

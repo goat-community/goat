@@ -7,6 +7,7 @@ from logging.config import fileConfig
 from alembic_utils.replaceable_entity import register_entities
 from sqlalchemy import engine_from_config, pool
 from sqlalchemy.ext.asyncio import AsyncEngine
+from src.core.config import settings
 
 from alembic import context
 from src.db.sql.init_sql import (
@@ -55,15 +56,6 @@ def include_object(object, name, type_, reflected, compare_to):
     else:
         return True
 
-
-def get_url():
-    user = os.getenv("POSTGRES_USER", "postgres")
-    password = os.getenv("POSTGRES_PASSWORD", "")
-    server = os.getenv("POSTGRES_SERVER", "db")
-    db = os.getenv("POSTGRES_DB", "app")
-    return f"postgresql+asyncpg://{user}:{password}@{server}/{db}"
-
-
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
 
@@ -76,7 +68,7 @@ def run_migrations_offline():
     script output.
 
     """
-    url = get_url()
+    url = settings.ASYNC_SQLALCHEMY_DATABASE_URI
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -110,7 +102,7 @@ async def run_migrations_online():
 
     """
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = get_url()
+    configuration["sqlalchemy.url"] = settings.ASYNC_SQLALCHEMY_DATABASE_URI
     connectable = AsyncEngine(
         engine_from_config(
             configuration,
