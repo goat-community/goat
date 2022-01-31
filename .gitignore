@@ -15,3 +15,5 @@ node_modules
 
 /app/api/app/app/exts/cpp/build
 __pycache__
+/app/api/src/data/*
+!/app/api/src/data/.gitkeep
