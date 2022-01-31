@@ -120,6 +120,148 @@ DATA_REFINEMENT_VARIABLES:
       delay_1: 15
       delay_2: 30
     compute_slope_impedance: "'no'"
+
+    #--------------------------------------
+    #IAPI speed & comfort impedance factors
+    categories: ['was','wac','cys','cyc','whs','whc']
+    sidewalk_links: ['footway','pedestrian','track','path']
+    class_cyclepath:
+      segregated_yes: ['separate','segregated','yes','track']
+      segregated_no: ['opposite_track','crossing','opposite_lane','no','lane','opposite','shared_lane','shared']
+    class_obstacle:
+      light: ['footway','pedestrian','track']
+      strong: ['steps']
+    
+    #was = walking speed 
+    was_type_road: '0.15'
+    was_peak_hour:  
+      high: '0'
+      low: '0'
+    was_cyclepath:
+      segregated_yes: '0.5'
+      segregated_no: '0'
+    was_sidewalk: '0.15'
+    was_obstacle:
+      light: '0.3'
+      strong: '0'
+    was_speed_limit: 
+      living_street: '0'
+    was_surface:
+      paving_stones: '0.2'
+      sett: '0.3'
+      unhewn_cobblestone: '0.3'
+      cobblestone: '0.3'
+      pebblestone: '0.3'
+      unpaved: '0.2'
+      compacted: '0.05'
+      fine_gravel: '0.05'
+      gravel: '0.3'
+      sand: '0.4'
+      grass: '0.25'
+      mud: '0.4'
+    was_smoothness:
+      intermediate: '0.05'
+      bad: '0.1'
+      very_bad: '0.2'
+      horrible: '0.3'
+      very_horrible: '0.5'
+    
+
+    #wac = walking comfort
+    wac_type_road:
+      footway: '0'
+      underpasses: '0.15'
+      bridges_ramps: '0.15'
+    wac_peak_hour:  
+      high: '0.15'
+      low: '0'
+    wac_cyclepath:
+      segregated_yes: '0'
+      segregated_no: '0'
+    wac_sidewalk:
+      width: '0.5'
+    wac_obstable:
+      light: '0'
+      strong: '0.5'
+    wac_speed_limit:
+      living_street: '0'
+
+    #cys = cycling speed
+    cys_type_road:
+      footway: '0'
+      underpasses: '0.5'
+      bridges_ramps: '0.5'
+    cys_peak_hour:  
+      high: '0.5'
+      low: '0'
+    cys_cyclepath:
+      segregated_yes: '0.15'
+      segregated_no: '0'
+    cys_sidewalk:
+      width: '0'
+    cys_obstable:
+      light: '0'
+      strong: '0.3'
+    cys_speed_limit:
+      living_street: '0.3'
+
+    #cyc = cycling comfort
+    cyc_type_road:
+      footway: '0'
+      underpasses: '0.75'
+      bridges_ramps: '0.75'
+    cyc_peak_hour:  
+      high: '0.15'
+      low: '0'
+    cyc_cyclepath:
+      segregated_yes: '0'
+      segregated_no: '0.3'
+    cyc_sidewalk:
+      width: '0'
+    cyc_obstable:
+      light: '0'
+      strong: '0.3'
+    cyc_speed_limit:
+      living_street: '0'
+
+    #whs = wheelchair speed
+    whs_type_road:
+      footway: '0'
+      underpasses: '1'
+      bridges_ramps: '1'
+    whs_peak_hour:  
+      high: '0'
+      low: '0'
+    whs_cyclepath:
+      segregated_yes: '0'
+      segregated_no: '0'
+    whs_sidewalk:
+      width: '0.5'
+    whs_obstable:
+      light: '0.5'
+      strong: '0.75'
+    whs_speed_limit:
+      living_street: '0' 
+
+    #whc = wheelchair comfort
+    whc_type_road:
+      footway: '0'
+      underpasses: '1'
+      bridges_ramps: '1'
+    whc_peak_hour:  
+      high: '0.15'
+      low: '0'
+    whc_cyclepath:
+      segregated_yes: '0'
+      segregated_no: '0'
+    whc_sidewalk:
+      width: '0.5'
+    whc_obstable:
+      light: '0.5'
+      strong: '0.75'
+    whc_speed_limit:
+      living_street: '0'
+
     ##-------------------------------------Size limits for areas of interest------------------------------------##
     ## Limits the area to be displayed for certain amenities (like parks). The limits should be defined in square meters
     areas_boundaries:
