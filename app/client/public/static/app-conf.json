@@ -1252,7 +1252,7 @@
               "locked": false
             },
             {
-              "name": "Primary school",
+              "name": "Primary School",
               "value": "primary_school",
               "icon": "primary_school",
               "weight": 1,
@@ -1260,9 +1260,9 @@
               "locked": false
             },
             {
-              "name": "Secondary school",
-              "value": "secondary_school",
-              "icon": "secondary_school",
+              "name": "Middle School",
+              "value": "middle_school",
+              "icon": "middle_school",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
@@ -1273,6 +1273,22 @@
               "icon": "library",
               "weight": 1,
               "sensitivity": 300000
+            },
+            {
+              "name": "Secondary school",
+              "value": "secondary_school",
+              "icon": "secondary_school",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Training School",
+              "value": "training",
+              "icon": "training_school",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
             }
           ]
         },
@@ -1436,9 +1452,30 @@
               "sensitivity": 300000
             },
             {
+              "name": "Clinic",
+              "value": "clinic",
+              "icon": "clinic",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Hospital",
+              "value": "hospital",
+              "icon": "hospital",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
               "name": "Pharmacy",
               "value": "pharmacy",
               "icon": "pharmacy",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Post office",
+              "value": "post_office",
+              "icon": "post_office",
               "weight": 1,
               "sensitivity": 300000
             },
@@ -1460,6 +1497,30 @@
               "name": "Recycling",
               "value": "recycling",
               "icon": "recycling",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Public Administration",
+              "value": "public_administration",
+              "icon": "public_administration",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Social facility",
+              "value": "social_facility",
+              "icon": "social_facility",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Community Center",
+              "value": "community_centre",
+              "icon": "community_centre",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
@@ -1492,6 +1553,13 @@
               "sensitivity": 300000
             },
             {
+              "name": "Grocery",
+              "value": "grocery",
+              "icon": "grocery",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
               "name": "Convenience store",
               "value": "convenience",
               "icon": "convenience",
@@ -1509,6 +1577,27 @@
               "name": "Kiosk",
               "value": "kiosk",
               "icon": "kiosk",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Newsstand",
+              "value": "newsstand",
+              "icon": "newsstand",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Tobacco",
+              "value": "tobacco",
+              "icon": "tobacco",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "e-cigarette",
+              "value": "e-cigarette",
+              "icon": "e-cigarette",
               "weight": 1,
               "sensitivity": 300000
             },
@@ -1681,6 +1770,13 @@
               "name": "Park",
               "value": "park",
               "icon": "park",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Garden",
+              "value": "garden",
+              "icon": "garden",
               "weight": 1,
               "sensitivity": 300000
             },
@@ -1960,7 +2056,7 @@
             },
             {
               "value": "comfort",
-              "speed": 3
+              "speed": 6
             }
           ]
         }
