@@ -1,5 +1,5 @@
 from src.db.models.base_class import Base
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, Text, text, Index
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, Text, text, Index, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
@@ -10,9 +10,8 @@ class PoiUser(Base):
     __table_args__ = {'schema': 'customer'}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    uid = Column(Text, nullable=False, index=True)
     data_upload_id = Column(ForeignKey('customer.data_upload.id', ondelete='CASCADE'), nullable=False, index=True)
-    scenario_id = Column(ForeignKey('customer.scenario.id', ondelete='CASCADE'))
-    poi_user_id = Column(Integer)
     category = Column(Text, nullable=False, index=True)
     name = Column(Text)
     street = Column(Text)
@@ -25,6 +24,6 @@ class PoiUser(Base):
     creation_date = Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
 
     data_upload = relationship('DataUpload')
-    scenario = relationship('Scenario')
 
 Index('idx_poi_user_geom', PoiUser.__table__.c.geom, postgresql_using='gist')
+UniqueConstraint(PoiUser.__table__.c.uid, PoiUser.__table__.c.data_upload_id)

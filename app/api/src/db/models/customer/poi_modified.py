@@ -9,11 +9,12 @@ class PoiModified(Base):
     __tablename__ = 'poi_modified'
     __table_args__ = {'schema': 'customer'}
 
-    id = Column(ForeignKey('basic.poi.id', ondelete='CASCADE'), primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    uid = Column(Text, nullable=False, index=True)
     scenario_id = Column(ForeignKey('customer.scenario.id', ondelete='CASCADE'), index=True)
-    poi_id = Column(Integer, index=True)
-    poi_user_id = Column(ForeignKey('customer.poi_user.id', ondelete='CASCADE'), index=True)
-    category = Column(Text, nullable=False)
+    edit_type = Column(Text, nullable=False, index=True)
+    table_name = Column(Text, nullable=False, index=True)
+    category = Column(Text, nullable=False, index=True)
     name = Column(Text)
     street = Column(Text)
     housenumber = Column(Text)
@@ -24,7 +25,6 @@ class PoiModified(Base):
     geom = Column(Geometry(geometry_type="Point", srid="4326", spatial_index=False), nullable=False)
     creation_date = Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
 
-    poi_user = relationship('PoiUser')
     scenario = relationship('Scenario')
 
 Index('idx_poi_modified_geom', PoiModified.__table__.c.geom, postgresql_using='gist')

@@ -1,5 +1,5 @@
 from src.db.models.base_class import Base
-from sqlalchemy import Column, ForeignKey, Integer, Text, text, Index
+from sqlalchemy import Column, ForeignKey, Integer, Text, text, Index, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -10,8 +10,7 @@ class Poi(Base):
     __table_args__ = {'schema': 'basic'}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    scenario_id = Column(ForeignKey('customer.scenario.id', ondelete='CASCADE'), index=True)
-    poi_id = Column(ForeignKey('basic.poi.id', ondelete='CASCADE'))
+    uid = Column(Text, nullable=False, index=True)
     category = Column(Text, nullable=False, index=True)
     name = Column(Text)
     street = Column(Text)
@@ -22,7 +21,6 @@ class Poi(Base):
     tags = Column(JSONB(astext_type=Text()))
     geom = Column(Geometry(geometry_type="Point", srid="4326", spatial_index=False), nullable=False)
 
-    poi = relationship('Poi', remote_side=[id])
-    scenario = relationship('Scenario')
 
 Index('idx_poi_geom', Poi.__table__.c.geom, postgresql_using='gist')
+UniqueConstraint(Poi.__table__.c.uid)

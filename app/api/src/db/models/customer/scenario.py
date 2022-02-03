@@ -10,7 +10,7 @@ class Scenario(Base):
     scenario_name = Column(Text, nullable=False)
     user_id = Column(ForeignKey('customer.user.id', ondelete='CASCADE'), nullable=False)
     deleted_ways = Column(ARRAY(Integer()), server_default=text("'{}'::int[]"))
-    deleted_pois = Column(ARRAY(Integer()), server_default=text("'{}'::int[]"))
+    deleted_pois = Column(ARRAY(Text()), server_default=text("'{}'::text[]"))
     deleted_buildings = Column(ARRAY(Integer()), server_default=text("'{}'::int[]"))
     routing_heatmap_computed = Column(Boolean)
     creation_date = Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))

@@ -11,7 +11,6 @@ class DataUpload(Base):
     data_type = Column(Text, nullable=False)
     upload_type = Column(Text, nullable=False)
     upload_grid_ids = Column(ARRAY(Text()), nullable=False)
-    upload_date = Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     upload_size = Column(Integer, nullable=False)
     creation_date = Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
 

@@ -35,6 +35,7 @@ class IsochroneBase(BaseModel):
     n: int
     modus: str
     routing_profile: str
+    active_upload_ids: Optional[List[int]] = None
     max_cutoff: Optional[int] = None
 
     @root_validator
@@ -63,7 +64,9 @@ class IsochroneSingle(IsochroneBase):
                 "x": 11.5696284,
                 "y": 48.1502132,
                 "routing_profile": "walking_standard",
-                "scenario_id": None,
+                "active_upload_ids": [],
+                "scenario_id": None
+                
             }
         }
 
