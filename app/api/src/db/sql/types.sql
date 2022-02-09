@@ -8,5 +8,7 @@ CREATE TYPE type_fetch_edges_routing AS
 	cost float,
 	reverse_cost float,
 	death_end integer,
-	coordinates_3857 json 
+	coordinates_3857 json,
+	starting_ids integer[],
+	starting_geoms text[] 
 );

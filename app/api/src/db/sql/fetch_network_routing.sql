@@ -7,7 +7,8 @@ DECLARE
 	buffer_network geometry;
 	point geometry := ST_SETSRID(ST_POINT(x[1],y[1]), 4326);
 	snap_distance_network integer := basic.select_customization('snap_distance_network')::integer;
-
+	max_new_node_id integer := 2147483647;
+	max_new_edge_id integer := 2147483647;
 BEGIN 
 
 	SELECT ST_Buffer(point::geography,snap_distance_network)::geometry
@@ -19,16 +20,18 @@ BEGIN
 	DROP TABLE IF EXISTS artificial_edges;
 	CREATE TEMP TABLE artificial_edges AS   
 	SELECT * 
-	FROM basic.create_artificial_edges(basic.query_edges_routing(ST_ASTEXT(buffer_starting_point),modus,scenario_id,speed,routing_profile,FALSE),
-		point, snap_distance_network
+	FROM basic.create_artificial_edges(basic.query_edges_routing(ST_ASTEXT(buffer_starting_point),modus,scenario_id,speed,routing_profile,FALSE),point, 
+		snap_distance_network,max_new_node_id, max_new_edge_id 
 	); 
 		
 	RETURN query EXECUTE 
+	'SELECT NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $1, $2
+	 UNION ALL ' || 
 	basic.query_edges_routing(ST_ASTEXT(buffer_network),modus,scenario_id,speed,routing_profile,True) || 
     ' AND id NOT IN (SELECT wid FROM artificial_edges)
 	UNION ALL 
-	SELECT id, source, target, length_m, cost, reverse_cost, NULL AS death_end, ST_AsGeoJSON(ST_Transform(geom,3857))::json->''coordinates''
-	FROM artificial_edges' USING buffer_network;
+	SELECT id, source, target, length_m, cost, reverse_cost, NULL AS death_end, ST_AsGeoJSON(ST_Transform(geom,3857))::json->''coordinates'', NULL AS starting_ids, NULL AS starting_geoms
+	FROM artificial_edges' USING ARRAY[max_new_node_id]::integer[], ARRAY[ST_ASTEXT(point)]::TEXT[];
 
 END;
 $function$;
