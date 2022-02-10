@@ -30,13 +30,11 @@ Body of the request
 
 class IsochroneBase(BaseModel):
     user_id: int
+    scenario_id: Optional[int] = 0
     minutes: int
     speed: float
-    n: int
     modus: str
-    routing_profile: str
-    active_upload_ids: Optional[List[int]] = None
-    max_cutoff: Optional[int] = None
+    active_upload_ids: Optional[List[int]] = [0]
 
     @root_validator
     def compute_values(cls, values):
@@ -51,10 +49,16 @@ class IsochroneBase(BaseModel):
 class IsochroneSingle(IsochroneBase):
     x: float
     y: float
+    n: int
+    routing_profile: str
+    max_cutoff: Optional[int] = None
     scenario_id: Optional[int] = None
 
-
 class IsochroneMulti(IsochroneBase):
+    x: list[float]
+    y: list[float]
+
+class IsochronePoiMulti(IsochroneBase):
     alphashape_parameter: str
     region_type: str
     region: List[str]
@@ -90,7 +94,8 @@ request_examples = {
         "x": 11.5696284,
         "y": 48.1502132,
         "routing_profile": "walking_standard",
-        "scenario_id": None,
+        "active_upload_ids": [0],
+        "scenario_id": 0
     },
     "multi": {
         "multi_with_study_area": {
@@ -115,33 +120,8 @@ request_examples = {
                     "gymnasium",
                     "library",
                 ],
-            },
-        },
-        "multi_with_polygon": {
-            "summary": "Multi Isochrone with Polygon",
-            "value": {
-                "user_id": 1261,
-                "minutes": 10,
-                "speed": 5,
-                "n": 2,
-                "modus": "default",
-                "alphashape_parameter": "0.00003",
-                "region_type": "draw",
-                "region": [
-                    "POLYGON((11.53605224646383 48.15855242757948,11.546141990292947 48.16035646918763,11.54836104048217 48.15434275044706,11.535497483916524 48.15080357881183,11.526586610500429 48.15300113241156,11.531302092152526 48.15799732509075,11.53605224646383 48.15855242757948))"
-                ],
-                "routing_profile": "walking_standard",
-                "scenario_id": 0,
-                "amenities": [
-                    "kindergarten",
-                    "grundschule",
-                    "hauptschule_mittelschule",
-                    "realschule",
-                    "gymnasium",
-                    "library",
-                ],
-            },
-        },
+            }
+        }
     },
     "multi_count_pois": {
         "region_type": "draw",
@@ -160,7 +140,42 @@ request_examples = {
             "library",
         ],
     },
+    "multi_with_polygon": {
+        "summary": "Multi Isochrone with Polygon",
+        "value": {
+            "user_id": 1261,
+            "minutes": 10,
+            "speed": 5,
+            "n": 2,
+            "modus": "default",
+            "alphashape_parameter": "0.00003",
+            "region_type": "draw",
+            "region": [
+                "POLYGON((11.53605224646383 48.15855242757948,11.546141990292947 48.16035646918763,11.54836104048217 48.15434275044706,11.535497483916524 48.15080357881183,11.526586610500429 48.15300113241156,11.531302092152526 48.15799732509075,11.53605224646383 48.15855242757948))"
+            ],
+            "routing_profile": "walking_standard",
+            "scenario_id": 0,
+            "amenities": [
+                "nursery",
+                "kindergarten"
+            ],
+            "scenario_id": 0,
+            "active_upload_ids": [0]
+        }
+    }
 }
+
+class IsochroneMultiCountPois(IsochroneBase):
+    amenities: List[str]
+    region: str
+    region_type: str
+
+
+
+class IsochroneExport(BaseModel):
+    """Isochrone export DTO"""
+    return_type: str
+    objectid: int
 
 
 """
