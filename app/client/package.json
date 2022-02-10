@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
-    "chart.js": "^2.8.0",
+    "chart.js": "^2.9.4",
     "core-js": "^2.6.9",
     "d3-selection": "^2.0.0",
     "draggable-vue-directive": "^2.0.3",
