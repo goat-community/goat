@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, EmailStr
 
@@ -6,15 +6,18 @@ from pydantic import BaseModel, EmailStr
 # Shared properties
 class UserBase(BaseModel):
     email: Optional[EmailStr] = None
+    organization_id: int = None
     is_active: Optional[bool] = True
-    is_superuser: bool = False
     name: Optional[str] = None
     surname: Optional[str] = None
+    roles: List[Any] = []
+    study_areas: List[Any] = []
+
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
-    email: EmailStr
     password: str
+    email: EmailStr
 
 
 # Properties to receive via API on update

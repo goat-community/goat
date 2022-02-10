@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends
 from pydantic.networks import EmailStr
 
 from src import schemas
-from src.db.models.customer.user import User as UserDB
-from src.endpoints import deps
 from src.core.celery_app import celery_app
+from src.db import models
+from src.endpoints import deps
 from src.utils import send_test_email
 
 router = APIRouter()
@@ -15,7 +15,7 @@ router = APIRouter()
 @router.post("/test-celery/", response_model=schemas.Msg, status_code=201)
 def test_celery(
     msg: schemas.Msg,
-    current_user: UserDB = Depends(deps.get_current_active_superuser),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Test Celery worker.
@@ -27,7 +27,7 @@ def test_celery(
 @router.post("/test-email/", response_model=schemas.Msg, status_code=201)
 def test_email(
     email_to: EmailStr,
-    current_user: UserDB = Depends(deps.get_current_active_superuser),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Test emails.

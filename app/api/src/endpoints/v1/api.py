@@ -4,6 +4,7 @@ from src.endpoints.v1 import (
     isochrones,
     layers,
     login,
+    organizations,
     scenarios,
     users,
     utils,
@@ -11,8 +12,11 @@ from src.endpoints.v1 import (
 
 api_router = APIRouter()
 api_router.include_router(login.router, tags=["Login"])
+
+api_router.include_router(organizations.router, prefix="/organizations", tags=["Organizations"])
 api_router.include_router(users.router, prefix="/users", tags=["Users"])
 api_router.include_router(utils.router, prefix="/utils", tags=["Utils"])
+
 
 # Isochrone endpoints
 api_router.include_router(isochrones.router, prefix="/isochrones", tags=["Isochrones"])

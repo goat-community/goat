@@ -1,29 +1,22 @@
-from xmlrpc.client import Boolean
-
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 
 from src.crud.base import CRUDBase
-from src.db.models.customer.customization import Customization as CustomizationDB
-from src.db.models.customer.role import Role as RoleDB
+from src.db import models
 from src.schemas.customization import CustomizationCreate, CustomizationUpdate
 
 
-class CRUDCustomization(CRUDBase[CustomizationDB, CustomizationCreate, CustomizationUpdate]):
-    async def insert_default_customization(self, db: AsyncSession, *, obj_in: CustomizationCreate) -> CustomizationDB:    
-        
-        #role = await db.execute(select(RoleDB))
-        #role_id = role.fetchone()
+class CRUDCustomization(CRUDBase[models.Customization, CustomizationCreate, CustomizationUpdate]):
+    async def insert_default_customization(
+        self, db: AsyncSession, *, obj_in: CustomizationCreate
+    ) -> models.Customization:
 
-        db_obj = CustomizationDB(
-            role_id = {"superuser": 1, "user": 2}[obj_in.role_name],
-            type = obj_in.type,
-            default_setting = obj_in.default_setting
+        db_obj = models.Customization(
+            role_id=obj_in.role_id, type=obj_in.type, default_setting=obj_in.default_setting
         )
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)
         return db_obj
-            
 
-customization = CRUDCustomization(CustomizationDB)
+
+customization = CRUDCustomization(models.Customization)

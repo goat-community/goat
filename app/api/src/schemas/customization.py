@@ -3,16 +3,12 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-# Shared properties
-class CustomizationBase(BaseModel):
+# Properties to receive via API on creation
+class CustomizationCreate(BaseModel):
     type: str
     default_setting: dict
-
-# Properties to receive via API on creation
-class CustomizationCreate(CustomizationBase):
-    role_name: str
+    role_id: int
     pass
 
-# Properties to receive via API on update
-class CustomizationUpdate(CustomizationBase):
-    pass
+class CustomizationUpdate(BaseModel):
+    pass;

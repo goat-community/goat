@@ -1,8 +1,9 @@
 import io
 import os
+import re
 import shutil
 import time
-import re
+from datetime import datetime
 from json import loads
 from random import randint
 from time import time
@@ -13,17 +14,14 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from geoalchemy2 import Geometry, WKTElement
 from geojson import FeatureCollection
+from geopandas import GeoDataFrame
 from geopandas.io.sql import read_postgis
 from pandas.io.sql import read_sql
+from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
-from geopandas import GeoDataFrame
-from shapely.geometry import Point, LineString, Polygon, MultiPolygon
-from datetime import datetime
-from src.db.models.customer.isochrone_calculation import IsochroneCalculation as IsochroneCalculationDB
-from src.db.models.customer.isochrone_feature import IsochroneFeature as IsochroneFeatureDB
-from src.db.models.customer.isochrone_edge import IsochroneEdge as IsochroneEdgeDB
 
+from src.db import models
 from src.db.session import legacy_engine
 from src.exts.cpp.bind import isochrone as isochrone_cpp
 from src.schemas.isochrone import (
@@ -34,14 +32,14 @@ from src.schemas.isochrone import (
 )
 from src.utils import sql_to_geojson
 
-class CRUDIsochrone:
 
+class CRUDIsochrone:
     async def compute_isochrone(
         self, db: AsyncSession, *, obj_in: IsochroneSingle
     ) -> FeatureCollection:
         obj_in_data = jsonable_encoder(obj_in)
         read_network_sql = text(
-        """ 
+            """ 
         SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length
         FROM basic.fetch_network_routing(ARRAY[:x],ARRAY[:y], :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
         """
@@ -52,13 +50,18 @@ class CRUDIsochrone:
                 obj_in.max_cutoff // obj_in.n, obj_in.max_cutoff + 1, obj_in.max_cutoff // obj_in.n
             )
         )
-        
-        starting_point_geom = str(GeoDataFrame(
-                {"geometry": Point(edges_network.iloc[-1:]["geom"].values[0][0])}, 
-                crs="EPSG:3857", index=[0]).to_crs("EPSG:4326").to_wkt()["geometry"]
+
+        starting_point_geom = str(
+            GeoDataFrame(
+                {"geometry": Point(edges_network.iloc[-1:]["geom"].values[0][0])},
+                crs="EPSG:3857",
+                index=[0],
+            )
+            .to_crs("EPSG:4326")
+            .to_wkt()["geometry"]
         )
 
-        obj_starting_point = IsochroneCalculationDB(
+        obj_starting_point = models.IsochroneCalculation(
             calculation_type="single_isochrone",
             user_id=obj_in.user_id,
             scenario_id=obj_in.scenario_id,
@@ -72,21 +75,23 @@ class CRUDIsochrone:
         db.add(obj_starting_point)
         await db.commit()
         await db.refresh(obj_starting_point)
-        
-        result = isochrone_cpp(edges_network, [999999999], distance_limits)
-        
-        isochrones = {"isochrone_calculation_id": [],"geometry": [], "step": []}
 
-        
+        result = isochrone_cpp(edges_network, [999999999], distance_limits)
+
+        isochrones = {"isochrone_calculation_id": [], "geometry": [], "step": []}
+
         for isochrone_result in result.isochrone:
-            isochrones["isochrone_calculation_id"] = [obj_starting_point.id] * isochrone_result.shape.__len__()
+            isochrones["isochrone_calculation_id"] = [
+                obj_starting_point.id
+            ] * isochrone_result.shape.__len__()
             for step, shape in isochrone_result.shape.items():
                 isochrones["geometry"].append(MultiPolygon([Polygon(shape)]))
                 isochrones["step"].append(step)
         isochrone_gdf = GeoDataFrame(isochrones, crs="EPSG:3857").to_crs("EPSG:4326")
         isochrone_gdf.rename_geometry("geom", inplace=True)
-        isochrone_gdf.to_postgis(name='isochrone_feature', con=legacy_engine, schema='customer', if_exists='append')
-
+        isochrone_gdf.to_postgis(
+            name="isochrone_feature", con=legacy_engine, schema="customer", if_exists="append"
+        )
 
         before = datetime.now()
         full_edge_objs = []
@@ -95,7 +100,7 @@ class CRUDIsochrone:
             edge_obj = {
                 "edge_id": edge.edge,
                 "isochrone_calculation_id": obj_starting_point.id,
-                "cost": max(edge.start_cost,edge.end_cost),
+                "cost": max(edge.start_cost, edge.end_cost),
                 "start_cost": edge.start_cost,
                 "end_cost": edge.end_cost,
                 "start_perc": edge.start_perc,
@@ -103,28 +108,30 @@ class CRUDIsochrone:
             }
             full_edge_objs.append(edge_obj)
 
-            if edge.start_perc not in [0.0, 1.0] or edge.end_perc not in [0.0, 1.0] or edge.edge in [999999999,999999998]:
+            if (
+                edge.start_perc not in [0.0, 1.0]
+                or edge.end_perc not in [0.0, 1.0]
+                or edge.edge in [999999999, 999999998]
+            ):
                 edge_obj["partial_edge"] = True
-                edge_obj["geom"] = 'Linestring(%s)' % re.sub(',([^,]*,?)', r'\1', str(edge.shape)).replace('[', '').replace(']', '')
+                edge_obj["geom"] = "Linestring(%s)" % re.sub(
+                    ",([^,]*,?)", r"\1", str(edge.shape)
+                ).replace("[", "").replace("]", "")
                 partial_edge_objs.append(edge_obj)
 
-        await db.execute(IsochroneEdgeDB.__table__.insert(), full_edge_objs)
-        await db.execute(IsochroneEdgeDB.__table__.insert(), partial_edge_objs)
+        await db.execute(models.IsochroneEdge.__table__.insert(), full_edge_objs)
+        await db.execute(models.IsochroneEdge.__table__.insert(), partial_edge_objs)
         await db.commit()
-        print('Calculation took: %s' % (datetime.now() - before).total_seconds())
-        x=0
-        #for edge in result.network:
-            
-
+        print("Calculation took: %s" % (datetime.now() - before).total_seconds())
+        x = 0
+        # for edge in result.network:
 
         #
 
+        # isochrone_gdf["step"] = isochrone_gdf["step"] // 60  # convert to minutes
 
-        #isochrone_gdf["step"] = isochrone_gdf["step"] // 60  # convert to minutes
-
-        #isochrone_gdf.rename_geometry("geom", inplace=True)
-        #return isochrone_gdf
-
+        # isochrone_gdf.rename_geometry("geom", inplace=True)
+        # return isochrone_gdf
 
     async def calculate_single_isochrone(
         self, db: AsyncSession, *, obj_in: IsochroneSingle
@@ -133,11 +140,11 @@ class CRUDIsochrone:
         if obj_in.modus == "default" or obj_in.modus == "scenario":
             isochrone = await self.compute_isochrone(db, obj_in=obj_in)
         elif obj_in.modus == "comparison":
-            #Compute default isochrones
+            # Compute default isochrones
             obj_in_default = obj_in.update(modus="default")
             isochrones_default = self.compute_isochrone(db, obj_in=obj_in_default)
 
-            #Compute scenario isochrones
+            # Compute scenario isochrones
             obj_in_scenario = obj_in.update(modus="scenario")
             isochrones_scenario = self.compute_isochrone(db, obj_in=obj_in_scenario)
 

@@ -20,23 +20,23 @@ services:
     networks:
       proxy:
 
-  client:
-    image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:client-${PROJECT_VERSION}
-    build:
-      dockerfile: Dockerfile
-      context: ./app/client
-    container_name: ${COMPOSE_PROJECT_NAME}_client
-    hostname: ${COMPOSE_PROJECT_NAME}_client
-    volumes:
-      - /app/node_modules
-      - ./app/client:/app
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.${COMPOSE_PROJECT_NAME}_client.loadbalancer.server.port=80"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/`)"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.entrypoints=web"
-    networks:
-      proxy:
+  # client:
+  #   image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:client-${PROJECT_VERSION}
+  #   build:
+  #     dockerfile: Dockerfile
+  #     context: ./app/client
+  #   container_name: ${COMPOSE_PROJECT_NAME}_client
+  #   hostname: ${COMPOSE_PROJECT_NAME}_client
+  #   volumes:
+  #     - /app/node_modules
+  #     - ./app/client:/app
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.services.${COMPOSE_PROJECT_NAME}_client.loadbalancer.server.port=80"
+  #     - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/`)"
+  #     - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.entrypoints=web"
+  #   networks:
+  #     proxy:
 
   api:
     image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:api-${PROJECT_VERSION}
