@@ -15,26 +15,20 @@ pytestmark = pytest.mark.asyncio
 async def test_get_users_superuser_me(
     client: AsyncClient, superuser_token_headers: Dict[str, str]
 ) -> None:
-    r = await client.get(
-        f"{settings.API_V1_STR}/users/me", headers=superuser_token_headers
-    )
+    r = await client.get(f"{settings.API_V1_STR}/users/me", headers=superuser_token_headers)
     current_user = r.json()
     assert current_user
     assert current_user["is_active"] is True
-    assert current_user["is_superuser"]
     assert current_user["email"] == settings.FIRST_SUPERUSER
 
 
 async def test_get_users_normal_user_me(
     client: AsyncClient, normal_user_token_headers: Dict[str, str]
 ) -> None:
-    r = await client.get(
-        f"{settings.API_V1_STR}/users/me", headers=normal_user_token_headers
-    )
+    r = await client.get(f"{settings.API_V1_STR}/users/me", headers=normal_user_token_headers)
     current_user = r.json()
     assert current_user
     assert current_user["is_active"] is True
-    assert current_user["is_superuser"] is False
     assert current_user["email"] == settings.EMAIL_TEST_USER
 
 
@@ -45,7 +39,9 @@ async def test_create_user_new_email(
     password = random_lower_string()
     data = {"email": username, "password": password}
     r = await client.post(
-        f"{settings.API_V1_STR}/users/", headers=superuser_token_headers, json=data,
+        f"{settings.API_V1_STR}/users/",
+        headers=superuser_token_headers,
+        json=data,
     )
     assert 200 <= r.status_code < 300
     created_user = r.json()
@@ -63,7 +59,8 @@ async def test_get_existing_user(
     user = await crud.user.create(db, obj_in=user_in)
     user_id = user.id
     r = await client.get(
-        f"{settings.API_V1_STR}/users/{user_id}", headers=superuser_token_headers,
+        f"{settings.API_V1_STR}/users/{user_id}",
+        headers=superuser_token_headers,
     )
     assert 200 <= r.status_code < 300
     api_user = r.json()
@@ -82,7 +79,9 @@ async def test_create_user_existing_username(
     await crud.user.create(db, obj_in=user_in)
     data = {"email": username, "password": password}
     r = await client.post(
-        f"{settings.API_V1_STR}/users/", headers=superuser_token_headers, json=data,
+        f"{settings.API_V1_STR}/users/",
+        headers=superuser_token_headers,
+        json=data,
     )
     created_user = r.json()
     assert r.status_code == 400
@@ -96,7 +95,9 @@ async def test_create_user_by_normal_user(
     password = random_lower_string()
     data = {"email": username, "password": password}
     r = await client.post(
-        f"{settings.API_V1_STR}/users/", headers=normal_user_token_headers, json=data,
+        f"{settings.API_V1_STR}/users/",
+        headers=normal_user_token_headers,
+        json=data,
     )
     assert r.status_code == 400
 
@@ -114,9 +115,7 @@ async def test_retrieve_users(
     user_in2 = UserCreate(email=username2, password=password2)
     await crud.user.create(db, obj_in=user_in2)
 
-    r = await client.get(
-        f"{settings.API_V1_STR}/users/", headers=superuser_token_headers
-    )
+    r = await client.get(f"{settings.API_V1_STR}/users/", headers=superuser_token_headers)
     all_users = r.json()
 
     assert len(all_users) > 1

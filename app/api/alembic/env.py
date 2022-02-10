@@ -7,9 +7,11 @@ from logging.config import fileConfig
 from alembic_utils.replaceable_entity import register_entities
 from sqlalchemy import engine_from_config, pool
 from sqlalchemy.ext.asyncio import AsyncEngine
-from src.core.config import settings
+from sqlmodel import SQLModel
 
 from alembic import context
+from src.core.config import settings
+from src.db.models import *
 from src.db.sql.init_sql import (
     sql_function_entities,
     sql_trigger_entities,
@@ -24,15 +26,8 @@ config = context.config
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-# target_metadata = None
 
-from src.db.models.base import Base  # noqa
-
-target_metadata = Base.metadata
+target_metadata = SQLModel.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -55,6 +50,7 @@ def include_object(object, name, type_, reflected, compare_to):
         return False
     else:
         return True
+
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
@@ -87,7 +83,7 @@ def do_run_migrations(connection):
         target_metadata=target_metadata,
         compare_type=True,
         include_object=include_object,
-        include_schemas=True
+        include_schemas=True,
     )
 
     with context.begin_transaction():
