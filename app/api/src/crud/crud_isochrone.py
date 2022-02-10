@@ -1,4 +1,5 @@
 import io
+import json
 import os
 import re
 import shutil
@@ -10,6 +11,8 @@ from time import time
 from turtle import speed
 from typing import Any
 
+import pandas as pd
+import sqlalchemy
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from geoalchemy2 import Geometry, WKTElement
@@ -18,6 +21,7 @@ from geopandas import GeoDataFrame
 from geopandas.io.sql import read_postgis
 from pandas.io.sql import read_sql
 from shapely.geometry import LineString, MultiPolygon, Point, Polygon
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 
@@ -35,8 +39,8 @@ from src.utils import sql_to_geojson
 
 class CRUDIsochrone:
     async def compute_isochrone(
-        self, db: AsyncSession, *, obj_in: IsochroneSingle
-    ) -> FeatureCollection:
+        self, db: AsyncSession, *, obj_in: IsochroneSingle, return_network=False
+    ):
         obj_in_data = jsonable_encoder(obj_in)
         read_network_sql = text(
             """ 
@@ -77,7 +81,6 @@ class CRUDIsochrone:
         await db.refresh(obj_starting_point)
 
         result = isochrone_cpp(edges_network, [999999999], distance_limits)
-
         isochrones = {"isochrone_calculation_id": [], "geometry": [], "step": []}
 
         for isochrone_result in result.isochrone:
@@ -93,75 +96,87 @@ class CRUDIsochrone:
             name="isochrone_feature", con=legacy_engine, schema="customer", if_exists="append"
         )
 
-        before = datetime.now()
-        full_edge_objs = []
-        partial_edge_objs = []
-        for edge in result.network:
-            edge_obj = {
-                "edge_id": edge.edge,
-                "isochrone_calculation_id": obj_starting_point.id,
-                "cost": max(edge.start_cost, edge.end_cost),
-                "start_cost": edge.start_cost,
-                "end_cost": edge.end_cost,
-                "start_perc": edge.start_perc,
-                "end_perc": edge.end_perc,
-            }
-            full_edge_objs.append(edge_obj)
+        # Casting to NULL if None
+        if obj_in.scenario_id == None:
+            scenario_id_input = "NULL"
+        else:
+            scenario_id_input = obj_in.scenario_id
 
-            if (
-                edge.start_perc not in [0.0, 1.0]
-                or edge.end_perc not in [0.0, 1.0]
-                or edge.edge in [999999999, 999999998]
-            ):
-                edge_obj["partial_edge"] = True
-                edge_obj["geom"] = "Linestring(%s)" % re.sub(
-                    ",([^,]*,?)", r"\1", str(edge.shape)
-                ).replace("[", "").replace("]", "")
-                partial_edge_objs.append(edge_obj)
+        if obj_in.active_upload_ids == None:
+            active_upload_ids_input = "NULL"
+        else:
+            active_upload_ids_input = "ARRAY%s" % obj_in.active_upload_ids
 
-        await db.execute(models.IsochroneEdge.__table__.insert(), full_edge_objs)
-        await db.execute(models.IsochroneEdge.__table__.insert(), partial_edge_objs)
+        # Compute reached opportunities
+        # Passing array did not work using ":" parameter therefore it is currently passed as raw text
+        query_thematic_data_sum = sqlalchemy.text(
+            f"SELECT * FROM basic.thematic_data_sum({obj_in.user_id},{obj_starting_point.id},'{obj_in.modus}',{scenario_id_input},{active_upload_ids_input}) ORDER BY isochrone_feature_step"
+        )
+
+        # Testing
+        # c = query_thematic_data_sum.compile(legacy_engine)
+        # print(str(c))
+        result_opportunities = await db.execute(query_thematic_data_sum)
         await db.commit()
-        print("Calculation took: %s" % (datetime.now() - before).total_seconds())
-        x = 0
-        # for edge in result.network:
 
-        #
+        arr_reached_opportunities = []
+        for i in result_opportunities:
+            arr_reached_opportunities.append(i[2])
 
-        # isochrone_gdf["step"] = isochrone_gdf["step"] // 60  # convert to minutes
+        isochrone_gdf = isochrone_gdf.sort_values(by=["step"])
+        isochrone_gdf.insert(3, "reached_opportunities", arr_reached_opportunities, True)
+        isochrone_gdf.insert(4, "modus", obj_in.modus, True)
+        return_obj = {"isochrones": isochrone_gdf}
 
-        # isochrone_gdf.rename_geometry("geom", inplace=True)
-        # return isochrone_gdf
+        if return_network == True:
+            features = []
+            for edge in result.network:
+                feature = {
+                    "geometry": {"type": "LineString", "coordinates": edge.shape},
+                    "type": "Feature",
+                    "properties": {
+                        "edge_id": edge.edge,
+                        "isochrone_calculation_id": obj_starting_point.id,
+                        "cost": max(edge.start_cost, edge.end_cost),
+                        "start_cost": edge.start_cost,
+                        "end_cost": edge.end_cost,
+                        "start_perc": edge.start_perc,
+                        "end_perc": edge.end_perc,
+                    },
+                }
+                features.append(feature)
+
+            network_feature_collection = {"type": "FeatureCollection", "features": features}
+
+            return_obj["network"] = network_feature_collection
+
+        return return_obj
 
     async def calculate_single_isochrone(
         self, db: AsyncSession, *, obj_in: IsochroneSingle
     ) -> FeatureCollection:
 
         if obj_in.modus == "default" or obj_in.modus == "scenario":
-            isochrone = await self.compute_isochrone(db, obj_in=obj_in)
+            result = await self.compute_isochrone(db, obj_in=obj_in, return_network=False)
+            result = result["isochrones"]
         elif obj_in.modus == "comparison":
             # Compute default isochrones
-            obj_in_default = obj_in.update(modus="default")
-            isochrones_default = self.compute_isochrone(db, obj_in=obj_in_default)
+            obj_in_default = obj_in
+            obj_in_default.modus = "default"
+            isochrones_default = await self.compute_isochrone(
+                db, obj_in=obj_in_default, return_network=False
+            )
 
             # Compute scenario isochrones
-            obj_in_scenario = obj_in.update(modus="scenario")
-            isochrones_scenario = self.compute_isochrone(db, obj_in=obj_in_scenario)
+            obj_in_scenario = obj_in
+            obj_in_scenario.modus = "scenario"
+            isochrones_scenario = await self.compute_isochrone(db, obj_in=obj_in_scenario)
 
-        isochrone_gdf.to_postgis(
-            "isochrones",
-            legacy_engine,
-            if_exists="append",
-            dtype={"geom": Geometry(geometry_type="POLYGON", spatial_index=True, srid=4326)},
-        )
-
-        # refetch the isochrone to get sum pois
-        # sum_pois_sql = f"""
-        # PERFORM thematic_data_sum({isochrone_calculation_id},{obj_in.scenario_id},{obj_in.modus});
-        # SELECT step, population, sum_pois FROM isochrones WHERE objectid = {isochrone_calculation_id} AND userid = {obj_in.user_id};
-        # """
-        # result = await db.execute(sum_pois_sql)
-        return loads(isochrone_gdf.to_json())
+            # Merge default and scenario isochrones
+            result = GeoDataFrame(
+                pd.concat([isochrones_default["isochrones"], isochrones_scenario["isochrones"]])
+            )
+        return result.to_json()
 
     async def calculate_multi_isochrones(
         self, db: AsyncSession, *, obj_in: IsochroneMulti
@@ -208,3 +223,19 @@ class CRUDIsochrone:
 
 
 isochrone = CRUDIsochrone()
+
+
+#     edge_obj = {
+
+#     }
+#     full_edge_objs.append(edge_obj)
+
+#     if edge.start_perc not in [0.0, 1.0] or edge.end_perc not in [0.0, 1.0] or edge.edge in [999999999,999999998]:
+#         edge_obj["partial_edge"] = True
+#         edge_obj["geom"] = 'Linestring(%s)' % re.sub(',([^,]*,?)', r'\1', str(edge.shape)).replace('[', '').replace(']', '')
+#         partial_edge_objs.append(edge_obj)
+
+
+# await db.execute(IsochroneEdgeDB.__table__.insert(), full_edge_objs)
+# await db.execute(IsochroneEdgeDB.__table__.insert(), partial_edge_objs)
+# await db.commit()

@@ -1,5 +1,5 @@
-CREATE OR REPLACE FUNCTION basic.create_artificial_edges(sql_network TEXT, point geometry, snap_distance integer)
-RETURNS TABLE(wid integer, id integer, COST float, reverse_cost float, length_m float, SOURCE integer, target integer, geom geometry)
+CREATE OR REPLACE FUNCTION basic.create_artificial_edges(sql_network TEXT, point geometry, snap_distance integer, new_node_id integer, line_part1_id integer)
+RETURNS TABLE(wid integer, id integer, COST float, reverse_cost float, length_m float, SOURCE integer, target integer, fraction float, geom geometry)
  LANGUAGE plpgsql
 AS $function$
 DECLARE
@@ -9,9 +9,7 @@ DECLARE
 	line_part2 geometry;
 	length_part1 float;
 	length_part2 float;
-	line_part1_id integer; 
 	line_part2_id integer; 
-	max_id integer := 999999999;
 	buffer geometry; 
 BEGIN 
 	
@@ -26,26 +24,29 @@ BEGIN
 	ORDER BY ST_CLOSESTPOINT(geom,$2) <-> $2
   	LIMIT 1;';
    
-	EXECUTE format(sql_start_vertices, sql_network) USING buffer, point, max_id INTO rec;
+	EXECUTE format(sql_start_vertices, sql_network) USING buffer, point, new_node_id INTO rec;
  	
 	line_part1 = ST_LINESUBSTRING(rec.w_geom,0,rec.fraction);
 	line_part2 = ST_LINESUBSTRING(rec.w_geom,rec.fraction,1);
 	length_part1 = ST_Length(line_part1::geography);
 	length_part2 = rec.length_m - length_part1;
-	line_part1_id = max_id;
-	line_part2_id = max_id -1;
+	line_part2_id = new_node_id -1;
 
   	RETURN query 
-	SELECT rec.wid, line_part1_id AS id, 
-	rec.COST * (length_part1 / rec.length_m) AS COST,
-	rec.reverse_cost * (length_part1 / rec.length_m) AS reverse_cost,
-	length_part1, rec.SOURCE, rec.vid AS target, line_part1 AS geom
-	UNION ALL
-	SELECT rec.wid, line_part2_id AS id,
-	rec.COST * (length_part2 / rec.length_m) AS COST,
-	rec.reverse_cost * (length_part2 / rec.length_m) AS reverse_cost,
-	length_part2, rec.vid AS SOURCE, rec.target, line_part2 AS geom; 
-	
+	WITH pair_artificial AS (
+		SELECT rec.wid, line_part1_id AS id, 
+		rec.COST * (length_part1 / rec.length_m) AS COST,
+		rec.reverse_cost * (length_part1 / rec.length_m) AS reverse_cost,
+		length_part1, rec.SOURCE, rec.vid AS target, rec.fraction AS fraction, line_part1 AS geom
+		UNION ALL
+		SELECT rec.wid, line_part2_id AS id,
+		rec.COST * (length_part2 / rec.length_m) AS COST,
+		rec.reverse_cost * (length_part2 / rec.length_m) AS reverse_cost,
+		length_part2, rec.vid AS SOURCE, rec.target, rec.fraction AS fraction, line_part2 AS geom
+	)
+	SELECT * 
+	FROM pair_artificial p
+	WHERE p.cost > 0;
 END 
 $function$;
 

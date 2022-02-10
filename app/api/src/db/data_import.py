@@ -43,13 +43,13 @@ class DataImport:
         table_empty = await crud.check_data.table_is_empty(db, table)
 
         # Check if target table exists and is empty
-        if "Error" in table_empty:
+        if table_empty["Result"] != False and table_empty["Result"] != True:
             print(
                 "[bold red]Error[/bold red]: Target table [bold magenta]%s[/bold magenta] does not exist."
                 % table.__tablename__
             )
             return table_empty
-        elif table_empty["Success"] == False:
+        elif table_empty["Result"] == False:
             print(
                 "[bold red]Error[/bold red]: There is data in table [bold magenta]%s[/bold magenta]. Data will not be uploaded."
                 % table.__tablename__

@@ -35,6 +35,7 @@ class IsochroneBase(BaseModel):
     n: int
     modus: str
     routing_profile: str
+    active_upload_ids: Optional[List[int]] = None
     max_cutoff: Optional[int] = None
 
     @root_validator

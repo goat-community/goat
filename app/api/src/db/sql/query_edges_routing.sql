@@ -8,7 +8,7 @@ DECLARE
 	sql_ways_ids text := '';
 	sql_scenario_id text := '';
 	sql_routing_profile text := '';
-	sql_geom text := format(' AND geom && ST_GEOMFROMTEXT(''%1$s'')', buffer_geom);
+	sql_geom text := format(' AND ST_Intersects(geom, ST_SETSRID(ST_GEOMFROMTEXT(''%1$s''), 4326))', buffer_geom);
 	excluded_class_id text;
 	filter_categories text;
 	transport_mode TEXT := split_part(routing_profile,'_',1);
@@ -19,7 +19,8 @@ DECLARE
 	time_loss_intersections jsonb := '{}'::jsonb;
 	geom_column TEXT = 'geom';
 BEGIN 
-
+	--sql_geom = format(' AND geom && ST_SETSRID(ST_GEOMFROMTEXT(''%1$s''), 4326)', buffer_geom);
+	
 	excluded_class_id = (basic.select_customization('excluded_class_id_' || transport_mode))::text;
 	excluded_class_id = substr(excluded_class_id, 2, length(excluded_class_id) - 2);
 
@@ -68,7 +69,7 @@ BEGIN
 
 
 	sql_select_ways = 
-		'SELECT id::integer, source, target,length_m,'||sql_cost||',death_end,'||quote_ident(geom_column)||'
+		'SELECT id::integer, source, target,length_m,'||sql_cost||',death_end,'||quote_ident(geom_column)||', NULL AS starting_ids, NULL AS starting_geoms
 		FROM basic.edge
 		WHERE class_id NOT IN ('||excluded_class_id||')
     	AND ('||quote_ident(category)||' NOT IN ('||filter_categories||') 

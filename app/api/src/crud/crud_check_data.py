@@ -11,11 +11,11 @@ class CRUDCheckData():
             result = await db.execute(select(ModelDB).limit(1))
         except SQLAlchemyError as e:
             print('[red]%s[/red]' % e)
-            return {"Error": "Problem in finding or accessing table."}        
+            return {"Result": "Error: Problem in finding or accessing table."}        
         
         if result.scalars().first() is None:
-            return {"Success": True}  
+            return {"Result": True}  
         else:
-            return {"Success": False}
+            return {"Result": False}
   
 check_data = CRUDCheckData()
