@@ -31,7 +31,7 @@ def isochrone(
     start_vertices = array(start_vertices).astype(int64)
     distance_limits = array(distance_limits).astype(double)
     isochroneclass = isochrone_cpp.Isochrone()
-    # TODO: Find a way to bypass the type conversion (at least for geom). The geometry array conversion is very expensive
+    # TODO: Find a way to bypass the type conversion.
     result = isochroneclass.calculate(
         network["id"],
         network["source"],

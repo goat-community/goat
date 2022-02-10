@@ -30,6 +30,17 @@ async def calculate_single_isochrone(
     isochrone = await crud.isochrone.calculate_single_isochrone(db=db, obj_in=isochrone_in)
     return isochrone
 
+@router.post("/network", response_model=Any)
+async def calculate_reached_network(
+    *, db: AsyncSession = Depends(deps.get_db), isochrone_in: IsochroneSingle
+) -> Any:
+    """
+    Calculate the reached network for a single isochrone.
+    """
+
+    network = await crud.isochrone.calculate_reached_network(db=db, obj_in=isochrone_in)
+    return network
+
 
 @router.post("/multi", response_model=IsochroneMultiCollection)
 async def calculate_multi_isochrone(

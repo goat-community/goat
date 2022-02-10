@@ -30,13 +30,11 @@ Body of the request
 
 class IsochroneBase(BaseModel):
     user_id: int
+    scenario_id: Optional[int] = 0
     minutes: int
     speed: float
-    n: int
     modus: str
-    routing_profile: str
-    active_upload_ids: Optional[List[int]] = None
-    max_cutoff: Optional[int] = None
+    active_upload_ids: Optional[List[int]] = [0]
 
     @root_validator
     def compute_values(cls, values):
@@ -51,8 +49,9 @@ class IsochroneBase(BaseModel):
 class IsochroneSingle(IsochroneBase):
     x: float
     y: float
-    scenario_id: Optional[int] = None
-
+    n: int
+    routing_profile: str
+    max_cutoff: Optional[int] = None
     class Config:
         schema_extra = {
             "example": {
@@ -64,14 +63,32 @@ class IsochroneSingle(IsochroneBase):
                 "x": 11.5696284,
                 "y": 48.1502132,
                 "routing_profile": "walking_standard",
-                "active_upload_ids": [],
-                "scenario_id": None
+                "active_upload_ids": [0],
+                "scenario_id": 0
                 
             }
         }
 
 
 class IsochroneMulti(IsochroneBase):
+    x: list[float]
+    y: list[float]
+    class Config:
+        schema_extra = {
+            "example": {
+                "user_id": 119,
+                "minutes": 10,
+                "speed": 5,
+                "n": 2,
+                "modus": "default",
+                "x": [11.5696284]
+                "y": [48.1502132]
+                "routing_profile": "walking_standard",
+                "scenario_id": 0
+            }
+        }
+
+class IsochronePoiMulti(IsochroneBase):
     alphashape_parameter: str
     region_type: str
     region: List[str]
@@ -104,35 +121,26 @@ class IsochroneMulti(IsochroneBase):
         }
 
 
-class IsochroneMultiCountPois(BaseModel):
+class IsochroneMultiCountPois(IsochroneBase):
     amenities: List[str]
-    minutes: int
-    modus: str
     region: str
     region_type: str
-    scenario_id: str
-    speed: int
-    user_id: int
 
     class Config:
         schema_extra = {
             "example": {
                 "region_type": "study_area",
-                "region": "POINT(7.8383676846236225 48.02455137958364)",
-                "user_id": 120,
-                "scenario_id": "0",
+                "region": "POINT(11.570115749093093 48.15360025891228)",
+                "user_id": 1,
                 "modus": "default",
                 "minutes": 10,
                 "speed": 5,
                 "amenities": [
                     "nursery",
-                    "kindergarten",
-                    "grundschule",
-                    "realschule",
-                    "werkrealschule",
-                    "gymnasium",
-                    "library",
+                    "kindergarten"
                 ],
+                "scenario_id": 0,
+                "active_upload_ids": [0]
             }
         }
 

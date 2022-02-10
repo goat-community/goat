@@ -17,7 +17,7 @@ from src.db.data_import import DataImport
 async def init_db(db: AsyncSession) -> None:
     customization = await crud.check_data.table_is_empty(db, CustomizationDB)
     
-    if customization["Result"] == True:
+    if customization == True:
         print('INFO: There is no default customization. The default customization will be loaded.')
 
         with open("/app/customization.yaml", 'r') as stream:

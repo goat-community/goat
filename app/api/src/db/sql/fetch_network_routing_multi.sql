@@ -144,7 +144,7 @@ BEGIN
 
 	/*Fetch Network*/
 	RETURN query EXECUTE 
-	'SELECT NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $1, $2
+	'SELECT 1, 1, 1, 1, 1, NULL, NULL, NULL, $1, $2
 	 UNION ALL ' || 
 	basic.query_edges_routing(ST_ASTEXT(union_buffer_network),modus,scenario_id,speed,routing_profile,True) || 
     ' AND id NOT IN (SELECT wid FROM final_artificial_edges)

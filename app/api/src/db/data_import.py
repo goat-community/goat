@@ -3,10 +3,12 @@ from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import select
+from sentry_sdk import capture_exception
 
 from src import crud
 from src.db.models.basic import *
 from src.db.session import async_session, staging_session
+
 
 class DataImport():
     """"Imports prepared data into GOAT database."""
@@ -42,12 +44,12 @@ class DataImport():
         table_empty = await crud.check_data.table_is_empty(db, table)
         
         # Check if target table exists and is empty
-        if table_empty["Result"] != False and table_empty["Result"] != True:
+        if table_empty is None:
             print('[bold red]Error[/bold red]: Target table [bold magenta]%s[/bold magenta] does not exist.' % table.__tablename__)
-            return table_empty
-        elif table_empty["Result"] == False:
+            return
+        elif table_empty == False:
             print('[bold red]Error[/bold red]: There is data in table [bold magenta]%s[/bold magenta]. Data will not be uploaded.' % table.__tablename__)
-            return {"Error": "Table is not empty."}
+            return
     
         # Get all rows from source table
         print('INFO: There is no default data for table [bold magenta]%s[/bold magenta]. Data will be uploaded.' % table.__tablename__)
@@ -56,10 +58,10 @@ class DataImport():
         # Check if there is an error with source table
         try:
             rows = await db_staging.execute(select(table))
-        except SQLAlchemyError as e:
-            print(e)
+        except Exception as e:
+            capture_exception(e)
             print('[bold red]Error[/bold red]: There are no rows in table [bold magenta]%s[/bold magenta] in staging database.' % table.__tablename__)
-            return {"Error": "Problem in finding or accessing table."}   
+            return 
 
         # Loop through rows and insert them into the database
         row_cnt = 0
@@ -83,12 +85,12 @@ class DataImport():
         await db.close()
         await db_staging.close()
         
-        return {"Success": "Table imported"}
+        return {"msg": "Table imported"}
 
     async def import_all_tables(self, db: AsyncSession, db_staging: AsyncSession) -> dict:
         for table in self.required_table_to_restore:
             result = await self.import_table(table, db, db_staging)
-            if "Error" in result:
+            if result == None:
                 print('[bold red]Error[/bold red]: Import stopped for table [bold magenta]%s[/bold magenta]. Bulk importing was stopped.' % table.__tablename__)
                 return {"Error": "Problem in importing table."}
 
