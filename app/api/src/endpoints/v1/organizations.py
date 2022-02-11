@@ -30,7 +30,7 @@ async def create_organization(
     """
     Create new organization.
     """
-    organization = await crud.organization.get_by_name(db, name=organization_in.name)
+    organization = await crud.organization.get_by_key(db, key="name", value=organization_in.name)
     if organization:
         raise HTTPException(
             status_code=400,

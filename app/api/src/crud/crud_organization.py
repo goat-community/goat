@@ -9,11 +9,7 @@ from src.schemas.organization import OrganizationCreate, OrganizationUpdate
 
 
 class CRUDOrganization(CRUDBase[models.Organization, OrganizationCreate, OrganizationUpdate]):
-    async def get_by_name(self, db: AsyncSession, *, name: str) -> Optional[models.Organization]:
-        result = await db.execute(
-            select(models.Organization).filter(models.Organization.name == name)
-        )
-        return result.scalars().first()
+    pass
 
 
 organization = CRUDOrganization(models.Organization)

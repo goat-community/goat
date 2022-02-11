@@ -40,12 +40,12 @@ class UserCustomization(SQLModel, table=True):
     creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
-    user_id: int = Field(
+    user_id: Optional[int] = Field(
         sa_column=Column(
             Integer, ForeignKey("customer.user.id", ondelete="CASCADE"), nullable=False
         )
     )
-    customization_id: int = Field(
+    customization_id: Optional[int] = Field(
         sa_column=Column(
             Integer, ForeignKey("customer.customization.id", ondelete="CASCADE"), nullable=False
         )
