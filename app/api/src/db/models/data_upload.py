@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlmodel import (
     ARRAY,
@@ -25,14 +25,14 @@ class DataUpload(SQLModel, table=True):
     __tablename__ = "data_upload"
     __table_args__ = {"schema": "customer"}
 
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     data_type: str = Field(sa_column=Column(Text, nullable=False))
     upload_type: str = Field(sa_column=Column(Text, nullable=False))
-    upload_grid_ids: List[str] = Field(
+    upload_grid_ids: Optional[List[str]] = Field(
         sa_column=Column(ARRAY(Text()), nullable=False, server_default=text("'{}'::text[]"))
     )
     upload_size: int = Field(nullable=False)
-    creation_date: datetime = Field(
+    creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
     user_id: int = Field(

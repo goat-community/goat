@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from sqlmodel import SQLModel
 
 
-class OrganizationBase(BaseModel):
+class OrganizationBase(SQLModel):
     name: str
 
 

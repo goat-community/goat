@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 class AoiBase(SQLModel):
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     category: str = Field(sa_column=Column(Text, index=True, nullable=False))
     name: Optional[str] = Field(sa_column=Column(Text))
     opening_hours: Optional[str] = Field(sa_column=Column(Text))
@@ -48,7 +48,7 @@ class AoiModified(AoiBase, table=True):
     __tablename__ = "aoi_modified"
     __table_args__ = {"schema": "customer"}
 
-    creation_date: datetime = Field(
+    creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
     scenario_id: Optional[int] = Field(
@@ -67,7 +67,7 @@ class AoiUser(AoiBase, table=True):
     __tablename__ = "aoi_user"
     __table_args__ = {"schema": "customer"}
 
-    creation_date: datetime = Field(
+    creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
     data_upload_id: int = Field(

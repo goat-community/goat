@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from sqlmodel import (
     JSON,
@@ -17,7 +18,7 @@ class StudyAreaGridVisualization(SQLModel, table=True):
     __tablename__ = "study_area_grid_visualization"
     __table_args__ = {"schema": "basic"}
 
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     study_area_id: int = Field(
         sa_column=Column(Integer, ForeignKey("basic.study_area.id"), nullable=False, index=True)
     )
@@ -34,9 +35,9 @@ class UserCustomization(SQLModel, table=True):
     __tablename__ = "user_customization"
     __table_args__ = {"schema": "customer"}
 
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     setting: str = Field(sa_column=Column(JSON, nullable=False))
-    creation_date: datetime = Field(
+    creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
     user_id: int = Field(
@@ -55,17 +56,17 @@ class UserRole(SQLModel, table=True):
     __tablename__ = "user_role"
     __table_args__ = {"schema": "customer"}
 
-    id: int = Field(primary_key=True)
-    user_id: int = Field(default=None, foreign_key="customer.user.id", primary_key=True)
-    role_id: int = Field(default=None, foreign_key="customer.role.id", primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
+    user_id: Optional[int] = Field(default=None, foreign_key="customer.user.id", primary_key=True)
+    role_id: Optional[int] = Field(default=None, foreign_key="customer.role.id", primary_key=True)
 
 
 class UserStudyArea(SQLModel, table=True):
     __tablename__ = "user_study_area"
     __table_args__ = {"schema": "customer"}
 
-    id: int = Field(primary_key=True)
-    creation_date: datetime = Field(
+    id: Optional[int] = Field(primary_key=True)
+    creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
     user_id: int = Field(

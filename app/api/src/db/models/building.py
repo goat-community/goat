@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 class BuildingBase(SQLModel):
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     building: Optional[str] = Field(sa_column=Column(Text))
     amenity: Optional[str] = Field(sa_column=Column(Text))
     residential_status: Optional[str] = Field(sa_column=Column(Text))
@@ -60,7 +60,7 @@ class BuildingModified(BuildingBase, table=True):
     __tablename__ = "building_modified"
     __table_args__ = {"schema": "customer"}
 
-    creation_date: datetime = Field(
+    creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
     building_id: Optional[int] = Field(

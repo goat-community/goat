@@ -11,9 +11,9 @@ class Organization(SQLModel, table=True):
     __tablename__ = "organization"
     __table_args__ = {"schema": "customer"}
 
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     name: Optional[str] = Field(sa_column=Column(Text, nullable=False))
-    creation_date: datetime = Field(
+    creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
 

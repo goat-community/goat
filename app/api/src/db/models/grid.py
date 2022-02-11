@@ -25,7 +25,7 @@ class GridVisualization(SQLModel, table=True):
     __tablename__ = "grid_visualization"
     __table_args__ = {"schema": "basic"}
 
-    id: int = Field(
+    id: Optional[int] = Field(
         sa_column=Column(BigInteger(), primary_key=True, autoincrement=False),
     )
     geom: str = Field(
@@ -51,7 +51,7 @@ class GridCalculation(SQLModel, table=True):
     __tablename__ = "grid_calculation"
     __table_args__ = {"schema": "basic"}
 
-    id: int = Field(
+    id: Optional[int] = Field(
         # TODO: Add next value to the sequence
         sa_column=Column(BigInteger(), primary_key=True, autoincrement=False)
     )
@@ -85,7 +85,7 @@ class GridVisualizationParameter(SQLModel, table=True):
     __tablename__ = "grid_visualization_parameter"
     __table_args__ = {"schema": "basic"}
 
-    id: int = Field(
+    id: Optional[int] = Field(
         sa_column=Column(
             BigInteger,
             ForeignKey("basic.grid_visualization.id"),

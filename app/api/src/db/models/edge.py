@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 class EdgeBase(SQLModel):
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     class_id: int = Field(nullable=False)
     length_m: float = Field(sa_column=Column(Float(53), nullable=False))
     name: Optional[str] = Field(sa_column=Column(Text))
@@ -121,7 +121,7 @@ class WayModified(EdgeBase, table=True):
 
     way_type: Optional[str] = Field(sa_column=Column(Text))
     edit_type: Optional[str] = Field(sa_column=Column(Text))
-    creation_date: datetime = Field(
+    creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
     edge_id: Optional[int] = Field(index=True, default=None, foreign_key="basic.edge.id")

@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 class PoiBase(SQLModel):
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     category: str = Field(sa_column=Column(Text(), nullable=False, index=True))
     name: Optional[str] = Field(sa_column=Column(Text))
     street: Optional[str] = Field(sa_column=Column(Text))
@@ -60,7 +60,7 @@ class PoiModified(PoiBase, table=True):
     uid: str = Field(sa_column=Column(Text, nullable=False, index=True))
     edit_type: str = Field(sa_column=Column(Text, nullable=False, index=True))
     table_name: str = Field(sa_column=Column(Text, nullable=False, index=True))
-    creation_date: datetime = Field(
+    creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
     scenario_id: Optional[int] = Field(
@@ -80,7 +80,7 @@ class PoiUser(PoiBase, table=True):
     __table_args__ = {"schema": "customer"}
 
     uid: str = Field(sa_column=Column(Text, nullable=False, index=True))
-    creation_date: datetime = Field(
+    creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
     data_upload_id: int = Field(

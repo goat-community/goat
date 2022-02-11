@@ -36,5 +36,40 @@ async def create_organization(
             status_code=400,
             detail="The organization with this name already exists in the system.",
         )
-    organization = await crud.organization.create(db, obj_in=jsonable_encoder(organization_in))
+    organization = await crud.organization.create(db, obj_in=organization_in)
+    return organization
+
+
+@router.put("/{organization_id}", response_model=models.Organization)
+async def update_organization(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    organization_id: int,
+    organization_in: schemas.OrganizationUpdate = Body(..., example=request_examples["update"]),
+) -> Any:
+    """
+    Update an organization.
+    """
+    organization = await crud.organization.get(db, id=organization_id)
+    if not organization:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    organization = await crud.organization.update(
+        db, db_obj=organization, obj_in=jsonable_encoder(organization_in)
+    )
+    return organization
+
+
+@router.delete("/{organization_id}", response_model=models.Organization)
+async def delete_organization(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    organization_id: int,
+) -> Any:
+    """
+    Delete an organization.
+    """
+    organization = await crud.organization.get(db, id=organization_id)
+    if not organization:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    organization = await crud.organization.remove(db, id=organization_id)
     return organization
