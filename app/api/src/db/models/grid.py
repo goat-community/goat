@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from .heatmap import ReachedEdgeHeatmapGridCalculation, ReachedPoiHeatmap
     from .study_area import StudyArea
 
-from ._study_area_grid_visualization import StudyAreaGridVisualization
+from ._link_model import StudyAreaGridVisualization
 
 
 class GridVisualization(SQLModel, table=True):
@@ -26,7 +26,6 @@ class GridVisualization(SQLModel, table=True):
     __table_args__ = {"schema": "basic"}
 
     id: int = Field(
-        # TODO: Add next value to the sequence
         sa_column=Column(BigInteger(), primary_key=True, autoincrement=False),
     )
     geom: str = Field(
@@ -37,7 +36,7 @@ class GridVisualization(SQLModel, table=True):
     )
 
     study_areas: List["StudyArea"] = Relationship(
-        back_populates="GridVisualization", link_model=StudyAreaGridVisualization
+        back_populates="grid_visualizations", link_model=StudyAreaGridVisualization
     )
     grid_calculations: List["GridCalculation"] = Relationship(back_populates="grid_visualization")
     grid_visualization_parameters: List["GridVisualizationParameter"] = Relationship(

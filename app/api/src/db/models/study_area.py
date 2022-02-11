@@ -14,8 +14,9 @@ from sqlmodel import (
 
 if TYPE_CHECKING:
     from .grid import GridVisualization
+    from .user import User
 
-from ._study_area_grid_visualization import StudyAreaGridVisualization
+from ._link_model import StudyAreaGridVisualization, UserStudyArea
 
 
 class StudyArea(SQLModel, table=True):
@@ -33,9 +34,10 @@ class StudyArea(SQLModel, table=True):
     )
 
     grid_visualizations: List["GridVisualization"] = Relationship(
-        back_populates="StudyArea", link_model=StudyAreaGridVisualization
+        back_populates="study_areas", link_model=StudyAreaGridVisualization
     )
     sub_study_areas: List["SubStudyArea"] = Relationship(back_populates="study_area")
+    users: List["User"] = Relationship(back_populates="study_areas", link_model=UserStudyArea)
 
 
 Index("idx_study_area_geom", StudyArea.__table__.c.geom, postgresql_using="gist")

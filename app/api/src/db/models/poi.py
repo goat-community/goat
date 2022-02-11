@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
 from geoalchemy2 import Geometry
-from sqlalchemy.orm import backref
 from sqlmodel import (
     JSON,
     Column,

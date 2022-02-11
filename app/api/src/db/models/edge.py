@@ -22,6 +22,7 @@ from sqlmodel import (
 
 if TYPE_CHECKING:
     from .heatmap import ReachedEdgeHeatmap
+    from .isochrone import IsochroneEdge
     from .node import Node
     from .scenario import Scenario
 
@@ -73,12 +74,6 @@ class EdgeBase(SQLModel):
             nullable=False,
         )
     )
-    edge_id: Optional[int] = Field(index=True, default=None, foreign_key="basic.edge.id")
-    scenario_id: Optional[int] = Field(
-        sa_column=Column(
-            Integer, ForeignKey("customer.scenario.id", ondelete="CASCADE"), index=True
-        )
-    )
 
 
 class Edge(EdgeBase, table=True):
@@ -89,17 +84,32 @@ class Edge(EdgeBase, table=True):
     coordinates_3857: Optional[str] = Field(sa_column=Column(JSON, nullable=False))
     source: int = Field(index=True, nullable=False, foreign_key="basic.node.id")
     target: int = Field(index=True, nullable=False, foreign_key="basic.node.id")
-
-    node_source: Optional["Node"] = Relationship(back_populates="edges_source")
-    node_target: Optional["Node"] = Relationship(back_populates="edges_target")
-    reached_edge_heatmaps: List["ReachedEdgeHeatmap"] = Relationship(back_populates="edge")
-    scenario: Optional["Scenario"] = Relationship(back_populates="edges")
-    children: List["Edge"] = Relationship(
-        sa_relationship_kwargs=dict(
-            cascade="all",
-            backref=backref("parent", remote_side="Edge.id"),
+    edge_id: Optional[int] = Field(index=True, default=None, foreign_key="basic.edge.id")
+    scenario_id: Optional[int] = Field(
+        sa_column=Column(
+            Integer, ForeignKey("customer.scenario.id", ondelete="CASCADE"), index=True
         )
     )
+
+    node_source: "Node" = Relationship(
+        sa_relationship_kwargs={"primaryjoin": "Edge.source==Node.id", "lazy": "joined"}
+    )
+    node_target: "Node" = Relationship(
+        sa_relationship_kwargs={"primaryjoin": "Edge.target==Node.id", "lazy": "joined"}
+    )
+    reached_edge_heatmaps: List["ReachedEdgeHeatmap"] = Relationship(back_populates="edge")
+    scenario: Optional["Scenario"] = Relationship(back_populates="edges")
+    isochrone_edges: List["IsochroneEdge"] = Relationship(back_populates="edge")
+    # TODO: FIX children parent relations (reminder: edge_id foreign key might be wrong)
+    # children: List["Edge"] = Relationship(
+    #     sa_relationship_kwargs=dict(
+    #         cascade="all",
+    #         backref=backref("edge", remote_side="Edge.id"),
+    #     )
+    # )
+
+    # def append(self, child: "Edge"):
+    #     self.children.append(child)
 
 
 Index("idx_edge_geom", Edge.__table__.c.geom, postgresql_using="gist")
@@ -114,14 +124,24 @@ class WayModified(EdgeBase, table=True):
     creation_date: datetime = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
-    scenario: Optional["Scenario"] = Relationship(back_populates="ways_modified")
-
-    children: List["WayModified"] = Relationship(
-        sa_relationship_kwargs=dict(
-            cascade="all",
-            backref=backref("parent", remote_side="WayModified.id"),
+    edge_id: Optional[int] = Field(index=True, default=None, foreign_key="basic.edge.id")
+    scenario_id: Optional[int] = Field(
+        sa_column=Column(
+            Integer, ForeignKey("customer.scenario.id", ondelete="CASCADE"), index=True
         )
     )
+
+    scenario: Optional["Scenario"] = Relationship(back_populates="ways_modified")
+    # TODO: FIX children parent relations (reminder: edge_id foreign key might be wrong)
+    # children: List["WayModified"] = Relationship(
+    #     sa_relationship_kwargs=dict(
+    #         cascade="all",
+    #         backref=backref("parent", remote_side="WayModified.id"),
+    #     )
+    # )
+
+    # def append(self, child: "WayModified"):
+    #     self.children.append(child)
 
 
 Index("idx_way_modified_geom", WayModified.__table__.c.geom, postgresql_using="gist")

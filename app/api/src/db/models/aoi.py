@@ -54,8 +54,9 @@ class AoiModified(AoiBase, table=True):
     scenario_id: Optional[int] = Field(
         sa_column=Column(
             Integer, ForeignKey("customer.scenario.id", ondelete="CASCADE"), index=True
-        ),
+        )
     )
+
     scenario: Optional["Scenario"] = Relationship(back_populates="aois_modified")
 
 
@@ -77,6 +78,7 @@ class AoiUser(AoiBase, table=True):
             nullable=False,
         )
     )
+
     data_upload: Optional["DataUpload"] = Relationship(back_populates="aois_user")
 
 

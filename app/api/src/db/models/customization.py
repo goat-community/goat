@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlmodel import (
     JSON,
@@ -13,6 +13,9 @@ from sqlmodel import (
 
 if TYPE_CHECKING:
     from .role import Role
+    from .user import User
+
+from ._link_model import UserCustomization
 
 
 class Customization(SQLModel, table=True):
@@ -29,3 +32,6 @@ class Customization(SQLModel, table=True):
     )
 
     role: "Role" = Relationship(back_populates="customizations")
+    users: List["User"] = Relationship(
+        back_populates="customizations", link_model=UserCustomization
+    )

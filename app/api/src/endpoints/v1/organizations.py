@@ -5,13 +5,14 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud, schemas
+from src.db import models
 from src.endpoints import deps
 from src.schemas.organization import request_examples
 
 router = APIRouter()
 
 
-@router.get("/", response_model=Any)
+@router.get("/", response_model=List[models.Organization])
 async def read_organizations(db: AsyncSession = Depends(deps.get_db)) -> Any:
     """
     Retrieve organizations.
@@ -20,7 +21,7 @@ async def read_organizations(db: AsyncSession = Depends(deps.get_db)) -> Any:
     return organizations
 
 
-@router.post("/", response_model=Any)
+@router.post("/", response_model=models.Organization)
 async def create_organization(
     *,
     db: AsyncSession = Depends(deps.get_db),

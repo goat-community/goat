@@ -42,5 +42,5 @@ class DataUpload(SQLModel, table=True):
     )
 
     user: "User" = Relationship(back_populates="data_uploads")
-    pois_user: "PoiUser" = Relationship(back_populates="data_uploads")
-    aois_user: "AoiUser" = Relationship(back_populates="data_uploads")
+    pois_user: List["PoiUser"] = Relationship(back_populates="data_upload")
+    aois_user: List["AoiUser"] = Relationship(back_populates="data_upload")
