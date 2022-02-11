@@ -22,7 +22,7 @@ class Node(SQLModel, table=True):
     __tablename__ = "node"
     __table_args__ = {"schema": "basic"}
 
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     osm_id: Optional[int] = Field(sa_column=Column(BigInteger()))
     cnt: Optional[int]
     class_ids: Optional[List[int]] = Field(sa_column=Column(ARRAY(Integer)))

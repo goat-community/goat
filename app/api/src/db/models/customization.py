@@ -22,7 +22,7 @@ class Customization(SQLModel, table=True):
     __tablename__ = "customization"
     __table_args__ = {"schema": "customer"}
 
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     type: str = Field(sa_column=Column(Text, nullable=False))
     default_setting: str = Field(sa_column=Column(JSON, nullable=False))
     role_id: int = Field(

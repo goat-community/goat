@@ -27,13 +27,13 @@ class IsochroneCalculation(SQLModel, table=True):
     __tablename__ = "isochrone_calculation"
     __table_args__ = {"schema": "customer"}
 
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     calculation_type: str = Field(sa_column=Column(Text, nullable=False))
     starting_point: str = Field(sa_column=Column(Text, nullable=False))
     routing_profile: str = Field(sa_column=Column(Text, nullable=False))
     speed: float = Field(sa_column=Column(Float(53), nullable=False))
     modus: str = Field(sa_column=Column(Text, nullable=False))
-    creation_date: datetime = Field(
+    creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
     parent_id: Optional[int] = Field(
@@ -60,7 +60,7 @@ class IsochroneFeature(SQLModel, table=True):
     __tablename__ = "isochrone_feature"
     __table_args__ = {"schema": "customer"}
 
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     step: int = Field(nullable=False)
     reached_opportunities: Optional[str] = Field(sa_column=Column(JSON))
     geom: str = Field(
@@ -90,7 +90,7 @@ class IsochroneEdge(SQLModel, table=True):
     __tablename__ = "isochrone_edge"
     __table_args__ = {"schema": "customer"}
 
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     cost: float = Field(sa_column=Column(Float(53), nullable=False))
     start_cost: float = Field(sa_column=Column(Float(53), nullable=False))
     end_cost: float = Field(sa_column=Column(Float(53), nullable=False))

@@ -30,14 +30,14 @@ class User(SQLModel, table=True):
     __tablename__ = "user"
     __table_args__ = {"schema": "customer"}
 
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     name: str = Field(sa_column=Column(Text, nullable=False))
     surname: str = Field(sa_column=Column(Text, nullable=False))
     email: str = Field(sa_column=Column(Text, nullable=False))
     hashed_password: str = Field(sa_column=Column(Text, nullable=False))
     is_active: Optional[bool] = Field(default=True)
     storage: Optional[int]
-    creation_date: datetime = Field(
+    creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
     organization_id: int = Field(

@@ -33,10 +33,11 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return result.scalars().all()
 
     async def create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> ModelType:
-        db.add(obj_in)
+        db_obj = self.model.from_orm(obj_in)
+        db.add(db_obj)
         await db.commit()
-        await db.refresh(obj_in)
-        return obj_in
+        await db.refresh(db_obj)
+        return db_obj
 
     async def update(
         self,

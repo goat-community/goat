@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 class PopulationBase(SQLModel):
-    id: int = Field(primary_key=True)
+    id: Optional[int] = Field(primary_key=True)
     population: Optional[float] = Field(sa_column=Column(Float(53)))
     geom: str = Field(
         sa_column=Column(
@@ -50,7 +50,7 @@ class PopulationModified(PopulationBase, table=True):
     __tablename__ = "population_modified"
     __table_args__ = {"schema": "customer"}
 
-    creation_date: datetime = Field(
+    creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
     building_modified_id: int = Field(
