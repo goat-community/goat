@@ -1,7 +1,6 @@
 from ._base_class import Base
 from ._link_model import (
     StudyAreaGridVisualization,
-    UserCustomization,
     UserRole,
     UserStudyArea,
 )

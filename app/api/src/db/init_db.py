@@ -47,4 +47,7 @@ async def init_db(db: AsyncSession) -> None:
         # imported_table = await DataImport().import_all_tables(db, staging_session())
         # user = await crud.user.create(db, obj_in=user_in)  # noqa: F841
 
+
+
+
 asyncio.run(init_db(async_session()))
