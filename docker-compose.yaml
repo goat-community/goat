@@ -87,7 +87,7 @@ services:
       - POSTGRES_DBNAME=${COMPOSE_PROJECT_NAME}
       - DATABASE_URL=postgis://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${COMPOSE_PROJECT_NAME}_db:5432/${COMPOSE_PROJECT_NAME}
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql/data
       - ./app/database:/opt
       - ./app/database/db:/opt/scripts/db
       - ./app/config:/opt/config
