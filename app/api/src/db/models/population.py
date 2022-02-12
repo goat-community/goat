@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Optional
 
 from geoalchemy2 import Geometry
 from sqlmodel import (
-    JSON,
     Column,
     DateTime,
     Field,
@@ -15,14 +14,14 @@ from sqlmodel import (
     SQLModel,
     text,
 )
-
+from sqlalchemy.dialects.postgresql import JSONB
 if TYPE_CHECKING:
     from .building import Building, BuildingModified
     from .scenario import Scenario
 
 
 class PopulationBase(SQLModel):
-    id: Optional[int] = Field(primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     population: Optional[float] = Field(sa_column=Column(Float(53)))
     geom: str = Field(
         sa_column=Column(
@@ -36,7 +35,7 @@ class Population(PopulationBase, table=True):
     __tablename__ = "population"
     __table_args__ = {"schema": "basic"}
 
-    demography: Optional[dict] = Field(sa_column=Column(JSON))
+    demography: Optional[dict] = Field(sa_column=Column(JSONB))
     building_id: Optional[int] = Field(
         sa_column=Column(Integer, ForeignKey("basic.building.id", ondelete="CASCADE"), index=True),
     )

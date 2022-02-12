@@ -25,7 +25,7 @@ class DataUpload(SQLModel, table=True):
     __tablename__ = "data_upload"
     __table_args__ = {"schema": "customer"}
 
-    id: Optional[int] = Field(primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     data_type: str = Field(sa_column=Column(Text, nullable=False))
     upload_type: str = Field(sa_column=Column(Text, nullable=False))
     upload_grid_ids: Optional[List[str]] = Field(

@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Optional
 
 from geoalchemy2 import Geometry
 from sqlmodel import (
-    JSON,
     Column,
     DateTime,
     Field,
@@ -15,19 +14,19 @@ from sqlmodel import (
     Text,
     text,
 )
-
+from sqlalchemy.dialects.postgresql import JSONB
 if TYPE_CHECKING:
     from .data_upload import DataUpload
     from .scenario import Scenario
 
 
 class AoiBase(SQLModel):
-    id: Optional[int] = Field(primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     category: str = Field(sa_column=Column(Text, index=True, nullable=False))
     name: Optional[str] = Field(sa_column=Column(Text))
     opening_hours: Optional[str] = Field(sa_column=Column(Text))
     wheelchair: Optional[str] = Field(sa_column=Column(Text))
-    tags: Optional[dict] = Field(sa_column=Column(JSON))
+    tags: Optional[dict] = Field(sa_column=Column(JSONB))
     geom: str = Field(
         sa_column=Column(
             Geometry(geometry_type="MultiPolygon", srid="4326", spatial_index=False),

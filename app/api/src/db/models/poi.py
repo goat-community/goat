@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, List, Optional
 
 from geoalchemy2 import Geometry
 from sqlmodel import (
-    JSON,
     Column,
     DateTime,
     Field,
@@ -16,7 +15,7 @@ from sqlmodel import (
     UniqueConstraint,
     text,
 )
-
+from sqlalchemy.dialects.postgresql import JSONB
 if TYPE_CHECKING:
     from .data_upload import DataUpload
     from .heatmap import ReachedPoiHeatmap
@@ -24,7 +23,7 @@ if TYPE_CHECKING:
 
 
 class PoiBase(SQLModel):
-    id: Optional[int] = Field(primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     category: str = Field(sa_column=Column(Text(), nullable=False, index=True))
     name: Optional[str] = Field(sa_column=Column(Text))
     street: Optional[str] = Field(sa_column=Column(Text))
@@ -32,7 +31,7 @@ class PoiBase(SQLModel):
     zipcode: Optional[str] = Field(sa_column=Column(Text))
     opening_hours: Optional[str] = Field(sa_column=Column(Text))
     wheelchair: Optional[str] = Field(sa_column=Column(Text))
-    tags: Optional[dict] = Field(sa_column=Column(JSON))
+    tags: Optional[dict] = Field(sa_column=Column(JSONB))
     geom: str = Field(
         sa_column=Column(
             Geometry(geometry_type="Point", srid="4326", spatial_index=False),

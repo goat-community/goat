@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 class BuildingBase(SQLModel):
-    id: Optional[int] = Field(primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     building: Optional[str] = Field(sa_column=Column(Text))
     amenity: Optional[str] = Field(sa_column=Column(Text))
     residential_status: Optional[str] = Field(sa_column=Column(Text))

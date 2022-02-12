@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 class EdgeBase(SQLModel):
-    id: Optional[int] = Field(primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     class_id: int = Field(nullable=False)
     length_m: float = Field(sa_column=Column(Float(53), nullable=False))
     name: Optional[str] = Field(sa_column=Column(Text))

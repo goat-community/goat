@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlmodel import Column, Field, Relationship, SQLModel, Text
+from sqlmodel import Column, Field, Relationship, SQLModel, Text, Integer
 
 from src.db.models.user import UserRole
 
@@ -15,7 +15,7 @@ class Role(SQLModel, table=True):
     __tablename__ = "role"
     __table_args__ = {"schema": "customer"}
 
-    id: Optional[int] = Field(primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(sa_column=Column(Text, nullable=False))
 
     customizations: List["Customization"] = Relationship(back_populates="role")
