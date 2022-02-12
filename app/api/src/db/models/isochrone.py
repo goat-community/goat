@@ -62,7 +62,7 @@ class IsochroneFeature(SQLModel, table=True):
 
     id: Optional[int] = Field(primary_key=True)
     step: int = Field(nullable=False)
-    reached_opportunities: Optional[str] = Field(sa_column=Column(JSON))
+    reached_opportunities: Optional[dict] = Field(sa_column=Column(JSON))
     geom: str = Field(
         sa_column=Column(
             Geometry(geometry_type="MultiPolygon", srid="4326", spatial_index=False),

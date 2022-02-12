@@ -32,7 +32,7 @@ class PoiBase(SQLModel):
     zipcode: Optional[str] = Field(sa_column=Column(Text))
     opening_hours: Optional[str] = Field(sa_column=Column(Text))
     wheelchair: Optional[str] = Field(sa_column=Column(Text))
-    tags: Optional[str] = Field(sa_column=Column(JSON))
+    tags: Optional[dict] = Field(sa_column=Column(JSON))
     geom: str = Field(
         sa_column=Column(
             Geometry(geometry_type="Point", srid="4326", spatial_index=False),

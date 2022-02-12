@@ -36,7 +36,7 @@ class Population(PopulationBase, table=True):
     __tablename__ = "population"
     __table_args__ = {"schema": "basic"}
 
-    demography: Optional[str] = Field(sa_column=Column(JSON))
+    demography: Optional[dict] = Field(sa_column=Column(JSON))
     building_id: Optional[int] = Field(
         sa_column=Column(Integer, ForeignKey("basic.building.id", ondelete="CASCADE"), index=True),
     )

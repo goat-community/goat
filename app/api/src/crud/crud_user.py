@@ -61,7 +61,8 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
 
     async def create_role(self, db: AsyncSession, *, name: str) -> models.Role:
         role = await db.execute(select(models.Role).filter(models.Role.name == name))
-        if not role.scalars().first():
+        role = role.scalars().first()
+        if not role:
             role = models.Role(name=name)
             db.add(role)
             await db.commit()

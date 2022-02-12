@@ -14,7 +14,7 @@ from src.utils import send_new_account_email
 router = APIRouter()
 
 
-@router.get("/", response_model=List[Any])
+@router.get("/", response_model=List[models.User])
 async def read_users(
     db: AsyncSession = Depends(deps.get_db), skip: int = 0, limit: int = 100
 ) -> Any:
@@ -25,7 +25,7 @@ async def read_users(
     return users
 
 
-@router.post("/", response_model=Any)
+@router.post("/", response_model=models.User)
 async def create_user(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -35,11 +35,11 @@ async def create_user(
     """
     Create new user.
     """
-    user = await crud.user.get_by_email(db, email=user_in.email)
+    user = await crud.user.get_by_key(db, key="email", value=user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
-            detail="The user with this username already exists in the system.",
+            detail="The user with this email already exists in the system.",
         )
     user = await crud.user.create(db, obj_in=user_in)
     if settings.EMAILS_ENABLED and user_in.email:

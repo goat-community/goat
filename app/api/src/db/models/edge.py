@@ -81,7 +81,7 @@ class Edge(EdgeBase, table=True):
     __table_args__ = {"schema": "basic"}
 
     length_3857: float = Field(sa_column=Column(Float(53), nullable=False))
-    coordinates_3857: Optional[str] = Field(sa_column=Column(JSON, nullable=False))
+    coordinates_3857: Optional[dict] = Field(sa_column=Column(JSON, nullable=False))
     source: int = Field(index=True, nullable=False, foreign_key="basic.node.id")
     target: int = Field(index=True, nullable=False, foreign_key="basic.node.id")
     edge_id: Optional[int] = Field(index=True, default=None, foreign_key="basic.edge.id")

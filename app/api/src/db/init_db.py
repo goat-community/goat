@@ -9,7 +9,8 @@ from src.db import models
 from src.db.data_import import DataImport
 from src.db.models import Base  # noqa: F401
 from src.db.session import staging_session
-
+from src.db.session import async_session
+import asyncio 
 # make sure all SQL Alchemy models are imported (src.db.base) before initializing DB
 # otherwise, SQL Alchemy might fail to initialize relationships properly
 # for more details: https://github.com/tiangolo/full-stack-fastapi-postgresql/issues/28
@@ -21,7 +22,7 @@ async def init_db(db: AsyncSession) -> None:
     if customization == True:
         print('INFO: There is no default customization. The default customization will be loaded.')
 
-    if customization["Success"] == True:
+    if customization == True:
         print("INFO: There is no default customization. The default customization will be loaded.")
 
         with open("/app/customization.yaml", "r") as stream:
@@ -45,3 +46,8 @@ async def init_db(db: AsyncSession) -> None:
 
         # imported_table = await DataImport().import_all_tables(db, staging_session())
         # user = await crud.user.create(db, obj_in=user_in)  # noqa: F841
+
+
+
+
+asyncio.run(init_db(async_session()))

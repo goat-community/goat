@@ -8,9 +8,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def init() -> None:
-    async with async_session() as db:
-        await init_db(db)
+# async def init() -> None:
+#     async with async_session() as db:
+#         await init_db(db)
 
 def main() -> None:
     logger.info("Creating initial data")
@@ -20,3 +20,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+

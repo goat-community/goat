@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
 from sqlmodel import (
-    JSON,
     Column,
     DateTime,
     Field,
@@ -15,7 +14,7 @@ from sqlmodel import (
 )
 
 if TYPE_CHECKING:
-    from .customization import Customization
+    from .customization import Customization, UserCustomization
     from .data_upload import DataUpload
     from .isochrone import IsochroneCalculation
     from .organization import Organization
@@ -23,7 +22,7 @@ if TYPE_CHECKING:
     from .scenario import Scenario
     from .study_area import StudyArea
 
-from ._link_model import UserCustomization, UserRole, UserStudyArea
+from ._link_model import UserRole, UserStudyArea
 
 
 class User(SQLModel, table=True):
@@ -52,6 +51,5 @@ class User(SQLModel, table=True):
     study_areas: List["StudyArea"] = Relationship(back_populates="users", link_model=UserStudyArea)
     data_uploads: List["DataUpload"] = Relationship(back_populates="user")
     isochrone_calculations: List["IsochroneCalculation"] = Relationship(back_populates="user")
-    customizations: List["Customization"] = Relationship(
-        back_populates="users", link_model=UserCustomization
-    )
+
+    user_customizations: List["UserCustomization"] = Relationship(back_populates="users")
