@@ -38,7 +38,7 @@ class User(SQLModel, table=True):
     __tablename__ = "user"
     __table_args__ = {"schema": "customer"}
 
-    id: Optional[int] = Field(primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(sa_column=Column(Text, nullable=False))
     surname: str = Field(sa_column=Column(Text, nullable=False))
     email: EmailStr = Field(sa_column=Column(Text, nullable=False))

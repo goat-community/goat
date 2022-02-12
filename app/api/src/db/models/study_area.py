@@ -10,6 +10,7 @@ from sqlmodel import (
     SmallInteger,
     SQLModel,
     Text,
+    Integer
 )
 
 if TYPE_CHECKING:
@@ -23,7 +24,7 @@ class StudyArea(SQLModel, table=True):
     __tablename__ = "study_area"
     __table_args__ = {"schema": "basic"}
 
-    id: Optional[int] = Field(primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(sa_column=Column(Text, nullable=False))
     population: int = Field(nullable=False)
     geom: str = Field(
@@ -47,7 +48,7 @@ class SubStudyArea(SQLModel, table=True):
     __tablename__ = "sub_study_area"
     __table_args__ = {"schema": "basic"}
 
-    id: Optional[int] = Field(primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(sa_column=Column(Text, nullable=False))
     population: int = Field(nullable=False)
     default_building_levels: Optional[int] = Field(sa_column=Column(SmallInteger))

@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, List, Optional
 
 from sqlmodel import (
-    JSON,
     Column,
     Field,
     ForeignKey,
@@ -13,6 +12,7 @@ from sqlmodel import (
     text
 )
 from datetime import datetime
+from sqlalchemy.dialects.postgresql import JSONB
 
 if TYPE_CHECKING:
     from .role import Role
@@ -24,9 +24,9 @@ class Customization(SQLModel, table=True):
     __tablename__ = "customization"
     __table_args__ = {"schema": "customer"}
 
-    id: Optional[int] = Field(primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     type: str = Field(sa_column=Column(Text, nullable=False))
-    default_setting: dict = Field(sa_column=Column(JSON, nullable=False))
+    default_setting: dict = Field(sa_column=Column(JSONB, nullable=False))
     role_id: int = Field(
         sa_column=Column(
             Integer, ForeignKey("customer.role.id", ondelete="CASCADE"), nullable=False
@@ -41,8 +41,8 @@ class UserCustomization(SQLModel, table=True):
     __tablename__ = "user_customization"
     __table_args__ = {"schema": "customer"}
 
-    id: Optional[int] = Field(primary_key=True)
-    setting: dict = Field(sa_column=Column(JSON, nullable=False))
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
+    setting: dict = Field(sa_column=Column(JSONB, nullable=False))
     creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )

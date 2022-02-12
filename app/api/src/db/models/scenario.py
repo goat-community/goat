@@ -30,7 +30,7 @@ class Scenario(SQLModel, table=True):
     __tablename__ = "scenario"
     __table_args__ = {"schema": "customer"}
 
-    id: Optional[int] = Field(primary_key=True)
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     scenario_name: str = Field(sa_column=Column(Text, nullable=False))
     deleted_ways: Optional[List[int]] = Field(
         sa_column=Column(ARRAY(Integer()), server_default=text("'{}'::int[]"))
