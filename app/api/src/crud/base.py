@@ -4,6 +4,7 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import RelationshipProperty, selectinload
 
 from src.db.models._base_class import Base
 
@@ -22,14 +23,44 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         self.model = model
 
-    async def get(self, db: AsyncSession, id: Any) -> Optional[ModelType]:
-        result = await db.execute(select(self.model).filter(self.model.id == id))
+    def extend_statement(self, statement: select, *, extra_fields: List[Any] = []) -> select:
+        select_in_load = None
+        for field in extra_fields:
+            if (
+                hasattr(field, "property")
+                and isinstance(field.property, RelationshipProperty)
+                and hasattr(self.model, field.key)
+            ):
+                if select_in_load is None:
+                    select_in_load = selectinload(field)
+                else:
+                    select_in_load.selectinload(field)
+        if select_in_load is not None:
+            statement = statement.options(select_in_load)
+        return statement
+
+    async def get(
+        self, db: AsyncSession, id: Any, extra_fields: List[Any] = []
+    ) -> Optional[ModelType]:
+        statement = select(self.model).where(self.model.id == id)
+        statement = self.extend_statement(statement, extra_fields=extra_fields)
+        result = await db.execute(statement)
+        return result.scalars().first()
+
+    async def get_by_key(
+        self, db: AsyncSession, *, key: str, value: Any, extra_fields: List[Any] = []
+    ) -> Optional[ModelType]:
+        statement = select(self.model).where(getattr(self.model, key) == value)
+        statement = self.extend_statement(statement)
+        result = await db.execute(statement)
         return result.scalars().first()
 
     async def get_multi(
-        self, db: AsyncSession, *, skip: int = 0, limit: int = 100
+        self, db: AsyncSession, *, skip: int = 0, limit: int = 100, extra_fields: List[Any] = []
     ) -> List[ModelType]:
-        result = await db.execute(select(self.model).offset(skip).limit(limit))
+        statement = select(self.model).offset(skip).limit(limit)
+        statement = self.extend_statement(statement, extra_fields=extra_fields)
+        result = await db.execute(statement)
         return result.scalars().all()
 
     async def create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> ModelType:

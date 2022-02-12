@@ -17,7 +17,7 @@ async def read_organizations(db: AsyncSession = Depends(deps.get_db)) -> Any:
     """
     Retrieve organizations.
     """
-    organizations = await crud.organization.get_multi(db)
+    organizations = await crud.organization.get_multi(db, extra_fields=[models.Organization.users])
     return organizations
 
 
@@ -30,7 +30,7 @@ async def create_organization(
     """
     Create new organization.
     """
-    organization = await crud.organization.get_by_name(db, name=organization_in.name)
+    organization = await crud.organization.get_by_key(db, key="name", value=organization_in.name)
     if organization:
         raise HTTPException(
             status_code=400,
@@ -73,3 +73,21 @@ async def delete_organization(
         raise HTTPException(status_code=404, detail="Organization not found")
     organization = await crud.organization.remove(db, id=organization_id)
     return organization
+
+
+@router.get("/{organization_id}/users", response_model=List[models.User])
+async def get_users_for_organization(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    organization_id: int,
+) -> Any:
+    """
+    Get all users for an organization.
+    """
+    organization = await crud.organization.get(
+        db, id=organization_id, extra_fields=[models.Organization.users]
+    )
+    if not organization:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    users = organization.users
+    return users
