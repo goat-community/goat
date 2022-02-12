@@ -14,7 +14,7 @@ from src.utils import send_new_account_email
 router = APIRouter()
 
 
-@router.get("/", response_model=List[models.User])
+@router.get("/", response_model=List[models.User], response_model_exclude={"hashed_password"})
 async def read_users(
     db: AsyncSession = Depends(deps.get_db), skip: int = 0, limit: int = 100
 ) -> Any:
@@ -25,7 +25,7 @@ async def read_users(
     return users
 
 
-@router.post("/", response_model=models.User)
+@router.post("/", response_model=models.User, response_model_exclude={"hashed_password"})
 async def create_user(
     *,
     db: AsyncSession = Depends(deps.get_db),

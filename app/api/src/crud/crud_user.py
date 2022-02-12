@@ -10,10 +10,6 @@ from src.schemas.user import UserCreate, UserUpdate
 
 
 class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
-    async def get_by_email(self, db: AsyncSession, *, email: str) -> Optional[models.User]:
-        result = await db.execute(select(models.User).filter(models.User.email == email))
-        return result.scalars().first()
-
     async def create(self, db: AsyncSession, *, obj_in: UserCreate) -> models.User:
         db_obj = models.User(
             email=obj_in.email,
@@ -52,7 +48,7 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
     async def authenticate(
         self, db: AsyncSession, *, email: str, password: str
     ) -> Optional[models.User]:
-        user = await self.get_by_email(db, email=email)
+        user = await self.get_by_key(db, key="email", value=email)
         if not user:
             return None
         if not verify_password(password, user.hashed_password):
