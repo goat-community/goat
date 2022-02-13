@@ -25,24 +25,24 @@ if TYPE_CHECKING:
 
 from ._link_model import UserRole, UserStudyArea
 
-# email: Optional[EmailStr] = None
-# organization_id: int = None
-# is_active: Optional[bool] = True
-# name: Optional[str] = None
-# surname: Optional[str] = None
-# roles: List[Any] = []
-# study_areas: List[Any] = []
+
+class UserBase(SQLModel):
+    name: str = Field(sa_column=Column(Text, nullable=False))
+    surname: str = Field(sa_column=Column(Text, nullable=False))
+    email: EmailStr = Field(sa_column=Column(Text, nullable=False))
+    organization_id: int = Field(
+        sa_column=Column(
+            Integer, ForeignKey("customer.organization.id", ondelete="CASCADE"), nullable=False
+        )
+    )
 
 
-class User(SQLModel, table=True):
+class User(UserBase, table=True):
     __tablename__ = "user"
     __table_args__ = {"schema": "customer"}
 
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
-    name: str = Field(sa_column=Column(Text, nullable=False))
-    surname: str = Field(sa_column=Column(Text, nullable=False))
-    email: EmailStr = Field(sa_column=Column(Text, nullable=False))
-    hashed_password: str = Field(sa_column=Column(Text, nullable=False))
+    hashed_password: Optional[str] = Field(sa_column=Column(Text, nullable=False))
     is_active: Optional[bool] = Field(default=True)
     storage: Optional[int]
     creation_date: Optional[datetime] = Field(

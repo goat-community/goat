@@ -5,6 +5,7 @@ from src.endpoints.v1 import (
     layers,
     login,
     organizations,
+    roles,
     scenarios,
     users,
     utils,
@@ -14,6 +15,7 @@ api_router = APIRouter()
 api_router.include_router(login.router, tags=["Login"])
 
 api_router.include_router(organizations.router, prefix="/organizations", tags=["Organizations"])
+api_router.include_router(roles.router, prefix="/roles", tags=["Roles"])
 api_router.include_router(users.router, prefix="/users", tags=["Users"])
 api_router.include_router(utils.router, prefix="/utils", tags=["Utils"])
 

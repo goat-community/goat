@@ -1,4 +1,12 @@
 superuser:
+  # Client settings UI
+  tittle: 'GOAT - Geo Open Accessibility Tool'
+  baseColor:
+    primary: '#2BB381'
+    secondary: '#249c70'
+  controlsColor: '#26AE3F'
+  logo: './src/assets/img/logo_white.png'
+
   excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
   categories_no_foot: ['use_sidepath','no']
   excluded_class_id_cycling: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
@@ -10,6 +18,8 @@ superuser:
   snap_distance_network: 200 #meters
   one_meter_degree: '0.000009' 
   heatmap_sensitivities: [150000,200000,250000,300000,350000,400000,450000]
+
+    
   
 user:
   poi_group:
