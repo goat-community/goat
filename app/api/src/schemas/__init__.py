@@ -14,6 +14,7 @@ from .isochrone import (
 from .item import Item, ItemCreate, ItemInDB, ItemUpdate
 from .msg import Msg
 from .organization import OrganizationCreate, OrganizationUpdate
+from .role import RoleBase, RoleCreate, RoleUpdate
 from .scenario import ScenarioBase, ScenarioImport
 from .token import Token, TokenPayload
-from .user import User, UserCreate, UserInDB, UserUpdate
+from .user import UserBase, UserCreate, UserUpdate

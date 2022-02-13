@@ -1,6 +1,7 @@
+from enum import Enum
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlmodel import Column, Field, Relationship, SQLModel, Text, Integer
+from sqlmodel import Column, Field, Integer, Relationship, SQLModel, Text
 
 from src.db.models.user import UserRole
 

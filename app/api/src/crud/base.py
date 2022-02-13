@@ -24,19 +24,13 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
 
     def extend_statement(self, statement: select, *, extra_fields: List[Any] = []) -> select:
-        select_in_load = None
         for field in extra_fields:
             if (
                 hasattr(field, "property")
                 and isinstance(field.property, RelationshipProperty)
                 and hasattr(self.model, field.key)
             ):
-                if select_in_load is None:
-                    select_in_load = selectinload(field)
-                else:
-                    select_in_load.selectinload(field)
-        if select_in_load is not None:
-            statement = statement.options(select_in_load)
+                statement = statement.options(selectinload(field))
         return statement
 
     async def get(

@@ -1,42 +1,51 @@
-from typing import Any, List, Optional
+from typing import List, Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import EmailStr
 
-
-# Shared properties
-class UserBase(BaseModel):
-    email: Optional[EmailStr] = None
-    organization_id: int = None
-    is_active: Optional[bool] = True
-    name: Optional[str] = None
-    surname: Optional[str] = None
-    roles: List[Any] = []
-    study_areas: List[Any] = []
+from src.db import models
 
 
-# Properties to receive via API on creation
+class UserBase(models.UserBase):
+    roles: List[str] = []
+    study_areas: List[int] = []
+
+
 class UserCreate(UserBase):
     password: str
-    email: EmailStr
 
 
-# Properties to receive via API on update
 class UserUpdate(UserBase):
+    name: Optional[str] = None
+    surname: Optional[str] = None
+    email: EmailStr = None
     password: Optional[str] = None
+    organization_id: Optional[int] = None
+    roles: Optional[List[str]] = None
+    study_areas: Optional[List[int]] = None
 
 
-class UserInDBBase(UserBase):
-    id: Optional[int] = None
-
-    class Config:
-        orm_mode = True
-
-
-# Additional properties to return via API
-class User(UserInDBBase):
-    pass
-
-
-# Additional properties stored in DB
-class UserInDB(UserInDBBase):
-    hashed_password: str
+"""
+Body of the request
+"""
+request_examples = {
+    "create": {
+        "name": "John",
+        "surname": "Doe",
+        "email": "john.doe@email.com",
+        "password": "secret",
+        "roles": ["superuser", "user"],
+        "study_areas": [1],
+        "organization_id": 1,
+        "is_active": True,
+    },
+    "update": {
+        "name": "Kevin",
+        "surname": "Cross",
+        "email": "kevin.cross@email.com",
+        "password": "updated_secret",
+        "roles": ["user"],
+        "study_areas": [],
+        "organization_id": 1,
+        "is_active": False,
+    },
+}

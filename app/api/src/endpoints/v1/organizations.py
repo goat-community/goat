@@ -12,15 +12,6 @@ from src.schemas.organization import request_examples
 router = APIRouter()
 
 
-@router.get("/", response_model=List[models.Organization])
-async def read_organizations(db: AsyncSession = Depends(deps.get_db)) -> Any:
-    """
-    Retrieve organizations.
-    """
-    organizations = await crud.organization.get_multi(db, extra_fields=[models.Organization.users])
-    return organizations
-
-
 @router.post("/", response_model=models.Organization)
 async def create_organization(
     *,
@@ -38,6 +29,37 @@ async def create_organization(
         )
     organization = await crud.organization.create(db, obj_in=organization_in)
     return organization
+
+
+@router.get("/", response_model=List[models.Organization])
+async def read_organizations(db: AsyncSession = Depends(deps.get_db)) -> Any:
+    """
+    Retrieve organizations.
+    """
+    organizations = await crud.organization.get_multi(db, extra_fields=[models.Organization.users])
+    return organizations
+
+
+@router.get(
+    "/{organization_id}/users",
+    response_model=List[models.User],
+    response_model_exclude={"hashed_password"},
+)
+async def get_users_for_organization(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    organization_id: int,
+) -> Any:
+    """
+    Get all users for an organization.
+    """
+    organization = await crud.organization.get(
+        db, id=organization_id, extra_fields=[models.Organization.users]
+    )
+    if not organization:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    users = organization.users
+    return users
 
 
 @router.put("/{organization_id}", response_model=models.Organization)
@@ -73,21 +95,3 @@ async def delete_organization(
         raise HTTPException(status_code=404, detail="Organization not found")
     organization = await crud.organization.remove(db, id=organization_id)
     return organization
-
-
-@router.get("/{organization_id}/users", response_model=List[models.User])
-async def get_users_for_organization(
-    *,
-    db: AsyncSession = Depends(deps.get_db),
-    organization_id: int,
-) -> Any:
-    """
-    Get all users for an organization.
-    """
-    organization = await crud.organization.get(
-        db, id=organization_id, extra_fields=[models.Organization.users]
-    )
-    if not organization:
-        raise HTTPException(status_code=404, detail="Organization not found")
-    users = organization.users
-    return users

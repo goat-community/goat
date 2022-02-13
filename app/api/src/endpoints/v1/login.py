@@ -40,7 +40,7 @@ async def login_access_token(
     }
 
 
-@router.post("/login/test-token", response_model=schemas.User)
+@router.post("/login/test-token", response_model=models.User)
 async def test_token(current_user: models.User = Depends(deps.get_current_user)) -> Any:
     """
     Test access token
@@ -53,7 +53,7 @@ async def recover_password(email: str, db: AsyncSession = Depends(deps.get_db)) 
     """
     Password Recovery
     """
-    user = await crud.user.get_by_email(db, email=email)
+    user = await crud.user.get_by_key(db, key="email", value=email)
 
     if not user:
         raise HTTPException(
@@ -77,7 +77,7 @@ async def reset_password(
     email = verify_password_reset_token(token)
     if not email:
         raise HTTPException(status_code=400, detail="Invalid token")
-    user = await crud.user.get_by_email(db, email=email)
+    user = await crud.user.get_by_key(db, key="email", value=email)
     if not user:
         raise HTTPException(
             status_code=404,
