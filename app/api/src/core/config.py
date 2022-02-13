@@ -119,9 +119,13 @@ class Settings(BaseSettings):
             values.get("SMTP_HOST") and values.get("SMTP_PORT") and values.get("EMAILS_FROM_EMAIL")
         )
 
-    EMAIL_TEST_USER: EmailStr = "test@example.com"  # type: ignore
-    FIRST_SUPERUSER: EmailStr
+    FIRST_ORGANIZATION: str
+    FIRST_SUPERUSER_NAME: str
+    FIRST_SUPERUSER_SURNAME: str
     FIRST_SUPERUSER_PASSWORD: str
+    FIRST_SUPERUSER_EMAIL: str
+    FIRST_SUPERUSER_STORAGE: int
+
     USERS_OPEN_REGISTRATION: bool = False
     # Tile / Table config
     TILE_RESOLUTION: int = 4096
