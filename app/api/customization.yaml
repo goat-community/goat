@@ -41,6 +41,7 @@ superuser:
     minutes: 10
     speed: 5
     steps: 2
+  # Routing settings
   routing:
     default: "walking"
     options:
@@ -65,7 +66,6 @@ superuser:
             speed: 3
           - value: electric
             speed: 6
-
   # Scenario settings
   scenario:
     pois:
@@ -92,6 +92,10 @@ superuser:
           - "residential"
           - "commercial"
           - "public"
+  # Settings coming from study_area
+  layers:
+  extras:
+
 user:
   poi_group:
     education:

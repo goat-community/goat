@@ -65,8 +65,8 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
         return user.is_active
 
     def is_superuser(self, user: models.User) -> bool:
-        role = user.roles.filter(models.Role.name == "superuser").scalars().first()
-        if role:
+        role = [r for r in user.roles if r.name == "superuser"]
+        if len(role) > 0:
             return True
         return False
 

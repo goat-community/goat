@@ -2,7 +2,7 @@ from ._base_class import Base
 from ._link_model import StudyAreaGridVisualization, UserRole, UserStudyArea
 from .aoi import Aoi, AoiBase, AoiModified, AoiUser
 from .building import Building, BuildingBase, BuildingModified
-from .customization import Customization
+from .customization import Customization, UserCustomization
 from .data_upload import DataUpload
 from .edge import Edge, EdgeBase, WayModified
 from .grid import GridCalculation, GridVisualization, GridVisualizationParameter
