@@ -1,32 +1,103 @@
 superuser:
-  # Client settings UI
-  tittle: 'GOAT - Geo Open Accessibility Tool'
-  baseColor:
-    primary: '#2BB381'
-    secondary: '#249c70'
-  controlsColor: '#26AE3F'
-  logo: './src/assets/img/logo_white.png'
-
-  excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
-  categories_no_foot: ['use_sidepath','no']
-  excluded_class_id_cycling: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
-  categories_no_bicycle: ['use_sidepath','no']
+  # Backend settings
+  excluded_class_id_walking:
+    [0, 101, 102, 103, 104, 105, 106, 107, 501, 502, 503, 504, 701, 801]
+  categories_no_foot: ["use_sidepath", "no"]
+  excluded_class_id_cycling:
+    [0, 101, 102, 103, 104, 105, 106, 107, 501, 502, 503, 504, 701, 801]
+  categories_no_bicycle: ["use_sidepath", "no"]
   #categories_sidewalk_no_foot: ["separate"] #Used for visualization purpose only
   cycling_crossings_delay:
     delay_1: 15 #seconds
-    delay_2: 30 #seconds 
+    delay_2: 30 #seconds
   snap_distance_network: 200 #meters
-  one_meter_degree: '0.000009' 
-  heatmap_sensitivities: [150000,200000,250000,300000,350000,400000,450000]
+  one_meter_degree: "0.000009"
+  heatmap_sensitivities:
+    [150000, 200000, 250000, 300000, 350000, 400000, 450000]
+  # Client settings UI
+  app_ui:
+    tittle: "GOAT - Geo Open Accessibility Tool"
+    base_color:
+      primary: "#2BB381"
+      secondary: "#249c70"
+    controls_color: "#26AE3F"
+    logo: "https://assets.goat.plan4better.de/icons/logo_white.png"
+    layer_tree:
+      group_icons:
+        pois: "fas fa-map-marker"
+        buildings_landuse: "fas fa-home"
+        street_level_quality: "fas fa-road"
+        environmental_quality: "fas fa-leaf"
+        additional_data: "more"
+  # Map settings
+  map:
+    projection_code: "EPSG:3857"
+    min_zoom: 10
+    max_zoom: 21
+    zoom: 13
+  # Isochrone settings
+  isochrone:
+    calculation_type: "single"
+    minutes: 10
+    speed: 5
+    steps: 2
+  routing:
+    default: "walking"
+    options:
+      walking:
+        default: standard
+        options:
+          - value: standard
+            speed: 5
+          - value: elderly
+            speed: 3
+      cycling:
+        default: standard
+        options:
+          - value: standard
+            speed: 15
+          - value: pedelec
+            speed: 23
+      walking_wheelchair:
+        default: standard
+        options:
+          - value: standard
+            speed: 3
+          - value: electric
+            speed: 6
 
-    
-  
+  # Scenario settings
+  scenario:
+    pois:
+      list_values:
+        amenity: "*"
+    ways:
+      list_values:
+        way_type:
+          - "bridge"
+          - "road"
+        surface:
+          - "asphalt"
+          - "cobblestone"
+          - "fine_gravel"
+          - "gravel"
+          - "grass"
+          - "unpaved"
+        wheelchair:
+          - "yes"
+          - "no"
+    buildings:
+      list_values:
+        building:
+          - "residential"
+          - "commercial"
+          - "public"
 user:
   poi_group:
     education:
       icon: "https://assets.goat.plan4better.de/icons/pois/groups/education.png"
       children:
-        nursery: 
+        nursery:
           icon: https://assets.goat.plan4better.de/icons/pois/categories/nursery.png"
           default_sensitivity: 300000
         kindergarten:
@@ -35,7 +106,7 @@ user:
         grundschule:
           icon: "https://assets.goat.plan4better.de/icons/pois/categories/grundschule.png"
           default_sensitivity: 300000
-        hauptschule: 
+        hauptschule:
           icon: "https://assets.goat.plan4better.de/icons/pois/categories/hauptschule.png"
           default_sensitivity: 300000
         realschule:
@@ -52,14 +123,14 @@ user:
           default_sensitivity: 300000
         fast_food:
           icon: "https://assets.goat.plan4better.de/icons/pois/categories/fast_food.png"
-          default_sensitivity: 300000          
+          default_sensitivity: 300000
         bar:
           icon: "https://assets.goat.plan4better.de/icons/pois/categories/bar.png"
           default_sensitivity: 300000
         pub:
           icon: "https://assets.goat.plan4better.de/icons/pois/categories/pub.png"
           default_sensitivity: 300000
-        cafe: 
+        cafe:
           icon: "https://assets.goat.plan4better.de/icons/pois/categories/cafe.png"
           default_sensitivity: 300000
         nightclub:
@@ -72,7 +143,7 @@ user:
           icon: "https://assets.goat.plan4better.de/icons/pois/categories/bus_stop.png"
           default_sensitivity: 300000
           multiple_entrance: true
-        tram_stop: 
+        tram_stop:
           icon: "https://assets.goat.plan4better.de/icons/pois/categories/tram_stop.png"
           default_sensitivity: 300000
           multiple_entrance: true
@@ -165,15 +236,15 @@ user:
         hotel:
           icon: "https://assets.goat.plan4better.de/icons/pois/categories/hotel.png"
           default_sensitivity: 300000
-        hostel: 
+        hostel:
           icon: "https://assets.goat.plan4better.de/icons/pois/categories/hostel.png"
           default_sensitivity: 300000
         playground:
           icon: "https://assets.goat.plan4better.de/icons/pois/categories/playground.png"
-          default_sensitivity: 300000  
+          default_sensitivity: 300000
     sport:
       icon: "https://assets.goat.plan4better.de/icons/pois/groups/sport.png"
-      children: 
+      children:
         gym:
           icon: "https://assets.goat.plan4better.de/icons/pois/categories/gym.png"
           default_sensitivity: 300000
@@ -183,19 +254,13 @@ user:
         yoga:
           icon: "https://assets.goat.plan4better.de/icons/pois/categories/yoga.png"
           default_sensitivity: 300000
-  
   aoi_group:
     nature:
       icon: "https://assets.goat.plan4better.de/icons/pois/groups/nature.png"
-      children: 
+      children:
         park:
           icon: "htpps://assets.goat.plan4better.de/icons/pois/groups/park.png"
         forest:
           icon: "https://assets.goat.plan4better.de/icons/pois/groups/forest.png"
         lake:
           icon: "htpps://assets.goat.plan4better.de/icons/pois/groups/lake.png"
-
-
-
-
-      
