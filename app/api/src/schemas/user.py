@@ -37,6 +37,7 @@ request_examples = {
         "study_areas": [1],
         "organization_id": 1,
         "is_active": True,
+        "storage": 500000
     },
     "update": {
         "name": "Kevin",
@@ -47,5 +48,6 @@ request_examples = {
         "study_areas": [],
         "organization_id": 1,
         "is_active": False,
+        "storage": 1500000
     },
 }
