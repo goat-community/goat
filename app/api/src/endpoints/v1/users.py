@@ -123,3 +123,25 @@ async def delete_user(
         )
     user = await crud.user.remove(db, id=user_id)
     return user
+
+
+# get user customization settings
+# @router.get("/{user_id}/settings", response_model=schemas.UserSettings)
+# async def get_user_settings(
+#     *,
+#     db: AsyncSession = Depends(deps.get_db),
+#     user_id: int,
+#     current_user: models.User = Depends(deps.get_current_active_user),
+# ) -> Any:
+#     """
+#     Get user settings by id.
+#     """
+#     if user_id != current_user.id or not crud.user.is_superuser(current_user):
+#         raise HTTPException(status_code=400, detail="The user cannot get another user's settings")
+
+#     customizations =
+#     user = await crud.user.get(db, id=user_id, extra_fields=[models.User.user_customizations])
+
+# /api/v1/users/{user_id}/settings
+
+# 1- Get all customization from customzion
