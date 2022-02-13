@@ -17,8 +17,10 @@ import asyncio
 
 
 async def init_db(db: AsyncSession) -> None:
-    customization = await crud.check_data.table_is_empty(db, models.Customization)
-    
+    customization_exists = await crud.check_data.table_is_empty(db, models.Customization)
+    role_exists = await crud.check_data.table_is_empty(db, models.Role)
+    user_exists = await crud.check_data.table_is_empty(db, models.User)
+
     if customization == True:
         print('INFO: There is no default customization. The default customization will be loaded.')
 

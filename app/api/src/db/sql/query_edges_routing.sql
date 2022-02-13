@@ -1,5 +1,4 @@
 /*Produces the sql query as text to fetch the network*/
-DROP FUNCTION IF EXISTS basic.query_edges_routing;
 CREATE OR REPLACE FUNCTION basic.query_edges_routing(buffer_geom text, modus_input text, scenario_id_input integer, speed_input float, routing_profile TEXT, coordinates_only BOOLEAN)
  RETURNS text
  LANGUAGE plpgsql

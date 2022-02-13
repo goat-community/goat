@@ -37,10 +37,7 @@ from src.utils import sql_to_geojson
 
 
 class CRUDIsochrone:
-    async def compute_isochrone(
-        self, db: AsyncSession, *, obj_in: IsochroneSingle, return_network=False
-    ):
-        obj_in_data = jsonable_encoder(obj_in)
+    async def read_network(self, db, isochrone_type, obj_in, obj_in_data): 
         read_network_sql = text(
         """ 
         SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
@@ -64,6 +61,13 @@ class CRUDIsochrone:
                 {"geometry": Point(edges_network.iloc[-1:]["geom"].values[0][0])}, 
                 crs="EPSG:3857", index=[0]).to_crs("EPSG:4326").to_wkt()["geometry"].iloc[0]
         )
+        return edges_network, starting_id, starting_point_geom, distance_limits
+
+    async def compute_isochrone(
+        self, db: AsyncSession, *, obj_in: IsochroneSingle, return_network=False
+    ):
+        obj_in_data = jsonable_encoder(obj_in)
+        edges_network, starting_id, starting_point_geom, distance_limits = await self.read_network(db, 'single', obj_in, obj_in_data)
 
         obj_starting_point = models.IsochroneCalculation(
             calculation_type="single_isochrone",
@@ -145,7 +149,7 @@ class CRUDIsochrone:
         read_network_sql = text(
         """ 
         SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
-        FROM basic.fetch_network_routing(ARRAY[:x],ARRAY[:y], :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
+        FROM basic.fetch_network_routing_multi(ARRAY[:x],ARRAY[:y], :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
         """
         )
         edges_network = read_sql(read_network_sql, legacy_engine, params=obj_in_data)
@@ -161,22 +165,6 @@ class CRUDIsochrone:
             )
         )
         
-        starting_point_geom = str(GeoDataFrame(
-                {"geometry": Point(edges_network.iloc[-1:]["geom"].values[0][0])}, 
-                crs="EPSG:3857", index=[0]).to_crs("EPSG:4326").to_wkt()["geometry"].iloc[0]
-        )
-
-        obj_starting_point = IsochroneCalculationDB(
-            calculation_type="single_isochrone",
-            user_id=obj_in.user_id,
-            scenario_id=None if obj_in.scenario_id == 0 else obj_in.scenario_id,
-            starting_point=starting_point_geom,
-            routing_profile=obj_in.routing_profile,
-            speed=obj_in.speed,
-            modus=obj_in.modus,
-            parent_id=None,
-        )
-
         db.add(obj_starting_point)
         await db.commit()
         await db.refresh(obj_starting_point)
