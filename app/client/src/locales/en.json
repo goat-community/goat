@@ -484,9 +484,9 @@
               "title": "Elderly",
               "tooltip": "Routing with reduced walking speed"
             },
-            "safe_night": {
-              "title": "Safe night",
-              "tooltip": "Routing excluding unlit paths"
+            "comfort": {
+              "title": "Comfort",
+              "tooltip": "Routing including atractive parameters"
             }
           }
         },
@@ -500,6 +500,10 @@
             "pedelec": {
               "title": "Pedelec",
               "tooltip": "Pedelec"
+            },
+            "comfort": {
+              "title": "Comfort",
+              "tooltip": "Routing including atractive parameters"
             }
           }
         },
@@ -513,6 +517,10 @@
             "electric": {
               "title": "Electric",
               "tooltip": "Electric"
+            },
+            "comfort": {
+              "title": "Comfort",
+              "tooltip": "Routing including atractive parameters"
             }
           }
         }
