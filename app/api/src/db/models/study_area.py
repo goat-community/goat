@@ -1,24 +1,26 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 from geoalchemy2 import Geometry
+from pydantic import validator
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import (
     Column,
     Field,
     Float,
     Index,
+    Integer,
     Relationship,
     SmallInteger,
     SQLModel,
     Text,
-    Integer
 )
-from sqlalchemy.dialects.postgresql import JSONB
 
 if TYPE_CHECKING:
     from .grid import GridVisualization
     from .user import User
 
 from ._link_model import StudyAreaGridVisualization, UserStudyArea
+from ._pydantic_geometry import dump_geom
 
 
 class StudyArea(SQLModel, table=True):
@@ -29,7 +31,7 @@ class StudyArea(SQLModel, table=True):
     name: str = Field(sa_column=Column(Text, nullable=False))
     population: int = Field(nullable=False)
     default_setting: dict = Field(sa_column=Column(JSONB, nullable=False))
-    geom: str = Field(
+    geom: Dict = Field(
         sa_column=Column(
             Geometry(geometry_type="MultiPolygon", srid="4326", spatial_index=False),
             nullable=False,
@@ -41,6 +43,8 @@ class StudyArea(SQLModel, table=True):
     )
     sub_study_areas: List["SubStudyArea"] = Relationship(back_populates="study_area")
     users: List["User"] = Relationship(back_populates="study_areas", link_model=UserStudyArea)
+
+    _validate_geom = validator("geom", pre=True, allow_reuse=True)(dump_geom)
 
 
 Index("idx_study_area_geom", StudyArea.__table__.c.geom, postgresql_using="gist")

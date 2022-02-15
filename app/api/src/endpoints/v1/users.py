@@ -60,6 +60,23 @@ async def read_user_me(
     return current_user
 
 
+# get user study areas
+@router.get(
+    "/me/study-areas-list",
+    response_model=List[models.StudyArea],
+    response_model_exclude={"geom", "default_setting", "population"},
+)
+async def read_user_study_areas(
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get user study areas.
+    """
+    user = await crud.user.get(db, id=current_user.id, extra_fields=[models.User.study_areas])
+    return user.study_areas
+
+
 @router.get("/{user_id}", response_model=models.User, response_model_exclude={"hashed_password"})
 async def read_user_by_id(
     user_id: int,
