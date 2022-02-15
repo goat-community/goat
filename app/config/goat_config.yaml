@@ -180,7 +180,7 @@ DATA_REFINEMENT_VARIABLES:
       segregated_no: '0'
     wac_sidewalk:
       width: '0.5'
-    wac_obstable:
+    wac_obstacle:
       light: '0'
       strong: '0.5'
     wac_speed_limit:
@@ -199,7 +199,7 @@ DATA_REFINEMENT_VARIABLES:
       segregated_no: '0'
     cys_sidewalk:
       width: '0'
-    cys_obstable:
+    cys_obstacle:
       light: '0'
       strong: '0.3'
     cys_speed_limit:
@@ -218,7 +218,7 @@ DATA_REFINEMENT_VARIABLES:
       segregated_no: '0.3'
     cyc_sidewalk:
       width: '0'
-    cyc_obstable:
+    cyc_obstacle:
       light: '0'
       strong: '0.3'
     cyc_speed_limit:
@@ -237,7 +237,7 @@ DATA_REFINEMENT_VARIABLES:
       segregated_no: '0'
     whs_sidewalk:
       width: '0.5'
-    whs_obstable:
+    whs_obstacle:
       light: '0.5'
       strong: '0.75'
     whs_speed_limit:
@@ -256,7 +256,7 @@ DATA_REFINEMENT_VARIABLES:
       segregated_no: '0'
     whc_sidewalk:
       width: '0.5'
-    whc_obstable:
+    whc_obstacle:
       light: '0.5'
       strong: '0.75'
     whc_speed_limit:
