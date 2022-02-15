@@ -30,7 +30,13 @@ BEGIN
 	
 	IF routing_profile = 'cycling_pedelec' THEN 
 		cost_function = 'ebike';
-	ELSE
+	ELSE if routing_profile = 'walking_comfort' THEN
+		cost_function = 'walk_comfort'
+	ELSE if routing_profile = 'cycling_comfort' THEN
+		cost_function = 'cyc_comfort'
+	ELSE if routing_profile = 'walking_wheelchair_comfort' THEN
+		cost_function = 'whe_comfort'
+	ELSE	
 		cost_function = transport_mode;
 	END IF;
 
@@ -44,7 +50,25 @@ BEGIN
 			   ELSE (length_m*(1+COALESCE(impedance_surface,0))::float)/%1$s END AS cost,
 			   CASE WHEN crossing IS NOT NULL THEN (''%2$s''::jsonb ->> (''delay_'' || crossing_delay_category))::integer + ((length_m*(1+-greatest(-COALESCE(rs_imp,0),0)+COALESCE(impedance_surface,0))::float)/%1$s)
 			   ELSE (length_m*(1+COALESCE(impedance_surface,0))::float)/%1$s END AS reverse_cost'
-	) ->> cost_function;
+	'walk_comfort','length_m*(1+COALESCE(impedance_was_type_road,0)+COALESCE(impedance_was_peak_hour,0)
+								+COALESCE(impedance_wac_peak_hour,0)+COALESCE(impedance_wac_type_road,0)
+								+COALESCE(impedance_was_cyclepath,0)+COALESCE(impedance_wac_cyclepath,0)
+								+COALESCE(impedance_was_obstacle,0)+COALESCE(impedance_wac_obstacle,0)
+								+COALESCE(impedance_was_sidewalk,0)+COALESCE(impedance_wac_sidewalk,0)
+								+COALESCE(impedance_was_speed_limit,0)+COALESCE(impedance_wac_speed_limit,0))::float/%1$s END AS cost',
+	'cyc_comfort','length_m*(1+COALESCE(impedance_cys_type_road)+COALESCE(impedance_cyc_type_road,0)
+								+COALESCE(impedance_cys_peak_hour,0)+COALESCE(impedance_cyc_peak_hour,0)
+								+COALESCE(impedance_cys_cyclepath,0)+COALESCE(impedance_cyc_cyclepath,0)
+								+COALESCE(impedance_cys_sidewalk,0)+COALESCE(impedance_cyc_sidewalk,0)
+								+COALESCE(impedance_cys_obstacle,0)+COALESCE(impedance_cyc_obstacle,0)
+								+COALESCE(impedance_cys_speed_limit,0)+COALESCE(impedance_cyc_speed_limit,0))::float)/%1$s END AS cost',
+	'whe_comfort','length_m*(1+COALESCE(impedance_whs_type_road,0)+COALESCE(impedance_whc_type_road,0)
+								+COALESCE(impedance_whs_peak_hour,0)+COALESCE(impedance_whc_peak_hour,0)
+								+COALESCE(impedance_whs_cyclepath,0)+COALESCE(impedance_whc_cyclepath,0)
+								+COALESCE(impedance_whs_sidewalk,0)+COALESCE(impedance_whc_sidewalk,0)
+								+COALESCE(impedance_whs_obstacle,0)+COALESCE(impedance_whc_obstacle,0)
+								+COALESCE(impedance_whs_speed_limit)+COALESCE(impedance_whc_speed_limit))::float)/%1$s END AS cost'
+) ->> cost_function;
 
 	sql_cost = format(sql_cost, speed_input, time_loss_intersections::text);
 
