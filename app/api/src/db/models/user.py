@@ -35,6 +35,9 @@ class UserBase(SQLModel):
             Integer, ForeignKey("customer.organization.id", ondelete="CASCADE"), nullable=False
         )
     )
+    active_study_area_id: int = Field(
+        sa_column=Column(Integer, ForeignKey("basic.study_area.id"), nullable=False)
+    )
     storage: int = Field(sa_column=Column(Integer, nullable=False))
 
 
@@ -53,6 +56,9 @@ class User(UserBase, table=True):
             Integer, ForeignKey("customer.organization.id", ondelete="CASCADE"), nullable=False
         )
     )
+    active_study_area_id: int = Field(
+        sa_column=Column(Integer, ForeignKey("basic.study_area.id"), nullable=False)
+    )
 
     organization: "Organization" = Relationship(back_populates="users")
     roles: List["Role"] = Relationship(back_populates="users", link_model=UserRole)
@@ -60,5 +66,5 @@ class User(UserBase, table=True):
     study_areas: List["StudyArea"] = Relationship(back_populates="users", link_model=UserStudyArea)
     data_uploads: List["DataUpload"] = Relationship(back_populates="user")
     isochrone_calculations: List["IsochroneCalculation"] = Relationship(back_populates="user")
-
     user_customizations: List["UserCustomization"] = Relationship(back_populates="users")
+    # active_study_area: "StudyArea" = Relationship(back_populates="users_active")

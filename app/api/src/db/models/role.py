@@ -3,8 +3,6 @@ from typing import TYPE_CHECKING, List, Optional
 
 from sqlmodel import Column, Field, Integer, Relationship, SQLModel, Text
 
-from src.db.models.user import UserRole
-
 if TYPE_CHECKING:
     from .customization import Customization
     from .user import User

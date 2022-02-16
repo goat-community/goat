@@ -43,6 +43,7 @@ class StudyArea(SQLModel, table=True):
     )
     sub_study_areas: List["SubStudyArea"] = Relationship(back_populates="study_area")
     users: List["User"] = Relationship(back_populates="study_areas", link_model=UserStudyArea)
+    # users_active: List["User"] = Relationship(back_populates="active_study_area")
 
     _validate_geom = validator("geom", pre=True, allow_reuse=True)(dump_geom)
 
