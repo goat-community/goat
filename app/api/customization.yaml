@@ -19,8 +19,7 @@ superuser:
     tittle: "GOAT - Geo Open Accessibility Tool"
     base_color:
       primary: "#2BB381"
-      secondary: "#249c70"
-    controls_color: "#26AE3F"
+      secondary: "#30c2ff"
     logo: "https://assets.goat.plan4better.de/icons/logo_white.png"
     layer_tree:
       group_icons:
@@ -35,37 +34,23 @@ superuser:
     min_zoom: 10
     max_zoom: 21
     zoom: 13
-  # Isochrone settings
-  isochrone:
-    calculation_type: "single"
-    minutes: 10
-    speed: 5
-    steps: 2
   # Routing settings
   routing:
-    default: "walking"
-    options:
-      walking:
-        default: standard
-        options:
-          - value: standard
-            speed: 5
-          - value: elderly
-            speed: 3
-      cycling:
-        default: standard
-        options:
-          - value: standard
-            speed: 15
-          - value: pedelec
-            speed: 23
-      walking_wheelchair:
-        default: standard
-        options:
-          - value: standard
-            speed: 3
-          - value: electric
-            speed: 6
+    walking_standard: 
+      speed: 5
+      icon: "fas fa-walking"
+    walking_elderly:
+      speed: 3
+      icon: "fas fa-walking"
+    walking_wheelchair:
+      speed: 2
+      icon: "fas fa-wheelchair"
+    cycling_standard:
+      speed: 15
+      icon: "fas fa-bicycle"
+    cycling_pedelec:
+      speed: 23
+      icon: "fas fa-bicycle"
   # Scenario settings
   scenario:
     pois:

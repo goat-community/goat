@@ -12,6 +12,33 @@ from src.endpoints import deps
 router = APIRouter()
 
 
+@router.get("/me", response_class=JSONResponse)
+async def get_user_settings_me(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get customization settings for user.
+    """
+    customizations = await crud.customization.get_multi(db)
+    settings = {}
+    for customization in customizations:
+        settings.update(customization.default_setting)
+    user_customizations = await CRUDBase(models.UserCustomization).get_by_key(
+        db, key="user_id", value=current_user.id
+    )
+    study_area = await CRUDBase(models.StudyArea).get(db, id=current_user.active_study_area_id)
+    if study_area is not None and study_area.default_setting:
+        settings.update(study_area.default_setting)
+
+    if user_customizations is not None:
+        for user_customization in user_customizations:
+            settings.update(user_customization.setting)
+
+    return settings
+
+
 @router.get("/{user_id}/{study_area_id}", response_class=JSONResponse)
 async def get_user_settings(
     *,
