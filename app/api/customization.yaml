@@ -36,19 +36,19 @@ superuser:
     zoom: 13
   # Routing settings
   routing:
-    walking_standard: 
+    - type: "walking_standard" 
       speed: 5
       icon: "fas fa-walking"
-    walking_elderly:
+    - type: "walking_elderly"
       speed: 3
       icon: "fas fa-walking"
-    walking_wheelchair:
+    - type: "walking_wheelchair"
       speed: 2
       icon: "fas fa-wheelchair"
-    cycling_standard:
+    - type: "cycling_standard"
       speed: 15
       icon: "fas fa-bicycle"
-    cycling_pedelec:
+    - type: "cycling_pedelec"
       speed: 23
       icon: "fas fa-bicycle"
   # Scenario settings
