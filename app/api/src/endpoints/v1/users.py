@@ -71,9 +71,10 @@ async def read_user_study_area(
     """
     Get current user's active study area.
     """
-    study_area = await CRUDBase(models.StudyArea).get(db, id=current_user.active_study_area_id)
-    to_feature_collection(study_area)
-    return to_feature_collection(study_area, exclude_properties=["default_setting"])
+    study_area = await crud.user.get_active_study_area(db, current_user)
+    
+    features = to_feature_collection(study_area, exclude_properties=["default_setting"])
+    return features
 
 
 # get user study areas

@@ -2,6 +2,8 @@ from typing import Any, Dict, List, Optional, Union
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from shapely.geometry import Polygon
+from geoalchemy2.shape import to_shape, from_shape
 
 from src.core.security import get_password_hash, verify_password
 from src.crud.base import CRUDBase
@@ -60,6 +62,21 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
         if not verify_password(password, user.hashed_password):
             return None
         return user
+
+    async def get_active_study_area(self, db: AsyncSession, user: models.User):
+        study_area = await CRUDBase(models.StudyArea).get(db, id=user.active_study_area_id)
+
+        world_extent = Polygon([[-180, 85], [-180, -85], [180, -85], [180, 85], [-180, 85]])
+        study_area_geom = to_shape(study_area.geom)
+
+        study_area_crop = world_extent.difference(study_area_geom) 
+        study_area.geom = from_shape(study_area_crop)
+
+        study_area_dict = dict(study_area)
+        study_area_dict["bounds"] = study_area_geom.bounds
+        
+        return study_area_dict
+
 
     def is_active(self, user: models.User) -> bool:
         return user.is_active

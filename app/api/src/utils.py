@@ -8,8 +8,7 @@ from emails.template import JinjaTemplate
 from geojson import Feature, FeatureCollection
 from geojson import loads as geojsonloads
 from jose import jwt
-from shapely.wkb import loads as wkbloads
-
+from geoalchemy2.shape import to_shape
 from src.core.config import settings
 
 
@@ -126,12 +125,13 @@ def to_feature_collection(
     exclude_properties.append(geometry_name)
     features = []
     for row in sql_result:
-        dict_row = dict(row)
+        if not isinstance(row, dict):
+            dict_row = dict(row)
+        else:
+            dict_row = row
         geometry = None
-        if (geometry_type == "wkb") and (dict_row.get(geometry_name).data):
-            geometry = wkbloads(dict_row[geometry_name].data)
-        elif geometry_type == "wkb":
-            geometry = wkbloads(dict_row[geometry_name], hex=True)
+        if geometry_type == "wkb":
+            geometry = to_shape(dict_row[geometry_name])
         elif geometry_type == "geojson":
             geometry = geojsonloads(dict_row[geometry_name])
 
