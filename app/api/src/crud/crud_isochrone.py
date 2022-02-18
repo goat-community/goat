@@ -33,13 +33,13 @@ from src.schemas.isochrone import (
     IsochroneMultiCountPois,
     IsochroneSingle,
 )
-from src.utils import sql_to_geojson
+from src.utils import to_feature_collection
 
 
 class CRUDIsochrone:
-    async def read_network(self, db, isochrone_type, obj_in, obj_in_data): 
+    async def read_network(self, db, isochrone_type, obj_in, obj_in_data):
         read_network_sql = text(
-        """ 
+            """ 
         SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
         FROM basic.fetch_network_routing(ARRAY[:x],ARRAY[:y], :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
         """
@@ -49,17 +49,23 @@ class CRUDIsochrone:
         starting_id = edges_network.iloc[0].starting_ids
 
         # There was an issue when removing the first row (which only contains the starting point) from the edges. So it was kept.
-        edges_network = edges_network.drop(["starting_ids", "starting_geoms"], axis = 1)
+        edges_network = edges_network.drop(["starting_ids", "starting_geoms"], axis=1)
 
         distance_limits = list(
             range(
                 obj_in.max_cutoff // obj_in.n, obj_in.max_cutoff + 1, obj_in.max_cutoff // obj_in.n
             )
         )
-        
-        starting_point_geom = str(GeoDataFrame(
-                {"geometry": Point(edges_network.iloc[-1:]["geom"].values[0][0])}, 
-                crs="EPSG:3857", index=[0]).to_crs("EPSG:4326").to_wkt()["geometry"].iloc[0]
+
+        starting_point_geom = str(
+            GeoDataFrame(
+                {"geometry": Point(edges_network.iloc[-1:]["geom"].values[0][0])},
+                crs="EPSG:3857",
+                index=[0],
+            )
+            .to_crs("EPSG:4326")
+            .to_wkt()["geometry"]
+            .iloc[0]
         )
         return edges_network, starting_id, starting_point_geom, distance_limits
 
@@ -67,7 +73,9 @@ class CRUDIsochrone:
         self, db: AsyncSession, *, obj_in: IsochroneSingle, return_network=False
     ):
         obj_in_data = jsonable_encoder(obj_in)
-        edges_network, starting_id, starting_point_geom, distance_limits = await self.read_network(db, 'single', obj_in, obj_in_data)
+        edges_network, starting_id, starting_point_geom, distance_limits = await self.read_network(
+            db, "single", obj_in, obj_in_data
+        )
 
         obj_starting_point = models.IsochroneCalculation(
             calculation_type="single_isochrone",
@@ -83,11 +91,11 @@ class CRUDIsochrone:
         db.add(obj_starting_point)
         await db.commit()
         await db.refresh(obj_starting_point)
-        
+
         obj_in_data["starting_point_id"] = obj_starting_point.id
 
         result = isochrone_cpp(edges_network, starting_id, distance_limits)
-        isochrones = {"isochrone_calculation_id": [],"geometry": [], "step": []}
+        isochrones = {"isochrone_calculation_id": [], "geometry": [], "step": []}
 
         for isochrone_result in result.isochrone:
             isochrones["isochrone_calculation_id"] = [
@@ -147,7 +155,7 @@ class CRUDIsochrone:
     ):
         obj_in_data = jsonable_encoder(obj_in)
         read_network_sql = text(
-        """ 
+            """ 
         SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
         FROM basic.fetch_network_routing_multi(ARRAY[:x],ARRAY[:y], :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
         """
@@ -157,31 +165,35 @@ class CRUDIsochrone:
         starting_id = edges_network.iloc[0].starting_ids
 
         # There was an issue when removing the first row (which only contains the starting point) from the edges. So it was kept.
-        edges_network = edges_network.drop(["starting_ids", "starting_geoms"], axis = 1)
+        edges_network = edges_network.drop(["starting_ids", "starting_geoms"], axis=1)
 
         distance_limits = list(
             range(
                 obj_in.max_cutoff // obj_in.n, obj_in.max_cutoff + 1, obj_in.max_cutoff // obj_in.n
             )
         )
-        
+
         db.add(obj_starting_point)
         await db.commit()
         await db.refresh(obj_starting_point)
-        
+
         obj_in_data["starting_point_id"] = obj_starting_point.id
 
         result = isochrone_cpp(edges_network, starting_id, distance_limits)
-        isochrones = {"isochrone_calculation_id": [],"geometry": [], "step": []}
+        isochrones = {"isochrone_calculation_id": [], "geometry": [], "step": []}
 
         for isochrone_result in result.isochrone:
-            isochrones["isochrone_calculation_id"] = [obj_starting_point.id] * isochrone_result.shape.__len__()
+            isochrones["isochrone_calculation_id"] = [
+                obj_starting_point.id
+            ] * isochrone_result.shape.__len__()
             for step, shape in isochrone_result.shape.items():
                 isochrones["geometry"].append(MultiPolygon([Polygon(shape)]))
                 isochrones["step"].append(step)
         isochrone_gdf = GeoDataFrame(isochrones, crs="EPSG:3857").to_crs("EPSG:4326")
         isochrone_gdf.rename_geometry("geom", inplace=True)
-        isochrone_gdf.to_postgis(name='isochrone_feature', con=legacy_engine, schema='customer', if_exists='append')
+        isochrone_gdf.to_postgis(
+            name="isochrone_feature", con=legacy_engine, schema="customer", if_exists="append"
+        )
 
         # Compute reached opportunities
         sql = text(
@@ -189,18 +201,17 @@ class CRUDIsochrone:
         )
         result_opportunities = await db.execute(sql, obj_in_data)
         await db.commit()
-        
+
         arr_reached_opportunities = []
         for i in result_opportunities:
             arr_reached_opportunities.append(i[2])
-            
-        isochrone_gdf = isochrone_gdf.sort_values(by=['step'])
+
+        isochrone_gdf = isochrone_gdf.sort_values(by=["step"])
         isochrone_gdf.insert(3, "reached_opportunities", arr_reached_opportunities, True)
         isochrone_gdf.insert(4, "modus", obj_in.modus, True)
         return_obj = {"isochrones": isochrone_gdf}
-        
-        return return_obj
 
+        return return_obj
 
     async def calculate_single_isochrone(
         self, db: AsyncSession, *, obj_in: IsochroneSingle
@@ -220,7 +231,9 @@ class CRUDIsochrone:
             # Compute scenario isochrones
             obj_in_scenario = obj_in
             obj_in_scenario.modus = "scenario"
-            isochrones_scenario = await self.compute_isochrone(db, obj_in=obj_in_scenario, return_network=False)
+            isochrones_scenario = await self.compute_isochrone(
+                db, obj_in=obj_in_scenario, return_network=False
+            )
 
             # Merge default and scenario isochrones
             result = GeoDataFrame(
@@ -235,15 +248,19 @@ class CRUDIsochrone:
             result = await self.compute_isochrone(db, obj_in=obj_in, return_network=True)
             result = json.dumps(result["network"])
         elif obj_in.modus == "comparison":
-            #Compute default network
+            # Compute default network
             obj_in_default = obj_in
             obj_in_default.modus = "default"
-            isochrones_default = await self.compute_isochrone(db, obj_in=obj_in_default, return_network=True)
+            isochrones_default = await self.compute_isochrone(
+                db, obj_in=obj_in_default, return_network=True
+            )
 
-            #Compute scenario network
+            # Compute scenario network
             obj_in_scenario = obj_in
             obj_in_scenario.modus = "scenario"
-            isochrones_scenario = await self.compute_isochrone(db, obj_in=obj_in_scenario, return_network=True)
+            isochrones_scenario = await self.compute_isochrone(
+                db, obj_in=obj_in_scenario, return_network=True
+            )
 
             result = [isochrones_default["network"], isochrones_scenario["network"]]
         return result
@@ -257,7 +274,7 @@ class CRUDIsochrone:
         )
         result = await db.execute(sql, obj_in_data)
         await db.commit()
-        return sql_to_geojson(result)
+        return to_feature_collection(result)
 
     async def count_pois_multi_isochrones(
         self, db: AsyncSession, *, obj_in: IsochroneMultiCountPois
@@ -267,7 +284,7 @@ class CRUDIsochrone:
             """SELECT row_number() over() AS gid, count_pois, region_name, geom FROM basic.count_pois_multi_isochrones(:user_id,:modus,:minutes,:speed,:region_type,:region,:amenities,:scenario_id,:active_upload_ids)"""
         )
         result = await db.execute(sql, obj_in_data)
-        return sql_to_geojson(result)
+        return to_feature_collection(result)
 
     async def export_isochrone(self, db: AsyncSession, *, obj_in: IsochroneExport) -> Any:
         obj_in_data = jsonable_encoder(obj_in)

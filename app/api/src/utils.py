@@ -1,5 +1,4 @@
 import logging
-import random
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -112,7 +111,7 @@ def verify_password_reset_token(token: str) -> Optional[str]:
         return None
 
 
-def sql_to_geojson(
+def to_feature_collection(
     sql_result: Any,
     geometry_name: str = "geom",
     geometry_type: str = "wkb",  # wkb | geojson (wkb is postgis geometry which is stored as hex)
@@ -121,16 +120,25 @@ def sql_to_geojson(
     """
     Generic method to convert sql result to geojson. Geometry field is expected to be in geojson or postgis hex format.
     """
+    if not isinstance(sql_result, list):
+        sql_result = [sql_result]
+
     exclude_properties.append(geometry_name)
     features = []
     for row in sql_result:
         dict_row = dict(row)
+        geometry = None
+        if (geometry_type == "wkb") and (dict_row.get(geometry_name).data):
+            geometry = wkbloads(dict_row[geometry_name].data)
+        elif geometry_type == "wkb":
+            geometry = wkbloads(dict_row[geometry_name], hex=True)
+        elif geometry_type == "geojson":
+            geometry = geojsonloads(dict_row[geometry_name])
+
         features.append(
             Feature(
                 id=dict_row.get("gid") or dict_row.get("id") or 0,
-                geometry=geojsonloads(row[geometry_name])
-                if geometry_type == "geojson"
-                else wkbloads(row[geometry_name], hex=True),
+                geometry=geometry,
                 properties=without_keys(dict_row, exclude_properties),
             )
         )

@@ -78,7 +78,7 @@ superuser:
           - "commercial"
           - "public"
   # Settings coming from study_area
-  layers:
+  layer_groups:
   extras:
 
 user:
