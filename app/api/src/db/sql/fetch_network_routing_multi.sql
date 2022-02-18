@@ -144,7 +144,7 @@ BEGIN
 
 	/*Fetch Network*/
 	RETURN query EXECUTE 
-	'SELECT 1, 1, 1, 1, 1, NULL, NULL, NULL, $1, $2
+	'SELECT 1, 1, 1, 1, 1, 1, NULL, ''[[1.1,1.1],[1.1,1.1]]''::json, $1, $2
 	 UNION ALL ' || 
 	basic.query_edges_routing(ST_ASTEXT(union_buffer_network),modus,scenario_id,speed,routing_profile,True) || 
     ' AND id NOT IN (SELECT wid FROM final_artificial_edges)
@@ -171,5 +171,3 @@ SELECT n.*
 FROM agg, 
 LATERAL basic.fetch_network_routing_multi(x,y, 1200., 1.33, 'default', 1, 'walking_standard') n 
 */
-
-

@@ -150,9 +150,10 @@ BEGIN
 	),
 	combined_opportunities AS 
 	(
-		SELECT g.id, reached_opportunities || aois_json_agg AS reached_opportunities 
-		FROM group_reached_opportunities g, reached_aois r  
-		WHERE r.id = g.id 
+		SELECT COALESCE(g.id, r.id) AS id, COALESCE(reached_opportunities, '{}'::jsonb) || COALESCE(aois_json_agg, '{}'::jsonb) AS reached_opportunities 
+		FROM group_reached_opportunities g
+		FULL JOIN reached_aois r  
+		ON r.id = g.id 
 	)
 	UPDATE customer.isochrone_feature i  
 	SET reached_opportunities = c.reached_opportunities 
@@ -162,5 +163,5 @@ BEGIN
 END ;
 $function$
 /*
-SELECT basic.thematic_data_sum(1, 73, 1, ARRAY[3], 'default')
+SELECT * FROM basic.thematic_data_sum(3, 61, 'default', 0, ARRAY[0])
 */

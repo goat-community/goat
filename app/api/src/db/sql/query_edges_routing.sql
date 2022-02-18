@@ -52,7 +52,7 @@ BEGIN
 
   	IF modus_input = 'scenario' THEN 
 		sql_scenario_id = ' AND (scenario_id IS NULL OR scenario_id='||scenario_id_input||')';
-		sql_ways_ids = ' AND NOT id::int4 = any('''|| modified_edges(scenario_id_input)::text ||''') ';
+		sql_ways_ids = ' AND NOT id::int4 = any('''|| basic.modified_edges(scenario_id_input)::text ||''') ';
 	END IF;
 
 	IF  routing_profile = 'walking_safe_night' THEN
