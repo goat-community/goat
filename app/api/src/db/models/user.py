@@ -25,7 +25,6 @@ if TYPE_CHECKING:
 
 from ._link_model import UserRole, UserStudyArea
 
-
 class UserBase(SQLModel):
     name: str = Field(sa_column=Column(Text, nullable=False))
     surname: str = Field(sa_column=Column(Text, nullable=False))

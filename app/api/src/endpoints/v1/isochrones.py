@@ -15,6 +15,7 @@ from src.schemas.isochrone import (
     IsochroneMultiCountPoisCollection,
     IsochroneSingle,
     IsochroneSingleCollection,
+    IsochronePoiMulti,
     request_examples,
 )
 
@@ -25,7 +26,7 @@ router = APIRouter()
 async def calculate_single_isochrone(
     *,
     db: AsyncSession = Depends(deps.get_db),
-    isochrone_in: IsochroneSingle = Body(..., example=request_examples["single"]),
+    isochrone_in: IsochroneSingle = Body(..., example=request_examples["single_isochrone"]),
 ) -> Any:
     """
     Calculate single isochrone.
@@ -46,15 +47,11 @@ async def calculate_reached_network(
     return network
 
 
-@router.post("/multi", response_model=IsochroneMultiCollection)
+@router.post("/multi", response_model=Any)
 async def calculate_multi_isochrone(
     *,
     db: AsyncSession = Depends(deps.get_db),
-    isochrone_in: IsochroneMulti = Body(
-        ...,
-        examples=request_examples.get("multi"),
-    ),
-    current_user: models.User = Depends(deps.get_current_active_user),
+    isochrone_in: IsochroneMulti = Body(...,example=request_examples["multi_isochrone"])
 ) -> Any:
     """
     Calculate multi isochrone.
@@ -69,7 +66,7 @@ async def count_pois_multi_isochrones(
     *,
     db: AsyncSession = Depends(deps.get_db),
     isochrone_in: IsochroneMultiCountPois = Body(
-        ..., example=request_examples["multi_count_pois"]
+        ..., example=request_examples["pois_multi_isochrone_count_pois"]
     ),
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -81,6 +78,24 @@ async def count_pois_multi_isochrones(
         db=db, obj_in=isochrone_in
     )
     return feature_collection
+
+@router.post("/multi/pois", response_model=IsochronePoiMulti)
+async def poi_multi_isochrones(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    isochrone_in: IsochronePoiMulti = Body(
+        ..., examples=request_examples.get("pois_multi_isochrone_study_area")
+    ),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Compute multiisochrone with POIs as starting points.
+    """
+
+    gdf = await crud.isochrone.calculate_pois_multi_isochrones(
+        db=db, obj_in=isochrone_in
+    )
+    return gdf.to_json()
 
 
 @router.post("/export", response_class=StreamingResponse)

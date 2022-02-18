@@ -1,5 +1,8 @@
+
+
+
 CREATE OR REPLACE FUNCTION basic.reached_population_study_area(ischrone_calculation_id_input integer, scenario_id_input integer, modus TEXT, study_area_ids integer[]) 
-RETURNS TABLE (isochrone_feature_id integer, reached_opportunities jsonb)
+RETURNS TABLE (step integer, reached_opportunities jsonb)
 AS $function$ 
 DECLARE 	
 	excluded_buildings_id integer[];
@@ -105,7 +108,7 @@ BEGIN
 	SET reached_opportunities = o.population 
 	FROM as_object o 
 	WHERE o.isochrone_feature_id = i.id
-	RETURNING i.id, i.reached_opportunities;
+	RETURNING i.step, i.reached_opportunities;
  
 END; 
 $function$ LANGUAGE plpgsql;

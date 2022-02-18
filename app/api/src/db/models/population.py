@@ -18,10 +18,12 @@ from sqlalchemy.dialects.postgresql import JSONB
 if TYPE_CHECKING:
     from .building import Building, BuildingModified
     from .scenario import Scenario
+    from .study_area import SubStudyArea
 
 
 class PopulationBase(SQLModel):
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
+    sub_study_area_id: int = Field(sa_column=Column(Integer, ForeignKey("basic.sub_study_area.id", ondelete="CASCADE"), index=True))
     population: Optional[float] = Field(sa_column=Column(Float(53)))
     geom: str = Field(
         sa_column=Column(
@@ -29,7 +31,7 @@ class PopulationBase(SQLModel):
             nullable=False,
         )
     )
-
+    sub_study_area: Optional["SubStudyArea"] = Relationship(back_populates="populations")
 
 class Population(PopulationBase, table=True):
     __tablename__ = "population"
