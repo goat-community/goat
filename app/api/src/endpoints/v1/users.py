@@ -1,16 +1,18 @@
+import json
 from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException
-from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from pydantic.networks import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud, schemas
 from src.core.config import settings
+from src.crud.base import CRUDBase
 from src.db import models
 from src.endpoints import deps
 from src.schemas.user import request_examples
-from src.utils import send_new_account_email
+from src.utils import send_new_account_email, to_feature_collection
 
 router = APIRouter()
 
@@ -58,6 +60,20 @@ async def read_user_me(
     Get current user.
     """
     return current_user
+
+
+# get user active study area
+@router.get("/me/study-area", response_class=JSONResponse)
+async def read_user_study_area(
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get current user's active study area.
+    """
+    study_area = await CRUDBase(models.StudyArea).get(db, id=current_user.active_study_area_id)
+    to_feature_collection(study_area)
+    return to_feature_collection(study_area, exclude_properties=["default_setting"])
 
 
 # get user study areas

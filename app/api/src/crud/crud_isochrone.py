@@ -35,7 +35,7 @@ from src.schemas.isochrone import (
     IsochroneTypeEnum,
     IsochronePoiMulti
 )
-from src.utils import sql_to_geojson
+from src.utils import to_feature_collection
 
 
 class CRUDIsochrone:
@@ -203,7 +203,9 @@ class CRUDIsochrone:
             # Compute scenario isochrones
             obj_in_scenario = obj_in
             obj_in_scenario.modus = "scenario"
-            isochrones_scenario = await self.compute_isochrone(db, obj_in=obj_in_scenario, return_network=False)
+            isochrones_scenario = await self.compute_isochrone(
+                db, obj_in=obj_in_scenario, return_network=False
+            )
 
             # Merge default and scenario isochrones
             result = GeoDataFrame(
@@ -218,15 +220,19 @@ class CRUDIsochrone:
             result = await self.compute_isochrone(db, obj_in=obj_in, return_network=True)
             result = json.dumps(result["network"])
         elif obj_in.modus == "comparison":
-            #Compute default network
+            # Compute default network
             obj_in_default = obj_in
             obj_in_default.modus = "default"
-            isochrones_default = await self.compute_isochrone(db, obj_in=obj_in_default, return_network=True)
+            isochrones_default = await self.compute_isochrone(
+                db, obj_in=obj_in_default, return_network=True
+            )
 
-            #Compute scenario network
+            # Compute scenario network
             obj_in_scenario = obj_in
             obj_in_scenario.modus = "scenario"
-            isochrones_scenario = await self.compute_isochrone(db, obj_in=obj_in_scenario, return_network=True)
+            isochrones_scenario = await self.compute_isochrone(
+                db, obj_in=obj_in_scenario, return_network=True
+            )
 
             result = [isochrones_default["network"], isochrones_scenario["network"]]
         return result
@@ -265,7 +271,7 @@ class CRUDIsochrone:
             FROM basic.count_pois_multi_isochrones(:user_id,:modus,:minutes,:speed,:region_type,:region,:amenities,:scenario_id,:active_upload_ids)"""
         )
         result = await db.execute(sql, obj_in_data)
-        return sql_to_geojson(result)
+        return to_feature_collection(result)
 
     async def calculate_pois_multi_isochrones(
         self, db: AsyncSession, *, obj_in: IsochronePoiMulti
@@ -292,8 +298,7 @@ class CRUDIsochrone:
             active_upload_ids=obj_in.active_upload_ids,
             x=obj_in_data["x"],
             y=obj_in_data["y"]
-        )
-        
+        )   
         
         #Compute Multi-Isochrones
         isochrones_result = await self.compute_multi_isochrone(db, obj_in=obj_multi_isochrones, return_network=False)
@@ -352,7 +357,6 @@ class CRUDIsochrone:
         response = StreamingResponse(io.BytesIO(data), media_type="application/zip")
         response.headers["Content-Disposition"] = "attachment; filename={}.zip".format(file_name)
         return response
-
 
 isochrone = CRUDIsochrone()
 
