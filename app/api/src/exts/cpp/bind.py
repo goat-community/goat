@@ -4,7 +4,9 @@ from pandas.core.frame import DataFrame
 
 isochrone_cpp = cppimport.imp("src.exts.cpp.src.isochrone")
 
-import time 
+import time
+
+
 def isochrone(
     network: DataFrame, start_vertices: array, distance_limits: array, only_minimum_cover=True
 ) -> array:
@@ -42,7 +44,11 @@ def isochrone(
         network["geom"],
         start_vertices,
         distance_limits,
-        only_minimum_cover,
+        only_minimum_cover
     )
 
     return result
+
+
+# 1. (self: src.exts.cpp.src.isochrone.Isochrone, arg0: numpy.ndarray[numpy.int64], arg1: numpy.ndarray[numpy.int64], arg2: numpy.ndarray[numpy.int64], arg3: numpy.ndarray[numpy.float64], arg4: numpy.ndarray[numpy.float64], arg5: numpy.ndarray[numpy.float64], arg6: List[List[List[float[2]]]], arg7: numpy.ndarray[numpy.int64],
+# arg8: numpy.ndarray[numpy.float64], arg9: bool) -> src.exts.cpp.src.isochrone.Result

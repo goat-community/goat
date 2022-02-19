@@ -34,7 +34,7 @@ class IsochroneTypeEnum(str, Enum):
 
 
 class IsochroneBase(BaseModel):
-    user_id: int
+    user_id: Optional[int]
     scenario_id: Optional[int] = 0
     minutes: int
     speed: float
@@ -80,7 +80,7 @@ class IsochronePoiMulti(IsochroneBase):
         return values
 
 class IsochroneMultiCountPois(BaseModel):
-    user_id: int
+    user_id: Optional[int]
     scenario_id: Optional[int] = 0
     amenities: List[str]
     minutes: int
@@ -172,7 +172,6 @@ class IsochroneMultiCountPoisCollection(FeatureCollection):
 
 request_examples = {
     "single_isochrone": {
-        "user_id": 1,
         "minutes": 10,
         "speed": 5,
         "n": 2,
@@ -184,7 +183,6 @@ request_examples = {
         "scenario_id": 0
     },
     "multi_isochrone": {
-        "user_id": 1,
         "minutes": 10,
         "speed": 5,
         "n": 2,
@@ -199,13 +197,12 @@ request_examples = {
         "multi_with_study_area": {
             "summary": "Multi Isochrone with Study Area",
             "value": {
-                "user_id": 1,
                 "minutes": 10,
                 "speed": 5,
                 "n": 2,
                 "modus": "default",
                 "region_type": "study_area",
-                "region": ["1", "2", "3"],
+                "region": ["1"],
                 "routing_profile": "walking_standard",
                 "active_upload_ids": [0],
                 "scenario_id": 0,
@@ -223,7 +220,6 @@ request_examples = {
         "multi_with_polygon": {
             "summary": "Multi Isochrone with Polygon",
             "value": {
-                "user_id": 1261,
                 "minutes": 10,
                 "speed": 5,
                 "n": 2,
@@ -244,7 +240,6 @@ request_examples = {
     "pois_multi_isochrone_count_pois": {
         "region_type": "draw",
         "region": "POLYGON((11.53605224646383 48.15855242757948,11.546141990292947 48.16035646918763,11.54836104048217 48.15434275044706,11.535497483916524 48.15080357881183,11.526586610500429 48.15300113241156,11.531302092152526 48.15799732509075,11.53605224646383 48.15855242757948))",
-        "user_id": 1,
         "scenario_id": 0,
         "modus": "default",
         "routing_profile": "walking_standard",
