@@ -280,7 +280,7 @@ class CRUDIsochrone:
 
         # Get starting points for multi-isochrone
         sql_starting_points = text('''SELECT x, y 
-        FROM basic.starting_points_multi_isochrones(:modus, :minutes, :speed, :amenities, :scenario_id, :active_upload_ids, :region, :study_area_ids)'''
+        FROM basic.starting_points_multi_isochrones(:modus, :minutes, :speed, :amenities, :scenario_id, :active_upload_ids, :region_geom, :study_area_ids)'''
         )
         starting_points = await db.execute(sql_starting_points, obj_in_data)
         starting_points = starting_points.fetchall()

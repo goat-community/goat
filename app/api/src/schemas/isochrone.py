@@ -71,9 +71,10 @@ class IsochronePoiMulti(IsochroneBase):
     def define_study_area_ids(cls, values):
         if values["region_type"] == "study_area":
             values["study_area_ids"] = [int(integer_string) for integer_string in values["region"]]
-            values["region"] = None
-        elif values["region_type"] == "polygon":
+            values["region_geom"] = None
+        elif values["region_type"] == "draw":
             values["study_area_ids"] = None 
+            values["region_geom"] = values["region"][0]
         else: 
             raise ValueError("Invalid region type")
         return values
@@ -228,9 +229,7 @@ request_examples = {
                 "n": 2,
                 "modus": "default",
                 "region_type": "draw",
-                "region": [
-                    "POLYGON((11.53605224646383 48.15855242757948,11.546141990292947 48.16035646918763,11.54836104048217 48.15434275044706,11.535497483916524 48.15080357881183,11.526586610500429 48.15300113241156,11.531302092152526 48.15799732509075,11.53605224646383 48.15855242757948))"
-                ],
+                "region": ["POLYGON((11.53605224646383 48.15855242757948,11.546141990292947 48.16035646918763,11.54836104048217 48.15434275044706,11.535497483916524 48.15080357881183,11.526586610500429 48.15300113241156,11.531302092152526 48.15799732509075,11.53605224646383 48.15855242757948))"],
                 "routing_profile": "walking_standard",
                 "scenario_id": 0,
                 "amenities": [
