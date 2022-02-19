@@ -150,6 +150,7 @@ class CRUDIsochrone:
         isochrone_gdf.insert(4, "modus", obj_in.modus, True)
         return_obj = {"isochrones": isochrone_gdf}
 
+
         if return_network == True:
             features = []
             for edge in result.network:

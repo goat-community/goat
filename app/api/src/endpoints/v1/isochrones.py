@@ -1,3 +1,4 @@
+import json
 from typing import Any
 
 from fastapi import APIRouter, Body, Depends
@@ -23,7 +24,7 @@ from src.schemas.isochrone import (
 router = APIRouter()
 
 
-@router.post("/single", response_model=Any)
+@router.post("/single", response_class=JSONResponse)
 async def calculate_single_isochrone(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -35,7 +36,7 @@ async def calculate_single_isochrone(
     """
     isochrone_in.user_id = current_user.id
     isochrone = await crud.isochrone.calculate_single_isochrone(db=db, obj_in=isochrone_in)
-    return isochrone.to_json()
+    return json.loads(isochrone.to_json()) 
 
 @router.post("/network", response_model=Any)
 async def calculate_reached_network(
@@ -49,7 +50,7 @@ async def calculate_reached_network(
     return network
 
 
-@router.post("/multi", response_model=Any)
+@router.post("/multi", response_class=JSONResponse)
 async def calculate_multi_isochrone(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -61,7 +62,7 @@ async def calculate_multi_isochrone(
     """
     isochrone_in.user_id = current_user.id
     isochrone = await crud.isochrone.calculate_multi_isochrones(db=db, obj_in=isochrone_in)
-    return isochrone.to_json()
+    return json.loads(isochrone.to_json())
 
 
 @router.post("/multi/count-pois", response_model=IsochroneMultiCountPoisCollection)
@@ -98,7 +99,7 @@ async def poi_multi_isochrones(
     gdf = await crud.isochrone.calculate_pois_multi_isochrones(
         db=db, obj_in=isochrone_in
     )
-    return gdf.to_json()
+    return json.loads(gdf.to_json())
 
 
 @router.post("/export", response_class=StreamingResponse)
