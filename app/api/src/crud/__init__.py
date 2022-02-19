@@ -6,3 +6,4 @@ from .crud_organization import organization
 from .crud_role import role
 from .crud_scenario import scenario
 from .crud_user import user
+from .crud_poi_aoi import poi_aoi

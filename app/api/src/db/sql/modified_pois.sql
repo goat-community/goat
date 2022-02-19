@@ -12,11 +12,11 @@ BEGIN
 		(
 			SELECT uid 
 			FROM customer.poi_modified p 	
-			WHERE scenario_id = 1 
+			WHERE scenario_id = scenario_id_input 
 			UNION ALL 
 			SELECT UNNEST(deleted_pois)
 			FROM customer.scenario 
-			WHERE id = 1
+			WHERE id = scenario_id_input
 		),
 		distinct_ids AS 
 		(

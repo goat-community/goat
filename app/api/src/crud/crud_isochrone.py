@@ -23,7 +23,7 @@ from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
-
+from src.utils import sql_geojson
 from src.db import models
 from src.db.session import legacy_engine
 from src.exts.cpp.bind import isochrone as isochrone_cpp
@@ -35,8 +35,6 @@ from src.schemas.isochrone import (
     IsochroneTypeEnum,
     IsochronePoiMulti
 )
-from src.utils import to_feature_collection
-
 
 class CRUDIsochrone:
     async def read_network(self, db, calculation_type, obj_in, obj_in_data): 
@@ -265,14 +263,15 @@ class CRUDIsochrone:
 
     async def count_pois_multi_isochrones(
         self, db: AsyncSession, *, obj_in: IsochroneMultiCountPois
-    ) -> FeatureCollection:
+    ) -> dict:
         obj_in_data = jsonable_encoder(obj_in)
         sql = text(
-            """SELECT row_number() over() AS gid, count_pois, region_name, geom 
+            sql_geojson % """SELECT row_number() over() AS id, count_pois, region_name, geom 
             FROM basic.count_pois_multi_isochrones(:user_id,:modus,:minutes,:speed,:region_type,:region,:amenities,:scenario_id,:active_upload_ids)"""
         )
         result = await db.execute(sql, obj_in_data)
-        return to_feature_collection(result)
+        
+        return result.fetchall()[0][0] 
 
     async def calculate_pois_multi_isochrones(
         self, db: AsyncSession, *, obj_in: IsochronePoiMulti

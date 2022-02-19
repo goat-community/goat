@@ -10,6 +10,7 @@ from src.endpoints.v1 import (
     scenarios,
     users,
     utils,
+    poi_aoi
 )
 
 api_router = APIRouter()
@@ -26,6 +27,10 @@ api_router.include_router(utils.router, prefix="/utils", tags=["Utils"])
 api_router.include_router(isochrones.router, prefix="/isochrones", tags=["Isochrones"])
 # Scenario endpoints
 api_router.include_router(scenarios.router, prefix="/scenarios", tags=["Scenarios"])
+
+# POI endpoints
+api_router.include_router(poi_aoi.router, prefix="/pois_aois", tags=["POIs and AOIs"])
+
 
 # LAYER: Vector tile endpoints.
 layer_tiles_prefix = "/layers/tiles"

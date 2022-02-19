@@ -10,7 +10,11 @@ from geojson import loads as geojsonloads
 from jose import jwt
 from geoalchemy2.shape import to_shape
 from src.core.config import settings
-
+import io
+import json 
+import geobuf 
+from starlette.responses import Response
+from src.resources.enums import MimeTypes
 
 def send_email(
     email_to: str,
@@ -109,6 +113,22 @@ def verify_password_reset_token(token: str) -> Optional[str]:
     except jwt.JWTError:
         return None
 
+def return_geojson_or_geobuf(
+    features : Any,
+    return_type: str = "geojson",
+) -> Any:
+    """
+    Return geojson or geobuf
+    """
+
+    if return_type == "geojson":
+        return json.loads(json.dumps(features))
+    elif return_type == "geobuf":
+        return Response(bytes(geobuf.encode(features)), media_type=MimeTypes.geobuf.value)
+    elif return_type == "db_geobuf":
+        return Response(bytes(features))
+    else:
+        raise ValueError("Invalid return type")
 
 def to_feature_collection(
     sql_result: Any,
@@ -150,3 +170,25 @@ def without_keys(d, keys):
     Omit keys from a dict
     """
     return {x: d[x] for x in d if x not in keys}
+
+sql_geojson = f"""
+WITH make_geojson AS 
+(
+    %s
+)
+SELECT json_build_object
+(
+    'type', 'FeatureCollection',
+    'features', json_agg(ST_AsGeoJSON(g.*)::json)
+) 
+FROM make_geojson g; 
+"""
+
+sql_geobuf = f"""
+WITH make_geobuf AS
+(
+    %s
+)
+SELECT ST_AsGeobuf(g.*, 'geom')
+FROM make_geobuf g;
+"""

@@ -20,6 +20,7 @@ from src.schemas.isochrone import (
     IsochronePoiMulti,
     request_examples,
 )
+from src.utils import return_geojson_or_geobuf
 
 router = APIRouter()
 
@@ -64,10 +65,10 @@ async def calculate_multi_isochrone(
     isochrone = await crud.isochrone.calculate_multi_isochrones(db=db, obj_in=isochrone_in)
     return json.loads(isochrone.to_json())
 
-
-@router.post("/multi/count-pois", response_model=IsochroneMultiCountPoisCollection)
+@router.post("/multi/count-pois", response_class=JSONResponse)
 async def count_pois_multi_isochrones(
     *,
+    return_type: str = 'geojson',
     db: AsyncSession = Depends(deps.get_db),
     isochrone_in: IsochroneMultiCountPois = Body(
         ..., example=request_examples["pois_multi_isochrone_count_pois"]
@@ -78,10 +79,12 @@ async def count_pois_multi_isochrones(
     Count pois under study area.
     """
     isochrone_in.user_id = current_user.id
-    feature_collection = await crud.isochrone.count_pois_multi_isochrones(
+    features = await crud.isochrone.count_pois_multi_isochrones(
         db=db, obj_in=isochrone_in
     )
-    return feature_collection
+    
+    return return_geojson_or_geobuf(features, return_type)
+
 
 @router.post("/multi/pois", response_class=JSONResponse)
 async def poi_multi_isochrones(

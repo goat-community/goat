@@ -18,3 +18,4 @@ class MimeTypes(str, Enum):
     text = "text/plain"
     pbf = "application/x-protobuf"
     mvt = "application/x-protobuf"
+    geobuf = "application/geobuf.pbf"

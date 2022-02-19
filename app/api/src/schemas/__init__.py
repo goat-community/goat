@@ -19,3 +19,4 @@ from .role import RoleBase, RoleCreate, RoleUpdate
 from .scenario import ScenarioBase, ScenarioImport
 from .token import Token, TokenPayload
 from .user import UserBase, UserCreate, UserUpdate
+from .poi_aoi import POIAOIVisualization

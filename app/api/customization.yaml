@@ -253,3 +253,11 @@ user:
           icon: "https://assets.goat.plan4better.de/icons/pois/groups/forest.png"
         lake:
           icon: "htpps://assets.goat.plan4better.de/icons/pois/groups/lake.png"
+    leisure:
+      icon: "https://assets.goat.plan4better.de/icons/pois/groups/leisure.png"
+      children:
+        beach:
+          icon: "https://assets.goat.plan4better.de/icons/pois/groups/beach.png"
+        golf_course:
+          icon: "https://assets.goat.plan4better.de/icons/pois/groups/golf_course.png"
+          

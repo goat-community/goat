@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION basic.count_pois_multi_isochrones (userid_input integer, modus text, minutes integer, speed_input numeric, region_type text, region text, amenities text[], scenario_id_input integer DEFAULT 0, active_upload_ids integer[] DEFAULT '{}'::integer[])
-    RETURNS TABLE (region_name text, count_pois integer, geom geometry, buffer_geom geometry)
+    RETURNS TABLE (region_name text, count_pois integer, geom geometry)
     AS $function$
 DECLARE
     buffer_geom geometry;
@@ -53,7 +53,7 @@ BEGIN
     	FROM intersected_pois
     )    
     SELECT region_name, c.cnt::integer,
-    region_geom, buffer_geom
+    region_geom
 	FROM count_pois c;
 END
 $function$
