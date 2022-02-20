@@ -122,7 +122,7 @@ class CRUDIsochrone:
 
 
     async def compute_isochrone(
-        self, db: AsyncSession, *, obj_in: IsochroneSingle, return_network=False
+        self, db: AsyncSession, *, obj_in, return_network=False
     ):
         obj_in_data = jsonable_encoder(obj_in)
         edges_network, starting_id, distance_limits, obj_starting_point = await self.read_network(db, IsochroneTypeEnum.single.value, obj_in, obj_in_data)
@@ -174,7 +174,7 @@ class CRUDIsochrone:
         return return_obj
 
     async def compute_multi_isochrone(
-        self, db: AsyncSession, *, obj_in: IsochroneMulti, return_network=False
+        self, db: AsyncSession, *, obj_in, return_network=False
     ) -> GeoDataFrame:
         obj_in_data = jsonable_encoder(obj_in)
         edges_network, starting_id, distance_limits, obj_starting_point = await self.read_network(db, IsochroneTypeEnum.multi.value, obj_in, obj_in_data)
@@ -186,7 +186,7 @@ class CRUDIsochrone:
         return isochrone_gdf
 
     async def calculate_single_isochrone(
-        self, db: AsyncSession, *, obj_in: IsochroneSingle
+        self, db: AsyncSession, *, obj_in
     ) -> GeoDataFrame:
 
         if obj_in.modus == "default" or obj_in.modus == "scenario":

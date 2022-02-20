@@ -11,5 +11,5 @@ AS $function$
 
 $function$ IMMUTABLE;
 /*
-SELECT select_user_customization(1, 'poi_group');
+SELECT select_user_customization(1, 'poi_groups');
 */

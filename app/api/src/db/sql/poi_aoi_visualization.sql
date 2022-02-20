@@ -4,7 +4,6 @@ RETURNS TABLE (id integer, uid TEXT, category TEXT, name TEXT, opening_hours TEX
 LANGUAGE plpgsql
 AS $function$
 DECLARE 	
-	aoi_categories_object jsonb; 
 	aoi_categories jsonb; 
 	intersected_aoi_categories TEXT[]; 
 	poi_categories jsonb = basic.poi_categories(user_id_input);
@@ -18,14 +17,18 @@ DECLARE
 BEGIN
 	
 	/*Prepare AOI categories*/
-	SELECT (default_setting -> TYPE)  
-	INTO aoi_categories_object 
-	FROM customer.customization c  
-	WHERE TYPE = 'aoi_group';
-	
-	SELECT JSONB_AGG(aoi_category) 
-	INTO aoi_categories 
-	FROM jsonb_object_keys(aoi_categories_object) cat, LATERAL jsonb_object_keys((aoi_categories_object -> cat -> 'children')) aoi_category; 
+	DROP TABLE IF EXISTS aoi_groups_default; 
+	CREATE TEMP TABLE aoi_groups_default AS 
+	WITH aoi_groups AS 
+	(
+		SELECT jsonb_array_elements(basic.select_customization('aoi_groups')) aoi_group
+	)
+	SELECT jsonb_array_elements(p.aoi_group -> jsonb_object_keys(p.aoi_group) -> 'children') AS aoi_category 
+	FROM aoi_groups p;
+
+	SELECT jsonb_agg(object_keys) AS aoi_category
+	INTO aoi_categories
+	FROM aoi_groups_default  p, LATERAL jsonb_object_keys(p.aoi_category) object_keys;  
 	
 	intersected_aoi_categories = basic.intersection_poi_categories(aoi_categories, amenities_input);
 	
