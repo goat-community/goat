@@ -11,6 +11,7 @@ from sqlmodel import (
     Relationship,
     SQLModel,
     Text,
+    ARRAY,
     text,
 )
 
@@ -36,6 +37,9 @@ class UserBase(SQLModel):
     )
     active_study_area_id: int = Field(
         sa_column=Column(Integer, ForeignKey("basic.study_area.id"), nullable=False)
+    )
+    active_data_upload_ids: List[int] = Field(
+        sa_column=Column(ARRAY(Integer()), server_default=text("'{}'::int[]"))
     )
     storage: int = Field(sa_column=Column(Integer, nullable=False))
 
