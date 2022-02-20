@@ -8,6 +8,12 @@
     "remove": "Remove",
     "stop": "Stop"
   },
+  "login": {
+    "title": "Login",
+    "signIn": "Sign In",
+    "toSignUpContactUs": "To sign up, please contact",
+    "noAccount": "No account yet?"
+  },
   "textFieldRules": {
     "greaterThanZero": "Value should be greater than 0",
     "smallerThanThousand": "Value should be smaller than 1000",
@@ -97,6 +103,7 @@
       "title": "Thematic Data Filter",
       "poisSettings": {
         "buttonTooltip": "Weight and Sensitivity Settings",
+        "userDataSet": "User Data Set",
         "title": "Heatmap",
         "selectWeight": "Select Weight",
         "sensitivityIndex": "Sensitivity index",
@@ -199,7 +206,7 @@
       "selectAttribute": "Select Attribute",
       "fillColor": "Fill Color",
       "outlineColorAndWidth": "Outline color & width"
-    } 
+    }
   },
   "isochrones": {
     "title": "Isochrones",
@@ -235,7 +242,7 @@
     "options": {
       "title": "Options",
       "subOptions": "Isochrone Settings",
-      "speed": "km/h",
+      "speed": "Speed",
       "time": "min",
       "nr": "Isochrones",
       "calcType": "Level of detail isochrones",
@@ -360,9 +367,9 @@
       "streetlevelqualityLayers": "Street Level Quality",
       "environmentalQualityLayers": "Environmental data",
       "perceivedQuality": "Perceived Quality",
-      "additionalDataLayers": "Additional data",
+      "additionalLayers": "Additional data",
       "accessbilityBasemaps": "Heatmaps",
-      "backgroundLayers": "Background Layers",
+      "basemaps": "Background Layers",
       "buildings": "Buildings",
       "mobility_patterns": "Mobility Patterns"
     },
@@ -421,13 +428,13 @@
       "studyArea": "Study Area",
       "ways": "Ways",
       "buildings": "Buildings",
-      "osmStandard": "OSM Standard",
-      "osmLight": "OSM Light",
-      "osmDark": "OSM Dark",
-      "openTopoMap": "Open Topo Map",
-      "mapboxStreets": "Mapbox",
-      "publicTransport": "Public Transport",
-      "bingAerial": "Bing Aerial",
+      "osm_standard": "OSM Standard",
+      "osm_light": "OSM Light",
+      "osm_dark": "OSM Dark",
+      "open_topo_map": "Open Topo Map",
+      "mapbox_streets": "Mapbox",
+      "public_transport": "Public Transport",
+      "bing_aerial": "Bing Aerial",
       "walking_trip_rate": "Walking trips per person",
       "walkingShare": "Share of walking trips",
       "cyclingShare": "Share of cycling trips",

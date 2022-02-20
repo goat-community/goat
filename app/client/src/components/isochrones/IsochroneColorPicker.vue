@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" scrollable max-width="330" v-if="calculation">
     <v-card>
-      <v-app-bar :color="activeColor.primary" dark>
+      <v-app-bar :color="appColor.primary" dark>
         <v-app-bar-nav-icon><v-icon>fas fa-palette</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title>{{
           $t("isochrones.pickColor.title")
@@ -18,7 +18,7 @@
             colored-border
             class="mb-0 mt-2 mx-1 elevation-2"
             icon="info"
-            :color="activeColor.primary"
+            :color="appColor.primary"
             dense
           >
             <span v-html="$t('isochrones.results.colorMessage')"></span>
@@ -138,7 +138,7 @@ export default {
       colors: "colors"
     }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     })
   }
 };

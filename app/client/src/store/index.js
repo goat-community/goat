@@ -6,12 +6,13 @@ import loader from "./modules/loader";
 import user from "./modules/user";
 import pois from "./modules/pois";
 import app from "./modules/app";
+import auth from "./modules/auth";
 
 Vue.use(Vuex);
 
 // Create a new store
 const store = new Vuex.Store({
-  modules: { isochrones, map, loader, user, pois, app }
+  modules: { isochrones, map, loader, user, pois, app, auth }
 });
 
 export default store;

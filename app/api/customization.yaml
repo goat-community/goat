@@ -82,182 +82,231 @@ superuser:
   extras:
 
 user:
-  poi_group:
-    education:
-      icon: "https://assets.goat.plan4better.de/icons/pois/groups/education.png"
+  poi_groups:
+  - education:
+      icon: "fas fa-graduation-cap"
       children:
-        nursery:
-          icon: https://assets.goat.plan4better.de/icons/pois/categories/nursery.png"
-          default_sensitivity: 300000
-        kindergarten:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/kindergarten.png"
-          default_sensitivity: 300000
-        grundschule:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/grundschule.png"
-          default_sensitivity: 300000
-        hauptschule:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/hauptschule.png"
-          default_sensitivity: 300000
-        realschule:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/realschule.png"
-          default_sensitivity: 300000
-        gymnasium:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/gymnasium.png"
-          default_sensitivity: 300000
-    foodanddrink:
-      icon: "https://assets.goat.plan4better.de/icons/pois/groups/foodanddrink.png"
+        - nursery:
+            icon: "fas fa-child"
+            color: ["#ff0000"]
+            sensitivity: 200000
+        - kindergarten:
+            icon: "fas fa-graduation-cap"
+            color: ["#ff0001"]
+        - boarding_school:
+            name: "Boarding School"
+            icon: "fa-duotone fa-cannabis"
+            color: ["#ff0002", "#ff0003"]
+            upload_size: 1500
+            creation_date: "2020-01-01"
+        - library:
+            icon: "fas fa-book"
+            color: ["#ff0004"]
+            upload_size: 500
+            creation_date: "2020-01-31"  
+  - transport:
+      icon: "fas fa-transport"
       children:
-        restaurant:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/restaurant.png"
-          default_sensitivity: 300000
-        fast_food:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/fast_food.png"
-          default_sensitivity: 300000
-        bar:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/bar.png"
-          default_sensitivity: 300000
-        pub:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/pub.png"
-          default_sensitivity: 300000
-        cafe:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/cafe.png"
-          default_sensitivity: 300000
-        nightclub:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/nightclub.png"
-          default_sensitivity: 300000
-    transport:
-      icon: "https://assets.goat.plan4better.de/icons/pois/groups/transport.png"
+        - bus_stop:
+            icon: "fas fa-bus"
+            color: ["#ff0005"]
+        - tram_stop:
+            icon: "fas fa-tram"
+            color: ["#ff0006"]
+  - other:
+      icon: "fas fa-question"
       children:
-        bus_stop:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/bus_stop.png"
-          default_sensitivity: 300000
-          multiple_entrance: true
-        tram_stop:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/tram_stop.png"
-          default_sensitivity: 300000
-          multiple_entrance: true
-        subway_entrance:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/subway_entrance.png"
-          default_sensitivity: 300000
-          multiple_entrance: true
-        rail_station:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/rail_station.png"
-          default_sensitivity: 300000
-          multiple_entrance: true
-        bike_sharing:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/bikesharing.png"
-          default_sensitivity: 300000
-        car_sharing:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/car_sharing.png"
-          default_sensitivity: 300000
-        charging_station:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/charging_station.png"
-          default_sensitivity: 300000
-    health:
-      icon: "https://assets.goat.plan4better.de/icons/pois/groups/health.png"
+        - parkplaetze:
+            name: "Parkplätze"
+            icon: "fas fa-parking"
+            color: ["#ff0007"]
+            upload_size: 2500
+            creation_date: "2020-01-01"
+  aoi_groups:
+  - nature:
+      icon: "fas fa-tree"
       children:
-        dentist:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/dentist.png"
-          default_sensitivity: 300000
-        general_practitioner:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/general_practitioner.png"
-          default_sensitivity: 300000
-        pharmacy:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/pharmacy.png"
-          default_sensitivity: 300000
-    services:
-      icon: "htpps://assets.goat.plan4better.de/icons/pois/groups/services.png"
-      children:
-        atm:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/atm.png"
-          default_sensitivity: 300000
-        bank:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/bank.png"
-          default_sensitivity: 300000
-        post_office:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/post_office.png"
-          default_sensitivity: 300000
-        post_box:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/post_box.png"
-          default_sensitivity: 300000
-        fuel:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/fuel.png"
-          default_sensitivity: 300000
-        recycling:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/recycling.png"
-          default_sensitivity: 300000
-    shop:
-      icon: "https://assets.goat.plan4better.de/icons/pois/groups/shop.png"
-      children:
-        supermarket:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/supermarket.png"
-          default_sensitivity: 300000
-        discount_supermarket:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/discount_supermarket.png"
-          default_sensitivity: 300000
-        hypermarket:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/hypermarket.png"
-          default_sensitivity: 300000
-        organic_supermarket:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/organic_supermarket.png"
-          default_sensitivity: 300000
-        convenience:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/convenience.png"
-          default_sensitivity: 300000
-        marketplace:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/marketplace.png"
-          default_sensitivity: 300000
-        bakery:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/bakery.png"
-          default_sensitivity: 300000
-        butcher:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/butcher.png"
-          default_sensitivity: 300000
-    tourismandleisure:
-      icon: "https://assets.goat.plan4better.de/icons/pois/groups/tourismandleisure.png"
-      children:
-        cinema:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/cinema.png"
-          default_sensitivity: 300000
-        museum:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/museum.png"
-          default_sensitivity: 300000
-        hotel:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/hotel.png"
-          default_sensitivity: 300000
-        hostel:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/hostel.png"
-          default_sensitivity: 300000
-        playground:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/playground.png"
-          default_sensitivity: 300000
-    sport:
-      icon: "https://assets.goat.plan4better.de/icons/pois/groups/sport.png"
-      children:
-        gym:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/gym.png"
-          default_sensitivity: 300000
-        discount_gym:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/discount_gym.png"
-          default_sensitivity: 300000
-        yoga:
-          icon: "https://assets.goat.plan4better.de/icons/pois/categories/yoga.png"
-          default_sensitivity: 300000
-  aoi_group:
-    nature:
-      icon: "https://assets.goat.plan4better.de/icons/pois/groups/nature.png"
-      children:
-        park:
-          icon: "htpps://assets.goat.plan4better.de/icons/pois/groups/park.png"
-        forest:
-          icon: "https://assets.goat.plan4better.de/icons/pois/groups/forest.png"
-        lake:
-          icon: "htpps://assets.goat.plan4better.de/icons/pois/groups/lake.png"
-    leisure:
-      icon: "https://assets.goat.plan4better.de/icons/pois/groups/leisure.png"
-      children:
-        beach:
-          icon: "https://assets.goat.plan4better.de/icons/pois/groups/beach.png"
-        golf_course:
-          icon: "https://assets.goat.plan4better.de/icons/pois/groups/golf_course.png"
-          
+        - park:
+            icon: "fas fa-tree"
+            color: ["#ff0008"]
+
+
+# user:
+#   poi_group:
+#     education:
+#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/education.png"
+#       children:
+#         nursery:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/nursery.png"
+#           default_sensitivity: 300000
+#         kindergarten:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/kindergarten.png"
+#           default_sensitivity: 300000
+#         grundschule:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/grundschule.png"
+#           default_sensitivity: 300000
+#         hauptschule:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/hauptschule.png"
+#           default_sensitivity: 300000
+#         realschule:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/realschule.png"
+#           default_sensitivity: 300000
+#         gymnasium:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/gymnasium.png"
+#           default_sensitivity: 300000
+#     foodanddrink:
+#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/foodanddrink.png"
+#       children:
+#         restaurant:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/restaurant.png"
+#           default_sensitivity: 300000
+#         fast_food:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/fast_food.png"
+#           default_sensitivity: 300000
+#         bar:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/bar.png"
+#           default_sensitivity: 300000
+#         pub:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/pub.png"
+#           default_sensitivity: 300000
+#         cafe:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/cafe.png"
+#           default_sensitivity: 300000
+#         nightclub:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/nightclub.png"
+#           default_sensitivity: 300000
+#     transport:
+#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/transport.png"
+#       children:
+#         bus_stop:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/bus_stop.png"
+#           default_sensitivity: 300000
+#           multiple_entrance: true
+#         tram_stop:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/tram_stop.png"
+#           default_sensitivity: 300000
+#           multiple_entrance: true
+#         subway_entrance:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/subway_entrance.png"
+#           default_sensitivity: 300000
+#           multiple_entrance: true
+#         rail_station:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/rail_station.png"
+#           default_sensitivity: 300000
+#           multiple_entrance: true
+#         bike_sharing:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/bikesharing.png"
+#           default_sensitivity: 300000
+#         car_sharing:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/car_sharing.png"
+#           default_sensitivity: 300000
+#         charging_station:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/charging_station.png"
+#           default_sensitivity: 300000
+#     health:
+#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/health.png"
+#       children:
+#         dentist:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/dentist.png"
+#           default_sensitivity: 300000
+#         general_practitioner:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/general_practitioner.png"
+#           default_sensitivity: 300000
+#         pharmacy:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/pharmacy.png"
+#           default_sensitivity: 300000
+#     services:
+#       icon: "htpps://assets.goat.plan4better.de/icons/pois/groups/services.png"
+#       children:
+#         atm:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/atm.png"
+#           default_sensitivity: 300000
+#         bank:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/bank.png"
+#           default_sensitivity: 300000
+#         post_office:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/post_office.png"
+#           default_sensitivity: 300000
+#         post_box:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/post_box.png"
+#           default_sensitivity: 300000
+#         fuel:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/fuel.png"
+#           default_sensitivity: 300000
+#         recycling:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/recycling.png"
+#           default_sensitivity: 300000
+#     shop:
+#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/shop.png"
+#       children:
+#         supermarket:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/supermarket.png"
+#           default_sensitivity: 300000
+#         discount_supermarket:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/discount_supermarket.png"
+#           default_sensitivity: 300000
+#         hypermarket:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/hypermarket.png"
+#           default_sensitivity: 300000
+#         organic_supermarket:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/organic_supermarket.png"
+#           default_sensitivity: 300000
+#         convenience:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/convenience.png"
+#           default_sensitivity: 300000
+#         marketplace:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/marketplace.png"
+#           default_sensitivity: 300000
+#         bakery:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/bakery.png"
+#           default_sensitivity: 300000
+#         butcher:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/butcher.png"
+#           default_sensitivity: 300000
+#     tourismandleisure:
+#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/tourismandleisure.png"
+#       children:
+#         cinema:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/cinema.png"
+#           default_sensitivity: 300000
+#         museum:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/museum.png"
+#           default_sensitivity: 300000
+#         hotel:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/hotel.png"
+#           default_sensitivity: 300000
+#         hostel:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/hostel.png"
+#           default_sensitivity: 300000
+#         playground:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/playground.png"
+#           default_sensitivity: 300000
+#     sport:
+#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/sport.png"
+#       children:
+#         gym:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/gym.png"
+#           default_sensitivity: 300000
+#         discount_gym:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/discount_gym.png"
+#           default_sensitivity: 300000
+#         yoga:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/yoga.png"
+#           default_sensitivity: 300000
+#   aoi_group:
+#     nature:
+#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/nature.png"
+#       children:
+#         park:
+#           icon: "htpps://assets.goat.plan4better.de/icons/pois/groups/park.png"
+#         forest:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/groups/forest.png"
+#         lake:
+#           icon: "htpps://assets.goat.plan4better.de/icons/pois/groups/lake.png"
+#     leisure:
+#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/leisure.png"
+#       children:
+#         beach:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/groups/beach.png"
+#         golf_course:
+#           icon: "https://assets.goat.plan4better.de/icons/pois/groups/golf_course.png"
