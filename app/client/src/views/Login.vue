@@ -153,7 +153,7 @@ export default {
       loading: false,
       passwordRules: [
         v => !!v || "Password is required",
-        v => v.length >= 8 || "Use 8 characters or more for your password"
+        v => v.length >= 4 || "Use 4 characters or more for your password"
       ],
       emailRules: [
         v => !!v || "E-mail is required",

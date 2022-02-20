@@ -48,7 +48,7 @@ const getters = {
     });
     return routingProfiles;
   },
-  poiAoiTree: state => {
+  poisAoisTree: state => {
     let treeStruct = [];
     const poiAoiGroups = [
       ...state.appConfig.poi_groups,

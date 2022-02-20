@@ -1,10 +1,10 @@
 <template>
   <div>
     <v-treeview
-      v-model="selectedPois"
+      v-model="selectedPoisAois"
       :open="open"
       @update:open="openNode"
-      :items="poiAoiTree"
+      :items="poisAoisTree"
       activatable
       open-on-click
       dense
@@ -98,16 +98,51 @@ export default {
   },
   data() {
     return {
-      selectedPois: [],
+      selectedPoisAois: [],
       open: [],
-      poisLayer: null,
+      poisAoisLayer: null,
       showHeatmapOptionsDialog: false,
       selectedAmenity: {}
     };
   },
 
   methods: {
+    /**
+     * This function is executed, after the map is bound (see mixins/Mapable)
+     */
+    onMapBound() {
+      this.createPoisAoisLayer();
+    },
+    /**
+     * Creates a vector layer for the pois_aois
+     */
+    createPoisAoisLayer() {
+      const vector = new VectorLayer({
+        name: "pois_aois_layer",
+        displayInLegend: false,
+        zIndex: 100,
+        source: new VectorSource()
+      });
+      this.map.addLayer(vector);
+      this.poisAoisLayer = vector;
+    },
+    treeViewChanged(item) {
+      console.log(item);
+    },
+    toggleHeatmapDialog(amenity) {
+      this.selectedAmenity = amenity;
+      this.showHeatmapOptionsDialog = true;
+    },
+    isSensitivityEnabled() {
+      return true;
+    },
+    updateHeatmap() {
+      console.log("update headmap");
+    },
     openNode() {
+      this.addBackgroundColorToTreeNode();
+    },
+    addBackgroundColorToTreeNode() {
       this.$nextTick(() => {
         this.$nextTick(() => {
           const elements = document.querySelectorAll(".user-data-icon");
@@ -127,44 +162,6 @@ export default {
         });
       });
     },
-    getPoisIconUrl(item) {
-      const images = require.context(
-        "../../../assets/img/pois/",
-        false,
-        /\.png$/
-      );
-      return images("./" + item.icon + ".png");
-    },
-    /**
-     * This function is executed, after the map is bound (see mixins/Mapable)
-     */
-    onMapBound() {},
-    /**
-     * Creates a vector layer for the pois_aois
-     */
-    createPoisAoisLayer() {
-      const vector = new VectorLayer({
-        name: "pois_aois_layer",
-        displayInLegend: false,
-        zIndex: 100,
-        source: new VectorSource()
-      });
-      this.map.addLayer(vector);
-      this.poisLayer = vector;
-    },
-
-    toggleHeatmapDialog(amenity) {
-      this.selectedAmenity = amenity;
-      this.showHeatmapOptionsDialog = true;
-    },
-
-    ...mapMutations("pois", {
-      toggleNodeState: "TOGGLE_NODE_STATE",
-      init: "INIT"
-    }),
-    isSensitivityEnabled() {
-      return true;
-    },
     getIconColor(item) {
       if (!item.color) {
         return "grey";
@@ -181,12 +178,9 @@ export default {
     }
   },
   computed: {
-    ...mapGetters("pois", {
-      allPois: "allPois"
-    }),
     ...mapGetters("app", {
       appColor: "appColor",
-      poiAoiTree: "poiAoiTree"
+      poisAoisTree: "poisAoisTree"
     })
   },
   created() {}
