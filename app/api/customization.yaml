@@ -85,6 +85,7 @@ user:
   poi_groups:
   - education:
       icon: "fas fa-graduation-cap"
+      color: "#ffc107"
       children:
         - nursery:
             icon: "fas fa-child"
@@ -93,220 +94,183 @@ user:
         - kindergarten:
             icon: "fas fa-graduation-cap"
             color: ["#ff0001"]
-        - boarding_school:
-            name: "Boarding School"
-            icon: "fa-duotone fa-cannabis"
-            color: ["#ff0002", "#ff0003"]
-            upload_size: 1500
-            creation_date: "2020-01-01"
-        - library:
-            icon: "fas fa-book"
+        - grundschule:
+            icon: "fas fa-graduation-cap"
+            color: ["#ff0002"]
+        - hauptschule:
+            icon: "fas fa-graduation-cap"
+            color: ["#ff0003"]
+        - realschule:
+            icon: "fas fa-graduation-cap"
             color: ["#ff0004"]
-            upload_size: 500
-            creation_date: "2020-01-31"  
+        - gymnasium:
+            icon: "fas fa-graduation-cap"
+            color: ["#ff0005"]
+
+  - foodanddrink:
+      icon: "fas fa-utensils"
+      color: "#ffc107"
+      children:
+        - restaurant:
+            icon: "fas fa-utensils"
+            color: ["#ff0006"]
+        - fast_food:
+            icon: "fas fa-utensils"
+            color: ["#ff0007"]
+        - bar:
+            icon: "fas fa-utensils"
+            color: ["#ff0008"]
+        - pub:
+            icon: "fas fa-utensils"
+            color: ["#ff0009"]
+        - cafe:
+            icon: "fas fa-utensils"
+            color: ["#ff0010"]
+        - nightclub:
+            icon: "fas fa-utensils"            
+            color: ["#ff0011"]
+
   - transport:
-      icon: "fas fa-transport"
+      icon: "fas fa-bus"
+      color: "#ffc107"
       children:
         - bus_stop:
             icon: "fas fa-bus"
-            color: ["#ff0005"]
+            color: ["#ff0012"]
+            multiple_entrance: true
         - tram_stop:
             icon: "fas fa-tram"
-            color: ["#ff0006"]
-  - other:
-      icon: "fas fa-question"
+            color: ["#ff0013"]
+            multiple_entrance: true
+        - subway_entrance:
+            icon: "fas fa-subway"
+            color: ["#ff0014"]
+            multiple_entrance: true
+        - rail_station:
+            icon: "fas fa-train"
+            color: ["#ff0015"]
+            multiple_entrance: true
+        - bike_sharing:
+            icon: "fas fa-bicycle"
+            color: ["#ff0016"]
+        - car_sharing:
+            icon: "fas fa-car"
+            color: ["#ff0017"]
+        - charging_station:
+            icon: "fas fa-charging-station"
+            color: ["#ff0018"]
+
+  - health:
+      icon: "fas fa-heart"
+      color: "#ffc107"
       children:
-        - parkplaetze:
-            name: "Parkplätze"
-            icon: "fas fa-parking"
-            color: ["#ff0007"]
-            upload_size: 2500
-            creation_date: "2020-01-01"
+        - dentist:
+            icon: "fas fa-dentist"
+            color: ["#ff0019"]
+        - general_practitioner:
+            icon: "fas fa-user-md"
+            color: ["#ff0020"]
+        - pharmacy:
+            icon: "fas fa-prescription-bottle-alt"
+            color: ["#ff0021"]  
+
+  - services:
+      icon: "fas fa-wrench"
+      color: "#ffc107"
+      children:
+        - atm:
+            icon: "fas fa-atm"
+            color: ["#ff0022"]
+        - bank:
+            icon: "fas fa-bank"
+            color: ["#ff0023"]
+        - post_office:
+            icon: "fas fa-envelope"
+            color: ["#ff0024"]
+        - post_box:
+            icon: "fas fa-envelope"
+            color: ["#ff0025"]
+        - fuel:
+            icon: "fas fa-gas-pump"
+            color: ["#ff0026"]
+        - recycling:
+            icon: "fas fa-recycle"
+            color: ["#ff0027"]
+  - shop:
+      icon: "fas fa-shopping-cart"
+      color: "#ffc107"
+      children:
+        - supermarket:
+            icon: "fas fa-shopping-cart"
+            color: ["#ff0028"]
+        - discount_supermarket:
+            icon: "fas fa-shopping-cart"
+            color: ["#ff0029"]
+        - hypermarket:
+            icon: "fas fa-shopping-cart"
+            color: ["#ff0030"]
+        - organic_supermarket:
+            icon: "fas fa-shopping-cart"
+            color: ["#ff0031"]
+        - convenience:
+            icon: "fas fa-shopping-cart"
+            color: ["#ff0032"]
+        - marketplace:
+            icon: "fas fa-shopping-cart"
+            color: ["#ff0033"]
+        - bakery:
+            icon: "fas fa-shopping-cart"
+            color: ["#ff0034"]
+        - butcher:
+            icon: "fas fa-shopping-cart"
+            color: ["#ff0035"]
+
+  - tourismandleisure:
+      icon: "fas fa-tree"
+      color: "#ffc107"
+      children:
+        - cinema:
+            icon: "fas fa-film"
+            color: ["#ff0036"]
+        - museum:
+            icon: "fas fa-museum"
+            color: ["#ff0037"]
+        - hotel:
+            icon: "fas fa-hotel"
+            color: ["#ff0038"]
+        - hostel:
+            icon: "fas fa-bed"
+            color: ["#ff0039"]
+        - playground:
+            icon: "fas fa-child"
+            color: ["#ff0040"]
+
+  - sport:
+      icon: "fas fa-basketball-ball"
+      color: "#ffc107"
+      children:
+        - gym:
+            icon: "fas fa-basketball-ball"
+            color: ["#ff0041"]
+        - discount_gym:
+            icon: "fas fa-basketball-ball"
+            color: ["#ff0042"]
+        - yoga:
+            icon: "fas fa-basketball-ball"
+            color: ["#ff0043"]
+
   aoi_groups:
   - nature:
       icon: "fas fa-tree"
+      color: "#ffc107"
       children:
         - park:
             icon: "fas fa-tree"
-            color: ["#ff0008"]
-
-
-# user:
-#   poi_group:
-#     education:
-#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/education.png"
-#       children:
-#         nursery:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/nursery.png"
-#           default_sensitivity: 300000
-#         kindergarten:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/kindergarten.png"
-#           default_sensitivity: 300000
-#         grundschule:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/grundschule.png"
-#           default_sensitivity: 300000
-#         hauptschule:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/hauptschule.png"
-#           default_sensitivity: 300000
-#         realschule:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/realschule.png"
-#           default_sensitivity: 300000
-#         gymnasium:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/gymnasium.png"
-#           default_sensitivity: 300000
-#     foodanddrink:
-#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/foodanddrink.png"
-#       children:
-#         restaurant:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/restaurant.png"
-#           default_sensitivity: 300000
-#         fast_food:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/fast_food.png"
-#           default_sensitivity: 300000
-#         bar:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/bar.png"
-#           default_sensitivity: 300000
-#         pub:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/pub.png"
-#           default_sensitivity: 300000
-#         cafe:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/cafe.png"
-#           default_sensitivity: 300000
-#         nightclub:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/nightclub.png"
-#           default_sensitivity: 300000
-#     transport:
-#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/transport.png"
-#       children:
-#         bus_stop:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/bus_stop.png"
-#           default_sensitivity: 300000
-#           multiple_entrance: true
-#         tram_stop:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/tram_stop.png"
-#           default_sensitivity: 300000
-#           multiple_entrance: true
-#         subway_entrance:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/subway_entrance.png"
-#           default_sensitivity: 300000
-#           multiple_entrance: true
-#         rail_station:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/rail_station.png"
-#           default_sensitivity: 300000
-#           multiple_entrance: true
-#         bike_sharing:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/bikesharing.png"
-#           default_sensitivity: 300000
-#         car_sharing:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/car_sharing.png"
-#           default_sensitivity: 300000
-#         charging_station:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/charging_station.png"
-#           default_sensitivity: 300000
-#     health:
-#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/health.png"
-#       children:
-#         dentist:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/dentist.png"
-#           default_sensitivity: 300000
-#         general_practitioner:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/general_practitioner.png"
-#           default_sensitivity: 300000
-#         pharmacy:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/pharmacy.png"
-#           default_sensitivity: 300000
-#     services:
-#       icon: "htpps://assets.goat.plan4better.de/icons/pois/groups/services.png"
-#       children:
-#         atm:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/atm.png"
-#           default_sensitivity: 300000
-#         bank:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/bank.png"
-#           default_sensitivity: 300000
-#         post_office:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/post_office.png"
-#           default_sensitivity: 300000
-#         post_box:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/post_box.png"
-#           default_sensitivity: 300000
-#         fuel:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/fuel.png"
-#           default_sensitivity: 300000
-#         recycling:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/recycling.png"
-#           default_sensitivity: 300000
-#     shop:
-#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/shop.png"
-#       children:
-#         supermarket:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/supermarket.png"
-#           default_sensitivity: 300000
-#         discount_supermarket:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/discount_supermarket.png"
-#           default_sensitivity: 300000
-#         hypermarket:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/hypermarket.png"
-#           default_sensitivity: 300000
-#         organic_supermarket:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/organic_supermarket.png"
-#           default_sensitivity: 300000
-#         convenience:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/convenience.png"
-#           default_sensitivity: 300000
-#         marketplace:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/marketplace.png"
-#           default_sensitivity: 300000
-#         bakery:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/bakery.png"
-#           default_sensitivity: 300000
-#         butcher:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/butcher.png"
-#           default_sensitivity: 300000
-#     tourismandleisure:
-#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/tourismandleisure.png"
-#       children:
-#         cinema:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/cinema.png"
-#           default_sensitivity: 300000
-#         museum:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/museum.png"
-#           default_sensitivity: 300000
-#         hotel:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/hotel.png"
-#           default_sensitivity: 300000
-#         hostel:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/hostel.png"
-#           default_sensitivity: 300000
-#         playground:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/playground.png"
-#           default_sensitivity: 300000
-#     sport:
-#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/sport.png"
-#       children:
-#         gym:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/gym.png"
-#           default_sensitivity: 300000
-#         discount_gym:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/discount_gym.png"
-#           default_sensitivity: 300000
-#         yoga:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/categories/yoga.png"
-#           default_sensitivity: 300000
-#   aoi_group:
-#     nature:
-#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/nature.png"
-#       children:
-#         park:
-#           icon: "htpps://assets.goat.plan4better.de/icons/pois/groups/park.png"
-#         forest:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/groups/forest.png"
-#         lake:
-#           icon: "htpps://assets.goat.plan4better.de/icons/pois/groups/lake.png"
-#     leisure:
-#       icon: "https://assets.goat.plan4better.de/icons/pois/groups/leisure.png"
-#       children:
-#         beach:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/groups/beach.png"
-#         golf_course:
-#           icon: "https://assets.goat.plan4better.de/icons/pois/groups/golf_course.png"
+            color: ["#ff0044"]
+        - forest:
+            icon: "fas fa-tree"
+            color: ["#ff0045"]
+        - lake:
+            icon: "fas la-water"
+            color: ["#ff0046"]   
+  
