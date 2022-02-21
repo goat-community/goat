@@ -27,6 +27,7 @@ async def create_user(
     Create new user.
     """
     user = await crud.user.get_by_key(db, key="email", value=user_in.email)
+    user = user[0]
     if user:
         raise HTTPException(
             status_code=400,

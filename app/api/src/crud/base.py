@@ -47,7 +47,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         statement = select(self.model).where(getattr(self.model, key) == value)
         statement = self.extend_statement(statement)
         result = await db.execute(statement)
-        return result.scalars().first()
+        return result.scalars().all()
 
     async def get_by_multi_keys(
         self, db: AsyncSession, *, keys: Dict[str, Any], extra_fields: List[Any] = []

@@ -39,10 +39,12 @@ async def authentication_token_from_email(
     """
     password = random_lower_string()
     user = await crud.user.get_by_key(db, key="email", value=email)
+    
     if not user:
         user_in_create = UserCreate(username=email, email=email, password=password)
         user = await crud.user.create(db, obj_in=user_in_create)
     else:
+        user = user[0]
         user_in_update = UserUpdate(password=password)
         user = await crud.user.update(db, db_obj=user, obj_in=user_in_update)
 

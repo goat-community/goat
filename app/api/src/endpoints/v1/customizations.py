@@ -95,7 +95,9 @@ async def update_user_settings(
         customization = await CRUDBase(models.Customization).get_by_key(
             db, key="type", value=user_customization_key
         )
+        
         if customization is not None:
+            customization = customization[0]
             user_customization = await CRUDBase(models.UserCustomization).get_by_multi_keys(
                 db, keys={"user_id": user_id, "customization_id": customization.id}
             )
@@ -139,6 +141,8 @@ async def delete_user_setting(
     )
     if customization is None:
         raise HTTPException(status_code=400, detail="Customization not found")
+    else:
+        customization = customization[0]
 
     user_customization = await CRUDBase(models.UserCustomization).get_by_multi_keys(
         db, keys={"user_id": user_id, "customization_id": customization.id}

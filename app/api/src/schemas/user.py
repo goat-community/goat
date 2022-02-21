@@ -37,6 +37,7 @@ request_examples = {
         "study_areas": [1],
         "active_study_area": 1,
         "organization_id": 1,
+        "active_data_upload_ids": [],
         "is_active": True,
         "storage": 500000,
     },

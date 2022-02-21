@@ -57,8 +57,11 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
         self, db: AsyncSession, *, email: str, password: str
     ) -> Optional[models.User]:
         user = await self.get_by_key(db, key="email", value=email)
-        if not user:
+
+        if not user or len(user) == 0:
             return None
+        else: 
+            user = user[0]
         if not verify_password(password, user.hashed_password):
             return None
         return user
