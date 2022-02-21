@@ -3,7 +3,7 @@
     :indeterminate="true"
     :size="70"
     :width="7"
-    :color="activeColor.primary"
+    :color="appColor.primary"
     class="ma-0 pa-0 maploading-status"
     v-show="isNetworkBusy || busyLayers.length > 0"
   ></v-progress-circular>
@@ -18,7 +18,7 @@ export default {
   },
   computed: {
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     }),
     ...mapGetters("map", {
       busyLayers: "busyLayers"

@@ -1,26 +1,23 @@
 <template>
   <div>
-    <div v-if="item.mapLayer.get('legendGraphicUrl')">
+    <div v-if="layer.get('legendGraphicUrl')">
       <img
         crossorigin="anonymous"
         style="max-width:100%;padding-left:50px"
-        :src="item.mapLayer.get('legendGraphicUrl')"
+        :src="layer.get('legendGraphicUrl')"
         class="white--text mt-0 pt-0"
       />
     </div>
     <div v-else>
-      <div v-if="item.mapLayer.get('type') === 'WMS'">
+      <div v-if="layer.get('type').toUpperCase() === 'WMS'">
         <template
-          v-for="(layerName, index2) in item.mapLayer
-            .getSource()
-            .getParams()
-            .LAYERS.split(',')"
+          v-for="(layerName, index2) in getWMSLayerNames(layer).split(',')"
         >
           <div :key="index2">
             <img
               crossorigin="anonymous"
               style="max-width:100%; padding-left:50px;"
-              :src="getWMSLegendImageUrl(item.mapLayer, layerName)"
+              :src="getWMSLegendImageUrl(layer, layerName)"
               class="white--text mt-0 pt-0"
             />
             <br />
@@ -29,17 +26,14 @@
       </div>
       <div :key="legendRerenderOnActiveMode">
         <div
-          v-if="
-            ['VECTORTILE', 'VECTOR'].includes(item.mapLayer.get('type')) &&
-              $appConfig.stylesObj[item.mapLayer.get('name')]
-          "
+          v-if="vectorTileStyles[layer.get('name')]"
           style="text-align: center; padding: 20px;"
           :key="item.layerTreeKey"
         >
-          <div v-if="$appConfig.stylesObj[item.mapLayer.get('name')]">
+          <div v-if="vectorTileStyles[layer.get('name')]">
             <v-layout
               v-for="(rule, ith) in filterStylesOnActiveModeByLayerName(
-                item.mapLayer.get('name')
+                layer.get('name')
               ).rules"
               :key="ith"
               class="pl-2"
@@ -52,17 +46,17 @@
                   style="width: 27px;height: 38px;"
                   :ripple="false"
                   v-if="
-                    filterStylesOnActiveModeByLayerName(
-                      item.mapLayer.get('name')
-                    ).rules.length > 1
+                    filterStylesOnActiveModeByLayerName(layer.get('name')).rules
+                      .length > 1
                   "
                   :key="item.attributeDisplayStatusKey"
                   :color="activeColor.primary"
                   :value="isLayerAttributeVisible(item, ith)"
                   @input="
                     attributeLevelRendering(
-                      $appConfig.stylesObjCopy[item.mapLayer.get('name')].style
-                        .rules[ith].filter[0],
+                      $appConfig.stylesObjCopy[layer.get('name')].style.rules[
+                        ith
+                      ].filter[0],
                       item,
                       ith
                     )
@@ -93,7 +87,7 @@ import Legend from "../controls/Legend";
 import { mapGetters } from "vuex";
 
 export default {
-  props: ["item"],
+  props: ["layer"],
   mixins: [Legend],
   data: () => ({
     legendRerenderOnActiveMode: 0
@@ -105,9 +99,9 @@ export default {
     }
   },
   methods: {
-    isLayerAttributeVisible(item, ith) {
+    isLayerAttributeVisible(layer, ith) {
       //Checkbox will be checked or unchecked based on layer attribute visibility.
-      const name = item.mapLayer.get("name");
+      const name = layer.get("name");
       const attributeStyle = this.filterStylesOnActiveModeByLayerName(name)
         .rules[ith].filter[0];
       if (!attributeStyle) {
@@ -115,9 +109,9 @@ export default {
       }
       return true;
     },
-    attributeLevelRendering(filter, item, ith) {
+    attributeLevelRendering(filter, layer, ith) {
       //Display or hide layer on attribute level.
-      const name = item.mapLayer.get("name");
+      const name = layer.get("name");
       const styleFilter = this.filterStylesOnActiveModeByLayerName(name).rules[
         ith
       ];
@@ -126,18 +120,17 @@ export default {
       } else {
         styleFilter.filter[0] = filter;
       }
-      item.mapLayer.getSource().changed();
+      layer.getSource().changed();
       this.item.attributeDisplayStatusKey += 1;
     },
-    renderLegend(item, index) {
+    renderLegend(layer, index) {
       //Render individual legend on attribue level.
       setTimeout(() => {
-        item = item.mapLayer;
-        const styleObj = this.$appConfig.stylesObj;
-        const name = item.get("name");
-        let styleTranslation = this.$appConfig.stylesObj[name].translation;
+        const styleObj = this.vectorTileStyles[name].style;
+        const name = layer.get("name");
+        let styleTranslation = this.vectorTileStyles[name].translation;
         const currentLocale = this.$i18n.locale;
-        if (styleObj[name] && styleObj[name].format === "geostyler") {
+        if (styleObj[name]) {
           let el = this.$refs[`legend-vector-${name + index}`];
           el = el ? el : [];
           if (el.length) {
@@ -166,11 +159,18 @@ export default {
           }
         }
       }, 100);
+    },
+    getWMSLayerNames(layer) {
+      const layerUrl = layer.getUrl();
+      const layerKeyNames = new URL(layerUrl).searchParams.get("LAYERS");
+      return layerKeyNames;
     }
   },
   computed: {
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      activeColor: "activeColor",
+      appConfig: "appConfig",
+      vectorTileStyles: "vectorTileStyles"
     })
   }
 };

@@ -9,7 +9,7 @@
             fab
             dark
             small
-            :color="activeColor.primary"
+            :color="appColor.primary"
             @click="showMiniViewer"
             :loading="isMapillaryBtnDisabled"
             v-on="on"
@@ -105,7 +105,7 @@ export default {
   },
   computed: {
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     }),
     ...mapGetters("map", {
       print: "print"

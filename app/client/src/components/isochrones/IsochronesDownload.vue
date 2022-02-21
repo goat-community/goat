@@ -81,13 +81,14 @@ export default {
 
         saveAs(blob, `${exportName}.json`);
       } else if (me.selected === "Shapefile") {
-        const objectId = me.calculation.data[0].objectId;
+        const isochrone_calculation_id =
+          me.calculation.data[0].isochrone_calculation_id;
         http
           .post(
             "/api/map/isochrone",
             {
               return_type: "shapefile",
-              objectid: objectId
+              isochrone_calculation_id: isochrone_calculation_id
             },
             { responseType: "blob" }
           )

@@ -9,7 +9,7 @@
     left
     hide-overlay
     mini-variant-width="50"
-    width="350"
+    width="360"
     class="right-shadow"
   >
     <v-layout
@@ -31,23 +31,32 @@
         </v-btn>
       </template>
       <template v-if="!mini">
-        <v-app-bar
-          flat
-          class="toolbar"
-          :color="activeColor.primary"
-          height="50"
-        >
+        <v-app-bar flat class="toolbar" :color="appColor.primary" height="50">
           <img id="app-logo" :src="logoText" width="120px" />
           <v-spacer></v-spacer>
           <v-btn text icon light @click.stop="mini = !mini">
-            <v-icon color="white">fas fa-chevron-left</v-icon>
+            <v-icon small color="white">fas fa-chevron-left</v-icon>
           </v-btn>
         </v-app-bar>
-        <toolbar v-show="!osmMode"></toolbar>
-
         <v-tabs
-          :color="activeColor.primary"
-          v-show="activeComponent === 'map-layertree'"
+          grow
+          :color="appColor.secondary"
+          class="elevation-3"
+          v-model="topTabIndex"
+        >
+          <v-tab>
+            Isochrones
+          </v-tab>
+          <v-tab>
+            Heatmaps
+          </v-tab>
+          <v-tab>
+            Static Layers
+          </v-tab>
+        </v-tabs>
+        <v-tabs
+          :color="appColor.secondary"
+          v-show="componentNames[topTabIndex] === 'map-layertree'"
           grow
           v-model="layerTabIndex"
         >
@@ -63,48 +72,36 @@
           </v-tab>
         </v-tabs>
 
-        <vue-scroll v-show="!osmMode" ref="vs">
+        <vue-scroll ref="vs">
           <v-layout
-            v-show="!osmMode"
             justify-space-between
             column
             fill-height
             style="overflow-y: auto;"
           >
             <keep-alive>
-              <component v-bind:is="activeComponent"></component>
+              <component v-bind:is="componentNames[topTabIndex]"></component>
             </keep-alive>
           </v-layout>
         </vue-scroll>
 
-        <v-layout v-show="!osmMode" align-end>
-          <v-bottom-navigation
-            :background-color="activeColor.primary"
-            flat
-            horizontal
-            dark
-            grow
-            value="true"
-            v-model="activeComponent"
-            height="50"
-          >
-            <v-btn text value="map-isochrones">
-              <span style="font-size: 0.85rem;">{{
-                $t("isochrones.title")
-              }}</span>
-              <v-icon>fas fa-bullseye</v-icon>
-            </v-btn>
-            <v-btn text value="map-layertree">
-              <span style="font-size: 0.85rem;">{{
-                $t("layerTree.title")
-              }}</span>
-              <v-icon>fas fa-layer-group</v-icon>
-            </v-btn>
-          </v-bottom-navigation>
+        <v-layout align-end>
+          <div class="text-center elevation-5 py-2" style="width:100%;">
+            <v-chip
+              v-for="(item, index) in calculationMode.values"
+              style="cursor:pointer;width:100px;justify-content:center;"
+              :color="calculationMode.active === item ? appColor.primary : ''"
+              @click="selectCalculationMode(item)"
+              :key="index"
+              :class="{
+                'subtitle-2 ma-2': true,
+                'white--text': calculationMode.active === item
+              }"
+            >
+              {{ item }}
+            </v-chip>
+          </div>
         </v-layout>
-
-        <!-- OSM MODE TASKS -->
-        <osm-mode v-if="osmMode"></osm-mode>
       </template>
     </v-layout>
   </v-navigation-drawer>
@@ -113,55 +110,53 @@
 <script>
 // Utilities
 import IsochronesComponent from "../isochrones/Isochrones";
+import HeatmapsComponent from "../heatmaps/Heatmaps";
 import LayerTree from "../layers/layerTree/LayerTree";
-import Toolbar from "./Toolbar";
-import OsmMode from "./OsmMode";
-import { mapGetters, mapMutations } from "vuex";
+import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
-
 import { Isochrones } from "../../mixins/Isochrones";
 
 export default {
   components: {
     "map-isochrones": IsochronesComponent,
-    "map-layertree": LayerTree,
-    toolbar: Toolbar,
-    "osm-mode": OsmMode
+    "map-heatmaps": HeatmapsComponent,
+    "map-layertree": LayerTree
   },
   mixins: [Isochrones],
-  name: "tree-panel",
+  name: "left-panel",
   data: () => ({
-    activeComponent: "map-isochrones",
     logo: "img/logo.png",
     logoText: "img/logo_white.png",
     drawer: true,
     mini: false,
-    responsive: false
+    responsive: false,
+    topTabIndex: 0,
+    componentNames: ["map-isochrones", "map-heatmaps", "map-layertree"]
   }),
   computed: {
     getColor() {
-      return this.mini === true ? this.activeColor.primary : "";
+      return this.mini === true ? this.appColor.primary : "";
     },
     ...mapGetters("isochrones", {
       selectedThematicData: "selectedThematicData",
       calculations: "calculations"
     }),
-    ...mapGetters("map", {
-      osmMode: "osmMode"
-    }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor",
+      calculationMode: "calculationMode"
     }),
     ...mapFields("app", {
+      calculationMode: "calculationMode",
       layerTabIndex: "layerTabIndex"
     })
   },
   mounted() {},
   beforeDestroy() {},
   methods: {
-    ...mapMutations("isochrones", {
-      init: "INIT"
-    })
+    selectCalculationMode(mode) {
+      this.calculationMode.active = mode;
+      this.canCalculateScenario(mode);
+    }
   },
   watch: {
     selectedThematicData(calculation) {
@@ -179,9 +174,6 @@ export default {
         }, 100);
       }
     }
-  },
-  created() {
-    this.init(this.$appConfig.componentData.isochrones);
   }
 };
 </script>

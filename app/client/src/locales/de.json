@@ -249,7 +249,7 @@
     "options": {
       "title": "Optionen",
       "subOptions": "Einstellungen Isochronen",
-      "speed": "km/h",
+      "speed": "Speed",
       "time": "Min",
       "nr": "Isochronen",
       "calcType": "Detaillierungsgrad Isochronen",

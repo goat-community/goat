@@ -1,7 +1,20 @@
+import ApiService from "../../services/api.service";
 import { getField, updateField } from "vuex-map-fields";
+import { GET_STUDY_AREA } from "../actions.type";
+import { SET_STUDY_AREA } from "../mutations.type";
+import { SET_ERROR } from "../mutations.type";
+import { errorMessage } from "../../utils/Helpers";
+import { transformExtent } from "ol/proj";
+import { geojsonToFeature } from "../../utils/MapUtils";
 
 const state = {
+  studyArea: null,
   map: null,
+  errors: null,
+  helpTooltip: {
+    isActive: false,
+    currentMessage: ""
+  },
   messages: {
     snackbar: {
       type: "info",
@@ -10,19 +23,17 @@ const state = {
       timeout: 2000
     }
   },
-  layers: {}, // Only for operational layers
-  helpTooltip: {
-    isActive: false,
-    currentMessage: ""
-  },
   contextmenu: null,
+  isBusy: false,
+  ///
+
+  layers: {}, // Only for operational layers
   osmMode: false,
   reqFields: null,
   bldEntranceLayer: null,
   editLayer: null,
   selectedEditLayer: null,
   isMapillaryBtnDisabled: false,
-  busyLayers: [],
   print: {
     active: false,
     title: "",
@@ -81,6 +92,7 @@ const state = {
 };
 
 const getters = {
+  studyArea: state => state.studyArea,
   map: state => state.map,
   layers: state => state.layers,
   osmMode: state => state.osmMode,
@@ -98,19 +110,28 @@ const getters = {
   getField
 };
 
-const actions = {};
+const actions = {
+  [GET_STUDY_AREA](context, credentials) {
+    return new Promise((resolve, reject) => {
+      ApiService.get("/users/me/study-area", credentials)
+        .then(response => {
+          context.commit(SET_STUDY_AREA, response.data);
+          resolve(response.data);
+        })
+        .catch(({ response }) => {
+          errorMessage(context, response, SET_ERROR);
+          reject(response);
+        });
+    });
+  }
+};
 
 const mutations = {
-  UPDATE_HELP_TOOLTIP(state, message) {
-    state.currentMessage = message;
+  SET_MAP(state, map) {
+    state.map = map;
   },
-  TOGGLE_SNACKBAR(state, payload) {
-    Object.assign(state.messages.snackbar, payload);
-  },
-  SET_LAYER(state, layer) {
-    if (layer.get("name")) {
-      state.layers[layer.get("name")] = layer;
-    }
+  [SET_ERROR](state, error) {
+    state.errors = error;
   },
   START_HELP_TOOLTIP(state, message) {
     state.helpTooltip.isActive = true;
@@ -119,15 +140,31 @@ const mutations = {
   STOP_HELP_TOOLTIP(state) {
     state.helpTooltip.isActive = false;
   },
-  SET_MAP(state, map) {
-    state.map = map;
+  UPDATE_HELP_TOOLTIP(state, message) {
+    state.currentMessage = message;
+  },
+  TOGGLE_SNACKBAR(state, payload) {
+    Object.assign(state.messages.snackbar, payload);
+  },
+  [SET_STUDY_AREA](state, studyArea) {
+    const olFeatures = geojsonToFeature(studyArea, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857"
+    });
+    const extent = transformExtent(
+      olFeatures[0].get("bounds"),
+      "EPSG:4326",
+      "EPSG:3857"
+    );
+    if (Array.isArray(olFeatures) && olFeatures.length > 0) {
+      olFeatures[0].set("bounds", extent);
+      state.studyArea = olFeatures;
+    }
   },
   SET_CONTEXTMENU(state, contextmenu) {
     state.contextmenu = contextmenu;
   },
-  SET_OSM_MODE(state) {
-    state.osmMode = !state.osmMode;
-  },
+  /////////
   UPDATE_REQ_FIELDS(state, reqFields) {
     state.reqFields = reqFields;
   },

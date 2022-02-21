@@ -4,14 +4,14 @@
     <zoom-control
       v-show="!miniViewOlMap"
       :map="map"
-      :color="activeColor.primary"
+      :color="appColor.primary"
     />
-    <full-screen v-show="!miniViewOlMap" :color="activeColor.primary" />
+    <full-screen v-show="!miniViewOlMap" :color="appColor.primary" />
     <progress-status :isNetworkBusy="isNetworkBusy" />
     <background-switcher v-show="!miniViewOlMap" />
     <!-- Popup overlay  -->
     <overlay-popup
-      :color="activeColor.primary"
+      :color="appColor.primary"
       :title="getPopupTitle()"
       v-show="popup.isVisible && miniViewOlMap === false"
       ref="popup"
@@ -87,7 +87,7 @@
     </overlay-popup>
     <!-- Info Snackbar for not visible layers. -->
     <v-snackbar
-      :color="activeColor.primary"
+      :color="appColor.primary"
       top
       :timeout="visibilityLayerSnackbar.timeout"
       v-model="visibilityLayerSnackbar.state"
@@ -102,7 +102,7 @@
     </v-snackbar>
     <!-- Info Snackbar for layers that have a long computation time (ex. heatmaps) -->
     <v-snackbar
-      :color="activeColor.primary"
+      :color="appColor.primary"
       top
       :timeout="80000"
       v-model="busyLayerSnackbar.state"
@@ -131,20 +131,15 @@ import VectorLayer from "ol/layer/Vector";
 import LineString from "ol/geom/LineString";
 
 // style imports
-import { getInfoStyle } from "../../../style/OlStyleDefs";
+import { getInfoStyle, studyAreaStyle } from "../../../style/OlStyleDefs";
 // import the app-wide EventBus
 import { EventBus } from "../../../EventBus";
 
 // utils imports
 import { LayerFactory } from "../../../factory/layer.js";
-import { OlStyleFactory } from "../../../factory/OlStyle";
-import { groupBy, humanize, isCssColor } from "../../../utils/Helpers";
-import {
-  getAllChildLayers,
-  updateLayerUrlQueryParam
-} from "../../../utils/Layer";
+import { humanize, isCssColor } from "../../../utils/Helpers";
+import { getAllChildLayers } from "../../../utils/Layer";
 import { geojsonToFeature } from "../../../utils/MapUtils";
-import { Group as LayerGroup } from "ol/layer.js";
 import axios from "axios";
 
 //Store imports
@@ -184,13 +179,6 @@ export default {
   },
   data() {
     return {
-      zoom: this.$appConfig.map.zoom,
-      center: this.$appConfig.map.center,
-      minZoom: this.$appConfig.map.minZoom,
-      maxZoom: this.$appConfig.map.maxZoom,
-      extent: this.$appConfig.map.extent, // Extent is fetched dynamically from the study area
-      color: this.$appConfig.controlsColor,
-      allLayers: [],
       queryableLayers: [],
       activeInteractions: [],
       popup: {
@@ -226,12 +214,9 @@ export default {
     window.setTimeout(() => {
       me.map.setTarget(document.getElementById("ol-map-container"));
       me.map.updateSize();
-
       // adjust the bg color of the OL buttons (like zoom, rotate north, ...)
       me.setOlButtonColor();
-
       me.setupMapHover();
-
       //Get Info
       me.setupMapClick();
       me.setupMapPointerMove();
@@ -241,7 +226,6 @@ export default {
   },
   created() {
     var me = this;
-
     // Make map rotateable according to property
     const attribution = new Attribution({
       collapsible: true,
@@ -254,7 +238,6 @@ export default {
     me.map = new Map({
       layers: [],
       interactions: defaultInteractions({
-        altShiftDragRotate: me.rotateableMap,
         doubleClickZoom: false,
         mouseWheelZoom: true
       }).extend([this.dblClickZoomInteraction]),
@@ -263,14 +246,16 @@ export default {
         zoom: false
       }).extend([attribution]),
       view: new View({
-        center: me.center || [0, 0],
-        zoom: me.zoom,
-        extent: me.extent,
-        minZoom: me.minZoom,
-        maxZoom: me.maxZoom
+        extent: me.studyArea[0].get("bounds"),
+        center: me.appConfig.map.center || [0, 0],
+        zoom: me.appConfig.map.zoom,
+        minZoom: me.appConfig.map.minZoom,
+        maxZoom: me.appConfig.map.maxZoom
       })
     });
 
+    // Get study area
+    me.createStudyAreaLayer();
     // Create layers from config and add them to map
     const layers = me.createLayers();
     me.map.getLayers().extend(layers);
@@ -288,11 +273,6 @@ export default {
         return interaction !== stopedInteraction;
       });
     });
-    EventBus.$on("close-popup", () => {
-      me.closePopup();
-    });
-    EventBus.$on("inject-styles", this.injectStyles);
-    this.init(this.$appConfig.componentData.pois);
   },
 
   methods: {
@@ -302,88 +282,37 @@ export default {
      */
     createLayers() {
       let layers = [];
-      const me = this;
-
-      const layersConfigGrouped = groupBy(
-        [
-          ...this.$appConfig.map.layers,
-          ...(this.$appConfig.osmMapping === "on"
-            ? this.$appConfig.map.osmMappingLayers
-            : [])
-        ],
-        "group"
-      );
-      for (var group in layersConfigGrouped) {
-        if (!layersConfigGrouped.hasOwnProperty(group)) {
-          continue;
-        }
-        const mapLayers = [];
-        layersConfigGrouped[group].reverse().forEach(lConf => {
-          const layer = LayerFactory.getInstance(lConf);
-          if (![Infinity, undefined, null].includes(layer.getMaxResolution())) {
-            this.limitedVisibilityLayers.push(layer);
-          }
-          mapLayers.push(layer);
-          if (layer.get("name")) {
-            me.setLayer(layer);
+      this.appConfig.layer_groups.forEach(group => {
+        group.layers.forEach(lConf => {
+          if (lConf.type) {
+            const olLayer = LayerFactory.getInstance({
+              group: group.name,
+              ...lConf
+            });
+            if (olLayer) {
+              layers.push(olLayer);
+            }
           }
         });
-        let layerGroup = new LayerGroup({
-          name: group !== undefined ? group.toString() : "Other Layers",
-          layers: mapLayers
-        });
-        layers.push(layerGroup);
-      }
-
+      });
       return layers;
     },
 
-    /**
-     * Inject styles to map vector layers.
-     */
-    injectStyles(stylesObj) {
-      const flatLayers = getAllChildLayers(this.map);
-      flatLayers.forEach(layer => {
-        const layerName = layer.get("name");
-        let styleObj;
-        if (
-          layer.get("styleConf") &&
-          layer.get("styleConf").format === "custom-logic"
-        ) {
-          // Custom-styles
-          styleObj = layer.get("styleConf");
-        } else {
-          // Style from style config object (geostyler)
-          styleObj = stylesObj[layerName];
-        }
-        if (styleObj) {
-          if (styleObj.format === "geostyler") {
-            styleObj.style.rules.forEach(rule => {
-              //Set default filer if no filter is found for rule
-              if (!rule.filter) {
-                rule.filter = ["=="];
-              }
-
-              //Change Symbolizers outline color from rgba to hexa
-              if (rule.symbolizers[0].outlineColor === "rgba(0, 0, 255, 0.0)") {
-                rule.symbolizers[0].outlineColor = "#0000FF00";
-              }
-            });
-          }
-          const olStyle = OlStyleFactory.getOlStyle(styleObj, layerName);
-          if (olStyle) {
-            if (olStyle instanceof Promise) {
-              olStyle
-                .then(style => {
-                  layer.setStyle(style);
-                })
-                .catch(error => console.log(error));
-            } else {
-              layer.setStyle(olStyle);
-            }
-          }
-        }
+    createStudyAreaLayer() {
+      const source = new VectorSource({
+        wrapX: false
       });
+      const vector = new VectorLayer({
+        name: "study_area",
+        displayInLayerList: false,
+        zIndex: 100,
+        source: source,
+        style: studyAreaStyle
+      });
+      this.getInfoLayerSource = source;
+      source.addFeature(this.studyArea[0]);
+      this.map.addLayer(vector);
+      this.map.getView().fit(source.getExtent());
     },
 
     /**
@@ -394,9 +323,8 @@ export default {
         wrapX: false
       });
       const vector = new VectorLayer({
-        name: "Get Info Layer",
+        name: "get_info",
         displayInLayerList: false,
-        displayInLegend: false,
         zIndex: 100,
         source: source,
         style: getInfoStyle()
@@ -451,7 +379,7 @@ export default {
     setOlButtonColor() {
       var me = this;
 
-      if (isCssColor(me.activeColor.primary)) {
+      if (isCssColor(me.appColor.primary)) {
         // directly apply the given CSS color
         const rotateEl = document.querySelector(".ol-rotate");
         if (rotateEl) {
@@ -460,7 +388,7 @@ export default {
           const rotateElStyle = document.querySelector(
             ".ol-rotate .ol-rotate-reset"
           ).style;
-          rotateElStyle.backgroundColor = me.activeColor.primary;
+          rotateElStyle.backgroundColor = me.appColor.primary;
           rotateElStyle.borderRadius = "40px";
         }
         const attrEl = document.querySelector(".ol-attribution");
@@ -469,13 +397,13 @@ export default {
           const elStyle = document.querySelector(
             ".ol-attribution button[type='button']"
           ).style;
-          elStyle.backgroundColor = me.activeColor.primary;
+          elStyle.backgroundColor = me.appColor.primary;
           elStyle.borderRadius = "40px";
         }
       } else {
         // apply vuetify color by transforming the color to the corresponding
         // CSS class (see https://vuetifyjs.com/en/framework/colors)
-        const [colorName, colorModifier] = me.activeColor.primary
+        const [colorName, colorModifier] = me.appColor.primary
           .toString()
           .trim()
           .split(" ", 2);
@@ -563,7 +491,7 @@ export default {
         }
         const features = this.map.getFeaturesAtPixel(evt.pixel, {
           layerFilter: candidate => {
-            if (candidate.get("name") === "Isochrone Layer") {
+            if (candidate.get("name") === "isochrone_layer") {
               return true;
             }
             return false;
@@ -623,7 +551,7 @@ export default {
         //Check for isochrone features
         const features = me.map.getFeaturesAtPixel(evt.pixel, {
           layerFilter: candidate => {
-            if (candidate.get("name") === "Isochrone Layer") {
+            if (candidate.get("name") === "isochrone_layer") {
               return true;
             }
             return false;
@@ -807,16 +735,6 @@ export default {
         );
         if (canTranslate) {
           return this.$t(`map.layerName.${layer.get("layerName")}`);
-        } else if (
-          this.osmMode === true &&
-          this.$te(`map.osmMode.layers.${layer.get("layerName")}.layerName`)
-        ) {
-          const path = `map.osmMode.layers.${layer.get("layerName")}`;
-          return (
-            this.$t(`${path}.layerName`) +
-            " - " +
-            this.$t(`${path}.missingKeyWord`)
-          );
         } else {
           return layer.get("layerName");
         }
@@ -839,21 +757,19 @@ export default {
   },
   computed: {
     ...mapGetters("map", {
+      studyArea: "studyArea",
       helpTooltip: "helpTooltip",
       currentMessage: "currentMessage",
-      osmMode: "osmMode",
       layers: "layers",
       busyLayers: "busyLayers"
     }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor",
+      appConfig: "appConfig"
     }),
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
       options: "options"
-    }),
-    ...mapGetters("user", {
-      userId: "userId"
     }),
     ...mapGetters("loader", { isNetworkBusy: "isNetworkBusy" }),
     currentInfo() {
@@ -894,24 +810,8 @@ export default {
         this.dblClickZoomInteraction.setActive(true);
       }
     },
-    activeColor() {
+    appColor() {
       this.setOlButtonColor();
-    },
-    userId(value) {
-      setTimeout(() => {
-        const layers = Object.keys(this.layers);
-        layers.forEach(key => {
-          if (
-            this.layers[key].get("queryParams") &&
-            this.layers[key].get("queryParams").includes("userid_input")
-          ) {
-            const layer = this.layers[key];
-            updateLayerUrlQueryParam(layer, {
-              userid_input: value
-            });
-          }
-        });
-      }, 500);
     },
     busyLayers(layers) {
       if (

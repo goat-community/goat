@@ -4,7 +4,6 @@ import OlFill from "ol/style/Fill";
 import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
-import OlChart from "ol-ext/style/Chart";
 import store from "../store/modules/map";
 import isochronesStore from "../store/modules/isochrones";
 import { getArea } from "ol/sphere.js";
@@ -80,6 +79,18 @@ export function getInfoStyle() {
   });
 }
 
+export function studyAreaStyle() {
+  return new OlStyle({
+    fill: new OlFill({
+      color: "rgba(96, 96, 98, 0.7)"
+    }),
+    stroke: new OlStroke({
+      color: "#606062",
+      width: 5
+    })
+  });
+}
+
 export function getEditStyle() {
   return editStyleFn();
 }
@@ -97,16 +108,15 @@ export function getIsochroneNetworkStyle() {
   };
   return styleFunction;
 }
-export function getIsochroneStyle(styleData, addStyleInCache) {
+
+export function getIsochroneStyle() {
   const styleFunction = feature => {
     // Style array
     let styles = [];
     // Get the incomeLevel and modus from the feature properties
-    let level = feature.get("step");
     let modus = feature.get("modus");
     let isVisible = feature.get("isVisible");
     let geomType = feature.getGeometry().getType();
-    const color = feature.get("color");
     const highlightFeature = feature.get("highlightFeature");
 
     /**
@@ -125,24 +135,17 @@ export function getIsochroneStyle(styleData, addStyleInCache) {
 
       //Fallback isochrone style
       if (!modus) {
-        if (!styleData.styleCache.default["GenericIsochroneStyle"]) {
-          let genericIsochroneStyle = new OlStyle({
-            fill: new OlFill({
-              color: [0, 0, 0, 0]
-            }),
-            stroke: new OlStroke({
-              color: "#0d0d0d",
-              width: 7
-            })
-          });
-          let payload = {
-            style: genericIsochroneStyle,
-            isochroneType: "default",
-            styleName: "GenericIsochroneStyle"
-          };
-          addStyleInCache(payload);
-        }
-        styles.push(styleData.styleCache.default["GenericIsochroneStyle"]);
+        let genericIsochroneStyle = new OlStyle({
+          fill: new OlFill({
+            color: [0, 0, 0, 0]
+          }),
+          stroke: new OlStroke({
+            color: "#0d0d0d",
+            width: 7
+          })
+        });
+
+        styles.push(genericIsochroneStyle);
       }
       //highlight color
       if (highlightFeature !== false) {
@@ -156,50 +159,30 @@ export function getIsochroneStyle(styleData, addStyleInCache) {
         );
       }
       // If the modus is 1 it is a default isochrone
-      if (modus === 1 || modus === 3) {
-        if (
-          !styleData.styleCache.default[level] ||
-          styleData.styleCache.default[level].getStroke().getColor() !== color //Updates default cache when user has changed the color
-        ) {
-          let style = new OlStyle({
-            fill: new OlFill({
-              color: [0, 0, 0, 0]
-            }),
-            stroke: new OlStroke({
-              color: feature.get("color"),
-              width: 5
-            })
-          });
-          let payload = {
-            style: style,
-            isochroneType: "default",
-            styleName: level
-          };
-          addStyleInCache(payload);
-        }
-        styles.push(styleData.styleCache.default[level]);
+      if (modus === "default" || modus === "comparision") {
+        let style = new OlStyle({
+          fill: new OlFill({
+            color: [0, 0, 0, 0]
+          }),
+          stroke: new OlStroke({
+            color: feature.get("color"),
+            width: 5
+          })
+        });
+
+        styles.push(style);
       } else {
-        if (
-          !styleData.styleCache.input[level] ||
-          styleData.styleCache.input[level].getStroke().getColor() !== color //Updates input cache when user has changed the color
-        ) {
-          let style = new OlStyle({
-            fill: new OlFill({
-              color: [0, 0, 0, 0]
-            }),
-            stroke: new OlStroke({
-              color: feature.get("color"),
-              width: 5
-            })
-          });
-          let payload = {
-            style: style,
-            isochroneType: "input",
-            styleName: level
-          };
-          addStyleInCache(payload);
-        }
-        styles.push(styleData.styleCache.input[level]);
+        let style = new OlStyle({
+          fill: new OlFill({
+            color: [0, 0, 0, 0]
+          }),
+          stroke: new OlStroke({
+            color: feature.get("color"),
+            width: 5
+          })
+        });
+
+        styles.push(style);
       }
     } else {
       let path = `img/markers/marker-${feature.get("calculationNumber")}.png`;
@@ -374,46 +357,6 @@ export function waysNewRoadStyle(feature) {
       color: "#6495ED",
       width: 4,
       lineDash: feature.getProperties()["status"] == 1 ? [0, 0] : [10, 10]
-    })
-  });
-  return [style];
-}
-
-export function ppfNetworkStyle(feature) {
-  const persons = feature.get("persons");
-  let width = 5;
-  if (persons >= 0 && persons <= 1) {
-    width = 1;
-  } else if (persons > 1 && persons <= 20) {
-    width = 1.5;
-  } else if (persons > 20 && persons <= 100) {
-    width = 3;
-  } else if (persons > 100 && persons <= 500) {
-    width = 4.5;
-  } else if (persons > 500 && persons <= 1000) {
-    width = 6;
-  } else if (persons > 1000 && persons <= 5000) {
-    width = 8;
-  } else if (persons > 5000 && persons <= 15000) {
-    width = 12;
-  } else if (persons > 15000 && persons <= 30000) {
-    width = 18;
-  } else if (persons > 30000 && persons <= 30877) {
-    width = 24;
-  }
-  let path = `img/markers/marker-${feature.get("calcNumber")}.png`;
-  const style = new OlStyle({
-    image: new OlIcon({
-      anchor: [0.5, 0.96],
-      src: path,
-      scale: 0.5
-    }),
-    stroke: new OlStroke({
-      color:
-        isochronesStore.state.activePPFCalc === feature.get("calcNumber")
-          ? "#FF0000"
-          : "#e15989",
-      width: width
     })
   });
   return [style];
@@ -720,90 +663,8 @@ function poisStyle(feature, resolution) {
   return [poisStyleCache[name]];
 }
 
-/**
- * Mode share style
- */
-const modeShareStyleCache = {};
-function modeShareStyle(feature) {
-  const gid = feature.get("gid") || feature.get("objectid");
-  if (!modeShareStyleCache[gid]) {
-    const boundaryStyle = new OlStyle({
-      stroke: new OlStroke({
-        color: "#707070",
-        width: 1
-      })
-    });
-    const radius = 25;
-    const share_foot = parseFloat(feature.get("share_foot")) || 0;
-    const share_bike = parseFloat(feature.get("share_bike")) || 0;
-    const share_mivd = parseFloat(feature.get("share_mivd")) || 0;
-    const share_mivp = parseFloat(feature.get("share_mivp")) || 0;
-    const share_put = parseFloat(feature.get("share_put")) || 0;
-    const chartStyle = new OlStyle({
-      image: new OlChart({
-        type: "pie3D",
-        radius: radius,
-        data: [share_foot, share_bike, share_mivd, share_mivp, share_put],
-        colors: ["#00a6ff", "#20a849", "#c43114", "#f29305", "#1455e0"],
-        rotateWithView: true,
-        stroke: new OlStroke({
-          color: "#fff",
-          width: 2
-        })
-      }),
-      geometry: function(feature) {
-        // Return the center of extent.
-        const interiorPointsMltPoint = feature
-          .getGeometry()
-          .getInteriorPoints();
-        return interiorPointsMltPoint;
-      }
-    });
-    modeShareStyleCache[gid] = [boundaryStyle, chartStyle];
-  }
-
-  return modeShareStyleCache[gid];
-}
-
-export function footpathVisualizationStyle(feature) {
-  let color = "#3399CC";
-
-  const walkability = feature.get("walkability");
-  if (walkability >= 0 && walkability < 25) {
-    color = "#ff1a01";
-  } else if (walkability >= 25 && walkability < 50) {
-    color = "#ff9807";
-  } else if (walkability >= 50 && walkability < 75) {
-    color = "#9ac223";
-  } else if (walkability >= 75) {
-    color = "#13bc54";
-  } else if (walkability == "NULL" || walkability == undefined) {
-    color = "#99a29d";
-  }
-  const dataQuality = feature.get("data_quality");
-  let opacity = 0;
-  if (dataQuality) {
-    opacity = opacity + parseInt(dataQuality * 100);
-  }
-  //color = color + opacity;
-
-  const stroke = new OlStroke({
-    width: 5,
-    color: color,
-    opacity: opacity
-  });
-  const styles = [
-    new OlStyle({
-      stroke
-    })
-  ];
-  return styles;
-}
-
 export const stylesRef = {
   pois: poisStyle,
   mapping_pois_opening_hours: poisStyle,
-  study_area_crop: baseStyleDefs.boundaryStyle,
-  modeshare: modeShareStyle,
-  footpath_visualization: footpathVisualizationStyle
+  study_area_crop: baseStyleDefs.boundaryStyle
 };

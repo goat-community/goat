@@ -9,7 +9,9 @@
     >
       <v-icon
         class="mr-2"
-        :style="isResultsElVisible === true ? { color: '#30c2ff' } : {}"
+        :style="
+          isResultsElVisible === true ? { color: appColor.secondary } : {}
+        "
         style="margin-right: 2px;"
         small
         >far fa-list-alt</v-icon
@@ -26,6 +28,7 @@
       >
         <v-icon left>delete</v-icon>{{ $t("isochrones.results.deleteAll") }}
       </v-btn>
+      <v-icon v-html="isResultsElVisible === true ? 'remove' : 'add'"></v-icon>
     </v-subheader>
     <v-layout>
       <v-flex xs12 class="mx-3" v-show="isResultsElVisible">
@@ -452,14 +455,7 @@ export default {
         return false;
       }
     },
-    getRouteProfileIcon(route) {
-      const routingName = route.split("_")[0];
-      //Edge-case
-      if (route.includes("walking_wheelchair")) {
-        return this.routeIcons["walking_wheelchair"];
-      }
-      return this.routeIcons[routingName];
-    },
+
     toggleIsochroneWindow(calculation) {
       if (this.isCalculationActive(calculation)) {
         // Hide
@@ -478,21 +474,7 @@ export default {
         });
       }
     },
-    deleteAll() {
-      this.$refs.confirm
-        .open(
-          this.$t("isochrones.deleteTitle"),
-          this.$t("isochrones.deleteAllMessage"),
-          { color: "green" }
-        )
-        .then(confirm => {
-          if (confirm) {
-            this.calculations.forEach(calculation => {
-              this.removeCalculation(calculation);
-            });
-          }
-        });
-    },
+
     getPaletteColor(calculation, mode) {
       const colorKey = `${mode}ColorPalette`;
       return Object.values(this.colors[calculation[colorKey]]).toString();
@@ -514,6 +496,9 @@ export default {
       selectedThematicData: "selectedThematicData",
       isThematicDataVisible: "isThematicDataVisible",
       colors: "colors"
+    }),
+    ...mapGetters("app", {
+      appColor: "appColor"
     }),
     headers() {
       return [
