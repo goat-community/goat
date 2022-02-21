@@ -491,7 +491,11 @@ export default {
         }
         const features = this.map.getFeaturesAtPixel(evt.pixel, {
           layerFilter: candidate => {
-            if (candidate.get("name") === "isochrone_layer") {
+            if (
+              ["isochrone_layer", "pois_aois_layer"].includes(
+                candidate.get("name")
+              )
+            ) {
               return true;
             }
             return false;

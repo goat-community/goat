@@ -6,9 +6,9 @@ from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
 from src import crud
-from src.endpoints.v1.api import api_router
 from src.core.config import settings
 from src.db.session import async_session
+from src.endpoints.v1.api import api_router
 
 sentry_sdk.init(
     dsn=settings.SENTRY_DSN,

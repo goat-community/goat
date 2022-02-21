@@ -9,7 +9,7 @@ import { getSelectStyle } from "../style/OlStyleDefs";
 import { geometryToWKT } from "../utils/MapUtils";
 
 import store from "../store/modules/isochrones";
-import poisStore from "../store/modules/pois";
+import poisStore from "../store/modules/poisaois";
 import OlBaseController from "./OlBaseController";
 import i18n from "../../src/plugins/i18n";
 import { EventBus } from "../EventBus";

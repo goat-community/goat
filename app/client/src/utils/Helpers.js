@@ -105,6 +105,24 @@ export function colorZeroPadding(hex) {
   return hex.length == 1 ? `0${hex}` : hex;
 }
 
+const iconUnicodeCache = {};
+
+export const getIconUnicode = iconClass => {
+  if (iconUnicodeCache[iconClass]) return iconUnicodeCache[iconClass];
+  const tempElement = document.createElement("i");
+  tempElement.className = iconClass;
+  document.body.appendChild(tempElement);
+  const character = window
+    .getComputedStyle(tempElement, ":before")
+    .getPropertyValue("content")
+    .replaceAll(`"`, "");
+  tempElement.remove();
+  if (character) {
+    iconUnicodeCache[iconClass] = character;
+  }
+  return character;
+};
+
 /**
  * Converts a color from RGB to hex representation.
  * @param {number[]} rgb rgb representation of the color.

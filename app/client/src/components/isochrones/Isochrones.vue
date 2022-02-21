@@ -893,10 +893,14 @@ export default {
                 dataProjection: "EPSG:4326",
                 featureProjection: "EPSG:3857"
               });
+
               olFeatures.sort((a, b) => {
                 return a.get("step") - b.get("step");
               });
-              olFeatures.forEach(feature => {
+              olFeatures.forEach((feature, index) => {
+                feature.setId(
+                  "isochrone_feature_" + calculationNumber + "_" + index
+                );
                 let color = "";
                 let level = feature.get("step");
                 let modus = feature.get("modus");
@@ -1215,6 +1219,20 @@ export default {
       if (calculation.isVisible === false && feature.isVisible === true) {
         calculation.isVisible = true;
       }
+    },
+    toggleIsochroneCalculationVisibility(calculation) {
+      calculation.isVisible = !calculation.isVisible;
+
+      calculation.data.forEach(isochrone => {
+        let featureId = isochrone.id;
+        isochrone.isVisible = calculation.isVisible;
+        let isochroneFeature = this.isochroneLayer
+          .getSource()
+          .getFeatureById(featureId);
+        if (isochroneFeature) {
+          isochroneFeature.set("isVisible", calculation.isVisible);
+        }
+      });
     },
     toggleIsochroneFeatureVisibility(feature) {
       let featureId = feature.id;

@@ -1,12 +1,13 @@
 import ApiService from "../../services/api.service";
 import { getField, updateField } from "vuex-map-fields";
 import { GET_APP_CONFIG } from "../actions.type";
-import { SET_APP_CONFIG, SET_ERROR } from "../mutations.type";
+import { SET_APP_CONFIG, SET_ERROR, SET_POI_ICONS } from "../mutations.type";
 import { errorMessage } from "../../utils/Helpers";
 
 const state = {
   errors: null,
   appConfig: null,
+  poiIcons: {},
   layerTabIndex: 0,
   calculationMode: {
     values: ["default", "scenario", "comparision"],
@@ -79,6 +80,7 @@ const getters = {
         value: groupName,
         hasUserData,
         icon: group[groupName].icon,
+        color: group[groupName].color,
         children: restructuredChildren
       };
       treeStruct.push(groupTreeStruct);
@@ -95,6 +97,7 @@ const actions = {
       ApiService.get("/customizations/me")
         .then(response => {
           context.commit(SET_APP_CONFIG, response.data);
+          context.commit(SET_POI_ICONS, response.data);
           resolve(response.data);
         })
         .catch(({ response }) => {
@@ -112,6 +115,25 @@ const mutations = {
   },
   [SET_APP_CONFIG](state, config) {
     state.appConfig = config;
+  },
+  /**
+   * Restructures the POI icons to be easier to use for openlayers layer styling
+   */
+  [SET_POI_ICONS](state, config) {
+    const icons = {};
+    const poiAoiGroups = [...config.poi_groups, ...config.aoi_groups];
+    poiAoiGroups.forEach(group => {
+      const groupName = Object.keys(group)[0];
+      const children = group[groupName].children;
+      children.forEach(child => {
+        const childName = Object.keys(child)[0];
+        icons[childName] = {
+          icon: child[childName].icon,
+          color: child[childName].color[0]
+        };
+      });
+    });
+    state.poiIcons = icons;
   }
 };
 
