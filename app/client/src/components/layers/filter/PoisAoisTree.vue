@@ -110,7 +110,7 @@ import { mapMutations } from "vuex";
 import { mapFields } from "vuex-map-fields";
 //Ol imports
 import VectorSource from "ol/source/Vector";
-import VectorImageLayer from "ol/layer/VectorImage";
+import VectorLayer from "ol/layer/VectorImage";
 // Child components
 import HeatmapOptions from "./HeatmapOptions";
 
@@ -144,10 +144,12 @@ export default {
      * Creates a vector layer for the pois_aois
      */
     createPoisAoisLayer() {
-      const vector = new VectorImageLayer({
+      const vector = new VectorLayer({
         name: "pois_aois_layer",
+        type: "VECTOR",
         displayInLegend: false,
-        zIndex: 100,
+        queryable: true,
+        zIndex: 99,
         source: new VectorSource(),
         style: poisAoisStyle
       });

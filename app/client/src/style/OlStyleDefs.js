@@ -727,23 +727,23 @@ export function poisAoisStyle(feature) {
     // Font style
     poisAoisStyleCache[icon + color] = new OlStyle({
       image: new OlFontSymbol({
-        form: "poi", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
+        form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
         gradient: false,
         glyph: icon,
         text: "", // text to use if no glyph is defined
         font: "sans-serif",
-        fontSize: 0.8,
-        radius: 25,
+        fontSize: 0.7,
+        radius: 20,
         rotation: 0,
         rotateWithView: false,
-        offsetY: -25,
+        offsetY: -20,
         color: color, // icon color
         fill: new OlFill({
-          color: color // marker color
+          color: "#fff" // marker color
         }),
         stroke: new OlStroke({
-          color: "#fff",
-          width: 0
+          color: color,
+          width: 2
         })
       }),
       stroke: new OlStroke({
