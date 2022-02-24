@@ -7,7 +7,7 @@ authors = ["Admin <majk.shkurti@plan4better.de>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 uvicorn = "^0.11.3"
-fastapi = "0.65.3"
+fastapi = "^0.74"
 python-multipart = "^0.0.5"
 email-validator = "^1.0.5"
 requests = "^2.23.0"
@@ -41,6 +41,7 @@ rich = "^11.0.0"
 sqlmodel = "^0.0.6"
 schedule = "^1.1.0"
 geobuf = "^1.1.1"
+schema = "^0.7.5"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.770"
