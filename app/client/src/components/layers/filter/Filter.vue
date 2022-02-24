@@ -1,10 +1,10 @@
 <template>
   <v-flex xs12 sm8 md4>
     <v-card flat>
-      <v-subheader>
+      <v-subheader class="mb-4">
         <span class="title">{{ $t("appBar.filter.title") }}</span>
       </v-subheader>
-      <v-card-text class="pr-16 pl-16 pt-0 pb-0">
+      <v-card-text class="pt-0 pb-0 px-0 mx-0">
         <v-divider></v-divider>
       </v-card-text>
       <v-card-text class="pa-2"><pois-aois-tree /></v-card-text>

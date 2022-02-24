@@ -1,5 +1,21 @@
 <template>
   <div>
+    <v-tooltip top>
+      <template v-slot:activator="{ on }">
+        <v-btn
+          v-on="on"
+          class="mt-n11 ml-2"
+          :color="appColor.primary"
+          fab
+          dark
+          small
+        >
+          <v-icon dark>add</v-icon>
+        </v-btn>
+      </template>
+      <span>Upload POI Dataset</span></v-tooltip
+    >
+
     <v-treeview
       v-model="selectedPoisAois"
       :open="open"
@@ -21,9 +37,17 @@
       @input="treeViewChanged"
     >
       <template v-slot:prepend="{ item }">
-        <v-icon class="ml-1" :color="getIconColor(item)" dense>
-          {{ item.icon }}
-        </v-icon>
+        <i
+          :class="
+            item.icon +
+              ' v-icon notranslate ml-1 v-icon--dense theme--light grey--text ml-1'
+          "
+          :style="
+            Array.isArray(item.color) && item.color.length > 1
+              ? `--fa-primary-color: ${item.color[0]};--fa-secondary-color: ${item.color[1]};width:20px;`
+              : `color: ${item.color} !important;width:20px;`
+          "
+        ></i>
       </template>
       <template v-slot:label="{ item }">
         <div class="tree-label-custom">
@@ -44,7 +68,7 @@
               v-on="on"
               v-if="item.hasUserData"
               v-show="!open"
-              class="mr-2 mt-1 user-data-icon"
+              class="mr-2 mt-0 user-data-icon"
               x-small
               :color="appColor.primary"
               >fa-solid fa-circle</v-icon
@@ -83,14 +107,17 @@
 import { Mapable } from "../../../mixins/Mapable";
 import { mapGetters } from "vuex";
 import { mapMutations } from "vuex";
-
+import { mapFields } from "vuex-map-fields";
 //Ol imports
 import VectorSource from "ol/source/Vector";
-import VectorLayer from "ol/layer/Vector";
-
+import VectorLayer from "ol/layer/VectorImage";
 // Child components
 import HeatmapOptions from "./HeatmapOptions";
 
+// Other
+import ApiService from "../../../services/api.service";
+import { geobufToFeatures } from "../../../utils/MapUtils";
+import { poisAoisStyle } from "../../../style/OlStyleDefs";
 export default {
   mixins: [Mapable],
   components: {
@@ -119,15 +146,23 @@ export default {
     createPoisAoisLayer() {
       const vector = new VectorLayer({
         name: "pois_aois_layer",
+        type: "VECTOR",
         displayInLegend: false,
-        zIndex: 100,
-        source: new VectorSource()
+        queryable: true,
+        zIndex: 99,
+        source: new VectorSource(),
+        style: poisAoisStyle
       });
       this.map.addLayer(vector);
       this.poisAoisLayer = vector;
     },
-    treeViewChanged(item) {
-      console.log(item);
+    treeViewChanged(selected) {
+      const poisAois = {};
+      selected.forEach(item => {
+        poisAois[item.value] = true;
+      });
+      this.poisAois = poisAois;
+      this.poisAoisLayer.changed();
     },
     toggleHeatmapDialog(amenity) {
       this.selectedAmenity = amenity;
@@ -168,6 +203,39 @@ export default {
       }
       return item.color[0];
     },
+    fetchPoisAois() {
+      return new Promise((resolve, reject) => {
+        const payload = {
+          modus: "default",
+          amenities: ["supermarket", "discount_supermarket", "kindergarten"],
+          active_upload_ids: [0],
+          scenario_id: 0
+        };
+        ApiService.post(
+          `/pois_aois/visualization?return_type=db_geobuf`,
+          payload,
+          {
+            responseType: "arraybuffer",
+            headers: {
+              Accept: "application/pdf"
+            }
+          }
+        )
+          .then(response => {
+            resolve(response);
+            if (response.data) {
+              const olFeatures = geobufToFeatures(response.data, {
+                dataProjection: "EPSG:4326",
+                featureProjection: "EPSG:3857"
+              });
+              this.poisAoisLayer.getSource().addFeatures(olFeatures);
+            }
+          })
+          .catch(({ response }) => {
+            reject(response);
+          });
+      });
+    },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR"
     })
@@ -181,9 +249,18 @@ export default {
     ...mapGetters("app", {
       appColor: "appColor",
       poisAoisTree: "poisAoisTree"
+    }),
+    ...mapFields("app", {
+      calculationMode: "calculationMode",
+      layerTabIndex: "layerTabIndex"
+    }),
+    ...mapFields("poisaois", {
+      poisAois: "poisAois"
     })
   },
-  created() {}
+  created() {
+    this.fetchPoisAois();
+  }
 };
 </script>
 <style lang="css">

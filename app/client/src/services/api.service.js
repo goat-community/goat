@@ -31,8 +31,8 @@ const ApiService = {
     });
   },
 
-  post(resource, params) {
-    return Vue.axios.post(`${resource}`, params);
+  post(resource, params, config = {}) {
+    return Vue.axios.post(`${resource}`, params, config);
   },
 
   update(resource, slug, params) {

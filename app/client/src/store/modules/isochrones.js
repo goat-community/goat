@@ -83,6 +83,8 @@ const state = {
 };
 
 const getters = {
+  colors: state => state.colors,
+  isochroneLayer: state => state.isochroneLayer,
   getField
 };
 

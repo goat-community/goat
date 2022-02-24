@@ -175,7 +175,7 @@ export default {
   },
   name: "app-ol-map",
   props: {
-    miniViewOlMap: { type: Boolean, required: true }
+    miniViewOlMap: { type: Boolean, required: true, default: false }
   },
   data() {
     return {
@@ -491,14 +491,23 @@ export default {
         }
         const features = this.map.getFeaturesAtPixel(evt.pixel, {
           layerFilter: candidate => {
-            if (candidate.get("name") === "isochrone_layer") {
+            if (
+              ["isochrone_layer", "pois_aois_layer"].includes(
+                candidate.get("name")
+              )
+            ) {
               return true;
             }
             return false;
           }
         });
         const style = this.map.getTarget().style;
-        style && style.cursor == features.length > 0 ? "pointer" : "";
+        if (!style) return false;
+        if (features.length > 0) {
+          style.cursor = "pointer";
+        } else {
+          style.cursor = "";
+        }
       });
     },
 
@@ -778,6 +787,7 @@ export default {
       const props = feature.getProperties();
       let transformed = [];
       const excludedProperties = [
+        "uid",
         "id",
         "geometry",
         "geom",

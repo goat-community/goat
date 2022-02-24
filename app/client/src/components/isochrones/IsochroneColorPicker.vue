@@ -66,12 +66,7 @@ export default {
     calculation: { type: Object, required: false },
     visible: { type: Boolean, required: true }
   },
-  data: () => ({
-    modes: {
-      default: [1, 3],
-      scenario: [2, 4]
-    }
-  }),
+  data: () => ({}),
   methods: {
     getPaletteColor(color) {
       return Object.values(color).toString();
@@ -83,27 +78,25 @@ export default {
 
       // Update isochrone color
       this.calculation.data.forEach(obj => {
-        const selectedMode = this.modes[this.selectedMode];
         const isochroneFeature = this.isochroneLayer
           .getSource()
           .getFeatureById(obj.id);
-        if (selectedMode.includes(isochroneFeature.get("modus"))) {
-          const step = isochroneFeature.get("step");
-          const interpolatedColor = IsochroneUtils.getInterpolatedColor(
-            1,
-            20,
-            step,
-            color
-          );
-          isochroneFeature.set("color", interpolatedColor);
-          // legend el color
-          obj.color = interpolatedColor;
-        }
+
+        const step = isochroneFeature.get("step");
+        const interpolatedColor = IsochroneUtils.getInterpolatedColor(
+          1,
+          20,
+          parseInt(step / 60),
+          color
+        );
+        isochroneFeature.set("color", interpolatedColor);
+        // legend el color
+        obj.color = interpolatedColor;
       });
 
       // Update network color
       const selectedModeHumanize =
-        this.selectedMode === "default" ? "Default" : "Input";
+        this.selectedMode === "default" ? "Default" : "Scenario";
       if (!this.calculation.additionalData[selectedModeHumanize]) return;
       this.calculation.additionalData[selectedModeHumanize].features.forEach(
         feature => {

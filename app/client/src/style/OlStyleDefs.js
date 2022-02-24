@@ -5,9 +5,47 @@ import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
 import store from "../store/modules/map";
+import OlFontSymbol from "../utils/FontSymbol";
+import OlShadow from "../utils/Shadow";
+
 import isochronesStore from "../store/modules/isochrones";
+import poisAoisStore from "../store/modules/poisaois";
+import appStore from "../store/modules/app";
+import FA_DEFINITIONS from "../utils/FontAwesomev6ProDefs";
+import { getIconUnicode } from "../utils/Helpers";
 import { getArea } from "ol/sphere.js";
 import i18n from "../../src/plugins/i18n";
+
+OlFontSymbol.addDefs(
+  {
+    font: "FontAwesome",
+    name: "FontAwesome",
+    prefix: ""
+  },
+  FA_DEFINITIONS
+);
+
+const CUSTOM_FA_DEFS = {};
+if (window.FontAwesomeKitConfig && window.FontAwesomeKitConfig.iconUploads) {
+  const iconNames = Object.keys(window.FontAwesomeKitConfig.iconUploads);
+  iconNames.forEach(iconName => {
+    const unicode = window.FontAwesomeKitConfig.iconUploads[iconName].u;
+    if (unicode) {
+      CUSTOM_FA_DEFS[`fak fa-${iconName}`] = getIconUnicode(
+        `fak fa-${iconName}`
+      );
+    }
+  });
+}
+
+OlFontSymbol.addDefs(
+  {
+    font: "Font Awesome Kit",
+    name: "Font Awesome Kit",
+    prefix: ""
+  },
+  CUSTOM_FA_DEFS
+);
 
 export function getMeasureStyle(measureConf) {
   return new OlStyle({
@@ -638,33 +676,90 @@ export const mapillaryStyleDefs = {
   }
 };
 /**
- * POIS layer style -
+ * PoisAois layer style ---------------------
  */
-const poisStyleCache = {};
-function poisStyle(feature, resolution) {
-  if (resolution > 25) {
+const poisAoisStyleCache = {};
+const poisShadowStyle = new OlStyle({
+  image: new OlShadow({
+    radius: 15,
+    blur: 5,
+    offsetX: 0,
+    offsetY: 0,
+    fill: new OlFill({
+      color: "rgba(0,0,0,0.5)"
+    })
+  })
+});
+
+export function poisAoisStyle(feature) {
+  const category = feature.get("category");
+  if (!poisAoisStore.state.poisAois[category]) {
     return [];
   }
+  const poiIconConf = appStore.state.poiIcons[category];
+  const color = poiIconConf.color;
 
-  const name = `${feature.get("amenity")}_${feature.get("status") ||
-    "accessible"}`;
-  if (!poisStyleCache[name]) {
-    let path = `img/pois-map/${name}.png`;
-    poisStyleCache[name] = new OlStyle({
-      image: new OlIcon({
-        anchor: [0.5, 35],
-        scale: 0.85,
-        anchorXUnits: "fraction",
-        anchorYUnits: "pixels",
-        src: path
+  var st = [];
+  // ----AOIS-----
+  if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
+    if (!poisAoisStyleCache[category + color]) {
+      poisAoisStyleCache[category + color] = new OlStyle({
+        fill: new OlFill({
+          color: color
+        }),
+        stroke: new OlStroke({
+          color: color,
+          width: 1
+        })
+      });
+    }
+    st.push(poisAoisStyleCache[category + color]);
+    return st;
+  }
+  // ----POIS-----
+  // Shadow style
+  st.push(poisShadowStyle);
+  if (!poiIconConf || !poiIconConf.icon) {
+    return [];
+  }
+  const icon = poiIconConf.icon;
+  if (!poisAoisStyleCache[icon + color]) {
+    // Font style
+    poisAoisStyleCache[icon + color] = new OlStyle({
+      image: new OlFontSymbol({
+        form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
+        gradient: false,
+        glyph: icon,
+        text: "", // text to use if no glyph is defined
+        font: "sans-serif",
+        fontSize: 0.7,
+        radius: 20,
+        rotation: 0,
+        rotateWithView: false,
+        offsetY: -20,
+        color: color, // icon color
+        fill: new OlFill({
+          color: "#fff" // marker color
+        }),
+        stroke: new OlStroke({
+          color: color,
+          width: 2
+        })
+      }),
+      stroke: new OlStroke({
+        width: 2,
+        color: "#f80"
+      }),
+      fill: new OlFill({
+        color: [255, 136, 0, 0.6]
       })
     });
   }
-  return [poisStyleCache[name]];
+  st.push(poisAoisStyleCache[icon + color]);
+  return st;
 }
 
 export const stylesRef = {
-  pois: poisStyle,
-  mapping_pois_opening_hours: poisStyle,
+  poisAoisStyle: poisAoisStyle,
   study_area_crop: baseStyleDefs.boundaryStyle
 };
