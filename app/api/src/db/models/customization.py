@@ -17,6 +17,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 if TYPE_CHECKING:
     from .role import Role
     from .user import User
+    from .study_area import StudyArea
 
 
 
@@ -56,5 +57,11 @@ class UserCustomization(SQLModel, table=True):
             Integer, ForeignKey("customer.customization.id", ondelete="CASCADE"), nullable=False
         )
     )
+    study_area_id: int = Field(
+        sa_column=Column(
+            Integer, ForeignKey("basic.study_area.id"), nullable=False
+        )
+    )
     customizations: "Customization" = Relationship(back_populates="user_customizations")
     users: "User" = Relationship(back_populates="user_customizations")
+    study_areas: "StudyArea" = Relationship(back_populates="user_customizations")

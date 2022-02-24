@@ -18,6 +18,7 @@ from sqlmodel import (
 if TYPE_CHECKING:
     from .grid import GridVisualization
     from .user import User
+    from .customization import UserCustomization
 
 from ._link_model import StudyAreaGridVisualization, UserStudyArea
 from ._pydantic_geometry import dump_geom
@@ -44,6 +45,7 @@ class StudyArea(SQLModel, table=True):
     sub_study_areas: List["SubStudyArea"] = Relationship(back_populates="study_area")
     users: List["User"] = Relationship(back_populates="study_areas", link_model=UserStudyArea)
     # users_active: List["User"] = Relationship(back_populates="active_study_area")
+    user_customizations: List["UserCustomization"] = Relationship(back_populates="study_areas")
 
     _validate_geom = validator("geom", pre=True, allow_reuse=True)(dump_geom)
 
