@@ -6,8 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud, schemas
 from src.crud.base import CRUDBase
+from src.crud.crud_customization import customization, dynamic_customization
 from src.db import models
+from src.db.models.customization import UserCustomization
 from src.endpoints import deps
+from src.db.models.config_validation import *
+from fastapi.encoders import jsonable_encoder
 
 router = APIRouter()
 
@@ -21,22 +25,35 @@ async def get_user_settings_me(
     """
     Get customization settings for user.
     """
-    customizations = await crud.customization.get_multi(db)
-    settings = {}
-    for customization in customizations:
-        settings.update(customization.default_setting)
-    user_customizations = await CRUDBase(models.UserCustomization).get_by_key(
-        db, key="user_id", value=current_user.id
-    )
-    study_area = await CRUDBase(models.StudyArea).get(db, id=current_user.active_study_area_id)
-    if study_area is not None and study_area.default_setting:
-        settings.update(study_area.default_setting)
-
-    if user_customizations is not None:
-        for user_customization in user_customizations:
-            settings.update(user_customization.setting)
+    settings = await dynamic_customization.build_main_setting_json(db=db, current_user=current_user)
 
     return settings
+
+@router.post("/user/insert/{setting_type}", response_class=JSONResponse)
+async def update_user_settings(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+    setting_type: str,
+    obj_in: Any = Body(
+        ..., example=schemas.customization.request_examples["user_customization_update"]
+    ),    
+) -> Any:
+    """
+    Update customization settings for POIs and Layers.
+    """
+    obj_dict = jsonable_encoder(obj_in)
+    if setting_type not in ('poi_groups', 'layer_groups'):
+        raise HTTPException(status_code=400, detail="Invalid setting type")
+    
+    if setting_type == 'poi_groups':
+        if check_dict_schema(PoiCategoryUpdate, obj_dict) == False:
+            raise HTTPException(status_code=400, detail="Invalid JSON-schema")
+    elif setting_type == 'layer_groups':
+        if check_dict_schema(LayerCategoryUpdate, obj_dict) == False:
+            raise HTTPException(status_code=400, detail="Invalid JSON-schema")
+    
+    await dynamic_customization.update_settings(db=db, current_user=current_user, setting_type=setting_type, new_settings=obj_dict)
 
 
 @router.get("/{user_id}/{study_area_id}", response_class=JSONResponse)
