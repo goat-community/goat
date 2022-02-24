@@ -11,10 +11,8 @@ from turtle import speed
 from typing import Any
 
 import pandas as pd
-import sqlalchemy
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
-from geoalchemy2 import Geometry, WKTElement
 from geojson import FeatureCollection
 from geopandas import GeoDataFrame, GeoSeries
 from geopandas.io.sql import read_postgis
