@@ -122,7 +122,7 @@ class CRUDDynamicCustomization:
         return combined_settings
 
 
-    async def update_settings(
+    async def insert_user_setting(
         self, *, db: AsyncSession, current_user: models.User, new_settings, setting_type
     ):
         # Get user customization
@@ -137,15 +137,15 @@ class CRUDDynamicCustomization:
             )
         )
 
-        print(stmt)
+        # print(stmt)
 
 
-        user_customizations = await db.execute(stmt)
+        # user_customizations = await db.execute(stmt)
 
-        user_customizations = user_customizations.all()
+        # user_customizations = user_customizations.all()
 
-        if user_customizations != []:
-            [current_settings.update(i[0].setting) for i in user_customizations]
+        # if user_customizations != []:
+        #     [current_settings.update(i[0].setting) for i in user_customizations]
 
 
 

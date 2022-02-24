@@ -30,7 +30,7 @@ async def get_user_settings_me(
     return settings
 
 @router.post("/user/insert/{setting_type}", response_class=JSONResponse)
-async def update_user_settings(
+async def insert_user_settings(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
@@ -53,7 +53,7 @@ async def update_user_settings(
         if check_dict_schema(LayerCategoryUpdate, obj_dict) == False:
             raise HTTPException(status_code=400, detail="Invalid JSON-schema")
     
-    await dynamic_customization.update_settings(db=db, current_user=current_user, setting_type=setting_type, new_settings=obj_dict)
+    await dynamic_customization.insert_user_setting(db=db, current_user=current_user, setting_type=setting_type, new_settings=obj_dict)
 
 
 @router.get("/{user_id}/{study_area_id}", response_class=JSONResponse)

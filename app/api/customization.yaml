@@ -146,23 +146,23 @@ user:
         color: ["#ffc107"]
         children:
             - nursery:
-                icon: "fa-solid fa-baby"
+                icon: "fas fa-baby"
                 color: ["#53C8CF"]
                 sensitivity: 200000
             - kindergarten:
-                icon: "fa-solid fa-teddy-bear"
+                icon: "fas fa-teddy-bear"
                 color: ["#F6DB6A"]
             - grundschule:
-                icon: "fa-solid fa-paintbrush-pencil"
+                icon: "fas fa-paintbrush-pencil"
                 color: ["#2980B9"]
             - hauptschule:
-                icon: "fa-solid fa-school"
+                icon: "fas fa-school"
                 color: ["#BD7CD6"]
             - realschule:
-                icon: "fa-solid fa-school"
+                icon: "fas fa-school"
                 color: ["#EB984E"]
             - gymnasium:
-                icon: "fa-solid fa-school"
+                icon: "fas fa-school"
                 color: ["#CB4335"]
 
     - foodanddrink:
@@ -170,52 +170,52 @@ user:
         color: ["#ffc107"]
         children:
             - restaurant:
-                icon: "fa-solid fa-utensils"
+                icon: "fas fa-utensils"
                 color: ["#EB984E"]
             - fast_food:
-                icon: "fa-solid fa-burger"
+                icon: "fas fa-burger"
                 color: ["#CB4335"]
             - bar:
-                icon: "fa-solid fa-martini-glass"
+                icon: "fas fa-martini-glass"
                 color: ["#F6DB6A"]
             - pub:
-                icon: "fa-solid fa-beer-mug"
+                icon: "fas fa-beer-mug"
                 color: ["#53C8CF"]
             - cafe:
-                icon: "fa-solid fa-mug-saucer"
+                icon: "fas fa-mug-saucer"
                 color: ["#985F03"]
             - nightclub:
-                icon: "fa-solid fa-club"            
+                icon: "fas fa-club"            
                 color: ["#BD7CD6"]
 
     - transport:
-        icon: "fa-solid fa-car-bus"
+        icon: "fas fa-car-bus"
         color: ["#ffc107"]
         children:
             - bus_stop:
-                icon: "fa-solid fa-bus-school"
+                icon: "fas fa-bus-school"
                 color: ["#F6DB6A"]
                 multiple_entrance: true
             - tram_stop:
-                icon: "fa-solid fa-train-tram"
+                icon: "fas fa-train-tram"
                 color: ["#A26973"]
                 multiple_entrance: true
             - subway_entrance:
-                icon: "fa-solid fa-train-subway-tunnel"
+                icon: "fas fa-train-subway-tunnel"
                 color: ["#2980B9"]
                 multiple_entrance: true
             - rail_station:
-                icon: "fa-solid fa-train"
+                icon: "fas fa-train"
                 color: ["#CB4335"]
                 multiple_entrance: true
             - bike_sharing:
-                icon: "fa-solid fa-bicycle"
+                icon: "fas fa-bicycle"
                 color: ["#53C8CF"]
             - car_sharing:
-                icon: "fa-solid fa-cars"
+                icon: "fas fa-cars"
                 color: ["#46B14C"]
             - charging_station:
-                icon: "fa-solid fa-charging-station"
+                icon: "fas fa-charging-station"
                 color: ["#985F03"]
 
     - health:
@@ -223,13 +223,13 @@ user:
         color: ["#ffc107"]
         children:
             - dentist:
-                icon: "fa-solid fa-tooth"
+                icon: "fas fa-tooth"
                 color: ["#53C8CF"]
             - general_practitioner:
-                icon: "fa-solid fa-user-doctor"
+                icon: "fas fa-user-doctor"
                 color: ["#2980B9"]
             - pharmacy:
-                icon: "fa-solid fa-house-medical"
+                icon: "fas fa-house-medical"
                 color: ["#CB4335"]  
 
     - services:
@@ -237,50 +237,50 @@ user:
         color: ["#ffc107"]
         children:
             - atm:
-                icon: "fa-solid fa-money-simple-from-bracket"
+                icon: "fas fa-money-simple-from-bracket"
                 color: ["#53C8CF"]
             - bank:
-                icon: "fa-solid fa-sack-dollar"
+                icon: "fas fa-sack-dollar"
                 color: ["#2980B9"]
             - post_office:
-                icon: "fa-solid fa-envelope"
+                icon: "fas fa-envelope"
                 color: ["#EB984E"]
             - post_box:
-                icon: "fa-solid fa-mailbox"
+                icon: "fas fa-mailbox"
                 color: ["#F6DB6A"]
             - fuel:
-                icon: "fa-solid fa-gas-pump"
+                icon: "fas fa-gas-pump"
                 color: ["#985F03"]
             - recycling:
-                icon: "fa-solid fa-recycle"
+                icon: "fas fa-recycle"
                 color: ["#46B14C"]
     - shop:
         icon: "fas fa-shopping-cart"
         color: ["#ffc107"]
         children:
             - supermarket:
-                icon: "fa-solid fa-cart-shopping"
+                icon: "fas fa-cart-shopping"
                 color: ["#2980B9"]
             - discount_supermarket:
-                icon: "fa-solid fa-basket-shopping"
+                icon: "fas fa-basket-shopping"
                 color: ["#53C8CF"]
             - hypermarket:
-                icon: "fa-solid fa-box-open-full"
+                icon: "fas fa-box-open-full"
                 color: ["#BD7CD6"]
             - organic_supermarket:
-                icon: "fa-solid fa-seedling"
+                icon: "fas fa-seedling"
                 color: ["#46B14C"]
             - convenience:
-                icon: "fa-solid fa-store"
+                icon: "fas fa-store"
                 color: ["#A26973"]
             - marketplace:
                 icon: "fas fa-shopping-cart"
                 color: ["#ff0033"]
             - bakery:
-                icon: "fa-solid fa-croissant"
+                icon: "fas fa-croissant"
                 color: ["#985F03"]
             - butcher:
-                icon: "fa-solid fa-steak"
+                icon: "fas fa-steak"
                 color: ["#CB4335"]
 
     - tourismandleisure:
@@ -288,19 +288,19 @@ user:
         color: ["#ffc107"]
         children:
             - cinema:
-                icon: "fa-solid fa-clapperboard-play"
+                icon: "fas fa-clapperboard-play"
                 color: ["#985F03"]
             - museum:
-                icon: "fa-solid fa-landmark"
+                icon: "fas fa-landmark"
                 color: ["#2980B9"]
             - hotel:
-                icon: "fa-solid fa-bed"
+                icon: "fas fa-bed"
                 color: ["#EB984E"]
             - hostel:
-                icon: "fa-solid fa-bed-bunk"
+                icon: "fas fa-bed-bunk"
                 color: ["#53C8CF"]
             - playground:
-                icon: "fa-solid fa-bench-tree"
+                icon: "fas fa-bench-tree"
                 color: ["#46B14C"]
 
     - sport:
@@ -308,10 +308,10 @@ user:
         color: ["#ffc107"]
         children:
             - gym:
-                icon: "fa-solid fa-dumbbell"
+                icon: "fas fa-dumbbell"
                 color: ["#985F03"]
             - discount_gym:
-                icon: "fa-solid fa-dumbbell"
+                icon: "fas fa-dumbbell"
                 color: ["#F6DB6A"]
             - yoga:
                 icon: "fas fa-basketball-ball"
