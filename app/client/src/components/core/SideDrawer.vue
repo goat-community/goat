@@ -40,38 +40,87 @@
       :class="{ 'left-shadow': container === false }"
       width="50"
     >
+      <!-- TOP BUTTONS -->
       <v-layout justify-space-between column fill-height>
-        <v-list>
-          <template v-for="(item, index) in upItems">
-            <v-tooltip left :key="index">
-              <template v-slot:activator="{ on }">
-                <v-list-item
-                  @click="toggleComponent(item.componentToShow)"
-                  v-on="on"
-                  v-show="!(item.componentToShow !== 'map-filter')"
-                  active-class="red--text"
-                  :style="[{ backgroundColor: activeColor.secondary }]"
-                >
-                  <v-list-item-action>
-                    <v-icon
-                      style="color: white;"
-                      light
-                      v-html="item.icon"
-                    ></v-icon>
-                  </v-list-item-action>
+        <v-row no-gutters style="height:35%;" align-top>
+          <v-list>
+            <template v-for="(item, index) in topItems">
+              <v-tooltip left :key="index">
+                <template v-slot:activator="{ on }">
+                  <v-list-item
+                    :class="item.class"
+                    @click="toggleComponent(item.componentToShow)"
+                    v-on="on"
+                    :style="[
+                      activeUpComponent === item.componentToShow
+                        ? { backgroundColor: appColor.primary }
+                        : { backgroundColor: '' }
+                    ]"
+                  >
+                    <v-list-item-action>
+                      <v-icon
+                        dense
+                        :color="
+                          activeUpComponent === item.componentToShow
+                            ? 'white'
+                            : 'rgba(0, 0, 0, 0.54)'
+                        "
+                        light
+                        v-html="item.icon"
+                      ></v-icon>
+                    </v-list-item-action>
 
-                  <v-list-item-content>
-                    <v-list-item-title v-html="item.text"></v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item>
-              </template>
-              <span>{{ item.text }}</span>
-            </v-tooltip>
-          </template>
-        </v-list>
-        <v-list justify-end>
-          <!-- CHANGE LANGUAGE -->
-          <language></language>
+                    <v-list-item-content>
+                      <v-list-item-title v-html="item.text"></v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                </template>
+                <span>{{ item.text }}</span>
+              </v-tooltip>
+            </template>
+          </v-list>
+        </v-row>
+
+        <!-- MIDDLE BUTTONS -->
+        <v-row no-gutters style="height:55%;" align-center>
+          <v-list>
+            <template v-for="(item, index) in middleItems">
+              <v-tooltip left :key="index">
+                <template v-slot:activator="{ on }">
+                  <v-list-item
+                    @click="toggleComponent(item.componentToShow)"
+                    v-on="on"
+                    :style="[
+                      activeUpComponent === item.componentToShow
+                        ? { backgroundColor: appColor.primary }
+                        : { backgroundColor: '' }
+                    ]"
+                  >
+                    <v-list-item-action>
+                      <v-icon
+                        dense
+                        :color="
+                          activeUpComponent === item.componentToShow
+                            ? 'white'
+                            : 'rgba(0, 0, 0, 0.54)'
+                        "
+                        light
+                        v-html="item.icon"
+                      ></v-icon>
+                    </v-list-item-action>
+
+                    <v-list-item-content>
+                      <v-list-item-title v-html="item.text"></v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                </template>
+                <span>{{ item.text }}</span>
+              </v-tooltip>
+            </template>
+          </v-list>
+        </v-row>
+        <!-- END BUTTONS -->
+        <v-row no-gutters style="height:10%;">
           <!-- BOTTOM ITEMS -->
           <template v-for="(item, index) in bottomItems">
             <v-tooltip left :key="index">
@@ -82,7 +131,11 @@
                   v-on="on"
                 >
                   <v-list-item-action>
-                    <v-icon color="white" light v-html="item.icon"></v-icon>
+                    <v-icon
+                      light
+                      v-html="item.icon"
+                      color="rgba(0, 0, 0, 0.54)"
+                    ></v-icon>
                   </v-list-item-action>
                   <v-list-item-content>
                     <v-list-item-title v-html="item.text"></v-list-item-title>
@@ -92,7 +145,7 @@
               <span>{{ item.text }}</span>
             </v-tooltip>
           </template>
-        </v-list>
+        </v-row>
       </v-layout>
     </v-navigation-drawer>
     <confirm ref="confirm"></confirm>
@@ -109,6 +162,8 @@
 <script>
 // Utilities
 
+import UserSettings from "./UserSettings";
+import UserDataUpload from "./UserDataUpload";
 import Settings from "./Settings";
 import About from "./About";
 import Print from "../print/Print";
@@ -116,11 +171,13 @@ import DrawAndMeasure from "../drawAndMeasure/DrawAndMeasure";
 import Filter from "../layers/filter/Filter";
 import Edit from "../layers/edit/Edit";
 import Language from "./Language";
-import { mapFields } from "vuex-map-fields";
+import { mapGetters } from "vuex";
 
 export default {
   name: "app-sidebar",
   components: {
+    "user-settings": UserSettings,
+    "user-data-upload": UserDataUpload,
     "map-print": Print,
     "map-draw-measure": DrawAndMeasure,
     "map-filter": Filter,
@@ -137,7 +194,22 @@ export default {
     showDialog: false
   }),
   computed: {
-    upItems() {
+    topItems() {
+      return [
+        {
+          icon: "fas fa-circle-user",
+          text: this.$t("appBar.buttons.user-settings"),
+          componentToShow: "user-settings"
+        },
+        {
+          icon: "fas fa-cloud",
+          text: this.$t("appBar.buttons.user-data-upload"),
+          componentToShow: "user-data-upload",
+          class: "pl-3"
+        }
+      ];
+    },
+    middleItems() {
       return [
         {
           icon: "fas fa-filter",
@@ -155,7 +227,7 @@ export default {
           componentToShow: "map-print"
         },
         {
-          icon: "fas fa-ruler-combined",
+          icon: "fas fa-ruler",
           text: this.$t("appBar.buttons.drawAndMeasure"),
           componentToShow: "map-draw-measure"
         }
@@ -170,8 +242,8 @@ export default {
         }
       ];
     },
-    ...mapFields("app", {
-      activeColor: "activeColor"
+    ...mapGetters("app", {
+      appColor: "appColor"
     })
   },
   methods: {

@@ -1,4 +1,4 @@
-const FA_DEFINITIONS = {
+export const FA_DEFINITIONS = {
   "fas fa-0": "\ue2d2",
   "far fa-0": "\ue2d2",
   "fal fa-0": "\ue2d2",
@@ -11372,6 +11372,10 @@ const FA_DEFINITIONS = {
   "fal fa-taxi-bus": "\ue298",
   "fa-thin fa-taxi-bus": "\ue298",
   "fab fa-teamspeak": "\uf4f9",
+  "fas fa-teddy-bear": "\ue3cf",
+  "far fa-teddy-bear": "\ue3cf",
+  "fal fa-teddy-bear": "\ue3cf",
+  "fad fa-teddy-bear": "\ue3cf",
   "fas fa-teeth": "\uf62e",
   "far fa-teeth": "\uf62e",
   "fal fa-teeth": "\uf62e",
@@ -13089,5 +13093,3 @@ const FA_DEFINITIONS = {
   "fa-thin fa-z": "\ue33c",
   "fab fa-zhihu": "\uf63f"
 };
-
-export default FA_DEFINITIONS;

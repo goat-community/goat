@@ -37,17 +37,25 @@
       @input="treeViewChanged"
     >
       <template v-slot:prepend="{ item }">
-        <i
-          :class="
-            item.icon +
-              ' v-icon notranslate ml-1 v-icon--dense theme--light grey--text ml-1'
-          "
-          :style="
-            Array.isArray(item.color) && item.color.length > 1
-              ? `--fa-primary-color: ${item.color[0]};--fa-secondary-color: ${item.color[1]};width:20px;`
-              : `color: ${item.color} !important;width:20px;`
-          "
-        ></i>
+        <v-tooltip top :disabled="Array.isArray(item.children)">
+          <template v-slot:activator="{ on }">
+            <i
+              v-on="on"
+              @click="toggleIconPickerDialog(item)"
+              :class="
+                item.icon +
+                  ' v-icon notranslate ml-1 v-icon--dense theme--light grey--text ml-1'
+              "
+              :style="
+                Array.isArray(item.color) && item.color.length > 1
+                  ? `--fa-primary-color: ${item.color[0]};--fa-secondary-color: ${item.color[1]};width:20px;`
+                  : `color: ${item.color} !important;width:20px;`
+              "
+            >
+            </i>
+          </template>
+          {{ $t("appBar.filter.poisSettings.changeIcon") }}
+        </v-tooltip>
       </template>
       <template v-slot:label="{ item }">
         <div class="tree-label-custom">
@@ -100,6 +108,14 @@
       @updated="updateHeatmap"
       @close="showHeatmapOptionsDialog = false"
     />
+    <icon-picker
+      :color="appColor.primary"
+      :visible="showIconPickerDialog"
+      :selectedIcon="selectedIcon"
+      @updated="updateIcon"
+      @close="showIconPickerDialog = false"
+    >
+    </icon-picker>
   </div>
 </template>
 
@@ -113,6 +129,7 @@ import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/VectorImage";
 // Child components
 import HeatmapOptions from "./HeatmapOptions";
+import IconPicker from "../../other/IconPicker";
 
 // Other
 import ApiService from "../../../services/api.service";
@@ -121,7 +138,8 @@ import { poisAoisStyle } from "../../../style/OlStyleDefs";
 export default {
   mixins: [Mapable],
   components: {
-    "heatmap-options": HeatmapOptions
+    "heatmap-options": HeatmapOptions,
+    "icon-picker": IconPicker
   },
   data() {
     return {
@@ -129,6 +147,8 @@ export default {
       open: [],
       poisAoisLayer: null,
       showHeatmapOptionsDialog: false,
+      showIconPickerDialog: false,
+      selectedIcon: {},
       selectedAmenity: {}
     };
   },
@@ -168,6 +188,14 @@ export default {
       this.selectedAmenity = amenity;
       this.showHeatmapOptionsDialog = true;
     },
+    toggleIconPickerDialog(icon) {
+      // Disable icon style change for groups
+      if (icon.children) {
+        return;
+      }
+      this.selectedIcon = icon;
+      this.showIconPickerDialog = true;
+    },
     isSensitivityEnabled() {
       return true;
     },
@@ -196,6 +224,9 @@ export default {
           });
         });
       });
+    },
+    updateIcon() {
+      console.log("update poi user icon...");
     },
     getIconColor(item) {
       if (!item.color) {

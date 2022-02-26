@@ -283,7 +283,7 @@ export default {
     createLayers() {
       let layers = [];
       this.appConfig.layer_groups.forEach(group => {
-        group.layers.forEach(lConf => {
+        group.children.forEach(lConf => {
           if (lConf.type) {
             const olLayer = LayerFactory.getInstance({
               group: group.name,

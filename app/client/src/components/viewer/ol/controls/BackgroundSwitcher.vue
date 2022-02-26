@@ -70,7 +70,7 @@ export default {
         .getLayers()
         .getArray()
         .forEach(layer => {
-          if (layer.get("group") === "basemaps") {
+          if (layer.get("group") === "basemap") {
             this.backgroundLayers.push(layer);
           }
         });

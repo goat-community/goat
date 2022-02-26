@@ -11,7 +11,7 @@ import OlShadow from "../utils/Shadow";
 import isochronesStore from "../store/modules/isochrones";
 import poisAoisStore from "../store/modules/poisaois";
 import appStore from "../store/modules/app";
-import FA_DEFINITIONS from "../utils/FontAwesomev6ProDefs";
+import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
 import { getIconUnicode } from "../utils/Helpers";
 import { getArea } from "ol/sphere.js";
 import i18n from "../../src/plugins/i18n";

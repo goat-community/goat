@@ -143,7 +143,7 @@ export default {
       get: function() {
         return this.allLayers.filter(
           layer =>
-            layer.getVisible() === true && layer.get("group") !== "basemaps"
+            layer.getVisible() === true && layer.get("group") !== "basemap"
         );
       },
       set: function() {

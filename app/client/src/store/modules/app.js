@@ -87,6 +87,7 @@ const getters = {
     });
     return treeStruct;
   },
+  poiIcons: state => state.poiIcons,
   activeColor: state => state.activeColor,
   getField
 };
