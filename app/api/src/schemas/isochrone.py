@@ -182,6 +182,17 @@ request_examples = {
         "active_upload_ids": [0],
         "scenario_id": 0
     },
+    "reached_network": {
+        "minutes": 10,
+        "speed": 5,
+        "n": 2,
+        "modus": "default",
+        "x": 11.5696284,
+        "y": 48.1502132,
+        "routing_profile": "walking_standard",
+        "active_upload_ids": [0],
+        "scenario_id": 0
+    },
     "multi_isochrone": {
         "minutes": 10,
         "speed": 5,

@@ -215,7 +215,8 @@ class CRUDIsochrone:
     ) -> FeatureCollection:
         if obj_in.modus == "default" or obj_in.modus == "scenario":
             result = await self.compute_isochrone(db, obj_in=obj_in, return_network=True)
-            result = json.dumps(result["network"])
+            result = result["network"]
+            #result = json.dumps(result["network"])
         elif obj_in.modus == "comparison":
             # Compute default network
             obj_in_default = obj_in

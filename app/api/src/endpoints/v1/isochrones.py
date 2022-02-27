@@ -15,9 +15,9 @@ from src.schemas.isochrone import (
     IsochroneMultiCollection,
     IsochroneMultiCountPois,
     IsochroneMultiCountPoisCollection,
+    IsochronePoiMulti,
     IsochroneSingle,
     IsochroneSingleCollection,
-    IsochronePoiMulti,
     request_examples,
 )
 from src.utils import return_geojson_or_geobuf
@@ -39,16 +39,18 @@ async def calculate_single_isochrone(
     isochrone = await crud.isochrone.calculate_single_isochrone(db=db, obj_in=isochrone_in)
     return json.loads(isochrone.to_json()) 
 
-@router.post("/network", response_model=Any)
+@router.post("/network", response_class=JSONResponse)
 async def calculate_reached_network(
-    *, db: AsyncSession = Depends(deps.get_db), isochrone_in: IsochroneSingle
+    *, db: AsyncSession = Depends(deps.get_db), 
+    isochrone_in: IsochroneSingle = Body(..., example=request_examples["reached_network"]),
+    current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Calculate the reached network for a single isochrone.
     """
-
+    isochrone_in.user_id = current_user.id
     network = await crud.isochrone.calculate_reached_network(db=db, obj_in=isochrone_in)
-    return network
+    return json.dumps(network)
 
 
 @router.post("/multi", response_class=JSONResponse)
