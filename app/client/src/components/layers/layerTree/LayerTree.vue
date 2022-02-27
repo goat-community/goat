@@ -230,7 +230,7 @@ export default {
     },
     toggleLayerVisibility(layer, group) {
       //Turn off other layers if layer group is background layers.
-      if (layer.get("group") === "basemaps") {
+      if (layer.get("group") === "basemap") {
         group.forEach(lc => {
           if (lc.get("name") === layer.get("name")) return;
           lc.setVisible(false);
