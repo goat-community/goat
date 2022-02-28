@@ -187,6 +187,7 @@ class CRUDIsochrone:
         self, db: AsyncSession, *, obj_in
     ) -> GeoDataFrame:
 
+        obj_in.speed = obj_in.speed / 3.6
         if obj_in.modus == "default" or obj_in.modus == "scenario":
             result = await self.compute_isochrone(db, obj_in=obj_in, return_network=False)
             result = result["isochrones"]
@@ -213,6 +214,7 @@ class CRUDIsochrone:
     async def calculate_reached_network(
         self, db: AsyncSession, *, obj_in: IsochroneSingle
     ) -> FeatureCollection:
+        obj_in.speed = obj_in.speed / 3.6
         if obj_in.modus == "default" or obj_in.modus == "scenario":
             result = await self.compute_isochrone(db, obj_in=obj_in, return_network=True)
             result = result["network"]
@@ -236,11 +238,12 @@ class CRUDIsochrone:
         return result
 
     async def calculate_multi_isochrones(
-        self, db: AsyncSession, *, obj_in: IsochroneMulti
+        self, db: AsyncSession, *, obj_in
     ) -> GeoDataFrame:
 
+        obj_in.speed = obj_in.speed / 3.6
         await self.compute_multi_isochrone(db, obj_in=obj_in, return_network=False)
-   
+
         if obj_in.modus == "default" or obj_in.modus == "scenario":
             result = await self.compute_multi_isochrone(db, obj_in=obj_in, return_network=False)
         elif obj_in.modus == "comparison":
@@ -261,7 +264,7 @@ class CRUDIsochrone:
         return result
 
     async def count_pois_multi_isochrones(
-        self, db: AsyncSession, *, obj_in: IsochroneMultiCountPois
+        self, db: AsyncSession, *, obj_in
     ) -> dict:
         obj_in_data = jsonable_encoder(obj_in)
         sql = text(
@@ -273,8 +276,9 @@ class CRUDIsochrone:
         return result.fetchall()[0][0] 
 
     async def calculate_pois_multi_isochrones(
-        self, db: AsyncSession, *, obj_in: IsochronePoiMulti
+        self, db: AsyncSession, *, obj_in
     ) -> GeoDataFrame:
+        obj_in.speed = obj_in.speed / 3.6
         obj_in_data = jsonable_encoder(obj_in)
 
         # Get starting points for multi-isochrone
@@ -328,6 +332,11 @@ class CRUDIsochrone:
         result_reached_population = await db.execute(sql_reached_population, obj_population_multi_isochrones)
         await db.commit()
         
+        dict_opportunities = {}
+        [dict_opportunities.update({row[0]:row[1]}) for row in result_reached_population.fetchall()]
+        isochrones_result["reached_opportunities"] = isochrones_result["step"].map(dict_opportunities)
+        
+
         for i in result_reached_population.fetchall():
             isochrones_result.loc[isochrones_result.step == i[0], "reached_opportunities"] = str(i[1])
 

@@ -46,8 +46,6 @@ class IsochroneBase(BaseModel):
     @root_validator
     def compute_values(cls, values):
         """Compute values."""
-        # convert speed from km/h to m/s
-        values["speed"] = values["speed"] / 3.6
         # convert minutes to seconds (max_cutoff is in seconds)
         values["max_cutoff"] = values["minutes"] * 60
         return values
