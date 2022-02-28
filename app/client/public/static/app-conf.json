@@ -144,28 +144,6 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
-        "name": "landuse",
-        "url": "/api/map/layer/landuse_api/{z}/{x}/{y}",
-        "group": "buildings_landuse",
-        "visible": false,
-        "canEdit": false,
-        "queryable": true,
-        "displayInLayerList": true,
-        "zIndex": 1,
-        "maxResolution": 10,
-        "queryParams": [],
-        "style": {
-          "format": "geostyler",
-          "url": "./static/layer-styles/styles/landuse_atkis.json"
-        },
-        "attributes": {
-          "source": "Datenbestände des ATKIS Basis-DLM der Länder",
-          "date": "2019"
-        }
-      },
-      {
-        "type": "VECTORTILE",
-        "format": "MVT",
         "name": "landuse_osm",
         "url": "/api/map/layer/landuse_osm/{z}/{x}/{y}",
         "group": "buildings_landuse",
