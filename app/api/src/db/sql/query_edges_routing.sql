@@ -68,7 +68,7 @@ BEGIN
 
 
 	sql_select_ways = 
-		'SELECT id::integer, source, target,length_m,'||sql_cost||',death_end,'||quote_ident(geom_column)||', NULL AS starting_ids, NULL AS starting_geoms
+		'SELECT id::integer, source, target,length_3857 AS length_m,'||sql_cost||',death_end,'||quote_ident(geom_column)||', NULL AS starting_ids, NULL AS starting_geoms
 		FROM basic.edge
 		WHERE class_id NOT IN ('||excluded_class_id||')
     	AND ('||quote_ident(category)||' NOT IN ('||filter_categories||') 
