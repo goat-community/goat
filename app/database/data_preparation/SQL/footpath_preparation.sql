@@ -222,9 +222,9 @@ WITH do_not_remove AS
 	WHERE p.highway IS NOT NULL 
 	AND 
 	(
-		covered <> 'no' 
-		OR tunnel IN ('yes','covered','building_passage')
-		OR bridge IS NOT NULL 
+		p.covered <> 'no' 
+		OR p.tunnel IN ('yes','covered','building_passage')
+		OR p.bridge IS NOT NULL 
 	) 
 	AND w.osm_id = p.osm_id 
 )
