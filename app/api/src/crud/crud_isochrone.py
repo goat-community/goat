@@ -136,12 +136,14 @@ class CRUDIsochrone:
             """SELECT * FROM basic.thematic_data_sum(:user_id,:starting_point_id,:modus,:scenario_id,:active_upload_ids) ORDER BY isochrone_feature_step"""
         )
         result_opportunities = await db.execute(sql, obj_in_data)
+        result_opportunities = result_opportunities.all()
+        dict_opportunities = {}
+        result_opportunities = [dict_opportunities.update(row[2]) for row in result_opportunities]
         await db.commit()
 
         #Update isochrones with reached opportunities
-        for i in result_opportunities:
-            gdf_index = isochrone_gdf[isochrone_gdf['step'] == i[1]].index[0]
-            isochrone_gdf.loc[gdf_index, 'reached_opportunities'] = str(i[2])
+        isochrone_gdf.sort_values(by="step", inplace=True)
+        isochrone_gdf["reached_opportunities"] = isochrone_gdf["step"].map(result_opportunities)
 
         isochrone_gdf.insert(4, "modus", obj_in.modus, True)
         return_obj = {"isochrones": isochrone_gdf}
