@@ -1,5 +1,6 @@
 from schema import And, Optional, Schema, SchemaError, Use
 
+
 # Function to check if dict schema is valid
 def check_dict_schema(conf_schema, conf):
     try:
@@ -8,60 +9,50 @@ def check_dict_schema(conf_schema, conf):
     except SchemaError:
         return False
 
-#Schemas for POIs and Layers
+mapping_setting_type = {"poi": "poi_groups", "layer": "layer_groups"}
+
+# Schemas for POIs and Layers
 PoiCategory = Schema(
     {
         str: {
             "icon": str,
             "color": [str],
             Optional("multiple_entrance"): bool,
+            Optional("sensitivity"): int,
         }
     }
 )
 
-PoiGroup = Schema(
-    {
-        str: 
-        {
-            "icon": str, 
-            "color": [str], 
-            "children": [PoiCategory]
-        }
-    }
-)
+PoiGroup = Schema({str: {"icon": str, "color": [str], "children": [PoiCategory]}})
 
-PoiCategoryUpdate = Schema(
-  {
-      str: PoiCategory
-  }
-)
+PoiGroups = Schema({"poi_groups": [PoiGroup]})
+
+OtherPoiGroupDummy =  {"other": {
+                            "icon": "fa-question",
+                            "color": ["#ffc107"],
+                            "children": {}
+                        }}
+
 
 LayerCategory = Schema(
     {
         str: {
-            "url": str,
-            "type": And(lambda n : n in ['OSM', 'BING', 'MVT', 'XYZ', 'GEOJSON', 'WMS', 'WFS', 'GEOBUF'], str),
-            Optional("map_attribution"): bool,
+            Optional("url"): str,
+            "type": And(
+                lambda n: n in ["OSM", "BING", "MVT", "XYZ", "GEOJSON", "WMS", "WFS", "GEOBUF"],
+                str,
+            ),
+            Optional("map_attribution"): str,
             Optional("imagery_set"): str,
             Optional("access_token"): str,
             Optional("attributes"): dict,
-            Optional("style"): dict, 
+            Optional("translation"): dict,
+            Optional("style"): dict,
         }
     }
 )
 
-LayerCategory = Schema(
-    {
-        str: 
-        {
-            "icon": str, 
-            "children": [LayerCategory]
-        }
-    }
-)
+LayerGroup = Schema({str: {"icon": str, "children": [LayerCategory]}})
 
-LayerCategoryUpdate = Schema(
-  {
-    str: LayerCategory
-  }
-)
+LayerGroups = Schema({"layer_groups": [LayerGroup]})
+

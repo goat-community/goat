@@ -31,7 +31,7 @@ class StudyArea(SQLModel, table=True):
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(sa_column=Column(Text, nullable=False))
     population: int = Field(nullable=False)
-    default_setting: dict = Field(sa_column=Column(JSONB, nullable=False))
+    setting: dict = Field(sa_column=Column(JSONB, nullable=False))
     geom: Dict = Field(
         sa_column=Column(
             Geometry(geometry_type="MultiPolygon", srid="4326", spatial_index=False),
