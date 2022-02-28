@@ -138,16 +138,14 @@ class CRUDIsochrone:
         result_opportunities = await db.execute(sql, obj_in_data)
         result_opportunities = result_opportunities.all()
         dict_opportunities = {}
-        result_opportunities = [dict_opportunities.update(row[2]) for row in result_opportunities]
+        [dict_opportunities.update({row[1]:row[2]}) for row in result_opportunities]
         await db.commit()
 
         #Update isochrones with reached opportunities
-        isochrone_gdf.sort_values(by="step", inplace=True)
-        isochrone_gdf["reached_opportunities"] = isochrone_gdf["step"].map(result_opportunities)
+        isochrone_gdf["reached_opportunities"] = isochrone_gdf["step"].map(dict_opportunities)
 
         isochrone_gdf.insert(4, "modus", obj_in.modus, True)
         return_obj = {"isochrones": isochrone_gdf}
-
 
         if return_network == True:
             features = []
