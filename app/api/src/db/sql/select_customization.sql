@@ -3,7 +3,7 @@ RETURNS jsonb
  LANGUAGE sql
 AS $function$
 
-	SELECT default_setting -> c.type
+	SELECT setting -> c.type
 	FROM customer.customization c 
 	WHERE c.type = setting_type;
 
