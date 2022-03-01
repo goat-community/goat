@@ -21,7 +21,7 @@ from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
-from src.utils import sql_geojson
+from src.resources.enums import SQLReturnTypes
 from src.db import models
 from src.db.session import legacy_engine
 from src.exts.cpp.bind import isochrone as isochrone_cpp
@@ -267,6 +267,7 @@ class CRUDIsochrone:
         self, db: AsyncSession, *, obj_in
     ) -> dict:
         obj_in_data = jsonable_encoder(obj_in)
+        sql_geojson = SQLReturnTypes['geojson'].value
         sql = text(
             sql_geojson % """SELECT row_number() over() AS id, count_pois, region_name, geom 
             FROM basic.count_pois_multi_isochrones(:user_id,:modus,:minutes,:speed,:region_type,:region,:amenities,:scenario_id,:active_upload_ids)"""
@@ -336,13 +337,10 @@ class CRUDIsochrone:
         [dict_opportunities.update({row[0]:row[1]}) for row in result_reached_population.fetchall()]
         isochrones_result["reached_opportunities"] = isochrones_result["step"].map(dict_opportunities)
         
-
         for i in result_reached_population.fetchall():
             isochrones_result.loc[isochrones_result.step == i[0], "reached_opportunities"] = str(i[1])
 
         return isochrones_result
-
-
 
     async def export_isochrone(self, db: AsyncSession, *, obj_in: IsochroneExport) -> Any:
         obj_in_data = jsonable_encoder(obj_in)

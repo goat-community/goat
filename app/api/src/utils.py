@@ -10,11 +10,13 @@ from geojson import loads as geojsonloads
 from jose import jwt
 from geoalchemy2.shape import to_shape
 from src.core.config import settings
-import io
+import os
+import shutil
 import json 
 import geobuf 
 from starlette.responses import Response
 from src.resources.enums import MimeTypes
+from fastapi import HTTPException
 
 def send_email(
     email_to: str,
@@ -128,7 +130,7 @@ def return_geojson_or_geobuf(
     elif return_type == "db_geobuf":
         return Response(bytes(features))
     else:
-        raise ValueError("Invalid return type")
+        raise HTTPException(status_code=400, detail="Invalid return type")
 
 def to_feature_collection(
     sql_result: Any,
@@ -171,24 +173,23 @@ def without_keys(d, keys):
     """
     return {x: d[x] for x in d if x not in keys}
 
-sql_geojson = f"""
-WITH make_geojson AS 
-(
-    %s
-)
-SELECT json_build_object
-(
-    'type', 'FeatureCollection',
-    'features', json_agg(ST_AsGeoJSON(g.*)::json)
-) 
-FROM make_geojson g; 
-"""
 
-sql_geobuf = f"""
-WITH make_geobuf AS
-(
-    %s
-)
-SELECT ST_AsGeobuf(g.*, 'geom')
-FROM make_geobuf g;
-"""
+def delete_file(file_path: str) -> None:
+    """Delete file from disk."""
+    try:
+        os.remove(file_path)
+    except OSError as e:
+        pass
+
+def delete_dir(dir_path: str) -> None:
+    """Delete file from disk."""
+    try:
+        shutil.rmtree(dir_path)
+    except OSError as e:
+        pass
+
+def clean_unpacked_zip(dir_path: str, zip_path: str) -> None:
+    """Delete unpacked zip file and directory."""
+    delete_dir(dir_path)
+    delete_file(zip_path)
+    
