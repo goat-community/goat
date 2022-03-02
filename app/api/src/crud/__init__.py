@@ -8,4 +8,5 @@ from .crud_role import role
 from .crud_scenario import scenario
 from .crud_user import user
 from .crud_poi_aoi import poi_aoi
+from .crud_upload import upload
 
