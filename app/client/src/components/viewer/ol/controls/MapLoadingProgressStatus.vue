@@ -5,7 +5,7 @@
     :width="7"
     :color="appColor.primary"
     class="ma-0 pa-0 maploading-status"
-    v-show="isNetworkBusy || (busyLayers && busyLayers.length > 0)"
+    v-show="isMapBusy"
   ></v-progress-circular>
 </template>
 
@@ -13,15 +13,12 @@
 import { mapGetters } from "vuex";
 export default {
   name: "progress-status",
-  props: {
-    isNetworkBusy: { type: Boolean, required: true }
-  },
   computed: {
     ...mapGetters("app", {
       appColor: "appColor"
     }),
     ...mapGetters("map", {
-      busyLayers: "busyLayers"
+      isMapBusy: "isMapBusy"
     })
   }
 };

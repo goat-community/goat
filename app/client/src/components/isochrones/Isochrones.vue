@@ -147,37 +147,58 @@
             <v-row no-gutters>
               <template v-if="type === 'single'">
                 <v-col cols="12" justify="center" align="center" class="pr-2">
-                  <span>
+                  <template v-if="!isIsochroneBusy">
+                    <span>
+                      <v-tooltip top>
+                        <template v-slot:activator="{ on }">
+                          <v-btn
+                            outlined
+                            fab
+                            v-on="on"
+                            class="mr-2"
+                            depressed
+                            text
+                            @click="registerMapClick('isochrone')"
+                          >
+                            <v-icon
+                              :color="
+                                mapClickListener ? appColor.secondary : 'grey'
+                              "
+                              >fas fa-map-marker-alt</v-icon
+                            >
+                          </v-btn>
+                        </template>
+                        <span>{{ $t("isochrones.single.startTooltip") }}</span>
+                      </v-tooltip>
+                    </span>
+                    <br />
+                    <span>Isochrone Single</span>
+                  </template>
+                  <span v-if="isIsochroneBusy">
                     <v-tooltip top>
                       <template v-slot:activator="{ on }">
                         <v-btn
-                          outlined
                           fab
+                          dark
                           v-on="on"
-                          class="mr-2"
-                          depressed
-                          text
-                          @click="registerMapClick('isochrone')"
+                          class="mb-4 elevation-0"
+                          color="red"
+                          @click="stopIsochroneCalculation"
                         >
-                          <v-icon
-                            :color="
-                              mapClickListener ? appColor.secondary : 'grey'
-                            "
-                            >fas fa-map-marker-alt</v-icon
-                          >
+                          <v-icon color="white">close</v-icon>
                         </v-btn>
                       </template>
-                      <span>{{ $t("isochrones.single.startTooltip") }}</span>
+                      <span>{{ $t("isochrones.stopIsochroneCalc") }}</span>
                     </v-tooltip>
                   </span>
-                  <br />
-                  <span>Isochrone Single</span>
                 </v-col>
               </template>
               <template v-if="type === 'multiple'">
                 <v-row no-gutters>
                   <v-col cols="6" justify="center" align="center" class="pl-10">
-                    <span>
+                    <span
+                      v-if="!isIsochroneBusy || multiIsochroneMethod === 'draw'"
+                    >
                       <v-tooltip top>
                         <template v-slot:activator="{ on }">
                           <v-btn
@@ -202,11 +223,37 @@
                         <span>{{ $t("isochrones.multiple.studyArea") }}</span>
                       </v-tooltip>
                     </span>
+                    <span
+                      v-if="
+                        isIsochroneBusy && multiIsochroneMethod === 'study_area'
+                      "
+                    >
+                      <v-tooltip top>
+                        <template v-slot:activator="{ on }">
+                          <v-btn
+                            fab
+                            dark
+                            v-on="on"
+                            class="mb-4 elevation-0"
+                            color="red"
+                            @click="stopIsochroneCalculation"
+                          >
+                            <v-icon color="white">close</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>{{ $t("isochrones.stopIsochroneCalc") }}</span>
+                      </v-tooltip>
+                    </span>
                     <br />
                     <span>{{ $t("isochrones.multiple.studyArea") }}</span>
                   </v-col>
                   <v-col cols="6" justify="center" align="center" class="pr-10">
-                    <span>
+                    <span
+                      v-if="
+                        !isIsochroneBusy ||
+                          multiIsochroneMethod === 'study_area'
+                      "
+                    >
                       <v-tooltip top>
                         <template v-slot:activator="{ on }">
                           <v-btn
@@ -231,6 +278,25 @@
                         <span>{{ $t("isochrones.multiple.drawPolygon") }}</span>
                       </v-tooltip>
                     </span>
+                    <span
+                      v-if="isIsochroneBusy && multiIsochroneMethod === 'draw'"
+                    >
+                      <v-tooltip top>
+                        <template v-slot:activator="{ on }">
+                          <v-btn
+                            fab
+                            dark
+                            v-on="on"
+                            class="mb-4 elevation-0"
+                            color="red"
+                            @click="stopIsochroneCalculation"
+                          >
+                            <v-icon color="white">close</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>{{ $t("isochrones.stopIsochroneCalc") }}</span>
+                      </v-tooltip>
+                    </span>
                     <br />
                     <span>{{ $t("isochrones.multiple.drawPolygon") }}</span>
                   </v-col>
@@ -248,18 +314,26 @@
                   <v-btn
                     :disabled="
                       !multiIsochronePoiCount ||
-                        multiIsochronePoiCount > maxAmenities
+                        multiIsochronePoiCount > maxAmenities ||
+                        isMapBusy
                     "
                     small
                     class="white--text ml-2 mt-5 mb-2"
                     :color="appColor.primary"
-                    @click="calculateIsochrone"
+                    @click="calculateMultiIsochrone"
                   >
                     {{ $t("isochrones.multiple.calculate") }}
                   </v-btn>
                 </v-row>
               </template>
             </v-row>
+            <v-progress-linear
+              v-if="isIsochroneBusy"
+              indeterminate
+              height="1"
+              class="mx-0 pb-0"
+              :color="appColor.primary"
+            ></v-progress-linear>
           </v-card-text>
         </v-flex>
 
@@ -674,6 +748,7 @@ export default {
       if (val > 20) return "Please enter a number not greater than 20";
       return true;
     },
+    isIsochroneBusy: false,
     isIsochroneCalculationTypeElVisible: true,
     isIsochroneStartElVisible: true,
     isResultsElVisible: true,
@@ -690,7 +765,9 @@ export default {
     multiIsochronePoiCount: null,
     drawPolygon: null,
     mapPointerMoveKey: null,
-    maxAmenities: 150 //TODO: make this a configurable setting
+    maxAmenities: 150, //TODO: make this a configurable setting
+    // Cancel Request Token
+    cancelRequestToken: null
   }),
   components: {
     download: Download,
@@ -702,7 +779,8 @@ export default {
       calculations: "calculations"
     }),
     ...mapGetters("map", {
-      contextmenu: "contextmenu"
+      contextmenu: "contextmenu",
+      subStudyAreaLayer: "subStudyAreaLayer"
     }),
     ...mapGetters("app", {
       appColor: "appColor",
@@ -734,7 +812,7 @@ export default {
       scenarioIsochroneColor: "scenarioIsochroneColor"
     }),
     ...mapFields("map", {
-      isMapBusy: "isBusy"
+      isMapBusy: "isMapBusy"
     }),
     headers() {
       return [
@@ -910,7 +988,7 @@ export default {
 
       if (this.multiIsochroneMethod === "study_area") {
         this.toggleSnackbar({
-          type: "info",
+          type: this.appColor.primary,
           message: this.$t("isochrones.multiple.studyAreaInfoLabel"),
           state: true,
           timeout: 5000
@@ -921,13 +999,17 @@ export default {
           this.onMultiIsochronePointerMove
         );
         if (!this.subStudyAreaLayer) {
-          console.log("Sub study area layer not available");
-          // store.commit("isochrones/ADD_STUDY_AREA_LAYER", me.studyAreaLayer);
-          //TODO: Add study area layer to the store.
+          this.toggleSnackbar({
+            type: "error",
+            message: "Study area layer not available",
+            state: true,
+            timeout: 10000
+          });
+          this.stop();
+          return;
         }
-        if (this.subStudyAreaLayer) {
-          this.subStudyAreaLayer.setVisible(true);
-        }
+
+        this.subStudyAreaLayer.setVisible(true);
         this.registerMapClick();
         this.startHelpTooltip(this.$t("map.tooltips.clickToSelectStudyArea"));
       } else if (this.multiIsochroneMethod === "draw") {
@@ -1081,29 +1163,52 @@ export default {
         projection,
         "EPSG:4326"
       );
-      const payloadSingle = {
-        x: coordinateWgs84[0],
-        y: coordinateWgs84[1]
-      };
-      const calculationNumber = this.calculations.length + 1;
-      const isochroneMarkerFeature = new Feature({
-        geometry: new Point(evt.coordinate),
-        calculationNumber: calculationNumber
-      });
-      isochroneMarkerFeature.setId("isochrone_marker_" + calculationNumber);
-      this.isochroneLayer.getSource().addFeature(isochroneMarkerFeature);
-      this.calculateIsochrone(payloadSingle)
-        .then(() => {})
-        .catch(error => {
-          console.log(error);
-          this.toggleSnackbar({
-            type: "error", //success or error
-            message: this.$t("map.snackbarMessages.calculateIsochroneError"),
-            state: true,
-            timeout: 2500
-          });
+      if (
+        this.multiIsochroneMethod === "study_area" &&
+        this.type === "multiple"
+      ) {
+        console.log("select study area");
+        //Check if there is a feature already selected at clicked coordinate,
+        //and if so, delete it and return.
+        const featureAtCoord = this.multiIsochroneSelectionLayer
+          .getSource()
+          .getFeaturesAtCoordinate(evt.coordinate);
+        if (featureAtCoord.length > 0) {
+          this.multiIsochroneSelectionLayer
+            .getSource()
+            .removeFeature(featureAtCoord[0]);
+          this.startHelpTooltip(this.$t("map.tooltips.clickToSelectStudyArea"));
+          return;
+        }
+        const region = geometryToWKT(new Point(coordinateWgs84));
+        console.log(region);
+      } else {
+        const payloadSingle = {
+          x: coordinateWgs84[0],
+          y: coordinateWgs84[1]
+        };
+        const calculationNumber = this.calculations.length + 1;
+        const isochroneMarkerFeature = new Feature({
+          geometry: new Point(evt.coordinate),
+          calculationNumber: calculationNumber
         });
-      this.clear();
+        isochroneMarkerFeature.setId("isochrone_marker_" + calculationNumber);
+        this.isochroneLayer.getSource().addFeature(isochroneMarkerFeature);
+        this.calculateIsochrone(payloadSingle)
+          .then(() => {})
+          .catch(error => {
+            if (error && error.message === "cancelled") {
+              return;
+            }
+            this.toggleSnackbar({
+              type: "error", //success or error
+              message: this.$t("map.snackbarMessages.calculateIsochroneError"),
+              state: true,
+              timeout: 2500
+            });
+          });
+        this.clear();
+      }
     },
     /**
      * Calculate isochrone .
@@ -1130,10 +1235,26 @@ export default {
       };
       const payload = { ...baseParams, ...params };
       this.isMapBusy = true;
+      this.isIsochroneBusy = true;
+      const axiosInstance = axios.create();
+      const CancelToken = axios.CancelToken;
       return new Promise((resolve, reject) => {
-        ApiService.post(`/isochrones/${type}`, payload)
+        let endpoint = "";
+        if (type === "single") {
+          endpoint = "single";
+        } else if (type === "multiple") {
+          endpoint = "multi/pois";
+        }
+        axiosInstance
+          .post(`/isochrones/${endpoint}`, payload, {
+            cancelToken: new CancelToken(c => {
+              // An executor function receives a cancel function as a parameter
+              this.cancelRequestToken = c;
+            })
+          })
           .then(response => {
             this.isMapBusy = false;
+            this.isIsochroneBusy = false;
             resolve(response);
             if (response.data) {
               const calculationData = [];
@@ -1230,7 +1351,7 @@ export default {
                   .getCoordinates();
                 const wgs84Coord = toLonLat(startPointCoord);
                 //Geocode
-                const axiosInstance = axios.create();
+
                 delete axiosInstance.defaults.headers.common["Authorization"];
                 axiosInstance
                   .get(
@@ -1246,24 +1367,57 @@ export default {
                     transformedData.position = "Unknown";
                   })
                   .finally(() => {
-                    // Add calculation to store.
                     this.calculations.forEach(calculation => {
                       calculation.isExpanded = false;
                     });
                     this.calculations.unshift(transformedData);
-                    // Add feature to layer.
                     this.isochroneLayer.getSource().addFeatures(olFeatures);
-                    // Collapse options
                     this.isOptionsElVisible = false;
                   });
+              } else {
+                transformedData.position = "Multi Isochrone Calculation";
+                this.calculations.forEach(calculation => {
+                  calculation.isExpanded = false;
+                });
+                this.calculations.unshift(transformedData);
+                this.isochroneLayer.getSource().addFeatures(olFeatures);
+                this.isOptionsElVisible = false;
               }
             }
           })
-          .catch(({ response }) => {
+          .catch(error => {
             this.isMapBusy = false;
-            reject(response);
+            this.isIsochroneBusy = false;
+            reject(error);
+          })
+          .finally(() => {
+            this.isMapBusy = false;
+            this.isIsochroneBusy = false;
           });
       });
+    },
+    calculateMultiIsochrone() {
+      const regionType = this.multiIsochroneMethod;
+      const payload = {
+        region_type: regionType
+      };
+      if (regionType === "study_area") {
+        // Get selected study areas ids
+      } else {
+        // Get polygon geometry
+        const feature = this.multiIsochroneSelectionLayer
+          .getSource()
+          .getFeatures()[0];
+        if (!feature) return;
+        const geometry = feature
+          .getGeometry()
+          .clone()
+          .transform("EPSG:3857", "EPSG:4326");
+        const region = geometryToWKT(geometry);
+        payload.region = [region];
+      }
+      payload.amenities = this.selectedPoisOnlyKeys;
+      this.calculateIsochrone(payload);
     },
     //TODO: Active calculation is the one that has thematic data window open.
     isCalculationActive(calculation) {
@@ -1585,6 +1739,18 @@ export default {
     /**
      * Clears the map and ol interaction activity
      */
+    stopIsochroneCalculation() {
+      this.clear();
+      if (this.cancelRequestToken instanceof Function) {
+        this.cancelRequestToken("cancelled");
+      }
+      this.toggleSnackbar({
+        type: "error",
+        message: this.$t("map.snackbarMessages.calculationCancelled"),
+        state: true,
+        timeout: 4000
+      });
+    },
     clear() {
       if (this.mapClickListener) {
         unByKey(this.mapClickListener);
@@ -1600,6 +1766,9 @@ export default {
       this.multiIsochroneSelectionLayer.getSource().clear();
     },
     stop() {
+      if (this.cancelRequestToken instanceof Function) {
+        this.cancelRequestToken("cancelled");
+      }
       this.clear();
     }
   },

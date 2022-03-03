@@ -386,7 +386,8 @@
       "featuresAlreadyUploaded": "Features already exists",
       "cantExportScenario": "An error happened. Scenario can't be exported!",
       "zoomInToShowFeatures": "Zoom in to show features for",
-      "heatmapIsBusy": "Recomputing for heatmap layer might take some time. Please be patient!"
+      "heatmapIsBusy": "Recomputing for heatmap layer might take some time. Please be patient!",
+      "calculationCancelled": "Calculation Cancelled!"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",

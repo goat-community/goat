@@ -7,7 +7,7 @@
       :color="appColor.primary"
     />
     <full-screen v-show="!miniViewOlMap" :color="appColor.primary" />
-    <progress-status :isNetworkBusy="isNetworkBusy" />
+    <progress-status />
     <background-switcher v-show="!miniViewOlMap" />
     <!-- Popup overlay  -->
     <overlay-popup
@@ -144,6 +144,7 @@ import axios from "axios";
 
 //Store imports
 import { mapMutations, mapGetters, mapActions } from "vuex";
+import { mapFields } from "vuex-map-fields";
 
 //Map Controls
 import OverlayPopup from "./controls/Overlay";
@@ -333,12 +334,13 @@ export default {
       const olLayer = LayerFactory.getInstance({
         group: "buildings_landuse",
         displayInLayerList: true,
-        z_index: 100,
+        z_index: 1,
         name: "sub_study_area",
         type: "GEOBUF",
         style: "custom"
       });
       this.map.addLayer(olLayer);
+      this.subStudyAreaLayer = olLayer;
     },
 
     /**
@@ -791,6 +793,9 @@ export default {
     })
   },
   computed: {
+    ...mapFields("map", {
+      subStudyAreaLayer: "subStudyAreaLayer"
+    }),
     ...mapGetters("map", {
       studyArea: "studyArea",
       helpTooltip: "helpTooltip",

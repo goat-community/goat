@@ -10,6 +10,7 @@ import { geojsonToFeature } from "../../utils/MapUtils";
 const state = {
   studyArea: null,
   studyAreaList: [],
+  subStudyAreaLayer: null,
   map: null,
   errors: null,
   helpTooltip: {
@@ -25,7 +26,7 @@ const state = {
     }
   },
   contextmenu: null,
-  isBusy: false,
+  isMapBusy: false,
   ///
 
   layers: {}, // Only for operational layers
@@ -94,6 +95,7 @@ const state = {
 
 const getters = {
   studyArea: state => state.studyArea,
+  subStudyAreaLayer: state => state.subStudyAreaLayer,
   studyAreaProps: state => {
     if (Array.isArray(state.studyArea)) {
       const studyArea = state.studyArea[0];
@@ -119,8 +121,8 @@ const getters = {
   editLayer: state => state.editLayer,
   selectedEditLayer: state => state.selectedEditLayer,
   isMapillaryBtnDisabled: state => state.isMapillaryBtnDisabled,
-  busyLayers: state => state.busyLayers,
   print: state => state.print,
+  isMapBusy: state => state.isMapBusy,
   getField
 };
 
