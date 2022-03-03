@@ -29,7 +29,16 @@ def isochrone(
     isochrone_gdp : GeoDataFrame
         The isochrone paths.
     """
-
+    network.astype(
+        {
+            "id": int64,
+            "source": int64,
+            "target": int64,
+            "cost": double,
+            "reverse_cost": double,
+            "length": double,
+        }
+    )
     start_vertices = array(start_vertices).astype(int64)
     distance_limits = array(distance_limits).astype(double)
     isochroneclass = isochrone_cpp.Isochrone()
@@ -44,7 +53,7 @@ def isochrone(
         network["geom"],
         start_vertices,
         distance_limits,
-        only_minimum_cover
+        only_minimum_cover,
     )
 
     return result
