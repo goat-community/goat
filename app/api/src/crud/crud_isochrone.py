@@ -324,7 +324,7 @@ class CRUDIsochrone:
                 "isochrone_calculation_id": isochrone_calculation_id,
                 "scenario_id": obj_in.scenario_id,
                 "modus": obj_in.modus,
-                "region": obj_in.region,
+                "region": obj_in.region[0],
             }
             sql_reached_population = text("""SELECT * 
             FROM basic.reached_population_polygon(:isochrone_calculation_id, :scenario_id, :modus, :region)
