@@ -3,7 +3,7 @@
     <v-card>
       <v-app-bar :color="activeColor.primary" dark>
         <v-app-bar-nav-icon
-          ><v-icon>fas fa-file-download</v-icon></v-app-bar-nav-icon
+          ><v-icon>fa-solid fa-download</v-icon></v-app-bar-nav-icon
         >
         <v-toolbar-title>{{ $t("isochrones.download.title") }}</v-toolbar-title>
         <v-spacer></v-spacer>

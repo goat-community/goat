@@ -256,6 +256,8 @@ export default {
 
     // Get study area
     me.createStudyAreaLayer();
+    // Create substudy area layer
+    me.createSubStudyAreaLayer();
     // Create layers from config and add them to map
     const layers = me.createLayers();
     me.map.getLayers().extend(layers);
@@ -283,21 +285,31 @@ export default {
     createLayers() {
       let layers = [];
       this.appConfig.layer_groups.forEach(group => {
-        group.children.forEach(lConf => {
+        const groupName = Object.keys(group)[0];
+        group[groupName].children.forEach(lConf => {
+          const layerName = Object.keys(lConf)[0];
+          lConf = lConf[layerName];
+          lConf.name = layerName;
           if (lConf.type) {
-            const olLayer = LayerFactory.getInstance({
-              group: group.name,
-              ...lConf
-            });
-            if (olLayer) {
-              layers.push(olLayer);
+            try {
+              const olLayer = LayerFactory.getInstance({
+                group: groupName,
+                ...lConf
+              });
+              if (olLayer) {
+                layers.push(olLayer);
+              }
+            } catch (error) {
+              console.log(error);
             }
           }
         });
       });
       return layers;
     },
-
+    /**
+     * Creates the study area layer.
+     */
     createStudyAreaLayer() {
       const source = new VectorSource({
         wrapX: false
@@ -313,6 +325,20 @@ export default {
       source.addFeature(this.studyArea[0]);
       this.map.addLayer(vector);
       this.map.getView().fit(source.getExtent());
+    },
+    /**
+     * Creates a sub study area layer (districts)
+     */
+    createSubStudyAreaLayer() {
+      const olLayer = LayerFactory.getInstance({
+        group: "buildings_landuse",
+        displayInLayerList: true,
+        z_index: 100,
+        name: "sub_study_area",
+        type: "GEOBUF",
+        style: "custom"
+      });
+      this.map.addLayer(olLayer);
     },
 
     /**

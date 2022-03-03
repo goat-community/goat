@@ -25,31 +25,22 @@
       <v-divider></v-divider>
       <v-select
         class="mt-8"
-        v-model="activeMultiIsochroneMethod"
-        :items="studyAreas"
+        :value="studyAreaProps"
+        return-object
+        :items="studyAreaList"
+        item-value="id"
+        item-text="name"
         label="Study area"
         @change="changeStudyArea"
       >
       </v-select>
-      <v-btn style="text-transform:none;" class="mt-3" text>
-        <v-icon class="light-icon-color" left>
-          fas fa-cloud-arrow-up
-        </v-icon>
-        <span class="ml-2">
-          Upload Data
-        </span>
-      </v-btn>
-
-      <v-btn style="text-transform:none;" class="mt-3" text>
-        <v-icon class="light-icon-color" left>
-          fas fa-cloud
-        </v-icon>
-        <span class="ml-2  theme--light">
-          Manage Files
-        </span>
-      </v-btn>
-
-      <v-btn style="text-transform:none;" class="mt-3" text>
+      <v-btn
+        style="text-transform:none;justify-content:left;"
+        width="100%"
+        class="mt-3"
+        text
+        @click="openContactSupportInNewTab"
+      >
         <v-icon class="light-icon-color" left>
           fas fa-comments-question
         </v-icon>
@@ -58,7 +49,12 @@
         </span>
       </v-btn>
       <br />
-      <v-btn style="text-transform:none;" class="mt-3 mb-3" text>
+      <v-btn
+        style="text-transform:none;justify-content:left;"
+        width="100%"
+        class="mt-3 mb-3"
+        text
+      >
         <v-icon class="light-icon-color" left>
           fas fa-arrow-right-from-bracket
         </v-icon>
@@ -83,14 +79,30 @@
 <script>
 import { mapGetters } from "vuex";
 export default {
-  data: () => ({
-    studyAreas: "Munich"
-  }),
+  data: () => ({}),
   computed: {
     ...mapGetters("auth", { user: "currentUser" }),
     ...mapGetters("app", {
       appColor: "appColor"
+    }),
+    ...mapGetters("map", {
+      studyAreaProps: "studyAreaProps",
+      studyAreaList: "studyAreaList"
     })
+  },
+  methods: {
+    openContactSupportInNewTab() {
+      let url = "https://plan4better.de/kontakt/";
+      if (url) {
+        window.open(url, "_blank");
+      }
+    },
+    changeStudyArea(newStudyArea) {
+      if (newStudyArea.id === this.studyAreaProps.id) {
+        return;
+      }
+      //TODO: change study area
+    }
   }
 };
 </script>

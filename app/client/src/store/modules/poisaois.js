@@ -3,7 +3,9 @@ import { getField, updateField } from "vuex-map-fields";
 //parts of the data will be loaded dynamically from app conf json
 
 const state = {
+  poisAoisLayer: null,
   poisAois: {},
+  selectedPoisAois: [],
   dynamicHeatmapTravelTimes: [
     0,
     10,
@@ -131,7 +133,47 @@ const state = {
 
 const getters = {
   dynamicHeatmapTravelTimes: state => state.dynamicHeatmapTravelTimes,
-  poisaois: state => state.poisaois,
+  poisAois: state => state.poisAois,
+  poisAoisLayer: state => state.poisAoisLayer,
+  // eslint-disable-next-line no-unused-vars
+  selectedPois: (state, getters, rootState, rootGetters) => {
+    const poisConfig = rootGetters["app/poisConfig"];
+    const pois = state.selectedPoisAois.filter(poi => {
+      if (poisConfig[poi.value]) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+    return pois;
+  },
+  selectedPoisOnlyKeys: (state, getters) => {
+    const selectedPoiKeys = [];
+    getters.selectedPois.forEach(poi => {
+      selectedPoiKeys.push(poi.value);
+    });
+    return selectedPoiKeys;
+  },
+  // eslint-disable-next-line no-unused-vars
+  selectedAois: (state, getters, rootState, rootGetters) => {
+    const aoisConfig = rootGetters["app/aoisConfig"];
+    const aois = state.selectedPoisAois.filter(aoi => {
+      if (aoisConfig[aoi.value]) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+    return aois;
+  },
+  selectedAoisOnlyKeys: (state, getters) => {
+    const selectedAoiKeys = [];
+    getters.selectedAois.forEach(aoi => {
+      selectedAoiKeys.push(aoi.value);
+    });
+    return selectedAoiKeys;
+  },
+
   getField
 };
 

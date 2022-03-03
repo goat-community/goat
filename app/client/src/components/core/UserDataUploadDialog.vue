@@ -82,6 +82,9 @@
             :label="$t(`appBar.dataUpload.dialog.customCategory`)"
             @change="isCustomClicked"
           ></v-checkbox>
+          <v-alert v-if="!isValid" dense outlined type="error">
+            {{ $t("appBar.dataUpload.dialog.invalidCategory") }}
+          </v-alert>
           <v-text-field
             v-if="isCustom"
             label="Category Name"
@@ -91,13 +94,14 @@
             max="50"
             :rules="[minLength]"
             lazy-validation
+            @input="categoryNameInput"
           ></v-text-field>
 
           <v-btn
             :color="appColor.primary"
+            class="white--text"
             depressed
-            :disabled="!selectedPoi"
-            :dark="!!selectedPoi"
+            :disabled="!selectedPoi || !isValid"
             :loading="isSelecting"
             @click="onUploadButtonClick"
           >
@@ -123,6 +127,8 @@
 import { mapGetters } from "vuex";
 export default {
   data: () => ({
+    isBusy: false,
+    isValid: true,
     selectedFile: null,
     isSelecting: false,
     isCustom: false,
@@ -146,23 +152,27 @@ export default {
     },
     ...mapGetters("app", {
       appColor: "appColor",
-      poiIcons: "poiIcons"
+      poiIcons: "poiIcons",
+      poisConfig: "poisConfig"
     }),
     poiList() {
       const poiIcons = this.poiIcons;
       const poiNames = Object.keys(poiIcons);
       return poiNames.map(poiName => {
-        return {
-          type: poiName,
-          icon: poiIcons[poiName].icon,
-          color: poiIcons[poiName].color
-        };
+        if (this.poisConfig[poiName]) {
+          return {
+            type: poiName,
+            icon: poiIcons[poiName].icon,
+            color: poiIcons[poiName].color
+          };
+        }
       });
     }
   },
   methods: {
     isCustomClicked() {
       this.selectedPoi = null;
+      this.isValid = true;
     },
     onUploadButtonClick() {
       this.isSelecting = true;
@@ -178,8 +188,28 @@ export default {
     },
     onFileChanged(e) {
       this.selectedFile = e.target.files[0];
-      console.log(this.selectedFile);
-      // do something
+    },
+    categoryNameInput() {
+      const existingPoi = this.poiList.filter(p => p.type === this.selectedPoi);
+      if (existingPoi.length > 0) {
+        this.isValid = false;
+      } else {
+        this.isValid = true;
+      }
+    },
+    clean() {
+      this.isValid = true;
+      this.selectedFile = null;
+      this.isSelecting = false;
+      this.isCustom = false;
+      this.selectedPoi = null;
+    }
+  },
+  watch: {
+    visible(visible) {
+      if (!visible) {
+        this.clean();
+      }
     }
   }
 };

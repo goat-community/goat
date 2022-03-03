@@ -87,6 +87,40 @@ const getters = {
     });
     return treeStruct;
   },
+  // Only Pois
+  poisConfig: state => {
+    const poiGroups = state.appConfig.poi_groups;
+    let poisConfig = {};
+    poiGroups.forEach(group => {
+      const groupName = Object.keys(group)[0];
+      group[groupName].children.forEach(child => {
+        const childName = Object.keys(child)[0];
+        poisConfig[childName] = {
+          icon: child[childName].icon,
+          color: child[childName].color,
+          group: groupName
+        };
+      });
+    });
+    return poisConfig;
+  },
+  // Only Aois
+  aoisConfig: state => {
+    const aoisGroups = state.appConfig.aoi_groups;
+    let aoisConfig = {};
+    aoisGroups.forEach(group => {
+      const groupName = Object.keys(group)[0];
+      group[groupName].children.forEach(child => {
+        const childName = Object.keys(child)[0];
+        aoisConfig[childName] = {
+          icon: child[childName].icon,
+          color: child[childName].color,
+          group: groupName
+        };
+      });
+    });
+    return aoisConfig;
+  },
   poiIcons: state => state.poiIcons,
   activeColor: state => state.activeColor,
   getField

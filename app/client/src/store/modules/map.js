@@ -1,7 +1,7 @@
 import ApiService from "../../services/api.service";
 import { getField, updateField } from "vuex-map-fields";
-import { GET_STUDY_AREA } from "../actions.type";
-import { SET_STUDY_AREA } from "../mutations.type";
+import { GET_STUDY_AREA, GET_STUDY_AREAS_LIST } from "../actions.type";
+import { SET_STUDY_AREA, SET_STUDY_AREAS_LIST } from "../mutations.type";
 import { SET_ERROR } from "../mutations.type";
 import { errorMessage } from "../../utils/Helpers";
 import { transformExtent } from "ol/proj";
@@ -9,6 +9,7 @@ import { geojsonToFeature } from "../../utils/MapUtils";
 
 const state = {
   studyArea: null,
+  studyAreaList: [],
   map: null,
   errors: null,
   helpTooltip: {
@@ -93,6 +94,19 @@ const state = {
 
 const getters = {
   studyArea: state => state.studyArea,
+  studyAreaProps: state => {
+    if (Array.isArray(state.studyArea)) {
+      const studyArea = state.studyArea[0];
+      return {
+        id: studyArea.get("id"),
+        name: studyArea.get("name"),
+        population: studyArea.get("population")
+      };
+    } else {
+      return {};
+    }
+  },
+  studyAreaList: state => state.studyAreaList,
   map: state => state.map,
   layers: state => state.layers,
   osmMode: state => state.osmMode,
@@ -116,6 +130,19 @@ const actions = {
       ApiService.get("/users/me/study-area", credentials)
         .then(response => {
           context.commit(SET_STUDY_AREA, response.data);
+          resolve(response.data);
+        })
+        .catch(({ response }) => {
+          errorMessage(context, response, SET_ERROR);
+          reject(response);
+        });
+    });
+  },
+  [GET_STUDY_AREAS_LIST](context, credentials) {
+    return new Promise((resolve, reject) => {
+      ApiService.get("/users/me/study-areas-list", credentials)
+        .then(response => {
+          context.commit(SET_STUDY_AREAS_LIST, response.data);
           resolve(response.data);
         })
         .catch(({ response }) => {
@@ -160,6 +187,9 @@ const mutations = {
       olFeatures[0].set("bounds", extent);
       state.studyArea = olFeatures;
     }
+  },
+  [SET_STUDY_AREAS_LIST](state, studyAreas) {
+    state.studyAreaList = studyAreas;
   },
   SET_CONTEXTMENU(state, contextmenu) {
     state.contextmenu = contextmenu;

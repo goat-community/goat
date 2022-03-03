@@ -98,7 +98,11 @@
                 'white--text': calculationMode.active === item
               }"
             >
-              {{ item }}
+              {{
+                $te(`isochrones.options.${item}`)
+                  ? $t(`isochrones.options.${item}`)
+                  : item
+              }}
             </v-chip>
           </div>
         </v-layout>
