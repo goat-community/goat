@@ -108,7 +108,7 @@ BEGIN
 	SET reached_opportunities = o.population 
 	FROM as_object o 
 	WHERE o.isochrone_feature_id = i.id
-	RETURNING i.step, i.reached_opportunities;
+	RETURNING i.id, i.step, i.reached_opportunities;
  
 END; 
 $function$ LANGUAGE plpgsql;

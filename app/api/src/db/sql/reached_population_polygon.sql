@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION basic.reached_population_polygon(ischrone_calculation_id_input integer, scenario_id_input integer, modus TEXT, region TEXT) 
-RETURNS TABLE (isochrone_feature_id integer, reached_opportunities jsonb)
+RETURNS TABLE (isochrone_feature_id integer, step integer, reached_opportunities jsonb)
 AS $function$ 
 DECLARE 	
 	excluded_buildings_id integer[];
@@ -86,7 +86,7 @@ BEGIN
 	SET reached_opportunities = jsonb_build_object('name', 'polygon', 'reached_population', population, 'total_population', reachable_population)  
 	FROM reached_population r 
 	WHERE i.id = r.isochrone_feature_id
-	RETURNING i.id, i.reached_opportunities;
+	RETURNING i.id, i.step, i.reached_opportunities;
 
 END; 
 $function$ LANGUAGE plpgsql;

@@ -65,7 +65,7 @@ async def calculate_reached_network(
         y=y,
         user_id=current_user.id,
         routing_profile=isochrone_calc_obj.routing_profile,
-        active_upload_ids= current_user.active_data_upload_ids,
+        active_upload_ids=current_user.active_data_upload_ids,
         scenario_id=isochrone_calc_obj.scenario_id
     )
 

@@ -155,7 +155,11 @@ class CRUDIsochrone:
         #Update isochrones with reached opportunities
         isochrone_gdf["reached_opportunities"] = isochrone_gdf["step"].map(dict_opportunities)
 
-        isochrone_gdf.insert(4, "modus", obj_in.modus, True)
+    
+        isochrone_gdf["routing_profile"] = obj_in.routing_profile
+        isochrone_gdf["scenario_id"] = obj_in.scenario_id
+        isochrone_gdf["modus"] = obj_in.modus
+
         return_obj = {"isochrones": isochrone_gdf}
 
         if return_network == True:
@@ -172,6 +176,10 @@ class CRUDIsochrone:
                         "end_cost": edge.end_cost,
                         "start_perc": edge.start_perc,
                         "end_perc": edge.end_perc,
+                        "routing_profile": obj_in.routing_profile,
+                        "scenario_id": obj_in.scenario_id,
+                        "modus": obj_in.modus,
+
                     },
                 }
                 features.append(feature)
@@ -345,11 +353,11 @@ class CRUDIsochrone:
         await db.commit()
         
         dict_opportunities = {}
-        [dict_opportunities.update({row[0]:row[1]}) for row in result_reached_population.fetchall()]
+        [dict_opportunities.update({row[1]:row[2]}) for row in result_reached_population.fetchall()]
         isochrones_result["reached_opportunities"] = isochrones_result["step"].map(dict_opportunities)
-        
-        for i in result_reached_population.fetchall():
-            isochrones_result.loc[isochrones_result.step == i[0], "reached_opportunities"] = str(i[1])
+        isochrones_result["routing_profile"] = obj_in.routing_profile
+        isochrones_result["scenario_id"] = obj_in.scenario_id
+        isochrones_result["modus"] = obj_in.modus
 
         return isochrones_result
 
