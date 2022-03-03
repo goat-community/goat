@@ -33,6 +33,17 @@ from src.schemas.isochrone import (
     IsochroneTypeEnum,
     IsochronePoiMulti
 )
+from src.crud.base import CRUDBase
+
+class CRUDIsochroneCalculation(CRUDBase[models.IsochroneCalculation, models.IsochroneCalculation, models.IsochroneCalculation]):
+    pass
+
+isochrone_calculation = CRUDIsochroneCalculation(models.IsochroneCalculation)
+
+class CRUDIsochroneFeature(CRUDBase[models.IsochroneFeature, models.IsochroneFeature, models.IsochroneFeature]):
+    pass
+
+isochrone_feature = CRUDIsochroneCalculation(models.IsochroneFeature)
 
 class CRUDIsochrone:
     async def read_network(self, db, calculation_type, obj_in, obj_in_data): 

@@ -41,17 +41,36 @@ async def calculate_single_isochrone(
 
 @router.post("/network", response_class=JSONResponse)
 async def calculate_reached_network(
-    *, db: AsyncSession = Depends(deps.get_db), 
-    isochrone_in: IsochroneSingle = Body(..., example=request_examples["reached_network"]),
+    *, db: AsyncSession = Depends(deps.get_db),
+    isochrone_calculation_id: int,
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Calculate the reached network for a single isochrone.
     """
-    isochrone_in.user_id = current_user.id
-    network = await crud.isochrone.calculate_reached_network(db=db, obj_in=isochrone_in)
-    return json.dumps(network)
+    isochrone_calc_obj = await crud.isochrone_calculation.get_by_key(db=db, key='id', value=isochrone_calculation_id)
+    isochrone_calc_obj = isochrone_calc_obj[0]
+    isochrone_feature_obj = await crud.isochrone_feature.get_by_key(db=db, key='isochrone_calculation_id', value=isochrone_calculation_id)
 
+    minutes = int(max([obj.step for obj in isochrone_feature_obj]) / 60) 
+
+    x,y = isochrone_calc_obj.starting_point.replace('POINT (','').replace(')','').split(' ')
+
+    obj_calculation = IsochroneSingle(
+        minutes=minutes,
+        speed= 3.6 * isochrone_calc_obj.speed,
+        n=len(isochrone_feature_obj),
+        modus=isochrone_calc_obj.modus,
+        x=x,
+        y=y,
+        user_id=current_user.id,
+        routing_profile=isochrone_calc_obj.routing_profile,
+        active_upload_ids= current_user.active_data_upload_ids,
+        scenario_id=isochrone_calc_obj.scenario_id
+    )
+
+    network = await crud.isochrone.calculate_reached_network(db=db, obj_in=obj_calculation)
+    return json.JSONDecoder().decode(json.dumps(network))
 
 @router.post("/multi", response_class=JSONResponse)
 async def calculate_multi_isochrone(
