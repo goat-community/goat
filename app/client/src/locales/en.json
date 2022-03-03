@@ -107,7 +107,7 @@
       "deleteFile": "Delete file",
       "deleteAllFilesMessage": "Are you sure you want to delete all files?",
       "deleteFileMessage": "Are you sure you want to delete this file?",
-      "table":{
+      "table": {
         "filename": "Filename",
         "date": "Date",
         "size": "Size",
@@ -119,7 +119,8 @@
         "uploadPointOfInterest": "Upload point of interest",
         "selectCategory": "Select category",
         "customCategory": "Custom category",
-        "browseYourFiles": "Browse your files"
+        "browseYourFiles": "Browse your files",
+        "invalidCategory": "Category name must not be the same with existing categories."
       }
     },
     "filter": {
@@ -272,9 +273,9 @@
       "calcType": "Level of detail isochrones",
       "calcModus": "Calculation Mode",
       "alphaShapeMode": "Level of detail isochrones",
-      "defaultNetwork": "Default",
-      "modifiedNetwork": "Scenario",
-      "modifiedNetworkDoubleCalc": "Comparison",
+      "default": "Default",
+      "scenario": "Scenario",
+      "comparision": "Comparison",
       "routingProfile": "Routing Profile",
       "walking_standard": "Standard",
       "walking_elderly": "Elderly",
@@ -298,11 +299,14 @@
       "deleteCalcTooltip": "Delete Calculation",
       "deleteAll": "DELETE ALL",
       "changeColorTooltip": "Click to change color",
+      "dataTable": "Data Table",
+      "roadNetwork": "Road Network",
       "table": {
         "type": "Type",
         "range": "Range",
         "area": "Area",
         "visible": "Visible",
+        "population": "Population",
         "legend": "Legend"
       },
       "colorMessage": "Lowest: <b>0 min</b>, Highest: <b>20 min</b>"

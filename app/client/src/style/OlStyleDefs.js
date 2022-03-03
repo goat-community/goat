@@ -560,6 +560,17 @@ export const baseStyleDefs = {
         width: 5.5
       })
     });
+  },
+  subStudyAreaStyle: () => {
+    return new OlStyle({
+      fill: new OlFill({
+        color: "rgba(127,127,191,0.3)"
+      }),
+      stroke: new OlStroke({
+        color: "rgba(127,127,191)",
+        width: 2
+      })
+    });
   }
 };
 
@@ -761,5 +772,6 @@ export function poisAoisStyle(feature) {
 
 export const stylesRef = {
   poisAoisStyle: poisAoisStyle,
-  study_area_crop: baseStyleDefs.boundaryStyle
+  study_area_crop: baseStyleDefs.boundaryStyle,
+  sub_study_area: baseStyleDefs.subStudyAreaStyle
 };

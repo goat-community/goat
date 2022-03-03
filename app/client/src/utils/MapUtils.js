@@ -9,6 +9,7 @@ import WKT from "ol/format/WKT";
 import { getArea } from "ol/sphere";
 const geobuf = require("geobuf");
 const Pbf = require("pbf");
+import TurfBuffer from "@turf/buffer";
 
 export function isWithinVisibleScales(scale, maxScale, minScale) {
   if (maxScale || minScale) {
@@ -147,6 +148,13 @@ export function getCenter(geometry) {
       break;
   }
   return center;
+}
+
+export function OlBuffer(featureCollection, bufferDistance, units = "meters") {
+  const buffer = TurfBuffer(featureCollection, bufferDistance, {
+    units: units
+  });
+  return buffer;
 }
 
 export function getPolygonArea(polygon) {

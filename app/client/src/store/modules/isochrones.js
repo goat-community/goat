@@ -76,6 +76,8 @@ const state = {
   },
   isochroneLayer: null,
   isochroneRoadNetworkLayer: null,
+  multiIsochroneMethod: null,
+  multiIsochroneSelectionLayer: null,
   calculations: [],
   isochroneOverlayLayer: null,
   // Cancel Request
@@ -84,6 +86,7 @@ const state = {
 
 const getters = {
   colors: state => state.colors,
+  type: state => state.type,
   isochroneLayer: state => state.isochroneLayer,
   getField
 };

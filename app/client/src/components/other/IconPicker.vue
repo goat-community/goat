@@ -142,7 +142,7 @@
         <v-container class="pb-0">
           <vue-scroll>
             <v-col cols="12">
-              <span :key="i" v-for="(icon, i) in filteredIcons">
+              <span :key="i" v-for="(icon, i) in historyList">
                 <v-tooltip :disabled="!icon.name" top>
                   <template v-slot:activator="{ on }">
                     <v-btn
@@ -168,7 +168,16 @@
           </vue-scroll>
         </v-container>
       </vue-scroll>
-      <v-card-actions class="pt-0">
+      <v-card-actions class="pt-0 elevation-3">
+        <v-pagination
+          v-if="filteredIcons.length > 100"
+          circle
+          :total-visible="7"
+          class="pagination pl-10 ml-10 mt-1"
+          v-model="page"
+          :length="pages"
+          @input="updatePage"
+        ></v-pagination>
         <v-spacer></v-spacer>
         <v-btn color="grey" text @click.native="cancel">{{
           $t("buttonLabels.cancel")
@@ -195,6 +204,12 @@ export default {
     color: { type: String, default: "#2BB381" }
   },
   data: () => ({
+    // Pagination
+    page: 1,
+    pageSize: 100,
+    listCount: 0,
+    historyList: [],
+    //--
     newIcon: {},
     iconColor: "",
     mask: "!#XXXXXXXX",
@@ -225,6 +240,11 @@ export default {
         borderRadius: iconColorMenu ? "50%" : "4px",
         transition: "border-radius 200ms ease-in-out"
       };
+    },
+    pages() {
+      let _this = this;
+      if (_this.pageSize == null || _this.listCount == null) return 0;
+      return Math.ceil(_this.listCount / _this.pageSize);
     }
   },
   methods: {
@@ -259,9 +279,28 @@ export default {
           icon => icon.category === this.filters.category
         );
       }
+      this.page = 1;
+      this.initPage();
+      this.updatePage(this.page);
     },
     restoreDefault() {
       // Restore default Icon
+    },
+    initPage: function() {
+      let _this = this;
+      _this.listCount = _this.filteredIcons.length;
+      if (_this.listCount < _this.pageSize) {
+        _this.historyList = _this.filteredIcons;
+      } else {
+        _this.historyList = _this.filteredIcons.slice(0, _this.pageSize);
+      }
+    },
+    updatePage: function(pageIndex) {
+      let _this = this;
+      let _start = (pageIndex - 1) * _this.pageSize;
+      let _end = pageIndex * _this.pageSize;
+      _this.historyList = _this.filteredIcons.slice(_start, _end);
+      _this.page = pageIndex;
     },
     clear() {
       this.filters.name = "";
@@ -269,6 +308,10 @@ export default {
       this.newIcon = {};
       this.iconColor = "";
       this.iconColorMenu = false;
+      this.page = 1;
+      this.pageSize = 100;
+      this.listCount = 0;
+      this.historyList = [];
     },
     cancel() {
       this.clear();

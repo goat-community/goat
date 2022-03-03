@@ -5,7 +5,7 @@
     :width="7"
     :color="appColor.primary"
     class="ma-0 pa-0 maploading-status"
-    v-show="isNetworkBusy || busyLayers.length > 0"
+    v-show="isNetworkBusy || (busyLayers && busyLayers.length > 0)"
   ></v-progress-circular>
 </template>
 

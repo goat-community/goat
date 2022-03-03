@@ -6,3 +6,4 @@ export const UPDATE_USER = "updateUser";
 export const GET_USER = "getUser";
 export const GET_APP_CONFIG = "getAppConfig";
 export const GET_STUDY_AREA = "getStudyArea";
+export const GET_STUDY_AREAS_LIST = "getStudyAreasList";

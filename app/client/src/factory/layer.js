@@ -14,6 +14,10 @@ import ImageWMS from "ol/source/ImageWMS.js";
 import { Image as ImageLayer } from "ol/layer.js";
 import XyzSource from "ol/source/XYZ";
 import { OlStyleFactory } from "../factory/OlStyle";
+import { all } from "ol/loadingstrategy";
+import ApiService from "../services/api.service";
+import { geobufToFeatures } from "../utils/MapUtils";
+
 /**
  * Factory, which creates OpenLayers layer instances according to a given config
  * object.
@@ -40,9 +44,15 @@ export const LayerFactory = {
       displayInLayerList: lConf.display_in_layer_list || true,
       legendGraphicUrl: lConf.legend_graphic_url || null
     };
+    if (lConf.z_index) {
+      lOpts.zIndex = lConf.z_index;
+    }
     let sOpts = {
       url: lConf.url
     };
+    if (lConf.map_attribution) {
+      sOpts.attributions = lConf.map_attribution;
+    }
     return {
       lOpts,
       sOpts
@@ -73,6 +83,8 @@ export const LayerFactory = {
       return this.createVectorImageLayer(lConf);
     } else if (["VECTORTILE", "MVT"].includes(lConf.type)) {
       return this.createVectorTileLayer(lConf);
+    } else if (lConf.type === "GEOBUF") {
+      return this.createGeoBufLayer(lConf);
     } else {
       return null;
     }
@@ -182,6 +194,50 @@ export const LayerFactory = {
   },
 
   /**
+   * Returns an OpenLayers vector layer instance due to given config that uses a geobuf endpoint.
+   *
+   * @param  {Object} lConf  Layer config object
+   * @return {ol.layer.Vector} OL vector layer instance
+   */
+  createGeoBufLayer(lConf) {
+    const url =
+      lConf.url || `/layers/vector/static/${lConf.name}?return_type=db_geobuf`;
+    const layer = new VectorImageLayer({
+      ...this.baseConf(lConf).lOpts,
+      source: new VectorSource({
+        ...this.baseConf(lConf).sOpts,
+        // eslint-disable-next-line no-unused-vars
+        loader: function(extent, resolution, projection, success, failure) {
+          const proj = projection.getCode();
+          const source = this;
+          source.clear();
+          ApiService.get_(url, {
+            responseType: "arraybuffer",
+            headers: {
+              Accept: "application/pdf"
+            }
+          })
+            .then(response => {
+              if (response.data) {
+                const olFeatures = geobufToFeatures(response.data, {
+                  dataProjection: lConf.data_projection,
+                  featureProjection: proj
+                });
+                source.addFeatures(olFeatures);
+              }
+            })
+            .catch(({ response }) => {
+              console.log(response);
+            });
+        },
+        strategy: all
+      })
+    });
+    this.styleVectorLayer(layer, lConf);
+    return layer;
+  },
+
+  /**
    * Returns an OpenLayers vector tile layer instance due to given config.
    *
    * @param  {Object} lConf  Layer config object
@@ -198,6 +254,18 @@ export const LayerFactory = {
         ...this.baseConf(lConf).sOpts
       })
     });
+    this.styleVectorLayer(layer, lConf);
+    return layer;
+  },
+
+  /**
+   * Styles the vector layer based on the layer config.
+   *
+   * @param  {ol.layer.Vector} layer Vector layer instance
+   * @param  {Object} lConf  Layer config object
+   * @return {ol.layer} OL vector layer instance
+   */
+  styleVectorLayer(layer, lConf) {
     // Style the vector tile layer
     let styleObj;
     if (typeof lConf.style === "object") {
@@ -209,6 +277,8 @@ export const LayerFactory = {
       styleObj = {
         format: "custom"
       };
+    } else {
+      return layer;
     }
     const olStyle = OlStyleFactory.getOlStyle(styleObj, lConf.name);
     if (olStyle) {
@@ -222,6 +292,5 @@ export const LayerFactory = {
         layer.setStyle(olStyle);
       }
     }
-    return layer;
   }
 };

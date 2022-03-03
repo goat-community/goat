@@ -35,7 +35,8 @@ import "@/globalComponents";
 import {
   GET_USER,
   GET_APP_CONFIG,
-  GET_STUDY_AREA
+  GET_STUDY_AREA,
+  GET_STUDY_AREAS_LIST
 } from "../store/actions.type";
 import { mapGetters } from "vuex";
 
@@ -54,6 +55,7 @@ export default {
     this.$store.dispatch(`auth/${GET_USER}`);
     this.$store.dispatch(`app/${GET_APP_CONFIG}`);
     this.$store.dispatch(`map/${GET_STUDY_AREA}`);
+    this.$store.dispatch(`map/${GET_STUDY_AREAS_LIST}`);
   },
   computed: {
     ...mapGetters("app", {

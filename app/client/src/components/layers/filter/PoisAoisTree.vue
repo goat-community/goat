@@ -9,6 +9,7 @@
           fab
           dark
           small
+          @click="showDataUploadDialog = true"
         >
           <v-icon dark>add</v-icon>
         </v-btn>
@@ -116,6 +117,10 @@
       @close="showIconPickerDialog = false"
     >
     </icon-picker>
+    <user-data-upload
+      :visible="showDataUploadDialog"
+      @close="showDataUploadDialog = false"
+    />
   </div>
 </template>
 
@@ -130,6 +135,7 @@ import VectorLayer from "ol/layer/VectorImage";
 // Child components
 import HeatmapOptions from "./HeatmapOptions";
 import IconPicker from "../../other/IconPicker";
+import UserDataUploadDialog from "../../core/UserDataUploadDialog.vue";
 
 // Other
 import ApiService from "../../../services/api.service";
@@ -139,14 +145,14 @@ export default {
   mixins: [Mapable],
   components: {
     "heatmap-options": HeatmapOptions,
-    "icon-picker": IconPicker
+    "icon-picker": IconPicker,
+    "user-data-upload": UserDataUploadDialog
   },
   data() {
     return {
-      selectedPoisAois: [],
       open: [],
-      poisAoisLayer: null,
       showHeatmapOptionsDialog: false,
+      showDataUploadDialog: false,
       showIconPickerDialog: false,
       selectedIcon: {},
       selectedAmenity: {}
@@ -286,6 +292,8 @@ export default {
       layerTabIndex: "layerTabIndex"
     }),
     ...mapFields("poisaois", {
+      poisAoisLayer: "poisAoisLayer",
+      selectedPoisAois: "selectedPoisAois",
       poisAois: "poisAois"
     })
   },

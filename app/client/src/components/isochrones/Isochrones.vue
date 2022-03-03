@@ -122,13 +122,14 @@
           </v-subheader>
           <v-card-text
             v-show="isIsochroneCalculationTypeElVisible"
-            class="py-0 my-0 justify-center"
+            class="py-0 my-0 mb-2 justify-center"
           >
-            <v-row>
+            <v-row no-gutters justify="center" align="center">
               <v-radio-group
                 class="ml-2 mt-4 radio-group-height"
-                :value="type"
                 v-model="type"
+                :value="type"
+                @change="stop"
                 row
               >
                 <v-radio
@@ -142,113 +143,124 @@
                   value="multiple"
                 ></v-radio>
               </v-radio-group>
-              <v-spacer></v-spacer>
-              <span v-if="!isMapBusy && type == 'single'">
-                <v-tooltip top>
-                  <template v-slot:activator="{ on }">
-                    <v-btn
-                      outlined
-                      fab
-                      v-on="on"
-                      class="ml-2 mr-4"
-                      depressed
-                      text
-                      @click="registerMapClick('isochrone')"
-                    >
-                      <v-icon
-                        :color="mapClickListener ? appColor.secondary : 'grey'"
-                        >fas fa-map-marker-alt</v-icon
-                      >
-                    </v-btn>
-                  </template>
-                  <span>{{ $t("isochrones.single.startTooltip") }}</span>
-                </v-tooltip>
-              </span>
+            </v-row>
+            <v-row no-gutters>
+              <template v-if="type === 'single'">
+                <v-col cols="12" justify="center" align="center" class="pr-2">
+                  <span>
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on }">
+                        <v-btn
+                          outlined
+                          fab
+                          v-on="on"
+                          class="mr-2"
+                          depressed
+                          text
+                          @click="registerMapClick('isochrone')"
+                        >
+                          <v-icon
+                            :color="
+                              mapClickListener ? appColor.secondary : 'grey'
+                            "
+                            >fas fa-map-marker-alt</v-icon
+                          >
+                        </v-btn>
+                      </template>
+                      <span>{{ $t("isochrones.single.startTooltip") }}</span>
+                    </v-tooltip>
+                  </span>
+                  <br />
+                  <span>Isochrone Single</span>
+                </v-col>
+              </template>
+              <template v-if="type === 'multiple'">
+                <v-row no-gutters>
+                  <v-col cols="6" justify="center" align="center" class="pl-10">
+                    <span>
+                      <v-tooltip top>
+                        <template v-slot:activator="{ on }">
+                          <v-btn
+                            outlined
+                            fab
+                            v-on="on"
+                            class="ml-2"
+                            depressed
+                            text
+                            @click="activateMultiIsochrone('study_area')"
+                          >
+                            <v-icon
+                              :color="
+                                multiIsochroneMethod === 'study_area'
+                                  ? appColor.secondary
+                                  : 'grey'
+                              "
+                              >fa-solid fa-hand-pointer</v-icon
+                            >
+                          </v-btn>
+                        </template>
+                        <span>{{ $t("isochrones.multiple.studyArea") }}</span>
+                      </v-tooltip>
+                    </span>
+                    <br />
+                    <span>{{ $t("isochrones.multiple.studyArea") }}</span>
+                  </v-col>
+                  <v-col cols="6" justify="center" align="center" class="pr-10">
+                    <span>
+                      <v-tooltip top>
+                        <template v-slot:activator="{ on }">
+                          <v-btn
+                            outlined
+                            fab
+                            v-on="on"
+                            class="ml-2 mr-4"
+                            depressed
+                            text
+                            @click="activateMultiIsochrone('draw')"
+                          >
+                            <v-icon
+                              :color="
+                                multiIsochroneMethod === 'draw'
+                                  ? appColor.secondary
+                                  : 'grey'
+                              "
+                              >fa-solid fa-draw-polygon</v-icon
+                            >
+                          </v-btn>
+                        </template>
+                        <span>{{ $t("isochrones.multiple.drawPolygon") }}</span>
+                      </v-tooltip>
+                    </span>
+                    <br />
+                    <span>{{ $t("isochrones.multiple.drawPolygon") }}</span>
+                  </v-col>
+                </v-row>
+                <v-row no-gutters justify="center" class="mt-2" align="center">
+                  <v-btn
+                    small
+                    class="white--text mr-2 mt-5 mb-2"
+                    color="error"
+                    outlined
+                    @click="stop"
+                  >
+                    {{ $t("isochrones.multiple.clear") }}
+                  </v-btn>
+                  <v-btn
+                    :disabled="
+                      !multiIsochronePoiCount ||
+                        multiIsochronePoiCount > maxAmenities
+                    "
+                    small
+                    class="white--text ml-2 mt-5 mb-2"
+                    :color="appColor.primary"
+                    @click="calculateIsochrone"
+                  >
+                    {{ $t("isochrones.multiple.calculate") }}
+                  </v-btn>
+                </v-row>
+              </template>
             </v-row>
           </v-card-text>
-        </v-flex>
-
-        <!-- ISOCHRONE TYPE (MULTIPLE) -->
-        <v-flex xs12 v-if="type === 'multiple'">
-          <v-flex
-            xs12
-            v-show="isIsochroneStartElVisible"
-            style="overflow: hidden;"
-            class="mx-4"
-          >
-            <v-select
-              item-value="value"
-              :disabled="isMapBusy"
-              class="select-method-height mx-1 my-1"
-              v-model="activeMultiIsochroneMethod"
-              :items="multiIsochroneCalculationMethods.values"
-              @change="toggleInteraction"
-              :label="$t('isochrones.multiple.selectMethod')"
-              solo
-            >
-              <template slot="selection" slot-scope="{ item }">
-                {{ $t(`isochrones.multiple.${item.name}`) }}
-              </template>
-              <template slot="item" slot-scope="{ item }">
-                {{ $t(`isochrones.multiple.${item.name}`) }}
-              </template>
-            </v-select>
-            <!-- STOP CALC -->
-            <v-card-actions v-if="isMapBusy">
-              <v-spacer></v-spacer>
-              <v-tooltip v-if="isMapBusy" top>
-                <template v-if="isMapBusy" v-slot:activator="{ on }">
-                  <v-btn
-                    v-show="isMapBusy"
-                    v-on="on"
-                    small
-                    @click.stop="stopIsochroneCalc"
-                    class="white--text"
-                    color="error"
-                  >
-                    <v-icon color="white">close</v-icon
-                    >{{ $t("buttonLabels.stop") }}
-                  </v-btn>
-                </template>
-                <span>{{ $t("isochrones.stopIsochroneCalc") }}</span>
-              </v-tooltip>
-            </v-card-actions>
-
-            <template v-if="this.activeMultiIsochroneMethod !== null">
-              <v-alert
-                border="left"
-                colored-border
-                class="mb-0 mt-2 mx-1 elevation-2"
-                :icon="countPois > 150 ? 'warning' : 'info'"
-                :color="countPois > 150 ? 'warning' : appColor.primary"
-                dense
-              >
-                <span v-html="getInfoLabelText"></span>
-              </v-alert>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn class="white--text" color="error" @click="clear">
-                  {{ $t("isochrones.multiple.clear") }}
-                </v-btn>
-                <v-btn
-                  :disabled="isCalculationDisabled"
-                  class="white--text mr-1"
-                  :color="activeColor.primary"
-                  :loading="isMapBusy"
-                  @click="calcuateBtn"
-                >
-                  {{ $t("isochrones.multiple.calculate") }}
-                </v-btn>
-              </v-card-actions>
-            </template>
-          </v-flex>
-          <v-progress-linear
-            v-if="isMapBusy"
-            indeterminate
-            height="1"
-            class="mx-0 pb-0"
-            :color="activeColor.primary"
-          ></v-progress-linear>
         </v-flex>
 
         <!-- ISOCHRONE RESULT -->
@@ -272,16 +284,20 @@
             <h3>{{ $t("isochrones.results.title") }}</h3>
             <v-spacer></v-spacer>
 
-            <v-btn
-              v-show="isResultsElVisible === true && calculations.length > 1"
-              small
-              @click.stop="deleteAll"
-              class="white--text"
-              color="error"
-            >
-              <v-icon left>delete</v-icon
-              >{{ $t("isochrones.results.deleteAll") }}
-            </v-btn>
+            <v-hover v-slot="{ hover }">
+              <v-btn
+                small
+                v-show="isResultsElVisible === true && calculations.length > 1"
+                class="white--text mr-2"
+                :color="hover ? 'error' : 'grey'"
+                outlined
+                @click.stop="deleteAll"
+              >
+                <v-icon left>delete</v-icon
+                >{{ $t("isochrones.results.deleteAll") }}
+              </v-btn>
+            </v-hover>
+
             <v-icon
               v-html="isResultsElVisible === true ? 'remove' : 'add'"
             ></v-icon>
@@ -290,6 +306,7 @@
             <v-flex xs12 class="mx-3" v-show="isResultsElVisible">
               <template v-for="calculation in calculations">
                 <v-card
+                  style="width: 330px;"
                   class="mb-3 "
                   :id="`result-${calculation.id}`"
                   :key="calculation.id"
@@ -297,131 +314,46 @@
                     'elevation-5': isCalculationActive(calculation)
                   }"
                 >
-                  <!-- Isochrone Nr -->
-                  <v-chip
-                    x-small
-                    dark
-                    label
-                    :color="
-                      isCalculationActive(calculation) ? '#30C2FF' : '#676767'
-                    "
-                    style="padding:5px;"
-                    class="isochrone-nr"
+                  <v-card-title
+                    style="background-color:#EEEEEE;"
+                    class="pb-0 mt-0 pt-0 mb-0"
                   >
-                    <span
-                      ><b>{{ calculation.id }}</b></span
-                    >
-                  </v-chip>
-                  <v-card-title class="pb-0 mb-0">
-                    <v-layout row wrap>
+                    <v-layout row wrap class="py-1">
                       <v-layout align-start justify-start>
-                        <v-card-text class="pa-0 ma-0 ml-3">
-                          <v-chip small class="mr-1 my-1">
-                            <v-avatar left>
-                              <v-icon small class="text-xs-center">{{
-                                routingProfiles[calculation.routing_profile]
-                                  .icon
-                              }}</v-icon>
-                            </v-avatar>
+                        <v-card-text class="pa-0 ma-0 ml-2">
+                          <v-icon small class="text-xs-center">{{
+                            routingProfiles[calculation.routing_profile].icon
+                          }}</v-icon>
+                          <span class="ml-1 caption">
                             {{
                               $t(
                                 `isochrones.options.${calculation.routing_profile}`
                               )
                             }}
-                          </v-chip>
-                          <v-chip
-                            v-if="calculation.scenario_id"
-                            small
-                            class="mr-0 my-1"
+                          </span>
+
+                          <v-icon small class="text-xs-center mx-2"
+                            >fas fa-tachometer-alt
+                          </v-icon>
+                          <span class="caption">{{ calculation.speed }}</span>
+                          <span
+                            class="pl-2 ml-2 text-xs-center"
+                            style="border-left: 1px solid #424242;"
+                            >{{
+                              $te(
+                                `isochrones.options.${calculation.calculationMode}`
+                              )
+                                ? $t(
+                                    `isochrones.options.${calculation.calculationMode}`
+                                  )
+                                : calculation.calculationMode
+                            }}</span
                           >
-                            <v-tooltip top>
-                              <template v-slot:activator="{ on }">
-                                <span v-on="on" class="chip-label-custom">
-                                  {{ scenarios[calculation.scenario_id].title }}
-                                </span> </template
-                              ><span>{{
-                                scenarios[calculation.scenario_id].title
-                              }}</span></v-tooltip
-                            >
-                          </v-chip>
                         </v-card-text>
                       </v-layout>
 
                       <v-layout row>
                         <v-spacer></v-spacer>
-                        <v-tooltip top>
-                          <template v-slot:activator="{ on }">
-                            <v-icon
-                              small
-                              v-on="on"
-                              @click="toggleIsochroneWindow(calculation)"
-                              :color="
-                                isCalculationActive(calculation)
-                                  ? '#30C2FF'
-                                  : '#676767'
-                              "
-                              class="result-icons mr-1"
-                              >fas fa-table</v-icon
-                            >
-                          </template>
-                          <span>{{
-                            isCalculationActive(calculation)
-                              ? $t("isochrones.results.hideDataTooltip")
-                              : $t("isochrones.results.showDataTooltip")
-                          }}</span>
-                        </v-tooltip>
-
-                        <v-tooltip top>
-                          <template v-slot:activator="{ on }">
-                            <v-icon
-                              small
-                              v-on="on"
-                              @click="showAdditionalLayerDialog(calculation)"
-                              class="result-icons mr-1"
-                              >fas fa-layer-group</v-icon
-                            >
-                          </template>
-                          <span>{{
-                            $t("isochrones.results.additionalLayers")
-                          }}</span>
-                        </v-tooltip>
-
-                        <v-tooltip top>
-                          <template v-slot:activator="{ on }">
-                            <v-icon
-                              @click="showHideCalculation(calculation)"
-                              small
-                              v-on="on"
-                              class="result-icons mr-1"
-                              v-html="
-                                calculation.isVisible
-                                  ? 'fas fa-eye-slash'
-                                  : 'fas fa-eye'
-                              "
-                            ></v-icon>
-                          </template>
-                          <span>{{
-                            calculation.isVisible
-                              ? $t("isochrones.results.hideResultsTooltip")
-                              : $t("isochrones.results.showResultsTooltip")
-                          }}</span>
-                        </v-tooltip>
-
-                        <v-tooltip top>
-                          <template v-slot:activator="{ on }">
-                            <v-icon
-                              @click="toggleDownloadDialog(calculation)"
-                              small
-                              v-on="on"
-                              class="result-icons mr-1"
-                              >fas fa-download</v-icon
-                            >
-                          </template>
-                          <span>{{
-                            $t("isochrones.results.downloadTooltip")
-                          }}</span>
-                        </v-tooltip>
-
                         <v-tooltip top>
                           <template v-slot:activator="{ on }">
                             <v-icon
@@ -440,92 +372,26 @@
                       </v-layout>
                     </v-layout>
                     <v-card-text class="pr-0 pl-0 pt-0 pb-0">
-                      <v-divider></v-divider>
-
-                      <v-layout class="ml-0" row>
-                        <v-chip small class="my-1 mr-1">
-                          <v-avatar left>
-                            <v-icon small class="text-xs-center"
-                              >fas fa-clock</v-icon
-                            >
-                          </v-avatar>
-                          {{ calculation.time }}
-                        </v-chip>
-
-                        <v-chip small class="my-1 ">
-                          <v-avatar left>
-                            <v-icon small class="text-xs-center"
-                              >fas fa-tachometer-alt</v-icon
-                            >
-                          </v-avatar>
-                          {{ calculation.speed }}
-                        </v-chip>
-                        <v-spacer></v-spacer>
-                        <v-tooltip top>
-                          <template v-slot:activator="{ on }">
-                            <div
-                              v-if="
-                                calculation.calculationMode === 'scenario' ||
-                                  calculation.calculationMode === 'comparison'
-                              "
-                              v-on="on"
-                              @click="
-                                toggleColorPickerDialog(calculation, 'scenario')
-                              "
-                              class="my-1 ml-1 mr-2 colorPalettePicker"
-                              :style="{
-                                backgroundImage: `linear-gradient(to right, ${getPaletteColor(
-                                  calculation,
-                                  'scenario'
-                                )})`
-                              }"
-                            ></div>
-                          </template>
-                          <span>{{
-                            $t(`map.tooltips.changeScenarioColorPalette`)
-                          }}</span>
-                        </v-tooltip>
-
-                        <v-tooltip top>
-                          <template v-slot:activator="{ on }">
-                            <div
-                              v-if="
-                                calculation.calculationMode === 'default' ||
-                                  calculation.calculationMode === 'comparison'
-                              "
-                              @click="
-                                toggleColorPickerDialog(calculation, 'default')
-                              "
-                              v-on="on"
-                              class="my-1 mr-2 colorPalettePicker"
-                              :style="{
-                                backgroundImage: `linear-gradient(to right, ${getPaletteColor(
-                                  calculation,
-                                  'default'
-                                )})`
-                              }"
-                            ></div>
-                          </template>
-                          <span>{{
-                            $t(`map.tooltips.changeDefaultColorPalette`)
-                          }}</span>
-                        </v-tooltip>
-                      </v-layout>
+                      <v-layout class="ml-0" row> </v-layout>
                     </v-card-text>
                   </v-card-title>
                   <v-subheader
+                    justify-center
+                    align-center
                     class="clickable subheader mt-1 pb-1"
                     @click="calculation.isExpanded = !calculation.isExpanded"
                   >
-                    <v-icon
-                      small
-                      class="mr-2"
-                      v-html="
-                        calculation.isExpanded
-                          ? 'fas fa-chevron-down'
-                          : 'fas fa-chevron-right'
-                      "
-                    ></v-icon>
+                    <span class="fa-stack fa-xs mr-1" style="color:#800000;">
+                      <span
+                        class="fa fa-solid fa-location-pin fa-stack-2x"
+                      ></span>
+                      <strong
+                        style="font-size:12px;"
+                        class="white--text fa-stack-1x mb-1"
+                      >
+                        {{ calculation.id }}
+                      </strong>
+                    </span>
                     <v-tooltip
                       :disabled="
                         calculation.position === 'multiIsochroneCalculation'
@@ -535,39 +401,181 @@
                       top
                     >
                       <template v-slot:activator="{ on }">
-                        <h3 class="result-title" v-on="on">
+                        <p class="result-title subtitle-2 mt-4" v-on="on">
                           {{
                             calculation.position === "multiIsochroneCalculation"
                               ? $t("isochrones.results.multiIsochroneHeader")
                               : calculation.position
                           }}
-                        </h3>
+                        </p>
                       </template>
                       <span>{{ calculation.position }}</span></v-tooltip
                     >
-                  </v-subheader>
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on }">
+                        <div
+                          v-if="
+                            calculation.calculationMode === 'scenario' ||
+                              calculation.calculationMode === 'comparison'
+                          "
+                          v-on="on"
+                          @click.stop="
+                            toggleColorPickerDialog(calculation, 'scenario')
+                          "
+                          class="my-1 ml-1 mx-2 colorPalettePicker"
+                          :style="{
+                            backgroundImage: `linear-gradient(to right, ${getPaletteColor(
+                              calculation,
+                              'scenario'
+                            )})`
+                          }"
+                        ></div>
+                      </template>
+                      <span>{{
+                        $t(`map.tooltips.changeScenarioColorPalette`)
+                      }}</span>
+                    </v-tooltip>
 
-                  <v-card-text class="pt-0 " v-show="calculation.isExpanded">
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on }">
+                        <div
+                          v-if="
+                            calculation.calculationMode === 'default' ||
+                              calculation.calculationMode === 'comparison'
+                          "
+                          @click.stop="
+                            toggleColorPickerDialog(calculation, 'default')
+                          "
+                          v-on="on"
+                          class="my-1 mx-2 colorPalettePicker"
+                          :style="{
+                            backgroundImage: `linear-gradient(to right, ${getPaletteColor(
+                              calculation,
+                              'default'
+                            )})`
+                          }"
+                        ></div>
+                      </template>
+                      <span>{{
+                        $t(`map.tooltips.changeDefaultColorPalette`)
+                      }}</span>
+                    </v-tooltip>
+                    <v-icon
+                      small
+                      class="ml-2"
+                      v-html="
+                        calculation.isExpanded
+                          ? 'fas fa-chevron-down'
+                          : 'fas fa-chevron-up'
+                      "
+                    ></v-icon>
+                  </v-subheader>
+                  <v-divider
+                    v-if="calculation.isExpanded"
+                    style="border-width:revert;"
+                  ></v-divider>
+
+                  <v-card-text
+                    class="pt-0 pb-0"
+                    v-show="calculation.isExpanded"
+                  >
+                    <v-row justify-center align-center no-gutters>
+                      <v-tooltip top>
+                        <template v-slot:activator="{ on }">
+                          <v-btn
+                            :color="appColor.primary"
+                            fab
+                            dark
+                            class="my-1 mt-3 elevation-1"
+                            v-on="on"
+                            x-small
+                            @click="toggleDownloadDialog(calculation)"
+                          >
+                            <v-icon small>fa-solid fa-download</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>{{
+                          $t("isochrones.results.downloadTooltip")
+                        }}</span>
+                      </v-tooltip>
+                      <v-spacer></v-spacer>
+                      <v-switch
+                        class="mt-4 mr-3"
+                        dense
+                        :color="appColor.secondary"
+                        hide-details
+                      >
+                        <template v-slot:label>
+                          <span class="caption">{{
+                            $t("isochrones.results.roadNetwork")
+                          }}</span>
+                        </template>
+                      </v-switch>
+                      <v-switch
+                        class="mt-4"
+                        :value="isCalculationActive(calculation)"
+                        dense
+                        :color="appColor.secondary"
+                        hide-details
+                        @change="toggleIsochroneWindow(calculation)"
+                      >
+                        <template v-slot:label>
+                          <span class="caption">{{
+                            $t("isochrones.results.dataTable")
+                          }}</span>
+                        </template>
+                      </v-switch>
+                    </v-row>
+
                     <v-data-table
+                      dense
                       :headers="headers"
                       :items="calculation.data"
-                      class="elevation-1 subtitle-1"
+                      class="elevation-0 subtitle-1 pb-3"
                       hide-default-footer
+                      hide-default-header
                       light
                     >
+                      <template v-slot:header="{ props: { headers } }">
+                        <thead>
+                          <tr>
+                            <th :key="h.value" v-for="h in headers">
+                              <v-checkbox
+                                v-if="h.value === 'visible'"
+                                @change="showHideCalculation(calculation)"
+                                :input-value="
+                                  getToggleCalculationCheckboxState(calculation)
+                                "
+                                :indeterminate="
+                                  getToggleCalculationCheckboxIndeterminateState(
+                                    calculation
+                                  )
+                                "
+                                :color="appColor.secondary"
+                                hide-details
+                                dense
+                              >
+                              </v-checkbox>
+                              <span v-else>{{ h.text }}</span>
+                            </th>
+                          </tr>
+                        </thead>
+                      </template>
+                      <template v-slot:item.visible="{ item }">
+                        <v-checkbox
+                          class="my-2"
+                          dense
+                          :input-value="item.isVisible"
+                          :color="appColor.secondary"
+                          hide-details
+                          @change="toggleIsochroneVisibility(item, calculation)"
+                        ></v-checkbox>
+                      </template>
                       <template v-slot:items="props">
-                        <td>{{ props.item.type }}</td>
                         <td>{{ props.item.range }}</td>
                         <td>{{ props.item.area }}</td>
                       </template>
-                      <template v-slot:item.visible="{ item }">
-                        <v-switch
-                          :input-value="item.isVisible"
-                          primary
-                          hide-details
-                          @change="toggleIsochroneVisibility(item, calculation)"
-                        ></v-switch>
-                      </template>
+
                       <template v-slot:item.legend="{ item }">
                         <div
                           class="legend"
@@ -610,7 +618,6 @@
 import { Mapable } from "../../mixins/Mapable";
 import { Isochrones } from "../../mixins/Isochrones";
 import { KeyShortcuts } from "../../mixins/KeyShortcuts";
-
 //Child components
 import Download from "./IsochronesDownload";
 import AdditionalLayers from "./IsochronesAdditionalLayers";
@@ -619,7 +626,8 @@ import IsochroneColorPicker from "./IsochroneColorPicker";
 import {
   getIsochroneStyle,
   getIsochroneNetworkStyle,
-  isochroneOverlayStyle
+  isochroneOverlayStyle,
+  studyAreaASelectStyle
 } from "../../style/OlStyleDefs";
 
 //Store imports
@@ -632,11 +640,14 @@ import VectorLayer from "ol/layer/Vector";
 import VectorImageLayer from "ol/layer/VectorImage";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
+
 import {
   wktToFeature,
   geojsonToFeature,
-  getPolygonArea
+  getPolygonArea,
+  geometryToWKT
 } from "../../utils/MapUtils";
+import DrawInteraction from "ol/interaction/Draw";
 import IsochroneUtils from "../../utils/IsochroneUtils";
 import { getDistance } from "ol/sphere";
 import { toLonLat } from "ol/proj";
@@ -645,6 +656,7 @@ import { unByKey } from "ol/Observable";
 //Other
 import { EventBus } from "../../EventBus";
 import ApiService from "../../services/api.service";
+import axios from "axios";
 
 export default {
   mixins: [Mapable, Isochrones, KeyShortcuts],
@@ -654,25 +666,31 @@ export default {
     isIsochroneOptionsVisible: true,
     speedRule: val => {
       if (val < 1) return "Please enter a number greater than 0";
-      if (val >= 40) return "Please enter a number no greater than 40";
+      if (val > 40) return "Please enter a number no greater than 40";
       return true;
     },
     timeRule: val => {
       if (val < 1) return "Please enter a number greater than 0";
-      if (val >= 20) return "Please enter a number not greater than 20";
+      if (val > 20) return "Please enter a number not greater than 20";
       return true;
     },
     isIsochroneCalculationTypeElVisible: true,
     isIsochroneStartElVisible: true,
     isResultsElVisible: true,
-    mapClickListener: null,
     downloadDialogState: false,
     additionalLayersDialogState: false,
     selectedCalculation: null,
     isochroneColorPickerState: false,
     activeCalculation: null, // for color palette selection
     activeCalculationMode: null, // for color palette selection,
-    isThematicDataVisible: false
+    isThematicDataVisible: false,
+    //Single Isochrone
+    mapClickListener: null,
+    // Multiisochrone
+    multiIsochronePoiCount: null,
+    drawPolygon: null,
+    mapPointerMoveKey: null,
+    maxAmenities: 150 //TODO: make this a configurable setting
   }),
   components: {
     download: Download,
@@ -689,8 +707,15 @@ export default {
     ...mapGetters("app", {
       appColor: "appColor",
       appConfig: "appConfig",
+      poisConfig: "poisConfig",
       routingProfiles: "routingProfiles",
       calculationMode: "calculationMode"
+    }),
+    ...mapGetters("poisaois", {
+      poisAoisLayer: "poisAoisLayer",
+      poisAois: "poisAois",
+      selectedPois: "selectedPois",
+      selectedPoisOnlyKeys: "selectedPoisOnlyKeys"
     }),
     ...mapFields("isochrones", {
       type: "type",
@@ -702,6 +727,8 @@ export default {
       isochroneLayer: "isochroneLayer",
       isochroneOverlayLayer: "isochroneOverlayLayer",
       isochroneRoadNetworkLayer: "isochroneRoadNetworkLayer",
+      multiIsochroneSelectionLayer: "multiIsochroneSelectionLayer",
+      multiIsochroneMethod: "multiIsochroneMethod",
       colors: "colors",
       defaultIsochroneColor: "defaultIsochroneColor",
       scenarioIsochroneColor: "scenarioIsochroneColor"
@@ -712,23 +739,26 @@ export default {
     headers() {
       return [
         {
-          text: this.$t("isochrones.results.table.type"),
-          value: "type",
+          text: this.$t("isochrones.results.table.visible"),
+          value: "visible",
           sortable: false
         },
         {
           text: this.$t("isochrones.results.table.range"),
+          align: "center",
           value: "range",
           sortable: false
         },
         {
           text: this.$t("isochrones.results.table.area"),
+          align: "center",
           value: "area",
           sortable: false
         },
         {
-          text: this.$t("isochrones.results.table.visible"),
-          value: "visible",
+          text: this.$t("isochrones.results.table.population"),
+          align: "center",
+          value: "population",
           sortable: false
         },
         {
@@ -737,6 +767,35 @@ export default {
           sortable: false
         }
       ];
+    },
+    getMultiIsochroneInfoLabelText() {
+      let text = "";
+      if (
+        this.multiIsochronePoiCount === 0 &&
+        this.multiIsochroneMethod === "study_area"
+      ) {
+        text = this.$t("isochrones.multiple.studyAreaInfoLabel");
+      } else if (
+        this.multiIsochronePoiCount === 0 &&
+        this.multiIsochroneMethod === "draw"
+      ) {
+        text = this.$t("isochrones.multiple.drawPolygonInfoLabel");
+      } else {
+        text = `${this.$t("isochrones.multiple.amenityCount")}: ${
+          this.multiIsochronePoiCount
+        } (${this.$t("isochrones.multiple.limit")}: 150)`;
+      }
+      return text;
+    },
+    isMultiIsochroneCalculationDisabled() {
+      if (
+        this.multiIsochronePoiCount > 0 &&
+        this.multiIsochronePoiCount < 150
+      ) {
+        return false;
+      } else {
+        return true;
+      }
     }
   },
   methods: {
@@ -752,6 +811,7 @@ export default {
       this.createIsochroneLayer();
       this.createIsochroneRoadNetworkLayer();
       this.createIsochroneOverlayLayer();
+      this.createIsochroneSelectionLayer();
       this.setUpCtxMenu();
     },
     /**
@@ -801,6 +861,24 @@ export default {
       this.map.addLayer(vector);
       this.isochroneOverlayLayer = vector;
     },
+
+    /**
+     * Create multi isochrone selection layer
+     */
+    createIsochroneSelectionLayer() {
+      const selectionSource = new VectorSource({
+        wrapX: false
+      });
+      const selectionLayer = new VectorLayer({
+        displayInLayerList: false,
+        zIndex: 5,
+        source: selectionSource,
+        style: studyAreaASelectStyle()
+      });
+      this.map.addLayer(selectionLayer);
+      this.multiIsochroneSelectionLayer = selectionLayer;
+    },
+
     /**
      * Register map click listener to calculate single isochrone.
      */
@@ -816,6 +894,178 @@ export default {
         this.addKeyupListener();
       }
     },
+
+    /**
+     * Activate multi isochrone method.
+     */
+    activateMultiIsochrone(type) {
+      this.clear();
+      this.multiIsochroneMethod = type;
+      EventBus.$emit("ol-interaction-activated", this.interactionType);
+      this.removeMultiIsochroneInteraction();
+      this.map.getTarget().style.cursor = "pointer";
+      if (this.addKeyupListener) {
+        this.addKeyupListener();
+      }
+
+      if (this.multiIsochroneMethod === "study_area") {
+        this.toggleSnackbar({
+          type: "info",
+          message: this.$t("isochrones.multiple.studyAreaInfoLabel"),
+          state: true,
+          timeout: 5000
+        });
+        //Study are method
+        this.pointerMoveKey = this.map.on(
+          "pointermove",
+          this.onMultiIsochronePointerMove
+        );
+        if (!this.subStudyAreaLayer) {
+          console.log("Sub study area layer not available");
+          // store.commit("isochrones/ADD_STUDY_AREA_LAYER", me.studyAreaLayer);
+          //TODO: Add study area layer to the store.
+        }
+        if (this.subStudyAreaLayer) {
+          this.subStudyAreaLayer.setVisible(true);
+        }
+        this.registerMapClick();
+        this.startHelpTooltip(this.$t("map.tooltips.clickToSelectStudyArea"));
+      } else if (this.multiIsochroneMethod === "draw") {
+        const drawPolygon = new DrawInteraction({
+          type: "Polygon",
+          source: this.multiIsochroneSelectionLayer.getSource()
+        });
+        drawPolygon.on("drawstart", this.onMultiIsochroneDrawStart);
+        drawPolygon.on("drawend", this.onMultiIsochroneDrawEnd);
+        this.map.addInteraction(drawPolygon);
+        this.drawPolygon = drawPolygon;
+        this.startHelpTooltip(
+          this.$t("map.tooltips.clickToStartDrawingPolygon")
+        );
+        this.toggleSnackbar({
+          type: this.appColor.primary,
+          message: this.$t("isochrones.multiple.drawPolygonInfoLabel"),
+          state: true,
+          timeout: 10000
+        });
+      }
+    },
+    /**
+     * Draw interaction start event handler
+     */
+    onMultiIsochroneDrawStart() {
+      this.toggleSnackbar({ state: false });
+      this.multiIsochronePoiCount = 0;
+      this.multiIsochroneSelectionLayer.getSource().clear();
+      this.startHelpTooltip(this.$t("map.tooltips.clickToContinueDrawing"));
+    },
+
+    /**
+     * Draw interaction end event handler
+     */
+    onMultiIsochroneDrawEnd(evt) {
+      const feature = evt.feature;
+      let region = null;
+      const geometry = feature
+        .getGeometry()
+        .clone()
+        .transform("EPSG:3857", "EPSG:4326");
+      region = geometryToWKT(geometry);
+      if (this.selectedPois.length === 0) {
+        this.toggleSnackbar({
+          type: "error",
+          message: this.$t("map.snackbarMessages.selectAmenities"),
+          state: true,
+          timeout: 10000
+        });
+        return;
+      }
+      this.countPois(region);
+      this.toggleSnackbar({
+        type:
+          this.multiIsochronePoiCount > this.maxAmenities
+            ? "error"
+            : this.appColor.primary,
+        message:
+          this.$t("isochrones.multiple.amenityCount") +
+          ` ${this.multiIsochronePoiCount} / ${this.maxAmenities}`,
+        state: true,
+        timeout: 100000
+      });
+      this.startHelpTooltip(this.$t("map.tooltips.clickToStartDrawing"));
+    },
+    /**
+     * Event for updating the edit help tooltip
+     */
+    onMultiIsochronePointerMove(evt) {
+      const coordinate = evt.coordinate;
+      if (
+        this.multiIsochroneMethod === "study_area" &&
+        this.multiIsochroneSelectionLayer
+          .getSource()
+          .getFeaturesAtCoordinate(coordinate).length > 0
+      ) {
+        this.startHelpTooltip(this.$t("map.tooltips.clickToRemove"));
+      } else if (
+        this.multiIsochroneMethod === "study_area" &&
+        this.multiIsochroneSelectionLayer
+          .getSource()
+          .getFeaturesAtCoordinate(coordinate).length == 0
+      ) {
+        this.startHelpTooltip(this.$t("map.tooltips.clickToSelectStudyArea"));
+      }
+    },
+    removeMultiIsochroneInteraction() {
+      // cleanup possible old select interaction
+      if (this.drawPolygon) {
+        this.map.removeInteraction(this.drawPolygon);
+      }
+      if (this.mapClickListenerKey) {
+        unByKey(this.mapClickListenerKey);
+      }
+      if (this.pointerMoveKey) {
+        unByKey(this.pointerMoveKey);
+      }
+      this.multiIsochronePoiCount = 0;
+    },
+    /**
+     * Count pois that intersect with study area or polygon
+     */
+    countPois(region) {
+      ApiService.post(`/isochrones/multi/count-pois`, {
+        region_type: this.multiIsochroneMethod,
+        region,
+        scenario_id: 0, //TODO: Get scenario id
+        modus: this.calculationMode.active,
+        routing_profilie: this.routing,
+        minutes: this.time,
+        speed: this.speed,
+        amenities: this.selectedPoisOnlyKeys
+      })
+        .then(response => {
+          if (response.data && Array.isArray(response.data.features)) {
+            const feature = response.data.features[0];
+            const countPois = feature.properties.count_pois;
+            this.multiIsochronePoiCount += countPois;
+            this.toggleSnackbar({
+              type:
+                this.multiIsochronePoiCount > this.maxAmenities
+                  ? "error"
+                  : this.appColor.primary,
+              message:
+                this.$t("isochrones.multiple.amenityCount") +
+                ` ${this.multiIsochronePoiCount} (Limit: ${this.maxAmenities})`,
+              state: true,
+              timeout: 100000
+            });
+          }
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    },
+
+    //=============================================================
     /**
      * Handler for 'singleclick' on the map.
      * Collects data and passes it to corresponding objects.
@@ -848,7 +1098,7 @@ export default {
           console.log(error);
           this.toggleSnackbar({
             type: "error", //success or error
-            message: "calculateIsochroneError",
+            message: this.$t("map.snackbarMessages.calculateIsochroneError"),
             state: true,
             timeout: 2500
           });
@@ -928,9 +1178,10 @@ export default {
                     "isochrone_calculation_id"
                   ),
                   modus: modus,
-                  range: feature.get("step") + " min",
+                  range: feature.get("step") / 60 + " min",
                   color: color,
                   area: getPolygonArea(feature.getGeometry()),
+                  population: feature.get("reached_opportunities").sum_pop,
                   isVisible: true
                 };
                 feature.set("isVisible", true);
@@ -979,10 +1230,12 @@ export default {
                   .getCoordinates();
                 const wgs84Coord = toLonLat(startPointCoord);
                 //Geocode
-                ApiService.get(
-                  `${process.env.VUE_APP_SEARCH_URL}`,
-                  `reverse.php?key=${process.env.VUE_APP_SEARCH_KEY}&lat=${wgs84Coord[1]}&lon=${wgs84Coord[0]}&format=json`
-                )
+                const axiosInstance = axios.create();
+                delete axiosInstance.defaults.headers.common["Authorization"];
+                axiosInstance
+                  .get(
+                    `${process.env.VUE_APP_SEARCH_URL}/reverse.php?key=${process.env.VUE_APP_SEARCH_KEY}&lat=${wgs84Coord[1]}&lon=${wgs84Coord[0]}&format=json`
+                  )
                   .then(response => {
                     if (response.status === 200 && response.data.display_name) {
                       const address = response.data.display_name;
@@ -991,15 +1244,19 @@ export default {
                   })
                   .catch(() => {
                     transformedData.position = "Unknown";
+                  })
+                  .finally(() => {
+                    // Add calculation to store.
+                    this.calculations.forEach(calculation => {
+                      calculation.isExpanded = false;
+                    });
+                    this.calculations.unshift(transformedData);
+                    // Add feature to layer.
+                    this.isochroneLayer.getSource().addFeatures(olFeatures);
+                    // Collapse options
+                    this.isOptionsElVisible = false;
                   });
               }
-              // Add calculation to store.
-              this.calculations.forEach(calculation => {
-                calculation.isExpanded = false;
-              });
-              this.calculations.unshift(transformedData);
-              // Add feature to layer.
-              this.isochroneLayer.getSource().addFeatures(olFeatures);
             }
           })
           .catch(({ response }) => {
@@ -1301,6 +1558,29 @@ export default {
       this.activeCalculation = calculation;
       this.activeCalculationMode = mode;
     },
+    getToggleCalculationCheckboxState(calculation) {
+      const calculationData = calculation.data;
+      const countVisibleFeatures = calculationData.filter(
+        o => o.isVisible === true
+      );
+      if (countVisibleFeatures.length === 0) {
+        return false;
+      }
+      return true;
+    },
+    getToggleCalculationCheckboxIndeterminateState(calculation) {
+      const calculationData = calculation.data;
+      const countVisibleFeatures = calculationData.filter(
+        o => o.isVisible === true
+      );
+      if (countVisibleFeatures.length === 0) {
+        return false;
+      }
+      if (countVisibleFeatures.length === calculationData.length) {
+        return false;
+      }
+      return true;
+    },
     // ------------CLEAR----------
     /**
      * Clears the map and ol interaction activity
@@ -1310,14 +1590,39 @@ export default {
         unByKey(this.mapClickListener);
         this.mapClickListener = null;
       }
+      this.toggleSnackbar({ state: false });
+      this.removeMultiIsochroneInteraction();
+      this.multiIsochroneMethod = null;
+      this.multiIsochronePoiCount = 0;
       this.stopHelpTooltip();
       this.map.getTarget().style.cursor = "";
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
+      this.multiIsochroneSelectionLayer.getSource().clear();
+    },
+    stop() {
+      this.clear();
     }
   },
   watch: {
     routing() {
       this.speed = this.appConfig.routing[this.routing].speed;
+    },
+    selectedPois() {
+      if (this.multiIsochroneMethod) {
+        this.multiIsochronePoiCount = 0;
+        console.log("selectedPois", this.selectedPois);
+        this.multiIsochroneSelectionLayer
+          .getSource()
+          .getFeatures()
+          .forEach(feature => {
+            const geometry = feature
+              .getGeometry()
+              .clone()
+              .transform("EPSG:3857", "EPSG:4326");
+            const region = geometryToWKT(geometry);
+            this.countPois(region);
+          });
+      }
     }
   },
   created() {
@@ -1339,9 +1644,6 @@ export default {
 .delete-icon:hover {
   color: #ff6060;
 }
-.isochrone-nr {
-  position: absolute;
-}
 .v-data-table td,
 .v-data-table th {
   padding: 0 5px;
@@ -1353,13 +1655,14 @@ export default {
   font-size: 13px;
 }
 .legend {
-  height: 24px;
-  border-radius: 7px;
+  height: 20px;
+  border-radius: 4px;
+  width: 40px;
 }
 
 .colorPalettePicker {
-  height: 24px;
-  border-radius: 7px;
+  height: 20px;
+  border-radius: 4px;
   width: 50px;
   cursor: pointer;
 }
