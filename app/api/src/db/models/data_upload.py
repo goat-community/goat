@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from .aoi import AoiUser
     from .poi import PoiUser
     from .user import User
+    from .study_area import StudyArea
 
 
 class DataUpload(SQLModel, table=True):
@@ -40,7 +41,13 @@ class DataUpload(SQLModel, table=True):
             Integer, ForeignKey("customer.user.id", ondelete="CASCADE"), nullable=False
         )
     )
+    study_area_id: int = Field(
+        sa_column=Column(
+            Integer, ForeignKey("basic.study_area.id"), nullable=False
+        )
+    )
 
     user: "User" = Relationship(back_populates="data_uploads")
+    study_area: "StudyArea" = Relationship(back_populates="data_uploads")
     pois_user: List["PoiUser"] = Relationship(back_populates="data_upload")
     aois_user: List["AoiUser"] = Relationship(back_populates="data_upload")

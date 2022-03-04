@@ -15,10 +15,13 @@ from sqlmodel import (
     Text,
 )
 
+from src.db.models import data_upload
+
 if TYPE_CHECKING:
     from .grid import GridVisualization
     from .user import User
     from .customization import UserCustomization
+    from .data_upload import DataUpload
 
 from ._link_model import StudyAreaGridVisualization, UserStudyArea
 from ._pydantic_geometry import dump_geom
@@ -46,7 +49,7 @@ class StudyArea(SQLModel, table=True):
     users: List["User"] = Relationship(back_populates="study_areas", link_model=UserStudyArea)
     # users_active: List["User"] = Relationship(back_populates="active_study_area")
     user_customizations: List["UserCustomization"] = Relationship(back_populates="study_areas")
-
+    data_uploads: List["DataUpload"] = Relationship(back_populates="study_area")
     _validate_geom = validator("geom", pre=True, allow_reuse=True)(dump_geom)
 
 

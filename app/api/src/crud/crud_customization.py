@@ -2,6 +2,7 @@ import asyncio
 from turtle import settiltangle
 
 from fastapi import HTTPException
+from platformdirs import user_cache_dir
 from sqlalchemy import false, update
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
@@ -11,6 +12,7 @@ from sqlalchemy.sql import and_
 from src import crud, schemas
 from src.crud.base import CRUDBase
 from src.db import models
+from src.db.models import data_upload
 from src.db.models.config_validation import *
 from src.db.models.customization import Customization
 
@@ -111,9 +113,27 @@ class CRUDDynamicCustomization:
                 combined_groups, study_area_settings["poi_groups"]
             )
 
+        if "poi_groups" in user_settings and current_user.active_data_upload_ids != []:
+            active_categories = []   
+            for active_id in current_user.active_data_upload_ids:      
+                active_category = await db.execute(
+                    select(models.PoiUser).where(models.PoiUser.data_upload_id == active_id).limit(1)
+                )
+                active_category = active_category.all()
+                active_categories.append(active_category[0][0].category)
+
+            for group_id, poi_group in enumerate(user_settings["poi_groups"]):
+                group_name = next(iter(poi_group))
+                for category_id, poi_category in enumerate(poi_group[group_name]["children"]):
+                    category_name = next(iter(poi_category))
+                    if category_name not in active_categories:
+                        active_categories.append(category_id)
+                        user_settings['poi_groups'][group_id][group_name]["children"].pop(category_id)
+                        break
+            
         if "poi_groups" in user_settings:
             combined_groups = self.update_settings(combined_groups, user_settings["poi_groups"])
-
+         
         combined_layer_groups = self.arr_dict_to_nested_dict(default_settings["layer_groups"])
         if "layer_groups" in study_area_settings:
             combined_layer_groups = self.update_settings(
@@ -140,7 +160,7 @@ class CRUDDynamicCustomization:
 
             if setting_key in study_area_settings:
                 combined_settings.update({setting_key: study_area_settings[setting_key]})
-
+        
         return combined_settings
 
     async def insert_user_setting(
@@ -190,7 +210,6 @@ class CRUDDynamicCustomization:
                     setting=insert_poi_setting,
                 )
                 await user_customization.create(db=db, obj_in=new_obj)
-
             else:
                 raise HTTPException(status_code=400, detail="Failed Inserting poi customization.")
 
@@ -323,9 +342,8 @@ class CRUDDynamicCustomization:
                 await db.execute(
                     update(models.UserCustomization)
                     .where(models.UserCustomization.id == setting_obj.id)
-                    .values(setting=setting_obj.setting)
+                    .values(setting=poi_setting_to_update)
                 )
-                await db.commit()
             else:
                 raise HTTPException(status_code=400, detail="Failed updating POIs settings.")
 
@@ -404,7 +422,6 @@ class CRUDDynamicCustomization:
                     .where(models.UserCustomization.id == setting_obj.id)
                     .values(setting=layer_setting_to_update)
                 )
-                await db.commit()
             else:
                 raise HTTPException(status_code=400, detail="Failed updating layer settings.")
 
@@ -431,17 +448,11 @@ class CRUDDynamicCustomization:
                     .where(models.UserCustomization.id == user_customizations[0].id)
                     .values(setting=settings_to_update)
                 )
-            await db.commit()
         else:
             raise HTTPException(status_code=400, detail="Failed deleting user settings.")
-
-    async def handle_user_setting_modification(
-        self, *, db: AsyncSession, current_user: models.User, changeset, setting_type, modification_type
-    ):
-        """"This function handles insert or updates of settings for POIs and Layers."""
-
-        setting_type = mapping_setting_type[setting_type]
-
+    
+    async def get_user_settings(self, *, db: AsyncSession, current_user: models.User, setting_type):
+        """Get user settings for specific user and its active study area"""
         # Get relevant user customization
         query_user_customization = (
             select(models.UserCustomization)
@@ -457,7 +468,15 @@ class CRUDDynamicCustomization:
         )
 
         user_customizations = await db.execute(query_user_customization)
-        user_customizations = user_customizations.first()
+        return user_customizations.first()
+
+    async def handle_user_setting_modification(
+        self, *, db: AsyncSession, current_user: models.User, changeset, setting_type, modification_type
+    ):
+        """"This function handles insert or updates of settings for POIs and Layers."""
+
+        setting_type = mapping_setting_type[setting_type]
+        user_customizations = await self.get_user_settings(db=db, current_user=current_user, setting_type=setting_type)
 
         default_setting = await customization.get_by_key(db, key="type", value=setting_type)
         default_setting_obj = default_setting[0]
@@ -476,6 +495,7 @@ class CRUDDynamicCustomization:
                 user_customizations=user_customizations,
                 setting_type=setting_type,
             )
+            db.commit()
         elif modification_type == 'insert' and user_customizations is None:
             await self.insert_user_setting(
                 db=db,
@@ -485,6 +505,7 @@ class CRUDDynamicCustomization:
                 insert_settings=changeset,
                 setting_type=setting_type,
             )
+            db.commit()
         elif modification_type == 'delete' and user_customizations is not None:
             await self.delete_user_settings(
                 db=db,
@@ -493,6 +514,7 @@ class CRUDDynamicCustomization:
                 setting_to_delete=changeset,
                 setting_type=setting_type
             )
+            db.commit()
         else:
             raise HTTPException(status_code=400, detail="Invalid modification type.")
 

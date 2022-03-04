@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
-
+from sqlalchemy.dialects import postgresql
 from sqlmodel import (
     ARRAY,
     Column,
@@ -12,7 +12,10 @@ from sqlmodel import (
     SQLModel,
     Text,
     text,
+    Index
 )
+
+from src.db.models import data_upload
 
 if TYPE_CHECKING:
     from .aoi import AoiModified
@@ -50,6 +53,9 @@ class Scenario(SQLModel, table=True):
             Integer, ForeignKey("customer.user.id", ondelete="CASCADE"), nullable=False
         ),
     )
+    data_upload_ids: Optional[List[int]] = Field(
+        sa_column=Column(ARRAY(Integer()), server_default=text("'{}'::int[]"))
+    ) 
 
     user: "User" = Relationship(back_populates="scenarios")
     isochrone_calculations: List["IsochroneCalculation"] = Relationship(back_populates="scenario")
@@ -62,3 +68,7 @@ class Scenario(SQLModel, table=True):
     nodes: List["Node"] = Relationship(back_populates="scenario")
     reached_edge_heatmaps: List["ReachedEdgeHeatmap"] = Relationship(back_populates="scenario")
     reached_poi_heatmaps: List["ReachedPoiHeatmap"] = Relationship(back_populates="scenario")
+
+        
+Index("idx_scenario_data_upload_ids", Scenario.__table__.c.data_upload_ids, postgresql_using="gin")
+    
