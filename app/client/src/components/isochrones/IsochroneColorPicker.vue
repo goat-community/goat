@@ -81,17 +81,19 @@ export default {
         const isochroneFeature = this.isochroneLayer
           .getSource()
           .getFeatureById(obj.id);
-
-        const step = isochroneFeature.get("step");
-        const interpolatedColor = IsochroneUtils.getInterpolatedColor(
-          1,
-          20,
-          parseInt(step / 60),
-          color
-        );
-        isochroneFeature.set("color", interpolatedColor);
-        // legend el color
-        obj.color = interpolatedColor;
+        if (this.selectedMode == isochroneFeature.get("modus")) {
+          console.log(this.selectedMode);
+          const step = isochroneFeature.get("step");
+          const interpolatedColor = IsochroneUtils.getInterpolatedColor(
+            1,
+            20,
+            parseInt(step / 60),
+            color
+          );
+          isochroneFeature.set("color", interpolatedColor);
+          // legend el color
+          obj.color = interpolatedColor;
+        }
       });
 
       // Update network color

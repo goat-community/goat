@@ -240,7 +240,8 @@
     "stopIsochroneCalc": "Stop Calculation",
     "mode": {
       "default": "Default",
-      "input": "Input"
+      "input": "Input",
+      "scenario": "Scenario"
     },
     "single": {
       "title": "Starting Point",
