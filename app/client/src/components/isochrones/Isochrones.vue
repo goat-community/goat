@@ -574,6 +574,7 @@
                       </v-tooltip>
                       <v-spacer></v-spacer>
                       <v-switch
+                        v-if="calculation.calculationMode !== 'comparison'"
                         class="mt-4 mr-3"
                         dense
                         :color="appColor.secondary"
@@ -587,11 +588,11 @@
                       </v-switch>
                       <v-switch
                         class="mt-4"
-                        :value="isCalculationActive(calculation)"
+                        :input-value="isCalculationActive(calculation)"
                         dense
                         :color="appColor.secondary"
                         hide-details
-                        @change="toggleIsochroneWindow(calculation)"
+                        @change="toggleIsochroneWindow($event, calculation)"
                       >
                         <template v-slot:label>
                           <span class="caption">{{
@@ -601,62 +602,116 @@
                       </v-switch>
                     </v-row>
 
-                    <v-data-table
-                      dense
-                      :headers="headers"
-                      :items="calculation.data"
-                      class="elevation-0 subtitle-1 pb-3"
-                      hide-default-footer
-                      hide-default-header
-                      light
+                    <v-row
+                      no-gutters
+                      :key="index"
+                      v-for="(data, key, index) in groupedCalculationData(
+                        calculation.data
+                      )"
                     >
-                      <template v-slot:header="{ props: { headers } }">
-                        <thead>
-                          <tr>
-                            <th :key="h.value" v-for="h in headers">
-                              <v-checkbox
-                                v-if="h.value === 'visible'"
-                                @change="showHideCalculation(calculation)"
-                                :input-value="
-                                  getToggleCalculationCheckboxState(calculation)
-                                "
-                                :indeterminate="
-                                  getToggleCalculationCheckboxIndeterminateState(
-                                    calculation
-                                  )
-                                "
-                                :color="appColor.secondary"
-                                hide-details
-                                dense
-                              >
-                              </v-checkbox>
-                              <span v-else>{{ h.text }}</span>
-                            </th>
-                          </tr>
-                        </thead>
-                      </template>
-                      <template v-slot:item.visible="{ item }">
-                        <v-checkbox
-                          class="my-2"
-                          dense
-                          :input-value="item.isVisible"
-                          :color="appColor.secondary"
-                          hide-details
-                          @change="toggleIsochroneVisibility(item, calculation)"
-                        ></v-checkbox>
-                      </template>
-                      <template v-slot:items="props">
-                        <td>{{ props.item.range }}</td>
-                        <td>{{ props.item.area }}</td>
-                      </template>
+                      <v-row
+                        no-gutters
+                        v-if="calculation.calculationMode === 'comparison'"
+                        style="width:100%;background-color:#EEEEEE;border-radius:4px;"
+                        class="mr-0 mt-1 pa-1"
+                      >
+                        <v-col cols="4" justify="start" align="start">
+                          <v-row no-gutters justify="start" align="start">
+                            <span class="result-title subtitle-2 pb-0 mb-0">
+                              {{
+                                data[0] && data[0].type
+                                  ? $te(`isochrones.mode.${data[0].type}`)
+                                    ? $t(`isochrones.mode.${data[0].type}`)
+                                    : data[0].type
+                                  : key
+                              }}
+                            </span>
+                          </v-row>
+                        </v-col>
+                        <v-col cols="8" justify="end" align-end class="pr-1">
+                          <v-row no-gutters justify="end" align="center">
+                            <v-switch
+                              class="ma-0 pa-0"
+                              dense
+                              :color="appColor.secondary"
+                              hide-details
+                            >
+                              <template v-slot:label>
+                                <span class="caption">{{
+                                  $t("isochrones.results.roadNetwork")
+                                }}</span>
+                              </template>
+                            </v-switch>
+                          </v-row>
+                        </v-col>
+                      </v-row>
+                      <v-data-table
+                        dense
+                        :headers="headers"
+                        :items="data"
+                        class="elevation-0 subtitle-1 pb-2"
+                        hide-default-footer
+                        hide-default-header
+                        light
+                      >
+                        <template v-slot:header="{ props: { headers } }">
+                          <thead>
+                            <tr>
+                              <th :key="h.value" v-for="h in headers">
+                                <v-checkbox
+                                  v-if="h.value === 'visible'"
+                                  @change="
+                                    showHideCalculation(
+                                      calculation,
+                                      calculation.calculationMode ===
+                                        'comparison'
+                                        ? data[0].modus
+                                        : null
+                                    )
+                                  "
+                                  :input-value="
+                                    getToggleCalculationCheckboxState(data)
+                                  "
+                                  :indeterminate="
+                                    getToggleCalculationCheckboxIndeterminateState(
+                                      data
+                                    )
+                                  "
+                                  :color="appColor.secondary"
+                                  hide-details
+                                  dense
+                                >
+                                </v-checkbox>
+                                <span v-else>{{ h.text }}</span>
+                              </th>
+                            </tr>
+                          </thead>
+                        </template>
+                        <template v-slot:item.visible="{ item }">
+                          <v-checkbox
+                            class="my-2"
+                            dense
+                            :input-value="item.isVisible"
+                            :color="appColor.secondary"
+                            hide-details
+                            @change="
+                              toggleIsochroneVisibility(item, calculation, data)
+                            "
+                          ></v-checkbox>
+                        </template>
+                        <template v-slot:items="props">
+                          <td>{{ props.item.range }}</td>
+                          <td>{{ props.item.area }}</td>
+                        </template>
 
-                      <template v-slot:item.legend="{ item }">
-                        <div
-                          class="legend"
-                          :style="{ backgroundColor: item.color }"
-                        ></div>
-                      </template>
-                    </v-data-table>
+                        <template v-slot:item.legend="{ item }">
+                          <div
+                            class="legend"
+                            :style="{ backgroundColor: item.color }"
+                          ></div>
+                        </template>
+                      </v-data-table>
+                    </v-row>
                   </v-card-text>
                 </v-card>
               </template>
@@ -668,11 +723,6 @@
               :calculation="selectedCalculation"
               @close="downloadDialogState = false"
             ></download>
-            <additional-layers
-              :visible="additionalLayersDialogState"
-              :calculation="selectedCalculation"
-              @close="additionalLayersDialogState = false"
-            ></additional-layers>
             <isochrone-color-picker
               :visible="isochroneColorPickerState"
               :calculation="activeCalculation"
@@ -694,7 +744,6 @@ import { Isochrones } from "../../mixins/Isochrones";
 import { KeyShortcuts } from "../../mixins/KeyShortcuts";
 //Child components
 import Download from "./IsochronesDownload";
-import AdditionalLayers from "./IsochronesAdditionalLayers";
 import IsochroneColorPicker from "./IsochroneColorPicker";
 
 import {
@@ -723,6 +772,7 @@ import {
 } from "../../utils/MapUtils";
 import DrawInteraction from "ol/interaction/Draw";
 import IsochroneUtils from "../../utils/IsochroneUtils";
+import { groupBy } from "../../utils/Helpers";
 import { getDistance } from "ol/sphere";
 import { toLonLat } from "ol/proj";
 import { transform } from "ol/proj.js";
@@ -753,12 +803,10 @@ export default {
     isIsochroneStartElVisible: true,
     isResultsElVisible: true,
     downloadDialogState: false,
-    additionalLayersDialogState: false,
     selectedCalculation: null,
     isochroneColorPickerState: false,
     activeCalculation: null, // for color palette selection
     activeCalculationMode: null, // for color palette selection,
-    isThematicDataVisible: false,
     //Single Isochrone
     mapClickListener: null,
     // Multiisochrone
@@ -771,7 +819,6 @@ export default {
   }),
   components: {
     download: Download,
-    additionalLayers: AdditionalLayers,
     IsochroneColorPicker
   },
   computed: {
@@ -809,7 +856,8 @@ export default {
       multiIsochroneMethod: "multiIsochroneMethod",
       colors: "colors",
       defaultIsochroneColor: "defaultIsochroneColor",
-      scenarioIsochroneColor: "scenarioIsochroneColor"
+      scenarioIsochroneColor: "scenarioIsochroneColor",
+      selectedThematicData: "selectedThematicData"
     }),
     ...mapFields("map", {
       isMapBusy: "isMapBusy"
@@ -861,14 +909,14 @@ export default {
       } else {
         text = `${this.$t("isochrones.multiple.amenityCount")}: ${
           this.multiIsochronePoiCount
-        } (${this.$t("isochrones.multiple.limit")}: 150)`;
+        } (${this.$t("isochrones.multiple.limit")}: ${this.maxAmenities})`;
       }
       return text;
     },
     isMultiIsochroneCalculationDisabled() {
       if (
         this.multiIsochronePoiCount > 0 &&
-        this.multiIsochronePoiCount < 150
+        this.multiIsochronePoiCount < this.maxAmenities
       ) {
         return false;
       } else {
@@ -889,7 +937,7 @@ export default {
       this.createIsochroneLayer();
       this.createIsochroneRoadNetworkLayer();
       this.createIsochroneOverlayLayer();
-      this.createIsochroneSelectionLayer();
+      this.createMultiIsochroneSelectionLayer();
       this.setUpCtxMenu();
     },
     /**
@@ -943,7 +991,7 @@ export default {
     /**
      * Create multi isochrone selection layer
      */
-    createIsochroneSelectionLayer() {
+    createMultiIsochroneSelectionLayer() {
       const selectionSource = new VectorSource({
         wrapX: false
       });
@@ -963,10 +1011,15 @@ export default {
     registerMapClick() {
       //Close other interactions.
       EventBus.$emit("ol-interaction-activated", this.interactionType);
-      this.mapClickListener = this.map.once("singleclick", this.onMapClick);
-      this.startHelpTooltip(
-        this.$t("map.tooltips.clickForIsochroneCalculation")
-      );
+      if (this.type === "single") {
+        this.mapClickListener = this.map.once("singleclick", this.onMapClick);
+        this.startHelpTooltip(
+          this.$t("map.tooltips.clickForIsochroneCalculation")
+        );
+      } else {
+        this.mapClickListener = this.map.on("singleclick", this.onMapClick);
+      }
+
       this.map.getTarget().style.cursor = "pointer";
       if (this.addKeyupListener) {
         this.addKeyupListener();
@@ -1167,7 +1220,6 @@ export default {
         this.multiIsochroneMethod === "study_area" &&
         this.type === "multiple"
       ) {
-        console.log("select study area");
         //Check if there is a feature already selected at clicked coordinate,
         //and if so, delete it and return.
         const featureAtCoord = this.multiIsochroneSelectionLayer
@@ -1180,8 +1232,16 @@ export default {
           this.startHelpTooltip(this.$t("map.tooltips.clickToSelectStudyArea"));
           return;
         }
+        const subStudyAreaAtCoord = this.subStudyAreaLayer
+          .getSource()
+          .getFeaturesAtCoordinate(evt.coordinate);
+        if (subStudyAreaAtCoord.length > 0) {
+          const feature = subStudyAreaAtCoord[0].clone();
+          this.multiIsochroneSelectionLayer.getSource().addFeature(feature);
+        }
         const region = geometryToWKT(new Point(coordinateWgs84));
         console.log(region);
+        //TODO: Count pois
       } else {
         const payloadSingle = {
           x: coordinateWgs84[0],
@@ -1222,7 +1282,7 @@ export default {
       const routing = this.routing;
       const steps = this.steps;
       const modus = this.calculationMode.active;
-      const scenario_id = this.scenarioId || 0; //TODO: Get scenario id from store
+      const scenario_id = this.scenarioId || 2; //TODO: Get scenario id from store (Disable isochrone comparison if there is no scenario active)
       const active_upload_ids = this.activeUploadIds || [0]; //TODO: Get active upload ids from store
       const baseParams = {
         minutes: time,
@@ -1269,13 +1329,15 @@ export default {
                 return a.get("step") - b.get("step");
               });
               olFeatures.forEach((feature, index) => {
+                const isochroneCalculationUid =
+                  feature.get("isochrone_calculation_id") || calculationNumber;
                 feature.setId(
-                  "isochrone_feature_" + calculationNumber + "_" + index
+                  "isochrone_feature_" + isochroneCalculationUid + "_" + index
                 );
                 let color = "";
                 let level = feature.get("step");
-                let modus = feature.get("modus");
-                if (modus === "default" || modus === "comparision") {
+                let modus = feature.get("modus") || modus;
+                if (modus === "default" || modus === "comparison") {
                   color = IsochroneUtils.getInterpolatedColor(
                     1,
                     20,
@@ -1292,9 +1354,11 @@ export default {
                 }
                 let obj = {
                   id: feature.getId(),
-                  type: this.$t(
-                    `isochrones.mode.${feature.get("modus").toLowerCase()}`
-                  ),
+                  type: feature.get("modus")
+                    ? this.$t(
+                        `isochrones.mode.${feature.get("modus").toLowerCase()}`
+                      )
+                    : this.$t(`isochrones.mode.${modus.toLowerCase()}`),
                   isochrone_calculation_id: feature.get(
                     "isochrone_calculation_id"
                   ),
@@ -1372,6 +1436,7 @@ export default {
                     });
                     this.calculations.unshift(transformedData);
                     this.isochroneLayer.getSource().addFeatures(olFeatures);
+                    this.toggleIsochroneWindow(true, transformedData);
                     this.isOptionsElVisible = false;
                   });
               } else {
@@ -1381,6 +1446,7 @@ export default {
                 });
                 this.calculations.unshift(transformedData);
                 this.isochroneLayer.getSource().addFeatures(olFeatures);
+                this.toggleIsochroneWindow(true, transformedData);
                 this.isOptionsElVisible = false;
               }
             }
@@ -1401,13 +1467,19 @@ export default {
       const payload = {
         region_type: regionType
       };
+      const features = this.multiIsochroneSelectionLayer
+        .getSource()
+        .getFeatures();
       if (regionType === "study_area") {
         // Get selected study areas ids
+        const region = [];
+        features.forEach(feature => {
+          region.push(feature.get("id").toString());
+        });
+        payload.region = region;
       } else {
         // Get polygon geometry
-        const feature = this.multiIsochroneSelectionLayer
-          .getSource()
-          .getFeatures()[0];
+        const feature = features[0];
         if (!feature) return;
         const geometry = feature
           .getGeometry()
@@ -1419,10 +1491,19 @@ export default {
       payload.amenities = this.selectedPoisOnlyKeys;
       this.calculateIsochrone(payload);
     },
-    //TODO: Active calculation is the one that has thematic data window open.
     isCalculationActive(calculation) {
-      console.log(calculation);
-      return false;
+      if (!this.selectedThematicData) {
+        return false;
+      }
+      if (calculation.id === this.selectedThematicData.calculationId) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+    groupedCalculationData(data) {
+      const groupedCalculations = groupBy(data, "type");
+      return groupedCalculations;
     },
     /**
      * Configure right-click for isochrone.
@@ -1509,6 +1590,158 @@ export default {
       }
     },
     // ------------RESULTS----------
+    toggleIsochroneWindow(state, calculation) {
+      if (state === false) {
+        this.selectedThematicData = null;
+        return;
+      }
+      const features = IsochroneUtils.getCalculationFeatures(
+        calculation,
+        this.isochroneLayer
+      );
+      this.isochroneLayer
+        .getSource()
+        .getFeatures()
+        .forEach(f => {
+          f.set("highlightFeature", false);
+        });
+      features.forEach(f => {
+        f.set("highlightFeature", true);
+      });
+      const pois = IsochroneUtils.getCalculationPoisObject(features);
+      const payload = {
+        calculationId: calculation.id,
+        calculationType: calculation.calculationType,
+        pois: pois
+      };
+      if (calculation.calculationType === "multiple") {
+        const multiIsochroneTableData = IsochroneUtils.getMultiIsochroneTableData(
+          features
+        );
+        payload.multiIsochroneTableData = multiIsochroneTableData;
+      }
+      this.selectedThematicData = payload;
+    },
+    // eslint-disable-next-line no-unused-vars
+    toggleIsochroneVisibility(feature, calculation, data) {
+      this.toggleIsochroneFeatureVisibility(feature);
+    },
+    toggleIsochroneCalculationVisibility(calculation, modus) {
+      calculation.data.forEach(isochrone => {
+        let featureId = isochrone.id;
+        let isochroneFeature = this.isochroneLayer
+          .getSource()
+          .getFeatureById(featureId);
+        if (isochroneFeature) {
+          // Edge case for comparision
+          if (modus && isochroneFeature.get("modus") === modus) {
+            isochrone.isVisible = !isochrone.isVisible;
+            isochroneFeature.set("isVisible", isochrone.isVisible);
+          }
+          if (!modus) {
+            isochrone.isVisible = !calculation.isVisible;
+            isochroneFeature.set("isVisible", !calculation.isVisible);
+          }
+        }
+      });
+      const visibleCount = calculation.data.filter(
+        isochrone => isochrone.isVisible
+      ).length;
+      if (visibleCount === 0) {
+        calculation.isVisible = false;
+      } else {
+        calculation.isVisible = true;
+      }
+    },
+    toggleIsochroneFeatureVisibility(feature) {
+      let featureId = feature.id;
+      feature.isVisible = !feature.isVisible;
+      if (featureId) {
+        let isochroneFeature = this.isochroneLayer
+          .getSource()
+          .getFeatureById(featureId);
+        if (isochroneFeature) {
+          isochroneFeature.set("isVisible", feature.isVisible);
+        }
+      }
+    },
+    toggleDownloadDialog(calculation) {
+      this.downloadDialogState = true;
+      this.selectedCalculation = calculation;
+    },
+    showHideCalculation(calculation, modus = null) {
+      this.showHideNetworkData(calculation, modus);
+      this.showHideIsochroneOverlayFeatures(calculation, modus);
+      this.toggleIsochroneCalculationVisibility(calculation, modus);
+    },
+    showHideNetworkData(calculation, modus) {
+      console.log(modus);
+      //Check if road netowrk is visible. Is so remove all features from map.
+
+      const roadNetworkData = calculation.additionalData;
+      for (let type in roadNetworkData) {
+        // type can be 'Deafult' or 'Input'
+        const state = roadNetworkData[type].state;
+        const roadNetworkSource = this.isochroneRoadNetworkLayer.getSource();
+        const features = roadNetworkData[type].features;
+        if (state === true && calculation.isVisible === true) {
+          features.forEach(feature => {
+            if (roadNetworkSource.hasFeature(feature)) {
+              roadNetworkSource.removeFeature(feature);
+            }
+          });
+        } else if (state === true && calculation.isVisible === false) {
+          features.forEach(feature => {
+            roadNetworkSource.addFeature(feature);
+          });
+        }
+      }
+    },
+    showHideIsochroneOverlayFeatures(calculation, modus) {
+      console.log(modus);
+      const id = calculation.id;
+      const isVisible = !calculation.isVisible;
+      this.isochroneOverlayLayer
+        .getSource()
+        .getFeatures()
+        .forEach(feature => {
+          if (feature.get("calculationNumber") === id) {
+            feature.set("isVisible", isVisible);
+          }
+        });
+    },
+    getPaletteColor(calculation, mode) {
+      const colorKey = `${mode}ColorPalette`;
+      return Object.values(this.colors[calculation[colorKey]]).toString();
+    },
+    toggleColorPickerDialog(calculation, mode) {
+      this.isochroneColorPickerState = true;
+      this.activeCalculation = calculation;
+      this.activeCalculationMode = mode;
+    },
+    getToggleCalculationCheckboxState(calculationData) {
+      const countVisibleFeatures = calculationData.filter(
+        o => o.isVisible === true
+      );
+      if (countVisibleFeatures.length === 0) {
+        return false;
+      }
+      return true;
+    },
+    getToggleCalculationCheckboxIndeterminateState(calculationData) {
+      const countVisibleFeatures = calculationData.filter(
+        o => o.isVisible === true
+      );
+      if (countVisibleFeatures.length === 0) {
+        return false;
+      }
+      if (countVisibleFeatures.length === calculationData.length) {
+        return false;
+      }
+      return true;
+    },
+
+    // ------------CLEAR----------
     deleteAll() {
       this.$refs.confirm
         .open(
@@ -1581,161 +1814,6 @@ export default {
       });
       this.isochroneOverlayLayer.changed();
     },
-    toggleThematicDataVisibility(isVisible) {
-      this.isThematicDataVisible = isVisible;
-    },
-    toggleIsochroneWindow(calculation) {
-      if (this.isCalculationActive(calculation)) {
-        // Hide
-        this.isochroneLayer
-          .getSource()
-          .getFeatures()
-          .forEach(f => {
-            f.set("highlightFeature", false);
-          });
-        this.toggleThematicDataVisibility(false);
-      } else {
-        // Show
-        this.showIsochroneWindow({
-          id: calculation.id,
-          calculationType: calculation.calculationType
-        });
-      }
-    },
-    toggleIsochroneVisibility(feature, calculation) {
-      //Get all visible calculation
-      const visibleFeatures = calculation.data.filter(
-        feature => feature.isVisible === true
-      );
-
-      let isNetworkVisible = false;
-      Object.keys(calculation.additionalData).forEach(key => {
-        if (calculation.additionalData[key].state === true) {
-          isNetworkVisible = true;
-        }
-      });
-
-      //If user has turned off other features, hide the result
-      if (
-        !isNetworkVisible &&
-        visibleFeatures.length === 1 &&
-        visibleFeatures[0].id === feature.id &&
-        visibleFeatures[0].isVisible === true
-      ) {
-        this.showHideCalculation(calculation);
-      } else {
-        this.toggleIsochroneFeatureVisibility(feature);
-      }
-
-      if (calculation.isVisible === false && feature.isVisible === true) {
-        calculation.isVisible = true;
-      }
-    },
-    toggleIsochroneCalculationVisibility(calculation) {
-      calculation.isVisible = !calculation.isVisible;
-
-      calculation.data.forEach(isochrone => {
-        let featureId = isochrone.id;
-        isochrone.isVisible = calculation.isVisible;
-        let isochroneFeature = this.isochroneLayer
-          .getSource()
-          .getFeatureById(featureId);
-        if (isochroneFeature) {
-          isochroneFeature.set("isVisible", calculation.isVisible);
-        }
-      });
-    },
-    toggleIsochroneFeatureVisibility(feature) {
-      let featureId = feature.id;
-      feature.isVisible = !feature.isVisible;
-      if (featureId) {
-        let isochroneFeature = this.isochroneLayer
-          .getSource()
-          .getFeatureById(featureId);
-        if (isochroneFeature) {
-          isochroneFeature.set("isVisible", feature.isVisible);
-        }
-      }
-    },
-    toggleDownloadDialog(calculation) {
-      this.downloadDialogState = true;
-      this.selectedCalculation = calculation;
-    },
-    showHideCalculation(calculation) {
-      this.showHideNetworkData(calculation);
-      this.showHideIsochroneOverlayFeatures(calculation);
-      this.toggleIsochroneCalculationVisibility(calculation);
-    },
-    showHideNetworkData(calculation) {
-      //Check if road netowrk is visible. Is so remove all features from map.
-      const roadNetworkData = calculation.additionalData;
-      for (let type in roadNetworkData) {
-        // type can be 'Deafult' or 'Input'
-        const state = roadNetworkData[type].state;
-        const roadNetworkSource = this.isochroneRoadNetworkLayer.getSource();
-        const features = roadNetworkData[type].features;
-        if (state === true && calculation.isVisible === true) {
-          features.forEach(feature => {
-            if (roadNetworkSource.hasFeature(feature)) {
-              roadNetworkSource.removeFeature(feature);
-            }
-          });
-        } else if (state === true && calculation.isVisible === false) {
-          features.forEach(feature => {
-            roadNetworkSource.addFeature(feature);
-          });
-        }
-      }
-    },
-    showHideIsochroneOverlayFeatures(calculation) {
-      const id = calculation.id;
-      const isVisible = !calculation.isVisible;
-      this.isochroneOverlayLayer
-        .getSource()
-        .getFeatures()
-        .forEach(feature => {
-          if (feature.get("calculationNumber") === id) {
-            feature.set("isVisible", isVisible);
-          }
-        });
-    },
-    showAdditionalLayerDialog(calculation) {
-      this.additionalLayersDialogState = true;
-      this.selectedCalculation = calculation;
-    },
-    getPaletteColor(calculation, mode) {
-      const colorKey = `${mode}ColorPalette`;
-      return Object.values(this.colors[calculation[colorKey]]).toString();
-    },
-    toggleColorPickerDialog(calculation, mode) {
-      this.isochroneColorPickerState = true;
-      this.activeCalculation = calculation;
-      this.activeCalculationMode = mode;
-    },
-    getToggleCalculationCheckboxState(calculation) {
-      const calculationData = calculation.data;
-      const countVisibleFeatures = calculationData.filter(
-        o => o.isVisible === true
-      );
-      if (countVisibleFeatures.length === 0) {
-        return false;
-      }
-      return true;
-    },
-    getToggleCalculationCheckboxIndeterminateState(calculation) {
-      const calculationData = calculation.data;
-      const countVisibleFeatures = calculationData.filter(
-        o => o.isVisible === true
-      );
-      if (countVisibleFeatures.length === 0) {
-        return false;
-      }
-      if (countVisibleFeatures.length === calculationData.length) {
-        return false;
-      }
-      return true;
-    },
-    // ------------CLEAR----------
     /**
      * Clears the map and ol interaction activity
      */
@@ -1779,7 +1857,6 @@ export default {
     selectedPois() {
       if (this.multiIsochroneMethod) {
         this.multiIsochronePoiCount = 0;
-        console.log("selectedPois", this.selectedPois);
         this.multiIsochroneSelectionLayer
           .getSource()
           .getFeatures()

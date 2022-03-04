@@ -222,7 +222,8 @@
     "calculationTitle": "Isochronenberechnung",
     "mode": {
       "default": "Standard",
-      "input": "Szenario"
+      "input": "Szenario",
+      "scenario": "Szenario"
     },
     "single": {
       "title": "Startpunkt",

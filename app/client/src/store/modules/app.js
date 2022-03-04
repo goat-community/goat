@@ -10,7 +10,7 @@ const state = {
   poiIcons: {},
   layerTabIndex: 0,
   calculationMode: {
-    values: ["default", "scenario", "comparision"],
+    values: ["default", "scenario", "comparison"],
     active: "default"
   },
   activeColor: {

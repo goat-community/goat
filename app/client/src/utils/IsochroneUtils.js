@@ -35,7 +35,7 @@ const IsochroneUtils = {
       isochroneFeatures.forEach(isochrone => {
         let modus = isochrone.get("modus");
         let time = isochrone.get("step");
-        let pois = isochrone.get("sum_pois");
+        let pois = isochrone.get("reached_opportunities");
         if (!obj[modus]) {
           obj[modus] = {};
         }
