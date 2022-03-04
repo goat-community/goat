@@ -83,7 +83,7 @@ class IsochroneMultiCountPois(BaseModel):
     amenities: List[str]
     minutes: int
     modus: str
-    region: str
+    region: List[str]
     region_type: str
     speed: int
     active_upload_ids: Optional[List[int]] = [0]
@@ -247,21 +247,45 @@ request_examples = {
         }
     },
     "pois_multi_isochrone_count_pois": {
-        "region_type": "draw",
-        "region": "POLYGON((11.53605224646383 48.15855242757948,11.546141990292947 48.16035646918763,11.54836104048217 48.15434275044706,11.535497483916524 48.15080357881183,11.526586610500429 48.15300113241156,11.531302092152526 48.15799732509075,11.53605224646383 48.15855242757948))",
-        "scenario_id": 0,
-        "modus": "default",
-        "routing_profile": "walking_standard",
-        "minutes": 10,
-        "speed": 5,
-        "amenities": [
-            "kindergarten",
-            "grundschule",
-            "hauptschule_mittelschule",
-            "realschule",
-            "gymnasium",
-            "library",
-        ],
-    },
-    
+        "draw": {
+            "summary": "Count pois with draw",
+            "value": {
+                "region_type": "draw",
+                "region": ["POLYGON((11.53605224646383 48.15855242757948,11.546141990292947 48.16035646918763,11.54836104048217 48.15434275044706,11.535497483916524 48.15080357881183,11.526586610500429 48.15300113241156,11.531302092152526 48.15799732509075,11.53605224646383 48.15855242757948))"],
+                "scenario_id": 0,
+                "modus": "default",
+                "routing_profile": "walking_standard",
+                "minutes": 10,
+                "speed": 5,
+                "amenities": [
+                    "kindergarten",
+                    "grundschule",
+                    "hauptschule_mittelschule",
+                    "realschule",
+                    "gymnasium",
+                    "library",
+                ],
+            }
+        },
+        "study_area": {
+            "summary": "Count pois with study area",
+            "value": {
+                "region_type": "study_area",
+                "region": ["1","2"],
+                "scenario_id": 0,
+                "modus": "default",
+                "routing_profile": "walking_standard",
+                "minutes": 10,
+                "speed": 5,
+                "amenities": [
+                    "kindergarten",
+                    "grundschule",
+                    "hauptschule_mittelschule",
+                    "realschule",
+                    "gymnasium",
+                    "library",
+                ]
+            }
+        }
+    }
 }

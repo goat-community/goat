@@ -21,6 +21,7 @@ from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
+from pyproj import Transformer, transform
 from src.resources.enums import SQLReturnTypes
 from src.db import models
 from src.db.session import legacy_engine
@@ -102,12 +103,13 @@ class CRUDIsochrone:
     def result_to_gdf(self, result, starting_id):
         isochrones = {}
         for isochrone_result in result.isochrone:
-            for step, shape in isochrone_result.shape.items():
-                if step not in isochrones.keys():
-                    isochrones[step] = GeoSeries(Polygon(shape))
+            for step in sorted(isochrone_result.shape):
+                if list(isochrones.keys()) == []:
+                    isochrones[step] = GeoSeries(Polygon(isochrone_result.shape[step]))
                 else:
-                    isochrones[step] = GeoSeries(isochrones[step].union(Polygon(shape)))
-        
+                    isochrones[step] = GeoSeries(isochrones[previous_step].union(Polygon(isochrone_result.shape[step])))
+                previous_step = step 
+
         isochrones_multipolygon = {}
         for step in isochrones.keys():
             if isochrones[step][0].geom_type == "Polygon":
@@ -165,9 +167,13 @@ class CRUDIsochrone:
 
         if return_network == True:
             features = []
+            transformer = Transformer.from_crs(3857, 4326)
             for edge in result.network:
+                coords = []
+                for i in edge.shape:
+                    coords.append(transformer.transform(i[0], i[1]))
                 feature = {
-                    "geometry": {"type": "LineString", "coordinates": edge.shape},
+                    "geometry": {"type": "LineString", "coordinates": coords},
                     "type": "Feature",
                     "properties": {
                         "edge_id": edge.edge,
@@ -238,23 +244,23 @@ class CRUDIsochrone:
         if obj_in.modus == "default" or obj_in.modus == "scenario":
             result = await self.compute_isochrone(db, obj_in=obj_in, return_network=True)
             result = result["network"]
-            #result = json.dumps(result["network"])
-        elif obj_in.modus == "comparison":
-            # Compute default network
-            obj_in_default = obj_in
-            obj_in_default.modus = "default"
-            isochrones_default = await self.compute_isochrone(
-                db, obj_in=obj_in_default, return_network=True
-            )
 
-            # Compute scenario network
-            obj_in_scenario = obj_in
-            obj_in_scenario.modus = "scenario"
-            isochrones_scenario = await self.compute_isochrone(
-                db, obj_in=obj_in_scenario, return_network=True
-            )
+        # elif obj_in.modus == "comparison":
+        #     # Compute default network
+        #     obj_in_default = obj_in
+        #     obj_in_default.modus = "default"
+        #     isochrones_default = await self.compute_isochrone(
+        #         db, obj_in=obj_in_default, return_network=True
+        #     )
 
-            result = [isochrones_default["network"], isochrones_scenario["network"]]
+        #     # Compute scenario network
+        #     obj_in_scenario = obj_in
+        #     obj_in_scenario.modus = "scenario"
+        #     isochrones_scenario = await self.compute_isochrone(
+        #         db, obj_in=obj_in_scenario, return_network=True
+        #     )
+
+        #     result = [isochrones_default["network"], isochrones_scenario["network"]]
         return result
 
     async def calculate_multi_isochrones(
@@ -281,19 +287,17 @@ class CRUDIsochrone:
             result = GeoDataFrame(
                 pd.concat([isochrones_default, isochrones_scenario])
             )
-        return result
+        return result.reset_index(drop=True)
 
     async def count_pois_multi_isochrones(
         self, db: AsyncSession, *, obj_in
     ) -> dict:
         obj_in_data = jsonable_encoder(obj_in)
-        sql_geojson = SQLReturnTypes['geojson'].value
         sql = text(
-            sql_geojson % """SELECT row_number() over() AS id, count_pois, region_name, geom 
+            """SELECT count_pois
             FROM basic.count_pois_multi_isochrones(:user_id,:modus,:minutes,:speed,:region_type,:region,:amenities,:scenario_id,:active_upload_ids)"""
         )
         result = await db.execute(sql, obj_in_data)
-        
         return result.fetchall()[0][0] 
 
     async def calculate_pois_multi_isochrones(

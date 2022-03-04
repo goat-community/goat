@@ -39,10 +39,12 @@ async def calculate_single_isochrone(
     isochrone = await crud.isochrone.calculate_single_isochrone(db=db, obj_in=isochrone_in)
     return json.loads(isochrone.to_json()) 
 
-@router.post("/network", response_class=JSONResponse)
+@router.post("/network/{modus}/{return_type}", response_class=JSONResponse)
 async def calculate_reached_network(
     *, db: AsyncSession = Depends(deps.get_db),
     isochrone_calculation_id: int,
+    modus: str = "default",
+    return_type: str = "geobuf",
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -60,7 +62,7 @@ async def calculate_reached_network(
         minutes=minutes,
         speed= 3.6 * isochrone_calc_obj.speed,
         n=len(isochrone_feature_obj),
-        modus=isochrone_calc_obj.modus,
+        modus=modus,
         x=x,
         y=y,
         user_id=current_user.id,
@@ -70,7 +72,7 @@ async def calculate_reached_network(
     )
 
     network = await crud.isochrone.calculate_reached_network(db=db, obj_in=obj_calculation)
-    return json.JSONDecoder().decode(json.dumps(network))
+    return return_geojson_or_geobuf(json.JSONDecoder().decode(json.dumps(network)), return_type)
 
 @router.post("/multi", response_class=JSONResponse)
 async def calculate_multi_isochrone(
@@ -89,10 +91,9 @@ async def calculate_multi_isochrone(
 @router.post("/multi/count-pois", response_class=JSONResponse)
 async def count_pois_multi_isochrones(
     *,
-    return_type: str = 'geojson',
     db: AsyncSession = Depends(deps.get_db),
     isochrone_in: IsochroneMultiCountPois = Body(
-        ..., example=request_examples["pois_multi_isochrone_count_pois"]
+        ..., examples=request_examples["pois_multi_isochrone_count_pois"]
     ),
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -100,12 +101,10 @@ async def count_pois_multi_isochrones(
     Count pois under study area.
     """
     isochrone_in.user_id = current_user.id
-    features = await crud.isochrone.count_pois_multi_isochrones(
+    cnt = await crud.isochrone.count_pois_multi_isochrones(
         db=db, obj_in=isochrone_in
-    )
-    
-    return return_geojson_or_geobuf(features, return_type)
-
+    ) 
+    return cnt
 
 @router.post("/multi/pois", response_class=JSONResponse)
 async def poi_multi_isochrones(

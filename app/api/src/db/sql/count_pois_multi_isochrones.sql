@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION basic.count_pois_multi_isochrones (userid_input integer, modus text, minutes integer, speed_input numeric, region_type text, region text, amenities text[], scenario_id_input integer DEFAULT 0, active_upload_ids integer[] DEFAULT '{}'::integer[])
+CREATE OR REPLACE FUNCTION basic.count_pois_multi_isochrones (userid_input integer, modus text, minutes integer, speed_input numeric, region_type text, region TEXT[], amenities text[], scenario_id_input integer DEFAULT 0, active_upload_ids integer[] DEFAULT '{}'::integer[])
     RETURNS TABLE (region_name text, count_pois integer, geom geometry)
     AS $function$
 DECLARE
@@ -16,9 +16,9 @@ BEGIN
         SELECT s.geom, name  
         INTO region_geom, region_name
         FROM basic.sub_study_area s
-        WHERE ST_Intersects (s.geom, ST_SETSRID(ST_GeomFromText(region), 4326));
+        WHERE id IN (SELECT UNNEST(region::integer[]));
     ELSEIF region_type = 'draw' THEN
-        SELECT ST_GeomFromText(region) 
+        SELECT ST_GeomFromText(region[1]) 
         INTO region_geom;
         region_name = 'draw';
     ELSE 
