@@ -150,12 +150,13 @@ class CRUDIsochrone:
         result_opportunities = result_opportunities.all()
         dict_opportunities = {}
         [dict_opportunities.update({row[1]:row[2]}) for row in result_opportunities]
+        dict_ids = {}
+        [dict_ids.update({row[1]:row[0]}) for row in result_opportunities]
         await db.commit()
 
         #Update isochrones with reached opportunities
+        isochrone_gdf["id"] = isochrone_gdf["step"].map(dict_ids)
         isochrone_gdf["reached_opportunities"] = isochrone_gdf["step"].map(dict_opportunities)
-
-    
         isochrone_gdf["routing_profile"] = obj_in.routing_profile
         isochrone_gdf["scenario_id"] = obj_in.scenario_id
         isochrone_gdf["modus"] = obj_in.modus
@@ -228,7 +229,7 @@ class CRUDIsochrone:
             result = GeoDataFrame(
                 pd.concat([isochrones_default["isochrones"], isochrones_scenario["isochrones"]])
             )
-        return result
+        return result.reset_index(drop=True)
 
     async def calculate_reached_network(
         self, db: AsyncSession, *, obj_in: IsochroneSingle
