@@ -275,7 +275,7 @@
       "alphaShapeMode": "Level of detail isochrones",
       "default": "Default",
       "scenario": "Scenario",
-      "comparision": "Comparison",
+      "comparison": "Comparison",
       "routingProfile": "Routing Profile",
       "walking_standard": "Standard",
       "walking_elderly": "Elderly",

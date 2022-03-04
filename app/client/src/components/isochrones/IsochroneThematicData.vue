@@ -1,18 +1,18 @@
 <template>
   <v-card
     v-if="selectedThematicData"
-    v-show="isThematicDataVisible"
     v-draggable="draggableValue"
     class="thematic-data elevation-4"
     id="isochroneWindowId"
     :style="[isExpanded ? { height: '400px' } : { height: '50px' }]"
-    style="position:fixed;top:10px;left:360px;z-index:2;max-width:440px;min-width:370px;height:450px;overflow:hidden;"
+    style="position:fixed;top:10px;left:400px;z-index:2;max-width:440px;min-width:370px;height:450px;overflow:hidden;"
   >
     <v-layout justify-space-between column fill-height>
       <v-app-bar
         :ref="handleId"
-        :color="activeColor.primary"
+        :color="appColor.primary"
         height="50"
+        class="elevation-0"
         style="cursor:grab;"
         dark
       >
@@ -33,14 +33,14 @@
             <v-layout row wrap justify-end>
               <v-alert
                 v-if="
-                  getPoisItems.length === 0 &&
+                  selectedPois.length === 0 &&
                     selectedThematicData.calculationType === 'single'
                 "
                 border="left"
                 colored-border
                 class="mb-1 mt-2 elevation-2"
                 icon="info"
-                :color="activeColor.primary"
+                :color="appColor.primary"
                 dense
               >
                 <span
@@ -93,9 +93,10 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from "vuex";
-import IsochroneUtils from "../../../utils/IsochroneUtils";
+import { mapGetters } from "vuex";
+import IsochroneUtils from "../../utils/IsochroneUtils";
 import { Draggable } from "draggable-vue-directive";
+import { mapFields } from "vuex-map-fields";
 
 export default {
   directives: {
@@ -115,15 +116,6 @@ export default {
     }
   }),
   methods: {
-    isAmenitySelected(amenity) {
-      let isChecked;
-      this.selectedThematicData.filterSelectedPois.forEach(item => {
-        if (item["weight"] && !item["children"] && item.value === amenity) {
-          isChecked = true;
-        }
-      });
-      return isChecked;
-    },
     expand() {
       this.isExpanded = !this.isExpanded;
     },
@@ -134,7 +126,7 @@ export default {
         .forEach(f => {
           f.set("highlightFeature", false);
         });
-      this.toggleThematicDataVisibility(false);
+      this.selectedThematicData = null;
     },
     getString(val) {
       let string = "";
@@ -145,10 +137,7 @@ export default {
         string = val;
       }
       return string;
-    },
-    ...mapMutations("isochrones", {
-      toggleThematicDataVisibility: "TOGGLE_THEMATIC_DATA_VISIBILITY"
-    })
+    }
   },
   computed: {
     tableHeaders() {
@@ -230,7 +219,7 @@ export default {
           if (sumPois) {
             //Loop through  amenities
             amenityNames.forEach(amenity => {
-              let isAmenitySelected = me.isAmenitySelected(amenity);
+              let isAmenitySelected = this.poisAois[amenity];
               if (amenity === "population") {
                 isAmenitySelected = true;
               }
@@ -249,7 +238,6 @@ export default {
                   );
                   obj[keys[1]] = valueDouble || "-";
                 }
-                console.log(obj);
                 items.push(obj);
               }
             });
@@ -278,15 +266,17 @@ export default {
 
     ...mapGetters("isochrones", {
       selectedThematicData: "selectedThematicData",
-      isThematicDataVisible: "isThematicDataVisible",
       isochroneLayer: "isochroneLayer"
     }),
-
-    ...mapGetters("pois", {
-      getPoisItems: "selectedPois"
+    ...mapGetters("poisaois", {
+      poisAois: "poisAois",
+      selectedPois: "selectedPois"
     }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
+    }),
+    ...mapFields("isochrones", {
+      selectedThematicData: "selectedThematicData"
     })
   },
   watch: {
@@ -299,7 +289,7 @@ export default {
           let obj = pois[key];
           for (const prop in obj) {
             this.isochroneSteps.push({
-              display: `${prop} min`,
+              display: `${prop / 60} min`,
               value: `${prop}`
             });
           }

@@ -80,6 +80,7 @@ const state = {
   multiIsochroneSelectionLayer: null,
   calculations: [],
   isochroneOverlayLayer: null,
+  selectedThematicData: null,
   // Cancel Request
   cancelReq: undefined
 };
@@ -88,6 +89,8 @@ const getters = {
   colors: state => state.colors,
   type: state => state.type,
   isochroneLayer: state => state.isochroneLayer,
+  selectedThematicData: state => state.selectedThematicData,
+  calculations: state => state.calculations,
   getField
 };
 

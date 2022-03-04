@@ -197,7 +197,7 @@ export function getIsochroneStyle() {
         );
       }
       // If the modus is 1 it is a default isochrone
-      if (modus === "default" || modus === "comparision") {
+      if (modus === "default" || modus === "comparison") {
         let style = new OlStyle({
           fill: new OlFill({
             color: [0, 0, 0, 0]

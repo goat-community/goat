@@ -587,11 +587,11 @@
                       </v-switch>
                       <v-switch
                         class="mt-4"
-                        :value="isCalculationActive(calculation)"
+                        :input-value="isCalculationActive(calculation)"
                         dense
                         :color="appColor.secondary"
                         hide-details
-                        @change="toggleIsochroneWindow(calculation)"
+                        @change="toggleIsochroneWindow($event, calculation)"
                       >
                         <template v-slot:label>
                           <span class="caption">{{
@@ -668,11 +668,6 @@
               :calculation="selectedCalculation"
               @close="downloadDialogState = false"
             ></download>
-            <additional-layers
-              :visible="additionalLayersDialogState"
-              :calculation="selectedCalculation"
-              @close="additionalLayersDialogState = false"
-            ></additional-layers>
             <isochrone-color-picker
               :visible="isochroneColorPickerState"
               :calculation="activeCalculation"
@@ -694,7 +689,6 @@ import { Isochrones } from "../../mixins/Isochrones";
 import { KeyShortcuts } from "../../mixins/KeyShortcuts";
 //Child components
 import Download from "./IsochronesDownload";
-import AdditionalLayers from "./IsochronesAdditionalLayers";
 import IsochroneColorPicker from "./IsochroneColorPicker";
 
 import {
@@ -753,12 +747,10 @@ export default {
     isIsochroneStartElVisible: true,
     isResultsElVisible: true,
     downloadDialogState: false,
-    additionalLayersDialogState: false,
     selectedCalculation: null,
     isochroneColorPickerState: false,
     activeCalculation: null, // for color palette selection
     activeCalculationMode: null, // for color palette selection,
-    isThematicDataVisible: false,
     //Single Isochrone
     mapClickListener: null,
     // Multiisochrone
@@ -771,7 +763,6 @@ export default {
   }),
   components: {
     download: Download,
-    additionalLayers: AdditionalLayers,
     IsochroneColorPicker
   },
   computed: {
@@ -809,7 +800,8 @@ export default {
       multiIsochroneMethod: "multiIsochroneMethod",
       colors: "colors",
       defaultIsochroneColor: "defaultIsochroneColor",
-      scenarioIsochroneColor: "scenarioIsochroneColor"
+      scenarioIsochroneColor: "scenarioIsochroneColor",
+      selectedThematicData: "selectedThematicData"
     }),
     ...mapFields("map", {
       isMapBusy: "isMapBusy"
@@ -963,10 +955,15 @@ export default {
     registerMapClick() {
       //Close other interactions.
       EventBus.$emit("ol-interaction-activated", this.interactionType);
-      this.mapClickListener = this.map.once("singleclick", this.onMapClick);
-      this.startHelpTooltip(
-        this.$t("map.tooltips.clickForIsochroneCalculation")
-      );
+      if (this.type === "single") {
+        this.mapClickListener = this.map.once("singleclick", this.onMapClick);
+        this.startHelpTooltip(
+          this.$t("map.tooltips.clickForIsochroneCalculation")
+        );
+      } else {
+        this.mapClickListener = this.map.on("singleclick", this.onMapClick);
+      }
+
       this.map.getTarget().style.cursor = "pointer";
       if (this.addKeyupListener) {
         this.addKeyupListener();
@@ -1180,8 +1177,16 @@ export default {
           this.startHelpTooltip(this.$t("map.tooltips.clickToSelectStudyArea"));
           return;
         }
+        const subStudyAreaAtCoord = this.subStudyAreaLayer
+          .getSource()
+          .getFeaturesAtCoordinate(evt.coordinate);
+        if (subStudyAreaAtCoord.length > 0) {
+          const feature = subStudyAreaAtCoord[0].clone();
+          this.multiIsochroneSelectionLayer.getSource().addFeature(feature);
+        }
         const region = geometryToWKT(new Point(coordinateWgs84));
         console.log(region);
+        //TODO: Count pois
       } else {
         const payloadSingle = {
           x: coordinateWgs84[0],
@@ -1222,7 +1227,7 @@ export default {
       const routing = this.routing;
       const steps = this.steps;
       const modus = this.calculationMode.active;
-      const scenario_id = this.scenarioId || 0; //TODO: Get scenario id from store
+      const scenario_id = this.scenarioId || 2; //TODO: Get scenario id from store (Disable isochrone comparison if there is no scenario active)
       const active_upload_ids = this.activeUploadIds || [0]; //TODO: Get active upload ids from store
       const baseParams = {
         minutes: time,
@@ -1274,8 +1279,8 @@ export default {
                 );
                 let color = "";
                 let level = feature.get("step");
-                let modus = feature.get("modus");
-                if (modus === "default" || modus === "comparision") {
+                let modus = feature.get("modus") || modus;
+                if (modus === "default" || modus === "comparison") {
                   color = IsochroneUtils.getInterpolatedColor(
                     1,
                     20,
@@ -1292,9 +1297,11 @@ export default {
                 }
                 let obj = {
                   id: feature.getId(),
-                  type: this.$t(
-                    `isochrones.mode.${feature.get("modus").toLowerCase()}`
-                  ),
+                  type: feature.get("modus")
+                    ? this.$t(
+                        `isochrones.mode.${feature.get("modus").toLowerCase()}`
+                      )
+                    : this.$t(`isochrones.mode.${modus.toLowerCase()}`),
                   isochrone_calculation_id: feature.get(
                     "isochrone_calculation_id"
                   ),
@@ -1372,6 +1379,7 @@ export default {
                     });
                     this.calculations.unshift(transformedData);
                     this.isochroneLayer.getSource().addFeatures(olFeatures);
+                    this.toggleIsochroneWindow(true, transformedData);
                     this.isOptionsElVisible = false;
                   });
               } else {
@@ -1381,6 +1389,7 @@ export default {
                 });
                 this.calculations.unshift(transformedData);
                 this.isochroneLayer.getSource().addFeatures(olFeatures);
+                this.toggleIsochroneWindow(true, transformedData);
                 this.isOptionsElVisible = false;
               }
             }
@@ -1419,10 +1428,15 @@ export default {
       payload.amenities = this.selectedPoisOnlyKeys;
       this.calculateIsochrone(payload);
     },
-    //TODO: Active calculation is the one that has thematic data window open.
     isCalculationActive(calculation) {
-      console.log(calculation);
-      return false;
+      if (!this.selectedThematicData) {
+        return false;
+      }
+      if (calculation.id === this.selectedThematicData.calculationId) {
+        return true;
+      } else {
+        return false;
+      }
     },
     /**
      * Configure right-click for isochrone.
@@ -1509,98 +1523,37 @@ export default {
       }
     },
     // ------------RESULTS----------
-    deleteAll() {
-      this.$refs.confirm
-        .open(
-          this.$t("isochrones.deleteTitle"),
-          this.$t("isochrones.deleteAllMessage"),
-          { color: this.appColor.primary }
-        )
-        .then(confirm => {
-          if (confirm) {
-            this.calculations.forEach(calculation => {
-              this.removeCalculation(calculation);
-            });
-          }
-        });
-    },
-    removeCalculation(calculation) {
-      let id = calculation.id;
-      if (
-        this.selectedThematicData &&
-        this.selectedThematicData.calculationId === id
-      ) {
+    toggleIsochroneWindow(state, calculation) {
+      if (state === false) {
         this.selectedThematicData = null;
-      } else if (this.selectedThematicData) {
-        this.selectedThematicData.calculationId =
-          this.selectedThematicData.calculationId - 1;
+        return;
       }
-
-      this.calculations = this.calculations.filter(
-        calculation => calculation.id != id
-      );
-      this.calculations = this.calculations.map(calculation => {
-        if (calculation.id > id) {
-          calculation.id = calculation.id - 1;
-        }
-        return calculation;
-      });
-      const isochroneSource = this.isochroneLayer.getSource();
-      isochroneSource.getFeatures().forEach(isochroneFeature => {
-        const isochroneCalculationNr = isochroneFeature.get(
-          "calculationNumber"
-        );
-        if (isochroneCalculationNr === id) {
-          isochroneSource.removeFeature(isochroneFeature);
-        }
-        if (isochroneCalculationNr > id) {
-          const updatedNr = isochroneCalculationNr - 1;
-          isochroneFeature.set("calculationNumber", updatedNr);
-          isochroneFeature.setId("isochrone_marker_" + updatedNr);
-        }
-      });
-      const isochroneRoadNetworkLayerSource = this.isochroneRoadNetworkLayer.getSource();
-      Object.keys(calculation.additionalData).forEach(type => {
-        const features = calculation.additionalData[type].features;
-        if (isochroneRoadNetworkLayerSource && features) {
-          features.forEach(feature => {
-            isochroneRoadNetworkLayerSource.removeFeature(feature);
-          });
-        }
-      });
-      // Remove and update isochrone overlay features
-      const isochroneOverlayerLayerSource = this.isochroneOverlayLayer.getSource();
-      isochroneOverlayerLayerSource.getFeatures().forEach(feature => {
-        if (feature.get("calculationNumber") === id) {
-          isochroneOverlayerLayerSource.removeFeature(feature);
-        } else {
-          if (feature.get("calculationNumber") > id) {
-            feature.set("calculationNumber", id - 1);
-          }
-        }
-      });
-      this.isochroneOverlayLayer.changed();
-    },
-    toggleThematicDataVisibility(isVisible) {
-      this.isThematicDataVisible = isVisible;
-    },
-    toggleIsochroneWindow(calculation) {
-      if (this.isCalculationActive(calculation)) {
-        // Hide
+      const features = IsochroneUtils.getCalculationFeatures(
+        calculation,
         this.isochroneLayer
-          .getSource()
-          .getFeatures()
-          .forEach(f => {
-            f.set("highlightFeature", false);
-          });
-        this.toggleThematicDataVisibility(false);
-      } else {
-        // Show
-        this.showIsochroneWindow({
-          id: calculation.id,
-          calculationType: calculation.calculationType
+      );
+      this.isochroneLayer
+        .getSource()
+        .getFeatures()
+        .forEach(f => {
+          f.set("highlightFeature", false);
         });
+      features.forEach(f => {
+        f.set("highlightFeature", true);
+      });
+      const pois = IsochroneUtils.getCalculationPoisObject(features);
+      const payload = {
+        calculationId: calculation.id,
+        calculationType: calculation.calculationType,
+        pois: pois
+      };
+      if (calculation.calculationType === "multiple") {
+        const multiIsochroneTableData = IsochroneUtils.getMultiIsochroneTableData(
+          features
+        );
+        payload.multiIsochroneTableData = multiIsochroneTableData;
       }
+      this.selectedThematicData = payload;
     },
     toggleIsochroneVisibility(feature, calculation) {
       //Get all visible calculation
@@ -1699,10 +1652,6 @@ export default {
           }
         });
     },
-    showAdditionalLayerDialog(calculation) {
-      this.additionalLayersDialogState = true;
-      this.selectedCalculation = calculation;
-    },
     getPaletteColor(calculation, mode) {
       const colorKey = `${mode}ColorPalette`;
       return Object.values(this.colors[calculation[colorKey]]).toString();
@@ -1735,7 +1684,80 @@ export default {
       }
       return true;
     },
+
     // ------------CLEAR----------
+    deleteAll() {
+      this.$refs.confirm
+        .open(
+          this.$t("isochrones.deleteTitle"),
+          this.$t("isochrones.deleteAllMessage"),
+          { color: this.appColor.primary }
+        )
+        .then(confirm => {
+          if (confirm) {
+            this.calculations.forEach(calculation => {
+              this.removeCalculation(calculation);
+            });
+          }
+        });
+    },
+    removeCalculation(calculation) {
+      let id = calculation.id;
+      if (
+        this.selectedThematicData &&
+        this.selectedThematicData.calculationId === id
+      ) {
+        this.selectedThematicData = null;
+      } else if (this.selectedThematicData) {
+        this.selectedThematicData.calculationId =
+          this.selectedThematicData.calculationId - 1;
+      }
+
+      this.calculations = this.calculations.filter(
+        calculation => calculation.id != id
+      );
+      this.calculations = this.calculations.map(calculation => {
+        if (calculation.id > id) {
+          calculation.id = calculation.id - 1;
+        }
+        return calculation;
+      });
+      const isochroneSource = this.isochroneLayer.getSource();
+      isochroneSource.getFeatures().forEach(isochroneFeature => {
+        const isochroneCalculationNr = isochroneFeature.get(
+          "calculationNumber"
+        );
+        if (isochroneCalculationNr === id) {
+          isochroneSource.removeFeature(isochroneFeature);
+        }
+        if (isochroneCalculationNr > id) {
+          const updatedNr = isochroneCalculationNr - 1;
+          isochroneFeature.set("calculationNumber", updatedNr);
+          isochroneFeature.setId("isochrone_marker_" + updatedNr);
+        }
+      });
+      const isochroneRoadNetworkLayerSource = this.isochroneRoadNetworkLayer.getSource();
+      Object.keys(calculation.additionalData).forEach(type => {
+        const features = calculation.additionalData[type].features;
+        if (isochroneRoadNetworkLayerSource && features) {
+          features.forEach(feature => {
+            isochroneRoadNetworkLayerSource.removeFeature(feature);
+          });
+        }
+      });
+      // Remove and update isochrone overlay features
+      const isochroneOverlayerLayerSource = this.isochroneOverlayLayer.getSource();
+      isochroneOverlayerLayerSource.getFeatures().forEach(feature => {
+        if (feature.get("calculationNumber") === id) {
+          isochroneOverlayerLayerSource.removeFeature(feature);
+        } else {
+          if (feature.get("calculationNumber") > id) {
+            feature.set("calculationNumber", id - 1);
+          }
+        }
+      });
+      this.isochroneOverlayLayer.changed();
+    },
     /**
      * Clears the map and ol interaction activity
      */
