@@ -1,10 +1,12 @@
+from curses.ascii import HT
 from enum import Enum, IntEnum
 from typing import Dict, List, Optional, Union
 
 from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import MultiPolygon, Polygon
-from pydantic import BaseModel, root_validator
-
+from pydantic import BaseModel, root_validator, validator
+from fastapi import HTTPException
+from src.resources.enums import IsochroneExportType
 """
 Body of the request
 """
@@ -74,7 +76,7 @@ class IsochronePoiMulti(IsochroneBase):
             values["study_area_ids"] = None 
             values["region_geom"] = values["region"][0]
         else: 
-            raise ValueError("Invalid region type")
+            raise HTTPException(status_code=400, detail="Invalid region type")
         return values
 
 class IsochroneMultiCountPois(BaseModel):
@@ -88,24 +90,21 @@ class IsochroneMultiCountPois(BaseModel):
     speed: int
     active_upload_ids: Optional[List[int]] = [0]
 
-
 class IsochroneExport(BaseModel):
     """Isochrone export DTO"""
-
+    isochrone_calculation_id: int
     return_type: str
-    objectid: int
 
-
-class IsochroneExport(BaseModel):
-    """Isochrone export DTO"""
-    return_type: str
-    objectid: int
+    @validator('return_type')
+    def valud_return_type(cls, v):
+        if v not in IsochroneExportType.__members__:
+            raise HTTPException(status_code=400, detail="Invalid return type")
+        return v.title()
 
 
 """
 Response DTOs
 """
-
 # Shared properties
 class IsochronePropertiesShared(BaseModel):
     gid: int
@@ -287,5 +286,9 @@ request_examples = {
                 ]
             }
         }
-    }
+    },
+        "export_isochrones": {
+            "isochrone_calculation_id": 1,
+            "return_type": "geojson"
+        }
 }

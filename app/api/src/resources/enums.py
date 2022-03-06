@@ -7,6 +7,13 @@ class VectorType(str, Enum):
     pbf = "pbf"
     mvt = "mvt"
 
+class IsochroneExportType(str, Enum):
+    """Vector Type Enums."""
+
+    geojson = "GeoJSON"
+    shp = "ESRI Shapefile"
+    xlsx = "XLSX"
+
 class AllowedVectorTables(str, Enum):
     """Allowed Vector Tables Enums."""
     sub_study_area = "basic.sub_study_area"

@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.responses import JSONResponse
 
-from src import crud
+from src import crud, schemas
 from src.db import models
 from src.endpoints import deps
 from src.schemas.isochrone import (
@@ -125,15 +125,18 @@ async def poi_multi_isochrones(
     return json.loads(gdf.to_json())
 
 
-@router.post("/export", response_class=StreamingResponse)
+@router.post("/export/", response_class=StreamingResponse)
 async def export_isochrones(
     *,
     db: AsyncSession = Depends(deps.get_db),
-    isochrone_in: IsochroneExport,
     current_user: models.User = Depends(deps.get_current_active_user),
+    obj_in: schemas.isochrone.IsochroneExport = Body(
+        ..., example=request_examples["export_isochrones"]
+    )
 ) -> Any:
     """
     Export isochrones.
     """
-    file_response = await crud.isochrone.export_isochrone(db=db, obj_in=isochrone_in)
+
+    file_response = await crud.isochrone.export_isochrone(db=db, current_user=current_user, isochrone_calculation_id=obj_in.isochrone_calculation_id, return_type=obj_in.return_type)
     return file_response
