@@ -1168,14 +1168,7 @@ export default {
     /**
      * Draw interaction end event handler
      */
-    onMultiIsochroneDrawEnd(evt) {
-      const feature = evt.feature;
-      let region = null;
-      const geometry = feature
-        .getGeometry()
-        .clone()
-        .transform("EPSG:3857", "EPSG:4326");
-      region = geometryToWKT(geometry);
+    onMultiIsochroneDrawEnd() {
       if (this.selectedPois.length === 0) {
         this.toggleSnackbar({
           type: "error",
@@ -1185,7 +1178,7 @@ export default {
         });
         return;
       }
-      this.countPois([region]);
+      this.countPois();
       this.toggleSnackbar({
         type:
           this.multiIsochronePoiCount > this.maxAmenities
@@ -1236,7 +1229,38 @@ export default {
     /**
      * Count pois that intersect with study area or polygon
      */
-    countPois(region) {
+    countPois() {
+      this.multiIsochronePoiCount = 0;
+      const region = [];
+      const multiIsochroneSelectionLayerFeatures = this.multiIsochroneSelectionLayer
+        .getSource()
+        .getFeatures();
+      if (multiIsochroneSelectionLayerFeatures.length === 0) {
+        this.toggleSnackbar({
+          type:
+            this.multiIsochronePoiCount > this.maxAmenities ||
+            this.multiIsochronePoiCount === 0
+              ? "error"
+              : this.appColor.primary,
+          message:
+            this.$t("isochrones.multiple.amenityCount") +
+            ` ${this.multiIsochronePoiCount} (Limit: ${this.maxAmenities})`,
+          state: true,
+          timeout: 100000
+        });
+        return;
+      }
+      multiIsochroneSelectionLayerFeatures.forEach(feature => {
+        if (this.multiIsochroneMethod === "study_area") {
+          region.push(feature.get("id"));
+        } else {
+          const geometry = feature
+            .getGeometry()
+            .clone()
+            .transform("EPSG:3857", "EPSG:4326");
+          region.push(geometryToWKT(geometry));
+        }
+      });
       ApiService.post(`/isochrones/multi/count-pois`, {
         region_type: this.multiIsochroneMethod,
         region,
@@ -1248,13 +1272,13 @@ export default {
         amenities: this.selectedPoisOnlyKeys
       })
         .then(response => {
-          if (response.data && Array.isArray(response.data.features)) {
-            const feature = response.data.features[0];
-            const countPois = feature.properties.count_pois;
-            this.multiIsochronePoiCount += countPois;
+          if (response.data) {
+            const poisNumber = response.data;
+            this.multiIsochronePoiCount = poisNumber;
             this.toggleSnackbar({
               type:
-                this.multiIsochronePoiCount > this.maxAmenities
+                this.multiIsochronePoiCount > this.maxAmenities ||
+                this.multiIsochronePoiCount === 0
                   ? "error"
                   : this.appColor.primary,
               message:
@@ -1300,6 +1324,7 @@ export default {
             .getSource()
             .removeFeature(featureAtCoord[0]);
           this.startHelpTooltip(this.$t("map.tooltips.clickToSelectStudyArea"));
+          this.countPois();
           return;
         }
         const subStudyAreaAtCoord = this.subStudyAreaLayer
@@ -1309,9 +1334,7 @@ export default {
           const feature = subStudyAreaAtCoord[0].clone();
           this.multiIsochroneSelectionLayer.getSource().addFeature(feature);
         }
-        const region = geometryToWKT(new Point(coordinateWgs84));
-        console.log(region);
-        //TODO: Count pois
+        this.countPois();
       } else {
         const payloadSingle = {
           x: coordinateWgs84[0],
@@ -1383,8 +1406,6 @@ export default {
             })
           })
           .then(response => {
-            this.isMapBusy = false;
-            this.isIsochroneBusy = false;
             resolve(response);
             if (response.data) {
               const calculationData = [];
@@ -1434,7 +1455,9 @@ export default {
                   range: feature.get("step") / 60 + " min",
                   color: color,
                   area: getPolygonArea(feature.getGeometry()),
-                  population: feature.get("reached_opportunities").sum_pop,
+                  population:
+                    feature.get("reached_opportunities").sum_pop ||
+                    feature.get("reached_opportunities").reached_population,
                   isVisible: true
                 };
                 feature.set("isVisible", true);
@@ -1499,6 +1522,8 @@ export default {
                     transformedData.position = "Unknown";
                   })
                   .finally(() => {
+                    this.isMapBusy = false;
+                    this.isIsochroneBusy = false;
                     this.calculations.forEach(calculation => {
                       calculation.isExpanded = false;
                     });
@@ -1516,6 +1541,8 @@ export default {
                 this.isochroneLayer.getSource().addFeatures(olFeatures);
                 this.toggleIsochroneWindow(true, transformedData);
                 this.isOptionsElVisible = false;
+                this.isMapBusy = false;
+                this.isIsochroneBusy = false;
               }
             }
           })
@@ -1523,10 +1550,6 @@ export default {
             this.isMapBusy = false;
             this.isIsochroneBusy = false;
             reject(error);
-          })
-          .finally(() => {
-            this.isMapBusy = false;
-            this.isIsochroneBusy = false;
           });
       });
     },
@@ -1977,19 +2000,7 @@ export default {
     },
     selectedPois() {
       if (this.multiIsochroneMethod) {
-        this.multiIsochronePoiCount = 0;
-        this.multiIsochroneSelectionLayer
-          .getSource()
-          .getFeatures()
-          .forEach(feature => {
-            console.log(feature.get("id"));
-            const geometry = feature
-              .getGeometry()
-              .clone()
-              .transform("EPSG:3857", "EPSG:4326");
-            const region = geometryToWKT(geometry);
-            this.countPois([region]);
-          });
+        this.countPois();
       }
     }
   },
