@@ -37,11 +37,15 @@ async def calculate_single_isochrone(
     """
     isochrone_in.user_id = current_user.id
     isochrone = await crud.isochrone.calculate_single_isochrone(db=db, obj_in=isochrone_in)
-    return json.loads(isochrone.to_json()) 
+    return json.loads(isochrone.to_json())
 
-@router.post("/network/{modus}/{return_type}", response_class=JSONResponse)
+
+@router.get(
+    "/network/{isochrone_calculation_id}/{modus}/{return_type}", response_class=JSONResponse
+)
 async def calculate_reached_network(
-    *, db: AsyncSession = Depends(deps.get_db),
+    *,
+    db: AsyncSession = Depends(deps.get_db),
     isochrone_calculation_id: int,
     modus: str = "default",
     return_type: str = "geobuf",
@@ -50,17 +54,21 @@ async def calculate_reached_network(
     """
     Calculate the reached network for a single isochrone.
     """
-    isochrone_calc_obj = await crud.isochrone_calculation.get_by_key(db=db, key='id', value=isochrone_calculation_id)
+    isochrone_calc_obj = await crud.isochrone_calculation.get_by_key(
+        db=db, key="id", value=isochrone_calculation_id
+    )
     isochrone_calc_obj = isochrone_calc_obj[0]
-    isochrone_feature_obj = await crud.isochrone_feature.get_by_key(db=db, key='isochrone_calculation_id', value=isochrone_calculation_id)
+    isochrone_feature_obj = await crud.isochrone_feature.get_by_key(
+        db=db, key="isochrone_calculation_id", value=isochrone_calculation_id
+    )
 
-    minutes = int(max([obj.step for obj in isochrone_feature_obj]) / 60) 
+    minutes = int(max([obj.step for obj in isochrone_feature_obj]) / 60)
 
-    x,y = isochrone_calc_obj.starting_point.replace('POINT (','').replace(')','').split(' ')
+    x, y = isochrone_calc_obj.starting_point.replace("POINT (", "").replace(")", "").split(" ")
 
     obj_calculation = IsochroneSingle(
         minutes=minutes,
-        speed= 3.6 * isochrone_calc_obj.speed,
+        speed=3.6 * isochrone_calc_obj.speed,
         n=len(isochrone_feature_obj),
         modus=modus,
         x=x,
@@ -68,17 +76,18 @@ async def calculate_reached_network(
         user_id=current_user.id,
         routing_profile=isochrone_calc_obj.routing_profile,
         active_upload_ids=current_user.active_data_upload_ids,
-        scenario_id=isochrone_calc_obj.scenario_id
+        scenario_id=isochrone_calc_obj.scenario_id,
     )
 
     network = await crud.isochrone.calculate_reached_network(db=db, obj_in=obj_calculation)
     return return_geojson_or_geobuf(json.JSONDecoder().decode(json.dumps(network)), return_type)
 
+
 @router.post("/multi", response_class=JSONResponse)
 async def calculate_multi_isochrone(
     *,
     db: AsyncSession = Depends(deps.get_db),
-    isochrone_in: IsochroneMulti = Body(...,example=request_examples["multi_isochrone"]),
+    isochrone_in: IsochroneMulti = Body(..., example=request_examples["multi_isochrone"]),
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -87,6 +96,7 @@ async def calculate_multi_isochrone(
     isochrone_in.user_id = current_user.id
     isochrone = await crud.isochrone.calculate_multi_isochrones(db=db, obj_in=isochrone_in)
     return json.loads(isochrone.to_json())
+
 
 @router.post("/multi/count-pois", response_class=JSONResponse)
 async def count_pois_multi_isochrones(
@@ -101,10 +111,9 @@ async def count_pois_multi_isochrones(
     Count pois under study area.
     """
     isochrone_in.user_id = current_user.id
-    cnt = await crud.isochrone.count_pois_multi_isochrones(
-        db=db, obj_in=isochrone_in
-    ) 
+    cnt = await crud.isochrone.count_pois_multi_isochrones(db=db, obj_in=isochrone_in)
     return cnt
+
 
 @router.post("/multi/pois", response_class=JSONResponse)
 async def poi_multi_isochrones(
@@ -119,9 +128,7 @@ async def poi_multi_isochrones(
     Compute multiisochrone with POIs as starting points.
     """
     isochrone_in.user_id = current_user.id
-    gdf = await crud.isochrone.calculate_pois_multi_isochrones(
-        db=db, obj_in=isochrone_in
-    )
+    gdf = await crud.isochrone.calculate_pois_multi_isochrones(db=db, obj_in=isochrone_in)
     return json.loads(gdf.to_json())
 
 

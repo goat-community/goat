@@ -97,10 +97,8 @@ export default {
       });
 
       // Update network color
-      const selectedModeHumanize =
-        this.selectedMode === "default" ? "Default" : "Scenario";
-      if (!this.calculation.additionalData[selectedModeHumanize]) return;
-      this.calculation.additionalData[selectedModeHumanize].features.forEach(
+      if (!this.calculation.additionalData[this.selectedMode]) return;
+      this.calculation.additionalData[this.selectedMode].features.forEach(
         feature => {
           const cost = feature.get("cost");
           const lowestCostValue = 0; // TODO: Find lowest and highest based on response data
