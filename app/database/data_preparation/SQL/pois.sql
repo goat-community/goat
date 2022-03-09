@@ -76,7 +76,7 @@ SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenu
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom, tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_polygon
-WHERE (government IS NOT NULL OR (amenity = 'public_building'))
+WHERE (government IS NOT NULL OR (amenity = 'public_building'c))
 
 UNION ALL 
 
