@@ -15,19 +15,22 @@ from geojson import FeatureCollection
 from geopandas import GeoDataFrame, GeoSeries
 from geopandas.io.sql import read_postgis
 from pandas.io.sql import read_sql
-from shapely.geometry import MultiPolygon, Point, Polygon
+from pyproj import Transformer, transform
+from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
-from pyproj import Transformer, transform
-from src.resources.enums import IsochroneExportType
+
+from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
 from src.exts.cpp.bind import isochrone as isochrone_cpp
+from src.resources.enums import SQLReturnTypes, IsochroneExportType
 from src.schemas.isochrone import (
     IsochroneExport,
     IsochroneMulti,
     IsochroneMultiCountPois,
+    IsochronePoiMulti,
     IsochroneSingle,
     IsochroneTypeEnum,
     IsochronePoiMulti,
@@ -184,7 +187,7 @@ class CRUDIsochrone:
 
         if return_network == True:
             features = []
-            transformer = Transformer.from_crs(3857, 4326)
+            transformer = Transformer.from_crs(3857, 4326, always_xy=True)
             for edge in result.network:
                 coords = []
                 for i in edge.shape:
