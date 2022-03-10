@@ -17,35 +17,6 @@ from src.utils import send_new_account_email, to_feature_collection
 router = APIRouter()
 
 
-@router.post("/", response_model=models.User, response_model_exclude={"hashed_password"})
-async def create_user(
-    *,
-    db: AsyncSession = Depends(deps.get_db),
-    user_in: schemas.UserCreate = Body(..., example=request_examples["create"]),
-    current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
-    """
-    Create new user.
-    """
-    is_superuser = crud.user.is_superuser(current_user)
-    if not is_superuser:
-        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
-
-    user = await crud.user.get_by_key(db, key="email", value=user_in.email)
-    user = user[0]
-    if user:
-        raise HTTPException(
-            status_code=400,
-            detail="The user with this email already exists in the system.",
-        )
-    user = await crud.user.create(db, obj_in=user_in)
-    if settings.EMAILS_ENABLED and user_in.email:
-        send_new_account_email(
-            email_to=user_in.email, username=user_in.email, password=user_in.password
-        )
-    return user
-
-
 @router.get("/", response_model=List[models.User], response_model_exclude={"hashed_password"})
 async def read_users(
     db: AsyncSession = Depends(deps.get_db),
@@ -107,6 +78,35 @@ async def read_user_study_areas(
     return user.study_areas
 
 
+@router.post("/", response_model=models.User, response_model_exclude={"hashed_password"})
+async def create_user(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    user_in: schemas.UserCreate = Body(..., example=request_examples["create"]),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Create new user.
+    """
+    is_superuser = crud.user.is_superuser(current_user)
+    if not is_superuser:
+        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
+
+    user = await crud.user.get_by_key(db, key="email", value=user_in.email)
+    user = user[0]
+    if user:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this email already exists in the system.",
+        )
+    user = await crud.user.create(db, obj_in=user_in)
+    if settings.EMAILS_ENABLED and user_in.email:
+        send_new_account_email(
+            email_to=user_in.email, username=user_in.email, password=user_in.password
+        )
+    return user
+
+
 @router.get("/{user_id}", response_model=models.User, response_model_exclude={"hashed_password"})
 async def read_user_by_id(
     user_id: int,
@@ -116,6 +116,10 @@ async def read_user_by_id(
     """
     Get a specific user by id.
     """
+    is_superuser = crud.user.is_superuser(current_user)
+    if not is_superuser:
+        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
+
     user = await crud.user.get(db, id=user_id, extra_fields=[models.User.roles])
     if user == current_user:
         return user
@@ -137,7 +141,6 @@ async def delete_user(
     Delete a user.
     """
     is_superuser = crud.user.is_superuser(current_user)
-
     if not is_superuser:
         raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
 
@@ -151,18 +154,23 @@ async def delete_user(
     return user
 
 
-@router.put("/me", response_model=models.User, response_model_exclude={"hashed_password"})
+@router.put("/{user_id}", response_model=models.User, response_model_exclude={"hashed_password"})
 async def update_user(
     *,
     db: AsyncSession = Depends(deps.get_db),
+    user_id: int,
     user_in: schemas.UserUpdate = Body(..., example=request_examples["update"]),
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Update a user.
     """
+    is_superuser = crud.user.is_superuser(current_user)
+    if not is_superuser:
+        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
+
     user = await crud.user.get(
-        db, id=current_user.id, extra_fields=[models.User.study_areas, models.User.roles]
+        db, id=user_id, extra_fields=[models.User.study_areas, models.User.roles]
     )
     if not user:
         raise HTTPException(

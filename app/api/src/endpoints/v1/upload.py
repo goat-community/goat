@@ -9,7 +9,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from starlette.responses import JSONResponse
 
-from src import crud
+from src import crud, schemas
 from src.crud.crud_customization import dynamic_customization
 from src.db import models
 from src.db.models.config_validation import PoiCategory, check_dict_schema
@@ -20,7 +20,7 @@ router = APIRouter()
 
 
 @router.get("/poi")
-async def upload_custom_pois(
+async def get_custom_pois(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user)
@@ -115,3 +115,19 @@ async def delete_custom_pois(
         db=db, data_upload_id=data_upload_id, current_user=current_user
     )
     return {"msg": "Successfully deleted custom pois"}
+
+
+@router.patch("/poi")
+async def set_active_state_of_custom_poi(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    custom_data_upload_state: schemas.CutomDataUploadState,
+    current_user: models.User = Depends(deps.get_current_active_user)
+) -> Any:
+    """Set active state of a custom poi."""
+
+    await crud.upload.set_active_state_of_custom_poi(
+        db=db, current_user=current_user, obj_in=custom_data_upload_state
+    )
+
+    return {"msg": "Successfully updated active state of custom poi"}
