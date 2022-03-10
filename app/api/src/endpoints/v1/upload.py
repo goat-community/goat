@@ -19,7 +19,7 @@ from src.schemas.upload import request_examples
 router = APIRouter()
 
 
-@router.get("/metadata")
+@router.get("/poi")
 async def upload_custom_pois(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -37,9 +37,10 @@ async def upload_custom_pois(
         category = category.all()
         if category != []:
             obj_dict = {
+                "id": obj.id,
                 "category": category[0][0],
                 "upload_size": obj.upload_size,
-                "creation_data": str(obj.creation_date),
+                "creation_date": str(obj.creation_date),
             }
 
             response_objs.append(obj_dict)
@@ -47,7 +48,7 @@ async def upload_custom_pois(
     return json.loads(json.dumps(response_objs))
 
 
-@router.post("/upload/poi")
+@router.post("/poi")
 async def upload_custom_pois(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -63,7 +64,7 @@ async def upload_custom_pois(
     )
 
     hex_color = "#%06x" % random.randint(0, 0xFFFFFF)
-    new_setting = {poi_category: {"icon": "fas fa question", "color": [hex_color]}}
+    new_setting = {poi_category: {"icon": "fas fa-question", "color": [hex_color]}}
 
     if check_dict_schema(PoiCategory, new_setting) == False:
         raise HTTPException(status_code=400, detail="Invalid JSON-schema")
@@ -81,24 +82,9 @@ async def upload_custom_pois(
 
     return updated_settings
 
-@router.post("/delete/poi/")
-async def delete_custom_pois(
-    *,
-    db: AsyncSession = Depends(deps.get_db),
-    data_upload_id: int = Body(..., example=request_examples["delete_upload"]),
-    current_user: models.User = Depends(deps.get_current_active_user)
-) -> Any:
 
-    """Delete custom pois."""
-
-    await crud.upload.delete_custom_pois(
-        db=db, data_upload_id=data_upload_id, current_user=current_user
-    )
-    return {"msg": "Successfully deleted custom pois"}
-
-
-@router.get("/delete/poi/all")
-async def delete_custom_pois(
+@router.delete("/poi/all")
+async def delete_all_custom_pois(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user)
@@ -112,4 +98,20 @@ async def delete_custom_pois(
             db=db, data_upload_id=obj.id, current_user=current_user
         )
 
+    return {"msg": "Successfully deleted custom pois"}
+
+
+@router.delete("/poi/{data_upload_id}")
+async def delete_custom_pois(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    data_upload_id: int,
+    current_user: models.User = Depends(deps.get_current_active_user)
+) -> Any:
+
+    """Delete custom pois."""
+
+    await crud.upload.delete_custom_pois(
+        db=db, data_upload_id=data_upload_id, current_user=current_user
+    )
     return {"msg": "Successfully deleted custom pois"}

@@ -22,10 +22,15 @@ async def create_user(
     *,
     db: AsyncSession = Depends(deps.get_db),
     user_in: schemas.UserCreate = Body(..., example=request_examples["create"]),
+    current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Create new user.
     """
+    is_superuser = crud.user.is_superuser(current_user)
+    if not is_superuser:
+        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
+
     user = await crud.user.get_by_key(db, key="email", value=user_in.email)
     user = user[0]
     if user:
@@ -43,11 +48,18 @@ async def create_user(
 
 @router.get("/", response_model=List[models.User], response_model_exclude={"hashed_password"})
 async def read_users(
-    db: AsyncSession = Depends(deps.get_db), skip: int = 0, limit: int = 100
+    db: AsyncSession = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 100,
+    current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Retrieve users.
     """
+    is_superuser = crud.user.is_superuser(current_user)
+    if not is_superuser:
+        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
+
     users = await crud.user.get_multi(db, skip=skip, limit=limit)
     return users
 
@@ -73,7 +85,7 @@ async def read_user_study_area(
     Get current user's active study area.
     """
     study_area = await crud.user.get_active_study_area(db, current_user)
-    
+
     features = to_feature_collection(study_area, exclude_properties=["default_setting"])
     return features
 
@@ -112,29 +124,6 @@ async def read_user_by_id(
     return user
 
 
-@router.put("/{user_id}", response_model=models.User, response_model_exclude={"hashed_password"})
-async def update_user(
-    *,
-    db: AsyncSession = Depends(deps.get_db),
-    user_id: int,
-    user_in: schemas.UserUpdate = Body(..., example=request_examples["update"]),
-    current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
-    """
-    Update a user.
-    """
-    user = await crud.user.get(
-        db, id=user_id, extra_fields=[models.User.study_areas, models.User.roles]
-    )
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this username does not exist in the system",
-        )
-    user = await crud.user.update(db, db_obj=user, obj_in=user_in)
-    return user
-
-
 @router.delete(
     "/{user_id}", response_model=models.User, response_model_exclude={"hashed_password"}
 )
@@ -147,8 +136,10 @@ async def delete_user(
     """
     Delete a user.
     """
-    if user_id == current_user.id:
-        raise HTTPException(status_code=400, detail="The user cannot delete himself")
+    is_superuser = crud.user.is_superuser(current_user)
+
+    if not is_superuser:
+        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
 
     user = await crud.user.get(db, id=user_id)
     if not user:
@@ -157,4 +148,26 @@ async def delete_user(
             detail="The user with this username does not exist in the system",
         )
     user = await crud.user.remove(db, id=user_id)
+    return user
+
+
+@router.put("/me", response_model=models.User, response_model_exclude={"hashed_password"})
+async def update_user(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    user_in: schemas.UserUpdate = Body(..., example=request_examples["update"]),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Update a user.
+    """
+    user = await crud.user.get(
+        db, id=current_user.id, extra_fields=[models.User.study_areas, models.User.roles]
+    )
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this username does not exist in the system",
+        )
+    user = await crud.user.update(db, db_obj=user, obj_in=user_in)
     return user

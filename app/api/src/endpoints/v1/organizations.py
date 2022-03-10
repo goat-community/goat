@@ -17,10 +17,15 @@ async def create_organization(
     *,
     db: AsyncSession = Depends(deps.get_db),
     organization_in: schemas.OrganizationCreate = Body(..., example=request_examples["create"]),
+    current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Create new organization.
     """
+    is_superuser = crud.user.is_superuser(current_user)
+    if not is_superuser:
+        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
+
     organization = await crud.organization.get_by_key(db, key="name", value=organization_in.name)
     if organization:
         raise HTTPException(
@@ -32,10 +37,17 @@ async def create_organization(
 
 
 @router.get("/", response_model=List[models.Organization])
-async def read_organizations(db: AsyncSession = Depends(deps.get_db)) -> Any:
+async def read_organizations(
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
     """
     Retrieve organizations.
     """
+    is_superuser = crud.user.is_superuser(current_user)
+    if not is_superuser:
+        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
+
     organizations = await crud.organization.get_multi(db, extra_fields=[models.Organization.users])
     return organizations
 
@@ -49,10 +61,15 @@ async def get_users_for_organization(
     *,
     db: AsyncSession = Depends(deps.get_db),
     organization_id: int,
+    current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Get all users for an organization.
     """
+    is_superuser = crud.user.is_superuser(current_user)
+    if not is_superuser:
+        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
+
     organization = await crud.organization.get(
         db, id=organization_id, extra_fields=[models.Organization.users]
     )
@@ -68,10 +85,15 @@ async def update_organization(
     db: AsyncSession = Depends(deps.get_db),
     organization_id: int,
     organization_in: schemas.OrganizationUpdate = Body(..., example=request_examples["update"]),
+    current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Update an organization.
     """
+    is_superuser = crud.user.is_superuser(current_user)
+    if not is_superuser:
+        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
+
     organization = await crud.organization.get(db, id=organization_id)
     if not organization:
         raise HTTPException(status_code=404, detail="Organization not found")
@@ -86,10 +108,15 @@ async def delete_organization(
     *,
     db: AsyncSession = Depends(deps.get_db),
     organization_id: int,
+    current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Delete an organization.
     """
+    is_superuser = crud.user.is_superuser(current_user)
+    if not is_superuser:
+        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
+
     organization = await crud.organization.get(db, id=organization_id)
     if not organization:
         raise HTTPException(status_code=404, detail="Organization not found")
