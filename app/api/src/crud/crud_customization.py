@@ -432,15 +432,17 @@ class CRUDDynamicCustomization:
         
 
         settings_to_update = self.arr_dict_to_nested_dict(user_customizations[0].setting[setting_type])
+
         for group in settings_to_update:
             for category in settings_to_update[group]["children"]:
                 if category == setting_to_delete:
                     settings_to_update[group]["children"].pop(category)
-                    if settings_to_update[group]["children"] == {}:
-                        del settings_to_update[group]
-                break
-            break    
+                    break
         
+        if 'other' in settings_to_update:
+            if settings_to_update['other']['children'] == {}:
+                del settings_to_update['other']
+
         settings_to_update = {
             setting_type: self.nested_dict_to_arr_dict(settings_to_update)
         }
