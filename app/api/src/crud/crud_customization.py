@@ -436,11 +436,14 @@ class CRUDDynamicCustomization:
             for category in settings_to_update[group]["children"]:
                 if category == setting_to_delete:
                     settings_to_update[group]["children"].pop(category)
-                    break
-
+                    if settings_to_update[group]["children"] == {}:
+                        del settings_to_update[group]
+                break
+            break    
+        
         settings_to_update = {
-                setting_type: self.nested_dict_to_arr_dict(settings_to_update)
-            }
+            setting_type: self.nested_dict_to_arr_dict(settings_to_update)
+        }
             
         if check_dict_schema(LayerGroups, settings_to_update) == True or check_dict_schema(PoiGroups, settings_to_update) == True:
             await db.execute(
@@ -495,7 +498,7 @@ class CRUDDynamicCustomization:
                 user_customizations=user_customizations,
                 setting_type=setting_type,
             )
-            db.commit()
+            await db.commit()
         elif modification_type == 'insert' and user_customizations is None:
             await self.insert_user_setting(
                 db=db,
@@ -505,7 +508,7 @@ class CRUDDynamicCustomization:
                 insert_settings=changeset,
                 setting_type=setting_type,
             )
-            db.commit()
+            await db.commit()
         elif modification_type == 'delete' and user_customizations is not None:
             await self.delete_user_settings(
                 db=db,
@@ -514,7 +517,7 @@ class CRUDDynamicCustomization:
                 setting_to_delete=changeset,
                 setting_type=setting_type
             )
-            db.commit()
+            await db.commit()
         else:
             raise HTTPException(status_code=400, detail="Invalid modification type.")
 
