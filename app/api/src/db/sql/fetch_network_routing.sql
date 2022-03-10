@@ -30,7 +30,7 @@ BEGIN
 	basic.query_edges_routing(ST_ASTEXT(buffer_network),modus,scenario_id,speed,routing_profile,True) || 
     ' AND id NOT IN (SELECT wid FROM artificial_edges)
 	UNION ALL 
-	SELECT id, source, target, ST_LENGTH(ST_TRANSFORM(geom, 3857)) AS length_m, cost, reverse_cost, NULL AS death_end, ST_AsGeoJSON(ST_Transform(geom,3857))::json->''coordinates'', NULL AS starting_ids, NULL AS starting_geoms
+	SELECT id, source, target, ST_LENGTH(ST_TRANSFORM(geom, 3857)) AS length_3857, cost, reverse_cost, NULL AS death_end, ST_AsGeoJSON(ST_Transform(geom,3857))::json->''coordinates'', NULL AS starting_ids, NULL AS starting_geoms
 	FROM artificial_edges' USING ARRAY[max_new_node_id]::integer[], ARRAY[ST_ASTEXT(point)]::TEXT[];
 
 END;

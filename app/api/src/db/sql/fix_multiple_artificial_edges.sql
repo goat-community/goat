@@ -15,9 +15,15 @@ BEGIN
 	FOREACH end_fraction IN ARRAY fractions
 	LOOP 
 		RETURN query
-		SELECT wid, c*(end_fraction-start_fraction),rc*(end_fraction-start_fraction), 
-		source_id, vids[cnt], ST_LINESUBSTRING(w_geom,start_fraction,end_fraction);
-		
+		WITH parts AS 
+		(
+			SELECT wid, c*(end_fraction-start_fraction) AS cost,rc*(end_fraction-start_fraction) AS reverse_cost, 
+			source_id AS source, vids[cnt] AS target, ST_LINESUBSTRING(w_geom,start_fraction,end_fraction) AS geom
+		)
+		SELECT p.wid, p.cost, p.reverse_cost, p.source, p.target, p.geom
+		FROM parts p
+		WHERE p.cost <> 0;  
+
 		start_fraction = end_fraction;
 		source_id = vids[cnt];
 		edge_id = edge_id - 1;
