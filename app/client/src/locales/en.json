@@ -396,6 +396,7 @@
       "noiseAircraftLNight": "Aircraft noise - Level LNight",
       "noiseProtectionBauleitplanung": "Noise protection area for urban land use planning",
       "ways_parking": "Parking",
+      "ways_segregated": "Segregation of pedestrians and cyclists",
       "ways_smoothness": "Smoothness",
       "ways_speed": "Speed",
       "ways_category": "Street Categories Detailed",
