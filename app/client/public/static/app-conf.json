@@ -1248,13 +1248,6 @@
           "categoryValue": "shop",
           "children": [
             {
-              "name": "Grocery",
-              "value": "grocery",
-              "icon": "grocery",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
               "name": "Convenience store",
               "value": "convenience",
               "icon": "convenience",
@@ -1265,27 +1258,6 @@
               "name": "Supermarket",
               "value": "supermarket",
               "icon": "supermarket",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Discount Supermarket",
-              "value": "discount_supermarket",
-              "icon": "discount_supermarket",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "International Supermarket",
-              "value": "international_supermarket",
-              "icon": "international_supermarket",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Hypermarket",
-              "value": "hypermarket",
-              "icon": "hypermarket",
               "weight": 1,
               "sensitivity": 300000
             },
@@ -1307,13 +1279,6 @@
               "name": "Kiosk",
               "value": "kiosk",
               "icon": "kiosk",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Tobacco",
-              "value": "tobacco",
-              "icon": "tobacco",
               "weight": 1,
               "sensitivity": 300000
             }
@@ -1427,14 +1392,7 @@
               "sensitivity": 300000
             },
             {
-              "name": "Discount Gym",
-              "value": "discount_gym",
-              "icon": "discount_gym",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "gym",
+              "name": "Fitness Center",
               "value": "gym",
               "icon": "gym",
               "weight": 1,
@@ -1564,7 +1522,7 @@
             },
             {
               "name": "Nursery",
-              "value": "nursery",
+              "value": "childcare",
               "icon": "nursery",
               "weight": 1,
               "sensitivity": 300000
@@ -1586,9 +1544,9 @@
               "locked": false
             },
             {
-              "name": "Middle School",
-              "value": "middle_school",
-              "icon": "middle_school",
+              "name": "Secondary School",
+              "value": "secondary_school",
+              "icon": "secondary_school",
               "weight": 1,
               "sensitivity": 300000,
               "locked": false
