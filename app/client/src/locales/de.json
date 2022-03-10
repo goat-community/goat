@@ -402,6 +402,7 @@
       "noiseAircraftLNight": "Fluglärm - Pegelraster LNight",
       "noiseProtectionBauleitplanung": "Lärmschutzbereich zur Lenkung der Bauleitplanung",
       "ways_parking": "Parkplätze am Straßenrand",
+      "ways_segregated": "Trennung von Fuß- und Radverkehr",
       "ways_smoothness": "Qualität Oberfläche",
       "ways_speed": "Geschwindigkeitsbegrenzungen",
       "ways_category": "Straßenkategorien - detailliert",
