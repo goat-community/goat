@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="show" scrollable max-width="550px">
+  <v-dialog v-model="show" persistent scrollable max-width="550px">
     <v-card>
       <v-app-bar :color="appColor.primary" dark>
         <v-app-bar-nav-icon
@@ -97,6 +97,10 @@
             @input="categoryNameInput"
           ></v-text-field>
 
+          <v-alert v-if="errorMessage" dense outlined type="error">
+            {{ errorMessage }}
+          </v-alert>
+
           <v-btn
             :color="appColor.primary"
             class="white--text"
@@ -111,12 +115,23 @@
             {{ $t(`appBar.dataUpload.dialog.browseYourFiles`) }}
           </v-btn>
           <input
+            id="custom-data-input-file-el"
             ref="uploader"
             class="d-none"
             type="file"
-            accept="image/*"
+            accept="application/json,.zip"
             @change="onFileChanged"
           />
+          <p v-if="isUploadBusy" class="mt-4 mb-1 sub-header">
+            Uploading file
+          </p>
+          <v-progress-linear
+            height="2"
+            v-if="isUploadBusy"
+            indeterminate
+            :color="appColor.secondary"
+            class="mb-6 mt-0 pt-0"
+          ></v-progress-linear>
         </v-card-text>
       </vue-scroll>
     </v-card>
@@ -125,6 +140,8 @@
 
 <script>
 import { mapGetters } from "vuex";
+import ApiService from "../../services/api.service";
+import { GET_USER_CUSTOM_DATA } from "../../store/actions.type";
 export default {
   data: () => ({
     isBusy: false,
@@ -133,6 +150,9 @@ export default {
     isSelecting: false,
     isCustom: false,
     selectedPoi: null,
+    isUploadBusy: false,
+    filesizeLimit: 1e8,
+    errorMessage: null,
     minLength: val => {
       if (val < 2) return "Please enter a text with at least 1 characters";
       return true;
@@ -188,27 +208,88 @@ export default {
     },
     onFileChanged(e) {
       this.selectedFile = e.target.files[0];
+      this.errorMessage = null;
+      this.isUploadBusy = true;
+      if (this.selectedFile) {
+        if (
+          this.selectedFile.size > this.filesizeLimit //100mb TODO: Get from config / user settings
+        ) {
+          this.isUploadBusy = false;
+          this.errorMessage = this.$t(
+            "appBar.dataUpload.dialog.sizeLimitExceeded"
+          );
+          this.selectedFile = null;
+          return;
+        }
+        const formData = new FormData();
+        formData.append("file", this.selectedFile);
+        formData.append("poi_category", this.selectedPoi);
+        ApiService.post(`/custom-data/poi`, formData)
+          .then(() => {
+            this.$store.dispatch(`app/${GET_USER_CUSTOM_DATA}`);
+            this.clear();
+            this.show = false;
+          })
+          .catch(error => {
+            if (!error.response) {
+              this.errorMessage = "An error occurred while uploading file";
+            }
+            if (error.response.data.msg) {
+              this.errorMessage = error.response.data.msg;
+            }
+            if (error.response.data.detail) {
+              this.errorMessage = error.response.data.detail;
+            }
+          })
+          .finally(() => {
+            this.isUploadBusy = false;
+            this.selectedFile = null;
+            this.clearInputFile();
+          });
+      }
     },
     categoryNameInput() {
-      const existingPoi = this.poiList.filter(p => p.type === this.selectedPoi);
+      const existingPoi = this.poiList.filter(
+        p => p && p.type === this.selectedPoi
+      );
       if (existingPoi.length > 0) {
         this.isValid = false;
       } else {
         this.isValid = true;
       }
     },
-    clean() {
+    clear() {
       this.isValid = true;
       this.selectedFile = null;
       this.isSelecting = false;
       this.isCustom = false;
       this.selectedPoi = null;
+      this.errorMessage = null;
+    },
+    clearInputFile() {
+      const f = document.getElementById("custom-data-input-file-el");
+      if (f.value) {
+        try {
+          f.value = ""; //for IE11, latest Chrome/Firefox/Opera...
+        } catch (err) {
+          console.log(err);
+        }
+        if (f.value) {
+          //for IE5 ~ IE10
+          var form = document.createElement("form"),
+            parentNode = f.parentNode,
+            ref = f.nextSibling;
+          form.appendChild(f);
+          form.reset();
+          parentNode.insertBefore(f, ref);
+        }
+      }
     }
   },
   watch: {
     visible(visible) {
       if (!visible) {
-        this.clean();
+        this.clear();
       }
     }
   }

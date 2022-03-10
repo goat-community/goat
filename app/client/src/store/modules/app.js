@@ -1,12 +1,18 @@
 import ApiService from "../../services/api.service";
 import { getField, updateField } from "vuex-map-fields";
-import { GET_APP_CONFIG } from "../actions.type";
-import { SET_APP_CONFIG, SET_ERROR, SET_POI_ICONS } from "../mutations.type";
+import { GET_APP_CONFIG, GET_USER_CUSTOM_DATA } from "../actions.type";
+import {
+  SET_APP_CONFIG,
+  SET_ERROR,
+  SET_POI_ICONS,
+  SET_USER_CUSTOM_DATA
+} from "../mutations.type";
 import { errorMessage } from "../../utils/Helpers";
 
 const state = {
   errors: null,
   appConfig: null,
+  uploadedData: [],
   poiIcons: {},
   layerTabIndex: 0,
   calculationMode: {
@@ -21,6 +27,7 @@ const state = {
 
 const getters = {
   appConfig: state => state.appConfig,
+  uploadedData: state => state.uploadedData,
   calculationMode: state => state.calculationMode,
   appColor: state => {
     return state.appConfig.app_ui.base_color;
@@ -121,6 +128,16 @@ const getters = {
     });
     return aoisConfig;
   },
+  uploadedStorageSize: state => {
+    return state.uploadedData.reduce((acc, item) => {
+      return acc + item.upload_size;
+    }, 0);
+  },
+  // eslint-disable-next-line no-unused-vars
+  occupiedStoragePercentage: (state, getters, rootState, rootGetters) => {
+    const totalStorage = rootState.auth.user.storage;
+    return (getters.uploadedStorageSize * 100) / totalStorage;
+  },
   poiIcons: state => state.poiIcons,
   activeColor: state => state.activeColor,
   getField
@@ -133,6 +150,19 @@ const actions = {
         .then(response => {
           context.commit(SET_APP_CONFIG, response.data);
           context.commit(SET_POI_ICONS, response.data);
+          resolve(response.data);
+        })
+        .catch(({ response }) => {
+          errorMessage(context, response, SET_ERROR);
+          reject(response);
+        });
+    });
+  },
+  [GET_USER_CUSTOM_DATA](context) {
+    return new Promise((resolve, reject) => {
+      ApiService.get("/custom-data/poi")
+        .then(response => {
+          context.commit(SET_USER_CUSTOM_DATA, response.data);
           resolve(response.data);
         })
         .catch(({ response }) => {
@@ -169,6 +199,9 @@ const mutations = {
       });
     });
     state.poiIcons = icons;
+  },
+  [SET_USER_CUSTOM_DATA](state, customData) {
+    state.uploadedData = customData;
   }
 };
 

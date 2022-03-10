@@ -44,11 +44,12 @@ const ApiService = {
   update(resource, slug, params) {
     return Vue.axios.put(`${resource}/${slug}`, params);
   },
-
   put(resource, params) {
     return Vue.axios.put(`${resource}`, params);
   },
-
+  patch(resource, params) {
+    return Vue.axios.patch(`${resource}`, params);
+  },
   delete(resource) {
     return Vue.axios.delete(resource).catch(error => {
       throw new Error(`[GOAT] ApiService ${error}`);

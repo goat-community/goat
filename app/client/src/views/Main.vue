@@ -34,6 +34,7 @@ import Viewer from "../components/viewer/viewer";
 import "@/globalComponents";
 import {
   GET_USER,
+  GET_USER_CUSTOM_DATA,
   GET_APP_CONFIG,
   GET_STUDY_AREA,
   GET_STUDY_AREAS_LIST
@@ -54,6 +55,7 @@ export default {
   created() {
     this.$store.dispatch(`auth/${GET_USER}`);
     this.$store.dispatch(`app/${GET_APP_CONFIG}`);
+    this.$store.dispatch(`app/${GET_USER_CUSTOM_DATA}`);
     this.$store.dispatch(`map/${GET_STUDY_AREA}`);
     this.$store.dispatch(`map/${GET_STUDY_AREAS_LIST}`);
   },

@@ -107,14 +107,16 @@
       "deleteFile": "Delete file",
       "deleteAllFilesMessage": "Are you sure you want to delete all files?",
       "deleteFileMessage": "Are you sure you want to delete this file?",
+      "availableStorageExceeded": "Available storage exceeded",
       "table": {
-        "filename": "Filename",
+        "category": "Category",
         "date": "Date",
         "size": "Size",
         "delete": "Delete",
         "status": "Status"
       },
       "dialog": {
+        "sizeLimitExceeded": "File size limit exceeded",
         "uploadData": "Upload data",
         "uploadPointOfInterest": "Upload point of interest",
         "selectCategory": "Select category",
