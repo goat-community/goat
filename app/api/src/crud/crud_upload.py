@@ -148,30 +148,33 @@ class CRUDUploadFile:
         upload_obj = await data_upload.create(db=db, obj_in=upload_obj)
 
         # Write to database
-        gdf["uid"] = str(round(gdf.centroid.x, 4)) + "_" + str(round(gdf.centroid.y, 4))
-        gdf["uid"] = (
-            gdf.centroid.map(
-                lambda p: str(format(round(p.x, 4), ".4f"))
+        try:
+            gdf["uid"] = (
+                gdf.centroid.map(
+                    lambda p: str(format(round(p.x, 4), ".4f")).replace('.', '')
+                    + "_"
+                    + str(format(round(p.y, 4), ".4f")).replace('.', '')
+                )
                 + "_"
-                + str(format(round(p.y, 4), ".4f"))
+                + str(poi_category)
             )
-            + "_"
-            + str(poi_category)
-        )
-        gdf["count_uid"] = gdf.groupby(["uid"]).cumcount() + 1
-        gdf["uid"] = gdf["uid"] + "_" + gdf["count_uid"].astype(str) + "_" + str(upload_obj.id)
-        gdf["data_upload_id"] = upload_obj.id
+            gdf["count_uid"] = gdf.groupby(["uid"]).cumcount() + 1
+            gdf["uid"] = gdf["uid"] + "_" + gdf["count_uid"].astype(str) + "_u" + str(upload_obj.id)
+            gdf["data_upload_id"] = upload_obj.id
 
-        gdf.rename_geometry("geom", inplace=True)
-        gdf.drop(["count_uid"], axis=1, inplace=True)
+            gdf.rename_geometry("geom", inplace=True)
+            gdf.drop(["count_uid"], axis=1, inplace=True)
 
-        gdf.to_postgis(
-            name="poi_user",
-            schema="customer",
-            con=legacy_engine,
-            if_exists="append",
-            chunksize=1000,
-        )
+            gdf.to_postgis(
+                name="poi_user",
+                schema="customer",
+                con=legacy_engine,
+                if_exists="append",
+                chunksize=1000,
+            )
+        except:
+            await data_upload.remove(db=db, id=upload_obj.id)
+            raise HTTPException(status_code=400, detail="An error happened when writing the data into the database.")
 
         return {"msg": "Upload successful"}
 

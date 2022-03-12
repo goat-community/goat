@@ -46,6 +46,7 @@ class DataUpload(SQLModel, table=True):
             Integer, ForeignKey("basic.study_area.id"), nullable=False
         )
     )
+    reached_poi_heatmap_computed: Optional[bool]
 
     user: "User" = Relationship(back_populates="data_uploads")
     study_area: "StudyArea" = Relationship(back_populates="data_uploads")
