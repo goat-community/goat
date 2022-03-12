@@ -11,6 +11,7 @@ superuser:
         delay_1: 15 #seconds
         delay_2: 30 #seconds
     snap_distance_network: 200 #meters
+    snap_distance_poi_heatmap: 100 #meters
     one_meter_degree: "0.000009"
     heatmap_sensitivities:
         [150000, 200000, 250000, 300000, 350000, 400000, 450000]
@@ -125,17 +126,33 @@ superuser:
                   - accidents_pedestrians:
                         type: MVT
                         style:
-                        name: accidents_pedestrians
-                        rules:
+                            name: accidents_pedestrians
+                            rules:
                             - name: accident_point
-                              symbolizers:
-                                  - kind: Mark
-                                    color: "#ff9900"
-                                    radius: 3
-                                    wellKnownName: Square
+                            symbolizers:
+                            - kind: Mark
+                            color: "#ff9900"
+                            radius: 3
+                            wellKnownName: Square
                         attributes:
                             date: "2016, 2017, 2018, 2019"
                             source: Statistikportal
+
+                  - accidents_cyclists:
+                        type: MVT
+                        style:
+                            name: accidents_cyclists
+                            rules:
+                            - name: accident_point
+                            symbolizers:
+                            - kind: Mark
+                            color: "#ff9900"
+                            radius: 3
+                            wellKnownName: Square
+                        attributes:
+                            date: "2016, 2017, 2018, 2019"
+                            source: Statistikportal
+                
 
     extras:
 
