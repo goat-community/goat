@@ -21,3 +21,4 @@ from .scenario import ScenarioBase, ScenarioImport
 from .token import Token, TokenPayload
 from .upload import CutomDataUploadState
 from .user import UserBase, UserCreate, UserUpdate
+from .heatmap import ComputePoiUser

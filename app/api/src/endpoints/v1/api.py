@@ -13,6 +13,7 @@ from src.endpoints.v1 import (
     upload,
     users,
     utils,
+    heatmap
 )
 
 api_router = APIRouter()
@@ -25,13 +26,14 @@ api_router.include_router(customizations.router, prefix="/customizations", tags=
 api_router.include_router(utils.router, prefix="/utils", tags=["Utils"])
 api_router.include_router(upload.router, prefix="/custom-data", tags=["Custom Data"])
 api_router.include_router(isochrones.router, prefix="/isochrones", tags=["Isochrones"])
+api_router.include_router(heatmap.router, prefix="/heatmap", tags=["Heatmap"])
 api_router.include_router(scenarios.router, prefix="/scenarios", tags=["Scenarios"])
 api_router.include_router(poi_aoi.router, prefix="/pois-aois", tags=["POIs and AOIs"])
 api_router.include_router(
     static_layers.router, prefix="/layers/vector", tags=["Static vector layers"]
 )
 
-# LAYER: Vector tile endpoints.
+#LAYER: Vector tile endpoints.
 layer_tiles_prefix = "/layers/tiles"
 layer_tiles = layers.VectorTilerFactory(
     router_prefix=layer_tiles_prefix,

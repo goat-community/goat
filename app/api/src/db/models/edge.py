@@ -97,7 +97,6 @@ class Edge(EdgeBase, table=True):
     node_target: "Node" = Relationship(
         sa_relationship_kwargs={"primaryjoin": "Edge.target==Node.id", "lazy": "joined"}
     )
-    reached_edge_heatmaps: List["ReachedEdgeHeatmap"] = Relationship(back_populates="edge")
     scenario: Optional["Scenario"] = Relationship(back_populates="edges")
     isochrone_edges: List["IsochroneEdge"] = Relationship(back_populates="edge")
     # TODO: FIX children parent relations (reminder: edge_id foreign key might be wrong)
@@ -113,7 +112,6 @@ class Edge(EdgeBase, table=True):
 
 
 Index("idx_edge_geom", Edge.__table__.c.geom, postgresql_using="gist")
-
 
 class WayModified(EdgeBase, table=True):
     __tablename__ = "way_modified"
