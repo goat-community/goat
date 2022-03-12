@@ -1,11 +1,23 @@
 from enum import Enum
 
 
+class ReturnType(str, Enum):
+    geojson = "geojson"
+    geobuf = "geobuf"
+    db_geobuf = "db_geobuf"
+
+
+class ReturnWithoutDbGeobufEnum(str, Enum):
+    geojson = "geojson"
+    geobuf = "geobuf"
+
+
 class VectorType(str, Enum):
     """Vector Type Enums."""
 
     pbf = "pbf"
     mvt = "mvt"
+
 
 class IsochroneExportType(str, Enum):
     """Vector Type Enums."""
@@ -14,12 +26,16 @@ class IsochroneExportType(str, Enum):
     shp = "ESRI Shapefile"
     xlsx = "XLSX"
 
+
 class AllowedVectorTables(str, Enum):
     """Allowed Vector Tables Enums."""
+
     sub_study_area = "basic.sub_study_area"
+
 
 class SQLReturnTypes(str, Enum):
     """Allowed Vector Tables Enums."""
+
     db_geobuf = f"""
     WITH make_geobuf AS
     (
@@ -52,6 +68,7 @@ class SQLReturnTypes(str, Enum):
     FROM make_geojson g; 
     """
 
+
 class MimeTypes(str, Enum):
     """Responses MineTypes."""
 
@@ -64,8 +81,9 @@ class MimeTypes(str, Enum):
     mvt = "application/x-protobuf"
     geobuf = "application/geobuf.pbf"
 
+
 class UploadFileTypes(str, Enum):
     """Upload File Types."""
 
     geojson = "application/geo+json"
-    zip = "application/zip" 
+    zip = "application/zip"

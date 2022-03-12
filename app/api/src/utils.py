@@ -1,22 +1,24 @@
+import json
 import logging
+import os
+import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import emails
+import geobuf
 from emails.template import JinjaTemplate
+from fastapi import HTTPException
+from geoalchemy2.shape import to_shape
 from geojson import Feature, FeatureCollection
 from geojson import loads as geojsonloads
 from jose import jwt
-from geoalchemy2.shape import to_shape
-from src.core.config import settings
-import os
-import shutil
-import json 
-import geobuf 
 from starlette.responses import Response
+
+from src.core.config import settings
 from src.resources.enums import MimeTypes
-from fastapi import HTTPException
+
 
 def send_email(
     email_to: str,
@@ -115,8 +117,9 @@ def verify_password_reset_token(token: str) -> Optional[str]:
     except jwt.JWTError:
         return None
 
+
 def return_geojson_or_geobuf(
-    features : Any,
+    features: Any,
     return_type: str = "geojson",
 ) -> Any:
     """
@@ -131,6 +134,7 @@ def return_geojson_or_geobuf(
         return Response(bytes(features))
     else:
         raise HTTPException(status_code=400, detail="Invalid return type")
+
 
 def to_feature_collection(
     sql_result: Any,
@@ -181,6 +185,7 @@ def delete_file(file_path: str) -> None:
     except OSError as e:
         pass
 
+
 def delete_dir(dir_path: str) -> None:
     """Delete file from disk."""
     try:
@@ -188,8 +193,8 @@ def delete_dir(dir_path: str) -> None:
     except OSError as e:
         pass
 
+
 def clean_unpacked_zip(dir_path: str, zip_path: str) -> None:
     """Delete unpacked zip file and directory."""
     delete_dir(dir_path)
     delete_file(zip_path)
-    

@@ -36,9 +36,9 @@ from starlette.responses import HTMLResponse, Response
 from starlette.routing import NoMatchFound
 from starlette.templating import Jinja2Templates
 
-from src.endpoints import deps
 from src.core.config import settings
 from src.crud.crud_layer import layer as crud_layer
+from src.endpoints import deps
 from src.resources import tms as custom_tms
 from src.resources.enums import MimeTypes
 from src.schemas.layer import (
@@ -50,7 +50,6 @@ from src.schemas.layer import (
 from src.schemas.layer import registry as FunctionRegistry
 from src.schemas.mapbox import TileJSON
 
-# =====LAYER: VECTOR TILE ENDPOINTS==============================================
 try:
     from importlib.resources import files as resources_files  # type: ignore
 except ImportError:
@@ -398,6 +397,3 @@ class VectorTilerFactory:
                 context={"endpoint": tile_url, "request": request, "bounds": layer.bounds},
                 media_type="text/html",
             )
-
-
-# =====LAYER: EDITING ENDPOINTS==================================================

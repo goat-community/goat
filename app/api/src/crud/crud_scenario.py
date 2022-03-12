@@ -1,160 +1,127 @@
-import io
-import json
-import os
-import shutil
-import time
 from typing import Any
 
-import geojson
-from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import HTTPException
-from fastapi.responses import StreamingResponse
+import pyproj
+from fastapi import HTTPException
+from geoalchemy2.shape import WKTElement, to_shape
+from shapely import wkt
+from shapely.ops import transform
+from sqlalchemy import and_, func
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy.sql import text
-from starlette.responses import JSONResponse
+from sqlalchemy.sql import select
 
-from src.schemas.scenario import (
-    ScenarioBase,
-    ScenarioCreate,
-    ScenarioDelete,
-    ScenarioImport,
-    ScenarioReadDeleted,
-    ScenarioUpdate,
-    ScenarioUpdateDeleted,
-)
+from src import schemas
+from src.crud.base import CRUDBase
+from src.db import models
 
-# TODO: Get scenario layer names from config table
-translation_layers = {
-    "ways": "deleted_ways",
-    "pois": "deleted_pois",
-    "buildings": "deleted_buildings",
+scenario_layer_models = {
+    schemas.ScenarioLayersNoPoisEnum.edge.value: models.Edge,
+    schemas.ScenarioLayersNoPoisEnum.way_modified.value: models.WayModified,
+    schemas.ScenarioLayersNoPoisEnum.building.value: models.Building,
+    schemas.ScenarioLayersNoPoisEnum.building_modified.value: models.BuildingModified,
+    schemas.ScenarioLayersNoPoisEnum.population.value: models.Population,
+    schemas.ScenarioLayersNoPoisEnum.population_modified.value: models.PopulationModified,
 }
 
+# TODO: Check if geometries are within study area
+# TODO: Check geometry CRS
 
-class CRUDScenario:
-    async def create_scenario(self, db: AsyncSession, *, obj_in: ScenarioCreate) -> Any:
-        obj_in_data = jsonable_encoder(obj_in)
-        sql = text(
-            """INSERT INTO scenarios (userid, scenario_name) VALUES (:user_id, :scenario_name) RETURNING scenario_id;"""
-        )
-        result = await db.execute(sql, obj_in_data)
-        for row in result:
-            print(row)
-        await db.commit()
-        return {"scenario_id": result[0]}
 
-    async def update_scenario(self, db: AsyncSession, *, obj_in: ScenarioUpdate) -> Any:
-        obj_in_data = jsonable_encoder(obj_in)
-        sql = text(
-            """UPDATE scenarios SET scenario_name = :scenario_name WHERE scenario_id = CAST(:scenario_id AS bigint);"""
-        )
-        await db.execute(sql, obj_in_data)
-        await db.commit()
-        return {"msg": "Scenario updated."}
-
-    async def delete_scenario(self, db: AsyncSession, *, obj_in: ScenarioBase) -> Any:
-        obj_in_data = jsonable_encoder(obj_in)
-        sql = text(
-            """DELETE FROM scenarios WHERE scenario_id=:scenario_id;SELECT network_modification(:scenario_id);"""
-        )
-        await db.execute(sql, obj_in_data)
-        await db.commit()
-        return {"msg": "All changes are reverted."}
-
-    async def import_scenario(self, db: AsyncSession, *, obj_in: ScenarioImport) -> JSONResponse:
-        # TODO: scenario_id must be generated automatically in order to avoid conflicts
-        obj_in_data = jsonable_encoder(obj_in)
-        obj_in_data["payload"] = json.dumps(obj_in_data["payload"], separators=(",", ":"))
-        sql = text(
-            """SELECT import_changeset_scenario(:scenario_id,:user_id,jsonb_build_object(:layer_name,CAST(:payload as jsonb)))"""
-        )
-        result = await db.execute(sql, obj_in_data).fetchone()
-        await db.commit()
-        return JSONResponse(content=result[0])
-
-    async def export_scenario(self, db: AsyncSession, *, obj_in: ScenarioBase) -> Any:
-        obj_in_data = jsonable_encoder(obj_in)
-        sql = text("""SELECT * FROM export_changeset_scenario(:scenario_id)""")
-        result = await db.execute(sql, obj_in_data).fetchone()
-        dicts = dict(result[0])
-        dir_path = "/tmp/exports/{}/".format(time.strftime("%Y%m%d-%H%M%S"))
-        os.makedirs(dir_path)
-        for key in dicts.keys():
-            with open(dir_path + "/{}.geojson".format(key), "w") as f:
-                geojson.dump(dicts[key], f)
-        file_name = "scenario_export_{}".format(time.strftime("%Y%m%d-%H%M%S"))
-        shutil.make_archive(file_name, "zip", dir_path)
-        with open(file_name + ".zip", "rb") as f:
-            data = f.read()
-        os.remove(file_name + ".zip")
-        shutil.rmtree(dir_path[0 : len(dir_path) - 1])
-        response = StreamingResponse(io.BytesIO(data), media_type="application/zip")
-        response.headers["Content-Disposition"] = "attachment; filename={}.zip".format(file_name)
-
-        return response
-
-    async def upload_scenario(self, db: AsyncSession, *, obj_in: ScenarioBase) -> Any:
-        obj_in_data = jsonable_encoder(obj_in)
-        sql = text(
-            """SELECT * FROM network_modification(:scenario_id);SELECT * FROM population_modification(:scenario_id);"""
-        )
-        await db.execute(sql, obj_in_data)
-        await db.commit()
-        return {"msg": "Scenarios are reflected."}
-
-    async def delete_feature(self, db: AsyncSession, *, obj_in: ScenarioDelete) -> Any:
-        obj_in_data = jsonable_encoder(obj_in)
-        layer_name = obj_in_data["layer_name"]
-        if not translation_layers.get(layer_name):
-            raise HTTPException(status_code=404, detail=f"Layer {layer_name} not found.")
-        scenario_layer = layer_name + "_modified"
-        sql = text(
-            f"""DELETE FROM {scenario_layer} WHERE scenario_id = CAST(:scenario_id AS bigint) AND original_id = ANY(:deleted_feature_ids);"""
-        )
-        await db.execute(sql, obj_in_data)
-        await db.commit()
-        return {
-            "msg": "Feature delete successful.",
-        }
-
-    async def read_deleted_features(self, db: AsyncSession, *, obj_in: ScenarioReadDeleted) -> Any:
-        obj_in_data = jsonable_encoder(obj_in)
-        layer_name = obj_in_data["layer_name"]
-        scenario_layer = translation_layers.get(layer_name)
-        if not scenario_layer:
-            raise HTTPException(status_code=404, detail=f"Layer {layer_name} not found.")
-
-        sql = text(
-            f"""SELECT {scenario_layer} AS deleted_feature_ids FROM scenarios WHERE scenario_id=:scenario_id;"""
-        )
-        result = await db.execute(sql, obj_in_data).fetchone()
-        return result[0]
-
-    async def update_deleted_features(
-        self, db: AsyncSession, *, obj_in: ScenarioUpdateDeleted
+class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.ScenarioUpdate]):
+    async def read_scenario_features(
+        self,
+        db: AsyncSession,
+        current_user: models.User,
+        scenario_id: int,
+        layer_name: str,
+        intersect: str,
     ) -> Any:
-        obj_in_data = jsonable_encoder(obj_in)
-        layer_name = obj_in_data["layer_name"]
-        scenario_layer = translation_layers.get(layer_name)
-        if not scenario_layer:
-            raise HTTPException(status_code=404, detail=f"Layer {layer_name} not found.")
+        layer = scenario_layer_models[layer_name.value]
+        try:
+            polygon = WKTElement(intersect, srid=4326)
+            # Check if area of polygon is smaller than 10 km2
+            project = pyproj.Transformer.from_crs(
+                pyproj.CRS("EPSG:4326"), pyproj.CRS("EPSG:3857"), always_xy=True
+            ).transform
+            projected_area = transform(project, to_shape(polygon)).area
+            if (projected_area / 1000000) > 10:
+                raise HTTPException(
+                    status_code=400,
+                    detail="The area of the polygon is too large. Please select a smaller area.",
+                )
+        except:
+            raise HTTPException(status_code=400, detail="Invalid geometry")
+        statement = select(layer)
 
-        sql = text(
-            f"""UPDATE scenarios SET {scenario_layer} = CAST(:deleted_feature_ids AS bigint[]) WHERE scenario_id=:scenario_id;"""
+        if layer_name.value == schemas.ScenarioLayersNoPoisEnum.edge.value:
+            excluded_ids_results = await db.execute(
+                func.basic.select_customization("excluded_class_id_walking")
+            )
+            excluded_ids = excluded_ids_results.fetchall()
+            excluded_ids_list = dict(excluded_ids[0])["select_customization_1"]
+            statement = statement.where(
+                and_(
+                    layer.class_id.notin_(excluded_ids_list),
+                    layer.geom.ST_Intersects(polygon),
+                )
+            )
+
+        elif "_modified" in layer_name.value:
+            statement = statement.where(
+                and_(
+                    layer.geom.ST_Intersects(polygon),
+                    layer.scenario_id == scenario_id,
+                )
+            )
+        else:
+            statement = statement.where(layer.geom.ST_Intersects(polygon))
+
+        result = await db.execute(statement)
+        result = result.scalars().all()
+        return result
+
+    async def delete_scenario_feature(
+        self,
+        db: AsyncSession,
+        current_user: models.User,
+        scenario_id: int,
+        layer_name: str,
+        feature_id: int,
+    ) -> Any:
+        layer = scenario_layer_models[layer_name.value]
+        # check if feature exists in the table
+        feature = await db.execute(
+            select(layer).where(and_(layer.id == feature_id, layer.scenario_id == scenario_id))
         )
+        feature = feature.scalars().fetchall()
+        # delete feature from table
+        if feature is not None and len(feature) > 0:
+            await db.delete(feature[0])
+            await db.commit()
+            return {"msg": "Feature deleted"}
+        else:
+            raise HTTPException(status_code=404, detail="Feature not found")
 
-        await db.execute(sql, obj_in_data)
-        await db.commit()
-        return {
-            "msg": "Feature delete update successful.",
-        }
+    async def create_scenario_feature(
+        self,
+        db: AsyncSession,
+        current_user: models.User,
+        scenario_id: int,
+        layer_name: str,
+        feature_in: schemas.ScenarioFeatureCreate,
+    ) -> Any:
+        layer = scenario_layer_models[layer_name.value]
+        features = feature_in.features
+        features_db = []
+        for feature in features:
+            try:
+                feature_obj = layer.from_orm(layer(**feature))
+                features_db.append(feature_obj)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail="Invalid feature")
 
-    async def delete_all_scenario(self, db: AsyncSession, *, obj_in: ScenarioBase) -> Any:
-        obj_in_data = jsonable_encoder(obj_in)
-        sql = text("""DELETE FROM scenarios WHERE scenario_id = :scenario_id;""")
-        await db.execute(sql, obj_in_data)
-        await db.commit()
-        return {"msg": "Scenario deleted."}
+        db.add_all(features_db)
+        result = await db.commit()
+        return result
 
 
-scenario = CRUDScenario()
+scenario = CRUDScenario(models.Scenario)
