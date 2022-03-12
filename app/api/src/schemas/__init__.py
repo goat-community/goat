@@ -30,3 +30,4 @@ from .scenario import (
 from .token import Token, TokenPayload
 from .upload import CutomDataUploadState
 from .user import UserBase, UserCreate, UserUpdate
+from .heatmap import ComputePoiUser

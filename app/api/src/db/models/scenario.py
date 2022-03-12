@@ -66,8 +66,6 @@ class Scenario(SQLModel, table=True):
     edges: List["Edge"] = Relationship(back_populates="scenario")
     ways_modified: List["WayModified"] = Relationship(back_populates="scenario")
     nodes: List["Node"] = Relationship(back_populates="scenario")
-    reached_edge_heatmaps: List["ReachedEdgeHeatmap"] = Relationship(back_populates="scenario")
-    reached_poi_heatmaps: List["ReachedPoiHeatmap"] = Relationship(back_populates="scenario")
 
         
 Index("idx_scenario_data_upload_ids", Scenario.__table__.c.data_upload_ids, postgresql_using="gin")

@@ -41,7 +41,13 @@ class StudyArea(SQLModel, table=True):
             nullable=False,
         )
     )
-
+    #Buffer geom by 1600 meters which is the flying bird distance for 20 minutes walking with a speed of 5km/h
+    buffer_geom_heatmap: Dict = Field(
+        sa_column=Column(
+            Geometry(geometry_type="MultiPolygon", srid="4326", spatial_index=False),
+            nullable=False,
+        )
+    )
     grid_visualizations: List["GridVisualization"] = Relationship(
         back_populates="study_areas", link_model=StudyAreaGridVisualization
     )

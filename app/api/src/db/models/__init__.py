@@ -7,10 +7,9 @@ from .data_upload import DataUpload
 from .edge import Edge, EdgeBase, WayModified
 from .grid import GridCalculation, GridVisualization, GridVisualizationParameter
 from .heatmap import (
-    ReachedEdgeHeatmap,
+    ReachedEdgeFullHeatmap,
     ReachedEdgeHeatmapGridCalculation,
     ReachedPoiHeatmap,
-    ReachedPoiHeatmapAccessibility,
 )
 from .isochrone import IsochroneCalculation, IsochroneEdge, IsochroneFeature
 from .node import Node

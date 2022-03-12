@@ -46,9 +46,6 @@ class Poi(PoiBase, table=True):
 
     uid: str = Field(sa_column=Column(Text, nullable=False, index=True))
 
-    reached_poi_heatmaps: List["ReachedPoiHeatmap"] = Relationship(back_populates="poi")
-
-
 Index("idx_poi_geom", Poi.__table__.c.geom, postgresql_using="gist")
 UniqueConstraint(Poi.__table__.c.uid)
 
@@ -58,7 +55,6 @@ class PoiModified(PoiBase, table=True):
     __table_args__ = {"schema": "customer"}
     uid: str = Field(sa_column=Column(Text, nullable=False, index=True))
     edit_type: str = Field(sa_column=Column(Text, nullable=False, index=True))
-    table_name: str = Field(sa_column=Column(Text, nullable=False, index=True))
     creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
@@ -67,7 +63,11 @@ class PoiModified(PoiBase, table=True):
             Integer, ForeignKey("customer.scenario.id", ondelete="CASCADE"), index=True
         ),
     )
-
+    data_upload_id: Optional[int] = Field(
+        sa_column=Column(
+            Integer, ForeignKey("customer.data_upload.id", ondelete="CASCADE"), index=True
+        ),
+    )
     scenario: Optional["Scenario"] = Relationship(back_populates="pois_modified")
 
 
