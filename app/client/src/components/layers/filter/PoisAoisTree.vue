@@ -249,7 +249,7 @@ export default {
           scenario_id: 0
         };
         ApiService.post(
-          `/pois_aois/visualization?return_type=db_geobuf`,
+          `/pois-aois/visualization?return_type=db_geobuf`,
           payload,
           {
             responseType: "arraybuffer",

@@ -808,6 +808,8 @@
 </template>
 
 <script>
+//TODO: ADD STUDY AREA LAYER AND POIS FOR MULTIISOCHRONES
+//TODO: FIX MULTIISOCHRONE DATA TABLE WINDOW
 import { Mapable } from "../../mixins/Mapable";
 import { Isochrones } from "../../mixins/Isochrones";
 import { KeyShortcuts } from "../../mixins/KeyShortcuts";

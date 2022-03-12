@@ -192,10 +192,14 @@
 
 <script>
 import { mask } from "vue-the-mask";
+import ApiService from "../../services/api.service";
+import { mapFields } from "vuex-map-fields";
+import { mapMutations, mapGetters } from "vuex";
 import {
   solidFontAwesomeProDefs,
   fontAwesome6Categories
 } from "../../utils/FontAwesomev6ProOnlySolid";
+import { SET_POI_ICONS } from "../../store/mutations.type";
 export default {
   directives: { mask },
   props: {
@@ -204,6 +208,7 @@ export default {
     color: { type: String, default: "#2BB381" }
   },
   data: () => ({
+    isBusy: false,
     // Pagination
     page: 1,
     pageSize: 100,
@@ -245,20 +250,64 @@ export default {
       let _this = this;
       if (_this.pageSize == null || _this.listCount == null) return 0;
       return Math.ceil(_this.listCount / _this.pageSize);
-    }
+    },
+    ...mapFields("app", {
+      appConfig: "appConfig"
+    }),
+    ...mapGetters("poisaois", {
+      poisAoisLayer: "poisAoisLayer"
+    })
   },
   methods: {
+    ...mapMutations("app", {
+      setPoiIcons: SET_POI_ICONS
+    }),
     updateIcon() {
-      this.$emit("updated", "new icon");
+      const iconCategory = this.selectedIcon.value;
+      const payload = {};
+      payload[iconCategory] = {
+        icon: this.newIcon.icon ? this.newIcon.icon : this.selectedIcon.icon,
+        color: [this.iconColor]
+      };
+      this.isBusy = true;
+      ApiService.post(`customizations/user/insert/poi`, payload)
+        .then(res => {
+          if (res.data) {
+            this.appConfig = res.data;
+            this.setPoiIcons(res.data);
+            this.poisAoisLayer.changed();
+          }
+        })
+        .finally(() => {
+          this.isBusy = false;
+          this.show = false;
+        });
+    },
+    restoreDefault() {
+      ApiService.post(`customizations/user/delete/poi`, this.selectedIcon.value)
+        .then(res => {
+          if (res.data) {
+            this.appConfig = res.data;
+            this.setPoiIcons(res.data);
+            this.poisAoisLayer.changed();
+          }
+        })
+        .finally(() => {
+          this.isBusy = false;
+          this.show = false;
+        });
     },
     selectIcon(icon) {
       this.newIcon = {
         icon: icon.icon,
         color: this.iconColor
       };
-      this.$emit("updated", "new icon");
     },
     selectColor(color) {
+      this.newIcon = {
+        icon: this.newIcon.icon ? this.newIcon.icon : this.selectedIcon.icon,
+        color: color
+      };
       this.iconColor = color;
     },
     filterIcons() {
@@ -283,9 +332,7 @@ export default {
       this.initPage();
       this.updatePage(this.page);
     },
-    restoreDefault() {
-      // Restore default Icon
-    },
+
     initPage: function() {
       let _this = this;
       _this.listCount = _this.filteredIcons.length;

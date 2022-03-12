@@ -63,11 +63,14 @@
         </span>
       </v-btn>
       <v-divider></v-divider>
-      <p class="mt-5 mb-1 sub-header">250Mb of 500Mb used</p>
+      <p class="mt-5 mb-1 sub-header">
+        {{ (uploadedStorageSize / 1024).toFixed(1) }}MB of
+        {{ parseInt(user.storage / 1024) }}MB used
+      </p>
       <v-progress-linear
         height="2"
         :color="appColor.secondary"
-        value="50"
+        :value="occupiedStoragePercentage"
         class="mb-6 mt-0 pt-0"
       ></v-progress-linear>
       <p class="mt-2 sub-header">Scenarios: 25 / 50</p>
@@ -83,7 +86,9 @@ export default {
   computed: {
     ...mapGetters("auth", { user: "currentUser" }),
     ...mapGetters("app", {
-      appColor: "appColor"
+      appColor: "appColor",
+      occupiedStoragePercentage: "occupiedStoragePercentage",
+      uploadedStorageSize: "uploadedStorageSize"
     }),
     ...mapGetters("map", {
       studyAreaProps: "studyAreaProps",
