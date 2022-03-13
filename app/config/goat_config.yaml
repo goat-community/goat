@@ -124,14 +124,17 @@ DATA_REFINEMENT_VARIABLES:
     #--------------------------------------
     #IAPI speed & comfort impedance factors
     categories: ['was','wac','cys','cyc','whs','whc']
+    bridge_tunnel:
+      bridge: ['yes','viaduct']
+      tunnel: ['yes','covered']
     class_cyclepath:
-      sidewalk_links: ['footway','pedestrian','track','path']
-      cyclepath_links: ['cycleway']
-      cyclepath_segregated_no: ['designated']
+      segregated_yes: ['cycleway']
     class_obstacle:
       light: ['stop','street_lamp','traffic_signal']
-      moderate: ['benches']
+      moderate: ['limited','no']
       strong: ['steps']
+    positive_classified:
+      
 
     #was = walking speed 
     was_type_road:
@@ -275,7 +278,7 @@ DATA_REFINEMENT_VARIABLES:
     cys_cyclepath:
       segregated_yes: '0.1'
       segregated_no: '0'
-    cys_sidewalk: '0'
+    cys_sidewalk:
       ideal: '0'
       comfortable: '0'
       acceptable: '0'
