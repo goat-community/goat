@@ -131,7 +131,7 @@ async def update_scenario_deleted_feature_ids(
         return result
 
 
-# ------------------------Scenario Layers (_modified tables----------------------------
+# ------------------------Scenario Layers (_modified tables)---------------------------
 # -------------------------------------------------------------------------------------
 
 
@@ -213,9 +213,11 @@ async def delete_scenario_feature(
         return {"msg": "Feature deleted successfully"}
 
 
-# create scenario feature
-@router.post("/{scenario_id}/{layer_name}/features", response_model=Any)
-async def create_scenario_feature(
+@router.post(
+    "/{scenario_id}/{layer_name}/features",
+    response_class=JSONResponse,
+)
+async def create_scenario_features(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
@@ -227,9 +229,9 @@ async def create_scenario_feature(
         description="Scenario layer name to create feature in",
         example=request_examples["create_feature"]["layer_name"],
     ),
-    feature_in: schemas.ScenarioFeatureCreate = Body(
+    features_in: schemas.ScenarioFeatureCreate = Body(
         ...,
-        example=request_examples["create_feature"]["payload"],
+        examples=request_examples["create_feature"]["payload"],
     ),
 ):
     """
@@ -241,46 +243,49 @@ async def create_scenario_feature(
     if len(scenario) == 0:
         raise HTTPException(status_code=400, detail="Scenario not found")
     else:
-        result = await crud.scenario.create_scenario_feature(
-            db, current_user, scenario_id, layer_name, feature_in
+        result = await crud.scenario.create_scenario_features(
+            db, current_user, scenario_id, layer_name, features_in
         )
-        return result
+        features = to_feature_collection(
+            result, exclude_properties=["coordinates_3857", "node_source", "node_target"]
+        )
+        return jsonable_encoder(features)
 
 
-# # update scenario feature
-# @router.put("/{scenario_id}/{layer_name}/features/{feature_id}", response_model=Msg)
-# async def update_scenario_feature(
-#     *,
-#     db: AsyncSession = Depends(deps.get_db),
-#     current_user: models.User = Depends(deps.get_current_active_user),
-#     scenario_id: int = Path(
-#         ..., description="Scenario ID", example=request_examples["update_feature"]["scenario_id"]
-#     ),
-#     layer_name: schemas.ScenarioLayerFeatureEnum = Path(
-#         ...,
-#         description="Scenario layer name to update feature in",
-#         example=request_examples["update_feature"]["layer_name"],
-#     ),
-#     feature_id: int = Path(
-#         ...,
-#         description="Scenario feature ID to update",
-#         example=request_examples["update_feature"]["feature_id"],
-#     ),
-#     feature_in: schemas.ScenarioFeatureUpdate = Body(
-#         ...,
-#         example=request_examples["update_feature"]["payload"],
-#     ),
-# ):
-#     """
-#     Update feature in scenario layer. This endpoint is used to update features in "modified" tables.
-#     """
-#     scenario = await crud.scenario.get_by_multi_keys(
-#         db, keys={"id": scenario_id, "user_id": current_user.id}
-#     )
-#     if len(scenario) == 0:
-#         raise HTTPException(status_code=400, detail="Scenario not found")
-#     else:
-#         result = await crud.scenario.update_scenario_feature(
-#             db, current_user, scenario_id, layer_name, feature_id, feature_in
-#         )
-#         return {"msg": "Feature updated successfully"}
+@router.put(
+    "/{scenario_id}/{layer_name}/features",
+    response_class=JSONResponse,
+)
+async def update_scenario_features(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+    scenario_id: int = Path(
+        ..., description="Scenario ID", example=request_examples["update_feature"]["scenario_id"]
+    ),
+    layer_name: schemas.ScenarioLayerFeatureEnum = Path(
+        ...,
+        description="Scenario layer name to update features in",
+        example=request_examples["update_feature"]["layer_name"],
+    ),
+    features_in: schemas.ScenarioFeatureUpdate = Body(
+        ...,
+        examples=request_examples["update_feature"]["payload"],
+    ),
+):
+    """
+    Update feature in scenario layer. This endpoint is used to update features in "modified" tables.
+    """
+    scenario = await crud.scenario.get_by_multi_keys(
+        db, keys={"id": scenario_id, "user_id": current_user.id}
+    )
+    if len(scenario) == 0:
+        raise HTTPException(status_code=400, detail="Scenario not found")
+    else:
+        result = await crud.scenario.update_scenario_features(
+            db, current_user, scenario_id, layer_name, features_in
+        )
+        features = to_feature_collection(
+            result, exclude_properties=["coordinates_3857", "node_source", "node_target"]
+        )
+        return jsonable_encoder(features)

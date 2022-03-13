@@ -1,4 +1,5 @@
 from .customization import CustomizationBase, CustomizationCreate, CustomizationUpdate
+from .heatmap import ComputePoiUser
 from .isochrone import (
     IsochroneExport,
     IsochroneMulti,
@@ -21,6 +22,7 @@ from .scenario import (
     ScenarioBase,
     ScenarioCreate,
     ScenarioFeatureCreate,
+    ScenarioFeatureUpdate,
     ScenarioImport,
     ScenarioLayerFeatureEnum,
     ScenarioLayersEnum,
@@ -30,4 +32,3 @@ from .scenario import (
 from .token import Token, TokenPayload
 from .upload import CutomDataUploadState
 from .user import UserBase, UserCreate, UserUpdate
-from .heatmap import ComputePoiUser
