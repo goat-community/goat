@@ -132,8 +132,7 @@ operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_ho
 tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_point 
 WHERE (leisure = 'fitness_centre' OR (leisure = 'sports_centre' AND sport = 'fitness'))
-AND (sport IN('multi','fitness') OR sport IS NULL)
-AND (sport = 'yoga' OR lower(name) LIKE '%yoga%') AND shop IS NULL
+AND ((sport IN('multi','fitness') OR sport IS NULL) OR (sport = 'yoga' OR lower(name) LIKE '%yoga%')) AND shop IS NULL
 
 UNION ALL 
 
