@@ -121,3 +121,20 @@ CREATE INDEX ON ways_userinput_vertices_pgr USING btree (userid);
 CREATE INDEX ON ways_userinput USING btree (scenario_id);
 CREATE INDEX ON ways_userinput_vertices_pgr USING btree (scenario_id);
 CREATE INDEX ON ways_userinput (original_id);
+
+-- add IAPI Impedence Factors to ways
+
+--add summary of impedance factors
+--run first IAPI_impedance_factors.sql
+ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_comfort numeric;
+ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_comfort numeric;
+ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_comfort numeric;
+ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_total numeric;
+
+update ways set impedance_walking_comfort = select impedance_walking_comfort from impedance_table
+update ways set impedance_cycling_comfort = select impedance_cycling_comfort from impedance_table
+update ways set impedance_wheelchair_comfort = select impedance_wheelchair_comfort from impedance_table
+update ways set impedance_total = select impedance_total from impedance_table;
+
+
+-----------------------------------------------

@@ -1,11 +1,11 @@
 Category;Criteria;attribute;string_condition;min_value;max_value;value;weight
 Sidewalk quality;Sidewalk availability;sidewalk;yes;;;100;0.07
+Sidewalk quality;Sidewalk availability;sidewalk;both;;;100;0.07
+Sidewalk quality;Sidewalk availability;sidewalk;right;;;80;0.07
+Sidewalk quality;Sidewalk availability;sidewalk;left;;;80;0.07
 Sidewalk quality;Sidewalk availability;sidewalk;no;;;0;0.07
-Sidewalk quality;Sidewalk width ;width;;3;;100;0.07
-Sidewalk quality;Sidewalk width ;width;;3;1.50;50;0.07
-Sidewalk quality;Sidewalk width ;width;;1.50;;20;0.07
-Sidewalk quality;Sidewalk width ;width;;1.50;;20;0.07
-Sidewalk quality;Sidewalk width;width;;1.50;;20;0.07
+Sidewalk quality;Sidewalk width;width;;3;;100;0.07
+Sidewalk quality;Sidewalk width;width;;3;1.50;50;0.07
 Sidewalk quality;Sidewalk width;width;;1.50;;20;0.07
 Sidewalk quality;Sidewalk width;width;;1.50;;20;0.07
 Sidewalk quality;Pavement quality;smoothness;excellent;;;100;0.035

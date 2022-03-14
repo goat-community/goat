@@ -1,0 +1,52 @@
+{
+  "name": "ways_segregated",
+  "rules": [
+    {
+      "name": "noData",
+
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#aeb8b8",
+          "width": 1,
+          "join": "round",
+          "cap": "round"
+        }
+      ]
+    },
+    {
+      "name": "yes",
+      "filter": [
+        "==",
+        "segregated",
+        "yes"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#359638",
+          "width": 2,
+          "join": "round",
+          "cap": "round"
+        }
+      ]
+    },
+    {
+      "name": "no",
+      "filter": [
+        "==",
+        "segregated",
+        "no"
+      ],
+      "symbolizers": [
+        {
+          "kind": "Line",
+          "color": "#b53016",
+          "width": 2,
+          "join": "round",
+          "cap": "round"
+        }
+      ]
+    }
+  ]
+}

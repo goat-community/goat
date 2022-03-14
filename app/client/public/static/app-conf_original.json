@@ -144,6 +144,28 @@
       {
         "type": "VECTORTILE",
         "format": "MVT",
+        "name": "landuse",
+        "url": "/api/map/layer/landuse_api/{z}/{x}/{y}",
+        "group": "buildings_landuse",
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "maxResolution": 10,
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/landuse_atkis.json"
+        },
+        "attributes": {
+          "source": "Datenbestände des ATKIS Basis-DLM der Länder",
+          "date": "2019"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
         "name": "landuse_osm",
         "url": "/api/map/layer/landuse_osm/{z}/{x}/{y}",
         "group": "buildings_landuse",
@@ -220,7 +242,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 5,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/footpath_width.json"
@@ -238,7 +260,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lit.json"
@@ -261,7 +283,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_lanes.json"
@@ -279,7 +301,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_parking.json"
@@ -297,7 +319,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_category.json"
@@ -315,7 +337,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_category_aggregated.json"
@@ -333,7 +355,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_speed.json"
@@ -351,7 +373,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_surface.json"
@@ -369,7 +391,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_smoothness.json"
@@ -387,7 +409,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 10,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_segregated.json"
@@ -406,7 +428,7 @@
         "displayInLayerList": true,
         "docUrl": "https://plan4better.de/docs/walkability_index/",
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/footpath_visualization.json"
@@ -424,7 +446,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_liveliness.json"
@@ -442,7 +464,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_urban_equipment.json"
@@ -460,7 +482,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_traffic_protection.json"
@@ -478,7 +500,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_sidewalk_quality.json"
@@ -496,7 +518,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_security.json"
@@ -514,7 +536,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_green_blue_index.json"
@@ -532,7 +554,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/trees.json"
@@ -554,7 +576,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/street_crossings.json"
@@ -577,7 +599,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "maxResolution": 30,
+        "maxResolution": 7,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/street_furniture.json"
@@ -600,7 +622,7 @@
         "queryable": true,
         "displayInLayerList": true,
         "zIndex": 2,
-        "maxResolution": 30,
+        "maxResolution": 5,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/street_furniture_bicycles.json"
@@ -609,6 +631,27 @@
           "source": "openStreetMap",
           "source": "Mapillary",
           "date": "01-06-2021"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "munichways",
+        "url": "/api/map/layer/munichways/{z}/{x}/{y}",
+        "group": "streetlevelqualityLayers",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 2,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/munichways.json"
+        },
+        "attributes": {
+          "source": "munichWays",
+          "date": "2020"
         }
       },
       {
@@ -832,6 +875,160 @@
         "attributes": {
           "source": "Bayerisches Landesamt für Umwelt",
           "date": "2020"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "accidents_cyclists",
+        "url": "/api/map/layer/accidents_cyclists/{z}/{x}/{y}",
+        "group": "additionalDataLayers",
+        "opacity": 1,
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "serverType": "geoserver",
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/accidents_cyclists.json"
+        },
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2016, 2017, 2018, 2019"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_bike_2018",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fahrrad_250_2018",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2018"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_bike_2017",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fahrrad_250_2017",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2017"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "accidents_pedestrians",
+        "url": "/api/map/layer/accidents_pedestrians/{z}/{x}/{y}",
+        "group": "additionalDataLayers",
+        "visible": false,
+        "canEdit": false,
+        "queryable": true,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "queryParams": [],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/accidents_pedestrians.json"
+        },
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2016, 2017, 2018, 2019"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_pedestrian_2018",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fussgaenger_250_2018",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2018"
+        }
+      },
+      {
+        "type": "WMS",
+        "name": "accidents_pedestrian_2017",
+        "url": "http://www.wms.nrw.de/wms/unfallatlas?",
+        "group": "additionalDataLayers",
+        "layers": "Beteiligung_Fussgaenger_250_2017",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "attributes": {
+          "source": "Statistikportal",
+          "date": "2017"
+        }
+      },
+      {
+        "type": "VECTORTILE",
+        "format": "MVT",
+        "name": "bicycle_counting_stations",
+        "url": "/api/map/layer/bicycle_counting_stations/{z}/{x}/{y}",
+        "group": "additionalDataLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "zIndex": 1,
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/bicycle_counting_stations.json"
+        },
+        "attributes": {
+          "source": "Open Data Portal Landeshauptstadt München",
+          "date": "2019"
+        }
+      },
+      {
+        "type": "VECTOR",
+        "format": "GeoJSON",
+        "name": "modeshare",
+        "url": "/api/map/layer_read",
+        "group": "additionalDataLayers",
+        "opacity": 1,
+        "queryable": true,
+        "visible": false,
+        "canEdit": false,
+        "displayInLayerList": true,
+        "legendGraphicUrl": "./img/legend-graphics/legend_mode_share.png",
+        "queryParams": ["table_name"],
+        "zIndex": 1,
+        "style": {
+          "format": "custom-logic"
+        },
+        "attributes": {
+          "source": "Mobilität in Deutschland - infas",
+          "date": "2018"
         }
       },
       {
@@ -1217,68 +1414,70 @@
     "pois": {
       "allPois": [
         {
-          "name": "Recreation Areas",
-          "categoryValue": "recreationAreas",
+          "name": "Education",
+          "categoryValue": "education",
+          "id": 1,
           "children": [
             {
-              "name": "Park",
-              "value": "park",
-              "icon": "park",
+              "name": "Nursery",
+              "value": "nursery",
+              "icon": "nursery",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000,
+              "locked": false
             },
             {
-              "name": "Garden",
-              "value": "garden",
-              "icon": "garden",
+              "name": "Kindergarten",
+              "value": "kindergarten",
+              "icon": "kindergarten",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000,
+              "locked": false
             },
             {
-              "name": "Playground",
-              "value": "playground",
-              "icon": "playground",
+              "name": "Grundschule",
+              "value": "grundschule",
+              "icon": "grundschule",
               "weight": 1,
-              "sensitivity": 300000
-            }
-          ]
-        },
-        {
-          "name": "Shop",
-          "categoryValue": "shop",
-          "children": [
-            {
-              "name": "Convenience store",
-              "value": "convenience",
-              "icon": "convenience",
-              "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000,
+              "locked": false
             },
             {
-              "name": "Supermarket",
-              "value": "supermarket",
-              "icon": "supermarket",
+              "name": "Haupt- und Mittelschule",
+              "value": "hauptschule_mittelschule",
+              "icon": "hauptschule_mittelschule",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000,
+              "locked": false
             },
             {
-              "name": "Marketplace",
-              "value": "marketplace",
-              "icon": "marketplace",
+              "name": "Realschule",
+              "value": "realschule",
+              "icon": "realschule",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000,
+              "locked": false
             },
             {
-              "name": "Newsstand",
-              "value": "newsstand",
-              "icon": "newsstand",
+              "name": "Werkrealschule",
+              "value": "werkrealschule",
+              "icon": "werkrealschule",
               "weight": 1,
-              "sensitivity": 300000
+              "sensitivity": 300000,
+              "locked": false
             },
             {
-              "name": "Kiosk",
-              "value": "kiosk",
-              "icon": "kiosk",
+              "name": "Gymnasium",
+              "value": "gymnasium",
+              "icon": "gymnasium",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Library",
+              "value": "library",
+              "icon": "library",
               "weight": 1,
               "sensitivity": 300000
             }
@@ -1296,9 +1495,9 @@
               "sensitivity": 300000
             },
             {
-              "name": "Restaurant",
-              "value": "restaurant",
-              "icon": "restaurant",
+              "name": "Biergarten",
+              "value": "biergarten",
+              "icon": "biergarten",
               "weight": 1,
               "sensitivity": 300000
             },
@@ -1313,6 +1512,357 @@
               "name": "Pub",
               "value": "pub",
               "icon": "pub",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Fast food",
+              "value": "fast_food",
+              "icon": "fast_food",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Ice cream",
+              "value": "ice_cream",
+              "icon": "ice_cream",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Restaurant",
+              "value": "restaurant",
+              "icon": "restaurant",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Night-Club",
+              "value": "nightclub",
+              "icon": "nightclub",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "Transport",
+          "categoryValue": "transport",
+          "locked": false,
+          "children": [
+            {
+              "name": "Bike sharing",
+              "value": "bicycle_rental",
+              "icon": "bicycle_rental",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Cargo bike",
+              "value": "cargo_bike",
+              "icon": "cargo_bike",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Car sharing",
+              "value": "car_sharing",
+              "icon": "car_sharing",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging station",
+              "value": "charging_station",
+              "icon": "charging_station",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Bus",
+              "value": "bus_stop",
+              "icon": "bus_stop",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Tram Stop",
+              "value": "tram_stop",
+              "icon": "tram_stop",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "U-Bahn station",
+              "value": "subway_entrance",
+              "icon": "subway_entrance",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Rail Station",
+              "value": "rail_station",
+              "icon": "rail_station",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Taxi",
+              "value": "taxi",
+              "icon": "taxi",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "mobilitystations",
+          "categoryValue": "mobilitystations",
+          "locked": false,
+          "children": [
+            {
+              "name": "Bikesharing FFB",
+              "value": "bikesharing_ffb",
+              "icon": "bikesharing",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Carsharing FFB",
+              "value": "carsharing_ffb",
+              "icon": "carsharing",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station FFB",
+              "value": "charging_station_marker_ffb",
+              "icon": "charging_station_marker",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station Other FFB",
+              "value": "charging_station_other_ffb",
+              "icon": "charging_station_other",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Charging Station Public FFB",
+              "value": "charging_station_public_ffb",
+              "icon": "charging_station_public",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "E-Parking FFB",
+              "value": "e_parking_ffb",
+              "icon": "e_parking",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "L-Station FFB",
+              "value": "l-station_ffb",
+              "icon": "l-station",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "S-Station Prio 1 FFB",
+              "value": "s-station_prio1_ffb",
+              "icon": "s-station_prio1",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "S-Station Prio 2 FFB",
+              "value": "s-station_prio2_ffb",
+              "icon": "s-station_prio2",
+              "weight": 1,
+              "sensitivity": 300000
+            }
+          ]
+        },
+        {
+          "name": "Services",
+          "categoryValue": "services",
+          "children": [
+            {
+              "name": "Hairdresser",
+              "value": "hairdresser",
+              "icon": "hairdresser",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "ATM",
+              "value": "atm",
+              "icon": "atm",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            },
+            {
+              "name": "Bank",
+              "value": "bank",
+              "icon": "bank",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Dentist",
+              "value": "dentist",
+              "icon": "dentist",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Doctor",
+              "value": "doctors",
+              "icon": "doctors",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Pharmacy",
+              "value": "pharmacy",
+              "icon": "pharmacy",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Post box",
+              "value": "post_box",
+              "icon": "post_box",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Fuel",
+              "value": "fuel",
+              "icon": "fuel",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Recycling",
+              "value": "recycling",
+              "icon": "recycling",
+              "weight": 1,
+              "sensitivity": 300000,
+              "locked": false
+            }
+          ]
+        },
+        {
+          "name": "Shop",
+          "categoryValue": "shop",
+          "children": [
+            {
+              "name": "Bakery",
+              "value": "bakery",
+              "icon": "bakery",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Butcher",
+              "value": "butcher",
+              "icon": "butcher",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Clothing store",
+              "value": "clothes",
+              "icon": "clothes",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Convenience store",
+              "value": "convenience",
+              "icon": "convenience",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Greengrocer",
+              "value": "greengrocer",
+              "icon": "greengrocer",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Kiosk",
+              "value": "kiosk",
+              "icon": "kiosk",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Mall",
+              "value": "mall",
+              "icon": "mall",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Shoes",
+              "value": "shoes",
+              "icon": "shoes",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Supermarket",
+              "value": "supermarket",
+              "icon": "supermarket",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Discount Supermarket",
+              "value": "discount_supermarket",
+              "icon": "discount_supermarket",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "International Supermarket",
+              "value": "international_supermarket",
+              "icon": "international_supermarket",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Hypermarket",
+              "value": "hypermarket",
+              "icon": "hypermarket",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Chemist",
+              "value": "chemist",
+              "icon": "chemist",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Organic Food",
+              "value": "organic",
+              "icon": "organic",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Marketplace",
+              "value": "marketplace",
+              "icon": "marketplace",
               "weight": 1,
               "sensitivity": 300000
             }
@@ -1370,6 +1920,13 @@
               "icon": "gallery",
               "weight": 1,
               "sensitivity": 300000
+            },
+            {
+              "name": "Playground",
+              "value": "playground",
+              "icon": "playground",
+              "weight": 1,
+              "sensitivity": 300000
             }
           ]
         },
@@ -1378,233 +1935,85 @@
           "categoryValue": "sports",
           "children": [
             {
-              "name": "Sport facilities",
-              "value": "sport",
-              "icon": "sport",
+              "name": "Community Sport Center",
+              "value": "community_sports_center",
+              "icon": "community_sports_center",
               "weight": 1,
               "sensitivity": 300000
             },
             {
-              "name": "Outdoor Fitness Station",
-              "value": "outdoor-fitness_station",
-              "icon": "outdoor-fitness_station",
+              "name": "Waterpark",
+              "value": "waterpark",
+              "icon": "waterpark",
               "weight": 1,
               "sensitivity": 300000
             },
             {
-              "name": "Fitness Center",
+              "name": "Discount Gym",
+              "value": "discount_gym",
+              "icon": "discount_gym",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "gym",
               "value": "gym",
               "icon": "gym",
               "weight": 1,
               "sensitivity": 300000
+            },
+            {
+              "name": "Yoga",
+              "value": "yoga",
+              "icon": "yoga",
+              "weight": 1,
+              "sensitivity": 300000
+            },
+            {
+              "name": "Playground",
+              "value": "playground",
+              "icon": "playground",
+              "weight": 1,
+              "sensitivity": 300000
             }
           ]
         },
         {
-          "name": "Services",
-          "categoryValue": "services",
+          "name": "Recreation Areas",
+          "categoryValue": "recreationAreas",
           "children": [
             {
-              "name": "Bank",
-              "value": "bank",
-              "icon": "bank",
+              "name": "Park",
+              "value": "park",
+              "icon": "park",
               "weight": 1,
               "sensitivity": 300000
             },
             {
-              "name": "ATM",
-              "value": "atm",
-              "icon": "atm",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
-            },
-            {
-              "name": "Post office",
-              "value": "post_office",
-              "icon": "post_office",
+              "name": "Forest",
+              "value": "forest",
+              "icon": "forest",
               "weight": 1,
               "sensitivity": 300000
             },
             {
-              "name": "Post box",
-              "value": "post_box",
-              "icon": "post_box",
+              "name": "Heath and Scrub",
+              "value": "heath_scrub",
+              "icon": "heath_scrub",
               "weight": 1,
               "sensitivity": 300000
             },
             {
-              "name": "Hairdresser",
-              "value": "hairdresser",
-              "icon": "hairdresser",
+              "name": "Lake",
+              "value": "lake",
+              "icon": "lake",
               "weight": 1,
               "sensitivity": 300000
             },
             {
-              "name": "Public Administration",
-              "value": "public_administration",
-              "icon": "public_administration",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
-            },
-            {
-              "name": "Pharmacy",
-              "value": "pharmacy",
-              "icon": "pharmacy",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Chemist",
-              "value": "chemist",
-              "icon": "chemist",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Doctor",
-              "value": "doctors",
-              "icon": "doctors",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Dentist",
-              "value": "dentist",
-              "icon": "dentist",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Clinic",
-              "value": "clinic",
-              "icon": "clinic",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Hospital",
-              "value": "hospital",
-              "icon": "hospital",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Community Center",
-              "value": "community_centre",
-              "icon": "community_centre",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
-            },
-            {
-              "name": "Social facility",
-              "value": "social_facility",
-              "icon": "social_facility",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
-            }
-          ]
-        },
-        {
-          "name": "Education",
-          "categoryValue": "education",
-          "id": 1,
-          "children": [
-            {
-              "name": "Library",
-              "value": "library",
-              "icon": "library",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Nursery",
-              "value": "childcare",
-              "icon": "nursery",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Kindergarten",
-              "value": "kindergarten",
-              "icon": "kindergarten",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
-            },
-            {
-              "name": "Primary School",
-              "value": "primary_school",
-              "icon": "primary_school",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
-            },
-            {
-              "name": "Secondary School",
-              "value": "secondary_school",
-              "icon": "secondary_school",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
-            },
-            {
-              "name": "University",
-              "value": "university",
-              "icon": "university",
-              "weight": 1,
-              "sensitivity": 300000,
-              "locked": false
-            }
-          ]
-        },
-        {
-          "name": "Transport",
-          "categoryValue": "transport",
-          "locked": false,
-          "children": [
-            {
-              "name": "Tram Stop",
-              "value": "tram_stop",
-              "icon": "tram_stop",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Bus",
-              "value": "bus_stop",
-              "icon": "bus_stop",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Metro station",
-              "value": "subway_entrance",
-              "icon": "subway_entrance",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Rail Station",
-              "value": "rail_station",
-              "icon": "rail_station",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Bike sharing",
-              "value": "bicycle_rental",
-              "icon": "bicycle_rental",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
-              "name": "Car sharing",
-              "value": "car_sharing",
-              "icon": "car_sharing",
+              "name": "River",
+              "value": "river",
+              "icon": "river",
               "weight": 1,
               "sensitivity": 300000
             }
@@ -1819,10 +2228,6 @@
             {
               "value": "elderly",
               "speed": 3
-            },
-            {
-              "value": "comfort",
-              "speed": 5
             }
           ]
         },
@@ -1836,10 +2241,6 @@
             {
               "value": "pedelec",
               "speed": 23
-            },
-            {
-              "value": "comfort",
-              "speed": 15
             }
           ]
         },
@@ -1852,10 +2253,6 @@
             },
             {
               "value": "electric",
-              "speed": 6
-            },
-            {
-              "value": "comfort",
               "speed": 6
             }
           ]

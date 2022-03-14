@@ -396,6 +396,7 @@
       "noiseAircraftLNight": "Aircraft noise - Level LNight",
       "noiseProtectionBauleitplanung": "Noise protection area for urban land use planning",
       "ways_parking": "Parking",
+      "ways_segregated": "Segregation of pedestrians and cyclists",
       "ways_smoothness": "Smoothness",
       "ways_speed": "Speed",
       "ways_category": "Street Categories Detailed",
@@ -484,9 +485,9 @@
               "title": "Elderly",
               "tooltip": "Routing with reduced walking speed"
             },
-            "safe_night": {
-              "title": "Safe night",
-              "tooltip": "Routing excluding unlit paths"
+            "comfort": {
+              "title": "Comfort",
+              "tooltip": "Routing including atractive parameters"
             }
           }
         },
@@ -500,6 +501,10 @@
             "pedelec": {
               "title": "Pedelec",
               "tooltip": "Pedelec"
+            },
+            "comfort": {
+              "title": "Comfort",
+              "tooltip": "Routing including atractive parameters"
             }
           }
         },
@@ -513,6 +518,10 @@
             "electric": {
               "title": "Electric",
               "tooltip": "Electric"
+            },
+            "comfort": {
+              "title": "Comfort",
+              "tooltip": "Routing including atractive parameters"
             }
           }
         }
@@ -674,7 +683,7 @@
     "transmilenio": "Transmilenio",
     "rail_station": "Rail Station",
     "taxi": "Taxi",
-    "bikesharing_ffb": "Bikesharing-Stations",
+    "bikesharing": "Bikesharing-Stations",
     "carsharing_ffb": "Carsharing-Stations",
     "charging_station_marker_ffb": "E-Charging Station privat",
     "charging_station_other_ffb": "E-Charging Station privat (under construction)",
@@ -698,6 +707,7 @@
     "convenience": "Convenience store",
     "greengrocer": "Greengrocer",
     "kiosk": "Kiosk",
+    "newsstand": "Newsstand",
     "mall": "Mall",
     "shoes": "Shoes",
     "supermarket": "Supermarket",
@@ -718,6 +728,7 @@
     "hospital": "Hospital",
     "playground": "Playground",
     "population": "Population",
+    "public_administration": "Public administration",
     "recreationAreas": "Recreation Areas",
     "park": "Park",
     "forest": "Forest",
