@@ -50,54 +50,14 @@ BEGIN
 			   ELSE (length_m*(1+COALESCE(impedance_surface,0))::float)/%1$s END AS cost,
 			   CASE WHEN crossing IS NOT NULL THEN (''%2$s''::jsonb ->> (''delay_'' || crossing_delay_category))::integer + ((length_m*(1+-greatest(-COALESCE(rs_imp,0),0)+COALESCE(impedance_surface,0))::float)/%1$s)
 			   ELSE (length_m*(1+COALESCE(impedance_surface,0))::float)/%1$s END AS reverse_cost',
-	'walk_comfort','length_m*(1+COALESCE(impedance_was_type_road,0)+COALESCE(impedance_wac_type_road,0)
-								+COALESCE(impedance_was_peak_hour,0)+COALESCE(impedance_wac_peak_hour,0)
-								+COALESCE(impedance_was_cyclepath,0)+COALESCE(impedance_wac_cyclepath,0)
-								+COALESCE(impedance_was_obstacle,0)+COALESCE(impedance_wac_obstacle,0)
-								+COALESCE(impedance_was_sidewalk,0)+COALESCE(impedance_wac_sidewalk,0)
-								+COALESCE(impedance_was_speedlimit,0)+COALESCE(impedance_wac_speedlimit,0))::float/%1$s AS cost,
-					length_m*(1+COALESCE(impedance_was_type_road,0)+COALESCE(impedance_wac_type_road,0)
-								+COALESCE(impedance_was_peak_hour,0)+COALESCE(impedance_wac_peak_hour,0)
-								+COALESCE(impedance_was_cyclepath,0)+COALESCE(impedance_wac_cyclepath,0)
-								+COALESCE(impedance_was_obstacle,0)+COALESCE(impedance_wac_obstacle,0)
-								+COALESCE(impedance_was_sidewalk,0)+COALESCE(impedance_wac_sidewalk,0)
-								+COALESCE(impedance_was_speedlimit,0)+COALESCE(impedance_wac_speedlimit,0))::float/%1$s AS reverse_cost',
-	'cyc_comfort','CASE WHEN crossing IS NOT NULL THEN (''%2$s''::jsonb ->> (''delay_'' || crossing_delay_category))::integer + ((length_m*(1+COALESCE(impedance_was_type_road,0)+COALESCE(impedance_wac_type_road,0)
-								+COALESCE(impedance_was_peak_hour,0)+COALESCE(impedance_wac_peak_hour,0)
-								+COALESCE(impedance_was_cyclepath,0)+COALESCE(impedance_wac_cyclepath,0)
-								+COALESCE(impedance_was_obstacle,0)+COALESCE(impedance_wac_obstacle,0)
-								+COALESCE(impedance_was_sidewalk,0)+COALESCE(impedance_wac_sidewalk,0)
-								+COALESCE(impedance_was_speedlimit,0)+COALESCE(impedance_wac_speedlimit,0))::float)/%1$s) 
-			   ELSE (length_m*(1+COALESCE(impedance_was_type_road,0)+COALESCE(impedance_wac_type_road,0)
-								+COALESCE(impedance_was_peak_hour,0)+COALESCE(impedance_wac_peak_hour,0)
-								+COALESCE(impedance_was_cyclepath,0)+COALESCE(impedance_wac_cyclepath,0)
-								+COALESCE(impedance_was_obstacle,0)+COALESCE(impedance_wac_obstacle,0)
-								+COALESCE(impedance_was_sidewalk,0)+COALESCE(impedance_wac_sidewalk,0)
-								+COALESCE(impedance_was_speedlimit,0)+COALESCE(impedance_wac_speedlimit,0))::float)/%1$s END AS cost,
-			   CASE WHEN crossing IS NOT NULL THEN (''%2$s''::jsonb ->> (''delay_'' || crossing_delay_category))::integer + ((length_m*(1+COALESCE(impedance_was_type_road,0)+COALESCE(impedance_wac_type_road,0)
-								+COALESCE(impedance_was_peak_hour,0)+COALESCE(impedance_wac_peak_hour,0)
-								+COALESCE(impedance_was_cyclepath,0)+COALESCE(impedance_wac_cyclepath,0)
-								+COALESCE(impedance_was_obstacle,0)+COALESCE(impedance_wac_obstacle,0)
-								+COALESCE(impedance_was_sidewalk,0)+COALESCE(impedance_wac_sidewalk,0)
-								+COALESCE(impedance_was_speedlimit,0)+COALESCE(impedance_wac_speedlimit,0))::float)/%1$s)
-			   ELSE (length_m*(1+COALESCE(impedance_was_type_road,0)+COALESCE(impedance_wac_type_road,0)
-								+COALESCE(impedance_was_peak_hour,0)+COALESCE(impedance_wac_peak_hour,0)
-								+COALESCE(impedance_was_cyclepath,0)+COALESCE(impedance_wac_cyclepath,0)
-								+COALESCE(impedance_was_obstacle,0)+COALESCE(impedance_wac_obstacle,0)
-								+COALESCE(impedance_was_sidewalk,0)+COALESCE(impedance_wac_sidewalk,0)
-								+COALESCE(impedance_was_speedlimit,0)+COALESCE(impedance_wac_speedlimit,0))::float)/%1$s END AS reverse_cost',
-	'whe_comfort','length_m*(1+COALESCE(impedance_was_type_road,0)+COALESCE(impedance_wac_type_road,0)
-								+COALESCE(impedance_was_peak_hour,0)+COALESCE(impedance_wac_peak_hour,0)
-								+COALESCE(impedance_was_cyclepath,0)+COALESCE(impedance_wac_cyclepath,0)
-								+COALESCE(impedance_was_obstacle,0)+COALESCE(impedance_wac_obstacle,0)
-								+COALESCE(impedance_was_sidewalk,0)+COALESCE(impedance_wac_sidewalk,0)
-								+COALESCE(impedance_was_speedlimit,0)+COALESCE(impedance_wac_speedlimit,0))::float/%1$s AS cost,
-					length_m*(1+COALESCE(impedance_was_type_road,0)+COALESCE(impedance_wac_type_road,0)
-								+COALESCE(impedance_was_peak_hour,0)+COALESCE(impedance_wac_peak_hour,0)
-								+COALESCE(impedance_was_cyclepath,0)+COALESCE(impedance_wac_cyclepath,0)
-								+COALESCE(impedance_was_obstacle,0)+COALESCE(impedance_wac_obstacle,0)
-								+COALESCE(impedance_was_sidewalk,0)+COALESCE(impedance_wac_sidewalk,0)
-								+COALESCE(impedance_was_speedlimit,0)+COALESCE(impedance_wac_speedlimit,0))::float/%1$s AS reverse_cost'
+	'walk_comfort','length_m*(1+COALESCE(impedance_walking_comfort,0))::float/%1$s AS cost,
+					length_m*(1+COALESCE(impedance_walking_comfort,0))::float/%1$s AS reverse_cost',
+	'cyc_comfort','CASE WHEN crossing IS NOT NULL THEN (''%2$s''::jsonb ->> (''delay_'' || crossing_delay_category))::integer + ((length_m*(1+COALESCE(impedance_cycling_comfort,0))::float)/%1$s) 
+			   ELSE (length_m*(1+COALESCE(impedance_cycling_comfort,0))::float)/%1$s END AS cost,
+			   CASE WHEN crossing IS NOT NULL THEN (''%2$s''::jsonb ->> (''delay_'' || crossing_delay_category))::integer + ((length_m*(1+COALESCE(impedance_cycling_comfort,0))::float)/%1$s)
+			   ELSE (length_m*(1+COALESCE(impedance_cycling_comfort,0))::float)/%1$s END AS reverse_cost',
+	'whe_comfort','length_m*(1+COALESCE(impedance_wheelchair_comfort,0))::float/%1$s AS cost,
+					length_m*(1+COALESCE(impedance_wheelchair_comfort,0))::float/%1$s AS reverse_cost'
 ) ->> cost_function;
 
 	sql_cost = format(sql_cost, speed_input, time_loss_intersections::text);
