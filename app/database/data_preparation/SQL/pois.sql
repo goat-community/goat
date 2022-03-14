@@ -62,6 +62,8 @@ operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_ho
 FROM planet_osm_polygon
 WHERE (shop = 'supermarket' OR shop = 'wholesale')
 
+UNION ALL
+
 -- Add kiosks
 SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
@@ -72,14 +74,21 @@ WHERE (shop = 'kiosk' OR shop = 'tobacco')
 UNION ALL 
 
 -- Add government
-SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, amenity, shop, 
+SELECT osm_id,'polygon' as origin_geometry, access,"addr:housenumber" as housenumber, 'public_administration' as amenity, shop, 
 tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
 operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, st_centroid(way) as geom, tags -> 'wheelchair' as wheelchair  
 FROM planet_osm_polygon
-WHERE (government IS NOT NULL OR (amenity = 'public_building'c))
+WHERE amenity = 'public_building'
 
 UNION ALL 
 
+SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, 'public_administration' as amenity, shop, 
+tags -> 'origin' AS origin, tags -> 'organic' AS organic, denomination,brand,name,
+operator,public_transport,railway,religion,tags -> 'opening_hours' as opening_hours, ref,tags, way as geom, tags -> 'wheelchair' as wheelchair  
+FROM planet_osm_point
+WHERE (tags -> 'government' IS NOT NULL OR (amenity = 'public_building'))
+
+UNION ALL 
 
 -- all tourism
 SELECT osm_id,'point' as origin_geometry, access,"addr:housenumber" as housenumber, tourism, shop, 
