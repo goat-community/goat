@@ -57,7 +57,9 @@ async def read_user_study_area(
     """
     study_area = await crud.user.get_active_study_area(db, current_user)
 
-    features = to_feature_collection(study_area, exclude_properties=["default_setting"])
+    features = to_feature_collection(
+        study_area, exclude_properties=["default_setting", "buffer_geom_heatmap"]
+    )
     return features
 
 
@@ -65,7 +67,7 @@ async def read_user_study_area(
 @router.get(
     "/me/study-areas-list",
     response_model=List[models.StudyArea],
-    response_model_exclude={"geom", "default_setting", "population"},
+    response_model_exclude={"geom", "buffer_geom_heatmap", "default_setting", "population"},
 )
 async def read_user_study_areas(
     db: AsyncSession = Depends(deps.get_db),

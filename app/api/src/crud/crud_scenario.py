@@ -1,3 +1,5 @@
+import enum
+import uuid
 from typing import Any
 
 import pyproj
@@ -101,7 +103,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
         else:
             raise HTTPException(status_code=404, detail="Feature not found")
 
-    async def create_scenario_feature(
+    async def create_scenario_features(
         self,
         db: AsyncSession,
         current_user: models.User,
@@ -111,17 +113,101 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
     ) -> Any:
         layer = scenario_layer_models[layer_name.value]
         features = feature_in.features
-        features_db = []
+        features_in_db = []
         for feature in features:
+            feature_dict = {}
+            feature_dict["scenario_id"] = scenario_id
             try:
-                feature_obj = layer.from_orm(layer(**feature))
-                features_db.append(feature_obj)
+                for key, value in feature:
+                    if (
+                        key == "uid"
+                        and layer_name.value == schemas.ScenarioLayerFeatureEnum.poi_modified.value
+                    ):
+                        if value is None:
+                            # new POI
+                            feature_dict["uid"] = uuid.uuid4().hex
+                            feature_dict["edit_type"] = "n"
+                        else:
+                            # existing POI
+                            feature_dict["uid"] = value
+                            feature_dict["edit_type"] = "m"
+                            # TODO: check if uid is valid (poi / poi_user)
+
+                    if (
+                        layer_name.value == schemas.ScenarioLayerFeatureEnum.way_modified.value
+                        and key == "edge_id"
+                    ):
+                        if value is None:
+                            # new way
+                            feature_dict["edit_type"] = "n"
+                        else:
+                            # existing way
+                            feature_dict["edit_type"] = "m"
+
+                    # TODO: For population check if geometry and building with {building_modified_id} intersect
+
+                    if isinstance(value, enum.Enum):
+                        feature_dict[key] = value.value
+                    else:
+                        feature_dict[key] = value
+                feature_obj = layer.from_orm(layer(**feature_dict))
+                features_in_db.append(feature_obj)
             except Exception as e:
                 raise HTTPException(status_code=400, detail="Invalid feature")
 
-        db.add_all(features_db)
-        result = await db.commit()
-        return result
+        db.add_all(features_in_db)
+        await db.commit()
+        for feature in features_in_db:
+            await db.refresh(feature)
+        return features_in_db
+
+    async def update_scenario_features(
+        self,
+        db: AsyncSession,
+        current_user: models.User,
+        scenario_id: int,
+        layer_name: str,
+        feature_in: schemas.ScenarioFeatureUpdate,
+    ) -> Any:
+        layer = scenario_layer_models[layer_name.value]
+        features = feature_in.features
+        features_obj = {}
+        feature_ids = []
+        for feature in features:
+            features_obj[feature.id] = {}
+            feature_dict = {}
+            try:
+                for key, value in feature:
+                    if key == "id":
+                        feature_ids.append(value)
+                        continue
+                    elif isinstance(value, enum.Enum):
+                        feature_dict[key] = value.value
+                    else:
+                        feature_dict[key] = value
+            except Exception as e:
+                raise HTTPException(status_code=400, detail="Invalid feature")
+
+            features_obj[feature.id] = feature_dict
+
+        features_in_db = await db.execute(
+            select(layer).where(and_(layer.scenario_id == scenario_id, layer.id.in_(feature_ids)))
+        )
+        features_in_db = features_in_db.scalars().fetchall()
+
+        for db_feature in features_in_db:
+            feature_id = db_feature.id
+            for key, value in features_obj[feature_id].items():
+                if value is not None:
+                    # TODO: For population check if geometry and building with {building_modified_id} intersect
+                    setattr(db_feature, key, value)
+
+        db.add_all(features_in_db)
+        await db.commit()
+        for feature in features_in_db:
+            await db.refresh(feature)
+
+        return features_in_db
 
 
 scenario = CRUDScenario(models.Scenario)

@@ -52,12 +52,6 @@ const editLayerHelper = {
       const props = feature.getProperties();
       if (props.id) {
         originId = props.id;
-      } else if (props.gid) {
-        originId = props.gid;
-        feature.set("id", props.gid);
-      } else if (props.osm_id) {
-        originId = props.osm_id;
-        feature.set("id", props.osm_id);
       }
 
       if (
@@ -71,7 +65,7 @@ const editLayerHelper = {
           ).length === 0
         ) {
           const clonedFeature = feature.clone();
-          const layerName = this.selectedLayer.get("name");
+          const layerName = this.selectedLayer["name"];
           clonedFeature.set("layerName", layerName);
           clonedFeature.set("deletedId", originId);
           editLayerHelper.deletedFeatures.push(feature.clone());
@@ -130,7 +124,7 @@ const editLayerHelper = {
     }
   },
   commitDelete(mode, drawn_fid) {
-    const layerName = this.selectedLayer.get("name");
+    const layerName = this.selectedLayer["name"];
     fetch("/api/map/scenarios", {
       method: "POST",
       body: JSON.stringify({
@@ -225,8 +219,8 @@ const editLayerHelper = {
               if (response.data) {
                 const olFeatures = geojsonToFeature(response.data);
                 olFeatures.forEach(feature => {
-                  if (feature.get("gid")) {
-                    const id = parseInt(feature.get("gid"));
+                  if (feature.get("id")) {
+                    const id = parseInt(feature.get("id"));
                     const editFeature = source.getFeatureById(id);
                     var keys = Object.keys(feature.getProperties());
                     const properties = feature.getProperties();

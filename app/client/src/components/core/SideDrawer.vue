@@ -225,12 +225,12 @@ export default {
           icon: "fas fa-print",
           text: this.$t("appBar.buttons.print"),
           componentToShow: "map-print"
-        },
-        {
-          icon: "fas fa-ruler",
-          text: this.$t("appBar.buttons.drawAndMeasure"),
-          componentToShow: "map-draw-measure"
         }
+        // {
+        //   icon: "fas fa-ruler",
+        //   text: this.$t("appBar.buttons.drawAndMeasure"),
+        //   componentToShow: "map-draw-measure"
+        // }
       ];
     },
     bottomItems() {

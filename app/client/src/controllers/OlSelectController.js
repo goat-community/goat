@@ -97,7 +97,7 @@ export default class OlSelectController extends OlBaseController {
           const originTablePayload = {
             geom: circleWkt,
             return_type: "geojson",
-            table_name: selectedLayer.get("name")
+            table_name: selectedLayer["name"]
           };
 
           EventBus.$emit("getLayerPayload", {
@@ -120,7 +120,7 @@ export default class OlSelectController extends OlBaseController {
           // scenario features are already in the client)
           const modifiedTablePayload = {
             mode: "read",
-            table_name: `${selectedLayer.get("name")}_modified`,
+            table_name: `${selectedLayer["name"]}_modified`,
             scenario_id: store.state.activeScenario
           };
           requests.push(
@@ -128,7 +128,7 @@ export default class OlSelectController extends OlBaseController {
           );
 
           // Request only for population when building layer is active.
-          if (selectedLayer.get("name") === "buildings") {
+          if (selectedLayer["name"] === "buildings") {
             const populationTablePayload = {
               mode: "read",
               table_name: "population_modified",

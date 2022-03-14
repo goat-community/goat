@@ -132,7 +132,7 @@ export default class OlEditController extends OlBaseController {
     me.createPopupOverlay();
     switch (editType) {
       case "add": {
-        let geometryType = editLayerHelper.selectedLayer.get("editGeometry");
+        let geometryType = editLayerHelper.selectedLayer["editGeometry"];
         me.edit = new Draw({
           source: me.source,
           type: geometryType[0]
@@ -280,7 +280,7 @@ export default class OlEditController extends OlBaseController {
       ) {
         return;
       }
-      if (editLayerHelper.selectedLayer.get("name") === "buildings") {
+      if (editLayerHelper.selectedLayer["name"] === "buildings") {
         if (
           featureAtCoord.length === 0 ||
           (featureAtCoord.length > 0 &&
@@ -374,14 +374,11 @@ export default class OlEditController extends OlBaseController {
     const selectedFeature = f || me.selectedFeature;
     // If layers selected is building get also all building entrance features of the building and commit a delete request
     if (
-      editLayerHelper.selectedLayer.get("name") === "buildings" &&
+      editLayerHelper.selectedLayer["name"] === "buildings" &&
       this.bldEntranceLayer &&
       selectedFeature
     ) {
-      const buildingId =
-        selectedFeature.get("gid") ||
-        selectedFeature.get("id") ||
-        selectedFeature.getId();
+      const buildingId = selectedFeature.get("id") || selectedFeature.getId();
       const bldEntranceFeaturesToDelete = this.bldEntranceLayer
         .getSource()
         .getFeatures()
@@ -390,7 +387,7 @@ export default class OlEditController extends OlBaseController {
             selectedFeature
               .getGeometry()
               .intersectsCoordinate(f.getGeometry().getCoordinates()) &&
-            f.get("building_gid") === buildingId
+            f.get("building_modified_id") === buildingId
         );
       if (bldEntranceFeaturesToDelete.length > 0) {
         this.deleteBldEntranceFeatures(bldEntranceFeaturesToDelete);
@@ -417,10 +414,10 @@ export default class OlEditController extends OlBaseController {
     if (Array.isArray(features)) {
       const deletedBldEntrancePayload = [];
       features.forEach(feature => {
-        const gid = feature.getId() || feature.get("gid") || feature.get("id");
+        const id = feature.getId() || feature.get("id") || feature.get("id");
         const scenario_id = feature.get("scenario_id");
-        if (gid && scenario_id) {
-          deletedBldEntrancePayload.push({ gid, scenario_id });
+        if (id && scenario_id) {
+          deletedBldEntrancePayload.push({ id, scenario_id });
         }
       });
       const payload = {
@@ -490,7 +487,7 @@ export default class OlEditController extends OlBaseController {
     clonedProperties.scenario_id = isochronesStore.state.activeScenario;
     delete clonedProperties["id"];
 
-    const layerName = `${editLayerHelper.selectedLayer.get("name")}_modified`;
+    const layerName = `${editLayerHelper.selectedLayer["name"]}_modified`;
 
     me.featuresToCommit.forEach(feature => {
       const props = feature.getProperties();
@@ -565,9 +562,6 @@ export default class OlEditController extends OlBaseController {
       if (props.hasOwnProperty("geom")) {
         delete props.geom;
       }
-      if (props.hasOwnProperty("gid")) {
-        delete props.gid;
-      }
       if (props.hasOwnProperty("id")) {
         delete props.id;
       }
@@ -591,15 +585,15 @@ export default class OlEditController extends OlBaseController {
         "EPSG:4326"
       );
       props.geom = wktGeom;
-      props.gid = feature.getId() || feature.get("gid") || feature.get("id");
+      props.id = feature.getId() || feature.get("id");
       payloads.modes.update.push(props);
     });
     // Delete feature
     featuresToRemove.forEach(feature => {
-      const gid = feature.getId() || feature.get("gid") || feature.get("id");
+      const id = feature.getId() || feature.get("id");
       const scenario_id = feature.get("scenario_id");
-      if (gid && scenario_id) {
-        payloads.modes.delete.push({ gid, scenario_id });
+      if (id && scenario_id) {
+        payloads.modes.delete.push({ id, scenario_id });
       }
     });
     const promiseArray = [];
@@ -631,7 +625,7 @@ export default class OlEditController extends OlBaseController {
                 .getSource()
                 .removeFeature(featuresToRemove[index]);
             }
-            feature.setId(feature.get("gid"));
+            feature.setId(feature.get("id"));
             me.source.addFeature(feature);
           });
         }
@@ -718,7 +712,7 @@ export default class OlEditController extends OlBaseController {
       } else {
         if (
           ["Polygon"].some(r =>
-            editLayerHelper.selectedLayer.get("editGeometry").includes(r)
+            editLayerHelper.selectedLayer["editGeometry"].includes(r)
           )
         ) {
           snapi.setModifyInteraction(this.edit);
@@ -794,9 +788,7 @@ export default class OlEditController extends OlBaseController {
     editLayerHelper.featuresIDsToDelete = [];
     editLayerHelper.deletedFeatures = [];
     this.source.getFeatures().forEach(feature => {
-      if (
-        feature.get("layerName") === editLayerHelper.selectedLayer.get("name")
-      ) {
+      if (feature.get("layerName") === editLayerHelper.selectedLayer["name"]) {
         this.source.removeFeature(feature);
         if (this.storageLayer.getSource().hasFeature(feature)) {
           this.storageLayer.getSource().removeFeature(feature);
@@ -804,7 +796,7 @@ export default class OlEditController extends OlBaseController {
       }
     });
     if (
-      editLayerHelper.selectedLayer.get("name") === "buildings" &&
+      editLayerHelper.selectedLayer["name"] === "buildings" &&
       this.bldEntranceLayer
     ) {
       if (this.bldEntranceLayer) {

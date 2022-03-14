@@ -1,17 +1,24 @@
 import ApiService from "../../services/api.service";
 import { getField, updateField } from "vuex-map-fields";
-import { GET_APP_CONFIG, GET_USER_CUSTOM_DATA } from "../actions.type";
+import {
+  GET_APP_CONFIG,
+  GET_OPENAPI_CONFIG,
+  GET_USER_CUSTOM_DATA
+} from "../actions.type";
 import {
   SET_APP_CONFIG,
   SET_ERROR,
+  SET_OPENAPI_CONFIG,
   SET_POI_ICONS,
   SET_USER_CUSTOM_DATA
 } from "../mutations.type";
 import { errorMessage } from "../../utils/Helpers";
+import SwaggerParser from "@apidevtools/swagger-parser";
 
 const state = {
   errors: null,
   appConfig: null,
+  openapiConfig: null,
   uploadedData: [],
   poiIcons: {},
   layerTabIndex: 0,
@@ -27,6 +34,7 @@ const state = {
 
 const getters = {
   appConfig: state => state.appConfig,
+  openapiConfig: state => state.openapiConfig,
   uploadedData: state => state.uploadedData,
   calculationMode: state => state.calculationMode,
   appColor: state => {
@@ -170,6 +178,25 @@ const actions = {
           reject(response);
         });
     });
+  },
+  [GET_OPENAPI_CONFIG](context) {
+    return new Promise((resolve, reject) => {
+      ApiService.get("/openapi.json")
+        .then(response => {
+          context.commit(SET_OPENAPI_CONFIG, response.data);
+          SwaggerParser.validate(response.data, (err, api) => {
+            if (err) {
+              console.error(err);
+            } else {
+              resolve(api);
+            }
+          });
+        })
+        .catch(({ response }) => {
+          errorMessage(context, response, SET_ERROR);
+          reject(response);
+        });
+    });
   }
 };
 
@@ -202,6 +229,9 @@ const mutations = {
   },
   [SET_USER_CUSTOM_DATA](state, customData) {
     state.uploadedData = customData;
+  },
+  [SET_OPENAPI_CONFIG](state, config) {
+    state.openapiConfig = config;
   }
 };
 

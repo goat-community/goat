@@ -1,12 +1,34 @@
 <template>
   <v-flex xs12 sm8 md4>
     <v-card flat>
-      <v-subheader>
+      <v-subheader class="mb-4">
         <span class="title">{{ $t("appBar.edit.title") }}</span>
       </v-subheader>
-      <v-card-text class="pr-16 pl-16 pt-0 pb-0">
+      <v-card-text class="pt-0 pb-0 px-0 mx-0">
         <v-divider></v-divider>
+      </v-card-text>
+      <v-card-text class="pa-2">
+        <div v-if="Object.keys(scenarios).length === 0">
+          <v-tooltip top>
+            <template v-slot:activator="{ on }">
+              <v-btn
+                v-on="on"
+                class="mt-n11 ml-2"
+                :color="appColor.primary"
+                @click="showScenarioDialog = true"
+                fab
+                dark
+                small
+              >
+                <v-icon dark>add</v-icon>
+              </v-btn>
+            </template>
+            <span>{{ $t("appBar.edit.createScenario") }}</span>
+          </v-tooltip>
+        </div>
+      </v-card-text>
 
+      <v-card class="px-16 mx-4 py-0 mb-2 fill-height" flat>
         <!-- CREATE SCENARIO  -->
         <div v-if="Object.keys(scenarios).length > 0">
           <v-row class="mt-4" no-gutters>
@@ -41,7 +63,7 @@
                   <v-btn
                     v-on="on"
                     class="mt-1 ml-2"
-                    :color="activeColor.primary"
+                    :color="appColor.primary"
                     fab
                     dark
                     small
@@ -59,7 +81,7 @@
                   <v-btn
                     v-on="on"
                     class="mt-1 ml-1"
-                    :color="activeColor.primary"
+                    :color="appColor.primary"
                     fab
                     dark
                     small
@@ -76,22 +98,6 @@
             </v-col>
           </v-row>
         </div>
-        <div v-if="Object.keys(scenarios).length === 0">
-          <v-row align="center">
-            <v-col class="text-center">
-              <v-btn
-                width="100%"
-                class="text-xs-center white--text"
-                dark
-                :color="activeColor.primary"
-                @click="showScenarioDialog = true"
-              >
-                <v-icon left dark>add</v-icon>
-                {{ $t("appBar.edit.createScenario") }}
-              </v-btn>
-            </v-col></v-row
-          >
-        </div>
 
         <div v-if="Object.keys(scenarios).length > 0">
           <v-divider></v-divider>
@@ -105,17 +111,15 @@
             class="mt-4"
             :items="editableLayers"
             v-model="selectedLayer"
-            item-value="values_.name"
             return-object
-            :loading="loadingLayerInfo"
             solo
             :label="$t('appBar.edit.layerToEdit')"
           >
             <template slot="selection" slot-scope="{ item }">
-              {{ translate("layerName", item.get("name")) }}
+              {{ translate("layerName", item.name) }}
             </template>
             <template slot="item" slot-scope="{ item }">
-              {{ translate("layerName", item.get("name")) }}
+              {{ translate("layerName", item.name) }}
             </template>
           </v-select>
         </div>
@@ -129,9 +133,8 @@
           dense
           v-if="
             selectedLayer &&
-              selectedLayer.getVisible() === false &&
-              selectedLayer.get('displayInLayerList') &&
-              selectedLayer.get('name') === 'pois'
+              selectedLayer['displayInLayerList'] &&
+              selectedLayer['name'] === 'pois'
           "
         >
           <span v-html="$t('appBar.edit.activateLayerToDrawScenario')"></span>
@@ -206,12 +209,12 @@
                 </v-tooltip>
 
                 <v-tooltip
-                  v-show="selectedLayer.get('canModifyGeom') !== false"
+                  v-show="selectedLayer['canModifyGeom'] !== false"
                   top
                 >
                   <template v-slot:activator="{ on }">
                     <v-btn
-                      v-show="selectedLayer.get('canModifyGeom') !== false"
+                      v-show="selectedLayer['canModifyGeom'] !== false"
                       :value="2"
                       v-on="on"
                       text
@@ -226,7 +229,7 @@
                   <template v-slot:activator="{ on }">
                     <v-btn
                       :value="3"
-                      v-show="selectedLayer.get('modifyAttributes') === true"
+                      v-show="selectedLayer['modifyAttributes'] === true"
                       v-on="on"
                       text
                     >
@@ -249,7 +252,7 @@
                   top
                   v-show="
                     !['Point'].some(r =>
-                      selectedLayer.get('editGeometry').includes(r)
+                      selectedLayer['editGeometry'].includes(r)
                     )
                   "
                 >
@@ -257,7 +260,7 @@
                     <v-btn
                       v-show="
                         !['Point', 'LineString'].some(r =>
-                          selectedLayer.get('editGeometry').includes(r)
+                          selectedLayer['editGeometry'].includes(r)
                         )
                       "
                       :value="5"
@@ -275,7 +278,7 @@
                       :value="6"
                       v-show="
                         !['Point', 'LineString'].some(r =>
-                          selectedLayer.get('editGeometry').includes(r)
+                          selectedLayer['editGeometry'].includes(r)
                         )
                       "
                       v-on="on"
@@ -290,11 +293,11 @@
               <br />
 
               <v-btn-toggle v-model="toggleEdit">
-                <v-tooltip v-if="selectedLayer.get('name') === 'buildings'" top>
+                <v-tooltip v-if="selectedLayer['name'] === 'buildings'" top>
                   <template v-slot:activator="{ on }">
                     <v-btn
                       class="ml-0 mr-2 mt-2"
-                      v-if="selectedLayer.get('name') === 'buildings'"
+                      v-if="selectedLayer['name'] === 'buildings'"
                       :value="7"
                       v-on="on"
                       text
@@ -311,7 +314,7 @@
                   top
                   v-if="
                     ['Polygon', 'MultiPolygon'].some(r =>
-                      selectedLayer.get('editGeometry').includes(r)
+                      selectedLayer['editGeometry'].includes(r)
                     )
                   "
                 >
@@ -329,7 +332,7 @@
                   top
                   v-if="
                     ['Polygon', 'MultiPolygon'].some(r =>
-                      selectedLayer.get('editGeometry').includes(r)
+                      selectedLayer['editGeometry'].includes(r)
                     )
                   "
                 >
@@ -361,7 +364,7 @@
           </v-subheader>
           <div class="ml-2" v-if="dataManageElVisible">
             <v-flex
-              v-if="layerConf[layerName]"
+              v-if="schema[layerName]"
               xs12
               v-show="selectedLayer != null && dataManageElVisible === true"
               class="mt-1 pt-0 mb-0"
@@ -385,19 +388,19 @@
                 "
                 class="elevation-2"
                 type="info"
-                :color="activeColor.primary"
+                :color="appColor.primary"
                 border="left"
                 colored-border
                 dense
               >
                 <span
                   >&#9679; {{ $t("appBar.edit.dataTypeInfo") }}:
-                  <b>{{ selectedLayer.get("editDataType") }}</b>
+                  <b>{{ selectedLayer["editDataType"] }}</b>
                 </span>
                 <br />
                 <span
                   >&#9679; {{ $t("appBar.edit.geometryTypeInfo") }}:
-                  <b>{{ selectedLayer.get("editGeometry").toString() }}</b>
+                  <b>{{ selectedLayer["editGeometry"].toString() }}</b>
                 </span>
                 <br />
                 <span
@@ -433,7 +436,7 @@
                   :disabled="scenarioDataTable.length === 0"
                   :loading="isExportScenarioBusy"
                   class="white--text"
-                  :color="activeColor.primary"
+                  :color="appColor.primary"
                   @click="exportScenario"
                 >
                   <v-icon left>fas fa-download</v-icon>Export
@@ -537,7 +540,7 @@
           </div>
           <!-- ==== < /DATA TABLE> ====-->
         </template>
-      </v-card-text>
+      </v-card>
 
       <!-- ADD ENTRANCES FOR BUILDINGS ALERT -->
       <br />
@@ -551,7 +554,7 @@
         v-if="
           isUploadBtnEnabled === false &&
             selectedLayer &&
-            selectedLayer.get('name') === 'buildings' &&
+            selectedLayer['name'] === 'buildings' &&
             olEditCtrl.source.getFeatures().length > 0
         "
       >
@@ -570,10 +573,10 @@
               isDeleteAllBusy ||
               (isUploadBtnEnabled === false &&
                 selectedLayer &&
-                selectedLayer.get('name') === 'buildings' &&
+                selectedLayer['name'] === 'buildings' &&
                 olEditCtrl.source.getFeatures().length > 0)
           "
-          :color="activeColor.primary"
+          :color="appColor.primary"
           @click="uploadFeatures"
         >
           <v-icon left>cloud_upload</v-icon>{{ $t("appBar.edit.uploadBtn") }}
@@ -688,12 +691,6 @@
         </template>
       </template>
     </overlay-popup>
-    <!-- Opening hours -->
-    <opening-hours
-      :color="activeColor.primary"
-      :visible="showOpeningHours"
-      @close="showOpeningHours = false"
-    />
   </v-flex>
 </template>
 
@@ -704,11 +701,7 @@ import { KeyShortcuts } from "../../../mixins/KeyShortcuts";
 import { InteractionsToggle } from "../../../mixins/InteractionsToggle";
 import { Isochrones } from "../../../mixins/Isochrones";
 import { mapFields } from "vuex-map-fields";
-import {
-  getAllChildLayers,
-  getPoisListValues,
-  mapFeatureTypeProps
-} from "../../../utils/Layer";
+import { mapFeatureTypeProps } from "../../../utils/Layer";
 import OlEditController from "../../../controllers/OlEditController";
 import OlSelectController from "../../../controllers/OlSelectController";
 import editLayerHelper from "../../../controllers/OlEditLayerHelper";
@@ -717,7 +710,6 @@ import OverlayPopup from "../../viewer/ol/controls/Overlay";
 import ScenarioDialog from "../../core/ScenarioDialog";
 import http from "axios";
 import VJsonschemaForm from "../../other/dynamicForms/index";
-import OpeningHours from "../../other/OpeningHours";
 
 import { geojsonToFeature, geometryToWKT } from "../../../utils/MapUtils";
 import { mapGetters, mapMutations } from "vuex";
@@ -732,7 +724,6 @@ import { saveAs } from "file-saver";
 export default {
   components: {
     "overlay-popup": OverlayPopup,
-    "opening-hours": OpeningHours,
     "scenario-dialog": ScenarioDialog,
     VJsonschemaForm
   },
@@ -745,7 +736,6 @@ export default {
     toggleEdit: undefined,
     toggleSnapGuide: 0, // Used for snap and other functionalities (Active by default).
     toggleFeatureLabels: 0,
-    loadingLayerInfo: false,
     isUploadBusy: false,
     isDeleteAllBusy: false,
     isExportScenarioBusy: false,
@@ -893,9 +883,9 @@ export default {
       this.toggleFeatureLabelsInteraction(value);
     },
     scenarioDataTable() {
-      this.canCalculateScenario(this.options.calculationModes.active);
+      this.canCalculateScenario(this.calculationMode.active);
     },
-    "options.calculationModes.active": function(value) {
+    "calculationMode.active": function(value) {
       this.canCalculateScenario(value);
     },
     dataObject: {
@@ -920,10 +910,6 @@ export default {
      */
     onMapBound() {
       const me = this;
-      const editableLayers = getAllChildLayers(me.map).filter(layer =>
-        layer.get("canEdit")
-      );
-      me.editableLayers = [...editableLayers];
       //Initialize ol select controllers.
       me.olSelectCtrl = new OlSelectController(me.map);
       me.olSelectCtrl.createSelectionLayer();
@@ -996,7 +982,7 @@ export default {
           if (!features || features.length === 0) return;
 
           if (
-            this.selectedLayer.get("name") === "buildings" &&
+            this.selectedLayer["name"] === "buildings" &&
             features[0].getGeometry().getType() === "Point"
           ) {
             features.forEach(feature => {
@@ -1007,10 +993,8 @@ export default {
                 .filter(f => f.get("layerName") === "buildings");
               if (featuresAtCoord[0]) {
                 feature.set(
-                  "building_gid",
-                  featuresAtCoord[0].get("gid") ||
-                    featuresAtCoord[0].get("id") ||
-                    featuresAtCoord[0].getId()
+                  "building_modified_id",
+                  featuresAtCoord[0].get("id") || featuresAtCoord[0].getId()
                 );
               }
             });
@@ -1018,9 +1002,9 @@ export default {
           //- Check geometry type
           //- For buildings point geometry is allowed in order to upload building entrance layer
 
-          let editGeometryTypes = this.selectedLayer.get("editGeometry");
+          let editGeometryTypes = this.selectedLayer["editGeometry"];
           if (
-            this.selectedLayer.get("name") === "buildings" &&
+            this.selectedLayer["name"] === "buildings" &&
             features[0].getGeometry().getType() === "Point" // User is upload building entrance features..
           ) {
             editGeometryTypes = [...editGeometryTypes];
@@ -1038,7 +1022,7 @@ export default {
 
           //- Check field names
           if (
-            !this.selectedLayer.get("name") === "buildings" &&
+            !this.selectedLayer["name"] === "buildings" &&
             !features[0].getGeometry().getType() === "Point"
           ) {
             const props = features[0].getProperties();
@@ -1066,12 +1050,12 @@ export default {
 
           //5- Import scenario features
           this.importScenario(
-            this.userId,
+            this.currentUser.id,
             this.activeScenario,
-            this.selectedLayer.get("name") === "buildings" &&
+            this.selectedLayer["name"] === "buildings" &&
               features[0].getGeometry().getType() === "Point"
               ? "buildings_entrances"
-              : this.selectedLayer.get("name"),
+              : this.selectedLayer["name"],
             features
           );
         };
@@ -1135,7 +1119,7 @@ export default {
             features.forEach(feature => {
               //- Fiilter out building features that dont intersect.
               if (
-                this.selectedLayer.get("name") === "buildings" &&
+                this.selectedLayer["name"] === "buildings" &&
                 feature.getGeometry().getType() === "Point"
               ) {
                 const point = feature.getGeometry().getCoordinates();
@@ -1145,10 +1129,8 @@ export default {
                   .filter(f => f.get("layerName") === "buildings");
                 if (featuresAtCoord[0]) {
                   feature.set(
-                    "building_gid",
-                    featuresAtCoord[0].get("gid") ||
-                      featuresAtCoord[0].get("id") ||
-                      featuresAtCoord[0].getId()
+                    "building_modified_id",
+                    featuresAtCoord[0].get("id") || featuresAtCoord[0].getId()
                   );
                 }
               }
@@ -1169,8 +1151,8 @@ export default {
                 areAllUploaded = 0;
               }
 
-              if (feature.get("gid")) {
-                feature.setId(feature.get("gid"));
+              if (feature.get("id")) {
+                feature.setId(feature.get("id"));
               }
 
               // Manage delete features.
@@ -1193,8 +1175,7 @@ export default {
                   // Push to deleted
                   const fid =
                     feature.getProperties().original_id ||
-                    feature.getProperties().id ||
-                    feature.getProperties().gid;
+                    feature.getProperties().id;
                   if (fid) {
                     editLayerHelper.featuresIDsToDelete.push(fid.toString());
                   }
@@ -1489,15 +1470,13 @@ export default {
           coordinate,
           candidate => {
             if (
-              ((candidate.get("gid") ||
-                candidate.get("id") ||
-                candidate.getId()) &&
+              ((candidate.get("id") || candidate.getId()) &&
                 this.tempBldEntranceFeature &&
-                this.tempBldEntranceFeature.get("building_gid") ===
-                  candidate.get("gid")) ||
-              this.tempBldEntranceFeature.get("building_gid") ===
+                this.tempBldEntranceFeature.get("building_modified_id") ===
+                  candidate.get("id")) ||
+              this.tempBldEntranceFeature.get("building_modified_id") ===
                 candidate.get("id") ||
-              this.tempBldEntranceFeature.get("building_gid") ===
+              this.tempBldEntranceFeature.get("building_modified_id") ===
                 candidate.getId()
             ) {
               return true;
@@ -1577,9 +1556,9 @@ export default {
         }
         const wktGeom = geometryToWKT(clonedFeature.getGeometry());
         props.geom = wktGeom;
-        props.gid =
+        props.id =
           clonedFeature.getId() ||
-          clonedFeature.get("gid") ||
+          clonedFeature.get("id") ||
           clonedFeature.get("id");
         payload.mode = "update";
         payload.features = [props];
@@ -1587,8 +1566,8 @@ export default {
         // Add new feature
         bldEntranceFeature = new Feature({
           geometry: new Point(bldEntranceCoordinate),
-          building_gid:
-            buildingFeatureAtCoord.get("gid") ||
+          building_modified_id:
+            buildingFeatureAtCoord.get("id") ||
             buildingFeatureAtCoord.get("id") ||
             buildingFeatureAtCoord.getId(),
           scenario_id: this.activeScenario
@@ -1618,9 +1597,6 @@ export default {
         if (props.hasOwnProperty("geom")) {
           delete props.geom;
         }
-        if (props.hasOwnProperty("gid")) {
-          delete props.gid;
-        }
         if (props.hasOwnProperty("id")) {
           delete props.id;
         }
@@ -1632,8 +1608,8 @@ export default {
       http.post("/api/map/layer_controller", payload).then(response => {
         if (response.data) {
           const feature = geojsonToFeature(response.data);
-          if (feature[0] && feature[0].get("gid")) {
-            bldEntranceFeature.setId(feature[0].get("gid"));
+          if (feature[0] && feature[0].get("id")) {
+            bldEntranceFeature.setId(feature[0].get("id"));
           }
         }
       });
@@ -1725,7 +1701,7 @@ export default {
       }
 
       if (
-        this.selectedLayer.get("name") === "buildings" &&
+        this.selectedLayer["name"] === "buildings" &&
         this.olEditCtrl.currentInteraction === "draw"
       ) {
         this.toggleEdit = 7;
@@ -1756,29 +1732,56 @@ export default {
      * Get Layer attribute fields
      */
     getlayerFeatureTypes() {
-      this.loadingLayerInfo = true;
-      if (this.schema[this.layerName]) {
-        this.loadingLayerInfo = false;
-        this.updateReqFields(this.reqFields);
-        return;
-      }
-      http
-        .get(`/api/map/layer_schema/${this.layerName}_modified`)
-        .then(response => {
-          if (response.data) {
-            const props = response.data;
-            const layerName = this.layerName;
-            const jsonSchema = mapFeatureTypeProps(
-              props,
-              layerName,
-              this.layerConf[layerName]
-            );
-            this.schema[this.layerName] = jsonSchema;
-            this.loadingLayerInfo = false;
-            this.updateReqFields(this.reqFields);
-            this.$forceUpdate();
+      const schemas = this.openapiConfig.components.schemas;
+      const scenarioLayersConfig = [
+        schemas.ScenarioPoisModifiedCreate,
+        schemas.ScenarioWaysModifiedCreate,
+        schemas.ScenarioBuildingsModifiedCreate
+      ];
+      const editableLayers = [];
+      scenarioLayersConfig.forEach(config => {
+        editableLayers.push(config.client_config);
+        const layerName = config.client_config.name;
+        const propertiesConfig = config.properties;
+        const props = [];
+        const layerConfig = {
+          listValues: {},
+          hiddenProps: ["id", "way_id", "uid", "building_modified_id", "geom"],
+          enableFileUpload: config.client_config.enableFileUpload || false
+        };
+
+        Object.keys(propertiesConfig).forEach(key => {
+          const columnConfig = {};
+          columnConfig.column_name = key;
+          columnConfig.data_type = propertiesConfig[key].type;
+          if (config.required && config.required.includes(key)) {
+            columnConfig.is_nullable = "NO";
+          } else {
+            columnConfig.is_nullable = "YES";
+          }
+          props.push(columnConfig);
+          // Check if it has enum values
+          if (propertiesConfig[key].enum) {
+            layerConfig.listValues[key] = {
+              values: propertiesConfig[key].enum
+            };
+          }
+          // For pois add all list from poiIcon
+          if (key === "amenity" && ["pois", "poi"].includes(layerName)) {
+            layerConfig.listValues[key] = {
+              values: Object.keys(this.poiIcons)
+            };
           }
         });
+
+        const jsonSchema = mapFeatureTypeProps(props, layerName, layerConfig);
+        this.schema[layerName] = jsonSchema;
+      });
+      console.log(this.schema);
+
+      this.editableLayers = editableLayers;
+      this.updateReqFields(this.reqFields);
+      this.$forceUpdate();
     },
     /**
      * Method used only on drawend or modifyend to update fileinput feature cache
@@ -1931,18 +1934,18 @@ export default {
      * Delete all user scenario features in db.
      */
     deleteAll() {
-      const layerNames = [this.selectedLayer.get("name")];
+      const layerNames = [this.selectedLayer["name"]];
       this.$refs.confirm
         .open(
           this.$t("appBar.edit.deleteAllTitle"),
           this.$t("appBar.edit.deleteAllMessage"),
-          { color: this.activeColor.primary }
+          { color: this.appColor.primary }
         )
 
         .then(confirm => {
           if (confirm) {
             //1- Call api to delete all features.
-            const userId = this.userId;
+            const userId = this.currentUser.id;
             //1- Call api to delete all features.
             this.isDeleteAllBusy = true;
             http
@@ -2153,8 +2156,8 @@ export default {
             .getFeaturesInExtent(extent);
           let entrances = 0;
           entrancesInExtent.forEach(entrance => {
-            const buildingId = f.get("gid") || f.get("id") || f.getId();
-            if (entrance.get("building_gid") === buildingId) {
+            const buildingId = f.get("id") || f.getId();
+            if (entrance.get("building_modified_id") === buildingId) {
               entrances += 1;
             }
           });
@@ -2234,7 +2237,7 @@ export default {
       return scenarioArray;
     },
     layerName() {
-      const value = this.selectedLayer.get("name");
+      const value = this.selectedLayer["name"];
       return value;
     },
     reqFields() {
@@ -2242,8 +2245,14 @@ export default {
       const layerFieldsKeys = Object.keys(layerSchema.properties);
       return layerFieldsKeys.filter(
         el =>
-          !["original_id", "id", "gid", "scenario_id"].includes(el) &&
-          layerSchema.required.includes(el)
+          ![
+            "way_id",
+            "uid",
+            "building_modified_id",
+            "building_id",
+            "id",
+            "scenario_id"
+          ].includes(el) && layerSchema.required.includes(el)
       );
     },
     options() {
@@ -2273,16 +2282,18 @@ export default {
           )}: <span> <b>${this.reqFields.join(", ")}</b></span>`
         : `<span></span>`;
     },
-    ...mapGetters("user", { userId: "userId" }),
-    ...mapGetters("isochrones", { options: "options" }),
+    ...mapGetters("auth", { currentUser: "currentUser" }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor",
+      calculationMode: "calculationMode",
+      openapiConfig: "openapiConfig",
+      poiIcons: "poiIcons"
     }),
     ...mapGetters("map", {
       contextmenu: "contextmenu",
       layers: "layers"
     }),
-    ...mapFields("isochrones", {
+    ...mapFields("scenarios", {
       scenarioDataTable: "scenarioDataTable",
       scenarios: "scenarios",
       activeScenario: "activeScenario"
@@ -2293,17 +2304,7 @@ export default {
     })
   },
   created() {
-    this.layerConf = this.$appConfig.layerConf;
-    //Edge Case (get all pois keys)
-    if (
-      this.layerConf.pois.listValues.amenity &&
-      this.layerConf.pois.listValues.amenity.values === "*"
-    ) {
-      const poisListValues = getPoisListValues(
-        this.$appConfig.componentData.pois.allPois
-      );
-      this.layerConf.pois.listValues.amenity.values = poisListValues;
-    }
+    this.getlayerFeatureTypes();
   }
 };
 </script>

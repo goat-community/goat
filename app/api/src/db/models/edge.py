@@ -30,7 +30,6 @@ if TYPE_CHECKING:
 class EdgeBase(SQLModel):
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     class_id: int = Field(nullable=False)
-    length_m: float = Field(sa_column=Column(Float(53), nullable=False))
     name: Optional[str] = Field(sa_column=Column(Text))
     one_way: Optional[int]
     maxspeed_forward: Optional[int]
@@ -80,6 +79,7 @@ class Edge(EdgeBase, table=True):
     __tablename__ = "edge"
     __table_args__ = {"schema": "basic"}
 
+    length_m: float = Field(sa_column=Column(Float(53), nullable=False))
     length_3857: float = Field(sa_column=Column(Float(53), nullable=False))
     coordinates_3857: Optional[dict] = Field(sa_column=Column(JSON, nullable=False))
     source: int = Field(index=True, nullable=False, foreign_key="basic.node.id")
@@ -112,6 +112,7 @@ class Edge(EdgeBase, table=True):
 
 
 Index("idx_edge_geom", Edge.__table__.c.geom, postgresql_using="gist")
+
 
 class WayModified(EdgeBase, table=True):
     __tablename__ = "way_modified"
