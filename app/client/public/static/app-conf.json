@@ -496,7 +496,7 @@
         "canEdit": false,
         "displayInLayerList": true,
         "zIndex": 1,
-        "maxResolution": 30,
+        "maxResolution": 10,
         "style": {
           "format": "geostyler",
           "url": "./static/layer-styles/styles/ways_security.json"
@@ -1269,9 +1269,9 @@
               "sensitivity": 300000
             },
             {
-              "name": "Newsstand",
-              "value": "newsstand",
-              "icon": "newsstand",
+              "name": "Newsagent",
+              "value": "newsagent",
+              "icon": "newsagent",
               "weight": 1,
               "sensitivity": 300000
             },
