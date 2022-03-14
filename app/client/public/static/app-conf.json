@@ -1228,13 +1228,6 @@
               "sensitivity": 300000
             },
             {
-              "name": "Garden",
-              "value": "garden",
-              "icon": "garden",
-              "weight": 1,
-              "sensitivity": 300000
-            },
-            {
               "name": "Playground",
               "value": "playground",
               "icon": "playground",
