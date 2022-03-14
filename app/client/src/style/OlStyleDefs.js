@@ -4,13 +4,13 @@ import OlFill from "ol/style/Fill";
 import OlCircle from "ol/style/Circle";
 import OlIcon from "ol/style/Icon";
 import OlText from "ol/style/Text";
-import store from "../store/modules/map";
 import OlFontSymbol from "../utils/FontSymbol";
 import OlShadow from "../utils/Shadow";
 
 import isochronesStore from "../store/modules/isochrones";
 import poisAoisStore from "../store/modules/poisaois";
 import appStore from "../store/modules/app";
+import mapStore from "../store/modules/map";
 import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
 import { getIconUnicode } from "../utils/Helpers";
 import { getArea } from "ol/sphere.js";
@@ -261,26 +261,26 @@ export function defaultStyle(feature, resolution) {
     let isCompleted = true;
     let hasEntranceFeature = false;
     if (
-      store.state.reqFields &&
-      store.state.selectedEditLayer.get("name") === "buildings"
+      mapStore.state.reqFields &&
+      mapStore.state.selectedEditLayer.get("name") === "buildings"
     ) {
-      store.state.reqFields.forEach(field => {
+      mapStore.state.reqFields.forEach(field => {
         if (!properties[field]) {
           isCompleted = false;
         }
       });
     }
-    if (store.state.bldEntranceLayer) {
+    if (mapStore.state.bldEntranceLayer) {
       const extent = feature.getGeometry().getExtent();
-      const entrancesInExtent = store.state.bldEntranceLayer
+      const entrancesInExtent = mapStore.state.bldEntranceLayer
         .getSource()
         .getFeaturesInExtent(extent);
 
       let countEntrances = 0;
       entrancesInExtent.forEach(entrance => {
         const buildingId =
-          feature.get("gid") || feature.get("id") || feature.getId();
-        if (entrance.get("building_gid") === buildingId) {
+          feature.get("id") || feature.get("id") || feature.getId();
+        if (entrance.get("building_modified_id") === buildingId) {
           countEntrances += 1;
         }
       });
@@ -311,8 +311,8 @@ export function defaultStyle(feature, resolution) {
 
     if (
       resolution < 0.4 &&
-      store.state.editLayer &&
-      store.state.editLayer.get("showLabels") === 0
+      mapStore.state.editLayer &&
+      mapStore.state.editLayer.get("showLabels") === 0
     ) {
       const style = new OlStyle({
         text: new OlText({
@@ -430,7 +430,7 @@ export function editStyleFn() {
 
     // Linestring (ex. ways ) style
     if (
-      (props.hasOwnProperty("way_type") && props["original_id"] == null) ||
+      (props.hasOwnProperty("way_type") && props["edge_id"] == null) ||
       Object.keys(props).length == 1
     ) {
       //Distinguish Roads from Bridge features

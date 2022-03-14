@@ -9,6 +9,7 @@
     "i18n:report": "vue-cli-service i18n:report --src './src/**/*.?(js|vue)' --locales './src/locales/**/*.json'"
   },
   "dependencies": {
+    "@apidevtools/swagger-parser": "^10.0.3",
     "@fortawesome/fontawesome-pro": "^6.0.0",
     "@turf/buffer": "^6.5.0",
     "axios": "^0.21.1",

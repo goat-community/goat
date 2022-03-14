@@ -8,3 +8,4 @@ export const GET_APP_CONFIG = "getAppConfig";
 export const GET_STUDY_AREA = "getStudyArea";
 export const GET_STUDY_AREAS_LIST = "getStudyAreasList";
 export const GET_USER_CUSTOM_DATA = "getUserCustomData";
+export const GET_OPENAPI_CONFIG = "getOpenApiConfig";

@@ -20,6 +20,7 @@ from .poi_aoi import POIAOIVisualization
 from .role import RoleBase, RoleCreate, RoleUpdate
 from .scenario import (
     ScenarioBase,
+    ScenarioBuildingsModifiedCreate,
     ScenarioCreate,
     ScenarioFeatureCreate,
     ScenarioFeatureUpdate,
@@ -27,7 +28,9 @@ from .scenario import (
     ScenarioLayerFeatureEnum,
     ScenarioLayersEnum,
     ScenarioLayersNoPoisEnum,
+    ScenarioPoisModifiedCreate,
     ScenarioUpdate,
+    ScenarioWaysModifiedCreate,
 )
 from .token import Token, TokenPayload
 from .upload import CutomDataUploadState

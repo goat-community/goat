@@ -154,6 +154,16 @@ class ScenarioWaysModifiedCreate(ScenarioFeatureCreateBase):
 
     class Config:
         extra = "forbid"
+        schema_extra = {
+            "client_config": {
+                "name": "ways",
+                "editDataType": "GeoJSON",
+                "editGeometry": ["LineString"],
+                "modifyAttributes": True,
+                "displayInLayerList": False,
+                "enableFileUpload": False,
+            },
+        }
 
 
 class ScenarioWaysModifiedUpdate(ScenarioFeatureUpdateBase):
@@ -177,6 +187,17 @@ class ScenarioBuildingsModifiedCreate(ScenarioFeatureCreateBase):
 
     class Config:
         extra = "forbid"
+        schema_extra = {
+            "client_config": {
+                "name": "buildings",
+                "editDataType": "GeoJSON",
+                "editGeometry": ["Polygon", "MultiPolygon"],
+                "canModifyGeom": True,
+                "modifyAttributes": True,
+                "displayInLayerList": False,
+                "enableFileUpload": True,
+            },
+        }
 
 
 class ScenarioBuildingsModifiedUpdate(ScenarioFeatureUpdateBase):
@@ -196,6 +217,15 @@ class ScenarioPoisModifiedCreate(ScenarioFeatureCreateBase):
 
     class Config:
         extra = "forbid"
+        schema_extra = {
+            "client_config": {
+                "name": "pois",
+                "editDataType": "GeoJSON",
+                "editGeometry": ["Point"],
+                "displayInLayerList": False,
+                "enableFileUpload": False,
+            },
+        }
 
 
 class ScenarioPoisModifiedUpdate(ScenarioFeatureUpdateBase):
@@ -211,6 +241,7 @@ class ScenarioPopulationModifiedCreate(ScenarioFeatureCreateBase):
 
     class Config:
         extra = "forbid"
+        title = "population"
 
 
 class ScenarioPopulationModifiedUpdate(ScenarioFeatureUpdateBase):

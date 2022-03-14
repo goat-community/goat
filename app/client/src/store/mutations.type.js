@@ -7,3 +7,4 @@ export const SET_STUDY_AREA = "setStudyArea";
 export const SET_STUDY_AREAS_LIST = "setStudyAreasList";
 export const SET_POI_ICONS = "setPoiIcons";
 export const SET_USER_CUSTOM_DATA = "setUserCustomData";
+export const SET_OPENAPI_CONFIG = "setOpenApiConfig";

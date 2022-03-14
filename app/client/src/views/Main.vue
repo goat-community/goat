@@ -37,7 +37,8 @@ import {
   GET_USER_CUSTOM_DATA,
   GET_APP_CONFIG,
   GET_STUDY_AREA,
-  GET_STUDY_AREAS_LIST
+  GET_STUDY_AREAS_LIST,
+  GET_OPENAPI_CONFIG
 } from "../store/actions.type";
 import { mapGetters } from "vuex";
 
@@ -58,6 +59,7 @@ export default {
     this.$store.dispatch(`app/${GET_USER_CUSTOM_DATA}`);
     this.$store.dispatch(`map/${GET_STUDY_AREA}`);
     this.$store.dispatch(`map/${GET_STUDY_AREAS_LIST}`);
+    this.$store.dispatch(`app/${GET_OPENAPI_CONFIG}`);
   },
   computed: {
     ...mapGetters("app", {
