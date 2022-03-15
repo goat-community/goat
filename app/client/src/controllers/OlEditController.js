@@ -11,7 +11,7 @@ import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import VectorImageLayer from "ol/layer/VectorImage";
 import Overlay from "ol/Overlay.js";
-import isochronesStore from "../store/modules/isochrones";
+import scenarioStore from "../store/modules/scenarios";
 import Feature from "ol/Feature";
 import { geojsonToFeature, geometryToWKT } from "../utils/MapUtils";
 import http from "../services/http";
@@ -30,6 +30,17 @@ export default class OlEditController extends OlBaseController {
   isInteractionOnProgress = false;
   constructor(map) {
     super(map);
+  }
+  original_id() {
+    if (editLayerHelper.selectedLayer["name"] === "poi") {
+      return "uid";
+    } else if (editLayerHelper.selectedLayer["name"] === "building") {
+      return "building_id";
+    } else if (editLayerHelper.selectedLayer["name"] === "way") {
+      return "way_id";
+    } else {
+      return "";
+    }
   }
 
   /**
@@ -274,17 +285,19 @@ export default class OlEditController extends OlBaseController {
 
       if (
         featureAtCoord.length > 0 &&
-        isochronesStore.state.activeScenario &&
+        scenarioStore.state.activeScenario &&
         featureAtCoord[0].get("scenario_id") !==
-          isochronesStore.state.activeScenario
+          scenarioStore.state.activeScenario
       ) {
         return;
       }
-      if (editLayerHelper.selectedLayer["name"] === "buildings") {
+      if (editLayerHelper.selectedLayer["name"] === "building") {
         if (
           featureAtCoord.length === 0 ||
           (featureAtCoord.length > 0 &&
-            !featureAtCoord[0].getProperties().hasOwnProperty("original_id"))
+            !featureAtCoord[0]
+              .getProperties()
+              .hasOwnProperty(this.original_id()))
         ) {
           me.map.getTarget().style.cursor = "not-allowed";
           if (me.isInteractionOnProgress === false) {
@@ -374,7 +387,7 @@ export default class OlEditController extends OlBaseController {
     const selectedFeature = f || me.selectedFeature;
     // If layers selected is building get also all building entrance features of the building and commit a delete request
     if (
-      editLayerHelper.selectedLayer["name"] === "buildings" &&
+      editLayerHelper.selectedLayer["name"] === "building" &&
       this.bldEntranceLayer &&
       selectedFeature
     ) {
@@ -484,7 +497,7 @@ export default class OlEditController extends OlBaseController {
     const featuresToRemove = [];
 
     const clonedProperties = Object.assign({}, properties);
-    clonedProperties.scenario_id = isochronesStore.state.activeScenario;
+    clonedProperties.scenario_id = scenarioStore.state.activeScenario;
     delete clonedProperties["id"];
 
     const layerName = `${editLayerHelper.selectedLayer["name"]}_modified`;
@@ -516,13 +529,13 @@ export default class OlEditController extends OlBaseController {
       }
 
       if (
-        !props.hasOwnProperty("original_id") &&
+        !props.hasOwnProperty(this.original_id()) &&
         ["modify", "move", "modifyAttributes", "drawHole"].includes(
           me.currentInteraction
         )
       ) {
         transformed.set(
-          "original_id",
+          this.original_id(),
           feature.get("id") ? feature.get("id") : null
         );
       }
@@ -530,7 +543,7 @@ export default class OlEditController extends OlBaseController {
       if (
         (typeof feature.getId() === "undefined" &&
           Object.keys(props).length === 1) ||
-        (!props.hasOwnProperty("original_id") &&
+        (!props.hasOwnProperty(this.original_id()) &&
           ["modify", "move", "modifyAttributes", "drawHole"].includes(
             me.currentInteraction
           ))
@@ -538,7 +551,7 @@ export default class OlEditController extends OlBaseController {
         featuresToAdd.push(transformed);
         featuresToRemove.push(feature);
       } else if (
-        props.hasOwnProperty("original_id") &&
+        props.hasOwnProperty(this.original_id()) &&
         ["modify", "move", "modifyAttributes", "drawHole"].includes(
           me.currentInteraction
         )
@@ -755,7 +768,7 @@ export default class OlEditController extends OlBaseController {
       }
       if (
         this.source.hasFeature(f) &&
-        !props.hasOwnProperty("original_id") &&
+        !props.hasOwnProperty(this.original_id()) &&
         !props.hasOwnProperty("status")
       ) {
         this.source.removeFeature(f);
@@ -768,7 +781,7 @@ export default class OlEditController extends OlBaseController {
       if (
         this.source.hasFeature(f) &&
         props.status === 1 &&
-        !props.hasOwnProperty("original_id")
+        !props.hasOwnProperty(this.original_id())
       ) {
         this.source.removeFeature(f);
         if (this.storageLayer.getSource().hasFeature(f)) {
@@ -796,7 +809,7 @@ export default class OlEditController extends OlBaseController {
       }
     });
     if (
-      editLayerHelper.selectedLayer["name"] === "buildings" &&
+      editLayerHelper.selectedLayer["name"] === "building" &&
       this.bldEntranceLayer
     ) {
       if (this.bldEntranceLayer) {
