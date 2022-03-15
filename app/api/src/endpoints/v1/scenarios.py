@@ -1,8 +1,9 @@
+import asyncio
 from typing import Any, List, Optional, Union
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, UploadFile
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src import crud, schemas
@@ -10,19 +11,21 @@ from src.db import models
 from src.endpoints import deps
 from src.resources.enums import ReturnWithoutDbGeobufEnum
 from src.schemas.msg import Msg
-from src.schemas.scenario import request_examples
+from src.schemas.scenario import request_examples, scenario_deleted_columns
 from src.utils import return_geojson_or_geobuf, to_feature_collection
 
 router = APIRouter()
 
 # --------------------------------Scenario Table---------------------------------------
 # -------------------------------------------------------------------------------------
+
+
 @router.post("", response_model=models.Scenario)
 async def create_scenario(
     *,
     db: AsyncSession = Depends(deps.get_db),
-    scenario_in: schemas.ScenarioCreate = Body(..., example=request_examples["create"]),
     current_user: models.User = Depends(deps.get_current_active_user),
+    scenario_in: schemas.ScenarioCreate = Body(..., example=request_examples["create"]),
 ):
     """
     Create scenario.
@@ -39,9 +42,9 @@ async def create_scenario(
 async def update_scenario(
     *,
     db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
     scenario_id: int,
     scenario_in: schemas.ScenarioUpdate = Body(..., example=request_examples["update"]),
-    current_user: models.User = Depends(deps.get_current_active_user),
 ):
     """
     Update scenario.
@@ -60,8 +63,8 @@ async def update_scenario(
 async def delete_scenario(
     *,
     db: AsyncSession = Depends(deps.get_db),
-    scenario_id: int,
     current_user: models.User = Depends(deps.get_current_active_user),
+    scenario_id: int,
 ):
     """
     Delete scenario.
@@ -72,6 +75,27 @@ async def delete_scenario(
     if len(scenario) > 0:
         result = await crud.scenario.remove(db, id=scenario_id)
         return {"msg": "Scenario deleted."}
+    else:
+        raise HTTPException(status_code=400, detail="Scenario not found")
+
+
+@router.get("/{scenario_id}/upload", response_model=Msg)
+async def upload_scenario_changes(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+    scenario_id: int,
+):
+    """
+    Upload scenario changes.
+    """
+    scenario = await crud.scenario.get_by_multi_keys(
+        db, keys={"id": scenario_id, "user_id": current_user.id}
+    )
+    if len(scenario) > 0:
+        # TODO: Call network modification function
+        await asyncio.sleep(5)
+        return {"msg": "Scenario changes uploaded."}
     else:
         raise HTTPException(status_code=400, detail="Scenario not found")
 
@@ -94,7 +118,7 @@ async def read_scenario_deleted_feature_ids(
         raise HTTPException(status_code=400, detail="Scenario not found")
     else:
         scenario = scenario[0]
-        deleted_features_column = "deleted_" + layer_name
+        deleted_features_column = scenario_deleted_columns[layer_name.value]
         try:
             deleted_features = getattr(scenario, deleted_features_column)
             return deleted_features
@@ -102,7 +126,7 @@ async def read_scenario_deleted_feature_ids(
             raise HTTPException(status_code=400, detail="Column not found")
 
 
-@router.patch("", response_model=models.Scenario)
+@router.patch("/{scenario_id}/{layer_name}", response_model=models.Scenario)
 async def update_scenario_deleted_feature_ids(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -123,7 +147,7 @@ async def update_scenario_deleted_feature_ids(
         raise HTTPException(status_code=400, detail="Scenario not found")
     else:
         scenario = scenario[0]
-        deleted_features_column = "deleted_" + layer_name
+        deleted_features_column = scenario_deleted_columns[layer_name.value]
         if not hasattr(scenario, deleted_features_column):
             raise HTTPException(status_code=400, detail="Column not found")
         db_obj_in = {deleted_features_column: deleted_features_in}
@@ -149,7 +173,7 @@ async def read_scenario_features(
         example=request_examples["read_features"]["layer_name"],
     ),
     intersect: Optional[str] = Query(
-        ...,
+        default=None,
         description="WKT Geometry to intersect with layer. Geometry must be in EPSG:4326. If not specified, all features are returned.",
         example=request_examples["read_features"]["intersect"],
     ),
@@ -178,8 +202,8 @@ async def read_scenario_features(
     return return_geojson_or_geobuf(features, return_type.value)
 
 
-@router.delete("/{scenario_id}/{layer_name}/features/{feature_id}", response_model=Msg)
-async def delete_scenario_feature(
+@router.delete("/{scenario_id}/{layer_name}/features", response_model=Msg)
+async def delete_scenario_features(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
@@ -191,14 +215,43 @@ async def delete_scenario_feature(
         description="Scenario layer name to delete feature from",
         example=request_examples["delete_feature"]["layer_name"],
     ),
-    feature_id: int = Path(
+) -> Any:
+    """
+    Delete all features from scenario layers. This endpoint is used to delete features in "modified" tables.
+    """
+    scenario = await crud.scenario.get_by_multi_keys(
+        db, keys={"id": scenario_id, "user_id": current_user.id}
+    )
+    if len(scenario) == 0:
+        raise HTTPException(status_code=400, detail="Scenario not found")
+
+    result = await crud.scenario.delete_scenario_features(
+        db, current_user, scenario_id, layer_name
+    )
+    return result
+
+
+@router.delete("/{scenario_id}/{layer_name}/features/{feature_id}", response_model=Msg)
+async def delete_selected_scenario_feature(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+    scenario_id: int = Path(
+        ..., description="Scenario ID", example=request_examples["delete_feature"]["scenario_id"]
+    ),
+    layer_name: schemas.ScenarioLayerFeatureEnum = Path(
+        ...,
+        description="Scenario layer name to delete feature from",
+        example=request_examples["delete_feature"]["layer_name"],
+    ),
+    feature_ids: List[int] = Query(
         ...,
         description="Scenario feature ID to delete",
         example=request_examples["delete_feature"]["feature_id"],
     ),
 ):
     """
-    Delete feature from scenario layer. This endpoint is used to delete features in "modified" tables. For deleting
+    Delete specific features from scenario layer. This endpoint is used to delete feature in "modified" tables. For deleting
     features in "default" tables, use the "{PATCH}/scenarios" endpoint.
     """
     scenario = await crud.scenario.get_by_multi_keys(
@@ -208,9 +261,9 @@ async def delete_scenario_feature(
         raise HTTPException(status_code=400, detail="Scenario not found")
     else:
         result = await crud.scenario.delete_scenario_feature(
-            db, current_user, scenario_id, layer_name, feature_id
+            db, current_user, scenario_id, layer_name, feature_ids
         )
-        return {"msg": "Feature deleted successfully"}
+        return result
 
 
 @router.post(
@@ -289,3 +342,27 @@ async def update_scenario_features(
             result, exclude_properties=["coordinates_3857", "node_source", "node_target"]
         )
         return jsonable_encoder(features)
+
+
+# -----------------------------------Export--------------------------------------------
+# -------------------------------------------------------------------------------------
+
+
+# # TODO: export scenario to zip file
+# @router.get("/{scenario_id}/export", response_class=StreamingResponse)
+# async def export_scenario(
+#     *,
+#     db: AsyncSession = Depends(deps.get_db),
+#     current_user: models.User = Depends(deps.get_current_active_user),
+#     scenario_id: int = Path(..., description="Scenario ID"),
+# ):
+#     """
+#     Export scenario to zip file
+#     """
+#     scenario = await crud.scenario.get_by_multi_keys(
+#         db, keys={"id": scenario_id, "user_id": current_user.id}
+#     )
+#     if len(scenario) == 0:
+#         raise HTTPException(status_code=400, detail="Scenario not found")
+#     else:
+#         return await crud.scenario.export_scenario(db, current_user, scenario_id)

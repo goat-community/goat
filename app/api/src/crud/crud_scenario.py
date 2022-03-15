@@ -1,6 +1,6 @@
 import enum
 import uuid
-from typing import Any
+from typing import Any, List
 
 import pyproj
 from fastapi import HTTPException
@@ -9,14 +9,14 @@ from shapely import wkt
 from shapely.ops import transform
 from sqlalchemy import and_, func
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy.sql import select
+from sqlalchemy.sql import delete, select
 
 from src import schemas
 from src.crud.base import CRUDBase
 from src.db import models
 
 scenario_layer_models = {
-    schemas.ScenarioLayersNoPoisEnum.edge.value: models.Edge,
+    schemas.ScenarioLayersNoPoisEnum.way.value: models.Edge,
     schemas.ScenarioLayersNoPoisEnum.way_modified.value: models.WayModified,
     schemas.ScenarioLayersNoPoisEnum.building.value: models.Building,
     schemas.ScenarioLayersNoPoisEnum.building_modified.value: models.BuildingModified,
@@ -38,23 +38,31 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
         intersect: str,
     ) -> Any:
         layer = scenario_layer_models[layer_name.value]
-        try:
-            polygon = WKTElement(intersect, srid=4326)
-            # Check if area of polygon is smaller than 10 km2
-            project = pyproj.Transformer.from_crs(
-                pyproj.CRS("EPSG:4326"), pyproj.CRS("EPSG:3857"), always_xy=True
-            ).transform
-            projected_area = transform(project, to_shape(polygon)).area
-            if (projected_area / 1000000) > 10:
-                raise HTTPException(
-                    status_code=400,
-                    detail="The area of the polygon is too large. Please select a smaller area.",
-                )
-        except:
-            raise HTTPException(status_code=400, detail="Invalid geometry")
+
+        if "_modified" not in layer_name.value and intersect is None:
+            raise HTTPException(
+                status_code=400, detail="Intersect parameter is required for non-modified layers"
+            )
+
+        polygon = None
+        if intersect is not None:
+            try:
+                polygon = WKTElement(intersect, srid=4326)
+                # Check if area of polygon is smaller than 10 km2
+                project = pyproj.Transformer.from_crs(
+                    pyproj.CRS("EPSG:4326"), pyproj.CRS("EPSG:3857"), always_xy=True
+                ).transform
+                projected_area = transform(project, to_shape(polygon)).area
+                if (projected_area / 1000000) > 10:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="The area of the polygon is too large. Please select a smaller area.",
+                    )
+            except:
+                raise HTTPException(status_code=400, detail="Invalid geometry")
         statement = select(layer)
 
-        if layer_name.value == schemas.ScenarioLayersNoPoisEnum.edge.value:
+        if layer_name.value == schemas.ScenarioLayersNoPoisEnum.way.value:
             excluded_ids_results = await db.execute(
                 func.basic.select_customization("excluded_class_id_walking")
             )
@@ -74,6 +82,8 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                     layer.scenario_id == scenario_id,
                 )
             )
+        elif "_modified" in layer_name.value and intersect is None:
+            statement = statement.where(layer.scenario_id == scenario_id)
         else:
             statement = statement.where(layer.geom.ST_Intersects(polygon))
 
@@ -81,27 +91,29 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
         result = result.scalars().all()
         return result
 
+    async def delete_scenario_features(
+        self, db: AsyncSession, current_user: models.User, scenario_id: int, layer_name: str
+    ) -> Any:
+        layer = scenario_layer_models[layer_name.value]
+        await db.execute(delete(layer).where(layer.scenario_id == scenario_id))
+        await db.commit()
+        return {"msg": "Features deleted successfully"}
+
     async def delete_scenario_feature(
         self,
         db: AsyncSession,
         current_user: models.User,
         scenario_id: int,
         layer_name: str,
-        feature_id: int,
+        feature_ids: List[int],
     ) -> Any:
         layer = scenario_layer_models[layer_name.value]
         # check if feature exists in the table
-        feature = await db.execute(
-            select(layer).where(and_(layer.id == feature_id, layer.scenario_id == scenario_id))
+        await db.execute(
+            delete(layer).where(and_(layer.id.in_(feature_ids), layer.scenario_id == scenario_id))
         )
-        feature = feature.scalars().fetchall()
-        # delete feature from table
-        if feature is not None and len(feature) > 0:
-            await db.delete(feature[0])
-            await db.commit()
-            return {"msg": "Feature deleted"}
-        else:
-            raise HTTPException(status_code=404, detail="Feature not found")
+        await db.commit()
+        return {"msg": "Features deleted successfully"}
 
     async def create_scenario_features(
         self,

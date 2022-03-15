@@ -1,11 +1,8 @@
-from datetime import datetime
 from enum import Enum
-from typing import Dict, Iterable, List, Optional, Union
+from typing import List, Optional, Union
 
 from geojson_pydantic.features import FeatureCollection
-from pydantic import BaseModel, Field, create_model
-
-from src.db import models
+from pydantic import BaseModel
 
 
 class ScenarioBase(BaseModel):
@@ -13,16 +10,11 @@ class ScenarioBase(BaseModel):
 
 
 class ScenarioImport(ScenarioBase):
-    user_id: int
-    layer_name: str
     payload: FeatureCollection
 
     class Config:
         schema_extra = {
             "example": {
-                "user_id": 1,
-                "scenario_id": 6,
-                "layer_name": "ways",
                 "payload": {
                     "type": "FeatureCollection",
                     "features": [
@@ -75,9 +67,16 @@ class ScenarioDelete(ScenarioBase):
 class ScenarioLayersEnum(Enum):
     """Scenario Layers Enums."""
 
-    ways = "ways"
-    pois = "pois"
-    buildings = "buildings"
+    way = "way"
+    poi = "poi"
+    building = "building"
+
+
+scenario_deleted_columns = {
+    "way": "deleted_ways",
+    "poi": "deleted_pois",
+    "building": "deleted_buildings",
+}
 
 
 class ScenarioLayerFeatureEnum(Enum):
@@ -92,7 +91,7 @@ class ScenarioLayerFeatureEnum(Enum):
 class ScenarioLayersNoPoisEnum(Enum):
     """Scenario Layers without POIS."""
 
-    edge = "edge"
+    way = "way"
     way_modified = "way_modified"
     building = "building"
     building_modified = "building_modified"
@@ -156,7 +155,7 @@ class ScenarioWaysModifiedCreate(ScenarioFeatureCreateBase):
         extra = "forbid"
         schema_extra = {
             "client_config": {
-                "name": "ways",
+                "name": "way",
                 "editDataType": "GeoJSON",
                 "editGeometry": ["LineString"],
                 "modifyAttributes": True,
@@ -189,7 +188,7 @@ class ScenarioBuildingsModifiedCreate(ScenarioFeatureCreateBase):
         extra = "forbid"
         schema_extra = {
             "client_config": {
-                "name": "buildings",
+                "name": "building",
                 "editDataType": "GeoJSON",
                 "editGeometry": ["Polygon", "MultiPolygon"],
                 "canModifyGeom": True,
@@ -219,7 +218,7 @@ class ScenarioPoisModifiedCreate(ScenarioFeatureCreateBase):
         extra = "forbid"
         schema_extra = {
             "client_config": {
-                "name": "pois",
+                "name": "poi",
                 "editDataType": "GeoJSON",
                 "editGeometry": ["Point"],
                 "displayInLayerList": False,
@@ -280,14 +279,10 @@ request_examples = {
     "update_deleted_features": [1, 2, 3],
     "read_features": {
         "scenario_id": 1,
-        "layer_name": "edge",
+        "layer_name": "way",
         "intersect": "POLYGON((11.55947247425152 48.15680551331815,11.559310821465383 48.15790039566741,11.558832075332894 48.15895318026625,11.558054633799436 48.159923412979424,11.557008373507147 48.16077381397483,11.555733501652313 48.161471709503445,11.554279010845356 48.161990286516016,11.552700796352298 48.162309622055574,11.551059508071036 48.162417448022694,11.549418219789775 48.162309622055574,11.547840005296717 48.161990286516016,11.546385514489758 48.161471709503445,11.545110642634924 48.16077381397483,11.544064382342636 48.159923412979424,11.543286940809178 48.15895318026625,11.54280819467669 48.15790039566741,11.542646541890553 48.15680551331815,11.54280819467669 48.155710607603396,11.543286940809178 48.15465775646527,11.544064382342636 48.153687424168936,11.545110642634924 48.15283690570729,11.546385514489758 48.152138892712344,11.547840005296717 48.15162021611667,11.549418219789775 48.151300814037825,11.551059508071036 48.15119296470522,11.552700796352298 48.151300814037825,11.554279010845356 48.15162021611667,11.555733501652313 48.152138892712344,11.557008373507147 48.15283690570729,11.558054633799436 48.153687424168936,11.558832075332894 48.15465775646527,11.559310821465383 48.155710607603396,11.55947247425152 48.15680551331815))",
     },
-    "delete_feature": {
-        "scenario_id": 1,
-        "layer_name": "way_modified",
-        "feature_id": 1,
-    },
+    "delete_feature": {"scenario_id": 1, "layer_name": "way_modified", "feature_id": [1, 2]},
     "create_feature": {
         "scenario_id": 1,
         "layer_name": "way_modified",
