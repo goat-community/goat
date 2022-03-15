@@ -51,3 +51,15 @@ def get_current_active_superuser(
     if not crud.user.is_superuser(current_user):
         raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
     return current_user
+
+async def check_user_owns_scenario(
+    scenario_id: int, 
+    db: AsyncSession,
+    current_user: models.User
+) -> bool:
+
+    scenario = await crud.scenario.get_by_multi_keys(db, keys={"id": scenario_id, "user_id": current_user.id})
+    if scenario == []:
+        raise HTTPException(status_code=400, detail="Scenario not found") 
+    
+    return scenario[0]

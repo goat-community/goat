@@ -68,7 +68,7 @@ BEGIN
 	ELSE 
 		RAISE EXCEPTION 'Please specify a valid table name.';
 	END IF;
-
+	
 	CREATE INDEX ON pois_edges_full (edge_id);	
 	INSERT INTO customer.reached_poi_heatmap(poi_uid, scenario_id, data_upload_id, grid_visualization_ids, costs, accessibility_indices)
 	WITH pois_with_cost AS 
@@ -85,7 +85,7 @@ BEGIN
 				ELSE (r.end_cost + (1-f.fraction) * (r.start_cost - r.end_cost)) END AS COST
 				FROM customer.reached_edge_heatmap_grid_calculation r, basic.grid_calculation c 
 				WHERE f.edge_id = r.reached_edge_heatmap_id 
-				AND r.edge_type IS NULL
+				AND (r.edge_type IS NULL or r.edge_type = 'a')
 				AND r.grid_calculation_id = c.id
 				UNION ALL 
 				SELECT c.grid_visualization_id, CASE WHEN start_cost < end_cost THEN (start_cost + fraction * (end_cost-start_cost))
@@ -119,7 +119,7 @@ BEGIN
 			ORDER BY sensitivity 
 		) s
 	) AS a;
-
+	
 END;
 $function$ LANGUAGE plpgsql
 

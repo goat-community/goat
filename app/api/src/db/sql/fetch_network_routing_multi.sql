@@ -6,7 +6,7 @@ DECLARE
 	union_buffer_network geometry;
 BEGIN 
 	
-	PERFORM basic.create_multiple_artificial_edges(x, y, 1200., 1.33, 'default', 1, 'walking_standard');
+	PERFORM basic.create_multiple_artificial_edges(x, y, max_cutoff, speed, modus, scenario_id, routing_profile);
 	union_buffer_network  = (SELECT ST_UNION(geom) FROM buffer_network);
 	
 	/*Fetch Network*/

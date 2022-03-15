@@ -1,3 +1,4 @@
+from errno import ELOOP
 import io
 import os
 import shutil
@@ -69,6 +70,10 @@ class CRUDIsochrone:
             sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
             FROM basic.fetch_network_routing_multi(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
             """
+        elif calculation_type == IsochroneTypeEnum.heatmap:
+            sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
+            FROM basic.fetch_network_routing_heatmap(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
+            """
         else:
             raise Exception("Unknown calculation type")
 
@@ -95,25 +100,28 @@ class CRUDIsochrone:
                 .to_wkt()["geometry"]
                 .iloc[0]
             )
-        elif calculation_type == IsochroneTypeEnum.multi:
+        else:
             starting_point_geom = str(edges_network["starting_geoms"].iloc[0])
 
         edges_network = edges_network.drop(["starting_ids", "starting_geoms"], axis=1)
 
-        obj_starting_point = models.IsochroneCalculation(
-            calculation_type=calculation_type,
-            user_id=obj_in.user_id,
-            scenario_id=None if obj_in.scenario_id == 0 else obj_in.scenario_id,
-            starting_point=starting_point_geom,
-            routing_profile=obj_in.routing_profile,
-            speed=obj_in.speed,
-            modus=obj_in.modus,
-            parent_id=None,
-        )
+        if calculation_type == IsochroneTypeEnum.single or calculation_type == IsochroneTypeEnum.multi:
+            obj_starting_point = models.IsochroneCalculation(
+                calculation_type=calculation_type,
+                user_id=obj_in.user_id,
+                scenario_id=None if obj_in.scenario_id == 0 else obj_in.scenario_id,
+                starting_point=starting_point_geom,
+                routing_profile=obj_in.routing_profile,
+                speed=obj_in.speed,
+                modus=obj_in.modus,
+                parent_id=None,
+            )
 
-        db.add(obj_starting_point)
-        await db.commit()
-        await db.refresh(obj_starting_point)
+            db.add(obj_starting_point)
+            await db.commit()
+            await db.refresh(obj_starting_point)
+        else:
+            obj_starting_point = None # Heatmap
 
         return edges_network, starting_id, distance_limits, obj_starting_point
 

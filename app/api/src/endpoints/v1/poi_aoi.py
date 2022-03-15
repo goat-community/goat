@@ -1,6 +1,5 @@
-from typing import Any
-
-from fastapi import APIRouter, Body, Depends
+from typing import Any, Optional
+from fastapi import APIRouter, Body, Depends, Query
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src import crud
@@ -16,7 +15,11 @@ router = APIRouter()
 async def poi_aoi_visualization(
     return_type: ReturnType,
     modus: CalculationTypes,
-    scenario_id: int,
+    scenario_id: Optional[int] = Query(
+        description="The scenario id to get the POIs in case the modus is 'scenario' or 'comparison'.",
+        default=0,
+        example=1
+    ),
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:

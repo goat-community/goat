@@ -5,7 +5,11 @@ from src.resources.enums import CalculationTypes, SQLReturnTypes, ReturnType
 
 class CRUDPoiAoi:
     async def poi_aoi_visualization(
-        self, db: AsyncSession, *, scenario_id: int, modus: CalculationTypes, current_user: models.User, return_type: ReturnType 
+        self, db: AsyncSession, *, 
+        scenario_id: int, 
+        modus: CalculationTypes, 
+        current_user: models.User, 
+        return_type: ReturnType 
     ):
         template_sql = SQLReturnTypes[return_type.value].value
 
