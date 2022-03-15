@@ -1,7 +1,5 @@
 from typing import List, Optional
-
-from pydantic import EmailStr
-
+from pydantic import BaseModel, EmailStr
 from src.db import models
 
 
@@ -23,7 +21,10 @@ class UserUpdate(UserBase):
     roles: Optional[List[str]] = None
     study_areas: Optional[List[int]] = None
 
-
+class UserStudyAreaList(BaseModel):
+    id: int 
+    name: str
+    
 """
 Body of the request
 """

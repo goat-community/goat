@@ -35,14 +35,14 @@ class StudyArea(SQLModel, table=True):
     name: str = Field(sa_column=Column(Text, nullable=False))
     population: int = Field(nullable=False)
     setting: dict = Field(sa_column=Column(JSONB, nullable=False))
-    geom: Dict = Field(
+    geom: str = Field(
         sa_column=Column(
             Geometry(geometry_type="MultiPolygon", srid="4326", spatial_index=False),
             nullable=False,
         )
     )
     #Buffer geom by 1600 meters which is the flying bird distance for 20 minutes walking with a speed of 5km/h
-    buffer_geom_heatmap: Dict = Field(
+    buffer_geom_heatmap: str = Field(
         sa_column=Column(
             Geometry(geometry_type="MultiPolygon", srid="4326", spatial_index=False),
             nullable=False,
