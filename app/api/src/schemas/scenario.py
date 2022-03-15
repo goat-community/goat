@@ -179,7 +179,7 @@ class ScenarioBuildingsModifiedCreate(ScenarioFeatureCreateBase):
     building_id: Optional[
         int
     ] = None  # specified if the feature is an existing building from buildings table
-    building: BuildingModifiedTypeEnum
+    building_type: BuildingModifiedTypeEnum
     building_levels: int
     building_levels_residential: int
     population: int
@@ -200,7 +200,7 @@ class ScenarioBuildingsModifiedCreate(ScenarioFeatureCreateBase):
 
 
 class ScenarioBuildingsModifiedUpdate(ScenarioFeatureUpdateBase):
-    building: Optional[BuildingModifiedTypeEnum]
+    building_type: Optional[BuildingModifiedTypeEnum]
     building_levels: Optional[int]
     building_levels_residential: Optional[int]
     population: Optional[int]
@@ -308,7 +308,7 @@ request_examples = {
                     "features": [
                         {
                             "building_id": None,
-                            "building": "residential",
+                            "building_type": "residential",
                             "building_levels": 3,
                             "building_levels_residential": 3,
                             "population": 0,
@@ -368,7 +368,7 @@ request_examples = {
                     "features": [
                         {
                             "id": 1,
-                            "building": "residential",
+                            "building_type": "residential",
                             "building_levels": 3,
                             "building_levels_residential": 3,
                             "population": 0,

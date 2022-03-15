@@ -14,12 +14,12 @@ import Overlay from "ol/Overlay.js";
 import scenarioStore from "../store/modules/scenarios";
 import Feature from "ol/Feature";
 import { geojsonToFeature, geometryToWKT } from "../utils/MapUtils";
-import http from "../services/http";
 import axios from "axios";
 import { EventBus } from "../EventBus";
 import { unByKey } from "ol/Observable";
 import editLayerHelper from "./OlEditLayerHelper";
 import i18n from "../../src/plugins/i18n";
+import ApiService from "../services/api.service";
 
 /**
  * Class holding the OpenLayers related logic for the edit tool.
@@ -425,21 +425,19 @@ export default class OlEditController extends OlBaseController {
    */
   deleteBldEntranceFeatures(features) {
     if (Array.isArray(features)) {
-      const deletedBldEntrancePayload = [];
-      features.forEach(feature => {
+      let queryParam = "";
+      features.forEach((feature, index) => {
         const id = feature.getId() || feature.get("id") || feature.get("id");
-        const scenario_id = feature.get("scenario_id");
-        if (id && scenario_id) {
-          deletedBldEntrancePayload.push({ id, scenario_id });
+        if (id && index !== features.length - 1) {
+          queryParam += `id=${id}&`;
+        } else if (id) {
+          queryParam += `id=${id}`;
         }
       });
-      const payload = {
-        table_name: "population_modified",
-        mode: "delete",
-        features: deletedBldEntrancePayload
-      };
 
-      http.post("/api/map/layer_controller", payload);
+      ApiService.delete(
+        `/scenarios/${scenarioStore.state.activeScenario}/population_modified/features?${queryParam}`
+      );
       features.forEach(feature => {
         this.bldEntranceLayer.getSource().removeFeature(feature);
         if (this.bldEntranceStorageLayer.getSource().hasFeature(feature)) {
@@ -497,7 +495,6 @@ export default class OlEditController extends OlBaseController {
     const featuresToRemove = [];
 
     const clonedProperties = Object.assign({}, properties);
-    clonedProperties.scenario_id = scenarioStore.state.activeScenario;
     delete clonedProperties["id"];
 
     const layerName = `${editLayerHelper.selectedLayer["name"]}_modified`;
@@ -611,20 +608,34 @@ export default class OlEditController extends OlBaseController {
     });
     const promiseArray = [];
     Object.keys(payloads.modes).forEach(mode => {
-      if (payloads.modes[mode].length > 0) {
-        const payload = {
-          table_name: payloads.table_name,
-          mode,
+      let promise = "";
+      const url_ = `/scenarios/${scenarioStore.state.activeScenario}/${payloads.table_name}/features`;
+      if (mode === "insert") {
+        promise = ApiService.post(url_, {
           features: payloads.modes[mode]
-        };
-        promiseArray.push(http.post("/api/map/layer_controller", payload));
+        });
+      } else if (mode === "update") {
+        promise = ApiService.put(url_, {
+          features: payloads.modes[mode]
+        });
+      } else if (mode === "delete") {
+        let queryParam = "";
+        payloads.modes[mode].forEach((feature, index) => {
+          const id = feature.getId() || feature.get("id") || feature.get("id");
+          if (id && index !== payloads.modes[mode].length - 1) {
+            queryParam += `id=${id}&`;
+          } else if (id) {
+            queryParam += `id=${id}`;
+          }
+        });
+        promise = ApiService.delete(`${url_}?${queryParam}`);
       }
+      promiseArray.push(promise);
     });
     axios.all(promiseArray).then(function(results) {
       results.forEach(response => {
-        const payload = JSON.parse(response.config.data);
-
-        if (payload.mode === "insert") {
+        if (response.config.method === "post") {
+          // insert mode
           const features = geojsonToFeature(response.data, {
             dataProjection: "EPSG:4326",
             featureProjection: "EPSG:3857"

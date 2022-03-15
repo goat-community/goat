@@ -174,7 +174,7 @@ async def read_scenario_features(
     ),
     intersect: Optional[str] = Query(
         default=None,
-        description="WKT Geometry to intersect with layer. Geometry must be in EPSG:4326. If not specified, all features are returned.",
+        description="WKT Geometry to intersect with layer. Geometry must be in EPSG:4326. If not specified, all features are returned (only for _modified tables).",
         example=request_examples["read_features"]["intersect"],
     ),
     return_type: ReturnWithoutDbGeobufEnum = Query(
@@ -244,7 +244,7 @@ async def delete_selected_scenario_feature(
         description="Scenario layer name to delete feature from",
         example=request_examples["delete_feature"]["layer_name"],
     ),
-    feature_ids: List[int] = Query(
+    id: List[int] = Query(
         ...,
         description="Scenario feature ID to delete",
         example=request_examples["delete_feature"]["feature_id"],
@@ -261,7 +261,7 @@ async def delete_selected_scenario_feature(
         raise HTTPException(status_code=400, detail="Scenario not found")
     else:
         result = await crud.scenario.delete_scenario_feature(
-            db, current_user, scenario_id, layer_name, feature_ids
+            db, current_user, scenario_id, layer_name, id
         )
         return result
 

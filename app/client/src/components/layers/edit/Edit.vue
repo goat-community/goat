@@ -1355,15 +1355,7 @@ export default {
      * Get Layer attribute fields
      */
     getlayerFeatureTypes() {
-      const schemas = this.openapiConfig.components.schemas;
-      const scenarioLayersConfig = [
-        schemas.ScenarioPoisModifiedCreate,
-        schemas.ScenarioWaysModifiedCreate,
-        schemas.ScenarioBuildingsModifiedCreate
-      ];
-      const editableLayers = [];
-      scenarioLayersConfig.forEach(config => {
-        editableLayers.push(config.client_config);
+      this.scenarioLayersConfig.forEach(config => {
         const layerName = config.client_config.name;
         const propertiesConfig = config.properties;
         const props = [];
@@ -1384,7 +1376,11 @@ export default {
         Object.keys(propertiesConfig).forEach(key => {
           const columnConfig = {};
           columnConfig.column_name = key;
-          columnConfig.data_type = propertiesConfig[key].type;
+          if (key === "geom") {
+            columnConfig.data_type = "USER-DEFINED";
+          } else {
+            columnConfig.data_type = propertiesConfig[key].type;
+          }
           if (config.required && config.required.includes(key)) {
             columnConfig.is_nullable = "NO";
           } else {
@@ -1408,9 +1404,7 @@ export default {
         const jsonSchema = mapFeatureTypeProps(props, layerName, layerConfig);
         this.schema[layerName] = jsonSchema;
       });
-      console.log(this.schema);
 
-      this.editableLayers = editableLayers;
       this.updateReqFields(this.reqFields);
       this.$forceUpdate();
     },
@@ -1861,6 +1855,15 @@ export default {
       });
       return scenarioArray;
     },
+    scenarioLayersConfig() {
+      const schemas = this.openapiConfig.components.schemas;
+      const scenarioLayersConfig = [
+        schemas.ScenarioPoisModifiedCreate,
+        schemas.ScenarioWaysModifiedCreate,
+        schemas.ScenarioBuildingsModifiedCreate
+      ];
+      return scenarioLayersConfig;
+    },
     layerName() {
       const value = this.selectedLayer["name"];
       return value;
@@ -1940,7 +1943,11 @@ export default {
     })
   },
   created() {
-    this.getlayerFeatureTypes();
+    const editableLayers = [];
+    this.scenarioLayersConfig.forEach(config => {
+      editableLayers.push(config.client_config);
+    });
+    this.editableLayers = editableLayers;
   }
 };
 </script>

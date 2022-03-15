@@ -145,7 +145,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                             feature_dict["edit_type"] = "m"
                             # TODO: check if uid is valid (poi / poi_user)
 
-                    if (
+                    elif (
                         layer_name.value == schemas.ScenarioLayerFeatureEnum.way_modified.value
                         and key == "edge_id"
                     ):
@@ -158,8 +158,12 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
 
                     # TODO: For population check if geometry and building with {building_modified_id} intersect
 
-                    if isinstance(value, enum.Enum):
+                    elif isinstance(value, enum.Enum):
                         feature_dict[key] = value.value
+
+                    elif value is None:
+                        continue
+
                     else:
                         feature_dict[key] = value
                 feature_obj = layer.from_orm(layer(**feature_dict))
