@@ -2,17 +2,15 @@ import DrawInteraction from "ol/interaction/Draw";
 import { unByKey } from "ol/Observable.js";
 import { fromCircle } from "ol/geom/Polygon";
 
-import http from "../services/http";
 import axios from "axios";
+import ApiService from "../services/api.service";
 
 import { getSelectStyle } from "../style/OlStyleDefs";
 import { geometryToWKT } from "../utils/MapUtils";
 
-import store from "../store/modules/isochrones";
-import poisStore from "../store/modules/poisaois";
+import store from "../store/modules/scenarios";
 import OlBaseController from "./OlBaseController";
 import i18n from "../../src/plugins/i18n";
-import { EventBus } from "../EventBus";
 /**
  * Class holding the OpenLayers related logic for the select tool.
  */
@@ -94,49 +92,24 @@ export default class OlSelectController extends OlBaseController {
           circleAsPolygon.transform("EPSG:3857", "EPSG:4326");
           const circleWkt = geometryToWKT(circleAsPolygon);
           // Request from origin table.
-          const originTablePayload = {
-            geom: circleWkt,
-            return_type: "geojson",
-            table_name: selectedLayer["name"]
-          };
-
-          EventBus.$emit("getLayerPayload", {
-            cb: function(payload) {
-              Object.assign(originTablePayload, payload);
-            },
-            layer: selectedLayer
-          });
-
-          originTablePayload.scenario_id = 0;
-          if (poisStore.state.selectedPois) {
-            const poisArray = poisStore.state.selectedPois.map(p => p.value);
-            originTablePayload.amenities = poisArray;
-          }
-
-          const requests = [
-            http.post("/api/map/layer_read", originTablePayload)
-          ];
-          // Request from modified table (TODO: This request might be eleminated if
-          // scenario features are already in the client)
-          const modifiedTablePayload = {
-            mode: "read",
-            table_name: `${selectedLayer["name"]}_modified`,
-            scenario_id: store.state.activeScenario
-          };
-          requests.push(
-            http.post("/api/map/layer_controller", modifiedTablePayload)
+          const promiseOriginTable = ApiService.get_(
+            `/scenarios/${store.state.activeScenario}/${selectedLayer["name"]}/features?intersect=${circleWkt}&return_type=geojson`
           );
 
+          //TODO: For pois fetch the data from local store
+          const requests = [promiseOriginTable];
+          // Request from modified table (TODO: This request might be eleminated if
+          // scenario features are already in the client)
+          const promiseModifiedTable = ApiService.get_(
+            `/scenarios/${store.state.activeScenario}/${selectedLayer["name"]}_modified/features?return_type=geojson`
+          );
+          requests.push(promiseModifiedTable);
           // Request only for population when building layer is active.
-          if (selectedLayer["name"] === "buildings") {
-            const populationTablePayload = {
-              mode: "read",
-              table_name: "population_modified",
-              scenario_id: store.state.activeScenario
-            };
-            requests.push(
-              http.post("/api/map/layer_controller", populationTablePayload)
+          if (selectedLayer["name"] === "building") {
+            const promisePopulationModifiedTable = ApiService.get_(
+              `/scenarios/${store.state.activeScenario}/population_modified/features?return_type=geojson`
             );
+            requests.push(promisePopulationModifiedTable);
           }
 
           axios

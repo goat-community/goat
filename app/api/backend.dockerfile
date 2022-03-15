@@ -1,17 +1,22 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9
-
+FROM python:3.9.10
+# create directory for the app user
+RUN mkdir -p /app
 WORKDIR /app/
-
-# Allow installing C++ GDP for debugging
-ARG INSTALL_GDB=false
-RUN bash -c "if [ $INSTALL_GDB == 'True' ] ; then apt-get update && apt-get -y install build-essential gdb && apt-get -y install cmake; fi"
-
+# Create the app user
+RUN addgroup --system app && adduser --system --group app
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV ENVIRONMENT prod
+# Install system dependencies
+RUN apt-get update \
+    && apt-get -y install netcat gcc libpq-dev \
+    && apt-get clean
 # Install postgresql-client
-RUN apt install curl ca-certificates gnupg && \
+RUN apt install curl ca-certificates gnupg -y && \
     curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg >/dev/null && \
     sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ bullseye-pgdg main" > /etc/apt/sources.list.d/postgresql.list' && \
     apt update -y && apt-get install postgresql-client-14 -y
-
 # Install Poetry
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | POETRY_HOME=/opt/poetry python && \
     cd /usr/local/bin && \
@@ -20,18 +25,14 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-
 
 # Copy poetry.lock* in case it doesn't exist in the repo
 COPY ./pyproject.toml ./poetry.lock* /app/
-
 # Allow installing dev dependencies to run tests
 ARG INSTALL_DEV=false
 RUN bash -c "if [ $INSTALL_DEV == 'True' ] ; then poetry install --no-root ; else poetry install --no-root --no-dev ; fi"
-
-# For development, Jupyter remote kernel, Hydrogen
-# Using inside the container:
-# jupyter lab --ip=0.0.0.0 --allow-root --NotebookApp.custom_display_url=http://127.0.0.1:8888
-ARG INSTALL_JUPYTER=false
-RUN bash -c "if [ $INSTALL_JUPYTER == 'True' ] ; then pip install jupyterlab ; fi"
-
 COPY . /app
-ENV PYTHONPATH=/app
-ENV MODULE_NAME="src.main"
+# chown all the files to the app user
+RUN chown -R app:app /app
+# change to the app user
+USER app
+# run gunicorn
+CMD gunicorn --bind 0.0.0.0:5000 src.main:app -k uvicorn.workers.UvicornWorker
 
