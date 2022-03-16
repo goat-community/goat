@@ -12,7 +12,7 @@ from src.endpoints.v1.api import api_router
 
 sentry_sdk.init(
     dsn=settings.SENTRY_DSN,
-    environment=os.getenv("ENV", "dev"),  # You should read it from environment variable
+    environment=os.getenv("NAMESPACE", "dev"),  # You should read it from environment variable
 )
 
 

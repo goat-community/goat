@@ -1,0 +1,24 @@
+name: PR
+
+on:
+  pull_request:
+    branches: [ main, dev, staging ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get changed files 
+        id: get_file_changes
+        uses: trilom/file-changes-action@v1.2.4
+        with:
+          output: ' '
+      - name: Show changed files
+        run: echo ${{steps.get_file_changes.outputs.files}}
+      - name: Build changed client
+        if: contains(steps.get_file_changes.outputs.files, 'app/client')
+        run: make build-docker-image -e COMPONENT=client
+      - name: Build changed api
+        if: contains(steps.get_file_changes.outputs.files, 'app/api')
+        run: make build-docker-image -e COMPONENT=api

@@ -9,9 +9,9 @@ metadata:
   version: "1.21"
 managedNodeGroups:
   - name: goat-private-ng
-    instanceType: t3a.small
-    desiredCapacity: 3
-    minSize: 3
+    instanceType: t3.large
+    desiredCapacity: 2
+    minSize: 2
     maxSize: 6
     volumeType: gp3
     volumeSize: 40
