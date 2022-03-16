@@ -2,6 +2,7 @@
 FROM node:11.1-alpine as develop-stage
 WORKDIR /app
 COPY package*.json ./
+ARG FONTAWESOME_NPM_AUTH_TOKEN
 RUN npm install
 COPY . .
 
