@@ -1377,7 +1377,7 @@ export default {
       const routing = this.routing;
       const steps = this.steps;
       const modus = this.calculationMode.active;
-      const scenario_id = this.scenarioId || 9; //TODO: Get scenario id from store (Disable isochrone comparison if there is no scenario active)
+      const scenario_id = this.scenarioId; //TODO: Get scenario id from store (Disable isochrone comparison if there is no scenario active)
       const active_upload_ids = this.activeUploadIds || [0]; //TODO: Get active upload ids from store
       const baseParams = {
         minutes: time,

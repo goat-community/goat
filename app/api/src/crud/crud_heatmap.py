@@ -8,6 +8,7 @@ import psycopg2
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from numpy import ndarray
+from pyparsing import dblQuotedString
 from rich import print
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -86,13 +87,11 @@ class CRUDHeatmap:
     async def clean_tables(self, db: AsyncSession):
         """Clean tables reached edges."""
         # Clean tables for heatmap edges
-        await db.execute(text("TRUNCATE customer.reached_edge_artificial_heatmap;"))
         await db.execute(text("TRUNCATE customer.reached_edge_full_heatmap;"))
         await db.execute(text("TRUNCATE customer.reached_edge_heatmap_grid_calculation;"))
         await db.commit()
 
         # Reset serials columns
-        await db.execute(text("ALTER SEQUENCE customer.reached_edge_artificial_heatmap_id_seq RESTART WITH 1;"))
         await db.execute(text("ALTER SEQUENCE customer.reached_edge_full_heatmap_id_seq RESTART WITH 1;"))
         await db.execute(text("ALTER SEQUENCE customer.reached_edge_heatmap_grid_calculation_id_seq RESTART WITH 1;"))
         await db.commit()
@@ -143,19 +142,23 @@ class CRUDHeatmap:
             # Get starting points for starting grids
             starting_points = await db.execute(
                 text(
-                    """SELECT c.id, ST_X(ST_CENTROID(c.geom)) AS x, ST_Y(ST_CENTROID(c.geom)) AS y 
-                    FROM temporal.heatmap_grid_helper h, basic.grid_calculation c
-                    WHERE h.cid = :cid 
-                    AND already_processed = False
-                    AND c.grid_visualization_id = h.id"""
+                    """SELECT v.id AS starting_id, c.id AS grid_calculation_id, ST_X(ST_CENTROID(v.geom)) AS x, ST_Y(ST_CENTROID(v.geom)) AS y   
+                    FROM temporal.heatmap_starting_vertices v, basic.grid_calculation c, temporal.heatmap_grid_helper h  
+                    WHERE ST_Intersects(v.geom, c.geom)
+                    AND c.grid_visualization_id = h.id 
+                    AND h.cid = :cid 
+                    AND h.already_processed = False 
+                    """
                 ),
                 {"cid": kmeans_class},
             )
 
             starting_points = starting_points.fetchall()
-            grid_ids = [i[0] for i in starting_points]
-            x = [i[1] for i in starting_points]
-            y = [i[2] for i in starting_points]
+            starting_id = [i[0] for i in starting_points]
+            grid_ids = [i[1] for i in starting_points]
+            x = [i[2] for i in starting_points]
+            y = [i[3] for i in starting_points]
+            dict_starting_ids = dict(zip(starting_id, grid_ids))
 
             obj_multi_isochrones = schemas.IsochroneMulti(
                 user_id=current_user.id,
@@ -171,25 +174,22 @@ class CRUDHeatmap:
             )
             # Read network
             starting_time_network = datetime.now()
-            (
-                edges_network,
-                starting_id,
-                distance_limits,
-                obj_starting_point,
-            ) = await crud.isochrone.read_network(
+            network = await crud.isochrone.read_network(
                 db,
-                schemas.isochrone.IsochroneTypeEnum.multi.value,
+                schemas.isochrone.IsochroneTypeEnum.heatmap.value,
                 obj_multi_isochrones,
                 jsonable_encoder(obj_multi_isochrones),
             )
+
+            edges_network = network[0]
+            network_ids = network[1]
+            distance_limits = network[2]
             reading_time_network = (datetime.now() - starting_time_network).total_seconds()
-
-            dict_starting_ids = dict(zip(starting_id, grid_ids))
-
+          
             # Compute isochrones
             starting_time_calculation = datetime.now()
             try:
-                result = isochrone_cpp(edges_network, starting_id, distance_limits)
+                result = isochrone_cpp(edges_network, network_ids, distance_limits)
             except Exception as e:
                 print(f"Error: {e}")
                 continue
@@ -274,8 +274,6 @@ class CRUDHeatmap:
         )
         await db.commit()
 
-
-
     async def compute_reached_pois_user(self, db: AsyncSession, current_user: models.User, data_upload_id: int):
         """Compute the reached pois for a certain data upload id."""
 
@@ -334,9 +332,6 @@ class CRUDHeatmap:
         db.add(data_upload_obj)
         await db.commit()
 
-
-
-
     async def bulk_compute_reached_pois(self, db: AsyncSession, current_user: models.User):
         # Reset reached_pois_heatmap table 
         await db.execute(text("TRUNCATE customer.reached_poi_heatmap;"))
@@ -372,13 +367,14 @@ class CRUDHeatmap:
 
 heatmap = CRUDHeatmap()
 
-# from src.db.session import async_session
+#from src.db.session import async_session
 
-# test_user = models.User(id=4, active_study_area_id=1)
+#test_user = models.User(id=4, active_study_area_id=1)
+#db = async_session()
+# asyncio.get_event_loop().run_until_complete(CRUDHeatmap().prepare_starting_points(db=db, current_user=test_user))
+# asyncio.get_event_loop().run_until_complete(CRUDHeatmap().clean_tables(db=db))
+# asyncio.get_event_loop().run_until_complete(CRUDHeatmap().compute_traveltime(db=db, current_user=test_user))
 
-# asyncio.run(CRUDHeatmap().prepare_starting_points(db=async_session(), current_user=test_user))
-#asyncio.run(CRUDHeatmap().clean_tables(db=async_session()))
-#asyncio.run(CRUDHeatmap().compute_traveltime(db=async_session(), current_user=test_user))
 #asyncio.run(CRUDHeatmap().bulk_compute_reached_pois(db=async_session(), current_user=test_user))
 
 

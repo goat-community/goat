@@ -33,6 +33,7 @@ Body of the request
 class IsochroneTypeEnum(str, Enum):
     single = "single_isochrone"
     multi = "multi_isochrone"
+    heatmap = "heatmap"
 
 
 class IsochroneBase(BaseModel):

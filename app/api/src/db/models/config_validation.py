@@ -56,3 +56,4 @@ LayerGroup = Schema({str: {"icon": str, "children": [LayerCategory]}})
 
 LayerGroups = Schema({"layer_groups": [LayerGroup]})
 
+HeatmapConfiguration = Schema({str: {"sensitivity": int, "weight": int}})

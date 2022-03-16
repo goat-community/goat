@@ -9,7 +9,7 @@ DECLARE
 	point geometry;
 BEGIN 
 	
-	PERFORM basic.create_multiple_artificial_edges(x, y, 1200., 1.33, 'default', 1, 'walking_standard');
+	PERFORM basic.create_multiple_artificial_edges(x, y, max_cutoff, speed, modus, scenario_id, routing_profile);
 	
 	DROP TABLE IF EXISTS buffer_network; 
 	CREATE TEMP TABLE buffer_network (id serial, geom geometry);

@@ -1,5 +1,7 @@
 from enum import Enum
 
+from src.db.models import scenario
+
 
 class ReturnType(str, Enum):
     geojson = "geojson"
@@ -20,12 +22,18 @@ class VectorType(str, Enum):
 
 
 class IsochroneExportType(str, Enum):
-    """Vector Type Enums."""
+    """Supported files types for export."""
 
     geojson = "GeoJSON"
     shp = "ESRI Shapefile"
     xlsx = "XLSX"
 
+class CalculationTypes(str, Enum):
+    """Calculation types for indicators."""
+
+    default = "default"
+    scenario = "scenario"
+    comparison = "comparison"
 
 class AllowedVectorTables(str, Enum):
     """Allowed Vector Tables Enums."""

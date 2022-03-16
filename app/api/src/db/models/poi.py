@@ -60,7 +60,7 @@ class PoiModified(PoiBase, table=True):
     )
     scenario_id: Optional[int] = Field(
         sa_column=Column(
-            Integer, ForeignKey("customer.scenario.id", ondelete="CASCADE"), index=True
+            Integer, ForeignKey("customer.scenario.id", ondelete="CASCADE"), nullable=False, index=True
         ),
     )
     data_upload_id: Optional[int] = Field(

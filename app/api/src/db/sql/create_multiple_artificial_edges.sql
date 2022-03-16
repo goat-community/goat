@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION basic.create_multiple_artificial_edges(x float[], y float[], max_cutoff float, speed float, modus text, scenario_id integer, routing_profile text)
- RETURNS VOID --TABLE(wid integer, id integer, COST float, reverse_cost float, length_m float, SOURCE integer, target integer, geom geometry)
+ RETURNS VOID 
  LANGUAGE plpgsql
 AS $function$
 DECLARE 
@@ -100,7 +100,7 @@ BEGIN
 	CREATE TEMP TABLE cleaned_duplicates AS 
 	WITH sum_costs AS 
 	(
-		SELECT d.vid, SUM(d.COST) AS cost, SUM(d.reverse_cost) AS reverse_cost
+		SELECT d.vid, round(SUM(d.COST::numeric), 4) AS cost, round(SUM(d.reverse_cost::numeric), 4) AS reverse_cost
 		FROM duplicated_artificial_edges d 
 		GROUP BY d.vid
 	),
@@ -124,23 +124,41 @@ BEGIN
 		FROM ordered g  
 		GROUP BY g.wid
 	),
+	distinct_costs AS 
+	(
+		SELECT DISTINCT o.wid, o.COST, o.reverse_cost
+		FROM ordered o
+	),
 	distinct_duplicated_edges AS 
 	(
-		SELECT DISTINCT g.wid, e.SOURCE::integer, e.target::integer, o.COST, o.reverse_cost, e.geom, g.vids, g.fractions, o.point_geom 
-		FROM grouped g, ordered o, basic.edge e 
-		WHERE g.wid = o.wid 
-		AND g.wid = e.id
+		SELECT g.wid, o.COST, o.reverse_cost, g.vids, g.fractions, e.SOURCE, e.target, e.geom
+		FROM grouped g
+		LEFT JOIN distinct_costs o
+		ON g.wid = o.wid 
+		LEFT JOIN basic.edge e 
+		ON g.wid = e.id 
 	)
-	SELECT edge_id AS wid, (max_new_edge_id - ROW_NUMBER() OVER()) AS id, f.COST, f.reverse_cost, 
-	ST_LENGTH(f.geom::geography) AS length_m, f.SOURCE, f.target, f.geom  
+	SELECT edge_id AS wid, (max_new_edge_id - ROW_NUMBER() OVER()) AS id, f.COST, f.reverse_cost,
+	ST_LENGTH(f.geom::geography) AS length_m, f.SOURCE, f.target, f.geom, NULL AS point_geom  
 	FROM distinct_duplicated_edges d, 
 	LATERAL basic.fix_multiple_artificial_edges(d.wid, d.SOURCE, d.target, d.COST, d.reverse_cost, d.geom, d.vids, d.fractions) f; 
 	
-	INSERT INTO final_artificial_edges
-	SELECT * FROM cleaned_duplicates;
+	UPDATE cleaned_duplicates d
+	SET point_geom = s.geom 
+	FROM starting_vertices s  
+	WHERE d.SOURCE = s.id;
+
+	UPDATE cleaned_duplicates d
+	SET point_geom = s.geom 
+	FROM starting_vertices s  
+	WHERE d.target = s.id;
+
+	INSERT INTO final_artificial_edges 
+	SELECT * FROM cleaned_duplicates; 
 
 END;
 $function$;
+
 /*
 WITH p AS 
 (

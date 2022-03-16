@@ -66,8 +66,7 @@ async def read_user_study_area(
 # get user study areas
 @router.get(
     "/me/study-areas-list",
-    response_model=List[models.StudyArea],
-    response_model_exclude={"geom", "buffer_geom_heatmap", "default_setting", "population"},
+    response_model=List[schemas.UserStudyAreaList],
 )
 async def read_user_study_areas(
     db: AsyncSession = Depends(deps.get_db),
@@ -77,7 +76,10 @@ async def read_user_study_areas(
     Get user study areas.
     """
     user = await crud.user.get(db, id=current_user.id, extra_fields=[models.User.study_areas])
-    return user.study_areas
+    study_area_list = []
+    for study_area in user.study_areas:
+        study_area_list.append(schemas.UserStudyAreaList(id=study_area.id, name=study_area.name))
+    return study_area_list
 
 
 @router.post("/", response_model=models.User, response_model_exclude={"hashed_password"})
