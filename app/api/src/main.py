@@ -16,7 +16,12 @@ sentry_sdk.init(
 )
 
 
-app = FastAPI(title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json")
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+)
 
 
 # Set all CORS enabled origins
@@ -50,14 +55,14 @@ except Exception:
     pass
 
 
-@app.get("/healthz", description="Health Check", tags=["Health Check"])
+@app.get("/api/healthz", description="Health Check", tags=["Health Check"])
 def ping():
     """Health check."""
     return {"ping": "pong!"}
 
 
 # Calling this endpoint to see if the setup works. If yes, an error message will show in Sentry dashboard
-@app.get("/sentry", include_in_schema=False)
+@app.get("/api/sentry", include_in_schema=False)
 async def sentry():
     raise Exception("Test sentry integration")
 

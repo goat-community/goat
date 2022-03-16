@@ -42,7 +42,7 @@ services:
     image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:api-${PROJECT_VERSION}
     build:
       context: ./app/api
-      dockerfile: backend.dockerfile
+      dockerfile: Dockerfile
       args:
         INSTALL_DEV: ${INSTALL_DEV-true}
     container_name: ${COMPOSE_PROJECT_NAME}_api
