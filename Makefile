@@ -92,9 +92,20 @@ docker-login:
 build-docker-image: app/$(COMPONENT)/Dockerfile
 	$(DOCKER) build -f app/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/$(COMPONENT)
 
+# target: build-client-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
+.PHONY: build-client-docker-image
+build-client-docker-image: app/$(COMPONENT)/Dockerfile
+	$(DOCKER) build -f app/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/$(COMPONENT) --build-arg FONTAWESOME_NPM_AUTH_TOKEN=$(FONTAWESOME_NPM_AUTH_TOKEN)
+
+
 # target: make release-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
 .PHONY: release-docker-image
 release-docker-image: docker-login build-docker-image
+	$(DOCKER) push $(DOCKER_IMAGE)
+
+# target: make release-client-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
+.PHONY: release-client-docker-image
+release-client-docker-image: docker-login build-client-docker-image
 	$(DOCKER) push $(DOCKER_IMAGE)
 
 # target: make after-success
