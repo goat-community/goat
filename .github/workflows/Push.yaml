@@ -50,8 +50,8 @@ jobs:
       - name: Deploy changed client
         if: contains(steps.get_file_changes.outputs.files, 'app/client')
         run: make deploy -e COMPONENT=client
-      # - name: Deploy changed api
-      #   if: contains(steps.get_file_changes.outputs.files, 'app/api')
-      #   run: make deploy -e COMPONENT=api
+      - name: Deploy changed api
+        if: contains(steps.get_file_changes.outputs.files, 'app/api')
+        run: make deploy -e COMPONENT=api
       - name: Deploy ingress
         run: make deploy -e COMPONENT=ingress
