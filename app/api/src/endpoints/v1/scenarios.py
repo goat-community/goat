@@ -38,6 +38,19 @@ async def create_scenario(
     return result
 
 
+@router.get("", response_model=List[models.Scenario])
+async def get_scenarios(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+):
+    """
+    Get all scenarios.
+    """
+    result = await crud.scenario.get_by_key(db=db, key="user_id", value=current_user.id)
+    return result
+
+
 @router.put("/{scenario_id}", response_model=models.Scenario)
 async def update_scenario(
     *,
