@@ -32,7 +32,7 @@ ifeq ($(NAMESPACE), dev)
 	DOMAIN=goat-dev.plan4better.de
 endif
 
-DOCKER_IMAGE?=$(REGISTRY)/$(PROJECT)/$(COMPONENT)_${NAMESPACE}:$(VERSION)
+DOCKER_IMAGE?=$(REGISTRY)/$(PROJECT)/$(COMPONENT)-${NAMESPACE}:$(VERSION)
 
 # Build and test tools abstraction
 DOCKER:=$(shell which docker) # https://docs.docker.com/docker-for-mac/install/
