@@ -26,7 +26,7 @@ jobs:
         run: make release-docker-image -e COMPONENT=api
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ needs.build.outputs.branch }}
+    environment: ${GITHUB_REF##*/}
     needs: [release]
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
