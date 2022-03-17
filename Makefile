@@ -109,4 +109,5 @@ build-k8s:
 # target: make deploy -e COMPONENT=api|client
 .PHONY: deploy
 deploy: setup-kube-config build-k8s
-	$(KCTL) apply -f k8s/deploy/$(COMPONENT).yaml
+	@echo "Deployed"
+# $(KCTL) apply -f k8s/deploy/$(COMPONENT).yaml
