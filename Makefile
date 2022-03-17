@@ -64,9 +64,7 @@ help:
 .PHONY: setup-kube-config
 setup-kube-config:
 	mkdir -p ${HOME}/.kube/
-	@echo "Deploying $(K8S_OBJ) to $(K8S_CLUSTER) cluster"
-	@echo ${KCTL}
-	@echo ${KUBE_CONFIG} | base64 -d > ${HOME}/.kube/config
+	@echo "${KUBE_CONFIG}" | base64 -d > ${HOME}/.kube/config
 
 # target: make docker-login
 .PHONY: docker-login
@@ -109,5 +107,4 @@ build-k8s:
 # target: make deploy -e COMPONENT=api|client
 .PHONY: deploy
 deploy: setup-kube-config build-k8s
-	@echo "Deployed"
-# $(KCTL) apply -f k8s/deploy/$(COMPONENT).yaml
+	$(KCTL) apply -f k8s/deploy/$(COMPONENT).yaml
