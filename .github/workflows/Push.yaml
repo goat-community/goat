@@ -52,12 +52,18 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-      API_SECRET_KEY: ${{ secrets.API_SECRET_KEY }}
-      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
       POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+      API_SECRET_KEY: ${{ secrets.API_SECRET_KEY }}
+      FIRST_ORGANIZATION: ${{ secrets.FIRST_ORGANIZATION }}
+      FIRST_SUPERUSER_NAME: ${{ secrets.FIRST_SUPERUSER_NAME }}
+      FIRST_SUPERUSER_SURNAME: ${{ secrets.FIRST_SUPERUSER_SURNAME }}
+      FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
+      FIRST_SUPERUSER_EMAIL: ${{ secrets.FIRST_SUPERUSER_EMAIL }}
+      FIRST_SUPERUSER_STORAGE: ${{ secrets.FIRST_SUPERUSER_STORAGE }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
     steps:
       - uses: actions/checkout@v2
       - name: Get changed files 
