@@ -1,5 +1,3 @@
-import asyncio
-
 import yaml
 from rich import print
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,7 +6,6 @@ from sqlalchemy.future import select
 from src import crud, schemas
 from src.core.config import settings
 from src.db import models
-from src.db.data_import import DataImport
 from src.db.session import async_session, staging_session
 from src.core.config import Settings
 
@@ -72,10 +69,5 @@ async def init_db(db: AsyncSession) -> None:
                     "INFO: Default setting of parameter [bold magenta]%s[/bold magenta] for [bold magenta]%s[/bold magenta] added."
                     % (setting, role)
                 )
-
-        # imported_table = await DataImport().import_all_tables(db, staging_session())
-        # user = await crud.user.create(db, obj_in=user_in)  # noqa: F841
     else:
         print("INFO: There is default customization in the Database. The default customization will not be loaded.")
-
-asyncio.run(init_db(async_session()))
