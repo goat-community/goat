@@ -44,11 +44,6 @@ jobs:
         uses: trilom/file-changes-action@v1.2.4
         with:
           output: ' '
-      - uses: steebchen/kubectl@v2.0.0
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
       - name: Deploy changed client
         if: contains(steps.get_file_changes.outputs.files, 'app/client') || contains(github.event.head_commit.message, 'trigger build')
         run: make deploy -e COMPONENT=client

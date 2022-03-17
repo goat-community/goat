@@ -60,6 +60,12 @@ K8S_OBJ:=$(patsubst %.tpl.yaml,%.yaml,$(K8S_SRC))
 help:
 	@egrep '^# target' [Mm]akefile
 
+#  target: make setup-kube-config
+.PHONY: setup-kube-config
+setup-kube-config:
+	mkdir -p ${HOME}/.kube/
+	echo ${KUBE_CONFIG} | base64 -d > ${HOME}/.kube/config
+
 # target: make docker-login
 .PHONY: docker-login
 docker-login:
@@ -100,5 +106,5 @@ build-k8s:
 
 # target: make deploy -e COMPONENT=api|client
 .PHONY: deploy
-deploy: build-k8s
+deploy: setup-kube-config build-k8s
 	$(KCTL) apply -f k8s/deploy/$(COMPONENT).yaml
