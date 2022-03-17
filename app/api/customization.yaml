@@ -12,6 +12,7 @@ superuser:
         delay_2: 30 #seconds
     snap_distance_network: 200 #meters
     snap_distance_poi_heatmap: 100 #meters
+    average_gross_living_area: 50 #square meters
     one_meter_degree: "0.000009"
     heatmap_sensitivities:
         [150000, 200000, 250000, 300000, 350000, 400000, 450000]
