@@ -1,7 +1,6 @@
 from .customization import CustomizationBase, CustomizationCreate, CustomizationUpdate
 from .heatmap import ComputePoiUser
 from .isochrone import (
-    IsochroneExport,
     IsochroneMulti,
     IsochroneMultiCollection,
     IsochroneMultiCountPois,

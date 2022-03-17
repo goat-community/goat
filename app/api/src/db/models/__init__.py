@@ -5,7 +5,7 @@ from .building import Building, BuildingBase, BuildingModified
 from .customization import Customization, UserCustomization
 from .data_upload import DataUpload
 from .edge import Edge, EdgeBase, WayModified
-from .grid import GridCalculation, GridVisualization, GridVisualizationParameter
+from .grid import GridCalculation, GridVisualization
 from .heatmap import (
     ReachedEdgeFullHeatmap,
     ReachedEdgeHeatmapGridCalculation,

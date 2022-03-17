@@ -53,13 +53,43 @@ def get_current_active_superuser(
     return current_user
 
 async def check_user_owns_scenario(
-    scenario_id: int, 
     db: AsyncSession,
-    current_user: models.User
-) -> bool:
+    scenario_id: int, 
+    current_user: models.User,
+) -> int:
+
+    if scenario_id == 0 or scenario_id == None:
+        return 0
 
     scenario = await crud.scenario.get_by_multi_keys(db, keys={"id": scenario_id, "user_id": current_user.id})
     if scenario == []:
         raise HTTPException(status_code=400, detail="Scenario not found") 
     
-    return scenario[0]
+    return scenario[0].id
+
+def check_user_owns_data_uploads(
+    data_upload_ids: list[int], 
+    current_user: models.User
+) -> list[int]:
+
+    if data_upload_ids == [0] or data_upload_ids == None:
+        return [0]
+
+    if set(data_upload_ids).issubset(set(current_user.active_data_upload_ids)) == False:
+        raise HTTPException(status_code=400, detail="Data upload not found") 
+    
+    return data_upload_ids
+
+
+async def check_user_owns_isochrone_calculation(
+    db: AsyncSession,
+    isochrone_calculation_id: int, 
+    current_user: models.User,
+) -> int:
+
+    isochrone_calculation = await crud.isochrone_calculation.get_by_multi_keys(db, keys={"id": isochrone_calculation_id, "user_id": current_user.id})
+    if isochrone_calculation == []:
+        raise HTTPException(status_code=400, detail="Isochrone calculation not found")
+
+    return isochrone_calculation[0].id
+

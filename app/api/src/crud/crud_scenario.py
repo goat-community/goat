@@ -160,10 +160,10 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
 
                     elif isinstance(value, enum.Enum):
                         feature_dict[key] = value.value
-
+                    elif key == 'class_id' and value is None:
+                        feature_dict[key] = 100
                     elif value is None:
                         continue
-
                     else:
                         feature_dict[key] = value
                 feature_obj = layer.from_orm(layer(**feature_dict))

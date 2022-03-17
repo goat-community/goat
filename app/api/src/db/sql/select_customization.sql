@@ -9,5 +9,5 @@ AS $function$
 
 $function$ IMMUTABLE;
 /*
-SELECT select_customization('categories_no_foot');
+SELECT basic.select_customization('categories_no_foot');
 */

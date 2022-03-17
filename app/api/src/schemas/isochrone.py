@@ -1,12 +1,13 @@
 from curses.ascii import HT
 from enum import Enum, IntEnum
 from typing import Dict, List, Optional, Union
-
+from src.endpoints import deps
 from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import MultiPolygon, Polygon
 from pydantic import BaseModel, root_validator, validator
-from fastapi import HTTPException
-from src.resources.enums import IsochroneExportType
+from fastapi import HTTPException, Depends
+from src.resources.enums import IsochroneExportType, RoutingTypes, CalculationTypes
+
 """
 Body of the request
 """
@@ -51,8 +52,20 @@ class IsochroneBase(BaseModel):
         """Compute values."""
         # convert minutes to seconds (max_cutoff is in seconds)
         values["max_cutoff"] = values["minutes"] * 60
+        
         return values
 
+    @validator('routing_profile')
+    def check_routing_profile(cls, v):
+        if v not in RoutingTypes._value2member_map_:
+            raise HTTPException(status_code=400, detail="Invalid routing profile.")
+        return v
+
+    @validator('modus')
+    def check_modus(cls, v):
+        if v not in CalculationTypes._value2member_map_:
+            raise HTTPException(status_code=400, detail="Invalid calculation modus.")
+        return v
 
 class IsochroneSingle(IsochroneBase):
     x: float
@@ -65,7 +78,6 @@ class IsochroneMulti(IsochroneBase):
 class IsochronePoiMulti(IsochroneBase):
     region_type: str
     region: List[str]
-    scenario_id: int
     amenities: List[str]
 
     @root_validator
@@ -90,18 +102,6 @@ class IsochroneMultiCountPois(BaseModel):
     region_type: str
     speed: int
     active_upload_ids: Optional[List[int]] = [0]
-
-class IsochroneExport(BaseModel):
-    """Isochrone export DTO"""
-    isochrone_calculation_id: int
-    return_type: str
-
-    @validator('return_type')
-    def valud_return_type(cls, v):
-        if v not in IsochroneExportType.__members__:
-            raise HTTPException(status_code=400, detail="Invalid return type")
-        return v.title()
-
 
 """
 Response DTOs
@@ -170,15 +170,31 @@ class IsochroneMultiCountPoisCollection(FeatureCollection):
 
 request_examples = {
     "single_isochrone": {
-        "minutes": 10,
-        "speed": 5,
-        "n": 2,
-        "modus": "default",
-        "x": 11.5696284,
-        "y": 48.1502132,
-        "routing_profile": "walking_standard",
-        "active_upload_ids": [0],
-        "scenario_id": 0
+        "default": {
+            "summary": "Single isochrone default",
+            "value": {
+                "minutes": 10,
+                "speed": 5,
+                "n": 2,
+                "modus": "default",
+                "x": 11.5696284,
+                "y": 48.1502132,
+                "routing_profile": "walking_standard"
+            }
+        },
+        "scenario": {
+            "summary": "Single isochrone scenario or comparison",
+            "value": {
+                "minutes": 10,
+                "speed": 5,
+                "n": 2,
+                "modus": "default",
+                "x": 11.5696284,
+                "y": 48.1502132,
+                "routing_profile": "walking_standard",
+                "scenario_id": 1
+            }
+        }
     },
     "reached_network": {
         "minutes": 10,
@@ -213,7 +229,27 @@ request_examples = {
                 "region_type": "study_area",
                 "region": ["1"],
                 "routing_profile": "walking_standard",
-                "active_upload_ids": [0],
+                "amenities": [
+                    "nursery",
+                    "kindergarten",
+                    "grundschule",
+                    "realschule",
+                    "werkrealschule",
+                    "gymnasium",
+                    "library",
+                ],
+            }
+        },
+        "multi_with_study_area_scenario": {
+            "summary": "Multi Isochrone with Study Area in Scenario and Comparison",
+            "value": {
+                "minutes": 10,
+                "speed": 5,
+                "n": 2,
+                "modus": "default",
+                "region_type": "study_area",
+                "region": ["1"],
+                "routing_profile": "walking_standard",
                 "scenario_id": 0,
                 "amenities": [
                     "nursery",
@@ -240,9 +276,7 @@ request_examples = {
                 "amenities": [
                     "nursery",
                     "kindergarten"
-                ],
-                "scenario_id": 0,
-                "active_upload_ids": [0]
+                ]
             }
         }
     },
@@ -287,9 +321,5 @@ request_examples = {
                 ]
             }
         }
-    },
-        "export_isochrones": {
-            "isochrone_calculation_id": 1,
-            "return_type": "geojson"
-        }
+    }
 }

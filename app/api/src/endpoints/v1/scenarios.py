@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Upload
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
-
+from sqlalchemy import text 
 from src import crud, schemas
 from src.db import models
 from src.endpoints import deps
@@ -202,7 +202,7 @@ async def read_scenario_features(
     return return_geojson_or_geobuf(features, return_type.value)
 
 
-@router.delete("/{scenario_id}/{layer_name}/features", response_model=Msg)
+@router.delete("/{scenario_id}/{layer_name}/features-all", response_model=Msg)
 async def delete_scenario_features(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -344,6 +344,19 @@ async def update_scenario_features(
         return jsonable_encoder(features)
 
 
+@router.get("/population_modification/{scenario_id}", response_class=JSONResponse)
+async def population_modification(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    scenario_id: int = Path(
+        ..., description="Scenario ID", example=request_examples["update_feature"]["scenario_id"]
+    ),
+    current_user: models.User = Depends(deps.get_current_active_user),
+):
+    scenario_id = await deps.check_user_owns_scenario(db=db, current_user=current_user, scenario_id=scenario_id)
+    await db.execute(text("SELECT * FROM basic.population_modification(:scenario_id);"), {"scenario_id": scenario_id})
+    await db.commit()
+    return {"msg": "Successfully calculated population modification"}
 # -----------------------------------Export--------------------------------------------
 # -------------------------------------------------------------------------------------
 
