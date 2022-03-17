@@ -35,4 +35,3 @@ RUN chown -R app:app /app
 USER app
 # run gunicorn
 CMD gunicorn --bind 0.0.0.0:5000 src.main:app -k uvicorn.workers.UvicornWorker
-
