@@ -48,10 +48,10 @@ jobs:
       - name: Deploy postgres-service
         run: make deploy -e COMPONENT=postgres
       - name: Deploy changed client
-        if: contains(steps.get_file_changes.outputs.files, 'app/client') || contains(github.event.head_commit.message, 'trigger build')
+        if: contains(steps.get_file_changes.outputs.files, 'app/client')
         run: make deploy -e COMPONENT=client
-      - name: Deploy changed api
-        if: contains(steps.get_file_changes.outputs.files, 'app/api') || contains(github.event.head_commit.message, 'trigger build')
-        run: make deploy -e COMPONENT=api
+      # - name: Deploy changed api
+      #   if: contains(steps.get_file_changes.outputs.files, 'app/api')
+      #   run: make deploy -e COMPONENT=api
       - name: Deploy ingress
         run: make deploy -e COMPONENT=ingress
