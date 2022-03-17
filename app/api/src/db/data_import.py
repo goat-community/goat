@@ -7,7 +7,7 @@ from sentry_sdk import capture_exception
 
 from src import crud
 from src.db import models
-from src.db.session import async_session, staging_session
+from src.db.session import async_session
 
 
 class DataImport():

@@ -6,7 +6,7 @@ import JwtService from "./jwt.service";
 const ApiService = {
   init() {
     Vue.use(VueAxios, axios);
-    Vue.axios.defaults.baseURL = process.env.VUE_APP_API_URL;
+    Vue.axios.defaults.baseURL = "./api/v1";
     if (JwtService.getToken()) {
       this.setHeader();
     }

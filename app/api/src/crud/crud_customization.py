@@ -1,18 +1,12 @@
-import asyncio
-from turtle import settiltangle
-
 from fastapi import HTTPException
-from platformdirs import user_cache_dir
-from sqlalchemy import false, update
+from sqlalchemy import  update
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import Bundle, join
 from sqlalchemy.sql import and_
 
-from src import crud, schemas
+from src import crud
 from src.crud.base import CRUDBase
 from src.db import models
-from src.db.models import data_upload
 from src.db.models.config_validation import *
 from src.db.models.customization import Customization
 

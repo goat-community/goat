@@ -1512,7 +1512,7 @@ export default {
                 delete axiosInstance.defaults.headers.common["Authorization"];
                 axiosInstance
                   .get(
-                    `${process.env.VUE_APP_SEARCH_URL}/reverse.php?key=${process.env.VUE_APP_SEARCH_KEY}&lat=${wgs84Coord[1]}&lon=${wgs84Coord[0]}&format=json`
+                    `https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4&lat=${wgs84Coord[1]}&lon=${wgs84Coord[0]}&format=json`
                   )
                   .then(response => {
                     if (response.status === 200 && response.data.display_name) {

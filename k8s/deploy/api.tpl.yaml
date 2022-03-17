@@ -60,20 +60,30 @@ spec:
   ports:
     - port: 80
       targetPort: 5000
-      protocol: TCP
   type: NodePort
   selector:
     app: goat-api
 ---
 apiVersion: v1
-kind: Service
-metadata:  
+kind: ConfigMap
+metadata:
+  name: api-config
   namespace: ${NAMESPACE}
-  name: postgres-service
-spec:
-  type: ExternalName
-  externalName:  ${POSTGRES_HOST}
-# ---
+  labels:
+    app: goat-api
+data:
+  PROJECT_NAME: goat
+  SERVER_NAME: ${DOMAIN}
+  SERVER_HOST: https://${DOMAIN}
+  POSTGRES_SERVER: postgres-service
+  POSTGRES_DB: ${POSTGRES_DB}
+  POSTGRES_USER: ${POSTGRES_USER}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  SENTRY_DSN: ${SENTRY_DSN}
+  NAMESPACE: ${NAMESPACE}
+  FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+
+  # ---
 # apiVersion: batch/v1
 # kind: Job
 # metadata:
@@ -93,21 +103,3 @@ spec:
 #                 name: api-config
 #       restartPolicy: Never
 #   backoffLimit: 3
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: api-config
-  namespace: ${NAMESPACE}
-  labels:
-    app: goat-api
-data:
-  PROJECT_NAME: goat
-  SERVER_NAME: ${DOMAIN}
-  SERVER_HOST: ${DOMAIN}
-  POSTGRES_SERVER: postgres-service
-  POSTGRES_DB: ${POSTGRES_DB}
-  POSTGRES_USER: ${POSTGRES_USER}
-  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-  SENTRY_DSN: ${SENTRY_DSN}
-  NAMESPACE: ${NAMESPACE}

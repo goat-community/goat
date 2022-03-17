@@ -246,7 +246,7 @@ export const LayerFactory = {
   createVectorTileLayer(lConf) {
     let url = lConf.url;
     if (!url) {
-      url = `${process.env.VUE_APP_API_URL}/layers/tiles/${lConf.name}/{z}/{x}/{y}.pbf`;
+      url = `./api/v1/layers/tiles/${lConf.name}/{z}/{x}/{y}.pbf`;
     }
     const layer = new VectorTileLayer({
       ...this.baseConf(lConf).lOpts,
