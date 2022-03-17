@@ -4,9 +4,9 @@ WORKDIR /app
 ARG FONTAWESOME_NPM_AUTH_TOKEN
 COPY . .
 
-RUN echo "//registry.npmjs.org/:_authToken=$FONTAWESOME_NPM_AUTH_TOKEN" > .npmrc && \
+RUN echo "//registry.npmjs.org/:_authToken=${FONTAWESOME_NPM_AUTH_TOKEN}" > /app/.npmrc && \
   npm install && \
-  rm -f .npmrc
+  rm -f /app/.npmrc
 
 # build stage
 FROM develop-stage as build-stage
