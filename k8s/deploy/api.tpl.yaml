@@ -64,15 +64,7 @@ spec:
   type: NodePort
   selector:
     app: goat-api
----
-apiVersion: v1
-kind: Service
-metadata:  
-  namespace: ${NAMESPACE}
-  name: postgres-service
-spec:
-  type: ExternalName
-  externalName:  ${POSTGRES_HOST}
+
 # ---
 # apiVersion: batch/v1
 # kind: Job

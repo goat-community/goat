@@ -44,6 +44,8 @@ jobs:
         uses: trilom/file-changes-action@v1.2.4
         with:
           output: ' '
+      - name: Deploy postgres-service
+        run: make deploy -e COMPONENT=postgres
       - name: Deploy changed client
         if: contains(steps.get_file_changes.outputs.files, 'app/client') || contains(github.event.head_commit.message, 'trigger build')
         run: make deploy -e COMPONENT=client
