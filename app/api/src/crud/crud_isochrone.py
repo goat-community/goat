@@ -3,10 +3,6 @@ import io
 import os
 import shutil
 import uuid
-from datetime import datetime
-from json import loads
-from random import randint
-from turtle import speed
 from typing import Any
 
 import pandas as pd
@@ -16,9 +12,8 @@ from geojson import FeatureCollection
 from geopandas import GeoDataFrame, GeoSeries
 from geopandas.io.sql import read_postgis
 from pandas.io.sql import read_sql
-from pyproj import Transformer, transform
-from shapely.geometry import LineString, MultiPolygon, Point, Polygon
-from sqlalchemy.dialects.postgresql import ARRAY
+from pyproj import Transformer
+from shapely.geometry import MultiPolygon, Point, Polygon
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 
@@ -26,18 +21,13 @@ from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
 from src.exts.cpp.bind import isochrone as isochrone_cpp
-from src.resources.enums import SQLReturnTypes, IsochroneExportType
+from src.resources.enums import IsochroneExportType
 from src.schemas.isochrone import (
-    IsochroneExport,
     IsochroneMulti,
-    IsochroneMultiCountPois,
-    IsochronePoiMulti,
     IsochroneSingle,
     IsochroneTypeEnum,
-    IsochronePoiMulti,
 )
 from src.crud.base import CRUDBase
-from fastapi import HTTPException
 from src.utils import delete_dir
 
 
@@ -125,7 +115,7 @@ class CRUDIsochrone:
 
         return edges_network, starting_id, distance_limits, obj_starting_point
 
-    def result_to_gdf(self, result, starting_id):
+    def result_to_gdf(self, result, starting_id, add_to_db=True):
         isochrones = {}
         for isochrone_result in result.isochrone:
             for step in sorted(isochrone_result.shape):
@@ -146,6 +136,7 @@ class CRUDIsochrone:
             else:
                 raise Exception("Not correct geom type")
 
+        
         isochrone_gdf = GeoDataFrame(
             {
                 "step": list(isochrones_multipolygon.keys()),
@@ -155,9 +146,12 @@ class CRUDIsochrone:
         ).to_crs("EPSG:4326")
 
         isochrone_gdf.rename_geometry("geom", inplace=True)
-        isochrone_gdf.to_postgis(
-            name="isochrone_feature", con=legacy_engine, schema="customer", if_exists="append"
-        )
+        
+        if add_to_db == True: 
+            isochrone_gdf.to_postgis(
+                name="isochrone_feature", con=legacy_engine, schema="customer", if_exists="append"
+            )
+
         return isochrone_gdf
 
     async def compute_isochrone(self, db: AsyncSession, *, obj_in, return_network=False):
@@ -418,7 +412,7 @@ class CRUDIsochrone:
         os.chdir(file_dir+"/export")
 
         if return_type == "geojson" or return_type == 'shp':
-            gdf.to_file(file_name + '.' + return_type, driver=IsochroneExportType[return_type].value)
+            gdf.to_file(file_name + '.' + return_type, driver=return_type.value)
         elif return_type == "xlsx":
             gdf = gdf.drop(["reached_opportunities", "geom"], axis=1)
             gdf.transpose().to_excel(file_name + '.' + return_type)

@@ -1,23 +1,20 @@
 import json
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, Query, Path, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.responses import JSONResponse
-
+from src.resources.enums import CalculationTypes, IsochroneExportType, ReturnWithoutDbGeobufEnum
 from src import crud, schemas
 from src.db import models
 from src.endpoints import deps
+from src.schemas import isochrone
 from src.schemas.isochrone import (
-    IsochroneExport,
     IsochroneMulti,
-    IsochroneMultiCollection,
     IsochroneMultiCountPois,
-    IsochroneMultiCountPoisCollection,
     IsochronePoiMulti,
     IsochroneSingle,
-    IsochroneSingleCollection,
     request_examples,
 )
 from src.utils import return_geojson_or_geobuf
@@ -29,31 +26,46 @@ router = APIRouter()
 async def calculate_single_isochrone(
     *,
     db: AsyncSession = Depends(deps.get_db),
-    isochrone_in: IsochroneSingle = Body(..., example=request_examples["single_isochrone"]),
+    isochrone_in: IsochroneSingle = Body(..., examples=request_examples["single_isochrone"]),
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Calculate single isochrone.
     """
+
+    isochrone_in.scenario_id = await deps.check_user_owns_scenario(db, isochrone_in.scenario_id, current_user)
+    isochrone_in.active_upload_ids = current_user.active_data_upload_ids
     isochrone_in.user_id = current_user.id
     isochrone = await crud.isochrone.calculate_single_isochrone(db=db, obj_in=isochrone_in)
     return json.loads(isochrone.to_json())
 
 
 @router.get(
-    "/network/{isochrone_calculation_id}/{modus}/{return_type}", response_class=JSONResponse
+    "/network/{isochrone_calculation_id}/{modus}", response_class=JSONResponse
 )
 async def calculate_reached_network(
     *,
     db: AsyncSession = Depends(deps.get_db),
-    isochrone_calculation_id: int,
-    modus: str = "default",
-    return_type: str = "geobuf",
     current_user: models.User = Depends(deps.get_current_active_user),
+    isochrone_calculation_id: int = Path(
+        ..., 
+        description="Isochrone Calculation ID", 
+        example=1
+    ),
+    modus: CalculationTypes = Path(
+        ..., 
+        description="Calculation modus"
+    ),
+    return_type: ReturnWithoutDbGeobufEnum = Query(
+        description="Return type of the response",
+        default=ReturnWithoutDbGeobufEnum.geojson
+    ),
 ) -> Any:
     """
     Calculate the reached network for a single isochrone.
     """
+    await deps.check_user_owns_isochrone_calculation(db=db, isochrone_calculation_id=isochrone_calculation_id, current_user=current_user)
+    
     isochrone_calc_obj = await crud.isochrone_calculation.get_by_key(
         db=db, key="id", value=isochrone_calculation_id
     )
@@ -70,7 +82,7 @@ async def calculate_reached_network(
         minutes=minutes,
         speed=3.6 * isochrone_calc_obj.speed,
         n=len(isochrone_feature_obj),
-        modus=modus,
+        modus=modus.value,
         x=x,
         y=y,
         user_id=current_user.id,
@@ -80,7 +92,7 @@ async def calculate_reached_network(
     )
 
     network = await crud.isochrone.calculate_reached_network(db=db, obj_in=obj_calculation)
-    return return_geojson_or_geobuf(json.JSONDecoder().decode(json.dumps(network)), return_type)
+    return return_geojson_or_geobuf(json.JSONDecoder().decode(json.dumps(network)), return_type.value)
 
 
 @router.post("/multi", response_class=JSONResponse)
@@ -93,6 +105,9 @@ async def calculate_multi_isochrone(
     """
     Calculate multi isochrone.
     """
+
+    isochrone_in.scenario_id = await deps.check_user_owns_scenario(db=db, scenario_id=isochrone_in.scenario_id, current_user=current_user)
+    isochrone_in.active_upload_ids = current_user.active_data_upload_ids
     isochrone_in.user_id = current_user.id
     isochrone = await crud.isochrone.calculate_multi_isochrones(db=db, obj_in=isochrone_in)
     return json.loads(isochrone.to_json())
@@ -110,6 +125,8 @@ async def count_pois_multi_isochrones(
     """
     Count pois under study area.
     """
+    isochrone_in.scenario_id = await deps.check_user_owns_scenario(db=db, scenario_id=isochrone_in.scenario_id, current_user=current_user)
+    isochrone_in.active_upload_ids = current_user.active_data_upload_ids
     isochrone_in.user_id = current_user.id
     cnt = await crud.isochrone.count_pois_multi_isochrones(db=db, obj_in=isochrone_in)
     return cnt
@@ -127,23 +144,30 @@ async def poi_multi_isochrones(
     """
     Compute multiisochrone with POIs as starting points.
     """
+    isochrone_in.scenario_id = await deps.check_user_owns_scenario(db=db, scenario_id=isochrone_in.scenario_id, current_user=current_user)
+    isochrone_in.active_upload_ids = current_user.active_data_upload_ids
     isochrone_in.user_id = current_user.id
     gdf = await crud.isochrone.calculate_pois_multi_isochrones(db=db, obj_in=isochrone_in)
     return json.loads(gdf.to_json())
 
 
-@router.post("/export/", response_class=StreamingResponse)
+@router.get("/export/{isochrone_calculation_id}", response_class=StreamingResponse)
 async def export_isochrones(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    obj_in: schemas.isochrone.IsochroneExport = Body(
-        ..., example=request_examples["export_isochrones"]
-    )
+    isochrone_calculation_id: int = Path(
+        ..., description="Scenario ID", example=1
+    ),
+    return_type: IsochroneExportType = Query(
+        description="Return type of the response",
+        default=IsochroneExportType.geojson
+    ),
 ) -> Any:
     """
     Export isochrones.
     """
+    isochrone_calculation_id = await deps.check_user_owns_scenario(db=db, isochrone_calculation_id=isochrone_calculation_id, current_user=current_user)
 
-    file_response = await crud.isochrone.export_isochrone(db=db, current_user=current_user, isochrone_calculation_id=obj_in.isochrone_calculation_id, return_type=obj_in.return_type)
+    file_response = await crud.isochrone.export_isochrone(db=db, current_user=current_user, isochrone_calculation_id=isochrone_calculation_id, return_type=return_type.value)
     return file_response

@@ -41,8 +41,12 @@ class UserBase(SQLModel):
     active_data_upload_ids: List[int] = Field(
         sa_column=Column(ARRAY(Integer()), server_default=text("'{}'::int[]"))
     )
-    storage: int = Field(sa_column=Column(Integer, nullable=False))
-
+    storage: int = Field(
+        sa_column=Column(Integer), nullable=False
+    )
+    limit_scenarios: int = Field(
+        sa_column=Column(Integer), nullable=False
+    )
 
 class User(UserBase, table=True):
     __tablename__ = "user"
