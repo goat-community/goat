@@ -62,26 +62,6 @@ K8S_OBJ:=$(patsubst %.tpl.yaml,%.yaml,$(K8S_SRC))
 help:
 	@egrep '^# target' [Mm]akefile
 
-# target: make setup-general-utils
-.PHONY: setup-general-utils
-setup-general-utils:
-	$(KCTL) config use-context $(K8S_CLUSTER)
-	$(KCTL) apply -f k8s/deploy/general.yaml
-
-# target: make setup-kube-config
-.PHONY: setup-kube-config
-setup-kube-config:
-	mkdir -p ${HOME}/.kube/
-	cp k8s/deploy/config ${HOME}/.kube/config
-	$(KCTL) config set "clusters.goat.server" "${KUBE_CLUSTER_SERVER}"
-	$(KCTL) config set "clusters.goat.certificate-authority-data" "${KUBE_CLUSTER_CERTIFICATE}"
-	$(KCTL) config set "users.goat-admin.token" "${KUBE_CLIENT_TOKEN}"
-
-# target: make setup-alb-ingress
-# .PHONY: setup-alb-ingress
-# setup-alb-ingress: setup-general-utils
-# 	$(KCTL) apply -f k8s/utils/alb-ingress.yaml
-
 # target: make docker-login
 .PHONY: docker-login
 docker-login:
@@ -118,9 +98,9 @@ after-success:
 build-k8s:
 	rm -f $(K8S_OBJ)
 	make $(K8S_OBJ)
-	@echo "Built k8s/deploy/*.yaml from k8s/*.tpl.yaml"
+	@echo "Built k8s/deploy/*.yaml from k8s/deploy/*.tpl.yaml"
 
 # target: make deploy -e COMPONENT=api|client
 .PHONY: deploy
-deploy: setup-kube-config build-k8s
-	$(KCTL) config use-context goat && $(KCTL) apply -f k8s/deploy/$(COMPONENT).yaml
+deploy: build-k8s
+	$(KCTL) apply -f k8s/deploy/$(COMPONENT).yaml
