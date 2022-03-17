@@ -12,7 +12,6 @@ VERSION?=$(shell git rev-parse --short HEAD)
 REGISTRY?=docker.io
 K8S_CLUSTER?=goat
 NAMESPACE?=$(shell git rev-parse --abbrev-ref HEAD)
-FONTAWESOME_NPM_AUTH_TOKEN?=$(FONTAWESOME_NPM_AUTH_TOKEN)
 # Build and test directories
 CWD:=$(shell pwd)
 SRC_DIR?=$(CWD)/k8s/deploy
@@ -54,7 +53,6 @@ K8S_OBJ:=$(patsubst %.tpl.yaml,%.yaml,$(K8S_SRC))
 	POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
 	API_SECRET_KEY=$(API_SECRET_KEY) \
 	SENTRY_DSN=$(SENTRY_DSN) \
-	FONTAWESOME_NPM_AUTH_TOKEN=$(FONTAWESOME_NPM_AUTH_TOKEN) \
 	t=$$(cat $<); eval "echo \"$${t}\"" > $@
 
 # target: make help - displays this help.
