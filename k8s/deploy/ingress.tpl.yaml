@@ -33,10 +33,10 @@ spec:
             backend:
               serviceName: ssl-redirect
               servicePort: use-annotation
-          - path: /api/*
-            backend:
-              serviceName: goat-api
-              servicePort: 80
+          # - path: /api/*
+          #   backend:
+          #     serviceName: goat-api
+          #     servicePort: 80
           - path: /*
             backend:
               serviceName: goat-client
