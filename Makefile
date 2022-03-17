@@ -4,7 +4,6 @@ endif
 
 # Project-related variables
 SHELL=/bin/bash
-NAMESPACE:=dev
 DOMAIN:=dev.plan4better.de
 PROJECT:=goatcommunity
 COMPONENT:=api
@@ -15,19 +14,15 @@ NAMESPACE?=$(shell git rev-parse --abbrev-ref HEAD)
 # Build and test directories
 CWD:=$(shell pwd)
 SRC_DIR?=$(CWD)/k8s/deploy
-
 ifeq ($(NAMESPACE), main)
-	NAMESPACE=prod
 	DOMAIN=goat.plan4better.de
 endif
 
 ifeq ($(NAMESPACE), staging)
-	NAMESPACE=staging
 	DOMAIN=goat-test.plan4better.de
 endif
 
 ifeq ($(NAMESPACE), dev)
-	NAMESPACE=dev
 	DOMAIN=goat-dev.plan4better.de
 endif
 
