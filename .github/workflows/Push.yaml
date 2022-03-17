@@ -18,11 +18,11 @@ jobs:
         uses: trilom/file-changes-action@v1.2.4
         with:
           output: ' '
-      # - name: Release changed client
-      #   #if: contains(steps.get_file_changes.outputs.files, 'app/client') || contains(github.event.head_commit.message, 'trigger build')
-      #   run: make release-client-docker-image -e COMPONENT=client
+      - name: Release changed client
+        if: contains(steps.get_file_changes.outputs.files, 'app/client') || contains(github.event.head_commit.message, 'trigger build')
+        run: make release-client-docker-image -e COMPONENT=client
       - name: Release changed api
-      #   #if: contains(steps.get_file_changes.outputs.files, 'app/api') || contains(github.event.head_commit.message, 'trigger build')
+        if: contains(steps.get_file_changes.outputs.files, 'app/api') || contains(github.event.head_commit.message, 'trigger build')
         run: make release-docker-image -e COMPONENT=api
   # deploy:
   #   runs-on: ubuntu-latest
@@ -38,8 +38,8 @@ jobs:
   #       with:
   #         output: ' '
   #     - name: Deploy changed client
-  #       #if: contains(steps.get_file_changes.outputs.files, 'app/client') || contains(github.event.head_commit.message, 'trigger build')
+  #       if: contains(steps.get_file_changes.outputs.files, 'app/client') || contains(github.event.head_commit.message, 'trigger build')
   #       run: make deploy -e COMPONENT=client
   #     - name: Deploy changed api
-  #       #if: contains(steps.get_file_changes.outputs.files, 'app/api') || contains(github.event.head_commit.message, 'trigger build')
+  #       if: contains(steps.get_file_changes.outputs.files, 'app/api') || contains(github.event.head_commit.message, 'trigger build')
   #       run: make deploy -e COMPONENT=api
