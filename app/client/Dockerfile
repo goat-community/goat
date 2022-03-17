@@ -1,14 +1,22 @@
 # develop stage
 FROM node:11.1-alpine as develop-stage
 WORKDIR /app
-ARG FONTAWESOME_NPM_AUTH_TOKEN
-COPY . .
 
+ARG VUE_APP_I18N_LOCALE=en
+ARG VUE_APP_I18N_FALLBACK_LOCALE=en
+ARG VUE_APP_SEARCH_KEY=ca068d7840bca4
+ARG VUE_APP_SEARCH_URL=https://api.locationiq.com/v1
+ARG FONTAWESOME_NPM_AUTH_TOKEN
+
+COPY . .
+RUN npm config set "@fortawesome:registry" https://npm.fontawesome.com/
+RUN npm config set "//npm.fontawesome.com/:_authToken" $FONTAWESOME_NPM_AUTH_TOKEN
 RUN echo "//registry.npmjs.org/:_authToken=${FONTAWESOME_NPM_AUTH_TOKEN}" > /app/.npmrc && \
   npm install && \
   rm -f /app/.npmrc
 
 # build stage
+
 FROM develop-stage as build-stage
 RUN npm run build
 
