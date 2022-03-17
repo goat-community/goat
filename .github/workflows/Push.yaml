@@ -24,9 +24,29 @@ jobs:
       - name: Release changed api
         if: contains(steps.get_file_changes.outputs.files, 'app/api') || contains(github.event.head_commit.message, 'trigger build')
         run: make release-docker-image -e COMPONENT=api
+      - name: Some check on branch
+        id: branch_check
+        run: |
+          echo "Running on branch ${{ github.ref }}"
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "::set-output name=env_name::main"
+          elif [ "${{ github.ref }}" = "refs/heads/staging" ]; then
+            echo "::set-output name=env_name::staging"
+          else
+             echo "::set-output name=env_name::dev"
+          fi         
+          
+      - name: Use variable setup in previous step
+        run: echo "I'm using variable ${{ steps.branch_check.outputs.env_name }}"
+        
+    outputs:
+      env_name: ${{ steps.branch_check.outputs.env_name }}
+
+
   deploy:
     runs-on: ubuntu-latest
-    environment: dev
+    environment: 
+      name: ${{ needs.release.outputs.env_name }}
     needs: [release]
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
