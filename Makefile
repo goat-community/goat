@@ -14,6 +14,7 @@ NAMESPACE?=$(shell git rev-parse --abbrev-ref HEAD)
 # Build and test directories
 CWD:=$(shell pwd)
 SRC_DIR?=$(CWD)/k8s/deploy
+
 ifeq ($(NAMESPACE), main)
 	DOMAIN=goat.plan4better.de
 endif
