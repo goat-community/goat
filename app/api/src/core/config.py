@@ -74,26 +74,6 @@ class Settings(BaseSettings):
             path=f"/{values.get('POSTGRES_DB') or ''}",
         )
 
-    STAGING_POSTGRES_USER: str
-    STAGING_POSTGRES_PASSWORD: str
-    STAGING_POSTGRES_HOST: str
-    STAGING_POSTGRES_OUTER_PORT: int
-    STAGING_POSTGRES_DB: str
-    SQLALCHEMY_STAGING_DATABASE_URI: Optional[AsyncPostgresDsn] = None
- 
-    @validator("SQLALCHEMY_STAGING_DATABASE_URI", pre=True)
-    def assemble_staging_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-        if isinstance(v, str):
-            return v
-        return AsyncPostgresDsn.build(
-            scheme="postgresql+asyncpg",
-            user=values.get("STAGING_POSTGRES_USER"),
-            password=values.get("STAGING_POSTGRES_PASSWORD"),
-            host=values.get("STAGING_POSTGRES_HOST"),
-            port=str(values.get("STAGING_POSTGRES_OUTER_PORT")),
-            path=f"/{values.get('STAGING_POSTGRES_DB') or ''}",
-        )
-
     SMTP_TLS: bool = True
     SMTP_PORT: Optional[int] = None
     SMTP_HOST: Optional[str] = None
