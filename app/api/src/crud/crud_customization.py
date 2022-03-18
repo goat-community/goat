@@ -76,6 +76,18 @@ class CRUDDynamicCustomization:
 
         return settings_dict
 
+    async def get_all_default_poi_categories(self, db: AsyncSession):
+        """This will get a list of all default POI categories"""
+        poi_categories = []
+        default_setting = await customization.get_by_key(db, key="type", value='poi_groups')
+        default_setting_obj = default_setting[0]
+
+        for group in default_setting_obj.setting["poi_groups"]:
+            for category in group[list(group.keys())[0]]['children']:
+                poi_categories.append(list(category.keys())[0])
+        
+        return poi_categories
+
     async def build_main_setting_json(self, *, db: AsyncSession, current_user: models.User):
         """This function builds the main setting json for one specific user."""
         combined_settings = {}
@@ -433,9 +445,8 @@ class CRUDDynamicCustomization:
                     settings_to_update[group]["children"].pop(category)
                     break
         
-        if 'other' in settings_to_update:
-            if settings_to_update['other']['children'] == {}:
-                del settings_to_update['other']
+        if settings_to_update[group]['children'] == {}:
+            del settings_to_update[group]
 
         settings_to_update = {
             setting_type: self.nested_dict_to_arr_dict(settings_to_update)

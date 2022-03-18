@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 from src import crud, schemas
 from src.core.config import settings
 from src.db import models
-from src.db.session import async_session, staging_session
+from src.db.session import async_session
 from src.core.config import Settings
 
 

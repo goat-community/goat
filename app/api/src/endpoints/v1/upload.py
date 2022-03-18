@@ -1,5 +1,4 @@
 import json
-import random
 from typing import Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, UploadFile
@@ -12,7 +11,6 @@ from starlette.responses import JSONResponse
 from src import crud, schemas
 from src.crud.crud_customization import dynamic_customization
 from src.db import models
-from src.db.models.config_validation import PoiCategory, check_dict_schema
 from src.endpoints import deps
 from src.schemas.upload import request_examples
 
@@ -36,11 +34,17 @@ async def get_custom_pois(
         )
         category = category.all()
         if category != []:
+            if obj.id in current_user.active_data_upload_ids:
+                state = True
+            else:
+                state = False
+
             obj_dict = {
                 "id": obj.id,
                 "category": category[0][0],
                 "upload_size": obj.upload_size,
                 "creation_date": str(obj.creation_date),
+                "state": state
             }
 
             response_objs.append(obj_dict)
@@ -63,19 +67,6 @@ async def upload_custom_pois(
         db=db, file=file, poi_category=poi_category, current_user=current_user
     )
 
-    hex_color = "#%06x" % random.randint(0, 0xFFFFFF)
-    new_setting = {poi_category: {"icon": "fas fa-question", "color": [hex_color]}}
-
-    if check_dict_schema(PoiCategory, new_setting) == False:
-        raise HTTPException(status_code=400, detail="Invalid JSON-schema")
-
-    await dynamic_customization.handle_user_setting_modification(
-        db=db,
-        current_user=current_user,
-        setting_type="poi",
-        changeset=new_setting,
-        modification_type="insert",
-    )
     updated_settings = await dynamic_customization.build_main_setting_json(
         db=db, current_user=current_user
     )
