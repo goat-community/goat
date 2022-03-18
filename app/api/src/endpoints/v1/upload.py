@@ -1,21 +1,27 @@
 import json
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, HTTPException, UploadFile
-from fastapi.encoders import jsonable_encoder
+from fastapi import APIRouter, Body, Depends, HTTPException, UploadFile, Header
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
-from starlette.responses import JSONResponse
-
+from src.resources.enums import MaxUploadFileSize
 from src import crud, schemas
 from src.crud.crud_customization import dynamic_customization
 from src.db import models
 from src.endpoints import deps
 from src.schemas.upload import request_examples
+from typing import IO
+
+from tempfile import NamedTemporaryFile
+import shutil
+from fastapi import Header, Depends, UploadFile, HTTPException
+from starlette import status
 
 router = APIRouter()
 
+
+async def valid_content_length(content_length: int = Header(..., lt=MaxUploadFileSize.max_upload_poi_file_size)):
+    return content_length
 
 @router.get("/poi")
 async def get_custom_pois(
@@ -51,7 +57,6 @@ async def get_custom_pois(
 
     return json.loads(json.dumps(response_objs))
 
-
 @router.post("/poi")
 async def upload_custom_pois(
     *,
@@ -62,6 +67,15 @@ async def upload_custom_pois(
 ) -> Any:
 
     """Handle uploaded custom pois."""
+
+    real_file_size = 0
+    for chunk in file.file:
+        real_file_size += len(chunk)
+        if real_file_size > MaxUploadFileSize.max_upload_poi_file_size.value:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, 
+                detail="The uploaded file size is to big the largest allowd size is %s MB." % round(MaxUploadFileSize.max_upload_poi_file_size/1024.0**2,2)
+            )
 
     await crud.upload.upload_custom_pois(
         db=db, file=file, poi_category=poi_category, current_user=current_user

@@ -26,6 +26,11 @@ class AccessibilityHeatmapTypes(str, Enum):
     local_accessibility = "heatmap_local_accessibility"
     local_accessibility_population = "heatmap_accessibility_population"
 
+class MaxUploadFileSize(int, Enum):
+    """Maximum upload file size."""
+
+    max_upload_poi_file_size = 5242880 # in bytes
+
 class IsochroneExportType(str, Enum):
     """Supported files types for export."""
 

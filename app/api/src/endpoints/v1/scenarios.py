@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Upload
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy import text 
+from sqlalchemy import text, select, func 
 from src import crud, schemas
 from src.db import models
 from src.endpoints import deps
@@ -30,6 +30,11 @@ async def create_scenario(
     """
     Create scenario.
     """
+    cnt_scenario_user = await db.execute(select(func.count(models.Scenario.id)).where(models.Scenario.user_id == current_user.id))
+    cnt_scenario_user = cnt_scenario_user.fetchone()[0]
+    if cnt_scenario_user >= current_user.limit_scenarios:
+        raise HTTPException(status_code=400, detail="You reached the maximum number of %s scenarios." % current_user.limit_scenarios)
+
     obj_scenario = models.Scenario(
         scenario_name=scenario_in.scenario_name,
         user_id=current_user.id,
