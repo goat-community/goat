@@ -14,7 +14,6 @@ router = APIRouter()
 @router.get("/visualization/", response_model=Any)
 async def poi_aoi_visualization(
     return_type: ReturnType,
-    modus: CalculationTypes,
     scenario_id: Optional[int] = Query(
         description="The scenario id to get the POIs in case the modus is 'scenario' or 'comparison'.",
         default=0,
@@ -27,7 +26,7 @@ async def poi_aoi_visualization(
     Visualize POIs and AOIs based on settings specified by the user.
     """
 
-    pois = await crud.poi_aoi.poi_aoi_visualization(db=db, scenario_id=scenario_id, modus=modus, current_user=current_user, return_type=return_type)
+    pois = await crud.poi_aoi.poi_aoi_visualization(db=db, scenario_id=scenario_id, current_user=current_user, return_type=return_type)
     
     return return_geojson_or_geobuf(pois, return_type)
   
