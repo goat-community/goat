@@ -26,7 +26,7 @@ async def init() -> None:
             # Try to create session to check if DB is awake
             await db.execute("SELECT 1")
             # Check if customization and user exists
-            asyncio.run(init_db(async_session()))
+            #asyncio.run(init_db(async_session()))
 
             
     except Exception as e:

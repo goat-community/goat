@@ -123,7 +123,7 @@ class WayModified(EdgeBase, table=True):
     creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
-    edge_id: Optional[int] = Field(index=True, default=None, foreign_key="basic.edge.id")
+    way_id: Optional[int] = Field(index=True, default=None, foreign_key="basic.edge.id")
     scenario_id: Optional[int] = Field(
         sa_column=Column(
             Integer, ForeignKey("customer.scenario.id", ondelete="CASCADE"), index=True
