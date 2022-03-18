@@ -111,6 +111,7 @@
             class="mt-4"
             :items="editableLayers"
             v-model="selectedLayer"
+            item-value="name"
             return-object
             solo
             :label="$t('appBar.edit.layerToEdit')"
