@@ -179,13 +179,13 @@
         "actions": "Actions"
       },
       "type": {
-        "New": "New",
-        "Modified": "Modified",
-        "Restored": "Restored",
+        "new": "New",
+        "modified": "Modified",
+        "restored": "Restored",
         "deleted": "Deleted"
       },
       "status": {
-        "Uploaded": "Uploaded",
+        "uploaded": "Uploaded",
         "NotUploaded": "Not Uploaded"
       },
       "activateLayerToDrawScenario": "Please activate the layer to be able to select features",

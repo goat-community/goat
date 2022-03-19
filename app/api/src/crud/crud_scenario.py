@@ -141,27 +141,19 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                         if value is None:
                             # new POI
                             feature_dict["uid"] = uuid.uuid4().hex
-                            feature_dict["edit_type"] = "n"
                         else:
                             # existing POI
                             feature_dict["uid"] = value
-                            feature_dict["edit_type"] = "m"
                             # TODO: check if uid is valid (poi / poi_user)
 
                     elif (
                         layer_name.value == schemas.ScenarioLayerFeatureEnum.way_modified.value
                         and key == "way_id"
                     ):
-                        if value is None:
-                            # new way
-                            feature_dict["edit_type"] = "n"
-                        else:
-                            # existing way
-                            feature_dict["edit_type"] = "m"
+                        if value is not None:
                             feature_dict["way_id"] = value
 
                     # TODO: For population check if geometry and building with {building_modified_id} intersect
-
                     elif isinstance(value, enum.Enum):
                         feature_dict[key] = value.value
                     elif key == "class_id" and value is None:

@@ -22,7 +22,6 @@ from .scenario import (
     ScenarioCreate,
     ScenarioFeatureCreate,
     ScenarioFeatureUpdate,
-    ScenarioImport,
     ScenarioLayerFeatureEnum,
     ScenarioLayersEnum,
     ScenarioLayersNoPoisEnum,
@@ -32,4 +31,4 @@ from .scenario import (
 )
 from .token import Token, TokenPayload
 from .upload import CutomDataUploadState
-from .user import UserBase, UserCreate, UserUpdate, UserStudyAreaList
+from .user import UserBase, UserCreate, UserStudyAreaList, UserUpdate

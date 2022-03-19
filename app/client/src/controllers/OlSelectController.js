@@ -98,30 +98,13 @@ export default class OlSelectController extends OlBaseController {
           );
 
           const requests = [promiseOriginTable];
-          // Request from modified table (TODO: This request might be eleminated if
-          // scenario features are already in the client)
-          const promiseModifiedTable = ApiService.get_(
-            `/scenarios/${store.state.activeScenario}/${selectedLayer["name"]}_modified/features?return_type=geojson`
-          );
-          requests.push(promiseModifiedTable);
-          // Request only for population when building layer is active.
-          if (selectedLayer["name"] === "building") {
-            const promisePopulationModifiedTable = ApiService.get_(
-              `/scenarios/${store.state.activeScenario}/population_modified/features?return_type=geojson`
-            );
-            requests.push(promisePopulationModifiedTable);
-          }
           mapStore.state.isMapBusy = true;
           axios
             .all(requests)
             .then(
-              axios.spread((first, second, third) => {
+              axios.spread(first => {
                 me.source.clear();
-                onSelectionEnd({
-                  first,
-                  second,
-                  third
-                });
+                onSelectionEnd(first);
               })
             )
             .catch(error => {

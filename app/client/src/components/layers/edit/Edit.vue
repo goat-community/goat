@@ -8,7 +8,7 @@
         <v-divider></v-divider>
       </v-card-text>
       <v-card-text class="pa-2">
-        <div v-if="scenarios.length === 0">
+        <div v-if="scenarioList.length === 1 && scenarioList[0].id === null">
           <v-tooltip top>
             <template v-slot:activator="{ on }">
               <v-btn
@@ -30,11 +30,11 @@
 
       <v-card class="px-16 mx-4 py-0 mb-2 fill-height" flat>
         <!-- CREATE SCENARIO  -->
-        <div v-if="scenarios.length > 0">
+        <div v-if="scenarioList.length > 1">
           <v-row class="mt-4" no-gutters no-wrap>
             <v-select
               v-model="activeScenario"
-              :items="scenarios"
+              :items="scenarioList"
               style="max-width: 260px;"
               item-text="scenario_name"
               item-value="id"
@@ -150,10 +150,10 @@
           </v-row>
         </div>
 
-        <div v-if="scenarios.length > 0 && activeScenario">
+        <div v-if="scenarioList.length > 1 && activeScenario">
           <v-divider></v-divider>
           <v-subheader class="ml-0 pl-0 mb-0 pb-0">
-            <v-icon style="color:#30c2ff;" small class="mr-2"
+            <v-icon :style="`color:${appColor.secondary};`" small class="mr-2"
               >fas fa-layer-group</v-icon
             >
             <h3>{{ $t("appBar.edit.selectLayer") }}</h3>
@@ -215,7 +215,7 @@
 
           <div class="ml-2" v-if="editElVisible">
             <span
-              v-show="selectedLayer != null"
+              v-show="selectedLayer != null && selectedLayer['name'] !== 'poi'"
               class="py-1 mb-0 mt-3 pl-0 ml-0"
             >
               <h4>{{ $t("appBar.edit.selectFeatures") }}</h4>
@@ -226,7 +226,10 @@
               v-show="selectedLayer != null && selectFeaturesVisible"
               class="mt-1 pt-0 mb-4"
             >
-              <v-btn-toggle v-model="toggleSelection">
+              <v-btn-toggle
+                v-show="selectedLayer['name'] != 'poi'"
+                v-model="toggleSelection"
+              >
                 <v-tooltip top>
                   <template v-slot:activator="{ on }">
                     <v-btn v-on="on" text>
@@ -718,6 +721,9 @@ export default {
   watch: {
     activeScenario() {
       this.fetchScenarioFeatures();
+      if (!this.activeScenario) {
+        this.clearAll();
+      }
     },
     toggleSelection: {
       handler(state) {
@@ -862,6 +868,7 @@ export default {
     fetchScenarioFeatures() {
       const requests = [];
       this.editLayer.getSource().clear();
+      if (!this.activeScenario) return;
       //TODO: Also refetch pois
       const layers_ = ["poi", "way", "building", "population"]; // Order is important !!!!!!
       layers_.forEach(layer => {
@@ -917,7 +924,6 @@ export default {
           break;
       }
       if (selectionType !== undefined) {
-        this.clearSelection();
         this.olSelectCtrl.addInteraction(
           selectionType,
           this.selectedLayer,
@@ -929,6 +935,27 @@ export default {
         }
       } else {
         this.olSelectCtrl.removeInteraction();
+      }
+    },
+    /**
+     * Callback function executed when selection interaction starts.
+     */
+    onSelectionStart() {
+      this.clear();
+    },
+    /**
+     * Callback function executed when selection interaction ends.
+     *
+     * @param  {ol/feature} features The features returned from selection interaction
+     */
+    onSelectionEnd(response) {
+      this.toggleSelection = undefined;
+      if (response) {
+        const features = geojsonToFeature(response.data, {
+          dataProjection: "EPSG:4326",
+          featureProjection: "EPSG:3857"
+        });
+        this.editLayer.getSource().addFeatures(features);
       }
     },
 
@@ -1011,29 +1038,6 @@ export default {
     toggleFeatureLabelsInteraction(state) {
       this.editLayer.set("showLabels", state);
       this.editLayer.getSource().changed();
-    },
-
-    /**
-     * Callback function executed when selection interaction starts.
-     */
-    onSelectionStart() {
-      this.olEditCtrl.clear();
-    },
-    /**
-     * Callback function executed when selection interaction ends.
-     *
-     * @param  {ol/feature} features The features returned from selection interaction
-     */
-    onSelectionEnd(response) {
-      this.toggleSelection = undefined;
-      if (response.second) {
-        editLayerHelper.filterResults(
-          response,
-          this.olEditCtrl.getLayerSource(),
-          this.olEditCtrl.bldEntranceLayer,
-          this.olEditCtrl.storageLayer.getSource()
-        );
-      }
     },
 
     /**
@@ -1394,10 +1398,18 @@ export default {
      * Clears all the selection and edit interactions.
      */
     clear() {
-      this.clearSelection();
-      this.olSelectCtrl.clear();
-      this.toggleSelection = undefined;
-      this.toggleEdit = undefined;
+      // Removes features that are not modified
+      this.editLayer
+        .getSource()
+        .getFeatures()
+        .forEach(feature => {
+          if (
+            !feature.get("edit_type") &&
+            !feature.get("building_modified_id") // building_modified_id is edge case to not clean population_modified features as they don't have an edit_type property
+          ) {
+            this.editLayer.getSource().removeFeature(feature);
+          }
+        });
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
     },
 
@@ -1449,9 +1461,7 @@ export default {
                     timeout: 4000
                   });
                   //2- Clear openlayers scenario features
-                  this.clear();
-                  this.fetchScenarioFeatures();
-                  this.$store.dispatch(`scenarios/${GET_SCENARIOS}`);
+                  this.clearAll();
                 }
               })
               .catch(() => {
@@ -1460,10 +1470,6 @@ export default {
           }
         });
     },
-    /**
-     * Delete all user scenario features
-     */
-
     /**
      * Delete scenario
      */
@@ -1499,7 +1505,7 @@ export default {
                   //- Refetch Scenario
                   this.$store.dispatch(`scenarios/${GET_SCENARIOS}`);
                   //- Clear openlayers scenario features
-                  this.clear();
+                  this.clearAll();
                   this.selectedLayer = null;
                   this.activeScenario = null;
                 }
@@ -1714,6 +1720,7 @@ export default {
       };
     },
     original_id() {
+      if (!this.selectedLayer) return "";
       if (this.selectedLayer["name"] === "poi") {
         return "uid";
       } else if (this.selectedLayer["name"] === "building") {
@@ -1746,6 +1753,9 @@ export default {
       scenarios: "scenarios",
       activeScenario: "activeScenario"
     }),
+    scenarioList() {
+      return [{ id: null, scenario_name: "---" }, ...this.scenarios];
+    },
     ...mapGetters("scenarios", {
       activeScenarioObj: "activeScenarioObj"
     }),
@@ -1761,7 +1771,6 @@ export default {
       editableLayers.push(config.client_config);
     });
     this.editableLayers = editableLayers;
-    this.selectedLayer = this.editableLayers[0];
     this.fetchScenarioLayerSchemas();
   }
 };
