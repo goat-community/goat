@@ -1790,7 +1790,7 @@ export default {
         this.isIsochroneBusy = true;
         // Network is not fetched yet
         ApiService.get_(
-          `/isochrones/network/${calculation.data[0].isochrone_calculation_id}/${type}/geobuf`,
+          `/isochrones/network/${calculation.data[0].isochrone_calculation_id}/${type}?return_type=geobuf`,
           {
             responseType: "arraybuffer",
             headers: {
