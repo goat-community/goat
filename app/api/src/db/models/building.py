@@ -82,6 +82,8 @@ class BuildingModified(BuildingBase, table=True):
     populations_modified: Optional[List["PopulationModified"]] = Relationship(
         back_populates="building_modified"
     )
+    edit_type: str = Field(sa_column=Column(Text, nullable=False, index=True))
+    
 
 
 Index("idx_building_modified_geom", BuildingModified.__table__.c.geom, postgresql_using="gist")

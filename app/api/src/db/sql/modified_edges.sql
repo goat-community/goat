@@ -10,21 +10,14 @@ BEGIN
 	(
 		WITH ids AS 
 		(
-			SELECT edge_id 
-			FROM basic.edge 
+			SELECT DISTINCT way_id 
+			FROM customer.way_modified  
 			WHERE scenario_id = scenario_id_input 
-			AND edge_id IS NOT NULL
-			UNION ALL 
-			SELECT UNNEST(deleted_ways)
-			FROM customer.scenario 
-			WHERE id = scenario_id_input 
-		),
-		distinct_ids AS 
-		(
-			SELECT DISTINCT edge_id FROM ids 
+			AND way_id IS NOT NULL 
+			AND edit_type IN ('d', 'm')
 		)
-		SELECT COALESCE(ARRAY_AGG(edge_id), array[]::integer[]) 
-		FROM distinct_ids
+		SELECT COALESCE(ARRAY_AGG(way_id), array[]::integer[]) 
+		FROM ids
 	);
 	
 	RETURN modified_features;

@@ -7,7 +7,6 @@ DECLARE
 	reachable_population integer; 
 	reachable_population_default integer; 
 	reachable_population_scenario integer;  
-
 BEGIN
 	
 	/*Check if invalid modus*/
@@ -23,7 +22,7 @@ BEGIN
 	END IF; 
 	
 	IF modus = 'scenario' THEN 
-		excluded_buildings_id  = (SELECT s.deleted_buildings FROM customer.scenario s WHERE id = scenario_id_input);
+		excluded_buildings_id  = basic.modified_buildings(scenario_id_input);
 		
 		WITH prepared_scenario AS 
 		(
