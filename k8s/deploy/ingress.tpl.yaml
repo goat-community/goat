@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: dev
+  name: ${NAMESPACE}
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -24,7 +24,7 @@ metadata:
   name: ingress-goat
   labels:
     app: goat
-  namespace: dev
+  namespace: ${NAMESPACE}
 spec:
   rules:
     - http:
