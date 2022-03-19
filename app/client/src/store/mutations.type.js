@@ -9,3 +9,4 @@ export const SET_POI_ICONS = "setPoiIcons";
 export const SET_USER_CUSTOM_DATA = "setUserCustomData";
 export const SET_OPENAPI_CONFIG = "setOpenApiConfig";
 export const SET_SCENARIOS = "setScenarioList";
+export const SET_POIS_AOIS = "setPoisAois";

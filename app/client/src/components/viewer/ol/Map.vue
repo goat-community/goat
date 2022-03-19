@@ -131,7 +131,11 @@ import VectorLayer from "ol/layer/Vector";
 import LineString from "ol/geom/LineString";
 
 // style imports
-import { getInfoStyle, studyAreaStyle } from "../../../style/OlStyleDefs";
+import {
+  getInfoStyle,
+  studyAreaStyle,
+  poisAoisStyle
+} from "../../../style/OlStyleDefs";
 // import the app-wide EventBus
 import { EventBus } from "../../../EventBus";
 
@@ -164,6 +168,7 @@ import "ol-contextmenu/dist/ol-contextmenu.min.css";
 
 // Indicators Chart
 import IndicatorsChart from "../../other/IndicatorsChart";
+import { GET_POIS_AOIS } from "../../../store/actions.type";
 
 export default {
   components: {
@@ -251,7 +256,7 @@ export default {
         center: me.appConfig.map.center || [0, 0],
         zoom: me.appConfig.map.zoom,
         minZoom: me.appConfig.map.minZoom,
-        maxZoom: me.appConfig.map.maxZoom
+        maxZoom: me.appConfig.map.maxZoom || 19
       })
     });
 
@@ -259,6 +264,8 @@ export default {
     me.createStudyAreaLayer();
     // Create substudy area layer
     me.createSubStudyAreaLayer();
+    // Create poisaoisLayer
+    me.createPoisAoisLayer();
     // Create layers from config and add them to map
     const layers = me.createLayers();
     me.map.getLayers().extend(layers);
@@ -341,6 +348,23 @@ export default {
       });
       this.map.addLayer(olLayer);
       this.subStudyAreaLayer = olLayer;
+    },
+    /**
+     * Creates pois aois layer
+     */
+    createPoisAoisLayer() {
+      const vector = new VectorLayer({
+        name: "pois_aois_layer",
+        type: "VECTOR",
+        displayInLegend: false,
+        queryable: true,
+        zIndex: 99,
+        source: new VectorSource(),
+        style: poisAoisStyle
+      });
+      this.map.addLayer(vector);
+      this.poisAoisLayer = vector;
+      this.$store.dispatch(`poisaois/${GET_POIS_AOIS}`);
     },
 
     /**
@@ -795,6 +819,9 @@ export default {
   computed: {
     ...mapFields("map", {
       subStudyAreaLayer: "subStudyAreaLayer"
+    }),
+    ...mapFields("poisaois", {
+      poisAoisLayer: "poisAoisLayer"
     }),
     ...mapGetters("map", {
       studyArea: "studyArea",

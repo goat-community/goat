@@ -55,6 +55,7 @@
 import { mapFields } from "vuex-map-fields";
 import { mapGetters } from "vuex";
 import ApiService from "../../services/api.service";
+import { GET_SCENARIOS } from "../../store/actions.type";
 
 export default {
   props: ["visible", "scenarioId"],
@@ -102,11 +103,9 @@ export default {
       promise
         .then(response => {
           if (response.status === 200) {
+            this.$store.dispatch(`scenarios/${GET_SCENARIOS}`);
             let scenarioId = activeScenarioId || response.data.id;
             scenarioId = parseInt(scenarioId);
-            this.$set(this.scenarios, scenarioId, {
-              title: scenarioName
-            });
             this.activeScenario = scenarioId;
           }
         })
@@ -119,9 +118,13 @@ export default {
     show() {
       if (this.show === true) {
         if (this.scenarioId) {
-          this.scenarioName = this.scenarios[this.scenarioId].title;
+          this.scenarios.forEach(scenario => {
+            if (scenario.id === this.scenarioId) {
+              this.scenarioName = scenario.scenario_name;
+            }
+          });
         } else {
-          let id = Object.keys(this.scenarios).length;
+          let id = this.scenarios.length;
           if (id > 0) {
             id += 1;
             this.scenarioName = this.$t("appBar.edit.scenario") + " " + id;

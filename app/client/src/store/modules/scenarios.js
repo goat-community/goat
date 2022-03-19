@@ -14,6 +14,14 @@ const state = {
 const getters = {
   scenarios: state => state.scenarios,
   activeScenario: state => state.activeScenario,
+  activeScenarioObj: state => {
+    if (state.activeScenario) {
+      return state.scenarios.find(
+        scenario => scenario.id === state.activeScenario
+      );
+    }
+    return null;
+  },
   scenarioDataTable: state => state.scenarioDataTable,
   // eslint-disable-next-line no-unused-vars
   limitScenarios: (state, getters, rootState, rootGetters) => {

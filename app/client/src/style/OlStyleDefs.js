@@ -7,7 +7,6 @@ import OlText from "ol/style/Text";
 import OlFontSymbol from "../utils/FontSymbol";
 import OlShadow from "../utils/Shadow";
 
-import isochronesStore from "../store/modules/isochrones";
 import poisAoisStore from "../store/modules/poisaois";
 import appStore from "../store/modules/app";
 import mapStore from "../store/modules/map";
@@ -253,7 +252,7 @@ export function defaultStyle(feature, resolution) {
       ? "rgba(255, 0, 0, 0.7)"
       : [0, 0, 0, 0]
   };
-  if (feature.get("layerName") === "buildings") {
+  if (feature.get("layerName") === "building") {
     const properties = feature.getProperties();
     strokeOpt.lineDash = properties["status"] == 1 ? [0, 0] : [10, 10];
     strokeOpt.width = 4;
@@ -262,7 +261,7 @@ export function defaultStyle(feature, resolution) {
     let hasEntranceFeature = false;
     if (
       mapStore.state.reqFields &&
-      mapStore.state.selectedEditLayer.get("name") === "buildings"
+      mapStore.state.selectedEditLayer.get("name") === "building"
     ) {
       mapStore.state.reqFields.forEach(field => {
         if (!properties[field]) {
@@ -367,15 +366,14 @@ export function uploadedFeaturesStyle() {
   });
   return [style];
 }
-export function waysModifiedStyle(feature) {
+export function waysModifiedStyle() {
   const style = new OlStyle({
     fill: new OlFill({
       color: [0, 0, 0, 0]
     }),
     stroke: new OlStroke({
       color: "#FF0000",
-      width: 3,
-      lineDash: feature.getProperties()["status"] == 1 ? [0, 0] : [10, 10]
+      width: 3
     }),
     image: new OlCircle({
       radius: 7,
@@ -386,42 +384,33 @@ export function waysModifiedStyle(feature) {
   });
   return [style];
 }
-export function waysNewRoadStyle(feature) {
+export function waysNewRoadStyle() {
   const style = new OlStyle({
     fill: new OlFill({
       color: [0, 0, 0, 0]
     }),
     stroke: new OlStroke({
       color: "#6495ED",
-      width: 4,
-      lineDash: feature.getProperties()["status"] == 1 ? [0, 0] : [10, 10]
+      width: 4
     })
   });
   return [style];
 }
 
-export function waysNewBridgeStyle(feature) {
+export function waysNewBridgeStyle() {
   const style = new OlStyle({
     fill: new OlFill({
       color: [0, 0, 0, 0]
     }),
     stroke: new OlStroke({
       color: "#FFA500",
-      width: 4,
-      lineDash: feature.getProperties()["status"] == 1 ? [0, 0] : [10, 10]
+      width: 4
     })
   });
   return [style];
 }
 export function editStyleFn() {
   const styleFunction = (feature, resolution) => {
-    if (
-      feature.get("scenario_id") &&
-      isochronesStore.state.activeScenario &&
-      feature.get("scenario_id") !== isochronesStore.state.activeScenario
-    ) {
-      return [];
-    }
     const props = feature.getProperties();
     // Polygon (ex. building) style
     if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
@@ -430,17 +419,19 @@ export function editStyleFn() {
 
     // Linestring (ex. ways ) style
     if (
-      (props.hasOwnProperty("way_type") && props["edge_id"] == null) ||
+      (props.hasOwnProperty("way_type") && props["way_id"] == null) ||
       Object.keys(props).length == 1
     ) {
       //Distinguish Roads from Bridge features
       if (props.way_type == "bridge") {
-        return waysNewBridgeStyle(feature);
+        return waysNewBridgeStyle();
       } else {
-        return waysNewRoadStyle(feature);
+        return waysNewRoadStyle();
       }
     } else if (props.hasOwnProperty("way_type")) {
-      return waysModifiedStyle(feature); //Feature are modified
+      return waysModifiedStyle(); //Feature are modified
+    } else if (props["layerName"] === "population") {
+      return bldEntrancePointsStyle(feature, resolution);
     } else {
       return defaultStyle(feature, resolution); //Features are from original table
     }
@@ -514,39 +505,30 @@ export function studyAreaASelectStyle() {
   ];
 }
 
-export function bldEntrancePointsStyle() {
-  return (feature, resolution) => {
-    if (
-      feature.get("scenario_id") &&
-      isochronesStore.state.activeScenario &&
-      feature.get("scenario_id") !== isochronesStore.state.activeScenario
-    ) {
-      return [];
-    }
-    let radius = 8;
-    if (resolution > 4) {
-      return [];
-    }
-    const styles = [];
-    styles.push(
-      new OlStyle({
+export function bldEntrancePointsStyle(feature, resolution) {
+  let radius = 8;
+  if (resolution > 4) {
+    return [];
+  }
+  const styles = [];
+  styles.push(
+    new OlStyle({
+      fill: new OlFill({
+        color: "#800080"
+      }),
+      stroke: new OlStroke({
+        color: "#800080",
+        width: radius
+      }),
+      image: new OlCircle({
+        radius: radius,
         fill: new OlFill({
           color: "#800080"
-        }),
-        stroke: new OlStroke({
-          color: "#800080",
-          width: radius
-        }),
-        image: new OlCircle({
-          radius: radius,
-          fill: new OlFill({
-            color: "#800080"
-          })
         })
       })
-    );
-    return styles;
-  };
+    })
+  );
+  return styles;
 }
 
 export const baseStyleDefs = {

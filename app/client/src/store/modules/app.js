@@ -185,11 +185,8 @@ const actions = {
         .then(response => {
           context.commit(SET_OPENAPI_CONFIG, response.data);
           SwaggerParser.validate(response.data, (err, api) => {
-            if (err) {
-              console.error(err);
-            } else {
-              resolve(api);
-            }
+            //TODO: Check swagger for validation errors here.
+            resolve(api);
           });
         })
         .catch(({ response }) => {

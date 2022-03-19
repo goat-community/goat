@@ -9,6 +9,7 @@ import { getSelectStyle } from "../style/OlStyleDefs";
 import { geometryToWKT } from "../utils/MapUtils";
 
 import store from "../store/modules/scenarios";
+import mapStore from "../store/modules/map";
 import OlBaseController from "./OlBaseController";
 import i18n from "../../src/plugins/i18n";
 /**
@@ -96,37 +97,22 @@ export default class OlSelectController extends OlBaseController {
             `/scenarios/${store.state.activeScenario}/${selectedLayer["name"]}/features?intersect=${circleWkt}&return_type=geojson`
           );
 
-          //TODO: For pois fetch the data from local store
           const requests = [promiseOriginTable];
-          // Request from modified table (TODO: This request might be eleminated if
-          // scenario features are already in the client)
-          const promiseModifiedTable = ApiService.get_(
-            `/scenarios/${store.state.activeScenario}/${selectedLayer["name"]}_modified/features?return_type=geojson`
-          );
-          requests.push(promiseModifiedTable);
-          // Request only for population when building layer is active.
-          if (selectedLayer["name"] === "building") {
-            const promisePopulationModifiedTable = ApiService.get_(
-              `/scenarios/${store.state.activeScenario}/population_modified/features?return_type=geojson`
-            );
-            requests.push(promisePopulationModifiedTable);
-          }
-
+          mapStore.state.isMapBusy = true;
           axios
             .all(requests)
             .then(
-              axios.spread((first, second, third) => {
+              axios.spread(first => {
                 me.source.clear();
-                onSelectionEnd({
-                  first,
-                  second,
-                  third
-                });
+                onSelectionEnd(first);
               })
             )
             .catch(error => {
               me.source.clear();
               throw new Error(error);
+            })
+            .finally(() => {
+              mapStore.state.isMapBusy = false;
             });
           // unset sketch
           sketch = null;
