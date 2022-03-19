@@ -2,6 +2,8 @@ CREATE OR REPLACE FUNCTION basic.prepare_heatmap_population(active_study_area_id
  RETURNS TABLE(grid_visualization_id bigint, population double precision, percentile_population integer, geom geometry)
  LANGUAGE plpgsql
 AS $function$
+DECLARE 
+	modified_buildings integer[] := basic.modified_buildings(scenario_id_input);
 BEGIN 
 	
 	IF modus_input = 'default' THEN 
@@ -13,7 +15,7 @@ BEGIN
 	(
 		SELECT p.geom, -p.population AS population
 		FROM basic.population p 
-		WHERE building_id IN (SELECT UNNEST(deleted_buildings) FROM customer.scenario s WHERE s.id = scenario_id_input )
+		WHERE building_id IN (SELECT UNNEST(modified_buildings))
 		UNION ALL 
 		SELECT p.geom, p.population 
 		FROM customer.population_modified p 
