@@ -11,7 +11,14 @@
             class="clickable"
             @click="isOptionsElVisible = !isOptionsElVisible"
           >
-            <v-icon small class="mr-2">fas fa-sliders-h</v-icon>
+            <v-icon
+              small
+              :style="
+                isOptionsElVisible === true ? { color: appColor.secondary } : {}
+              "
+              class="mr-2"
+              >fas fa-sliders-h</v-icon
+            >
             <h3>{{ $t("isochrones.options.title") }}</h3>
             <v-spacer></v-spacer>
             <v-icon
@@ -111,7 +118,16 @@
             "
             class="clickable pb-0 mb-0"
           >
-            <v-icon class="mr-2" small>fas fa-bullseye</v-icon>
+            <v-icon
+              class="mr-2"
+              :style="
+                isIsochroneCalculationTypeElVisible === true
+                  ? { color: appColor.secondary }
+                  : {}
+              "
+              small
+              >fas fa-bullseye</v-icon
+            >
             <h3>{{ $t("isochrones.calculationTitle") }}</h3>
             <v-spacer></v-spacer>
             <v-icon
@@ -1790,7 +1806,7 @@ export default {
         this.isIsochroneBusy = true;
         // Network is not fetched yet
         ApiService.get_(
-          `/isochrones/network/${calculation.data[0].isochrone_calculation_id}/${type}/geobuf`,
+          `/isochrones/network/${calculation.data[0].isochrone_calculation_id}/${type}?return_type=geobuf`,
           {
             responseType: "arraybuffer",
             headers: {

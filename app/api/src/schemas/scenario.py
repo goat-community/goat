@@ -2,7 +2,7 @@ from enum import Enum
 from typing import List, Optional, Union
 
 from geojson_pydantic.features import FeatureCollection
-from pydantic import BaseModel
+from pydantic import BaseModel, root_validator, validator
 
 
 class ScenarioBase(BaseModel):
@@ -146,9 +146,9 @@ class ScenarioFeatureUpdateBase(BaseModel):
 
 class ScenarioWaysModifiedCreate(ScenarioFeatureCreateBase):
     way_id: Optional[int] = None  # specified if the feature is an existing way from edge table
-    surface: WayModifiedSurfaceEnum
-    way_type: WayModifiedTypeEnum
-    wheelchair: WayModifiedWheelchairEnum
+    surface: Optional[WayModifiedSurfaceEnum] = None
+    way_type: Optional[WayModifiedTypeEnum] = "road"
+    wheelchair: Optional[WayModifiedWheelchairEnum] = None
     class_id: Optional[int] = 100  # specified if the feature is an existing way from edge table
 
     class Config:
@@ -164,8 +164,24 @@ class ScenarioWaysModifiedCreate(ScenarioFeatureCreateBase):
             },
         }
 
+    @root_validator(pre=True)
+    def compute_values(cls, values):
+        if (
+            "surface" in values
+            and values["surface"] not in WayModifiedSurfaceEnum._value2member_map_
+        ):
+            values["surface"] = None
+        if (
+            "wheelchair" in values
+            and values["wheelchair"] not in WayModifiedWheelchairEnum._value2member_map_
+        ):
+            values["wheelchair"] = None
+
+        return values
+
 
 class ScenarioWaysModifiedUpdate(ScenarioFeatureUpdateBase):
+    way_id: Optional[int] = None
     surface: Optional[WayModifiedSurfaceEnum]
     way_type: Optional[WayModifiedTypeEnum]
     wheelchair: Optional[WayModifiedWheelchairEnum]
@@ -212,7 +228,7 @@ class ScenarioBuildingsModifiedUpdate(ScenarioFeatureUpdateBase):
 class ScenarioPoisModifiedCreate(ScenarioFeatureCreateBase):
     uid: Optional[int] = None  # specified if the feature is an existing poi from pois table
     name: str
-    amenity: str  # checked if amenity exists for the user
+    category: str  # checked if amenity exists for the user
 
     class Config:
         extra = "forbid"
@@ -229,7 +245,7 @@ class ScenarioPoisModifiedCreate(ScenarioFeatureCreateBase):
 
 class ScenarioPoisModifiedUpdate(ScenarioFeatureUpdateBase):
     name: Optional[str]
-    amenity: Optional[str]
+    category: Optional[str]
 
     class Config:
         extra = "forbid"

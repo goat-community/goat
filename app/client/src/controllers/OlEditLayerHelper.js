@@ -24,10 +24,13 @@ const editLayerHelper = {
     }
   },
   filterResults(response, source, bldEntranceLayer, storageSource) {
-    const editFeatures = geojsonToFeature(response.first.data, {
-      dataProjection: "EPSG:4326",
-      featureProjection: "EPSG:3857"
-    });
+    let editFeatures = [];
+    if (response.first) {
+      editFeatures = geojsonToFeature(response.first.data, {
+        dataProjection: "EPSG:4326",
+        featureProjection: "EPSG:3857"
+      });
+    }
     const editFeaturesModified = geojsonToFeature(response.second.data, {
       dataProjection: "EPSG:4326",
       featureProjection: "EPSG:3857"
@@ -152,7 +155,7 @@ const editLayerHelper = {
     if (mode === "update_deleted_features") {
       promise = ApiService.patch(
         `/scenarios/${store.state.activeScenario}/${layerName}`,
-        editLayerHelper.deleted_feature_ids
+        editLayerHelper.featuresIDsToDelete
       );
     }
 

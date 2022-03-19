@@ -43,92 +43,6 @@ export default class OlEditController extends OlBaseController {
     }
   }
 
-  /**
-   * Creates the edit vector layer and add it to the
-   * map.
-   */
-  createEditLayer(onFeatureChangeCb, onSourceChangeCb) {
-    const me = this;
-    const style = getEditStyle();
-    super.createLayer("Edit Layer", style, {
-      queryable: true
-    });
-    me.source.on("changefeature", onFeatureChangeCb);
-    me.source.on("change", onSourceChangeCb);
-
-    //Create highlight layer
-    const highlightSource = new VectorSource({ wrapX: false });
-    const highlightLayer = new VectorLayer({
-      displayInLayerList: false,
-      source: highlightSource,
-      zIndex: 10,
-      style: getFeatureHighlightStyle()
-    });
-    me.map.addLayer(highlightLayer);
-    me.highlightSource = highlightSource;
-
-    // Layer for storing building entrance features from other scenarios.
-    const storageSource = new VectorSource({
-      wrapX: false
-    });
-    const storageOptions = Object.assign(
-      {},
-      {
-        name: "storage_layer",
-        displayInLayerList: false,
-        source: storageSource,
-        queryable: false
-      }
-    );
-    const storageLayer = new VectorLayer(storageOptions);
-    me.storageLayer = storageLayer;
-  }
-
-  /**
-   * Creates the population vector layer and add it to the
-   * map.
-   */
-  createBldEntranceLayer(onFeatureChangeCb, onSourceChangeCb) {
-    const me = this;
-
-    // create a vector layer
-    const source = new VectorSource({
-      wrapX: false
-    });
-    source.on("changefeature", onFeatureChangeCb);
-    source.on("change", onSourceChangeCb);
-
-    const options = Object.assign(
-      {},
-      {
-        name: "Building Entrance Edit Layer",
-        displayInLayerList: false,
-        zIndex: 100,
-        source: source,
-        queryable: false,
-        style: bldEntrancePointsStyle()
-      }
-    );
-    const vector = new VectorLayer(options);
-    me.map.addLayer(vector);
-    me.bldEntranceLayer = vector;
-
-    // Layer for storing building entrance features from other scenarios.
-    const storageSource = new VectorSource({
-      wrapX: false
-    });
-    const storageOptions = Object.assign(
-      {},
-      {
-        name: "bld_entrance_storage_layer",
-        displayInLayerList: false,
-        source: storageSource,
-        queryable: false
-      }
-    );
-    const storageLayer = new VectorLayer(storageOptions);
-    me.bldEntranceStorageLayer = storageLayer;
-  }
 
   /**
    * Creates the edit interaction and adds it to the map.
@@ -477,13 +391,6 @@ export default class OlEditController extends OlBaseController {
     me.highlightSource.clear();
   }
 
-  /**
-   * Reference popup element
-   */
-  referencePopupElement(popup) {
-    const me = this;
-    me.popup = popup;
-  }
 
   /**
    * Transact features to the database
@@ -610,15 +517,15 @@ export default class OlEditController extends OlBaseController {
     Object.keys(payloads.modes).forEach(mode => {
       let promise = "";
       const url_ = `/scenarios/${scenarioStore.state.activeScenario}/${payloads.table_name}/features`;
-      if (mode === "insert") {
+      if (mode === "insert" && payloads.modes[mode].length > 0) {
         promise = ApiService.post(url_, {
           features: payloads.modes[mode]
         });
-      } else if (mode === "update") {
+      } else if (mode === "update" && payloads.modes[mode].length > 0) {
         promise = ApiService.put(url_, {
           features: payloads.modes[mode]
         });
-      } else if (mode === "delete") {
+      } else if (mode === "delete" && payloads.modes[mode].length > 0) {
         let queryParam = "";
         payloads.modes[mode].forEach((feature, index) => {
           const id = feature.getId() || feature.get("id") || feature.get("id");
@@ -634,7 +541,7 @@ export default class OlEditController extends OlBaseController {
     });
     axios.all(promiseArray).then(function(results) {
       results.forEach(response => {
-        if (response.config.method === "post") {
+        if (response && response.config.method === "post") {
           // insert mode
           const features = geojsonToFeature(response.data, {
             dataProjection: "EPSG:4326",
@@ -756,76 +663,6 @@ export default class OlEditController extends OlBaseController {
     }
   }
 
-  /**
-   * Doesnt clear features
-   */
-  clear() {
-    if (this.highlightSource) {
-      this.highlightSource.clear();
-    }
-    if (this.removeInteraction) {
-      this.removeInteraction();
-    }
 
-    super.clearOverlays();
 
-    this.source.getFeatures().forEach(f => {
-      const props = f.getProperties();
-      if (!props.hasOwnProperty("layerName")) {
-        this.source.removeFeature(f);
-        if (this.storageLayer.getSource().hasFeature(f)) {
-          this.storageLayer.getSource().removeFeature(f);
-        }
-      }
-      if (
-        this.source.hasFeature(f) &&
-        !props.hasOwnProperty(this.original_id()) &&
-        !props.hasOwnProperty("status")
-      ) {
-        this.source.removeFeature(f);
-        if (this.storageLayer.getSource().hasFeature(f)) {
-          this.storageLayer.getSource().removeFeature(f);
-        }
-      }
 
-      //For uploaded restored features.
-      if (
-        this.source.hasFeature(f) &&
-        props.status === 1 &&
-        !props.hasOwnProperty(this.original_id())
-      ) {
-        this.source.removeFeature(f);
-        if (this.storageLayer.getSource().hasFeature(f)) {
-          this.storageLayer.getSource().removeFeature(f);
-        }
-      }
-    });
-  }
-
-  /**
-   * Delete all user scenario features
-   */
-
-  deleteAll() {
-    this.clear();
-    //Reset ids of deleted features..
-    editLayerHelper.featuresIDsToDelete = [];
-    editLayerHelper.deletedFeatures = [];
-    this.source.getFeatures().forEach(feature => {
-      if (feature.get("layerName") === editLayerHelper.selectedLayer["name"]) {
-        this.source.removeFeature(feature);
-        if (this.storageLayer.getSource().hasFeature(feature)) {
-          this.storageLayer.getSource().removeFeature(feature);
-        }
-      }
-    });
-    if (
-      editLayerHelper.selectedLayer["name"] === "building" &&
-      this.bldEntranceLayer
-    ) {
-      if (this.bldEntranceLayer) {
-        this.bldEntranceLayer.getSource().clear();
-      }
-    }
-  }
-}

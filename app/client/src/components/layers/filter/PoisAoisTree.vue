@@ -129,18 +129,13 @@ import { Mapable } from "../../../mixins/Mapable";
 import { mapGetters } from "vuex";
 import { mapMutations } from "vuex";
 import { mapFields } from "vuex-map-fields";
-//Ol imports
-import VectorSource from "ol/source/Vector";
-import VectorLayer from "ol/layer/VectorImage";
 // Child components
 import HeatmapOptions from "./HeatmapOptions";
 import IconPicker from "../../other/IconPicker";
 import UserDataUploadDialog from "../../core/UserDataUploadDialog.vue";
 
-// Other
-import ApiService from "../../../services/api.service";
-import { geobufToFeatures } from "../../../utils/MapUtils";
-import { poisAoisStyle } from "../../../style/OlStyleDefs";
+// TODO: Fix sensitivity settings for every pois
+
 export default {
   mixins: [Mapable],
   components: {
@@ -160,28 +155,6 @@ export default {
   },
 
   methods: {
-    /**
-     * This function is executed, after the map is bound (see mixins/Mapable)
-     */
-    onMapBound() {
-      this.createPoisAoisLayer();
-    },
-    /**
-     * Creates a vector layer for the pois_aois
-     */
-    createPoisAoisLayer() {
-      const vector = new VectorLayer({
-        name: "pois_aois_layer",
-        type: "VECTOR",
-        displayInLegend: false,
-        queryable: true,
-        zIndex: 99,
-        source: new VectorSource(),
-        style: poisAoisStyle
-      });
-      this.map.addLayer(vector);
-      this.poisAoisLayer = vector;
-    },
     treeViewChanged(selected) {
       const poisAois = {};
       selected.forEach(item => {
@@ -240,39 +213,6 @@ export default {
       }
       return item.color[0];
     },
-    fetchPoisAois() {
-      return new Promise((resolve, reject) => {
-        const payload = {
-          modus: "default",
-          amenities: ["supermarket", "discount_supermarket", "kindergarten"],
-          active_upload_ids: [0],
-          scenario_id: 0
-        };
-        ApiService.post(
-          `/pois-aois/visualization?return_type=db_geobuf`,
-          payload,
-          {
-            responseType: "arraybuffer",
-            headers: {
-              Accept: "application/pdf"
-            }
-          }
-        )
-          .then(response => {
-            resolve(response);
-            if (response.data) {
-              const olFeatures = geobufToFeatures(response.data, {
-                dataProjection: "EPSG:4326",
-                featureProjection: "EPSG:3857"
-              });
-              this.poisAoisLayer.getSource().addFeatures(olFeatures);
-            }
-          })
-          .catch(({ response }) => {
-            reject(response);
-          });
-      });
-    },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR"
     })
@@ -297,9 +237,7 @@ export default {
       poisAois: "poisAois"
     })
   },
-  created() {
-    this.fetchPoisAois();
-  }
+  created() {}
 };
 </script>
 <style lang="css">

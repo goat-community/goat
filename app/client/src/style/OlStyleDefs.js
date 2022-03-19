@@ -430,7 +430,7 @@ export function editStyleFn() {
 
     // Linestring (ex. ways ) style
     if (
-      (props.hasOwnProperty("way_type") && props["edge_id"] == null) ||
+      (props.hasOwnProperty("way_type") && props["way_id"] == null) ||
       Object.keys(props).length == 1
     ) {
       //Distinguish Roads from Bridge features

@@ -97,8 +97,7 @@ async def create_user(
         raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
 
     user = await crud.user.get_by_key(db, key="email", value=user_in.email)
-    user = user[0]
-    if user:
+    if user and len(user) > 0:
         raise HTTPException(
             status_code=400,
             detail="The user with this email already exists in the system.",
