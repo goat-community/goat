@@ -221,8 +221,7 @@ async def delete_selected_scenario_feature(
     ),
 ):
     """
-    Delete specific features from scenario layer. This endpoint is used to delete feature in "modified" tables. For deleting
-    features in "default" tables, use the "{PATCH}/scenarios" endpoint.
+    Delete specific features from scenario layer. This endpoint is used to delete feature in "modified" tables.
     """
     scenario = await crud.scenario.get_by_multi_keys(
         db, keys={"id": scenario_id, "user_id": current_user.id}
