@@ -50,6 +50,7 @@
       </v-btn>
       <br />
       <v-btn
+        @click="logout"
         style="text-transform:none;justify-content:left;"
         width="100%"
         class="mt-3 mb-3"
@@ -73,7 +74,9 @@
         :value="occupiedStoragePercentage"
         class="mb-6 mt-0 pt-0"
       ></v-progress-linear>
-      <p class="mt-2 sub-header">Scenarios: 25 / 50</p>
+      <p class="mt-2 sub-header">
+        Scenarios: {{ scenarios.length }} / {{ limitScenarios }}
+      </p>
     </v-card>
     <v-spacer></v-spacer>
   </v-flex>
@@ -81,6 +84,7 @@
 
 <script>
 import { mapGetters } from "vuex";
+import { LOGOUT } from "../../store/actions.type";
 export default {
   data: () => ({}),
   computed: {
@@ -93,6 +97,10 @@ export default {
     ...mapGetters("map", {
       studyAreaProps: "studyAreaProps",
       studyAreaList: "studyAreaList"
+    }),
+    ...mapGetters("scenarios", {
+      scenarios: "scenarios",
+      limitScenarios: "limitScenarios"
     })
   },
   methods: {
@@ -106,7 +114,10 @@ export default {
       if (newStudyArea.id === this.studyAreaProps.id) {
         return;
       }
-      //TODO: change study area
+    },
+    logout() {
+      this.$store.dispatch(`auth/${LOGOUT}`);
+      window.location.reload();
     }
   }
 };

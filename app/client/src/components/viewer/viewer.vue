@@ -51,7 +51,7 @@
           v-if="miniViewerVisible"
           :organization_key="mapillaryOrganizationKey"
           :clientId="mapillaryClientId"
-          :baseLayerExtent="mapillaryTileBaseLayerExtent"
+          :baseLayerExtent="studyArea[0].get('bounds')"
         ></app-mapillary>
       </div>
 
@@ -99,8 +99,7 @@ export default {
       miniViewOlMap: false,
       // Mapillary Keys
       mapillaryClientId: "V1Qtd0JKNGhhb1J1cktMbmhFSi1iQTo5ODMxOWU3NmZlMjEyYTA3",
-      mapillaryOrganizationKey: "RmTboeISWnkEaYaSdtVRHp",
-      mapillaryTileBaseLayerExtent: this.$appConfig.map.originalExtent
+      mapillaryOrganizationKey: "RmTboeISWnkEaYaSdtVRHp"
     };
   },
   computed: {
@@ -108,7 +107,8 @@ export default {
       appColor: "appColor"
     }),
     ...mapGetters("map", {
-      print: "print"
+      print: "print",
+      studyArea: "studyArea"
     }),
     ...mapFields("map", {
       isMapillaryBtnDisabled: "isMapillaryBtnDisabled"

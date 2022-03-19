@@ -52,8 +52,8 @@ services:
     env_file:
       - .env
     environment:
-      - POSTGRES_SERVER=${COMPOSE_PROJECT_NAME}_db
-      - POSTGRES_DB=${COMPOSE_PROJECT_NAME}
+      - POSTGRES_SERVER=goatdb-dev.chmmut4l0c8h.eu-central-1.rds.amazonaws.com
+      - POSTGRES_DB=goat
       - PROJECT_NAME=${COMPOSE_PROJECT_NAME}
       - SERVER_NAME=${DOMAIN_NAME}
       - SERVER_HOST=http://${DOMAIN_NAME}

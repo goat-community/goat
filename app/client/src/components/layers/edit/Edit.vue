@@ -8,7 +8,7 @@
         <v-divider></v-divider>
       </v-card-text>
       <v-card-text class="pa-2">
-        <div v-if="Object.keys(scenarios).length === 0">
+        <div v-if="scenarioList.length === 1 && scenarioList[0].id === null">
           <v-tooltip top>
             <template v-slot:activator="{ on }">
               <v-btn
@@ -30,40 +30,112 @@
 
       <v-card class="px-16 mx-4 py-0 mb-2 fill-height" flat>
         <!-- CREATE SCENARIO  -->
-        <div v-if="Object.keys(scenarios).length > 0">
-          <v-row class="mt-4" no-gutters>
-            <v-col class="text-center" :cols="8">
-              <v-select
-                v-model="activeScenario"
-                :items="scenarioArray"
-                item-text="display"
-                item-value="value"
-                label="Select scenario"
-                solo
+        <div v-if="scenarioList.length > 1">
+          <v-row class="mt-4" no-gutters no-wrap>
+            <v-select
+              v-model="activeScenario"
+              :items="scenarioList"
+              style="max-width: 260px;"
+              item-text="scenario_name"
+              item-value="id"
+              label="Select scenario"
+              solo
+            >
+              <template
+                class="create-scenario-text"
+                slot="selection"
+                slot-scope="{ item }"
               >
-                <template
-                  class="create-scenario-text"
-                  slot="selection"
-                  slot-scope="{ item }"
-                >
-                  {{ item.display }}
+                {{ item.scenario_name }}
+              </template>
+              <template
+                class="create-scenario-text"
+                slot="item"
+                slot-scope="{ item }"
+              >
+                {{ item.scenario_name }}
+              </template>
+            </v-select>
+            <div v-if="activeScenario">
+              <v-speed-dial
+                style="z-index:100;"
+                v-model="scenarioSpeedDialFab"
+                direction="bottom"
+                class="ml-3 mt-2"
+                transition="slide-y-reverse-transition"
+              >
+                <template v-slot:activator>
+                  <v-btn
+                    v-model="scenarioSpeedDialFab"
+                    :color="scenarioSpeedDialFab ? 'error' : appColor.primary"
+                    dark
+                    small
+                    fab
+                  >
+                    <v-icon v-if="scenarioSpeedDialFab">
+                      close
+                    </v-icon>
+                    <v-icon v-else>
+                      add
+                    </v-icon>
+                  </v-btn>
                 </template>
-                <template
-                  class="create-scenario-text"
-                  slot="item"
-                  slot-scope="{ item }"
-                >
-                  {{ item.display }}
-                </template>
-              </v-select>
-            </v-col>
-            <v-col class="text-center ml-0 pl-0">
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      v-on="on"
+                      :color="appColor.primary"
+                      fab
+                      dark
+                      x-small
+                      @click="showScenarioDialog = true"
+                    >
+                      <v-icon dark>add</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.createScenario") }}</span>
+                </v-tooltip>
+                <v-tooltip v-show="activeScenario" top>
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      v-show="activeScenario"
+                      v-on="on"
+                      :color="appColor.primary"
+                      fab
+                      dark
+                      x-small
+                      @click="showScenarioDialog = true"
+                    >
+                      <v-icon dark>edit</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.editScenarioName") }}</span>
+                </v-tooltip>
+                <v-tooltip v-show="activeScenario" top>
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      v-show="activeScenario"
+                      v-on="on"
+                      color="error"
+                      fab
+                      dark
+                      x-small
+                      @click="deleteScenario"
+                    >
+                      <v-icon dark>delete</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>{{ $t("appBar.edit.editScenarioName") }}</span>
+                </v-tooltip>
+              </v-speed-dial>
+            </div>
+            <div v-else>
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
                   <v-btn
                     v-on="on"
-                    class="mt-1 ml-2"
                     :color="appColor.primary"
+                    class="ml-3 mt-2"
                     fab
                     dark
                     small
@@ -72,37 +144,16 @@
                     <v-icon dark>add</v-icon>
                   </v-btn>
                 </template>
-                <span>{{ $t("appBar.edit.createScenario") }}</span></v-tooltip
-              >
-            </v-col>
-            <v-col v-if="activeScenario" class="text-center">
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <v-btn
-                    v-on="on"
-                    class="mt-1 ml-1"
-                    :color="appColor.primary"
-                    fab
-                    dark
-                    small
-                    @click="
-                      showScenarioDialog = true;
-                      activeScenarioId = activeScenario;
-                    "
-                  >
-                    <v-icon dark>edit</v-icon>
-                  </v-btn>
-                </template>
-                <span>{{ $t("appBar.edit.editScenarioName") }}</span></v-tooltip
-              >
-            </v-col>
+                <span>{{ $t("appBar.edit.createScenario") }}</span>
+              </v-tooltip>
+            </div>
           </v-row>
         </div>
 
-        <div v-if="Object.keys(scenarios).length > 0">
+        <div v-if="scenarioList.length > 1 && activeScenario">
           <v-divider></v-divider>
           <v-subheader class="ml-0 pl-0 mb-0 pb-0">
-            <v-icon style="color:#30c2ff;" small class="mr-2"
+            <v-icon :style="`color:${appColor.secondary};`" small class="mr-2"
               >fas fa-layer-group</v-icon
             >
             <h3>{{ $t("appBar.edit.selectLayer") }}</h3>
@@ -111,6 +162,7 @@
             class="mt-4"
             :items="editableLayers"
             v-model="selectedLayer"
+            item-value="name"
             return-object
             solo
             :label="$t('appBar.edit.layerToEdit')"
@@ -149,16 +201,21 @@
             @click="editElVisible = !editElVisible"
           >
             <v-icon
-              :style="editElVisible === true ? { color: '#30c2ff' } : {}"
+              :style="
+                editElVisible === true ? { color: appColor.secondary } : {}
+              "
               small
               class="mr-2"
               >fas fa-edit</v-icon
             >
             <h3>{{ $t("appBar.edit.editTools") }}</h3>
+            <v-spacer></v-spacer>
+            <v-icon v-html="editElVisible === true ? 'remove' : 'add'"></v-icon>
           </v-subheader>
+
           <div class="ml-2" v-if="editElVisible">
             <span
-              v-show="selectedLayer != null"
+              v-show="selectedLayer != null && selectedLayer['name'] !== 'poi'"
               class="py-1 mb-0 mt-3 pl-0 ml-0"
             >
               <h4>{{ $t("appBar.edit.selectFeatures") }}</h4>
@@ -169,7 +226,10 @@
               v-show="selectedLayer != null && selectFeaturesVisible"
               class="mt-1 pt-0 mb-4"
             >
-              <v-btn-toggle v-model="toggleSelection">
+              <v-btn-toggle
+                v-show="selectedLayer['name'] != 'poi'"
+                v-model="toggleSelection"
+              >
                 <v-tooltip top>
                   <template v-slot:activator="{ on }">
                     <v-btn v-on="on" text>
@@ -356,12 +416,18 @@
             @click="dataTableElVisible = !dataTableElVisible"
           >
             <v-icon
-              :style="dataTableElVisible === true ? { color: '#30c2ff' } : {}"
+              :style="
+                dataTableElVisible === true ? { color: appColor.secondary } : {}
+              "
               small
               class="mr-2"
               >far fa-list-alt</v-icon
             >
             <h3>{{ $t("appBar.edit.scenarioFeatures") }}</h3>
+            <v-spacer></v-spacer>
+            <v-icon
+              v-html="dataTableElVisible === true ? 'remove' : 'add'"
+            ></v-icon>
           </v-subheader>
           <div class="ml-2" v-if="dataTableElVisible">
             <v-expand-transition>
@@ -380,7 +446,7 @@
                   <template v-slot:item.status="{ item }">
                     <v-chip
                       small
-                      :color="item.status === 'Uploaded' ? 'success' : 'error'"
+                      :color="item.status === 'uploaded' ? 'success' : 'error'"
                       dark
                       class="mx-0 px-1"
                       >{{ $t(`appBar.edit.status.${item.status}`) }}</v-chip
@@ -453,8 +519,7 @@
         color="warning"
         dense
         v-if="
-          isUploadBtnEnabled === false &&
-            selectedLayer &&
+          selectedLayer &&
             selectedLayer['name'] === 'building' &&
             olEditCtrl.source.getFeatures().length > 0
         "
@@ -465,54 +530,27 @@
       <v-card-actions v-if="selectedLayer && schema[layerName]">
         <v-spacer></v-spacer>
 
-        <v-btn
-          v-show="selectedLayer != null"
-          class="white--text"
-          v-if="!isUploadBusy"
-          :disabled="
-            (this.busyLayers && this.busyLayers.length > 0) ||
-              isDeleteAllBusy ||
-              (isUploadBtnEnabled === false &&
-                selectedLayer &&
-                selectedLayer['name'] === 'building' &&
-                olEditCtrl.source.getFeatures().length > 0)
-          "
-          :color="appColor.primary"
-          @click="uploadFeatures"
-        >
-          <v-icon left>cloud_upload</v-icon>{{ $t("appBar.edit.uploadBtn") }}
-        </v-btn>
-
-        <v-btn
-          v-else
-          class="white--text"
-          @click.stop="stopUpload"
-          color="error"
-        >
-          <v-icon color="white">close</v-icon>Stop Upload
-        </v-btn>
-
-        <v-btn
-          v-show="selectedLayer != null"
-          class="white--text"
-          color="error"
-          :loading="isDeleteAllBusy"
-          :disabled="scenarioDataTable.length === 0 || isUploadBusy"
-          @click="deleteAll"
-        >
-          <v-icon left>delete</v-icon>{{ $t("appBar.edit.clearBtn") }}
-        </v-btn>
+        <v-hover v-slot="{ hover }">
+          <v-btn
+            v-show="selectedLayer != null"
+            class="white--text"
+            :color="hover ? 'error' : 'grey'"
+            outlined
+            :loading="isDeleteAllBusy"
+            :disabled="scenarioDataTable.length === 0 || isUploadBusy"
+            @click="deleteAll"
+          >
+            <v-icon left>delete</v-icon>{{ $t("appBar.edit.clearBtn") }}
+          </v-btn>
+        </v-hover>
       </v-card-actions>
     </v-card>
 
     <!-- Scenario dialog -->
     <scenario-dialog
       :visible="showScenarioDialog"
-      :scenarioId="activeScenarioId"
-      @close="
-        showScenarioDialog = false;
-        activeScenarioId = null;
-      "
+      :scenarioId="activeScenario"
+      @close="showScenarioDialog = false"
     ></scenario-dialog>
     <!-- Confirm Delete all  -->
     <confirm ref="confirm"></confirm>
@@ -527,14 +565,7 @@
         <v-icon>close</v-icon>
       </v-btn>
       <template v-slot:close>
-        <v-btn
-          @click="
-            popup.selectedInteraction === 'modifyAttributes'
-              ? cancelAttributeEdit()
-              : cancel()
-          "
-          icon
-        >
+        <v-btn @click="closePopup()" icon>
           <v-icon>close</v-icon>
         </v-btn>
       </template>
@@ -553,7 +584,6 @@
               :schema="schema[layerName]"
               :model="dataObject"
               :options="options"
-              @input="e => inputFn(e)"
             />
           </v-form>
         </div>
@@ -563,7 +593,7 @@
           <v-btn color="primary darken-1" @click="ok('delete')" text>{{
             $t("buttonLabels.yes")
           }}</v-btn>
-          <v-btn color="grey" text @click="cancel()">{{
+          <v-btn color="grey" text @click="closePopup()">{{
             $t("buttonLabels.cancel")
           }}</v-btn>
         </template>
@@ -579,16 +609,9 @@
             text
             >{{ $t("buttonLabels.save") }}</v-btn
           >
-          <v-btn
-            color="grey"
-            text
-            @click="
-              popup.selectedInteraction === 'modifyAttributes'
-                ? cancelAttributeEdit()
-                : cancel()
-            "
-            >{{ $t("buttonLabels.cancel") }}</v-btn
-          >
+          <v-btn color="grey" text @click="closePopup()">{{
+            $t("buttonLabels.cancel")
+          }}</v-btn>
         </template>
       </template>
     </overlay-popup>
@@ -603,13 +626,16 @@ import { InteractionsToggle } from "../../../mixins/InteractionsToggle";
 import { Isochrones } from "../../../mixins/Isochrones";
 import { mapFields } from "vuex-map-fields";
 import { mapFeatureTypeProps } from "../../../utils/Layer";
-import OlEditController from "../../../controllers/OlEditController";
 import OlSelectController from "../../../controllers/OlSelectController";
-import editLayerHelper from "../../../controllers/OlEditLayerHelper";
-
+import OlEditController from "../../../controllers/OlEditController";
+import {
+  getEditStyle,
+  getFeatureHighlightStyle
+} from "../../../style/OlStyleDefs";
 import OverlayPopup from "../../viewer/ol/controls/Overlay";
 import ScenarioDialog from "../../core/ScenarioDialog";
 import ApiService from "../../../services/api.service";
+import axios from "axios";
 import VJsonschemaForm from "../../other/dynamicForms/index";
 
 import { geojsonToFeature, geometryToWKT } from "../../../utils/MapUtils";
@@ -617,6 +643,10 @@ import { mapGetters, mapMutations } from "vuex";
 import { debounce } from "../../../utils/Helpers";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
+import VectorSource from "ol/source/Vector";
+import VectorLayer from "ol/layer/Vector";
+import VectorImageLayer from "ol/layer/VectorImage";
+import { GET_SCENARIOS } from "../../../store/actions.type";
 
 export default {
   components: {
@@ -635,7 +665,6 @@ export default {
     toggleFeatureLabels: 0,
     isUploadBusy: false,
     isDeleteAllBusy: false,
-    isExportScenarioBusy: false,
     //Popup configuration
     popup: {
       title: "",
@@ -643,33 +672,6 @@ export default {
       el: null,
       selectedInteraction: null
     },
-    //Upload field.
-    file: null,
-    uploadRules: [
-      value =>
-        !value || value.size < 1000000 || "File size should be less than 1 MB!"
-    ],
-    fileInputFeaturesCache: [],
-    fileInputValidationMessageEnum: {
-      FILE_VALID_OR_NO_FILE: "fileValidOrNoFile",
-      DIFFERENT_GEOMETRY_TYPE: "differentGeometryType",
-      MISSING_FIELDS: "missingFields",
-      FILE_CORRUPTED: "fileCorrupted",
-      ALL_FEATURES_UPLOADED: "allFeaturesUploaded",
-      NOT_ALL_UPLOADED: "notAllUploaded",
-      ERROR_HAPPENED: "errorHappened"
-    },
-    fileInputValidationTypeEnum: {
-      allFeaturesUploaded: "success",
-      notAllUploaded: "warning",
-      errorHappened: "error",
-      differentGeometryType: "error",
-      missingFields: "error",
-      fileCorrupted: "error"
-    },
-
-    fileInputValidationMessage: "fileValidOrNoFile",
-    missingFieldsNames: "",
     //Edit form
     layerConf: {},
     schema: {},
@@ -688,89 +690,43 @@ export default {
     },
     //Data table
     isTableLoading: false,
-    //Opening Hours
-    showOpeningHours: false,
-    isUploadBtnEnabled: true,
     //Scenario Dialog
     showScenarioDialog: false,
-    activeScenarioId: null,
-
     editElVisible: true,
     dataManageElVisible: true,
-    scenarioImpExpVisible: false,
     selectEditVisible: true,
     selectFeaturesVisible: true,
     dataTableElVisible: true,
-    // Feature storage layers.
-    editLayerStorageLayer: [],
-    bldEntranceStorageLayer: []
+    scenarioSpeedDialFab: false,
+    // -------------------------
+    // ------------------------
+    olEditCtrl: null,
+    olSelectCtrl: null,
+    editLayer: null,
+    highlightLayer: null,
+    featuresToCommit: []
   }),
   watch: {
-    selectedLayer(newValue) {
-      this.updateSelectedLayer(newValue);
-    },
     activeScenario() {
-      /** For edit layer */
-      //1- Store the features in the storage layer. ()
-      this.olEditCtrl.source.getFeatures().forEach(feature => {
-        if (!this.olEditCtrl.storageLayer.getSource().hasFeature(feature)) {
-          this.olEditCtrl.storageLayer.getSource().addFeature(feature);
-        }
-      });
-      //2- Clear edit layer
-      this.olEditCtrl.source.clear();
-      //3- Copy the active scenario features in source;
-      const editFeaturesInActiveScenario = this.olEditCtrl.storageLayer
-        .getSource()
-        .getFeatures()
-        .filter(f => f.get("scenario_id") === this.activeScenario);
-      this.olEditCtrl.source.addFeatures(editFeaturesInActiveScenario);
-
-      /** For building entrance layer */
-      //1- Store the features in the storage layer. ()
-      this.olEditCtrl.bldEntranceLayer
-        .getSource()
-        .getFeatures()
-        .forEach(feature => {
-          if (
-            !this.olEditCtrl.bldEntranceStorageLayer
-              .getSource()
-              .hasFeature(feature)
-          ) {
-            this.olEditCtrl.bldEntranceStorageLayer
-              .getSource()
-              .addFeature(feature);
-          }
-        });
-      //2- Clear bld entrance layer
-      this.olEditCtrl.bldEntranceLayer.getSource().clear();
-      //3- Copy active scenario features in bld entrance layer;
-      const bldEntranceFeaturesInActiveScenario = this.olEditCtrl.bldEntranceStorageLayer
-        .getSource()
-        .getFeatures()
-        .filter(f => f.get("scenario_id") === this.activeScenario);
-      this.olEditCtrl.bldEntranceLayer
-        .getSource()
-        .addFeatures(bldEntranceFeaturesInActiveScenario);
-
-      //**//
-      this.onEditSourceChange();
-      this.olEditCtrl.source.changed();
-      this.olEditCtrl.bldEntranceLayer.getSource().changed();
-      if (editLayerHelper.selectedLayer) {
-        this.updateSelectedLayer(editLayerHelper.selectedLayer);
+      this.fetchScenarioFeatures();
+      if (!this.activeScenario) {
+        this.clearAll();
+      }
+    },
+    selectedLayer(value) {
+      if (this.olEditCtrl && value) {
+        this.olEditCtrl.selectedLayer = value;
+        this.originIdName = this.original_id;
       }
     },
     toggleSelection: {
       handler(state) {
-        const me = this;
-        me.toggleSelectInteraction(state);
+        this.toggleSelectInteraction(state);
       }
     },
     toggleEdit: {
       handler(state) {
-        const me = this;
-        me.toggleEditInteraction(state);
+        this.toggleEditInteraction(state);
       }
     },
     toggleSnapGuide(value) {
@@ -797,82 +753,218 @@ export default {
     }
   },
   mounted() {
-    const me = this;
-    me.popup.el = me.$refs.popup;
-    me.olEditCtrl.referencePopupElement(me.popup);
+    this.popup.el = this.$refs.popup;
   },
   methods: {
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
     onMapBound() {
-      const me = this;
-      //Initialize ol select controllers.
-      me.olSelectCtrl = new OlSelectController(me.map);
-      me.olSelectCtrl.createSelectionLayer();
-      //Initialize ol edit controller
-      me.olEditCtrl = new OlEditController(me.map);
-      me.olEditCtrl.createEditLayer(
-        this.onFeatureChange,
-        this.onEditSourceChange
-      );
-      me.olEditCtrl.createBldEntranceLayer(
-        this.onBldEntranceFeatureChange,
-        this.onBldEntranceSourceChange
-      );
-      me.setBldEntranceLayer(me.olEditCtrl.bldEntranceLayer);
-      me.setEditLayer(me.olEditCtrl.layer);
-      this.setUpCtxMenu();
+      this.olSelectCtrl = new OlSelectController(this.map);
+      this.olSelectCtrl.createSelectionLayer();
+      // Initialize ol edit controller.
+      this.olEditCtrl = new OlEditController(this.map);
+      //Initialize ol select controller.
+      this.createLayers();
+      this.olEditCtrl.highlightSource = this.highlightLayer.getSource();
+      this.olEditCtrl.popup = this.popup;
+      //Initialize component layers
+      // this.setUpCtxMenu();
       this.toggleFeatureLabelsInteraction(this.toggleFeatureLabels);
+    },
+
+    /**
+     * Creates layers
+     */
+    createLayers() {
+      // Edit layer
+      const editLayer = new VectorImageLayer({
+        name: "Edit Layer",
+        displayInLayerList: false,
+        source: new VectorSource({ wrapX: false }),
+        zIndex: 10,
+        style: getEditStyle(),
+        queryable: true
+      });
+
+      editLayer.getSource().on("changefeature", this.onFeatureChange);
+      editLayer.getSource().on("change", this.onEditSourceChange);
+      this.map.addLayer(editLayer);
+      this.editLayer = editLayer;
+      this.olEditCtrl.layer = editLayer;
+      this.olEditCtrl.source = editLayer.getSource();
+      // Highlight Layer
+      const highlightLayer = new VectorLayer({
+        displayInLayerList: false,
+        source: new VectorSource({ wrapX: false }),
+        zIndex: 10,
+        style: getFeatureHighlightStyle()
+      });
+      this.map.addLayer(highlightLayer);
+      this.highlightLayer = highlightLayer;
+    },
+    /**
+     * Get Layer attribute fields
+     */
+    fetchScenarioLayerSchemas() {
+      this.scenarioLayersConfig.forEach(config => {
+        const layerName = config.client_config.name;
+        const propertiesConfig = config.properties;
+        const props = [];
+        const layerConfig = {
+          listValues: {},
+          hiddenProps: [
+            "id",
+            "way_id",
+            "building_id",
+            "uid",
+            "building_modified_id",
+            "geom",
+            "class_id"
+          ],
+          enableFileUpload: config.client_config.enableFileUpload || false
+        };
+
+        Object.keys(propertiesConfig).forEach(key => {
+          const columnConfig = {};
+          columnConfig.column_name = key;
+          if (key === "geom") {
+            columnConfig.data_type = "USER-DEFINED";
+          } else {
+            columnConfig.data_type = propertiesConfig[key].type;
+          }
+          if (config.required && config.required.includes(key)) {
+            columnConfig.is_nullable = "NO";
+          } else {
+            columnConfig.is_nullable = "YES";
+          }
+          props.push(columnConfig);
+          // Check if it has enum values
+          if (propertiesConfig[key].enum) {
+            layerConfig.listValues[key] = {
+              values: propertiesConfig[key].enum
+            };
+          }
+          // For pois add all list from poiIcon
+          if (key === "category" && ["poi"].includes(layerName)) {
+            layerConfig.listValues[key] = {
+              values: this.poiList
+            };
+          }
+        });
+
+        const jsonSchema = mapFeatureTypeProps(props, layerName, layerConfig);
+        this.schema[layerName] = jsonSchema;
+      });
+      if (this.layerName) {
+        this.updateReqFields(this.reqFields);
+        this.$forceUpdate();
+      }
+    },
+    /**
+     * Refetch the data from the server.
+     */
+    fetchScenarioFeatures() {
+      const requests = [];
+      this.editLayer.getSource().clear();
+      if (!this.activeScenario) return;
+      //TODO: Also refetch pois
+      const layers_ = ["poi", "way", "building", "population"]; // Order is important !!!!!!
+      layers_.forEach(layer => {
+        const modifiedFeaturesPromise = ApiService.get_(
+          `/scenarios/${this.activeScenario}/${layer}_modified/features?return_type=geojson`
+        );
+        requests.push(modifiedFeaturesPromise);
+      });
+      this.isMapBusy = true;
+      axios
+        .all(requests)
+        .then(
+          axios.spread((poi, way, building, population) => {
+            [poi, way, building, population].forEach((layer, index) => {
+              const features = geojsonToFeature(layer.data, {
+                dataProjection: "EPSG:4326",
+                featureProjection: "EPSG:3857"
+              });
+              features.forEach(feature => {
+                feature.set("layerName", layers_[index]);
+              });
+              this.editLayer.getSource().addFeatures(features);
+            });
+            this.onEditSourceChange();
+          })
+        )
+        .catch(error => {
+          throw new Error(error);
+        })
+        .finally(() => {
+          this.isMapBusy = false;
+        });
     },
 
     /**
      * Toggle the select interaction
      */
     toggleSelectInteraction(state) {
-      const me = this;
       //Close other interactions.
       if (state != undefined) {
-        EventBus.$emit("ol-interaction-activated", me.interactionType);
-        me.map.getTarget().style.cursor = this.mapCursorTypeEnum["select"];
+        EventBus.$emit("ol-interaction-activated", this.interactionType);
+        this.map.getTarget().style.cursor = this.mapCursorTypeEnum["select"];
       } else {
-        EventBus.$emit("ol-interaction-stoped", me.interactionType);
-        me.map.getTarget().style.cursor = "";
+        EventBus.$emit("ol-interaction-stoped", this.interactionType);
+        this.map.getTarget().style.cursor = "";
       }
       let selectionType;
       switch (state) {
         case 0:
           selectionType = "multiple";
           break;
-        case 1:
-          selectionType = "single";
-          break;
         default:
           break;
       }
       if (selectionType !== undefined) {
-        me.clearSelection();
-        me.olSelectCtrl.addInteraction(
+        this.olSelectCtrl.addInteraction(
           selectionType,
-          me.selectedLayer,
-          me.onSelectionStart,
-          me.onSelectionEnd
+          this.selectedLayer,
+          this.onSelectionStart,
+          this.onSelectionEnd
         );
         if (this.addKeyupListener) {
           this.addKeyupListener();
         }
       } else {
-        me.olSelectCtrl.removeInteraction();
+        this.olSelectCtrl.removeInteraction();
       }
     },
+    /**
+     * Callback function executed when selection interaction starts.
+     */
+    onSelectionStart() {
+      this.clear();
+    },
+    /**
+     * Callback function executed when selection interaction ends.
+     *
+     * @param  {ol/feature} features The features returned from selection interaction
+     */
+    onSelectionEnd(response) {
+      this.toggleSelection = undefined;
+      if (response) {
+        const features = geojsonToFeature(response.data, {
+          dataProjection: "EPSG:4326",
+          featureProjection: "EPSG:3857"
+        });
+        this.editLayer.getSource().addFeatures(features);
+      }
+    },
+
     /**
      * Toggle the edit interaction
      */
     toggleEditInteraction(state) {
-      const me = this;
       //Remove select interaction
-      me.olSelectCtrl.removeInteraction();
-      me.toggleSelection = undefined;
+      this.olSelectCtrl.removeInteraction();
+      this.toggleSelection = undefined;
       let editType, startCb, endCb;
       switch (state) {
         case 1:
@@ -891,6 +983,7 @@ export default {
           break;
         case 4:
           editType = "delete";
+          endCb = this.openDeletePopup;
           break;
         case 5:
           editType = "move";
@@ -910,18 +1003,18 @@ export default {
           break;
       }
       if (editType !== undefined) {
-        me.olEditCtrl.addInteraction(editType, startCb, endCb);
-        EventBus.$emit("ol-interaction-activated", me.interactionType);
+        this.olEditCtrl.addInteraction(editType, startCb, endCb);
+        EventBus.$emit("ol-interaction-activated", this.interactionType);
         setTimeout(() => {
-          me.map.getTarget().style.cursor = this.mapCursorTypeEnum[editType];
+          this.map.getTarget().style.cursor = this.mapCursorTypeEnum[editType];
         }, 50);
         if (this.addKeyupListener) {
           this.addKeyupListener();
         }
       } else {
-        me.olEditCtrl.removeInteraction();
-        EventBus.$emit("ol-interaction-stoped", me.interactionType);
-        me.map.getTarget().style.cursor = "";
+        this.olEditCtrl.removeInteraction();
+        EventBus.$emit("ol-interaction-stoped", this.interactionType);
+        this.map.getTarget().style.cursor = "";
       }
     },
 
@@ -943,44 +1036,19 @@ export default {
      */
 
     toggleFeatureLabelsInteraction(state) {
-      this.olEditCtrl.layer.set("showLabels", state);
-      this.olEditCtrl.layer.getSource().changed();
-    },
-
-    /**
-     * Callback function executed when selection interaction starts.
-     */
-    onSelectionStart() {
-      const me = this;
-      me.olEditCtrl.clear();
-    },
-    /**
-     * Callback function executed when selection interaction ends.
-     *
-     * @param  {ol/feature} features The features returned from selection interaction
-     */
-    onSelectionEnd(response) {
-      const me = this;
-      me.toggleSelection = undefined;
-      if (response.second) {
-        editLayerHelper.filterResults(
-          response,
-          me.olEditCtrl.getLayerSource(),
-          me.olEditCtrl.bldEntranceLayer,
-          me.olEditCtrl.storageLayer.getSource()
-        );
-      }
+      this.editLayer.set("showLabels", state);
+      this.editLayer.getSource().changed();
     },
 
     /**
      * Open modify attribute popup
      */
     openModifyAttributePopup(evt) {
-      const feature = this.olEditCtrl.source.getClosestFeatureToCoordinate(
-        evt.coordinate
-      );
-      this.olEditCtrl.featuresToCommit = [];
-      this.olEditCtrl.highlightSource.clear();
+      const feature = this.editLayer
+        .getSource()
+        .getClosestFeatureToCoordinate(evt.coordinate);
+      this.featuresToCommit = [];
+      this.highlightLayer.getSource().clear();
       if (feature) {
         const props = feature.getProperties();
         for (const attr in this.dataObject) {
@@ -996,11 +1064,46 @@ export default {
           duration: 400
         });
         this.olEditCtrl.popupOverlay.setPosition(popupCoordinate);
-        this.olEditCtrl.featuresToCommit.push(feature);
-        this.olEditCtrl.highlightSource.addFeature(feature.clone());
-        this.olEditCtrl.popup.title = "modifyAttributes";
-        this.olEditCtrl.popup.selectedInteraction = "modifyAttributes";
-        this.olEditCtrl.popup.isVisible = true;
+        this.featuresToCommit.push(feature);
+        this.highlightLayer.getSource().addFeature(feature.clone());
+        this.popup.title = "modifyAttributes";
+        this.popup.selectedInteraction = "modifyAttributes";
+        this.popup.isVisible = true;
+      }
+    },
+    /**
+     * Opens a popup for the delete confirmation
+     */
+    openDeletePopup(evt) {
+      let feature;
+      if (evt.coordinate) {
+        const coordinate = evt.coordinate;
+        feature = this.editLayer
+          .getSource()
+          .getClosestFeatureToCoordinate(coordinate);
+      } else {
+        //Triggered when user click scenario data table
+        //Create overlayer
+        this.olEditCtrl.createPopupOverlay();
+        feature = evt;
+      }
+
+      this.highlightLayer.getSource().addFeature(feature);
+      this.featuresToCommit.push(feature);
+      if (feature) {
+        const geometry = feature.getGeometry();
+        let popupCoordinate = geometry.getCoordinates();
+        while (popupCoordinate && Array.isArray(popupCoordinate[0])) {
+          popupCoordinate = popupCoordinate[0];
+        }
+        this.map.getView().animate({
+          center: popupCoordinate,
+          duration: 400
+        });
+        this.olEditCtrl.popupOverlay.setPosition(popupCoordinate);
+        this.popup.title = "confirm";
+        this.popup.selectedInteraction = "delete";
+        this.popup.isVisible = true;
       }
     },
 
@@ -1008,7 +1111,7 @@ export default {
      * Modify interaction start event handler
      */
     onModifyStart() {
-      this.olEditCtrl.featuresToCommit = [];
+      this.featuresToCommit = [];
       this.olEditCtrl.isInteractionOnProgress = true;
     },
     /**
@@ -1020,33 +1123,27 @@ export default {
       Object.keys(this.schema[this.layerName].properties).forEach(key => {
         props[key] = null;
       });
-      this.olEditCtrl.transact(props);
-
-      this.olEditCtrl.featuresToCommit.forEach(feature => {
-        feature.set("status", null);
-      });
-      //update cache
-      this.updateFileInputFeatureCache();
+      this.transact(props);
     },
     /**
      * Draw interaction start event handler
      */
     onDrawStart() {
-      this.olEditCtrl.featuresToCommit = [];
+      this.featuresToCommit = [];
     },
     /**
      * Draw interaction start event handler
      */
     onDrawEnd(evt) {
       const feature = evt.feature;
-      this.olEditCtrl.closePopup();
+      this.closePopup();
       this.clearDataObject();
       //Disable interaction until user fills the attributes for the feature and closes the popup
       if (this.olEditCtrl.edit) {
         this.olEditCtrl.edit.setActive(false);
       }
-      this.olEditCtrl.featuresToCommit.push(feature);
-      this.olEditCtrl.highlightSource.addFeature(feature);
+      this.featuresToCommit.push(feature);
+      this.highlightLayer.getSource().addFeature(feature);
       let popupCoordinate = feature.getGeometry().getCoordinates();
       while (popupCoordinate && Array.isArray(popupCoordinate[0])) {
         popupCoordinate = popupCoordinate[0];
@@ -1056,11 +1153,9 @@ export default {
         duration: 400
       });
       this.olEditCtrl.popupOverlay.setPosition(popupCoordinate);
-      this.olEditCtrl.popup.title = "attributes";
-      this.olEditCtrl.popup.selectedInteraction = "add";
-      this.olEditCtrl.popup.isVisible = true;
-      //update cache
-      this.updateFileInputFeatureCache();
+      this.popup.title = "attributes";
+      this.popup.selectedInteraction = "add";
+      this.popup.isVisible = true;
     },
 
     /**
@@ -1241,91 +1336,27 @@ export default {
       }, 100);
     },
     /**
-     * Feature change event handler for building entrance edit layer
-     */
-    onBldEntranceFeatureChange(evt) {
-      if (evt.feature) {
-        // Used on modifyEnd event.
-        this.tempBldEntranceFeature = evt.feature;
-      }
-    },
-
-    /**
-     * Source change base event. Used to update upload button state
-     * This event is called very often, so for performance improvement a
-     * debounce method  is used on updateUploadBtnState
-     */
-    onBldEntranceSourceChange() {
-      this.updateUploadBtnState();
-    },
-
-    /**
-     * Configure right-click for Edit.
-     */
-    setUpCtxMenu() {
-      if (this.contextmenu) {
-        this.olEditCtrl.contextmenu = this.contextmenu;
-        this.contextmenu.on("beforeopen", evt => {
-          // Close helptoltip
-          if (this.olEditCtrl.helpTooltip) {
-            this.olEditCtrl.helpTooltip.setPosition(undefined);
-          }
-          const features = this.map.getFeaturesAtPixel(evt.pixel, {
-            layerFilter: candidate => {
-              if (candidate.get("name") === "Building Entrance Edit Layer") {
-                return true;
-              }
-              return false;
-            }
-          });
-          if (features.length > 0) {
-            this.contextmenu.extend([
-              "-", // this is a separator
-              {
-                text: `<i class="fa fa-trash fa-1x" aria-hidden="true"></i>&nbsp;&nbsp${this.$t(
-                  "map.contextMenu.deleteBldEntrancePoint"
-                )}`,
-                label: "deleteBldEntrancePoint",
-                callback: () => {
-                  this.olEditCtrl.deleteBldEntranceFeatures(features);
-                }
-              }
-            ]);
-          }
-        });
-      }
-    },
-
-    /**
      * Feature change event handler for edit layer
      */
     onFeatureChange(evt) {
-      const me = this;
-      //Exclude features from file input as we add this feature later when user click upload button
-      //  if (evt.feature.get("user_uploaded")) return;
       if (
         ["modify", "move", "modifyAttributes", "drawHole"].includes(
-          me.olEditCtrl.currentInteraction
+          this.currentInteraction
         )
       ) {
-        const index = me.olEditCtrl.featuresToCommit.findIndex(
+        const index = this.featuresToCommit.findIndex(
           i => i.ol_uid === evt.feature.ol_uid
         );
         if (index === -1) {
-          me.olEditCtrl.featuresToCommit.push(evt.feature);
+          this.featuresToCommit.push(evt.feature);
         } else {
-          me.olEditCtrl.featuresToCommit[index] = evt.feature;
+          this.featuresToCommit[index] = evt.feature;
         }
-      }
-
-      /** For pois layer features are "uploaded" (inserted in db) automatically */
-      if (["poi"].includes(evt.feature.get("layerName"))) {
-        evt.feature.set("status", 1);
       }
 
       if (
         this.selectedLayer["name"] === "building" &&
-        this.olEditCtrl.currentInteraction === "draw"
+        this.currentInteraction === "draw"
       ) {
         this.toggleEdit = 7;
       }
@@ -1338,8 +1369,89 @@ export default {
     onEditSourceChange() {
       this.isTableLoading = true;
       this.updateDataTable();
-      this.updateUploadBtnState();
     },
+
+    /**
+     * Method called when edit layer source is changed.
+     * A debounce is addes to improve performance
+     * It updates the scenario data table.
+     */
+    updateDataTable: debounce(function() {
+      if (!this.activeScenario) return;
+      const editLayerFeatures = this.editLayer.getSource().getFeatures();
+      const scenarioDataTable = [];
+      editLayerFeatures.forEach(f => {
+        const fid = f.getId();
+        const layerName = f.get("layerName");
+        let isDeleted = false;
+        let status = "uploaded";
+        let type = "";
+        let originId;
+        if (f.get("edit_type")) {
+          const editType = f.get("edit_type");
+          if (editType === "n") {
+            type = "new";
+          } else if (editType === "d") {
+            type = "deleted";
+            isDeleted = true;
+            originId = f.get(this.original_id);
+          } else if (editType === "m") {
+            type = "modified";
+            originId = f.get(this.original_id);
+          }
+          const obj = {
+            fid,
+            layerName,
+            isDeleted,
+            originId,
+            status,
+            type
+          };
+          scenarioDataTable.push(obj);
+        }
+      });
+      this.scenarioDataTable = scenarioDataTable;
+      this.isTableLoading = false;
+    }, 900),
+
+    scenarioActionBtnHandler(item, type) {
+      const fid = item.fid;
+      if (!fid) return;
+      let feature;
+      feature = this.editLayer.getSource().getFeatureById(fid);
+      if (!feature) return;
+      if (type === "zoom") {
+        this.map.getView().fit(feature.getGeometry().getExtent(), {
+          padding: [10, 10, 10, 10]
+        });
+        this.highlightLayer.getSource().addFeature(feature);
+        setTimeout(() => {
+          this.highlightLayer.getSource().removeFeature(feature);
+        }, 300);
+      } else if (type === "delete") {
+        this.olEditCtrl.openDeletePopup(feature);
+      } else if (type === "restore") {
+        const clonedFeature = feature.clone();
+        clonedFeature.setId(feature.getId());
+        clonedFeature.set("deletedId", feature.getId());
+        this.map.getView().fit(feature.getGeometry().getExtent(), {
+          padding: [10, 10, 10, 10]
+        });
+      }
+    },
+    isRestoreBtnVisible(item) {
+      if (item.type !== "deleted") {
+        return false;
+      }
+      return item.isDeleted;
+    },
+    isDeleteBtnVisible(item) {
+      if (!item.originalId && item.isDeleted) {
+        return false;
+      }
+      return !item.isDeleted;
+    },
+
     /**
      * Clear data object that user has entered,
      * so the next time the popup is opened the form is clean.
@@ -1351,208 +1463,49 @@ export default {
         }
       }
     },
+
     /**
-     * Get Layer attribute fields
+     * Closes the popup if user choose cancel.
      */
-    getlayerFeatureTypes() {
-      this.scenarioLayersConfig.forEach(config => {
-        const layerName = config.client_config.name;
-        const propertiesConfig = config.properties;
-        const props = [];
-        const layerConfig = {
-          listValues: {},
-          hiddenProps: [
-            "id",
-            "way_id",
-            "building_id",
-            "uid",
-            "building_modified_id",
-            "geom",
-            "class_id"
-          ],
-          enableFileUpload: config.client_config.enableFileUpload || false
-        };
-
-        Object.keys(propertiesConfig).forEach(key => {
-          const columnConfig = {};
-          columnConfig.column_name = key;
-          if (key === "geom") {
-            columnConfig.data_type = "USER-DEFINED";
-          } else {
-            columnConfig.data_type = propertiesConfig[key].type;
-          }
-          if (config.required && config.required.includes(key)) {
-            columnConfig.is_nullable = "NO";
-          } else {
-            columnConfig.is_nullable = "YES";
-          }
-          props.push(columnConfig);
-          // Check if it has enum values
-          if (propertiesConfig[key].enum) {
-            layerConfig.listValues[key] = {
-              values: propertiesConfig[key].enum
-            };
-          }
-          // For pois add all list from poiIcon
-          if (key === "amenity" && ["poi"].includes(layerName)) {
-            layerConfig.listValues[key] = {
-              values: Object.keys(this.poiIcons)
-            };
-          }
-        });
-
-        const jsonSchema = mapFeatureTypeProps(props, layerName, layerConfig);
-        this.schema[layerName] = jsonSchema;
-      });
-
-      this.updateReqFields(this.reqFields);
-      this.$forceUpdate();
-    },
-    /**
-     * Method used only on drawend or modifyend to update fileinput feature cache
-     */
-    updateFileInputFeatureCache() {
-      //Update fileInputFeatureCache (we can't use a computed property since it will affect the performance)
-      //Check if user has already inputed a file
-      if (this.file) {
-        const uploadedFeatures = this.olEditCtrl.source
-          .getFeatures()
-          .filter(feature => {
-            return feature.get("user_uploaded");
-          });
-        this.fileInputFeaturesCache = uploadedFeatures;
+    closePopup() {
+      if (this.olEditCtrl.popupOverlay) {
+        this.olEditCtrl.popupOverlay.setPosition(undefined);
+        this.popup.isVisible = false;
       }
-    },
-    /**
-     * Method called to update data when layer or scenario is changed.
-     */
-    updateSelectedLayer(newValue) {
-      const me = this;
-      //Read or Insert deleted features
-      me.clear();
-      editLayerHelper.selectedLayer = newValue;
-      me.getlayerFeatureTypes();
-      me.olEditCtrl.readOrInsertDeletedFeatures();
-      me.olEditCtrl.dataObject = this.dataObject;
-      if (newValue["name"] === "building") {
-        this.isUploadBtnEnabled = false;
-      } else {
-        this.isUploadBtnEnabled = true;
+      if (this.olEditCtrl.edit) {
+        this.olEditCtrl.edit.setActive(true);
       }
-      this.updateUploadBtnState();
-    },
-    /**
-     * Clears all the selection
-     */
-    clearSelection() {
-      const me = this;
-      me.olEditCtrl.clear();
-      me.olSelectCtrl.clear();
-    },
-    /**
-     * Upload drawn and modidified features for scenario calculations
-     */
-    uploadFeatures() {
-      //If there are file input feature commit those in db as well.
-      this.isUploadBusy = true;
-      this.olEditCtrl.uploadFeatures(state => {
-        if (state === "success") {
-          EventBus.$emit("updateAllLayers");
-        }
-        this.isUploadBusy = false;
-        this.toggleSnackbar({
-          type: state, //success or error
-          message:
-            state === "success"
-              ? "uploadScenarioSuccess"
-              : "uploadScenarioError",
-          state: true,
-          timeout: 4000
-        });
-        this.olEditCtrl.source.changed();
-      });
-    },
-    scenarioActionBtnHandler(item, type) {
-      const fid = item.fid;
-      if (!fid) return;
-      let feature;
-
-      if (item.type === "deleted") {
-        feature = editLayerHelper.deletedFeatures.filter(
-          f => f.getId() === fid
-        );
-        feature.length > 0 ? (feature = feature[0]) : null;
-      } else {
-        feature = this.olEditCtrl.source.getFeatureById(fid);
-      }
-
-      if (!feature) return;
-
-      if (type === "zoom") {
-        this.map.getView().fit(feature.getGeometry().getExtent(), {
-          padding: [10, 10, 10, 10]
-        });
-        this.olEditCtrl.highlightSource.addFeature(feature);
-        setTimeout(() => {
-          this.olEditCtrl.highlightSource.removeFeature(feature);
-        }, 300);
-      } else if (type === "delete") {
-        this.olEditCtrl.openDeletePopup(feature);
-      } else if (type === "restore") {
-        const clonedFeature = feature.clone();
-        clonedFeature.setId(feature.getId());
-        clonedFeature.set("deletedId", feature.getId());
-
-        //If the deleted feature is not uploaded in the server consider it uploaded in client side
-        if (item.status === "NotUploaded") {
-          clonedFeature.set("status", 1);
-        } else {
-          clonedFeature.set("status", null);
-        }
-
-        this.map.getView().fit(feature.getGeometry().getExtent(), {
-          padding: [10, 10, 10, 10]
-        });
-        editLayerHelper.deletedFeatures = editLayerHelper.deletedFeatures.filter(
-          f => f.getId() !== fid
-        );
-        this.olEditCtrl.highlightSource.addFeature(feature);
-        setTimeout(() => {
-          this.olEditCtrl.highlightSource.removeFeature(feature);
-        }, 300);
-        editLayerHelper.featuresIDsToDelete = editLayerHelper.featuresIDsToDelete.filter(
-          id => feature.getProperties().id.toString() !== id
-        );
-        this.olEditCtrl.source.addFeature(clonedFeature);
-        //Commit restore changes. ("commitDelete" just updates array of deleted features ids in the database)
-        editLayerHelper.commitDelete("update_deleted_features");
-      }
-    },
-    /**
-     * Stop Upload button
-     */
-    stopUpload() {
-      if (editLayerHelper.cancelReq instanceof Function) {
-        editLayerHelper.cancelReq("cancelled");
-      }
-    },
-    /**
-     * Clears  edit interaction
-     */
-    clearEdit() {
-      const me = this;
-      me.olEditCtrl.clear();
+      this.olEditCtrl.highlightSource.clear();
+      this.featuresToCommit = [];
     },
     /**
      * Clears all the selection and edit interactions.
      */
     clear() {
-      const me = this;
-      me.clearSelection();
-      me.clearEdit();
-      me.toggleSelection = undefined;
-      me.toggleEdit = undefined;
-      EventBus.$emit("ol-interaction-stoped", me.interactionType);
+      // Removes features that are not modified
+      this.editLayer
+        .getSource()
+        .getFeatures()
+        .forEach(feature => {
+          if (
+            !feature.get("edit_type") &&
+            !feature.get("building_modified_id") // building_modified_id is edge case to not clean population_modified features as they don't have an edit_type property
+          ) {
+            this.editLayer.getSource().removeFeature(feature);
+          }
+        });
+      EventBus.$emit("ol-interaction-stoped", this.interactionType);
+    },
+
+    /**
+     * Clears all the features from edit layer (triggered when user changes scenario)
+     */
+    clearAll() {
+      this.olEditCtrl.clear();
+      this.olSelectCtrl.clear();
+      this.editLayer.getSource().clear();
+      this.highlightLayer.getSource().clear();
+      this.featuresToCommit = [];
     },
     /**
      * Delete all user scenario features in db.
@@ -1571,7 +1524,7 @@ export default {
             //1- Call api to delete all features.
             this.isDeleteAllBusy = true;
             ApiService.delete(
-              `/scenarios/${this.activeScenario}/${layerName}_modified/features`
+              `/scenarios/${this.activeScenario}/${layerName}_modified/features-all`
             )
               .then(response => {
                 this.isDeleteAllBusy = false;
@@ -1593,9 +1546,7 @@ export default {
                     timeout: 4000
                   });
                   //2- Clear openlayers scenario features
-                  this.clear();
-                  // This also deletes user scenario features from the map
-                  this.olEditCtrl.deleteAll();
+                  this.clearAll();
                 }
               })
               .catch(() => {
@@ -1605,13 +1556,68 @@ export default {
         });
     },
     /**
+     * Delete scenario
+     */
+    deleteScenario() {
+      this.$refs.confirm
+        .open(
+          this.$t("appBar.edit.deleteAllTitle"),
+          this.$t("appBar.edit.confirmDeleteScenario"),
+          { color: this.appColor.primary }
+        )
+
+        .then(confirm => {
+          if (confirm) {
+            ApiService.delete(`/scenarios/${this.activeScenario}`).then(
+              response => {
+                if (response.data === "error") {
+                  //Show error message can't delete
+                  this.toggleSnackbar({
+                    type: "error", //success or error
+                    message: this.$t("map.snackbarMessages.cantDeleteScenario"),
+                    state: true,
+                    timeout: 3000
+                  });
+                } else {
+                  //Show success message
+                  this.toggleSnackbar({
+                    type: "success", //success or error
+                    message: this.$t("map.snackbarMessages.scenarioDeleted"),
+                    state: true,
+                    timeout: 3000
+                  });
+
+                  //- Refetch Scenario
+                  this.$store.dispatch(`scenarios/${GET_SCENARIOS}`);
+                  //- Clear openlayers scenario features
+                  this.clearAll();
+                  this.selectedLayer = null;
+                  this.activeScenario = null;
+                }
+              }
+            );
+          }
+        })
+        .catch(() => {
+          this.toggleSnackbar({
+            type: "error", //success or error
+            message: this.$t("map.snackbarMessages.cantDeleteScenario"),
+            state: true,
+            timeout: 3000
+          });
+        });
+    },
+    /**
      * Stop edit and select interactions (Doesn't deletes the features)
      */
     stop() {
-      const me = this;
-      me.olSelectCtrl.removeInteraction();
-      me.olEditCtrl.removeInteraction();
-      EventBus.$emit("ol-interaction-stoped", me.interactionType);
+      this.olSelectCtrl.removeInteraction();
+      this.olEditCtrl.removeInteraction();
+      EventBus.$emit("ol-interaction-stoped", this.interactionType);
+      this.toggleSelection = undefined;
+      this.toggleEdit = undefined;
+      this.closePopup();
+      this.map.getTarget().style.cursor = "";
     },
     /**
      * Translate method to avoid inline html logic
@@ -1630,180 +1636,116 @@ export default {
      * Method used on popup save (draw)/ok(delete) depending on interaction type
      */
     ok(type) {
-      if (["add", "modifyAttributes"].includes(type)) {
-        if (type === "modifyAttributes") {
-          var propKeys = Object.keys(this.dataObject);
-          propKeys.forEach(key => {
-            const propValue = this.dataObject[key];
-            if (propValue) {
-              this.olEditCtrl.featuresToCommit[0].set(key, propValue);
-            }
-            this.olEditCtrl.featuresToCommit[0].set("status", null);
-          });
-        }
-        this.olEditCtrl.transact(this.dataObject);
-        this.olEditCtrl.closePopup();
-      } else {
-        //Delete feature
-        this.olEditCtrl.deleteFeature();
+      const featureOut = this.featuresToCommit[0].clone();
+
+      Object.keys(featureOut.getProperties()).forEach(prop => {
+        if (!["geometry", "geom"].includes(prop)) featureOut.unset(prop);
+      });
+
+      // Set new properties from dataObject (popup)
+      featureOut.setProperties(this.dataObject);
+      // Reset id of the original feature
+      featureOut.setId(this.featuresToCommit[0].getId());
+      const properties = this.featuresToCommit[0].getProperties();
+      if (type === "add") {
+        // New feature
+        featureOut.set("edit_type", "n");
+        this.createScenarioFeatures([featureOut]);
       }
+      if (
+        type === "modifyAttributes" &&
+        properties.hasOwnProperty("edit_type")
+      ) {
+        // Modified existing fature
+        this.updateScenarioFeatures([featureOut]);
+      } else if (
+        ["modifyAttributes", "delete"].includes(type) &&
+        !properties.hasOwnProperty("edit_type")
+      ) {
+        // Modified or deleted an origin feature (has to be created as modified feature)
+        featureOut.set("edit_type", "m");
+        this.createScenarioFeatures([featureOut]);
+      } else if (type === "delete") {
+        // Deleted a feature which is already modified. Delete from "_modified" layer
+        this.deleteScenarioFeatures([featureOut]);
+      }
+
+      this.closePopup();
     },
+
     /**
-     * Methods used on popup cancel
+     * ====API CALLS====
      */
-    cancel() {
-      if (this.olEditCtrl.featuresToCommit.length > 0) {
-        this.olEditCtrl.featuresToCommit.forEach(feature => {
-          this.olEditCtrl.source.removeFeature(feature);
-          if (this.olEditCtrl.storageLayer.getSource().hasFeature(feature)) {
-            this.olEditCtrl.storageLayer.getSource().removeFeature(feature);
-          }
+
+    createScenarioFeatures(features) {
+      let payload = features.map(feature => {
+        const transformed = {
+          ...feature.getProperties(),
+          geom: geometryToWKT(
+            feature
+              .getGeometry()
+              .clone()
+              .transform("EPSG:3857", "EPSG:4326")
+          )
+        };
+        delete transformed.geometry;
+        return transformed;
+      });
+      // const clonedFeatures = this.featuresToCommit.map(f => f.clone());
+      ApiService.post(this.scenarioApiBaseUrl, {
+        features: payload
+      }).then(response => {
+        const featuresWithId = geojsonToFeature(response.data, {
+          dataProjection: "EPSG:4326",
+          featureProjection: "EPSG:3857"
         });
-      }
-      this.olEditCtrl.closePopup();
+        this.featuresToCommit.forEach(feature => {
+          this.editLayer.getSource().removeFeature(feature);
+        });
+        this.editLayer.getSource().addFeatures(featuresWithId);
+      });
     },
-    cancelAttributeEdit() {
-      this.olEditCtrl.featuresToCommit = [];
-      this.olEditCtrl.closePopup();
+    updateScenarioFeatures(features) {
+      let payload = features.map(feature => {
+        const transformed = {
+          id: feature.getId(),
+          ...feature.getProperties(),
+          geom: geometryToWKT(
+            feature
+              .getGeometry()
+              .clone()
+              .transform("EPSG:3857", "EPSG:4326")
+          )
+        };
+        delete transformed.edit_type;
+        delete transformed.geometry;
+        delete transformed[this.original_id];
+        return transformed;
+      });
+      ApiService.put(this.scenarioApiBaseUrl, {
+        features: payload
+      });
     },
-    /**
-     * Method called when edit layer source is changed.
-     * A debounce is addes to improve performance
-     * It updates the scenario data table.
-     */
-    updateDataTable: debounce(function() {
-      const editLayerFeatures = this.olEditCtrl.source.getFeatures();
-      const deletedFeatures = editLayerHelper.deletedFeatures;
-
-      const scenarioDataTable = [];
-
-      editLayerFeatures.forEach(f => {
-        const prop = f.getProperties();
-        if (this.activeScenario === f.get("scenario_id")) {
-          if (
-            prop.hasOwnProperty(this.original_id) ||
-            (prop.hasOwnProperty("deletedId") && prop.status !== 1)
-          ) {
-            //Assign layerName to feature property if doesn't exist
-            if (!prop.layerName) {
-              f.set("layerName", this.layerName);
-            }
-            const fid = f.getId();
-            const layerName = f.get("layerName");
-            const isDeleted = false;
-            let status = prop.status ? "Uploaded" : "NotUploaded";
-            const originalId = f.get(this.original_id);
-            let type = "";
-            if (
-              prop.hasOwnProperty(this.original_id) &&
-              f.get(this.original_id) === null
-            ) {
-              type = "New";
-            } else if (prop.hasOwnProperty("deletedId")) {
-              type = "Restored"; //Not uploaded (if feature is uploaded it will not be visible in the list)
-            } else {
-              type = "Modified";
-            }
-
-            const obj = {
-              fid,
-              layerName,
-              isDeleted,
-              originalId,
-              status,
-              type
-            };
-            scenarioDataTable.push(obj);
-          }
+    deleteScenarioFeatures(features) {
+      let queryParam = "";
+      features.forEach((feature, index) => {
+        const id = feature.getId();
+        if (id && index !== features - 1) {
+          queryParam += `id=${id}&`;
+        } else if (id) {
+          queryParam += `id=${id}`;
         }
       });
-
-      deletedFeatures.forEach(f => {
-        if (this.activeScenario === f.get("scenario_id")) {
-          const prop = f.getProperties();
-          const fid = f.getId() || prop.id;
-          if (!f.getId()) {
-            f.setId(prop.id);
-          }
-          if (!prop.layerName) {
-            f.set("layerName", this.layerName);
-          }
-          const layerName = f.get("layerName");
-          const isDeleted = fid;
-          let status = prop.status === 1 ? "Uploaded" : "NotUploaded";
-          if (f.get("layerName") === "poi") {
-            status = "Uploaded";
-          }
-          const type = "deleted";
-          let source = "";
-          if (
-            prop.hasOwnProperty(this.original_id) &&
-            f.get(this.original_id) === null
-          ) {
-            //Original deleted Features.
-            source = "drawn";
-          } else {
-            //Drawn Delete Feature
-            source = "original";
-          }
-          const originalId = f.get(this.original_id);
-
-          const obj = {
-            fid,
-            layerName,
-            isDeleted,
-            originalId,
-            status,
-            type,
-            source
-          };
-          scenarioDataTable.push(obj);
-        }
-      });
-      this.scenarioDataTable = scenarioDataTable;
-      this.isTableLoading = false;
-    }, 900),
-    updateUploadBtnState: debounce(function() {
-      const features = this.olEditCtrl.source.getFeatures();
-      let featuresWithoutEntrances = 0;
-      features.forEach(f => {
-        if (f.get("layerName") && f.get("layerName") === "building") {
-          // Check if there is a entrance point. If not disable upload
-          const extent = f.getGeometry().getExtent();
-          const entrancesInExtent = this.olEditCtrl.bldEntranceLayer
-            .getSource()
-            .getFeaturesInExtent(extent);
-          let entrances = 0;
-          entrancesInExtent.forEach(entrance => {
-            const buildingId = f.get("id") || f.getId();
-            if (entrance.get("building_modified_id") === buildingId) {
-              entrances += 1;
-            }
+      this.isMapBusy = true;
+      ApiService.delete(`${this.scenarioApiBaseUrl}?${queryParam}`)
+        .then(() => {
+          features.forEach(feature => {
+            this.editLayer.getSource().removeFeature(feature);
           });
-          if (entrances === 0) {
-            featuresWithoutEntrances += 1;
-          }
-        }
-      });
-      this.isUploadBtnEnabled = featuresWithoutEntrances === 0 ? true : false;
-    }, 500),
-    isRestoreBtnVisible(item) {
-      if (item.source !== "original") {
-        return false;
-      }
-      return item.isDeleted;
-    },
-    isDeleteBtnVisible(item) {
-      if (!item.originalId && item.isDeleted) {
-        return false;
-      }
-      return !item.isDeleted;
-    },
-
-    inputFn(e) {
-      if (e === "open_dialog") {
-        this.showOpeningHours = true;
-      }
+        })
+        .finally(() => {
+          this.isMapBusy = false;
+        });
     },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR",
@@ -1845,16 +1787,6 @@ export default {
         }
       ];
     },
-    scenarioArray() {
-      const scenarioArray = [];
-      Object.keys(this.scenarios).forEach(key => {
-        scenarioArray.push({
-          display: this.scenarios[key].title,
-          value: parseInt(key)
-        });
-      });
-      return scenarioArray;
-    },
     scenarioLayersConfig() {
       const schemas = this.openapiConfig.components.schemas;
       const scenarioLayersConfig = [
@@ -1865,7 +1797,12 @@ export default {
       return scenarioLayersConfig;
     },
     layerName() {
-      const value = this.selectedLayer["name"];
+      let value;
+      if (this.selectedLayer) {
+        value = this.selectedLayer["name"];
+      } else {
+        value = "";
+      }
       return value;
     },
     reqFields() {
@@ -1890,27 +1827,8 @@ export default {
         autoFoldObjects: true
       };
     },
-    getValidationMessage() {
-      let message = `<span>${this.$t(
-        `appBar.edit.${this.fileInputValidationMessage}`
-      )}</span>`;
-      if (
-        this.fileInputValidationMessage ===
-        this.fileInputValidationMessageEnum.MISSING_FIELDS
-      ) {
-        message += `<span> : <b>${this.missingFieldsNames}</b></span>`;
-      }
-      return message;
-    },
-    getFields() {
-      const layerName = this.schema[this.layerName];
-      return layerName && this.reqFields.length > 0
-        ? `&#9679; ${this.$t(
-            "appBar.edit.requiredFields"
-          )}: <span> <b>${this.reqFields.join(", ")}</b></span>`
-        : `<span></span>`;
-    },
     original_id() {
+      if (!this.selectedLayer) return "";
       if (this.selectedLayer["name"] === "poi") {
         return "uid";
       } else if (this.selectedLayer["name"] === "building") {
@@ -1921,12 +1839,21 @@ export default {
         return "";
       }
     },
+    poiList() {
+      return Object.keys(this.poiIcons).filter(
+        poiName => !!this.poisConfig[poiName]
+      );
+    },
+    scenarioApiBaseUrl() {
+      return `/scenarios/${this.activeScenario}/${this.selectedLayer["name"]}_modified/features`;
+    },
     ...mapGetters("auth", { currentUser: "currentUser" }),
     ...mapGetters("app", {
       appColor: "appColor",
       calculationMode: "calculationMode",
       openapiConfig: "openapiConfig",
-      poiIcons: "poiIcons"
+      poiIcons: "poiIcons",
+      poisConfig: "poisConfig"
     }),
     ...mapGetters("map", {
       contextmenu: "contextmenu",
@@ -1937,9 +1864,16 @@ export default {
       scenarios: "scenarios",
       activeScenario: "activeScenario"
     }),
+    scenarioList() {
+      return [{ id: null, scenario_name: "No Selection" }, ...this.scenarios];
+    },
+    ...mapGetters("scenarios", {
+      activeScenarioObj: "activeScenarioObj"
+    }),
     ...mapFields("map", {
       selectedLayer: "selectedEditLayer",
-      busyLayers: "busyLayers"
+      busyLayers: "busyLayers",
+      isMapBusy: "isMapBusy"
     })
   },
   created() {
@@ -1948,6 +1882,7 @@ export default {
       editableLayers.push(config.client_config);
     });
     this.editableLayers = editableLayers;
+    this.fetchScenarioLayerSchemas();
   }
 };
 </script>

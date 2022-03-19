@@ -2,6 +2,7 @@ import os
 import shutil
 import ssl
 import uuid
+import random
 from typing import Any
 
 from fastapi import HTTPException, UploadFile
@@ -14,6 +15,7 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm.attributes import flag_modified
+from src.db.models.config_validation import PoiCategory, check_dict_schema
 
 from src import crud, schemas
 from src.crud.base import CRUDBase
@@ -172,9 +174,32 @@ class CRUDUploadFile:
                 if_exists="append",
                 chunksize=1000,
             )
+          
         except:
-            await data_upload.remove(db=db, id=upload_obj.id)
+            await db.execute("""DELETE FROM customer.data_upload WHERE id = :data_upload_id""", {"data_upload_id": upload_obj.id})
+            await db.commit()
             raise HTTPException(status_code=400, detail="An error happened when writing the data into the database.")
+
+        try:
+            default_poi_categories = await crud.dynamic_customization.get_all_default_poi_categories(db)
+            if poi_category not in default_poi_categories:
+                hex_color = "#%06x" % random.randint(0, 0xFFFFFF)
+                new_setting = {poi_category: {"icon": "fas fa-question", "color": [hex_color]}}
+
+                if check_dict_schema(PoiCategory, new_setting) == False:
+                    raise HTTPException(status_code=400, detail="Invalid JSON-schema")
+                
+                await crud.dynamic_customization.handle_user_setting_modification(
+                    db=db,
+                    current_user=current_user,
+                    setting_type="poi",
+                    changeset=new_setting,
+                    modification_type="insert",
+                )
+        except:
+            await db.execute("""DELETE FROM customer.data_upload WHERE id = :data_upload_id""", {"data_upload_id": upload_obj.id})
+            await db.commit()
+            raise HTTPException(status_code=400, detail="An error happened when writing new settings to the database.")
 
         return {"msg": "Upload successful"}
 
@@ -229,7 +254,7 @@ class CRUDUploadFile:
                 .where(models.User.id == current_user.id)
                 .values(active_data_upload_ids=current_user.active_data_upload_ids)
             )
-            if current_user.active_data_upload_ids != []:
+            if current_user.active_data_upload_ids != [] and data_upload_id in current_user.active_data_upload_ids:
                 current_user.active_data_upload_ids.remove(data_upload_id)
                 sql_query = text(
                     """UPDATE customer.user SET active_data_upload_ids = :active_data_upload_ids WHERE id = :id"""
@@ -261,6 +286,7 @@ class CRUDUploadFile:
             raise HTTPException(status_code=400, detail="User ID does not match")
 
         data_upload_ids_obj = current_user.active_data_upload_ids
+        
         if obj_in.state == False:
             try:
                 data_upload_ids_obj.remove(obj_in.data_upload_id)

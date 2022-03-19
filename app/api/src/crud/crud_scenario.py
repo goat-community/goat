@@ -22,6 +22,8 @@ scenario_layer_models = {
     schemas.ScenarioLayersNoPoisEnum.building_modified.value: models.BuildingModified,
     schemas.ScenarioLayersNoPoisEnum.population.value: models.Population,
     schemas.ScenarioLayersNoPoisEnum.population_modified.value: models.PopulationModified,
+    "poi": models.Poi,
+    "poi_modified": models.PoiModified,
 }
 
 # TODO: Check if geometries are within study area
@@ -75,6 +77,8 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                 )
             )
 
+        elif "_modified" in layer_name.value and intersect is None:
+            statement = statement.where(layer.scenario_id == scenario_id)
         elif "_modified" in layer_name.value:
             statement = statement.where(
                 and_(
@@ -82,8 +86,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                     layer.scenario_id == scenario_id,
                 )
             )
-        elif "_modified" in layer_name.value and intersect is None:
-            statement = statement.where(layer.scenario_id == scenario_id)
+
         else:
             statement = statement.where(layer.geom.ST_Intersects(polygon))
 
@@ -138,32 +141,25 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                         if value is None:
                             # new POI
                             feature_dict["uid"] = uuid.uuid4().hex
-                            feature_dict["edit_type"] = "n"
                         else:
                             # existing POI
                             feature_dict["uid"] = value
-                            feature_dict["edit_type"] = "m"
                             # TODO: check if uid is valid (poi / poi_user)
 
                     elif (
                         layer_name.value == schemas.ScenarioLayerFeatureEnum.way_modified.value
-                        and key == "edge_id"
+                        and key == "way_id"
                     ):
-                        if value is None:
-                            # new way
-                            feature_dict["edit_type"] = "n"
-                        else:
-                            # existing way
-                            feature_dict["edit_type"] = "m"
+                        if value is not None:
+                            feature_dict["way_id"] = value
 
                     # TODO: For population check if geometry and building with {building_modified_id} intersect
-
                     elif isinstance(value, enum.Enum):
                         feature_dict[key] = value.value
-
+                    elif key == "class_id" and value is None:
+                        feature_dict[key] = 100
                     elif value is None:
                         continue
-
                     else:
                         feature_dict[key] = value
                 feature_obj = layer.from_orm(layer(**feature_dict))

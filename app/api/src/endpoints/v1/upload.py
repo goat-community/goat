@@ -1,23 +1,27 @@
 import json
-import random
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, HTTPException, UploadFile
-from fastapi.encoders import jsonable_encoder
+from fastapi import APIRouter, Body, Depends, HTTPException, UploadFile, Header
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
-from starlette.responses import JSONResponse
-
+from src.resources.enums import MaxUploadFileSize
 from src import crud, schemas
 from src.crud.crud_customization import dynamic_customization
 from src.db import models
-from src.db.models.config_validation import PoiCategory, check_dict_schema
 from src.endpoints import deps
 from src.schemas.upload import request_examples
+from typing import IO
+
+from tempfile import NamedTemporaryFile
+import shutil
+from fastapi import Header, Depends, UploadFile, HTTPException
+from starlette import status
 
 router = APIRouter()
 
+
+async def valid_content_length(content_length: int = Header(..., lt=MaxUploadFileSize.max_upload_poi_file_size)):
+    return content_length
 
 @router.get("/poi")
 async def get_custom_pois(
@@ -36,17 +40,22 @@ async def get_custom_pois(
         )
         category = category.all()
         if category != []:
+            if obj.id in current_user.active_data_upload_ids:
+                state = True
+            else:
+                state = False
+
             obj_dict = {
                 "id": obj.id,
                 "category": category[0][0],
                 "upload_size": obj.upload_size,
                 "creation_date": str(obj.creation_date),
+                "state": state
             }
 
             response_objs.append(obj_dict)
 
     return json.loads(json.dumps(response_objs))
-
 
 @router.post("/poi")
 async def upload_custom_pois(
@@ -59,23 +68,19 @@ async def upload_custom_pois(
 
     """Handle uploaded custom pois."""
 
+    real_file_size = 0
+    for chunk in file.file:
+        real_file_size += len(chunk)
+        if real_file_size > MaxUploadFileSize.max_upload_poi_file_size.value:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, 
+                detail="The uploaded file size is to big the largest allowd size is %s MB." % round(MaxUploadFileSize.max_upload_poi_file_size/1024.0**2,2)
+            )
+
     await crud.upload.upload_custom_pois(
         db=db, file=file, poi_category=poi_category, current_user=current_user
     )
 
-    hex_color = "#%06x" % random.randint(0, 0xFFFFFF)
-    new_setting = {poi_category: {"icon": "fas fa-question", "color": [hex_color]}}
-
-    if check_dict_schema(PoiCategory, new_setting) == False:
-        raise HTTPException(status_code=400, detail="Invalid JSON-schema")
-
-    await dynamic_customization.handle_user_setting_modification(
-        db=db,
-        current_user=current_user,
-        setting_type="poi",
-        changeset=new_setting,
-        modification_type="insert",
-    )
     updated_settings = await dynamic_customization.build_main_setting_json(
         db=db, current_user=current_user
     )

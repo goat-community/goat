@@ -1,8 +1,6 @@
-
-
-
-CREATE OR REPLACE FUNCTION basic.reached_population_study_area(ischrone_calculation_id_input integer, scenario_id_input integer, modus TEXT, study_area_ids integer[]) 
-RETURNS TABLE (step integer, reached_opportunities jsonb)
+CREATE OR REPLACE FUNCTION basic.reached_population_study_area(ischrone_calculation_id_input integer, scenario_id_input integer, modus text, study_area_ids integer[])
+ RETURNS TABLE(id integer, step integer, reached_opportunities jsonb)
+ LANGUAGE plpgsql
 AS $function$ 
 DECLARE 	
 	excluded_buildings_id integer[];
@@ -18,7 +16,7 @@ BEGIN
 		WHERE s.id IN (SELECT UNNEST(study_area_ids)); 
 	
 	ELSEIF modus = 'scenario' THEN 
-		excluded_buildings_id  = (SELECT s.deleted_buildings FROM customer.scenario s WHERE id = scenario_id_input);
+		excluded_buildings_id  = basic.modified_buildings(scenario_id_input);
 		
 		CREATE TEMP TABLE reachable_population AS 
 		WITH prepared_scenario AS 
@@ -111,7 +109,7 @@ BEGIN
 	RETURNING i.id, i.step, i.reached_opportunities;
  
 END; 
-$function$ LANGUAGE plpgsql;
+$function$;
 
 /*
 SELECT * 

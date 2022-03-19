@@ -9,13 +9,12 @@ DECLARE
 	pois_more_entrance jsonb = poi_categories -> 'true';
 	excluded_pois_id text[] := ARRAY[]::text[]; 
 	excluded_buildings_id integer[] := ARRAY[]::integer[];
-	deleted_buildings integer[];
 	active_upload_ids integer[];
 BEGIN 		
 
 	IF modus = 'scenario' THEN
 		excluded_pois_id = basic.modified_pois(scenario_id_input);
-		excluded_buildings_id  = (SELECT s.deleted_buildings FROM customer.scenario s WHERE id = scenario_id_input);
+		excluded_buildings_id  = basic.modified_buildings(scenario_id_input);
 	END IF;
 
     --Calculate reached AOIs

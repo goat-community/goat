@@ -2,65 +2,11 @@ from enum import Enum
 from typing import List, Optional, Union
 
 from geojson_pydantic.features import FeatureCollection
-from pydantic import BaseModel
+from pydantic import BaseModel, root_validator, validator
 
 
 class ScenarioBase(BaseModel):
     scenario_id: int
-
-
-class ScenarioImport(ScenarioBase):
-    payload: FeatureCollection
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "payload": {
-                    "type": "FeatureCollection",
-                    "features": [
-                        {
-                            "type": "Feature",
-                            "geometry": {
-                                "type": "LineString",
-                                "coordinates": [
-                                    [7.850605211, 47.995588854000005],
-                                    [7.850990133, 47.99593471899999],
-                                    [7.851685883999999, 47.99564569199998],
-                                ],
-                            },
-                            "properties": {
-                                "lit": "null",
-                                "foot": "null",
-                                "bicycle": "null",
-                                "surface": "asphalt",
-                                "way_type": "bridge",
-                                "edit_type": "new",
-                                "wheelchair": "yes",
-                                "original_id": "null",
-                                "street_category": "null",
-                            },
-                            "id": 1,
-                        }
-                    ],
-                },
-            }
-        }
-
-
-class ScenarioDelete(ScenarioBase):
-    layer_name: str
-    deleted_feature_ids: List[int]
-    drew_fid: int
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "scenario_id": 1,
-                "layer_name": "pois",
-                "deleted_feature_ids": [1, 2, 3],
-                "drew_fid": 14,
-            }
-        }
 
 
 # -----------------------------------------------------------------------------
@@ -79,6 +25,14 @@ scenario_deleted_columns = {
 }
 
 
+class ScenarioEditType(Enum):
+    """Scenario Edit Type Enums."""
+
+    n = "n"  # new
+    m = "m"  # modified
+    d = "d"  # deleted
+
+
 class ScenarioLayerFeatureEnum(Enum):
     """Scenario Layer Feature Delete Enums."""
 
@@ -91,6 +45,7 @@ class ScenarioLayerFeatureEnum(Enum):
 class ScenarioLayersNoPoisEnum(Enum):
     """Scenario Layers without POIS."""
 
+    poi_modified = "poi_modified"
     way = "way"
     way_modified = "way_modified"
     building = "building"
@@ -146,10 +101,11 @@ class ScenarioFeatureUpdateBase(BaseModel):
 
 class ScenarioWaysModifiedCreate(ScenarioFeatureCreateBase):
     way_id: Optional[int] = None  # specified if the feature is an existing way from edge table
-    surface: WayModifiedSurfaceEnum
-    way_type: WayModifiedTypeEnum
-    wheelchair: WayModifiedWheelchairEnum
+    surface: Optional[WayModifiedSurfaceEnum] = None
+    way_type: Optional[WayModifiedTypeEnum] = "road"
+    wheelchair: Optional[WayModifiedWheelchairEnum] = None
     class_id: Optional[int] = 100  # specified if the feature is an existing way from edge table
+    edit_type: ScenarioEditType
 
     class Config:
         extra = "forbid"
@@ -164,8 +120,24 @@ class ScenarioWaysModifiedCreate(ScenarioFeatureCreateBase):
             },
         }
 
+    @root_validator(pre=True)
+    def compute_values(cls, values):
+        if (
+            "surface" in values
+            and values["surface"] not in WayModifiedSurfaceEnum._value2member_map_
+        ):
+            values["surface"] = None
+        if (
+            "wheelchair" in values
+            and values["wheelchair"] not in WayModifiedWheelchairEnum._value2member_map_
+        ):
+            values["wheelchair"] = None
+
+        return values
+
 
 class ScenarioWaysModifiedUpdate(ScenarioFeatureUpdateBase):
+    way_id: Optional[int] = None
     surface: Optional[WayModifiedSurfaceEnum]
     way_type: Optional[WayModifiedTypeEnum]
     wheelchair: Optional[WayModifiedWheelchairEnum]
@@ -183,6 +155,7 @@ class ScenarioBuildingsModifiedCreate(ScenarioFeatureCreateBase):
     building_levels: int
     building_levels_residential: int
     population: int
+    edit_type: ScenarioEditType
 
     class Config:
         extra = "forbid"
@@ -212,7 +185,8 @@ class ScenarioBuildingsModifiedUpdate(ScenarioFeatureUpdateBase):
 class ScenarioPoisModifiedCreate(ScenarioFeatureCreateBase):
     uid: Optional[int] = None  # specified if the feature is an existing poi from pois table
     name: str
-    amenity: str  # checked if amenity exists for the user
+    category: str  # checked if amenity exists for the user
+    edit_type: ScenarioEditType
 
     class Config:
         extra = "forbid"
@@ -229,7 +203,7 @@ class ScenarioPoisModifiedCreate(ScenarioFeatureCreateBase):
 
 class ScenarioPoisModifiedUpdate(ScenarioFeatureUpdateBase):
     name: Optional[str]
-    amenity: Optional[str]
+    category: Optional[str]
 
     class Config:
         extra = "forbid"
@@ -297,6 +271,7 @@ request_examples = {
                             "surface": "asphalt",
                             "wheelchair": "yes",
                             "lit": None,
+                            "edit_type": "n",
                             "geom": "LINESTRING(11.510148251443228 48.1643284471769,11.5112867863764 48.1634171605524,11.513123622735256 48.16285012959281,11.515264068409625 48.162475480698475,11.515598038656687 48.16323490128468,11.516660671260983 48.163862680480435)",
                         }
                     ]
@@ -312,6 +287,7 @@ request_examples = {
                             "building_levels": 3,
                             "building_levels_residential": 3,
                             "population": 0,
+                            "edit_type": "n",
                             "geom": "POLYGON((11.609135868999951 48.1456709710543,11.609658256585695 48.14557960155892,11.6095458739245 48.14529354216867,11.609023486338758 48.145384912173284,11.609135868999951 48.1456709710543))",
                         }
                     ]
@@ -325,6 +301,7 @@ request_examples = {
                             "uid": "poi_1",
                             "name": "poi_1",
                             "amenity": "bar",
+                            "edit_type": "n",
                             "geom": "POINT(11.610550880033179 48.14586047763734)",
                         }
                     ]

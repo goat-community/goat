@@ -91,7 +91,7 @@
             <v-switch
               dense
               :color="appColor.secondary"
-              :input-value="item.status"
+              v-model="item.status"
               hide-details
               @change="toggleState(item)"
             ></v-switch>

@@ -4,6 +4,7 @@ from typing import Any, List, Optional, Union
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, UploadFile
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, StreamingResponse
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src import crud, schemas
@@ -30,11 +31,35 @@ async def create_scenario(
     """
     Create scenario.
     """
+    cnt_scenario_user = await db.execute(
+        select(func.count(models.Scenario.id)).where(models.Scenario.user_id == current_user.id)
+    )
+    cnt_scenario_user = cnt_scenario_user.fetchone()[0]
+    if cnt_scenario_user >= current_user.limit_scenarios:
+        raise HTTPException(
+            status_code=400,
+            detail="You reached the maximum number of %s scenarios."
+            % current_user.limit_scenarios,
+        )
+
     obj_scenario = models.Scenario(
         scenario_name=scenario_in.scenario_name,
         user_id=current_user.id,
     )
     result = await crud.scenario.create(db=db, obj_in=obj_scenario)
+    return result
+
+
+@router.get("", response_model=List[models.Scenario])
+async def get_scenarios(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+):
+    """
+    Get all scenarios.
+    """
+    result = await crud.scenario.get_by_key(db=db, key="user_id", value=current_user.id)
     return result
 
 
@@ -100,61 +125,6 @@ async def upload_scenario_changes(
         raise HTTPException(status_code=400, detail="Scenario not found")
 
 
-@router.get("/{scenario_id}/{layer_name}/deleted", response_model=List[Any])
-async def read_scenario_deleted_feature_ids(
-    *,
-    db: AsyncSession = Depends(deps.get_db),
-    scenario_id: int,
-    layer_name: schemas.ScenarioLayersEnum,
-    current_user: models.User = Depends(deps.get_current_active_user),
-):
-    """
-    Get all deleted features.
-    """
-    scenario = await crud.scenario.get_by_multi_keys(
-        db, keys={"id": scenario_id, "user_id": current_user.id}
-    )
-    if len(scenario) == 0:
-        raise HTTPException(status_code=400, detail="Scenario not found")
-    else:
-        scenario = scenario[0]
-        deleted_features_column = scenario_deleted_columns[layer_name.value]
-        try:
-            deleted_features = getattr(scenario, deleted_features_column)
-            return deleted_features
-        except:
-            raise HTTPException(status_code=400, detail="Column not found")
-
-
-@router.patch("/{scenario_id}/{layer_name}", response_model=models.Scenario)
-async def update_scenario_deleted_feature_ids(
-    *,
-    db: AsyncSession = Depends(deps.get_db),
-    scenario_id: int,
-    layer_name: schemas.ScenarioLayersEnum,
-    deleted_features_in: List[Union[int, str]] = Body(
-        ..., example=request_examples["update_deleted_features"]
-    ),
-    current_user: models.User = Depends(deps.get_current_active_user),
-):
-    """
-    Update deleted features.
-    """
-    scenario = await crud.scenario.get_by_multi_keys(
-        db, keys={"id": scenario_id, "user_id": current_user.id}
-    )
-    if len(scenario) == 0:
-        raise HTTPException(status_code=400, detail="Scenario not found")
-    else:
-        scenario = scenario[0]
-        deleted_features_column = scenario_deleted_columns[layer_name.value]
-        if not hasattr(scenario, deleted_features_column):
-            raise HTTPException(status_code=400, detail="Column not found")
-        db_obj_in = {deleted_features_column: deleted_features_in}
-        result = await crud.scenario.update(db=db, db_obj=scenario, obj_in=db_obj_in)
-        return result
-
-
 # ------------------------Scenario Layers (_modified tables)---------------------------
 # -------------------------------------------------------------------------------------
 
@@ -202,7 +172,7 @@ async def read_scenario_features(
     return return_geojson_or_geobuf(features, return_type.value)
 
 
-@router.delete("/{scenario_id}/{layer_name}/features", response_model=Msg)
+@router.delete("/{scenario_id}/{layer_name}/features-all", response_model=Msg)
 async def delete_scenario_features(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -251,8 +221,7 @@ async def delete_selected_scenario_feature(
     ),
 ):
     """
-    Delete specific features from scenario layer. This endpoint is used to delete feature in "modified" tables. For deleting
-    features in "default" tables, use the "{PATCH}/scenarios" endpoint.
+    Delete specific features from scenario layer. This endpoint is used to delete feature in "modified" tables.
     """
     scenario = await crud.scenario.get_by_multi_keys(
         db, keys={"id": scenario_id, "user_id": current_user.id}
@@ -344,25 +313,21 @@ async def update_scenario_features(
         return jsonable_encoder(features)
 
 
-# -----------------------------------Export--------------------------------------------
-# -------------------------------------------------------------------------------------
-
-
-# # TODO: export scenario to zip file
-# @router.get("/{scenario_id}/export", response_class=StreamingResponse)
-# async def export_scenario(
-#     *,
-#     db: AsyncSession = Depends(deps.get_db),
-#     current_user: models.User = Depends(deps.get_current_active_user),
-#     scenario_id: int = Path(..., description="Scenario ID"),
-# ):
-#     """
-#     Export scenario to zip file
-#     """
-#     scenario = await crud.scenario.get_by_multi_keys(
-#         db, keys={"id": scenario_id, "user_id": current_user.id}
-#     )
-#     if len(scenario) == 0:
-#         raise HTTPException(status_code=400, detail="Scenario not found")
-#     else:
-#         return await crud.scenario.export_scenario(db, current_user, scenario_id)
+@router.get("/population_modification/{scenario_id}", response_class=JSONResponse)
+async def population_modification(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    scenario_id: int = Path(
+        ..., description="Scenario ID", example=request_examples["update_feature"]["scenario_id"]
+    ),
+    current_user: models.User = Depends(deps.get_current_active_user),
+):
+    scenario_id = await deps.check_user_owns_scenario(
+        db=db, current_user=current_user, scenario_id=scenario_id
+    )
+    await db.execute(
+        text("SELECT * FROM basic.population_modification(:scenario_id);"),
+        {"scenario_id": scenario_id},
+    )
+    await db.commit()
+    return {"msg": "Successfully calculated population modification"}

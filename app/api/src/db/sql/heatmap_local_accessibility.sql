@@ -7,7 +7,6 @@ DECLARE
 	borders_quintiles bigint[]; 
 BEGIN
 	
-	
 	DROP TABLE IF EXISTS heatmap_default; 
 	CREATE TEMP TABLE heatmap_default AS
 	WITH grouped AS 
@@ -37,8 +36,6 @@ BEGIN
 			GROUP BY h.percentile_accessibility 
 			ORDER BY h.percentile_accessibility
 		) b;
-		
-		RAISE NOTICE '%', borders_quintiles;  
 		
 		DROP TABLE IF EXISTS heatmap_scenario;
 		CREATE TEMP TABLE heatmap_scenario AS 
@@ -90,7 +87,6 @@ BEGIN
 		WHERE h.accessibility_index = 0; 
 		
 	END IF;
-
 
 	IF modus_input = 'default' THEN 
 		RETURN query 

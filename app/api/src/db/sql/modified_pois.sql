@@ -13,17 +13,10 @@ BEGIN
 			SELECT uid 
 			FROM customer.poi_modified p 	
 			WHERE scenario_id = scenario_id_input 
-			UNION ALL 
-			SELECT UNNEST(deleted_pois)
-			FROM customer.scenario 
-			WHERE id = scenario_id_input
-		),
-		distinct_ids AS 
-		(
-			SELECT DISTINCT uid FROM ids 
+			AND edit_type IN ('d', 'm')
 		)
 		SELECT COALESCE(ARRAY_AGG(uid), array[]::text[]) 
-		FROM distinct_ids
+		FROM ids
 	);
 	
 	RETURN modified_features;
@@ -31,5 +24,5 @@ BEGIN
 END;
 $function$
 /*
-SELECT * FROM basic.modified_pois(1)
+SELECT * FROM basic.modified_pois(75)
 */

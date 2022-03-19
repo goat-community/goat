@@ -16,7 +16,7 @@
                 <v-carousel-item
                   v-for="(item, i) in carousels"
                   :key="i"
-                  :src="require(`../assets/img/others/${item}`)"
+                  :src="item"
                 ></v-carousel-item>
               </v-carousel>
             </v-col>
@@ -146,7 +146,12 @@ export default {
     return {
       email: "",
       password: "",
-      carousels: ["munich.png", "freiburg.png", "freising.png", "ffb.png"],
+      carousels: [
+        "img/slider-images/munich.png",
+        "img/slider-images/ffb.png",
+        "img/slider-images/freiburg.png",
+        "img/slider-images/freising.png"
+      ],
       password_visibility: String,
       rememberMe: true,
       validLogin: false,

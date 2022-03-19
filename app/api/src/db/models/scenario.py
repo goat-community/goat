@@ -35,15 +35,6 @@ class Scenario(SQLModel, table=True):
 
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     scenario_name: str = Field(sa_column=Column(Text, nullable=False))
-    deleted_ways: Optional[List[int]] = Field(
-        sa_column=Column(ARRAY(Integer()), server_default=text("'{}'::int[]"))
-    )
-    deleted_pois: Optional[List[str]] = Field(
-        sa_column=Column(ARRAY(Text()), server_default=text("'{}'::text[]"))
-    )
-    deleted_buildings: Optional[List[int]] = Field(
-        sa_column=Column(ARRAY(Integer()), server_default=text("'{}'::int[]"))
-    )
     routing_heatmap_computed: Optional[bool]
     creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))

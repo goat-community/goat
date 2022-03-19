@@ -28,6 +28,10 @@ class GridVisualization(SQLModel, table=True):
     id: Optional[int] = Field(
         sa_column=Column(BigInteger(), primary_key=True, autoincrement=False),
     )
+    area_isochrone: float = Field(sa_column=Column(Float(53)))
+    percentile_area_isochrone: int = Field(sa_column=Column(SmallInteger, nullable=True))
+    population: Optional[int]
+    percentile_population: int = Field(sa_column=Column(SmallInteger, nullable=True))
     geom: str = Field(
         sa_column=Column(
             Geometry(geometry_type="Polygon", srid="4326", spatial_index=False),
@@ -39,9 +43,6 @@ class GridVisualization(SQLModel, table=True):
         back_populates="grid_visualizations", link_model=StudyAreaGridVisualization
     )
     grid_calculations: List["GridCalculation"] = Relationship(back_populates="grid_visualization")
-    grid_visualization_parameters: List["GridVisualizationParameter"] = Relationship(
-        back_populates="grid_visualization"
-    )
 
 Index("idx_grid_visualization_geom", GridVisualization.__table__.c.geom, postgresql_using="gist")
 
@@ -72,23 +73,3 @@ class GridCalculation(SQLModel, table=True):
 
 Index("idx_grid_caclulation_geom", GridCalculation.__table__.c.geom, postgresql_using="gist")
 
-
-class GridVisualizationParameter(SQLModel, table=True):
-    __tablename__ = "grid_visualization_parameter"
-    __table_args__ = {"schema": "basic"}
-
-    id: Optional[int] = Field(
-        sa_column=Column(
-            BigInteger,
-            ForeignKey("basic.grid_visualization.id"),
-            primary_key=True,
-        )
-    )
-    area_isochrone: float = Field(sa_column=Column(Float(53)))
-    percentile_area_isochrone: int = Field(sa_column=Column(SmallInteger, nullable=False))
-    population: Optional[int]
-    percentile_population: int = Field(sa_column=Column(SmallInteger, nullable=False))
-
-    grid_visualization: "GridVisualization" = Relationship(
-        back_populates="grid_visualization_parameters",
-    )

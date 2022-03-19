@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 class EdgeBase(SQLModel):
-    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True))
     class_id: int = Field(nullable=False)
     name: Optional[str] = Field(sa_column=Column(Text))
     one_way: Optional[int]
@@ -117,13 +117,13 @@ Index("idx_edge_geom", Edge.__table__.c.geom, postgresql_using="gist")
 class WayModified(EdgeBase, table=True):
     __tablename__ = "way_modified"
     __table_args__ = {"schema": "customer"}
-
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     way_type: Optional[str] = Field(sa_column=Column(Text))
     edit_type: Optional[str] = Field(sa_column=Column(Text))
     creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
-    edge_id: Optional[int] = Field(index=True, default=None, foreign_key="basic.edge.id")
+    way_id: Optional[int] = Field(index=True, default=None, foreign_key="basic.edge.id")
     scenario_id: Optional[int] = Field(
         sa_column=Column(
             Integer, ForeignKey("customer.scenario.id", ondelete="CASCADE"), index=True

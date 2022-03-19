@@ -143,8 +143,10 @@
     },
     "edit": {
       "title": "Draw scenario",
+
       "createScenario": "Create Scenario",
       "editScenarioName": "Update Scenario",
+      "deleteScenario": "Delete Scenario",
       "scenario": "Scenario",
       "scenarioImportExport": "Scenario Import/Export",
       "selectLayer": "Select Layer",
@@ -177,13 +179,13 @@
         "actions": "Actions"
       },
       "type": {
-        "New": "New",
-        "Modified": "Modified",
-        "Restored": "Restored",
+        "new": "New",
+        "modified": "Modified",
+        "restored": "Restored",
         "deleted": "Deleted"
       },
       "status": {
-        "Uploaded": "Uploaded",
+        "uploaded": "Uploaded",
         "NotUploaded": "Not Uploaded"
       },
       "activateLayerToDrawScenario": "Please activate the layer to be able to select features",
@@ -202,7 +204,8 @@
       "scenarioFeatures": "Scenario Features",
       "uploadYourData": "Upload your data",
       "deleteAllTitle": "Delete All",
-      "deleteAllMessage": "Are you sure you want to delete all scenario data."
+      "deleteAllMessage": "Are you sure you want to delete all scenario data.",
+      "confirmDeleteScenario": "Are you sure you want to delete scenario?"
     },
     "settings": {
       "title": "Settings",
@@ -384,6 +387,8 @@
       "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features.",
       "cantDeleteAllScenarioFeatures": "Sorry. Scenario data can't be deleted at the moment.",
       "allScenarioFeaturesDelete": "All Scenario Data is deleted",
+      "scenarioDeleted": "Scenario Deleted",
+      "cantDeleteScenario": "Sorry. Scenario can't be deleted at the moment.",
       "noScenarioFeatureChangeAvailable": "Please do network or land-use change first",
       "cantPrintBaseLayer": "This baselayer can't be printed",
       "featuresAlreadyUploaded": "Features already exists",
@@ -406,8 +411,9 @@
       "mobility_patterns": "Mobility Patterns"
     },
     "layerName": {
-      "pois": "Point of Interest",
+      "poi": "Point of Interest",
       "aois": "Areas of Interest",
+      "way": "Ways",
       "administrativeUnits": "Administrative Units",
       "accidents_pedestrians": "Pedestrians - Accident Points (2016-2019)",
       "accidents_pedestrian_2018": "Pedestrians - Accidents Frequencies (2018)",
@@ -459,7 +465,7 @@
       "primary_school_streams": "Potential Pedestrian Flows to Primary Schools",
       "studyArea": "Study Area",
       "ways": "Ways",
-      "buildings": "Buildings",
+      "building": "Buildings",
       "osm_standard": "OSM Standard",
       "osm_light": "OSM Light",
       "osm_dark": "OSM Dark",
@@ -676,12 +682,12 @@
   },
   "pois": {
     "education": "Education",
-    "foodAndDrink": "Food and Drink",
+    "foodanddrink": "Food and Drink",
     "transport": "Transport",
     "mobilitystations": "Mobility Stations",
     "services": "Services",
     "shop": "Shop",
-    "tourismAndLeisure": "Tourism & Leisure",
+    "tourismandleisure": "Tourism & Leisure",
     "nursery": "Nursery",
     "kindergarten": "Kindergarten",
     "primary_school": "Primary school",
@@ -725,6 +731,7 @@
     "hairdresser": "Hairdresser",
     "atm": "ATM",
     "bank": "Bank",
+    "health": "Health",
     "dentist": "Dentist",
     "doctors": "Doctor",
     "pharmacy": "Pharmacy",
