@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ${NAMESPACE}
+  name: dev
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -16,14 +16,15 @@ metadata:
     alb.ingress.kubernetes.io/success-codes: '200'
     alb.ingress.kubernetes.io/healthy-threshold-count: '2'
     alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
+    alb.ingress.kubernetes.io/listen-ports: |
+      [{"HTTP": 80}, {"HTTPS": 443}]
     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:eu-central-1:253602339696:certificate/aee2875c-f066-4d08-a0d0-41515836f37e
     alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-Ext-2018-06
     alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
   name: ingress-goat
   labels:
     app: goat
-  namespace: ${NAMESPACE}
+  namespace: dev
 spec:
   rules:
     - http:
