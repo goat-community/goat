@@ -141,15 +141,15 @@ class CRUDDynamicCustomization:
             combined_groups = self.update_settings(combined_groups, user_settings["poi_groups"])
          
         combined_layer_groups = self.arr_dict_to_nested_dict(default_settings["layer_groups"])
-        if "layer_groups" in study_area_settings:
-            combined_layer_groups = self.update_settings(
-                combined_layer_groups, study_area_settings["layer_groups"]
-            )
+        # if "layer_groups" in study_area_settings:
+        #     combined_layer_groups = self.update_settings(
+        #         combined_layer_groups, study_area_settings["layer_groups"]
+        #     )
 
-        if "layer_groups" in user_settings:
-            combined_layer_groups = self.update_settings(
-                combined_layer_groups, user_settings["layer_groups"]
-            )
+        # if "layer_groups" in user_settings:
+        #     combined_layer_groups = self.update_settings(
+        #         combined_layer_groups, user_settings["layer_groups"]
+        #     )
 
         combined_settings["poi_groups"] = self.nested_dict_to_arr_dict(combined_groups)
         combined_settings["layer_groups"] = self.nested_dict_to_arr_dict(combined_layer_groups)
@@ -218,59 +218,6 @@ class CRUDDynamicCustomization:
                 await user_customization.create(db=db, obj_in=new_obj)
             else:
                 raise HTTPException(status_code=400, detail="Failed Inserting poi customization.")
-
-        # Handler layer group settings
-        elif setting_type == "layer_groups":
-            insert_layer_setting = None
-            existing_layer_settings = self.arr_dict_to_nested_dict(
-                study_area_setting_obj.setting["layer_groups"]
-            )
-            insert_layer_category = list(insert_settings.keys())[0]
-
-            for layer_group in existing_layer_settings:
-                if (
-                    existing_layer_settings.get(layer_group)
-                    .get("children")
-                    .get(insert_layer_category)
-                    != None
-                ):
-                    insert_layer_setting = {
-                        layer_group: {
-                            "icon": existing_layer_settings[layer_group]["icon"],
-                            "children": {
-                                insert_layer_category: existing_layer_settings[layer_group][
-                                    "children"
-                                ][insert_layer_category]
-                            },
-                        }
-                    }
-
-                    insert_layer_setting[layer_group]["children"][insert_layer_category][
-                        "style"
-                    ] = insert_settings[insert_layer_category]
-                    break
-
-            # Check if an existing layer was found for the style
-            if insert_layer_setting is None:
-                return HTTPException(
-                    status_code=400, detail="You passed a style for an unknown layer."
-                )
-
-            insert_layer_setting = {
-                "layer_groups": self.nested_dict_to_arr_dict(insert_layer_setting)
-            }
-
-            if check_dict_schema(LayerGroups, insert_layer_setting) == True:
-                # Insert layer with user generated customization
-                new_obj = models.UserCustomization(
-                    user_id=current_user.id,
-                    study_area_id=current_user.active_study_area_id,
-                    customization_id=default_setting_obj.id,
-                    setting=insert_layer_setting,
-                )
-                await user_customization.create(db=db, obj_in=new_obj)
-            else:
-                raise HTTPException(status_code=400, detail="Failed Inserting layer style.")
 
     async def update_user_setting(
         self,
