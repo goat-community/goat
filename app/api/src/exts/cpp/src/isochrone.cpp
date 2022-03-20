@@ -30,6 +30,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #include <cstring>
 #include <exception>
 #include "concaveman.h"
+#include <map>
+
 
 #ifdef DEBUG
 #include <fstream>
@@ -409,6 +411,12 @@ Result compute_isochrone(Edge *data_edges, size_t total_edges,
   // so that data structures used can be simpler (arrays instead of maps).
   // modifying data_edges source/target fields.
   std::unordered_map<int64_t, int64_t> mapping = remap_edges(data_edges, total_edges);
+
+  std::unordered_map<int64_t, int64_t> mapping_reversed;
+
+  for (auto i=mapping.begin(); i!=mapping.end(); ++i)
+    mapping_reversed[i->second] = i->first;
+
   // coordinates for the network edges for each distance limit to be used in constructing the isochrone shape
   std::unordered_map<double, std::vector<std::array<double, 2>>> coordinates;
   size_t nodes_count = mapping.size();
@@ -469,6 +477,15 @@ Result compute_isochrone(Edge *data_edges, size_t total_edges,
         skip_ts = st_fully_covered && ts_fully_covered && st_dist < ts_dist;
         skip_st = st_fully_covered && ts_fully_covered && ts_dist < st_dist;
       }
+
+      if (start_v == mapping_reversed.find(e.source)->second)
+      {
+        append_edge_result(start_v, e.id, 0, e.cost, e.length, e.geometry, distance_limits, &isochrone_network, coordinates, true);
+      }
+      if (start_v == mapping_reversed.find(e.target)->second)
+      {
+        append_edge_result(start_v, e.id, 0, e.reverse_cost, e.length, e.geometry, distance_limits, &isochrone_network, coordinates, true);
+      }
       if (!skip_ts && t_reached && predecessors[e.target] != e.source)
       {
         append_edge_result(start_v, e.id, tcost, e.reverse_cost, e.length, e.geometry, distance_limits, &isochrone_network, coordinates, true);
@@ -488,8 +505,16 @@ Result compute_isochrone(Edge *data_edges, size_t total_edges,
       if (coordinates[dl].size() > 1)
       {
         auto &points_ = coordinates[dl];
-        ConvexhullResult hull = convexhull(points_);
-        std::vector<std::array<double, 2>> isochrone_path = concaveman<double, 16>(points_, hull.indices);
+        std::vector<std::array<double, 2>> isochrone_path;
+        if (points_.size() > 3)
+        {
+          ConvexhullResult hull = convexhull(points_);
+          isochrone_path = concaveman<double, 16>(points_, hull.indices);
+        }
+        else
+        {
+          isochrone_path = {{0, 0}};
+        }
         coordinates[dl].clear();
         isp.shape.emplace(dl, isochrone_path);
       }
@@ -506,7 +531,7 @@ Result compute_isochrone(Edge *data_edges, size_t total_edges,
 std::vector<std::string> split(const std::string &input, const std::string &regex = " ")
 {
   std::regex re(regex);
-  std::sregex_token_iterator first{input.begin(), input.end(), re, -1}, last; //the '-1' is what makes the regex split (-1 := what was not matched)
+  std::sregex_token_iterator first{input.begin(), input.end(), re, -1}, last; // the '-1' is what makes the regex split (-1 := what was not matched)
   std::vector<std::string> tokens{first, last};
   return tokens;
 }
@@ -563,7 +588,7 @@ int main()
   auto concave_points = concaveman<double, 16>({{0, 0}, {0.25, 0.15}, {1, 0}, {1, 1}}, {0, 2, 3}, 2, 0);
 
   // demo network file location
-  std::string network_file = "../data/network_munich_small.csv";
+  std::string network_file = "../data/test_network.csv";
   std::vector<Edge> data_edges_vector = read_file(network_file);
   static const int64_t total_edges = data_edges_vector.size();
   Edge *data_edges = new Edge[total_edges];
@@ -572,8 +597,8 @@ int main()
     data_edges[i] = data_edges_vector[i];
   }
   data_edges_vector.clear();
-  std::vector<double> distance_limits = {40, 80, 120};
-  std::vector<int64_t> start_vertices{81044, 999999999};
+  std::vector<double> distance_limits = {60};
+  std::vector<int64_t> start_vertices{2147483647};
   bool only_minimum_cover = false;
   auto results = compute_isochrone(data_edges, total_edges, start_vertices,
                                    distance_limits, only_minimum_cover);

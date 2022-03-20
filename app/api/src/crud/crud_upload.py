@@ -23,7 +23,7 @@ from src.db import models
 from src.db.session import legacy_engine
 from src.resources.enums import UploadFileTypes
 from src.schemas.upload import request_examples
-from src.utils import clean_unpacked_zip
+from src.utils import clean_unpacked_zip, delete_file
 
 
 class CRUDDataUpload(CRUDBase[models.Customization, models.Customization, models.Customization]):
@@ -35,29 +35,37 @@ data_upload = CRUDDataUpload(models.DataUpload)
 
 class CRUDUploadFile:
     async def upload_custom_pois(
-        self, *, db: AsyncSession, file: UploadFile, poi_category: str, current_user: models.User
+        self, *, db: AsyncSession, file: UploadFile, file_dir: str, file_name: str, poi_category: str, current_user: models.User
     ):
 
         """Handle uploaded custom pois."""
         # Check if poi_category is already uploaded for study area
-        query_poi_features = (
-            select(models.PoiUser.category)
-            .join(models.DataUpload)
-            .where(
-                and_(
-                    models.DataUpload.user_id == current_user.id,
-                    models.DataUpload.study_area_id == current_user.active_study_area_id,
-                    models.PoiUser.data_upload_id == models.DataUpload.id,
-                    models.PoiUser.category == poi_category,
+        try:
+            query_poi_features = (
+                select(models.PoiUser.category)
+                .join(models.DataUpload)
+                .where(
+                    and_(
+                        models.DataUpload.user_id == current_user.id,
+                        models.DataUpload.study_area_id == current_user.active_study_area_id,
+                        models.PoiUser.data_upload_id == models.DataUpload.id,
+                        models.PoiUser.category == poi_category,
+                    )
                 )
+                .limit(1)
             )
-            .limit(1)
-        )
 
-        poi_features = await db.execute(query_poi_features)
-        poi_features = poi_features.first()
+            poi_features = await db.execute(query_poi_features)
+            poi_features = poi_features.first()
+        except:
+            delete_file(file_dir)
+            raise HTTPException(
+                    status_code=400,
+                    detail="Failed reading the file.",
+            )
 
         if poi_features is not None:
+            delete_file(file_dir)
             raise HTTPException(
                 status_code=400,
                 detail="The chosen custom poi category already exists. Please delete the old data-set first in case you want to replace it with the new one",
@@ -74,25 +82,31 @@ class CRUDUploadFile:
             "wheelchair",
         ]
         # Get active study area
+        
+
         study_area_obj = await crud.study_area.get(
             db=db, id=current_user.active_study_area_id, extra_fields=["geom"]
         )
         study_area_geom = to_shape(study_area_obj.geom)
-
+        
         if file.content_type == UploadFileTypes.geojson.value:
-            gdf = gpd_read_file(file.file)
+            try:
+                gdf = gpd_read_file(file_dir, driver="GeoJSON")
+                delete_file(file_dir)
+            except:
+                delete_file(file_dir)
+                raise HTTPException(
+                    status_code=400,
+                    detail="Failed reading the file in GeodataFrame",
+                )
         elif file.content_type == UploadFileTypes.zip.value:
-            defined_uuid = uuid.uuid4().hex
-            file_dir = f"/tmp/{defined_uuid}"
-            unzipped_file_dir = f"/tmp/{defined_uuid}/{os.path.splitext(file.filename)[0]}"
+            unzipped_file_dir = os.path.splitext(file_dir)[0]
 
             # Create directory
             try:
-                with open(file_dir + ".zip", "wb+") as file_object:
-                    file_object.write(file.file.read())
-                shutil.unpack_archive(file_dir + ".zip", file_dir, "zip")
+                shutil.unpack_archive(file_dir, os.path.splitext(file_dir)[0], "zip")
             except:
-                clean_unpacked_zip(zip_path=file_dir + ".zip", dir_path=file_dir)
+                clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir )
                 raise HTTPException(status_code=400, detail="Could not read or process file.")
 
             # List shapefiles
@@ -101,24 +115,24 @@ class CRUDUploadFile:
                     f for f in os.listdir(unzipped_file_dir) if f.endswith(".shp")
                 ]
             except:
-                clean_unpacked_zip(zip_path=file_dir + ".zip", dir_path=file_dir)
+                clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir)
                 raise HTTPException(status_code=400, detail="No shapefiles inside folder.")
 
             # Read shapefiles and append to GeoDataFrame
             if len(available_shapefiles) == 1:
                 gdf = gpd_read_file(f"{unzipped_file_dir}/{available_shapefiles[0]}")
             elif len(available_shapefiles) > 1:
-                clean_unpacked_zip(zip_path=file_dir + ".zip", dir_path=file_dir)
+                clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir)
                 raise HTTPException(
                     status_code=400, detail="More then one shapefiles inside folder."
                 )
             else:
                 raise HTTPException(status_code=400, detail="No shapefiles inside folder.")
-
-            clean_unpacked_zip(zip_path=file_dir + ".zip", dir_path=file_dir)
+            clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir)
         else:
             raise HTTPException(status_code=400, detail="Invalid file type")
-
+        
+        
         # Convert to EPSG 4326
         gdf_schema = dict(gdf.dtypes)
         if gdf.crs.name == "unknown":
