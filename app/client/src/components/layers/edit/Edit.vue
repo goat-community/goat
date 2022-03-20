@@ -1535,8 +1535,7 @@ export default {
         .forEach(feature => {
           if (
             !feature.get("edit_type") &&
-            !feature.get("building_modified_id") && // building_modified_id is edge case to not clean population_modified features as they don't have an edit_type property
-            !this.interactionType
+            !feature.get("building_modified_id") // building_modified_id is edge case to not clean population_modified features as they don't have an edit_type property
           ) {
             this.editLayer.getSource().removeFeature(feature);
           }
