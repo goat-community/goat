@@ -18,8 +18,6 @@ DECLARE
 	time_loss_intersections jsonb := '{}'::jsonb;
 	geom_column TEXT = 'geom';
 BEGIN 
-	--sql_geom = format(' AND geom && ST_SETSRID(ST_GEOMFROMTEXT(''%1$s''), 4326)', buffer_geom);
-	
 	excluded_class_id = (basic.select_customization('excluded_class_id_' || transport_mode))::text;
 	excluded_class_id = substr(excluded_class_id, 2, length(excluded_class_id) - 2);
 
@@ -27,7 +25,7 @@ BEGIN
 	filter_categories = substr(filter_categories, 2, length(filter_categories) - 2);
 
   	IF transport_mode IN ('cycling','ebike') THEN
-  		time_loss_intersections = select_from_variable_container_o('cycling_crossings_delay');
+  		time_loss_intersections = basic.select_customization('cycling_crossings_delay');
   	END IF;
 	
 	IF routing_profile = 'cycling_pedelec' THEN 
