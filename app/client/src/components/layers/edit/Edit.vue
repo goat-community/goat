@@ -963,6 +963,9 @@ export default {
           dataProjection: "EPSG:4326",
           featureProjection: "EPSG:3857"
         });
+        features.forEach(feature => {
+          feature.set("layerName", this.selectedLayer["name"]);
+        });
         this.editLayer.getSource().addFeatures(features);
       }
     },
@@ -1739,7 +1742,9 @@ export default {
             dataProjection: "EPSG:4326",
             featureProjection: "EPSG:3857"
           });
-
+          featuresWithId.forEach(feature => {
+            feature.set("layerName", this.selectedLayer["name"]);
+          });
           this.editLayer.getSource().addFeatures(featuresWithId);
         })
         .catch(error => {
@@ -1794,6 +1799,9 @@ export default {
           const featuresWithId = geojsonToFeature(response.data, {
             dataProjection: "EPSG:4326",
             featureProjection: "EPSG:3857"
+          });
+          featuresWithId.forEach(feature => {
+            feature.set("layerName", this.selectedLayer["name"]);
           });
           this.editLayer.getSource().addFeatures(featuresWithId);
         })
