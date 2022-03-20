@@ -151,10 +151,10 @@ class ScenarioBuildingsModifiedCreate(ScenarioFeatureCreateBase):
     building_id: Optional[
         int
     ] = None  # specified if the feature is an existing building from buildings table
-    building_type: BuildingModifiedTypeEnum
-    building_levels: int
-    building_levels_residential: int
-    population: int
+    building_type: Optional[BuildingModifiedTypeEnum] = None
+    building_levels: Optional[int] = None
+    building_levels_residential: Optional[int] = None
+    population: Optional[int] = None
     edit_type: ScenarioEditType
 
     class Config:

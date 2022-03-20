@@ -240,13 +240,13 @@ export function defaultStyle(feature) {
   const geomType = feature.getGeometry().getType();
   const strokeOpt = {
     color: ["MultiPolygon", "Polygon"].includes(geomType)
-      ? "#FF0000"
+      ? "#707070"
       : "#707070",
     width: 3
   };
   const fillOpt = {
     color: ["MultiPolygon", "Polygon"].includes(geomType)
-      ? "rgba(255, 0, 0, 0.7)"
+      ? "#707070"
       : [0, 0, 0, 0]
   };
   const style = new OlStyle({
@@ -255,7 +255,7 @@ export function defaultStyle(feature) {
     image: new OlCircle({
       radius: 7,
       fill: new OlFill({
-        color: "#FF0000"
+        color: "#707070"
       })
     })
   });
@@ -308,6 +308,13 @@ export function buildingStyleWithPopulation() {
     })
   });
 }
+export function buildingStyleWithNoPopulation() {
+  return new OlStyle({
+    fill: new OlFill({
+      color: "#FF0000"
+    })
+  });
+}
 
 export function deletedStyle() {
   const style = new OlStyle({
@@ -337,8 +344,13 @@ export function editStyleFn() {
       }
     }
     if (props.layerName === "building" && props.hasOwnProperty("edit_type")) {
-      if (props.building_type === "residential" || props.population) {
+      if (
+        (props.building_type === "residential" && props.population) ||
+        props.building_type !== "residential"
+      ) {
         return buildingStyleWithPopulation();
+      } else {
+        return buildingStyleWithNoPopulation();
       }
     }
 

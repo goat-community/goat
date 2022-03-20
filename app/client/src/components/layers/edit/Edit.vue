@@ -508,24 +508,6 @@
           <!-- ==== < /DATA TABLE> ====-->
         </template>
       </v-card>
-
-      <!-- ADD ENTRANCES FOR BUILDINGS ALERT -->
-      <br />
-      <v-alert
-        border="left"
-        colored-border
-        class="mb-2 mt-0 mx-3 elevation-2"
-        icon="info"
-        color="warning"
-        dense
-        v-if="
-          selectedLayer &&
-            selectedLayer['name'] === 'building' &&
-            olEditCtrl.source.getFeatures().length > 0
-        "
-      >
-        <span v-html="$t('appBar.edit.addEntrancesForBuildings')"></span>
-      </v-alert>
       <!-- ----- -->
       <v-card-actions v-if="selectedLayer && schema[layerName]">
         <v-spacer></v-spacer>
@@ -896,6 +878,7 @@ export default {
                 featureProjection: "EPSG:3857"
               });
               features.forEach(feature => {
+                feature.setId(`${layers_[index]}_${feature.getId()}`);
                 feature.set("layerName", layers_[index]);
               });
               this.editLayer.getSource().addFeatures(features);
@@ -1155,14 +1138,13 @@ export default {
      */
     onDrawEnd(evt) {
       const feature = evt.feature;
-      this.closePopup();
       this.clearDataObject();
       //Disable interaction until user fills the attributes for the feature and closes the popup
       if (this.olEditCtrl.edit) {
         this.olEditCtrl.edit.setActive(false);
       }
       this.featuresToCommit.push(feature);
-      this.highlightLayer.getSource().addFeature(feature);
+      this.highlightLayer.getSource().addFeature(feature.clone());
       let popupCoordinate = feature.getGeometry().getCoordinates();
       while (popupCoordinate && Array.isArray(popupCoordinate[0])) {
         popupCoordinate = popupCoordinate[0];
@@ -1495,11 +1477,26 @@ export default {
         this.olEditCtrl.edit.setActive(true);
       }
       this.highlightLayer.getSource().clear();
-      this.featuresToCommit.forEach(feature => {
-        if (this.editLayer.getSource().hasFeature(feature)) {
-          this.editLayer.getSource().removeFeature(feature);
-        }
-      });
+      if (this.interactionType === "draw") {
+        this.featuresToCommit.forEach(feature => {
+          if (this.editLayer.getSource().hasFeature(feature)) {
+            this.editLayer.getSource().removeFeature(feature);
+          }
+        });
+      }
+      // Removes features that are not modified
+      this.editLayer
+        .getSource()
+        .getFeatures()
+        .forEach(feature => {
+          if (
+            !feature.get("edit_type") &&
+            !feature.get("building_modified_id") && // building_modified_id is edge case to not clean population_modified features as they don't have an edit_type property
+            !this.interactionType
+          ) {
+            this.editLayer.getSource().removeFeature(feature);
+          }
+        });
       this.featuresToCommit = [];
     },
     /**
@@ -1641,12 +1638,12 @@ export default {
      * Stop edit and select interactions (Doesn't deletes the features)
      */
     stop() {
+      this.closePopup();
       this.olSelectCtrl.removeInteraction();
       this.olEditCtrl.removeInteraction();
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
       this.toggleSelection = undefined;
       this.toggleEdit = undefined;
-      this.closePopup();
       this.map.getTarget().style.cursor = "";
       this.clear();
     },
@@ -1695,9 +1692,15 @@ export default {
       ) {
         // Modified an origin feature (has to be created as modified feature)
         featureOut.set("edit_type", "m");
+        if (this.featuresToCommit[0].getId()) {
+          featureOut.set(this.original_id, this.featuresToCommit[0].getId());
+        }
         this.createScenarioFeatures([featureOut]);
       } else if (type === "delete" && !properties.hasOwnProperty("edit_type")) {
         // Deleted an origin feature (has to be created as deleted feature)
+        if (this.featuresToCommit[0].getId()) {
+          featureOut.set(this.original_id, this.featuresToCommit[0].getId());
+        }
         featureOut.set("edit_type", "d");
         this.createScenarioFeatures([featureOut]);
       } else if (type === "delete") {
@@ -1743,6 +1746,7 @@ export default {
             featureProjection: "EPSG:3857"
           });
           featuresWithId.forEach(feature => {
+            feature.setId(`${this.selectedLayer["name"]}_${feature.getId()}`);
             feature.set("layerName", this.selectedLayer["name"]);
           });
           this.editLayer.getSource().addFeatures(featuresWithId);
@@ -1772,7 +1776,7 @@ export default {
     updateScenarioFeatures(features) {
       let payload = features.map(feature => {
         const transformed = {
-          id: feature.getId(),
+          id: parseInt(feature.getId().split("_")[1]),
           ...feature.getProperties(),
           geom: geometryToWKT(
             feature
@@ -1792,8 +1796,11 @@ export default {
       })
         .then(response => {
           features.forEach(feature => {
-            if (this.editLayer.getSource().hasFeature(feature)) {
-              this.editLayer.getSource().removeFeature(feature);
+            const featureIn = this.editLayer
+              .getSource()
+              .getFeatureById(feature.getId());
+            if (featureIn) {
+              this.editLayer.getSource().removeFeature(featureIn);
             }
           });
           const featuresWithId = geojsonToFeature(response.data, {
@@ -1801,6 +1808,7 @@ export default {
             featureProjection: "EPSG:3857"
           });
           featuresWithId.forEach(feature => {
+            feature.setId(`${this.selectedLayer["name"]}_${feature.getId()}`);
             feature.set("layerName", this.selectedLayer["name"]);
           });
           this.editLayer.getSource().addFeatures(featuresWithId);
