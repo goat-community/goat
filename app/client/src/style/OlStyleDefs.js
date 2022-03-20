@@ -368,27 +368,15 @@ export function uploadedFeaturesStyle() {
 }
 export function waysModifiedStyle() {
   const style = new OlStyle({
-    fill: new OlFill({
-      color: [0, 0, 0, 0]
-    }),
     stroke: new OlStroke({
       color: "#FF0000",
       width: 3
-    }),
-    image: new OlCircle({
-      radius: 7,
-      fill: new OlFill({
-        color: "#FF0000"
-      })
     })
   });
   return [style];
 }
 export function waysNewRoadStyle() {
   const style = new OlStyle({
-    fill: new OlFill({
-      color: [0, 0, 0, 0]
-    }),
     stroke: new OlStroke({
       color: "#6495ED",
       width: 4
@@ -399,9 +387,6 @@ export function waysNewRoadStyle() {
 
 export function waysNewBridgeStyle() {
   const style = new OlStyle({
-    fill: new OlFill({
-      color: [0, 0, 0, 0]
-    }),
     stroke: new OlStroke({
       color: "#FFA500",
       width: 4
@@ -409,9 +394,30 @@ export function waysNewBridgeStyle() {
   });
   return [style];
 }
+
+export function deletedStyle() {
+  const style = new OlStyle({
+    stroke: new OlStroke({
+      color: "#FF0000",
+      width: 4,
+      lineDash: [10, 10]
+    })
+  });
+  return [style];
+}
+
 export function editStyleFn() {
   const styleFunction = (feature, resolution) => {
     const props = feature.getProperties();
+    if (
+      ["MultiPolygon", "Polygon", "LineString", "MultiLineString"].includes(
+        feature.getGeometry().getType()
+      ) &&
+      props.hasOwnProperty("edit_type") &&
+      props.edit_type === "d"
+    ) {
+      return deletedStyle();
+    }
     // Polygon (ex. building) style
     if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
       return defaultStyle(feature, resolution);

@@ -191,12 +191,12 @@
         >
           <span v-html="$t('appBar.edit.activateLayerToDrawScenario')"></span>
         </v-alert>
-        <template v-if="selectedLayer && schema[layerName]">
+        <template v-if="selectedLayer && schema[layerName] && activeScenario">
           <v-divider></v-divider>
           <!-- ==== <EDIT> ====-->
 
           <v-subheader
-            v-show="selectedLayer !== null"
+            v-show="selectedLayer !== null && activeScenario"
             class="clickable ml-0 pl-0"
             @click="editElVisible = !editElVisible"
           >
@@ -717,16 +717,25 @@ export default {
       if (this.olEditCtrl && value) {
         this.olEditCtrl.selectedLayer = value;
         this.originIdName = this.original_id;
+        this.stop();
       }
     },
     toggleSelection: {
       handler(state) {
-        this.toggleSelectInteraction(state);
+        if (state !== undefined) {
+          this.olEditCtrl.removeInteraction();
+          this.toggleEdit = undefined;
+          this.toggleSelectInteraction(state);
+        }
       }
     },
     toggleEdit: {
       handler(state) {
-        this.toggleEditInteraction(state);
+        if (state !== undefined) {
+          this.olSelectCtrl.removeInteraction();
+          this.toggleSelection = undefined;
+          this.toggleEditInteraction(state);
+        }
       }
     },
     toggleSnapGuide(value) {
@@ -906,7 +915,6 @@ export default {
      * Toggle the select interaction
      */
     toggleSelectInteraction(state) {
-      //Close other interactions.
       if (state != undefined) {
         EventBus.$emit("ol-interaction-activated", this.interactionType);
         this.map.getTarget().style.cursor = this.mapCursorTypeEnum["select"];
@@ -949,6 +957,7 @@ export default {
      */
     onSelectionEnd(response) {
       this.toggleSelection = undefined;
+      this.olSelectCtrl.removeInteraction();
       if (response) {
         const features = geojsonToFeature(response.data, {
           dataProjection: "EPSG:4326",
@@ -962,9 +971,6 @@ export default {
      * Toggle the edit interaction
      */
     toggleEditInteraction(state) {
-      //Remove select interaction
-      this.olSelectCtrl.removeInteraction();
-      this.toggleSelection = undefined;
       let editType, startCb, endCb;
       switch (state) {
         case 1:
@@ -1088,7 +1094,7 @@ export default {
         feature = evt;
       }
 
-      this.highlightLayer.getSource().addFeature(feature);
+      this.highlightLayer.getSource().addFeature(feature.clone());
       this.featuresToCommit.push(feature);
       if (feature) {
         const geometry = feature.getGeometry();
@@ -1124,6 +1130,16 @@ export default {
         props[key] = null;
       });
       this.transact(props);
+      const featuresToAdd = [];
+      const featuresToUpdate = [];
+      this.featuresToCommit(feature => {
+        const props = feature.getProperties();
+        if (props.hasOwnProperty("edit_type") && props.edit_type !== "d") {
+          featuresToUpdate.push(feature);
+        } else {
+          featuresToAdd.push(feature);
+        }
+      });
     },
     /**
      * Draw interaction start event handler
@@ -1475,7 +1491,12 @@ export default {
       if (this.olEditCtrl.edit) {
         this.olEditCtrl.edit.setActive(true);
       }
-      this.olEditCtrl.highlightSource.clear();
+      this.highlightLayer.getSource().clear();
+      this.featuresToCommit.forEach(feature => {
+        if (this.editLayer.getSource().hasFeature(feature)) {
+          this.editLayer.getSource().removeFeature(feature);
+        }
+      });
       this.featuresToCommit = [];
     },
     /**
@@ -1495,6 +1516,8 @@ export default {
           }
         });
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
+
+      this.featuresToCommit = [];
     },
 
     /**
@@ -1505,7 +1528,11 @@ export default {
       this.olSelectCtrl.clear();
       this.editLayer.getSource().clear();
       this.highlightLayer.getSource().clear();
-      this.featuresToCommit = [];
+      this.clearDataObject();
+      this.scenarioDataTable = [];
+      this.isInteractionOnProgress = false;
+      this.isTableLoading = false;
+      this.clear();
     },
     /**
      * Delete all user scenario features in db.
@@ -1618,6 +1645,7 @@ export default {
       this.toggleEdit = undefined;
       this.closePopup();
       this.map.getTarget().style.cursor = "";
+      this.clear();
     },
     /**
      * Translate method to avoid inline html logic
@@ -1659,24 +1687,29 @@ export default {
         // Modified existing fature
         this.updateScenarioFeatures([featureOut]);
       } else if (
-        ["modifyAttributes", "delete"].includes(type) &&
+        type === "modifyAttributes" &&
         !properties.hasOwnProperty("edit_type")
       ) {
-        // Modified or deleted an origin feature (has to be created as modified feature)
+        // Modified an origin feature (has to be created as modified feature)
         featureOut.set("edit_type", "m");
+        this.createScenarioFeatures([featureOut]);
+      } else if (type === "delete" && !properties.hasOwnProperty("edit_type")) {
+        // Deleted an origin feature (has to be created as deleted feature)
+        featureOut.set("edit_type", "d");
         this.createScenarioFeatures([featureOut]);
       } else if (type === "delete") {
         // Deleted a feature which is already modified. Delete from "_modified" layer
         this.deleteScenarioFeatures([featureOut]);
       }
-
       this.closePopup();
     },
 
     /**
      * ====API CALLS====
      */
-
+    /**
+     * Create scenario features
+     */
     createScenarioFeatures(features) {
       let payload = features.map(feature => {
         const transformed = {
@@ -1691,20 +1724,46 @@ export default {
         delete transformed.geometry;
         return transformed;
       });
-      // const clonedFeatures = this.featuresToCommit.map(f => f.clone());
+      this.isMapBusy = true;
       ApiService.post(this.scenarioApiBaseUrl, {
         features: payload
-      }).then(response => {
-        const featuresWithId = geojsonToFeature(response.data, {
-          dataProjection: "EPSG:4326",
-          featureProjection: "EPSG:3857"
+      })
+        .then(response => {
+          // TODO: Don't remove features from featuresToCommit (Too late here. We should get the features from cloned features)
+          this.featuresToCommit.forEach(feature => {
+            if (this.editLayer.getSource().hasFeature(feature)) {
+              this.editLayer.getSource().removeFeature(feature);
+            }
+          });
+          const featuresWithId = geojsonToFeature(response.data, {
+            dataProjection: "EPSG:4326",
+            featureProjection: "EPSG:3857"
+          });
+
+          this.editLayer.getSource().addFeatures(featuresWithId);
+        })
+        .catch(error => {
+          console.log(error);
+          this.toggleSnackbar({
+            type: "error", //success or error
+            message: this.$t(`appBar.edit.cantCreateScenarioFeature`),
+            state: true,
+            timeout: 3000
+          });
+          this.featuresToCommit.forEach(feature => {
+            if (this.editLayer.getSource().hasFeature(feature)) {
+              this.editLayer.getSource().removeFeature(feature);
+            }
+          });
+        })
+        .finally(() => {
+          this.isMapBusy = false;
+          this.featuresToCommit = [];
         });
-        this.featuresToCommit.forEach(feature => {
-          this.editLayer.getSource().removeFeature(feature);
-        });
-        this.editLayer.getSource().addFeatures(featuresWithId);
-      });
     },
+    /**
+     * Update scenario features
+     */
     updateScenarioFeatures(features) {
       let payload = features.map(feature => {
         const transformed = {
@@ -1722,29 +1781,82 @@ export default {
         delete transformed[this.original_id];
         return transformed;
       });
+      this.isMapBusy = true;
       ApiService.put(this.scenarioApiBaseUrl, {
         features: payload
-      });
-    },
-    deleteScenarioFeatures(features) {
-      let queryParam = "";
-      features.forEach((feature, index) => {
-        const id = feature.getId();
-        if (id && index !== features - 1) {
-          queryParam += `id=${id}&`;
-        } else if (id) {
-          queryParam += `id=${id}`;
-        }
-      });
-      this.isMapBusy = true;
-      ApiService.delete(`${this.scenarioApiBaseUrl}?${queryParam}`)
-        .then(() => {
+      })
+        .then(response => {
           features.forEach(feature => {
-            this.editLayer.getSource().removeFeature(feature);
+            if (this.editLayer.getSource().hasFeature(feature)) {
+              this.editLayer.getSource().removeFeature(feature);
+            }
+          });
+          const featuresWithId = geojsonToFeature(response.data, {
+            dataProjection: "EPSG:4326",
+            featureProjection: "EPSG:3857"
+          });
+          this.editLayer.getSource().addFeatures(featuresWithId);
+        })
+        .catch(() => {
+          this.toggleSnackbar({
+            type: "error", //success or error
+            message: this.$t(`appBar.edit.canNotUpdateScenarioFeature`),
+            state: true,
+            timeout: 3000
+          });
+          features.forEach(feature => {
+            if (this.editLayer.getSource().hasFeature(feature)) {
+              this.editLayer.getSource().removeFeature(feature);
+            }
           });
         })
         .finally(() => {
           this.isMapBusy = false;
+          this.featuresToCommit = [];
+        });
+    },
+    /**
+     * Delete scenario features
+     */
+    deleteScenarioFeatures(features) {
+      let queryParam = "";
+      if (features.length === 1) {
+        queryParam += `id=${features[0].getId()}`;
+      } else {
+        features.forEach((feature, index) => {
+          const id = feature.getId();
+          if (id && index !== features - 1) {
+            queryParam += `id=${id}&`;
+          } else if (id) {
+            queryParam += `id=${id}`;
+          }
+        });
+      }
+      this.isMapBusy = true;
+      ApiService.delete(`${this.scenarioApiBaseUrl}?${queryParam}`)
+        .then(() => {
+          features.forEach(feature => {
+            if (feature.getId()) {
+              const featureIn = this.editLayer
+                .getSource()
+                .getFeatureById(feature.getId());
+              if (featureIn) {
+                this.editLayer.getSource().removeFeature(featureIn);
+              }
+            }
+          });
+        })
+        .catch(() => {
+          this.toggleSnackbar({
+            type: "error", //success or error
+            message: this.$t(`appBar.edit.canNotDeleteScenarioFeature`),
+            state: true,
+            timeout: 3000
+          });
+        })
+        .finally(() => {
+          this.isMapBusy = false;
+          this.featuresToCommit = [];
         });
     },
     ...mapMutations("map", {

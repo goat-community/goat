@@ -205,7 +205,10 @@
       "uploadYourData": "Upload your data",
       "deleteAllTitle": "Delete All",
       "deleteAllMessage": "Are you sure you want to delete all scenario data.",
-      "confirmDeleteScenario": "Are you sure you want to delete scenario?"
+      "confirmDeleteScenario": "Are you sure you want to delete scenario?",
+      "cantCreateScenarioFeature": "Can't save feature",
+      "canNotUpdateScenarioFeature": "Can't update feature",
+      "canNotDeleteScenarioFeature": "Can't delete feature"
     },
     "settings": {
       "title": "Settings",

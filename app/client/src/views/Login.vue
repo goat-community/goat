@@ -38,7 +38,13 @@
                   {{ errors }}
                 </v-alert>
                 <v-card-text>
-                  <v-form ref="loginForm" v-model="validLogin" class="mx-2">
+                  <v-form
+                    ref="loginForm"
+                    v-model="validLogin"
+                    @keyup.native.enter="submitForm"
+                    @submit.prevent="handleLogin"
+                    class="mx-2"
+                  >
                     <v-text-field
                       v-model="email"
                       outlined
@@ -172,23 +178,25 @@ export default {
   methods: {
     submitForm() {
       this.$refs.loginForm.validate();
-      if (!this.validLogin) {
-        this.loading = false;
-        return;
-      }
-      this.loading = true;
-      const formData = new FormData();
-      formData.append("username", this.email);
-      formData.append("password", this.password);
-      this.$store.dispatch(`auth/${LOGIN}`, formData).then(
-        () => {
+      this.$nextTick(() => {
+        if (!this.validLogin) {
           this.loading = false;
-          return this.$router.push({ name: "main" });
-        },
-        () => {
-          this.loading = false;
+          return;
         }
-      );
+        this.loading = true;
+        const formData = new FormData();
+        formData.append("username", this.email);
+        formData.append("password", this.password);
+        this.$store.dispatch(`auth/${LOGIN}`, formData).then(
+          () => {
+            this.loading = false;
+            return this.$router.push({ name: "main" });
+          },
+          () => {
+            this.loading = false;
+          }
+        );
+      });
     }
   },
   computed: {
