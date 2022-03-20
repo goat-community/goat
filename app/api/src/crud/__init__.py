@@ -10,3 +10,4 @@ from .crud_study_area import study_area
 from .crud_upload import data_upload, upload
 from .crud_user import user
 from .crud_heatmap import heatmap
+from .crud_layer_library import layer_library

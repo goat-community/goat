@@ -9,7 +9,7 @@ from sqlmodel import (
     SQLModel,
     Text,
     UniqueConstraint,
-    DateTime
+    Relationship,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 if TYPE_CHECKING:
@@ -23,7 +23,10 @@ class StyleLibrary(SQLModel, table=True):
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(sa_column=Column(Text(), nullable=False, index=True))
     style: dict = Field(sa_column=Column(JSONB))
-    translations: dict = Field(sa_column=Column(JSONB))
+    translation: dict = Field(sa_column=Column(JSONB))
+    layer_libraries: "LayerLibrary" = Relationship(back_populates="style_library")
+
+
 UniqueConstraint(StyleLibrary.__table__.c.name)
 
 class LayerLibrary(SQLModel, table=True):
@@ -33,6 +36,7 @@ class LayerLibrary(SQLModel, table=True):
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(sa_column=Column(Text(), nullable=False, index=True))
     url: Optional[str] = Field(sa_column=Column(Text))
+    special_attribute: Optional[dict] = Field(sa_column=Column(JSONB))
     access_token: Optional[str] = Field(sa_column=Column(Text))
     type: str = Field(sa_column=Column(Text(), nullable=False, index=True))
     map_attribution: Optional[str] = Field(sa_column=Column(Text))
@@ -63,6 +67,8 @@ class LayerLibrary(SQLModel, table=True):
             nullable=True,
         )
     )
+    style_library: "StyleLibrary" = Relationship(back_populates="layer_libraries")
+
 UniqueConstraint(LayerLibrary.__table__.c.name)
 
 

@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from sqlalchemy import  update
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import and_
@@ -52,6 +52,103 @@ class CRUDDynamicCustomization:
             result.append({group_key: group})
         return result
 
+    def layer_arr_to_dict(self, arr_dict):
+        result = {}
+        for elem in arr_dict:
+            result.update(elem)
+        return result
+        
+    async def build_layer_category_obj(self, db: AsyncSession, layer_name: str):
+        """ "This function will build the layer category obj for a specific layer name"""
+        layer = await crud.layer_library.get_by_multi_keys(
+            db=db, keys={"name": layer_name}, extra_fields=[models.LayerLibrary.style_library]
+        )
+        if layer == []:
+            HTTPException(status_code=400, detail="The layer %s does not exist." % layer_name)
+
+        layer = layer[0]
+        layer_attributes = {}
+        for key in ["url", "type", "map_attribution", "access_token"]:
+            if getattr(layer, key) is not None:
+                layer_attributes[key] = getattr(layer, key)
+
+        if getattr(layer, "style_library") is not None:
+            if getattr(layer.style_library, "style") is not None:
+                layer_attributes["style"] = getattr(layer.style_library, "style")
+                if getattr(layer.style_library, 'translation') is not None:
+                    layer_attributes["translation"] = getattr(layer.style_library, "translation")
+
+        if getattr(layer, "date") is not None and getattr(layer, "source") is not None:
+            source_obj = {}
+            source_obj["date"] = getattr(layer, "date")
+            source_obj["source"] = getattr(layer, "source")
+
+            if getattr(layer, "date_1") is not None and getattr(layer, "source_1") is not None:
+                source_obj["date"] = source_obj["date"] + "," + getattr(layer, "date_1")
+                source_obj["source"] = source_obj["source"] + "," + getattr(layer, "source_1")
+
+            layer_attributes["attributes"] = source_obj
+
+        if getattr(layer, 'type') == "BING" and getattr(layer, "special_attribute") is not None:
+            layer_attributes["imagery_set"] = getattr(layer, "special_attribute")["imagery_set"]
+
+        layer_obj = {layer_name: layer_attributes}
+        if check_dict_schema(LayerCategory, layer_obj) == False:
+            HTTPException(
+                status_code=400, detail="For %s the layer object is not valid." % layer_name
+            )
+
+        return layer_obj
+
+    async def build_layer_group_obj(self, db: AsyncSession, list_groups, layer_group):
+        """This function will build the layer group obj for a specific group"""
+        layers = []
+        group_name = list(layer_group.keys())[0]
+        for category in layer_group[group_name]:
+            category_obj = await self.build_layer_category_obj(db, category)
+            layers.append(category_obj)
+
+        group_obj = {group_name: {"icon": list_groups[group_name], "children": layers}}
+        if check_dict_schema(LayerGroup, group_obj) == False:
+            HTTPException(
+                status_code=400, detail="For %s the group object is not valid." % group_name
+            )
+        return group_obj
+
+    async def merge_layer_groups(
+        self, db: AsyncSession, list_groups, default_groups, study_area_groups
+    ):
+        """This function will merge the default layer groups with the study area layer groups"""
+        default_groups = self.layer_arr_to_dict(default_groups)
+        study_area_groups = self.layer_arr_to_dict(study_area_groups)
+        combined_group_objs = []
+
+        for group in list_groups.keys():
+            
+            if group in default_groups.keys() and group in study_area_groups.keys():
+                merge_groups = default_groups[group] + list(
+                    set(study_area_groups[group]) - set(default_groups[group])
+                )
+            elif group in default_groups.keys():
+                merge_groups = default_groups[group]
+            elif group in study_area_groups.keys():
+                merge_groups = study_area_groups[group]
+            else:
+                continue
+
+            if merge_groups != []:
+                group_obj = await self.build_layer_group_obj(
+                    db, list_groups, {group: merge_groups}
+                )
+                combined_group_objs.append(group_obj)
+            else:
+                continue
+
+        if check_dict_schema(LayerGroups, {"layer_groups": combined_group_objs}) == False:
+            HTTPException(status_code=400, detail="The layer group object is not valid.")
+
+        return combined_group_objs
+
     def update_settings(self, old_setting, insert_settings):
         new_groups = self.arr_dict_to_nested_dict(insert_settings)
 
@@ -79,13 +176,13 @@ class CRUDDynamicCustomization:
     async def get_all_default_poi_categories(self, db: AsyncSession):
         """This will get a list of all default POI categories"""
         poi_categories = []
-        default_setting = await customization.get_by_key(db, key="type", value='poi_groups')
+        default_setting = await customization.get_by_key(db, key="type", value="poi_groups")
         default_setting_obj = default_setting[0]
 
         for group in default_setting_obj.setting["poi_groups"]:
-            for category in group[list(group.keys())[0]]['children']:
+            for category in group[list(group.keys())[0]]["children"]:
                 poi_categories.append(list(category.keys())[0])
-        
+
         return poi_categories
 
     async def build_main_setting_json(self, *, db: AsyncSession, current_user: models.User):
@@ -120,10 +217,12 @@ class CRUDDynamicCustomization:
             )
 
         if "poi_groups" in user_settings and current_user.active_data_upload_ids != []:
-            active_categories = []   
-            for active_id in current_user.active_data_upload_ids:      
+            active_categories = []
+            for active_id in current_user.active_data_upload_ids:
                 active_category = await db.execute(
-                    select(models.PoiUser).where(models.PoiUser.data_upload_id == active_id).limit(1)
+                    select(models.PoiUser)
+                    .where(models.PoiUser.data_upload_id == active_id)
+                    .limit(1)
                 )
                 active_category = active_category.all()
                 active_categories.append(active_category[0][0].category)
@@ -134,30 +233,30 @@ class CRUDDynamicCustomization:
                     category_name = next(iter(poi_category))
                     if category_name not in active_categories:
                         active_categories.append(category_id)
-                        user_settings['poi_groups'][group_id][group_name]["children"].pop(category_id)
+                        user_settings["poi_groups"][group_id][group_name]["children"].pop(
+                            category_id
+                        )
                         break
-            
+
         if "poi_groups" in user_settings:
             combined_groups = self.update_settings(combined_groups, user_settings["poi_groups"])
-         
-        combined_layer_groups = self.arr_dict_to_nested_dict(default_settings["layer_groups"])
-        # if "layer_groups" in study_area_settings:
-        #     combined_layer_groups = self.update_settings(
-        #         combined_layer_groups, study_area_settings["layer_groups"]
-        #     )
 
-        # if "layer_groups" in user_settings:
-        #     combined_layer_groups = self.update_settings(
-        #         combined_layer_groups, user_settings["layer_groups"]
-        #     )
+        # Combine settings for layers
+        combined_layer_groups = await self.merge_layer_groups(
+            db,
+            default_settings["app_ui"]["layer_tree"]["group_icons"],
+            default_settings["new_layer_groups"],
+            study_area_settings["layer_groups"],
+        )
 
         combined_settings["poi_groups"] = self.nested_dict_to_arr_dict(combined_groups)
-        combined_settings["layer_groups"] = self.nested_dict_to_arr_dict(combined_layer_groups)
+        combined_settings["layer_groups"] = combined_layer_groups
 
         # Add remaining settings
         # Delete poi_groups and layer_groups from default_settings
         del default_settings["poi_groups"]
         del default_settings["layer_groups"]
+
         # Loop through default_settings and merge settings
         for setting_key in default_settings:
             combined_settings.update({setting_key: default_settings[setting_key]})
@@ -166,7 +265,7 @@ class CRUDDynamicCustomization:
 
             if setting_key in study_area_settings:
                 combined_settings.update({setting_key: study_area_settings[setting_key]})
-        
+
         return combined_settings
 
     async def insert_user_setting(
@@ -175,7 +274,6 @@ class CRUDDynamicCustomization:
         db: AsyncSession,
         current_user: models.User,
         default_setting_obj,
-        study_area_setting_obj,
         insert_settings,
         setting_type
     ):
@@ -225,7 +323,6 @@ class CRUDDynamicCustomization:
         db: AsyncSession,
         current_user: models.User,
         default_setting_obj,
-        study_area_setting_obj,
         insert_settings,
         user_customizations,
         setting_type
@@ -300,115 +397,47 @@ class CRUDDynamicCustomization:
             else:
                 raise HTTPException(status_code=400, detail="Failed updating POIs settings.")
 
-        elif setting_type == "layer_groups":
-            layer_setting_to_update = self.arr_dict_to_nested_dict(user_settings["layer_groups"])
-            update_layer_category = list(insert_settings.keys())[0]
-            update_status = False
-
-            # Update existing layer 
-            for layer_group in layer_setting_to_update:
-                if (
-                    layer_setting_to_update.get(layer_group)
-                    .get("children")
-                    .get(update_layer_category)
-                    != None
-                ):
-                    layer_setting_to_update[layer_group]["children"][update_layer_category][
-                        "style"
-                    ] = insert_settings[update_layer_category]
-                    update_status = True
-                    break
-
-            # Add new layer to existing layer object
-            if update_status == False:
-                layer_default_setting = self.arr_dict_to_nested_dict(
-                    study_area_setting_obj.setting["layer_groups"]
-                )
-                for layer_group in layer_default_setting:
-                    # If layer group is not yet in user customization
-                    if (
-                        layer_default_setting.get(layer_group)
-                        .get("children")
-                        .get(update_layer_category)
-                        != None
-                        and 
-                        layer_group not in layer_setting_to_update
-                    ):
-
-                        layer_to_insert = layer_default_setting[layer_group]["children"][update_layer_category]
-                        layer_group_to_insert = {layer_group:layer_default_setting[layer_group]}
-                        layer_group_to_insert[layer_group]["children"].clear()
-                        layer_group_to_insert[layer_group]["children"].update(
-                            {update_layer_category: layer_to_insert}
-                        )
-
-                        layer_group_to_insert[layer_group]["children"][update_layer_category][
-                            "style"
-                        ] = insert_settings[update_layer_category]
-
-                        layer_setting_to_update.update(layer_group_to_insert)
-                        update_status = True
-                        break
-                    
-                    # If layer group is already in user customization
-                    elif(
-                        layer_default_setting.get(layer_group)
-                        .get("children")
-                        .get(update_layer_category)
-                        != None
-                        and 
-                        layer_group in layer_setting_to_update
-                    ):
-                        layer_to_insert = layer_default_setting[layer_group]["children"][update_layer_category]
-                        layer_setting_to_update[layer_group]["children"][update_layer_category] = layer_to_insert
-                        layer_setting_to_update[layer_group]["children"][update_layer_category]["style"] = insert_settings[update_layer_category]
-                        update_status = True
-                        break 
-
-            layer_setting_to_update = {
-                "layer_groups": self.nested_dict_to_arr_dict(layer_setting_to_update)
-            }
-
-            if check_dict_schema(LayerGroups, layer_setting_to_update) == True:
-                await db.execute(
-                    update(models.UserCustomization)
-                    .where(models.UserCustomization.id == setting_obj.id)
-                    .values(setting=layer_setting_to_update)
-                )
-            else:
-                raise HTTPException(status_code=400, detail="Failed updating layer settings.")
-
     async def delete_user_settings(
-        self, *, db: AsyncSession, current_user: models.User, user_customizations, setting_to_delete, setting_type
+        self,
+        *,
+        db: AsyncSession,
+        current_user: models.User,
+        user_customizations,
+        setting_to_delete,
+        setting_type
     ):
         """This function deletes user settings. It can also be used to reset to original settings."""
-        
 
-        settings_to_update = self.arr_dict_to_nested_dict(user_customizations[0].setting[setting_type])
+        settings_to_update = self.arr_dict_to_nested_dict(
+            user_customizations[0].setting[setting_type]
+        )
 
         for group in settings_to_update:
             for category in settings_to_update[group]["children"]:
                 if category == setting_to_delete:
                     settings_to_update[group]["children"].pop(category)
                     break
-        
-        if settings_to_update[group]['children'] == {}:
+
+        if settings_to_update[group]["children"] == {}:
             del settings_to_update[group]
 
-        settings_to_update = {
-            setting_type: self.nested_dict_to_arr_dict(settings_to_update)
-        }
-            
-        if check_dict_schema(LayerGroups, settings_to_update) == True or check_dict_schema(PoiGroups, settings_to_update) == True:
+        settings_to_update = {setting_type: self.nested_dict_to_arr_dict(settings_to_update)}
+
+        if (
+            check_dict_schema(LayerGroups, settings_to_update) == True
+            or check_dict_schema(PoiGroups, settings_to_update) == True
+        ):
             await db.execute(
-                    update(models.UserCustomization)
-                    .where(models.UserCustomization.id == user_customizations[0].id)
-                    .values(setting=settings_to_update)
-                )
+                update(models.UserCustomization)
+                .where(models.UserCustomization.id == user_customizations[0].id)
+                .values(setting=settings_to_update)
+            )
         else:
             raise HTTPException(status_code=400, detail="Failed deleting user settings.")
-    
-    async def get_user_settings(self, *, db: AsyncSession, current_user: models.User, setting_type):
+
+    async def get_user_settings(
+        self, *, db: AsyncSession, current_user: models.User, setting_type
+    ):
         """Get user settings for specific user and its active study area"""
         # Get relevant user customization
         query_user_customization = (
@@ -428,61 +457,69 @@ class CRUDDynamicCustomization:
         return user_customizations.first()
 
     async def handle_user_setting_modification(
-        self, *, db: AsyncSession, current_user: models.User, changeset, setting_type, modification_type
+        self,
+        *,
+        db: AsyncSession,
+        current_user: models.User,
+        changeset,
+        setting_type,
+        modification_type
     ):
-        """"This function handles insert or updates of settings for POIs and Layers."""
+        """ "This function handles insert or updates of settings for POIs and Layers."""
 
         setting_type = mapping_setting_type[setting_type]
-        user_customizations = await self.get_user_settings(db=db, current_user=current_user, setting_type=setting_type)
+        user_customizations = await self.get_user_settings(
+            db=db, current_user=current_user, setting_type=setting_type
+        )
 
         default_setting = await customization.get_by_key(db, key="type", value=setting_type)
         default_setting_obj = default_setting[0]
 
-        study_area_setting = await crud.study_area.get_by_key(db, key="id", value=current_user.active_study_area_id)
+        study_area_setting = await crud.study_area.get_by_key(
+            db, key="id", value=current_user.active_study_area_id
+        )
         study_area_setting_obj = study_area_setting[0]
 
         # If user customization exists, update it
-        if modification_type == 'insert' and user_customizations is not None:
+        if modification_type == "insert" and user_customizations is not None:
             await self.update_user_setting(
                 db=db,
                 current_user=current_user,
                 default_setting_obj=default_setting_obj,
-                study_area_setting_obj=study_area_setting_obj,  
                 insert_settings=changeset,
                 user_customizations=user_customizations,
                 setting_type=setting_type,
             )
             await db.commit()
-        elif modification_type == 'insert' and user_customizations is None:
+        elif modification_type == "insert" and user_customizations is None:
             await self.insert_user_setting(
                 db=db,
                 current_user=current_user,
                 default_setting_obj=default_setting_obj,
-                study_area_setting_obj=study_area_setting_obj,
                 insert_settings=changeset,
                 setting_type=setting_type,
             )
             await db.commit()
-        elif modification_type == 'delete' and user_customizations is not None:
+        elif modification_type == "delete" and user_customizations is not None:
             await self.delete_user_settings(
                 db=db,
                 current_user=current_user,
                 user_customizations=user_customizations,
                 setting_to_delete=changeset,
-                setting_type=setting_type
+                setting_type=setting_type,
             )
             await db.commit()
         else:
             raise HTTPException(status_code=400, detail="Invalid modification type.")
 
-#from src.db.session import async_session
 
-#test_user = models.User(id=4, active_study_area_id=1)
+# from src.db.session import async_session
+
+# test_user = models.User(id=4, active_study_area_id=1)
 
 # poi_category = {"nursery": {"icon": "fa-solid fa-dumbbell", "color": ["TestTest"]}}
 
 # poi_category = {"This is new": {"icon": "fa-solid fa-dumbbell", "color": ["New Color"]}}
-
 
 
 # layer_style = {
