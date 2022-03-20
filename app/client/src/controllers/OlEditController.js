@@ -236,7 +236,6 @@ export default class OlEditController extends OlBaseController {
    */
   removeInteraction() {
     const me = this;
-    me.featuresToCommit = [];
     me.currentInteraction = "";
     me.removeSnapGuideInteraction();
     if (me.edit) {

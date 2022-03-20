@@ -9,11 +9,8 @@ import OlShadow from "../utils/Shadow";
 
 import poisAoisStore from "../store/modules/poisaois";
 import appStore from "../store/modules/app";
-import mapStore from "../store/modules/map";
 import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
 import { getIconUnicode } from "../utils/Helpers";
-import { getArea } from "ol/sphere.js";
-import i18n from "../../src/plugins/i18n";
 
 OlFontSymbol.addDefs(
   {
@@ -238,7 +235,7 @@ export function getIsochroneStyle() {
   return styleFunction;
 }
 
-export function defaultStyle(feature, resolution) {
+export function defaultStyle(feature) {
   const styles = [];
   const geomType = feature.getGeometry().getType();
   const strokeOpt = {
@@ -252,88 +249,6 @@ export function defaultStyle(feature, resolution) {
       ? "rgba(255, 0, 0, 0.7)"
       : [0, 0, 0, 0]
   };
-  if (feature.get("layerName") === "building") {
-    const properties = feature.getProperties();
-    strokeOpt.lineDash = properties["status"] == 1 ? [0, 0] : [10, 10];
-    strokeOpt.width = 4;
-
-    let isCompleted = true;
-    let hasEntranceFeature = false;
-    if (
-      mapStore.state.reqFields &&
-      mapStore.state.selectedEditLayer.get("name") === "building"
-    ) {
-      mapStore.state.reqFields.forEach(field => {
-        if (!properties[field]) {
-          isCompleted = false;
-        }
-      });
-    }
-    if (mapStore.state.bldEntranceLayer) {
-      const extent = feature.getGeometry().getExtent();
-      const entrancesInExtent = mapStore.state.bldEntranceLayer
-        .getSource()
-        .getFeaturesInExtent(extent);
-
-      let countEntrances = 0;
-      entrancesInExtent.forEach(entrance => {
-        const buildingId =
-          feature.get("id") || feature.get("id") || feature.getId();
-        if (entrance.get("building_modified_id") === buildingId) {
-          countEntrances += 1;
-        }
-      });
-      countEntrances === 0
-        ? (hasEntranceFeature = false)
-        : (hasEntranceFeature = true);
-    }
-
-    if (isCompleted === true && hasEntranceFeature === true) {
-      strokeOpt.color = "rgb(0,128,0, 0.7)";
-      fillOpt.color = "rgb(0,128,0, 0.7)";
-    }
-    const area = getArea(feature.getGeometry());
-    const building_levels = feature.get("building_levels") || 0;
-    const population = feature.get("population");
-    const area_label = i18n.t("dynamicFields.attributes.buildings.labels.area");
-    const building_levels_label = i18n.t(
-      "dynamicFields.attributes.buildings.labels.building_levels"
-    );
-    const population_label = i18n.t(
-      "dynamicFields.attributes.buildings.labels.population"
-    );
-    const floor_area_label = i18n.t(
-      "dynamicFields.attributes.buildings.labels.gross_floor_area"
-    );
-    // Add label for building.
-    let fontSize = 11;
-
-    if (
-      resolution < 0.4 &&
-      mapStore.state.editLayer &&
-      mapStore.state.editLayer.get("showLabels") === 0
-    ) {
-      const style = new OlStyle({
-        text: new OlText({
-          text: `${area_label}: ${area.toFixed(
-            0
-          )} ㎡\n${building_levels_label}: ${building_levels}
-          ${floor_area_label}: ${parseInt(area * building_levels)} ㎡
-          ${population_label}: ${parseInt(population || 0)}`,
-          overflow: true,
-          font: `${fontSize}px Calibri, sans-serif`,
-          fill: new OlFill({
-            color: "black"
-          }),
-          backgroundFill: new OlFill({
-            color: "orange"
-          }),
-          padding: [1, 1, 1, 1]
-        })
-      });
-      styles.push(style);
-    }
-  }
   const style = new OlStyle({
     fill: new OlFill(fillOpt),
     stroke: new OlStroke(strokeOpt),
@@ -366,29 +281,8 @@ export function uploadedFeaturesStyle() {
   });
   return [style];
 }
-export function waysModifiedStyle() {
-  const style = new OlStyle({
-    fill: new OlFill({
-      color: [0, 0, 0, 0]
-    }),
-    stroke: new OlStroke({
-      color: "#FF0000",
-      width: 3
-    }),
-    image: new OlCircle({
-      radius: 7,
-      fill: new OlFill({
-        color: "#FF0000"
-      })
-    })
-  });
-  return [style];
-}
 export function waysNewRoadStyle() {
   const style = new OlStyle({
-    fill: new OlFill({
-      color: [0, 0, 0, 0]
-    }),
     stroke: new OlStroke({
       color: "#6495ED",
       width: 4
@@ -399,9 +293,6 @@ export function waysNewRoadStyle() {
 
 export function waysNewBridgeStyle() {
   const style = new OlStyle({
-    fill: new OlFill({
-      color: [0, 0, 0, 0]
-    }),
     stroke: new OlStroke({
       color: "#FFA500",
       width: 4
@@ -409,34 +300,54 @@ export function waysNewBridgeStyle() {
   });
   return [style];
 }
+
+export function buildingStyleWithPopulation() {
+  return new OlStyle({
+    fill: new OlFill({
+      color: "rgb(0,128,0, 0.7)"
+    })
+  });
+}
+
+export function deletedStyle() {
+  const style = new OlStyle({
+    stroke: new OlStroke({
+      color: "#FF0000",
+      width: 4,
+      lineDash: [5, 5]
+    })
+  });
+  return [style];
+}
+
 export function editStyleFn() {
   const styleFunction = (feature, resolution) => {
     const props = feature.getProperties();
-    // Polygon (ex. building) style
-    if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
-      return defaultStyle(feature, resolution);
+    // Deleted Style
+    if (props.edit_type === "d") {
+      return deletedStyle();
     }
 
-    // Linestring (ex. ways ) style
-    if (
-      (props.hasOwnProperty("way_type") && props["way_id"] == null) ||
-      Object.keys(props).length == 1
-    ) {
-      //Distinguish Roads from Bridge features
+    // New road Style
+    if (feature.get("layerName") === "way") {
       if (props.way_type == "bridge") {
         return waysNewBridgeStyle();
-      } else {
+      } else if (props.way_type == "road") {
         return waysNewRoadStyle();
       }
-    } else if (props.hasOwnProperty("way_type")) {
-      return waysModifiedStyle(); //Feature are modified
-    } else if (props["layerName"] === "population") {
-      return bldEntrancePointsStyle(feature, resolution);
-    } else {
-      return defaultStyle(feature, resolution); //Features are from original table
     }
-  };
+    if (props.layerName === "building" && props.hasOwnProperty("edit_type")) {
+      if (props.building_type === "residential" || props.population) {
+        return buildingStyleWithPopulation();
+      }
+    }
 
+    if (feature.get("layerName") === "population") {
+      return bldEntrancePointsStyle(feature, resolution);
+    }
+
+    return defaultStyle(feature);
+  };
   return styleFunction;
 }
 

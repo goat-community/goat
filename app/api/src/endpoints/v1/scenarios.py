@@ -201,7 +201,7 @@ async def delete_scenario_features(
     return result
 
 
-@router.delete("/{scenario_id}/{layer_name}/features/{feature_id}", response_model=Msg)
+@router.delete("/{scenario_id}/{layer_name}/features", response_model=Msg)
 async def delete_selected_scenario_feature(
     *,
     db: AsyncSession = Depends(deps.get_db),

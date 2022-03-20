@@ -10,7 +10,7 @@ from src.endpoints import deps
 router = APIRouter()
 
 
-@router.get("/", response_model=List[models.Role])
+@router.get("", response_model=List[models.Role])
 async def read_roles(
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),

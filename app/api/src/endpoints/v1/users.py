@@ -17,7 +17,7 @@ from src.utils import send_new_account_email, to_feature_collection
 router = APIRouter()
 
 
-@router.get("/", response_model=List[models.User], response_model_exclude={"hashed_password"})
+@router.get("", response_model=List[models.User], response_model_exclude={"hashed_password"})
 async def read_users(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
@@ -82,7 +82,7 @@ async def read_user_study_areas(
     return study_area_list
 
 
-@router.post("/", response_model=models.User, response_model_exclude={"hashed_password"})
+@router.post("", response_model=models.User, response_model_exclude={"hashed_password"})
 async def create_user(
     *,
     db: AsyncSession = Depends(deps.get_db),

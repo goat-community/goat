@@ -102,7 +102,7 @@ class ScenarioFeatureUpdateBase(BaseModel):
 class ScenarioWaysModifiedCreate(ScenarioFeatureCreateBase):
     way_id: Optional[int] = None  # specified if the feature is an existing way from edge table
     surface: Optional[WayModifiedSurfaceEnum] = None
-    way_type: Optional[WayModifiedTypeEnum] = "road"
+    way_type: Optional[WayModifiedTypeEnum] = None
     wheelchair: Optional[WayModifiedWheelchairEnum] = None
     class_id: Optional[int] = 100  # specified if the feature is an existing way from edge table
     edit_type: ScenarioEditType
