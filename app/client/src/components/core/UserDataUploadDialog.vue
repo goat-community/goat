@@ -234,6 +234,9 @@ export default {
             if (!error.response) {
               this.errorMessage = "An error occurred while uploading file";
             }
+            if (error.response.data === "Internal Server Error") {
+              this.errorMessage = "An error occurred while uploading file";
+            }
             if (error.response.data.msg) {
               this.errorMessage = error.response.data.msg;
             }

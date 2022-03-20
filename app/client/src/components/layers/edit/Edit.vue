@@ -176,21 +176,6 @@
           </v-select>
         </div>
 
-        <v-alert
-          border="left"
-          colored-border
-          class="mb-2 mt-0 mx-0 elevation-2"
-          icon="warning"
-          color="warning"
-          dense
-          v-if="
-            selectedLayer &&
-              selectedLayer['displayInLayerList'] &&
-              selectedLayer['name'] === 'poi'
-          "
-        >
-          <span v-html="$t('appBar.edit.activateLayerToDrawScenario')"></span>
-        </v-alert>
         <template v-if="selectedLayer && schema[layerName] && activeScenario">
           <v-divider></v-divider>
           <!-- ==== <EDIT> ====-->
@@ -408,10 +393,11 @@
           </div>
           <v-divider></v-divider>
           <!-- ==== </EDIT> ==== -->
+        </template>
 
+        <template v-if="activeScenario">
           <!-- ==== <DATA TABLE> ====-->
           <v-subheader
-            v-show="selectedLayer !== null"
             class="clickable ml-0 pl-0"
             @click="dataTableElVisible = !dataTableElVisible"
           >
@@ -431,11 +417,7 @@
           </v-subheader>
           <div class="ml-2" v-if="dataTableElVisible">
             <v-expand-transition>
-              <v-flex
-                v-if="dataTableElVisible && selectedLayer !== null"
-                xs12
-                class="mt-1 pt-0 mb-0"
-              >
+              <v-flex xs12 class="mt-1 pt-0 mb-0">
                 <v-data-table
                   :headers="headers"
                   :loading="isTableLoading"
@@ -514,7 +496,7 @@
 
         <v-hover v-slot="{ hover }">
           <v-btn
-            v-show="selectedLayer != null"
+            v-show="selectedLayer"
             class="white--text"
             :color="hover ? 'error' : 'grey'"
             outlined
@@ -562,7 +544,7 @@
         >
           <v-form ref="edit-form" v-model="formValid">
             <v-jsonschema-form
-              v-if="schema[layerName]"
+              v-if="schema[layerName] && popup && popup.isVisible"
               :schema="schema[layerName]"
               :model="dataObject"
               :options="options"
@@ -690,9 +672,15 @@ export default {
   }),
   watch: {
     activeScenario() {
-      this.fetchScenarioFeatures();
+      // Fetch all features from the scenario
+      if (this.selectedLayer) {
+        this.fetchScenarioLayerFeatures(this.selectedLayer["name"]);
+      } else {
+        this.fetchScenarioFeatures();
+      }
       if (!this.activeScenario) {
         this.clearAll();
+        this.selectedLayer = null;
       }
     },
     selectedLayer(value) {
@@ -700,6 +688,9 @@ export default {
         this.olEditCtrl.selectedLayer = value;
         this.originIdName = this.original_id;
         this.stop();
+        this.clearAll();
+        // Fetch features for the selected layer
+        this.fetchScenarioLayerFeatures(this.selectedLayer["name"]);
       }
     },
     toggleSelection: {
@@ -857,7 +848,7 @@ export default {
      */
     fetchScenarioFeatures() {
       const requests = [];
-      this.editLayer.getSource().clear();
+      this.clearAll();
       if (!this.activeScenario) return;
       //TODO: Also refetch pois
       const layers_ = ["poi", "way", "building", "population"]; // Order is important !!!!!!
@@ -893,7 +884,56 @@ export default {
           this.isMapBusy = false;
         });
     },
+    /**
+     * Fetch scenario features for a layer
+     */
+    fetchScenarioLayerFeatures(layer) {
+      const requests = [];
+      this.clearAll();
+      if (!this.activeScenario) return;
 
+      const modifiedFeaturesPromise = ApiService.get_(
+        `/scenarios/${this.activeScenario}/${layer}_modified/features?return_type=geojson`
+      );
+      requests.push(modifiedFeaturesPromise);
+      if (layer === "building") {
+        const populationModifiedFeaturePromise = ApiService.get_(
+          `/scenarios/${this.activeScenario}/population_modified/features?return_type=geojson`
+        );
+        requests.push(populationModifiedFeaturePromise);
+      }
+      this.isMapBusy = true;
+      axios
+        .all(requests)
+        .then(
+          axios.spread((modifiedLayer, population) => {
+            [modifiedLayer, population].forEach((layerData, index) => {
+              if (layerData) {
+                const features = geojsonToFeature(layerData.data, {
+                  dataProjection: "EPSG:4326",
+                  featureProjection: "EPSG:3857"
+                });
+
+                if (index === 1 && layer === "building") {
+                  layer = "population";
+                }
+                features.forEach(feature => {
+                  feature.setId(`${layer}_${feature.getId()}`);
+                  feature.set("layerName", layer);
+                });
+                this.editLayer.getSource().addFeatures(features);
+              }
+            });
+            this.onEditSourceChange();
+          })
+        )
+        .catch(error => {
+          throw new Error(error);
+        })
+        .finally(() => {
+          this.isMapBusy = false;
+        });
+    },
     /**
      * Toggle the select interaction
      */
@@ -1043,9 +1083,11 @@ export default {
       this.highlightLayer.getSource().clear();
       if (feature) {
         const props = feature.getProperties();
-        for (const attr in this.dataObject) {
-          this.dataObject[attr] = attr in props ? props[attr] : null;
-        }
+        this.$nextTick(() => {
+          for (const attr in this.dataObject) {
+            this.dataObject[attr] = attr in props ? props[attr] : null;
+          }
+        });
         const geometry = feature.getGeometry();
         let popupCoordinate = geometry.getCoordinates();
         while (popupCoordinate && Array.isArray(popupCoordinate[0])) {
@@ -1430,24 +1472,22 @@ export default {
           this.highlightLayer.getSource().removeFeature(feature);
         }, 300);
       } else if (type === "delete") {
-        this.olEditCtrl.openDeletePopup(feature);
+        this.openDeletePopup(feature);
       } else if (type === "restore") {
-        const clonedFeature = feature.clone();
-        clonedFeature.setId(feature.getId());
-        clonedFeature.set("deletedId", feature.getId());
         this.map.getView().fit(feature.getGeometry().getExtent(), {
           padding: [10, 10, 10, 10]
         });
+        this.deleteScenarioFeatures([feature]);
       }
     },
     isRestoreBtnVisible(item) {
-      if (item.type !== "deleted") {
+      if (item.type !== "deleted" || !this.selectedLayer) {
         return false;
       }
       return item.isDeleted;
     },
     isDeleteBtnVisible(item) {
-      if (!item.originalId && item.isDeleted) {
+      if ((!item.originalId && item.isDeleted) || !this.selectedLayer) {
         return false;
       }
       return !item.isDeleted;
@@ -1458,11 +1498,15 @@ export default {
      * so the next time the popup is opened the form is clean.
      */
     clearDataObject() {
-      if (this.dataObject) {
-        for (const key of Object.keys(this.dataObject)) {
-          this.dataObject[key] = null;
+      if (!this.layerName) return;
+      const properties = this.schema[this.layerName].properties;
+      const dataObject = {};
+      Object.keys(properties).forEach(key => {
+        if (properties[key] && properties[key]["x-display"] !== "hidden") {
+          dataObject[key] = null;
+          this.dataObject = dataObject;
         }
-      }
+      });
     },
 
     /**
@@ -1516,7 +1560,7 @@ export default {
           }
         });
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
-
+      this.clearDataObject();
       this.featuresToCommit = [];
     },
 
@@ -1572,8 +1616,10 @@ export default {
                     state: true,
                     timeout: 4000
                   });
-                  //2- Clear openlayers scenario features
+                  // Clear openlayers scenario features
                   this.clearAll();
+                  // Refetch scenario data
+                  this.fetchScenarioFeatures();
                 }
               })
               .catch(() => {
@@ -1696,6 +1742,7 @@ export default {
           featureOut.set(this.original_id, this.featuresToCommit[0].getId());
         }
         this.createScenarioFeatures([featureOut]);
+        this.editLayer.getSource().removeFeature(this.featuresToCommit[0]);
       } else if (type === "delete" && !properties.hasOwnProperty("edit_type")) {
         // Deleted an origin feature (has to be created as deleted feature)
         if (this.featuresToCommit[0].getId()) {
@@ -1703,11 +1750,19 @@ export default {
         }
         featureOut.set("edit_type", "d");
         this.createScenarioFeatures([featureOut]);
+        this.editLayer.getSource().removeFeature(this.featuresToCommit[0]);
       } else if (type === "delete") {
         // Deleted a feature which is already modified. Delete from "_modified" layer
         this.deleteScenarioFeatures([featureOut]);
       }
-      this.closePopup();
+      if (this.olEditCtrl.popupOverlay) {
+        this.olEditCtrl.popupOverlay.setPosition(undefined);
+        this.popup.isVisible = false;
+      }
+      if (this.olEditCtrl.edit) {
+        this.olEditCtrl.edit.setActive(true);
+      }
+      this.highlightLayer.getSource().clear();
     },
 
     /**
@@ -1837,10 +1892,10 @@ export default {
     deleteScenarioFeatures(features) {
       let queryParam = "";
       if (features.length === 1) {
-        queryParam += `id=${features[0].getId()}`;
+        queryParam += `id=${parseInt(features[0].getId().split("_")[1])}`;
       } else {
         features.forEach((feature, index) => {
-          const id = feature.getId();
+          const id = parseInt(feature.getId().split("_")[1]);
           if (id && index !== features - 1) {
             queryParam += `id=${id}&`;
           } else if (id) {
@@ -1857,7 +1912,13 @@ export default {
                 .getSource()
                 .getFeatureById(feature.getId());
               if (featureIn) {
-                this.editLayer.getSource().removeFeature(featureIn);
+                const props = featureIn.getProperties();
+                if (props[this.original_id]) {
+                  featureIn.unset(this.original_id);
+                  featureIn.unset("edit_type");
+                } else {
+                  this.editLayer.getSource().removeFeature(featureIn);
+                }
               }
             }
           });
