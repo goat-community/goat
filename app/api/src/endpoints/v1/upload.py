@@ -13,9 +13,10 @@ from src.schemas.upload import request_examples
 from typing import IO
 
 from tempfile import NamedTemporaryFile
-import shutil
+import shutil, uuid, os
 from fastapi import Header, Depends, UploadFile, HTTPException
 from starlette import status
+from src.utils import delete_file
 
 router = APIRouter()
 
@@ -65,10 +66,14 @@ async def upload_custom_pois(
     poi_category=Body(..., example=request_examples["poi_category"]),
     current_user: models.User = Depends(deps.get_current_active_user)
 ) -> Any:
-
+    
     """Handle uploaded custom pois."""
-
+    defined_uuid = uuid.uuid4().hex
+    file_name = defined_uuid + os.path.splitext(file.filename)[1]
+    file_dir = f"/tmp/{file_name}"
+    
     real_file_size = 0
+    temp: IO = NamedTemporaryFile(delete=False)
     for chunk in file.file:
         real_file_size += len(chunk)
         if real_file_size > MaxUploadFileSize.max_upload_poi_file_size.value:
@@ -76,9 +81,14 @@ async def upload_custom_pois(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, 
                 detail="The uploaded file size is to big the largest allowd size is %s MB." % round(MaxUploadFileSize.max_upload_poi_file_size/1024.0**2,2)
             )
+        temp.write(chunk)
+    temp.close()
 
+    # Write file to file system
+
+    shutil.move(temp.name, file_dir)
     await crud.upload.upload_custom_pois(
-        db=db, file=file, poi_category=poi_category, current_user=current_user
+        db=db, poi_category=poi_category, file=file, file_dir=file_dir, file_name=file_name, current_user=current_user
     )
 
     updated_settings = await dynamic_customization.build_main_setting_json(

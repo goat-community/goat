@@ -44,8 +44,8 @@ request_examples = {
         "organization_id": 1,
         "active_data_upload_ids": [],
         "is_active": True,
-        "storage": 500000,
-        "limit_scenarios": 10,
+        "storage": 512000,
+        "limit_scenarios": 50,
     },
     "update": {
         "name": "Kevin",
