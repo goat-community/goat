@@ -98,7 +98,8 @@ async def delete_scenario(
         db, keys={"id": scenario_id, "user_id": current_user.id}
     )
     if len(scenario) > 0:
-        result = await crud.scenario.remove(db, id=scenario_id)
+        await db.execute("DELETE FROM customer.scenario WHERE id=:scenario_id", {"scenario_id": scenario_id})
+        await db.commit()
         return {"msg": "Scenario deleted."}
     else:
         raise HTTPException(status_code=400, detail="Scenario not found")
