@@ -25,7 +25,8 @@ const ApiService = {
   },
 
   get(resource, slug = "", config = {}) {
-    return Vue.axios.get(`${resource}/${slug}`, config).catch(error => {
+    let slug_url = slug ? `/${slug}` : "";
+    return Vue.axios.get(`${resource}${slug_url}`, config).catch(error => {
       throw new Error(`[GOAT] ApiService ${error}`);
     });
   },
@@ -41,7 +42,8 @@ const ApiService = {
   },
 
   update(resource, slug, params) {
-    return Vue.axios.put(`${resource}/${slug}`, params);
+    let slug_url = slug ? `/${slug}` : "";
+    return Vue.axios.put(`${resource}${slug_url}`, params);
   },
   put(resource, params) {
     return Vue.axios.put(`${resource}`, params);

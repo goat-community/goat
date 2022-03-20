@@ -16,6 +16,7 @@
                 <v-carousel-item
                   v-for="(item, i) in carousels"
                   :key="i"
+                  :src="item"
                 ></v-carousel-item>
               </v-carousel>
             </v-col>

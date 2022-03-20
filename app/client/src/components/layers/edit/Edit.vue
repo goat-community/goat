@@ -565,14 +565,7 @@
         <v-icon>close</v-icon>
       </v-btn>
       <template v-slot:close>
-        <v-btn
-          @click="
-            popup.selectedInteraction === 'modifyAttributes'
-              ? cancelAttributeEdit()
-              : cancel()
-          "
-          icon
-        >
+        <v-btn @click="closePopup()" icon>
           <v-icon>close</v-icon>
         </v-btn>
       </template>
@@ -600,7 +593,7 @@
           <v-btn color="primary darken-1" @click="ok('delete')" text>{{
             $t("buttonLabels.yes")
           }}</v-btn>
-          <v-btn color="grey" text @click="cancel()">{{
+          <v-btn color="grey" text @click="closePopup()">{{
             $t("buttonLabels.cancel")
           }}</v-btn>
         </template>
@@ -616,16 +609,9 @@
             text
             >{{ $t("buttonLabels.save") }}</v-btn
           >
-          <v-btn
-            color="grey"
-            text
-            @click="
-              popup.selectedInteraction === 'modifyAttributes'
-                ? cancelAttributeEdit()
-                : cancel()
-            "
-            >{{ $t("buttonLabels.cancel") }}</v-btn
-          >
+          <v-btn color="grey" text @click="closePopup()">{{
+            $t("buttonLabels.cancel")
+          }}</v-btn>
         </template>
       </template>
     </overlay-popup>
@@ -641,7 +627,7 @@ import { Isochrones } from "../../../mixins/Isochrones";
 import { mapFields } from "vuex-map-fields";
 import { mapFeatureTypeProps } from "../../../utils/Layer";
 import OlSelectController from "../../../controllers/OlSelectController";
-import editLayerHelper from "../../../controllers/OlEditLayerHelper";
+import OlEditController from "../../../controllers/OlEditController";
 import {
   getEditStyle,
   getFeatureHighlightStyle
@@ -659,6 +645,7 @@ import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
+import VectorImageLayer from "ol/layer/VectorImage";
 import { GET_SCENARIOS } from "../../../store/actions.type";
 
 export default {
@@ -713,6 +700,7 @@ export default {
     scenarioSpeedDialFab: false,
     // -------------------------
     // ------------------------
+    olEditCtrl: null,
     olSelectCtrl: null,
     editLayer: null,
     highlightLayer: null,
@@ -723,6 +711,12 @@ export default {
       this.fetchScenarioFeatures();
       if (!this.activeScenario) {
         this.clearAll();
+      }
+    },
+    selectedLayer(value) {
+      if (this.olEditCtrl && value) {
+        this.olEditCtrl.selectedLayer = value;
+        this.originIdName = this.original_id;
       }
     },
     toggleSelection: {
@@ -766,11 +760,15 @@ export default {
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
     onMapBound() {
-      //Initialize ol select controller.
       this.olSelectCtrl = new OlSelectController(this.map);
       this.olSelectCtrl.createSelectionLayer();
-      //Initialize component layers
+      // Initialize ol edit controller.
+      this.olEditCtrl = new OlEditController(this.map);
+      //Initialize ol select controller.
       this.createLayers();
+      this.olEditCtrl.highlightSource = this.highlightLayer.getSource();
+      this.olEditCtrl.popup = this.popup;
+      //Initialize component layers
       // this.setUpCtxMenu();
       this.toggleFeatureLabelsInteraction(this.toggleFeatureLabels);
     },
@@ -780,7 +778,7 @@ export default {
      */
     createLayers() {
       // Edit layer
-      const editLayer = new VectorLayer({
+      const editLayer = new VectorImageLayer({
         name: "Edit Layer",
         displayInLayerList: false,
         source: new VectorSource({ wrapX: false }),
@@ -793,7 +791,8 @@ export default {
       editLayer.getSource().on("change", this.onEditSourceChange);
       this.map.addLayer(editLayer);
       this.editLayer = editLayer;
-
+      this.olEditCtrl.layer = editLayer;
+      this.olEditCtrl.source = editLayer.getSource();
       // Highlight Layer
       const highlightLayer = new VectorLayer({
         displayInLayerList: false,
@@ -984,6 +983,7 @@ export default {
           break;
         case 4:
           editType = "delete";
+          endCb = this.openDeletePopup;
           break;
         case 5:
           editType = "move";
@@ -1044,11 +1044,11 @@ export default {
      * Open modify attribute popup
      */
     openModifyAttributePopup(evt) {
-      const feature = this.olEditCtrl.source.getClosestFeatureToCoordinate(
-        evt.coordinate
-      );
-      this.olEditCtrl.featuresToCommit = [];
-      this.olEditCtrl.highlightSource.clear();
+      const feature = this.editLayer
+        .getSource()
+        .getClosestFeatureToCoordinate(evt.coordinate);
+      this.featuresToCommit = [];
+      this.highlightLayer.getSource().clear();
       if (feature) {
         const props = feature.getProperties();
         for (const attr in this.dataObject) {
@@ -1064,11 +1064,46 @@ export default {
           duration: 400
         });
         this.olEditCtrl.popupOverlay.setPosition(popupCoordinate);
-        this.olEditCtrl.featuresToCommit.push(feature);
-        this.olEditCtrl.highlightSource.addFeature(feature.clone());
-        this.olEditCtrl.popup.title = "modifyAttributes";
-        this.olEditCtrl.popup.selectedInteraction = "modifyAttributes";
-        this.olEditCtrl.popup.isVisible = true;
+        this.featuresToCommit.push(feature);
+        this.highlightLayer.getSource().addFeature(feature.clone());
+        this.popup.title = "modifyAttributes";
+        this.popup.selectedInteraction = "modifyAttributes";
+        this.popup.isVisible = true;
+      }
+    },
+    /**
+     * Opens a popup for the delete confirmation
+     */
+    openDeletePopup(evt) {
+      let feature;
+      if (evt.coordinate) {
+        const coordinate = evt.coordinate;
+        feature = this.editLayer
+          .getSource()
+          .getClosestFeatureToCoordinate(coordinate);
+      } else {
+        //Triggered when user click scenario data table
+        //Create overlayer
+        this.olEditCtrl.createPopupOverlay();
+        feature = evt;
+      }
+
+      this.highlightLayer.getSource().addFeature(feature);
+      this.featuresToCommit.push(feature);
+      if (feature) {
+        const geometry = feature.getGeometry();
+        let popupCoordinate = geometry.getCoordinates();
+        while (popupCoordinate && Array.isArray(popupCoordinate[0])) {
+          popupCoordinate = popupCoordinate[0];
+        }
+        this.map.getView().animate({
+          center: popupCoordinate,
+          duration: 400
+        });
+        this.olEditCtrl.popupOverlay.setPosition(popupCoordinate);
+        this.popup.title = "confirm";
+        this.popup.selectedInteraction = "delete";
+        this.popup.isVisible = true;
       }
     },
 
@@ -1076,7 +1111,7 @@ export default {
      * Modify interaction start event handler
      */
     onModifyStart() {
-      this.olEditCtrl.featuresToCommit = [];
+      this.featuresToCommit = [];
       this.olEditCtrl.isInteractionOnProgress = true;
     },
     /**
@@ -1088,27 +1123,27 @@ export default {
       Object.keys(this.schema[this.layerName].properties).forEach(key => {
         props[key] = null;
       });
-      this.olEditCtrl.transact(props);
+      this.transact(props);
     },
     /**
      * Draw interaction start event handler
      */
     onDrawStart() {
-      this.olEditCtrl.featuresToCommit = [];
+      this.featuresToCommit = [];
     },
     /**
      * Draw interaction start event handler
      */
     onDrawEnd(evt) {
       const feature = evt.feature;
-      this.olEditCtrl.closePopup();
+      this.closePopup();
       this.clearDataObject();
       //Disable interaction until user fills the attributes for the feature and closes the popup
       if (this.olEditCtrl.edit) {
         this.olEditCtrl.edit.setActive(false);
       }
-      this.olEditCtrl.featuresToCommit.push(feature);
-      this.olEditCtrl.highlightSource.addFeature(feature);
+      this.featuresToCommit.push(feature);
+      this.highlightLayer.getSource().addFeature(feature);
       let popupCoordinate = feature.getGeometry().getCoordinates();
       while (popupCoordinate && Array.isArray(popupCoordinate[0])) {
         popupCoordinate = popupCoordinate[0];
@@ -1118,11 +1153,9 @@ export default {
         duration: 400
       });
       this.olEditCtrl.popupOverlay.setPosition(popupCoordinate);
-      this.olEditCtrl.popup.title = "attributes";
-      this.olEditCtrl.popup.selectedInteraction = "add";
-      this.olEditCtrl.popup.isVisible = true;
-      //update cache
-      this.updateFileInputFeatureCache();
+      this.popup.title = "attributes";
+      this.popup.selectedInteraction = "add";
+      this.popup.isVisible = true;
     },
 
     /**
@@ -1337,30 +1370,56 @@ export default {
       this.isTableLoading = true;
       this.updateDataTable();
     },
+
     /**
-     * Clear data object that user has entered,
-     * so the next time the popup is opened the form is clean.
+     * Method called when edit layer source is changed.
+     * A debounce is addes to improve performance
+     * It updates the scenario data table.
      */
-    clearDataObject() {
-      if (this.dataObject) {
-        for (const key of Object.keys(this.dataObject)) {
-          this.dataObject[key] = null;
+    updateDataTable: debounce(function() {
+      if (!this.activeScenario) return;
+      const editLayerFeatures = this.editLayer.getSource().getFeatures();
+      const scenarioDataTable = [];
+      editLayerFeatures.forEach(f => {
+        const fid = f.getId();
+        const layerName = f.get("layerName");
+        let isDeleted = false;
+        let status = "uploaded";
+        let type = "";
+        let originId;
+        if (f.get("edit_type")) {
+          const editType = f.get("edit_type");
+          if (editType === "n") {
+            type = "new";
+          } else if (editType === "d") {
+            type = "deleted";
+            isDeleted = true;
+            originId = f.get(this.original_id);
+          } else if (editType === "m") {
+            type = "modified";
+            originId = f.get(this.original_id);
+          }
+          const obj = {
+            fid,
+            layerName,
+            isDeleted,
+            originId,
+            status,
+            type
+          };
+          scenarioDataTable.push(obj);
         }
-      }
-    },
+      });
+      this.scenarioDataTable = scenarioDataTable;
+      this.isTableLoading = false;
+    }, 900),
 
     scenarioActionBtnHandler(item, type) {
       const fid = item.fid;
       if (!fid) return;
       let feature;
-
-      if (item.type === "deleted") {
-        console.log("deleted");
-      } else {
-        feature = this.editLayer.getSource().getFeatureById(fid);
-        if (!feature) return;
-      }
-
+      feature = this.editLayer.getSource().getFeatureById(fid);
+      if (!feature) return;
       if (type === "zoom") {
         this.map.getView().fit(feature.getGeometry().getExtent(), {
           padding: [10, 10, 10, 10]
@@ -1378,22 +1437,47 @@ export default {
         this.map.getView().fit(feature.getGeometry().getExtent(), {
           padding: [10, 10, 10, 10]
         });
-        editLayerHelper.deletedFeatures = editLayerHelper.deletedFeatures.filter(
-          f => f.getId() !== fid
-        );
-        this.olEditCtrl.highlightSource.addFeature(feature);
-        setTimeout(() => {
-          this.olEditCtrl.highlightSource.removeFeature(feature);
-        }, 300);
-        editLayerHelper.featuresIDsToDelete = editLayerHelper.featuresIDsToDelete.filter(
-          id => feature.getProperties().id.toString() !== id
-        );
-        this.olEditCtrl.source.addFeature(clonedFeature);
-        //Commit restore changes. ("commitDelete" just updates array of deleted features ids in the database)
-        editLayerHelper.commitDelete("update_deleted_features");
+      }
+    },
+    isRestoreBtnVisible(item) {
+      if (item.type !== "deleted") {
+        return false;
+      }
+      return item.isDeleted;
+    },
+    isDeleteBtnVisible(item) {
+      if (!item.originalId && item.isDeleted) {
+        return false;
+      }
+      return !item.isDeleted;
+    },
+
+    /**
+     * Clear data object that user has entered,
+     * so the next time the popup is opened the form is clean.
+     */
+    clearDataObject() {
+      if (this.dataObject) {
+        for (const key of Object.keys(this.dataObject)) {
+          this.dataObject[key] = null;
+        }
       }
     },
 
+    /**
+     * Closes the popup if user choose cancel.
+     */
+    closePopup() {
+      if (this.olEditCtrl.popupOverlay) {
+        this.olEditCtrl.popupOverlay.setPosition(undefined);
+        this.popup.isVisible = false;
+      }
+      if (this.olEditCtrl.edit) {
+        this.olEditCtrl.edit.setActive(true);
+      }
+      this.olEditCtrl.highlightSource.clear();
+      this.featuresToCommit = [];
+    },
     /**
      * Clears all the selection and edit interactions.
      */
@@ -1417,6 +1501,7 @@ export default {
      * Clears all the features from edit layer (triggered when user changes scenario)
      */
     clearAll() {
+      this.olEditCtrl.clear();
       this.olSelectCtrl.clear();
       this.editLayer.getSource().clear();
       this.highlightLayer.getSource().clear();
@@ -1531,6 +1616,7 @@ export default {
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
       this.toggleSelection = undefined;
       this.toggleEdit = undefined;
+      this.closePopup();
       this.map.getTarget().style.cursor = "";
     },
     /**
@@ -1550,94 +1636,116 @@ export default {
      * Method used on popup save (draw)/ok(delete) depending on interaction type
      */
     ok(type) {
-      if (["add", "modifyAttributes"].includes(type)) {
-        if (type === "modifyAttributes") {
-          var propKeys = Object.keys(this.dataObject);
-          propKeys.forEach(key => {
-            const propValue = this.dataObject[key];
-            if (propValue) {
-              this.olEditCtrl.featuresToCommit[0].set(key, propValue);
-            }
-            this.olEditCtrl.featuresToCommit[0].set("status", null);
-          });
-        }
-        this.olEditCtrl.transact(this.dataObject);
-        this.olEditCtrl.closePopup();
-      } else {
-        //Delete feature
-        this.olEditCtrl.deleteFeature();
-      }
-    },
-    /**
-     * Methods used on popup cancel
-     */
-    cancel() {
-      if (this.featuresToCommit.length > 0) {
-        this.featuresToCommit.forEach(feature => {
-          this.editLayer.removeFeature(feature);
-        });
-      }
-      this.olEditCtrl.closePopup();
-    },
-    cancelAttributeEdit() {
-      this.featuresToCommit = [];
-      this.olEditCtrl.closePopup();
-    },
-    /**
-     * Method called when edit layer source is changed.
-     * A debounce is addes to improve performance
-     * It updates the scenario data table.
-     */
-    updateDataTable: debounce(function() {
-      if (!this.activeScenario) return;
-      const editLayerFeatures = this.editLayer.getSource().getFeatures();
-      const scenarioDataTable = [];
-      editLayerFeatures.forEach(f => {
-        const fid = f.getId();
-        const layerName = f.get("layerName");
-        let isDeleted = false;
-        let status = "uploaded";
-        let type = "";
-        let originId;
-        if (f.get("edit_type")) {
-          const editType = f.get("edit_type");
-          if (editType === "n") {
-            type = "new";
-          } else if (editType === "d") {
-            type = "deleted";
-            isDeleted = true;
-            originId = f.get(this.original_id);
-          } else if (editType === "m") {
-            type = "modified";
-            originId = f.get(this.original_id);
-          }
-        } else {
-          type = "new";
-        }
-        const obj = {
-          fid,
-          layerName,
-          isDeleted,
-          originId,
-          status,
-          type
-        };
-        scenarioDataTable.push(obj);
+      const featureOut = this.featuresToCommit[0].clone();
+
+      Object.keys(featureOut.getProperties()).forEach(prop => {
+        if (!["geometry", "geom"].includes(prop)) featureOut.unset(prop);
       });
-      this.scenarioDataTable = scenarioDataTable;
-      this.isTableLoading = false;
-    }, 900),
-    isRestoreBtnVisible(item) {
-      if (item.type !== "deleted") {
-        return false;
+
+      // Set new properties from dataObject (popup)
+      featureOut.setProperties(this.dataObject);
+      // Reset id of the original feature
+      featureOut.setId(this.featuresToCommit[0].getId());
+      const properties = this.featuresToCommit[0].getProperties();
+      if (type === "add") {
+        // New feature
+        featureOut.set("edit_type", "n");
+        this.createScenarioFeatures([featureOut]);
       }
-      return item.isDeleted;
+      if (
+        type === "modifyAttributes" &&
+        properties.hasOwnProperty("edit_type")
+      ) {
+        // Modified existing fature
+        this.updateScenarioFeatures([featureOut]);
+      } else if (
+        ["modifyAttributes", "delete"].includes(type) &&
+        !properties.hasOwnProperty("edit_type")
+      ) {
+        // Modified or deleted an origin feature (has to be created as modified feature)
+        featureOut.set("edit_type", "m");
+        this.createScenarioFeatures([featureOut]);
+      } else if (type === "delete") {
+        // Deleted a feature which is already modified. Delete from "_modified" layer
+        this.deleteScenarioFeatures([featureOut]);
+      }
+
+      this.closePopup();
     },
-    isDeleteBtnVisible(item) {
-      if (!item.originalId && item.isDeleted) {
-        return false;
-      }
-      return !item.isDeleted;
+
+    /**
+     * ====API CALLS====
+     */
+
+    createScenarioFeatures(features) {
+      let payload = features.map(feature => {
+        const transformed = {
+          ...feature.getProperties(),
+          geom: geometryToWKT(
+            feature
+              .getGeometry()
+              .clone()
+              .transform("EPSG:3857", "EPSG:4326")
+          )
+        };
+        delete transformed.geometry;
+        return transformed;
+      });
+      // const clonedFeatures = this.featuresToCommit.map(f => f.clone());
+      ApiService.post(this.scenarioApiBaseUrl, {
+        features: payload
+      }).then(response => {
+        const featuresWithId = geojsonToFeature(response.data, {
+          dataProjection: "EPSG:4326",
+          featureProjection: "EPSG:3857"
+        });
+        this.featuresToCommit.forEach(feature => {
+          this.editLayer.getSource().removeFeature(feature);
+        });
+        this.editLayer.getSource().addFeatures(featuresWithId);
+      });
+    },
+    updateScenarioFeatures(features) {
+      let payload = features.map(feature => {
+        const transformed = {
+          id: feature.getId(),
+          ...feature.getProperties(),
+          geom: geometryToWKT(
+            feature
+              .getGeometry()
+              .clone()
+              .transform("EPSG:3857", "EPSG:4326")
+          )
+        };
+        delete transformed.edit_type;
+        delete transformed.geometry;
+        delete transformed[this.original_id];
+        return transformed;
+      });
+      ApiService.put(this.scenarioApiBaseUrl, {
+        features: payload
+      });
+    },
+    deleteScenarioFeatures(features) {
+      let queryParam = "";
+      features.forEach((feature, index) => {
+        const id = feature.getId();
+        if (id && index !== features - 1) {
+          queryParam += `id=${id}&`;
+        } else if (id) {
+          queryParam += `id=${id}`;
+        }
+      });
+      this.isMapBusy = true;
+      ApiService.delete(`${this.scenarioApiBaseUrl}?${queryParam}`)
+        .then(() => {
+          features.forEach(feature => {
+            this.editLayer.getSource().removeFeature(feature);
+          });
+        })
+        .finally(() => {
+          this.isMapBusy = false;
+        });
     },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR",
@@ -1736,6 +1844,9 @@ export default {
         poiName => !!this.poisConfig[poiName]
       );
     },
+    scenarioApiBaseUrl() {
+      return `/scenarios/${this.activeScenario}/${this.selectedLayer["name"]}_modified/features`;
+    },
     ...mapGetters("auth", { currentUser: "currentUser" }),
     ...mapGetters("app", {
       appColor: "appColor",
@@ -1754,7 +1865,7 @@ export default {
       activeScenario: "activeScenario"
     }),
     scenarioList() {
-      return [{ id: null, scenario_name: "---" }, ...this.scenarios];
+      return [{ id: null, scenario_name: "No Selection" }, ...this.scenarios];
     },
     ...mapGetters("scenarios", {
       activeScenarioObj: "activeScenarioObj"
