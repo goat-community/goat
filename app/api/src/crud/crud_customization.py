@@ -57,7 +57,7 @@ class CRUDDynamicCustomization:
         for elem in arr_dict:
             result.update(elem)
         return result
-        
+
     async def build_layer_category_obj(self, db: AsyncSession, layer_name: str):
         """ "This function will build the layer category obj for a specific layer name"""
         layer = await crud.layer_library.get_by_multi_keys(
@@ -75,7 +75,7 @@ class CRUDDynamicCustomization:
         if getattr(layer, "style_library") is not None:
             if getattr(layer.style_library, "style") is not None:
                 layer_attributes["style"] = getattr(layer.style_library, "style")
-                if getattr(layer.style_library, 'translation') is not None:
+                if getattr(layer.style_library, "translation") is not None:
                     layer_attributes["translation"] = getattr(layer.style_library, "translation")
 
         if getattr(layer, "date") is not None and getattr(layer, "source") is not None:
@@ -89,7 +89,7 @@ class CRUDDynamicCustomization:
 
             layer_attributes["attributes"] = source_obj
 
-        if getattr(layer, 'type') == "BING" and getattr(layer, "special_attribute") is not None:
+        if getattr(layer, "type") == "BING" and getattr(layer, "special_attribute") is not None:
             layer_attributes["imagery_set"] = getattr(layer, "special_attribute")["imagery_set"]
 
         layer_obj = {layer_name: layer_attributes}
@@ -124,7 +124,7 @@ class CRUDDynamicCustomization:
         combined_group_objs = []
 
         for group in list_groups.keys():
-            
+
             if group in default_groups.keys() and group in study_area_groups.keys():
                 merge_groups = default_groups[group] + list(
                     set(study_area_groups[group]) - set(default_groups[group])
@@ -245,7 +245,7 @@ class CRUDDynamicCustomization:
         combined_layer_groups = await self.merge_layer_groups(
             db,
             default_settings["app_ui"]["layer_tree"]["group_icons"],
-            default_settings["new_layer_groups"],
+            default_settings["layer_groups"],
             study_area_settings["layer_groups"],
         )
 

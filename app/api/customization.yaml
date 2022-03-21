@@ -25,11 +25,12 @@ superuser:
         logo: "https://assets.goat.plan4better.de/icons/logo_white.png"
         layer_tree:
             group_icons:
-                pois: "fas fa-map-marker"
                 buildings_landuse: "fas fa-home"
                 street_level_quality: "fas fa-road"
                 environmental_quality: "fas fa-leaf"
                 additional_data: "more"
+                basemap: "fas fa-globe"
+                heatmap: "hexagon"
     # Map settings
     map:
         projection_code: "EPSG:3857"
@@ -53,107 +54,14 @@ superuser:
         - type: "cycling_pedelec"
           speed: 23
           icon: "fas fa-bicycle"
-    # Scenario settings
-    scenario:
-        pois:
-            list_values:
-                amenity: "*"
-        ways:
-            list_values:
-                way_type:
-                    - "bridge"
-                    - "road"
-                surface:
-                    - "asphalt"
-                    - "cobblestone"
-                    - "fine_gravel"
-                    - "gravel"
-                    - "grass"
-                    - "unpaved"
-                wheelchair:
-                    - "yes"
-                    - "no"
-        buildings:
-            list_values:
-                building:
-                    - "residential"
-                    - "commercial"
-                    - "public"
-    # Settings coming from study_area
 
     layer_groups:
-        - basemap:
-              icon: "fas fa-globe"
-              children:
-                  - osm_standard:
-                        url: "http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        type: OSM
-                        map_attribution: "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors"
-
-                  - osm_light:
-                        url: "http://{a-c}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
-                        type: OSM
-                        map_attribution: "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors"
-
-                  - osm_dark:
-                        url: "http://{a-c}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
-                        type: OSM
-                        map_attribution: "© <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors"
-
-                  - open_topo_map:
-                        url: "https://{a-c}.tile.opentopomap.org/{z}/{x}/{y}.png"
-                        type: OSM
-                        map_attribution: "Mapdata: © <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors, Basemap Visualization: © <a href='https://opentopomap.org/'> OpenTopoMap </a>"
-
-                  - mapbox_streets:
-                        url: "https://api.mapbox.com/styles/v1/mapbox/streets-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA"
-                        type: XYZ
-                        map_attribution: "Mapdata: © <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors, Basemap Visualization: © <a href='https://opentopomap.org/'> OpenTopoMap </a>"
-
-                  - public_transport:
-                        url: "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=402ce1ca8eb54457bdf65e2b261c5132"
-                        type: XYZ
-                        map_attribution: "Maps © <a href='http://www.thunderforest.com/'>  Thunderforest </a>, Data © <a href='https://www.openstreetmap.org/copyright'> OpenStreetMap </a> contributors"
-
-                  - bing_aerial:
-                        type: BING
-                        imagery_set: Aerial
-                        access_token: "Avv4X-3gpZJQ_Ln2eAilMZ8qNI4Y6UtspyNxgIzoCSZC26xi_aXb3AiaXnutPPjH"
-                        map_attribution: "© Microsoft Coorporation © Digital Globe ©CNES Distribution Airbus DS <a href='https://www.microsoft.com/en-us/maps/product'>Terms of use</a>"
-
-        - additional_data:
-              icon: "fas fa-plus"
-              children:
-                  - accidents_pedestrians:
-                        type: MVT
-                        style:
-                            name: accidents_pedestrians
-                            rules:
-                            - name: accident_point
-                            symbolizers:
-                            - kind: Mark
-                            color: "#ff9900"
-                            radius: 3
-                            wellKnownName: Square
-                        attributes:
-                            date: "2016, 2017, 2018, 2019"
-                            source: Statistikportal
-
-                  - accidents_cyclists:
-                        type: MVT
-                        style:
-                            name: accidents_cyclists
-                            rules:
-                            - name: accident_point
-                            symbolizers:
-                            - kind: Mark
-                            color: "#ff9900"
-                            radius: 3
-                            wellKnownName: Square
-                        attributes:
-                            date: "2016, 2017, 2018, 2019"
-                            source: Statistikportal
-                
+        - buildings_landuse: ["buildings"]
+        - environmental_quality: []
+        - street_level_quality: []
+        - additional_data: ["accidents_pedestrians", "accidents_cyclists"]
+        - heatmap: ["heatmap_connectivity", "heatmap_local_accessibility", "heatmap_accessibility_population", "heatmap_population"]
+        - basemap: ["mapbox_streets", "bing_aerial", "osm_light", "osm_dark", "open_topo_map", "public_transport"]
 
     extras:
 
@@ -161,185 +69,184 @@ user:
     poi_groups:
     - education:
         icon: "fas fa-graduation-cap"
-        color: ["#ffc107"]
+        color: ["#717171"]
         children:
             - nursery:
                 icon: "fas fa-baby"
-                color: ["#53C8CF"]
+                color: ["#5C7FA3"]
                 sensitivity: 200000
             - kindergarten:
-                icon: "fas fa-teddy-bear"
-                color: ["#F6DB6A"]
+                icon: "fas fa-child"
+                color: ["#A35CA3"]
             - grundschule:
-                icon: "fas fa-paintbrush-pencil"
-                color: ["#2980B9"]
+                icon: "fas fa-pencil"
+                color: ["#A3805C"]
             - hauptschule:
                 icon: "fas fa-school"
-                color: ["#BD7CD6"]
+                color: ["#5CA35C"]
             - realschule:
                 icon: "fas fa-school"
-                color: ["#EB984E"]
+                color: ["#82E1BE"]
             - gymnasium:
                 icon: "fas fa-school"
-                color: ["#CB4335"]
+                color: ["#8E82E1"]
 
     - foodanddrink:
         icon: "fas fa-utensils"
-        color: ["#ffc107"]
+        color: ["#717171"]
         children:
             - restaurant:
-                icon: "fas fa-utensils"
-                color: ["#EB984E"]
+                icon: "fas fa-fork-knife"
+                color: ["#FFB329"]
             - fast_food:
                 icon: "fas fa-burger"
-                color: ["#CB4335"]
+                color: ["#E182A5"]
             - bar:
                 icon: "fas fa-martini-glass"
-                color: ["#F6DB6A"]
+                color: ["#5C7FA3"]
             - pub:
                 icon: "fas fa-beer-mug"
-                color: ["#53C8CF"]
+                color: ["#A3805C"]
             - cafe:
-                icon: "fas fa-mug-saucer"
-                color: ["#985F03"]
+                icon: "fas fa-mug-hot"
+                color: ["#A35CA3"]
             - nightclub:
-                icon: "fas fa-club"            
-                color: ["#BD7CD6"]
+                icon: "fas fa-party-horn"            
+                color: ["#5CA35C"]
 
     - transport:
         icon: "fas fa-car-bus"
-        color: ["#ffc107"]
+        color: ["#717171"]
         children:
             - bus_stop:
                 icon: "fas fa-bus-school"
-                color: ["#F6DB6A"]
+                color: ["#82E1BE"]
                 multiple_entrance: true
             - tram_stop:
                 icon: "fas fa-train-tram"
-                color: ["#A26973"]
+                color: ["#8E82E1"]
                 multiple_entrance: true
             - subway_entrance:
                 icon: "fas fa-train-subway-tunnel"
-                color: ["#2980B9"]
+                color: ["#E182A5"]
                 multiple_entrance: true
             - rail_station:
                 icon: "fas fa-train"
-                color: ["#CB4335"]
+                color: ["#FFB329"]
                 multiple_entrance: true
             - bike_sharing:
                 icon: "fas fa-bicycle"
-                color: ["#53C8CF"]
+                color: ["#5C7FA3"]
             - car_sharing:
                 icon: "fas fa-cars"
-                color: ["#46B14C"]
+                color: ["#A35CA3"]
             - charging_station:
                 icon: "fas fa-charging-station"
-                color: ["#985F03"]
+                color: ["#5CA35C"]
 
     - health:
         icon: "fas fa-heart"
-        color: ["#ffc107"]
+        color: ["#717171"]
         children:
             - dentist:
                 icon: "fas fa-tooth"
-                color: ["#53C8CF"]
+                color: ["#5C7FA3"]
             - general_practitioner:
                 icon: "fas fa-user-doctor"
-                color: ["#2980B9"]
+                color: ["#A3805C"]
             - pharmacy:
                 icon: "fas fa-house-medical"
-                color: ["#CB4335"]  
+                color: ["#E182A5"]  
 
     - services:
         icon: "fas fa-wrench"
-        color: ["#ffc107"]
+        color: ["#717171"]
         children:
             - atm:
                 icon: "fas fa-money-simple-from-bracket"
-                color: ["#53C8CF"]
+                color: ["#FFB329"]
             - bank:
                 icon: "fas fa-sack-dollar"
-                color: ["#2980B9"]
+                color: ["#82E1BE"]
             - post_office:
                 icon: "fas fa-envelope"
-                color: ["#EB984E"]
+                color: ["#8E82E1"]
             - post_box:
                 icon: "fas fa-mailbox"
-                color: ["#F6DB6A"]
+                color: ["#A35CA3"]
             - fuel:
                 icon: "fas fa-gas-pump"
-                color: ["#985F03"]
+                color: ["#5C7FA3"]
             - recycling:
                 icon: "fas fa-recycle"
-                color: ["#46B14C"]
+                color: ["#5CA35C"]
     - shop:
         icon: "fas fa-shopping-cart"
-        color: ["#ffc107"]
+        color: ["#717171"]
         children:
             - supermarket:
                 icon: "fas fa-cart-shopping"
-                color: ["#2980B9"]
+                color: ["#A3805C"]
             - discount_supermarket:
                 icon: "fas fa-basket-shopping"
-                color: ["#53C8CF"]
+                color: ["#82E1BE"]
             - hypermarket:
                 icon: "fas fa-box-open-full"
-                color: ["#BD7CD6"]
+                color: ["#8E82E1"]
             - organic_supermarket:
                 icon: "fas fa-seedling"
-                color: ["#46B14C"]
+                color: ["#5CA35C"]
             - convenience:
                 icon: "fas fa-store"
-                color: ["#A26973"]
+                color: ["#5C7FA3"]
             - marketplace:
-                icon: "fas fa-shopping-cart"
-                color: ["#ff0033"]
+                icon: "fas fa-shop"
+                color: ["#A35CA3"]
             - bakery:
                 icon: "fas fa-croissant"
-                color: ["#985F03"]
+                color: ["#FFB329"]
             - butcher:
                 icon: "fas fa-steak"
-                color: ["#CB4335"]
+                color: ["#E182A5"]
 
     - tourismandleisure:
         icon: "fas fa-tree"
-        color: ["#ffc107"]
+        color: ["#717171"]
         children:
             - cinema:
                 icon: "fas fa-clapperboard-play"
-                color: ["#985F03"]
+                color: ["#5C7FA3"]
             - museum:
                 icon: "fas fa-landmark"
-                color: ["#2980B9"]
+                color: ["#A35CA3"]
             - hotel:
                 icon: "fas fa-bed"
-                color: ["#EB984E"]
+                color: ["#A3805C"]
             - hostel:
                 icon: "fas fa-bed-bunk"
-                color: ["#53C8CF"]
+                color: ["#5CA35C"]
             - playground:
                 icon: "fas fa-bench-tree"
-                color: ["#46B14C"]
+                color: ["#82E1BE"]
 
     - sport:
         icon: "fas fa-basketball-ball"
-        color: ["#ffc107"]
+        color: ["#717171"]
         children:
             - gym:
                 icon: "fas fa-dumbbell"
-                color: ["#985F03"]
+                color: ["#8E82E1"]
             - discount_gym:
                 icon: "fas fa-dumbbell"
-                color: ["#F6DB6A"]
+                color: ["#FFB329"]
             - yoga:
-                icon: "fas fa-basketball-ball"
-                color: ["#46B14C"]
-  
+                icon: "fas fa-spa"
+                color: ["#E182A5"]
 
     aoi_groups:
     - nature:
         icon: "fas fa-tree"
-        color: ["#ffc107"]
+        color: ["#717171"]
         children:
             - park:
                 icon: "fas fa-tree"
