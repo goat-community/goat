@@ -263,6 +263,97 @@ export function defaultStyle(feature) {
   return styles;
 }
 
+const poisEditShadowStyleCache = {};
+
+function poisEditShadowStyle(color) {
+  return new OlStyle({
+    image: new OlShadow({
+      radius: 15,
+      blur: 5,
+      offsetX: 0,
+      offsetY: 0,
+      fill: new OlFill({
+        color: color
+      })
+    })
+  });
+}
+
+const poisEditStyleCache = {};
+export function poisEditStyle(feature) {
+  const category = feature.get("category");
+  if (
+    !poisAoisStore.state.poisAois[category] ||
+    ["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())
+  ) {
+    return [];
+  }
+  const poiIconConf = appStore.state.poiIcons[category];
+  const editType = feature.get("edit_type");
+  //edit_type m = modified, d = deleted, n = new
+  const shadowColor = {
+    n: "#6495ED",
+    m: "#FFA500",
+    d: "#FF0000"
+  };
+  var st = [];
+  // Shadow Style for Editing POIs
+  if (!editType) {
+    st.push(poisEditShadowStyle("rgba(0,0,0,0.5)"));
+  }
+  if (!poisEditShadowStyleCache[editType]) {
+    poisEditShadowStyleCache[editType] = poisEditShadowStyle(
+      shadowColor[editType]
+    );
+  }
+  st.push(poisEditShadowStyleCache[editType]);
+  // ----POIS-----
+
+  let color = poiIconConf.color;
+  if (editType === "d") {
+    // Icon color for delete poi
+    color = "#c9c9c9";
+  }
+  if (!poiIconConf || !poiIconConf.icon) {
+    return [];
+  }
+  const icon = poiIconConf.icon;
+  if (!poisEditStyleCache[icon + color]) {
+    // Font style
+    poisEditStyleCache[icon + color] = new OlStyle({
+      image: new OlFontSymbol({
+        form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
+        gradient: false,
+        glyph: icon,
+        text: "", // text to use if no glyph is defined
+        font: "sans-serif",
+        fontSize: 0.7,
+        radius: 20,
+        rotation: 0,
+        rotateWithView: false,
+        offsetY: -20,
+        color: color, // icon color
+        fill: new OlFill({
+          color: "#fff" // marker color
+        }),
+        stroke: new OlStroke({
+          color: color,
+          width: 2
+        })
+      }),
+      stroke: new OlStroke({
+        width: 2,
+        color: "#f80"
+      }),
+      fill: new OlFill({
+        color: [255, 136, 0, 0.6]
+      })
+    });
+  }
+  st.push(poisEditStyleCache[icon + color]);
+  return st;
+}
+
 export function uploadedFeaturesStyle() {
   const style = new OlStyle({
     fill: new OlFill({
@@ -330,6 +421,9 @@ export function deletedStyle() {
 export function editStyleFn() {
   const styleFunction = (feature, resolution) => {
     const props = feature.getProperties();
+    if (props.layerName === "poi") {
+      return poisEditStyle(feature);
+    }
     // Deleted Style
     if (props.edit_type === "d") {
       return deletedStyle();
