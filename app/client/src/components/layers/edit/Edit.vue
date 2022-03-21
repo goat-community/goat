@@ -125,7 +125,7 @@
                       <v-icon dark>delete</v-icon>
                     </v-btn>
                   </template>
-                  <span>{{ $t("appBar.edit.editScenarioName") }}</span>
+                  <span>{{ $t("appBar.edit.deleteScenario") }}</span>
                 </v-tooltip>
               </v-speed-dial>
             </div>
@@ -620,6 +620,7 @@ export default {
   },
   mixins: [InteractionsToggle, Mapable, KeyShortcuts, Isochrones],
   data: () => ({
+    poiFeatures: [],
     interactionType: "edit-interaction",
     selectedFeatures: [],
     editableLayers: [],
@@ -684,6 +685,11 @@ export default {
       }
     },
     selectedLayer(value) {
+      if (value && value.name === "poi") {
+        this.poisAoisLayer.setVisible(false);
+      } else {
+        this.poisAoisLayer.setVisible(true);
+      }
       if (this.olEditCtrl && value) {
         this.olEditCtrl.selectedLayer = value;
         this.originIdName = this.original_id;
@@ -736,6 +742,20 @@ export default {
   },
   mounted() {
     this.popup.el = this.$refs.popup;
+    // Clone pois features
+    this.poisAoisLayer
+      .getSource()
+      .getFeatures()
+      .forEach(feature => {
+        if (
+          !["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())
+        ) {
+          const clone = feature.clone();
+          clone.setId(feature.getId());
+          clone.set("layerName", "poi");
+          this.poiFeatures.push(clone);
+        }
+      });
   },
   methods: {
     /**
@@ -903,6 +923,7 @@ export default {
         requests.push(populationModifiedFeaturePromise);
       }
       this.isMapBusy = true;
+
       axios
         .all(requests)
         .then(
@@ -924,6 +945,9 @@ export default {
                 this.editLayer.getSource().addFeatures(features);
               }
             });
+            if (layer === "poi") {
+              this.editLayer.getSource().addFeatures(this.poiFeatures);
+            }
             this.onEditSourceChange();
           })
         )
@@ -1043,7 +1067,9 @@ export default {
         if (this.addKeyupListener) {
           this.addKeyupListener();
         }
+        this.olEditCtrl.editType = editType;
       } else {
+        this.olEditCtrl.editType = undefined;
         this.olEditCtrl.removeInteraction();
         EventBus.$emit("ol-interaction-stoped", this.interactionType);
         this.map.getTarget().style.cursor = "";
@@ -1153,21 +1179,35 @@ export default {
      */
     onModifyEnd() {
       this.olEditCtrl.isInteractionOnProgress = false;
-      let props = {};
-      Object.keys(this.schema[this.layerName].properties).forEach(key => {
-        props[key] = null;
-      });
-      this.transact(props);
+      this.clearDataObject();
       const featuresToAdd = [];
       const featuresToUpdate = [];
-      this.featuresToCommit(feature => {
+      this.featuresToCommit.forEach(feature => {
         const props = feature.getProperties();
-        if (props.hasOwnProperty("edit_type") && props.edit_type !== "d") {
-          featuresToUpdate.push(feature);
-        } else {
-          featuresToAdd.push(feature);
+        const featureOut = feature.clone();
+        const mandatoryProps = [
+          ...Object.keys(this.dataObject),
+          "edit_type",
+          this.original_id,
+          "geometry",
+          "geom"
+        ];
+        Object.keys(props).forEach(prop => {
+          if (!mandatoryProps.includes(prop)) featureOut.unset(prop);
+        });
+        if (props.editType !== "d") {
+          if (props.hasOwnProperty("edit_type")) {
+            featureOut.setId(feature.getId());
+            featuresToUpdate.push(featureOut);
+          } else {
+            featureOut.set("edit_type", "m");
+            featureOut.set(this.original_id, feature.getId());
+            featuresToAdd.push(featureOut);
+          }
         }
       });
+      this.createScenarioFeatures(featuresToAdd);
+      this.updateScenarioFeatures(featuresToUpdate);
     },
     /**
      * Draw interaction start event handler
@@ -1384,7 +1424,7 @@ export default {
     onFeatureChange(evt) {
       if (
         ["modify", "move", "modifyAttributes", "drawHole"].includes(
-          this.currentInteraction
+          this.olEditCtrl.editType
         )
       ) {
         const index = this.featuresToCommit.findIndex(
@@ -1399,7 +1439,7 @@ export default {
 
       if (
         this.selectedLayer["name"] === "building" &&
-        this.currentInteraction === "draw"
+        this.olEditCtrl.editType === "draw"
       ) {
         this.toggleEdit = 7;
       }
@@ -1771,6 +1811,7 @@ export default {
      * Create scenario features
      */
     createScenarioFeatures(features) {
+      if (features.length === 0) return;
       let payload = features.map(feature => {
         const transformed = {
           ...feature.getProperties(),
@@ -1828,6 +1869,7 @@ export default {
      * Update scenario features
      */
     updateScenarioFeatures(features) {
+      if (features.length === 0) return;
       let payload = features.map(feature => {
         const transformed = {
           id: parseInt(feature.getId().split("_")[1]),
@@ -1912,7 +1954,7 @@ export default {
                 .getFeatureById(feature.getId());
               if (featureIn) {
                 const props = featureIn.getProperties();
-                if (props[this.original_id]) {
+                if (props[this.original_id] && props.edit_type !== "m") {
                   featureIn.unset(this.original_id);
                   featureIn.unset("edit_type");
                 } else {
@@ -2046,6 +2088,9 @@ export default {
     ...mapGetters("map", {
       contextmenu: "contextmenu",
       layers: "layers"
+    }),
+    ...mapGetters("poisaois", {
+      poisAoisLayer: "poisAoisLayer"
     }),
     ...mapFields("scenarios", {
       scenarioDataTable: "scenarioDataTable",

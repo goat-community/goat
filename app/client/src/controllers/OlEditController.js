@@ -17,6 +17,7 @@ export default class OlEditController extends OlBaseController {
   originIdName = null;
   highlightSource = null;
   popup = null;
+  editType = null;
   constructor(map) {
     super(map);
   }
