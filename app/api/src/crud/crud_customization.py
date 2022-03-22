@@ -216,7 +216,7 @@ class CRUDDynamicCustomization:
                 combined_groups, study_area_settings["poi_groups"]
             )
 
-        if "poi_groups" in user_settings and current_user.active_data_upload_ids != []:
+        if "poi_groups" in user_settings and current_user.active_data_upload_ids == []:
             active_categories = []
             for active_id in current_user.active_data_upload_ids:
                 active_category = await db.execute(
@@ -237,6 +237,8 @@ class CRUDDynamicCustomization:
                             category_id
                         )
                         break
+                if user_settings["poi_groups"][group_id][group_name]["children"] == []:
+                    user_settings["poi_groups"].pop(group_id)
 
         if "poi_groups" in user_settings:
             combined_groups = self.update_settings(combined_groups, user_settings["poi_groups"])
