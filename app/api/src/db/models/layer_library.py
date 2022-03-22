@@ -10,6 +10,7 @@ from sqlmodel import (
     Text,
     UniqueConstraint,
     Relationship,
+    ARRAY
 )
 from sqlalchemy.dialects.postgresql import JSONB
 if TYPE_CHECKING:
@@ -36,6 +37,9 @@ class LayerLibrary(SQLModel, table=True):
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(sa_column=Column(Text(), nullable=False, index=True))
     url: Optional[str] = Field(sa_column=Column(Text))
+    legend_urls: List[str] = Field(
+        sa_column=Column(ARRAY(Text()))
+    )
     special_attribute: Optional[dict] = Field(sa_column=Column(JSONB))
     access_token: Optional[str] = Field(sa_column=Column(Text))
     type: str = Field(sa_column=Column(Text(), nullable=False, index=True))
