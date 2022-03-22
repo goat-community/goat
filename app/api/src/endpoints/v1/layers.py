@@ -38,6 +38,7 @@ from starlette.templating import Jinja2Templates
 
 from src.core.config import settings
 from src.crud.crud_layer import layer as crud_layer
+from src.db import models
 from src.endpoints import deps
 from src.resources import tms as custom_tms
 from src.resources.enums import MimeTypes
@@ -175,6 +176,7 @@ class VectorTilerFactory:
             tile: Tile = Depends(TileParams),
             tms: TileMatrixSet = Depends(self.tms_dependency),
             layer=Depends(self.layer_dependency),
+            current_user: models.User = Depends(deps.get_current_active_user),
         ):
             """Return vector tile."""
             qs_key_to_remove = ["tilematrixsetid"]
@@ -207,6 +209,7 @@ class VectorTilerFactory:
             tms: TileMatrixSet = Depends(self.tms_dependency),
             minzoom: Optional[int] = Query(None, description="Overwrite default minzoom."),
             maxzoom: Optional[int] = Query(None, description="Overwrite default maxzoom."),
+            current_user: models.User = Depends(deps.get_current_active_user),
         ):
             """Return TileJSON document."""
             path_params: Dict[str, Any] = {
@@ -246,7 +249,9 @@ class VectorTilerFactory:
             response_model=TileMatrixSetList,
             response_model_exclude_none=True,
         )
-        async def TileMatrixSet_list(request: Request):
+        async def TileMatrixSet_list(
+            request: Request, current_user: models.User = Depends(deps.get_current_active_user)
+        ):
             """
             Return list of supported TileMatrixSets.
 
@@ -278,7 +283,10 @@ class VectorTilerFactory:
             response_model=TileMatrixSet,
             response_model_exclude_none=True,
         )
-        async def TileMatrixSet_info(tms: TileMatrixSet = Depends(self.tms_dependency)):
+        async def TileMatrixSet_info(
+            tms: TileMatrixSet = Depends(self.tms_dependency),
+            current_user: models.User = Depends(deps.get_current_active_user),
+        ):
             """Return TileMatrixSet JSON document."""
             return tms
 
@@ -290,7 +298,9 @@ class VectorTilerFactory:
             response_model=List[VectorTileTable],
             response_model_exclude_none=True,
         )
-        async def tables_index(request: Request):
+        async def tables_index(
+            request: Request, current_user: models.User = Depends(deps.get_current_active_user)
+        ):
             """Index of tables."""
 
             def _get_tiles_url(id) -> str:
@@ -313,6 +323,7 @@ class VectorTilerFactory:
         async def table_metadata(
             request: Request,
             layer=Depends(self.layer_dependency),
+            current_user: models.User = Depends(deps.get_current_active_user),
         ):
             """Return table metadata."""
 
@@ -358,6 +369,7 @@ class VectorTilerFactory:
         async def function_metadata(
             request: Request,
             layer=Depends(self.layer_dependency),
+            current_user: models.User = Depends(deps.get_current_active_user),
         ):
             """Return table metadata."""
 
@@ -377,7 +389,9 @@ class VectorTilerFactory:
             r"/list",
             response_class=HTMLResponse,
         )
-        async def list_layers(request: Request):
+        async def list_layers(
+            request: Request, current_user: models.User = Depends(deps.get_current_active_user)
+        ):
             """Display layer list."""
             return templates.TemplateResponse(
                 name="index.html",
@@ -389,7 +403,11 @@ class VectorTilerFactory:
             r"/{layer}/viewer",
             response_class=HTMLResponse,
         )
-        async def demo(request: Request, layer=Depends(LayerParams)):
+        async def demo(
+            request: Request,
+            layer=Depends(LayerParams),
+            current_user: models.User = Depends(deps.get_current_active_user),
+        ):
             """Demo for each table."""
             tile_url = self.url_for(request, "tilejson", layer=layer.id)
             return templates.TemplateResponse(

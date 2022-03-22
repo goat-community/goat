@@ -44,6 +44,7 @@
 </template>
 
 <script>
+import { EventBus } from "../../../EventBus";
 import SensitivityChart from "../../other/SensitivityChart";
 
 export default {
@@ -72,7 +73,7 @@ export default {
   },
   methods: {
     updateHeatmap() {
-      this.$emit("updated");
+      EventBus.$emit("update-heatmap", "poi");
     },
     getDisplayName(item) {
       let value;

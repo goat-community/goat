@@ -131,7 +131,8 @@ const state = {
     1180,
     1190,
     1200
-  ]
+  ],
+  treeViewKey: 0 // Used for re-rendering the tree view
 };
 
 const getters = {

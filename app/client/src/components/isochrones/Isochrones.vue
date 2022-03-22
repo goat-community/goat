@@ -1701,6 +1701,12 @@ export default {
     // ------------RESULTS----------
     toggleIsochroneWindow(state, calculation) {
       if (state === false) {
+        this.isochroneLayer
+          .getSource()
+          .getFeatures()
+          .forEach(f => {
+            f.set("highlightFeature", false);
+          });
         this.selectedThematicData = null;
         return;
       }
@@ -1708,12 +1714,7 @@ export default {
         calculation,
         this.isochroneLayer
       );
-      this.isochroneLayer
-        .getSource()
-        .getFeatures()
-        .forEach(f => {
-          f.set("highlightFeature", false);
-        });
+
       features.forEach(f => {
         f.set("highlightFeature", true);
       });

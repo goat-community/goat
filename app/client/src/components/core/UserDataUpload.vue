@@ -93,6 +93,7 @@
               :color="appColor.secondary"
               :input-value="item.status"
               hide-details
+              :disabled="isBusy"
               @change="toggleState(item)"
             ></v-switch>
           </template>
@@ -111,7 +112,11 @@
 <script>
 import { mapGetters } from "vuex";
 import ApiService from "../../services/api.service";
-import { GET_APP_CONFIG, GET_USER_CUSTOM_DATA } from "../../store/actions.type";
+import {
+  GET_APP_CONFIG,
+  GET_POIS_AOIS,
+  GET_USER_CUSTOM_DATA
+} from "../../store/actions.type";
 import UserDataUploadDialog from "./UserDataUploadDialog";
 
 export default {
@@ -119,7 +124,8 @@ export default {
     "user-data-upload": UserDataUploadDialog
   },
   data: () => ({
-    showDataUploadDialog: false
+    showDataUploadDialog: false,
+    isBusy: false
   }),
   computed: {
     ...mapGetters("app", {
@@ -134,7 +140,6 @@ export default {
     }),
     tableData() {
       return this.uploadedData.map(item => {
-        console.log(this.poisConfig[item.category]);
         return {
           id: item.id,
           category: this.$te(`pois.${item.category}`)
@@ -227,6 +232,7 @@ export default {
       this.showDataUploadDialog = true;
     },
     toggleState(item) {
+      this.isBusy = true;
       ApiService.patch(`/custom-data/poi`, {
         data_upload_id: item.id,
         state: !item.status
@@ -234,6 +240,7 @@ export default {
         .then(() => {
           this.$store.dispatch(`app/${GET_USER_CUSTOM_DATA}`);
           this.$store.dispatch(`app/${GET_APP_CONFIG}`);
+          this.$store.dispatch(`poisaois/${GET_POIS_AOIS}`);
         })
         .finally(() => {
           this.isBusy = false;
