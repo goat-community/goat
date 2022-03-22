@@ -66,6 +66,7 @@ class User(UserBase, table=True):
     active_study_area_id: int = Field(
         sa_column=Column(Integer, ForeignKey("basic.study_area.id"), nullable=False)
     )
+    language_preference: str = Field(sa_column=Column(Text, nullable=False))
 
     organization: "Organization" = Relationship(back_populates="users")
     roles: List["Role"] = Relationship(back_populates="users", link_model=UserRole)
