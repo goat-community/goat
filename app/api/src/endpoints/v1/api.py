@@ -38,8 +38,8 @@ layer_tiles_prefix = "/layers/tiles"
 layer_tiles = layers.VectorTilerFactory(
     router_prefix=layer_tiles_prefix,
     with_tables_metadata=True,
-    with_functions_metadata=True,
-    with_viewer=True,
+    with_functions_metadata=False,
+    with_viewer=False,
 )
 
 api_router.include_router(layer_tiles.router, prefix=layer_tiles_prefix, tags=["Layers"])

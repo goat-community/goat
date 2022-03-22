@@ -128,6 +128,7 @@ import Overlay from "ol/Overlay";
 import Feature from "ol/Feature";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
+import VectorImageLayer from "ol/layer/VectorImage";
 import LineString from "ol/geom/LineString";
 
 // style imports
@@ -322,7 +323,7 @@ export default {
       const source = new VectorSource({
         wrapX: false
       });
-      const vector = new VectorLayer({
+      const vector = new VectorImageLayer({
         name: "study_area",
         displayInLayerList: false,
         zIndex: 100,
