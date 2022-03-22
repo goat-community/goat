@@ -148,9 +148,7 @@ export default {
               : "",
           date: new Date(Date.parse(item.creation_date)).toLocaleDateString(),
           size: (item.upload_size / 1024).toFixed(1) + "MB",
-          status: this.currentUser.active_data_upload_ids.includes(item.id)
-            ? true
-            : false
+          status: item.state
         };
       });
     },
@@ -232,10 +230,14 @@ export default {
       ApiService.patch(`/custom-data/poi`, {
         data_upload_id: item.id,
         state: !item.status
-      }).then(() => {
-        this.$store.dispatch(`app/${GET_USER_CUSTOM_DATA}`);
-        this.$store.dispatch(`app/${GET_APP_CONFIG}`);
-      });
+      })
+        .then(() => {
+          this.$store.dispatch(`app/${GET_USER_CUSTOM_DATA}`);
+          this.$store.dispatch(`app/${GET_APP_CONFIG}`);
+        })
+        .finally(() => {
+          this.isBusy = false;
+        });
     }
   }
 };

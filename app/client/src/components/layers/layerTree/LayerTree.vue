@@ -80,7 +80,7 @@
                     </v-expansion-panel-header>
                     <v-card
                       class="pt-2"
-                      v-show="layer.get('_showOptions') === true"
+                      v-if="layer.get('_showOptions') === true"
                       style="background-color: white;"
                       transition="slide-y-reverse-transition"
                     >
