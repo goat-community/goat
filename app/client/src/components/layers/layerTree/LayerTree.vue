@@ -80,7 +80,7 @@
                     </v-expansion-panel-header>
                     <v-card
                       class="pt-2"
-                      v-if="layer.get('_showOptions') === true"
+                      v-show="layer.get('_showOptions') === true"
                       style="background-color: white;"
                       transition="slide-y-reverse-transition"
                     >
@@ -238,14 +238,11 @@ export default {
       }
 
       layer.setVisible(!layer.getVisible());
-      if (layer.getVisible() === false) {
-        layer.set("_showOptions", false);
-      } else {
-        layer.set("_showOptions", true);
-      }
+      layer.set("_showOptions", layer.getVisible());
     },
     toggleLayerOptions(layer) {
       layer.set("_showOptions", !layer.get("_showOptions"));
+      console.log(layer.get("_showOptions"));
     },
     changeLayerOpacity(value, layer) {
       layer.setOpacity(value);

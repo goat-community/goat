@@ -160,7 +160,7 @@ export default {
     this.allLayers = this.map
       .getLayers()
       .getArray()
-      .filter(l => l.get("type"));
+      .filter(l => l.get("type") && l.get("displayInLayerList") !== false);
   },
   mounted() {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {

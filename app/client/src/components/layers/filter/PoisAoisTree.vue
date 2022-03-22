@@ -18,6 +18,7 @@
     >
 
     <v-treeview
+      :key="treeViewKey"
       v-model="selectedPoisAois"
       :open="open"
       @update:open="openNode"
@@ -105,7 +106,6 @@
       :color="appColor.primary"
       :visible="showHeatmapOptionsDialog"
       :selectedAmenity="selectedAmenity"
-      @updated="updateHeatmap"
       @close="showHeatmapOptionsDialog = false"
     />
     <icon-picker
@@ -168,9 +168,6 @@ export default {
     isSensitivityEnabled() {
       return true;
     },
-    updateHeatmap() {
-      console.log("update headmap");
-    },
     openNode() {
       this.addBackgroundColorToTreeNode();
     },
@@ -207,12 +204,16 @@ export default {
   watch: {
     open() {
       console.log("opened....");
+    },
+    uploadedData() {
+      this.treeViewKey += 1;
     }
   },
   computed: {
     ...mapGetters("app", {
       appColor: "appColor",
-      poisAoisTree: "poisAoisTree"
+      poisAoisTree: "poisAoisTree",
+      uploadedData: "uploadedData"
     }),
     ...mapFields("app", {
       calculationMode: "calculationMode",
@@ -221,10 +222,10 @@ export default {
     ...mapFields("poisaois", {
       poisAoisLayer: "poisAoisLayer",
       selectedPoisAois: "selectedPoisAois",
-      poisAois: "poisAois"
+      poisAois: "poisAois",
+      treeViewKey: "treeViewKey"
     })
-  },
-  created() {}
+  }
 };
 </script>
 <style lang="css">

@@ -79,17 +79,21 @@ const getters = {
       children.forEach(child => {
         const childName = Object.keys(child)[0];
 
-        const restructeredChild = {
+        const restructuredChild = {
           value: childName,
           hasUserData: false,
           sensitivity: 300000,
           ...child[childName]
         };
-        if (child[childName].upload_size) {
-          hasUserData = true;
-          restructeredChild.hasUserData = true;
-        }
-        restructuredChildren.push(restructeredChild);
+        // Check if the has user data.
+        state.uploadedData.forEach(userData => {
+          if (userData.state === true && userData.category === childName) {
+            hasUserData = true;
+            restructuredChild.hasUserData = true;
+          }
+        });
+
+        restructuredChildren.push(restructuredChild);
       });
       const groupTreeStruct = {
         id: groupIndex,

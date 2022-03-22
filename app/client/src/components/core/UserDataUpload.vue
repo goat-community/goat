@@ -140,7 +140,6 @@ export default {
     }),
     tableData() {
       return this.uploadedData.map(item => {
-        console.log(this.poisConfig[item.category]);
         return {
           id: item.id,
           category: this.$te(`pois.${item.category}`)

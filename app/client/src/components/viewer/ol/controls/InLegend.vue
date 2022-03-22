@@ -158,7 +158,7 @@ export default {
             renderer.render(el);
           }
         }
-      }, 100);
+      }, 500);
     },
     getWMSLayerNames(layer) {
       const layerUrl = layer.getUrl();

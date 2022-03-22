@@ -357,7 +357,7 @@ export default {
       const vector = new VectorLayer({
         name: "pois_aois_layer",
         type: "VECTOR",
-        displayInLegend: false,
+        displayInLayerList: false,
         queryable: true,
         zIndex: 99,
         source: new VectorSource(),
