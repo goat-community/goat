@@ -68,7 +68,7 @@ class CRUDDynamicCustomization:
 
         layer = layer[0]
         layer_attributes = {}
-        for key in ["url", "type", "map_attribution", "access_token"]:
+        for key in ["url", "legend_urls", "type", "map_attribution", "access_token"]:
             if getattr(layer, key) is not None:
                 layer_attributes[key] = getattr(layer, key)
 
