@@ -28,7 +28,7 @@
         <div
           v-if="vectorTileStyles[layer.get('name')]"
           style="text-align: center; padding: 20px;"
-          :key="item.layerTreeKey"
+          :key="layer.layerTreeKey"
         >
           <div v-if="vectorTileStyles[layer.get('name')]">
             <v-layout
@@ -49,15 +49,14 @@
                     filterStylesOnActiveModeByLayerName(layer.get('name')).rules
                       .length > 1
                   "
-                  :key="item.attributeDisplayStatusKey"
-                  :color="activeColor.primary"
-                  :value="isLayerAttributeVisible(item, ith)"
+                  :key="layer.attributeDisplayStatusKey"
+                  :color="appColor.primary"
+                  :value="isLayerAttributeVisible(layer, ith)"
                   @input="
                     attributeLevelRendering(
-                      $appConfig.stylesObjCopy[layer.get('name')].style.rules[
-                        ith
-                      ].filter[0],
-                      item,
+                      vectorTileStyles[layer.get('name')].style.rules[ith]
+                        .filter[0],
+                      layer,
                       ith
                     )
                   "
@@ -68,8 +67,8 @@
                 <span
                   class="justify-start"
                   style="padding-right: 50px"
-                  :ref="`legend-vector-${item.name + ith}`"
-                  v-html="renderLegend(item, ith)"
+                  :ref="`legend-vector-${layer.get('name') + ith}`"
+                  v-html="renderLegend(layer, ith)"
                 >
                 </span>
               </v-flex>
@@ -94,7 +93,7 @@ export default {
   }),
   watch: {
     //Rerendering the legend part when calculationModes value changes
-    "calculationOptions.calculationModes.active": function() {
+    "calculationMode.active": function() {
       this.legendRerenderOnActiveMode += 1;
     }
   },
@@ -121,16 +120,16 @@ export default {
         styleFilter.filter[0] = filter;
       }
       layer.getSource().changed();
-      this.item.attributeDisplayStatusKey += 1;
+      this.layer.attributeDisplayStatusKey += 1;
     },
     renderLegend(layer, index) {
       //Render individual legend on attribue level.
       setTimeout(() => {
-        const styleObj = this.vectorTileStyles[name].style;
         const name = layer.get("name");
+        const styleObj = this.vectorTileStyles;
         let styleTranslation = this.vectorTileStyles[name].translation;
         const currentLocale = this.$i18n.locale;
-        if (styleObj[name]) {
+        if (styleObj[name] && styleObj[name].format === "geostyler") {
           let el = this.$refs[`legend-vector-${name + index}`];
           el = el ? el : [];
           if (el.length) {
@@ -155,6 +154,7 @@ export default {
               size: [230, 300],
               translation: { styleTranslation, currentLocale }
             });
+
             renderer.render(el);
           }
         }
@@ -168,9 +168,10 @@ export default {
   },
   computed: {
     ...mapGetters("app", {
-      activeColor: "activeColor",
+      appColor: "appColor",
       appConfig: "appConfig",
-      vectorTileStyles: "vectorTileStyles"
+      vectorTileStyles: "vectorTileStyles",
+      calculationMode: "calculationMode"
     })
   }
 };

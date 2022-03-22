@@ -93,7 +93,7 @@ async def read_population_heatmap(
     return return_geojson_or_geobuf(heatmap, return_type.value)
 
 
-@router.get("/local-accessibility/{heatmap_type}/{modus}", response_class=JSONResponse)
+@router.get("/local-accessibility", response_class=JSONResponse)
 async def read_local_accessibility_heatmap(
     *,
     db: AsyncSession = Depends(deps.get_db),

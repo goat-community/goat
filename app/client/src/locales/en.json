@@ -355,6 +355,9 @@
       "title": "Isochrone Color"
     }
   },
+  "heatmaps": {
+    "title": "Heatmaps"
+  },
   "poisFilter": {
     "showTimeFilter": "Add time filter",
     "selectHourLabel": "Select open time to filter",
@@ -411,7 +414,8 @@
       "accessbilityBasemaps": "Heatmaps",
       "basemap": "Background Layers",
       "buildings": "Buildings",
-      "mobility_patterns": "Mobility Patterns"
+      "mobility_patterns": "Mobility Patterns",
+      "heatmap": "Heatmaps"
     },
     "layerName": {
       "poi": "Point of Interest",
@@ -461,9 +465,7 @@
       "ways_traffic_protection": "Traffic Protection",
       "ways_security": "Illuminance",
       "ways_sidewalk_quality": "Gehkomfort",
-      "heatmap_connectivity": "Connectivity",
       "heatmap_luptai": "Comparison of Accessibility and Population Density",
-      "heatmap_population": "Population Density",
       "heatmap_gravity": "Local Accessibility",
       "primary_school_streams": "Potential Pedestrian Flows to Primary Schools",
       "studyArea": "Study Area",
@@ -490,7 +492,11 @@
       "indicators": "Indicators",
       "study_area_crop": "Study area",
       "study_area": "Districts",
-      "ways_Project_Sidewalk": "Project Sidewalk Score"
+      "ways_Project_Sidewalk": "Project Sidewalk Score",
+      "heatmap_connectivity": "Connectivity",
+      "heatmap_local_accessibility": "Local Accessibility",
+      "heatmap_accessibility_population": "Accessibility and Population Density",
+      "heatmap_population": "Population Density"
     },
     "tooltips": {
       "clickForIsochroneCalculation": "Click for isochrone calculation. Press ESC to exit",

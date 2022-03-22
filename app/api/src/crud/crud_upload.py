@@ -1,8 +1,8 @@
 import os
+import random
 import shutil
 import ssl
 import uuid
-import random
 from typing import Any
 
 from fastapi import HTTPException, UploadFile
@@ -15,11 +15,11 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm.attributes import flag_modified
-from src.db.models.config_validation import PoiCategory, check_dict_schema
 
 from src import crud, schemas
 from src.crud.base import CRUDBase
 from src.db import models
+from src.db.models.config_validation import PoiCategory, check_dict_schema
 from src.db.session import legacy_engine
 from src.resources.enums import UploadFileTypes
 from src.schemas.upload import request_examples
@@ -35,7 +35,14 @@ data_upload = CRUDDataUpload(models.DataUpload)
 
 class CRUDUploadFile:
     async def upload_custom_pois(
-        self, *, db: AsyncSession, file: UploadFile, file_dir: str, file_name: str, poi_category: str, current_user: models.User
+        self,
+        *,
+        db: AsyncSession,
+        file: UploadFile,
+        file_dir: str,
+        file_name: str,
+        poi_category: str,
+        current_user: models.User,
     ):
 
         """Handle uploaded custom pois."""
@@ -60,8 +67,8 @@ class CRUDUploadFile:
         except:
             delete_file(file_dir)
             raise HTTPException(
-                    status_code=400,
-                    detail="Failed reading the file.",
+                status_code=400,
+                detail="Failed reading the file.",
             )
 
         if poi_features is not None:
@@ -82,13 +89,12 @@ class CRUDUploadFile:
             "wheelchair",
         ]
         # Get active study area
-        
 
         study_area_obj = await crud.study_area.get(
             db=db, id=current_user.active_study_area_id, extra_fields=["geom"]
         )
         study_area_geom = to_shape(study_area_obj.geom)
-        
+
         if file.content_type == UploadFileTypes.geojson.value:
             try:
                 gdf = gpd_read_file(file_dir, driver="GeoJSON")
@@ -106,7 +112,7 @@ class CRUDUploadFile:
             try:
                 shutil.unpack_archive(file_dir, os.path.splitext(file_dir)[0], "zip")
             except:
-                clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir )
+                clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir)
                 raise HTTPException(status_code=400, detail="Could not read or process file.")
 
             # List shapefiles
@@ -131,8 +137,7 @@ class CRUDUploadFile:
             clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir)
         else:
             raise HTTPException(status_code=400, detail="Invalid file type")
-        
-        
+
         # Convert to EPSG 4326
         gdf_schema = dict(gdf.dtypes)
         if gdf.crs.name == "unknown":
@@ -167,15 +172,17 @@ class CRUDUploadFile:
         try:
             gdf["uid"] = (
                 gdf.centroid.map(
-                    lambda p: str(format(round(p.x, 4), ".4f")).replace('.', '')
+                    lambda p: str(format(round(p.x, 4), ".4f")).replace(".", "")
                     + "_"
-                    + str(format(round(p.y, 4), ".4f")).replace('.', '')
+                    + str(format(round(p.y, 4), ".4f")).replace(".", "")
                 )
                 + "_"
                 + str(poi_category)
             )
             gdf["count_uid"] = gdf.groupby(["uid"]).cumcount() + 1
-            gdf["uid"] = gdf["uid"] + "_" + gdf["count_uid"].astype(str) + "_u" + str(upload_obj.id)
+            gdf["uid"] = (
+                gdf["uid"] + "_" + gdf["count_uid"].astype(str) + "_u" + str(upload_obj.id)
+            )
             gdf["data_upload_id"] = upload_obj.id
 
             gdf.rename_geometry("geom", inplace=True)
@@ -188,21 +195,29 @@ class CRUDUploadFile:
                 if_exists="append",
                 chunksize=1000,
             )
-          
+
         except:
-            await db.execute("""DELETE FROM customer.data_upload WHERE id = :data_upload_id""", {"data_upload_id": upload_obj.id})
+            await db.execute(
+                """DELETE FROM customer.data_upload WHERE id = :data_upload_id""",
+                {"data_upload_id": upload_obj.id},
+            )
             await db.commit()
-            raise HTTPException(status_code=400, detail="An error happened when writing the data into the database.")
+            raise HTTPException(
+                status_code=400,
+                detail="An error happened when writing the data into the database.",
+            )
 
         try:
-            default_poi_categories = await crud.dynamic_customization.get_all_default_poi_categories(db)
+            default_poi_categories = (
+                await crud.dynamic_customization.get_all_default_poi_categories(db)
+            )
             if poi_category not in default_poi_categories:
                 hex_color = "#%06x" % random.randint(0, 0xFFFFFF)
                 new_setting = {poi_category: {"icon": "fas fa-question", "color": [hex_color]}}
 
                 if check_dict_schema(PoiCategory, new_setting) == False:
                     raise HTTPException(status_code=400, detail="Invalid JSON-schema")
-                
+
                 await crud.dynamic_customization.handle_user_setting_modification(
                     db=db,
                     current_user=current_user,
@@ -211,9 +226,15 @@ class CRUDUploadFile:
                     modification_type="insert",
                 )
         except:
-            await db.execute("""DELETE FROM customer.data_upload WHERE id = :data_upload_id""", {"data_upload_id": upload_obj.id})
+            await db.execute(
+                """DELETE FROM customer.data_upload WHERE id = :data_upload_id""",
+                {"data_upload_id": upload_obj.id},
+            )
             await db.commit()
-            raise HTTPException(status_code=400, detail="An error happened when writing new settings to the database.")
+            raise HTTPException(
+                status_code=400,
+                detail="An error happened when writing new settings to the database.",
+            )
 
         return {"msg": "Upload successful"}
 
@@ -268,7 +289,10 @@ class CRUDUploadFile:
                 .where(models.User.id == current_user.id)
                 .values(active_data_upload_ids=current_user.active_data_upload_ids)
             )
-            if current_user.active_data_upload_ids != [] and data_upload_id in current_user.active_data_upload_ids:
+            if (
+                current_user.active_data_upload_ids != []
+                and data_upload_id in current_user.active_data_upload_ids
+            ):
                 current_user.active_data_upload_ids.remove(data_upload_id)
                 sql_query = text(
                     """UPDATE customer.user SET active_data_upload_ids = :active_data_upload_ids WHERE id = :id"""
@@ -300,14 +324,16 @@ class CRUDUploadFile:
             raise HTTPException(status_code=400, detail="User ID does not match")
 
         data_upload_ids_obj = current_user.active_data_upload_ids
-        
-        if obj_in.state == False:
+
+        if obj_in.state == False and data_upload_obj.id in data_upload_ids_obj:
             try:
                 data_upload_ids_obj.remove(obj_in.data_upload_id)
             except ValueError:
                 print("Data upload doesn't exist")
-        else:
+        elif obj_in.state == True and data_upload_obj.id not in data_upload_ids_obj:
             data_upload_ids_obj.append(obj_in.data_upload_id)
+        else:
+            return current_user
 
         current_user.active_data_upload_ids = data_upload_ids_obj
         flag_modified(current_user, "active_data_upload_ids")

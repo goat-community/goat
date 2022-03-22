@@ -84,7 +84,7 @@
 import { mapGetters } from "vuex";
 import { EventBus } from "../../../../EventBus";
 import { Mapable } from "../../../../mixins/Mapable";
-import { getAllChildLayers, getWMSLegendURL } from "../../../../utils/Layer";
+import { getWMSLegendURL } from "../../../../utils/Layer";
 import LegendRenderer from "../../../../utils/LegendRenderer";
 
 export default {
@@ -105,10 +105,10 @@ export default {
      */
     onMapBound() {
       const me = this;
-      const allLayers = getAllChildLayers(me.map);
-      me.layers = allLayers.filter(
-        layer => layer.get("displayInLegend") !== false
-      );
+      me.layers = me.map
+        .getLayers()
+        .getArray()
+        .filter(layer => layer.get("displayInLegend") !== false);
       this.isMapMounted = true;
       EventBus.$on("openLegend", () => this.panel.push(0));
       EventBus.$on("closeLegend", () => (this.panel = []));
@@ -138,9 +138,9 @@ export default {
     },
     renderLegend(item, index) {
       setTimeout(() => {
-        const styleObj = this.$appConfig.stylesObj;
+        const styleObj = this.vectorTileStyles;
         const name = item.get("name");
-        let styleTranslation = this.$appConfig.stylesObj[name].translation;
+        let styleTranslation = this.vectorTileStyles[name].translation;
         const currentLocale = this.$i18n.locale;
         if (styleObj[name] && styleObj[name].format === "geostyler") {
           let el = this.$refs[`legend-vector-${index}`];
@@ -170,7 +170,7 @@ export default {
     },
     filterStylesOnActiveModeByLayerName(name) {
       //get Filtered style on active mode based on layer name
-      const style = this.$appConfig.stylesObj[name].style;
+      const style = this.vectorTileStyles[name].style;
       const filteredStyle = this.filterStylesOnActiveMode(style);
       return filteredStyle || style;
     },
@@ -178,7 +178,7 @@ export default {
       //get Filtered style on active mode based on style object
       const styleRules = style.rules;
       const filteredRules = [];
-      const activeMode = this.calculationOptions.calculationModes.active;
+      const activeMode = this.calculationMode.active;
       let newStyle = { ...style };
       if (Array.isArray(styleRules)) {
         styleRules.forEach(rule => {
@@ -220,9 +220,9 @@ export default {
         this.map.getView().getResolution() <= item.get("maxResolution") &&
         item.getVisible() === true &&
         item.get("displayInLegend") !== false &&
-        item.get("group") !== "backgroundLayers" &&
+        item.get("group") !== "basemap" &&
         this.isMapMounted === true &&
-        this.$appConfig.stylesObj
+        this.vectorTileStyles
       ) {
         return true;
       }
@@ -231,12 +231,13 @@ export default {
   },
 
   computed: {
-    ...mapGetters("isochrones", {
-      calculationOptions: "options"
+    ...mapGetters("app", {
+      calculationMode: "calculationMode",
+      vectorTileStyles: "vectorTileStyles"
     })
   },
   watch: {
-    "calculationOptions.calculationModes.active": function() {
+    "calculationMode.active": function() {
       this.$forceUpdate();
     }
   }

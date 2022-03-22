@@ -104,7 +104,10 @@
                       fab
                       dark
                       x-small
-                      @click="showScenarioDialog = true"
+                      @click="
+                        showScenarioDialog = true;
+                        activeScenarioId = activeScenario;
+                      "
                     >
                       <v-icon dark>edit</v-icon>
                     </v-btn>
@@ -395,7 +398,7 @@
           <!-- ==== </EDIT> ==== -->
         </template>
 
-        <template v-if="activeScenario">
+        <template v-if="activeScenario && selectedLayer && schema[layerName]">
           <!-- ==== <DATA TABLE> ====-->
           <v-subheader
             class="clickable ml-0 pl-0"
@@ -513,8 +516,11 @@
     <!-- Scenario dialog -->
     <scenario-dialog
       :visible="showScenarioDialog"
-      :scenarioId="activeScenario"
-      @close="showScenarioDialog = false"
+      :scenarioId="activeScenarioId"
+      @close="
+        showScenarioDialog = false;
+        activeScenarioId = null;
+      "
     ></scenario-dialog>
     <!-- Confirm Delete all  -->
     <confirm ref="confirm"></confirm>
@@ -657,6 +663,8 @@ export default {
     isTableLoading: false,
     //Scenario Dialog
     showScenarioDialog: false,
+    activeScenarioId: null,
+
     editElVisible: true,
     dataManageElVisible: true,
     selectEditVisible: true,
@@ -676,27 +684,35 @@ export default {
       // Fetch all features from the scenario
       if (this.selectedLayer) {
         this.fetchScenarioLayerFeatures(this.selectedLayer["name"]);
-      } else {
-        this.fetchScenarioFeatures();
       }
+
       if (!this.activeScenario) {
+        this.cleanPoiTreeNode();
+        this.poisAoisLayer.setVisible(true);
         this.clearAll();
         this.selectedLayer = null;
       }
     },
     selectedLayer(value) {
-      if (value && value.name === "poi") {
-        this.poisAoisLayer.setVisible(false);
-      } else {
-        this.poisAoisLayer.setVisible(true);
-      }
       if (this.olEditCtrl && value) {
+        this.appConfig.app_ui.base_color.primary = "#283648";
         this.olEditCtrl.selectedLayer = value;
         this.originIdName = this.original_id;
         this.stop();
         this.clearAll();
+        if (value && value.name === "poi") {
+          this.poisAoisLayer.setVisible(false);
+        } else {
+          this.cleanPoiTreeNode();
+          this.poisAoisLayer.setVisible(true);
+        }
         // Fetch features for the selected layer
         this.fetchScenarioLayerFeatures(this.selectedLayer["name"]);
+      }
+
+      if (!value && this.primaryColorBackup) {
+        // Revert color theme
+        this.appConfig.app_ui.base_color.primary = this.primaryColorBackup;
       }
     },
     toggleSelection: {
@@ -723,12 +739,6 @@ export default {
     toggleFeatureLabels(value) {
       this.toggleFeatureLabelsInteraction(value);
     },
-    scenarioDataTable() {
-      this.canCalculateScenario(this.calculationMode.active);
-    },
-    "calculationMode.active": function(value) {
-      this.canCalculateScenario(value);
-    },
     dataObject: {
       immediate: true,
       async handler() {
@@ -738,6 +748,12 @@ export default {
         }
       },
       deep: true
+    },
+    selectedPoisOnlyKeys() {
+      this.editLayer.getSource().changed();
+    },
+    "calculationMode.active": function() {
+      this.editLayer.getSource().changed();
     }
   },
   mounted() {
@@ -864,47 +880,6 @@ export default {
       }
     },
     /**
-     * Refetch the data from the server.
-     */
-    fetchScenarioFeatures() {
-      const requests = [];
-      this.clearAll();
-      if (!this.activeScenario) return;
-      //TODO: Also refetch pois
-      const layers_ = ["poi", "way", "building", "population"]; // Order is important !!!!!!
-      layers_.forEach(layer => {
-        const modifiedFeaturesPromise = ApiService.get_(
-          `/scenarios/${this.activeScenario}/${layer}_modified/features?return_type=geojson`
-        );
-        requests.push(modifiedFeaturesPromise);
-      });
-      this.isMapBusy = true;
-      axios
-        .all(requests)
-        .then(
-          axios.spread((poi, way, building, population) => {
-            [poi, way, building, population].forEach((layer, index) => {
-              const features = geojsonToFeature(layer.data, {
-                dataProjection: "EPSG:4326",
-                featureProjection: "EPSG:3857"
-              });
-              features.forEach(feature => {
-                feature.setId(`${layers_[index]}_${feature.getId()}`);
-                feature.set("layerName", layers_[index]);
-              });
-              this.editLayer.getSource().addFeatures(features);
-            });
-            this.onEditSourceChange();
-          })
-        )
-        .catch(error => {
-          throw new Error(error);
-        })
-        .finally(() => {
-          this.isMapBusy = false;
-        });
-    },
-    /**
      * Fetch scenario features for a layer
      */
     fetchScenarioLayerFeatures(layer) {
@@ -943,6 +918,9 @@ export default {
                   feature.set("layerName", layer);
                 });
                 this.editLayer.getSource().addFeatures(features);
+                if (layer === "poi") {
+                  this.turnOnAndLockPoiTreeNode(features, "add");
+                }
               }
             });
             if (layer === "poi") {
@@ -957,6 +935,45 @@ export default {
         .finally(() => {
           this.isMapBusy = false;
         });
+    },
+    /**
+     * When poi layer is selected check if category is already selected from user and lock it, if not select it first.
+     */
+    turnOnAndLockPoiTreeNode(features, type) {
+      const uniqueCategories = [
+        ...new Set(features.map(f => f.get("category")))
+      ];
+      uniqueCategories.forEach(category => {
+        if (type == "add") {
+          if (!this.selectedPoisOnlyKeys.includes(category)) {
+            const poiNodeObj = this.poisTreeOnlyChildren[category];
+            if (poiNodeObj) {
+              poiNodeObj.isLocked = true;
+              this.selectedPoisAois.push(this.poisTreeOnlyChildren[category]);
+            }
+          } else {
+            this.selectedPoisAois.forEach(selectedPoi => {
+              if (selectedPoi.value === category) {
+                selectedPoi.isLocked = true;
+              }
+            });
+          }
+        }
+        if (type === "unlock") {
+          this.selectedPoisAois.forEach(selectedPoi => {
+            if (selectedPoi.values === category) {
+              selectedPoi.isLocked = false;
+            }
+          });
+        }
+      });
+    },
+    cleanPoiTreeNode() {
+      this.selectedPoisAois.forEach(selectedPoi => {
+        if (selectedPoi.isLocked) {
+          selectedPoi.isLocked = false;
+        }
+      });
     },
     /**
      * Toggle the select interaction
@@ -1569,17 +1586,20 @@ export default {
         });
       }
       // Removes features that are not modified
+
       this.editLayer
         .getSource()
         .getFeatures()
         .forEach(feature => {
           if (
             !feature.get("edit_type") &&
+            feature.get("layerName") !== "poi" &&
             !feature.get("building_modified_id") // building_modified_id is edge case to not clean population_modified features as they don't have an edit_type property
           ) {
             this.editLayer.getSource().removeFeature(feature);
           }
         });
+
       this.featuresToCommit = [];
     },
     /**
@@ -1593,6 +1613,7 @@ export default {
         .forEach(feature => {
           if (
             !feature.get("edit_type") &&
+            feature.get("layerName") !== "poi" &&
             !feature.get("building_modified_id") // building_modified_id is edge case to not clean population_modified features as they don't have an edit_type property
           ) {
             this.editLayer.getSource().removeFeature(feature);
@@ -1657,8 +1678,6 @@ export default {
                   });
                   // Clear openlayers scenario features
                   this.clearAll();
-                  // Refetch scenario data
-                  this.fetchScenarioFeatures();
                 }
               })
               .catch(() => {
@@ -1844,7 +1863,11 @@ export default {
             feature.setId(`${this.selectedLayer["name"]}_${feature.getId()}`);
             feature.set("layerName", this.selectedLayer["name"]);
           });
+          if (this.selectedLayer["name"] === "poi") {
+            this.turnOnAndLockPoiTreeNode(featuresWithId, "add");
+          }
           this.editLayer.getSource().addFeatures(featuresWithId);
+          this.refreshHeatmap();
         })
         .catch(error => {
           console.log(error);
@@ -1908,6 +1931,7 @@ export default {
             feature.set("layerName", this.selectedLayer["name"]);
           });
           this.editLayer.getSource().addFeatures(featuresWithId);
+          this.refreshHeatmap();
         })
         .catch(() => {
           this.toggleSnackbar({
@@ -1947,6 +1971,7 @@ export default {
       this.isMapBusy = true;
       ApiService.delete(`${this.scenarioApiBaseUrl}?${queryParam}`)
         .then(() => {
+          // For pois if there is no modified features, we need to unlock the tree node.
           features.forEach(feature => {
             if (feature.getId()) {
               const featureIn = this.editLayer
@@ -1963,6 +1988,7 @@ export default {
               }
             }
           });
+          this.refreshHeatmap();
         })
         .catch(() => {
           this.toggleSnackbar({
@@ -1976,6 +2002,15 @@ export default {
           this.isMapBusy = false;
           this.featuresToCommit = [];
         });
+    },
+    refreshHeatmap() {
+      if (this.selectedLayer["name"]) {
+        EventBus.$emit("update-heatmap", "poi");
+      }
+      if (this.selectedLayer["building"]) {
+        // TODO: Update only when building population is added
+        EventBus.$emit("update-heatmap", "population");
+      }
     },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR",
@@ -2083,14 +2118,19 @@ export default {
       calculationMode: "calculationMode",
       openapiConfig: "openapiConfig",
       poiIcons: "poiIcons",
-      poisConfig: "poisConfig"
+      poisConfig: "poisConfig",
+      poisTreeOnlyChildren: "poisTreeOnlyChildren"
     }),
     ...mapGetters("map", {
       contextmenu: "contextmenu",
       layers: "layers"
     }),
     ...mapGetters("poisaois", {
-      poisAoisLayer: "poisAoisLayer"
+      poisAoisLayer: "poisAoisLayer",
+      selectedPoisOnlyKeys: "selectedPoisOnlyKeys"
+    }),
+    ...mapFields("poisaois", {
+      selectedPoisAois: "selectedPoisAois"
     }),
     ...mapFields("scenarios", {
       scenarioDataTable: "scenarioDataTable",
@@ -2107,6 +2147,9 @@ export default {
       selectedLayer: "selectedEditLayer",
       busyLayers: "busyLayers",
       isMapBusy: "isMapBusy"
+    }),
+    ...mapFields("app", {
+      appConfig: "appConfig"
     })
   },
   created() {
@@ -2116,6 +2159,7 @@ export default {
     });
     this.editableLayers = editableLayers;
     this.fetchScenarioLayerSchemas();
+    this.primaryColorBackup = this.appConfig.app_ui.base_color.primary;
   }
 };
 </script>

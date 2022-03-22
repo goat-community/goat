@@ -2014,7 +2014,11 @@ export default {
   },
   watch: {
     routing() {
-      this.speed = this.appConfig.routing[this.routing].speed;
+      this.appConfig.routing.forEach(routing => {
+        if (routing.type === this.routing) {
+          this.speed = routing.speed;
+        }
+      });
     },
     selectedPois() {
       if (this.multiIsochroneMethod) {

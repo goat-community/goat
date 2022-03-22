@@ -821,8 +821,11 @@ export default {
       subStudyAreaLayer: "subStudyAreaLayer"
     }),
     ...mapFields("poisaois", {
-      poisAoisLayer: "poisAoisLayer"
+      poisAoisLayer: "poisAoisLayer",
+      selectedPoisAois: "selectedPoisAois",
+      poisAois: "poisAois"
     }),
+
     ...mapGetters("map", {
       studyArea: "studyArea",
       helpTooltip: "helpTooltip",
@@ -898,6 +901,18 @@ export default {
           state: false
         };
       }
+    },
+    // Edge case for pois layer style. We have to restructure the state of selected pois as a key value pair (category: state)
+    // in order to use it in the style (getters can't be accessed outside vue component).
+    // As the selectedPoisState is also changed from editing component
+    // this should be watched here as it might be that poisAoisTree component is not rendered yet.
+    selectedPoisAois(selected) {
+      const poisAois = {};
+      selected.forEach(item => {
+        poisAois[item.value] = true;
+      });
+      this.poisAois = poisAois;
+      this.poisAoisLayer.changed();
     }
   }
 };

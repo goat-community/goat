@@ -55,7 +55,7 @@
             style="background-color: white;"
             transition="slide-y-reverse-transition"
           >
-            <InLegend :item="layer"></InLegend>
+            <InLegend :layer="layer"></InLegend>
             <v-layout row style="width:100%;padding-left: 10px;">
               <v-flex
                 class="xs2"
@@ -116,7 +116,7 @@
 
 <script>
 import draggable from "vuedraggable";
-import InLegend from "../../viewer/ol/controls/InLegend";
+// import InLegend from "../../viewer/ol/controls/InLegend";
 import StyleDialog from "../changeStyle/StyleDialog.vue";
 import { EventBus } from "../../../EventBus";
 import { mapGetters } from "vuex";
@@ -134,7 +134,7 @@ export default {
   }),
   components: {
     draggable,
-    InLegend,
+    // InLegend,
     StyleDialog
   },
   computed: {

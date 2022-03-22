@@ -17,6 +17,11 @@ import { OlStyleFactory } from "../factory/OlStyle";
 import { all } from "ol/loadingstrategy";
 import ApiService from "../services/api.service";
 import { geobufToFeatures } from "../utils/MapUtils";
+import appStore from "../store/modules/app";
+import scenarioStore from "../store/modules/scenarios";
+import poisAoisStore from "../store/modules/poisaois";
+import mapStore from "../store/modules/map";
+import axios from "axios";
 
 /**
  * Factory, which creates OpenLayers layer instances according to a given config
@@ -67,6 +72,9 @@ export const LayerFactory = {
    */
   getInstance(lConf) {
     lConf.type = lConf.type.toUpperCase();
+    if (lConf.group.toLowerCase() === "heatmap") {
+      return this.createHeatmapLayer(lConf);
+    }
     if (lConf.type === "WMS") {
       return this.createWmsLayer(lConf);
     } else if (lConf.type === "WMSTILE") {
@@ -238,6 +246,86 @@ export const LayerFactory = {
   },
 
   /**
+   * Return heatmap layers
+   * @param {Object} lConf
+   * @returns {ol.layer.VectorImage} OlVector layer instance
+   */
+
+  createHeatmapLayer(lConf) {
+    const layer = new VectorImageLayer({
+      ...this.baseConf(lConf).lOpts,
+      source: new VectorSource({
+        ...this.baseConf(lConf).sOpts,
+        // eslint-disable-next-line no-unused-vars
+        loader: function(extent, resolution, projection, success, failure) {
+          const proj = projection.getCode();
+          const source = this;
+          source.clear();
+          const baseUrl_ = `heatmap`;
+          const returnType = "db_geobuf";
+          const modus = appStore.state.calculationMode.active;
+          const activeScenario = scenarioStore.state.activeScenario;
+          const scenarioId = `${
+            activeScenario ? "&scenario_id=" + activeScenario : ""
+          }`;
+          const heatmapConfiguration = {};
+          poisAoisStore.state.selectedPoisAois.forEach(poiAoiObject => {
+            if (appStore.state.poiIcons[poiAoiObject.value]) {
+              heatmapConfiguration[poiAoiObject.value] = {
+                sensitivity: poiAoiObject.sensitivity,
+                weight: poiAoiObject.weight || 1
+              };
+            }
+          });
+          const heatmapParams = {
+            heatmap_connectivity: `${baseUrl_}/connectivity?return_type=${returnType}`,
+            heatmap_population: `${baseUrl_}/population?modus=${modus}${scenarioId}&return_type=${returnType}`,
+            heatmap_accessibility_population: `${baseUrl_}/local-accessibility?heatmap_type=heatmap_accessibility_population&heatmap_configuration=${JSON.stringify(
+              heatmapConfiguration
+            )}&modus=${modus}${scenarioId}&return_type=${returnType}`,
+            heatmap_local_accessibility: `${baseUrl_}/local-accessibility?heatmap_type=heatmap_local_accessibility&heatmap_configuration=${JSON.stringify(
+              heatmapConfiguration
+            )}&modus=${modus}${scenarioId}&return_type=${returnType}`
+          };
+          const url = heatmapParams[lConf.name];
+          mapStore.state.isMapBusy = true;
+          const CancelToken = axios.CancelToken;
+          ApiService.get_(url, {
+            responseType: "arraybuffer",
+            headers: {
+              Accept: "application/pdf"
+            },
+            cancelToken: new CancelToken(c => {
+              // An executor function receives a cancel function as a parameter
+              mapStore.state.heatmapCancelToken = c;
+            })
+          })
+            .then(response => {
+              if (response.data) {
+                const olFeatures = geobufToFeatures(response.data, {
+                  dataProjection: lConf.data_projection,
+                  featureProjection: proj
+                });
+
+                source.addFeatures(olFeatures);
+              }
+            })
+            .catch(({ response }) => {
+              console.log(response);
+            })
+            .finally(() => {
+              mapStore.state.isMapBusy = false;
+              mapStore.state.heatmapCancelToken = null;
+            });
+        },
+        strategy: all
+      })
+    });
+    this.styleVectorLayer(layer, lConf);
+    return layer;
+  },
+
+  /**
    * Returns an OpenLayers vector tile layer instance due to given config.
    *
    * @param  {Object} lConf  Layer config object
@@ -287,7 +375,10 @@ export const LayerFactory = {
           .then(style => {
             layer.setStyle(style);
           })
-          .catch(error => console.log(error));
+          .catch(error => {
+            console.log(error);
+            console.log("error", lConf.name);
+          });
       } else {
         layer.setStyle(olStyle);
       }

@@ -44,14 +44,15 @@ const getters = {
     const layerGroups = state.appConfig.layer_groups;
     const styles = {};
     layerGroups.forEach(layerGroup => {
-      layerGroup.layers.forEach(layer => {
-        if (layer.style) {
-          styles[layer.name] = {};
-          styles[layer.name]["style"] = layer.style;
-        }
-        if (layer.translation) {
-          styles[layer.name]["translation"] = layer.style;
-        }
+      const groupName = Object.keys(layerGroup)[0];
+      layerGroup[groupName].children.forEach(layerObj => {
+        const layerName = Object.keys(layerObj)[0];
+        const layer = layerObj[layerName];
+        styles[layerName] = {
+          format: "geostyler",
+          style: layer.style,
+          translation: layer.translation || {}
+        };
       });
     });
     return styles;
@@ -99,6 +100,17 @@ const getters = {
         children: restructuredChildren
       };
       treeStruct.push(groupTreeStruct);
+    });
+    return treeStruct;
+  },
+  poisTreeOnlyChildren: (state, getters) => {
+    let treeStruct = {};
+    getters.poisAoisTree.forEach(group => {
+      group.children.forEach(child => {
+        if (getters.poiIcons[child.value]) {
+          treeStruct[child.value] = child;
+        }
+      });
     });
     return treeStruct;
   },

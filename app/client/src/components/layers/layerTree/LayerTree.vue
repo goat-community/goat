@@ -84,7 +84,7 @@
                       style="background-color: white;"
                       transition="slide-y-reverse-transition"
                     >
-                      <InLegend :item="layer"></InLegend>
+                      <InLegend :layer="layer"></InLegend>
                       <v-layout row style="width:100%;padding-left: 10px;">
                         <v-flex
                           class="xs2"
@@ -205,7 +205,7 @@ export default {
         .getLayers()
         .getArray()
         .forEach(layer => {
-          if (layer.get("group")) {
+          if (layer.get("group") && layer.get("group") !== "heatmap") {
             if (!this.layerGroups[layer.get("group")]) {
               this.layerGroups[layer.get("group")] = [];
             }
@@ -251,19 +251,8 @@ export default {
       layer.setOpacity(value);
     },
     getLayerGroupIcon(group) {
-      const layerGroupConf = this.appConfig.layer_groups.filter(
-        g => g.name === group
-      );
-
-      if (
-        Array.isArray(layerGroupConf) &&
-        layerGroupConf.length > 0 &&
-        layerGroupConf[0].icon
-      ) {
-        return layerGroupConf[0].icon;
-      } else {
-        return "fas fa-layer-group";
-      }
+      const layerGroupConf = this.appConfig.layer_groups.filter(g => g[group]);
+      return layerGroupConf[0][group].icon || "fas fa-layer-group";
     },
     translate(type, key) {
       //type = {layerGroup || layerName}

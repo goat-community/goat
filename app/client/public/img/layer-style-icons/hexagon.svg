@@ -48,11 +48,7 @@
      data-name="Group"
      id="g6"
      transform="translate(-39.763,-70)">
-    <polygon
-       data-name="Path"
-       points="364.142,70 147.858,70 39.763,256 147.858,442 364.142,442 472.237,256 "
-       id="polygon4"
-       style="fill:#757575" />
+    <polygon data-name="Path" points="364.142,70 147.858,70 39.763,256 147.858,442 364.142,442 472.237,256 " id="polygon4" style="fill:#424242" />
   </g>
   <metadata
      id="metadata18">

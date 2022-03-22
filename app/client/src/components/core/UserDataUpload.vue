@@ -91,7 +91,7 @@
             <v-switch
               dense
               :color="appColor.secondary"
-              v-model="item.status"
+              :input-value="item.status"
               hide-details
               @change="toggleState(item)"
             ></v-switch>
@@ -231,7 +231,7 @@ export default {
     toggleState(item) {
       ApiService.patch(`/custom-data/poi`, {
         data_upload_id: item.id,
-        state: item.status
+        state: !item.status
       }).then(() => {
         this.$store.dispatch(`app/${GET_USER_CUSTOM_DATA}`);
         this.$store.dispatch(`app/${GET_APP_CONFIG}`);

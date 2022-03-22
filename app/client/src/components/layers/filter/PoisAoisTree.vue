@@ -29,13 +29,12 @@
       rounded
       return-object
       item-key="value"
-      item-disabled="locked"
+      item-disabled="isLocked"
       :selected-color="appColor.primary"
       active-class="grey lighten-4 indigo--text "
       on-icon="check_box"
       off-icon="check_box_outline_blank"
       indeterminate-icon="indeterminate_check_box"
-      @input="treeViewChanged"
     >
       <template v-slot:prepend="{ item }">
         <v-tooltip top :disabled="Array.isArray(item.children)">
@@ -113,7 +112,6 @@
       :color="appColor.primary"
       :visible="showIconPickerDialog"
       :selectedIcon="selectedIcon"
-      @updated="updateIcon"
       @close="showIconPickerDialog = false"
     >
     </icon-picker>
@@ -155,14 +153,6 @@ export default {
   },
 
   methods: {
-    treeViewChanged(selected) {
-      const poisAois = {};
-      selected.forEach(item => {
-        poisAois[item.value] = true;
-      });
-      this.poisAois = poisAois;
-      this.poisAoisLayer.changed();
-    },
     toggleHeatmapDialog(amenity) {
       this.selectedAmenity = amenity;
       this.showHeatmapOptionsDialog = true;
@@ -203,9 +193,6 @@ export default {
           });
         });
       });
-    },
-    updateIcon() {
-      console.log("update poi user icon...");
     },
     getIconColor(item) {
       if (!item.color) {

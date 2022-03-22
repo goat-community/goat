@@ -22,6 +22,7 @@
           </v-row>
         </v-col>
       </v-row>
+
       <v-divider></v-divider>
       <v-select
         class="mt-8"
@@ -34,10 +35,21 @@
         @change="changeStudyArea"
       >
       </v-select>
+      <v-divider></v-divider>
+      <v-select
+        class="mt-2"
+        :value="$i18n.locale"
+        :items="languages"
+        item-value="language"
+        item-text="title"
+        label="UI Language"
+        @change="changeLocale"
+      >
+      </v-select>
       <v-btn
         style="text-transform:none;justify-content:left;"
         width="100%"
-        class="mt-3"
+        class="mt-0"
         text
         @click="openContactSupportInNewTab"
       >
@@ -85,8 +97,17 @@
 <script>
 import { mapGetters } from "vuex";
 import { LOGOUT } from "../../store/actions.type";
+import i18n from "@/plugins/i18n";
+import { EventBus } from "../../EventBus";
+
 export default {
-  data: () => ({}),
+  data: () => ({
+    languages: [
+      { flag: "gb", language: "en", title: "English" },
+      { flag: "de", language: "de", title: "Deutsch" }
+    ],
+    interactionType: "languageChange"
+  }),
   computed: {
     ...mapGetters("auth", { user: "currentUser" }),
     ...mapGetters("app", {
@@ -104,6 +125,15 @@ export default {
     })
   },
   methods: {
+    changeLocale(locale) {
+      i18n.locale = locale;
+      //Close other interactions.
+      EventBus.$emit("ol-interaction-activated", this.interactionType);
+      if (this.contextmenu) {
+        this.contextmenu.close();
+      }
+      EventBus.$emit("ol-interaction-stoped", this.interactionType);
+    },
     openContactSupportInNewTab() {
       let url = "https://plan4better.de/kontakt/";
       if (url) {

@@ -159,7 +159,6 @@ export default {
   methods: {
     selectCalculationMode(mode) {
       this.calculationMode.active = mode;
-      this.canCalculateScenario(mode);
     }
   },
   watch: {

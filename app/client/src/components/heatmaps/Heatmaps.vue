@@ -1,9 +1,258 @@
 <template>
-  <div>Heatmap section</div>
+  <v-flex xs12 sm8 md4>
+    <vue-scroll>
+      <template>
+        <!-- HEATMAP LAYERS -->
+        <v-expansion-panels accordion multiple v-model="heatmapPanel">
+          <v-expansion-panel
+            v-for="(layerGroupValue, layerGroupKey) in heatmapGroup"
+            :key="layerGroupKey"
+            expand
+          >
+            <v-expansion-panel-header
+              class="elevation-2"
+              expand-icon=""
+              v-slot="{ open }"
+            >
+              <v-layout row wrap align-center>
+                <v-flex xs1>
+                  <img
+                    height="20"
+                    width="20"
+                    class="mr-3"
+                    src="img/layer-style-icons/hexagon.svg"
+                  />
+                </v-flex>
+                <v-flex xs10 class="light-text" style="font-size:medium;">
+                  <div>
+                    <b>{{ translate("layerGroup", layerGroupKey) }}</b>
+                  </div>
+                </v-flex>
+                <v-flex xs1>
+                  <v-icon v-html="open ? 'remove' : 'add'"></v-icon>
+                </v-flex>
+              </v-layout>
+            </v-expansion-panel-header>
+            <v-expansion-panel-content>
+              <!-- LAYERS -->
+              <v-expansion-panels readonly>
+                <v-expansion-panel
+                  v-for="(layer, i) in layerGroupValue"
+                  :key="i"
+                  class="layer-row"
+                  :class="{
+                    'expansion-panel__container--active':
+                      layer.get('_showOptions') === true
+                  }"
+                >
+                  <v-expansion-panel-header expand-icon="" v-slot="{}">
+                    <v-layout row class="pl-1" wrap align-center>
+                      <v-flex class="checkbox" xs1>
+                        <v-checkbox
+                          :color="appColor.primary"
+                          :input-value="layer.getVisible()"
+                          @change="
+                            toggleLayerVisibility(layer, layerGroupValue)
+                          "
+                        ></v-checkbox>
+                      </v-flex>
+                      <v-flex xs10 class="light-text">
+                        <h4 class="pl-2">
+                          {{ translate("layerName", layer.get("name")) }}
+                        </h4>
+                      </v-flex>
+                    </v-layout>
+                  </v-expansion-panel-header>
+                </v-expansion-panel>
+              </v-expansion-panels>
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+        </v-expansion-panels>
+      </template>
+    </vue-scroll>
+  </v-flex>
 </template>
-
 <script>
-export default {};
+import { mapGetters, mapMutations } from "vuex";
+import { EventBus } from "../../EventBus";
+import { Mapable } from "../../mixins/Mapable";
+import { mapFields } from "vuex-map-fields";
+export default {
+  mixins: [Mapable],
+  data: () => ({
+    heatmapPanel: [0],
+    heatmapGroup: {},
+    interactionType: "heatmap-interaction",
+    heatmapsWithPois: [
+      "heatmap_accessibility_population",
+      "heatmap_local_accessibility"
+    ],
+    updateHeatmaps: {
+      poi: ["heatmap_local_accessibility", "heatmap_accessibility_population"],
+      population: ["heatmap_accessibility_population", "heatmap_population"]
+    }
+  }),
+  computed: {
+    ...mapGetters("app", {
+      appColor: "appColor",
+      appConfig: "appConfig",
+      calculationMode: "calculationMode"
+    }),
+    ...mapGetters("poisaois", {
+      selectedPoisOnlyKeys: "selectedPoisOnlyKeys"
+    }),
+    ...mapGetters("scenarios", {
+      activeScenario: "activeScenario"
+    }),
+    ...mapFields("map", {
+      heatmapCancelToken: "heatmapCancelToken"
+    })
+  },
+  methods: {
+    ...mapMutations("map", {
+      toggleSnackbar: "TOGGLE_SNACKBAR"
+    }),
+    /**
+     * This function is executed, after the map is bound (see mixins/Mapable)
+     * and registers the current map layers.
+     */
+    onMapBound() {
+      this.map
+        .getLayers()
+        .getArray()
+        .forEach(layer => {
+          if (layer.get("group") && layer.get("group") === "heatmap") {
+            if (!this.heatmapGroup[layer.get("group")]) {
+              this.heatmapGroup[layer.get("group")] = [];
+            }
+            this.heatmapGroup[layer.get("group")].push(layer);
+          }
+        });
+      EventBus.$on("update-heatmap", updateHeatmapsLinkedTo => {
+        this.refreshHeatmap(updateHeatmapsLinkedTo);
+      });
+    },
+    translate(type, key) {
+      const canTranslate = this.$te(`map.${type}.${key}`);
+      if (canTranslate) {
+        return this.$t(`map.${type}.${key}`);
+      } else {
+        return key;
+      }
+    },
+    toggleLayerVisibility(layer, group) {
+      if (this.heatmapCancelToken instanceof Function) {
+        this.heatmapCancelToken("cancelled");
+        this.heatmapCancelToken = null;
+      }
+      //Turn off other heatmaps if layer group is background layers.
+      if (layer.get("group") === "heatmap") {
+        group.forEach(lc => {
+          if (lc.get("name") === layer.get("name")) return;
+          lc.setVisible(false);
+        });
+      }
+      layer.setVisible(!layer.getVisible());
+      if (layer.getVisible() === false) {
+        layer.set("_showOptions", false);
+      } else {
+        if (this.heatmapCancelToken instanceof Function) {
+          this.heatmapCancelToken("cancelled");
+          this.heatmapCancelToken = null;
+        }
+        layer.getSource().refresh();
+        this.checkIfHeatmapNeedsPois(layer);
+        layer.set("_showOptions", true);
+      }
+    },
+    refreshAllVisibleHeatmaps() {
+      this.heatmapGroup["heatmap"].forEach(layer => {
+        if (layer.getVisible()) {
+          this.checkIfHeatmapNeedsPois(layer);
+          if (this.heatmapCancelToken instanceof Function) {
+            this.heatmapCancelToken("cancelled");
+            this.heatmapCancelToken = null;
+          }
+          layer.getSource().refresh();
+        }
+      });
+    },
+    refreshHeatmap(update) {
+      if (this.heatmapCancelToken instanceof Function) {
+        this.heatmapCancelToken("cancelled");
+        this.heatmapCancelToken = null;
+      }
+      if (this.updateHeatmaps[update]) {
+        this.updateHeatmaps[update].forEach(heatmapName => {
+          this.heatmapGroup["heatmap"].forEach(layer => {
+            if (layer.get("name") === heatmapName && layer.getVisible()) {
+              this.checkIfHeatmapNeedsPois(layer);
+              if (this.heatmapCancelToken instanceof Function) {
+                this.heatmapCancelToken("cancelled");
+                this.heatmapCancelToken = null;
+              }
+              layer.getSource().refresh();
+            }
+          });
+        });
+      }
+    },
+    checkIfHeatmapNeedsPois(layer) {
+      this.toggleSnackbar({ state: false });
+      if (
+        this.selectedPoisOnlyKeys.length === 0 &&
+        this.heatmapsWithPois.includes(layer.get("name"))
+      ) {
+        this.toggleSnackbar({
+          type: "error",
+          message: this.$t("map.snackbarMessages.selectAmenities"),
+          state: true,
+          timeout: 4000
+        });
+        return true;
+      } else {
+        return false;
+      }
+    }
+  },
+  watch: {
+    selectedPoisOnlyKeys() {
+      this.refreshAllVisibleHeatmaps();
+    },
+    activeScenario() {
+      this.refreshAllVisibleHeatmaps();
+    },
+    "calculationMode.active": function() {
+      this.refreshAllVisibleHeatmaps();
+    }
+  }
+};
 </script>
+<style lang="css" scoped>
+.v-expansion-panel__header {
+  cursor: default;
+}
+.active-icon {
+  color: #30c2ff;
+}
 
-<style></style>
+.expansion-panel__container--active {
+  background-color: white !important;
+}
+
+.checkbox >>> .v-input__control {
+  height: 25px;
+}
+
+.v-expansion-panel-content >>> .v-expansion-panel-content__wrap {
+  padding: 0px;
+}
+
+.v-expansion-panel-content >>> .v-input__slot {
+  margin-bottom: 0px;
+}
+
+.layer-row >>> .v-expansion-panel-header {
+  cursor: auto;
+}
+</style>

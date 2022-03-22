@@ -35,6 +35,7 @@ const state = {
   bldEntranceLayer: null,
   editLayer: null,
   selectedEditLayer: null,
+  heatmapCancelToken: null,
   isMapillaryBtnDisabled: false,
   print: {
     active: false,
@@ -123,6 +124,7 @@ const getters = {
   isMapillaryBtnDisabled: state => state.isMapillaryBtnDisabled,
   print: state => state.print,
   isMapBusy: state => state.isMapBusy,
+  heatmapCancelToken: state => state.heatmapCancelToken,
   getField
 };
 
