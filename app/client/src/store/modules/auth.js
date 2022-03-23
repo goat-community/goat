@@ -4,6 +4,7 @@ import JwtService from "../../services/jwt.service";
 import { GET_USER, LOGIN, LOGOUT } from "../actions.type";
 import { SET_AUTH, PURGE_AUTH, SET_ERROR, SET_USER } from "../mutations.type";
 import { errorMessage } from "../../utils/Helpers";
+import { getField, updateField } from "vuex-map-fields";
 
 const state = {
   errors: null,
@@ -17,7 +18,8 @@ const getters = {
   },
   isAuthenticated(state) {
     return state.isAuthenticated;
-  }
+  },
+  getField
 };
 
 const actions = {
@@ -70,7 +72,8 @@ const mutations = {
     state.user = {};
     state.errors = "";
     JwtService.destroyToken();
-  }
+  },
+  updateField
 };
 
 export default {

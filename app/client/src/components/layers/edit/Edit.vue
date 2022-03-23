@@ -991,10 +991,14 @@ export default {
     toggleSelectInteraction(state) {
       if (state != undefined) {
         EventBus.$emit("ol-interaction-activated", this.interactionType);
-        this.map.getTarget().style.cursor = this.mapCursorTypeEnum["select"];
+        if (this.map.getTarget().style) {
+          this.map.getTarget().style.cursor = this.mapCursorTypeEnum["select"];
+        }
       } else {
         EventBus.$emit("ol-interaction-stoped", this.interactionType);
-        this.map.getTarget().style.cursor = "";
+        if (this.map.getTarget().style) {
+          this.map.getTarget().style.cursor = "";
+        }
       }
       let selectionType;
       switch (state) {
@@ -1089,7 +1093,11 @@ export default {
         this.olEditCtrl.addInteraction(editType, startCb, endCb);
         EventBus.$emit("ol-interaction-activated", this.interactionType);
         this.$nextTick(() => {
-          this.map.getTarget().style.cursor = this.mapCursorTypeEnum[editType];
+          if (this.map.getTarget().style) {
+            this.map.getTarget().style.cursor = this.mapCursorTypeEnum[
+              editType
+            ];
+          }
         });
         if (this.addKeyupListener) {
           this.addKeyupListener();
@@ -1099,7 +1107,9 @@ export default {
         this.olEditCtrl.editType = undefined;
         this.olEditCtrl.removeInteraction();
         EventBus.$emit("ol-interaction-stoped", this.interactionType);
-        this.map.getTarget().style.cursor = "";
+        if (this.map.getTarget().style) {
+          this.map.getTarget().style.cursor = "";
+        }
       }
     },
 
@@ -1767,7 +1777,9 @@ export default {
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
       this.toggleSelection = undefined;
       this.toggleEdit = undefined;
-      this.map.getTarget().style.cursor = "";
+      if (this.map.getTarget().style) {
+        this.map.getTarget().style.cursor = "";
+      }
       this.clear();
     },
     /**

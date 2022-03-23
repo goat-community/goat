@@ -691,6 +691,10 @@
       }
     }
   },
+  "userSettings": {
+    "changeStudyAreaTitle": "Change Study Area",
+    "changeStudyAreaMessageWarning": "The study area will be changed. Isochrone calculations will not be saved. Do you want to continue?"
+  },
   "pois": {
     "education": "Education",
     "foodanddrink": "Food and Drink",

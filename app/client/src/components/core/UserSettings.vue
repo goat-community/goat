@@ -26,8 +26,7 @@
       <v-divider></v-divider>
       <v-select
         class="mt-8"
-        :value="studyAreaProps"
-        return-object
+        v-model="studyAreaId"
         :items="studyAreaList"
         item-value="id"
         item-text="name"
@@ -91,6 +90,7 @@
       </p>
     </v-card>
     <v-spacer></v-spacer>
+    <confirm ref="confirm"></confirm>
   </v-flex>
 </template>
 
@@ -100,6 +100,7 @@ import { LOGOUT } from "../../store/actions.type";
 import i18n from "@/plugins/i18n";
 import { EventBus } from "../../EventBus";
 import ApiService from "../../services/api.service";
+import { mapFields } from "vuex-map-fields";
 
 export default {
   data: () => ({
@@ -107,7 +108,8 @@ export default {
       { flag: "gb", language: "en", title: "English" },
       { flag: "de", language: "de", title: "Deutsch" }
     ],
-    interactionType: "languageChange"
+    interactionType: "languageChange",
+    studyAreaId: null
   }),
   computed: {
     ...mapGetters("auth", { user: "currentUser" }),
@@ -117,12 +119,17 @@ export default {
       uploadedStorageSize: "uploadedStorageSize"
     }),
     ...mapGetters("map", {
-      studyAreaProps: "studyAreaProps",
       studyAreaList: "studyAreaList"
     }),
     ...mapGetters("scenarios", {
       scenarios: "scenarios",
       limitScenarios: "limitScenarios"
+    }),
+    ...mapGetters("isochrones", {
+      calculations: "calculations"
+    }),
+    ...mapFields("auth", {
+      userState: "user"
     })
   },
   methods: {
@@ -146,14 +153,42 @@ export default {
       }
     },
     changeStudyArea(newStudyArea) {
-      if (newStudyArea.id === this.studyAreaProps.id) {
+      if (newStudyArea === this.user.active_study_area_id) {
         return;
+      }
+      if (this.calculations.length > 0) {
+        this.$refs.confirm
+          .open(
+            this.$t("userSettings.changeStudyAreaTitle"),
+            this.$t("userSettings.changeStudyAreaMessageWarning"),
+            { color: this.appColor.primary, icon: "fa-solid fa-retweet" }
+          )
+          .then(confirm => {
+            if (confirm) {
+              ApiService.put("/users/me/preference", {
+                active_study_area_id: newStudyArea
+              }).then(() => {
+                window.location.reload();
+              });
+            } else {
+              this.studyAreaId = this.user.active_study_area_id;
+            }
+          });
+      } else {
+        ApiService.put("/users/me/preference", {
+          active_study_area_id: newStudyArea
+        }).then(() => {
+          window.location.reload();
+        });
       }
     },
     logout() {
       this.$store.dispatch(`auth/${LOGOUT}`);
       window.location.reload();
     }
+  },
+  created() {
+    this.studyAreaId = this.user.active_study_area_id;
   }
 };
 </script>
