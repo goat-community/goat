@@ -466,6 +466,8 @@ class CRUDDynamicCustomization:
         setting_type,
         modification_type
     ):
+        # This line needs to be adjdusted
+        setting_type = {"poi": "poi_groups"}[setting_type]
         """ "This function handles insert or updates of settings for POIs and Layers."""
         user_customizations = await self.get_user_settings(
             db=db, current_user=current_user, setting_type=setting_type

@@ -125,7 +125,7 @@ class UploadFileTypes(str, Enum):
 
 class SettingToModify(str, Enum):
     """Setting to reset."""
-    poi = "poi_groups"
+    poi = "poi"
 
 class LanguageEnum(str, Enum):
     """Language Enum."""
