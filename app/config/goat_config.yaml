@@ -135,69 +135,8 @@ DATA_REFINEMENT_VARIABLES:
       strong: ['steps']
     positive_classified:
       
-
-    #was = walking speed 
-    was_type_road:
-      motorway: '0'
-      trunk: '0'
-      primary: '0'
-      secondary: '0'
-      tertiary : '0'
-      unclassified: '0'
-      residential: '0'
-      living streets: '0'
-      service: '0'
-      pedestrain: '0'
-      track: '0'
-      footway: '0'
-      corridor: '0'
-      path: '0'
-      tunnel: '0.1'
-      bridge: '0.1'
-    was_peak_hour: '0'
-    was_cyclepath:
-      segregated_yes: '0'
-      segregated_no: '0'
-    was_sidewalk: 
-      ideal: '0'
-      comfortable: '0'
-      acceptable: '0'
-      uncomfortable: '0'
-    was_obstacle:
-      light: '0'
-      moderate: '0.05'
-      strong: '0.1'
-    was_surface:
-      paving_stones: '0'
-      sett: '0.05'
-      unhewn-cobblestone: '0.05'
-      cobblestone: '0.05'
-      pebblestone: '0.05'
-      unpaved: '0'
-      compacted : '0'
-      fine_gravel: '0'
-      gravel: '0'
-      sand: '0.1'
-      grass: '0'
-      mud: '0.1'
-    was_smoothness:
-      intermediate: '0'
-      bad: '0'
-      very_bad: '0'
-      horrible: '0'
-      very_horrible: '0.1'
-    was_positive:
-      park: '0'
-      flowerbeds: '0'
-      street_lamp: '0'
-      tree: '0'
-      tree-line: '0'
-      bench: '0'
-      bicycle_rack: '0'
-      drinking_water: '0'
-
     #wac = walking comfort
-    wac_type_road:
+    walking_type_road:
       motorway: '1'
       trunk: '1'
       primary: '0.8'
@@ -214,110 +153,48 @@ DATA_REFINEMENT_VARIABLES:
       path: '0'
       tunnel: '0.25'
       bridge: '0.25'
-    wac_peak_hour: '0.15'
-    wac_cyclepath:
+    walking_peak_hour: '0.15'
+    walking_cyclepath:
       segregated_yes: '0.5'
       segregated_no: '0'
-    wac_sidewalk:
+    walking_sidewalk:
       ideal: '0'
       comfortable: '0'
       acceptable: '0.3'
       uncomfortable: '0.5'
-    wac_obstacle:
+    walking_obstacle:
       light: '0.05'
       moderate: '0.05'
       strong: '0.3'
-    wac_surface:
+    walking_surface:
       paving_stones: '0'
-      sett: '0'
-      unhewn-cobblestone: '0'
-      cobblestone: '0'
-      pebblestone: '0'
+      sett: '0.05'
+      unhewn-cobblestone: '0.05'
+      cobblestone: '0.05'
+      pebblestone: '0.05'
       unpaved: '0'
       compacted : '0'
       fine_gravel: '0'
       gravel: '0'
-      sand: '0'
+      sand: '0.1'
       grass: '0'
-      mud: '0'
-    wac_smoothness:
+      mud: '0.1'
+    walking_smoothness:
       intermediate: '0'
       bad: '0'
       very_bad: '0'
       horrible: '0'
-      very_horrible: '0'
-    wac_positive:
-      park: '0.1'
-      flowerbeds: '0.05'
-      street_lamp: '0.2'
-      tree: '0.2'
-      tree-line: '0'
-      bench: '0.1'
-      bicycle_rack: '0'
-      drinking_water: '0.05'
-
-    #cys = cycling speed
-    cys_type_road:
-      motorway: '0'
-      trunk: '0'
-      primary: '0'
-      secondary: '0'
-      tertiary : '0'
-      unclassified: '0'
-      residential: '0'
-      living streets: '0.1'
-      service: '0'
-      pedestrain: '0'
-      track: '0'
-      footway: '0'
-      corridor: '0'
-      path: '0'
-      tunnel: '0.15'
-      bridge: '0.15'
-    cys_peak_hour: '0.25'
-    cys_cyclepath:
-      segregated_yes: '0.1'
-      segregated_no: '0'
-    cys_sidewalk:
-      ideal: '0'
-      comfortable: '0'
-      acceptable: '0'
-      uncomfortable: '0'
-    cys_obstacle:
-      light: '0'
-      moderate: '0.15'
-      strong: '0.15'
-    cys_surface:
-      paving_stones: '0.1'
-      sett: '0.15'
-      unhewn-cobblestone: '0.15'
-      cobblestone: '0.15'
-      pebblestone: '0.15'
-      unpaved: '0.1'
-      compacted : '0.025'
-      fine_gravel: '0.025'
-      gravel: '0.15'
-      sand: '0.2'
-      grass: '0.125'
-      mud: '0.2'
-    cys_smoothness:
-      intermediate: '0.025'
-      bad: '0.05'
-      very_bad: '0.1'
-      horrible: '0.15'
-      very_horrible: '0.25'
-    cys_positive:
-      park: '0'
-      flowerbeds: '0'
-      street_lamp: '0'
-      tree: '0'
-      tree-line: '0'
-      bench: '0'
-      bicycle_rack: '0'
-      drinking_water: '0'
+      very_horrible: '0.1'
+    walking_extra:
+      no_park: '0.1'
+      no_street_lamp: '0.2'
+      no_tree: '0.2'
+      no_bench: '0.1'
+      no_bicycle_rack: '0'
+      no_water: '0.1'
 
     #cyc = cycling comfort
-    cyc_type_road:
+    cycling_type_road:
       motorway: '1'
       trunk: '1'
       primary: '0.3'
@@ -334,80 +211,20 @@ DATA_REFINEMENT_VARIABLES:
       path: '0.1'
       tunnel: '0.25'
       bridge: '0.25'
-    cyc_peak_hour: '0.075'
-    cyc_cyclepath:
+    cycling_peak_hour: '0.075'
+    cycling_cyclepath:
       segregated_yes: '0'
       segregated_no: '0.05'
-    cyc_sidewalk:
+    cycling_sidewalk:
       ideal: '0.05'
       comfortable: '0.1'
       acceptable: '0.2'
       uncomfortable: '0.3'
-    cyc_obstacle:
+    cycling_obstacle:
       light: '0.05'
       moderate: '0.35'
       strong: '0.15'
-    cyc_surface:
-      paving_stones: '0'
-      sett: '0'
-      unhewn-cobblestone: '0'
-      cobblestone: '0'
-      pebblestone: '0'
-      unpaved: '0'
-      compacted : '0'
-      fine_gravel: '0'
-      gravel: '0'
-      sand: '0'
-      grass: '0'
-      mud: '0'
-    cyc_smoothness:
-      intermediate: '0'
-      bad: '0'
-      very_bad: '0'
-      horrible: '0'
-      very_horrible: '0'
-    cyc_positive:
-      park: '0.1'
-      flowerbeds: '0.05'
-      street_lamp: '0.2'
-      tree: '0.2'
-      tree-line: '0'
-      bench: '0.1'
-      bicycle_rack: '0'
-      drinking_water: '0.05'
-
-    #whs = wheelchair speed
-    whs_type_road:
-      motorway: '0'
-      trunk: '0'
-      primary: '0'
-      secondary: '0'
-      tertiary : '0'
-      unclassified: '0'
-      residential: '0'
-      living streets: '0'
-      service: '0'
-      pedestrain: '0'
-      track: '0'
-      footway: '0'
-      corridor: '0'
-      path: '0'
-      tunnel: '0.2'
-      bridge: '0.2'
-    whs_peak_hour: '0'
-    whs_cyclepath:
-      segregated_yes: '0'
-      segregated_no: '0'
-    whs_sidewalk:
-      ideal: '0'
-      comfortable: '0'
-      acceptable: '0'
-      uncomfortable: '0'
-    whs_obstacle:
-      light: '0'
-      moderate: '0.35'
-      strong: '0.375'
-    whs_surface:
+    cycling_surface:
       paving_stones: '0.1'
       sett: '0.15'
       unhewn-cobblestone: '0.15'
@@ -420,24 +237,22 @@ DATA_REFINEMENT_VARIABLES:
       sand: '0.2'
       grass: '0.125'
       mud: '0.2'
-    whs_smoothness:
+    cycling_smoothness:
       intermediate: '0.025'
       bad: '0.05'
       very_bad: '0.1'
       horrible: '0.15'
       very_horrible: '0.25'
-    whs_positive:
-      park: '0'
-      flowerbeds: '0'
-      street_lamp: '0'
-      tree: '0'
-      tree-line: '0'
-      bench: '0'
-      bicycle_rack: '0'
-      drinking_water: '0'
+    cycling_extra:
+      no_park: '0.1'
+      no_street_lamp: '0.2'
+      no_tree: '0.2'
+      no_bench: '0.1'
+      no_bicycle_rack: '0.2'
+      no_water: '0'
 
     #whc = wheelchair comfort
-    whc_type_road:
+    wheelchair_type_road:
       motorway: '1'
       trunk: '1'
       primary: '0.8'
@@ -454,47 +269,45 @@ DATA_REFINEMENT_VARIABLES:
       path: '0'
       tunnel: '0.25'
       bridge: '0.25'
-    whc_peak_hour: '0.075'
-    whc_cyclepath:
+    wheelchair_peak_hour: '0.075'
+    wheelchair_cyclepath:
       segregated_yes: '0.3'
       segregated_no: '0'
-    whc_sidewalk:
+    wheelchair_sidewalk:
       ideal: '0'
       comfortable: '0.1'
       acceptable: '0.2'
       uncomfortable: '0.3'
-    whc_obstacle:
+    wheelchair_obstacle:
       light: '0.05'
       moderate: '0.35'
       strong: '0.375'
-    whc_surface:
-      paving_stones: '0'
-      sett: '0'
-      unhewn-cobblestone: '0'
-      cobblestone: '0'
-      pebblestone: '0'
-      unpaved: '0'
-      compacted : '0'
-      fine_gravel: '0'
-      gravel: '0'
-      sand: '0'
-      grass: '0'
-      mud: '0'
-    whc_smoothness:
-      intermediate: '0'
-      bad: '0'
-      very_bad: '0'
-      horrible: '0'
-      very_horrible: '0'
-    whc_positive:
-      park: '0.1'
-      flowerbeds: '0.05'
-      street_lamp: '0.2'
-      tree: '0.2'
-      tree-line: '0'
-      bench: '0.1'
-      bicycle_rack: '0'
-      drinking_water: '0.05'
+    wheelchair_surface:
+      paving_stones: '0.1'
+      sett: '0.15'
+      unhewn-cobblestone: '0.15'
+      cobblestone: '0.15'
+      pebblestone: '0.15'
+      unpaved: '0.1'
+      compacted : '0.025'
+      fine_gravel: '0.025'
+      gravel: '0.15'
+      sand: '0.2'
+      grass: '0.125'
+      mud: '0.2'
+    wheelchair_smoothness:
+      intermediate: '0.025'
+      bad: '0.05'
+      very_bad: '0.1'
+      horrible: '0.15'
+      very_horrible: '0.25'
+    wheelchair_extra:
+      no_park: '0.1'
+      no_street_lamp: '0.2'
+      no_tree: '0.2'
+      no_bench: '0.1'
+      no_bicycle_rack: '0'
+      no_water: '0.1'
 
     ##-------------------------------------Size limits for areas of interest------------------------------------##
     ## Limits the area to be displayed for certain amenities (like parks). The limits should be defined in square meters
