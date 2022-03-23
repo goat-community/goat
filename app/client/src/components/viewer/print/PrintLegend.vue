@@ -198,7 +198,9 @@ export default {
 
   computed: {
     ...mapGetters("app", {
-      calculationMode: "calculationMode",
+      calculationMode: "calculationMode"
+    }),
+    ...mapGetters("map", {
       vectorTileStyles: "vectorTileStyles"
     })
   },

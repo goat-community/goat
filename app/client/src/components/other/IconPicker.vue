@@ -56,6 +56,7 @@
                 class="mr-2 mb-2 "
                 fab
                 small
+                :loading="isRestoring"
                 depressed
               >
                 <i
@@ -92,7 +93,11 @@
               </template>
               <v-card>
                 <v-card-text class="pa-0">
-                  <v-color-picker v-model="iconColor" flat />
+                  <v-color-picker
+                    @input="changeIconColor"
+                    :value="iconColor"
+                    flat
+                  />
                 </v-card-text>
               </v-card>
             </v-menu>
@@ -173,6 +178,7 @@
           v-if="filteredIcons.length > 100"
           circle
           :total-visible="7"
+          :color="color"
           class="pagination pl-10 ml-10 mt-1"
           v-model="page"
           :length="pages"
@@ -182,9 +188,13 @@
         <v-btn color="grey" text @click.native="cancel">{{
           $t("buttonLabels.cancel")
         }}</v-btn>
-        <v-btn color="primary darken-1" text @click.native="updateIcon">{{
-          $t("buttonLabels.save")
-        }}</v-btn>
+        <v-btn
+          color="primary darken-1"
+          :loading="isBusy"
+          text
+          @click.native="updateIcon"
+          >{{ $t("buttonLabels.save") }}</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -200,6 +210,7 @@ import {
   fontAwesome6Categories
 } from "../../utils/FontAwesomev6ProOnlySolid";
 import { SET_POI_ICONS } from "../../store/mutations.type";
+import { debounce } from "../../utils/Helpers";
 export default {
   directives: { mask },
   props: {
@@ -209,6 +220,7 @@ export default {
   },
   data: () => ({
     isBusy: false,
+    isRestoring: false,
     // Pagination
     page: 1,
     pageSize: 100,
@@ -235,6 +247,7 @@ export default {
         }
       }
     },
+
     swatchStyle() {
       const { iconColor, iconColorMenu } = this;
       return {
@@ -283,8 +296,14 @@ export default {
           this.show = false;
         });
     },
+    changeIconColor: debounce(function(color) {
+      this.iconColor = color;
+    }, 60),
     restoreDefault() {
-      ApiService.post(`customizations/user/delete/poi`, this.selectedIcon.value)
+      this.isRestoring = true;
+      ApiService.delete(
+        `customizations/user/reset-style/poi/${this.selectedIcon.value}`
+      )
         .then(res => {
           if (res.data) {
             this.appConfig = res.data;
@@ -293,7 +312,7 @@ export default {
           }
         })
         .finally(() => {
-          this.isBusy = false;
+          this.isRestoring = false;
           this.show = false;
         });
     },
@@ -332,7 +351,6 @@ export default {
       this.initPage();
       this.updatePage(this.page);
     },
-
     initPage: function() {
       let _this = this;
       _this.listCount = _this.filteredIcons.length;

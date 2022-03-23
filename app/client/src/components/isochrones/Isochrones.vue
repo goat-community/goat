@@ -1111,7 +1111,9 @@ export default {
         this.mapClickListener = this.map.on("singleclick", this.onMapClick);
       }
 
-      this.map.getTarget().style.cursor = "pointer";
+      if (this.map.getTarget().style) {
+        this.map.getTarget().style.cursor = "pointer";
+      }
       if (this.addKeyupListener) {
         this.addKeyupListener();
       }
@@ -1125,7 +1127,9 @@ export default {
       this.multiIsochroneMethod = type;
       EventBus.$emit("ol-interaction-activated", this.interactionType);
       this.removeMultiIsochroneInteraction();
-      this.map.getTarget().style.cursor = "pointer";
+      if (this.map.getTarget().style) {
+        this.map.getTarget().style.cursor = "pointer";
+      }
       if (this.addKeyupListener) {
         this.addKeyupListener();
       }
@@ -1209,7 +1213,7 @@ export default {
           this.$t("isochrones.multiple.amenityCount") +
           ` ${this.multiIsochronePoiCount} / ${this.maxAmenities}`,
         state: true,
-        timeout: 100000
+        timeout: 0
       });
       this.startHelpTooltip(this.$t("map.tooltips.clickToStartDrawing"));
     },
@@ -2003,7 +2007,9 @@ export default {
       this.multiIsochroneMethod = null;
       this.multiIsochronePoiCount = 0;
       this.stopHelpTooltip();
-      this.map.getTarget().style.cursor = "";
+      if (this.map.getTarget().style) {
+        this.map.getTarget().style.cursor = "";
+      }
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
       this.multiIsochroneSelectionLayer.getSource().clear();
     },

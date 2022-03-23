@@ -26,7 +26,7 @@
                 <a
                   :style="`color:${appColor.primary}`"
                   class="info-link"
-                  href="https://www.open-accessibility.org/"
+                  href="https://plan4better.de/was-ist-goat/"
                   target="_blank"
                   >{{ $t("appBar.about.moreInfo") }}</a
                 >
@@ -108,11 +108,7 @@ export default {
     },
     layerAttributes() {
       let a = {};
-      const attributeLayers = [
-        ...this.$appConfig.map.layers,
-        ...this.$appConfig.map.otherAttributeLayers
-      ];
-      attributeLayers.forEach(layer => {
+      this.layerConfigList.forEach(layer => {
         if (
           (layer.attributes &&
             layer.attributes.source &&
@@ -120,9 +116,6 @@ export default {
           (layer.attributes && layer.attributes.source === "openStreetMap")
         ) {
           let { source, date } = layer.attributes;
-          if (source === "openStreetMap") {
-            date = this.$appConfig.osmTimestamp;
-          }
           if (!a[source]) {
             a[source] = {};
           }
@@ -137,6 +130,9 @@ export default {
     },
     ...mapGetters("app", {
       appColor: "appColor"
+    }),
+    ...mapGetters("map", {
+      layerConfigList: "layerConfigList"
     })
   },
   methods: {

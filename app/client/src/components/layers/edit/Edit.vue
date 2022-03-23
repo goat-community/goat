@@ -775,10 +775,11 @@ export default {
         if (
           !["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())
         ) {
-          const clone = feature.clone();
-          clone.setId(feature.getId());
-          clone.set("layerName", "poi");
-          this.poiFeatures.push(clone);
+          // console.log("test...");
+          // const clone = feature.clone();
+          // clone.setId(feature.getId());
+          // clone.set("layerName", "poi");
+          // this.poiFeatures.push(clone);
         }
       });
   },

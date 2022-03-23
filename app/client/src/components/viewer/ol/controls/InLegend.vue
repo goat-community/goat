@@ -1,12 +1,23 @@
 <template>
   <div>
-    <div v-if="layer.get('legendGraphicUrl')">
-      <img
-        crossorigin="anonymous"
-        style="max-width:100%;padding-left:50px"
-        :src="layer.get('legendGraphicUrl')"
-        class="white--text mt-0 pt-0"
-      />
+    <div
+      v-if="
+        layer.get('legendGraphicUrls') &&
+          Array.isArray(layer.get('legendGraphicUrls'))
+      "
+    >
+      <template
+        v-for="(legendUrl, indexLegendUrls) in layer.get('legendGraphicUrls')"
+      >
+        <div :key="indexLegendUrls">
+          <img
+            crossorigin="anonymous"
+            style="max-width:100%; padding-left:50px;"
+            :src="legendUrl"
+            class="white--text mt-0 pt-0"
+          />
+        </div>
+      </template>
     </div>
     <div v-else>
       <div v-if="layer.get('type').toUpperCase() === 'WMS'">
@@ -161,17 +172,19 @@ export default {
       }, 500);
     },
     getWMSLayerNames(layer) {
-      const layerUrl = layer.getUrl();
+      const layerUrl = layer.getSource().getUrl();
       const layerKeyNames = new URL(layerUrl).searchParams.get("LAYERS");
-      return layerKeyNames;
+      return layerKeyNames || "";
     }
   },
   computed: {
     ...mapGetters("app", {
       appColor: "appColor",
       appConfig: "appConfig",
-      vectorTileStyles: "vectorTileStyles",
       calculationMode: "calculationMode"
+    }),
+    ...mapGetters("map", {
+      vectorTileStyles: "vectorTileStyles"
     })
   }
 };
