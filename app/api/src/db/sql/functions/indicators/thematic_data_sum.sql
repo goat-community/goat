@@ -8,7 +8,6 @@ DECLARE
 	pois_more_entrance jsonb = poi_categories -> 'true';
 	excluded_pois_id text[] := ARRAY[]::text[]; 
 	excluded_buildings_id integer[] := ARRAY[]::integer[];
-	active_upload_ids integer[];
 BEGIN 		
 
 	IF modus = 'scenario' THEN
