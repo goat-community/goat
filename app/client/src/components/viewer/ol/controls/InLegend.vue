@@ -37,7 +37,12 @@
       </div>
       <div :key="legendRerenderOnActiveMode">
         <div
-          v-if="vectorTileStyles[layer.get('name')]"
+          v-if="
+            vectorTileStyles[layer.get('name')] &&
+              ['VECTOR', 'GEOBUF', 'MVT'].includes(
+                layer.get('type').toUpperCase()
+              )
+          "
           style="text-align: center; padding: 20px;"
           :key="layer.layerTreeKey"
         >
