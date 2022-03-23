@@ -88,12 +88,19 @@ async def update_user_preference(
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
     preference: schemas.UserPreference = Body(
-        ..., example=request_examples["update_user_preference"]
+        ..., examples=request_examples["update_user_preference"]
     ),
 ) -> Any:
     """
     Update user preference.
     """
+    if preference.active_study_area_id is not None:
+        owns_study_area = await CRUDBase(models.UserStudyArea).get_by_multi_keys(
+            db, keys={"user_id": current_user.id, "study_area_id": preference.active_study_area_id}
+        )
+        if owns_study_area == []:
+            raise HTTPException(status_code=400, detail="The user doesn't own the study area")
+
     user = await crud.user.get(db, id=current_user.id)
     if not user:
         raise HTTPException(

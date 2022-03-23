@@ -32,7 +32,8 @@ class UserStudyAreaList(BaseModel):
 
 class UserPreference(BaseModel):
     language_preference: Optional[LanguageEnum]
-
+    active_study_area_id: Optional[int]
+    
     class Config:
         extra = "forbid"
 
@@ -69,6 +70,25 @@ request_examples = {
         "limit_scenarios": 10,
     },
     "update_user_preference": {
-        "language_preference": "en",
+        "language_preference": {
+            "summary": "Update language preference",
+            "value": {
+                "language_preference": "en",
+            }
+        },
+        "study_area_preference": {
+            "summary": "Update study area preference",
+            "value": {         
+                "active_study_area_id": 1,
+            }
+        }
+        ,
+        "language_study_area_preference": {
+            "summary": "Both language and study area preferences",
+            "value": {         
+                "language_preference": "en",
+                "active_study_area_id": 1,
+            }
+        }
     },
 }
