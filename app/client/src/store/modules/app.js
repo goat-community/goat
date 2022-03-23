@@ -29,7 +29,8 @@ const state = {
   activeColor: {
     primary: "#2BB381",
     secondary: "#2BB381"
-  }
+  },
+  scenarioLayerEditModeColor: "#283648"
 };
 
 const getters = {
@@ -40,6 +41,7 @@ const getters = {
   appColor: state => {
     return state.appConfig.app_ui.base_color;
   },
+  scenarioLayerEditModeColor: state => state.scenarioLayerEditModeColor,
   vectorTileStyles: state => {
     const layerGroups = state.appConfig.layer_groups;
     const styles = {};

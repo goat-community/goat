@@ -117,7 +117,7 @@ export default {
       this.$nextTick(() => {
         const styleObj = this.vectorTileStyles;
         const name = item.get("name");
-        let styleTranslation = styleObj[name].translation;
+        let styleTranslation = styleObj[name].translation || {};
         const currentLocale = this.$i18n.locale;
         if (styleObj[name] && styleObj[name].format === "geostyler") {
           let el = this.$refs[`legend-vector-${index}`];

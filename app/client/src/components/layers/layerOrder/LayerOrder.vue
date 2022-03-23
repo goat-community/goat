@@ -116,7 +116,7 @@
 
 <script>
 import draggable from "vuedraggable";
-// import InLegend from "../../viewer/ol/controls/InLegend";
+import InLegend from "../../viewer/ol/controls/InLegend";
 import StyleDialog from "../changeStyle/StyleDialog.vue";
 import { EventBus } from "../../../EventBus";
 import { mapGetters } from "vuex";
@@ -134,7 +134,7 @@ export default {
   }),
   components: {
     draggable,
-    // InLegend,
+    InLegend,
     StyleDialog
   },
   computed: {

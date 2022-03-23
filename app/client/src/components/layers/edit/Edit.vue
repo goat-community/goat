@@ -687,15 +687,19 @@ export default {
       }
 
       if (!this.activeScenario) {
+        this.clearAll();
         this.cleanPoiTreeNode();
         this.poisAoisLayer.setVisible(true);
-        this.clearAll();
         this.selectedLayer = null;
+        this.calculationMode.active = "default";
+      }
+      if (this.activeScenario) {
+        this.calculationMode.active = "scenario";
       }
     },
     selectedLayer(value) {
       if (this.olEditCtrl && value) {
-        this.appConfig.app_ui.base_color.primary = "#283648";
+        this.appConfig.app_ui.base_color.primary = this.scenarioLayerEditModeColor;
         this.olEditCtrl.selectedLayer = value;
         this.originIdName = this.original_id;
         this.stop();
@@ -1078,9 +1082,9 @@ export default {
       if (editType !== undefined) {
         this.olEditCtrl.addInteraction(editType, startCb, endCb);
         EventBus.$emit("ol-interaction-activated", this.interactionType);
-        setTimeout(() => {
+        this.$nextTick(() => {
           this.map.getTarget().style.cursor = this.mapCursorTypeEnum[editType];
-        }, 50);
+        });
         if (this.addKeyupListener) {
           this.addKeyupListener();
         }
@@ -1636,13 +1640,13 @@ export default {
       this.scenarioDataTable = [];
       this.isInteractionOnProgress = false;
       this.isTableLoading = false;
-      this.clear();
+      this.featuresToCommit = [];
+      EventBus.$emit("ol-interaction-stoped", this.interactionType);
     },
     /**
      * Delete all user scenario features in db.
      */
     deleteAll() {
-      const layerName = [this.selectedLayer["name"]];
       this.$refs.confirm
         .open(
           this.$t("appBar.edit.deleteAllTitle"),
@@ -1655,7 +1659,7 @@ export default {
             //1- Call api to delete all features.
             this.isDeleteAllBusy = true;
             ApiService.delete(
-              `/scenarios/${this.activeScenario}/${layerName}_modified/features-all`
+              `/scenarios/${this.activeScenario}/${this.selectedLayer["name"]}_modified/features-all`
             )
               .then(response => {
                 this.isDeleteAllBusy = false;
@@ -1677,7 +1681,12 @@ export default {
                     timeout: 4000
                   });
                   // Clear openlayers scenario features
-                  this.clearAll();
+                  this.stop();
+                  if (this.selectedLayer["name"] === "poi") {
+                    this.fetchScenarioLayerFeatures("poi");
+                  } else {
+                    this.clearAll();
+                  }
                 }
               })
               .catch(() => {
@@ -1770,17 +1779,18 @@ export default {
     ok(type) {
       const featureOut = this.featuresToCommit[0].clone();
 
-      Object.keys(featureOut.getProperties()).forEach(prop => {
-        if (!["geometry", "geom"].includes(prop)) featureOut.unset(prop);
-      });
+      // Object.keys(featureOut.getProperties()).forEach(prop => {
+      //   if (!["geometry", "geom"].includes(prop)) featureOut.unset(prop);
+      // });
 
       // Set new properties from dataObject (popup)
-      featureOut.setProperties(this.dataObject);
+
       // Reset id of the original feature
       featureOut.setId(this.featuresToCommit[0].getId());
       const properties = this.featuresToCommit[0].getProperties();
       if (type === "add") {
         // New feature
+        featureOut.setProperties(this.dataObject);
         featureOut.set("edit_type", "n");
         this.createScenarioFeatures([featureOut]);
       }
@@ -1789,12 +1799,14 @@ export default {
         properties.hasOwnProperty("edit_type")
       ) {
         // Modified existing fature
+        featureOut.setProperties(this.dataObject);
         this.updateScenarioFeatures([featureOut]);
       } else if (
         type === "modifyAttributes" &&
         !properties.hasOwnProperty("edit_type")
       ) {
         // Modified an origin feature (has to be created as modified feature)
+        featureOut.setProperties(this.dataObject);
         featureOut.set("edit_type", "m");
         if (this.featuresToCommit[0].getId()) {
           featureOut.set(this.original_id, this.featuresToCommit[0].getId());
@@ -1803,6 +1815,12 @@ export default {
         this.editLayer.getSource().removeFeature(this.featuresToCommit[0]);
       } else if (type === "delete" && !properties.hasOwnProperty("edit_type")) {
         // Deleted an origin feature (has to be created as deleted feature)
+        const allowedKeys = Object.keys(this.dataObject);
+        Object.keys(this.featuresToCommit[0].getProperties()).forEach(prop => {
+          if (!allowedKeys.includes(prop) && prop !== "geometry") {
+            featureOut.unset(prop);
+          }
+        });
         if (this.featuresToCommit[0].getId()) {
           featureOut.set(this.original_id, this.featuresToCommit[0].getId());
         }
@@ -1979,8 +1997,7 @@ export default {
                 .getFeatureById(feature.getId());
               if (featureIn) {
                 const props = featureIn.getProperties();
-                if (props[this.original_id] && props.edit_type !== "m") {
-                  featureIn.unset(this.original_id);
+                if (["m", "d"].includes(props.edit_type)) {
                   featureIn.unset("edit_type");
                 } else {
                   this.editLayer.getSource().removeFeature(featureIn);
@@ -2119,7 +2136,8 @@ export default {
       openapiConfig: "openapiConfig",
       poiIcons: "poiIcons",
       poisConfig: "poisConfig",
-      poisTreeOnlyChildren: "poisTreeOnlyChildren"
+      poisTreeOnlyChildren: "poisTreeOnlyChildren",
+      scenarioLayerEditModeColor: "scenarioLayerEditModeColor"
     }),
     ...mapGetters("map", {
       contextmenu: "contextmenu",
@@ -2149,7 +2167,8 @@ export default {
       isMapBusy: "isMapBusy"
     }),
     ...mapFields("app", {
-      appConfig: "appConfig"
+      appConfig: "appConfig",
+      calculationMode: "calculationMode"
     })
   },
   created() {

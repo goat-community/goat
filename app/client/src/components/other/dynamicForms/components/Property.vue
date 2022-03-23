@@ -245,6 +245,7 @@
         @input="input"
         item-text="text"
         item-value="value"
+        autocomplete="off"
       >
       </v-autocomplete>
 
@@ -272,6 +273,7 @@
           :return-object="true"
           @change="change"
           @input="input"
+          autocomplete="off"
         >
         </v-select>
       </template>
@@ -296,6 +298,7 @@
           :item-text="translateListValues"
           @change="change"
           @input="input"
+          autocomplete="off"
         >
         </v-select>
       </template>
@@ -350,6 +353,7 @@
 
       <!-- Simple text field -->
       <v-text-field
+        autocomplete="off"
         v-else-if="
           fullSchema.type === 'string' && fullSchema.key !== 'opening_hours'
         "
@@ -435,6 +439,7 @@
         type="number"
         @change="change"
         @input="input"
+        autocomplete="off"
       >
         <tooltip
           slot="append-outer"

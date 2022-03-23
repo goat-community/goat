@@ -115,6 +115,32 @@
         <v-icon>close</v-icon>
       </v-btn>
     </v-snackbar>
+    <!-- Info snackbar when editing a layer -->
+    <v-snackbar
+      :color="scenarioLayerEditModeColor"
+      v-if="selectedEditLayer"
+      :timeout="0"
+      style="font-size:16px;"
+      :value="selectedEditLayer ? true : false"
+    >
+      <span class="h2"
+        >{{
+          $te(`map.snackbarMessages.scenarioEditMode`)
+            ? $t(`map.snackbarMessages.scenarioEditMode`) + ": "
+            : "Scenario Editing Mode: "
+        }}
+        <span class="ml-2"
+          ><b>{{
+            $te(`map.layerName.${selectedEditLayer["name"]}`)
+              ? $t(`map.layerName.${selectedEditLayer["name"]}`)
+              : selectedEditLayer["name"]
+          }}</b></span
+        >
+      </span>
+      <v-btn color="error" text @click="selectedEditLayer = null">
+        {{ $te(`buttonLabels.exit`) ? $t(`buttonLabels.exit`) : "Exit" }}
+      </v-btn>
+    </v-snackbar>
   </div>
 </template>
 
@@ -819,7 +845,8 @@ export default {
   },
   computed: {
     ...mapFields("map", {
-      subStudyAreaLayer: "subStudyAreaLayer"
+      subStudyAreaLayer: "subStudyAreaLayer",
+      selectedEditLayer: "selectedEditLayer"
     }),
     ...mapFields("poisaois", {
       poisAoisLayer: "poisAoisLayer",
@@ -836,7 +863,8 @@ export default {
     }),
     ...mapGetters("app", {
       appColor: "appColor",
-      appConfig: "appConfig"
+      appConfig: "appConfig",
+      scenarioLayerEditModeColor: "scenarioLayerEditModeColor"
     }),
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",

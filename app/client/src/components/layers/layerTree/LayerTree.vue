@@ -238,11 +238,14 @@ export default {
       }
 
       layer.setVisible(!layer.getVisible());
-      layer.set("_showOptions", layer.getVisible());
+      if (layer.getVisible() === false) {
+        layer.set("_showOptions", false);
+      } else {
+        layer.set("_showOptions", true);
+      }
     },
     toggleLayerOptions(layer) {
       layer.set("_showOptions", !layer.get("_showOptions"));
-      console.log(layer.get("_showOptions"));
     },
     changeLayerOpacity(value, layer) {
       layer.setOpacity(value);

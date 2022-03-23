@@ -29,37 +29,6 @@
               return-object
               required
             ></v-select>
-            <!-- <v-select
-              v-model="print.scale"
-              :items="print.scales"
-              prepend-icon="fas fa-ruler-horizontal"
-              :label="$t('appBar.printMap.form.scale.label')"
-              :rules="rules.required"
-              required
-            >
-              <template slot="selection" slot-scope="{ item }">
-                1 : {{ numberWithCommas(item) }}
-              </template>
-              <template slot="item" slot-scope="{ item }">
-                1 : {{ numberWithCommas(item) }}
-              </template>
-            </v-select>
-            <v-select
-              v-model="print.dpi"
-              :items="print.dpis"
-              prepend-icon="aspect_ratio"
-              :label="$t('appBar.printMap.form.resolution.label')"
-              :rules="rules.required"
-              @change="setDpi"
-              required
-            >
-              <template slot="selection" slot-scope="{ item }">
-                {{ item }} dpi
-              </template>
-              <template slot="item" slot-scope="{ item }">
-                {{ item }} dpi
-              </template>
-            </v-select> -->
             <v-select
               v-model="print.selectedCrs"
               :items="print.crs"
@@ -281,8 +250,12 @@ export default {
   },
   deactivated: function() {
     this.print.active = false;
+    this.print.grid = false;
     if (!this.map) {
       throw new Error("Missing map");
+    }
+    if (this.gridLayer) {
+      this.map.removeLayer(this.gridLayer);
     }
     if (this.rotationListenerKey) {
       olEvents.unlistenByKey(this.rotationListenerKey);

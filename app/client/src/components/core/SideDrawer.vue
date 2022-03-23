@@ -51,11 +51,7 @@
                     :class="item.class"
                     @click="toggleComponent(item.componentToShow)"
                     v-on="on"
-                    :style="[
-                      activeUpComponent === item.componentToShow
-                        ? { backgroundColor: appColor.primary }
-                        : { backgroundColor: '' }
-                    ]"
+                    :style="getComponentButtonStyle(item)"
                   >
                     <v-list-item-action>
                       <v-icon
@@ -244,10 +240,16 @@ export default {
     },
     ...mapGetters("app", {
       appColor: "appColor"
+    }),
+    ...mapGetters("map", {
+      selectedLayer: "selectedEditLayer"
     })
   },
   methods: {
     toggleComponent(component) {
+      if (component === "user-data-upload" && this.selectedLayer) {
+        return;
+      }
       if (component === this.activeUpComponent) {
         this.hide();
       } else {
@@ -255,6 +257,17 @@ export default {
         this.activeUpComponent = component;
       }
     },
+    getComponentButtonStyle(item) {
+      let style = "";
+      if (this.activeUpComponent === item.componentToShow) {
+        style += "background-color: " + this.appColor.primary + ";";
+      }
+      if (item.componentToShow === "user-data-upload" && this.selectedLayer) {
+        style += "cursor: not-allowed;";
+      }
+      return style;
+    },
+
     toggleDialog(component) {
       this.activeBottomComponent = component;
       this.showDialog = true;

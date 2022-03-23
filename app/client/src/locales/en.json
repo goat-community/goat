@@ -6,7 +6,8 @@
     "save": "Save",
     "ok": "Ok",
     "remove": "Remove",
-    "stop": "Stop"
+    "stop": "Stop",
+    "exit": "Exit"
   },
   "login": {
     "title": "Login",
@@ -401,7 +402,8 @@
       "cantExportScenario": "An error happened. Scenario can't be exported!",
       "zoomInToShowFeatures": "Zoom in to show features for",
       "heatmapIsBusy": "Recomputing for heatmap layer might take some time. Please be patient!",
-      "calculationCancelled": "Calculation Cancelled!"
+      "calculationCancelled": "Calculation Cancelled!",
+      "scenarioEditMode": "Scenario Mode"
     },
     "layerGroup": {
       "poisLayers": "Point of Interest",

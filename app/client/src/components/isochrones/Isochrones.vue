@@ -913,6 +913,9 @@ export default {
     ...mapGetters("isochrones", {
       calculations: "calculations"
     }),
+    ...mapGetters("scenarios", {
+      activeScenario: "activeScenario"
+    }),
     ...mapGetters("map", {
       contextmenu: "contextmenu",
       subStudyAreaLayer: "subStudyAreaLayer"
@@ -1393,16 +1396,14 @@ export default {
       const routing = this.routing;
       const steps = this.steps;
       const modus = this.calculationMode.active;
-      const scenario_id = this.scenarioId; //TODO: Get scenario id from store (Disable isochrone comparison if there is no scenario active)
-      const active_upload_ids = this.activeUploadIds || [0]; //TODO: Get active upload ids from store
+      const scenario_id = this.activeScenario ? this.activeScenario : 0;
       const baseParams = {
         minutes: time,
         speed,
         modus,
         n: steps,
         routing_profile: routing,
-        scenario_id,
-        active_upload_ids
+        scenario_id
       };
       const payload = { ...baseParams, ...params };
       this.isMapBusy = true;

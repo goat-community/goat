@@ -265,10 +265,10 @@ export function defaultStyle(feature) {
 
 const poisEditShadowStyleCache = {};
 
-function poisEditShadowStyle(color) {
+function poisEditShadowStyle(color, radius) {
   return new OlStyle({
     image: new OlShadow({
-      radius: 15,
+      radius: radius,
       blur: 5,
       offsetX: 0,
       offsetY: 0,
@@ -288,6 +288,15 @@ export function poisEditStyle(feature) {
   ) {
     return [];
   }
+  const calculationMode = appStore.state.calculationMode.active;
+  if (calculationMode === "default" && feature.get("edit_type")) {
+    return [];
+  }
+
+  if (calculationMode === "comparison" && !feature.get("edit_type")) {
+    return [];
+  }
+
   const poiIconConf = appStore.state.poiIcons[category];
   const editType = feature.get("edit_type");
   //edit_type m = modified, d = deleted, n = new
@@ -299,11 +308,12 @@ export function poisEditStyle(feature) {
   var st = [];
   // Shadow Style for Editing POIs
   if (!editType) {
-    st.push(poisEditShadowStyle("rgba(0,0,0,0.5)"));
+    st.push(poisEditShadowStyle("rgba(0,0,0,0.5)", 15));
   }
   if (!poisEditShadowStyleCache[editType]) {
     poisEditShadowStyleCache[editType] = poisEditShadowStyle(
-      shadowColor[editType]
+      shadowColor[editType],
+      25
     );
   }
   st.push(poisEditShadowStyleCache[editType]);
