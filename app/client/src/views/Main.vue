@@ -1,28 +1,39 @@
 <template>
-  <v-app
-    v-if="appConfig && studyArea"
-    id="wg-app"
-    data-app
-    :class="{ 'wg-app': true }"
-  >
-    <left-panel />
-    <v-content>
-      <v-container
-        style="height: 100vh; max-height: 100%;"
-        fluid
-        fill-height
-        class="pa-0"
-      >
-        <vue-scroll>
-          <v-row style="width:100%;" justify="center" align="center">
-            <app-viewer />
-            <snackbar />
-          </v-row>
-        </vue-scroll>
-      </v-container>
-    </v-content>
-    <app-sidebar />
-  </v-app>
+  <div class="pa-0 ma-0">
+    <v-app
+      v-if="appConfig && studyArea"
+      id="wg-app"
+      v-cloak
+      data-app
+      :class="{ 'wg-app': true }"
+    >
+      <left-panel />
+      <v-content>
+        <v-container
+          style="height: 100vh; max-height: 100%;"
+          fluid
+          fill-height
+          class="pa-0"
+        >
+          <vue-scroll>
+            <v-row style="width:100%;" justify="center" align="center">
+              <app-viewer />
+              <snackbar />
+            </v-row>
+          </vue-scroll>
+        </v-container>
+      </v-content>
+      <app-sidebar />
+    </v-app>
+    <div class="loading">
+      <v-progress-circular
+        :width="7"
+        :size="100"
+        color="#2BB381"
+        indeterminate
+      ></v-progress-circular>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -69,7 +80,8 @@ export default {
   },
   computed: {
     ...mapGetters("app", {
-      appConfig: "appConfig"
+      appConfig: "appConfig",
+      appColor: "appColor"
     }),
     ...mapGetters("map", {
       studyArea: "studyArea"
