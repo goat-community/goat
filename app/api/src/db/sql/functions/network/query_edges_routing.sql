@@ -17,6 +17,10 @@ DECLARE
 	time_loss_intersections jsonb := '{}'::jsonb;
 	geom_column TEXT = 'geom';
 BEGIN 
+	IF modus_input = 'default' THEN 
+		scenario_id_input = 0;
+	END IF;
+	
 	excluded_class_id = (basic.select_customization('excluded_class_id_' || transport_mode))::text;
 	excluded_class_id = substr(excluded_class_id, 2, length(excluded_class_id) - 2);
 
@@ -47,8 +51,10 @@ BEGIN
 
 	sql_cost = format(sql_cost, speed_input, time_loss_intersections::text);
 
-  	IF modus_input = 'scenario' THEN 
-		sql_scenario_id = ' AND (scenario_id IS NULL OR scenario_id='||scenario_id_input||')';
+  	
+	sql_scenario_id = ' AND (scenario_id IS NULL OR scenario_id='||scenario_id_input||')';
+
+	IF modus_input = 'scenario' THEN 
 		sql_ways_ids = ' AND NOT id::int4 = any('''|| basic.modified_edges(scenario_id_input)::text ||''') ';
 	END IF;
 
@@ -74,7 +80,8 @@ BEGIN
 	return sql_select_ways;
 END;
 $function$;
+
 /*Produces the sql query as text to fetch the network*/
 /*
-SELECT basic.query_edges_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.0018)),'default',NULL,1.33,'walking_standard',true)
+SELECT basic.query_edges_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.0018)),'default',0,1.33,'walking_standard',true)
 */
