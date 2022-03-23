@@ -1,4 +1,3 @@
-
 ----------------------------------
 ----Table for street furniture----
 ----------------------------------
@@ -27,6 +26,14 @@ SELECT p.osm_id AS original_key, p.highway AS amenity, 'osm' AS data_source, p.w
 FROM planet_osm_point p, study_area s
 WHERE st_intersects(s.geom,p.way) 
 AND highway IN ('street_lamp');
+
+--Insert tree
+INSERT INTO street_furniture(original_key,amenity,data_source,geom)
+SELECT p.osm_id AS original_key, p.natural AS amenity, 'osm' AS data_source, p.way AS geom
+FROM planet_osm_point p, study_area s
+WHERE st_intersects(s.geom,p.way) 
+AND "natural" IN ('tree');
+
 
 /*Data fusion with custom street_items*/
 DO $$
