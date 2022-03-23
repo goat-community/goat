@@ -45,6 +45,7 @@ async def create_scenario(
     obj_scenario = models.Scenario(
         scenario_name=scenario_in.scenario_name,
         user_id=current_user.id,
+        study_area_id=current_user.active_study_area_id
     )
     result = await crud.scenario.create(db=db, obj_in=obj_scenario)
     return result
@@ -59,7 +60,7 @@ async def get_scenarios(
     """
     Get all scenarios.
     """
-    result = await crud.scenario.get_by_key(db=db, key="user_id", value=current_user.id)
+    result = await crud.scenario.get_by_multi_keys(db=db, keys={"user_id": current_user.id, "study_area_id": current_user.active_study_area_id})
     return result
 
 

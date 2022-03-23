@@ -15,7 +15,7 @@ from sqlmodel import (
     Index
 )
 
-from src.db.models import data_upload
+from src.db.models import data_upload, study_area
 
 if TYPE_CHECKING:
     from .aoi import AoiModified
@@ -47,6 +47,9 @@ class Scenario(SQLModel, table=True):
     data_upload_ids: Optional[List[int]] = Field(
         sa_column=Column(ARRAY(Integer()), server_default=text("'{}'::int[]"))
     ) 
+    study_area_id: int = Field(
+        sa_column=Column(Integer, ForeignKey("basic.study_area.id"), nullable=False)
+    )
 
     user: "User" = Relationship(back_populates="scenarios")
     isochrone_calculations: List["IsochroneCalculation"] = Relationship(back_populates="scenario")
