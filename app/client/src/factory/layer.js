@@ -47,7 +47,7 @@ export const LayerFactory = {
       visible: lConf.visible || false,
       opacity: lConf.opacity || 1,
       displayInLayerList: lConf.display_in_layer_list || true,
-      legendGraphicUrl: lConf.legend_graphic_url || null
+      legendGraphicUrls: lConf.legend_urls || null
     };
     if (lConf.z_index) {
       lOpts.zIndex = lConf.z_index;

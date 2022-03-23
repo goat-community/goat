@@ -42,23 +42,6 @@ const getters = {
     return state.appConfig.app_ui.base_color;
   },
   scenarioLayerEditModeColor: state => state.scenarioLayerEditModeColor,
-  vectorTileStyles: state => {
-    const layerGroups = state.appConfig.layer_groups;
-    const styles = {};
-    layerGroups.forEach(layerGroup => {
-      const groupName = Object.keys(layerGroup)[0];
-      layerGroup[groupName].children.forEach(layerObj => {
-        const layerName = Object.keys(layerObj)[0];
-        const layer = layerObj[layerName];
-        styles[layerName] = {
-          format: "geostyler",
-          style: layer.style,
-          translation: layer.translation || {}
-        };
-      });
-    });
-    return styles;
-  },
   routingProfiles: state => {
     let routingProfiles = {};
     const routing = state.appConfig.routing;

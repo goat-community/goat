@@ -55,7 +55,10 @@
             style="background-color: white;"
             transition="slide-y-reverse-transition"
           >
-            <InLegend :layer="layer"></InLegend>
+            <InLegend
+              v-if="layer.get('_showOptions') === true"
+              :layer="layer"
+            ></InLegend>
             <v-layout row style="width:100%;padding-left: 10px;">
               <v-flex
                 class="xs2"

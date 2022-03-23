@@ -109,9 +109,41 @@ const getters = {
       return {};
     }
   },
+  // eslint-disable-next-line no-unused-vars
+  vectorTileStyles: (state, getters, rootState, rootGetters) => {
+    const layerGroups = rootState.app.appConfig.layer_groups;
+    const styles = {};
+    layerGroups.forEach(layerGroup => {
+      const groupName = Object.keys(layerGroup)[0];
+      layerGroup[groupName].children.forEach(layerObj => {
+        const layerName = Object.keys(layerObj)[0];
+        const layer = layerObj[layerName];
+        styles[layerName] = {
+          format: "geostyler",
+          style: layer.style,
+          translation: layer.translation || {}
+        };
+      });
+    });
+    return styles;
+  },
   studyAreaList: state => state.studyAreaList,
   map: state => state.map,
   layers: state => state.layers,
+  // eslint-disable-next-line no-unused-vars
+  layerConfigList: (state, getters, rootState, rootGetters) => {
+    const layerGroups = rootState.app.appConfig.layer_groups;
+    const layers = [];
+    layerGroups.forEach(layerGroup => {
+      const groupName = Object.keys(layerGroup)[0];
+      layerGroup[groupName].children.forEach(layerObj => {
+        const layerName = Object.keys(layerObj)[0];
+        const layer = layerObj[layerName];
+        layers.push(layer);
+      });
+    });
+    return layers;
+  },
   osmMode: state => state.osmMode,
   helpTooltip: state => state.helpTooltip,
   messages: state => state.messages,

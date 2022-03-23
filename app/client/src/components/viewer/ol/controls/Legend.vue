@@ -1,84 +1,5 @@
 <template>
-  <v-expansion-panels
-    multiple
-    v-model="panel"
-    class="elevation-3"
-    dark
-    style="position:absolute;bottom:35px;right:10px;maxWidth: 250px;"
-  >
-    <v-expansion-panel
-      @click="onExpansionPanelClick"
-      :style="`background-color: white;`"
-    >
-      <v-expansion-panel-header :style="`background-color: ${color};`"
-        >{{ $t("map.layerLegend.title") }}
-        <template v-slot:actions>
-          <v-icon small>$vuetify.icons.expand</v-icon>
-        </template>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content style="max-height:400px;">
-        <vue-scroll>
-          <div id="legend">
-            <template v-for="(item, index) in layers">
-              <div
-                :key="index"
-                v-if="layerVisibility(item)"
-                style="padding-right:10px;"
-              >
-                <v-divider></v-divider>
-                <!-- LAYER TITLE -->
-                <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
-                  {{
-                    $te(`map.layerName.${item.get("name")}`)
-                      ? $t(`map.layerName.${item.get("name")}`)
-                      : item.get("name")
-                  }}
-                </p>
-                <!-- WMS LEGEND -->
-                <div v-if="item.get('legendGraphicUrl')">
-                  <img
-                    crossorigin="anonymous"
-                    style="max-width:100%;"
-                    :src="item.get('legendGraphicUrl')"
-                    class="white--text mt-0 pt-0"
-                  />
-                </div>
-                <div v-else>
-                  <div v-if="item.get('type') === 'WMS'">
-                    <template
-                      v-for="(layerName, index2) in item
-                        .getSource()
-                        .getParams()
-                        .LAYERS.split(',')"
-                    >
-                      <div :key="index2">
-                        <img
-                          crossorigin="anonymous"
-                          style="max-width:100%;"
-                          :src="getWMSLegendImageUrl(item, layerName)"
-                          class="white--text mt-0 pt-0"
-                        />
-                        <br />
-                      </div>
-                    </template>
-                  </div>
-                  <!-- VECTOR LEGEND -->
-                  <div
-                    v-if="['VECTORTILE', 'VECTOR'].includes(item.get('type'))"
-                  >
-                    <span
-                      :ref="`legend-vector-${index}`"
-                      v-html="renderLegend(item, index)"
-                    ></span>
-                  </div>
-                </div>
-              </div>
-            </template>
-          </div>
-        </vue-scroll>
-      </v-expansion-panel-content>
-    </v-expansion-panel>
-  </v-expansion-panels>
+  <span></span>
 </template>
 <script>
 import { mapGetters } from "vuex";
@@ -232,7 +153,9 @@ export default {
 
   computed: {
     ...mapGetters("app", {
-      calculationMode: "calculationMode",
+      calculationMode: "calculationMode"
+    }),
+    ...mapGetters("map", {
       vectorTileStyles: "vectorTileStyles"
     })
   },

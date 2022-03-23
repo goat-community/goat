@@ -40,7 +40,7 @@
                     class="layer-row"
                     :class="{
                       'expansion-panel__container--active':
-                        layer.get('_showOptions') === true
+                        layer.get('showOptions') === true
                     }"
                   >
                     <v-expansion-panel-header expand-icon="" v-slot="{}">
@@ -61,17 +61,18 @@
                         </v-flex>
                         <v-flex xs1>
                           <v-icon
-                            v-show="layer.getVisible()"
+                            v-if="layer.getVisible()"
                             small
                             style="width: 30px; height: 30px;"
                             v-html="
-                              layer.get('_showOptions') === false
+                              !layer.get('showOptions')
                                 ? 'fas fa-chevron-down'
                                 : 'fas fa-chevron-up'
                             "
                             :class="{
-                              'expansion-panel__container--active':
-                                layer.get('_showOptions') === true
+                              'expansion-panel__container--active': layer.get(
+                                'showOptions'
+                              )
                             }"
                             @click.stop="toggleLayerOptions(layer)"
                           ></v-icon>
@@ -80,7 +81,7 @@
                     </v-expansion-panel-header>
                     <v-card
                       class="pt-2"
-                      v-show="layer.get('_showOptions') === true"
+                      v-show="layer.getVisible()"
                       style="background-color: white;"
                       transition="slide-y-reverse-transition"
                     >
@@ -170,7 +171,7 @@ export default {
   data: () => ({
     layerGroups: {},
     currentItem: {
-      _showOptions: false,
+      showOptions: false,
       name: ""
     },
     styleDialogKey: 0,
@@ -239,13 +240,13 @@ export default {
 
       layer.setVisible(!layer.getVisible());
       if (layer.getVisible() === false) {
-        layer.set("_showOptions", false);
+        layer.set("showOptions", false);
       } else {
-        layer.set("_showOptions", true);
+        layer.set("showOptions", true);
       }
     },
     toggleLayerOptions(layer) {
-      layer.set("_showOptions", !layer.get("_showOptions"));
+      layer.set("showOptions", !layer.get("showOptions"));
     },
     changeLayerOpacity(value, layer) {
       layer.setOpacity(value);
