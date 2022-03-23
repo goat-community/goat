@@ -77,7 +77,7 @@ BEGIN
 			FROM heatmap_default d, heatmap_scenario s 
 			WHERE d.grid_visualization_id = s.grid_visualization_id
 		) 
-		SELECT h.grid_visualization_id, ntile(10) over (order by h.accessibility_index) AS percentile_accessibility, h.accessibility_index, h.modus, h.geom  
+		SELECT h.grid_visualization_id, h.percentile_accessibility, h.accessibility_index, h.modus, h.geom  
 		FROM with_geom h
 		WHERE h.accessibility_index <> 0
 		UNION ALL 
