@@ -775,11 +775,10 @@ export default {
         if (
           !["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())
         ) {
-          // console.log("test...");
-          // const clone = feature.clone();
-          // clone.setId(feature.getId());
-          // clone.set("layerName", "poi");
-          // this.poiFeatures.push(clone);
+          const clone = feature.clone();
+          clone.setId(feature.getId());
+          clone.set("layerName", "poi");
+          this.poiFeatures.push(clone);
         }
       });
   },
@@ -2185,7 +2184,6 @@ export default {
     }),
     ...mapFields("map", {
       selectedLayer: "selectedEditLayer",
-      busyLayers: "busyLayers",
       isMapBusy: "isMapBusy"
     }),
     ...mapFields("app", {

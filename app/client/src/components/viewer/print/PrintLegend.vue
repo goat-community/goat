@@ -82,7 +82,6 @@ export default {
       const me = this;
       const allLayers = me.map.getLayers().getArray();
       me.layers = allLayers.filter(layer => {
-        console.log(layer.get("type"));
         return layer.get("displayInLegend") !== false;
       });
       this.isMapMounted = true;

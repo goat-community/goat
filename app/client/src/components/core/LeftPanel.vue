@@ -44,13 +44,13 @@
           class="elevation-3"
           v-model="topTabIndex"
         >
-          <v-tab>
+          <v-tab class="px-0">
             Isochrones
           </v-tab>
-          <v-tab>
+          <v-tab class="px-0">
             Heatmaps
           </v-tab>
-          <v-tab>
+          <v-tab class="px-0">
             Static Layers
           </v-tab>
         </v-tabs>

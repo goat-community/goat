@@ -100,21 +100,7 @@
         <v-icon>close</v-icon>
       </v-btn>
     </v-snackbar>
-    <!-- Info Snackbar for layers that have a long computation time (ex. heatmaps) -->
-    <v-snackbar
-      :color="appColor.primary"
-      top
-      :timeout="80000"
-      v-model="busyLayerSnackbar.state"
-    >
-      <v-icon color="white" class="mr-3">
-        info
-      </v-icon>
-      <span v-html="busyLayerSnackbar.message"></span>
-      <v-btn text @click="busyLayerSnackbar.state = false">
-        <v-icon>close</v-icon>
-      </v-btn>
-    </v-snackbar>
+
     <!-- Info snackbar when editing a layer -->
     <v-snackbar
       :color="scenarioLayerEditModeColor"
@@ -226,11 +212,6 @@ export default {
         state: false,
         message: "",
         timeout: 8000
-      },
-      busyLayerSnackbar: {
-        state: false,
-        message: "",
-        timeout: 100000
       }
     };
   },
@@ -242,7 +223,7 @@ export default {
     // Send the event 'ol-map-mounted' with the OL map as payload
     EventBus.$emit("ol-map-mounted", me.map);
     //Add map to the vuex store.
-    me.setMap(me.map);
+    // me.setMap(me.map);
     // resize the map, so it fits to parent
     window.setTimeout(() => {
       me.map.setTarget(document.getElementById("ol-map-container"));
@@ -289,8 +270,6 @@ export default {
 
     // Get study area
     me.createStudyAreaLayer();
-    // Create substudy area layer
-    me.createSubStudyAreaLayer();
     // Create poisaoisLayer
     me.createPoisAoisLayer();
     // Create layers from config and add them to map
@@ -361,21 +340,21 @@ export default {
       this.map.addLayer(vector);
       this.map.getView().fit(source.getExtent());
     },
-    /**
-     * Creates a sub study area layer (districts)
-     */
-    createSubStudyAreaLayer() {
-      const olLayer = LayerFactory.getInstance({
-        group: "buildings_landuse",
-        displayInLayerList: true,
-        z_index: 1,
-        name: "sub_study_area",
-        type: "GEOBUF",
-        style: "custom"
-      });
-      this.map.addLayer(olLayer);
-      this.subStudyAreaLayer = olLayer;
-    },
+    // /**
+    //  * Creates a sub study area layer (districts)
+    //  */
+    // createSubStudyAreaLayer() {
+    //   const olLayer = LayerFactory.getInstance({
+    //     group: "buildings_landuse",
+    //     displayInLayerList: true,
+    //     z_index: 1,
+    //     name: "sub_study_area",
+    //     type: "GEOBUF",
+    //     style: "custom"
+    //   });
+    //   this.map.addLayer(olLayer);
+    //   this.subStudyAreaLayer = olLayer;
+    // },
     /**
      * Creates pois aois layer
      */
@@ -858,8 +837,7 @@ export default {
       studyArea: "studyArea",
       helpTooltip: "helpTooltip",
       currentMessage: "currentMessage",
-      layers: "layers",
-      busyLayers: "busyLayers"
+      layers: "layers"
     }),
     ...mapGetters("app", {
       appColor: "appColor",
@@ -912,24 +890,6 @@ export default {
     },
     appColor() {
       this.setOlButtonColor();
-    },
-    busyLayers(layers) {
-      if (
-        layers.length > 0 &&
-        ["scenario", "comparison"].includes(
-          this.options.calculationModes.active
-        )
-      ) {
-        this.busyLayerSnackbar = {
-          state: true,
-          timeout: 100000,
-          message: this.$t("map.snackbarMessages.heatmapIsBusy")
-        };
-      } else {
-        this.busyLayerSnackbar = {
-          state: false
-        };
-      }
     },
     // Edge case for pois layer style. We have to restructure the state of selected pois as a key value pair (category: state)
     // in order to use it in the style (getters can't be accessed outside vue component).
