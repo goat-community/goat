@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" scrollable max-width="650px">
     <v-card>
-      <v-app-bar :color="activeColor.primary" dark>
+      <v-app-bar :color="appColor.primary" dark>
         <v-app-bar-nav-icon><v-icon>info</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title>{{ $t("appBar.about.title") }}</v-toolbar-title>
         <v-spacer></v-spacer>
@@ -24,7 +24,7 @@
                   v-html="$t('appBar.about.usedData')"
                 ></span>
                 <a
-                  :style="`color:${activeColor.primary}`"
+                  :style="`color:${appColor.primary}`"
                   class="info-link"
                   href="https://www.open-accessibility.org/"
                   target="_blank"
@@ -136,7 +136,7 @@ export default {
       return a;
     },
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     })
   },
   methods: {

@@ -99,6 +99,7 @@ import { mapGetters } from "vuex";
 import { LOGOUT } from "../../store/actions.type";
 import i18n from "@/plugins/i18n";
 import { EventBus } from "../../EventBus";
+import ApiService from "../../services/api.service";
 
 export default {
   data: () => ({
@@ -133,6 +134,10 @@ export default {
         this.contextmenu.close();
       }
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
+      // Save language change
+      ApiService.put("/users/me/preference", {
+        language_preference: locale
+      });
     },
     openContactSupportInNewTab() {
       let url = "https://plan4better.de/kontakt/";

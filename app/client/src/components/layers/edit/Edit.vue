@@ -697,7 +697,7 @@ export default {
         this.calculationMode.active = "scenario";
       }
     },
-    selectedLayer(value) {
+    selectedLayer(value, oldValue) {
       if (this.olEditCtrl && value) {
         this.appConfig.app_ui.base_color.primary = this.scenarioLayerEditModeColor;
         this.olEditCtrl.selectedLayer = value;
@@ -715,6 +715,11 @@ export default {
       }
 
       if (!value && this.primaryColorBackup) {
+        if (oldValue.name === "poi") {
+          this.cleanPoiTreeNode();
+          this.poisAoisLayer.setVisible(true);
+          this.clearAll();
+        }
         // Revert color theme
         this.appConfig.app_ui.base_color.primary = this.primaryColorBackup;
       }
@@ -1668,15 +1673,19 @@ export default {
                   //Show error message can't delete
                   this.toggleSnackbar({
                     type: "error", //success or error
-                    message: "cantDeleteAllScenarioFeatures",
+                    message: this.$t(
+                      `map.snackbarMessages.cantDeleteAllScenarioFeatures`
+                    ),
                     state: true,
                     timeout: 4000
                   });
                 } else {
                   //Show success message
                   this.toggleSnackbar({
-                    type: "success", //success or error
-                    message: "allScenarioFeaturesDelete",
+                    type: this.appColor.primary, //success or error
+                    message: this.$t(
+                      `map.snackbarMessages.allScenarioFeaturesDelete`
+                    ),
                     state: true,
                     timeout: 4000
                   });
