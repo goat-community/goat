@@ -94,7 +94,6 @@ class SQLReturnTypes(str, Enum):
     FROM make_geojson g; 
     """
 
-
 class MimeTypes(str, Enum):
     """Responses MineTypes."""
 
@@ -113,3 +112,7 @@ class UploadFileTypes(str, Enum):
 
     geojson = "application/geo+json"
     zip = "application/zip"
+
+class SettingToModify(str, Enum):
+    """Setting to reset."""
+    poi = "poi_groups"

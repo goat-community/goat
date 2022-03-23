@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Path
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,11 +8,11 @@ from src import crud, schemas
 from src.crud.base import CRUDBase
 from src.crud.crud_customization import customization, dynamic_customization
 from src.db import models
-from src.db.models.customization import UserCustomization
 from src.schemas.customization import request_examples
 from src.endpoints import deps
 from src.db.models.config_validation import *
 from fastapi.encoders import jsonable_encoder
+from src.resources.enums import SettingToModify
 
 router = APIRouter()
 
@@ -35,7 +35,7 @@ async def insert_user_settings(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    setting_type: str,
+    setting_type: SettingToModify,
     obj_in: Any = Body(
         ..., examples=request_examples.get("user_customization_insert")
     ),    
@@ -44,40 +44,36 @@ async def insert_user_settings(
     Update customization settings for POIs and Layers.
     """
     obj_dict = jsonable_encoder(obj_in)
-    if setting_type not in ('poi', 'layer'):
-        raise HTTPException(status_code=400, detail="Invalid setting type")
-    
-    if setting_type == 'poi':
+    if setting_type.value == 'poi_groups':
         if check_dict_schema(PoiCategory, obj_dict) == False:
             raise HTTPException(status_code=400, detail="Invalid JSON-schema")
-    elif setting_type == 'layer':
-        if check_dict_schema(LayerCategory, obj_dict) == False:
-            raise HTTPException(status_code=400, detail="Invalid JSON-schema")
     
-    await dynamic_customization.handle_user_setting_modification(db=db, current_user=current_user, setting_type=setting_type, changeset=obj_dict, modification_type='insert')
+    # elif setting_type == 'layer':
+    #     if check_dict_schema(LayerCategory, obj_dict) == False:
+    #         raise HTTPException(status_code=400, detail="Invalid JSON-schema")
+    
+    await dynamic_customization.handle_user_setting_modification(db=db, current_user=current_user, setting_type=setting_type.value, changeset=obj_dict, modification_type='insert')
     update_settings = await dynamic_customization.build_main_setting_json(db=db, current_user=current_user)
     return update_settings
 
 
-@router.post("/user/delete/{setting_type}", response_class=JSONResponse)
+@router.delete("/user/reset-style/{setting_type}/{category}", response_class=JSONResponse)
 async def delete_user_settings(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    setting_type: str,
-    obj_in: Any = Body(
-        ..., examples=request_examples.get("user_customization_delete")
-    ),    
+    setting_type: SettingToModify,
+    category: str = Path(
+        ..., description="Category name", example="nursery"
+    )
 ) -> Any:
     """
-    Delete customization settings for POIs and Layers.
+    Reset styles for POIs
     """
-    obj_dict = jsonable_encoder(obj_in)
+    if category not in await crud.dynamic_customization.get_all_default_poi_categories(db=db):
+        raise HTTPException(status_code=400, detail="Cannot reset custom POI category.")
 
-    if setting_type not in ('poi', 'layer'):
-        raise HTTPException(status_code=400, detail="Invalid setting type")
-
-    await dynamic_customization.handle_user_setting_modification(db=db, current_user=current_user, setting_type=setting_type, changeset=obj_dict, modification_type='delete')
+    await dynamic_customization.handle_user_setting_modification(db=db, current_user=current_user, setting_type=setting_type.value, changeset=category, modification_type='delete')
     update_settings = await dynamic_customization.build_main_setting_json(db=db, current_user=current_user)
     return update_settings
 

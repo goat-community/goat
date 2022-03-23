@@ -28,8 +28,8 @@ PoiGroup = Schema({str: {"icon": str, "color": [str], "children": [PoiCategory]}
 PoiGroups = Schema({"poi_groups": [PoiGroup]})
 
 OtherPoiGroupDummy =  {"other": {
-                            "icon": "fa-question",
-                            "color": ["#ffc107"],
+                            "icon": "fas fa-circle",
+                            "color": ["#717171"],
                             "children": {}
                         }}
 

@@ -231,7 +231,7 @@ class CRUDDynamicCustomization:
                 group_name = next(iter(poi_group))
                 for category_id, poi_category in enumerate(poi_group[group_name]["children"]):
                     category_name = next(iter(poi_category))
-                    if category_name not in active_categories:
+                    if category_name not in active_categories and category_name not in await self.get_all_default_poi_categories(db):
                         active_categories.append(category_id)
                         user_settings["poi_groups"][group_id][group_name]["children"].pop(
                             category_id
@@ -408,8 +408,7 @@ class CRUDDynamicCustomization:
         setting_to_delete,
         setting_type
     ):
-        """This function deletes user settings. It can also be used to reset to original settings."""
-
+        """This function deletes the user generated settings for a specific POI category."""
         settings_to_update = self.arr_dict_to_nested_dict(
             user_customizations[0].setting[setting_type]
         )
@@ -468,8 +467,6 @@ class CRUDDynamicCustomization:
         modification_type
     ):
         """ "This function handles insert or updates of settings for POIs and Layers."""
-
-        setting_type = mapping_setting_type[setting_type]
         user_customizations = await self.get_user_settings(
             db=db, current_user=current_user, setting_type=setting_type
         )
