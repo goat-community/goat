@@ -3,6 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel, EmailStr
 
 from src.db import models
+from src.resources.enums import LanguageEnum
 
 
 class UserBase(models.UserBase):
@@ -27,6 +28,13 @@ class UserUpdate(UserBase):
 class UserStudyAreaList(BaseModel):
     id: int
     name: str
+
+
+class UserPreference(BaseModel):
+    language_preference: Optional[LanguageEnum]
+
+    class Config:
+        extra = "forbid"
 
 
 """
@@ -59,5 +67,8 @@ request_examples = {
         "is_active": False,
         "storage": 1500000,
         "limit_scenarios": 10,
+    },
+    "update_user_preference": {
+        "language_preference": "en",
     },
 }

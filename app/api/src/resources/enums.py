@@ -4,15 +4,19 @@ from src.db.models import scenario
 
 
 class ReturnType(str, Enum):
-    """"Default return types"""
+    """ "Default return types"""
+
     geojson = "geojson"
     geobuf = "geobuf"
     db_geobuf = "db_geobuf"
 
+
 class ReturnWithoutDbGeobufEnum(str, Enum):
     """Enumeration for return types without db geobuf."""
+
     geojson = "geojson"
     geobuf = "geobuf"
+
 
 class VectorType(str, Enum):
     """Vector Type Enums."""
@@ -20,16 +24,19 @@ class VectorType(str, Enum):
     pbf = "pbf"
     mvt = "mvt"
 
+
 class AccessibilityHeatmapTypes(str, Enum):
     """Heatmap Type Enums."""
 
     local_accessibility = "heatmap_local_accessibility"
     local_accessibility_population = "heatmap_accessibility_population"
 
+
 class MaxUploadFileSize(int, Enum):
     """Maximum upload file size."""
 
-    max_upload_poi_file_size = 5242880 # in bytes
+    max_upload_poi_file_size = 5242880  # in bytes
+
 
 class IsochroneExportType(str, Enum):
     """Supported files types for export."""
@@ -38,12 +45,14 @@ class IsochroneExportType(str, Enum):
     shp = "ESRI Shapefile"
     xlsx = "XLSX"
 
+
 class CalculationTypes(str, Enum):
     """Calculation types for indicators."""
 
     default = "default"
     scenario = "scenario"
     comparison = "comparison"
+
 
 class RoutingTypes(str, Enum):
     """Calculation types for indicators."""
@@ -56,6 +65,7 @@ class RoutingTypes(str, Enum):
 
 class AllowedVectorTables(str, Enum):
     """Allowed Vector Tables Enums."""
+
     sub_study_area = "basic.sub_study_area"
 
 
@@ -116,3 +126,9 @@ class UploadFileTypes(str, Enum):
 class SettingToModify(str, Enum):
     """Setting to reset."""
     poi = "poi_groups"
+
+class LanguageEnum(str, Enum):
+    """Language Enum."""
+
+    en = "en"
+    de = "de"

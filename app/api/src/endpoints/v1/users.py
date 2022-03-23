@@ -82,6 +82,28 @@ async def read_user_study_areas(
     return study_area_list
 
 
+# set user preference
+@router.put("/me/preference", response_model=models.User)
+async def update_user_preference(
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+    preference: schemas.UserPreference = Body(
+        ..., example=request_examples["update_user_preference"]
+    ),
+) -> Any:
+    """
+    Update user preference.
+    """
+    user = await crud.user.get(db, id=current_user.id)
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="User not found",
+        )
+    user = await CRUDBase(models.User).update(db, db_obj=user, obj_in=preference)
+    return user
+
+
 @router.post("", response_model=models.User, response_model_exclude={"hashed_password"})
 async def create_user(
     *,

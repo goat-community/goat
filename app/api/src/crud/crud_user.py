@@ -1,9 +1,9 @@
 from typing import Any, Dict, List, Optional, Union
 
+from geoalchemy2.shape import from_shape, to_shape
+from shapely.geometry import Polygon
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from shapely.geometry import Polygon
-from geoalchemy2.shape import to_shape, from_shape
 
 from src.core.security import get_password_hash, verify_password
 from src.crud.base import CRUDBase
@@ -60,7 +60,7 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
 
         if not user or len(user) == 0:
             return None
-        else: 
+        else:
             user = user[0]
         if not verify_password(password, user.hashed_password):
             return None
@@ -72,14 +72,13 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
         world_extent = Polygon([[-180, 85], [-180, -85], [180, -85], [180, 85], [-180, 85]])
         study_area_geom = to_shape(study_area.geom)
 
-        study_area_crop = world_extent.difference(study_area_geom) 
+        study_area_crop = world_extent.difference(study_area_geom)
         study_area.geom = from_shape(study_area_crop)
 
         study_area_dict = dict(study_area)
         study_area_dict["bounds"] = study_area_geom.bounds
-        
-        return study_area_dict
 
+        return study_area_dict
 
     def is_active(self, user: models.User) -> bool:
         return user.is_active

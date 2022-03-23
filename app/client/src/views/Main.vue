@@ -55,7 +55,11 @@ export default {
     return {};
   },
   created() {
-    this.$store.dispatch(`auth/${GET_USER}`);
+    this.$store.dispatch(`auth/${GET_USER}`).then(response => {
+      if (response && response.language_preference) {
+        this.$i18n.locale = response.language_preference;
+      }
+    });
     this.$store.dispatch(`app/${GET_APP_CONFIG}`);
     this.$store.dispatch(`app/${GET_USER_CUSTOM_DATA}`);
     this.$store.dispatch(`map/${GET_STUDY_AREA}`);
