@@ -154,7 +154,7 @@ async def poi_multi_isochrones(
     )
     isochrone_in.active_upload_ids = current_user.active_data_upload_ids
     isochrone_in.user_id = current_user.id
-    gdf = await crud.isochrone.calculate_pois_multi_isochrones(db=db, obj_in=isochrone_in)
+    gdf = await crud.isochrone.calculate_pois_multi_isochrones(db=db, current_user=current_user, obj_in=isochrone_in)
     return json.loads(gdf.to_json())
 
 

@@ -321,6 +321,7 @@ class CRUDIsochrone:
 
     async def count_pois_multi_isochrones(self, db: AsyncSession, *, obj_in) -> dict:
         obj_in_data = jsonable_encoder(obj_in)
+        obj_in_data["speed"] = obj_in_data["speed"] / 3.6
         sql = text(
             """SELECT count_pois
             FROM basic.count_pois_multi_isochrones(:user_id,:modus,:minutes,:speed,:region_type,:region,:amenities,:scenario_id,:active_upload_ids)"""
@@ -328,14 +329,14 @@ class CRUDIsochrone:
         result = await db.execute(sql, obj_in_data)
         return result.fetchall()[0][0]
 
-    async def calculate_pois_multi_isochrones(self, db: AsyncSession, *, obj_in) -> GeoDataFrame:
+    async def calculate_pois_multi_isochrones(self, current_user, db: AsyncSession, *, obj_in) -> GeoDataFrame:
         obj_in.speed = obj_in.speed / 3.6
         obj_in_data = jsonable_encoder(obj_in)
-
+        obj_in_data["user_id"] = current_user.id
         # Get starting points for multi-isochrone
         sql_starting_points = text(
             """SELECT x, y 
-        FROM basic.starting_points_multi_isochrones(:modus, :minutes, :speed, :amenities, :scenario_id, :active_upload_ids, :region_geom, :study_area_ids)"""
+        FROM basic.starting_points_multi_isochrones(:user_id, :modus, :minutes, :speed, :amenities, :scenario_id, :active_upload_ids, :region_geom, :study_area_ids)"""
         )
         starting_points = await db.execute(sql_starting_points, obj_in_data)
         starting_points = starting_points.fetchall()
@@ -437,11 +438,13 @@ class CRUDIsochrone:
         os.makedirs(file_dir+"/export")
         os.chdir(file_dir+"/export")
 
-        if return_type == "geojson" or return_type == 'shp':
-            gdf.to_file(file_name + '.' + return_type, driver=return_type.value)
-        elif return_type == "xlsx":
+        if return_type == IsochroneExportType.geojson:
+            gdf.to_file(file_name + '.' + IsochroneExportType.geojson.name, driver=IsochroneExportType.geojson.value)
+        elif return_type == IsochroneExportType.shp:
+            gdf.to_file(file_name + '.' + IsochroneExportType.shp.name, driver=IsochroneExportType.shp.value)
+        elif return_type == IsochroneExportType.xlsx:
             gdf = gdf.drop(["reached_opportunities", "geom"], axis=1)
-            gdf.transpose().to_excel(file_name + '.' + return_type)
+            gdf.transpose().to_excel(file_name + '.' + IsochroneExportType.xlsx.name)
 
         os.chdir(file_dir)
         shutil.make_archive(file_name, "zip", file_dir+"/export")
