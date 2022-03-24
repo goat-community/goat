@@ -1164,8 +1164,7 @@ export default {
         this.startHelpTooltip(this.$t("map.tooltips.clickToSelectStudyArea"));
       } else if (this.multiIsochroneMethod === "draw") {
         const drawPolygon = new DrawInteraction({
-          type: "Polygon",
-          source: this.multiIsochroneSelectionLayer.getSource()
+          type: "Polygon"
         });
         drawPolygon.on("drawstart", this.onMultiIsochroneDrawStart);
         drawPolygon.on("drawend", this.onMultiIsochroneDrawEnd);
@@ -1195,7 +1194,12 @@ export default {
     /**
      * Draw interaction end event handler
      */
-    onMultiIsochroneDrawEnd() {
+    onMultiIsochroneDrawEnd(evt) {
+      if (evt.feature) {
+        this.multiIsochroneSelectionLayer.getSource().addFeature(evt.feature);
+      } else {
+        return;
+      }
       if (this.selectedPois.length === 0) {
         this.toggleSnackbar({
           type: "error",
