@@ -154,6 +154,8 @@ class CRUDUploadFile:
                 columns_to_drop.append(attribute)
 
         gdf = gdf.drop(columns_to_drop, axis=1)
+        if len(gdf) == 0:
+            raise HTTPException(status_code=400, detail="No valid data in file or data outside the study area.")
 
         # Assign specified category to all points
         gdf["category"] = poi_category

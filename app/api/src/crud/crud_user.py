@@ -71,12 +71,13 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
 
         world_extent = Polygon([[-180, 85], [-180, -85], [180, -85], [180, 85], [-180, 85]])
         study_area_geom = to_shape(study_area.geom)
+        buffer_geom_heatmap = to_shape(study_area.buffer_geom_heatmap)
 
         study_area_crop = world_extent.difference(study_area_geom)
         study_area.geom = from_shape(study_area_crop)
 
         study_area_dict = dict(study_area)
-        study_area_dict["bounds"] = study_area_geom.bounds
+        study_area_dict["bounds"] = buffer_geom_heatmap.bounds
 
         return study_area_dict
 

@@ -32,7 +32,6 @@ async def calculate_single_isochrone(
     """
     Calculate single isochrone.
     """
-
     isochrone_in.scenario_id = await deps.check_user_owns_scenario(db, isochrone_in.scenario_id, current_user)
     isochrone_in.active_upload_ids = current_user.active_data_upload_ids
     isochrone_in.user_id = current_user.id
@@ -90,8 +89,16 @@ async def calculate_reached_network(
         active_upload_ids=current_user.active_data_upload_ids,
         scenario_id=isochrone_calc_obj.scenario_id,
     )
-
+   
     network = await crud.isochrone.calculate_reached_network(db=db, obj_in=obj_calculation)
+
+    if modus.value == CalculationTypes.comparison.value:
+        obj_calculation.modus = CalculationTypes.default.value
+        network_default = await crud.isochrone.calculate_reached_network(db=db, obj_in=obj_calculation)
+        obj_calculation.modus = CalculationTypes.scenario.value
+        network_scenario = crud.isochrone.calculate_reached_network(db=db, obj_in=obj_calculation)
+        network = network_default | network_scenario
+        
     return return_geojson_or_geobuf(json.JSONDecoder().decode(json.dumps(network)), return_type.value)
 
 

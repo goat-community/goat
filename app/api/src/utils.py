@@ -5,7 +5,7 @@ import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-
+from rich import print as print
 import emails
 import geobuf
 from emails.template import JinjaTemplate
@@ -198,3 +198,12 @@ def clean_unpacked_zip(dir_path: str, zip_path: str) -> None:
     """Delete unpacked zip file and directory."""
     delete_dir(dir_path)
     delete_file(zip_path)
+
+def print_hashtags():
+    print("#################################################################################################################")
+
+def print_info(message: str):
+    print(f"INFO: {message}")
+
+def print_warning(message: str):
+    print(f"WARNING: {message}")

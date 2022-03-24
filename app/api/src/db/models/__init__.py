@@ -11,7 +11,7 @@ from .heatmap import (
     ReachedEdgeHeatmapGridCalculation,
     ReachedPoiHeatmap,
 )
-from .isochrone import IsochroneCalculation, IsochroneEdge, IsochroneFeature
+from .isochrone import IsochroneCalculation, IsochroneFeature
 from .node import Node
 from .organization import Organization
 from .poi import Poi, PoiBase, PoiModified, PoiUser

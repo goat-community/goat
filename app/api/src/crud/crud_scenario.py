@@ -74,6 +74,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                 and_(
                     layer.class_id.notin_(excluded_ids_list),
                     layer.geom.ST_Intersects(polygon),
+                    layer.scenario_id == None,
                 )
             )
 

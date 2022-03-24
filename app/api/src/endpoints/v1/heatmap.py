@@ -160,17 +160,3 @@ async def compute_reached_pois_user(
     """
     await crud.heatmap.compute_reached_pois_user(db, current_user, data_upload_id)
     return {"msg": "Successfully computed heatmap for uploaded pois."}
-
-
-@router.get("/compute/scenario/{scenario_id}", response_class=JSONResponse)
-async def compute_reached_pois_user(
-    *,
-    db: AsyncSession = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user),
-    scenario_id: int,
-) -> Any:
-    """
-    Calculate reached pois for the heatmap for the passed scenario id.
-    """
-    await crud.heatmap.compute_reached_pois_scenario(db, current_user, scenario_id)
-    return {"msg": "Successfully computed heatmap for uploaded pois."}

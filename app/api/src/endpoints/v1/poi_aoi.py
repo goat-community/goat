@@ -26,7 +26,7 @@ async def poi_aoi_visualization(
     """
     Visualize POIs and AOIs based on settings specified by the user.
     """
-
+    scenario_id = await deps.check_user_owns_scenario(db, scenario_id, current_user)
     pois = await crud.poi_aoi.poi_aoi_visualization(
         db=db, scenario_id=scenario_id, current_user=current_user, return_type=return_type
     )

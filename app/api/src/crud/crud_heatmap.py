@@ -424,43 +424,6 @@ class CRUDHeatmap:
             )
         )
         await db.commit()
-    async def compute_reached_pois_scenario(
-        self, db: AsyncSession, current_user: models.User, scenario_id: int
-    ):
-        """Compute the reached for a certain scenario id. It deletes previously computed calculations and computes it again."""
-
-        # Check if user owns the scenario
-        scenario = await crud.scenario.get_by_multi_keys(
-            db, keys={"id": scenario_id, "user_id": current_user.id}
-        )
-        if len(scenario) == 0:
-            raise HTTPException(status_code=400, detail="Scenario not found")
-
-        # Delete old reached pois for the data upload id
-        await db.execute(
-            delete(models.ReachedPoiHeatmap).where(
-                models.ReachedPoiHeatmap.scenario_id == scenario_id
-            )
-        )
-
-        # Compute reached pois for the data upload id
-        await db.execute(
-            text(
-                """
-            SELECT r.* 
-            FROM basic.study_area s, 
-            LATERAL basic.reached_pois_heatmap(:table_name, s.geom, :user_id_input, :scenario_id_input) r 
-            WHERE s.id = :active_study_area_id
-            """
-            ),
-            {
-                "active_study_area_id": current_user.active_study_area_id,
-                "table_name": "poi_modified",
-                "user_id_input": current_user.id,
-                "scenario_id_input": scenario_id,
-            },
-        )
-        await db.commit()
 
     async def compute_reached_pois_user(
         self, db: AsyncSession, current_user: models.User, data_upload_id: int
@@ -661,17 +624,13 @@ heatmap = CRUDHeatmap()
 # test_user = models.User(id=4, active_study_area_id=1)
 # db = async_session()
 # db_sync = sync_session()
-# # #asyncio.get_event_loop().run_until_complete(CRUDHeatmap().prepare_starting_points(db=db, current_user=test_user))
-# # asyncio.get_event_loop().run_until_complete(CRUDHeatmap().clean_tables(db=db))
-# # asyncio.get_event_loop().run_until_complete(
-# #          CRUDHeatmap().compute_traveltime(db=db, db_sync=db_sync, current_user=test_user)
-# # )
-
+# asyncio.get_event_loop().run_until_complete(CRUDHeatmap().prepare_starting_points(db=db, current_user=test_user))
+# asyncio.get_event_loop().run_until_complete(CRUDHeatmap().clean_tables(db=db))
+# asyncio.get_event_loop().run_until_complete(
+#          CRUDHeatmap().compute_traveltime(db=db, db_sync=db_sync, current_user=test_user)
+# )
 # asyncio.get_event_loop().run_until_complete(
 #          CRUDHeatmap().finalize_connectivity_heatmap(db=db)
 # )
-
-
-#asyncio.run(CRUDHeatmap().bulk_compute_reached_pois(db=async_session(), current_user=test_user))
-
+#asyncio.get_event_loop().run_until_complete(CRUDHeatmap().bulk_compute_reached_pois(db=async_session(), current_user=test_user))
 # asyncio.get_event_loop().run_until_complete(CRUDHeatmap().compute_population_heatmap(db=async_session()))

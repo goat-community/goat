@@ -16,7 +16,7 @@ from pyproj import Transformer
 from shapely.geometry import MultiPolygon, Point, Polygon
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
-
+from shapely.ops import unary_union
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
@@ -29,7 +29,7 @@ from src.schemas.isochrone import (
 )
 from src.crud.base import CRUDBase
 from src.utils import delete_dir
-
+from src.resources.enums import IsochroneTypes
 
 class CRUDIsochroneCalculation(
     CRUDBase[models.IsochroneCalculation, models.IsochroneCalculation, models.IsochroneCalculation]
@@ -115,28 +115,54 @@ class CRUDIsochrone:
 
         return edges_network, starting_id, distance_limits, obj_starting_point
 
-    def result_to_gdf(self, result, starting_id, add_to_db=True):
-        isochrones = {}
-        for isochrone_result in result.isochrone:
-            for step in sorted(isochrone_result.shape):
-                if list(isochrones.keys()) == []:
-                    isochrones[step] = GeoSeries(Polygon(isochrone_result.shape[step]))
+    def result_to_gdf(self, result, starting_id, isochrone_type: IsochroneTypes = IsochroneTypes.single, add_to_db=True):
+        # Prepare if a single isochrone
+        if isochrone_type == IsochroneTypes.single:
+            isochrones = {}
+            for isochrone_result in result.isochrone:
+                for step in sorted(isochrone_result.shape):
+                    if list(isochrones.keys()) == []:
+                        isochrones[step] = GeoSeries(Polygon(isochrone_result.shape[step]))
+                    else:
+                        isochrones[step] = GeoSeries(
+                            isochrones[previous_step].union(Polygon(isochrone_result.shape[step]))
+                        )
+                    previous_step = step
+
+            for step in isochrones:
+                isochrones[step] = isochrones[step].unary_union
+                
+        #Prepare if a Multi-Isochrone
+        elif isochrone_type == IsochroneTypes.multi:
+            isochrones = {}
+            steps = sorted(result.isochrone[0].shape.keys())
+
+            for isochrone_result in result.isochrone:
+                for step in steps:
+                    if step not in isochrones:
+                        isochrones[step] = [Polygon(isochrone_result.shape[step])]
+                    else:
+                        isochrones[step].append(Polygon(isochrone_result.shape[step]))
+
+            union_isochrones = {}
+            for step in isochrones:
+                if list(union_isochrones.keys()) == []:
+                    union_isochrones[step] = unary_union(isochrones[step])
                 else:
-                    isochrones[step] = GeoSeries(
-                        isochrones[previous_step].union(Polygon(isochrone_result.shape[step]))
-                    )
-                previous_step = step
+                    union_isochrones[step] = unary_union([unary_union(isochrones[step]), union_isochrones[previous_step]])
+                previous_step = step 
+
+            isochrones = union_isochrones
 
         isochrones_multipolygon = {}
         for step in isochrones.keys():
-            if isochrones[step][0].geom_type == "Polygon":
-                isochrones_multipolygon[step] = MultiPolygon([isochrones[step][0]])
-            elif isochrones[step][0].geom_type == "MultiPolygon":
-                isochrones_multipolygon[step] = MultiPolygon(isochrones[step][0])
+            if isochrones[step].type == "Polygon":
+                isochrones_multipolygon[step] = MultiPolygon([isochrones[step]])
+            elif isochrones[step].type == "MultiPolygon":
+                isochrones_multipolygon[step] = MultiPolygon(isochrones[step])
             else:
                 raise Exception("Not correct geom type")
 
-        
         isochrone_gdf = GeoDataFrame(
             {
                 "step": list(isochrones_multipolygon.keys()),
@@ -228,7 +254,7 @@ class CRUDIsochrone:
         obj_in_data["starting_point_id"] = starting_id
 
         result = isochrone_cpp(edges_network, starting_id, distance_limits)
-        isochrone_gdf = self.result_to_gdf(result, obj_starting_point.id)
+        isochrone_gdf = self.result_to_gdf(result, obj_starting_point.id, isochrone_type='multi')
 
         return isochrone_gdf
 

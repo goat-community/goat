@@ -21,18 +21,23 @@ from src.utils import delete_file
 router = APIRouter()
 
 
-async def valid_content_length(content_length: int = Header(..., lt=MaxUploadFileSize.max_upload_poi_file_size)):
+async def valid_content_length(
+    content_length: int = Header(..., lt=MaxUploadFileSize.max_upload_poi_file_size)
+):
     return content_length
+
 
 @router.get("/poi")
 async def get_custom_pois(
     *,
     db: AsyncSession = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user)
+    current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Get metadata for uploaded user data."""
 
-    upload_objs = await crud.data_upload.get_by_key(db, key="user_id", value=current_user.id)
+    upload_objs = await crud.data_upload.get_by_multi_keys(
+        db, keys={"user_id": current_user.id, "study_area_id": current_user.active_study_area_id}
+    )
 
     response_objs = []
     for obj in upload_objs:
@@ -51,12 +56,13 @@ async def get_custom_pois(
                 "category": category[0][0],
                 "upload_size": obj.upload_size,
                 "creation_date": str(obj.creation_date),
-                "state": state
+                "state": state,
             }
 
             response_objs.append(obj_dict)
 
     return json.loads(json.dumps(response_objs))
+
 
 @router.post("/poi")
 async def upload_custom_pois(
@@ -64,22 +70,23 @@ async def upload_custom_pois(
     db: AsyncSession = Depends(deps.get_db),
     file: UploadFile,
     poi_category=Body(..., example=request_examples["poi_category"]),
-    current_user: models.User = Depends(deps.get_current_active_user)
+    current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
-    
+
     """Handle uploaded custom pois."""
     defined_uuid = uuid.uuid4().hex
     file_name = defined_uuid + os.path.splitext(file.filename)[1]
     file_dir = f"/tmp/{file_name}"
-    
+
     real_file_size = 0
     temp: IO = NamedTemporaryFile(delete=False)
     for chunk in file.file:
         real_file_size += len(chunk)
         if real_file_size > MaxUploadFileSize.max_upload_poi_file_size.value:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, 
-                detail="The uploaded file size is to big the largest allowd size is %s MB." % round(MaxUploadFileSize.max_upload_poi_file_size/1024.0**2,2)
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="The uploaded file size is to big the largest allowd size is %s MB."
+                % round(MaxUploadFileSize.max_upload_poi_file_size / 1024.0 ** 2, 2),
             )
         temp.write(chunk)
     temp.close()
@@ -88,7 +95,12 @@ async def upload_custom_pois(
 
     shutil.move(temp.name, file_dir)
     await crud.upload.upload_custom_pois(
-        db=db, poi_category=poi_category, file=file, file_dir=file_dir, file_name=file_name, current_user=current_user
+        db=db,
+        poi_category=poi_category,
+        file=file,
+        file_dir=file_dir,
+        file_name=file_name,
+        current_user=current_user,
     )
 
     updated_settings = await dynamic_customization.build_main_setting_json(
@@ -102,7 +114,7 @@ async def upload_custom_pois(
 async def delete_all_custom_pois(
     *,
     db: AsyncSession = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user)
+    current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
 
     """Delete custom pois."""
@@ -121,10 +133,13 @@ async def delete_custom_pois(
     *,
     db: AsyncSession = Depends(deps.get_db),
     data_upload_id: int,
-    current_user: models.User = Depends(deps.get_current_active_user)
+    current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
 
     """Delete custom pois."""
+    data_upload_obj = await crud.data_upload.get_by_multi_keys(db, keys={"id": data_upload_id, "user_id": current_user.id})
+    if data_upload_obj == []:
+        raise HTTPException(status_code=400, detail="Data Upload not found.")
 
     await crud.upload.delete_custom_pois(
         db=db, data_upload_id=data_upload_id, current_user=current_user
@@ -137,7 +152,7 @@ async def set_active_state_of_custom_poi(
     *,
     db: AsyncSession = Depends(deps.get_db),
     custom_data_upload_state: schemas.CutomDataUploadState,
-    current_user: models.User = Depends(deps.get_current_active_user)
+    current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Set active state of a custom poi."""
 

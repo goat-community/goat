@@ -98,17 +98,6 @@ class Edge(EdgeBase, table=True):
         sa_relationship_kwargs={"primaryjoin": "Edge.target==Node.id", "lazy": "joined"}
     )
     scenario: Optional["Scenario"] = Relationship(back_populates="edges")
-    isochrone_edges: List["IsochroneEdge"] = Relationship(back_populates="edge")
-    # TODO: FIX children parent relations (reminder: edge_id foreign key might be wrong)
-    # children: List["Edge"] = Relationship(
-    #     sa_relationship_kwargs=dict(
-    #         cascade="all",
-    #         backref=backref("edge", remote_side="Edge.id"),
-    #     )
-    # )
-
-    # def append(self, child: "Edge"):
-    #     self.children.append(child)
 
 
 Index("idx_edge_geom", Edge.__table__.c.geom, postgresql_using="gist")

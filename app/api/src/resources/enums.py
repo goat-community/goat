@@ -68,6 +68,12 @@ class AllowedVectorTables(str, Enum):
 
     sub_study_area = "basic.sub_study_area"
 
+class IsochroneTypes(str, Enum):
+    """Isochrone Types Enums."""
+
+    single = "single"
+    multi = "multi"
+    
 
 class SQLReturnTypes(str, Enum):
     """Allowed Vector Tables Enums."""
