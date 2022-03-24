@@ -27,13 +27,6 @@ export const solidFontAwesomeProDefs = {
     category_id: "items",
     category_label: "Items"
   },
-  "fas fa-ampersand": {
-    unicode: "",
-    label: "Ampersand",
-    style: "solid",
-    category_id: "sign & symbols",
-    category_label: "Sign & symbols"
-  },
   "fas fa-anchor": {
     unicode: "",
     label: "Anchor",
@@ -290,8 +283,8 @@ export const solidFontAwesomeProDefs = {
     unicode: "",
     label: "Bitcoin Sign",
     style: "solid",
-    category_id: "finance",
-    category_label: "Finance"
+    category_id: "others",
+    category_label: "others"
   },
   "fas fa-blanket": {
     unicode: "",
@@ -430,8 +423,8 @@ export const solidFontAwesomeProDefs = {
     unicode: "",
     label: "Box dollar",
     style: "solid",
-    category_id: "finance",
-    category_label: "Finance"
+    category_id: "others",
+    category_label: "others"
   },
   "fas fa-box-heart": {
     unicode: "",
@@ -745,43 +738,43 @@ export const solidFontAwesomeProDefs = {
     unicode: "",
     label: "Chart Column",
     style: "solid",
-    category_id: "finance",
-    category_label: "Finance"
+    category_id: "others",
+    category_label: "others"
   },
   "fas fa-chart-gantt": {
     unicode: "",
     label: "Chart Gantt",
     style: "solid",
-    category_id: "finance",
-    category_label: "Finance"
+    category_id: "others",
+    category_label: "others"
   },
   "fas fa-chart-line": {
     unicode: "",
     label: "Line Chart",
     style: "solid",
-    category_id: "finance",
-    category_label: "Finance"
+    category_id: "others",
+    category_label: "others"
   },
   "fas fa-chart-line-up": {
     unicode: "",
     label: "Chart Line-up",
     style: "solid",
-    category_id: "finance",
-    category_label: "Finance"
+    category_id: "others",
+    category_label: "others"
   },
   "fas fa-chart-mixed": {
     unicode: "",
     label: "Chart mixed",
     style: "solid",
-    category_id: "finance",
-    category_label: "Finance"
+    category_id: "others",
+    category_label: "others"
   },
   "fas fa-chart-pyramid": {
     unicode: "",
     label: "Chart Pyramid",
     style: "solid",
-    category_id: "finance",
-    category_label: "Finance"
+    category_id: "others",
+    category_label: "others"
   },
   "fas fa-chart-user": {
     unicode: "",
@@ -1186,8 +1179,8 @@ export const solidFontAwesomeProDefs = {
     unicode: "",
     label: "Coins",
     style: "solid",
-    category_id: "finance",
-    category_label: "Finance"
+    category_id: "others",
+    category_label: "others"
   },
   "fas fa-comment": {
     unicode: "",
@@ -1284,8 +1277,8 @@ export const solidFontAwesomeProDefs = {
     unicode: "",
     label: "Credit Card",
     style: "solid",
-    category_id: "finance",
-    category_label: "Finance"
+    category_id: "others",
+    category_label: "others"
   },
   "fas fa-croissant": {
     unicode: "",
@@ -1399,13 +1392,6 @@ export const solidFontAwesomeProDefs = {
     category_id: "communication & devices",
     category_label: "Communication & Devices"
   },
-  "fas fa-earth-europa": {
-    unicode: "",
-    label: "Earth europa",
-    style: "solid",
-    category_id: "",
-    category_label: ""
-  },
   "fas fa-elephant": {
     unicode: "",
     label: "Elephant",
@@ -1445,8 +1431,8 @@ export const solidFontAwesomeProDefs = {
     unicode: "",
     label: "Euro Sign",
     style: "solid",
-    category_id: "finance",
-    category_label: "Finance"
+    category_id: "others",
+    category_label: "others"
   },
   "fas fa-face-frown": {
     unicode: "",
@@ -2197,13 +2183,6 @@ export const solidFontAwesomeProDefs = {
     category_id: "sign & symbols",
     category_label: "Sign & symbols"
   },
-  "fas fa-location": {
-    unicode: "",
-    label: "Location",
-    style: "solid",
-    category_id: "maps",
-    category_label: "Maps"
-  },
   "fas fa-location-crosshairs": {
     unicode: "",
     label: "Location crosshairs",
@@ -2330,13 +2309,6 @@ export const solidFontAwesomeProDefs = {
     category_id: "communication & devices",
     category_label: "Communication & Devices"
   },
-  "fas fa-message": {
-    unicode: "",
-    label: "Message",
-    style: "solid",
-    category_id: "communication & devices",
-    category_label: "Communication & Devices"
-  },
   "fas fa-message-captions": {
     unicode: "",
     label: "Message captions",
@@ -2439,8 +2411,8 @@ export const solidFontAwesomeProDefs = {
     unicode: "",
     label: "Money bill 1",
     style: "solid",
-    category_id: "finance",
-    category_label: "Finance"
+    category_id: "others",
+    category_label: "others"
   },
   "fas fa-monkey": {
     unicode: "",
@@ -3055,8 +3027,8 @@ export const solidFontAwesomeProDefs = {
     unicode: "",
     label: "Sack of Money",
     style: "solid",
-    category_id: "finance",
-    category_label: "Finance"
+    category_id: "others",
+    category_label: "others"
   },
   "fas fa-scale-balanced": {
     unicode: "",
@@ -3092,13 +3064,6 @@ export const solidFontAwesomeProDefs = {
     style: "solid",
     category_id: "communication & devices",
     category_label: "Communication & Devices"
-  },
-  "fas fa-section": {
-    unicode: "",
-    label: "Section",
-    style: "solid",
-    category_id: "sign & symbols",
-    category_label: "Sign & symbols"
   },
   "fas fa-seedling": {
     unicode: "",
@@ -3653,13 +3618,6 @@ export const solidFontAwesomeProDefs = {
     category_id: "transportation",
     category_label: "Transportation"
   },
-  "fas fa-transgender": {
-    unicode: "",
-    label: "Transgender",
-    style: "solid",
-    category_id: "sign & symbols",
-    category_label: "Sign & symbols"
-  },
   "fas fa-trash-can": {
     unicode: "",
     label: "Trash can",
@@ -4037,13 +3995,12 @@ export const fontAwesome6Categories = [
   "buildings",
   "communication & devices",
   "education",
-  "finance",
+  "others",
   "food & drinks",
   "health",
   "items",
   "maps",
   "nature",
-  "others",
   "people & clothing",
   "shopping",
   "sign & symbols",
