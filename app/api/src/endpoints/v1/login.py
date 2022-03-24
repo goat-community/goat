@@ -11,6 +11,7 @@ from src.core.config import settings
 from src.core.security import get_password_hash
 from src.db import models
 from src.endpoints import deps
+
 # from src.utils import (
 #     generate_password_reset_token,
 #     send_reset_password_email,
@@ -42,7 +43,9 @@ async def login_access_token(
     }
 
 
-@router.post("/login/test-token", response_model=models.User)
+@router.post(
+    "/login/test-token", response_model=models.User, response_model_exclude={"hashed_password"}
+)
 async def test_token(current_user: models.User = Depends(deps.get_current_user)) -> Any:
     """
     Test access token
@@ -62,7 +65,7 @@ async def test_token(current_user: models.User = Depends(deps.get_current_user))
 #             status_code=404,
 #             detail="The user with this username does not exist in the system.",
 #         )
-#     else: 
+#     else:
 #         user = user[0]
 
 #     password_reset_token = generate_password_reset_token(email=email)
@@ -92,7 +95,7 @@ async def test_token(current_user: models.User = Depends(deps.get_current_user))
 #         raise HTTPException(status_code=400, detail="Inactive user")
 #     else:
 #         user = user[0]
-        
+
 #     hashed_password = get_password_hash(new_password)
 #     user.hashed_password = hashed_password
 #     db.add(user)
