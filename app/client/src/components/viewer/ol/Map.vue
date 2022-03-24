@@ -310,6 +310,9 @@ export default {
                 group: groupName,
                 ...lConf
               });
+              if (olLayer.get("name") === "sub_study_area") {
+                this.subStudyAreaLayer = olLayer;
+              }
               if (olLayer) {
                 layers.push(olLayer);
               }
@@ -340,21 +343,6 @@ export default {
       this.map.addLayer(vector);
       this.map.getView().fit(source.getExtent());
     },
-    // /**
-    //  * Creates a sub study area layer (districts)
-    //  */
-    // createSubStudyAreaLayer() {
-    //   const olLayer = LayerFactory.getInstance({
-    //     group: "buildings_landuse",
-    //     displayInLayerList: true,
-    //     z_index: 1,
-    //     name: "sub_study_area",
-    //     type: "GEOBUF",
-    //     style: "custom"
-    //   });
-    //   this.map.addLayer(olLayer);
-    //   this.subStudyAreaLayer = olLayer;
-    // },
     /**
      * Creates pois aois layer
      */

@@ -35,50 +35,46 @@
                 <!-- LAYERS -->
                 <v-expansion-panels readonly>
                   <v-expansion-panel
-                    v-for="(layerItem, i) in layerGroupValue"
+                    v-for="(layer, i) in layerGroupValue"
                     :key="i"
                     class="layer-row"
                     :class="{
                       'expansion-panel__container--active':
-                        layerItem.showOptions === true
+                        layer.get('showOptions') === true
                     }"
                   >
                     <v-expansion-panel-header expand-icon="" v-slot="{}">
                       <v-layout row class="pl-1" wrap align-center>
                         <v-flex class="checkbox" xs1>
                           <v-simple-checkbox
-                            :color="appColor.primary"
-                            :value="layerItem.layer.getVisible()"
+                            :color="appColor.secondary"
+                            :value="layer.getVisible()"
                             @input="
-                              toggleLayerVisibility(layerItem, layerGroupValue)
+                              toggleLayerVisibility(layer, layerGroupValue)
                             "
                           ></v-simple-checkbox>
                         </v-flex>
                         <v-flex xs10 class="light-text">
                           <h4 class="pl-2">
-                            {{
-                              translate(
-                                "layerName",
-                                layerItem.layer.get("name")
-                              )
-                            }}
+                            {{ translate("layerName", layer.get("name")) }}
                           </h4>
                         </v-flex>
                         <v-flex xs1>
                           <v-icon
-                            v-show="layerItem.layer.getVisible()"
+                            v-show="layer.getVisible()"
                             small
                             style="width: 30px; height: 30px;"
                             v-html="
-                              layerItem.showOptions
+                              layer.get('showOptions')
                                 ? 'fas fa-chevron-down'
                                 : 'fas fa-chevron-up'
                             "
                             :class="{
-                              'expansion-panel__container--active':
-                                layerItem.showOptions
+                              'expansion-panel__container--active': layer.get(
+                                'showOptions'
+                              )
                             }"
-                            @click.stop="toggleLayerOptions(layerItem)"
+                            @click.stop="toggleLayerOptions(layer)"
                           ></v-icon>
                         </v-flex>
                       </v-layout>
@@ -86,20 +82,19 @@
                     <v-card
                       class="pt-2"
                       v-show="
-                        layerItem.layer.getVisible() &&
-                          layerItem.showOptions === true
+                        layer.getVisible() && layer.get('showOptions') === true
                       "
                       style="background-color: white;"
                       transition="slide-y-reverse-transition"
                     >
-                      <InLegend :layer="layerItem.layer"></InLegend>
+                      <InLegend :layer="layer"></InLegend>
                       <v-layout row style="width:100%;padding-left: 10px;">
                         <v-flex
                           class="xs2"
                           style="text-align:center;"
                           v-if="
-                            ['VECTORTILE', 'VECTOR', 'MVT'].includes(
-                              layerItem.layer.get('type').toUpperCase()
+                            ['VECTORTILE', 'VECTOR', 'MVT', 'GEOBUF'].includes(
+                              layer.get('type').toUpperCase()
                             )
                           "
                         >
@@ -115,19 +110,23 @@
                         <v-flex
                           :class="{
                             xs10:
-                              ['VECTORTILE', 'VECTOR', 'MVT'].includes(
-                                layerItem.layer.get('type').toUpperCase()
-                              ) == true,
+                              [
+                                'VECTORTILE',
+                                'VECTOR',
+                                'MVT',
+                                'GEOBUF'
+                              ].includes(layer.get('type').toUpperCase()) ==
+                              true,
                             xs12: false
                           }"
                         >
                           <v-slider
-                            :value="layerItem.layer.getOpacity()"
+                            :value="layer.getOpacity()"
                             class="mx-5"
                             step="0.05"
                             min="0"
                             max="1"
-                            @input="changeLayerOpacity($event, layerItem.layer)"
+                            @input="changeLayerOpacity($event, layer)"
                             :label="$t('layerTree.settings.transparency')"
                             :color="appColor.secondary"
                           ></v-slider>
@@ -217,10 +216,7 @@ export default {
             if (!this.layerGroups[layer.get("group")]) {
               this.layerGroups[layer.get("group")] = [];
             }
-            this.layerGroups[layer.get("group")].push({
-              showOptions: false,
-              layer
-            });
+            this.layerGroups[layer.get("group")].push(layer);
           }
         });
     },
@@ -239,24 +235,24 @@ export default {
       }
       this.currentItem = item;
     },
-    toggleLayerVisibility(layerItem, group) {
+    toggleLayerVisibility(layer, group) {
       //Turn off other layers if layer group is background layers.
-      if (layerItem.layer.get("group") === "basemap") {
+      if (layer.get("group") === "basemap") {
         group.forEach(lc => {
-          if (lc.layer.get("name") === layerItem.layer.get("name")) return;
-          lc.layer.setVisible(false);
+          if (lc.get("name") === layer.get("name")) return;
+          layer.setVisible(false);
         });
       }
 
-      layerItem.layer.setVisible(!layerItem.layer.getVisible());
-      if (layerItem.layer.getVisible() === false) {
-        layerItem.showOptions = false;
+      layer.setVisible(!layer.getVisible());
+      if (layer.getVisible() === false) {
+        layer.set("showOptions", false);
       } else {
-        layerItem.showOptions = true;
+        layer.set("showOptions", true);
       }
     },
-    toggleLayerOptions(layerItem) {
-      layerItem.showOptions = !layerItem.showOptions;
+    toggleLayerOptions(layer) {
+      layer.set("showOptions", !layer.get("showOptions"));
     },
     changeLayerOpacity(value, layer) {
       layer.setOpacity(value);

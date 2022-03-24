@@ -66,7 +66,7 @@
                       .length > 1
                   "
                   :key="layer.attributeDisplayStatusKey"
-                  :color="appColor.primary"
+                  :color="appColor.secondary"
                   :value="isLayerAttributeVisible(layer, ith)"
                   @input="
                     attributeLevelRendering(
@@ -159,7 +159,7 @@ export default {
             const style = this.filterStylesOnActiveModeByLayerName(name);
             let iStyle = style.rules[index];
             const renderer = new LegendRenderer({
-              maxColumnWidth: 240,
+              maxColumnWidth: 280,
               overflow: "auto",
               styles: [
                 {
@@ -167,7 +167,7 @@ export default {
                   rules: [iStyle]
                 }
               ],
-              size: [230, 300],
+              size: [280, 300],
               translation: { styleTranslation, currentLocale }
             });
 

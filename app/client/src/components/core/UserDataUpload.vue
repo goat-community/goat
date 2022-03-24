@@ -208,6 +208,7 @@ export default {
             ApiService.delete(`/custom-data/poi/${item.id}`).then(() => {
               this.$store.dispatch(`app/${GET_USER_CUSTOM_DATA}`);
               this.$store.dispatch(`app/${GET_APP_CONFIG}`);
+              this.$store.dispatch(`poisaois/${GET_POIS_AOIS}`);
             });
           }
         });
@@ -224,6 +225,7 @@ export default {
             ApiService.delete(`/custom-data/poi/all`).then(() => {
               this.$store.dispatch(`app/${GET_USER_CUSTOM_DATA}`);
               this.$store.dispatch(`app/${GET_APP_CONFIG}`);
+              this.$store.dispatch(`poisaois/${GET_POIS_AOIS}`);
             });
           }
         });

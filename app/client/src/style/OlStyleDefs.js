@@ -717,6 +717,7 @@ export function poisAoisStyle(feature) {
     return [];
   }
   const poiIconConf = appStore.state.poiIcons[category];
+  if (!poiIconConf && !poiIconConf.color) return [];
   const color = poiIconConf.color;
 
   var st = [];
