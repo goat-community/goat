@@ -40,12 +40,22 @@ export const LayerFactory = {
   },
 
   baseConf(lConf) {
+    if (["heatmap", "basemap"].includes(lConf.group)) {
+      lConf.queryable = false;
+    }
+    lConf.queryable = lConf.queryable === undefined ? true : lConf.queryable;
+
     let lOpts = {
       group: lConf.group,
       name: lConf.name,
       type: lConf.type,
       visible: lConf.visible || false,
       opacity: lConf.opacity || 1,
+      showOptions: false,
+      attributeDisplayStatusKey: 0,
+      layerTreeKey: 0,
+      layerOrderKey: 1,
+      queryable: lConf.queryable,
       displayInLayerList: lConf.display_in_layer_list || true,
       legendGraphicUrls: lConf.legend_urls || null
     };
@@ -60,7 +70,8 @@ export const LayerFactory = {
       lOpts.zIndex = lConf.z_index;
     }
     let sOpts = {
-      url: lConf.url
+      url: lConf.url,
+      crossOrigin: "Anonymous"
     };
     if (lConf.map_attribution) {
       sOpts.attributions = lConf.map_attribution;

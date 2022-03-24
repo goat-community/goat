@@ -26,10 +26,6 @@ const state = {
     values: ["default", "scenario", "comparison"],
     active: "default"
   },
-  activeColor: {
-    primary: "#2BB381",
-    secondary: "#2BB381"
-  },
   scenarioLayerEditModeColor: "#283648"
 };
 
@@ -148,7 +144,6 @@ const getters = {
     return (getters.uploadedStorageSize * 100) / totalStorage;
   },
   poiIcons: state => state.poiIcons,
-  activeColor: state => state.activeColor,
   getField
 };
 

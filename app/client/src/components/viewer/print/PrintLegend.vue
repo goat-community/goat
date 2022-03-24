@@ -61,6 +61,7 @@ import { EventBus } from "../../../EventBus";
 import { Mapable } from "../../../mixins/Mapable";
 import { getWMSLegendURL } from "../../../utils/Layer";
 import LegendRenderer from "../../../utils/LegendRenderer";
+import { mapFields } from "vuex-map-fields";
 
 export default {
   mixins: [Mapable],
@@ -82,7 +83,10 @@ export default {
       const me = this;
       const allLayers = me.map.getLayers().getArray();
       me.layers = allLayers.filter(layer => {
-        return layer.get("displayInLegend") !== false;
+        return (
+          layer.get("displayInLegend") !== false &&
+          layer.get("group") !== "basemap"
+        );
       });
       this.isMapMounted = true;
       EventBus.$on("openLegend", () => this.panel.push(0));
@@ -112,7 +116,6 @@ export default {
       return legedUrl;
     },
     renderLegend(item, index) {
-      console.log(item);
       this.$nextTick(() => {
         const styleObj = this.vectorTileStyles;
         const name = item.get("name");
@@ -199,7 +202,7 @@ export default {
     ...mapGetters("app", {
       calculationMode: "calculationMode"
     }),
-    ...mapGetters("map", {
+    ...mapFields("map", {
       vectorTileStyles: "vectorTileStyles"
     })
   },

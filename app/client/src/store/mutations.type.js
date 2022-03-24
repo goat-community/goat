@@ -10,3 +10,4 @@ export const SET_USER_CUSTOM_DATA = "setUserCustomData";
 export const SET_OPENAPI_CONFIG = "setOpenApiConfig";
 export const SET_SCENARIOS = "setScenarioList";
 export const SET_POIS_AOIS = "setPoisAois";
+export const SET_CLONE_VECTOR_STYLES = "setVectorStyles";

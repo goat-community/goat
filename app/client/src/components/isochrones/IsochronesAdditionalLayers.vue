@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" max-width="350px">
     <v-card>
-      <v-app-bar :color="activeColor.primary" dark>
+      <v-app-bar :color="appColor.primary" dark>
         <v-app-bar-nav-icon
           ><v-icon>fas fa-layer-group</v-icon></v-app-bar-nav-icon
         >
@@ -79,7 +79,7 @@ export default {
       isochroneOverlayLayer: "isochroneOverlayLayer"
     }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     }),
     show: {
       get() {

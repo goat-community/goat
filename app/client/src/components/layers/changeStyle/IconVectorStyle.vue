@@ -69,6 +69,7 @@
 
 <script>
 import { mapGetters } from "vuex";
+import { mapFields } from "vuex-map-fields";
 import Legend from "../../viewer/ol/controls/Legend";
 
 export default {
@@ -84,12 +85,15 @@ export default {
   }),
   computed: {
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
+    }),
+    ...mapFields("map", {
+      vectorTileStyles: "vectorTileStyles",
+      vectorTileStylesCopy: "vectorTileStylesCopy"
     }),
     style() {
-      return this.filterStylesOnActiveModeByLayerName(
-        this.item.mapLayer.get("name")
-      ).rules[this.ruleIndex];
+      return this.filterStylesOnActiveModeByLayerName(this.item.get("name"))
+        .rules[this.ruleIndex];
     }
   },
   created() {
@@ -103,7 +107,7 @@ export default {
     close() {
       this.dialogue = false;
       //Refresh the legend
-      this.item.layerTreeKey += 1;
+      this.item.set("layerTreeKey", this.item.get("layerTreeKey") + 1);
     },
     resetStyle() {
       /*
@@ -114,20 +118,18 @@ export default {
       this.localIcon = null;
 
       //Get original style for layer attribute
-      let sourceStyle = this.$appConfig.stylesObjCopy[
-        this.item.mapLayer.get("name")
-      ].style.rules[this.ruleIndex];
+      let sourceStyle = this.vectorTileStylesCopy[this.item.get("name")].style
+        .rules[this.ruleIndex];
 
       //Get present stylefor layer attribute
-      let targetStyle = this.$appConfig.stylesObj[
-        this.item.mapLayer.get("name")
-      ].style.rules[this.ruleIndex];
+      let targetStyle = this.vectorTileStyles[this.item.get("name")].style
+        .rules[this.ruleIndex];
 
       //Assign original style to present style to reset
       targetStyle.symbolizers[0].size = sourceStyle.symbolizers[0].size;
       targetStyle.symbolizers[0].image = sourceStyle.symbolizers[0].image;
       this.iconSize = sourceStyle.symbolizers[0].size;
-      this.item.mapLayer.getSource().changed();
+      this.item.getSource().changed();
     },
     onIconSizeChange() {
       //Change icon size on input change event
@@ -136,7 +138,7 @@ export default {
       } else {
         this.style.symbolizers[0].size = Number(this.iconSize);
       }
-      this.item.mapLayer.getSource().changed();
+      this.item.getSource().changed();
     },
     localUpload(value) {
       //Upload new icon from local
@@ -147,7 +149,7 @@ export default {
         reader.onload = e => {
           let icon = e.target.result;
           this.style.symbolizers[0].image = icon;
-          this.item.mapLayer.getSource().changed();
+          this.item.getSource().changed();
         };
       }
     },
@@ -155,7 +157,7 @@ export default {
       //Upload new icon from URL
       if (value) {
         this.style.symbolizers[0].image = value;
-        this.item.mapLayer.getSource().changed();
+        this.item.getSource().changed();
       }
     }
   }

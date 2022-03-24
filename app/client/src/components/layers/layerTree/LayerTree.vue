@@ -152,7 +152,7 @@
     </vue-scroll>
     <span v-if="styleDialogStatus">
       <style-dialog
-        :layer="currentItem"
+        :item="currentItem"
         :translate="translate"
         :key="styleDialogKey"
         :styleDialogStatus="styleDialogStatus"
@@ -176,10 +176,7 @@ export default {
   mixins: [Mapable, Legend],
   data: () => ({
     layerGroups: {},
-    currentItem: {
-      showOptions: false,
-      name: ""
-    },
+    currentItem: null,
     styleDialogKey: 0,
     styleDialogStatus: false
   }),
@@ -208,6 +205,13 @@ export default {
      * and registers the current map layers.
      */
     onMapBound() {
+      const layerGroups = this.appConfig.layer_groups;
+      layerGroups.reverse().forEach(lg => {
+        const layerGroupName = Object.keys(lg)[0];
+        if (layerGroupName !== "heatmap") {
+          this.layerGroups[layerGroupName] = [];
+        }
+      });
       this.map
         .getLayers()
         .getArray()
@@ -224,32 +228,39 @@ export default {
       //This function is used for opening Style Setting dialog component for a layer
       EventBus.$emit("updateStyleDialogStatusForLayerOrder", false);
       this.styleDialogStatus = true;
-      if (this.currentItem.name !== item.name) {
+      if (
+        this.currentItem &&
+        this.currentItem.get("name") !== item.get("name")
+      ) {
         this.styleDialogKey += 1;
       }
       if (
-        this.currentItem.layerTreeKey >= 0 &&
-        this.currentItem.name !== item.name
+        this.currentItem &&
+        this.currentItem.get("layerTreeKey") >= 0 &&
+        this.currentItem.get("name") !== item.get("name")
       ) {
-        this.currentItem.layerTreeKey += 1;
+        this.currentItem.set(
+          "layerTreeKey",
+          this.currentItem.get("layerTreeKey") + 1
+        );
       }
       this.currentItem = item;
     },
     toggleLayerVisibility(layer, group) {
+      const currentState = layer.getVisible();
       //Turn off other layers if layer group is background layers.
       if (layer.get("group") === "basemap") {
-        group.forEach(lc => {
-          if (lc.get("name") === layer.get("name")) return;
+        group.forEach(layer => {
           layer.setVisible(false);
         });
       }
-
-      layer.setVisible(!layer.getVisible());
+      layer.setVisible(!currentState);
       if (layer.getVisible() === false) {
         layer.set("showOptions", false);
       } else {
         layer.set("showOptions", true);
       }
+      EventBus.$emit("toggleLayerVisiblity", layer);
     },
     toggleLayerOptions(layer) {
       layer.set("showOptions", !layer.get("showOptions"));

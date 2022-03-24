@@ -67,7 +67,7 @@ export default {
       contextmenu: "contextmenu"
     }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     }),
     notActiveLanguages() {
       const notActiveLanguages = this.languages.filter(value => {

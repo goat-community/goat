@@ -27,6 +27,7 @@
           ></v-text-field>
         </span>
         <v-color-picker
+          class="elevation-0"
           canvas-height="100"
           width="400"
           style="margin:auto; margin-bottom: 20px;"
@@ -51,7 +52,7 @@
 <script>
 import { mapGetters } from "vuex";
 import Legend from "../../viewer/ol/controls/Legend";
-
+import { mapFields } from "vuex-map-fields";
 export default {
   props: ["item", "ruleIndex"],
   mixins: [Legend],
@@ -64,12 +65,15 @@ export default {
   }),
   computed: {
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
+    }),
+    ...mapFields("map", {
+      vectorTileStyles: "vectorTileStyles",
+      vectorTileStylesCopy: "vectorTileStylesCopy"
     }),
     style() {
-      return this.filterStylesOnActiveModeByLayerName(
-        this.item.mapLayer.get("name")
-      ).rules[this.ruleIndex];
+      return this.filterStylesOnActiveModeByLayerName(this.item.get("name"))
+        .rules[this.ruleIndex];
     }
   },
   created() {
@@ -83,7 +87,7 @@ export default {
     close() {
       this.dialogue = false;
       //Refresh the legend
-      this.item.layerTreeKey += 1;
+      this.item.set("layerTreeKey", this.item.get("layerTreeKey") + 1);
     },
     resetStyle() {
       /*
@@ -91,14 +95,12 @@ export default {
       */
 
       //Get original style for layer attribute
-      let sourceStyle = this.$appConfig.stylesObjCopy[
-        this.item.mapLayer.get("name")
-      ].style.rules[this.ruleIndex];
+      let sourceStyle = this.vectorTileStylesCopy[this.item.get("name")].style
+        .rules[this.ruleIndex];
 
       //Get present style for layer attribute
-      let targetStyle = this.$appConfig.stylesObj[
-        this.item.mapLayer.get("name")
-      ].style.rules[this.ruleIndex];
+      let targetStyle = this.vectorTileStyles[this.item.get("name")].style
+        .rules[this.ruleIndex];
 
       //Assign original style to present styleto reset
       targetStyle.symbolizers[0].color = sourceStyle.symbolizers[0].color;
@@ -106,12 +108,12 @@ export default {
 
       this.widthColor = sourceStyle.symbolizers[0].color;
       this.width = sourceStyle.symbolizers[0].width;
-      this.item.mapLayer.getSource().changed();
+      this.item.getSource().changed();
     },
     onWidthColorChange(value) {
       //Change color of line layer on input change
       this.style.symbolizers[0].color = value.slice(0, 7);
-      this.item.mapLayer.getSource().changed();
+      this.item.getSource().changed();
     },
     onWidthChange() {
       //Change width of line layer on input change
@@ -120,7 +122,7 @@ export default {
       } else {
         this.style.symbolizers[0].width = this.width;
       }
-      this.item.mapLayer.getSource().changed();
+      this.item.getSource().changed();
     }
   }
 };

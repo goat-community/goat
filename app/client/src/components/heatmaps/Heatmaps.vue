@@ -42,7 +42,7 @@
                   class="layer-row"
                   :class="{
                     'expansion-panel__container--active':
-                      layer.get('_showOptions') === true
+                      layer.get('showOptions') === true
                   }"
                 >
                   <v-expansion-panel-header expand-icon="" v-slot="{}">
@@ -61,13 +61,31 @@
                           {{ translate("layerName", layer.get("name")) }}
                         </h4>
                       </v-flex>
+                      <v-flex xs1>
+                        <v-icon
+                          v-show="layer.getVisible()"
+                          small
+                          style="width: 30px; height: 30px;"
+                          v-html="
+                            layer.get('showOptions')
+                              ? 'fas fa-chevron-down'
+                              : 'fas fa-chevron-up'
+                          "
+                          :class="{
+                            'expansion-panel__container--active': layer.get(
+                              'showOptions'
+                            )
+                          }"
+                          @click.stop="toggleHeatmapOptions(layer)"
+                        ></v-icon>
+                      </v-flex>
                     </v-layout>
                   </v-expansion-panel-header>
                   <!-- --- -->
                   <!-- LAYER LEGEND AND SETTINGS  -->
                   <v-card
                     class="pt-2"
-                    v-show="layer.getVisible()"
+                    v-show="layer.get('showOptions') === true"
                     style="background-color: white;"
                     transition="slide-y-reverse-transition"
                   >
@@ -121,6 +139,14 @@
         </v-expansion-panels>
       </template>
     </vue-scroll>
+    <span v-if="styleDialogStatus">
+      <StyleDialog
+        :item="currentItem"
+        :translate="translate"
+        :key="styleDialogKey"
+        :styleDialogStatus="styleDialogStatus"
+      ></StyleDialog>
+    </span>
   </v-flex>
 </template>
 <script>
@@ -130,8 +156,15 @@ import { Mapable } from "../../mixins/Mapable";
 import { mapFields } from "vuex-map-fields";
 import Legend from "../viewer/ol/controls/Legend";
 import LayerTree from "../layers/layerTree/LayerTree";
+import StyleDialog from "../layers/changeStyle/StyleDialog.vue";
+import InLegend from "../viewer/ol/controls/InLegend.vue";
+
 export default {
   mixins: [Mapable, Legend, LayerTree],
+  components: {
+    InLegend,
+    StyleDialog
+  },
   data: () => ({
     heatmapPanel: [0],
     heatmapGroup: {},
@@ -143,8 +176,17 @@ export default {
     updateHeatmaps: {
       poi: ["heatmap_local_accessibility", "heatmap_accessibility_population"],
       population: ["heatmap_accessibility_population", "heatmap_population"]
-    }
+    },
+    currentItem: null,
+    styleDialogKey: 0,
+    styleDialogStatus: false
   }),
+
+  mounted() {
+    EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
+      this.styleDialogStatus = value;
+    });
+  },
   computed: {
     ...mapGetters("app", {
       appColor: "appColor",
@@ -178,12 +220,16 @@ export default {
             if (!this.heatmapGroup[layer.get("group")]) {
               this.heatmapGroup[layer.get("group")] = [];
             }
+            layer.set("attributeDisplayStatusKey", 0);
             this.heatmapGroup[layer.get("group")].push(layer);
           }
         });
       EventBus.$on("update-heatmap", updateHeatmapsLinkedTo => {
         this.refreshHeatmap(updateHeatmapsLinkedTo);
       });
+    },
+    toggleHeatmapOptions(layer) {
+      layer.set("showOptions", !layer.get("showOptions"));
     },
     translate(type, key) {
       const canTranslate = this.$te(`map.${type}.${key}`);
@@ -193,21 +239,44 @@ export default {
         return key;
       }
     },
+    openStyleDialog(item) {
+      //This function is used for opening Style Setting dialog component for a layer
+      EventBus.$emit("updateStyleDialogStatusForLayerOrder", false);
+      this.styleDialogStatus = true;
+      if (
+        this.currentItem &&
+        this.currentItem.get("name") !== item.get("name")
+      ) {
+        this.styleDialogKey += 1;
+      }
+      if (
+        this.currentItem &&
+        this.currentItem.get("layerTreeKey") >= 0 &&
+        this.currentItem.get("name") !== item.get("name")
+      ) {
+        this.currentItem.set(
+          "layerTreeKey",
+          this.currentItem.get("layerTreeKey") + 1
+        );
+      }
+      this.currentItem = item;
+    },
     toggleLayerVisibility(layer, group) {
       if (this.heatmapCancelToken instanceof Function) {
         this.heatmapCancelToken("cancelled");
         this.heatmapCancelToken = null;
       }
-      //Turn off other heatmaps if layer group is background layers.
+      //Turn off other heatmaps if layer group is heatmap.
       if (layer.get("group") === "heatmap") {
         group.forEach(lc => {
           if (lc.get("name") === layer.get("name")) return;
           lc.setVisible(false);
+          lc.set("showOptions", false);
         });
       }
       layer.setVisible(!layer.getVisible());
       if (layer.getVisible() === false) {
-        layer.set("_showOptions", false);
+        layer.set("showOptions", false);
       } else {
         if (this.heatmapCancelToken instanceof Function) {
           this.heatmapCancelToken("cancelled");
@@ -215,7 +284,7 @@ export default {
         }
         layer.getSource().refresh();
         this.checkIfHeatmapNeedsPois(layer);
-        layer.set("_showOptions", true);
+        layer.set("showOptions", true);
       }
     },
     refreshAllVisibleHeatmaps() {

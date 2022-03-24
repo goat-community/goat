@@ -65,12 +65,12 @@
                     filterStylesOnActiveModeByLayerName(layer.get('name')).rules
                       .length > 1
                   "
-                  :key="layer.attributeDisplayStatusKey"
+                  :key="layer.get('attributeDisplayStatusKey')"
                   :color="appColor.secondary"
                   :value="isLayerAttributeVisible(layer, ith)"
                   @input="
                     attributeLevelRendering(
-                      vectorTileStyles[layer.get('name')].style.rules[ith]
+                      vectorTileStylesCopy[layer.get('name')].style.rules[ith]
                         .filter[0],
                       layer,
                       ith
@@ -100,6 +100,7 @@
 import LegendRenderer from "../../../../utils/LegendRenderer";
 import Legend from "../controls/Legend";
 import { mapGetters } from "vuex";
+import { mapFields } from "vuex-map-fields";
 
 export default {
   props: ["layer"],
@@ -136,7 +137,10 @@ export default {
         styleFilter.filter[0] = filter;
       }
       layer.getSource().changed();
-      this.layer.attributeDisplayStatusKey += 1;
+      layer.set(
+        "attributeDisplayStatusKey",
+        layer.get("attributeDisplayStatusKey") + 1
+      );
     },
     renderLegend(layer, index) {
       //Render individual legend on attribue level.
@@ -159,7 +163,7 @@ export default {
             const style = this.filterStylesOnActiveModeByLayerName(name);
             let iStyle = style.rules[index];
             const renderer = new LegendRenderer({
-              maxColumnWidth: 280,
+              maxColumnWidth: 260,
               overflow: "auto",
               styles: [
                 {
@@ -167,14 +171,14 @@ export default {
                   rules: [iStyle]
                 }
               ],
-              size: [280, 300],
+              size: [260, 300],
               translation: { styleTranslation, currentLocale }
             });
 
             renderer.render(el);
           }
         }
-      }, 500);
+      }, 100);
     },
     getWMSLayerNames(layer) {
       const layerUrl = layer.getSource().getUrl();
@@ -188,8 +192,9 @@ export default {
       appConfig: "appConfig",
       calculationMode: "calculationMode"
     }),
-    ...mapGetters("map", {
-      vectorTileStyles: "vectorTileStyles"
+    ...mapFields("map", {
+      vectorTileStyles: "vectorTileStyles",
+      vectorTileStylesCopy: "vectorTileStylesCopy"
     })
   }
 };
