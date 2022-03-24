@@ -83,7 +83,10 @@ export default {
       const me = this;
       const allLayers = me.map.getLayers().getArray();
       me.layers = allLayers.filter(layer => {
-        return layer.get("displayInLegend") !== false;
+        return (
+          layer.get("displayInLegend") !== false &&
+          layer.get("group") !== "basemap"
+        );
       });
       this.isMapMounted = true;
       EventBus.$on("openLegend", () => this.panel.push(0));
@@ -113,7 +116,6 @@ export default {
       return legedUrl;
     },
     renderLegend(item, index) {
-      console.log(item);
       this.$nextTick(() => {
         const styleObj = this.vectorTileStyles;
         const name = item.get("name");

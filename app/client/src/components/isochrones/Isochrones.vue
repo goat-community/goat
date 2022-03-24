@@ -1030,6 +1030,8 @@ export default {
       this.createIsochroneOverlayLayer();
       this.createMultiIsochroneSelectionLayer();
       this.setUpCtxMenu();
+
+      EventBus.$on("show-isochrone-window", this.showIsochroneWindow);
     },
     /**
      * Creates a vector layer for the isochrone calculations results and adds it to the
@@ -1704,6 +1706,14 @@ export default {
       }
     },
     // ------------RESULTS----------
+    showIsochroneWindow(calculationId) {
+      const calculation = this.calculations.filter(
+        calculation => calculation.id === calculationId
+      );
+      if (calculation && calculation[0]) {
+        this.toggleIsochroneWindow(true, calculation[0]);
+      }
+    },
     toggleIsochroneWindow(state, calculation) {
       if (state === false) {
         this.isochroneLayer

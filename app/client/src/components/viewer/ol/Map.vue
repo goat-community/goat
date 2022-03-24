@@ -160,7 +160,7 @@ import { geojsonToFeature } from "../../../utils/MapUtils";
 import axios from "axios";
 
 //Store imports
-import { mapMutations, mapGetters, mapActions } from "vuex";
+import { mapMutations, mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
 
 //Map Controls
@@ -610,7 +610,7 @@ export default {
         }
 
         //Check for isochrone features
-        const features = me.map.getFeaturesAtPixel(evt.pixel, {
+        const isochroneFeatures = me.map.getFeaturesAtPixel(evt.pixel, {
           layerFilter: candidate => {
             if (candidate.get("name") === "isochrone_layer") {
               return true;
@@ -618,14 +618,21 @@ export default {
             return false;
           }
         });
-        if (features.length > 0) {
+        const otherFeatures = me.map.getFeaturesAtPixel(evt.pixel, {
+          layerFilter: candidate => {
+            if (candidate.get("name") !== "isochrone_layer") {
+              return true;
+            }
+            return false;
+          }
+        });
+        if (isochroneFeatures.length > 0 && otherFeatures.length === 0) {
           // Toggle thematic data for isochrone window
-          const isochroneFeature = features[0];
-          this.showIsochroneWindow({
-            id: isochroneFeature.get("calculationNumber"),
-            calculationType: isochroneFeature.get("calculationType")
-          });
-
+          const isochroneFeature = isochroneFeatures[0];
+          EventBus.$emit(
+            "show-isochrone-window",
+            isochroneFeature.get("calculationNumber")
+          );
           return;
         }
 
@@ -812,9 +819,6 @@ export default {
     }),
     ...mapMutations("pois", {
       init: "INIT"
-    }),
-    ...mapActions("isochrones", {
-      showIsochroneWindow: "showIsochroneWindow"
     })
   },
   computed: {

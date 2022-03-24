@@ -70,7 +70,8 @@ export const LayerFactory = {
       lOpts.zIndex = lConf.z_index;
     }
     let sOpts = {
-      url: lConf.url
+      url: lConf.url,
+      crossOrigin: "Anonymous"
     };
     if (lConf.map_attribution) {
       sOpts.attributions = lConf.map_attribution;
