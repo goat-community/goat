@@ -50,9 +50,10 @@ import {
   GET_STUDY_AREA,
   GET_STUDY_AREAS_LIST,
   GET_OPENAPI_CONFIG,
-  GET_SCENARIOS
+  GET_SCENARIOS,
+  TEST_TOKEN
 } from "../store/actions.type";
-import { mapGetters } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 
 export default {
   name: "wg-app",
@@ -66,12 +67,15 @@ export default {
     return {};
   },
   created() {
+    this.$store.dispatch(`auth/${TEST_TOKEN}`);
     this.$store.dispatch(`auth/${GET_USER}`).then(response => {
       if (response && response.language_preference) {
         this.$i18n.locale = response.language_preference;
       }
     });
-    this.$store.dispatch(`app/${GET_APP_CONFIG}`);
+    this.$store.dispatch(`app/${GET_APP_CONFIG}`).then(response => {
+      this.setCloneVectorStyles(response);
+    });
     this.$store.dispatch(`app/${GET_USER_CUSTOM_DATA}`);
     this.$store.dispatch(`map/${GET_STUDY_AREA}`);
     this.$store.dispatch(`map/${GET_STUDY_AREAS_LIST}`);
@@ -87,9 +91,13 @@ export default {
       studyArea: "studyArea"
     })
   },
+  methods: {
+    ...mapMutations("map", {
+      setCloneVectorStyles: "SET_CLONE_VECTOR_STYLES"
+    })
+  },
   mounted() {
     EventBus.$emit("app-mounted");
-  },
-  methods: {}
+  }
 };
 </script>

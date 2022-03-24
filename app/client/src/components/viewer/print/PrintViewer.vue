@@ -77,10 +77,12 @@
 import { mapGetters } from "vuex";
 import { getCurrentDate, getCurrentTime } from "../../../utils/Helpers";
 import PrintLegend from "./PrintLegend";
+import { Mapable } from "../../../mixins/Mapable";
 export default {
   components: {
     "print-legend": PrintLegend
   },
+  mixins: [Mapable],
   data() {
     return {
       mapSideSheetSize: 65, // in mm. The sheet area for legend, title and logos. (right or bottom)
@@ -91,11 +93,10 @@ export default {
   },
   computed: {
     ...mapGetters("map", {
-      print: "print",
-      map: "map"
+      print: "print"
     }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     }),
     /**
      * Get formated date time as dd/mm/yyyy hh:mm:ss

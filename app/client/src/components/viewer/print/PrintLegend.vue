@@ -61,6 +61,7 @@ import { EventBus } from "../../../EventBus";
 import { Mapable } from "../../../mixins/Mapable";
 import { getWMSLegendURL } from "../../../utils/Layer";
 import LegendRenderer from "../../../utils/LegendRenderer";
+import { mapFields } from "vuex-map-fields";
 
 export default {
   mixins: [Mapable],
@@ -199,7 +200,7 @@ export default {
     ...mapGetters("app", {
       calculationMode: "calculationMode"
     }),
-    ...mapGetters("map", {
+    ...mapFields("map", {
       vectorTileStyles: "vectorTileStyles"
     })
   },

@@ -37,6 +37,8 @@ const state = {
   selectedEditLayer: null,
   heatmapCancelToken: null,
   isMapillaryBtnDisabled: false,
+  vectorTileStyles: {},
+  vectorTileStylesCopy: {},
   print: {
     active: false,
     title: "",
@@ -108,24 +110,6 @@ const getters = {
     } else {
       return {};
     }
-  },
-  // eslint-disable-next-line no-unused-vars
-  vectorTileStyles: (state, getters, rootState, rootGetters) => {
-    const layerGroups = rootState.app.appConfig.layer_groups;
-    const styles = {};
-    layerGroups.forEach(layerGroup => {
-      const groupName = Object.keys(layerGroup)[0];
-      layerGroup[groupName].children.forEach(layerObj => {
-        const layerName = Object.keys(layerObj)[0];
-        const layer = layerObj[layerName];
-        styles[layerName] = {
-          format: "geostyler",
-          style: layer.style,
-          translation: layer.translation || {}
-        };
-      });
-    });
-    return styles;
   },
   studyAreaList: state => state.studyAreaList,
   map: state => state.map,
@@ -229,6 +213,25 @@ const mutations = {
   },
   SET_CONTEXTMENU(state, contextmenu) {
     state.contextmenu = contextmenu;
+  },
+  SET_CLONE_VECTOR_STYLES(state, customerData) {
+    const layerGroups = customerData.layer_groups;
+    const styles = {};
+    layerGroups.forEach(layerGroup => {
+      const groupName = Object.keys(layerGroup)[0];
+      layerGroup[groupName].children.forEach(layerObj => {
+        const layerName = Object.keys(layerObj)[0];
+        const layer = layerObj[layerName];
+        styles[layerName] = {
+          format: "geostyler",
+          style: layer.style,
+          translation: layer.translation || {}
+        };
+      });
+    });
+    state.vectorTileStyles = styles;
+    //Making deep copy of styleobject for restoring the the original style of layers
+    state.vectorTileStylesCopy = JSON.parse(JSON.stringify(styles));
   },
   /////////
   UPDATE_REQ_FIELDS(state, reqFields) {

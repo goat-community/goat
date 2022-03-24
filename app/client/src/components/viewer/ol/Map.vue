@@ -223,7 +223,6 @@ export default {
     // Send the event 'ol-map-mounted' with the OL map as payload
     EventBus.$emit("ol-map-mounted", me.map);
     //Add map to the vuex store.
-    // me.setMap(me.map);
     // resize the map, so it fits to parent
     window.setTimeout(() => {
       me.map.setTarget(document.getElementById("ol-map-container"));
@@ -314,6 +313,13 @@ export default {
                 this.subStudyAreaLayer = olLayer;
               }
               if (olLayer) {
+                if (
+                  ![Infinity, undefined, null].includes(
+                    olLayer.getMaxResolution()
+                  )
+                ) {
+                  this.limitedVisibilityLayers.push(olLayer);
+                }
                 layers.push(olLayer);
               }
             } catch (error) {
@@ -635,6 +641,8 @@ export default {
           switch (layerType) {
             case "WFS":
             case "VECTOR":
+            case "MVT":
+            case "GEOBUF":
             case "VECTORTILE": {
               let selectedFeatures = me.map.getFeaturesAtPixel(evt.pixel, {
                 hitTolerance: 4,
@@ -798,7 +806,6 @@ export default {
       }
     },
     ...mapMutations("map", {
-      setMap: "SET_MAP",
       setContextMenu: "SET_CONTEXTMENU",
       setLayer: "SET_LAYER",
       toggleSnackbar: "TOGGLE_SNACKBAR"

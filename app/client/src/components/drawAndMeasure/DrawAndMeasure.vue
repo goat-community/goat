@@ -42,7 +42,7 @@
       <v-card-text> </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn class="white--text" :color="activeColor.primary" @click="clear">
+        <v-btn class="white--text" :color="appColor.primary" @click="clear">
           <v-icon left>delete</v-icon
           >{{ $t("appBar.drawAndMeasure.clear") }}</v-btn
         >
@@ -184,7 +184,7 @@ export default {
   mounted() {},
   computed: {
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     })
   }
 };

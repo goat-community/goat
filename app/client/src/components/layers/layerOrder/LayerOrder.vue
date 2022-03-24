@@ -13,7 +13,7 @@
           class="layer-row"
           :class="{
             'expansion-panel__container--active':
-              layer.get('_showOptions') === true
+              layer.get('showOptions') === true
           }"
         >
           <v-expansion-panel-header expand-icon="" v-slot="{}" class="handle">
@@ -36,13 +36,13 @@
                   small
                   style="width: 30px; height: 30px;"
                   v-html="
-                    layer.get('_showOptions') === false
+                    layer.get('showOptions') === false
                       ? 'fas fa-chevron-down'
                       : 'fas fa-chevron-up'
                   "
                   :class="{
                     'expansion-panel__container--active':
-                      layer.get('_showOptions') === true
+                      layer.get('showOptions') === true
                   }"
                   @click.stop="toggleLayerOptions(layer)"
                 ></v-icon>
@@ -51,12 +51,12 @@
           </v-expansion-panel-header>
           <v-card
             class="pt-2"
-            v-show="layer.get('_showOptions') === true"
+            v-show="layer.get('showOptions') === true"
             style="background-color: white;"
             transition="slide-y-reverse-transition"
           >
             <InLegend
-              v-if="layer.get('_showOptions') === true"
+              v-if="layer.get('showOptions') === true"
               :layer="layer"
             ></InLegend>
             <v-layout row style="width:100%;padding-left: 10px;">
@@ -146,7 +146,8 @@ export default {
       get: function() {
         return this.allLayers.filter(
           layer =>
-            layer.getVisible() === true && layer.get("group") !== "basemap"
+            layer.getVisible() === true &&
+            !["basemap", "heatmap"].includes(layer.get("group"))
         );
       },
       set: function() {
@@ -173,16 +174,23 @@ export default {
   methods: {
     openStyleDialog(item) {
       //This function is used for opening Style Setting dialog component for a layer
-      EventBus.$emit("updateStyleDialogStatusForLayerTree", false);
+      EventBus.$emit("updateStyleDialogStatusForLayerOrder", false);
       this.styleDialogStatus = true;
-      if (this.currentItem.name !== item.name) {
+      if (
+        this.currentItem &&
+        this.currentItem.get("name") !== item.get("name")
+      ) {
         this.styleDialogKey += 1;
       }
       if (
-        this.currentItem.layerTreeKey >= 0 &&
-        this.currentItem.name !== item.name
+        this.currentItem &&
+        this.currentItem.get("layerTreeKey") >= 0 &&
+        this.currentItem.get("name") !== item.get("name")
       ) {
-        this.currentItem.layerTreeKey += 1;
+        this.currentItem.set(
+          "layerTreeKey",
+          this.currentItem.get("layerTreeKey") + 1
+        );
       }
       this.currentItem = item;
     },
@@ -192,8 +200,8 @@ export default {
     },
     toggleLayerVisibility(layer) {
       layer.setVisible(!layer.getVisible());
-      if (layer.get("_showOptions")) {
-        layer.set("_showOptions", false);
+      if (layer.get("showOptions")) {
+        layer.set("showOptions", false);
       }
     },
     onMove({ draggedContext, relatedContext }) {

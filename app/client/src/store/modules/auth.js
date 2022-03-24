@@ -1,7 +1,7 @@
 import ApiService from "../../services/api.service";
 import JwtService from "../../services/jwt.service";
 
-import { GET_USER, LOGIN, LOGOUT } from "../actions.type";
+import { GET_USER, LOGIN, LOGOUT, TEST_TOKEN } from "../actions.type";
 import { SET_AUTH, PURGE_AUTH, SET_ERROR, SET_USER } from "../mutations.type";
 import { errorMessage } from "../../utils/Helpers";
 import { getField, updateField } from "vuex-map-fields";
@@ -36,6 +36,21 @@ const actions = {
         });
     });
   },
+  [TEST_TOKEN](context) {
+    return new Promise((resolve, reject) => {
+      ApiService.post("/login/test-token")
+        .then(response => {
+          resolve(response.data);
+        })
+        .catch(({ response }) => {
+          //Token not valid. Logout and reload.
+          context.commit(PURGE_AUTH);
+          window.location.reload();
+          errorMessage(context, response, SET_ERROR);
+          reject(response);
+        });
+    });
+  },
   [GET_USER](context) {
     return new Promise((resolve, reject) => {
       ApiService.get("/users/me")
@@ -49,6 +64,7 @@ const actions = {
         });
     });
   },
+
   [LOGOUT](context) {
     context.commit(PURGE_AUTH);
   }

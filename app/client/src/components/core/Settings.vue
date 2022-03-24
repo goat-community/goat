@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" scrollable max-width="500px">
     <v-card flat>
-      <v-app-bar :color="activeColor.primary" dark>
+      <v-app-bar :color="appColor.primary" dark>
         <v-app-bar-nav-icon><v-icon>fas fa-flag</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title>{{ $t("appBar.settings.title") }}</v-toolbar-title>
         <v-spacer></v-spacer>
@@ -63,6 +63,7 @@ export default {
       i18n.locale = locale;
       //Close other interactions.
       EventBus.$emit("ol-interaction-activated", this.interactionType);
+      EventBus.$emit("ol-interaction-stoped", this.interactionType);
     }
   },
   computed: {
@@ -78,7 +79,7 @@ export default {
       }
     },
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     })
   },
   mounted() {

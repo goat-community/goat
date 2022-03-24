@@ -11,3 +11,4 @@ export const GET_USER_CUSTOM_DATA = "getUserCustomData";
 export const GET_OPENAPI_CONFIG = "getOpenApiConfig";
 export const GET_SCENARIOS = "getScenarioList";
 export const GET_POIS_AOIS = "getPoisAois";
+export const TEST_TOKEN = "testToken";

@@ -6,7 +6,7 @@
     v-bind:style="{ zIndex: options.zIndex }"
   >
     <v-card>
-      <v-app-bar dark :color="activeColor.primary" dense flat>
+      <v-app-bar dark :color="appColor.primary" dense flat>
         <v-app-bar-nav-icon
           ><v-icon>{{ options.icon }}</v-icon></v-app-bar-nav-icon
         >
@@ -81,7 +81,7 @@ export default {
   },
   computed: {
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     })
   }
 };
