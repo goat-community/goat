@@ -76,7 +76,7 @@
       </v-btn>
       <v-divider></v-divider>
       <p class="mt-5 mb-1 sub-header">
-        {{ (uploadedStorageSize / 1024).toFixed(1) }}MB of
+        {{ (uploadedStorageSize / 1024).toFixed(2) }}MB of
         {{ parseInt(user.storage / 1024) }}MB used
       </p>
       <v-progress-linear

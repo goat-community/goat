@@ -105,7 +105,7 @@
             :color="appColor.primary"
             class="white--text"
             depressed
-            :disabled="!selectedPoi || !isValid"
+            :disabled="!selectedPoi || !isValid || isUploadBusy"
             :loading="isSelecting"
             @click="onUploadButtonClick"
           >

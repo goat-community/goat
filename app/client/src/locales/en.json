@@ -144,7 +144,7 @@
     },
     "edit": {
       "title": "Draw scenario",
-
+      "scenarioLimitReached": "Scenario number limit reached",
       "createScenario": "Create Scenario",
       "editScenarioName": "Update Scenario",
       "deleteScenario": "Delete Scenario",

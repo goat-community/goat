@@ -52,18 +52,17 @@ const IsochroneUtils = {
       let obj = {
         isochrone: `${IsochroneUtils.getIsochroneAliasFromKey(
           feature.get("modus")
-        )} - ${feature.get("step")} min`
+        )} - ${feature.get("step") / 60} min`
       };
-      const populationObj = feature.get("population");
+      const populationObj = feature.get("reached_opportunities");
       if (
-        feature.get("population").bounding_box ||
-        feature.get("population").bounding_box == 0 ||
-        feature.get("population").bounding_box_reached == 0
+        feature.get("reached_opportunities").name ||
+        feature.get("reached_opportunities").name == "polygon"
       ) {
         //Multi-isochrone is created using draw
         obj.studyArea = "-- (Draw)";
-        obj.population = populationObj.bounding_box;
-        obj.reachPopulation = populationObj.bounding_box_reached;
+        obj.population = populationObj.total_population;
+        obj.reachPopulation = populationObj.reached_population;
 
         obj.shared =
           obj.population == 0 || obj.reachPopulation == 0
@@ -74,11 +73,12 @@ const IsochroneUtils = {
       } else {
         //Multi-isochrone is created from study-area
 
-        populationObj.forEach(currentStudyArea => {
+        Object.keys(populationObj).forEach(currentStudyAreaKey => {
+          const currentStudyArea = populationObj[currentStudyAreaKey];
           const _obj = {
-            studyArea: Object.keys(currentStudyArea)[0],
-            population: currentStudyArea[Object.keys(currentStudyArea)[0]],
-            reachPopulation: currentStudyArea[Object.keys(currentStudyArea)[1]]
+            studyArea: currentStudyArea.name,
+            population: currentStudyArea.total_population,
+            reachPopulation: currentStudyArea.reached_population
           };
           if (_obj.population && _obj.reachPopulation) {
             _obj.shared = `${(
