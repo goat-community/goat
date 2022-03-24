@@ -27,7 +27,9 @@
           "label": "Passwort",
           "rule": "Passwort wird benötigt"
         },
-        "submit": "Login"
+        "submit": "Login",
+        "email": "E-Mail"
+
       }
     },
     "printMap": {
@@ -392,6 +394,7 @@
       "floodingAreasHQ100": "Hochwassergefahrenflächen HQ100",
       "dikes": "Deiche",
       "protectedLandscape": "Landschaftsschutzgebiete",
+      "freiburg_streetmap": "Freiburg Streetmap",
       "landuse": "Flächennutzung (ATKIS)",
       "landuse_osm": "Flächennutzung (OSM)",
       "zoningPlan": "Flächennutzungsplan (FNP)",
