@@ -1,3 +1,5 @@
+
+
 CREATE OR REPLACE FUNCTION basic.poi_aoi_visualization(user_id_input integer, scenario_id_input integer, active_upload_ids integer[], active_study_area_id integer)
 RETURNS TABLE (id integer, uid TEXT, category TEXT, name TEXT, opening_hours TEXT, street TEXT, housenumber TEXT, zipcode TEXT, edit_type TEXT, geom geometry)
 LANGUAGE plpgsql
@@ -5,10 +7,12 @@ AS $function$
 DECLARE 	
 	aoi_categories TEXT[]; 
 	poi_categories jsonb = basic.poi_categories(user_id_input);
+	data_upload_poi_categories TEXT[] = '{}'::TEXT[];
 	combined_poi_categories text[];
 	excluded_pois_id text[] := ARRAY[]::text[]; 
 	buffer_geom_study_area geometry; 
 BEGIN
+	data_upload_poi_categories = basic.poi_categories_data_uploads(user_id_input);
 	
 	/*Get combined poi categories*/
 	SELECT ARRAY_AGG(c.category)
@@ -46,7 +50,8 @@ BEGIN
 	FROM basic.poi p
 	WHERE p.category IN (SELECT UNNEST(combined_poi_categories))
 	AND p.uid NOT IN (SELECT UNNEST(excluded_pois_id))
-	AND p.geom && buffer_geom_study_area;
+	AND p.geom && buffer_geom_study_area
+	AND p.category NOT IN (SELECT UNNEST(data_upload_poi_categories));
 	
 	RETURN query 
 	SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, NULL AS edit_type, p.geom  
@@ -76,7 +81,8 @@ BEGIN
 		FROM basic.poi p
 		WHERE p.category IN (SELECT UNNEST(combined_poi_categories))
 		AND p.uid IN (SELECT UNNEST(excluded_pois_id))
-		AND p.geom && buffer_geom_study_area;
+		AND p.geom && buffer_geom_study_area
+		AND p.category NOT IN (SELECT UNNEST(data_upload_poi_categories));
 	
 		RETURN query 
 		SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, 'd' AS edit_type, p.geom  
