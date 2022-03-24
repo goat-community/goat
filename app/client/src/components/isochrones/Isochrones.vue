@@ -73,7 +73,7 @@
                       type="number"
                       step="any"
                       min="1"
-                      max="40"
+                      max="25"
                       ref="input"
                       :rules="[speedRule]"
                       v-model="speed"
