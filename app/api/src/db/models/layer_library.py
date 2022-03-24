@@ -71,6 +71,13 @@ class LayerLibrary(SQLModel, table=True):
             nullable=True,
         )
     )
+    max_resolution: Optional[float] = Field(
+        sa_column=Column(Text, nullable=True)
+    )
+    min_resolution: Optional[float] = Field(
+        sa_column=Column(Text, nullable=True)
+    )
+    
     style_library: "StyleLibrary" = Relationship(back_populates="layer_libraries")
 
 UniqueConstraint(LayerLibrary.__table__.c.name)
