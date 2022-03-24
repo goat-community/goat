@@ -70,6 +70,7 @@
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
 import Legend from "../../viewer/ol/controls/Legend";
+import { debounce } from "../../../utils/Helpers";
 
 export default {
   props: ["item", "ruleIndex"],
@@ -149,15 +150,24 @@ export default {
 
       this.item.getSource().changed();
     },
+    updateLegendRow: debounce(function() {
+      this.item.set(
+        "attributeDisplayStatusKey",
+        this.item.get("attributeDisplayStatusKey") + 1
+      );
+    }, 60),
     onFillColorChange(value) {
       //Change color of polygon fill on inpu change
       this.style.symbolizers[0].color = value.slice(0, 7);
       this.item.getSource().changed();
+      this.updateLegendRow();
     },
+
     onOutLineColorChange(value) {
       //Change color of polygon boundary on input change
       this.style.symbolizers[0].outlineColor = value;
       this.item.getSource().changed();
+      this.updateLegendRow();
     },
     onOutLineWidthChange() {
       //Change width of Polygon boundary on input change
@@ -167,6 +177,7 @@ export default {
         this.style.symbolizers[0].outlineWidth = this.outLineWidth;
       }
       this.item.getSource().changed();
+      this.updateLegendRow();
     }
   }
 };

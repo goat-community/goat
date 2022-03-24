@@ -53,6 +53,7 @@
 import { mapGetters } from "vuex";
 import Legend from "../../viewer/ol/controls/Legend";
 import { mapFields } from "vuex-map-fields";
+import { debounce } from "../../../utils/Helpers";
 export default {
   props: ["item", "ruleIndex"],
   mixins: [Legend],
@@ -89,6 +90,12 @@ export default {
       //Refresh the legend
       this.item.set("layerTreeKey", this.item.get("layerTreeKey") + 1);
     },
+    updateLegendRow: debounce(function() {
+      this.item.set(
+        "attributeDisplayStatusKey",
+        this.item.get("attributeDisplayStatusKey") + 1
+      );
+    }, 60),
     resetStyle() {
       /*
         Function to reset the style of layer at attribute level
@@ -109,11 +116,13 @@ export default {
       this.widthColor = sourceStyle.symbolizers[0].color;
       this.width = sourceStyle.symbolizers[0].width;
       this.item.getSource().changed();
+      this.updateLegendRow();
     },
     onWidthColorChange(value) {
       //Change color of line layer on input change
       this.style.symbolizers[0].color = value.slice(0, 7);
       this.item.getSource().changed();
+      this.updateLegendRow();
     },
     onWidthChange() {
       //Change width of line layer on input change
@@ -123,6 +132,7 @@ export default {
         this.style.symbolizers[0].width = this.width;
       }
       this.item.getSource().changed();
+      this.updateLegendRow();
     }
   }
 };

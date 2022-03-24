@@ -70,6 +70,7 @@
 <script>
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
+import { debounce } from "../../../utils/Helpers";
 import Legend from "../../viewer/ol/controls/Legend";
 
 export default {
@@ -109,6 +110,12 @@ export default {
       //Refresh the legend
       this.item.set("layerTreeKey", this.item.get("layerTreeKey") + 1);
     },
+    updateLegendRow: debounce(function() {
+      this.item.set(
+        "attributeDisplayStatusKey",
+        this.item.get("attributeDisplayStatusKey") + 1
+      );
+    }, 60),
     resetStyle() {
       /*
         Function to reset the style of layer at attribute level
@@ -130,6 +137,7 @@ export default {
       targetStyle.symbolizers[0].image = sourceStyle.symbolizers[0].image;
       this.iconSize = sourceStyle.symbolizers[0].size;
       this.item.getSource().changed();
+      this.updateLegendRow();
     },
     onIconSizeChange() {
       //Change icon size on input change event
@@ -139,6 +147,7 @@ export default {
         this.style.symbolizers[0].size = Number(this.iconSize);
       }
       this.item.getSource().changed();
+      this.updateLegendRow();
     },
     localUpload(value) {
       //Upload new icon from local
@@ -150,6 +159,7 @@ export default {
           let icon = e.target.result;
           this.style.symbolizers[0].image = icon;
           this.item.getSource().changed();
+          this.updateLegendRow();
         };
       }
     },
@@ -158,6 +168,7 @@ export default {
       if (value) {
         this.style.symbolizers[0].image = value;
         this.item.getSource().changed();
+        this.updateLegendRow();
       }
     }
   }

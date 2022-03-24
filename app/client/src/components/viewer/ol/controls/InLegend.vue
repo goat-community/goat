@@ -44,7 +44,7 @@
               )
           "
           style="text-align: center; padding: 20px;"
-          :key="layer.layerTreeKey"
+          :key="layer.get('layerTreeKey')"
         >
           <div v-if="vectorTileStyles[layer.get('name')]">
             <v-layout
@@ -101,6 +101,7 @@ import LegendRenderer from "../../../../utils/LegendRenderer";
 import Legend from "../controls/Legend";
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
+import { EventBus } from "../../../../EventBus";
 
 export default {
   props: ["layer"],
@@ -185,6 +186,13 @@ export default {
       const layerKeyNames = new URL(layerUrl).searchParams.get("LAYERS");
       return layerKeyNames || "";
     }
+  },
+  created() {
+    EventBus.$on("ol-interaction-activated", type => {
+      if (type === "languageChange") {
+        this.legendRerenderOnActiveMode += 1;
+      }
+    });
   },
   computed: {
     ...mapGetters("app", {
