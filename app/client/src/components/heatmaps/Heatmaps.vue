@@ -49,7 +49,7 @@
                     <v-layout row class="pl-1" wrap align-center>
                       <v-flex class="checkbox" xs1>
                         <v-checkbox
-                          :color="appColor.primary"
+                          :color="appColor.secondary"
                           :input-value="layer.getVisible()"
                           @change="
                             toggleLayerVisibility(layer, layerGroupValue)
@@ -63,6 +63,57 @@
                       </v-flex>
                     </v-layout>
                   </v-expansion-panel-header>
+                  <!-- --- -->
+                  <!-- LAYER LEGEND AND SETTINGS  -->
+                  <v-card
+                    class="pt-2"
+                    v-show="layer.getVisible()"
+                    style="background-color: white;"
+                    transition="slide-y-reverse-transition"
+                  >
+                    <InLegend :layer="layer"></InLegend>
+                    <v-layout row style="width:100%;padding-left: 10px;">
+                      <v-flex
+                        class="xs2"
+                        style="text-align:center;"
+                        v-if="
+                          ['VECTORTILE', 'VECTOR', 'MVT', 'GEOBUF'].includes(
+                            layer.get('type').toUpperCase()
+                          )
+                        "
+                      >
+                        <v-icon
+                          v-ripple
+                          style="color:#B0B0B0;margin-top:3px;cursor:pointer"
+                          dark
+                          @click="openStyleDialog(layer)"
+                        >
+                          fas fa-cog
+                        </v-icon>
+                      </v-flex>
+                      <v-flex
+                        :class="{
+                          xs10:
+                            ['VECTORTILE', 'VECTOR', 'MVT', 'GEOBUF'].includes(
+                              layer.get('type').toUpperCase()
+                            ) == true,
+                          xs12: false
+                        }"
+                      >
+                        <v-slider
+                          :value="layer.getOpacity()"
+                          class="mx-5"
+                          step="0.05"
+                          min="0"
+                          max="1"
+                          @input="changeLayerOpacity($event, layer)"
+                          :label="$t('layerTree.settings.transparency')"
+                          :color="appColor.secondary"
+                        ></v-slider>
+                      </v-flex>
+                    </v-layout>
+                  </v-card>
+                  <!-- --- -->
                 </v-expansion-panel>
               </v-expansion-panels>
             </v-expansion-panel-content>
@@ -77,8 +128,10 @@ import { mapGetters, mapMutations } from "vuex";
 import { EventBus } from "../../EventBus";
 import { Mapable } from "../../mixins/Mapable";
 import { mapFields } from "vuex-map-fields";
+import Legend from "../viewer/ol/controls/Legend";
+import LayerTree from "../layers/layerTree/LayerTree";
 export default {
-  mixins: [Mapable],
+  mixins: [Mapable, Legend, LayerTree],
   data: () => ({
     heatmapPanel: [0],
     heatmapGroup: {},

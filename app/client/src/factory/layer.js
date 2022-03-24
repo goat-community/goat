@@ -49,6 +49,13 @@ export const LayerFactory = {
       displayInLayerList: lConf.display_in_layer_list || true,
       legendGraphicUrls: lConf.legend_urls || null
     };
+    if (lConf.min_resolution) {
+      lOpts.minResolution = lConf.min_resolution;
+    }
+    if (lConf.max_resolution) {
+      lOpts.maxResolution = lConf.max_resolution;
+    }
+
     if (lConf.z_index) {
       lOpts.zIndex = lConf.z_index;
     }
@@ -334,12 +341,32 @@ export const LayerFactory = {
   createVectorTileLayer(lConf) {
     let url = lConf.url;
     if (!url) {
-      url = `./api/v1/layers/tiles/${lConf.name}/{z}/{x}/{y}.pbf`;
+      lConf.url = `./layers/tiles/${lConf.name}/{z}/{x}/{y}.pbf`;
     }
     const layer = new VectorTileLayer({
       ...this.baseConf(lConf).lOpts,
       source: new VectorTileSource({
-        ...this.baseConf(lConf).sOpts
+        ...this.baseConf(lConf).sOpts,
+        format: new this.formatMapping[lConf.type || "MVT"](),
+        tileLoadFunction: function(tile, url) {
+          tile.setLoader(function(extent, resolution, projection) {
+            ApiService.get_(url, {
+              responseType: "arraybuffer",
+              headers: {
+                Accept: "application/pdf"
+              }
+            }).then(response => {
+              if (response.data) {
+                const format = tile.getFormat(); // ol/format/MVT configured as source format
+                const features = format.readFeatures(response.data, {
+                  extent: extent,
+                  featureProjection: projection
+                });
+                tile.setFeatures(features);
+              }
+            });
+          });
+        }
       })
     });
     this.styleVectorLayer(layer, lConf);

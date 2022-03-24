@@ -97,20 +97,15 @@ def LayerParams(
     layer: str = Path(..., description="Layer Name"),
 ) -> VectorTileLayer:
     """Return Layer Object."""
-    func = FunctionRegistry.get(layer)
-    if func:
-        return func
+
+    if layer == "building":
+        layer = "basic.building"
     else:
-        table_pattern = re.match(r"^(?P<schema>.+)\.(?P<table>.+)$", layer)  # type: ignore
-        if not table_pattern:
-            raise HTTPException(status_code=404, detail=f"Invalid Table format '{layer}'.")
+        layer = "extra." + layer
 
-        assert table_pattern.groupdict()["schema"]
-        assert table_pattern.groupdict()["table"]
-
-        for r in request.app.state.table_catalog:
-            if r["id"] == layer:
-                return VectorTileTable(**r)
+    for r in request.app.state.table_catalog:
+        if r["id"] == layer:
+            return VectorTileTable(**r)
 
     raise HTTPException(status_code=404, detail=f"Table/Function '{layer}' not found.")
 
