@@ -12,16 +12,15 @@
           <v-tooltip top>
             <template v-slot:activator="{ on }">
               <v-btn
-                v-if="uploadedStorageSize < currentUser.storage"
+                :disabled="uploadedStorageSize > currentUser.storage"
                 v-on="on"
                 class="mt-n11 ml-2"
                 :color="appColor.primary"
                 @click="openUserDataUploadDialog"
                 fab
-                dark
                 small
               >
-                <v-icon dark>add</v-icon>
+                <v-icon color="white">add</v-icon>
               </v-btn>
             </template>
             <span>Upload Dataset</span></v-tooltip
@@ -38,7 +37,7 @@
       </v-card-text>
       <v-card class="px-16 mx-4 py-0 mb-2 fill-height" flat>
         <p class="mt-2 mb-1 sub-header">
-          {{ (uploadedStorageSize / 1024).toFixed(1) }}MB of
+          {{ (uploadedStorageSize / 1024).toFixed(2) }}MB of
           {{ parseInt(currentUser.storage / 1024) }}MB used
         </p>
         <v-progress-linear
@@ -152,7 +151,7 @@ export default {
               ? this.$t(`pois.${this.poisConfig[item.category].group}`)
               : "",
           date: new Date(Date.parse(item.creation_date)).toLocaleDateString(),
-          size: (item.upload_size / 1024).toFixed(1) + "MB",
+          size: (item.upload_size / 1024).toFixed(2) + "MB",
           status: item.state
         };
       });

@@ -56,6 +56,7 @@
                 {{ item.scenario_name }}
               </template>
             </v-select>
+
             <div v-if="activeScenario">
               <v-speed-dial
                 style="z-index:100;"
@@ -88,6 +89,7 @@
                       fab
                       dark
                       x-small
+                      v-if="scenarios.length < currentUser.limit_scenarios"
                       @click="showScenarioDialog = true"
                     >
                       <v-icon dark>add</v-icon>
@@ -140,11 +142,11 @@
                     :color="appColor.primary"
                     class="ml-3 mt-2"
                     fab
-                    dark
+                    :disabled="scenarios.length >= currentUser.limit_scenarios"
                     small
                     @click="showScenarioDialog = true"
                   >
-                    <v-icon dark>add</v-icon>
+                    <v-icon color="white">add</v-icon>
                   </v-btn>
                 </template>
                 <span>{{ $t("appBar.edit.createScenario") }}</span>
@@ -152,7 +154,14 @@
             </div>
           </v-row>
         </div>
-
+        <v-alert
+          v-if="scenarios.length >= currentUser.limit_scenarios"
+          dense
+          outlined
+          type="error"
+        >
+          {{ $t("appBar.edit.scenarioLimitReached") }}
+        </v-alert>
         <div v-if="scenarioList.length > 1 && activeScenario">
           <v-divider></v-divider>
           <v-subheader class="ml-0 pl-0 mb-0 pb-0">
@@ -431,7 +440,9 @@
                   <template v-slot:item.status="{ item }">
                     <v-chip
                       small
-                      :color="item.status === 'uploaded' ? 'success' : 'error'"
+                      :color="
+                        item.status === 'uploaded' ? appColor.primary : 'error'
+                      "
                       dark
                       class="mx-0 px-1"
                       >{{ $t(`appBar.edit.status.${item.status}`) }}</v-chip
@@ -1740,7 +1751,7 @@ export default {
                 } else {
                   //Show success message
                   this.toggleSnackbar({
-                    type: "success", //success or error
+                    type: this.appColor.primary, //success or error
                     message: this.$t("map.snackbarMessages.scenarioDeleted"),
                     state: true,
                     timeout: 3000

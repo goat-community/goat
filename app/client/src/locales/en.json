@@ -144,7 +144,7 @@
     },
     "edit": {
       "title": "Draw scenario",
-
+      "scenarioLimitReached": "Scenario number limit reached",
       "createScenario": "Create Scenario",
       "editScenarioName": "Update Scenario",
       "deleteScenario": "Delete Scenario",
@@ -423,6 +423,8 @@
       "poi": "Point of Interest",
       "aois": "Areas of Interest",
       "way": "Ways",
+      "pois_aois_layer": "Amenities",
+      "sub_study_area": "Sub Study Area",
       "administrativeUnits": "Administrative Units",
       "accidents_pedestrians": "Pedestrians - Accident Points (2016-2019)",
       "accidents_pedestrian_2018": "Pedestrians - Accidents Frequencies (2018)",
