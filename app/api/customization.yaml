@@ -56,7 +56,7 @@ superuser:
           icon: "fas fa-bicycle"
 
     layer_groups:
-        - buildings_landuse: ["buildings"]
+        - buildings_landuse: ["sub_study_area", "buildings"]
         - environmental_quality: []
         - street_level_quality: []
         - additional_data: ["accidents_pedestrians", "accidents_cyclists"]
