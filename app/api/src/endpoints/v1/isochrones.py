@@ -92,13 +92,6 @@ async def calculate_reached_network(
    
     network = await crud.isochrone.calculate_reached_network(db=db, obj_in=obj_calculation)
 
-    if modus.value == CalculationTypes.comparison.value:
-        obj_calculation.modus = CalculationTypes.default.value
-        network_default = await crud.isochrone.calculate_reached_network(db=db, obj_in=obj_calculation)
-        obj_calculation.modus = CalculationTypes.scenario.value
-        network_scenario = crud.isochrone.calculate_reached_network(db=db, obj_in=obj_calculation)
-        network = network_default | network_scenario
-        
     return return_geojson_or_geobuf(json.JSONDecoder().decode(json.dumps(network)), return_type.value)
 
 
