@@ -57,6 +57,7 @@ async def get_custom_pois(
                 "upload_size": obj.upload_size,
                 "creation_date": str(obj.creation_date),
                 "state": state,
+                "reached_poi_heatmap_computed": obj.reached_poi_heatmap_computed
             }
 
             response_objs.append(obj_dict)
