@@ -82,7 +82,7 @@
                   </v-col>
                   <v-col class="d-flex mt-0 pt-0" cols="12" sm="6">
                     <v-text-field
-                      :label="$t(`isochrones.options.speed`)"
+                      :label="$t(`isochrones.options.time`)"
                       type="number"
                       step="any"
                       min="1"
@@ -95,7 +95,7 @@
                   </v-col>
                   <v-col class="d-flex mt-0 pt-0" cols="12" sm="6">
                     <v-text-field
-                      label="Steps"
+                      :label="$t(`isochrones.options.nr`)"
                       type="number"
                       step="any"
                       min="1"

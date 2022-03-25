@@ -113,7 +113,7 @@
         >{{
           $te(`map.snackbarMessages.scenarioEditMode`)
             ? $t(`map.snackbarMessages.scenarioEditMode`) + ": "
-            : "Scenario Editing Mode: "
+            : $t(`map.snackbarMessages.scenarioEditMode`)
         }}
         <span class="ml-2"
           ><b>{{

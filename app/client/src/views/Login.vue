@@ -29,7 +29,7 @@
                   align="center"
                   style="padding-top:60px;padding-bottom:60px;padding-left:35px;padding-right:35px;min-width:300px;"
                 >
-                  <img src="img/logo_green.png" height="40px" />
+                  <img src="img/goat_standard.svg" height="40px" />
                 </v-row>
                 <p class="mb-0 pb-0 ml-6">
                   {{ $t("login.title").toUpperCase() }}
@@ -49,7 +49,7 @@
                       v-model="email"
                       outlined
                       name="email"
-                      label="Email"
+                      label="E-Mail"
                       type="text"
                       :rules="emailRules"
                       :disabled="loading"
@@ -60,7 +60,7 @@
                       outlined
                       id="password"
                       name="password"
-                      label="Password"
+                      :label="$t('login.password')"
                       :append-icon="
                         password_visibility ? 'visibility' : 'visibility_off'
                       "
@@ -77,8 +77,8 @@
                     <v-spacer></v-spacer>
                     <a
                       style="z-index:2;color:#2BB381;text-decoration:none;"
-                      href="/access/forgot?usr="
-                      >Password forgotten?</a
+                      href="https://plan4better.de/kontakt/"
+                      >{{ $t("login.passwordForgotten") }}</a
                     >
                   </v-row>
                   <v-row class="mt-5 mx-0" align="center">
@@ -108,7 +108,7 @@
                         style="color:#2BB381;text-decoration:none;"
                         href="https://plan4better.de/kontakt/"
                         class="text-body-1 link"
-                        >plan4better</a
+                        >Plan4better</a
                       >
                     </p>
                   </v-row>
@@ -117,7 +117,7 @@
                   <a href="https://plan4better.de/" target="_blank">
                     <img
                       style="cursor:pointer;"
-                      src="img/p4b_logo.png"
+                      src="img/plan4better_standard.svg"
                       height="30px"
                     />
                   </a>
@@ -153,25 +153,26 @@ export default {
       email: "",
       password: "",
       carousels: [
-        "img/slider-images/munich.png",
-        "img/slider-images/ffb.png",
-        "img/slider-images/freiburg.png",
-        "img/slider-images/freising.png"
+        "img/slider-images/image-1.png",
+        "img/slider-images/image-2.png",
+        "img/slider-images/image-3.png",
+        "img/slider-images/image-4.png",
+        "img/slider-images/image-5.png"
       ],
       password_visibility: String,
       rememberMe: true,
       validLogin: false,
       loading: false,
       passwordRules: [
-        v => !!v || "Password is required",
-        v => v.length >= 4 || "Use 4 characters or more for your password"
+        v => !!v || this.$t("login.passwordRequired"),
+        v => v.length >= 4 || this.$t("login.maxFourChar")
       ],
       emailRules: [
-        v => !!v || "E-mail is required",
+        v => !!v || this.$t("login.mailRequired"),
         v =>
           /^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
             v
-          ) || "E-mail must be valid"
+          ) || this.$t("login.mailValid")
       ]
     };
   },
