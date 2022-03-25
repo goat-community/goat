@@ -153,7 +153,7 @@ async def compute_reached_pois_user(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    data_upload_ids: List[int] = Query(
+    id: List[int] = Query(
         description="The data upload ids to calculate the heatmap in case the modus is 'scenario' or 'comparison'",
         default=0,
         example=[1, 2],
@@ -162,6 +162,6 @@ async def compute_reached_pois_user(
     """
     Calculate reached pois for the heatmap for the passed data upload.
     """
-    for data_upload_id in data_upload_ids:
+    for data_upload_id in id:
         await crud.heatmap.compute_reached_pois_user(db, current_user, data_upload_id)
     return {"msg": "Successfully computed heatmap for uploaded pois."}
