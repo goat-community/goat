@@ -707,6 +707,7 @@ export default {
       if (this.activeScenario) {
         this.calculationMode.active = "scenario";
       }
+      this.fetchScenarioLayerSchemas();
     },
     selectedLayer(value, oldValue) {
       if (this.olEditCtrl && value) {
