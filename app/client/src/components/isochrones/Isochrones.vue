@@ -656,7 +656,9 @@
                           }}</span>
                         </template>
                       </v-switch>
+                      <!-- TODO: Isochrone starting points not yet available -->
                       <v-switch
+                        :disabled="true"
                         class="mt-2 ml-3"
                         dense
                         :color="appColor.secondary"
@@ -732,7 +734,12 @@
                       </v-row>
                       <v-data-table
                         dense
-                        :headers="headers"
+                        style="width:100%"
+                        :headers="
+                          calculation.calculationType === 'single'
+                            ? headersSingle
+                            : headersMulti
+                        "
                         :items="data"
                         class="elevation-0 subtitle-1 pb-2"
                         hide-default-footer
@@ -784,6 +791,7 @@
                             "
                           ></v-checkbox>
                         </template>
+
                         <template v-slot:items="props">
                           <td>{{ props.item.range }}</td>
                           <td>{{ props.item.area }}</td>
@@ -953,7 +961,7 @@ export default {
     ...mapFields("map", {
       isMapBusy: "isMapBusy"
     }),
-    headers() {
+    headersSingle() {
       return [
         {
           text: this.$t("isochrones.results.table.visible"),
@@ -978,6 +986,31 @@ export default {
           value: "population",
           sortable: false
         },
+        {
+          text: this.$t("isochrones.results.table.legend"),
+          value: "legend",
+          sortable: false
+        }
+      ];
+    },
+    headersMulti() {
+      return [
+        {
+          text: this.$t("isochrones.results.table.visible"),
+          value: "visible",
+          sortable: false
+        },
+        {
+          text: this.$t("isochrones.results.table.range"),
+          value: "range",
+          sortable: false
+        },
+        {
+          text: this.$t("isochrones.results.table.area"),
+          value: "area",
+          sortable: false
+        },
+
         {
           text: this.$t("isochrones.results.table.legend"),
           value: "legend",

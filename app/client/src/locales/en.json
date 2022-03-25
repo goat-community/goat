@@ -357,7 +357,11 @@
     }
   },
   "heatmaps": {
-    "title": "Heatmaps"
+    "title": "Heatmaps",
+    "recomputeHeatmap": "Recompute",
+    "recomputingHeatmaps": "Recomputing Heatmaps",
+    "heatmapComputedSuccessfully": "Heatmap computed successfully",
+    "heatmapComputationFailed": "Heatmap computation failed"
   },
   "poisFilter": {
     "showTimeFilter": "Add time filter",
