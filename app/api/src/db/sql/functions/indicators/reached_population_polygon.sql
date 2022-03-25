@@ -15,10 +15,16 @@ BEGIN
 	END IF;
 	/*Get reachable population*/
 	IF modus IN ('default','scenario')  THEN
-		SELECT COALESCE(population, 0)  
+		WITH pop AS 
+		(
+			SELECT SUM(population) population 
+			FROM basic.population p 
+			WHERE ST_Intersects(p.geom, region_geom)
+		)
+		SELECT population 
 		INTO reachable_population_default
-		FROM basic.population p 
-		WHERE ST_Intersects(p.geom, region_geom); 
+		FROM pop;
+		
 	END IF; 
 	
 	IF modus = 'scenario' THEN 
@@ -43,7 +49,6 @@ BEGIN
 		reachable_population = floor((reachable_population_default  + reachable_population_scenario / 5)*5); 
 		
 	END IF; 
-	
 	reachable_population = floor((reachable_population_default / 5)*5);
 
 	/*Get reached population*/
@@ -74,10 +79,15 @@ BEGIN
 		 	AND p.scenario_id = scenario_id_input
 		) s
 		WHERE i.isochrone_calculation_id = ischrone_calculation_id_input
+	),
+	final_population AS 
+	(	
+		SELECT g.id AS isochrone_feature_id, (floor(COALESCE(sum(g.population)::integer,0)/5)*5) AS population
+		FROM to_group g
+		GROUP BY g.id
 	)
-	SELECT g.id AS isochrone_feature_id,(floor(COALESCE(sum(g.population)::integer,0)/5)*5) AS population
-	FROM to_group g
-	GROUP BY g.id;
+	SELECT f.isochrone_feature_id, CASE WHEN f.population > reachable_population THEN reachable_population ELSE f.population END AS population 
+	FROM final_population f;
 	
     /*Combine and return results*/
 	RETURN query 

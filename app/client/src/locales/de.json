@@ -742,7 +742,7 @@
     "ice_cream": "Eisdiele",
     "restaurant": "Restaurant",
     "nightclub": "Nachtclub",
-    "bicycle_rental": "Bikesharing",
+    "bike_sharing": "Bikesharing",
     "cargo_bike": "Lastenrad",
     "car_sharing": "Carsharing",
     "charging_station": "Ladestation",
@@ -768,6 +768,8 @@
     "doctors": "Arzt",
     "pharmacy": "Apotheke",
     "post_box": "Briefkasten",
+    "post_office": "Post",
+    "general_practitioner": "Hausarzt",
     "fuel": "Tankstelle",
     "recycling": "Recycling",
     "bakery": "Bäckerei",
@@ -855,17 +857,17 @@
   },
   "dynamicFields": {
     "attributes": {
-      "ways": {
+      "way": {
         "way_type": "Wegetyp",
         "surface": "Oberfläche",
         "wheelchair": "Rollstuhl"
       },
-      "pois": {
-        "amenity": "Einrichtung",
+      "poi": {
+        "category": "Einrichtung",
         "name": "Name (Optional)",
         "opening_hours": "Öffnungszeiten (Optional)"
       },
-      "buildings": {
+      "building": {
         "building": "Gebäudetyp",
         "building_levels": "Anzahl Geschosse",
         "building_levels_residential": "Anzahl Geschosse Wohnen",
@@ -880,7 +882,7 @@
       }
     },
     "listValues": {
-      "ways": {
+      "way": {
         "road": "Straße",
         "bridge": "Brücke",
         "asphalt": "Asphalt",
@@ -892,7 +894,7 @@
         "yes": "Ja",
         "no": "Nein"
       },
-      "buildings": {
+      "building": {
         "residential": "Wohnen",
         "commercial": "Gewerbe",
         "public": "Öffentliche Einrichtung"

@@ -248,19 +248,23 @@ class CRUDUploadFile:
         category_name = await db.execute(
             select(models.PoiUser.category).where(models.PoiUser.data_upload_id == data_upload_id)
         )
-        category_name = category_name.first()[0]
-        default_setting = await crud.customization.get_by_key(db, key="type", value="poi_groups")
-        default_setting = default_setting[0].setting
-        # Check if poi_category is default
-        in_default_setting = False
-        for poi_group in default_setting["poi_groups"]:
-            group_name = next(iter(poi_group))
-            for poi_category in poi_group[group_name]["children"]:
-                default_poi_category = next(iter(poi_category))
-                if category_name == default_poi_category:
-                    in_default_setting = True
-                    break
+        category_name = category_name.first()
 
+        if category_name is not None:
+            category_name = category_name[0]
+            default_setting = await crud.customization.get_by_key(db, key="type", value="poi_groups")
+            default_setting = default_setting[0].setting
+            # Check if poi_category is default
+            in_default_setting = False
+            for poi_group in default_setting["poi_groups"]:
+                group_name = next(iter(poi_group))
+                for poi_category in poi_group[group_name]["children"]:
+                    default_poi_category = next(iter(poi_category))
+                    if category_name == default_poi_category:
+                        in_default_setting = True
+                        break
+        else:
+            in_default_setting = False
         try:
             # Delete uploaded data
             await db.execute(
@@ -274,7 +278,7 @@ class CRUDUploadFile:
             await db.execute(sql, {"data_upload_id": [data_upload_id], "user_id": current_user.id})
 
             # Delete customization for uploaded pois
-            if in_default_setting == False:
+            if in_default_setting == False and category_name is not None:
                 user_setting = await crud.dynamic_customization.get_user_settings(
                     db=db, current_user=current_user, setting_type="poi_groups"
                 )

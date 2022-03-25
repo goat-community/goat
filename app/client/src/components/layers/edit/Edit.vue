@@ -538,7 +538,7 @@
     <!-- Popup overlay  -->
     <overlay-popup
       style="cursor: default;"
-      :title="popup.title"
+      :title="$t(`map.popup.${popup.title}`)"
       v-show="popup.isVisible"
       ref="popup"
     >
@@ -561,6 +561,7 @@
         >
           <v-form ref="edit-form" v-model="formValid">
             <v-jsonschema-form
+              style="width:260px;"
               v-if="schema[layerName] && popup && popup.isVisible"
               :schema="schema[layerName]"
               :model="dataObject"

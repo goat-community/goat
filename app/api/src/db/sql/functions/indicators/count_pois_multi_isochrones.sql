@@ -1,14 +1,22 @@
-CREATE OR REPLACE FUNCTION basic.count_pois_multi_isochrones (userid_input integer, modus text, minutes integer, speed_input numeric, region_type text, region TEXT[], amenities text[], scenario_id_input integer DEFAULT 0, active_upload_ids integer[] DEFAULT '{}'::integer[])
-    RETURNS TABLE (region_name text, count_pois integer, geom geometry)
-    AS $function$
+CREATE OR REPLACE FUNCTION basic.count_pois_multi_isochrones(userid_input integer, modus text, minutes integer, speed_input numeric, region_type text, region text[], amenities text[], scenario_id_input integer DEFAULT 0, active_upload_ids integer[] DEFAULT '{}'::integer[])
+ RETURNS TABLE(region_name text, count_pois integer, geom geometry)
+ LANGUAGE plpgsql
+AS $function$
 DECLARE
     buffer_geom geometry;
     region_geom geometry;
     region_name text;
     excluded_pois_id text[] := ARRAY[]::text[];
+    data_upload_poi_categories text[];
 BEGIN
+	
+	data_upload_poi_categories = basic.poi_categories_data_uploads(userid_input);
+    
+	IF data_upload_poi_categories IS NULL THEN 
+    	data_upload_poi_categories = '{}'::text[];
+    END IF;
 
-    IF modus = 'scenario' THEN
+	IF modus = 'scenario' THEN
         excluded_pois_id = basic.modified_pois(scenario_id_input);
     END IF;
 
@@ -33,6 +41,7 @@ BEGIN
 		WHERE ST_Intersects(buffer_geom, p.geom)
 		AND p.category IN (SELECT UNNEST(amenities))
 		AND p.uid NOT IN (SELECT UNNEST(excluded_pois_id))
+		AND p.category NOT IN (SELECT UNNEST(data_upload_poi_categories))
 		UNION ALL 
 		SELECT p.id
 		FROM customer.poi_user p
@@ -57,7 +66,7 @@ BEGIN
 	FROM count_pois c;
 END
 $function$
-LANGUAGE plpgsql;
+;
 
 /* Example with starting point to find study_area
 SELECT * FROM basic.count_pois_multi_isochrones(1,'scenario',10,1.33,'study_area',
