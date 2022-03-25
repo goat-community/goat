@@ -38,7 +38,10 @@
       indeterminate-icon="indeterminate_check_box"
     >
       <template v-slot:prepend="{ item }">
-        <v-tooltip top :disabled="Array.isArray(item.children)">
+        <v-tooltip
+          top
+          :disabled="Array.isArray(item.children) || !!aoisConfig[item.value]"
+        >
           <template v-slot:activator="{ on }">
             <i
               v-on="on"
@@ -158,14 +161,17 @@ export default {
       this.showHeatmapOptionsDialog = true;
     },
     toggleIconPickerDialog(icon) {
-      // Disable icon style change for groups
-      if (icon.children) {
+      // Disable icon style change for groups and aois
+      if (icon.children || this.aoisConfig[icon.value]) {
         return;
       }
       this.selectedIcon = icon;
       this.showIconPickerDialog = true;
     },
-    isSensitivityEnabled() {
+    isSensitivityEnabled(item) {
+      if (this.aoisConfig[item.value]) {
+        return false;
+      }
       return true;
     },
     openNode() {
@@ -213,7 +219,8 @@ export default {
     ...mapGetters("app", {
       appColor: "appColor",
       poisAoisTree: "poisAoisTree",
-      uploadedData: "uploadedData"
+      uploadedData: "uploadedData",
+      aoisConfig: "aoisConfig"
     }),
     ...mapFields("app", {
       calculationMode: "calculationMode",

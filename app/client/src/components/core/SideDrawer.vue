@@ -222,11 +222,6 @@ export default {
           text: this.$t("appBar.buttons.print"),
           componentToShow: "map-print"
         }
-        // {
-        //   icon: "fas fa-ruler",
-        //   text: this.$t("appBar.buttons.drawAndMeasure"),
-        //   componentToShow: "map-draw-measure"
-        // }
       ];
     },
     bottomItems() {
@@ -239,7 +234,8 @@ export default {
       ];
     },
     ...mapGetters("app", {
-      appColor: "appColor"
+      appColor: "appColor",
+      isRecomputingHeatmap: "isRecomputingHeatmap"
     }),
     ...mapGetters("map", {
       selectedLayer: "selectedEditLayer"
@@ -247,7 +243,10 @@ export default {
   },
   methods: {
     toggleComponent(component) {
-      if (component === "user-data-upload" && this.selectedLayer) {
+      if (
+        (component === "user-data-upload" && this.selectedLayer) ||
+        this.isRecomputingHeatmap
+      ) {
         return;
       }
       if (component === this.activeUpComponent) {
@@ -262,7 +261,10 @@ export default {
       if (this.activeUpComponent === item.componentToShow) {
         style += "background-color: " + this.appColor.primary + ";";
       }
-      if (item.componentToShow === "user-data-upload" && this.selectedLayer) {
+      if (
+        (item.componentToShow === "user-data-upload" && this.selectedLayer) ||
+        this.isRecomputingHeatmap
+      ) {
         style += "cursor: not-allowed;";
       }
       return style;
@@ -277,6 +279,16 @@ export default {
       this.activeUpComponent = "";
       this.activeBottomComponent = "";
       this.showDialog = false;
+    }
+  },
+  watch: {
+    isRecomputingHeatmap() {
+      if (
+        this.activeUpComponent === "user-data-upload" &&
+        this.isRecomputingHeatmap
+      ) {
+        this.hide();
+      }
     }
   }
 };

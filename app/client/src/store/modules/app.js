@@ -26,6 +26,7 @@ const state = {
     values: ["default", "scenario", "comparison"],
     active: "default"
   },
+  isRecomputingHeatmap: false,
   scenarioLayerEditModeColor: "#283648"
 };
 
@@ -138,6 +139,16 @@ const getters = {
       return acc + item.upload_size;
     }, 0);
   },
+  unCalculatedDataUploadIds() {
+    const unCalculatedDataUploadIds = [];
+    state.uploadedData.forEach(item => {
+      if (!item.reached_poi_heatmap_computed && item.state === true) {
+        unCalculatedDataUploadIds.push(item.id);
+      }
+    });
+    return unCalculatedDataUploadIds;
+  },
+  isRecomputingHeatmap: state => state.isRecomputingHeatmap,
   // eslint-disable-next-line no-unused-vars
   occupiedStoragePercentage: (state, getters, rootState, rootGetters) => {
     const totalStorage = rootState.auth.user.storage;
