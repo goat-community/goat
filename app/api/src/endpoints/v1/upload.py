@@ -80,15 +80,17 @@ async def upload_custom_pois(
     file_dir = f"/tmp/{file_name}"
 
     real_file_size = 0
-    temp: IO = NamedTemporaryFile(delete=False)
+    temp: IO = NamedTemporaryFile(delete=True)
     for chunk in file.file:
         real_file_size += len(chunk)
         if real_file_size > MaxUploadFileSize.max_upload_poi_file_size.value:
+            temp.close()
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail="The uploaded file size is to big the largest allowd size is %s MB."
                 % round(MaxUploadFileSize.max_upload_poi_file_size / 1024.0 ** 2, 2),
             )
+            
         temp.write(chunk)
     temp.close()
 

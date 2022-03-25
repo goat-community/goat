@@ -1,5 +1,3 @@
-
-
 CREATE OR REPLACE FUNCTION basic.reached_population_study_area(ischrone_calculation_id_input integer, scenario_id_input integer, modus text, study_area_ids integer[])
  RETURNS TABLE(id integer, step integer, reached_opportunities jsonb)
  LANGUAGE plpgsql
