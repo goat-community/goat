@@ -538,7 +538,7 @@
     <!-- Popup overlay  -->
     <overlay-popup
       style="cursor: default;"
-      :title="popup.title"
+      :title="$t(`map.popup.${popup.title}`)"
       v-show="popup.isVisible"
       ref="popup"
     >

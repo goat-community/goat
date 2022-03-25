@@ -874,17 +874,17 @@
   },
   "dynamicFields": {
     "attributes": {
-      "ways": {
+      "way": {
         "way_type": "Way type",
         "surface": "Surface",
         "wheelchair": "Wheelchair"
       },
-      "pois": {
-        "amenity": "Amenity",
+      "poi": {
+        "category": "Amenity",
         "name": "Name (Optional)",
         "opening_hours": "Opening Hours (Optional)"
       },
-      "buildings": {
+      "building": {
         "building": "Building Type",
         "building_levels": "Building Levels",
         "building_levels_residential": "Building levels residential",
@@ -899,7 +899,7 @@
       }
     },
     "listValues": {
-      "ways": {
+      "way": {
         "road": "Road",
         "bridge": "Bridge",
         "asphalt": "Asphalt",
@@ -911,7 +911,7 @@
         "yes": "Yes",
         "no": "No"
       },
-      "buildings": {
+      "building": {
         "residential": "Residential",
         "commercial": "Commercial",
         "public": "Public"

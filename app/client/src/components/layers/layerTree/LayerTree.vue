@@ -206,7 +206,7 @@ export default {
      */
     onMapBound() {
       const layerGroups = this.appConfig.layer_groups;
-      layerGroups.forEach(lg => {
+      layerGroups.reverse().forEach(lg => {
         const layerGroupName = Object.keys(lg)[0];
         if (layerGroupName !== "heatmap") {
           this.layerGroups[layerGroupName] = [];

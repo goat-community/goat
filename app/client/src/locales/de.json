@@ -855,17 +855,17 @@
   },
   "dynamicFields": {
     "attributes": {
-      "ways": {
+      "way": {
         "way_type": "Wegetyp",
         "surface": "Oberfläche",
         "wheelchair": "Rollstuhl"
       },
-      "pois": {
-        "amenity": "Einrichtung",
+      "poi": {
+        "category": "Einrichtung",
         "name": "Name (Optional)",
         "opening_hours": "Öffnungszeiten (Optional)"
       },
-      "buildings": {
+      "building": {
         "building": "Gebäudetyp",
         "building_levels": "Anzahl Geschosse",
         "building_levels_residential": "Anzahl Geschosse Wohnen",
@@ -880,7 +880,7 @@
       }
     },
     "listValues": {
-      "ways": {
+      "way": {
         "road": "Straße",
         "bridge": "Brücke",
         "asphalt": "Asphalt",
@@ -892,7 +892,7 @@
         "yes": "Ja",
         "no": "Nein"
       },
-      "buildings": {
+      "building": {
         "residential": "Wohnen",
         "commercial": "Gewerbe",
         "public": "Öffentliche Einrichtung"
