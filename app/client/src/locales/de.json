@@ -594,7 +594,8 @@
       "zoomToFeature": "Zum Objekt zoomen",
       "deleteFeature": "Objekt löschen",
       "uploadFeature": "Objekt hochladen",
-      "restoreFeature": "Objekt zurücksetzen"
+      "restoreFeature": "Objekt zurücksetzen",
+      "notAvailable": "Nicht verfügbar"
     },
     "popup": {
       "attributes": "Attribute",

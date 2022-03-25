@@ -607,7 +607,8 @@
       "zoomOut": "Zoom Out",
       "openFullScreen": "Open Fullscreen",
       "exitFullScreen": "Exit Fullscreen",
-      "toggleStreetView": "Mapillary Imagery"
+      "toggleStreetView": "Mapillary Imagery",
+      "notAvailable": "Not Available"
     },
     "popup": {
       "attributes": "Attributes",
