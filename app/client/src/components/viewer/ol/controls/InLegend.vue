@@ -20,21 +20,6 @@
       </template>
     </div>
     <div v-else>
-      <div v-if="layer.get('type').toUpperCase() === 'WMS'">
-        <template
-          v-for="(layerName, index2) in getWMSLayerNames(layer).split(',')"
-        >
-          <div :key="index2">
-            <img
-              crossorigin="anonymous"
-              style="max-width:100%; padding-left:50px;"
-              :src="getWMSLegendImageUrl(layer, layerName)"
-              class="white--text mt-0 pt-0"
-            />
-            <br />
-          </div>
-        </template>
-      </div>
       <div :key="legendRerenderOnActiveMode">
         <div
           v-if="
