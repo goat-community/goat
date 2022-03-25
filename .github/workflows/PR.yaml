@@ -2,7 +2,7 @@ name: PR
 
 on:
   pull_request:
-    branches: [ main, dev, staging ]
+    branches: [ prod, dev, staging ]
 
 jobs:
   build:

@@ -2,7 +2,7 @@ name: Push
 
 on:
   push:
-    branches: [ main, dev, staging ]
+    branches: [ prod, dev, staging ]
     
 jobs:
   release:
@@ -28,7 +28,7 @@ jobs:
         id: branch_check
         run: |
           echo "Running on branch ${{ github.ref }}"
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          if [ "${{ github.ref }}" = "refs/heads/prod" ]; then
             echo "::set-output name=env_name::main"
           elif [ "${{ github.ref }}" = "refs/heads/staging" ]; then
             echo "::set-output name=env_name::staging"
