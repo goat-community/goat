@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.sql import and_
+from sqlalchemy.sql import and_, func
 
 from src import crud
 from src.crud.base import CRUDBase
@@ -68,7 +68,15 @@ class CRUDDynamicCustomization:
 
         layer = layer[0]
         layer_attributes = {}
-        for key in ["url", "legend_urls", "type", "map_attribution", "access_token", "max_resolution", "max_resolution"]:
+        for key in [
+            "url",
+            "legend_urls",
+            "type",
+            "map_attribution",
+            "access_token",
+            "max_resolution",
+            "max_resolution",
+        ]:
             if getattr(layer, key) is not None:
                 layer_attributes[key] = getattr(layer, key)
 
@@ -216,7 +224,14 @@ class CRUDDynamicCustomization:
                 combined_groups, study_area_settings["poi_groups"]
             )
 
-        if "poi_groups" in user_settings and current_user.active_data_upload_ids == []:
+        active_data_uploads_study_area = await db.execute(
+            func.basic.active_data_uploads_study_area(current_user.id)
+        )
+        active_data_uploads_study_area = active_data_uploads_study_area.scalar()
+        if "poi_groups" in user_settings and (
+            current_user.active_data_upload_ids == []
+            or active_data_uploads_study_area != current_user.active_study_area_id
+        ):
             active_categories = []
             for active_id in current_user.active_data_upload_ids:
                 active_category = await db.execute(
@@ -231,7 +246,10 @@ class CRUDDynamicCustomization:
                 group_name = next(iter(poi_group))
                 for category_id, poi_category in enumerate(poi_group[group_name]["children"]):
                     category_name = next(iter(poi_category))
-                    if category_name not in active_categories and category_name not in await self.get_all_default_poi_categories(db):
+                    if (
+                        category_name not in active_categories
+                        and category_name not in await self.get_all_default_poi_categories(db)
+                    ):
                         active_categories.append(category_id)
                         user_settings["poi_groups"][group_id][group_name]["children"].pop(
                             category_id
