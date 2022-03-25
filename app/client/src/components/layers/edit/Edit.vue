@@ -561,6 +561,7 @@
         >
           <v-form ref="edit-form" v-model="formValid">
             <v-jsonschema-form
+              style="width:260px;"
               v-if="schema[layerName] && popup && popup.isVisible"
               :schema="schema[layerName]"
               :model="dataObject"
