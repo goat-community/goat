@@ -113,7 +113,7 @@
         >{{
           $te(`map.snackbarMessages.scenarioEditMode`)
             ? $t(`map.snackbarMessages.scenarioEditMode`) + ": "
-            : "Scenario Editing Mode: "
+            : $t(`map.snackbarMessages.scenarioEditMode`)
         }}
         <span class="ml-2"
           ><b>{{
@@ -126,6 +126,24 @@
       <v-btn color="error" text @click="selectedEditLayer = null">
         {{ $te(`buttonLabels.exit`) ? $t(`buttonLabels.exit`) : "Exit" }}
       </v-btn>
+    </v-snackbar>
+    <v-snackbar
+      :color="appColor.primary"
+      v-if="isRecomputingHeatmap"
+      :timeout="0"
+      top
+      center
+      style="font-size:14px;"
+      :value="isRecomputingHeatmap"
+    >
+      <span
+        >{{
+          $te(`heatmap.recomputingHeatmaps`)
+            ? $t(`heatmap.recomputingHeatmaps`)
+            : "Recomputing Heatmaps... "
+        }}
+      </span>
+      <v-progress-circular indeterminate color="white"></v-progress-circular>
     </v-snackbar>
   </div>
 </template>
@@ -841,7 +859,8 @@ export default {
     ...mapGetters("app", {
       appColor: "appColor",
       appConfig: "appConfig",
-      scenarioLayerEditModeColor: "scenarioLayerEditModeColor"
+      scenarioLayerEditModeColor: "scenarioLayerEditModeColor",
+      isRecomputingHeatmap: "isRecomputingHeatmap"
     }),
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",

@@ -12,7 +12,7 @@ BEGIN
 	SELECT u.active_data_upload_ids, u.active_study_area_id  
 	INTO upload_ids, area_id 
 	FROM customer.USER u 
-	WHERE u.id = user_id_input ;
+	WHERE u.id = user_id_input;
 
 	FOREACH upload_id IN ARRAY upload_ids 
 	LOOP
@@ -24,11 +24,13 @@ BEGIN
 		AND d.study_area_id = area_id  
 		LIMIT 1; 
 		
-		categories = array_append(categories, poi_user_category );
-			
+		IF poi_user_category IS NOT NULL THEN  
+			categories = array_append(categories, poi_user_category );
+		END IF; 
+	
 	END LOOP;
 	
-	RETURN categories; 
+	RETURN COALESCE(categories, '{}'::TEXT[]);
 
 END ;
 $function$

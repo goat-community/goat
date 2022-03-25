@@ -1,9 +1,11 @@
+
+
 CREATE OR REPLACE FUNCTION basic.reached_population_study_area(ischrone_calculation_id_input integer, scenario_id_input integer, modus text, study_area_ids integer[])
  RETURNS TABLE(id integer, step integer, reached_opportunities jsonb)
  LANGUAGE plpgsql
 AS $function$ 
 DECLARE 	
-	excluded_buildings_id integer[];
+	excluded_buildings_id integer[] := '{}'::integer[];
 BEGIN
 	
 	DROP TABLE IF EXISTS reachable_population; 
@@ -115,3 +117,4 @@ $function$;
 SELECT * 
 FROM basic.reached_population_study_area(39, 2,'default', ARRAY[17,24,26])
 */
+

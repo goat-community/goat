@@ -442,7 +442,7 @@ class CRUDHeatmap:
         )
         data_upload_obj = data_upload_obj.first()[0]
         if data_upload_obj.reached_poi_heatmap_computed == True:
-            raise HTTPException(status_code=400, detail="Data upload is already computed.")
+            return {"msg": "Data upload already computed."}
 
         # Delete old reached pois for the data upload id
         await db.execute(

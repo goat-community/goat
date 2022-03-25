@@ -23,7 +23,7 @@
                 <v-icon color="white">add</v-icon>
               </v-btn>
             </template>
-            <span>Upload Dataset</span></v-tooltip
+            <span>{{ $t("appBar.dataUpload.uploadSet") }}</span></v-tooltip
           >
         </div>
         <v-alert
@@ -37,8 +37,10 @@
       </v-card-text>
       <v-card class="px-16 mx-4 py-0 mb-2 fill-height" flat>
         <p class="mt-2 mb-1 sub-header">
-          {{ (uploadedStorageSize / 1024).toFixed(2) }}MB of
-          {{ parseInt(currentUser.storage / 1024) }}MB used
+          {{ (uploadedStorageSize / 1024).toFixed(2)
+          }}{{ $t("userSettings.mbOf") }}
+          {{ parseInt(currentUser.storage / 1024)
+          }}{{ $t("userSettings.mbUsed") }}
         </p>
         <v-progress-linear
           height="2"
@@ -215,8 +217,8 @@ export default {
     deleteAllFiles() {
       this.$refs.confirm
         .open(
-          this.$t("appBar.dataUpload.deleteFile"),
-          this.$t("appBar.dataUpload.deleteFileMessage"),
+          this.$t("appBar.dataUpload.deleteAllFiles"),
+          this.$t("appBar.dataUpload.deleteAllFilesMessage"),
           { color: this.appColor.primary }
         )
         .then(confirm => {

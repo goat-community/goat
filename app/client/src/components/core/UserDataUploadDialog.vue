@@ -15,7 +15,7 @@
       </v-app-bar>
       <vue-scroll>
         <v-card-text primary-title>
-          <h3>Upload Points of Interest</h3>
+          <h3>{{ $t("appBar.dataUpload.dialog.uploadPointOfInterest") }}</h3>
           <v-select
             :label="$t('appBar.dataUpload.dialog.selectCategory')"
             v-if="!isCustom"

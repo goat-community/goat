@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.sql import and_
+from sqlalchemy.sql import and_, func
 
 from src import crud
 from src.crud.base import CRUDBase
@@ -68,7 +68,15 @@ class CRUDDynamicCustomization:
 
         layer = layer[0]
         layer_attributes = {}
-        for key in ["url", "legend_urls", "type", "map_attribution", "access_token", "max_resolution", "max_resolution"]:
+        for key in [
+            "url",
+            "legend_urls",
+            "type",
+            "map_attribution",
+            "access_token",
+            "max_resolution",
+            "max_resolution",
+        ]:
             if getattr(layer, key) is not None:
                 layer_attributes[key] = getattr(layer, key)
 
@@ -216,9 +224,21 @@ class CRUDDynamicCustomization:
                 combined_groups, study_area_settings["poi_groups"]
             )
 
-        if "poi_groups" in user_settings and current_user.active_data_upload_ids == []:
+        active_data_uploads_study_area = await db.execute(
+            func.basic.active_data_uploads_study_area(current_user.id)
+        )
+        active_data_uploads_study_area = active_data_uploads_study_area.scalar()
+        if active_data_uploads_study_area is None:
+            active_data_uploads_study_area = []
+            
+        default_poi_categories = await self.get_all_default_poi_categories(db)
+        if "poi_groups" in user_settings and (
+            current_user.active_data_upload_ids == []
+            or active_data_uploads_study_area != current_user.active_study_area_id
+        ):
             active_categories = []
-            for active_id in current_user.active_data_upload_ids:
+
+            for active_id in active_data_uploads_study_area:
                 active_category = await db.execute(
                     select(models.PoiUser)
                     .where(models.PoiUser.data_upload_id == active_id)
@@ -227,19 +247,27 @@ class CRUDDynamicCustomization:
                 active_category = active_category.all()
                 active_categories.append(active_category[0][0].category)
 
-            for group_id, poi_group in enumerate(user_settings["poi_groups"]):
-                group_name = next(iter(poi_group))
-                for category_id, poi_category in enumerate(poi_group[group_name]["children"]):
-                    category_name = next(iter(poi_category))
-                    if category_name not in active_categories and category_name not in await self.get_all_default_poi_categories(db):
-                        active_categories.append(category_id)
-                        user_settings["poi_groups"][group_id][group_name]["children"].pop(
-                            category_id
-                        )
-                        break
+            group_id = 0
+            for poi_group in user_settings["poi_groups"]:
+                group_name = list(poi_group.keys())[0]
+                children = poi_group[group_name]["children"]
+                valid_children = []
+
+                for child in children:
+                    child_name = list(child.keys())[0]
+                    if (
+                        child_name in active_categories
+                        or child_name in default_poi_categories
+                    ):
+                        
+                        valid_children.append(child)                            
+                
+                user_settings["poi_groups"][group_id][group_name]["children"] = valid_children
                 if user_settings["poi_groups"][group_id][group_name]["children"] == []:
                     user_settings["poi_groups"].pop(group_id)
-
+                
+                group_id += 1
+                
         if "poi_groups" in user_settings:
             combined_groups = self.update_settings(combined_groups, user_settings["poi_groups"])
 

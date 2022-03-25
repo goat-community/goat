@@ -181,7 +181,7 @@ user:
                 icon: "fas fa-recycle"
                 color: ["#5CA35C"]
     - shop:
-        icon: "fas fa-shopping-cart"
+        icon: "fas fa-cart-shopping-fast"
         color: ["#717171"]
         children:
             - supermarket:
@@ -249,11 +249,8 @@ user:
         color: ["#717171"]
         children:
             - park:
-                icon: "fas fa-tree"
-                color: ["#ff0044"]
+                icon: "fas fa-rectangle"
+                color: ["#38CE4B"]
             - forest:
-                icon: "fas fa-tree"
-                color: ["#ff0045"]
-            - lake:
-                icon: "fas la-water"
-                color: ["#ff0046"]
+                icon: "fas fa-rectangle"
+                color: ["#306837"]

@@ -13,7 +13,7 @@ class UserBase(models.UserBase):
 
 class UserCreate(UserBase):
     password: str
-
+    language_preference: Optional[LanguageEnum]
 
 class UserUpdate(UserBase):
     name: Optional[str] = None
@@ -55,6 +55,7 @@ request_examples = {
         "is_active": True,
         "storage": 512000,
         "limit_scenarios": 50,
+        "language_preference": "de"
     },
     "update": {
         "name": "Kevin",

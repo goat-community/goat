@@ -17,7 +17,6 @@
             <p class="mb-0 header-name">
               {{ `${user.name}, ${user.surname}` }}
             </p>
-            <p class="mb-0 sub-header">Institution / company</p>
             <p class="mb-0 sub-header">{{ `${user.email}` }}</p>
           </v-row>
         </v-col>
@@ -30,7 +29,7 @@
         :items="studyAreaList"
         item-value="id"
         item-text="name"
-        label="Study area"
+        :label="$t('userSettings.changeStudyAreaTitle')"
         @change="changeStudyArea"
       >
       </v-select>
@@ -41,7 +40,7 @@
         :items="languages"
         item-value="language"
         item-text="title"
-        label="UI Language"
+        :label="$t('userSettings.uiLanguage')"
         @change="changeLocale"
       >
       </v-select>
@@ -56,7 +55,7 @@
           fas fa-comments-question
         </v-icon>
         <span class="ml-2  theme--light">
-          Contact support
+          {{ $t("userSettings.contactSupport") }}
         </span>
       </v-btn>
       <br />
@@ -71,13 +70,14 @@
           fas fa-arrow-right-from-bracket
         </v-icon>
         <span class="ml-2  theme--light">
-          Logout
+          {{ $t("userSettings.logout") }}
         </span>
       </v-btn>
       <v-divider></v-divider>
       <p class="mt-5 mb-1 sub-header">
-        {{ (uploadedStorageSize / 1024).toFixed(2) }}MB of
-        {{ parseInt(user.storage / 1024) }}MB used
+        {{ (uploadedStorageSize / 1024).toFixed(2)
+        }}{{ $t("userSettings.mbOf") }} {{ parseInt(user.storage / 1024)
+        }}{{ $t("userSettings.mbUsed") }}
       </p>
       <v-progress-linear
         height="2"
@@ -86,7 +86,8 @@
         class="mb-6 mt-0 pt-0"
       ></v-progress-linear>
       <p class="mt-2 sub-header">
-        Scenarios: {{ scenarios.length }} / {{ limitScenarios }}
+        {{ $t("userSettings.scenarios") }}: {{ scenarios.length }} /
+        {{ limitScenarios }}
       </p>
     </v-card>
     <v-spacer></v-spacer>

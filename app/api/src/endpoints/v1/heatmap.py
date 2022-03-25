@@ -1,9 +1,9 @@
 import json
-from typing import Any, Optional
+from typing import Any, Optional, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy import text
+from sqlalchemy import text, func
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.responses import JSONResponse
 
@@ -124,13 +124,17 @@ async def read_local_accessibility_heatmap(
     if check_dict_schema(HeatmapConfiguration, json.loads(heatmap_configuration)) == False:
         raise HTTPException(status_code=400, detail="Heatmap configuration is not valid.")
 
+    active_data_uploads_study_area = await db.execute(
+            func.basic.active_data_uploads_study_area(current_user.id)
+    )
+    active_data_uploads_study_area = active_data_uploads_study_area.scalar()
     query_params = {
         "heatmap_configuration": heatmap_configuration,
         "user_id": current_user.id,
         "active_study_area_id": current_user.active_study_area_id,
         "modus": modus.value,
         "scenario_id": scenario_id,
-        "data_upload_ids": current_user.active_data_upload_ids,
+        "data_upload_ids": active_data_uploads_study_area,
     }
     template_sql = SQLReturnTypes[return_type.value].value
 
@@ -148,15 +152,20 @@ async def read_local_accessibility_heatmap(
     return return_geojson_or_geobuf(heatmap, return_type.value)
 
 
-@router.get("/compute/data-upload/{data_upload_id}", response_class=JSONResponse)
+@router.get("/compute/data-upload", response_class=JSONResponse)
 async def compute_reached_pois_user(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    data_upload_id: int,
+    id: List[int] = Query(
+        description="The data upload ids to calculate the heatmap in case the modus is 'scenario' or 'comparison'",
+        default=0,
+        example=[1, 2],
+    ),
 ) -> Any:
     """
     Calculate reached pois for the heatmap for the passed data upload.
     """
-    await crud.heatmap.compute_reached_pois_user(db, current_user, data_upload_id)
+    for data_upload_id in id:
+        await crud.heatmap.compute_reached_pois_user(db, current_user, data_upload_id)
     return {"msg": "Successfully computed heatmap for uploaded pois."}

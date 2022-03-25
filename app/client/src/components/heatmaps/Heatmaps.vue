@@ -39,7 +39,13 @@
                 <v-expansion-panel
                   v-for="(layer, i) in layerGroupValue"
                   :key="i"
+                  :disabled="isHeatmapDisabled(layer)"
                   class="layer-row"
+                  :style="{
+                    backgroundColor: isHeatmapDisabled(layer)
+                      ? '#ECECEC'
+                      : '#ffffff'
+                  }"
                   :class="{
                     'expansion-panel__container--active':
                       layer.get('showOptions') === true
@@ -138,6 +144,18 @@
           </v-expansion-panel>
         </v-expansion-panels>
       </template>
+      <v-card-actions v-if="unCalculatedDataUploadIds.length > 0">
+        <v-spacer></v-spacer>
+        <v-btn
+          :loading="isRecomputingHeatmap"
+          class="white--text"
+          @click="recomputeHeatmaps"
+          :color="appColor.primary"
+        >
+          <v-icon left>fas fa-refresh</v-icon
+          >{{ $t("heatmaps.recomputeHeatmap") }}</v-btn
+        >
+      </v-card-actions>
     </vue-scroll>
     <span v-if="styleDialogStatus">
       <StyleDialog
@@ -158,6 +176,8 @@ import Legend from "../viewer/ol/controls/Legend";
 import LayerTree from "../layers/layerTree/LayerTree";
 import StyleDialog from "../layers/changeStyle/StyleDialog.vue";
 import InLegend from "../viewer/ol/controls/InLegend.vue";
+import ApiService from "../../services/api.service";
+import { GET_USER_CUSTOM_DATA } from "../../store/actions.type";
 
 export default {
   mixins: [Mapable, Legend, LayerTree],
@@ -173,6 +193,7 @@ export default {
       "heatmap_accessibility_population",
       "heatmap_local_accessibility"
     ],
+
     updateHeatmaps: {
       poi: ["heatmap_local_accessibility", "heatmap_accessibility_population"],
       population: ["heatmap_accessibility_population", "heatmap_population"]
@@ -191,7 +212,8 @@ export default {
     ...mapGetters("app", {
       appColor: "appColor",
       appConfig: "appConfig",
-      calculationMode: "calculationMode"
+      calculationMode: "calculationMode",
+      unCalculatedDataUploadIds: "unCalculatedDataUploadIds"
     }),
     ...mapGetters("poisaois", {
       selectedPoisOnlyKeys: "selectedPoisOnlyKeys"
@@ -201,6 +223,9 @@ export default {
     }),
     ...mapFields("map", {
       heatmapCancelToken: "heatmapCancelToken"
+    }),
+    ...mapFields("app", {
+      isRecomputingHeatmap: "isRecomputingHeatmap"
     })
   },
   methods: {
@@ -319,6 +344,38 @@ export default {
         });
       }
     },
+    recomputeHeatmaps() {
+      this.isRecomputingHeatmap = true;
+      let queryParam = "";
+      this.unCalculatedDataUploadIds.forEach((id, index) => {
+        if (id && index !== this.unCalculatedDataUploadIds.length - 1) {
+          queryParam += `id=${id}&`;
+        } else if (id) {
+          queryParam += `id=${id}`;
+        }
+      });
+      ApiService.get_(`/heatmap/compute/data-upload?${queryParam}`)
+        .then(() => {
+          this.toggleSnackbar({
+            type: this.appColor.primary,
+            message: this.$t("heatmaps.heatmapComputedSuccessfully"),
+            state: true,
+            timeout: 3000
+          });
+        })
+        .catch(() => {
+          this.toggleSnackbar({
+            type: this.appColor.primary,
+            message: this.$t("heatmaps.heatmapComputationFailed"),
+            state: true,
+            timeout: 3000
+          });
+        })
+        .finally(() => {
+          this.$store.dispatch(`app/${GET_USER_CUSTOM_DATA}`);
+          this.isRecomputingHeatmap = false;
+        });
+    },
     checkIfHeatmapNeedsPois(layer) {
       this.toggleSnackbar({ state: false });
       if (
@@ -331,6 +388,18 @@ export default {
           state: true,
           timeout: 4000
         });
+        return true;
+      } else {
+        return false;
+      }
+    },
+    isHeatmapDisabled(layer) {
+      if (
+        this.heatmapsWithPois.includes(layer.get("name")) &&
+        this.unCalculatedDataUploadIds.length > 0
+      ) {
+        layer.setVisible(false);
+        layer.set("showOptions", false);
         return true;
       } else {
         return false;

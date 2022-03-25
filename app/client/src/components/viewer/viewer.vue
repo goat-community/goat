@@ -6,6 +6,7 @@
         <template v-slot:activator="{ on }">
           <v-btn
             class="mx-2 miniviewer-button"
+            style="cursor: not-allowed;"
             fab
             dark
             small
@@ -17,7 +18,7 @@
             <v-icon dark>streetview</v-icon>
           </v-btn>
         </template>
-        <span>{{ $t(`map.tooltips.toggleStreetView`) }}</span>
+        <span>{{ $t("map.tooltips.notAvailable") }}</span>
       </v-tooltip>
 
       <!-- isochrone-thematic-data -->
@@ -116,8 +117,9 @@ export default {
   },
   methods: {
     showMiniViewer() {
-      this.miniViewerVisible = true;
-      this.isMapillaryBtnDisabled = true;
+      return;
+      // this.miniViewerVisible = true;
+      // this.isMapillaryBtnDisabled = true;
     },
     switchViews() {
       this.miniViewOlMap = !this.miniViewOlMap;

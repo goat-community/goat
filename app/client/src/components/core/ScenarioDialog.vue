@@ -26,7 +26,7 @@
           <v-text-field
             :rules="[rules.required, rules.counter]"
             v-model="scenarioName"
-            label="Scenario Name"
+            :label="$t('appBar.edit.ScenarioName')"
             maxlength="50"
             lazy-validation
           ></v-text-field>

@@ -13,7 +13,7 @@ BEGIN
     END IF;
 
     IF region_type = 'study_area' THEN
-        SELECT s.geom, name  
+        SELECT st_union(s.geom), array_agg(name)::TEXT  
         INTO region_geom, region_name
         FROM basic.sub_study_area s
         WHERE id IN (SELECT UNNEST(region::integer[]));
