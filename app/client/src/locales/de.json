@@ -206,10 +206,10 @@
       }
     },
     "about": {
-      "title": "About GOAT",
-      "whatIs": "<span><strong>Was ist GOAT?</strong></span>\n<p>Geo Open Accessibility Tool, oder einfach GOAT, ist ein digitales Planungswerkzeug für die Gestaltung des Fuß- und Radverkehrs. Es zeichnet sich insbesondere durch seine Flexibilität und Interaktivität aus. So können dynamisch Szenarien entwickelt und hinsichtlich ihrer Effekte auf die Erreichbarkeit bewertet werden. </p><p>Das Tool wird als Open-Source-Projekt im Wesentlichen durch das Startup <a href=\"https://plan4better.de\">Plan4Better</a> und der <a href=\"https://www.bgu.tum.de/sv/startseite/\">Technischen Universität München</a> weiterentwickelt. Es werden laufend neue Funktionen implementiert und Datensätze eingespielt. Die vorliegende Version ist eine Demoversion und es wird keinerlei Haftung für die Richtigkeit der Analysen übernommen.</p>",
-      "usedData": "<span><strong>Datensätze</strong></span><p>GOAT basiert im Wesentlichen auf offenen Daten. Die folgenden Datensätze werden entweder visualisiert oder im Hintergrund für die Berechnungen verwendet:&nbsp;</p>",
-      "license": "<span><strong>Licence</strong></span>\n<p>GOAT ist lizensiert unter <a href=\"https://github.com/goat-community/goat/blob/main/LICENSE\">GPL-3.0</a> <br /><span>Falls Sie GOAT für Ihre Analysen verwenden, zitieren Sie Bitte wie folgt:&nbsp;</span><br /><span><strong>Geo Open Accessibility Tool - GOAT (Version 1.0.1) [Webtool]. Retrieved from&nbsp;<a  href=\"https://open-accessibility.org/\" rel=\"nofollow\">https://open-accessibility.org/</a></strong></span></p>\n",
+      "title": "Über GOAT",
+      "whatIs": "<span><strong>Was ist GOAT?</strong></span>\n<p>Geo Open Accessibility Tool, oder einfach GOAT, ist ein digitales Planungswerkzeug für die integrierte Stadt- und Verkehrsplanung. Es zeichnet sich insbesondere durch seine Flexibilität und Interaktivität aus. So können dynamisch Szenarien entwickelt und hinsichtlich ihrer Effekte auf die Erreichbarkeit bewertet werden. </p><p>Das Tool wird als Open-Source-Projekt im Wesentlichen durch die <a href=\"https://plan4better.de\">Plan4Better GmbH</a> weiterentwickelt. Die integrierten Datensätze werden in regelmäßigen Abständen aktualisiert. Es wird keine Haftung für die Richtigkeit der Analysen übernommen.</p>",
+      "usedData": "<span><strong>Datensätze</strong></span><p>GOAT basiert auf verschiedensten Datensätzen. Die folgenden Datensätze werden unter anderem visualisiert oder im Hintergrund für die Berechnungen verwendet:&nbsp;</p>",
+      "license": "<span><strong>Licence</strong></span>\n<p>GOAT ist lizensiert unter <a href=\"https://github.com/goat-community/goat/blob/main/LICENSE\">GPL-3.0</a> <br /><span>Falls Sie GOAT für Ihre Analysen verwenden, zitieren Sie Bitte wie folgt:&nbsp;</span><br /><span><strong>Geo Open Accessibility Tool - GOAT (Version 1.1) [Webtool]. Retrieved from&nbsp;<a  href=\"https://plan4better.de\" rel=\"nofollow\">https://plan4better.de/</a></strong></span></p>\n",
       "moreInfo": "Weitere Infos",
       "layerAttributeTable": {
         "data": "Layer",
@@ -257,6 +257,9 @@
       "nr": "Isochronen",
       "calcType": "Detaillierungsgrad Isochronen",
       "calcModus": "Berechnungsmodus",
+      "default": "Default",
+      "scenario": "Szenario",
+      "comparison": "Vergleich",
       "alphaShapeMode": "Detaillierungsgrad Isochronen",
       "defaultNetwork": "Standard",
       "modifiedNetwork": "Szenario",
