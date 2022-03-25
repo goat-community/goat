@@ -80,7 +80,7 @@ async def upload_custom_pois(
     file_dir = f"/tmp/{file_name}"
 
     real_file_size = 0
-    temp: IO = NamedTemporaryFile(delete=True)
+    temp: IO = NamedTemporaryFile(delete=False)
     for chunk in file.file:
         real_file_size += len(chunk)
         if real_file_size > MaxUploadFileSize.max_upload_poi_file_size.value:
