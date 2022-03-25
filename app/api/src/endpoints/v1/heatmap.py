@@ -1,5 +1,5 @@
 import json
-from typing import Any, Optional
+from typing import Any, Optional, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
@@ -148,15 +148,20 @@ async def read_local_accessibility_heatmap(
     return return_geojson_or_geobuf(heatmap, return_type.value)
 
 
-@router.get("/compute/data-upload/{data_upload_id}", response_class=JSONResponse)
+@router.get("/compute/data-upload", response_class=JSONResponse)
 async def compute_reached_pois_user(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    data_upload_id: int,
+    data_upload_ids: List[int] = Query(
+        description="The data upload ids to calculate the heatmap in case the modus is 'scenario' or 'comparison'",
+        default=0,
+        example=[1, 2],
+    ),
 ) -> Any:
     """
     Calculate reached pois for the heatmap for the passed data upload.
     """
-    await crud.heatmap.compute_reached_pois_user(db, current_user, data_upload_id)
+    for data_upload_id in data_upload_ids:
+        await crud.heatmap.compute_reached_pois_user(db, current_user, data_upload_id)
     return {"msg": "Successfully computed heatmap for uploaded pois."}
