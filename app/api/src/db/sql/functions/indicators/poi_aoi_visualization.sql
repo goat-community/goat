@@ -1,5 +1,3 @@
-
-
 CREATE OR REPLACE FUNCTION basic.poi_aoi_visualization(user_id_input integer, scenario_id_input integer, active_upload_ids integer[], active_study_area_id integer)
 RETURNS TABLE (id integer, uid TEXT, category TEXT, name TEXT, opening_hours TEXT, street TEXT, housenumber TEXT, zipcode TEXT, edit_type TEXT, geom geometry)
 LANGUAGE plpgsql
