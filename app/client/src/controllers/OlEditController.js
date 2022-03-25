@@ -36,12 +36,13 @@ export default class OlEditController extends OlBaseController {
       case "add": {
         let geometryType = this.selectedLayer["editGeometry"];
         me.edit = new Draw({
-          source: me.source,
           type: geometryType[0]
         });
         me.edit.on("drawstart", startCb);
         me.edit.on("drawend", endCb);
-        me.snap = new Snap({ source: me.source });
+        if (this.selectedLayer["name"] !== "poi") {
+          me.snap = new Snap({ source: me.source });
+        }
         me.currentInteraction = "draw";
 
         me.helpMessage = i18n.t(

@@ -738,19 +738,33 @@ export default {
       }
     },
     toggleSelection: {
-      handler(state) {
+      handler(state, oldState) {
         if (state !== undefined) {
           this.olEditCtrl.removeInteraction();
           this.toggleEdit = undefined;
+          if (oldState !== undefined) {
+            this.olSelectCtrl.removeInteraction();
+            EventBus.$emit("ol-interaction-stoped", this.interactionType);
+            if (this.map.getTarget().style) {
+              this.map.getTarget().style.cursor = "";
+            }
+          }
           this.toggleSelectInteraction(state);
         }
       }
     },
     toggleEdit: {
-      handler(state) {
+      handler(state, oldState) {
+        this.olSelectCtrl.removeInteraction();
+        this.toggleSelection = undefined;
+        if (oldState !== undefined) {
+          this.olEditCtrl.removeInteraction();
+          EventBus.$emit("ol-interaction-stoped", this.interactionType);
+          if (this.map.getTarget().style) {
+            this.map.getTarget().style.cursor = "";
+          }
+        }
         if (state !== undefined) {
-          this.olSelectCtrl.removeInteraction();
-          this.toggleSelection = undefined;
           this.toggleEditInteraction(state);
         }
       }
@@ -1269,6 +1283,7 @@ export default {
      */
     onDrawEnd(evt) {
       const feature = evt.feature;
+      this.editLayer.getSource().addFeature(feature);
       this.clearDataObject();
       //Disable interaction until user fills the attributes for the feature and closes the popup
       if (this.olEditCtrl.edit) {
