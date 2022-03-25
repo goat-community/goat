@@ -3,7 +3,7 @@ from typing import Any, Optional, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy import text
+from sqlalchemy import text, func
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.responses import JSONResponse
 
@@ -124,13 +124,17 @@ async def read_local_accessibility_heatmap(
     if check_dict_schema(HeatmapConfiguration, json.loads(heatmap_configuration)) == False:
         raise HTTPException(status_code=400, detail="Heatmap configuration is not valid.")
 
+    active_data_uploads_study_area = await db.execute(
+            func.basic.active_data_uploads_study_area(current_user.id)
+    )
+    active_data_uploads_study_area = active_data_uploads_study_area.scalar()
     query_params = {
         "heatmap_configuration": heatmap_configuration,
         "user_id": current_user.id,
         "active_study_area_id": current_user.active_study_area_id,
         "modus": modus.value,
         "scenario_id": scenario_id,
-        "data_upload_ids": current_user.active_data_upload_ids,
+        "data_upload_ids": active_data_uploads_study_area,
     }
     template_sql = SQLReturnTypes[return_type.value].value
 

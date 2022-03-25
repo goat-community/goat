@@ -45,13 +45,13 @@
           v-model="topTabIndex"
         >
           <v-tab class="px-0">
-            Isochrones
+            {{ $t("appBar.buttons.isochrones") }}
           </v-tab>
           <v-tab class="px-0">
-            Heatmaps
+            {{ $t("appBar.buttons.heatmaps") }}
           </v-tab>
           <v-tab class="px-0">
-            Static Layers
+            {{ $t("appBar.buttons.staticLayers") }}
           </v-tab>
         </v-tabs>
         <v-tabs
@@ -62,12 +62,12 @@
         >
           <v-tab>
             <v-badge>
-              <b>All Layers</b>
+              <b>{{ $t("appBar.buttons.allLayers") }}</b>
             </v-badge>
           </v-tab>
           <v-tab>
             <v-badge>
-              <b>Active Layers</b>
+              <b>{{ $t("appBar.buttons.activeLayers") }}</b>
             </v-badge>
           </v-tab>
         </v-tabs>
@@ -130,7 +130,7 @@ export default {
   name: "left-panel",
   data: () => ({
     logo: "img/logo.png",
-    logoText: "img/logo_white.png",
+    logoText: "img/goat_white.svg",
     drawer: true,
     mini: false,
     responsive: false,

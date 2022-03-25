@@ -5,16 +5,35 @@
     "cancel": "Abbrechen",
     "save": "Speichern"
   },
+  "login": {
+    "title": "Login",
+    "signIn": "Anmelden",
+    "toSignUpContactUs": "Kontaktieren Sie uns gerne",
+    "noAccount": "Noch keinen Zugang?",
+    "passwordRequired": "Passwort is required",
+    "passwordForgotten": "Passwort vergessen?",
+    "maxFourChar": "Mindestens 4 Zeichen für das Passwort notwending.",
+    "mailRequired": "E-Mail ist erforderlich",
+    "mailValid": "E-mail ist ungültig",
+    "password": "Passwort"
+  },
   "appBar": {
     "buttons": {
       "login": "Login",
+      "user-settings": "Einstellungen",
+      "user-data-upload": "Daten hochladen",
       "print": "Drucken",
       "drawAndMeasure": "Messen",
       "filter": "Filter Thematische Daten",
       "edit": "Szenarien Entwickeln",
       "settings": "Sprache",
       "info": "GOAT Homepage besuchen",
-      "about": "About"
+      "about": "About",
+      "isochrones": "Isochronen",
+      "heatmaps": "Heatmaps",
+      "staticLayers": "Other Layers",
+      "allLayers": "Alle Layer",
+      "activeLayers": "Aktive Layer"
     },
     "login": {
       "title": "Login",
@@ -29,7 +48,6 @@
         },
         "submit": "Login",
         "email": "E-Mail"
-
       }
     },
     "printMap": {
@@ -120,6 +138,31 @@
       },
       "clear": "Löschen"
     },
+    "dataUpload": {
+      "title": "Datei Manager",
+      "uploadSet": "Hochgeladene Datensätze",
+      "deleteAllFiles": "Alle Dateien löschen",
+      "deleteFile": "Datei löschen",
+      "deleteAllFilesMessage": "Bist du sicher, dass du alle Dateien löschen möchtest?",
+      "deleteFileMessage": "Bist du sicher, dass diese Datei löschen möchtest?",
+      "availableStorageExceeded": "Verfügbarer Speicherplatz überschritten",
+      "table": {
+        "category": "Kategorie",
+        "date": "Datum",
+        "size": "Größe",
+        "delete": "Löschen",
+        "status": "Status"
+      },
+      "dialog": {
+        "sizeLimitExceeded": "Maximale Dateigröße überschritten",
+        "uploadData": "Daten hochladen",
+        "uploadPointOfInterest": "Points of Interest hochladen",
+        "selectCategory": "Kategorie auswählen",
+        "customCategory": "Eigene Kategorie",
+        "browseYourFiles": "Datei auswählen",
+        "invalidCategory": "Kategorie existiert bereits. Bitte wähle einen anderen Namen."
+      }
+    },
     "filter": {
       "title": "Filter Thematische Daten",
       "poisSettings": {
@@ -136,10 +179,14 @@
     },
     "edit": {
       "title": "Szenarien entwickeln",
+      "scenarioLimitReached": "Maximale Anzahl an Szenarien erreicht",
       "createScenario": "Szenario erstellen",
       "editScenarioName": "Szenarioname bearbeiten",
       "scenario": "Szenario",
       "scenarioImportExport": "Szenario Import/Export",
+      "noSelection": "Keine Auswahl",
+      "scenarioName": "Szenario name",
+      "deleteScenario": "Szenario löschen",
       "selectLayer": "Layer auswählen",
       "layerToEdit": "Layer zum Bearbeiten",
       "selectFeatures": "Objekte auswählen",
@@ -156,6 +203,9 @@
       "snapGuide": "Zeichenhilfe",
       "clearBtn": "Reset",
       "uploadBtn": "Hochladen",
+      "poi": "Point of Interest",
+      "way": "Weg",
+      "building": "Gebäude",
       "addEntrancesForBuildings": "Um den <b>Hochladen</b> Button zu aktivieren, müssen zu allen Gebäuden Eingänge hinzugefügt werden",
       "popup": {
         "deleteFeatureMsg": "Möchten Sie das ausgewählte Feature wirklich löschen?",
@@ -206,10 +256,10 @@
       }
     },
     "about": {
-      "title": "About GOAT",
-      "whatIs": "<span><strong>Was ist GOAT?</strong></span>\n<p>Geo Open Accessibility Tool, oder einfach GOAT, ist ein digitales Planungswerkzeug für die Gestaltung des Fuß- und Radverkehrs. Es zeichnet sich insbesondere durch seine Flexibilität und Interaktivität aus. So können dynamisch Szenarien entwickelt und hinsichtlich ihrer Effekte auf die Erreichbarkeit bewertet werden. </p><p>Das Tool wird als Open-Source-Projekt im Wesentlichen durch das Startup <a href=\"https://plan4better.de\">Plan4Better</a> und der <a href=\"https://www.bgu.tum.de/sv/startseite/\">Technischen Universität München</a> weiterentwickelt. Es werden laufend neue Funktionen implementiert und Datensätze eingespielt. Die vorliegende Version ist eine Demoversion und es wird keinerlei Haftung für die Richtigkeit der Analysen übernommen.</p>",
-      "usedData": "<span><strong>Datensätze</strong></span><p>GOAT basiert im Wesentlichen auf offenen Daten. Die folgenden Datensätze werden entweder visualisiert oder im Hintergrund für die Berechnungen verwendet:&nbsp;</p>",
-      "license": "<span><strong>Licence</strong></span>\n<p>GOAT ist lizensiert unter <a href=\"https://github.com/goat-community/goat/blob/main/LICENSE\">GPL-3.0</a> <br /><span>Falls Sie GOAT für Ihre Analysen verwenden, zitieren Sie Bitte wie folgt:&nbsp;</span><br /><span><strong>Geo Open Accessibility Tool - GOAT (Version 1.0.1) [Webtool]. Retrieved from&nbsp;<a  href=\"https://open-accessibility.org/\" rel=\"nofollow\">https://open-accessibility.org/</a></strong></span></p>\n",
+      "title": "Über GOAT",
+      "whatIs": "<span><strong>Was ist GOAT?</strong></span>\n<p>Geo Open Accessibility Tool, oder einfach GOAT, ist ein digitales Planungswerkzeug für die integrierte Stadt- und Verkehrsplanung. Es zeichnet sich insbesondere durch seine Flexibilität und Interaktivität aus. So können dynamisch Szenarien entwickelt und hinsichtlich ihrer Effekte auf die Erreichbarkeit bewertet werden. </p><p>Das Tool wird als Open-Source-Projekt im Wesentlichen durch die <a href=\"https://plan4better.de\">Plan4Better GmbH</a> entwickelt. Die integrierten Datensätze werden in regelmäßigen Abständen aktualisiert. Es wird keine Haftung für die Richtigkeit der Analysen übernommen.</p>",
+      "usedData": "<span><strong>Datensätze</strong></span><p>GOAT basiert auf verschiedensten Datensätzen. Die folgenden Datensätze werden unter anderem visualisiert oder im Hintergrund für die Berechnungen verwendet:&nbsp;</p>",
+      "license": "<span><strong>Licence</strong></span>\n<p>GOAT ist lizensiert unter <a href=\"https://github.com/goat-community/goat/blob/main/LICENSE\">GPL-3.0</a> <br /><span>Falls Sie GOAT für Ihre Analysen verwenden, zitieren Sie Bitte wie folgt:&nbsp;</span><br /><span><strong>Geo Open Accessibility Tool - GOAT (Version 1.1) [Webtool]. Retrieved from&nbsp;<a  href=\"https://plan4better.de\" rel=\"nofollow\">https://plan4better.de/</a></strong></span></p>\n",
       "moreInfo": "Weitere Infos",
       "layerAttributeTable": {
         "data": "Layer",
@@ -252,11 +302,14 @@
     "options": {
       "title": "Optionen",
       "subOptions": "Einstellungen Isochronen",
-      "speed": "Speed",
-      "time": "Min",
+      "speed": "Geschwindigkeit",
+      "time": "Travel time",
       "nr": "Isochronen",
       "calcType": "Detaillierungsgrad Isochronen",
       "calcModus": "Berechnungsmodus",
+      "default": "Default",
+      "scenario": "Szenario",
+      "comparison": "Vergleich",
       "alphaShapeMode": "Detaillierungsgrad Isochronen",
       "defaultNetwork": "Standard",
       "modifiedNetwork": "Szenario",
@@ -279,11 +332,14 @@
       "downloadTooltip": "Herunterladen",
       "deleteCalcTooltip": "Berechnung löschen",
       "changeColorTooltip": "Farbe ändern",
+      "dataTable": "Tabelle",
+      "roadNetwork": "Netzwerk",
       "table": {
         "type": "Art",
         "range": "Zeit",
         "area": "Größe",
         "visible": "Anzeige",
+        "population": "Einwohner",
         "legend": "Legende"
       }
     },
@@ -360,25 +416,38 @@
       "cantPrintBaseLayer": "Diese Basiskarte kann nicht gedruckt werden.",
       "cantExportScenario": "Ein Fehler ist aufgetreten. Szenario kann nicht exportiert werden!",
       "zoomInToShowFeatures": "Zoome um Objekte der folgenden Layer zu sehen",
-      "heatmapIsBusy": "Die Neuberechung der Heatmap dauert etwas. Bitte bleiben Sie geduldig!"
+      "heatmapIsBusy": "Die Neuberechung der Heatmap dauert etwas. Bitte bleiben Sie geduldig!",
+      "calculationCancelled": "Berechnung abgebrochen!",
+      "scenarioEditMode": "Szenario Modus"
     },
     "layerGroup": {
-      "poisLayers": "POIs",
       "buildings_landuse": "Gebäude und Flächennutzung",
-      "administrativeLayers": "Verwaltungsgrenzen",
-      "streetlevelqualityLayers": "Street Level Quality",
-      "environmentalQualityLayers": "Umweltdaten",
+      "streetlevel_quality": "Street Level Quality",
+      "environmental_quality": "Umweltdaten",
       "perceivedQuality": "Empfundene Qualität",
-      "additionalDataLayers": "Weitere Daten",
-      "accessbilityBasemaps": "Heatmaps",
-      "backgroundLayers": "Hintergrundkarten",
-      "buildings": "Gebäude",
-      "mobility_patterns": "Mobilitätsverhalten"
+      "additional_data": "Weitere Daten",
+      "heatmap": "Heatmaps",
+      "basemap": "Hintergrundkarten"
     },
     "layerName": {
+      "freiburg_bodenrichtwert": "Freiburg Bodenrichtwerte",
+      "freiburg_mietspiegel": "Freiburg Mietspiegel",
+      "freiburg_laerm_strasse_nacht": "Lärm Hauptstraßen (Nacht)",
+      "freiburg_laerm_strasse_tag": "Lärm Hauptstraßen (Tag)",
+      "freiburg_grundschulbezirke": "Grundschulbezirke",
+      "freiburg_flaechennutzungsplan": "Flächennutzungsplan",
+      "freiburg_streetmap": "Freiburg Streetmap",
+      "freiburg_heatmap_radverkehr": "Heatmap Radverkehr",
+      "bayern_biotop_kartierung": "Bayern Biotop Kartierung",
+      "bayern_laerm_hauptverkehrsstrassen": "Lärm Hauptverkehrsstraßen",
+      "bayern_oekoflaechenkataster": "Bayern Ökoflaechenkataster",
+      "bayern_schutzgebiete_naturschutz": "Bayern Schutzgebiete Naturschutz",
       "pois": "Point of Interest",
       "aois": "Area of Interest",
-      "administrativeUnits": "Administrative Grenzen",
+      "poi": "Point of Interest",
+      "way": "Wege",
+      "building": "Gebäude",
+      "sub_study_area": "Untersuchungsgebiete",
       "accidents_pedestrians": "Fußgänger - Unfallpunkte (2016-2019)",
       "accidents_pedestrian_2018": "Fußgänger - Unfallhäufigkeiten (2018)",
       "accidents_pedestrian_2017": "Fußgänger - Unfallhäufigkeiten (2017)",
@@ -424,20 +493,20 @@
       "ways_security": "Beleuchtung / empfundene Sicherheit",
       "ways_sidewalk_quality": "Gehkomfort",
       "heatmap_connectivity": "Konnektivität",
-      "heatmap_luptai": "Vergleich von Erreichbarkeit und Bevölkerungsdichte",
+      "heatmap_accessibility_population": "Vergleich von Erreichbarkeit und Bevölkerungsdichte",
       "heatmap_population": "Bevölkerungsdichte",
-      "heatmap_gravity": "Lokale Erreichbarkeit",
+      "heatmap_local_accessibility": "Lokale Erreichbarkeit",
       "primary_school_streams": "Fußgängerpotentialströme zu Grundschulen",
       "studyArea": "Untersuchungsgebiet",
       "ways": "Wege",
       "buildings": "Gebäude",
-      "osmStandard": "OSM Standard",
-      "osmLight": "OSM Light",
-      "osmDark": "OSM Dark",
-      "openTopoMap": "Open Topo Map",
-      "mapboxStreets": "Mapbox",
-      "publicTransport": "Öffentlicher Verkehr",
-      "bingAerial": "Bing Aerial",
+      "osm_standard": "OSM Standard",
+      "osm_light": "OSM Light",
+      "osm_dark": "OSM Dark",
+      "open_topo_map": "Open Topo Map",
+      "mapbox_streets": "Mapbox",
+      "public_transport": "Öffentlicher Verkehr",
+      "bing_aerial": "Bing Aerial",
       "indicators": "Indikatoren",
       "walking_trip_rate": "Zu Fuß zurückgelegte Wege pro Person",
       "walkingShare": "Anteil der zu Fuß zurückgelegten Wege",
@@ -549,7 +618,6 @@
       "tasks": "OSM Mapping Aufgaben",
       "steps": "Schritte",
       "info": "Info",
-
       "stepsDesc": {
         "clickFeatureInMap": "Wählen Sie ein Objekt aus der Karte.",
         "clickEditWithOsm": "Durch Klicken auf den <b>'In OSM bearbeiten'</b> Link werden Sie zum OSM iD-Editor weitergeleitet.",
@@ -627,17 +695,29 @@
           }
         }
       },
-
       "dialogMessage": {
         "title": "OSM Mapping Modus",
         "body": "Willkommen im OSM-Mapping-Modus! In diesem Modus können Sie die GOAT-Daten verbessern, indem Sie zu OpenStreetMap (OSM) beitragen. Wir haben verschiedene Aufgaben für Objekte mit fehlenden Informationen erstellt, die mit dem iD-Editor oder einem anderen OSM-Editor (z.B. JOSM) bearbeitet werden können. Bitte machen Sie sich dafür mit den allgemeinen Mapping-Regeln und den entsprechenden Inhalten des OSM-Wikis vertraut. Auf der GOAT-Webseite steht außerdem ein Tutorial zum Mapping in OSM bereit. Vielen Dank für Ihren wertvollen Beitrag zur Open-Data-Welt!"
       }
     }
   },
+  "userSettings": {
+    "changeStudyAreaTitle": "Untersuchungsgebiet wechseln",
+    "changeStudyAreaMessageWarning": "Das Untersuchungsgebiet wird gewechselt. Isochronenberechungen werden nicht gespeichert. Möchtest du trotzdem wechseln?",
+    "uiLanguage": "Sprache",
+    "contactSupport": "Support",
+    "logout": "Logout",
+    "mbOf": "MB von",
+    "mbUsed": "MB genutzt",
+    "scenarios": "Szenarien"
+  },
   "pois": {
     "education": "Bildung",
     "foodanddrink": "Essen und Trinken",
     "transport": "Transport",
+    "other": "Eigene Kategorien",
+    "sport": "Sport",
+    "nature": "Natur",
     "mobilitystations": "Mobilitätsstationen",
     "services": "Dienstleistungen",
     "shop": "Einkaufen",
@@ -829,10 +909,11 @@
       "liveliness": "Gehumgebung & Belebtheit",
       "data_quality": "Daten Qualität",
       "comfort": "Urbane Austattung",
-      "sum_total": ["<b>GESAMT WALKABILITY SCORE</b>"],
+      "sum_total": [
+        "<b>GESAMT WALKABILITY SCORE</b>"
+      ],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index",
-
       "sidewalk": "Gehwegverfügbarkeit",
       "width": "Wegebreite",
       "smoothness": "Ebenheit der Oberfläche",
