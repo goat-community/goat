@@ -1,6 +1,7 @@
 import jwt_decode from "jwt-decode";
 
 export function humanize(str) {
+  if (!str) return "";
   return str
     .replace(/^[\s_]+|[\s_]+$/g, "")
     .replace(/[_\s]+/g, " ")
