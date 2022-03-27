@@ -14,7 +14,7 @@ import { getIconUnicode } from "../utils/Helpers";
 
 OlFontSymbol.addDefs(
   {
-    font: "FontAwesome",
+    font: "'Font Awesome 6 Pro'",
     name: "FontAwesome",
     prefix: ""
   },
@@ -338,6 +338,7 @@ export function poisEditStyle(feature) {
         text: "", // text to use if no glyph is defined
         font: "sans-serif",
         fontSize: 0.7,
+        fontStyle: "900",
         radius: 20,
         rotation: 0,
         rotateWithView: false,
@@ -754,6 +755,7 @@ export function poisAoisStyle(feature) {
         text: "", // text to use if no glyph is defined
         font: "sans-serif",
         fontSize: 0.7,
+        fontStyle: "900",
         radius: 20,
         rotation: 0,
         rotateWithView: false,
