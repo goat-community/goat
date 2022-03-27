@@ -6,6 +6,7 @@ import VectorImageLayer from "ol/layer/VectorImage";
 import Overlay from "ol/Overlay.js";
 import { unByKey } from "ol/Observable";
 import i18n from "../../src/plugins/i18n";
+import poisAoisStore from "../store/modules/poisaois";
 
 /**
  * Class holding the OpenLayers related logic for the edit tool.
@@ -161,9 +162,21 @@ export default class OlEditController extends OlBaseController {
         this.currentInteraction
       )
     ) {
-      const featureAtCoord = this.source.getFeaturesAtCoordinate(
+      const featureAtCoord = this.source.getClosestFeatureToCoordinate(
         evt.coordinate
       );
+      if (this.selectedLayer["name"] === "poi") {
+        if (
+          featureAtCoord &&
+          featureAtCoord.get("edit_type") === "d" &&
+          me.isInteractionOnProgress === false &&
+          !poisAoisStore.state.poisAois[featureAtCoord.get("category")]
+        ) {
+          me.edit.setActive(false);
+        } else {
+          me.edit.setActive(true);
+        }
+      }
       if (this.selectedLayer["name"] === "building") {
         if (
           featureAtCoord.length === 0 ||

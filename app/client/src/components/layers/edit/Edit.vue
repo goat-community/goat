@@ -1264,7 +1264,10 @@ export default {
             featuresToUpdate.push(featureOut);
           } else {
             featureOut.set("edit_type", "m");
-            featureOut.set(this.original_id, feature.getId());
+            featureOut.set(
+              this.original_id,
+              feature.get("uid") || feature.get("id")
+            );
             featuresToAdd.push(featureOut);
           }
         }
@@ -1857,8 +1860,12 @@ export default {
         // Modified an origin feature (has to be created as modified feature)
         featureOut.setProperties(this.dataObject);
         featureOut.set("edit_type", "m");
-        if (this.featuresToCommit[0].getId()) {
-          featureOut.set(this.original_id, this.featuresToCommit[0].getId());
+        if (this.featuresToCommit[0].get("id")) {
+          // For poi original_id is uid (another column)
+          const original_id_ =
+            this.featuresToCommit[0].get("uid") ||
+            this.featuresToCommit[0].get("id");
+          featureOut.set(this.original_id, original_id_);
         }
         this.createScenarioFeatures([featureOut]);
         this.editLayer.getSource().removeFeature(this.featuresToCommit[0]);
@@ -1870,8 +1877,11 @@ export default {
             featureOut.unset(prop);
           }
         });
-        if (this.featuresToCommit[0].getId()) {
-          featureOut.set(this.original_id, this.featuresToCommit[0].getId());
+        if (this.featuresToCommit[0].get("id")) {
+          const original_id_ =
+            this.featuresToCommit[0].get("uid") ||
+            this.featuresToCommit[0].get("id");
+          featureOut.set(this.original_id, original_id_);
         }
         featureOut.set("edit_type", "d");
         this.createScenarioFeatures([featureOut]);
