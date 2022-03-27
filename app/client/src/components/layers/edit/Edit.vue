@@ -638,7 +638,6 @@ export default {
   },
   mixins: [InteractionsToggle, Mapable, KeyShortcuts, Isochrones],
   data: () => ({
-    poiFeatures: [],
     interactionType: "edit-interaction",
     selectedFeatures: [],
     editableLayers: [],
@@ -689,7 +688,9 @@ export default {
     olSelectCtrl: null,
     editLayer: null,
     highlightLayer: null,
-    featuresToCommit: []
+    featuresToCommit: [],
+    // Cache for poi modified feature
+    poiModifiedFeatures: []
   }),
   watch: {
     activeScenario() {
@@ -790,26 +791,52 @@ export default {
     },
     "calculationMode.active": function() {
       this.editLayer.getSource().changed();
+    },
+    poisAois() {
+      // Add remove features.
+      if (this.selectedLayer && this.selectedLayer["name"] === "poi") {
+        this.syncPoiFeatures();
+      }
     }
   },
   mounted() {
     this.popup.el = this.$refs.popup;
-    // Clone pois features
-    this.poisAoisLayer
-      .getSource()
-      .getFeatures()
-      .forEach(feature => {
-        if (
-          !["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())
-        ) {
-          const clone = feature.clone();
-          clone.setId(feature.getId());
-          clone.set("layerName", "poi");
-          this.poiFeatures.push(clone);
-        }
-      });
   },
   methods: {
+    syncPoiFeatures() {
+      this.poisAoisLayer
+        .getSource()
+        .getFeatures()
+        .forEach(feature => {
+          if (
+            !["MultiPolygon", "Polygon"].includes(
+              feature.getGeometry().getType()
+            )
+          ) {
+            const category = feature.get("category");
+            const featureInEdit = this.editLayer
+              .getSource()
+              .getFeatureById(feature.get("id"));
+            const isFeatureActive = this.poisAois[category];
+            if (featureInEdit && !isFeatureActive) {
+              this.editLayer.getSource().removeFeature(featureInEdit);
+            } else if (!featureInEdit && isFeatureActive) {
+              let isFeatureModified = false;
+              this.poiModifiedFeatures.forEach(modifiedFeature => {
+                if (modifiedFeature.get("uid") === feature.get("uid")) {
+                  isFeatureModified = true;
+                }
+              });
+              if (!isFeatureModified) {
+                const clonedFeature = feature.clone();
+                clonedFeature.setId(feature.get("id"));
+                clonedFeature.set("layerName", "poi");
+                this.editLayer.getSource().addFeature(clonedFeature);
+              }
+            }
+          }
+        });
+    },
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
@@ -955,12 +982,13 @@ export default {
                 });
                 this.editLayer.getSource().addFeatures(features);
                 if (layer === "poi") {
+                  this.poiModifiedFeatures = features;
                   this.turnOnAndLockPoiTreeNode(features, "add");
                 }
               }
             });
             if (layer === "poi") {
-              this.editLayer.getSource().addFeatures(this.poiFeatures);
+              this.syncPoiFeatures();
             }
             this.onEditSourceChange();
           })
@@ -1942,6 +1970,7 @@ export default {
           });
           if (this.selectedLayer["name"] === "poi") {
             this.turnOnAndLockPoiTreeNode(featuresWithId, "add");
+            this.poiModifiedFeatures.push(...featuresWithId);
           }
           this.editLayer.getSource().addFeatures(featuresWithId);
           this.refreshHeatmap();
@@ -2058,9 +2087,34 @@ export default {
                 const props = featureIn.getProperties();
                 if (["m", "d"].includes(props.edit_type)) {
                   featureIn.unset("edit_type");
-                } else {
-                  this.editLayer.getSource().removeFeature(featureIn);
+                  if (this.selectedLayer["name"] === "poi") {
+                    // Find origin feature and add it here
+                    const originFeature = this.poisAoisLayer
+                      .getSource()
+                      .getFeatures()
+                      .filter(f => f.get("uid") === featureIn.get("uid"));
+                    if (
+                      Array.isArray(originFeature) &&
+                      originFeature.length > 0
+                    ) {
+                      const clonedFeature = originFeature[0].clone();
+                      clonedFeature.setId(originFeature[0].get("id"));
+                      clonedFeature.set("layerName", "poi");
+                      this.editLayer.getSource().addFeature(clonedFeature);
+                    }
+                    // Delete feature from pois modified features array
+                    this.poiModifiedFeatures.forEach(f => {
+                      if (f.get("uid") === featureIn.get("uid")) {
+                        this.poiModifiedFeatures.splice(
+                          this.poiModifiedFeatures.indexOf(f),
+                          1
+                        );
+                      }
+                    });
+                  }
                 }
+
+                this.editLayer.getSource().removeFeature(featureIn);
               }
             }
           });
@@ -2204,6 +2258,7 @@ export default {
     }),
     ...mapGetters("poisaois", {
       poisAoisLayer: "poisAoisLayer",
+      poisAois: "poisAois",
       selectedPoisOnlyKeys: "selectedPoisOnlyKeys"
     }),
     ...mapFields("poisaois", {

@@ -6,7 +6,6 @@ import VectorImageLayer from "ol/layer/VectorImage";
 import Overlay from "ol/Overlay.js";
 import { unByKey } from "ol/Observable";
 import i18n from "../../src/plugins/i18n";
-import poisAoisStore from "../store/modules/poisaois";
 
 /**
  * Class holding the OpenLayers related logic for the edit tool.
@@ -169,8 +168,7 @@ export default class OlEditController extends OlBaseController {
         if (
           featureAtCoord &&
           featureAtCoord.get("edit_type") === "d" &&
-          me.isInteractionOnProgress === false &&
-          !poisAoisStore.state.poisAois[featureAtCoord.get("category")]
+          me.isInteractionOnProgress === false
         ) {
           me.edit.setActive(false);
         } else {
