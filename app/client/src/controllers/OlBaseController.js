@@ -132,5 +132,6 @@ export default class OlBaseController {
       me.removeInteraction();
     }
     me.clearOverlays();
+    me.source.clear();
   }
 }

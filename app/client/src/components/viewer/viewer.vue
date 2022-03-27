@@ -155,7 +155,7 @@ export default {
 
 .miniviewer-button {
   position: absolute;
-  top: 150px;
+  top: 190px;
   left: 8px;
   z-index: 1;
 }

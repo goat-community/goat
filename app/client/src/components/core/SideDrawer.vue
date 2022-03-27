@@ -163,7 +163,6 @@ import UserDataUpload from "./UserDataUpload";
 import Settings from "./Settings";
 import About from "./About";
 import Print from "../print/Print";
-import DrawAndMeasure from "../drawAndMeasure/DrawAndMeasure";
 import Filter from "../layers/filter/Filter";
 import Edit from "../layers/edit/Edit";
 import Language from "./Language";
@@ -175,7 +174,6 @@ export default {
     "user-settings": UserSettings,
     "user-data-upload": UserDataUpload,
     "map-print": Print,
-    "map-draw-measure": DrawAndMeasure,
     "map-filter": Filter,
     "map-edit": Edit,
     "app-settings": Settings,
