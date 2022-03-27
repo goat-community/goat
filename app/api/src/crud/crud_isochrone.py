@@ -3,6 +3,7 @@ import io
 import os
 import shutil
 import uuid
+import json
 from typing import Any
 
 import pandas as pd
@@ -30,6 +31,7 @@ from src.schemas.isochrone import (
 from src.crud.base import CRUDBase
 from src.utils import delete_dir
 from src.resources.enums import IsochroneTypes
+import xlsxwriter
 
 class CRUDIsochroneCalculation(
     CRUDBase[models.IsochroneCalculation, models.IsochroneCalculation, models.IsochroneCalculation]
@@ -413,7 +415,7 @@ class CRUDIsochrone:
 
         sql = text(
             """
-            SELECT f.isochrone_calculation_id, f.id, c.modus, c.routing_profile, f.step AS seconds, f.reached_opportunities, f.geom, c.creation_date::text 
+            SELECT f.step AS seconds, f.id, c.modus, c.routing_profile, f.reached_opportunities, f.geom
             FROM customer.isochrone_calculation c, customer.isochrone_feature f
             WHERE c.id = f.isochrone_calculation_id
             AND c.id = :isochrone_calculation_id
@@ -430,21 +432,49 @@ class CRUDIsochrone:
                 "isochrone_calculation_id": isochrone_calculation_id,
             },
         )
+    
         gdf = pd.concat([gdf, pd.json_normalize(gdf["reached_opportunities"])], axis=1, join="inner")
+        gdf["seconds"] = round(gdf["seconds"] / 60).astype(int)
+        gdf = gdf.rename(columns={"seconds": "minutes"})
+        # Preliminary fix for tranlation POIs categories
+        ########################################################################################################################
+        if current_user.language_preference == "de":
+            with open("/app/src/resources/poi_de.json") as json_file:
+                translation_dict = json.load(json_file)
+        else:
+            with open("/app/src/resources/poi_en.json") as json_file:
+                translation_dict = json.load(json_file)
+        updated_columns = []
+        for column in gdf.columns:
+            if column in translation_dict:
+                updated_columns.append(translation_dict[column])
+            else:
+                updated_columns.append(column)
+        gdf.columns = updated_columns
+        ########################################################################################################################
+
         defined_uuid = uuid.uuid4().hex
         file_name = "isochrone_export"
         file_dir = f"/tmp/{defined_uuid}"
 
         os.makedirs(file_dir+"/export")
         os.chdir(file_dir+"/export")
-
+ 
         if return_type == IsochroneExportType.geojson:
             gdf.to_file(file_name + '.' + IsochroneExportType.geojson.name, driver=IsochroneExportType.geojson.value)
         elif return_type == IsochroneExportType.shp:
             gdf.to_file(file_name + '.' + IsochroneExportType.shp.name, driver=IsochroneExportType.shp.value)
         elif return_type == IsochroneExportType.xlsx:
             gdf = gdf.drop(["reached_opportunities", "geom"], axis=1)
-            gdf.transpose().to_excel(file_name + '.' + IsochroneExportType.xlsx.name)
+            writer = pd.ExcelWriter(file_name + '.' + IsochroneExportType.xlsx.name, engine='xlsxwriter')
+            gdf_transposed = gdf.transpose()
+            gdf_transposed.columns = [str(c) +  ' ' + translation_dict["minutes"] for c in list(gdf["Minutes"])]
+            gdf_transposed[1:].to_excel(writer, sheet_name='Results')
+            workbook  = writer.book
+            worksheet = writer.sheets['Results']
+            worksheet.set_column(0, 0, 35, None)
+            worksheet.set_column(1, gdf.shape[0], 25, None)           
+            writer.save()
 
         os.chdir(file_dir)
         shutil.make_archive(file_name, "zip", file_dir+"/export")
