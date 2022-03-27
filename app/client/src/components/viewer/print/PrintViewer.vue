@@ -89,8 +89,8 @@ export default {
   data() {
     return {
       mapSideSheetSize: 65, // in mm. The sheet area for legend, title and logos. (right or bottom)
-      logoGoat: "img/logo_green.png",
-      logoP4B: "img/p4b_logo.png",
+      logoGoat: "img/goat_standard.svg",
+      logoP4B: "img/plan4better_standard.svg",
       rotationIcon: "img/north_arrow.png"
     };
   },
