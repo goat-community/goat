@@ -1415,6 +1415,7 @@ export default {
           calculationNumber: calculationNumber
         });
         isochroneMarkerFeature.setId("isochrone_marker_" + calculationNumber);
+        isochroneMarkerFeature.set("showLabel", false);
         this.isochroneLayer.getSource().addFeature(isochroneMarkerFeature);
         this.calculateIsochrone(payloadSingle)
           .then(() => {})
@@ -1436,6 +1437,7 @@ export default {
      * Calculate isochrone .
      * Collects data and passes it to corresponding objects.
      * @param  {Object} parameters The parameters for the isochrone calculation
+     * @param  {ol/Feature} isochroneMarkerFeature The starting point for the isochrone calculation (Optional)
      */
     calculateIsochrone(params) {
       const type = this.type;
@@ -1532,6 +1534,7 @@ export default {
                 feature.set("color", color);
                 feature.set("calculationType", type);
                 feature.set("hoverColor", "");
+                feature.set("showLabel", false);
                 calculationData.push(obj);
               });
               let transformedData = {
@@ -1566,9 +1569,12 @@ export default {
               }
               if (type === "single") {
                 //TODO: Get start point from response
-                const startPointCoord = this.isochroneLayer
+                const markerFeature = this.isochroneLayer
                   .getSource()
-                  .getFeatureById("isochrone_marker_" + calculationNumber)
+                  .getFeatureById("isochrone_marker_" + calculationNumber);
+                markerFeature.set("speed", speed);
+                markerFeature.set("routing", routing);
+                const startPointCoord = markerFeature
                   .getGeometry()
                   .getCoordinates();
                 const wgs84Coord = toLonLat(startPointCoord);

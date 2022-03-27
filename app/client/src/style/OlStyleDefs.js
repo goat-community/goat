@@ -11,6 +11,7 @@ import poisAoisStore from "../store/modules/poisaois";
 import appStore from "../store/modules/app";
 import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
 import { getIconUnicode } from "../utils/Helpers";
+import Point from "ol/geom/Point";
 
 OlFontSymbol.addDefs(
   {
@@ -143,6 +144,17 @@ export function getIsochroneNetworkStyle() {
   return styleFunction;
 }
 
+const routingIconUnicodes = {
+  walking_standard: "fas fa-person-walking",
+  walking_elderly: "fas fa-person-walking",
+  walking_safe_night: "fas fa-person-walking",
+  cycling_standard: "fas fa-bicycle",
+  cycling_pedelec: "fas fa-bicycle",
+  walking_wheelchair: "fas fa-wheelchair",
+  walking_wheelchair_standard: "fas fa-wheelchair",
+  walking_wheelchair_electric: "fas fa-wheelchair"
+};
+
 export function getIsochroneStyle() {
   const styleFunction = feature => {
     // Style array
@@ -218,6 +230,57 @@ export function getIsochroneStyle() {
 
         styles.push(style);
       }
+      if (feature.get("showLabel")) {
+        if (geomType !== ["Polygon", "LineString"]) {
+          styles.push(
+            new OlStyle({
+              geometry: feature => {
+                const coordinates = feature
+                  .getGeometry()
+                  .getCoordinates()[0][0];
+                let maxY = null;
+                let index = null;
+                // Find max coordinate Y
+                coordinates.forEach(coordinate => {
+                  if (maxY === null || coordinate[1] > maxY) {
+                    maxY = coordinate[1];
+                    index = coordinates.indexOf(coordinate);
+                  }
+                });
+                const center = coordinates[index];
+                return new Point(center);
+              },
+              text: new OlText({
+                text: Math.round(feature.get("step") / 60) + " min",
+                font: "bold 16px Arial",
+                placement: "point",
+                fill: new OlFill({
+                  color: "white"
+                }),
+                maxAngle: 0,
+                backgroundFill: new OlFill({
+                  color: feature.get("color")
+                }),
+                padding: [2, 2, 2, 2]
+              })
+            })
+          );
+        } else {
+          styles.push(
+            new OlStyle({
+              text: new OlText({
+                text: Math.round(feature.get("step") / 60) + " min",
+                font: "bold 16px Arial",
+                placement: "line",
+                fill: new OlFill({
+                  color: feature.get("color")
+                }),
+                maxAngle: 0
+              })
+            })
+          );
+        }
+      }
     } else {
       let path = `img/markers/marker-${feature.get("calculationNumber")}.png`;
       let markerStyle = new OlStyle({
@@ -228,6 +291,55 @@ export function getIsochroneStyle() {
         })
       });
       styles.push(markerStyle);
+      if (feature.get("showLabel") && feature.get("routing")) {
+        let routingUnicode;
+        if (routingIconUnicodes[feature.get("routing")]) {
+          routingUnicode =
+            FA_DEFINITIONS[routingIconUnicodes[feature.get("routing")]];
+        } else {
+          routingUnicode = feature.get("routing");
+        }
+        styles.push(
+          new OlStyle({
+            text: new OlText({
+              text: `  ${feature.get("speed")} km/h`,
+              font: "bold 14px Arial",
+              scale: 1.2,
+              textAlign: "left",
+              placement: "point",
+              fill: new OlFill({
+                color: "white"
+              }),
+              maxAngle: 0,
+              backgroundFill: new OlFill({
+                color: "#800000"
+              }),
+              padding: [3, 3, 3, 3],
+              offsetX: 38,
+              offsetY: -27
+            })
+          }),
+          new OlStyle({
+            text: new OlText({
+              text: `${routingUnicode}`,
+              font: "16px FontAwesome",
+              scale: 1.2,
+              textAlign: "left",
+              placement: "point",
+              fill: new OlFill({
+                color: "white"
+              }),
+              maxAngle: 0,
+              backgroundFill: new OlFill({
+                color: "#800000"
+              }),
+              padding: [3, 3, 3, 3],
+              offsetX: 17,
+              offsetY: -27
+            })
+          })
+        );
+      }
     }
     return styles;
   };
