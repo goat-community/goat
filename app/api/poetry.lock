@@ -1578,10 +1578,18 @@ category = "main"
 optional = false
 python-versions = ">=3.6.1"
 
+[[package]]
+name = "xlsxwriter"
+version = "3.0.3"
+description = "A Python module for creating Excel XLSX files."
+category = "main"
+optional = false
+python-versions = ">=3.4"
+
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "64edaf50183b61ed778378a2cbf0cdc31b595112ce6e6290172dd3147fcc6251"
+content-hash = "30193c1d534c47c3c7a892bff7adcfea206fded5204688e2a23f01b061d8ded8"
 
 [metadata.files]
 affine = [
@@ -2733,4 +2741,8 @@ websockets = [
     {file = "websockets-8.1-cp38-cp38-win32.whl", hash = "sha256:e898a0863421650f0bebac8ba40840fc02258ef4714cb7e1fd76b6a6354bda36"},
     {file = "websockets-8.1-cp38-cp38-win_amd64.whl", hash = "sha256:f8a7bff6e8664afc4e6c28b983845c5bc14965030e3fb98789734d416af77c4b"},
     {file = "websockets-8.1.tar.gz", hash = "sha256:5c65d2da8c6bce0fca2528f69f44b2f977e06954c8512a952222cea50dad430f"},
+]
+xlsxwriter = [
+    {file = "XlsxWriter-3.0.3-py3-none-any.whl", hash = "sha256:df0aefe5137478d206847eccf9f114715e42aaea077e6a48d0e8a2152e983010"},
+    {file = "XlsxWriter-3.0.3.tar.gz", hash = "sha256:e89f4a1d2fa2c9ea15cde77de95cd3fd8b0345d0efb3964623f395c8c4988b7f"},
 ]

@@ -1,30 +1,24 @@
 import json
-from typing import Any
+import os
+import shutil
+import uuid
+from tempfile import NamedTemporaryFile
+from typing import IO, Any
 
-from fastapi import APIRouter, Body, Depends, HTTPException, UploadFile, Header
+from fastapi import APIRouter, Body, Depends, Header, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
-from src.resources.enums import MaxUploadFileSize
+from starlette import status
+
 from src import crud, schemas
 from src.crud.crud_customization import dynamic_customization
 from src.db import models
 from src.endpoints import deps
+from src.resources.enums import MaxUploadFileSize
 from src.schemas.upload import request_examples
-from typing import IO
-
-from tempfile import NamedTemporaryFile
-import shutil, uuid, os
-from fastapi import Header, Depends, UploadFile, HTTPException
-from starlette import status
 from src.utils import delete_file
 
 router = APIRouter()
-
-
-async def valid_content_length(
-    content_length: int = Header(..., lt=MaxUploadFileSize.max_upload_poi_file_size)
-):
-    return content_length
 
 
 @router.get("/poi")
@@ -57,7 +51,7 @@ async def get_custom_pois(
                 "upload_size": obj.upload_size,
                 "creation_date": str(obj.creation_date),
                 "state": state,
-                "reached_poi_heatmap_computed": obj.reached_poi_heatmap_computed
+                "reached_poi_heatmap_computed": obj.reached_poi_heatmap_computed,
             }
 
             response_objs.append(obj_dict)
@@ -85,12 +79,13 @@ async def upload_custom_pois(
         real_file_size += len(chunk)
         if real_file_size > MaxUploadFileSize.max_upload_poi_file_size.value:
             temp.close()
+            delete_file(temp.name)
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail="The uploaded file size is to big the largest allowd size is %s MB."
                 % round(MaxUploadFileSize.max_upload_poi_file_size / 1024.0 ** 2, 2),
             )
-            
+
         temp.write(chunk)
     temp.close()
 
@@ -140,7 +135,9 @@ async def delete_custom_pois(
 ) -> Any:
 
     """Delete custom pois."""
-    data_upload_obj = await crud.data_upload.get_by_multi_keys(db, keys={"id": data_upload_id, "user_id": current_user.id})
+    data_upload_obj = await crud.data_upload.get_by_multi_keys(
+        db, keys={"id": data_upload_id, "user_id": current_user.id}
+    )
     if data_upload_obj == []:
         raise HTTPException(status_code=400, detail="Data Upload not found.")
 
