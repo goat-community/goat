@@ -225,6 +225,7 @@ export default class OlEditController extends OlBaseController {
       element: me.popup.el.$el,
       autoPan: true,
       autoPanMargin: 40,
+      positioning: "bottom-left",
       autoPanAnimation: {
         duration: 250
       }

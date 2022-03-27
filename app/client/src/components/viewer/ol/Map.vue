@@ -498,6 +498,7 @@ export default {
         element: me.$refs.popup.$el,
         autoPan: false,
         autoPanMargin: 40,
+        positioning: "bottom-left",
         autoPanAnimation: {
           duration: 250
         }
