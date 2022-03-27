@@ -108,7 +108,11 @@ export default {
     },
     layerAttributes() {
       let a = {};
-      this.layerConfigList.forEach(layer => {
+      const attributeLayers = [
+        ...this.layerConfigList,
+        ...this.appConfig.extra_source
+      ];
+      attributeLayers.forEach(layer => {
         if (
           (layer.attributes &&
             layer.attributes.source &&
@@ -129,7 +133,8 @@ export default {
       return a;
     },
     ...mapGetters("app", {
-      appColor: "appColor"
+      appColor: "appColor",
+      appConfig: "appConfig"
     }),
     ...mapGetters("map", {
       layerConfigList: "layerConfigList"

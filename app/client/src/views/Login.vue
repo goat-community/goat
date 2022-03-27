@@ -186,7 +186,7 @@ export default {
         }
         this.loading = true;
         const formData = new FormData();
-        formData.append("username", this.email);
+        formData.append("username", this.email.toLowerCase());
         formData.append("password", this.password);
         this.$store.dispatch(`auth/${LOGIN}`, formData).then(
           () => {

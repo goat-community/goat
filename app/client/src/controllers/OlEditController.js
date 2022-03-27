@@ -36,12 +36,13 @@ export default class OlEditController extends OlBaseController {
       case "add": {
         let geometryType = this.selectedLayer["editGeometry"];
         me.edit = new Draw({
-          source: me.source,
           type: geometryType[0]
         });
         me.edit.on("drawstart", startCb);
         me.edit.on("drawend", endCb);
-        me.snap = new Snap({ source: me.source });
+        if (this.selectedLayer["name"] !== "poi") {
+          me.snap = new Snap({ source: me.source });
+        }
         me.currentInteraction = "draw";
 
         me.helpMessage = i18n.t(
@@ -160,9 +161,20 @@ export default class OlEditController extends OlBaseController {
         this.currentInteraction
       )
     ) {
-      const featureAtCoord = this.source.getFeaturesAtCoordinate(
+      const featureAtCoord = this.source.getClosestFeatureToCoordinate(
         evt.coordinate
       );
+      if (this.selectedLayer["name"] === "poi") {
+        if (
+          featureAtCoord &&
+          featureAtCoord.get("edit_type") === "d" &&
+          me.isInteractionOnProgress === false
+        ) {
+          me.edit.setActive(false);
+        } else {
+          me.edit.setActive(true);
+        }
+      }
       if (this.selectedLayer["name"] === "building") {
         if (
           featureAtCoord.length === 0 ||
@@ -224,6 +236,7 @@ export default class OlEditController extends OlBaseController {
       element: me.popup.el.$el,
       autoPan: true,
       autoPanMargin: 40,
+      positioning: "bottom-left",
       autoPanAnimation: {
         duration: 250
       }

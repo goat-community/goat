@@ -377,6 +377,13 @@
       "title": "Farbe der Isochrone"
     }
   },
+  "heatmaps": {
+    "title": "Heatmaps",
+    "recomputeHeatmap": "Neuberechnung",
+    "recomputingHeatmaps": "Neuberechnung von Heatmaps",
+    "heatmapComputedSuccessfully": "Heatmap erfolgreich berechnet",
+    "heatmapComputationFailed": "Heatmap-Berechnung fehlgeschlagen"
+  },
   "poisFilter": {
     "showTimeFilter": "Zeitlichen Filter hinzufügen",
     "selectHourLabel": "Uhrzeit wählen",
@@ -436,7 +443,7 @@
       "freiburg_laerm_strasse_tag": "Lärm Hauptstraßen (Tag)",
       "freiburg_grundschulbezirke": "Grundschulbezirke",
       "freiburg_flaechennutzungsplan": "Flächennutzungsplan",
-      "freiburg_streetmap": "Freiburg Streetmap",
+      "pois_aois_layer": "Point of Interest",
       "freiburg_heatmap_radverkehr": "Heatmap Radverkehr",
       "bayern_biotop_kartierung": "Bayern Biotop Kartierung",
       "bayern_laerm_hauptverkehrsstrassen": "Lärm Hauptverkehrsstraßen",
@@ -912,9 +919,7 @@
       "liveliness": "Gehumgebung & Belebtheit",
       "data_quality": "Daten Qualität",
       "comfort": "Urbane Austattung",
-      "sum_total": [
-        "<b>GESAMT WALKABILITY SCORE</b>"
-      ],
+      "sum_total": ["<b>GESAMT WALKABILITY SCORE</b>"],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index",
       "sidewalk": "Gehwegverfügbarkeit",

@@ -289,7 +289,7 @@ export default {
           let obj = pois[key];
           for (const prop in obj) {
             this.isochroneSteps.push({
-              display: `${prop / 60} min`,
+              display: `${Math.round(prop / 60)} min`,
               value: `${prop}`
             });
           }
