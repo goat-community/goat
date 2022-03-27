@@ -7,6 +7,7 @@
       :color="appColor.primary"
     />
     <full-screen v-show="!miniViewOlMap" :color="appColor.primary" />
+    <measure v-show="!miniViewOlMap" :color="appColor.primary" />
     <progress-status />
     <background-switcher v-show="!miniViewOlMap" />
     <!-- Popup overlay  -->
@@ -187,6 +188,7 @@ import MapLoadingProgressStatus from "./controls/MapLoadingProgressStatus";
 import BackgroundSwitcher from "./controls/BackgroundSwitcher";
 import ZoomControl from "./controls/ZoomControl";
 import FullScreen from "./controls/Fullscreen";
+import Measure from "./controls/Measure";
 import DoubleClickZoom from "ol/interaction/DoubleClickZoom";
 
 import { defaults as defaultControls, Attribution } from "ol/control";
@@ -208,7 +210,8 @@ export default {
     "background-switcher": BackgroundSwitcher,
     "zoom-control": ZoomControl,
     "full-screen": FullScreen,
-    "indicators-chart": IndicatorsChart
+    "indicators-chart": IndicatorsChart,
+    measure: Measure
   },
   name: "app-ol-map",
   props: {
@@ -498,6 +501,7 @@ export default {
         element: me.$refs.popup.$el,
         autoPan: false,
         autoPanMargin: 40,
+        positioning: "bottom-left",
         autoPanAnimation: {
           duration: 250
         }

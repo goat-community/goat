@@ -43,6 +43,7 @@ schedule = "^1.1.0"
 geobuf = "^1.1.1"
 schema = "^0.7.5"
 openpyxl = "^3.0.9"
+XlsxWriter = "^3.0.3"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.770"

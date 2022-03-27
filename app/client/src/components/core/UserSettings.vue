@@ -7,7 +7,7 @@
         <v-col justify="center" align="center" cols="4">
           <v-row no-gutters justify="center" align="center" class="fill-height">
             <v-avatar size="60">
-              <v-icon class="fas fa-mountains"></v-icon>
+              <v-icon large class="fa-solid fa-user"></v-icon>
             </v-avatar>
           </v-row>
         </v-col>
@@ -15,9 +15,14 @@
         <v-col cols="8">
           <v-row no-gutters align="center" class="fill-height">
             <p class="mb-0 header-name">
-              {{ `${user.name}, ${user.surname}` }}
+              {{
+                `${user.name || userCopy.name}, ${user.surname ||
+                  userCopy.surname}`
+              }}
             </p>
-            <p class="mb-0 sub-header">{{ `${user.email}` }}</p>
+            <p class="mb-0 sub-header">
+              {{ `${user.email || userCopy.email}` }}
+            </p>
           </v-row>
         </v-col>
       </v-row>
@@ -76,7 +81,11 @@
       <v-divider></v-divider>
       <p class="mt-5 mb-1 sub-header">
         {{ (uploadedStorageSize / 1024).toFixed(2)
-        }}{{ $t("userSettings.mbOf") }} {{ parseInt(user.storage / 1024)
+        }}{{ $t("userSettings.mbOf") }}
+        {{
+          parseInt(
+            user.storage ? user.storage / 1024 : userCopy.storage / 1024
+          )
         }}{{ $t("userSettings.mbUsed") }}
       </p>
       <v-progress-linear
@@ -110,7 +119,8 @@ export default {
       { flag: "de", language: "de", title: "Deutsch" }
     ],
     interactionType: "languageChange",
-    studyAreaId: null
+    studyAreaId: null,
+    userCopy: {}
   }),
   computed: {
     ...mapGetters("auth", { user: "currentUser" }),
@@ -190,6 +200,7 @@ export default {
   },
   created() {
     this.studyAreaId = this.user.active_study_area_id;
+    this.userCopy = JSON.parse(JSON.stringify(this.user)); // Workaround for logout clean
   }
 };
 </script>

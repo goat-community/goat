@@ -52,7 +52,7 @@ const IsochroneUtils = {
       let obj = {
         isochrone: `${IsochroneUtils.getIsochroneAliasFromKey(
           feature.get("modus")
-        )} - ${feature.get("step") / 60} min`
+        )} - ${Math.round(feature.get("step") / 60)} min`
       };
       const populationObj = feature.get("reached_opportunities");
       if (

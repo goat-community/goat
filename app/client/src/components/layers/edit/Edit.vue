@@ -638,7 +638,6 @@ export default {
   },
   mixins: [InteractionsToggle, Mapable, KeyShortcuts, Isochrones],
   data: () => ({
-    poiFeatures: [],
     interactionType: "edit-interaction",
     selectedFeatures: [],
     editableLayers: [],
@@ -689,7 +688,9 @@ export default {
     olSelectCtrl: null,
     editLayer: null,
     highlightLayer: null,
-    featuresToCommit: []
+    featuresToCommit: [],
+    // Cache for poi modified feature
+    poiModifiedFeatures: []
   }),
   watch: {
     activeScenario() {
@@ -738,19 +739,33 @@ export default {
       }
     },
     toggleSelection: {
-      handler(state) {
+      handler(state, oldState) {
         if (state !== undefined) {
           this.olEditCtrl.removeInteraction();
           this.toggleEdit = undefined;
+          if (oldState !== undefined) {
+            this.olSelectCtrl.removeInteraction();
+            EventBus.$emit("ol-interaction-stoped", this.interactionType);
+            if (this.map.getTarget().style) {
+              this.map.getTarget().style.cursor = "";
+            }
+          }
           this.toggleSelectInteraction(state);
         }
       }
     },
     toggleEdit: {
-      handler(state) {
+      handler(state, oldState) {
+        this.olSelectCtrl.removeInteraction();
+        this.toggleSelection = undefined;
+        if (oldState !== undefined) {
+          this.olEditCtrl.removeInteraction();
+          EventBus.$emit("ol-interaction-stoped", this.interactionType);
+          if (this.map.getTarget().style) {
+            this.map.getTarget().style.cursor = "";
+          }
+        }
         if (state !== undefined) {
-          this.olSelectCtrl.removeInteraction();
-          this.toggleSelection = undefined;
           this.toggleEditInteraction(state);
         }
       }
@@ -776,26 +791,52 @@ export default {
     },
     "calculationMode.active": function() {
       this.editLayer.getSource().changed();
+    },
+    poisAois() {
+      // Add remove features.
+      if (this.selectedLayer && this.selectedLayer["name"] === "poi") {
+        this.syncPoiFeatures();
+      }
     }
   },
   mounted() {
     this.popup.el = this.$refs.popup;
-    // Clone pois features
-    this.poisAoisLayer
-      .getSource()
-      .getFeatures()
-      .forEach(feature => {
-        if (
-          !["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())
-        ) {
-          const clone = feature.clone();
-          clone.setId(feature.getId());
-          clone.set("layerName", "poi");
-          this.poiFeatures.push(clone);
-        }
-      });
   },
   methods: {
+    syncPoiFeatures() {
+      this.poisAoisLayer
+        .getSource()
+        .getFeatures()
+        .forEach(feature => {
+          if (
+            !["MultiPolygon", "Polygon"].includes(
+              feature.getGeometry().getType()
+            )
+          ) {
+            const category = feature.get("category");
+            const featureInEdit = this.editLayer
+              .getSource()
+              .getFeatureById(feature.get("id"));
+            const isFeatureActive = this.poisAois[category];
+            if (featureInEdit && !isFeatureActive) {
+              this.editLayer.getSource().removeFeature(featureInEdit);
+            } else if (!featureInEdit && isFeatureActive) {
+              let isFeatureModified = false;
+              this.poiModifiedFeatures.forEach(modifiedFeature => {
+                if (modifiedFeature.get("uid") === feature.get("uid")) {
+                  isFeatureModified = true;
+                }
+              });
+              if (!isFeatureModified) {
+                const clonedFeature = feature.clone();
+                clonedFeature.setId(feature.get("id"));
+                clonedFeature.set("layerName", "poi");
+                this.editLayer.getSource().addFeature(clonedFeature);
+              }
+            }
+          }
+        });
+    },
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
@@ -941,12 +982,13 @@ export default {
                 });
                 this.editLayer.getSource().addFeatures(features);
                 if (layer === "poi") {
+                  this.poiModifiedFeatures = features;
                   this.turnOnAndLockPoiTreeNode(features, "add");
                 }
               }
             });
             if (layer === "poi") {
-              this.editLayer.getSource().addFeatures(this.poiFeatures);
+              this.syncPoiFeatures();
             }
             this.onEditSourceChange();
           })
@@ -1250,7 +1292,10 @@ export default {
             featuresToUpdate.push(featureOut);
           } else {
             featureOut.set("edit_type", "m");
-            featureOut.set(this.original_id, feature.getId());
+            featureOut.set(
+              this.original_id,
+              feature.get("uid") || feature.get("id")
+            );
             featuresToAdd.push(featureOut);
           }
         }
@@ -1269,6 +1314,7 @@ export default {
      */
     onDrawEnd(evt) {
       const feature = evt.feature;
+      this.editLayer.getSource().addFeature(feature);
       this.clearDataObject();
       //Disable interaction until user fills the attributes for the feature and closes the popup
       if (this.olEditCtrl.edit) {
@@ -1842,8 +1888,12 @@ export default {
         // Modified an origin feature (has to be created as modified feature)
         featureOut.setProperties(this.dataObject);
         featureOut.set("edit_type", "m");
-        if (this.featuresToCommit[0].getId()) {
-          featureOut.set(this.original_id, this.featuresToCommit[0].getId());
+        if (this.featuresToCommit[0].get("id")) {
+          // For poi original_id is uid (another column)
+          const original_id_ =
+            this.featuresToCommit[0].get("uid") ||
+            this.featuresToCommit[0].get("id");
+          featureOut.set(this.original_id, original_id_);
         }
         this.createScenarioFeatures([featureOut]);
         this.editLayer.getSource().removeFeature(this.featuresToCommit[0]);
@@ -1855,8 +1905,11 @@ export default {
             featureOut.unset(prop);
           }
         });
-        if (this.featuresToCommit[0].getId()) {
-          featureOut.set(this.original_id, this.featuresToCommit[0].getId());
+        if (this.featuresToCommit[0].get("id")) {
+          const original_id_ =
+            this.featuresToCommit[0].get("uid") ||
+            this.featuresToCommit[0].get("id");
+          featureOut.set(this.original_id, original_id_);
         }
         featureOut.set("edit_type", "d");
         this.createScenarioFeatures([featureOut]);
@@ -1917,6 +1970,7 @@ export default {
           });
           if (this.selectedLayer["name"] === "poi") {
             this.turnOnAndLockPoiTreeNode(featuresWithId, "add");
+            this.poiModifiedFeatures.push(...featuresWithId);
           }
           this.editLayer.getSource().addFeatures(featuresWithId);
           this.refreshHeatmap();
@@ -2033,9 +2087,34 @@ export default {
                 const props = featureIn.getProperties();
                 if (["m", "d"].includes(props.edit_type)) {
                   featureIn.unset("edit_type");
-                } else {
-                  this.editLayer.getSource().removeFeature(featureIn);
+                  if (this.selectedLayer["name"] === "poi") {
+                    // Find origin feature and add it here
+                    const originFeature = this.poisAoisLayer
+                      .getSource()
+                      .getFeatures()
+                      .filter(f => f.get("uid") === featureIn.get("uid"));
+                    if (
+                      Array.isArray(originFeature) &&
+                      originFeature.length > 0
+                    ) {
+                      const clonedFeature = originFeature[0].clone();
+                      clonedFeature.setId(originFeature[0].get("id"));
+                      clonedFeature.set("layerName", "poi");
+                      this.editLayer.getSource().addFeature(clonedFeature);
+                    }
+                    // Delete feature from pois modified features array
+                    this.poiModifiedFeatures.forEach(f => {
+                      if (f.get("uid") === featureIn.get("uid")) {
+                        this.poiModifiedFeatures.splice(
+                          this.poiModifiedFeatures.indexOf(f),
+                          1
+                        );
+                      }
+                    });
+                  }
                 }
+
+                this.editLayer.getSource().removeFeature(featureIn);
               }
             }
           });
@@ -2179,6 +2258,7 @@ export default {
     }),
     ...mapGetters("poisaois", {
       poisAoisLayer: "poisAoisLayer",
+      poisAois: "poisAois",
       selectedPoisOnlyKeys: "selectedPoisOnlyKeys"
     }),
     ...mapFields("poisaois", {

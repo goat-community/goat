@@ -505,6 +505,31 @@
                       <template v-slot:activator="{ on }">
                         <div
                           v-if="
+                            calculation.calculationMode === 'default' ||
+                              calculation.calculationMode === 'comparison'
+                          "
+                          @click.stop="
+                            toggleColorPickerDialog(calculation, 'default')
+                          "
+                          v-on="on"
+                          class="my-1 mx-2 colorPalettePicker"
+                          :style="{
+                            backgroundImage: `linear-gradient(to right, ${getPaletteColor(
+                              calculation,
+                              'default'
+                            )})`
+                          }"
+                        ></div>
+                      </template>
+                      <span>{{
+                        $t(`map.tooltips.changeDefaultColorPalette`)
+                      }}</span>
+                    </v-tooltip>
+
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on }">
+                        <div
+                          v-if="
                             calculation.calculationMode === 'scenario' ||
                               calculation.calculationMode === 'comparison'
                           "
@@ -526,30 +551,6 @@
                       }}</span>
                     </v-tooltip>
 
-                    <v-tooltip top>
-                      <template v-slot:activator="{ on }">
-                        <div
-                          v-if="
-                            calculation.calculationMode === 'default' ||
-                              calculation.calculationMode === 'comparison'
-                          "
-                          @click.stop="
-                            toggleColorPickerDialog(calculation, 'default')
-                          "
-                          v-on="on"
-                          class="my-1 mx-2 colorPalettePicker"
-                          :style="{
-                            backgroundImage: `linear-gradient(to right, ${getPaletteColor(
-                              calculation,
-                              'default'
-                            )})`
-                          }"
-                        ></div>
-                      </template>
-                      <span>{{
-                        $t(`map.tooltips.changeDefaultColorPalette`)
-                      }}</span>
-                    </v-tooltip>
                     <v-icon
                       small
                       class="ml-2"
@@ -647,7 +648,11 @@
                       <v-switch
                         class="mt-2 ml-1"
                         dense
+                        @change="toggleStudyArea($event, calculation)"
                         :color="appColor.secondary"
+                        :input-value="
+                          getStudyAreaToggleSwitchState(calculation)
+                        "
                         hide-details
                       >
                         <template v-slot:label>
@@ -1410,6 +1415,7 @@ export default {
           calculationNumber: calculationNumber
         });
         isochroneMarkerFeature.setId("isochrone_marker_" + calculationNumber);
+        isochroneMarkerFeature.set("showLabel", false);
         this.isochroneLayer.getSource().addFeature(isochroneMarkerFeature);
         this.calculateIsochrone(payloadSingle)
           .then(() => {})
@@ -1431,6 +1437,7 @@ export default {
      * Calculate isochrone .
      * Collects data and passes it to corresponding objects.
      * @param  {Object} parameters The parameters for the isochrone calculation
+     * @param  {ol/Feature} isochroneMarkerFeature The starting point for the isochrone calculation (Optional)
      */
     calculateIsochrone(params) {
       const type = this.type;
@@ -1514,7 +1521,7 @@ export default {
                     : this.$t(`isochrones.mode.${modus.toLowerCase()}`),
                   isochrone_calculation_id: isochroneCalculationUid,
                   modus: modus,
-                  range: feature.get("step") / 60 + " min",
+                  range: Math.round(feature.get("step") / 60) + " min",
                   color: color,
                   area: getPolygonArea(feature.getGeometry()),
                   population:
@@ -1527,6 +1534,7 @@ export default {
                 feature.set("color", color);
                 feature.set("calculationType", type);
                 feature.set("hoverColor", "");
+                feature.set("showLabel", false);
                 calculationData.push(obj);
               });
               let transformedData = {
@@ -1561,9 +1569,12 @@ export default {
               }
               if (type === "single") {
                 //TODO: Get start point from response
-                const startPointCoord = this.isochroneLayer
+                const markerFeature = this.isochroneLayer
                   .getSource()
-                  .getFeatureById("isochrone_marker_" + calculationNumber)
+                  .getFeatureById("isochrone_marker_" + calculationNumber);
+                markerFeature.set("speed", speed);
+                markerFeature.set("routing", routing);
+                const startPointCoord = markerFeature
                   .getGeometry()
                   .getCoordinates();
                 const wgs84Coord = toLonLat(startPointCoord);
@@ -1591,6 +1602,7 @@ export default {
                     });
                     this.calculations.unshift(transformedData);
                     this.isochroneLayer.getSource().addFeatures(olFeatures);
+
                     this.toggleIsochroneWindow(true, transformedData);
                     this.isOptionsElVisible = false;
                   });
@@ -1599,6 +1611,19 @@ export default {
                 this.calculations.forEach(calculation => {
                   calculation.isExpanded = false;
                 });
+                transformedData.additionalData["features"] = [];
+                this.multiIsochroneSelectionLayer
+                  .getSource()
+                  .getFeatures()
+                  .forEach(feature => {
+                    const clonedFeature = feature.clone();
+                    transformedData.additionalData["features"].push(
+                      clonedFeature
+                    );
+                  });
+                this.isochroneOverlayLayer
+                  .getSource()
+                  .addFeatures(transformedData.additionalData["features"]);
                 this.calculations.unshift(transformedData);
                 this.isochroneLayer.getSource().addFeatures(olFeatures);
                 this.toggleIsochroneWindow(true, transformedData);
@@ -1609,9 +1634,13 @@ export default {
             }
           })
           .catch(error => {
+            reject(error);
+          })
+          .finally(() => {
+            this.multiIsochroneSelectionLayer.getSource().clear();
             this.isMapBusy = false;
             this.isIsochroneBusy = false;
-            reject(error);
+            this.clear();
           });
       });
     },
@@ -1788,36 +1817,6 @@ export default {
     toggleIsochroneVisibility(feature, calculation, data) {
       this.toggleIsochroneFeatureVisibility(feature);
     },
-    toggleIsochroneCalculationVisibility(calculation, modus) {
-      if (!modus) {
-        calculation.isVisible = !calculation.isVisible;
-      }
-      calculation.data.forEach(isochrone => {
-        let featureId = isochrone.id;
-        let isochroneFeature = this.isochroneLayer
-          .getSource()
-          .getFeatureById(featureId);
-        if (isochroneFeature) {
-          // Edge case for comparision
-          if (modus && isochroneFeature.get("modus") === modus) {
-            isochrone.isVisible = !isochrone.isVisible;
-            isochroneFeature.set("isVisible", isochrone.isVisible);
-          }
-          if (!modus) {
-            isochrone.isVisible = calculation.isVisible;
-            isochroneFeature.set("isVisible", calculation.isVisible);
-          }
-        }
-      });
-      const visibleCount = calculation.data.filter(
-        isochrone => isochrone.isVisible
-      ).length;
-      if (visibleCount === 0) {
-        calculation.isVisible = false;
-      } else {
-        calculation.isVisible = true;
-      }
-    },
     toggleIsochroneFeatureVisibility(feature) {
       let featureId = feature.id;
       feature.isVisible = !feature.isVisible;
@@ -1835,8 +1834,45 @@ export default {
       this.selectedCalculation = calculation;
     },
     toggleCalculation(calculation, modus = null) {
-      this.toggleIsochroneOverlayFeatures(calculation, modus);
-      this.toggleIsochroneCalculationVisibility(calculation, modus);
+      let data = calculation.data;
+      if (modus) {
+        data = data.filter(calculation => calculation.modus === modus);
+      }
+      const isIndeterminateState = this.getToggleCalculationCheckboxIndeterminateState(
+        data
+      );
+      data.forEach(isochrone => {
+        let featureId = isochrone.id;
+        let isochroneFeature = this.isochroneLayer
+          .getSource()
+          .getFeatureById(featureId);
+        if (isochroneFeature) {
+          // Edge case for comparision
+
+          if (modus && isochroneFeature.get("modus") === modus) {
+            if (isIndeterminateState) {
+              isochrone.isVisible = false;
+            } else {
+              isochrone.isVisible = !isochrone.isVisible;
+            }
+            isochroneFeature.set("isVisible", isochrone.isVisible);
+          }
+          if (!modus) {
+            if (isIndeterminateState) {
+              isochrone.isVisible = false;
+            } else {
+              isochrone.isVisible = !isochrone.isVisible;
+            }
+            isochroneFeature.set("isVisible", isochrone.isVisible);
+          }
+        }
+      });
+      const visibleCount = data.filter(isochrone => isochrone.isVisible).length;
+      if (visibleCount === 0) {
+        calculation.isVisible = false;
+      } else {
+        calculation.isVisible = true;
+      }
     },
     toggleRoadNetwork(state, calculation, type) {
       const roadNetworkSource = this.isochroneRoadNetworkLayer.getSource();
@@ -1911,19 +1947,18 @@ export default {
           });
       }
     },
-
-    toggleIsochroneOverlayFeatures(calculation, modus) {
-      console.log(modus);
-      const id = calculation.id;
-      const isVisible = !calculation.isVisible;
-      this.isochroneOverlayLayer
-        .getSource()
-        .getFeatures()
-        .forEach(feature => {
-          if (feature.get("calculationNumber") === id) {
-            feature.set("isVisible", isVisible);
-          }
-        });
+    toggleStudyArea(state, calculation) {
+      const features = calculation.additionalData["features"];
+      features.forEach(feature => {
+        const hasFeature = this.isochroneOverlayLayer
+          .getSource()
+          .hasFeature(feature);
+        if (state === false && hasFeature) {
+          this.isochroneOverlayLayer.getSource().removeFeature(feature);
+        } else if (state === true && !hasFeature) {
+          this.isochroneOverlayLayer.getSource().addFeature(feature);
+        }
+      });
     },
     getPaletteColor(calculation, mode) {
       const colorKey = `${mode}ColorPalette`;
@@ -1954,6 +1989,16 @@ export default {
         return false;
       }
       return true;
+    },
+    getStudyAreaToggleSwitchState(calculation) {
+      const features = calculation.additionalData["features"];
+      let hasFeature = false;
+      features.forEach(feature => {
+        if (this.isochroneOverlayLayer.getSource().hasFeature(feature)) {
+          hasFeature = true;
+        }
+      });
+      return hasFeature;
     },
 
     // ------------CLEAR----------
@@ -2016,17 +2061,15 @@ export default {
           });
         }
       });
-      // Remove and update isochrone overlay features
-      const isochroneOverlayerLayerSource = this.isochroneOverlayLayer.getSource();
-      isochroneOverlayerLayerSource.getFeatures().forEach(feature => {
-        if (feature.get("calculationNumber") === id) {
-          isochroneOverlayerLayerSource.removeFeature(feature);
-        } else {
-          if (feature.get("calculationNumber") > id) {
-            feature.set("calculationNumber", id - 1);
+      // Remove isochrone overlay features
+      if (Array.isArray(calculation.additionalData.features)) {
+        calculation.additionalData.features.forEach(feature => {
+          if (this.isochroneOverlayLayer.getSource().hasFeature(feature)) {
+            this.isochroneOverlayLayer.getSource().removeFeature(feature);
           }
-        }
-      });
+        });
+      }
+
       this.isochroneOverlayLayer.changed();
     },
     /**
@@ -2078,6 +2121,11 @@ export default {
     selectedPois() {
       if (this.multiIsochroneMethod) {
         this.countPois();
+      }
+    },
+    type(value) {
+      if (value === "single" && this.subStudyAreaLayer.getVisible()) {
+        this.subStudyAreaLayer.setVisible(false);
       }
     }
   },

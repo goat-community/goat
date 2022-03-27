@@ -247,6 +247,13 @@ export default {
       this.defaultOlMouseWheelZoom.setActive(false);
     }
     this.map.addControl(this.scaleLineControl);
+    this.isochroneLayer
+      .getSource()
+      .getFeatures()
+      .forEach(feature => {
+        feature.set("showLabel", true);
+      });
+    this.isochroneLayer.getSource().changed();
   },
   deactivated: function() {
     this.print.active = false;
@@ -271,6 +278,13 @@ export default {
     if (this.defaultOlMouseWheelZoom) {
       this.defaultOlMouseWheelZoom.setActive(true);
     }
+    this.isochroneLayer
+      .getSource()
+      .getFeatures()
+      .forEach(feature => {
+        feature.set("showLabel", false);
+      });
+    this.isochroneLayer.getSource().changed();
     this.setRotation(0);
     this.map.render();
   },
@@ -280,6 +294,9 @@ export default {
     }),
     ...mapFields("map", {
       print: "print"
+    }),
+    ...mapGetters("isochrones", {
+      isochroneLayer: "isochroneLayer"
     })
   },
   created() {
