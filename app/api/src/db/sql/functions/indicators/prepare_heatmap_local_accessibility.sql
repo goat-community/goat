@@ -101,6 +101,7 @@ BEGIN
 			AND ST_Intersects(p.geom, s.buffer_geom_heatmap)
 			AND p.uid = r.poi_uid 
 			AND p.scenario_id = scenario_id_input 
+			AND p.edit_type <> 'd'
 			AND p.category IN (SELECT jsonb_array_elements_text(pois_one_entrance))
 		)x, UNNEST(x.grid_visualization_ids, x.accessibility_indices) AS u(grid_visualization_id, accessibility_index);
 		
@@ -113,6 +114,7 @@ BEGIN
 			WHERE s.id = active_study_area_id 
 			AND ST_Intersects(p.geom, s.buffer_geom_heatmap)
 			AND p.uid = r.poi_uid 
+			AND p.edit_type <> 'd'
 			AND p.scenario_id = scenario_id_input 
 			AND p.category IN (SELECT jsonb_array_elements_text(pois_more_entrances))	
 		)x, UNNEST(x.grid_visualization_ids, x.accessibility_indices) AS u(grid_visualization_id, accessibility_index)
@@ -121,6 +123,7 @@ BEGIN
 	
 END;
 $function$;
+
 
 /*
 DROP TABLE IF EXISTS default_heatmap;

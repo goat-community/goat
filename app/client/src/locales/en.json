@@ -881,7 +881,7 @@
       },
       "poi": {
         "category": "Amenity",
-        "name": "Name (Optional)",
+        "name": "Name",
         "opening_hours": "Opening Hours (Optional)"
       },
       "building": {

@@ -11,9 +11,10 @@ BEGIN
 	/*Get reachable population*/
 	IF modus = 'default' THEN
 		CREATE TEMP TABLE reachable_population AS 
-		SELECT s.id AS sub_study_area_id, s.name, s.population 
-		FROM basic.sub_study_area s
-		WHERE s.id IN (SELECT UNNEST(study_area_ids)); 
+		SELECT i.id AS isochrone_feature_id, s.id AS sub_study_area_id, s.name, s.population 
+		FROM basic.sub_study_area s, customer.isochrone_feature i 
+		WHERE s.id IN (SELECT UNNEST(study_area_ids))
+		AND i.isochrone_calculation_id = ischrone_calculation_id_input; 
 	
 	ELSEIF modus = 'scenario' THEN 
 		excluded_buildings_id  = basic.modified_buildings(scenario_id_input);
@@ -88,12 +89,12 @@ BEGIN
 	RETURN query 
 	WITH combined AS 
 	(
-		SELECT r.id AS isochrone_feature_id, a.sub_study_area_id, a.name, 
+		SELECT a.isochrone_feature_id, a.sub_study_area_id, a.name, 
 		CASE WHEN COALESCE(r.population, 0) > a.population THEN a.population 
 		ELSE COALESCE(r.population, 0) END AS reached_population, a.population AS total_population 
 		FROM reachable_population a
 		LEFT JOIN reached_population r 
-		ON a.sub_study_area_id = r.sub_study_area_id 
+		ON a.isochrone_feature_id = r.id 
 	),
 	as_object AS 
 	(
@@ -115,4 +116,3 @@ $function$;
 SELECT * 
 FROM basic.reached_population_study_area(39, 2,'default', ARRAY[17,24,26])
 */
-
