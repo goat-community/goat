@@ -16,5 +16,5 @@ END;
 $trigger_update_poi_modified$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trigger_update_poi_modified ON customer.poi_modified; 
-CREATE TRIGGER trigger_update_poi_modified AFTER INSERT ON customer.poi_modified
+CREATE TRIGGER trigger_update_poi_modified AFTER UPDATE ON customer.poi_modified
 FOR EACH ROW EXECUTE PROCEDURE basic.trigger_update_poi_modified();
