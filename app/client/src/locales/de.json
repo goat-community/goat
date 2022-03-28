@@ -871,7 +871,7 @@
       },
       "poi": {
         "category": "Einrichtung",
-        "name": "Name (Optional)",
+        "name": "Name",
         "opening_hours": "Öffnungszeiten (Optional)"
       },
       "building": {
