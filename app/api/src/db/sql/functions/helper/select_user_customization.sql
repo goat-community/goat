@@ -4,8 +4,10 @@ RETURNS jsonb
 AS $function$
 
 	SELECT u.setting -> c.type
-	FROM customer.customization c, customer.user_customization u 
-	WHERE c.type = setting_type 
+	FROM customer.customization c, customer.user_customization u, customer.user u2
+	WHERE u2.id = user_id_input
+	AND u2.active_study_area_id = u.study_area_id
+	AND c.type = setting_type 
 	AND u.customization_id = c.id
 	AND u.user_id = user_id_input;
 

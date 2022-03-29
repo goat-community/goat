@@ -128,6 +128,9 @@ async def read_local_accessibility_heatmap(
             func.basic.active_data_uploads_study_area(current_user.id)
     )
     active_data_uploads_study_area = active_data_uploads_study_area.scalar()
+    if active_data_uploads_study_area == None:
+        active_data_uploads_study_area = []
+        
     query_params = {
         "heatmap_configuration": heatmap_configuration,
         "user_id": current_user.id,
