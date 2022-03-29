@@ -707,8 +707,11 @@ export const mapillaryStyleDefs = {
       // console.log(feature);
       let color = "rgba(53, 175, 109,0.7)";
       if (
-        feature.get("key") === mapillaryStyleDefs.activeSequence ||
-        feature.get("skey") === mapillaryStyleDefs.activeSequence
+        [
+          feature.get("sequence"),
+          feature.get("id"),
+          feature.get("sequence_id")
+        ].includes(mapillaryStyleDefs.activeSequence)
       ) {
         color = "#30C2FF";
       }
@@ -731,8 +734,8 @@ export const mapillaryStyleDefs = {
   },
   highlightStyle: feature => {
     let styles = [];
-    const angle = feature.get("ca");
-    const skey = feature.get("skey");
+    const angle = feature.get("compass_angle");
+    const skey = feature.get("sequence_id");
     if (angle) {
       const wifiStyle = new OlStyle({
         text: new OlText({
