@@ -11,6 +11,8 @@
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.3",
     "@fortawesome/fontawesome-pro": "^6.0.0",
+    "@sentry/tracing": "^6.19.3",
+    "@sentry/vue": "^6.19.3",
     "@turf/buffer": "^6.5.0",
     "axios": "^0.21.1",
     "chart.js": "^2.9.4",
