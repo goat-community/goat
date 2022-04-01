@@ -1,14 +1,11 @@
 import asyncio
-from typing import Dict, Generator
+from typing import Dict, Generator, Optional
 
 import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.config import settings
 from src.db.session import async_session
 from src.main import app
-from src.tests.utils.user import authentication_token_from_email
 from src.tests.utils.utils import get_superuser_token_headers
 
 
@@ -25,19 +22,10 @@ async def db() -> Generator:
 
 @pytest.fixture(scope="module")
 async def client() -> Generator:
-    async with AsyncClient(app=app, base_url="http://test") as c:
+    async with AsyncClient(app=app, base_url="http://localhost:5000") as c:
         yield c
 
 
 @pytest.fixture(scope="module")
 async def superuser_token_headers(client: AsyncClient) -> Dict[str, str]:
     return await get_superuser_token_headers(client)
-
-
-@pytest.fixture(scope="module")
-async def normal_user_token_headers(
-    client: AsyncClient, db: AsyncSession
-) -> Dict[str, str]:
-    return await authentication_token_from_email(
-        client=client, email=settings.EMAIL_TEST_USER, db=db
-    )

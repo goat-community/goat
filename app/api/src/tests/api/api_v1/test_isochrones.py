@@ -8,7 +8,7 @@ pytestmark = pytest.mark.asyncio
 from src.endpoints.v1.api import layer_tiles_prefix
 
 
-# ======VECTOR TILE TESTING=====
+# ======ISOCHRONE TESTING=====
 async def test_isochrone_(client: AsyncClient) -> None:
     """test /isochrones endpoint."""
     response = await client.get(f"{settings.API_V1_STR}{layer_tiles_prefix}/isochrones")
