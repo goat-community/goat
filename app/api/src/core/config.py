@@ -85,7 +85,7 @@ class Settings(BaseSettings):
     @validator("EMAILS_FROM_NAME")
     def get_project_name(cls, v: Optional[str], values: Dict[str, Any]) -> str:
         if not v:
-            return values["PROJECT_NAME"]
+            return values["PROJECT_NAME"].upper()
         return v
 
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
