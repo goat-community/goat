@@ -1,7 +1,0 @@
-FROM postgis/postgis:14-3.2
-
-# Install the postgresql debugger
-RUN apt-get update && \
-	apt-get upgrade -y && \
-	apt-get install -y --no-install-recommends \
-    		postgresql-14-pldebugger

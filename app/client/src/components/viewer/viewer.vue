@@ -6,7 +6,6 @@
         <template v-slot:activator="{ on }">
           <v-btn
             class="mx-2 miniviewer-button"
-            style="cursor: not-allowed;"
             fab
             dark
             small
@@ -18,7 +17,7 @@
             <v-icon dark>streetview</v-icon>
           </v-btn>
         </template>
-        <span>{{ $t("map.tooltips.notAvailable") }}</span>
+        <span>{{ $t(`map.tooltips.toggleStreetView`) }}</span>
       </v-tooltip>
 
       <!-- isochrone-thematic-data -->
@@ -50,8 +49,7 @@
           ref="mapillary"
           class="fullscreen"
           v-if="miniViewerVisible"
-          :organization_key="mapillaryOrganizationKey"
-          :clientId="mapillaryClientId"
+          :accessToken="mapillaryAccessToken"
           :baseLayerExtent="studyArea[0].get('bounds')"
         ></app-mapillary>
       </div>
@@ -98,9 +96,8 @@ export default {
     return {
       miniViewerVisible: false,
       miniViewOlMap: false,
-      // Mapillary Keys
-      mapillaryClientId: "V1Qtd0JKNGhhb1J1cktMbmhFSi1iQTo5ODMxOWU3NmZlMjEyYTA3",
-      mapillaryOrganizationKey: "RmTboeISWnkEaYaSdtVRHp"
+      mapillaryAccessToken:
+        "MLY|4945732362162775|a3872ee8a2b737be51db110cdcdea3d4"
     };
   },
   computed: {
@@ -117,9 +114,8 @@ export default {
   },
   methods: {
     showMiniViewer() {
-      return;
-      // this.miniViewerVisible = true;
-      // this.isMapillaryBtnDisabled = true;
+      this.miniViewerVisible = true;
+      this.isMapillaryBtnDisabled = true;
     },
     switchViews() {
       this.miniViewOlMap = !this.miniViewOlMap;

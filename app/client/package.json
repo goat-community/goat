@@ -11,6 +11,8 @@
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.3",
     "@fortawesome/fontawesome-pro": "^6.0.0",
+    "@sentry/tracing": "^6.19.3",
+    "@sentry/vue": "^6.19.3",
     "@turf/buffer": "^6.5.0",
     "axios": "^0.21.1",
     "chart.js": "^2.9.4",
@@ -24,7 +26,7 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^2.3.0",
     "jwt-decode": "^3.1.2",
-    "mapillary-js": "^2.20.0",
+    "mapillary-js": "^4.1.0",
     "ol": "^6.5.0",
     "ol-contextmenu": "^4.0.0",
     "ol-ext": "^3.1.8",

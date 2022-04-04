@@ -55,7 +55,7 @@ export default {
   data: () => ({
     name: "isochrones-export",
     selected: "GeoJson",
-    items: ["GeoJson", "Shapefile"],
+    items: ["GeoJson", "Shapefile", "XLSX"],
     isDownloading: false
   }),
   methods: {

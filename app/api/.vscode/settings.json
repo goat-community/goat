@@ -22,8 +22,13 @@
   "editor.formatOnSave": true,
   "peacock.remoteColor": "#1857a4",
   "python.formatting.provider": "black",
-  "python.formatting.blackArgs": ["--line-length=99"],
-  "python.sortImports.args": ["--profile", "black"],
+  "python.formatting.blackArgs": [
+    "--line-length=99"
+  ],
+  "python.sortImports.args": [
+    "--profile",
+    "black"
+  ],
   "[python]": {
     "editor.codeActionsOnSave": {
       "source.organizeImports": true
@@ -86,7 +91,16 @@
     "map": "cpp",
     "regex": "cpp"
   },
-  "python.testing.pytestArgs": ["app"],
+  "python.testing.pytestArgs": [
+    "--cov",
+    ".",
+    "--cov-report",
+    "html",
+    "--cov-report",
+    "term",
+    "--cov-report",
+    "xml"
+  ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true
 }

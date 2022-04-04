@@ -32,7 +32,9 @@
               </v-flex>
               <v-flex xs1>
                 <v-icon
-                  v-show="layer.getVisible()"
+                  v-show="
+                    layer.getVisible() && layer.get('name') !== 'study_area'
+                  "
                   small
                   style="width: 30px; height: 30px;"
                   v-html="
@@ -51,7 +53,10 @@
           </v-expansion-panel-header>
           <v-card
             class="pt-2"
-            v-show="layer.get('showOptions') === true"
+            v-show="
+              layer.get('showOptions') === true &&
+                layer.get('name') !== 'study_area'
+            "
             style="background-color: white;"
             transition="slide-y-reverse-transition"
           >
