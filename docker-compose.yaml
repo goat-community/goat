@@ -20,23 +20,25 @@ services:
     networks:
       proxy:
 
-  # client:
-  #   image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:client-${PROJECT_VERSION}
-  #   build:
-  #     dockerfile: Dockerfile
-  #     context: ./app/client
-  #   container_name: ${COMPOSE_PROJECT_NAME}_client
-  #   hostname: ${COMPOSE_PROJECT_NAME}_client
-  #   volumes:
-  #     - /app/node_modules
-  #     - ./app/client:/app
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.services.${COMPOSE_PROJECT_NAME}_client.loadbalancer.server.port=80"
-  #     - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/`)"
-  #     - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.entrypoints=web"
-  #   networks:
-  #     proxy:
+  client:
+    image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:client-${PROJECT_VERSION}
+    build:
+      dockerfile: Dockerfile
+      context: ./app/client
+      args:
+        - FONTAWESOME_NPM_AUTH_TOKEN=${FONTAWESOME_NPM_AUTH_TOKEN}
+    container_name: ${COMPOSE_PROJECT_NAME}_client
+    hostname: ${COMPOSE_PROJECT_NAME}_client
+    volumes:
+      - /app/node_modules
+      - ./app/client:/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}_client.loadbalancer.server.port=80"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.entrypoints=web"
+    networks:
+      proxy:
 
   api:
     image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:api-${PROJECT_VERSION}
@@ -53,7 +55,7 @@ services:
       - .env
     environment:
       - POSTGRES_SERVER=goatdb-dev.chmmut4l0c8h.eu-central-1.rds.amazonaws.com
-      - POSTGRES_DB=goat
+      - POSTGRES_DB=${COMPOSE_PROJECT_NAME}
       - PROJECT_NAME=${COMPOSE_PROJECT_NAME}
       - SERVER_NAME=${DOMAIN_NAME}
       - SERVER_HOST=http://${DOMAIN_NAME}
@@ -62,9 +64,8 @@ services:
     # command: bash -c "while true; do sleep 1; done" # Infinite loop to keep container live doing nothing
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_api.rule=PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`)"
-      # The port below is for development only. On production, the port is 80.!
-      - "traefik.http.services.${COMPOSE_PROJECT_NAME}_api.loadbalancer.server.port=80"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}_api.loadbalancer.server.port=5000"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_api.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_api.entrypoints=web"
     ports:
       - "5000:5000"
@@ -72,10 +73,7 @@ services:
       proxy:
 
   db:
-    # image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:db-${PROJECT_VERSION}
-    build:
-      context: ./app/database
-      dockerfile: Dockerfile.dev
+    image: postgis/postgis:14-3.2
     container_name: ${COMPOSE_PROJECT_NAME}_db
     hostname: ${COMPOSE_PROJECT_NAME}_db
     environment:
