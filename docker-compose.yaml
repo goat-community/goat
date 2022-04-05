@@ -31,7 +31,7 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}_client
     hostname: ${COMPOSE_PROJECT_NAME}_client
     env_file:
-          - .env
+      - .env
     stdin_open: true
     tty: true
     environment:
@@ -49,7 +49,6 @@ services:
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.entrypoints=web"
     networks:
       proxy:
-
 
   api:
     image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:api-${PROJECT_VERSION}
@@ -106,20 +105,21 @@ services:
       proxy:
 
   pgadmin:
-    image: dpage/pgadmin4
+    image: dpage/pgadmin4:6.7
     container_name: ${COMPOSE_PROJECT_NAME}_pgadmin
     hostname: ${COMPOSE_PROJECT_NAME}_pgadmin
     environment:
       - PGADMIN_LISTEN_PORT=${PGADMIN_LISTEN_PORT}
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      - SCRIPT_NAME=/pgadmin4
     depends_on:
       - db
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_pgadmin.rule=Host(`pgadmin.${DOMAIN_NAME}`)"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_pgadmin.entrypoints=web"
       - "traefik.http.services.${COMPOSE_PROJECT_NAME}_pgadmin.loadbalancer.server.port=5050"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_pgadmin.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/pgadmin4`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_pgadmin.entrypoints=web"
     ports:
       - "5050:5050"
     networks:
