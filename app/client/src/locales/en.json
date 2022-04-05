@@ -19,7 +19,17 @@
     "maxFourChar": "Use 4 characters or more for your password",
     "mailRequired": "Email is required",
     "mailValid": "E-mail invalid",
-    "password": "Password"
+    "password": "Password",
+    "forgotPassword": "Forgot Password",
+    "backToLogin": "Back to login",
+    "forgotYourPassword": "Forgot your password?",
+    "forgotPasswordText": "Simply enter the email address associated with your account below, and we’ll email you a link to reset your password.",
+    "sendResetLink": "Send Reset Link",
+    "resetYourPassword": "Reset account password",
+    "passwordMustMatch": "Password must match",
+    "resetPassword": "Reset password",
+    "confirmPassword": "Confirm password",
+    "newPassword": "New password"
   },
   "textFieldRules": {
     "greaterThanZero": "Value should be greater than 0",
@@ -631,7 +641,6 @@
       "tasks": "OSM Mapping Tasks",
       "steps": "Steps",
       "info": "Info",
-
       "stepsDesc": {
         "clickFeatureInMap": "Click on a object in the map.",
         "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
@@ -709,7 +718,6 @@
           }
         }
       },
-
       "dialogMessage": {
         "title": "OSM Mapping Mode",
         "body": "Welcome to the OSM mapping mode! In this mode, you can improve GOAT data by contributing to OpenStreetMap (OSM). We have set up different tasks for objects with missing information, which can be completed using the iD-Editor or other OSM editors such as JOSM. Please familiarize yourself with the general mapping rules and the corresponding content of the OSM wiki for the objects you want to edit. Furthermore, you can find a tutorial on mapping in OSM on the GOAT website. Thanks for contributing to the world of open data!"
@@ -945,7 +953,6 @@
       "walkability": ["TOTAL WALKABILITY SCORE"],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index",
-
       "sidewalk": "Sidewalk availability",
       "width": "Sidewalk width",
       "smoothness": "Smoothness",

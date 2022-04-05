@@ -5,7 +5,7 @@ import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from rich import print as print
+
 import emails
 import geobuf
 from emails.template import JinjaTemplate
@@ -14,6 +14,7 @@ from geoalchemy2.shape import to_shape
 from geojson import Feature, FeatureCollection
 from geojson import loads as geojsonloads
 from jose import jwt
+from rich import print as print
 from starlette.responses import Response
 
 from src.core.config import settings
@@ -32,7 +33,7 @@ def send_email(
         html=JinjaTemplate(html_template),
         mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL),
     )
-    smtp_options = {"host": settings.SMTP_HOST, "port": settings.SMTP_PORT}
+    smtp_options = {"host": settings.SMTP_HOST.upper(), "port": settings.SMTP_PORT}
     if settings.SMTP_TLS:
         smtp_options["tls"] = True
     if settings.SMTP_USER:
@@ -44,7 +45,7 @@ def send_email(
 
 
 def send_test_email(email_to: str) -> None:
-    project_name = settings.PROJECT_NAME
+    project_name = settings.PROJECT_NAME.upper()
     subject = f"{project_name} - Test email"
     with open(Path(settings.EMAIL_TEMPLATES_DIR) / "test_email.html") as f:
         template_str = f.read()
@@ -52,12 +53,12 @@ def send_test_email(email_to: str) -> None:
         email_to=email_to,
         subject_template=subject,
         html_template=template_str,
-        environment={"project_name": settings.PROJECT_NAME, "email": email_to},
+        environment={"project_name": settings.PROJECT_NAME.upper(), "email": email_to},
     )
 
 
 def send_reset_password_email(email_to: str, email: str, token: str) -> None:
-    project_name = settings.PROJECT_NAME
+    project_name = settings.PROJECT_NAME.upper()
     subject = f"{project_name} - Password recovery for user {email}"
     with open(Path(settings.EMAIL_TEMPLATES_DIR) / "reset_password.html") as f:
         template_str = f.read()
@@ -68,7 +69,7 @@ def send_reset_password_email(email_to: str, email: str, token: str) -> None:
         subject_template=subject,
         html_template=template_str,
         environment={
-            "project_name": settings.PROJECT_NAME,
+            "project_name": settings.PROJECT_NAME.upper(),
             "username": email,
             "email": email_to,
             "valid_hours": settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
@@ -78,7 +79,7 @@ def send_reset_password_email(email_to: str, email: str, token: str) -> None:
 
 
 def send_new_account_email(email_to: str, username: str, password: str) -> None:
-    project_name = settings.PROJECT_NAME
+    project_name = settings.PROJECT_NAME.upper()
     subject = f"{project_name} - New account for user {username}"
     with open(Path(settings.EMAIL_TEMPLATES_DIR) / "new_account.html") as f:
         template_str = f.read()
@@ -88,7 +89,7 @@ def send_new_account_email(email_to: str, username: str, password: str) -> None:
         subject_template=subject,
         html_template=template_str,
         environment={
-            "project_name": settings.PROJECT_NAME,
+            "project_name": settings.PROJECT_NAME.upper(),
             "username": username,
             "password": password,
             "email": email_to,
@@ -113,7 +114,7 @@ def generate_password_reset_token(email: str) -> str:
 def verify_password_reset_token(token: str) -> Optional[str]:
     try:
         decoded_token = jwt.decode(token, settings.API_SECRET_KEY, algorithms=["HS256"])
-        return decoded_token["email"]
+        return decoded_token["sub"]
     except jwt.JWTError:
         return None
 
@@ -199,11 +200,16 @@ def clean_unpacked_zip(dir_path: str, zip_path: str) -> None:
     delete_dir(dir_path)
     delete_file(zip_path)
 
+
 def print_hashtags():
-    print("#################################################################################################################")
+    print(
+        "#################################################################################################################"
+    )
+
 
 def print_info(message: str):
     print(f"INFO: {message}")
+
 
 def print_warning(message: str):
     print(f"WARNING: {message}")
