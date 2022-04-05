@@ -15,7 +15,9 @@ import Point from "ol/geom/Point";
 
 OlFontSymbol.addDefs(
   {
-    font: "'Font Awesome 6 Pro'",
+    font: process.env.VUE_APP_FONTAWESOME_NPM_AUTH_TOKEN
+      ? "'Font Awesome 6 Pro'"
+      : "'Font Awesome 5 Free'",
     name: "FontAwesome",
     prefix: ""
   },
@@ -703,12 +705,15 @@ export const baseStyleDefs = {
 export const mapillaryStyleDefs = {
   activeSequence: "",
   baseOverlayStyle: map => {
-    const styleFunction = function(feature) {
+    const styleFunction = feature => {
       // console.log(feature);
       let color = "rgba(53, 175, 109,0.7)";
       if (
-        feature.get("key") === mapillaryStyleDefs.activeSequence ||
-        feature.get("skey") === mapillaryStyleDefs.activeSequence
+        [
+          feature.get("sequence"),
+          feature.get("id"),
+          feature.get("sequence_id")
+        ].includes(mapillaryStyleDefs.activeSequence)
       ) {
         color = "#30C2FF";
       }
@@ -731,8 +736,8 @@ export const mapillaryStyleDefs = {
   },
   highlightStyle: feature => {
     let styles = [];
-    const angle = feature.get("ca");
-    const skey = feature.get("skey");
+    const angle = feature.get("compass_angle");
+    const skey = feature.get("sequence_id");
     if (angle) {
       const wifiStyle = new OlStyle({
         text: new OlText({

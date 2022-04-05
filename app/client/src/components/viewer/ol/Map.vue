@@ -360,7 +360,9 @@ export default {
       });
       const vector = new VectorImageLayer({
         name: "study_area",
-        displayInLayerList: false,
+        displayInLayerList: true,
+        type: "VECTOR",
+        group: "buildings_landuse",
         zIndex: 100,
         source: source,
         style: studyAreaStyle

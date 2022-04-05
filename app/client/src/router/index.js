@@ -19,7 +19,23 @@ let router = new Router({
     {
       path: "/login",
       name: "login",
-      component: () => import("../views/Login.vue"),
+      component: () => import("../views/Auth.vue"),
+      meta: {
+        requiresAuth: false
+      }
+    },
+    {
+      path: "/forgot-password",
+      name: "forgot-password",
+      component: () => import("../views/Auth.vue"),
+      meta: {
+        requiresAuth: false
+      }
+    },
+    {
+      path: "/reset-password",
+      name: "reset-password",
+      component: () => import("../views/Auth.vue"),
       meta: {
         requiresAuth: false
       }

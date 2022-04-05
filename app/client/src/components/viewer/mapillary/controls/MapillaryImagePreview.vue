@@ -11,12 +11,12 @@
       max-width="200"
       class="d-flex"
     >
-      <v-img :aspect-ratio="1.5" :src="imageUrl" class="grey lighten-2">
+      <v-img :aspect-ratio="1.5" :src="imageUrl" v-if="imageUrl" class="black">
         <template v-slot:placeholder>
           <v-row class="fill-height ma-0" align="center" justify="center">
             <v-progress-circular
               indeterminate
-              color="grey lighten-5"
+              color="#2BB381"
             ></v-progress-circular>
           </v-row>
         </template>
