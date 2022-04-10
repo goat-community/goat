@@ -23,7 +23,9 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "stopOnEntry": true,
+            "justMyCode": false
         },
         {
             "name": "g++ - Build and debug active file",
@@ -45,6 +47,16 @@
             ],
             "preLaunchTask": "C/C++: g++ build active file",
             "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug Tests",
+            "type": "python",
+            "request": "test",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTEST_ADDOPTS": "--no-cov"
+            }
         }
     ]
 }

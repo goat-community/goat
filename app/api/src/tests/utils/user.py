@@ -25,14 +25,10 @@ async def user_authentication_headers(
 
 async def create_random_user(
     db: AsyncSession,
-    email: Optional[str],
-    password: Optional[str],
+    email: Optional[str] = random_email(),
+    password: Optional[str] = random_lower_string(),
     roles: Optional[List[str]] = ["user"],
 ) -> models.User:
-    if email is None:
-        email = random_email()
-    if password is None:
-        password = random_lower_string()
     user_in = UserCreate(**request_examples["create"])
     user_in.email = email
     user_in.password = password

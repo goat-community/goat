@@ -139,6 +139,30 @@ async def create_user(
     return user
 
 
+# create a demo user
+# @router.post("/demo", response_model=models.User, response_model_exclude={"hashed_password"})
+# async def create_demo_user(
+#     *,
+#     db: AsyncSession = Depends(deps.get_db),
+#     user_in: schemas.UserCreate = Body(..., example=request_examples["create"])
+# ) -> Any:
+#     """
+#     Create new user.
+#     """
+#     user = await crud.user.get_by_key(db, key="email", value=user_in.email)
+#     if user and len(user) > 0:
+#         raise HTTPException(
+#             status_code=400,
+#             detail="The user with this email already exists in the system.",
+#         )
+#     user = await crud.user.create(db, obj_in=user_in)
+#     if settings.EMAILS_ENABLED and user_in.email:
+#         send_new_account_email(
+#             email_to=user_in.email, username=user_in.email, password=user_in.password
+#         )
+#     return user
+
+
 @router.get("/{user_id}", response_model=models.User, response_model_exclude={"hashed_password"})
 async def read_user_by_id(
     user_id: int,
