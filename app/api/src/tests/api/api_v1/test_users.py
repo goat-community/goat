@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
 from src.core.config import settings
-from src.schemas.user import UserCreate, request_examples
+from src.schemas.user import request_examples
 from src.tests.utils.organization import create_random_organization
 from src.tests.utils.user import create_random_user, get_user_token_headers
 from src.tests.utils.utils import random_email, random_lower_string
@@ -142,10 +142,11 @@ async def test_read_user_study_area_list(
     assert len(study_areas) > 0
 
 
-# read user study area
 async def test_read_user_active_study_area(
     client: AsyncClient, superuser_token_headers: dict, db: AsyncSession
 ) -> None:
+    superuser = await crud.user.get_by_key(db, key="email", value=settings.FIRST_SUPERUSER_EMAIL)
+    assert len(superuser) == 1
     r = await client.get(
         f"{settings.API_V1_STR}/users/me/study-area",
         headers=superuser_token_headers,
@@ -153,5 +154,37 @@ async def test_read_user_active_study_area(
     assert 200 <= r.status_code < 300
     study_area = r.json()
     assert len(study_area["features"]) == 1
-    # assert study_area["features"][0].id
-    # assert study_area["id"] == user_in.study_area_id
+    assert study_area["features"][0]["id"] == superuser[0].active_study_area_id
+
+
+async def test_update_user_preference(client: AsyncClient, db: AsyncSession) -> None:
+    normal_user_headers = await get_user_token_headers(client=client, db=db)
+    data = request_examples["update_user_preference"]["language_study_area_preference"]["value"]
+    data["active_study_area_id"] = request_examples["create"]["active_study_area_id"]
+    r = await client.put(
+        f"{settings.API_V1_STR}/users/me/preference",
+        headers=normal_user_headers,
+        json=data,
+    )
+    assert 200 <= r.status_code < 300
+    r = r.json()
+    assert r["language_preference"] == data["language_preference"]
+    assert r["active_study_area_id"] == data["active_study_area_id"]
+
+
+async def test_update_normal_user_preference_not_allowed_fields(
+    client: AsyncClient, db: AsyncSession
+) -> None:
+    normal_user_headers = await get_user_token_headers(client=client, db=db)
+    data = {
+        "email": random_email(),
+        "password": random_lower_string(),
+        "limit_scenarios": 100,
+        "storage": 500,
+    }
+    r = await client.put(
+        f"{settings.API_V1_STR}/users/me/preference",
+        headers=normal_user_headers,
+        json=data,
+    )
+    assert r.status_code >= 400
