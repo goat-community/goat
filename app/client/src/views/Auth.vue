@@ -122,6 +122,72 @@
               </v-row>
             </v-card-text>
 
+            <!-- Sign up  -->
+            <v-card-text v-if="$route.name === 'register-demo'">
+              <h3 class="mb-0 pb-0 ml-2 mb-4 font-weight-regular">
+                {{ $t("login.register").toUpperCase() }}
+              </h3>
+              <v-form
+                ref="registerForm"
+                v-model="validForm"
+                @keyup.native.enter="submitRegisterForm"
+                class="mx-2"
+              >
+                <v-text-field
+                  v-model="name"
+                  outlined
+                  name="name"
+                  label="First Name"
+                  type="text"
+                  :disabled="loading"
+                  validate-on-blur
+                >
+                </v-text-field>
+                <v-text-field
+                  v-model="email"
+                  outlined
+                  name="email"
+                  label="E-Mail"
+                  type="text"
+                  :rules="emailRules"
+                  :disabled="loading"
+                  validate-on-blur
+                ></v-text-field>
+                <v-text-field
+                  v-model="password"
+                  outlined
+                  id="password"
+                  name="password"
+                  :label="$t('login.password')"
+                  :append-icon="
+                    password_visibility ? 'visibility_off' : 'visibility'
+                  "
+                  @click:append="
+                    () => (password_visibility = !password_visibility)
+                  "
+                  :rules="passwordRules"
+                  :type="password_visibility ? 'text' : 'password'"
+                  :disabled="loading"
+                  validate-on-blur
+                ></v-text-field>
+              </v-form>
+
+              <v-row class="mt-5 mx-0" align="center">
+                <v-col class="text-center">
+                  <v-btn
+                    height="50px"
+                    width="100%"
+                    class="text-xs-center white--text"
+                    color="#2BB381"
+                    :loading="loading"
+                    @click="submitRegisterForm"
+                  >
+                    {{ $t("login.register") }}
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-card-text>
+
             <!-- Forgot password  -->
             <v-card-text v-if="$route.name === 'forgot-password'">
               <h3 class="mb-0 pb-0 ml-2 mb-2 font-weight-regular">
@@ -284,6 +350,8 @@ export default {
   data() {
     return {
       token: "",
+      name: "",
+      surname: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -339,6 +407,7 @@ export default {
         );
       });
     },
+    submitRegisterForm() {},
     submitForgotPasswordForm() {
       this.$refs.authForm.validate();
       this.$nextTick(() => {
@@ -399,6 +468,8 @@ export default {
       } else {
         this.email = "";
       }
+      this.name = "";
+      this.surname = "";
       this.token = "";
       this.password = "";
       this.confirmPassword = "";

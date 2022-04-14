@@ -29,7 +29,8 @@
     "passwordMustMatch": "Password must match",
     "resetPassword": "Reset password",
     "confirmPassword": "Confirm password",
-    "newPassword": "New password"
+    "newPassword": "New password",
+    "register": "Register"
   },
   "textFieldRules": {
     "greaterThanZero": "Value should be greater than 0",
@@ -950,7 +951,9 @@
       "liveliness": "Walking environment",
       "data_quality": "Data Quality",
       "comfort": "Comfort",
-      "walkability": ["TOTAL WALKABILITY SCORE"],
+      "walkability": [
+        "TOTAL WALKABILITY SCORE"
+      ],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index",
       "sidewalk": "Sidewalk availability",
