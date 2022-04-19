@@ -126,8 +126,8 @@ class MimeTypes(str, Enum):
 class UploadFileTypes(str, Enum):
     """Upload File Types."""
 
-    geojson = "application/geo+json"
-    zip = "application/zip"
+    geojson = ".geojson"
+    zip = ".zip"
 
 class SettingToModify(str, Enum):
     """Setting to reset."""

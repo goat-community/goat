@@ -94,8 +94,8 @@ class CRUDUploadFile:
             db=db, id=current_user.active_study_area_id, extra_fields=["geom"]
         )
         study_area_geom = to_shape(study_area_obj.geom)
-
-        if file.content_type == UploadFileTypes.geojson.value:
+        
+        if UploadFileTypes.geojson.value in file_name:
             try:
                 gdf = gpd_read_file(file_dir, driver="GeoJSON")
                 delete_file(file_dir)
@@ -105,14 +105,14 @@ class CRUDUploadFile:
                     status_code=400,
                     detail="Failed reading the file in GeodataFrame",
                 )
-        elif file.content_type == UploadFileTypes.zip.value:
-            unzipped_file_dir = os.path.splitext(file_dir)[0]
+        elif UploadFileTypes.zip.value in file_name:
+            unzipped_file_dir = os.path.splitext(file_dir)[0] + '/' + file.filename.replace(UploadFileTypes.zip.value, '')
 
             # Create directory
             try:
                 shutil.unpack_archive(file_dir, os.path.splitext(file_dir)[0], "zip")
             except:
-                clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir)
+                clean_unpacked_zip(zip_path=file_dir, dir_path=file_dir.replace(UploadFileTypes.zip.value, ''))
                 raise HTTPException(status_code=400, detail="Could not read or process file.")
 
             # List shapefiles
@@ -121,20 +121,20 @@ class CRUDUploadFile:
                     f for f in os.listdir(unzipped_file_dir) if f.endswith(".shp")
                 ]
             except:
-                clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir)
+                clean_unpacked_zip(zip_path=file_dir, dir_path=file_dir.replace(UploadFileTypes.zip.value, ''))
                 raise HTTPException(status_code=400, detail="No shapefiles inside folder.")
 
             # Read shapefiles and append to GeoDataFrame
             if len(available_shapefiles) == 1:
                 gdf = gpd_read_file(f"{unzipped_file_dir}/{available_shapefiles[0]}")
             elif len(available_shapefiles) > 1:
-                clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir)
+                clean_unpacked_zip(zip_path=file_dir, dir_path=file_dir.replace(UploadFileTypes.zip.value, ''))
                 raise HTTPException(
                     status_code=400, detail="More then one shapefiles inside folder."
                 )
             else:
                 raise HTTPException(status_code=400, detail="No shapefiles inside folder.")
-            clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir)
+            clean_unpacked_zip(zip_path=file_dir, dir_path=file_dir.replace(UploadFileTypes.zip.value, ''))
         else:
             raise HTTPException(status_code=400, detail="Invalid file type")
 
