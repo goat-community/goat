@@ -468,7 +468,7 @@ class CRUDIsochrone:
             gdf = gdf.drop(["reached_opportunities", "geom"], axis=1)
             writer = pd.ExcelWriter(file_name + '.' + IsochroneExportType.xlsx.name, engine='xlsxwriter')
             gdf_transposed = gdf.transpose()
-            gdf_transposed.columns = [str(c) +  ' ' + translation_dict["minutes"] for c in list(gdf["Minutes"])]
+            gdf_transposed.columns = [str(c) +  ' ' + translation_dict["minutes"] for c in list(gdf[translation_dict["minutes"]])]
             gdf_transposed[1:].to_excel(writer, sheet_name='Results')
             workbook  = writer.book
             worksheet = writer.sheets['Results']
@@ -489,19 +489,3 @@ class CRUDIsochrone:
 
 
 isochrone = CRUDIsochrone()
-
-
-#     edge_obj = {
-
-#     }
-#     full_edge_objs.append(edge_obj)
-
-#     if edge.start_perc not in [0.0, 1.0] or edge.end_perc not in [0.0, 1.0] or edge.edge in [999999999,999999998]:
-#         edge_obj["partial_edge"] = True
-#         edge_obj["geom"] = 'Linestring(%s)' % re.sub(',([^,]*,?)', r'\1', str(edge.shape)).replace('[', '').replace(']', '')
-#         partial_edge_objs.append(edge_obj)
-
-
-# await db.execute(IsochroneEdgeDB.__table__.insert(), full_edge_objs)
-# await db.execute(IsochroneEdgeDB.__table__.insert(), partial_edge_objs)
-# await db.commit()

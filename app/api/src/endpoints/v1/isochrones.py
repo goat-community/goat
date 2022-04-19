@@ -163,7 +163,7 @@ async def export_isochrones(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    isochrone_calculation_id: int = Path(..., description="Scenario ID", example=1),
+    isochrone_calculation_id: int = Path(..., description="Isochrone Calculation ID", example=1),
     return_type: IsochroneExportType = Query(
         description="Return type of the response", default=IsochroneExportType.geojson
     ),
