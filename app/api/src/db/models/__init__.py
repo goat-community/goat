@@ -21,3 +21,4 @@ from .scenario import Scenario
 from .study_area import StudyArea, SubStudyArea
 from .user import User, UserBase
 from .layer_library import LayerLibrary, StyleLibrary
+from .poi_config import PoiDefaultConfig, PoiStudyAreaConfig, PoiUserConfig
