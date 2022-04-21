@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 from pydantic import EmailStr
 from sqlmodel import (
+    ARRAY,
     Column,
     DateTime,
     Field,
@@ -11,7 +12,6 @@ from sqlmodel import (
     Relationship,
     SQLModel,
     Text,
-    ARRAY,
     text,
 )
 
@@ -26,10 +26,12 @@ if TYPE_CHECKING:
 
 from ._link_model import UserRole, UserStudyArea
 
+
 class UserBase(SQLModel):
     name: str = Field(sa_column=Column(Text, nullable=False))
     surname: str = Field(sa_column=Column(Text, nullable=False))
     email: EmailStr = Field(sa_column=Column(Text, nullable=False))
+
     organization_id: int = Field(
         sa_column=Column(
             Integer, ForeignKey("customer.organization.id", ondelete="CASCADE"), nullable=False
@@ -41,12 +43,9 @@ class UserBase(SQLModel):
     active_data_upload_ids: List[int] = Field(
         sa_column=Column(ARRAY(Integer()), server_default=text("'{}'::int[]"))
     )
-    storage: int = Field(
-        sa_column=Column(Integer), nullable=False
-    )
-    limit_scenarios: int = Field(
-        sa_column=Column(Integer), nullable=False
-    )
+    storage: int = Field(sa_column=Column(Integer), nullable=False)
+    limit_scenarios: int = Field(sa_column=Column(Integer), nullable=False)
+
 
 class User(UserBase, table=True):
     __tablename__ = "user"
@@ -55,6 +54,9 @@ class User(UserBase, table=True):
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     hashed_password: Optional[str] = Field(sa_column=Column(Text, nullable=False))
     is_active: Optional[bool] = Field(default=True)
+    newsletter: Optional[bool] = Field(default=True)
+    occupation: Optional[str] = Field(sa_column=Column(Text, nullable=True))
+    domain: Optional[str] = Field(sa_column=Column(Text, nullable=True))
     creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
