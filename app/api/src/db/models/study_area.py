@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from .user import User
     from .customization import UserCustomization
     from .data_upload import DataUpload
+    from .poi_config import PoiStudyAreaConfig
 
 from ._link_model import StudyAreaGridVisualization, UserStudyArea
 from ._pydantic_geometry import dump_geom
@@ -56,6 +57,7 @@ class StudyArea(SQLModel, table=True):
     # users_active: List["User"] = Relationship(back_populates="active_study_area")
     user_customizations: List["UserCustomization"] = Relationship(back_populates="study_areas")
     data_uploads: List["DataUpload"] = Relationship(back_populates="study_area")
+    poi_study_area_configs: List["PoiStudyAreaConfig"] = Relationship(back_populates="study_area")
     _validate_geom = validator("geom", pre=True, allow_reuse=True)(dump_geom)
 
 
