@@ -772,6 +772,47 @@ SET cnt_toilets = points_sum
 FROM cnt_table c
 WHERE f.id = c.id;
 
+--- Trees
+DROP TABLE IF EXISTS trees;
+CREATE TEMP TABLE trees AS 
+SELECT geom 
+FROM street_furniture 
+WHERE amenity IN ('tree');
+CREATE INDEX ON trees USING GIST(geom);
+
+WITH cnt_table AS 
+(
+	SELECT f.id, COALESCE(points_sum,0) AS points_sum 
+	FROM footpath_visualization f 
+	LEFT JOIN footpaths_get_points_sum('trees', 30) c
+	ON f.id = c.id 	
+)
+UPDATE footpath_visualization f
+SET cnt_trees = points_sum 
+FROM cnt_table c
+WHERE f.id = c.id;
+
+--- Bicycle parking
+DROP TABLE IF EXISTS bicycle_parking;
+CREATE TEMP TABLE bicycle_parking AS 
+SELECT geom 
+FROM street_furniture 
+WHERE amenity IN ('bicycle_parking');
+CREATE INDEX ON bicycle_parking USING GIST(geom);
+
+WITH cnt_table AS 
+(
+	SELECT f.id, COALESCE(points_sum,0) AS points_sum 
+	FROM footpath_visualization f 
+	LEFT JOIN footpaths_get_points_sum('bicycle_parking', 30) c
+	ON f.id = c.id 	
+)
+UPDATE footpath_visualization f
+SET bicycle_parking = points_sum 
+FROM cnt_table c
+WHERE f.id = c.id;
+
+
 --- Street furniture sum
 UPDATE footpath_visualization f 
 SET comfort = round(10 * (2*cnt_benches + 3*cnt_waste_baskets + 3*cnt_toilets + cnt_fountains),0);
