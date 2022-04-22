@@ -123,6 +123,9 @@ CREATE INDEX ON ways_userinput_vertices_pgr USING btree (scenario_id);
 CREATE INDEX ON ways_userinput (original_id);
 
 
+----------------------------------------------------
+------------- IAPI NETWORK PREPARATION -------------
+----------------------------------------------------
 
 --add the required data to the table ways
 alter table ways ADD COLUMN IF NOT EXISTS tunnel text;
@@ -135,17 +138,19 @@ WHERE ways.osm_id = p.osm_id;
 
 --add new column to the ways table
 ALTER TABLE ways ADD COLUMN IF NOT EXISTS  bridge_tunnel_classified text;
+ALTER TABLE ways ADD COLUMN IF NOT EXISTS  high_peak_hour text;
 ALTER TABLE ways ADD COLUMN IF NOT EXISTS  cyclepath_classified text;
 ALTER TABLE ways ADD COLUMN IF NOT EXISTS  sidewalk_width  text;
 ALTER TABLE ways ADD COLUMN IF NOT EXISTS  obstacle_classified text;
-ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_park text;
 ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_street_lamp text;
-ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_tree text;
+ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_trees text;
+ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_bench text;
 ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_bicycle_rack text;
 ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_waste_basket text;
-ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
+ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_fountain text;
 
-	with tags as
+--Categories for bridge and tunnel	
+with tags as
 	(
 		SELECT select_from_variable_container_o('bridge_tunnel')  AS bridge_tunnel
 	)
@@ -160,7 +165,10 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 		from ways w
 	) x
 	WHERE w.id = x.id;
+-- Classification of sidewalks in ideal , comfortable, acceptable and uncomfortable
 
+
+-- Classification of cyclepaths in segregated_yes , segregated_no,  and unclassified 
 	with tags as
 	(
 		SELECT select_from_variable_container_o('class_cyclepath')  AS class_cyclepath
@@ -177,7 +185,7 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 	) x
 	WHERE w.id = x.id;
 	
-	--
+	--Classification of obstacles in light , moderate,  and strong 
 	with tags as
 	(
 		SELECT select_from_variable_container_o('class_obstacle')  AS class_obstacle
@@ -193,8 +201,70 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 		from ways w
 	) x
 	WHERE w.id = x.id;
+
+
+	--Classification of more than 2 lanes as high peak hour
+	UPDATE ways t
+	SET high_peak_hour = 'yes'  FROM ( 
+		SELECT osm_id 
+		FROM footpath_visualization  
+		WHERE lanes > 2
+	) x 
+	WHERE t.osm_id = x.osm_id;
+
+	--Classification of parks in yes (100m away from a park) and no
 	
------------------------------------------------
+	
+	
+	--Classification of street lamp in yes (with at least 1 lamp in the way) and no - taken from footpath_visualization
+	UPDATE ways t
+	SET extra_street_lamp  = 'street_lamp'  FROM ( 
+		SELECT osm_id 
+		FROM footpath_visualization  
+		WHERE lit_classified = 'yes'
+	) x 
+	WHERE t.osm_id = x.osm_id;
+
+
+	--Classification of tree in yes (with at least 1 lamp in the way) and no - taken from footpath_visualization
+	UPDATE ways t
+	SET extra_trees  = 'tree'  FROM ( 
+		SELECT osm_id 
+		FROM footpath_visualization  
+		WHERE cnt_trees > 0
+	) x 
+	WHERE t.osm_id = x.osm_id;
+
+	--Classification of bench in yes (with at least 1 lamp in the way) and no - taken from footpath_visualization
+	UPDATE ways t
+	SET extra_bench  = 'bench'  FROM ( 
+		SELECT osm_id 
+		FROM footpath_visualization  
+		WHERE cnt_benches > 0
+	) x 
+	WHERE t.osm_id = x.osm_id;
+
+	--Classification of bicycle rack in yes (with at least 1 lamp in the way) and no
+
+	--Classification of waste basket in yes (with at least 1 lamp in the way) and no - taken from footpath_visualization
+	UPDATE ways t
+		SET extra_waste_basket = 'waste_basket'  FROM ( 
+			SELECT osm_id 
+			FROM footpath_visualization  
+			WHERE cnt_waste_baskets > 0
+		) x 
+		WHERE t.osm_id = x.osm_id;
+
+	--Classification of fountains in yes (300m away from a fountain) and no
+	UPDATE ways t
+		SET extra_fountain = 'fountain'  FROM ( 
+			SELECT osm_id 
+			FROM footpath_visualization  
+			WHERE cnt_fountains > 0
+		) x 
+		WHERE t.osm_id = x.osm_id;
+
+------------------------------------------------
 --add impedance factor for walking (walking)
 
 	--add specific impedance column
@@ -224,8 +294,8 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_bycicle_rack numeric;
 	--walking_walkingte_basket
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_waste_basket numeric;
-	--walking_water
-	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_water numeric;
+	--walking_fountain
+	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_fountain numeric;
 	--impedance_walking_comfort
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_comfort numeric;
 	
@@ -238,7 +308,8 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 	WHERE bridge_tunnel_classified IN(SELECT jsonb_object_keys(select_from_variable_container_o('walking_type_road')));
 	
 	--Peak hour 
-	--DON'T KNOW INFO YET!
+	UPDATE ways SET impedance_walking_peak_hour  = select_from_variable_container_s('walking_peak_hour')::NUMERIC 
+	WHERE high_peak_hour = 'yes';
 	
 	--Cyclepath
 	UPDATE ways SET impedance_walking_cyclepath = (select_from_variable_container_o('walking_cyclepath') ->> cyclepath_classified)::NUMERIC 
@@ -265,14 +336,30 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 	AND smoothness IN(SELECT jsonb_object_keys(select_from_variable_container_o('walking_smoothness')));
 	
 	--Park
+
 	--Street-lamp
-		--UPDATE ways SET impedance_walking_street_lamp = select_from_variable_container_s('average_height_per_level')::NUMERIC 
-		--WHERE extra_street_lamp = "no";
+	UPDATE ways SET impedance_walking_street_lamp  = (select_from_variable_container_o('walking_extra') ->> extra_street_lamp)::NUMERIC 
+	WHERE extra_street_lamp IS NOT null;
+
 	--Tree
+	UPDATE ways SET impedance_walking_tree = (select_from_variable_container_o('walking_extra') ->> extra_trees)::NUMERIC 
+	WHERE extra_trees IS NOT null;
+	
 	--Bench
+	UPDATE ways SET impedance_walking_bench = (select_from_variable_container_o('walking_extra') ->> extra_bench)::NUMERIC 
+	WHERE extra_bench IS NOT null;
+
 	--Bicycle rack
+
 	--Waste basket
-	--Water
+	
+	UPDATE ways SET impedance_walking_waste_basket = (select_from_variable_container_o('walking_extra') ->> extra_waste_basket)::NUMERIC 
+	WHERE extra_waste_basket  IS NOT null;
+	
+	--Fountain
+	
+	UPDATE ways SET impedance_walking_fountain = (select_from_variable_container_o('walking_extra') ->> extra_fountain)::NUMERIC 
+	WHERE extra_fountain IS NOT null;
 	
 	---Summary of walking speed (walking)
 	UPDATE ways set impedance_walking_comfort = COALESCE(impedance_walking_type_road,0)
@@ -288,11 +375,12 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 								+COALESCE(impedance_walking_bench,0)
 								+COALESCE(impedance_walking_bycicle_rack,0)
 								+COALESCE(impedance_walking_waste_basket,0)
-								+COALESCE(impedance_walking_water,0);
+								+COALESCE(impedance_walking_fountain,0);
+-----------------------------------------------
 -----------------------------------------------
 							
 -----------------------------------------------
---add impedance factor for cycling
+--add impedance factor for cycling (cycling)
 
 	--add specific impedance column
 	--cycling_type_road
@@ -321,8 +409,8 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_bycicle_rack numeric;
 	--cycling_cyclingte_basket
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_waste_basket numeric;
-	--cycling_water
-	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_water numeric;
+	--cycling_fountain
+	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_fountain numeric;
 	--impedance_cycling_comfort
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_comfort numeric;
 	
@@ -335,10 +423,10 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 	WHERE bridge_tunnel_classified IN(SELECT jsonb_object_keys(select_from_variable_container_o('cycling_type_road')));
 	
 	--Peak hour 
-	--DON'T KNOW INFO YET!
+	UPDATE ways SET impedance_cycling_peak_hour  = select_from_variable_container_s('cycling_peak_hour')::NUMERIC 
+	WHERE high_peak_hour = 'yes';
 	
 	--Cyclepath
-
 	UPDATE ways SET impedance_cycling_cyclepath = (select_from_variable_container_o('cycling_cyclepath') ->> cyclepath_classified)::NUMERIC 
 	WHERE cyclepath_classified IN(SELECT jsonb_object_keys(select_from_variable_container_o('cycling_cyclepath')));
 
@@ -349,7 +437,6 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 	AND sidewalk_width IN(SELECT jsonb_object_keys(select_from_variable_container_o('cycling_sidewalk')));
 	
 	--Obstacles
-
 	UPDATE ways SET impedance_cycling_obstacle = (select_from_variable_container_o('cycling_obstacle') ->> obstacle_classified)::NUMERIC 
 	WHERE obstacle_classified IN(SELECT jsonb_object_keys(select_from_variable_container_o('cycling_obstacle')));
 	     
@@ -364,16 +451,31 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 	AND smoothness IN(SELECT jsonb_object_keys(select_from_variable_container_o('cycling_smoothness')));
 	
 	--Park
-	--Street-lamp
-		--UPDATE ways SET impedance_cycling_street_lamp = select_from_variable_container_s('average_height_per_level')::NUMERIC 
-		--WHERE extra_street_lamp = "no";
-	--Tree
-	--Bench
-	--Bicycle rack
-	--Waste basket
-	--Water
-	
 
+	--Street-lamp
+	UPDATE ways SET impedance_cycling_street_lamp  = (select_from_variable_container_o('cycling_extra') ->> extra_street_lamp)::NUMERIC 
+	WHERE extra_street_lamp IS NOT null;
+
+	--Tree
+	UPDATE ways SET impedance_cycling_tree = (select_from_variable_container_o('cycling_extra') ->> extra_trees)::NUMERIC 
+	WHERE extra_trees IS NOT null;
+	
+	--Bench
+	UPDATE ways SET impedance_cycling_bench = (select_from_variable_container_o('cycling_extra') ->> extra_bench)::NUMERIC 
+	WHERE extra_bench IS NOT null;
+
+	--Bicycle rack
+
+	--Waste basket
+	
+	UPDATE ways SET impedance_cycling_waste_basket = (select_from_variable_container_o('cycling_extra') ->> extra_waste_basket)::NUMERIC 
+	WHERE extra_waste_basket  IS NOT null;
+	
+	--Fountain
+	
+	UPDATE ways SET impedance_cycling_fountain = (select_from_variable_container_o('cycling_extra') ->> extra_fountain)::NUMERIC 
+	WHERE extra_fountain IS NOT null;
+	
 	---Summary of cycling speed (cycling)
 	UPDATE ways set impedance_cycling_comfort = COALESCE(impedance_cycling_type_road,0)
 								+COALESCE(impedance_cycling_peak_hour,0)
@@ -388,10 +490,10 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 								+COALESCE(impedance_cycling_bench,0)
 								+COALESCE(impedance_cycling_bycicle_rack,0)
 								+COALESCE(impedance_cycling_waste_basket,0)
-								+COALESCE(impedance_cycling_water,0);
+								+COALESCE(impedance_cycling_fountain,0);
 -----------------------------------------------
------------------------------------------------
---add impedance factor for wheelchair
+------------------------------------------------
+--add impedance factor for wheelchair (wheelchair)
 
 	--add specific impedance column
 	--wheelchair_type_road
@@ -420,8 +522,8 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_bycicle_rack numeric;
 	--wheelchair_wheelchairte_basket
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_waste_basket numeric;
-	--wheelchair_water
-	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_water numeric;
+	--wheelchair_fountain
+	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_fountain numeric;
 	--impedance_wheelchair_comfort
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_comfort numeric;
 	
@@ -434,10 +536,10 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 	WHERE bridge_tunnel_classified IN(SELECT jsonb_object_keys(select_from_variable_container_o('wheelchair_type_road')));
 	
 	--Peak hour 
-	--DON'T KNOW INFO YET!
+	UPDATE ways SET impedance_wheelchair_peak_hour  = select_from_variable_container_s('wheelchair_peak_hour')::NUMERIC 
+	WHERE high_peak_hour = 'yes';
 	
 	--Cyclepath
-
 	UPDATE ways SET impedance_wheelchair_cyclepath = (select_from_variable_container_o('wheelchair_cyclepath') ->> cyclepath_classified)::NUMERIC 
 	WHERE cyclepath_classified IN(SELECT jsonb_object_keys(select_from_variable_container_o('wheelchair_cyclepath')));
 
@@ -448,7 +550,6 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 	AND sidewalk_width IN(SELECT jsonb_object_keys(select_from_variable_container_o('wheelchair_sidewalk')));
 	
 	--Obstacles
-
 	UPDATE ways SET impedance_wheelchair_obstacle = (select_from_variable_container_o('wheelchair_obstacle') ->> obstacle_classified)::NUMERIC 
 	WHERE obstacle_classified IN(SELECT jsonb_object_keys(select_from_variable_container_o('wheelchair_obstacle')));
 	     
@@ -463,16 +564,31 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 	AND smoothness IN(SELECT jsonb_object_keys(select_from_variable_container_o('wheelchair_smoothness')));
 	
 	--Park
+
 	--Street-lamp
-		--UPDATE ways SET impedance_wheelchair_street_lamp = select_from_variable_container_s('average_height_per_level')::NUMERIC 
-		--WHERE extra_street_lamp = "no";
+	UPDATE ways SET impedance_wheelchair_street_lamp  = (select_from_variable_container_o('wheelchair_extra') ->> extra_street_lamp)::NUMERIC 
+	WHERE extra_street_lamp IS NOT null;
+
 	--Tree
+	UPDATE ways SET impedance_wheelchair_tree = (select_from_variable_container_o('wheelchair_extra') ->> extra_trees)::NUMERIC 
+	WHERE extra_trees IS NOT null;
+	
 	--Bench
+	UPDATE ways SET impedance_wheelchair_bench = (select_from_variable_container_o('wheelchair_extra') ->> extra_bench)::NUMERIC 
+	WHERE extra_bench IS NOT null;
+
 	--Bicycle rack
+
 	--Waste basket
-	--Water
-
-
+	
+	UPDATE ways SET impedance_wheelchair_waste_basket = (select_from_variable_container_o('wheelchair_extra') ->> extra_waste_basket)::NUMERIC 
+	WHERE extra_waste_basket  IS NOT null;
+	
+	--Fountain
+	
+	UPDATE ways SET impedance_wheelchair_fountain = (select_from_variable_container_o('wheelchair_extra') ->> extra_fountain)::NUMERIC 
+	WHERE extra_fountain IS NOT null;
+	
 	---Summary of wheelchair speed (wheelchair)
 	UPDATE ways set impedance_wheelchair_comfort = COALESCE(impedance_wheelchair_type_road,0)
 								+COALESCE(impedance_wheelchair_peak_hour,0)
@@ -487,5 +603,6 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_water text;
 								+COALESCE(impedance_wheelchair_bench,0)
 								+COALESCE(impedance_wheelchair_bycicle_rack,0)
 								+COALESCE(impedance_wheelchair_waste_basket,0)
-								+COALESCE(impedance_wheelchair_water,0);
+								+COALESCE(impedance_wheelchair_fountain,0);
+-----------------------------------------------
 								

@@ -186,12 +186,13 @@ DATA_REFINEMENT_VARIABLES:
       horrible: '0'
       very_horrible: '0.1'
     walking_extra:
-      no_park: '0.1'
-      no_street_lamp: '0.2'
-      no_tree: '0.2'
-      no_bench: '0.1'
-      no_bicycle_rack: '0'
-      no_water: '0.1'
+      park: '-0.1'
+      street_lamp: '-0.2'
+      tree: '-0.2'
+      bench: '-0.1'
+      bicycle_rack: '0'
+      waste_basket: '-0.1'
+      fountain: '-0.1'
 
     #cyc = cycling comfort
     cycling_type_road:
@@ -244,12 +245,13 @@ DATA_REFINEMENT_VARIABLES:
       horrible: '0.15'
       very_horrible: '0.25'
     cycling_extra:
-      no_park: '0.1'
-      no_street_lamp: '0.2'
-      no_tree: '0.2'
-      no_bench: '0.1'
-      no_bicycle_rack: '0.2'
-      no_water: '0'
+      park: '-0.1'
+      street_lamp: '-0.2'
+      tree: '-0.2'
+      bench: '-0.1'
+      bicycle_rack: '-0.3'
+      waste_basket: '-0.2'
+      fountain: '0'
 
     #whc = wheelchair comfort
     wheelchair_type_road:
@@ -302,12 +304,14 @@ DATA_REFINEMENT_VARIABLES:
       horrible: '0.15'
       very_horrible: '0.25'
     wheelchair_extra:
-      no_park: '0.1'
-      no_street_lamp: '0.2'
-      no_tree: '0.2'
-      no_bench: '0.1'
-      no_bicycle_rack: '0'
-      no_water: '0.1'
+      park: '-0.1'
+      street_lamp: '-0.2'
+      tree: '-0.2'
+      bench: '-0.1'
+      bicycle_rack: '0'
+      waste_basket: '-0.1'
+      fountain: '-0.1'
+
 
     ##-------------------------------------Size limits for areas of interest------------------------------------##
     ## Limits the area to be displayed for certain amenities (like parks). The limits should be defined in square meters
