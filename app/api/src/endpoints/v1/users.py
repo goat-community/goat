@@ -1,7 +1,7 @@
 import json
 from typing import Any, List
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic.networks import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,7 +12,12 @@ from src.crud.base import CRUDBase
 from src.db import models
 from src.endpoints import deps
 from src.schemas.user import request_examples
-from src.utils import send_new_account_email, to_feature_collection
+from src.utils import (
+    generate_token,
+    send_activate_new_account_email,
+    to_feature_collection,
+    verify_token,
+)
 
 router = APIRouter()
 
@@ -46,7 +51,6 @@ async def read_user_me(
     return current_user
 
 
-# get user active study area
 @router.get("/me/study-area", response_class=JSONResponse)
 async def read_user_study_area(
     db: AsyncSession = Depends(deps.get_db),
@@ -63,7 +67,6 @@ async def read_user_study_area(
     return features
 
 
-# get user study areas
 @router.get(
     "/me/study-areas-list",
     response_model=List[schemas.UserStudyAreaList],
@@ -82,7 +85,6 @@ async def read_user_study_areas(
     return study_area_list
 
 
-# set user preference
 @router.put("/me/preference", response_model=models.User)
 async def update_user_preference(
     db: AsyncSession = Depends(deps.get_db),
@@ -132,35 +134,91 @@ async def create_user(
             detail="The user with this email already exists in the system.",
         )
     user = await crud.user.create(db, obj_in=user_in)
-    if settings.EMAILS_ENABLED and user_in.email:
-        send_new_account_email(
-            email_to=user_in.email, username=user_in.email, password=user_in.password
+    return user
+
+
+@router.post("/demo", response_model=models.User, response_model_exclude={"hashed_password"})
+async def create_demo_user(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    user_in: schemas.UserCreateDemo = Body(..., example=request_examples["create_demo_user"]),
+) -> Any:
+    """
+    Create new user.
+    """
+    user = await crud.user.get_by_key(db, key="email", value=user_in.email)
+    if user and len(user) > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this email already exists in the system.",
+        )
+    organization_demo = await crud.organization.get_by_key(db, key="name", value="demo")
+    study_area_demo = await crud.study_area.get_by_key(
+        db, key="id", value=settings.DEMO_USER_STUDY_AREA_ID
+    )
+
+    if len(organization_demo) == 0 or len(study_area_demo) == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Can't create a demo user at this time. Please contact the administrator.",
+        )
+    organization_demo = organization_demo[0]
+    study_area_demo = study_area_demo[0]
+    user_in = user_in.dict()
+    user_in.update(
+        {
+            "organization_id": organization_demo.id,
+            "roles": ["user"],
+            "active_study_area_id": study_area_demo.id,
+            "active_data_upload_ids": [],
+            "storage": settings.DEMO_USER_STUDY_AREA_ID,
+            "limit_scenarios": settings.DEMO_USER_SCENARIO_LIMIT,
+            "is_active": False,
+        }
+    )
+    user_obj = schemas.UserCreate(**user_in)
+    user = await crud.user.create(db, obj_in=user_obj)
+    # send activation link
+    activate_token = generate_token(email=user.email)
+    if settings.EMAILS_ENABLED and user.email:
+        send_activate_new_account_email(
+            email_to=user.email,
+            username=user.email,
+            name=user.name,
+            surname=user.surname,
+            token=activate_token,
+            email_language=user.language_preference,
         )
     return user
 
 
-# create a demo user
-# @router.post("/demo", response_model=models.User, response_model_exclude={"hashed_password"})
-# async def create_demo_user(
-#     *,
-#     db: AsyncSession = Depends(deps.get_db),
-#     user_in: schemas.UserCreate = Body(..., example=request_examples["create"])
-# ) -> Any:
-#     """
-#     Create new user.
-#     """
-#     user = await crud.user.get_by_key(db, key="email", value=user_in.email)
-#     if user and len(user) > 0:
-#         raise HTTPException(
-#             status_code=400,
-#             detail="The user with this email already exists in the system.",
-#         )
-#     user = await crud.user.create(db, obj_in=user_in)
-#     if settings.EMAILS_ENABLED and user_in.email:
-#         send_new_account_email(
-#             email_to=user_in.email, username=user_in.email, password=user_in.password
-#         )
-#     return user
+@router.post(
+    "/demo/activate", response_model=models.User, response_model_exclude={"hashed_password"}
+)
+async def activate_demo_user(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    token: str = Query(None, description="Activation token"),
+) -> Any:
+    """
+    Activate a demo user.
+    """
+    email = verify_token(token=token)
+    if not email:
+        raise HTTPException(
+            status_code=400,
+            detail="The activation token is invalid.",
+        )
+    user = await crud.user.get_by_key(db, key="email", value=email)
+    if user and len(user) > 0:
+        user = user[0]
+        user = await CRUDBase(models.User).update(db, db_obj=user, obj_in={"is_active": True})
+        return user
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this email doesn't exist in the system.",
+        )
 
 
 @router.get("/{user_id}", response_model=models.User, response_model_exclude={"hashed_password"})

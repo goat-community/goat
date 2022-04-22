@@ -88,7 +88,7 @@ class Settings(BaseSettings):
             return values["PROJECT_NAME"].upper()
         return v
 
-    EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
+    EMAIL_TOKEN_EXPIRE_HOURS: int = 2
     EMAIL_TEMPLATES_DIR: str = "/app/src/templates/email/build"
     LAYER_TEMPLATES_DIR: str = "/app/src/templates/layer"
     EMAILS_ENABLED: bool = False
@@ -105,7 +105,9 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_PASSWORD: str
     FIRST_SUPERUSER_EMAIL: Optional[str] = "administrator@plan4better.de"
     FIRST_SUPERUSER_STORAGE: Optional[int] = 500000  # In kilobytes
-
+    DEMO_USER_STUDY_AREA_ID: Optional[int] = 91620000  # Munich
+    DEMO_USER_SCENARIO_LIMIT: Optional[int] = 5
+    DEMO_USER_STORAGE: Optional[int] = 0  # In kilobytes
     USERS_OPEN_REGISTRATION: bool = False
     # Tile / Table config
     TILE_RESOLUTION: int = 4096

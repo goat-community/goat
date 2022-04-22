@@ -54,8 +54,8 @@ class User(UserBase, table=True):
 
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     hashed_password: Optional[str] = Field(sa_column=Column(Text, nullable=False))
-    is_active: Optional[bool] = Field(default=True)
-    newsletter: Optional[bool] = Field(default=True)
+    is_active: Optional[bool] = Field(default=False)
+    newsletter: Optional[bool] = Field(default=False)
     occupation: Optional[str] = Field(sa_column=Column(Text, nullable=True))
     domain: Optional[str] = Field(sa_column=Column(Text, nullable=True))
     creation_date: Optional[datetime] = Field(
@@ -78,5 +78,5 @@ class User(UserBase, table=True):
     data_uploads: List["DataUpload"] = Relationship(back_populates="user")
     isochrone_calculations: List["IsochroneCalculation"] = Relationship(back_populates="user")
     user_customizations: List["UserCustomization"] = Relationship(back_populates="users")
-    poi_user_config: List["PoiUserConfig"] = Relationship(back_populates="user")
+    poi_user_configs: List["PoiUserConfig"] = Relationship(back_populates="user")
     # active_study_area: "StudyArea" = Relationship(back_populates="users_active")

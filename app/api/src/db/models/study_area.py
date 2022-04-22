@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from .user import User
     from .customization import UserCustomization
     from .data_upload import DataUpload
-    from .poi_config import PoiStudyAreaConfig
+    from .poi_config import PoiStudyAreaConfig, PoiUserConfig
 
 from ._link_model import StudyAreaGridVisualization, UserStudyArea
 from ._pydantic_geometry import dump_geom
@@ -42,7 +42,7 @@ class StudyArea(SQLModel, table=True):
             nullable=False,
         )
     )
-    #Buffer geom by 1600 meters which is the flying bird distance for 20 minutes walking with a speed of 5km/h
+    # Buffer geom by 1600 meters which is the flying bird distance for 20 minutes walking with a speed of 5km/h
     buffer_geom_heatmap: str = Field(
         sa_column=Column(
             Geometry(geometry_type="MultiPolygon", srid="4326", spatial_index=False),
@@ -58,6 +58,7 @@ class StudyArea(SQLModel, table=True):
     user_customizations: List["UserCustomization"] = Relationship(back_populates="study_areas")
     data_uploads: List["DataUpload"] = Relationship(back_populates="study_area")
     poi_study_area_configs: List["PoiStudyAreaConfig"] = Relationship(back_populates="study_area")
+    poi_user_configs: List["PoiUserConfig"] = Relationship(back_populates="study_area")
     _validate_geom = validator("geom", pre=True, allow_reuse=True)(dump_geom)
 
 

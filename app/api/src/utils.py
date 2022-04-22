@@ -72,34 +72,53 @@ def send_reset_password_email(email_to: str, email: str, token: str) -> None:
             "project_name": settings.PROJECT_NAME.upper(),
             "username": email,
             "email": email_to,
-            "valid_hours": settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
+            "valid_hours": settings.EMAIL_TOKEN_EXPIRE_HOURS,
             "link": link,
         },
     )
 
 
-def send_new_account_email(email_to: str, username: str, password: str) -> None:
+def send_activate_new_account_email(
+    email_to: str, username: str, name: str, surname: str, token: str, email_language: str = "en"
+) -> None:
     project_name = settings.PROJECT_NAME.upper()
-    subject = f"{project_name} - New account for user {username}"
-    with open(Path(settings.EMAIL_TEMPLATES_DIR) / "new_account.html") as f:
-        template_str = f.read()
-    link = settings.SERVER_HOST
+    subject_titles = {
+        "en": f"{project_name} - Activate your account",
+        "de": f"{project_name} - Aktiviere dein Konto",
+    }
+    subject = subject_titles[email_language]
+    template_str = ""
+    available_email_language = "en"
+    if os.path.isfile(
+        Path(settings.EMAIL_TEMPLATES_DIR) / f"activate_new_account_{email_language}.html"
+    ):
+        available_email_language = email_language
+    try:
+        with open(
+            Path(settings.EMAIL_TEMPLATES_DIR)
+            / f"activate_new_account_{available_email_language}.html"
+        ) as f:
+            template_str = f.read()
+    except OSError:
+        print(f"No template for language {available_email_language}")
+
+    link = f"{settings.SERVER_HOST}/activate-account?token={token}"
     send_email(
         email_to=email_to,
         subject_template=subject,
         html_template=template_str,
         environment={
             "project_name": settings.PROJECT_NAME.upper(),
-            "username": username,
-            "password": password,
+            "name": name,
+            "surname": surname,
             "email": email_to,
-            "link": link,
+            "url": link,
         },
     )
 
 
-def generate_password_reset_token(email: str) -> str:
-    delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
+def generate_token(email: str) -> str:
+    delta = timedelta(hours=settings.EMAIL_TOKEN_EXPIRE_HOURS)
     now = datetime.utcnow()
     expires = now + delta
     exp = expires.timestamp()
@@ -111,7 +130,7 @@ def generate_password_reset_token(email: str) -> str:
     return encoded_jwt
 
 
-def verify_password_reset_token(token: str) -> Optional[str]:
+def verify_token(token: str) -> Optional[str]:
     try:
         decoded_token = jwt.decode(token, settings.API_SECRET_KEY, algorithms=["HS256"])
         return decoded_token["sub"]

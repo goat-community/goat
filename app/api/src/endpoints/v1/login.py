@@ -11,11 +11,7 @@ from src.core.config import settings
 from src.core.security import get_password_hash
 from src.db import models
 from src.endpoints import deps
-from src.utils import (
-    generate_password_reset_token,
-    send_reset_password_email,
-    verify_password_reset_token,
-)
+from src.utils import generate_token, send_reset_password_email, verify_token
 
 router = APIRouter()
 
@@ -67,7 +63,7 @@ async def recover_password(email: str, db: AsyncSession = Depends(deps.get_db)) 
     else:
         user = user[0]
 
-    password_reset_token = generate_password_reset_token(email=email)
+    password_reset_token = generate_token(email=email)
     send_reset_password_email(email_to=user.email, email=email, token=password_reset_token)
     return {"msg": "Password recovery email sent"}
 
@@ -81,7 +77,7 @@ async def reset_password(
     """
     Reset password
     """
-    email = verify_password_reset_token(token)
+    email = verify_token(token)
     if not email:
         raise HTTPException(status_code=400, detail="Invalid token")
     user = await crud.user.get_by_key(db, key="email", value=email)
