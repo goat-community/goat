@@ -190,7 +190,7 @@ DATA_REFINEMENT_VARIABLES:
       street_lamp: '-0.2'
       tree: '-0.2'
       bench: '-0.1'
-      bicycle_rack: '0'
+      bicycle_parking: '0'
       waste_basket: '-0.1'
       fountain: '-0.1'
 
@@ -249,7 +249,7 @@ DATA_REFINEMENT_VARIABLES:
       street_lamp: '-0.2'
       tree: '-0.2'
       bench: '-0.1'
-      bicycle_rack: '-0.3'
+      bicycle_parking: '-0.3'
       waste_basket: '-0.2'
       fountain: '0'
 
@@ -308,7 +308,7 @@ DATA_REFINEMENT_VARIABLES:
       street_lamp: '-0.2'
       tree: '-0.2'
       bench: '-0.1'
-      bicycle_rack: '0'
+      bicycle_parking: '0'
       waste_basket: '-0.1'
       fountain: '-0.1'
 
