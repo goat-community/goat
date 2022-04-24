@@ -79,9 +79,8 @@ const actions = {
   },
   [CREATE_USER](context, payload) {
     return new Promise((resolve, reject) => {
-      ApiService.post("/register", payload)
+      ApiService.post("/users/demo", payload)
         .then(response => {
-          context.commit(SET_MESSAGE, response.data.msg);
           resolve(response.data);
         })
         .catch(({ response }) => {

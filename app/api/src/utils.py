@@ -21,7 +21,7 @@ from src.core.config import settings
 from src.resources.enums import MimeTypes
 
 
-def send_email(
+def send_email_(
     email_to: str,
     subject_template: str = "",
     html_template: str = "",
@@ -49,7 +49,7 @@ def send_test_email(email_to: str) -> None:
     subject = f"{project_name} - Test email"
     with open(Path(settings.EMAIL_TEMPLATES_DIR) / "test_email.html") as f:
         template_str = f.read()
-    send_email(
+    send_email_(
         email_to=email_to,
         subject_template=subject,
         html_template=template_str,
@@ -57,53 +57,56 @@ def send_test_email(email_to: str) -> None:
     )
 
 
-def send_reset_password_email(email_to: str, email: str, token: str) -> None:
-    project_name = settings.PROJECT_NAME.upper()
-    subject = f"{project_name} - Password recovery for user {email}"
-    with open(Path(settings.EMAIL_TEMPLATES_DIR) / "reset_password.html") as f:
-        template_str = f.read()
-    server_host = settings.SERVER_HOST
-    link = f"{server_host}/reset-password?token={token}"
-    send_email(
-        email_to=email_to,
-        subject_template=subject,
-        html_template=template_str,
-        environment={
-            "project_name": settings.PROJECT_NAME.upper(),
-            "username": email,
-            "email": email_to,
-            "valid_hours": settings.EMAIL_TOKEN_EXPIRE_HOURS,
-            "link": link,
+email_content_config = {
+    "password_recovery": {
+        "url": f"{settings.SERVER_HOST}/reset-password?token=",
+        "subject": {
+            "en": "Password recovery",
+            "de": "Passwort-Wiederherstellung",
         },
-    )
+        "template_name": "reset_password",
+    },
+    "activate_new_account": {
+        "url": f"{settings.SERVER_HOST}/activate-account?token=",
+        "subject": {
+            "en": "Activate your account",
+            "de": "Aktiviere dein Konto",
+        },
+        "template_name": "activate_new_account",
+    },
+}
 
 
-def send_activate_new_account_email(
-    email_to: str, username: str, name: str, surname: str, token: str, email_language: str = "en"
+def send_email(
+    type: str,
+    email_to: str,
+    name: str,
+    surname: str,
+    token: str = "",
+    email_language: str = "en",
 ) -> None:
-    project_name = settings.PROJECT_NAME.upper()
-    subject_titles = {
-        "en": f"{project_name} - Activate your account",
-        "de": f"{project_name} - Aktiviere dein Konto",
-    }
-    subject = subject_titles[email_language]
+    if type not in email_content_config:
+        raise ValueError(f"Unknown email type {type}")
+
+    subject = email_content_config[type]["subject"][email_language]
     template_str = ""
     available_email_language = "en"
+    template_file_name = email_content_config[type]["template_name"]
+    link = email_content_config[type]["url"] + token
     if os.path.isfile(
-        Path(settings.EMAIL_TEMPLATES_DIR) / f"activate_new_account_{email_language}.html"
+        Path(settings.EMAIL_TEMPLATES_DIR) / f"{template_file_name}_{email_language}.html"
     ):
         available_email_language = email_language
     try:
         with open(
             Path(settings.EMAIL_TEMPLATES_DIR)
-            / f"activate_new_account_{available_email_language}.html"
+            / f"{template_file_name}_{available_email_language}.html"
         ) as f:
             template_str = f.read()
     except OSError:
         print(f"No template for language {available_email_language}")
 
-    link = f"{settings.SERVER_HOST}/activate-account?token={token}"
-    send_email(
+    send_email_(
         email_to=email_to,
         subject_template=subject,
         html_template=template_str,
@@ -112,6 +115,7 @@ def send_activate_new_account_email(
             "name": name,
             "surname": surname,
             "email": email_to,
+            "valid_hours": settings.EMAIL_TOKEN_EXPIRE_HOURS,
             "url": link,
         },
     )

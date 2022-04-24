@@ -14,8 +14,19 @@
     "passwordForgotten": "Passwort vergessen?",
     "maxFourChar": "Mindestens 4 Zeichen für das Passwort notwending.",
     "mailRequired": "E-Mail ist erforderlich",
+    "fieldRequired": "Dieses Feld ist erforderlich",
     "mailValid": "E-mail ist ungültig",
-    "password": "Passwort"
+    "password": "Passwort",
+    "agreeTerms": "Ich stimme den",
+    "termsAndConditions": "Nutzungsbedingungen",
+    "newsletter": "Ich möchte den Newsletter abonnieren",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "profession": "Beruf",
+    "domain": "Domain",
+    "backToLogin": "Zurück zum Login",
+    "activateAccount": "Konto erfolgreich erstellt. Bitte aktivieren Sie Ihr Konto, indem Sie auf den Link in Ihrer E-Mail klicken.",
+    "register": "Registrieren"
   },
   "appBar": {
     "buttons": {

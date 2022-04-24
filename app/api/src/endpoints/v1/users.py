@@ -12,12 +12,7 @@ from src.crud.base import CRUDBase
 from src.db import models
 from src.endpoints import deps
 from src.schemas.user import request_examples
-from src.utils import (
-    generate_token,
-    send_activate_new_account_email,
-    to_feature_collection,
-    verify_token,
-)
+from src.utils import generate_token, send_email, to_feature_collection, verify_token
 
 router = APIRouter()
 
@@ -178,12 +173,11 @@ async def create_demo_user(
     )
     user_obj = schemas.UserCreate(**user_in)
     user = await crud.user.create(db, obj_in=user_obj)
-    # send activation link
     activate_token = generate_token(email=user.email)
     if settings.EMAILS_ENABLED and user.email:
-        send_activate_new_account_email(
+        send_email(
+            type="activate_new_account",
             email_to=user.email,
-            username=user.email,
             name=user.name,
             surname=user.surname,
             token=activate_token,

@@ -11,7 +11,7 @@ from src.core.config import settings
 from src.core.security import get_password_hash
 from src.db import models
 from src.endpoints import deps
-from src.utils import generate_token, send_reset_password_email, verify_token
+from src.utils import generate_token, send_email, verify_token
 
 router = APIRouter()
 
@@ -64,7 +64,14 @@ async def recover_password(email: str, db: AsyncSession = Depends(deps.get_db)) 
         user = user[0]
 
     password_reset_token = generate_token(email=email)
-    send_reset_password_email(email_to=user.email, email=email, token=password_reset_token)
+    send_email(
+        type="password_recovery",
+        email_to=user.email,
+        name=user.name,
+        surname=user.surname,
+        token=password_reset_token,
+        email_language=user.language_preference,
+    )
     return {"msg": "Password recovery email sent"}
 
 

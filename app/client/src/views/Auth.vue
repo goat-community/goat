@@ -42,7 +42,7 @@
             >
               {{ message }}
             </v-alert>
-            <!-- Sign in   -->
+            <!-- SIGN IN  -->
             <v-card-text v-if="$route.name === 'login'">
               <h3 class="mb-0 pb-0 ml-2 mb-4 font-weight-regular">
                 {{ $t("login.title").toUpperCase() }}
@@ -107,28 +107,23 @@
                 <p class="font-weight-regular pb-0 mb-0">
                   {{ $t("login.noAccount") }}
                 </p>
-              </v-row>
-              <v-row class="mx-3">
-                <p class="font-weight-regular">
-                  {{ $t("login.toSignUpContactUs") }}
-                  <a
-                    target="_blank"
-                    style="color:#2BB381;text-decoration:none;"
-                    href="https://plan4better.de/kontakt/"
-                    class="text-body-1 link"
-                    >Plan4better</a
-                  >
-                </p>
+                <router-link
+                  style="z-index:2;color:#2BB381;text-decoration:none;"
+                  to="/register"
+                  class="ml-2"
+                >
+                  Register
+                </router-link>
               </v-row>
             </v-card-text>
 
-            <!-- Sign up  -->
+            <!-- SIGN UP   -->
             <v-card-text v-if="$route.name === 'register-demo'">
               <h3 class="mb-0 pb-0 ml-2 mb-4 font-weight-regular">
                 {{ $t("login.register").toUpperCase() }}
               </h3>
               <v-form
-                ref="registerForm"
+                ref="authForm"
                 v-model="validForm"
                 @keyup.native.enter="submitRegisterForm"
                 class="mx-2"
@@ -137,10 +132,21 @@
                   v-model="name"
                   outlined
                   name="name"
-                  label="First Name"
+                  :label="$t('login.firstName')"
+                  type="text"
+                  :disabled="loading"
+                  :rules="fieldRequired"
+                >
+                </v-text-field>
+                <v-text-field
+                  v-model="surname"
+                  outlined
+                  name="surname"
+                  :label="$t('login.lastName')"
                   type="text"
                   :disabled="loading"
                   validate-on-blur
+                  :rules="fieldRequired"
                 >
                 </v-text-field>
                 <v-text-field
@@ -170,6 +176,55 @@
                   :disabled="loading"
                   validate-on-blur
                 ></v-text-field>
+                <v-select
+                  v-model="occupation"
+                  :items="professions"
+                  :label="$t('login.profession')"
+                  outlined
+                  :disabled="loading"
+                  validate-on-blur
+                  :rules="fieldRequired"
+                />
+                <v-select
+                  v-model="domain"
+                  :items="domains"
+                  :label="$t('login.domain')"
+                  outlined
+                  :disabled="loading"
+                  validate-on-blur
+                  :rules="fieldRequired"
+                />
+                <v-row class="mx-2 mt-n5 pt-0">
+                  <v-spacer></v-spacer>
+                  <router-link
+                    style="z-index:2;color:#2BB381;text-decoration:none;"
+                    to="/login"
+                    >{{ $t("login.backToLogin") }}</router-link
+                  >
+                </v-row>
+                <v-checkbox
+                  class="mt-3"
+                  color="#2BB381"
+                  :rules="fieldRequired"
+                  v-model="agreedTerms"
+                >
+                  <template v-slot:label>
+                    {{ $t("login.agreeTerms") }} &nbsp;
+                    <a
+                      target="_blank"
+                      style="color:#2BB381;text-decoration:none;"
+                      href="https://plan4better.de/en/privacy/"
+                      @click.stop
+                    >
+                      <span>{{ $t(`login.termsAndConditions`) }}</span>
+                    </a>
+                  </template>
+                </v-checkbox>
+                <v-checkbox color="#2BB381" v-model="newsletter">
+                  <template v-slot:label>
+                    {{ $t("login.newsletter") }}
+                  </template>
+                </v-checkbox>
               </v-form>
 
               <v-row class="mt-5 mx-0" align="center">
@@ -188,7 +243,7 @@
               </v-row>
             </v-card-text>
 
-            <!-- Forgot password  -->
+            <!-- FORGOT-PASSWORD  -->
             <v-card-text v-if="$route.name === 'forgot-password'">
               <h3 class="mb-0 pb-0 ml-2 mb-2 font-weight-regular">
                 {{ $t("login.forgotYourPassword").toUpperCase() }}
@@ -237,7 +292,7 @@
               </v-row>
             </v-card-text>
 
-            <!-- Reset password -->
+            <!-- RESET-PASSWORD -->
             <v-card-text v-if="$route.name === 'reset-password'">
               <h3 class="mb-0 pb-0 ml-2 mb-4 font-weight-regular">
                 {{ $t("login.resetYourPassword").toUpperCase() }}
@@ -304,7 +359,7 @@
               </v-row>
             </v-card-text>
 
-            <!-- Bottom -->
+            <!-- BOTTOM -->
             <div style="position:absolute;bottom:20px;" class="mx-3">
               <a href="https://plan4better.de/" target="_blank">
                 <img
@@ -333,7 +388,12 @@
 </template>
 
 <script>
-import { LOGIN, FORGOT_PASSWORD, RESET_PASSWORD } from "../store/actions.type";
+import {
+  LOGIN,
+  FORGOT_PASSWORD,
+  RESET_PASSWORD,
+  CREATE_USER
+} from "../store/actions.type";
 import { mapState, mapMutations } from "vuex";
 import Language from "../components/core/Language.vue";
 import { SET_ERROR, SET_MESSAGE } from "../store/mutations.type";
@@ -355,6 +415,12 @@ export default {
       email: "",
       password: "",
       confirmPassword: "",
+      occupation: "",
+      domain: "",
+      professions: ["urban_planner", "engineer"],
+      domains: ["civil engineering", "architecture"],
+      agreedTerms: false,
+      newsletter: false,
       carousels: [
         "img/slider-images/image-1.png",
         "img/slider-images/image-2.png",
@@ -369,16 +435,17 @@ export default {
       validForm: false,
       // Rules
       passwordRules: [
-        v => !!v || this.$t("login.passwordRequired"),
+        v => !!v || this.$t("login.fieldRequired"),
         v => v.length >= 4 || this.$t("login.maxFourChar")
       ],
       emailRules: [
-        v => !!v || this.$t("login.mailRequired"),
+        v => !!v || this.$t("login.fieldRequired"),
         v =>
           /^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
             v
           ) || this.$t("login.mailValid")
       ],
+      fieldRequired: [v => !!v || this.$t("login.fieldRequired")],
       loading: false
     };
   },
@@ -407,7 +474,39 @@ export default {
         );
       });
     },
-    submitRegisterForm() {},
+    submitRegisterForm() {
+      this.$refs.authForm.validate();
+      this.$nextTick(() => {
+        if (!this.validForm) {
+          this.loading = false;
+          return;
+        }
+        this.loading = true;
+        this.setMessage("");
+        this.setError("");
+        this.$store
+          .dispatch(`auth/${CREATE_USER}`, {
+            name: this.name,
+            surname: this.surname,
+            email: this.email,
+            password: this.password,
+            occupation: this.occupation,
+            domain: this.domain,
+            newsletter: this.newsletter,
+            language_preference: this.$i18n.locale
+          })
+          .then(
+            () => {
+              this.setMessage(this.$t("login.activateAccount"));
+              this.$router.push({ name: "login" });
+              this.loading = false;
+            },
+            () => {
+              this.loading = false;
+            }
+          );
+      });
+    },
     submitForgotPasswordForm() {
       this.$refs.authForm.validate();
       this.$nextTick(() => {
@@ -430,7 +529,6 @@ export default {
         );
       });
     },
-
     submitResetPasswordForm() {
       this.$refs.authForm.validate();
       this.$nextTick(() => {
@@ -459,7 +557,6 @@ export default {
           );
       });
     },
-    submitCreateAccountForm() {},
     clear() {
       this.$refs.authForm.reset();
       if (this.token) {
@@ -477,6 +574,10 @@ export default {
       this.validForm = false;
       this.password_visibility = false;
       this.confirmPassword_visibility = false;
+      this.profession = "";
+      this.domain = "";
+      this.agreedTerms = false;
+      this.newsletter = false;
     },
     ...mapMutations("auth", { setError: SET_ERROR, setMessage: SET_MESSAGE })
   },
@@ -494,11 +595,15 @@ export default {
   watch: {
     // eslint-disable-next-line no-unused-vars
     $route(newRoute, oldRoute) {
+      console.log(oldRoute);
       this.clear();
-      if (oldRoute.name === "reset-password") {
+      if (
+        oldRoute.name === "reset-password" ||
+        oldRoute.name === "register-demo"
+      ) {
         setTimeout(() => {
           this.setMessage("");
-        }, 3000);
+        }, 5000);
       } else {
         this.setMessage("");
       }
