@@ -108,6 +108,7 @@ class Settings(BaseSettings):
     DEMO_USER_STUDY_AREA_ID: Optional[int] = 91620000  # Munich
     DEMO_USER_SCENARIO_LIMIT: Optional[int] = 5
     DEMO_USER_STORAGE: Optional[int] = 0  # In kilobytes
+    DEMO_USER_DEACTIVATION_DAYS: Optional[int] = 30
     USERS_OPEN_REGISTRATION: bool = False
     # Tile / Table config
     TILE_RESOLUTION: int = 4096

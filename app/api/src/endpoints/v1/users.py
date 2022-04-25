@@ -1,3 +1,4 @@
+import datetime
 import json
 from typing import Any, List
 
@@ -11,6 +12,7 @@ from src.core.config import settings
 from src.crud.base import CRUDBase
 from src.db import models
 from src.endpoints import deps
+from src.schemas import Msg
 from src.schemas.user import request_examples
 from src.utils import generate_token, send_email, to_feature_collection, verify_token
 
@@ -166,7 +168,7 @@ async def create_demo_user(
             "roles": ["user"],
             "active_study_area_id": study_area_demo.id,
             "active_data_upload_ids": [],
-            "storage": settings.DEMO_USER_STUDY_AREA_ID,
+            "storage": 0,
             "limit_scenarios": settings.DEMO_USER_SCENARIO_LIMIT,
             "is_active": False,
         }
@@ -207,12 +209,70 @@ async def activate_demo_user(
     if user and len(user) > 0:
         user = user[0]
         user = await CRUDBase(models.User).update(db, db_obj=user, obj_in={"is_active": True})
+        send_email(
+            type="account_trial_started",
+            email_to=user.email,
+            name=user.name,
+            surname=user.surname,
+            token="",
+            email_language=user.language_preference,
+        )
         return user
     else:
         raise HTTPException(
             status_code=400,
             detail="The user with this email doesn't exist in the system.",
         )
+
+
+@router.get("/demo/deactivate", response_model=Msg)
+async def deactivate_demo_users(
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Deactivate demo user.
+    """
+    is_superuser = crud.user.is_superuser(current_user)
+    if not is_superuser:
+        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
+
+    organization_demo = await crud.organization.get_by_key(db, key="name", value="demo")
+    if len(organization_demo) == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Can't deactivate demo users at this time.",
+        )
+    organization_demo = organization_demo[0]
+    users = await crud.user.get_by_key(db, key="organization_id", value=organization_demo.id)
+    for user in users:
+        time_diff = datetime.datetime.now() - user.creation_date
+        if (time_diff.days > settings.DEMO_USER_DEACTIVATION_DAYS) and user.is_active:
+            user = await CRUDBase(models.User).update(db, db_obj=user, obj_in={"is_active": False})
+            if settings.EMAILS_ENABLED and user.email:
+                send_email(
+                    type="account_expired",
+                    email_to=user.email,
+                    name=user.name,
+                    surname=user.surname,
+                    token="",
+                    email_language=user.language_preference,
+                )
+        elif (time_diff.days == settings.DEMO_USER_DEACTIVATION_DAYS - 3) and user.is_active:
+            if settings.EMAILS_ENABLED and user.email:
+                send_email(
+                    type="account_expiring",
+                    email_to=user.email,
+                    name=user.name,
+                    surname=user.surname,
+                    token="",
+                    email_language=user.language_preference,
+                )
+
+        if (time_diff.days > 30) and not user.is_active:
+            await crud.user.remove(db, id=user.id)
+
+    return {"msg": "Demo users deactivated"}
 
 
 @router.get("/{user_id}", response_model=models.User, response_model_exclude={"hashed_password"})

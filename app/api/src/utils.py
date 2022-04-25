@@ -74,6 +74,24 @@ email_content_config = {
         },
         "template_name": "activate_new_account",
     },
+    "account_trial_started": { 
+        "url": "",
+        "subject": { 
+            "en": "Your trial has started",
+            "de": "Dein Testlauf hat begonnen",
+        },
+        "template_name": "account_trial_started",
+    },
+    "account_expired": {
+        "url": "",
+        "subject": { "en": "Account expired", "de": "Konto abgelaufen" },
+        "template_name": "account_expired"
+    },
+    "account_expiring": {
+        "url": "",
+        "subject": { "en": "Account expiring soon", "de": "Konto bald ablaufen" },
+        "template_name": "account_expiring"
+    }
 }
 
 
