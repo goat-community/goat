@@ -65,12 +65,8 @@ jobs:
       FIRST_SUPERUSER_EMAIL: ${{ secrets.FIRST_SUPERUSER_EMAIL }}
       FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
       FIRST_SUPERUSER_NAME: ${{ secrets.FIRST_SUPERUSER_NAME }}
-      FIRST_SUPERUSER_STORAGE: ${{ secrets.FIRST_SUPERUSER_STORAGE }}
       FIRST_SUPERUSER_SURNAME: ${{ secrets.FIRST_SUPERUSER_SURNAME }}
-      SMTP_HOST: ${{ secrets.SMTP_HOST }}
       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-      SMTP_PORT: ${{ secrets.SMTP_PORT }}
-      SMTP_TLS: ${{ secrets.SMTP_TLS }}
     steps:
       - uses: actions/checkout@v2
       - name: Get changed files 
