@@ -422,7 +422,8 @@ import {
   LOGIN,
   FORGOT_PASSWORD,
   RESET_PASSWORD,
-  CREATE_USER
+  CREATE_USER,
+  ACTIVATE_ACCOUNT
 } from "../store/actions.type";
 import { mapState, mapMutations } from "vuex";
 import Language from "../components/core/Language.vue";
@@ -637,6 +638,29 @@ export default {
         this.setMessage("");
       }
       this.setError("");
+    }
+  },
+  mounted() {
+    if (this.$route.name === "activate-account") {
+      const token = this.$route.query.token;
+      this.loading = true;
+      this.$router.push({ name: "login" });
+      this.$store
+        .dispatch(`auth/${ACTIVATE_ACCOUNT}`, {
+          token: token
+        })
+        .then(
+          () => {
+            this.loading = false;
+            this.setMessage(this.$t("login.accountActivated"));
+            setTimeout(() => {
+              this.setMessage("");
+            }, 3000);
+          },
+          () => {
+            this.loading = false;
+          }
+        );
     }
   }
 };

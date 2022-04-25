@@ -26,6 +26,7 @@
     "domain": "Domain",
     "backToLogin": "Zurück zum Login",
     "activateAccount": "Konto erfolgreich erstellt. Bitte aktivieren Sie Ihr Konto, indem Sie auf den Link in Ihrer E-Mail klicken.",
+    "accountActivated": "Konto erfolgreich aktiviert",
     "register": "Registrieren"
   },
   "appBar": {

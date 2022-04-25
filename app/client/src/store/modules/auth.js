@@ -2,6 +2,7 @@ import ApiService from "../../services/api.service";
 import JwtService from "../../services/jwt.service";
 
 import {
+  ACTIVATE_ACCOUNT,
   CREATE_USER,
   FORGOT_PASSWORD,
   GET_USER,
@@ -117,7 +118,19 @@ const actions = {
         });
     });
   },
-
+  [ACTIVATE_ACCOUNT](context, payload) {
+    return new Promise((resolve, reject) => {
+      ApiService.post(`/users/demo/activate?token=${payload["token"]}`)
+        .then(response => {
+          resolve(response.data);
+          console.log(response);
+        })
+        .catch(({ response }) => {
+          errorMessage(context, response, SET_ERROR);
+          reject(response);
+        });
+    });
+  },
   [LOGOUT](context) {
     context.commit(PURGE_AUTH);
   }
