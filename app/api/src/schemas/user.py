@@ -16,8 +16,8 @@ class UserCreate(UserBase):
     is_active: bool = False
     language_preference: Optional[LanguageEnum] = LanguageEnum.de
     newsletter: bool = False
-    occupation: str
-    domain: str
+    occupation: Optional[str]
+    domain: Optional[str]
 
 
 class UserCreateDemo(BaseModel):

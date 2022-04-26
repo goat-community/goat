@@ -49,8 +49,7 @@ async def insert_user_settings(
             raise HTTPException(status_code=400, detail="Invalid JSON-schema")
 
     await dynamic_customization.insert_opportunity_setting(db=db, current_user=current_user, insert_settings=obj_dict)
-
-    #await dynamic_customization.handle_user_setting_modification(db=db, current_user=current_user, setting_type=setting_type.value, changeset=obj_dict, modification_type='insert')
+      
     update_settings = await dynamic_customization.build_main_setting_json(db=db, current_user=current_user)
     return update_settings
 
@@ -76,12 +75,12 @@ async def delete_user_settings(
     return update_settings
 
 
-@router.get("/{user_id}/{study_area_id}", response_class=JSONResponse)
+@router.get("{user_id}/{study_area_id}", response_class=JSONResponse)
 async def get_user_settings(
     *,
     db: AsyncSession = Depends(deps.get_db),
-    user_id: int,
     study_area_id: int = None,
+    user_id: int = None,
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -94,13 +93,13 @@ async def get_user_settings(
     customizations = await crud.customization.get_multi(db)
     settings = {}
     for customization in customizations:
-        settings.update(customization.default_setting)
+        settings.update(customization.setting)
     user_customizations = await CRUDBase(models.UserCustomization).get_by_key(
         db, key="user_id", value=user_id
     )
     study_area = await CRUDBase(models.StudyArea).get(db, id=study_area_id)
-    if study_area is not None and study_area.default_setting:
-        settings.update(study_area.default_setting)
+    if study_area is not None and study_area.setting:
+        settings.update(study_area.setting)
 
     if user_customizations is not None:
         for user_customization in user_customizations:

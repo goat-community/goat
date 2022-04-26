@@ -46,12 +46,11 @@ async def test_reset_poi_style_customizations(
 ) -> None:
     superuser = await crud.user.get_by_key(db, key="email", value=settings.FIRST_SUPERUSER_EMAIL)
     obj_dict = jsonable_encoder(request_examples["user_customization_insert"]["poi"]["value"])
-    await dynamic_customization.handle_user_setting_modification(
+
+    await dynamic_customization.insert_opportunity_setting(
         db=db,
         current_user=superuser[0],
-        setting_type="poi",
-        changeset=obj_dict,
-        modification_type="insert",
+        insert_settings=obj_dict
     )
     await dynamic_customization.build_main_setting_json(db=db, current_user=superuser[0])
     category = request_examples["user_customization_delete"]["poi"]["value"]
@@ -69,12 +68,11 @@ async def test_superuser_get_normal_user_setting(
 ) -> None:
     user_in = await create_random_user(db=db)
     obj_dict = jsonable_encoder(request_examples["user_customization_insert"]["poi"]["value"])
-    await dynamic_customization.handle_user_setting_modification(
+
+    await dynamic_customization.insert_opportunity_setting(
         db=db,
         current_user=user_in,
-        setting_type="poi",
-        changeset=obj_dict,
-        modification_type="insert",
+        insert_settings=obj_dict
     )
     await dynamic_customization.build_main_setting_json(db=db, current_user=user_in)
     r = await client.get(

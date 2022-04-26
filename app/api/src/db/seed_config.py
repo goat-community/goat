@@ -21,41 +21,49 @@ class ConfigSeeding:
     async def create_first_user(self, db: AsyncSession):
         """Creates the first user in the database."""
         # Check if tables are empty
-        role_exists = await crud.role.get_n_rows(db, n=1)
-        organization_exists = await crud.organization.get_n_rows(db, n=1)
+
+        organization_obj = await crud.organization.get_by_key(db, key="name", value=self.settings_env.FIRST_ORGANIZATION)
         user_exists = await crud.user.get_n_rows(db, n=1)
 
-        if role_exists == [] and organization_exists == [] and user_exists == []:
-            # Create roles
-            for role in self.default_settings:
-                role_obj = await db.execute(select(models.Role).filter(models.Role.name == role))
-                role_obj = role_obj.scalars().first()
-                if not role_obj:
-                    print(f"INFO: The role {role} does not exist in database. It will be created.")
-                    await crud.role.create(db, obj_in=models.Role(name=role))
-
+        if organization_obj == []:
             # Create default organization
             organization_obj = await crud.organization.create(
                 db, obj_in=models.Organization(name=self.settings_env.FIRST_ORGANIZATION)
             )
+      
+        # Create roles if not exists
+        for role in self.default_settings:
+            role_obj = await db.execute(select(models.Role).filter(models.Role.name == role))
+            role_obj = role_obj.scalars().first()
+            if not role_obj:
+                print(f"INFO: The role {role} does not exist in database. It will be created.")
+                role_obj = await crud.role.create(db, obj_in=models.Role(name=role))
 
+        # Get all available roles
+        role_objs = await crud.role.get_all(db)
+ 
+        # Get all availavle study areas
+        study_area_objs = await crud.study_area.get_all(db)
+
+        if user_exists == []:
             # Create first user
-            await crud.user.create(
+            new_user = await crud.user.create(
                 db,
                 obj_in=schemas.UserCreate(
                     name=self.settings_env.FIRST_SUPERUSER_NAME,
                     surname=self.settings_env.FIRST_SUPERUSER_SURNAME,
                     email=self.settings_env.FIRST_SUPERUSER_EMAIL,
                     password=self.settings_env.FIRST_SUPERUSER_PASSWORD,
-                    role=list(self.default_settings.keys()),
-                    organization_id=organization_obj.id,
+                    roles=[role.name for role in role_objs],
+                    study_areas=[study_area.id for study_area in study_area_objs],
+                    organization_id=organization_obj[0].id,
                     storage=self.settings_env.FIRST_SUPERUSER_STORAGE,
                     active_study_area_id=self.settings_env.FIRST_SUPERUSER_ACTIVE_STUDY_AREA_ID,
                     active_data_upload_ids=self.settings_env.FIRST_SUPERUSER_ACTIVE_DATA_UPLOAD_IDS,
                     limit_scenarios=self.settings_env.FIRST_SUPERUSER_LIMIT_SCENARIOS,
                     language_preference=self.settings_env.FIRST_SUPERUSER_LANGUAGE_PREFERENCE,
-                    is_active=True,
-                ),
+                    is_active=True
+                )
             )
             print(f"INFO: First superuser was successfully created.")
         else:
