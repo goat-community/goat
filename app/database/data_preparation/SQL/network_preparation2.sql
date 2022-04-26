@@ -145,7 +145,7 @@ ALTER TABLE ways ADD COLUMN IF NOT EXISTS  obstacle_classified text;
 ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_street_lamp text;
 ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_trees text;
 ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_bench text;
-ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_bicycle_rack text;
+ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_bicycle_parking text;
 ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_waste_basket text;
 ALTER TABLE ways ADD COLUMN IF NOT EXISTS  extra_fountain text;
 
@@ -244,8 +244,14 @@ with tags as
 	) x 
 	WHERE t.osm_id = x.osm_id;
 
-	--Classification of bicycle rack in yes (with at least 1 lamp in the way) and no
-
+	--Classification of bicycle parking in yes (with at least 1 lamp in the way) and no
+	UPDATE ways t
+		SET extra_bicycle_parking = 'bicycle_parking'  FROM ( 
+			SELECT osm_id 
+			FROM footpath_visualization  
+			WHERE cnt_bicycle_parking > 0
+		) x 
+		WHERE t.osm_id = x.osm_id;
 	--Classification of waste basket in yes (with at least 1 lamp in the way) and no - taken from footpath_visualization
 	UPDATE ways t
 		SET extra_waste_basket = 'waste_basket'  FROM ( 
@@ -290,9 +296,9 @@ with tags as
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_tree numeric;
 	--walking_bench
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_bench numeric;
-	--walking_bycicle_rack
-	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_bycicle_rack numeric;
-	--walking_walkingte_basket
+	--walking_bycicle_parking
+	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_bycicle_parking numeric;
+	--walking_waste_basket
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_waste_basket numeric;
 	--walking_fountain
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_fountain numeric;
@@ -349,10 +355,11 @@ with tags as
 	UPDATE ways SET impedance_walking_bench = (select_from_variable_container_o('walking_extra') ->> extra_bench)::NUMERIC 
 	WHERE extra_bench IS NOT null;
 
-	--Bicycle rack
-
-	--Waste basket
+	--Bicycle parking
+	UPDATE ways SET impedance_walking_bicycle_parking = (select_from_variable_container_o('walking_extra') ->> extra_bicycle_parking)::NUMERIC 
+	WHERE extra_bicycle_parking IS NOT null;
 	
+	--Waste basket
 	UPDATE ways SET impedance_walking_waste_basket = (select_from_variable_container_o('walking_extra') ->> extra_waste_basket)::NUMERIC 
 	WHERE extra_waste_basket  IS NOT null;
 	
@@ -373,7 +380,7 @@ with tags as
 								+COALESCE(impedance_walking_street_lamp,0)
 								+COALESCE(impedance_walking_tree,0)
 								+COALESCE(impedance_walking_bench,0)
-								+COALESCE(impedance_walking_bycicle_rack,0)
+								+COALESCE(impedance_walking_bycicle_parking,0)
 								+COALESCE(impedance_walking_waste_basket,0)
 								+COALESCE(impedance_walking_fountain,0);
 -----------------------------------------------
@@ -405,9 +412,9 @@ with tags as
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_tree numeric;
 	--cycling_bench
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_bench numeric;
-	--cycling_bycicle_rack
-	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_bycicle_rack numeric;
-	--cycling_cyclingte_basket
+	--cycling_bycicle_parking
+	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_bycicle_parking numeric;
+	--cycling_waste_basket
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_waste_basket numeric;
 	--cycling_fountain
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_fountain numeric;
@@ -464,7 +471,9 @@ with tags as
 	UPDATE ways SET impedance_cycling_bench = (select_from_variable_container_o('cycling_extra') ->> extra_bench)::NUMERIC 
 	WHERE extra_bench IS NOT null;
 
-	--Bicycle rack
+	--Bicycle parking
+	UPDATE ways SET impedance_cycling_bicycle_parking = (select_from_variable_container_o('cycling_extra') ->> extra_bicycle_parking)::NUMERIC 
+	WHERE extra_bicycle_parking IS NOT null;
 
 	--Waste basket
 	
@@ -488,7 +497,7 @@ with tags as
 								+COALESCE(impedance_cycling_street_lamp,0)
 								+COALESCE(impedance_cycling_tree,0)
 								+COALESCE(impedance_cycling_bench,0)
-								+COALESCE(impedance_cycling_bycicle_rack,0)
+								+COALESCE(impedance_cycling_bycicle_parking,0)
 								+COALESCE(impedance_cycling_waste_basket,0)
 								+COALESCE(impedance_cycling_fountain,0);
 -----------------------------------------------
@@ -518,9 +527,9 @@ with tags as
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_tree numeric;
 	--wheelchair_bench
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_bench numeric;
-	--wheelchair_bycicle_rack
-	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_bycicle_rack numeric;
-	--wheelchair_wheelchairte_basket
+	--wheelchair_bycicle_parking
+	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_bycicle_parking numeric;
+	--wheelchair_waste_basket
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_waste_basket numeric;
 	--wheelchair_fountain
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_fountain numeric;
@@ -577,8 +586,9 @@ with tags as
 	UPDATE ways SET impedance_wheelchair_bench = (select_from_variable_container_o('wheelchair_extra') ->> extra_bench)::NUMERIC 
 	WHERE extra_bench IS NOT null;
 
-	--Bicycle rack
-
+	--Bicycle parking
+	UPDATE ways SET impedance_wheelchair_bicycle_parking = (select_from_variable_container_o('wheelchair_extra') ->> extra_bicycle_parking)::NUMERIC 
+	WHERE extra_bicycle_parking IS NOT null;
 	--Waste basket
 	
 	UPDATE ways SET impedance_wheelchair_waste_basket = (select_from_variable_container_o('wheelchair_extra') ->> extra_waste_basket)::NUMERIC 
@@ -601,7 +611,7 @@ with tags as
 								+COALESCE(impedance_wheelchair_street_lamp,0)
 								+COALESCE(impedance_wheelchair_tree,0)
 								+COALESCE(impedance_wheelchair_bench,0)
-								+COALESCE(impedance_wheelchair_bycicle_rack,0)
+								+COALESCE(impedance_wheelchair_bycicle_parking,0)
 								+COALESCE(impedance_wheelchair_waste_basket,0)
 								+COALESCE(impedance_wheelchair_fountain,0);
 -----------------------------------------------
