@@ -414,6 +414,7 @@
       "ways_traffic_protection": "Traffic Protection",
       "ways_security": "Illuminance",
       "ways_sidewalk_quality": "Gehkomfort",
+      "heatmap_iapi": "Inclusive Accessibility by Proximity Index",
       "heatmap_connectivity": "Connectivity",
       "heatmap_luptai": "Comparison of Accessibility and Population Density",
       "heatmap_population": "Population Density",

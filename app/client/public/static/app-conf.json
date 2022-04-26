@@ -910,6 +910,28 @@
         }
       },
       {
+        "type": "VECTOR",
+        "name": "heatmap_iapi",
+        "url": "/api/map/heatmap",
+        "group": "accessbilityBasemaps",
+        "format": "GeoJSON",
+        "displayInLayerList": true,
+        "visible": false,
+        "requiresPois": true,
+        "zIndex": 1,
+        "docUrl": "https://plan4better.de/docs/heatmap/",
+        "queryParams": [
+          "heatmap_type",
+          "scenario_id_input",
+          "modus_input",
+          "pois"
+        ],
+        "style": {
+          "format": "geostyler",
+          "url": "./static/layer-styles/styles/heatmap_iapi.json"
+        }
+      },
+      {
         "type": "OSM",
         "name": "osmStandard",
         "url": "http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -1856,7 +1878,7 @@
             },
             {
               "value": "comfort",
-              "speed": 6
+              "speed": 3
             }
           ]
         }
