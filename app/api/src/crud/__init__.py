@@ -11,3 +11,4 @@ from .crud_upload import data_upload, upload
 from .crud_user import user
 from .crud_heatmap import heatmap
 from .crud_layer_library import layer_library
+from .crud_opportunity_config import opportunity_group, opportunity_default_config, opportunity_study_area_config, opportunity_user_config

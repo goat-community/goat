@@ -41,18 +41,16 @@ async def insert_user_settings(
     ),    
 ) -> Any:
     """
-    Update customization settings for POIs and Layers.
+    Insert settings for POIs.
     """
     obj_dict = jsonable_encoder(obj_in)
     if setting_type.value == 'poi_groups':
         if check_dict_schema(PoiCategory, obj_dict) == False:
             raise HTTPException(status_code=400, detail="Invalid JSON-schema")
-    
-    # elif setting_type == 'layer':
-    #     if check_dict_schema(LayerCategory, obj_dict) == False:
-    #         raise HTTPException(status_code=400, detail="Invalid JSON-schema")
-    
-    await dynamic_customization.handle_user_setting_modification(db=db, current_user=current_user, setting_type=setting_type.value, changeset=obj_dict, modification_type='insert')
+
+    await dynamic_customization.insert_opportunity_setting(db=db, current_user=current_user, insert_settings=obj_dict)
+
+    #await dynamic_customization.handle_user_setting_modification(db=db, current_user=current_user, setting_type=setting_type.value, changeset=obj_dict, modification_type='insert')
     update_settings = await dynamic_customization.build_main_setting_json(db=db, current_user=current_user)
     return update_settings
 
@@ -73,7 +71,7 @@ async def delete_user_settings(
     if category not in await crud.dynamic_customization.get_all_default_poi_categories(db=db):
         raise HTTPException(status_code=400, detail="Cannot reset custom POI category.")
 
-    await dynamic_customization.handle_user_setting_modification(db=db, current_user=current_user, setting_type=setting_type.value, changeset=category, modification_type='delete')
+    await dynamic_customization.delete_opportunity_setting(db=db, current_user=current_user, setting_type=setting_type.value, category=category)
     update_settings = await dynamic_customization.build_main_setting_json(db=db, current_user=current_user)
     return update_settings
 

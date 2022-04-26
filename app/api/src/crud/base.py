@@ -99,3 +99,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await db.delete(obj)
         await db.commit()
         return obj
+
+    async def get_n_rows(self, db: AsyncSession, *, n: int) -> ModelType:
+        statement = select(self.model).limit(n)
+        result = await db.execute(statement)
+        return result.scalars().all()

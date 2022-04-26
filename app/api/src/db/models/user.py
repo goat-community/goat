@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from .role import Role
     from .scenario import Scenario
     from .study_area import StudyArea
-    from .poi_config import PoiUserConfig
+    from .opportunity_config import OpportunityUserConfig
 
 from ._link_model import UserRole, UserStudyArea
 
@@ -76,5 +76,5 @@ class User(UserBase, table=True):
     data_uploads: List["DataUpload"] = Relationship(back_populates="user")
     isochrone_calculations: List["IsochroneCalculation"] = Relationship(back_populates="user")
     user_customizations: List["UserCustomization"] = Relationship(back_populates="users")
-    poi_user_config: List["PoiUserConfig"] = Relationship(back_populates="user")
+    opportunity_user_configs: List["OpportunityUserConfig"] = Relationship(back_populates="user")
     # active_study_area: "StudyArea" = Relationship(back_populates="users_active")
