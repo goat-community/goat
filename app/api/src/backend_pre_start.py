@@ -5,7 +5,6 @@ from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixe
 
 from src.db import models
 from src.db.session import async_session
-from src.db.init_db import init_db
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,10 +24,7 @@ async def init() -> None:
         async with async_session() as db:
             # Try to create session to check if DB is awake
             await db.execute("SELECT 1")
-            # Check if customization and user exists
-            #asyncio.run(init_db(async_session()))
 
-            
     except Exception as e:
         logger.error(e)
         raise e
