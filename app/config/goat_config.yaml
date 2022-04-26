@@ -368,7 +368,7 @@ DATA_REFINEMENT_VARIABLES:
       health_food:
         vitalia: []
         reformhaus: []
-      operators_bicycle_rental: ['münchner verkehrs gesellschaft','münchner verkehrsgesellschaft','mvg']
+      operators_bicycle_rental: ['münchner verkehrs gesellschaft','münchner verkehrsgesellschaft','mvg','Clear Channel','clear channel']
       bank: 
         sparkasse: ['kreissparkasse','sparkasse','stadtsparkasse']   
         hypovereinsbank: ['hypo vereinsbank', 'hypovereinsbank']
