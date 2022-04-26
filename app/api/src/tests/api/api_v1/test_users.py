@@ -188,3 +188,15 @@ async def test_update_normal_user_preference_not_allowed_fields(
         json=data,
     )
     assert r.status_code >= 400
+
+
+async def test_create_demo_user(client: AsyncClient, db: AsyncSession) -> None:
+    data = request_examples["create_demo_user"]
+    demo_organization = await crud.organization.get_by_key(db, key="name", value="demo")
+    assert len(demo_organization) == 1
+    demo_organization = demo_organization[0]
+    r = await client.post(
+        f"{settings.API_V1_STR}/users/demo",
+        json=data,
+    )
+    assert 200 <= r.status_code < 300

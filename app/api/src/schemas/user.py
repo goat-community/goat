@@ -13,7 +13,25 @@ class UserBase(models.UserBase):
 
 class UserCreate(UserBase):
     password: str
-    language_preference: Optional[LanguageEnum]
+    is_active: bool = False
+    language_preference: Optional[LanguageEnum] = LanguageEnum.de
+    newsletter: bool = False
+    occupation: str
+    domain: str
+
+
+class UserCreateDemo(BaseModel):
+    name: str
+    surname: str
+    email: EmailStr
+    password: str
+    newsletter: bool = False
+    occupation: str
+    domain: str
+    language_preference: Optional[LanguageEnum] = LanguageEnum.de
+
+    class Config:
+        extra = "forbid"
 
 
 class UserUpdate(UserBase):
@@ -53,6 +71,9 @@ request_examples = {
         "active_study_area_id": 91620000,
         "organization_id": 4,
         "active_data_upload_ids": [],
+        "newsletter": False,
+        "occupation": "Student",
+        "domain": "Urban Planning",
         "is_active": True,
         "storage": 512000,
         "limit_scenarios": 50,
@@ -71,6 +92,16 @@ request_examples = {
         "is_active": True,
         "storage": 512000,
         "limit_scenarios": 50,
+        "language_preference": "de",
+    },
+    "create_demo_user": {
+        "name": "John",
+        "surname": "Doe",
+        "email": "john.doe@email.com",
+        "password": "secret",
+        "newsletter": False,
+        "occupation": "Student",
+        "domain": "Urban Planning",
         "language_preference": "de",
     },
     "update_user_preference": {

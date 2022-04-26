@@ -19,6 +19,7 @@
     "maxFourChar": "Use 4 characters or more for your password",
     "mailRequired": "Email is required",
     "mailValid": "E-mail invalid",
+    "fieldRequired": "Field required",
     "password": "Password",
     "forgotPassword": "Forgot Password",
     "backToLogin": "Back to login",
@@ -30,7 +31,16 @@
     "resetPassword": "Reset password",
     "confirmPassword": "Confirm password",
     "newPassword": "New password",
-    "register": "Register"
+    "register": "Register",
+    "agreeTerms": "I agree to the",
+    "termsAndConditions": "Terms and Conditions",
+    "activateAccount": "Account created successfully. Please activate your account by clicking on the link sent to your email.",
+    "accountActivated": "Account activated successfully",
+    "newsletter": "Subscribe to our newsletter",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "profession": "Profession",
+    "domain": "Domain"
   },
   "textFieldRules": {
     "greaterThanZero": "Value should be greater than 0",

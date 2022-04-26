@@ -2,6 +2,7 @@ export const CHECK_AUTH = "checkAuth";
 export const LOGIN = "login";
 export const LOGOUT = "logout";
 export const REGISTER = "register";
+export const ACTIVATE_ACCOUNT = "activateAccount";
 export const FORGOT_PASSWORD = "forgotPassword";
 export const RESET_PASSWORD = "resetPassword";
 export const CREATE_USER = "createAccount";

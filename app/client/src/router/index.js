@@ -39,6 +39,22 @@ let router = new Router({
       meta: {
         requiresAuth: false
       }
+    },
+    {
+      path: "/register",
+      name: "register-demo",
+      component: () => import("../views/Auth.vue"),
+      meta: {
+        requiresAuth: false
+      }
+    },
+    {
+      path: "/activate-account",
+      name: "activate-account",
+      component: () => import("../views/Auth.vue"),
+      meta: {
+        requiresAuth: false
+      }
     }
   ]
 });
