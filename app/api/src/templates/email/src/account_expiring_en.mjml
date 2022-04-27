@@ -25,13 +25,13 @@
     <mj-section background-color="#ffffff" background-repeat="repeat" background-size="auto" padding-bottom="70px" padding-top="30px" padding="20px 0px 20px 0px" text-align="center" vertical-align="top">
       <mj-column>
        <mj-text align="left" color="#797e82" font-family="Open Sans, Helvetica, Arial, sans-serif" font-size="13px" line-height="22px" padding-bottom="0px" padding-left="50px" padding-right="50px" padding-top="0px" padding="0px 25px 0px 25px">
-          <h1 style="text-align:center; color: #000000; line-height:32px">Time is about to run out.</h1>
+          <h1 style="text-align:center; color: #000000; line-height:32px">Die Zeit vergeht wie im Flug.</h1>
         </mj-text>
       <mj-text align="left" color="#797e82" font-family="Open Sans, Helvetica, Arial, sans-serif" font-size="13px" line-height="22px" padding-bottom="0px" padding-left="50px" padding-right="50px" padding-top="0px" padding="0px 25px 0px 25px">
-          <p style="margin: 10px 0; text-align: center;">There are only 3 days left before your trial comes to an end. 
+          <p style="margin: 10px 0; text-align: center;">Es verbleiben nur noch 3 Tage bis zum Ende der Demoversion. Haben Sie Fragen? Dann konktaktieren Sie uns gerne.
           
         </mj-text>
-        <mj-button align="center" background-color="#2BB381" border-radius="100px" border="none" color="#ffffff" font-family="Open Sans, Helvetica, Arial, sans-serif" font-size="13px" font-weight="normal" inner-padding="15px 25px 15px 25px" padding-bottom="20px" padding-top="20px" padding="10px 25px" text-decoration="none" text-transform="none" vertical-align="middle" href="https://plan4better.de/en/contact/"><b style="font-weight:700"><b style="font-weight:700">Contact Sales</b></b></mj-button>
+        <mj-button align="center" background-color="#2BB381" border-radius="100px" border="none" color="#ffffff" font-family="Open Sans, Helvetica, Arial, sans-serif" font-size="13px" font-weight="normal" inner-padding="15px 25px 15px 25px" padding-bottom="20px" padding-top="20px" padding="10px 25px" text-decoration="none" text-transform="none" vertical-align="middle" href="https://plan4better.de/kontakt/"><b style="font-weight:700"><b style="font-weight:700">Vertriebsteam kontaktieren</b></b></mj-button>
       </mj-column>
     </mj-section>
     
