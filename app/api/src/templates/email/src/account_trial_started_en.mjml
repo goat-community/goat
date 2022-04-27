@@ -40,8 +40,8 @@
         <mj-text align="center" color="#797e82" padding-top="20px" font-family="Open Sans, Helvetica, Arial, sans-serif">&#160;&#169;&#160 Plan4Better GmbH 2022 | All Rights Reserved</mj-text>
 
         <mj-social align="center" border-radius="6px" font-family="Ubuntu, Helvetica, Arial, sans-serif" font-size="13px" icon-size="30" line-height="22px" mode="horizontal" padding-bottom="0px" padding="10px 25px" text-decoration="none" text-mode="true">
-          <mj-social-element background-color="#2BB381" href="https://twitter.com/plan4better" name="twitter-noshare" src="http://www.mailjet.com/saas-templates-creator/static/img/twitter_white.png"></mj-social-element>
-          <mj-social-element background-color="#2BB381" href="https://www.linkedin.com/company/plan4better/" name="linkedin-noshare" src="http://www.mailjet.com/saas-templates-creator/static/img/linkedin_white.png"></mj-social-element>
+          <mj-social-element background-color="#2BB381" href="https://twitter.com/plan4better" name="twitter-noshare" src="https://raw.githubusercontent.com/goat-community/p4b-website/development/static/images/emails/twitter_white.png"></mj-social-element>
+          <mj-social-element background-color="#2BB381" href="https://www.linkedin.com/company/plan4better/" name="linkedin-noshare" src="https://raw.githubusercontent.com/goat-community/p4b-website/development/static/images/emails/linkedin_white.png"></mj-social-element>
         </mj-social>
       </mj-column>
     </mj-section>
