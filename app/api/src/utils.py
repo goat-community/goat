@@ -62,7 +62,7 @@ email_content_config = {
         "url": f"{settings.SERVER_HOST}/reset-password?token=",
         "subject": {
             "en": "Password recovery",
-            "de": "Passwort-Wiederherstellung",
+            "de": "Passwort zurücksetzen",
         },
         "template_name": "reset_password",
     },
@@ -70,26 +70,26 @@ email_content_config = {
         "url": f"{settings.SERVER_HOST}/activate-account?token=",
         "subject": {
             "en": "Activate your account",
-            "de": "Aktiviere dein Konto",
+            "de": "Demo aktivieren",
         },
         "template_name": "activate_new_account",
     },
     "account_trial_started": { 
         "url": "",
         "subject": { 
-            "en": "Your trial has started",
-            "de": "Dein Testlauf hat begonnen",
+            "en": "Your GOAT demo is ready to use",
+            "de": "Ihre GOAT Demo steht bereit",
         },
         "template_name": "account_trial_started",
     },
     "account_expired": {
         "url": "",
-        "subject": { "en": "Account expired", "de": "Konto abgelaufen" },
+        "subject": { "en": "Account expired", "de": "Demo abgelaufen" },
         "template_name": "account_expired"
     },
     "account_expiring": {
         "url": "",
-        "subject": { "en": "Account expiring soon", "de": "Konto bald ablaufen" },
+        "subject": { "en": "Account expiring soon", "de": "Demo bald ablaufen" },
         "template_name": "account_expiring"
     }
 }

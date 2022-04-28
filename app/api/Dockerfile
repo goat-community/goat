@@ -3,11 +3,12 @@ FROM python:3.9.10
 RUN mkdir -p /app
 WORKDIR /app/
 # Create the app user
-RUN addgroup --system app && adduser --system --group app
+#RUN addgroup --system app && adduser --system --group app
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV ENVIRONMENT prod
+ENV PYTHONPATH "${PYTHONPATH}:."
 # Install system dependencies
 RUN apt-get update \
     && apt-get -y install netcat gcc libpq-dev \
@@ -30,8 +31,8 @@ ARG INSTALL_DEV=false
 RUN bash -c "if [ $INSTALL_DEV == 'True' ] ; then poetry install --no-root ; else poetry install --no-root --no-dev ; fi"
 COPY . /app
 # chown all the files to the app user
-RUN chown -R app:app /app
+#RUN chown -R app:app /app
 # change to the app user
-USER app
+#USER app
 # run gunicorn
 CMD gunicorn --bind 0.0.0.0:5000 src.main:app -k uvicorn.workers.UvicornWorker

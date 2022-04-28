@@ -31,7 +31,7 @@
           <p style="margin: 10px 0; text-align: center;">Falls Ihnen GOAT gefallen hat und Sie die Planungssoftware weiterhin nutzen möchten, kontaktieren Sie gerne unser Sales Team. GOAT ist bereits für ganz Deutschland verfügbar und kann auf Anfrage auf Untersuchungsgebiete weltweit übertragen werden.
           
         </mj-text>
-        <mj-button align="center" background-color="#2BB381" border-radius="100px" border="none" color="#ffffff" font-family="Open Sans, Helvetica, Arial, sans-serif" font-size="13px" font-weight="normal" inner-padding="15px 25px 15px 25px" padding-bottom="20px" padding-top="20px" padding="10px 25px" text-decoration="none" text-transform="none" vertical-align="middle" href="https://plan4better.de/en/contact/"><b style="font-weight:700"><b style="font-weight:700">Contact Sales</b></b></mj-button>
+        <mj-button align="center" background-color="#2BB381" border-radius="100px" border="none" color="#ffffff" font-family="Open Sans, Helvetica, Arial, sans-serif" font-size="13px" font-weight="normal" inner-padding="15px 25px 15px 25px" padding-bottom="20px" padding-top="20px" padding="10px 25px" text-decoration="none" text-transform="none" vertical-align="middle" href="https://plan4better.de/kontakt/"><b style="font-weight:700"><b style="font-weight:700">Vertriebsteam kontaktieren</b></b></mj-button>
       </mj-column>
     </mj-section>
     
