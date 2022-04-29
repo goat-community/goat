@@ -192,6 +192,10 @@
                     <v-select
                       v-model="occupation"
                       :items="professions"
+                      :item-text="
+                        item => $t(`login.professionList.${item.name}`)
+                      "
+                      item-value="name"
                       :label="$t('login.profession')"
                       outlined
                       :disabled="loading"
@@ -201,6 +205,8 @@
                     <v-select
                       v-model="domain"
                       :items="domains"
+                      :item-text="item => $t(`login.domainList.${item.name}`)"
+                      item-value="name"
                       :label="$t('login.domain')"
                       outlined
                       :disabled="loading"
@@ -448,8 +454,22 @@ export default {
       confirmPassword: "",
       occupation: "",
       domain: "",
-      professions: ["urban_planner", "engineer"],
-      domains: ["civil engineering", "architecture"],
+      professions: [
+        { name: "student" },
+        { name: "employee" },
+        { name: "self-employed" },
+        { name: "other" }
+      ],
+      domains: [
+        { name: "transport_planning" },
+        { name: "urban_planning" },
+        { name: "gis" },
+        { name: "architecture" },
+        { name: "location_planning" },
+        { name: "civil_engineer" },
+        { name: "political_decision_maker" },
+        { name: "other" }
+      ],
       agreedTerms: false,
       newsletter: false,
       carousels: [

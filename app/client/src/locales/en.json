@@ -40,7 +40,23 @@
     "firstName": "First name",
     "lastName": "Last name",
     "profession": "Profession",
-    "domain": "Domain"
+    "domain": "Domain",
+    "professionList": {
+      "student": "Student",
+      "employee": "Employee",
+      "self-employed": "Self-employed",
+      "other": "Other"
+    },
+    "domainList": {
+      "transport_planning": "Transport planning",
+      "urban_planning": "Urban planning",
+      "gis": "GIS",
+      "architecture": "Architecture",
+      "location_planning": "Location planning",
+      "civil_engineer": "Civil engineer",
+      "political_decision_maker": "Political decision maker",
+      "other": "Other"
+    }
   },
   "textFieldRules": {
     "greaterThanZero": "Value should be greater than 0",
