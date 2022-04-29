@@ -235,7 +235,7 @@ class CRUDUploadFile:
                     raise HTTPException(status_code=400, detail="Invalid JSON-schema")
 
                 await crud.dynamic_customization.insert_opportunity_setting(
-                    db=db, current_user=current_user, insert_settings=new_setting
+                    db=db, current_user=current_user, insert_settings=new_setting, data_upload_id=upload_obj.id
                 )
 
         except:

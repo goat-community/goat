@@ -110,6 +110,12 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_LIMIT_SCENARIOS: int = 50
     FIRST_SUPERUSER_LANGUAGE_PREFERENCE: str = "en"
 
+    POSTGRES_DB_STAGING: Optional[str] = None
+    POSTGRES_SERVER_STAGING: Optional[str] = None
+    POSTGRES_USER_STAGING: Optional[str] = None
+    POSTGRES_PASSWORD_STAGING: Optional[str] = None
+    POSTGRES_OUTER_PORT_STAGING: Optional[int] = None
+
     DEMO_USER_STUDY_AREA_ID: Optional[int] = 91620000  # Munich
     DEMO_USER_SCENARIO_LIMIT: Optional[int] = 5
     DEMO_USER_STORAGE: Optional[int] = 0  # In kilobytes

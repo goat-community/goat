@@ -184,7 +184,7 @@ class ScenarioBuildingsModifiedUpdate(ScenarioFeatureUpdateBase):
 
 class ScenarioPoisModifiedCreate(ScenarioFeatureCreateBase):
     uid: Optional[str] = None  # specified if the feature is an existing poi from pois table
-    name: str
+    name: Optional[str]
     category: str  # checked if amenity exists for the user
     edit_type: ScenarioEditType
 

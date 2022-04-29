@@ -197,7 +197,6 @@ class CRUDDynamicCustomization:
 
         if check_dict_schema(PoiGroups, {"poi_groups": combined_poi_settings[0]}) == False:
             HTTPException(status_code=400, detail="Build POI groups are invalid.")
-        combined_settings["poi_groups"] = combined_poi_settings[0]
 
         combined_aoi_settings = await db.execute(
             func.basic.active_opportunities_json(
@@ -208,7 +207,7 @@ class CRUDDynamicCustomization:
 
         if check_dict_schema(PoiGroups, {"aoi_groups": combined_aoi_settings[0]}) == False:
             HTTPException(status_code=400, detail="Build POI groups are invalid.")
-        combined_settings["aoi_groups"] = combined_aoi_settings[0]
+        
 
         # Combine settings for layers
         combined_layer_groups = await self.merge_layer_groups(
@@ -217,8 +216,9 @@ class CRUDDynamicCustomization:
             default_settings["layer_groups"],
             study_area_settings["layer_groups"],
         )
-        combined_settings["layer_groups"] = combined_layer_groups
+        
 
+        # TODO: Manage other settings then layers and POIs
         # Loop through default_settings and merge settings
         for setting_key in default_settings:
             combined_settings.update({setting_key: default_settings[setting_key]})
@@ -228,6 +228,10 @@ class CRUDDynamicCustomization:
             if setting_key in study_area_settings:
                 combined_settings.update({setting_key: study_area_settings[setting_key]})
 
+        combined_settings["layer_groups"] = combined_layer_groups
+        combined_settings["aoi_groups"] = combined_aoi_settings[0]
+        combined_settings["poi_groups"] = combined_poi_settings[0]
+        
         return combined_settings
 
     async def insert_opportunity_setting(

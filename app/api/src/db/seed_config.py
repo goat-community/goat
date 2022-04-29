@@ -147,7 +147,7 @@ class ConfigSeeding:
                         icon=category_dict["icon"],
                         color=category_dict["color"],
                         sensitivity=category_dict.get("sensitivity"),
-                        multiple_entrace=category_dict.get("multiple_entrance")
+                        multiple_entrance=category_dict.get("multiple_entrance")
                     )
                     if existing_setting == []:
                         await crud.opportunity_default_config.create(db=db, obj_in=setting_obj)

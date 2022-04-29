@@ -21,7 +21,7 @@ superuser:
         tittle: "GOAT - Geo Open Accessibility Tool"
         base_color:
             primary: "#2BB381"
-            secondary: "#283648"
+            secondary: "#446794"
         logo: "https://assets.goat.plan4better.de/icons/logo_white.png"
         layer_tree:
             group_icons:
