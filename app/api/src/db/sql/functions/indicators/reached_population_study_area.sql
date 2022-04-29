@@ -39,13 +39,18 @@ BEGIN
 		 	SELECT p.sub_study_area_id, sum(population) population 
 		 	FROM prepared_scenario p 
 		 	GROUP BY p.sub_study_area_id
-		) 
-		SELECT s.id AS sub_study_area_id, s.name, (s.population + COALESCE(sp.population, 0)) AS population 
-		FROM basic.sub_study_area s
-		LEFT JOIN scenario_population sp 
-		ON s.id = sp.sub_study_area_id
-		WHERE s.id IN (SELECT UNNEST(study_area_ids)); 	
-
+		),
+		combined_population AS 
+		( 
+			SELECT s.id AS sub_study_area_id, s.name, (s.population + COALESCE(sp.population, 0)) AS population 
+			FROM basic.sub_study_area s
+			LEFT JOIN scenario_population sp 
+			ON s.id = sp.sub_study_area_id
+			WHERE s.id IN (SELECT UNNEST(study_area_ids)) 	
+		)
+		SELECT i.id AS isochrone_feature_id, c.*
+		FROM customer.isochrone_feature i, combined_population c
+		WHERE i.isochrone_calculation_id = ischrone_calculation_id_input; 
 	ELSE 
 		RAISE EXCEPTION 'Unknown modus: %', modus;	
 	END IF;
