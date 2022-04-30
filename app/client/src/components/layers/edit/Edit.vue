@@ -77,7 +77,7 @@
                       close
                     </v-icon>
                     <v-icon v-else>
-                      add
+                      more_vert
                     </v-icon>
                   </v-btn>
                 </template>

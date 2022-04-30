@@ -132,27 +132,55 @@
 
     <!-- Info snackbar when editing a layer -->
     <v-snackbar
-      :color="scenarioLayerEditModeColor"
-      v-if="selectedEditLayer"
+      :color="selectedEditLayer ? scenarioLayerEditModeColor : appColor.primary"
+      v-if="activeScenario"
       :timeout="0"
       style="font-size:16px;"
-      :value="selectedEditLayer ? true : false"
+      :value="activeScenario ? true : false"
     >
-      <span class="h2"
+      <v-select
+        :style="
+          selectedEditLayer
+            ? `border-right: 1px solid grey;width: 200px;`
+            : 'width: 150px;'
+        "
+        dark
+        hide-details
+        :class="{
+          'mx-3 mt-0 pt-0': true,
+          'pr-4': !!selectedEditLayer
+        }"
+        :items="calculationMode.values"
+        v-model="calculationMode.active"
+      >
+        <template slot="selection" slot-scope="{ item }">
+          {{
+            $te(`isochrones.options.${item}`)
+              ? $t(`isochrones.options.${item}`).toUpperCase()
+              : item.toUpperCase()
+          }}
+        </template>
+        <template slot="item" slot-scope="{ item }">
+          {{
+            $te(`isochrones.options.${item}`)
+              ? $t(`isochrones.options.${item}`).toUpperCase()
+              : item.toUpperCase()
+          }}
+        </template>
+      </v-select>
+      <span v-if="selectedEditLayer" class="h2"
         >{{
           $te(`map.snackbarMessages.scenarioEditMode`)
-            ? $t(`map.snackbarMessages.scenarioEditMode`) + ": "
-            : $t(`map.snackbarMessages.scenarioEditMode`)
+            ? $t(`map.snackbarMessages.scenarioEditMode`).toUpperCase()
+            : "EDIT MODE"
         }}
-        <span class="ml-2"
-          ><b>{{
-            $te(`map.layerName.${selectedEditLayer["name"]}`)
-              ? $t(`map.layerName.${selectedEditLayer["name"]}`)
-              : selectedEditLayer["name"]
-          }}</b></span
-        >
       </span>
-      <v-btn color="error" text @click="selectedEditLayer = null">
+      <v-btn
+        v-if="selectedEditLayer"
+        color="error"
+        text
+        @click="selectedEditLayer = null"
+      >
         {{ $te(`buttonLabels.exit`) ? $t(`buttonLabels.exit`) : "Exit" }}
       </v-btn>
     </v-snackbar>
@@ -901,11 +929,15 @@ export default {
       appColor: "appColor",
       appConfig: "appConfig",
       scenarioLayerEditModeColor: "scenarioLayerEditModeColor",
-      isRecomputingHeatmap: "isRecomputingHeatmap"
+      isRecomputingHeatmap: "isRecomputingHeatmap",
+      calculationMode: "calculationMode"
     }),
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
       options: "options"
+    }),
+    ...mapGetters("scenarios", {
+      activeScenario: "activeScenario"
     }),
     ...mapGetters("loader", { isNetworkBusy: "isNetworkBusy" }),
     currentInfo() {

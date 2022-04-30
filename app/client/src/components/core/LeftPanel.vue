@@ -84,28 +84,6 @@
             </keep-alive>
           </v-layout>
         </vue-scroll>
-
-        <v-layout align-end>
-          <div class="text-center elevation-5 py-2" style="width:100%;">
-            <v-chip
-              v-for="(item, index) in calculationMode.values"
-              style="cursor:pointer;width:100px;justify-content:center;"
-              :color="calculationMode.active === item ? appColor.primary : ''"
-              @click="selectCalculationMode(item)"
-              :key="index"
-              :class="{
-                'subtitle-2 ma-2': true,
-                'white--text': calculationMode.active === item
-              }"
-            >
-              {{
-                $te(`isochrones.options.${item}`)
-                  ? $t(`isochrones.options.${item}`)
-                  : item
-              }}
-            </v-chip>
-          </div>
-        </v-layout>
       </template>
     </v-layout>
   </v-navigation-drawer>
@@ -153,13 +131,6 @@ export default {
       calculationMode: "calculationMode",
       layerTabIndex: "layerTabIndex"
     })
-  },
-  mounted() {},
-  beforeDestroy() {},
-  methods: {
-    selectCalculationMode(mode) {
-      this.calculationMode.active = mode;
-    }
   },
   watch: {
     selectedThematicData(calculation) {
