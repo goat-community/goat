@@ -1,13 +1,41 @@
 <template>
   <div id="ol-map-container">
     <!-- Map Controls -->
-    <zoom-control
-      v-show="!miniViewOlMap"
-      :map="map"
-      :color="appColor.primary"
-    />
-    <full-screen v-show="!miniViewOlMap" :color="appColor.primary" />
-    <measure v-show="!miniViewOlMap" :color="appColor.primary" />
+    <div style="position:absolute;left:20px;top:10px;">
+      <search-map
+        :viewbox="
+          transformExtent(studyArea[0].get('bounds'), 'EPSG:3857', 'EPSG:4326')
+        "
+        class="mb-2"
+        :map="map"
+        :color="appColor.primary"
+      />
+      <full-screen
+        class="mb-2"
+        v-show="!miniViewOlMap"
+        :color="appColor.primary"
+      />
+      <measure class="mb-2" v-show="!miniViewOlMap" :color="appColor.primary" />
+      <!-- toggle-streetview -->
+      <v-tooltip right>
+        <template v-slot:activator="{ on }">
+          <v-btn
+            style="z-index: 1;"
+            fab
+            dark
+            x-small
+            :color="appColor.primary"
+            @click="showMiniViewer"
+            :loading="isMapillaryBtnDisabled"
+            v-on="on"
+          >
+            <v-icon dark>streetview</v-icon>
+          </v-btn>
+        </template>
+        <span>{{ $t(`map.tooltips.toggleStreetView`) }}</span>
+      </v-tooltip>
+    </div>
+
     <progress-status />
     <background-switcher v-show="!miniViewOlMap" />
     <!-- Popup overlay  -->
@@ -161,6 +189,7 @@ import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import VectorImageLayer from "ol/layer/VectorImage";
 import LineString from "ol/geom/LineString";
+import { transformExtent } from "ol/proj";
 
 // style imports
 import {
@@ -186,9 +215,9 @@ import { mapFields } from "vuex-map-fields";
 import OverlayPopup from "./controls/Overlay";
 import MapLoadingProgressStatus from "./controls/MapLoadingProgressStatus";
 import BackgroundSwitcher from "./controls/BackgroundSwitcher";
-import ZoomControl from "./controls/ZoomControl";
 import FullScreen from "./controls/Fullscreen";
 import Measure from "./controls/Measure";
+import Search from "./controls/Search.vue";
 import DoubleClickZoom from "ol/interaction/DoubleClickZoom";
 
 import { defaults as defaultControls, Attribution } from "ol/control";
@@ -208,9 +237,9 @@ export default {
     "overlay-popup": OverlayPopup,
     "progress-status": MapLoadingProgressStatus,
     "background-switcher": BackgroundSwitcher,
-    "zoom-control": ZoomControl,
     "full-screen": FullScreen,
     "indicators-chart": IndicatorsChart,
+    "search-map": Search,
     measure: Measure
   },
   name: "app-ol-map",
@@ -287,7 +316,6 @@ export default {
         maxZoom: me.appConfig.map.maxZoom || 19
       })
     });
-
     // Get study area
     me.createStudyAreaLayer();
     // Create poisaoisLayer
@@ -836,6 +864,11 @@ export default {
         return "";
       }
     },
+    transformExtent,
+    showMiniViewer() {
+      this.miniViewerVisible = true;
+      this.isMapillaryBtnDisabled = true;
+    },
     ...mapMutations("map", {
       setContextMenu: "SET_CONTEXTMENU",
       setLayer: "SET_LAYER",
@@ -848,7 +881,9 @@ export default {
   computed: {
     ...mapFields("map", {
       subStudyAreaLayer: "subStudyAreaLayer",
-      selectedEditLayer: "selectedEditLayer"
+      selectedEditLayer: "selectedEditLayer",
+      isMapillaryBtnDisabled: "isMapillaryBtnDisabled",
+      miniViewerVisible: "miniViewerVisible"
     }),
     ...mapFields("poisaois", {
       poisAoisLayer: "poisAoisLayer",

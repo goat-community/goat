@@ -641,6 +641,8 @@
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
       "openFullScreen": "Open Fullscreen",
+      "search": "Search",
+      "measure": "Measure",
       "exitFullScreen": "Exit Fullscreen",
       "toggleStreetView": "Mapillary Imagery",
       "notAvailable": "Not Available"

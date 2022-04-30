@@ -8,6 +8,7 @@
   "login": {
     "title": "Login",
     "signIn": "Anmelden",
+    "signUp": "Sign Up",
     "toSignUpContactUs": "Kontaktieren Sie uns gerne",
     "noAccount": "Noch keinen Zugang?",
     "passwordRequired": "Passwort is required",
@@ -630,7 +631,12 @@
       "deleteFeature": "Objekt löschen",
       "uploadFeature": "Objekt hochladen",
       "restoreFeature": "Objekt zurücksetzen",
-      "notAvailable": "Nicht verfügbar"
+      "notAvailable": "Nicht verfügbar",
+      "openFullScreen": "Vollbildmodus öffnen",
+      "search": "Suche",
+      "measure": "Messen",
+      "exitFullScreen": "Vollbildmodus schließen",
+      "toggleStreetView": "Mapillary"
     },
     "popup": {
       "attributes": "Attribute",

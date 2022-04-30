@@ -37,6 +37,7 @@ const state = {
   selectedEditLayer: null,
   heatmapCancelToken: null,
   isMapillaryBtnDisabled: false,
+  miniViewerVisible: false,
   vectorTileStyles: {},
   vectorTileStylesCopy: {},
   print: {
@@ -138,6 +139,7 @@ const getters = {
   editLayer: state => state.editLayer,
   selectedEditLayer: state => state.selectedEditLayer,
   isMapillaryBtnDisabled: state => state.isMapillaryBtnDisabled,
+  miniViewerVisible: state => state.miniViewerVisible,
   print: state => state.print,
   isMapBusy: state => state.isMapBusy,
   heatmapCancelToken: state => state.heatmapCancelToken,
