@@ -145,8 +145,13 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                         else:
                             # existing POI
                             feature_dict["uid"] = value
-                            # TODO: check if uid is valid (poi / poi_user)
+                            splited_values = value.split("_")
+                            if len(splited_values) == 5:
+                                feature_dict["data_upload_id"] = int(
+                                    splited_values[-1].replace("u", "")
+                                )
 
+                            # TODO: check if uid is valid (poi / poi_user)
                     elif (
                         layer_name.value == schemas.ScenarioLayerFeatureEnum.way_modified.value
                         and key == "way_id"
