@@ -177,11 +177,8 @@ export default class OlEditController extends OlBaseController {
       }
       if (this.selectedLayer["name"] === "building") {
         if (
-          featureAtCoord.length === 0 ||
-          (featureAtCoord.length > 0 &&
-            !featureAtCoord[0]
-              .getProperties()
-              .hasOwnProperty(this.originIdName))
+          featureAtCoord &&
+          featureAtCoord.getProperties().edit_type !== "n"
         ) {
           me.map.getTarget().style.cursor = "not-allowed";
           if (me.isInteractionOnProgress === false) {

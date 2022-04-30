@@ -1,8 +1,6 @@
 from enum import Enum
 from typing import List, Optional, Union
-
-from geojson_pydantic.features import FeatureCollection
-from pydantic import BaseModel, root_validator, validator
+from pydantic import BaseModel, root_validator
 
 
 class ScenarioBase(BaseModel):
@@ -132,6 +130,11 @@ class ScenarioWaysModifiedCreate(ScenarioFeatureCreateBase):
             and values["wheelchair"] not in WayModifiedWheelchairEnum._value2member_map_
         ):
             values["wheelchair"] = None
+        if (
+            "way_type" in values
+            and values["way_type"] not in WayModifiedTypeEnum._value2member_map_
+        ):
+            values["way_type"] = None
 
         return values
 
@@ -170,6 +173,16 @@ class ScenarioBuildingsModifiedCreate(ScenarioFeatureCreateBase):
                 "enableFileUpload": True,
             },
         }
+
+    @root_validator(pre=True)
+    def compute_values(cls, values):
+        if (
+            "building_type" in values
+            and values["building_type"] not in BuildingModifiedTypeEnum._value2member_map_
+        ):
+            values["building_type"] = None
+
+        return values
 
 
 class ScenarioBuildingsModifiedUpdate(ScenarioFeatureUpdateBase):

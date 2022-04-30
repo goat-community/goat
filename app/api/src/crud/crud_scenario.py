@@ -146,7 +146,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                             # existing POI
                             feature_dict["uid"] = value
                             splited_values = value.split("_")
-                            if len(splited_values) == 5:
+                            if len(splited_values) >= 5:
                                 feature_dict["data_upload_id"] = int(
                                     splited_values[-1].replace("u", "")
                                 )
