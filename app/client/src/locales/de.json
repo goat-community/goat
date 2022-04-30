@@ -27,7 +27,23 @@
     "backToLogin": "Zurück zum Login",
     "activateAccount": "Konto erfolgreich erstellt. Bitte aktivieren Sie Ihr Konto, indem Sie auf den Link in Ihrer E-Mail klicken.",
     "accountActivated": "Konto erfolgreich aktiviert",
-    "register": "Registrieren"
+    "register": "Registrieren",
+    "professionList": {
+      "student": "Student",
+      "employee": "Mitarbeiter",
+      "self-employed": "Selbstständig",
+      "other": "Andere"
+    },
+    "domainList": {
+      "transport_planning": "Verkehrsplanung",
+      "urban_planning": "Stadtplanung",
+      "gis": "GIS",
+      "architecture": "Architektur",
+      "location_planning": "Standortplanung",
+      "civil_engineer": "Bauingenieurwesen",
+      "political_decision_maker": "Politische(r) Entscheidungsträger(in)",
+      "other": "Andere"
+    }
   },
   "appBar": {
     "buttons": {

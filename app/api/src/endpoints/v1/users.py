@@ -206,7 +206,7 @@ async def activate_demo_user(
             detail="The activation token is invalid.",
         )
     user = await crud.user.get_by_key(db, key="email", value=email)
-    if user and len(user) > 0:
+    if user and len(user) > 0 and user[0].is_active == False:
         user = user[0]
         user = await CRUDBase(models.User).update(db, db_obj=user, obj_in={"is_active": True})
         send_email(
