@@ -1,6 +1,6 @@
 import asyncio
-
 import yaml
+import subprocess
 from rich import print
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -9,7 +9,7 @@ from src import crud, schemas
 from src.core.config import Settings, settings
 from src.db import models
 from src.db.session import async_session
-
+from seed_data import DataImport
 
 class ConfigSeeding:
     def __init__(self):
@@ -166,15 +166,40 @@ class ConfigSeeding:
                             % (category, group)
                         )
 
+    # async def dump_default_config(self, db: AsyncSession):
+    #     """Dumps default configuration to SQL DUMPs."""
+        
+        
+    #     relevant_schemas = [
+    #         models.OpportunityGroup,
+    #         models.OpportunityDefaultConfig,
+    #         models.OpportunityStudyAreaConfig,
+    #         models.Customization,
+    #         models.UserCustomization,
+    #         models.StyleLibrary,
+    #         models.LayerLibrary,
+    #         models.LayerSource
+    #     ]
+    #     DataImport(db).create_pgpass()
 
+    #     relevant_table_names = [i.__tablename__ for i in relevant_schemas]
+        
+    #     for table in relevant_table_names:
+    #         subprocess.run(
+    #             f"PGPASSFILE=/tmp/.pgpass pg_dump -h {self.settings_env.POSTGRES_SERVER} -U {self.settings_env.POSTGRES_USER} -d {self.settings_env.POSTGRES_DB} > /app/src/data/{table}.sql",
+    #             shell=True,
+    #             check=True,
+    #         )
 def main():
     from src.db.session import async_session
 
     db = async_session()
     config_seeding = ConfigSeeding()
 
-    asyncio.get_event_loop().run_until_complete(config_seeding.create_first_user(db))
-    asyncio.get_event_loop().run_until_complete(config_seeding.sync_base_customization(db))
+    #asyncio.get_event_loop().run_until_complete(config_seeding.create_first_user(db))
+    #asyncio.get_event_loop().run_until_complete(config_seeding.sync_base_customization(db))
+    asyncio.get_event_loop().run_until_complete(config_seeding.dump_default_config(db))
+
     asyncio.get_event_loop().run_until_complete(db.close())
 
 

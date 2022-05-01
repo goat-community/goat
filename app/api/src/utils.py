@@ -249,8 +249,8 @@ def print_hashtags():
 
 
 def print_info(message: str):
-    print(f"INFO: {message}")
+    print(f"[bold green]INFO[/bold green]: {message}")
 
 
 def print_warning(message: str):
-    print(f"WARNING: {message}")
+    print(f"[bold red]WARNING[/bold red]: {message}")

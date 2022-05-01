@@ -138,3 +138,15 @@ class LanguageEnum(str, Enum):
 
     en = "en"
     de = "de"
+
+class UpdateTableFunction(str, Enum):
+    """Update Table Functions."""
+    # The order of the functions is important.    
+    opportunity_config = "update_opportunity_config"
+    layer_library = "update_layer_library"
+    customization = "update_customization"
+
+    aoi = "update_aoi"
+    poi = "update_poi"
+
+    all = "all"
