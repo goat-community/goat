@@ -994,6 +994,9 @@ export default {
 
                 if (index === 1 && layer === "building") {
                   layer = "population";
+                  this.bldEntranceLayer.getSource().clear();
+                  this.bldEntranceLayer.getSource().addFeatures(features);
+                  return;
                 }
                 features.forEach(feature => {
                   feature.setId(`${layer}_${feature.getId()}`);
@@ -1451,19 +1454,29 @@ export default {
           ...propsWithNoGeometry
         });
         clonedFeature.setGeometryName("geom");
-        clonedFeature.getGeometry().transform("EPSG:3857", "EPSG:4326");
-        clonedFeature.setId(bldEntranceFeature.getId());
-        // Prepare payload for update
-        const props = clonedFeature.getProperties();
-        if (props.hasOwnProperty("geom")) {
-          delete props.geom;
-        }
-        const wktGeom = geometryToWKT(clonedFeature.getGeometry());
-        props.geom = wktGeom;
-        props.id =
-          clonedFeature.getId() ||
-          clonedFeature.get("id") ||
-          clonedFeature.get("id");
+        ApiService.put(
+          `/scenarios/${this.activeScenario}/population_modified/features`,
+          {
+            features: [
+              {
+                id: bldEntranceFeature.getId(),
+                geom: geometryToWKT(
+                  clonedFeature
+                    .getGeometry()
+                    .clone()
+                    .transform("EPSG:3857", "EPSG:4326")
+                )
+              }
+            ]
+          }
+        ).then(response => {
+          if (response.data) {
+            const feature = geojsonToFeature(response.data);
+            if (feature[0] && feature[0].get("id")) {
+              bldEntranceFeature.setId(feature[0].get("id"));
+            }
+          }
+        });
       } else {
         // Add new feature
         bldEntranceFeature = new Feature({
@@ -1705,7 +1718,6 @@ export default {
             this.editLayer.getSource().removeFeature(feature);
           }
         });
-      this.bldEntranceLayer.getSource().clear();
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
       this.clearDataObject();
       this.featuresToCommit = [];

@@ -384,7 +384,7 @@ export function defaultStyle(feature) {
   };
   const fillOpt = {
     color: ["MultiPolygon", "Polygon"].includes(geomType)
-      ? "#707070"
+      ? "rgba(112, 112, 112, 0.5)"
       : [0, 0, 0, 0]
   };
   const style = new OlStyle({
