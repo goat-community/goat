@@ -30,8 +30,14 @@
           <v-icon color="white">fas fa-chevron-right</v-icon>
         </v-btn>
       </template>
-      <template v-if="!mini">
-        <v-app-bar flat class="toolbar" :color="appColor.primary" height="50">
+      <template v-show="!mini">
+        <v-app-bar
+          v-show="!mini"
+          flat
+          class="toolbar"
+          :color="appColor.primary"
+          height="50"
+        >
           <img id="app-logo" :src="logoText" width="120px" />
           <v-spacer></v-spacer>
           <v-btn text icon light @click.stop="mini = !mini">
@@ -39,10 +45,12 @@
           </v-btn>
         </v-app-bar>
         <v-tabs
+          v-show="!mini"
           grow
           :color="appColor.secondary"
           class="elevation-3"
           v-model="topTabIndex"
+          :key="tabKey"
         >
           <v-tab class="px-0">
             {{ $t("appBar.buttons.isochrones") }}
@@ -72,8 +80,9 @@
           </v-tab>
         </v-tabs>
 
-        <vue-scroll ref="vs">
+        <vue-scroll v-show="!mini" ref="vs">
           <v-layout
+            v-show="!mini"
             justify-space-between
             column
             fill-height
@@ -113,7 +122,8 @@ export default {
     mini: false,
     responsive: false,
     topTabIndex: 0,
-    componentNames: ["map-isochrones", "map-heatmaps", "map-layertree"]
+    componentNames: ["map-isochrones", "map-heatmaps", "map-layertree"],
+    tabKey: 0
   }),
   computed: {
     getColor() {
@@ -147,6 +157,13 @@ export default {
           scrollEl.scrollIntoView(`#result-${calculation.calculationId}`, 300);
         }, 100);
       }
+    },
+    mini() {
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this.tabKey = this.tabKey + 1;
+        }, 150);
+      });
     }
   }
 };
