@@ -612,6 +612,7 @@ import { mapFeatureTypeProps } from "../../../utils/Layer";
 import OlSelectController from "../../../controllers/OlSelectController";
 import OlEditController from "../../../controllers/OlEditController";
 import {
+  bldEntrancePointsStyle,
   getEditStyle,
   getFeatureHighlightStyle
 } from "../../../style/OlStyleDefs";
@@ -689,6 +690,8 @@ export default {
     olSelectCtrl: null,
     editLayer: null,
     highlightLayer: null,
+    bldEntranceLayer: null,
+    tempBldEntranceFeature: null,
     featuresToCommit: [],
     // Cache for poi modified feature
     poiModifiedFeatures: [],
@@ -869,7 +872,6 @@ export default {
         style: getEditStyle(),
         queryable: true
       });
-
       editLayer.getSource().on("changefeature", this.onFeatureChange);
       editLayer.getSource().on("change", this.onEditSourceChange);
       this.map.addLayer(editLayer);
@@ -885,6 +887,21 @@ export default {
       });
       this.map.addLayer(highlightLayer);
       this.highlightLayer = highlightLayer;
+      // Building entrance layer
+      const bldEntranceLayer = new VectorLayer({
+        name: "bld_entrance_layer",
+        displayInLayerList: false,
+        source: new VectorSource({ wrapX: false }),
+        zIndex: 100,
+        queryable: false,
+        style: bldEntrancePointsStyle()
+      });
+      this.olEditCtrl.bldEntranceLayer = bldEntranceLayer;
+      this.bldEntranceLayer = bldEntranceLayer;
+      bldEntranceLayer
+        .getSource()
+        .on("changefeature", this.onBldEntranceFeatureChange);
+      this.map.addLayer(bldEntranceLayer);
     },
     /**
      * Get Layer attribute fields
@@ -1413,17 +1430,6 @@ export default {
           );
         }
       }
-
-      // Update Building upload state
-      if (buildingFeatureAtCoord) {
-        buildingFeatureAtCoord.set("status", null);
-      }
-
-      let payload = {
-        features: []
-      };
-
-      let mode = "";
       let bldEntranceFeature;
       if (evt.type === "modifyend") {
         // Update the existing building entrance feature
@@ -1458,8 +1464,6 @@ export default {
           clonedFeature.getId() ||
           clonedFeature.get("id") ||
           clonedFeature.get("id");
-        payload.features = [props];
-        mode = "update";
       } else {
         // Add new feature
         bldEntranceFeature = new Feature({
@@ -1486,45 +1490,43 @@ export default {
           ...propsWithNoGeometry
         });
         clonedFeature.setGeometryName("geom");
-        clonedFeature.getGeometry().transform("EPSG:3857", "EPSG:4326");
-
-        // Prepare payload for insert
-
-        const props = clonedFeature.getProperties();
-        if (props.hasOwnProperty("geom")) {
-          delete props.geom;
-        }
-        if (props.hasOwnProperty("id")) {
-          delete props.id;
-        }
-        const wktGeom = geometryToWKT(clonedFeature.getGeometry());
-        props.geom = wktGeom;
-        payload.features = [props];
-        mode = "insert";
-      }
-      let promise = "";
-      if (mode === "update") {
-        promise = ApiService.put(
+        ApiService.post(
           `/scenarios/${this.activeScenario}/population_modified/features`,
-          payload
-        );
-      } else {
-        promise = ApiService.post(
-          `/scenarios/${this.activeScenario}/population_modified/features`,
-          payload
-        );
-      }
-      promise.then(response => {
-        if (response.data) {
-          const feature = geojsonToFeature(response.data);
-          if (feature[0] && feature[0].get("id")) {
-            bldEntranceFeature.setId(feature[0].get("id"));
+          {
+            features: [
+              {
+                ...clonedFeature.getProperties(),
+                geom: geometryToWKT(
+                  clonedFeature
+                    .getGeometry()
+                    .clone()
+                    .transform("EPSG:3857", "EPSG:4326")
+                )
+              }
+            ]
           }
-        }
-      });
+        ).then(response => {
+          if (response.data) {
+            const feature = geojsonToFeature(response.data);
+            if (feature[0] && feature[0].get("id")) {
+              bldEntranceFeature.setId(feature[0].get("id"));
+            }
+          }
+        });
+      }
+
       setTimeout(() => {
         this.tempBldEntranceFeature = null;
       }, 100);
+    },
+    /**
+     * Feature change event handler for building entrance edit layer
+     */
+    onBldEntranceFeatureChange(evt) {
+      if (evt.feature) {
+        // Used on modifyEnd event.
+        this.tempBldEntranceFeature = evt.feature;
+      }
     },
     /**
      * Feature change event handler for edit layer
@@ -1543,13 +1545,6 @@ export default {
         } else {
           this.featuresToCommit[index] = evt.feature;
         }
-      }
-
-      if (
-        this.selectedLayer["name"] === "building" &&
-        this.olEditCtrl.editType === "draw"
-      ) {
-        this.toggleEdit = 7;
       }
     },
     /**
@@ -1710,6 +1705,7 @@ export default {
             this.editLayer.getSource().removeFeature(feature);
           }
         });
+      this.bldEntranceLayer.getSource().clear();
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
       this.clearDataObject();
       this.featuresToCommit = [];
@@ -1723,6 +1719,7 @@ export default {
       this.olSelectCtrl.clear();
       this.editLayer.getSource().clear();
       this.highlightLayer.getSource().clear();
+      this.bldEntranceLayer.getSource().clear();
       this.clearDataObject();
       this.scenarioDataTable = [];
       this.isInteractionOnProgress = false;
@@ -1977,6 +1974,13 @@ export default {
           }
           this.editLayer.getSource().addFeatures(featuresWithId);
           this.refreshHeatmap();
+          // Activate building entrance interaction if selected layer is building
+          if (
+            this.selectedLayer["name"] === "building" &&
+            this.olEditCtrl.editType === "add"
+          ) {
+            this.toggleEdit = 7;
+          }
         })
         .catch(error => {
           console.log(error);
