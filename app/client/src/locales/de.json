@@ -913,6 +913,7 @@
       },
       "building": {
         "building": "Gebäudetyp",
+        "building_type": "Gebäudetyp",
         "building_levels": "Anzahl Geschosse",
         "building_levels_residential": "Anzahl Geschosse Wohnen",
         "population": "Einwohneranzahl (optional)",

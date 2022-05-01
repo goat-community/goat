@@ -926,6 +926,7 @@
       },
       "building": {
         "building": "Building Type",
+        "building_type": "Building Type",
         "building_levels": "Building Levels",
         "building_levels_residential": "Building levels residential",
         "population": "Number residents (optional)",

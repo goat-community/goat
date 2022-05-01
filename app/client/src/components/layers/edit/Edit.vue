@@ -688,9 +688,7 @@ export default {
     // ------------------------
     olEditCtrl: null,
     olSelectCtrl: null,
-    editLayer: null,
     highlightLayer: null,
-    bldEntranceLayer: null,
     tempBldEntranceFeature: null,
     featuresToCommit: [],
     // Cache for poi modified feature
@@ -1521,6 +1519,7 @@ export default {
         ).then(response => {
           if (response.data) {
             const feature = geojsonToFeature(response.data);
+            this.editLayer.getSource().changed();
             if (feature[0] && feature[0].get("id")) {
               bldEntranceFeature.setId(feature[0].get("id"));
             }
@@ -1581,6 +1580,7 @@ export default {
                       this.olEditCtrl.bldEntranceLayer
                         .getSource()
                         .removeFeature(features[0]);
+                      this.editLayer.getSource().changed();
                     }
                   });
                 }
@@ -2369,7 +2369,9 @@ export default {
     }),
     ...mapFields("map", {
       selectedLayer: "selectedEditLayer",
-      isMapBusy: "isMapBusy"
+      isMapBusy: "isMapBusy",
+      editLayer: "editLayer",
+      bldEntranceLayer: "bldEntranceLayer"
     }),
     ...mapFields("app", {
       appConfig: "appConfig",
