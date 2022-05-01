@@ -132,7 +132,23 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
         features_in_db = []
         for feature in features:
             feature_dict = {}
+
             feature_dict["scenario_id"] = scenario_id
+
+            # Check if population modified intersect with sub study area
+            if layer_name.value == schemas.ScenarioLayerFeatureEnum.population_modified.value:
+                point = WKTElement(feature.geom, srid=4326)
+                statement = select(models.SubStudyArea).where(
+                    and_(models.SubStudyArea.geom.ST_Intersects(point))
+                )
+                sub_study_area_result = await db.execute(statement)
+                sub_study_area_result = sub_study_area_result.scalars().all()
+                if len(sub_study_area_result) == 0:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="The population feature does not intersect with any sub study area",
+                    )
+                feature_dict["sub_study_area_id"] = sub_study_area_result[0].id
             try:
                 for key, value in feature:
                     if (
@@ -160,6 +176,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                             feature_dict["way_id"] = value
 
                     # TODO: For population check if geometry and building with {building_modified_id} intersect
+
                     elif isinstance(value, enum.Enum):
                         feature_dict[key] = value.value
                     elif key == "class_id" and value is None:
