@@ -288,7 +288,7 @@ class DataUpdate:
                 or (table_groups[0] == UpdateTableFunction.all.name and len(table_groups) == 1)
             ) and table_group.name != UpdateTableFunction.all:
 
-                print_info("Updating %s table." % table_group.name)
+                print_info("Updating %s table group." % table_group.name)
                 function_to_call = getattr(data_update, table_group.value)
                 function_to_call()
 

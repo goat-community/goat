@@ -24,9 +24,9 @@ parser.add_argument('-t', help=help_text_type)
 
 args = parser.parse_args()
 if args is None:
-    sys.exit()
     print_warning("No were arguments provided.")
-
+    sys.exit()
+    
 try: 
     table_groups = args.t.split(',')
 except:
