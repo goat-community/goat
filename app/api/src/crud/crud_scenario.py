@@ -117,6 +117,11 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
             delete(layer).where(and_(layer.id.in_(feature_ids), layer.scenario_id == scenario_id))
         )
         await db.commit()
+        if layer_name.value == schemas.ScenarioLayerFeatureEnum.population_modified.value:
+            await db.execute(
+                func.basic.population_modification(scenario_id)
+            )
+            await db.commit()
         return {"msg": "Features deleted successfully"}
 
     async def create_scenario_features(
@@ -267,7 +272,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                 func.basic.population_modification(scenario_id)
             )
             await db.commit()
-            
+
         for feature in features_in_db:
             await db.refresh(feature)
         
