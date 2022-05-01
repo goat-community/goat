@@ -629,9 +629,15 @@ class CRUDHeatmap:
 
 
 heatmap = CRUDHeatmap()
-#from src.db.session import async_session, sync_session
 
-#test_user = models.User(id=59, active_study_area_id=83110000)
+# def main():
+
+#     from src.db.session import async_session, sync_session
+#     test_user = models.User(id=15, active_study_area_id=83110000)
+#     asyncio.get_event_loop().run_until_complete(CRUDHeatmap().bulk_compute_reached_pois(db=async_session(), current_user=test_user))
+
+
+# main()
 #db = async_session()
 # db_sync = sync_session()
 # asyncio.get_event_loop().run_until_complete(CRUDHeatmap().prepare_starting_points(db=db, current_user=test_user))

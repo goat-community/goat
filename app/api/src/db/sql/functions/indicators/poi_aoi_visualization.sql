@@ -6,11 +6,11 @@ DECLARE
 	aoi_categories TEXT[]; 
 	data_upload_poi_categories TEXT[] = '{}'::TEXT[];
 	all_poi_categories text[];
-	excluded_pois_id text[] := ARRAY[]::text[]; 
+	excluded_pois_id text[] := '{}'::text[]; 
 	buffer_geom_study_area geometry; 
 BEGIN
 	data_upload_poi_categories = basic.poi_categories_data_uploads(user_id_input);
-	
+	active_study_area_id = (SELECT u.active_study_area_id FROM customer.user u WHERE u.id = user_id_input);
 	/*Get combined poi categories*/
 	SELECT array_agg(o.category) 
 	INTO all_poi_categories 
