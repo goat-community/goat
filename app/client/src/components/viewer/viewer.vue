@@ -1,25 +1,6 @@
 <template>
   <div>
     <div v-show="print.active === false">
-      <!-- toggle-streetview -->
-      <v-tooltip right>
-        <template v-slot:activator="{ on }">
-          <v-btn
-            class="mx-2 miniviewer-button"
-            fab
-            dark
-            small
-            :color="appColor.primary"
-            @click="showMiniViewer"
-            :loading="isMapillaryBtnDisabled"
-            v-on="on"
-          >
-            <v-icon dark>streetview</v-icon>
-          </v-btn>
-        </template>
-        <span>{{ $t(`map.tooltips.toggleStreetView`) }}</span>
-      </v-tooltip>
-
       <!-- isochrone-thematic-data -->
       <isochrone-thematic-data v-show="!miniViewOlMap" />
 
@@ -94,7 +75,6 @@ export default {
   },
   data() {
     return {
-      miniViewerVisible: false,
       miniViewOlMap: false,
       mapillaryAccessToken:
         "MLY|4945732362162775|a3872ee8a2b737be51db110cdcdea3d4"
@@ -109,14 +89,11 @@ export default {
       studyArea: "studyArea"
     }),
     ...mapFields("map", {
-      isMapillaryBtnDisabled: "isMapillaryBtnDisabled"
+      isMapillaryBtnDisabled: "isMapillaryBtnDisabled",
+      miniViewerVisible: "miniViewerVisible"
     })
   },
   methods: {
-    showMiniViewer() {
-      this.miniViewerVisible = true;
-      this.isMapillaryBtnDisabled = true;
-    },
     switchViews() {
       this.miniViewOlMap = !this.miniViewOlMap;
       this.updateViews();

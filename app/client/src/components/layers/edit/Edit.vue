@@ -77,7 +77,7 @@
                       close
                     </v-icon>
                     <v-icon v-else>
-                      add
+                      more_vert
                     </v-icon>
                   </v-btn>
                 </template>
@@ -565,6 +565,7 @@
               v-if="schema[layerName] && popup && popup.isVisible"
               :schema="schema[layerName]"
               :model="dataObject"
+              :key="jsonFormKey"
               :options="options"
             />
           </v-form>
@@ -690,7 +691,8 @@ export default {
     highlightLayer: null,
     featuresToCommit: [],
     // Cache for poi modified feature
-    poiModifiedFeatures: []
+    poiModifiedFeatures: [],
+    jsonFormKey: 0
   }),
   watch: {
     activeScenario() {
@@ -1204,6 +1206,7 @@ export default {
           for (const attr in this.dataObject) {
             this.dataObject[attr] = attr in props ? props[attr] : null;
           }
+          this.jsonFormKey += 1;
         });
         const geometry = feature.getGeometry();
         let popupCoordinate = geometry.getCoordinates();
@@ -1274,23 +1277,18 @@ export default {
       const featuresToAdd = [];
       const featuresToUpdate = [];
       this.featuresToCommit.forEach(feature => {
+        const featureOut = this.setFeatureFields(feature);
         const props = feature.getProperties();
-        const featureOut = feature.clone();
-        const mandatoryProps = [
-          ...Object.keys(this.dataObject),
-          "edit_type",
-          this.original_id,
-          "geometry",
-          "geom"
-        ];
-        Object.keys(props).forEach(prop => {
-          if (!mandatoryProps.includes(prop)) featureOut.unset(prop);
-        });
         if (props.editType !== "d") {
           if (props.hasOwnProperty("edit_type")) {
             featureOut.setId(feature.getId());
             featuresToUpdate.push(featureOut);
           } else {
+            Object.keys(featureOut.getProperties()).forEach(prop => {
+              if (!["edit_type", this.original_id, "geometry"].includes(prop)) {
+                featureOut.set(prop, feature.get(prop));
+              }
+            });
             featureOut.set("edit_type", "m");
             featureOut.set(
               this.original_id,
@@ -1334,6 +1332,21 @@ export default {
       this.popup.title = "attributes";
       this.popup.selectedInteraction = "add";
       this.popup.isVisible = true;
+    },
+    setFeatureFields(feature) {
+      const props = feature.getProperties();
+      const featureOut = feature.clone();
+      const mandatoryProps = [
+        ...Object.keys(this.dataObject),
+        "edit_type",
+        this.original_id,
+        "geometry",
+        "geom"
+      ];
+      Object.keys(props).forEach(prop => {
+        if (!mandatoryProps.includes(prop)) featureOut.unset(prop);
+      });
+      return featureOut;
     },
 
     /**
@@ -1858,13 +1871,6 @@ export default {
      */
     ok(type) {
       const featureOut = this.featuresToCommit[0].clone();
-
-      // Object.keys(featureOut.getProperties()).forEach(prop => {
-      //   if (!["geometry", "geom"].includes(prop)) featureOut.unset(prop);
-      // });
-
-      // Set new properties from dataObject (popup)
-
       // Reset id of the original feature
       featureOut.setId(this.featuresToCommit[0].getId());
       const properties = this.featuresToCommit[0].getProperties();
@@ -1874,29 +1880,26 @@ export default {
         featureOut.set("edit_type", "n");
         this.createScenarioFeatures([featureOut]);
       }
-      if (
-        type === "modifyAttributes" &&
-        properties.hasOwnProperty("edit_type")
-      ) {
-        // Modified existing fature
+      if (type === "modifyAttributes") {
+        // Modified existing feature
+        const featureOut = this.setFeatureFields(this.featuresToCommit[0]);
         featureOut.setProperties(this.dataObject);
-        this.updateScenarioFeatures([featureOut]);
-      } else if (
-        type === "modifyAttributes" &&
-        !properties.hasOwnProperty("edit_type")
-      ) {
-        // Modified an origin feature (has to be created as modified feature)
-        featureOut.setProperties(this.dataObject);
-        featureOut.set("edit_type", "m");
-        if (this.featuresToCommit[0].get("id")) {
-          // For poi original_id is uid (another column)
-          const original_id_ =
-            this.featuresToCommit[0].get("uid") ||
-            this.featuresToCommit[0].get("id");
-          featureOut.set(this.original_id, original_id_);
+        const props = this.featuresToCommit[0].getProperties();
+        if (props.editType !== "d") {
+          if (props.hasOwnProperty("edit_type")) {
+            featureOut.setId(this.featuresToCommit[0].getId());
+            this.updateScenarioFeatures([featureOut]);
+          } else {
+            featureOut.set("edit_type", "m");
+            featureOut.set(
+              this.original_id,
+              this.featuresToCommit[0].get("uid") ||
+                this.featuresToCommit[0].get("id")
+            );
+            this.createScenarioFeatures([featureOut]);
+            this.editLayer.getSource().removeFeature(this.featuresToCommit[0]);
+          }
         }
-        this.createScenarioFeatures([featureOut]);
-        this.editLayer.getSource().removeFeature(this.featuresToCommit[0]);
       } else if (type === "delete" && !properties.hasOwnProperty("edit_type")) {
         // Deleted an origin feature (has to be created as deleted feature)
         const allowedKeys = Object.keys(this.dataObject);

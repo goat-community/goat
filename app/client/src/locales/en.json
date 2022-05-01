@@ -461,7 +461,7 @@
       "zoomInToShowFeatures": "Zoom in to show features for",
       "heatmapIsBusy": "Recomputing for heatmap layer might take some time. Please be patient!",
       "calculationCancelled": "Calculation Cancelled!",
-      "scenarioEditMode": "Scenario Mode"
+      "scenarioEditMode": "Edit Mode"
     },
     "layerGroup": {
       "buildings_landuse": "Buildings and Land Use",
@@ -641,6 +641,8 @@
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
       "openFullScreen": "Open Fullscreen",
+      "search": "Search",
+      "measure": "Measure",
       "exitFullScreen": "Exit Fullscreen",
       "toggleStreetView": "Mapillary Imagery",
       "notAvailable": "Not Available"

@@ -122,7 +122,7 @@
                       to="/register"
                       class="ml-2"
                     >
-                      Register
+                      {{ $t("login.signUp") }}
                     </router-link>
                   </v-row>
                 </v-card-text>
