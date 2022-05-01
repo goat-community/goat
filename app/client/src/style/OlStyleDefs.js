@@ -590,7 +590,7 @@ export function editStyleFn() {
         return waysNewRoadStyle();
       }
     }
-    if (feature.get("layerName") === "building") {
+    if (feature.get("layerName") === "building" && feature.get("edit_type")) {
       const styles = [];
       const geomType = feature.getGeometry().getType();
       const strokeOpt = {
