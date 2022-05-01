@@ -855,7 +855,7 @@ export default {
       this.olEditCtrl.highlightSource = this.highlightLayer.getSource();
       this.olEditCtrl.popup = this.popup;
       //Initialize component layers
-      // this.setUpCtxMenu();
+      this.setUpCtxMenu();
       this.toggleFeatureLabelsInteraction(this.toggleFeatureLabels);
     },
 
@@ -1542,6 +1542,55 @@ export default {
       }
     },
     /**
+     * Configure right-click for Edit.
+     */
+    setUpCtxMenu() {
+      if (this.contextmenu) {
+        this.olEditCtrl.contextmenu = this.contextmenu;
+        this.contextmenu.on("beforeopen", evt => {
+          // Close helptoltip
+          if (this.olEditCtrl.helpTooltip) {
+            this.olEditCtrl.helpTooltip.setPosition(undefined);
+          }
+          const features = this.map.getFeaturesAtPixel(evt.pixel, {
+            layerFilter: candidate => {
+              if (candidate.get("name") === "bld_entrance_layer") {
+                return true;
+              }
+              return false;
+            }
+          });
+          if (
+            features.length > 0 &&
+            this.selectedLayer["name"] === "building"
+          ) {
+            this.contextmenu.extend([
+              "-", // this is a separator
+              {
+                text: `<i class="fa fa-trash fa-1x" aria-hidden="true"></i>&nbsp;&nbsp${this.$t(
+                  "map.contextMenu.deleteBldEntrancePoint"
+                )}`,
+                label: "deleteBldEntrancePoint",
+                callback: () => {
+                  ApiService.delete(
+                    `/scenarios/${
+                      this.activeScenario
+                    }/population_modified/features?id=${features[0].getId()}`
+                  ).then(response => {
+                    if (response.data) {
+                      this.olEditCtrl.bldEntranceLayer
+                        .getSource()
+                        .removeFeature(features[0]);
+                    }
+                  });
+                }
+              }
+            ]);
+          }
+        });
+      }
+    },
+    /**
      * Feature change event handler for edit layer
      */
     onFeatureChange(evt) {
@@ -1720,6 +1769,9 @@ export default {
         });
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
       this.clearDataObject();
+      if (this.contextmenu) {
+        this.contextmenu.close();
+      }
       this.featuresToCommit = [];
     },
 
@@ -1732,6 +1784,9 @@ export default {
       this.editLayer.getSource().clear();
       this.highlightLayer.getSource().clear();
       this.bldEntranceLayer.getSource().clear();
+      if (this.contextmenu) {
+        this.contextmenu.close();
+      }
       this.clearDataObject();
       this.scenarioDataTable = [];
       this.isInteractionOnProgress = false;
@@ -2131,6 +2186,21 @@ export default {
                       }
                     });
                   }
+                }
+                if (
+                  this.selectedLayer["name"] === "building" &&
+                  featureIn.get("id")
+                ) {
+                  // Delete all bldEntrance features on the same building
+                  const bldEntranceFeatures = this.bldEntranceLayer
+                    .getSource()
+                    .getFeatures()
+                    .filter(
+                      f => f.get("building_modified_id") === featureIn.get("id")
+                    );
+                  bldEntranceFeatures.forEach(f => {
+                    this.bldEntranceLayer.getSource().removeFeature(f);
+                  });
                 }
 
                 this.editLayer.getSource().removeFeature(featureIn);
