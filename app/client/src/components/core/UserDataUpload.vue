@@ -65,8 +65,18 @@
           :items="tableData"
           class="elevation-0 subtitle-1 mt-6"
           hide-default-footer
+          hide-default-header
           light
         >
+          <template v-slot:header="{ props: { headers } }">
+            <thead>
+              <tr>
+                <th style="font-size:13px;" :key="h.value" v-for="h in headers">
+                  <span>{{ h.text }}</span>
+                </th>
+              </tr>
+            </thead>
+          </template>
           <template v-slot:item.category="{ item }">
             <v-tooltip top>
               <template v-slot:activator="{ on }">
@@ -113,7 +123,7 @@
             style="text-decoration: none !important;"
             href="./static/template.geojson"
             download="template.geojson"
-            >Geojson Template</a
+            >{{ $t("appBar.dataUpload.geojsonTemplate") }}</a
           >
         </v-row>
         <v-row style="width: 100%;" class="mt-1">
@@ -124,7 +134,7 @@
             style="text-decoration: none !important;"
             href="./static/template_shapefile.zip"
             download="template_shapefile.zip"
-            >Shapefile Template</a
+            >{{ $t("appBar.dataUpload.shapefileTemplate") }}</a
           >
         </v-row>
       </v-card>
@@ -278,13 +288,6 @@ export default {
         });
     }
   }
-  // downloadJSON() {
-  //   var json = JSON.stringify(yourJSON);
-
-  //   json = [json];
-  //   var blobForYou = new Blob(json, { type: "application/JSON" });
-  //   saveAs(blobForYou);
-  // }
 };
 </script>
 <style lang="css" scoped>
