@@ -27,7 +27,7 @@ def upgrade():
     op.drop_column('opportunity_study_area_config', 'group', schema='basic')
     op.add_column('opportunity_user_config', sa.Column('group_id', sa.Text(), nullable=False), schema='customer')
     op.drop_column('opportunity_user_config', 'group', schema='customer')
-    op.create_foreign_key(None, 'opportunity_user_config', 'user', ['user_id'], ['id'], source_schema='basic', referent_schema='basic')
+    op.create_foreign_key(None, 'opportunity_user_config', 'user', ['user_id'], ['id'], source_schema='customer', referent_schema='customer')
     # ### end Alembic commands ###
 
 
