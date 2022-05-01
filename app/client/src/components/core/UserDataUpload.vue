@@ -68,7 +68,12 @@
           light
         >
           <template v-slot:item.category="{ item }">
-            <p class="mb-0 pb-0">{{ item.category }}</p>
+            <v-tooltip top>
+              <template v-slot:activator="{ on }">
+                <p v-on="on" class="mb-0 pb-0 truncate">{{ item.category }}</p>
+              </template>
+              <span>{{ item.category }}</span>
+            </v-tooltip>
             <p class="mb-0 sub-header" style="font-size:12px;">
               {{ item.group }}
             </p>
@@ -100,6 +105,28 @@
           </template>
         </v-data-table>
         <v-divider></v-divider>
+        <v-row style="width: 100%;" class="mt-2">
+          <!-- add link to file -->
+          <v-spacer></v-spacer>
+          <a
+            class="caption"
+            style="text-decoration: none !important;"
+            href="./static/template.geojson"
+            download="template.geojson"
+            >Geojson Template</a
+          >
+        </v-row>
+        <v-row style="width: 100%;" class="mt-1">
+          <!-- add link to file -->
+          <v-spacer></v-spacer>
+          <a
+            class="caption"
+            style="text-decoration: none !important;"
+            href="./static/template_shapefile.zip"
+            download="template_shapefile.zip"
+            >Shapefile Template</a
+          >
+        </v-row>
       </v-card>
     </v-card>
     <user-data-upload
@@ -113,6 +140,7 @@
 <script>
 import { mapGetters } from "vuex";
 import ApiService from "../../services/api.service";
+// import {saveAs} from 'file-saver';
 import {
   GET_APP_CONFIG,
   GET_POIS_AOIS,
@@ -250,5 +278,20 @@ export default {
         });
     }
   }
+  // downloadJSON() {
+  //   var json = JSON.stringify(yourJSON);
+
+  //   json = [json];
+  //   var blobForYou = new Blob(json, { type: "application/JSON" });
+  //   saveAs(blobForYou);
+  // }
 };
 </script>
+<style lang="css" scoped>
+.truncate {
+  max-width: 65px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>

@@ -172,7 +172,9 @@
         "customCategory": "Custom category",
         "browseYourFiles": "Browse your files",
         "invalidCategory": "Category name must not be the same with existing categories."
-      }
+      },
+      "geojsonTemplate": "GeoJSON template",
+      "shapefileTemplate": "Shapefile template"
     },
     "filter": {
       "title": "Thematic Data Filter",

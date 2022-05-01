@@ -190,7 +190,9 @@
         "customCategory": "Eigene Kategorie",
         "browseYourFiles": "Datei auswählen",
         "invalidCategory": "Kategorie existiert bereits. Bitte wähle einen anderen Namen."
-      }
+      },
+      "geojsonTemplate": "GeoJSON-Template",
+      "shapefileTemplate": "Shapefile-Template"
     },
     "filter": {
       "title": "Filter Thematische Daten",
@@ -954,9 +956,7 @@
       "liveliness": "Gehumgebung & Belebtheit",
       "data_quality": "Daten Qualität",
       "comfort": "Urbane Austattung",
-      "sum_total": [
-        "<b>GESAMT WALKABILITY SCORE</b>"
-      ],
+      "sum_total": ["<b>GESAMT WALKABILITY SCORE</b>"],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index",
       "sidewalk": "Gehwegverfügbarkeit",
