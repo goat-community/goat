@@ -74,7 +74,7 @@ class Settings(BaseSettings):
             path=f"/{values.get('POSTGRES_DB') or ''}",
         )
 
-    SMTP_TLS: bool = True
+    SMTP_TLS: Optional[bool] = True
     SMTP_PORT: Optional[int] = 587
     SMTP_HOST: Optional[str] = "smtp.office365.com"
     SMTP_USER: Optional[str] = None
@@ -99,12 +99,23 @@ class Settings(BaseSettings):
             values.get("SMTP_HOST") and values.get("SMTP_PORT") and values.get("EMAILS_FROM_EMAIL")
         )
 
-    FIRST_ORGANIZATION: Optional[str] = "Plan4Better"
-    FIRST_SUPERUSER_NAME: Optional[str] = "MyFirstName"
-    FIRST_SUPERUSER_SURNAME: Optional[str] = "MyLastName"
+    FIRST_ORGANIZATION: str 
+    FIRST_SUPERUSER_NAME: str 
+    FIRST_SUPERUSER_SURNAME: str 
     FIRST_SUPERUSER_PASSWORD: str
     FIRST_SUPERUSER_EMAIL: Optional[str] = "administrator@plan4better.de"
     FIRST_SUPERUSER_STORAGE: Optional[int] = 500000  # In kilobytes
+    FIRST_SUPERUSER_ACTIVE_STUDY_AREA_ID: int 
+    FIRST_SUPERUSER_ACTIVE_DATA_UPLOAD_IDS: List[int] = []
+    FIRST_SUPERUSER_LIMIT_SCENARIOS: int = 50
+    FIRST_SUPERUSER_LANGUAGE_PREFERENCE: str = "en"
+
+    POSTGRES_DB_STAGING: Optional[str] = None
+    POSTGRES_SERVER_STAGING: Optional[str] = None
+    POSTGRES_USER_STAGING: Optional[str] = None
+    POSTGRES_PASSWORD_STAGING: Optional[str] = None
+    POSTGRES_OUTER_PORT_STAGING: Optional[int] = None
+
     DEMO_USER_STUDY_AREA_ID: Optional[int] = 91620000  # Munich
     DEMO_USER_SCENARIO_LIMIT: Optional[int] = 5
     DEMO_USER_STORAGE: Optional[int] = 0  # In kilobytes

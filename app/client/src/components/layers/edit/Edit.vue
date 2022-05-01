@@ -2277,7 +2277,10 @@ export default {
       activeScenario: "activeScenario"
     }),
     scenarioList() {
-      return [{ id: null, scenario_name: "No Selection" }, ...this.scenarios];
+      return [
+        { id: null, scenario_name: this.$t("appBar.edit.noSelection") },
+        ...this.scenarios
+      ];
     },
     ...mapGetters("scenarios", {
       activeScenarioObj: "activeScenarioObj"

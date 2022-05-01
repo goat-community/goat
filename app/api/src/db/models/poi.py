@@ -14,6 +14,7 @@ from sqlmodel import (
     Text,
     UniqueConstraint,
     text,
+    Boolean
 )
 from sqlalchemy.dialects.postgresql import JSONB
 if TYPE_CHECKING:
@@ -68,8 +69,9 @@ class PoiModified(PoiBase, table=True):
             Integer, ForeignKey("customer.data_upload.id", ondelete="CASCADE"), index=True
         ),
     )
+    outdated: Optional[bool] = Field(sa_column=Column(Boolean, default=False))
     scenario: Optional["Scenario"] = Relationship(back_populates="pois_modified")
-
+    
 
 Index("idx_poi_modified_geom", PoiModified.__table__.c.geom, postgresql_using="gist")
 

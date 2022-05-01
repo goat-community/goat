@@ -15,6 +15,7 @@ from sqlmodel import (
     SQLModel,
     Text,
     text,
+    Boolean
 )
 
 if TYPE_CHECKING:
@@ -83,7 +84,7 @@ class BuildingModified(BuildingBase, table=True):
         back_populates="building_modified"
     )
     edit_type: str = Field(sa_column=Column(Text, nullable=False, index=True))
-    
+    outdated: Optional[bool] = Field(sa_column=Column(Boolean, default=False))
 
 
 Index("idx_building_modified_geom", BuildingModified.__table__.c.geom, postgresql_using="gist")
