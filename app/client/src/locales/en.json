@@ -12,6 +12,7 @@
   "login": {
     "title": "Login",
     "signIn": "Sign In",
+    "signUp": "Sign Up",
     "toSignUpContactUs": "Contact us",
     "noAccount": "No account yet?",
     "passwordRequired": "Password is required",
@@ -223,6 +224,7 @@
       "way": "Way",
       "building": "Building",
       "scenarioEditMode": "Scenario Edit Mode",
+      "editScenarioName": "Edit Scenario Name",
       "addEntrancesForBuildings": "Add entrances for all buildings to activate <b>UPLOAD</b>",
       "popup": {
         "deleteFeatureMsg": "Are you sure you want to delete the selected feature ?",
