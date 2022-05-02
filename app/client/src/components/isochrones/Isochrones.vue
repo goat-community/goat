@@ -38,15 +38,16 @@
                       label="Routing"
                       class="mb-2 mt-0"
                       item-value="type"
+                      hide-details
                       v-model="routing"
                       :items="appConfig.routing"
                     >
                       <template slot="selection" slot-scope="{ item }">
                         <v-row>
-                          <v-col cols="3"
+                          <v-col cols="3" class="py-0"
                             ><v-icon dense>{{ item.icon }}</v-icon></v-col
                           >
-                          <v-col cols="9"
+                          <v-col cols="9" class="py-0"
                             ><span class="cb-item">{{
                               $t(`isochrones.options.${item.type}`)
                             }}</span></v-col
@@ -67,7 +68,7 @@
                       </template>
                     </v-select>
                   </v-col>
-                  <v-col class="d-flex mb-0 pb-0" cols="12" sm="6">
+                  <v-col class="d-flex mb-0 pb-2" cols="12" sm="6">
                     <v-text-field
                       :label="$t(`isochrones.options.speed`)"
                       type="number"
@@ -78,9 +79,11 @@
                       :rules="[speedRule]"
                       v-model="speed"
                       suffix="km/h"
+                      hide-details
+                      class="mb-1"
                     ></v-text-field>
                   </v-col>
-                  <v-col class="d-flex mt-0 pt-0" cols="12" sm="6">
+                  <v-col class="d-flex mt-2 pt-0" cols="12" sm="6">
                     <v-text-field
                       :label="$t(`isochrones.options.time`)"
                       type="number"
@@ -93,7 +96,7 @@
                       suffix="min"
                     ></v-text-field>
                   </v-col>
-                  <v-col class="d-flex mt-0 pt-0" cols="12" sm="6">
+                  <v-col class="d-flex mt-2 pt-0" cols="12" sm="6">
                     <v-text-field
                       :label="$t(`isochrones.options.nr`)"
                       type="number"
@@ -2048,8 +2051,12 @@ export default {
         }
         if (isochroneCalculationNr > id) {
           const updatedNr = isochroneCalculationNr - 1;
-          isochroneFeature.set("calculationNumber", updatedNr);
-          isochroneFeature.setId("isochrone_marker_" + updatedNr);
+          if (isochroneFeature.getGeometry().getType() === "Point") {
+            isochroneFeature.setId("isochrone_marker_" + updatedNr);
+            isochroneFeature.set("calculationNumber", updatedNr);
+          } else {
+            isochroneFeature.set("calculationNumber", updatedNr);
+          }
         }
       });
       const isochroneRoadNetworkLayerSource = this.isochroneRoadNetworkLayer.getSource();

@@ -1,8 +1,6 @@
 from enum import Enum
 from typing import List, Optional, Union
-
-from geojson_pydantic.features import FeatureCollection
-from pydantic import BaseModel, root_validator, validator
+from pydantic import BaseModel, root_validator
 
 
 class ScenarioBase(BaseModel):
@@ -132,6 +130,11 @@ class ScenarioWaysModifiedCreate(ScenarioFeatureCreateBase):
             and values["wheelchair"] not in WayModifiedWheelchairEnum._value2member_map_
         ):
             values["wheelchair"] = None
+        if (
+            "way_type" in values
+            and values["way_type"] not in WayModifiedTypeEnum._value2member_map_
+        ):
+            values["way_type"] = None
 
         return values
 
@@ -171,6 +174,16 @@ class ScenarioBuildingsModifiedCreate(ScenarioFeatureCreateBase):
             },
         }
 
+    @root_validator(pre=True)
+    def compute_values(cls, values):
+        if (
+            "building_type" in values
+            and values["building_type"] not in BuildingModifiedTypeEnum._value2member_map_
+        ):
+            values["building_type"] = None
+
+        return values
+
 
 class ScenarioBuildingsModifiedUpdate(ScenarioFeatureUpdateBase):
     building_type: Optional[BuildingModifiedTypeEnum]
@@ -184,7 +197,7 @@ class ScenarioBuildingsModifiedUpdate(ScenarioFeatureUpdateBase):
 
 class ScenarioPoisModifiedCreate(ScenarioFeatureCreateBase):
     uid: Optional[str] = None  # specified if the feature is an existing poi from pois table
-    name: str
+    name: Optional[str] = None
     category: str  # checked if amenity exists for the user
     edit_type: ScenarioEditType
 

@@ -126,8 +126,8 @@ class MimeTypes(str, Enum):
 class UploadFileTypes(str, Enum):
     """Upload File Types."""
 
-    geojson = "application/geo+json"
-    zip = "application/zip"
+    geojson = ".geojson"
+    zip = ".zip"
 
 class SettingToModify(str, Enum):
     """Setting to reset."""
@@ -138,3 +138,16 @@ class LanguageEnum(str, Enum):
 
     en = "en"
     de = "de"
+
+class UpdateTableFunction(str, Enum):
+    """Update Table Functions."""
+    # The order of the functions is important.    
+    opportunity_config = "update_opportunity_config"
+    layer_library = "update_layer_library"
+    customization = "update_customization"
+
+    aoi = "update_aoi"
+    poi = "update_poi"
+    study_area = "update_study_area"
+    heatmap = "update_heatmap"
+    all = "all"

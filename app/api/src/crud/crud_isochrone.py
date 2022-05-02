@@ -141,10 +141,12 @@ class CRUDIsochrone:
 
             for isochrone_result in result.isochrone:
                 for step in steps:
-                    if step not in isochrones:
-                        isochrones[step] = [Polygon(isochrone_result.shape[step])]
-                    else:
-                        isochrones[step].append(Polygon(isochrone_result.shape[step]))
+                    iso = isochrone_result.shape.get(step)
+                    if iso is not None and len(iso) >= 3:
+                        if step not in isochrones:
+                            isochrones[step] = [Polygon(isochrone_result.shape[step])]
+                        else:
+                            isochrones[step].append(Polygon(isochrone_result.shape[step]))
 
             union_isochrones = {}
             for step in isochrones:
@@ -332,8 +334,9 @@ class CRUDIsochrone:
         return result.fetchall()[0][0]
 
     async def calculate_pois_multi_isochrones(self, current_user, db: AsyncSession, *, obj_in) -> GeoDataFrame:
-        obj_in.speed = obj_in.speed / 3.6
+        speed = obj_in.speed / 3.6
         obj_in_data = jsonable_encoder(obj_in)
+        obj_in_data["speed"] = speed
         obj_in_data["user_id"] = current_user.id
         # Get starting points for multi-isochrone
         sql_starting_points = text(
@@ -348,7 +351,7 @@ class CRUDIsochrone:
         obj_multi_isochrones = IsochroneMulti(
             user_id=obj_in.user_id,
             scenario_id=obj_in.scenario_id,
-            speed=obj_in.speed,
+            speed=speed,
             modus=obj_in.modus,
             n=obj_in.n,
             minutes=obj_in.minutes,
@@ -468,7 +471,7 @@ class CRUDIsochrone:
             gdf = gdf.drop(["reached_opportunities", "geom"], axis=1)
             writer = pd.ExcelWriter(file_name + '.' + IsochroneExportType.xlsx.name, engine='xlsxwriter')
             gdf_transposed = gdf.transpose()
-            gdf_transposed.columns = [str(c) +  ' ' + translation_dict["minutes"] for c in list(gdf["Minutes"])]
+            gdf_transposed.columns = [str(c) +  ' ' + translation_dict["minutes"] for c in list(gdf[translation_dict["minutes"]])]
             gdf_transposed[1:].to_excel(writer, sheet_name='Results')
             workbook  = writer.book
             worksheet = writer.sheets['Results']
@@ -489,19 +492,3 @@ class CRUDIsochrone:
 
 
 isochrone = CRUDIsochrone()
-
-
-#     edge_obj = {
-
-#     }
-#     full_edge_objs.append(edge_obj)
-
-#     if edge.start_perc not in [0.0, 1.0] or edge.end_perc not in [0.0, 1.0] or edge.edge in [999999999,999999998]:
-#         edge_obj["partial_edge"] = True
-#         edge_obj["geom"] = 'Linestring(%s)' % re.sub(',([^,]*,?)', r'\1', str(edge.shape)).replace('[', '').replace(']', '')
-#         partial_edge_objs.append(edge_obj)
-
-
-# await db.execute(IsochroneEdgeDB.__table__.insert(), full_edge_objs)
-# await db.execute(IsochroneEdgeDB.__table__.insert(), partial_edge_objs)
-# await db.commit()

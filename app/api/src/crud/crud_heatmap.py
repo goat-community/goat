@@ -114,11 +114,11 @@ class CRUDHeatmap:
         await db.execute(
             text(
                 """INSERT INTO customer.reached_edge_full_heatmap(edge_id, geom)
-        SELECT a.edge_id, ST_TRANSFORM(ST_SETSRID(
-            ST_GeomFromGeoJSON('{"type":"LineString","coordinates":' || a.geom || '}'),
-            3857
-        ), 4326) AS geom  
-        FROM temporal.artificial_full_edges a;"""
+                    SELECT a.edge_id, ST_TRANSFORM(ST_SETSRID(
+                        ST_GeomFromGeoJSON('{"type":"LineString","coordinates":' || a.geom || '}'),
+                        3857
+                    ), 4326) AS geom  
+                    FROM temporal.artificial_full_edges a;"""
             )
         )
         await db.commit()
@@ -126,17 +126,17 @@ class CRUDHeatmap:
         await db.execute(
             text(
                 """INSERT INTO customer.reached_edge_full_heatmap(geom, edge_id)
-        WITH merged AS 
-        (
-            SELECT f.edge_id
-            FROM temporal.full_edges f
-            LEFT JOIN customer.reached_edge_full_heatmap r 
-            ON f.edge_id = r.edge_id 
-            WHERE r.edge_id IS NULL  
-        )
-        SELECT e.geom, m.edge_id 
-        FROM merged m, basic.edge e 
-        WHERE m.edge_id = e.id; """
+                WITH merged AS 
+                (
+                    SELECT f.edge_id
+                    FROM temporal.full_edges f
+                    LEFT JOIN customer.reached_edge_full_heatmap r 
+                    ON f.edge_id = r.edge_id 
+                    WHERE r.edge_id IS NULL  
+                )
+                SELECT e.geom, m.edge_id 
+                FROM merged m, basic.edge e 
+                WHERE m.edge_id = e.id; """
             )
         )
         await db.commit()
@@ -386,7 +386,7 @@ class CRUDHeatmap:
             row_to_update["id"] = dict_starting_ids[start_id]
             row_to_update["area_isochrone"] = sum(
                 isochrones[start_id][step]["area_isochrone"] for step in isochrones[start_id]
-            ) 
+            )
             average_area_isochrones.append(row_to_update)
 
         pd.DataFrame(average_area_isochrones).to_sql(
@@ -397,13 +397,13 @@ class CRUDHeatmap:
             if_exists="append",
             schema="temporal",
         )
-        
+
         return {"msg": "Success"}
 
     async def finalize_connectivity_heatmap(self, db):
         await db.execute(
             text(
-            """WITH grouped AS 
+                """WITH grouped AS 
             (
                 SELECT g.grid_visualization_id, avg(area_isochrone) area_isochrone  
                 FROM temporal.size_isochrone_heatmap s, basic.grid_calculation g
@@ -510,13 +510,23 @@ class CRUDHeatmap:
         db.add(data_upload_obj)
         await db.commit()
 
-    async def bulk_compute_reached_pois(self, db: AsyncSession, current_user: models.User):
+    async def bulk_compute_reached_pois(
+        self, db: AsyncSession, current_user: models.User
+    ):
         # Reset reached_pois_heatmap table
         await db.execute(text("TRUNCATE customer.reached_poi_heatmap;"))
         await db.execute(
             text("ALTER SEQUENCE customer.reached_poi_heatmap_id_seq RESTART WITH 1;")
         )
         await db.commit()
+
+        # Make all data uploads not computed
+        await db.execute(
+            text(
+                "UPDATE customer.data_upload SET reached_poi_heatmap_computed = FALSE WHERE study_area_id = :active_study_area_id;"
+            ),
+            {"active_study_area_id": current_user.active_study_area_id},
+        )
 
         kmeans_classes = await db.execute(
             text("SELECT DISTINCT cid FROM temporal.heatmap_grid_helper;")
@@ -619,10 +629,16 @@ class CRUDHeatmap:
 
 
 heatmap = CRUDHeatmap()
-# from src.db.session import async_session, sync_session
 
-# test_user = models.User(id=4, active_study_area_id=1)
-# db = async_session()
+# def main():
+
+#     from src.db.session import async_session, sync_session
+#     test_user = models.User(id=15, active_study_area_id=83110000)
+#     asyncio.get_event_loop().run_until_complete(CRUDHeatmap().bulk_compute_reached_pois(db=async_session(), current_user=test_user))
+
+
+# main()
+#db = async_session()
 # db_sync = sync_session()
 # asyncio.get_event_loop().run_until_complete(CRUDHeatmap().prepare_starting_points(db=db, current_user=test_user))
 # asyncio.get_event_loop().run_until_complete(CRUDHeatmap().clean_tables(db=db))
@@ -632,5 +648,5 @@ heatmap = CRUDHeatmap()
 # asyncio.get_event_loop().run_until_complete(
 #          CRUDHeatmap().finalize_connectivity_heatmap(db=db)
 # )
-#asyncio.get_event_loop().run_until_complete(CRUDHeatmap().bulk_compute_reached_pois(db=async_session(), current_user=test_user))
+# asyncio.get_event_loop().run_until_complete(CRUDHeatmap().bulk_compute_reached_pois(db=async_session(), current_user=test_user))
 # asyncio.get_event_loop().run_until_complete(CRUDHeatmap().compute_population_heatmap(db=async_session()))

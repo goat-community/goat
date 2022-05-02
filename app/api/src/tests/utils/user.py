@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List, Optional
 
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,7 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src import crud
 from src.core.config import settings
 from src.db import models
-from src.schemas.user import UserCreate, UserUpdate
+from src.schemas.user import UserCreate, UserUpdate, request_examples
+from src.tests.utils.organization import create_random_organization
 from src.tests.utils.utils import random_email, random_lower_string
 
 
@@ -22,30 +23,37 @@ async def user_authentication_headers(
     return headers
 
 
-async def create_random_user(db: AsyncSession) -> models.User:
-    email = random_email()
-    password = random_lower_string()
-    user_in = UserCreate(username=email, email=email, password=password)
+async def create_random_user(
+    db: AsyncSession,
+    email: Optional[str] = random_email(),
+    password: Optional[str] = random_lower_string(),
+    roles: Optional[List[str]] = ["user"],
+) -> models.User:
+    user_in = UserCreate(**request_examples["create"])
+    user_in.email = email
+    user_in.password = password
+    user_in.roles = roles
+    organization = await create_random_organization(db=db)
+    user_in.organization_id = organization.id
     user = await crud.user.create(db=db, obj_in=user_in)
     return user
 
 
-async def authentication_token_from_email(
-    *, client: AsyncClient, email: str, db: AsyncSession
+async def get_user_token_headers(
+    client: AsyncClient,
+    db: AsyncSession,
+    email: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> Dict[str, str]:
     """
-    Return a valid token for the user with given email.
-    If the user doesn't exist it is created first.
+    Return a valid token for the user with given email oand password or create a new user
     """
-    password = random_lower_string()
-    user = await crud.user.get_by_key(db, key="email", value=email)
-    
-    if not user:
-        user_in_create = UserCreate(username=email, email=email, password=password)
-        user = await crud.user.create(db, obj_in=user_in_create)
-    else:
-        user = user[0]
-        user_in_update = UserUpdate(password=password)
-        user = await crud.user.update(db, db_obj=user, obj_in=user_in_update)
 
+    if email is not None and password is not None:
+        headers = await user_authentication_headers(client=client, email=email, password=password)
+        return headers
+
+    email = random_email()
+    password = random_lower_string()
+    user = await create_random_user(db=db, email=email, password=password)
     return await user_authentication_headers(client=client, email=email, password=password)

@@ -119,7 +119,7 @@
             ref="uploader"
             class="d-none"
             type="file"
-            accept="application/json,.zip"
+            accept=".geojson,.zip"
             @change="onFileChanged"
           />
           <p v-if="isUploadBusy" class="mt-4 mb-1 sub-header">

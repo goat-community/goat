@@ -4,6 +4,8 @@ import Vue from "vue";
 
 import router from "./router";
 import vuetify from "@/plugins/vuetify";
+import * as Sentry from "@sentry/vue";
+import { BrowserTracing } from "@sentry/tracing";
 // eslint-disable-next-line no-unused-vars
 import http from "./services/http";
 import "./plugins/vuescroll";
@@ -37,4 +39,12 @@ new Vue({
   store,
   vuetify,
   render: h => h(App)
+});
+
+Sentry.init({
+  Vue,
+  dsn:
+    "https://2a9bae546fdd4394875e04a3bd7c8c9b@o956694.ingest.sentry.io/6301652",
+  integrations: [new BrowserTracing()],
+  tracesSampleRate: 0.2
 });

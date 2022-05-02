@@ -77,7 +77,7 @@
                       close
                     </v-icon>
                     <v-icon v-else>
-                      add
+                      more_vert
                     </v-icon>
                   </v-btn>
                 </template>
@@ -565,6 +565,7 @@
               v-if="schema[layerName] && popup && popup.isVisible"
               :schema="schema[layerName]"
               :model="dataObject"
+              :key="jsonFormKey"
               :options="options"
             />
           </v-form>
@@ -611,6 +612,7 @@ import { mapFeatureTypeProps } from "../../../utils/Layer";
 import OlSelectController from "../../../controllers/OlSelectController";
 import OlEditController from "../../../controllers/OlEditController";
 import {
+  bldEntrancePointsStyle,
   getEditStyle,
   getFeatureHighlightStyle
 } from "../../../style/OlStyleDefs";
@@ -686,11 +688,12 @@ export default {
     // ------------------------
     olEditCtrl: null,
     olSelectCtrl: null,
-    editLayer: null,
     highlightLayer: null,
+    tempBldEntranceFeature: null,
     featuresToCommit: [],
     // Cache for poi modified feature
-    poiModifiedFeatures: []
+    poiModifiedFeatures: [],
+    jsonFormKey: 0
   }),
   watch: {
     activeScenario() {
@@ -850,7 +853,7 @@ export default {
       this.olEditCtrl.highlightSource = this.highlightLayer.getSource();
       this.olEditCtrl.popup = this.popup;
       //Initialize component layers
-      // this.setUpCtxMenu();
+      this.setUpCtxMenu();
       this.toggleFeatureLabelsInteraction(this.toggleFeatureLabels);
     },
 
@@ -867,7 +870,6 @@ export default {
         style: getEditStyle(),
         queryable: true
       });
-
       editLayer.getSource().on("changefeature", this.onFeatureChange);
       editLayer.getSource().on("change", this.onEditSourceChange);
       this.map.addLayer(editLayer);
@@ -883,6 +885,21 @@ export default {
       });
       this.map.addLayer(highlightLayer);
       this.highlightLayer = highlightLayer;
+      // Building entrance layer
+      const bldEntranceLayer = new VectorLayer({
+        name: "bld_entrance_layer",
+        displayInLayerList: false,
+        source: new VectorSource({ wrapX: false }),
+        zIndex: 100,
+        queryable: false,
+        style: bldEntrancePointsStyle()
+      });
+      this.olEditCtrl.bldEntranceLayer = bldEntranceLayer;
+      this.bldEntranceLayer = bldEntranceLayer;
+      bldEntranceLayer
+        .getSource()
+        .on("changefeature", this.onBldEntranceFeatureChange);
+      this.map.addLayer(bldEntranceLayer);
     },
     /**
      * Get Layer attribute fields
@@ -975,6 +992,9 @@ export default {
 
                 if (index === 1 && layer === "building") {
                   layer = "population";
+                  this.bldEntranceLayer.getSource().clear();
+                  this.bldEntranceLayer.getSource().addFeatures(features);
+                  return;
                 }
                 features.forEach(feature => {
                   feature.setId(`${layer}_${feature.getId()}`);
@@ -1204,6 +1224,7 @@ export default {
           for (const attr in this.dataObject) {
             this.dataObject[attr] = attr in props ? props[attr] : null;
           }
+          this.jsonFormKey += 1;
         });
         const geometry = feature.getGeometry();
         let popupCoordinate = geometry.getCoordinates();
@@ -1274,23 +1295,18 @@ export default {
       const featuresToAdd = [];
       const featuresToUpdate = [];
       this.featuresToCommit.forEach(feature => {
+        const featureOut = this.setFeatureFields(feature);
         const props = feature.getProperties();
-        const featureOut = feature.clone();
-        const mandatoryProps = [
-          ...Object.keys(this.dataObject),
-          "edit_type",
-          this.original_id,
-          "geometry",
-          "geom"
-        ];
-        Object.keys(props).forEach(prop => {
-          if (!mandatoryProps.includes(prop)) featureOut.unset(prop);
-        });
         if (props.editType !== "d") {
           if (props.hasOwnProperty("edit_type")) {
             featureOut.setId(feature.getId());
             featuresToUpdate.push(featureOut);
           } else {
+            Object.keys(featureOut.getProperties()).forEach(prop => {
+              if (!["edit_type", this.original_id, "geometry"].includes(prop)) {
+                featureOut.set(prop, feature.get(prop));
+              }
+            });
             featureOut.set("edit_type", "m");
             featureOut.set(
               this.original_id,
@@ -1334,6 +1350,21 @@ export default {
       this.popup.title = "attributes";
       this.popup.selectedInteraction = "add";
       this.popup.isVisible = true;
+    },
+    setFeatureFields(feature) {
+      const props = feature.getProperties();
+      const featureOut = feature.clone();
+      const mandatoryProps = [
+        ...Object.keys(this.dataObject),
+        "edit_type",
+        this.original_id,
+        "geometry",
+        "geom"
+      ];
+      Object.keys(props).forEach(prop => {
+        if (!mandatoryProps.includes(prop)) featureOut.unset(prop);
+      });
+      return featureOut;
     },
 
     /**
@@ -1400,17 +1431,6 @@ export default {
           );
         }
       }
-
-      // Update Building upload state
-      if (buildingFeatureAtCoord) {
-        buildingFeatureAtCoord.set("status", null);
-      }
-
-      let payload = {
-        features: []
-      };
-
-      let mode = "";
       let bldEntranceFeature;
       if (evt.type === "modifyend") {
         // Update the existing building entrance feature
@@ -1432,21 +1452,29 @@ export default {
           ...propsWithNoGeometry
         });
         clonedFeature.setGeometryName("geom");
-        clonedFeature.getGeometry().transform("EPSG:3857", "EPSG:4326");
-        clonedFeature.setId(bldEntranceFeature.getId());
-        // Prepare payload for update
-        const props = clonedFeature.getProperties();
-        if (props.hasOwnProperty("geom")) {
-          delete props.geom;
-        }
-        const wktGeom = geometryToWKT(clonedFeature.getGeometry());
-        props.geom = wktGeom;
-        props.id =
-          clonedFeature.getId() ||
-          clonedFeature.get("id") ||
-          clonedFeature.get("id");
-        payload.features = [props];
-        mode = "update";
+        ApiService.put(
+          `/scenarios/${this.activeScenario}/population_modified/features`,
+          {
+            features: [
+              {
+                id: bldEntranceFeature.getId(),
+                geom: geometryToWKT(
+                  clonedFeature
+                    .getGeometry()
+                    .clone()
+                    .transform("EPSG:3857", "EPSG:4326")
+                )
+              }
+            ]
+          }
+        ).then(response => {
+          if (response.data) {
+            const feature = geojsonToFeature(response.data);
+            if (feature[0] && feature[0].get("id")) {
+              bldEntranceFeature.setId(feature[0].get("id"));
+            }
+          }
+        });
       } else {
         // Add new feature
         bldEntranceFeature = new Feature({
@@ -1473,45 +1501,94 @@ export default {
           ...propsWithNoGeometry
         });
         clonedFeature.setGeometryName("geom");
-        clonedFeature.getGeometry().transform("EPSG:3857", "EPSG:4326");
-
-        // Prepare payload for insert
-
-        const props = clonedFeature.getProperties();
-        if (props.hasOwnProperty("geom")) {
-          delete props.geom;
-        }
-        if (props.hasOwnProperty("id")) {
-          delete props.id;
-        }
-        const wktGeom = geometryToWKT(clonedFeature.getGeometry());
-        props.geom = wktGeom;
-        payload.features = [props];
-        mode = "insert";
-      }
-      let promise = "";
-      if (mode === "update") {
-        promise = ApiService.put(
+        ApiService.post(
           `/scenarios/${this.activeScenario}/population_modified/features`,
-          payload
-        );
-      } else {
-        promise = ApiService.post(
-          `/scenarios/${this.activeScenario}/population_modified/features`,
-          payload
-        );
-      }
-      promise.then(response => {
-        if (response.data) {
-          const feature = geojsonToFeature(response.data);
-          if (feature[0] && feature[0].get("id")) {
-            bldEntranceFeature.setId(feature[0].get("id"));
+          {
+            features: [
+              {
+                ...clonedFeature.getProperties(),
+                geom: geometryToWKT(
+                  clonedFeature
+                    .getGeometry()
+                    .clone()
+                    .transform("EPSG:3857", "EPSG:4326")
+                )
+              }
+            ]
           }
-        }
-      });
+        ).then(response => {
+          if (response.data) {
+            const feature = geojsonToFeature(response.data);
+            this.editLayer.getSource().changed();
+            if (feature[0] && feature[0].get("id")) {
+              bldEntranceFeature.setId(feature[0].get("id"));
+            }
+          }
+        });
+      }
+
       setTimeout(() => {
         this.tempBldEntranceFeature = null;
       }, 100);
+    },
+    /**
+     * Feature change event handler for building entrance edit layer
+     */
+    onBldEntranceFeatureChange(evt) {
+      if (evt.feature) {
+        // Used on modifyEnd event.
+        this.tempBldEntranceFeature = evt.feature;
+      }
+    },
+    /**
+     * Configure right-click for Edit.
+     */
+    setUpCtxMenu() {
+      if (this.contextmenu) {
+        this.olEditCtrl.contextmenu = this.contextmenu;
+        this.contextmenu.on("beforeopen", evt => {
+          // Close helptoltip
+          if (this.olEditCtrl.helpTooltip) {
+            this.olEditCtrl.helpTooltip.setPosition(undefined);
+          }
+          const features = this.map.getFeaturesAtPixel(evt.pixel, {
+            layerFilter: candidate => {
+              if (candidate.get("name") === "bld_entrance_layer") {
+                return true;
+              }
+              return false;
+            }
+          });
+          if (
+            features.length > 0 &&
+            this.selectedLayer["name"] === "building"
+          ) {
+            this.contextmenu.extend([
+              "-", // this is a separator
+              {
+                text: `<i class="fa fa-trash fa-1x" aria-hidden="true"></i>&nbsp;&nbsp${this.$t(
+                  "map.contextMenu.deleteBldEntrancePoint"
+                )}`,
+                label: "deleteBldEntrancePoint",
+                callback: () => {
+                  ApiService.delete(
+                    `/scenarios/${
+                      this.activeScenario
+                    }/population_modified/features?id=${features[0].getId()}`
+                  ).then(response => {
+                    if (response.data) {
+                      this.olEditCtrl.bldEntranceLayer
+                        .getSource()
+                        .removeFeature(features[0]);
+                      this.editLayer.getSource().changed();
+                    }
+                  });
+                }
+              }
+            ]);
+          }
+        });
+      }
     },
     /**
      * Feature change event handler for edit layer
@@ -1530,13 +1607,6 @@ export default {
         } else {
           this.featuresToCommit[index] = evt.feature;
         }
-      }
-
-      if (
-        this.selectedLayer["name"] === "building" &&
-        this.olEditCtrl.editType === "draw"
-      ) {
-        this.toggleEdit = 7;
       }
     },
     /**
@@ -1699,6 +1769,9 @@ export default {
         });
       EventBus.$emit("ol-interaction-stoped", this.interactionType);
       this.clearDataObject();
+      if (this.contextmenu) {
+        this.contextmenu.close();
+      }
       this.featuresToCommit = [];
     },
 
@@ -1710,6 +1783,10 @@ export default {
       this.olSelectCtrl.clear();
       this.editLayer.getSource().clear();
       this.highlightLayer.getSource().clear();
+      this.bldEntranceLayer.getSource().clear();
+      if (this.contextmenu) {
+        this.contextmenu.close();
+      }
       this.clearDataObject();
       this.scenarioDataTable = [];
       this.isInteractionOnProgress = false;
@@ -1858,13 +1935,6 @@ export default {
      */
     ok(type) {
       const featureOut = this.featuresToCommit[0].clone();
-
-      // Object.keys(featureOut.getProperties()).forEach(prop => {
-      //   if (!["geometry", "geom"].includes(prop)) featureOut.unset(prop);
-      // });
-
-      // Set new properties from dataObject (popup)
-
       // Reset id of the original feature
       featureOut.setId(this.featuresToCommit[0].getId());
       const properties = this.featuresToCommit[0].getProperties();
@@ -1874,29 +1944,26 @@ export default {
         featureOut.set("edit_type", "n");
         this.createScenarioFeatures([featureOut]);
       }
-      if (
-        type === "modifyAttributes" &&
-        properties.hasOwnProperty("edit_type")
-      ) {
-        // Modified existing fature
+      if (type === "modifyAttributes") {
+        // Modified existing feature
+        const featureOut = this.setFeatureFields(this.featuresToCommit[0]);
         featureOut.setProperties(this.dataObject);
-        this.updateScenarioFeatures([featureOut]);
-      } else if (
-        type === "modifyAttributes" &&
-        !properties.hasOwnProperty("edit_type")
-      ) {
-        // Modified an origin feature (has to be created as modified feature)
-        featureOut.setProperties(this.dataObject);
-        featureOut.set("edit_type", "m");
-        if (this.featuresToCommit[0].get("id")) {
-          // For poi original_id is uid (another column)
-          const original_id_ =
-            this.featuresToCommit[0].get("uid") ||
-            this.featuresToCommit[0].get("id");
-          featureOut.set(this.original_id, original_id_);
+        const props = this.featuresToCommit[0].getProperties();
+        if (props.editType !== "d") {
+          if (props.hasOwnProperty("edit_type")) {
+            featureOut.setId(this.featuresToCommit[0].getId());
+            this.updateScenarioFeatures([featureOut]);
+          } else {
+            featureOut.set("edit_type", "m");
+            featureOut.set(
+              this.original_id,
+              this.featuresToCommit[0].get("uid") ||
+                this.featuresToCommit[0].get("id")
+            );
+            this.createScenarioFeatures([featureOut]);
+            this.editLayer.getSource().removeFeature(this.featuresToCommit[0]);
+          }
         }
-        this.createScenarioFeatures([featureOut]);
-        this.editLayer.getSource().removeFeature(this.featuresToCommit[0]);
       } else if (type === "delete" && !properties.hasOwnProperty("edit_type")) {
         // Deleted an origin feature (has to be created as deleted feature)
         const allowedKeys = Object.keys(this.dataObject);
@@ -1974,6 +2041,13 @@ export default {
           }
           this.editLayer.getSource().addFeatures(featuresWithId);
           this.refreshHeatmap();
+          // Activate building entrance interaction if selected layer is building
+          if (
+            this.selectedLayer["name"] === "building" &&
+            this.olEditCtrl.editType === "add"
+          ) {
+            this.toggleEdit = 7;
+          }
         })
         .catch(error => {
           console.log(error);
@@ -2112,6 +2186,21 @@ export default {
                       }
                     });
                   }
+                }
+                if (
+                  this.selectedLayer["name"] === "building" &&
+                  featureIn.get("id")
+                ) {
+                  // Delete all bldEntrance features on the same building
+                  const bldEntranceFeatures = this.bldEntranceLayer
+                    .getSource()
+                    .getFeatures()
+                    .filter(
+                      f => f.get("building_modified_id") === featureIn.get("id")
+                    );
+                  bldEntranceFeatures.forEach(f => {
+                    this.bldEntranceLayer.getSource().removeFeature(f);
+                  });
                 }
 
                 this.editLayer.getSource().removeFeature(featureIn);
@@ -2270,14 +2359,19 @@ export default {
       activeScenario: "activeScenario"
     }),
     scenarioList() {
-      return [{ id: null, scenario_name: "No Selection" }, ...this.scenarios];
+      return [
+        { id: null, scenario_name: this.$t("appBar.edit.noSelection") },
+        ...this.scenarios
+      ];
     },
     ...mapGetters("scenarios", {
       activeScenarioObj: "activeScenarioObj"
     }),
     ...mapFields("map", {
       selectedLayer: "selectedEditLayer",
-      isMapBusy: "isMapBusy"
+      isMapBusy: "isMapBusy",
+      editLayer: "editLayer",
+      bldEntranceLayer: "bldEntranceLayer"
     }),
     ...mapFields("app", {
       appConfig: "appConfig",

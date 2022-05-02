@@ -41,6 +41,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         result = await db.execute(statement)
         return result.scalars().first()
 
+    async def get_all(
+        self, db: AsyncSession, *, extra_fields: List[Any] = []
+    ) -> List[ModelType]:
+        statement = select(self.model)
+        statement = self.extend_statement(statement, extra_fields=extra_fields)
+        result = await db.execute(statement)
+        return result.scalars().all()
+
     async def get_by_key(
         self, db: AsyncSession, *, key: str, value: Any, extra_fields: List[Any] = []
     ) -> Optional[ModelType]:
@@ -99,3 +107,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await db.delete(obj)
         await db.commit()
         return obj
+
+    async def get_n_rows(self, db: AsyncSession, *, n: int) -> ModelType:
+        statement = select(self.model).limit(n)
+        result = await db.execute(statement)
+        return result.scalars().all()

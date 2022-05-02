@@ -1,0 +1,51 @@
+<mjml owa="desktop" version="4.3.0">
+  <mj-head>
+    <mj-font href="https://fonts.googleapis.com/css?family=Montserrat" name="Montserrat"></mj-font>
+    <mj-font href="https://fonts.googleapis.com/css?family=Raleway" name="Raleway"></mj-font>
+    <mj-font href="https://fonts.googleapis.com/css?family=Open Sans" name="Open Sans"></mj-font>
+    <mj-preview></mj-preview>
+  </mj-head>
+  <mj-body background-color="#f8f8f8" color="#797e82" font-family="Open Sans, Helvetica, Arial, sans-serif">
+    
+    <mj-section background-repeat="repeat" background-size="auto" padding-bottom="0px" padding-top="0px" padding="20px 0px 20px 0px" text-align="center" vertical-align="top">
+
+    </mj-section>
+    
+    <mj-section background-color="#ffffff" background-repeat="repeat" padding-bottom="0px" padding-left="0px" padding-right="0px" padding-top="0px" padding="20px 0" text-align="center" vertical-align="top">
+      <mj-column>
+        <mj-divider border-color="#2BB381" border-style="solid" border-width="7px" padding-bottom="40px" padding-left="0px" padding-right="0px" padding-top="0px" padding="10px 25px" width="100%"></mj-divider>
+        <mj-image align="center" alt="" border="none" href="" type="Unit" padding-bottom="0px" padding-top="0px" padding="10px 25px" src="https://goat.plan4better.de/img/goat_standard.svg" target="_blank" title="" height="auto" width="200px"></mj-image>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#ffffff" background-repeat="repeat" background-size="auto" padding-bottom="0px" padding-top="0px" padding="20px 0" text-align="center" vertical-align="top">
+      <mj-column>
+        <mj-image align="center" alt="" type="Unit" border="none" height="auto" href="" padding-bottom="0px" padding-left="50px" padding-right="50px" padding-top="40px" padding="10px 25px" src="https://raw.githubusercontent.com/goat-community/p4b-website/development/static/images/emails/account_expired.png" target="_blank" title="" width="300px"></mj-image>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#ffffff" background-repeat="repeat" background-size="auto" padding-bottom="70px" padding-top="30px" padding="20px 0px 20px 0px" text-align="center" vertical-align="top">
+      <mj-column>
+       <mj-text align="left" color="#797e82" font-family="Open Sans, Helvetica, Arial, sans-serif" font-size="13px" line-height="22px" padding-bottom="0px" padding-left="50px" padding-right="50px" padding-top="0px" padding="0px 25px 0px 25px">
+          <h1 style="text-align:center; color: #000000; line-height:32px">Your demo has expired.</h1>
+        </mj-text>
+      <mj-text align="left" color="#797e82" font-family="Open Sans, Helvetica, Arial, sans-serif" font-size="13px" line-height="22px" padding-bottom="0px" padding-left="50px" padding-right="50px" padding-top="0px" padding="0px 25px 0px 25px">
+          <p style="margin: 10px 0; text-align: center;">If you liked GOAT and would like to continue using the planning software, please contact our sales team. GOAT is already available for the whole of Germany and can be transferred to study areas worldwide on request.
+          
+        </mj-text>
+        <mj-button align="center" background-color="#2BB381" border-radius="100px" border="none" color="#ffffff" font-family="Open Sans, Helvetica, Arial, sans-serif" font-size="13px" font-weight="normal" inner-padding="15px 25px 15px 25px" padding-bottom="20px" padding-top="20px" padding="10px 25px" text-decoration="none" text-transform="none" vertical-align="middle" href="https://plan4better.de/en/contact/"><b style="font-weight:700"><b style="font-weight:700">Contact Sales</b></b></mj-button>
+      </mj-column>
+    </mj-section>
+    
+    <mj-section background-repeat="repeat" background-size="auto"  padding-bottom="0px" padding-top="20px" padding="20px 0px 20px 0px" text-align="center" vertical-align="top">
+      
+      <mj-column>
+            <mj-image align="center" alt=""  border="none" href="" type="Unit" padding-bottom="0px" padding-top="0px" src="https://goat.plan4better.de/img/plan4better_standard.svg" target="_blank" title="" height="auto" width="140px"></mj-image>
+        <mj-text align="center" color="#797e82" padding-top="20px" font-family="Open Sans, Helvetica, Arial, sans-serif">&#160;&#169;&#160 Plan4Better GmbH 2022 | All Rights Reserved</mj-text>
+
+        <mj-social align="center" border-radius="6px" font-family="Ubuntu, Helvetica, Arial, sans-serif" font-size="13px" icon-size="30" line-height="22px" mode="horizontal" padding-bottom="0px" padding="10px 25px" text-decoration="none" text-mode="true">
+          <mj-social-element background-color="#2BB381" href="https://twitter.com/plan4better" name="twitter-noshare" src="https://raw.githubusercontent.com/goat-community/p4b-website/development/static/images/emails/twitter_white.png"></mj-social-element>
+          <mj-social-element background-color="#2BB381" href="https://www.linkedin.com/company/plan4better/" name="linkedin-noshare" src="https://raw.githubusercontent.com/goat-community/p4b-website/development/static/images/emails/linkedin_white.png"></mj-social-element>
+        </mj-social>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

@@ -31,4 +31,11 @@ from .scenario import (
 )
 from .token import Token, TokenPayload
 from .upload import CutomDataUploadState
-from .user import UserBase, UserCreate, UserPreference, UserStudyAreaList, UserUpdate
+from .user import (
+    UserBase,
+    UserCreate,
+    UserCreateDemo,
+    UserPreference,
+    UserStudyAreaList,
+    UserUpdate,
+)

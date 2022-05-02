@@ -180,9 +180,6 @@ export default {
 </script>
 <style lang="css" scoped>
 .measure-button {
-  position: absolute;
-  top: 140px;
-  left: 20px;
   z-index: 1;
 }
 </style>
