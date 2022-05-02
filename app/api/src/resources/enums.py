@@ -148,5 +148,6 @@ class UpdateTableFunction(str, Enum):
 
     aoi = "update_aoi"
     poi = "update_poi"
-
+    study_area = "update_study_area"
+    heatmap = "update_heatmap"
     all = "all"

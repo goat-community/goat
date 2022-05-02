@@ -9,11 +9,12 @@ help_text_type = '''Define the table groups that should be updated as a comma-se
     Layers:
     - aoi    
     - poi
-
+    - study_area
     Configs:
     - opportunity_config
-    - layer_config
+    - layer_library
     - customization
+    - heatmap
 
     All:
     - all

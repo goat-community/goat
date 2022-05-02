@@ -271,6 +271,36 @@ class DataUpdate:
             )
         )
         self.db.commit()
+    def update_study_area(self):
+        """Updates the AOI table."""
+        self.db.execute(
+            text(
+                """
+                UPDATE basic.study_area b
+                SET name = t.name, geom=t.geom, population=t.population, setting=t.setting, buffer_geom_heatmap=t.buffer_geom_heatmap
+                FROM temporal.study_area t
+                WHERE b.id = t.id;
+                """
+            )
+        )
+        self.db.commit()
+
+    def update_heatmap(self):
+        """Updates the heatmap table."""
+        self.db.execute(
+            text(
+                """
+                DELETE FROM customer.reached_poi_heatmap;
+                INSERT INTO customer.reached_poi_heatmap 
+                SELECT * 
+                FROM temporal.reached_poi_heatmap
+                WHERE data_upload_id IS NULL
+                AND scenario_id IS NULL;
+                """
+            )
+        )
+        self.db.commit()
+
 
     def update_table_groups(self, db, table_groups: list[str]):
         """Updates the table groups."""
