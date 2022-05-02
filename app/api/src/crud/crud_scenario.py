@@ -198,7 +198,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
         db.add_all(features_in_db)
         await db.commit()
         # Execute population distribution on population modified
-        if layer_name.value == schemas.ScenarioLayerFeatureEnum.population_modified.value:
+        if layer_name.value in (schemas.ScenarioLayerFeatureEnum.building_modified.value, schemas.ScenarioLayerFeatureEnum.population_modified.value):
             await db.execute(
                 func.basic.population_modification(scenario_id)
             )

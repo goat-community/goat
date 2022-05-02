@@ -17,7 +17,7 @@ BEGIN
 	IF modus IN ('default','scenario')  THEN
 		WITH pop AS 
 		(
-			SELECT SUM(population) population 
+			SELECT COALESCE(SUM(population), 0) population 
 			FROM basic.population p 
 			WHERE ST_Intersects(p.geom, region_geom)
 		)
@@ -27,17 +27,21 @@ BEGIN
 		
 	END IF; 
 	
+	IF modus = 'default' THEN 
+		reachable_population = floor((reachable_population_default / 5)*5);
+	END IF; 
+
 	IF modus = 'scenario' THEN 
 		excluded_buildings_id  = basic.modified_buildings(scenario_id_input);
 		
 		WITH prepared_scenario AS 
 		(
-			SELECT -sum(p.population) AS population 
+			SELECT COALESCE(-sum(p.population), 0) AS population 
 			FROM basic.population p 
 			WHERE ST_Intersects(p.geom, region_geom)
 			AND p.building_id IN (SELECT UNNEST(excluded_buildings_id))	
 			UNION ALL 
-			SELECT sum(p.population) AS population
+			SELECT COALESCE(sum(p.population), 0) AS population
 		 	FROM customer.population_modified p 
 		 	WHERE ST_Intersects(p.geom, region_geom)
 		 	AND p.scenario_id = scenario_id_input
@@ -45,11 +49,13 @@ BEGIN
  		SELECT COALESCE(sum(population), 0)::integer 
  		INTO reachable_population_scenario  
 		FROM prepared_scenario p; 
-	
 		reachable_population = floor((reachable_population_default  + reachable_population_scenario / 5)*5); 
 		
 	END IF; 
-	reachable_population = floor((reachable_population_default / 5)*5);
+
+	IF modus = 'default' THEN 
+		reachable_population = floor((reachable_population_default / 5)*5);
+	END IF; 
 
 	/*Get reached population*/
 	DROP TABLE IF EXISTS reached_population; 
