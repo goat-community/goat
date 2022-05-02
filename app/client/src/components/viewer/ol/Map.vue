@@ -8,6 +8,7 @@
         "
         class="mb-2"
         :map="map"
+        v-show="!miniViewOlMap"
         :color="appColor.primary"
       />
       <full-screen
@@ -24,6 +25,7 @@
             fab
             dark
             x-small
+            v-show="!miniViewOlMap"
             :color="appColor.primary"
             @click="showMiniViewer"
             :loading="isMapillaryBtnDisabled"
