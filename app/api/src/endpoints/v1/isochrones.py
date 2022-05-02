@@ -167,7 +167,8 @@ async def poi_multi_isochrones(
         gdf = GeoDataFrame(
             pd.concat([gdf_default, gdf_scenario])
         )
-    return json.loads(gdf.to_json())
+        
+    return json.loads(gdf.reset_index(drop=True).to_json())
 
 
 @router.get("/export/{isochrone_calculation_id}", response_class=StreamingResponse)

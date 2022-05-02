@@ -141,10 +141,12 @@ class CRUDIsochrone:
 
             for isochrone_result in result.isochrone:
                 for step in steps:
-                    if step not in isochrones:
-                        isochrones[step] = [Polygon(isochrone_result.shape[step])]
-                    else:
-                        isochrones[step].append(Polygon(isochrone_result.shape[step]))
+                    iso = isochrone_result.shape.get(step)
+                    if iso is not None and len(iso) >= 3:
+                        if step not in isochrones:
+                            isochrones[step] = [Polygon(isochrone_result.shape[step])]
+                        else:
+                            isochrones[step].append(Polygon(isochrone_result.shape[step]))
 
             union_isochrones = {}
             for step in isochrones:
