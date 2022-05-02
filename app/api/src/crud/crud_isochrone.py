@@ -334,8 +334,9 @@ class CRUDIsochrone:
         return result.fetchall()[0][0]
 
     async def calculate_pois_multi_isochrones(self, current_user, db: AsyncSession, *, obj_in) -> GeoDataFrame:
-        obj_in.speed = obj_in.speed / 3.6
+        speed = obj_in.speed / 3.6
         obj_in_data = jsonable_encoder(obj_in)
+        obj_in_data["speed"] = speed
         obj_in_data["user_id"] = current_user.id
         # Get starting points for multi-isochrone
         sql_starting_points = text(
@@ -350,7 +351,7 @@ class CRUDIsochrone:
         obj_multi_isochrones = IsochroneMulti(
             user_id=obj_in.user_id,
             scenario_id=obj_in.scenario_id,
-            speed=obj_in.speed,
+            speed=speed,
             modus=obj_in.modus,
             n=obj_in.n,
             minutes=obj_in.minutes,

@@ -12,6 +12,7 @@
   "login": {
     "title": "Login",
     "signIn": "Sign In",
+    "signUp": "Register",
     "toSignUpContactUs": "Contact us",
     "noAccount": "No account yet?",
     "passwordRequired": "Password is required",

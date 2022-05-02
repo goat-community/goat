@@ -100,11 +100,12 @@ BEGIN
 		FROM reachable_population a
 		LEFT JOIN reached_population r 
 		ON a.isochrone_feature_id = r.id 
+		AND a.sub_study_area_id = r.sub_study_area_id
 	),
 	as_object AS 
 	(
 		SELECT c.isochrone_feature_id, jsonb_object_agg(c.sub_study_area_id, 
-		jsonb_build_object('name', c.name, 'reached_population', c.reached_population, 'total_population', c.total_population)) AS population 
+		jsonb_build_object('name', c.name, 'reached_population', c.reached_population::integer, 'total_population', c.total_population::integer)) AS population 
 		FROM combined c
 		GROUP BY c.isochrone_feature_id 
 	)
