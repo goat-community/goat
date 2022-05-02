@@ -260,6 +260,7 @@
         "NotUploaded": "Nicht hochgeladen"
       },
       "activateLayerToDrawScenario": "Bitte aktivieren Sie den Layer, um Objekte wählen zu können.",
+      "editScenarioName": "Szenario bearbeiten",
       "dataTypeInfo": "Benötigter Datei Typ",
       "geometryTypeInfo": "Benötigter Geometrie Typ",
       "requiredFields": "Erforderliche Attribute",

@@ -84,9 +84,18 @@
               </template>
               <span>{{ item.category }}</span>
             </v-tooltip>
-            <p class="mb-0 sub-header" style="font-size:12px;">
-              {{ item.group }}
-            </p>
+            <v-tooltip top>
+              <template v-slot:activator="{ on }">
+                <p
+                  v-on="on"
+                  class="mb-0 sub-header truncate"
+                  style="font-size:12px;"
+                >
+                  {{ item.group }}
+                </p>
+              </template>
+              <span>{{ item.group }}</span>
+            </v-tooltip>
           </template>
           <template v-slot:items="props">
             <td>{{ props.item.date }}</td>

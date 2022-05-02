@@ -2051,8 +2051,12 @@ export default {
         }
         if (isochroneCalculationNr > id) {
           const updatedNr = isochroneCalculationNr - 1;
-          isochroneFeature.set("calculationNumber", updatedNr);
-          isochroneFeature.setId("isochrone_marker_" + updatedNr);
+          if (isochroneFeature.getGeometry().getType() === "Point") {
+            isochroneFeature.setId("isochrone_marker_" + updatedNr);
+            isochroneFeature.set("calculationNumber", updatedNr);
+          } else {
+            isochroneFeature.set("calculationNumber", updatedNr);
+          }
         }
       });
       const isochroneRoadNetworkLayerSource = this.isochroneRoadNetworkLayer.getSource();
