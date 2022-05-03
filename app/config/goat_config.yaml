@@ -135,6 +135,7 @@ DATA_REFINEMENT_VARIABLES:
       strong: ['steps']
     positive_classified:
       
+
     #wac = walking comfort
     walking_type_road:
       motorway: '1'
@@ -151,9 +152,9 @@ DATA_REFINEMENT_VARIABLES:
       footway: '0.1'
       corridor: '0'
       path: '0'
-      tunnel: '0.25'
-      bridge: '0.25'
-    walking_peak_hour: '0.15'
+      tunnel: '0.3'
+      bridge: '0.3'
+    walking_peak_hour: '0.2'
     walking_cyclepath:
       segregated_yes: '0.5'
       segregated_no: '0'
@@ -163,8 +164,8 @@ DATA_REFINEMENT_VARIABLES:
       acceptable: '0.3'
       uncomfortable: '0.5'
     walking_obstacle:
-      light: '0.05'
-      moderate: '0.05'
+      light: '0.1'
+      moderate: '0.2'
       strong: '0.3'
     walking_surface:
       paving_stones: '0'
@@ -175,25 +176,25 @@ DATA_REFINEMENT_VARIABLES:
       unpaved: '0'
       compacted : '0'
       fine_gravel: '0'
-      gravel: '0'
+      gravel: '0.1'
       sand: '0.1'
-      grass: '0'
+      grass: '0.1'
       mud: '0.1'
     walking_smoothness:
       intermediate: '0'
       bad: '0'
       very_bad: '0'
-      horrible: '0'
-      very_horrible: '0.1'
+      horrible: '0.1'
+      very_horrible: '0.15'
     walking_extra:
-      park: '-0.1'
       street_lamp: '-0.2'
-      tree: '-0.2'
       bench: '-0.1'
       bicycle_parking: '0'
       waste_basket: '-0.1'
-      fountain: '-0.1'
+      park: '-0.2'
+      fountain: '-0.2'
 
+    
     #cyc = cycling comfort
     cycling_type_road:
       motorway: '1'
@@ -210,21 +211,21 @@ DATA_REFINEMENT_VARIABLES:
       footway: '0.2'
       corridor: '1'
       path: '0.1'
-      tunnel: '0.25'
-      bridge: '0.25'
-    cycling_peak_hour: '0.075'
+      tunnel: '0.4'
+      bridge: '0.4'
+    cycling_peak_hour: '0.1'
     cycling_cyclepath:
       segregated_yes: '0'
-      segregated_no: '0.05'
+      segregated_no: '0.1'
     cycling_sidewalk:
-      ideal: '0.05'
-      comfortable: '0.1'
-      acceptable: '0.2'
-      uncomfortable: '0.3'
+      ideal: '0.1'
+      comfortable: '0.2'
+      acceptable: '0.4'
+      uncomfortable: '0.6'
     cycling_obstacle:
-      light: '0.05'
-      moderate: '0.35'
-      strong: '0.15'
+      light: '0.1'
+      moderate: '0.3'
+      strong: '0.7'
     cycling_surface:
       paving_stones: '0.1'
       sett: '0.15'
@@ -232,27 +233,27 @@ DATA_REFINEMENT_VARIABLES:
       cobblestone: '0.15'
       pebblestone: '0.15'
       unpaved: '0.1'
-      compacted : '0.025'
-      fine_gravel: '0.025'
-      gravel: '0.15'
+      compacted : '0.1'
+      fine_gravel: '0.1'
+      gravel: '0.2'
       sand: '0.2'
-      grass: '0.125'
+      grass: '0.2'
       mud: '0.2'
     cycling_smoothness:
-      intermediate: '0.025'
+      intermediate: '0'
       bad: '0.05'
       very_bad: '0.1'
-      horrible: '0.15'
-      very_horrible: '0.25'
+      horrible: '0.3'
+      very_horrible: '0.35'
     cycling_extra:
-      park: '-0.1'
       street_lamp: '-0.2'
-      tree: '-0.2'
-      bench: '-0.1'
-      bicycle_parking: '-0.3'
-      waste_basket: '-0.2'
-      fountain: '0'
+      bench: '0'
+      bicycle_parking: '-0.2'
+      waste_basket: '0'
+      park: '-0.1'
+      fountain: '-0.2'
 
+    
     #whc = wheelchair comfort
     wheelchair_type_road:
       motorway: '1'
@@ -269,21 +270,21 @@ DATA_REFINEMENT_VARIABLES:
       footway: '0'
       corridor: '0'
       path: '0'
-      tunnel: '0.25'
-      bridge: '0.25'
-    wheelchair_peak_hour: '0.075'
+      tunnel: '0.5'
+      bridge: '0.4'
+    wheelchair_peak_hour: '0.3'
     wheelchair_cyclepath:
       segregated_yes: '0.3'
       segregated_no: '0'
     wheelchair_sidewalk:
       ideal: '0'
-      comfortable: '0.1'
-      acceptable: '0.2'
-      uncomfortable: '0.3'
+      comfortable: '0.2'
+      acceptable: '0.5'
+      uncomfortable: '0.7'
     wheelchair_obstacle:
-      light: '0.05'
-      moderate: '0.35'
-      strong: '0.375'
+      light: '0.2'
+      moderate: '0.6'
+      strong: '0.9'
     wheelchair_surface:
       paving_stones: '0.1'
       sett: '0.15'
@@ -291,26 +292,25 @@ DATA_REFINEMENT_VARIABLES:
       cobblestone: '0.15'
       pebblestone: '0.15'
       unpaved: '0.1'
-      compacted : '0.025'
-      fine_gravel: '0.025'
-      gravel: '0.15'
-      sand: '0.2'
-      grass: '0.125'
-      mud: '0.2'
+      compacted : '0.1'
+      fine_gravel: '0.1'
+      gravel: '0.3'
+      sand: '0.3'
+      grass: '0.3'
+      mud: '0.3'
     wheelchair_smoothness:
-      intermediate: '0.025'
-      bad: '0.05'
-      very_bad: '0.1'
-      horrible: '0.15'
-      very_horrible: '0.25'
+      intermediate: '0.05'
+      bad: '0.15'
+      very_bad: '0.3'
+      horrible: '0.5'
+      very_horrible: '0.75'
     wheelchair_extra:
-      park: '-0.1'
       street_lamp: '-0.2'
-      tree: '-0.2'
       bench: '-0.1'
       bicycle_parking: '0'
       waste_basket: '-0.1'
-      fountain: '-0.1'
+      park: '-0.2'
+      fountain: '-0.2'
 
 
     ##-------------------------------------Size limits for areas of interest------------------------------------##
