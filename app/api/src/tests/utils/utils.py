@@ -12,12 +12,12 @@ def random_lower_string() -> str:
 
 
 def random_email() -> str:
-    return f"{random_lower_string()}@{random_lower_string()}.com"
+    return f"{random_lower_string()}@{random_lower_string()}.de"
 
 
 async def get_superuser_token_headers(client: AsyncClient) -> Dict[str, str]:
     login_data = {
-        "username": settings.FIRST_SUPERUSER,
+        "username": settings.FIRST_SUPERUSER_EMAIL,
         "password": settings.FIRST_SUPERUSER_PASSWORD,
     }
     r = await client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)

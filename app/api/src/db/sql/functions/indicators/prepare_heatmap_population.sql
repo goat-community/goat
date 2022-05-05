@@ -3,13 +3,13 @@ CREATE OR REPLACE FUNCTION basic.prepare_heatmap_population(active_study_area_id
  LANGUAGE plpgsql
 AS $function$
 DECLARE 
-	modified_buildings integer[] := basic.modified_buildings(scenario_id_input);
+	modified_buildings integer[];
 BEGIN 
 	
 	IF modus_input = 'default' THEN 
 		scenario_id_input = 0;
 	END IF;
-	
+	modified_buildings = basic.modified_buildings(scenario_id_input);
 	RETURN query
 	WITH modified_population AS 
 	(

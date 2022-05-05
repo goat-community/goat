@@ -23,6 +23,8 @@ from src.schemas.isochrone import (
     request_examples,
 )
 from src.utils import return_geojson_or_geobuf
+import pandas as pd
+from geopandas import GeoDataFrame
 
 router = APIRouter()
 
@@ -154,8 +156,19 @@ async def poi_multi_isochrones(
     )
     isochrone_in.active_upload_ids = current_user.active_data_upload_ids
     isochrone_in.user_id = current_user.id
-    gdf = await crud.isochrone.calculate_pois_multi_isochrones(db=db, current_user=current_user, obj_in=isochrone_in)
-    return json.loads(gdf.to_json())
+    if isochrone_in.modus == CalculationTypes.default.value or isochrone_in.modus == CalculationTypes.scenario.value:
+        gdf = await crud.isochrone.calculate_pois_multi_isochrones(db=db, current_user=current_user, obj_in=isochrone_in)
+    elif isochrone_in.modus == CalculationTypes.comparison.value: 
+        isochrone_in.modus = CalculationTypes.default.value
+        gdf_default = await crud.isochrone.calculate_pois_multi_isochrones(db=db, current_user=current_user, obj_in=isochrone_in)
+        isochrone_in.modus = CalculationTypes.scenario.value
+        gdf_scenario = await crud.isochrone.calculate_pois_multi_isochrones(db=db, current_user=current_user, obj_in=isochrone_in)
+        
+        gdf = GeoDataFrame(
+            pd.concat([gdf_default, gdf_scenario])
+        )
+        
+    return json.loads(gdf.reset_index(drop=True).to_json())
 
 
 @router.get("/export/{isochrone_calculation_id}", response_class=StreamingResponse)
@@ -163,7 +176,7 @@ async def export_isochrones(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    isochrone_calculation_id: int = Path(..., description="Scenario ID", example=1),
+    isochrone_calculation_id: int = Path(..., description="Isochrone Calculation ID", example=1),
     return_type: IsochroneExportType = Query(
         description="Return type of the response", default=IsochroneExportType.geojson
     ),

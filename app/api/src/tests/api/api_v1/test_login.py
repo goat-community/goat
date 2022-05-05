@@ -10,7 +10,7 @@ pytestmark = pytest.mark.asyncio
 
 async def test_get_access_token(client: AsyncClient) -> None:
     login_data = {
-        "username": settings.FIRST_SUPERUSER,
+        "username": settings.FIRST_SUPERUSER_EMAIL,
         "password": settings.FIRST_SUPERUSER_PASSWORD,
     }
     r = await client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
@@ -24,7 +24,8 @@ async def test_use_access_token(
     client: AsyncClient, superuser_token_headers: Dict[str, str]
 ) -> None:
     r = await client.post(
-        f"{settings.API_V1_STR}/login/test-token", headers=superuser_token_headers,
+        f"{settings.API_V1_STR}/login/test-token",
+        headers=superuser_token_headers,
     )
     result = r.json()
     assert r.status_code == 200

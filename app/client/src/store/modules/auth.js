@@ -1,13 +1,29 @@
 import ApiService from "../../services/api.service";
 import JwtService from "../../services/jwt.service";
 
-import { GET_USER, LOGIN, LOGOUT, TEST_TOKEN } from "../actions.type";
-import { SET_AUTH, PURGE_AUTH, SET_ERROR, SET_USER } from "../mutations.type";
+import {
+  ACTIVATE_ACCOUNT,
+  CREATE_USER,
+  FORGOT_PASSWORD,
+  GET_USER,
+  LOGIN,
+  LOGOUT,
+  RESET_PASSWORD,
+  TEST_TOKEN
+} from "../actions.type";
+import {
+  SET_AUTH,
+  PURGE_AUTH,
+  SET_ERROR,
+  SET_USER,
+  SET_MESSAGE
+} from "../mutations.type";
 import { errorMessage } from "../../utils/Helpers";
 import { getField, updateField } from "vuex-map-fields";
 
 const state = {
   errors: null,
+  message: "",
   user: {},
   isAuthenticated: !!JwtService.getToken()
 };
@@ -28,6 +44,44 @@ const actions = {
       ApiService.post("/login/access-token", credentials)
         .then(response => {
           context.commit(SET_AUTH, response.data);
+          resolve(response.data);
+        })
+        .catch(({ response }) => {
+          errorMessage(context, response, SET_ERROR);
+          reject(response);
+        });
+    });
+  },
+  [FORGOT_PASSWORD](context, payload) {
+    return new Promise((resolve, reject) => {
+      ApiService.post(`/password-recovery/${payload.get("email")}`)
+        .then(response => {
+          context.commit(SET_MESSAGE, response.data.msg);
+          resolve(response.data);
+        })
+        .catch(({ response }) => {
+          errorMessage(context, response, SET_ERROR);
+          reject(response);
+        });
+    });
+  },
+  [RESET_PASSWORD](context, payload) {
+    return new Promise((resolve, reject) => {
+      ApiService.post("/reset-password", payload)
+        .then(response => {
+          context.commit(SET_MESSAGE, response.data.msg);
+          resolve(response.data);
+        })
+        .catch(({ response }) => {
+          errorMessage(context, response, SET_ERROR);
+          reject(response);
+        });
+    });
+  },
+  [CREATE_USER](context, payload) {
+    return new Promise((resolve, reject) => {
+      ApiService.post("/users/demo", payload)
+        .then(response => {
           resolve(response.data);
         })
         .catch(({ response }) => {
@@ -64,7 +118,19 @@ const actions = {
         });
     });
   },
-
+  [ACTIVATE_ACCOUNT](context, payload) {
+    return new Promise((resolve, reject) => {
+      ApiService.post(`/users/demo/activate?token=${payload["token"]}`)
+        .then(response => {
+          resolve(response.data);
+          console.log(response);
+        })
+        .catch(({ response }) => {
+          errorMessage(context, response, SET_ERROR);
+          reject(response);
+        });
+    });
+  },
   [LOGOUT](context) {
     context.commit(PURGE_AUTH);
   }
@@ -73,6 +139,9 @@ const actions = {
 const mutations = {
   [SET_ERROR](state, error) {
     state.errors = error;
+  },
+  [SET_MESSAGE](state, message) {
+    state.message = message;
   },
   [SET_AUTH](state, data) {
     state.isAuthenticated = true;

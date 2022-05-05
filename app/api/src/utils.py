@@ -5,7 +5,7 @@ import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from rich import print as print
+
 import emails
 import geobuf
 from emails.template import JinjaTemplate
@@ -14,13 +14,14 @@ from geoalchemy2.shape import to_shape
 from geojson import Feature, FeatureCollection
 from geojson import loads as geojsonloads
 from jose import jwt
+from rich import print as print
 from starlette.responses import Response
 
 from src.core.config import settings
 from src.resources.enums import MimeTypes
 
 
-def send_email(
+def send_email_(
     email_to: str,
     subject_template: str = "",
     html_template: str = "",
@@ -32,7 +33,7 @@ def send_email(
         html=JinjaTemplate(html_template),
         mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL),
     )
-    smtp_options = {"host": settings.SMTP_HOST, "port": settings.SMTP_PORT}
+    smtp_options = {"host": settings.SMTP_HOST.upper(), "port": settings.SMTP_PORT}
     if settings.SMTP_TLS:
         smtp_options["tls"] = True
     if settings.SMTP_USER:
@@ -44,61 +45,102 @@ def send_email(
 
 
 def send_test_email(email_to: str) -> None:
-    project_name = settings.PROJECT_NAME
+    project_name = settings.PROJECT_NAME.upper()
     subject = f"{project_name} - Test email"
     with open(Path(settings.EMAIL_TEMPLATES_DIR) / "test_email.html") as f:
         template_str = f.read()
-    send_email(
+    send_email_(
         email_to=email_to,
         subject_template=subject,
         html_template=template_str,
-        environment={"project_name": settings.PROJECT_NAME, "email": email_to},
+        environment={"project_name": settings.PROJECT_NAME.upper(), "email": email_to},
     )
 
 
-def send_reset_password_email(email_to: str, email: str, token: str) -> None:
-    project_name = settings.PROJECT_NAME
-    subject = f"{project_name} - Password recovery for user {email}"
-    with open(Path(settings.EMAIL_TEMPLATES_DIR) / "reset_password.html") as f:
-        template_str = f.read()
-    server_host = settings.SERVER_HOST
-    link = f"{server_host}/reset-password?token={token}"
-    send_email(
+email_content_config = {
+    "password_recovery": {
+        "url": f"{settings.SERVER_HOST}/reset-password?token=",
+        "subject": {
+            "en": "Password recovery",
+            "de": "Passwort zurücksetzen",
+        },
+        "template_name": "reset_password",
+    },
+    "activate_new_account": {
+        "url": f"{settings.SERVER_HOST}/activate-account?token=",
+        "subject": {
+            "en": "Activate your account",
+            "de": "Demo aktivieren",
+        },
+        "template_name": "activate_new_account",
+    },
+    "account_trial_started": { 
+        "url": "",
+        "subject": { 
+            "en": "Your GOAT demo is ready to use",
+            "de": "Ihre GOAT Demo steht bereit",
+        },
+        "template_name": "account_trial_started",
+    },
+    "account_expired": {
+        "url": "",
+        "subject": { "en": "Account expired", "de": "Demo abgelaufen" },
+        "template_name": "account_expired"
+    },
+    "account_expiring": {
+        "url": "",
+        "subject": { "en": "Account expiring soon", "de": "Demo bald ablaufen" },
+        "template_name": "account_expiring"
+    }
+}
+
+
+def send_email(
+    type: str,
+    email_to: str,
+    name: str,
+    surname: str,
+    token: str = "",
+    email_language: str = "en",
+) -> None:
+    if type not in email_content_config:
+        raise ValueError(f"Unknown email type {type}")
+
+    subject = email_content_config[type]["subject"][email_language]
+    template_str = ""
+    available_email_language = "en"
+    template_file_name = email_content_config[type]["template_name"]
+    link = email_content_config[type]["url"] + token
+    if os.path.isfile(
+        Path(settings.EMAIL_TEMPLATES_DIR) / f"{template_file_name}_{email_language}.html"
+    ):
+        available_email_language = email_language
+    try:
+        with open(
+            Path(settings.EMAIL_TEMPLATES_DIR)
+            / f"{template_file_name}_{available_email_language}.html"
+        ) as f:
+            template_str = f.read()
+    except OSError:
+        print(f"No template for language {available_email_language}")
+
+    send_email_(
         email_to=email_to,
         subject_template=subject,
         html_template=template_str,
         environment={
-            "project_name": settings.PROJECT_NAME,
-            "username": email,
+            "project_name": settings.PROJECT_NAME.upper(),
+            "name": name,
+            "surname": surname,
             "email": email_to,
-            "valid_hours": settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
-            "link": link,
+            "valid_hours": settings.EMAIL_TOKEN_EXPIRE_HOURS,
+            "url": link,
         },
     )
 
 
-def send_new_account_email(email_to: str, username: str, password: str) -> None:
-    project_name = settings.PROJECT_NAME
-    subject = f"{project_name} - New account for user {username}"
-    with open(Path(settings.EMAIL_TEMPLATES_DIR) / "new_account.html") as f:
-        template_str = f.read()
-    link = settings.SERVER_HOST
-    send_email(
-        email_to=email_to,
-        subject_template=subject,
-        html_template=template_str,
-        environment={
-            "project_name": settings.PROJECT_NAME,
-            "username": username,
-            "password": password,
-            "email": email_to,
-            "link": link,
-        },
-    )
-
-
-def generate_password_reset_token(email: str) -> str:
-    delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
+def generate_token(email: str) -> str:
+    delta = timedelta(hours=settings.EMAIL_TOKEN_EXPIRE_HOURS)
     now = datetime.utcnow()
     expires = now + delta
     exp = expires.timestamp()
@@ -110,10 +152,10 @@ def generate_password_reset_token(email: str) -> str:
     return encoded_jwt
 
 
-def verify_password_reset_token(token: str) -> Optional[str]:
+def verify_token(token: str) -> Optional[str]:
     try:
         decoded_token = jwt.decode(token, settings.API_SECRET_KEY, algorithms=["HS256"])
-        return decoded_token["email"]
+        return decoded_token["sub"]
     except jwt.JWTError:
         return None
 
@@ -199,11 +241,16 @@ def clean_unpacked_zip(dir_path: str, zip_path: str) -> None:
     delete_dir(dir_path)
     delete_file(zip_path)
 
+
 def print_hashtags():
-    print("#################################################################################################################")
+    print(
+        "#################################################################################################################"
+    )
+
 
 def print_info(message: str):
-    print(f"INFO: {message}")
+    print(f"[bold green]INFO[/bold green]: {message}")
+
 
 def print_warning(message: str):
-    print(f"WARNING: {message}")
+    print(f"[bold red]WARNING[/bold red]: {message}")

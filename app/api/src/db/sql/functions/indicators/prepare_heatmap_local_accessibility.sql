@@ -45,6 +45,7 @@ BEGIN
 		AND p.uid = r.poi_uid 
 		AND p.category IN (SELECT jsonb_array_elements_text(pois_one_entrance))
 		AND p.uid NOT IN (SELECT UNNEST(excluded_poi_uids))
+		AND r.scenario_id IS NULL 
 	)x, UNNEST(x.grid_visualization_ids, x.accessibility_indices) AS u(grid_visualization_id, accessibility_index);
 
 	RETURN query 
@@ -56,6 +57,7 @@ BEGIN
 		WHERE s.id = active_study_area_id 
 		AND ST_Intersects(p.geom, s.buffer_geom_heatmap)
 		AND p.uid = r.poi_uid 
+		AND r.scenario_id IS NULL
 		AND p.uid NOT IN (SELECT UNNEST(excluded_poi_uids))
 		AND p.category IN (SELECT jsonb_array_elements_text(pois_more_entrances))
 	)x, UNNEST(x.grid_visualization_ids, x.accessibility_indices) AS u(grid_visualization_id, accessibility_index)
@@ -70,8 +72,9 @@ BEGIN
 			WHERE s.id = active_study_area_id 
 			AND ST_Intersects(p.geom, s.buffer_geom_heatmap)
 			AND p.uid = r.poi_uid 
+			AND r.scenario_id IS NULL 
 			AND p.category IN (SELECT jsonb_array_elements_text(pois_one_entrance))
-			AND p.uid NOT IN (SELECT UNNEST(excluded_poi_uids))
+			AND (p.uid NOT IN (SELECT UNNEST(excluded_poi_uids)) AND scenario_id IS NULL)
 			AND p.data_upload_id IN (SELECT UNNEST(data_upload_ids))
 		)x, UNNEST(x.grid_visualization_ids, x.accessibility_indices) AS u(grid_visualization_id, accessibility_index);
 	
@@ -84,7 +87,8 @@ BEGIN
 			WHERE s.id = active_study_area_id 
 			AND ST_Intersects(p.geom, s.buffer_geom_heatmap)
 			AND p.uid = r.poi_uid 
-			AND p.uid NOT IN (SELECT UNNEST(excluded_poi_uids))
+			AND r.scenario_id IS NULL 
+			AND (p.uid NOT IN (SELECT UNNEST(excluded_poi_uids)) AND scenario_id IS NULL)
 			AND p.category IN (SELECT jsonb_array_elements_text(pois_more_entrances))
 			AND p.data_upload_id IN (SELECT UNNEST(data_upload_ids))
 		)x, UNNEST(x.grid_visualization_ids, x.accessibility_indices) AS u(grid_visualization_id, accessibility_index)
@@ -101,6 +105,8 @@ BEGIN
 			AND ST_Intersects(p.geom, s.buffer_geom_heatmap)
 			AND p.uid = r.poi_uid 
 			AND p.scenario_id = scenario_id_input 
+			AND r.scenario_id = scenario_id_input
+			AND p.edit_type <> 'd'
 			AND p.category IN (SELECT jsonb_array_elements_text(pois_one_entrance))
 		)x, UNNEST(x.grid_visualization_ids, x.accessibility_indices) AS u(grid_visualization_id, accessibility_index);
 		
@@ -113,6 +119,8 @@ BEGIN
 			WHERE s.id = active_study_area_id 
 			AND ST_Intersects(p.geom, s.buffer_geom_heatmap)
 			AND p.uid = r.poi_uid 
+			AND p.edit_type <> 'd'
+			AND r.scenario_id = scenario_id_input
 			AND p.scenario_id = scenario_id_input 
 			AND p.category IN (SELECT jsonb_array_elements_text(pois_more_entrances))	
 		)x, UNNEST(x.grid_visualization_ids, x.accessibility_indices) AS u(grid_visualization_id, accessibility_index)

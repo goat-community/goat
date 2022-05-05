@@ -18,6 +18,7 @@ from sqlmodel import (
     SQLModel,
     Text,
     text,
+    Boolean
 )
 
 if TYPE_CHECKING:
@@ -118,6 +119,7 @@ class WayModified(EdgeBase, table=True):
             Integer, ForeignKey("customer.scenario.id", ondelete="CASCADE"), index=True
         )
     )
+    outdated: Optional[bool] = Field(sa_column=Column(Boolean, default=False))
 
     scenario: Optional["Scenario"] = Relationship(back_populates="ways_modified")
     # TODO: FIX children parent relations (reminder: edge_id foreign key might be wrong)

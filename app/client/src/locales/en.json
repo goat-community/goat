@@ -12,6 +12,7 @@
   "login": {
     "title": "Login",
     "signIn": "Sign In",
+    "signUp": "Register",
     "toSignUpContactUs": "Contact us",
     "noAccount": "No account yet?",
     "passwordRequired": "Password is required",
@@ -19,7 +20,44 @@
     "maxFourChar": "Use 4 characters or more for your password",
     "mailRequired": "Email is required",
     "mailValid": "E-mail invalid",
-    "password": "Password"
+    "fieldRequired": "Field required",
+    "password": "Password",
+    "forgotPassword": "Forgot Password",
+    "backToLogin": "Back to login",
+    "forgotYourPassword": "Forgot your password?",
+    "forgotPasswordText": "Simply enter the email address associated with your account below, and we’ll email you a link to reset your password.",
+    "sendResetLink": "Send Reset Link",
+    "resetYourPassword": "Reset account password",
+    "passwordMustMatch": "Password must match",
+    "resetPassword": "Reset password",
+    "confirmPassword": "Confirm password",
+    "newPassword": "New password",
+    "register": "Register",
+    "agreeTerms": "I agree to the",
+    "termsAndConditions": "Terms and Conditions",
+    "activateAccount": "Account created successfully. Please activate your account by clicking on the link sent to your email.",
+    "accountActivated": "Account activated successfully",
+    "newsletter": "Subscribe to our newsletter",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "profession": "Profession",
+    "domain": "Domain",
+    "professionList": {
+      "student": "Student",
+      "employee": "Employee",
+      "self-employed": "Self-employed",
+      "other": "Other"
+    },
+    "domainList": {
+      "transport_planning": "Transport planning",
+      "urban_planning": "Urban planning",
+      "gis": "GIS",
+      "architecture": "Architecture",
+      "location_planning": "Location planning",
+      "civil_engineer": "Civil engineer",
+      "political_decision_maker": "Political decision maker",
+      "other": "Other"
+    }
   },
   "textFieldRules": {
     "greaterThanZero": "Value should be greater than 0",
@@ -135,7 +173,9 @@
         "customCategory": "Custom category",
         "browseYourFiles": "Browse your files",
         "invalidCategory": "Category name must not be the same with existing categories."
-      }
+      },
+      "geojsonTemplate": "GeoJSON template",
+      "shapefileTemplate": "Shapefile template"
     },
     "filter": {
       "title": "Thematic Data Filter",
@@ -157,7 +197,7 @@
       "title": "Draw scenario",
       "scenarioLimitReached": "Scenario number limit reached",
       "createScenario": "Create Scenario",
-      "editScenarioName": "Update Scenario",
+      "ScenarioName": "Update Scenario",
       "deleteScenario": "Delete Scenario",
       "noSelection": "No Selection",
       "scenarioName": "Scenario name",
@@ -184,6 +224,7 @@
       "way": "Way",
       "building": "Building",
       "scenarioEditMode": "Scenario Edit Mode",
+      "editScenarioName": "Edit Scenario Name",
       "addEntrancesForBuildings": "Add entrances for all buildings to activate <b>UPLOAD</b>",
       "popup": {
         "deleteFeatureMsg": "Are you sure you want to delete the selected feature ?",
@@ -424,7 +465,7 @@
       "zoomInToShowFeatures": "Zoom in to show features for",
       "heatmapIsBusy": "Recomputing for heatmap layer might take some time. Please be patient!",
       "calculationCancelled": "Calculation Cancelled!",
-      "scenarioEditMode": "Scenario Mode"
+      "scenarioEditMode": "Edit Mode"
     },
     "layerGroup": {
       "buildings_landuse": "Buildings and Land Use",
@@ -445,7 +486,8 @@
       "freiburg_streetmap": "Freiburg Streetmap",
       "freiburg_heatmap_radverkehr": "Heatmap cycling traffic",
       "bayern_biotop_kartierung": "Bayern Biotop Kartierung",
-      "bayern_laerm_hauptverkehrsstrassen": "Noise main roads",
+      "bayern_laerm_ballungszentren_strassen_tag": "Noise Main Roads (Tag)",
+      "bayern_laerm_ballungszentren_strassen_nacht": "Noise Main Roads (Nacht)",
       "bayern_oekoflaechenkataster": "Bayern Ökoflaechenkataster",
       "bayern_schutzgebiete_naturschutz": "Bayern Schutzgebiete Naturschutz",
       "poi": "Point of Interest",
@@ -465,7 +507,7 @@
       "floodingAreasHQ100": "Flooding Areas (100-year flood)",
       "dikes": "Dikes",
       "protectedLandscape": "Protected Landscape Areas",
-      "landuse": "Landuse",
+      "landuse_atkis": "Landuse (ATKIS)",
       "landuse_osm": "Landuse (OSM)",
       "zoningPlan": "Zoning Plan",
       "footpath_width": "Footpath Width",
@@ -517,7 +559,7 @@
       "strata": "Strata",
       "indicators": "Indicators",
       "study_area_crop": "Study area",
-      "study_area": "Districts",
+      "study_area": "Boundary",
       "ways_Project_Sidewalk": "Project Sidewalk Score",
       "heatmap_connectivity": "Connectivity",
       "heatmap_local_accessibility": "Local Accessibility",
@@ -604,6 +646,8 @@
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
       "openFullScreen": "Open Fullscreen",
+      "search": "Search",
+      "measure": "Measure",
       "exitFullScreen": "Exit Fullscreen",
       "toggleStreetView": "Mapillary Imagery",
       "notAvailable": "Not Available"
@@ -631,7 +675,6 @@
       "tasks": "OSM Mapping Tasks",
       "steps": "Steps",
       "info": "Info",
-
       "stepsDesc": {
         "clickFeatureInMap": "Click on a object in the map.",
         "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
@@ -709,7 +752,6 @@
           }
         }
       },
-
       "dialogMessage": {
         "title": "OSM Mapping Mode",
         "body": "Welcome to the OSM mapping mode! In this mode, you can improve GOAT data by contributing to OpenStreetMap (OSM). We have set up different tasks for objects with missing information, which can be completed using the iD-Editor or other OSM editors such as JOSM. Please familiarize yourself with the general mapping rules and the corresponding content of the OSM wiki for the objects you want to edit. Furthermore, you can find a tutorial on mapping in OSM on the GOAT website. Thanks for contributing to the world of open data!"
@@ -881,11 +923,12 @@
       },
       "poi": {
         "category": "Amenity",
-        "name": "Name (Optional)",
+        "name": "Name",
         "opening_hours": "Opening Hours (Optional)"
       },
       "building": {
         "building": "Building Type",
+        "building_type": "Building Type",
         "building_levels": "Building Levels",
         "building_levels_residential": "Building levels residential",
         "population": "Number residents (optional)",
@@ -942,10 +985,11 @@
       "liveliness": "Walking environment",
       "data_quality": "Data Quality",
       "comfort": "Comfort",
-      "walkability": ["TOTAL WALKABILITY SCORE"],
+      "walkability": [
+        "TOTAL WALKABILITY SCORE"
+      ],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index",
-
       "sidewalk": "Sidewalk availability",
       "width": "Sidewalk width",
       "smoothness": "Smoothness",

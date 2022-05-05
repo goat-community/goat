@@ -11,9 +11,10 @@ BEGIN
 	/*Get reachable population*/
 	IF modus = 'default' THEN
 		CREATE TEMP TABLE reachable_population AS 
-		SELECT s.id AS sub_study_area_id, s.name, s.population 
-		FROM basic.sub_study_area s
-		WHERE s.id IN (SELECT UNNEST(study_area_ids)); 
+		SELECT i.id AS isochrone_feature_id, s.id AS sub_study_area_id, s.name, s.population 
+		FROM basic.sub_study_area s, customer.isochrone_feature i 
+		WHERE s.id IN (SELECT UNNEST(study_area_ids))
+		AND i.isochrone_calculation_id = ischrone_calculation_id_input; 
 	
 	ELSEIF modus = 'scenario' THEN 
 		excluded_buildings_id  = basic.modified_buildings(scenario_id_input);
@@ -38,13 +39,18 @@ BEGIN
 		 	SELECT p.sub_study_area_id, sum(population) population 
 		 	FROM prepared_scenario p 
 		 	GROUP BY p.sub_study_area_id
-		) 
-		SELECT s.id AS sub_study_area_id, s.name, (s.population + COALESCE(sp.population, 0)) AS population 
-		FROM basic.sub_study_area s
-		LEFT JOIN scenario_population sp 
-		ON s.id = sp.sub_study_area_id
-		WHERE s.id IN (SELECT UNNEST(study_area_ids)); 	
-
+		),
+		combined_population AS 
+		( 
+			SELECT s.id AS sub_study_area_id, s.name, (s.population + COALESCE(sp.population, 0)) AS population 
+			FROM basic.sub_study_area s
+			LEFT JOIN scenario_population sp 
+			ON s.id = sp.sub_study_area_id
+			WHERE s.id IN (SELECT UNNEST(study_area_ids)) 	
+		)
+		SELECT i.id AS isochrone_feature_id, c.*
+		FROM customer.isochrone_feature i, combined_population c
+		WHERE i.isochrone_calculation_id = ischrone_calculation_id_input; 
 	ELSE 
 		RAISE EXCEPTION 'Unknown modus: %', modus;	
 	END IF;
@@ -88,17 +94,18 @@ BEGIN
 	RETURN query 
 	WITH combined AS 
 	(
-		SELECT r.id AS isochrone_feature_id, a.sub_study_area_id, a.name, 
+		SELECT a.isochrone_feature_id, a.sub_study_area_id, a.name, 
 		CASE WHEN COALESCE(r.population, 0) > a.population THEN a.population 
 		ELSE COALESCE(r.population, 0) END AS reached_population, a.population AS total_population 
 		FROM reachable_population a
 		LEFT JOIN reached_population r 
-		ON a.sub_study_area_id = r.sub_study_area_id 
+		ON a.isochrone_feature_id = r.id 
+		AND a.sub_study_area_id = r.sub_study_area_id
 	),
 	as_object AS 
 	(
 		SELECT c.isochrone_feature_id, jsonb_object_agg(c.sub_study_area_id, 
-		jsonb_build_object('name', c.name, 'reached_population', c.reached_population, 'total_population', c.total_population)) AS population 
+		jsonb_build_object('name', c.name, 'reached_population', c.reached_population::integer, 'total_population', c.total_population::integer)) AS population 
 		FROM combined c
 		GROUP BY c.isochrone_feature_id 
 	)
@@ -115,4 +122,3 @@ $function$;
 SELECT * 
 FROM basic.reached_population_study_area(39, 2,'default', ARRAY[17,24,26])
 */
-

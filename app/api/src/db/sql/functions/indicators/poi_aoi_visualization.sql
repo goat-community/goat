@@ -4,38 +4,27 @@ LANGUAGE plpgsql
 AS $function$
 DECLARE 	
 	aoi_categories TEXT[]; 
-	poi_categories jsonb = basic.poi_categories(user_id_input);
 	data_upload_poi_categories TEXT[] = '{}'::TEXT[];
-	combined_poi_categories text[];
-	excluded_pois_id text[] := ARRAY[]::text[]; 
+	all_poi_categories text[];
+	excluded_pois_id text[] := '{}'::text[]; 
 	buffer_geom_study_area geometry; 
 BEGIN
 	data_upload_poi_categories = basic.poi_categories_data_uploads(user_id_input);
-	
+	active_study_area_id = (SELECT u.active_study_area_id FROM customer.user u WHERE u.id = user_id_input);
 	/*Get combined poi categories*/
-	SELECT ARRAY_AGG(c.category)
-	INTO combined_poi_categories
-	FROM 	
-	(
-		SELECT jsonb_array_elements_text(poi_categories -> 'true') category
-		UNION ALL 
-		SELECT jsonb_array_elements_text(poi_categories -> 'false') category
-	) c;
+	SELECT array_agg(o.category) 
+	INTO all_poi_categories 
+	FROM basic.active_opportunities(user_id_input, active_study_area_id) o, basic.opportunity_group g 
+	WHERE o.category_group = g.GROUP 
+	AND g.TYPE = 'poi';
 
 	/*Prepare AOI categories*/
-	DROP TABLE IF EXISTS aoi_groups_default; 
-	CREATE TEMP TABLE aoi_groups_default AS 
-	WITH aoi_groups AS 
-	(
-		SELECT jsonb_array_elements(basic.select_customization('aoi_groups')) aoi_group
-	)
-	SELECT jsonb_array_elements(p.aoi_group -> jsonb_object_keys(p.aoi_group) -> 'children') AS aoi_category 
-	FROM aoi_groups p;
-
-	SELECT ARRAY_AGG(object_keys) AS aoi_category
+	SELECT ARRAY_AGG(o.category) 
 	INTO aoi_categories
-	FROM aoi_groups_default  p, LATERAL jsonb_object_keys(p.aoi_category) object_keys;  
-	
+	FROM basic.active_opportunities(user_id_input, active_study_area_id) o, basic.opportunity_group g 
+	WHERE o.category_group = g.GROUP 
+	AND g.TYPE = 'aoi'; 
+
 	/*Check if POI scenario*/
 	IF scenario_id_input <> 0 THEN 
 		excluded_pois_id = basic.modified_pois(scenario_id_input);
@@ -46,7 +35,7 @@ BEGIN
     RETURN query
    	SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, NULL AS edit_type, p.geom  
 	FROM basic.poi p
-	WHERE p.category IN (SELECT UNNEST(combined_poi_categories))
+	WHERE p.category IN (SELECT UNNEST(all_poi_categories))
 	AND p.uid NOT IN (SELECT UNNEST(excluded_pois_id))
 	AND p.geom && buffer_geom_study_area
 	AND p.category NOT IN (SELECT UNNEST(data_upload_poi_categories));
@@ -54,7 +43,7 @@ BEGIN
 	RETURN query 
 	SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, NULL AS edit_type, p.geom  
 	FROM customer.poi_user p
-	WHERE p.category IN (SELECT UNNEST(combined_poi_categories))
+	WHERE p.category IN (SELECT UNNEST(all_poi_categories))
 	AND p.data_upload_id IN (SELECT UNNEST(active_upload_ids))
 	AND p.uid NOT IN (SELECT UNNEST(excluded_pois_id))
 	AND p.geom && buffer_geom_study_area;
@@ -70,14 +59,14 @@ BEGIN
 	   	RETURN query 
 	   	SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, p.edit_type, p.geom  
 		FROM customer.poi_modified p
-		WHERE p.category IN (SELECT UNNEST(combined_poi_categories))
+		WHERE p.category IN (SELECT UNNEST(all_poi_categories))
 		AND p.geom && buffer_geom_study_area
 		AND p.scenario_id = scenario_id_input; 
 	   	
 		RETURN query
 	   	SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, 'd' AS edit_type, p.geom  
 		FROM basic.poi p
-		WHERE p.category IN (SELECT UNNEST(combined_poi_categories))
+		WHERE p.category IN (SELECT UNNEST(all_poi_categories))
 		AND p.uid IN (SELECT UNNEST(excluded_pois_id))
 		AND p.geom && buffer_geom_study_area
 		AND p.category NOT IN (SELECT UNNEST(data_upload_poi_categories));
@@ -85,7 +74,7 @@ BEGIN
 		RETURN query 
 		SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, 'd' AS edit_type, p.geom  
 		FROM customer.poi_user p
-		WHERE p.category IN (SELECT UNNEST(combined_poi_categories))
+		WHERE p.category IN (SELECT UNNEST(all_poi_categories))
 		AND p.data_upload_id IN (SELECT UNNEST(active_upload_ids))
 		AND p.uid IN (SELECT UNNEST(excluded_pois_id))
 		AND p.geom && buffer_geom_study_area;

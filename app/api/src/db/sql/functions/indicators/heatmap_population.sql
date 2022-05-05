@@ -44,15 +44,15 @@ BEGIN
 		
 	IF modus_input = 'default' THEN 
 		RETURN query 
-		SELECT p.grid_visualization_id, p.population, p.percentile_population, modus_input AS modus, p.geom 
+		SELECT p.grid_visualization_id, p.population, COALESCE(p.percentile_population, 0), modus_input AS modus, p.geom 
 		FROM population_default p;
 	ELSEIF modus_input = 'scenario' THEN 
 		RETURN query 
-		SELECT p.grid_visualization_id, p.population, p.percentile_population, modus_input AS modus, p.geom 
+		SELECT p.grid_visualization_id, p.population, COALESCE(p.percentile_population, 0), modus_input AS modus, p.geom 
 		FROM population_scenario p;
 	ELSEIF modus_input = 'comparison' THEN 
 		RETURN query 
-		SELECT p.grid_visualization_id, p.population, p.percentile_population, modus_input AS modus, p.geom 
+		SELECT p.grid_visualization_id, p.population, COALESCE(p.percentile_population, 0), modus_input AS modus, p.geom 
 		FROM population_comparison p;
 	END IF; 
 

@@ -8,14 +8,19 @@ import OlFontSymbol from "../utils/FontSymbol";
 import OlShadow from "../utils/Shadow";
 
 import poisAoisStore from "../store/modules/poisaois";
+import mapStore from "../store/modules/map";
 import appStore from "../store/modules/app";
 import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
 import { getIconUnicode } from "../utils/Helpers";
 import Point from "ol/geom/Point";
+import { getArea } from "ol/sphere.js";
+import i18n from "../../src/plugins/i18n";
 
 OlFontSymbol.addDefs(
   {
-    font: "'Font Awesome 6 Pro'",
+    font: process.env.VUE_APP_FONTAWESOME_NPM_AUTH_TOKEN
+      ? "'Font Awesome 6 Pro'"
+      : "'Font Awesome 5 Free'",
     name: "FontAwesome",
     prefix: ""
   },
@@ -94,6 +99,30 @@ export function getSelectStyle() {
       })
     })
   });
+}
+
+export function getSearchHighlightStyle() {
+  return [
+    new OlStyle({
+      fill: new OlFill({
+        color: "rgba(255,0,0,0.2)"
+      }),
+      stroke: new OlStroke({
+        color: "#FF0000",
+        width: 3
+      }),
+      image: new OlCircle({
+        radius: 8,
+        stroke: new OlStroke({
+          color: "#FF0000",
+          width: 3
+        }),
+        fill: new OlFill({
+          color: "rgba(255,0,0,0.2)"
+        })
+      })
+    })
+  ];
 }
 
 export function getInfoStyle() {
@@ -358,9 +387,10 @@ export function defaultStyle(feature) {
   };
   const fillOpt = {
     color: ["MultiPolygon", "Polygon"].includes(geomType)
-      ? "#707070"
+      ? "rgba(112, 112, 112, 0.5)"
       : [0, 0, 0, 0]
   };
+
   const style = new OlStyle({
     fill: new OlFill(fillOpt),
     stroke: new OlStroke(strokeOpt),
@@ -560,22 +590,120 @@ export function editStyleFn() {
         return waysNewRoadStyle();
       }
     }
-    if (props.layerName === "building" && props.hasOwnProperty("edit_type")) {
+    if (feature.get("layerName") === "building" && feature.get("edit_type")) {
+      const styles = [];
+      const geomType = feature.getGeometry().getType();
+      const strokeOpt = {
+        color: ["MultiPolygon", "Polygon"].includes(geomType)
+          ? "rgba(255, 0, 0, 1)"
+          : "#707070",
+        width: 3
+      };
+      const fillOpt = {
+        color: ["MultiPolygon", "Polygon"].includes(geomType)
+          ? "rgba(255, 0, 0, 0.5)"
+          : [0, 0, 0, 0]
+      };
+      const properties = feature.getProperties();
+      strokeOpt.lineDash = [0, 0];
+      strokeOpt.width = 4;
+
+      let isCompleted = true;
+      let hasEntranceFeature = false;
       if (
-        (props.building_type === "residential" && props.population) ||
-        props.building_type !== "residential"
+        mapStore.state.reqFields &&
+        mapStore.state.selectedEditLayer.get("name") === "building"
       ) {
-        return buildingStyleWithPopulation();
-      } else {
-        return buildingStyleWithNoPopulation();
+        mapStore.state.reqFields.forEach(field => {
+          if (!properties[field]) {
+            isCompleted = false;
+          }
+        });
       }
+      if (mapStore.state.bldEntranceLayer) {
+        const extent = feature.getGeometry().getExtent();
+        const entrancesInExtent = mapStore.state.bldEntranceLayer
+          .getSource()
+          .getFeaturesInExtent(extent);
+
+        let countEntrances = 0;
+        entrancesInExtent.forEach(entrance => {
+          const buildingId = feature.get("id") || feature.getId();
+          if (entrance.get("building_modified_id") === buildingId) {
+            countEntrances += 1;
+          }
+        });
+        countEntrances === 0
+          ? (hasEntranceFeature = false)
+          : (hasEntranceFeature = true);
+      }
+
+      if (isCompleted === true && hasEntranceFeature === true) {
+        strokeOpt.color = "rgb(0,128,0, 0.7)";
+        fillOpt.color = "rgb(0,128,0, 0.7)";
+      }
+      const area = getArea(feature.getGeometry());
+      const building_levels = feature.get("building_levels") || 0;
+      const population = feature.get("population");
+      const area_label = i18n.t(
+        "dynamicFields.attributes.building.labels.area"
+      );
+      const building_levels_label = i18n.t(
+        "dynamicFields.attributes.building.labels.building_levels"
+      );
+      const population_label = i18n.t(
+        "dynamicFields.attributes.building.labels.population"
+      );
+      const floor_area_label = i18n.t(
+        "dynamicFields.attributes.building.labels.gross_floor_area"
+      );
+      // Add label for building.
+      let fontSize = 11;
+
+      if (
+        resolution < 0.4 &&
+        mapStore.state.editLayer &&
+        mapStore.state.editLayer.get("showLabels") === 0
+      ) {
+        const style = new OlStyle({
+          text: new OlText({
+            text: `${area_label}: ${area.toFixed(
+              0
+            )} ㎡\n${building_levels_label}: ${building_levels}
+            ${floor_area_label}: ${parseInt(area * building_levels)} ㎡
+            ${population_label}: ${parseInt(population || 0)}`,
+            overflow: true,
+            font: `${fontSize}px Calibri, sans-serif`,
+            fill: new OlFill({
+              color: "black"
+            }),
+            backgroundFill: new OlFill({
+              color: "orange"
+            }),
+            padding: [1, 1, 1, 1]
+          })
+        });
+        styles.push(style);
+      }
+      const style = new OlStyle({
+        fill: new OlFill(fillOpt),
+        stroke: new OlStroke(strokeOpt),
+        image: new OlCircle({
+          radius: 7,
+          fill: new OlFill({
+            color: "#707070"
+          })
+        })
+      });
+      styles.push(style);
+      return styles;
     }
 
     if (feature.get("layerName") === "population") {
       return bldEntrancePointsStyle(feature, resolution);
     }
 
-    return defaultStyle(feature);
+    return defaultStyle(feature, resolution);
   };
   return styleFunction;
 }
@@ -703,12 +831,15 @@ export const baseStyleDefs = {
 export const mapillaryStyleDefs = {
   activeSequence: "",
   baseOverlayStyle: map => {
-    const styleFunction = function(feature) {
+    const styleFunction = feature => {
       // console.log(feature);
       let color = "rgba(53, 175, 109,0.7)";
       if (
-        feature.get("key") === mapillaryStyleDefs.activeSequence ||
-        feature.get("skey") === mapillaryStyleDefs.activeSequence
+        [
+          feature.get("sequence"),
+          feature.get("id"),
+          feature.get("sequence_id")
+        ].includes(mapillaryStyleDefs.activeSequence)
       ) {
         color = "#30C2FF";
       }
@@ -731,8 +862,8 @@ export const mapillaryStyleDefs = {
   },
   highlightStyle: feature => {
     let styles = [];
-    const angle = feature.get("ca");
-    const skey = feature.get("skey");
+    const angle = feature.get("compass_angle");
+    const skey = feature.get("sequence_id");
     if (angle) {
       const wifiStyle = new OlStyle({
         text: new OlText({

@@ -3,8 +3,7 @@
     <v-tooltip right>
       <template v-slot:activator="{ on }">
         <v-btn
-          class="mx-2 zoom-buttons"
-          style="top:100px;"
+          class="zoom-buttons"
           fab
           dark
           x-small
@@ -56,8 +55,6 @@ export default {
 </script>
 <style lang="css" scoped>
 .zoom-buttons {
-  position: absolute;
-  left: 12px;
   z-index: 1;
 }
 </style>

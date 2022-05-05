@@ -117,6 +117,11 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
             delete(layer).where(and_(layer.id.in_(feature_ids), layer.scenario_id == scenario_id))
         )
         await db.commit()
+        if layer_name.value == schemas.ScenarioLayerFeatureEnum.population_modified.value:
+            await db.execute(
+                func.basic.population_modification(scenario_id)
+            )
+            await db.commit()
         return {"msg": "Features deleted successfully"}
 
     async def create_scenario_features(
@@ -132,7 +137,23 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
         features_in_db = []
         for feature in features:
             feature_dict = {}
+
             feature_dict["scenario_id"] = scenario_id
+
+            # Check if population modified intersect with sub study area
+            if layer_name.value == schemas.ScenarioLayerFeatureEnum.population_modified.value:
+                point = WKTElement(feature.geom, srid=4326)
+                statement = select(models.SubStudyArea).where(
+                    and_(models.SubStudyArea.geom.ST_Intersects(point))
+                )
+                sub_study_area_result = await db.execute(statement)
+                sub_study_area_result = sub_study_area_result.scalars().all()
+                if len(sub_study_area_result) == 0:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="The population feature does not intersect with any sub study area",
+                    )
+                feature_dict["sub_study_area_id"] = sub_study_area_result[0].id
             try:
                 for key, value in feature:
                     if (
@@ -145,8 +166,13 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                         else:
                             # existing POI
                             feature_dict["uid"] = value
-                            # TODO: check if uid is valid (poi / poi_user)
+                            splited_values = value.split("_")
+                            if len(splited_values) >= 5:
+                                feature_dict["data_upload_id"] = int(
+                                    splited_values[-1].replace("u", "")
+                                )
 
+                            # TODO: check if uid is valid (poi / poi_user)
                     elif (
                         layer_name.value == schemas.ScenarioLayerFeatureEnum.way_modified.value
                         and key == "way_id"
@@ -155,6 +181,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                             feature_dict["way_id"] = value
 
                     # TODO: For population check if geometry and building with {building_modified_id} intersect
+
                     elif isinstance(value, enum.Enum):
                         feature_dict[key] = value.value
                     elif key == "class_id" and value is None:
@@ -170,6 +197,13 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
 
         db.add_all(features_in_db)
         await db.commit()
+        # Execute population distribution on population modified
+        if layer_name.value in (schemas.ScenarioLayerFeatureEnum.building_modified.value, schemas.ScenarioLayerFeatureEnum.population_modified.value):
+            await db.execute(
+                func.basic.population_modification(scenario_id)
+            )
+            await db.commit()
+
         for feature in features_in_db:
             await db.refresh(feature)
         return features_in_db
@@ -189,6 +223,20 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
         for feature in features:
             features_obj[feature.id] = {}
             feature_dict = {}
+            # Check if population modified intersect with sub study area
+            if layer_name.value == schemas.ScenarioLayerFeatureEnum.population_modified.value:
+                point = WKTElement(feature.geom, srid=4326)
+                statement = select(models.SubStudyArea).where(
+                    and_(models.SubStudyArea.geom.ST_Intersects(point))
+                )
+                sub_study_area_result = await db.execute(statement)
+                sub_study_area_result = sub_study_area_result.scalars().all()
+                if len(sub_study_area_result) == 0:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="The population feature does not intersect with any sub study area",
+                    )
+                feature_dict["sub_study_area_id"] = sub_study_area_result[0].id
             try:
                 for key, value in feature:
                     if key == "id":
@@ -217,10 +265,17 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
 
         db.add_all(features_in_db)
         await db.commit()
+
+        # Execute population distribution on population modified
+        if layer_name.value in (schemas.ScenarioLayerFeatureEnum.building_modified.value, schemas.ScenarioLayerFeatureEnum.population_modified.value):
+            await db.execute(
+                func.basic.population_modification(scenario_id)
+            )
+            await db.commit()
+
         for feature in features_in_db:
             await db.refresh(feature)
-
+        
         return features_in_db
-
 
 scenario = CRUDScenario(models.Scenario)

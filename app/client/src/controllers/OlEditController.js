@@ -16,6 +16,7 @@ export default class OlEditController extends OlBaseController {
   selectedLayer = null;
   originIdName = null;
   highlightSource = null;
+  bldEntranceLayer = null;
   popup = null;
   editType = null;
   constructor(map) {
@@ -161,10 +162,10 @@ export default class OlEditController extends OlBaseController {
         this.currentInteraction
       )
     ) {
-      const featureAtCoord = this.source.getClosestFeatureToCoordinate(
-        evt.coordinate
-      );
       if (this.selectedLayer["name"] === "poi") {
+        const featureAtCoord = this.source.getClosestFeatureToCoordinate(
+          evt.coordinate
+        );
         if (
           featureAtCoord &&
           featureAtCoord.get("edit_type") === "d" &&
@@ -174,14 +175,17 @@ export default class OlEditController extends OlBaseController {
         } else {
           me.edit.setActive(true);
         }
+        return;
       }
+
       if (this.selectedLayer["name"] === "building") {
+        const buildingFeaturesAtCoord = this.source.getFeaturesAtCoordinate(
+          evt.coordinate
+        );
         if (
-          featureAtCoord.length === 0 ||
-          (featureAtCoord.length > 0 &&
-            !featureAtCoord[0]
-              .getProperties()
-              .hasOwnProperty(this.originIdName))
+          buildingFeaturesAtCoord.length === 0 ||
+          (buildingFeaturesAtCoord.length > 0 &&
+            buildingFeaturesAtCoord[0].getProperties().edit_type !== "n")
         ) {
           me.map.getTarget().style.cursor = "not-allowed";
           if (me.isInteractionOnProgress === false) {
