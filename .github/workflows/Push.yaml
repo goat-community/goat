@@ -69,6 +69,10 @@ jobs:
       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
     steps:
       - uses: actions/checkout@v2
+      - uses: azure/setup-kubectl@v2.0
+        with:
+          version: 'v1.23.6' # default is latest stable
+        id: install
       - name: Get changed files 
         id: get_file_changes
         uses: trilom/file-changes-action@v1.2.4
