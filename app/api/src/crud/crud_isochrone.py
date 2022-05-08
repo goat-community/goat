@@ -436,7 +436,7 @@ class CRUDIsochrone:
             },
         )
     
-        gdf = pd.concat([gdf, pd.json_normalize(gdf["reached_opportunities"])], axis=1, join="inner")
+        gdf = pd.concat([gdf, pd.json_normalize(gdf["reached_opportunities"]).astype('Int64')], axis=1, join="inner")
         gdf["seconds"] = round(gdf["seconds"] / 60).astype(int)
         gdf = gdf.rename(columns={"seconds": "minutes"})
         # Preliminary fix for tranlation POIs categories
@@ -466,7 +466,7 @@ class CRUDIsochrone:
         if return_type == IsochroneExportType.geojson:
             gdf.to_file(file_name + '.' + IsochroneExportType.geojson.name, driver=IsochroneExportType.geojson.value)
         elif return_type == IsochroneExportType.shp:
-            gdf.to_file(file_name + '.' + IsochroneExportType.shp.name, driver=IsochroneExportType.shp.value)
+            gdf.to_file(file_name + '.' + IsochroneExportType.shp.name, driver=IsochroneExportType.shp.value, encoding='utf-8')
         elif return_type == IsochroneExportType.xlsx:
             gdf = gdf.drop(["reached_opportunities", "geom"], axis=1)
             writer = pd.ExcelWriter(file_name + '.' + IsochroneExportType.xlsx.name, engine='xlsxwriter')

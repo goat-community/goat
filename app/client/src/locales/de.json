@@ -8,7 +8,7 @@
   "login": {
     "title": "Login",
     "signIn": "Anmelden",
-    "signUp": "Registrieren",
+    "signUp": "Registrieren für Demo",
     "toSignUpContactUs": "Kontaktieren Sie uns gerne",
     "noAccount": "Noch keinen Zugang?",
     "passwordRequired": "Passwort is required",
@@ -23,15 +23,15 @@
     "newsletter": "Ich möchte den Newsletter abonnieren",
     "firstName": "Vorname",
     "lastName": "Nachname",
-    "profession": "Beruf",
-    "domain": "Domain",
+    "profession": "Berufsstand",
+    "domain": "Branche",
     "backToLogin": "Zurück zum Login",
     "activateAccount": "Konto erfolgreich erstellt. Bitte aktivieren Sie Ihr Konto, indem Sie auf den Link in Ihrer E-Mail klicken.",
     "accountActivated": "Konto erfolgreich aktiviert",
     "register": "Registrieren",
     "professionList": {
-      "student": "Student",
-      "employee": "Mitarbeiter",
+      "student": "Student:in",
+      "employee": "Angestellte:r",
       "self-employed": "Selbstständig",
       "other": "Andere"
     },
@@ -42,7 +42,7 @@
       "architecture": "Architektur",
       "location_planning": "Standortplanung",
       "civil_engineer": "Bauingenieurwesen",
-      "political_decision_maker": "Politische(r) Entscheidungsträger(in)",
+      "political_decision_maker": "Politik",
       "other": "Andere"
     }
   },
