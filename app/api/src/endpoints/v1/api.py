@@ -8,6 +8,7 @@ from src.endpoints.v1 import (
     login,
     organizations,
     poi_aoi,
+    r5,
     roles,
     scenarios,
     static_layers,
@@ -43,3 +44,4 @@ layer_tiles = layers.VectorTilerFactory(
 )
 
 api_router.include_router(layer_tiles.router, prefix=layer_tiles_prefix, tags=["Layers"])
+api_router.include_router(r5.router, prefix="/r5", tags=["PT-R5"])

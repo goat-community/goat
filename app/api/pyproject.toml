@@ -45,7 +45,7 @@ schema = "^0.7.5"
 openpyxl = "^3.0.9"
 XlsxWriter = "^3.0.3"
 PyYAML = "^6.0"
-pymongo = "^4.1.1"
+motor = "^3.0.0"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.770"

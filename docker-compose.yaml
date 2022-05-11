@@ -147,6 +147,7 @@ services:
       - mongo
     environment:
       WAIT_HOSTS: ${COMPOSE_PROJECT_NAME}_r5_mongo:27017
+      JVM_HEAP_GB: 14
     links:
       - mongo
     ports:
