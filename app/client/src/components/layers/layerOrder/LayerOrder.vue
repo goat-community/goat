@@ -8,78 +8,70 @@
         handle=".handle"
       >
         <v-expansion-panel
-          v-for="(item, i) in getVisibleLayers"
+          v-for="(layer, i) in getVisibleLayers"
           :key="i"
           class="layer-row"
-          :disabled="isLayerBusy(item.mapLayer)"
           :class="{
-            'expansion-panel__container--active': item.showOptions === true
+            'expansion-panel__container--active':
+              layer.get('showOptions') === true
           }"
         >
-          <v-expansion-panel-header
-            expand-icon=""
-            v-slot="{}"
-            :style="item.mapLayer.get('docUrl') ? 'overflow:hidden;' : ''"
-            class="handle"
-          >
-            <v-tooltip top>
-              <template v-slot:activator="{ on }">
-                <div
-                  v-on="on"
-                  v-if="item.mapLayer.get('docUrl')"
-                  class="documentation elevation-1"
-                  @click.stop="openDocumentation(item)"
-                >
-                  <i class="info-icon fas fa-info fa-sm"></i>
-                </div>
-              </template>
-              <span>{{ $t(`map.tooltips.openDocumentation`) }}</span>
-            </v-tooltip>
+          <v-expansion-panel-header expand-icon="" v-slot="{}" class="handle">
             <v-layout row class="pl-1" wrap align-center>
               <v-flex class="checkbox" xs1>
                 <v-simple-checkbox
-                  v-if="item.name !== 'study_area_crop'"
-                  :color="activeColor.primary"
-                  :value="item.mapLayer.getVisible()"
-                  @input="toggleLayerVisibility(item)"
+                  :color="appColor.primary"
+                  :value="layer.getVisible()"
+                  @input="toggleLayerVisibility(layer)"
                 ></v-simple-checkbox>
               </v-flex>
               <v-flex xs10 class="light-text">
-                <h4 class="pl-2">{{ translate("layerName", item.name) }}</h4>
+                <h4 class="pl-2">
+                  {{ translate("layerName", layer.get("name")) }}
+                </h4>
               </v-flex>
               <v-flex xs1>
                 <v-icon
-                  v-if="item.name !== 'study_area_crop'"
-                  v-show="item.mapLayer.getVisible()"
+                  v-show="
+                    layer.getVisible() && layer.get('name') !== 'study_area'
+                  "
                   small
                   style="width: 30px; height: 30px;"
                   v-html="
-                    item.showOptions === false
+                    layer.get('showOptions') === false
                       ? 'fas fa-chevron-down'
                       : 'fas fa-chevron-up'
                   "
                   :class="{
                     'expansion-panel__container--active':
-                      item.showOptions === true
+                      layer.get('showOptions') === true
                   }"
-                  @click.stop="toggleLayerOptions(item)"
+                  @click.stop="toggleLayerOptions(layer)"
                 ></v-icon>
               </v-flex>
             </v-layout>
           </v-expansion-panel-header>
           <v-card
             class="pt-2"
-            v-show="item.showOptions === true"
+            v-show="
+              layer.get('showOptions') === true &&
+                layer.get('name') !== 'study_area'
+            "
             style="background-color: white;"
             transition="slide-y-reverse-transition"
           >
-            <InLegend :item="item"></InLegend>
+            <InLegend
+              v-if="layer.get('showOptions') === true"
+              :layer="layer"
+            ></InLegend>
             <v-layout row style="width:100%;padding-left: 10px;">
               <v-flex
                 class="xs2"
                 style="text-align:center;"
                 v-if="
-                  ['VECTORTILE', 'VECTOR'].includes(item.mapLayer.get('type'))
+                  ['VECTORTILE', 'VECTOR', 'MVT'].includes(
+                    layer.get('type').toUpperCase()
+                  )
                 "
               >
                 <v-icon
@@ -94,21 +86,21 @@
               <v-flex
                 :class="{
                   xs10:
-                    ['VECTORTILE', 'VECTOR'].includes(
-                      item.mapLayer.get('type')
+                    ['VECTORTILE', 'VECTOR', 'MVT'].includes(
+                      layer.get('type').toUpperCase()
                     ) == true,
                   xs12: false
                 }"
               >
                 <v-slider
-                  :value="item.mapLayer.getOpacity()"
+                  :value="layer.getOpacity()"
                   class="mx-5"
                   step="0.05"
                   min="0"
                   max="1"
-                  @input="changeLayerOpacity($event, item.mapLayer)"
+                  @input="changeLayerOpacity($event, layer)"
                   :label="$t('layerTree.settings.transparency')"
-                  color="#30C2FF"
+                  :color="appColor.secondary"
                 ></v-slider>
               </v-flex>
             </v-layout>
@@ -131,7 +123,6 @@
 </template>
 
 <script>
-// import LayerTree from "../layerTree/LayerTree";
 import draggable from "vuedraggable";
 import InLegend from "../../viewer/ol/controls/InLegend";
 import StyleDialog from "../changeStyle/StyleDialog.vue";
@@ -139,15 +130,7 @@ import { EventBus } from "../../../EventBus";
 import { mapGetters } from "vuex";
 
 export default {
-  // mixins: [LayerTree],
-  props: [
-    "layers",
-    "translate",
-    "isLayerBusy",
-    "toggleLayerOptions",
-    "changeLayerOpacity",
-    "openDocumentation"
-  ],
+  props: ["map", "translate", "toggleLayerOptions", "changeLayerOpacity"],
   data: () => ({
     allLayers: [],
     currentItem: {
@@ -168,8 +151,8 @@ export default {
       get: function() {
         return this.allLayers.filter(
           layer =>
-            layer.mapLayer.getVisible() === true &&
-            layer.mapLayer.get("group") !== "backgroundLayers"
+            layer.getVisible() === true &&
+            !["basemap", "heatmap"].includes(layer.get("group"))
         );
       },
       set: function() {
@@ -178,16 +161,15 @@ export default {
       }
     },
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     })
   },
   created() {
     //Get list of all map layers
-    for (let i = this.layers.length - 1; i >= 0; i--) {
-      for (let j = this.layers[i].children.length - 1; j >= 0; j--) {
-        this.allLayers.push(this.layers[i].children[j]);
-      }
-    }
+    this.allLayers = this.map
+      .getLayers()
+      .getArray()
+      .filter(l => l.get("type") && l.get("displayInLayerList") !== false);
   },
   mounted() {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
@@ -197,16 +179,23 @@ export default {
   methods: {
     openStyleDialog(item) {
       //This function is used for opening Style Setting dialog component for a layer
-      EventBus.$emit("updateStyleDialogStatusForLayerTree", false);
+      EventBus.$emit("updateStyleDialogStatusForLayerOrder", false);
       this.styleDialogStatus = true;
-      if (this.currentItem.name !== item.name) {
+      if (
+        this.currentItem &&
+        this.currentItem.get("name") !== item.get("name")
+      ) {
         this.styleDialogKey += 1;
       }
       if (
-        this.currentItem.layerTreeKey >= 0 &&
-        this.currentItem.name !== item.name
+        this.currentItem &&
+        this.currentItem.get("layerTreeKey") >= 0 &&
+        this.currentItem.get("name") !== item.get("name")
       ) {
-        this.currentItem.layerTreeKey += 1;
+        this.currentItem.set(
+          "layerTreeKey",
+          this.currentItem.get("layerTreeKey") + 1
+        );
       }
       this.currentItem = item;
     },
@@ -214,10 +203,10 @@ export default {
       //Sort layer arrays based on zIndex
       layers.sort((a, b) => (a.layerOrderKey > b.layerOrderKey ? -1 : 1));
     },
-    toggleLayerVisibility(item) {
-      item.mapLayer.setVisible(!item.mapLayer.getVisible());
-      if (item.showOptions) {
-        item.showOptions = false;
+    toggleLayerVisibility(layer) {
+      layer.setVisible(!layer.getVisible());
+      if (layer.get("showOptions")) {
+        layer.set("showOptions", false);
       }
     },
     onMove({ draggedContext, relatedContext }) {
@@ -283,30 +272,5 @@ export default {
 
 .layer-row >>> .v-expansion-panel-header {
   cursor: auto;
-}
-
-.documentation {
-  content: "";
-  position: absolute;
-  top: -5px;
-  right: -30px;
-  height: 30px;
-  width: 60px;
-  opacity: 0.8;
-  background: #2bb381;
-  transform: rotate(45deg);
-  z-index: 20;
-  cursor: pointer;
-}
-.info-icon {
-  position: absolute;
-  top: 16px;
-  left: 18px;
-  color: white;
-  -webkit-transform: rotate(-45deg);
-  -moz-transform: rotate(-45deg);
-  -ms-transform: rotate(-45deg);
-  -o-transform: rotate(-45deg);
-  transform: rotate(-45deg);
 }
 </style>

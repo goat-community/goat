@@ -6,7 +6,58 @@
     "save": "Save",
     "ok": "Ok",
     "remove": "Remove",
-    "stop": "Stop"
+    "stop": "Stop",
+    "exit": "Exit"
+  },
+  "login": {
+    "title": "Login",
+    "signIn": "Sign In",
+    "signUp": "Register for demo",
+    "toSignUpContactUs": "Contact us",
+    "noAccount": "No account yet?",
+    "passwordRequired": "Password is required",
+    "passwordForgotten": "Forgot your password?",
+    "maxFourChar": "Use 4 characters or more for your password",
+    "mailRequired": "Email is required",
+    "mailValid": "E-mail invalid",
+    "fieldRequired": "Field required",
+    "password": "Password",
+    "forgotPassword": "Forgot Password",
+    "backToLogin": "Back to login",
+    "forgotYourPassword": "Forgot your password?",
+    "forgotPasswordText": "Simply enter the email address associated with your account below, and we’ll email you a link to reset your password.",
+    "sendResetLink": "Send Reset Link",
+    "resetYourPassword": "Reset account password",
+    "passwordMustMatch": "Password must match",
+    "resetPassword": "Reset password",
+    "confirmPassword": "Confirm password",
+    "newPassword": "New password",
+    "register": "Register",
+    "agreeTerms": "I agree to the",
+    "termsAndConditions": "Terms and Conditions",
+    "activateAccount": "Account created successfully. Please activate your account by clicking on the link sent to your email.",
+    "accountActivated": "Account activated successfully",
+    "newsletter": "Subscribe to our newsletter",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "profession": "Profession",
+    "domain": "Domain",
+    "professionList": {
+      "student": "Student",
+      "employee": "Employee",
+      "self-employed": "Self-employed",
+      "other": "Other"
+    },
+    "domainList": {
+      "transport_planning": "Transport planning",
+      "urban_planning": "Urban planning",
+      "gis": "GIS",
+      "architecture": "Architecture",
+      "location_planning": "Location planning",
+      "civil_engineer": "Civil engineering",
+      "political_decision_maker": "Politics",
+      "other": "Other"
+    }
   },
   "textFieldRules": {
     "greaterThanZero": "Value should be greater than 0",
@@ -16,14 +67,20 @@
   "appBar": {
     "buttons": {
       "login": "Login",
+      "user-settings": "User Settings",
+      "user-data-upload": "User Data Upload",
       "print": "Print",
       "drawAndMeasure": "Measure",
       "filter": "Thematic Data Filter",
       "edit": "Draw scenario",
       "settings": "Language",
       "info": "Visit GOAT Homepage",
-      "osmMapMode": "OSM Map Mode",
-      "about": "About"
+      "about": "About",
+      "isochrones": "Isochrones",
+      "heatmaps": "Heatmaps",
+      "staticLayers": "Other Layers",
+      "allLayers": "All Layer",
+      "activeLayers": "Active Layer"
     },
     "login": {
       "title": "Login",
@@ -93,10 +150,39 @@
       },
       "clear": "Clear"
     },
+    "dataUpload": {
+      "title": "File Manager",
+      "uploadSet": "Upload dataset",
+      "deleteAllFiles": "Delete all files",
+      "deleteFile": "Delete file",
+      "deleteAllFilesMessage": "Are you sure you want to delete all files?",
+      "deleteFileMessage": "Are you sure you want to delete this file?",
+      "availableStorageExceeded": "Available storage exceeded",
+      "table": {
+        "category": "Category",
+        "date": "Date",
+        "size": "Size",
+        "delete": "Delete",
+        "status": "Status"
+      },
+      "dialog": {
+        "sizeLimitExceeded": "File size limit exceeded",
+        "uploadData": "Upload data",
+        "uploadPointOfInterest": "Upload point of interest",
+        "selectCategory": "Select category",
+        "customCategory": "Custom category",
+        "browseYourFiles": "Browse your files",
+        "invalidCategory": "Category name must not be the same with existing categories."
+      },
+      "geojsonTemplate": "GeoJSON template",
+      "shapefileTemplate": "Shapefile template"
+    },
     "filter": {
       "title": "Thematic Data Filter",
       "poisSettings": {
         "buttonTooltip": "Weight and Sensitivity Settings",
+        "userDataSet": "User Data Set",
+        "changeIcon": "Change Icon",
         "title": "Heatmap",
         "selectWeight": "Select Weight",
         "sensitivityIndex": "Sensitivity index",
@@ -109,8 +195,12 @@
     },
     "edit": {
       "title": "Draw scenario",
+      "scenarioLimitReached": "Scenario number limit reached",
       "createScenario": "Create Scenario",
-      "editScenarioName": "Update Scenario",
+      "ScenarioName": "Update Scenario",
+      "deleteScenario": "Delete Scenario",
+      "noSelection": "No Selection",
+      "scenarioName": "Scenario name",
       "scenario": "Scenario",
       "scenarioImportExport": "Scenario Import/Export",
       "selectLayer": "Select Layer",
@@ -130,6 +220,11 @@
       "featureLabels": "Feature Labels",
       "clearBtn": "Revert All",
       "uploadBtn": "Upload",
+      "poi": "Point of Interest",
+      "way": "Way",
+      "building": "Building",
+      "scenarioEditMode": "Scenario Edit Mode",
+      "editScenarioName": "Edit Scenario Name",
       "addEntrancesForBuildings": "Add entrances for all buildings to activate <b>UPLOAD</b>",
       "popup": {
         "deleteFeatureMsg": "Are you sure you want to delete the selected feature ?",
@@ -143,13 +238,13 @@
         "actions": "Actions"
       },
       "type": {
-        "New": "New",
-        "Modified": "Modified",
-        "Restored": "Restored",
+        "new": "New",
+        "modified": "Modified",
+        "restored": "Restored",
         "deleted": "Deleted"
       },
       "status": {
-        "Uploaded": "Uploaded",
+        "uploaded": "Uploaded",
         "NotUploaded": "Not Uploaded"
       },
       "activateLayerToDrawScenario": "Please activate the layer to be able to select features",
@@ -168,7 +263,11 @@
       "scenarioFeatures": "Scenario Features",
       "uploadYourData": "Upload your data",
       "deleteAllTitle": "Delete All",
-      "deleteAllMessage": "Are you sure you want to delete all scenario data."
+      "deleteAllMessage": "Are you sure you want to delete all scenario data.",
+      "confirmDeleteScenario": "Are you sure you want to delete scenario?",
+      "cantCreateScenarioFeature": "Can't save feature",
+      "canNotUpdateScenarioFeature": "Can't update feature",
+      "canNotDeleteScenarioFeature": "Can't delete feature"
     },
     "settings": {
       "title": "Settings",
@@ -181,9 +280,9 @@
     },
     "about": {
       "title": "About GOAT",
-      "whatIs": "<span><strong>What is GOAT?</strong></span>\n<p>Geo Open Accessibility Tool, or simply GOAT, is a planning support system to shape active mobility and local accessibility.  It excels with its high flexibility and interactivty. Accordingly, it is possible to dynamically develop scenarios and evaluate its effects on accessibility. </p> The application is developed as Open source project mainly by the Startup <a href=\"https://plan4better.de\">Plan4Better</a> and <a href=\"https://www.bgu.tum.de/sv/startseite/\">Technical University of Munich</a>. Frequently new features are implemented and new data sources are added. The underlying version is a demo version and by no means any liability is taken for the correctness of the presented analysis.</p>",
+      "whatIs": "<span><strong>What is GOAT?</strong></span>\n<p>Geo Open Accessibility Tool, or simply GOAT, is a planning support system for integrated transport and land use planning.  It excels with its high flexibility and interactivty. Accordingly, it is possible to dynamically develop scenarios and evaluate its effects on accessibility. </p> The application is developed as open source project mainly by the <a href=\"https://plan4better.de\">Plan4Better GmbH</a>. The integrated data is updated on a regular base. No liability is taken for the correctness of the analyses.</p>",
       "usedData": "<span><strong>Used Data</strong></span><p>GOAT uses mainly Open Data. The following data sets are either displayed in the different layers or used in the background to perform the analysis:&nbsp;</p>",
-      "license": "<span><strong>Licence</strong></span>\n<p>GOAT is licensed under <a href=\"https://github.com/goat-community/goat/blob/main/LICENSE\">GPL-3.0</a><br /><span>If you use GOAT for your analysis, please cite it as:&nbsp;</span><br /><span><strong>Geo Open Accessibility Tool - GOAT(Version 1.0.1) [Webtool]. Retrieved from&nbsp;<a  href=\"https://open-accessibility.org\" rel=\"nofollow\">https://open-accessibility.org</a></strong></span></p>\n",
+      "license": "<span><strong>Licence</strong></span>\n<p>GOAT is licensed under <a href=\"https://github.com/goat-community/goat/blob/main/LICENSE\">GPL-3.0</a><br /><span>If you use GOAT for your analysis, please cite it as:&nbsp;</span><br /><span><strong>Geo Open Accessibility Tool - GOAT(Version 1.1) [Webtool]. Retrieved from&nbsp;<a  href=\"https://plan4better.de\" rel=\"nofollow\">https://plan4better.de</a></strong></span></p>\n",
       "moreInfo": "More Info",
       "layerAttributeTable": {
         "data": "Layers",
@@ -199,7 +298,7 @@
       "selectAttribute": "Select Attribute",
       "fillColor": "Fill Color",
       "outlineColorAndWidth": "Outline color & width"
-    } 
+    }
   },
   "isochrones": {
     "title": "Isochrones",
@@ -208,7 +307,8 @@
     "stopIsochroneCalc": "Stop Calculation",
     "mode": {
       "default": "Default",
-      "input": "Input"
+      "input": "Input",
+      "scenario": "Scenario"
     },
     "single": {
       "title": "Starting Point",
@@ -235,15 +335,15 @@
     "options": {
       "title": "Options",
       "subOptions": "Isochrone Settings",
-      "speed": "km/h",
-      "time": "min",
+      "speed": "Speed",
+      "time": "Travel time",
       "nr": "Isochrones",
       "calcType": "Level of detail isochrones",
       "calcModus": "Calculation Mode",
       "alphaShapeMode": "Level of detail isochrones",
-      "defaultNetwork": "Default",
-      "modifiedNetwork": "Scenario",
-      "modifiedNetworkDoubleCalc": "Comparison",
+      "default": "Default",
+      "scenario": "Scenario",
+      "comparison": "Comparison",
       "routingProfile": "Routing Profile",
       "walking_standard": "Standard",
       "walking_elderly": "Elderly",
@@ -267,11 +367,14 @@
       "deleteCalcTooltip": "Delete Calculation",
       "deleteAll": "DELETE ALL",
       "changeColorTooltip": "Click to change color",
+      "dataTable": "Data Table",
+      "roadNetwork": "Road Network",
       "table": {
         "type": "Type",
         "range": "Range",
         "area": "Area",
         "visible": "Visible",
+        "population": "Population",
         "legend": "Legend"
       },
       "colorMessage": "Lowest: <b>0 min</b>, Highest: <b>20 min</b>"
@@ -311,6 +414,13 @@
       "title": "Isochrone Color"
     }
   },
+  "heatmaps": {
+    "title": "Heatmaps",
+    "recomputeHeatmap": "Recompute",
+    "recomputingHeatmaps": "Recomputing Heatmaps",
+    "heatmapComputedSuccessfully": "Heatmap computed successfully",
+    "heatmapComputationFailed": "Heatmap computation failed"
+  },
   "poisFilter": {
     "showTimeFilter": "Add time filter",
     "selectHourLabel": "Select open time to filter",
@@ -346,36 +456,48 @@
       "notAllScnearioFeaturesUploaded": "The isochrone scenario calculation will not take in account not uploaded features.",
       "cantDeleteAllScenarioFeatures": "Sorry. Scenario data can't be deleted at the moment.",
       "allScenarioFeaturesDelete": "All Scenario Data is deleted",
+      "scenarioDeleted": "Scenario Deleted",
+      "cantDeleteScenario": "Sorry. Scenario can't be deleted at the moment.",
       "noScenarioFeatureChangeAvailable": "Please do network or land-use change first",
       "cantPrintBaseLayer": "This baselayer can't be printed",
       "featuresAlreadyUploaded": "Features already exists",
       "cantExportScenario": "An error happened. Scenario can't be exported!",
       "zoomInToShowFeatures": "Zoom in to show features for",
-      "heatmapIsBusy": "Recomputing for heatmap layer might take some time. Please be patient!"
+      "heatmapIsBusy": "Recomputing for heatmap layer might take some time. Please be patient!",
+      "calculationCancelled": "Calculation Cancelled!",
+      "scenarioEditMode": "Edit Mode"
     },
     "layerGroup": {
-      "poisLayers": "Point of Interest",
       "buildings_landuse": "Buildings and Land Use",
-      "administrativeLayers": "Administrative boundaries",
       "streetlevelqualityLayers": "Street Level Quality",
-      "environmentalQualityLayers": "Environmental data",
-      "perceivedQuality": "Perceived Quality",
-      "additionalDataLayers": "Additional data",
+      "environmental_quality": "Environmental data",
+      "additional_data": "Additional data",
       "accessbilityBasemaps": "Heatmaps",
-      "backgroundLayers": "Background Layers",
-      "buildings": "Buildings",
-      "mobility_patterns": "Mobility Patterns"
+      "basemap": "Background Layers",
+      "heatmap": "Heatmaps"
     },
     "layerName": {
-      "pois": "Point of Interest",
+      "freiburg_bodenrichtwert": "Freiburg Bodenrichtwerte",
+      "freiburg_mietspiegel": "Freiburg Mietspiegel",
+      "freiburg_laerm_strasse_nacht": "Noise street night",
+      "freiburg_laerm_strasse_tag": "Noise street day",
+      "freiburg_grundschulbezirke": "Primary school districts",
+      "freiburg_flaechennutzungsplan": "Flächennutzungsplan",
+      "freiburg_streetmap": "Freiburg Streetmap",
+      "freiburg_heatmap_radverkehr": "Heatmap cycling traffic",
+      "bayern_biotop_kartierung": "Bayern Biotop Kartierung",
+      "bayern_laerm_ballungszentren_strassen_tag": "Noise Main Roads (Tag)",
+      "bayern_laerm_ballungszentren_strassen_nacht": "Noise Main Roads (Nacht)",
+      "bayern_oekoflaechenkataster": "Bayern Ökoflaechenkataster",
+      "bayern_schutzgebiete_naturschutz": "Bayern Schutzgebiete Naturschutz",
+      "poi": "Point of Interest",
       "aois": "Areas of Interest",
+      "way": "Ways",
+      "pois_aois_layer": "Amenities",
+      "sub_study_area": "Study Area",
       "administrativeUnits": "Administrative Units",
-      "accidents_pedestrians": "Pedestrians - Accident Points (2016-2019)",
-      "accidents_pedestrian_2018": "Pedestrians - Accidents Frequencies (2018)",
-      "accidents_pedestrian_2017": "Pedestrians - Accidents Frequencies (2017)",
-      "accidents_cyclists": "Cyclists - Accident Points (2016-2019)",
-      "accidents_bike_2018": "Cyclists - Accidents Frequencies (2018)",
-      "accidents_bike_2017": "Cyclists - Accidents Frequencies (2017)",
+      "accidents_pedestrians": "Pedestrians - Accident Points (2016-2020)",
+      "accidents_cyclists": "Cyclists - Accident Points (2016-2020)",
       "bicycle_counting_stations": "Bike Counting (2019)",
       "biotops": "Biotops",
       "ffh-area": "FFH Area",
@@ -385,7 +507,7 @@
       "floodingAreasHQ100": "Flooding Areas (100-year flood)",
       "dikes": "Dikes",
       "protectedLandscape": "Protected Landscape Areas",
-      "landuse": "Landuse",
+      "landuse_atkis": "Landuse (ATKIS)",
       "landuse_osm": "Landuse (OSM)",
       "zoningPlan": "Zoning Plan",
       "footpath_width": "Footpath Width",
@@ -413,21 +535,17 @@
       "ways_traffic_protection": "Traffic Protection",
       "ways_security": "Illuminance",
       "ways_sidewalk_quality": "Gehkomfort",
-      "heatmap_connectivity": "Connectivity",
-      "heatmap_luptai": "Comparison of Accessibility and Population Density",
-      "heatmap_population": "Population Density",
-      "heatmap_gravity": "Local Accessibility",
       "primary_school_streams": "Potential Pedestrian Flows to Primary Schools",
       "studyArea": "Study Area",
       "ways": "Ways",
-      "buildings": "Buildings",
-      "osmStandard": "OSM Standard",
-      "osmLight": "OSM Light",
-      "osmDark": "OSM Dark",
-      "openTopoMap": "Open Topo Map",
-      "mapboxStreets": "Mapbox",
-      "publicTransport": "Public Transport",
-      "bingAerial": "Bing Aerial",
+      "building": "Buildings",
+      "osm_standard": "OSM Standard",
+      "osm_light": "OSM Light",
+      "osm_dark": "OSM Dark",
+      "open_topo_map": "Open Topo Map",
+      "mapbox_streets": "Mapbox",
+      "public_transport": "Public Transport",
+      "bing_aerial": "Bing Aerial",
       "walking_trip_rate": "Walking trips per person",
       "walkingShare": "Share of walking trips",
       "cyclingShare": "Share of cycling trips",
@@ -441,8 +559,12 @@
       "strata": "Strata",
       "indicators": "Indicators",
       "study_area_crop": "Study area",
-      "study_area": "Districts",
-      "ways_Project_Sidewalk": "Project Sidewalk Score"
+      "study_area": "Boundary",
+      "ways_Project_Sidewalk": "Project Sidewalk Score",
+      "heatmap_connectivity": "Connectivity",
+      "heatmap_local_accessibility": "Local Accessibility",
+      "heatmap_accessibility_population": "Accessibility and Population Density",
+      "heatmap_population": "Population Density"
     },
     "tooltips": {
       "clickForIsochroneCalculation": "Click for isochrone calculation. Press ESC to exit",
@@ -524,8 +646,11 @@
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
       "openFullScreen": "Open Fullscreen",
+      "search": "Search",
+      "measure": "Measure",
       "exitFullScreen": "Exit Fullscreen",
-      "toggleStreetView": "Mapillary Imagery"
+      "toggleStreetView": "Mapillary Imagery",
+      "notAvailable": "Not Available"
     },
     "popup": {
       "attributes": "Attributes",
@@ -550,7 +675,6 @@
       "tasks": "OSM Mapping Tasks",
       "steps": "Steps",
       "info": "Info",
-
       "stepsDesc": {
         "clickFeatureInMap": "Click on a object in the map.",
         "clickEditWithOsm": "By clicking on the <b>'Edit with OSM'</b> link, you will be forwarded to the OSM iD-Editor.",
@@ -628,21 +752,33 @@
           }
         }
       },
-
       "dialogMessage": {
         "title": "OSM Mapping Mode",
         "body": "Welcome to the OSM mapping mode! In this mode, you can improve GOAT data by contributing to OpenStreetMap (OSM). We have set up different tasks for objects with missing information, which can be completed using the iD-Editor or other OSM editors such as JOSM. Please familiarize yourself with the general mapping rules and the corresponding content of the OSM wiki for the objects you want to edit. Furthermore, you can find a tutorial on mapping in OSM on the GOAT website. Thanks for contributing to the world of open data!"
       }
     }
   },
+  "userSettings": {
+    "changeStudyAreaTitle": "Change Study Area",
+    "changeStudyAreaMessageWarning": "The study area will be changed. Isochrone calculations will not be saved. Do you want to continue?",
+    "uiLanguage": "Language",
+    "contactSupport": "Contact Support",
+    "logout": "Logout",
+    "mbOf": "MB of",
+    "mbUsed": "MB used",
+    "scenarios": "Scenarios"
+  },
   "pois": {
     "education": "Education",
-    "foodAndDrink": "Food and Drink",
+    "foodanddrink": "Food and Drink",
     "transport": "Transport",
+    "other": "Own categories",
+    "sport": "Sport",
+    "nature": "Nature",
     "mobilitystations": "Mobility Stations",
     "services": "Services",
     "shop": "Shop",
-    "tourismAndLeisure": "Tourism & Leisure",
+    "tourismandleisure": "Tourism & Leisure",
     "nursery": "Nursery",
     "kindergarten": "Kindergarten",
     "primary_school": "Primary school",
@@ -662,7 +798,7 @@
     "ice_cream": "Ice Cream",
     "restaurant": "Restaurant",
     "nightclub": "Night-Club",
-    "bicycle_rental": "Bike sharing",
+    "bike_sharing": "Bike sharing",
     "cargo_bike": "Cargo bike",
     "car_sharing": "Car sharing",
     "charging_station": "Charging station",
@@ -686,10 +822,13 @@
     "hairdresser": "Hairdresser",
     "atm": "ATM",
     "bank": "Bank",
+    "health": "Health",
     "dentist": "Dentist",
     "doctors": "Doctor",
     "pharmacy": "Pharmacy",
     "post_box": "Post box",
+    "post_office": "Post office",
+    "general_practitioner": "General practitioner",
     "fuel": "Fuel",
     "recycling": "Recycling",
     "bakery": "Bakery",
@@ -705,7 +844,7 @@
     "international_supermarket": "International Supermarket",
     "hypermarket": "Hypermarket",
     "chemist": "Chemist",
-    "organic": "Organic Food",
+    "organic_supermarket": "Organic supermarket",
     "marketplace": "Marketplace",
     "cinema": "Cinema",
     "theatre": "Theatre",
@@ -777,18 +916,19 @@
   },
   "dynamicFields": {
     "attributes": {
-      "ways": {
+      "way": {
         "way_type": "Way type",
         "surface": "Surface",
         "wheelchair": "Wheelchair"
       },
-      "pois": {
-        "amenity": "Amenity",
-        "name": "Name (Optional)",
+      "poi": {
+        "category": "Amenity",
+        "name": "Name",
         "opening_hours": "Opening Hours (Optional)"
       },
-      "buildings": {
+      "building": {
         "building": "Building Type",
+        "building_type": "Building Type",
         "building_levels": "Building Levels",
         "building_levels_residential": "Building levels residential",
         "population": "Number residents (optional)",
@@ -802,7 +942,7 @@
       }
     },
     "listValues": {
-      "ways": {
+      "way": {
         "road": "Road",
         "bridge": "Bridge",
         "asphalt": "Asphalt",
@@ -814,7 +954,7 @@
         "yes": "Yes",
         "no": "No"
       },
-      "buildings": {
+      "building": {
         "residential": "Residential",
         "commercial": "Commercial",
         "public": "Public"
@@ -845,10 +985,11 @@
       "liveliness": "Walking environment",
       "data_quality": "Data Quality",
       "comfort": "Comfort",
-      "walkability": ["TOTAL WALKABILITY SCORE"],
+      "walkability": [
+        "TOTAL WALKABILITY SCORE"
+      ],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index",
-
       "sidewalk": "Sidewalk availability",
       "width": "Sidewalk width",
       "smoothness": "Smoothness",
@@ -870,5 +1011,71 @@
       "cnt_toilets": "Number of toilets",
       "cnt_fountains": "Number of fountains"
     }
+  },
+  "fa6Categories": {
+    "new-in-v6": "New in v6",
+    "photos-images": "Photos + Images",
+    "_other_": "Other",
+    "alphabet": "Alphabet",
+    "mathematics": "Mathematics",
+    "nature": "Nature",
+    "users-people": "Users + People",
+    "travel-hotel": "Travel + Hotel",
+    "music-audio": "Music + Audio",
+    "alert": "Alert",
+    "time": "Time",
+    "animals": "Animals",
+    "astronomy": "Astronomy",
+    "science-fiction": "Science Fiction",
+    "text-formatting": "Text Formatting",
+    "maps": "Maps",
+    "construction": "Construction",
+    "arrows": "Arrows",
+    "religion": "Religion",
+    "fruits-vegetables": "Fruits + Vegetables",
+    "education": "Education",
+    "social": "Social",
+    "editing": "Editing",
+    "spinners": "Spinners",
+    "communication": "Communication",
+    "accessibility": "Accessibility",
+    "money": "Money",
+    "gaming": "Gaming",
+    "media-playback": "Media Playback",
+    "food-beverage": "Food + Beverage",
+    "medical-health": "Medical + Health",
+    "shopping": "Shopping",
+    "security": "Security",
+    "childhood": "Childhood",
+    "political": "Political",
+    "buildings": "Buildings",
+    "logistics": "Logistics",
+    "business": "Business",
+    "energy": "Energy",
+    "household": "Household",
+    "design": "Design",
+    "transportation": "Transportation",
+    "moving": "Moving",
+    "devices-hardware": "Devices + Hardware",
+    "writing": "Writing",
+    "connectivity": "Connectivity",
+    "charity": "Charity",
+    "shapes": "Shapes",
+    "clothing-fashion": "Clothing + Fashion",
+    "sports-fitness": "Sports + Fitness",
+    "files": "Files",
+    "coding": "Coding",
+    "automotive": "Automotive",
+    "halloween": "Halloween",
+    "toggle": "Toggle",
+    "marketing": "Marketing",
+    "film-video": "Film + Video",
+    "holidays": "Holidays",
+    "science": "Science",
+    "weather": "Weather",
+    "emoji": "Emoji",
+    "camping": "Camping",
+    "gender": "Genders",
+    "hands": "Hands"
   }
 }

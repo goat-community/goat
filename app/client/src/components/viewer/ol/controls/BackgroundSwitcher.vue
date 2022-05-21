@@ -15,11 +15,7 @@
         @click="selectBaselayer(item)"
       >
         <v-img
-          :src="
-            require(`../../../../assets/img/background-layers/${item.get(
-              'name'
-            )}.png`)
-          "
+          :src="getThumbnail(item)"
           class="white--text"
           height="75"
           gradient="to bottom, rgba(0,0,0,.2), rgba(0,0,0,.5)"
@@ -41,11 +37,7 @@
         class="mx-auto  mt-2 pa-1"
       >
         <v-img
-          :src="
-            require(`../../../../assets/img/background-layers/${item.get(
-              'name'
-            )}.png`)
-          "
+          :src="getThumbnail(item)"
           class="white--text"
           height="75"
           gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
@@ -63,7 +55,6 @@
 
 <script>
 import { Mapable } from "../../../../mixins/Mapable";
-import { Group } from "ol/layer.js";
 export default {
   mixins: [Mapable],
   name: "background-switcher",
@@ -75,26 +66,33 @@ export default {
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
     onMapBound() {
-      const me = this;
-
-      me.map
+      this.map
         .getLayers()
         .getArray()
         .forEach(layer => {
-          if (
-            layer instanceof Group &&
-            layer.get("name") === "backgroundLayers"
-          ) {
-            me.backgroundLayers = layer.getLayers().getArray();
+          if (layer.get("group") === "basemap") {
+            this.backgroundLayers.push(layer);
           }
         });
+      const notActive = this.backgroundLayers.filter(
+        layer => layer.getVisible() === false
+      );
+      if (notActive.length === this.backgroundLayers.length) {
+        notActive[0].setVisible(true);
+      }
     },
     selectBaselayer(item) {
-      const me = this;
-      me.backgroundLayers.forEach(layer => {
+      this.backgroundLayers.forEach(layer => {
         layer.setVisible(false);
       });
       item.setVisible(true);
+    },
+    getThumbnail(layer) {
+      if (layer.thumbnail) {
+        return layer.thumbnail;
+      } else {
+        return `img/background-layers/${layer.get("name")}.png`;
+      }
     }
   }
 };

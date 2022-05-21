@@ -1,4 +1,7 @@
+import jwt_decode from "jwt-decode";
+
 export function humanize(str) {
+  if (!str) return "";
   return str
     .replace(/^[\s_]+|[\s_]+$/g, "")
     .replace(/[_\s]+/g, " ")
@@ -21,6 +24,32 @@ export function getNestedProperty(obj, key) {
   return key.split(".").reduce(function(o, x) {
     return typeof o == "undefined" || o === null ? o : o[x];
   }, obj);
+}
+
+export function validateToken(jwtToken) {
+  if (!jwtToken) {
+    return null;
+  }
+  const decodedToken = jwt_decode(jwtToken);
+  if (
+    decodedToken &&
+    decodedToken.exp &&
+    Date.now() >= decodedToken.exp * 1000
+  ) {
+    return null;
+  } else {
+    return decodedToken;
+  }
+}
+
+export function errorMessage(context, response, mutationType) {
+  if (response.status === 500) {
+    context.commit(mutationType, "Server problem!");
+  } else if (response.data.detail) {
+    context.commit(mutationType, response.data.detail);
+  } else if (response.data.msg) {
+    context.commit(mutationType, response.data.msg);
+  }
 }
 
 export function addProps(obj, arr, val) {
@@ -76,6 +105,24 @@ export function getCurrentTime() {
 export function colorZeroPadding(hex) {
   return hex.length == 1 ? `0${hex}` : hex;
 }
+
+const iconUnicodeCache = {};
+
+export const getIconUnicode = iconClass => {
+  if (iconUnicodeCache[iconClass]) return iconUnicodeCache[iconClass];
+  const tempElement = document.createElement("i");
+  tempElement.className = iconClass;
+  document.body.appendChild(tempElement);
+  const character = window
+    .getComputedStyle(tempElement, ":before")
+    .getPropertyValue("content")
+    .replaceAll(`"`, "");
+  tempElement.remove();
+  if (character) {
+    iconUnicodeCache[iconClass] = character;
+  }
+  return character;
+};
 
 /**
  * Converts a color from RGB to hex representation.

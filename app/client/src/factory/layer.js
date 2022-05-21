@@ -10,12 +10,18 @@ import TopoJsonFormat from "ol/format/TopoJSON";
 import KmlFormat from "ol/format/KML";
 import VectorSource from "ol/source/Vector";
 import VectorImageLayer from "ol/layer/VectorImage";
-
 import ImageWMS from "ol/source/ImageWMS.js";
 import { Image as ImageLayer } from "ol/layer.js";
 import XyzSource from "ol/source/XYZ";
-import { OlStyleFactory } from "./OlStyle";
-import { baseStyleDefs } from "../style/OlStyleDefs";
+import { OlStyleFactory } from "../factory/OlStyle";
+import { all } from "ol/loadingstrategy";
+import ApiService from "../services/api.service";
+import { geobufToFeatures } from "../utils/MapUtils";
+import appStore from "../store/modules/app";
+import scenarioStore from "../store/modules/scenarios";
+import poisAoisStore from "../store/modules/poisaois";
+import mapStore from "../store/modules/map";
+import axios from "axios";
 
 /**
  * Factory, which creates OpenLayers layer instances according to a given config
@@ -33,6 +39,49 @@ export const LayerFactory = {
     KML: KmlFormat
   },
 
+  baseConf(lConf) {
+    if (["heatmap", "basemap"].includes(lConf.group)) {
+      lConf.queryable = false;
+    }
+    lConf.queryable = lConf.queryable === undefined ? true : lConf.queryable;
+
+    let lOpts = {
+      group: lConf.group,
+      name: lConf.name,
+      type: lConf.type,
+      visible: lConf.visible || false,
+      opacity: lConf.opacity || 1,
+      showOptions: false,
+      attributeDisplayStatusKey: 0,
+      layerTreeKey: 0,
+      layerOrderKey: 1,
+      queryable: lConf.queryable,
+      displayInLayerList: lConf.display_in_layer_list || true,
+      legendGraphicUrls: lConf.legend_urls || null
+    };
+    if (lConf.min_resolution) {
+      lOpts.minResolution = lConf.min_resolution;
+    }
+    if (lConf.max_resolution) {
+      lOpts.maxResolution = lConf.max_resolution;
+    }
+
+    if (lConf.z_index) {
+      lOpts.zIndex = lConf.z_index;
+    }
+    let sOpts = {
+      url: lConf.url,
+      crossOrigin: "Anonymous"
+    };
+    if (lConf.map_attribution) {
+      sOpts.attributions = lConf.map_attribution;
+    }
+    return {
+      lOpts,
+      sOpts
+    };
+  },
+
   /**
    * Returns an OpenLayers layer instance due to given config.
    *
@@ -40,13 +89,10 @@ export const LayerFactory = {
    * @return {ol.layer.Base} OL layer instance
    */
   getInstance(lConf) {
-    // apply LID (Layer ID) if not existant
-    if (!lConf.lid) {
-      var now = new Date();
-      lConf.lid = now.getTime();
+    lConf.type = lConf.type.toUpperCase();
+    if (lConf.group.toLowerCase() === "heatmap") {
+      return this.createHeatmapLayer(lConf);
     }
-
-    // create correct layer type
     if (lConf.type === "WMS") {
       return this.createWmsLayer(lConf);
     } else if (lConf.type === "WMSTILE") {
@@ -61,8 +107,10 @@ export const LayerFactory = {
       return this.createVectorLayer(lConf);
     } else if (lConf.type === "VECTORIMAGE") {
       return this.createVectorImageLayer(lConf);
-    } else if (lConf.type === "VECTORTILE") {
+    } else if (["VECTORTILE", "MVT"].includes(lConf.type)) {
       return this.createVectorTileLayer(lConf);
+    } else if (lConf.type === "GEOBUF") {
+      return this.createGeoBufLayer(lConf);
     } else {
       return null;
     }
@@ -76,49 +124,11 @@ export const LayerFactory = {
    */
   createWmsLayer(lConf) {
     const layer = new ImageLayer({
-      name: lConf.name,
-      type: lConf.type,
-      title: lConf.title,
-      canEdit: lConf.canEdit,
-      canModifyGeom: lConf.canModifyGeom,
-      editDataType: lConf.editDataType,
-      editGeometry: lConf.editGeometry,
-      modifyAttributes: lConf.modifyAttributes,
-      lid: lConf.lid,
-      displayInLayerList: lConf.displayInLayerList,
-      displayInLegend: lConf.displayInLegend,
-      legendGraphicUrl: lConf.legendGraphicUrl,
-      group: lConf.group,
-      visible: lConf.visible,
-      opacity: lConf.opacity,
-      queryable: lConf.queryable,
-      requiresPois: lConf.requiresPois,
-      requiresAois: lConf.requiresAois,
-      ratio: lConf.ratio ? lConf.ratio : 1.5,
-      zIndex: lConf.zIndex,
-      docUrl: lConf.docUrl,
-      styles: lConf.styles,
-      viewparamsDynamicKeys: lConf.viewparamsDynamicKeys,
+      ...this.baseConf(lConf).lOpts,
       source: new ImageWMS({
-        url: lConf.url,
-        params: {
-          LAYERS: lConf.layers,
-          viewparams: lConf.viewparams,
-          STYLES:
-            lConf.styles && lConf.styles.default ? lConf.styles.default : ""
-        },
-        serverType: lConf.serverType ? lConf.serverType : "geoserver",
-        ratio: lConf.ratio,
-        attributions: lConf.attributions,
-        crossOrigin: "Anonymous"
-      }),
-      minResolution: lConf.minResolution,
-      maxResolution: lConf.maxResolution,
-      minZoom: lConf.minZoom,
-      maxZoom: lConf.maxZoom,
-      otherProps: lConf.otherProps
+        ...this.baseConf(lConf).sOpts
+      })
     });
-
     return layer;
   },
   /**
@@ -129,35 +139,11 @@ export const LayerFactory = {
    */
   createWmsTileLayer(lConf) {
     const layer = new TileLayer({
-      name: lConf.name,
-      title: lConf.title,
-      canEdit: lConf.canEdit,
-      lid: lConf.lid,
-      cascadePrint: lConf.cascadePrint,
-      displayInLayerList: lConf.displayInLayerList,
-      extent: lConf.extent,
-      visible: lConf.visible,
-      group: lConf.group,
-      opacity: lConf.opacity,
-      preload: lConf.preload ? parseFloat(lConf.preload) : 0, //Parse float is used because it's not possible to add values like Infinity in json config
-      zIndex: lConf.zIndex,
+      ...this.baseConf(lConf).lOpts,
       source: new TileWmsSource({
-        url: lConf.url,
-        params: {
-          LAYERS: lConf.layers,
-          TILED: lConf.tiled,
-          viewparams: lConf.viewparams
-        },
-        serverType: lConf.serverType ? lConf.serverType : "geoserver",
-        attributions: lConf.attributions,
-        crossOrigin: "Anonymous"
-      }),
-      minResolution: lConf.minResolution,
-      maxResolution: lConf.maxResolution,
-      minZoom: lConf.minZoom,
-      maxZoom: lConf.maxZoom
+        ...this.baseConf(lConf).sOpts
+      })
     });
-
     return layer;
   },
 
@@ -168,27 +154,14 @@ export const LayerFactory = {
    * @return {ol.layer.Tile} OL XYZ layer instance
    */
   createXyzLayer(lConf) {
-    const xyzLayer = new TileLayer({
-      name: lConf.name,
-      title: lConf.title,
-      lid: lConf.lid,
-      cascadePrint: lConf.cascadePrint,
-      displayInLayerList: lConf.displayInLayerList,
-      group: lConf.group,
-      visible: lConf.visible,
-      opacity: lConf.opacity,
-      zIndex: lConf.zIndex,
+    const layer = new TileLayer({
+      ...this.baseConf(lConf).lOpts,
+      maxZoom: lConf.max_zoom || 19,
       source: new XyzSource({
-        url: lConf.hasOwnProperty("accessToken")
-          ? lConf.url + "?access_token=" + lConf.accessToken
-          : lConf.url,
-        maxZoom: lConf.maxZoom,
-        attributions: lConf.attributions,
-        crossOrigin: "Anonymous"
+        ...this.baseConf(lConf).sOpts
       })
     });
-
-    return xyzLayer;
+    return layer;
   },
 
   /**
@@ -199,18 +172,10 @@ export const LayerFactory = {
    */
   createOsmLayer(lConf) {
     const layer = new TileLayer({
-      name: lConf.name,
-      title: lConf.title,
-      lid: lConf.lid,
-      cascadePrint: lConf.cascadePrint,
-      displayInLayerList: lConf.displayInLayerList,
-      visible: lConf.visible,
-      opacity: lConf.opacity,
-      group: lConf.group,
+      ...this.baseConf(lConf).lOpts,
+      maxZoom: lConf.max_zoom || 19,
       source: new OsmSource({
-        url: lConf.url,
-        maxZoom: lConf.maxZoom,
-        crossOrigin: "Anonymous"
+        ...this.baseConf(lConf).sOpts
       })
     });
 
@@ -224,22 +189,14 @@ export const LayerFactory = {
    * @return {ol.layer.Tile} OL BING layer instance
    */
   createBingLayer(lConf) {
-    const bingMaps = new BingMaps({
-      key: lConf.accessToken,
-      imagerySet: lConf.imagerySet,
-      maxZoom: lConf.maxZoom,
-      crossOrigin: "Anonymous"
-    });
     const layer = new TileLayer({
-      name: lConf.name,
-      title: lConf.title,
-      lid: lConf.lid,
-      cascadePrint: lConf.cascadePrint,
-      displayInLayerList: lConf.displayInLayerList,
-      visible: lConf.visible,
-      opacity: lConf.opacity,
-      group: lConf.group,
-      source: bingMaps
+      ...this.baseConf(lConf).lOpts,
+      maxZoom: lConf.max_zoom || 19,
+      source: new BingMaps({
+        ...this.baseConf(lConf).sOpts,
+        key: lConf.access_token,
+        imagerySet: lConf.imagery_set
+      })
     });
 
     return layer;
@@ -252,56 +209,138 @@ export const LayerFactory = {
    * @return {ol.layer.Vector} OL vector layer instance
    */
   createVectorLayer(lConf) {
-    const sourceOpts = {
-      format: this.formatMapping[lConf.format]
-        ? new this.formatMapping[lConf.format](lConf.formatConfig)
-        : GeoJsonFormat(),
-      attributions: lConf.attributions,
-      crossOrigin: "Anonymous"
-    };
-
-    lConf.url ? (sourceOpts.url = lConf.url) : lConf.url;
-    const vectorLayer = new VectorImageLayer({
-      name: lConf.name,
-      title: lConf.title,
-      type: lConf.type,
-      canEdit: lConf.canEdit,
-      canModifyGeom: lConf.canModifyGeom,
-      editDataType: lConf.editDataType,
-      editGeometry: lConf.editGeometry,
-      modifyAttributes: lConf.modifyAttributes,
-      requiresPois: lConf.requiresPois,
-      requiresAois: lConf.requiresAois,
-      queryable: lConf.queryable,
-      displayInLegend: lConf.displayInLegend,
-      legendGraphicUrl: lConf.legendGraphicUrl,
-      docUrl: lConf.docUrl,
-      lid: lConf.lid,
-      displayInLayerList: lConf.displayInLayerList,
-      extent: lConf.extent,
-      visible: lConf.visible,
-      opacity: lConf.opacity,
-      zIndex: lConf.zIndex,
-      queryParams: lConf.queryParams,
-      styleConf: lConf.style,
-      source: new VectorSource(sourceOpts),
-      format: lConf.format,
-      url: lConf.url,
-      group: lConf.group,
-      concurrentRequests: lConf.concurrentRequests,
-      style:
-        OlStyleFactory.getInstance(lConf.style) ||
-        baseStyleDefs[lConf.styleRef],
-      hoverable: lConf.hoverable,
-      hoverAttribute: lConf.hoverAttribute,
-      minResolution: lConf.minResolution,
-      maxResolution: lConf.maxResolution,
-      minZoom: lConf.minZoom,
-      maxZoom: lConf.maxZoom,
-      otherProps: lConf.otherProps
+    const layer = new VectorImageLayer({
+      ...this.baseConf(lConf).lOpts,
+      source: new VectorSource({
+        ...this.baseConf(lConf).sOpts
+      })
     });
 
-    return vectorLayer;
+    return layer;
+  },
+
+  /**
+   * Returns an OpenLayers vector layer instance due to given config that uses a geobuf endpoint.
+   *
+   * @param  {Object} lConf  Layer config object
+   * @return {ol.layer.Vector} OL vector layer instance
+   */
+  createGeoBufLayer(lConf) {
+    const url =
+      lConf.url || `/layers/vector/static/${lConf.name}?return_type=db_geobuf`;
+    const layer = new VectorImageLayer({
+      ...this.baseConf(lConf).lOpts,
+      source: new VectorSource({
+        ...this.baseConf(lConf).sOpts,
+        // eslint-disable-next-line no-unused-vars
+        loader: function(extent, resolution, projection, success, failure) {
+          const proj = projection.getCode();
+          const source = this;
+          source.clear();
+          ApiService.get_(url, {
+            responseType: "arraybuffer",
+            headers: {
+              Accept: "application/pdf"
+            }
+          })
+            .then(response => {
+              if (response.data) {
+                const olFeatures = geobufToFeatures(response.data, {
+                  dataProjection: lConf.data_projection,
+                  featureProjection: proj
+                });
+                source.addFeatures(olFeatures);
+              }
+            })
+            .catch(({ response }) => {
+              console.log(response);
+            });
+        },
+        strategy: all
+      })
+    });
+    this.styleVectorLayer(layer, lConf);
+    return layer;
+  },
+
+  /**
+   * Return heatmap layers
+   * @param {Object} lConf
+   * @returns {ol.layer.VectorImage} OlVector layer instance
+   */
+
+  createHeatmapLayer(lConf) {
+    const layer = new VectorImageLayer({
+      ...this.baseConf(lConf).lOpts,
+      source: new VectorSource({
+        ...this.baseConf(lConf).sOpts,
+        // eslint-disable-next-line no-unused-vars
+        loader: function(extent, resolution, projection, success, failure) {
+          const proj = projection.getCode();
+          const source = this;
+          source.clear();
+          const baseUrl_ = `heatmap`;
+          const returnType = "db_geobuf";
+          const modus = appStore.state.calculationMode.active;
+          const activeScenario = scenarioStore.state.activeScenario;
+          const scenarioId = `${
+            activeScenario ? "&scenario_id=" + activeScenario : ""
+          }`;
+          const heatmapConfiguration = {};
+          poisAoisStore.state.selectedPoisAois.forEach(poiAoiObject => {
+            if (appStore.state.poiIcons[poiAoiObject.value]) {
+              heatmapConfiguration[poiAoiObject.value] = {
+                sensitivity: poiAoiObject.sensitivity,
+                weight: poiAoiObject.weight || 1
+              };
+            }
+          });
+          const heatmapParams = {
+            heatmap_connectivity: `${baseUrl_}/connectivity?return_type=${returnType}`,
+            heatmap_population: `${baseUrl_}/population?modus=${modus}${scenarioId}&return_type=${returnType}`,
+            heatmap_accessibility_population: `${baseUrl_}/local-accessibility?heatmap_type=heatmap_accessibility_population&heatmap_configuration=${JSON.stringify(
+              heatmapConfiguration
+            )}&modus=${modus}${scenarioId}&return_type=${returnType}`,
+            heatmap_local_accessibility: `${baseUrl_}/local-accessibility?heatmap_type=heatmap_local_accessibility&heatmap_configuration=${JSON.stringify(
+              heatmapConfiguration
+            )}&modus=${modus}${scenarioId}&return_type=${returnType}`
+          };
+          const url = heatmapParams[lConf.name];
+          mapStore.state.isMapBusy = true;
+          const CancelToken = axios.CancelToken;
+          ApiService.get_(url, {
+            responseType: "arraybuffer",
+            headers: {
+              Accept: "application/pdf"
+            },
+            cancelToken: new CancelToken(c => {
+              // An executor function receives a cancel function as a parameter
+              mapStore.state.heatmapCancelToken = c;
+            })
+          })
+            .then(response => {
+              if (response.data) {
+                const olFeatures = geobufToFeatures(response.data, {
+                  dataProjection: lConf.data_projection,
+                  featureProjection: proj
+                });
+
+                source.addFeatures(olFeatures);
+              }
+            })
+            .catch(({ response }) => {
+              console.log(response);
+            })
+            .finally(() => {
+              mapStore.state.isMapBusy = false;
+              mapStore.state.heatmapCancelToken = null;
+            });
+        },
+        strategy: all
+      })
+    });
+    this.styleVectorLayer(layer, lConf);
+    return layer;
   },
 
   /**
@@ -311,46 +350,76 @@ export const LayerFactory = {
    * @return {ol.layer.VectorTile} OL vector tile layer instance
    */
   createVectorTileLayer(lConf) {
-    const vtLayer = new VectorTileLayer({
-      name: lConf.name,
-      title: lConf.title,
-      type: lConf.type,
-      canEdit: lConf.canEdit,
-      canModifyGeom: lConf.canModifyGeom,
-      editDataType: lConf.editDataType,
-      editGeometry: lConf.editGeometry,
-      modifyAttributes: lConf.modifyAttributes,
-      queryable: lConf.queryable,
-      requiresPois: lConf.requiresPois,
-      requiresAois: lConf.requiresAois,
-      docUrl: lConf.docUrl,
-      lid: lConf.lid,
-      displayInLegend: lConf.displayInLegend,
-      legendGraphicUrl: lConf.legendGraphicUrl,
-      displayInLayerList: lConf.displayInLayerList,
-      visible: lConf.visible,
-      opacity: lConf.opacity,
-      queryParams: lConf.queryParams,
-      styleConf: lConf.style,
-      zIndex: lConf.zIndex,
-      url: lConf.url,
-      group: lConf.group,
-      concurrentRequests: lConf.concurrentRequests,
+    let url = lConf.url;
+    if (!url) {
+      lConf.url = `./layers/tiles/${lConf.name}/{z}/{x}/{y}.pbf`;
+    }
+    const layer = new VectorTileLayer({
+      ...this.baseConf(lConf).lOpts,
       source: new VectorTileSource({
-        url: lConf.url,
-        format: new this.formatMapping[lConf.format](),
-        attributions: lConf.attributions,
-        crossOrigin: "Anonymous"
-      }),
-      hoverable: lConf.hoverable,
-      hoverAttribute: lConf.hoverAttribute,
-      minResolution: lConf.minResolution,
-      maxResolution: lConf.maxResolution,
-      minZoom: lConf.minZoom,
-      maxZoom: lConf.maxZoom,
-      otherProps: lConf.otherProps
+        ...this.baseConf(lConf).sOpts,
+        format: new this.formatMapping[lConf.type || "MVT"](),
+        tileLoadFunction: function(tile, url) {
+          tile.setLoader(function(extent, resolution, projection) {
+            ApiService.get_(url, {
+              responseType: "arraybuffer",
+              headers: {
+                Accept: "application/pdf"
+              }
+            }).then(response => {
+              if (response.data) {
+                const format = tile.getFormat(); // ol/format/MVT configured as source format
+                const features = format.readFeatures(response.data, {
+                  extent: extent,
+                  featureProjection: projection
+                });
+                tile.setFeatures(features);
+              }
+            });
+          });
+        }
+      })
     });
+    this.styleVectorLayer(layer, lConf);
+    return layer;
+  },
 
-    return vtLayer;
+  /**
+   * Styles the vector layer based on the layer config.
+   *
+   * @param  {ol.layer.Vector} layer Vector layer instance
+   * @param  {Object} lConf  Layer config object
+   * @return {ol.layer} OL vector layer instance
+   */
+  styleVectorLayer(layer, lConf) {
+    // Style the vector tile layer
+    let styleObj;
+    if (typeof lConf.style === "object") {
+      styleObj = {
+        format: "geostyler",
+        style: lConf.style
+      };
+    } else if (lConf.style === "custom") {
+      styleObj = {
+        format: "custom"
+      };
+    } else {
+      return layer;
+    }
+    const olStyle = OlStyleFactory.getOlStyle(styleObj, lConf.name);
+    if (olStyle) {
+      if (olStyle instanceof Promise) {
+        olStyle
+          .then(style => {
+            layer.setStyle(style);
+          })
+          .catch(error => {
+            console.log(error);
+            console.log("error", lConf.name);
+          });
+      } else {
+        layer.setStyle(olStyle);
+      }
+    }
   }
 };

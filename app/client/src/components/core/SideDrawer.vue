@@ -33,85 +33,90 @@
       id="app-toolbar"
       value="true"
       app
-      dark
       persistent
       permanent
       right
       hide-overlay
-      :color="activeColor.primary"
       :class="{ 'left-shadow': container === false }"
       width="50"
     >
+      <!-- TOP BUTTONS -->
       <v-layout justify-space-between column fill-height>
-        <v-list>
-          <template v-for="(item, index) in upItems">
-            <v-tooltip left :key="index">
-              <template v-slot:activator="{ on }">
-                <v-list-item
-                  @click="toggleComponent(item.componentToShow)"
-                  v-on="on"
-                  v-show="
-                    !(osmMode === true && item.componentToShow !== 'map-filter')
-                  "
-                  active-class="red--text"
-                  :style="[
-                    activeUpComponent === item.componentToShow
-                      ? { backgroundColor: activeColor.secondary }
-                      : { backgroundColor: activeColor.primary }
-                  ]"
-                >
-                  <v-list-item-action>
-                    <v-icon
-                      style="color: white;"
-                      light
-                      v-html="item.icon"
-                    ></v-icon>
-                  </v-list-item-action>
+        <v-row no-gutters style="height:35%;" align-top>
+          <v-list>
+            <template v-for="(item, index) in topItems">
+              <v-tooltip left :key="index">
+                <template v-slot:activator="{ on }">
+                  <v-list-item
+                    :class="item.class"
+                    @click="toggleComponent(item.componentToShow)"
+                    v-on="on"
+                    :style="getComponentButtonStyle(item)"
+                  >
+                    <v-list-item-action>
+                      <v-icon
+                        dense
+                        :color="
+                          activeUpComponent === item.componentToShow
+                            ? 'white'
+                            : 'rgba(0, 0, 0, 0.54)'
+                        "
+                        light
+                        v-html="item.icon"
+                      ></v-icon>
+                    </v-list-item-action>
 
-                  <v-list-item-content>
-                    <v-list-item-title v-html="item.text"></v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item>
-              </template>
-              <span>{{ item.text }}</span>
-            </v-tooltip>
-          </template>
-        </v-list>
-        <v-list justify-end>
-          <!-- CHANGE LANGUAGE -->
-          <language></language>
+                    <v-list-item-content>
+                      <v-list-item-title v-html="item.text"></v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                </template>
+                <span>{{ item.text }}</span>
+              </v-tooltip>
+            </template>
+          </v-list>
+        </v-row>
 
-          <!-- OSM MAP MODE -->
-          <template v-if="$appConfig.osmMapping === 'on'">
-            <v-tooltip left>
-              <template v-slot:activator="{ on }">
-                <v-list-item
-                  v-on="on"
-                  style="padding: 0 8px;"
-                  @click="toggleOsmMapMode()"
-                  :style="
-                    osmMode === true
-                      ? `background-color: ${activeColor.secondary};`
-                      : `background-color: ${activeColor.primary};`
-                  "
-                  class="mb-1"
-                >
-                  <v-list-item-action style="min-width:35px;">
-                    <v-img
-                      :src="require(`../../assets/img/others/osm_icon.png`)"
-                      height="35"
-                      class="white--text"
-                    ></v-img>
-                  </v-list-item-action>
-                  <v-list-item-content>
-                    <v-list-item-title></v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item>
-              </template>
-              <span>{{ $t("appBar.buttons.osmMapMode") }}</span>
-            </v-tooltip>
-          </template>
+        <!-- MIDDLE BUTTONS -->
+        <v-row no-gutters style="height:55%;" align-center>
+          <v-list>
+            <template v-for="(item, index) in middleItems">
+              <v-tooltip left :key="index">
+                <template v-slot:activator="{ on }">
+                  <v-list-item
+                    @click="toggleComponent(item.componentToShow)"
+                    v-on="on"
+                    :style="[
+                      activeUpComponent === item.componentToShow
+                        ? { backgroundColor: appColor.primary }
+                        : { backgroundColor: '' }
+                    ]"
+                  >
+                    <v-list-item-action>
+                      <v-icon
+                        dense
+                        :color="
+                          activeUpComponent === item.componentToShow
+                            ? 'white'
+                            : 'rgba(0, 0, 0, 0.54)'
+                        "
+                        light
+                        v-html="item.icon"
+                      ></v-icon>
+                    </v-list-item-action>
 
+                    <v-list-item-content>
+                      <v-list-item-title v-html="item.text"></v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                </template>
+                <span>{{ item.text }}</span>
+              </v-tooltip>
+            </template>
+          </v-list>
+        </v-row>
+        <!-- END BUTTONS -->
+        <v-row no-gutters style="height:10%;">
           <!-- BOTTOM ITEMS -->
           <template v-for="(item, index) in bottomItems">
             <v-tooltip left :key="index">
@@ -122,7 +127,11 @@
                   v-on="on"
                 >
                   <v-list-item-action>
-                    <v-icon color="white" light v-html="item.icon"></v-icon>
+                    <v-icon
+                      light
+                      v-html="item.icon"
+                      color="rgba(0, 0, 0, 0.54)"
+                    ></v-icon>
                   </v-list-item-action>
                   <v-list-item-content>
                     <v-list-item-title v-html="item.text"></v-list-item-title>
@@ -132,7 +141,7 @@
               <span>{{ item.text }}</span>
             </v-tooltip>
           </template>
-        </v-list>
+        </v-row>
       </v-layout>
     </v-navigation-drawer>
     <confirm ref="confirm"></confirm>
@@ -149,22 +158,22 @@
 <script>
 // Utilities
 
+import UserSettings from "./UserSettings";
+import UserDataUpload from "./UserDataUpload";
 import Settings from "./Settings";
 import About from "./About";
 import Print from "../print/Print";
-import DrawAndMeasure from "../drawAndMeasure/DrawAndMeasure";
 import Filter from "../layers/filter/Filter";
 import Edit from "../layers/edit/Edit";
 import Language from "./Language";
-import { mapMutations, mapGetters } from "vuex";
-import { EventBus } from "../../EventBus";
-import { mapFields } from "vuex-map-fields";
+import { mapGetters } from "vuex";
 
 export default {
   name: "app-sidebar",
   components: {
+    "user-settings": UserSettings,
+    "user-data-upload": UserDataUpload,
     "map-print": Print,
-    "map-draw-measure": DrawAndMeasure,
     "map-filter": Filter,
     "map-edit": Edit,
     "app-settings": Settings,
@@ -179,7 +188,22 @@ export default {
     showDialog: false
   }),
   computed: {
-    upItems() {
+    topItems() {
+      return [
+        {
+          icon: "fas fa-circle-user",
+          text: this.$t("appBar.buttons.user-settings"),
+          componentToShow: "user-settings"
+        },
+        {
+          icon: "fas fa-cloud",
+          text: this.$t("appBar.buttons.user-data-upload"),
+          componentToShow: "user-data-upload",
+          class: "pl-3"
+        }
+      ];
+    },
+    middleItems() {
       return [
         {
           icon: "fas fa-filter",
@@ -195,11 +219,6 @@ export default {
           icon: "fas fa-print",
           text: this.$t("appBar.buttons.print"),
           componentToShow: "map-print"
-        },
-        {
-          icon: "fas fa-ruler-combined",
-          text: this.$t("appBar.buttons.drawAndMeasure"),
-          componentToShow: "map-draw-measure"
         }
       ];
     },
@@ -212,15 +231,22 @@ export default {
         }
       ];
     },
-    ...mapGetters("map", {
-      osmMode: "osmMode"
+    ...mapGetters("app", {
+      appColor: "appColor",
+      isRecomputingHeatmap: "isRecomputingHeatmap"
     }),
-    ...mapFields("app", {
-      activeColor: "activeColor"
+    ...mapGetters("map", {
+      selectedLayer: "selectedEditLayer"
     })
   },
   methods: {
     toggleComponent(component) {
+      if (
+        (component === "user-data-upload" && this.selectedLayer) ||
+        this.isRecomputingHeatmap
+      ) {
+        return;
+      }
       if (component === this.activeUpComponent) {
         this.hide();
       } else {
@@ -228,43 +254,40 @@ export default {
         this.activeUpComponent = component;
       }
     },
+    getComponentButtonStyle(item) {
+      let style = "";
+      if (this.activeUpComponent === item.componentToShow) {
+        style += "background-color: " + this.appColor.primary + ";";
+      }
+      if (
+        (item.componentToShow === "user-data-upload" && this.selectedLayer) ||
+        this.isRecomputingHeatmap
+      ) {
+        style += "cursor: not-allowed;";
+      }
+      return style;
+    },
+
     toggleDialog(component) {
       this.activeBottomComponent = component;
       this.showDialog = true;
-    },
-    toggleOsmMapMode() {
-      this.hide();
-      this.setOsmMode();
-      if (this.osmMode === true) {
-        // Stop other interactions.
-        EventBus.$emit("ol-interaction-activated", "osm-map-mode");
-        EventBus.$emit("ol-interaction-stoped", "osm-map-mode");
-        this.toggleComponent("map-filter");
-        this.activeColor = this.$appConfig.osmMappingColor;
-        this.$refs.confirm.open(
-          this.$t("map.osmMode.dialogMessage.title"),
-          this.$t("map.osmMode.dialogMessage.body"),
-          {
-            color: this.activeColor.primary,
-            icon: "info",
-            width: 420,
-            showNo: false,
-            yesText: this.$t("buttonLabels.ok")
-          }
-        );
-      } else {
-        this.activeColor = this.$appConfig.baseColor;
-      }
     },
     hide() {
       this.container = false;
       this.activeUpComponent = "";
       this.activeBottomComponent = "";
       this.showDialog = false;
-    },
-    ...mapMutations("map", {
-      setOsmMode: "SET_OSM_MODE"
-    })
+    }
+  },
+  watch: {
+    isRecomputingHeatmap() {
+      if (
+        this.activeUpComponent === "user-data-upload" &&
+        this.isRecomputingHeatmap
+      ) {
+        this.hide();
+      }
+    }
   }
 };
 </script>

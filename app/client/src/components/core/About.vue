@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" scrollable max-width="650px">
     <v-card>
-      <v-app-bar :color="activeColor.primary" dark>
+      <v-app-bar :color="appColor.primary" dark>
         <v-app-bar-nav-icon><v-icon>info</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title>{{ $t("appBar.about.title") }}</v-toolbar-title>
         <v-spacer></v-spacer>
@@ -24,9 +24,9 @@
                   v-html="$t('appBar.about.usedData')"
                 ></span>
                 <a
-                  :style="`color:${activeColor.primary}`"
+                  :style="`color:${appColor.primary}`"
                   class="info-link"
-                  href="https://www.open-accessibility.org/"
+                  href="https://plan4better.de/was-ist-goat/"
                   target="_blank"
                   >{{ $t("appBar.about.moreInfo") }}</a
                 >
@@ -109,8 +109,8 @@ export default {
     layerAttributes() {
       let a = {};
       const attributeLayers = [
-        ...this.$appConfig.map.layers,
-        ...this.$appConfig.map.otherAttributeLayers
+        ...this.layerConfigList,
+        ...(this.appConfig.extra_source || [])
       ];
       attributeLayers.forEach(layer => {
         if (
@@ -120,9 +120,6 @@ export default {
           (layer.attributes && layer.attributes.source === "openStreetMap")
         ) {
           let { source, date } = layer.attributes;
-          if (source === "openStreetMap") {
-            date = this.$appConfig.osmTimestamp;
-          }
           if (!a[source]) {
             a[source] = {};
           }
@@ -136,7 +133,11 @@ export default {
       return a;
     },
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor",
+      appConfig: "appConfig"
+    }),
+    ...mapGetters("map", {
+      layerConfigList: "layerConfigList"
     })
   },
   methods: {

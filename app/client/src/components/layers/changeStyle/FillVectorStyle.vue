@@ -15,6 +15,7 @@
     <v-tabs-items v-model="tab">
       <v-tab-item :key="1">
         <v-color-picker
+          class="elevation-0"
           canvas-height="100"
           width="400"
           style="margin:auto; margin-bottom: 20px;"
@@ -43,6 +44,7 @@
           ></v-text-field>
         </span>
         <v-color-picker
+          class="elevation-0"
           canvas-height="100"
           width="400"
           style="margin:auto; margin-bottom: 20px;"
@@ -66,7 +68,9 @@
 
 <script>
 import { mapGetters } from "vuex";
+import { mapFields } from "vuex-map-fields";
 import Legend from "../../viewer/ol/controls/Legend";
+import { debounce } from "../../../utils/Helpers";
 
 export default {
   props: ["item", "ruleIndex"],
@@ -82,25 +86,28 @@ export default {
   }),
   computed: {
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
+    }),
+    ...mapFields("map", {
+      vectorTileStyles: "vectorTileStyles",
+      vectorTileStylesCopy: "vectorTileStylesCopy"
     }),
     style() {
-      return this.filterStylesOnActiveModeByLayerName(
-        this.item.mapLayer.get("name")
-      ).rules[this.ruleIndex];
+      return this.filterStylesOnActiveModeByLayerName(this.item.get("name"))
+        .rules[this.ruleIndex];
     }
   },
   created() {
     if (this.dialogue == true) {
       //Refresh the legend
-      this.item.layerTreeKey += 1;
+      this.item.set("layerTreeKey", this.item.get("layerTreeKey") + 1);
     }
     this.dialogue = !this.dialogue;
     this.fillColor = this.style.symbolizers[0].color;
     this.outLineWidth = this.style.symbolizers[0].outlineWidth;
     if (this.outLineWidth == 0) {
       this.style.symbolizers[0].outlineWidth = 0.001;
-      this.item.mapLayer.getSource().changed();
+      this.item.getSource().changed();
     }
     this.outLineColor = this.style.symbolizers[0].outlineColor;
   },
@@ -111,7 +118,7 @@ export default {
     close() {
       this.dialogue = false;
       //Refresh the legend
-      this.item.layerTreeKey += 1;
+      this.item.set("layerTreeKey", this.item.get("layerTreeKey") + 1);
     },
     resetStyle() {
       /*
@@ -119,14 +126,12 @@ export default {
       */
 
       //Get original style for layer attribute
-      let sourceStyle = this.$appConfig.stylesObjCopy[
-        this.item.mapLayer.get("name")
-      ].style.rules[this.ruleIndex];
+      let sourceStyle = this.vectorTileStylesCopy[this.item.get("name")].style
+        .rules[this.ruleIndex];
 
       //Get present style for layer attribute
-      let targetStyle = this.$appConfig.stylesObj[
-        this.item.mapLayer.get("name")
-      ].style.rules[this.ruleIndex];
+      let targetStyle = this.vectorTileStyles[this.item.get("name")].style
+        .rules[this.ruleIndex];
 
       //Assign original style to present style to reset
       targetStyle.symbolizers[0].color = sourceStyle.symbolizers[0].color;
@@ -143,17 +148,26 @@ export default {
       }
       this.outLineColor = targetStyle.symbolizers[0].outlineColor;
 
-      this.item.mapLayer.getSource().changed();
+      this.item.getSource().changed();
     },
+    updateLegendRow: debounce(function() {
+      this.item.set(
+        "attributeDisplayStatusKey",
+        this.item.get("attributeDisplayStatusKey") + 1
+      );
+    }, 60),
     onFillColorChange(value) {
       //Change color of polygon fill on inpu change
       this.style.symbolizers[0].color = value.slice(0, 7);
-      this.item.mapLayer.getSource().changed();
+      this.item.getSource().changed();
+      this.updateLegendRow();
     },
+
     onOutLineColorChange(value) {
       //Change color of polygon boundary on input change
       this.style.symbolizers[0].outlineColor = value;
-      this.item.mapLayer.getSource().changed();
+      this.item.getSource().changed();
+      this.updateLegendRow();
     },
     onOutLineWidthChange() {
       //Change width of Polygon boundary on input change
@@ -162,7 +176,8 @@ export default {
       } else {
         this.style.symbolizers[0].outlineWidth = this.outLineWidth;
       }
-      this.item.mapLayer.getSource().changed();
+      this.item.getSource().changed();
+      this.updateLegendRow();
     }
   }
 };

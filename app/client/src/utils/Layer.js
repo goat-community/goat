@@ -1,9 +1,7 @@
 import { Group as LayerGroup } from "ol/layer.js";
 import olLayerLayer from "ol/layer/Layer.js";
-import { WFS } from "ol/format";
 import olLayerImage from "ol/layer/Image.js";
 import olLayerVector from "ol/layer/Vector.js";
-import olSourceImageWMS from "ol/source/ImageWMS.js";
 
 import { appendParams as olUriAppendParams } from "ol/uri.js";
 import UrlUtil from "./Url";
@@ -13,7 +11,6 @@ import store from "../store/index";
 
 const geobuf = require("geobuf");
 const Pbf = require("pbf");
-const ServerType = "geoserver";
 
 /**
  * Util for OL layers
@@ -106,61 +103,6 @@ export function zoomToLayerExtent(vecLayer, olMap) {
 }
 
 /**
- * Creates the WFS serialized string
- *
- * @param  {string} srsName The source coordinate reference system
- * @param  {string} namespace The Geoserver namespace
- * @param  {string} workspace The Geoserver workspace
- * @param  {string} layerName The Layer name
- * @param  {ol.format.filter} filter The Openlayers filter
- *
- */
-export function wfsRequestParser(
-  srsName,
-  workspace,
-  layerName,
-  filter,
-  viewparams = undefined
-) {
-  const xs = new XMLSerializer();
-  const opt = {
-    srsName: srsName,
-    featurePrefix: workspace,
-    featureTypes: [layerName],
-    outputFormat: "application/json",
-    filter: filter
-  };
-  if (viewparams) {
-    opt.viewParams = viewparams.toString();
-  }
-
-  const wfs = new WFS().writeGetFeature(opt);
-  const xmlparser = xs.serializeToString(wfs);
-  return xmlparser;
-}
-
-export function wfsTransactionParser(
-  featuresToAdd,
-  featuresToUpdate,
-  featuresToDelete,
-  formatGML
-) {
-  const wfs = new WFS();
-  const xml = wfs.writeTransaction(
-    featuresToAdd,
-    featuresToUpdate,
-    featuresToDelete,
-    formatGML
-  );
-  return xml;
-}
-
-export function readTransactionResponse(data) {
-  const wfs = new WFS();
-  return wfs.readTransactionResponse(data);
-}
-
-/**
  * Get an array of all layers in a group. The group can contain multiple levels
  * of others groups.
  * @param {import("ol/layer/Base.js").default} layer The base layer, mostly a group of layers.
@@ -235,81 +177,6 @@ export function getActiveBaseLayer(map) {
       return layer.getVisible() === true;
     });
   return activeBaselayer;
-}
-
-/**
- * Create and return a basic WMS layer with only a source URL and a comma
- * separated layers names (see {@link import("ol/source/ImageWMS.js").default}).
- *
- * @param {string} sourceURL The source URL.
- * @param {string} sourceLayersName A comma separated names string.
- * @param {string} sourceFormat Image format, for example 'image/png'.
- * @param {string=} opt_serverType Type of the server ("mapserver",
- *     "geoserver", "qgisserver", …).
- * @param {string=} opt_time time parameter for layer queryable by time/period
- * @param {Object<string, string>=} opt_params WMS parameters.
- * @param {string=} opt_crossOrigin crossOrigin.
- * @param {Object=} opt_customSourceOptions Some initial options.
- * @param {Object=} opt_customLayerOptions The layer opacity.
- * @return {import("ol/layer/Image.js").default} WMS Layer.
- */
-export function createBasicWMSLayer(
-  sourceURL,
-  sourceLayersName,
-  sourceFormat,
-  opt_serverType,
-  opt_time,
-  opt_params,
-  opt_crossOrigin,
-  opt_customSourceOptions,
-  opt_customLayerOptions
-) {
-  /** @type {Object<string, string>} */
-  const params = {
-    FORMAT: sourceFormat,
-    LAYERS: sourceLayersName
-  };
-  let olServerType;
-  if (opt_time) {
-    params.TIME = opt_time;
-  }
-  if (opt_serverType) {
-    params.SERVERTYPE = opt_serverType;
-    // OpenLayers expects 'qgis' insteads of 'qgisserver'
-    olServerType = opt_serverType.replace(ServerType.QGISSERVER, "qgis");
-  }
-  const options = Object.assign({}, opt_customSourceOptions, {
-    url: sourceURL,
-    params: params,
-    serverType: olServerType,
-    crossOrigin: opt_crossOrigin
-  });
-  const source = new olSourceImageWMS(options);
-  if (opt_params) {
-    source.updateParams(opt_params);
-  }
-
-  const layerOptions = Object.assign({}, opt_customLayerOptions, { source });
-  return new olLayerImage(layerOptions);
-}
-
-/**
- * Get the WMTS legend URL for the given layer.
- * @param {import("ol/layer/Tile.js").default} layer Tile layer as returned by the
- * layerHelper service.
- * @return {string|undefined} The legend URL or undefined.
- */
-export function getWMTSLegendURL(layer) {
-  // FIXME case of multiple styles ?  case of multiple legendUrl ?
-  let url;
-  const styles = layer.get("capabilitiesStyles");
-  if (styles !== undefined) {
-    const legendURL = styles[0].legendURL;
-    if (legendURL !== undefined) {
-      url = legendURL[0].href;
-    }
-  }
-  return url;
 }
 
 /**

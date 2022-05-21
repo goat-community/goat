@@ -16,6 +16,7 @@
           id="ol-map-print"
         >
           <img
+            crossorigin="anonymous"
             :src="rotationIcon"
             :style="
               `transform:rotate(${print.rotation}deg);z-index:2;max-width:10mm;position:absolute;right:5mm;top:5mm;`
@@ -58,12 +59,14 @@
         </div>
         <!-- GOAT LOGO -->
         <img
+          crossorigin="anonymous"
           :src="logoGoat"
           :style="
             `z-index:1;max-width:30mm;position:absolute;right:39mm;bottom:5mm;padding-right:2mm;border-right: 1px solid #ccc;`
           "
         />
         <img
+          crossorigin="anonymous"
           :src="logoP4B"
           :style="
             `z-index:1;max-width:35mm;position:absolute;right:2mm;bottom:5mm;`
@@ -77,25 +80,26 @@
 import { mapGetters } from "vuex";
 import { getCurrentDate, getCurrentTime } from "../../../utils/Helpers";
 import PrintLegend from "./PrintLegend";
+import { Mapable } from "../../../mixins/Mapable";
 export default {
   components: {
     "print-legend": PrintLegend
   },
+  mixins: [Mapable],
   data() {
     return {
       mapSideSheetSize: 65, // in mm. The sheet area for legend, title and logos. (right or bottom)
-      logoGoat: "img/logo_green.png",
-      logoP4B: "img/p4b_logo.png",
+      logoGoat: "img/goat_standard.svg",
+      logoP4B: "img/plan4better_standard.svg",
       rotationIcon: "img/north_arrow.png"
     };
   },
   computed: {
     ...mapGetters("map", {
-      print: "print",
-      map: "map"
+      print: "print"
     }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     }),
     /**
      * Get formated date time as dd/mm/yyyy hh:mm:ss

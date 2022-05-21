@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="show" scrollable max-width="330" v-if="calculation">
     <v-card>
-      <v-app-bar :color="activeColor.primary" dark>
+      <v-app-bar :color="appColor.primary" dark>
         <v-app-bar-nav-icon><v-icon>fas fa-palette</v-icon></v-app-bar-nav-icon>
         <v-toolbar-title>{{
           $t("isochrones.pickColor.title")
@@ -18,7 +18,7 @@
             colored-border
             class="mb-0 mt-2 mx-1 elevation-2"
             icon="info"
-            :color="activeColor.primary"
+            :color="appColor.primary"
             dense
           >
             <span v-html="$t('isochrones.results.colorMessage')"></span>
@@ -66,12 +66,7 @@ export default {
     calculation: { type: Object, required: false },
     visible: { type: Boolean, required: true }
   },
-  data: () => ({
-    modes: {
-      default: [1, 3],
-      scenario: [2, 4]
-    }
-  }),
+  data: () => ({}),
   methods: {
     getPaletteColor(color) {
       return Object.values(color).toString();
@@ -83,16 +78,16 @@ export default {
 
       // Update isochrone color
       this.calculation.data.forEach(obj => {
-        const selectedMode = this.modes[this.selectedMode];
         const isochroneFeature = this.isochroneLayer
           .getSource()
           .getFeatureById(obj.id);
-        if (selectedMode.includes(isochroneFeature.get("modus"))) {
+        if (this.selectedMode == isochroneFeature.get("modus")) {
+          console.log(this.selectedMode);
           const step = isochroneFeature.get("step");
           const interpolatedColor = IsochroneUtils.getInterpolatedColor(
             1,
             20,
-            step,
+            parseInt(step / 60),
             color
           );
           isochroneFeature.set("color", interpolatedColor);
@@ -102,10 +97,8 @@ export default {
       });
 
       // Update network color
-      const selectedModeHumanize =
-        this.selectedMode === "default" ? "Default" : "Input";
-      if (!this.calculation.additionalData[selectedModeHumanize]) return;
-      this.calculation.additionalData[selectedModeHumanize].features.forEach(
+      if (!this.calculation.additionalData[this.selectedMode]) return;
+      this.calculation.additionalData[this.selectedMode].features.forEach(
         feature => {
           const cost = feature.get("cost");
           const lowestCostValue = 0; // TODO: Find lowest and highest based on response data
@@ -138,7 +131,7 @@ export default {
       colors: "colors"
     }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     })
   }
 };

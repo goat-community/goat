@@ -79,7 +79,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters("pois", {
+    ...mapGetters("poisaois", {
       dynamicHeatmapTravelTimes: "dynamicHeatmapTravelTimes"
     }),
     accessibilityGravityData() {

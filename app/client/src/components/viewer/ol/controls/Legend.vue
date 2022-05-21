@@ -1,92 +1,13 @@
 <template>
-  <v-expansion-panels
-    multiple
-    v-model="panel"
-    class="elevation-3"
-    dark
-    style="position:absolute;bottom:35px;right:10px;maxWidth: 250px;"
-  >
-    <v-expansion-panel
-      @click="onExpansionPanelClick"
-      :style="`background-color: white;`"
-    >
-      <v-expansion-panel-header :style="`background-color: ${color};`"
-        >{{ $t("map.layerLegend.title") }}
-        <template v-slot:actions>
-          <v-icon small>$vuetify.icons.expand</v-icon>
-        </template>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content style="max-height:400px;">
-        <vue-scroll>
-          <div id="legend">
-            <template v-for="(item, index) in layers">
-              <div
-                :key="index"
-                v-if="layerVisibility(item)"
-                style="padding-right:10px;"
-              >
-                <v-divider></v-divider>
-                <!-- LAYER TITLE -->
-                <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
-                  {{
-                    $te(`map.layerName.${item.get("name")}`)
-                      ? $t(`map.layerName.${item.get("name")}`)
-                      : item.get("name")
-                  }}
-                </p>
-                <!-- WMS LEGEND -->
-                <div v-if="item.get('legendGraphicUrl')">
-                  <img
-                    crossorigin="anonymous"
-                    style="max-width:100%;"
-                    :src="item.get('legendGraphicUrl')"
-                    class="white--text mt-0 pt-0"
-                  />
-                </div>
-                <div v-else>
-                  <div v-if="item.get('type') === 'WMS'">
-                    <template
-                      v-for="(layerName, index2) in item
-                        .getSource()
-                        .getParams()
-                        .LAYERS.split(',')"
-                    >
-                      <div :key="index2">
-                        <img
-                          crossorigin="anonymous"
-                          style="max-width:100%;"
-                          :src="getWMSLegendImageUrl(item, layerName)"
-                          class="white--text mt-0 pt-0"
-                        />
-                        <br />
-                      </div>
-                    </template>
-                  </div>
-                  <!-- VECTOR LEGEND -->
-                  <div
-                    v-if="['VECTORTILE', 'VECTOR'].includes(item.get('type'))"
-                  >
-                    <span
-                      :ref="`legend-vector-${index}`"
-                      v-html="renderLegend(item, index)"
-                    ></span>
-                  </div>
-                </div>
-              </div>
-            </template>
-          </div>
-        </vue-scroll>
-      </v-expansion-panel-content>
-    </v-expansion-panel>
-  </v-expansion-panels>
+  <span></span>
 </template>
 <script>
 import { mapGetters } from "vuex";
 import { EventBus } from "../../../../EventBus";
 import { Mapable } from "../../../../mixins/Mapable";
-import { getAllChildLayers, getWMSLegendURL } from "../../../../utils/Layer";
+import { getWMSLegendURL } from "../../../../utils/Layer";
 import LegendRenderer from "../../../../utils/LegendRenderer";
-
+import { mapFields } from "vuex-map-fields";
 export default {
   mixins: [Mapable],
   name: "map-legend",
@@ -105,10 +26,10 @@ export default {
      */
     onMapBound() {
       const me = this;
-      const allLayers = getAllChildLayers(me.map);
-      me.layers = allLayers.filter(
-        layer => layer.get("displayInLegend") !== false
-      );
+      me.layers = me.map
+        .getLayers()
+        .getArray()
+        .filter(layer => layer.get("displayInLegend") !== false);
       this.isMapMounted = true;
       EventBus.$on("openLegend", () => this.panel.push(0));
       EventBus.$on("closeLegend", () => (this.panel = []));
@@ -138,9 +59,9 @@ export default {
     },
     renderLegend(item, index) {
       setTimeout(() => {
-        const styleObj = this.$appConfig.stylesObj;
+        const styleObj = this.vectorTileStyles;
         const name = item.get("name");
-        let styleTranslation = this.$appConfig.stylesObj[name].translation;
+        let styleTranslation = this.vectorTileStyles[name].translation;
         const currentLocale = this.$i18n.locale;
         if (styleObj[name] && styleObj[name].format === "geostyler") {
           let el = this.$refs[`legend-vector-${index}`];
@@ -170,7 +91,7 @@ export default {
     },
     filterStylesOnActiveModeByLayerName(name) {
       //get Filtered style on active mode based on layer name
-      const style = this.$appConfig.stylesObj[name].style;
+      const style = this.vectorTileStyles[name].style;
       const filteredStyle = this.filterStylesOnActiveMode(style);
       return filteredStyle || style;
     },
@@ -178,7 +99,7 @@ export default {
       //get Filtered style on active mode based on style object
       const styleRules = style.rules;
       const filteredRules = [];
-      const activeMode = this.calculationOptions.calculationModes.active;
+      const activeMode = this.calculationMode.active;
       let newStyle = { ...style };
       if (Array.isArray(styleRules)) {
         styleRules.forEach(rule => {
@@ -220,9 +141,9 @@ export default {
         this.map.getView().getResolution() <= item.get("maxResolution") &&
         item.getVisible() === true &&
         item.get("displayInLegend") !== false &&
-        item.get("group") !== "backgroundLayers" &&
+        item.get("group") !== "basemap" &&
         this.isMapMounted === true &&
-        this.$appConfig.stylesObj
+        this.vectorTileStyles
       ) {
         return true;
       }
@@ -231,12 +152,15 @@ export default {
   },
 
   computed: {
-    ...mapGetters("isochrones", {
-      calculationOptions: "options"
+    ...mapGetters("app", {
+      calculationMode: "calculationMode"
+    }),
+    ...mapFields("map", {
+      vectorTileStyles: "vectorTileStyles"
     })
   },
   watch: {
-    "calculationOptions.calculationModes.active": function() {
+    "calculationMode.active": function() {
       this.$forceUpdate();
     }
   }

@@ -1,25 +1,6 @@
 <template>
   <div>
     <div v-show="print.active === false">
-      <!-- toggle-streetview -->
-      <v-tooltip right>
-        <template v-slot:activator="{ on }">
-          <v-btn
-            class="mx-2 miniviewer-button"
-            fab
-            dark
-            small
-            :color="activeColor.primary"
-            @click="showMiniViewer"
-            :loading="isMapillaryBtnDisabled"
-            v-on="on"
-          >
-            <v-icon dark>streetview</v-icon>
-          </v-btn>
-        </template>
-        <span>{{ $t(`map.tooltips.toggleStreetView`) }}</span>
-      </v-tooltip>
-
       <!-- isochrone-thematic-data -->
       <isochrone-thematic-data v-show="!miniViewOlMap" />
 
@@ -49,9 +30,8 @@
           ref="mapillary"
           class="fullscreen"
           v-if="miniViewerVisible"
-          :organization_key="mapillaryOrganizationKey"
-          :clientId="mapillaryClientId"
-          :baseLayerExtent="mapillaryTileBaseLayerExtent"
+          :accessToken="mapillaryAccessToken"
+          :baseLayerExtent="studyArea[0].get('bounds')"
         ></app-mapillary>
       </div>
 
@@ -80,7 +60,7 @@
 <script>
 import appMap from "./ol/Map";
 import appMapillary from "./mapillary/Mapillary";
-import IsochronThematicData from "./others/IsochroneThematicData";
+import IsochronThematicData from "../isochrones/IsochroneThematicData.vue";
 import PrintViewer from "./print/PrintViewer";
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
@@ -95,30 +75,25 @@ export default {
   },
   data() {
     return {
-      miniViewerVisible: false,
       miniViewOlMap: false,
-      // Mapillary Keys
-      mapillaryClientId: "V1Qtd0JKNGhhb1J1cktMbmhFSi1iQTo5ODMxOWU3NmZlMjEyYTA3",
-      mapillaryOrganizationKey: "RmTboeISWnkEaYaSdtVRHp",
-      mapillaryTileBaseLayerExtent: this.$appConfig.map.originalExtent
+      mapillaryAccessToken:
+        "MLY|4945732362162775|a3872ee8a2b737be51db110cdcdea3d4"
     };
   },
   computed: {
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     }),
     ...mapGetters("map", {
-      print: "print"
+      print: "print",
+      studyArea: "studyArea"
     }),
     ...mapFields("map", {
-      isMapillaryBtnDisabled: "isMapillaryBtnDisabled"
+      isMapillaryBtnDisabled: "isMapillaryBtnDisabled",
+      miniViewerVisible: "miniViewerVisible"
     })
   },
   methods: {
-    showMiniViewer() {
-      this.miniViewerVisible = true;
-      this.isMapillaryBtnDisabled = true;
-    },
     switchViews() {
       this.miniViewOlMap = !this.miniViewOlMap;
       this.updateViews();
@@ -153,7 +128,7 @@ export default {
 
 .miniviewer-button {
   position: absolute;
-  top: 150px;
+  top: 190px;
   left: 8px;
   z-index: 1;
 }

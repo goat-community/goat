@@ -1,4 +1,8 @@
-import "@fortawesome/fontawesome-free/css/all.css"; // Ensure you are using css-loader
+if (process.env.VUE_APP_FONTAWESOME_NPM_AUTH_TOKEN) {
+  require("@fortawesome/fontawesome-pro/css/all.css");
+} else {
+  require("@fortawesome/fontawesome-free/css/all.css");
+}
 
 import Vue from "vue";
 import Vuetify from "vuetify/lib";

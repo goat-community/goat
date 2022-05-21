@@ -8,13 +8,7 @@
     <template v-slot:activator>
       <v-tooltip :disabled="fab === true" left>
         <template v-slot:activator="{ on }">
-          <v-btn
-            dark
-            v-on="on"
-            small
-            class="elevation-0 ma-0 pa-0"
-            :color="activeColor.primary"
-          >
+          <v-btn v-on="on" small class="elevation-0 ma-0 pa-0">
             <country-flag
               :country="activeLanguage[0].flag || $i18n.locale"
               size="normal"
@@ -25,7 +19,7 @@
       </v-tooltip>
     </template>
 
-    <div :style="`background-color:${activeColor.secondary};`">
+    <div>
       <v-btn
         class="ma-0 pa-0"
         text
@@ -73,7 +67,7 @@ export default {
       contextmenu: "contextmenu"
     }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     }),
     notActiveLanguages() {
       const notActiveLanguages = this.languages.filter(value => {

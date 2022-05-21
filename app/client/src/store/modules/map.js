@@ -1,7 +1,22 @@
+import ApiService from "../../services/api.service";
 import { getField, updateField } from "vuex-map-fields";
+import { GET_STUDY_AREA, GET_STUDY_AREAS_LIST } from "../actions.type";
+import { SET_STUDY_AREA, SET_STUDY_AREAS_LIST } from "../mutations.type";
+import { SET_ERROR } from "../mutations.type";
+import { errorMessage } from "../../utils/Helpers";
+import { transformExtent } from "ol/proj";
+import { geojsonToFeature } from "../../utils/MapUtils";
 
 const state = {
+  studyArea: null,
+  studyAreaList: [],
+  subStudyAreaLayer: null,
   map: null,
+  errors: null,
+  helpTooltip: {
+    isActive: false,
+    currentMessage: ""
+  },
   messages: {
     snackbar: {
       type: "info",
@@ -10,19 +25,21 @@ const state = {
       timeout: 2000
     }
   },
-  layers: {}, // Only for operational layers
-  helpTooltip: {
-    isActive: false,
-    currentMessage: ""
-  },
   contextmenu: null,
+  isMapBusy: false,
+  ///
+
+  layers: {}, // Only for operational layers
   osmMode: false,
   reqFields: null,
   bldEntranceLayer: null,
   editLayer: null,
   selectedEditLayer: null,
+  heatmapCancelToken: null,
   isMapillaryBtnDisabled: false,
-  busyLayers: [],
+  miniViewerVisible: false,
+  vectorTileStyles: {},
+  vectorTileStylesCopy: {},
   print: {
     active: false,
     title: "",
@@ -81,8 +98,37 @@ const state = {
 };
 
 const getters = {
+  studyArea: state => state.studyArea,
+  subStudyAreaLayer: state => state.subStudyAreaLayer,
+  studyAreaProps: state => {
+    if (Array.isArray(state.studyArea)) {
+      const studyArea = state.studyArea[0];
+      return {
+        id: studyArea.get("id"),
+        name: studyArea.get("name"),
+        population: studyArea.get("population")
+      };
+    } else {
+      return {};
+    }
+  },
+  studyAreaList: state => state.studyAreaList,
   map: state => state.map,
   layers: state => state.layers,
+  // eslint-disable-next-line no-unused-vars
+  layerConfigList: (state, getters, rootState, rootGetters) => {
+    const layerGroups = rootState.app.appConfig.layer_groups;
+    const layers = [];
+    layerGroups.forEach(layerGroup => {
+      const groupName = Object.keys(layerGroup)[0];
+      layerGroup[groupName].children.forEach(layerObj => {
+        const layerName = Object.keys(layerObj)[0];
+        const layer = layerObj[layerName];
+        layers.push(layer);
+      });
+    });
+    return layers;
+  },
   osmMode: state => state.osmMode,
   helpTooltip: state => state.helpTooltip,
   messages: state => state.messages,
@@ -93,24 +139,48 @@ const getters = {
   editLayer: state => state.editLayer,
   selectedEditLayer: state => state.selectedEditLayer,
   isMapillaryBtnDisabled: state => state.isMapillaryBtnDisabled,
-  busyLayers: state => state.busyLayers,
+  miniViewerVisible: state => state.miniViewerVisible,
   print: state => state.print,
+  isMapBusy: state => state.isMapBusy,
+  heatmapCancelToken: state => state.heatmapCancelToken,
   getField
 };
 
-const actions = {};
+const actions = {
+  [GET_STUDY_AREA](context, credentials) {
+    return new Promise((resolve, reject) => {
+      ApiService.get("/users/me/study-area", credentials)
+        .then(response => {
+          context.commit(SET_STUDY_AREA, response.data);
+          resolve(response.data);
+        })
+        .catch(({ response }) => {
+          errorMessage(context, response, SET_ERROR);
+          reject(response);
+        });
+    });
+  },
+  [GET_STUDY_AREAS_LIST](context, credentials) {
+    return new Promise((resolve, reject) => {
+      ApiService.get("/users/me/study-areas-list", credentials)
+        .then(response => {
+          context.commit(SET_STUDY_AREAS_LIST, response.data);
+          resolve(response.data);
+        })
+        .catch(({ response }) => {
+          errorMessage(context, response, SET_ERROR);
+          reject(response);
+        });
+    });
+  }
+};
 
 const mutations = {
-  UPDATE_HELP_TOOLTIP(state, message) {
-    state.currentMessage = message;
+  SET_MAP(state, map) {
+    state.map = map;
   },
-  TOGGLE_SNACKBAR(state, payload) {
-    Object.assign(state.messages.snackbar, payload);
-  },
-  SET_LAYER(state, layer) {
-    if (layer.get("name")) {
-      state.layers[layer.get("name")] = layer;
-    }
+  [SET_ERROR](state, error) {
+    state.errors = error;
   },
   START_HELP_TOOLTIP(state, message) {
     state.helpTooltip.isActive = true;
@@ -119,15 +189,53 @@ const mutations = {
   STOP_HELP_TOOLTIP(state) {
     state.helpTooltip.isActive = false;
   },
-  SET_MAP(state, map) {
-    state.map = map;
+  UPDATE_HELP_TOOLTIP(state, message) {
+    state.currentMessage = message;
+  },
+  TOGGLE_SNACKBAR(state, payload) {
+    Object.assign(state.messages.snackbar, payload);
+  },
+  [SET_STUDY_AREA](state, studyArea) {
+    const olFeatures = geojsonToFeature(studyArea, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857"
+    });
+    const extent = transformExtent(
+      olFeatures[0].get("bounds"),
+      "EPSG:4326",
+      "EPSG:3857"
+    );
+    if (Array.isArray(olFeatures) && olFeatures.length > 0) {
+      olFeatures[0].set("bounds", extent);
+      state.studyArea = olFeatures;
+    }
+  },
+  [SET_STUDY_AREAS_LIST](state, studyAreas) {
+    state.studyAreaList = studyAreas;
   },
   SET_CONTEXTMENU(state, contextmenu) {
     state.contextmenu = contextmenu;
   },
-  SET_OSM_MODE(state) {
-    state.osmMode = !state.osmMode;
+  SET_CLONE_VECTOR_STYLES(state, customerData) {
+    const layerGroups = customerData.layer_groups;
+    const styles = {};
+    layerGroups.forEach(layerGroup => {
+      const groupName = Object.keys(layerGroup)[0];
+      layerGroup[groupName].children.forEach(layerObj => {
+        const layerName = Object.keys(layerObj)[0];
+        const layer = layerObj[layerName];
+        styles[layerName] = {
+          format: "geostyler",
+          style: layer.style,
+          translation: layer.translation || {}
+        };
+      });
+    });
+    state.vectorTileStyles = styles;
+    //Making deep copy of styleobject for restoring the the original style of layers
+    state.vectorTileStylesCopy = JSON.parse(JSON.stringify(styles));
   },
+  /////////
   UPDATE_REQ_FIELDS(state, reqFields) {
     state.reqFields = reqFields;
   },
@@ -136,14 +244,6 @@ const mutations = {
   },
   SET_EDIT_LAYER(state, editLayer) {
     state.editLayer = editLayer;
-  },
-  INSERT_BUSY_LAYER(state, layer) {
-    state.busyLayers.push(layer);
-  },
-  REMOVE_BUSY_LAYER(state, layer) {
-    state.busyLayers = state.busyLayers.filter(
-      l => l.get("name") !== layer.get("name")
-    );
   },
   updateField
 };

@@ -1,12 +1,11 @@
 <template>
-  <!-- CREATE SCENARIO DIALOG -->
   <v-dialog
     v-model="show"
     max-width="400"
     @keydown.esc="scenarioDialog = false"
   >
     <v-card>
-      <v-app-bar flat :color="activeColor.primary" dark height="50">
+      <v-app-bar flat :color="appColor.primary" dark height="50">
         <v-icon class="mr-3">fas fa-bullseye</v-icon>
         <v-toolbar-title>{{
           scenarioId
@@ -27,7 +26,7 @@
           <v-text-field
             :rules="[rules.required, rules.counter]"
             v-model="scenarioName"
-            label="Scenario Name"
+            :label="$t('appBar.edit.ScenarioName')"
             maxlength="50"
             lazy-validation
           ></v-text-field>
@@ -55,7 +54,8 @@
 <script>
 import { mapFields } from "vuex-map-fields";
 import { mapGetters } from "vuex";
-import http from "../../services/http";
+import ApiService from "../../services/api.service";
+import { GET_SCENARIOS } from "../../store/actions.type";
 
 export default {
   props: ["visible", "scenarioId"],
@@ -78,33 +78,34 @@ export default {
         }
       }
     },
-    ...mapFields("isochrones", {
+    ...mapFields("scenarios", {
       scenarios: "scenarios",
       activeScenario: "activeScenario"
     }),
-    ...mapGetters("user", { userId: "userId" }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     })
   },
   methods: {
     updateInsertScenario() {
       const scenarioName = this.scenarioName;
       const activeScenarioId = this.scenarioId;
-      http
-        .post("./api/map/scenarios", {
-          mode: activeScenarioId ? "update_scenario" : "insert",
-          userid: this.userId,
-          scenario_name: this.scenarioName,
-          scenario_id: this.scenarioId
-        })
+      const payload = {
+        scenario_name: scenarioName
+      };
+      let promise;
+      if (activeScenarioId) {
+        promise = ApiService.put(`/scenarios/${activeScenarioId}`, payload);
+      } else {
+        promise = ApiService.post("/scenarios", payload);
+      }
+
+      promise
         .then(response => {
           if (response.status === 200) {
-            let scenarioId = activeScenarioId || response.data.scenario_id;
+            this.$store.dispatch(`scenarios/${GET_SCENARIOS}`);
+            let scenarioId = activeScenarioId || response.data.id;
             scenarioId = parseInt(scenarioId);
-            this.$set(this.scenarios, scenarioId, {
-              title: scenarioName
-            });
             this.activeScenario = scenarioId;
           }
         })
@@ -117,9 +118,13 @@ export default {
     show() {
       if (this.show === true) {
         if (this.scenarioId) {
-          this.scenarioName = this.scenarios[this.scenarioId].title;
+          this.scenarios.forEach(scenario => {
+            if (scenario.id === this.scenarioId) {
+              this.scenarioName = scenario.scenario_name;
+            }
+          });
         } else {
-          let id = Object.keys(this.scenarios).length;
+          let id = this.scenarios.length;
           if (id > 0) {
             id += 1;
             this.scenarioName = this.$t("appBar.edit.scenario") + " " + id;

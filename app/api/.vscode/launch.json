@@ -5,33 +5,71 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Attach (to Docker Container)",
+            "name": "Python: FastAPI",
+            "type": "python",
+            "request": "launch",
+            "module": "uvicorn",
+            "justMyCode": false,
+            "args": [
+                "src.main:app",
+                "--reload",
+                "--port",
+                "8000"
+            ],
+            "jinja": true
+        },
+        {
+            "name": "Python: Remote Attach",
             "type": "python",
             "request": "attach",
+            "port": 5678,
+            "host": "localhost",
             "pathMappings": [
                 {
                     "localRoot": "${workspaceFolder}",
-                    "remoteRoot": "/usr/src/app"
+                    "remoteRoot": "/app"
                 }
-            ],
-            "port": 3000,
-            "host": "localhost",
-            "internalConsoleOptions": "neverOpen"
+            ]
         },
         {
-            "name": "Python: Flask (Local)",
+            "name": "Python: Current File",
             "type": "python",
             "request": "launch",
-            "module": "flask",
-            "env": {
-                "FLASK_APP": "${workspaceFolder}/src/app.py"
-            },
-            "args": [
-                "run",
-                "--no-debugger",
-                "--no-reload"
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "stopOnEntry": true,
+            "justMyCode": false
+        },
+        {
+            "name": "g++ - Build and debug active file",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
             ],
-            "jinja": true
+            "preLaunchTask": "C/C++: g++ build active file",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug Tests",
+            "type": "python",
+            "request": "test",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTEST_ADDOPTS": "--no-cov"
+            }
         }
     ]
 }

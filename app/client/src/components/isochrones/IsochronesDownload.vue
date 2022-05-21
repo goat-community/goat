@@ -1,9 +1,9 @@
 <template>
   <v-dialog v-model="show" scrollable max-width="350px">
     <v-card>
-      <v-app-bar :color="activeColor.primary" dark>
+      <v-app-bar :color="appColor.primary" dark>
         <v-app-bar-nav-icon
-          ><v-icon>fas fa-file-download</v-icon></v-app-bar-nav-icon
+          ><v-icon>fa-solid fa-download</v-icon></v-app-bar-nav-icon
         >
         <v-toolbar-title>{{ $t("isochrones.download.title") }}</v-toolbar-title>
         <v-spacer></v-spacer>
@@ -32,7 +32,8 @@
         <v-btn
           class="white--text"
           @click="download()"
-          :color="activeColor.primary"
+          :loading="isDownloading"
+          :color="appColor.primary"
           ><v-icon left>fas fa-download</v-icon
           >{{ $t("isochrones.download.download") }}</v-btn
         >
@@ -43,9 +44,8 @@
 
 <script>
 import { mapGetters } from "vuex";
-import { featuresToGeojson } from "../../utils/MapUtils";
 import { saveAs } from "file-saver";
-import http from "../../services/http";
+import ApiService from "../../services/api.service";
 
 export default {
   props: {
@@ -55,7 +55,8 @@ export default {
   data: () => ({
     name: "isochrones-export",
     selected: "GeoJson",
-    items: ["GeoJson", "Shapefile"]
+    items: ["GeoJson", "Shapefile", "XLSX"],
+    isDownloading: false
   }),
   methods: {
     download() {
@@ -64,43 +65,27 @@ export default {
       if (me.name.length === 0) {
         exportName = "export";
       }
-      if (me.selected === "GeoJson") {
-        let featuresArray = [];
-        let data = me.calculation.data;
-        data.forEach(isochrone => {
-          let id = isochrone.id;
-          let feature = me.isochroneLayer.getSource().getFeatureById(id);
-          if (feature) {
-            let clonedFeature = feature.clone();
-            clonedFeature.unset("isVisible");
-            featuresArray.push(clonedFeature);
-          }
+      this.isDownloading = true;
+      const isochrone_calculation_id =
+        me.calculation.data[0].isochrone_calculation_id;
+      ApiService.get_(
+        `/isochrones/export/${isochrone_calculation_id}?return_type=${me.selected}`,
+        { responseType: "blob" }
+      )
+        .then(response => {
+          saveAs(response.data, `${exportName}.zip`);
+        })
+        .finally(() => {
+          this.isDownloading = false;
+          me.show = false;
         });
-        let json = featuresToGeojson(featuresArray, "EPSG:3857");
-        let blob = new Blob([json], { type: "application/json" });
-
-        saveAs(blob, `${exportName}.json`);
-      } else if (me.selected === "Shapefile") {
-        const objectId = me.calculation.data[0].objectId;
-        http
-          .post(
-            "/api/map/isochrone",
-            {
-              return_type: "shapefile",
-              objectid: objectId
-            },
-            { responseType: "blob" }
-          )
-          .then(response => {
-            saveAs(response.data, `${exportName}.zip`);
-          });
-      }
     }
   },
   computed: {
     ...mapGetters("isochrones", { isochroneLayer: "isochroneLayer" }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor",
+      openapiConfig: "openapiConfig"
     }),
     show: {
       get() {
@@ -112,6 +97,10 @@ export default {
         }
       }
     }
+  },
+  created() {
+    this.items = this.openapiConfig.components.schemas.IsochroneExportType.enum;
+    this.selected = this.items[0];
   }
 };
 </script>

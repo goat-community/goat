@@ -1,17 +1,48 @@
 <template>
   <div id="ol-map-container">
     <!-- Map Controls -->
-    <zoom-control
-      v-show="!miniViewOlMap"
-      :map="map"
-      :color="activeColor.primary"
-    />
-    <full-screen v-show="!miniViewOlMap" :color="activeColor.primary" />
-    <progress-status :isNetworkBusy="isNetworkBusy" />
+    <div style="position:absolute;left:20px;top:10px;">
+      <search-map
+        :viewbox="
+          transformExtent(studyArea[0].get('bounds'), 'EPSG:3857', 'EPSG:4326')
+        "
+        class="mb-2"
+        :map="map"
+        v-show="!miniViewOlMap"
+        :color="appColor.primary"
+      />
+      <full-screen
+        class="mb-2"
+        v-show="!miniViewOlMap"
+        :color="appColor.primary"
+      />
+      <measure class="mb-2" v-show="!miniViewOlMap" :color="appColor.primary" />
+      <!-- toggle-streetview -->
+      <v-tooltip right>
+        <template v-slot:activator="{ on }">
+          <v-btn
+            style="z-index: 1;"
+            fab
+            dark
+            x-small
+            v-show="!miniViewOlMap"
+            :color="appColor.primary"
+            @click="showMiniViewer"
+            :loading="isMapillaryBtnDisabled"
+            v-on="on"
+          >
+            <v-icon dark>streetview</v-icon>
+          </v-btn>
+        </template>
+        <span>{{ $t(`map.tooltips.toggleStreetView`) }}</span>
+      </v-tooltip>
+    </div>
+
+    <progress-status />
     <background-switcher v-show="!miniViewOlMap" />
     <!-- Popup overlay  -->
     <overlay-popup
-      :color="activeColor.primary"
+      :color="appColor.primary"
       :title="getPopupTitle()"
       v-show="popup.isVisible && miniViewOlMap === false"
       ref="popup"
@@ -87,7 +118,7 @@
     </overlay-popup>
     <!-- Info Snackbar for not visible layers. -->
     <v-snackbar
-      :color="activeColor.primary"
+      :color="appColor.primary"
       top
       :timeout="visibilityLayerSnackbar.timeout"
       v-model="visibilityLayerSnackbar.state"
@@ -100,20 +131,78 @@
         <v-icon>close</v-icon>
       </v-btn>
     </v-snackbar>
-    <!-- Info Snackbar for layers that have a long computation time (ex. heatmaps) -->
+
+    <!-- Info snackbar when editing a layer -->
     <v-snackbar
-      :color="activeColor.primary"
-      top
-      :timeout="80000"
-      v-model="busyLayerSnackbar.state"
+      :color="selectedEditLayer ? scenarioLayerEditModeColor : appColor.primary"
+      v-if="activeScenario"
+      :timeout="0"
+      style="font-size:16px;"
+      :value="activeScenario ? true : false"
     >
-      <v-icon color="white" class="mr-3">
-        info
-      </v-icon>
-      <span v-html="busyLayerSnackbar.message"></span>
-      <v-btn text @click="busyLayerSnackbar.state = false">
-        <v-icon>close</v-icon>
+      <v-select
+        :style="
+          selectedEditLayer
+            ? `border-right: 1px solid grey;width: 200px;`
+            : 'width: 150px;'
+        "
+        dark
+        hide-details
+        :class="{
+          'mx-3 mt-0 pt-0': true,
+          'pr-4': !!selectedEditLayer
+        }"
+        :items="calculationMode.values"
+        v-model="calculationMode.active"
+      >
+        <template slot="selection" slot-scope="{ item }">
+          {{
+            $te(`isochrones.options.${item}`)
+              ? $t(`isochrones.options.${item}`).toUpperCase()
+              : item.toUpperCase()
+          }}
+        </template>
+        <template slot="item" slot-scope="{ item }">
+          {{
+            $te(`isochrones.options.${item}`)
+              ? $t(`isochrones.options.${item}`).toUpperCase()
+              : item.toUpperCase()
+          }}
+        </template>
+      </v-select>
+      <span v-if="selectedEditLayer" class="h2"
+        >{{
+          $te(`map.snackbarMessages.scenarioEditMode`)
+            ? $t(`map.snackbarMessages.scenarioEditMode`).toUpperCase()
+            : "EDIT MODE"
+        }}
+      </span>
+      <v-btn
+        v-if="selectedEditLayer"
+        color="error"
+        text
+        @click="selectedEditLayer = null"
+      >
+        {{ $te(`buttonLabels.exit`) ? $t(`buttonLabels.exit`) : "Exit" }}
       </v-btn>
+    </v-snackbar>
+    <v-snackbar
+      :color="appColor.primary"
+      v-if="isRecomputingHeatmap"
+      :timeout="0"
+      top
+      center
+      style="font-size:14px;"
+      :value="isRecomputingHeatmap"
+    >
+      <span
+        >{{
+          $te(`heatmap.recomputingHeatmaps`)
+            ? $t(`heatmap.recomputingHeatmaps`)
+            : "Recomputing Heatmaps... "
+        }}
+      </span>
+      <v-progress-circular indeterminate color="white"></v-progress-circular>
     </v-snackbar>
   </div>
 </template>
@@ -128,34 +217,37 @@ import Overlay from "ol/Overlay";
 import Feature from "ol/Feature";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
+import VectorImageLayer from "ol/layer/VectorImage";
 import LineString from "ol/geom/LineString";
+import { transformExtent } from "ol/proj";
 
 // style imports
-import { getInfoStyle } from "../../../style/OlStyleDefs";
+import {
+  getInfoStyle,
+  studyAreaStyle,
+  poisAoisStyle
+} from "../../../style/OlStyleDefs";
 // import the app-wide EventBus
 import { EventBus } from "../../../EventBus";
 
 // utils imports
 import { LayerFactory } from "../../../factory/layer.js";
-import { OlStyleFactory } from "../../../factory/OlStyle";
-import { groupBy, humanize, isCssColor } from "../../../utils/Helpers";
-import {
-  getAllChildLayers,
-  updateLayerUrlQueryParam
-} from "../../../utils/Layer";
+import { humanize, isCssColor } from "../../../utils/Helpers";
+import { getAllChildLayers } from "../../../utils/Layer";
 import { geojsonToFeature } from "../../../utils/MapUtils";
-import { Group as LayerGroup } from "ol/layer.js";
 import axios from "axios";
 
 //Store imports
-import { mapMutations, mapGetters, mapActions } from "vuex";
+import { mapMutations, mapGetters } from "vuex";
+import { mapFields } from "vuex-map-fields";
 
 //Map Controls
 import OverlayPopup from "./controls/Overlay";
 import MapLoadingProgressStatus from "./controls/MapLoadingProgressStatus";
 import BackgroundSwitcher from "./controls/BackgroundSwitcher";
-import ZoomControl from "./controls/ZoomControl";
 import FullScreen from "./controls/Fullscreen";
+import Measure from "./controls/Measure";
+import Search from "./controls/Search.vue";
 import DoubleClickZoom from "ol/interaction/DoubleClickZoom";
 
 import { defaults as defaultControls, Attribution } from "ol/control";
@@ -168,29 +260,24 @@ import "ol-contextmenu/dist/ol-contextmenu.min.css";
 
 // Indicators Chart
 import IndicatorsChart from "../../other/IndicatorsChart";
+import { GET_POIS_AOIS } from "../../../store/actions.type";
 
 export default {
   components: {
     "overlay-popup": OverlayPopup,
     "progress-status": MapLoadingProgressStatus,
     "background-switcher": BackgroundSwitcher,
-    "zoom-control": ZoomControl,
     "full-screen": FullScreen,
-    "indicators-chart": IndicatorsChart
+    "indicators-chart": IndicatorsChart,
+    "search-map": Search,
+    measure: Measure
   },
   name: "app-ol-map",
   props: {
-    miniViewOlMap: { type: Boolean, required: true }
+    miniViewOlMap: { type: Boolean, required: true, default: false }
   },
   data() {
     return {
-      zoom: this.$appConfig.map.zoom,
-      center: this.$appConfig.map.center,
-      minZoom: this.$appConfig.map.minZoom,
-      maxZoom: this.$appConfig.map.maxZoom,
-      extent: this.$appConfig.map.extent, // Extent is fetched dynamically from the study area
-      color: this.$appConfig.controlsColor,
-      allLayers: [],
       queryableLayers: [],
       activeInteractions: [],
       popup: {
@@ -205,11 +292,6 @@ export default {
         state: false,
         message: "",
         timeout: 8000
-      },
-      busyLayerSnackbar: {
-        state: false,
-        message: "",
-        timeout: 100000
       }
     };
   },
@@ -221,17 +303,13 @@ export default {
     // Send the event 'ol-map-mounted' with the OL map as payload
     EventBus.$emit("ol-map-mounted", me.map);
     //Add map to the vuex store.
-    me.setMap(me.map);
     // resize the map, so it fits to parent
     window.setTimeout(() => {
       me.map.setTarget(document.getElementById("ol-map-container"));
       me.map.updateSize();
-
       // adjust the bg color of the OL buttons (like zoom, rotate north, ...)
       me.setOlButtonColor();
-
       me.setupMapHover();
-
       //Get Info
       me.setupMapClick();
       me.setupMapPointerMove();
@@ -241,7 +319,6 @@ export default {
   },
   created() {
     var me = this;
-
     // Make map rotateable according to property
     const attribution = new Attribution({
       collapsible: true,
@@ -254,7 +331,6 @@ export default {
     me.map = new Map({
       layers: [],
       interactions: defaultInteractions({
-        altShiftDragRotate: me.rotateableMap,
         doubleClickZoom: false,
         mouseWheelZoom: true
       }).extend([this.dblClickZoomInteraction]),
@@ -263,14 +339,17 @@ export default {
         zoom: false
       }).extend([attribution]),
       view: new View({
-        center: me.center || [0, 0],
-        zoom: me.zoom,
-        extent: me.extent,
-        minZoom: me.minZoom,
-        maxZoom: me.maxZoom
+        extent: me.studyArea[0].get("bounds"),
+        center: me.appConfig.map.center || [0, 0],
+        zoom: me.appConfig.map.zoom,
+        minZoom: me.appConfig.map.minZoom,
+        maxZoom: me.appConfig.map.maxZoom || 19
       })
     });
-
+    // Get study area
+    me.createStudyAreaLayer();
+    // Create poisaoisLayer
+    me.createPoisAoisLayer();
     // Create layers from config and add them to map
     const layers = me.createLayers();
     me.map.getLayers().extend(layers);
@@ -288,11 +367,6 @@ export default {
         return interaction !== stopedInteraction;
       });
     });
-    EventBus.$on("close-popup", () => {
-      me.closePopup();
-    });
-    EventBus.$on("inject-styles", this.injectStyles);
-    this.init(this.$appConfig.componentData.pois);
   },
 
   methods: {
@@ -302,88 +376,76 @@ export default {
      */
     createLayers() {
       let layers = [];
-      const me = this;
-
-      const layersConfigGrouped = groupBy(
-        [
-          ...this.$appConfig.map.layers,
-          ...(this.$appConfig.osmMapping === "on"
-            ? this.$appConfig.map.osmMappingLayers
-            : [])
-        ],
-        "group"
-      );
-      for (var group in layersConfigGrouped) {
-        if (!layersConfigGrouped.hasOwnProperty(group)) {
-          continue;
-        }
-        const mapLayers = [];
-        layersConfigGrouped[group].reverse().forEach(lConf => {
-          const layer = LayerFactory.getInstance(lConf);
-          if (![Infinity, undefined, null].includes(layer.getMaxResolution())) {
-            this.limitedVisibilityLayers.push(layer);
-          }
-          mapLayers.push(layer);
-          if (layer.get("name")) {
-            me.setLayer(layer);
-          }
-        });
-        let layerGroup = new LayerGroup({
-          name: group !== undefined ? group.toString() : "Other Layers",
-          layers: mapLayers
-        });
-        layers.push(layerGroup);
-      }
-
-      return layers;
-    },
-
-    /**
-     * Inject styles to map vector layers.
-     */
-    injectStyles(stylesObj) {
-      const flatLayers = getAllChildLayers(this.map);
-      flatLayers.forEach(layer => {
-        const layerName = layer.get("name");
-        let styleObj;
-        if (
-          layer.get("styleConf") &&
-          layer.get("styleConf").format === "custom-logic"
-        ) {
-          // Custom-styles
-          styleObj = layer.get("styleConf");
-        } else {
-          // Style from style config object (geostyler)
-          styleObj = stylesObj[layerName];
-        }
-        if (styleObj) {
-          if (styleObj.format === "geostyler") {
-            styleObj.style.rules.forEach(rule => {
-              //Set default filer if no filter is found for rule
-              if (!rule.filter) {
-                rule.filter = ["=="];
+      this.appConfig.layer_groups.forEach(group => {
+        const groupName = Object.keys(group)[0];
+        group[groupName].children.forEach(lConf => {
+          const layerName = Object.keys(lConf)[0];
+          lConf = lConf[layerName];
+          lConf.name = layerName;
+          if (lConf.type) {
+            try {
+              const olLayer = LayerFactory.getInstance({
+                group: groupName,
+                ...lConf
+              });
+              if (olLayer.get("name") === "sub_study_area") {
+                this.subStudyAreaLayer = olLayer;
               }
-
-              //Change Symbolizers outline color from rgba to hexa
-              if (rule.symbolizers[0].outlineColor === "rgba(0, 0, 255, 0.0)") {
-                rule.symbolizers[0].outlineColor = "#0000FF00";
+              if (olLayer) {
+                if (
+                  ![Infinity, undefined, null].includes(
+                    olLayer.getMaxResolution()
+                  )
+                ) {
+                  this.limitedVisibilityLayers.push(olLayer);
+                }
+                layers.push(olLayer);
               }
-            });
-          }
-          const olStyle = OlStyleFactory.getOlStyle(styleObj, layerName);
-          if (olStyle) {
-            if (olStyle instanceof Promise) {
-              olStyle
-                .then(style => {
-                  layer.setStyle(style);
-                })
-                .catch(error => console.log(error));
-            } else {
-              layer.setStyle(olStyle);
+            } catch (error) {
+              console.log(error);
             }
           }
-        }
+        });
       });
+      return layers;
+    },
+    /**
+     * Creates the study area layer.
+     */
+    createStudyAreaLayer() {
+      const source = new VectorSource({
+        wrapX: false
+      });
+      const vector = new VectorImageLayer({
+        name: "study_area",
+        displayInLayerList: true,
+        type: "VECTOR",
+        group: "buildings_landuse",
+        zIndex: 100,
+        source: source,
+        style: studyAreaStyle
+      });
+      this.getInfoLayerSource = source;
+      source.addFeature(this.studyArea[0]);
+      this.map.addLayer(vector);
+      this.map.getView().fit(source.getExtent());
+    },
+    /**
+     * Creates pois aois layer
+     */
+    createPoisAoisLayer() {
+      const vector = new VectorLayer({
+        name: "pois_aois_layer",
+        type: "VECTOR",
+        displayInLayerList: false,
+        queryable: true,
+        zIndex: 99,
+        source: new VectorSource(),
+        style: poisAoisStyle
+      });
+      this.map.addLayer(vector);
+      this.poisAoisLayer = vector;
+      this.$store.dispatch(`poisaois/${GET_POIS_AOIS}`);
     },
 
     /**
@@ -394,9 +456,8 @@ export default {
         wrapX: false
       });
       const vector = new VectorLayer({
-        name: "Get Info Layer",
+        name: "get_info",
         displayInLayerList: false,
-        displayInLegend: false,
         zIndex: 100,
         source: source,
         style: getInfoStyle()
@@ -451,7 +512,7 @@ export default {
     setOlButtonColor() {
       var me = this;
 
-      if (isCssColor(me.activeColor.primary)) {
+      if (isCssColor(me.appColor.primary)) {
         // directly apply the given CSS color
         const rotateEl = document.querySelector(".ol-rotate");
         if (rotateEl) {
@@ -460,7 +521,7 @@ export default {
           const rotateElStyle = document.querySelector(
             ".ol-rotate .ol-rotate-reset"
           ).style;
-          rotateElStyle.backgroundColor = me.activeColor.primary;
+          rotateElStyle.backgroundColor = me.appColor.primary;
           rotateElStyle.borderRadius = "40px";
         }
         const attrEl = document.querySelector(".ol-attribution");
@@ -469,13 +530,13 @@ export default {
           const elStyle = document.querySelector(
             ".ol-attribution button[type='button']"
           ).style;
-          elStyle.backgroundColor = me.activeColor.primary;
+          elStyle.backgroundColor = me.appColor.primary;
           elStyle.borderRadius = "40px";
         }
       } else {
         // apply vuetify color by transforming the color to the corresponding
         // CSS class (see https://vuetifyjs.com/en/framework/colors)
-        const [colorName, colorModifier] = me.activeColor.primary
+        const [colorName, colorModifier] = me.appColor.primary
           .toString()
           .trim()
           .split(" ", 2);
@@ -500,6 +561,7 @@ export default {
         element: me.$refs.popup.$el,
         autoPan: false,
         autoPanMargin: 40,
+        positioning: "bottom-left",
         autoPanAnimation: {
           duration: 250
         }
@@ -563,14 +625,23 @@ export default {
         }
         const features = this.map.getFeaturesAtPixel(evt.pixel, {
           layerFilter: candidate => {
-            if (candidate.get("name") === "Isochrone Layer") {
+            if (
+              ["isochrone_layer", "pois_aois_layer"].includes(
+                candidate.get("name")
+              )
+            ) {
               return true;
             }
             return false;
           }
         });
         const style = this.map.getTarget().style;
-        style && style.cursor == features.length > 0 ? "pointer" : "";
+        if (!style) return false;
+        if (features.length > 0) {
+          style.cursor = "pointer";
+        } else {
+          style.cursor = "";
+        }
       });
     },
 
@@ -621,22 +692,29 @@ export default {
         }
 
         //Check for isochrone features
-        const features = me.map.getFeaturesAtPixel(evt.pixel, {
+        const isochroneFeatures = me.map.getFeaturesAtPixel(evt.pixel, {
           layerFilter: candidate => {
-            if (candidate.get("name") === "Isochrone Layer") {
+            if (candidate.get("name") === "isochrone_layer") {
               return true;
             }
             return false;
           }
         });
-        if (features.length > 0) {
+        const otherFeatures = me.map.getFeaturesAtPixel(evt.pixel, {
+          layerFilter: candidate => {
+            if (candidate.get("name") !== "isochrone_layer") {
+              return true;
+            }
+            return false;
+          }
+        });
+        if (isochroneFeatures.length > 0 && otherFeatures.length === 0) {
           // Toggle thematic data for isochrone window
-          const isochroneFeature = features[0];
-          this.showIsochroneWindow({
-            id: isochroneFeature.get("calculationNumber"),
-            calculationType: isochroneFeature.get("calculationType")
-          });
-
+          const isochroneFeature = isochroneFeatures[0];
+          EventBus.$emit(
+            "show-isochrone-window",
+            isochroneFeature.get("calculationNumber")
+          );
           return;
         }
 
@@ -652,6 +730,8 @@ export default {
           switch (layerType) {
             case "WFS":
             case "VECTOR":
+            case "MVT":
+            case "GEOBUF":
             case "VECTORTILE": {
               let selectedFeatures = me.map.getFeaturesAtPixel(evt.pixel, {
                 hitTolerance: 4,
@@ -807,16 +887,6 @@ export default {
         );
         if (canTranslate) {
           return this.$t(`map.layerName.${layer.get("layerName")}`);
-        } else if (
-          this.osmMode === true &&
-          this.$te(`map.osmMode.layers.${layer.get("layerName")}.layerName`)
-        ) {
-          const path = `map.osmMode.layers.${layer.get("layerName")}`;
-          return (
-            this.$t(`${path}.layerName`) +
-            " - " +
-            this.$t(`${path}.missingKeyWord`)
-          );
         } else {
           return layer.get("layerName");
         }
@@ -824,36 +894,52 @@ export default {
         return "";
       }
     },
+    transformExtent,
+    showMiniViewer() {
+      this.miniViewerVisible = true;
+      this.isMapillaryBtnDisabled = true;
+    },
     ...mapMutations("map", {
-      setMap: "SET_MAP",
       setContextMenu: "SET_CONTEXTMENU",
       setLayer: "SET_LAYER",
       toggleSnackbar: "TOGGLE_SNACKBAR"
     }),
     ...mapMutations("pois", {
       init: "INIT"
-    }),
-    ...mapActions("isochrones", {
-      showIsochroneWindow: "showIsochroneWindow"
     })
   },
   computed: {
+    ...mapFields("map", {
+      subStudyAreaLayer: "subStudyAreaLayer",
+      selectedEditLayer: "selectedEditLayer",
+      isMapillaryBtnDisabled: "isMapillaryBtnDisabled",
+      miniViewerVisible: "miniViewerVisible"
+    }),
+    ...mapFields("poisaois", {
+      poisAoisLayer: "poisAoisLayer",
+      selectedPoisAois: "selectedPoisAois",
+      poisAois: "poisAois"
+    }),
+
     ...mapGetters("map", {
+      studyArea: "studyArea",
       helpTooltip: "helpTooltip",
       currentMessage: "currentMessage",
-      osmMode: "osmMode",
-      layers: "layers",
-      busyLayers: "busyLayers"
+      layers: "layers"
     }),
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor",
+      appConfig: "appConfig",
+      scenarioLayerEditModeColor: "scenarioLayerEditModeColor",
+      isRecomputingHeatmap: "isRecomputingHeatmap",
+      calculationMode: "calculationMode"
     }),
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
       options: "options"
     }),
-    ...mapGetters("user", {
-      userId: "userId"
+    ...mapGetters("scenarios", {
+      activeScenario: "activeScenario"
     }),
     ...mapGetters("loader", { isNetworkBusy: "isNetworkBusy" }),
     currentInfo() {
@@ -862,6 +948,7 @@ export default {
       const props = feature.getProperties();
       let transformed = [];
       const excludedProperties = [
+        "uid",
         "id",
         "geometry",
         "geom",
@@ -894,42 +981,20 @@ export default {
         this.dblClickZoomInteraction.setActive(true);
       }
     },
-    activeColor() {
+    appColor() {
       this.setOlButtonColor();
     },
-    userId(value) {
-      setTimeout(() => {
-        const layers = Object.keys(this.layers);
-        layers.forEach(key => {
-          if (
-            this.layers[key].get("queryParams") &&
-            this.layers[key].get("queryParams").includes("userid_input")
-          ) {
-            const layer = this.layers[key];
-            updateLayerUrlQueryParam(layer, {
-              userid_input: value
-            });
-          }
-        });
-      }, 500);
-    },
-    busyLayers(layers) {
-      if (
-        layers.length > 0 &&
-        ["scenario", "comparison"].includes(
-          this.options.calculationModes.active
-        )
-      ) {
-        this.busyLayerSnackbar = {
-          state: true,
-          timeout: 100000,
-          message: this.$t("map.snackbarMessages.heatmapIsBusy")
-        };
-      } else {
-        this.busyLayerSnackbar = {
-          state: false
-        };
-      }
+    // Edge case for pois layer style. We have to restructure the state of selected pois as a key value pair (category: state)
+    // in order to use it in the style (getters can't be accessed outside vue component).
+    // As the selectedPoisState is also changed from editing component
+    // this should be watched here as it might be that poisAoisTree component is not rendered yet.
+    selectedPoisAois(selected) {
+      const poisAois = {};
+      selected.forEach(item => {
+        poisAois[item.value] = true;
+      });
+      this.poisAois = poisAois;
+      this.poisAoisLayer.changed();
     }
   }
 };

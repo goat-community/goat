@@ -16,7 +16,7 @@
     >
       <v-layout justify-space-between column fill-height>
         <v-app-bar
-          :color="activeColor.primary"
+          :color="appColor.primary"
           height="50"
           style="cursor:grab;"
           dark
@@ -28,7 +28,7 @@
             </v-icon>
           </v-app-bar-nav-icon>
           <v-toolbar-title>
-            <b>{{ translate("layerName", item.name) }}</b>
+            <b>{{ translate("layerName", item.get("name")) }}</b>
           </v-toolbar-title>
           <v-spacer></v-spacer>
           <v-icon @click="expand" class="toolbar-icons mr-2">
@@ -75,6 +75,7 @@
 
 <script>
 import { mapGetters } from "vuex";
+import { mapFields } from "vuex-map-fields";
 import { Draggable } from "draggable-vue-directive";
 import Legend from "../../viewer/ol/controls/Legend";
 import FillVectorStyle from "../changeStyle/FillVectorStyle";
@@ -109,15 +110,19 @@ export default {
   },
   computed: {
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
+    }),
+    ...mapFields("map", {
+      vectorTileStyles: "vectorTileStyles",
+      vectorTileStylesCopy: "vectorTileStylesCopy"
     }),
     getItem() {
       return this.item;
     },
     getItemAttributes() {
-      const stylesObj = this.$appConfig.stylesObj;
+      const stylesObj = this.vectorTileStyles;
       const currentLocale = this.$i18n.locale;
-      const layerName = this.item.mapLayer.get("name");
+      const layerName = this.item.get("name");
       return this.filterStylesOnActiveModeByLayerName(layerName).rules.map(
         (rule, i) => {
           return {
@@ -144,12 +149,12 @@ export default {
       EventBus.$emit("updateStyleDialogStatusForLayerTree", false);
       EventBus.$emit("updateStyleDialogStatusForLayerOrder", false);
       //Refresh the legend
-      this.item.layerTreeKey += 1;
+      this.item.set("layerTreeKey", this.item.get("layerTreeKey") + 1);
     },
     onItemAttribueChange(ith) {
       this.ith = ith;
       this.kind = this.filterStylesOnActiveModeByLayerName(
-        this.item.mapLayer.get("name")
+        this.item.get("name")
       ).rules[ith].symbolizers[0].kind;
     }
   },

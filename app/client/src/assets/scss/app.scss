@@ -146,3 +146,32 @@ html {
 .light-text {
   color: rgba(0, 0, 0, 0.6);
 }
+
+.header-name {
+  font-size: 16px;
+  color: #424242;
+}
+.sub-header {
+  color: #757575;
+  font-size: 14px;
+}
+.light-icon-color {
+  color: rgba(0, 0, 0, 0.54) !important;
+}
+
+[v-cloak] {
+  display: none;
+}
+.loading {
+  display: grid;
+  place-content: center;
+  z-index: 999;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+#wg-app:not([v-cloak]) ~ .loading {
+  display: none;
+}

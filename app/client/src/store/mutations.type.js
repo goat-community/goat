@@ -1,0 +1,14 @@
+export const PURGE_AUTH = "logOut";
+export const SET_AUTH = "setAuth";
+export const SET_ERROR = "setError";
+export const SET_MESSAGE = "setMessage";
+export const SET_USER = "setUser";
+export const SET_APP_CONFIG = "setAppConfig";
+export const SET_STUDY_AREA = "setStudyArea";
+export const SET_STUDY_AREAS_LIST = "setStudyAreasList";
+export const SET_POI_ICONS = "setPoiIcons";
+export const SET_USER_CUSTOM_DATA = "setUserCustomData";
+export const SET_OPENAPI_CONFIG = "setOpenApiConfig";
+export const SET_SCENARIOS = "setScenarioList";
+export const SET_POIS_AOIS = "setPoisAois";
+export const SET_CLONE_VECTOR_STYLES = "setVectorStyles";

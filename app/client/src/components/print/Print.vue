@@ -15,8 +15,8 @@
               v-model="print.title"
               :label="$t(`appBar.printMap.form.title.label`)"
               type="text"
-              maxlength="40"
-              :counter="40"
+              maxlength="50"
+              :counter="50"
             ></v-text-field>
             <v-select
               v-model="print.layout"
@@ -29,37 +29,6 @@
               return-object
               required
             ></v-select>
-            <!-- <v-select
-              v-model="print.scale"
-              :items="print.scales"
-              prepend-icon="fas fa-ruler-horizontal"
-              :label="$t('appBar.printMap.form.scale.label')"
-              :rules="rules.required"
-              required
-            >
-              <template slot="selection" slot-scope="{ item }">
-                1 : {{ numberWithCommas(item) }}
-              </template>
-              <template slot="item" slot-scope="{ item }">
-                1 : {{ numberWithCommas(item) }}
-              </template>
-            </v-select>
-            <v-select
-              v-model="print.dpi"
-              :items="print.dpis"
-              prepend-icon="aspect_ratio"
-              :label="$t('appBar.printMap.form.resolution.label')"
-              :rules="rules.required"
-              @change="setDpi"
-              required
-            >
-              <template slot="selection" slot-scope="{ item }">
-                {{ item }} dpi
-              </template>
-              <template slot="item" slot-scope="{ item }">
-                {{ item }} dpi
-              </template>
-            </v-select> -->
             <v-select
               v-model="print.selectedCrs"
               :items="print.crs"
@@ -89,8 +58,8 @@
                   prepend-icon="rotate_right"
                   :value="print.rotation"
                   @input="changeRotation"
-                  track-color="#30C2FF"
-                  color="#30C2FF"
+                  :track-color="appColor.secondary"
+                  :color="appColor.secondary"
                   :min="-180"
                   :max="180"
                 ></v-slider>
@@ -109,6 +78,7 @@
             <v-layout row class="ml-0 mt-2">
               <v-flex xs6>
                 <v-checkbox
+                  :color="appColor.secondary"
                   class="ml-1"
                   v-model="print.legend"
                   :label="$t('appBar.printMap.form.legend')"
@@ -116,6 +86,7 @@
               </v-flex>
               <v-flex xs6>
                 <v-checkbox
+                  :color="appColor.secondary"
                   class="ml-1"
                   v-model="print.grid"
                   :label="$t('appBar.printMap.form.grid')"
@@ -128,7 +99,7 @@
           <v-spacer></v-spacer>
           <v-btn
             class="white--text"
-            :color="activeColor.primary"
+            :color="appColor.primary"
             @click="printMap"
           >
             <v-icon left>print</v-icon
@@ -217,121 +188,6 @@ export default {
         pdf.save(fileName);
       }
     },
-    // print() {
-    //   if (this.$refs.form.validate()) {
-    //     if (!this.map) {
-    //       throw new Error("Missing map");
-    //     }
-    //     if (this.legend) {
-    //       EventBus.$emit("openLegend");
-    //     }
-    //     const map = this.map;
-    //     const layout = this.layout;
-    //     const dpi = this.dpi;
-    //     const scale = this.scale;
-    //     const mapView = map.getView();
-    //     const format = layout.format;
-    //     const orientation = layout.orientation;
-    //     const paperSize = layout.size;
-    //     const mapProjection = mapView.getProjection();
-    //     const mapSize = map.getSize();
-    //     const currZoom = mapView.getZoom();
-    //     const viewResolution = map.getView().getResolution();
-    //     const viewCenter = mapView.getCenter();
-
-    //     const mapPointResolution = getPointResolution(
-    //       mapProjection,
-    //       viewResolution,
-    //       viewCenter
-    //     );
-    //     var mapResolutionFactor = viewResolution / mapPointResolution;
-
-    //     const width = Math.round((paperSize[0] * dpi) / 25.4); // in px
-    //     const height = Math.round((paperSize[1] * dpi) / 25.4); // in px
-    //     console.log(format, orientation, width, height);
-    //     map.once("rendercomplete", async event => {
-    //       console.log(event);
-    //       var mapCanvas = document.createElement("canvas");
-    //       mapCanvas.width = width;
-    //       mapCanvas.height = height;
-    //       var mapContext = mapCanvas.getContext("2d");
-    //       Array.prototype.forEach.call(
-    //         document.querySelectorAll(".ol-layer canvas"),
-    //         function(canvas) {
-    //           if (canvas.width > 0) {
-    //             var opacity = canvas.parentNode.style.opacity;
-    //             mapContext.globalAlpha = opacity === "" ? 1 : Number(opacity);
-    //             var transform = canvas.style.transform;
-    //             // Get the transform parameters from the style's transform matrix
-    //             var matrix = transform
-    //               .match(/^matrix\(([^\(]*)\)$/)[1]
-    //               .split(",")
-    //               .map(Number);
-    //             // Apply the transform to the export map context
-    //             CanvasRenderingContext2D.prototype.setTransform.apply(
-    //               mapContext,
-    //               matrix
-    //             );
-    //             mapContext.drawImage(canvas, 0, 0);
-    //           }
-    //         }
-    //       );
-    //       var pdf = new jsPDF(orientation, undefined, format);
-    //       pdf.addImage(mapCanvas, "JPEG", 0, 0, paperSize[0], paperSize[1]);
-
-    //       // Reset size.
-    //       map.setSize(mapSize);
-    //       mapView.setZoom(currZoom);
-
-    //       // Legend
-    //       if (this.legend) {
-    //         const legendEl = document.getElementById("legend");
-    //         legendEl.style.paddingLeft = "10px";
-    //         await this.timeout(300);
-    //         const legendCanvas = await html2canvas(
-    //           document.getElementById("legend"),
-    //           { allowTaint: true, useCORS: true }
-    //         );
-    //         legendEl.style.paddingLeft = "0px";
-    //         const legendWidth = this.printUtils_.pix2mm(
-    //           legendCanvas.width,
-    //           dpi
-    //         );
-    //         const legendHeight = this.printUtils_.pix2mm(
-    //           legendCanvas.height,
-    //           dpi
-    //         );
-    //         pdf.addImage(
-    //           legendCanvas,
-    //           "JPEG",
-    //           paperSize[0] - legendWidth,
-    //           paperSize[1] - legendHeight,
-    //           legendWidth,
-    //           legendHeight
-    //         );
-    //       }
-
-    //       // Save map
-    //       const fileName = `goat_print_${this.getCurrentDate()}_${this.getCurrentTime()}.${
-    //         this.selectedFormat
-    //       }`;
-    //       pdf.save(fileName);
-
-    //       // Reset original map size
-    //       map.setSize(mapSize);
-    //       map.getView().setResolution(viewResolution);
-    //     });
-
-    //     var printPointResolution = (scale * 25.4) / (dpi * 1000); // edit1: corrected
-    //     var printResolutionAtEquator =
-    //       mapResolutionFactor * printPointResolution;
-    //     var printZoom = mapView.getZoomForResolution(printResolutionAtEquator);
-
-    //     map.setSize([width, height]);
-    //     mapView.setZoom(printZoom);
-    //   }
-    // },
-
     /**
      * Set the current rotation value.
      * Updating the rotation will redraw the mask or rotate the map (depending on the configuration).
@@ -391,11 +247,22 @@ export default {
       this.defaultOlMouseWheelZoom.setActive(false);
     }
     this.map.addControl(this.scaleLineControl);
+    this.isochroneLayer
+      .getSource()
+      .getFeatures()
+      .forEach(feature => {
+        feature.set("showLabel", true);
+      });
+    this.isochroneLayer.getSource().changed();
   },
   deactivated: function() {
     this.print.active = false;
+    this.print.grid = false;
     if (!this.map) {
       throw new Error("Missing map");
+    }
+    if (this.gridLayer) {
+      this.map.removeLayer(this.gridLayer);
     }
     if (this.rotationListenerKey) {
       olEvents.unlistenByKey(this.rotationListenerKey);
@@ -411,15 +278,25 @@ export default {
     if (this.defaultOlMouseWheelZoom) {
       this.defaultOlMouseWheelZoom.setActive(true);
     }
+    this.isochroneLayer
+      .getSource()
+      .getFeatures()
+      .forEach(feature => {
+        feature.set("showLabel", false);
+      });
+    this.isochroneLayer.getSource().changed();
     this.setRotation(0);
     this.map.render();
   },
   computed: {
     ...mapGetters("app", {
-      activeColor: "activeColor"
+      appColor: "appColor"
     }),
     ...mapFields("map", {
       print: "print"
+    }),
+    ...mapGetters("isochrones", {
+      isochroneLayer: "isochroneLayer"
     })
   },
   created() {

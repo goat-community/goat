@@ -1,44 +1,15 @@
-# logs
-logLevel = "DEBUG"
+[entryPoints]
+  [entryPoints.web]
+    address = ":80"
 
-[traefikLog]
+[api]
+insecure = true
+
+[log]
+level = "DEBUG"
 
 [accessLog]
-  [accessLog.filters]
-    statusCodes = ["0-600"]
 
-# entry points
-[entryPoints]
-  [entryPoints.http]
-    address = ":80"
-  
-  [entryPoints.https]
-    address = ":443"
-  
-  [entryPoints.mapproxy]
-    address = ":31951"
-  
-  [entryPoints.traefik-ui]
-    address = ":8000"
-
-  [entryPoints.https.tls]
-    [[entryPoints.https.tls.certificates]]
-      certFile = "/ssl/crud.crt"
-      keyFile = "/ssl/crud.key"
-  
-  # traefik web console, password created with: htpasswd -nbB admin default
-  [entryPoints.traefik]
-   address=":8080"
-   [entryPoints.traefik.auth]
-     [entryPoints.traefik.auth.basic]
-       users = ["admin:$apr1$798bC63k$SE5/r1sNtp1hdnEF6zCgt."]
-
-# gui
-[api]
-entrypoint="traefik"
-
-# docker
-[docker]
-endpoint = "unix:///var/run/docker.sock"
-domain = "localhost"
-exposedByDefault = false
+[providers]
+  [providers.docker]
+    exposedByDefault = false

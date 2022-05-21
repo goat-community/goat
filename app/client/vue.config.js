@@ -1,6 +1,6 @@
 module.exports = {
   devServer: {
-    port: 5000,
+    port: 80,
     overlay: {
       warnings: true,
       errors: true
@@ -20,5 +20,8 @@ module.exports = {
       localeDir: "locales",
       enableInSFC: true
     }
+  },
+  configureWebpack: {
+    devtool: "source-map"
   }
 };

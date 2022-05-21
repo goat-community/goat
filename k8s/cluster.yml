@@ -1,0 +1,33 @@
+# If a nodegroup includes the attachPolicyARNs it must also include the default node policies,
+# like AmazonEKSWorkerNodePolicy, AmazonEKS_CNI_Policy and AmazonEC2ContainerRegistryReadOnly.
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: goat-cluster
+  region: eu-central-1
+  version: "1.21"
+managedNodeGroups:
+  - name: goat-private-ng
+    instanceType: t3.large
+    desiredCapacity: 2
+    minSize: 2
+    maxSize: 6
+    volumeType: gp3
+    volumeSize: 40
+    privateNetworking: true
+    iam:
+      attachPolicyARNs:  # Reference: https://eksctl.io/usage/iam-policies/
+        - arn:aws:iam::253602339696:policy/SES_EKS_Policy   # <-- custom policy
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+      withAddonPolicies:
+        autoScaler: true
+        imageBuilder: true
+        albIngress: true
+        externalDNS: true
+        certManager: true
+    ssh:
+      allow: true
+      publicKeyName: "goat" # <-- ssh key name
