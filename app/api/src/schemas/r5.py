@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 from bson import ObjectId
 from sqlmodel import SQLModel
 from pydantic import Field
@@ -23,7 +23,7 @@ class PyObjectId(ObjectId):
 
 class R5Common(SQLModel):
     id: Optional[PyObjectId] = Field(alias="_id")
-    accessGroup: str
+    accessGroup: Optional[str] = "local"
     nonce: str
     name: str
     createdAt: datetime
@@ -50,9 +50,32 @@ class R5RegionCreateDTO(SQLModel):
     description: str
 
 
+class R5ProjectCreateDTO(SQLModel):
+    variants: List[str]
+    regionId: str
+    bundleId: str
+    name: str
+
+
+class R5RegionUpdateDTO(SQLModel):
+    name: str
+    description: str
+
+
+class R5ProjectUpdateDTO(SQLModel):
+    id: str
+    name: str
+
+
 class R5RegionInDB(R5Common):
     description: str
     bounds: R5Bounds
+
+
+class R5ProjectInDB(R5Common):
+    variants: List[str]
+    regionId: str
+    bundleId: str
 
 
 request_examples = {
@@ -61,6 +84,26 @@ request_examples = {
             "name": "Freiburg",
             "description": "Demo - Freiburg Region for PT",
             "bounds": {"north": 48.11293, "south": 47.87214, "east": 8.06671, "west": 7.66296},
+        },
+        "update": {"name": "Freiburg", "description": "Demo - Freiburg Region for PT (UPDATE)"},
+    },
+    "bundle": {
+        "create": {
+            "bundleName": "Demo Bundle",
+            "osm": "",
+            "feedGroup": "",  # binary
+            "regionId": "5e8f8f8f8f8f8f8f8f8f8f8",
         }
-    }
+    },
+    "project": {
+        "create": {
+            "name": "Demo Project",
+            "bundleId": "5e8f8f8f8f8f8f8f8f8f8f8",
+            "regionId": "5e8f8f8f8f8f8f8f8f8f8f8",
+            "variants": ["Default"],
+        },
+        "update": {
+            "name": "Demo Project (UPDATE)",
+        },
+    },
 }

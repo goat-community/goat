@@ -22,6 +22,7 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    swagger_ui_parameters={"persistAuthorization": True},
 )
 
 
