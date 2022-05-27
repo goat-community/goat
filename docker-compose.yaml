@@ -140,7 +140,7 @@ services:
       proxy:
 
   r5:
-    image: majkshkurti/r5:latest
+    image: majkshkurti/conveyal-r5:6.4
     container_name: ${COMPOSE_PROJECT_NAME}_r5
     hostname: ${COMPOSE_PROJECT_NAME}_r5
     depends_on:
