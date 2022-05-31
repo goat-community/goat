@@ -110,7 +110,7 @@ sql_bulk_calculation = '''WITH x AS
 	FROM grid_ordered 
 	WHERE section_id = %i
 )
-SELECT pgrouting_edges_heatmap(ARRAY[1200.], x.array_starting_points, 1.33, x.grid_ids, 1, 'walking_standard',0,0,%i)
+SELECT pgrouting_edges_heatmap(ARRAY[1200.], x.array_starting_points, 1.33, x.grid_ids, 1, 'walking_comfort',0,0,%i)
 FROM x;
 '''
 
