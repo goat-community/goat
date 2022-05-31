@@ -12,7 +12,7 @@
   "login": {
     "title": "Login",
     "signIn": "Sign In",
-    "signUp": "Register",
+    "signUp": "Register for demo",
     "toSignUpContactUs": "Contact us",
     "noAccount": "No account yet?",
     "passwordRequired": "Password is required",
@@ -54,8 +54,8 @@
       "gis": "GIS",
       "architecture": "Architecture",
       "location_planning": "Location planning",
-      "civil_engineer": "Civil engineer",
-      "political_decision_maker": "Political decision maker",
+      "civil_engineer": "Civil engineering",
+      "political_decision_maker": "Politics",
       "other": "Other"
     }
   },
