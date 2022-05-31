@@ -24,6 +24,8 @@ router = APIRouter()
 
 # ----------------------ACTIVITY ENDPOINTS------------------------
 # ----------------------------------------------------------------
+
+
 @router.get("/activity")
 async def get_activity(
     current_user: models.User = Depends(deps.get_current_active_user),
@@ -41,6 +43,8 @@ async def get_activity(
 
 # ------------------------REGION ENDPOINTS------------------------
 # ----------------------------------------------------------------
+
+
 @router.get("/region", response_model=List[R5RegionInDB])
 async def get_regions(
     *,
@@ -94,14 +98,18 @@ async def get_projects_for_region(
     return projects
 
 
+# ------------------------REGION ENDPOINTS------------------------
+# ----------------------------------------------------------------
+
+
 @router.post("/region", response_model=R5RegionInDB)
 async def region_create(
     *,
     db: AsyncSession = Depends(deps.get_r5_mongo_db),
     region_in: R5RegionCreateDTO = Body(..., example=request_examples["region"]["create"]),
     current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:  # ------------------------REGION ENDPOINTS------------------------
-    # ----------------------------------------------------------------
+) -> Any:
+
     """
     Create new region.
     """
