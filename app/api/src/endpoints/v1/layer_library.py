@@ -10,7 +10,7 @@ from src.endpoints import deps
 router = APIRouter()
 
 
-@router.get("")
+@router.get("", response_model=List[models.LayerLibrary])
 async def read_layers(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
@@ -21,13 +21,14 @@ async def read_layers(
     return layers
 
 
-@router.get("/{layer_name}", response_model=models.LayerLibrary)
+@router.get("/{name}", response_model=models.LayerLibrary)
 async def read_layer_by_name(
-    layer_name: str,
+    name: str,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
 ):
-    layer = await crud.layer_library.get_by_key(db, key="name", value=layer_name)
+    layer = await crud.layer_library.get_by_key(db, key="name", value=name)
+    layer = layer[0]
     return layer
 
 
@@ -37,5 +38,17 @@ async def create_layer(
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-    layer = crud.layer_library.create(db, obj_in=layer_in)
+    layer = await crud.layer_library.create(db, obj_in=layer_in)
+    return layer
+
+
+@router.put("/{id}/", response_model=models.LayerLibrary)
+async def create_layer(
+    id: int,
+    layer_in: models.LayerLibrary,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+):
+    layer = await crud.layer_library.get(db, id=id)
+    layer = await crud.layer_library.update(db, db_obj=layer, obj_in=layer_in)
     return layer
