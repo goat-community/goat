@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.endpoints import deps
 from src.db import models
@@ -17,11 +17,20 @@ async def read_layers(
     layers = await crud.layer_library.get_multi(db, skip=skip, limit=limit)
     return layers
 
-@router.get("/{layer_name}")
+@router.get("/{layer_name}", response_model=models.LayerLibrary)
 async def read_layer_by_name(
     layer_name: str,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
 ):
     layer = await crud.layer_library.get_by_key(db,key="name", value=layer_name)
+    return layer
+
+router.post("", response_model=models.LayerLibrary)
+async def create_layer(
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+    layer_in: models.LayerLibrary = Body()
+):
+    layer = crud.layer_library.create(db,obj_in=layer_in)
     return layer
