@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 @router.get("", response_model=List[models.LayerLibrary])
-async def read_layers(
+async def list_layers(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
@@ -43,7 +43,7 @@ async def create_layer(
 
 
 @router.put("/{id}/", response_model=models.LayerLibrary)
-async def create_layer(
+async def update_layer(
     id: int,
     layer_in: models.LayerLibrary,
     db: AsyncSession = Depends(deps.get_db),
@@ -51,4 +51,14 @@ async def create_layer(
 ):
     layer = await crud.layer_library.get(db, id=id)
     layer = await crud.layer_library.update(db, db_obj=layer, obj_in=layer_in)
+    return layer
+
+
+@router.delete("/{id}/", response_model=models.LayerLibrary)
+async def delete_layer(
+    id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+):
+    layer = await crud.layer_library.remove(db, id=id)
     return layer
