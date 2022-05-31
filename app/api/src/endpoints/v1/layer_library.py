@@ -8,7 +8,7 @@ from src import crud
 router = APIRouter()
 
 @router.get("",response_model=List[models.LayerLibrary])
-async def get_layers(
+async def read_layers(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
