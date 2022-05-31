@@ -17,9 +17,10 @@ DATA_REFINEMENT_VARIABLES:
     heatmap_sensitivities: [150000,200000,250000,300000,350000,400000,450000]
     pois_one_entrance: ["kindergarten","nursery","primary_school","secondary_school","grundschule","hauptschule","realschule","werkrealschule","gymnasium","bar","biergarten","cafe","pub","fast_food","ice_cream","restaurant","theatre","sum_population","cinema","library","nightclub","recycling",
       "car_sharing","bicycle_rental","cargo_bike","charging_station","bus_station","tram_station","subway_station","railway_station","taxi","bikesharing_ffb","carsharing_ffb","charging_station_marker_ffb","charging_station_other_ffb","charging_station_public_ffb","e_parking_ffb",
-      "l-station_ffb","s-station_prio1_ffb","s-station_prio2_ffb","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel",
-      "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket",
-      "hypermarket","international_supermarket","chemist","organic","marketplace","hotel","museum","hostel","guest_house","viewpoint","gallery","playground","discount_gym","gym","yoga","outdoor_fitness_station"
+      "l-station_ffb","s-station_prio1_ffb","s-station_prio2_ffb","hairdresser","atm","bank","dentist","doctors","pharmacy","post_box","post_office","fuel","garden","newsagent","townhall","government","arts_centre","bicycle",
+      "bakery","butcher","clothes","convenience","general","fashion","florist","greengrocer","kiosk","mall","shoes","sports","supermarket","health_food","discount_supermarket", "hospital", "clinic", "community_centre", "social_facility",
+      "hypermarket","international_supermarket","chemist","organic","marketplace","hotel","museum","hostel","guest_house","viewpoint","gallery","playground","discount_gym","gym","yoga","outdoor_fitness_station","childcare", "university",
+      "Restaurant2","Bar2","Café2","Pub2","newsagent2","tobacco2","community_","social_facility2","library2","nursery2", "kindergarten2","primary2","secondary2","university2","bike_sharing2","car_sharing2"
     ]
     pois_more_entrances: ["bus_stop","tram_stop","subway_entrance","rail_station","community_sports_center","waterpark","park","forest","heath_scrub","lake","river"]
     excluded_class_id_walking: [0,101,102,103,104,105,106,107,501,502,503,504,701,801]
@@ -133,7 +134,6 @@ DATA_REFINEMENT_VARIABLES:
       light: ['stop','street_lamp','traffic_signal']
       moderate: ['limited','no']
       strong: ['steps']
-    positive_classified:
       
 
     #wac = walking comfort
@@ -191,7 +191,7 @@ DATA_REFINEMENT_VARIABLES:
       bench: '-0.1'
       bicycle_parking: '0'
       waste_basket: '-0.1'
-      park: '-0.2'
+      p: '-0.2'
       fountain: '-0.2'
 
     
@@ -250,7 +250,7 @@ DATA_REFINEMENT_VARIABLES:
       bench: '0'
       bicycle_parking: '-0.2'
       waste_basket: '0'
-      park: '-0.1'
+      p: '-0.1'
       fountain: '-0.2'
 
     
@@ -309,7 +309,7 @@ DATA_REFINEMENT_VARIABLES:
       bench: '-0.1'
       bicycle_parking: '0'
       waste_basket: '-0.1'
-      park: '-0.2'
+      p: '-0.2'
       fountain: '-0.2'
 
 

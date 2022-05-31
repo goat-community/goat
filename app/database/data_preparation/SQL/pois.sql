@@ -215,6 +215,12 @@ OR tags -> 'isced:level' LIKE ANY (ARRAY['%2%', '%3%'])
 )
 );
 
+---------------------------------- Insert new POIS Milan ----------------------------------
+
+insert into pois (osm_id, amenity, geom)
+select id_0 as osm_id , amenity as amenity, geom as geom 
+from custom_pois;
+
 ---------------------------------- Insert kindergartens ----------------------------------
 
 DROP TABLE IF EXISTS kindergartens_polygons;
