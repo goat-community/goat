@@ -33,11 +33,7 @@ class StyleLibrary(SQLModel, table=True):
 UniqueConstraint(StyleLibrary.__table__.c.name)
 
 
-class LayerLibrary(SQLModel, table=True):
-    __tablename__ = "layer_library"
-    __table_args__ = {"schema": "customer"}
-
-    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
+class LayerLibraryBase(SQLModel):
     name: str = Field(sa_column=Column(Text(), nullable=False, index=True))
     url: Optional[str] = Field(sa_column=Column(Text))
     legend_urls: Optional[List[str]] = Field(sa_column=Column(ARRAY(Text())))
@@ -46,6 +42,20 @@ class LayerLibrary(SQLModel, table=True):
     type: str = Field(sa_column=Column(Text(), nullable=False, index=True))
     map_attribution: Optional[str] = Field(sa_column=Column(Text))
     date: Optional[datetime] = Field(sa_column=Column(Text))
+    source: Optional[str]
+    date_1: Optional[datetime] = Field(sa_column=Column(Text))
+    source_1: Optional[str]
+    style_library_name: Optional[str]
+    max_resolution: Optional[float] = Field(sa_column=Column(Text, nullable=True))
+    min_resolution: Optional[float] = Field(sa_column=Column(Text, nullable=True))
+    style_library: "StyleLibrary"
+
+
+class LayerLibrary(LayerLibraryBase, table=True):
+    __tablename__ = "layer_library"
+    __table_args__ = {"schema": "customer"}
+
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     source: Optional[str] = Field(
         sa_column=Column(
             Text,
@@ -53,7 +63,6 @@ class LayerLibrary(SQLModel, table=True):
             nullable=True,
         )
     )
-    date_1: Optional[datetime] = Field(sa_column=Column(Text))
     source_1: Optional[str] = Field(
         sa_column=Column(
             Text,
@@ -68,8 +77,6 @@ class LayerLibrary(SQLModel, table=True):
             nullable=True,
         )
     )
-    max_resolution: Optional[float] = Field(sa_column=Column(Text, nullable=True))
-    min_resolution: Optional[float] = Field(sa_column=Column(Text, nullable=True))
 
     style_library: "StyleLibrary" = Relationship(back_populates="layer_libraries")
 
