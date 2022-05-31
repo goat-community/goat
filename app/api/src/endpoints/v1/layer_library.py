@@ -16,3 +16,12 @@ async def read_layers(
 ):
     layers = await crud.layer_library.get_multi(db, skip=skip, limit=limit)
     return layers
+
+@router.get("/{layer_name}")
+async def read_layer_by_name(
+    layer_name: str,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+):
+    layer = await crud.layer_library.get_by_key(db,key="name", value=layer_name)
+    return layer
