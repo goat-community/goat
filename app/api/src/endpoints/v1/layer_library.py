@@ -42,7 +42,7 @@ async def create_layer(
     return layer
 
 
-@router.put("/{id}/", response_model=models.LayerLibrary)
+@router.put("/{id}", response_model=models.LayerLibrary)
 async def update_layer(
     id: int,
     layer_in: models.LayerLibrary,
@@ -54,7 +54,7 @@ async def update_layer(
     return layer
 
 
-@router.delete("/{id}/", response_model=models.LayerLibrary)
+@router.delete("/{id}", response_model=models.LayerLibrary)
 async def delete_layer(
     id: int,
     db: AsyncSession = Depends(deps.get_db),
