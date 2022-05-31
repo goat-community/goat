@@ -167,6 +167,12 @@ with tags as
 	WHERE w.id = x.id;
 -- Classification of sidewalks in ideal , comfortable, acceptable and uncomfortable
 
+	UPDATE ways t
+	SET sidewalk_width = ( 
+		SELECT  sidewalk_c
+		FROM ways_sidewalks x 
+		WHERE x.id = t.id
+	);
 
 -- Classification of cyclepaths in segregated_yes , segregated_no,  and unclassified 
 	with tags as
@@ -202,7 +208,6 @@ with tags as
 	) x
 	WHERE w.id = x.id;
 
-
 	--Classification of more than 2 lanes as high peak hour
 	UPDATE ways t
 	SET high_peak_hour = 'yes'  FROM ( 
@@ -211,10 +216,6 @@ with tags as
 		WHERE lanes > 2
 	) x 
 	WHERE t.osm_id = x.osm_id;
-
-	--Classification of parks in yes (100m away from a park) and no
-	
-	
 	
 	--Classification of street lamp in yes (with at least 1 lamp in the way) and no - taken from footpath_visualization
 	UPDATE ways t
@@ -252,6 +253,7 @@ with tags as
 			WHERE cnt_bicycle_parking > 0
 		) x 
 		WHERE t.osm_id = x.osm_id;
+	
 	--Classification of waste basket in yes (with at least 1 lamp in the way) and no - taken from footpath_visualization
 	UPDATE ways t
 		SET extra_waste_basket = 'waste_basket'  FROM ( 
@@ -297,7 +299,7 @@ with tags as
 	--walking_bench
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_bench numeric;
 	--walking_bycicle_parking
-	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_bycicle_parking numeric;
+	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_bicycle_parking numeric;
 	--walking_waste_basket
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_walking_waste_basket numeric;
 	--walking_fountain
@@ -342,6 +344,8 @@ with tags as
 	AND smoothness IN(SELECT jsonb_object_keys(select_from_variable_container_o('walking_smoothness')));
 	
 	--Park
+	UPDATE ways SET impedance_walking_park  = (select_from_variable_container_o('cycling_extra') ->> parks_gardens)::NUMERIC 
+	WHERE parks_gardens IS NOT null;
 
 	--Street-lamp
 	UPDATE ways SET impedance_walking_street_lamp  = (select_from_variable_container_o('walking_extra') ->> extra_street_lamp)::NUMERIC 
@@ -380,7 +384,7 @@ with tags as
 								+COALESCE(impedance_walking_street_lamp,0)
 								+COALESCE(impedance_walking_tree,0)
 								+COALESCE(impedance_walking_bench,0)
-								+COALESCE(impedance_walking_bycicle_parking,0)
+								+COALESCE(impedance_walking_bicycle_parking,0)
 								+COALESCE(impedance_walking_waste_basket,0)
 								+COALESCE(impedance_walking_fountain,0);
 -----------------------------------------------
@@ -413,7 +417,7 @@ with tags as
 	--cycling_bench
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_bench numeric;
 	--cycling_bycicle_parking
-	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_bycicle_parking numeric;
+	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_bicycle_parking numeric;
 	--cycling_waste_basket
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_cycling_waste_basket numeric;
 	--cycling_fountain
@@ -458,6 +462,8 @@ with tags as
 	AND smoothness IN(SELECT jsonb_object_keys(select_from_variable_container_o('cycling_smoothness')));
 	
 	--Park
+	UPDATE ways SET impedance_cycling_park  = (select_from_variable_container_o('cycling_extra') ->> parks_gardens)::NUMERIC 
+	WHERE parks_gardens IS NOT null;
 
 	--Street-lamp
 	UPDATE ways SET impedance_cycling_street_lamp  = (select_from_variable_container_o('cycling_extra') ->> extra_street_lamp)::NUMERIC 
@@ -497,7 +503,7 @@ with tags as
 								+COALESCE(impedance_cycling_street_lamp,0)
 								+COALESCE(impedance_cycling_tree,0)
 								+COALESCE(impedance_cycling_bench,0)
-								+COALESCE(impedance_cycling_bycicle_parking,0)
+								+COALESCE(impedance_cycling_bicycle_parking,0)
 								+COALESCE(impedance_cycling_waste_basket,0)
 								+COALESCE(impedance_cycling_fountain,0);
 -----------------------------------------------
@@ -528,7 +534,7 @@ with tags as
 	--wheelchair_bench
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_bench numeric;
 	--wheelchair_bycicle_parking
-	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_bycicle_parking numeric;
+	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_bicycle_parking numeric;
 	--wheelchair_waste_basket
 	ALTER TABLE ways ADD COLUMN IF NOT EXISTS impedance_wheelchair_waste_basket numeric;
 	--wheelchair_fountain
@@ -573,6 +579,8 @@ with tags as
 	AND smoothness IN(SELECT jsonb_object_keys(select_from_variable_container_o('wheelchair_smoothness')));
 	
 	--Park
+	UPDATE ways SET impedance_wheelchair_park  = (select_from_variable_container_o('wheelchair_extra') ->> parks_gardens)::NUMERIC 
+	WHERE parks_gardens IS NOT null;
 
 	--Street-lamp
 	UPDATE ways SET impedance_wheelchair_street_lamp  = (select_from_variable_container_o('wheelchair_extra') ->> extra_street_lamp)::NUMERIC 
@@ -589,13 +597,12 @@ with tags as
 	--Bicycle parking
 	UPDATE ways SET impedance_wheelchair_bicycle_parking = (select_from_variable_container_o('wheelchair_extra') ->> extra_bicycle_parking)::NUMERIC 
 	WHERE extra_bicycle_parking IS NOT null;
-	--Waste basket
 	
+	--Waste basket
 	UPDATE ways SET impedance_wheelchair_waste_basket = (select_from_variable_container_o('wheelchair_extra') ->> extra_waste_basket)::NUMERIC 
 	WHERE extra_waste_basket  IS NOT null;
 	
 	--Fountain
-	
 	UPDATE ways SET impedance_wheelchair_fountain = (select_from_variable_container_o('wheelchair_extra') ->> extra_fountain)::NUMERIC 
 	WHERE extra_fountain IS NOT null;
 	
@@ -611,7 +618,7 @@ with tags as
 								+COALESCE(impedance_wheelchair_street_lamp,0)
 								+COALESCE(impedance_wheelchair_tree,0)
 								+COALESCE(impedance_wheelchair_bench,0)
-								+COALESCE(impedance_wheelchair_bycicle_parking,0)
+								+COALESCE(impedance_wheelchair_bicycle_parking,0)
 								+COALESCE(impedance_wheelchair_waste_basket,0)
 								+COALESCE(impedance_wheelchair_fountain,0);
 -----------------------------------------------
