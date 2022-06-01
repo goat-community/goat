@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src import crud
+from src import crud, schemas
 from src.db import models
 from src.endpoints import deps
 
@@ -34,7 +34,7 @@ async def read_layer_by_name(
 
 @router.post("", response_model=models.LayerLibrary)
 async def create_layer(
-    layer_in: models.LayerLibrary,
+    layer_in: schemas.CreateLayerLibrary,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
@@ -45,7 +45,7 @@ async def create_layer(
 @router.put("/{id}", response_model=models.LayerLibrary)
 async def update_layer(
     id: int,
-    layer_in: models.LayerLibrary,
+    layer_in: schemas.CreateLayerLibrary,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
