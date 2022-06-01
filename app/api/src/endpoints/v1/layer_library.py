@@ -42,15 +42,15 @@ async def create_layer(
     return layer
 
 
-@router.put("/{id}", response_model=models.LayerLibrary)
+@router.put("/{name}", response_model=models.LayerLibrary)
 async def update_layer(
-    id: int,
+    name: str,
     layer_in: schemas.CreateLayerLibrary,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-    layer = await crud.layer_library.get(db, id=id)
-    layer = await crud.layer_library.update(db, db_obj=layer, obj_in=layer_in)
+    layer_in_db = await crud.layer_library.get_by_key(db, key="name", value=name)
+    layer = await crud.layer_library.update(db, db_obj=layer_in_db[0], obj_in=layer_in)
     return layer
 
 
