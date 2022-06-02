@@ -7,9 +7,9 @@ class CreateLayerLibrary(models.LayerLibrary):
     def urls_emptiness_vs_type(cls, values):
         # according to the issue: https://github.com/goat-community/goat/issues/1328
         url, the_type = values.get("url"), values.get("type")
-        url_mandatory_types = ("WMS", "WMS", "OSM", "BING")
+        url_mandatory_types = ("WMS", "OSM", "BING")
         if the_type in url_mandatory_types and not url:
-            raise ValueError("url should not be empty for this layer type.")
+            raise ValueError("url should not be empty for the layer type %s." % the_type)
 
         return values
 
@@ -19,7 +19,7 @@ class CreateLayerLibrary(models.LayerLibrary):
         legend_urls, the_type = values.get("legend_urls"), values.get("type")
         legend_url_mandatory_types = ("WMS",)
         if the_type in legend_url_mandatory_types and not legend_urls:
-            raise ValueError("legend_urls should not be empty for this layer type.")
+            raise ValueError("legend_urls should not be empty for the layer type %s." % the_type)
 
         return values
 
@@ -29,7 +29,9 @@ class CreateLayerLibrary(models.LayerLibrary):
         style_library_name, the_type = values.get("style_library_name"), values.get("type")
         legend_url_mandatory_types = ("MVT", "GEOBUF", "WFS")
         if the_type in legend_url_mandatory_types and not style_library_name:
-            raise ValueError("style_library_name should not be empty for this layer type.")
+            raise ValueError(
+                "style_library_name should not be empty for the layer type %s." % the_type
+            )
 
         return values
 
