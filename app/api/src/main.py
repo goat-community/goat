@@ -1,8 +1,10 @@
 import os
 
 import sentry_sdk
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
+from sqlalchemy.exc import IntegrityError
 from starlette.middleware.cors import CORSMiddleware
 
 from src import crud
@@ -69,3 +71,14 @@ async def sentry():
 
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+@app.exception_handler(IntegrityError)
+async def item_already_exists_handler(request: Request, exc: IntegrityError):
+    return JSONResponse(
+        status_code=409,
+        content={
+            "message": "object with a unique field already exists.",
+            "detail": str(exc.__dict__.get("orig")),
+        },
+    )
