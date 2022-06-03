@@ -6,7 +6,7 @@ authors = ["Admin <administrator@plan4better.de>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-uvicorn = "^0.11.3"
+uvicorn = "^0.17.6"
 fastapi = "^0.74"
 python-multipart = "^0.0.5"
 email-validator = "^1.0.5"
@@ -22,7 +22,7 @@ jinja2 = "^2.11.2"
 psycopg2-binary = "^2.8.5"
 alembic = "^1.4.2"
 SQLAlchemy = "^1.4.23"
-httpx = "^0.17.1"
+httpx = "^0.23.0"
 asyncpg = "^0.24.0"
 python-jose = {extras = ["cryptography"], version = "^3.1.0"}
 GeoAlchemy2 = "^0.9.4"
