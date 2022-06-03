@@ -352,7 +352,11 @@
       "walking_wheelchair_standard": "Standard",
       "walking_wheelchair_electric": "Electric",
       "cycling_standard": "Standard",
-      "cycling_pedelec": "Pedelec"
+      "cycling_pedelec": "Pedelec",
+      "public_transport": "Transit",
+      "walk": "Walk",
+      "bicycle": "Bicycle",
+      "car_park": "Car park"
     },
     "results": {
       "title": "Results",
@@ -909,6 +913,10 @@
     },
     "calendar": {
       "moreEvents": "{0} more"
+    },
+    "timePicker": {
+      "am": "AM",
+      "pm": "PM"
     }
   },
   "common": {

@@ -208,18 +208,22 @@ export function getIsochroneStyle() {
         return;
       }
 
+      if (feature.get("routing_type") === "public_transport") {
+        return [
+          new OlStyle({
+            fill: new OlFill({
+              color: "rgba(40, 54, 72, 0.3)"
+            })
+          })
+        ];
+      }
       //Fallback isochrone style
       if (!modus) {
         let genericIsochroneStyle = new OlStyle({
           fill: new OlFill({
-            color: [0, 0, 0, 0]
-          }),
-          stroke: new OlStroke({
-            color: "#0d0d0d",
-            width: 7
+            color: "rgba(235, 57, 21, 0.3)"
           })
         });
-
         styles.push(genericIsochroneStyle);
       }
       //highlight color

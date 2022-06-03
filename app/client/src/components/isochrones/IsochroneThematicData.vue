@@ -6,6 +6,7 @@
     id="isochroneWindowId"
     :style="[isExpanded ? { height: '400px' } : { height: '50px' }]"
     style="position:fixed;top:10px;left:400px;z-index:2;max-width:440px;min-width:370px;height:450px;overflow:hidden;"
+    ondragstart="return false;"
   >
     <v-layout justify-space-between column fill-height>
       <v-app-bar
@@ -28,65 +29,113 @@
       </v-app-bar>
 
       <vue-scroll>
-        <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1">
-          <v-card-text class="ma-0 py-0 pt-0 pb-2">
-            <v-layout row wrap justify-end>
-              <v-alert
-                v-if="
-                  selectedPois.length === 0 &&
-                    selectedThematicData.calculationType === 'single'
-                "
-                border="left"
-                colored-border
-                class="mb-1 mt-2 elevation-2"
-                icon="info"
-                :color="appColor.primary"
-                dense
+        <div>
+          <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1">
+            <v-card-text class="ma-0 py-0 pt-0 pb-2">
+              <v-layout row wrap justify-end>
+                <v-alert
+                  v-if="
+                    selectedPois.length === 0 &&
+                      selectedThematicData.calculationType === 'single'
+                  "
+                  border="left"
+                  colored-border
+                  class="mb-1 mt-2 elevation-2"
+                  icon="info"
+                  :color="appColor.primary"
+                  dense
+                >
+                  <span
+                    v-html="$t('isochrones.tableData.selectAmenitiesMsg')"
+                  ></span>
+                </v-alert>
+                <v-flex shrink>
+                  <v-chip class="mt-1 mb-0">
+                    {{
+                      `${$t("isochrones.calculation")} - ${
+                        selectedThematicData.calculationId
+                      }`
+                    }}
+                  </v-chip></v-flex
+                ></v-layout
               >
-                <span
-                  v-html="$t('isochrones.tableData.selectAmenitiesMsg')"
-                ></span>
-              </v-alert>
-              <v-flex shrink>
-                <v-chip class="mt-1 mb-0">
-                  {{
-                    `${$t("isochrones.calculation")} - ${
-                      selectedThematicData.calculationId
-                    }`
-                  }}
-                </v-chip></v-flex
-              ></v-layout
-            >
-          </v-card-text>
-          <v-select
-            v-if="selectedThematicData.calculationType === 'single'"
-            :items="isochroneSteps"
-            item-text="display"
-            item-value="value"
-            :label="$t('isochrones.tableData.timeFilter')"
-            v-model="selectedTime"
-          ></v-select>
+            </v-card-text>
+            <v-select
+              v-if="
+                selectedThematicData.calculationType === 'single' &&
+                  selectedThematicData.calculation.routing_profile !==
+                    'public_transport'
+              "
+              :items="isochroneSteps"
+              item-text="display"
+              item-value="value"
+              :label="$t('isochrones.tableData.timeFilter')"
+              v-model="selectedTime"
+            ></v-select>
 
-          <v-data-table
-            :headers="tableHeaders"
-            :items="tableItems"
-            class="elevation-1 mb-2"
-            :search="search"
-            hide-default-footer
-            :no-data-text="
-              selectedTime === null
-                ? $t('isochrones.tableData.selectTimeMsg')
-                : $t('isochrones.tableData.noDataMsg')
-            "
-            :items-per-page="-1"
-          >
-            <template v-slot:items="props">
-              <td v-for="(header, index) in tableHeaders" :key="index">
-                {{ props.item[header.value] }}
-              </td>
-            </template>
-          </v-data-table>
-        </v-flex>
+            <v-card-text
+              class="ma-0 pa-0"
+              v-if="
+                selectedThematicData.calculationType === 'single' &&
+                  selectedThematicData.calculation.routing_profile ===
+                    'public_transport'
+              "
+              row
+            >
+              <v-row class="mx-1">
+                <v-col cols="9" class="pr-0">
+                  <v-slider
+                    @mousedown.native.stop
+                    @mouseup.native.stop
+                    @click.native.stop
+                    class="pt-4"
+                    prepend-icon="schedule"
+                    :track-color="appColor.secondary"
+                    :color="appColor.secondary"
+                    v-model="selectedThematicData.calculation.data[0].range"
+                    :min="0"
+                    :max="120"
+                    @input="udpateIsochroneSurface"
+                  ></v-slider>
+                </v-col>
+                <v-col cols="3">
+                  <v-text-field
+                    @mousedown.native.stop
+                    @mouseup.native.stop
+                    @click.native.stop
+                    suffix="min"
+                    class="mt-0"
+                    type="number"
+                    :min="0"
+                    :max="120"
+                    @input="udpateIsochroneSurface"
+                    v-model="selectedThematicData.calculation.data[0].range"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+            </v-card-text>
+
+            <v-data-table
+              :headers="tableHeaders"
+              :items="tableItems"
+              class="elevation-1 mb-2"
+              :search="search"
+              hide-default-footer
+              :no-data-text="
+                selectedTime === null
+                  ? $t('isochrones.tableData.selectTimeMsg')
+                  : $t('isochrones.tableData.noDataMsg')
+              "
+              :items-per-page="-1"
+            >
+              <template v-slot:items="props">
+                <td v-for="(header, index) in tableHeaders" :key="index">
+                  {{ props.item[header.value] }}
+                </td>
+              </template>
+            </v-data-table>
+          </v-flex>
+        </div>
       </vue-scroll>
     </v-layout>
   </v-card>
@@ -97,6 +146,12 @@ import { mapGetters } from "vuex";
 import IsochroneUtils from "../../utils/IsochroneUtils";
 import { Draggable } from "draggable-vue-directive";
 import { mapFields } from "vuex-map-fields";
+import {
+  computeSingleValuedSurface,
+  fromPixel,
+  geojsonToFeature
+} from "../../utils/MapUtils";
+import { jsolines } from "../../utils/Jsolines";
 
 export default {
   directives: {
@@ -128,6 +183,9 @@ export default {
         });
       this.selectedThematicData = null;
     },
+    stopPropagation(e) {
+      e.stopPropagation();
+    },
     getString(val) {
       let string = "";
       if (typeof val === "object" && val.cnt && val.area) {
@@ -137,6 +195,40 @@ export default {
         string = val;
       }
       return string;
+    },
+    udpateIsochroneSurface(cutoff) {
+      const isochroneSurface = this.selectedThematicData.calculation
+        .surfaceData;
+      const singleValuedSurface = computeSingleValuedSurface(
+        isochroneSurface,
+        50
+      );
+      const {
+        surface,
+        width,
+        height,
+        west,
+        north,
+        zoom
+        // eslint-disable-next-line no-undef
+      } = singleValuedSurface;
+      const isochronePolygon = jsolines({
+        surface,
+        width,
+        height,
+        cutoff: cutoff,
+        project: ([x, y]) => {
+          const ll = fromPixel({ x: x + west, y: y + north }, zoom);
+          return [ll.lon, ll.lat];
+        }
+      });
+      let olFeatures = geojsonToFeature(isochronePolygon, {
+        dataProjection: "EPSG:4326",
+        featureProjection: "EPSG:3857"
+      });
+      this.selectedThematicData.calculation.data[0].feature.setGeometry(
+        olFeatures[0].getGeometry()
+      );
     }
   },
   computed: {
@@ -200,6 +292,12 @@ export default {
     tableItems() {
       let me = this;
       let items = [];
+      if (
+        this.selectedThematicData.calculation.routing_profile ===
+        "public_transport"
+      ) {
+        return items;
+      }
       if (me.selectedThematicData.calculationType === "single") {
         let pois = me.selectedThematicData.pois;
         let selectedTime = me.selectedTime;
@@ -282,6 +380,9 @@ export default {
   watch: {
     selectedThematicData(value) {
       this.isochroneSteps = [];
+      if (value.calculation.routing_profile === "public_transport") {
+        return;
+      }
       if (!value) return;
       let pois = value.pois;
       if (pois) {
