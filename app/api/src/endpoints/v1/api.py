@@ -4,8 +4,8 @@ from src.endpoints.v1 import (
     customizations,
     heatmap,
     isochrones,
-    layers,
     layer_library,
+    layers,
     login,
     organizations,
     poi_aoi,
@@ -44,4 +44,4 @@ layer_tiles = layers.VectorTilerFactory(
 )
 
 api_router.include_router(layer_tiles.router, prefix=layer_tiles_prefix, tags=["Layers"])
-api_router.include_router(layer_library.router, prefix= "/layers/library", tags= ["Layer Library"])
+api_router.include_router(layer_library.router, prefix="/layers/library", tags=["Layer Library"])
