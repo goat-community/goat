@@ -1,6 +1,7 @@
+import http
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud, schemas
@@ -18,6 +19,8 @@ async def list_layers(
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
     layers = await crud.layer_library.get_multi(db, skip=skip, limit=limit)
+    if not layers:
+        raise HTTPException(status_code=404, detail="there is no (more) layer libraries.")
     return layers
 
 
@@ -28,7 +31,10 @@ async def read_layer_by_name(
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
     layer = await crud.layer_library.get_by_key(db, key="name", value=name)
-    layer = layer[0]
+    if layer:
+        layer = layer[0]
+    else:
+        raise HTTPException(status_code=404, detail="layer not found.")
     return layer
 
 
