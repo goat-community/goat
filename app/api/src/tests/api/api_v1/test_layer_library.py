@@ -17,7 +17,9 @@ async def test_read_layers_list(
 ) -> None:
     await create_random_layer_library(db=db)
     await create_random_layer_library(db=db)
-    r = await client.get(f"{settings.API_V1_STR}/layers/library", headers=superuser_token_headers)
+    r = await client.get(
+        f"{settings.API_V1_STR}/config/layers/library", headers=superuser_token_headers
+    )
     assert 200 <= r.status_code < 300
     layers = r.json()
     assert len(layers) > 1
@@ -28,7 +30,7 @@ async def test_get_layer_library_by_name(
 ) -> None:
     random_layer = await create_random_layer_library(db=db)
     r = await client.get(
-        f"{settings.API_V1_STR}/layers/library/{random_layer.name}",
+        f"{settings.API_V1_STR}/config/layers/library/{random_layer.name}",
         headers=superuser_token_headers,
     )
     assert 200 <= r.status_code < 300
@@ -41,7 +43,9 @@ async def test_create_layer_library(
 ) -> None:
     random_layer = request_examples.single_layer_library
     r = await client.post(
-        f"{settings.API_V1_STR}/layers/library", headers=superuser_token_headers, json=random_layer
+        f"{settings.API_V1_STR}/config/layers/library",
+        headers=superuser_token_headers,
+        json=random_layer,
     )
     assert 200 <= r.status_code < 300
     retrieved_layer = r.json()
@@ -56,7 +60,7 @@ async def test_update_layer_library(
     layer_name = random_layer.name
     random_layer.name += "_updated"
     r = await client.put(
-        f"{settings.API_V1_STR}/layers/library/{layer_name}",
+        f"{settings.API_V1_STR}/config/layers/library/{layer_name}",
         headers=superuser_token_headers,
         json=jsonable_encoder(random_layer),
     )
@@ -71,7 +75,7 @@ async def test_delete_layer_library(
 ) -> None:
     random_layer = await create_random_layer_library(db=db)
     r = await client.delete(
-        f"{settings.API_V1_STR}/layers/library/{random_layer.name}",
+        f"{settings.API_V1_STR}/config/layers/library/{random_layer.name}",
         headers=superuser_token_headers,
     )
 
@@ -79,7 +83,7 @@ async def test_delete_layer_library(
 
     # Try to get
     r = await client.get(
-        f"{settings.API_V1_STR}/layers/library/{random_layer.name}",
+        f"{settings.API_V1_STR}/config/layers/library/{random_layer.name}",
         headers=superuser_token_headers,
     )
 
@@ -88,7 +92,7 @@ async def test_delete_layer_library(
     # Try to delete again
 
     r = await client.delete(
-        f"{settings.API_V1_STR}/layers/library/{random_layer.name}",
+        f"{settings.API_V1_STR}/config/layers/library/{random_layer.name}",
         headers=superuser_token_headers,
     )
 
