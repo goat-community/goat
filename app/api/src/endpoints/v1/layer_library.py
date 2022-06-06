@@ -56,15 +56,24 @@ async def update_layer(
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
     layer_in_db = await crud.layer_library.get_by_key(db, key="name", value=name)
+    if not layer_in_db:
+        raise HTTPException(status_code=404, detail="layer library not found.")
+
     layer = await crud.layer_library.update(db, db_obj=layer_in_db[0], obj_in=layer_in)
     return layer
 
 
-@router.delete("/{id}", response_model=models.LayerLibrary)
+@router.delete("/{name}", response_model=models.LayerLibrary)
 async def delete_layer(
-    id: int,
+    name: str,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-    layer = await crud.layer_library.remove(db, id=id)
+    layer = await crud.layer_library.get_by_key(db, key="name", value=name)
+    if not layer:
+        raise HTTPException(status_code=404, detail="layer library not found.")
+    else:
+        layer = layer[0]
+
+    layer = await crud.layer_library.remove(db, id=layer.id)
     return layer
