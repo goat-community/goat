@@ -15,7 +15,7 @@ async def list_layers(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
     layers = await crud.layer_library.get_multi(db, skip=skip, limit=limit)
     return layers
@@ -25,7 +25,7 @@ async def list_layers(
 async def read_layer_by_name(
     name: str,
     db: AsyncSession = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
     layer = await crud.layer_library.get_by_key(db, key="name", value=name)
     layer = layer[0]
