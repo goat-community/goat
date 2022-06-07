@@ -41,13 +41,13 @@ class LayerLibraryBase(SQLModel):
     access_token: Optional[str] = Field(sa_column=Column(Text))
     type: str = Field(sa_column=Column(Text(), nullable=False, index=True))
     map_attribution: Optional[str] = Field(sa_column=Column(Text))
-    date: Optional[datetime] = Field(sa_column=Column(Text))
+    date: Optional[str] = Field(sa_column=Column(Text))
     source: Optional[str]
-    date_1: Optional[datetime] = Field(sa_column=Column(Text))
+    date_1: Optional[str] = Field(sa_column=Column(Text))
     source_1: Optional[str]
     style_library_name: Optional[str]
-    max_resolution: Optional[float] = Field(sa_column=Column(Text, nullable=True))
-    min_resolution: Optional[float] = Field(sa_column=Column(Text, nullable=True))
+    max_resolution: Optional[str] = Field(sa_column=Column(Text, nullable=True))
+    min_resolution: Optional[str] = Field(sa_column=Column(Text, nullable=True))
 
 
 class LayerLibrary(LayerLibraryBase, table=True):

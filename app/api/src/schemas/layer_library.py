@@ -1,5 +1,31 @@
 from src.db import models
 from pydantic import root_validator
+from src.tests.utils.utils import random_lower_string
+from datetime import datetime
+
+
+class RequestExamples:
+    @property
+    def single_layer_library(self):
+        return {
+            "url": "https://{a-c}.basemaps.somecdn.com/dark_all/{z}/{x}/{y}.png",
+            "legend_urls": [random_lower_string()],
+            "special_attribute": {"imagery_set": "Aerial"},
+            "access_token": "some_token",
+            "map_attribution": "Attribution to the source",
+            "date": str(datetime.today().year),
+            "source": None,
+            "date_1": str(datetime.today().year),
+            "source_1": None,
+            "style_library_name": None,
+            "max_resolution": "0",
+            "min_resolution": "0",
+            "name": random_lower_string(),
+            "type": "BING",
+        }
+
+
+request_examples = RequestExamples()
 
 
 class CreateLayerLibrary(models.LayerLibrary):
@@ -36,21 +62,4 @@ class CreateLayerLibrary(models.LayerLibrary):
         return values
 
     class Config:
-        schema_extra = {
-            "example": {
-                "url": "https://{a-c}.basemaps.somecdn.com/dark_all/{z}/{x}/{y}.png",
-                "legend_urls": None,
-                "special_attribute": {"imagery_set": "Aerial"},
-                "access_token": "some_token",
-                "map_attribution": "Attribution to the source",
-                "date": None,
-                "source": None,
-                "date_1": None,
-                "source_1": None,
-                "style_library_name": None,
-                "max_resolution": None,
-                "min_resolution": None,
-                "name": "test",
-                "type": "BING",
-            }
-        }
+        schema_extra = {"example": request_examples.single_layer_library}
