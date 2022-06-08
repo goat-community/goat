@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 @router.get("", response_model=List[models.LayerLibrary])
-async def list_layers(
+async def list_layer_libraries(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
@@ -25,7 +25,7 @@ async def list_layers(
 
 
 @router.get("/{name}", response_model=models.LayerLibrary)
-async def read_layer_by_name(
+async def read_layer_library_by_name(
     name: str,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
@@ -39,7 +39,7 @@ async def read_layer_by_name(
 
 
 @router.post("", response_model=models.LayerLibrary)
-async def create_layer(
+async def create_a_new_layer_library(
     layer_in: schemas.CreateLayerLibrary,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
@@ -49,7 +49,7 @@ async def create_layer(
 
 
 @router.put("/{name}", response_model=models.LayerLibrary)
-async def update_layer(
+async def update_a_layer_library(
     name: str,
     layer_in: schemas.CreateLayerLibrary,
     db: AsyncSession = Depends(deps.get_db),
@@ -64,7 +64,7 @@ async def update_layer(
 
 
 @router.delete("/{name}", response_model=models.LayerLibrary)
-async def delete_layer(
+async def delete_a_layer_library(
     name: str,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
