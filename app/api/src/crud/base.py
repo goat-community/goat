@@ -41,9 +41,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         result = await db.execute(statement)
         return result.scalars().first()
 
-    async def get_all(
-        self, db: AsyncSession, *, extra_fields: List[Any] = []
-    ) -> List[ModelType]:
+    async def get_all(self, db: AsyncSession, *, extra_fields: List[Any] = []) -> List[ModelType]:
         statement = select(self.model)
         statement = self.extend_statement(statement, extra_fields=extra_fields)
         result = await db.execute(statement)
@@ -89,12 +87,13 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db_obj: ModelType,
         obj_in: Union[UpdateSchemaType, Dict[str, Any]],
     ) -> ModelType:
-        obj_data = jsonable_encoder(db_obj)
+        # obj_data = jsonable_encoder(db_obj)
+        fields = obj_in.__fields__.keys()
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
             update_data = obj_in.dict(exclude_unset=True)
-        for field in obj_data:
+        for field in fields:
             if field in update_data:
                 setattr(db_obj, field, update_data[field])
         db.add(db_obj)
