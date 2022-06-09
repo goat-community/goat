@@ -843,7 +843,8 @@
                       <v-switch
                         v-if="
                           calculation.calculationMode !== 'comparison' &&
-                            calculation.calculationType !== 'multiple'
+                            calculation.calculationType !== 'multiple' &&
+                            calculation.routing_profile !== 'public_transport'
                         "
                         class="mt-4 mr-3"
                         dense
@@ -956,7 +957,11 @@
                         <v-col cols="8" justify="end" align-end class="pr-1">
                           <v-row no-gutters justify="end" align="center">
                             <v-switch
-                              v-if="calculation.calculationType !== 'multiple'"
+                              v-if="
+                                calculation.calculationType !== 'multiple' &&
+                                  calculation.routing_profile !==
+                                    'public_transport'
+                              "
                               class="ma-0 pa-0"
                               dense
                               :color="appColor.secondary"
@@ -1981,7 +1986,8 @@ export default {
         maxRides: 4,
         maxWalkTime: 20,
         monteCarloDraws: 200,
-        percentiles: [5, 25, 50, 75, 95]
+        percentiles: [5, 25, 50, 75, 95],
+        zoom: 10
       };
       this.isMapBusy = true;
       this.isIsochroneBusy = true;
@@ -2057,6 +2063,7 @@ export default {
                 isVisible: true,
                 feature: olFeatures[0]
               };
+              const calculationNumber = this.calculations.length + 1;
               olFeatures[0].set("isVisible", true);
               olFeatures[0].set("calculationNumber", calculationNumber);
               olFeatures[0].set("color", color);
@@ -2066,7 +2073,7 @@ export default {
               olFeatures[0].set("showLabel", false);
               const calculationData = [];
               calculationData.push(obj);
-              const calculationNumber = this.calculations.length + 1;
+
               let transformedData = {
                 id: calculationNumber,
                 calculationType: this.type,
