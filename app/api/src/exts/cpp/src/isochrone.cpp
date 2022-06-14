@@ -17,72 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  ********************************************************************PGR-GNU*/
-
-#include <iostream>
-#include <algorithm>
-#include <cmath>
-#include <limits>
-#include <set>
-#include <sstream>
-#include <unordered_map>
-#include <vector>
-#include <string>
-#include <cstring>
-#include <exception>
-#include "concaveman.h"
-#include <map>
-
-
-#ifdef DEBUG
-#include <fstream>
-#include <regex>
-#include <iterator>
-#endif
-
-#ifndef DEBUG
-#include <pybind11/pybind11.h>
-#include <pybind11/numpy.h>
-#include <pybind11/stl.h>
-namespace py = pybind11;
-#endif
-
-// ---------------------------------------------------------------------------------------------------------------------
-// ***************************************** ISOCHRONE COMPUTATION *****************************************************
-// ---------------------------------------------------------------------------------------------------------------------
-
-typedef struct
-{
-  int64_t id;
-  int64_t source;
-  int64_t target;
-  double cost;
-  double reverse_cost;
-  double length;
-  std::vector<std::array<double, 2>> geometry;
-} Edge;
-
-typedef struct
-{
-  int64_t start_id;
-  int64_t edge;
-  double start_perc;
-  double end_perc;
-  double start_cost;
-  double end_cost;
-  std::vector<std::array<double, 2>> geometry;
-} IsochroneNetworkEdge;
-
-typedef struct
-{
-  int64_t start_id;
-  std::unordered_map<int32_t, std::vector<std::array<double, 2>>> shape; // steps, geometry
-} IsochroneStartPoint;
-
-typedef struct
-{
-  std::vector<IsochroneStartPoint> isochrone;
-  std::vector<IsochroneNetworkEdge> network;
-} Result;
+#include "types.h"
 
 // Adjacency list for the isochrone network (for each node, the edges that are connected to it)
 std::vector<std::vector<const Edge *>>
@@ -185,11 +120,6 @@ std::unordered_map<int64_t, int64_t> remap_edges(Edge *data_edges,
 // Implementation of Andrew's monotone chain 2D convex hull algorithm.
 // Asymptotic complexity: O(n log n).
 // Practical performance: 0.5-1.0 seconds for n=1000000 on a 1GHz machine.
-struct ConvexhullResult
-{
-  std::vector<std::array<double, 2>> shape;
-  std::vector<int32_t> indices;
-};
 
 struct
 {
@@ -414,7 +344,7 @@ Result compute_isochrone(Edge *data_edges, size_t total_edges,
 
   std::unordered_map<int64_t, int64_t> mapping_reversed;
 
-  for (auto i=mapping.begin(); i!=mapping.end(); ++i)
+  for (auto i = mapping.begin(); i != mapping.end(); ++i)
     mapping_reversed[i->second] = i->first;
 
   // coordinates for the network edges for each distance limit to be used in constructing the isochrone shape
