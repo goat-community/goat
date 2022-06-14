@@ -118,11 +118,65 @@ void append_edge_result(const int64_t &start_v, const int64_t &edge_id, const do
                         const std::vector<double> &distance_limits,
                         std::vector<IsochroneNetworkEdge> *isochrone_network, std::unordered_map<double, std::vector<std::array<double, 2>>> &coordinates, const bool &is_reverse);
 
-void append_edge_result(const int64_t &start_v, const int64_t &edge_id, const double &cost_at_node, const double &edge_cost, const double &edge_length, const std::vector<std::array<double, 2>> &geometry,
-                        const std::vector<double> &distance_limits,
-                        std::vector<IsochroneNetworkEdge> *isochrone_network, std::unordered_map<double, std::vector<std::array<double, 2>>> &coordinates, const bool &is_reverse);
-
 Result compute_isochrone(Edge *data_edges, size_t total_edges,
                          std::vector<int64_t> start_vertices,
                          std::vector<double> distance_limits,
                          bool only_minimum_cover);
+
+typedef struct
+{
+    float max_x = 0, max_y = 0,
+          min_x = std::numeric_limits<float>::max(),
+          min_y = std::numeric_limits<float>::max();
+} Boundry;
+
+typedef struct
+{
+    std::vector<std::array<double, 2>> points;
+    std::vector<float> costs;
+    Boundry boundry;
+} CostResult;
+
+typedef struct
+{
+    std::array<double, 2> start_point;
+    std::array<double, 2> end_point;
+} Line;
+
+typedef struct
+{
+    float x;
+    float y;
+} XY;
+
+typedef struct
+{
+    int64_t start_id;
+    int64_t edge;
+    double start_perc;
+    double end_perc;
+    double start_cost;
+    double end_cost;
+    double length;
+    std::vector<std::array<double, 2>> geometry;
+} IsochroneNetworkEdge2;
+
+typedef struct
+{
+    std::vector<IsochroneStartPoint> isochrone;
+    std::vector<IsochroneNetworkEdge2> network;
+} Result2;
+
+void append_edge_result(const int64_t &start_v, const int64_t &edge_id, const double &cost_at_node, const double &edge_cost, const double &edge_length, const std::vector<std::array<double, 2>> &geometry,
+                        const std::vector<double> &distance_limits,
+                        std::vector<IsochroneNetworkEdge2> *isochrone_network, std::unordered_map<double, std::vector<std::array<double, 2>>> &coordinates, const bool &is_reverse);
+
+void reverse_isochrone_path(IsochroneNetworkEdge2 &isochrone_path);
+
+Result2 calculate2(
+    py::array_t<int64_t> &edge_ids_, py::array_t<int64_t> &sources_,
+    py::array_t<int64_t> &targets_, py::array_t<double> &costs_,
+    py::array_t<double> &reverse_costs_, py::array_t<double> &length_, std::vector<std::vector<std::array<double, 2>>> &geometry,
+    py::array_t<int64_t> start_vertices_,
+    py::array_t<double> distance_limits_,
+    bool only_minimum_cover_);
