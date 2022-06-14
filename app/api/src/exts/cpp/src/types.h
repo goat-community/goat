@@ -83,6 +83,12 @@ typedef struct
     std::vector<IsochroneNetworkEdge> network;
 } Result;
 
+typedef struct
+{
+    std::vector<std::array<double, 2>> shape;
+    std::vector<int32_t> indices;
+} ConvexhullResult;
+
 // Adjacency list for the isochrone network (for each node, the edges that are connected to it)
 std::vector<std::vector<const Edge *>>
 construct_adjacency_list(size_t n, const Edge *edges,
@@ -101,12 +107,6 @@ std::unordered_map<int64_t, int64_t> remap_edges(Edge *data_edges,
 // Returns a positive value, if OAB makes a counter-clockwise turn,
 // negative for clockwise turn, and zero if the points are collinear.
 double cross(const std::array<double, 2> &O, const std::array<double, 2> &A, const std::array<double, 2> &B);
-
-struct ConvexhullResult
-{
-    std::vector<std::array<double, 2>> shape;
-    std::vector<int32_t> indices;
-};
 
 ConvexhullResult convexhull(std::vector<std::array<double, 2>> &P);
 
