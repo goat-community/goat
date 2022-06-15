@@ -19,6 +19,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  ********************************************************************PGR-GNU*/
 #include "types.h"
 #include "isochrone.h"
+#include "isochrone2.h"
+#include "isochrone-surface.h"
 
 #ifdef DEBUG
 std::vector<std::string> split(const std::string &input, const std::string &regex = " ")
@@ -93,8 +95,10 @@ int main()
   std::vector<double> distance_limits = {60};
   std::vector<int64_t> start_vertices{2147483647};
   bool only_minimum_cover = false;
-  auto results = compute_isochrone(data_edges, total_edges, start_vertices,
-                                   distance_limits, only_minimum_cover);
+  auto results = compute_isochrone2(data_edges, total_edges, start_vertices,
+                                    distance_limits, only_minimum_cover);
+
+  auto results2 = split_edges(results.network, 20);
 
   return 0;
 }

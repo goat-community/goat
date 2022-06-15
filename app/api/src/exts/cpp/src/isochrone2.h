@@ -1,5 +1,6 @@
+#pragma once
 #include "types.h"
-
+#include "isochrone.h"
 Result2 compute_isochrone2(Edge *data_edges, size_t total_edges,
                            std::vector<int64_t> start_vertices,
                            std::vector<double> distance_limits,
@@ -83,19 +84,19 @@ Result2 compute_isochrone2(Edge *data_edges, size_t total_edges,
 
             if (start_v == mapping_reversed.find(e.source)->second)
             {
-                append_edge_result(start_v, e.id, 0, e.cost, e.length, e.geometry, distance_limits, &isochrone_network, coordinates, true);
+                append_edge_result2(start_v, e.id, 0, e.cost, e.length, e.geometry, distance_limits, &isochrone_network, coordinates, true);
             }
             if (start_v == mapping_reversed.find(e.target)->second)
             {
-                append_edge_result(start_v, e.id, 0, e.reverse_cost, e.length, e.geometry, distance_limits, &isochrone_network, coordinates, true);
+                append_edge_result2(start_v, e.id, 0, e.reverse_cost, e.length, e.geometry, distance_limits, &isochrone_network, coordinates, true);
             }
             if (!skip_ts && t_reached && predecessors[e.target] != e.source)
             {
-                append_edge_result(start_v, e.id, tcost, e.reverse_cost, e.length, e.geometry, distance_limits, &isochrone_network, coordinates, true);
+                append_edge_result2(start_v, e.id, tcost, e.reverse_cost, e.length, e.geometry, distance_limits, &isochrone_network, coordinates, true);
             }
             if (!skip_st && s_reached && predecessors[e.source] != e.target)
             {
-                append_edge_result(start_v, e.id, scost, e.cost, e.length, e.geometry, distance_limits, &isochrone_network, coordinates, false);
+                append_edge_result2(start_v, e.id, scost, e.cost, e.length, e.geometry, distance_limits, &isochrone_network, coordinates, false);
             }
         }
         // Calculating the isochrone shape for the current starting vertex.
@@ -160,7 +161,7 @@ void append_edge_result2(const int64_t &start_v, const int64_t &edge_id, const d
             r.geometry = geometry;
             if (is_reverse)
             {
-                reverse_isochrone_path(r);
+                reverse_isochrone_path2(r);
             }
             isochrone_network->push_back(r);
             std::copy(r.geometry.begin(), r.geometry.end(), std::back_inserter(coordinates[dl]));
@@ -177,7 +178,7 @@ void append_edge_result2(const int64_t &start_v, const int64_t &edge_id, const d
         current_cost = dl;
         if (is_reverse)
         {
-            reverse_isochrone_path(r);
+            reverse_isochrone_path2(r);
         }
         r.geometry = line_substring(r.start_perc, r.end_perc, geometry, edge_length);
         isochrone_network->push_back(r);
@@ -187,7 +188,7 @@ void append_edge_result2(const int64_t &start_v, const int64_t &edge_id, const d
     }
 }
 
-void reverse_isochrone_path(IsochroneNetworkEdge2 &isochrone_path)
+void reverse_isochrone_path2(IsochroneNetworkEdge2 &isochrone_path)
 {
     // reverse the percantage
     double nstart_perc = 1. - isochrone_path.end_perc;
@@ -196,7 +197,7 @@ void reverse_isochrone_path(IsochroneNetworkEdge2 &isochrone_path)
     // reversing the cost
     std::swap(isochrone_path.start_cost, isochrone_path.end_cost);
 }
-
+#ifndef DEBUG
 Result2 calculate2(
     py::array_t<int64_t> &edge_ids_, py::array_t<int64_t> &sources_,
     py::array_t<int64_t> &targets_, py::array_t<double> &costs_,
@@ -248,3 +249,4 @@ Result2 calculate2(
                                                distance_limits, only_minimum_cover);
     return isochrone_points;
 }
+#endif
