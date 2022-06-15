@@ -99,9 +99,9 @@ class Settings(BaseSettings):
             values.get("SMTP_HOST") and values.get("SMTP_PORT") and values.get("EMAILS_FROM_EMAIL")
         )
 
-    FIRST_ORGANIZATION: str 
-    FIRST_SUPERUSER_NAME: str 
-    FIRST_SUPERUSER_SURNAME: str 
+    FIRST_ORGANIZATION: str
+    FIRST_SUPERUSER_NAME: str
+    FIRST_SUPERUSER_SURNAME: str
     FIRST_SUPERUSER_PASSWORD: str
     FIRST_SUPERUSER_EMAIL: Optional[str] = "administrator@plan4better.de"
     FIRST_SUPERUSER_STORAGE: Optional[int] = 500000  # In kilobytes
@@ -127,6 +127,10 @@ class Settings(BaseSettings):
     MAX_FEATURES_PER_TILE: int = 10000
     DEFAULT_MINZOOM: int = 0
     DEFAULT_MAXZOOM: int = 22
+
+    # R5 config
+    R5_MONGO_DB_URL: Optional[str] = None
+    R5_API_URL: Optional[str] = None
 
     class Config:
         case_sensitive = True

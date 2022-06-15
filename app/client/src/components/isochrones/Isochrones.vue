@@ -68,45 +68,266 @@
                       </template>
                     </v-select>
                   </v-col>
-                  <v-col class="d-flex mb-0 pb-2" cols="12" sm="6">
-                    <v-text-field
-                      :label="$t(`isochrones.options.speed`)"
-                      type="number"
-                      step="any"
-                      min="1"
-                      max="25"
-                      ref="input"
-                      :rules="[speedRule]"
-                      v-model="speed"
-                      suffix="km/h"
-                      hide-details
-                      class="mb-1"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col class="d-flex mt-2 pt-0" cols="12" sm="6">
-                    <v-text-field
-                      :label="$t(`isochrones.options.time`)"
-                      type="number"
-                      step="any"
-                      min="1"
-                      max="20"
-                      ref="input"
-                      :rules="[timeRule]"
-                      v-model="time"
-                      suffix="min"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col class="d-flex mt-2 pt-0" cols="12" sm="6">
-                    <v-text-field
-                      :label="$t(`isochrones.options.nr`)"
-                      type="number"
-                      step="any"
-                      min="1"
-                      max="4"
-                      ref="input"
-                      v-model="steps"
-                    ></v-text-field>
-                  </v-col>
+                  <template v-if="routing !== 'public_transport'">
+                    <v-col class="d-flex mb-0 pb-2" cols="12" sm="6">
+                      <v-text-field
+                        :label="$t(`isochrones.options.speed`)"
+                        type="number"
+                        step="any"
+                        min="1"
+                        max="25"
+                        ref="input"
+                        :rules="[speedRule]"
+                        v-model="speed"
+                        suffix="km/h"
+                        hide-details
+                        class="mb-1"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col class="d-flex mt-2 pt-0" cols="12" sm="6">
+                      <v-text-field
+                        :label="$t(`isochrones.options.time`)"
+                        type="number"
+                        step="any"
+                        min="1"
+                        max="20"
+                        ref="input"
+                        :rules="[timeRule]"
+                        v-model="time"
+                        suffix="min"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col class="d-flex mt-2 pt-0" cols="12" sm="6">
+                      <v-text-field
+                        :label="$t(`isochrones.options.nr`)"
+                        type="number"
+                        step="any"
+                        min="1"
+                        max="4"
+                        ref="input"
+                        v-model="steps"
+                      ></v-text-field>
+                    </v-col>
+                  </template>
+                  <template v-if="routing === 'public_transport'">
+                    <!-- DATE -->
+                    <v-col class="d-flex mb-0 pb-0" cols="12" sm="6">
+                      <v-menu
+                        ref="pt_date"
+                        v-model="dateMenu"
+                        :close-on-content-click="false"
+                        :nudge-right="40"
+                        transition="scale-transition"
+                        offset-y
+                        min-width="auto"
+                      >
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-text-field
+                            v-model="publicTransport.date"
+                            label="Date"
+                            class="mb-0 pb-0"
+                            prepend-inner-icon="fas fa-calendar"
+                            readonly
+                            v-bind="attrs"
+                            v-on="on"
+                          ></v-text-field>
+                        </template>
+                        <v-date-picker
+                          v-if="dateMenu"
+                          :color="appColor.primary"
+                          v-model="publicTransport.date"
+                          @input="dateMenu = false"
+                        ></v-date-picker>
+                      </v-menu>
+                    </v-col>
+                    <!-- FROM TIME -->
+                    <v-col class="d-flex mt-2 pt-0" cols="12" sm="6">
+                      <v-menu
+                        ref="pt_from_time"
+                        v-model="fromTimeMenu"
+                        :close-on-content-click="false"
+                        :nudge-right="40"
+                        transition="scale-transition"
+                        offset-y
+                        max-width="290px"
+                        min-width="290px"
+                      >
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-text-field
+                            v-model="publicTransport.fromTime"
+                            label="From Time"
+                            class="mb-0 pb-0"
+                            prepend-inner-icon="fas fa-clock"
+                            readonly
+                            v-bind="attrs"
+                            v-on="on"
+                          ></v-text-field>
+                        </template>
+                        <v-time-picker
+                          format="24hr"
+                          v-if="fromTimeMenu"
+                          full-width
+                          :color="appColor.primary"
+                          v-model="publicTransport.fromTime"
+                          @click:minute="
+                            $refs.pt_from_time.save(publicTransport.fromTime)
+                          "
+                        ></v-time-picker>
+                      </v-menu>
+                    </v-col>
+                    <!-- TO TIME -->
+                    <v-col class="d-flex mt-2 pt-0" cols="12" sm="6">
+                      <v-menu
+                        ref="pt_to_time"
+                        v-model="toTimeMenu"
+                        :close-on-content-click="false"
+                        :nudge-right="40"
+                        transition="scale-transition"
+                        offset-y
+                        max-width="290px"
+                        min-width="290px"
+                      >
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-text-field
+                            v-model="publicTransport.toTime"
+                            label="To Time"
+                            class="mb-0 pb-0"
+                            prepend-inner-icon="fas fa-clock"
+                            readonly
+                            v-bind="attrs"
+                            v-on="on"
+                          ></v-text-field>
+                        </template>
+                        <v-time-picker
+                          v-if="toTimeMenu"
+                          format="24hr"
+                          full-width
+                          :color="appColor.primary"
+                          v-model="publicTransport.toTime"
+                          @click:minute="
+                            $refs.pt_from_time.save(publicTransport.toTime)
+                          "
+                        ></v-time-picker>
+                      </v-menu>
+                    </v-col>
+                    <!-- ACCESS MODE -->
+                    <v-col class="d-flex mb-0 pb-0" cols="12" sm="6">
+                      <v-select
+                        label="Access Mode"
+                        v-model="publicTransport.accessMode"
+                        class="mb-2 mt-0"
+                        item-value="type"
+                        hide-details
+                        :items="appConfig.routing[3].access_modes"
+                      >
+                        <template slot="selection" slot-scope="{ item }">
+                          <v-row>
+                            <v-col cols="3" class="py-0"
+                              ><v-icon dense>{{ item.icon }}</v-icon></v-col
+                            >
+                            <v-col cols="9" class="py-0"
+                              ><span class="cb-item">{{
+                                $t(
+                                  `isochrones.options.${item.type.toLowerCase()}`
+                                )
+                              }}</span></v-col
+                            >
+                          </v-row>
+                        </template>
+                        <template slot="item" slot-scope="{ item }">
+                          <v-row>
+                            <v-col cols="3"
+                              ><v-icon dense>{{ item.icon }}</v-icon></v-col
+                            >
+                            <v-col cols="9"
+                              ><span class="cb-item">{{
+                                $t(
+                                  `isochrones.options.${item.type.toLowerCase()}`
+                                )
+                              }}</span></v-col
+                            >
+                          </v-row>
+                        </template>
+                      </v-select>
+                    </v-col>
+                    <!-- EGRESS MODE -->
+                    <v-col class="d-flex mb-0 pb-0" cols="12" sm="6">
+                      <v-select
+                        label="Egress Mode"
+                        class="mb-2 mt-0"
+                        v-model="publicTransport.egressMode"
+                        item-value="type"
+                        hide-details
+                        :items="appConfig.routing[3].egress_modes"
+                      >
+                        <template slot="selection" slot-scope="{ item }">
+                          <v-row>
+                            <v-col cols="3" class="py-0"
+                              ><v-icon dense>{{ item.icon }}</v-icon></v-col
+                            >
+                            <v-col cols="9" class="py-0"
+                              ><span class="cb-item">{{
+                                $t(
+                                  `isochrones.options.${item.type.toLowerCase()}`
+                                )
+                              }}</span></v-col
+                            >
+                          </v-row>
+                        </template>
+                        <template slot="item" slot-scope="{ item }">
+                          <v-row>
+                            <v-col cols="3"
+                              ><v-icon dense>{{ item.icon }}</v-icon></v-col
+                            >
+                            <v-col cols="9"
+                              ><span class="cb-item">{{
+                                $t(
+                                  `isochrones.options.${item.type.toLowerCase()}`
+                                )
+                              }}</span></v-col
+                            >
+                          </v-row>
+                        </template>
+                      </v-select>
+                    </v-col>
+                    <!-- TRANSIT  -->
+                    <v-col
+                      class="d-flex mb-0 mt-2 pb-0 justify-center align-center"
+                      cols="12"
+                      sm="12"
+                    >
+                      <span class="text-center mb-0" color="rgba(0, 0, 0, 0.6)">
+                        Transit Modes
+                      </span>
+                    </v-col>
+                    <v-col
+                      class="d-flex mb-5 pb-0 justify-center align-center"
+                      cols="12"
+                      sm="12"
+                    >
+                      <v-btn-toggle
+                        v-model="publicTransport.transitModes"
+                        multiple
+                      >
+                        <template
+                          v-for="(transitMode, index) in routingProfiles
+                            .public_transport.transit_modes"
+                        >
+                          <v-btn :key="index">
+                            <i
+                              :class="`${transitMode.icon} fa-2x`"
+                              aria-hidden="true"
+                              :style="
+                                `width: 40px;color:${
+                                  transitMode.color ? transitMode.color : ''
+                                };`
+                              "
+                            ></i>
+                          </v-btn>
+                        </template>
+                      </v-btn-toggle>
+                    </v-col>
+                  </template>
                 </v-row>
               </v-flex>
             </v-expand-transition>
@@ -143,7 +364,12 @@
             v-show="isIsochroneCalculationTypeElVisible"
             class="py-0 my-0 mb-2 justify-center"
           >
-            <v-row no-gutters justify="center" align="center">
+            <v-row
+              no-gutters
+              justify="center"
+              align="center"
+              v-if="routing !== 'public_transport'"
+            >
               <v-radio-group
                 class="ml-2 mt-4 radio-group-height"
                 v-model="type"
@@ -425,10 +651,27 @@
                             }}
                           </span>
 
-                          <v-icon small class="text-xs-center mx-2"
-                            >fas fa-tachometer-alt
-                          </v-icon>
-                          <span class="caption">{{ calculation.speed }}</span>
+                          <template
+                            v-if="
+                              calculation.routing_profile !== 'public_transport'
+                            "
+                          >
+                            <v-icon small class="text-xs-center mx-2"
+                              >fas fa-tachometer-alt
+                            </v-icon>
+                            <span class="caption">{{ calculation.speed }}</span>
+                          </template>
+                          <template
+                            v-if="
+                              calculation.routing_profile === 'public_transport'
+                            "
+                          >
+                            <v-icon small class="text-xs-center mx-2"
+                              >fas fa-clock
+                            </v-icon>
+                            <span class="caption">{{ calculation.time }}</span>
+                          </template>
+
                           <span
                             class="pl-2 ml-2 text-xs-center"
                             style="border-left: 1px solid #424242;"
@@ -504,65 +747,69 @@
                       </template>
                       <span>{{ calculation.position }}</span></v-tooltip
                     >
-                    <v-tooltip top>
-                      <template v-slot:activator="{ on }">
-                        <div
-                          v-if="
-                            calculation.calculationMode === 'default' ||
-                              calculation.calculationMode === 'comparison'
-                          "
-                          @click.stop="
-                            toggleColorPickerDialog(calculation, 'default')
-                          "
-                          v-on="on"
-                          class="my-1 mx-2 colorPalettePicker"
-                          :style="{
-                            backgroundImage: `linear-gradient(to right, ${getPaletteColor(
-                              calculation,
-                              'default'
-                            )})`
-                          }"
-                        ></div>
-                      </template>
-                      <span>{{
-                        $t(`map.tooltips.changeDefaultColorPalette`)
-                      }}</span>
-                    </v-tooltip>
+                    <template
+                      v-if="calculation.routing_profile !== 'public_transport'"
+                    >
+                      <v-tooltip top>
+                        <template v-slot:activator="{ on }">
+                          <div
+                            v-if="
+                              calculation.calculationMode === 'default' ||
+                                calculation.calculationMode === 'comparison'
+                            "
+                            @click.stop="
+                              toggleColorPickerDialog(calculation, 'default')
+                            "
+                            v-on="on"
+                            class="my-1 mx-2 colorPalettePicker"
+                            :style="{
+                              backgroundImage: `linear-gradient(to right, ${getPaletteColor(
+                                calculation,
+                                'default'
+                              )})`
+                            }"
+                          ></div>
+                        </template>
+                        <span>{{
+                          $t(`map.tooltips.changeDefaultColorPalette`)
+                        }}</span>
+                      </v-tooltip>
 
-                    <v-tooltip top>
-                      <template v-slot:activator="{ on }">
-                        <div
-                          v-if="
-                            calculation.calculationMode === 'scenario' ||
-                              calculation.calculationMode === 'comparison'
-                          "
-                          v-on="on"
-                          @click.stop="
-                            toggleColorPickerDialog(calculation, 'scenario')
-                          "
-                          class="my-1 ml-1 mx-2 colorPalettePicker"
-                          :style="{
-                            backgroundImage: `linear-gradient(to right, ${getPaletteColor(
-                              calculation,
-                              'scenario'
-                            )})`
-                          }"
-                        ></div>
-                      </template>
-                      <span>{{
-                        $t(`map.tooltips.changeScenarioColorPalette`)
-                      }}</span>
-                    </v-tooltip>
+                      <v-tooltip top>
+                        <template v-slot:activator="{ on }">
+                          <div
+                            v-if="
+                              calculation.calculationMode === 'scenario' ||
+                                calculation.calculationMode === 'comparison'
+                            "
+                            v-on="on"
+                            @click.stop="
+                              toggleColorPickerDialog(calculation, 'scenario')
+                            "
+                            class="my-1 ml-1 mx-2 colorPalettePicker"
+                            :style="{
+                              backgroundImage: `linear-gradient(to right, ${getPaletteColor(
+                                calculation,
+                                'scenario'
+                              )})`
+                            }"
+                          ></div>
+                        </template>
+                        <span>{{
+                          $t(`map.tooltips.changeScenarioColorPalette`)
+                        }}</span>
+                      </v-tooltip>
 
-                    <v-icon
-                      small
-                      class="ml-2"
-                      v-html="
-                        calculation.isExpanded
-                          ? 'fas fa-chevron-down'
-                          : 'fas fa-chevron-up'
-                      "
-                    ></v-icon>
+                      <v-icon
+                        small
+                        class="ml-2"
+                        v-html="
+                          calculation.isExpanded
+                            ? 'fas fa-chevron-down'
+                            : 'fas fa-chevron-up'
+                        "
+                      ></v-icon>
+                    </template>
                   </v-subheader>
                   <v-divider
                     v-if="calculation.isExpanded"
@@ -596,7 +843,8 @@
                       <v-switch
                         v-if="
                           calculation.calculationMode !== 'comparison' &&
-                            calculation.calculationType !== 'multiple'
+                            calculation.calculationType !== 'multiple' &&
+                            calculation.routing_profile !== 'public_transport'
                         "
                         class="mt-4 mr-3"
                         dense
@@ -709,7 +957,11 @@
                         <v-col cols="8" justify="end" align-end class="pr-1">
                           <v-row no-gutters justify="end" align="center">
                             <v-switch
-                              v-if="calculation.calculationType !== 'multiple'"
+                              v-if="
+                                calculation.calculationType !== 'multiple' &&
+                                  calculation.routing_profile !==
+                                    'public_transport'
+                              "
                               class="ma-0 pa-0"
                               dense
                               :color="appColor.secondary"
@@ -741,6 +993,9 @@
                         </v-col>
                       </v-row>
                       <v-data-table
+                        v-if="
+                          calculation.routing_profile !== 'public_transport'
+                        "
                         dense
                         style="width:100%"
                         :headers="
@@ -840,8 +1095,6 @@
 </template>
 
 <script>
-//TODO: ADD STUDY AREA LAYER AND POIS FOR MULTIISOCHRONES
-//TODO: FIX MULTIISOCHRONE DATA TABLE WINDOW
 import { Mapable } from "../../mixins/Mapable";
 import { Isochrones } from "../../mixins/Isochrones";
 import { KeyShortcuts } from "../../mixins/KeyShortcuts";
@@ -872,7 +1125,9 @@ import {
   geojsonToFeature,
   getPolygonArea,
   geometryToWKT,
-  geobufToFeatures
+  geobufToFeatures,
+  computeSingleValuedSurface,
+  fromPixel
 } from "../../utils/MapUtils";
 import DrawInteraction from "ol/interaction/Draw";
 import IsochroneUtils from "../../utils/IsochroneUtils";
@@ -885,6 +1140,8 @@ import { unByKey } from "ol/Observable";
 import { EventBus } from "../../EventBus";
 import ApiService from "../../services/api.service";
 import axios from "axios";
+import { parseTimesData } from "../../utils/ParseTimeData";
+import { jsolines } from "../../utils/Jsolines";
 
 export default {
   mixins: [Mapable, Isochrones, KeyShortcuts],
@@ -919,7 +1176,11 @@ export default {
     mapPointerMoveKey: null,
     maxAmenities: 150, //TODO: make this a configurable setting
     // Cancel Request Token
-    cancelRequestToken: null
+    cancelRequestToken: null,
+    // ----PT---
+    fromTimeMenu: false,
+    toTimeMenu: false,
+    dateMenu: false
   }),
   components: {
     download: Download,
@@ -964,7 +1225,8 @@ export default {
       colors: "colors",
       defaultIsochroneColor: "defaultIsochroneColor",
       scenarioIsochroneColor: "scenarioIsochroneColor",
-      selectedThematicData: "selectedThematicData"
+      selectedThematicData: "selectedThematicData",
+      publicTransport: "publicTransport"
     }),
     ...mapFields("map", {
       isMapBusy: "isMapBusy"
@@ -1420,7 +1682,13 @@ export default {
         isochroneMarkerFeature.setId("isochrone_marker_" + calculationNumber);
         isochroneMarkerFeature.set("showLabel", false);
         this.isochroneLayer.getSource().addFeature(isochroneMarkerFeature);
-        this.calculateIsochrone(payloadSingle)
+        let promise;
+        if (this.routing === "public_transport") {
+          promise = this.calculatePublicTransportIsochrone(payloadSingle);
+        } else {
+          promise = this.calculateWalkingCyclingIsochrone(payloadSingle);
+        }
+        promise
           .then(() => {})
           .catch(error => {
             if (error && error.message === "cancelled") {
@@ -1442,7 +1710,7 @@ export default {
      * @param  {Object} parameters The parameters for the isochrone calculation
      * @param  {ol/Feature} isochroneMarkerFeature The starting point for the isochrone calculation (Optional)
      */
-    calculateIsochrone(params) {
+    calculateWalkingCyclingIsochrone(params) {
       const type = this.type;
       const time = this.time;
       const speed = this.speed;
@@ -1674,8 +1942,195 @@ export default {
         payload.region = [region];
       }
       payload.amenities = this.selectedPoisOnlyKeys;
-      this.calculateIsochrone(payload);
+      this.calculateWalkingCyclingIsochrone(payload);
     },
+    calculatePublicTransportIsochrone(params) {
+      const fromTimeArr = this.publicTransport.fromTime.split(":");
+      const toTimeArr = this.publicTransport.toTime.split(":");
+      const transitModes = [];
+      this.publicTransport.transitModes.forEach(index => {
+        transitModes.push(
+          this.routingProfiles.public_transport.transit_modes[index].type
+        );
+      });
+      const payload = {
+        accessModes: this.publicTransport.accessMode,
+        bikeSpeed: 4.166666666666667, //TODO: Get from options
+        bikeTrafficStress: 4,
+        date: this.publicTransport.date,
+        decayFunction: {
+          type: "logistic",
+          standardDeviationMinutes: 12,
+          widthMinutes: 10
+        },
+        destinationPointSetIds: [],
+        directModes: this.publicTransport.accessMode,
+        egressModes: this.publicTransport.egressMode,
+        bounds: {
+          //TODO: FIX
+          north: 48.2905,
+          south: 47.99727,
+          east: 11.94489,
+          west: 11.31592
+        },
+        fromTime: fromTimeArr[0] * 3600 + fromTimeArr[1] * 60,
+        toTime: toTimeArr[0] * 3600 + toTimeArr[1] * 60,
+        transitModes: transitModes.toString(),
+        fromLat: params.y,
+        fromLon: params.x,
+        walkSpeed: 1.3888888888888888, //m/s
+        workerVersion: "v6.4",
+        variantIndex: -1,
+        projectId: "6294f0ae0cfee1c6747d696c",
+        maxBikeTime: 20,
+        maxRides: 4,
+        maxWalkTime: 20,
+        monteCarloDraws: 200,
+        percentiles: [5, 25, 50, 75, 95],
+        zoom: 10
+      };
+      this.isMapBusy = true;
+      this.isIsochroneBusy = true;
+      const axiosInstance = axios.create();
+      const CancelToken = axios.CancelToken;
+      return new Promise((resolve, reject) => {
+        axiosInstance
+          .post(`http://localhost:7070/api/analysis`, payload, {
+            responseType: "arraybuffer",
+            cancelToken: new CancelToken(c => {
+              // An executor function receives a cancel function as a parameter
+              this.cancelRequestToken = c;
+            })
+          })
+          .then(response => {
+            resolve(response);
+            if (response.data) {
+              const isochroneSurface = parseTimesData(response.data);
+              const singleValuedSurface = computeSingleValuedSurface(
+                isochroneSurface,
+                50
+              );
+              const {
+                surface,
+                width,
+                height,
+                west,
+                north,
+                zoom
+                // eslint-disable-next-line no-undef
+              } = singleValuedSurface;
+              const isochronePolygon = jsolines({
+                surface,
+                width,
+                height,
+                cutoff: 30,
+                project: ([x, y]) => {
+                  const ll = fromPixel({ x: x + west, y: y + north }, zoom);
+                  return [ll.lon, ll.lat];
+                }
+              });
+
+              let olFeatures = geojsonToFeature(isochronePolygon, {
+                dataProjection: "EPSG:4326",
+                featureProjection: "EPSG:3857"
+              });
+
+              const isochroneCalculationUid =
+                olFeatures[0].get("isochrone_calculation_id") ||
+                calculationNumber;
+              olFeatures[0].setId(
+                "isochrone_feature_" + isochroneCalculationUid + "_0"
+              );
+              let color = "";
+              let modus =
+                olFeatures[0].get("modus") || this.calculationMode.active;
+
+              let obj = {
+                id: olFeatures[0].getId(),
+                type: olFeatures[0].get("modus")
+                  ? this.$t(
+                      `isochrones.mode.${olFeatures[0]
+                        .get("modus")
+                        .toLowerCase()}`
+                    )
+                  : this.$t(`isochrones.mode.${modus.toLowerCase()}`),
+                isochrone_calculation_id: isochroneCalculationUid,
+                modus: modus,
+                range: 15, //minutes
+                color: color,
+                area: "-",
+                population: {},
+                isVisible: true,
+                feature: olFeatures[0]
+              };
+              const calculationNumber = this.calculations.length + 1;
+              olFeatures[0].set("isVisible", true);
+              olFeatures[0].set("calculationNumber", calculationNumber);
+              olFeatures[0].set("color", color);
+              olFeatures[0].set("calculationType", "single");
+              olFeatures[0].set("routing_type", "public_transport");
+              olFeatures[0].set("hoverColor", "");
+              olFeatures[0].set("showLabel", false);
+              const calculationData = [];
+              calculationData.push(obj);
+
+              let transformedData = {
+                id: calculationNumber,
+                calculationType: this.type,
+                calculationMode: this.calculationMode.active, // remove extra apostrophe in multi-isochrone
+                time:
+                  this.publicTransport.fromTime +
+                  " - " +
+                  this.publicTransport.toTime,
+                speed: "",
+                routing_profile: "public_transport",
+                scenario_id: 0, //TODO: Fix
+                isExpanded: true,
+                isVisible: true,
+                data: calculationData,
+                surfaceData: isochroneSurface,
+                additionalData: {}
+              };
+              //Geocode
+              delete axiosInstance.defaults.headers.common["Authorization"];
+              axiosInstance
+                .get(
+                  `https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4&lat=${params.y}&lon=${params.x}&format=json`
+                )
+                .then(response => {
+                  if (response.status === 200 && response.data.display_name) {
+                    const address = response.data.display_name;
+                    transformedData.position = address;
+                  }
+                })
+                .catch(() => {
+                  transformedData.position = "Unknown";
+                })
+                .finally(() => {
+                  this.isMapBusy = false;
+                  this.isIsochroneBusy = false;
+                  this.calculations.forEach(calculation => {
+                    calculation.isExpanded = false;
+                  });
+                  this.isochroneLayer.getSource().addFeatures(olFeatures);
+                  this.toggleIsochroneWindow(true, transformedData);
+                  this.calculations.unshift(transformedData);
+                  this.isOptionsElVisible = false;
+                });
+            }
+          })
+          .catch(error => {
+            reject(error);
+          })
+          .finally(() => {
+            this.multiIsochroneSelectionLayer.getSource().clear();
+            this.isMapBusy = false;
+            this.isIsochroneBusy = false;
+            this.clear();
+          });
+      });
+    },
+
     isCalculationActive(calculation) {
       if (!this.selectedThematicData) {
         return false;
@@ -1765,7 +2220,7 @@ export default {
                         placeName: ""
                       });
                     }
-                    this.calculateIsochrone(calculation[0]);
+                    this.calculateWalkingCyclingIsochrone(calculation[0]);
                   }
                 }
               }
@@ -1794,6 +2249,16 @@ export default {
         this.selectedThematicData = null;
         return;
       }
+      if (calculation.routing_profile === "public_transport") {
+        const payload = {
+          calculationId: calculation.id,
+          calculation: calculation,
+          calculationType: calculation.calculationType,
+          pois: {}
+        };
+        this.selectedThematicData = payload;
+        return;
+      }
       const features = IsochroneUtils.getCalculationFeatures(
         calculation,
         this.isochroneLayer
@@ -1804,6 +2269,7 @@ export default {
       });
       const pois = IsochroneUtils.getCalculationPoisObject(features);
       const payload = {
+        calculation: calculation,
         calculationId: calculation.id,
         calculationType: calculation.calculationType,
         pois: pois
@@ -2124,6 +2590,9 @@ export default {
           this.speed = routing.speed;
         }
       });
+      if (this.routing === "public_transport") {
+        this.type = "single";
+      }
     },
     selectedPois() {
       if (this.multiIsochroneMethod) {
@@ -2140,7 +2609,27 @@ export default {
     // Set default routing
     const defaultRouting = this.appConfig.routing[0];
     this.routing = defaultRouting.type;
-    this.speed = defaultRouting.speed;
+    if (defaultRouting.speed) {
+      this.speed = defaultRouting.speed;
+    }
+
+    // Set default values for public transport routing
+    if (this.routingProfiles.public_transport) {
+      this.publicTransport.accessMode = this.routingProfiles.public_transport.access_modes[0].type;
+      this.publicTransport.egressMode = this.routingProfiles.public_transport.egress_modes[0].type;
+      const fromTimeDate = new Date(0);
+      fromTimeDate.setSeconds(this.routingProfiles.public_transport.from_time);
+      this.publicTransport.fromTime = fromTimeDate
+        .toISOString()
+        .substring(11, 16);
+
+      const toTimeDate = new Date(0);
+      toTimeDate.setSeconds(this.routingProfiles.public_transport.to_time);
+      this.publicTransport.toTime = toTimeDate.toISOString().substring(11, 16);
+      this.publicTransport.transitModes = [
+        ...this.routingProfiles.public_transport.transit_modes.keys()
+      ];
+    }
   }
 };
 </script>

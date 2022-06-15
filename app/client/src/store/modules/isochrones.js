@@ -81,6 +81,15 @@ const state = {
   calculations: [],
   isochroneOverlayLayer: null,
   selectedThematicData: null,
+  // Public transport options
+  publicTransport: {
+    accessMode: "WALK",
+    egressMode: "WALK",
+    fromTime: "07:00",
+    toTime: "09:00",
+    date: new Date().toISOString().split("T")[0],
+    transitModes: []
+  },
   // Cancel Request
   cancelReq: undefined
 };
