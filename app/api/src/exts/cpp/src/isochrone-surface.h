@@ -77,7 +77,7 @@ CostResult split_edges(std::vector<IsochroneNetworkEdge2> network_edges, double 
     double previous_cost;
     double split_cost;
     int line_pointer;
-    double distance;
+    double distance_last_point_to_line_end;
     for (auto network_edge : network_edges)
     {
         split_cost = compute_cost(split_length, network_edge);
@@ -93,6 +93,7 @@ CostResult split_edges(std::vector<IsochroneNetworkEdge2> network_edges, double 
             line.start_point = network_edge.geometry[line_pointer];
             line.end_point = network_edge.geometry[line_pointer + 1];
             line_xy = compute_xy_step(line, split_length);
+            // start point of line shouldn't be added so skip.
             next_point = line.start_point;
             next_point = get_next_point(line, next_point, line_xy);
             next_cost = next_cost + split_cost;
@@ -105,14 +106,16 @@ CostResult split_edges(std::vector<IsochroneNetworkEdge2> network_edges, double 
             }
             previous_point = get_previous_point(line, next_point, line_xy);
             previous_cost = next_cost - split_cost;
-            distance = compute_distance(line.end_point, previous_point);
-            next_cost = previous_cost + compute_cost(distance, network_edge);
-            // next_point = line.end_point
+            distance_last_point_to_line_end = compute_distance(line.end_point, previous_point);
+            next_cost = previous_cost + compute_cost(distance_last_point_to_line_end, network_edge);
+            // next_point is line.end_point
             cost_result.points.push_back(line.end_point);
             cost_result.costs.push_back(next_cost);
         }
         // Add end_point and it's cost
-        cost_result.points.push_back(network_edge.geometry[line_pointer + 1]);
-        cost_result.costs.push_back(network_edge.end_cost);
+        // Won't add the edge end point. it will be added in the previous addition.
+        // cost_result.points.push_back(network_edge.geometry[line_pointer + 1]);
+        // cost_result.costs.push_back(network_edge.end_cost);
     }
+    return cost_result;
 }
