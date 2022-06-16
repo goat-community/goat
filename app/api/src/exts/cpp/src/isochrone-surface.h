@@ -23,6 +23,7 @@ XY compute_xy_step(Line line, double split_length)
     XY xy;
     xy.x = split_length * (line.end_point[0] - line.start_point[0]) / line_length(line);
     xy.y = xy.x * slope(line);
+    return xy;
 }
 
 std::array<double, 2> get_next_point(Line line, std::array<double, 2> current_point, XY xy)
@@ -30,6 +31,7 @@ std::array<double, 2> get_next_point(Line line, std::array<double, 2> current_po
     std::array<double, 2> next_point;
     next_point[0] = current_point[0] + xy.x;
     next_point[1] = current_point[1] + xy.y;
+    return next_point;
 }
 
 std::array<double, 2> get_previous_point(Line line, std::array<double, 2> current_point, XY xy)
@@ -37,26 +39,32 @@ std::array<double, 2> get_previous_point(Line line, std::array<double, 2> curren
     std::array<double, 2> previous_point;
     previous_point[0] = current_point[0] - xy.x;
     previous_point[1] = current_point[1] - xy.y;
+    return previous_point;
 }
 
 bool point_reached_line(Line line, std::array<double, 2> point)
 {
     if (line.end_point[0] > line.start_point[0])
     {
-        return point[0] > line.end_point[0];
+        return point[0] > line.end_point[0] ||
+               point[0] < line.start_point[0];
     }
     else if (line.end_point[0] < line.start_point[0])
     {
-        return point[0] < line.end_point[0];
+        return point[0] < line.end_point[0] ||
+               point[0] > line.start_point[0];
     }
     else if (line.end_point[1] > line.start_point[1])
     {
-        return point[1] > line.end_point[1];
+        return point[1] > line.end_point[1] ||
+               point[1] < line.start_point[1];
     }
     else if (line.end_point[1] < line.start_point[1])
     {
-        return point[1] < line.end_point[1];
+        return point[1] < line.end_point[1] ||
+               point[1] > line.start_point[1];
     }
+    return true; // TODO: Why?
 }
 
 double compute_cost(double split_length, IsochroneNetworkEdge2 network_edge)
