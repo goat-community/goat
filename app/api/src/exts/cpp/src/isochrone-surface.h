@@ -73,6 +73,50 @@ double compute_cost(double split_length, IsochroneNetworkEdge2 network_edge)
     return split_length * network_cost / network_edge.length;
 }
 
+double compute_cost(double split_length,
+                    double network_end_cost,
+                    double network_start_cost,
+                    double network_length)
+{
+    double network_cost = network_end_cost - network_start_cost;
+    return split_length * network_cost / network_length;
+}
+
+CostResult split_line(Line line, double split_length,
+                      double network_end_cost,
+                      double network_start_cost,
+                      double network_cost,
+                      double network_length,
+                      double split_cost)
+{
+    CostResult cost_result;
+    auto line_xy = compute_xy_step(line, split_length);
+    auto next_cost = network_start_cost;
+    // start point of line shouldn't be added so skip.
+    auto next_point = line.start_point;
+    next_point = get_next_point(line, next_point, line_xy);
+    next_cost = next_cost + split_cost;
+    while (!point_reached_line(line, next_point))
+    {
+        cost_result.points.push_back(next_point);
+        cost_result.costs.push_back(next_cost);
+        next_point = get_next_point(line, next_point, line_xy);
+        next_cost = next_cost + split_cost;
+    }
+    auto previous_point = get_previous_point(line, next_point, line_xy);
+    auto previous_cost = next_cost - split_cost;
+    auto distance_last_point_to_line_end = compute_distance(line.end_point, previous_point);
+    next_cost = previous_cost + compute_cost(distance_last_point_to_line_end,
+                                             network_end_cost,
+                                             network_start_cost,
+                                             network_length);
+    // next_point is line.end_point
+    cost_result.points.push_back(line.end_point);
+    cost_result.costs.push_back(next_cost);
+
+    return cost_result;
+}
+
 CostResult split_edges(std::vector<IsochroneNetworkEdge2> network_edges, double split_length)
 {
     Line line;
