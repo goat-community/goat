@@ -191,6 +191,32 @@ void test_compute_cost()
     IS_TRUE(approx(compute_cost(split_length, network_edge), answer));
 }
 
+void test_split_line()
+{
+    Line line;
+    line.start_point = {0, 0};
+    line.end_point = {30, 40};
+    double split_length = 1;
+    double network_end_cost = 50;
+    double network_start_cost = 0;
+    double network_cost = 200;
+    double network_length = 200;
+    double split_cost = 1;
+    auto result = split_line(line, split_length,
+                             network_end_cost,
+                             network_start_cost,
+                             network_cost,
+                             network_length,
+                             split_cost);
+
+    for (int i = 0; i < result.costs.size(); i++)
+    {
+        std::cout << result.points[i][0] << "\t"
+                  << result.points[i][1] << "\t| Cost:"
+                  << result.costs[i] << "\n";
+    }
+}
+
 int main()
 {
     test_line_length();
@@ -201,5 +227,6 @@ int main()
     test_get_previous_point();
     test_point_reached_line();
     test_compute_cost();
+    test_split_line();
     return 0;
 }
