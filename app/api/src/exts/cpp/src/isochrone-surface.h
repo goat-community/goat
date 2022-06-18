@@ -85,11 +85,11 @@ double compute_cost(double split_length,
 CostResult split_line(Line line, double split_length,
                       double network_end_cost,
                       double network_start_cost,
-                      double network_cost,
                       double network_length,
                       double split_cost)
 {
     CostResult cost_result;
+    auto network_cost = network_end_cost - network_start_cost;
     auto line_xy = compute_xy_step(line, split_length);
     auto next_cost = network_start_cost;
     // start point of line shouldn't be added so skip.
@@ -143,26 +143,15 @@ CostResult split_edges(std::vector<IsochroneNetworkEdge2> network_edges, double 
         {
             // create_line
             line.start_point = network_edge.geometry[line_pointer];
+
             line.end_point = network_edge.geometry[line_pointer + 1];
-            line_xy = compute_xy_step(line, split_length);
-            // start point of line shouldn't be added so skip.
-            next_point = line.start_point;
-            next_point = get_next_point(line, next_point, line_xy);
-            next_cost = next_cost + split_cost;
-            while (!point_reached_line(line, next_point))
-            {
-                cost_result.points.push_back(next_point);
-                cost_result.costs.push_back(next_cost);
-                next_point = get_next_point(line, next_point, line_xy);
-                next_cost = next_cost + split_cost;
-            }
-            previous_point = get_previous_point(line, next_point, line_xy);
-            previous_cost = next_cost - split_cost;
-            distance_last_point_to_line_end = compute_distance(line.end_point, previous_point);
-            next_cost = previous_cost + compute_cost(distance_last_point_to_line_end, network_edge);
-            // next_point is line.end_point
-            cost_result.points.push_back(line.end_point);
-            cost_result.costs.push_back(next_cost);
+            auto line_result = split_line(line, split_length,
+                                          network_edge.end_cost,
+                                          network_edge.start_cost,
+                                          network_edge.length,
+                                          split_cost);
+
+            // TODO: copy results at the end of cost_result or pass &cost_result as parameter
         }
         // Add end_point and it's cost
         // Won't add the edge end point. it will be added in the previous addition.
