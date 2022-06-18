@@ -82,13 +82,13 @@ double compute_cost(double split_length,
     return split_length * network_cost / network_length;
 }
 
-CostResult split_line(Line line, double split_length,
-                      double network_end_cost,
-                      double network_start_cost,
-                      double network_length,
-                      double split_cost)
+void split_line(Line &line, double &split_length,
+                double &network_end_cost,
+                double &network_start_cost,
+                double &network_length,
+                double &split_cost,
+                CostResult &cost_result)
 {
-    CostResult cost_result;
     auto network_cost = network_end_cost - network_start_cost;
     auto line_xy = compute_xy_step(line, split_length);
     auto next_cost = network_start_cost;
@@ -113,8 +113,6 @@ CostResult split_line(Line line, double split_length,
     // next_point is line.end_point
     cost_result.points.push_back(line.end_point);
     cost_result.costs.push_back(next_cost);
-
-    return cost_result;
 }
 
 CostResult split_edges(std::vector<IsochroneNetworkEdge2> network_edges, double split_length)
@@ -137,21 +135,22 @@ CostResult split_edges(std::vector<IsochroneNetworkEdge2> network_edges, double 
         // Add start_point and it's cost
         cost_result.points.push_back(network_edge.geometry[0]);
         cost_result.costs.push_back(next_cost);
-
+        std::cout << "On network number: " << network_edge.edge << "\n";
         // loop over edge points
         for (line_pointer = 0; line_pointer < network_edge.geometry.size() - 1; line_pointer++)
         {
             // create_line
             line.start_point = network_edge.geometry[line_pointer];
-
             line.end_point = network_edge.geometry[line_pointer + 1];
-            auto line_result = split_line(line, split_length,
-                                          network_edge.end_cost,
-                                          network_edge.start_cost,
-                                          network_edge.length,
-                                          split_cost);
+            std::cout << line_pointer << ". On point: " << line.start_point[0] << ", " << line.start_point[1] << "\n";
 
-            // TODO: copy results at the end of cost_result or pass &cost_result as parameter
+            split_line(line,
+                       split_length,
+                       network_edge.end_cost,
+                       network_edge.start_cost,
+                       network_edge.length,
+                       split_cost,
+                       cost_result);
         }
         // Add end_point and it's cost
         // Won't add the edge end point. it will be added in the previous addition.
