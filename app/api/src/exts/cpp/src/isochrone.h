@@ -19,6 +19,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  ********************************************************************PGR-GNU*/
 // Adjacency list for the isochrone network (for each node, the edges that are connected to it)
 #pragma once
+#include "concaveman.h"
+
 std::vector<std::vector<const Edge *>>
 construct_adjacency_list(size_t n, const Edge *edges,
                          size_t total_edges)

@@ -1,6 +1,8 @@
 #pragma once
 #include "types.h"
 #include "isochrone.h"
+#include "concaveman.h"
+
 Result2 compute_isochrone2(Edge *data_edges, size_t total_edges,
                            std::vector<int64_t> start_vertices,
                            std::vector<double> distance_limits,
