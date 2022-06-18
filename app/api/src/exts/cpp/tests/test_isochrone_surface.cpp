@@ -1,5 +1,6 @@
 #include "../src/types.h"
 #include "../src/isochrone-surface.h"
+#include "../src/utils.h"
 
 #define IS_TRUE(x)                                                                    \
     {                                                                                 \
@@ -193,28 +194,44 @@ void test_compute_cost()
 
 void test_split_line()
 {
+    CostResult cost_result;
     Line line;
     line.start_point = {0, 0};
     line.end_point = {30, 40};
     double split_length = 1;
-    double network_end_cost = 50;
+    double network_end_cost = 200;
     double network_start_cost = 0;
-    double network_cost = 200;
     double network_length = 200;
     double split_cost = 1;
-    auto result = split_line(line, split_length,
-                             network_end_cost,
-                             network_start_cost,
-                             network_cost,
-                             network_length,
-                             split_cost);
+    split_line(line, split_length,
+               network_end_cost,
+               network_start_cost,
+               network_length,
+               split_cost,
+               cost_result);
 
-    for (int i = 0; i < result.costs.size(); i++)
+    for (int i = 0; i < cost_result.costs.size(); i++)
     {
-        std::cout << result.points[i][0] << "\t"
-                  << result.points[i][1] << "\t| Cost:"
-                  << result.costs[i] << "\n";
+        std::cout << cost_result.points[i][0] << "\t"
+                  << cost_result.points[i][1] << "\t| Cost:"
+                  << cost_result.costs[i] << "\n";
     }
+}
+
+void test_split_network()
+{
+    std::string network_file = "../data/network_munich_3600seconds_big.csv";
+    Edge *data_edges;
+    int64_t total_edges;
+    data_edges = read_network_csv(network_file, total_edges);
+    std::vector<double> distance_limits = {600};
+    std::vector<int64_t> start_vertices{2147483647};
+    bool only_minimum_cover = false;
+    auto results = compute_isochrone2(data_edges, total_edges, start_vertices,
+                                      distance_limits, only_minimum_cover);
+
+    auto results2 = split_edges(results.network, 20);
+    std::cout << "Total points: " << results2.points.size() << "\n";
 }
 
 int main()
@@ -228,5 +245,8 @@ int main()
     test_point_reached_line();
     test_compute_cost();
     test_split_line();
+    test_split_network();
+    // auto a = read_csv("network_munich_3600seconds_big.csv");
+    // test_split_network();
     return 0;
 }
