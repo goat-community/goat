@@ -23,57 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #include "isochrone-surface.h"
 
 #ifdef DEBUG
-std::vector<std::string> split(const std::string &input, const std::string &regex = " ")
-{
-  std::regex re(regex);
-  std::sregex_token_iterator first{input.begin(), input.end(), re, -1}, last; // the '-1' is what makes the regex split (-1 := what was not matched)
-  std::vector<std::string> tokens{first, last};
-  return tokens;
-}
-
-std::vector<Edge>
-read_file(std::string name_file)
-{
-  std::vector<Edge> data_edges;
-  Edge edge;
-  std::ifstream myfile;
-  std::string line;
-  myfile.open(name_file, std::ios::in);
-
-  int lineCount = 0;
-  std::getline(myfile, line); // ignore header line
-  while (std::getline(myfile, line) && !line.empty())
-  {
-    std::vector<std::string> segmented = split(line, "(\\,\\[\\[)");
-    std::vector<std::string> props = split(segmented[0], "(\\,)");
-    edge.id = std::stoll(props[0]);
-    edge.source = std::stoll(props[1]);
-    edge.target = std::stoll(props[2]);
-    edge.cost = std::stod(props[3]);
-    edge.reverse_cost = std::stod(props[4]);
-    edge.length = std::stod(props[5]);
-    // Remove last brackets ]] and split geometry coordinate pairs.
-    segmented[1].erase(segmented[1].length() - 2);
-    std::vector<std::string> coords = split(segmented[1], "(\\]\\,\\[)");
-
-    // Loop through coords
-    std::vector<std::array<double, 2>> geometry;
-    for (auto coord : coords)
-    {
-      std::array<double, 2> xy;
-      std::vector<std::string> xy_str = split(coord, "(\\,)");
-      xy[0] = std::stod(xy_str[0]);
-      xy[1] = std::stod(xy_str[1]);
-      geometry.push_back(xy);
-    }
-    edge.geometry = geometry;
-    data_edges.push_back(edge);
-    lineCount++;
-  }
-
-  myfile.close();
-  return data_edges;
-}
+#include "utils.h"
 
 int main()
 {
@@ -92,13 +42,14 @@ int main()
     data_edges[i] = data_edges_vector[i];
   }
   data_edges_vector.clear();
-  std::vector<double> distance_limits = {60};
+  std::vector<double> distance_limits = {600};
   std::vector<int64_t> start_vertices{2147483647};
   bool only_minimum_cover = false;
   auto results = compute_isochrone2(data_edges, total_edges, start_vertices,
                                     distance_limits, only_minimum_cover);
 
   auto results2 = split_edges(results.network, 20);
+  std::cout << results2.points.size();
 
   return 0;
 }
