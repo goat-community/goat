@@ -74,9 +74,9 @@ email_content_config = {
         },
         "template_name": "activate_new_account",
     },
-    "account_trial_started": { 
+    "account_trial_started": {
         "url": "",
-        "subject": { 
+        "subject": {
             "en": "Your GOAT demo is ready to use",
             "de": "Ihre GOAT Demo steht bereit",
         },
@@ -84,14 +84,14 @@ email_content_config = {
     },
     "account_expired": {
         "url": "",
-        "subject": { "en": "Account expired", "de": "Demo abgelaufen" },
-        "template_name": "account_expired"
+        "subject": {"en": "Account expired", "de": "Demo abgelaufen"},
+        "template_name": "account_expired",
     },
     "account_expiring": {
         "url": "",
-        "subject": { "en": "Account expiring soon", "de": "Demo bald ablaufen" },
-        "template_name": "account_expiring"
-    }
+        "subject": {"en": "Account expiring soon", "de": "Demo bald ablaufen"},
+        "template_name": "account_expiring",
+    },
 }
 
 
@@ -211,6 +211,20 @@ def to_feature_collection(
             )
         )
     return FeatureCollection(features)
+
+
+def decode_r5_grid(grid_data: bytes) -> Any:
+    """
+    Decode raster grid data
+    """
+    return geobuf.decode(grid_data)
+
+
+def encode_r5_grid(grid_data: Any) -> bytes:
+    """
+    Encode raster grid data
+    """
+    return geobuf.encode(grid_data)
 
 
 def without_keys(d, keys):

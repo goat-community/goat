@@ -1,7 +1,16 @@
 from typing import Any, List
 
 import requests
-from fastapi import APIRouter, Body, Depends, File, Form, HTTPException, UploadFile
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Response,
+    UploadFile,
+)
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.responses import JSONResponse
@@ -10,8 +19,10 @@ from src import crud
 from src.core.config import settings
 from src.db import models
 from src.endpoints import deps
+from src.resources.responses import OctetStreamResponse
 from src.schemas.msg import Msg
 from src.schemas.r5 import (
+    R5IsochroneAnalysisDTO,
     R5ProjectCreateDTO,
     R5ProjectInDB,
     R5ProjectUpdateDTO,
@@ -318,3 +329,31 @@ async def delete_bundle(
 
     response = requests.delete(settings.R5_API_URL + "/bundle/" + bundle_id)
     return response.json()
+
+
+# ---------------------ANALYSIS ENDPOINTS-------------------------
+# ----------------------------------------------------------------
+
+
+@router.post("/analysis", response_class=OctetStreamResponse)
+async def analysis(
+    analysis_in: R5IsochroneAnalysisDTO = Body(..., example=request_examples["analysis"]),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Calculate PT Isochrone.
+    """
+    payload = analysis_in.dict()
+    # TODO: Get the project id and bbox from study area.
+    payload["projectId"] = "6294f0ae0cfee1c6747d696c"
+    payload["bounds"] = {
+        "north": 48.2905,
+        "south": 47.99727,
+        "east": 11.94489,
+        "west": 11.31592,
+    }
+    result = requests.post(settings.R5_API_URL + "/analysis", json=payload)
+    try:
+        return Response(bytes(result.content))
+    except Exception as e:
+        raise e

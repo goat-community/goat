@@ -68,12 +68,20 @@ class AllowedVectorTables(str, Enum):
 
     sub_study_area = "basic.sub_study_area"
 
+
 class IsochroneTypes(str, Enum):
     """Isochrone Types Enums."""
 
     single = "single"
     multi = "multi"
-    
+
+
+class R5DecayFunctionType(str, Enum):
+    logistic = "logistic"
+    step = "step"
+    exponential = "exponential"
+    linear = "linear"
+
 
 class SQLReturnTypes(str, Enum):
     """Allowed Vector Tables Enums."""
@@ -110,6 +118,7 @@ class SQLReturnTypes(str, Enum):
     FROM make_geojson g; 
     """
 
+
 class MimeTypes(str, Enum):
     """Responses MineTypes."""
 
@@ -129,9 +138,12 @@ class UploadFileTypes(str, Enum):
     geojson = ".geojson"
     zip = ".zip"
 
+
 class SettingToModify(str, Enum):
     """Setting to reset."""
+
     poi = "poi"
+
 
 class LanguageEnum(str, Enum):
     """Language Enum."""
@@ -139,9 +151,11 @@ class LanguageEnum(str, Enum):
     en = "en"
     de = "de"
 
+
 class UpdateTableFunction(str, Enum):
     """Update Table Functions."""
-    # The order of the functions is important.    
+
+    # The order of the functions is important.
     opportunity_config = "update_opportunity_config"
     layer_library = "update_layer_library"
     customization = "update_customization"

@@ -1995,7 +1995,7 @@ export default {
       const CancelToken = axios.CancelToken;
       return new Promise((resolve, reject) => {
         axiosInstance
-          .post(`http://localhost:7070/api/analysis`, payload, {
+          .post(`./r5/analysis`, payload, {
             responseType: "arraybuffer",
             cancelToken: new CancelToken(c => {
               // An executor function receives a cancel function as a parameter
