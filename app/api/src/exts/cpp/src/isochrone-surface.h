@@ -51,6 +51,21 @@ std::array<double, 2> get_previous_point(Line &line, std::array<double, 2> &curr
     return previous_point;
 }
 
+void resize_boundry(Boundry &boundry, std::array<double, 2> &point)
+{
+    if (point[0] > boundry.max_x)
+        boundry.max_x = point[0];
+
+    if (point[0] < boundry.min_x)
+        boundry.min_x = point[0];
+
+    if (point[1] > boundry.max_y)
+        boundry.max_y = point[1];
+
+    if (point[1] < boundry.min_y)
+        boundry.min_y = point[1];
+}
+
 bool point_reached_line(Line &line, std::array<double, 2> &point)
 {
     if (line.end_point[0] > line.start_point[0])
@@ -97,6 +112,7 @@ void split_line(Line &line,
                 double &network_edge_start_cost,
                 double &network_edge_length,
                 double &split_cost,
+                Boundry &boundry,
                 CostResult &cost_result)
 {
     // std::cout << std::fixed << "Line start: " << line.start_point[0] << ", " << line.start_point[1] << "\n";
@@ -112,6 +128,9 @@ void split_line(Line &line,
     {
         cost_result.points.push_back(next_point);
         cost_result.costs.push_back(next_cost);
+
+        resize_boundry(boundry, next_point);
+
         next_point = get_next_point(line, next_point, xy_step);
         next_cost = next_cost + split_cost;
     }
@@ -126,13 +145,15 @@ void split_line(Line &line,
     // next_point is line.end_point
     cost_result.points.push_back(line.end_point);
     cost_result.costs.push_back(next_cost);
+
+    resize_boundry(boundry, line.end_point);
 }
 
 CostResult split_edges(std::vector<IsochroneNetworkEdge2> network_edges, double split_length)
 {
     clock_t tStart = clock();
     Line line;
-
+    Boundry boundry;
     CostResult cost_result;
     std::array<double, 2> previous_point;
     std::array<double, 2> next_point;
@@ -149,6 +170,8 @@ CostResult split_edges(std::vector<IsochroneNetworkEdge2> network_edges, double 
         // Add start_point and it's cost
         cost_result.points.push_back(network_edge.geometry[0]);
         cost_result.costs.push_back(next_cost);
+
+        resize_boundry(boundry, network_edge.geometry[0]);
         // std::cout << "On network number: " << network_edge.edge << "\n";
         // loop over edge points
         for (line_pointer = 0; line_pointer < network_edge.geometry.size() - 1; line_pointer++)
@@ -157,13 +180,13 @@ CostResult split_edges(std::vector<IsochroneNetworkEdge2> network_edges, double 
             line.start_point = network_edge.geometry[line_pointer];
             line.end_point = network_edge.geometry[line_pointer + 1];
             // std::cout << line_pointer << ". On point: " << line.start_point[0] << ", " << line.start_point[1] << "\n";
-
             split_line(line,
                        split_length,
                        network_edge.end_cost,
                        network_edge.start_cost,
                        network_edge.length,
                        split_cost,
+                       boundry,
                        cost_result);
         }
         // Add end_point and it's cost
@@ -171,6 +194,7 @@ CostResult split_edges(std::vector<IsochroneNetworkEdge2> network_edges, double 
         // cost_result.points.push_back(network_edge.geometry[line_pointer + 1]);
         // cost_result.costs.push_back(network_edge.end_cost);
     }
+    cost_result.boundry = boundry;
     std::cout << "Split edges finished\n";
     printf("Time taken: %.5fs\n", (double)(clock() - tStart) / CLOCKS_PER_SEC);
     return cost_result;

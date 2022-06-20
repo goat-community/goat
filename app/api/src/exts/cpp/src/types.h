@@ -124,9 +124,10 @@ typedef struct
 
 typedef struct
 {
-    float max_x = 0, max_y = 0,
-          min_x = std::numeric_limits<float>::max(),
-          min_y = std::numeric_limits<float>::max();
+    double max_x = std::numeric_limits<double>::min();
+    double max_y = std::numeric_limits<double>::min();
+    double min_x = std::numeric_limits<double>::max();
+    double min_y = std::numeric_limits<double>::max();
 } Boundry;
 
 typedef struct

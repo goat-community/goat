@@ -196,6 +196,7 @@ void test_split_line()
 {
     CostResult cost_result;
     Line line;
+    Boundry boundry;
     line.start_point = {0, 0};
     line.end_point = {30, 40};
     double split_length = 1;
@@ -203,11 +204,13 @@ void test_split_line()
     double network_start_cost = 0;
     double network_length = 200;
     double split_cost = 1;
+    resize_boundry(boundry, line.start_point);
     split_line(line, split_length,
                network_end_cost,
                network_start_cost,
                network_length,
                split_cost,
+               boundry,
                cost_result);
 
     for (int i = 0; i < cost_result.costs.size(); i++)
@@ -216,6 +219,7 @@ void test_split_line()
                   << cost_result.points[i][1] << "\t| Cost:"
                   << cost_result.costs[i] << "\n";
     }
+    std::cout << std::fixed << boundry.min_x << ", " << boundry.min_y << " | " << boundry.max_x << " , " << boundry.max_y << std::endl;
 }
 
 void test_split_network()
@@ -234,6 +238,8 @@ void test_split_network()
     auto results2 = split_edges(results.network, 20);
     std::cout << "Total points: " << results2.points.size() << "\n";
     std::cout << "Isochrone Network: " << results.network.size() << "\n";
+    auto boundry = results2.boundry;
+    std::cout << std::fixed << boundry.min_x << ", " << boundry.min_y << " | " << boundry.max_x << " , " << boundry.max_y << std::endl;
 }
 
 int main()
