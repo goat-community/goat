@@ -114,6 +114,60 @@ struct Isochrone
                                               distance_limits, only_minimum_cover);
     return isochrone_points;
   }
+
+  CostResult calculate_isochrone_split_edges(
+      py::array_t<int64_t> &edge_ids_, py::array_t<int64_t> &sources_,
+      py::array_t<int64_t> &targets_, py::array_t<double> &costs_,
+      py::array_t<double> &reverse_costs_, py::array_t<double> &length_, std::vector<std::vector<std::array<double, 2>>> &geometry,
+      py::array_t<int64_t> start_vertices_,
+      py::array_t<double> distance_limits_,
+      double split_length,
+      bool only_minimum_cover_)
+  {
+    auto total_edges = edge_ids_.shape(0);
+
+    auto edge_ids_c = edge_ids_.unchecked<1>();
+    auto sources_c = sources_.unchecked<1>();
+    auto targets_c = targets_.unchecked<1>();
+    auto costs_c = costs_.unchecked<1>();
+    auto reverse_costs_c = reverse_costs_.unchecked<1>();
+    auto length_c = length_.unchecked<1>();
+
+    auto start_vertices_c = start_vertices_.unchecked<1>();
+    auto total_start_vertices = start_vertices_.shape(0);
+
+    auto distance_limits_c = distance_limits_.unchecked<1>();
+    auto total_distance_limits = distance_limits_.shape(0);
+
+    bool only_minimum_cover = only_minimum_cover_;
+    Edge *data_edges = new Edge[total_edges];
+
+    for (int64_t i = 0; i < total_edges; ++i)
+    {
+      data_edges[i].id = edge_ids_c(i);
+      data_edges[i].source = sources_c(i);
+      data_edges[i].target = targets_c(i);
+      data_edges[i].cost = costs_c(i);
+      data_edges[i].reverse_cost = reverse_costs_c(i);
+      data_edges[i].length = length_c(i);
+      data_edges[i].geometry = geometry[i];
+    }
+
+    std::vector<int64_t> start_vertices(total_start_vertices);
+    for (int64_t i = 0; i < total_start_vertices; ++i)
+    {
+      start_vertices[i] = start_vertices_c[i];
+    }
+    std::vector<double> distance_limits(total_distance_limits);
+    for (int64_t i = 0; i < total_distance_limits; ++i)
+    {
+      distance_limits[i] = distance_limits_c[i];
+    }
+    auto isochrone_points = compute_isochrone2(data_edges, total_edges, start_vertices,
+                                               distance_limits, only_minimum_cover);
+    auto isochrone_splited_edges = split_edges(isochrone_points.network, split_length);
+    return isochrone_splited_edges;
+  }
 };
 
 PYBIND11_MODULE(isochrone, m)
@@ -140,7 +194,8 @@ PYBIND11_MODULE(isochrone, m)
   // bindings to Isochrone class
   py::class_<Isochrone>(m, "Isochrone")
       .def(py::init<>())
-      .def("calculate", &Isochrone::calculate);
+      .def("calculate", &Isochrone::calculate)
+      .def("calculate_isochrone_split_edges", &Isochrone::calculate_isochrone_split_edges);
 }
 
 /*

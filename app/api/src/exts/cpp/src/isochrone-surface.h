@@ -149,7 +149,7 @@ void split_line(Line &line,
     resize_boundry(boundry, line.end_point);
 }
 
-CostResult split_edges(std::vector<IsochroneNetworkEdge2> network_edges, double split_length)
+CostResult split_edges(std::vector<IsochroneNetworkEdge2> &network_edges, double split_length)
 {
     clock_t tStart = clock();
     Line line;
