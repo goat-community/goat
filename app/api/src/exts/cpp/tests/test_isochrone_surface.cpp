@@ -224,6 +224,7 @@ void test_split_network()
     Edge *data_edges;
     int64_t total_edges;
     data_edges = read_network_csv(network_file, total_edges);
+    std::cout << "Total edges: " << total_edges << "\n";
     std::vector<double> distance_limits = {600};
     std::vector<int64_t> start_vertices{2147483647};
     bool only_minimum_cover = false;
@@ -232,6 +233,7 @@ void test_split_network()
 
     auto results2 = split_edges(results.network, 20);
     std::cout << "Total points: " << results2.points.size() << "\n";
+    std::cout << "Isochrone Network: " << results.network.size() << "\n";
 }
 
 int main()
