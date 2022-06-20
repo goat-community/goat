@@ -283,7 +283,7 @@ public:
         {
             best_child.get().insert(data, bounds);
 #ifdef DEBUG
-            std::cout << "best_child: " << bounds[0] << " " << bounds[1] << std::endl;
+            // std::cout << "best_child: " << bounds[0] << " " << bounds[1] << std::endl;
 #endif
             return;
         }
