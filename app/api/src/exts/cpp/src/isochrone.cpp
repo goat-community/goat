@@ -191,6 +191,17 @@ PYBIND11_MODULE(isochrone, m)
       .def_readwrite("isochrone", &Result::isochrone)
       .def_readwrite("network", &Result::network);
 
+  py::class_<Boundry>(m, "Boundry")
+      .def_readwrite("max_x", &Boundry::max_x)
+      .def_readwrite("max_y", &Boundry::max_y)
+      .def_readwrite("min_x", &Boundry::min_x)
+      .def_readwrite("min_y", &Boundry::min_y);
+
+  py::class_<CostResult>(m, "CostResult")
+      .def_readwrite("points", &CostResult::points)
+      .def_readwrite("costs", &CostResult::costs)
+      .def_readwrite("boundry", &CostResult::boundry);
+
   // bindings to Isochrone class
   py::class_<Isochrone>(m, "Isochrone")
       .def(py::init<>())
