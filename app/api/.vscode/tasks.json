@@ -6,11 +6,13 @@
             "command": "/usr/bin/g++",
             "args": [
                 "-fdiagnostics-color=always",
+                "-std=c++0x",
                 "-g",
                 "${file}",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
-                "-DDEBUG"
+                "-DDEBUG",
+                "-lpthread"
             ],
             "options": {
                 "cwd": "${fileDirname}"
