@@ -254,7 +254,6 @@ int main()
     test_compute_cost();
     test_split_line();
     test_split_network();
-    // auto a = read_csv("network_munich_3600seconds_big.csv");
-    // test_split_network();
+
     return 0;
 }
