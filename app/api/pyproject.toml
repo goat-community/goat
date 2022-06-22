@@ -5,7 +5,7 @@ description = ""
 authors = ["Admin <administrator@plan4better.de>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.9, <3.11"
 uvicorn = "^0.17.6"
 fastapi = "^0.74"
 python-multipart = "^0.0.5"
@@ -46,6 +46,8 @@ openpyxl = "^3.0.9"
 XlsxWriter = "^3.0.3"
 PyYAML = "^6.0"
 motor = "^3.0.0"
+scipy = "^1.8.1"
+matplotlib = "^3.5.2"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.770"
