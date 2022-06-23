@@ -49,9 +49,9 @@ async def get_split_network():
     return result
 
 
-def interpolate():
+async def interpolate():
     start = time.time()
-    a = asyncio.run(get_split_network())
+    a = await get_split_network()
     X = np.arange(start=int(a.boundry.min_x), stop=int(a.boundry.max_x), step=20)
     Y = np.arange(start=int(a.boundry.min_y), stop=int(a.boundry.max_y), step=20)
     X, Y = np.meshgrid(X, Y)  # 2D grid for interpolation
@@ -73,6 +73,36 @@ def interpolate():
     plt.colorbar()
     plt.axis("equal")
     plt.savefig("NearestNDInterpolate.png")
+    return Z, a.boundry
 
 
-interpolate()
+# interpolate()
+
+
+def encode_costs():
+
+    grid_type = "ACCESSGR"
+    grid_type_binary = str.encode(grid_type)
+    z, boundry = asyncio.run(interpolate())
+    version = 1
+    zoom = 10
+    west = boundry.min_x
+    north = boundry.max_y
+    width = z.shape[0]
+    height = z.shape[1]
+    nsamples = 1
+    array = np.array([version, zoom, west, north, width, height, nsamples], dtype=np.int32)
+    header_bin = array.tobytes()
+    scaled_z = z * 100000
+    z_1d = np.ravel(scaled_z)
+    z_1d_byte = z_1d.astype(np.int32)
+    z_diff = np.diff(z_1d_byte, prepend=z_1d[0])
+    with open("costs.bin", "wb") as binary_out:
+        binary_out.write(grid_type_binary)
+        binary_out.write(header_bin)
+        binary_out.write(z_diff)
+
+    print(array)
+
+
+encode_costs()
