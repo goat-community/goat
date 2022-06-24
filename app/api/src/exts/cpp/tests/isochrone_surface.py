@@ -92,17 +92,42 @@ def encode_costs():
     height = z.shape[1]
     nsamples = 1
     array = np.array([version, zoom, west, north, width, height, nsamples], dtype=np.int32)
+    print("Write Header: ", array)
+    print("write Costs: ", z)
     header_bin = array.tobytes()
     scaled_z = z * 100000
     z_1d = np.ravel(scaled_z)
-    z_1d_byte = z_1d.astype(np.int32)
-    z_diff = np.diff(z_1d_byte, prepend=z_1d[0])
+    z_1d_int32 = z_1d.astype(np.int32)
+    z_diff = np.diff(z_1d_int32)
+    z_diff = z_diff.astype(np.int32)
+    z_diff_bin = z_diff.tobytes()
+
+    first_element = z_1d_int32[:1]
+    first_element_byte = first_element.tobytes()
     with open("costs.bin", "wb") as binary_out:
         binary_out.write(grid_type_binary)
         binary_out.write(header_bin)
-        binary_out.write(z_diff)
+        binary_out.write(first_element_byte)
+        binary_out.write(z_diff_bin)
 
     print(array)
 
 
 encode_costs()
+
+
+def read_costs_binary():
+    grid_type_array = np.fromfile("costs.bin", count=8, dtype=np.byte)
+    header = np.fromfile("costs.bin", count=7, offset=8, dtype=np.int32)
+    print("Read Header: ", header)
+    diff_data = np.fromfile("costs.bin", offset=8 + 7 * 4, dtype=np.int32)
+    width = header[4]
+    height = header[5]
+    costs_data = diff_data.cumsum()
+    costs = costs_data.reshape(width, height)
+    scale = 100000
+    costs = costs / scale
+    print("Read Costs: ", costs)
+
+
+read_costs_binary()
