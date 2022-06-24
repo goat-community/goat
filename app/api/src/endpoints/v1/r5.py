@@ -30,6 +30,7 @@ from src.schemas.r5 import (
     R5RegionInDB,
     request_examples,
 )
+from src.utils import decode_r5_grid
 
 router = APIRouter()
 
@@ -353,6 +354,8 @@ async def analysis(
         "west": 11.31592,
     }
     result = requests.post(settings.R5_API_URL + "/analysis", json=payload)
+    grid_decoded = decode_r5_grid(result.content)
+
     try:
         return Response(bytes(result.content))
     except Exception as e:

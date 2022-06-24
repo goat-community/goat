@@ -329,6 +329,14 @@ python-versions = "*"
 test = ["flake8 (==3.7.8)", "hypothesis (==3.55.3)"]
 
 [[package]]
+name = "connectorx"
+version = "0.3.0"
+description = ""
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "contextlib2"
 version = "21.6.0"
 description = "Backports and enhancements for the contextlib module"
@@ -1705,7 +1713,7 @@ python-versions = ">=3.4"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9, <3.11"
-content-hash = "67953e1ec4786c82f48a6fe2d4fe13899b16f049db7f910791fc63981ed54ed0"
+content-hash = "eb1dd4d3b0ac22199fc7babb1d480a16d0d547dc6c576cc9c9564c40d2500be4"
 
 [metadata.files]
 affine = [
@@ -1868,6 +1876,24 @@ colorama = [
 commonmark = [
     {file = "commonmark-0.9.1-py2.py3-none-any.whl", hash = "sha256:da2f38c92590f83de410ba1a3cbceafbc74fee9def35f9251ba9a971d6d66fd9"},
     {file = "commonmark-0.9.1.tar.gz", hash = "sha256:452f9dc859be7f06631ddcb328b6919c67984aca654e5fefb3914d54691aed60"},
+]
+connectorx = [
+    {file = "connectorx-0.3.0-cp310-cp310-macosx_10_7_x86_64.whl", hash = "sha256:5650ab33dc0fb39b0648b60d099a1160cc2b039b4a4fee0c35205d0531b97888"},
+    {file = "connectorx-0.3.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:274eb1d6b68d7d47fcdfbe92c83b5b7a084fe95b85b6529bc7bdfc7c78aa6123"},
+    {file = "connectorx-0.3.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:023dbb86fae50865751db33a8c78f3b31e70d56e8812d75bbac8bb47ce03de88"},
+    {file = "connectorx-0.3.0-cp310-none-win_amd64.whl", hash = "sha256:b4eace49b733e2c508cf3c661c3bf80387bc34b086f5af147d48b941edfa5d89"},
+    {file = "connectorx-0.3.0-cp37-cp37m-macosx_10_7_x86_64.whl", hash = "sha256:f0466c491945e4012f417bbc55e11acbf1155be00852e009b410aa545621b4f8"},
+    {file = "connectorx-0.3.0-cp37-cp37m-macosx_11_0_arm64.whl", hash = "sha256:7e5ca645ad6d94c69fbef82099259b49515113a225cde61d72f395781efb0673"},
+    {file = "connectorx-0.3.0-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:64bd46b7a03dbb9b31fe69f3017e6d103ea21458335b181772d390225685b805"},
+    {file = "connectorx-0.3.0-cp37-none-win_amd64.whl", hash = "sha256:5961350abedab27ea17f8e71439210f85deea169ad6cda0809d0f751aa89da38"},
+    {file = "connectorx-0.3.0-cp38-cp38-macosx_10_7_x86_64.whl", hash = "sha256:e202cc89e52a85bb3a2045556d2c663f9f8f77ecd0d09f0f7971f6eebf7179bc"},
+    {file = "connectorx-0.3.0-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:e8d2dfe2150bd8c47c107a7d915a0b7d0e91d0294e9c741b9d70567627898528"},
+    {file = "connectorx-0.3.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:97e952704c43832ab75e814db7cc95d318e5a1a68abf87e93d4390d627f61575"},
+    {file = "connectorx-0.3.0-cp38-none-win_amd64.whl", hash = "sha256:b0645906ebe785c311e992c439391dd1f1fb8091f9541f3e3ae02e034c16fcf4"},
+    {file = "connectorx-0.3.0-cp39-cp39-macosx_10_7_x86_64.whl", hash = "sha256:432fbd359e871a176c8089b3b07928cc937b2c56c62f1c0ee9c68ec53cfdbc63"},
+    {file = "connectorx-0.3.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:7971bb195f1b93b4f798d00a162e7353cf5ad7fe63c2e76e490636a93bc3e92b"},
+    {file = "connectorx-0.3.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f12d9b1479a47256f78f0862b2feb7fea3251898ca07a4561d3578c227c878f5"},
+    {file = "connectorx-0.3.0-cp39-none-win_amd64.whl", hash = "sha256:dff6f8ae88c4d39c187e2fe2126710b7acd20e5e7418df22996f0f6e664dd812"},
 ]
 contextlib2 = [
     {file = "contextlib2-21.6.0-py2.py3-none-any.whl", hash = "sha256:3fbdb64466afd23abaf6c977627b75b6139a5a3e8ce38405c5b413aed7a0471f"},

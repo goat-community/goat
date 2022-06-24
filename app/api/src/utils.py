@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 
 import emails
 import geobuf
+import numpy as np
 from emails.template import JinjaTemplate
 from fastapi import HTTPException
 from geoalchemy2.shape import to_shape
@@ -213,11 +214,77 @@ def to_feature_collection(
     return FeatureCollection(features)
 
 
-def decode_r5_grid(grid_data: bytes) -> Any:
+def decode_r5_grid(grid_data_buffer: bytes) -> Any:
     """
-    Decode raster grid data
+    Decode R5 grid data
     """
-    return geobuf.decode(grid_data)
+    CURRENT_VERSION = 0
+    HEADER_ENTRIES = 7
+    HEADER_LENGTH = 9  # type + entries
+    TIMES_GRID_TYPE = "ACCESSGR"
+
+    # -- PARSE HEADER
+    ## - get header type
+    header = {}
+    header_data = np.frombuffer(grid_data_buffer, count=8, dtype=np.byte)
+    header_type = "".join(map(chr, header_data))
+    if header_type != TIMES_GRID_TYPE:
+        raise ValueError("Invalid grid type")
+    ## - get header data
+    header_raw = np.frombuffer(grid_data_buffer, count=HEADER_ENTRIES, offset=8, dtype=np.int32)
+    version = header_raw[0]
+    if version != CURRENT_VERSION:
+        raise ValueError("Invalid grid version")
+    header["zoom"] = header_raw[1]
+    header["west"] = header_raw[2]
+    header["north"] = header_raw[3]
+    header["width"] = header_raw[4]
+    header["height"] = header_raw[5]
+    header["depth"] = header_raw[6]
+    header["version"] = version
+
+    # -- PARSE DATA --
+    gridSize = header["width"] * header["height"]
+    # - skip the header
+    data = np.frombuffer(
+        grid_data_buffer,
+        offset=HEADER_LENGTH * 4,
+        count=gridSize * header["depth"],
+        dtype=np.int32,
+    )
+    # - reshape the data
+    data = data.reshape(header["depth"], gridSize)
+    reshaped_data = np.array([])
+    for i in range(header["depth"]):
+        reshaped_data = np.append(reshaped_data, data[i].cumsum())
+    data = reshaped_data
+    # - decode metadata
+    raw_metadata = np.frombuffer(
+        grid_data_buffer,
+        offset=(HEADER_LENGTH + header["width"] * header["height"] * header["depth"]) * 4,
+        dtype=np.int8,
+    )
+    metadata = json.loads(raw_metadata.tostring())
+    def contains(x, y, z):
+        return (
+            x >= 0
+            and x < header["width"]
+            and y >= 0
+            and y < header["height"]
+            and z >= 0
+            and z < header["depth"]
+        )
+    def get(x, y, z):
+        if contains(x, y, z):
+            return data[z * gridSize + y * header["width"] + x]
+        else:
+            return None
+
+    return (
+        header
+        | metadata
+        | {"data": data, "errors": [], "warnings": [], "contains": contains, "get": get}
+    )
 
 
 def encode_r5_grid(grid_data: Any) -> bytes:

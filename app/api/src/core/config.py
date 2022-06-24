@@ -46,6 +46,12 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
+    POSTGRES_DATABASE_URI: str = None
+
+    @validator("POSTGRES_DATABASE_URI", pre=True)
+    def postgres_database_uri_(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        return f'postgresql://{values.get("POSTGRES_USER")}:{values.get("POSTGRES_PASSWORD")}@{values.get("POSTGRES_SERVER")}:5432/{values.get("POSTGRES_DB")}'
+
     ASYNC_SQLALCHEMY_DATABASE_URI: Optional[AsyncPostgresDsn] = None
 
     @validator("ASYNC_SQLALCHEMY_DATABASE_URI", pre=True)

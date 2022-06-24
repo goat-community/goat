@@ -48,6 +48,7 @@ PyYAML = "^6.0"
 motor = "^3.0.0"
 scipy = "^1.8.1"
 matplotlib = "^3.5.2"
+connectorx = "^0.3.0"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.770"
