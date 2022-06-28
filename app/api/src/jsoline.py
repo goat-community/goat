@@ -104,10 +104,64 @@ def followLoop(idx, xy, prev_xy):
 
 
 def interpolate(pos, cutoff, start, surface, width, height):
+    """
+    Do linear interpolation
+    """
+    #   The edges are always considered unreachable to avoid edge effects so set
+    #   them to the cutoff.
+    x = pos[0]
+    y = pos[1]
+    startx = start[0]
+    starty = start[1]
+    index = y * width + x
+    topLeft = surface[index]
+    topRight = surface[index + 1]
+    botLeft = surface[index + width]
+    botRight = surface[index + width + 1]
+    if x == 0:
+        topLeft = botLeft = cutoff
+    if y == 0:
+        topLeft = topRight = cutoff
+    if y == height - 2:
+        botRight = botLeft = cutoff
+    if x == width - 2:
+        topRight = botRight = cutoff
+    # From left
+    if startx < x:
+        frac = (cutoff - topLeft) / (botLeft - topLeft)
+        return [x, y + ensureFractionIsNumber(frac, "left")]
+    # From right
+    if startx > x:
+        frac = (cutoff - topRight) / (botRight - topRight)
+        return [x + 1, y + ensureFractionIsNumber(frac, "right")]
+    # From bottom
+    if starty > y:
+        frac = (cutoff - botLeft) / (botRight - botLeft)
+        return [x + ensureFractionIsNumber(frac, "bottom"), y + 1]
+    # From top
+    if starty < y:
+        frac = (cutoff - topLeft) / (topRight - topLeft)
+        return [x + ensureFractionIsNumber(frac, "top"), y]
     pass
 
 
 def noInterpolate(pos, start):
+    x = pos[0]
+    y = pos[1]
+    startx = start[0]
+    starty = start[1]
+    # From left
+    if startx < x:
+        return [x, y + 0.5]
+    # From right
+    if startx > x:
+        return [x + 1, y + 0.5]
+    # From bottom
+    if starty > y:
+        return [x + 0.5, y + 1]
+    # From top
+    if starty < y:
+        return [x + 0.5, y]
     pass
 
 
