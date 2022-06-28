@@ -12,8 +12,8 @@ MAX_COORDS = 20000
 
 def get_contour(surface, width, height, cutoff):
     """
-    * Get a contouring grid. Exported for testing purposes, not generally used
-    * outside jsolines testing
+    Get a contouring grid. Exported for testing purposes, not generally used
+    outside jsolines testing
     """
     contour = np.zeros((width - 1) * (height - 1), dtype=np.int8)
 
@@ -55,8 +55,52 @@ def get_contour(surface, width, height, cutoff):
     return contour
 
 
-def followLoop(idx, pos, prev):
-    pass
+def followLoop(idx, xy, prev_xy):
+    """
+    Follow the loop
+    We keep track of which contour cell we're in, and we always keep the filled
+    area to our left. Thus we always indicate only which direction we exit the
+    cell.
+    """
+    x = xy[0]
+    y = xy[1]
+    prevx = prev_xy[0]
+    prevy = prev_xy[1]
+
+    if idx in (1, 3, 7):
+        return [x - 1, y]
+    elif idx in (2, 6, 14):
+        return [x, y + 1]
+    elif idx in (4, 12, 13):
+        return [x + 1, y]
+    elif idx == 5:
+        # Assume that saddle has // orientation (as opposed to \\). It doesn't
+        # really matter if we're wrong, we'll just have two disjoint pieces
+        # where we should have one, or vice versa.
+        # From Bottom:
+        if prevy > y:
+            return [x + 1, y]
+
+        # From Top:
+        if prevy < y:
+            return [x - 1, y]
+
+        return [x, y]
+    elif idx in (8, 9, 11):
+        return [x, y - 1]
+    elif idx == 10:
+        # From left
+        if prevx < x:
+            return [x, y + 1]
+
+        # From right
+        if prevx > x:
+            return [x, y - 1]
+
+        return [x, y]
+
+    else:
+        return [x, y]
 
 
 def interpolate(pos, cutoff, start, surface, width, height):
@@ -182,7 +226,7 @@ def jsolines(
                     # make it a fully-fledged GeoJSON object
                     geom = {
                         "type": "Feature",
-                        "geometry": {"type": "Polygon", "coordinates": coords},
+                        "geometry": {"type": "Polygon", "coordinates": [coords]},
                     }
 
                     # Check winding direction. Positive here means counter clockwise,
