@@ -19,6 +19,7 @@ from src import crud
 from src.core.config import settings
 from src.db import models
 from src.endpoints import deps
+from src.jsoline import jsolines
 from src.resources.responses import OctetStreamResponse
 from src.schemas.msg import Msg
 from src.schemas.r5 import (
@@ -30,7 +31,11 @@ from src.schemas.r5 import (
     R5RegionInDB,
     request_examples,
 )
-from src.utils import decode_r5_grid
+from src.utils import (
+    compute_single_value_surface,
+    coordinate_from_pixel,
+    decode_r5_grid,
+)
 
 router = APIRouter()
 
@@ -355,6 +360,22 @@ async def analysis(
     }
     result = requests.post(settings.R5_API_URL + "/analysis", json=payload)
     grid_decoded = decode_r5_grid(result.content)
+    single_value_surface = compute_single_value_surface(grid_decoded, 50)
+
+    def project(x, y):
+        ll = coordinate_from_pixel(
+            {"x": x + single_value_surface["west"], "y": y + single_value_surface["north"]},
+            zoom=single_value_surface["zoom"],
+        )
+        return [ll["lon"], ll["lat"]]
+
+    isochrone_polygon = jsolines(
+        single_value_surface["surface"],
+        single_value_surface["width"],
+        single_value_surface["height"],
+        120,
+        project,
+    )
 
     try:
         return Response(bytes(result.content))

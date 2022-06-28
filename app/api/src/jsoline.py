@@ -180,11 +180,11 @@ def ensureFractionIsNumber(frac, direction):
 
 
 def jsolines(
-    cutoff,
-    height,
-    project,
     surface,
     width,
+    height,
+    cutoff,
+    project,
     maxCoordinates=MAX_COORDS,
     interpolation=True,
 ):
@@ -207,8 +207,8 @@ def jsolines(
     # Find a cell that has a line in it, then follow that line, keeping filled
     # area to your left. This lets us use winding direction to determine holes.
 
-    for origx in range(height - 1):
-        for origy in range(width - 1):
+    for origy in range(height - 1):
+        for origx in range(width - 1):
             index = origy * cWidth + origx
             if found[index] == 1:
                 continue
@@ -266,7 +266,7 @@ def jsolines(
                     )
                     break
 
-                coords.append(project(coord))
+                coords.append(project(coord[0], coord[1]))
 
                 # TODO Remove completely? May be unnecessary.
                 if len(coords) > maxCoordinates:
@@ -296,7 +296,7 @@ def jsolines(
             warnings.append(
                 [
                     f"Ring crosses other ring (or possibly self) at ${pos[0]}, ${pos[1]} coming from case ${idx}",
-                    f"Last few indices: ${indices[max(0, len(indices) - 10)].join(',')}",
+                    f"Last few indices: ${','.join(str(x) for x in indices[max(0, len(indices) - 10):])}",
                 ]
             )
 
@@ -304,22 +304,31 @@ def jsolines(
     for hole in holes:
 
         # Only accept holes that are at least 2-dimensional.
-        vertices = [f"{x-y}" for x, y in hole.geometry.coordinates[0]]
-        # vertices = Object.keys(
-        #   hole.geometry.coordinates[0].reduce((unique, [lat, lng]) => {
-        #     unique[`${lat}-${lng}`] = null;
-        #     return unique;
-        #   }, {})
-        # );
+        vertices = list(set([f"{x}-{y}" for x, y in hole["geometry"]["coordinates"][0]]))
 
         if len(vertices) >= 3:
             # NB this is checking whether the first coordinate of the hole is inside
             # the shell. This is sufficient as shells don't overlap, and holes are
             # guaranteed to be completely contained by a single shell.
-            holePoint = Point(hole.geometry.coordinates[0][0])
-            containingShell = filter(lambda shell: Polygon(shell).contains(holePoint), shells)
+            holePoint = Point(hole["geometry"]["coordinates"][0][0])
+            containingShell = list(
+                filter(
+                    lambda shell: Polygon(shell["geometry"]["coordinates"][0]).contains(holePoint),
+                    shells,
+                )
+            )
 
-            if containingShell:
-                containingShell.geometry.coordinates.append(hole.geometry.coordinates[0])
+            if len(containingShell) == 1:
+                containingShell[0]["geometry"]["coordinates"].append(
+                    hole["geometry"]["coordinates"][0]
+                )
             else:
                 logError("Did not find fitting shell for hole")
+    return {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [s["geometry"]["coordinates"] for s in shells],
+        },
+    }

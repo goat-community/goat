@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 import os
 import shutil
 from datetime import datetime, timedelta
@@ -214,6 +215,13 @@ def to_feature_collection(
     return FeatureCollection(features)
 
 
+def encode_r5_grid(grid_data: Any) -> bytes:
+    """
+    Encode raster grid data
+    """
+    return geobuf.encode(grid_data)
+
+
 def decode_r5_grid(grid_data_buffer: bytes) -> Any:
     """
     Decode R5 grid data
@@ -265,33 +273,94 @@ def decode_r5_grid(grid_data_buffer: bytes) -> Any:
         dtype=np.int8,
     )
     metadata = json.loads(raw_metadata.tostring())
-    def contains(x, y, z):
-        return (
-            x >= 0
-            and x < header["width"]
-            and y >= 0
-            and y < header["height"]
-            and z >= 0
-            and z < header["depth"]
-        )
-    def get(x, y, z):
-        if contains(x, y, z):
-            return data[z * gridSize + y * header["width"] + x]
-        else:
-            return None
 
-    return (
-        header
-        | metadata
-        | {"data": data, "errors": [], "warnings": [], "contains": contains, "get": get}
-    )
+    return header | metadata | {"data": data, "errors": [], "warnings": []}
 
 
-def encode_r5_grid(grid_data: Any) -> bytes:
+def contains(x, y, z, width, height, depth):
+    return x >= 0 and x < width and y >= 0 and y < height and z >= 0 and z < depth
+
+
+def get_coord(x, y, z, width, height, depth, grid_size, data):
+    if contains(x, y, z, width, height, depth):
+        return data[(z * grid_size) + (y * width) + x]
+    else:
+        return math.inf
+
+
+def compute_single_value_surface(travel_time_surface, percentile) -> Any:
     """
-    Encode raster grid data
+    Compute single value surface
     """
-    return geobuf.encode(grid_data)
+    if travel_time_surface == None:
+        return None
+    grid_size = travel_time_surface["width"] * travel_time_surface["height"]
+    surface = np.empty(grid_size)
+    percentileIndex = select_nearest_percentile_index(percentile)
+    for y in range(travel_time_surface["height"]):
+        for x in range(travel_time_surface["width"]):
+            index = y * travel_time_surface["width"] + x
+            coord = get_coord(
+                x,
+                y,
+                percentileIndex,
+                travel_time_surface["width"],
+                travel_time_surface["height"],
+                travel_time_surface["depth"],
+                grid_size,
+                travel_time_surface["data"],
+            )
+            surface[index] = coord
+    travel_time_surface["surface"] = surface
+    return travel_time_surface
+
+
+def select_nearest_percentile_index(requested_percentile) -> Any:
+    """
+    Select the nearest percentile index
+    """
+    TRAVEL_TIME_PERCENTILES = [5, 25, 50, 75, 95]
+    percentile_index = 0
+    closest_diff = float("inf")
+    for index, p in enumerate(TRAVEL_TIME_PERCENTILES):
+        current_diff = abs(p - requested_percentile)
+        if current_diff < closest_diff:
+            percentile_index = index
+            closest_diff = current_diff
+    return percentile_index
+
+
+def z_scale(z):
+    """
+    2^z represents the tile number. Scale that by the number of pixels in each tile.
+    """
+    PIXELS_PER_TILE = 256
+    return 2 ** z * PIXELS_PER_TILE
+
+
+def pixel_to_longitude(pixel_x, zoom):
+    """
+    Convert pixel x coordinate to longitude
+    """
+    return (pixel_x / z_scale(zoom)) * 360 - 180
+
+
+def pixel_to_latitude(pixel_y, zoom):
+    """
+    Convert pixel y coordinate to latitude
+    """
+    lat_rad = math.atan(math.sinh(math.pi * (1 - (2 * pixel_y) / z_scale(zoom))))
+    return lat_rad * 180 / math.pi
+
+
+def coordinate_from_pixel(pixel, zoom):
+    """
+    Convert pixel coordinate to longitude and latitude
+    """
+    return {
+        "lat": pixel_to_latitude(pixel["y"], zoom),
+        "lon": pixel_to_longitude(pixel["x"], zoom),
+    }
 
 
 def without_keys(d, keys):
