@@ -9,3 +9,10 @@ class CRUDLayerLibrary(CRUDBase[models.LayerLibrary, models.LayerLibrary, models
 
 
 layer_library = CRUDLayerLibrary(models.LayerLibrary)
+
+
+class CRUDStyleLibrary(CRUDBase[models.StyleLibrary, models.StyleLibrary, models.StyleLibrary]):
+    pass
+
+
+style_library = CRUDStyleLibrary(models.StyleLibrary)
