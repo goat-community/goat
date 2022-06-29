@@ -49,6 +49,7 @@ api_router.include_router(
     layer_library.styles_router, prefix="/layers/library/styles", tags=["Layer Library"]
 )
 api_router.include_router(layer_library.router, prefix="/layers/library", tags=["Layer Library"])
+api_router.include_router(
     layer_library.router, prefix="/config/layers/library", tags=["Layer Library"]
 )
 api_router.include_router(study_area.router, prefix="/config/study-area", tags=["Layer Library"])
