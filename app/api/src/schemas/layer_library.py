@@ -1,5 +1,8 @@
+from sentry_sdk import HttpTransport
 from src.db import models
 from pydantic import root_validator
+from .utils import findkeys
+from fastapi import HTTPException
 
 
 class CreateLayerLibrary(models.LayerLibrary):
@@ -54,3 +57,43 @@ class CreateLayerLibrary(models.LayerLibrary):
                 "type": "BING",
             }
         }
+
+
+class CreateStyleLibrary(models.StyleLibrary):
+    @root_validator
+    def translations_present_for_all_names(cls, values):
+        style, translation = values.get("style"), values.get("translation")
+        rules = style.get("rules")
+        translation_keyworkds_set = set(findkeys(rules, "name"))
+        translation_set = set(translation.__keys__)
+        warnings = {}
+        # Check if all keywords are present in translation
+        if translation_keyworkds_set != translation_set:
+            absent_translations = translation_set - translation_keyworkds_set
+            if absent_translations:
+                warnings["absent_translations"] = absent_translations
+
+            # We can find unneeded translations:
+            # unneeded_translations = translation_keyworkds_set - translation_set
+            # if unneeded_translations:
+            #     warnings["unneeded_translations"] = unneeded_translations
+
+        # Check if all keywords have all translations
+        all_languages = set()
+        for key in translation.__keys__:
+            # Collect all languages
+            all_languages = all_languages.union(set(translation[key].__keys__))
+
+        # Search for incomplete translations
+        incomplete_translations = []
+        for key in translation.__keys__:
+
+            # Is this keyword have translations for all detected languages?
+            if all_languages - set(translation[key].__keys__):
+                incomplete_translations.append(key)
+
+        if incomplete_translations:
+            warnings["incomplete_translations"] = incomplete_translations
+
+        if warnings:
+            raise HTTPException(status_code=400, detail=warnings)
