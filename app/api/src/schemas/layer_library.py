@@ -27,6 +27,89 @@ class RequestExamples:
             "type": "BING",
         }
 
+    @property
+    def single_style_library(self):
+        return {
+            "translation": {
+                "red": {"de": "stressig", "en": "stressful"},
+                "grey": {"de": "Lücke im Radnetz", "en": "gap in the cycling network"},
+                "black": {"de": "sehr stressig", "en": "very stressful"},
+                "green": {"de": "komfortabel", "en": "comfortable"},
+                "yellow": {"de": "durchschnittlich", "en": "average"},
+            },
+            "name": random_lower_string(),
+            "style": {
+                "name": "munichways",
+                "rules": [
+                    {
+                        "name": "green",
+                        "filter": ["==", "farbe", "grün"],
+                        "symbolizers": [
+                            {
+                                "cap": "square",
+                                "join": "bevel",
+                                "kind": "Line",
+                                "color": "#609e72",
+                                "width": 2,
+                            }
+                        ],
+                    },
+                    {
+                        "name": "yellow",
+                        "filter": ["==", "farbe", "gelb"],
+                        "symbolizers": [
+                            {
+                                "cap": "square",
+                                "join": "bevel",
+                                "kind": "Line",
+                                "color": "#edc937",
+                                "width": 2,
+                            }
+                        ],
+                    },
+                    {
+                        "name": "red",
+                        "filter": ["==", "farbe", "rot"],
+                        "symbolizers": [
+                            {
+                                "cap": "square",
+                                "join": "bevel",
+                                "kind": "Line",
+                                "color": "#df6235",
+                                "width": 2,
+                            }
+                        ],
+                    },
+                    {
+                        "name": "black",
+                        "filter": ["==", "farbe", "schwarz"],
+                        "symbolizers": [
+                            {
+                                "cap": "square",
+                                "join": "bevel",
+                                "kind": "Line",
+                                "color": "#000000",
+                                "width": 2,
+                            }
+                        ],
+                    },
+                    {
+                        "name": "grey",
+                        "filter": ["==", "farbe", "grau"],
+                        "symbolizers": [
+                            {
+                                "cap": "square",
+                                "join": "bevel",
+                                "kind": "Line",
+                                "color": "#717070",
+                                "width": 2,
+                            }
+                        ],
+                    },
+                ],
+            },
+        }
+
 
 request_examples = RequestExamples()
 
@@ -106,3 +189,8 @@ class CreateStyleLibrary(models.StyleLibrary):
 
         if warnings:
             raise HTTPException(status_code=400, detail=warnings)
+
+        return values
+
+    class Config:
+        schema_extra = {"example": request_examples.single_style_library}
