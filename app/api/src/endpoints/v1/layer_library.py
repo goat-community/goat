@@ -90,6 +90,8 @@ async def list_styles(
     current_user: models.User = Depends(deps.get_current_active_user),
 ):
     styles = await crud.style_library.get_multi(db, skip=skip, limit=limit)
+    if not styles:
+        raise HTTPException(status_code=404, detail="there is no (more) style libraries.")
     return styles
 
 
@@ -100,7 +102,10 @@ async def read_style_by_name(
     current_user: models.User = Depends(deps.get_current_active_user),
 ):
     style = await crud.style_library.get_by_key(db, key="name", value=name)
-    style = style[0]
+    if style:
+        style = style[0]
+    else:
+        raise HTTPException(status_code=404, detail="style not found.")
     return style
 
 
@@ -122,15 +127,23 @@ async def update_style(
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
     style_in_db = await crud.style_library.get_by_key(db, key="name", value=name)
+    if not style_in_db:
+        raise HTTPException(status_code=404, detail="style library not found.")
     style = await crud.style_library.update(db, db_obj=style_in_db[0], obj_in=style_in)
     return style
 
 
-@styles_router.delete("/{id}", response_model=models.StyleLibrary)
-async def delete_style(
-    id: int,
+@styles_router.delete("/{name}", response_model=models.StyleLibrary)
+async def delete_a_style_library(
+    name: str,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-    style = await crud.style_library.remove(db, id=id)
+    style = await crud.style_library.get_by_key(db, key="name", value=name)
+    if not style:
+        raise HTTPException(status_code=404, detail="style library not found.")
+    else:
+        style = style[0]
+
+    style = await crud.style_library.remove(db, id=style.id)
     return style
