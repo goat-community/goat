@@ -20,7 +20,7 @@ from src import crud
 from src.core.config import settings
 from src.db import models
 from src.endpoints import deps
-from src.jsoline import jsolines, jsonlines_geojson
+from src.jsoline import jsolines
 from src.resources.responses import OctetStreamResponse
 from src.schemas.msg import Msg
 from src.schemas.r5 import (
@@ -357,7 +357,6 @@ async def analysis(
     }
     result = requests.post(settings.R5_API_URL + "/analysis", json=payload)
     grid_decoded = decode_r5_grid(result.content)
-    surface_extract_start_time = time.time()
     single_value_surface = compute_single_value_surface(
         grid_decoded["width"],
         grid_decoded["height"],
@@ -366,13 +365,7 @@ async def analysis(
         50,
     )
     grid_decoded["surface"] = single_value_surface
-    surface_extract_end_time = time.time()
-    print(
-        f"Surface extraction took {surface_extract_end_time - surface_extract_start_time} seconds"
-    )
-
-    isochrone_polygon_time_start = time.time()
-    isochrone_shells_holes = jsolines(
+    isochrone_coordinates = jsolines(
         grid_decoded["surface"],
         grid_decoded["width"],
         grid_decoded["height"],
@@ -381,12 +374,6 @@ async def analysis(
         grid_decoded["zoom"],
         120,
     )
-    isochrone_geojson = jsonlines_geojson(isochrone_shells_holes[0], isochrone_shells_holes[1])
-    isochrone_polygon_time_end = time.time()
-    print(
-        f"Isochrone polygon generation took {isochrone_polygon_time_end - isochrone_polygon_time_start} seconds"
-    )
-
     try:
         return Response(bytes(result.content))
     except Exception as e:

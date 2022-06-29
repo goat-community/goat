@@ -5,8 +5,8 @@ Translated from https://github.com/goat-community/goat/blob/0089611acacbebf4e297
 import math
 
 import numpy as np
-from numba import njit
-from shapely.geometry import Point, Polygon
+from numba import njit, prange
+from numba.typed import List
 
 from src.utils import coordinate_from_pixel
 
@@ -205,8 +205,8 @@ def jsolines(
     indices = []
 
     # We'll sort out what shell goes with what hole in a bit.
-    shells = []
-    holes = []
+    shells = List()
+    holes = List()
 
     # Find a cell that has a line in it, then follow that line, keeping filled
     # area to your left. This lets us use winding direction to determine holes.
@@ -296,34 +296,44 @@ def jsolines(
                         holes.append(geom)
                     break
 
-    return [shells, holes]
-
-
-def jsonlines_geojson(shells, holes):
     # Shell game time. Sort out shells and holes.
     for hole in holes:
         # Only accept holes that are at least 2-dimensional.
-        vertices = list(set([f"{x}-{y}" for x, y in hole[0]]))
+        # Workaroudn (x+y) to avoid float to str type conversion in numba
+        vertices = list(set([(x + y) for x, y in hole[0]]))
 
         if len(vertices) >= 3:
             # NB this is checking whether the first coordinate of the hole is inside
             # the shell. This is sufficient as shells don't overlap, and holes are
             # guaranteed to be completely contained by a single shell.
-            holePoint = Point(hole[0][0])
-            containingShell = list(
-                filter(
-                    lambda shell: Polygon(shell[0]).contains(holePoint),
-                    shells,
-                )
-            )
-
+            holePoint = hole[0][0]
+            containingShell = []
+            for shell in shells:
+                if pointinpolygon(holePoint[0], holePoint[1], shell[0]):
+                    containingShell.append(shell)
             if len(containingShell) == 1:
                 containingShell[0].append(hole[0])
-    return {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "MultiPolygon",
-            "coordinates": [shells],
-        },
-    }
+
+    return shells
+
+
+@njit
+def pointinpolygon(x, y, poly):
+    n = len(poly)
+    inside = False
+    p2x = 0.0
+    p2y = 0.0
+    xints = 0.0
+    p1x, p1y = poly[0]
+    for i in prange(n + 1):
+        p2x, p2y = poly[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        xints = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                    if p1x == p2x or x <= xints:
+                        inside = not inside
+        p1x, p1y = p2x, p2y
+
+    return inside
