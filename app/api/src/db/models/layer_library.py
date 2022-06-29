@@ -26,7 +26,7 @@ class StyleLibrary(SQLModel, table=True):
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     name: str = Field(sa_column=Column(Text(), nullable=False, index=True))
     style: dict = Field(sa_column=Column(JSONB))
-    translation: dict = Field(sa_column=Column(JSONB))
+    translation: Optional[dict] = Field(sa_column=Column(JSONB))
     layer_libraries: "LayerLibrary" = Relationship(back_populates="style_library")
 
 
