@@ -64,32 +64,32 @@ class CreateStyleLibrary(models.StyleLibrary):
     def translations_present_for_all_names(cls, values):
         style, translation = values.get("style"), values.get("translation")
         rules = style.get("rules")
-        translation_keyworkds_set = set(findkeys(rules, "name"))
-        translation_set = set(translation.__keys__)
+        translation_keywords_set = set(findkeys(rules, "name"))
+        translation_set = set(translation.keys())
         warnings = {}
         # Check if all keywords are present in translation
-        if translation_keyworkds_set != translation_set:
-            absent_translations = translation_set - translation_keyworkds_set
+        if translation_keywords_set != translation_set:
+            absent_translations = translation_keywords_set - translation_set
             if absent_translations:
-                warnings["absent_translations"] = absent_translations
+                warnings["absent_translations"] = list(absent_translations)
 
             # We can find unneeded translations:
-            # unneeded_translations = translation_keyworkds_set - translation_set
+            # unneeded_translations = translation_set - translation_keywords_set
             # if unneeded_translations:
-            #     warnings["unneeded_translations"] = unneeded_translations
+            #     warnings["unneeded_translations"] = list(unneeded_translations)
 
         # Check if all keywords have all translations
         all_languages = set()
-        for key in translation.__keys__:
+        for key in translation.keys():
             # Collect all languages
-            all_languages = all_languages.union(set(translation[key].__keys__))
+            all_languages = all_languages.union(set(translation[key].keys()))
 
         # Search for incomplete translations
         incomplete_translations = []
-        for key in translation.__keys__:
+        for key in translation.keys():
 
             # Is this keyword have translations for all detected languages?
-            if all_languages - set(translation[key].__keys__):
+            if all_languages - set(translation[key].keys()):
                 incomplete_translations.append(key)
 
         if incomplete_translations:
