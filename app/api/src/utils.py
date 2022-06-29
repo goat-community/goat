@@ -16,6 +16,7 @@ from geoalchemy2.shape import to_shape
 from geojson import Feature, FeatureCollection
 from geojson import loads as geojsonloads
 from jose import jwt
+from numba import njit
 from rich import print as print
 from starlette.responses import Response
 
@@ -277,59 +278,43 @@ def decode_r5_grid(grid_data_buffer: bytes) -> Any:
     return header | metadata | {"data": data, "errors": [], "warnings": []}
 
 
-def contains(x, y, z, width, height, depth):
-    return x >= 0 and x < width and y >= 0 and y < height and z >= 0 and z < depth
-
-
-def get_coord(x, y, z, width, height, depth, grid_size, data):
-    if contains(x, y, z, width, height, depth):
-        return data[(z * grid_size) + (y * width) + x]
-    else:
-        return math.inf
-
-
-def compute_single_value_surface(travel_time_surface, percentile) -> Any:
+@njit
+def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     """
     Compute single value surface
     """
-    if travel_time_surface == None:
+    if data == None or width == None or height == None or depth == None:
         return None
-    grid_size = travel_time_surface["width"] * travel_time_surface["height"]
+    grid_size = width * height
     surface = np.empty(grid_size)
-    percentileIndex = select_nearest_percentile_index(percentile)
-    for y in range(travel_time_surface["height"]):
-        for x in range(travel_time_surface["width"]):
-            index = y * travel_time_surface["width"] + x
-            coord = get_coord(
-                x,
-                y,
-                percentileIndex,
-                travel_time_surface["width"],
-                travel_time_surface["height"],
-                travel_time_surface["depth"],
-                grid_size,
-                travel_time_surface["data"],
-            )
-            surface[index] = coord
-    travel_time_surface["surface"] = surface
-    return travel_time_surface
-
-
-def select_nearest_percentile_index(requested_percentile) -> Any:
-    """
-    Select the nearest percentile index
-    """
     TRAVEL_TIME_PERCENTILES = [5, 25, 50, 75, 95]
     percentile_index = 0
-    closest_diff = float("inf")
+    closest_diff = math.inf
     for index, p in enumerate(TRAVEL_TIME_PERCENTILES):
-        current_diff = abs(p - requested_percentile)
+        current_diff = abs(p - percentile)
         if current_diff < closest_diff:
             percentile_index = index
             closest_diff = current_diff
-    return percentile_index
+    for y in np.arange(height):
+        for x in np.arange(width):
+            index = y * width + x
+            if (
+                x >= 0
+                and x < width
+                and y >= 0
+                and y < height
+                and percentile_index >= 0
+                and percentile_index < depth
+            ):
+                coord = data[(percentile_index * grid_size) + (y * width) + x]
+            else:
+                coord = math.inf
+
+            surface[index] = coord
+    return surface
 
 
+@njit
 def z_scale(z):
     """
     2^z represents the tile number. Scale that by the number of pixels in each tile.
@@ -338,6 +323,7 @@ def z_scale(z):
     return 2 ** z * PIXELS_PER_TILE
 
 
+@njit
 def pixel_to_longitude(pixel_x, zoom):
     """
     Convert pixel x coordinate to longitude
@@ -345,6 +331,7 @@ def pixel_to_longitude(pixel_x, zoom):
     return (pixel_x / z_scale(zoom)) * 360 - 180
 
 
+@njit
 def pixel_to_latitude(pixel_y, zoom):
     """
     Convert pixel y coordinate to latitude
@@ -353,6 +340,7 @@ def pixel_to_latitude(pixel_y, zoom):
     return lat_rad * 180 / math.pi
 
 
+@njit
 def coordinate_from_pixel(pixel, zoom):
     """
     Convert pixel coordinate to longitude and latitude

@@ -5,11 +5,15 @@ Translated from https://github.com/goat-community/goat/blob/0089611acacbebf4e297
 import math
 
 import numpy as np
+from numba import njit
 from shapely.geometry import Point, Polygon
+
+from src.utils import coordinate_from_pixel
 
 MAX_COORDS = 20000
 
 
+@njit
 def get_contour(surface, width, height, cutoff):
     """
     Get a contouring grid. Exported for testing purposes, not generally used
@@ -18,8 +22,8 @@ def get_contour(surface, width, height, cutoff):
     contour = np.zeros((width - 1) * (height - 1), dtype=np.int8)
 
     # compute contour values for each cell
-    for x in range(width - 1):
-        for y in range(height - 1):
+    for x in np.arange(width - 1):
+        for y in np.arange(height - 1):
             index = y * width + x
             topLeft = surface[index] < cutoff
             topRight = surface[index + 1] < cutoff
@@ -55,6 +59,7 @@ def get_contour(surface, width, height, cutoff):
     return contour
 
 
+@njit
 def followLoop(idx, xy, prev_xy):
     """
     Follow the loop
@@ -103,6 +108,7 @@ def followLoop(idx, xy, prev_xy):
         return [x, y]
 
 
+@njit
 def interpolate(pos, cutoff, start, surface, width, height):
     """
     Do linear interpolation
@@ -145,6 +151,7 @@ def interpolate(pos, cutoff, start, surface, width, height):
     pass
 
 
+@njit
 def noInterpolate(pos, start):
     x = pos[0]
     y = pos[1]
@@ -165,26 +172,23 @@ def noInterpolate(pos, start):
     pass
 
 
-def logError(object):
-    pass
-
-
 # Calculated fractions may not be numbers causing interpolation to fail.
+@njit
 def ensureFractionIsNumber(frac, direction):
     if math.isnan(frac) or math.isinf(frac):
-        logError(
-            f"Segment fraction from ${direction} is ${frac}; if this is at the edge of the query this is expected."
-        )
         return 0.5
     return frac
 
 
+@njit
 def jsolines(
     surface,
     width,
     height,
+    west,
+    north,
+    zoom,
     cutoff,
-    project,
     maxCoordinates=MAX_COORDS,
     interpolation=True,
 ):
@@ -207,8 +211,8 @@ def jsolines(
     # Find a cell that has a line in it, then follow that line, keeping filled
     # area to your left. This lets us use winding direction to determine holes.
 
-    for origy in range(height - 1):
-        for origx in range(width - 1):
+    for origy in np.arange(height - 1):
+        for origx in np.arange(width - 1):
             index = origy * cWidth + origx
             if found[index] == 1:
                 continue
@@ -265,8 +269,11 @@ def jsolines(
                         f"Unexpected coordinate shift from ${start[0]}, ${start[1]} to ${pos[0]}, ${pos[1]}, discarding ring"
                     )
                     break
-
-                coords.append(project(coord[0], coord[1]))
+                ll = coordinate_from_pixel(
+                    {"x": coord[0] + west, "y": coord[1] + north},
+                    zoom=zoom,
+                )
+                coords.append([ll["lon"], ll["lat"]])
 
                 # TODO Remove completely? May be unnecessary.
                 if len(coords) > maxCoordinates:
@@ -278,10 +285,7 @@ def jsolines(
                     coords.append(coords[0])  # close the ring
 
                     # make it a fully-fledged GeoJSON object
-                    geom = {
-                        "type": "Feature",
-                        "geometry": {"type": "Polygon", "coordinates": [coords]},
-                    }
+                    geom = [coords]
 
                     # Check winding direction. Positive here means counter clockwise,
                     # see http:#stackoverflow.com/questions/1165647
@@ -292,43 +296,34 @@ def jsolines(
                         holes.append(geom)
                     break
 
-        if found[index] == 1:
-            warnings.append(
-                [
-                    f"Ring crosses other ring (or possibly self) at ${pos[0]}, ${pos[1]} coming from case ${idx}",
-                    f"Last few indices: ${','.join(str(x) for x in indices[max(0, len(indices) - 10):])}",
-                ]
-            )
+    return [shells, holes]
 
+
+def jsonlines_geojson(shells, holes):
     # Shell game time. Sort out shells and holes.
     for hole in holes:
-
         # Only accept holes that are at least 2-dimensional.
-        vertices = list(set([f"{x}-{y}" for x, y in hole["geometry"]["coordinates"][0]]))
+        vertices = list(set([f"{x}-{y}" for x, y in hole[0]]))
 
         if len(vertices) >= 3:
             # NB this is checking whether the first coordinate of the hole is inside
             # the shell. This is sufficient as shells don't overlap, and holes are
             # guaranteed to be completely contained by a single shell.
-            holePoint = Point(hole["geometry"]["coordinates"][0][0])
+            holePoint = Point(hole[0][0])
             containingShell = list(
                 filter(
-                    lambda shell: Polygon(shell["geometry"]["coordinates"][0]).contains(holePoint),
+                    lambda shell: Polygon(shell[0]).contains(holePoint),
                     shells,
                 )
             )
 
             if len(containingShell) == 1:
-                containingShell[0]["geometry"]["coordinates"].append(
-                    hole["geometry"]["coordinates"][0]
-                )
-            else:
-                logError("Did not find fitting shell for hole")
+                containingShell[0].append(hole[0])
     return {
         "type": "Feature",
         "properties": {},
         "geometry": {
             "type": "MultiPolygon",
-            "coordinates": [s["geometry"]["coordinates"] for s in shells],
+            "coordinates": [shells],
         },
     }

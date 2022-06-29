@@ -1,3 +1,4 @@
+import time
 from typing import Any, List
 
 import requests
@@ -19,7 +20,7 @@ from src import crud
 from src.core.config import settings
 from src.db import models
 from src.endpoints import deps
-from src.jsoline import jsolines
+from src.jsoline import jsolines, jsonlines_geojson
 from src.resources.responses import OctetStreamResponse
 from src.schemas.msg import Msg
 from src.schemas.r5 import (
@@ -31,11 +32,7 @@ from src.schemas.r5 import (
     R5RegionInDB,
     request_examples,
 )
-from src.utils import (
-    compute_single_value_surface,
-    coordinate_from_pixel,
-    decode_r5_grid,
-)
+from src.utils import compute_single_value_surface, decode_r5_grid
 
 router = APIRouter()
 
@@ -360,21 +357,34 @@ async def analysis(
     }
     result = requests.post(settings.R5_API_URL + "/analysis", json=payload)
     grid_decoded = decode_r5_grid(result.content)
-    single_value_surface = compute_single_value_surface(grid_decoded, 50)
+    surface_extract_start_time = time.time()
+    single_value_surface = compute_single_value_surface(
+        grid_decoded["width"],
+        grid_decoded["height"],
+        grid_decoded["depth"],
+        grid_decoded["data"],
+        50,
+    )
+    grid_decoded["surface"] = single_value_surface
+    surface_extract_end_time = time.time()
+    print(
+        f"Surface extraction took {surface_extract_end_time - surface_extract_start_time} seconds"
+    )
 
-    def project(x, y):
-        ll = coordinate_from_pixel(
-            {"x": x + single_value_surface["west"], "y": y + single_value_surface["north"]},
-            zoom=single_value_surface["zoom"],
-        )
-        return [ll["lon"], ll["lat"]]
-
-    isochrone_polygon = jsolines(
-        single_value_surface["surface"],
-        single_value_surface["width"],
-        single_value_surface["height"],
+    isochrone_polygon_time_start = time.time()
+    isochrone_shells_holes = jsolines(
+        grid_decoded["surface"],
+        grid_decoded["width"],
+        grid_decoded["height"],
+        grid_decoded["west"],
+        grid_decoded["north"],
+        grid_decoded["zoom"],
         120,
-        project,
+    )
+    isochrone_geojson = jsonlines_geojson(isochrone_shells_holes[0], isochrone_shells_holes[1])
+    isochrone_polygon_time_end = time.time()
+    print(
+        f"Isochrone polygon generation took {isochrone_polygon_time_end - isochrone_polygon_time_start} seconds"
     )
 
     try:
