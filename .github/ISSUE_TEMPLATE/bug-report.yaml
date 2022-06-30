@@ -1,4 +1,4 @@
-name: "Bug report"
+name: "Bug report form"
 description: "Thank you for reporting a bug!"
 body:
 - type: textarea
