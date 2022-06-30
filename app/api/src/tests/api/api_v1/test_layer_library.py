@@ -11,6 +11,7 @@ from src.tests.utils.layer_library import (
     create_random_layer_library,
     create_random_style_library,
 )
+from src.tests.utils.utils import random_lower_string
 
 pytestmark = pytest.mark.asyncio
 
@@ -141,6 +142,41 @@ async def test_create_style_library(
     retrieved_style = r.json()
     assert retrieved_style.get("name") == random_style.get("name")
     assert retrieved_style.get("id")
+
+
+async def test_create_wrong_style_library_untranslated_rule(
+    client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
+) -> None:
+    random_style = request_examples.single_style_library
+
+    # Change one of rules to get 400 error
+    random_style["style"]["rules"][0]["name"] = random_lower_string()
+
+    r = await client.post(
+        f"{settings.API_V1_STR}/config/layers/library/styles",
+        headers=superuser_token_headers,
+        json=random_style,
+    )
+    assert 400 <= r.status_code < 500
+
+
+async def test_create_wrong_style_library_additional_language(
+    client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
+) -> None:
+
+    # Test against additional translation language
+    random_style = request_examples.single_style_library
+
+    # Get the name of first rule
+    first_rule_name = random_style["style"]["rules"][0]["name"]
+    random_style["translation"][first_rule_name][random_lower_string()] = random_lower_string()
+
+    r = await client.post(
+        f"{settings.API_V1_STR}/config/layers/library/styles",
+        headers=superuser_token_headers,
+        json=random_style,
+    )
+    assert 400 <= r.status_code < 500
 
 
 async def test_update_style_library(
