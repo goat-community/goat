@@ -1,0 +1,38 @@
+- type: textarea
+  attributes:
+    label: Summary
+    description: The summary of bug report
+    value: summary
+  validations:
+    required: true
+- type: markdown
+  attributes:
+    label: Expected Behaviour
+    description: Tell us what should happen
+    value: expected behaviour
+  validations:
+    required: true
+- type: markdown
+  attributes:
+    label: Current Behaviour
+    description: Tell us what happens instead of the expected behavior
+    value: current behaviour
+  validations:
+    required: true
+- type: markdown
+  attributes:
+    label: Possible Solution
+    description: Not obligatory, but suggest a fix/reason for the bug
+    value: possible solution
+- type: markdown
+  attributes:
+    label: Steps to reproduce
+    description: Provide a link to a live example, or an unambiguous set of steps to reproduce this bug. Include code to reproduce, if relevant.
+    value: steps to reproduce
+  validations:
+    required: true
+- type: markdown
+  attributes:
+    label: Possible Implementation
+    description: Not obligatory, but suggest an idea for implementing addition or change.
+    value: possible implementation
