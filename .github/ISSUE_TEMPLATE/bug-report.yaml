@@ -1,35 +1,35 @@
-name: "Bug report form"
+name: ":bug: Bug report form"
 description: "Thank you for reporting a bug!"
 body:
 - type: textarea
   attributes:
     label: Summary
-    description: The summary of bug report
+    description: 📃 The summary of bug report
     value: summary
   validations:
     required: true
 - type: textarea
   attributes:
-    label: Expected Behaviour
+    label: ✅ Expected Behaviour
     description: Tell us what should happen
     value: expected behaviour
   validations:
     required: true
 - type: textarea
   attributes:
-    label: Current Behaviour
+    label: 🔦 Current Behaviour
     description: Tell us what happens instead of the expected behavior
     value: current behaviour
   validations:
     required: true
 - type: textarea
   attributes:
-    label: Possible Solution
+    label: 💡 Possible Solution
     description: Not obligatory, but suggest a fix/reason for the bug
     value: possible solution
 - type: textarea
   attributes:
-    label: Steps to reproduce
+    label: 👣 Steps to reproduce
     description: Provide a link to a live example, or an unambiguous set of steps to reproduce this bug. Include code to reproduce, if relevant.
     value: steps to reproduce
   validations:
