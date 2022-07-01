@@ -1,7 +1,7 @@
 name: "Bug report form 🐛"
 description: "Thank you for reporting a bug!"
-labels: Bug
-title: [BUG] 
+labels: "Bug"
+title: "[BUG] "
 body:
 - type: textarea
   attributes:
