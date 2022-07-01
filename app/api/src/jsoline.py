@@ -314,7 +314,7 @@ def jsolines(
             if len(containingShell) == 1:
                 containingShell[0].append(hole[0])
 
-    return shells
+    return list(shells)
 
 
 @njit

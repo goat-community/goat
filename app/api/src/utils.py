@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional
 
 import emails
 import geobuf
+import numba
 import numpy as np
 from emails.template import JinjaTemplate
 from fastapi import HTTPException
@@ -18,6 +19,7 @@ from geojson import loads as geojsonloads
 from jose import jwt
 from numba import njit
 from rich import print as print
+from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box
 from starlette.responses import Response
 
 from src.core.config import settings
@@ -315,6 +317,106 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
 
 
 @njit
+def amenity_r5_grid_intersect(
+    west,
+    north,
+    width,
+    surface,
+    get_population_sum_pixel,
+    get_population_sum_population,
+    get_poi_one_entrance_sum_pixel,
+    get_poi_one_entrance_sum_category,
+    get_poi_one_entrance_sum_cnt,
+    get_poi_more_entrance_sum_pixel,
+    get_poi_more_entrance_sum_category,
+    get_poi_more_entrance_sum_name,
+    get_poi_more_entrance_sum_cnt,
+    MAX_TIME=120,
+):
+    """
+    Return a list of amenity count for every minute
+    """
+    population_grid_count = np.zeros(MAX_TIME)
+    # - loop population
+    for idx, pixel in enumerate(get_population_sum_pixel):
+        pixel_x = pixel[1]
+        pixel_y = pixel[0]
+        x = pixel_x - west
+        y = pixel_y - north
+        width = width
+        index = y * width + x
+        time_cost = surface[index]
+        if time_cost < 2147483647:
+            population = get_population_sum_population[idx]
+            population_grid_count[int(time_cost)] += population
+    population_grid_count = np.cumsum(population_grid_count)
+
+    # - loop poi_one_entrance
+    poi_one_entrance_list = numba.typed.List()
+    poi_one_entrance_grid_count = numba.typed.List()
+    for idx, pixel in enumerate(get_poi_one_entrance_sum_pixel):
+        pixel_x = pixel[1]
+        pixel_y = pixel[0]
+        x = pixel_x - west
+        y = pixel_y - north
+        width = width
+        index = y * width + x
+        category = get_poi_one_entrance_sum_category[idx]
+
+        if category not in poi_one_entrance_list:
+            poi_one_entrance_list.append(category)
+            poi_one_entrance_grid_count.append(np.zeros(MAX_TIME))
+
+        time_cost = surface[index]
+        if time_cost < 2147483647:
+            count = get_poi_one_entrance_sum_cnt[idx]
+            poi_one_entrance_grid_count[poi_one_entrance_list.index(category)][
+                int(time_cost)
+            ] += count
+
+    for index, value in enumerate(poi_one_entrance_grid_count):
+        poi_one_entrance_grid_count[index] = np.cumsum(value)
+
+    # - loop poi_more_entrance
+    visited_more_entrance_categories = numba.typed.List()
+    poi_more_entrance_list = numba.typed.List()
+    poi_more_entrance_grid_count = numba.typed.List()
+    for idx, pixel in enumerate(get_poi_more_entrance_sum_pixel):
+        pixel_x = pixel[1]
+        pixel_y = pixel[0]
+        x = pixel_x - west
+        y = pixel_y - north
+        width = width
+        index = y * width + x
+        category = get_poi_more_entrance_sum_category[idx]
+        name = get_poi_more_entrance_sum_name[idx]
+
+        if category not in poi_more_entrance_list:
+            poi_more_entrance_list.append(category)
+            poi_more_entrance_grid_count.append(np.zeros(MAX_TIME))
+
+        time_cost = surface[index]
+        category_name = f"{category}_{name}"
+        if time_cost < 2147483647 and category_name not in visited_more_entrance_categories:
+            count = get_poi_more_entrance_sum_cnt[idx]
+            poi_more_entrance_grid_count[poi_more_entrance_list.index(category)][
+                int(time_cost)
+            ] += count
+            visited_more_entrance_categories.append(category_name)
+
+    for index, value in enumerate(poi_more_entrance_grid_count):
+        poi_more_entrance_grid_count[index] = np.cumsum(value)
+
+    return (
+        population_grid_count,
+        poi_one_entrance_list,
+        poi_one_entrance_grid_count,
+        poi_more_entrance_list,
+        poi_more_entrance_grid_count,
+    )
+
+
+@njit
 def z_scale(z):
     """
     2^z represents the tile number. Scale that by the number of pixels in each tile.
@@ -349,6 +451,46 @@ def coordinate_from_pixel(pixel, zoom):
         "lat": pixel_to_latitude(pixel["y"], zoom),
         "lon": pixel_to_longitude(pixel["x"], zoom),
     }
+
+
+def katana(geometry, threshold, count=0):
+    """Split a Polygon into two parts across it's shortest dimension"""
+    bounds = geometry.bounds
+    width = bounds[2] - bounds[0]
+    height = bounds[3] - bounds[1]
+    if max(width, height) <= threshold or count == 250:
+        # either the polygon is smaller than the threshold, or the maximum
+        # number of recursions has been reached
+        return [geometry]
+    if height >= width:
+        # split left to right
+        a = box(bounds[0], bounds[1], bounds[2], bounds[1] + height / 2)
+        b = box(bounds[0], bounds[1] + height / 2, bounds[2], bounds[3])
+    else:
+        # split top to bottom
+        a = box(bounds[0], bounds[1], bounds[0] + width / 2, bounds[3])
+        b = box(bounds[0] + width / 2, bounds[1], bounds[2], bounds[3])
+    result = []
+    for d in (
+        a,
+        b,
+    ):
+        c = geometry.intersection(d)
+        if not isinstance(c, GeometryCollection):
+            c = [c]
+        for e in c:
+            if isinstance(e, (Polygon, MultiPolygon)):
+                result.extend(katana(e, threshold, count + 1))
+    if count > 0:
+        return result
+    # convert multipart into singlepart
+    final_result = []
+    for g in result:
+        if isinstance(g, MultiPolygon):
+            final_result.extend(g)
+        else:
+            final_result.append(g)
+    return final_result
 
 
 def without_keys(d, keys):

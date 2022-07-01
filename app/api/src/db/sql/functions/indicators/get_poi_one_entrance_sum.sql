@@ -26,21 +26,21 @@ BEGIN
    	SELECT p.pixel, p.category, count(*)::integer AS cnt 
    	FROM 
 	(
-		SELECT basic.coordinate_to_pixel(ST_X(p.geom), ST_Y(p.geom), pixel_resolution) AS pixel, p.category
+		SELECT basic.coordinate_to_pixel(ST_Y(p.geom), ST_X(p.geom), pixel_resolution) AS pixel, p.category
 		FROM basic.poi p
 		WHERE ST_Intersects(extent, p.geom)
 		AND p.category IN (SELECT jsonb_array_elements_text(pois_one_entrance))
 		AND p.uid NOT IN (SELECT UNNEST(excluded_pois_id))
 		AND p.category NOT IN (SELECT UNNEST(data_upload_poi_categories))
 		UNION ALL 
-		SELECT basic.coordinate_to_pixel(ST_X(p.geom), ST_Y(p.geom), pixel_resolution) AS pixel, p.category
+		SELECT basic.coordinate_to_pixel(ST_Y(p.geom), ST_X(p.geom), pixel_resolution) AS pixel, p.category
 		FROM customer.poi_user p
 		WHERE ST_Intersects(extent, p.geom)
 		AND p.category IN (SELECT jsonb_array_elements_text(pois_one_entrance))
 		AND p.uid NOT IN (SELECT UNNEST(excluded_pois_id))
 		AND p.data_upload_id IN (SELECT UNNEST(active_upload_ids))
 		UNION ALL 
-		SELECT basic.coordinate_to_pixel(ST_X(p.geom), ST_Y(p.geom), pixel_resolution) AS pixel, p.category
+		SELECT basic.coordinate_to_pixel(ST_Y(p.geom), ST_X(p.geom), pixel_resolution) AS pixel, p.category
 		FROM customer.poi_modified p
 		WHERE ST_Intersects(extent, p.geom)
 		AND p.category IN (SELECT jsonb_array_elements_text(pois_one_entrance))

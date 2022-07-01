@@ -1,9 +1,9 @@
-from errno import ELOOP
 import io
+import json
 import os
 import shutil
 import uuid
-import json
+from errno import ELOOP
 from typing import Any
 
 import pandas as pd
@@ -15,23 +15,18 @@ from geopandas.io.sql import read_postgis
 from pandas.io.sql import read_sql
 from pyproj import Transformer
 from shapely.geometry import MultiPolygon, Point, Polygon
+from shapely.ops import unary_union
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
-from shapely.ops import unary_union
+
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
 from src.exts.cpp.bind import isochrone as isochrone_cpp
-from src.resources.enums import IsochroneExportType
-from src.schemas.isochrone import (
-    IsochroneMulti,
-    IsochroneSingle,
-    IsochroneTypeEnum,
-)
-from src.crud.base import CRUDBase
+from src.resources.enums import IsochroneExportType, IsochroneTypes
+from src.schemas.isochrone import IsochroneMulti, IsochroneSingle, IsochroneTypeEnum
 from src.utils import delete_dir
-from src.resources.enums import IsochroneTypes
-import xlsxwriter
+
 
 class CRUDIsochroneCalculation(
     CRUDBase[models.IsochroneCalculation, models.IsochroneCalculation, models.IsochroneCalculation]
@@ -97,7 +92,10 @@ class CRUDIsochrone:
 
         edges_network = edges_network.drop(["starting_ids", "starting_geoms"], axis=1)
 
-        if calculation_type == IsochroneTypeEnum.single or calculation_type == IsochroneTypeEnum.multi:
+        if (
+            calculation_type == IsochroneTypeEnum.single
+            or calculation_type == IsochroneTypeEnum.multi
+        ):
             obj_starting_point = models.IsochroneCalculation(
                 calculation_type=calculation_type,
                 user_id=obj_in.user_id,
@@ -113,11 +111,17 @@ class CRUDIsochrone:
             await db.commit()
             await db.refresh(obj_starting_point)
         else:
-            obj_starting_point = None # Heatmap
+            obj_starting_point = None  # Heatmap
 
         return edges_network, starting_id, distance_limits, obj_starting_point
 
-    def result_to_gdf(self, result, starting_id, isochrone_type: IsochroneTypes = IsochroneTypes.single, add_to_db=True):
+    def result_to_gdf(
+        self,
+        result,
+        starting_id,
+        isochrone_type: IsochroneTypes = IsochroneTypes.single,
+        add_to_db=True,
+    ):
         # Prepare if a single isochrone
         if isochrone_type == IsochroneTypes.single:
             isochrones = {}
@@ -133,8 +137,8 @@ class CRUDIsochrone:
 
             for step in isochrones:
                 isochrones[step] = isochrones[step].unary_union
-                
-        #Prepare if a Multi-Isochrone
+
+        # Prepare if a Multi-Isochrone
         elif isochrone_type == IsochroneTypes.multi:
             isochrones = {}
             steps = sorted(result.isochrone[0].shape.keys())
@@ -153,8 +157,10 @@ class CRUDIsochrone:
                 if list(union_isochrones.keys()) == []:
                     union_isochrones[step] = unary_union(isochrones[step])
                 else:
-                    union_isochrones[step] = unary_union([unary_union(isochrones[step]), union_isochrones[previous_step]])
-                previous_step = step 
+                    union_isochrones[step] = unary_union(
+                        [unary_union(isochrones[step]), union_isochrones[previous_step]]
+                    )
+                previous_step = step
 
             isochrones = union_isochrones
 
@@ -176,8 +182,8 @@ class CRUDIsochrone:
         ).to_crs("EPSG:4326")
 
         isochrone_gdf.rename_geometry("geom", inplace=True)
-        
-        if add_to_db == True: 
+
+        if add_to_db == True:
             isochrone_gdf.to_postgis(
                 name="isochrone_feature", con=legacy_engine, schema="customer", if_exists="append"
             )
@@ -258,7 +264,7 @@ class CRUDIsochrone:
         obj_in_data["starting_point_id"] = starting_id
 
         result = isochrone_cpp(edges_network, starting_id, distance_limits)
-        isochrone_gdf = self.result_to_gdf(result, obj_starting_point.id, isochrone_type='multi')
+        isochrone_gdf = self.result_to_gdf(result, obj_starting_point.id, isochrone_type="multi")
 
         return isochrone_gdf
 
@@ -333,7 +339,9 @@ class CRUDIsochrone:
         result = await db.execute(sql, obj_in_data)
         return result.fetchall()[0][0]
 
-    async def calculate_pois_multi_isochrones(self, current_user, db: AsyncSession, *, obj_in) -> GeoDataFrame:
+    async def calculate_pois_multi_isochrones(
+        self, current_user, db: AsyncSession, *, obj_in
+    ) -> GeoDataFrame:
         speed = obj_in.speed / 3.6
         obj_in_data = jsonable_encoder(obj_in)
         obj_in_data["speed"] = speed
@@ -435,8 +443,12 @@ class CRUDIsochrone:
                 "isochrone_calculation_id": isochrone_calculation_id,
             },
         )
-    
-        gdf = pd.concat([gdf, pd.json_normalize(gdf["reached_opportunities"]).astype('Int64')], axis=1, join="inner")
+
+        gdf = pd.concat(
+            [gdf, pd.json_normalize(gdf["reached_opportunities"]).astype("Int64")],
+            axis=1,
+            join="inner",
+        )
         gdf["seconds"] = round(gdf["seconds"] / 60).astype(int)
         gdf = gdf.rename(columns={"seconds": "minutes"})
         # Preliminary fix for tranlation POIs categories
@@ -460,34 +472,48 @@ class CRUDIsochrone:
         file_name = "isochrone_export"
         file_dir = f"/tmp/{defined_uuid}"
 
-        os.makedirs(file_dir+"/export")
-        os.chdir(file_dir+"/export")
- 
+        os.makedirs(file_dir + "/export")
+        os.chdir(file_dir + "/export")
+
         if return_type == IsochroneExportType.geojson:
-            gdf.to_file(file_name + '.' + IsochroneExportType.geojson.name, driver=IsochroneExportType.geojson.value)
+            gdf.to_file(
+                file_name + "." + IsochroneExportType.geojson.name,
+                driver=IsochroneExportType.geojson.value,
+            )
         elif return_type == IsochroneExportType.shp:
-            gdf.to_file(file_name + '.' + IsochroneExportType.shp.name, driver=IsochroneExportType.shp.value, encoding='utf-8')
+            gdf.to_file(
+                file_name + "." + IsochroneExportType.shp.name,
+                driver=IsochroneExportType.shp.value,
+                encoding="utf-8",
+            )
         elif return_type == IsochroneExportType.xlsx:
             gdf = gdf.drop(["reached_opportunities", "geom"], axis=1)
-            writer = pd.ExcelWriter(file_name + '.' + IsochroneExportType.xlsx.name, engine='xlsxwriter')
+            writer = pd.ExcelWriter(
+                file_name + "." + IsochroneExportType.xlsx.name, engine="xlsxwriter"
+            )
             gdf_transposed = gdf.transpose()
-            gdf_transposed.columns = [str(c) +  ' ' + translation_dict["minutes"] for c in list(gdf[translation_dict["minutes"]])]
-            gdf_transposed[1:].to_excel(writer, sheet_name='Results')
-            workbook  = writer.book
-            worksheet = writer.sheets['Results']
+            gdf_transposed.columns = [
+                str(c) + " " + translation_dict["minutes"]
+                for c in list(gdf[translation_dict["minutes"]])
+            ]
+            gdf_transposed[1:].to_excel(writer, sheet_name="Results")
+            workbook = writer.book
+            worksheet = writer.sheets["Results"]
             worksheet.set_column(0, 0, 35, None)
-            worksheet.set_column(1, gdf.shape[0], 25, None)           
+            worksheet.set_column(1, gdf.shape[0], 25, None)
             writer.save()
 
         os.chdir(file_dir)
-        shutil.make_archive(file_name, "zip", file_dir+"/export")
+        shutil.make_archive(file_name, "zip", file_dir + "/export")
 
-        with open(file_name + '.zip', "rb") as f:
+        with open(file_name + ".zip", "rb") as f:
             data = f.read()
-        
+
         delete_dir(file_dir)
         response = StreamingResponse(io.BytesIO(data), media_type="application/zip")
-        response.headers["Content-Disposition"] = "attachment; filename={}".format(file_name + '.zip')
+        response.headers["Content-Disposition"] = "attachment; filename={}".format(
+            file_name + ".zip"
+        )
         return response
 
 

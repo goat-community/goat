@@ -1,6 +1,7 @@
 import time
 from typing import Any, List
 
+import numpy as np
 import requests
 from fastapi import (
     APIRouter,
@@ -13,12 +14,15 @@ from fastapi import (
     UploadFile,
 )
 from fastapi.responses import RedirectResponse
+from pandas import read_sql
+from shapely.geometry.multipolygon import MultiPolygon
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.responses import JSONResponse
 
 from src import crud
 from src.core.config import settings
 from src.db import models
+from src.db.session import legacy_engine
 from src.endpoints import deps
 from src.jsoline import jsolines
 from src.resources.responses import OctetStreamResponse
@@ -32,7 +36,13 @@ from src.schemas.r5 import (
     R5RegionInDB,
     request_examples,
 )
-from src.utils import compute_single_value_surface, decode_r5_grid
+from src.utils import (
+    amenity_r5_grid_intersect,
+    compute_single_value_surface,
+    decode_r5_grid,
+    katana,
+    return_geojson_or_geobuf,
+)
 
 router = APIRouter()
 
@@ -334,6 +344,15 @@ async def delete_bundle(
     return response.json()
 
 
+from shapely.geometry import (
+    GeometryCollection,
+    MultiPolygon,
+    Polygon,
+    box,
+    mapping,
+    shape,
+)
+
 # ---------------------ANALYSIS ENDPOINTS-------------------------
 # ----------------------------------------------------------------
 
@@ -355,6 +374,7 @@ async def analysis(
         "east": 11.94489,
         "west": 11.31592,
     }
+    MAX_TIME = 120  # minutes..
     result = requests.post(settings.R5_API_URL + "/analysis", json=payload)
     grid_decoded = decode_r5_grid(result.content)
     single_value_surface = compute_single_value_surface(
@@ -365,15 +385,104 @@ async def analysis(
         50,
     )
     grid_decoded["surface"] = single_value_surface
-    isochrone_coordinates = jsolines(
+    isochrone_multipolygon_coordinates = jsolines(
         grid_decoded["surface"],
         grid_decoded["width"],
         grid_decoded["height"],
         grid_decoded["west"],
         grid_decoded["north"],
         grid_decoded["zoom"],
-        120,
+        MAX_TIME,
     )
+    multipolygon_shape = shape(
+        {"type": "MultiPolygon", "coordinates": isochrone_multipolygon_coordinates}
+    )
+    # split_geometries = katana(multipolygon_shape, 0.2)
+
+    # test_geom = {
+    #     "type": "FeatureCollection",
+    #     "features": [
+    #         {
+    #             "type": "Feature",
+    #             "properties": {},
+    #             "geometry": mapping(shapelyObject),
+    #         }
+    #         for shapelyObject in split_geometries
+    #     ],
+    # }
+    test_geom_wkt = multipolygon_shape.wkt
+    get_population_sum_query = f"""SELECT * FROM basic.get_population_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
+    get_poi_one_entrance_sum_query = f"""SELECT * FROM basic.get_poi_one_entrance_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
+    get_poi_more_entrance_sum_query = f"""SELECT * FROM basic.get_poi_more_entrance_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
+    query_amenity_start = time.time()
+    get_population_sum = read_sql(
+        get_population_sum_query,
+        legacy_engine,
+    )
+    get_poi_one_entrance_sum = read_sql(
+        get_poi_one_entrance_sum_query,
+        legacy_engine,
+    )
+    get_poi_more_entrance_sum = read_sql(
+        get_poi_more_entrance_sum_query,
+        legacy_engine,
+    )
+    query_amenity_end = time.time()
+    ##-- FIND AMENITY COUNT FOR EACH GRID CELL --##
+    get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist())
+    get_population_sum_population = get_population_sum["population"].to_numpy()
+    get_poi_one_entrance_sum_pixel = np.array(get_poi_one_entrance_sum["pixel"].tolist())
+    get_poi_one_entrance_sum_category = np.unique(
+        get_poi_one_entrance_sum["category"], return_inverse=True
+    )
+    get_poi_one_entrance_sum_cnt = get_poi_one_entrance_sum["cnt"].to_numpy()
+    get_poi_more_entrance_sum_pixel = np.array(get_poi_more_entrance_sum["pixel"].tolist())
+    get_poi_more_entrance_sum_category = np.unique(
+        get_poi_more_entrance_sum["category"], return_inverse=True
+    )
+    # fill null values with a string to avoid errors
+    get_poi_more_entrance_sum["name"].fillna("_", inplace=True)
+    get_poi_more_entrance_sum_name = np.unique(
+        get_poi_more_entrance_sum["name"], return_inverse=True
+    )
+    get_poi_more_entrance_sum_cnt = get_poi_more_entrance_sum["cnt"].to_numpy()
+    amenity_intersection_start = time.time()
+    amenity_grid_count = amenity_r5_grid_intersect(
+        grid_decoded["west"],
+        grid_decoded["north"],
+        grid_decoded["width"],
+        grid_decoded["surface"],
+        get_population_sum_pixel,
+        get_population_sum_population,
+        get_poi_one_entrance_sum_pixel,
+        get_poi_one_entrance_sum_category[1],
+        get_poi_one_entrance_sum_cnt,
+        get_poi_more_entrance_sum_pixel,
+        get_poi_more_entrance_sum_category[1],
+        get_poi_more_entrance_sum_name[1],
+        get_poi_more_entrance_sum_cnt,
+        MAX_TIME,
+    )
+    amenity_count = {"population": amenity_grid_count[0].tolist()}
+    # poi one entrance
+    for i in amenity_grid_count[1]:
+        index = np.where(get_poi_one_entrance_sum_category[1] == amenity_grid_count[1][i])[0]
+        value = get_poi_one_entrance_sum["category"][index[0]]
+        amenity_count[value] = amenity_grid_count[2][i].tolist()
+    # poi more entrances
+    for i in amenity_grid_count[3]:
+        index = np.where(get_poi_more_entrance_sum_category[1] == amenity_grid_count[3][i])[0]
+        value = get_poi_more_entrance_sum["category"][index[0]]
+        amenity_count[value] = amenity_grid_count[4][i].tolist()
+
+    amenity_intersection_end = time.time()
+    print(
+        f"Isochrone polygon generation took {amenity_intersection_end - amenity_intersection_start} seconds"
+    )
+    ##-- ADD AMENITY TO GRID DECODED --##
+
+    ##-- ENCODE GRID AND RETURN --##
+
     try:
         return Response(bytes(result.content))
     except Exception as e:
