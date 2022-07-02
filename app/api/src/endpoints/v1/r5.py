@@ -40,6 +40,7 @@ from src.utils import (
     amenity_r5_grid_intersect,
     compute_single_value_surface,
     decode_r5_grid,
+    encode_r5_grid,
     katana,
     return_geojson_or_geobuf,
 )
@@ -414,7 +415,6 @@ async def analysis(
     get_population_sum_query = f"""SELECT * FROM basic.get_population_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
     get_poi_one_entrance_sum_query = f"""SELECT * FROM basic.get_poi_one_entrance_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
     get_poi_more_entrance_sum_query = f"""SELECT * FROM basic.get_poi_more_entrance_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
-    query_amenity_start = time.time()
     get_population_sum = read_sql(
         get_population_sum_query,
         legacy_engine,
@@ -427,7 +427,6 @@ async def analysis(
         get_poi_more_entrance_sum_query,
         legacy_engine,
     )
-    query_amenity_end = time.time()
     ##-- FIND AMENITY COUNT FOR EACH GRID CELL --##
     get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist())
     get_population_sum_population = get_population_sum["population"].to_numpy()
@@ -446,7 +445,6 @@ async def analysis(
         get_poi_more_entrance_sum["name"], return_inverse=True
     )
     get_poi_more_entrance_sum_cnt = get_poi_more_entrance_sum["cnt"].to_numpy()
-    amenity_intersection_start = time.time()
     amenity_grid_count = amenity_r5_grid_intersect(
         grid_decoded["west"],
         grid_decoded["north"],
@@ -475,14 +473,11 @@ async def analysis(
         value = get_poi_more_entrance_sum["category"][index[0]]
         amenity_count[value] = amenity_grid_count[4][i].tolist()
 
-    amenity_intersection_end = time.time()
-    print(
-        f"Isochrone polygon generation took {amenity_intersection_end - amenity_intersection_start} seconds"
-    )
     ##-- ADD AMENITY TO GRID DECODED --##
+    grid_decoded["accessibility"] = amenity_count
 
     ##-- ENCODE GRID AND RETURN --##
-
+    grid_encoded = encode_r5_grid(grid_decoded)
     try:
         return Response(bytes(result.content))
     except Exception as e:

@@ -222,7 +222,43 @@ def encode_r5_grid(grid_data: Any) -> bytes:
     """
     Encode raster grid data
     """
-    return geobuf.encode(grid_data)
+    grid_type = "ACCESSGR"
+    grid_type_binary = str.encode(grid_type)
+    array = np.array(
+        [
+            grid_data["version"],
+            grid_data["zoom"],
+            grid_data["west"],
+            grid_data["north"],
+            grid_data["width"],
+            grid_data["height"],
+            grid_data["depth"],
+        ],
+        dtype=np.int32,
+    )
+    header_bin = array.tobytes()
+    # - reshape the data
+    grid_size = grid_data["width"] * grid_data["height"]
+    data = grid_data["data"].reshape(grid_data["depth"], grid_size)
+    reshaped_data = np.array([])
+    for i in range(grid_data["depth"]):
+        reshaped_data = np.append(reshaped_data, np.diff(data[i], prepend=0))
+    data = reshaped_data.astype(np.int32)
+    z_diff_bin = data.tobytes()
+
+    # - encode metadata
+    metadata = {
+        "accessibility": grid_data.get("accessibility", {}),
+        "errors": grid_data.get("errors", []),
+        "warnings": grid_data.get("warnings", []),
+        "pathSummaries": grid_data.get("pathSummaries", []),
+        "scenarioApplicationWarnings": grid_data.get("scenarioApplicationWarnings", []),
+        "scenarioApplicationInfo": grid_data.get("scenarioApplicationInfo", []),
+    }
+    metadata_bin = json.dumps(metadata).encode("utf-8")
+
+    binary_output = b"".join([grid_type_binary, header_bin, z_diff_bin, metadata_bin])
+    return binary_output
 
 
 def decode_r5_grid(grid_data_buffer: bytes) -> Any:
