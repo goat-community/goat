@@ -36,4 +36,4 @@ class StaticLayer(SQLModel, table=True):
     )
     table_name: str = Field(sa_column=Column(String(63), nullable=False, unique=True))
 
-    user: "User" = Relationship(back_populates="data_uploads")
+    user: "User" = Relationship(back_populates="static_layers")
