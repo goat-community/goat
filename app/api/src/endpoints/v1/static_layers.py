@@ -1,5 +1,5 @@
 import geopandas
-from fastapi import APIRouter, Depends, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
@@ -35,8 +35,11 @@ async def uplaod_static_layer(
     upload_file: UploadFile,
 ):
 
-    # Convert UploadFile to Data frame
-    data_frame = geopandas.read_file(upload_file.file)
+    try:
+        # Convert UploadFile to Data frame
+        data_frame = geopandas.read_file(upload_file.file)
+    except:
+        raise HTTPException(status_code=400, detail="Could not parse the uploaded file.")
     static_layer = models.StaticLayer(
         user_id=current_user.id, table_name=generate_static_layer_table_name()
     )
@@ -77,8 +80,11 @@ async def update_static_layer_data(
     current_user: models.User = Depends(deps.get_current_active_superuser),
     upload_file: UploadFile,
 ):
-    # Convert UploadFile to Data frame
-    data_frame = geopandas.read_file(upload_file.file)
+    try:
+        # Convert UploadFile to Data frame
+        data_frame = geopandas.read_file(upload_file.file)
+    except:
+        raise HTTPException(status_code=400, detail="Could not parse the uploaded file.")
     static_layer = await crud.static_layer.get(db, id=layer_id)
     # Save Data Frame to Database
     data_frame.to_postgis(
