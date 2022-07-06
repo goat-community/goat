@@ -3,6 +3,7 @@ import logging
 import math
 import os
 import shutil
+import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -570,3 +571,7 @@ def print_info(message: str):
 
 def print_warning(message: str):
     print(f"[bold red]WARNING[/bold red]: {message}")
+
+
+def generate_static_layer_table_name():
+    return "static_layer_" + uuid.uuid4().hex
