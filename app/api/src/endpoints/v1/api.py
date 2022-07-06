@@ -34,6 +34,9 @@ api_router.include_router(poi_aoi.router, prefix="/pois-aois", tags=["POIs and A
 api_router.include_router(
     static_layers.router, prefix="/layers/vector", tags=["Static vector layers"]
 )
+api_router.include_router(
+    static_layers.router2, prefix="/config/layers/vector", tags=["Static vector layers"]
+)
 
 # LAYER: Vector tile endpoints.
 layer_tiles_prefix = "/layers/tiles"

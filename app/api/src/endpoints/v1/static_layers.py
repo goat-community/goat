@@ -27,7 +27,10 @@ async def static_vector_layer(
     return return_geojson_or_geobuf(layer_to_return, return_type)
 
 
-@router.post("/static")
+router2 = APIRouter()
+
+
+@router2.post("/static")
 async def uplaod_static_layer(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -56,7 +59,7 @@ async def uplaod_static_layer(
     return static_layer
 
 
-@router.get("/static2/{layer_id:int}")
+@router2.get("/static/{layer_id:int}")
 async def get_static_layer_data(
     *,
     layer_id: int,
@@ -67,12 +70,11 @@ async def get_static_layer_data(
     data_frame = geopandas.GeoDataFrame.from_postgis(
         sql=static_layer.data_frame_raw_sql(), con=legacy_engine.connect(), geom_col="geometry"
     )
-    print(data_frame.values.tolist())
 
     return {"data_frame": data_frame.values.tolist()}
 
 
-@router.put("/static2/{layer_id:int}")
+@router2.put("/static/{layer_id:int}")
 async def update_static_layer_data(
     *,
     layer_id: int,
