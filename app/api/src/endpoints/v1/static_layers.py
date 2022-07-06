@@ -1,12 +1,8 @@
-from typing import Any
-
 import geopandas
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from fastapi.encoders import jsonable_encoder
+from fastapi import APIRouter, Depends, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
-from src.crud.crud_customization import customization, dynamic_customization
 from src.db import models
 from src.db.models.config_validation import *
 from src.db.session import legacy_engine
@@ -22,7 +18,7 @@ async def static_vector_layer(
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
     layer_name: str,
-    return_type: str
+    return_type: str,
 ):
     """Return selected layers in different vector formats"""
     layer_to_return = await crud.layer.static_vector_layer(
@@ -36,7 +32,7 @@ async def uplaod_static_layer(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
-    upload_file: UploadFile
+    upload_file: UploadFile,
 ):
 
     # Convert UploadFile to Data frame
@@ -54,4 +50,43 @@ async def uplaod_static_layer(
     )
     # Create Static Layer DB Object
     static_layer = await crud.static_layer.create(db, obj_in=static_layer)
+    return static_layer
+
+
+@router.get("/static2/{layer_id:int}")
+async def get_static_layer_data(
+    *,
+    layer_id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+):
+    static_layer = await crud.static_layer.get(db, id=layer_id)
+    data_frame = geopandas.GeoDataFrame.from_postgis(
+        sql=static_layer.data_frame_raw_sql(), con=legacy_engine.connect(), geom_col="geometry"
+    )
+    print(data_frame.values.tolist())
+
+    return {"data_frame": data_frame.values.tolist()}
+
+
+@router.put("/static2/{layer_id:int}")
+async def update_static_layer_data(
+    *,
+    layer_id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+    upload_file: UploadFile,
+):
+    # Convert UploadFile to Data frame
+    data_frame = geopandas.read_file(upload_file.file)
+    static_layer = await crud.static_layer.get(db, id=layer_id)
+    # Save Data Frame to Database
+    data_frame.to_postgis(
+        name=static_layer.table_name,
+        con=legacy_engine.connect(),
+        schema="extra",
+        if_exists="replace",
+        index=True,
+    )
+
     return static_layer

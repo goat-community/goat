@@ -2,6 +2,8 @@ from datetime import datetime
 from tokenize import String
 from typing import TYPE_CHECKING, Optional
 
+import sqlalchemy
+from sqlalchemy.dialects import postgresql
 from sqlmodel import (
     ARRAY,
     Column,
@@ -37,3 +39,15 @@ class StaticLayer(SQLModel, table=True):
     table_name: str = Field(sa_column=Column(String(63), nullable=False, unique=True))
 
     user: "User" = Relationship(back_populates="static_layers")
+
+    def data_frame_raw_sql(self, limit: int = 100, offset: int = 0) -> str:
+        """
+        Raw sql to get data frame using geopands
+        """
+        metadata_obj = sqlalchemy.MetaData()
+        table = sqlalchemy.Table(self.table_name, metadata_obj, schema="extra")
+        query = sqlalchemy.select(table, "*").limit(limit).offset(offset)
+        raw_query = query.compile(
+            dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}
+        )
+        return str(raw_query)
