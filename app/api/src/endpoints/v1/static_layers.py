@@ -44,7 +44,8 @@ async def uplaod_static_layer(
     except:
         raise HTTPException(status_code=400, detail="Could not parse the uploaded file.")
     static_layer = models.StaticLayer(
-        user_id=current_user.id, table_name=generate_static_layer_table_name()
+        user_id=current_user.id,
+        table_name=generate_static_layer_table_name(prefix=upload_file.filename),
     )
     # Save Data Frame to Database
     data_frame.to_postgis(

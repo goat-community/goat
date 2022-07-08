@@ -573,5 +573,8 @@ def print_warning(message: str):
     print(f"[bold red]WARNING[/bold red]: {message}")
 
 
-def generate_static_layer_table_name():
-    return "static_layer_" + uuid.uuid4().hex
+def generate_static_layer_table_name(prefix:str=None):
+    if prefix:
+        return prefix + uuid.uuid4().hex
+    else:
+        return "static_layer_" + uuid.uuid4().hex
