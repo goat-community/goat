@@ -29,8 +29,8 @@ async def test_create_static_layer(
 ) -> None:
     files = {
         "upload_file": (
-            "zip_shapefile.zip",
-            open("/app/src/data/zip_shapefile.zip", "rb"),
+            "sample.zip",
+            open("/app/src/tests/data/sample.zip", "rb"),
             "application/zip",
         )
     }
@@ -44,14 +44,32 @@ async def test_create_static_layer(
     assert retrieved_layer.get("id")
 
 
+async def test_create_wrong_static_layer(
+    client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
+) -> None:
+    files = {
+        "upload_file": (
+            "fail_file.zip",
+            open("/app/src/tests/data/fail_file.zip", "rb"),
+            "application/zip",
+        )
+    }
+    r = await client.post(
+        f"{settings.API_V1_STR}/config/layers/vector/static",
+        headers=superuser_token_headers,
+        files=files,
+    )
+    assert 400 <= r.status_code < 500
+
+
 async def test_update_static_layer(
     client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
 ) -> None:
     static_layer = await create_static_layer(db=db)
     files = {
         "upload_file": (
-            "zip_shapefile.zip",
-            open("/app/src/data/zip_shapefile.zip", "rb"),
+            "sample.zip",
+            open("/app/src/tests/data/sample.zip", "rb"),
             "application/zip",
         )
     }

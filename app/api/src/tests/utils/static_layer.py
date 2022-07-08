@@ -7,10 +7,10 @@ from src.utils import generate_static_layer_table_name
 
 
 async def create_static_layer(db):
-    data_frame = geopandas.read_file("/app/src/data/zip_shapefile.zip")
+    data_frame = geopandas.read_file("/app/src/tests/data/sample.zip")
     users = await crud.user.get_all(db)
     static_layer = models.StaticLayer(
-        user_id=users[0].id, table_name=generate_static_layer_table_name()
+        user_id=users[0].id, table_name=generate_static_layer_table_name(prefix="sample.zip")
     )
     # Save Data Frame to Database
     data_frame.to_postgis(
