@@ -56,6 +56,7 @@ K8S_OBJ:=$(patsubst %.tpl.yaml,%.yaml,$(K8S_SRC))
     FIRST_SUPERUSER_NAME=$(FIRST_SUPERUSER_NAME) \
     FIRST_SUPERUSER_SURNAME=$(FIRST_SUPERUSER_SURNAME) \
 	SMTP_PASSWORD=$(SMTP_PASSWORD) \
+	BACKEND_CORS_ORIGINS=$(BACKEND_CORS_ORIGINS) \
 	t=$$(cat $<); eval "echo \"$${t}\"" > $@
 
 # target: make help - displays this help.
