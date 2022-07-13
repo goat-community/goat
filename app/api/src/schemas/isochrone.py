@@ -354,82 +354,6 @@ class IsochroneMultiCountPoisCollection(FeatureCollection):
 # =============================================================================
 
 
-request_examples = {
-    "isochrone": {
-        "single_walking_default": {
-            "summary": "Single Walking Isochrone with Default Profile",
-            "value": {
-                "mode": "walking",
-                "settings": {
-                    "travel_time": "10",
-                    "speed": "5",
-                    "walking_profile": "standard",
-                },
-                "starting_point": {
-                    "input": [{"lat": 48.1502132, "lon": 11.5696284}],
-                },
-                "scenario": {"id": 1, "modus": "default"},
-                "output": {
-                    "type": "geojson",
-                    "steps": "3",
-                },
-            },
-        },
-        "pois_multi_isochrone": {
-            "summary": "Multi Isochrone with Pois",
-            "value": {
-                "mode": "walking",
-                "settings": {
-                    "travel_time": "10",
-                    "speed": "5",
-                    "walking_profile": "standard",
-                },
-                "starting_point": {
-                    "input": ["nursery", "kindergarten"],
-                    "region_type": "study_area",
-                    "region": 1,
-                },
-                "output": {
-                    "type": "geojson",
-                    "steps": "3",
-                },
-            },
-        },
-        "transit_single": {
-            "summary": "Single Transit Isochrone",
-            "value": {
-                "mode": "transit",
-                "settings": {
-                    "travel_time": "60",
-                    "transit_modes": ["bus", "tram", "subway", "rail"],
-                    "departure_time": "2022-06-03T08:00:00Z",
-                    "access_mode": "walking",
-                    "egress_mode": "walking",
-                    "bike_traffic_stress": 4,
-                    "max_rides": 4,
-                    "max_bike_time": 20,
-                    "max_walk_time": 20,
-                    "percentiles": [5, 25, 50, 75, 95],
-                    "monte_carlo_draws": 200,
-                    "decay_function": {
-                        "type": "logistic",
-                        "standard_deviation_minutes": 12,
-                        "width_minutes": 10,
-                    },
-                },
-                "starting_point": {
-                    "input": [{"lat": 48.1502132, "lon": 11.5696284}],
-                },
-                "output": {
-                    "type": "grid",
-                    "resolution": "3",
-                },
-            },
-        },
-    },
-}
-
-
 class IsochroneMode(Enum):
     WALKING = "walking"
     CYCLING = "cycling"
@@ -437,26 +361,35 @@ class IsochroneMode(Enum):
     CAR = "car "
 
 
-class IsochroneAccessMode(Enum):
-    WALKING = "walking"
-    CYCLING = "cycling"
-    CAR = "CAR"
-
-
-class IsochroneWalkingCyclingProfile(Enum):
+class IsochroneWalkingProfile(Enum):
     STANDARD = "standard"
+
+
+class IsochroneCyclingProfile(Enum):
+    STANDARD = "standard"
+
+
+class IsochroneAccessMode(Enum):
+    WALKING = "walk"
+    CYCLING = "bicycle"
+    CAR = "car"
+    CAR_PARK = "car_park"
 
 
 class IsochroneTransitMode(Enum):
     BUS = "bus"
     TRAM = "tram"
-    SUBWAY = "subway"
     RAIL = "rail"
+    SUBWAY = "subway"
+    FERRY = "ferry"
+    CABLE_CAR = "cable_car"
+    GONDOLA = "gondola"
+    FUNICULAR = "funicular"
 
 
 class IsochroneEgressMode(Enum):
-    WALKING = "walking"
-    CYCLING = "cycling"
+    WALKING = "walk"
+    CYCLING = "bicycle"
 
 
 class IsochroneOutputType(Enum):
@@ -488,12 +421,41 @@ class IsochroneDecayFunction(BaseModel):
 
 
 class IsochroneSettings(BaseModel):
-    travel_time: int = Field(..., description="Travel time in **minutes**")
-    speed: Optional[float] = Field(..., description="Walking or Cycling speed in **km/h**")
-    profile: Optional[str] = Field(..., description="Walking or Cycling profile")
-    departure_time: Optional[str] = Field(None, description="(PT) Departure time")
+    travel_time: int = Field(
+        ...,
+        gt=0,
+        description="Travel time in **minutes** for walking and cycling **(Not considered for PT or CAR)**",
+    )
+    speed: Optional[float] = Field(
+        ...,
+        gt=0,
+        le=25,
+        description="Walking or Cycling speed in **km/h** **(Not considered for PT or CAR)**",
+    )
+    walking_profile: Optional[IsochroneWalkingProfile] = Field(
+        IsochroneWalkingProfile.STANDARD.value,
+        description="Walking profile. **(Not considered for PT)**",
+    )
+    cycling_profile: Optional[IsochroneCyclingProfile] = Field(
+        IsochroneCyclingProfile.STANDARD.value,
+        description="Cycling profile. **(Not considered for PT)**",
+    )
+    departure_date: Optional[str] = Field("2022-04-25", description="(PT) Departure date")
+    from_time: Optional[int] = Field(
+        25200, gt=0, lt=86400, description="(PT) From time. Number of seconds since midnight"
+    )
+    to_time: Optional[int] = Field(
+        39600, gt=0, lt=86400, description="(PT) To time . Number of seconds since midnight"
+    )
     transit_modes: List[IsochroneTransitMode] = Field(
-        [], description="(PT) Transit modes", unique_items=True
+        [
+            IsochroneTransitMode.BUS.value,
+            IsochroneTransitMode.TRAM.value,
+            IsochroneTransitMode.SUBWAY.value,
+            IsochroneTransitMode.RAIL.value,
+        ],
+        description="(PT) Transit modes",
+        unique_items=True,
     )
     access_mode: Optional[IsochroneAccessMode] = Field(
         IsochroneAccessMode.WALKING, description="(PT) Access mode"
@@ -501,7 +463,11 @@ class IsochroneSettings(BaseModel):
     egress_mode: Optional[IsochroneEgressMode] = Field(
         IsochroneEgressMode.WALKING, description="(PT) Egress mode"
     )
-    bike_traffic_stress: Optional[int] = Field(4, description="(PT) Bike traffic stress")
+    bike_speed: Optional[float] = Field(15, gt=0, le=15, description="(PT) Bike speed")
+    walk_speed: Optional[float] = Field(5, gt=0, le=15, description="(PT) Walk speed")
+    bike_traffic_stress: Optional[int] = Field(
+        4, ge=1, le=4, description="(PT) Bike traffic stress. 1: Low stress, 4: Very high stress"
+    )
     max_rides: Optional[int] = Field(4, description="(PT) Max number of rides")
     max_bike_time: Optional[int] = Field(
         20,
@@ -610,26 +576,127 @@ class IsochroneDTO(BaseModel):
             raise ValueError("Step must be between 1 and 6")
 
         # Don't allow multi-isochrone calculation for PT and Car Isochrone
-        if len(values["starting_point"].input) > 0 and values["mode"].value in [
+        if len(values["starting_point"].input) > 1 and values["mode"].value in [
             IsochroneMode.TRANSIT.value,
             IsochroneMode.CAR.value,
         ]:
             raise ValueError("Multi-Isochrone is not supported for Transit and Car")
 
-        # For PT and Car Isochrone starting point should be only lat lon coordinates and not amenities
+        # For walking and cycling travel time maximumn should be 20 minutes
+        if values["mode"].value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
+            if values["settings"].travel_time >= 20:
+                raise ValueError(
+                    "Travel time maximum for walking and cycling should be less or equal to 20 minutes"
+                )
+
+        # For PT and Car Isochrone starting point should be only lat lon coordinates and not amenities, travel time smaller than 120 minutes
         if values["mode"].value in [
             IsochroneMode.TRANSIT.value,
             IsochroneMode.CAR.value,
         ]:
+            if values["output"].type.value in [
+                IsochroneOutputType.GEOJSON.value,
+                IsochroneOutputType.NETWORK.value,
+            ]:
+                raise ValueError("Geojson output is not supported for PT and Car")
+            # travel time should be smaller than 120 minutes
+            if values["settings"].travel_time > 120:
+                raise ValueError("Travel time should be smaller than 120 minutes")
+
             if len(values["starting_point"].input) > 0:
                 for point in values["starting_point"].input:
                     if not isinstance(point, IsochroneStartingPointCoord):
                         raise ValueError("Starting point should be lat lon coordinates")
 
+            # from_time should be smaller than to_time
+            if values["settings"].from_time > values["settings"].to_time:
+                raise ValueError("Start time should be smaller than end time")
+
+            # convert bike speed to m/s
+            values["settings"].bike_speed = values["settings"].bike_speed / 3.6
+            # convert walk speed to m/s
+            values["settings"].walk_speed = values["settings"].walk_speed / 3.6
+
         # If starting-point input length is more than 1 then it should be multi-isochrone and region should be specified
         if len(values["starting_point"].input) > 1 and len(values["starting_point"].region) == 0:
             raise ValueError("Region is not specified for multi-isochrone")
 
-        #
-
         return values
+
+
+request_examples = {
+    "isochrone": {
+        "single_walking_default": {
+            "summary": "Single Walking Isochrone with Default Profile",
+            "value": {
+                "mode": "walking",
+                "settings": {
+                    "travel_time": "10",
+                    "speed": "5",
+                    "walking_profile": "standard",
+                },
+                "starting_point": {
+                    "input": [{"lat": 48.1502132, "lon": 11.5696284}],
+                },
+                "scenario": {"id": 1, "modus": "default"},
+                "output": {
+                    "type": "geojson",
+                    "steps": "3",
+                },
+            },
+        },
+        "pois_multi_isochrone": {
+            "summary": "Multi Isochrone with Pois",
+            "value": {
+                "mode": "walking",
+                "settings": {
+                    "travel_time": "10",
+                    "speed": "5",
+                    "walking_profile": "standard",
+                },
+                "starting_point": {
+                    "input": ["nursery", "kindergarten"],
+                    "region_type": "study_area",
+                    "region": 1,
+                },
+                "output": {
+                    "type": "geojson",
+                    "steps": "3",
+                },
+            },
+        },
+        "transit_single": {
+            "summary": "Single Transit Isochrone",
+            "value": {
+                "mode": "transit",
+                "settings": {
+                    "travel_time": "60",
+                    "transit_modes": ["bus", "tram", "subway", "rail"],
+                    "departure_date": "2022-04-25",
+                    "access_mode": "walking",
+                    "egress_mode": "walking",
+                    "bike_traffic_stress": 4,
+                    "from_time": 25200,
+                    "to_time": 39600,
+                    "max_rides": 4,
+                    "max_bike_time": 20,
+                    "max_walk_time": 20,
+                    "percentiles": [5, 25, 50, 75, 95],
+                    "monte_carlo_draws": 200,
+                    "decay_function": {
+                        "type": "logistic",
+                        "standard_deviation_minutes": 12,
+                        "width_minutes": 10,
+                    },
+                },
+                "starting_point": {
+                    "input": [{"lat": 48.1502132, "lon": 11.5696284}],
+                },
+                "output": {
+                    "type": "grid",
+                    "resolution": "9",
+                },
+            },
+        },
+    },
+}

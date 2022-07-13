@@ -37,9 +37,10 @@ async def create_isochrone(
     isochrone_in: IsochroneDTO = Body(..., examples=request_examples["isochrone"]),
 ):
     """
-    Create an isochrone.
+    Calculate isochrone.
     """
-    return "passed..."
+    result = await crud.isochrone.calculate_isochrone(db, isochrone_in)
+    return result
 
 
 # @router.post("/single", response_class=JSONResponse)

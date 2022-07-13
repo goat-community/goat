@@ -7,6 +7,7 @@ from errno import ELOOP
 from typing import Any
 
 import pandas as pd
+import requests
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from geojson import FeatureCollection
@@ -19,12 +20,19 @@ from shapely.ops import unary_union
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 
+from src.core.config import settings
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
 from src.exts.cpp.bind import isochrone as isochrone_cpp
 from src.resources.enums import IsochroneExportType, IsochroneTypes
-from src.schemas.isochrone import IsochroneMulti, IsochroneSingle, IsochroneTypeEnum
+from src.schemas.isochrone import (
+    IsochroneDTO,
+    IsochroneMode,
+    IsochroneMulti,
+    IsochroneSingle,
+    IsochroneTypeEnum,
+)
 from src.utils import delete_dir
 
 
@@ -515,6 +523,49 @@ class CRUDIsochrone:
             file_name + ".zip"
         )
         return response
+
+    async def calculate_isochrone(self, db: AsyncSession, obj_in: IsochroneDTO) -> Any:
+        result = None
+        if obj_in.mode in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
+            print("WALKING or CYCLING")
+        else:
+            print("DRIVING or TRANSIT")
+
+            payload = {
+                "accessModes": obj_in.settings.access_mode.value.upper(),
+                "transitModes": ",".join(x.upper() for x in obj_in.settings.transit_modes),
+                "bikeSpeed": obj_in.settings.bike_speed,
+                "walkSpeed": obj_in.settings.walk_speed,
+                "bikeTrafficStress": obj_in.settings.bike_traffic_stress,
+                "date": obj_in.settings.departure_date,
+                "fromTime": obj_in.settings.from_time,
+                "toTime": obj_in.settings.to_time,
+                "decayFunction": obj_in.settings.decay_function,
+                "destinationPointSetIds": [],
+                "directModes": obj_in.settings.access_mode.value.upper(),
+                "egressModes": obj_in.settings.egress_mode.value.upper(),
+                "fromLat": obj_in.starting_point.input[0].lat,
+                "fromLon": obj_in.starting_point.input[0].lon,
+                "zoom": obj_in.output.resolution,
+                "maxBikeTime": obj_in.settings.max_bike_time,
+                "maxRides": obj_in.settings.max_rides,
+                "maxWalkTime": obj_in.settings.max_walk_time,
+                "monteCarloDraws": obj_in.settings.monte_carlo_draws,
+                "percentiles": obj_in.settings.percentiles,
+                "variantIndex": -1,
+                "workerVersion": "v6.4",
+            }
+            # TODO: Get the project id and bbox from study area.
+            payload["projectId"] = "6294f0ae0cfee1c6747d696c"
+            payload["bounds"] = {
+                "north": 48.2905,
+                "south": 47.99727,
+                "east": 11.94489,
+                "west": 11.31592,
+            }
+            MAX_TIME = 120  # minutes..
+            result = requests.post(settings.R5_API_URL + "/analysis", json=payload)
+        return result
 
 
 isochrone = CRUDIsochrone()
