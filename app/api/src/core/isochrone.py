@@ -23,7 +23,6 @@ from collections import defaultdict, deque
 from math import sqrt
 
 import numpy as np
-from scipy import sparse
 
 from src.exts.python import concaveman
 
@@ -69,6 +68,9 @@ class Isochrone:
         return adj
 
     def dijkstra(self, start_vertex, driving_distance):
+        """
+        Dijkstra's algorithm one-to-all shortest path search
+        """
         distances = np.array(np.ones(len(self.adj)) * np.inf, dtype=np.double)
         predecessors = np.array(np.ones(len(self.adj)) * -1, dtype=np.int64)
         q = deque()
@@ -119,12 +121,25 @@ class Isochrone:
         return mapping
 
     def cross(self, O, A, B):
+        """
+        Returns a positive value, if OAB makes a counter-clockwise turn,
+        negative for clockwise turn, and zero if the points are collinear.
+        """
         return (A[0] - O[0]) * (B[1] - O[1]) - (A[1] - O[1]) * (B[0] - O[0])
 
     def custom_less(self, pt1, pt2):
         return pt1[0] < pt2[0] or (pt1[0] == pt2[0] and pt1[1] < pt2[1])
 
     def convexhull(self, P):
+        """
+        ---------------------------------------------------------------------------------------------------------------------
+        CONVEX HULL ALGORITHM
+        ---------------------------------------------------------------------------------------------------------------------
+        Implementation of Andrew's monotone chain 2D convex hull algorithm.
+
+        Returns a list of points on the convex hull in counter-clockwise order.
+        Note: the last point in the returned list is the same as the first one.
+        """
         n = len(P)
         if n < 3:
             raise AttributeError("Number of points must be 3 or morenot ")
@@ -135,11 +150,14 @@ class Isochrone:
             ],
             dtype=np.int32,
         )
+
+        # Sort points lexicographically
         P_python_list = P.tolist()
         P_python_list.sort(cpm=self.custom_less)
         P = np.array(P_python_list, dtype=np.double)
         del P_python_list
         k = 0
+        # Build lower hull
         for i, P_ in enumerate(P):
             while k >= 2 and self.cross(H[k - 2], H[k - 1], P_) <= 0:
                 k -= 1
@@ -147,6 +165,7 @@ class Isochrone:
             H[k] = P_
             H_indices[k - 1] = i
 
+        # Build upper hull
         t = k + 1
         for i in range(n - 1, 0, -1):
             while k >= t and self.cross(H[k - 2], H[k - 1], P[i - 1]) <= 0:
@@ -160,6 +179,10 @@ class Isochrone:
         return {"shape": H, "indices": H_indices}
 
     def line_substring(start_perc, end_perc, geometry, total_length):
+        """
+        LINE SUBSTRING ALGORITHM
+        """
+        # Start percentage must be smaller than end percentage.
         start_perc_ = start_perc
         end_perc_ = end_perc
         line_substring = []
