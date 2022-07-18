@@ -24,7 +24,7 @@ from math import sqrt
 
 import numpy as np
 
-from src.exts.python import concaveman
+from src.exts.concaveman.python import concaveman
 
 
 class Mapping(defaultdict):
@@ -58,12 +58,12 @@ class Mapping(defaultdict):
 class Isochrone:
     def construct_adjustancy_list(self):
         adj = Mapping(list)
-        for index, edge in enumerate(self.data_edges):
-            if edge["cost"] >= 0:
-                adj[edge["source"]].append(index)
+        for index in range(self.total_edges):
+            if self.data_edges["cost"][index] >= 0:
+                adj[self.data_edges["source"][index]].append(index)
 
-            if edge["reverse_cost"] >= 0:
-                adj[edge["target"]].append(index)
+            if self.data_edges["reverse_cost"][index] >= 0:
+                adj[self.data_edges["target"][index]].append(index)
         self.adj = adj
         return adj
 
@@ -71,8 +71,8 @@ class Isochrone:
         """
         Dijkstra's algorithm one-to-all shortest path search
         """
-        distances = np.array(np.ones(len(self.adj)) * np.inf, dtype=np.double)
-        predecessors = np.array(np.ones(len(self.adj)) * -1, dtype=np.int64)
+        distances = np.array(np.ones(len(self.adj) + 1) * np.inf, dtype=np.double)
+        predecessors = np.array(np.ones(len(self.adj) + 1) * -1, dtype=np.int64)
         q = deque()
         q.append((0, start_vertex))
         while q:
@@ -80,16 +80,20 @@ class Isochrone:
             if dist >= driving_distance:
                 break
 
-            for edge in self.adj[node_id]:
-                if edge["target"] == node_id:
-                    target = edge["source"]
-                    cost = edge["reverse_cost"]
+            for edge_id in self.adj[node_id]:
+                if self.data_edges["target"][edge_id] == node_id:
+                    target = self.data_edges["source"][edge_id]
+                    cost = self.data_edges["reverse_cost"][edge_id]
                 else:
-                    target = edge["target"]
-                    cost = edge["cost"]
+                    target = self.data_edges["target"][edge_id]
+                    cost = self.data_edges["cost"][edge_id]
                 agg_cost = dist + cost
                 if distances[target] > agg_cost:
-                    q.remove((distances[target], target))
+                    try:
+                        # TODO: Check [try catch added]
+                        q.remove((distances[target], target))
+                    except:
+                        pass
                     distances[target] = agg_cost
                     predecessors[target] = node_id
                     q.append((distances[target], target))
@@ -97,26 +101,30 @@ class Isochrone:
 
     def remap_edges(self):
         mapping = Mapping()
-        for edge in self.data_edges:
-            it = mapping.find_value(edge["source"])
+        sources = self.data_edges["source"]
+        targets = self.data_edges["target"]
+        id = 0
+        for i, (source, target) in enumerate(zip(sources, targets)):
+            it = mapping.find_value(source)
 
             if it:
                 source_id = it
             else:
                 id += 1
                 source_id = id
-                mapping[edge["source"]] = source_id
+                mapping[source] = source_id
 
-            it = mapping.find_value(edge["target"])
+            it = mapping.find_value(target)
             if it:
                 target_id = it
             else:
                 id += 1
                 target_id = id
-                mapping[edge["target"]] = target_id
+                mapping[target] = target_id
 
-            edge["source"] = source_id
-            edge["target"] = target_id
+            self.data_edges.at[i, "source"] = source_id
+            self.data_edges.at[i, "target"] = target_id
+            # TODO: Does it really change the source and target?
         self.mapping = mapping
         return mapping
 
@@ -253,15 +261,15 @@ class Isochrone:
 
         return line_substring
 
-    def reverse_isochrone_path(isochrone_path):
+    def reverse_isochrone_path(self, isochrone_path):
         # reverse the percantage
-        nstart_perc = 1.0 - isochrone_path.end_perc
-        isochrone_path.end_perc = 1.0 - isochrone_path.start_perc
-        isochrone_path.start_perc = nstart_perc
+        nstart_perc = 1.0 - isochrone_path["end_perc"]
+        isochrone_path["end_perc"] = 1.0 - isochrone_path["start_perc"]
+        isochrone_path["start_perc"] = nstart_perc
         # reversing the cost
-        isochrone_path.start_cost, isochrone_path.end_cost = (
-            isochrone_path.end_cost,
-            isochrone_path.start_cost,
+        isochrone_path["start_cost"], isochrone_path["end_cost"] = (
+            isochrone_path["end_cost"],
+            isochrone_path["start_cost"],
         )
         return isochrone_path
 
@@ -274,7 +282,6 @@ class Isochrone:
         edge_length,
         geometry,
         distance_limits,
-        coordinates,
         is_reverse,
     ):
 
@@ -297,11 +304,11 @@ class Isochrone:
                 r["end_perc"] = 1.0
                 r["start_cost"] = current_cost
                 r["end_cost"] = cost_at_target
-                r["geometry"] = geometry
+                r["geom"] = geometry
                 if is_reverse:
                     r = self.reverse_isochrone_path(r)
                 self.isochrone_network.append(r)
-                coordinates[dl] = r["geometry"]
+                self.coordinates[dl] = r["geom"]
                 break
             # Partial Edge: (cost_at_target is bigger than the limit, partial edge)
             travel_cost = cost_at_target - dl  # remaining travel cost
@@ -314,11 +321,9 @@ class Isochrone:
             current_cost = dl
             if is_reverse:
                 r = self.reverse_isochrone_path(r)
-            r["geometry"] = self.line_substring(
-                r["start_perc"], r["end_perc"], geometry, edge_length
-            )
+            r["geom"] = self.line_substring(r["start_perc"], r["end_perc"], geometry, edge_length)
             self.isochrone_network.append(r)
-            coordinates[dl] = r["geometry"]
+            self.coordinates[dl] = r["geom"]
             # A ---------- B
             # 5    7    9  10
 
@@ -338,19 +343,18 @@ class Isochrone:
         #     mapping_reversed[i->second] = i->first
 
         # coordinates for the network edges for each distance limit to be used in constructing the isochrone shape
-        coordinates = Mapping(list)
+
         nodes_count = mapping.size()
-        isochrone_network = []
         isochrone_start_point = []
         # for (&dl : distance_limits)
         # {
         #     coordinates.emplace(dl, std::vector<std::array<double, 2>>())
         # }
-        adj = self.construct_adjacency_list()
+        adj = self.construct_adjustancy_list()
         # Storing the result of dijkstra call and reusing the memory for each vertex.
         self.distances = np.empty(nodes_count, dtype=np.double)
         self.predecessors = np.empty(nodes_count, dtype=np.int64)
-        for start_v in self.start_vertices:
+        for start_v in self.start_vertecies:
             it = mapping.get(start_v)
             # If start_v did not appear in edges then it has no particular mapping
             if not it:
@@ -361,18 +365,18 @@ class Isochrone:
                 r["edge"] = -1
                 r["start_perc"] = 0.0
                 r["end_perc"] = 0.0
-                r["geometry"] = {{0, 0}, {0, 0}}
-                isochrone_network.append(r)
+                r["geom"] = {{0, 0}, {0, 0}}
+                self.isochrone_network.append(r)
                 continue
             # Calling the dijkstra algorithm and storing the results in predecessors
             # and distances.
 
-            distances, predecessors = self.dijkstra(it, max_dist_cutoff, adj)
+            distances, predecessors = self.dijkstra(it, max_dist_cutoff)
             # Appending the row results.
-            total_edges = len(self.data_edges)
-            for i, e in enumerate(self.data_edges):
-                scost = distances[e["source"]]
-                tcost = distances[e["target"]]
+
+            for i in range(self.total_edges):
+                scost = distances[self.data_edges["source"][i]]
+                tcost = distances[self.data_edges["target"][i]]
                 s_reached = not (np.isinf(scost) or scost > max_dist_cutoff)
                 t_reached = not (np.isinf(tcost) or tcost > max_dist_cutoff)
                 if not s_reached and not t_reached:
@@ -381,96 +385,96 @@ class Isochrone:
                 skip_st = False
                 skip_ts = False
                 if only_minimum_cover:
-                    st_dist = scost + e["cost"]
-                    ts_dist = tcost + e["reverse_cost"]
+                    st_dist = scost + self.data_edges["cost"][i]
+                    ts_dist = tcost + self.data_edges["reverse_cost"][i]
                     st_fully_covered = st_dist <= max_dist_cutoff
                     ts_fully_covered = ts_dist <= max_dist_cutoff
                     skip_ts = st_fully_covered and ts_fully_covered and st_dist < ts_dist
                     skip_st = st_fully_covered and ts_fully_covered and ts_dist < st_dist
 
-                if start_v == mapping.find_key_by_value(e["source"]):
+                if start_v == mapping.find_key_by_value(self.data_edges["source"][i]):
                     self.append_edge_result(
                         start_v,
-                        e.id,
+                        self.data_edges["target"][i],
                         0,
-                        e.cost,
-                        e.length,
-                        e.geometry,
+                        self.data_edges["cost"][i],
+                        self.data_edges["length"][i],
+                        self.data_edges["geom"][i],
                         self.distance_limits,
-                        isochrone_network,
-                        coordinates,
                         True,
                     )
-                if start_v == mapping.find_key_by_value(e["target"]):
+                if start_v == mapping.find_key_by_value(self.data_edges["target"][i]):
 
                     self.append_edge_result(
                         start_v,
-                        e.id,
+                        self.data_edges["id"][i],
                         0,
-                        e.reverse_cost,
-                        e.length,
-                        e.geometry,
+                        self.data_edges["reverse_cost"][i],
+                        self.data_edges["length"][i],
+                        self.data_edges["geom"][i],
                         self.distance_limits,
-                        isochrone_network,
-                        coordinates,
                         True,
                     )
 
-                if not skip_ts and t_reached and predecessors[e.target] != e.source:
+                if (
+                    not skip_ts
+                    and t_reached
+                    and predecessors[self.data_edges["target"][i]] != self.data_edges["source"][i]
+                ):
 
                     self.append_edge_result(
                         start_v,
-                        e.id,
+                        self.data_edges["target"][i],
                         tcost,
-                        e.reverse_cost,
-                        e.length,
-                        e.geometry,
+                        self.data_edges["reverse_cost"][i],
+                        self.data_edges["length"][i],
+                        self.data_edges["geom"][i],
                         self.distance_limits,
-                        isochrone_network,
-                        coordinates,
                         True,
                     )
 
-                if not skip_st and s_reached and predecessors[e.source] != e.target:
+                if (
+                    not skip_st
+                    and s_reached
+                    and predecessors[self.data_edges["source"][i]] != self.data_edges["target"][i]
+                ):
 
                     self.append_edge_result(
                         start_v,
-                        e.id,
+                        self.data_edges["target"][i],
                         scost,
-                        e.cost,
-                        e.length,
-                        e.geometry,
+                        self.data_edges["cost"][i],
+                        self.data_edges["length"][i],
+                        self.data_edges["geom"][i],
                         self.distance_limits,
-                        isochrone_network,
-                        coordinates,
                         False,
                     )
 
             # Calculating the isochrone shape for the current starting vertex.
 
-            isochrone_start_point = {}
-            isochrone_start_point.start_id = start_v
+            isp = {}
+            isp["start_id"] = start_v
             for dl in self.distance_limits:
 
-                if coordinates[dl].size() > 1:
+                if len(self.coordinates[dl]) > 1:
 
-                    points_ = coordinates[dl]
+                    points_ = self.coordinates[dl]
                     isochrone_path = []
-                    if points_.size() > 3:
+                    if len(points_) > 3:
 
                         hull = self.convexhull(points_)
                         isochrone_path = concaveman.concaveman2d(points_, hull)
 
                     else:
 
-                        isochrone_path = {{0, 0}}
+                        isochrone_path = [[0, 0]]
 
-                    coordinates[dl].clear()
-                    isochrone_start_point.shape.emplace(dl, isochrone_path)
+                    self.coordinates[dl].clear()
+                    isp[dl] = isochrone_path
 
-            isochrone_start_point.push_back(isochrone_start_point)
+            isochrone_start_point.append(isp)
 
-        return {"isochrone": isochrone_start_point, "network": isochrone_network}
+        return {"isochrone": isochrone_start_point, "network": self.isochrone_network}
 
     def __init__(
         self, data_edges, start_vertecies, distance_limits, only_minimum_cover=False
@@ -479,3 +483,7 @@ class Isochrone:
         self.start_vertecies = start_vertecies
         self.distance_limits = distance_limits
         self.only_minimum_cover = only_minimum_cover
+
+        self.total_edges = len(data_edges.index)
+        self.isochrone_network = []
+        self.coordinates = Mapping(list)
