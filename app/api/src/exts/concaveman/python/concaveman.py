@@ -34,9 +34,7 @@ _ffi = cffi.FFI()
 _ffi.cdef(
     "void pyconcaveman2d(double *points_c, size_t num_points, int *hull_points_c, size_t num_hull_points, double concavity, double lengthThreshold, double **p_concave_points_c, size_t *p_num_concave_points, void (**p_free)(void*));"
 )
-_lib = _ffi.dlopen(
-    "/Users/sadaszewski/Documents/workspace/concaveman-cpp/src/main/cpp/libconcaveman.so"
-)
+_lib = _ffi.dlopen("src/exts/concaveman/cpp/libconcaveman.so")
 
 
 def concaveman2d(points, hull, concavity=2.0, lengthThreshold=0.0):
