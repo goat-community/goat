@@ -6,8 +6,10 @@ import uuid
 from errno import ELOOP
 from typing import Any
 
+import numpy as np
 import pandas as pd
 import requests
+from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from geojson import FeatureCollection
@@ -15,7 +17,7 @@ from geopandas import GeoDataFrame, GeoSeries
 from geopandas.io.sql import read_postgis
 from pandas.io.sql import read_sql
 from pyproj import Transformer
-from shapely.geometry import MultiPolygon, Point, Polygon
+from shapely.geometry import MultiPolygon, Point, Polygon, shape
 from shapely.ops import unary_union
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
@@ -25,6 +27,7 @@ from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
 from src.exts.cpp.bind import isochrone as isochrone_cpp
+from src.jsoline import jsolines
 from src.resources.enums import IsochroneExportType, IsochroneTypes
 from src.schemas.isochrone import (
     IsochroneDTO,
@@ -33,7 +36,13 @@ from src.schemas.isochrone import (
     IsochroneSingle,
     IsochroneTypeEnum,
 )
-from src.utils import delete_dir
+from src.utils import (
+    amenity_r5_grid_intersect,
+    compute_single_value_surface,
+    decode_r5_grid,
+    delete_dir,
+    encode_r5_grid,
+)
 
 
 class CRUDIsochroneCalculation(
@@ -524,13 +533,149 @@ class CRUDIsochrone:
         )
         return response
 
-    async def calculate_isochrone(self, db: AsyncSession, obj_in: IsochroneDTO) -> Any:
-        result = None
-        if obj_in.mode in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
-            print("WALKING or CYCLING")
+    # ===================================
+    async def __read_network(obj_in: IsochroneDTO) -> Any:
+        if len(obj_in.starting_point.input) == 1:
+            sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
+            FROM basic.fetch_network_routing(ARRAY[:x],ARRAY[:y], :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
+            """
+        elif len(obj_in.starting_point.input) > 1:
+            sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
+            FROM basic.fetch_network_routing_multi(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
+            """
+        # elif calculation_type == IsochroneTypeEnum.heatmap:
+        #     sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
+        #     FROM basic.fetch_network_routing_heatmap(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
+        #     """
         else:
-            print("DRIVING or TRANSIT")
+            raise Exception("Unknown calculation type")
 
+        read_network_sql = text(sql_text)
+        edges_network = read_sql(
+            read_network_sql,
+            legacy_engine,
+            params={
+                "x": obj_in.starting_point.input[0],
+                "y": obj_in.starting_point.input[1],
+                "max_cutoff": obj_in.settings.travel_time * 60,  # in seconds
+                "speed": obj_in.settings.speed,
+                "modus": obj_in.scenario.modus,
+                "scenario_id": obj_in.scenario.id,
+                "routing_profile": obj_in.scenario.routing_profile,
+            },
+        )
+        starting_id = edges_network.iloc[0].starting_ids
+
+        # There was an issue when removing the first row (which only contains the starting point) from the edges. So it was kept.
+        distance_limits = list(
+            range(
+                obj_in.max_cutoff // obj_in.n, obj_in.max_cutoff + 1, obj_in.max_cutoff // obj_in.n
+            )
+        )
+
+    async def __amenity_intersect(self, grid_decoded, max_time) -> Any:
+        """
+        Calculate the intersection of the isochrone with the amenities (pois and population)
+        """
+        single_value_surface = compute_single_value_surface(
+            grid_decoded["width"],
+            grid_decoded["height"],
+            grid_decoded["depth"],
+            grid_decoded["data"],
+            50,
+        )
+        grid_decoded["surface"] = single_value_surface
+        isochrone_multipolygon_coordinates = jsolines(
+            grid_decoded["surface"],
+            grid_decoded["width"],
+            grid_decoded["height"],
+            grid_decoded["west"],
+            grid_decoded["north"],
+            grid_decoded["zoom"],
+            max_time,
+        )
+        multipolygon_shape = shape(
+            {"type": "MultiPolygon", "coordinates": isochrone_multipolygon_coordinates}
+        )
+        test_geom_wkt = multipolygon_shape.wkt
+        get_population_sum_query = f"""SELECT * FROM basic.get_population_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
+        get_poi_one_entrance_sum_query = f"""SELECT * FROM basic.get_poi_one_entrance_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
+        get_poi_more_entrance_sum_query = f"""SELECT * FROM basic.get_poi_more_entrance_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
+        get_population_sum = read_sql(
+            get_population_sum_query,
+            legacy_engine,
+        )
+        get_poi_one_entrance_sum = read_sql(
+            get_poi_one_entrance_sum_query,
+            legacy_engine,
+        )
+        get_poi_more_entrance_sum = read_sql(
+            get_poi_more_entrance_sum_query,
+            legacy_engine,
+        )
+        ##-- FIND AMENITY COUNT FOR EACH GRID CELL --##
+        get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist())
+        get_population_sum_population = get_population_sum["population"].to_numpy()
+        get_poi_one_entrance_sum_pixel = np.array(get_poi_one_entrance_sum["pixel"].tolist())
+        get_poi_one_entrance_sum_category = np.unique(
+            get_poi_one_entrance_sum["category"], return_inverse=True
+        )
+        get_poi_one_entrance_sum_cnt = get_poi_one_entrance_sum["cnt"].to_numpy()
+        get_poi_more_entrance_sum_pixel = np.array(get_poi_more_entrance_sum["pixel"].tolist())
+        get_poi_more_entrance_sum_category = np.unique(
+            get_poi_more_entrance_sum["category"], return_inverse=True
+        )
+        # fill null values with a string to avoid errors
+        get_poi_more_entrance_sum["name"].fillna("_", inplace=True)
+        get_poi_more_entrance_sum_name = np.unique(
+            get_poi_more_entrance_sum["name"], return_inverse=True
+        )
+        get_poi_more_entrance_sum_cnt = get_poi_more_entrance_sum["cnt"].to_numpy()
+        amenity_grid_count = amenity_r5_grid_intersect(
+            grid_decoded["west"],
+            grid_decoded["north"],
+            grid_decoded["width"],
+            grid_decoded["surface"],
+            get_population_sum_pixel,
+            get_population_sum_population,
+            get_poi_one_entrance_sum_pixel,
+            get_poi_one_entrance_sum_category[1],
+            get_poi_one_entrance_sum_cnt,
+            get_poi_more_entrance_sum_pixel,
+            get_poi_more_entrance_sum_category[1],
+            get_poi_more_entrance_sum_name[1],
+            get_poi_more_entrance_sum_cnt,
+            max_time,
+        )
+        amenity_count = {"population": amenity_grid_count[0].tolist()}
+        # poi one entrance
+        for i in amenity_grid_count[1]:
+            index = np.where(get_poi_one_entrance_sum_category[1] == amenity_grid_count[1][i])[0]
+            value = get_poi_one_entrance_sum["category"][index[0]]
+            amenity_count[value] = amenity_grid_count[2][i].tolist()
+        # poi more entrances
+        for i in amenity_grid_count[3]:
+            index = np.where(get_poi_more_entrance_sum_category[1] == amenity_grid_count[3][i])[0]
+            value = get_poi_more_entrance_sum["category"][index[0]]
+            amenity_count[value] = amenity_grid_count[4][i].tolist()
+
+        ##-- ADD AMENITY TO GRID DECODED --##
+        grid_decoded["accessibility"] = amenity_count
+
+        ##-- ENCODE GRID AND RETURN --##
+        grid_encoded = encode_r5_grid(grid_decoded)
+        result = Response(bytes(result.content))
+
+    async def calculate(self, db: AsyncSession, obj_in: IsochroneDTO) -> Any:
+        """
+        Calculate the isochrone for a given location and time"""
+        result = None
+        if obj_in.mode.value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
+            print("WALKING or CYCLING")
+            # === Fetch Network ===#
+            # === Compute Grid ===#
+            # === Amenity Intersect ===#
+        else:
             payload = {
                 "accessModes": obj_in.settings.access_mode.value.upper(),
                 "transitModes": ",".join(x.upper() for x in obj_in.settings.transit_modes),
@@ -563,8 +708,11 @@ class CRUDIsochrone:
                 "east": 11.94489,
                 "west": 11.31592,
             }
-            MAX_TIME = 120  # minutes..
             result = requests.post(settings.R5_API_URL + "/analysis", json=payload)
+            grid_decoded = decode_r5_grid(result.content)
+            # === Amenity Intersect ===#
+            result = self.__amenity_intersect(grid_decoded, 120)
+
         return result
 
 

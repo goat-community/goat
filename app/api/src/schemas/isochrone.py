@@ -421,6 +421,7 @@ class IsochroneDecayFunction(BaseModel):
 
 
 class IsochroneSettings(BaseModel):
+    # === SETTINGS FOR WALKING AND CYCLING ===#
     travel_time: int = Field(
         ...,
         gt=0,
@@ -440,6 +441,7 @@ class IsochroneSettings(BaseModel):
         IsochroneCyclingProfile.STANDARD.value,
         description="Cycling profile. **(Not considered for PT)**",
     )
+    # === SETTINGS FOR CAR AND PT ===#
     departure_date: Optional[str] = Field("2022-04-25", description="(PT) Departure date")
     from_time: Optional[int] = Field(
         25200, gt=0, lt=86400, description="(PT) From time. Number of seconds since midnight"

@@ -35,11 +35,14 @@ async def create_isochrone(
     *,
     db: AsyncSession = Depends(deps.get_db),
     isochrone_in: IsochroneDTO = Body(..., examples=request_examples["isochrone"]),
+    current_user: models.User = Depends(deps.get_current_active_user),
 ):
     """
     Calculate isochrone.
     """
-    result = await crud.isochrone.calculate_isochrone(db, isochrone_in)
+    if isochrone_in.scenario.id:
+        await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
+    result = await crud.isochrone.calculate(db, isochrone_in)
     return result
 
 
