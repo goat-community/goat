@@ -26,6 +26,8 @@ import numpy as np
 
 from src.exts.concaveman.python import concaveman
 
+from .isochrone_surface_utils import *
+
 
 class Mapping(defaultdict):
     """
@@ -463,6 +465,47 @@ class Isochrone:
             isochrone_start_point.append(isp)
 
         return {"isochrone": isochrone_start_point, "network": self.isochrone_network}
+
+    def split_edges(self, network_edges, split_length):
+        line = {}
+        boundry = {}
+        cost_result = {}
+        previous_point = []
+        next_point = []
+        line_xy = {}
+        for network_edge in network_edges:
+            split_cost = compute_cost(split_length, network_edge)
+            next_cost = network_edge["start_cost"]
+            # Add start_point and it's cost
+            cost_result["points"].append(network_edge["geometry"][0])
+            cost_result["costs"].append(next_cost)
+
+            resize_boundry(boundry, network_edge["geometry"][0])
+            # std::cout << "On network number: " << network_edge.edge << "\n"
+            # loop over edge points
+            for line_pointer in range(len(network_edge["geometry"])):
+                # create_line
+                line["start_point"] = network_edge["geometry"][line_pointer]
+                line[["end_point"]] = network_edge["geometry"][line_pointer + 1]
+                # std::cout << line_pointer << ". On point: " << line['start_point'][0] << ", " << line['start_point'][1] << "\n"
+                split_line(
+                    line,
+                    split_length,
+                    network_edge["end_cost"],
+                    network_edge["start_cost"],
+                    network_edge["length"],
+                    split_cost,
+                    boundry,
+                    cost_result,
+                )
+
+            # Add end_point and it's cost
+            # Won't add the edge end point. it will be added in the previous addition.
+            # cost_result['points'].append(network_edge.geometry[line_pointer + 1])
+            # cost_result['costs'].append(network_edge['end_cost'])
+
+        cost_result["boundry"] = boundry
+        return cost_result
 
     def __init__(
         self, data_edges, start_vertecies, distance_limits, only_minimum_cover=False
