@@ -534,12 +534,20 @@ class CRUDIsochrone:
         return response
 
     # ===================================
-    async def __read_network(obj_in: IsochroneDTO) -> Any:
+    async def __read_network(self, db, obj_in: IsochroneDTO) -> Any:
+        isochrone_type = None
         if len(obj_in.starting_point.input) == 1:
+            isochrone_type = IsochroneTypeEnum.single.value
+        elif len(obj_in.starting_point.input) > 1:
+            isochrone_type = IsochroneTypeEnum.multi.value
+        else:
+            raise Exception("Unknown calculation type")
+
+        if isochrone_type == IsochroneTypeEnum.single.value:
             sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
             FROM basic.fetch_network_routing(ARRAY[:x],ARRAY[:y], :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
             """
-        elif len(obj_in.starting_point.input) > 1:
+        elif isochrone_type == IsochroneTypeEnum.multi.value:
             sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
             FROM basic.fetch_network_routing_multi(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
             """
@@ -547,32 +555,71 @@ class CRUDIsochrone:
         #     sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
         #     FROM basic.fetch_network_routing_heatmap(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
         #     """
-        else:
-            raise Exception("Unknown calculation type")
 
         read_network_sql = text(sql_text)
+        routing_profile = None
+        if obj_in.mode.value == IsochroneMode.WALKING.value:
+            routing_profile = obj_in.mode.value + "_" + obj_in.settings.walking_profile.value
+
+        if obj_in.mode.value == IsochroneMode.CYCLING.value:
+            routing_profile = obj_in.mode.value + "_" + obj_in.settings.walking_profile.value
+
         edges_network = read_sql(
             read_network_sql,
             legacy_engine,
             params={
-                "x": obj_in.starting_point.input[0],
-                "y": obj_in.starting_point.input[1],
+                "x": obj_in.starting_point.input[0].lon,
+                "y": obj_in.starting_point.input[0].lat,
                 "max_cutoff": obj_in.settings.travel_time * 60,  # in seconds
                 "speed": obj_in.settings.speed,
-                "modus": obj_in.scenario.modus,
+                "modus": obj_in.scenario.modus.value,
                 "scenario_id": obj_in.scenario.id,
-                "routing_profile": obj_in.scenario.routing_profile,
+                "routing_profile": routing_profile,
             },
         )
         starting_id = edges_network.iloc[0].starting_ids
-
-        # There was an issue when removing the first row (which only contains the starting point) from the edges. So it was kept.
-        distance_limits = list(
-            range(
-                obj_in.max_cutoff // obj_in.n, obj_in.max_cutoff + 1, obj_in.max_cutoff // obj_in.n
+        if len(obj_in.starting_point.input) == 1:
+            starting_point_geom = str(
+                GeoDataFrame(
+                    {"geometry": Point(edges_network.iloc[-1:]["geom"].values[0][0])},
+                    crs="EPSG:3857",
+                    index=[0],
+                )
+                .to_crs("EPSG:4326")
+                .to_wkt()["geometry"]
+                .iloc[0]
             )
-        )
+        else:
+            starting_point_geom = str(edges_network["starting_geoms"].iloc[0])
 
+        edges_network = edges_network.drop(["starting_ids", "starting_geoms"], axis=1)
+        # obj_starting_point = models.IsochroneCalculation(
+        #     calculation_type=isochrone_type,
+        #     user_id=obj_in.user_id,
+        #     scenario_id=None if obj_in.scenario.id == 0 else obj_in.scenario.id,
+        #     starting_point=starting_point_geom,
+        #     routing_profile=routing_profile,
+        #     speed=obj_in.settings.speed,
+        #     modus=obj_in.scenario.modus.value,
+        #     parent_id=None,
+        # )
+
+        # db.add(obj_starting_point)
+        # await db.commit()
+        # await db.refresh(obj_starting_point)
+        edges_network.astype(
+            {
+                "id": np.int64,
+                "source": np.int64,
+                "target": np.int64,
+                "cost": np.double,
+                "reverse_cost": np.double,
+                "length": np.double,
+            }
+        )
+        return edges_network
+
+    # =======================
     async def __amenity_intersect(self, grid_decoded, max_time) -> Any:
         """
         Calculate the intersection of the isochrone with the amenities (pois and population)
@@ -673,6 +720,8 @@ class CRUDIsochrone:
         if obj_in.mode.value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
             print("WALKING or CYCLING")
             # === Fetch Network ===#
+            network = await self.__read_network(obj_in)
+            print("Fetched network...")
             # === Compute Grid ===#
             # === Amenity Intersect ===#
         else:
