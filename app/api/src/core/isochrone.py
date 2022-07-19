@@ -33,18 +33,6 @@ class Mapping(defaultdict):
     Ref: https:#stackoverflow.com/a/8023337/1951027
     """
 
-    def find_value(self, search_value):
-        for key, value in self.items():
-            if value == search_value:
-                return value
-        return None
-
-    def find_key(self, search_key):
-        for key, value in self.items():
-            if key == search_key:
-                return key
-        return None
-
     def find_key_by_value(self, search_value):
         for key, value in self.items():
             if value == search_value:
@@ -105,7 +93,7 @@ class Isochrone:
         targets = self.data_edges["target"]
         id = 0
         for i, (source, target) in enumerate(zip(sources, targets)):
-            it = mapping.find_value(source)
+            it = mapping.get(source)
 
             if it:
                 source_id = it
@@ -114,7 +102,7 @@ class Isochrone:
                 source_id = id
                 mapping[source] = source_id
 
-            it = mapping.find_value(target)
+            it = mapping.get(target)
             if it:
                 target_id = it
             else:
@@ -186,7 +174,7 @@ class Isochrone:
         H_indices.resize(k - 1)
         return {"shape": H, "indices": H_indices}
 
-    def line_substring(start_perc, end_perc, geometry, total_length):
+    def line_substring(self, start_perc, end_perc, geometry, total_length):
         """
         LINE SUBSTRING ALGORITHM
         """
@@ -199,7 +187,7 @@ class Isochrone:
 
         start_dist = start_perc_ * total_length
         end_dist = end_perc_ * total_length
-        size = geometry.size()
+        size = len(geometry)
 
         start_reached = False
         accumulated_dist = 0.0
@@ -228,7 +216,7 @@ class Isochrone:
             accumulated_dist += segment_dist
             if i == 0 and start_perc_ == 0:
 
-                line_substring.push_back(geometry[0])
+                line_substring.append(geometry[0])
                 start_reached = True
 
             # Interpolate at start percentage and push to line_substring
@@ -237,12 +225,12 @@ class Isochrone:
                 d2 = start_dist - dist_at_coord
                 x = x1 - ((d2 * dx) / segment_dist)
                 y = y1 - ((d2 * dy) / segment_dist)
-                line_substring.push_back(x, y)
+                line_substring.append((x, y))
                 start_reached = True
 
             if i == size - 2 and end_perc_ == 1:
 
-                line_substring.push_back(geometry[size - 1])
+                line_substring.append(geometry[size - 1])
                 break
 
             # Interpolate at end percentage, push to line_substring and break
@@ -251,13 +239,13 @@ class Isochrone:
                 d2 = end_dist - dist_at_coord
                 x = x1 - ((d2 * dx) / segment_dist)
                 y = y1 - ((d2 * dy) / segment_dist)
-                line_substring.push_back(x, y)
+                line_substring.append((x, y))
                 break
 
             # Push midpoints to line_substring
             if start_reached:
 
-                line_substring.push_back(geometry[i + 1])
+                line_substring.append(geometry[i + 1])
 
         return line_substring
 
@@ -350,10 +338,10 @@ class Isochrone:
         # {
         #     coordinates.emplace(dl, std::vector<std::array<double, 2>>())
         # }
-        adj = self.construct_adjustancy_list()
+        self.construct_adjustancy_list()
         # Storing the result of dijkstra call and reusing the memory for each vertex.
-        self.distances = np.empty(nodes_count, dtype=np.double)
-        self.predecessors = np.empty(nodes_count, dtype=np.int64)
+        # self.distances = np.empty(nodes_count, dtype=np.double)
+        # self.predecessors = np.empty(nodes_count, dtype=np.int64)
         for start_v in self.start_vertecies:
             it = mapping.get(start_v)
             # If start_v did not appear in edges then it has no particular mapping
