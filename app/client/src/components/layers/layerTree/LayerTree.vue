@@ -6,8 +6,8 @@
         <v-tab-item :eager="true">
           <v-expansion-panels accordion multiple>
             <v-expansion-panel
-              v-for="(layerGroupValue, layerGroupKey) in layerGroups"
-              :key="layerGroupKey"
+              v-for="(layerGroup, i) in layerGroupsArr"
+              :key="i"
               expand
             >
               <v-expansion-panel-header
@@ -18,12 +18,12 @@
                 <v-layout row wrap align-center>
                   <v-flex xs1>
                     <v-icon small>{{
-                      getLayerGroupIcon(layerGroupKey)
+                      getLayerGroupIcon(layerGroup.name)
                     }}</v-icon>
                   </v-flex>
                   <v-flex xs10 class="light-text" style="font-size:medium;">
                     <div>
-                      <b>{{ translate("layerGroup", layerGroupKey) }}</b>
+                      <b>{{ translate("layerGroup", layerGroup.name) }}</b>
                     </div>
                   </v-flex>
                   <v-flex xs1>
@@ -35,7 +35,7 @@
                 <!-- LAYERS -->
                 <v-expansion-panels readonly>
                   <v-expansion-panel
-                    v-for="(layer, i) in layerGroupValue"
+                    v-for="(layer, i) in layerGroup.children"
                     :key="i"
                     class="layer-row"
                     :class="{
@@ -50,7 +50,7 @@
                             :color="appColor.secondary"
                             :value="layer.getVisible()"
                             @input="
-                              toggleLayerVisibility(layer, layerGroupValue)
+                              toggleLayerVisibility(layer, layerGroup.children)
                             "
                           ></v-simple-checkbox>
                         </v-flex>
@@ -98,9 +98,14 @@
                           class="xs2"
                           style="text-align:center;"
                           v-if="
-                            ['VECTORTILE', 'VECTOR', 'MVT', 'GEOBUF'].includes(
-                              layer.get('type').toUpperCase()
-                            )
+                            [
+                              'VECTORTILE',
+                              'VECTOR',
+                              'MVT',
+                              'GEOBUF',
+                              'WMTS',
+                              'WMS'
+                            ].includes(layer.get('type').toUpperCase())
                           "
                         >
                           <v-icon
@@ -119,7 +124,9 @@
                                 'VECTORTILE',
                                 'VECTOR',
                                 'MVT',
-                                'GEOBUF'
+                                'GEOBUF',
+                                'WMTS',
+                                'WMS'
                               ].includes(layer.get('type').toUpperCase()) ==
                               true,
                             xs12: false
@@ -144,6 +151,12 @@
               </v-expansion-panel-content>
             </v-expansion-panel>
           </v-expansion-panels>
+          <v-layout class="mt-5" column align-center>
+            <ImportExternalLayers
+              @getLayerInfo="layerInfoSubmited"
+              @addLayer="addBuiltInLayers"
+            />
+          </v-layout>
         </v-tab-item>
         <v-tab-item :eager="true">
           <layer-order
@@ -151,6 +164,7 @@
             :translate="translate"
             :toggleLayerOptions="toggleLayerOptions"
             :changeLayerOpacity="changeLayerOpacity"
+            :layerGroupsArr="layerGroupsArr"
           ></layer-order>
         </v-tab-item>
       </v-tabs-items>
@@ -171,24 +185,28 @@
 import { Mapable } from "../../../mixins/Mapable";
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
-
 import { EventBus } from "../../../EventBus";
-import Legend from "../../viewer/ol/controls/Legend";
 import InLegend from "../../viewer/ol/controls/InLegend";
 import LayerOrder from "../layerOrder/LayerOrder";
 import StyleDialog from "../changeStyle/StyleDialog";
+import ImportExternalLayers from "../importLayers/ImportExternalLayers.vue";
+import TileLayer from "ol/layer/Tile";
+import TileWMS from "ol/source/TileWMS";
+import VectorLayer from "ol/layer/Vector";
+import XYZ from "ol/source/XYZ";
+import VectorSource from "ol/source/Vector";
+import GeoJSON from "ol/format/GeoJSON";
+// import ImageWMS from "ol/source/ImageWMS";
+
 export default {
-  mixins: [Mapable, Legend],
-  data: () => ({
-    layerGroups: {},
-    currentItem: null,
-    styleDialogKey: 0,
-    styleDialogStatus: false
-  }),
-  components: {
-    LayerOrder,
-    InLegend,
-    StyleDialog
+  mixins: [Mapable],
+  data() {
+    return {
+      layerGroupsArr: [],
+      currentItem: null,
+      styleDialogKey: 0,
+      styleDialogStatus: false
+    };
   },
   computed: {
     ...mapGetters("app", {
@@ -199,35 +217,110 @@ export default {
       layerTabIndex: "layerTabIndex"
     })
   },
-  mounted() {
-    EventBus.$on("updateStyleDialogStatusForLayerTree", value => {
-      this.styleDialogStatus = value;
-    });
-  },
+  components: { LayerOrder, InLegend, StyleDialog, ImportExternalLayers },
   methods: {
-    /**
-     * This function is executed, after the map is bound (see mixins/Mapable)
-     * and registers the current map layers.
-     */
-    onMapBound() {
+    // Layer Import feature
+    layerInfoSubmited(data) {
+      let resultsfromThis = this.appConfig.layer_groups.map(lay => {
+        return Object.keys(lay)[0];
+      });
+      if (!resultsfromThis.includes("external_imports")) {
+        let currentAppConfig = this.appConfig;
+        let imports = {
+          external_imports: {
+            children: [],
+            icon: "fas fa-upload"
+          }
+        };
+        currentAppConfig.layer_groups.push(imports);
+        this.$store.commit("app/setAppConfig", currentAppConfig);
+      }
+
+      let newLayer = new TileLayer({
+        source: new TileWMS({
+          url: data.url,
+          params: {
+            layers: data.name
+          },
+          attribution: data.title
+        }),
+        group: "external_imports",
+        name: data.title,
+        visible: true,
+        opacity: 1,
+        type: "wmts"
+      });
+
+      this.map.addLayer(newLayer);
+
+      this.layerGroupsArr = [];
+
+      this.updateLayerGroups();
+    },
+
+    // XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    updateLayerGroups() {
       const layerGroups = this.appConfig.layer_groups;
-      layerGroups.reverse().forEach(lg => {
+      layerGroups.forEach(lg => {
         const layerGroupName = Object.keys(lg)[0];
         if (layerGroupName !== "heatmap") {
-          this.layerGroups[layerGroupName] = [];
+          let newObject = {
+            name: layerGroupName,
+            children: []
+          };
+          this.layerGroupsArr.push(newObject);
         }
       });
+
       this.map
         .getLayers()
         .getArray()
         .forEach(layer => {
           if (layer.get("group") && layer.get("group") !== "heatmap") {
-            if (!this.layerGroups[layer.get("group")]) {
-              this.layerGroups[layer.get("group")] = [];
-            }
-            this.layerGroups[layer.get("group")].push(layer);
+            this.layerGroupsArr.forEach((lay, idx) => {
+              if (lay.name === layer.get("group")) {
+                this.layerGroupsArr[idx].children.push(layer);
+              }
+            });
           }
         });
+    },
+    onMapBound() {
+      this.updateLayerGroups();
+    },
+    getLayerGroupIcon(group) {
+      const layerGroupConf = this.appConfig.layer_groups.filter(g => g[group]);
+      return layerGroupConf[0][group].icon || "fas fa-layer-group";
+      // return "fas fa-layer-group";
+    },
+    translate(type, key) {
+      //type = {layerGroup || layerName}
+      //Checks if key exists and translates it othewise return the input value
+      const canTranslate = this.$te(`map.${type}.${key}`);
+      if (canTranslate) {
+        return this.$t(`map.${type}.${key}`);
+      } else {
+        return key;
+      }
+    },
+    toggleLayerVisibility(layer, group) {
+      const currentState = layer.getVisible();
+      //Turn off other layers if layer group is background layers.
+      if (layer.get("group") === "basemap") {
+        group.forEach(layer => {
+          layer.setVisible(false);
+        });
+      }
+      layer.setVisible(!currentState);
+      if (layer.getVisible() === false) {
+        layer.set("showOptions", false);
+      } else {
+        layer.set("showOptions", true);
+      }
+      EventBus.$emit("toggleLayerVisiblity", layer);
+    },
+    toggleLayerOptions(layer) {
+      layer.set("showOptions", !layer.get("showOptions"));
     },
     openStyleDialog(item) {
       //This function is used for opening Style Setting dialog component for a layer
@@ -251,45 +344,62 @@ export default {
       }
       this.currentItem = item;
     },
-    toggleLayerVisibility(layer, group) {
-      const currentState = layer.getVisible();
-      //Turn off other layers if layer group is background layers.
-      if (layer.get("group") === "basemap") {
-        group.forEach(layer => {
-          layer.setVisible(false);
-        });
-      }
-      layer.setVisible(!currentState);
-      if (layer.getVisible() === false) {
-        layer.set("showOptions", false);
-      } else {
-        layer.set("showOptions", true);
-      }
-      EventBus.$emit("toggleLayerVisiblity", layer);
-    },
-    toggleLayerOptions(layer) {
-      layer.set("showOptions", !layer.get("showOptions"));
-    },
     changeLayerOpacity(value, layer) {
       layer.setOpacity(value);
     },
-    getLayerGroupIcon(group) {
-      const layerGroupConf = this.appConfig.layer_groups.filter(g => g[group]);
-      return layerGroupConf[0][group].icon || "fas fa-layer-group";
-    },
-    translate(type, key) {
-      //type = {layerGroup || layerName}
-      //Checks if key exists and translates it othewise return the input value
-      const canTranslate = this.$te(`map.${type}.${key}`);
-      if (canTranslate) {
-        return this.$t(`map.${type}.${key}`);
-      } else {
-        return key;
+    addBuiltInLayers(layerInfo) {
+      if (layerInfo.type === "tile") {
+        const createdLayer = new TileLayer({
+          source: new XYZ({
+            url: layerInfo.url
+          }),
+          type: "geobuf",
+          attribution: layerInfo.attribution,
+          name: layerInfo.title,
+          group: "basemap"
+        });
+        console.log(this.map);
+        this.map.addLayer(createdLayer);
+        this.layerGroupsArr = [];
+        this.updateLayerGroups();
+      } else if (layerInfo.type === "vectortile") {
+        const createdLayer = new VectorLayer({
+          source: new VectorSource({
+            url: layerInfo.url,
+            format: new GeoJSON()
+          }),
+          type: "vectortile",
+          attribution: layerInfo.attribution,
+          name: layerInfo.title,
+          group: layerInfo.group
+        });
+        this.map.addLayer(createdLayer);
+        this.layerGroupsArr = [];
+        this.updateLayerGroups();
+      } else if (layerInfo.type === "wmts") {
+        let createdLayer = new TileLayer({
+          source: new TileWMS({
+            url: layerInfo.url,
+            params: {
+              layers: layerInfo.name
+            },
+            attribution: layerInfo.attribution
+          }),
+          group: layerInfo.group,
+          name: layerInfo.title,
+          visible: true,
+          opacity: 1,
+          type: "wmts"
+        });
+        this.map.addLayer(createdLayer);
+        this.layerGroupsArr = [];
+        this.updateLayerGroups();
       }
     }
   }
 };
 </script>
+
 <style lang="css" scoped>
 .v-expansion-panel__header {
   cursor: default;

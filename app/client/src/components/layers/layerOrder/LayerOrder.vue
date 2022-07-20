@@ -86,7 +86,7 @@
               <v-flex
                 :class="{
                   xs10:
-                    ['VECTORTILE', 'VECTOR', 'MVT'].includes(
+                    ['VECTORTILE', 'VECTOR', 'MVT', 'WMS', 'WMTS'].includes(
                       layer.get('type').toUpperCase()
                     ) == true,
                   xs12: false
@@ -130,7 +130,13 @@ import { EventBus } from "../../../EventBus";
 import { mapGetters } from "vuex";
 
 export default {
-  props: ["map", "translate", "toggleLayerOptions", "changeLayerOpacity"],
+  props: [
+    "map",
+    "translate",
+    "toggleLayerOptions",
+    "changeLayerOpacity",
+    "layerGroupsArr"
+  ],
   data: () => ({
     allLayers: [],
     currentItem: {
@@ -164,12 +170,14 @@ export default {
       appColor: "appColor"
     })
   },
+  watch: {
+    layerGroupsArr() {
+      this.getAllVisibleLayers();
+    }
+  },
   created() {
     //Get list of all map layers
-    this.allLayers = this.map
-      .getLayers()
-      .getArray()
-      .filter(l => l.get("type") && l.get("displayInLayerList") !== false);
+    this.getAllVisibleLayers();
   },
   mounted() {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
@@ -177,6 +185,12 @@ export default {
     });
   },
   methods: {
+    getAllVisibleLayers() {
+      this.allLayers = this.map
+        .getLayers()
+        .getArray()
+        .filter(l => l.get("type") && l.get("displayInLayerList") !== false);
+    },
     openStyleDialog(item) {
       //This function is used for opening Style Setting dialog component for a layer
       EventBus.$emit("updateStyleDialogStatusForLayerOrder", false);
