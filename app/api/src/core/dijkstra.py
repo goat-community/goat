@@ -34,36 +34,7 @@ class Dijkstra:
                     if target_id in self.unvisited_vertexes:
                         self.unvisited_vertexes.remove(target_id)
 
-    def walk(self, node_id, unvisited_vertexes, calculator_id):
-        """
-        Walk through adjacent vertexes to the end
-        Recursive function
-        """
-        sparse_graph = self.sparse_graph
-        targets = coo_matrix(sparse_graph.getrow(node_id))
-        for node_id_ in targets.col:
-            self.calculate_target_costs(node_id, calculator_id)
-            if node_id_ in self.unvisited_vertexes:
-                if self.distances[node_id_] < self.distance_limit:
-                    self.walk(node_id_, unvisited_vertexes, calculator_id)
-                else:
-                    unvisited_vertexes.remove(node_id)
-
     def dijkstra(self):
-        """
-        Calculate distances with walking through Graph WITH recursive function
-        """
-        calculator_id = 0
-        for start_vertex in self.start_vertexes:
-            calculator_id += 1
-            unvisited_vertexes = self.unique_vertexes
-            node_id = start_vertex
-            self.distances[start_vertex] = 0
-            self.walk(node_id, unvisited_vertexes, calculator_id)
-
-        return self.distances
-
-    def dijkstra2(self):
         """
         Calculate distances with walking through Graph WITHOUT recursive function
         """
@@ -98,7 +69,7 @@ class Dijkstra:
 
 def dijkstra(data_edges, start_vertexes, distance_limit):
     d = Dijkstra(data_edges, start_vertexes, distance_limit)
-    return d.dijkstra2()
+    return d.dijkstra()
 
 
 if __name__ == "__main__":
