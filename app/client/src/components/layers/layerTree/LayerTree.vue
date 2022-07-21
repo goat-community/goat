@@ -55,9 +55,19 @@
                           ></v-simple-checkbox>
                         </v-flex>
                         <v-flex xs10 class="light-text">
-                          <h4 class="pl-2">
-                            {{ translate("layerName", layer.get("name")) }}
-                          </h4>
+                          <v-layout justify-space-between>
+                            <h4 class="pl-2">
+                              {{ translate("layerName", layer.get("name")) }}
+                            </h4>
+                            <v-icon
+                              class="delete-btn mr-2"
+                              style="cursor: pointer"
+                              small
+                              @click="deleteExternalLayer(layer)"
+                              v-if="layer.get('group') === 'external_imports'"
+                              >fas fa-trash-can</v-icon
+                            >
+                          </v-layout>
                         </v-flex>
                         <v-flex xs1>
                           <v-icon
@@ -182,24 +192,29 @@
 </template>
 
 <script>
+//map and state imports
 import { Mapable } from "../../../mixins/Mapable";
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
 import { EventBus } from "../../../EventBus";
+
+//component imports
 import InLegend from "../../viewer/ol/controls/InLegend";
 import LayerOrder from "../layerOrder/LayerOrder";
 import StyleDialog from "../changeStyle/StyleDialog";
+import Legend from "../../viewer/ol/controls/Legend";
 import ImportExternalLayers from "../importLayers/ImportExternalLayers.vue";
+
+//Openlayer imports
 import TileLayer from "ol/layer/Tile";
 import TileWMS from "ol/source/TileWMS";
 import VectorLayer from "ol/layer/Vector";
 import XYZ from "ol/source/XYZ";
 import VectorSource from "ol/source/Vector";
 import GeoJSON from "ol/format/GeoJSON";
-// import ImageWMS from "ol/source/ImageWMS";
 
 export default {
-  mixins: [Mapable],
+  mixins: [Mapable, Legend],
   data() {
     return {
       layerGroupsArr: [],
@@ -251,14 +266,31 @@ export default {
         type: "wmts"
       });
 
-      this.map.addLayer(newLayer);
+      if (this.layerGroupsArr.length === 5) {
+        this.layerGroupsArr.forEach(layerGroup => {
+          if (layerGroup.name === "external_imports") {
+            let hasLayer = layerGroup.children.filter(
+              layer => layer.get("name") === newLayer.get("name")
+            );
+            if (hasLayer.length === 0) {
+              this.map.addLayer(newLayer);
 
-      this.layerGroupsArr = [];
+              this.layerGroupsArr = [];
 
-      this.updateLayerGroups();
+              this.updateLayerGroups();
+            }
+          }
+        });
+      } else {
+        this.map.addLayer(newLayer);
+
+        this.layerGroupsArr = [];
+
+        this.updateLayerGroups();
+      }
     },
 
-    // XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    //updating the sidebar layers
     updateLayerGroups() {
       const layerGroups = this.appConfig.layer_groups;
       layerGroups.forEach(lg => {
@@ -285,6 +317,10 @@ export default {
           }
         });
     },
+    /*
+     * This function is executed, after the map is bound (see mixins/Mapable)
+     * and registers the current map layers.
+     */
     onMapBound() {
       this.updateLayerGroups();
     },
@@ -347,7 +383,23 @@ export default {
     changeLayerOpacity(value, layer) {
       layer.setOpacity(value);
     },
+    // Importing built in layers from a local js file
     addBuiltInLayers(layerInfo) {
+      let resultsfromThis = this.appConfig.layer_groups.map(lay => {
+        return Object.keys(lay)[0];
+      });
+      if (!resultsfromThis.includes("external_imports")) {
+        let currentAppConfig = this.appConfig;
+        let imports = {
+          external_imports: {
+            children: [],
+            icon: "fas fa-upload"
+          }
+        };
+        currentAppConfig.layer_groups.push(imports);
+        this.$store.commit("app/setAppConfig", currentAppConfig);
+      }
+
       if (layerInfo.type === "tile") {
         const createdLayer = new TileLayer({
           source: new XYZ({
@@ -356,12 +408,9 @@ export default {
           type: "geobuf",
           attribution: layerInfo.attribution,
           name: layerInfo.title,
-          group: "basemap"
+          group: "external_imports"
         });
-        console.log(this.map);
-        this.map.addLayer(createdLayer);
-        this.layerGroupsArr = [];
-        this.updateLayerGroups();
+        this.preventDuplication(createdLayer);
       } else if (layerInfo.type === "vectortile") {
         const createdLayer = new VectorLayer({
           source: new VectorSource({
@@ -371,11 +420,9 @@ export default {
           type: "vectortile",
           attribution: layerInfo.attribution,
           name: layerInfo.title,
-          group: layerInfo.group
+          group: "external_imports"
         });
-        this.map.addLayer(createdLayer);
-        this.layerGroupsArr = [];
-        this.updateLayerGroups();
+        this.preventDuplication(createdLayer);
       } else if (layerInfo.type === "wmts") {
         let createdLayer = new TileLayer({
           source: new TileWMS({
@@ -385,16 +432,39 @@ export default {
             },
             attribution: layerInfo.attribution
           }),
-          group: layerInfo.group,
+          group: "external_imports",
           name: layerInfo.title,
           visible: true,
           opacity: 1,
           type: "wmts"
         });
-        this.map.addLayer(createdLayer);
+        this.preventDuplication(createdLayer);
+      }
+    },
+    preventDuplication(newlayer) {
+      if (this.layerGroupsArr.length === 5) {
+        this.layerGroupsArr.forEach(layerGroup => {
+          if (layerGroup.name === "external_imports") {
+            let hasLayer = layerGroup.children.filter(
+              layer => layer.get("name") === newlayer.get("name")
+            );
+            if (hasLayer.length === 0) {
+              this.map.addLayer(newlayer);
+              this.layerGroupsArr = [];
+              this.updateLayerGroups();
+            }
+          }
+        });
+      } else {
+        this.map.addLayer(newlayer);
         this.layerGroupsArr = [];
         this.updateLayerGroups();
       }
+    },
+    deleteExternalLayer(layer) {
+      this.map.removeLayer(layer);
+      this.layerGroupsArr = [];
+      this.updateLayerGroups();
     }
   }
 };
@@ -426,5 +496,10 @@ export default {
 
 .layer-row >>> .v-expansion-panel-header {
   cursor: auto;
+}
+
+.delete-btn {
+  color: red;
+  float: right;
 }
 </style>

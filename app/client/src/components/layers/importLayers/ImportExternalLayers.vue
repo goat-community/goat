@@ -2,7 +2,12 @@
   <div class="text-center">
     <v-dialog v-model="dialog" width="700">
       <template v-slot:activator="{ on, attrs }">
-        <v-btn color="success" dark v-bind="attrs" v-on="on">
+        <v-btn
+          style="background-color: rgb(43, 179, 129);"
+          dark
+          v-bind="attrs"
+          v-on="on"
+        >
           Import External Layer
         </v-btn>
       </template>
@@ -10,25 +15,27 @@
       <v-card style="padding: 40px;">
         <div v-if="option === 'first'">
           <v-card-text class="pa-0">
-            <h1 class="mb-4">Import a Layer</h1>
+            <h1 class="mb-4" style="color: #555;">Import a Layer</h1>
           </v-card-text>
           <div>
             <v-btn
-              class="success button-categorizer"
+              class="button-categorizer white--text"
+              style="background-color: rgb(43, 179, 129);"
               @click="changeOption('builtin')"
               >Add Built-in Layers</v-btn
             >
             <v-btn
-              class="success button-categorizer"
+              class="button-categorizer white--text"
+              style="background-color: rgb(43, 179, 129);"
               @click="changeOption('upload')"
               >Upload Layer via source url</v-btn
             >
           </div>
-          <v-card-actions>
+          <v-card-actions style="padding-bottom: 0; padding-right: 0;">
             <v-spacer></v-spacer>
             <v-btn
               color="success"
-              style="margin-top: 20px"
+              style="margin-top: 20px;"
               text
               @click="cancelHandler"
               >Cancel</v-btn
@@ -37,8 +44,11 @@
         </div>
         <div v-if="option === 'upload'">
           <v-card-text class="pa-0">
-            <h1 class="mb-4">Import a Layer</h1>
+            <h1 class="mb-4" style="color: #555;">Import a Layer</h1>
             <v-form ref="form" lazy-validation>
+              <v-alert type="error" v-if="error">
+                {{ error }}
+              </v-alert>
               <v-text-field
                 v-model="url"
                 label="Source Url"
@@ -54,8 +64,17 @@
                 style="display: flex"
               >
                 <v-card-text>
-                  <div>{{ simpleLayer.title }}</div>
-                  <p>{{ simpleLayer.url }}</p>
+                  <div class="font-weight-bold">{{ simpleLayer.title }}</div>
+                  <p class="layerDescription" :ref="`description-${idx}`">
+                    {{ simpleLayer.description }}
+                  </p>
+                  <p
+                    class="success--text"
+                    @click="expandStyle(idx)"
+                    style="cursor: pointer"
+                  >
+                    See more...
+                  </p>
                 </v-card-text>
                 <v-card-actions>
                   <v-btn
@@ -69,8 +88,9 @@
               </v-card>
             </div>
           </v-card-text>
-          <v-card-actions>
+          <v-card-actions style="padding-bottom: 0; padding-right: 0;">
             <v-spacer></v-spacer>
+            <v-btn color="success" text @click="goBackHandler">Go Back</v-btn>
             <v-btn color="success" text @click="cancelHandler">Cancel</v-btn>
             <v-btn color="success" text @click="layerDataHandler">
               Import Layers
@@ -79,7 +99,7 @@
         </div>
         <div v-if="option === 'builtin'">
           <v-card-text class="pa-0">
-            <h1 class="mb-4">Built-in Layers</h1>
+            <h1 class="mb-4" style="color: #555;">Built-in Layers</h1>
           </v-card-text>
           <v-bottom-navigation :value="value" color="primary" horizontal>
             <v-btn @click="value = 0">
@@ -113,8 +133,9 @@
               </div>
             </div>
           </div>
-          <v-card-actions>
+          <v-card-actions style="padding-bottom: 0; padding-right: 0;">
             <v-spacer></v-spacer>
+            <v-btn color="success" text @click="goBackHandler">Go Back</v-btn>
             <v-btn color="success" text @click="cancelHandler">Cancel</v-btn>
           </v-card-actions>
         </div>
@@ -140,8 +161,12 @@ export default {
     this.dummyLayerData = dataBuiltInLayers;
   },
   methods: {
+    // navigation through the popup
     changeOption(value) {
       this.option = value;
+    },
+    goBackHandler() {
+      this.option = "first";
     },
     cancelHandler() {
       this.url = "";
@@ -164,28 +189,47 @@ export default {
         this.error = "Make sure to fill all the required fields";
       }
     },
+    // this will fetch all the data from the given links if it has capabilities
     findAllAvailableLayers(data) {
-      fetch(data.layer_url)
-        .then(result => result.text())
-        .then(datares => {
-          let parser = new DOMParser(),
-            xmlDoc = parser.parseFromString(datares, "text/xml");
-          let names = [...xmlDoc.getElementsByTagName("Layer")];
-          let type = xmlDoc.getElementsByTagName("Name")[0].textContent;
-          names.forEach((layerElement, idx) => {
-            if (idx !== 0) {
-              let layerPossibility = {
-                title: layerElement.getElementsByTagName("Title")[0]
-                  .textContent,
-                name: layerElement.getElementsByTagName("Name")[0].textContent,
-                url: data.layer_url.split("?")[0] + "?",
-                type: type
-              };
-              this.layerListToAdd.push(layerPossibility);
-            }
+      if (data.layer_url.includes("SERVICE=WMS&REQUEST=GetCapabilities")) {
+        fetch(data.layer_url)
+          .then(result => {
+            return result.text();
+          })
+          .then(datares => {
+            let parser = new DOMParser(),
+              xmlDoc = parser.parseFromString(datares, "text/xml");
+            let names = [...xmlDoc.getElementsByTagName("Layer")];
+            let type = xmlDoc.getElementsByTagName("Name")[0].textContent;
+            names.forEach((layerElement, idx) => {
+              if (idx !== 0) {
+                let layerPossibility = {
+                  title: layerElement.getElementsByTagName("Title")[0]
+                    .textContent,
+                  name: layerElement.getElementsByTagName("Name")[0]
+                    .textContent,
+                  description: layerElement.getElementsByTagName("Abstract")[0]
+                    .textContent,
+                  url: data.layer_url.split("?")[0] + "?",
+                  type: type
+                };
+                this.layerListToAdd.push(layerPossibility);
+              }
+            });
           });
-        })
-        .catch(err => (this.error = err));
+      } else {
+        this.error =
+          "Make sure to write an available link that contains all the capabilities!";
+      }
+    },
+    expandStyle(id) {
+      if (this.$refs[`description-${id}`][0].style.height === "fit-content") {
+        this.$refs[`description-${id}`][0].style.textOverflow = "ellipsis";
+        this.$refs[`description-${id}`][0].style.height = "65px";
+      } else {
+        this.$refs[`description-${id}`][0].style.textOverflow = "clip";
+        this.$refs[`description-${id}`][0].style.height = "fit-content";
+      }
     }
   }
 };
@@ -250,5 +294,15 @@ export default {
 .overlay:hover {
   color: white;
   background: rgba(0, 0, 0, 0.274);
+}
+
+.layerDescription {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  /* -webkit-box-orient: vertical; */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 65px;
+  font-size: 12px;
 }
 </style>

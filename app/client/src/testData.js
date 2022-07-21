@@ -1,10 +1,12 @@
+// For the built in plug in
+
 export const dataBuiltInLayers = [
   {
     layers: [
       {
         name: "Voyager",
         type: "tile",
-        group: "basemap",
+        group: "external_imports",
         title: "Voyager",
         url:
           "https://api.maptiler.com/maps/voyager/{z}/{x}/{y}.png?key=5SLMZCpBxmxow9QFVy7M",
@@ -15,7 +17,7 @@ export const dataBuiltInLayers = [
       {
         name: "Topographique",
         type: "tile",
-        group: "basemap",
+        group: "external_imports",
         title: "Topographique",
         url:
           "https://api.maptiler.com/maps/topographique/{z}/{x}/{y}.png?key=5SLMZCpBxmxow9QFVy7M",
@@ -30,7 +32,7 @@ export const dataBuiltInLayers = [
       {
         name: "DPD Stores ",
         type: "vectortile",
-        group: "additional_data",
+        group: "external_imports",
         format: "geojson",
         title: "DPD Stores ",
         url:
@@ -43,7 +45,7 @@ export const dataBuiltInLayers = [
         name: "Munich Info ",
         type: "vectortile",
         format: "geojson",
-        group: "additional_data",
+        group: "external_imports",
         title: "Munich Info",
         url:
           "https://api.maptiler.com/data/4d0102c0-67d7-4fdc-b1d8-9cdd76026380/features.json?key=5SLMZCpBxmxow9QFVy7M",
