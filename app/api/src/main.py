@@ -30,7 +30,6 @@ app = FastAPI(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-
 @app.get("/api/docs", include_in_schema=False)
 async def swagger_ui_html():
     return get_swagger_ui_html(
@@ -38,7 +37,6 @@ async def swagger_ui_html():
         openapi_url=f"{settings.API_V1_STR}/openapi.json",
         title=settings.PROJECT_NAME,
     )
-
 
 # Set all CORS enabled origins
 if settings.BACKEND_CORS_ORIGINS:
@@ -49,7 +47,6 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
 
 @app.on_event("startup")
 async def startup_event():
