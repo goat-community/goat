@@ -21,8 +21,7 @@ class Dijkstra:
         """
         Calculate costs for adjacent vertexes
         """
-        sparse_graph = self.sparse_graph
-        targets = coo_matrix(sparse_graph.getrow(node_id))
+        targets = coo_matrix(self.sparse_graph.getrow(node_id))
         self.unvisited_vertexes.remove(node_id)
         for cost, target_id in zip(targets.data, targets.col):
             distance = self.distances[node_id] + cost
@@ -32,7 +31,8 @@ class Dijkstra:
                 self.to_visit.append(target_id)
             else:
                 if self.calculator[target_id] < calculator_id:
-                    self.unvisited_vertexes.remove(target_id)
+                    if target_id in self.unvisited_vertexes:
+                        self.unvisited_vertexes.remove(target_id)
 
     def walk(self, node_id, unvisited_vertexes, calculator_id):
         """
@@ -43,7 +43,7 @@ class Dijkstra:
         targets = coo_matrix(sparse_graph.getrow(node_id))
         for node_id_ in targets.col:
             self.calculate_target_costs(node_id, calculator_id)
-            if node_id_ not in self.unvisited_vertexes:
+            if node_id_ in self.unvisited_vertexes:
                 if self.distances[node_id_] < self.distance_limit:
                     self.walk(node_id_, unvisited_vertexes, calculator_id)
                 else:
@@ -71,16 +71,17 @@ class Dijkstra:
         for start_vertex in self.start_vertexes:
 
             calculator_id += 1
-            unvisited_vertexes = self.unique_vertexes
-            self.to_visit = deque(start_vertex)
+            self.unvisited_vertexes = self.unique_vertexes
+            self.to_visit = deque([start_vertex])
             self.distances[start_vertex] = 0
             while self.to_visit:
                 node_id = self.to_visit.popleft()
-                if node_id not in unvisited_vertexes:
+                if node_id in self.unvisited_vertexes:
                     if self.distances[node_id] < self.distance_limit:
                         self.calculate_target_costs(node_id, calculator_id)
                     else:
-                        unvisited_vertexes.remove(node_id)
+                        self.unvisited_vertexes.remove(node_id)
+
         return self.distances
 
     def __init__(self, data_edges, start_vertexes, distance_limit):
@@ -92,9 +93,17 @@ class Dijkstra:
         self.sparse_graph, self.unique_vertexes = self.generate_sparse_graph()
         for vertex in self.unique_vertexes:
             self.distances[vertex] = np.inf
-            self.calculator[vertex] = 0
+            self.calculator[vertex] = np.inf
 
 
 def dijkstra(data_edges, start_vertexes, distance_limit):
     d = Dijkstra(data_edges, start_vertexes, distance_limit)
     return d.dijkstra2()
+
+
+if __name__ == "__main__":
+    from src.tests.utils.isochrone import get_sample_network
+
+    edges_network, starting_id, distance_limits = get_sample_network(minutes=5)
+    distances = dijkstra(edges_network, starting_id, distance_limits[0])
+    print()
