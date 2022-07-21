@@ -5,11 +5,11 @@ from scipy.sparse import coo_matrix, csr_matrix
 
 
 class Dijkstra:
-    def generate_sparse_graph(self):
+    def generate_sparse_graph(self, data_edges):
         """
         Generate Sparse Graph of edges and their costs (sources, targets, costs)
         """
-        data_edges = self.data_edges
+        data_edges
         row = np.concatenate([data_edges["source"], data_edges["target"]])
         col = np.concatenate([data_edges["target"], data_edges["source"]])
         cost_data = np.concatenate([data_edges["cost"], data_edges["reverse_cost"]])
@@ -56,12 +56,11 @@ class Dijkstra:
         return self.distances
 
     def __init__(self, data_edges, start_vertexes, distance_limit):
-        self.data_edges = data_edges
         self.start_vertexes = start_vertexes
         self.distance_limit = distance_limit
         self.distances = {}
         self.calculator = {}
-        self.sparse_graph, self.unique_vertexes = self.generate_sparse_graph()
+        self.sparse_graph, self.unique_vertexes = self.generate_sparse_graph(data_edges)
         for vertex in self.unique_vertexes:
             self.distances[vertex] = np.inf
             self.calculator[vertex] = np.inf
