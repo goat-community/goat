@@ -29,10 +29,11 @@ class Dijkstra:
                 self.distances[target_id] = distance
                 self.calculator[target_id] = calculator_id
                 self.to_visit.append(target_id)
-            else:
-                if self.calculator[target_id] < calculator_id:
-                    if target_id in self.unvisited_vertexes:
-                        self.unvisited_vertexes.remove(target_id)
+
+            elif self.calculator[target_id] < calculator_id:
+                print("calculator skip trigered.")
+                if target_id in self.unvisited_vertexes:
+                    self.unvisited_vertexes.remove(target_id)
 
     def dijkstra(self):
         """
@@ -42,7 +43,7 @@ class Dijkstra:
         for start_vertex in self.start_vertexes:
 
             calculator_id += 1
-            self.unvisited_vertexes = self.unique_vertexes
+            self.unvisited_vertexes = self.vertexes_set
             self.to_visit = deque([start_vertex])
             self.distances[start_vertex] = 0
             while self.to_visit:
@@ -56,12 +57,13 @@ class Dijkstra:
         return self.distances
 
     def __init__(self, data_edges, start_vertexes, distance_limit):
+        self.data_edges = data_edges
         self.start_vertexes = start_vertexes
         self.distance_limit = distance_limit
         self.distances = {}
         self.calculator = {}
-        self.sparse_graph, self.unique_vertexes = self.generate_sparse_graph(data_edges)
-        for vertex in self.unique_vertexes:
+        self.sparse_graph, self.vertexes_set = self.generate_sparse_graph(data_edges)
+        for vertex in self.vertexes_set:
             self.distances[vertex] = np.inf
             self.calculator[vertex] = np.inf
 
