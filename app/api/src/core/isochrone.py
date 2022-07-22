@@ -3,7 +3,7 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 from dijkstra import Dijkstra
-from scipy.interpolate import NearestNDInterpolator
+from scipy.interpolate import LinearNDInterpolator, NearestNDInterpolator
 
 
 class Isochrone(Dijkstra):
@@ -16,12 +16,14 @@ class Isochrone(Dijkstra):
         costs = [self.distances[id] for id in point_ids]
 
         for point in point_ids:
-            found_point = self.data_edges["source"].searchsorted(point)
-            if found_point is not None:
+            found_point = np.where(self.data_edges["source"] == point)
+            if len(found_point[0]):
+                found_point = found_point[0][0]
                 points.append(self.data_edges["geom"][found_point][0])
             else:
-                found_point = self.data_edges["target"].searchsorted(point)
-                if found_point is not None:
+                found_point = np.where(self.data_edges["target"] == point)
+                if len(found_point[0]):
+                    found_point = found_point[0][0]
                     points.append(self.data_edges["geom"][found_point][-1])
 
         """
@@ -42,14 +44,14 @@ class Isochrone(Dijkstra):
         x = points[0]
         y = points[1]
         z = self.costs
-        interpolate_function = NearestNDInterpolator(list(zip(x, y)), z)
+        interpolate_function = LinearNDInterpolator(list(zip(x, y)), z)
         Z = interpolate_function(X, Y)
-        plt.pcolormesh(X, Y, Z, shading="nearest")
-        # plt.plot(x, y, "ok", label="input point")
-        plt.legend()
-        plt.colorbar()
-        plt.axis("equal")
-        plt.savefig("NearestNDInterpolate.png")
+        return X, Y, Z
+        # plt.pcolormesh(X, Y, Z, shading="nearest")
+        # plt.legend()
+        # plt.colorbar()
+        # plt.axis("equal")
+        # plt.savefig("LinearNDInterpolator.png")
 
     def compute_isochrone(self):
         self.dijkstra()
@@ -61,7 +63,7 @@ class Isochrone(Dijkstra):
 if __name__ == "__main__":
     from src.tests.utils.isochrone import get_sample_network
 
-    edges_network, starting_id, distance_limits = get_sample_network(minutes=10)
+    edges_network, starting_id, distance_limits = get_sample_network(minutes=4)
     isochrone = Isochrone(edges_network, starting_id, distance_limits[0])
     isochrone.compute_isochrone()
 
