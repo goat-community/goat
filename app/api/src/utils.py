@@ -2,6 +2,7 @@ import json
 import logging
 import math
 import os
+import re
 import shutil
 import uuid
 from datetime import datetime, timedelta
@@ -573,9 +574,32 @@ def print_warning(message: str):
     print(f"[bold red]WARNING[/bold red]: {message}")
 
 
+def tablify(s):
+
+    # Replace file suffix dot with underscore
+
+    s = s.replace(".", "_")
+
+    # Remove all non-word characters (everything except numbers and letters)
+    s = re.sub(r"[^\w\s]", "", s)
+
+    # Replace all runs of whitespace with a single underscore
+    s = re.sub(r"\s+", "_", s)
+
+    # Lowercase to prevent having uppercase in table name
+    s = s.lower()
+
+    return s
+
+
 def generate_static_layer_table_name(prefix: str = None):
     if prefix:
-        return prefix + uuid.uuid4().hex
+        prefix = tablify(prefix)
+        # Add sl to prevent havin numbers at the beginning of the table name
+        table_name = "sl_" + prefix + "_" + uuid.uuid4().hex
+        # The table name limit is 63
+        table_name = table_name[:63]
+        return table_name
     else:
         return "static_layer_" + uuid.uuid4().hex
 
