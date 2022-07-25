@@ -106,7 +106,10 @@ async def update_static_layer_data(
     assert data_frame.crs.srs == "epsg:4326"
 
     static_layer = await crud.static_layer.get(db, id=layer_id)
-    crud.static_layer.drop_postgis_table(db,static_layer.table_name)
+
+    await crud.static_layer.drop_postgis_table(db, static_layer.table_name)
+    static_layer.table_name = generate_static_layer_table_name(prefix=upload_file.filename)
+    await crud.static_layer.update(db, db_obj=static_layer, obj_in=static_layer)
     # Update Data Frame to Database
     data_frame.to_postgis(
         name=static_layer.table_name,
