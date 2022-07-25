@@ -15,16 +15,23 @@
                 expand-icon=""
                 v-slot="{ open }"
               >
-                <v-layout row wrap align-center>
+                <v-layout row wrap align-center justify-space-between>
                   <v-flex xs1>
                     <v-icon small>{{
                       getLayerGroupIcon(layerGroup.name)
                     }}</v-icon>
                   </v-flex>
-                  <v-flex xs10 class="light-text" style="font-size:medium;">
+                  <v-flex xs8 class="light-text" style="font-size:medium;">
                     <div>
                       <b>{{ translate("layerGroup", layerGroup.name) }}</b>
                     </div>
+                  </v-flex>
+                  <v-flex>
+                    <ImportExternalLayers
+                      @getLayerInfo="layerInfoSubmited"
+                      @addLayer="addBuiltInLayers"
+                      v-if="layerGroup.name === 'external_imports'"
+                    />
                   </v-flex>
                   <v-flex xs1>
                     <v-icon v-html="open ? 'remove' : 'add'"></v-icon>
@@ -59,9 +66,10 @@
                             <h4 class="pl-2">
                               {{ translate("layerName", layer.get("name")) }}
                             </h4>
+
                             <v-icon
-                              class="delete-btn mr-2"
-                              style="cursor: pointer"
+                              class="mr-2"
+                              style="float: right; cursor: pointer;"
                               small
                               @click="deleteExternalLayer(layer)"
                               v-if="layer.get('group') === 'external_imports'"
@@ -161,12 +169,6 @@
               </v-expansion-panel-content>
             </v-expansion-panel>
           </v-expansion-panels>
-          <v-layout class="mt-5" column align-center>
-            <ImportExternalLayers
-              @getLayerInfo="layerInfoSubmited"
-              @addLayer="addBuiltInLayers"
-            />
-          </v-layout>
         </v-tab-item>
         <v-tab-item :eager="true">
           <layer-order
@@ -235,7 +237,10 @@ export default {
   components: { LayerOrder, InLegend, StyleDialog, ImportExternalLayers },
   methods: {
     // Layer Import feature
-    layerInfoSubmited(data) {
+    layerInfoSubmited({ data, currentHoveredLayer }) {
+      if (currentHoveredLayer) {
+        this.map.removeLayer(currentHoveredLayer);
+      }
       let resultsfromThis = this.appConfig.layer_groups.map(lay => {
         return Object.keys(lay)[0];
       });
@@ -263,7 +268,8 @@ export default {
         name: data.title,
         visible: true,
         opacity: 1,
-        type: "wmts"
+        type: "wmts",
+        legendGraphicUrls: data.legendUrl
       });
 
       if (this.layerGroupsArr.length === 5) {
@@ -292,7 +298,23 @@ export default {
 
     //updating the sidebar layers
     updateLayerGroups() {
+      const currentConfig = this.appConfig;
       const layerGroups = this.appConfig.layer_groups;
+
+      let externalGroup = layerGroups.filter(
+        layer => Object.keys(layer)[0] === "external_imports"
+      );
+      if (externalGroup.length === 0) {
+        let imports = {
+          external_imports: {
+            children: [],
+            icon: "fas fa-upload"
+          }
+        };
+        currentConfig.layer_groups.push(imports);
+        this.$store.commit("app/setAppConfig", currentConfig);
+      }
+
       layerGroups.forEach(lg => {
         const layerGroupName = Object.keys(lg)[0];
         if (layerGroupName !== "heatmap") {
@@ -496,10 +518,5 @@ export default {
 
 .layer-row >>> .v-expansion-panel-header {
   cursor: auto;
-}
-
-.delete-btn {
-  color: red;
-  float: right;
 }
 </style>

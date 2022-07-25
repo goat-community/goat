@@ -2,63 +2,133 @@
   <div class="text-center">
     <v-dialog v-model="dialog" width="700">
       <template v-slot:activator="{ on, attrs }">
-        <v-btn
-          style="background-color: rgb(43, 179, 129);"
-          dark
-          v-bind="attrs"
-          v-on="on"
-        >
-          Import External Layer
-        </v-btn>
+        <v-icon v-bind="attrs" small v-on="on">
+          fas fa-link
+        </v-icon>
       </template>
 
-      <v-card style="padding: 40px;">
+      <v-card>
         <div v-if="option === 'first'">
-          <v-card-text class="pa-0">
-            <h1 class="mb-4" style="color: #555;">Import a Layer</h1>
+          <v-card-title
+            :style="`background-color: ${appColor.primary}; padding: 5px 12px`"
+          >
+            <v-layout
+              style="padding: 0 20px;"
+              row
+              align-center
+              justify-space-between
+            >
+              <v-flex xs6>
+                <div
+                  style="display: flex; align-items: center; justify-content: left;"
+                >
+                  <v-icon color="white">fas fa-layer-group</v-icon>
+                  <p class="ma-0 ml-3 white--text">Choose Geoportal</p>
+                </div>
+              </v-flex>
+              <v-flex xs1 text-right>
+                <v-icon
+                  color="white"
+                  style="cursor:pointer;"
+                  @click="cancelHandler"
+                  >fas fa-xmark</v-icon
+                >
+              </v-flex>
+            </v-layout>
+          </v-card-title>
+          <v-card-text style="padding: 20px;">
+            <h2 class="mb-4" style="color: #555;">Built-in Geoportals</h2>
+            <div>
+              <div class="cards">
+                <div
+                  v-for="(layer, idx) in dummyLayerData[value].layers"
+                  :key="idx"
+                  class="cardBox"
+                  @click="$emit('addLayer', layer)"
+                >
+                  <div class="overlay">+</div>
+                  <img :src="layer.img" alt="" />
+                  <div class="content">
+                    <p>{{ layer.name }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </v-card-text>
-          <div>
-            <v-btn
-              class="button-categorizer white--text"
-              style="background-color: rgb(43, 179, 129);"
-              @click="changeOption('builtin')"
-              >Add Built-in Layers</v-btn
-            >
-            <v-btn
-              class="button-categorizer white--text"
-              style="background-color: rgb(43, 179, 129);"
-              @click="changeOption('upload')"
-              >Upload Layer via source url</v-btn
-            >
-          </div>
-          <v-card-actions style="padding-bottom: 0; padding-right: 0;">
-            <v-spacer></v-spacer>
-            <v-btn
-              color="success"
-              style="margin-top: 20px;"
-              text
-              @click="cancelHandler"
-              >Cancel</v-btn
-            >
-          </v-card-actions>
+          <v-card-text style="padding: 20px; padding-bottom: 20px">
+            <h2 class="mb-4" style="color: #555;">Add own Geoportal</h2>
+            <v-layout style="padding: 0 12px;" row align-center>
+              <v-flex xs10>
+                <v-form ref="form" lazy-validation>
+                  <v-alert type="error" v-if="error">
+                    {{ error }}
+                  </v-alert>
+                  <v-text-field
+                    v-model="url"
+                    label="Source Url"
+                    required
+                  ></v-text-field>
+                </v-form>
+              </v-flex>
+              <v-flex xs2 text-right>
+                <v-btn
+                  text
+                  @click="layerDataHandler"
+                  :style="`color: ${appColor.primary}`"
+                  >ADD</v-btn
+                >
+              </v-flex>
+            </v-layout>
+          </v-card-text>
         </div>
         <div v-if="option === 'upload'">
-          <v-card-text class="pa-0">
-            <h1 class="mb-4" style="color: #555;">Import a Layer</h1>
+          <v-card-title
+            :style="`background-color: ${appColor.primary}; padding: 5px 12px`"
+          >
+            <v-layout
+              style="padding: 0 20px;"
+              row
+              align-center
+              justify-space-between
+            >
+              <v-flex xs6>
+                <div
+                  style="display: flex; align-items: center; justify-content: left;"
+                >
+                  <v-icon color="white">fas fa-layer-group</v-icon>
+                  <p class="ma-0 ml-3 white--text">
+                    External Geoportal
+                  </p>
+                </div>
+              </v-flex>
+              <v-flex xs1 text-right>
+                <v-icon
+                  color="white"
+                  style="cursor:pointer;"
+                  @click="cancelHandler"
+                  >fas fa-xmark</v-icon
+                >
+              </v-flex>
+            </v-layout>
+          </v-card-title>
+          <v-card-text class="pa-6">
+            <h1 class="mb-4" style="color: #555;">Import layer from</h1>
             <v-form ref="form" lazy-validation>
               <v-alert type="error" v-if="error">
                 {{ error }}
               </v-alert>
               <v-text-field
-                v-model="url"
-                label="Source Url"
+                v-model="searchByName"
+                label="Search by name"
                 required
               ></v-text-field>
             </v-form>
             <div>
               <p class="h6">Results</p>
               <v-card
-                v-for="(simpleLayer, idx) in layerListToAdd"
+                v-for="(simpleLayer, idx) in searchedListData"
+                @mouseover="onHoverHandler(simpleLayer)"
+                @mouseleave="onMouseLeaveHandler(simpleLayer)"
                 :key="idx"
                 class="mx-auto mb-2"
                 style="display: flex"
@@ -79,7 +149,12 @@
                 <v-card-actions>
                   <v-btn
                     text
-                    @click="$emit('getLayerInfo', simpleLayer)"
+                    @click="
+                      $emit('getLayerInfo', {
+                        data: simpleLayer,
+                        currentHoveredLayer: previewLayer
+                      })
+                    "
                     color="deep-purple accent-4"
                   >
                     <v-icon small color="success">fas fa-circle-plus</v-icon>
@@ -88,16 +163,8 @@
               </v-card>
             </div>
           </v-card-text>
-          <v-card-actions style="padding-bottom: 0; padding-right: 0;">
-            <v-spacer></v-spacer>
-            <v-btn color="success" text @click="goBackHandler">Go Back</v-btn>
-            <v-btn color="success" text @click="cancelHandler">Cancel</v-btn>
-            <v-btn color="success" text @click="layerDataHandler">
-              Import Layers
-            </v-btn>
-          </v-card-actions>
         </div>
-        <div v-if="option === 'builtin'">
+        <!-- <div v-if="option === 'builtin'">
           <v-card-text class="pa-0">
             <h1 class="mb-4" style="color: #555;">Built-in Layers</h1>
           </v-card-text>
@@ -138,7 +205,7 @@
             <v-btn color="success" text @click="goBackHandler">Go Back</v-btn>
             <v-btn color="success" text @click="cancelHandler">Cancel</v-btn>
           </v-card-actions>
-        </div>
+        </div> -->
       </v-card>
     </v-dialog>
   </div>
@@ -146,21 +213,72 @@
 
 <script>
 import { dataBuiltInLayers } from "../../../testData";
+import { mapGetters } from "vuex";
+import { Mapable } from "../../../mixins/Mapable";
+import TileLayer from "ol/layer/Tile";
+import TileWMS from "ol/source/TileWMS";
 
 export default {
+  mixins: [Mapable],
   data: () => ({
     url: "",
     dialog: false,
     error: "",
-    layerListToAdd: [],
     option: "first",
     value: 0,
-    dummyLayerData: []
+    dummyLayerData: [],
+    layerListToAdd: [],
+    searchedListData: [],
+    searchByName: "",
+    previewLayer: null
   }),
+  watch: {
+    searchByName(newValue) {
+      if (!newValue) {
+        this.searchedListData = this.layerListToAdd;
+      } else {
+        this.searchedListData = this.layerListToAdd.filter(layer =>
+          layer.title.toLowerCase().match(newValue.toLowerCase())
+        );
+      }
+    }
+  },
+  computed: {
+    ...mapGetters("app", {
+      appConfig: "appConfig",
+      appColor: "appColor"
+    })
+  },
   mounted() {
     this.dummyLayerData = dataBuiltInLayers;
   },
   methods: {
+    onHoverHandler(layerInfo) {
+      if (!this.previewLayer) {
+        let newLayer = new TileLayer({
+          source: new TileWMS({
+            url: layerInfo.url,
+            params: {
+              layers: layerInfo.name
+            },
+            attribution: layerInfo.title
+          }),
+          group: "external_imports",
+          name: layerInfo.title,
+          visible: true,
+          opacity: 1,
+          type: "wmts"
+        });
+        this.map.addLayer(newLayer);
+        this.previewLayer = newLayer;
+      }
+    },
+    onMouseLeaveHandler(layerInfo) {
+      if (this.previewLayer.get("name") === layerInfo.title) {
+        this.map.removeLayer(this.previewLayer);
+        this.previewLayer = null;
+      }
+    },
     // navigation through the popup
     changeOption(value) {
       this.option = value;
@@ -171,6 +289,7 @@ export default {
     cancelHandler() {
       this.url = "";
       this.layerListToAdd = [];
+      this.searchedListData = [];
       this.error = "";
       this.dialog = false;
       this.option = "first";
@@ -191,7 +310,10 @@ export default {
     },
     // this will fetch all the data from the given links if it has capabilities
     findAllAvailableLayers(data) {
-      if (data.layer_url.includes("SERVICE=WMS&REQUEST=GetCapabilities")) {
+      if (
+        data.layer_url.includes("SERVICE=WMS&REQUEST=GetCapabilities") ||
+        data.layer_url.includes("REQUEST=GetCapabilities&SERVICE=WMS")
+      ) {
         fetch(data.layer_url)
           .then(result => {
             return result.text();
@@ -202,20 +324,64 @@ export default {
             let names = [...xmlDoc.getElementsByTagName("Layer")];
             let type = xmlDoc.getElementsByTagName("Name")[0].textContent;
             names.forEach((layerElement, idx) => {
-              if (idx !== 0) {
+              if (idx !== -1) {
+                for (const childElem of layerElement.children) {
+                  if (childElem.nodeName === "Abstract") {
+                    if (layerElement.getElementsByTagName("LegendURL")[0]) {
+                      console.log("has Legend");
+                      let layerLegends = layerElement.getElementsByTagName(
+                        "LegendURL"
+                      )[0];
+                      let legendSrc = layerLegends
+                        .getElementsByTagName("OnlineResource")[0]
+                        .getAttribute("xlink:href");
+
+                      let layerPossibility = {
+                        title: layerElement.getElementsByTagName("Title")[0]
+                          .textContent,
+                        name: layerElement.getElementsByTagName("Name")[0]
+                          .textContent,
+                        description: layerElement.getElementsByTagName(
+                          "Abstract"
+                        )[0].textContent,
+                        url: data.layer_url.split("?")[0] + "?",
+                        type: type,
+                        legendUrl: [legendSrc]
+                      };
+                      this.layerListToAdd.push(layerPossibility);
+                      this.searchedListData.push(layerPossibility);
+                      return;
+                    }
+                    let layerPossibility = {
+                      title: layerElement.getElementsByTagName("Title")[0]
+                        .textContent,
+                      name: layerElement.getElementsByTagName("Name")[0]
+                        .textContent,
+                      description: layerElement.getElementsByTagName(
+                        "Abstract"
+                      )[0].textContent,
+                      url: data.layer_url.split("?")[0] + "?",
+                      type: type
+                    };
+                    this.layerListToAdd.push(layerPossibility);
+                    this.searchedListData.push(layerPossibility);
+                    return;
+                  }
+                }
                 let layerPossibility = {
                   title: layerElement.getElementsByTagName("Title")[0]
                     .textContent,
                   name: layerElement.getElementsByTagName("Name")[0]
                     .textContent,
-                  description: layerElement.getElementsByTagName("Abstract")[0]
-                    .textContent,
+                  description: "No description...",
                   url: data.layer_url.split("?")[0] + "?",
                   type: type
                 };
                 this.layerListToAdd.push(layerPossibility);
+                this.searchedListData.push(layerPossibility);
               }
             });
+            this.option = "upload";
           });
       } else {
         this.error =
@@ -243,7 +409,7 @@ export default {
 
 .cards {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
   grid-row-gap: 20px;
   justify-items: center;
   margin-top: 20px;
