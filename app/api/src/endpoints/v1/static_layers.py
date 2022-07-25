@@ -7,7 +7,11 @@ from src.db import models
 from src.db.models.config_validation import *
 from src.db.session import legacy_engine
 from src.endpoints import deps
-from src.utils import generate_static_layer_table_name, return_geojson_or_geobuf
+from src.utils import (
+    convert_postgist_to_4326,
+    generate_static_layer_table_name,
+    return_geojson_or_geobuf,
+)
 
 router = APIRouter()
 
@@ -47,6 +51,11 @@ async def upload_static_layer(
         user_id=current_user.id,
         table_name=generate_static_layer_table_name(prefix=upload_file.filename),
     )
+    if data_frame.crs.name == "unknown":
+        raise HTTPException(status_code=400, detail="Invalid CRS")
+
+    convert_postgist_to_4326(data_frame)
+    assert data_frame.crs.srs == "epsg:4326"
     # Save Data Frame to Database
     data_frame.to_postgis(
         name=static_layer.table_name,
@@ -88,6 +97,12 @@ async def update_static_layer_data(
         data_frame = geopandas.read_file(upload_file.file)
     except:
         raise HTTPException(status_code=400, detail="Could not parse the uploaded file.")
+
+    if data_frame.crs.name == "unknown":
+        raise HTTPException(status_code=400, detail="Invalid CRS")
+
+    convert_postgist_to_4326(data_frame)
+    assert data_frame.crs.srs == "epsg:4326"
     static_layer = await crud.static_layer.get(db, id=layer_id)
     # Save Data Frame to Database
     data_frame.to_postgis(

@@ -573,8 +573,13 @@ def print_warning(message: str):
     print(f"[bold red]WARNING[/bold red]: {message}")
 
 
-def generate_static_layer_table_name(prefix:str=None):
+def generate_static_layer_table_name(prefix: str = None):
     if prefix:
         return prefix + uuid.uuid4().hex
     else:
         return "static_layer_" + uuid.uuid4().hex
+
+
+def convert_postgist_to_4326(data_frame):
+    data_frame.to_crs(epsg=4326, inplace=True)
+    data_frame.set_crs(epsg=4326)
