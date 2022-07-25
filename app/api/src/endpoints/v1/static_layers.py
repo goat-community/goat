@@ -31,7 +31,7 @@ router2 = APIRouter()
 
 
 @router2.post("/static")
-async def uplaod_static_layer(
+async def upload_static_layer(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
