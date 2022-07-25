@@ -1,3 +1,5 @@
+from typing import List
+
 import geopandas
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -72,6 +74,19 @@ async def upload_static_layer(
     return static_layer
 
 
+@router2.get("/static/", response_model=List[models.StaticLayer])
+async def list_static_layers(
+    db: AsyncSession = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 100,
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+):
+    static_layers = await crud.static_layer.get_multi(db, skip=skip, limit=limit)
+    if not static_layers:
+        raise HTTPException(status_code=404, detail="there is no (more) static layers.")
+    return static_layers
+
+
 @router2.get("/static/{layer_id:int}")
 async def get_static_layer_data(
     *,
@@ -80,11 +95,10 @@ async def get_static_layer_data(
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
     static_layer = await crud.static_layer.get(db, id=layer_id)
-    data_frame = geopandas.GeoDataFrame.from_postgis(
-        sql=static_layer.data_frame_raw_sql(), con=legacy_engine.connect(), geom_col="geometry"
-    )
+    if not static_layer:
+        raise HTTPException(status_code=404, detail="static layer not found.")
 
-    return {"data_frame": data_frame.values.tolist()}
+    return static_layer
 
 
 @router2.put("/static/{layer_id:int}")
@@ -95,6 +109,11 @@ async def update_static_layer_data(
     current_user: models.User = Depends(deps.get_current_active_superuser),
     upload_file: UploadFile,
 ):
+
+    static_layer = await crud.static_layer.get(db, id=layer_id)
+    if not static_layer:
+        raise HTTPException(status_code=404, detail="static layer not found.")
+
     try:
         # Convert UploadFile to Data frame
         data_frame = geopandas.read_file(upload_file.file)
@@ -104,8 +123,6 @@ async def update_static_layer_data(
     validate_data_frame(data_frame)
     convert_postgist_to_4326(data_frame)
     assert data_frame.crs.srs == "epsg:4326"
-
-    static_layer = await crud.static_layer.get(db, id=layer_id)
 
     await crud.static_layer.drop_postgis_table(db, static_layer.table_name)
     static_layer.table_name = generate_static_layer_table_name(prefix=upload_file.filename)
@@ -119,4 +136,19 @@ async def update_static_layer_data(
         index=True,
     )
 
+    return static_layer
+
+
+@router2.delete("/static/{layer_id:int}")
+async def update_static_layer_data(
+    *,
+    layer_id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+):
+    static_layer = await crud.static_layer.get(db, id=layer_id)
+    if not static_layer:
+        raise HTTPException(status_code=404, detail="static layer not found.")
+    await crud.static_layer.drop_postgis_table(db, static_layer.table_name)
+    static_layer = await crud.static_layer.remove(db, id=static_layer.id)
     return static_layer
