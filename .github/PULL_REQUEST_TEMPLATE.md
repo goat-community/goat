@@ -3,10 +3,6 @@
 ## Description
 <!--- Describe your changes in detail -->
 
-## Related Issue
-<!--- If fixing a bug, there should be an issue describing it with steps to reproduce -->
-<!--- Please link to the issue here: -->
-
 ## Motivation and Context
 <!--- Why is this change required? What problem does it solve? -->
 <!--- If it fixes an open issue, please link to the issue here. -->
@@ -18,6 +14,9 @@
 
 ## Screenshots (if appropriate):
 
+## Related Issue
+<!--- If fixing a bug, there should be an issue describing it with steps to reproduce -->
+<!--- Please link to the issue here: -->
 <!--- Put "closes #XXXX" in your comment to auto-close the issue that your PR fixes (if such). -->
 
 <!--- Attribution: https://github.com/stevemao/github-issue-templates -->
