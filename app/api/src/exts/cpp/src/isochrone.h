@@ -1,7 +1,7 @@
 // cppimport
 
 /*PGR-GNU*****************************************************************
-File: isochrone.cpp
+File: isochrone.h
 Copyright (c) 2021 Majk Shkurti, <majk.shkurti@plan4better.de>
 Copyright (c) 2020 Vjeran Crnjak, <vjeran@crnjak.xyz>
 ------
@@ -17,10 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  ********************************************************************PGR-GNU*/
-// Adjacency list for the isochrone network (for each node, the edges that are connected to it)
+
 #pragma once
 #include "concaveman.h"
+#include "types.h"
 
+// Adjacency list for the isochrone network (for each node, the edges that are connected to it)
 std::vector<std::vector<const Edge *>>
 construct_adjacency_list(size_t n, const Edge *edges,
                          size_t total_edges)
@@ -53,10 +55,14 @@ void dijkstra(int64_t start_vertex, double driving_distance,
     typedef std::tuple<double, int64_t> pq_el; // <agg_cost at node, node id>
     std::set<pq_el> q;                         // priority queue
     q.insert({0., start_vertex});
+    double dist;
+    int64_t node_id;
+    int64_t target;
+    double cost;
+    double agg_cost;
     while (!q.empty())
     {
-        double dist;
-        int64_t node_id;
+
         std::tie(dist, node_id) = *q.begin();
         if (dist >= driving_distance)
         {
@@ -65,9 +71,17 @@ void dijkstra(int64_t start_vertex, double driving_distance,
         q.erase(q.begin());
         for (auto &&e : adj[node_id])
         {
-            int64_t target = e->target == node_id ? e->source : e->target;
-            double cost = e->target == node_id ? e->reverse_cost : e->cost;
-            double agg_cost = dist + cost;
+            if (e->target == node_id)
+            {
+                target = e->source;
+                cost = e->reverse_cost;
+            }
+            else
+            {
+                target = e->target;
+                cost = e->cost;
+            }
+            agg_cost = dist + cost;
             if ((*distances)[target] > agg_cost)
             {
                 q.erase({(*distances)[target], target});
@@ -84,10 +98,11 @@ std::unordered_map<int64_t, int64_t> remap_edges(Edge *data_edges,
 {
     std::unordered_map<int64_t, int64_t> mapping;
     int64_t id = 0;
+    int64_t source_id, target_id;
+    Edge *e;
     for (size_t i = 0; i < total_edges; ++i)
     {
-        Edge *e = data_edges + i;
-        int64_t source_id, target_id;
+        e = data_edges + i;
         auto it = mapping.find(e->source);
         // better with if-initialization-statement
         if (it != mapping.end())
@@ -200,6 +215,18 @@ std::vector<std::array<double, 2>> line_substring(const double &start_perc, cons
 
     bool start_reached = false;
     double accumulated_dist = 0.;
+
+    double x1;
+    double y1;
+    double x2;
+    double y2;
+    double dx;
+    double dy;
+    double d2;
+    double x;
+    double y;
+    double segment_dist = sqrt(pow(dx, 2) + pow(dy, 2));
+    double dist_at_coord = accumulated_dist;
     for (size_t i = 0; i < size - 1; ++i)
     {
         // Edge cases check.
@@ -215,14 +242,14 @@ std::vector<std::array<double, 2>> line_substring(const double &start_perc, cons
         }
 
         // Find segment distance (sqrt((x1-x2)^2 + (y1-y2)^2))
-        double x1 = geometry[i][0];
-        double y1 = geometry[i][1];
-        double x2 = geometry[i + 1][0];
-        double y2 = geometry[i + 1][1];
-        double dx = x1 - x2;
-        double dy = y1 - y2;
-        double segment_dist = sqrt(pow(dx, 2) + pow(dy, 2));
-        double dist_at_coord = accumulated_dist;
+        x1 = geometry[i][0];
+        y1 = geometry[i][1];
+        x2 = geometry[i + 1][0];
+        y2 = geometry[i + 1][1];
+        dx = x1 - x2;
+        dy = y1 - y2;
+        segment_dist = sqrt(pow(dx, 2) + pow(dy, 2));
+        dist_at_coord = accumulated_dist;
         accumulated_dist += segment_dist;
         if (i == 0 && start_perc_ == 0)
         {
@@ -232,9 +259,9 @@ std::vector<std::array<double, 2>> line_substring(const double &start_perc, cons
         // Interpolate at start percentage and push to line_substring
         if (accumulated_dist >= start_dist && !start_reached)
         {
-            double d2 = start_dist - dist_at_coord;
-            double x = x1 - ((d2 * dx) / segment_dist);
-            double y = y1 - ((d2 * dy) / segment_dist);
+            d2 = start_dist - dist_at_coord;
+            x = x1 - ((d2 * dx) / segment_dist);
+            y = y1 - ((d2 * dy) / segment_dist);
             line_substring.push_back({x, y});
             start_reached = true;
         }
@@ -247,9 +274,9 @@ std::vector<std::array<double, 2>> line_substring(const double &start_perc, cons
         // Interpolate at end percentage, push to line_substring and break
         if (accumulated_dist >= end_dist)
         {
-            double d2 = end_dist - dist_at_coord;
-            double x = x1 - ((d2 * dx) / segment_dist);
-            double y = y1 - ((d2 * dy) / segment_dist);
+            d2 = end_dist - dist_at_coord;
+            x = x1 - ((d2 * dx) / segment_dist);
+            y = y1 - ((d2 * dy) / segment_dist);
             line_substring.push_back({x, y});
             break;
         }
@@ -279,6 +306,9 @@ void append_edge_result(const int64_t &start_v, const int64_t &edge_id, const do
     double current_cost = cost_at_node;
     double travel_cost = edge_cost;
     double start_perc = 0.;
+    double partial_travel;
+    double cost_at_target;
+    IsochroneNetworkEdge r;
 
     for (auto &dl : distance_limits)
     {
@@ -286,8 +316,7 @@ void append_edge_result(const int64_t &start_v, const int64_t &edge_id, const do
         {
             continue;
         }
-        double cost_at_target = current_cost + travel_cost;
-        IsochroneNetworkEdge r;
+        cost_at_target = current_cost + travel_cost;
         r.start_id = start_v;
         r.edge = edge_id;
         // Full edge
@@ -309,7 +338,7 @@ void append_edge_result(const int64_t &start_v, const int64_t &edge_id, const do
         }
         // Partial Edge: (cost_at_target is bigger than the limit, partial edge)
         travel_cost = cost_at_target - dl; // remaining travel cost
-        double partial_travel = dl - current_cost;
+        partial_travel = dl - current_cost;
         r.start_perc = start_perc;
         r.end_perc = start_perc + partial_travel / edge_cost;
         r.start_cost = current_cost;
@@ -386,25 +415,35 @@ Result compute_isochrone(Edge *data_edges, size_t total_edges,
                  /* driving_distance */ max_dist_cutoff, adj, &predecessors,
                  &distances);
         // Appending the row results.
+        double scost;
+        double tcost;
+        bool s_reached;
+        bool t_reached;
+        bool skip_st;
+        bool skip_ts;
+        double st_dist;
+        double ts_dist;
+        bool st_fully_covered;
+        bool ts_fully_covered;
         for (size_t i = 0; i < total_edges; ++i)
         {
             const Edge &e = *(data_edges + i);
-            double scost = distances[e.source];
-            double tcost = distances[e.target];
-            bool s_reached = !(std::isinf(scost) || scost > max_dist_cutoff);
-            bool t_reached = !(std::isinf(tcost) || tcost > max_dist_cutoff);
+            scost = distances[e.source];
+            tcost = distances[e.target];
+            s_reached = !(std::isinf(scost) || scost > max_dist_cutoff);
+            t_reached = !(std::isinf(tcost) || tcost > max_dist_cutoff);
             if (!s_reached && !t_reached)
             {
                 continue;
             }
-            bool skip_st = false;
-            bool skip_ts = false;
+            skip_st = false;
+            skip_ts = false;
             if (only_minimum_cover)
             {
-                double st_dist = scost + e.cost;
-                double ts_dist = tcost + e.reverse_cost;
-                bool st_fully_covered = st_dist <= max_dist_cutoff;
-                bool ts_fully_covered = ts_dist <= max_dist_cutoff;
+                st_dist = scost + e.cost;
+                ts_dist = tcost + e.reverse_cost;
+                st_fully_covered = st_dist <= max_dist_cutoff;
+                ts_fully_covered = ts_dist <= max_dist_cutoff;
                 skip_ts = st_fully_covered && ts_fully_covered && st_dist < ts_dist;
                 skip_st = st_fully_covered && ts_fully_covered && ts_dist < st_dist;
             }
@@ -430,16 +469,18 @@ Result compute_isochrone(Edge *data_edges, size_t total_edges,
 
         IsochroneStartPoint isp;
         isp.start_id = start_v;
+        std::vector<std::array<double, 2>> isochrone_path;
+        ConvexhullResult hull;
         for (auto &dl : distance_limits)
         {
 
             if (coordinates[dl].size() > 1)
             {
                 auto &points_ = coordinates[dl];
-                std::vector<std::array<double, 2>> isochrone_path;
+
                 if (points_.size() > 3)
                 {
-                    ConvexhullResult hull = convexhull(points_);
+                    hull = convexhull(points_);
                     isochrone_path = concaveman<double, 16>(points_, hull.indices);
                 }
                 else

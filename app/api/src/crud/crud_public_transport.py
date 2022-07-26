@@ -55,7 +55,7 @@ class CRUDPublicTransport:
                 "0": "B",  # route_type: category of public transport route
                 "1": "A",
                 "2": "A",
-                "3": "B",
+                "3": "C",
                 "4": "B",
                 "5": "B",
                 "6": "B",
@@ -124,6 +124,8 @@ class CRUDPublicTransport:
                     acc_trips[station_group] = acc_trips.get(station_group, 0) + trip_count
             station_group = min(station_groups)  # the highest priority (e.g A )
             station_group_trip_count = acc_trips[station_group]
+            if station_group_trip_count == 0:
+                continue
             station_group_trip_time_frequency = time_window / station_group_trip_count
             # - find station category based on time frequency and group
             time_interval = bisect.bisect_left(
@@ -145,7 +147,7 @@ class CRUDPublicTransport:
 
         features = []
         agg_union = None
-        for classification, shapes in classificiation_buffers.items():
+        for classification, shapes in dict(sorted(classificiation_buffers.items())).items():
             union_geom = unary_union(shapes)
             difference_geom = union_geom
             if agg_union:

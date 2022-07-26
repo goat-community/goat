@@ -16,12 +16,12 @@ BEGIN
 	SELECT x.pixel, sum(x.population) AS population 
 	FROM 
 	(
-	 	SELECT basic.coordinate_to_pixel(ST_X(geom), ST_Y(geom), pixel_resolution) AS pixel, p.population AS population
+	 	SELECT basic.coordinate_to_pixel(ST_Y(geom), ST_X(geom), pixel_resolution) AS pixel, p.population AS population
 	 	FROM basic.population p 
 	 	WHERE st_intersects(p.geom, extent)
 	 	AND p.building_id NOT IN (SELECT UNNEST(excluded_buildings_id))
 		UNION ALL 		
-	    SELECT basic.coordinate_to_pixel(ST_X(geom), ST_Y(geom), pixel_resolution) AS pixel, p.population AS population
+	    SELECT basic.coordinate_to_pixel(ST_Y(geom), ST_X(geom), pixel_resolution) AS pixel, p.population AS population
 	 	FROM customer.population_modified p 
 	 	WHERE st_intersects(p.geom, extent)
 	 	AND p.scenario_id = scenario_id_input 
