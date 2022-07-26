@@ -237,6 +237,17 @@ export default {
   components: { LayerOrder, InLegend, StyleDialog, ImportExternalLayers },
   methods: {
     // Layer Import feature
+    createExternalLayerGroup() {
+      let currentConfig = this.appConfig;
+      let imports = {
+        external_imports: {
+          children: [],
+          icon: "fas fa-upload"
+        }
+      };
+      currentConfig.layer_groups.push(imports);
+      this.$store.commit("app/setAppConfig", currentConfig);
+    },
     layerInfoSubmited({ data, currentHoveredLayer }) {
       if (currentHoveredLayer) {
         this.map.removeLayer(currentHoveredLayer);
@@ -245,15 +256,7 @@ export default {
         return Object.keys(lay)[0];
       });
       if (!resultsfromThis.includes("external_imports")) {
-        let currentAppConfig = this.appConfig;
-        let imports = {
-          external_imports: {
-            children: [],
-            icon: "fas fa-upload"
-          }
-        };
-        currentAppConfig.layer_groups.push(imports);
-        this.$store.commit("app/setAppConfig", currentAppConfig);
+        this.createExternalLayerGroup();
       }
 
       let newLayer = new TileLayer({
@@ -269,7 +272,8 @@ export default {
         visible: true,
         opacity: 1,
         type: "wmts",
-        legendGraphicUrls: data.legendUrl
+        legendGraphicUrls: data.legendUrl,
+        showOptions: true
       });
 
       if (this.layerGroupsArr.length === 5) {
@@ -281,38 +285,26 @@ export default {
             if (hasLayer.length === 0) {
               this.map.addLayer(newLayer);
 
-              this.layerGroupsArr = [];
-
-              this.updateLayerGroups();
+              this.updateLayerArray();
             }
           }
         });
       } else {
         this.map.addLayer(newLayer);
 
-        this.layerGroupsArr = [];
-
-        this.updateLayerGroups();
+        this.updateLayerArray();
       }
     },
 
     //updating the sidebar layers
     updateLayerGroups() {
-      const currentConfig = this.appConfig;
       const layerGroups = this.appConfig.layer_groups;
 
       let externalGroup = layerGroups.filter(
         layer => Object.keys(layer)[0] === "external_imports"
       );
       if (externalGroup.length === 0) {
-        let imports = {
-          external_imports: {
-            children: [],
-            icon: "fas fa-upload"
-          }
-        };
-        currentConfig.layer_groups.push(imports);
-        this.$store.commit("app/setAppConfig", currentConfig);
+        this.createExternalLayerGroup();
       }
 
       layerGroups.forEach(lg => {
@@ -349,14 +341,14 @@ export default {
     getLayerGroupIcon(group) {
       const layerGroupConf = this.appConfig.layer_groups.filter(g => g[group]);
       return layerGroupConf[0][group].icon || "fas fa-layer-group";
-      // return "fas fa-layer-group";
     },
     translate(type, key) {
-      //type = {layerGroup || layerName}
       //Checks if key exists and translates it othewise return the input value
       const canTranslate = this.$te(`map.${type}.${key}`);
       if (canTranslate) {
         return this.$t(`map.${type}.${key}`);
+      } else if (key === "external_imports") {
+        return "External Layers";
       } else {
         return key;
       }
@@ -411,15 +403,7 @@ export default {
         return Object.keys(lay)[0];
       });
       if (!resultsfromThis.includes("external_imports")) {
-        let currentAppConfig = this.appConfig;
-        let imports = {
-          external_imports: {
-            children: [],
-            icon: "fas fa-upload"
-          }
-        };
-        currentAppConfig.layer_groups.push(imports);
-        this.$store.commit("app/setAppConfig", currentAppConfig);
+        this.createExternalLayerGroup();
       }
 
       if (layerInfo.type === "tile") {
@@ -472,19 +456,20 @@ export default {
             );
             if (hasLayer.length === 0) {
               this.map.addLayer(newlayer);
-              this.layerGroupsArr = [];
-              this.updateLayerGroups();
+              this.updateLayerArray();
             }
           }
         });
       } else {
         this.map.addLayer(newlayer);
-        this.layerGroupsArr = [];
-        this.updateLayerGroups();
+        this.updateLayerArray();
       }
     },
     deleteExternalLayer(layer) {
       this.map.removeLayer(layer);
+      this.updateLayerArray();
+    },
+    updateLayerArray() {
       this.layerGroupsArr = [];
       this.updateLayerGroups();
     }

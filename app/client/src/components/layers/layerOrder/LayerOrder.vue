@@ -4,7 +4,7 @@
       <draggable
         v-model="getVisibleLayers"
         :move="onMove"
-        style="width:100%;"
+        style="width: 100%"
         handle=".handle"
       >
         <v-expansion-panel
@@ -36,7 +36,7 @@
                     layer.getVisible() && layer.get('name') !== 'study_area'
                   "
                   small
-                  style="width: 30px; height: 30px;"
+                  style="width: 30px; height: 30px"
                   v-html="
                     layer.get('showOptions') === false
                       ? 'fas fa-chevron-down'
@@ -57,17 +57,17 @@
               layer.get('showOptions') === true &&
                 layer.get('name') !== 'study_area'
             "
-            style="background-color: white;"
+            style="background-color: white"
             transition="slide-y-reverse-transition"
           >
             <InLegend
               v-if="layer.get('showOptions') === true"
               :layer="layer"
             ></InLegend>
-            <v-layout row style="width:100%;padding-left: 10px;">
+            <v-layout row style="width: 100%; padding-left: 10px">
               <v-flex
                 class="xs2"
-                style="text-align:center;"
+                style="text-align: center"
                 v-if="
                   ['VECTORTILE', 'VECTOR', 'MVT'].includes(
                     layer.get('type').toUpperCase()
@@ -76,7 +76,7 @@
               >
                 <v-icon
                   v-ripple
-                  style="color:#B0B0B0;margin-top:3px;cursor:pointer"
+                  style="color: #b0b0b0; margin-top: 3px; cursor: pointer"
                   dark
                   @click="openStyleDialog(item)"
                 >
