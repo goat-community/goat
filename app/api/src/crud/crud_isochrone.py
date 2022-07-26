@@ -19,10 +19,12 @@ from pandas.io.sql import read_sql
 from pyproj import Transformer
 from shapely.geometry import MultiPolygon, Point, Polygon, shape
 from shapely.ops import unary_union
+from sqlalchemy import intersect
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 
 from src.core.config import settings
+from src.core.isochrone import isochrone_single_depth_grid
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
@@ -617,7 +619,7 @@ class CRUDIsochrone:
                 "length": np.double,
             }
         )
-        return edges_network
+        return edges_network, starting_id
 
     # =======================
     async def __amenity_intersect(self, grid_decoded, max_time) -> Any:
@@ -720,10 +722,14 @@ class CRUDIsochrone:
         if obj_in.mode.value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
             print("WALKING or CYCLING")
             # === Fetch Network ===#
-            network = await self.__read_network(obj_in)
+            network, starting_ids = await self.__read_network(db, obj_in)
             print("Fetched network...")
             # === Compute Grid ===#
+            grid = isochrone_single_depth_grid(network, starting_ids, [25 * 60])
+            print("Created Grid")
             # === Amenity Intersect ===#
+            intersects = await self.__amenity_intersect(grid, 25)
+            return intersects
         else:
             payload = {
                 "accessModes": obj_in.settings.access_mode.value.upper(),

@@ -2,8 +2,9 @@ import math
 
 import matplotlib.pyplot as plt
 import numpy as np
-from dijkstra import Dijkstra
 from scipy.interpolate import LinearNDInterpolator, NearestNDInterpolator
+
+from src.core.dijkstra import Dijkstra
 
 
 class Isochrone(Dijkstra):
@@ -38,33 +39,58 @@ class Isochrone(Dijkstra):
         min_y = math.floor(points[1].min())
         max_x = math.ceil(points[0].max())
         max_y = math.ceil(points[1].max())
-        X = np.arange(start=min_x, stop=max_x, step=20)
-        Y = np.arange(start=min_y, stop=max_y, step=20)
-        X, Y = np.meshgrid(X, Y)  # 2D grid for interpolation
+        self.X = np.arange(start=min_x, stop=max_x, step=20)
+        self.Y = np.arange(start=min_y, stop=max_y, step=20)
+        self.X, self.Y = np.meshgrid(self.X, self.Y)  # 2D grid for interpolation
         x = points[0]
         y = points[1]
         z = self.costs
         interpolate_function = LinearNDInterpolator(list(zip(x, y)), z)
-        Z = interpolate_function(X, Y)
-        return X, Y, Z
-        # plt.pcolormesh(X, Y, Z, shading="nearest")
+        self.Z = interpolate_function(self.X, self.Y)
+
+        # plt.pcolormesh(self.X, self.Y, self.Z, shading="nearest")
         # plt.legend()
         # plt.colorbar()
         # plt.axis("equal")
         # plt.savefig("LinearNDInterpolator.png")
+        return self.X, self.Y, self.Z
 
     def compute_isochrone(self):
         self.dijkstra()
         self.get_isochrone_network()
         self.build_grid_interpolate()
-        pass
+
+    def get_single_depth_grid(
+        self,
+        zoom: int = 10,
+    ):
+        grid_type = "ACCESSGR"
+        grid_data = {}
+        Z = np.ravel(self.Z)
+        z_diff = np.diff(Z, prepend=0)
+        grid_data["version"] = grid_type
+        grid_data["zoom"] = zoom
+        grid_data["west"] = self.X.min()
+        grid_data["north"] = self.Y.max()
+        grid_data["width"] = len(self.X)
+        grid_data["height"] = len(self.Y)
+        grid_data["depth"] = 1
+        grid_data["data"] = z_diff.astype(np.int32)
+
+        return grid_data
+
+
+def isochrone_single_depth_grid(data_edges, start_vertexes, distance_limit):
+    isochrone = Isochrone(data_edges, start_vertexes, distance_limit)
+    isochrone.compute_isochrone()
+    return isochrone.get_single_depth_grid()
 
 
 if __name__ == "__main__":
     from src.tests.utils.isochrone import get_sample_network
 
     edges_network, starting_id, distance_limits = get_sample_network(minutes=4)
-    isochrone = Isochrone(edges_network, starting_id, distance_limits[0])
+    isochrone = Isochrone(edges_network, starting_id, distance_limits)
     isochrone.compute_isochrone()
 
     print()
