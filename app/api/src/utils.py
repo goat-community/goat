@@ -382,9 +382,8 @@ def amenity_r5_grid_intersect(
         width = width
         index = y * width + x
         time_cost = surface[index]
-        if time_cost < 2147483647:
-            population = get_population_sum_population[idx]
-            population_grid_count[int(time_cost)] += population
+        if time_cost < 2147483647 and get_population_sum_population[idx] > 0:
+            population_grid_count[int(time_cost)] += get_population_sum_population[idx]
     population_grid_count = np.cumsum(population_grid_count)
 
     # - loop poi_one_entrance

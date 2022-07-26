@@ -6,9 +6,9 @@ from bson import STANDARD
 from src.endpoints import deps
 from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import MultiPolygon, Polygon
-from pydantic import BaseModel, Field, conlist, root_validator, validator
-from fastapi import HTTPException, Depends
-from src.resources.enums import IsochroneExportType, RoutingTypes, CalculationTypes
+from pydantic import BaseModel, Field, root_validator, validator
+from fastapi import HTTPException
+from src.resources.enums import RoutingTypes
 
 """
 Body of the request
@@ -354,11 +354,18 @@ class IsochroneMultiCountPoisCollection(FeatureCollection):
 # =============================================================================
 
 
+class CalculationTypes(str, Enum):
+    """Calculation types for isochrone."""
+
+    default = "default"
+    scenario = "scenario"
+
+
 class IsochroneMode(Enum):
     WALKING = "walking"
     CYCLING = "cycling"
     TRANSIT = "transit"
-    CAR = "car "
+    CAR = "car"
 
 
 class IsochroneWalkingProfile(Enum):
@@ -370,8 +377,8 @@ class IsochroneCyclingProfile(Enum):
 
 
 class IsochroneAccessMode(Enum):
-    WALKING = "walk"
-    CYCLING = "bicycle"
+    WALK = "walk"
+    BICYCLE = "bicycle"
     CAR = "car"
     CAR_PARK = "car_park"
 
@@ -388,8 +395,8 @@ class IsochroneTransitMode(Enum):
 
 
 class IsochroneEgressMode(Enum):
-    WALKING = "walk"
-    CYCLING = "bicycle"
+    WALK = "walk"
+    BICYCLE = "bicycle"
 
 
 class IsochroneOutputType(Enum):
@@ -423,12 +430,12 @@ class IsochroneDecayFunction(BaseModel):
 class IsochroneSettings(BaseModel):
     # === SETTINGS FOR WALKING AND CYCLING ===#
     travel_time: int = Field(
-        ...,
+        10,
         gt=0,
         description="Travel time in **minutes** for walking and cycling **(Not considered for PT or CAR)**",
     )
     speed: Optional[float] = Field(
-        ...,
+        5,
         gt=0,
         le=25,
         description="Walking or Cycling speed in **km/h** **(Not considered for PT or CAR)**",
@@ -460,10 +467,10 @@ class IsochroneSettings(BaseModel):
         unique_items=True,
     )
     access_mode: Optional[IsochroneAccessMode] = Field(
-        IsochroneAccessMode.WALKING, description="(PT) Access mode"
+        IsochroneAccessMode.WALK, description="(PT) Access mode"
     )
     egress_mode: Optional[IsochroneEgressMode] = Field(
-        IsochroneEgressMode.WALKING, description="(PT) Egress mode"
+        IsochroneEgressMode.WALK, description="(PT) Egress mode"
     )
     bike_speed: Optional[float] = Field(15, gt=0, le=15, description="(PT) Bike speed")
     walk_speed: Optional[float] = Field(5, gt=0, le=15, description="(PT) Walk speed")
@@ -539,7 +546,7 @@ class IsochroneOutput(BaseModel):
 
 
 class IsochroneDTO(BaseModel):
-    mode: IsochroneMode = Field(IsochroneAccessMode.WALKING, description="Isochrone Mode")
+    mode: IsochroneMode = Field(IsochroneAccessMode.WALK, description="Isochrone Mode")
     settings: IsochroneSettings = Field(..., description="Isochrone settings parameters")
     scenario: Optional[IsochroneScenario] = Field(
         {
@@ -675,8 +682,8 @@ request_examples = {
                     "travel_time": "60",
                     "transit_modes": ["bus", "tram", "subway", "rail"],
                     "departure_date": "2022-04-25",
-                    "access_mode": "walking",
-                    "egress_mode": "walking",
+                    "access_mode": "walk",
+                    "egress_mode": "walk",
                     "bike_traffic_stress": 4,
                     "from_time": 25200,
                     "to_time": 39600,

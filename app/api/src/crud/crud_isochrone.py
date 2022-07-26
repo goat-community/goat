@@ -709,9 +709,7 @@ class CRUDIsochrone:
         ##-- ADD AMENITY TO GRID DECODED --##
         grid_decoded["accessibility"] = amenity_count
 
-        ##-- ENCODE GRID AND RETURN --##
-        grid_encoded = encode_r5_grid(grid_decoded)
-        result = Response(bytes(result.content))
+        return grid_decoded
 
     async def calculate(self, db: AsyncSession, obj_in: IsochroneDTO) -> Any:
         """
@@ -727,7 +725,7 @@ class CRUDIsochrone:
         else:
             payload = {
                 "accessModes": obj_in.settings.access_mode.value.upper(),
-                "transitModes": ",".join(x.upper() for x in obj_in.settings.transit_modes),
+                "transitModes": ",".join(x.value.upper() for x in obj_in.settings.transit_modes),
                 "bikeSpeed": obj_in.settings.bike_speed,
                 "walkSpeed": obj_in.settings.walk_speed,
                 "bikeTrafficStress": obj_in.settings.bike_traffic_stress,
@@ -757,11 +755,12 @@ class CRUDIsochrone:
                 "east": 11.94489,
                 "west": 11.31592,
             }
-            result = requests.post(settings.R5_API_URL + "/analysis", json=payload)
-            grid_decoded = decode_r5_grid(result.content)
-            # === Amenity Intersect ===#
-            result = self.__amenity_intersect(grid_decoded, 120)
-
+            response = requests.post(settings.R5_API_URL + "/analysis", json=payload)
+            grid_decoded = decode_r5_grid(response.content)
+            # === Amenity Intersect and Encode ===#
+            grid_decoded = await self.__amenity_intersect(grid_decoded, 120)
+            grid_encoded = encode_r5_grid(grid_decoded)
+            result = Response(bytes(grid_encoded))
         return result
 
 

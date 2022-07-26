@@ -479,6 +479,6 @@ async def analysis(
     ##-- ENCODE GRID AND RETURN --##
     grid_encoded = encode_r5_grid(grid_decoded)
     try:
-        return Response(bytes(result.content))
+        return Response(bytes(grid_encoded))
     except Exception as e:
         raise e
