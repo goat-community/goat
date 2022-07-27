@@ -723,7 +723,7 @@ class CRUDIsochrone:
             network, starting_ids = await self.__read_network(db, obj_in)
             print("Fetched network...")
             # === Compute Grid ===#
-            grid = isochrone_single_depth_grid(network, starting_ids, [25 * 60])
+            grid = isochrone_single_depth_grid(network, starting_ids, [25])
             print("Created Grid")
             # === Amenity Intersect ===#
             intersects = await self.__amenity_intersect(grid, 25)
