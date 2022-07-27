@@ -3,7 +3,8 @@ from .crud_customization import customization, dynamic_customization, user_custo
 from .crud_heatmap import heatmap
 from .crud_isochrone import isochrone, isochrone_calculation, isochrone_feature
 from .crud_layer import layer
-from .crud_layer_library import layer_library
+from .crud_layer_library import layer_library, style_library
+
 from .crud_opportunity_config import (
     opportunity_default_config,
     opportunity_group,
