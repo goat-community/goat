@@ -59,3 +59,15 @@ class UserStudyArea(SQLModel, table=True):
             Integer, ForeignKey("basic.study_area.id", ondelete="CASCADE"), nullable=False
         )
     )
+
+class StudyAreaGeostore(SQLModel, table=True):
+    __tablename__ = "study_area_geostore"
+    __table_args__ = {"schema": "customer"}
+
+    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
+    study_area_id: int = Field(
+        sa_column=Column(Integer, ForeignKey("basic.study_area.id"), nullable=False, index=True)
+    )
+    geostore_id: int = Field(
+        sa_column=Column(Integer, ForeignKey("customer.geostore.id"), nullable=False, index=True)
+    )

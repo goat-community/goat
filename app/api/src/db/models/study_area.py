@@ -23,8 +23,9 @@ if TYPE_CHECKING:
     from .customization import UserCustomization
     from .data_upload import DataUpload
     from .opportunity_config import OpportunityStudyAreaConfig, OpportunityUserConfig
+    from .geostore import Geostore
 
-from ._link_model import StudyAreaGridVisualization, UserStudyArea
+from ._link_model import StudyAreaGridVisualization, UserStudyArea, StudyAreaGeostore
 from ._pydantic_geometry import dump_geom
 
 
@@ -59,6 +60,7 @@ class StudyArea(SQLModel, table=True):
     data_uploads: List["DataUpload"] = Relationship(back_populates="study_area")
     opportunity_study_area_configs: List["OpportunityStudyAreaConfig"] = Relationship(back_populates="study_area")
     opportunity_user_configs: List["OpportunityUserConfig"] = Relationship(back_populates="study_area")
+    geostores: List["Geostore"] = Relationship(back_populates="study_areas", link_model=StudyAreaGeostore)
     _validate_geom = validator("geom", pre=True, allow_reuse=True)(dump_geom)
 
 
