@@ -204,6 +204,7 @@
       </span>
       <v-progress-circular indeterminate color="white"></v-progress-circular>
     </v-snackbar>
+    <div id="isochrone-hover-info"></div>
   </div>
 </template>
 

@@ -352,7 +352,12 @@
       "walking_wheelchair_standard": "Standard",
       "walking_wheelchair_electric": "Electric",
       "cycling_standard": "Standard",
-      "cycling_pedelec": "Pedelec"
+      "cycling_pedelec": "Pedelec",
+      "transit": "Transit",
+      "walk": "Walk",
+      "bicycle": "Bicycle",
+      "car": "Car",
+      "car_park": "Car park"
     },
     "results": {
       "title": "Results",
@@ -392,7 +397,9 @@
         "population": "Population",
         "reachedPopulation": "Reached Population",
         "shared": "Share"
-      }
+      },
+      "travelTime": "Traveltime (minutes)",
+      "amenityCount": "Amenity Count"
     },
     "isochrones": "Isochrones",
     "deleteTitle": "Delete",
@@ -544,7 +551,7 @@
       "osm_dark": "OSM Dark",
       "open_topo_map": "Open Topo Map",
       "mapbox_streets": "Mapbox",
-      "public_transport": "Public Transport",
+      "transit": "Public Transport",
       "bing_aerial": "Bing Aerial",
       "walking_trip_rate": "Walking trips per person",
       "walkingShare": "Share of walking trips",
@@ -909,6 +916,10 @@
     },
     "calendar": {
       "moreEvents": "{0} more"
+    },
+    "timePicker": {
+      "am": "AM",
+      "pm": "PM"
     }
   },
   "common": {
@@ -985,9 +996,7 @@
       "liveliness": "Walking environment",
       "data_quality": "Data Quality",
       "comfort": "Comfort",
-      "walkability": [
-        "TOTAL WALKABILITY SCORE"
-      ],
+      "walkability": ["TOTAL WALKABILITY SCORE"],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index",
       "sidewalk": "Sidewalk availability",

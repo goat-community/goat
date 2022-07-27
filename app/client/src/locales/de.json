@@ -351,7 +351,12 @@
       "walking_elderly": "Senior",
       "walking_wheelchair": "Rollstuhl",
       "cycling_standard": "Standard",
-      "cycling_pedelec": "Pedelec"
+      "cycling_pedelec": "Pedelec",
+      "transit": "Transit",
+      "walk": "Walk",
+      "bicycle": "Bicycle",
+      "car": "Car",
+      "car_park": "Car park"
     },
     "results": {
       "title": "Ergebnisse",
@@ -545,7 +550,7 @@
       "osm_dark": "OSM Dark",
       "open_topo_map": "Open Topo Map",
       "mapbox_streets": "Mapbox",
-      "public_transport": "Öffentlicher Verkehr",
+      "transit": "Öffentlicher Verkehr",
       "bing_aerial": "Bing Aerial",
       "indicators": "Indikatoren",
       "walking_trip_rate": "Zu Fuß zurückgelegte Wege pro Person",

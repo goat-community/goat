@@ -76,6 +76,13 @@ class IsochroneTypes(str, Enum):
     multi = "multi"
 
 
+class R5DecayFunctionType(str, Enum):
+    logistic = "logistic"
+    step = "step"
+    exponential = "exponential"
+    linear = "linear"
+
+
 class SQLReturnTypes(str, Enum):
     """Allowed Vector Tables Enums."""
 

@@ -44,7 +44,7 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
             )
             db_obj.roles = roles.scalars().all()
             del update_data["roles"]
-        if update_data.get("study_areas") or len(update_data["study_areas"]) == 0:
+        if update_data.get("study_areas") or update_data.get("study_areas") == []:
             study_areas = await db.execute(
                 select(models.StudyArea).filter(models.StudyArea.id.in_(obj_in.study_areas))
             )
