@@ -22,7 +22,7 @@ BEGIN
 			FROM st 
 			GROUP BY st.parent_station 
 		)
-		SELECT j.parent_station, j.route_type, sum(cnt) / cnt_children AS cnt
+		SELECT j.parent_station, j.route_type, sum(cnt) AS cnt
 		FROM st, cnt_children c  
 		CROSS JOIN LATERAL 
 		(
@@ -33,7 +33,7 @@ BEGIN
 			GROUP BY st.parent_station, route_type 
 		) j
 		WHERE st.parent_station = c.parent_station
-		GROUP BY j.parent_station, route_type, c.cnt_children  
+		GROUP BY j.parent_station, route_type 
 	),
 	o AS 
 	(
@@ -46,5 +46,9 @@ BEGIN
 	WHERE o.parent_station = s.stop_id;  
 
 END; 
-$function$
-;
+$function$;
+/*
+SELECT * 
+FROM basic.count_public_transport_services_station(91620000,'08:00','09:00', 1)
+WHERE stop_name = 'Ostbahnhof'
+*/
