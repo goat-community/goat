@@ -3,6 +3,7 @@
 import json
 from typing import Any
 
+from fastapi import Response
 from starlette.responses import JSONResponse
 
 
@@ -18,3 +19,7 @@ class JSONIndented(JSONResponse):
             indent=4,
             separators=(",", ":"),
         ).encode("utf-8")
+
+
+class OctetStreamResponse(Response):
+    media_type = "application/octet-stream"

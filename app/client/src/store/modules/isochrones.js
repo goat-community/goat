@@ -80,7 +80,19 @@ const state = {
   multiIsochroneSelectionLayer: null,
   calculations: [],
   isochroneOverlayLayer: null,
-  selectedThematicData: null,
+  selectedCalculations: [], // Array of selected isochrones
+  // Public transport options
+  publicTransport: {
+    accessMode: "walking",
+    egressMode: "walking",
+    fromTime: "07:00",
+    toTime: "09:00",
+    date: new Date().toISOString().split("T")[0],
+    transitModes: []
+  },
+  chartDatasetType: 0, // 0: population, 1: amenities
+  isochroneRange: 15, // in minutes
+  calculationColors: ["rgba(40, 54, 72, 0.4)", "rgba(235, 57, 21, 0.4)"], // [0]: default, [1]: scenario or compare
   // Cancel Request
   cancelReq: undefined
 };
@@ -89,8 +101,11 @@ const getters = {
   colors: state => state.colors,
   type: state => state.type,
   isochroneLayer: state => state.isochroneLayer,
-  selectedThematicData: state => state.selectedThematicData,
+  selectedCalculations: state => state.selectedCalculations,
+  isochroneRange: state => state.isochroneRange,
   calculations: state => state.calculations,
+  calculationColors: state => state.calculationColors,
+  chartDatasetType: state => state.chartDatasetType,
   getField
 };
 
