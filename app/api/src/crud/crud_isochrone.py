@@ -22,6 +22,7 @@ from shapely.ops import unary_union
 from sqlalchemy import intersect
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
+from urllib3 import HTTPResponse
 
 from src.core.config import settings
 from src.core.isochrone import isochrone_single_depth_grid
@@ -724,10 +725,11 @@ class CRUDIsochrone:
             print("Fetched network...")
             # === Compute Grid ===#
             grid = isochrone_single_depth_grid(network, starting_ids, [25])
-            print("Created Grid")
+            print("Created Grid...")
+
             # === Amenity Intersect ===#
             intersects = await self.__amenity_intersect(grid, 25)
-            return intersects
+            return HTTPResponse("finished")
         else:
             payload = {
                 "accessModes": obj_in.settings.access_mode.value.upper(),
