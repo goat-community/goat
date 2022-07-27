@@ -1,12 +1,15 @@
-from errno import ELOOP
 import io
+import json
 import os
 import shutil
 import uuid
-import json
+from errno import ELOOP
 from typing import Any
 
+import numpy as np
 import pandas as pd
+import requests
+from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from geojson import FeatureCollection
@@ -14,24 +17,36 @@ from geopandas import GeoDataFrame, GeoSeries
 from geopandas.io.sql import read_postgis
 from pandas.io.sql import read_sql
 from pyproj import Transformer
-from shapely.geometry import MultiPolygon, Point, Polygon
+from shapely.geometry import MultiPolygon, Point, Polygon, shape
+from shapely.ops import unary_union
+from sqlalchemy import intersect
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
-from shapely.ops import unary_union
+from urllib3 import HTTPResponse
+
+from src.core.config import settings
+from src.core.isochrone import isochrone_single_depth_grid
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
 from src.exts.cpp.bind import isochrone as isochrone_cpp
-from src.resources.enums import IsochroneExportType
+from src.jsoline import jsolines
+from src.resources.enums import IsochroneExportType, IsochroneTypes
 from src.schemas.isochrone import (
+    IsochroneDTO,
+    IsochroneMode,
     IsochroneMulti,
     IsochroneSingle,
     IsochroneTypeEnum,
 )
-from src.crud.base import CRUDBase
-from src.utils import delete_dir
-from src.resources.enums import IsochroneTypes
-import xlsxwriter
+from src.utils import (
+    amenity_r5_grid_intersect,
+    compute_single_value_surface,
+    decode_r5_grid,
+    delete_dir,
+    encode_r5_grid,
+)
+
 
 class CRUDIsochroneCalculation(
     CRUDBase[models.IsochroneCalculation, models.IsochroneCalculation, models.IsochroneCalculation]
@@ -97,7 +112,10 @@ class CRUDIsochrone:
 
         edges_network = edges_network.drop(["starting_ids", "starting_geoms"], axis=1)
 
-        if calculation_type == IsochroneTypeEnum.single or calculation_type == IsochroneTypeEnum.multi:
+        if (
+            calculation_type == IsochroneTypeEnum.single
+            or calculation_type == IsochroneTypeEnum.multi
+        ):
             obj_starting_point = models.IsochroneCalculation(
                 calculation_type=calculation_type,
                 user_id=obj_in.user_id,
@@ -113,11 +131,17 @@ class CRUDIsochrone:
             await db.commit()
             await db.refresh(obj_starting_point)
         else:
-            obj_starting_point = None # Heatmap
+            obj_starting_point = None  # Heatmap
 
         return edges_network, starting_id, distance_limits, obj_starting_point
 
-    def result_to_gdf(self, result, starting_id, isochrone_type: IsochroneTypes = IsochroneTypes.single, add_to_db=True):
+    def result_to_gdf(
+        self,
+        result,
+        starting_id,
+        isochrone_type: IsochroneTypes = IsochroneTypes.single,
+        add_to_db=True,
+    ):
         # Prepare if a single isochrone
         if isochrone_type == IsochroneTypes.single:
             isochrones = {}
@@ -133,8 +157,8 @@ class CRUDIsochrone:
 
             for step in isochrones:
                 isochrones[step] = isochrones[step].unary_union
-                
-        #Prepare if a Multi-Isochrone
+
+        # Prepare if a Multi-Isochrone
         elif isochrone_type == IsochroneTypes.multi:
             isochrones = {}
             steps = sorted(result.isochrone[0].shape.keys())
@@ -153,8 +177,10 @@ class CRUDIsochrone:
                 if list(union_isochrones.keys()) == []:
                     union_isochrones[step] = unary_union(isochrones[step])
                 else:
-                    union_isochrones[step] = unary_union([unary_union(isochrones[step]), union_isochrones[previous_step]])
-                previous_step = step 
+                    union_isochrones[step] = unary_union(
+                        [unary_union(isochrones[step]), union_isochrones[previous_step]]
+                    )
+                previous_step = step
 
             isochrones = union_isochrones
 
@@ -176,8 +202,8 @@ class CRUDIsochrone:
         ).to_crs("EPSG:4326")
 
         isochrone_gdf.rename_geometry("geom", inplace=True)
-        
-        if add_to_db == True: 
+
+        if add_to_db == True:
             isochrone_gdf.to_postgis(
                 name="isochrone_feature", con=legacy_engine, schema="customer", if_exists="append"
             )
@@ -258,7 +284,7 @@ class CRUDIsochrone:
         obj_in_data["starting_point_id"] = starting_id
 
         result = isochrone_cpp(edges_network, starting_id, distance_limits)
-        isochrone_gdf = self.result_to_gdf(result, obj_starting_point.id, isochrone_type='multi')
+        isochrone_gdf = self.result_to_gdf(result, obj_starting_point.id, isochrone_type="multi")
 
         return isochrone_gdf
 
@@ -333,7 +359,9 @@ class CRUDIsochrone:
         result = await db.execute(sql, obj_in_data)
         return result.fetchall()[0][0]
 
-    async def calculate_pois_multi_isochrones(self, current_user, db: AsyncSession, *, obj_in) -> GeoDataFrame:
+    async def calculate_pois_multi_isochrones(
+        self, current_user, db: AsyncSession, *, obj_in
+    ) -> GeoDataFrame:
         speed = obj_in.speed / 3.6
         obj_in_data = jsonable_encoder(obj_in)
         obj_in_data["speed"] = speed
@@ -435,8 +463,12 @@ class CRUDIsochrone:
                 "isochrone_calculation_id": isochrone_calculation_id,
             },
         )
-    
-        gdf = pd.concat([gdf, pd.json_normalize(gdf["reached_opportunities"]).astype('Int64')], axis=1, join="inner")
+
+        gdf = pd.concat(
+            [gdf, pd.json_normalize(gdf["reached_opportunities"]).astype("Int64")],
+            axis=1,
+            join="inner",
+        )
         gdf["seconds"] = round(gdf["seconds"] / 60).astype(int)
         gdf = gdf.rename(columns={"seconds": "minutes"})
         # Preliminary fix for tranlation POIs categories
@@ -460,35 +492,284 @@ class CRUDIsochrone:
         file_name = "isochrone_export"
         file_dir = f"/tmp/{defined_uuid}"
 
-        os.makedirs(file_dir+"/export")
-        os.chdir(file_dir+"/export")
- 
+        os.makedirs(file_dir + "/export")
+        os.chdir(file_dir + "/export")
+
         if return_type == IsochroneExportType.geojson:
-            gdf.to_file(file_name + '.' + IsochroneExportType.geojson.name, driver=IsochroneExportType.geojson.value)
+            gdf.to_file(
+                file_name + "." + IsochroneExportType.geojson.name,
+                driver=IsochroneExportType.geojson.value,
+            )
         elif return_type == IsochroneExportType.shp:
-            gdf.to_file(file_name + '.' + IsochroneExportType.shp.name, driver=IsochroneExportType.shp.value, encoding='utf-8')
+            gdf.to_file(
+                file_name + "." + IsochroneExportType.shp.name,
+                driver=IsochroneExportType.shp.value,
+                encoding="utf-8",
+            )
         elif return_type == IsochroneExportType.xlsx:
             gdf = gdf.drop(["reached_opportunities", "geom"], axis=1)
-            writer = pd.ExcelWriter(file_name + '.' + IsochroneExportType.xlsx.name, engine='xlsxwriter')
+            writer = pd.ExcelWriter(
+                file_name + "." + IsochroneExportType.xlsx.name, engine="xlsxwriter"
+            )
             gdf_transposed = gdf.transpose()
-            gdf_transposed.columns = [str(c) +  ' ' + translation_dict["minutes"] for c in list(gdf[translation_dict["minutes"]])]
-            gdf_transposed[1:].to_excel(writer, sheet_name='Results')
-            workbook  = writer.book
-            worksheet = writer.sheets['Results']
+            gdf_transposed.columns = [
+                str(c) + " " + translation_dict["minutes"]
+                for c in list(gdf[translation_dict["minutes"]])
+            ]
+            gdf_transposed[1:].to_excel(writer, sheet_name="Results")
+            workbook = writer.book
+            worksheet = writer.sheets["Results"]
             worksheet.set_column(0, 0, 35, None)
-            worksheet.set_column(1, gdf.shape[0], 25, None)           
+            worksheet.set_column(1, gdf.shape[0], 25, None)
             writer.save()
 
         os.chdir(file_dir)
-        shutil.make_archive(file_name, "zip", file_dir+"/export")
+        shutil.make_archive(file_name, "zip", file_dir + "/export")
 
-        with open(file_name + '.zip', "rb") as f:
+        with open(file_name + ".zip", "rb") as f:
             data = f.read()
-        
+
         delete_dir(file_dir)
         response = StreamingResponse(io.BytesIO(data), media_type="application/zip")
-        response.headers["Content-Disposition"] = "attachment; filename={}".format(file_name + '.zip')
+        response.headers["Content-Disposition"] = "attachment; filename={}".format(
+            file_name + ".zip"
+        )
         return response
+
+    # ===================================
+    async def __read_network(self, db, obj_in: IsochroneDTO) -> Any:
+        isochrone_type = None
+        if len(obj_in.starting_point.input) == 1:
+            isochrone_type = IsochroneTypeEnum.single.value
+        elif len(obj_in.starting_point.input) > 1:
+            isochrone_type = IsochroneTypeEnum.multi.value
+        else:
+            raise Exception("Unknown calculation type")
+
+        if isochrone_type == IsochroneTypeEnum.single.value:
+            sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
+            FROM basic.fetch_network_routing(ARRAY[:x],ARRAY[:y], :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
+            """
+        elif isochrone_type == IsochroneTypeEnum.multi.value:
+            sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
+            FROM basic.fetch_network_routing_multi(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
+            """
+        # elif calculation_type == IsochroneTypeEnum.heatmap:
+        #     sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
+        #     FROM basic.fetch_network_routing_heatmap(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
+        #     """
+
+        read_network_sql = text(sql_text)
+        routing_profile = None
+        if obj_in.mode.value == IsochroneMode.WALKING.value:
+            routing_profile = obj_in.mode.value + "_" + obj_in.settings.walking_profile.value
+
+        if obj_in.mode.value == IsochroneMode.CYCLING.value:
+            routing_profile = obj_in.mode.value + "_" + obj_in.settings.walking_profile.value
+
+        edges_network = read_sql(
+            read_network_sql,
+            legacy_engine,
+            params={
+                "x": obj_in.starting_point.input[0].lon,
+                "y": obj_in.starting_point.input[0].lat,
+                "max_cutoff": obj_in.settings.travel_time * 60,  # in seconds
+                "speed": obj_in.settings.speed,
+                "modus": obj_in.scenario.modus.value,
+                "scenario_id": obj_in.scenario.id,
+                "routing_profile": routing_profile,
+            },
+        )
+        starting_id = edges_network.iloc[0].starting_ids
+        if len(obj_in.starting_point.input) == 1:
+            starting_point_geom = str(
+                GeoDataFrame(
+                    {"geometry": Point(edges_network.iloc[-1:]["geom"].values[0][0])},
+                    crs="EPSG:3857",
+                    index=[0],
+                )
+                .to_crs("EPSG:4326")
+                .to_wkt()["geometry"]
+                .iloc[0]
+            )
+        else:
+            starting_point_geom = str(edges_network["starting_geoms"].iloc[0])
+
+        edges_network = edges_network.drop(["starting_ids", "starting_geoms"], axis=1)
+        # obj_starting_point = models.IsochroneCalculation(
+        #     calculation_type=isochrone_type,
+        #     user_id=obj_in.user_id,
+        #     scenario_id=None if obj_in.scenario.id == 0 else obj_in.scenario.id,
+        #     starting_point=starting_point_geom,
+        #     routing_profile=routing_profile,
+        #     speed=obj_in.settings.speed,
+        #     modus=obj_in.scenario.modus.value,
+        #     parent_id=None,
+        # )
+
+        # db.add(obj_starting_point)
+        # await db.commit()
+        # await db.refresh(obj_starting_point)
+        edges_network.astype(
+            {
+                "id": np.int64,
+                "source": np.int64,
+                "target": np.int64,
+                "cost": np.double,
+                "reverse_cost": np.double,
+                "length": np.double,
+            }
+        )
+        return edges_network, starting_id
+
+    # =======================
+    async def __amenity_intersect(self, grid_decoded, max_time) -> Any:
+        """
+        Calculate the intersection of the isochrone with the amenities (pois and population)
+        """
+        single_value_surface = compute_single_value_surface(
+            grid_decoded["width"],
+            grid_decoded["height"],
+            grid_decoded["depth"],
+            grid_decoded["data"],
+            50,
+        )
+        grid_decoded["surface"] = single_value_surface
+        isochrone_multipolygon_coordinates = jsolines(
+            grid_decoded["surface"],
+            grid_decoded["width"],
+            grid_decoded["height"],
+            grid_decoded["west"],
+            grid_decoded["north"],
+            grid_decoded["zoom"],
+            max_time,
+        )
+        multipolygon_shape = shape(
+            {"type": "MultiPolygon", "coordinates": isochrone_multipolygon_coordinates}
+        )
+        test_geom_wkt = multipolygon_shape.wkt
+        get_population_sum_query = f"""SELECT * FROM basic.get_population_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
+        get_poi_one_entrance_sum_query = f"""SELECT * FROM basic.get_poi_one_entrance_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
+        get_poi_more_entrance_sum_query = f"""SELECT * FROM basic.get_poi_more_entrance_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
+        get_population_sum = read_sql(
+            get_population_sum_query,
+            legacy_engine,
+        )
+        get_poi_one_entrance_sum = read_sql(
+            get_poi_one_entrance_sum_query,
+            legacy_engine,
+        )
+        get_poi_more_entrance_sum = read_sql(
+            get_poi_more_entrance_sum_query,
+            legacy_engine,
+        )
+        ##-- FIND AMENITY COUNT FOR EACH GRID CELL --##
+        get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist())
+        get_population_sum_population = get_population_sum["population"].to_numpy()
+        get_poi_one_entrance_sum_pixel = np.array(get_poi_one_entrance_sum["pixel"].tolist())
+        get_poi_one_entrance_sum_category = np.unique(
+            get_poi_one_entrance_sum["category"], return_inverse=True
+        )
+        get_poi_one_entrance_sum_cnt = get_poi_one_entrance_sum["cnt"].to_numpy()
+        get_poi_more_entrance_sum_pixel = np.array(get_poi_more_entrance_sum["pixel"].tolist())
+        get_poi_more_entrance_sum_category = np.unique(
+            get_poi_more_entrance_sum["category"], return_inverse=True
+        )
+        # fill null values with a string to avoid errors
+        get_poi_more_entrance_sum["name"].fillna("_", inplace=True)
+        get_poi_more_entrance_sum_name = np.unique(
+            get_poi_more_entrance_sum["name"], return_inverse=True
+        )
+        get_poi_more_entrance_sum_cnt = get_poi_more_entrance_sum["cnt"].to_numpy()
+        amenity_grid_count = amenity_r5_grid_intersect(
+            grid_decoded["west"],
+            grid_decoded["north"],
+            grid_decoded["width"],
+            grid_decoded["surface"],
+            get_population_sum_pixel,
+            get_population_sum_population,
+            get_poi_one_entrance_sum_pixel,
+            get_poi_one_entrance_sum_category[1],
+            get_poi_one_entrance_sum_cnt,
+            get_poi_more_entrance_sum_pixel,
+            get_poi_more_entrance_sum_category[1],
+            get_poi_more_entrance_sum_name[1],
+            get_poi_more_entrance_sum_cnt,
+            max_time,
+        )
+        amenity_count = {"population": amenity_grid_count[0].tolist()}
+        # poi one entrance
+        for i in amenity_grid_count[1]:
+            index = np.where(get_poi_one_entrance_sum_category[1] == amenity_grid_count[1][i])[0]
+            value = get_poi_one_entrance_sum["category"][index[0]]
+            amenity_count[value] = amenity_grid_count[2][i].tolist()
+        # poi more entrances
+        for i in amenity_grid_count[3]:
+            index = np.where(get_poi_more_entrance_sum_category[1] == amenity_grid_count[3][i])[0]
+            value = get_poi_more_entrance_sum["category"][index[0]]
+            amenity_count[value] = amenity_grid_count[4][i].tolist()
+
+        ##-- ADD AMENITY TO GRID DECODED --##
+        grid_decoded["accessibility"] = amenity_count
+
+        return grid_decoded
+
+    async def calculate(self, db: AsyncSession, obj_in: IsochroneDTO) -> Any:
+        """
+        Calculate the isochrone for a given location and time"""
+        result = None
+        if obj_in.mode.value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
+            print("WALKING or CYCLING")
+            # === Fetch Network ===#
+            network, starting_ids = await self.__read_network(db, obj_in)
+            print("Fetched network...")
+            # === Compute Grid ===#
+            grid = isochrone_single_depth_grid(network, starting_ids, [25])
+            print("Created Grid...")
+
+            # === Amenity Intersect ===#
+            intersects = await self.__amenity_intersect(grid, 25)
+            return HTTPResponse("finished")
+        else:
+            payload = {
+                "accessModes": obj_in.settings.access_mode.value.upper(),
+                "transitModes": ",".join(x.value.upper() for x in obj_in.settings.transit_modes),
+                "bikeSpeed": obj_in.settings.bike_speed,
+                "walkSpeed": obj_in.settings.walk_speed,
+                "bikeTrafficStress": obj_in.settings.bike_traffic_stress,
+                "date": obj_in.settings.departure_date,
+                "fromTime": obj_in.settings.from_time,
+                "toTime": obj_in.settings.to_time,
+                "decayFunction": obj_in.settings.decay_function,
+                "destinationPointSetIds": [],
+                "directModes": obj_in.settings.access_mode.value.upper(),
+                "egressModes": obj_in.settings.egress_mode.value.upper(),
+                "fromLat": obj_in.starting_point.input[0].lat,
+                "fromLon": obj_in.starting_point.input[0].lon,
+                "zoom": obj_in.output.resolution,
+                "maxBikeTime": obj_in.settings.max_bike_time,
+                "maxRides": obj_in.settings.max_rides,
+                "maxWalkTime": obj_in.settings.max_walk_time,
+                "monteCarloDraws": obj_in.settings.monte_carlo_draws,
+                "percentiles": obj_in.settings.percentiles,
+                "variantIndex": -1,
+                "workerVersion": "v6.4",
+            }
+            # TODO: Get the project id and bbox from study area.
+            payload["projectId"] = "6294f0ae0cfee1c6747d696c"
+            payload["bounds"] = {
+                "north": 48.2905,
+                "south": 47.99727,
+                "east": 11.94489,
+                "west": 11.31592,
+            }
+            response = requests.post(settings.R5_API_URL + "/analysis", json=payload)
+            grid_decoded = decode_r5_grid(response.content)
+            # === Amenity Intersect and Encode ===#
+            grid_decoded = await self.__amenity_intersect(grid_decoded, 120)
+            grid_encoded = encode_r5_grid(grid_decoded)
+            result = Response(bytes(grid_encoded))
+        return result
 
 
 isochrone = CRUDIsochrone()

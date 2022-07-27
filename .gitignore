@@ -12,8 +12,18 @@ ubuntu-bionic-18.04-cloudimg-console.log
 node_modules
 .env
 /.vscode
-
+r5-cache
 /app/api/app/app/exts/cpp/build
 __pycache__
 /app/api/src/data/*
 !/app/api/src/data/.gitkeep
+r5-cache
+
+# Unit test / coverage reports 
+.coverage
+coverage.xml
+
+
+# Temporary files
+NearestNDInterpolate.png
+costs.bin
