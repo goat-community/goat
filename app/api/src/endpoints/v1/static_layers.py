@@ -14,6 +14,7 @@ from src.utils import (
     convert_postgist_to_4326,
     delete_file,
     generate_static_layer_table_name,
+    geopandas_read_file,
     return_geojson_or_geobuf,
 )
 
@@ -47,9 +48,12 @@ async def upload_static_layer(
 ):
 
     try:
-        # Convert UploadFile to Data frame
-        data_frame = geopandas.read_file(upload_file.file)
-    except:
+        data_frame = geopandas_read_file(upload_file)
+    except HTTPException as e:
+        # It's HTTP exception, so raise it to the endpoint.
+        raise e
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=400, detail="Could not parse the uploaded file.")
 
     validate_data_frame(data_frame)
@@ -115,19 +119,23 @@ async def update_static_layer_data(
         raise HTTPException(status_code=404, detail="static layer not found.")
 
     try:
-        # Convert UploadFile to Data frame
-        data_frame = geopandas.read_file(upload_file.file)
-    except:
+        data_frame = geopandas_read_file(upload_file)
+    except HTTPException as e:
+        # It's HTTP exception, so raise it to the endpoint.
+        raise e
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=400, detail="Could not parse the uploaded file.")
 
     validate_data_frame(data_frame)
     convert_postgist_to_4326(data_frame)
     assert data_frame.crs.srs == "epsg:4326"
 
+    # Drop previous PostGIS table
     await crud.static_layer.drop_postgis_table(db, static_layer.table_name)
     static_layer.table_name = generate_static_layer_table_name(prefix=upload_file.filename)
     await crud.static_layer.update(db, db_obj=static_layer, obj_in=static_layer)
-    # Update Data Frame to Database
+    # Create PostGIS table
     data_frame.to_postgis(
         name=static_layer.table_name,
         con=legacy_engine.connect(),
@@ -149,6 +157,8 @@ async def update_static_layer_data(
     static_layer = await crud.static_layer.get(db, id=layer_id)
     if not static_layer:
         raise HTTPException(status_code=404, detail="static layer not found.")
+    # Drop PostGIS table
     await crud.static_layer.drop_postgis_table(db, static_layer.table_name)
+    # Delte Object
     static_layer = await crud.static_layer.remove(db, id=static_layer.id)
     return static_layer
