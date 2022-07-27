@@ -68,14 +68,14 @@ class Isochrone(Dijkstra):
         grid_data = {}
         Z = np.ravel(self.Z)
         z_diff = np.diff(Z, prepend=0)
-        grid_data["version"] = grid_type
+        grid_data["version"] = 1
         grid_data["zoom"] = zoom
         grid_data["west"] = self.X.min()
         grid_data["north"] = self.Y.max()
-        grid_data["width"] = len(self.X)
-        grid_data["height"] = len(self.Y)
+        grid_data["width"] = self.Z.shape[0]
+        grid_data["height"] = self.Z.shape[1]
         grid_data["depth"] = 1
-        grid_data["data"] = z_diff.astype(np.int32)
+        grid_data["data"] = z_diff
 
         return grid_data
 

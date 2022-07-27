@@ -352,7 +352,7 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     return surface
 
 
-@njit
+# @njit
 def amenity_r5_grid_intersect(
     west,
     north,
