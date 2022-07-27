@@ -29,7 +29,6 @@
                   <v-flex>
                     <ImportExternalLayers
                       @getLayerInfo="layerInfoSubmited"
-                      @addLayer="addBuiltInLayers"
                       v-if="layerGroup.name === 'external_imports'"
                     />
                   </v-flex>
@@ -210,10 +209,6 @@ import ImportExternalLayers from "../importLayers/ImportExternalLayers.vue";
 //Openlayer imports
 import TileLayer from "ol/layer/Tile";
 import TileWMS from "ol/source/TileWMS";
-import VectorLayer from "ol/layer/Vector";
-import XYZ from "ol/source/XYZ";
-import VectorSource from "ol/source/Vector";
-import GeoJSON from "ol/format/GeoJSON";
 
 export default {
   mixins: [Mapable, Legend],
@@ -398,55 +393,6 @@ export default {
       layer.setOpacity(value);
     },
     // Importing built in layers from a local js file
-    addBuiltInLayers(layerInfo) {
-      let resultsfromThis = this.appConfig.layer_groups.map(lay => {
-        return Object.keys(lay)[0];
-      });
-      if (!resultsfromThis.includes("external_imports")) {
-        this.createExternalLayerGroup();
-      }
-
-      if (layerInfo.type === "tile") {
-        const createdLayer = new TileLayer({
-          source: new XYZ({
-            url: layerInfo.url
-          }),
-          type: "geobuf",
-          attribution: layerInfo.attribution,
-          name: layerInfo.title,
-          group: "external_imports"
-        });
-        this.preventDuplication(createdLayer);
-      } else if (layerInfo.type === "vectortile") {
-        const createdLayer = new VectorLayer({
-          source: new VectorSource({
-            url: layerInfo.url,
-            format: new GeoJSON()
-          }),
-          type: "vectortile",
-          attribution: layerInfo.attribution,
-          name: layerInfo.title,
-          group: "external_imports"
-        });
-        this.preventDuplication(createdLayer);
-      } else if (layerInfo.type === "wmts") {
-        let createdLayer = new TileLayer({
-          source: new TileWMS({
-            url: layerInfo.url,
-            params: {
-              layers: layerInfo.name
-            },
-            attribution: layerInfo.attribution
-          }),
-          group: "external_imports",
-          name: layerInfo.title,
-          visible: true,
-          opacity: 1,
-          type: "wmts"
-        });
-        this.preventDuplication(createdLayer);
-      }
-    },
     preventDuplication(newlayer) {
       if (this.layerGroupsArr.length === 5) {
         this.layerGroupsArr.forEach(layerGroup => {

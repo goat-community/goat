@@ -1,135 +1,142 @@
 <template>
   <div class="text-center">
-    <v-dialog v-model="dialog" width="650">
+    <v-dialog v-model="dialog" scrollable width="650">
       <template v-slot:activator="{ on, attrs }">
         <v-icon v-bind="attrs" small v-on="on">
           fas fa-link
         </v-icon>
       </template>
 
-      <v-card>
-        <div v-if="option === 'first'">
-          <v-app-bar :color="appColor.primary" dark>
-            <v-app-bar-nav-icon
-              ><v-icon>fas fa-layer-group</v-icon></v-app-bar-nav-icon
-            >
-            <v-toolbar-title>Choose Geoportal</v-toolbar-title>
-            <v-spacer></v-spacer>
-            <v-app-bar-nav-icon @click="cancelHandler"
-              ><v-icon>close</v-icon></v-app-bar-nav-icon
-            >
-          </v-app-bar>
-          <v-card-text style="padding: 20px;">
-            <h2 class="mb-4" style="color: #555;">Built-in Geoportals</h2>
-            <div>
-              <div class="cards">
-                <div
-                  v-for="(layer, idx) in dummyLayerData[value].layers"
-                  :key="idx"
-                  class="cardBox"
-                  @click="$emit('addLayer', layer)"
-                >
-                  <div class="overlay">+</div>
-                  <img :src="layer.img" alt="" />
-                  <div class="content">
-                    <p>{{ layer.name }}</p>
-                  </div>
+      <v-card v-if="option === 'first'">
+        <v-app-bar :color="appColor.primary" dark>
+          <v-app-bar-nav-icon
+            ><v-icon>fas fa-layer-group</v-icon></v-app-bar-nav-icon
+          >
+          <v-toolbar-title>Choose Geoportal</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-app-bar-nav-icon @click="cancelHandler"
+            ><v-icon>close</v-icon></v-app-bar-nav-icon
+          >
+        </v-app-bar>
+        <v-card-text style="padding: 20px;">
+          <h2 class="mb-4 grey--text text--darken-3">Built-in Geoportals</h2>
+          <div>
+            <div class="cards">
+              <div
+                v-for="(layer, idx) in dummyLayerData"
+                :key="idx"
+                class="cardBox"
+                @click="builtInDataHandler(layer)"
+              >
+                <div class="overlay">+</div>
+                <img :src="layer.img" alt="" />
+                <div class="content">
+                  <p>{{ layer.title }}</p>
                 </div>
               </div>
             </div>
-          </v-card-text>
-          <v-card-text style="padding: 20px; padding-bottom: 20px">
-            <h2 class="mb-4" style="color: #555;">Add own Geoportal</h2>
-            <v-layout style="padding: 0 12px;" row align-center>
-              <v-flex xs10>
-                <v-form ref="form" lazy-validation>
-                  <v-alert type="error" v-if="error">
-                    {{ error }}
-                  </v-alert>
-                  <v-text-field
-                    v-model="url"
-                    label="Source Url"
-                    required
-                  ></v-text-field>
-                </v-form>
-              </v-flex>
-              <v-flex xs2 text-right>
-                <v-btn
-                  text
-                  @click="layerDataHandler"
-                  :style="`color: ${appColor.primary}`"
-                  >ADD</v-btn
-                >
-              </v-flex>
-            </v-layout>
-          </v-card-text>
-        </div>
-        <div v-if="option === 'upload'">
-          <v-app-bar :color="appColor.primary" dark>
-            <v-app-bar-nav-icon
-              ><v-icon>fas fa-layer-group</v-icon></v-app-bar-nav-icon
-            >
-            <v-toolbar-title>External Geoportal</v-toolbar-title>
-            <v-spacer></v-spacer>
-            <v-app-bar-nav-icon @click="cancelHandler"
-              ><v-icon>close</v-icon></v-app-bar-nav-icon
-            >
-          </v-app-bar>
-          <vue-scroll>
-            <v-card-text class="pa-6">
-              <h1 class="mb-4" style="color: #555;">Import layer from</h1>
+          </div>
+        </v-card-text>
+        <v-card-text style="padding: 20px; padding-bottom: 20px">
+          <h2 class="mb-4 grey--text text--darken-3">Add own Geoportal</h2>
+          <v-layout style="padding: 0 12px;" row align-center>
+            <v-flex xs10>
               <v-form ref="form" lazy-validation>
                 <v-alert type="error" v-if="error">
                   {{ error }}
                 </v-alert>
                 <v-text-field
-                  v-model="searchByName"
-                  label="Search by name"
+                  v-model="url"
+                  label="Source Url"
                   required
                 ></v-text-field>
               </v-form>
-              <div>
-                <p class="h6">Results</p>
-                <v-card
-                  v-for="(simpleLayer, idx) in searchedListData"
-                  @mouseover="onHoverHandler(simpleLayer)"
-                  @mouseleave="onMouseLeaveHandler(simpleLayer)"
-                  :key="idx"
-                  class="mx-auto mb-2"
-                  style="display: flex"
-                >
-                  <v-card-text>
-                    <div class="font-weight-bold">{{ simpleLayer.title }}</div>
-                    <p class="layerDescription" :ref="`description-${idx}`">
-                      {{ simpleLayer.description }}
-                    </p>
-                    <p
-                      class="success--text"
-                      @click="expandStyle(idx)"
-                      style="cursor: pointer"
+            </v-flex>
+            <v-flex xs2 text-right>
+              <v-btn
+                text
+                @click="layerDataHandler"
+                :style="`color: ${appColor.primary}`"
+                >ADD</v-btn
+              >
+            </v-flex>
+          </v-layout>
+        </v-card-text>
+      </v-card>
+      <v-card v-if="option === 'upload'">
+        <v-app-bar :color="appColor.primary" dark>
+          <v-app-bar-nav-icon
+            ><v-icon>fas fa-layer-group</v-icon></v-app-bar-nav-icon
+          >
+          <v-toolbar-title>External Geoportal</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-app-bar-nav-icon @click="cancelHandler"
+            ><v-icon>close</v-icon></v-app-bar-nav-icon
+          >
+        </v-app-bar>
+        <vue-scroll>
+          <v-card-text class="pa-6">
+            <h2
+              class="mb-4 grey--text text--darken-3"
+              v-if="currentLayerWMSTitle"
+            >
+              Import layer from "{{ currentLayerWMSTitle }}"
+            </h2>
+            <h2 v-else>
+              Import Layers from given Url
+            </h2>
+            <v-form ref="form" lazy-validation>
+              <v-alert type="error" v-if="error">
+                {{ error }}
+              </v-alert>
+              <v-text-field
+                v-model="searchByName"
+                label="Search by name"
+                required
+              ></v-text-field>
+            </v-form>
+            <div>
+              <p class="h6">Results</p>
+              <v-card
+                v-for="(simpleLayer, idx) in searchedListData"
+                @mouseover="onHoverHandler(simpleLayer)"
+                @mouseleave="onMouseLeaveHandler(simpleLayer)"
+                :key="idx"
+                class="mx-auto mb-2"
+                style="display: flex"
+              >
+                <v-card-text>
+                  <div class="font-weight-bold">{{ simpleLayer.title }}</div>
+                  <p class="layerDescription" :ref="`description-${idx}`">
+                    {{ simpleLayer.description }}
+                  </p>
+                  <p
+                    @click="expandStyle(idx)"
+                    :style="`cursor: pointer; color: ${appColor.primary};`"
+                  >
+                    See more...
+                  </p>
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn
+                    text
+                    @click="
+                      $emit('getLayerInfo', {
+                        data: simpleLayer,
+                        currentHoveredLayer: previewLayer
+                      })
+                    "
+                    color="deep-purple accent-4"
+                  >
+                    <v-icon small :color="appColor.primary"
+                      >fas fa-circle-plus</v-icon
                     >
-                      See more...
-                    </p>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-btn
-                      text
-                      @click="
-                        $emit('getLayerInfo', {
-                          data: simpleLayer,
-                          currentHoveredLayer: previewLayer
-                        })
-                      "
-                      color="deep-purple accent-4"
-                    >
-                      <v-icon small color="success">fas fa-circle-plus</v-icon>
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
-              </div>
-            </v-card-text>
-          </vue-scroll>
-        </div>
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </div>
+          </v-card-text>
+        </vue-scroll>
       </v-card>
     </v-dialog>
   </div>
@@ -141,7 +148,6 @@ import { mapGetters } from "vuex";
 import { Mapable } from "../../../mixins/Mapable";
 import TileLayer from "ol/layer/Tile";
 import TileWMS from "ol/source/TileWMS";
-
 export default {
   mixins: [Mapable],
   data: () => ({
@@ -154,7 +160,8 @@ export default {
     layerListToAdd: [],
     searchedListData: [],
     searchByName: "",
-    previewLayer: null
+    previewLayer: null,
+    currentLayerWMSTitle: ""
   }),
   watch: {
     searchByName(newValue) {
@@ -216,6 +223,16 @@ export default {
       this.option = "first";
       this.searchByName = "";
     },
+    builtInDataHandler(layer) {
+      // $emit('addLayer', layer)
+      if (layer.url) {
+        this.layerListToAdd = [];
+        const data = {
+          layer_url: layer.url
+        };
+        this.findAllAvailableLayers(data);
+      }
+    },
     layerDataHandler() {
       if (this.url !== "") {
         this.error = "";
@@ -244,6 +261,9 @@ export default {
             let parser = new DOMParser(),
               xmlDoc = parser.parseFromString(datares, "text/xml");
             let names = [...xmlDoc.getElementsByTagName("Layer")];
+            this.currentLayerWMSTitle = xmlDoc.getElementsByTagName(
+              "Title"
+            )[0].textContent;
             let type = xmlDoc.getElementsByTagName("Name")[0].textContent;
             names.forEach((layerElement, idx) => {
               if (idx !== 0) {
@@ -297,12 +317,14 @@ export default {
       }
     },
     expandStyle(id) {
-      if (this.$refs[`description-${id}`][0].style.height === "fit-content") {
+      if (
+        this.$refs[`description-${id}`][0].style.maxHeight === "fit-content"
+      ) {
         this.$refs[`description-${id}`][0].style.textOverflow = "ellipsis";
-        this.$refs[`description-${id}`][0].style.height = "65px";
+        this.$refs[`description-${id}`][0].style.maxHeight = "65px";
       } else {
         this.$refs[`description-${id}`][0].style.textOverflow = "clip";
-        this.$refs[`description-${id}`][0].style.height = "fit-content";
+        this.$refs[`description-${id}`][0].style.maxHeight = "fit-content";
       }
     }
   }
@@ -343,10 +365,13 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 5px;
+  text-align: center;
 }
 .cardBox .content p {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 400;
+  line-height: 10px;
 }
 
 .overlay {
@@ -362,12 +387,13 @@ export default {
   color: rgb(188, 188, 188);
   font-weight: bolder;
   font-size: 45px;
-  transition: all 0.15s ease-in-out;
+  transition: all 0.3s ease-in-out;
+  opacity: 0;
 }
 
-.overlay:hover {
+.cardBox:hover .overlay {
+  opacity: 0.7;
   color: white;
-  background: rgba(0, 0, 0, 0.274);
 }
 
 .layerDescription {
@@ -375,7 +401,7 @@ export default {
   -webkit-line-clamp: 3;
   overflow: hidden;
   text-overflow: ellipsis;
-  height: 65px;
+  max-height: 65px;
   font-size: 12px;
 }
 </style>

@@ -2,61 +2,23 @@
 
 export const dataBuiltInLayers = [
   {
-    layers: [
-      {
-        name: "Voyager",
-        type: "tile",
-        group: "external_imports",
-        title: "Voyager",
-        url:
-          "https://api.maptiler.com/maps/voyager/{z}/{x}/{y}.png?key=5SLMZCpBxmxow9QFVy7M",
-        img:
-          "https://snazzy-maps-cdn.azureedge.net/assets/102-clean-grey.png?v=20170626083301",
-        attribution: `<a href="https://carto.com/" target="_blank">&copy; CARTO</a> <a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>`
-      },
-      {
-        name: "Topographique",
-        type: "tile",
-        group: "external_imports",
-        title: "Topographique",
-        url:
-          "https://api.maptiler.com/maps/topographique/{z}/{x}/{y}.png?key=5SLMZCpBxmxow9QFVy7M",
-        img:
-          "https://www.worldatlas.com/r/w1200/upload/f4/9a/b2/shutterstock-214460839.jpg",
-        attribution: `<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>`
-      }
-    ]
+    type: "wms",
+    group: "external_imports",
+    title: "Fahrradstatistik Stadtradeln",
+    url:
+      "https://geoportal.freiburg.de/wms/gdm_fahrrad_stat/gdm_fahrrad_stat?SERVICE=WMS&REQUEST=GetCapabilities",
+    img:
+      "https://geoportal.freiburg.de/wms/gdm_fahrrad_stat/gdm_fahrrad_stat?LAYERS=avs&VERSION=1.3.0&REQUEST=GetMap&SERVICE=WMS&CRS=EPSG:25832&BBOX=400000,5306000,421000,5325000&WIDTH=1050&HEIGHT=950&FORMAT=image/png&TRANSPARENT=FALSE"
   },
   {
-    layers: [
-      {
-        name: "DPD Stores ",
-        type: "vectortile",
-        group: "external_imports",
-        format: "geojson",
-        title: "DPD Stores ",
-        url:
-          "https://api.maptiler.com/data/6838bc4e-7a17-41af-a594-6e8d43fb05c5/features.json?key=5SLMZCpBxmxow9QFVy7M",
-        img:
-          "https://corpassets.what3words.com/wp-content/uploads/2022/02/UK_DPD_Delivery_Courier_hero.jpg",
-        attribution: `Rexha Company 2022`
-      },
-      {
-        name: "Munich Info ",
-        type: "vectortile",
-        format: "geojson",
-        group: "external_imports",
-        title: "Munich Info",
-        url:
-          "https://api.maptiler.com/data/4d0102c0-67d7-4fdc-b1d8-9cdd76026380/features.json?key=5SLMZCpBxmxow9QFVy7M",
-        img:
-          "https://map.viamichelin.com/map/carte?map=viamichelin&z=10&lat=48.13912&lon=11.58022&width=550&height=382&format=png&version=latest&layer=background&debug_pattern=.*",
-        attribution: `None 2022`
-      }
-    ]
-  },
-  { layers: [] },
-  { layers: [] }
+    type: "wms",
+    group: "external_imports",
+    title: "Points of Interest Freiburg",
+    url:
+      "https://geoportal.freiburg.de/wms/gdm_poi/gdm_poi?SERVICE=WMS&REQUEST=GetCapabilities",
+    img:
+      "https://geoportal.freiburg.de/wms/gdm_poi/gdm_poi?LAYERS=gdm_poi&VERSION=1.3.0&REQUEST=GetMap&SERVICE=WMS&CRS=EPSG:25832&BBOX=400000,5306000,421000,5325000&WIDTH=1050&HEIGHT=950&FORMAT=image/png&TRANSPARENT=FALSE"
+  }
 ];
 
 // let newLayer = new TileLayer({
