@@ -22,8 +22,11 @@ class Geostore(SQLModel, table=True):
     __table_args__ = {"schema": "customer"}
 
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
-    name: str = Field(sa_column=Column(Text(), nullable=False, index=True))
+    name: str = Field(sa_column=Column(Text), nullable=False)
+    type: str = Field(sa_column=Column(Text), nullable=False)
     url: str = Field(sa_column=Column(Text), nullable=False)
+    configuration: Optional[dict] = Field(sa_column=Column(JSONB))
+    attribution: str = Field(sa_column=Column(Text), nullable=False)
     thumbnail_url: str = Field(sa_column=Column(Text), nullable=False)
     study_areas: List["StudyArea"] = Relationship(back_populates="geostores", link_model=StudyAreaGeostore)
 
