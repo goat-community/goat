@@ -647,7 +647,7 @@ request_examples = {
                 "starting_point": {
                     "input": [{"lat": 48.1502132, "lon": 11.5696284}],
                 },
-                "scenario": {"id": 1, "modus": "default"},
+                "scenario": {"id": 0, "modus": "default"},
                 "output": {
                     "type": "geojson",
                     "steps": "3",
@@ -701,6 +701,7 @@ request_examples = {
                 "starting_point": {
                     "input": [{"lat": 48.1502132, "lon": 11.5696284}],
                 },
+                "scenario": {"id": 0, "modus": "default"},
                 "output": {
                     "type": "grid",
                     "resolution": "9",
