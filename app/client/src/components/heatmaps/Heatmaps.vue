@@ -140,6 +140,153 @@
                   <!-- --- -->
                 </v-expansion-panel>
               </v-expansion-panels>
+              <v-expansion-panels>
+                <v-expansion-panel
+                  v-for="(layerGroupValue, layerGroupKey) in heatmapGroup"
+                  :key="layerGroupKey"
+                  expand
+                >
+                  <v-expansion-panel-header
+                    class="elevation-2"
+                    expand-icon=""
+                    v-slot="{ open }"
+                  >
+                    <v-layout row wrap align-center>
+                      <v-flex xs1>
+                        <img
+                          height="20"
+                          width="20"
+                          class="mr-3"
+                          src="img/layer-style-icons/hexagon.svg"
+                        />
+                      </v-flex>
+                      <v-flex xs10 class="light-text" style="font-size:medium;">
+                        <div>
+                          <b>{{ translate("layerGroup", layerGroupKey) }}</b>
+                        </div>
+                      </v-flex>
+                      <v-flex xs1>
+                        <v-icon v-html="open ? 'remove' : 'add'"></v-icon>
+                      </v-flex>
+                    </v-layout>
+                  </v-expansion-panel-header>
+                  <v-expansion-panel-content>
+                    <!-- LAYERS -->
+                    <v-expansion-panels readonly>
+                      <v-expansion-panel
+                        v-for="(layer, i) in layerGroupValue"
+                        :key="i"
+                        :disabled="isHeatmapDisabled(layer)"
+                        class="layer-row"
+                        :style="{
+                          backgroundColor: isHeatmapDisabled(layer)
+                            ? '#ECECEC'
+                            : '#ffffff'
+                        }"
+                        :class="{
+                          'expansion-panel__container--active':
+                            layer.get('showOptions') === true
+                        }"
+                      >
+                        <v-expansion-panel-header expand-icon="" v-slot="{}">
+                          <v-layout row class="pl-1" wrap align-center>
+                            <v-flex class="checkbox" xs1>
+                              <v-checkbox
+                                :color="appColor.secondary"
+                                :input-value="layer.getVisible()"
+                                @change="
+                                  toggleLayerVisibility(layer, layerGroupValue)
+                                "
+                              ></v-checkbox>
+                            </v-flex>
+                            <v-flex xs10 class="light-text">
+                              <h4 class="pl-2">
+                                {{ translate("layerName", layer.get("name")) }}
+                              </h4>
+                            </v-flex>
+                            <v-flex xs1>
+                              <v-icon
+                                v-show="layer.getVisible()"
+                                small
+                                style="width: 30px; height: 30px;"
+                                v-html="
+                                  layer.get('showOptions')
+                                    ? 'fas fa-chevron-down'
+                                    : 'fas fa-chevron-up'
+                                "
+                                :class="{
+                                  'expansion-panel__container--active': layer.get(
+                                    'showOptions'
+                                  )
+                                }"
+                                @click.stop="toggleHeatmapOptions(layer)"
+                              ></v-icon>
+                            </v-flex>
+                          </v-layout>
+                        </v-expansion-panel-header>
+                        <!-- --- -->
+                        <!-- LAYER LEGEND AND SETTINGS  -->
+                        <v-card
+                          class="pt-2"
+                          v-show="layer.get('showOptions') === true"
+                          style="background-color: white;"
+                          transition="slide-y-reverse-transition"
+                        >
+                          <InLegend :layer="layer"></InLegend>
+                          <v-layout row style="width:100%;padding-left: 10px;">
+                            <v-flex
+                              class="xs2"
+                              style="text-align:center;"
+                              v-if="
+                                [
+                                  'VECTORTILE',
+                                  'VECTOR',
+                                  'MVT',
+                                  'GEOBUF'
+                                ].includes(layer.get('type').toUpperCase())
+                              "
+                            >
+                              <v-icon
+                                v-ripple
+                                style="color:#B0B0B0;margin-top:3px;cursor:pointer"
+                                dark
+                                @click="openStyleDialog(layer)"
+                              >
+                                fas fa-cog
+                              </v-icon>
+                            </v-flex>
+                            <v-flex
+                              :class="{
+                                xs10:
+                                  [
+                                    'VECTORTILE',
+                                    'VECTOR',
+                                    'MVT',
+                                    'GEOBUF'
+                                  ].includes(layer.get('type').toUpperCase()) ==
+                                  true,
+                                xs12: false
+                              }"
+                            >
+                              <v-slider
+                                :value="layer.getOpacity()"
+                                class="mx-5"
+                                step="0.05"
+                                min="0"
+                                max="1"
+                                @input="changeLayerOpacity($event, layer)"
+                                :label="$t('layerTree.settings.transparency')"
+                                :color="appColor.secondary"
+                              ></v-slider>
+                            </v-flex>
+                          </v-layout>
+                        </v-card>
+                        <!-- --- -->
+                      </v-expansion-panel>
+                    </v-expansion-panels>
+                  </v-expansion-panel-content>
+                </v-expansion-panel>
+              </v-expansion-panels>
             </v-expansion-panel-content>
           </v-expansion-panel>
         </v-expansion-panels>
