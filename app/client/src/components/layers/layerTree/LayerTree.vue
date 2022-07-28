@@ -29,7 +29,7 @@
                   <v-flex>
                     <ImportExternalLayers
                       @getLayerInfo="layerInfoSubmited"
-                      v-if="layerGroup.name === 'external_imports'"
+                      v-if="layerGroup.name === 'external_layers'"
                     />
                   </v-flex>
                   <v-flex xs1>
@@ -71,7 +71,7 @@
                               style="float: right; cursor: pointer;"
                               small
                               @click="deleteExternalLayer(layer)"
-                              v-if="layer.get('group') === 'external_imports'"
+                              v-if="layer.get('group') === 'external_layers'"
                               >fas fa-trash-can</v-icon
                             >
                           </v-layout>
@@ -235,7 +235,7 @@ export default {
     createExternalLayerGroup() {
       let currentConfig = this.appConfig;
       let imports = {
-        external_imports: {
+        external_layers: {
           children: [],
           icon: "fas fa-upload"
         }
@@ -250,7 +250,7 @@ export default {
       let resultsfromThis = this.appConfig.layer_groups.map(lay => {
         return Object.keys(lay)[0];
       });
-      if (!resultsfromThis.includes("external_imports")) {
+      if (!resultsfromThis.includes("external_layers")) {
         this.createExternalLayerGroup();
       }
 
@@ -262,7 +262,7 @@ export default {
           },
           attribution: data.title
         }),
-        group: "external_imports",
+        group: "external_layers",
         name: data.title,
         visible: true,
         opacity: 1,
@@ -273,7 +273,7 @@ export default {
 
       if (this.layerGroupsArr.length === 5) {
         this.layerGroupsArr.forEach(layerGroup => {
-          if (layerGroup.name === "external_imports") {
+          if (layerGroup.name === "external_layers") {
             let hasLayer = layerGroup.children.filter(
               layer => layer.get("name") === newLayer.get("name")
             );
@@ -296,7 +296,7 @@ export default {
       const layerGroups = this.appConfig.layer_groups;
 
       let externalGroup = layerGroups.filter(
-        layer => Object.keys(layer)[0] === "external_imports"
+        layer => Object.keys(layer)[0] === "external_layers"
       );
       if (externalGroup.length === 0) {
         this.createExternalLayerGroup();
@@ -342,8 +342,6 @@ export default {
       const canTranslate = this.$te(`map.${type}.${key}`);
       if (canTranslate) {
         return this.$t(`map.${type}.${key}`);
-      } else if (key === "external_imports") {
-        return "External Layers";
       } else {
         return key;
       }
@@ -396,7 +394,7 @@ export default {
     preventDuplication(newlayer) {
       if (this.layerGroupsArr.length === 5) {
         this.layerGroupsArr.forEach(layerGroup => {
-          if (layerGroup.name === "external_imports") {
+          if (layerGroup.name === "external_layers") {
             let hasLayer = layerGroup.children.filter(
               layer => layer.get("name") === newlayer.get("name")
             );

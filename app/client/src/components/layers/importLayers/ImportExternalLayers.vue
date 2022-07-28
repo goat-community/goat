@@ -12,14 +12,18 @@
           <v-app-bar-nav-icon
             ><v-icon>fas fa-layer-group</v-icon></v-app-bar-nav-icon
           >
-          <v-toolbar-title>Choose Geoportal</v-toolbar-title>
+          <v-toolbar-title>{{
+            $t("externalGeoportals.selectGeoportal")
+          }}</v-toolbar-title>
           <v-spacer></v-spacer>
           <v-app-bar-nav-icon @click="cancelHandler"
             ><v-icon>close</v-icon></v-app-bar-nav-icon
           >
         </v-app-bar>
         <v-card-text style="padding: 20px;">
-          <h2 class="mb-4 grey--text text--darken-3">Built-in Geoportals</h2>
+          <h2 class="mb-4 grey--text text--darken-3">
+            {{ $t("externalGeoportals.builtInGeoportals.title") }}
+          </h2>
           <div>
             <div class="cards">
               <div
@@ -38,7 +42,9 @@
           </div>
         </v-card-text>
         <v-card-text style="padding: 20px; padding-bottom: 20px">
-          <h2 class="mb-4 grey--text text--darken-3">Add own Geoportal</h2>
+          <h2 class="mb-4 grey--text text--darken-3">
+            {{ $t("externalGeoportals.ownGeoportals.title") }}
+          </h2>
           <v-layout style="padding: 0 12px;" row align-center>
             <v-flex xs10>
               <v-form ref="form" lazy-validation>
@@ -68,7 +74,9 @@
           <v-app-bar-nav-icon
             ><v-icon>fas fa-layer-group</v-icon></v-app-bar-nav-icon
           >
-          <v-toolbar-title>External Geoportal</v-toolbar-title>
+          <v-toolbar-title>{{
+            $t("externalGeoportals.externalGeoportal")
+          }}</v-toolbar-title>
           <v-spacer></v-spacer>
           <v-app-bar-nav-icon @click="cancelHandler"
             ><v-icon>close</v-icon></v-app-bar-nav-icon
@@ -80,10 +88,9 @@
               class="mb-4 grey--text text--darken-3"
               v-if="currentLayerWMSTitle"
             >
-              Import layer from "{{ currentLayerWMSTitle }}"
-            </h2>
-            <h2 v-else>
-              Import Layers from given Url
+              {{ $t("externalGeoportals.ownGeoportals.getLayersFrom") }} "{{
+                currentLayerWMSTitle
+              }}"
             </h2>
             <v-form ref="form" lazy-validation>
               <v-alert type="error" v-if="error">
@@ -114,7 +121,7 @@
                     @click="expandStyle(idx)"
                     :style="`cursor: pointer; color: ${appColor.primary};`"
                   >
-                    See more...
+                    {{ $t("externalGeoportals.ownGeoportals.seeMore") }}
                   </p>
                 </v-card-text>
                 <v-card-actions>
@@ -194,7 +201,7 @@ export default {
             },
             attribution: layerInfo.title
           }),
-          group: "external_imports",
+          group: "external_layers",
           name: layerInfo.title,
           visible: true,
           opacity: 1,
