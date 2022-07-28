@@ -3,10 +3,11 @@
     <vue-scroll>
       <template>
         <!-- HEATMAP LAYERS -->
+
         <v-expansion-panels accordion multiple v-model="heatmapPanel">
           <v-expansion-panel
-            v-for="(layerGroupValue, layerGroupKey) in heatmapGroup"
-            :key="layerGroupKey"
+            v-for="(layerGroup, idx) in indicatorGroupLayers"
+            :key="idx"
             expand
           >
             <v-expansion-panel-header
@@ -25,7 +26,9 @@
                 </v-flex>
                 <v-flex xs10 class="light-text" style="font-size:medium;">
                   <div>
-                    <b>{{ translate("layerGroup", layerGroupKey) }}</b>
+                    <b>{{
+                      translate("layerGroup", Object.keys(layerGroup)[0])
+                    }}</b>
                   </div>
                 </v-flex>
                 <v-flex xs1>
@@ -33,11 +36,11 @@
                 </v-flex>
               </v-layout>
             </v-expansion-panel-header>
+            <!-- Layers -->
             <v-expansion-panel-content>
-              <!-- LAYERS -->
               <v-expansion-panels readonly>
                 <v-expansion-panel
-                  v-for="(layer, i) in layerGroupValue"
+                  v-for="(layer, i) in layerGroup[Object.keys(layerGroup)[0]]"
                   :key="i"
                   :disabled="isHeatmapDisabled(layer)"
                   class="layer-row"
@@ -58,7 +61,10 @@
                           :color="appColor.secondary"
                           :input-value="layer.getVisible()"
                           @change="
-                            toggleLayerVisibility(layer, layerGroupValue)
+                            toggleLayerVisibility(
+                              layer,
+                              layerGroup[Object.keys(layerGroup)[0]]
+                            )
                           "
                         ></v-checkbox>
                       </v-flex>
@@ -87,8 +93,6 @@
                       </v-flex>
                     </v-layout>
                   </v-expansion-panel-header>
-                  <!-- --- -->
-                  <!-- LAYER LEGEND AND SETTINGS  -->
                   <v-card
                     class="pt-2"
                     v-show="layer.get('showOptions') === true"
@@ -137,154 +141,6 @@
                       </v-flex>
                     </v-layout>
                   </v-card>
-                  <!-- --- -->
-                </v-expansion-panel>
-              </v-expansion-panels>
-              <v-expansion-panels>
-                <v-expansion-panel
-                  v-for="(layerGroupValue, layerGroupKey) in heatmapGroup"
-                  :key="layerGroupKey"
-                  expand
-                >
-                  <v-expansion-panel-header
-                    class="elevation-2"
-                    expand-icon=""
-                    v-slot="{ open }"
-                  >
-                    <v-layout row wrap align-center>
-                      <v-flex xs1>
-                        <img
-                          height="20"
-                          width="20"
-                          class="mr-3"
-                          src="img/layer-style-icons/hexagon.svg"
-                        />
-                      </v-flex>
-                      <v-flex xs10 class="light-text" style="font-size:medium;">
-                        <div>
-                          <b>{{ translate("layerGroup", layerGroupKey) }}</b>
-                        </div>
-                      </v-flex>
-                      <v-flex xs1>
-                        <v-icon v-html="open ? 'remove' : 'add'"></v-icon>
-                      </v-flex>
-                    </v-layout>
-                  </v-expansion-panel-header>
-                  <v-expansion-panel-content>
-                    <!-- LAYERS -->
-                    <v-expansion-panels readonly>
-                      <v-expansion-panel
-                        v-for="(layer, i) in layerGroupValue"
-                        :key="i"
-                        :disabled="isHeatmapDisabled(layer)"
-                        class="layer-row"
-                        :style="{
-                          backgroundColor: isHeatmapDisabled(layer)
-                            ? '#ECECEC'
-                            : '#ffffff'
-                        }"
-                        :class="{
-                          'expansion-panel__container--active':
-                            layer.get('showOptions') === true
-                        }"
-                      >
-                        <v-expansion-panel-header expand-icon="" v-slot="{}">
-                          <v-layout row class="pl-1" wrap align-center>
-                            <v-flex class="checkbox" xs1>
-                              <v-checkbox
-                                :color="appColor.secondary"
-                                :input-value="layer.getVisible()"
-                                @change="
-                                  toggleLayerVisibility(layer, layerGroupValue)
-                                "
-                              ></v-checkbox>
-                            </v-flex>
-                            <v-flex xs10 class="light-text">
-                              <h4 class="pl-2">
-                                {{ translate("layerName", layer.get("name")) }}
-                              </h4>
-                            </v-flex>
-                            <v-flex xs1>
-                              <v-icon
-                                v-show="layer.getVisible()"
-                                small
-                                style="width: 30px; height: 30px;"
-                                v-html="
-                                  layer.get('showOptions')
-                                    ? 'fas fa-chevron-down'
-                                    : 'fas fa-chevron-up'
-                                "
-                                :class="{
-                                  'expansion-panel__container--active': layer.get(
-                                    'showOptions'
-                                  )
-                                }"
-                                @click.stop="toggleHeatmapOptions(layer)"
-                              ></v-icon>
-                            </v-flex>
-                          </v-layout>
-                        </v-expansion-panel-header>
-                        <!-- --- -->
-                        <!-- LAYER LEGEND AND SETTINGS  -->
-                        <v-card
-                          class="pt-2"
-                          v-show="layer.get('showOptions') === true"
-                          style="background-color: white;"
-                          transition="slide-y-reverse-transition"
-                        >
-                          <InLegend :layer="layer"></InLegend>
-                          <v-layout row style="width:100%;padding-left: 10px;">
-                            <v-flex
-                              class="xs2"
-                              style="text-align:center;"
-                              v-if="
-                                [
-                                  'VECTORTILE',
-                                  'VECTOR',
-                                  'MVT',
-                                  'GEOBUF'
-                                ].includes(layer.get('type').toUpperCase())
-                              "
-                            >
-                              <v-icon
-                                v-ripple
-                                style="color:#B0B0B0;margin-top:3px;cursor:pointer"
-                                dark
-                                @click="openStyleDialog(layer)"
-                              >
-                                fas fa-cog
-                              </v-icon>
-                            </v-flex>
-                            <v-flex
-                              :class="{
-                                xs10:
-                                  [
-                                    'VECTORTILE',
-                                    'VECTOR',
-                                    'MVT',
-                                    'GEOBUF'
-                                  ].includes(layer.get('type').toUpperCase()) ==
-                                  true,
-                                xs12: false
-                              }"
-                            >
-                              <v-slider
-                                :value="layer.getOpacity()"
-                                class="mx-5"
-                                step="0.05"
-                                min="0"
-                                max="1"
-                                @input="changeLayerOpacity($event, layer)"
-                                :label="$t('layerTree.settings.transparency')"
-                                :color="appColor.secondary"
-                              ></v-slider>
-                            </v-flex>
-                          </v-layout>
-                        </v-card>
-                        <!-- --- -->
-                      </v-expansion-panel>
-                    </v-expansion-panels>
-                  </v-expansion-panel-content>
                 </v-expansion-panel>
               </v-expansion-panels>
             </v-expansion-panel-content>
@@ -312,6 +168,13 @@
         :styleDialogStatus="styleDialogStatus"
       ></StyleDialog>
     </span>
+    <span v-if="IndicatorDialogStatus">
+      <ModifyDialog
+        :status="IndicatorDialogStatus"
+        :translate="translate"
+        @changeStatus="changeIndicatorDialogStatus"
+      ></ModifyDialog>
+    </span>
   </v-flex>
 </template>
 <script>
@@ -322,19 +185,24 @@ import { mapFields } from "vuex-map-fields";
 import Legend from "../viewer/ol/controls/Legend";
 import LayerTree from "../layers/layerTree/LayerTree";
 import StyleDialog from "../layers/changeStyle/StyleDialog.vue";
+import ModifyDialog from "./modifyLayer/ModifyDialog.vue";
 import InLegend from "../viewer/ol/controls/InLegend.vue";
 import ApiService from "../../services/api.service";
 import { GET_USER_CUSTOM_DATA } from "../../store/actions.type";
-
+import VectorLayer from "ol/layer/Vector";
+import VectorSource from "ol/source/Vector";
+import GeoJSON from "ol/format/GeoJSON";
 export default {
   mixins: [Mapable, Legend, LayerTree],
   components: {
     InLegend,
-    StyleDialog
+    StyleDialog,
+    ModifyDialog
   },
   data: () => ({
     heatmapPanel: [0],
     heatmapGroup: {},
+    indicatorGroupLayers: [],
     interactionType: "heatmap-interaction",
     heatmapsWithPois: [
       "heatmap_accessibility_population",
@@ -347,13 +215,19 @@ export default {
     },
     currentItem: null,
     styleDialogKey: 0,
-    styleDialogStatus: false
+    // indicatorDialogKey: 0,
+    styleDialogStatus: false,
+    IndicatorDialogStatus: false
   }),
 
   mounted() {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
       this.styleDialogStatus = value;
     });
+
+    // EventBus.$on("updateModifyDialogStatus", value => {
+    //   this.IndicatorDialogStatus = value;
+    // });
   },
   computed: {
     ...mapGetters("app", {
@@ -383,6 +257,48 @@ export default {
      * This function is executed, after the map is bound (see mixins/Mapable)
      * and registers the current map layers.
      */
+    // Only to guid me through the proccess, everything static here will be done dynamic
+
+    changeIndicatorDialogStatus(value) {
+      console.log(value);
+      this.map
+        .getLayers()
+        .getArray()
+        .forEach(layer => {
+          if (layer.get("group") === "publicTransportation") {
+            layer.setVisible(false);
+          }
+        });
+      this.IndicatorDialogStatus = false;
+    },
+    createStaticLayerGroups() {
+      let publicTransportationLayerGroup = {
+        publicTransportation: []
+      };
+
+      let newLayerForTesting = new VectorLayer({
+        source: new VectorSource({
+          url:
+            "https://api.maptiler.com/data/6838bc4e-7a17-41af-a594-6e8d43fb05c5/features.json?key=5SLMZCpBxmxow9QFVy7M",
+          format: new GeoJSON()
+        }),
+        attribution: "<p>Just for testinf porposes</p>",
+        group: "publicTransportation",
+        name: "dpd Layer",
+        visible: false,
+        opacity: 1,
+        type: "GEOBUF",
+        showOptions: true
+      });
+      publicTransportationLayerGroup.publicTransportation.push(
+        newLayerForTesting
+      );
+      this.map.addLayer(newLayerForTesting);
+
+      this.indicatorGroupLayers.push(publicTransportationLayerGroup);
+    },
+
+    //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     onMapBound() {
       this.map
         .getLayers()
@@ -399,6 +315,8 @@ export default {
       EventBus.$on("update-heatmap", updateHeatmapsLinkedTo => {
         this.refreshHeatmap(updateHeatmapsLinkedTo);
       });
+      this.indicatorGroupLayers.push(this.heatmapGroup);
+      this.createStaticLayerGroups();
     },
     toggleHeatmapOptions(layer) {
       layer.set("showOptions", !layer.get("showOptions"));
@@ -413,6 +331,7 @@ export default {
     },
     openStyleDialog(item) {
       //This function is used for opening Style Setting dialog component for a layer
+
       EventBus.$emit("updateStyleDialogStatusForLayerOrder", false);
       this.styleDialogStatus = true;
       if (
@@ -457,6 +376,10 @@ export default {
         layer.getSource().refresh();
         this.checkIfHeatmapNeedsPois(layer);
         layer.set("showOptions", true);
+      }
+
+      if (layer.get("group") === "publicTransportation") {
+        this.IndicatorDialogStatus = true;
       }
     },
     refreshAllVisibleHeatmaps() {

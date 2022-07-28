@@ -479,6 +479,7 @@
       "streetlevelqualityLayers": "Street Level Quality",
       "environmental_quality": "Environmental data",
       "additional_data": "Additional data",
+      "publicTransportation": "Public Transportation",
       "accessbilityBasemaps": "Heatmaps",
       "basemap": "Background Layers",
       "heatmap": "Heatmaps"
