@@ -327,6 +327,8 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     surface = np.empty(grid_size)
     TRAVEL_TIME_PERCENTILES = [5, 25, 50, 75, 95]
     percentile_index = 0
+    if depth == 1:
+        percentile = 5  # Walking and cycling
     closest_diff = math.inf
     for index, p in enumerate(TRAVEL_TIME_PERCENTILES):
         current_diff = abs(p - percentile)
@@ -352,7 +354,7 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     return surface
 
 
-# @njit
+@njit
 def amenity_r5_grid_intersect(
     west,
     north,
