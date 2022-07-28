@@ -200,7 +200,7 @@ async def export_isochrones(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    item: Dict,
+    geojson: Dict = Body(..., example=request_examples["geojson_to_export"]),
     return_type: IsochroneExportType = Query(
         description="Return type of the response", default=IsochroneExportType.geojson
     ),
@@ -214,7 +214,7 @@ async def export_isochrones(
         current_user=current_user,
         isochrone_calculation_id=0,
         return_type=return_type.value,
-        geojson_dictionary=item,
+        geojson_dictionary=geojson,
     )
     return file_response
 
