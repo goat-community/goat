@@ -191,7 +191,8 @@ async def test_convert_geojson_to_shapefile_and_xlsx(
         r = await client.post(
             f"{settings.API_V1_STR}/isochrones/export/",
             json=geojson_payload,
-            params={"return_type": export_type},
+            params={"return_type": export_type.value},
+            headers=superuser_token_headers,
         )
         assert 200 <= r.status_code < 300
         assert r.headers["content-type"] == zip_mime_type
