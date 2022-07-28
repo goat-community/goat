@@ -1,5 +1,5 @@
 import json
-from typing import Any
+from typing import Any, Dict
 
 import pandas as pd
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
@@ -193,6 +193,30 @@ async def create_isochrone(
 #         gdf = GeoDataFrame(pd.concat([gdf_default, gdf_scenario]))
 
 #     return json.loads(gdf.reset_index(drop=True).to_json())
+
+
+@router.post("/export/", response_class=StreamingResponse)
+async def export_isochrones(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+    item: Dict,
+    return_type: IsochroneExportType = Query(
+        description="Return type of the response", default=IsochroneExportType.geojson
+    ),
+) -> Any:
+    """
+    Export isochrones from GeoJSON data.
+    """
+
+    file_response = await crud.isochrone.export_isochrone(
+        db=db,
+        current_user=current_user,
+        isochrone_calculation_id=0,
+        return_type=return_type.value,
+        geojson_dictionary=item,
+    )
+    return file_response
 
 
 @router.get("/export/{isochrone_calculation_id}", response_class=StreamingResponse)

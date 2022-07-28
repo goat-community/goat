@@ -441,36 +441,52 @@ class CRUDIsochrone:
         return isochrones_result
 
     async def export_isochrone(
-        self, db: AsyncSession, *, current_user, isochrone_calculation_id, return_type
+        self,
+        db: AsyncSession,
+        *,
+        current_user,
+        isochrone_calculation_id,
+        return_type,
+        geojson_dictionary: dict = None,
     ) -> Any:
+        if geojson_dictionary:
+            features = geojson_dictionary["features"]
+            # Remove the payload and set to true to use it later
+            geojson_dictionary = True
+            for _data in features:
+                # Shape the geometries
+                _data["geometry"] = shape(_data["geometry"])
+            gdf = GeoDataFrame(features).set_geometry("geometry")
+            gdf["minutes"] = gdf["properties"][0]["traveltime"]
+        else:
 
-        sql = text(
-            """
-            SELECT f.step AS seconds, f.id, c.modus, c.routing_profile, f.reached_opportunities, f.geom
-            FROM customer.isochrone_calculation c, customer.isochrone_feature f
-            WHERE c.id = f.isochrone_calculation_id
-            AND c.id = :isochrone_calculation_id
-            AND c.user_id = :user_id
-            """
-        )
+            sql = text(
+                """
+                SELECT f.step AS seconds, f.id, c.modus, c.routing_profile, f.reached_opportunities, f.geom
+                FROM customer.isochrone_calculation c, customer.isochrone_feature f
+                WHERE c.id = f.isochrone_calculation_id
+                AND c.id = :isochrone_calculation_id
+                AND c.user_id = :user_id
+                """
+            )
 
-        gdf = read_postgis(
-            sql,
-            legacy_engine,
-            geom_col="geom",
-            params={
-                "user_id": current_user.id,
-                "isochrone_calculation_id": isochrone_calculation_id,
-            },
-        )
+            gdf = read_postgis(
+                sql,
+                legacy_engine,
+                geom_col="geom",
+                params={
+                    "user_id": current_user.id,
+                    "isochrone_calculation_id": isochrone_calculation_id,
+                },
+            )
 
-        gdf = pd.concat(
-            [gdf, pd.json_normalize(gdf["reached_opportunities"]).astype("Int64")],
-            axis=1,
-            join="inner",
-        )
-        gdf["seconds"] = round(gdf["seconds"] / 60).astype(int)
-        gdf = gdf.rename(columns={"seconds": "minutes"})
+            gdf = pd.concat(
+                [gdf, pd.json_normalize(gdf["reached_opportunities"]).astype("Int64")],
+                axis=1,
+                join="inner",
+            )
+            gdf["seconds"] = round(gdf["seconds"] / 60).astype(int)
+            gdf = gdf.rename(columns={"seconds": "minutes"})
         # Preliminary fix for tranlation POIs categories
         ########################################################################################################################
         if current_user.language_preference == "de":
@@ -507,7 +523,8 @@ class CRUDIsochrone:
                 encoding="utf-8",
             )
         elif return_type == IsochroneExportType.xlsx:
-            gdf = gdf.drop(["reached_opportunities", "geom"], axis=1)
+            if not geojson_dictionary:
+                gdf = gdf.drop(["reached_opportunities", "geom"], axis=1)
             writer = pd.ExcelWriter(
                 file_name + "." + IsochroneExportType.xlsx.name, engine="xlsxwriter"
             )
