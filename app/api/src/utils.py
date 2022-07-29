@@ -490,6 +490,26 @@ def coordinate_from_pixel(pixel, zoom):
     }
 
 
+def coordinate_to_pixel(input, zoom):
+    return {
+        "x": longitude_to_pixel(input[0], zoom),
+        "y": latitude_to_pixel(input[1], zoom),
+    }
+
+
+def longitude_to_pixel(longitude, zoom):
+    return ((longitude + 180) / 360) * z_scale(zoom)
+
+
+def latitude_to_pixel(latitude, zoom):
+    lat_rad = (latitude * math.pi) / 180
+    return ((1 - math.log(math.tan(lat_rad) + 1 / math.cos(lat_rad)) / math.pi) / 2) * z_scale(
+        zoom
+    )
+
+
+
+
 def katana(geometry, threshold, count=0):
     """Split a Polygon into two parts across it's shortest dimension"""
     bounds = geometry.bounds
