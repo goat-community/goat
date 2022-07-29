@@ -7,10 +7,11 @@ from sqlalchemy.sql import and_, func
 from src import crud
 from src.crud.base import CRUDBase
 from src.db import models
+from src.db.models import study_area
 from src.db.models.config_validation import *
 from src.db.models.customization import Customization
 from sqlalchemy.sql import delete, select
-
+from fastapi.encoders import jsonable_encoder
 
 class CRUDCustomization(
     CRUDBase[models.Customization, models.Customization, models.Customization]
@@ -232,6 +233,10 @@ class CRUDDynamicCustomization:
         combined_settings["aoi_groups"] = combined_aoi_settings[0]
         combined_settings["poi_groups"] = combined_poi_settings[0]
         
+        # Added geostores to settings
+        study_area_obj = await crud.study_area.get(db, id=current_user.active_study_area_id, extra_fields=[models.StudyArea.geostores])
+        combined_settings["geostores"] = jsonable_encoder(study_area_obj.geostores)
+
         return combined_settings
 
     async def insert_opportunity_setting(
