@@ -1,6 +1,5 @@
 from typing import List
 
-import geopandas
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,34 +11,14 @@ from src.endpoints import deps
 from src.schemas.data_frame import validate_data_frame
 from src.utils import (
     convert_postgist_to_4326,
-    delete_file,
     generate_static_layer_table_name,
     geopandas_read_file,
-    return_geojson_or_geobuf,
 )
 
 router = APIRouter()
 
 
-@router.get("/static/{layer_name}")
-async def static_vector_layer(
-    *,
-    db: AsyncSession = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user),
-    layer_name: str,
-    return_type: str,
-):
-    """Return selected layers in different vector formats"""
-    layer_to_return = await crud.layer.static_vector_layer(
-        db, current_user, layer_name, return_type
-    )
-    return return_geojson_or_geobuf(layer_to_return, return_type)
-
-
-router2 = APIRouter()
-
-
-@router2.post("/static")
+@router.post("/static")
 async def upload_static_layer(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -78,7 +57,7 @@ async def upload_static_layer(
     return static_layer
 
 
-@router2.get("/static/", response_model=List[models.StaticLayer])
+@router.get("/static/", response_model=List[models.StaticLayer])
 async def list_static_layers(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
@@ -91,7 +70,7 @@ async def list_static_layers(
     return static_layers
 
 
-@router2.get("/static/{layer_id:int}")
+@router.get("/static/{layer_id:int}")
 async def get_static_layer_data(
     *,
     layer_id: int,
@@ -105,7 +84,7 @@ async def get_static_layer_data(
     return static_layer
 
 
-@router2.put("/static/{layer_id:int}")
+@router.put("/static/{layer_id:int}")
 async def update_static_layer_data(
     *,
     layer_id: int,
@@ -147,7 +126,7 @@ async def update_static_layer_data(
     return static_layer
 
 
-@router2.delete("/static/{layer_id:int}")
+@router.delete("/static/{layer_id:int}")
 async def update_static_layer_data(
     *,
     layer_id: int,

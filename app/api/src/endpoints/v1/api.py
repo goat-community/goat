@@ -13,6 +13,7 @@ from src.endpoints.v1 import (
     roles,
     scenarios,
     static_layers,
+    static_layers_extra,
     upload,
     users,
     utils,
@@ -35,7 +36,7 @@ api_router.include_router(
     static_layers.router, prefix="/layers/vector", tags=["Static vector layers"]
 )
 api_router.include_router(
-    static_layers.router2, prefix="/config/layers/vector", tags=["Static vector layers"]
+    static_layers_extra.router, prefix="/config/layers/vector", tags=["Static vector layers"]
 )
 
 # LAYER: Vector tile endpoints.
